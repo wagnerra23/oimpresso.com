@@ -1,0 +1,11 @@
+{
+    "name": "Grow",
+    "alias": "grow",
+    "description": "Sistema de produção do Office impresso",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Grow\\Providers\\GrowServiceProvider"
+    ],
+    "files": []
+}

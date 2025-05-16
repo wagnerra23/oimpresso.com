@@ -1,0 +1,25 @@
+{
+    "name": "wr2/writebot",
+    "description": "WriteBot AI irá criar a cópia de marketing para você",
+    "authors": [
+        {
+            "name": "Office Impresso",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Writebot\\Providers\\WritebotServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Writebot\\": ""
+        }
+    }
+}

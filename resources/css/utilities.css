@@ -1,0 +1,9 @@
+.shadow-light {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.text-gradient {
+    background: linear-gradient(to right, #1572E8, #f5365c);
+    -webkit-background-clip: text;
+    color: transparent;
+}

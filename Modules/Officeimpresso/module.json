@@ -1,0 +1,14 @@
+{
+    "name": "Officeimpresso",
+    "alias": "officeimpresso",
+    "description": "Sistema Office Impresso descktop licenciamento",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Officeimpresso\\Providers\\OfficeimpressoServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

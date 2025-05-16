@@ -1,0 +1,16 @@
+{
+    "name": "IProduction",
+    "alias": "iproduction",
+    "description": "Software de Gestão de Produção e Fabricação",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\IProduction\\Providers\\IProductionServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}
