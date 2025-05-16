@@ -1,0 +1,25 @@
+{
+    "name": "nwidart/officeimpresso",
+    "description": "",
+    "authors": [
+        {
+            "name": "Wagner Rocha Araujo",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Officeimpresso\\Providers\\OfficeimpressoServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Officeimpresso\\": ""
+        }
+    }
+}
