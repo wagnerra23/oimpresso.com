@@ -1,0 +1,16 @@
+settings_business.blade -> pagina de configuração da empresa.
+
+
+
+
+
+
+slym
+
+index.blade.php -> emitente
+
+
+ (emitente)
+Varchar
+191
+utf8mb4_unicode
