@@ -1,0 +1,25 @@
+{
+    "name": "twf/Jana",
+    "description": "",
+    "authors": [
+        {
+            "name": "WR2 Sistemas",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Jana\\Providers\\JanaServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Jana\\": ""
+        }
+    }
+}

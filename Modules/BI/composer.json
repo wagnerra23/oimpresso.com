@@ -1,0 +1,25 @@
+{
+    "name": "twf/BI",
+    "description": "",
+    "authors": [
+        {
+            "name": "WR2 Sistemas",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\BI\\Providers\\BIServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\BI\\": ""
+        }
+    }
+}

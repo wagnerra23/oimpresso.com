@@ -1,0 +1,80 @@
+//Fonts
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+@import url("../fonts/datta/datta-icon.css");
+@import url("../fonts/feather/css/feather.css");
+@import url("../plugins/jquery-scrollbar/css/perfect-scrollbar.css");
+
+//Variables
+@import 'variables';
+
+//Bootstrap
+@import '~bootstrap/scss/bootstrap';
+@import '~vue-form-wizard/dist/vue-form-wizard.min';
+
+//fontawesome
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
+@import '~@fortawesome/fontawesome-free/scss/regular';
+@import '~@fortawesome/fontawesome-free/scss/solid';
+@import '~@fortawesome/fontawesome-free/scss/brands';
+
+//nprogress
+@import 'node_modules/nprogress/nprogress';
+
+//select2
+@import '../plugins/select2/css/select2.min.css';
+
+//prism
+@import '../plugins/prism/prism.css';
+
+//toastr
+@import '~toastr/toastr';
+
+//daterangepicker
+@import '../../node_modules/daterangepicker/daterangepicker';
+
+//tagify
+@import 'node_modules/@yaireo/tagify/dist/tagify';
+
+//vue-select
+@import "~vue-select/dist/vue-select.css";
+
+//custom-css
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.no-wrap {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.max-width-250 {
+    max-width: 250px;
+}
+
+//select2:causing horizontal scrollbar appearing
+body {
+  overflow-x: hidden;
+}
+
+#___gcse_0 {
+	visibility: hidden !important;
+	height: 0px;
+}
+
+.split-word {
+	word-break: break-word;	
+}
+
+.ws-pre-wrap{
+	white-space: pre-wrap;
+}
+
+.text-dark {
+	color: #212529 !important;
+}
+
+.ws-break-spaces{
+	white-space: break-spaces !important;
+}

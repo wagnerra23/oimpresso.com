@@ -1,0 +1,2546 @@
+{
+    "variables": [],
+    "info": {
+        "name": " API",
+        "_postman_id": "82e8d158-fe06-426d-9e1c-5af0d0c9b345",
+        "description": "",
+        "schema": "https:\/\/schema.getpostman.com\/json\/collection\/v2.0.0\/collection.json"
+    },
+    "item": [
+        {
+            "name": "Attendance management",
+            "description": "",
+            "item": [
+                {
+                    "name": "Get Attendance",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/get-attendance\/:user_id",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "user_id",
+                                    "key": "user_id",
+                                    "value": "1",
+                                    "description": "id of the user"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Clock In",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/clock-in",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": 1,\n    \"clock_in_time\": \"2000-06-13 13:13:00\",\n    \"clock_in_note\": \"odio\",\n    \"ip_address\": \"aut\"\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Clock Out",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/clock-out",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": 1,\n    \"clock_out_time\": \"2000-06-13 13:13:00\",\n    \"clock_out_note\": \"laudantium\"\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "List Holidays",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/holidays",
+                            "query": [
+                                {
+                                    "key": "location_id",
+                                    "value": "molestias",
+                                    "description": "id of the location",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2020-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2020-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Brand management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List brands",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/brand",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified brand",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/brand\/:brand",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "brand",
+                                    "key": "brand",
+                                    "value": "1",
+                                    "description": "comma separated ids of the brands"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Business Location management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List business locations",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/business-location",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified business location",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/business-location\/:business_location",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Cash register management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List Cash Registers",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/cash-register",
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "open",
+                                    "description": "status of the register (open, close)",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "user_id",
+                                    "value": "10",
+                                    "description": "id of the user",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2018-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2018-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "location_id",
+                                    "value": "fugit",
+                                    "description": "id of the location",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15",
+                                    "description": "Total records per page. default: 10, Set -1 for no pagination",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Create Cash Register",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/cash-register",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"location_id\": 19,\n    \"initial_amount\": 3.8,\n    \"created_at\": \"2020-5-7 15:20:22\",\n    \"closed_at\": \"2020-5-7 15:20:22\",\n    \"status\": \"close\",\n    \"closing_amount\": 5587.99893214,\n    \"total_card_slips\": 13,\n    \"total_cheques\": 7,\n    \"closing_note\": \"aut\",\n    \"transaction_ids\": \"1,2,3\"\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified Register",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/cash-register\/:cash_register",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "cash_register",
+                                    "key": "cash_register",
+                                    "value": "59",
+                                    "description": "comma separated ids of the cash registers"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Contact management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List contact",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/contactapi",
+                            "query": [
+                                {
+                                    "key": "type",
+                                    "value": "deserunt",
+                                    "description": "Type of contact (supplier, customer, lead)",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Create contact",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/contactapi",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"customer\",\n    \"supplier_business_name\": \"aut\",\n    \"prefix\": \"debitis\",\n    \"name\": \"quia\",\n    \"middle_name\": \"voluptates\",\n    \"last_name\": \"aperiam\",\n    \"tax_number\": \"8787fefef\",\n    \"pay_term_number\": 3,\n    \"pay_term_type\": \"months\",\n    \"mobile\": \"4578691009\",\n    \"landline\": \"5487-8454-4145\",\n    \"alternate_number\": \"841847541222\",\n    \"address_line_1\": \"molestias\",\n    \"address_line_2\": \"temporibus\",\n    \"city\": \"dolorum\",\n    \"state\": \"eligendi\",\n    \"country\": \"maiores\",\n    \"zip_code\": \"officiis\",\n    \"customer_group_id\": \"corporis\",\n    \"contact_id\": \"aut\",\n    \"dob\": \"2000-06-13\",\n    \"custom_field1\": \"aspernatur\",\n    \"custom_field2\": \"non\",\n    \"custom_field3\": \"sed\",\n    \"custom_field4\": \"velit\",\n    \"email\": \"nobis\",\n    \"shipping_address\": \"iure\",\n    \"position\": \"ratione\",\n    \"opening_balance\": 0,\n    \"source_id\": 3,\n    \"life_stage_id\": 15,\n    \"assigned_to\": []\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified contact",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/contactapi\/:contactapi",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Update contact",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/contactapi\/:contactapi",
+                            "query": []
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"customer\",\n    \"supplier_business_name\": \"distinctio\",\n    \"prefix\": \"labore\",\n    \"name\": \"officiis\",\n    \"middle_name\": \"nostrum\",\n    \"last_name\": \"beatae\",\n    \"tax_number\": \"488744dwd\",\n    \"pay_term_number\": 3,\n    \"pay_term_type\": \"months\",\n    \"mobile\": \"8795461009\",\n    \"landline\": \"65484-848-848\",\n    \"alternate_number\": \"9898795220\",\n    \"address_line_1\": \"quidem\",\n    \"address_line_2\": \"odio\",\n    \"city\": \"est\",\n    \"state\": \"omnis\",\n    \"country\": \"nemo\",\n    \"zip_code\": \"sunt\",\n    \"customer_group_id\": \"voluptatibus\",\n    \"contact_id\": \"sed\",\n    \"dob\": \"2000-06-13\",\n    \"custom_field1\": \"consequatur\",\n    \"custom_field2\": \"esse\",\n    \"custom_field3\": \"iure\",\n    \"custom_field4\": \"fugiat\",\n    \"email\": \"quas\",\n    \"shipping_address\": \"quia\",\n    \"position\": \"et\",\n    \"opening_balance\": 10.3,\n    \"source_id\": 1,\n    \"life_stage_id\": 1,\n    \"assigned_to\": []\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Contact payment",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/contactapi-payment",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"contact_id\": 17,\n    \"amount\": 453.13,\n    \"method\": \"cash\",\n    \"paid_on\": \"2020-07-22 15:48:29\",\n    \"account_id\": 5,\n    \"card_number\": \"sapiente\",\n    \"card_holder_name\": \"rerum\",\n    \"card_transaction_number\": \"nulla\",\n    \"card_type\": \"et\",\n    \"card_month\": \"perferendis\",\n    \"card_year\": \"dolorem\",\n    \"card_security\": \"nam\",\n    \"transaction_no_1\": \"nulla\",\n    \"transaction_no_2\": \"deleniti\",\n    \"transaction_no_3\": \"quo\",\n    \"cheque_number\": \"dolor\",\n    \"bank_account_number\": \"voluptas\",\n    \"note\": \"dolorem\"\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Expense management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List expenses",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/expense",
+                            "query": [
+                                {
+                                    "key": "location_id",
+                                    "value": "est",
+                                    "description": "id of the location",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "payment_status",
+                                    "value": "paid",
+                                    "description": "payment status",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2018-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2018-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "expense_for",
+                                    "value": "libero",
+                                    "description": "id of the user for which expense is created",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15",
+                                    "description": "Total records per page. default: 10, Set -1 for no pagination",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Create expense \/ expense refund",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/expense",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"location_id\": 8,\n    \"final_total\": 264049.1125438,\n    \"transaction_date\": \"2020-5-7 15:20:22\",\n    \"tax_rate_id\": 3,\n    \"expense_for\": 8,\n    \"contact_id\": 3,\n    \"additional_notes\": \"error\",\n    \"is_refund\": 0,\n    \"is_recurring\": 0,\n    \"recur_interval\": 17,\n    \"recur_interval_type\": \"months\",\n    \"subscription_repeat_on\": 15,\n    \"subscription_no\": \"iste\",\n    \"recur_repetitions\": 6,\n    \"payment\": [\n        {\n            \"amount\": 453.13,\n            \"method\": \"cash\",\n            \"account_id\": 9,\n            \"card_number\": \"et\",\n            \"card_holder_name\": \"corporis\",\n            \"card_transaction_number\": \"aut\",\n            \"card_type\": \"qui\",\n            \"card_month\": \"recusandae\",\n            \"card_year\": \"qui\",\n            \"card_security\": \"maiores\",\n            \"transaction_no_1\": \"totam\",\n            \"transaction_no_2\": \"est\",\n            \"transaction_no_3\": \"recusandae\",\n            \"note\": \"omnis\",\n            \"cheque_number\": \"tempora\"\n        }\n    ]\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified expense \/ expense refund",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/expense\/:expense",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "expense",
+                                    "key": "expense",
+                                    "value": "59",
+                                    "description": "comma separated ids of the expenses"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Update expense \/ expense refund",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/expense\/:expense",
+                            "query": []
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"final_total\": 335241.156049818,\n    \"transaction_date\": \"2020-5-7 15:20:22\",\n    \"tax_rate_id\": 20,\n    \"expense_for\": 14,\n    \"contact_id\": 8,\n    \"additional_notes\": \"aut\",\n    \"is_recurring\": 0,\n    \"recur_interval\": 1,\n    \"recur_interval_type\": \"months\",\n    \"subscription_repeat_on\": 15,\n    \"subscription_no\": \"ipsam\",\n    \"recur_repetitions\": 3,\n    \"payment\": []\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "List expense refunds",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/expense-refund",
+                            "query": [
+                                {
+                                    "key": "location_id",
+                                    "value": "ea",
+                                    "description": "id of the location",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "payment_status",
+                                    "value": "paid",
+                                    "description": "payment status",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2018-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2018-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "expense_for",
+                                    "value": "ipsum",
+                                    "description": "id of the user for which expense is created",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15",
+                                    "description": "Total records per page. default: 10, Set -1 for no pagination",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Product management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List products",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/product",
+                            "query": [
+                                {
+                                    "key": "brand_id",
+                                    "value": "laborum",
+                                    "description": "",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "category_id",
+                                    "value": "aut",
+                                    "description": "",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "sub_category_id",
+                                    "value": "ratione",
+                                    "description": "",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "location_id",
+                                    "value": "sunt",
+                                    "description": "",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "selling_price_group",
+                                    "value": "sit",
+                                    "description": "(1, 0)",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "est",
+                                    "description": "Search term for product name",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "sku",
+                                    "value": "dolorem",
+                                    "description": "Search term for product sku",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "10",
+                                    "description": "Total records per page. default: 10, Set -1 for no pagination",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified product",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/product\/:product",
+                            "query": [
+                                {
+                                    "key": "selling_price_group",
+                                    "value": "quibusdam",
+                                    "description": "(1, 0)",
+                                    "disabled": false
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "id": "product",
+                                    "key": "product",
+                                    "value": "1",
+                                    "description": "comma separated ids of products"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "List Selling Price Group",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/selling-price-group",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "List Variations",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/variation\/:id",
+                            "query": [
+                                {
+                                    "key": "brand_id",
+                                    "value": "asperiores",
+                                    "description": "",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "category_id",
+                                    "value": "voluptatem",
+                                    "description": "",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "sub_category_id",
+                                    "value": "delectus",
+                                    "description": "",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "not_for_selling",
+                                    "value": "assumenda",
+                                    "description": "Values: 0 or 1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "doloremque",
+                                    "description": "Search term for product name",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "sku",
+                                    "value": "et",
+                                    "description": "Search term for product sku",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "10",
+                                    "description": "Total records per page. default: 10, Set -1 for no pagination",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Sales management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List sells",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/sell",
+                            "query": [
+                                {
+                                    "key": "location_id",
+                                    "value": "error",
+                                    "description": "id of the location",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "contact_id",
+                                    "value": "ab",
+                                    "description": "id of the customer",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "payment_status",
+                                    "value": "paid",
+                                    "description": "payment status",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2018-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2018-06-25",
+                                    "description": "format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "user_id",
+                                    "value": "nesciunt",
+                                    "description": "id of the user who created the sale",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "service_staff_id",
+                                    "value": "autem",
+                                    "description": "id of the service staff assigned with the sale",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "shipping_status",
+                                    "value": "ordered",
+                                    "description": "Shipping Status of the sale ('ordered', 'packed', 'shipped', 'delivered', 'cancelled')",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "only_subscriptions",
+                                    "value": "natus",
+                                    "description": "Filter only subcription invoices (1, 0)",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "10",
+                                    "description": "Total records per page. default: 10, Set -1 for no pagination",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Create sell",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/sell",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sells\": [\n        {\n            \"location_id\": 4,\n            \"contact_id\": 5,\n            \"transaction_date\": \"2020-07-22 15:48:29\",\n            \"invoice_no\": \"in\",\n            \"status\": \"final\",\n            \"is_quotation\": true,\n            \"tax_rate_id\": 17,\n            \"discount_amount\": 10,\n            \"discount_type\": \"fixed\",\n            \"sale_note\": \"odio\",\n            \"staff_note\": \"velit\",\n            \"commission_agent\": 14,\n            \"shipping_details\": \"Express Delivery\",\n            \"shipping_address\": \"quo\",\n            \"shipping_status\": \"ordered\",\n            \"delivered_to\": \"'Mr robin'\",\n            \"shipping_charges\": 10,\n            \"packing_charge\": 10,\n            \"exchange_rate\": 1,\n            \"selling_price_group_id\": 10,\n            \"pay_term_number\": 3,\n            \"pay_term_type\": \"months\",\n            \"is_recurring\": 0,\n            \"recur_interval\": 15,\n            \"recur_interval_type\": \"months\",\n            \"subscription_repeat_on\": 15,\n            \"subscription_no\": \"libero\",\n            \"recur_repetitions\": 4,\n            \"rp_redeemed\": 18,\n            \"rp_redeemed_amount\": 13.5,\n            \"types_of_service_id\": 17,\n            \"service_custom_field_1\": \"iure\",\n            \"service_custom_field_2\": \"reiciendis\",\n            \"service_custom_field_3\": \"consequuntur\",\n            \"service_custom_field_4\": \"sit\",\n            \"round_off_amount\": 9809664.87,\n            \"table_id\": 20,\n            \"service_staff_id\": 7,\n            \"change_return\": 0,\n            \"products\": [\n                {\n                    \"product_id\": 17,\n                    \"variation_id\": 58,\n                    \"quantity\": 1,\n                    \"unit_price\": 437.5,\n                    \"tax_rate_id\": 0,\n                    \"discount_amount\": 0,\n                    \"discount_type\": \"percentage\",\n                    \"sub_unit_id\": 18,\n                    \"note\": \"excepturi\"\n                }\n            ],\n            \"payments\": [\n                {\n                    \"amount\": 453.13,\n                    \"method\": \"cash\",\n                    \"account_id\": 9,\n                    \"card_number\": \"animi\",\n                    \"card_holder_name\": \"odit\",\n                    \"card_transaction_number\": \"dolorum\",\n                    \"card_type\": \"autem\",\n                    \"card_month\": \"sit\",\n                    \"card_year\": \"adipisci\",\n                    \"card_security\": \"facere\",\n                    \"transaction_no_1\": \"error\",\n                    \"transaction_no_2\": \"consequuntur\",\n                    \"transaction_no_3\": \"harum\",\n                    \"bank_account_number\": \"odio\",\n                    \"note\": \"quia\",\n                    \"cheque_number\": \"facere\"\n                }\n            ]\n        }\n    ]\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified sell",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/sell\/:sell",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "sell",
+                                    "key": "sell",
+                                    "value": "55",
+                                    "description": "comma separated ids of the sells"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Update sell",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/sell\/:sell",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "sell",
+                                    "key": "sell",
+                                    "value": "6",
+                                    "description": "id of sell to update"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"contact_id\": 19,\n    \"transaction_date\": \"2020-5-7 15:20:22\",\n    \"status\": \"final\",\n    \"is_quotation\": true,\n    \"tax_rate_id\": 8,\n    \"discount_amount\": 10,\n    \"discount_type\": \"fixed\",\n    \"sale_note\": \"asperiores\",\n    \"staff_note\": \"autem\",\n    \"commission_agent\": 1,\n    \"shipping_details\": \"Express Delivery\",\n    \"shipping_address\": \"voluptatibus\",\n    \"shipping_status\": \"ordered\",\n    \"delivered_to\": \"Mr Robin\",\n    \"shipping_charges\": 10,\n    \"packing_charge\": 10,\n    \"exchange_rate\": 1,\n    \"selling_price_group_id\": 17,\n    \"pay_term_number\": 10,\n    \"pay_term_type\": \"months\",\n    \"is_recurring\": 0,\n    \"recur_interval\": 4,\n    \"recur_interval_type\": \"days\",\n    \"subscription_repeat_on\": 7,\n    \"subscription_no\": \"ea\",\n    \"recur_repetitions\": 11,\n    \"rp_redeemed\": 8,\n    \"rp_redeemed_amount\": 13.5,\n    \"types_of_service_id\": 11,\n    \"service_custom_field_1\": \"nobis\",\n    \"service_custom_field_2\": \"occaecati\",\n    \"service_custom_field_3\": \"vel\",\n    \"service_custom_field_4\": \"magni\",\n    \"round_off_amount\": 16.814344061,\n    \"table_id\": 16,\n    \"service_staff_id\": 18,\n    \"change_return\": 0,\n    \"change_return_id\": 20,\n    \"products\": [\n        {\n            \"sell_line_id\": 10,\n            \"product_id\": 17,\n            \"variation_id\": 58,\n            \"quantity\": 1,\n            \"unit_price\": 437.5,\n            \"tax_rate_id\": 5,\n            \"discount_amount\": 0,\n            \"discount_type\": \"percentage\",\n            \"sub_unit_id\": 11,\n            \"note\": \"voluptatibus\"\n        }\n    ],\n    \"payments\": [\n        {\n            \"payment_id\": 9,\n            \"amount\": 453.13,\n            \"method\": \"cash\",\n            \"account_id\": 4,\n            \"card_number\": \"dolor\",\n            \"card_holder_name\": \"et\",\n            \"card_transaction_number\": \"culpa\",\n            \"card_type\": \"earum\",\n            \"card_month\": \"perspiciatis\",\n            \"card_year\": \"totam\",\n            \"card_security\": \"ipsum\",\n            \"transaction_no_1\": \"est\",\n            \"transaction_no_2\": \"corrupti\",\n            \"transaction_no_3\": \"consectetur\",\n            \"note\": \"aperiam\",\n            \"cheque_number\": \"sed\",\n            \"bank_account_number\": \"sapiente\"\n        }\n    ]\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Delete Sell",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/sell\/:sell",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "sell",
+                                    "key": "sell",
+                                    "value": "eos",
+                                    "description": "id of the sell to be deleted"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Add Sell Return",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/sell-return",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"transaction_id\": 5,\n    \"transaction_date\": \"2020-5-7 15:20:22\",\n    \"invoice_no\": \"sed\",\n    \"discount_amount\": 10,\n    \"discount_type\": \"fixed\",\n    \"products\": [\n        {\n            \"sell_line_id\": 15,\n            \"quantity\": 1,\n            \"unit_price_inc_tax\": 437.5\n        }\n    ]\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "List Sell Return",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/list-sell-return",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Update shipping status",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/update-shipping-status",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"id\": 14,\n    \"shipping_status\": \"ordered\",\n    \"delivered_to\": \"temporibus\"\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Superadmin",
+            "description": "",
+            "item": [
+                {
+                    "name": "Get active subscription details",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/active-subscription",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get Superadmin Package List",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/packages",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Table management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List tables",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/table",
+                            "query": [
+                                {
+                                    "key": "location_id",
+                                    "value": "assumenda",
+                                    "description": "int id of the location",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Show the specified table",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/table\/:table",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "table",
+                                    "key": "table",
+                                    "value": "5",
+                                    "description": "comma separated ids of required tables"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Tax management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List taxes",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/tax",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified tax",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/tax\/:tax",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "tax",
+                                    "key": "tax",
+                                    "value": "1",
+                                    "description": "comma separated ids of required taxes"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Taxonomy management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List taxonomy",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/taxonomy",
+                            "query": [
+                                {
+                                    "key": "type",
+                                    "value": "molestiae",
+                                    "description": "Type of taxonomy (product, device, hrm_department)",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified taxonomy",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/taxonomy\/:taxonomy",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "taxonomy",
+                                    "key": "taxonomy",
+                                    "value": "1",
+                                    "description": "comma separated ids of product categories"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Types of service management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List types of service",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/types-of-service",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified types of service",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/types-of-service\/:types_of_service",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "types_of_service",
+                                    "key": "types_of_service",
+                                    "value": "1",
+                                    "description": "comma separated ids of required types of services"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Unit management",
+            "description": "",
+            "item": [
+                {
+                    "name": "List units",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/unit",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified unit",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/unit\/:unit",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "unit",
+                                    "key": "unit",
+                                    "value": "1",
+                                    "description": "comma separated ids of the units"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "User management",
+            "description": "",
+            "item": [
+                {
+                    "name": "Get the loggedin user details.",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/user\/loggedin",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "List users",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/user",
+                            "query": [
+                                {
+                                    "key": "service_staff",
+                                    "value": "praesentium",
+                                    "description": "boolean Filter service staffs from users list (0, 1)",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get the specified user",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/user\/:user",
+                            "query": [],
+                            "variable": [
+                                {
+                                    "id": "user",
+                                    "key": "user",
+                                    "value": "1",
+                                    "description": "comma separated ids of the required users"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Update user password.",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/update-password",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"illo\",\n    \"new_password\": \"et\"\n}"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "general",
+            "description": "",
+            "item": [
+                {
+                    "name": "Display a listing of the resource.",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/business",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Store a newly created resource in storage.",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/business",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Show the specified resource.",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/business\/:business",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Update the specified resource in storage.",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/business\/:business",
+                            "query": []
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Processa os dados do cliente e do equipamento recebidos em um JSON.",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/processa-dados-cliente",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Cria ou atualiza o cliente (Business).",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/salvar-cliente",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Processa o equipamento com base no cliente j\u00e1 cadastrado.",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/salvar-equipamento\/:cliente_id",
+                            "query": []
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "List payment accounts",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/payment-accounts",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "List payment methods",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/payment-methods",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get business details",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/business-details",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get profit and loss report",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/profit-loss-report",
+                            "query": [
+                                {
+                                    "key": "location_id",
+                                    "value": "est",
+                                    "description": "optional id of the location",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2018-06-25",
+                                    "description": "optional format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2018-06-25",
+                                    "description": "optional format:Y-m-d",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "user_id",
+                                    "value": "qui",
+                                    "description": "optional id of the user",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get product current stock",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/product-stock-report",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                },
+                {
+                    "name": "Get notifications",
+                    "request": {
+                        "url": {
+                            "protocol": "https",
+                            "host": "oimpresso.com",
+                            "path": "connector\/api\/notifications",
+                            "query": []
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {token}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]"
+                        },
+                        "description": "",
+                        "response": []
+                    }
+                }
+            ]
+        }
+    ]
+}

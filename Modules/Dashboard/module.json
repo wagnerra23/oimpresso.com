@@ -1,0 +1,16 @@
+{
+    "name": "Dashboard",
+    "alias": "dashboard",
+    "description": "Utilizado para mostrar relatórios gerenciais",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Dashboard\\Providers\\DashboardServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

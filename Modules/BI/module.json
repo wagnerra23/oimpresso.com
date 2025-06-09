@@ -1,0 +1,16 @@
+{
+    "name": "BI",
+    "alias": "BI",
+    "description": "BI Busines Inteligence",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\BI\\Providers\\BIServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

@@ -1,0 +1,25 @@
+{
+    "name": "twf/fiscal",
+    "description": "",
+    "authors": [
+        {
+            "name": "Office Impresso",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Fiscal\\Providers\\FiscalServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Fiscal\\": ""
+        }
+    }
+}

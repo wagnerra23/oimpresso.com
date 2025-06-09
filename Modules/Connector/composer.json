@@ -1,0 +1,32 @@
+{
+    "name": "twf/connector",
+    "description": "Connector module for Laravel",
+    "type": "laravel-module",
+    "require": {
+        "php": ">=7.1.3",
+        "illuminate/support": "5.*",
+        "nesbot/carbon": "^2.0"
+    },
+    "authors": [
+        {
+            "name": "The Web Fosters",
+            "email": "thewebfosters@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Modules\\Connector\\": ""
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Connector\\Providers\\ConnectorServiceProvider"
+            ],
+            "aliases": {
+                // Você pode adicionar aliases aqui se necessário
+                'DB' => Illuminate\Support\Facades\DB::class
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "name": "Jana",
+    "alias": "Jana IA Assistente",
+    "description": "Jana IA Assistente",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Jana\\Providers\\JanaServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

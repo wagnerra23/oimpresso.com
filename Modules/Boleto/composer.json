@@ -1,0 +1,25 @@
+{
+    "name": "twf/boleto",
+    "description": "",
+    "authors": [
+        {
+            "name": "Office Impresso",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Boleto\\Providers\\BoletoServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Boleto\\": ""
+        }
+    }
+}

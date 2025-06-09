@@ -1,0 +1,16 @@
+{
+    "name": "Boleto",
+    "alias": "beleto",
+    "description": "Usado para imprimir Boletos do Brasil",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Boleto\\Providers\\BoletoServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

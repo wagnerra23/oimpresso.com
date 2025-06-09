@@ -1,0 +1,16 @@
+{
+    "name": "Officeimpresso",
+    "alias": "Officeimpresso",
+    "description": "Sistema Offiline do Office Impresso",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Officeimpresso\\Providers\\OfficeimpressoServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

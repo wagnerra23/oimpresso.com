@@ -1,0 +1,16 @@
+{
+    "name": "Fiscal",
+    "alias": "fiscal",
+    "description": "Usado para imprimir NFe, NFCe",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Fiscal\\Providers\\FiscalServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}
