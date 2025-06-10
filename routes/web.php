@@ -31,6 +31,7 @@ Route::middleware(['setData'])->group(function () {
         ->name('show_quote');
 });
 
+
 //Routes for authenticated users only
 Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])->group(function () {
 
@@ -194,7 +195,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         
         Route::get('/delete/{id}', 'DevolucaoController@delete');
         Route::post('/transmitir', 'DevolucaoController@transmitir');
-        Route::post('/cancelar', 'DevolucaoController@cancelar');
+        Route::post('/cancelar', 'DevolucaoController@cancelar');     
 
     });
     Route::get('/home', 'HomeController@index')->name('home');
