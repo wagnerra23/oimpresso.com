@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddOfficeImpressoFieldsToProductsTable extends Migration
+class AddOfficeimpressoFieldsToProductsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -71,7 +71,7 @@ class AddOfficeImpressoFieldsToProductsTable extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
              // Reverter para os valores originais
-             $table->string('name', 255)->change(); // Valor padrÃ£o no Laravel
+             $table->string('name', 255)->change(); // Valor padrão no Laravel
              $table->string('descricao', 255)->nullable()->change();       
             // Removendo os campos adicionados
             $table->dropColumn([
