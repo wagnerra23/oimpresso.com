@@ -18,6 +18,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\TransactionSellLine;
 use App\TransactionPayment;
 use App\Events\TransactionPaymentDeleted;
+
 class SellReturnController extends Controller
 {
     /**
@@ -44,6 +45,7 @@ class SellReturnController extends Controller
         $this->businessUtil = $businessUtil;
         $this->moduleUtil = $moduleUtil;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -182,7 +184,7 @@ class SellReturnController extends Controller
         }
         $business_locations = BusinessLocation::forDropdown($business_id, false);
         $customers = Contact::customersDropdown($business_id, false);
-        
+      
         $sales_representative = User::forDropdown($business_id, false, false, true);
 
         return view('sell_return.index')->with(compact('business_locations', 'customers', 'sales_representative'));
@@ -269,7 +271,7 @@ class SellReturnController extends Controller
                 if (!$this->moduleUtil->isSubscribed($business_id)) {
                     return $this->moduleUtil->expiredResponse(action('SellReturnController@index'));
                 }
-
+        
                 $user_id = $request->session()->get('user.id');
                 $contact_id = $request->session()->get('contact.id');
                 $input['check_credit'] = $request->has('check_credit') ? 1 : null;
@@ -279,7 +281,7 @@ class SellReturnController extends Controller
                 $sell_return =  $this->transactionUtil->addSellReturn($input, $business_id, $user_id);
 
                 $receipt = $this->receiptContent($business_id, $sell_return->location_id, $sell_return->id);
-
+                
                 DB::commit();
 
                 $output = ['success' => 1,
@@ -381,6 +383,7 @@ class SellReturnController extends Controller
         if (!auth()->user()->can('access_sell_return')) {
             abort(403, 'Unauthorized action.');
         }
+
         if (request()->ajax()) {
             try {
                 $business_id = request()->session()->get('user.business_id');
@@ -392,10 +395,10 @@ class SellReturnController extends Controller
                     ->where('type', 'sell_return')
                     ->with(['sell_lines', 'payment_lines'])
                     ->first();
-                
+
                 $sell_lines = TransactionSellLine::where('transaction_id', 
                                             $sell_return->return_parent_id)
-                                                  ->get();
+                                    ->get();
 
                 if (!empty($sell_return)) {
                     $transaction_payments = $sell_return->payment_lines;

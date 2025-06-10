@@ -489,6 +489,7 @@ class SellPosController extends Controller
                 if ($this->transactionUtil->isModuleEnabled('service_staff')) {
                     $input['res_waiter_id'] = request()->get('res_waiter_id');
                 }
+
                 $transaction = $this->transactionUtil->createSellTransaction($business_id, $input, $invoice_total, $user_id);
 
                 //Register the balance if used

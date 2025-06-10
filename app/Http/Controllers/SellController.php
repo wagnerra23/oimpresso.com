@@ -476,7 +476,7 @@ class SellController extends Controller
         return view('sell.index')
         ->with(compact('business_locations', 'customers', 'is_woocommerce', 'sales_representative', 'is_cmsn_agent_enabled', 'commission_agents', 'service_staffs', 'is_tables_enabled', 'is_service_staff_enabled', 'is_types_service_enabled', 'shipping_statuses'));
     }
-        
+
     /**
      * Show the form for creating a new resource.
      *
@@ -498,7 +498,7 @@ class SellController extends Controller
             ->with('status', $output);
         }
 
-       $business_id = request()->session()->get('user.business_id');
+        $business_id = request()->session()->get('user.business_id');
 
         //Check if subscribed or not, then check for users quota
         if (!$this->moduleUtil->isSubscribed($business_id)) {
@@ -571,26 +571,6 @@ class SellController extends Controller
         }
 
         $status = request()->get('status', '');
-        
-        //Add Payment
-        // $transaction = Transaction::where('id', $id)
-        //                                 ->with(['contact', 'business', 'transaction_for'])
-        //                                 ->first();
-        // $payments_query = TransactionPayment::where('transaction_id', $id);
-
-        // $accounts_enabled = false;
-        //     if ($this->moduleUtil->isModuleEnabled('account')) {
-        //         $accounts_enabled = true;
-        //         $payments_query->with(['payment_account']);
-        //     }
-        // $payments = $payments_query->get();
-
-        // $amount = $transaction->final_total;
-        // $amount_formated = $this->transactionUtil->num_f($amount);
-        // $payment_line = new TransactionPayment();
-        // $payment_line->amount = $amount;
-        // $payment_line->method = 'cash';
-        // $payment_line->paid_on = \Carbon::now()->toDateTimeString();
 
         return view('sell.create')
         ->with('tipo', 'customer')

@@ -452,7 +452,7 @@ class ContactController extends Controller
     }
 
     private function prepareCities(){
-        $cities = Cidades::all();
+        $cities = City::all();
         $temp = [];
         foreach($cities as $c){
             // array_push($temp, $c->id => $c->nome);
@@ -663,7 +663,7 @@ class ContactController extends Controller
                 if (!$this->moduleUtil->isSubscribed($business_id)) {
                     return $this->moduleUtil->expiredResponse();
                 }
-                $input['is_sincronizado'] = null;
+                $input['is_sincronizado'] = false;
                 $output = $this->contactUtil->updateContact($input, $id, $business_id);
 
             } catch (\Exception $e) {

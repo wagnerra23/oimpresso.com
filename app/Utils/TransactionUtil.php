@@ -4930,7 +4930,6 @@ class TransactionUtil extends Util
         } elseif ($type == 'deduct') {
             $contact->balance -= $amount;
         }
-
         $contact->save();
     }
 
@@ -5022,7 +5021,7 @@ class TransactionUtil extends Util
 
         $input['tax_id'] = $input['tax_id'] ?? null;
 
-        $invoice_total = $productUtil->calculateInvoiceTotal($input['products'], $input['tax_id'], $discount, $uf_number);  
+        $invoice_total = $productUtil->calculateInvoiceTotal($input['products'], $input['tax_id'], $discount, $uf_number);
 
         //Get parent sale
         $sell = Transaction::where('business_id', $business_id)
@@ -5034,34 +5033,6 @@ class TransactionUtil extends Util
                 ->where('type', 'sell_return')
                 ->where('return_parent_id', $sell->id)
                 ->first();
-
-        // $adjusted_payments = TransactionPayment::where('business_id', $business_id)
-        //                 ->where('transaction_id', $sell_return->id)
-        //                 ->get();
-
-        // if ($sell_return->check_credit == false && $payment) {
-        //     if (isset($input[('check_credit')])){
-            
-        //         $ref_count = $this->setAndGetReferenceCount('sell_payment');
-
-        //         $adjusted_amount_data = [
-        //             'amount' => 0 - $adjusted_payments->sum('amount'),
-        //             'paid_on' => now(),
-        //             'transaction_id' => $sell_return->id,
-        //             'created_by' => auth()->user()->id,
-        //             'payment_for' => $sell_return->contact_id,
-        //             'method' => 'other',
-        //             'note' => null,
-        //             'account_id' => null,
-        //             'payment_ref_no' => $this->generateReferenceNumber('sell_payment', $ref_count),
-        //             'business_id' => $business_id,
-        //             'document' => null
-        //         ];
-        //         TransactionPayment::create($adjusted_amount_data);
-
-        //         $this->updateContactBalance($sell_return->contact_id, $adjusted_amount_data->amount);
-        //     }
-        // }
 
         $sell_return_data = [
             'invoice_no' => $input['invoice_no'] ?? null,
@@ -5143,8 +5114,6 @@ class TransactionUtil extends Util
                 $productUtil->updateProductQuantity($sell_return->location_id, $sell_line->product_id, $sell_line->variation_id, $quantity, $quantity_before, null, false);
             }
         }
-
-
 
         return $sell_return;     
     }

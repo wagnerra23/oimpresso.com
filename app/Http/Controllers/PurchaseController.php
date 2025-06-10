@@ -560,7 +560,7 @@ class PurchaseController extends Controller
         if($purchase->chave_entrada != ''){
             $output = [
                 'success' => 0,
-                'msg' => 'Nï¿½o ï¿½ possivel editar uma compra com XML!!'
+                'msg' => 'Não é possivel editar uma compra com XML!!'
             ];
             return back()->with('status', $output);
         }

@@ -422,7 +422,7 @@ class TransactionPaymentController extends Controller
                 $payment_line = new TransactionPayment();
                 $payment_line->amount = $amount;
                 $payment_line->method = 'cash';
-                $payment_line->paid_on = \Carbon::now()->toDateTimeString();    
+                $payment_line->paid_on = \Carbon::now()->toDateTimeString();
 
                 //Accounts
                 $accounts = $this->moduleUtil->accountsDropdown($business_id, true, false, true);
@@ -441,49 +441,6 @@ class TransactionPaymentController extends Controller
             return json_encode($output);
         }
     }
-
-    // public function sellPayment()
-    // {
-    //     if (!auth()->user()->can('purchase.payments') && !auth()->user()->can('sell.payments')) {
-    //         abort(403, 'Unauthorized action.');
-    //     }
-
-    //     if (request()->ajax()) {
-    //         $business_id = request()->session()->get('user.business_id');
-
-    //         $transaction = Transaction::where('business_id', $business_id)
-    //                                     ->with(['contact', 'location'])
-    //                                     ->findOrFail($transaction_id);
-    //         if ($transaction->payment_status != 'paid') {
-    //             $show_advance = in_array($transaction->type, ['sell', 'purchase']) ? true : false;
-    //             $payment_types = $this->transactionUtil->payment_types($transaction->location, $show_advance);
-
-    //             $paid_amount = $this->transactionUtil->getTotalPaid($transaction_id);
-    //             $amount = $transaction->final_total - $paid_amount;
-    //             if ($amount < 0) {
-    //                 $amount = 0;
-    //             }
-
-    //             $amount_formated = $this->transactionUtil->num_f($amount);
-
-    //             $payment_line = new TransactionPayment();
-    //             $payment_line->amount = $amount;
-    //             $payment_line->method = 'cash';
-    //             $payment_line->paid_on = \Carbon::now()->toDateTimeString();
-
-    //             //Accounts
-    //             $accounts = $this->moduleUtil->accountsDropdown($business_id, true, false, true);
-
-    //             $view = view('sell.payment_row')
-    //             ->with(compact('transaction', 'payment_types', 'payment_line', 'amount_formated', 'accounts'))->render();
-
-    //             $output = [ 'status' => 'due',
-    //                                 'view' => $view];
-    //         }
-
-    //         return json_encode($output);
-    //     }
-    // }
 
     /**
      * Shows contact's payment due modal

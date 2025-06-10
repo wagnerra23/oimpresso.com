@@ -79,7 +79,7 @@ class ContactUtil extends Util
                         DB::raw("SUM(IF(t.type = 'sell' AND t.status = 'final', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as invoice_received"),
                         DB::raw("SUM(IF(t.type = 'opening_balance', final_total, 0)) as opening_balance"),
                         DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid"),
-                        'contacts.*',
+                        'contacts.*'
                     )->first();
 
         return $contact;
@@ -107,7 +107,7 @@ class ContactUtil extends Util
             if (isset($input['opening_balance'])) {
                 unset($input['opening_balance']);
             }
-
+            
             $contact = Contact::create($input);
 
             //Add opening balance
@@ -172,7 +172,6 @@ class ContactUtil extends Util
                 if (isset($contact->$key))
                     $contact->$key = $value;
             }
-
             $contact->save();
             
             $transactionUtil = new TransactionUtil();
@@ -203,7 +202,7 @@ class ContactUtil extends Util
 
         return $output;
     }
-
+    
     public function getContactQuery($business_id, $type, $contact_ids = [])
     {
         $query = Contact::leftjoin('transactions AS t', 'contacts.id', '=', 't.contact_id')
