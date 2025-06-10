@@ -69,7 +69,7 @@
 
 			<br>
 			{{-- Barcode --}}
-			<img class="center-block" style="max-width:0%; !important;height: {{$barcode_details->height*0.24}}in !important;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($details['details']->sub_sku, $details['details']->barcode_type, 3,30,array(39, 48, 54), true)}}">
+			<img class="center-block" style="max-width:90%; !important;height: {{$barcode_details->height*0.24}}in !important;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($details['details']->sub_sku, $details['details']->barcode_type, 3,30,array(39, 48, 54), true)}}">
 
 		</div>
 		</div>
@@ -126,7 +126,7 @@
 	    box-sizing: border-box;
 	}
 	#preview_box{
-	    padding-left: 30px !important;
+	    padding-left: 100px !important;
 	}
 	@media print{
 	    .content-wrapper{

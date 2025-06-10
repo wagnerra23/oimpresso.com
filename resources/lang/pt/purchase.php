@@ -14,7 +14,7 @@
 "amount" => "Quantidade",
 "payment_method" => "Método de pagamento",
 "no_records_found" => "Nenhum arquivo encontrado",
-"payment_due" => "A receber", 
+"payment_due" => "Data do pagamento", 
 "purchase_total" => "Total compra", 
 "location" => "Localização",
 "payment_note" => "Nota de pagamento",

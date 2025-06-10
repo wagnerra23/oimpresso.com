@@ -26,8 +26,6 @@
   </div>
   @endif
   @endcomponent
-
-  
   @component('components.widget', ['class' => 'box-primary', 'title' => __( 'lang_v1.all_sales')])
   @can('sell.create')
   @slot('tool')
@@ -59,7 +57,7 @@
                 <th>@lang('lang_v1.shipping_status')</th>
                 <th>@lang('lang_v1.total_items')</th>
                 <th>Tipo de serviço</th>
-                <th>{{ $custom_labels['types_of_service']['custom_field_1'] ?? 'Campo personalizado'}}</th>
+                <th>{{ $custom_labels['types_of_service']['custom_field_1'] ?? 'Campo personalziado'}}</th>
                 <th>@lang('lang_v1.added_by')</th>
                 <th>@lang('sale.sell_note')</th>
                 <th>@lang('sale.staff_note')</th>

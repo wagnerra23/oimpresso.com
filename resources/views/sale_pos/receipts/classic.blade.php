@@ -116,11 +116,6 @@
 				@if(!empty($receipt_details->customer_name))
 					<br/>
 					<b>{{ $receipt_details->customer_label }}</b> {{ $receipt_details->customer_name }} <br>
-					@if($cliente->rua)
-					<span>{{ $cliente->rua }}, {{ $cliente->numero }}</span> <br>
-					<span>{{ $cliente->bairro}}</span> <br>
-					<span>{{ $cliente->cep}}</span> <br>
-					@endif
 
 				@endif
 				@if(!empty($receipt_details->customer_info))

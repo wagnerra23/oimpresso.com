@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 @section('title', __('lang_v1.sell_return'))
 
@@ -39,7 +38,6 @@
                 {!! Form::select('created_by', $sales_representative, null, ['class' => 'form-control select2', 'style' => 'width:100%']); !!}
             </div>
         </div>
-       
     @endcomponent
     @component('components.widget', ['class' => 'box-primary', 'title' => __('lang_v1.sell_return')])
         @can('sell.view')
@@ -128,7 +126,6 @@
                 $( row ).find('td:eq(2)').attr('class', 'clickable_td');
             }
         });
-
         $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_customer_id, #created_by',  function() {
             sell_return_table.ajax.reload();
         });

@@ -194,6 +194,7 @@
 				<div class="col-md-3"></div>
 			</span>
 			@endif
+
 			
 			@endcomponent
 
@@ -347,7 +348,7 @@
 			</div>
 		</div>
 		<div class="col-md-4 col-md-offset-4">
-			<b>@lang( 'sale.order_tax' ):</b>(+)
+			<b>@lang( 'sale.order_tax' ):</b>(+) 
 			<span class="display_currency" id="order_tax">0</span>
 		</div>
 		<div class="clearfix"></div>
@@ -620,7 +621,6 @@
 {!! Form::close() !!}
 </section>
 
-
 <div class="modal fade contact_modal" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
 	@include('contact.create', ['quick_add' => true])
 </div>
@@ -634,15 +634,18 @@ aria-labelledby="gridSystemModalLabel">
 
 <!-- quick product modal -->
 <div class="modal fade quick_add_product_modal" tabindex="-1" role="dialog" aria-labelledby="modalTitle"></div>
-	@include('sale_pos.partials.configure_search_modal')
+
+@include('sale_pos.partials.configure_search_modal')
+
 @stop
 
 
 @section('javascript')
 
-	<script src="{{ asset('js/pos.js?v=' . $asset_v) }}"></script>
-	<script src="{{ asset('js/product.js?v=' . $asset_v) }}"></script>
-	<script src="{{ asset('js/opening_stock.js?v=' . $asset_v) }}"></script>
+
+<script src="{{ asset('js/pos.js?v=' . $asset_v) }}"></script>
+<script src="{{ asset('js/product.js?v=' . $asset_v) }}"></script>
+<script src="{{ asset('js/opening_stock.js?v=' . $asset_v) }}"></script>
 
 <!-- Call restaurant module if defined -->
 @if(in_array('tables' ,$enabled_modules) || in_array('modifiers' ,$enabled_modules) || in_array('service_staff' ,$enabled_modules))
@@ -674,4 +677,7 @@ aria-labelledby="gridSystemModalLabel">
 </script>
 
 @endif
+
+
+
 @endsection

@@ -557,7 +557,6 @@ $max_discount = !is_null(auth()->user()->max_sales_discount_percent) ? auth()->u
 	<button type="button" class="btn btn-primary" id="submit-sell">@lang('messages.update')</button>
 	<button type="button" id="save-and-print" class="btn btn-primary btn-flat">@lang('lang_v1.update_and_print')</button>
 </div>
-
 @endcomponent
 
 </div>

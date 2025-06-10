@@ -22,8 +22,8 @@
 					@endif
 					{{-- Variation --}}
 					@if(!empty($print['variations']) && $page_product->is_dummy != 1)
-						<span style="margin-top: -1px; display: block !important; font-size: {{13*$factor}}px">
-							<b>{{$page_product->product_variation_name}}</b>:{{$page_product->variation_name}}
+						<span style="margin-top: -1px; display: block !important; font-size: {{12*$factor}}px">
+							{{$page_product->product_variation_name}}:{{$page_product->variation_name}}
 						</span>
 					@endif
 					{{-- Price --}}

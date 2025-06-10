@@ -24,15 +24,7 @@
 				            </label>
 						</div>
 					</div>
-					@if(request()->session()->get('business.enable_lot_number') == 1)
-					<div class="col-md-12">
-						<div class="checkbox">
-							<label>
-				              	{!! Form::checkbox('search_fields[]', 'lot', true, ['class' => 'input-icheck search_fields']); !!} @lang('lang_v1.lot_number')
-				            </label>
-						</div>
-					</div>
-					@endif
+
 				</div>
 			</div>
 			<div class="modal-footer">

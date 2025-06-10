@@ -1,83 +1,119 @@
-<!-- resources/views/partials/dify.blade.php -->
-<div id="dify-chat-sidebar"
-     class="fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out overflow-hidden flex flex-col"
-     style="max-width: 100vw;"> {{-- Ensure it doesn't overflow viewport width --}}
+<!-- Chat Dify Sidebar -->
+<div id="difyChatSidebar" class="offcanvas offcanvas-end bg-light shadow hidden" tabindex="-1" aria-labelledby="difyChatLabel">
+    <!-- Manipulador de Redimensionamento -->
+    <div class="resize-handle"></div>
 
-    {{-- Header with Title and Close Button --}}
-    <div class="p-4 border-b border-base-300 flex justify-between items-center bg-base-200 flex-shrink-0">
-        <h2 class="text-lg font-semibold">Assistente IA</h2>
-        <button id="close-dify-chat" class="btn btn-sm btn-ghost">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+    <!-- Header -->
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="difyChatLabel">Assistente IA</h5>
+        <button type="button" id="close-dify-chat" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
 
-    {{-- Iframe Container - flex-grow makes it fill remaining space --}}
-    <div class="flex-grow relative">
+    <!-- Iframe Container -->
+    <div class="offcanvas-body p-0">
         <iframe id="dify-chat-iframe"
-                src="URL_DA_SUA_WEBAPP_DIFY_AQUI" {{-- Substitua pela URL real da sua WebApp Dify --}}
+                src="https://jana.wr2.com.br/chat/eBR7KXDlBoTp4QhM"
                 width="100%"
                 height="100%"
                 frameborder="0"
                 allowfullscreen
-                style="border: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;" {{-- Use absolute positioning to fill parent --}}
+                class="border-0 w-100 h-100"
                 title="Chat Dify">
             Seu navegador não suporta iframes.
         </iframe>
     </div>
 </div>
 
-{{-- Overlay for background dimming --}}
-<div id="dify-chat-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity duration-300 ease-in-out"></div>
+<!-- Overlay for background dimming -->
+<div id="dify-chat-overlay" class="offcanvas-backdrop fade hidden"></div>
 
-{{-- JavaScript for toggling the sidebar --}}
-{{-- Idealmente, mova este script para seu arquivo JS principal (ex: app.js) e compile --}}
-@push('scripts') {{-- Use @push para adicionar ao stack de scripts do layout principal --}}
+<style>
+.resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: #ccc;
+    cursor: col-resize;
+    z-index: 1050;
+}
+
+.resize-handle:hover {
+    background: #999;
+}
+
+.offcanvas {
+    width: 600px !important;
+    min-width: 300px;
+    max-width: 800px;
+    transition: transform 0.3s ease;
+}
+
+.offcanvas:not(.showing) {
+    transform: translateX(100%);
+}
+
+.offcanvas-backdrop.show {
+    opacity: 0.5;
+}
+</style>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const sidebar = document.getElementById('dify-chat-sidebar');
-        const overlay = document.getElementById('dify-chat-overlay');
-        const closeButton = document.getElementById('close-dify-chat');
-        // O botão no header.blade.php precisará ter o ID 'open-dify-chat'
-        const openButton = document.getElementById('open-dify-chat'); 
+document.addEventListener('DOMContentLoaded', function () {
+    const sidebar = document.getElementById('difyChatSidebar');
+    const overlay = document.getElementById('dify-chat-overlay');
+    const closeButton = document.getElementById('close-dify-chat');
+    const openButton = document.getElementById('open-dify-chat');
+    const resizeHandle = document.querySelector('#difyChatSidebar .resize-handle');
+    const bootstrapOffcanvas = new bootstrap.Offcanvas(sidebar);
 
-        function openChat() {
-            if (!sidebar || !overlay) return;
-            sidebar.classList.remove('translate-x-full');
-            overlay.classList.remove('hidden');
-            // Forçar reflow para garantir que a transição de opacidade funcione após remover 'hidden'
-            void overlay.offsetWidth; 
-            overlay.classList.add('opacity-100');
-        }
+    function openChat() {
+        if (!sidebar || !overlay) return;
+        bootstrapOffcanvas.show();
+        overlay.classList.add('show');
+    }
 
-        function closeChat() {
-            if (!sidebar || !overlay) return;
-            sidebar.classList.add('translate-x-full');
-            overlay.classList.remove('opacity-100');
-            // Esperar a transição terminar antes de esconder o overlay
-            setTimeout(() => {
-                 overlay.classList.add('hidden');
-            }, 300); // Deve corresponder à duração da transição (duration-300)
-        }
+    function closeChat() {
+        if (!sidebar || !overlay) return;
+        bootstrapOffcanvas.hide();
+        overlay.classList.remove('show');
+    }
 
-        // Adiciona listener ao botão de abrir (que será adicionado no header)
-        if (openButton) {
-            openButton.addEventListener('click', openChat);
-        } else {
-            console.warn("Botão com ID 'open-dify-chat' não encontrado no header. Adicione-o para que o chat possa ser aberto.");
-        }
+    if (openButton) {
+        openButton.addEventListener('click', openChat);
+    } else {
+        console.warn("Botão com ID 'open-dify-chat' não encontrado no header.");
+    }
 
-        // Adiciona listener ao botão de fechar dentro do painel
-        if (closeButton) {
-            closeButton.addEventListener('click', closeChat);
-        }
+    if (closeButton) {
+        closeButton.addEventListener('click', closeChat);
+    }
 
-        // Adiciona listener ao clique no overlay para fechar
-        if (overlay) {
-            overlay.addEventListener('click', closeChat);
-        }
-    });
+    if (overlay) {
+        overlay.addEventListener('click', closeChat);
+    }
+
+    // Redimensionamento
+    let isResizing = false;
+    if (resizeHandle) {
+        resizeHandle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isResizing) {
+                const newWidth = window.innerWidth - e.clientX;
+                if (newWidth >= 300 && newWidth <= 800) {
+                    sidebar.style.width = `${newWidth}px`;
+                }
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+        });
+    }
+});
 </script>
-@endpush
-

@@ -160,7 +160,7 @@
 					&nbsp;(-) <span id="total_return_discount"></span>
 				</div>
 				<div class="col-sm-12 text-right">
-					<strong>@lang('lang_v1.total_return_tax') @if(!empty($sell->tax))({{$sell->tax->name}} - {{$sell->tax->amount}}%)@endif : </strong> 
+					<strong>@lang('lang_v1.total_return_tax') - @if(!empty($sell->tax))({{$sell->tax->name}} - {{$sell->tax->amount}}%)@endif : </strong> 
 					&nbsp;(+) <span id="total_return_tax"></span>
 				</div>
 				<div class="col-sm-12 text-right">
@@ -194,7 +194,7 @@
 	    // });
 	});
 	$(document).on('change', 'input.return_qty, #discount_amount, #discount_type', function(){
-		update_sell_return_total();
+		update_sell_return_total()
 	});
 
 	function update_sell_return_total(){
