@@ -284,9 +284,27 @@ class RepairUtil extends Util
 
         $chart = new CommonChart;
         $chart->labels($labels)
+            ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
             ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
 
         return $chart;
+    }
+
+    private function __chartOptions($title)
+    {
+        return [
+            'yAxis' => [
+                    'title' => [
+                        'text' => $title
+                    ]
+                ],
+            'legend' => [
+                'align' => 'right',
+                'verticalAlign' => 'top',
+                'floating' => true,
+                'layout' => 'vertical'
+            ],
+        ];
     }
     
     public function getTrendingDevices($business_id)
@@ -314,6 +332,7 @@ class RepairUtil extends Util
 
         $chart = new CommonChart;
         $chart->labels($labels)
+            ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
             ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
 
         return $chart;
@@ -361,6 +380,7 @@ class RepairUtil extends Util
 
         $chart = new CommonChart;
         $chart->labels($labels)
+            ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
             ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
 
         return $chart;

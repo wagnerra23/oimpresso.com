@@ -44,6 +44,10 @@
 	                            </div>
 	                            <div class="clearfix"></div>
                         		<div class="col-sm-4">
+							    	<button type="submit" class="btn btn-primary btn-sm">
+                                		@lang('essentials::lang.edit')
+                                	</button>
+                                	&nbsp;
                                 	<button type="submit" class="btn btn-primary btn-sm">
                                 		@lang('essentials::lang.submit')
                                 	</button>

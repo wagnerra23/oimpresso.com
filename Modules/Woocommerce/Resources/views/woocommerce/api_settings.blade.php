@@ -20,6 +20,7 @@
                         <a href="#" class="list-group-item text-center active">@lang('woocommerce::lang.instructions')</a>
                         <a href="#" class="list-group-item text-center">@lang('woocommerce::lang.api_settings')</a>
                         <a href="#" class="list-group-item text-center">@lang('woocommerce::lang.product_sync_settings')</a>
+                        <a href="#" class="list-group-item text-center">@lang('woocommerce::lang.order_sync_settings')</a>
                         <a href="#" class="list-group-item text-center">@lang('woocommerce::lang.webhook_settings')</a>
                     </div>
                 </div>
@@ -27,6 +28,7 @@
                     @include('woocommerce::woocommerce.partials.api_instructions')
                     @include('woocommerce::woocommerce.partials.api_settings')
                     @include('woocommerce::woocommerce.partials.product_sync_settings')
+                    @include('woocommerce::woocommerce.partials.order_sync_settings')
                     @include('woocommerce::woocommerce.partials.webhook_settings')
                 </div>
             </div>

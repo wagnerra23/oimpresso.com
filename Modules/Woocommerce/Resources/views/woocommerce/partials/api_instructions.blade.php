@@ -6,6 +6,7 @@
     			<li>{!! __('woocommerce::lang.ins_2') !!}</li>
     			<li>{!! __('woocommerce::lang.api_settings_help_text') !!}. <a href="https://docs.woocommerce.com/document/woocommerce-rest-api/#section-3" target="_blank">@lang('lang_v1.click_here')</a> @lang('lang_v1.for_more_info')</li>
     			<li>{!! __('woocommerce::lang.api_settings_help_permalink') !!}</li>
+                <li>{!! __('woocommerce::lang.api_settings_help_permalink_reset') !!}</li>
                 @if(config('app.env') != 'demo')
                     <li>
                         <p>

@@ -1,7 +1,7 @@
 {
     "name": "Woocommerce",
     "alias": "woocommerce",
-    "description": "Permite que você conecte o PDV ao site WooCommerce.",
+    "description": "Allows you to connect POS with WooCommerce website.",
     "keywords": [],
     "active": 1,
     "order": 0,

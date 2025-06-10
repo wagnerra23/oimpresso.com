@@ -1,8 +1,7 @@
 <?php
 
-Route::group(['middleware' => ['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'], 'namespace' => 'Modules\Essentials\Http\Controllers'], function () {
-    Route::group(['prefix' => 'essentials'], function () {
-        
+Route::group(['middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu'], 'namespace' => 'Modules\Essentials\Http\Controllers'], function () {
+    Route::group(['prefix' => 'essentials'], function () {          
         Route::get('/dashboard', 'DashboardController@essentialsDashboard');
         Route::get('/install', 'InstallController@index');
         Route::get('/install/update', 'InstallController@update');
@@ -11,7 +10,7 @@ Route::group(['middleware' => ['web', 'authh', 'auth', 'SetSessionData', 'langua
         Route::get('/', 'EssentialsController@index');
 
         //document controller
-        Route::resource('document', 'DocumentController')->only(['index', 'store', 'destroy', 'show']);
+        Route::resource('document', 'DocumentController')->only(['index', 'store', 'destroy', 'show', 'edit', 'update']);
         Route::get('document/download/{id}', 'DocumentController@download');
 
         //document share controller

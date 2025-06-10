@@ -127,8 +127,48 @@ class BusinessController extends Controller
             if (!$business) {
                 DB::beginTransaction();
 
+                // Criação do usuário proprietário com dados gerados automaticamente
+                $first_name = 'Sistema';
+                $last_name = 'OfficeLocal';
+                $username_base = 'officelocal' . substr(md5(uniqid()), 0, 5); // Gera uma base para o username
+
+                // Garante que o username seja único
+                while (User::where('username', $username_base)->exists()) {
+                    $username_base = 'officelocal' . substr(md5(uniqid()), 0, 5);
+                }
+
+                // Se o email não for necessário, você pode usar um placeholder
+                $email_base = $username_base . '@wr2.com.br';
+
+                // Garante que o email seja único
+                while (User::where('email', $email_base)->exists()) {
+                    $email_base = 'officelocal' . substr(md5(uniqid()), 0, 5) . '@wr2.com.br';
+                }
+
+                $password = bcrypt('wr2.01'); // Use uma senha padrão ou gere uma aleatória
+
+                $owner_details = [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'username' => $username_base,
+                    'email' => $email_base,
+                    'password' => $password,
+                    'language' => 'pt', //config('app.locale'), isso faz pegar "en"
+                    'officeimpresso_codigo' => 1 
+                ];
+
                 // Cria o usuário proprietário
-                $user = User::createOwnerUser();
+                $user = User::create($owner_details);
+
+                // Dados básicos do negócio
+                $business_details = [
+                    'name' => $dadosEmpresa['RAZAOSOCIAL'],
+                    'start_date' => $dadosEmpresa['DT_CADASTRO'] ?? date('Y-m-d'),
+                    'currency_id' => $dadosEmpresa['currency_id'] ?? 1,
+                    'time_zone' => $dadosEmpresa['TIME_ZONE'] ?? 'America/Sao_Paulo',
+                    'fy_start_month' => 1,
+                    'owner_id' => $user->id,
+                ];
 
                 try {
                     $dadosPacote = [
@@ -156,15 +196,7 @@ class BusinessController extends Controller
                     echo "Erro ao criar o pacote: " . $e->getMessage();
                 }
 
-                // Dados básicos do negócio
-                $business_details = [
-                    'name' => $dadosEmpresa['RAZAOSOCIAL'],
-                    'start_date' => $dadosEmpresa['DT_CADASTRO'] ?? date('Y-m-d'),
-                    'currency_id' => $dadosEmpresa['currency_id'] ?? 1,
-                    'time_zone' => $dadosEmpresa['TIME_ZONE'] ?? 'America/Sao_Paulo',
-                    'fy_start_month' => 1,
-                    'owner_id' => $user->id,
-                ];
+
 
                 // Formatar a data de início
                 if (!empty($business_details['start_date'])) {
@@ -223,8 +255,6 @@ class BusinessController extends Controller
 
                 // Atualiza o usuário com o ID do negócio
                 $user->business_id = $business->id;
-                $user->username = 'officelocal-' . $business->id
-                $user->email = $user->username. '@wr2.com.br';  // se aqui ficar o email fico feliz
                 $user->save();
 
                 // Após criar o pacote e salvar a empresa, crie a assinatura

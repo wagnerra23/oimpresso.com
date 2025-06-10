@@ -3,6 +3,7 @@
 namespace Modules\Repair\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Variation;
 
 class JobSheet extends Model
 {
@@ -20,6 +21,7 @@ class JobSheet extends Model
      */
     protected $casts = [
         'checklist' => 'array',
+        'parts' => 'array',
     ];
     
     /**
@@ -104,5 +106,32 @@ class JobSheet extends Model
     public function media()
     {
         return $this->morphMany(\App\Media::class, 'model');
+    }
+
+    public function getPartsUsed()
+    {
+        $parts = [];
+        if (!empty($this->parts)) {
+            $variation_ids = [];
+            $job_sheet_parts = $this->parts;
+
+            foreach($job_sheet_parts as $key => $value) {
+                $variation_ids[] = $key;
+            } 
+
+            $variations = Variation::whereIn('id', $variation_ids)
+                                ->with(['product_variation', 'product', 'product.unit'])  
+                                ->get();
+
+            foreach ($variations as $variation) {
+                $parts[$variation->id]['variation_id'] = $variation->id;
+                $parts[$variation->id]['variation_name'] = $variation->full_name;
+                $parts[$variation->id]['unit'] = $variation->product->unit->short_name;
+                $parts[$variation->id]['unit_id'] = $variation->product->unit->id;
+                $parts[$variation->id]['quantity'] = $job_sheet_parts[$variation->id]['quantity'];
+            }
+        }
+
+        return $parts;
     }
 }

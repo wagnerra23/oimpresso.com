@@ -70,6 +70,7 @@ class WoocommerceController extends Controller
 
             $not_synced_cat_count = Category::where('business_id', $business_id)
                                         ->whereNull('woocommerce_cat_id')
+                                        ->where('category_type', 'product')
                                         ->count();
 
             if (!empty($not_synced_cat_count)) {
@@ -183,8 +184,10 @@ class WoocommerceController extends Controller
 
         $cron_job_command = $this->moduleUtil->getCronJobCommand();
 
+        $shipping_statuses = $this->moduleUtil->shipping_statuses();
+
         return view('woocommerce::woocommerce.api_settings')
-                ->with(compact('default_settings', 'locations', 'price_groups', 'module_version', 'cron_job_command', 'business'));
+                ->with(compact('default_settings', 'locations', 'price_groups', 'module_version', 'cron_job_command', 'business', 'shipping_statuses'));
     }
 
     /**
@@ -209,6 +212,8 @@ class WoocommerceController extends Controller
 
             $input['product_fields_for_create'] = !empty($input['product_fields_for_create']) ? $input['product_fields_for_create'] : [];
             $input['product_fields_for_update'] = !empty($input['product_fields_for_update']) ? $input['product_fields_for_update'] : [];
+            $input['order_statuses'] = !empty($input['order_statuses']) ? $input['order_statuses'] : [];
+            $input['shipping_statuses'] = !empty($input['shipping_statuses']) ? $input['shipping_statuses'] : [];
 
             $business = Business::find($business_id);
             $business->woocommerce_api_settings = json_encode($input);
@@ -507,6 +512,8 @@ class WoocommerceController extends Controller
                         'created' => __('woocommerce::lang.created'),
                         'updated' => __('woocommerce::lang.updated'),
                         'reset' => __('woocommerce::lang.reset'),
+                        'deleted' => __('lang_v1.deleted'),
+                        'restored' => __('woocommerce::lang.order_restored')
                     ];
                     return array_key_exists($row->operation_type, $array) ? $array[$row->operation_type] : '';
                 })

@@ -18,23 +18,21 @@ use App\Category;
  */
 class ProdutoCategoriaController extends BaseApiController
 {
-
     public function __construct()
     {
         // Mapeamento centralizado
         $fieldMapping = [
             'name' => 'descricao',
-            // 'business_id' => 'business_id',
             // 'category_type' => 'category_type',
-            // 'officeimpresso_codigo' => 'codigo',
-            // 'officeimpresso_dt_alteracao' => 'dt_alteracao',
+            'officeimpresso_codigo' => 'codigo',
+            'officeimpresso_dt_alteracao' => 'dt_alteracao',    
         ];
 
         parent::__construct(Category::class, $fieldMapping); // Passa a model e o mapeamento para a base
     }
 
     /**
-     * Get categories updated after a specific date.
+     * Listar Produto Categoria atualizado até uma data.
      */
     public function getUntilDate(Request $request)
     {
@@ -50,12 +48,37 @@ class ProdutoCategoriaController extends BaseApiController
             'data' => 'required|array',
             'data.*.codigo' => 'required|integer',
             'data.*.descricao' => 'required|string|max:255',
-            'data.*.dt_alteracao' => 'nullable|date_format:Y-m-d H:i:s',
             'data.*.oimpresso_id' => 'nullable|integer',
         ];
+
+        // Valide os dados recebidos
+        $validatedData = $request->validate($validationRules);
+
+        // Processa os dados validados
+        $processedData = collect($validatedData['data'])->map(function ($item) {
+            return $this->processItem($item);
+        })->toArray();
+
+        // Substitui os dados no request para passar para syncData
+        $request->merge(['data' => $processedData]);
 
         return $this->syncData($request, $validationRules, $this->fieldMapping);
     }
 
+    /**
+     * Process individual item for sync.
+     */
+    private function processItem(array $item): array
+    {
+        // Valores padrão para esta classe
+        $defaultValues = [
+            'category_type' => 'product',
+            'parent_id' => 0,
+            // 'category_id' => $this->resolveForeignKeyByCode(\App\Category::class, $item['codproduto_categoria'] ?? null),
+            // 'sub_category_id' => $this->resolveForeignKeyByCode(\App\SubCategory::class, $item['codproduto_subcategoria'] ?? null),
+        ];
 
+        // Mescla os valores padrão com os valores específicos do item
+        return array_merge($defaultValues, $item);
+    }
 }

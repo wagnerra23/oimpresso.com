@@ -69,12 +69,18 @@ class DataController extends Controller
                         );
 
                         $sub->url(
+                            url('/jana/assistenteia'),
+                            'Assistente IA',
+                            ['icon' => 'fa fa-brain', 'active' => request()->segment(2) == 'jana']
+                        );
+
+                        $sub->url(
                             url('/jana/docs'),
                            __('jana::lang.documentation'),
                             ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'docs']
                         );
                     },
-                    ['icon' => 'fas fa-magic', 'style' => 'background-color: #2dce89 !important;']
+                    ['icon' => 'fas fa-magic']
                 )->order(89);
             });
            

@@ -142,7 +142,8 @@ class WoocommerceServiceProvider extends ServiceProvider
     protected function registerCommands()
     {
         $this->commands([
-            \Modules\Woocommerce\Console\WooCommerceSyncOrder::class
+            \Modules\Woocommerce\Console\WooCommerceSyncOrder::class,
+            \Modules\Woocommerce\Console\WoocommerceSyncProducts::class
         ]);
     }
 
@@ -161,6 +162,7 @@ class WoocommerceServiceProvider extends ServiceProvider
                     //schedule command to auto sync orders
                     $this->app->booted(function () use ($business) {
                         $schedule = $this->app->make(Schedule::class);
+                        $schedule->command('pos:WoocommerceSyncProducts ' . $business->id)->twiceDaily(1, 13);
                         $schedule->command('pos:WooCommerceSyncOrder ' . $business->id)->twiceDaily(1, 13);
                     });
                 }

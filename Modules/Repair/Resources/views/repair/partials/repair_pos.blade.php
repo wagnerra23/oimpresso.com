@@ -24,7 +24,19 @@
 		$repair['repair_defects'] = $transaction['repair_defects'];
 	}
 @endphp
+
 {!! Form::hidden('has_module_data', true); !!}
+
+
+@if(!empty($view_data['parts']))
+	<input type="hidden" id="pos_repair_parts_used" value="{{json_encode($view_data['parts'])}}">
+@endif
+
+@if(!empty($view_data['job_sheet']['location_id']))
+<input type="hidden" id="job_sheet_location_id" value="{{$view_data['job_sheet']['location_id']}}">
+@endif
+
+
 <input type="hidden" id="repair_transaction_id" value="@if(!empty($transaction->id)){{$transaction->id}}@endif">
 <input type="hidden" id="repair_job_sheet_id" name="repair_job_sheet_id" value="@if(!empty($repair['repair_job_sheet_id'])){{$repair['repair_job_sheet_id']}}@endif">
 {{-- override serive staff --}}

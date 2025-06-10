@@ -252,7 +252,7 @@
                         @if(in_array('service_staff' ,$enabled_modules))
                             { data: 'technecian', name: 'technecian', searchable: false},
                         @endif
-                        { data: 'customer', name : 'contacts.name', searchable: false},
+                        { data: 'customer', name : 'contacts.name'},
                         { data: 'location', name: 'bl.name' },
                         { data: 'brand', name: 'b.name' },
                         { data: 'device', name: 'device.name' },
@@ -353,6 +353,17 @@
                     $("#sms_body").val(sms_template);
                     $("#email_subject").val(email_subject);
                     tinymce.activeEditor.setContent(email_body);
+
+                    if ($('#status_modal .mark-as-complete-btn').length) {
+                        if ($(this).find(':selected').data('is_completed_status') == 1) 
+                        {
+                            $('#status_modal').find('.mark-as-complete-btn').removeClass('hide');
+                            $('#status_modal').find('.mark-as-incomplete-btn').addClass('hide');
+                        } else {
+                            $('#status_modal').find('.mark-as-complete-btn').addClass('hide');
+                            $('#status_modal').find('.mark-as-incomplete-btn').removeClass('hide');
+                        }
+                    }
                 });
             });
             
@@ -360,6 +371,9 @@
                 tinymce.remove("textarea#email_body");
             });
             
+            $(document).on('click', '.update_status_button', function(){
+                $('#status_form_redirect').val($(this).data('href'));
+            })
             $(document).on('submit', 'form#update_status_form', function(e){
                 e.preventDefault();
                 var data = $(this).serialize();
@@ -374,7 +388,13 @@
                         ladda.stop();
                         if(result.success == true){
                             $('#status_modal').modal('hide');
-                            toastr.success(result.msg);
+                            if (result.msg) {
+                                toastr.success(result.msg);
+                            }
+
+                            if ($('#status_form_redirect').val()) {
+                                window.location = $('#status_form_redirect').val();
+                            }
                             pending_job_sheets_datatable.ajax.reload();
                             completed_job_sheets_datatable.ajax.reload();
                         } else {

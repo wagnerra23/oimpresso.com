@@ -197,9 +197,12 @@ class DataController extends Controller
             }
 
             $job_sheet = [];
+            $parts = [];
             if (isset($params['job_sheet_id'])) {
                 $job_sheet = JobSheet::where('business_id', $business_id)
                         ->find($params['job_sheet_id']);
+
+                $parts = $job_sheet->getPartsUsed();
             }
 
             return  [
@@ -212,7 +215,8 @@ class DataController extends Controller
                     'devices' => $devices,
                     'warranties' => $warranties,
                     'job_sheet' => $job_sheet,
-                    'repair_settings' => $repair_settings
+                    'repair_settings' => $repair_settings,
+                    'parts' => $parts
                     ],
                 'module_js_path' => 'repair::layouts.partials.javascripts',
                 'module_css_path' => 'repair::job_sheet.tagify_css',

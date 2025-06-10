@@ -10,7 +10,7 @@
       </div>
       <div class="modal-body">
         <div class="row">
-          <div class="col-md-14">
+          <div class="col-md-12">
             {{ $memo->description}}
           </div>
         </div>

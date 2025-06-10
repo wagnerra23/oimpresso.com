@@ -20,8 +20,20 @@
 	@endif
 
 	$(document).ready( function() {
+		if ($('#job_sheet_location_id').length && $('select#select_location_id').length) {
+			$('select#select_location_id').val($('#job_sheet_location_id').val());
+			$('select#select_location_id').trigger('change');
+		}
 
 		$("#product_service_div").removeClass('hide');
+
+		if ($('#pos_repair_parts_used').length > 0) {
+			var parts = JSON.parse($('#pos_repair_parts_used').val());
+
+			for (var variation_id in parts) {
+			    pos_product_row(variation_id, null, null, parts[variation_id]['quantity']);
+			}
+		}
 
 		var lock = new PatternLock("#pattern_container", {
 			onDraw:function(pattern){

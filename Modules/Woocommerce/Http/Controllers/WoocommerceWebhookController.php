@@ -158,6 +158,8 @@ class WoocommerceWebhookController extends Controller
                                 ->with('sell_lines')
                                 ->first();
 
+                $log_data[] = $transaction->invoice_no;
+
                 DB::beginTransaction();
 
                 if (!empty($transaction)) {
@@ -181,6 +183,11 @@ class WoocommerceWebhookController extends Controller
                                 'location_id' => $transaction->location_id
                             ];
                     $this->transactionUtil->adjustMappingPurchaseSell($status_before, $transaction, $business);
+                }
+
+                //Create log
+                if (!empty($log_data)) {
+                    $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'orders', 'deleted', $log_data);
                 }
 
                 DB::commit();
@@ -231,7 +238,7 @@ class WoocommerceWebhookController extends Controller
 
                     //Create log
                     if (!empty($updated_data)) {
-                        $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'orders', 'updated', $updated_data, $update_error_data);
+                        $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'orders', 'restored', $updated_data, $update_error_data);
                     }
                 } else {
                     $created = $this->woocommerceUtil->createNewSaleFromOrder($business_id, $user_id, $order_data, $business_data);

@@ -256,7 +256,7 @@ class ContactController extends ApiController
                 $name_array[] = $input['last_name'];
             }
             $input['name'] = implode(' ', $name_array);
-            $input['is_sincronizado'] = 1;
+            $input['is_sincronizado'] = true;
 
             DB::beginTransaction();
 
@@ -470,7 +470,7 @@ class ContactController extends ApiController
     public function update(Request $request, $id)
     {
         try {
-            $input = $request->only(['type', 'supplier_business_name', 'prefix', 'name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'address_line_1', 'address_line_2', 'zip_code', 'dob', 'alternate_number', 'city', 'state', 'country', 'landline', 'customer_group_id', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'email', 'shipping_address', 'position', 'is_sincronizado', 'office_oimpresso_updated_at']);
+            $input = $request->only(['type', 'supplier_business_name', 'prefix', 'name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'address_line_1', 'address_line_2', 'zip_code', 'dob', 'alternate_number', 'city', 'state', 'country', 'landline', 'customer_group_id', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'email', 'shipping_address', 'position', 'is_sincronizado']);
             
             $business_id = Auth::user()->business_id;
 
@@ -492,7 +492,7 @@ class ContactController extends ApiController
                 $name_array[] = $input['last_name'];
             }
             $input['name'] = implode(' ', $name_array);
-            
+            $input['is_sincronizado'] = true;
             DB::beginTransaction();
 
             if ($input['type'] == 'lead') {

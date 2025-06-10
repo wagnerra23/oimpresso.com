@@ -163,4 +163,22 @@ return [
 "common_completed_status_tooltip"=>"وضعیت کوم چې د بشپړ شوي په توګه نښه شوي به دلته به وښودل شي.",
 "common_pending_status_tooltip"=>"هغه دریځ چې بشپړ شوي ندي نښه شوي به دلته ښکاره شي.",
 "send_email"=>"بریښنالیک ولیږئ",
+"label_for_job_sheet_custom_field"=>"د دندې پا sheetې دودیز ډګر لپاره لیبل :number",
+"add_jobsheet_parts"=>"د دندې پا sheetې برخې اضافه کړئ",
+"add_parts"=>"برخې اضافه کړئ",
+"search_parts"=>"د لټون برخې",
+"part"=>"برخه",
+"save_and_add_parts"=>"برخه خوندي او اضافه کړئ",
+"parts_used"=>"کارول شوي برخې",
+"add_parts_and_mark_complete"=>"برخې اضافه کړئ او بشپړ نښه کړئ",
+"print_format_1"=>"چاپ 1 ب ه",
+"print_format_2"=>"چاپ 2 ب ه",
+"print_customer_copy" => "د پیرودونکي کاپي چاپ کړئ",
+"repair_charges" => "د ترمیم لګښتونه",
+"use_for_repair" => "د ترمیم لپاره کارول? "
+" use_for_repair_help_text "=>" که چک شوی وي, نښه به په ډراپاون کې ښودل شي <code> ترمیم موډل </code> کې کارول کیږي "
+"save_and_upload_docs" => "لاسوندونه خوندي او اپلوډ کړئ",
+"upload_job_sheet_docs" => "د دندې شیټ لاسوندونه اپلوډ کړئ",
+"upload_docs" => "ډیسک اپلوډ",
+"document" => "سند",
 ];

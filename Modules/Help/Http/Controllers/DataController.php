@@ -68,7 +68,7 @@ class DataController extends Controller
                         );
 
                     },
-                    ['icon' => 'fas fa-question-circle', 'style' => 'background-color: #2dce89 !important;']
+                    ['icon' => 'fas fa-question-circle']
                 )->order(89);
             });
            

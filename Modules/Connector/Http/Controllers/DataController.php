@@ -31,11 +31,9 @@ class DataController extends Controller
         
         if (auth()->user()->can('superadmin')) {
             $is_connector_enabled = $module_util->isModuleInstalled('Connector');
-            $is_dashboard_enabled = $module_util->isModuleInstalled('Dashboard');
         } else {
             $business_id = session()->get('user.business_id');
             $is_connector_enabled = (boolean)$module_util->hasThePermissionInSubscription($business_id, 'connector_module', 'superadmin_package');
-            $is_dashboard_enabled = (boolean)$module_util->hasThePermissionInSubscription($business_id, 'dashboard', 'superadmin_package');
         }
         if ($is_connector_enabled) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
@@ -50,24 +48,14 @@ class DataController extends Controller
                             );
                         }
                         $sub->url(
-                            url('\public\docs'),
+                            url('\docs'),
                            __('connector::lang.documentation'),
                             ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'docs']
                         );
                     },
-                    ['icon' => 'fas fa-plug', 'style' => 'background-color: #2dce89 !important;']
+                    ['icon' => 'fas fa-plug']
                 )->order(89);
             });
-           
-        };
-        if ($is_dashboard_enabled && auth()->user()->can('dashboard.access')) {
-            Menu::modify('admin-sidebar-menu', function ($menu) {
-                $menu->url(
-                    action('\Modules\Dashboard\Http\Controllers\DashboardController@index'),
-                    __('Dashboard'),
-                    ['icon' => 'fa fas fa-list', 'active' => request()->segment(1) == 'expenses' && request()->segment(2) == null]
-                )->order(86);
-            });
-        } 
+        }
     }
 }

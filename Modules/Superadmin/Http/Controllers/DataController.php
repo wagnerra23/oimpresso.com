@@ -149,7 +149,20 @@ class DataController extends Controller
                         url('/superadmin/painel'),
                         'Painel de Controle',
                         ['icon' => 'fa fa-server', 'active' => request()->segment(2) == 'painel']
-                    );                        
+                    );    
+
+                    // $sub->url(
+                    //     url('/portainer'),
+                    //     __('superadmin::lang.portainer'),
+                    //     ['icon' => 'fas fa-server', 'attributes' => ['target' => '_blank']]
+                    // );
+                    
+                    // $sub->url(
+                    //     url('/painel'),
+                    //     __('superadmin::lang.painel'),
+                    //     ['icon' => 'fas fa-chart-line', 'attributes' => ['target' => '_blank']]
+                    // );
+                      
 
                 // $sub->url(
                         //     action('\Modules\Superadmin\Http\Controllers\PageController@index'),

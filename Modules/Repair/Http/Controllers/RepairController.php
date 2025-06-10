@@ -258,7 +258,18 @@ class RepairController extends Controller
                         }
 
                         if (auth()->user()->can("repair.view") || auth()->user()->can("direct_sell.access")) {
-                            $html .= '<li><a href="#" class="print-invoice" data-href="' . route('sell.printInvoice', [$row->id]) . '"><i class="fa fa-print" aria-hidden="true"></i> ' . __("messages.print") . '</a></li>';
+                            $html .= '<li>
+                                        <a href="#" class="print-invoice" data-href="' . route('sell.printInvoice', [$row->id]) . '">
+                                            <i class="fa fa-print" aria-hidden="true"></i> '
+                                            . __("messages.print")
+                                        . '</a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="print-invoice" data-href="' . route('repair.customerCopy', [$row->id]) . '">
+                                            <i class="fa fa-print" aria-hidden="true"></i> '
+                                            . __("repair::lang.print_customer_copy")
+                                        . '</a>
+                                    </li>';
                         }
                         $html .= '<li class="divider"></li>';
 
@@ -966,6 +977,70 @@ class RepairController extends Controller
                     'msg' =>  __('lang_v1.barcode_label_error')
                 ];
         }
+
+        return $output;
+    }
+
+    /**
+     * Prints the customer copy
+     * @return Response
+     */
+    public function printCustomerCopy(Request $request, $transaction_id)
+    {
+        if (request()->ajax()) {
+            try {
+                $output = [
+                        'success' => 0,
+                        'msg' => trans("messages.something_went_wrong")
+                    ];
+
+                $business_id = $request->session()->get('user.business_id');
+            
+                $transaction = Transaction::where('business_id', $business_id)
+                                ->where('id', $transaction_id)
+                                ->with(['location'])
+                                ->first();
+
+                if (empty($transaction)) {
+                    return $output;
+                }
+
+                $receipt = $this->_receiptContent($business_id, $transaction->location_id, $transaction_id);
+
+                if (!empty($receipt)) {
+                    $output = ['success' => 1, 'receipt' => $receipt];
+                }
+            } catch (\Exception $e) {
+                \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+                
+                $output = [
+                    'success' => 0,
+                    'msg' => trans("messages.something_went_wrong")
+                ];
+            }
+
+            return $output;
+        }
+    }
+
+    protected function _receiptContent($business_id, $location_id, $transaction_id)
+    {
+        $business_details = $this->businessUtil->getDetails($business_id);
+        $location_details = BusinessLocation::find($location_id);
+
+        $invoice_layout = $this->businessUtil->invoiceLayout($business_id, $location_id, $location_details->invoice_layout_id);
+
+        $receipt_details = $this->transactionUtil->getReceiptDetails($transaction_id, $location_id, $invoice_layout, $business_details, $location_details, 'browser');
+
+        $currency_details = [
+            'symbol' => $business_details->currency_symbol,
+            'thousand_separator' => $business_details->thousand_separator,
+            'decimal_separator' => $business_details->decimal_separator,
+        ];
+
+        $receipt_details->currency = $currency_details;
+        
+        $output['html_content'] = view('repair::repair.receipts.classic', compact('receipt_details'))->render();
 
         return $output;
     }

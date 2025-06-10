@@ -52,7 +52,6 @@ class InstallController extends Controller
     {
         config(['app.debug' => true]);
         Artisan::call('config:clear');
-        Artisan::call('cache:clear');
     }
 
     /**
@@ -78,9 +77,9 @@ class InstallController extends Controller
             //Validate
             $response = pos_boot(url('/'), __DIR__, $license_code, $email, $login_username, $type = 1, $pid);
 
-            //if (!empty($response)) {
-            //    return $response;
-            //}
+            if (!empty($response)) {
+                return $response;
+            }
 
             $is_installed = System::getProperty($this->module_name . '_version');
             if (!empty($is_installed)) {

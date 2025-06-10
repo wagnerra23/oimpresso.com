@@ -1,7 +1,7 @@
 {
     "name": "Repair",
     "alias": "repair",
-    "description": "Útil para todo tipo de oficina mecânica",
+    "description": "Useful for all kind of repair shops",
     "keywords": [],
     "active": 1,
     "order": 0,

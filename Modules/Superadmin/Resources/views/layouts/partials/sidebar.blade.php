@@ -69,6 +69,15 @@
 			  	</a>
 			</li>
 
+			<li class="{{ $request->segment(2) == 'communicator' ? 'active active-sub' : '' }}">
+				<a href="{{action('\Modules\Superadmin\Http\Controllers\CommunicatorController@index')}}">
+					<i class="fa fa-envelope"></i>
+					<span class="title">
+						@lang('superadmin::lang.communicator')
+					</span>
+			  	</a>
+			</li>
+
         </ul>
 	</li>
 @endcan

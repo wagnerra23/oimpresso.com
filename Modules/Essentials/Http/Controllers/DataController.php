@@ -9,6 +9,7 @@ use App\Utils\TransactionUtil;
 use Illuminate\Routing\Controller;
 use Menu;
 use Modules\Essentials\Entities\EssentialsTodoComment;
+use Modules\Essentials\Entities\Document;
 use Modules\Essentials\Entities\DocumentShare;
 use Illuminate\Support\Facades\DB;
 use Modules\Essentials\Entities\ToDo;
@@ -277,19 +278,49 @@ class DataController extends Controller
 
         if ($is_essentials_enabled) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
+
+                $menu->url(
+                    action('\Modules\Essentials\Http\Controllers\ReminderController@index'),
+                    __('essentials::lang.reminders'),
+                    ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'essentials']
+                )
+                ->order(10);
+
                 $menu->url(
                         action('\Modules\Essentials\Http\Controllers\DashboardController@hrmDashboard'),
                         __('essentials::lang.hrm'),
-                        ['icon' => 'fa fas fa-users', 'active' => request()->segment(1) == 'hrm', 'style' => config('app.env') == 'demo' ? 'background-color: #605ca8 !important;' : '']
+                        ['icon' => 'fa fas fa-users', 'active' => request()->segment(1) == 'hrm']
                     )
                 ->order(87);
                     
                 $menu->url(
                     action('\Modules\Essentials\Http\Controllers\ToDoController@index'),
                     __('essentials::lang.essentials'),
-                    ['icon' => 'fa fas fa-check-circle', 'active' => request()->segment(1) == 'essentials', 'style' => config('app.env') == 'demo' ? 'background-color: #001f3f !important;' : '']
+                    ['icon' => 'fa fas fa-check-circle', 'active' => request()->segment(1) == 'essentials' && request()->segment(2) == 'Essencial']
                 )
                 ->order(87);
+
+                $menu->url(
+                    action('\Modules\Essentials\Http\Controllers\DocumentController@index'),
+                    __('essentials::lang.document'),
+                    ['icon' => 'fa fas fa-folder', 'active' => request()->segment(1) == 'essentials' && request()->segment(2) == 'document' && request()->get('type') == '']
+                )
+                ->order(87);
+
+                $menu->url(
+                    action('\Modules\Essentials\Http\Controllers\DocumentController@index', ['type' => 'memos']),
+                    __('essentials::lang.memos'),
+                    ['icon' => 'fa fas fa-sticky-note', 'active' => request()->segment(1) == 'essentials' && request()->segment(2) == 'document' && request()->get('type') == 'memos']
+                )
+                ->order(87);
+
+                $menu->url(
+                    action('\Modules\Essentials\Http\Controllers\KnowledgeBaseController@index'),
+                    __('essentials::lang.knowledge_base'),
+                    ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'essentials' && request()->segment(2) == 'knowledge-base']
+                )
+                ->order(87);
+
             });
         }
     }

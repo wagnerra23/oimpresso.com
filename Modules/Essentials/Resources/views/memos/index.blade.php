@@ -79,6 +79,8 @@
 	<div class="modal fade document" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
 	<!-- memos view model -->
 	<div class="modal fade memos" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+	<!-- Edit Memo Modal -->
+	<div class="modal fade edit_memo_modal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true"></div>
 @endsection
 
 @section('javascript')
@@ -89,7 +91,14 @@
 			processing: true,
 			ajax: "/essentials/document"+'?type=memos',
 			columns: [
-						{data: "name", name:"documents.name"},
+						{
+							data: "name",
+							name: "documents.name",
+							render: function(data, type, row) {
+								// Gera o link corretamente usando a ação 'show'
+								return '<a href="https://oimpresso.com/essentials/document/9/edit" class="view-memo-link text-primary" data-href="' + row.show_url + '">' + data + '</a>';
+							}
+						},
 						{data: "description", name:"documents.description"},
 						{data: "created_at", name:"documents.created_at"},
 						{data: "action", name:"action", "orderable": false},
@@ -182,6 +191,42 @@
 	    	$("form#upload_document_form")[0].reset();
 			$("form#upload_document_form").fadeOut();
 	    });
+
+		// Abrir modal de edição
+		$(document).on('click', '.edit_memo', function() {
+			var url = $(this).data('href') + '?type=memos';
+			$.ajax({
+				method: "GET",
+				dataType: "html",
+				url: url,
+				success: function(result) {
+					$(".edit_memo_modal").html(result).modal("show");
+				}
+			});
+		});
+
+		// Submeter formulário de edição
+		$(document).on('submit', 'form#edit_document_form', function(e) {
+			e.preventDefault();
+			var form = $(this);
+			var url = form.attr('action');
+			var data = form.serialize();
+
+			$.ajax({
+				method: "PUT",
+				url: url,
+				data: data,
+				success: function(result) {
+					if (result.success) {
+						$(".edit_memo_modal").modal("hide");
+						toastr.success(result.msg);
+						documents.ajax.reload();
+					} else {
+						toastr.error(result.msg);
+					}
+				}
+			});
+		});
 
 	});
 </script>

@@ -10,16 +10,14 @@ Route::group(['middleware' => ['web',  'SetSessionData','auth', 'language', 'tim
     Route::post('install', 'InstallController@install');
     Route::get('install/uninstall', 'InstallController@uninstall');
     Route::get('install/update', 'InstallController@update');
-});
 
-Route::group(['middleware' => ['timezone'], 'prefix' => 'connector/api', 'namespace' => 'Modules\Connector\Http\Controllers\Api'], function()
-{
-    // Rota do Dify sem autenticação
-    Route::post('dify/receive', 'DifyController@receive');
 });
 
 Route::group(['middleware' => ['auth:api', 'timezone'], 'prefix' => 'connector/api', 'namespace' => 'Modules\Connector\Http\Controllers\Api'], function()
 {
+	// Rota do Dify sem autenticação
+	Route::post('dify/receive', 'DifyController@receive');
+
     // Cadastro de Empresa
 	Route::resource('business', 'BusinessController', ['only' => ['index', 'show', 'store', 'update']]);
 	Route::post('/processa-dados-cliente', 'LicencaComputadorController@ProcessaDadosCliente');
@@ -110,7 +108,7 @@ Route::group(['middleware' => ['auth:api', 'timezone'], 'prefix' => 'connector/a
 	Route::post('unidade/sync-post', 'UnitController@syncUnits');
 	//Route::resource('brand', 'BrandController', ['only' => ['index', 'show', 'create','update']]);
 	Route::resource('unit', 'UnitController', ['only' => ['index', 'show']]);
-	Route::resource('product', 'ProductController', ['only' => ['index', 'show']]);
+//	Route::resource('product', 'ProductController', ['only' => ['index', 'show']]);
 	Route::get('variation/{id?}', 'ProductController@listVariations');
 	Route::resource('types-of-service', 'TypesOfServiceController', ['only' => ['index', 'show']]);
 	Route::post('produto_baixa_automatica/sync-post', 'ProdutoBaixaAutomaticaController@syncProdutoBaixaAutomatica');
@@ -768,5 +766,7 @@ Route::group(['middleware' => ['auth:api', 'timezone'], 'prefix' => 'connector/a
 
     // Restourante mesas, não tenho isso ainda
 	Route::resource('table', 'TableController', ['only' => ['index', 'show']]);
+
+
 
 });

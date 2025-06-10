@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Connector\Transformers\ProductResource;
 use Modules\Connector\Transformers\VariationResource;
 use Modules\Connector\Transformers\CommonResource;
+use App\Brand;
+use App\Category;
+use App\SubCategory;
 use App\Product;
 use App\Variation;
 use App\SellingPriceGroup;
@@ -31,13 +34,15 @@ class ProductController extends BaseApiController
             'name' => 'descricao',
             'sku' => 'codigo',
             'product_description' => 'descricao_nfe',
-            'weight' => 'comp',
-            'product_custom_field1' => 'product_custom_field1',
-            'brand_id' => 'codproduto_marca',
-            'category_id' => 'codproduto_categoria',
-            'sub_category_id' => 'sub_category_id',
-            'not_for_selling' => 'pode_ser_vendido',
-            'unit_id' => 'unidade',
+            // 'weight' => 'comp',
+            // 'product_custom_field1' => 'product_custom_field1',
+            // 'brand_id' => 'codproduto_marca',
+            // 'category_id' => 'codproduto_categoria',
+            // 'sub_category_id' => 'sub_category_id',
+            // 'not_for_selling' => 'pode_ser_vendido',
+            // 'unit_id' => 'unidade',
+            'officeimpresso_codigo' => 'codigo',
+            'officeimpresso_dt_alteracao' => 'dt_alteracao',    
         ];
 
         parent::__construct(Product::class, $fieldMapping); // Passando os dois argumentos
@@ -47,7 +52,7 @@ class ProductController extends BaseApiController
     public function sync(Request $request)
     {
         $validationRules = [
-            'data.*.id' => 'nullable|integer',
+            'data.*.codigo' => 'required|String|max:15',
             'data.*.descricao' => 'nullable|string|max:500',
             // 'data.*.name' => 'required|string|max:255',
             // 'data.*.sku' => 'required|string|max:50',
@@ -59,32 +64,32 @@ class ProductController extends BaseApiController
             'data.*.sub_category_id' => 'nullable|integer',
             'data.*.not_for_selling' => 'nullable|boolean',
             'data.*.unit_id' => 'nullable|integer',
+            'data.*.oimpresso_id' => 'nullable|integer',
         ];
 
-        // Obtenha os dados da requisição
-        $data = $request->all();
+        // Valide os dados recebidos
+        $validatedData = $request->validate($validationRules);
 
-        $processedData = collect($data['data'])->map(function ($item) {
+        // Processa os dados validados
+        $processedData = collect($validatedData['data'])->map(function ($item) {
+            return $this->processItem($item);
+        })->toArray();
 
-            // Processamento e ajuste dos dados
-            $processedData = collect($validatedData['data'])->map(function ($item) {
-                return $this->processItem($item);
-            })->toArray();
-
-            // Substitui os dados no request para passar para syncData
-            $request->merge(['data' => $processedData]);           
-
-            return array_merge($defaultValues, $item); // Mescla valores padrão com os recebidos
-        });        
+        // Substitui os dados no request para passar para syncData
+        $request->merge(['data' => $processedData]);
 
         return $this->syncData($request, $validationRules, $this->fieldMapping);
     }
 
+    /**
+     * Process individual item for sync.
+     */
     private function processItem(array $item): array
     {
         // Valores padrão para esta classe
         $defaultValues = [
             'tax_type' => 'inclusive',
+            'type'  => 'single', 
             'enable_stock' => 1,
             'sku' => '0',
             'enable_sr_no' => 0,
@@ -105,11 +110,11 @@ class ProductController extends BaseApiController
             'cest' => '0',
             'weight' => $item['weight'] ?? null,
             'product_custom_field1' => $item['product_custom_field1'] ?? null,
-            'brand_id' => $this->resolveForeignKeyByCode(\App\Brand::class, $item['codproduto_marca'] ?? null),
-            'category_id' => $this->resolveForeignKeyByCode(\App\Category::class, $item['codproduto_categoria'] ?? null),
-            'sub_category_id' => $this->resolveForeignKeyByCode(\App\SubCategory::class, $item['codproduto_subcategoria'] ?? null),
-            'unit_id' => $this->resolveForeignKeyByCode(\App\Unit::class, $item['unidade'] ?? null),
-
+            // 'brand_id' => $this->resolveForeignKeyByCode(\App\Brand::class, $item['codproduto_marca'] ?? null),
+            // 'category_id' => $this->resolveForeignKeyByCode(\App\Category::class, $item['codproduto_categoria'] ?? null),
+            // 'sub_category_id' => $this->resolveForeignKeyByCode(\App\SubCategory::class, $item['codproduto_subcategoria'] ?? null),
+            'unit_id' => 215,
+            // 'unit_id' => $this->resolveForeignKeyByCode(\App\Unit::class, $item['unidade'] ?? null),
         ];
     
         // Mescla os valores padrão com os valores específicos do item
@@ -122,10 +127,7 @@ class ProductController extends BaseApiController
      */
     public function getUntilDate(Request $request)
     {
-        return $this->getData($request, function ($model, $business_id, $date) {
-            return $model::where('business_id', $business_id)
-                ->where('updated_at', '>', $date);
-        });
+        return $this->getData($request);
     }
 
     /**

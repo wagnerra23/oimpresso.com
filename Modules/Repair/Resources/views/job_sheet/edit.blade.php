@@ -219,11 +219,12 @@
                     <div class="clearfix"></div>
                     <div class="col-sm-4">
                         <div class="form-group">
-                            {!! Form::label('images', __('lang_v1.image') . ':') !!}
-                            {!! Form::file('images[]', ['id' => 'upload_job_sheet_image', 'accept' => 'image/*', 'multiple']); !!}
+                            {!! Form::label('images', __('repair::lang.document') . ':') !!}
+                            {!! Form::file('images[]', ['id' => 'upload_job_sheet_image', 'accept' => implode(',', array_keys(config('constants.document_upload_mimes_types'))), 'multiple']); !!}
                             <small>
                                 <p class="help-block">
                                     @lang('purchase.max_file_size', ['size' => (config('constants.document_size_limit') / 1000000)])
+                                    @includeIf('components.document_help_text')
                                 </p>
                             </small>
                         </div>
@@ -293,10 +294,19 @@
                         {!! Form::text('custom_field_5', $job_sheet->custom_field_5, ['class' => 'form-control']); !!}
                     </div>
                 </div>
+                <div class="col-sm-12 text-right">
+                    <input type="hidden" name="submit_type" id="submit_type">
+                    <button type="submit" class="btn btn-success submit_button" value="save_and_add_parts">
+                    @lang('repair::lang.save_and_add_parts')
+                    </button>
+                    <button type="submit" class="btn btn-primary submit_button" value="submit">
+                        @lang('messages.save')
+                    </button>
+                    <button type="submit" class="btn btn-info submit_button" value="save_and_upload_docs">
+                        @lang('repair::lang.save_and_upload_docs')
+                    </button>
                 </div>
-                <button type="submit" class="btn btn-primary pull-right">
-                    @lang('messages.update')
-                </button>
+                </div>
             </div>
         </div>
     {!! Form::close() !!} <!-- /form close -->
@@ -312,7 +322,9 @@
     <script src="{{ asset('js/pos.js?v=' . $asset_v) }}"></script>
     <script type="text/javascript">
         $(document).ready( function() {
-            
+            $('.submit_button').click( function(){
+                $('#submit_type').val($(this).attr('value'));
+            });
             $('form#edit_job_sheet_form').validate({
                 errorPlacement: function(error, element) {
                     if (element.parent('.iradio_square-blue').length) {
@@ -443,8 +455,7 @@
                 showUpload: false,
                 showPreview: false,
                 browseLabel: LANG.file_browse_label,
-                removeLabel: LANG.remove,
-                maxFileCount: 2
+                removeLabel: LANG.remove
             });
 
             //initialize tags input (tagify)

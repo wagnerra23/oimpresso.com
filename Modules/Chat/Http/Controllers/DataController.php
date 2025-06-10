@@ -105,8 +105,8 @@ class DataController extends Controller
                         );
                         
                     },
-                    ['icon' => 'fas fa-comments', 'style' => 'background-color: #a5b8ff  !important;']
-                )->order(10);
+                    ['icon' => 'fas fa-comments']
+                )->order(87);
             });
            
         };
