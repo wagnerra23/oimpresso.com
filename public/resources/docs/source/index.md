@@ -16,7 +16,7 @@ toc_footers:
 # Info
 
 Welcome to the generated API reference.
-[Get Postman Collection](http://localhost/oimpresso/public/docs/collection.json)
+[Get Postman Collection](https://oimpresso.com/docs/collection.json)
 
 <!-- END_INFO -->
 
@@ -24,14 +24,14 @@ Welcome to the generated API reference.
 
 
 <!-- START_9ae23d9501cf189191c42c7a11186348 -->
-## Get Attendance
+## Busca Atendentes
 
 <br><small style="padding: 1px 9px 2px;font-weight: bold;white-space: nowrap;color: #ffffff;-webkit-border-radius: 9px;-moz-border-radius: 9px;border-radius: 9px;background-color: #3a87ad;">Requires authentication</small>
 > Example request:
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/get-attendance/1" \
+    -G "https://oimpresso.com/connector/api/get-attendance/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -39,7 +39,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/get-attendance/1"
+    "https://oimpresso.com/connector/api/get-attendance/1"
 );
 
 let headers = {
@@ -96,17 +96,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/clock-in" \
+    "https://oimpresso.com/connector/api/clock-in" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"user_id":1,"clock_in_time":"2000-06-13 13:13:00","clock_in_note":"nihil","ip_address":"id"}'
+    -d '{"user_id":1,"clock_in_time":"2000-06-13 13:13:00","clock_in_note":"rerum","ip_address":"dolore"}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/clock-in"
+    "https://oimpresso.com/connector/api/clock-in"
 );
 
 let headers = {
@@ -118,8 +118,8 @@ let headers = {
 let body = {
     "user_id": 1,
     "clock_in_time": "2000-06-13 13:13:00",
-    "clock_in_note": "nihil",
-    "ip_address": "id"
+    "clock_in_note": "rerum",
+    "ip_address": "dolore"
 }
 
 fetch(url, {
@@ -163,17 +163,17 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/clock-out" \
+    "https://oimpresso.com/connector/api/clock-out" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"user_id":1,"clock_out_time":"2000-06-13 13:13:00","clock_out_note":"eum"}'
+    -d '{"user_id":1,"clock_out_time":"2000-06-13 13:13:00","clock_out_note":"quas"}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/clock-out"
+    "https://oimpresso.com/connector/api/clock-out"
 );
 
 let headers = {
@@ -185,7 +185,7 @@ let headers = {
 let body = {
     "user_id": 1,
     "clock_out_time": "2000-06-13 13:13:00",
-    "clock_out_note": "eum"
+    "clock_out_note": "quas"
 }
 
 fetch(url, {
@@ -228,7 +228,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/holidays?location_id=libero&start_date=2020-06-25&end_date=2020-06-25" \
+    -G "https://oimpresso.com/connector/api/holidays?location_id=voluptate&start_date=2020-06-25&end_date=2020-06-25" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -236,11 +236,11 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/holidays"
+    "https://oimpresso.com/connector/api/holidays"
 );
 
 let params = {
-    "location_id": "libero",
+    "location_id": "voluptate",
     "start_date": "2020-06-25",
     "end_date": "2020-06-25",
 };
@@ -299,14 +299,14 @@ Parameter | Status | Description
 
 
 <!-- START_86f2ea444a3e2e0add4c92cf461b2468 -->
-## List brands
+## Lista marcas
 
 <br><small style="padding: 1px 9px 2px;font-weight: bold;white-space: nowrap;color: #ffffff;-webkit-border-radius: 9px;-moz-border-radius: 9px;border-radius: 9px;background-color: #3a87ad;">Requires authentication</small>
 > Example request:
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/brand" \
+    -G "https://oimpresso.com/connector/api/brand" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -314,7 +314,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/brand"
+    "https://oimpresso.com/connector/api/brand"
 );
 
 let headers = {
@@ -343,6 +343,8 @@ fetch(url, {
             "name": "Levis",
             "description": null,
             "created_by": 1,
+            "officeimpresso_codigo": "789011",
+            "officeimpresso_dt_alteracao": "2024-11-11 12:00:00",
             "deleted_at": null,
             "created_at": "2018-01-03 21:19:47",
             "updated_at": "2018-01-03 21:19:47"
@@ -353,6 +355,8 @@ fetch(url, {
             "name": "Espirit",
             "description": null,
             "created_by": 1,
+            "officeimpresso_codigo": "OI_789012",
+            "officeimpresso_dt_alteracao": "2024-11-11 12:00:00",
             "deleted_at": null,
             "created_at": "2018-01-03 21:19:58",
             "updated_at": "2018-01-03 21:19:58"
@@ -367,15 +371,86 @@ fetch(url, {
 
 <!-- END_86f2ea444a3e2e0add4c92cf461b2468 -->
 
-<!-- START_d1614880df4d370cfc4ed7ec60bcf52c -->
-## Get the specified brand
+<!-- START_32d774feb062a1d48f968e6323a00b64 -->
+## Criar uma nova marca
 
 <br><small style="padding: 1px 9px 2px;font-weight: bold;white-space: nowrap;color: #ffffff;-webkit-border-radius: 9px;-moz-border-radius: 9px;border-radius: 9px;background-color: #3a87ad;">Requires authentication</small>
 > Example request:
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/brand/1" \
+    -G "https://oimpresso.com/connector/api/brand/create" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}" \
+    -d '{"name":"Nike","description":"Popular sports brand"}'
+
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/brand/create"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+let body = {
+    "name": "Nike",
+    "description": "Popular sports brand"
+}
+
+fetch(url, {
+    method: "GET",
+    headers: headers,
+    body: body
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+> Example response (200):
+
+```json
+{
+    "data": {
+        "id": 3,
+        "business_id": 1,
+        "name": "Nike",
+        "description": "Popular sports brand",
+        "created_by": 1,
+        "officeimpresso_codigo": "789012",
+        "officeimpresso_dt_alteracao": "2024-11-11 12:00:00",
+        "created_at": "2024-11-11 12:00:00",
+        "updated_at": "2024-11-11 12:00:00"
+    }
+}
+```
+
+### HTTP Request
+`GET connector/api/brand/create`
+
+#### Body Parameters
+Parameter | Type | Status | Description
+--------- | ------- | ------- | ------- | -----------
+    `name` | string |  required  | The name of the brand.
+        `description` | string |  optional  | The description of the brand.
+    
+<!-- END_32d774feb062a1d48f968e6323a00b64 -->
+
+<!-- START_d1614880df4d370cfc4ed7ec60bcf52c -->
+## Busca uma marca específica
+
+<br><small style="padding: 1px 9px 2px;font-weight: bold;white-space: nowrap;color: #ffffff;-webkit-border-radius: 9px;-moz-border-radius: 9px;border-radius: 9px;background-color: #3a87ad;">Requires authentication</small>
+> Example request:
+
+```bash
+curl -X GET \
+    -G "https://oimpresso.com/connector/api/brand/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -383,7 +458,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/brand/1"
+    "https://oimpresso.com/connector/api/brand/1"
 );
 
 let headers = {
@@ -412,6 +487,8 @@ fetch(url, {
             "name": "Levis",
             "description": null,
             "created_by": 1,
+            "officeimpresso_codigo": "123456",
+            "officeimpresso_dt_alteracao": "2024-11-11 12:00:00",
             "deleted_at": null,
             "created_at": "2018-01-03 21:19:47",
             "updated_at": "2018-01-03 21:19:47"
@@ -431,6 +508,167 @@ Parameter | Status | Description
 
 <!-- END_d1614880df4d370cfc4ed7ec60bcf52c -->
 
+<!-- START_38bd09ef2df46737c858c6286a4c3cc1 -->
+## Atualizar uma marca existente
+
+<br><small style="padding: 1px 9px 2px;font-weight: bold;white-space: nowrap;color: #ffffff;-webkit-border-radius: 9px;-moz-border-radius: 9px;border-radius: 9px;background-color: #3a87ad;">Requires authentication</small>
+> Example request:
+
+```bash
+curl -X PUT \
+    "https://oimpresso.com/connector/api/brand/1" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}" \
+    -d '{"name":"Adidas","description":"Global sports brand"}'
+
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/brand/1"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+let body = {
+    "name": "Adidas",
+    "description": "Global sports brand"
+}
+
+fetch(url, {
+    method: "PUT",
+    headers: headers,
+    body: body
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+> Example response (200):
+
+```json
+{
+    "data": {
+        "id": 1,
+        "business_id": 1,
+        "name": "Adidas",
+        "description": "Global sports brand",
+        "created_by": 1,
+        "officeimpresso_codigo": "654321",
+        "officeimpresso_dt_alteracao": "2024-11-11 12:00:00",
+        "updated_at": "2024-11-11 12:30:00"
+    }
+}
+```
+
+### HTTP Request
+`PUT connector/api/brand/{brand}`
+
+`PATCH connector/api/brand/{brand}`
+
+#### URL Parameters
+
+Parameter | Status | Description
+--------- | ------- | ------- | -------
+    `id` |  optional  | int required The ID of the brand to update.
+#### Body Parameters
+Parameter | Type | Status | Description
+--------- | ------- | ------- | ------- | -----------
+    `name` | string |  required  | The name of the brand.
+        `description` | string |  optional  | The description of the brand.
+    
+<!-- END_38bd09ef2df46737c858c6286a4c3cc1 -->
+
+<!-- START_1ebbd55a51d094b50a93492c0611a7db -->
+## Listar marcas atualizadas até uma data específica
+
+<br><small style="padding: 1px 9px 2px;font-weight: bold;white-space: nowrap;color: #ffffff;-webkit-border-radius: 9px;-moz-border-radius: 9px;border-radius: 9px;background-color: #3a87ad;">Requires authentication</small>
+> Example request:
+
+```bash
+curl -X GET \
+    -G "https://oimpresso.com/connector/api/brand/updated-until-date?date=2024-11-10+15%3A30%3A00" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}"
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/brand/updated-until-date"
+);
+
+let params = {
+    "date": "2024-11-10 15:30:00",
+};
+Object.keys(params)
+    .forEach(key => url.searchParams.append(key, params[key]));
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+fetch(url, {
+    method: "GET",
+    headers: headers,
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+> Example response (200):
+
+```json
+{
+    "data": [
+        {
+            "id": 1,
+            "business_id": 1,
+            "name": "Levis",
+            "description": null,
+            "created_by": 1,
+            "officeimpresso_codigo": "123456",
+            "officeimpresso_dt_alteracao": "2024-11-11 12:00:00",
+            "deleted_at": null,
+            "created_at": "2018-01-03 21:19:47",
+            "updated_at": "2018-01-03 21:19:47"
+        },
+        {
+            "id": 2,
+            "business_id": 1,
+            "name": "Espirit",
+            "description": null,
+            "created_by": 1,
+            "officeimpresso_codigo": "654321",
+            "officeimpresso_dt_alteracao": "2024-11-11 12:00:00",
+            "deleted_at": null,
+            "created_at": "2018-01-03 21:19:58",
+            "updated_at": "2018-01-03 21:19:58"
+        }
+    ]
+}
+```
+
+### HTTP Request
+`GET connector/api/brand/updated-until-date`
+
+#### Query Parameters
+
+Parameter | Status | Description
+--------- | ------- | ------- | -----------
+    `date` |  required  | The reference date to filter brands in 'Y-m-d H:i:s' format.
+
+<!-- END_1ebbd55a51d094b50a93492c0611a7db -->
+
 #Business Location management
 
 
@@ -442,7 +680,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/business-location" \
+    -G "https://oimpresso.com/connector/api/business-location" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -450,7 +688,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/business-location"
+    "https://oimpresso.com/connector/api/business-location"
 );
 
 let headers = {
@@ -566,7 +804,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/business-location/1" \
+    -G "https://oimpresso.com/connector/api/business-location/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -574,7 +812,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/business-location/1"
+    "https://oimpresso.com/connector/api/business-location/1"
 );
 
 let headers = {
@@ -698,7 +936,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/cash-register?status=open&user_id=10&start_date=2018-06-25&end_date=2018-06-25&location_id=eum&per_page=15" \
+    -G "https://oimpresso.com/connector/api/cash-register?status=open&user_id=10&start_date=2018-06-25&end_date=2018-06-25&location_id=suscipit&per_page=15" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -706,7 +944,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/cash-register"
+    "https://oimpresso.com/connector/api/cash-register"
 );
 
 let params = {
@@ -714,7 +952,7 @@ let params = {
     "user_id": "10",
     "start_date": "2018-06-25",
     "end_date": "2018-06-25",
-    "location_id": "eum",
+    "location_id": "suscipit",
     "per_page": "15",
 };
 Object.keys(params)
@@ -846,17 +1084,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/cash-register" \
+    "https://oimpresso.com/connector/api/cash-register" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"location_id":4,"initial_amount":147769,"created_at":"2020-5-7 15:20:22","closed_at":"2020-5-7 15:20:22","status":"close","closing_amount":578,"total_card_slips":5,"total_cheques":18,"closing_note":"a","transaction_ids":"1,2,3"}'
+    -d '{"location_id":1,"initial_amount":6.65904156,"created_at":"2020-5-7 15:20:22","closed_at":"2020-5-7 15:20:22","status":"close","closing_amount":125263587.5817,"total_card_slips":10,"total_cheques":16,"closing_note":"dolores","transaction_ids":"1,2,3"}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/cash-register"
+    "https://oimpresso.com/connector/api/cash-register"
 );
 
 let headers = {
@@ -866,15 +1104,15 @@ let headers = {
 };
 
 let body = {
-    "location_id": 4,
-    "initial_amount": 147769,
+    "location_id": 1,
+    "initial_amount": 6.65904156,
     "created_at": "2020-5-7 15:20:22",
     "closed_at": "2020-5-7 15:20:22",
     "status": "close",
-    "closing_amount": 578,
-    "total_card_slips": 5,
-    "total_cheques": 18,
-    "closing_note": "a",
+    "closing_amount": 125263587.5817,
+    "total_card_slips": 10,
+    "total_cheques": 16,
+    "closing_note": "dolores",
     "transaction_ids": "1,2,3"
 }
 
@@ -916,7 +1154,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/cash-register/59" \
+    -G "https://oimpresso.com/connector/api/cash-register/59" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -924,7 +1162,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/cash-register/59"
+    "https://oimpresso.com/connector/api/cash-register/59"
 );
 
 let headers = {
@@ -1011,7 +1249,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/contactapi?type=qui" \
+    -G "https://oimpresso.com/connector/api/contactapi?type=minima" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -1019,11 +1257,11 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/contactapi"
+    "https://oimpresso.com/connector/api/contactapi"
 );
 
 let params = {
-    "type": "qui",
+    "type": "minima",
 };
 Object.keys(params)
     .forEach(key => url.searchParams.append(key, params[key]));
@@ -1053,9 +1291,8 @@ fetch(url, {
             "business_id": 1,
             "type": "customer",
             "supplier_business_name": null,
-            "name": " Walk-In Customer  ",
+            "name": "Walk-In Customer",
             "prefix": null,
-            "first_name": "Walk-In Customer",
             "middle_name": null,
             "last_name": null,
             "email": "walkin@test.com",
@@ -1103,7 +1340,6 @@ fetch(url, {
             "supplier_business_name": "Alpha Clothings",
             "name": "Michael",
             "prefix": null,
-            "first_name": "Michael",
             "middle_name": null,
             "last_name": null,
             "email": null,
@@ -1167,17 +1403,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/contactapi" \
+    "https://oimpresso.com/connector/api/contactapi" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"type":"customer","supplier_business_name":"quis","prefix":"laborum","first_name":"ex","middle_name":"quos","last_name":"et","tax_number":"8787fefef","pay_term_number":3,"pay_term_type":"months","mobile":"4578691009","landline":"5487-8454-4145","alternate_number":"841847541222","address_line_1":"nemo","address_line_2":"temporibus","city":"cum","state":"voluptatibus","country":"aperiam","zip_code":"beatae","customer_group_id":"enim","contact_id":"sequi","dob":"2000-06-13","custom_field1":"eum","custom_field2":"ullam","custom_field3":"odit","custom_field4":"et","email":"placeat","shipping_address":"veritatis","position":"qui","opening_balance":0,"source_id":5,"life_stage_id":20,"assigned_to":[]}'
+    -d '{"type":"customer","supplier_business_name":"aut","prefix":"natus","name":"sunt","middle_name":"ut","last_name":"quod","tax_number":"8787fefef","pay_term_number":3,"pay_term_type":"months","mobile":"4578691009","landline":"5487-8454-4145","alternate_number":"841847541222","address_line_1":"culpa","address_line_2":"modi","city":"qui","state":"illo","country":"maxime","zip_code":"nisi","customer_group_id":"ut","contact_id":"ullam","dob":"2000-06-13","custom_field1":"sunt","custom_field2":"nihil","custom_field3":"enim","custom_field4":"voluptatem","email":"omnis","shipping_address":"doloremque","position":"laboriosam","opening_balance":0,"source_id":10,"life_stage_id":15,"assigned_to":[]}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/contactapi"
+    "https://oimpresso.com/connector/api/contactapi"
 );
 
 let headers = {
@@ -1188,36 +1424,36 @@ let headers = {
 
 let body = {
     "type": "customer",
-    "supplier_business_name": "quis",
-    "prefix": "laborum",
-    "first_name": "ex",
-    "middle_name": "quos",
-    "last_name": "et",
+    "supplier_business_name": "aut",
+    "prefix": "natus",
+    "name": "sunt",
+    "middle_name": "ut",
+    "last_name": "quod",
     "tax_number": "8787fefef",
     "pay_term_number": 3,
     "pay_term_type": "months",
     "mobile": "4578691009",
     "landline": "5487-8454-4145",
     "alternate_number": "841847541222",
-    "address_line_1": "nemo",
-    "address_line_2": "temporibus",
-    "city": "cum",
-    "state": "voluptatibus",
-    "country": "aperiam",
-    "zip_code": "beatae",
-    "customer_group_id": "enim",
-    "contact_id": "sequi",
+    "address_line_1": "culpa",
+    "address_line_2": "modi",
+    "city": "qui",
+    "state": "illo",
+    "country": "maxime",
+    "zip_code": "nisi",
+    "customer_group_id": "ut",
+    "contact_id": "ullam",
     "dob": "2000-06-13",
-    "custom_field1": "eum",
-    "custom_field2": "ullam",
-    "custom_field3": "odit",
-    "custom_field4": "et",
-    "email": "placeat",
-    "shipping_address": "veritatis",
-    "position": "qui",
+    "custom_field1": "sunt",
+    "custom_field2": "nihil",
+    "custom_field3": "enim",
+    "custom_field4": "voluptatem",
+    "email": "omnis",
+    "shipping_address": "doloremque",
+    "position": "laboriosam",
     "opening_balance": 0,
-    "source_id": 5,
-    "life_stage_id": 20,
+    "source_id": 10,
+    "life_stage_id": 15,
     "assigned_to": []
 }
 
@@ -1260,7 +1496,7 @@ Parameter | Type | Status | Description
     `type` | string |  required  | Type of contact (supplier, customer, both, lead)
         `supplier_business_name` | string |  required  | Required if type is supplier
         `prefix` | string |  optional  | Prefix for the name of the contact
-        `first_name` | string |  required  | Name of the contact
+        `name` | string |  required  | Name of the contact
         `middle_name` | string |  optional  | 
         `last_name` | string |  optional  | 
         `tax_number` | string |  optional  | 
@@ -1300,7 +1536,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/contactapi/1" \
+    -G "https://oimpresso.com/connector/api/contactapi/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -1308,7 +1544,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/contactapi/1"
+    "https://oimpresso.com/connector/api/contactapi/1"
 );
 
 let headers = {
@@ -1336,9 +1572,8 @@ fetch(url, {
             "business_id": 1,
             "type": "customer",
             "supplier_business_name": null,
-            "name": " Walk-In Customer  ",
+            "name": "Walk-In Customer",
             "prefix": null,
-            "first_name": "Walk-In Customer",
             "middle_name": null,
             "last_name": null,
             "email": "walkin@test.com",
@@ -1417,17 +1652,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X PUT \
-    "http://localhost/oimpresso/public/connector/api/contactapi/1" \
+    "https://oimpresso.com/connector/api/contactapi/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"type":"customer","supplier_business_name":"dolorum","prefix":"est","first_name":"eveniet","middle_name":"possimus","last_name":"veniam","tax_number":"488744dwd","pay_term_number":3,"pay_term_type":"months","mobile":"8795461009","landline":"65484-848-848","alternate_number":"9898795220","address_line_1":"aut","address_line_2":"quam","city":"sit","state":"est","country":"a","zip_code":"reiciendis","customer_group_id":"inventore","contact_id":"quaerat","dob":"2000-06-13","custom_field1":"quia","custom_field2":"sed","custom_field3":"optio","custom_field4":"ex","email":"ad","shipping_address":"aut","position":"dolore","opening_balance":10.3,"source_id":16,"life_stage_id":13,"assigned_to":[]}'
+    -d '{"type":"customer","supplier_business_name":"temporibus","prefix":"omnis","name":"eum","middle_name":"fugit","last_name":"sint","tax_number":"488744dwd","pay_term_number":3,"pay_term_type":"months","mobile":"8795461009","landline":"65484-848-848","alternate_number":"9898795220","address_line_1":"quia","address_line_2":"vitae","city":"quasi","state":"dolores","country":"veniam","zip_code":"repudiandae","customer_group_id":"quod","contact_id":"praesentium","dob":"2000-06-13","custom_field1":"suscipit","custom_field2":"nostrum","custom_field3":"qui","custom_field4":"vel","email":"nihil","shipping_address":"aliquid","position":"soluta","opening_balance":10.3,"source_id":20,"life_stage_id":3,"assigned_to":[]}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/contactapi/1"
+    "https://oimpresso.com/connector/api/contactapi/1"
 );
 
 let headers = {
@@ -1438,36 +1673,36 @@ let headers = {
 
 let body = {
     "type": "customer",
-    "supplier_business_name": "dolorum",
-    "prefix": "est",
-    "first_name": "eveniet",
-    "middle_name": "possimus",
-    "last_name": "veniam",
+    "supplier_business_name": "temporibus",
+    "prefix": "omnis",
+    "name": "eum",
+    "middle_name": "fugit",
+    "last_name": "sint",
     "tax_number": "488744dwd",
     "pay_term_number": 3,
     "pay_term_type": "months",
     "mobile": "8795461009",
     "landline": "65484-848-848",
     "alternate_number": "9898795220",
-    "address_line_1": "aut",
-    "address_line_2": "quam",
-    "city": "sit",
-    "state": "est",
-    "country": "a",
-    "zip_code": "reiciendis",
-    "customer_group_id": "inventore",
-    "contact_id": "quaerat",
+    "address_line_1": "quia",
+    "address_line_2": "vitae",
+    "city": "quasi",
+    "state": "dolores",
+    "country": "veniam",
+    "zip_code": "repudiandae",
+    "customer_group_id": "quod",
+    "contact_id": "praesentium",
     "dob": "2000-06-13",
-    "custom_field1": "quia",
-    "custom_field2": "sed",
-    "custom_field3": "optio",
-    "custom_field4": "ex",
-    "email": "ad",
-    "shipping_address": "aut",
-    "position": "dolore",
+    "custom_field1": "suscipit",
+    "custom_field2": "nostrum",
+    "custom_field3": "qui",
+    "custom_field4": "vel",
+    "email": "nihil",
+    "shipping_address": "aliquid",
+    "position": "soluta",
     "opening_balance": 10.3,
-    "source_id": 16,
-    "life_stage_id": 13,
+    "source_id": 20,
+    "life_stage_id": 3,
     "assigned_to": []
 }
 
@@ -1492,7 +1727,6 @@ fetch(url, {
         "supplier_business_name": null,
         "name": "created from api",
         "prefix": null,
-        "first_name": "created from api",
         "middle_name": null,
         "last_name": null,
         "email": null,
@@ -1552,7 +1786,7 @@ Parameter | Type | Status | Description
     `type` | string |  optional  | Type of contact (supplier, customer, both)
         `supplier_business_name` | string |  optional  | required* Required if type is supplier
         `prefix` | string |  optional  | Prefix for the name of the contact
-        `first_name` | string |  required  | Name of the contact
+        `name` | string |  required  | Name of the contact
         `middle_name` | string |  optional  | 
         `last_name` | string |  optional  | 
         `tax_number` | string |  optional  | 
@@ -1592,17 +1826,17 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/contactapi-payment" \
+    "https://oimpresso.com/connector/api/contactapi-payment" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"contact_id":17,"amount":453.13,"method":"cash","paid_on":"2020-07-22 15:48:29","account_id":7,"card_number":"sit","card_holder_name":"velit","card_transaction_number":"sit","card_type":"omnis","card_month":"est","card_year":"eos","card_security":"nesciunt","transaction_no_1":"vel","transaction_no_2":"asperiores","transaction_no_3":"blanditiis","cheque_number":"sit","bank_account_number":"similique","note":"ut"}'
+    -d '{"contact_id":17,"amount":453.13,"method":"cash","paid_on":"2020-07-22 15:48:29","account_id":3,"card_number":"cumque","card_holder_name":"doloribus","card_transaction_number":"voluptatum","card_type":"illum","card_month":"placeat","card_year":"assumenda","card_security":"sunt","transaction_no_1":"optio","transaction_no_2":"vel","transaction_no_3":"inventore","cheque_number":"distinctio","bank_account_number":"delectus","note":"ullam"}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/contactapi-payment"
+    "https://oimpresso.com/connector/api/contactapi-payment"
 );
 
 let headers = {
@@ -1616,20 +1850,20 @@ let body = {
     "amount": 453.13,
     "method": "cash",
     "paid_on": "2020-07-22 15:48:29",
-    "account_id": 7,
-    "card_number": "sit",
-    "card_holder_name": "velit",
-    "card_transaction_number": "sit",
-    "card_type": "omnis",
-    "card_month": "est",
-    "card_year": "eos",
-    "card_security": "nesciunt",
-    "transaction_no_1": "vel",
-    "transaction_no_2": "asperiores",
-    "transaction_no_3": "blanditiis",
-    "cheque_number": "sit",
-    "bank_account_number": "similique",
-    "note": "ut"
+    "account_id": 3,
+    "card_number": "cumque",
+    "card_holder_name": "doloribus",
+    "card_transaction_number": "voluptatum",
+    "card_type": "illum",
+    "card_month": "placeat",
+    "card_year": "assumenda",
+    "card_security": "sunt",
+    "transaction_no_1": "optio",
+    "transaction_no_2": "vel",
+    "transaction_no_3": "inventore",
+    "cheque_number": "distinctio",
+    "bank_account_number": "delectus",
+    "note": "ullam"
 }
 
 fetch(url, {
@@ -1701,7 +1935,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/expense?location_id=odit&payment_status=paid&start_date=2018-06-25&end_date=2018-06-25&expense_for=aut&per_page=15" \
+    -G "https://oimpresso.com/connector/api/expense?location_id=omnis&payment_status=paid&start_date=2018-06-25&end_date=2018-06-25&expense_for=in&per_page=15" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -1709,15 +1943,15 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/expense"
+    "https://oimpresso.com/connector/api/expense"
 );
 
 let params = {
-    "location_id": "odit",
+    "location_id": "omnis",
     "payment_status": "paid",
     "start_date": "2018-06-25",
     "end_date": "2018-06-25",
-    "expense_for": "aut",
+    "expense_for": "in",
     "per_page": "15",
 };
 Object.keys(params)
@@ -1851,17 +2085,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/expense" \
+    "https://oimpresso.com/connector/api/expense" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"location_id":16,"final_total":11014166.23,"transaction_date":"2020-5-7 15:20:22","tax_rate_id":9,"expense_for":7,"contact_id":11,"additional_notes":"voluptatibus","is_refund":0,"is_recurring":0,"recur_interval":7,"recur_interval_type":"months","subscription_repeat_on":15,"subscription_no":"et","recur_repetitions":17,"payment":[{"amount":453.13,"method":"cash","account_id":16,"card_number":"rerum","card_holder_name":"magnam","card_transaction_number":"porro","card_type":"dolorum","card_month":"laudantium","card_year":"voluptates","card_security":"quos","transaction_no_1":"enim","transaction_no_2":"praesentium","transaction_no_3":"id","note":"est","cheque_number":"libero"}]}'
+    -d '{"location_id":20,"final_total":1988.58186343,"transaction_date":"2020-5-7 15:20:22","tax_rate_id":7,"expense_for":11,"contact_id":16,"additional_notes":"velit","is_refund":0,"is_recurring":0,"recur_interval":19,"recur_interval_type":"months","subscription_repeat_on":15,"subscription_no":"blanditiis","recur_repetitions":14,"payment":[{"amount":453.13,"method":"cash","account_id":10,"card_number":"natus","card_holder_name":"velit","card_transaction_number":"vitae","card_type":"corrupti","card_month":"et","card_year":"fugit","card_security":"quae","transaction_no_1":"eos","transaction_no_2":"impedit","transaction_no_3":"reiciendis","note":"impedit","cheque_number":"mollitia"}]}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/expense"
+    "https://oimpresso.com/connector/api/expense"
 );
 
 let headers = {
@@ -1871,37 +2105,37 @@ let headers = {
 };
 
 let body = {
-    "location_id": 16,
-    "final_total": 11014166.23,
+    "location_id": 20,
+    "final_total": 1988.58186343,
     "transaction_date": "2020-5-7 15:20:22",
-    "tax_rate_id": 9,
-    "expense_for": 7,
-    "contact_id": 11,
-    "additional_notes": "voluptatibus",
+    "tax_rate_id": 7,
+    "expense_for": 11,
+    "contact_id": 16,
+    "additional_notes": "velit",
     "is_refund": 0,
     "is_recurring": 0,
-    "recur_interval": 7,
+    "recur_interval": 19,
     "recur_interval_type": "months",
     "subscription_repeat_on": 15,
-    "subscription_no": "et",
-    "recur_repetitions": 17,
+    "subscription_no": "blanditiis",
+    "recur_repetitions": 14,
     "payment": [
         {
             "amount": 453.13,
             "method": "cash",
-            "account_id": 16,
-            "card_number": "rerum",
-            "card_holder_name": "magnam",
-            "card_transaction_number": "porro",
-            "card_type": "dolorum",
-            "card_month": "laudantium",
-            "card_year": "voluptates",
-            "card_security": "quos",
-            "transaction_no_1": "enim",
-            "transaction_no_2": "praesentium",
-            "transaction_no_3": "id",
-            "note": "est",
-            "cheque_number": "libero"
+            "account_id": 10,
+            "card_number": "natus",
+            "card_holder_name": "velit",
+            "card_transaction_number": "vitae",
+            "card_type": "corrupti",
+            "card_month": "et",
+            "card_year": "fugit",
+            "card_security": "quae",
+            "transaction_no_1": "eos",
+            "transaction_no_2": "impedit",
+            "transaction_no_3": "reiciendis",
+            "note": "impedit",
+            "cheque_number": "mollitia"
         }
     ]
 }
@@ -1994,7 +2228,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/expense/59" \
+    -G "https://oimpresso.com/connector/api/expense/59" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -2002,7 +2236,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/expense/59"
+    "https://oimpresso.com/connector/api/expense/59"
 );
 
 let headers = {
@@ -2115,17 +2349,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X PUT \
-    "http://localhost/oimpresso/public/connector/api/expense/1" \
+    "https://oimpresso.com/connector/api/expense/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"final_total":3508113.512995,"transaction_date":"2020-5-7 15:20:22","tax_rate_id":14,"expense_for":19,"contact_id":16,"additional_notes":"voluptatum","is_recurring":0,"recur_interval":6,"recur_interval_type":"months","subscription_repeat_on":15,"subscription_no":"possimus","recur_repetitions":6,"payment":[]}'
+    -d '{"final_total":42.150150596,"transaction_date":"2020-5-7 15:20:22","tax_rate_id":11,"expense_for":13,"contact_id":6,"additional_notes":"voluptate","is_recurring":0,"recur_interval":18,"recur_interval_type":"months","subscription_repeat_on":15,"subscription_no":"saepe","recur_repetitions":14,"payment":[]}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/expense/1"
+    "https://oimpresso.com/connector/api/expense/1"
 );
 
 let headers = {
@@ -2135,18 +2369,18 @@ let headers = {
 };
 
 let body = {
-    "final_total": 3508113.512995,
+    "final_total": 42.150150596,
     "transaction_date": "2020-5-7 15:20:22",
-    "tax_rate_id": 14,
-    "expense_for": 19,
-    "contact_id": 16,
-    "additional_notes": "voluptatum",
+    "tax_rate_id": 11,
+    "expense_for": 13,
+    "contact_id": 6,
+    "additional_notes": "voluptate",
     "is_recurring": 0,
-    "recur_interval": 6,
+    "recur_interval": 18,
     "recur_interval_type": "months",
     "subscription_repeat_on": 15,
-    "subscription_no": "possimus",
-    "recur_repetitions": 6,
+    "subscription_no": "saepe",
+    "recur_repetitions": 14,
     "payment": []
 }
 
@@ -2223,7 +2457,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/expense-refund?location_id=aliquam&payment_status=paid&start_date=2018-06-25&end_date=2018-06-25&expense_for=beatae&per_page=15" \
+    -G "https://oimpresso.com/connector/api/expense-refund?location_id=dolorem&payment_status=paid&start_date=2018-06-25&end_date=2018-06-25&expense_for=adipisci&per_page=15" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -2231,15 +2465,15 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/expense-refund"
+    "https://oimpresso.com/connector/api/expense-refund"
 );
 
 let params = {
-    "location_id": "aliquam",
+    "location_id": "dolorem",
     "payment_status": "paid",
     "start_date": "2018-06-25",
     "end_date": "2018-06-25",
-    "expense_for": "beatae",
+    "expense_for": "adipisci",
     "per_page": "15",
 };
 Object.keys(params)
@@ -2327,7 +2561,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/product?brand_id=autem&category_id=harum&sub_category_id=est&location_id=illo&selling_price_group=qui&name=magnam&sku=enim&per_page=10" \
+    -G "https://oimpresso.com/connector/api/product?brand_id=qui&category_id=harum&sub_category_id=dolores&location_id=cupiditate&selling_price_group=dolorem&name=voluptatem&sku=aut&per_page=10" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -2335,17 +2569,17 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/product"
+    "https://oimpresso.com/connector/api/product"
 );
 
 let params = {
-    "brand_id": "autem",
+    "brand_id": "qui",
     "category_id": "harum",
-    "sub_category_id": "est",
-    "location_id": "illo",
-    "selling_price_group": "qui",
-    "name": "magnam",
-    "sku": "enim",
+    "sub_category_id": "dolores",
+    "location_id": "cupiditate",
+    "selling_price_group": "dolorem",
+    "name": "voluptatem",
+    "sku": "aut",
     "per_page": "10",
 };
 Object.keys(params)
@@ -2620,7 +2854,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/product/1?selling_price_group=alias" \
+    -G "https://oimpresso.com/connector/api/product/1?selling_price_group=architecto" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -2628,11 +2862,11 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/product/1"
+    "https://oimpresso.com/connector/api/product/1"
 );
 
 let params = {
-    "selling_price_group": "alias",
+    "selling_price_group": "architecto",
 };
 Object.keys(params)
     .forEach(key => url.searchParams.append(key, params[key]));
@@ -2891,7 +3125,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/selling-price-group" \
+    -G "https://oimpresso.com/connector/api/selling-price-group" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -2899,7 +3133,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/selling-price-group"
+    "https://oimpresso.com/connector/api/selling-price-group"
 );
 
 let headers = {
@@ -2960,7 +3194,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/variation/?brand_id=dignissimos&category_id=aliquid&sub_category_id=sed&not_for_selling=sit&name=et&sku=voluptas&per_page=10" \
+    -G "https://oimpresso.com/connector/api/variation/?brand_id=aut&category_id=sed&sub_category_id=quia&not_for_selling=dolor&name=repellendus&sku=sint&per_page=10" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -2968,16 +3202,16 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/variation/"
+    "https://oimpresso.com/connector/api/variation/"
 );
 
 let params = {
-    "brand_id": "dignissimos",
-    "category_id": "aliquid",
-    "sub_category_id": "sed",
-    "not_for_selling": "sit",
-    "name": "et",
-    "sku": "voluptas",
+    "brand_id": "aut",
+    "category_id": "sed",
+    "sub_category_id": "quia",
+    "not_for_selling": "dolor",
+    "name": "repellendus",
+    "sku": "sint",
     "per_page": "10",
 };
 Object.keys(params)
@@ -3249,7 +3483,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/sell?location_id=doloribus&contact_id=numquam&payment_status=paid&start_date=2018-06-25&end_date=2018-06-25&user_id=dignissimos&service_staff_id=rerum&shipping_status=ordered&only_subscriptions=tempora&per_page=10" \
+    -G "https://oimpresso.com/connector/api/sell?location_id=culpa&contact_id=et&payment_status=paid&start_date=2018-06-25&end_date=2018-06-25&user_id=quam&service_staff_id=totam&shipping_status=ordered&only_subscriptions=recusandae&per_page=10" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -3257,19 +3491,19 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/sell"
+    "https://oimpresso.com/connector/api/sell"
 );
 
 let params = {
-    "location_id": "doloribus",
-    "contact_id": "numquam",
+    "location_id": "culpa",
+    "contact_id": "et",
     "payment_status": "paid",
     "start_date": "2018-06-25",
     "end_date": "2018-06-25",
-    "user_id": "dignissimos",
-    "service_staff_id": "rerum",
+    "user_id": "quam",
+    "service_staff_id": "totam",
     "shipping_status": "ordered",
-    "only_subscriptions": "tempora",
+    "only_subscriptions": "recusandae",
     "per_page": "10",
 };
 Object.keys(params)
@@ -3498,17 +3732,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/sell" \
+    "https://oimpresso.com/connector/api/sell" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"sells":[{"location_id":14,"contact_id":9,"transaction_date":"2020-07-22 15:48:29","invoice_no":"rerum","status":"final","is_quotation":true,"tax_rate_id":4,"discount_amount":10,"discount_type":"fixed","sale_note":"facere","staff_note":"at","commission_agent":7,"shipping_details":"Express Delivery","shipping_address":"tempore","shipping_status":"ordered","delivered_to":"'Mr robin'","shipping_charges":10,"packing_charge":10,"exchange_rate":1,"selling_price_group_id":15,"pay_term_number":3,"pay_term_type":"months","is_recurring":0,"recur_interval":18,"recur_interval_type":"months","subscription_repeat_on":15,"subscription_no":"ipsa","recur_repetitions":4,"rp_redeemed":14,"rp_redeemed_amount":13.5,"types_of_service_id":5,"service_custom_field_1":"repellendus","service_custom_field_2":"voluptatum","service_custom_field_3":"voluptates","service_custom_field_4":"laboriosam","round_off_amount":52.19,"table_id":17,"service_staff_id":13,"change_return":0,"products":[{"product_id":17,"variation_id":58,"quantity":1,"unit_price":437.5,"tax_rate_id":0,"discount_amount":0,"discount_type":"percentage","sub_unit_id":3,"note":"dolorum"}],"payments":[{"amount":453.13,"method":"cash","account_id":4,"card_number":"iusto","card_holder_name":"optio","card_transaction_number":"maiores","card_type":"qui","card_month":"rem","card_year":"aliquam","card_security":"ducimus","transaction_no_1":"incidunt","transaction_no_2":"voluptate","transaction_no_3":"ducimus","bank_account_number":"officia","note":"dignissimos","cheque_number":"sit"}]}]}'
+    -d '{"sells":[{"location_id":18,"contact_id":7,"transaction_date":"2020-07-22 15:48:29","invoice_no":"voluptatem","status":"final","is_quotation":true,"tax_rate_id":16,"discount_amount":10,"discount_type":"fixed","sale_note":"occaecati","staff_note":"qui","commission_agent":16,"shipping_details":"Express Delivery","shipping_address":"aspernatur","shipping_status":"ordered","delivered_to":"'Mr robin'","shipping_charges":10,"packing_charge":10,"exchange_rate":1,"selling_price_group_id":16,"pay_term_number":3,"pay_term_type":"months","is_recurring":0,"recur_interval":9,"recur_interval_type":"months","subscription_repeat_on":15,"subscription_no":"vero","recur_repetitions":13,"rp_redeemed":13,"rp_redeemed_amount":13.5,"types_of_service_id":1,"service_custom_field_1":"est","service_custom_field_2":"quo","service_custom_field_3":"quia","service_custom_field_4":"ad","round_off_amount":390522.580488,"table_id":5,"service_staff_id":17,"change_return":0,"products":[{"product_id":17,"variation_id":58,"quantity":1,"unit_price":437.5,"tax_rate_id":0,"discount_amount":0,"discount_type":"percentage","sub_unit_id":14,"note":"possimus"}],"payments":[{"amount":453.13,"method":"cash","account_id":7,"card_number":"distinctio","card_holder_name":"cupiditate","card_transaction_number":"mollitia","card_type":"aperiam","card_month":"harum","card_year":"nostrum","card_security":"repudiandae","transaction_no_1":"et","transaction_no_2":"repellat","transaction_no_3":"quidem","bank_account_number":"eligendi","note":"qui","cheque_number":"tempore"}]}]}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/sell"
+    "https://oimpresso.com/connector/api/sell"
 );
 
 let headers = {
@@ -3520,44 +3754,44 @@ let headers = {
 let body = {
     "sells": [
         {
-            "location_id": 14,
-            "contact_id": 9,
+            "location_id": 18,
+            "contact_id": 7,
             "transaction_date": "2020-07-22 15:48:29",
-            "invoice_no": "rerum",
+            "invoice_no": "voluptatem",
             "status": "final",
             "is_quotation": true,
-            "tax_rate_id": 4,
+            "tax_rate_id": 16,
             "discount_amount": 10,
             "discount_type": "fixed",
-            "sale_note": "facere",
-            "staff_note": "at",
-            "commission_agent": 7,
+            "sale_note": "occaecati",
+            "staff_note": "qui",
+            "commission_agent": 16,
             "shipping_details": "Express Delivery",
-            "shipping_address": "tempore",
+            "shipping_address": "aspernatur",
             "shipping_status": "ordered",
             "delivered_to": "'Mr robin'",
             "shipping_charges": 10,
             "packing_charge": 10,
             "exchange_rate": 1,
-            "selling_price_group_id": 15,
+            "selling_price_group_id": 16,
             "pay_term_number": 3,
             "pay_term_type": "months",
             "is_recurring": 0,
-            "recur_interval": 18,
+            "recur_interval": 9,
             "recur_interval_type": "months",
             "subscription_repeat_on": 15,
-            "subscription_no": "ipsa",
-            "recur_repetitions": 4,
-            "rp_redeemed": 14,
+            "subscription_no": "vero",
+            "recur_repetitions": 13,
+            "rp_redeemed": 13,
             "rp_redeemed_amount": 13.5,
-            "types_of_service_id": 5,
-            "service_custom_field_1": "repellendus",
-            "service_custom_field_2": "voluptatum",
-            "service_custom_field_3": "voluptates",
-            "service_custom_field_4": "laboriosam",
-            "round_off_amount": 52.19,
-            "table_id": 17,
-            "service_staff_id": 13,
+            "types_of_service_id": 1,
+            "service_custom_field_1": "est",
+            "service_custom_field_2": "quo",
+            "service_custom_field_3": "quia",
+            "service_custom_field_4": "ad",
+            "round_off_amount": 390522.580488,
+            "table_id": 5,
+            "service_staff_id": 17,
             "change_return": 0,
             "products": [
                 {
@@ -3568,28 +3802,28 @@ let body = {
                     "tax_rate_id": 0,
                     "discount_amount": 0,
                     "discount_type": "percentage",
-                    "sub_unit_id": 3,
-                    "note": "dolorum"
+                    "sub_unit_id": 14,
+                    "note": "possimus"
                 }
             ],
             "payments": [
                 {
                     "amount": 453.13,
                     "method": "cash",
-                    "account_id": 4,
-                    "card_number": "iusto",
-                    "card_holder_name": "optio",
-                    "card_transaction_number": "maiores",
-                    "card_type": "qui",
-                    "card_month": "rem",
-                    "card_year": "aliquam",
-                    "card_security": "ducimus",
-                    "transaction_no_1": "incidunt",
-                    "transaction_no_2": "voluptate",
-                    "transaction_no_3": "ducimus",
-                    "bank_account_number": "officia",
-                    "note": "dignissimos",
-                    "cheque_number": "sit"
+                    "account_id": 7,
+                    "card_number": "distinctio",
+                    "card_holder_name": "cupiditate",
+                    "card_transaction_number": "mollitia",
+                    "card_type": "aperiam",
+                    "card_month": "harum",
+                    "card_year": "nostrum",
+                    "card_security": "repudiandae",
+                    "transaction_no_1": "et",
+                    "transaction_no_2": "repellat",
+                    "transaction_no_3": "quidem",
+                    "bank_account_number": "eligendi",
+                    "note": "qui",
+                    "cheque_number": "tempore"
                 }
             ]
         }
@@ -3856,7 +4090,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/sell/55" \
+    -G "https://oimpresso.com/connector/api/sell/55" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -3864,7 +4098,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/sell/55"
+    "https://oimpresso.com/connector/api/sell/55"
 );
 
 let headers = {
@@ -4068,17 +4302,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X PUT \
-    "http://localhost/oimpresso/public/connector/api/sell/6" \
+    "https://oimpresso.com/connector/api/sell/6" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"contact_id":14,"transaction_date":"2020-5-7 15:20:22","status":"final","is_quotation":true,"tax_rate_id":11,"discount_amount":10,"discount_type":"fixed","sale_note":"veniam","staff_note":"possimus","commission_agent":8,"shipping_details":"Express Delivery","shipping_address":"officia","shipping_status":"ordered","delivered_to":"Mr Robin","shipping_charges":10,"packing_charge":10,"exchange_rate":1,"selling_price_group_id":14,"pay_term_number":14,"pay_term_type":"months","is_recurring":0,"recur_interval":6,"recur_interval_type":"days","subscription_repeat_on":7,"subscription_no":"recusandae","recur_repetitions":10,"rp_redeemed":10,"rp_redeemed_amount":13.5,"types_of_service_id":7,"service_custom_field_1":"numquam","service_custom_field_2":"ut","service_custom_field_3":"pariatur","service_custom_field_4":"quod","round_off_amount":550.8173,"table_id":10,"service_staff_id":17,"change_return":0,"change_return_id":20,"products":[{"sell_line_id":5,"product_id":17,"variation_id":58,"quantity":1,"unit_price":437.5,"tax_rate_id":15,"discount_amount":0,"discount_type":"percentage","sub_unit_id":17,"note":"placeat"}],"payments":[{"payment_id":1,"amount":453.13,"method":"cash","account_id":7,"card_number":"iure","card_holder_name":"voluptates","card_transaction_number":"suscipit","card_type":"corrupti","card_month":"animi","card_year":"qui","card_security":"qui","transaction_no_1":"reprehenderit","transaction_no_2":"sit","transaction_no_3":"assumenda","note":"esse","cheque_number":"fugit","bank_account_number":"nostrum"}]}'
+    -d '{"contact_id":17,"transaction_date":"2020-5-7 15:20:22","status":"final","is_quotation":true,"tax_rate_id":5,"discount_amount":10,"discount_type":"fixed","sale_note":"possimus","staff_note":"et","commission_agent":7,"shipping_details":"Express Delivery","shipping_address":"consequuntur","shipping_status":"ordered","delivered_to":"Mr Robin","shipping_charges":10,"packing_charge":10,"exchange_rate":1,"selling_price_group_id":18,"pay_term_number":2,"pay_term_type":"months","is_recurring":0,"recur_interval":5,"recur_interval_type":"days","subscription_repeat_on":7,"subscription_no":"nihil","recur_repetitions":10,"rp_redeemed":4,"rp_redeemed_amount":13.5,"types_of_service_id":4,"service_custom_field_1":"doloribus","service_custom_field_2":"corrupti","service_custom_field_3":"eveniet","service_custom_field_4":"et","round_off_amount":2.62,"table_id":15,"service_staff_id":10,"change_return":0,"change_return_id":5,"products":[{"sell_line_id":3,"product_id":17,"variation_id":58,"quantity":1,"unit_price":437.5,"tax_rate_id":1,"discount_amount":0,"discount_type":"percentage","sub_unit_id":12,"note":"aspernatur"}],"payments":[{"payment_id":3,"amount":453.13,"method":"cash","account_id":17,"card_number":"earum","card_holder_name":"aut","card_transaction_number":"eveniet","card_type":"ea","card_month":"pariatur","card_year":"deserunt","card_security":"quasi","transaction_no_1":"eos","transaction_no_2":"et","transaction_no_3":"consectetur","note":"repellendus","cheque_number":"expedita","bank_account_number":"est"}]}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/sell/6"
+    "https://oimpresso.com/connector/api/sell/6"
 );
 
 let headers = {
@@ -4088,77 +4322,77 @@ let headers = {
 };
 
 let body = {
-    "contact_id": 14,
+    "contact_id": 17,
     "transaction_date": "2020-5-7 15:20:22",
     "status": "final",
     "is_quotation": true,
-    "tax_rate_id": 11,
+    "tax_rate_id": 5,
     "discount_amount": 10,
     "discount_type": "fixed",
-    "sale_note": "veniam",
-    "staff_note": "possimus",
-    "commission_agent": 8,
+    "sale_note": "possimus",
+    "staff_note": "et",
+    "commission_agent": 7,
     "shipping_details": "Express Delivery",
-    "shipping_address": "officia",
+    "shipping_address": "consequuntur",
     "shipping_status": "ordered",
     "delivered_to": "Mr Robin",
     "shipping_charges": 10,
     "packing_charge": 10,
     "exchange_rate": 1,
-    "selling_price_group_id": 14,
-    "pay_term_number": 14,
+    "selling_price_group_id": 18,
+    "pay_term_number": 2,
     "pay_term_type": "months",
     "is_recurring": 0,
-    "recur_interval": 6,
+    "recur_interval": 5,
     "recur_interval_type": "days",
     "subscription_repeat_on": 7,
-    "subscription_no": "recusandae",
+    "subscription_no": "nihil",
     "recur_repetitions": 10,
-    "rp_redeemed": 10,
+    "rp_redeemed": 4,
     "rp_redeemed_amount": 13.5,
-    "types_of_service_id": 7,
-    "service_custom_field_1": "numquam",
-    "service_custom_field_2": "ut",
-    "service_custom_field_3": "pariatur",
-    "service_custom_field_4": "quod",
-    "round_off_amount": 550.8173,
-    "table_id": 10,
-    "service_staff_id": 17,
+    "types_of_service_id": 4,
+    "service_custom_field_1": "doloribus",
+    "service_custom_field_2": "corrupti",
+    "service_custom_field_3": "eveniet",
+    "service_custom_field_4": "et",
+    "round_off_amount": 2.62,
+    "table_id": 15,
+    "service_staff_id": 10,
     "change_return": 0,
-    "change_return_id": 20,
+    "change_return_id": 5,
     "products": [
         {
-            "sell_line_id": 5,
+            "sell_line_id": 3,
             "product_id": 17,
             "variation_id": 58,
             "quantity": 1,
             "unit_price": 437.5,
-            "tax_rate_id": 15,
+            "tax_rate_id": 1,
             "discount_amount": 0,
             "discount_type": "percentage",
-            "sub_unit_id": 17,
-            "note": "placeat"
+            "sub_unit_id": 12,
+            "note": "aspernatur"
         }
     ],
     "payments": [
         {
-            "payment_id": 1,
+            "payment_id": 3,
             "amount": 453.13,
             "method": "cash",
-            "account_id": 7,
-            "card_number": "iure",
-            "card_holder_name": "voluptates",
-            "card_transaction_number": "suscipit",
-            "card_type": "corrupti",
-            "card_month": "animi",
-            "card_year": "qui",
-            "card_security": "qui",
-            "transaction_no_1": "reprehenderit",
-            "transaction_no_2": "sit",
-            "transaction_no_3": "assumenda",
-            "note": "esse",
-            "cheque_number": "fugit",
-            "bank_account_number": "nostrum"
+            "account_id": 17,
+            "card_number": "earum",
+            "card_holder_name": "aut",
+            "card_transaction_number": "eveniet",
+            "card_type": "ea",
+            "card_month": "pariatur",
+            "card_year": "deserunt",
+            "card_security": "quasi",
+            "transaction_no_1": "eos",
+            "transaction_no_2": "et",
+            "transaction_no_3": "consectetur",
+            "note": "repellendus",
+            "cheque_number": "expedita",
+            "bank_account_number": "est"
         }
     ]
 }
@@ -4400,7 +4634,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X DELETE \
-    "http://localhost/oimpresso/public/connector/api/sell/dolore" \
+    "https://oimpresso.com/connector/api/sell/cum" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -4408,7 +4642,7 @@ curl -X DELETE \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/sell/dolore"
+    "https://oimpresso.com/connector/api/sell/cum"
 );
 
 let headers = {
@@ -4446,17 +4680,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/sell-return" \
+    "https://oimpresso.com/connector/api/sell-return" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"transaction_id":7,"transaction_date":"2020-5-7 15:20:22","invoice_no":"odit","discount_amount":10,"discount_type":"fixed","products":[{"sell_line_id":10,"quantity":1,"unit_price_inc_tax":437.5}]}'
+    -d '{"transaction_id":11,"transaction_date":"2020-5-7 15:20:22","invoice_no":"omnis","discount_amount":10,"discount_type":"fixed","products":[{"sell_line_id":6,"quantity":1,"unit_price_inc_tax":437.5}]}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/sell-return"
+    "https://oimpresso.com/connector/api/sell-return"
 );
 
 let headers = {
@@ -4466,14 +4700,14 @@ let headers = {
 };
 
 let body = {
-    "transaction_id": 7,
+    "transaction_id": 11,
     "transaction_date": "2020-5-7 15:20:22",
-    "invoice_no": "odit",
+    "invoice_no": "omnis",
     "discount_amount": 10,
     "discount_type": "fixed",
     "products": [
         {
-            "sell_line_id": 10,
+            "sell_line_id": 6,
             "quantity": 1,
             "unit_price_inc_tax": 437.5
         }
@@ -4621,7 +4855,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/list-sell-return" \
+    -G "https://oimpresso.com/connector/api/list-sell-return" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -4629,7 +4863,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/list-sell-return"
+    "https://oimpresso.com/connector/api/list-sell-return"
 );
 
 let headers = {
@@ -4948,17 +5182,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/update-shipping-status" \
+    "https://oimpresso.com/connector/api/update-shipping-status" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"id":13,"shipping_status":"ordered","delivered_to":"eos"}'
+    -d '{"id":18,"shipping_status":"ordered","delivered_to":"nisi"}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/update-shipping-status"
+    "https://oimpresso.com/connector/api/update-shipping-status"
 );
 
 let headers = {
@@ -4968,9 +5202,9 @@ let headers = {
 };
 
 let body = {
-    "id": 13,
+    "id": 18,
     "shipping_status": "ordered",
-    "delivered_to": "eos"
+    "delivered_to": "nisi"
 }
 
 fetch(url, {
@@ -5007,7 +5241,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/active-subscription" \
+    -G "https://oimpresso.com/connector/api/active-subscription" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5015,7 +5249,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/active-subscription"
+    "https://oimpresso.com/connector/api/active-subscription"
 );
 
 let headers = {
@@ -5083,7 +5317,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/packages" \
+    -G "https://oimpresso.com/connector/api/packages" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5091,7 +5325,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/packages"
+    "https://oimpresso.com/connector/api/packages"
 );
 
 let headers = {
@@ -5244,7 +5478,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/table?location_id=tenetur" \
+    -G "https://oimpresso.com/connector/api/table?location_id=quibusdam" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5252,11 +5486,11 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/table"
+    "https://oimpresso.com/connector/api/table"
 );
 
 let params = {
-    "location_id": "tenetur",
+    "location_id": "quibusdam",
 };
 Object.keys(params)
     .forEach(key => url.searchParams.append(key, params[key]));
@@ -5315,7 +5549,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/table/5" \
+    -G "https://oimpresso.com/connector/api/table/5" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5323,7 +5557,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/table/5"
+    "https://oimpresso.com/connector/api/table/5"
 );
 
 let headers = {
@@ -5383,7 +5617,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/tax" \
+    -G "https://oimpresso.com/connector/api/tax" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5391,7 +5625,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/tax"
+    "https://oimpresso.com/connector/api/tax"
 );
 
 let headers = {
@@ -5480,7 +5714,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/tax/1" \
+    -G "https://oimpresso.com/connector/api/tax/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5488,7 +5722,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/tax/1"
+    "https://oimpresso.com/connector/api/tax/1"
 );
 
 let headers = {
@@ -5549,7 +5783,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/taxonomy?type=dolorum" \
+    -G "https://oimpresso.com/connector/api/taxonomy?type=praesentium" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5557,11 +5791,11 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/taxonomy"
+    "https://oimpresso.com/connector/api/taxonomy"
 );
 
 let params = {
-    "type": "dolorum",
+    "type": "praesentium",
 };
 Object.keys(params)
     .forEach(key => url.searchParams.append(key, params[key]));
@@ -5672,7 +5906,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/taxonomy/1" \
+    -G "https://oimpresso.com/connector/api/taxonomy/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5680,7 +5914,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/taxonomy/1"
+    "https://oimpresso.com/connector/api/taxonomy/1"
 );
 
 let headers = {
@@ -5776,7 +6010,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/types-of-service" \
+    -G "https://oimpresso.com/connector/api/types-of-service" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5784,7 +6018,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/types-of-service"
+    "https://oimpresso.com/connector/api/types-of-service"
 );
 
 let headers = {
@@ -5839,7 +6073,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/types-of-service/1" \
+    -G "https://oimpresso.com/connector/api/types-of-service/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5847,7 +6081,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/types-of-service/1"
+    "https://oimpresso.com/connector/api/types-of-service/1"
 );
 
 let headers = {
@@ -5910,7 +6144,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/unit" \
+    -G "https://oimpresso.com/connector/api/unit" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -5918,7 +6152,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/unit"
+    "https://oimpresso.com/connector/api/unit"
 );
 
 let headers = {
@@ -6013,7 +6247,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/unit/1" \
+    -G "https://oimpresso.com/connector/api/unit/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -6021,7 +6255,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/unit/1"
+    "https://oimpresso.com/connector/api/unit/1"
 );
 
 let headers = {
@@ -6084,7 +6318,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/user/loggedin" \
+    -G "https://oimpresso.com/connector/api/user/loggedin" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -6092,7 +6326,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/user/loggedin"
+    "https://oimpresso.com/connector/api/user/loggedin"
 );
 
 let headers = {
@@ -6175,7 +6409,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/user?service_staff=voluptatem" \
+    -G "https://oimpresso.com/connector/api/user?service_staff=dolores" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -6183,11 +6417,11 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/user"
+    "https://oimpresso.com/connector/api/user"
 );
 
 let params = {
-    "service_staff": "voluptatem",
+    "service_staff": "dolores",
 };
 Object.keys(params)
     .forEach(key => url.searchParams.append(key, params[key]));
@@ -6279,7 +6513,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/user/1" \
+    -G "https://oimpresso.com/connector/api/user/1" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -6287,7 +6521,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/user/1"
+    "https://oimpresso.com/connector/api/user/1"
 );
 
 let headers = {
@@ -6377,17 +6611,17 @@ Parameter | Status | Description
 
 ```bash
 curl -X POST \
-    "http://localhost/oimpresso/public/connector/api/update-password" \
+    "https://oimpresso.com/connector/api/update-password" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}" \
-    -d '{"current_password":"laborum","new_password":"necessitatibus"}'
+    -d '{"current_password":"illo","new_password":"quas"}'
 
 ```
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/update-password"
+    "https://oimpresso.com/connector/api/update-password"
 );
 
 let headers = {
@@ -6397,8 +6631,8 @@ let headers = {
 };
 
 let body = {
-    "current_password": "laborum",
-    "new_password": "necessitatibus"
+    "current_password": "illo",
+    "new_password": "quas"
 }
 
 fetch(url, {
@@ -6434,6 +6668,302 @@ Parameter | Type | Status | Description
 #general
 
 
+<!-- START_723f18c019e640a8d8ac40f2e6e1a5a5 -->
+## Display a listing of the resource.
+
+> Example request:
+
+```bash
+curl -X GET \
+    -G "https://oimpresso.com/connector/api/business" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}"
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/business"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+fetch(url, {
+    method: "GET",
+    headers: headers,
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+> Example response (401):
+
+```json
+{
+    "error": "Unauthenticated."
+}
+```
+
+### HTTP Request
+`GET connector/api/business`
+
+
+<!-- END_723f18c019e640a8d8ac40f2e6e1a5a5 -->
+
+<!-- START_66860c58937e33cff0d0a10efc25c24e -->
+## Store a newly created resource in storage.
+
+> Example request:
+
+```bash
+curl -X POST \
+    "https://oimpresso.com/connector/api/business" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}"
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/business"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+fetch(url, {
+    method: "POST",
+    headers: headers,
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+
+### HTTP Request
+`POST connector/api/business`
+
+
+<!-- END_66860c58937e33cff0d0a10efc25c24e -->
+
+<!-- START_fa1f116158f1c69cbb3d294e8b64c5c0 -->
+## Show the specified resource.
+
+> Example request:
+
+```bash
+curl -X GET \
+    -G "https://oimpresso.com/connector/api/business/1" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}"
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/business/1"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+fetch(url, {
+    method: "GET",
+    headers: headers,
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+> Example response (401):
+
+```json
+{
+    "error": "Unauthenticated."
+}
+```
+
+### HTTP Request
+`GET connector/api/business/{business}`
+
+
+<!-- END_fa1f116158f1c69cbb3d294e8b64c5c0 -->
+
+<!-- START_34b25e6400be459503b2826e4d7da449 -->
+## Update the specified resource in storage.
+
+> Example request:
+
+```bash
+curl -X PUT \
+    "https://oimpresso.com/connector/api/business/1" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}"
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/business/1"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+fetch(url, {
+    method: "PUT",
+    headers: headers,
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+
+### HTTP Request
+`PUT connector/api/business/{business}`
+
+`PATCH connector/api/business/{business}`
+
+
+<!-- END_34b25e6400be459503b2826e4d7da449 -->
+
+<!-- START_63423d98d08f783d0f54da009ec5e9fd -->
+## Processa os dados do cliente e do equipamento recebidos em um JSON.
+
+> Example request:
+
+```bash
+curl -X POST \
+    "https://oimpresso.com/connector/api/processa-dados-cliente" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}"
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/processa-dados-cliente"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+fetch(url, {
+    method: "POST",
+    headers: headers,
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+
+### HTTP Request
+`POST connector/api/processa-dados-cliente`
+
+
+<!-- END_63423d98d08f783d0f54da009ec5e9fd -->
+
+<!-- START_5e07d4589f92b5e0cf5b81dd18233dac -->
+## Cria ou atualiza o cliente (Business).
+
+> Example request:
+
+```bash
+curl -X POST \
+    "https://oimpresso.com/connector/api/salvar-cliente" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}"
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/salvar-cliente"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+fetch(url, {
+    method: "POST",
+    headers: headers,
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+
+### HTTP Request
+`POST connector/api/salvar-cliente`
+
+
+<!-- END_5e07d4589f92b5e0cf5b81dd18233dac -->
+
+<!-- START_88069afcdb35ad9b53dc8cd78f5fecd6 -->
+## Processa o equipamento com base no cliente já cadastrado.
+
+> Example request:
+
+```bash
+curl -X POST \
+    "https://oimpresso.com/connector/api/salvar-equipamento/1" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer {token}"
+```
+
+```javascript
+const url = new URL(
+    "https://oimpresso.com/connector/api/salvar-equipamento/1"
+);
+
+let headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer {token}",
+};
+
+fetch(url, {
+    method: "POST",
+    headers: headers,
+})
+    .then(response => response.json())
+    .then(json => console.log(json));
+```
+
+
+
+### HTTP Request
+`POST connector/api/salvar-equipamento/{business_id}`
+
+
+<!-- END_88069afcdb35ad9b53dc8cd78f5fecd6 -->
+
 <!-- START_4291b84958f2fa16d58446f4a4412eae -->
 ## List payment accounts
 
@@ -6442,7 +6972,7 @@ Parameter | Type | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/payment-accounts" \
+    -G "https://oimpresso.com/connector/api/payment-accounts" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -6450,7 +6980,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/payment-accounts"
+    "https://oimpresso.com/connector/api/payment-accounts"
 );
 
 let headers = {
@@ -6504,7 +7034,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/payment-methods" \
+    -G "https://oimpresso.com/connector/api/payment-methods" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -6512,7 +7042,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/payment-methods"
+    "https://oimpresso.com/connector/api/payment-methods"
 );
 
 let headers = {
@@ -6559,7 +7089,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/business-details" \
+    -G "https://oimpresso.com/connector/api/business-details" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -6567,7 +7097,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/business-details"
+    "https://oimpresso.com/connector/api/business-details"
 );
 
 let headers = {
@@ -6910,7 +7440,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/profit-loss-report?location_id=quia&start_date=2018-06-25&end_date=2018-06-25&user_id=molestias" \
+    -G "https://oimpresso.com/connector/api/profit-loss-report?location_id=harum&start_date=2018-06-25&end_date=2018-06-25&user_id=at" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -6918,14 +7448,14 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/profit-loss-report"
+    "https://oimpresso.com/connector/api/profit-loss-report"
 );
 
 let params = {
-    "location_id": "quia",
+    "location_id": "harum",
     "start_date": "2018-06-25",
     "end_date": "2018-06-25",
-    "user_id": "molestias",
+    "user_id": "at",
 };
 Object.keys(params)
     .forEach(key => url.searchParams.append(key, params[key]));
@@ -7008,7 +7538,7 @@ Parameter | Status | Description
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/product-stock-report" \
+    -G "https://oimpresso.com/connector/api/product-stock-report" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -7016,7 +7546,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/product-stock-report"
+    "https://oimpresso.com/connector/api/product-stock-report"
 );
 
 let headers = {
@@ -7129,7 +7659,7 @@ fetch(url, {
 
 ```bash
 curl -X GET \
-    -G "http://localhost/oimpresso/public/connector/api/notifications" \
+    -G "https://oimpresso.com/connector/api/notifications" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer {token}"
@@ -7137,7 +7667,7 @@ curl -X GET \
 
 ```javascript
 const url = new URL(
-    "http://localhost/oimpresso/public/connector/api/notifications"
+    "https://oimpresso.com/connector/api/notifications"
 );
 
 let headers = {
