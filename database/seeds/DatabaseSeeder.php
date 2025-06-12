@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([BarcodesTableSeeder::class,
                     PermissionsTableSeeder::class,
                     CurrenciesTableSeeder::class,
-                    CidadesSeeder::class,
+                    CitySeeder::class,
                     // BusinesSeeder::class
                     ]);
     }

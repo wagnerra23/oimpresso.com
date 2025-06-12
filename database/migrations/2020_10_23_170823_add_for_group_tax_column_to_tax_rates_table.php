@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-class AddForGroupTaxColumnToTaxRatesTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class AddForGroupTaxColumnToTaxRatesTable extends Migration
      */
     public function up()
     {
-        // Schema::table('tax_rates', function (Blueprint $table) {
-        //     $table->boolean('for_tax_group')->default(0)->after('is_tax_group');
-        // });
+        Schema::table('tax_rates', function (Blueprint $table) {
+            $table->boolean('for_tax_group')->default(0)->after('is_tax_group');
+        });
     }
 
     /**
@@ -26,4 +26,4 @@ class AddForGroupTaxColumnToTaxRatesTable extends Migration
     public function down()
     {
     }
-}
+};
