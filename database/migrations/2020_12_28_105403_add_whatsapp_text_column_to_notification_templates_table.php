@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('notification_templates', function (Blueprint $table) {
-            $table->text('whatsapp_text')->nullable()->after('sms_body');
-            $table->boolean('auto_send_wa_notif')->default(0)->after('auto_send_sms');
+            if (!Schema::hasColumn('notification_templates', 'whatsapp_text')) {
+                $table->text('whatsapp_text')->nullable()->after('sms_body');
+            }
+            if (!Schema::hasColumn('notification_templates', 'auto_send_wa_notif')) {
+                $table->boolean('auto_send_wa_notif')->default(0)->after('auto_send_sms');
+            }
         });
     }
 
@@ -26,5 +30,13 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('notification_templates', function (Blueprint $table) {
+            if (Schema::hasColumn('notification_templates', 'whatsapp_text')) {
+                $table->dropColumn('whatsapp_text');
+            }
+            if (Schema::hasColumn('notification_templates', 'auto_send_wa_notif')) {
+                $table->dropColumn('auto_send_wa_notif');
+            }
+        });
     }
 };

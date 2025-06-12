@@ -15,10 +15,15 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->string('sub_status')->after('status')->nullable()->index();
+            if (!Schema::hasColumn('transactions', 'sub_status')) {
+                $table->string('sub_status')->after('status')->nullable()->index();
+            }
         });
 
-        Transaction::where('is_quotation', 1)->update(['sub_status' => 'quotation']);
+        // Atualizar os registros apenas se a coluna existir
+        if (Schema::hasColumn('transactions', 'sub_status')) {
+            Transaction::where('is_quotation', 1)->update(['sub_status' => 'quotation']);
+        }
     }
 
     /**
@@ -28,5 +33,10 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('transactions', function (Blueprint $table) {
+            if (Schema::hasColumn('transactions', 'sub_status')) {
+                $table->dropColumn('sub_status');
+            }
+        });
     }
 };

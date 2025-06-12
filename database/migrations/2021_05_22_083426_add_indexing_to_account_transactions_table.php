@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,7 +15,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('account_transactions', function (Blueprint $table) {
-            $table->index('operation_date');
+            if (!DB::select("SHOW INDEXES FROM account_transactions WHERE Key_name = 'account_transactions_operation_date_index'")) {
+                $table->index('operation_date');
+            }
         });
     }
 
@@ -26,7 +29,9 @@ return new class extends Migration
     public function down()
     {
         Schema::table('account_transactions', function (Blueprint $table) {
-            //
+            if (DB::select("SHOW INDEXES FROM account_transactions WHERE Key_name = 'account_transactions_operation_date_index'")) {
+                $table->dropIndex('account_transactions_operation_date_index');
+            }
         });
     }
 };

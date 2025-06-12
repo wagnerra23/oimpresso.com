@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('cash_registers', function (Blueprint $table) {
-            $table->text('denominations')->nullable()->after('total_cheques');
+            if (!Schema::hasColumn('cash_registers', 'denominations')) {
+                $table->text('denominations')->nullable()->after('total_cheques');
+            }
         });
     }
 
@@ -25,5 +27,10 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('cash_registers', function (Blueprint $table) {
+            if (Schema::hasColumn('cash_registers', 'denominations')) {
+                $table->dropColumn('denominations');
+            }
+        });
     }
 };

@@ -17,21 +17,6 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('business_id')->unsigned();
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
-
-            $table->integer('city_id')->unsigned();
-            $table->foreign('city_id')->references('id')->on('cities')->onDelete('cascade');
-            $table->string('cpf_cnpj', 20)->nullable();
-            $table->string('ie_rg', 18)->nullable();
-
-            $table->integer('consumidor_final')->default(1);
-            $table->integer('contribuinte')->default(1);
-
-            $table->string('rua', 80)->nullable();
-            $table->string('numero', 10)->nullable();
-            $table->string('bairro', 40)->nullable();
-            $table->string('cep', 10)->nullable();
-
-
             $table->string('type')->index();
             $table->string('supplier_business_name')->nullable();
             $table->string('name');

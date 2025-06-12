@@ -13,9 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('customer_groups', function (Blueprint $table) {
-            $table->string('price_calculation_type')->default('percentage')->nullable()->after('amount')->index();
-            $table->integer('selling_price_group_id')->nullable()->after('price_calculation_type')->index();
+        Schema::table('purchase_lines', function (Blueprint $table) {
+            if (!Schema::hasColumn('purchase_lines', 'purchase_order_line_id')) {
+                $table->integer('purchase_order_line_id')->nullable()->after('tax_id');
+            }
+            if (!Schema::hasColumn('purchase_lines', 'po_quantity_purchased')) {
+                $table->decimal('po_quantity_purchased', 22, 4)->default(0)->after('quantity_returned');
+            }
         });
     }
 
@@ -26,5 +30,13 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('purchase_lines', function (Blueprint $table) {
+            if (Schema::hasColumn('purchase_lines', 'purchase_order_line_id')) {
+                $table->dropColumn('purchase_order_line_id');
+            }
+            if (Schema::hasColumn('purchase_lines', 'po_quantity_purchased')) {
+                $table->dropColumn('po_quantity_purchased');
+            }
+        });
     }
 };

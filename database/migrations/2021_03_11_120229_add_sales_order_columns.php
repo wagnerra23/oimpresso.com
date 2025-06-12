@@ -14,12 +14,18 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transaction_sell_lines', function (Blueprint $table) {
-            $table->integer('so_line_id')->after('sell_line_note')->nullable();
-            $table->decimal('so_quantity_invoiced', 22, 4)->after('so_line_id')->default(0);
+            if (!Schema::hasColumn('transaction_sell_lines', 'so_line_id')) {
+                $table->integer('so_line_id')->after('sell_line_note')->nullable();
+            }
+            if (!Schema::hasColumn('transaction_sell_lines', 'so_quantity_invoiced')) {
+                $table->decimal('so_quantity_invoiced', 22, 4)->after('so_line_id')->default(0);
+            }
         });
 
         Schema::table('transactions', function (Blueprint $table) {
-            $table->text('sales_order_ids')->after('created_by')->nullable();
+            if (!Schema::hasColumn('transactions', 'sales_order_ids')) {
+                $table->text('sales_order_ids')->after('created_by')->nullable();
+            }
         });
     }
 
@@ -30,6 +36,19 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('transaction_sell_lines', function (Blueprint $table) {
+            if (Schema::hasColumn('transaction_sell_lines', 'so_line_id')) {
+                $table->dropColumn('so_line_id');
+            }
+            if (Schema::hasColumn('transaction_sell_lines', 'so_quantity_invoiced')) {
+                $table->dropColumn('so_quantity_invoiced');
+            }
+        });
+
+        Schema::table('transactions', function (Blueprint $table) {
+            if (Schema::hasColumn('transactions', 'sales_order_ids')) {
+                $table->dropColumn('sales_order_ids');
+            }
+        });
     }
 };

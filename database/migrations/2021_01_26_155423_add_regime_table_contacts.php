@@ -15,8 +15,7 @@ class AddRegimeTableContacts extends Migration
     {
         Schema::table('contacts', function (Blueprint $table) {
                 $table->string('regime') // Nome da coluna
-                            ->nullable() // Preenchimento não obrigatório
-                            ->after('contribuinte'); // Ordenado após a coluna "password"
+                            ->nullable(); // Ordenado após a coluna "password"
         });
     }
 

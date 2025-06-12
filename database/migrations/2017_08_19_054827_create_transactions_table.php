@@ -46,37 +46,6 @@ return new class extends Migration
             $table->index('contact_id');
             $table->index('transaction_date');
             $table->index('created_by');
-
-
-            $table->integer('natureza_id')->nullable()->unsigned();
-            $table->foreign('natureza_id')->references('id')->on('natureza_operacaos');
-
-            $table->string('placa', 9)->default('');
-            $table->string('uf', 2)->default('');
-            $table->decimal('valor_frete', 10, 2)->default(0);
-            $table->integer('tipo')->default(0);
-            $table->integer('qtd_volumes')->default(0);
-            $table->string('numeracao_volumes', 20)->default('');
-            $table->string('especie', 20)->default('');
-            $table->decimal('peso_liquido',8, 3)->default(0);
-            $table->decimal('peso_bruto',8, 3)->default(0);
-
-            $table->integer('numero_nfe')->default(0);
-            $table->integer('numero_nfce')->default(0);
-            $table->integer('numero_nfe_entrada')->default(0);
-
-            $table->string('chave',48)->default('');
-            $table->string('chave_entrada',48)->default('');
-            $table->integer('sequencia_cce')->default(0);
-            $table->string('cpf_nota', 15)->default('');
-            $table->decimal('troco', 10, 2)->default(0);
-            $table->decimal('valor_recebido', 10, 2)->default(0);
-
-            $table->integer('transportadora_id')->nullable()->unsigned();
-            $table->foreign('transportadora_id')->references('id')->on('transportadoras')
-            ->onDelete('cascade');
-
-            $table->string('estado', 20)->default('NOVO');
         });
     }
 

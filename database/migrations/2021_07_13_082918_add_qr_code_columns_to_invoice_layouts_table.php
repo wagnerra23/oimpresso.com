@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('invoice_layouts', function (Blueprint $table) {
-            $table->boolean('show_qr_code')->default(0)->after('business_id');
-            $table->text('qr_code_fields')->nullable()->after('show_qr_code');
+            if (!Schema::hasColumn('invoice_layouts', 'show_qr_code')) {
+                $table->boolean('show_qr_code')->default(0)->after('business_id');
+            }
+            if (!Schema::hasColumn('invoice_layouts', 'qr_code_fields')) {
+                $table->text('qr_code_fields')->nullable()->after('show_qr_code');
+            }
         });
     }
 
@@ -26,5 +30,13 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('invoice_layouts', function (Blueprint $table) {
+            if (Schema::hasColumn('invoice_layouts', 'show_qr_code')) {
+                $table->dropColumn('show_qr_code');
+            }
+            if (Schema::hasColumn('invoice_layouts', 'qr_code_fields')) {
+                $table->dropColumn('qr_code_fields');
+            }
+        });
     }
 };

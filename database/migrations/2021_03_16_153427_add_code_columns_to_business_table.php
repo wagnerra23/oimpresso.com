@@ -14,21 +14,18 @@ return new class extends Migration
     public function up()
     {
         Schema::table('business', function (Blueprint $table) {
-            $table->string('code_label_1')
-                ->after('tax_label_2')
-                ->nullable();
-
-            $table->string('code_1')
-                ->after('code_label_1')
-                ->nullable();
-
-            $table->string('code_label_2')
-                ->after('code_1')
-                ->nullable();
-
-            $table->string('code_2')
-                ->after('code_label_2')
-                ->nullable();
+            if (!Schema::hasColumn('business', 'code_label_1')) {
+                $table->string('code_label_1')->after('tax_label_2')->nullable();
+            }
+            if (!Schema::hasColumn('business', 'code_1')) {
+                $table->string('code_1')->after('code_label_1')->nullable();
+            }
+            if (!Schema::hasColumn('business', 'code_label_2')) {
+                $table->string('code_label_2')->after('code_1')->nullable();
+            }
+            if (!Schema::hasColumn('business', 'code_2')) {
+                $table->string('code_2')->after('code_label_2')->nullable();
+            }
         });
     }
 
@@ -39,6 +36,19 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('business', function (Blueprint $table) {
+            if (Schema::hasColumn('business', 'code_label_1')) {
+                $table->dropColumn('code_label_1');
+            }
+            if (Schema::hasColumn('business', 'code_1')) {
+                $table->dropColumn('code_1');
+            }
+            if (Schema::hasColumn('business', 'code_label_2')) {
+                $table->dropColumn('code_label_2');
+            }
+            if (Schema::hasColumn('business', 'code_2')) {
+                $table->dropColumn('code_2');
+            }
+        });
     }
 };

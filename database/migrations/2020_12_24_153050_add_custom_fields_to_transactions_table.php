@@ -14,10 +14,18 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->string('custom_field_1')->nullable()->after('created_by');
-            $table->string('custom_field_2')->nullable()->after('custom_field_1');
-            $table->string('custom_field_3')->nullable()->after('custom_field_2');
-            $table->string('custom_field_4')->nullable()->after('custom_field_3');
+            if (!Schema::hasColumn('transactions', 'custom_field_1')) {
+                $table->string('custom_field_1')->nullable()->after('created_by');
+            }
+            if (!Schema::hasColumn('transactions', 'custom_field_2')) {
+                $table->string('custom_field_2')->nullable()->after('custom_field_1');
+            }
+            if (!Schema::hasColumn('transactions', 'custom_field_3')) {
+                $table->string('custom_field_3')->nullable()->after('custom_field_2');
+            }
+            if (!Schema::hasColumn('transactions', 'custom_field_4')) {
+                $table->string('custom_field_4')->nullable()->after('custom_field_3');
+            }
         });
     }
 
@@ -28,5 +36,19 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('transactions', function (Blueprint $table) {
+            if (Schema::hasColumn('transactions', 'custom_field_1')) {
+                $table->dropColumn('custom_field_1');
+            }
+            if (Schema::hasColumn('transactions', 'custom_field_2')) {
+                $table->dropColumn('custom_field_2');
+            }
+            if (Schema::hasColumn('transactions', 'custom_field_3')) {
+                $table->dropColumn('custom_field_3');
+            }
+            if (Schema::hasColumn('transactions', 'custom_field_4')) {
+                $table->dropColumn('custom_field_4');
+            }
+        });
     }
 };

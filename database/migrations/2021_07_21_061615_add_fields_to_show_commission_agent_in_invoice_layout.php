@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('invoice_layouts', function (Blueprint $table) {
-            $table->string('commission_agent_label')->nullable()->after('customer_label');
-            $table->boolean('show_commission_agent')->default(0)->after('commission_agent_label');
+            if (!Schema::hasColumn('invoice_layouts', 'commission_agent_label')) {
+                $table->string('commission_agent_label')->nullable()->after('customer_label');
+            }
+            if (!Schema::hasColumn('invoice_layouts', 'show_commission_agent')) {
+                $table->boolean('show_commission_agent')->default(0)->after('commission_agent_label');
+            }
         });
     }
 
@@ -26,5 +30,13 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('invoice_layouts', function (Blueprint $table) {
+            if (Schema::hasColumn('invoice_layouts', 'commission_agent_label')) {
+                $table->dropColumn('commission_agent_label');
+            }
+            if (Schema::hasColumn('invoice_layouts', 'show_commission_agent')) {
+                $table->dropColumn('show_commission_agent');
+            }
+        });
     }
 };

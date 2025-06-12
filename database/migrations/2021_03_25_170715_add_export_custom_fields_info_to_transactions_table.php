@@ -14,13 +14,16 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->boolean('is_export')
-                ->default(false)
-                ->after('staff_note');
-
-            $table->longText('export_custom_fields_info')
-                ->nullable()
-                ->after('is_export');
+            if (!Schema::hasColumn('transactions', 'is_export')) {
+                $table->boolean('is_export')
+                    ->default(false)
+                    ->after('staff_note');
+            }
+            if (!Schema::hasColumn('transactions', 'export_custom_fields_info')) {
+                $table->longText('export_custom_fields_info')
+                    ->nullable()
+                    ->after('is_export');
+            }
         });
     }
 
@@ -31,6 +34,13 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('transactions', function (Blueprint $table) {
+            if (Schema::hasColumn('transactions', 'is_export')) {
+                $table->dropColumn('is_export');
+            }
+            if (Schema::hasColumn('transactions', 'export_custom_fields_info')) {
+                $table->dropColumn('export_custom_fields_info');
+            }
+        });
     }
 };

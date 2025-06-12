@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->text('service_custom_field_5')->nullable()->after('service_custom_field_4');
-            $table->text('service_custom_field_6')->nullable()->after('service_custom_field_5');
+            if (!Schema::hasColumn('transactions', 'service_custom_field_5')) {
+                $table->text('service_custom_field_5')->nullable()->after('service_custom_field_4');
+            }
+            if (!Schema::hasColumn('transactions', 'service_custom_field_6')) {
+                $table->text('service_custom_field_6')->nullable()->after('service_custom_field_5');
+            }
         });
     }
 
@@ -26,5 +30,13 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('transactions', function (Blueprint $table) {
+            if (Schema::hasColumn('transactions', 'service_custom_field_5')) {
+                $table->dropColumn('service_custom_field_5');
+            }
+            if (Schema::hasColumn('transactions', 'service_custom_field_6')) {
+                $table->dropColumn('service_custom_field_6');
+            }
+        });
     }
 };

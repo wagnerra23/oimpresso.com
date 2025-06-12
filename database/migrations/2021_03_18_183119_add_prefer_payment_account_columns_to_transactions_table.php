@@ -14,13 +14,16 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->string('prefer_payment_method')
-                ->nullable()
-                ->after('created_by');
-
-            $table->integer('prefer_payment_account')
-                ->nullable()
-                ->after('prefer_payment_method');
+            if (!Schema::hasColumn('transactions', 'prefer_payment_method')) {
+                $table->string('prefer_payment_method')
+                    ->nullable()
+                    ->after('created_by');
+            }
+            if (!Schema::hasColumn('transactions', 'prefer_payment_account')) {
+                $table->integer('prefer_payment_account')
+                    ->nullable()
+                    ->after('prefer_payment_method');
+            }
         });
     }
 
@@ -31,6 +34,13 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('transactions', function (Blueprint $table) {
+            if (Schema::hasColumn('transactions', 'prefer_payment_method')) {
+                $table->dropColumn('prefer_payment_method');
+            }
+            if (Schema::hasColumn('transactions', 'prefer_payment_account')) {
+                $table->dropColumn('prefer_payment_account');
+            }
+        });
     }
 };
