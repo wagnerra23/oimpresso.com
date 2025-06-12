@@ -1,8 +1,8 @@
 <?php
 
 return [
-    
-     /*
+
+    /*
     |--------------------------------------------------------------------------
     | App Constants
     |--------------------------------------------------------------------------
@@ -23,24 +23,23 @@ return [
         'ps' => ['full_name' => 'Pashto', 'short_name' => 'Pashto'],
         'pt' => ['full_name' => 'Portuguese', 'short_name' => 'Portuguese'],
         'vi' => ['full_name' => 'Vietnamese', 'short_name' => 'Vietnamese'],
-        'ce' => ['full_name' => 'Chinese', 'short_name' => ''],
-        'ro' => ['full_name' => 'Romanian', 'short_name' => ''],
-        'lo' => ['full_name' => 'Lao', 'short_name' => '']
+        'ce' => ['full_name' => 'Chinese', 'short_name' => 'Chinese'],
+        'ro' => ['full_name' => 'Romanian', 'short_name' => 'Romanian'],
+        'lo' => ['full_name' => 'Lao', 'short_name' => 'Lao'],
     ],
     'langs_rtl' => ['ar'],
     'non_utf8_languages' => ['ar', 'hi', 'ps'],
-    
-    'document_size_limit' => '100000000', //in Bytes,
-    'image_size_limit' => '500000000', //in Bytes
 
-    'asset_version' => 37,
+    'document_size_limit' => '5000000', //in Bytes,
+    'image_size_limit' => '5000000', //in Bytes
+
+    'asset_version' => 600,
 
     'disable_purchase_in_other_currency' => true,
-    
+
     'iraqi_selling_price_adjustment' => false,
 
-    'currency_precision' => 2, //Maximum 4
-    'quantity_precision' => 2,  //Maximum 4
+    //currency_precision & quantity_precision moved to business settings
 
     'product_img_path' => 'img',
 
@@ -49,14 +48,19 @@ return [
     'orders_refresh_interval' => 600, //Auto refresh interval on Kitchen and Orders page in seconds,
 
     'default_date_format' => 'm/d/Y', //Default date format to be used if session is not set. All valid formats can be found on https://www.php.net/manual/en/function.date.php
-    
+
     'new_notification_count_interval' => 60, //Interval to check for new notifications in seconds;Default is 60sec
-    
+
     'administrator_usernames' => env('ADMINISTRATOR_USERNAMES'),
     'allow_registration' => env('ALLOW_REGISTRATION', true),
     'app_title' => env('APP_TITLE'),
-    'mpdf_temp_path' => storage_path('app/pdf'), //Temporary path used by mpdf
+
+    'google_recaptcha_key' => env('GOOGLE_RECAPTCHA_KEY'),
+    'google_recaptcha_secret' => env('GOOGLE_RECAPTCHA_SECRET'),
+    'enable_recaptcha' => env('ENABLE_RECAPTCHA', false),
     
+    'mpdf_temp_path' => storage_path('app/pdf'), //Temporary path used by mpdf
+
     'document_upload_mimes_types' => ['application/pdf' => '.pdf',
         'text/csv' => '.csv',
         'application/zip' => '.zip',
@@ -64,9 +68,21 @@ return [
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => '.docx',
         'image/jpeg' => '.jpeg',
         'image/jpg' => '.jpg',
-        'image/png' => '.png'
-        
+        'image/png' => '.png',
+
     ], //List of MIME type: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
     'show_report_606' => false,
     'show_report_607' => false,
+    'whatsapp_base_url' => 'https://wa.me',
+    'enable_crm_call_log' => false,
+    'enable_product_bulk_edit' => false,  //Will be depreciated in future
+    'enable_convert_draft_to_invoice' => false, //Experimental beta feature.
+    'enable_download_pdf' => false,         //Experimental feature
+    'invoice_scheme_separator' => '-',
+    'show_payments_recovered_today' => false, //Displays payment recovered today table on dashboard
+    'enable_b2b_marketplace' => false,
+    'enable_contact_assign' => true, //Used in add/edit contacts screen
+    'show_payment_type_on_contact_pay' => false,
+    'enable_gst_report_india' => env('ENABLE_GST_REPORT_INDIA', false),
+    'enable_secondary_unit' => false, //Experimental feature, may depreciate
 ];

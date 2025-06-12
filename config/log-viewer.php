@@ -40,7 +40,7 @@ return [
      |  Make your own theme by adding a folder to the views directory and specifying it here.
      */
 
-    'theme'         => 'bootstrap-3',
+    'theme'         => 'bootstrap-4',
 
     /* -----------------------------------------------------------------
      |  Route settings
@@ -48,12 +48,12 @@ return [
      */
 
     'route'         => [
-        'enabled'    => (config('app.env') == 'demo' ? false : true),
+        'enabled'    => true,
 
         'attributes' => [
             'prefix'     => 'log-viewer',
 
-            'middleware' => ['web', 'superadmin'],
+            'middleware' => env('ARCANEDEV_LOGVIEWER_MIDDLEWARE') ? explode(',', env('ARCANEDEV_LOGVIEWER_MIDDLEWARE')) : ['web','auth'],
         ],
     ],
 
@@ -64,13 +64,6 @@ return [
      */
 
     'per-page'      => 30,
-
-    /* -----------------------------------------------------------------
-     |  LogViewer's Facade
-     | -----------------------------------------------------------------
-     */
-
-    'facade'        => 'LogViewer',
 
     /* -----------------------------------------------------------------
      |  Download settings
