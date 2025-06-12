@@ -23,3 +23,8 @@ npm-debug.log
 /public/images/
 /public/modules/
 /public/mix-manifest.json
+.scribe
+/public/docs
+/public/js/skins/
+/public/js/icons/
+/.env.example
