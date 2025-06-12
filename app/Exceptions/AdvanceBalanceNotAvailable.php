@@ -4,7 +4,7 @@ namespace App\Exceptions;
 
 use Exception;
 
-class PurchaseSellMismatch extends Exception
+class AdvanceBalanceNotAvailable extends Exception
 {
     /**
      * Create a new authentication exception.
