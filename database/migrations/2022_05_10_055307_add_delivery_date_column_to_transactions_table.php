@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->dateTime('delivery_date')->nullable()->index()->after('shipping_address');
+            if (!Schema::hasColumn('transactions', 'delivery_date')) {
+                $table->dateTime('delivery_date')->nullable()->index()->after('shipping_address');
+            }
         });
     }
 

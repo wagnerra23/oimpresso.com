@@ -14,11 +14,15 @@ return new class extends Migration
     public function up()
     {
         Schema::table('expense_categories', function (Blueprint $table) {
-            $table->integer('parent_id')->nullable()->after('code');
+            if (!Schema::hasColumn('expense_categories', 'parent_id')) {
+                $table->integer('parent_id')->nullable()->after('code');
+            }
         });
 
         Schema::table('transactions', function (Blueprint $table) {
-            $table->integer('expense_sub_category_id')->nullable()->after('expense_category_id');
+            if (!Schema::hasColumn('transactions', 'expense_sub_category_id')) {
+                $table->integer('expense_sub_category_id')->nullable()->after('expense_category_id');
+            }
         });
     }
 

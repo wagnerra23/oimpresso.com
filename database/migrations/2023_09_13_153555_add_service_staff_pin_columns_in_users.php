@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_enable_service_staff_pin')->default(0)->after('status');
-            $table->text('service_staff_pin')->nullable()->after('is_enable_service_staff_pin');
+            if (!Schema::hasColumn('users', 'is_enable_service_staff_pin')) {
+                $table->boolean('is_enable_service_staff_pin')->default(0)->after('status');
+            }
+            if (!Schema::hasColumn('users', 'service_staff_pin')) {
+                $table->text('service_staff_pin')->nullable()->after('is_enable_service_staff_pin');
+            }
         });
     }
 

@@ -39,22 +39,5 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            if (Schema::hasColumn('transactions', 'shipping_custom_field_1')) {
-                $table->dropColumn('shipping_custom_field_1');
-            }
-            if (Schema::hasColumn('transactions', 'shipping_custom_field_2')) {
-                $table->dropColumn('shipping_custom_field_2');
-            }
-            if (Schema::hasColumn('transactions', 'shipping_custom_field_3')) {
-                $table->dropColumn('shipping_custom_field_3');
-            }
-            if (Schema::hasColumn('transactions', 'shipping_custom_field_4')) {
-                $table->dropColumn('shipping_custom_field_4');
-            }
-            if (Schema::hasColumn('transactions', 'shipping_custom_field_5')) {
-                $table->dropColumn('shipping_custom_field_5');
-            }
-        });
     }
 };

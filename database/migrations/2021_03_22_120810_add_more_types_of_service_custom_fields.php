@@ -30,13 +30,5 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            if (Schema::hasColumn('transactions', 'service_custom_field_5')) {
-                $table->dropColumn('service_custom_field_5');
-            }
-            if (Schema::hasColumn('transactions', 'service_custom_field_6')) {
-                $table->dropColumn('service_custom_field_6');
-            }
-        });
     }
 };

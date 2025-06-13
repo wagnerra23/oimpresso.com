@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->string('source')->after('ref_no')->nullable();
+            if (!Schema::hasColumn('transactions', 'source')) {
+                $table->string('source')->after('ref_no')->nullable();
+            }
         });
     }
 

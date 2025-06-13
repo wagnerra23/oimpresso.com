@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('email')->nullable();
             $table->string('password');
-            $table->char('language', 7)->default('pt');
+            $table->char('language', 7)->default('en');
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

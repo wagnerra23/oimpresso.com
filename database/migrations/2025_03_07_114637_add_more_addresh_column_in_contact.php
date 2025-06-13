@@ -14,9 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::table('contacts', function (Blueprint $table) {
-            if (!Schema::hasColumn('contacts', 'contact_type')) {
-                $table->string('contact_type')->nullable()->after('type');
-            }
+            $table->string('land_mark')->nullable()->after('contact_type');
+            $table->string('street_name')->nullable()->after('land_mark');
+            $table->string('building_number')->nullable()->after('street_name');
+            $table->string('additional_number')->nullable()->after('building_number');
         });
     }
 
@@ -27,7 +28,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('contacts', function (Blueprint $table) {
+        Schema::table('contact', function (Blueprint $table) {
             //
         });
     }

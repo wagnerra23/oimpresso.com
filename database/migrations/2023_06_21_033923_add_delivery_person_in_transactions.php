@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->bigInteger('delivery_person')->nullable()->index()->after('delivered_to');
+            if (!Schema::hasColumn('transactions', 'delivery_person')) {
+                $table->bigInteger('delivery_person')->nullable()->index()->after('delivered_to');
+            }
         });
     }
 

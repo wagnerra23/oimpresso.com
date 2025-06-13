@@ -15,8 +15,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('business', function (Blueprint $table) {
-            $table->tinyInteger('currency_precision')->default(2)->after('time_format');
-            $table->tinyInteger('quantity_precision')->default(2)->after('currency_precision');
+            if (!Schema::hasColumn('business', 'currency_precision')) {
+                $table->tinyInteger('currency_precision')->default(2)->after('time_format');
+            }
+            if (!Schema::hasColumn('business', 'quantity_precision')) {
+                $table->tinyInteger('quantity_precision')->default(2)->after('currency_precision');
+            }
         });
 
         //clear blade directive cache

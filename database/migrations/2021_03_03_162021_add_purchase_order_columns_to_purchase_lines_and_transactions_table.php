@@ -36,19 +36,5 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('purchase_lines', function (Blueprint $table) {
-            if (Schema::hasColumn('purchase_lines', 'purchase_order_line_id')) {
-                $table->dropColumn('purchase_order_line_id');
-            }
-            if (Schema::hasColumn('purchase_lines', 'po_quantity_purchased')) {
-                $table->dropColumn('po_quantity_purchased');
-            }
-        });
-
-        Schema::table('transactions', function (Blueprint $table) {
-            if (Schema::hasColumn('transactions', 'purchase_order_ids')) {
-                $table->dropColumn('purchase_order_ids');
-            }
-        });
     }
 };

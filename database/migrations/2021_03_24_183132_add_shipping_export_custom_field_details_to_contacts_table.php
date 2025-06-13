@@ -57,7 +57,7 @@ return new class extends Migration
             }
         });
 
-        // Verificar se a alteraÃ§Ã£o na coluna 'name' Ã© necessÃ¡ria antes de executÃ¡-la
+        // Verificar se a alteração na coluna 'name' é necessária antes de executá-la
         $column = DB::select("SHOW COLUMNS FROM contacts WHERE Field = 'name'");
         if ($column && $column[0]->Default !== 'NULL') {
             DB::statement('ALTER TABLE contacts MODIFY COLUMN name VARCHAR(191) DEFAULT NULL');
@@ -71,37 +71,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('contacts', function (Blueprint $table) {
-            if (Schema::hasColumn('contacts', 'shipping_custom_field_details')) {
-                $table->dropColumn('shipping_custom_field_details');
-            }
-            if (Schema::hasColumn('contacts', 'is_export')) {
-                $table->dropColumn('is_export');
-            }
-            if (Schema::hasColumn('contacts', 'export_custom_field_1')) {
-                $table->dropColumn('export_custom_field_1');
-            }
-            if (Schema::hasColumn('contacts', 'export_custom_field_2')) {
-                $table->dropColumn('export_custom_field_2');
-            }
-            if (Schema::hasColumn('contacts', 'export_custom_field_3')) {
-                $table->dropColumn('export_custom_field_3');
-            }
-            if (Schema::hasColumn('contacts', 'export_custom_field_4')) {
-                $table->dropColumn('export_custom_field_4');
-            }
-            if (Schema::hasColumn('contacts', 'export_custom_field_5')) {
-                $table->dropColumn('export_custom_field_5');
-            }
-            if (Schema::hasColumn('contacts', 'export_custom_field_6')) {
-                $table->dropColumn('export_custom_field_6');
-            }
-        });
-
-        // Reverter a alteraÃ§Ã£o na coluna 'name' se necessÃ¡rio
-        $column = DB::select("SHOW COLUMNS FROM contacts WHERE Field = 'name'");
-        if ($column && $column[0]->Default === 'NULL') {
-            DB::statement('ALTER TABLE contacts MODIFY COLUMN name VARCHAR(191) NOT NULL');
-        }
+        //
     }
 };

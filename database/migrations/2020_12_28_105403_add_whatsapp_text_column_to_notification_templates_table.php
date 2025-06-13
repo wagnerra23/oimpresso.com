@@ -30,13 +30,5 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('notification_templates', function (Blueprint $table) {
-            if (Schema::hasColumn('notification_templates', 'whatsapp_text')) {
-                $table->dropColumn('whatsapp_text');
-            }
-            if (Schema::hasColumn('notification_templates', 'auto_send_wa_notif')) {
-                $table->dropColumn('auto_send_wa_notif');
-            }
-        });
     }
 };

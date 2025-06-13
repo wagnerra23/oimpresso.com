@@ -27,10 +27,5 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('media', function (Blueprint $table) {
-            if (Schema::hasColumn('media', 'model_media_type')) {
-                $table->dropColumn('model_media_type');
-            }
-        });
     }
 };

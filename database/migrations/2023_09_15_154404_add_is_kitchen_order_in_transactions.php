@@ -14,8 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->boolean('is_kitchen_order')->default(0)->after('location_id');
-
+            if (!Schema::hasColumn('transactions', 'is_kitchen_order')) {
+                $table->boolean('is_kitchen_order')->default(0)->after('location_id');
+            }
         });
     }
 

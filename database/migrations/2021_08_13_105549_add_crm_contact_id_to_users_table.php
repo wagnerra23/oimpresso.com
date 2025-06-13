@@ -12,12 +12,12 @@ return new class extends Migration
      * @return void
      */
     public function up()
-    { 
-        
+    {
         if (! Schema::hasColumn('users', 'crm_contact_id')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->integer('crm_contact_id')
-                    ->unsigned()->nullable();
+                    ->unsigned()->nullable()
+                    ->after('status');
 
                 $table->foreign('crm_contact_id')
                     ->references('id')->on('contacts')

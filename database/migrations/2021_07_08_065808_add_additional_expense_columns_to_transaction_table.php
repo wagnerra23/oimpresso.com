@@ -51,34 +51,5 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            if (Schema::hasColumn('transactions', 'additional_expense_key_1')) {
-                $table->dropColumn('additional_expense_key_1');
-            }
-            if (Schema::hasColumn('transactions', 'additional_expense_value_1')) {
-                $table->dropColumn('additional_expense_value_1');
-            }
-
-            if (Schema::hasColumn('transactions', 'additional_expense_key_2')) {
-                $table->dropColumn('additional_expense_key_2');
-            }
-            if (Schema::hasColumn('transactions', 'additional_expense_value_2')) {
-                $table->dropColumn('additional_expense_value_2');
-            }
-
-            if (Schema::hasColumn('transactions', 'additional_expense_key_3')) {
-                $table->dropColumn('additional_expense_key_3');
-            }
-            if (Schema::hasColumn('transactions', 'additional_expense_value_3')) {
-                $table->dropColumn('additional_expense_value_3');
-            }
-
-            if (Schema::hasColumn('transactions', 'additional_expense_key_4')) {
-                $table->dropColumn('additional_expense_key_4');
-            }
-            if (Schema::hasColumn('transactions', 'additional_expense_value_4')) {
-                $table->dropColumn('additional_expense_value_4');
-            }
-        });
     }
 };

@@ -14,9 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::table('invoice_schemes', function (Blueprint $table) {
-            $table->string('number_type', 100)->default('sequential')->after('scheme_type');
-
-            $table->index('number_type');
+            if (!Schema::hasColumn('invoice_schemes', 'number_type')) {
+                $table->string('number_type', 100)->default('sequential')->after('scheme_type');
+                $table->index('number_type'); // Add index only if column is added
+            }
         });
     }
 

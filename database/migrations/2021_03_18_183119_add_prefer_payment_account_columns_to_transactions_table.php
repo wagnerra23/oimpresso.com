@@ -34,13 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            if (Schema::hasColumn('transactions', 'prefer_payment_method')) {
-                $table->dropColumn('prefer_payment_method');
-            }
-            if (Schema::hasColumn('transactions', 'prefer_payment_account')) {
-                $table->dropColumn('prefer_payment_account');
-            }
-        });
+        //
     }
 };
