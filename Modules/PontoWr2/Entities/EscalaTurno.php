@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EscalaTurno extends Model
 {
+    use HasFactory;
     protected $table = 'ponto_escala_turnos';
 
     protected $fillable = [

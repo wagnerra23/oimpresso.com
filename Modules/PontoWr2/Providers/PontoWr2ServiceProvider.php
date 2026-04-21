@@ -2,7 +2,6 @@
 
 namespace Modules\PontoWr2\Providers;
 
-use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -40,7 +39,6 @@ class PontoWr2ServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
-        $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
 
         $this->registerMiddleware($this->app['router']);
@@ -114,16 +112,6 @@ class PontoWr2ServiceProvider extends ServiceProvider
             $this->loadTranslationsFrom($langPath, 'pontowr2');
         } else {
             $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'pontowr2');
-        }
-    }
-
-    /**
-     * Carrega factories fora de produção.
-     */
-    public function registerFactories(): void
-    {
-        if (! app()->environment('production')) {
-            app(Factory::class)->load(__DIR__ . '/../Database/factories');
         }
     }
 
