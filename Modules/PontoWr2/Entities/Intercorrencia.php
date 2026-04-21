@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 
 class Intercorrencia extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     protected $table = 'ponto_intercorrencias';

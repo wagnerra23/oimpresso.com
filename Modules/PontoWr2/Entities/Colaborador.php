@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Colaborador extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     protected $table = 'ponto_colaborador_config';

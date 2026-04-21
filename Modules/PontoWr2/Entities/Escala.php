@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Escala extends Model
 {
+    use HasFactory;
     protected $table = 'ponto_escalas';
 
     protected $fillable = [

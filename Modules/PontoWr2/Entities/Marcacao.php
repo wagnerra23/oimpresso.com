@@ -13,6 +13,7 @@ use RuntimeException;
  */
 class Marcacao extends Model
 {
+    use HasFactory;
     protected $table = 'ponto_marcacoes';
 
     public $incrementing = false;
