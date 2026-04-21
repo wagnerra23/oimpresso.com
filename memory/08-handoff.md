@@ -7,6 +7,51 @@
 
 ---
 
+## Estado em 2026-04-21 (sessão 09 — upgrade stack Laravel 9.51/PHP 8.3, correção PontoWR2, git configurado)
+
+### O que foi feito (sessão 09)
+
+**Stack atualizada:** Eliana atualizou o servidor para UltimatePOS v6.7 (Laravel 9.51 + PHP 8.3). Toda restrição de sintaxe PHP 7.1 foi revogada.
+
+**PontoWR2 corrigido para Laravel 9:**
+- `PontoWr2ServiceProvider`: removido `Illuminate\Database\Eloquent\Factory` (classe removida no L9) e `registerFactories()`
+- 5 factories convertidas para formato class-based Laravel 9
+- 5 models com trait `HasFactory`
+- Removidos legados: `RouteServiceProvider.php`, `Routes/`, `PontoWr2_backup/`
+
+**Git configurado:**
+- `D:\oimpresso.com` → branch `6.7-bootstrap` (GitHub `wagnerra23/oimpresso.com`)
+- Branch `producao` criado com estado real do servidor (90k+ arquivos)
+- ADR 0012 criada documentando o upgrade
+
+### O que a Eliana precisa fazer no servidor
+
+```bash
+# Na outra máquina que conecta ao servidor:
+ssh -p 65002 u906587222@148.135.133.115
+cd domains/oimpresso.com/public_html
+git pull origin 6.7-bootstrap   # pega as correções do PontoWR2
+php artisan module:enable PontoWr2
+php artisan cache:clear && php artisan config:clear && php artisan view:clear
+```
+
+### Pendências remanescentes
+
+- **Erro 500 em `/sells/create`** — descoberto nesta sessão, causa desconhecida. Verificar `storage/logs/laravel.log`
+- **Módulo PontoWR2** ainda desativado no servidor — aguarda deploy acima
+- **7 relatórios** ainda `RuntimeException` (AFD, AFDT, AEJ, HE, BH, Atrasos, eSocial)
+- **Piloto runtime** com AFD real ainda não realizado
+
+### Próximo passo sugerido
+
+1. Ativar PontoWR2 no servidor (comandos acima)
+2. Investigar erro 500 em `/sells/create`
+3. Se módulo ativo → piloto runtime com 1 colaborador + AFD de teste
+
+Ver `sessions/2026-04-21-session-09.md` para log detalhado.
+
+---
+
 ## Estado em 2026-04-20 (sessão 08 — backend batch: hash chain, AFD parser, CLT completa, BH FIFO, PDF, jobs, testes)
 
 ### O que acabou de ser feito (sessão 08)
@@ -424,6 +469,6 @@ Nenhum bloqueio técnico. O crash de produção foi revertido (site voltou após
 
 ---
 
-**Última atualização:** 2026-04-20 (sessão 08 — backend batch: hash chain, AFD parser, CLT completa, BH FIFO, PDF, jobs, testes)
+**Última atualização:** 2026-04-21 (sessão 09 — upgrade L9.51/PHP 8.3, PontoWR2 corrigido, git configurado, ADR 0012)
 **Próxima sessão esperada:** após Eliana rodar `git pull + view:clear + cache:clear + composer dump-autoload` e corrigir o cache directory do Hostinger. Próximo foco sugerido: **piloto runtime** com AFD real + 1 colaborador, OU implementar os 7 relatórios remanescentes (AFD/AFDT/AEJ/HE/BH/atrasos/eSocial).
 **Estado geral:** 🟢 Fase 1 (UI AdminLTE) completa — 10/10 telas; 🟢 Fase 2 (backend CLT) completa — MarcacaoService com hash chain, AfdParserService full, ApuracaoService com 5 regras CLT + DSR, BancoHoras FIFO, ReportService (espelho PDF funcional), 2 Jobs, 5 factories, 2 seeders, 9 testes unitários; 🟡 7 relatórios ainda `RuntimeException`; 🟡 integração eSocial / ICP-Brasil / app REP-P mobile pendentes (fases 3+); remoção física de RouteServiceProvider + pt-BR/ pendente manual no servidor.
