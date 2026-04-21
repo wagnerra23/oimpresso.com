@@ -1,0 +1,16 @@
+{
+    "name": "PontoWr2",
+    "alias": "pontowr2",
+    "description": "Módulo de Ponto Eletrônico conforme Portaria MTP 671/2021 — WR2 Sistemas. Estende UltimatePOS 6 + Essentials & HRM.",
+    "keywords": ["ponto-eletronico", "clt", "portaria-671", "esocial", "banco-de-horas", "afd", "rep-p"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\PontoWr2\\Providers\\PontoWr2ServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}
