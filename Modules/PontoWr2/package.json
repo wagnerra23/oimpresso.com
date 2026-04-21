@@ -1,0 +1,14 @@
+{
+    "private": true,
+    "name": "pontowr2",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "npm run development",
+        "development": "mix --mix-config=../../webpack.mix.js",
+        "watch": "mix watch --mix-config=../../webpack.mix.js",
+        "production": "mix --production --mix-config=../../webpack.mix.js"
+    },
+    "devDependencies": {
+        "laravel-mix": "^6.0"
+    }
+}
