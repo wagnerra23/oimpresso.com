@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Accounting\Entities\Contact;
 
-function accounting($ul, $pt, $lc, $em, $un, $type = 1, $pid = null)
-{
-	//bugs
+if (!function_exists('accounting')) {
+    function accounting($ul, $pt, $lc, $em, $un, $type = 1, $pid = null)
+    {
+        //bugs
+    }
 }
 
 
@@ -189,7 +191,7 @@ if (!function_exists('thirty_days_ago')) {
     }
 }
 
-if (!function_exists('get_date_range')) {
+if (!function_exists('get_days_past')) {
     function get_days_past()
     {
         $today = date('Y-m-d');
