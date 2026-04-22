@@ -23,6 +23,8 @@ Os documentos estão numerados para sugerir ordem de leitura em onboarding:
 | 07 | [`07-roadmap.md`](07-roadmap.md) | Ver o que foi feito e o que vem |
 | 08 | [`08-handoff.md`](08-handoff.md) | **Sempre ao retomar trabalho.** Estado atual. |
 | 09 | [`09-modulos-ultimatepos.md`](09-modulos-ultimatepos.md) | Inventário de módulos UltimatePOS da instância WR2 — referências canônicas |
+| — | [`CHANGELOG.md`](CHANGELOG.md) | **Eventos estruturais** em ordem cronológica (Keep a Changelog) — Added/Changed/Removed/Fixed/Decision |
+| — | [`modulos/`](modulos/) | **Specs automáticas** dos 29 módulos + `RECOMENDACOES.md` + `INDEX.md` — gerado por `php artisan module:specs` |
 | — | [`decisions/`](decisions/) | ADRs — decisões arquiteturais registradas |
 | — | [`sessions/`](sessions/) | Session logs — histórico cronológico de mudanças |
 

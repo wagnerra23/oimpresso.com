@@ -152,16 +152,48 @@ Meta: preparar o caminho para Laravel 13 + Boost + IA-first. Inertia+React+shadc
 - [x] Rota piloto `/ponto/react` servindo `Pages/Ponto/Welcome.tsx`
 - [x] Build validado (778 módulos, 31KB CSS + 423KB JS gzip)
 
-### Pendente ⏳
-- [ ] Instalar componentes base shadcn (Button, Card, Input, Table, Dialog, Badge, Alert, Select, Combobox)
-- [ ] Migrar **Relatórios/index** (primeira tela real, mais simples)
-- [ ] Migrar **Dashboard** com StatCards
-- [ ] Migrar **Aprovações** com DataTable servidor-side
-- [ ] Migrar **Espelho** (index + show com totalizadores + chips de marcação)
-- [ ] Migrar **Intercorrências CRUD** com **campo IA** (descrição → classificação tipo+justificativa via OpenAI)
-- [ ] Migrar restantes (Banco de Horas, Escalas, Importações, Colaboradores, Configurações)
-- [ ] Remover navbar AdminLTE do módulo PontoWR2 → `NavigationMenu` shadcn
-- [ ] Piloto runtime com cliente real
+### Completo ✅ (sessão 2026-04-22)
+- [x] Setup local completo: Herd (oimpresso.test SSL) + Laragon MySQL 8.4 + dump Hostinger importado (170 tabelas, 72MB)
+- [x] Deprecations PHP 8.4 suprimidas (`public/.user.ini` + `public/index.php`)
+- [x] PontoWr2 habilitado em `modules_statuses.json`
+- [x] Fix Officeimpresso DataController — `action('...@generateQr')` quebrava sidebar inteira; isolado
+- [x] Componentes shadcn base: Card, Button, Badge, Alert instalados via CLI
+- [x] **Relatórios React** (`/ponto/relatorios`) validado em runtime — grid 4×2 Card/Badge/Button + Lucide
+- [x] **Welcome React** (`/ponto/react`) validado — props business+auth via HandleInertiaRequests
+
+### Pendente — Ordem revisada em 2026-04-22 ⏳
+
+**F13.1 — AppShell unificado (FAZER ANTES do Dashboard — alavanca máxima)**
+Wagner validou: preocupação com layouts + compatibilidade de módulos ⇒ shell vem primeiro. Cada tela migrada herda dele.
+
+- [ ] `ShellMenuBuilder` service Laravel — agrega menus de módulos ativos (reusa `DataController::modifyAdminMenu()` via nwidart/laravel-menus ou config explícita), filtra por permissões, resolve Inertia × legado AdminLTE
+- [ ] Menu compartilhado via `HandleInertiaRequests` (prop `shell.menu`) + branding + business switcher data
+- [ ] Componente React `AppShell.tsx`: sidebar colapsável + top bar (logo/business, busca global, notifs, avatar+dropdown) + main area + breadcrumb automático
+- [ ] Command palette (Cmd+K) com `cmdk` / shadcn Command — tudo acessível por teclado
+- [ ] Try/catch no menu builder — módulo quebrado (como Officeimpresso que bugou hoje) não derruba shell
+- [ ] Migrar Welcome + Relatórios para usar `AppShell`
+- [ ] Links para telas ainda AdminLTE usam `<a>` externo (recarga completa); quando a tela migrar, vira `<Link>` Inertia (SPA)
+
+**F13.2 — Dashboard** com 6 StatCards + fila aprovações + atividade recente (dentro do shell)
+
+**F13.3 — Intercorrências CRUD com campo IA** (o "wow" demo prometido)
+- Textarea livre "Descrição" com botão "IA preencher" → OpenAI classifica tipo + gera justificativa formal PT-BR
+- Estrutura JSON mode com zod schema
+- Fallback gracioso se `AI_ENABLED=false` ou OpenAI offline
+- Cache por hash do prompt (`openai-php/laravel` já no composer)
+- Mascarar CPF/PIS antes de enviar pra IA (privacidade)
+
+**F13.4 — Telas restantes (6):**
+- Aprovações com DataTable servidor-side + AlertDialog aprovar/rejeitar
+- Espelho (index + show com totalizadores + chips de marcação)
+- Banco de Horas (index + show + ajuste manual com observação obrigatória)
+- Escalas CRUD + gestão de turnos (fase 2)
+- Importações + upload AFD com progress + polling status (job assíncrono)
+- Colaboradores (busca debounced, form config ponto com switches)
+- Configurações read-only + CRUD REPs
+
+**F13.5 — Remover navbar AdminLTE do módulo PontoWR2** — shell cobre sidebar
+**F13.6 — Piloto runtime** com cliente real testando end-to-end
 
 ## Fase 14 — A+ observabilidade / testes / CI-CD ⏳
 
