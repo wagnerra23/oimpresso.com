@@ -22,21 +22,41 @@ class RequirementsFileReader
     }
 
     /**
-     * Lista todos os módulos com arquivo .md.
-     * Retorna array de metadata (do frontmatter + stats).
+     * Lista todos os módulos. Considera tanto arquivos `{Nome}.md` (formato plano antigo)
+     * quanto pastas `{Nome}/` contendo SPEC.md + README.md + ARCHITECTURE.md + CHANGELOG.md
+     * (formato novo). Pasta tem prioridade: se `{Nome}/` existir, ignora `{Nome}.md`.
      */
     public function listModules(): array
     {
         $dir = $this->dir();
         if (! File::isDirectory($dir)) return [];
 
+        $seen = [];
         $out = [];
+
+        // Formato novo: pastas com SPEC.md
+        foreach (File::directories($dir) as $d) {
+            $name = basename($d);
+            if (in_array($name, ['INDEX', 'RECOMENDACOES'], true)) continue;
+            $spec = $d . DIRECTORY_SEPARATOR . 'SPEC.md';
+            if (! File::exists($spec)) continue;
+
+            $readme = $d . DIRECTORY_SEPARATOR . 'README.md';
+            $fmSource = File::exists($readme) ? $readme : $spec;
+            $meta = $this->readMeta($spec, $fmSource);
+            $out[] = array_merge(['name' => $name, 'format' => 'folder'], $meta);
+            $seen[$name] = true;
+        }
+
+        // Formato antigo: arquivos {Nome}.md (só quem não tem pasta)
         foreach (File::files($dir) as $f) {
+            if ($f->getExtension() !== 'md') continue;
             $name = $f->getFilenameWithoutExtension();
             if (in_array($name, ['INDEX', 'RECOMENDACOES'], true)) continue;
+            if (isset($seen[$name])) continue;
 
             $meta = $this->readMeta($f->getPathname());
-            $out[] = array_merge(['name' => $name], $meta);
+            $out[] = array_merge(['name' => $name, 'format' => 'flat'], $meta);
         }
 
         usort($out, fn ($a, $b) => strcmp($a['name'], $b['name']));
@@ -44,35 +64,132 @@ class RequirementsFileReader
     }
 
     /**
-     * Lê um módulo específico e devolve shape completo pra UI.
+     * Lê um módulo específico e devolve shape completo pra UI. Tenta pasta primeiro
+     * (formato novo: SPEC/README/ARCHITECTURE/CHANGELOG.md), fallback pro arquivo plano.
      */
     public function readModule(string $name): ?array
     {
-        $path = $this->dir() . DIRECTORY_SEPARATOR . $name . '.md';
-        if (! File::exists($path)) return null;
+        $dir = $this->dir();
+        $folder = $dir . DIRECTORY_SEPARATOR . $name;
 
-        $content = File::get($path);
+        if (File::isDirectory($folder) && File::exists($folder . DIRECTORY_SEPARATOR . 'SPEC.md')) {
+            return $this->readModuleFolder($name, $folder);
+        }
+
+        $flatPath = $dir . DIRECTORY_SEPARATOR . $name . '.md';
+        if (! File::exists($flatPath)) return null;
+
+        $content = File::get($flatPath);
         $meta = $this->parseFrontmatter($content);
         $body = $this->stripFrontmatter($content);
 
         return [
-            'name'       => $name,
-            'path'       => $path,
-            'frontmatter' => $meta,
-            'stories'    => $this->extractStories($body),
-            'rules'      => $this->extractRules($body),
-            'raw'        => $body,
-            'size_bytes' => strlen($content),
-            'mtime'      => File::lastModified($path),
+            'name'         => $name,
+            'format'       => 'flat',
+            'path'         => $flatPath,
+            'frontmatter'  => $meta,
+            'stories'      => $this->extractStories($body),
+            'rules'        => $this->extractRules($body),
+            'raw'          => $body,
+            'readme'       => null,
+            'architecture' => null,
+            'changelog'    => null,
+            'size_bytes'   => strlen($content),
+            'mtime'        => File::lastModified($flatPath),
         ];
+    }
+
+    protected function readModuleFolder(string $name, string $folder): array
+    {
+        $spec    = File::get($folder . DIRECTORY_SEPARATOR . 'SPEC.md');
+        $readme  = File::exists($folder . DIRECTORY_SEPARATOR . 'README.md')
+            ? File::get($folder . DIRECTORY_SEPARATOR . 'README.md') : null;
+        $arch    = File::exists($folder . DIRECTORY_SEPARATOR . 'ARCHITECTURE.md')
+            ? File::get($folder . DIRECTORY_SEPARATOR . 'ARCHITECTURE.md') : null;
+        $change  = File::exists($folder . DIRECTORY_SEPARATOR . 'CHANGELOG.md')
+            ? File::get($folder . DIRECTORY_SEPARATOR . 'CHANGELOG.md') : null;
+        $adrs    = $this->readAdrs($folder . DIRECTORY_SEPARATOR . 'adr');
+
+        // Frontmatter vem do README se existir (fonte oficial do módulo); senão do SPEC.
+        $fmContent = $readme ?? $spec;
+        $fm = $this->parseFrontmatter($fmContent);
+
+        $specBody = $this->stripFrontmatter($spec);
+        $totalBytes = strlen($spec)
+            + ($readme ? strlen($readme) : 0)
+            + ($arch ? strlen($arch) : 0)
+            + ($change ? strlen($change) : 0)
+            + array_sum(array_map(fn ($a) => strlen($a['raw']), $adrs));
+
+        return [
+            'name'         => $name,
+            'format'       => 'folder',
+            'path'         => $folder,
+            'frontmatter'  => $fm,
+            'stories'      => $this->extractStories($specBody),
+            'rules'        => $this->extractRules($specBody),
+            'raw'          => $specBody,
+            'readme'       => $readme ? $this->stripFrontmatter($readme) : null,
+            'architecture' => $arch,
+            'changelog'    => $change,
+            'adrs'         => $adrs,
+            'size_bytes'   => $totalBytes,
+            'mtime'        => File::lastModified($folder . DIRECTORY_SEPARATOR . 'SPEC.md'),
+        ];
+    }
+
+    /**
+     * Lê ADRs em `adr/NNNN-slug.md`. Extrai título (primeiro H1) e status do bloco de lista.
+     */
+    protected function readAdrs(string $adrDir): array
+    {
+        if (! File::isDirectory($adrDir)) return [];
+
+        $out = [];
+        foreach (File::files($adrDir) as $f) {
+            if ($f->getExtension() !== 'md') continue;
+            $content = File::get($f->getPathname());
+
+            $title = '';
+            if (preg_match('/^#\s+(.+?)$/m', $content, $m)) {
+                $title = trim($m[1]);
+            }
+
+            $status = 'unknown';
+            if (preg_match('/\*\*Status\*\*:\s*([a-z][a-z\-]*)/i', $content, $m)) {
+                $status = strtolower(trim($m[1]));
+            }
+
+            $date = null;
+            if (preg_match('/\*\*Data\*\*:\s*(\d{4}-\d{2}-\d{2})/', $content, $m)) {
+                $date = $m[1];
+            }
+
+            // Número vem do nome do arquivo: 0001-slug.md → 0001
+            $filename = $f->getFilenameWithoutExtension();
+            $number = preg_match('/^(\d{4})/', $filename, $nm) ? $nm[1] : '0000';
+
+            $out[] = [
+                'number'  => $number,
+                'slug'    => $filename,
+                'title'   => $title,
+                'status'  => $status,
+                'date'    => $date,
+                'raw'     => $content,
+            ];
+        }
+
+        usort($out, fn ($a, $b) => strcmp($a['number'], $b['number']));
+        return $out;
     }
 
     // ------------------------------------------------------------------------
 
-    protected function readMeta(string $path): array
+    protected function readMeta(string $path, ?string $frontmatterSource = null): array
     {
         $content = File::get($path);
-        $meta = $this->parseFrontmatter($content);
+        $fmContent = $frontmatterSource && File::exists($frontmatterSource) ? File::get($frontmatterSource) : $content;
+        $meta = $this->parseFrontmatter($fmContent);
         $body = $this->stripFrontmatter($content);
 
         $stories = $this->extractStories($body);
@@ -132,7 +249,7 @@ class RequirementsFileReader
     {
         $stories = [];
         // Divide por seção de user story
-        if (! preg_match_all('/###\s+(US-[A-Z]+-\d+)\s+·\s+(.+?)\n(.*?)(?=\n###\s+[UR]-|\n##\s+|\z)/s', $body, $matches, PREG_SET_ORDER)) {
+        if (! preg_match_all('/###\s+(US-[A-Z]+-\d+)\s+·\s+(.+?)\n(.*?)(?=\n###\s+(?:US|R)-|\n##\s+|\z)/s', $body, $matches, PREG_SET_ORDER)) {
             return [];
         }
         foreach ($matches as $m) {
@@ -174,7 +291,7 @@ class RequirementsFileReader
     protected function extractRules(string $body): array
     {
         $rules = [];
-        if (! preg_match_all('/###\s+(R-[A-Z]+-\d+)\s+·\s+(.+?)\n(.*?)(?=\n###\s+[UR]-|\n##\s+|\z)/s', $body, $matches, PREG_SET_ORDER)) {
+        if (! preg_match_all('/###\s+(R-[A-Z]+-\d+)\s+·\s+(.+?)\n(.*?)(?=\n###\s+(?:US|R)-|\n##\s+|\z)/s', $body, $matches, PREG_SET_ORDER)) {
             return [];
         }
         foreach ($matches as $m) {

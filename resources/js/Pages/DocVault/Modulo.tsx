@@ -3,11 +3,15 @@ import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import {
   ArrowLeft,
+  Boxes,
   CheckCircle2,
   Circle,
+  ClipboardList,
   Code,
   ExternalLink,
   FileText,
+  History,
+  Lightbulb,
   Scale,
   Target,
 } from 'lucide-react';
@@ -41,20 +45,49 @@ interface Frontmatter {
   [k: string]: any;
 }
 
+interface Adr {
+  number: string;
+  slug: string;
+  title: string;
+  status: string;
+  date: string | null;
+  raw: string;
+}
+
 interface Props {
   module: string;
+  format?: 'folder' | 'flat';
   frontmatter: Frontmatter;
   stories: Story[];
   rules: Rule[];
   raw: string;
+  readme?: string | null;
+  architecture?: string | null;
+  changelog?: string | null;
+  adrs?: Adr[];
   size_kb: number;
   mtime: string;
 }
 
-type Tab = 'overview' | 'stories' | 'rules' | 'raw';
+type Tab = 'overview' | 'architecture' | 'stories' | 'rules' | 'adrs' | 'changelog' | 'raw';
 
-export default function DocVaultModulo({ module, frontmatter, stories, rules, raw, size_kb, mtime }: Props) {
+export default function DocVaultModulo({
+  module,
+  format = 'flat',
+  frontmatter,
+  stories,
+  rules,
+  raw,
+  readme,
+  architecture,
+  changelog,
+  adrs = [],
+  size_kb,
+  mtime,
+}: Props) {
   const [tab, setTab] = useState<Tab>('overview');
+  const [selectedAdr, setSelectedAdr] = useState<Adr | null>(null);
+  const hasFolder = format === 'folder';
 
   const totalDod = stories.reduce((acc, s) => acc + s.dod_total, 0);
   const doneDod = stories.reduce((acc, s) => acc + s.dod_done, 0);
@@ -126,25 +159,60 @@ export default function DocVaultModulo({ module, frontmatter, stories, rules, ra
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-border flex gap-1">
-          <TabBtn active={tab === 'overview'} onClick={() => setTab('overview')}>Overview</TabBtn>
+        <div className="border-b border-border flex gap-1 flex-wrap">
+          <TabBtn active={tab === 'overview'} onClick={() => setTab('overview')}>
+            <FileText size={13} className="mr-1" /> Overview
+          </TabBtn>
+          {architecture && (
+            <TabBtn active={tab === 'architecture'} onClick={() => setTab('architecture')}>
+              <Boxes size={13} className="mr-1" /> Arquitetura
+            </TabBtn>
+          )}
           <TabBtn active={tab === 'stories'} onClick={() => setTab('stories')}>
-            User stories <Badge variant="secondary" className="ml-1 text-[10px]">{stories.length}</Badge>
+            <ClipboardList size={13} className="mr-1" /> User stories
+            <Badge variant="secondary" className="ml-1 text-[10px]">{stories.length}</Badge>
           </TabBtn>
           <TabBtn active={tab === 'rules'} onClick={() => setTab('rules')}>
-            Regras <Badge variant="secondary" className="ml-1 text-[10px]">{rules.length}</Badge>
+            <Scale size={13} className="mr-1" /> Regras
+            <Badge variant="secondary" className="ml-1 text-[10px]">{rules.length}</Badge>
           </TabBtn>
-          <TabBtn active={tab === 'raw'} onClick={() => setTab('raw')}>Markdown</TabBtn>
+          {adrs.length > 0 && (
+            <TabBtn active={tab === 'adrs'} onClick={() => setTab('adrs')}>
+              <Lightbulb size={13} className="mr-1" /> Decisões
+              <Badge variant="secondary" className="ml-1 text-[10px]">{adrs.length}</Badge>
+            </TabBtn>
+          )}
+          {changelog && (
+            <TabBtn active={tab === 'changelog'} onClick={() => setTab('changelog')}>
+              <History size={13} className="mr-1" /> Changelog
+            </TabBtn>
+          )}
+          <TabBtn active={tab === 'raw'} onClick={() => setTab('raw')}>
+            <Code size={13} className="mr-1" /> Markdown
+          </TabBtn>
         </div>
 
         {tab === 'overview' && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Resumo</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>{hasFolder ? 'Visão geral' : 'Resumo'}</span>
+                <Badge variant="outline" className="text-[10px]">
+                  {hasFolder ? 'pasta' : 'arquivo plano'}
+                </Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-3">
+              {readme && (
+                <pre className="text-xs whitespace-pre-wrap font-mono bg-muted/30 rounded p-3 overflow-x-auto">
+                  {readme}
+                </pre>
+              )}
               <div>
-                <strong>Arquivo fonte:</strong> <code className="text-xs">memory/requisitos/{module}.md</code>
+                <strong>Fonte:</strong>{' '}
+                <code className="text-xs">
+                  memory/requisitos/{module}{hasFolder ? '/' : '.md'}
+                </code>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries(frontmatter).filter(([k]) => !['areas'].includes(k)).map(([k, v]) => (
@@ -154,16 +222,90 @@ export default function DocVaultModulo({ module, frontmatter, stories, rules, ra
                   </div>
                 ))}
               </div>
-              <div className="pt-3 border-t border-border">
-                <p className="text-xs text-muted-foreground">
-                  Para editar requisitos deste módulo, abra{' '}
-                  <code className="text-xs">memory/requisitos/{module}.md</code> diretamente
-                  e regere o índice com{' '}
-                  <code className="text-xs">php artisan module:requirements</code>.
-                </p>
-              </div>
+              {!hasFolder && (
+                <div className="pt-3 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    Este módulo ainda está no formato plano (arquivo único). Para migrar para a estrutura nova com
+                    arquitetura/spec/changelog separados, crie a pasta{' '}
+                    <code className="text-xs">memory/requisitos/{module}/</code> com README.md, ARCHITECTURE.md,
+                    SPEC.md e CHANGELOG.md.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
+        )}
+
+        {tab === 'architecture' && architecture && (
+          <Card>
+            <CardContent>
+              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{architecture}</pre>
+            </CardContent>
+          </Card>
+        )}
+
+        {tab === 'changelog' && changelog && (
+          <Card>
+            <CardContent>
+              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{changelog}</pre>
+            </CardContent>
+          </Card>
+        )}
+
+        {tab === 'adrs' && adrs.length > 0 && (
+          <div className="grid md:grid-cols-[280px_1fr] gap-3">
+            <Card>
+              <CardContent className="p-0">
+                <ul className="divide-y divide-border">
+                  {adrs.map((a) => {
+                    const toneCls = a.status === 'accepted'
+                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                      : a.status === 'proposed'
+                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                      : a.status === 'deprecated' || a.status.startsWith('superseded')
+                      ? 'bg-muted text-muted-foreground line-through'
+                      : 'bg-muted text-muted-foreground';
+                    const active = selectedAdr?.slug === a.slug;
+                    return (
+                      <li
+                        key={a.slug}
+                        onClick={() => setSelectedAdr(a)}
+                        className={`p-3 cursor-pointer hover:bg-accent/30 ${active ? 'bg-accent/50' : ''}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <code className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">
+                            {a.number}
+                          </code>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${toneCls}`}>
+                            {a.status}
+                          </span>
+                        </div>
+                        <div className="text-sm font-medium mt-1 line-clamp-2">{a.title}</div>
+                        {a.date && (
+                          <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                            {a.date}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                {selectedAdr ? (
+                  <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+                    {selectedAdr.raw}
+                  </pre>
+                ) : (
+                  <div className="p-8 text-center text-sm text-muted-foreground">
+                    Selecione uma decisão à esquerda.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {tab === 'stories' && (
