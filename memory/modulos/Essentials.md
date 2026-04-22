@@ -14,6 +14,7 @@
 - 🔗 Registra 5 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions, addTaxonomies, moduleViewPartials
 - 🔴 +50 rotas — módulo grande, migrar em fases
 - 🔴 +50 views — trabalho pesado
+- ✅ Tem testes (2)
 - 🔐 Registra 23 permissão(ões) Spatie
 
 - **Prioridade sugerida de migração:** baixa (grande, fazer por último ou dividir)
@@ -27,12 +28,12 @@
 | Controllers | 19 |
 | Entities (Models) | 18 |
 | Services | 0 |
-| FormRequests | 0 |
+| FormRequests | 4 |
 | Middleware | 0 |
 | Views Blade | 87 |
 | Migrations | 36 |
 | Arquivos de lang | 16 |
-| Testes | 0 |
+| Testes | 2 |
 
 ## Rotas
 
@@ -107,7 +108,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - **`ReminderController`** — 5 ação(ões): index, store, show, update, destroy
 - **`SalesTargetController`** — 3 ação(ões): index, setSalesTarget, saveSalesTarget
 - **`ShiftController`** — 9 ação(ões): index, create, store, show, edit, update, destroy, getAssignUsers +1
-- **`ToDoController`** — 12 ação(ões): index, create, show, edit, store, update, destroy, addComment +4
+- **`ToDoController`** — 12 ação(ões): index, create, store, show, edit, update, destroy, addComment +4
 
 ## Entities (Models Eloquent)
 
@@ -392,5 +393,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:14.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 15:50.**
 **Reaxecutar com:** `php artisan module:spec Essentials`
