@@ -1,0 +1,42 @@
+# Changelog · DocVault
+
+Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/lang/pt-BR/).
+
+## [0.2.0] - 2026-04-22
+
+### Added
+
+- Estrutura de documentação por módulo: `memory/requisitos/{Modulo}/` com 4 arquivos + pasta `adr/` (ADRs numerados). DocVault é o piloto.
+- 4 ADRs iniciais documentando decisões do DocVault: MySQL sobre Postgres, file-based specs, IA opt-in, estrutura pasta-por-módulo.
+- Tab "Decisões" no viewer do módulo: lista ADRs com status colorido (accepted/proposed/deprecated) + preview.
+- Bugfix no regex do parser: stories `US-XXX-NNN` em sequência agora são todas detectadas (antes caía no segundo match porque `[UR]-` não matchava `US-`).
+- `RequirementsFileReader` agora tenta ler a pasta nova primeiro e faz fallback pro `.md` plano — migração gradual dos 29 módulos.
+- Tabs separadas em `/docs/modulos/{Nome}`: Overview / Arquitetura / Spec / Changelog / Markdown.
+- Campos `relation` (varchar 32) e `weight` (int) em `docs_links` preparados pra virar grafo de conhecimento real.
+- Scout driver `database` configurado nos 3 modelos (`DocSource`, `DocEvidence`, `DocRequirement`) com fulltext MySQL — base pra busca semântica sem +1 serviço.
+- `ClassifierAgent` stub (desativado via `DOCVAULT_AI_ENABLED=false`) — preenche `kind` e `module_target` automaticamente quando IA for ligada.
+
+### Changed
+
+- `ModuloController::show` agora passa 5 props ao invés de 3 (raw + arquivos de arquitetura e changelog).
+- Viewer React renderiza markdown dos 3 arquivos extras quando presentes.
+
+## [0.1.0] - 2026-04-22
+
+### Added
+
+- Scaffold inicial do módulo DocVault (padrão UltimatePOS/nwidart).
+- 4 migrations criando `docs_sources`, `docs_evidences`, `docs_requirements`, `docs_links`.
+- 4 entidades Eloquent correspondentes (`DocSource`, `DocEvidence`, `DocRequirement`, `DocLink`).
+- 6 controllers (`DashboardController`, `IngestController`, `InboxController`, `ModuloController`, `DataController`, `InstallController`).
+- `RequirementsFileReader` parseia frontmatter YAML + extrai user stories + regras Gherkin dos .md de `memory/requisitos/`.
+- 4 telas Inertia+React (`Dashboard`, `Ingest`, `Inbox`, `Modulo`) com shadcn/ui.
+- Rotas sob `/docs` com middleware admin (web, auth, SetSessionData, AdminSidebarMenu).
+- `/docs` adicionado em `LegacyMenuAdapter::isInertiaRoute`.
+- `DocVault: true` em `modules_statuses.json`.
+
+### Notes
+
+- 29 módulos do sistema documentados em `memory/requisitos/*.md` (formato plano) antes da estrutura de pastas.
+- 19 user stories e 71 regras Gherkin consolidadas no total.
+- Fase 1 validada em ambiente local (Herd + Laragon MySQL) via `oimpresso.test`.

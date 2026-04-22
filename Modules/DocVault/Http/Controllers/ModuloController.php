@@ -18,13 +18,18 @@ class ModuloController extends Controller
         }
 
         return Inertia::render('DocVault/Modulo', [
-            'module'      => $module,
-            'frontmatter' => $data['frontmatter'],
-            'stories'     => $data['stories'],
-            'rules'       => $data['rules'],
-            'raw'         => $data['raw'],
-            'size_kb'     => round($data['size_bytes'] / 1024, 1),
-            'mtime'       => date('Y-m-d H:i', $data['mtime']),
+            'module'       => $module,
+            'format'       => $data['format'] ?? 'flat',
+            'frontmatter'  => $data['frontmatter'],
+            'stories'      => $data['stories'],
+            'rules'        => $data['rules'],
+            'raw'          => $data['raw'],
+            'readme'       => $data['readme'] ?? null,
+            'architecture' => $data['architecture'] ?? null,
+            'changelog'    => $data['changelog'] ?? null,
+            'adrs'         => $data['adrs'] ?? [],
+            'size_kb'      => round($data['size_bytes'] / 1024, 1),
+            'mtime'        => date('Y-m-d H:i', $data['mtime']),
         ]);
     }
 }
