@@ -44,7 +44,8 @@ class RequirementsFileReader
             $readme = $d . DIRECTORY_SEPARATOR . 'README.md';
             $fmSource = File::exists($readme) ? $readme : $spec;
             $meta = $this->readMeta($spec, $fmSource);
-            $out[] = array_merge(['name' => $name, 'format' => 'folder'], $meta);
+            $coverage = $this->coverageForFolder($d);
+            $out[] = array_merge(['name' => $name, 'format' => 'folder'], $meta, ['coverage' => $coverage]);
             $seen[$name] = true;
         }
 
@@ -56,7 +57,8 @@ class RequirementsFileReader
             if (isset($seen[$name])) continue;
 
             $meta = $this->readMeta($f->getPathname());
-            $out[] = array_merge(['name' => $name, 'format' => 'flat'], $meta);
+            $coverage = $this->coverageForFlat($f->getPathname(), $meta);
+            $out[] = array_merge(['name' => $name, 'format' => 'flat'], $meta, ['coverage' => $coverage]);
         }
 
         usort($out, fn ($a, $b) => strcmp($a['name'], $b['name']));
@@ -135,6 +137,59 @@ class RequirementsFileReader
             'adrs'         => $adrs,
             'size_bytes'   => $totalBytes,
             'mtime'        => File::lastModified($folder . DIRECTORY_SEPARATOR . 'SPEC.md'),
+        ];
+    }
+
+    /**
+     * Cobertura de documentação pro formato pasta: existência de cada arquivo + quantos ADRs.
+     * Retorna um score 0-100 e flags individuais.
+     */
+    protected function coverageForFolder(string $folder): array
+    {
+        $readme = File::exists($folder . DIRECTORY_SEPARATOR . 'README.md');
+        $arch   = File::exists($folder . DIRECTORY_SEPARATOR . 'ARCHITECTURE.md');
+        $spec   = File::exists($folder . DIRECTORY_SEPARATOR . 'SPEC.md');
+        $chg    = File::exists($folder . DIRECTORY_SEPARATOR . 'CHANGELOG.md');
+        $adrDir = $folder . DIRECTORY_SEPARATOR . 'adr';
+        $adrCount = File::isDirectory($adrDir)
+            ? count(array_filter(File::files($adrDir), fn ($f) => $f->getExtension() === 'md'))
+            : 0;
+
+        // Score: 5 eixos × 20 pontos
+        $score = ($readme ? 20 : 0) + ($arch ? 20 : 0) + ($spec ? 20 : 0) + ($chg ? 20 : 0) + ($adrCount > 0 ? 20 : 0);
+
+        return [
+            'readme'    => $readme,
+            'arch'      => $arch,
+            'spec'      => $spec,
+            'changelog' => $chg,
+            'adrs'      => $adrCount,
+            'score'     => $score,
+        ];
+    }
+
+    /**
+     * Cobertura para formato plano: deriva do conteúdo do arquivo único.
+     * Se tem stories → spec = true; frontmatter → readme implícito; etc.
+     */
+    protected function coverageForFlat(string $path, array $meta): array
+    {
+        $content = File::get($path);
+        $hasStories = !empty($meta['stories_count']) && $meta['stories_count'] > 0;
+        $hasRules   = !empty($meta['rules_count']) && $meta['rules_count'] > 0;
+        $hasFm      = !empty($meta['frontmatter']);
+        $hasArch    = (bool) preg_match('/^##\s+\d+\.\s+(Arquitetura|Áreas|Modelo)/im', $content);
+
+        // Plano nunca tem CHANGELOG/ADR separados — score máximo é 60 (3 eixos possíveis)
+        $score = ($hasFm ? 20 : 0) + (($hasStories || $hasRules) ? 20 : 0) + ($hasArch ? 20 : 0);
+
+        return [
+            'readme'    => $hasFm,
+            'arch'      => $hasArch,
+            'spec'      => $hasStories || $hasRules,
+            'changelog' => false,
+            'adrs'      => 0,
+            'score'     => $score,
         ];
     }
 

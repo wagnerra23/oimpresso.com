@@ -5,6 +5,7 @@ import {
   FileText,
   FolderOpen,
   Inbox,
+  Lightbulb,
   Plus,
   Scale,
   Target,
@@ -28,13 +29,31 @@ interface Stats {
   evidences_applied: number;
 }
 
+interface Coverage {
+  readme: boolean;
+  arch: boolean;
+  spec: boolean;
+  changelog: boolean;
+  adrs: number;
+  score: number;
+}
+
 interface ModuleItem {
   name: string;
+  format: 'folder' | 'flat';
   status: string;
   priority: string;
   stories_count: number;
   rules_count: number;
   dod_pct: number;
+  coverage: Coverage | null;
+}
+
+interface CoverageSummary {
+  folder_count: number;
+  flat_count: number;
+  avg_score: number;
+  total_adrs: number;
 }
 
 interface RecentSource {
@@ -50,9 +69,10 @@ interface Props {
   stats: Stats;
   modules: ModuleItem[];
   recent_sources: RecentSource[];
+  coverage_summary: CoverageSummary;
 }
 
-export default function DocVaultDashboard({ stats, modules, recent_sources }: Props) {
+export default function DocVaultDashboard({ stats, modules, recent_sources, coverage_summary }: Props) {
   return (
     <AppShell
       title="DocVault — Dashboard"
@@ -130,6 +150,23 @@ export default function DocVaultDashboard({ stats, modules, recent_sources }: Pr
           </CardContent>
         </Card>
 
+        {/* Cobertura global */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <BookOpen size={16} /> Maturidade da documentação
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <StatusBox label="Formato pasta" value={coverage_summary.folder_count} tone="emerald" />
+              <StatusBox label="Formato plano" value={coverage_summary.flat_count} tone="amber" />
+              <StatusBox label="Score médio" value={`${coverage_summary.avg_score}%`} />
+              <StatusBox label="ADRs totais" value={coverage_summary.total_adrs} tone="sky" />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Módulos */}
         <Card>
           <CardHeader>
@@ -143,9 +180,11 @@ export default function DocVaultDashboard({ stats, modules, recent_sources }: Pr
                 <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
                   <tr>
                     <th className="text-left p-3 font-medium">Módulo</th>
-                    <th className="text-left p-3 font-medium">Status</th>
+                    <th className="text-left p-3 font-medium">Formato</th>
+                    <th className="text-left p-3 font-medium">Doc</th>
                     <th className="text-right p-3 font-medium">Stories</th>
                     <th className="text-right p-3 font-medium">Regras</th>
+                    <th className="text-right p-3 font-medium">ADRs</th>
                     <th className="text-left p-3 font-medium">DoD</th>
                     <th className="text-right p-3 font-medium"></th>
                   </tr>
@@ -157,17 +196,38 @@ export default function DocVaultDashboard({ stats, modules, recent_sources }: Pr
                         <Link href={`/docs/modulos/${m.name}`} className="hover:underline">
                           {m.name}
                         </Link>
+                        <div className="mt-0.5">
+                          <Badge
+                            variant={m.status === 'ativo' ? 'default' : 'outline'}
+                            className="text-[10px]"
+                          >
+                            {m.status}
+                          </Badge>
+                        </div>
                       </td>
                       <td className="p-3">
                         <Badge
-                          variant={m.status === 'ativo' ? 'default' : 'outline'}
+                          variant={m.format === 'folder' ? 'default' : 'outline'}
                           className="text-[10px]"
                         >
-                          {m.status}
+                          {m.format === 'folder' ? 'pasta' : 'plano'}
                         </Badge>
+                      </td>
+                      <td className="p-3">
+                        <CoverageDots coverage={m.coverage} />
                       </td>
                       <td className="p-3 text-right font-mono text-xs">{m.stories_count}</td>
                       <td className="p-3 text-right font-mono text-xs">{m.rules_count}</td>
+                      <td className="p-3 text-right font-mono text-xs">
+                        {m.coverage?.adrs ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Lightbulb size={12} className="text-amber-500" />
+                            {m.coverage.adrs}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
                       <td className="p-3 w-40">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
@@ -248,6 +308,29 @@ function Kpi({
         {hint && <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div>}
       </CardContent>
     </Card>
+  );
+}
+
+function CoverageDots({ coverage }: { coverage: Coverage | null }) {
+  if (!coverage) return <span className="text-muted-foreground text-xs">—</span>;
+  const dots = [
+    { label: 'README', on: coverage.readme },
+    { label: 'Arquitetura', on: coverage.arch },
+    { label: 'Spec', on: coverage.spec },
+    { label: 'Changelog', on: coverage.changelog },
+    { label: 'ADRs', on: coverage.adrs > 0 },
+  ];
+  return (
+    <div className="flex items-center gap-1" title={`Score ${coverage.score}%`}>
+      {dots.map((d, i) => (
+        <div
+          key={i}
+          title={`${d.label}: ${d.on ? 'ok' : 'faltando'}`}
+          className={`w-2 h-2 rounded-full ${d.on ? 'bg-emerald-500' : 'bg-muted'}`}
+        />
+      ))}
+      <span className="ml-1 text-[10px] text-muted-foreground font-mono">{coverage.score}</span>
+    </div>
   );
 }
 
