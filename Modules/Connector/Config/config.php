@@ -2,6 +2,6 @@
 
 return [
     'name' => 'Connector',
-    'module_version' => "0.7",
-    'pid' => 9
+    'module_version' => '2.0',
+    'pid' => 9,
 ];

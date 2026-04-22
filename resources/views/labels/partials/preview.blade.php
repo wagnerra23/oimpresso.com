@@ -126,7 +126,7 @@
 	    box-sizing: border-box;
 	}
 	#preview_box{
-	    padding-left: 100px !important;
+	    padding-left: 30px !important;
 	}
 	@media print{
 	    .content-wrapper{

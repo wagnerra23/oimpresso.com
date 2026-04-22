@@ -17,9 +17,14 @@
     $array_name = 'product_variation';
     $variation_array_name = 'variations';
  }
+
+    $common_settings = session()->get('business.common_settings');
 @endphp
 
 <tr class="variation_row">
+    <td>
+        <button type="button" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-error delete_complete_row"><i class="fa fa-trash"></i></button>
+    </td>
     <td>
         {!! Form::text($array_name . '[' . $row_index .'][name]', $product_variation->name, ['class' => 'form-control input-sm variation_name', 'required', 'readonly']); !!}
 
@@ -47,7 +52,7 @@
                 <small><i><span class="dsp_label"></span></i></small>
                 </th>
                 <th>@lang('lang_v1.variation_images')</th>
-                <th><button type="button" class="btn btn-success btn-xs add_variation_value_row">+</button></th>
+                <th><button type="button" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-accent add_variation_value_row">+</button></th>
             </tr>
             </thead>
 
@@ -64,7 +69,10 @@
                 @endphp
                 <tr>
                     <td>
-                        {!! Form::text($array_name . '[' . $row_index .'][' . $variation_array_name . '][' . $variation_row_index . '][sub_sku]', $action == 'edit' ? $variation->sub_sku : null, ['class' => 'form-control input-sm variation_value_name', $sub_sku_required]); !!}
+                        @if($action != 'duplicate')
+                            <input type="hidden" class="row_variation_id" value="{{$variation->id}}">
+                        @endif
+                        {!! Form::text($array_name . '[' . $row_index .'][' . $variation_array_name . '][' . $variation_row_index . '][sub_sku]', $action == 'edit' ? $variation->sub_sku : null, ['class' => 'form-control input-sm input_sub_sku', $sub_sku_required]); !!}
                     </td>
                     <td>
                         {!! Form::text($array_name . '[' . $row_index .'][' . $variation_array_name . '][' . $variation_row_index . '][value]', $variation->name, ['class' => 'form-control input-sm variation_value_name', 'required', 'readonly']); !!}
@@ -95,17 +103,19 @@
                         @if($action !== 'duplicate')
                             @foreach($variation->media as $media)
                                 <div class="img-thumbnail">
-                                    <span class="badge bg-red delete-media" data-href="{{ action('ProductController@deleteMedia', ['media_id' => $media->id])}}"><i class="fa fa-close"></i></span>
+                                    <span class="badge bg-red delete-media" data-href="{{ action([\App\Http\Controllers\ProductController::class, 'deleteMedia'], ['media_id' => $media->id])}}"><i class="fas fa-times"></i></span>
                                     {!! $media->thumbnail() !!}
                                 </div>
                             @endforeach
-                            {!! Form::file('edit_variation_images_' . $row_index . '_' . $variation_row_index . '[]', ['class' => 'variation_images', 'accept' => 'image/*', 'multiple']); !!}
+                            {!! Form::file('edit_variation_images_' . $row_index . '_' . $variation_row_index . '[]',
+                                 ['class' => 'variation_images', 'accept' => 'image/*', 'multiple']); !!}
                         @else
-                            {!! Form::file('edit_variation_images_' . $row_index . '_' . $variation_row_index . '[]', ['class' => 'variation_images', 'accept' => 'image/*', 'multiple']); !!}
+                            {!! Form::file('edit_variation_images_' . $row_index . '_' . $variation_row_index . '[]', 
+                                ['class' => 'variation_images', 'accept' => 'image/*', 'multiple']); !!}
                         @endif
                     </td>
                     <td>
-                        <button type="button" class="btn btn-danger btn-xs remove_variation_value_row">-</button>
+                        <button type="button" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-error remove_variation_value_row"><i class="fa fa-trash"></i></button>
                         <input type="hidden" class="variation_row_index" value="@if($action == 'duplicate'){{$loop->index}}@else{{0}}@endif">
                     </td>
                 </tr>

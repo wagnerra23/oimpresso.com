@@ -2,6 +2,6 @@
 
 return [
     'name' => 'Manufacturing',
-    'module_version' => '2.1',
-    'pid' => 4
+    'module_version' => '3.1',
+    'pid' => 4,
 ];

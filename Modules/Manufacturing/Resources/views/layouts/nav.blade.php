@@ -9,22 +9,22 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{action('\Modules\Manufacturing\Http\Controllers\RecipeController@index')}}"><i class="fas fa-industry"></i> {{__('manufacturing::lang.manufacturing')}}</a>
+                <a class="navbar-brand" href="{{action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index'])}}"><i class="fas fa-industry"></i> {{__('manufacturing::lang.manufacturing')}}</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     @can('manufacturing.access_recipe')
-                        <li @if(request()->segment(1) == 'manufacturing' && in_array(request()->segment(2), ['recipe', 'add-ingredient'])) class="active" @endif><a href="{{action('\Modules\Manufacturing\Http\Controllers\RecipeController@index')}}">@lang('manufacturing::lang.recipe')</a></li>
+                        <li @if(request()->segment(1) == 'manufacturing' && in_array(request()->segment(2), ['recipe', 'add-ingredient'])) class="active" @endif><a href="{{action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index'])}}">@lang('manufacturing::lang.recipe')</a></li>
                     @endcan
 
                     @can('manufacturing.access_production')
-                        <li @if(request()->segment(2) == 'production') class="active" @endif><a href="{{action('\Modules\Manufacturing\Http\Controllers\ProductionController@index')}}">@lang('manufacturing::lang.production')</a></li>
+                        <li @if(request()->segment(2) == 'production') class="active" @endif><a href="{{action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index'])}}">@lang('manufacturing::lang.production')</a></li>
 
-                        <li @if(request()->segment(1) == 'manufacturing' && request()->segment(2) == 'settings') class="active" @endif><a href="{{action('\Modules\Manufacturing\Http\Controllers\SettingsController@index')}}">@lang('messages.settings')</a></li>
+                        <li @if(request()->segment(1) == 'manufacturing' && request()->segment(2) == 'settings') class="active" @endif><a href="{{action([\Modules\Manufacturing\Http\Controllers\SettingsController::class, 'index'])}}">@lang('messages.settings')</a></li>
 
-                        <li @if(request()->segment(2) == 'report') class="active" @endif><a href="{{action('\Modules\Manufacturing\Http\Controllers\ProductionController@getManufacturingReport')}}">@lang('manufacturing::lang.manufacturing_report')</a></li>
+                        <li @if(request()->segment(2) == 'report') class="active" @endif><a href="{{action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'getManufacturingReport'])}}">@lang('manufacturing::lang.manufacturing_report')</a></li>
                     @endcan
                 </ul>
 

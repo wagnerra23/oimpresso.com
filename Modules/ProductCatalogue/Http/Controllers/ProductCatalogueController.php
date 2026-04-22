@@ -2,31 +2,30 @@
 
 namespace Modules\ProductCatalogue\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Business;
+use App\BusinessLocation;
+use App\Category;
+use App\Discount;
+use App\Product;
+use App\SellingPriceGroup;
+use App\Utils\ModuleUtil;
+use App\Utils\ProductUtil;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-use App\Product;
-use App\Business;
-use App\Discount;
-use App\SellingPriceGroup;
-use App\Utils\ProductUtil;
-use App\BusinessLocation;
-use App\Utils\ModuleUtil;
-use App\Category;
 
 class ProductCatalogueController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $productUtil;
+
     protected $moduleUtil;
 
     /**
      * Constructor
      *
-     * @param ProductUtils $product
+     * @param  ProductUtils  $product
      * @return void
      */
     public function __construct(ProductUtil $productUtil, ModuleUtil $moduleUtil)
@@ -37,12 +36,13 @@ class ProductCatalogueController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index($business_id, $location_id)
     {
         $products = Product::where('business_id', $business_id)
-                ->whereHas('product_locations', function($q) use ($location_id){
+                ->whereHas('product_locations', function ($q) use ($location_id) {
                     $q->where('product_locations.location_id', $location_id);
                 })
                 ->ProductForSales()
@@ -60,6 +60,9 @@ class ProductCatalogueController extends Controller
                                 ->where('ends_at', '>=', $now)
                                 ->orderBy('priority', 'desc')
                                 ->get();
+        foreach ($discounts as $key => $value) {
+            $discounts[$key]->discount_amount = $this->productUtil->num_f($value->discount_amount, false, $business);
+        }
 
         $categories = Category::forDropdown($business_id, 'product');
 
@@ -68,7 +71,8 @@ class ProductCatalogueController extends Controller
 
     /**
      * Show the specified resource.
-     * @param int $id
+     *
+     * @param  int  $id
      * @return Response
      */
     public function show($business_id, $id)
@@ -90,7 +94,7 @@ class ProductCatalogueController extends Controller
                 $group_price_details[$variation->id][$group_price->price_group_id] = $group_price->price_inc_tax;
             }
 
-            $discounts[$variation->id] = $this->productUtil->getProductDiscount($product, $product->business_id, request()->input('location_id'), false, false, $variation->id);
+            $discounts[$variation->id] = $this->productUtil->getProductDiscount($product, $product->business_id, request()->input('location_id'), false, null, $variation->id);
         }
 
         $combo_variations = [];
@@ -110,7 +114,7 @@ class ProductCatalogueController extends Controller
     public function generateQr()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'productcatalogue_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'productcatalogue_module'))) {
             abort(403, 'Unauthorized action.');
         }
 

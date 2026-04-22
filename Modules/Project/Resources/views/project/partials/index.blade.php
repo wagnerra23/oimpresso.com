@@ -5,7 +5,7 @@
 				<div class="box box-solid box-primary">
 					<div class="box-header with-border">
 						<h3 class="box-title">
-							<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id])}}">
+							<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id])}}">
 					    		{{ucFirst($project->name)}}
 					    	</a>
 						</h3>
@@ -17,14 +17,14 @@
 								  </button>
 								  <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="action">
 								    <li>
-								    	<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id])}}">
+								    	<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id])}}">
 								    		<i class="fas fa-external-link-alt"></i>
 								    		@lang('messages.view')
 								    	</a>
 								    </li>
 								    @can('project.edit_project')
 									    <li>
-									    	<a data-href="{{action('\Modules\Project\Http\Controllers\ProjectController@edit', ['id' => $project->id])}}" class="cursor-pointer edit_a_project">
+									    	<a data-href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'edit'], [$project->id])}}" class="cursor-pointer edit_a_project">
 									    		<i class="fa fa-edit"></i>
 									    		@lang('messages.edit')
 									    	</a>
@@ -32,7 +32,7 @@
 									@endcan
 								    @can('project.delete_project')
 									    <li>
-									    	<a data-href="{{action('\Modules\Project\Http\Controllers\ProjectController@destroy', ['id' => $project->id])}}" class="cursor-pointer delete_a_project">
+									    	<a data-href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'destroy'], [$project->id])}}" class="cursor-pointer delete_a_project">
 									    		<i class="fas fa-trash"></i>
 									    		@lang('messages.delete')
 									    	</a>
@@ -41,26 +41,26 @@
 									<!-- more menus -->
 									<li class="divider"></li>
 									<li>
-								    	<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id]).'?view=overview'}}">
+								    	<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id]).'?view=overview'}}">
 								    		<i class="fas fa-tachometer-alt"></i>
 								    		@lang('project::lang.overview')
 								    	</a>
 								    </li>
 								    <li>
-								    	<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id]).'?view=activities'}}">
+								    	<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id]).'?view=activities'}}">
 								    		<i class="fas fa-chart-line"></i>
 								    		@lang('lang_v1.activities')
 								    	</a>
 								    </li>
 								    <li>
-								    	<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id]).'?view=project_task'}}">
+								    	<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id]).'?view=project_task'}}">
 								    		<i class="fa fa-tasks"></i>
 								    		@lang('project::lang.task')
 								    	</a>
 								    </li>
 								    @if(isset($project->settings['enable_timelog']) && $project->settings['enable_timelog'])
 								    	<li>
-									    	<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id]).'?view=time_log'}}">
+									    	<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id]).'?view=time_log'}}">
 									    		<i class="fas fa-clock"></i>
 									    		@lang('project::lang.time_logs')
 									    	</a>
@@ -69,7 +69,7 @@
 
 								    @if(isset($project->settings['enable_notes_documents']) && $project->settings['enable_notes_documents'])
 								    	<li>
-									    	<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id]).'?view=documents_and_notes'}}">
+									    	<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id]).'?view=documents_and_notes'}}">
 									    		<i class="fas fa-file-image"></i>
 									    		@lang('project::lang.documents_and_notes')
 									    	</a>
@@ -78,7 +78,7 @@
 
 								    @if((isset($project->settings['enable_invoice']) && $project->settings['enable_invoice']) && $project->is_lead_or_admin)
 								    	<li>
-									    	<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id]).'?view=project_invoices'}}">
+									    	<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id]).'?view=project_invoices'}}">
 									    		<i class="fa fa-file"></i>
 									    		@lang('project::lang.invoices')
 									    	</a>
@@ -87,7 +87,7 @@
 
 								    @if($project->is_lead_or_admin)
 								    	<li>
-								    		<a href="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id]).'?view=project_settings'}}">
+								    		<a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id]).'?view=project_settings'}}">
 									    		<i class="fa fa-cogs"></i>
 									    		@lang('role.settings')
 									    	</a>

@@ -14,7 +14,7 @@
         @can("manufacturing.add_recipe")
         @slot('tool')
             <div class="box-tools">
-                <button class="btn btn-block btn-primary btn-modal" data-container="#recipe_modal" data-href="{{action('\Modules\Manufacturing\Http\Controllers\RecipeController@create')}}">
+                <button class="btn btn-block btn-primary btn-modal" data-container="#recipe_modal" data-href="{{action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'create'])}}">
                     <i class="fa fa-plus"></i> @lang( 'messages.add' )</button>
             </div>
         @endslot
@@ -23,7 +23,7 @@
             <table class="table table-bordered table-striped" id="recipe_table">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="select-all-row"></th>
+                        <th><input type="checkbox" id="select-all-row" data-table-id="recipe_table"></th>
                         <th>@lang( 'manufacturing::lang.recipe' )</th>
                         <th>@lang( 'product.category' )</th>
                         <th>@lang( 'product.sub_category' )</th>
@@ -45,7 +45,7 @@
     @endcomponent
 </section>
 <!-- /.content -->
-<div class="modal fade" id="recipe_modal" tabindex="-1" role="dialog" 
+<div class="modal fade" id="recipe_modal" role="dialog" 
     aria-labelledby="gridSystemModalLabel">
 </div>
 @stop

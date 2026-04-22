@@ -9,7 +9,7 @@
 </style>
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('cash_register.open_cash_register')</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('cash_register.open_cash_register')</h1>
     <!-- <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
         <li class="active">Here</li>
@@ -18,7 +18,7 @@
 
 <!-- Main content -->
 <section class="content">
-{!! Form::open(['url' => action('CashRegisterController@store'), 'method' => 'post', 
+{!! Form::open(['url' => action([\App\Http\Controllers\CashRegisterController::class, 'store']), 'method' => 'post', 
 'id' => 'add_cash_register_form' ]) !!}
   <div class="box box-solid">
     <div class="box-body">
@@ -37,16 +37,16 @@
         <div class="clearfix"></div>
         <div class="col-sm-8 col-sm-offset-2">
           <div class="form-group">
-            {!! Form::label('location_id', __('business.business_location') . ':*') !!}
+            {!! Form::label('location_id', __('business.business_location') . ':') !!}
               {!! Form::select('location_id', $business_locations, null, ['class' => 'form-control select2',
-              'placeholder' => __('lang_v1.select_location'), 'required']); !!}
+              'placeholder' => __('lang_v1.select_location')]); !!}
           </div>
         </div>
         @else
           {!! Form::hidden('location_id', array_key_first($business_locations->toArray()) ); !!}
         @endif
         <div class="col-sm-8 col-sm-offset-2">
-          <button type="submit" class="btn btn-primary pull-right">@lang('cash_register.open_register')</button>
+          <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white pull-right">@lang('cash_register.open_register')</button>
         </div>
         @else
         <div class="col-sm-8 col-sm-offset-2 text-center">

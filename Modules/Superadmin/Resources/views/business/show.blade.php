@@ -2,7 +2,7 @@
 @section('title', __('superadmin::lang.superadmin') . ' | Business')
 
 @section('content')
-
+@include('superadmin::layouts.nav')
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>@lang( 'superadmin::lang.view_business' )
@@ -16,7 +16,7 @@
 
 <!-- Main content -->
 <section class="content">
-	<div class="box">
+	<div class="box box-solid">
         <div class="box-header">
                 <h3 class="box-title">
                         <strong><i class="fa fa-briefcase margin-r-5"></i> 
@@ -67,14 +67,14 @@
                             </p>
 
                             <strong><i class="fa fa-toggle-on margin-r-5"></i> 
-                            Ativar</strong>
+                            @lang('business.is_active')</strong>
                             @if($business->is_active == 0)
                                 <p class="text-muted">
-                                    Inativo
+                                    Inactive
                                 </p>
                             @else
                                 <p class="text-muted">
-                                    Ativo
+                                    Active
                                 </p>
                             @endif
 
@@ -91,10 +91,12 @@
                     <div class="col-sm-3">
                         <div class="well well-sm">
                             <strong><i class="fa fa-user-circle-o margin-r-5"></i> 
-                            Proprietário</strong>
+                            @lang('business.owner')</strong>
+                            @if(!empty($business->owner))
                             <p class="text-muted">
                             {{$business->owner->surname}} {{$business->owner->first_name}} {{$business->owner->last_name}}
                             </p>
+                            @endif
 
                             <strong><i class="fa fa-envelope margin-r-5"></i> 
                             @lang('business.email')</strong>
@@ -103,7 +105,7 @@
                             </p>
 
                             <strong><i class="fa fa-address-book-o margin-r-5"></i> 
-                            Celular</strong>
+                            @lang('business.mobile')</strong>
                             <p class="text-muted">
                             {{$business->owner->contact_no}}
                             </p>
@@ -141,12 +143,13 @@
                             <table class="table table-bordered table-hover">
                                 <thead>
                                 <tr>
-                                    <th>Nome</th>
+                                    <th>Name</th>
                                     <th>Location ID</th>
-                                    <th>Referência</th>
-                                    <th>Cidade</th>
-                                    <th>CEP</th>
-
+                                    <th>Landmark</th>
+                                    <th>city</th>
+                                    <th>Zip Code</th>
+                                    <th>State</th>
+                                    <th>Country</th>
                                 </tr>
                                 </thead>
                                 
@@ -158,7 +161,8 @@
                                     <td>{{ $location->landmark }}</td>
                                     <td>{{ $location->city }}</td>
                                     <td>{{ $location->zip_code }}</td>
-
+                                    <td>{{ $location->state }}</td>
+                                    <td>{{ $location->country }}</td>
                                     </tr>
                                     @endforeach
                                
@@ -183,14 +187,14 @@
                             <table class="table table-bordered table-hover">
                                 <thead>
                                 <tr>
-                                    <th>Pacote</th>
-                                    <th>Inicio</th>
-                                    <th>Fim do teste</th>
-                                    <th>Fim</th>
-                                    <th>Pagamento Via</th>
-                                    <th>ID</th>
-                                    <th>Criado</th>
-                                    <th>Usuário</th>
+                                    <th>Package Name</th>
+                                    <th>Start Date</th>
+                                    <th>Trail End Date</th>
+                                    <th>End Date</th>
+                                    <th>Paid Via</th>
+                                    <th>Payment Transaction ID</th>
+                                    <th>Created At</th>
+                                    <th>Created By</th>
                                 </tr>
                                 </thead>
                                 

@@ -20,7 +20,7 @@
                         @endphp
                         <tr>
                             <td>{{$holiday->name}}</td>
-                            <td>{{@format_date($holiday->start_date)}} ({{ $diff . ' ' . str_plural(__('lang_v1.day'), $diff)}})</td>
+                            <td>{{@format_date($holiday->start_date)}} ({{ $diff . ' ' . Str::plural(__('lang_v1.day'), $diff)}})</td>
                             <td>{{$holiday->location->name ?? __("lang_v1.all")}}</td>
                         </tr>
                     @empty
@@ -44,7 +44,7 @@
                         @endphp
                         <tr>
                             <td>{{$holiday->name}}</td>
-                            <td>{{@format_date($holiday->start_date)}} ({{ $diff . ' ' . str_plural(__('lang_v1.day'), $diff)}})</td>
+                            <td>{{@format_date($holiday->start_date)}} ({{ $diff . ' ' . Str::plural(__('lang_v1.day'), $diff)}})</td>
                             <td>{{$holiday->location->name ?? __("lang_v1.all")}}</td>
                         </tr>
                     @empty

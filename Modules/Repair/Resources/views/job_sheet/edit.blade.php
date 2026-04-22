@@ -27,7 +27,7 @@
             $product_cond = [];
         @endphp
     @endif
-    {!! Form::open(['url' => action('\Modules\Repair\Http\Controllers\JobSheetController@update', ['id' => $job_sheet->id]), 'method' => 'put', 'id' => 'edit_job_sheet_form', 'files' => true]) !!}
+    {!! Form::open(['url' => action([\Modules\Repair\Http\Controllers\JobSheetController::class, 'update'], [$job_sheet->id]), 'method' => 'put', 'id' => 'edit_job_sheet_form', 'files' => true]) !!}
         @includeIf('repair::job_sheet.partials.scurity_modal')
         <div class="box box-solid">
             <div class="box-body">
@@ -203,7 +203,7 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            {!! Form::label('delivery_date', __('repair::lang.expected_delivery_date') . ':') !!}
+                            {!! Form::label('delivery_date', __('lang_v1.due_date') . ':') !!}
                             @show_tooltip(__('repair::lang.delivery_date_tooltip'))
                             <div class="input-group">
                                 <span class="input-group-addon">
@@ -296,13 +296,13 @@
                 </div>
                 <div class="col-sm-12 text-right">
                     <input type="hidden" name="submit_type" id="submit_type">
-                    <button type="submit" class="btn btn-success submit_button" value="save_and_add_parts">
-                    @lang('repair::lang.save_and_add_parts')
+                    <button type="submit" class="btn btn-success submit_button" value="save_and_add_parts" id="save_and_add_parts">
+                        @lang('repair::lang.save_and_add_parts')
                     </button>
-                    <button type="submit" class="btn btn-primary submit_button" value="submit">
+                    <button type="submit" class="btn btn-primary submit_button" value="submit" id="save">
                         @lang('messages.save')
                     </button>
-                    <button type="submit" class="btn btn-info submit_button" value="save_and_upload_docs">
+                    <button type="submit" class="btn btn-info submit_button" value="save_and_upload_docs" id="save_and_upload_docs">
                         @lang('repair::lang.save_and_upload_docs')
                     </button>
                 </div>
@@ -344,10 +344,12 @@
               id: "",
               text: '@lang("messages.please_select")',
               html: '@lang("messages.please_select")',
+              is_complete : '0',
             }, 
             @foreach($repair_statuses as $repair_status)
                 {
                 id: {{$repair_status->id}},
+                is_complete : '{{$repair_status->is_completed_status}}',
                 @if(!empty($repair_status->color))
                     text: '<i class="fa fa-circle" aria-hidden="true" style="color: {{$repair_status->color}};"></i> {{$repair_status->name}}',
                     title: '{{$repair_status->name}}'
@@ -359,10 +361,14 @@
             ];
 
             $("select#status_id").select2({
-              data: data,
-              escapeMarkup: function(markup) {
-                return markup;
-              }
+                data: data,
+                escapeMarkup: function(markup) {
+                    return markup;
+                },
+                 templateSelection: function (data, container) {
+                    $(data.element).attr('data-is_complete', data.is_complete);
+                    return data.text;
+                }
             });
 
             @if(!empty($job_sheet->status_id))
@@ -424,7 +430,6 @@
             }
 
             function getModelRepairChecklists() {
-                console.log('here');
                 var data = {
                         model_id : $("#device_model_id").val(),
                         job_sheet_id : $("#job_sheet_id").val()
@@ -495,6 +500,23 @@
               }
             });
 
+            //TODO:Uncomment the below code
+            
+            // function toggleSubmitButton () {
+            //     if ($('select#status_id').find(':selected').data('is_complete')) {
+            //         $("#save_and_add_parts").attr('disabled', false);
+            //         $("#save_and_upload_docs").attr('disabled', true);
+            //     } else {
+            //         $("#save_and_add_parts").attr('disabled', true);
+            //         $("#save_and_upload_docs").attr('disabled', false);
+            //     }
+            // }
+
+            // $("select#status_id").on('change', function () {
+            //     toggleSubmitButton();
+            // });
+
+            // toggleSubmitButton();
         });
     </script>
 @endsection

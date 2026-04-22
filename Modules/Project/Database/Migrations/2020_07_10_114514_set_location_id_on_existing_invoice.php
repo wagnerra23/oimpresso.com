@@ -1,10 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
+use App\BusinessLocation;
 use Illuminate\Database\Migrations\Migration;
 use Modules\Project\Entities\ProjectTransaction;
-use App\BusinessLocation;
+
 class SetLocationIdOnExistingInvoice extends Migration
 {
     /**
@@ -18,20 +17,19 @@ class SetLocationIdOnExistingInvoice extends Migration
                         ->where('transactions.sub_type', 'project_invoice')
                         ->get();
 
-        if (!empty($transactions)) {
+        if (! empty($transactions)) {
             foreach ($transactions as $key => $transaction) {
                 $business_id = $transaction->business_id;
                 $business_locations = BusinessLocation::where('business_id', $business_id)
                     ->get();
                 $location = $business_locations->pull(0);
-                if (!empty($location)) {
+                if (! empty($location)) {
                     ProjectTransaction::where('business_id', $business_id)
                             ->where('id', $transaction->id)
                             ->update(['location_id' => $location->id]);
                 }
             }
         }
-
     }
 
     /**

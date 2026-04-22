@@ -46,6 +46,12 @@
                             @lang('repair::lang.repair_settings')
                         </a>
                     </li>
+                    <li>
+                        <a href="#jobsheet_settings_tab" data-toggle="tab" aria-expanded="true">
+                            <i class="fa fas fa-clipboard"></i>
+                            @lang('repair::lang.jobsheet_pdf_settings')
+                        </a>
+                    </li>
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane active" id="repair_status_tab"> 
@@ -75,6 +81,9 @@
                     </div>
                     <div class="tab-pane" id="repair_settings_tab"> 
                         @includeIf('repair::settings.partials.repair_settings_tab')
+                    </div>
+                    <div class="tab-pane" id="jobsheet_settings_tab"> 
+                        @includeIf('repair::settings.partials.jobsheet_settings_tab')
                     </div>
                 </div>
             </div>
@@ -164,7 +173,7 @@
         var status_table = $('#status_table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{action('\Modules\Repair\Http\Controllers\RepairStatusController@index')}}",
+                ajax: "{{action([\Modules\Repair\Http\Controllers\RepairStatusController::class, 'index'])}}",
                 aaSorting: [[2, 'desc']],
                 columnDefs: [ {
                     "targets": 3,

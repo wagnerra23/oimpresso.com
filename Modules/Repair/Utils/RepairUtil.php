@@ -2,25 +2,18 @@
 
 namespace Modules\Repair\Utils;
 
-use \Notification;
 use App\Business;
-use DB;
-use App\NotificationTemplate;
 use App\Charts\CommonChart;
 use App\Utils\Util;
-use Modules\Repair\Entities\RepairStatus;
-use Spatie\Activitylog\Models\Activity;
-use App\Transaction;
-use App\Brands;
-use Modules\Repair\Entities\DeviceModel;
-use App\Category;
+use DB;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Notifications\RepairStatusUpdated;
+use Notification;
 
 class RepairUtil extends Util
 {
     public function replaceModuleTags($business_id, $data, $job_sheet)
-    {   
+    {
         $id = empty($job_sheet->repair_job_sheet_id) ? $job_sheet->id : $job_sheet->repair_job_sheet_id;
 
         $job_sheet = JobSheet::with('customer', 'technician', 'Brand',
@@ -33,7 +26,7 @@ class RepairUtil extends Util
         foreach ($data as $key => $value) {
             //replace customer name
             if (strpos($value, '{customer_name}') !== false) {
-                $customer_name = optional($job_sheet->customer)->name;
+                $customer_name = $job_sheet->customer?->name;
                 $data[$key] = str_replace('{customer_name}', $customer_name, $data[$key]);
             }
 
@@ -45,7 +38,7 @@ class RepairUtil extends Util
 
             //Replace status
             if (strpos($value, '{status}') !== false) {
-                $data[$key] = str_replace('{status}', optional($job_sheet->status)->name, $data[$key]);
+                $data[$key] = str_replace('{status}', $job_sheet->status?->name, $data[$key]);
             }
 
             //Replace serial number
@@ -57,33 +50,33 @@ class RepairUtil extends Util
             //replace delivery_date
             if (strpos($value, '{delivery_date}') !== false) {
                 $delivery_date = $job_sheet->delivery_date;
-                if (!empty($delivery_date)) {
+                if (! empty($delivery_date)) {
                     $delivery_date = $this->format_date($delivery_date, true);
                 }
                 $data[$key] = str_replace('{delivery_date}', $delivery_date, $data[$key]);
             }
 
             //replace service staff name
-            if (strpos($value, '{service_staff}') !== false && !empty($job_sheet->technician)) {
-                $service_staff = optional($job_sheet->technician)->user_full_name;
+            if (strpos($value, '{service_staff}') !== false && ! empty($job_sheet->technician)) {
+                $service_staff = $job_sheet->technician?->user_full_name;
                 $data[$key] = str_replace('{service_staff}', $service_staff, $data[$key]);
             }
 
             //replace brand name
-            if (strpos($value, '{brand}') !== false && !empty($job_sheet->Brand)) {
-                $brand = optional($job_sheet->Brand)->name;
+            if (strpos($value, '{brand}') !== false && ! empty($job_sheet->Brand)) {
+                $brand = $job_sheet->Brand?->name;
                 $data[$key] = str_replace('{brand}', $brand, $data[$key]);
             }
 
             //replace device name
-            if (strpos($value, '{device}') !== false && !empty($job_sheet->Device)) {
-                $device = optional($job_sheet->Device)->name;
+            if (strpos($value, '{device}') !== false && ! empty($job_sheet->Device)) {
+                $device = $job_sheet->Device?->name;
                 $data[$key] = str_replace('{device}', $device, $data[$key]);
             }
 
             //replace device model name
-            if (strpos($value, '{device_model}') !== false && !empty($job_sheet->deviceModel)) {
-                $device_model = optional($job_sheet->deviceModel)->name;
+            if (strpos($value, '{device_model}') !== false && ! empty($job_sheet->deviceModel)) {
+                $device_model = $job_sheet->deviceModel?->name;
                 $data[$key] = str_replace('{device_model}', $device_model, $data[$key]);
             }
 
@@ -100,7 +93,7 @@ class RepairUtil extends Util
     public function repairWarrantyExpiresIn($repair)
     {
         $warranty = '';
-        if (!empty($repair->repair_completed_on)) {
+        if (! empty($repair->repair_completed_on)) {
             $repair_completed_on = \Carbon::parse($repair->repair_completed_on);
 
             $warranty_expires_on = $repair_completed_on;
@@ -112,8 +105,9 @@ class RepairUtil extends Util
                 $warranty_expires_on = $warranty_expires_on->addDays($repair->duration);
             }
 
-            $warranty =  $warranty_expires_on->diffForHumans();
+            $warranty = $warranty_expires_on->diffForHumans();
         }
+
         return $warranty;
     }
 
@@ -122,9 +116,20 @@ class RepairUtil extends Util
         $repair_settings = Business::where('id', $business_id)
                                 ->value('repair_settings');
 
-        $repair_settings = !empty($repair_settings) ? json_decode($repair_settings, true) : [];
+        $repair_settings = ! empty($repair_settings) ? json_decode($repair_settings, true) : [];
 
         return $repair_settings;
+    }
+
+    public function getJobsheetPdfSettings($business_id)
+    {
+        $repair_jobsheet_settings = Business::where('id', $business_id)
+                                ->value('repair_jobsheet_settings');
+
+        $repair_jobsheet_settings = ! empty($repair_jobsheet_settings) ?
+        json_decode($repair_jobsheet_settings, true) : [];
+
+        return $repair_jobsheet_settings;
     }
 
     public function sendRepairUpdateNotification($sms_body, $transaction)
@@ -140,12 +145,12 @@ class RepairUtil extends Util
         $data['sms_settings'] = $business->sms_settings;
         $data['mobile_number'] = $contact->mobile;
         $data['sms_body'] = $tag_replaced_data['sms_body'];
-        
+
         //Send sms
-        if (!empty($contact->mobile) && !empty($data['sms_body'])) {
+        if (! empty($contact->mobile) && ! empty($data['sms_body'])) {
             $response = $this->sendSms($data);
 
-            if (!empty($response) && $response->getStatusCode() == 200) {
+            if (! empty($response) && $response->getStatusCode() == 200) {
                 $is_sent = __('repair::lang.sms_sent');
             } else {
                 $is_sent = __('repair::lang.sms_not_sent');
@@ -178,9 +183,9 @@ class RepairUtil extends Util
         $data['sms_body'] = $tag_replaced_data['sms_body'];
 
         //Send sms
-        if (!empty($data['sms_settings']) && !empty($customer->mobile) && !empty($data['sms_body'])) {
+        if (! empty($data['sms_settings']) && ! empty($customer->mobile) && ! empty($data['sms_body'])) {
             $response = $this->sendSms($data);
-            if (!empty($response) && $response->getStatusCode() == 200) {
+            if (! empty($response) && $response->getStatusCode() == 200) {
                 $is_sent = __('repair::lang.sms_sent');
             } else {
                 $is_sent = __('repair::lang.sms_not_sent');
@@ -199,14 +204,14 @@ class RepairUtil extends Util
     }
 
     public function sendJobSheetUpdateEmailNotification($notification_data, $job_sheet)
-    {   
+    {
         $business_id = $job_sheet->business_id;
         $customer = $job_sheet->customer;
 
         //replace tag from template
         $tag_replaced_data = $this->replaceModuleTags($business_id, $notification_data, $job_sheet);
 
-        if (!empty($customer->email)) {
+        if (! empty($customer->email)) {
             $customer->notify(new RepairStatusUpdated($tag_replaced_data));
         }
     }
@@ -215,7 +220,7 @@ class RepairUtil extends Util
     {
         return  [
             'tags' => ['{customer_name}', '{job_sheet_no}', '{status}', '{serial_number}', '{delivery_date}', '{service_staff}', '{brand}', '{device}', '{device_model}', '{business_name}'],
-            'help_text' => __('lang_v1.available_tags')
+            'help_text' => __('lang_v1.available_tags'),
         ];
     }
 
@@ -255,7 +260,7 @@ class RepairUtil extends Util
                         )
                         ->groupBy('repair_job_sheets.service_staff')
                         ->get();
-                        
+
         return $job_sheets_by_service_staff;
     }
 
@@ -294,19 +299,19 @@ class RepairUtil extends Util
     {
         return [
             'yAxis' => [
-                    'title' => [
-                        'text' => $title
-                    ]
+                'title' => [
+                    'text' => $title,
                 ],
+            ],
             'legend' => [
                 'align' => 'right',
                 'verticalAlign' => 'top',
                 'floating' => true,
-                'layout' => 'vertical'
+                'layout' => 'vertical',
             ],
         ];
     }
-    
+
     public function getTrendingDevices($business_id)
     {
         $job_sheets = JobSheet::leftJoin('categories as CAT',
@@ -367,12 +372,12 @@ class RepairUtil extends Util
             $label = $job_sheet['device_model'];
             $brand = $job_sheet['brand'];
             $device = $job_sheet['device'];
-            if (!empty($brand) && !empty($device)) {
-                $label = $job_sheet['device_model'] .' ('.$brand.' / '.$device.')';
-            } elseif (!empty($brand)) {
-                $label = $job_sheet['device_model'] .' ('.$brand.')';
-            } elseif (!empty($device)) {
-                $label = $job_sheet['device_model'] .' ('.$device.')';
+            if (! empty($brand) && ! empty($device)) {
+                $label = $job_sheet['device_model'].' ('.$brand.' / '.$device.')';
+            } elseif (! empty($brand)) {
+                $label = $job_sheet['device_model'].' ('.$brand.')';
+            } elseif (! empty($device)) {
+                $label = $job_sheet['device_model'].' ('.$device.')';
             }
             $labels[] = $label;
             $values[] = $job_sheet['job_sheet_models'];

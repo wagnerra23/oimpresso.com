@@ -2,23 +2,41 @@
 @section('title', __('superadmin::lang.superadmin') . ' | Business')
 
 @section('content')
-
+@include('superadmin::layouts.nav')
 <!-- Main content -->
 <section class="content">
 
-	<div class="box">
+	<div class="box box-solid">
         <div class="box-header">
         	<h3 class="box-title">@lang( 'superadmin::lang.add_new_business' ) <small>(@lang( 'superadmin::lang.add_business_help' ))</small></h3>
         </div>
 
         <div class="box-body">
-            <div class="col-md-12">
-                {!! Form::open(['url' => action('\Modules\Superadmin\Http\Controllers\BusinessController@store'), 'method' => 'post', 'id' => 'business_register_form','files' => true ]) !!}
+                {!! Form::open(['url' => action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'store']), 'method' => 'post', 'id' => 'business_register_form','files' => true ]) !!}
                     @include('business.partials.register_form')
-                
+                    <div class="clearfix"></div>
+                    <div class="col-md-12"><hr></div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {!! Form::label('package_id', __( 'superadmin::lang.subscription_packages' ) . ':') !!}
+                            {!! Form::select('package_id', $packages, null, ['class' => 'form-control', 'placeholder' => __( 'messages.please_select' ) ]); !!}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {!! Form::label('paid_via', __( 'superadmin::lang.paid_via' ) . ':') !!}
+                            {!! Form::select('paid_via', $gateways, null, ['class' => 'form-control', 'placeholder' => __( 'messages.please_select' ) ]); !!}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {!! Form::label('payment_transaction_id', __( 'superadmin::lang.payment_transaction_id' ) . ':') !!}
+                            {!! Form::text('payment_transaction_id', null, ['class' => 'form-control', 'placeholder' => __( 'superadmin::lang.payment_transaction_id' ) ]); !!}
+                         </div>
+                    </div>
+
                     {!! Form::submit(__('messages.submit'), ['class' => 'btn btn-success pull-right']) !!}
                 {!! Form::close() !!}
-            </div>
         </div>
     </div>
 
@@ -63,6 +81,11 @@
                     },
                     confirm_password: {
                         equalTo: "#password"
+                    },
+                    paid_via: {
+                        required: function(element){
+                                return $('#package_id').val() != '';
+                            }
                     },
                     username: {
                         required: true,

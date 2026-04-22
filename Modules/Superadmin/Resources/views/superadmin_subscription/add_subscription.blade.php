@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController@store'), 'method' => 'post', 'id' => 'superadmin_add_subscription' ]) !!}
+    {!! Form::open(['url' => action([\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'store']), 'method' => 'post', 'id' => 'superadmin_add_subscription' ]) !!}
 
     {!! Form::hidden('business_id', $business_id); !!}
     <div class="modal-header">

@@ -20,6 +20,7 @@
                         <a href="#" class="list-group-item text-center active">@lang('essentials::lang.leave')</a>
                         <a href="#" class="list-group-item text-center">@lang('essentials::lang.payroll')</a>
                         <a href="#" class="list-group-item text-center">@lang('essentials::lang.attendance')</a>
+                        <a href="#" class="list-group-item text-center">@lang('essentials::lang.sales_target')</a>
                         <a href="#" class="list-group-item text-center">@lang('essentials::lang.essentials')</a>
                         
                     </div>
@@ -32,6 +33,9 @@
                 </div>
                 <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 pos-tab">
                     @include('essentials::settings.partials.attendance_settings')
+                </div>
+                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 pos-tab">
+                    @include('essentials::settings.partials.sales_target_settings')
                 </div>
                 <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 pos-tab">
                     @include('essentials::settings.partials.essentials_settings')

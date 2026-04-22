@@ -10,7 +10,7 @@
 
 <!-- Main content -->
 <section class="content">
-    {!! Form::open(['url' => action('\Modules\Manufacturing\Http\Controllers\SettingsController@store'), 'method' => 'post', 'id' => 'manufacturing_settings_form' ]) !!}
+    {!! Form::open(['url' => action([\Modules\Manufacturing\Http\Controllers\SettingsController::class, 'store']), 'method' => 'post', 'id' => 'manufacturing_settings_form' ]) !!}
     <div class="row">
         <div class="col-xs-12">
            <!--  <pos-tab-container> -->

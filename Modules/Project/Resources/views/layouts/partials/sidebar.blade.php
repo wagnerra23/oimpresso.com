@@ -10,13 +10,13 @@
     </a>
     <ul class="treeview-menu">
     	<li class="{{ $request->segment(2) == 'project' ? 'active active-sub' : '' }}">
-            <a href="{{action('\Modules\Project\Http\Controllers\ProjectController@index')}}">
+            <a href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'index'])}}">
                 <i class="fas fa-check-circle"></i>
                 <span class="title">@lang('project::lang.projects')</span>
             </a>
         </li>
         <li class="{{ $request->segment(2) == 'project-task' ? 'active active-sub' : '' }}">
-            <a href="{{action('\Modules\Project\Http\Controllers\TaskController@index')}}">
+            <a href="{{action([\Modules\Project\Http\Controllers\TaskController::class, 'index'])}}">
                 <i class="fa fa-tasks"></i>
                 <span class="title">@lang('project::lang.tasks')</span>
             </a>

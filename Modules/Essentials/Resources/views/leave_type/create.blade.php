@@ -3,7 +3,7 @@
 	<div class="modal-dialog" role="document">
 	  <div class="modal-content">
 
-	    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\EssentialsLeaveTypeController@store'), 'method' => 'post', 'id' => 'add_leave_type_form' ]) !!}
+	    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\EssentialsLeaveTypeController::class, 'store']), 'method' => 'post', 'id' => 'add_leave_type_form' ]) !!}
 
 	    <div class="modal-header">
 	      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

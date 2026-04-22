@@ -6,7 +6,7 @@
 <!-- Content Header (Page header) -->
 <section class="content-header">
 <br>
-    <h1>@lang('barcode.print_labels') @show_tooltip(__('tooltip.print_label'))</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('barcode.print_labels') @show_tooltip(__('tooltip.print_label'))</h1>
     <!-- <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
         <li class="active">Here</li>
@@ -31,12 +31,20 @@
 		</div>
 
 		<div class="row">
-			<div class="col-sm-8 col-sm-offset-2">
+			<div class="col-sm-10 col-sm-offset-2">
 				<table class="table table-bordered table-striped table-condensed" id="product_table">
 					<thead>
 						<tr>
-							<th class="col-sm-8">@lang( 'barcode.products' )</th>
-							<th class="col-sm-4">@lang( 'barcode.no_of_labels' )</th>
+							<th>@lang( 'barcode.products' )</th>
+							<th>@lang( 'barcode.no_of_labels' )</th>
+							@if(request()->session()->get('business.enable_lot_number') == 1)
+								<th>@lang( 'lang_v1.lot_number' )</th>
+							@endif
+							@if(request()->session()->get('business.enable_product_expiry') == 1)
+								<th>@lang( 'product.exp_date' )</th>
+							@endif
+							<th>@lang('lang_v1.packing_date')</th>
+							<th>@lang('lang_v1.selling_price_group')</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -49,41 +57,178 @@
 
 	@component('components.widget', ['class' => 'box-primary', 'title' => __( 'barcode.info_in_labels' )])
 		<div class="row">
-			<div class="col-sm-3">
-				<div class="checkbox">
-				    <label>
-				    	<input type="checkbox" checked name="print[name]" value="1"> <b>@lang( 'barcode.print_name' )</b>
-				    </label>
-				</div>
+			<div class="col-md-12">
+				<table class="table table-bordered">
+					<tr>
+						<td>
+							<div class="checkbox">
+							    <label>
+							    	<input type="checkbox" checked name="print[name]" value="1"> <b>@lang( 'barcode.print_name' )</b>
+							    </label>
+							</div>
+
+							<div class="input-group">
+      							<div class="input-group-addon"><b>@lang( 'lang_v1.size' )</b></div>
+								<input type="text" class="form-control" 
+									name="print[name_size]" 
+									value="15">
+							</div>
+						</td>
+
+						<td>
+							<div class="checkbox">
+							    <label>
+							    	<input type="checkbox" checked name="print[variations]" value="1"> <b>@lang( 'barcode.print_variations' )</b>
+							    </label>
+							</div>
+
+							<div class="input-group">
+      							<div class="input-group-addon"><b>@lang( 'lang_v1.size' )</b></div>
+								<input type="text" class="form-control" 
+									name="print[variations_size]" 
+									value="17">
+							</div>
+						</td>
+
+						<td>
+							<div class="checkbox">
+							    <label>
+							    	<input type="checkbox" checked name="print[price]" value="1" id="is_show_price"> <b>@lang( 'barcode.print_price' )</b>
+							    </label>
+							</div>
+
+							<div class="input-group">
+      							<div class="input-group-addon"><b>@lang( 'lang_v1.size' )</b></div>
+								<input type="text" class="form-control" 
+									name="print[price_size]" 
+									value="17">
+							</div>
+
+						</td>
+
+						<td>
+							
+							<div class="" id="price_type_div">
+								<div class="form-group">
+									{!! Form::label('print[price_type]', @trans( 'barcode.show_price' ) . ':') !!}
+									<div class="input-group">
+										<span class="input-group-addon">
+											<i class="fa fa-info"></i>
+										</span>
+										{!! Form::select('print[price_type]', ['inclusive' => __('product.inc_of_tax'), 'exclusive' => __('product.exc_of_tax')], 'inclusive', ['class' => 'form-control']); !!}
+									</div>
+								</div>
+							</div>
+
+						</td>
+					</tr>
+
+					<tr>
+						<td>
+							<div class="checkbox">
+							    <label>
+							    	<input type="checkbox" checked name="print[business_name]" value="1"> <b>@lang( 'barcode.print_business_name' )</b>
+							    </label>
+							</div>
+
+							<div class="input-group">
+      							<div class="input-group-addon"><b>@lang( 'lang_v1.size' )</b></div>
+								<input type="text" class="form-control" 
+									name="print[business_name_size]" 
+									value="20">
+							</div>
+						</td>
+
+						<td>
+							<div class="checkbox">
+							    <label>
+							    	<input type="checkbox" checked name="print[packing_date]" value="1"> <b>@lang( 'lang_v1.print_packing_date' )</b>
+							    </label>
+							</div>
+
+							<div class="input-group">
+      							<div class="input-group-addon"><b>@lang( 'lang_v1.size' )</b></div>
+								<input type="text" class="form-control" 
+									name="print[packing_date_size]" 
+									value="12">
+							</div>
+						</td>
+
+						<td>
+							@if(request()->session()->get('business.enable_lot_number') == 1)
+							
+								<div class="checkbox">
+								    <label>
+								    	<input type="checkbox" checked name="print[lot_number]" value="1"> <b>@lang( 'lang_v1.print_lot_number' )</b>
+								    </label>
+								</div>
+
+								<div class="input-group">
+      							<div class="input-group-addon"><b>@lang( 'lang_v1.size' )</b></div>
+									<input type="text" class="form-control" 
+										name="print[lot_number_size]" 
+										value="12">
+								</div>
+							@endif
+						</td>
+
+						<td>
+							@if(request()->session()->get('business.enable_product_expiry') == 1)
+								<div class="checkbox">
+								    <label>
+								    	<input type="checkbox" checked name="print[exp_date]" value="1"> <b>@lang( 'lang_v1.print_exp_date' )</b>
+								    </label>
+								</div>
+
+								<div class="input-group">
+      							<div class="input-group-addon"><b>@lang( 'lang_v1.size' )</b></div>
+									<input type="text" class="form-control" 
+										name="print[exp_date_size]" 
+										value="12">
+								</div>
+							@endif
+						</td>						
+					</tr>
+					<tr>
+						
+						@php
+							$c = 0;
+							$custom_labels = json_decode(session('business.custom_labels'), true);
+        					$product_custom_fields = !empty($custom_labels['product']) ? $custom_labels['product'] : [];
+							 $product_cf_details = !empty($custom_labels['product_cf_details']) ? $custom_labels['product_cf_details'] : [];
+						@endphp
+						@foreach($product_custom_fields as $index => $cf)
+							@if(!empty($cf))
+								@php
+									$field_name = 'product_custom_field' . $loop->iteration;
+									$cf_type = !empty($product_cf_details[$loop->iteration]['type']) ? $product_cf_details[$loop->iteration]['type'] : 'text';
+									$dropdown = !empty($product_cf_details[$loop->iteration]['dropdown_options']) ? explode(PHP_EOL, $product_cf_details[$loop->iteration]['dropdown_options']) : [];
+									$c++;
+								@endphp
+								<td>
+									<div class="checkbox">
+										<label>
+											<input type="checkbox" name="print[{{ $field_name }}]" value="1"> <b>{{ $cf }}</b>
+										</label>
+									</div>
+
+									<div class="input-group">
+									<div class="input-group-addon"><b>@lang( 'lang_v1.size' )</b></div>
+										<input type="text" class="form-control" 
+											name="print[{{ $field_name }}_size]" 
+											value="12">
+									</div>
+								</td>
+								@if ($c % 4 == 0)
+									</tr>
+								@endif
+							@endif
+						@endforeach
+					</tr>
+				</table>
 			</div>
 
-			<div class="col-sm-3">
-				<div class="checkbox">
-				    <label>
-				    	<input type="checkbox" checked name="print[variations]" value="1"> <b>@lang( 'barcode.print_variations' )</b>
-				    </label>
-				</div>
-			</div>
-
-			<div class="col-sm-3">
-				<div class="checkbox">
-				    <label>
-				    	<input type="checkbox" checked name="print[price]" value="1" id="is_show_price"> <b>@lang( 'barcode.print_price' )</b>
-				    </label>
-				</div>
-			</div>
-
-			<div class="col-sm-3" id="price_type_div">
-				<div class="form-group">
-					{!! Form::label('print[price_type]', @trans( 'barcode.show_price' ) . ':') !!}
-					<div class="input-group">
-						<span class="input-group-addon">
-							<i class="fa fa-info"></i>
-						</span>
-						{!! Form::select('print[price_type]', ['inclusive' => __('product.inc_of_tax'), 'exclusive' => __('product.exc_of_tax')], 'inclusive', ['class' => 'form-control']); !!}
-					</div>
-				</div>
-			</div>
+			
 
 			
 
@@ -98,15 +243,15 @@
 						<span class="input-group-addon">
 							<i class="fa fa-cog"></i>
 						</span>
-						{!! Form::select('barcode_setting', $barcode_settings, null, ['class' => 'form-control']); !!}
+						{!! Form::select('barcode_setting', $barcode_settings, !empty($default) ? $default->id : null, ['class' => 'form-control']); !!}
 					</div>
 				</div>
 			</div>
 
 			<div class="clearfix"></div>
 			
-			<div class="col-sm-4 col-sm-offset-8">
-				<button type="button" id="labels_preview" class="btn btn-primary pull-right btn-flat btn-block">@lang( 'barcode.preview' )</button>
+			<div class="col-sm-12 text-center">
+				<button type="button" id="labels_preview" class="tw-dw-btn tw-dw-btn-primary tw-dw-btn-lg tw-text-white">@lang( 'barcode.preview' )</button>
 			</div>
 		</div>
 	@endcomponent

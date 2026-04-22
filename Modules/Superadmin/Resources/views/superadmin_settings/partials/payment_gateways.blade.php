@@ -18,23 +18,7 @@
         </div>
     </div>
     <div class="row">
-
-        <p class="text-danger">*Módulo em desenvolvimento</p>
-        <h4>Pagseguro:</h4>
-        <div class="col-xs-4">
-            <div class="form-group">
-                {!! Form::label('PAGSEGURO_MAIL', 'Email do pagseguro' . ':') !!}
-                {!! Form::text('PAGSEGURO_MAIL', $default_values['PAGSEGURO_MAIL'], ['class' => 'form-control','placeholder' => 'Email do Pagseguro']); !!}
-            </div>
-        </div>
-        <div class="col-xs-4">
-            <div class="form-group">
-                {!! Form::label('PAGSEGURO_KEY', 'Chave da Api' . ':') !!}
-                {!! Form::text('PAGSEGURO_KEY', $default_values['PAGSEGURO_KEY'], ['class' => 'form-control','placeholder' => 'Chave da API']); !!}
-            </div>
-        </div>
-
-    	<!-- <h4>Stripe:</h4>
+    	<h4>Stripe:</h4>
     	<div class="col-xs-4">
             <div class="form-group">
             	{!! Form::label('STRIPE_PUB_KEY', __('superadmin::lang.stripe_pub_key') . ':') !!}
@@ -46,7 +30,7 @@
             	{!! Form::label('STRIPE_SECRET_KEY', __('superadmin::lang.stripe_secret_key') . ':') !!}
             	{!! Form::text('STRIPE_SECRET_KEY', $default_values['STRIPE_SECRET_KEY'], ['class' => 'form-control','placeholder' => __('superadmin::lang.stripe_secret_key')]); !!}
             </div>
-        </div> -->
+        </div>
 
         <div class="clearfix"></div>
         
@@ -98,23 +82,90 @@
 
         <div class="clearfix"></div>
         
-        
+        <h4>Razorpay: <small>(For INR India)</small></h4>
+        <div class="col-xs-4">
+            <div class="form-group">
+                {!! Form::label('RAZORPAY_KEY_ID', 'Key ID:') !!}
+                {!! Form::text('RAZORPAY_KEY_ID', $default_values['RAZORPAY_KEY_ID'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
+        <div class="col-xs-4">
+            <div class="form-group">
+                {!! Form::label('RAZORPAY_KEY_SECRET', 'Key Secret:') !!}
+                {!! Form::text('RAZORPAY_KEY_SECRET', $default_values['RAZORPAY_KEY_SECRET'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
 
 
 
 
         <div class="clearfix"></div>
         
-       
+        <h4>Pesapal: <small>(For KES currency)</small></h4>
+        <div class="col-xs-4">
+            <div class="form-group">
+                {!! Form::label('PESAPAL_CONSUMER_KEY', 'Consumer Key:') !!}
+                {!! Form::text('PESAPAL_CONSUMER_KEY', $default_values['PESAPAL_CONSUMER_KEY'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
+        <div class="col-xs-4">
+            <div class="form-group">
+                {!! Form::label('PESAPAL_CONSUMER_SECRET', 'Consumer Secret:') !!}
+                {!! Form::text('PESAPAL_CONSUMER_SECRET', $default_values['PESAPAL_CONSUMER_SECRET'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
 
         <div class="col-xs-4">
             <div class="form-group">
-                {!! Form::label('PESAPAL_LIVE', 'Modo Live?') !!}
+                {!! Form::label('PESAPAL_LIVE', 'Is Live?') !!}
                 {!! Form::select('PESAPAL_LIVE',['false' => 'False', 'true' => 'True'],  $default_values['PESAPAL_LIVE'], ['class' => 'form-control']); !!}
             </div>
         </div>
 
         <div class="clearfix"></div>
+        
+        <h4>Paystack: <small>(For NGN Nigeria, GHS Ghana)</small></h4>
+        <div class="col-xs-6">
+            <div class="form-group">
+                {!! Form::label('PAYSTACK_PUBLIC_KEY', 'Public key:') !!}
+                {!! Form::text('PAYSTACK_PUBLIC_KEY', $default_values['PAYSTACK_PUBLIC_KEY'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="form-group">
+                {!! Form::label('PAYSTACK_SECRET_KEY', 'Secret key:') !!}
+                {!! Form::text('PAYSTACK_SECRET_KEY', $default_values['PAYSTACK_SECRET_KEY'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+        
+        <h4>Flutterwave:</h4>
+        <div class="col-xs-4">
+            <div class="form-group">
+                {!! Form::label('FLUTTERWAVE_PUBLIC_KEY', 'Public key:') !!}
+                {!! Form::text('FLUTTERWAVE_PUBLIC_KEY', $default_values['FLUTTERWAVE_PUBLIC_KEY'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
+        <div class="col-xs-4">
+            <div class="form-group">
+                {!! Form::label('FLUTTERWAVE_SECRET_KEY', 'Secret key:') !!}
+                {!! Form::text('FLUTTERWAVE_SECRET_KEY', $default_values['FLUTTERWAVE_SECRET_KEY'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
+        <div class="col-xs-4">
+            <div class="form-group">
+                {!! Form::label('FLUTTERWAVE_ENCRYPTION_KEY', 'Encryption key:') !!}
+                {!! Form::text('FLUTTERWAVE_ENCRYPTION_KEY', $default_values['FLUTTERWAVE_ENCRYPTION_KEY'], ['class' => 'form-control']); !!}
+            </div>
+        </div>
+        <div class="col-xs-12 mt-0">
+            <p class="help-block mt-0">
+                <a href="https://support.flutterwave.com/en/articles/3632719-accepted-currencies" target="_blank">
+                    @lang('superadmin::lang.flutterwave_help_text')
+                </a>
+            </p>
+        </div>
         <div class="col-xs-12">
             <br/>
             <p class="help-block"><i>@lang('superadmin::lang.payment_gateway_help')</i></p>

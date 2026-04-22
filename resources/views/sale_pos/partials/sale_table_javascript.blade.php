@@ -21,6 +21,8 @@ $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_custo
 sell_table = $('#sell_table').DataTable({
         processing: true,
         serverSide: true,
+        fixedHeader:false,
+        fixedHeader:false,
         aaSorting: [[1, 'desc']],
         scrollY: "75vh",
         scrollX:        true,
@@ -71,7 +73,7 @@ sell_table = $('#sell_table').DataTable({
             { data: 'action', name: 'action', orderable: false, "searchable": false},
             { data: 'transaction_date', name: 'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
-            { data: 'name', name: 'contacts.name'},
+            { data: 'conatct_name', name: 'conatct_name'},
             { data: 'mobile', name: 'contacts.mobile'},
             { data: 'business_location', name: 'bl.name'},
             { data: 'payment_status', name: 'payment_status'},
@@ -103,7 +105,7 @@ sell_table = $('#sell_table').DataTable({
                 footer_sale_total += $(data[r].final_total).data('orig-value') ? parseFloat($(data[r].final_total).data('orig-value')) : 0;
                 footer_total_paid += $(data[r].total_paid).data('orig-value') ? parseFloat($(data[r].total_paid).data('orig-value')) : 0;
                 footer_total_remaining += $(data[r].total_remaining).data('orig-value') ? parseFloat($(data[r].total_remaining).data('orig-value')) : 0;
-                footer_total_sell_return_due += $(data[r].return_due).data('orig-value') ? parseFloat($(data[r].return_due).data('orig-value')) : 0;
+                footer_total_sell_return_due += $(data[r].return_due).find('.sell_return_due').data('orig-value') ? parseFloat($(data[r].return_due).find('.sell_return_due').data('orig-value')) : 0;
             }
 
             $('.footer_total_sell_return_due').html(__currency_trans_from_en(footer_total_sell_return_due));

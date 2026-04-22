@@ -12,4 +12,9 @@ class TransactionSellLinesPurchaseLines extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function purchase_line()
+    {
+        return $this->belongsTo(\App\PurchaseLine::class, 'purchase_line_id');
+    }
 }

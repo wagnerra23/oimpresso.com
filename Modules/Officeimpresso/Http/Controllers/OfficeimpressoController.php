@@ -2,71 +2,127 @@
 
 namespace Modules\Officeimpresso\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Business;
+use App\BusinessLocation;
+use App\Category;
+use App\Discount;
+use App\Product;
+use App\SellingPriceGroup;
+use App\Utils\ModuleUtil;
+use App\Utils\ProductUtil;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 
 class OfficeimpressoController extends Controller
 {
     /**
+     * All Utils instance.
+     */
+    protected $productUtil;
+
+    protected $moduleUtil;
+
+    /**
+     * Constructor
+     *
+     * @param  ProductUtils  $product
+     * @return void
+     */
+    public function __construct(ProductUtil $productUtil, ModuleUtil $moduleUtil)
+    {
+        $this->productUtil = $productUtil;
+        $this->moduleUtil = $moduleUtil;
+    }
+
+    /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
-    public function index()
+    public function index($business_id, $location_id)
     {
-        return view('officeimpresso::index');
-    }
+        $products = Product::where('business_id', $business_id)
+                ->whereHas('product_locations', function ($q) use ($location_id) {
+                    $q->where('product_locations.location_id', $location_id);
+                })
+                ->ProductForSales()
+                ->with(['variations', 'variations.product_variation', 'category'])
+                ->get()
+                ->groupBy('category_id');
+        $business = Business::with(['currency'])->findOrFail($business_id);
+        $business_location = BusinessLocation::where('business_id', $business_id)->findOrFail($location_id);
 
-    /**
-     * Show the form for creating a new resource.
-     * @return Response
-     */
-    public function create()
-    {
-        return view('officeimpresso::create');
-    }
+        $now = \Carbon::now()->toDateTimeString();
+        $discounts = Discount::where('business_id', $business_id)
+                                ->where('location_id', $location_id)
+                                ->where('is_active', 1)
+                                ->where('starts_at', '<=', $now)
+                                ->where('ends_at', '>=', $now)
+                                ->orderBy('priority', 'desc')
+                                ->get();
+        foreach ($discounts as $key => $value) {
+            $discounts[$key]->discount_amount = $this->productUtil->num_f($value->discount_amount, false, $business);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     * @param  Request $request
-     * @return Response
-     */
-    public function store(Request $request)
-    {
+        $categories = Category::forDropdown($business_id, 'product');
+
+        return view('officeimpresso::catalogue.index')->with(compact('products', 'business', 'discounts', 'business_location', 'categories'));
     }
 
     /**
      * Show the specified resource.
+     *
+     * @param  int  $id
      * @return Response
      */
-    public function show()
+    public function show($business_id, $id)
     {
-        return view('officeimpresso::show');
+        $product = Product::with(['brand', 'unit', 'category', 'sub_category', 'product_tax', 'variations', 'variations.product_variation', 'variations.group_prices', 'variations.media', 'product_locations', 'warranty'])->where('business_id', $business_id)
+                        ->findOrFail($id);
+
+        $price_groups = SellingPriceGroup::where('business_id', $product->business_id)->active()->pluck('name', 'id');
+
+        $allowed_group_prices = [];
+        foreach ($price_groups as $key => $value) {
+            $allowed_group_prices[$key] = $value;
+        }
+
+        $group_price_details = [];
+        $discounts = [];
+        foreach ($product->variations as $variation) {
+            foreach ($variation->group_prices as $group_price) {
+                $group_price_details[$variation->id][$group_price->price_group_id] = $group_price->price_inc_tax;
+            }
+
+            $discounts[$variation->id] = $this->productUtil->getProductDiscount($product, $product->business_id, request()->input('location_id'), false, null, $variation->id);
+        }
+
+        $combo_variations = [];
+        if ($product->type == 'combo') {
+            $combo_variations = $this->productUtil->__getComboProductDetails($product['variations'][0]->combo_variations, $product->business_id);
+        }
+
+        return view('officeimpresso::catalogue.show')->with(compact(
+            'product',
+            'allowed_group_prices',
+            'group_price_details',
+            'combo_variations',
+            'discounts'
+        ));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     * @return Response
-     */
-    public function edit()
+    public function generateQr()
     {
-        return view('officeimpresso::edit');
-    }
+        $business_id = request()->session()->get('user.business_id');
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'officeimpresso_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
 
-    /**
-     * Update the specified resource in storage.
-     * @param  Request $request
-     * @return Response
-     */
-    public function update(Request $request)
-    {
-    }
+        $business_id = request()->session()->get('user.business_id');
+        $business_locations = BusinessLocation::forDropdown($business_id);
+        $business = Business::findOrFail($business_id);
 
-    /**
-     * Remove the specified resource from storage.
-     * @return Response
-     */
-    public function destroy()
-    {
+        return view('officeimpresso::catalogue.generate_qr')
+                    ->with(compact('business_locations', 'business'));
     }
 }

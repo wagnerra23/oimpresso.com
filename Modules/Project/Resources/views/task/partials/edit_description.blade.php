@@ -2,7 +2,7 @@
     {!! $project_task->description !!}
 </div>
 <!-- form open -->
-{!! Form::open(['url' => action('\Modules\Project\Http\Controllers\TaskController@postTaskDescription', ['id' => $project_task->id, 'project_id' => $project_task->project_id]), 'id' => 'update_task_description', 'method' => 'put']) !!}
+{!! Form::open(['url' => action([\Modules\Project\Http\Controllers\TaskController::class, 'postTaskDescription'], ['id' => $project_task->id, 'project_id' => $project_task->project_id]), 'id' => 'update_task_description', 'method' => 'put']) !!}
     <div class="form-group">
         {!! Form::textarea('description', $project_task->description, ['class' => 'form-control ', 'id' => 'edit_description_of_task']); !!}
     </div>

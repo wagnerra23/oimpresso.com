@@ -11,7 +11,9 @@
 			<p><strong>@lang( 'lang_v1.gender' ):</strong> @if(!empty($user->gender)) @lang('lang_v1.' .$user->gender) @endif</p>
 			<p><strong>@lang( 'lang_v1.marital_status' ):</strong> @if(!empty($user->marital_status)) @lang('lang_v1.' .$user->marital_status) @endif</p>
 			<p><strong>@lang( 'lang_v1.blood_group' ):</strong> {{$user->blood_group ?? ''}}</p>
-			<p><strong>@lang( 'lang_v1.contact_no' ):</strong> {{$user->contact_number ?? ''}}</p>
+			<p><strong>@lang( 'lang_v1.mobile_number' ):</strong> {{$user->contact_number ?? ''}}</p>
+			<p><strong>@lang( 'business.alternate_number' ):</strong> {{$user->alt_number ?? ''}}</p>
+			<p><strong>@lang( 'lang_v1.family_contact_number' ):</strong> {{$user->family_number ?? ''}}</p>
 		</div>
 		<div class="col-md-4">
 			<p><strong>@lang( 'lang_v1.fb_link' ):</strong> {{$user->fb_link ?? ''}}</p>

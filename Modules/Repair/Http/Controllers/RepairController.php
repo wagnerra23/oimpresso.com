@@ -9,7 +9,6 @@ use App\BusinessLocation;
 use App\Contact;
 use App\CustomerGroup;
 use App\Media;
-use App\NotificationTemplate;
 use App\SellingPriceGroup;
 use App\TaxRate;
 use App\Transaction;
@@ -26,7 +25,6 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-
 use Modules\Repair\Entities\DeviceModel;
 use Modules\Repair\Entities\RepairStatus;
 use Modules\Repair\Utils\RepairUtil;
@@ -37,21 +35,25 @@ class RepairController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $contactUtil;
-    protected $businessUtil;
-    protected $transactionUtil;
-    protected $productUtil;
-    protected $moduleUtil;
-    protected $repairUtil;
-    protected $commonUtil;
 
+    protected $businessUtil;
+
+    protected $transactionUtil;
+
+    protected $productUtil;
+
+    protected $moduleUtil;
+
+    protected $repairUtil;
+
+    protected $commonUtil;
 
     /**
      * Constructor
      *
-     * @param ProductUtils $product
+     * @param  ProductUtils  $product
      * @return void
      */
     public function __construct(ContactUtil $contactUtil, BusinessUtil $businessUtil, TransactionUtil $transactionUtil, ModuleUtil $moduleUtil, ProductUtil $productUtil, RepairUtil $repairUtil, Util $commonUtil)
@@ -67,13 +69,14 @@ class RepairController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.view')))) {
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && (auth()->user()->can('repair.view') || auth()->user()->can('repair.view_own'))))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -183,47 +186,49 @@ class RepairController extends Controller
                 $sells->whereIn('transactions.location_id', $permitted_locations);
             }
 
+            if (! auth()->user()->can('repair.view') && auth()->user()->can('repair.view_own')) {
+                $sells->where(function ($q) {
+                    $q->where('transactions.created_by', auth()->user()->id)
+                        ->orWhere('transactions.res_waiter_id', auth()->user()->id);
+                });
+            }
+
             //Add condition for created_by,used in sales representative sales report
             if (request()->has('created_by')) {
                 $created_by = request()->get('created_by');
-                if (!empty($created_by)) {
+                if (! empty($created_by)) {
                     $sells->where('transactions.created_by', $created_by);
                 }
             }
 
-            if (!empty(request()->input('payment_status'))) {
+            if (! empty(request()->input('payment_status'))) {
                 $sells->where('transactions.payment_status', request()->input('payment_status'));
             }
 
             //Add condition for location,used in sales representative expense report
             if (request()->has('location_id')) {
                 $location_id = request()->get('location_id');
-                if (!empty($location_id)) {
+                if (! empty($location_id)) {
                     $sells->where('transactions.location_id', $location_id);
                 }
             }
 
-            if (!empty(request()->customer_id)) {
+            if (! empty(request()->customer_id)) {
                 $customer_id = request()->customer_id;
                 $sells->where('contacts.id', $customer_id);
             }
-            if (!empty(request()->start_date) && !empty(request()->end_date)) {
+            if (! empty(request()->start_date) && ! empty(request()->end_date)) {
                 $start = request()->start_date;
-                $end =  request()->end_date;
-                
+                $end = request()->end_date;
+
                 $sells->whereDate('transactions.transaction_date', '>=', $start)
                             ->whereDate('transactions.transaction_date', '<=', $end);
             }
 
-            //if not admin get assigned repair only
-            if (!$is_admin) {
-                $sells->where('transactions.res_waiter_id', auth()->user()->id);
-            }
-
-            if (!empty(request()->service_staff_id)) {
+            if (! empty(request()->service_staff_id)) {
                 $sells->where('transactions.res_waiter_id', request()->service_staff_id);
             }
-            if (!empty(request()->repair_status_id)) {
+            if (! empty(request()->repair_status_id)) {
                 $sells->where('transactions.repair_status_id', request()->repair_status_id);
             }
 
@@ -238,57 +243,57 @@ class RepairController extends Controller
                     function ($row) {
                         $html = '<div class="btn-group">
                                     <button type="button" class="btn btn-info dropdown-toggle btn-xs" 
-                                        data-toggle="dropdown" aria-expanded="false">' .
-                                        __("messages.actions") .
+                                        data-toggle="dropdown" aria-expanded="false">'.
+                                        __('messages.actions').
                                         '<span class="caret"></span><span class="sr-only">Toggle Dropdown
                                         </span>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-left" role="menu">' ;
+                                    <ul class="dropdown-menu dropdown-menu-left" role="menu">';
 
-                        if (auth()->user()->can("repair.view") || auth()->user()->can("direct_sell.access")) {
-                            $html .= '<li><a href="#" data-href="' . action("\Modules\Repair\Http\Controllers\RepairController@show", [$row->id]) . '" class="btn-modal" data-container=".view_modal"><i class="fas fa-eye" aria-hidden="true"></i> ' . __("messages.view") . '</a></li>';
+                        if (auth()->user()->can('repair.view') || auth()->user()->can('direct_sell.access')) {
+                            $html .= '<li><a href="#" data-href="'.action([\Modules\Repair\Http\Controllers\RepairController::class, 'show'], [$row->id]).'" class="btn-modal" data-container=".view_modal"><i class="fas fa-eye" aria-hidden="true"></i> '.__('messages.view').'</a></li>';
                         }
 
-                        if (auth()->user()->can("repair.update")) {
-                            $html .= '<li><a target="_blank" href="' . action('SellPosController@edit', [$row->id]) . '?sub_type=repair"><i class="fas fa-edit"></i> ' . __("messages.edit") . '</a></li>';
+                        if (auth()->user()->can('repair.update')) {
+                            $html .= '<li><a target="_blank" href="'.action([\App\Http\Controllers\SellPosController::class, 'edit'], [$row->id]).'?sub_type=repair"><i class="fas fa-edit"></i> '.__('messages.edit').'</a></li>';
                         }
 
-                        if (auth()->user()->can("repair.delete")) {
-                            $html .= '<li><a href="' . action('SellPosController@destroy', [$row->id]) . '" class="delete-sale"><i class="fa fa-trash"></i> ' . __("messages.delete") . '</a></li>';
+                        if (auth()->user()->can('repair.delete')) {
+                            $html .= '<li><a href="'.action([\App\Http\Controllers\SellPosController::class, 'destroy'], [$row->id]).'" class="delete-sale"><i class="fa fa-trash"></i> '.__('messages.delete').'</a></li>';
                         }
 
-                        if (auth()->user()->can("repair.view") || auth()->user()->can("direct_sell.access")) {
+                        if (auth()->user()->can('repair.view') || auth()->user()->can('direct_sell.access')) {
                             $html .= '<li>
-                                        <a href="#" class="print-invoice" data-href="' . route('sell.printInvoice', [$row->id]) . '">
+                                        <a href="#" class="print-invoice" data-href="'.route('sell.printInvoice', [$row->id]).'">
                                             <i class="fa fa-print" aria-hidden="true"></i> '
-                                            . __("messages.print")
-                                        . '</a>
+                                            .__('messages.print')
+                                        .'</a>
                                     </li>
                                     <li>
-                                        <a href="#" class="print-invoice" data-href="' . route('repair.customerCopy', [$row->id]) . '">
+                                        <a href="#" class="print-invoice" data-href="'.route('repair.customerCopy', [$row->id]).'">
                                             <i class="fa fa-print" aria-hidden="true"></i> '
-                                            . __("repair::lang.print_customer_copy")
-                                        . '</a>
+                                            .__('repair::lang.print_customer_copy')
+                                        .'</a>
                                     </li>';
                         }
                         $html .= '<li class="divider"></li>';
 
-                        if (auth()->user()->can("repair.create")) {
-                            $html .= '<li><a href="' . action('SellReturnController@add', [$row->id]) . '"><i class="fas fa-undo"></i> ' . __("lang_v1.sell_return") . '</a></li>';
+                        if (auth()->user()->can('repair.create')) {
+                            $html .= '<li><a href="'.action([\App\Http\Controllers\SellReturnController::class, 'add'], [$row->id]).'"><i class="fas fa-undo"></i> '.__('lang_v1.sell_return').'</a></li>';
                         }
 
-                        if (auth()->user()->can("repair_status.update")) {
-                            $html .= '<li><a data-href="' . action("\Modules\Repair\Http\Controllers\RepairController@editRepairStatus", [$row->id]) . '" class="edit_repair_status"><i class="fa fa-edit"></i> ' . __("repair::lang.change_status") . '</a></li>';
+                        if (auth()->user()->can('repair_status.update')) {
+                            $html .= '<li><a data-href="'.action([\Modules\Repair\Http\Controllers\RepairController::class, 'editRepairStatus'], [$row->id]).'" class="edit_repair_status"><i class="fa fa-edit"></i> '.__('repair::lang.change_status').'</a></li>';
                         }
 
-                        if ($row->payment_status != "paid" && (auth()->user()->can("repair.create") || auth()->user()->can("direct_sell.access"))) {
-                            $html .= '<li><a href="' . action('TransactionPaymentController@addPayment', [$row->id]) . '" class="add_payment_modal"><i class="fas fa-money-bill-alt"></i> ' . __("purchase.add_payment") . '</a></li>';
+                        if ($row->payment_status != 'paid' && (auth()->user()->can('repair.create') || auth()->user()->can('direct_sell.access'))) {
+                            $html .= '<li><a href="'.action([\App\Http\Controllers\TransactionPaymentController::class, 'addPayment'], [$row->id]).'" class="add_payment_modal"><i class="fas fa-money-bill-alt"></i> '.__('purchase.add_payment').'</a></li>';
                         }
 
-                        $html .= '<li><a href="' . action('TransactionPaymentController@show', [$row->id]) . '" class="view_payment_modal"><i class="fas fa-money-bill-alt"></i> ' . __("purchase.view_payments") . '</a></li>';
+                        $html .= '<li><a href="'.action([\App\Http\Controllers\TransactionPaymentController::class, 'show'], [$row->id]).'" class="view_payment_modal"><i class="fas fa-money-bill-alt"></i> '.__('purchase.view_payments').'</a></li>';
 
-                        if (auth()->user()->can("send_notification")) {
-                            $html .= '<li><a href="#" data-href="' . action('NotificationController@getTemplate', ["transaction_id" => $row->id,"template_for" => "new_sale"]) . '" class="btn-modal" data-container=".view_modal"><i class="fa fa-envelope" aria-hidden="true"></i>' . __("lang_v1.new_sale_notification") . '</a></li>';
+                        if (auth()->user()->can('send_notification')) {
+                            $html .= '<li><a href="#" data-href="'.action([\App\Http\Controllers\NotificationController::class, 'getTemplate'], ['transaction_id' => $row->id, 'template_for' => 'new_sale']).'" class="btn-modal" data-container=".view_modal"><i class="fa fa-envelope" aria-hidden="true"></i>'.__('lang_v1.new_sale_notification').'</a></li>';
                         }
 
                         $html .= '</ul></div>';
@@ -312,13 +317,13 @@ class RepairController extends Controller
                 ->editColumn(
                     'discount_amount',
                     function ($row) {
-                        $discount = !empty($row->discount_amount) ? $row->discount_amount : 0;
+                        $discount = ! empty($row->discount_amount) ? $row->discount_amount : 0;
 
-                        if (!empty($discount) && $row->discount_type == 'percentage') {
+                        if (! empty($discount) && $row->discount_type == 'percentage') {
                             $discount = $row->total_before_tax * ($discount / 100);
                         }
 
-                        return '<span class="display_currency total-discount" data-currency_symbol="true" data-orig-value="' . $discount . '">' . $discount . '</span>';
+                        return '<span class="display_currency total-discount" data-currency_symbol="true" data-orig-value="'.$discount.'">'.$discount.'</span>';
                     }
                 )
                 ->editColumn('repair_due_date', '
@@ -329,22 +334,22 @@ class RepairController extends Controller
                 ->editColumn('transaction_date', '{{@format_date($transaction_date)}}')
                 ->editColumn(
                     'payment_status',
-                    '<a href="{{ action("TransactionPaymentController@show", [$id])}}" class="view_payment_modal payment-status-label no-print" data-orig-value="{{$payment_status}}" data-status-name="{{__(\'lang_v1.\' . $payment_status)}}"><span class="label @payment_status($payment_status)">{{__(\'lang_v1.\' . $payment_status)}}
+                    '<a href="{{ action([\App\Http\Controllers\TransactionPaymentController::class, \'show\'], [$id])}}" class="view_payment_modal payment-status-label no-print" data-orig-value="{{$payment_status}}" data-status-name="{{__(\'lang_v1.\' . $payment_status)}}"><span class="label @payment_status($payment_status)">{{__(\'lang_v1.\' . $payment_status)}}
                         </span></a>
                         <span class="print_section">{{__(\'lang_v1.\' . $payment_status)}}</span>
                         '
                 )
                 ->addColumn('total_remaining', function ($row) {
-                    $total_remaining =  $row->final_total - $row->total_paid;
-                    $total_remaining_html = '<span class="display_currency payment_due" data-currency_symbol="true" data-orig-value="' . $total_remaining . '">' . $total_remaining . '</span>';
+                    $total_remaining = $row->final_total - $row->total_paid;
+                    $total_remaining_html = '<span class="display_currency payment_due" data-currency_symbol="true" data-orig-value="'.$total_remaining.'">'.$total_remaining.'</span>';
 
                     return $total_remaining_html;
                 })
                  ->editColumn('invoice_no', function ($row) {
                      $invoice_no = $row->invoice_no;
 
-                     if (!empty($row->return_exists)) {
-                         $invoice_no .= ' &nbsp;<small class="label bg-red label-round no-print" title="' . __('lang_v1.some_qty_returned_from_sell') .'"><i class="fas fa-undo"></i></small>';
+                     if (! empty($row->return_exists)) {
+                         $invoice_no .= ' &nbsp;<small class="label bg-red label-round no-print" title="'.__('lang_v1.some_qty_returned_from_sell').'"><i class="fas fa-undo"></i></small>';
                      }
 
                      return $invoice_no;
@@ -352,26 +357,27 @@ class RepairController extends Controller
                  ->editColumn(
                      'repair_status',
                      function ($row) {
-                         $html = '<a data-href="' . action("\Modules\Repair\Http\Controllers\RepairController@editRepairStatus", [$row->id]) . '" class="edit_repair_status" data-orig-value="'.$row->repair_status.'" data-status-name="'.$row->repair_status.'">
+                         $html = '<a data-href="'.action([\Modules\Repair\Http\Controllers\RepairController::class, 'editRepairStatus'], [$row->id]).'" class="edit_repair_status" data-orig-value="'.$row->repair_status.'" data-status-name="'.$row->repair_status.'">
                                 <span class="label " style="background-color:'.$row->status_color.';" >
-                                    ' .$row->repair_status .'
+                                    '.$row->repair_status.'
                                 </span>
                             </a>
                         ';
 
                          if ($row->repair_updates_notif) {
-                             $tooltip = __("repair::lang.sms_sent");
+                             $tooltip = __('repair::lang.sms_sent');
                              $html .= '<br><i class="fas fa-check-double text-success"
                                 data-toggle="tooltip" title="'.$tooltip.'"></i>';
                          }
+
                          return $html;
                      }
                  )
                  ->addColumn('return_due', function ($row) {
                      $return_due_html = '';
-                     if (!empty($row->return_exists)) {
+                     if (! empty($row->return_exists)) {
                          $return_due = $row->amount_return - $row->return_paid;
-                         $return_due_html .= '<a href="' . action("TransactionPaymentController@show", [$row->return_transaction_id]) . '" class="view_purchase_return_payment_modal"><span class="display_currency sell_return_due" data-currency_symbol="true" data-orig-value="' . $return_due . '">' . $return_due . '</span></a>';
+                         $return_due_html .= '<a href="'.action([\App\Http\Controllers\TransactionPaymentController::class, 'show'], [$row->return_transaction_id]).'" class="view_purchase_return_payment_modal"><span class="display_currency sell_return_due" data-currency_symbol="true" data-orig-value="'.$return_due.'">'.$return_due.'</span></a>';
                      }
 
                      return $return_due_html;
@@ -380,38 +386,43 @@ class RepairController extends Controller
                      $warranty = '';
                      $warranty_expires_in = $this->repairUtil->repairWarrantyExpiresIn($row);
 
-                     if (!empty($warranty_expires_in)) {
-                         $warranty = __('repair::lang.warranty') . ': ' . $row->warranty_name . '<br>';
+                     if (! empty($warranty_expires_in)) {
+                         $warranty = __('repair::lang.warranty').': '.$row->warranty_name.'<br>';
 
-                         $warranty .= '<small class="help-block">' . __('repair::lang.expires_in') . ': ' . $warranty_expires_in . '</small>';
+                         $warranty .= '<small class="help-block">'.__('repair::lang.expires_in').': '.$warranty_expires_in.'</small>';
                      }
+
                      return $warranty;
                  })
-                 ->editColumn('job_sheet_no', function($row) {
+                 ->editColumn('job_sheet_no', function ($row) {
                     $html = $row->job_sheet_no;
-                    if (auth()->user()->can("job_sheet.view_assigned") || auth()->user()->can("job_sheet.view_all") || auth()->user()->can("job_sheet.create")) {
-                            $html = '<a href="' . action('\Modules\Repair\Http\Controllers\JobSheetController@show', ['id' => $row->job_sheet_id]) . '" class="cursor-pointer" target="_blank">
+                    if (!empty($row->job_sheet_id) 
+                        && (auth()->user()->can('job_sheet.view_assigned') 
+                        || auth()->user()->can('job_sheet.view_all') 
+                        || auth()->user()->can('job_sheet.create')))
+                    {
+                        $html = '<a href="'.action([\Modules\Repair\Http\Controllers\JobSheetController::class, 'show'], [$row->job_sheet_id]).'" class="cursor-pointer" target="_blank">
                                     '.$row->job_sheet_no.'
                                 </a>';
                     }
 
-                    return $html;
+                     return $html;
                  })
                 ->setRowAttr([
                     'data-href' => function ($row) {
-                        if (auth()->user()->can("sell.view")) {
-                            return  action('\Modules\Repair\Http\Controllers\RepairController@show', [$row->id]) ;
+                        if (auth()->user()->can('sell.view')) {
+                            return  action([\Modules\Repair\Http\Controllers\RepairController::class, 'show'], [$row->id]);
                         } else {
                             return '';
                         }
-                    }]);
+                    }, ]);
 
             $rawColumns = ['final_total', 'repair_due_date', 'action', 'total_paid', 'total_remaining', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'repair_status', 'warranty_name', 'return_due', 'job_sheet_no'];
-                
+
             return $datatable->rawColumns($rawColumns)
                       ->make(true);
         }
-        
+
         $business_locations = BusinessLocation::forDropdown($business_id, false);
         $customers = Contact::customersDropdown($business_id, false);
         $service_staffs = $this->transactionUtil->serviceStaffDropdown($business_id);
@@ -422,7 +433,7 @@ class RepairController extends Controller
                                     ->get()
                                     ->toArray();
         $is_service_staff = false;
-        if (!empty($user_role_as_service_staff) && !$is_admin) {
+        if (! empty($user_role_as_service_staff) && ! $is_admin) {
             $is_service_staff = true;
         }
 
@@ -431,25 +442,26 @@ class RepairController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
      * @return Response
      */
     public function create()
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.create')))) {
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.create')))) {
             abort(403, 'Unauthorized action.');
         }
 
         //Check if subscribed or not, then check for users quota
-        if (!$this->moduleUtil->isSubscribed($business_id)) {
-            return $this->moduleUtil->expiredResponse(action('HomeController@index'));
-        } elseif (!$this->moduleUtil->isQuotaAvailable('invoices', $business_id)) {
-            return $this->moduleUtil->quotaExpiredResponse('invoices', $business_id, action('SellPosController@index'));
+        if (! $this->moduleUtil->isSubscribed($business_id)) {
+            return $this->moduleUtil->expiredResponse(action([\App\Http\Controllers\HomeController::class, 'index']));
+        } elseif (! $this->moduleUtil->isQuotaAvailable('invoices', $business_id)) {
+            return $this->moduleUtil->quotaExpiredResponse('invoices', $business_id, action([\App\Http\Controllers\SellPosController::class, 'index']));
         }
 
         $walk_in_customer = $this->contactUtil->getWalkInCustomer($business_id);
-        
+
         $business_details = $this->businessUtil->getDetails($business_id);
         $taxes = TaxRate::forBusinessDropdown($business_id, true, true);
 
@@ -500,7 +512,7 @@ class RepairController extends Controller
         }
 
         $checklist = Business::where('id', $business_id)->value('repair_checklist');
-        $checklist = !empty($checklist) ? json_decode($checklist, true) : [];
+        $checklist = ! empty($checklist) ? json_decode($checklist, true) : [];
 
         $repair_settings = $this->repairUtil->getRepairSettings($business_id);
 
@@ -528,13 +540,14 @@ class RepairController extends Controller
 
     /**
      * Show the specified resource.
+     *
      * @return Response
      */
     public function show($id)
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.view')))) {
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.view')))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -581,7 +594,7 @@ class RepairController extends Controller
                     )
                     ->with(['contact', 'sell_lines' => function ($q) {
                         $q->whereNull('parent_sell_line_id');
-                    },'sell_lines.product', 'sell_lines.product.unit', 'sell_lines.variations', 'sell_lines.variations.product_variation', 'payment_lines', 'sell_lines.modifiers', 'sell_lines.lot_details', 'tax', 'sell_lines.sub_unit', 'media'])
+                    }, 'sell_lines.product', 'sell_lines.product.unit', 'sell_lines.variations', 'sell_lines.variations.product_variation', 'payment_lines', 'sell_lines.modifiers', 'sell_lines.lot_details', 'tax', 'sell_lines.sub_unit', 'media'])
                     ->select(
                         'transactions.*',
                         'rs.name as repair_status',
@@ -597,7 +610,7 @@ class RepairController extends Controller
                     ->first();
 
         foreach ($sell->sell_lines as $key => $value) {
-            if (!empty($value->sub_unit_id)) {
+            if (! empty($value->sub_unit_id)) {
                 $formated_sell_line = $this->transactionUtil->recalculateSellLineTotals($business_id, $value);
                 $sell->sell_lines[$key] = $formated_sell_line;
             }
@@ -608,7 +621,7 @@ class RepairController extends Controller
         $warranty_expires_in = $this->repairUtil->repairWarrantyExpiresIn($sell);
 
         $order_taxes = [];
-        if (!empty($sell->tax)) {
+        if (! empty($sell->tax)) {
             if ($sell->tax->is_tax_group) {
                 $order_taxes = $this->transactionUtil->sumGroupTaxDetails($this->transactionUtil->groupTaxDetails($sell->tax, $sell->tax_amount));
             } else {
@@ -622,16 +635,22 @@ class RepairController extends Controller
            ->get();
 
         $common_settings = session()->get('business.common_settings');
-        $is_warranty_enabled = !empty($common_settings['enable_product_warranty']) ? true : false;
+        $is_warranty_enabled = ! empty($common_settings['enable_product_warranty']) ? true : false;
 
         $checklists = [];
-        if (!empty($sell->repair_model_id)) {
+        if (! empty($sell->repair_model_id)) {
             $device_model = DeviceModel::where('business_id', $business_id)
                             ->find($sell->repair_model_id);
-            
-            if (!empty($device_model) && !empty($device_model->repair_checklist)) {
+
+            if (! empty($device_model) && ! empty($device_model->repair_checklist)) {
                 $checklists = explode('|', $device_model->repair_checklist);
             }
+        }
+
+        //merge default checklist
+        $repair_settings = $this->repairUtil->getRepairSettings($business_id);
+        if (! empty($repair_settings['default_repair_checklist'])) {
+            $checklists = array_merge(explode('|', $repair_settings['default_repair_checklist']), $checklists);
         }
 
         return view('repair::repair.show')
@@ -640,32 +659,33 @@ class RepairController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
      * @return Response
      */
     public function edit($id)
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.update')))) {
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.update')))) {
             abort(403, 'Unauthorized action.');
         }
 
         //Check if the transaction can be edited or not.
         $edit_days = request()->session()->get('business.transaction_edit_days');
-        if (!$this->transactionUtil->canBeEdited($id, $edit_days)) {
+        if (! $this->transactionUtil->canBeEdited($id, $edit_days)) {
             return back()
                 ->with('status', ['success' => 0,
-                    'msg' => __('messages.transaction_edit_not_allowed', ['days' => $edit_days])]);
+                    'msg' => __('messages.transaction_edit_not_allowed', ['days' => $edit_days]), ]);
         }
 
         //Check if return exist then not allowed
         if ($this->transactionUtil->isReturnExist($id)) {
             return back()->with('status', ['success' => 0,
-                    'msg' => __('lang_v1.return_exist')]);
+                'msg' => __('lang_v1.return_exist'), ]);
         }
-        
+
         $business_id = request()->session()->get('user.business_id');
-        
+
         $business_details = $this->businessUtil->getDetails($business_id);
         $taxes = TaxRate::forBusinessDropdown($business_id, true, true);
 
@@ -677,8 +697,7 @@ class RepairController extends Controller
         $location_id = $transaction->location_id;
         $location_printer_type = BusinessLocation::find($location_id)->receipt_printer_type;
 
-        $sell_details = TransactionSellLine::
-                        join(
+        $sell_details = TransactionSellLine::join(
                             'products AS p',
                             'transaction_sell_lines.product_id',
                             '=',
@@ -732,14 +751,14 @@ class RepairController extends Controller
                             DB::raw('vld.qty_available + transaction_sell_lines.quantity AS qty_available')
                         )
                         ->get();
-        if (!empty($sell_details)) {
+        if (! empty($sell_details)) {
             foreach ($sell_details as $key => $value) {
                 if ($transaction->status != 'final') {
                     $actual_qty_avlbl = $value->qty_available - $value->quantity_ordered;
                     $sell_details[$key]->qty_available = $actual_qty_avlbl;
                     $value->qty_available = $actual_qty_avlbl;
                 }
-                    
+
                 $sell_details[$key]->formatted_qty_available = $this->transactionUtil->num_f($value->qty_available, false, null, true);
                 $lot_numbers = [];
                 if (request()->session()->get('business.enable_lot_number') == 1) {
@@ -756,7 +775,7 @@ class RepairController extends Controller
                 }
                 $sell_details[$key]->lot_numbers = $lot_numbers;
 
-                if (!empty($value->sub_unit_id)) {
+                if (! empty($value->sub_unit_id)) {
                     $value = $this->productUtil->changeSellLineUnit($business_id, $value);
                     $sell_details[$key] = $value;
                 }
@@ -790,7 +809,7 @@ class RepairController extends Controller
 
         $transaction->transaction_date = $this->transactionUtil->format_date($transaction->transaction_date, true);
 
-        $transaction->repair_completed_on = !empty($transaction->repair_completed_on) ? $this->transactionUtil->format_date($transaction->repair_completed_on, true) : null;
+        $transaction->repair_completed_on = ! empty($transaction->repair_completed_on) ? $this->transactionUtil->format_date($transaction->repair_completed_on, true) : null;
 
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 
@@ -806,7 +825,7 @@ class RepairController extends Controller
         }
 
         $checklist = Business::where('id', $business_id)->value('repair_checklist');
-        $checklist = !empty($checklist) ? json_decode($checklist, true) : [];
+        $checklist = ! empty($checklist) ? json_decode($checklist, true) : [];
 
         $redeem_details = [];
         if (request()->session()->get('business.enable_rp') == 1) {
@@ -840,10 +859,10 @@ class RepairController extends Controller
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair_status.update')))) {
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair_status.update')))) {
             abort(403, 'Unauthorized action.');
         }
-        
+
         if (request()->ajax()) {
             $transaction = Transaction::where('business_id', $business_id)->findOrFail($repair_id);
 
@@ -859,7 +878,7 @@ class RepairController extends Controller
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair_status.update')))) {
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair_status.update')))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -874,13 +893,13 @@ class RepairController extends Controller
                 $status = RepairStatus::where('business_id', $business_id)->findOrFail($input['repair_status_id_modal']);
 
                 //Send repair updates
-                if (!empty($request->input('send_sms'))) {
+                if (! empty($request->input('send_sms'))) {
                     $sms_body = $request->input('sms_body');
                     $response = $this->repairUtil->sendRepairUpdateNotification($sms_body, $transaction);
                 }
 
                 //update if notification is sent or not
-                if (!empty($response) && $response->getStatusCode() == 200) {
+                if (! empty($response) && $response->getStatusCode() == 200) {
                     $transaction->repair_updates_notif = 1;
                 } else {
                     $transaction->repair_updates_notif = 0;
@@ -889,18 +908,18 @@ class RepairController extends Controller
 
                 activity()
                 ->performedOn($transaction)
-                ->withProperties(['update_note' => $input['update_note'], 'updated_status' => $status->name  ])
+                ->withProperties(['update_note' => $input['update_note'], 'updated_status' => $status->name])
                 ->log('status_changed');
 
                 $output = ['success' => true,
-                            'msg' => __("lang_v1.updated_success")
-                            ];
+                    'msg' => __('lang_v1.updated_success'),
+                ];
             } catch (\Exception $e) {
-                \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
                 $output = ['success' => false,
-                            'msg' => __("messages.something_went_wrong")
-                        ];
+                    'msg' => __('messages.something_went_wrong'),
+                ];
             }
 
             return $output;
@@ -911,7 +930,7 @@ class RepairController extends Controller
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.update')))) {
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('repair.update')))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -919,14 +938,14 @@ class RepairController extends Controller
             Media::deleteMedia($business_id, $id);
 
             $output = ['success' => true,
-                        'msg' => __("lang_v1.deleted_success")
-                    ];
+                'msg' => __('lang_v1.deleted_success'),
+            ];
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => false,
-                            'msg' => __("messages.something_went_wrong")
-                        ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
 
         return $output;
@@ -934,6 +953,7 @@ class RepairController extends Controller
 
     /**
      * Prints barcode for the repair
+     *
      * @return Response
      */
     public function printLabel($transaction_id)
@@ -950,10 +970,10 @@ class RepairController extends Controller
             //barcode types
             $default_barcode_type = $this->moduleUtil->barcode_default();
 
-            $barcode_type = !empty($repair_settings['barcode_type']) ? $repair_settings['barcode_type'] : $default_barcode_type;
+            $barcode_type = ! empty($repair_settings['barcode_type']) ? $repair_settings['barcode_type'] : $default_barcode_type;
 
             $barcode_details = Barcode::find($repair_settings['barcode_id']);
-            
+
             $business_name = request()->session()->get('business.name');
 
             $product_details = [];
@@ -963,19 +983,19 @@ class RepairController extends Controller
 
             $page_height = null;
             if ($barcode_details->is_continuous) {
-                $rows = ceil($total_qty/$barcode_details->stickers_in_one_row) + 0.4;
-                $barcode_details->paper_height = $barcode_details->top_margin + ($rows*$barcode_details->height) + ($rows*$barcode_details->row_distance);
+                $rows = ceil($total_qty / $barcode_details->stickers_in_one_row) + 0.4;
+                $barcode_details->paper_height = $barcode_details->top_margin + ($rows * $barcode_details->height) + ($rows * $barcode_details->row_distance);
             }
-            
+
             return view('repair::repair.partials.preview_label')
                 ->with(compact('product_details', 'business_name', 'barcode_details', 'page_height', 'barcode_type'));
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = ['html' => '',
-                    'success' => false,
-                    'msg' =>  __('lang_v1.barcode_label_error')
-                ];
+                'success' => false,
+                'msg' => __('lang_v1.barcode_label_error'),
+            ];
         }
 
         return $output;
@@ -983,6 +1003,7 @@ class RepairController extends Controller
 
     /**
      * Prints the customer copy
+     *
      * @return Response
      */
     public function printCustomerCopy(Request $request, $transaction_id)
@@ -990,12 +1011,12 @@ class RepairController extends Controller
         if (request()->ajax()) {
             try {
                 $output = [
-                        'success' => 0,
-                        'msg' => trans("messages.something_went_wrong")
-                    ];
+                    'success' => 0,
+                    'msg' => trans('messages.something_went_wrong'),
+                ];
 
                 $business_id = $request->session()->get('user.business_id');
-            
+
                 $transaction = Transaction::where('business_id', $business_id)
                                 ->where('id', $transaction_id)
                                 ->with(['location'])
@@ -1007,15 +1028,15 @@ class RepairController extends Controller
 
                 $receipt = $this->_receiptContent($business_id, $transaction->location_id, $transaction_id);
 
-                if (!empty($receipt)) {
+                if (! empty($receipt)) {
                     $output = ['success' => 1, 'receipt' => $receipt];
                 }
             } catch (\Exception $e) {
-                \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-                
+                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
                 $output = [
                     'success' => 0,
-                    'msg' => trans("messages.something_went_wrong")
+                    'msg' => trans('messages.something_went_wrong'),
                 ];
             }
 
@@ -1028,7 +1049,7 @@ class RepairController extends Controller
         $business_details = $this->businessUtil->getDetails($business_id);
         $location_details = BusinessLocation::find($location_id);
 
-        $invoice_layout = $this->businessUtil->invoiceLayout($business_id, $location_id, $location_details->invoice_layout_id);
+        $invoice_layout = $this->businessUtil->invoiceLayout($business_id, $location_details->invoice_layout_id);
 
         $receipt_details = $this->transactionUtil->getReceiptDetails($transaction_id, $location_id, $invoice_layout, $business_details, $location_details, 'browser');
 
@@ -1039,7 +1060,7 @@ class RepairController extends Controller
         ];
 
         $receipt_details->currency = $currency_details;
-        
+
         $output['html_content'] = view('repair::repair.receipts.classic', compact('receipt_details'))->render();
 
         return $output;

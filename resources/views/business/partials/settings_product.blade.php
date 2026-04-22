@@ -160,130 +160,28 @@
             </div>
         </div>
 
-<div class="clearfix"></div>
-
-
-<div class="col-sm-6">
-    <div class="form-group">
-        {!! Form::label('cst_csosn_padrao', 'CST/CSOSN Padrão' . ':*') !!}
-        <div class="input-group">
-            <span class="input-group-addon">
-                <i class="fa fas fa-circle"></i>
-            </span>
-            {!! Form::select('cst_csosn_padrao', $listaCSTCSOSN, $business->cst_csosn_padrao, ['class' => 'form-control',
-            'required', 'data-action' => !empty($duplicate_product) ? 'duplicate' : 'add', 'data-product_id' => !empty($duplicate_product) ? $duplicate_product->id : '0']); !!}
-    </div>
-    </div>
-</div>
-
-<div class="col-sm-6">
-    <div class="form-group">
-        {!! Form::label('cst_pis_padrao', 'CST/PIS Padrão' . ':*') !!}
-        <div class="input-group">
-            <span class="input-group-addon">
-                <i class="fa fas fa-circle"></i>
-            </span>
-            {!! Form::select('cst_pis_padrao', $listaCST_PIS_COFINS, $business->cst_pis_padrao, ['class' => 'form-control',
-            'required', 'data-action' => !empty($duplicate_product) ? 'duplicate' : 'add', 'data-product_id' => !empty($duplicate_product) ? $duplicate_product->id : '0']); !!}
+        <div class="col-sm-4 @if(config('constants.enable_secondary_unit') == false) hide @endif">
+            <div class="form-group">
+                <div class="checkbox">
+                  <label>
+                    {!! Form::checkbox('common_settings[enable_secondary_unit]', 1, !empty($common_settings['enable_secondary_unit']) ? true : false, 
+                    [ 'class' => 'input-icheck']); !!} {{ __( 'lang_v1.enable_secondary_unit' ) }}
+                  </label>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
-<div class="col-sm-6">
-    <div class="form-group">
-        {!! Form::label('cst_cofins_padrao', 'CST/COFINS Padrão' . ':*') !!}
-        <div class="input-group">
-            <span class="input-group-addon">
-                <i class="fa fas fa-circle"></i>
-            </span>
-            {!! Form::select('cst_cofins_padrao', $listaCST_PIS_COFINS, $business->cst_cofins_padrao, ['class' => 'form-control',
-            'required', 'data-action' => !empty($duplicate_product) ? 'duplicate' : 'add', 'data-product_id' => !empty($duplicate_product) ? $duplicate_product->id : '0']); !!}
+        <div class="col-sm-4">
+            <div class="form-group">
+                <div class="checkbox">
+                  <label>
+                    {!! Form::checkbox('common_settings[is_product_image_required]', 1, 
+                        !empty($common_settings['is_product_image_required']) ? true : false, 
+                    [ 'class' => 'input-icheck']); !!} {{ __( 'lang_v1.is_product_image_required' ) }}
+                  </label>
+                </div>
+            </div>
         </div>
+
     </div>
-</div>
-
-<div class="col-sm-6">
-    <div class="form-group">
-        {!! Form::label('cst_ipi_padrao', 'CST/IPI Padrão' . ':*') !!}
-        <div class="input-group">
-            <span class="input-group-addon">
-                <i class="fa fas fa-circle"></i>
-            </span>
-            {!! Form::select('cst_ipi_padrao', $listaCST_IPI, $business->cst_ipi_padrao, ['class' => 'form-control',
-            'required', 'data-action' => !empty($duplicate_product) ? 'duplicate' : 'add', 'data-product_id' => !empty($duplicate_product) ? $duplicate_product->id : '0']); !!}
-        </div>
-    </div>
-</div>
-
-<div class="col-sm-3">
-    <div class="form-group">
-        {!! Form::label('perc_icms_padrao', '%ICMS Padrão' . ':*') !!}
-        <div class="">
-           {!! Form::text('perc_icms_padrao', $business->perc_icms_padrao, ['class' => 'form-control text-uppercase', 'data-mask="00.00"', 'data-mask-reverse="true"']); !!}
-       </div>
-   </div>
-</div>
-
-<div class="col-sm-3">
-    <div class="form-group">
-        {!! Form::label('perc_pis_padrao', '%PIS Padrão' . ':*') !!}
-        <div class="">
-           {!! Form::text('perc_pis_padrao', $business->perc_pis_padrao, ['class' => 'form-control text-uppercase', 'data-mask="00.00"', 'data-mask-reverse="true"']); !!}
-
-       </div>
-   </div>
-</div>
-
-<div class="col-sm-3">
-    <div class="form-group">
-        {!! Form::label('perc_cofins_padrao', '%COFINS Padrão' . ':*') !!}
-        <div class="">
-           {!! Form::text('perc_cofins_padrao', $business->perc_cofins_padrao, ['class' => 'form-control text-uppercase', 'data-mask="00.00"', 'data-mask-reverse="true"']); !!}
-
-       </div>
-   </div>
-</div>
-
-<div class="col-sm-3">
-    <div class="form-group">
-        {!! Form::label('perc_ipi_padrao', '%IPI Padrão' . ':*') !!}
-        <div class="">
-           {!! Form::text('perc_ipi_padrao', $business->perc_ipi_padrao, ['class' => 'form-control text-uppercase', 'data-mask="00.00"', 'data-mask-reverse="true"']); !!}
-
-       </div>
-   </div>
-</div>
-
-<div class="col-sm-3">
-    <div class="form-group">
-        {!! Form::label('ncm_padrao', 'NCM Padrão' . ':*') !!}
-        <div class="">
-           {!! Form::text('ncm_padrao', $business->ncm_padrao, ['class' => 'form-control text-uppercase', 'data-mask="0000.00.00"']); !!}
-
-       </div>
-   </div>
-</div>
-
-<div class="col-sm-3">
-    <div class="form-group">
-        {!! Form::label('cfop_saida_estadual_padrao', 'CFOP saida estadual Padrão' . ':*') !!}
-        <div class="">
-           {!! Form::text('cfop_saida_estadual_padrao', $business->cfop_saida_estadual_padrao, ['class' => 'form-control text-uppercase', 'data-mask="0000"']); !!}
-
-       </div>
-   </div>
-</div>
-
-<div class="col-sm-3">
-    <div class="form-group">
-        {!! Form::label('cfop_saida_inter_estadual_padrao', 'CFOP saida inter estadual Padrão' . ':*') !!}
-        <div class="">
-           {!! Form::text('cfop_saida_inter_estadual_padrao', $business->cfop_saida_inter_estadual_padrao, ['class' => 'form-control text-uppercase', 'data-mask="0000"']); !!}
-
-       </div>
-   </div>
-</div>
-
-
-</div>
 </div>

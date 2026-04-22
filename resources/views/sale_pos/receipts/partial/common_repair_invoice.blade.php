@@ -18,6 +18,8 @@
                         <i class="fas fa-check-square text-success"></i>
                     @elseif($checked_repair_checklist[$check] == 'no')
                     	<i class="fas fa-window-close text-danger"></i>
+                	@elseif($checked_repair_checklist[$check] == 'not_applicable')
+                		<i class="fas fa-square"></i>
                     @endif
                     <span @if($receipt_details->design != 'classic') class="color-555" @endif>
                     	{{$check}}
@@ -36,7 +38,17 @@
 			@if(!empty($receipt_details->defects_label))
 				<strong>{!! $receipt_details->defects_label !!}</strong><br>
 			@endif
-			{{$receipt_details->repair_defects}}
+			@php
+                $defects = json_decode($receipt_details->repair_defects, true);
+            @endphp
+            @if(!empty($defects))
+                @foreach($defects as $product_defect)
+                    {{$product_defect['value']}}
+                    @if(!$loop->last)
+                        {{','}}
+                    @endif
+                @endforeach
+            @endif
 		</p>
 	</div>
 @endif

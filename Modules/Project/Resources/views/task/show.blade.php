@@ -8,7 +8,7 @@
                 <i class="fa fa-tasks"></i>
                 {{$project_task->subject}}
                 <code>({{$project_task->task_id}})</code>
-                <button data-href="{{action('\Modules\Project\Http\Controllers\TaskController@edit', ['id' => $project_task->id, 'project_id' => $project_task->project_id])}}" class="cursor-pointer edit_a_task_from_view_task mr-16 btn btn-sm btn-primary pull-right">
+                <button data-href="{{action([\Modules\Project\Http\Controllers\TaskController::class, 'edit'], [$project_task->id, 'project_id' => $project_task->project_id])}}" class="cursor-pointer edit_a_task_from_view_task mr-16 btn btn-sm btn-primary pull-right">
                     <i class="fa fa-edit"></i>
                     {{__("messages.edit")}}
                 </button>
@@ -72,7 +72,7 @@
                 @includeIf('project::task.partials.time_log')
             @endif <!-- /time log for task -->
             <!-- form open -->
-            {!! Form::open(['url' => action('\Modules\Project\Http\Controllers\TaskCommentController@store'), 'id' => 'add_comment_form', 'method' => 'post']) !!}
+            {!! Form::open(['url' => action([\Modules\Project\Http\Controllers\TaskCommentController::class, 'store']), 'id' => 'add_comment_form', 'method' => 'post']) !!}
                 <div class="row">
                     <div class="col-md-12">
                         <h5>

@@ -2,20 +2,14 @@
 
 namespace Modules\Manufacturing\Providers;
 
-use App\Utils\ModuleUtil;
 use Illuminate\Database\Eloquent\Factory;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View;
+use App\Utils\ModuleUtil;
+use App\Utils\Util;
 
 class ManufacturingServiceProvider extends ServiceProvider
 {
-    /**
-     * Indicates if loading of the provider is deferred.
-     *
-     * @var bool
-     */
-    protected $defer = false;
-
     /**
      * Boot the application events.
      *
@@ -27,7 +21,8 @@ class ManufacturingServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerFactories();
-        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+        $this->registerScheduleCommands();
 
         //TODO:Remove
         View::composer('manufacturing::layouts.partials.sidebar', function ($view) {
@@ -36,7 +31,7 @@ class ManufacturingServiceProvider extends ServiceProvider
             } else {
                 $business_id = session()->get('user.business_id');
                 $module_util = new ModuleUtil();
-                $__is_mfg_enabled = (boolean)$module_util->hasThePermissionInSubscription($business_id, 'manufacturing_module', 'superadmin_package');
+                $__is_mfg_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'manufacturing_module', 'superadmin_package');
             }
 
             $view->with(compact('__is_mfg_enabled'));
@@ -50,7 +45,8 @@ class ManufacturingServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->register(RouteServiceProvider::class);
+        $this->registerCommands();
     }
 
     /**
@@ -64,8 +60,7 @@ class ManufacturingServiceProvider extends ServiceProvider
             __DIR__.'/../Config/config.php' => config_path('manufacturing.php'),
         ], 'config');
         $this->mergeConfigFrom(
-            __DIR__.'/../Config/config.php',
-            'manufacturing'
+            __DIR__.'/../Config/config.php', 'manufacturing'
         );
     }
 
@@ -81,12 +76,12 @@ class ManufacturingServiceProvider extends ServiceProvider
         $sourcePath = __DIR__.'/../Resources/views';
 
         $this->publishes([
-            $sourcePath => $viewPath
+            $sourcePath => $viewPath,
         ], 'views');
 
         $this->loadViewsFrom(array_merge(array_map(function ($path) {
-            return $path . '/modules/manufacturing';
-        }, \Config::get('view.paths')), [$sourcePath]), 'manufacturing');
+            return $path.'/modules/manufacturing';
+        }, config('view.paths')), [$sourcePath]), 'manufacturing');
     }
 
     /**
@@ -101,7 +96,7 @@ class ManufacturingServiceProvider extends ServiceProvider
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, 'manufacturing');
         } else {
-            $this->loadTranslationsFrom(__DIR__ .'/../Resources/lang', 'manufacturing');
+            $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'manufacturing');
         }
     }
 
@@ -112,8 +107,8 @@ class ManufacturingServiceProvider extends ServiceProvider
      */
     public function registerFactories()
     {
-        if (! app()->environment('production')) {
-            app(Factory::class)->load(__DIR__ . '/../Database/factories');
+        if (! app()->environment('production') && $this->app->runningInConsole()) {
+            app(Factory::class)->load(__DIR__.'/../Database/factories');
         }
     }
 
@@ -125,5 +120,20 @@ class ManufacturingServiceProvider extends ServiceProvider
     public function provides()
     {
         return [];
+    }
+
+    /**
+     * Register commands.
+     *
+     * @return void
+     */
+    protected function registerCommands()
+    {
+        
+    }
+
+    public function registerScheduleCommands()
+    {
+        
     }
 }

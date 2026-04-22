@@ -63,7 +63,7 @@
                     <div class="tab-pane active" id="pending_job_sheet_tab">
                         <div class="row">
                             <div class="col-md-12 mb-12">
-                                <a type="button" class="btn btn-sm btn-primary pull-right m-5" href="{{action('\Modules\Repair\Http\Controllers\JobSheetController@create')}}" id="add_job_sheet">
+                                <a type="button" class="btn btn-sm btn-primary pull-right m-5" href="{{action([\Modules\Repair\Http\Controllers\JobSheetController::class, 'create'])}}" id="add_job_sheet">
                                     <i class="fa fa-plus"></i> @lang('messages.add')
                                 </a>
                             </div>
@@ -77,7 +77,7 @@
                                             @lang('repair::lang.service_type')
                                         </th>
                                         <th>
-                                            @lang('repair::lang.expected_delivery_date')
+                                            @lang('lang_v1.due_date')
                                         </th>
                                         <th>
                                             @lang('repair::lang.job_sheet_no')
@@ -96,6 +96,21 @@
                                         <th>@lang('repair::lang.device_model')</th>
                                         <th>@lang('repair::lang.serial_no')</th>
                                         <th>@lang('repair::lang.estimated_cost')</th>
+                                        @if(!empty($repair_settings['job_sheet_custom_field_1']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_1']}}</th>
+                                        @endif
+                                        @if(!empty($repair_settings['job_sheet_custom_field_2']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_2']}}</th>
+                                        @endif
+                                        @if(!empty($repair_settings['job_sheet_custom_field_3']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_3']}}</th>
+                                        @endif
+                                        @if(!empty($repair_settings['job_sheet_custom_field_4']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_4']}}</th>
+                                        @endif
+                                        @if(!empty($repair_settings['job_sheet_custom_field_5']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_5']}}</th>
+                                        @endif
                                         <th>@lang('lang_v1.added_by')</th>
                                         <th>@lang('lang_v1.created_at')</th>
                                     </tr>
@@ -106,7 +121,7 @@
                     <div class="tab-pane" id="completed_job_sheet_tab">
                         <div class="row">
                             <div class="col-md-12 mb-12">
-                               <a type="button" class="btn btn-sm btn-primary pull-right m-5" href="{{action('\Modules\Repair\Http\Controllers\JobSheetController@create')}}" id="add_job_sheet">
+                               <a type="button" class="btn btn-sm btn-primary pull-right m-5" href="{{action([\Modules\Repair\Http\Controllers\JobSheetController::class, 'create'])}}" id="add_job_sheet">
                                     <i class="fa fa-plus"></i> @lang('messages.add')
                                 </a>
                             </div>
@@ -120,7 +135,7 @@
                                             @lang('repair::lang.service_type')
                                         </th>
                                         <th>
-                                            @lang('repair::lang.expected_delivery_date')
+                                            @lang('lang_v1.due_date')
                                         </th>
                                         <th>
                                             @lang('repair::lang.job_sheet_no')
@@ -139,6 +154,21 @@
                                         <th>@lang('repair::lang.device_model')</th>
                                         <th>@lang('repair::lang.serial_no')</th>
                                         <th>@lang('repair::lang.estimated_cost')</th>
+                                        @if(!empty($repair_settings['job_sheet_custom_field_1']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_1']}}</th>
+                                        @endif
+                                        @if(!empty($repair_settings['job_sheet_custom_field_2']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_2']}}</th>
+                                        @endif
+                                        @if(!empty($repair_settings['job_sheet_custom_field_3']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_3']}}</th>
+                                        @endif
+                                        @if(!empty($repair_settings['job_sheet_custom_field_4']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_4']}}</th>
+                                        @endif
+                                        @if(!empty($repair_settings['job_sheet_custom_field_5']))
+                                            <th>{{$repair_settings['job_sheet_custom_field_5']}}</th>
+                                        @endif
                                         <th>@lang('lang_v1.added_by')</th>
                                         <th>@lang('lang_v1.created_at')</th>
                                     </tr>
@@ -205,6 +235,31 @@
                         {
                             data: 'estimated_cost', name: 'estimated_cost'
                         },
+                        @if(!empty($repair_settings['job_sheet_custom_field_1']))
+                            {
+                                data: 'custom_field_1', name: 'repair_job_sheets.custom_field_1'
+                            },
+                        @endif
+                        @if(!empty($repair_settings['job_sheet_custom_field_2']))
+                            {
+                                data: 'custom_field_2', name: 'repair_job_sheets.custom_field_2'
+                            },
+                        @endif
+                        @if(!empty($repair_settings['job_sheet_custom_field_3']))
+                            {
+                                data: 'custom_field_3', name: 'repair_job_sheets.custom_field_3'
+                            },
+                        @endif
+                        @if(!empty($repair_settings['job_sheet_custom_field_4']))
+                            {
+                                data: 'custom_field_4', name: 'repair_job_sheets.custom_field_4'
+                            },
+                        @endif
+                        @if(!empty($repair_settings['job_sheet_custom_field_5']))
+                            {
+                                data: 'custom_field_5', name: 'repair_job_sheets.custom_field_5'
+                            },
+                        @endif
                         { data: 'added_by', name: 'added_by', searchable: false},
                         { data: 'created_at',
                             name: 'repair_job_sheets.created_at'
@@ -263,6 +318,31 @@
                         {
                             data: 'estimated_cost', name: 'estimated_cost'
                         },
+                        @if(!empty($repair_settings['job_sheet_custom_field_1']))
+                            {
+                                data: 'custom_field_1', name: 'repair_job_sheets.custom_field_1'
+                            },
+                        @endif
+                        @if(!empty($repair_settings['job_sheet_custom_field_2']))
+                            {
+                                data: 'custom_field_2', name: 'repair_job_sheets.custom_field_2'
+                            },
+                        @endif
+                        @if(!empty($repair_settings['job_sheet_custom_field_3']))
+                            {
+                                data: 'custom_field_3', name: 'repair_job_sheets.custom_field_3'
+                            },
+                        @endif
+                        @if(!empty($repair_settings['job_sheet_custom_field_4']))
+                            {
+                                data: 'custom_field_4', name: 'repair_job_sheets.custom_field_4'
+                            },
+                        @endif
+                        @if(!empty($repair_settings['job_sheet_custom_field_5']))
+                            {
+                                data: 'custom_field_5', name: 'repair_job_sheets.custom_field_5'
+                            },
+                        @endif
                         { data: 'added_by', name: 'added_by', searchable: false},
                         { data: 'created_at',
                             name: 'repair_job_sheets.created_at'

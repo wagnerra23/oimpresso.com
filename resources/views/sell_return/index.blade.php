@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header no-print">
-    <h1>@lang('lang_v1.sell_return')
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('lang_v1.sell_return')
     </h1>
 </section>
 
@@ -32,17 +32,17 @@
                 {!! Form::text('sell_list_filter_date_range', null, ['placeholder' => __('lang_v1.select_a_date_range'), 'class' => 'form-control', 'readonly']); !!}
             </div>
         </div>
+        @can('access_sell_return')
         <div class="col-md-3">
             <div class="form-group">
                 {!! Form::label('created_by',  __('report.user') . ':') !!}
                 {!! Form::select('created_by', $sales_representative, null, ['class' => 'form-control select2', 'style' => 'width:100%']); !!}
             </div>
         </div>
+        @endcan
     @endcomponent
     @component('components.widget', ['class' => 'box-primary', 'title' => __('lang_v1.sell_return')])
-        @can('sell.view')
-            @include('sell_return.partials.sell_return_list')
-        @endcan
+        @include('sell_return.partials.sell_return_list')
     @endcomponent
     <div class="modal fade payment_modal" tabindex="-1" role="dialog" 
         aria-labelledby="gridSystemModalLabel">
@@ -74,6 +74,7 @@
         sell_return_table = $('#sell_return_table').DataTable({
             processing: true,
             serverSide: true,
+            fixedHeader:false,
             aaSorting: [[0, 'desc']],
             "ajax": {
                 "url": "/sell-return",
@@ -129,36 +130,37 @@
         $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_customer_id, #created_by',  function() {
             sell_return_table.ajax.reload();
         });
-
-        $(document).on('click', '.delete_sell_return', function(e) {
-            e.preventDefault();
-            swal({
-                title: LANG.sure,
-                text: LANG.confirm_delete_sell_return,
-                icon: 'warning',
-                buttons: true,
-                dangerMode: true,
-            }).then(willDelete => {
-                if (willDelete) {
-                    $.ajax({
-                        url: $(this).data('href'),
-                        method: 'delete',
-                        dataType: 'json',
-                        success: function(result) {   
-                            if (result.success == true) {
-                                toastr.success(result.msg);
-                                if (typeof sell_return_table != 'undefined') {
-                                    sell_return_table.ajax.reload();
-                                }
-                            } else {
-                                toastr.error(result.msg);
-                            }
-                        },
-                    });
-                }
-            });
-        });
     })
+
+    $(document).on('click', 'a.delete_sell_return', function(e) {
+        e.preventDefault();
+        swal({
+            title: LANG.sure,
+            icon: 'warning',
+            buttons: true,
+            dangerMode: true,
+        }).then(willDelete => {
+            if (willDelete) {
+                var href = $(this).attr('href');
+                var data = $(this).serialize();
+
+                $.ajax({
+                    method: 'DELETE',
+                    url: href,
+                    dataType: 'json',
+                    data: data,
+                    success: function(result) {
+                        if (result.success == true) {
+                            toastr.success(result.msg);
+                            sell_return_table.ajax.reload();
+                        } else {
+                            toastr.error(result.msg);
+                        }
+                    },
+                });
+            }
+        });
+    });
 </script>
 	
 @endsection

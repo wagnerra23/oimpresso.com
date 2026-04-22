@@ -14,15 +14,15 @@ class InvoiceLine extends Model
     protected $table = 'pjt_invoice_lines';
 
     /**
-    * The attributes that aren't mass assignable.
-    *
-    * @var array
-    */
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
     protected $guarded = ['id'];
 
     /**
-    * Get the tax for invoice line.
-    */
+     * Get the tax for invoice line.
+     */
     public function tax()
     {
         return $this->belongsTo(\App\TaxRate::class, 'tax_rate_id');

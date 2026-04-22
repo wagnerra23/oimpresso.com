@@ -103,7 +103,7 @@
 		    				@endif
 	    				</a>
 					@else
-	    				<a href="{{action('\Modules\Superadmin\Http\Controllers\SubscriptionController@pay', [$package->id])}}" 
+	    				<a href="{{action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'pay'], [$package->id])}}" 
 						class="btn btn-block btn-success">
 		    				@if($package->price != 0)
 		    					@lang('superadmin::lang.pay_and_subscribe')

@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
     <div class="modal-content">
 
-        {!! Form::open(['url' => action('\Modules\Manufacturing\Http\Controllers\RecipeController@addIngredients'), 'method' => 'get', 'id' => 'choose_product_form']) !!}
+        {!! Form::open(['url' => action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'addIngredients']), 'method' => 'get', 'id' => 'choose_product_form']) !!}
 
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

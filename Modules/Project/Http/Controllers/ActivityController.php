@@ -16,6 +16,7 @@ class ActivityController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()
@@ -40,22 +41,22 @@ class ActivityController extends Controller
                                 ->with(['causer', 'subject'])
                                 ->latest()
                                 ->simplePaginate(10);
-                
-                $activities = View::make('project::activity.show')
+
+                $activities = view('project::activity.show')
                                 ->with(compact('activities'))
                                 ->render();
-                        
+
                 $output = [
                     'success' => true,
                     'msg' => __('lang_v1.success'),
-                    'activities' =>  $activities
+                    'activities' => $activities,
                 ];
             } catch (Exception $e) {
-                \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
                 $output = [
                     'success' => false,
-                    'msg' => __('messages.something_went_wrong')
+                    'msg' => __('messages.something_went_wrong'),
                 ];
             }
 
@@ -65,6 +66,7 @@ class ActivityController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
      * @return Response
      */
     public function create()
@@ -74,7 +76,8 @@ class ActivityController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * @param  Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function store(Request $request)
@@ -83,6 +86,7 @@ class ActivityController extends Controller
 
     /**
      * Show the specified resource.
+     *
      * @return Response
      */
     public function show()
@@ -92,6 +96,7 @@ class ActivityController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
      * @return Response
      */
     public function edit()
@@ -101,7 +106,8 @@ class ActivityController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * @param  Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function update(Request $request)
@@ -110,6 +116,7 @@ class ActivityController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
      * @return Response
      */
     public function destroy()

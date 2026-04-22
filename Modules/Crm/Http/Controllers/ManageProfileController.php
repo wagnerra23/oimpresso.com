@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Modules\Crm\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -14,9 +13,9 @@ class ManageProfileController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $moduleUtil;
+
     /**
      * Constructor
      *
@@ -36,7 +35,7 @@ class ManageProfileController extends Controller
     public function getProfile()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -59,7 +58,7 @@ class ManageProfileController extends Controller
     public function updateProfile(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -78,18 +77,19 @@ class ManageProfileController extends Controller
             session()->put('user', $input);
 
             $output = ['success' => 1,
-                        'msg' => __('lang_v1.profile_updated_successfully')
-                    ];
+                'msg' => __('lang_v1.profile_updated_successfully'),
+            ];
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => 0,
-                        'msg' => __('messages.something_went_wrong')
-                    ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
 
         return redirect()->back()->with(['status' => $output]);
     }
+
     /**
      * Update the password
      *
@@ -98,32 +98,33 @@ class ManageProfileController extends Controller
     public function updatePassword(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
             abort(403, 'Unauthorized action.');
         }
-        
+
         try {
             $user_id = $request->session()->get('user.id');
             $user = User::where('id', $user_id)->first();
-            
+
             if (Hash::check($request->input('current_password'), $user->password)) {
                 $user->password = Hash::make($request->input('new_password'));
                 $user->save();
                 $output = ['success' => 1,
-                            'msg' =>  __('lang_v1.password_updated_successfully')
-                        ];
+                    'msg' => __('lang_v1.password_updated_successfully'),
+                ];
             } else {
                 $output = ['success' => 0,
-                            'msg' => __('lang_v1.u_have_entered_wrong_password')
-                        ];
+                    'msg' => __('lang_v1.u_have_entered_wrong_password'),
+                ];
             }
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => 0,
-                            'msg' => __('messages.something_went_wrong')
-                        ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
+
         return redirect()->back()->with(['status' => $output]);
     }
 }

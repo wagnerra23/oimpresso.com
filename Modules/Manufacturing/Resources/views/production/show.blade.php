@@ -46,6 +46,14 @@
                     <b>@lang('purchase.purchase_status'):</b> {{ ucfirst( $production_purchase->status ) }}<br>
                     <b>@lang('purchase.payment_status'):</b> {{ ucfirst( $production_purchase->payment_status ) }}<br>
                 </div>
+                <div class="col-sm-12">
+                @php
+                    $medias = $production_purchase->media;
+                @endphp
+                @if(count($medias))
+                    @include('sell.partials.media_table', ['medias' => $medias])
+                @endif
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-12">
@@ -77,7 +85,7 @@
                     <h4>@lang('manufacturing::lang.ingredients')</h4>
                 </div>
                 <div class="col-md-12">
-                    <table class="table table-striped">
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>@lang('manufacturing::lang.ingredient')</th>
@@ -89,12 +97,17 @@
                         </thead>
                         <tbody>
                             @php
-                                $total_ingredient_unit_price = 0;
                                 $total_ingredient_price = 0;
                             @endphp
                             @foreach($ingredients as $ingredient)
                                 <tr>
-                                    <td>{{$ingredient['full_name']}}</td>
+                                    <td>
+                                        {{$ingredient['full_name']}}
+                                        @if(!empty($ingredient['lot_numbers']))
+                                            <br>
+                                            <small> @lang('lang_v1.lot_n_expiry'):  {{$ingredient['lot_numbers']}}</small>
+                                        @endif
+                                    </td>
                                     <td>{{@format_quantity($ingredient['quantity'])}} {{$ingredient['unit']}}</td>
                                     <td>{{@format_quantity($ingredient['waste_percent'])}} %</td>
                                     <td>{{@format_quantity($ingredient['final_quantity'])}} {{$ingredient['unit']}}</td>
@@ -108,6 +121,41 @@
                                     </td>
                                 </tr>
                             @endforeach
+                            @if(!empty($ingredient_groups))
+                                @foreach($ingredient_groups as $ingredient_group)
+                                    <tr>
+                                        <td colspan="5" class="bg-gray">
+                                            <strong>
+                                                {{$ingredient_group['ig_name'] ?? ''}}
+                                            </strong>
+                                            @if(!empty($ingredient_group['ig_description']))
+                                                - {{$ingredient_group['ig_description']}}
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @foreach($ingredient_group['ig_ingredients'] as $ingredient)
+                                        <tr>
+                                            <td>
+                                                {{$ingredient['full_name']}}
+                                                @if(!empty($ingredient['lot_numbers']))
+                                                    <br>
+                                                    <small> @lang('lang_v1.lot_n_expiry'):  {{$ingredient['lot_numbers']}}</small>
+                                                @endif
+                                            </td>
+                                            <td>{{@format_quantity($ingredient['quantity'])}} {{$ingredient['unit']}}</td>
+                                            <td>{{@format_quantity($ingredient['waste_percent'])}} %</td>
+                                            <td>{{@format_quantity($ingredient['final_quantity'])}} {{$ingredient['unit']}}</td>
+                                            @php
+                                                $price = $ingredient['total_price'];
+                                                $total_ingredient_price += $price;
+                                            @endphp
+                                            <td>
+                                                 <span class="display_currency" data-currency_symbol="true">{{$price}}</span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endforeach
+                            @endif
                         </tbody>
                         <tfoot>
                             <tr>

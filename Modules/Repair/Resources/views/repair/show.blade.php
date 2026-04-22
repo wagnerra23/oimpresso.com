@@ -93,11 +93,15 @@
                     <div class="row">
                         @foreach($checklists as $check)
                             <div class="col-xs-4">
-                                @if($selected_checklist[$check] == 'yes')
-                                    <i class="fas fa-check-square text-success"></i>
-                                @elseif($selected_checklist[$check] == 'no')
-                                  <i class="fas fa-window-close text-danger"></i>
-                                @elseif($selected_checklist[$check] == 'not_applicable')
+                                @if(isset($selected_checklist[$check]))
+                                  @if($selected_checklist[$check] == 'yes')
+                                      <i class="fas fa-check-square text-success"></i>
+                                  @elseif($selected_checklist[$check] == 'no')
+                                    <i class="fas fa-window-close text-danger"></i>
+                                  @elseif($selected_checklist[$check] == 'not_applicable')
+                                    <i class="fas fa-square"></i>
+                                  @endif
+                                  @else
                                   <i class="fas fa-square"></i>
                                 @endif
                                 {{$check}}
@@ -267,7 +271,7 @@
                         <tr>
                             <td>{{$media->display_name}}</td>
                             <td><a href="{{$media->display_url}}" target="_blank" class="btn btn-info btn-xs"><i class="fa fa-external-link"></i></a></td>
-                            <td><a href="{{action('\Modules\Repair\Http\Controllers\RepairController@deleteMedia', $media->id)}}"" class="btn btn-danger btn-xs delete_media"><i class="fa fa-trash"></i></a></td>
+                            <td><a href="{{action([\Modules\Repair\Http\Controllers\RepairController::class, 'deleteMedia'], $media->id)}}"" class="btn btn-danger btn-xs delete_media"><i class="fa fa-trash"></i></a></td>
                         </tr>
                         @empty
                         <tr>

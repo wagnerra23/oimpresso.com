@@ -1,5 +1,5 @@
 <div class="modal-dialog  modal-lg" role="document">
-    {!! Form::open(['url' => action('\Modules\Project\Http\Controllers\ProjectController@update', $project->id), 'id' => 'project_form', 'method' => 'put']) !!}
+    {!! Form::open(['url' => action([\Modules\Project\Http\Controllers\ProjectController::class, 'update'], $project->id), 'id' => 'project_form', 'method' => 'put']) !!}
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">

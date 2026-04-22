@@ -51,25 +51,25 @@
                     </div>
                   </div>
 
-                <h4> License Details <small class="text-danger">Essa verssão é do OfficeImpresso.com</small></h4>
+                <h4> License Details <small class="text-danger">Make sure to provide correct information from Envato/codecanyon</small></h4>
                 <hr/>
 
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="envato_purchase_code">Envato Purchase Code:* Direitos reservados ao officeimpresso</label>
-                        <input type="password" name="ENVATO_PURCHASE_CODE" required class="form-control" id="envato_purchase_code" value="oimpresso.com">
+                        <label for="envato_purchase_code">Envato Purchase Code:*</label>
+                        <input type="password" name="ENVATO_PURCHASE_CODE" required class="form-control" id="envato_purchase_code">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="envato_username">Envato Username:*</label>
-                        <input type="text" name="ENVATO_USERNAME" required class="form-control" id="envato_username" value="oimpresso.com">
+                        <input type="text" name="ENVATO_USERNAME" required class="form-control" id="envato_username">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="envato_email">Your Email:</label>
-                        <input type="email" name="ENVATO_EMAIL" class="form-control" id="envato_email" placeholder="optional" value="NullJungle@gmail.com">
+                        <input type="email" name="ENVATO_EMAIL" class="form-control" id="envato_email" placeholder="optional">
                         <p class="help-block">For Newsletter & support</p>
                     </div>
                 </div>
@@ -129,8 +129,8 @@
                   <hr/>
                   <div class="col-md-6">
                     <div class="form-group">
-                        <label for="MAIL_DRIVER">Send mails using:*</label>
-                        <select class="form-control" name="MAIL_DRIVER" id="MAIL_DRIVER">
+                        <label for="MAIL_MAILER">Send mails using:*</label>
+                        <select class="form-control" name="MAIL_MAILER" id="MAIL_MAILER">
                           <option value="sendmail">PHP Mail</option>
                           <option value="smtp">SMTP</option>
                         </select>
@@ -211,7 +211,7 @@
 @section('javascript')
   <script type="text/javascript">
     $(document).ready(function(){
-      $('select#MAIL_DRIVER').change(function(){
+      $('select#MAIL_MAILER').change(function(){
         var driver = $(this).val();
 
         if(driver == 'smtp'){

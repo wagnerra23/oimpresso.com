@@ -11,7 +11,7 @@
 <!-- Main content -->
 <section class="content">
 
-	{!! Form::open(['url' => action('\Modules\Manufacturing\Http\Controllers\ProductionController@update', [$production_purchase->id]), 'method' => 'put', 'id' => 'production_form', 'files' => true ]) !!}
+	{!! Form::open(['url' => action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'update'], [$production_purchase->id]), 'method' => 'put', 'id' => 'production_form', 'files' => true ]) !!}
 	@component('components.widget', ['class' => 'box-solid'])
 		<div class="row">
 			<div class="col-sm-3">
@@ -52,7 +52,7 @@
 				<div class="form-group">
 					{!! Form::label('recipe_quantity', __('lang_v1.quantity').':*') !!}
 					<div class="@if(!empty($sub_units)) input_inline @else input-group @endif" id="recipe_quantity_input">
-						{!! Form::text('quantity', @num_format($quantity), ['class' => 'form-control input_number', 'id' => 'recipe_quantity', 'required', 'data-rule-notEmpty' => 'true', 'data-rule-notEqualToWastedQuantity' => 'true']); !!}
+						{!! Form::text('quantity', @format_quantity($quantity), ['class' => 'form-control input_number', 'id' => 'recipe_quantity', 'required', 'data-rule-notEmpty' => 'true', 'data-rule-notEqualToWastedQuantity' => 'true']); !!}
 						<span class="@if(empty($sub_units)) input-group-addon @endif" id="unit_html">
 							@if(!empty($sub_units))
 								<select name="sub_unit_id" class="form-control" id="sub_unit_id">
@@ -77,6 +77,18 @@
 					</div>
 				</div>
 			</div>
+
+			<div class="col-md-4">
+                <div class="form-group">
+                    {!! Form::label('upload_document', __('purchase.attach_document') . ':') !!}
+                    {!! Form::file('documents[]', ['id' => 'upload_document', 'multiple', 'accept' => implode(',', array_keys(config('constants.document_upload_mimes_types')))]); !!}
+                    <p class="help-block">
+                    	@lang('purchase.max_file_size', ['size' => (config('constants.document_size_limit') / 1000000)])
+                    	@includeIf('components.document_help_text')
+                    </p>
+                    @include('sell.partials.media_table', ['medias' => $production_purchase->media, 'delete' => true])
+                </div>
+            </div>
 		</div>
 	@endcomponent
 

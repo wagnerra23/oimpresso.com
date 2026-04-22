@@ -20,7 +20,7 @@ class CreateScheduleLogsTable extends Migration
             $table->foreign('schedule_id')
                 ->references('id')->on('crm_schedules')
                 ->onDelete('cascade');
-                
+
             $table->enum('log_type', ['call', 'sms', 'meeting', 'email'])->default('email');
             $table->dateTime('start_datetime');
             $table->dateTime('end_datetime');

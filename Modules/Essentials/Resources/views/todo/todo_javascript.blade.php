@@ -72,6 +72,10 @@ $(document).on('submit', 'form#task_form', function(e){
 					task_table.ajax.reload();
 				}
 
+				if ($('#task_modal').length) {
+					$('#task_modal').modal('hide');
+				}
+
 				if ($('#calendar').length) {
 					$('#calendar').fullCalendar( 'refetchEvents' );
 				}

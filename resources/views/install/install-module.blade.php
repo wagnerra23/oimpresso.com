@@ -1,5 +1,5 @@
 @extends('layouts.install')
-@section('title', 'Installation')
+@section('title', 'Installation/Update')
 
 @section('content')
 <div class="container">
@@ -7,9 +7,10 @@
 
         <div class="col-md-8 col-md-offset-2">
             <br/><br/>
-          <div class="box box-primary active">
-            <!-- /.box-header -->
-            <div class="box-body">
+
+            <div class="box box-primary active">
+                <!-- /.box-header -->
+                <div class="box-body">
 
               @if(session('error'))
                 <div class="alert alert-danger">

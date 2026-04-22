@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\AttendanceController@update', [$attendance->id]), 'method' => 'put', 'id' => 'attendance_form' ]) !!}
+    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\AttendanceController::class, 'update'], [$attendance->id]), 'method' => 'put', 'id' => 'attendance_form' ]) !!}
 
     {!! Form::hidden('employees', $attendance->employee->id, ['id' => 'employees']); !!}
     {!! Form::hidden('attendance_id', $attendance->id, ['id' => 'attendance_id']); !!}

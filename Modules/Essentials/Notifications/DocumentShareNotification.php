@@ -3,8 +3,8 @@
 namespace Modules\Essentials\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
 use Modules\Essentials\Entities\DocumentShare;
 
 class DocumentShareNotification extends Notification
@@ -12,6 +12,7 @@ class DocumentShareNotification extends Notification
     use Queueable;
 
     protected $document;
+
     protected $shared_by;
 
     /**
@@ -28,7 +29,7 @@ class DocumentShareNotification extends Notification
     /**
      * Get the notification's delivery channels.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function via($notifiable)
@@ -37,14 +38,14 @@ class DocumentShareNotification extends Notification
         if (isPusherEnabled()) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
     /**
      * Get the mail representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
@@ -54,7 +55,7 @@ class DocumentShareNotification extends Notification
     /**
      * Get the array representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function toDatabase($notifiable)
@@ -70,11 +71,12 @@ class DocumentShareNotification extends Notification
      */
     public function toBroadcast($notifiable)
     {
-        $notifiction_data = DocumentShare::documentShareNotificationData($this->notificationData()); 
+        $notifiction_data = DocumentShare::documentShareNotificationData($this->notificationData());
+
         return new BroadcastMessage([
             'title' => $notifiction_data['title'],
             'body' => strip_tags($notifiction_data['msg']),
-            'link' => $notifiction_data['link']
+            'link' => $notifiction_data['link'],
         ]);
     }
 
@@ -85,7 +87,7 @@ class DocumentShareNotification extends Notification
             'document_name' => $this->document->name,
             'shared_by_name' => $this->shared_by->user_full_name,
             'shared_by_id' => $this->shared_by->id,
-            'document_type' => $this->document->type
+            'document_type' => $this->document->type,
         ];
     }
 }

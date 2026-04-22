@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>{{ __('report.stock_expiry_report')}}</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">{{ __('report.stock_expiry_report')}}</h1>
 </section>
 
 <!-- Main content -->
@@ -13,7 +13,7 @@
     <div class="row">
         <div class="col-md-12">
             @component('components.filters', ['title' => __('report.filters')])
-              {!! Form::open(['url' => action('ReportController@getStockExpiryReport'), 'method' => 'get', 'id' => 'stock_report_filter_form' ]) !!}
+              {!! Form::open(['url' => action([\App\Http\Controllers\ReportController::class, 'getStockExpiryReport']), 'method' => 'get', 'id' => 'stock_report_filter_form' ]) !!}
                 <div class="col-md-3">
                     <div class="form-group">
                         {!! Form::label('location_id',  __('purchase.business_location') . ':') !!}

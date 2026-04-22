@@ -2,74 +2,23 @@
 
 namespace Modules\Officeimpresso\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
-use Illuminate\Routing\Router;
-use Laravel\Passport\Console\ClientCommand;
-use Laravel\Passport\Console\InstallCommand;
-use Laravel\Passport\Console\KeysCommand;
-use Mpociot\ApiDoc\Commands\GenerateDocumentation;
+use Illuminate\Support\ServiceProvider;
 
 class OfficeimpressoServiceProvider extends ServiceProvider
 {
-
-    /**
-     * The filters base class name.
-     *
-     * @var array
-     */
-    protected $middleware = [
-        'Officeimpresso' => [
-            'check-demo' => 'CheckDemo',
-        ],
-    ];
-
-    /**
-     * Indicates if loading of the provider is deferred.
-     *
-     * @var bool
-     */
-    protected $defer = false;
-
     /**
      * Boot the application events.
      *
      * @return void
      */
-    public function boot(Router $router)
+    public function boot()
     {
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
         $this->registerFactories();
-        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
-
-        $this->registerMiddleware($this->app['router']);
-
-        /*ADD THIS LINES*/
-        $this->commands([
-            InstallCommand::class,
-            ClientCommand::class,
-            KeysCommand::class,
-            GenerateDocumentation::class
-        ]);
-    }
-
-    /**
-     * Register the filters.
-     *
-     * @param  Router $router
-     * @return void
-     */
-    public function registerMiddleware(Router $router)
-    {
-        foreach ($this->middleware as $module => $middlewares) {
-            foreach ($middlewares as $name => $middleware) {
-                $class = "Modules\\{$module}\\Http\\Middleware\\{$middleware}";
-
-                $router->aliasMiddleware($name, $class);
-            }
-        }
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
     }
 
     /**
@@ -79,7 +28,8 @@ class OfficeimpressoServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        // Rotas carregadas via start.php -> Http/routes.php (padrão nWidart v3.x)
+        // $this->app->register(RouteServiceProvider::class);
     }
 
     /**
@@ -109,12 +59,12 @@ class OfficeimpressoServiceProvider extends ServiceProvider
         $sourcePath = __DIR__.'/../Resources/views';
 
         $this->publishes([
-            $sourcePath => $viewPath
-        ],'views');
+            $sourcePath => $viewPath,
+        ], 'views');
 
         $this->loadViewsFrom(array_merge(array_map(function ($path) {
-            return $path . '/modules/officeimpresso';
-        }, \Config::get('view.paths')), [$sourcePath]), 'officeimpresso');
+            return $path.'/modules/officeimpresso';
+        }, config('view.paths')), [$sourcePath]), 'officeimpresso');
     }
 
     /**
@@ -129,19 +79,19 @@ class OfficeimpressoServiceProvider extends ServiceProvider
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, 'officeimpresso');
         } else {
-            $this->loadTranslationsFrom(__DIR__ .'/../Resources/lang', 'officeimpresso');
+            $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'officeimpresso');
         }
     }
 
     /**
      * Register an additional directory of factories.
-     * 
+     *
      * @return void
      */
     public function registerFactories()
     {
-        if (! app()->environment('production')) {
-            app(Factory::class)->load(__DIR__ . '/../Database/factories');
+        if (! app()->environment('production') && $this->app->runningInConsole()) {
+            app(Factory::class)->load(__DIR__.'/../Database/factories');
         }
     }
 

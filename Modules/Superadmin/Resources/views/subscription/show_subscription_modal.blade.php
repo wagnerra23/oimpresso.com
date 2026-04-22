@@ -45,7 +45,7 @@
               <tr>
                 <td>{{$subscription->package->name}}</td>
                 <td>1</td>
-                <td><span class="display_currency" data-currency_symbol="true">{{ $subscription->package_price }}</span> </td>
+                <td><span class="display_currency" data-currency_symbol="true" data-use_page_currency="true">{{ $subscription->package_price }}</span> </td>
               </tr>
             </body>
           </table>

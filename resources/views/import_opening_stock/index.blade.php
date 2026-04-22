@@ -5,7 +5,7 @@
 <br/>
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('lang_v1.import_opening_stock')</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('lang_v1.import_opening_stock')</h1>
 </section>
 
 <!-- Main content -->
@@ -28,7 +28,7 @@
     <div class="row">
         <div class="col-sm-12">
             @component('components.widget', ['class' => 'box-primary'])
-                {!! Form::open(['url' => action('ImportOpeningStockController@store'), 'method' => 'post', 'enctype' => 'multipart/form-data' ]) !!}
+                {!! Form::open(['url' => action([\App\Http\Controllers\ImportOpeningStockController::class, 'store']), 'method' => 'post', 'enctype' => 'multipart/form-data' ]) !!}
                     <div class="row">
                         <div class="col-sm-6">
                         <div class="col-sm-8">
@@ -40,7 +40,7 @@
                         </div>
                         <div class="col-sm-4">
                         <br>
-                            <button type="submit" class="btn btn-primary">@lang('messages.submit')</button>
+                            <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">@lang('messages.submit')</button>
                         </div>
                         </div>
                     </div>
@@ -49,7 +49,7 @@
                 <br><br>
                 <div class="row">
                     <div class="col-sm-4">
-                        <a href="{{ asset('files/import_opening_stock_csv_template.xls') }}" class="btn btn-success" download><i class="fa fa-download"></i> @lang('lang_v1.download_template_file')</a>
+                        <a href="{{ asset('files/import_opening_stock_csv_template.xls') }}" class="tw-dw-btn tw-dw-btn-success tw-text-white" download><i class="fa fa-download"></i> @lang('lang_v1.download_template_file')</a>
                     </div>
                 </div>
             @endcomponent
@@ -95,7 +95,7 @@
                 <tr>
                     <td>6</td>
                     <td>@lang('lang_v1.expiry_date') <small class="text-muted">(@lang('lang_v1.optional'))</small></td>
-                    <td>{!! __('lang_v1.expiry_date_in_business_date_format') !!} <br/> <b>{{$date_format}}</b></td>
+                    <td>{!! __('lang_v1.expiry_date_in_business_date_format') !!} <br/> <b>{{$date_format}}</b>, @lang('lang_v1.type'): <b>text</b>, @lang('lang_v1.example'): <b>{{@format_date('today')}}</b></td>
                 </tr>
             </table>
         @endcomponent

@@ -31,7 +31,7 @@
                 <span class="input-group-addon">
                     <i class="fas fa-money-bill-alt"></i>
                 </span>
-                {!! Form::select('app_currency_id', $currencies, 18, ['class' => 'form-control select2','placeholder' => __('business.currency_placeholder'), 'required']); !!}
+                {!! Form::select('app_currency_id', $currencies, $settings["app_currency_id"], ['class' => 'form-control select2','placeholder' => __('business.currency_placeholder'), 'required']); !!}
             </div>
             </div>
         </div>
@@ -39,12 +39,12 @@
         <div class="clearfix"></div>
         <div class="col-xs-4">
             <div class="form-group">
-                 {!! Form::label('invoice_business_landmark', 'Referência' . ':') !!}
+                 {!! Form::label('invoice_business_landmark', __('business.landmark') . ':') !!}
                 <div class="input-group">
                 <span class="input-group-addon">
                     <i class="fa fa-map-marker"></i>
                 </span>
-                {!! Form::text('invoice_business_landmark', $settings["invoice_business_landmark"], ['class' => 'form-control','placeholder' => 'Referência','required']); !!}
+                {!! Form::text('invoice_business_landmark', $settings["invoice_business_landmark"], ['class' => 'form-control','placeholder' => __('business.landmark'),'required']); !!}
             </div>
             </div>
         </div> 
@@ -56,7 +56,7 @@
                 <span class="input-group-addon">
                     <i class="fa fa-map-marker"></i>
                 </span>
-                {!! Form::text('invoice_business_zip',$settings["invoice_business_zip"], ['class' => 'form-control','placeholder' => 'CEP', 'required']); !!}
+                {!! Form::text('invoice_business_zip',$settings["invoice_business_zip"], ['class' => 'form-control','placeholder' => __('business.zip_code'), 'required']); !!}
             </div>
             </div>
         </div>

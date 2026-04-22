@@ -19,7 +19,7 @@ class ScheduleUser extends Model
      * @var array
      */
     protected $guarded = ['id'];
-    
+
     /**
      * Get the schedule that owns the user.
      */

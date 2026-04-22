@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>{{ __('lang_v1.customer_groups_report')}}</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">{{ __('lang_v1.customer_groups_report')}}</h1>
 </section>
 
 <!-- Main content -->
@@ -14,7 +14,7 @@
         <div class="col-md-12">
             @component('components.filters', ['title' => __('report.filters')])
 
-              {!! Form::open(['url' => action('ReportController@getCustomerGroup'), 'method' => 'get', 'id' => 'cg_report_filter_form' ]) !!}
+              {!! Form::open(['url' => action([\App\Http\Controllers\ReportController::class, 'getCustomerGroup']), 'method' => 'get', 'id' => 'cg_report_filter_form' ]) !!}
                 <div class="col-md-3">
                     <div class="form-group">
                         {!! Form::label('cg_customer_group_id', __( 'lang_v1.customer_group_name' ) . ':') !!}
@@ -83,6 +83,7 @@
             cg_report_table = $('#cg_report_table').DataTable({
                             processing: true,
                             serverSide: true,
+                            fixedHeader:false,
                             "ajax": {
                                 "url": "/reports/customer-group",
                                 "data": function ( d ) {

@@ -40,12 +40,14 @@
 	@endcomponent
 	@component('components.widget', ['title' => __('essentials::lang.todo_list'), 'icon' => '<i class="ion ion-clipboard"></i>', 'class' => 'box-solid'])
 		@slot('tool')
+			@can('essentials.add_todos')
 			<div class="box-tools">
-				<button class="btn btn-block btn-primary btn-modal" data-href="{{action('\Modules\Essentials\Http\Controllers\ToDoController@create')}}" 
+				<button class="btn btn-block btn-primary btn-modal" data-href="{{action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'create'])}}" 
 				data-container="#task_modal">
 					<i class="fa fa-plus"></i> @lang( 'messages.add' )</a>
 				</button>
 			</div>
+			@endcan
 		@endslot
 		<div class="table-responsive">
 			<table class="table table-bordered table-striped" id="task_table">

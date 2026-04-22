@@ -2,8 +2,8 @@
 
 namespace Modules\ProductCatalogue\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
+use Illuminate\Support\ServiceProvider;
 
 class ProductCatalogueServiceProvider extends ServiceProvider
 {
@@ -18,7 +18,7 @@ class ProductCatalogueServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerFactories();
-        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
     }
 
     /**
@@ -58,12 +58,12 @@ class ProductCatalogueServiceProvider extends ServiceProvider
         $sourcePath = __DIR__.'/../Resources/views';
 
         $this->publishes([
-            $sourcePath => $viewPath
-        ],'views');
+            $sourcePath => $viewPath,
+        ], 'views');
 
         $this->loadViewsFrom(array_merge(array_map(function ($path) {
-            return $path . '/modules/productcatalogue';
-        }, \Config::get('view.paths')), [$sourcePath]), 'productcatalogue');
+            return $path.'/modules/productcatalogue';
+        }, config('view.paths')), [$sourcePath]), 'productcatalogue');
     }
 
     /**
@@ -78,7 +78,7 @@ class ProductCatalogueServiceProvider extends ServiceProvider
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, 'productcatalogue');
         } else {
-            $this->loadTranslationsFrom(__DIR__ .'/../Resources/lang', 'productcatalogue');
+            $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'productcatalogue');
         }
     }
 
@@ -90,7 +90,7 @@ class ProductCatalogueServiceProvider extends ServiceProvider
     public function registerFactories()
     {
         if (! app()->environment('production') && $this->app->runningInConsole()) {
-            app(Factory::class)->load(__DIR__ . '/../Database/factories');
+            app(Factory::class)->load(__DIR__.'/../Database/factories');
         }
     }
 

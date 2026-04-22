@@ -5,12 +5,12 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('expense.add_expense')</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('expense.add_expense')</h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
-	{!! Form::open(['url' => action('ExpenseController@store'), 'method' => 'post', 'id' => 'add_expense_form', 'files' => true ]) !!}
+	{!! Form::open(['url' => action([\App\Http\Controllers\ExpenseController::class, 'store']), 'method' => 'post', 'id' => 'add_expense_form', 'files' => true ]) !!}
 	<div class="box box-solid">
 		<div class="box-body">
 			<div class="row">
@@ -35,10 +35,19 @@
 						{!! Form::select('expense_category_id', $expense_categories, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
 					</div>
 				</div>
+				<div class="col-md-4">
+					<div class="form-group">
+			            {!! Form::label('expense_sub_category_id', __('product.sub_category') . ':') !!}
+			              {!! Form::select('expense_sub_category_id', [],  null, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+			          </div>
+				</div>
 				<div class="col-sm-4">
 					<div class="form-group">
 						{!! Form::label('ref_no', __('purchase.ref_no').':') !!}
 						{!! Form::text('ref_no', null, ['class' => 'form-control']); !!}
+						<p class="help-block">
+			                @lang('lang_v1.leave_empty_to_autogenerate')
+			            </p>
 					</div>
 				</div>
 				<div class="clearfix"></div>
@@ -125,8 +134,8 @@
 		</div>
 	</div>
 	@endcomponent
-	<div class="col-sm-12">
-		<button type="submit" class="btn btn-primary pull-right">@lang('messages.save')</button>
+	<div class="col-sm-12 text-center">
+		<button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-dw-btn-lg tw-text-white">@lang('messages.save')</button>
 	</div>
 {!! Form::close() !!}
 </section>

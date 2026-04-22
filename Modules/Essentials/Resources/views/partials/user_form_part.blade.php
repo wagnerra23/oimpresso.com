@@ -21,6 +21,10 @@
 @component('components.widget', ['title' => __('essentials::lang.payroll')])
 <div class="row">
     <div class="col-md-4">
+        {!! Form::label('location_id', __('lang_v1.primary_work_location') . ':') !!}
+        {!! Form::select('location_id', $locations, !empty($user->location_id) ? $user->location_id : null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+    </div>
+    <div class="col-md-4">
         <div class="form-group">
             <div class="multi-input">
                 {!! Form::label('essentials_salary', __('essentials::lang.salary') . ':') !!}
@@ -31,14 +35,6 @@
             </div>
         </div>
     </div>
-    {{-- <div class="col-md-4">
-        <div class="form-group">
-            {!! Form::label('essentials_pay_cycle', __('essentials::lang.pay_cycle') . ':') !!}
-            <div class="form-group">
-                {!! Form::select('essentials_pay_cycle', ['week' => __('essentials::lang.week'), 'month' => __('lang_v1.month')], !empty($user->essentials_pay_cycle) ? $user->essentials_pay_cycle : null, ['class' => 'form-control select2', 'style' => 'width: 100%;', 'placeholder' => __('messages.please_select') ]); !!}
-            </div>
-        </div>
-    </div> --}}
     <div class="form-group col-md-4">
         {!! Form::label('pay_components', __('essentials::lang.pay_components') . ':') !!}
         {!! Form::select('pay_components[]', $pay_comoponenets, !empty($allowance_deduction_ids) ? $allowance_deduction_ids : [], ['class' => 'form-control select2', 'multiple' ]); !!}

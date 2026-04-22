@@ -15,13 +15,13 @@
 		$is_discount_enabled = $pos_settings['disable_discount'] != 1 ? true : false;
 		$is_rp_enabled = session('business.enable_rp') == 1 ? true : false;
 	@endphp
-	{!! Form::open(['url' => action('SellPosController@update', [$transaction->id]), 'method' => 'post', 'id' => 'edit_pos_sell_form' ]) !!}
+	{!! Form::open(['url' => action([\App\Http\Controllers\SellPosController::class, 'update'], [$transaction->id]), 'method' => 'post', 'id' => 'edit_pos_sell_form' ]) !!}
 	{{ method_field('PUT') }}
 	<div class="row mb-12">
-		<div class="col-md-12">
-			<div class="row">
-				<div class="@if(empty($pos_settings['hide_product_suggestion'])) col-md-7 @else col-md-10 col-md-offset-1 @endif no-padding pr-12">
-					<div class="box box-solid mb-12">
+		<div class="col-md-12 tw-pt-0 tw-mb-14">
+			<div class="row tw-flex lg:tw-flex-row md:tw-flex-col sm:tw-flex-col tw-flex-col tw-items-start md:tw-gap-4">
+				<div class="tw-px-3 tw-w-full  lg:tw-px-0 lg:tw-pr-0 @if(empty($pos_settings['hide_product_suggestion'])) lg:tw-w-[60%]  @else lg:tw-w-[100%] @endif">
+					<div class="tw-shadow-[rgba(17,_17,_26,_0.1)_0px_0px_16px] tw-rounded-2xl tw-bg-white tw-mb-2 md:tw-mb-8 tw-p-2">
 						<div class="box-body pb-0">
 							{!! Form::hidden('location_id', $transaction->location_id, ['id' => 'location_id', 'data-receipt_printer_type' => !empty($location_printer_type) ? $location_printer_type : 'browser', 'data-default_payment_accounts' => $transaction->location->default_payment_accounts]); !!}
 							<!-- sub_type -->
@@ -41,9 +41,12 @@
 									@include('sale_pos.partials.recurring_invoice_modal')
 								@endif
 							</div>
+							@if(!empty($only_payment))
+								<div class="overlay"></div>
+							@endif
 						</div>
 					</div>
-				@if(empty($pos_settings['hide_product_suggestion'])  && !isMobile())
+				@if(empty($pos_settings['hide_product_suggestion'])  && !isMobile() && empty($only_payment))
 					<div class="col-md-5 no-padding">
 						@include('sale_pos.partials.pos_sidebar')
 					</div>
@@ -121,6 +124,10 @@
 		    height: auto !important;
 		    margin-top: 0mm;
 		    margin-bottom: 0mm;
+		}
+		.overlay {
+			background: rgba(255,255,255,0) !important;
+			cursor: not-allowed;
 		}
 	</style>
 	<!-- include module css -->

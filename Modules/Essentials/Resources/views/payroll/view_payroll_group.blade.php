@@ -30,13 +30,20 @@
 						</div>
 					</div>
 					<div class="row margin-bottom-20">
-						<div class="col-md-6 text-center">
+						<div class="col-md-6 text-center mt-5">
+							<strong class="font-23">{{$payroll_group->business->name}}</strong> <br>
+							@if(!empty($payroll_group->businessLocation))
+								{{$payroll_group->businessLocation->name}} <br>
+								{!!$payroll_group->businessLocation->location_address!!}
+							@else
+								{{__('report.all_locations')}}
+							@endif
+						</div>
+						<div class="col-md-6 text-center mt-5">
 							<b class="font-17">
 								@lang('essentials::lang.payroll_group'):
 							</b>
-							{{$payroll_group->name}}
-						</div>
-						<div class="col-md-6 text-center">
+							{{$payroll_group->name}} <br>
 							<b class="font-17">
 								@lang('sale.status'):
 							</b>

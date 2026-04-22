@@ -4,6 +4,7 @@
 		<input type="hidden" class="ingredient_price" value="{{$ingredient['dpp_inc_tax']}}">
 		<input type="hidden" name="ingredients[{{$ingredient['id']}}][variation_id]"  class="ingredient_id" value="{{$ingredient['variation_id']}}">
 		<input type="hidden" class="unit_quantity" value="{{$ingredient['unit_quantity']}}">
+		<input type="hidden" name="ingredients[{{$ingredient['id']}}][mfg_ingredient_group_id]" value="{{$ingredient['mfg_ingredient_group_id']}}">
 	</td>
 	<td>
 		@php

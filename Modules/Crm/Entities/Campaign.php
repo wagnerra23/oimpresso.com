@@ -21,13 +21,13 @@ class Campaign extends Model
     protected $guarded = ['id'];
 
     /**
-    * The attributes that should be cast to native types.
-    *
-    * @var array
-    */
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
     protected $casts = [
         'contact_ids' => 'array',
-        'additional_info' => 'array'
+        'additional_info' => 'array',
     ];
 
     /**
@@ -35,7 +35,7 @@ class Campaign extends Model
      */
     public function createdBy()
     {
-        return $this->belongsTo('App\User', 'created_by');
+        return $this->belongsTo(\App\User::class, 'created_by');
     }
 
     public static function getTags()

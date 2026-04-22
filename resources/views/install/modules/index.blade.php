@@ -5,18 +5,23 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">
         @lang('lang_v1.manage_modules')
-        <small>Only superadmin can access manage modules</small>
+        <small class="tw-text-sm md:tw-text-base tw-text-gray-700 tw-font-semibold">Only superadmin can access manage modules</small>
     </h1>
     <!-- <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
         <li class="active">Here</li>
     </ol> -->
-    <button class="btn btn-sm btn-primary upload_module_btn mt-5">
+    <button class="tw-dw-btn tw-dw-btn-primary tw-text-white tw-dw-btn-sm upload_module_btn tw-mt-4">
         <i class="fas fa-upload"></i>
         @lang('lang_v1.upload_module')
     </button>
+
+    <a class="tw-dw-btn tw-dw-btn-primary tw-text-white tw-dw-btn-sm pull-right tw-mt-4" href="{{action([\App\Http\Controllers\Install\ModulesController::class, 'regenerate'])}}">
+        <i class="fas fa-tools"></i>
+        Regenerate @show_tooltip("<br/>1. Regenerate/publish modules css/js to fix not found issue. <br/> 2. Publish api module oauth files")
+    </a>
 </section>
 
 <!-- Main content -->
@@ -24,7 +29,7 @@
 <div class="row">
     <div class="col-md-12 form_col" style="display: none;">
         @component('components.widget')
-            {!! Form::open(['url' => action('\App\Http\Controllers\Install\ModulesController@uploadModule'), 'id' => 'upload_module_form','files' => true, 'style' => 'display:none']) !!}
+            {!! Form::open(['url' => action([\App\Http\Controllers\Install\ModulesController::class, 'uploadModule']), 'id' => 'upload_module_form','files' => true, 'style' => 'display:none']) !!}
                 <div class="row">
                     <div class="col-md-5">
                         <div class="form-group">
@@ -38,11 +43,11 @@
                     </div>
                     <div class="clearfix"></div>
                     <div class="col-sm-4">
-                        <button type="submit" class="btn btn-primary btn-sm">
+                        <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white tw-dw-btn-sm">
                             @lang('lang_v1.upload')
                         </button>
                         &nbsp;
-                        <button type="button" class="btn btn-danger btn-sm cancel_upload_btn">
+                        <button type="button" class="tw-dw-btn tw-dw-btn-error tw-text-white tw-dw-btn-sm cancel_upload_btn">
                             @lang('messages.cancel')
                         </button>
                     </div>
@@ -67,7 +72,7 @@
                     <td>
                         <strong>{{$module['name']}}</strong> <br/>
                         @if(!$module['is_installed'])
-                            <a class="btn btn-success btn-xs" 
+                            <a class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-accent" 
                             @if($is_demo)
                                 href="#"
                                 title="@lang('lang_v1.disabled_in_demo')"
@@ -92,7 +97,7 @@
                             {{-- Commented Activate/Deactivate
                             @if($module['active'] == 1)
                                 <form 
-                                    action="{{action('Install\ModulesController@update', ['module_name' => $module['name']])}}" 
+                                    action="{{action([\App\Http\Controllers\Install\ModulesController::class, 'update'], ['module_name' => $module['name']])}}" 
                                     style="display: inline;" 
                                     method="post">
                                     @method('PUT')
@@ -101,28 +106,28 @@
                                     <button class="btn btn-warning btn-xs">Deactivate</button>
                                 </form>
                             @else
-                                <form action="{{action('Install\ModulesController@update', ['module_name' => $module['name']])}}" 
+                                <form action="{{action([\App\Http\Controllers\Install\ModulesController::class, 'update'], ['module_name' => $module['name']])}}" 
                                     style="display: inline;" 
                                     method="post"
                                 >
                                     @method('PUT')
                                     @csrf
                                     <input type="hidden" name="action_type" value="activate">
-                                    <button class="btn btn-success btn-xs">Activate</button>
+                                    <button class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-accent">Activate</button>
                                 </form>
                             @endif
                             --}}
                         @endif
 
                         <form 
-                            action="{{action('Install\ModulesController@destroy', ['module_name' => $module['name']])}}"
+                            action="{{action([\App\Http\Controllers\Install\ModulesController::class, 'destroy'], ['module_name' => $module['name']])}}"
                                 style="display: inline;" 
                                 method="post"
                                 onsubmit="return confirm('Do you really want to delete the module? Module code will be deleted but the data will not be deleted')"
                             >
                                 @method('DELETE')
                                 @csrf
-                                <button class="btn btn-danger btn-xs"
+                                <button class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-error"
                                     @if($is_demo)
                                     disabled="disabled" 
                                     title="@lang('lang_v1.disabled_in_demo')"
@@ -152,19 +157,20 @@
             </tr>
             @php
                 $mods = unserialize($mods);
+                
             @endphp
 
             @foreach($mods as $mod)
-                @if(!isset($modules[$mod['n']]))
+                @if(!isset($modules[$mod->n]))
                     <tr>
                         <td><i class="fas fa-hand-point-right fa-2x"></i></td>
                         <td>
-                            <strong>{{$mod['dn']}}</strong> <br/>
-                            <button onclick="window.open('{{$mod['u']}}', '_blank')" 
-                            class="btn btn-xs btn-success"><i class="fas fa-money-bill"></i> Buy</button>
+                            <strong>{{$mod->dn}}</strong> <br/>
+                            <button onclick="window.open('{{$mod->u}}', '_blank')" 
+                            class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-accent"><i class="fas fa-money-bill"></i> Buy</button>
                         </td>
                         <td>
-                            {{$mod['d']}}
+                            {{$mod->d}}
                         </td>
                     </tr>
                 @endif

@@ -2,7 +2,7 @@
 @section('title', __('superadmin::lang.superadmin') . ' | ' . __('superadmin::lang.packages'))
 
 @section('content')
-
+@include('superadmin::layouts.nav')
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
@@ -24,7 +24,7 @@
 				
 				<div class="col-sm-6">
 					<div class="form-group">
-						{!! Form::label('name', 'Nome'.':') !!}
+						{!! Form::label('name', __('lang_v1.name').':') !!}
 						{!! Form::text('name',$packages->name, ['class' => 'form-control', 'required']); !!}
 					</div>
 				</div>
@@ -115,15 +115,6 @@
 						{!! Form::number('sort_order', $packages->sort_order, ['class' => 'form-control', 'required']); !!}
 					</div>
 				</div>
-				<div class="col-sm-6">
-					<div class="form-group">
-						{!! Form::label('officeimpresso_limitemaquinas	', __('superadmin::lang.officeimpresso_limitemaquinas').':') !!}
-						{!! Form::number('officeimpresso_limitemaquinas', $packages->officeimpresso_limitemaquinas, ['class' => 'form-control', 'required']); !!}
-					</div>
-					<span class="help-block">
-						@lang('superadmin::lang.infinite_help')
-					</span>
-				</div>
 				<div class="clearfix"></div>
 				<div class="col-sm-6">
 					<div class="checkbox">
@@ -172,13 +163,24 @@
 					@php
 						$value = isset($packages->custom_permissions[$permission['name']]) ? $packages->custom_permissions[$permission['name']] : false;
 					@endphp
-					<div class="col-sm-3">
-						<div class="checkbox">
+					    <div class="col-sm-3">
+                        @if(isset($permission['field_type']) && in_array($permission['field_type'], ['number', 'input']))
+						<div class="form-group">
+							{!! Form::label("custom_permissions[$permission[name]]", $permission['label'].':') !!} 
+                            @if(isset($permission['tooltip']))
+                                @show_tooltip($permission['tooltip'])
+                            @endif
+                            
+							{!! Form::text("custom_permissions[$permission[name]]", $value, ['class' => 'form-control', 'type' => $permission['field_type']]); !!} 
+						</div>
+                        @else
+                        <div class="checkbox">
 						<label>
 							{!! Form::checkbox("custom_permissions[$permission[name]]", 1, $value, ['class' => 'input-icheck']); !!}
 	                        {{$permission['label']}}
 						</label>
 						</div>
+                        @endif
 					</div>
 					@endforeach
 				@endforeach

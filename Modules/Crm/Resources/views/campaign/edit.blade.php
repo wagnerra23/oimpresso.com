@@ -14,7 +14,7 @@
 <section class="content no-print">
     <div class="box box-solid">
         <div class="box-body">
-            {!! Form::open(['url' => action('\Modules\Crm\Http\Controllers\CampaignController@update', ['campaign' => $campaign->id]), 'method' => 'put', 'id' => 'campaign_form' ]) !!}
+            {!! Form::open(['url' => action([\Modules\Crm\Http\Controllers\CampaignController::class, 'update'], ['campaign' => $campaign->id]), 'method' => 'put', 'id' => 'campaign_form' ]) !!}
                 <div class="row">
                     <div class="col-md-8">
                         <div class="form-group">

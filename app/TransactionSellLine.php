@@ -12,7 +12,7 @@ class TransactionSellLine extends Model
      * @var array
      */
     protected $guarded = ['id'];
-    
+
     public function transaction()
     {
         return $this->belongsTo(\App\Transaction::class);
@@ -34,6 +34,11 @@ class TransactionSellLine extends Model
             ->where('children_type', 'modifier');
     }
 
+    public function sell_line_purchase_lines()
+    {
+        return $this->hasMany(\App\TransactionSellLinesPurchaseLines::class, 'sell_line_id');
+    }
+
     /**
      * Get the quantity column.
      *
@@ -42,7 +47,7 @@ class TransactionSellLine extends Model
      */
     public function getQuantityAttribute($value)
     {
-        return (float)$value;
+        return (float) $value;
     }
 
     public function lot_details()
@@ -53,13 +58,14 @@ class TransactionSellLine extends Model
     public function get_discount_amount()
     {
         $discount_amount = 0;
-        if (!empty($this->line_discount_type) && !empty($this->line_discount_amount)) {
+        if (! empty($this->line_discount_type) && ! empty($this->line_discount_amount)) {
             if ($this->line_discount_type == 'fixed') {
                 $discount_amount = $this->line_discount_amount;
             } elseif ($this->line_discount_type == 'percentage') {
                 $discount_amount = ($this->unit_price_before_discount * $this->line_discount_amount) / 100;
             }
         }
+
         return $discount_amount;
     }
 
@@ -76,7 +82,7 @@ class TransactionSellLine extends Model
         $statuses = [
             'received',
             'cooked',
-            'served'
+            'served',
         ];
     }
 
@@ -90,11 +96,16 @@ class TransactionSellLine extends Model
      */
     public function warranties()
     {
-        return $this->belongsToMany('App\Warranty', 'sell_line_warranties', 'sell_line_id', 'warranty_id');
+        return $this->belongsToMany(\App\Warranty::class, 'sell_line_warranties', 'sell_line_id', 'warranty_id');
     }
 
     public function line_tax()
     {
         return $this->belongsTo(\App\TaxRate::class, 'tax_id');
+    }
+
+    public function so_line()
+    {
+        return $this->belongsTo(\App\TransactionSellLine::class, 'so_line_id');
     }
 }

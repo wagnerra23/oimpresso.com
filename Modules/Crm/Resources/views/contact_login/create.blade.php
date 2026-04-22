@@ -1,5 +1,5 @@
 <div class="modal-dialog" role="document">
-	{!! Form::open(['url' => action('\Modules\Crm\Http\Controllers\ContactLoginController@store'), 'method' => 'post', 'id' => 'contact_login_add' ]) !!}
+	{!! Form::open(['url' => action([\Modules\Crm\Http\Controllers\ContactLoginController::class, 'store']), 'method' => 'post', 'id' => 'contact_login_add' ]) !!}
 	<div class="modal-content">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -49,8 +49,8 @@
 				</div>
 				<div class="col-md-6">
 					<div class="form-group">
-					    {!! Form::label("contact_number", __( 'lang_v1.mobile_number' ) . ':') !!}
-					    {!! Form::text('contact_number', null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.mobile_number')]); !!}
+					    {!! Form::label("contact_no", __( 'lang_v1.mobile_number' ) . ':') !!}
+					    {!! Form::text('contact_no', null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.mobile_number')]); !!}
 					</div>
 				</div>
 				<div class="col-md-6">
@@ -67,6 +67,46 @@
 				</div>
 				<div class="col-md-6">
 					<div class="form-group">
+					    {!! Form::label("crm_department", __( 'lang_v1.department' ) . ':') !!}
+					    {!! Form::text("crm_department", null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.department'), 'id'=>"crm_department" ]); !!}
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+					    {!! Form::label("crm_designation", __( 'lang_v1.designation' ) . ':') !!}
+					    {!! Form::text("crm_designation", null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.designation'), 'id'=>"crm_designation" ]); !!}
+					</div>
+				</div>
+		      	<div class="col-md-6">
+			        <div class="form-group">
+			          {!! Form::label('cmmsn_percent', __( 'lang_v1.cmmsn_percent' ) . ':') !!}
+			            {!! Form::text('cmmsn_percent', null, ['class' => 'form-control input_number', 'placeholder' => __( 'lang_v1.cmmsn_percent' ) ]); !!}
+			        </div>
+			    </div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<br>
+						<label>
+							{!! Form::checkbox('is_active', 'active', true, ['class' => 'input-icheck status']); !!} {{ __('lang_v1.status_for_user') }}
+						</label>
+						@show_tooltip(__('lang_v1.tooltip_enable_user_active'))
+					</div>
+				</div>
+				<div class="clearfix"></div>
+				<div class="col-md-6">
+					<div class="form-group">
+			            <div class="checkbox">
+			              <label>
+			                {!! Form::checkbox('allow_login', 1, false, 
+			                [ 'class' => 'input-icheck allow_login', "data-loginDiv" => "crm_login_div"]); !!} {{ __( 'lang_v1.allow_login' ) }}
+			              </label>
+			            </div>
+			        </div>
+				</div>
+			</div>
+			<div class="row hide" id="crm_login_div">
+				<div class="col-md-6">
+					<div class="form-group">
 						{!! Form::label('username', __( 'business.username' ) . ':*') !!}
 						{!! Form::text('username', null, ['class' => 'form-control', 'placeholder' => __( 'business.username' ), 'required']); !!}
 					</div>
@@ -81,15 +121,6 @@
 					<div class="form-group">
 						{!! Form::label('confirm_password', __( 'business.confirm_password' ) . ':*') !!}
 						{!! Form::password('confirm_password', ['class' => 'form-control', 'required', 'placeholder' => __( 'business.confirm_password' ) ]); !!}
-					</div>
-				</div>
-		      	<div class="clearfix"></div>
-				<div class="col-md-4">
-					<div class="form-group">
-						<label>
-							{!! Form::checkbox('is_active', 'active', true, ['class' => 'input-icheck status']); !!} {{ __('lang_v1.status_for_user') }}
-						</label>
-						@show_tooltip(__('lang_v1.tooltip_enable_user_active'))
 					</div>
 				</div>
 			</div>

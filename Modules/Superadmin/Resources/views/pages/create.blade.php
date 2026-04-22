@@ -12,7 +12,7 @@
 <!-- Main content -->
 <section class="content">
 
-	{!! Form::open(['url' => action('\Modules\Superadmin\Http\Controllers\PageController@store'), 'method' => 'post', 'id' => 'add_page_form']) !!}
+	{!! Form::open(['url' => action([\Modules\Superadmin\Http\Controllers\PageController::class, 'store']), 'method' => 'post', 'id' => 'add_page_form']) !!}
 
 	<div class="box box-solid">
 		<div class="box-body">

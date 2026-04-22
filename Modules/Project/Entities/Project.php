@@ -4,6 +4,7 @@ namespace Modules\Project\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Project extends Model
 {
@@ -17,30 +18,38 @@ class Project extends Model
     protected $table = 'pjt_projects';
 
     /**
-    * The attributes that aren't mass assignable.
-    *
-    * @var array
-    */
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
     protected $guarded = ['id'];
 
     /**
-    * The attributes that should be cast to native types.
-    *
-    * @var array
-    */
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
     protected $casts = [
         'settings' => 'array',
     ];
-    
+
     protected static $logUnguarded = true;
+
     protected static $logOnlyDirty = true;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['*'])
+            ->logOnlyDirty();
+    }
     
     /**
      * The member that belongs to the project.
      */
     public function members()
     {
-        return $this->belongsToMany('App\User', 'pjt_project_members', 'project_id', 'user_id');
+        return $this->belongsToMany(\App\User::class, 'pjt_project_members', 'project_id', 'user_id');
     }
 
     /**
@@ -48,14 +57,15 @@ class Project extends Model
      */
     public function createdBy()
     {
-        return $this->belongsTo('App\User', 'created_by');
+        return $this->belongsTo(\App\User::class, 'created_by');
     }
+
     /**
      * Return the project lead
      */
     public function lead()
     {
-        return $this->belongsTo('App\User', 'lead_id');
+        return $this->belongsTo(\App\User::class, 'lead_id');
     }
 
     /**
@@ -63,7 +73,7 @@ class Project extends Model
      */
     public function customer()
     {
-        return $this->belongsTo('App\Contact', 'contact_id');
+        return $this->belongsTo(\App\Contact::class, 'contact_id');
     }
 
     /**
@@ -73,13 +83,13 @@ class Project extends Model
     {
         return $this->hasMany('Modules\Project\Entities\ProjectTask');
     }
-    
+
     /**
      * Get all of the projects's notes & documents.
      */
     public function documentsAndnote()
     {
-        return $this->morphMany('App\DocumentAndNote', 'notable');
+        return $this->morphMany(\App\DocumentAndNote::class, 'notable');
     }
 
     /**
@@ -95,7 +105,7 @@ class Project extends Model
      */
     public function categories()
     {
-        return $this->morphToMany('App\Category', 'categorizable');
+        return $this->morphToMany(\App\Category::class, 'categorizable');
     }
 
     /**
@@ -104,12 +114,12 @@ class Project extends Model
     public static function statusDropdown()
     {
         $status = [
-                'not_started' => __('project::lang.not_started'),
-                'in_progress' =>  __('project::lang.in_progress'),
-                'on_hold' => __('project::lang.on_hold'),
-                'cancelled' => __('project::lang.cancelled'),
-                'completed' => __('project::lang.completed')
-            ];
+            'not_started' => __('project::lang.not_started'),
+            'in_progress' => __('project::lang.in_progress'),
+            'on_hold' => __('project::lang.on_hold'),
+            'cancelled' => __('project::lang.cancelled'),
+            'completed' => __('project::lang.completed'),
+        ];
 
         return $status;
     }
@@ -122,7 +132,7 @@ class Project extends Model
         $projects = Project::where('business_id', $business_id);
 
         // if user_id not empty get assigned project for filter
-        if (!empty($user_id)) {
+        if (! empty($user_id)) {
             $projects->whereHas('members', function ($q) use ($user_id) {
                 $q->where('user_id', $user_id);
             });

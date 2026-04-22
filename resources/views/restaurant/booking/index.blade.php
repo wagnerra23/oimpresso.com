@@ -159,7 +159,6 @@
                 });
                 booking_form_validator = $('form#add_booking_form').validate({
                     submitHandler: function(form) {
-                        $(form).find('button[type="submit"]').attr('disabled', true);
                         var data = $(form).serialize();
 
                         $.ajax({
@@ -167,6 +166,9 @@
                             url: $(form).attr("action"),
                             dataType: "json",
                             data: data,
+                            beforeSend: function(xhr) {
+                                __disable_submit_button($(form).find('button[type="submit"]'));
+                            },
                             success: function(result){
                                 if(result.success == true){
                                     if(result.send_notification){
@@ -208,7 +210,6 @@
             $('.view_modal').on('shown.bs.modal', function (e) {
                 $('form#edit_booking_form').validate({
                     submitHandler: function(form) {
-                        $(form).find('button[type="submit"]').attr('disabled', true);
                         var data = $(form).serialize();
 
                         $.ajax({
@@ -216,6 +217,9 @@
                             url: $(form).attr("action"),
                             dataType: "json",
                             data: data,
+                            beforeSend: function(xhr) {
+                                __disable_submit_button($(form).find('button[type="submit"]'));
+                            },
                             success: function(result){
                                 if(result.success == true){
                                     $('div.view_modal').modal('hide');
@@ -235,6 +239,7 @@
             todays_bookings_table = $('#todays_bookings_table').DataTable({
                             processing: true,
                             serverSide: true,
+                            fixedHeader:false,
                             "ordering": false,
                             'searching': false,
                             "pageLength": 10,
@@ -349,7 +354,7 @@
                 rules: {
                     contact_id: {
                         remote: {
-                            url: '/contacts/check-contact-id',
+                            url: '/contacts/check-contacts-id',
                             type: 'post',
                             data: {
                                 contact_id: function() {
@@ -372,15 +377,15 @@
                     },
                 },
                 submitHandler: function(form) {
-                    $(form)
-                        .find('button[type="submit"]')
-                        .attr('disabled', true);
                     var data = $(form).serialize();
                     $.ajax({
                         method: 'POST',
                         url: $(form).attr('action'),
                         dataType: 'json',
                         data: data,
+                        beforeSend: function(xhr) {
+                            __disable_submit_button($(form).find('button[type="submit"]'));
+                        },
                         success: function(result) {
                             if (result.success == true) {
                                 $('select#booking_customer_id').append(

@@ -41,6 +41,14 @@
 
 		      					<strong>@lang('essentials::lang.designation'):</strong>
 		      					{{$designation->name ?? ''}}
+
+		      					<br>
+		      					<strong>@lang('lang_v1.primary_work_location'):</strong>
+		      					@if(!empty($location))
+		      						{{$location->name}}
+		      					@else
+		      						{{__('report.all_locations')}}
+		      					@endif
 		      					<br>
 
 		      					@if(!empty($payroll->transaction_for->id_proof_name) && !empty($payroll->transaction_for->id_proof_number))
@@ -85,7 +93,7 @@
 		      			</td>
 		      			<td>
 		      				<strong>@lang('essentials::lang.days_present'):</strong>
-		      				{{$days_in_a_month - $total_leaves}}
+		      				{{$total_days_present}}
 		      			</td>
 		      			<td>
 		      				<strong>@lang('essentials::lang.days_absent'):</strong>
@@ -289,6 +297,12 @@
 								<tr><td colspan="6" class="text-center">@lang('purchase.no_records_found')</td></tr>
 							@endforelse
 						</table>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3">
+							<strong>@lang('brand.note'):</strong><br>
+							{{$payroll->staff_note ?? ''}}
 						</td>
 					</tr>
 		      	</table>

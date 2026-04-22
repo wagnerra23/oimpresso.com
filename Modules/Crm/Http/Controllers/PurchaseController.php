@@ -15,15 +15,17 @@ class PurchaseController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $productUtil;
+
     protected $transactionUtil;
+
     protected $moduleUtil;
+
     /**
      * Constructor
      *
-     * @param ProductUtils $product
+     * @param  ProductUtils  $product
      * @return void
      */
     public function __construct(ProductUtil $productUtil, TransactionUtil $transactionUtil, ModuleUtil $moduleUtil)
@@ -41,12 +43,12 @@ class PurchaseController extends Controller
     public function getPurchaseList(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
-        
+
         $contact_type = Contact::where('business_id', $business_id)
                             ->find(auth()->user()->crm_contact_id)
                             ->type;
 
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module') && in_array($contact_type, ['supplier', 'both']))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module') && in_array($contact_type, ['supplier', 'both']))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -54,7 +56,7 @@ class PurchaseController extends Controller
             $purchases = $this->transactionUtil->getListPurchases($business_id);
 
             //filter by payment status
-            if (!empty($request->input('payment_status')) && $request->input('payment_status') != 'overdue') {
+            if (! empty($request->input('payment_status')) && $request->input('payment_status') != 'overdue') {
                 $purchases->where('transactions.payment_status', $request->input('payment_status'));
             } elseif ($request->input('payment_status') == 'overdue') {
                 $purchases->whereIn('transactions.payment_status', ['due', 'partial'])
@@ -64,14 +66,14 @@ class PurchaseController extends Controller
             }
 
             //filter by purchase status
-            if (!empty($request->status)) {
+            if (! empty($request->status)) {
                 $purchases->where('transactions.status', $request->status);
             }
 
             //filter by date
-            if (!empty($request->start_date) && !empty($request->end_date)) {
+            if (! empty($request->start_date) && ! empty($request->end_date)) {
                 $start = $request->start_date;
-                $end =  $request->end_date;
+                $end = $request->end_date;
                 $purchases->whereDate('transactions.transaction_date', '>=', $start)
                             ->whereDate('transactions.transaction_date', '<=', $end);
             }
@@ -83,27 +85,28 @@ class PurchaseController extends Controller
                 ->addColumn('action', function ($row) {
                     $html = '<div class="btn-group">
                             <button type="button" class="btn btn-info dropdown-toggle btn-xs" 
-                                data-toggle="dropdown" aria-expanded="false">' .
-                                __("messages.actions") .
+                                data-toggle="dropdown" aria-expanded="false">'.
+                                __('messages.actions').
                                 '<span class="caret"></span><span class="sr-only">Toggle Dropdown
                                 </span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-left" role="menu">
                                 <li>
-                                    <a href="#" data-href="' . action('PurchaseController@show', [$row->id]) . '" class="btn-modal" data-container=".view_modal"><i class="fas fa-eye" aria-hidden="true"></i>' . __("messages.view") . '</a>
+                                    <a href="#" data-href="'.action([\App\Http\Controllers\PurchaseController::class, 'show'], [$row->id]).'" class="btn-modal" data-container=".view_modal"><i class="fas fa-eye" aria-hidden="true"></i>'.__('messages.view').'</a>
                                 </li>
 
                                 <li>
-                                    <a href="#" class="print-invoice" data-href="' . action('PurchaseController@printInvoice', [$row->id]) . '"><i class="fas fa-print" aria-hidden="true"></i>'. __("messages.print") .'</a>
+                                    <a href="#" class="print-invoice" data-href="'.action([\App\Http\Controllers\PurchaseController::class, 'printInvoice'], [$row->id]).'"><i class="fas fa-print" aria-hidden="true"></i>'.__('messages.print').'</a>
                                 </li>';
 
-                    $html .=  '</ul>
+                    $html .= '</ul>
                             </div>';
+
                     return $html;
                 })
                 ->removeColumn('id')
                 ->editColumn('ref_no', function ($row) {
-                    return !empty($row->return_exists) ? $row->ref_no . ' <small class="label bg-red label-round no-print" title="' . __('lang_v1.some_qty_returned') .'"><i class="fas fa-undo"></i></small>' : $row->ref_no;
+                    return ! empty($row->return_exists) ? $row->ref_no.' <small class="label bg-red label-round no-print" title="'.__('lang_v1.some_qty_returned').'"><i class="fas fa-undo"></i></small>' : $row->ref_no;
                 })
                 ->editColumn(
                     'final_total',
@@ -133,7 +136,7 @@ class PurchaseController extends Controller
                             $bg = 'bg-red';
                         }
 
-                        $html = '<a href="#" class="view_payment_modal payment-status-label" data-orig-value="'.$payment_status.'" data-status-name="'.__('lang_v1.' . $payment_status).'"><span class="label '.$bg.'">'.__('lang_v1.' . $payment_status).'
+                        $html = '<a href="#" class="view_payment_modal payment-status-label" data-orig-value="'.$payment_status.'" data-status-name="'.__('lang_v1.'.$payment_status).'"><span class="label '.$bg.'">'.__('lang_v1.'.$payment_status).'
                         </span></a>';
 
                         return $html;
@@ -141,23 +144,25 @@ class PurchaseController extends Controller
                 )
                 ->addColumn('payment_due', function ($row) {
                     $due = $row->final_total - $row->amount_paid;
-                    $due_html = '<strong>' . __('lang_v1.purchase') .':</strong> <span class="display_currency payment_due" data-currency_symbol="true" data-orig-value="' . $due . '">' . $due . '</span>';
+                    $due_html = '<strong>'.__('lang_v1.purchase').':</strong> <span class="display_currency payment_due" data-currency_symbol="true" data-orig-value="'.$due.'">'.$due.'</span>';
 
-                    if (!empty($row->return_exists)) {
+                    if (! empty($row->return_exists)) {
                         $return_due = $row->amount_return - $row->return_paid;
-                        $due_html .= '<br><strong>' . __('lang_v1.purchase_return') .':</strong> <a href="#" class="no-print"><span class="display_currency purchase_return" data-currency_symbol="true" data-orig-value="' . $return_due . '">' . $return_due . '</span></a><span class="display_currency print_section" data-currency_symbol="true">' . $return_due . '</span>';
+                        $due_html .= '<br><strong>'.__('lang_v1.purchase_return').':</strong> <a href="#" class="no-print"><span class="display_currency purchase_return" data-currency_symbol="true" data-orig-value="'.$return_due.'">'.$return_due.'</span></a><span class="display_currency print_section" data-currency_symbol="true">'.$return_due.'</span>';
                     }
+
                     return $due_html;
                 })
                 ->setRowAttr([
                     'data-href' => function ($row) {
-                        return  action('PurchaseController@show', [$row->id]);
-                    }])
+                        return  action([\App\Http\Controllers\PurchaseController::class, 'show'], [$row->id]);
+                    }, ])
                 ->rawColumns(['action', 'ref_no', 'status', 'payment_status', 'final_total', 'payment_due'])
                 ->make(true);
         }
 
         $orderStatuses = $this->productUtil->orderStatuses();
+
         return view('crm::purchase.index')
             ->with(compact('orderStatuses'));
     }

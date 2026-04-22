@@ -9,12 +9,12 @@
 </style>
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('printer.edit_printer_setting')</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('printer.edit_printer_setting')</h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
-{!! Form::open(['url' => action('PrinterController@update', [$printer->id]), 'method' => 'PUT', 
+{!! Form::open(['url' => action([\App\Http\Controllers\PrinterController::class, 'update'], [$printer->id]), 'method' => 'PUT', 
 'id' => 'add_printer_form' ]) !!}
   <div class="box box-solid">
     <div class="box-body">
@@ -77,8 +77,8 @@
           </div>
         </div>
 
-        <div class="col-sm-12">
-          <button type="submit" class="btn btn-primary pull-right">@lang('messages.update')</button>
+        <div class="col-sm-12 text-center">
+          <button type="submit" class="btn btn-primary btn-big">@lang('messages.update')</button>
         </div>
       </div>
     </div>

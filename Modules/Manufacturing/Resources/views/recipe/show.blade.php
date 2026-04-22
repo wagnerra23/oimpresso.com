@@ -41,7 +41,7 @@
 										<td>
 											{{$ingredient['full_name']}}
 										</td>
-										<td><span class="display_currency" data-currency_symbol="false">{{$ingredient['quantity']}}</span> {{$ingredient['unit']}}</td>
+										<td><span class="display_currency" data-currency_symbol="false" data-is_quantity="true">{{$ingredient['quantity']}}</span> {{$ingredient['unit']}}</td>
 										<td><span class="display_currency" data-currency_symbol="false">{{$ingredient['waste_percent']}}</span>%</td>
 										<td><span class="display_currency" data-currency_symbol="true">{{$ingredient_price}}</span></td>
 									</tr>
@@ -63,7 +63,7 @@
 										<td>
 											{{$ingredient['full_name']}}
 										</td>
-										<td><span class="display_currency" data-currency_symbol="false">{{$ingredient['quantity']}}</span> {{$ingredient['unit']}}</td>
+										<td><span class="display_currency" data-currency_symbol="false" data-is_quantity="true">{{$ingredient['quantity']}}</span> {{$ingredient['unit']}}</td>
 										<td><span class="display_currency" data-currency_symbol="false">{{$ingredient['waste_percent']}}</span>%</td>
 										<td><span class="display_currency" data-currency_symbol="true">{{$ingredient['quantity']*$ingredient['dpp_inc_tax']*$ingredient['multiplier']}}</span></td>
 									</tr>
@@ -89,14 +89,8 @@
       			<div class="col-md-6">
       				<strong>@lang('manufacturing::lang.extra_cost'):</strong>
       				<span ></span>{{@num_format($recipe->extra_cost)}} @if($recipe->production_cost_type == 'percentage') % @elseif ($recipe->production_cost_type == 'per_unit') (@lang('manufacturing::lang.per_unit')) @endif <br>
-      				@php
-      					$final_price = $ingredient_total_price;
-      					if(!empty($recipe->extra_cost)) {
-      						$final_price = $final_price + ($final_price * $recipe->extra_cost / 100);
-      					}
-      				@endphp
       				<strong>@lang('sale.total'):</strong>
-      				<span class="display_currency" data-currency_symbol="true">{{$final_price}}</span>
+      				<span class="display_currency" data-currency_symbol="true">{{$recipe->final_price}}</span>
       			</div>
       		</div>
       		<div class="row">

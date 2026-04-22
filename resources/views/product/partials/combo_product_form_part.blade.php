@@ -92,7 +92,7 @@
 		//Add products
 	    if($( "#search_product" ).length > 0){
 	        $( "#search_product" ).autocomplete({
-	            source: "/purchases/get_products",
+	            source: "/purchases/get_products?check_enable_stock=false",
 	            minLength: 2,
 	            response: function(event,ui) {
 	                if (ui.content.length == 1)

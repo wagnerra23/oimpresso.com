@@ -23,14 +23,14 @@
 	@component('components.widget', ['class' => 'box-primary', 'title' => __('crm::lang.all_contacts_login')])
 		@slot('tool')
 			<div class="box-tools">
-				<a class="btn btn-sm btn-primary pull-right contact-login-add" data-href="{{action('\Modules\Crm\Http\Controllers\ContactLoginController@create')}}" >
+				<a class="btn btn-sm btn-primary pull-right contact-login-add" data-href="{{action([\Modules\Crm\Http\Controllers\ContactLoginController::class, 'create'])}}" >
 					<i class="fa fa-plus"></i>
 					@lang( 'messages.add' )
 				</a>
 			</div>
 		@endslot
 		<div class="table-responsive">
-			<table class="table table-bordered table-striped" id="contact_login_table" style="width: 100%;">
+			<table class="table table-bordered table-striped" id="all_contact_login_table" style="width: 100%;">
 				<thead>
 					<tr>
 						<th>@lang('messages.action')</th>
@@ -38,6 +38,8 @@
 						<th>@lang('business.username')</th>
 		                <th>@lang('user.name')</th>
 		                <th>@lang( 'business.email' )</th>
+		                <th>@lang( 'lang_v1.department' )</th>
+                		<th>@lang( 'lang_v1.designation' )</th>
 					</tr>
 				</thead>
 			</table>
@@ -47,5 +49,5 @@
 </section>
 @endsection
 @section('javascript')
-	@includeIf('crm::contact_login.contact_login_js')
+	<script src="{{ asset('modules/crm/js/crm.js?v=' . $asset_v) }}"></script>
 @endsection

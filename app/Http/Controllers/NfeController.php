@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Transaction;
 use App\Business;
-use App\Cidades;
+use App\City;
 use NFePHP\DA\NFe\Danfe;
 use NFePHP\DA\Legacy\FilesFolders;
 use NFePHP\DA\NFe\Daevento;
@@ -724,7 +724,7 @@ class NfeController extends Controller
 	}
 
 	public function findCidade(Request $request){
-		$cidade = Cidades::
+		$cidade = City::
 		where('nome', $request->nome)
 		->first();
 

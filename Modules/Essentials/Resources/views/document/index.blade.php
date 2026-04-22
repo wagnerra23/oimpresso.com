@@ -22,7 +22,7 @@
 			<div class="box-body">
 				<div class="row">
 					<div class="col-md-12">
-						{!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\DocumentController@store'), 'id' => 'upload_document_form','files' => true, 'style' => 'display:none']) !!}
+						{!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\DocumentController::class, 'store']), 'id' => 'upload_document_form','files' => true, 'style' => 'display:none']) !!}
 						<div class="row">
                             <div class="col-sm-12">
 	                            <div class="col-sm-6">
@@ -44,10 +44,6 @@
 	                            </div>
 	                            <div class="clearfix"></div>
                         		<div class="col-sm-4">
-							    	<button type="submit" class="btn btn-primary btn-sm">
-                                		@lang('essentials::lang.edit')
-                                	</button>
-                                	&nbsp;
                                 	<button type="submit" class="btn btn-primary btn-sm">
                                 		@lang('essentials::lang.submit')
                                 	</button>

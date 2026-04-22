@@ -61,7 +61,7 @@ class NFCeService{
 		$stdIde->dhSaiEnt = date("Y-m-d\TH:i:sP");
 		$stdIde->tpNF = 1;
 		$stdIde->idDest = 1;
-		$stdIde->cMunFG = $config->cidade->officeimpresso_codigo;
+		$stdIde->cMunFG = $config->cidade->codigo;
 		$stdIde->tpImp = 4;
 		$stdIde->tpEmis = 1;
 		$stdIde->cDV = 0;
@@ -100,7 +100,7 @@ class NFCeService{
 		$stdEnderEmit->xCpl = "";
 		
 		$stdEnderEmit->xBairro = $config->bairro;
-		$stdEnderEmit->cMun = $config->cidade->officeimpresso_codigo;
+		$stdEnderEmit->cMun = $config->cidade->codigo;
 		$stdEnderEmit->xMun = $config->cidade->nome;
 		$stdEnderEmit->UF = $config->cidade->uf;
 

@@ -9,7 +9,7 @@
     	<small>@lang('messages.edit')</small>
     </h1>
     <!-- form open -->
-    {!! Form::open(['url' => action('\Modules\Project\Http\Controllers\InvoiceController@update', $transaction->id), 'id' => 'invoice_form', 'method' => 'put']) !!}
+    {!! Form::open(['url' => action([\Modules\Project\Http\Controllers\InvoiceController::class, 'update'], $transaction->id), 'id' => 'invoice_form', 'method' => 'put']) !!}
 		<div class="box box-primary">
 			<div class="box-body">
 				<div class="row">

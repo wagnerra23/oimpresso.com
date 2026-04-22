@@ -24,14 +24,14 @@ class RepairStatus extends Model
         //Add sms, email template as attribute
         $template_attr = null;
         if ($include_attributes) {
-            $template_attr = collect($query)->mapWithKeys(function($status){
-                    return [$status->id => [
-                            'data-sms_template' => $status->sms_template ?? '',
-                            'data-email_subject' => $status->email_subject ?? '',
-                            'data-email_body' => $status->email_body ?? '',
-                            'data-is_completed_status' => $status->is_completed_status
-                        ]
-                    ];
+            $template_attr = collect($query)->mapWithKeys(function ($status) {
+                return [$status->id => [
+                    'data-sms_template' => $status->sms_template ?? '',
+                    'data-email_subject' => $status->email_subject ?? '',
+                    'data-email_body' => $status->email_body ?? '',
+                    'data-is_completed_status' => $status->is_completed_status,
+                ],
+                ];
             })->all();
         }
 

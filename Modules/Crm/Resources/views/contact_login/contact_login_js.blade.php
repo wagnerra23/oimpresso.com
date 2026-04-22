@@ -1,15 +1,13 @@
 <script type="text/javascript">
 	$(document).ready(function() {
-		var view_type = $("input#login_view_type").val();
 		var columns = [
 					{ data: 'action', name: 'action', searchable: false, sortable: false },
 	                { data: 'username', name: 'username' },
 	                { data: 'name', name: 'name', searchable: false, sortable: false },
-	                { data: 'email', name: 'email' }
+	                { data: 'email', name: 'email' },
+	                { data: 'crm_department', name: 'crm_department' },
+                	{ data: 'crm_designation', name: 'crm_designation' }
 	            ];
-		if (view_type) {
-			columns.splice(1, 0,{ data: 'contact', name: 'contact', searchable: false, sortable: false });
-		}
 
 		contact_login_datatable = $("#contact_login_table").DataTable({
 	            processing: true,
@@ -18,9 +16,6 @@
 	                url: "/crm/contact-login",
 	                data: function (d) {
 	                    d.contact_id = $('input#contact_id_for_login').val();
-	                    if ($("#contact_id").length > 0) {
-	                    	d.crm_contact_id = $("#contact_id").val();
-	                    }
 	                }
 	            },
 	            columns: columns,
@@ -232,10 +227,6 @@
 		            }
 		        }
 		    });
-		});
-
-		$(document).on('change', '#contact_id', function() {
-			contact_login_datatable.ajax.reload();
 		});
 	});
 </script>

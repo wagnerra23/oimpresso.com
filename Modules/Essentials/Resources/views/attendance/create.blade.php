@@ -1,7 +1,7 @@
 <div class="modal-dialog modal-xl" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\AttendanceController@store'), 'method' => 'post', 'id' => 'attendance_form' ]) !!}
+    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\AttendanceController::class, 'store']), 'method' => 'post', 'id' => 'attendance_form' ]) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

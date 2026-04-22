@@ -13,8 +13,8 @@ class AddProjectModuleVersionToSystemTable extends Migration
     public function up()
     {
         DB::table('system')->insert([
-            'key'=>'project_version',
-            'value' => config('project.module_version', 0.1)
+            'key' => 'project_version',
+            'value' => config('project.module_version', 0.1),
         ]);
     }
 

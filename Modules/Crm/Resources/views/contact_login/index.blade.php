@@ -1,4 +1,4 @@
-<a class="btn btn-sm btn-primary pull-right contact-login-add" data-href="{{action('\Modules\Crm\Http\Controllers\ContactLoginController@create')}}" >
+<a class="btn btn-sm btn-primary pull-right contact-login-add" data-href="{{action([\Modules\Crm\Http\Controllers\ContactLoginController::class, 'create'])}}" >
 	<i class="fa fa-plus"></i>
 	@lang( 'messages.add' )
 </a>
@@ -11,6 +11,8 @@
 				<th>@lang('business.username')</th>
                 <th>@lang('user.name')</th>
                 <th>@lang( 'business.email' )</th>
+                <th>@lang( 'lang_v1.department' )</th>
+                <th>@lang( 'lang_v1.designation' )</th>
 			</tr>
 		</thead>
 	</table>

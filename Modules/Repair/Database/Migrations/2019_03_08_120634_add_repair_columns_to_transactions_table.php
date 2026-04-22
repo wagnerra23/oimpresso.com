@@ -15,7 +15,7 @@ class AddRepairColumnsToTransactionsTable extends Migration
     {
         Schema::table('transactions', function (Blueprint $table) {
             $table->datetime('repair_completed_on')->nullable()->after('created_by');
-            
+
             $table->integer('repair_warranty_id')->nullable()->after('repair_completed_on');
 
             $table->integer('repair_brand_id')->nullable()->after('repair_warranty_id');

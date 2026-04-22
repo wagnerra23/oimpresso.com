@@ -11,6 +11,6 @@ class Transportadora extends Model
 	];
 
 	public function cidade(){
-		return $this->belongsTo(Cidades::class, 'cidade_id');
+		return $this->belongsTo(City::class, 'cidade_id');
 	}
 }

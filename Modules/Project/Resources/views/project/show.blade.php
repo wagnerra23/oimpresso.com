@@ -21,7 +21,7 @@
                         @else
                             ''
                         @endif">
-                        <a href="#project_overview" data-toggle="tab" aria-expanded="true" data-url="{{action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project->id]).'?view=overview'}}">
+                        <a href="#project_overview" data-toggle="tab" aria-expanded="true" data-url="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project->id]).'?view=overview'}}">
                         	<i class="fas fa-tachometer-alt"></i>
                         	@lang('project::lang.overview')
                         </a>

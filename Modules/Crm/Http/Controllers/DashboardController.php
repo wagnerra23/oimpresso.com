@@ -10,11 +10,13 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     protected $contactUtil;
+
     protected $moduleUtil;
+
     /**
      * Constructor
      *
-     * @param Util $commonUtil
+     * @param  Util  $commonUtil
      * @return void
      */
     public function __construct(ContactUtil $contactUtil, ModuleUtil $moduleUtil)
@@ -31,7 +33,7 @@ class DashboardController extends Controller
     public function index()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
             abort(403, 'Unauthorized action.');
         }
 

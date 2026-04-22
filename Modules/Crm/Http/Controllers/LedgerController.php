@@ -11,11 +11,13 @@ use Illuminate\Http\Request;
 class LedgerController extends Controller
 {
     protected $transactionUtil;
+
     protected $moduleUtil;
+
     /**
      * Constructor
      *
-     * @param Util $commonUtil
+     * @param  Util  $commonUtil
      * @return void
      */
     public function __construct(TransactionUtil $transactionUtil, ModuleUtil $moduleUtil)
@@ -33,7 +35,7 @@ class LedgerController extends Controller
     public function index(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -48,17 +50,17 @@ class LedgerController extends Controller
     public function getLedger()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
             abort(403, 'Unauthorized action.');
         }
-        
+
         $start_date = request()->start_date;
-        $end_date =  request()->end_date;
+        $end_date = request()->end_date;
 
         $crm_contact_id = auth()->user()->crm_contact_id;
         $contact = Contact::where('business_id', $business_id)
                     ->find($crm_contact_id);
-                    
+
         $ledger_details = $this->transactionUtil->getLedgerDetails($crm_contact_id, $start_date, $end_date);
 
         if (request()->input('action') == 'pdf') {

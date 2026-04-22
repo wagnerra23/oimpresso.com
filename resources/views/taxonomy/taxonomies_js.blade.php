@@ -22,13 +22,14 @@
                 category_table = $('#category_table').DataTable({
                     processing: true,
                     serverSide: true,
+                    fixedHeader:false,
                     ajax: '/taxonomies?type=' + category_type,
                     columns: [
-                        { data: 'name', name: 'name' },
+                        { data: 'name', name: 'name', orderable: false, searchable: false },
                         @if($cat_code_enabled)
-                            { data: 'short_code', name: 'short_code' },
+                            { data: 'short_code', name: 'short_code', orderable: false, searchable: false },
                         @endif
-                        { data: 'description', name: 'description' },
+                        { data: 'description', name: 'description', orderable: false, searchable: false },
                         { data: 'action', name: 'action', orderable: false, searchable: false},
                     ],
                 });
@@ -43,21 +44,30 @@
     });
     $(document).on('submit', 'form#category_add_form', function(e) {
         e.preventDefault();
-        $(this)
-            .find('button[type="submit"]')
-            .attr('disabled', true);
-        var data = $(this).serialize();
+        var form = $(this);
+        var data = form.serialize();
 
         $.ajax({
             method: 'POST',
             url: $(this).attr('action'),
             dataType: 'json',
             data: data,
+            beforeSend: function(xhr) {
+                __disable_submit_button(form.find('button[type="submit"]'));
+            },
             success: function(result) {
                 if (result.success === true) {
                     $('div.category_modal').modal('hide');
                     toastr.success(result.msg);
-                    category_table.ajax.reload();
+                    if(typeof category_table !== 'undefined') {
+                        category_table.ajax.reload();
+                    }
+
+                    var evt = new CustomEvent("categoryAdded", {detail: result.data});
+                    window.dispatchEvent(evt);
+
+                    //event can be listened as
+                    //window.addEventListener("categoryAdded", function(evt) {}
                 } else {
                     toastr.error(result.msg);
                 }
@@ -70,16 +80,17 @@
 
             $('form#category_edit_form').submit(function(e) {
                 e.preventDefault();
-                $(this)
-                    .find('button[type="submit"]')
-                    .attr('disabled', true);
-                var data = $(this).serialize();
+                var form = $(this);
+                var data = form.serialize();
 
                 $.ajax({
                     method: 'POST',
                     url: $(this).attr('action'),
                     dataType: 'json',
                     data: data,
+                    beforeSend: function(xhr) {
+                        __disable_submit_button(form.find('button[type="submit"]'));
+                    },
                     success: function(result) {
                         if (result.success === true) {
                             $('div.category_modal').modal('hide');

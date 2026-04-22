@@ -6,12 +6,12 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-  <h1>@lang( 'user.add_user' )</h1>
+  <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang( 'user.add_user' )</h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
-{!! Form::open(['url' => action('ManageUserController@store'), 'method' => 'post', 'id' => 'user_add_form' ]) !!}
+{!! Form::open(['url' => action([\App\Http\Controllers\ManageUserController::class, 'store']), 'method' => 'post', 'id' => 'user_add_form' ]) !!}
   <div class="row">
     <div class="col-md-12">
   @component('components.widget')
@@ -41,7 +41,7 @@
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-2">
         <div class="form-group">
           <div class="checkbox">
             <br/>
@@ -50,6 +50,23 @@
             </label>
             @show_tooltip(__('lang_v1.tooltip_enable_user_active'))
           </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <div class="checkbox">
+            <br/>
+            <label>
+                 {!! Form::checkbox('is_enable_service_staff_pin', 1, false, ['class' => 'input-icheck status', 'id' => 'is_enable_service_staff_pin']); !!} {{ __('lang_v1.enable_service_staff_pin') }}
+            </label>
+            @show_tooltip(__('lang_v1.tooltip_is_enable_service_staff_pin'))
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 hide service_staff_pin_div">
+        <div class="form-group">
+          {!! Form::label('service_staff_pin', __( 'lang_v1.staff_pin' ) . ':') !!}
+            {!! Form::password('service_staff_pin', ['class' => 'form-control', 'required' => true, 'placeholder' => __( 'lang_v1.staff_pin' ) ]); !!}
         </div>
       </div>
   @endcomponent
@@ -122,7 +139,7 @@
             <div class="checkbox">
               <label>
                 {!! Form::checkbox('location_permissions[]', 'location.' . $location->id, false, 
-                [ 'class' => 'input-icheck']); !!} {{ $location->name }}
+                [ 'class' => 'input-icheck']); !!} {{ $location->name }} @if(!empty($location->location_id))({{ $location->location_id}}) @endif
               </label>
             </div>
           </div>
@@ -161,9 +178,9 @@
       </div>
       <div class="col-sm-4 hide selected_contacts_div">
           <div class="form-group">
-              {!! Form::label('selected_contacts', __('lang_v1.selected_contacts') . ':') !!}
+              {!! Form::label('user_allowed_contacts', __('lang_v1.selected_contacts') . ':') !!}
               <div class="form-group">
-                  {!! Form::select('selected_contact_ids[]', $contacts, null, ['class' => 'form-control select2', 'multiple', 'style' => 'width: 100%;' ]); !!}
+                  {!! Form::select('selected_contact_ids[]', [], null, ['class' => 'form-control select2', 'multiple', 'style' => 'width: 100%;', 'id' => 'user_allowed_contacts' ]); !!}
               </div>
           </div>
       </div>
@@ -180,8 +197,8 @@
       @endforeach
     @endif
   <div class="row">
-    <div class="col-md-12">
-      <button type="submit" class="btn btn-primary pull-right" id="submit_user_button">@lang( 'messages.save' )</button>
+    <div class="col-md-12 text-center">
+      <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-dw-btn-lg tw-text-white" id="submit_user_button">@lang( 'messages.save' )</button>
     </div>
   </div>
 {!! Form::close() !!}
@@ -197,11 +214,53 @@
       $('div.selected_contacts_div').addClass('hide');
     });
 
+    $('#is_enable_service_staff_pin').on('ifChecked', function(event){
+      $('div.service_staff_pin_div').removeClass('hide');
+    });
+
+    $('#is_enable_service_staff_pin').on('ifUnchecked', function(event){
+      $('div.service_staff_pin_div').addClass('hide');
+      $('#service_staff_pin').val('');
+    });
+
     $('#allow_login').on('ifChecked', function(event){
       $('div.user_auth_fields').removeClass('hide');
     });
     $('#allow_login').on('ifUnchecked', function(event){
       $('div.user_auth_fields').addClass('hide');
+    });
+
+    $('#user_allowed_contacts').select2({
+        ajax: {
+            url: '/contacts/customers',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term, // search term
+                    page: params.page,
+                    all_contact: true
+                };
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+        },
+        templateResult: function (data) { 
+            var template = '';
+            if (data.supplier_business_name) {
+                template += data.supplier_business_name + "<br>";
+            }
+            template += data.text + "<br>" + LANG.mobile + ": " + data.mobile;
+
+            return  template;
+        },
+        minimumInputLength: 1,
+        escapeMarkup: function(markup) {
+            return markup;
+        },
     });
   });
 
@@ -247,13 +306,13 @@
                 },
                 messages: {
                     password: {
-                        minlength: 'A senha deve ter no mínimo 5 caracteres',
+                        minlength: 'Password should be minimum 5 characters',
                     },
                     confirm_password: {
-                        equalTo: 'Senhas não coencidem'
+                        equalTo: 'Should be same as password'
                     },
                     username: {
-                        remote: 'Este nome de usuário já esta em uso'
+                        remote: 'Invalid username or User already exist'
                     },
                     email: {
                         remote: '{{ __("validation.unique", ["attribute" => __("business.email")]) }}'
@@ -269,5 +328,8 @@
       }
     }
   });
+
+
+  
 </script>
 @endsection

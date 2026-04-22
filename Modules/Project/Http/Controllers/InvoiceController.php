@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Http\Controllers;
 
+use App\BusinessLocation;
 use App\Contact;
 use App\InvoiceScheme;
 use App\TaxRate;
@@ -16,16 +17,18 @@ use Modules\Project\Entities\InvoiceLine;
 use Modules\Project\Entities\Project;
 use Modules\Project\Entities\ProjectTransaction;
 use Yajra\DataTables\Facades\DataTables;
-use App\BusinessLocation;
+
 class InvoiceController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $commonUtil;
+
     protected $transactionUtil;
+
     protected $moduleUtil;
+
     /**
      * Constructor
      *
@@ -41,6 +44,7 @@ class InvoiceController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()
@@ -58,45 +62,45 @@ class InvoiceController extends Controller
                         ->addColumn('action', function ($row) {
                             $html = '<div class="btn-group">
                                 <button class="btn btn-info dropdown-toggle btn-xs" type="button"  data-toggle="dropdown" aria-expanded="false">
-                                    '.__("messages.action").'
+                                    '.__('messages.action').'
                                     <span class="caret"></span>
                                     <span class="sr-only">
-                                    '.__("messages.action").'
+                                    '.__('messages.action').'
                                     </span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-left" role="menu">';
 
-                            if ($row->payment_status != "paid") {
+                            if ($row->payment_status != 'paid') {
                                 $html .= '<li>
-                                    <a href="' . action('TransactionPaymentController@addPayment', ['id' => $row->id]) . '" class="add_payment_modal">
+                                    <a href="'.action([\App\Http\Controllers\TransactionPaymentController::class, 'addPayment'], [$row->id]).'" class="add_payment_modal">
                                         <i class="fas fa-credit-card"></i>
-                                        '.__("purchase.add_payment").'
+                                        '.__('purchase.add_payment').'
                                     </a>
                                 </li>';
                             }
 
                             $html .= '
                                     <li>
-                                        <a href="' . action('TransactionPaymentController@show', [$row->id]) . '" class="view_payment_modal">
-                                            <i class="fas fa-money-check"></i> ' . __("purchase.view_payments") . '
+                                        <a href="'.action([\App\Http\Controllers\TransactionPaymentController::class, 'show'], [$row->id]).'" class="view_payment_modal">
+                                            <i class="fas fa-money-check"></i> '.__('purchase.view_payments').'
                                         </a>
                                     </li>
                                     <li>
-                                        <a data-href="' . action('\Modules\Project\Http\Controllers\InvoiceController@show', ['id' => $row->id, 'project_id' => $row->pjt_project_id]) . '" class="cursor-pointer view_a_project_invoice">
+                                        <a data-href="'.action([\Modules\Project\Http\Controllers\InvoiceController::class, 'show'], [$row->id, 'project_id' => $row->pjt_project_id]).'" class="cursor-pointer view_a_project_invoice">
                                             <i class="fa fa-eye"></i>
-                                            '.__("messages.view").'
+                                            '.__('messages.view').'
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="' . action('\Modules\Project\Http\Controllers\InvoiceController@edit', ['id' => $row->id, 'project_id' => $row->pjt_project_id]) . '" class="cursor-pointer edit_a_invoice">
+                                        <a href="'.action([\Modules\Project\Http\Controllers\InvoiceController::class, 'edit'], [ $row->id, 'project_id' => $row->pjt_project_id]).'" class="cursor-pointer edit_a_invoice">
                                             <i class="fa fa-edit"></i>
-                                            '.__("messages.edit").'
+                                            '.__('messages.edit').'
                                         </a>
                                     </li>
                                     <li>
-                                        <a data-href="' . action('\Modules\Project\Http\Controllers\InvoiceController@destroy', ['id' => $row->id, 'project_id' => $row->pjt_project_id]) . '" class="cursor-pointer delete_a_invoice">
+                                        <a data-href="'.action([\Modules\Project\Http\Controllers\InvoiceController::class, 'destroy'], [$row->id, 'project_id' => $row->pjt_project_id]).'" class="cursor-pointer delete_a_invoice">
                                             <i class="fas fa-trash"></i>
-                                            '.__("messages.delete").'
+                                            '.__('messages.delete').'
                                         </a>
                                     </li>';
                             $html .= '</ul>
@@ -111,24 +115,24 @@ class InvoiceController extends Controller
                             return $row->contact->name;
                         })
                         ->editColumn('invoice_no', '
-                            <a data-href="{{action("\Modules\Project\Http\Controllers\InvoiceController@show", ["id" => $id, "project_id" => $pjt_project_id])}}" class="cursor-pointer view_a_project_invoice text-black">
+                            <a data-href="{{action([\Modules\Project\Http\Controllers\InvoiceController::class, \'show\'], [$id, "project_id" => $pjt_project_id])}}" class="cursor-pointer view_a_project_invoice text-black">
                                 {{$invoice_no}}
                             </a>
                         ')
                         ->editColumn('pjt_title', '
-                            <a data-href="{{action("\Modules\Project\Http\Controllers\InvoiceController@show", ["id" => $id, "project_id" => $pjt_project_id])}}" class="cursor-pointer view_a_project_invoice text-black">
+                            <a data-href="{{action([\Modules\Project\Http\Controllers\InvoiceController::class, \'show\'], [$id, "project_id" => $pjt_project_id])}}" class="cursor-pointer view_a_project_invoice text-black">
                                 {{$pjt_title}}
                             </a>
                         ')
                         ->editColumn(
                             'payment_status',
-                            '<a href="{{ action("TransactionPaymentController@show", [$id])}}" class="view_payment_modal payment-status-label" data-orig-value="{{$payment_status}}" data-status-name="{{__(\'lang_v1.\' . $payment_status)}}">
+                            '<a href="{{ action([\App\Http\Controllers\TransactionPaymentController::class, \'show\'], [$id])}}" class="view_payment_modal payment-status-label" data-orig-value="{{$payment_status}}" data-status-name="{{__(\'lang_v1.\' . $payment_status)}}">
                                     <span class="label @payment_status($payment_status)">{{__(\'lang_v1.\' . $payment_status)}}
                                     </span>
                             </a>'
                         )
                         ->editColumn('final_total', function ($row) {
-                            $html = '<span class="display_currency" data-currency_symbol="true" data-orig-value="' . $row->final_total . '">' . $row->final_total . '</span>';
+                            $html = '<span class="display_currency" data-currency_symbol="true" data-orig-value="'.$row->final_total.'">'.$row->final_total.'</span>';
 
                             return $html;
                         })
@@ -145,13 +149,14 @@ class InvoiceController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
      * @return Response
      */
     public function create()
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'project_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'project_module'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -176,14 +181,15 @@ class InvoiceController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * @param  Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function store(Request $request)
     {
         try {
             DB::beginTransaction();
-            
+
             $input = $request->only('pjt_project_id', 'pjt_title', 'contact_id', 'pay_term_number', 'pay_term_type', 'status', 'discount_type', 'staff_note', 'additional_notes', 'location_id');
 
             $input['business_id'] = $request->session()->get('user.business_id');
@@ -219,11 +225,11 @@ class InvoiceController extends Controller
                         'tax_rate_id' => $tax_rate_id,
                         'quantity' => $this->commonUtil->num_uf($quantity),
                         'total' => $this->commonUtil->num_uf($total),
-                        'description' => $description
+                        'description' => $description,
                     ];
                 }
             }
-            
+
             $transaction = ProjectTransaction::create($input);
 
             $transaction->invoiceLines()->createMany($invoice_lines);
@@ -232,26 +238,26 @@ class InvoiceController extends Controller
 
             $output = [
                 'success' => true,
-                'msg' => __('lang_v1.success')
+                'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
             DB::rollBack();
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
                 'success' => false,
-                'msg' => __('messages.something_went_wrong')
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
-        
-        return redirect()->action(
-            '\Modules\Project\Http\Controllers\ProjectController@show',
-            ['id' => $input['pjt_project_id']]
+
+        return redirect()->action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'],
+            [$input['pjt_project_id']]
             )->with('status', $output);
     }
 
     /**
      * Show the specified resource.
+     *
      * @return Response
      */
     public function show($id)
@@ -264,7 +270,7 @@ class InvoiceController extends Controller
                     ->where('pjt_project_id', $project_id)
                     ->with('contact', 'invoiceLines', 'invoiceLines.tax', 'project', 'payment_lines')
                     ->findOrFail($id);
-                                
+
             return view('project::invoice.show')
                 ->with(compact('transaction'));
         }
@@ -272,16 +278,17 @@ class InvoiceController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
      * @return Response
      */
     public function edit($id)
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'project_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'project_module'))) {
             abort(403, 'Unauthorized action.');
         }
-        
+
         $project_id = request()->get('project_id');
 
         $transaction = ProjectTransaction::with('invoiceLines')
@@ -297,13 +304,15 @@ class InvoiceController extends Controller
         $statuses = ProjectTransaction::invoiceStatuses();
         $discount_types = ProjectTransaction::discountTypes();
         $business_locations = BusinessLocation::forDropdown($business_id);
+
         return view('project::invoice.edit')
             ->with(compact('project', 'customers', 'statuses', 'discount_types', 'transaction', 'taxes', 'tax_attributes', 'business_locations'));
     }
 
     /**
      * Update the specified resource in storage.
-     * @param  Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function update(Request $request, $id)
@@ -361,7 +370,7 @@ class InvoiceController extends Controller
             $quantities = $request->input('quantity');
             $totals = $request->input('total');
             $descriptions = $request->input('description');
-            
+
             $invoice_lines = [];
             foreach ($tasks as $key => $value) {
                 $rate = $rates[$key];
@@ -388,26 +397,26 @@ class InvoiceController extends Controller
 
             $output = [
                 'success' => true,
-                'msg' => __('lang_v1.success')
+                'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
             DB::rollBack();
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
                 'success' => false,
-                'msg' => __('messages.something_went_wrong')
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
-        
-        return redirect()->action(
-            '\Modules\Project\Http\Controllers\ProjectController@show',
-            ['id' => $project_id]
+
+        return redirect()->action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'],
+            [$project_id]
             )->with('status', $output);
     }
 
     /**
      * Remove the specified resource from storage.
+     *
      * @return Response
      */
     public function destroy($id)
@@ -426,14 +435,14 @@ class InvoiceController extends Controller
 
             $output = [
                 'success' => true,
-                'msg' => __('lang_v1.success')
+                'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
                 'success' => false,
-                'msg' => __('messages.something_went_wrong')
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
 
@@ -448,7 +457,7 @@ class InvoiceController extends Controller
      */
     public function getProjectInvoiceTaxReport(Request $request)
     {
-        if (!auth()->user()->can('tax_report.view')) {
+        if (! auth()->user()->can('tax_report.view')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -462,10 +471,10 @@ class InvoiceController extends Controller
                 ->where('transactions.type', 'sell')
                 ->where('transactions.sub_type', 'project_invoice')
                 ->where('transactions.status', 'final')
-                ->with(['invoiceLines' => function($q){
+                ->with(['invoiceLines' => function ($q) {
                     $q->whereNotNull('pjt_invoice_lines.tax_rate_id');
                 }])
-                ->select('c.name as contact_name', 
+                ->select('c.name as contact_name',
                         'c.tax_number',
                         'transactions.ref_no',
                         'transactions.invoice_no',
@@ -479,9 +488,9 @@ class InvoiceController extends Controller
                         'transactions.discount_amount'
                     );
 
-            if (!empty(request()->start_date) && !empty(request()->end_date)) {
+            if (! empty(request()->start_date) && ! empty(request()->end_date)) {
                 $start = request()->start_date;
-                $end =  request()->end_date;
+                $end = request()->end_date;
                 $transactions->whereDate('transactions.transaction_date', '>=', $start)
                     ->whereDate('transactions.transaction_date', '<=', $end);
             }
@@ -489,9 +498,9 @@ class InvoiceController extends Controller
             $datatable = Datatables::of($transactions);
             $raw_cols = ['total_before_tax', 'discount_amount'];
             foreach ($taxes as $tax) {
-                $col = 'tax_' . $tax['id'];
+                $col = 'tax_'.$tax['id'];
                 $raw_cols[] = $col;
-                $datatable->addColumn($col, function($row) use($tax, $col) {
+                $datatable->addColumn($col, function ($row) use ($tax, $col) {
                     $tax_amount = 0;
                     foreach ($row->invoiceLines as $invoiceLine) {
                         if ($invoiceLine->tax_rate_id == $tax['id']) {
@@ -502,7 +511,7 @@ class InvoiceController extends Controller
                     }
 
                     if ($tax_amount > 0) {
-                        return '<span class="display_currency ' . $col . '" data-currency_symbol="true" data-orig-value="' . $tax_amount . '">' . $tax_amount . '</span>';
+                        return '<span class="display_currency '.$col.'" data-currency_symbol="true" data-orig-value="'.$tax_amount.'">'.$tax_amount.'</span>';
                     } else {
                         return '';
                     }

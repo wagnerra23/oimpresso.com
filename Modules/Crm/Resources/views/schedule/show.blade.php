@@ -48,7 +48,7 @@
 	<script src="{{ asset('modules/crm/js/crm.js?v=' . $asset_v) }}"></script>
 	<script type="text/javascript">
 		$(document).ready(function(){
-			getScheduleLog();
+			getScheduleLog($("input#schedule_id").val());
 		});
 	</script>
 @endsection

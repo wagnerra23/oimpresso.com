@@ -2,20 +2,14 @@
 
 namespace Modules\Connector\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use App\Product;
+use App\SellingPriceGroup;
+use App\Variation;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Modules\Connector\Transformers\CommonResource;
 use Modules\Connector\Transformers\ProductResource;
 use Modules\Connector\Transformers\VariationResource;
-use Modules\Connector\Transformers\CommonResource;
-use App\Brand;
-use App\Category;
-use App\SubCategory;
-use App\Product;
-use App\Variation;
-use App\SellingPriceGroup;
-use Carbon\Carbon;
 
 /**
  * @group Product management
@@ -23,120 +17,19 @@ use Carbon\Carbon;
  *
  * APIs for managing products
  */
-class ProductController extends BaseApiController
+class ProductController extends ApiController
 {
-
-    public function __construct()
-    {
-     
-        // Mapeamento centralizado
-        $fieldMapping = [
-            'name' => 'descricao',
-            'sku' => 'codigo',
-            'product_description' => 'descricao_nfe',
-            // 'weight' => 'comp',
-            // 'product_custom_field1' => 'product_custom_field1',
-            // 'brand_id' => 'codproduto_marca',
-            // 'category_id' => 'codproduto_categoria',
-            // 'sub_category_id' => 'sub_category_id',
-            // 'not_for_selling' => 'pode_ser_vendido',
-            // 'unit_id' => 'unidade',
-            'officeimpresso_codigo' => 'codigo',
-            'officeimpresso_dt_alteracao' => 'dt_alteracao',    
-        ];
-
-        parent::__construct(Product::class, $fieldMapping); // Passando os dois argumentos
-    }
-
-
-    public function sync(Request $request)
-    {
-        $validationRules = [
-            'data.*.codigo' => 'required|String|max:15',
-            'data.*.descricao' => 'nullable|string|max:500',
-            // 'data.*.name' => 'required|string|max:255',
-            // 'data.*.sku' => 'required|string|max:50',
-            'data.*.product_description' => 'nullable|string|max:500',
-            'data.*.weight' => 'nullable|string|max:20',
-            'data.*.product_custom_field1' => 'nullable|string|max:255',
-            'data.*.brand_id' => 'nullable|integer',
-            'data.*.category_id' => 'nullable|integer',
-            'data.*.sub_category_id' => 'nullable|integer',
-            'data.*.not_for_selling' => 'nullable|boolean',
-            'data.*.unit_id' => 'nullable|integer',
-            'data.*.oimpresso_id' => 'nullable|integer',
-        ];
-
-        // Valide os dados recebidos
-        $validatedData = $request->validate($validationRules);
-
-        // Processa os dados validados
-        $processedData = collect($validatedData['data'])->map(function ($item) {
-            return $this->processItem($item);
-        })->toArray();
-
-        // Substitui os dados no request para passar para syncData
-        $request->merge(['data' => $processedData]);
-
-        return $this->syncData($request, $validationRules, $this->fieldMapping);
-    }
-
-    /**
-     * Process individual item for sync.
-     */
-    private function processItem(array $item): array
-    {
-        // Valores padrão para esta classe
-        $defaultValues = [
-            'tax_type' => 'inclusive',
-            'type'  => 'single', 
-            'enable_stock' => 1,
-            'sku' => '0',
-            'enable_sr_no' => 0,
-            'woocommerce_disable_sync' => 0,
-            'is_inactive' => 1,
-            'not_for_selling' => $item['not_for_selling'] ?? 0,
-            'perc_icms' => 0,
-            'perc_ipi' => 0,
-            'perc_pis' => 0,
-            'perc_cofins' => 0,
-            'cfop_interno' => '0',
-            'cfop_externo' => '0',
-            'cst_csosn' => '0',
-            'cst_pis' => '0',
-            'cst_cofins' => '0',
-            'cst_ipi' => '0',
-            'ncm' => '0',
-            'cest' => '0',
-            'weight' => $item['weight'] ?? null,
-            'product_custom_field1' => $item['product_custom_field1'] ?? null,
-            // 'brand_id' => $this->resolveForeignKeyByCode(\App\Brand::class, $item['codproduto_marca'] ?? null),
-            // 'category_id' => $this->resolveForeignKeyByCode(\App\Category::class, $item['codproduto_categoria'] ?? null),
-            // 'sub_category_id' => $this->resolveForeignKeyByCode(\App\SubCategory::class, $item['codproduto_subcategoria'] ?? null),
-            'unit_id' => 215,
-            // 'unit_id' => $this->resolveForeignKeyByCode(\App\Unit::class, $item['unidade'] ?? null),
-        ];
-    
-        // Mescla os valores padrão com os valores específicos do item
-        return array_merge($defaultValues, $item);
-    }
-
-
-    /**
-     * List products updated after a specific date
-     */
-    public function getUntilDate(Request $request)
-    {
-        return $this->getData($request);
-    }
-
     /**
      * List products
-     * @queryParam brand_id         
-     * @queryParam category_id
-     * @queryParam sub_category_id
-     * @queryParam location_id
-     * @queryParam selling_price_group (1, 0) 
+     *
+     * @queryParam order_by Values: product_name or newest
+     * @queryParam order_direction Values: asc or desc
+     * @queryParam brand_id comma separated ids of one or multiple brands
+     * @queryParam category_id comma separated ids of one or multiple category
+     * @queryParam sub_category_id comma separated ids of one or multiple sub-category
+     * @queryParam location_id Example: 1
+     * @queryParam selling_price_group (1, 0)
+     * @queryParam send_lot_detail Send lot details in each variation location details(1, 0)
      * @queryParam name Search term for product name
      * @queryParam sku Search term for product sku
      * @queryParam per_page Total records per page. default: 10, Set -1 for no pagination Example:10
@@ -226,6 +119,28 @@ class ProductController extends BaseApiController
                                         "updated_at": "2020-06-09 00:07:46",
                                         "display_name": "nn.jpeg",
                                         "display_url": "http://local.pos.com/uploads/media/1591686466_978227300_nn.jpeg"
+                                    }
+                                ],
+                                "discounts": [
+                                    {
+                                        "id": 2,
+                                        "name": "FLAT 10%",
+                                        "business_id": 1,
+                                        "brand_id": null,
+                                        "category_id": null,
+                                        "location_id": 1,
+                                        "priority": 2,
+                                        "discount_type": "fixed",
+                                        "discount_amount": "5.0000",
+                                        "starts_at": "2021-09-01 11:45:00",
+                                        "ends_at": "2021-09-30 11:45:00",
+                                        "is_active": 1,
+                                        "spg": null,
+                                        "applicable_in_cg": 1,
+                                        "created_at": "2021-09-01 11:46:00",
+                                        "updated_at": "2021-09-01 12:12:55",
+                                        "formated_starts_at": " 11:45",
+                                        "formated_ends_at": " 11:45"
                                     }
                                 ],
                                 "selling_price_group": [
@@ -373,16 +288,27 @@ class ProductController extends BaseApiController
         $filters['selling_price_group'] = request()->input('selling_price_group') == 1 ? true : false;
 
         $search = request()->only(['sku', 'name']);
-        
-        $products = $this->__getProducts($business_id, $filters, $search, true); 
+
+        //order
+        $order_by = null;
+        $order_direction = null;
+
+        if (! empty(request()->input('order_by'))) {
+            $order_by = in_array(request()->input('order_by'), ['product_name', 'newest']) ? request()->input('order_by') : null;
+            $order_direction = in_array(request()->input('order_direction'), ['asc', 'desc']) ? request()->input('order_direction') : 'asc';
+        }
+
+        $products = $this->__getProducts($business_id, $filters, $search, true, $order_by, $order_direction);
 
         return ProductResource::collection($products);
     }
 
     /**
      * Get the specified product
+     *
      * @urlParam product required comma separated ids of products Example: 1
-     * @queryParam selling_price_group (1, 0) 
+     * @queryParam selling_price_group (1, 0)
+     * @queryParam send_lot_detail Send lot details in each variation location details(1, 0)
      * @response {
             "data": [
                 {
@@ -469,6 +395,28 @@ class ProductController extends BaseApiController
                                             "updated_at": "2020-06-09 00:07:46",
                                             "display_name": "nn.jpeg",
                                             "display_url": "http://local.pos.com/uploads/media/1591686466_978227300_nn.jpeg"
+                                        }
+                                    ],
+                                    "discounts": [
+                                        {
+                                            "id": 2,
+                                            "name": "FLAT 10%",
+                                            "business_id": 1,
+                                            "brand_id": null,
+                                            "category_id": null,
+                                            "location_id": 1,
+                                            "priority": 2,
+                                            "discount_type": "fixed",
+                                            "discount_amount": "5.0000",
+                                            "starts_at": "2021-09-01 11:45:00",
+                                            "ends_at": "2021-09-30 11:45:00",
+                                            "is_active": 1,
+                                            "spg": null,
+                                            "applicable_in_cg": 1,
+                                            "created_at": "2021-09-01 11:46:00",
+                                            "updated_at": "2021-09-01 12:12:55",
+                                            "formated_starts_at": " 11:45",
+                                            "formated_ends_at": " 11:45"
                                         }
                                     ],
                                     "selling_price_group": [
@@ -613,64 +561,86 @@ class ProductController extends BaseApiController
 
     /**
      * Function to query product
+     *
      * @return Response
      */
-    private function __getProducts($business_id, $filters = [], $search = [], $pagination = false)
+    private function __getProducts($business_id, $filters = [], $search = [], $pagination = false, $order_by = null, $order_direction = null)
     {
         $query = Product::where('business_id', $business_id);
 
         $with = ['product_variations.variations.variation_location_details', 'brand', 'unit', 'category', 'sub_category', 'product_tax', 'product_variations.variations.media', 'product_locations'];
 
-        if (!empty($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
+        if (! empty($filters['category_id'])) {
+            $category_ids = explode(',', $filters['category_id']);
+            $query->whereIn('category_id', $category_ids);
         }
 
-        if (!empty($filters['sub_category_id'])) {
-            $query->where('sub_category_id', $filters['sub_category_id']);
+        if (! empty($filters['sub_category_id'])) {
+            $sub_category_id = explode(',', $filters['sub_category_id']);
+            $query->whereIn('sub_category_id', $sub_category_id);
         }
 
-        if (!empty($filters['brand_id'])) {
-            $query->where('brand_id', $filters['brand_id']);
+        if (! empty($filters['brand_id'])) {
+            $brand_ids = explode(',', $filters['brand_id']);
+            $query->whereIn('brand_id', $brand_ids);
         }
 
-        if (!empty($filters['selling_price_group']) && $filters['selling_price_group'] == true) {
+        if (! empty($filters['selling_price_group']) && $filters['selling_price_group'] == true) {
             $with[] = 'product_variations.variations.group_prices';
         }
-        if (!empty($filters['location_id'])) {
+        if (! empty($filters['location_id'])) {
             $location_id = $filters['location_id'];
-            $query->whereHas('product_locations', function($q) use($location_id) {
+            $query->whereHas('product_locations', function ($q) use ($location_id) {
                 $q->where('product_locations.location_id', $location_id);
             });
+
+            $with['product_variations.variations.variation_location_details'] = function ($q) use ($location_id) {
+                $q->where('location_id', $location_id);
+            };
+
+            $with['product_locations'] = function ($q) use ($location_id) {
+                $q->where('product_locations.location_id', $location_id);
+            };
         }
 
-        if (!empty($filters['product_ids'])) {
+        if (! empty($filters['product_ids'])) {
             $query->whereIn('id', $filters['product_ids']);
         }
 
-        $perPage = !empty($filters['per_page']) ? $filters['per_page'] : $this->perPage;
-
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where(function ($query) use ($search) {
-
-                if (!empty($search['name'])) {
-                    $query->where('products.name', 'like', '%' . $search['name'] .'%');
+                if (! empty($search['name'])) {
+                    $query->where('products.name', 'like', '%'.$search['name'].'%');
                 }
-                
-                if (!empty($search['sku'])) {
+
+                if (! empty($search['sku'])) {
                     $sku = $search['sku'];
-                    $query->orWhere('sku', 'like', '%' . $sku .'%');
-                    $query->orWhereHas('variations', function($q) use($sku) {
-                        $q->where('variations.sub_sku', 'like', '%' . $sku .'%');
+                    $query->orWhere('sku', 'like', '%'.$sku.'%');
+                    $query->orWhereHas('variations', function ($q) use ($sku) {
+                        $q->where('variations.sub_sku', 'like', '%'.$sku.'%');
                     });
                 }
             });
         }
 
+        //Order by
+        if (! empty($order_by)) {
+            if ($order_by == 'product_name') {
+                $query->orderBy('products.name', $order_direction);
+            }
+
+            if ($order_by == 'newest') {
+                $query->orderBy('products.id', $order_direction);
+            }
+        }
+
         $query->with($with);
 
+        $perPage = ! empty($filters['per_page']) ? $filters['per_page'] : $this->perPage;
         if ($pagination && $perPage != -1) {
             $products = $query->paginate($perPage);
-        } else{
+            $products->appends(request()->query());
+        } else {
             $products = $query->get();
         }
 
@@ -679,8 +649,11 @@ class ProductController extends BaseApiController
 
     /**
      * List Variations
-     * @urlParam product comma separated ids of variations Example: 2
-     * @queryParam brand_id         
+     *
+     * @urlParam id comma separated ids of variations Example: 2
+     * @queryParam product_id Filter by comma separated products ids
+     * @queryParam location_id Example: 1
+     * @queryParam brand_id
      * @queryParam category_id
      * @queryParam sub_category_id
      * @queryParam not_for_selling Values: 0 or 1
@@ -883,6 +856,28 @@ class ProductController extends BaseApiController
                             "location_id": 1
                         }
                     }
+                ],
+                "discounts": [
+                    {
+                        "id": 2,
+                        "name": "FLAT 10%",
+                        "business_id": 1,
+                        "brand_id": null,
+                        "category_id": null,
+                        "location_id": 1,
+                        "priority": 2,
+                        "discount_type": "fixed",
+                        "discount_amount": "5.0000",
+                        "starts_at": "2021-09-01 11:45:00",
+                        "ends_at": "2021-09-30 11:45:00",
+                        "is_active": 1,
+                        "spg": null,
+                        "applicable_in_cg": 1,
+                        "created_at": "2021-09-01 11:46:00",
+                        "updated_at": "2021-09-01 12:12:55",
+                        "formated_starts_at": " 11:45",
+                        "formated_ends_at": " 11:45"
+                    }
                 ]
             }
         ],
@@ -926,7 +921,7 @@ class ProductController extends BaseApiController
                     'p.name as product_name',
                     'p.sku',
                     'p.type as type',
-                    'p.business_id', 
+                    'p.business_id',
                     'p.barcode_type',
                     'p.expiry_period',
                     'p.expiry_period_type',
@@ -962,24 +957,25 @@ class ProductController extends BaseApiController
                     'variations.sell_price_inc_tax',
                     'pv.id as product_variation_id',
                     'pv.name as product_variation_name'
-                )
-                ->with([
-                    'variation_location_details', 
-                    'media', 
-                    'group_prices',
-                    'product',
-                    'product.product_locations'
-                ]);
+                );
 
-        if (!empty(request()->input('category_id'))) {
+        $with = [
+            'variation_location_details',
+            'media',
+            'group_prices',
+            'product',
+            'product.product_locations',
+        ];
+
+        if (! empty(request()->input('category_id'))) {
             $query->where('category_id', request()->input('category_id'));
         }
 
-        if (!empty(request()->input('sub_category_id'))) {
+        if (! empty(request()->input('sub_category_id'))) {
             $query->where('p.sub_category_id', request()->input('sub_category_id'));
         }
 
-        if (!empty(request()->input('brand_id'))) {
+        if (! empty(request()->input('brand_id'))) {
             $query->where('p.brand_id', request()->input('brand_id'));
         }
 
@@ -989,35 +985,58 @@ class ProductController extends BaseApiController
         }
         $filters['selling_price_group'] = request()->input('selling_price_group') == 1 ? true : false;
 
+        if (! empty(request()->input('location_id'))) {
+            $location_id = request()->input('location_id');
+            $query->whereHas('product.product_locations', function ($q) use ($location_id) {
+                $q->where('product_locations.location_id', $location_id);
+            });
+
+            $with['variation_location_details'] = function ($q) use ($location_id) {
+                $q->where('location_id', $location_id);
+            };
+
+            $with['product.product_locations'] = function ($q) use ($location_id) {
+                $q->where('product_locations.location_id', $location_id);
+            };
+        }
+
         $search = request()->only(['sku', 'name']);
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where(function ($query) use ($search) {
-
-                if (!empty($search['name'])) {
-                    $query->where('p.name', 'like', '%' . $search['name'] .'%');
+                if (! empty($search['name'])) {
+                    $query->where('p.name', 'like', '%'.$search['name'].'%');
                 }
-                
-                if (!empty($search['sku'])) {
+
+                if (! empty($search['sku'])) {
                     $sku = $search['sku'];
-                    $query->orWhere('p.sku', 'like', '%' . $sku .'%')
-                        ->where('variations.sub_sku', 'like', '%' . $sku .'%');
+                    $query->orWhere('p.sku', 'like', '%'.$sku.'%')
+                        ->where('variations.sub_sku', 'like', '%'.$sku.'%');
                 }
             });
         }
 
-        $perPage = !empty(request()->input('per_page')) ? request()->input('per_page') : $this->perPage;
-
-        if (empty($variation_ids)) {
-            if ($perPage == -1) {
-                $variations = $query->get();
-            } else {
-                $variations = $query->paginate($perPage);
-            }
-        } else {
+        //filter by variations ids
+        if (! empty($variation_ids)) {
             $variation_ids = explode(',', $variation_ids);
-            $variations = $query->whereIn('variations.id', $variation_ids)
-                                ->get();
+            $query->whereIn('variations.id', $variation_ids);
+        }
+
+        //filter by product ids
+        if (! empty(request()->input('product_id'))) {
+            $product_ids = explode(',', request()->input('product_id'));
+            $query->whereIn('p.id', $product_ids);
+        }
+
+        $query->with($with);
+
+        $perPage = ! empty(request()->input('per_page')) ? request()->input('per_page') : $this->perPage;
+        if ($perPage == -1) {
+            $variations = $query->get();
+        } else {
+            //paginate
+            $variations = $query->paginate($perPage);
+            $variations->appends(request()->query());
         }
 
         return VariationResource::collection($variations);

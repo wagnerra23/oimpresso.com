@@ -16,11 +16,11 @@ class Printer extends Model
     public static function capability_profiles()
     {
         $profiles = [
-            'default' => 'Default',
-            'simple' => 'Simple',
-            'SP2000' => 'Star Branded',
-            'TEP-200M' => 'Espon Tep',
-            'P822D' => 'P822D'
+            'default' => __('lang_v1.default'),
+            'simple' => __('lang_v1.simple'),
+            'SP2000' => __('lang_v1.star_branded'),
+            'TEP-200M' => __('lang_v1.espon_tep'),
+            'P822D' => 'P822D',
         ];
 
         return $profiles;
@@ -36,9 +36,9 @@ class Printer extends Model
     public static function connection_types()
     {
         $types = [
-            'network' => 'Network',
-            'windows' => 'Windows',
-            'linux' => 'Linux'
+            'network' => __('lang_v1.network'),
+            'windows' => __('lang_v1.windows'),
+            'linux' => __('lang_v1.linux'),
         ];
 
         return $types;
@@ -54,9 +54,8 @@ class Printer extends Model
     /**
      * Return list of printers for a business
      *
-     * @param int $business_id
-     * @param boolean $show_select = true
-     *
+     * @param  int  $business_id
+     * @param  bool  $show_select = true
      * @return array
      */
     public static function forDropdown($business_id, $show_select = true)
@@ -67,6 +66,7 @@ class Printer extends Model
         if ($show_select) {
             $printers->prepend(__('messages.please_select'), '');
         }
+
         return $printers;
     }
 }

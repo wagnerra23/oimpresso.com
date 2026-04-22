@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('lang_v1.my_profile')</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('lang_v1.my_profile')</h1>
     <!-- <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
         <li class="active">Here</li>
@@ -14,7 +14,7 @@
 
 <!-- Main content -->
 <section class="content">
-{!! Form::open(['url' => action('UserController@updatePassword'), 'method' => 'post', 'id' => 'edit_password_form',
+{!! Form::open(['url' => action([\App\Http\Controllers\UserController::class, 'updatePassword']), 'method' => 'post', 'id' => 'edit_password_form',
             'class' => 'form-horizontal' ]) !!}
 <div class="row">
     <div class="col-sm-12">
@@ -58,13 +58,13 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary pull-right">@lang('messages.update')</button>
+                <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white pull-right">@lang('messages.update')</button>
             </div>
         </div>
     </div>
 </div>
 {!! Form::close() !!}
-{!! Form::open(['url' => action('UserController@updateProfile'), 'method' => 'post', 'id' => 'edit_user_profile_form', 'files' => true ]) !!}
+{!! Form::open(['url' => action([\App\Http\Controllers\UserController::class, 'updateProfile']), 'method' => 'post', 'id' => 'edit_user_profile_form', 'files' => true ]) !!}
 <div class="row">
     <div class="col-sm-8">
         <div class="box box-solid"> <!--business info box start-->
@@ -141,8 +141,8 @@
 </div>
 @include('user.edit_profile_form_part', ['bank_details' => !empty($user->bank_details) ? json_decode($user->bank_details, true) : null])
 <div class="row">
-    <div class="col-md-12">
-        <button type="submit" class="btn btn-primary pull-right">@lang('messages.update')</button>
+    <div class="col-md-12 text-center">
+        <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white tw-dw-btn-lg">@lang('messages.update')</button>
     </div>
 </div>
 {!! Form::close() !!}

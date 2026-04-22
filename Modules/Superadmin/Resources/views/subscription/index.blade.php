@@ -24,7 +24,7 @@
 
 							<div class="box-tools pull-right">
 								<span class="badge bg-green">
-									Ativo
+									@lang('superadmin::lang.running')
 								</span>
               				</div>
 
@@ -139,7 +139,7 @@
     	$('#all_subscriptions_table').DataTable({
 			processing: true,
 			serverSide: true,
-			ajax: '{{action("\Modules\Superadmin\Http\Controllers\SubscriptionController@allSubscriptions")}}',
+			ajax: '{{action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'allSubscriptions'])}}',
 			columns: [
 			    {data: 'package_name', name: 'P.name'},
 			    {data: 'start_date', name: 'start_date'},

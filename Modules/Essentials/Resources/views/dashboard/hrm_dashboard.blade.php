@@ -8,14 +8,13 @@
 	<div class="row row-custom">
 		<div class="col-md-4 col-sm-6 col-xs-12 col-custom">
 			<div class="box box-solid">
+				<div class="box-header with-border">
+	                <i class="fas fa-sign-out-alt"></i>
+	                <h3 class="box-title">@lang('essentials::lang.my_leaves')</h3>
+	            </div>
                 <div class="box-body p-10">
                     <table class="table no-margin">
                     	<thead>
-                    		<tr>
-                    			<th colspan="2">
-                    				@lang('essentials::lang.my_leaves')
-                    			</th>
-                    		</tr>
                     		@forelse($users_leaves as $user_leave)
                     			<tr>
                     				<td>
@@ -38,9 +37,67 @@
                 </div>
 	        </div>
 		</div>
+		<div class="col-md-4 col-sm-6 col-xs-12 col-custom">
+			<div class="box box-solid">
+				<div class="box-header with-border">
+	                <i class="fas fa-bullseye"></i>
+	                <h3 class="box-title">@lang('essentials::lang.my_sales_targets')</h3>
+	            </div>
+                <div class="box-body p-10">
+                    <table class="table no-margin">
+                    	<thead>
+                    		<tr>
+                    			<td>
+                    				<strong>@lang('essentials::lang.target_achieved_last_month'):
+                    				</strong>
+                    				<h4 class="text-success">@format_currency($target_achieved_last_month)</h4>
+                    			</td>
+                    			<td>
+                    				<strong>@lang('essentials::lang.target_achieved_this_month'):
+                    				</strong>
+                    				<h4 class="text-success">@format_currency($target_achieved_this_month)</h4>
+                    			</td>
+                    		</tr>
+                    		<tr>
+                    			<th>
+                    				@lang('essentials::lang.targets')
+                    			</th>
+                    			<th>
+                    				@lang('essentials::lang.commission_percent')
+                    			</th>
+                    		</tr>
+                    		@forelse($sales_targets as $target)
+                    			<tr>
+                    				<td>
+                    					@format_currency($target->target_start)
+                    					- @format_currency($target->target_end)
+                    				</td>
+                    				<td>
+                    					{{number_format($target->commission_percent, 2)}}%
+                    				</td>
+                    			</tr>
+                    		@empty
+                    			<tr>
+	                    			<td colspan="2" class="text-center">
+	                    				@lang('lang_v1.no_data')
+	                    			</td>
+	                    		</tr>
+                    		@endforelse
+                    	</thead>
+                    </table>
+                </div>
+	        </div>
+		</div>
 		@if(!$is_admin)
         	@include('essentials::dashboard.holidays')
      	@endif
+        <div class="col-md-4 col-sm-6 col-xs-12 text-center">
+            <a href="{{action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'getMyPayrolls'])}}"
+                class="btn btn-lg btn-success">
+                <i class="fas fa-coins"></i>
+                @lang('essentials::lang.my_payrolls')
+            </a>
+        </div>
 	</div>
 	@if($is_admin)
 	<hr>
@@ -198,9 +255,47 @@
 	                </div>
 	            </div>
 	        </div>
+
+	        <div class="col-md-8 col-sm-12 col-xs-12">
+	        	<div class="box box-solid">
+	        		<div class="box-header with-border">
+	                    <i class="fas fa-bullseye"></i>
+	                    <h3 class="box-title">@lang('essentials::lang.sales_targets')</h3>
+	                </div>
+	                <div class="box-body">
+	                	<table class="table" id="sales_targets_table" style="width: 100%;">
+	                		<thead>
+	                			<tr>
+	                				<th>@lang('report.user')</th>
+	                				<th>@lang('essentials::lang.target_achieved_last_month')</th>
+	                				<th>@lang('essentials::lang.target_achieved_this_month')</th>
+	                			</tr>
+	                		</thead>
+	                	</table>
+	                </div>
+	            </div>
+	        </div>
     	@endif
     </div>
     
 </section>
-<!-- /.content -->
+@stop
+@section('javascript')
+<script type="text/javascript">
+	$(document).ready( function(){
+		if ($('#sales_targets_table').length) {
+			var sales_targets_table = $('#sales_targets_table').DataTable({
+		        processing: true,
+		        serverSide: true,
+		        searching: false,
+		        scrollY:        "75vh",
+		        scrollX:        true,
+		        scrollCollapse: true,
+		        dom: 'Btirp',
+		        fixedHeader: false,
+		        ajax: "{{action([\Modules\Essentials\Http\Controllers\DashboardController::class, 'getUserSalesTargets'])}}"
+		    });
+		}
+	});
+</script>
 @endsection

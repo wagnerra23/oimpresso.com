@@ -23,6 +23,11 @@
 		$repair['repair_serial_no'] = $transaction['repair_serial_no'];
 		$repair['repair_defects'] = $transaction['repair_defects'];
 	}
+
+	$defects = [];
+	if(!empty($view_data['repair_settings'])) {
+	    $defects = isset($view_data['repair_settings']['problem_reported_by_customer']) ? explode(',', $view_data['repair_settings']['problem_reported_by_customer']) : [];
+	}
 @endphp
 
 {!! Form::hidden('has_module_data', true); !!}
@@ -30,6 +35,10 @@
 
 @if(!empty($view_data['parts']))
 	<input type="hidden" id="pos_repair_parts_used" value="{{json_encode($view_data['parts'])}}">
+@endif
+
+@if(!empty($defects))
+	<input type="hidden" id="pos_repair_defects_suggestion" value="{{json_encode($defects)}}">
 @endif
 
 @if(!empty($view_data['job_sheet']['location_id']))

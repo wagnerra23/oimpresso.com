@@ -57,7 +57,7 @@
                 <tr>
                     <td colspan="9">
                     <div style="display: flex; width: 100%;">
-                        {!! Form::open(['url' => action('\Modules\Crm\Http\Controllers\CallLogController@massDestroy'), 'method' => 'post', 'id' => 'mass_delete_form' ]) !!}
+                        {!! Form::open(['url' => action([\Modules\Crm\Http\Controllers\CallLogController::class, 'massDestroy']), 'method' => 'post', 'id' => 'mass_delete_form' ]) !!}
                         {!! Form::hidden('selected_rows', null, ['id' => 'selected_rows']); !!}
                         {!! Form::submit(__('lang_v1.delete_selected'), array('class' => 'btn btn-xs btn-danger', 'id' => 'delete-selected')) !!}
                         {!! Form::close() !!}
@@ -98,7 +98,7 @@
                 scrollCollapse: true,
                 fixedHeader: false,
                 'ajax': {
-                    url: "{{action('\Modules\Crm\Http\Controllers\CallLogController@index')}}",
+                    url: "{{action([\Modules\Crm\Http\Controllers\CallLogController::class, 'index'])}}",
                     data: function(d){
                         d.contact_id = $('#contact_id').val();
                         d.user_id = $('#user_id').val();

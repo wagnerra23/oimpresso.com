@@ -2,20 +2,14 @@
 
 namespace Modules\Project\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use App\Utils\ModuleUtil;
 use App\Utils\Util;
 
 class ProjectServiceProvider extends ServiceProvider
 {
-    /**
-     * Indicates if loading of the provider is deferred.
-     *
-     * @var bool
-     */
-    protected $defer = false;
-
     /**
      * Boot the application events.
      *
@@ -27,7 +21,8 @@ class ProjectServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerFactories();
-        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+        $this->registerScheduleCommands();
 
         View::composer(
             ['project::layouts.nav'],
@@ -46,7 +41,8 @@ class ProjectServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->register(RouteServiceProvider::class);
+        $this->registerCommands();
     }
 
     /**
@@ -76,12 +72,12 @@ class ProjectServiceProvider extends ServiceProvider
         $sourcePath = __DIR__.'/../Resources/views';
 
         $this->publishes([
-            $sourcePath => $viewPath
-        ],'views');
+            $sourcePath => $viewPath,
+        ], 'views');
 
         $this->loadViewsFrom(array_merge(array_map(function ($path) {
-            return $path . '/modules/project';
-        }, \Config::get('view.paths')), [$sourcePath]), 'project');
+            return $path.'/modules/project';
+        }, config('view.paths')), [$sourcePath]), 'project');
     }
 
     /**
@@ -96,19 +92,19 @@ class ProjectServiceProvider extends ServiceProvider
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, 'project');
         } else {
-            $this->loadTranslationsFrom(__DIR__ .'/../Resources/lang', 'project');
+            $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'project');
         }
     }
 
     /**
      * Register an additional directory of factories.
-     * 
+     *
      * @return void
      */
     public function registerFactories()
     {
-        if (! app()->environment('production')) {
-            app(Factory::class)->load(__DIR__ . '/../Database/factories');
+        if (! app()->environment('production') && $this->app->runningInConsole()) {
+            app(Factory::class)->load(__DIR__.'/../Database/factories');
         }
     }
 
@@ -120,5 +116,20 @@ class ProjectServiceProvider extends ServiceProvider
     public function provides()
     {
         return [];
+    }
+
+    /**
+     * Register commands.
+     *
+     * @return void
+     */
+    protected function registerCommands()
+    {
+        
+    }
+
+    public function registerScheduleCommands()
+    {
+
     }
 }

@@ -1,0 +1,14 @@
+/* Header */
+.main-header {
+    @apply bg-primary text-white shadow-md px-4 py-3;
+}
+
+/* Sidebar */
+.main-sidebar {
+    @apply bg-dark text-white h-full;
+}
+
+/* Footer */
+.main-footer {
+    @apply bg-light text-dark text-center py-4;
+}

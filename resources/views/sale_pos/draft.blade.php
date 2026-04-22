@@ -4,7 +4,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header no-print">
-    <h1>@lang('sale.drafts')
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('sale.drafts')
     </h1>
 </section>
 
@@ -41,8 +41,16 @@
     @component('components.widget', ['class' => 'box-primary'])
         @slot('tool')
             <div class="box-tools">
-                <a class="btn btn-block btn-primary" href="{{action('SellPosController@create')}}">
-                <i class="fa fa-plus"></i> @lang('messages.add')</a>
+                <a class="tw-dw-btn tw-bg-gradient-to-r tw-from-indigo-600 tw-to-blue-500 tw-font-bold tw-text-white tw-border-none tw-rounded-full pull-right"
+                    href="{{action([\App\Http\Controllers\SellController::class, 'create'], ['status' => 'draft'])}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="icon icon-tabler icons-tabler-outline icon-tabler-plus">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M12 5l0 14" />
+                        <path d="M5 12l14 0" />
+                    </svg>  @lang('lang_v1.add_draft')
+                </a>
             </div>
         @endslot
         <div class="table-responsive">
@@ -52,7 +60,10 @@
                         <th>@lang('messages.date')</th>
                         <th>@lang('purchase.ref_no')</th>
                         <th>@lang('sale.customer_name')</th>
+                        <th>@lang('lang_v1.contact_no')</th>
                         <th>@lang('sale.location')</th>
+                        <th>@lang('lang_v1.total_items')</th>
+                        <th>@lang('lang_v1.added_by')</th>
                         <th>@lang('messages.action')</th>
                     </tr>
                 </thead>
@@ -79,6 +90,7 @@ $(document).ready( function(){
     sell_table = $('#sell_table').DataTable({
         processing: true,
         serverSide: true,
+        fixedHeader:false,
         aaSorting: [[0, 'desc']],
         "ajax": {
             "url": '/sells/draft-dt?is_quotation=0',
@@ -101,15 +113,18 @@ $(document).ready( function(){
             }
         },
         columnDefs: [ {
-            "targets": 4,
+            "targets": 7,
             "orderable": false,
             "searchable": false
         } ],
         columns: [
             { data: 'transaction_date', name: 'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
-            { data: 'name', name: 'contacts.name'},
+            { data: 'conatct_name', name: 'conatct_name'},
+            { data: 'mobile', name: 'contacts.mobile'},
             { data: 'business_location', name: 'bl.name'},
+            { data: 'total_items', name: 'total_items', "searchable": false},
+            { data: 'added_by', name: 'added_by'},
             { data: 'action', name: 'action'}
         ],
         "fnDrawCallback": function (oSettings) {
@@ -118,6 +133,33 @@ $(document).ready( function(){
     });
     $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_customer_id, #created_by',  function() {
         sell_table.ajax.reload();
+    });
+
+    $(document).on('click', 'a.convert-to-proforma', function(e){
+        e.preventDefault();
+        swal({
+            title: LANG.sure,
+            icon: 'warning',
+            buttons: true,
+            dangerMode: true,
+        }).then(confirm => {
+            if (confirm) {
+                var url = $(this).attr('href');
+                $.ajax({
+                    method: 'GET',
+                    url: url,
+                    dataType: 'json',
+                    success: function(result) {
+                        if (result.success == true) {
+                            toastr.success(result.msg);
+                            sell_table.ajax.reload();
+                        } else {
+                            toastr.error(result.msg);
+                        }
+                    },
+                });
+            }
+        });
     });
 });
 </script>

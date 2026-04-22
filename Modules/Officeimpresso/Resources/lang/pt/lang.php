@@ -48,5 +48,7 @@ return [
 	"liberado"=>"Liberado",
 	"liberar"=>"Liberar",
 	"dados_empresa"=>"Dados da Empresa",
-	"licenca_officeimpresso"=>"Licenças Office Impresso"
+	"licenca_officeimpresso"=>"Licenças Office Impresso",
+	"regenerate_doc"=>"Regenerar Credenciais",
+	"cliente"=>"Cliente",
 ];

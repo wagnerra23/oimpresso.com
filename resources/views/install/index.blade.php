@@ -21,6 +21,9 @@
 
               <ol>
                 <li>
+                  <b>Step-by-Step document</b> - <a href="https://ultimatefosters.com/docs/ultimatepos/getting-started/installing-ultimatepos/" target="_blank">Documentation</a>
+                </li>
+                <li>
                   <b>Application Name</b> - Something short & Meaningful.
                 </li>
                 <li>
@@ -46,6 +49,7 @@
                 </li>
               </ol>
 
+              @include('install.partials.i_service')
 
               @include('install.partials.e_license')
               

@@ -2,7 +2,7 @@
 @section('title', __('superadmin::lang.superadmin') . ' | Superadmin Settings')
 
 @section('content')
-
+@include('superadmin::layouts.nav')
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>@lang('superadmin::lang.super_admin_settings')<small>@lang('superadmin::lang.edit_super_admin_settings')</small></h1>
@@ -50,7 +50,7 @@
     <div class="row">
         <div class="col-xs-12">
             <div class="form-group pull-right">
-            {{Form::submit('Atualizar', ['class'=>"btn btn-danger"])}}
+            {{Form::submit(__('messages.update'), ['class'=>"btn btn-danger"])}}
             </div>
         </div>
     </div>

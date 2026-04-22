@@ -5,12 +5,12 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('lang_v1.preview_imported_sales')</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('lang_v1.preview_imported_sales')</h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
-    {!! Form::open(['url' => action('ImportSalesController@import'), 'method' => 'post', 'id' => 'import_sale_form']) !!}
+    {!! Form::open(['url' => action([\App\Http\Controllers\ImportSalesController::class, 'import']), 'method' => 'post', 'id' => 'import_sale_form']) !!}
     {!! Form::hidden('file_name', $file_name); !!}
     @component('components.widget')
     <div class="row">
@@ -62,7 +62,7 @@
     @endcomponent
     <div class="row">
         <div class="col-md-12">
-            <button type="submit" class="btn btn-primary pull-right">@lang('messages.submit')</button>
+            <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white pull-right">@lang('messages.submit')</button>
         </div>
     </div>
     {!! Form::close() !!}

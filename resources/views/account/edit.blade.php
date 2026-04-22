@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('AccountController@update',$account->id), 'method' => 'PUT', 'id' => 'edit_payment_account_form' ]) !!}
+    {!! Form::open(['url' => action([\App\Http\Controllers\AccountController::class, 'update'],$account->id), 'method' => 'PUT', 'id' => 'edit_payment_account_form' ]) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -34,6 +34,41 @@
                 </select>
             </div>
 
+            <label>@lang('lang_v1.account_details'):</label>
+            <table class="table table-striped">
+                <tr>
+                    <th>
+                        @lang('lang_v1.label')
+                    </th>
+                    <th>
+                        @lang('product.value')
+                    </th>
+                </tr>
+                @if(!empty($account->account_details))
+                    @foreach($account->account_details as $key => $account_detail)
+                        <tr>
+                            <td>
+                                {!! Form::text('account_details['.$key.'][label]', !empty($account->account_details[$key]['label'])? $account->account_details[$key]['label'] : null, ['class' => 'form-control']); !!}
+                            </td>
+                            <td>
+                                {!! Form::text('account_details['.$key.'][value]', !empty($account->account_details[$key]['value'])?$account->account_details[$key]['value']:null, ['class' => 'form-control']); !!}      
+                            </td>
+                        </tr>
+                    @endforeach
+                @else
+                    @for ($i = 0; $i < 6; $i++)
+                        <tr>
+                            <td>
+                                {!! Form::text('account_details['.$i.'][label]', null, ['class' => 'form-control']); !!}
+                            </td>
+                            <td>
+                                {!! Form::text('account_details['.$i.'][value]', null, ['class' => 'form-control']); !!}      
+                            </td>
+                        </tr>
+                    @endfor
+                @endif
+            </table>
+            
             <div class="form-group">
                 {!! Form::label('note', __( 'brand.note' )) !!}
                 {!! Form::textarea('note', $account->note, ['class' => 'form-control', 'placeholder' => __( 'brand.note' ), 'rows' => 4]); !!}
@@ -41,8 +76,8 @@
     </div>
 
     <div class="modal-footer">
-      <button type="submit" class="btn btn-primary">@lang( 'messages.update' )</button>
-      <button type="button" class="btn btn-default" data-dismiss="modal">@lang( 'messages.close' )</button>
+      <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">@lang( 'messages.update' )</button>
+      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white" data-dismiss="modal">@lang( 'messages.close' )</button>
     </div>
 
     {!! Form::close() !!}

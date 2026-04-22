@@ -14,12 +14,12 @@ class ProjectMember extends Model
      * @var string
      */
     protected $table = 'pjt_project_members';
-    
+
     /**
-    * The attributes that aren't mass assignable.
-    *
-    * @var array
-    */
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
     protected $guarded = ['id'];
 
     public static function projectMembersDropdown($project_id, $user_id = null)
@@ -31,7 +31,7 @@ class ProjectMember extends Model
                     ->select('id', DB::raw("CONCAT(COALESCE(surname, ''),' ',COALESCE(first_name, ''),' ',COALESCE(last_name,'')) as full_name"));
 
         //filter by assigned member
-        if (!empty($user_id)) {
+        if (! empty($user_id)) {
             $project_members->where('id', $user_id);
         }
 

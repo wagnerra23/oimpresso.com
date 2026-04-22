@@ -37,7 +37,7 @@
 	<div class="col-md-6">
 		<div class="form-group">
 		    {!! Form::label("contact_number$index", __( 'lang_v1.mobile_number' ) . ':') !!}
-		    {!! Form::text($index === '' ? 'contact_number' : "contact_persons[$index][contact_number]", !empty($user->contact_number) ? $user->contact_number : null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.mobile_number'), 'id'=>"contact_number$index" ]); !!}
+		    {!! Form::text($index === '' ? 'contact_no' : "contact_persons[$index][contact_no]", !empty($user->contact_no) ? $user->contact_number : null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.mobile_number'), 'id'=>"contact_number$index" ]); !!}
 		</div>
 	</div>
 	<div class="col-md-6">
@@ -52,8 +52,26 @@
 		    {!! Form::text($index === '' ? 'family_number' : "contact_persons[$index][family_number]", !empty($user->family_number) ? $user->family_number : null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.family_contact_number'), 'id'=>"family_number$index" ]); !!}
 		</div>
 	</div>
+	<div class="col-md-6">
+		<div class="form-group">
+		    {!! Form::label("department$index", __( 'lang_v1.department' ) . ':') !!}
+		    {!! Form::text($index === '' ? 'crm_department' : "contact_persons[$index][crm_department]", !empty($user->crm_department) ? $user->crm_department : null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.department'), 'id'=>"department$index" ]); !!}
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="form-group">
+		    {!! Form::label("designation$index", __( 'lang_v1.designation' ) . ':') !!}
+		    {!! Form::text($index === '' ? 'crm_designation' : "contact_persons[$index][crm_designation]", !empty($user->crm_designation) ? $user->crm_designation : null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.designation'), 'id'=>"designation$index" ]); !!}
+		</div>
+	</div>
 	<div class="clearfix"></div>
-	<div class="col-md-12">
+	<div class="col-md-6">
+        <div class="form-group">
+          {!! Form::label("cmmsn_percent$index", __( 'lang_v1.cmmsn_percent' ) . ':') !!}
+            {!! Form::text("contact_persons[$index][cmmsn_percent]", !empty($user->cmmsn_percent) ? $user->cmmsn_percent : null, ['class' => 'form-control input_number', 'placeholder' => __( 'lang_v1.cmmsn_percent' ), 'id' => "cmmsn_percent$index" ]); !!}
+        </div>
+ 	</div>
+	<div class="col-md-6">
 		<div class="form-group">
             <div class="checkbox">
               <label>

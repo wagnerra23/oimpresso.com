@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang( 'brand.brands' )
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang( 'brand.brands' )
         <small>@lang( 'brand.manage_your_brands' )</small>
     </h1>
     <!-- <ol class="breadcrumb">
@@ -23,7 +23,7 @@
             @can('brand.create')
             	<div class="box-tools">
                     <button type="button" class="btn btn-block btn-primary btn-modal" 
-                    	data-href="{{action('BrandController@create')}}" 
+                    	data-href="{{action([\App\Http\Controllers\BrandController::class, 'create'])}}" 
                     	data-container=".brands_modal">
                     	<i class="fa fa-plus"></i> @lang( 'messages.add' )</button>
                 </div>

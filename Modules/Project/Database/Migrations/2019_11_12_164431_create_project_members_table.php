@@ -15,7 +15,7 @@ class CreateProjectMembersTable extends Migration
     {
         Schema::create('pjt_project_members', function (Blueprint $table) {
             $table->increments('id');
-            
+
             $table->unsignedInteger('project_id');
             $table->foreign('project_id')
                 ->references('id')->on('pjt_projects')

@@ -1,6 +1,6 @@
 <div class="modal-dialog" role="document">
   	<div class="modal-content">
-  		{!! Form::open(['url' => empty($shift) ? action('\Modules\Essentials\Http\Controllers\ShiftController@store') : action('\Modules\Essentials\Http\Controllers\ShiftController@update', [$shift->id]), 'method' => empty($shift) ? 'post' : 'put', 'id' => 'add_shift_form' ]) !!}
+  		{!! Form::open(['url' => empty($shift) ? action([\Modules\Essentials\Http\Controllers\ShiftController::class, 'store']) : action([\Modules\Essentials\Http\Controllers\ShiftController::class, 'update'], [$shift->id]), 'method' => empty($shift) ? 'post' : 'put', 'id' => 'add_shift_form' ]) !!}
   		<div class="modal-header">
 	      	<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 	      	<h4 class="modal-title">@lang( 'essentials::lang.add_shift' )</h4>

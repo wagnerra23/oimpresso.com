@@ -6,12 +6,12 @@
 <!-- Content Header (Page header) -->
 <section class="content-header">
 <br>
-    <h1>@lang('lang_v1.edit_purchase_return')</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('lang_v1.edit_purchase_return')</h1>
 </section>
 
 <!-- Main content -->
 <section class="content no-print">
-	{!! Form::open(['url' => action('CombinedPurchaseReturnController@update'), 'method' => 'post', 'id' => 'purchase_return_form', 'files' => true ]) !!}
+	{!! Form::open(['url' => action([\App\Http\Controllers\CombinedPurchaseReturnController::class, 'update']), 'method' => 'post', 'id' => 'purchase_return_form', 'files' => true ]) !!}
 	<div class="box box-solid">
 		<div class="box-body">
 			<div class="row">
@@ -140,7 +140,7 @@
 	</div> <!--box end-->
 	<div class="row">
 		<div class="col-md-12">
-			<button type="button" id="submit_purchase_return_form" class="btn btn-primary pull-right btn-flat">@lang('messages.update')</button>
+			<button type="button" id="submit_purchase_return_form" class="tw-dw-btn tw-dw-btn-primary tw-dw-btn-lg tw-text-white pull-right">@lang('messages.update')</button>
 		</div>
 	</div>
 	{!! Form::close() !!}

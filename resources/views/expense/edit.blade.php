@@ -5,12 +5,12 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('expense.edit_expense')</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('expense.edit_expense')</h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
-  {!! Form::open(['url' => action('ExpenseController@update', [$expense->id]), 'method' => 'PUT', 'id' => 'add_expense_form', 'files' => true ]) !!}
+  {!! Form::open(['url' => action([\App\Http\Controllers\ExpenseController::class, 'update'], [$expense->id]), 'method' => 'PUT', 'id' => 'add_expense_form', 'files' => true ]) !!}
   <div class="box box-solid">
     <div class="box-body">
       <div class="row">
@@ -27,9 +27,18 @@
           </div>
         </div>
         <div class="col-sm-4">
+            <div class="form-group">
+                {!! Form::label('expense_sub_category_id', __('product.sub_category')  . ':') !!}
+                  {!! Form::select('expense_sub_category_id', $sub_categories, $expense->expense_sub_category_id, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+            </div>
+        </div>
+        <div class="col-sm-4">
           <div class="form-group">
             {!! Form::label('ref_no', __('purchase.ref_no').':*') !!}
             {!! Form::text('ref_no', $expense->ref_no, ['class' => 'form-control', 'required']); !!}
+            <p class="help-block">
+                @lang('lang_v1.leave_empty_to_autogenerate')
+            </p>
           </div>
         </div>
         <div class="clearfix"></div>
@@ -96,8 +105,8 @@
     </div>
   </div> <!--box end-->
   @include('expense.recur_expense_form_part')
-  <div class="col-sm-12">
-    <button type="submit" class="btn btn-primary pull-right">@lang('messages.update')</button>
+  <div class="col-sm-12 text-center">
+    <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white tw-dw-btn-lg">@lang('messages.update')</button>
   </div>
 
 {!! Form::close() !!}

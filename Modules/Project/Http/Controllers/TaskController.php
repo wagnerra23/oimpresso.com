@@ -20,11 +20,13 @@ class TaskController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $commonUtil;
+
     protected $projectUtil;
+
     protected $moduleUtil;
+
     /**
      * Constructor
      *
@@ -41,6 +43,7 @@ class TaskController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()
@@ -49,8 +52,8 @@ class TaskController extends Controller
         $is_admin = $this->commonUtil->is_admin(auth()->user(), $business_id);
         $user = request()->session()->get('user');
         $statuses = ProjectTask::taskStatuses();
-        
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'project_module'))) {
+
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'project_module'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -61,19 +64,19 @@ class TaskController extends Controller
 
             //if user is not admin get assiged task only
             $user_id = $user['id'];
-            if (empty(request()->get('project_id')) && !$is_admin) {
+            if (empty(request()->get('project_id')) && ! $is_admin) {
                 $project_task->whereHas('members', function ($q) use ($user_id) {
                     $q->where('user_id', $user_id);
                 });
             }
 
             //filter by project id
-            if (!empty(request()->get('project_id'))) {
+            if (! empty(request()->get('project_id'))) {
                 $project_task->where('project_id', request()->get('project_id'));
             }
 
             //filter by assigned to
-            if (!empty(request()->get('user_id'))) {
+            if (! empty(request()->get('user_id'))) {
                 $user_id = request()->get('user_id');
                 $project_task->whereHas('members', function ($q) use ($user_id) {
                     $q->where('user_id', $user_id);
@@ -81,17 +84,17 @@ class TaskController extends Controller
             }
 
             // filter by status
-            if (!empty(request()->get('status'))) {
+            if (! empty(request()->get('status'))) {
                 $project_task->where('status', request()->get('status'));
             }
 
             // filter by priority
-            if (!empty(request()->get('priority'))) {
+            if (! empty(request()->get('priority'))) {
                 $project_task->where('priority', request()->get('priority'));
             }
 
             // filter by due date
-            if (!empty(request()->get('due_date'))) {
+            if (! empty(request()->get('due_date'))) {
                 if (request()->get('due_date') == 'overdue') {
                     $project_task->where('due_date', '<', Carbon::today())
                                 ->where('status', '!=', 'completed');
@@ -122,37 +125,37 @@ class TaskController extends Controller
                     ->addColumn('action', function ($row) use ($can_crud) {
                         $html = '<div class="btn-group">
                                     <button class="btn btn-info dropdown-toggle btn-xs" type="button"  data-toggle="dropdown" aria-expanded="false">
-                                        '. __("messages.action").'
+                                        '.__('messages.action').'
                                         <span class="caret"></span>
                                         <span class="sr-only">'
-                                           . __("messages.action").'
+                                           .__('messages.action').'
                                         </span>
                                     </button>
                                       <ul class="dropdown-menu dropdown-menu-left" role="menu">
                                        <li>
-                                            <a data-href="' . action('\Modules\Project\Http\Controllers\TaskController@show', ['id' => $row->id, 'project_id' => $row->project_id]) . '" class="cursor-pointer view_a_project_task">
+                                            <a data-href="'.action([\Modules\Project\Http\Controllers\TaskController::class, 'show'], [$row->id, 'project_id' => $row->project_id]).'" class="cursor-pointer view_a_project_task">
                                                 <i class="fa fa-eye"></i>
-                                                '.__("messages.view").'
+                                                '.__('messages.view').'
                                             </a>
                                         </li>
                                         <li>
-                                            <a data-href="' . action('\Modules\Project\Http\Controllers\TaskController@getTaskStatus', ['id' => $row->id, 'project_id' => $row->project_id]) . '"class="cursor-pointer change_status_of_project_task">
+                                            <a data-href="'.action([\Modules\Project\Http\Controllers\TaskController::class, 'getTaskStatus'], ['id' => $row->id, 'project_id' => $row->project_id]).'"class="cursor-pointer change_status_of_project_task">
                                                 <i class="fa fa-check"></i>
-                                                '.__("project::lang.change_status").'
+                                                '.__('project::lang.change_status').'
                                             </a>
                                         </li>';
 
                         if ($can_crud) {
                             $html .= '<li>
-                                    <a data-href="' . action('\Modules\Project\Http\Controllers\TaskController@edit', ['id' => $row->id, 'project_id' => $row->project_id]) . '" class="cursor-pointer edit_a_project_task">
+                                    <a data-href="'.action([\Modules\Project\Http\Controllers\TaskController::class, 'edit'], [$row->id, 'project_id' => $row->project_id]).'" class="cursor-pointer edit_a_project_task">
                                         <i class="fa fa-edit"></i>
-                                        '.__("messages.edit").'
+                                        '.__('messages.edit').'
                                     </a>
                                 </li>
                                 <li>
-                                    <a data-href="' . action('\Modules\Project\Http\Controllers\TaskController@destroy', ['id' => $row->id, 'project_id' => $row->project_id]) . '" class="cursor-pointer delete_a_project_task">
+                                    <a data-href="'.action([\Modules\Project\Http\Controllers\TaskController::class, 'destroy'], [$row->id, 'project_id' => $row->project_id]).'" class="cursor-pointer delete_a_project_task">
                                         <i class="fas fa-trash"></i>
-                                        '.__("messages.delete").'
+                                        '.__('messages.delete').'
                                     </a>
                                 </li>';
                         }
@@ -169,7 +172,6 @@ class TaskController extends Controller
                                 $priority
                             .'</span>';
 
-                        
                         return $html;
                     })
                     ->editColumn('start_date', '
@@ -183,7 +185,7 @@ class TaskController extends Controller
                             @endif
                     ')
                     ->editColumn('createdBy', function ($row) {
-                        return optional($row->createdBy)->user_full_name;
+                        return $row->createdBy?->user_full_name;
                     })
                     ->editColumn('project', function ($row) {
                         return $row->project->name;
@@ -218,7 +220,7 @@ class TaskController extends Controller
                             $bg = 'bg-red';
                         }
 
-                        $href = action("\Modules\Project\Http\Controllers\TaskController@getTaskStatus", ["id" => $row->id, "project_id" => $row->project_id]);
+                        $href = action([\Modules\Project\Http\Controllers\TaskController::class, 'getTaskStatus'], ['id' => $row->id, 'project_id' => $row->project_id]);
 
                         $html = '<span class="cursor-pointer change_status_of_project_task label '.$bg.'" data-href="'.$href.'">
                                 '.
@@ -228,7 +230,7 @@ class TaskController extends Controller
                         return $html;
                     })
                     ->editColumn('subject', '
-                            <a data-href="{{action("\Modules\Project\Http\Controllers\TaskController@show", ["id" => $id, "project_id" => $project_id])}}" class="cursor-pointer view_a_project_task text-black">
+                            <a data-href="{{action([\Modules\Project\Http\Controllers\TaskController::class, \'show\'], [$id, "project_id" => $project_id])}}" class="cursor-pointer view_a_project_task text-black">
                                 {{$subject}} <code>{{$task_id}}</code>
                             </a>
                         ')
@@ -241,7 +243,7 @@ class TaskController extends Controller
                 //sort array based on status
                 $project_tasks = [];
                 foreach ($statuses as $key => $value) {
-                    if (!isset($project_task[$key])) {
+                    if (! isset($project_task[$key])) {
                         $project_tasks[$key] = [];
                     } else {
                         $project_tasks[$key] = $project_task[$key];
@@ -256,12 +258,12 @@ class TaskController extends Controller
                         $edit = '';
                         $delete = '';
                         if ($can_crud) {
-                            $edit = action('\Modules\Project\Http\Controllers\TaskController@edit', ['id' => $task->id, 'project_id' => $task->project_id]);
+                            $edit = action([\Modules\Project\Http\Controllers\TaskController::class, 'edit'], [$task->id, 'project_id' => $task->project_id]);
 
-                            $delete = action('\Modules\Project\Http\Controllers\TaskController@destroy', ['id' => $task->id, 'project_id' => $task->project_id]);
+                            $delete = action([\Modules\Project\Http\Controllers\TaskController::class, 'destroy'], [$task->id, 'project_id' => $task->project_id]);
                         }
 
-                        $view = action('\Modules\Project\Http\Controllers\TaskController@show', ['id' => $task->id, 'project_id' => $task->project_id]);
+                        $view = action([\Modules\Project\Http\Controllers\TaskController::class, 'show'], [$task->id, 'project_id' => $task->project_id]);
 
                         //if member then get their avatar
                         if ($task->members->count() > 0) {
@@ -270,7 +272,7 @@ class TaskController extends Controller
                                 if (isset($member->media->display_url)) {
                                     $assigned_to[$member->user_full_name] = $member->media->display_url;
                                 } else {
-                                    $assigned_to[$member->user_full_name] = "https://ui-avatars.com/api/?name=".$member->first_name;
+                                    $assigned_to[$member->user_full_name] = 'https://ui-avatars.com/api/?name='.$member->first_name;
                                 }
                             }
                         }
@@ -287,7 +289,7 @@ class TaskController extends Controller
                             'editUrlClass' => 'edit_a_project_task',
                             'deleteUrl' => $delete,
                             'deleteUrlClass' => 'delete_a_project_task',
-                            'hasDescription' => !empty($task->description) ?: false,
+                            'hasDescription' => ! empty($task->description) ?: false,
                             'hasComments' => ($task->comments->count() > 0) ?: false,
                             'dueDate' => $task->due_date,
                             'assigned_to' => $assigned_to,
@@ -306,7 +308,7 @@ class TaskController extends Controller
                 $output = [
                     'success' => true,
                     'project_tasks' => $kanban_tasks,
-                    'msg' => __('lang_v1.success')
+                    'msg' => __('lang_v1.success'),
                 ];
 
                 return $output;
@@ -320,7 +322,7 @@ class TaskController extends Controller
 
         // if not admin get assigned project for filter
         $user_id = null;
-        if (!$is_admin) {
+        if (! $is_admin) {
             $user_id = $user['id'];
         }
 
@@ -332,6 +334,7 @@ class TaskController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
      * @return Response
      */
     public function create()
@@ -347,25 +350,26 @@ class TaskController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * @param  Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function store(Request $request)
     {
         try {
             $input = $request->only('subject', 'project_id', 'description', 'priority', 'custom_field_1', 'custom_field_2', 'custom_field_3', 'custom_field_4', 'status');
-            $input['start_date'] = !empty($request->input('start_date')) ? $this->commonUtil->uf_date($request->input('start_date')) : null;
-            $input['due_date'] = !empty($request->input('due_date')) ? $this->commonUtil->uf_date($request->input('due_date')) : null;
+            $input['start_date'] = ! empty($request->input('start_date')) ? $this->commonUtil->uf_date($request->input('start_date')) : null;
+            $input['due_date'] = ! empty($request->input('due_date')) ? $this->commonUtil->uf_date($request->input('due_date')) : null;
             $input['created_by'] = $request->user()->id;
             $input['business_id'] = request()->session()->get('user.business_id');
             $input['task_id'] = $this->projectUtil->generateTaskId($input['business_id'], $input['project_id']);
             $members = $request->input('user_id');
-            
+
             $project_task = ProjectTask::create($input);
             $task_members = $project_task->members()->sync($members);
 
             // send notification to task members
-            if (!empty($task_members['attached'])) {
+            if (! empty($task_members['attached'])) {
                 //check if user is a creator then don't notify him
                 foreach ($task_members['attached'] as $key => $value) {
                     if ($value == $project_task->created_by) {
@@ -378,26 +382,26 @@ class TaskController extends Controller
                 $project_task['body'] = strip_tags(__(
                     'project::lang.new_task_assgined_notification',
                     [
-                    'created_by' => $request->user()->user_full_name,
-                    'subject' => $project_task->subject,
-                    'task_id' => $project_task->task_id
+                        'created_by' => $request->user()->user_full_name,
+                        'subject' => $project_task->subject,
+                        'task_id' => $project_task->task_id,
                     ]
                 ));
-                $project_task['link'] = action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project_task->project_id]);
+                $project_task['link'] = action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project_task->project_id]);
 
                 $this->projectUtil->notifyUsersAboutAssignedTask($task_members['attached'], $project_task);
             }
 
             $output = [
                 'success' => true,
-                'msg' => __('lang_v1.success')
+                'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
                 'success' => false,
-                'msg' => __('messages.something_went_wrong')
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
 
@@ -406,6 +410,7 @@ class TaskController extends Controller
 
     /**
      * Show the specified resource.
+     *
      * @return Response
      */
     public function show($id)
@@ -413,10 +418,10 @@ class TaskController extends Controller
         $project_id = request()->get('project_id');
 
         $project_task = ProjectTask::with(['members', 'createdBy', 'project',
-                        'comments' => function ($query) {
-                            $query->latest();
-                        },
-                        'comments.media', 'comments.commentedBy', 'timeLogs', 'timeLogs.user'])
+            'comments' => function ($query) {
+                $query->latest();
+            },
+            'comments.media', 'comments.commentedBy', 'timeLogs', 'timeLogs.user', ])
                         ->where('project_id', $project_id)
                         ->findOrFail($id);
 
@@ -437,6 +442,7 @@ class TaskController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
      * @return Response
      */
     public function edit($id)
@@ -449,23 +455,25 @@ class TaskController extends Controller
         $project_members = ProjectMember::projectMembersDropdown($project_id);
         $priorities = ProjectTask::prioritiesDropdown();
         $statuses = ProjectTask::taskStatuses();
+
         return view('project::task.edit')
             ->with(compact('project_members', 'priorities', 'project_task', 'statuses'));
     }
 
     /**
      * Update the specified resource in storage.
-     * @param  Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function update(Request $request, $id)
     {
         try {
             $input = $request->only('subject', 'description', 'priority', 'custom_field_1', 'custom_field_2', 'custom_field_3', 'custom_field_4', 'status');
-            $input['start_date'] = !empty($request->input('start_date')) ? $this->commonUtil->uf_date($request->input('start_date')) : null;
-            $input['due_date'] = !empty($request->input('due_date')) ? $this->commonUtil->uf_date($request->input('due_date')) : null;
+            $input['start_date'] = ! empty($request->input('start_date')) ? $this->commonUtil->uf_date($request->input('start_date')) : null;
+            $input['due_date'] = ! empty($request->input('due_date')) ? $this->commonUtil->uf_date($request->input('due_date')) : null;
             $members = $request->input('user_id');
-            
+
             $project_id = $request->get('project_id');
             $project_task = ProjectTask::where('project_id', $project_id)
                 ->findOrFail($id);
@@ -474,7 +482,7 @@ class TaskController extends Controller
             $task_members = $project_task->members()->sync($members);
 
             // send notification to task members
-            if (!empty($task_members['attached'])) {
+            if (! empty($task_members['attached'])) {
                 //check if user is a creator then don't notify him
                 foreach ($task_members['attached'] as $key => $value) {
                     if ($value == $project_task->created_by) {
@@ -486,26 +494,26 @@ class TaskController extends Controller
                 $project_task['body'] = strip_tags(__(
                     'project::lang.new_task_assgined_notification',
                     [
-                    'created_by' => $request->user()->user_full_name,
-                    'subject' => $project_task->subject,
-                    'task_id' => $project_task->task_id
+                        'created_by' => $request->user()->user_full_name,
+                        'subject' => $project_task->subject,
+                        'task_id' => $project_task->task_id,
                     ]
                 ));
-                $project_task['link'] = action('\Modules\Project\Http\Controllers\ProjectController@show', ['id' => $project_task->project_id]);
-                
+                $project_task['link'] = action([\Modules\Project\Http\Controllers\ProjectController::class, 'show'], [$project_task->project_id]);
+
                 $this->projectUtil->notifyUsersAboutAssignedTask($task_members['attached'], $project_task);
             }
 
             $output = [
                 'success' => true,
-                'msg' => __('lang_v1.success')
+                'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
                 'success' => false,
-                'msg' => __('messages.something_went_wrong')
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
 
@@ -514,6 +522,7 @@ class TaskController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
      * @return Response
      */
     public function destroy($id)
@@ -528,21 +537,23 @@ class TaskController extends Controller
 
             $output = [
                 'success' => true,
-                'msg' => __('lang_v1.success')
+                'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
                 'success' => false,
-                'msg' => __('messages.something_went_wrong')
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
+
         return $output;
     }
 
     /**
      * get task status for update.
+     *
      * @return Response
      */
     public function getTaskStatus()
@@ -559,13 +570,14 @@ class TaskController extends Controller
 
     /**
      * update task status
+     *
      * @return Response
      */
     public function postTaskStatus($id)
     {
         try {
             $project_id = request()->get('project_id');
-            
+
             $project_task = ProjectTask::where('project_id', $project_id)
                 ->findOrFail($id);
 
@@ -574,14 +586,14 @@ class TaskController extends Controller
 
             $output = [
                 'success' => true,
-                'msg' => __('lang_v1.success')
+                'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
                 'success' => false,
-                'msg' => __('messages.something_went_wrong')
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
 
@@ -590,6 +602,7 @@ class TaskController extends Controller
 
     /**
      * update task description
+     *
      * @return Response
      */
     public function postTaskDescription($id)
@@ -602,25 +615,25 @@ class TaskController extends Controller
 
             $project_task->description = request()->input('description');
             $project_task->save();
-            
+
             $project_task = ProjectTask::findOrFail($id);
 
             //dynamically change description in task view
-            $task_description_html = View::make('project::task.partials.edit_description')
+            $task_description_html = view('project::task.partials.edit_description')
                 ->with(compact('project_task'))
                 ->render();
 
             $output = [
                 'success' => true,
                 'task_description_html' => $task_description_html,
-                'msg' => __('lang_v1.success')
+                'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
                 'success' => false,
-                'msg' => __('messages.something_went_wrong')
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
 

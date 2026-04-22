@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('AccountController@store'), 'method' => 'post', 'id' => 'payment_account_form' ]) !!}
+    {!! Form::open(['url' => action([\App\Http\Controllers\AccountController::class, 'store']), 'method' => 'post', 'id' => 'payment_account_form' ]) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -39,6 +39,27 @@
                 {!! Form::text('opening_balance', 0, ['class' => 'form-control input_number','placeholder' => __( 'account.opening_balance' ) ]); !!}
             </div>
 
+            <label>@lang('lang_v1.account_details'):</label>
+            <table class="table table-striped">
+                <tr>
+                    <th>
+                        @lang('lang_v1.label')
+                    </th>
+                    <th>
+                        @lang('product.value')
+                    </th>
+                </tr>
+                @for ($i = 0; $i < 6; $i++)
+                    <tr>
+                        <td>
+                            {!! Form::text('account_details['.$i.'][label]', null, ['class' => 'form-control']); !!}
+                        </td>
+                        <td>
+                            {!! Form::text('account_details['.$i.'][value]', null, ['class' => 'form-control']); !!}      
+                        </td>
+                    </tr>
+                @endfor
+            </table>
         
             <div class="form-group">
                 {!! Form::label('note', __( 'brand.note' )) !!}
@@ -47,8 +68,8 @@
     </div>
 
     <div class="modal-footer">
-      <button type="submit" class="btn btn-primary">@lang( 'messages.save' )</button>
-      <button type="button" class="btn btn-default" data-dismiss="modal">@lang( 'messages.close' )</button>
+      <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">@lang( 'messages.save' )</button>
+      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white" data-dismiss="modal">@lang( 'messages.close' )</button>
     </div>
 
     {!! Form::close() !!}

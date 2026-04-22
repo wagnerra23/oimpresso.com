@@ -20,7 +20,7 @@ class CreateDeviceModelsTable extends Migration
             $table->foreign('business_id')
                     ->references('id')->on('business')
                     ->onDelete('cascade');
-                    
+
             $table->string('name');
             $table->text('repair_checklist')->nullable();
 

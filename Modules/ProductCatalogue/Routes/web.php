@@ -11,16 +11,14 @@
 |
 */
 
-Route::group(['namespace' => '\Modules\ProductCatalogue\Http\Controllers'], function () {
-	Route::get('/catalogue/{business_id}/{location_id}', 'ProductCatalogueController@index');
-	Route::get('/show-catalogue/{business_id}/{product_id}', 'ProductCatalogueController@show');
-});
+Route::get('/catalogue/{business_id}/{location_id}', [\Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController::class, 'index']);
+Route::get('/show-catalogue/{business_id}/{product_id}', [\Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController::class, 'show']);
 
-Route::group(['middleware' => ['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'], 'namespace' => '\Modules\ProductCatalogue\Http\Controllers', 'prefix' => 'product-catalogue'], function () {
-    Route::get('catalogue-qr', 'ProductCatalogueController@generateQr');
+Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->prefix('product-catalogue')->group(function () {
+    Route::get('catalogue-qr', [\Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController::class, 'generateQr']);
 
-    Route::get('install', 'InstallController@index');
-    Route::post('install', 'InstallController@install');
-    Route::get('install/uninstall', 'InstallController@uninstall');
-    Route::get('install/update', 'InstallController@update');
+    Route::get('install', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'index']);
+    Route::post('install', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'install']);
+    Route::get('install/uninstall', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'uninstall']);
+    Route::get('install/update', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'update']);
 });

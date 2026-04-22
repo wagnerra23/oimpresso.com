@@ -60,7 +60,7 @@
                             </li>
                         </ul>
                         @can('user.update')
-                            <a href="{{action('ManageUserController@edit', [$user->id])}}" class="btn btn-primary btn-block">
+                            <a href="{{action([\App\Http\Controllers\ManageUserController::class, 'edit'], [$user->id])}}" class="tw-dw-btn tw-dw-btn-primary tw-dw-btn-sm tw-text-white">
                                 <i class="glyphicon glyphicon-edit"></i>
                                 @lang("messages.edit")
                             </a>
@@ -79,6 +79,10 @@
                         
                         <li>
                             <a href="#documents_and_notes_tab" data-toggle="tab" aria-expanded="true"><i class="fas fa-paperclip" aria-hidden="true"></i> @lang('lang_v1.documents_and_notes')</a>
+                        </li>
+
+                        <li>
+                            <a href="#activities_tab" data-toggle="tab" aria-expanded="true"><i class="fas fa-pen-square" aria-hidden="true"></i> @lang('lang_v1.activities')</a>
                         </li>
                     </ul>
 
@@ -125,6 +129,13 @@
                             <!-- model name like App\User -->
                             <input type="hidden" name="notable_type" id="notable_type" value="App\User">
                             <div class="document_note_body">
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="activities_tab">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    @include('activity_log.activities')
+                                </div>
                             </div>
                         </div>
                     </div>

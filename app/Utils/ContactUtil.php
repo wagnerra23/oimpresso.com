@@ -81,6 +81,7 @@ class ContactUtil extends Util
                         DB::raw("SUM(IF(t.type = 'sell' AND t.status = 'final', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as invoice_received"),
                         DB::raw("SUM(IF(t.type = 'opening_balance', final_total, 0)) as opening_balance"),
                         DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid"),
+                        DB::raw("rua, numero"),
                         'contacts.*'
                     )->first();
 
@@ -110,19 +111,11 @@ class ContactUtil extends Util
                 unset($input['opening_balance']);
             }
 
-            //Assigned the user
-            $assigned_to_users = [];
-            if (! empty($input['assigned_to_users'])) {
-                $assigned_to_users = $input['assigned_to_users'];
+            if (isset($input['assigned_to_users'])) {
                 unset($input['assigned_to_users']);
             }
 
             $contact = Contact::create($input);
-
-            //Assigned the user
-            if (! empty($assigned_to_users)) {
-                $contact->userHavingAccess()->sync($assigned_to_users);
-            }
 
             //Add opening balance
             if (! empty($opening_balance)) {
@@ -163,39 +156,28 @@ class ContactUtil extends Util
                 unset($input['opening_balance']);
             }
 
-            //Assigned the user
-            $assigned_to_users = [];
-            if (! empty($input['assigned_to_users'])) {
-                $assigned_to_users = $input['assigned_to_users'];
+            if (isset($input['assigned_to_users'])) {
                 unset($input['assigned_to_users']);
             }
 
             $contact = Contact::where('business_id', $business_id)->findOrFail($id);
 
-            if (date_create($input['office_oimpresso_updated_at'])) {
-                $office_updated_at = date_format(date_create($input['office_oimpresso_updated_at']), 'Y-m-d H:i:s');    
-            } else {
-                $office_updated_at = 0;
+            // Lógica de sincronização bidirecional com desktop Office Impresso
+            if (! empty($input['office_oimpresso_updated_at']) && date_create($input['office_oimpresso_updated_at'])) {
+                $office_updated_at = date_format(date_create($input['office_oimpresso_updated_at']), 'Y-m-d H:i:s');
+                $web_updated_at = date_format(date_create($contact['updated_at']), 'Y-m-d H:i:s');
+
+                if ($office_updated_at >= $web_updated_at) {
+                    $input['is_sincronizado'] = 1;
+                }
             }
 
-            if (date_create($input['office_oimpresso_updated_at'])) {
-                $oimpresso_updated_at = date_format(date_create($contact['updated_at']), 'Y-d-m H:i:s');   
-            } else {
-                $oimpresso_updated_at = 0;
-            }
-            
-            if ($office_updated_at == $oimpresso_updated_at) {
-                $input['is_sincronizado'] = 1;
-            };
             foreach ($input as $key => $value) {
-                $contact->$key = $value;
+                if (isset($contact->$key)) {
+                    $contact->$key = $value;
+                }
             }
             $contact->save();
-
-            //Assigned the user
-            if (! empty($assigned_to_users)) {
-                $contact->userHavingAccess()->sync($assigned_to_users);
-            }
 
             //Opening balance update
             $transactionUtil = new TransactionUtil();

@@ -2,19 +2,18 @@
 
 namespace Modules\Crm\Http\Controllers;
 
+use App\BusinessLocation;
+use App\Restaurant\Booking;
+use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Yajra\DataTables\Facades\DataTables;
-use App\BusinessLocation;
-use App\Restaurant\Booking;
-use App\Utils\Util;
 
 class ContactBookingController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $commonUtil;
 
@@ -24,25 +23,26 @@ class ContactBookingController extends Controller
         $this->bookingStatuses = [
             'waiting' => [
                 'label' => __('lang_v1.waiting'),
-                'class' => 'bg-yellow'
+                'class' => 'bg-yellow',
             ],
             'booked' => [
                 'label' => __('restaurant.booked'),
-                'class' => 'bg-light-blue'
+                'class' => 'bg-light-blue',
             ],
             'completed' => [
                 'label' => __('restaurant.completed'),
-                'class' => 'bg-green'
+                'class' => 'bg-green',
             ],
             'cancelled' => [
                 'label' => __('restaurant.cancelled'),
-                'class' => 'bg-red'
+                'class' => 'bg-red',
             ],
         ];
     }
 
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()
@@ -58,7 +58,7 @@ class ContactBookingController extends Controller
                             ->leftjoin('business_locations as bl', 'bl.id', '=', 'bookings.location_id')
                             ->select('bookings.*', 'bl.name as location_name');
 
-            if (!empty(request()->location_id)) {
+            if (! empty(request()->location_id)) {
                 $query->where('bookings.location_id', request()->location_id);
             }
 
@@ -69,14 +69,14 @@ class ContactBookingController extends Controller
                 ->editColumn('booking_end', function ($row) {
                     return $this->commonUtil->format_date($row->booking_end, true);
                 })
-                ->editColumn('booking_status', function($row){
+                ->editColumn('booking_status', function ($row) {
                     $statuses = $this->bookingStatuses;
-                    return '<span class="label ' . $statuses[$row->booking_status]['class'] . '" >' . $statuses[$row->booking_status]['label'] . '</span>';
+
+                    return '<span class="label '.$statuses[$row->booking_status]['class'].'" >'.$statuses[$row->booking_status]['label'].'</span>';
                 })
                 ->rawColumns(['booking_status'])
                ->removeColumn('id')
                 ->make(true);
-            
         }
 
         $business_locations = BusinessLocation::forDropdown($business_id, false, false, true, false);
@@ -86,6 +86,7 @@ class ContactBookingController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
      * @return Response
      */
     public function create()
@@ -95,7 +96,8 @@ class ContactBookingController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * @param Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function store(Request $request)
@@ -118,7 +120,7 @@ class ContactBookingController extends Controller
                                     $q->whereBetween('booking_start', $date_range)
                                     ->orWhereBetween('booking_end', $date_range);
                                 });
-                
+
                 $existing_booking = $query->first();
                 if (empty($existing_booking)) {
                     $input['business_id'] = $business_id;
@@ -126,37 +128,39 @@ class ContactBookingController extends Controller
                     $input['booking_start'] = $booking_start;
                     $input['booking_end'] = $booking_end;
                     $booking = Booking::createBooking($input);
-                    
+
                     $output = ['success' => 1,
-                        'msg' => trans("lang_v1.added_success"),
+                        'msg' => trans('lang_v1.added_success'),
                     ];
                 } else {
-                    $time_range = $this->commonUtil->format_date($existing_booking->booking_start, true) . ' ~ ' .
+                    $time_range = $this->commonUtil->format_date($existing_booking->booking_start, true).' ~ '.
                                     $this->commonUtil->format_date($existing_booking->booking_end, true);
 
                     $output = ['success' => 0,
-                            'msg' => trans(
-                                "restaurant.booking_not_available",
-                                ['customer_name' => $existing_booking->customer->name,
-                                'booking_time_range' => $time_range]
-                            )
-                        ];
+                        'msg' => trans(
+                            'restaurant.booking_not_available',
+                            ['customer_name' => $existing_booking->customer->name,
+                                'booking_time_range' => $time_range, ]
+                        ),
+                    ];
                 }
             } else {
-                die(__("messages.something_went_wrong"));
+                exit(__('messages.something_went_wrong'));
             }
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
             $output = ['success' => 0,
-                            'msg' => __("messages.something_went_wrong")
-                        ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
+
         return $output;
     }
 
     /**
      * Show the specified resource.
-     * @param int $id
+     *
+     * @param  int  $id
      * @return Response
      */
     public function show($id)
@@ -166,7 +170,8 @@ class ContactBookingController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     * @param int $id
+     *
+     * @param  int  $id
      * @return Response
      */
     public function edit($id)
@@ -176,8 +181,9 @@ class ContactBookingController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * @param Request $request
-     * @param int $id
+     *
+     * @param  Request  $request
+     * @param  int  $id
      * @return Response
      */
     public function update(Request $request, $id)
@@ -187,7 +193,8 @@ class ContactBookingController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * @param int $id
+     *
+     * @param  int  $id
      * @return Response
      */
     public function destroy($id)

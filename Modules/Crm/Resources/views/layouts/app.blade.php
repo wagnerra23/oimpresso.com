@@ -41,8 +41,8 @@
                 <input type="hidden" id="__thousand" value="{{session('currency')['thousand_separator']}}">
                 <input type="hidden" id="__decimal" value="{{session('currency')['decimal_separator']}}">
                 <input type="hidden" id="__symbol_placement" value="{{session('business.currency_symbol_placement')}}">
-                <input type="hidden" id="__precision" value="{{config('constants.currency_precision', 2)}}">
-                <input type="hidden" id="__quantity_precision" value="{{config('constants.quantity_precision', 2)}}">
+                <input type="hidden" id="__precision" value="{{session('business.currency_precision', 2)}}">
+                <input type="hidden" id="__quantity_precision" value="{{session('business.quantity_precision', 2)}}">
                 <!-- End of currency related field-->
 
                 @if (session('status'))

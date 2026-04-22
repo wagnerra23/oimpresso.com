@@ -1,7 +1,7 @@
 {
     "name": "Project",
     "alias": "project",
-    "description": "Módulo de Produção",
+    "description": "Project Management Module",
     "keywords": [],
     "active": 1,
     "order": 0,
@@ -10,7 +10,7 @@
     ],
     "aliases": {},
     "files": [
-        "start.php"
+        
     ],
     "requires": []
 }

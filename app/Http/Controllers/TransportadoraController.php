@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Transportadora;
 use App\System;
-use App\Cidades;
+use App\City;
 use App\BusinessLocation;
 use App\Contact;
 use Illuminate\Support\Facades\Hash;
@@ -85,7 +85,7 @@ class TransportadoraController extends Controller
 	}
 
 	private function prepareCities(){
-		$cities = Cidades::all();
+		$cities = City::all();
 		$temp = [];
 		foreach($cities as $c){
 			// array_push($temp, $c->id => $c->nome);

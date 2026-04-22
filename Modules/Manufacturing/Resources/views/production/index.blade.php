@@ -10,10 +10,36 @@
 
 <!-- Main content -->
 <section class="content">
+    @component('components.filters', ['title' => __('report.filters')])
+        <div class="col-md-3">
+            <div class="form-group">
+                {!! Form::label('productstion_list_filter_location_id',  __('purchase.business_location') . ':') !!}
+
+                {!! Form::select('productstion_list_filter_location_id', $business_locations, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all') ]); !!}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                {!! Form::label('production_list_filter_date_range', __('report.date_range') . ':') !!}
+                {!! Form::text('production_list_filter_date_range', null, ['placeholder' => __('lang_v1.select_a_date_range'), 'class' => 'form-control', 'readonly']); !!}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <div class="checkbox">
+                    <br>
+                    <label>
+                      {!! Form::checkbox('production_list_is_final', 1, false, 
+                      [ 'class' => 'input-icheck', 'id' => 'production_list_is_final']); !!} {{ __('manufacturing::lang.finalize') }}
+                    </label>
+                </div>
+            </div>
+        </div>
+    @endcomponent
     @component('components.widget', ['class' => 'box-solid'])
         @slot('tool')
             <div class="box-tools">
-                <a class="btn btn-block btn-primary" href="{{action('\Modules\Manufacturing\Http\Controllers\ProductionController@create')}}">
+                <a class="btn btn-block btn-primary" href="{{action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'create'])}}">
                     <i class="fa fa-plus"></i> @lang( 'messages.add' )</a>
             </div>
         @endslot

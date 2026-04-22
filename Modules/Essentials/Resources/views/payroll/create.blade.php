@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @php
-    $action_url = action('\Modules\Essentials\Http\Controllers\PayrollController@store');
+    $action_url = action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'store']);
     $title = __( 'essentials::lang.add_payroll' );
     $subtitle = __( 'essentials::lang.add_payroll' );
     $submit_btn_text = __( 'messages.save' );
     $group_name = __('essentials::lang.payroll_for_month', ['date' => $month_name . ' ' . $year]);
     if ($action == 'edit') {
-        $action_url = action('\Modules\Essentials\Http\Controllers\PayrollController@getUpdatePayrollGroup');
+        $action_url = action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'getUpdatePayrollGroup']);
         $title = __( 'essentials::lang.edit_payroll' );
         $subtitle = __( 'essentials::lang.edit_payroll' );
         $submit_btn_text = __( 'messages.update' );
@@ -39,6 +39,16 @@
                             <h3>
                                 {!! $group_name !!}
                             </h3>
+                            <small>
+                                <b>@lang('business.location')</b> :
+                                @if(!empty($location))
+                                    {{$location->name}}
+                                    {!! Form::hidden('location_id', $location->id); !!}
+                                @else
+                                    {{__('report.all_locations')}}
+                                    {!! Form::hidden('location_id', ''); !!}
+                                @endif
+                            </small>
                         </div>
                         <div class="col-md-4">
                             {!! Form::label('payroll_group_name', __( 'essentials::lang.payroll_group_name' ) . ':*') !!}
@@ -47,7 +57,8 @@
                         <div class="col-md-4">
                             {!! Form::label('payroll_group_status', __( 'sale.status' ) . ':*') !!}
                             @show_tooltip(__('essentials::lang.group_status_tooltip'))
-                            {!! Form::select('payroll_group_status', ['final' => __('sale.final'), 'draft' => __('sale.draft')], !empty($payroll_group) ? $payroll_group->status : null, ['class' => 'form-control select2', 'required', 'style' => 'width: 100%;', 'placeholder' => __( 'messages.please_select' )]); !!}
+                            {!! Form::select('payroll_group_status', ['draft' => __('sale.draft'), 'final' => __('sale.final')], !empty($payroll_group) ? $payroll_group->status : null, ['class' => 'form-control select2', 'required', 'style' => 'width: 100%;', 'placeholder' => __( 'messages.please_select' )]); !!}
+                            <p class="help-block text-muted">@lang('essentials::lang.payroll_cant_be_deleted_if_final')</p>
                         </div>
                     </div><br><br>
                     <table class="table" id="payroll_table">
@@ -215,6 +226,14 @@
                                     </strong>
                                     <br>
                                     {!! Form::hidden('payrolls['.$employee.'][final_total]', 0, ['id' => 'gross_amount_'.$employee, 'class' => 'gross_amount']); !!}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="5">
+                                    <div class="form-group">
+                                        {!! Form::label('note_'.$employee, __( 'brand.note' ) . ':') !!}
+                                        {!! Form::textarea('payrolls['.$employee.'][staff_note]', $payroll['staff_note'] ?? null, ['class' => 'form-control', 'placeholder' => __( 'sale.total' ), 'id' => 'note_'.$employee, 'rows' => 3]); !!}
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

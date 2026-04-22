@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header no-print">
-    <h1>@lang( 'lang_v1.shipments')
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang( 'lang_v1.shipments')
     </h1>
 </section>
 
@@ -51,6 +51,13 @@
                 {!! Form::select('shipping_status', $shipping_statuses, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all') ]); !!}
             </div>
         </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                {!! Form::label('delivery_person',  __('lang_v1.delivery_person') . ':') !!}
+
+                {!! Form::select('delivery_person', $delevery_person, null, ['class' => 'form-control select2', 'style' => 'width:100%']); !!}
+            </div>
+        </div>
         @if(!empty($service_staffs))
             <div class="col-md-3">
                 <div class="form-group">
@@ -60,20 +67,52 @@
             </div>
         @endif
     @endcomponent
+    @php
+        $custom_labels = json_decode(session('business.custom_labels'), true);
+    @endphp
     @component('components.widget', ['class' => 'box-primary'])
-        @if(auth()->user()->can('access_shipping'))
+        @if(auth()->user()->can('access_shipping') ||
+         auth()->user()->can('access_own_shipping') ||
+          auth()->user()->can('access_commission_agent_shipping') )
             <div class="table-responsive">
                 <table class="table table-bordered table-striped ajax_view" id="sell_table">
                     <thead>
                         <tr>
+                            <th>@lang('messages.action')</th>
                             <th>@lang('messages.date')</th>
                             <th>@lang('sale.invoice_no')</th>
                             <th>@lang('sale.customer_name')</th>
+                            <th>@lang('lang_v1.contact_no')</th>
                             <th>@lang('sale.location')</th>
+                            <th>@lang('lang_v1.delivery_person')</th>
                             <th>@lang('lang_v1.shipping_status')</th>
+                            @if(!empty($custom_labels['shipping']['custom_field_1']))
+                                <th>
+                                    {{$custom_labels['shipping']['custom_field_1']}}
+                                </th>
+                            @endif
+                            @if(!empty($custom_labels['shipping']['custom_field_2']))
+                                <th>
+                                    {{$custom_labels['shipping']['custom_field_2']}}
+                                </th>
+                            @endif
+                            @if(!empty($custom_labels['shipping']['custom_field_3']))
+                                <th>
+                                    {{$custom_labels['shipping']['custom_field_3']}}
+                                </th>
+                            @endif
+                            @if(!empty($custom_labels['shipping']['custom_field_4']))
+                                <th>
+                                    {{$custom_labels['shipping']['custom_field_4']}}
+                                </th>
+                            @endif
+                            @if(!empty($custom_labels['shipping']['custom_field_5']))
+                                <th>
+                                    {{$custom_labels['shipping']['custom_field_5']}}
+                                </th>
+                            @endif
                             <th>@lang('sale.payment_status')</th>
                             <th>@lang('restaurant.service_staff')</th>
-                            <th>@lang('messages.action')</th>
                         </tr>
                     </thead>
                 </table>
@@ -91,8 +130,8 @@
 </div>
 
 <!-- This will be printed -->
-<!-- <section class="invoice print_section" id="receipt_section">
-</section> -->
+<section class="invoice print_section" id="receipt_section">
+</section>
 
 @stop
 
@@ -115,7 +154,11 @@ $(document).ready( function(){
     sell_table = $('#sell_table').DataTable({
         processing: true,
         serverSide: true,
-        aaSorting: [[0, 'desc']],
+        fixedHeader:false,
+        aaSorting: [[1, 'desc']],
+        scrollY:        "75vh",
+        scrollX:        true,
+        scrollCollapse: true,
         "ajax": {
             "url": "/sells",
             "data": function ( d ) {
@@ -141,22 +184,35 @@ $(document).ready( function(){
                 }
                 d.only_shipments = true;
                 d.shipping_status = $('#shipping_status').val();
+                d.delivery_person = $('#delivery_person').val();
             }
         },
-        columnDefs: [ {
-            "targets": [6],
-            "orderable": false,
-            "searchable": false
-        } ],
         columns: [
+            { data: 'action', name: 'action', searchable: false, orderable: false},
             { data: 'transaction_date', name: 'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
-            { data: 'name', name: 'contacts.name'},
+            { data: 'conatct_name', name: 'conatct_name'},
+            { data: 'mobile', name: 'contacts.mobile'},
             { data: 'business_location', name: 'bl.name'},
+            { data: 'delivery_person', name: 'delivery_person'},
             { data: 'shipping_status', name: 'shipping_status'},
+            @if(!empty($custom_labels['shipping']['custom_field_1']))
+                { data: 'shipping_custom_field_1', name: 'shipping_custom_field_1'},
+            @endif
+            @if(!empty($custom_labels['shipping']['custom_field_2']))
+                { data: 'shipping_custom_field_2', name: 'shipping_custom_field_2'},
+            @endif
+            @if(!empty($custom_labels['shipping']['custom_field_3']))
+                { data: 'shipping_custom_field_3', name: 'shipping_custom_field_3'},
+            @endif
+            @if(!empty($custom_labels['shipping']['custom_field_4']))
+                { data: 'shipping_custom_field_4', name: 'shipping_custom_field_4'},
+            @endif
+            @if(!empty($custom_labels['shipping']['custom_field_5']))
+                { data: 'shipping_custom_field_5', name: 'shipping_custom_field_5'},
+            @endif
             { data: 'payment_status', name: 'payment_status'},
-            { data: 'waiter', name: 'ss.first_name', @if(empty($is_service_staff_enabled)) visible: false @endif },
-            { data: 'action', name: 'action'}
+            { data: 'waiter', name: 'ss.first_name', @if(empty($is_service_staff_enabled)) visible: false @endif }
         ],
         "fnDrawCallback": function (oSettings) {
             __currency_convert_recursively($('#sell_table'));
@@ -166,7 +222,7 @@ $(document).ready( function(){
         }
     });
 
-    $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_customer_id, #sell_list_filter_payment_status, #created_by, #shipping_status, #service_staffs',  function() {
+    $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_customer_id, #sell_list_filter_payment_status, #created_by, #shipping_status, #service_staffs, #delivery_person',  function() {
         sell_table.ajax.reload();
     });
 });

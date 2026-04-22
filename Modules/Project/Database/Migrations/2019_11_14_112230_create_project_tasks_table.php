@@ -16,7 +16,7 @@ class CreateProjectTasksTable extends Migration
         Schema::create('pjt_project_tasks', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->index();
-            
+
             $table->unsignedInteger('project_id');
             $table->foreign('project_id')
                 ->references('id')->on('pjt_projects')

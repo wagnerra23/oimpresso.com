@@ -6,12 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class ToDo extends Model
 {
-    
-/**
- * The attributes that aren't mass assignable.
- *
- * @var array
- */
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
     protected $guarded = ['id'];
 
     /**
@@ -68,7 +67,8 @@ class ToDo extends Model
     /**
      * Attributes to be logged for activity
      */
-    public function getLogPropertiesAttribute() {
+    public function getLogPropertiesAttribute()
+    {
         $properties = ['status'];
 
         return $properties;

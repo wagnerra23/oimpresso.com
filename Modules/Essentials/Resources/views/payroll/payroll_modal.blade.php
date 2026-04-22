@@ -3,9 +3,13 @@
 	<div class="modal-dialog" role="document">
 	  <div class="modal-content">
 
-	    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\PayrollController@create'), 'method' => 'get', 'id' => 'add_payroll_step1' ]) !!}
+	    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'create']), 'method' => 'get', 'id' => 'add_payroll_step1' ]) !!}
 
 	    <div class="modal-body">
+	    	<div class="form-group">
+	        	{!! Form::label('primary_work_location', __( 'business.location' ) . ':*') !!}
+	          	{!! Form::select('primary_work_location', $locations, null, ['class' => 'form-control select2', 'style' => 'width: 100%;', 'id' => 'primary_work_location']); !!}
+	      	</div>
 	      	<div class="form-group">
 	        	{!! Form::label('employee_ids', __( 'essentials::lang.employee' ) . ':*') !!}
 	        	<button type="button" class="btn btn-primary btn-xs select-all">

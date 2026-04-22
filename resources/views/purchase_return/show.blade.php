@@ -12,7 +12,7 @@
         <div class="col-sm-6 col-xs-6">
             <h4>@lang('lang_v1.purchase_return_details'):</h4>
             <strong>@lang('lang_v1.return_date'):</strong> {{@format_date($purchase->return_parent->transaction_date)}}<br>
-            <strong>@lang('purchase.supplier'):</strong> {{ $purchase->contact->name }} <br>
+            <strong>@lang('purchase.supplier'):</strong> {!! $purchase->contact->contact_address !!} <br>
             <strong>@lang('purchase.business_location'):</strong> {{ $purchase->location->name }}
         </div>
         <div class="col-sm-6 col-xs-6">
@@ -24,7 +24,7 @@
             <div class="col-sm-6 col-xs-6">
                 <h4>@lang('lang_v1.purchase_return_details'):</h4>
                 <strong>@lang('lang_v1.return_date'):</strong> {{@format_date($purchase->transaction_date)}}<br>
-                <strong>@lang('purchase.supplier'):</strong> {{ $purchase->contact->name ?? '' }} <br>
+                <strong>@lang('purchase.supplier'):</strong> {!! $purchase->contact->contact_address !!} <br>
                 <strong>@lang('purchase.business_location'):</strong> {{ $purchase->location->name }}
             </div>
         @endif
@@ -90,7 +90,7 @@
               </tr>
               @endforeach
             </tbody>
-        </table>
+          </table>
       </div>
     </div>
     <div class="row">
@@ -123,12 +123,19 @@
         </table>
       </div>
     </div>
+    <div class="row">
+      <div class="col-md-12">
+            <strong>{{ __('lang_v1.activities') }}:</strong><br>
+            @includeIf('activity_log.activities', ['activity_type' => 'sell'])
+        </div>
+    </div>
+  </div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-primary no-print" aria-label="Print" 
+      <button type="button" class="tw-dw-btn tw-dw-btn-primary tw-text-white no-print" aria-label="Print" 
       onclick="$(this).closest('div.modal-content').printThis();"><i class="fa fa-print"></i> @lang( 'messages.print' )
       </button>
-      <button type="button" class="btn btn-default no-print" data-dismiss="modal">@lang( 'messages.close' )</button>
+      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white no-print" data-dismiss="modal">@lang( 'messages.close' )</button>
     </div>
   </div>
 </div>

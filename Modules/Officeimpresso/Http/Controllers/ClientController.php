@@ -23,10 +23,6 @@ class ClientController extends Controller
      */
     public function index()
     {
-        if (!auth()->user()->can('superadmin')) {
-            abort(403, 'Unauthorized action.');
-        }
-
         $is_demo = (config('app.env') == 'demo');
 
         $business_id = request()->session()->get('user.business_id');
@@ -57,10 +53,6 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('superadmin')) {
-            abort(403, 'Unauthorized action.');
-        }
-
         try {
             $client = Passport::client()->forceFill([
                 'user_id' => auth()->user()->id,
@@ -126,10 +118,6 @@ class ClientController extends Controller
      */
     public function destroy($id)
     {
-        if (!auth()->user()->can('superadmin')) {
-            abort(403, 'Unauthorized action.');
-        }
-        
         $business_id = request()->session()->get('user.business_id');
         $clients = Passport::client()
                         ->leftJoin('users as u', 'oauth_clients.user_id', '=', 'u.id')
@@ -143,11 +131,8 @@ class ClientController extends Controller
         return redirect()->back()->with('status', $output);
     }
 
-    public function regenerate(){
-        if (!auth()->user()->can('superadmin')) {
-            abort(403, 'Unauthorized action.');
-        }
-
+    public function regenerate()
+    {
         try {
             Artisan::call('passport:install --force');
             Artisan::call('apidoc:generate');

@@ -38,7 +38,7 @@
         var sync_log_table =  $('#sync_log_table').DataTable({
             processing: true,
             serverSide: true,
-            ajax: "{{action('\Modules\Woocommerce\Http\Controllers\WoocommerceController@viewSyncLog')}}",
+            ajax: "{{action([\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'viewSyncLog'])}}",
             "order": [[ 1, "desc" ]],
             columnDefs: [ {
                 "targets": 5,

@@ -1,6 +1,6 @@
 <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-        {!! Form::open(['url' => action('\Modules\Crm\Http\Controllers\ScheduleLogController@update', ['id' => $schedule_log->id]), 'method' => 'put', 'id' => 'schedule_log_form' ]) !!}
+        {!! Form::open(['url' => action([\Modules\Crm\Http\Controllers\ScheduleLogController::class, 'update'], ['id' => $schedule_log->id]), 'method' => 'put', 'id' => 'schedule_log_form' ]) !!}
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>

@@ -20,17 +20,19 @@ class RecipeController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $moduleUtil;
+
     protected $mfgUtil;
+
     protected $businessUtil;
+
     protected $transactionUtil;
 
     /**
      * Constructor
      *
-     * @param ProductUtils $product
+     * @param  ProductUtils  $product
      * @return void
      */
     public function __construct(ModuleUtil $moduleUtil, ManufacturingUtil $mfgUtil, BusinessUtil $businessUtil, TransactionUtil $transactionUtil)
@@ -43,12 +45,13 @@ class RecipeController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.access_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -78,9 +81,7 @@ class RecipeController extends Controller
                                     'u.short_name as unit_name',
                                     'c.name as category',
                                     'sc.name as sub_category'
-                                )
-                ;
-
+                                );
 
             return Datatables::of($recipes)
                 ->addColumn('action', '<button data-href="{{action(\'\Modules\Manufacturing\Http\Controllers\RecipeController@show\', [$id])}}" class="btn btn-xs btn-info btn-modal" data-container=".view_modal"><i class="fa fa-eye"></i> @lang("messages.view")</button> &nbsp; @can("manufacturing.edit_recipe") <a href="{{action(\'\Modules\Manufacturing\Http\Controllers\RecipeController@addIngredients\')}}?variation_id={{$variation_id}}" class="btn btn-xs btn-primary" ><i class="fa fa-edit"></i> @lang("messages.edit")</a>
@@ -89,20 +90,20 @@ class RecipeController extends Controller
                 ->addColumn('recipe_total', function ($row) {
                     //Recipe price is dynamically calculated from each ingredients
                     $price = $this->mfgUtil->getRecipeTotal($row);
-                    
-                    return '<span class="display_currency" data-currency_symbol="true">' . $price . '</span>';
+
+                    return '<span class="display_currency" data-currency_symbol="true">'.$price.'</span>';
                 })
                 ->editColumn('total_quantity', function ($row) {
                     $quantity = $row->total_quantity;
 
-                    if (!empty($row->waste_percent)) {
+                    if (! empty($row->waste_percent)) {
                         $quantity = $quantity - ($quantity * $row->waste_percent / 100);
                     }
-                    $html = '<span class="display_currency" data-currency_symbol="false">' . $quantity . '</span>';
-                    if (!empty($row->sub_unit_id)) {
-                        $html .= ' ' . $row->sub_unit->short_name;
+                    $html = '<span class="display_currency" data-currency_symbol="false" data-is_quantity="true">'.$quantity.'</span>';
+                    if (! empty($row->sub_unit_id)) {
+                        $html .= ' '.$row->sub_unit->short_name;
                     } else {
-                        $html .= ' ' . $row->unit_name;
+                        $html .= ' '.$row->unit_name;
                     }
 
                     return $html;
@@ -111,15 +112,15 @@ class RecipeController extends Controller
                     //Recipe price is dynamically calculated from each ingredients
                     $price = $this->mfgUtil->getRecipeTotal($row);
 
-                    $unit_cost = $price / $row->total_quantity;
+                    $unit_cost = $row->total_quantity > 0 ? $price / $row->total_quantity : 0;
 
-                    return '<span class="display_currency unit_cost" data-unit_cost="' . $unit_cost . '" data-currency_symbol="true">' . $unit_cost . '</span>';
+                    return '<span class="display_currency unit_cost" data-unit_cost="'.$unit_cost.'" data-currency_symbol="true">'.$unit_cost.'</span>';
                 })
                 ->filterColumn('recipe_name', function ($query, $keyword) {
                     $query->whereRaw("CONCAT(p.name, ' - ', pv.name, ' - ', v.name, ' (', v.sub_sku, ')') like ?", ["%{$keyword}%"]);
                 })
                 ->addColumn('row_select', function ($row) {
-                    return  '<input type="checkbox" class="row-select" value="' . $row->id .'">' ;
+                    return  '<input type="checkbox" class="row-select" value="'.$row->id.'">';
                 })
                 ->rawColumns(['action', 'recipe_total', 'total_quantity', 'unit_cost', 'row_select'])
                 ->make(true);
@@ -130,12 +131,13 @@ class RecipeController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
      * @return Response
      */
     public function create()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.add_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -146,22 +148,22 @@ class RecipeController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * @param  Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function store(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.add_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
             $input = $request->only(['variation_id', 'ingredients', 'total', 'instructions',
-                'ingredients_cost', 'waste_percent', 'total_quantity', 'extra_cost', 'production_cost_type']);
-            if (!empty($input['ingredients'])) {
+                'ingredients_cost', 'waste_percent', 'total_quantity', 'extra_cost', 'production_cost_type', ]);
+            if (! empty($input['ingredients'])) {
                 $variation = Variation::findOrFail($input['variation_id']);
-
 
                 $recipe = MfgRecipe::updateOrCreate(
                     [
@@ -176,7 +178,7 @@ class RecipeController extends Controller
                         'extra_cost' => $this->moduleUtil->num_uf($input['extra_cost']),
                         'production_cost_type' => $input['production_cost_type'],
                         'instructions' => $input['instructions'],
-                        'sub_unit_id' => !empty($request->input('sub_unit_id')) ? $request->input('sub_unit_id') : null
+                        'sub_unit_id' => ! empty($request->input('sub_unit_id')) ? $request->input('sub_unit_id') : null,
                     ]
                 );
 
@@ -185,12 +187,12 @@ class RecipeController extends Controller
                 $ingredient_groups = $request->input('ingredient_groups');
                 $ingredient_group_descriptions = $request->input('ingredient_group_description');
                 $created_ig_groups = [];
-                
+
                 foreach ($input['ingredients'] as $key => $value) {
                     $variation = Variation::with(['product'])
                                         ->findOrFail($value['ingredient_id']);
 
-                    if (!empty($value['ingredient_line_id'])) {
+                    if (! empty($value['ingredient_line_id'])) {
                         $ingredient = MfgRecipeIngredient::find($value['ingredient_line_id']);
                         $edited_ingredients[] = $ingredient->id;
                     } else {
@@ -201,7 +203,7 @@ class RecipeController extends Controller
                     $ingredient->waste_percent = $this->moduleUtil->num_uf($value['waste_percent']);
                     $ingredient->sort_order = $this->moduleUtil->num_uf($value['sort_order']);
 
-                    $ingredient->sub_unit_id = !empty($value['sub_unit_id']) && $value['sub_unit_id'] != $variation->product->unit_id ? $value['sub_unit_id'] : null;
+                    $ingredient->sub_unit_id = ! empty($value['sub_unit_id']) && $value['sub_unit_id'] != $variation->product->unit_id ? $value['sub_unit_id'] : null;
 
                     //Set ingredient group
                     if (isset($value['ig_index'])) {
@@ -209,14 +211,14 @@ class RecipeController extends Controller
                         $ig_description = $ingredient_group_descriptions[$value['ig_index']];
 
                         //Create ingredient group if not created already
-                        if (!empty($created_ig_groups[$value['ig_index']])) {
+                        if (! empty($created_ig_groups[$value['ig_index']])) {
                             $ingredient_group = $created_ig_groups[$value['ig_index']];
                         } elseif (empty($value['mfg_ingredient_group_id'])) {
                             $ingredient_group = MfgIngredientGroup::create(
                                 [
                                     'name' => $ig_name,
                                     'business_id' => $business_id,
-                                    'description' => $ig_description
+                                    'description' => $ig_description,
                                 ]
                             );
                         } else {
@@ -241,7 +243,7 @@ class RecipeController extends Controller
 
                     $ingredients[] = $ingredient;
                 }
-                if (!empty($edited_ingredients)) {
+                if (! empty($edited_ingredients)) {
                     MfgRecipeIngredient::where('mfg_recipe_id', $recipe->id)
                                                 ->whereNotIn('id', $edited_ingredients)
                                                 ->delete();
@@ -250,27 +252,28 @@ class RecipeController extends Controller
                 $recipe->ingredients()->saveMany($ingredients);
             }
             $output = ['success' => 1,
-                            'msg' => __('lang_v1.added_success')
-                        ];
+                'msg' => __('lang_v1.added_success'),
+            ];
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => 0,
-                            'msg' => __("messages.something_went_wrong")
-                        ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
 
-        return redirect()->action('\Modules\Manufacturing\Http\Controllers\RecipeController@index')->with('status', $output);
+        return redirect()->action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index'])->with('status', $output);
     }
 
     /**
      * Show the specified resource.
+     *
      * @return Response
      */
     public function show($id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.access_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -278,17 +281,19 @@ class RecipeController extends Controller
                         ->findOrFail($id);
 
         $ingredients = $this->mfgUtil->getIngredientDetails($recipe, $business_id);
+
         return view('manufacturing::recipe.show', compact('recipe', 'ingredients'));
     }
 
     /**
      * Get ingredients row while adding recipe.
+     *
      * @return Response
      */
     public function getIngredientRow($variation_id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.access_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -311,12 +316,13 @@ class RecipeController extends Controller
 
     /**
      * Shows recipe form.
+     *
      * @return Response
      */
     public function addIngredients()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.add_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -337,7 +343,7 @@ class RecipeController extends Controller
             'ingredients.variation', 'ingredients.variation.product',
             'ingredients.variation.product.unit',
             'ingredients.variation.product_variation',
-            'ingredients.sub_unit', 'ingredients.ingredient_group'];
+            'ingredients.sub_unit', 'ingredients.ingredient_group', ];
 
         $recipe = MfgRecipe::where('variation_id', $variation_id)
                         ->with($with)
@@ -346,27 +352,27 @@ class RecipeController extends Controller
         $copy_recipe = null;
 
         //If new recipe and copy from recipe selected get copy recipe
-        if (empty($recipe) && !empty(request()->input('copy_recipe_id'))) {
+        if (empty($recipe) && ! empty(request()->input('copy_recipe_id'))) {
             $copy_recipe = MfgRecipe::with($with)
                         ->find(request()->input('copy_recipe_id'));
         }
 
         $ingredients = [];
         $total_production_cost = 0;
-        if (!empty($recipe) || (empty($recipe) && !empty($copy_recipe))) {
-            $ingredients_obj = !empty($copy_recipe) ? $copy_recipe->ingredients : $recipe->ingredients;
-            
-            if (!empty($recipe)) {
+        if (! empty($recipe) || (empty($recipe) && ! empty($copy_recipe))) {
+            $ingredients_obj = ! empty($copy_recipe) ? $copy_recipe->ingredients : $recipe->ingredients;
+
+            if (! empty($recipe)) {
                 $total_production_cost = $this->mfgUtil->getProductionCost($recipe);
             }
-            
+
             foreach ($ingredients_obj as $ingredient) {
                 if (empty($ingredient->variation)) {
                     continue;
                 }
-                
+
                 $ingredient_sub_units = $this->transactionUtil->getSubUnits($business_id, $ingredient->variation->product->unit->id);
-                $multiplier = !empty($ingredient->sub_unit_id) ? $ingredient->sub_unit->base_unit_multiplier : 1;
+                $multiplier = ! empty($ingredient->sub_unit_id) ? $ingredient->sub_unit->base_unit_multiplier : 1;
                 if (empty($multiplier)) {
                     $multiplier = 1;
                 }
@@ -379,12 +385,12 @@ class RecipeController extends Controller
                     'sub_unit_id' => $ingredient->sub_unit_id,
                     'unit' => $ingredient->variation->product->unit->short_name,
                     'full_name' => $ingredient->variation->full_name,
-                    'waste_percent' => !empty($ingredient->waste_percent) ? $ingredient->waste_percent : 0,
+                    'waste_percent' => ! empty($ingredient->waste_percent) ? $ingredient->waste_percent : 0,
                     'sort_order' => $ingredient->sort_order,
                     'ingredient_line_id' => empty($copy_recipe) ? $ingredient->id : null,
                     'mfg_ingredient_group_id' => $ingredient->mfg_ingredient_group_id,
-                    'ingredient_group_name' => !empty($ingredient->ingredient_group->name) ? $ingredient->ingredient_group->name : '',
-                    'ig_description' => !empty($ingredient->ingredient_group->description) ? $ingredient->ingredient_group->description : '',
+                    'ingredient_group_name' => ! empty($ingredient->ingredient_group->name) ? $ingredient->ingredient_group->name : '',
+                    'ig_description' => ! empty($ingredient->ingredient_group->description) ? $ingredient->ingredient_group->description : '',
                 ];
 
                 $ingredients[] = $temp;
@@ -393,19 +399,20 @@ class RecipeController extends Controller
 
         $sub_units = $this->moduleUtil->getSubUnits($business_id, $variation->unit_id);
 
-        $unit_html = !empty($sub_units) ? $sub_units : $variation->unit_name;
+        $unit_html = ! empty($sub_units) ? $sub_units : $variation->unit_name;
 
         return view('manufacturing::recipe.add_ingredients', compact('variation', 'ingredients', 'recipe', 'unit_html', 'currency_details', 'total_production_cost'));
     }
 
     /**
      * Retrieves selected recipe details for production.
+     *
      * @return Response
      */
     public function getRecipeDetails()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.access_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -414,13 +421,13 @@ class RecipeController extends Controller
 
         $recipe = MfgRecipe::where('variation_id', $variation_id)
                         ->with(['variation', 'variation.product', 'variation.product.unit', 'sub_unit',
-                        'ingredients' => function ($query) {
-                            $query->orderBy('sort_order', 'asc');
-                        }])
+                            'ingredients' => function ($query) {
+                                $query->orderBy('sort_order', 'asc');
+                            }, ])
                         ->first();
 
         $ingredients = [];
-        if (!empty($recipe)) {
+        if (! empty($recipe)) {
             $ingredients_array = [];
 
             foreach ($recipe->ingredients as $ingredient) {
@@ -428,7 +435,7 @@ class RecipeController extends Controller
                 $ingredients_array[$ingredient->variation_id] = [
                     'quantity' => $ingredient_quantity,
                     'sub_unit_id' => $ingredient->sub_unit_id,
-                    'waste_percent' => $ingredient->waste_percent
+                    'waste_percent' => $ingredient->waste_percent,
                 ];
             }
             $ingredients = $this->mfgUtil->getIngredientDetails($recipe, $business_id, $location_id);
@@ -445,31 +452,32 @@ class RecipeController extends Controller
         $unit_html = $recipe->variation->product->unit->short_name;
         $is_sub_unit = 0;
         $unit_name = $unit_html;
-        if (!empty($sub_units)) {
+        if (! empty($sub_units)) {
             $unit_html = '<select name="sub_unit_id" class="form-control" id="sub_unit_id">';
             foreach ($sub_units as $key => $value) {
-                $unit_html .= '<option value="' . $key . '" data-multiplier="' . $value['multiplier'] . '" data-unit_name="' . $value['name'] . '" ';
-                if (!empty($recipe->sub_unit_id) && $recipe->sub_unit_id == $key) {
+                $unit_html .= '<option value="'.$key.'" data-multiplier="'.$value['multiplier'].'" data-unit_name="'.$value['name'].'" ';
+                if (! empty($recipe->sub_unit_id) && $recipe->sub_unit_id == $key) {
                     $unit_html .= ' selected ';
                     $unit_name = $value['name'];
                 }
-                $unit_html .= '>' . $value['name'] . '</option>';
+                $unit_html .= '>'.$value['name'].'</option>';
             }
             $unit_html .= '</select>';
             $is_sub_unit = 1;
         }
 
         return json_encode([
-                'ingredient_table' => $ingredient_table,
-                'recipe' => $recipe,
-                'unit_html' => $unit_html,
-                'is_sub_unit' => $is_sub_unit,
-                'unit_name' => $unit_name
-            ]);
+            'ingredient_table' => $ingredient_table,
+            'recipe' => $recipe,
+            'unit_html' => $unit_html,
+            'is_sub_unit' => $is_sub_unit,
+            'unit_name' => $unit_name,
+        ]);
     }
 
     /**
      * Show the form for creating a new resource.
+     *
      * @return Response
      */
     public function getIngredientGroupForm()
@@ -482,13 +490,14 @@ class RecipeController extends Controller
 
     /**
      * Function to update variation prices from recipe unit price.
-     * @param  Request $request
+     *
+     * @param  Request  $request
      * @return Response
      */
     public function updateRecipeProductPrices(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.add_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -496,7 +505,7 @@ class RecipeController extends Controller
             $recipe_ids = $request->input('recipe_ids');
             $unit_prices = $request->input('unit_prices');
 
-            if (!empty($recipe_ids)) {
+            if (! empty($recipe_ids)) {
                 $recipes = MfgRecipe::with(['variation', 'sub_unit', 'variation.product', 'variation.product.product_tax'])
                                 ->whereIn('id', $recipe_ids)
                                 ->get();
@@ -507,13 +516,13 @@ class RecipeController extends Controller
                     $unit_price = $unit_prices[$recipe->id];
 
                     //Calculate unit price in base unit
-                    if (!empty($recipe->sub_unit->base_unit_multiplier)) {
+                    if (! empty($recipe->sub_unit->base_unit_multiplier)) {
                         $unit_price = $unit_price / $recipe->sub_unit->base_unit_multiplier;
                     }
 
                     $unit_price_exc_tax = $unit_price;
 
-                    if (!empty($variation->product->product_tax)) {
+                    if (! empty($variation->product->product_tax)) {
                         $tax_percent = $variation->product->product_tax->amount;
                         $unit_price_exc_tax = $this->transactionUtil->calc_percentage_base($unit_price, $tax_percent);
                     }
@@ -522,24 +531,24 @@ class RecipeController extends Controller
 
                     //Keep sell price constant and change profit margin
                     $profit_margin = $this->transactionUtil->get_percent($unit_price, $variation->sell_price_inc_tax);
-                    $sell_price_excluding_tax =  $this->transactionUtil->calc_percentage($unit_price_exc_tax, $profit_margin, $unit_price_exc_tax);
-                    
-                    $variation->default_sell_price   = $sell_price_excluding_tax;
+                    $sell_price_excluding_tax = $this->transactionUtil->calc_percentage($unit_price_exc_tax, $profit_margin, $unit_price_exc_tax);
+
+                    $variation->default_sell_price = $sell_price_excluding_tax;
                     $variation->profit_percent = $profit_margin;
                     $variation->save();
                 }
                 $output = ['success' => 1,
-                            'msg' => __('lang_v1.updated_succesfully')
-                        ];
+                    'msg' => __('lang_v1.updated_succesfully'),
+                ];
                 DB::commit();
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => 0,
-                            'msg' => __('messages.something_went_wrong')
-                        ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
 
         return $output;
@@ -554,7 +563,7 @@ class RecipeController extends Controller
     public function destroy($id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || !auth()->user()->can('manufacturing.add_recipe')) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -563,14 +572,14 @@ class RecipeController extends Controller
                         ->delete();
 
             $output = ['success' => 1,
-                            'msg' => __('lang_v1.deleted_success')
-                        ];
+                'msg' => __('lang_v1.deleted_success'),
+            ];
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => 0,
-                            'msg' => __('messages.something_went_wrong')
-                        ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
 
         return $output;
@@ -586,7 +595,8 @@ class RecipeController extends Controller
         $exists = MfgRecipe::where('variation_id', $variation_id)
                             ->exists();
 
-        $output =  $exists ? 1 : 0;
+        $output = $exists ? 1 : 0;
+
         return $output;
     }
 }

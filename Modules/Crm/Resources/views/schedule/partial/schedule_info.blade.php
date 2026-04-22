@@ -2,11 +2,11 @@
     <div class="col-md-12">
 
         <input type="hidden" name="view_type" value="schedule_info" id="view_type">
-        <button type="button" class="btn btn-sm btn-danger schedule_delete pull-right m-5" data-href="{{action('\Modules\Crm\Http\Controllers\ScheduleController@destroy', ['follow_up' => $schedule->id])}}">
+        <button type="button" class="btn btn-sm btn-danger schedule_delete pull-right m-5" data-href="{{action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'destroy'], ['follow_up' => $schedule->id])}}">
             <i class="fas fa-trash"></i>
             @lang('messages.delete')
         </button>
-        <button type="button" class="btn btn-sm btn-primary schedule_edit pull-right m-5" data-href="{{action('\Modules\Crm\Http\Controllers\ScheduleController@edit', ['follow_up' => $schedule->id])}}?schedule_for=schedule_info">
+        <button type="button" class="btn btn-sm btn-primary schedule_edit pull-right m-5" data-href="{{action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'edit'], ['follow_up' => $schedule->id])}}?schedule_for=schedule_info">
             <i class="fa fa-edit"></i>
             @lang('messages.edit')
         </button>
@@ -153,21 +153,12 @@
                 </div>
             </div>
         </div>
-        @if(count($schedule->invoices) > 0)
-            <hr>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="col-md-6">
-                        <strong>
-                            <i class="fas fa-receipt margin-r-5"></i>
-                            @lang('sale.invoice_no'): 
-                        </strong>
-                        @foreach($schedule->invoices as $schedule_invoice)
-                            {{$schedule_invoice->invoice_no}} @if(!$loop->last),@endif
-                        @endforeach
-                    </div>
-                </div>
+        
+        <hr>
+        <div class="row">
+            <div class="col-md-12">
+                @include('crm::schedule.partial.schedule_info_invoices')
             </div>
-        @endif
+        </div>
     </div>
 </div>

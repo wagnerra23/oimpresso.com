@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-sm-12">
-        {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\AttendanceController@importAttendance'), 'method' => 'post', 'enctype' => 'multipart/form-data' ]) !!}
+        {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\AttendanceController::class, 'importAttendance']), 'method' => 'post', 'enctype' => 'multipart/form-data' ]) !!}
             <div class="row">
                 <div class="col-sm-6">
                 <div class="col-sm-8">

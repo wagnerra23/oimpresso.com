@@ -3,11 +3,8 @@
 namespace Modules\Officeimpresso\Http\Controllers;
 
 use App\Utils\ModuleUtil;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Artisan;
 use Menu;
-
 
 class DataController extends Controller
 {
@@ -17,74 +14,39 @@ class DataController extends Controller
             [
                 'name' => 'officeimpresso_module',
                 'label' => __('officeimpresso::lang.officeimpresso_module'),
-                'default' => false
-            ]
+                'default' => false,
+            ],
         ];
     }
 
-    /**
-     * Adds Connectoe menus
-     * @return null
-     */
     public function modifyAdminMenu()
     {
-        $module_util = new ModuleUtil();
-        
-        if (auth()->user()->can('superadmin')) {
-            $is_officeimpresso_enabled = $module_util->isModuleInstalled('Officeimpresso');
-            $is_dashboard_enabled = $module_util->isModuleInstalled('Dashboard');
-        } else {
-            $business_id = session()->get('user.business_id');
-            $is_officeimpresso_enabled = (boolean)$module_util->hasThePermissionInSubscription($business_id, 'officeimpresso_module', 'superadmin_package');
-            $is_dashboard_enabled = (boolean)$module_util->hasThePermissionInSubscription($business_id, 'dashboard', 'superadmin_package');
+        if (! auth()->check()) {
+            return;
         }
-        if ($is_officeimpresso_enabled) {
-            Menu::modify('admin-sidebar-menu', function ($menu) {
-                $menu->dropdown(
-                    __('officeimpresso::lang.officeimpresso'),
-                    function ($sub) {
-                        if (auth()->user()->can('superadmin')) {
-                            $sub->url(
-                                action('\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController@businessall'),
-                               __('officeimpresso::lang.businessall'),
-                                ['icon' => 'fa fas fa-network-wired', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'businesssall']
-                            );
-                            
-                            $sub->url(
-                                url('http://sistema.wr2.com.br:19000/ping'),
-                               __('officeimpresso::lang.ping'),
-                                ['icon' => 'fa fas fa-network-wired', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'ping']
-                            );
-                        }
-                        $sub->url(
-                            action('\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController@computadores'),
-                           __('officeimpresso::lang.computadores'),
-                            ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'computadores']
-                        );
-                        // $sub->url(
-                        //     action('\Modules\Officeimpresso\Http\Controllers\LicencaLogController@index'),
-                        //    __('officeimpresso::lang.loglicencas'),
-                        //     ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'loglicencas']
-                        // );
-                        $sub->url(
-                            url('/officeimpresso/docs'),
-                           __('officeimpresso::lang.documentation'),
-                            ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'docs']
-                        );
-                    },
-                    ['icon' => 'fas fa-plug']
-                )->order(89);
-            });
-           
-        };
-        if ($is_dashboard_enabled && auth()->user()->can('dashboard.access')) {
-            Menu::modify('admin-sidebar-menu', function ($menu) {
-                $menu->url(
-                    action('\Modules\Dashboard\Http\Controllers\DashboardController@index'),
-                    __('Dashboard'),
-                    ['icon' => 'fa fas fa-list', 'active' => request()->segment(1) == 'expenses' && request()->segment(2) == null]
-                )->order(86);
-            });
-        } 
+
+        Menu::modify('admin-sidebar-menu', function ($menu) {
+            $menu->dropdown(
+                __('officeimpresso::lang.officeimpresso_module'),
+                function ($sub) {
+                    $sub->url(
+                        url('officeimpresso/licenca_computador'),
+                        __('officeimpresso::lang.licencas'),
+                        ['icon' => 'fa fas fa-laptop', 'active' => request()->segment(2) == 'licenca_computador']
+                    );
+                    $sub->url(
+                        url('officeimpresso/computadores'),
+                        __('officeimpresso::lang.computadores'),
+                        ['icon' => 'fa fas fa-desktop', 'active' => request()->segment(2) == 'computadores']
+                    );
+                    $sub->url(
+                        url('officeimpresso/businessall'),
+                        __('officeimpresso::lang.clients'),
+                        ['icon' => 'fa fas fa-users', 'active' => request()->segment(2) == 'businessall']
+                    );
+                },
+                ['icon' => 'fa fas fa-key', 'active' => request()->segment(1) == 'officeimpresso']
+            )->order(2);
+        });
     }
 }

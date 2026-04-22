@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 class AddProductCatalogueVersion extends Migration
 {
@@ -13,8 +13,8 @@ class AddProductCatalogueVersion extends Migration
     public function up()
     {
         DB::table('system')->insert([
-            'key'=>'productcatalogue_version',
-            'value' => config('productcatalogue.module_version', 0.1)
+            'key' => 'productcatalogue_version',
+            'value' => config('productcatalogue.module_version', 0.1),
         ]);
     }
 

@@ -13,7 +13,7 @@ use App\Business;
 use App\Services\DFeService;
 use NFePHP\NFe\Common\Standardize;
 use NFePHP\DA\NFe\Danfe;
-use App\Cidades;
+use App\City;
 use App\Contact;
 use App\Product;
 use App\ItemDfe;
@@ -365,7 +365,7 @@ class ManifestoController extends Controller
 		}else{
 
 
-			$cidade = Cidades::getCidadeCod($xml->NFe->infNFe->emit->enderEmit->cMun);
+			$cidade = City::getCidadeCod($xml->NFe->infNFe->emit->enderEmit->cMun);
 			$contact = [
 				'business_id' => $business_id,
 				'city_id' => $cidade->id,

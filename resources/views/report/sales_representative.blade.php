@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>{{ __('report.sales_representative')}}</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">{{ __('report.sales_representative')}}</h1>
 </section>
 
 <!-- Main content -->
@@ -13,7 +13,7 @@
     <div class="row">
         <div class="col-md-12">
             @component('components.filters', ['title' => __('report.filters')])
-              {!! Form::open(['url' => action('ReportController@getStockReport'), 'method' => 'get', 'id' => 'sales_representative_filter_form' ]) !!}
+              {!! Form::open(['url' => action([\App\Http\Controllers\ReportController::class, 'getStockReport']), 'method' => 'get', 'id' => 'sales_representative_filter_form' ]) !!}
                 <div class="col-md-4">
                     <div class="form-group">
                         {!! Form::label('sr_id',  __('report.user') . ':') !!}
@@ -58,6 +58,14 @@
                         <i class="fas fa-sync fa-spin fa-fw"></i>
                     </span>
                 </h3>
+                <div class="hide" id="total_payment_with_commsn_div">
+                    <h3 class="text-muted">
+                        {{ __('lang_v1.total_payment_with_commsn') }}: 
+                        <span id="total_payment_with_commsn">
+                            <i class="fas fa-sync fa-spin fa-fw"></i>
+                        </span>
+                    </h3>
+                </div>
                 <div class="hide" id="total_commission_div">
                     <h3 class="text-muted">
                         {{ __('lang_v1.total_sale_commission') }}: 
@@ -92,6 +100,12 @@
                     <li>
                         <a href="#sr_expenses_tab" data-toggle="tab" aria-expanded="true"><i class="fa fa-cog" aria-hidden="true"></i> @lang('expense.expenses')</a>
                     </li>
+
+                    @if(!empty($pos_settings['cmmsn_calculation_type']) && $pos_settings['cmmsn_calculation_type'] == 'payment_received')
+                        <li>
+                            <a href="#sr_payments_with_cmmsn_tab" data-toggle="tab" aria-expanded="true"><i class="fa fa-cog" aria-hidden="true"></i> @lang('lang_v1.payments_with_cmmsn')</a>
+                        </li>
+                    @endif
                 </ul>
 
                 <div class="tab-content">
@@ -106,6 +120,12 @@
                     <div class="tab-pane" id="sr_expenses_tab">
                         @include('report.partials.sales_representative_expenses')
                     </div>
+
+                    @if(!empty($pos_settings['cmmsn_calculation_type']) && $pos_settings['cmmsn_calculation_type'] == 'payment_received')
+                        <div class="tab-pane" id="sr_payments_with_cmmsn_tab">
+                            @include('report.partials.sales_representative_payments_with_cmmsn')
+                        </div>
+                    @endif
                 </div>
 
             </div>

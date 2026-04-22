@@ -7,11 +7,18 @@
 	   <h1>@lang('crm::lang.add_schedule')</h1>
 	</section>
 	<section class="content no-print">
-		{!! Form::open(['url' => action('\Modules\Crm\Http\Controllers\ScheduleController@store'), 'method' => 'post', 'id' => 'add_advance_schedule' ]) !!}
+		{!! Form::open(['url' => action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'store']), 'method' => 'post', 'id' => 'add_advance_schedule' ]) !!}
 
 		<div class="box box-solid">
         	<div class="box-body">
         		<div class="row">
+        			<div class="col-md-4">
+                        <div class="form-group">
+                            {!! Form::label('followup_category_id', __('crm::lang.followup_category') .':*') !!}
+                            {!! Form::select('followup_category_id', $followup_category, null, ['class' => 'form-control select2', 'required', 'style' => 'width: 100%;', 'placeholder' => __('messages.please_select')]); !!}
+                        </div>
+                    </div>
+                    
         			<div class="col-md-4">
 		               <div class="form-group">
 		                    {!! Form::label('follow_up_by', __('crm::lang.follow_up_by') .':') !!}
@@ -29,6 +36,11 @@
 								    	</option>
 								    	<option value="has_no_transactions" data-category="orders">
 								    		@lang('crm::lang.has_no_transactions')
+								    	</option>
+								  	</optgroup>
+								  	<optgroup label="@lang('contact.contact')">
+								    	<option value="contact_name" data-category="contact_name">
+								    		@lang('user.name')
 								    	</option>
 								  	</optgroup>
 							</select>
@@ -72,6 +84,24 @@
 		               		<button type="button" class="btn btn-primary" id="group_invoices">@lang('pagination.next')</button>
 		               </div>
 		            </div>
+		            <div class="col-md-6 hide follow_up_by_contact_name" >
+		            	<div class="form-group">
+		                    {!! Form::label('contact_ids', __('lang_v1.customers') .':') !!}
+		                    <button type="button" class="btn btn-primary btn-xs select-all">
+		                        @lang('lang_v1.select_all')
+		                    </button>
+		                    <button type="button" class="btn btn-primary btn-xs deselect-all">
+		                        @lang('lang_v1.deselect_all')
+		                    </button>
+		                    {!! Form::select('contact_ids', $customers, null, ['class' => 'form-control select2', 'style' => 'width: 100%;', 'id' => 'contact_ids', 'multiple']); !!}
+		               </div>
+		            </div>
+		            <div class="col-md-2 hide follow_up_by_contact_name" >
+		               <div class="form-group">
+		               		<br>
+		               		<button type="button" class="btn btn-primary" id="group_customers_by_name">@lang('pagination.next')</button>
+		               </div>
+		            </div>
         		</div>
         	</div>
        	</div>
@@ -100,6 +130,9 @@
 								</span>
 								<span class="text-primary trans_days_tags" id="title_trans_days_tags">
 									{{implode(', ', $followup_tags['trans_days'])}}
+								</span>
+								<span class="text-primary contact_name_tags" id="title_contact_name_tags">
+									{{implode(', ', $followup_tags['contact_name'])}}
 								</span>
 							</p>
 		               </div>
@@ -139,6 +172,9 @@
 								</span>
 								<span class="text-primary trans_days_tags">
 									{{implode(', ', $followup_tags['trans_days'])}}
+								</span>
+								<span class="text-primary contact_name_tags">
+									{{implode(', ', $followup_tags['contact_name'])}}
 								</span>
 							</p>
 		                </div>
@@ -243,10 +279,17 @@
 			
 			if (category == 'payment_status') {
 				$('span.trans_days_tags').hide();
+				$('span.contact_name_tags').hide();
 				$('span.invoice_tags').show();
 				$("input#title").val('Payment followup: ' +$('span#title_invoice_tags').text().trim());
+			} else if (category == 'contact_name') {
+				$('span.invoice_tags').hide();
+				$('span.trans_days_tags').hide();
+				$('span.contact_name_tags').show();
+				$("input#title").val('Followup: ' + $('span#title_contact_name_tags').text().trim());
 			} else if (category == 'orders') {
 				$('span.invoice_tags').hide();
+				$('span.contact_name_tags').hide();
 				$('span.trans_days_tags').show();
 				$("input#title").val('Sales followup: ' +$('span#title_trans_days_tags').text().trim());
 			}
@@ -263,20 +306,26 @@
 					}
 
 					$.ajax({
-			            url: '{{action("\Modules\Crm\Http\Controllers\ScheduleController@getInvoicesForFollowUp")}}',
+			            url: '{{action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'getInvoicesForFollowUp'])}}',
 			            dataType: 'json',
 			            data: data,
 			            success: function(data) {
 			                $('#invoices').select2('destroy').empty().select2({data: data});
 			            },
 			        });
+				} else if(follow_up_by == 'contact_name') {
+					$('.follow_up_by_payment_field').addClass('hide');
+					$('.follow_up_by_order_field').addClass('hide');
+					$('.follow_up_by_contact_name').removeClass('hide');
 				} else {
 					$('.follow_up_by_payment_field').addClass('hide');
+					$('.follow_up_by_contact_name').addClass('hide');
 					$('.follow_up_by_order_field').removeClass('hide');
 				}
-			} else {
+			}  else {
 				$('.follow_up_by_payment_field').addClass('hide');
 				$('.follow_up_by_order_field').addClass('hide');
+				$('.follow_up_by_contact_name').addClass('hide');
 			}
 		});
 	});
@@ -289,7 +338,7 @@
 		if (days != '') {
 			$('.hidden_box').removeClass('hide');
 			$.ajax({
-	            url: '{{action("\Modules\Crm\Http\Controllers\ScheduleController@getFollowUpGroups")}}',
+	            url: '{{action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'getFollowUpGroups'])}}',
 	            dataType: 'html',
 	            data: {days: days, follow_up_by: follow_up_by},
 	            success: function(result) {
@@ -305,13 +354,35 @@
 		}
 	});
 
+	$(document).on('click', '#group_customers_by_name', function(){
+		$('#group_invoices_div').html('');
+		var follow_up_by = $('#follow_up_by').val();
+		var contact_ids = $('#contact_ids').val();
+		if (contact_ids != '') {
+			$('.hidden_box').removeClass('hide');
+			$.ajax({
+	            url: '{{action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'getFollowUpGroups'])}}',
+	            dataType: 'html',
+	            data: {contact_ids: contact_ids, follow_up_by: follow_up_by},
+	            success: function(result) {
+	                $('#group_invoices_div').html(result);
+	                $('#group_invoices_div').find('.select2').each( function(){
+	                	$(this).select2();
+	                });
+	            },
+	        });
+		} else {
+			$('.hidden_box').addClass('hide');
+		}
+	});
+
 	$(document).on('click', '#group_invoices', function(){
 		var invoices = $('#invoices').val();
 		$('#group_invoices_div').html('');
 		if (invoices != '') {
 			$('.hidden_box').removeClass('hide');
 			$.ajax({
-	            url: '{{action("\Modules\Crm\Http\Controllers\ScheduleController@getFollowUpGroups")}}',
+	            url: '{{action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'getFollowUpGroups'])}}',
 	            dataType: 'html',
 	            data: {invoices: invoices, follow_up_by: 'payment_status'},
 	            success: function(result) {

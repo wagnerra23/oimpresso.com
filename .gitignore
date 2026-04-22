@@ -28,3 +28,4 @@ npm-debug.log
 /public/js/skins/
 /public/js/icons/
 
+.claude/

@@ -7,14 +7,14 @@
     @endphp
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1> @lang('lang_v1.contact_locations')
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black"> @lang('lang_v1.contact_locations')
     </h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
     @component('components.widget', ['class' => 'box-solid'])
-        {!! Form::open(['url' => action('ContactController@contactMap'), 'method' => 'get']) !!}
+        {!! Form::open(['url' => action([\App\Http\Controllers\ContactController::class, 'contactMap']), 'method' => 'get']) !!}
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="contacts">@lang('lang_v1.select_contacts')</label>

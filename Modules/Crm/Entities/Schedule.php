@@ -21,29 +21,29 @@ class Schedule extends Model
     protected $guarded = ['id'];
 
     /**
-    * The attributes that should be cast to native types.
-    *
-    * @var array
-    */
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
     protected $casts = [
         'notify_via' => 'array',
-        'followup_additional_info' => 'array'
+        'followup_additional_info' => 'array',
     ];
-    
+
     /**
-    * The member that belongs to the schedule.
-    */
+     * The member that belongs to the schedule.
+     */
     public function users()
     {
-        return $this->belongsToMany('App\User', 'crm_schedule_users', 'schedule_id', 'user_id');
+        return $this->belongsToMany(\App\User::class, 'crm_schedule_users', 'schedule_id', 'user_id');
     }
 
     /**
-    * Invoices assigned to the follow up.
-    */
+     * Invoices assigned to the follow up.
+     */
     public function invoices()
     {
-        return $this->belongsToMany('App\Transaction', 'crm_followup_invoices', 'follow_up_id', 'transaction_id');
+        return $this->belongsToMany(\App\Transaction::class, 'crm_followup_invoices', 'follow_up_id', 'transaction_id');
     }
 
     /**
@@ -51,7 +51,7 @@ class Schedule extends Model
      */
     public function createdBy()
     {
-        return $this->belongsTo('App\User', 'created_by');
+        return $this->belongsTo(\App\User::class, 'created_by');
     }
 
     public function customer()
@@ -67,14 +67,18 @@ class Schedule extends Model
     /**
      * Return the status for schedule.
      */
-    public static function statusDropdown()
+    public static function statusDropdown($add_none = false)
     {
         $status = [
-                'scheduled' => __('crm::lang.scheduled'),
-                'open' => __('crm::lang.open'),
-                'cancelled' => __('crm::lang.canceled'),
-                'completed' =>  __('crm::lang.completed')
-            ];
+            'scheduled' => __('crm::lang.scheduled'),
+            'open' => __('crm::lang.open'),
+            'cancelled' => __('crm::lang.canceled'),
+            'completed' => __('crm::lang.completed'),
+        ];
+
+        if ($add_none) {
+            $status['none'] = __('crm::lang.none');
+        }
 
         return $status;
     }
@@ -83,23 +87,31 @@ class Schedule extends Model
     {
         return [
             'call' => __('crm::lang.call'),
-            'sms' => __('crm::lang.sms'), 
+            'sms' => __('crm::lang.sms'),
             'meeting' => __('crm::lang.meeting'),
-            'email' => __('business.email')
+            'email' => __('business.email'),
         ];
     }
 
     public static function followUpNotifyTypeDropdown()
     {
         return [
-                'minute' => __('crm::lang.minute'),
-                'hour' => __('crm::lang.hour'),
-                'day' => __('lang_v1.day')
-            ];
+            'minute' => __('crm::lang.minute'),
+            'hour' => __('crm::lang.hour'),
+            'day' => __('lang_v1.day'),
+        ];
     }
 
     public static function followUpNotifyViaDropdown()
     {
-        return ['sms' => __('crm::lang.sms'),'mail' => __('business.email')];
+        return ['sms' => __('crm::lang.sms'), 'mail' => __('business.email')];
+    }
+
+    /**
+     * Get category associated with the product.
+     */
+    public function followupCategory()
+    {
+        return $this->belongsTo(\App\Category::class, 'followup_category_id');
     }
 }

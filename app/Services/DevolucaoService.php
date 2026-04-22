@@ -60,7 +60,7 @@ class DevolucaoService{
 		$stdIde->dhSaiEnt = date("Y-m-d\TH:i:sP");
 		$stdIde->tpNF = 1;
 		$stdIde->idDest = $config->cidade->uf != $devolucao->contact->cidade->uf ? 2 : 1;
-		$stdIde->cMunFG = $config->cidade->officeimpresso_codigo;
+		$stdIde->cMunFG = $config->cidade->codigo;
 
 		$stdIde->tpImp = 1;
 		$stdIde->tpEmis = 1;
@@ -103,7 +103,7 @@ class DevolucaoService{
 		$stdEnderEmit->xCpl = "";
 
 		$stdEnderEmit->xBairro = $config->bairro;
-		$stdEnderEmit->cMun = $config->cidade->officeimpresso_codigo;
+		$stdEnderEmit->cMun = $config->cidade->codigo;
 		$stdEnderEmit->xMun = $config->cidade->nome;
 		$stdEnderEmit->UF = $config->cidade->uf;
 
@@ -156,7 +156,7 @@ class DevolucaoService{
 		$stdEnderDest->nro = $devolucao->contact->numero;
 		$stdEnderDest->xCpl = "";
 		$stdEnderDest->xBairro = $devolucao->contact->bairro;
-		$stdEnderDest->cMun = $devolucao->contact->cidade->officeimpresso_codigo;
+		$stdEnderDest->cMun = $devolucao->contact->cidade->codigo;
 		$stdEnderDest->xMun = strtoupper($devolucao->contact->cidade->nome);
 		$stdEnderDest->UF = $devolucao->contact->cidade->uf;
 

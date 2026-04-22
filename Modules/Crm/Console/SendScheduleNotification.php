@@ -5,7 +5,6 @@ namespace Modules\Crm\Console;
 use App\Business;
 use App\User;
 use App\Utils\NotificationUtil;
-
 use App\Utils\Util;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -20,7 +19,7 @@ class SendScheduleNotification extends Command
      *
      * @var string
      */
-    protected $name = 'pos:sendScheduleNotification';
+    protected $signature = 'pos:sendScheduleNotification';
 
     /**
      * The console command description.
@@ -35,7 +34,9 @@ class SendScheduleNotification extends Command
      * @return void
      */
     protected $commonUtil;
+
     protected $notificationUtil;
+
     public function __construct(Util $commonUtil, NotificationUtil $notificationUtil)
     {
         parent::__construct();
@@ -87,9 +88,9 @@ class SendScheduleNotification extends Command
                 $schedule['body'] = __(
                     'crm::lang.schedule_notification',
                     [
-                    'created_by' => $schedule->createdBy->user_full_name,
-                    'title' => $schedule->title,
-                    'startdatetime' => $startdatetime
+                        'created_by' => $schedule->createdBy->user_full_name,
+                        'title' => $schedule->title,
+                        'startdatetime' => $startdatetime,
                     ]
                 );
                 $schedule['link'] = '';
@@ -99,7 +100,7 @@ class SendScheduleNotification extends Command
                 if ($schedule->notify_via['mail']) {
                     $delivery_channel[] = 'mail';
                 }
-                
+
                 //send notifiction
                 Notification::send($notifiable_users, new ScheduleNotification($schedule, $delivery_channel));
                 if ($schedule->notify_via['sms']) {

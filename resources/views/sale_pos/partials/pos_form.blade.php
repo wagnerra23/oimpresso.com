@@ -11,21 +11,29 @@
 				value="{{ $walk_in_customer['name'] ?? ''}}" >
 				<input type="hidden" id="default_customer_balance" 
 				value="{{ $walk_in_customer['balance'] ?? ''}}" >
+				<input type="hidden" id="default_customer_address" 
+				value="{{ $walk_in_customer['shipping_address'] ?? ''}}" >
+				@if(!empty($walk_in_customer['price_calculation_type']) && $walk_in_customer['price_calculation_type'] == 'selling_price_group')
+					<input type="hidden" id="default_selling_price_group" 
+				value="{{ $walk_in_customer['selling_price_group_id'] ?? ''}}" >
+				@endif
 				{!! Form::select('contact_id', 
-					[], null, ['class' => 'form-control mousetrap', 'id' => 'customer_id', 'placeholder' => 'Enter Customer name / phone', 'required', 'style' => 'width: 100%;']); !!}
+					[], null, ['class' => 'form-control mousetrap', 'id' => 'customer_id', 'placeholder' => 'Enter Customer name / phone', 'required']); !!}
 				<span class="input-group-btn">
 					<button type="button" class="btn btn-default bg-white btn-flat add_new_customer" data-name=""  @if(!auth()->user()->can('customer.create')) disabled @endif><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
 				</span>
 			</div>
+			<small class="text-danger hide contact_due_text"><strong>@lang('account.customer_due'):</strong> <span></span></small>
 		</div>
 	</div>
 	<div class="col-md-8">
 		<div class="form-group">
 			<div class="input-group">
 				<div class="input-group-btn">
-					<button type="button" class="btn btn-default bg-white btn-flat" data-toggle="modal" data-target="#configure_search_modal" title="{{__('lang_v1.configure_product_search')}}"><i class="fa fa-barcode"></i></button>
+					<button type="button" class="btn btn-default bg-white btn-flat" data-toggle="modal" data-target="#configure_search_modal" title="{{__('lang_v1.configure_product_search')}}"><i class="fas fa-search-plus"></i></button>
 				</div>
-				{!! Form::text('search_product', null, ['class' => 'form-control mousetrap', 'id' => 'search_product', 'placeholder' => __('lang_v1.search_product_placeholder'),
+                {{-- Removed mousetrap class as it was causing issue with barcode scanning --}}
+				{!! Form::text('search_product', null, ['class' => 'form-control', 'id' => 'search_product', 'placeholder' => __('lang_v1.search_product_placeholder'),
 				'disabled' => is_null($default_location)? true : false,
 				'autofocus' => is_null($default_location)? false : true,
 				]); !!}
@@ -38,7 +46,7 @@
 					@endif
 					
 
-					<button type="button" class="btn btn-default bg-white btn-flat pos_add_quick_product" data-href="{{action('ProductController@quickAdd')}}" data-container=".quick_add_product_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+					<button type="button" class="btn btn-default bg-white btn-flat pos_add_quick_product" data-href="{{action([\App\Http\Controllers\ProductController::class, 'quickAdd'])}}" data-container=".quick_add_product_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
 				</span>
 			</div>
 		</div>
@@ -57,10 +65,13 @@
 	<input type="hidden" name="pay_term_type" id="pay_term_type" value="{{$walk_in_customer['pay_term_type'] ?? ''}}">
 	
 	@if(!empty($commission_agent))
+		@php
+			$is_commission_agent_required = !empty($pos_settings['is_commission_agent_required']);
+		@endphp
 		<div class="col-md-4">
 			<div class="form-group">
 			{!! Form::select('commission_agent', 
-						$commission_agent, null, ['class' => 'form-control select2', 'placeholder' => __('lang_v1.commission_agent')]); !!}
+						$commission_agent, null, ['class' => 'form-control select2', 'placeholder' => __('lang_v1.commission_agent'), 'id' => 'commission_agent', 'required' => $is_commission_agent_required]); !!}
 			</div>
 		</div>
 	@endif
@@ -139,9 +150,17 @@
 	@endif
 
 	@if(!empty($pos_settings['show_invoice_scheme']))
+		@php
+			$invoice_scheme_id = $default_invoice_schemes->id;
+			if(!empty($default_location->invoice_scheme_id)) {
+				$invoice_scheme_id = $default_location->invoice_scheme_id;
+			}
+		@endphp
 		<div class="col-md-4 col-sm-6">
 			<div class="form-group">
-				{!! Form::select('invoice_scheme_id', $invoice_schemes, $default_invoice_schemes->id, ['class' => 'form-control', 'placeholder' => __('lang_v1.select_invoice_scheme')]); !!}
+				{!! Form::select('invoice_scheme_id', $invoice_schemes, $invoice_scheme_id, 
+					['class' => 'form-control', 'placeholder' => __('lang_v1.select_invoice_scheme'), 
+					'id' => 'invoice_scheme_id']); !!}
 			</div>
 		</div>
 	@endif
@@ -152,12 +171,26 @@
             </label><button type="button" data-toggle="modal" data-target="#recurringInvoiceModal" class="btn btn-link"><i class="fa fa-external-link-square-alt"></i></button>@show_tooltip(__('lang_v1.recurring_invoice_help'))
 		</div>
 	@endif
+	
 	<!-- Call restaurant module if defined -->
     @if(in_array('tables' ,$enabled_modules) || in_array('service_staff' ,$enabled_modules))
     	<div class="clearfix"></div>
     	<span id="restaurant_module_span">
       		<div class="col-md-3"></div>
     	</span>
+    @endif
+
+	@if(in_array('kitchen' ,$enabled_modules))
+		<div class="col-md-3">
+			<div class="form-group">
+				<div class="checkbox">
+				<label>
+						{!! Form::checkbox('is_kitchen_order', 1, false, ['class' => 'input-icheck status', 'id' => 'is_kitchen_order']); !!} {{ __('lang_v1.kitchen_order') }}
+				</label>
+				@show_tooltip(__('lang_v1.kitchen_order_tooltip'))
+				</div>
+			</div>
+		</div>
     @endif
     
 </div>
@@ -185,24 +218,24 @@
 		<table class="table table-condensed table-bordered table-striped table-responsive" id="pos_table">
 			<thead>
 				<tr>
-					<th class="tex-center @if(!empty($pos_settings['inline_service_staff'])) col-md-3 @else col-md-4 @endif">	
+					<th class="tex-center tw-text-sm md:!tw-text-base tw-font-bold @if(!empty($pos_settings['inline_service_staff'])) col-md-3 @else col-md-4 @endif">	
 						@lang('sale.product') @show_tooltip(__('lang_v1.tooltip_sell_product_column'))
 					</th>
-					<th class="text-center col-md-3">
+					<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-3">
 						@lang('sale.qty')
 					</th>
 					@if(!empty($pos_settings['inline_service_staff']))
-						<th class="text-center col-md-2">
+						<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-2">
 							@lang('restaurant.service_staff')
 						</th>
 					@endif
-					<th class="text-center col-md-2 {{$hide_tax}}">
+					<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-2 {{$hide_tax}}">
 						@lang('sale.price_inc_tax')
 					</th>
-					<th class="text-center col-md-2">
+					<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-2">
 						@lang('sale.subtotal')
 					</th>
-					<th class="text-center"><i class="fas fa-times" aria-hidden="true"></i></th>
+					<th class="text-center"><i class="fas fa-times tw-text-base" aria-hidden="true"></i></th>
 				</tr>
 			</thead>
 			<tbody></tbody>

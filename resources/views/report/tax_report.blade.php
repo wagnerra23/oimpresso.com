@@ -5,8 +5,8 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang( 'report.tax_report' )
-        <small>@lang( 'report.tax_report_msg' )</small>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang( 'report.tax_report' )
+        <small class="tw-text-sm md:tw-text-base tw-text-gray-700 tw-font-semibold">@lang( 'report.tax_report_msg' )</small>
     </h1>
 </section>
 
@@ -19,6 +19,12 @@
                     <div class="form-group">
                         {!! Form::label('tax_report_location_id',  __('purchase.business_location') . ':') !!}
                         {!! Form::select('tax_report_location_id', $business_locations, null, ['class' => 'form-control select2', 'style' => 'width:100%']); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('tax_report_contact_id', __( 'report.contact' ) . ':') !!}
+                        {!! Form::select('tax_report_contact_id', $contact_dropdown, null , ['class' => 'form-control select2', 'style' => 'width:100%', 'id' => 'tax_report_contact_id', 'placeholder' => __('lang_v1.all')]); !!}
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -82,9 +88,17 @@
     </div>
     <div class="row no-print">
         <div class="col-sm-12">
-            <button type="button" class="btn btn-primary pull-right" 
-            aria-label="Print" onclick="window.print();"
-            ><i class="fa fa-print"></i> @lang( 'messages.print' )</button>
+            <button class="tw-dw-btn tw-dw-btn-primary tw-text-white pull-right tw-mb-2" aria-label="Print"
+                onclick="window.print();">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="icon icon-tabler icons-tabler-outline icon-tabler-printer">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" />
+                    <path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" />
+                    <path d="M7 13m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z" />
+                </svg> @lang('messages.print')
+            </button>
         </div>
     </div>
     <div class="row">
@@ -93,11 +107,11 @@
             <div class="nav-tabs-custom">
                 <ul class="nav nav-tabs">
                     <li class="active">
-                        <a href="#input_tax_tab" data-toggle="tab" aria-expanded="true"><i class="fa fas fa-arrow-circle-down" aria-hidden="true"></i> @lang('report.input_tax')</a>
+                        <a href="#input_tax_tab" data-toggle="tab" aria-expanded="true"><i class="fa fas fa-arrow-circle-down" aria-hidden="true"></i> @lang('report.input_tax') ( @lang('lang_v1.purchase') )</a>
                     </li>
 
                     <li>
-                        <a href="#output_tax_tab" data-toggle="tab" aria-expanded="true"><i class="fa fas fa-arrow-circle-up" aria-hidden="true"></i> @lang('report.output_tax')</a>
+                        <a href="#output_tax_tab" data-toggle="tab" aria-expanded="true"><i class="fa fas fa-arrow-circle-up" aria-hidden="true"></i> @lang('report.output_tax')  ( @lang('sale.sells') )</a>
                     </li>
 
                     <li>
@@ -127,6 +141,7 @@
                                     <th>@lang('purchase.supplier')</th>
                                     <th>@lang('contact.tax_no')</th>
                                     <th>@lang('sale.total_amount')</th>
+                                    <th>@lang('lang_v1.payment_method')</th>
                                     <th>@lang('receipt.discount')</th>
                                     @foreach($taxes as $tax)
                                         <th>
@@ -139,6 +154,7 @@
                                 <tr class="bg-gray font-17 text-center footer-total">
                                     <td colspan="4"><strong>@lang('sale.total'):</strong></td>
                                     <td><span class="display_currency" id="sell_total" data-currency_symbol ="true"></span></td>
+                                    <td class="input_payment_method_count"></td>
                                     <td>&nbsp;</td>
                                     @foreach($taxes as $tax)
                                         <td>
@@ -158,6 +174,7 @@
                                     <th>@lang('contact.customer')</th>
                                     <th>@lang('contact.tax_no')</th>
                                     <th>@lang('sale.total_amount')</th>
+                                    <th>@lang('lang_v1.payment_method')</th>
                                     <th>@lang('receipt.discount')</th>
                                     @foreach($taxes as $tax)
                                         <th>
@@ -170,6 +187,7 @@
                                 <tr class="bg-gray font-17 text-center footer-total">
                                     <td colspan="4"><strong>@lang('sale.total'):</strong></td>
                                     <td><span class="display_currency" id="purchase_total" data-currency_symbol ="true"></span></td>
+                                    <td class="output_payment_method_count"></td>
                                     <td>&nbsp;</td>
                                     @foreach($taxes as $tax)
                                         <td>
@@ -188,6 +206,7 @@
                                     <th>@lang('purchase.ref_no')</th>
                                     <th>@lang('contact.tax_no')</th>
                                     <th>@lang('sale.total_amount')</th>
+                                    <th>@lang('lang_v1.payment_method')</th>
                                     @foreach($taxes as $tax)
                                         <th>
                                             {{$tax['name']}}
@@ -198,7 +217,11 @@
                             <tfoot>
                                 <tr class="bg-gray font-17 text-center footer-total">
                                     <td colspan="3"><strong>@lang('sale.total'):</strong></td>
-                                    <td><span class="display_currency" id="expense_total" data-currency_symbol ="true"></span></td>                                    @foreach($taxes as $tax)
+                                    <td>
+                                        <span class="display_currency" id="expense_total" data-currency_symbol ="true"></span>
+                                    </td> 
+                                    <td class="expense_payment_method_count"></td>
+                                    @foreach($taxes as $tax)
                                         <td>
                                             <span class="display_currency" id="total_expense_{{$tax['id']}}" data-currency_symbol ="true"></span>
                                         </td>
@@ -243,11 +266,13 @@
         input_tax_table = $('#input_tax_table').DataTable({
             processing: true,
             serverSide: true,
+            fixedHeader:false,
             ajax: {
                 url: '/reports/tax-details',
                 data: function(d) {
                     d.type = 'purchase';
                     d.location_id = $('#tax_report_location_id').val();
+                    d.contact_id = $('#tax_report_contact_id').val();
                     var start = $('input#tax_report_date_range')
                         .data('daterangepicker')
                         .startDate.format('YYYY-MM-DD');
@@ -264,11 +289,15 @@
                 { data: 'contact_name', name: 'c.name' },
                 { data: 'tax_number', name: 'c.tax_number' },
                 { data: 'total_before_tax', name: 'total_before_tax' },
+                { data: 'payment_methods', orderable: false, "searchable": false},
                 { data: 'discount_amount', name: 'discount_amount' },
                 @foreach($taxes as $tax)
                 { data: "tax_{{$tax['id']}}", searchable: false, orderable: false },
                 @endforeach
             ],
+            "footerCallback": function ( row, data, start, end, display ) {
+                $('.input_payment_method_count').html(__count_status(data, 'payment_methods'));
+            },
             fnDrawCallback: function(oSettings) {
                 $('#sell_total').text(
                     sum_table_col($('#input_tax_table'), 'total_before_tax')
@@ -288,12 +317,14 @@
                     output_tax_datatable = $('#output_tax_table').DataTable({
                         processing: true,
                         serverSide: true,
+                        fixedHeader:false,
                         aaSorting: [[0, 'desc']],
                         ajax: {
                             url: '/reports/tax-details',
                             data: function(d) {
                                 d.type = 'sell';
                                 d.location_id = $('#tax_report_location_id').val();
+                                d.contact_id = $('#tax_report_contact_id').val();
                                 var start = $('input#tax_report_date_range')
                                     .data('daterangepicker')
                                     .startDate.format('YYYY-MM-DD');
@@ -310,11 +341,15 @@
                             { data: 'contact_name', name: 'c.name' },
                             { data: 'tax_number', name: 'c.tax_number' },
                             { data: 'total_before_tax', name: 'total_before_tax' },
+                            { data: 'payment_methods', orderable: false, "searchable": false},
                             { data: 'discount_amount', name: 'discount_amount' },
                             @foreach($taxes as $tax)
                             { data: "tax_{{$tax['id']}}", searchable: false, orderable: false },
                             @endforeach
                         ],
+                        "footerCallback": function ( row, data, start, end, display ) {
+                            $('.output_payment_method_count').html(__count_status(data, 'payment_methods'));
+                        },
                         fnDrawCallback: function(oSettings) {
                             $('#purchase_total').text(
                                 sum_table_col($('#output_tax_table'), 'total_before_tax')
@@ -333,11 +368,13 @@
                     expense_tax_datatable = $('#expense_tax_table').DataTable({
                         processing: true,
                         serverSide: true,
+                        fixedHeader:false,
                         ajax: {
                             url: '/reports/tax-details',
                             data: function(d) {
                                 d.type = 'expense';
                                 d.location_id = $('#tax_report_location_id').val();
+                                d.contact_id = $('#tax_report_contact_id').val();
                                 var start = $('input#tax_report_date_range')
                                     .data('daterangepicker')
                                     .startDate.format('YYYY-MM-DD');
@@ -353,10 +390,14 @@
                             { data: 'ref_no', name: 'ref_no' },
                             { data: 'tax_number', name: 'c.tax_number' },
                             { data: 'total_before_tax', name: 'total_before_tax' },
+                            { data: 'payment_methods', orderable: false, "searchable": false},
                             @foreach($taxes as $tax)
                             { data: "tax_{{$tax['id']}}", searchable: false, orderable: false },
                             @endforeach
                         ],
+                        "footerCallback": function ( row, data, start, end, display ) {
+                            $('.expense_payment_method_count').html(__count_status(data, 'payment_methods'));
+                        },
                         fnDrawCallback: function(oSettings) {
                             $('#expense_total').text(
                                 sum_table_col($('#expense_tax_table'), 'total_before_tax')
@@ -371,9 +412,13 @@
                     });
                 }
             }
+
+             // remove class from data table button
+             $('.btn-default').removeClass('btn-default');
+            $('.tw-dw-btn-outline').removeClass('btn');
         });
         
-        $('#tax_report_date_range, #tax_report_location_id').change( function(){
+        $('#tax_report_date_range, #tax_report_location_id, #tax_report_contact_id').change( function(){
             if ($("#input_tax_tab").hasClass('active')) {
                 input_tax_table.ajax.reload();
             }
@@ -383,6 +428,7 @@
             if ($("#expense_tax_tab").hasClass('active')) {
                 expense_tax_datatable.ajax.reload();
             }
+            
         });
     });
 </script>

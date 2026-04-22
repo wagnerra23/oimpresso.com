@@ -2,8 +2,8 @@
 
 namespace Modules\Repair\Entities;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Variation;
+use Illuminate\Database\Eloquent\Model;
 
 class JobSheet extends Model
 {
@@ -13,7 +13,7 @@ class JobSheet extends Model
      * @var array
      */
     protected $guarded = ['id'];
-    
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -23,7 +23,7 @@ class JobSheet extends Model
         'checklist' => 'array',
         'parts' => 'array',
     ];
-    
+
     /**
      * The table associated with the model.
      *
@@ -36,15 +36,15 @@ class JobSheet extends Model
      */
     public function customer()
     {
-        return $this->belongsTo('App\Contact', 'contact_id');
+        return $this->belongsTo(\App\Contact::class, 'contact_id');
     }
-    
+
     /**
      * user added job sheet.
      */
     public function createdBy()
     {
-        return $this->belongsTo('App\User', 'created_by');
+        return $this->belongsTo(\App\User::class, 'created_by');
     }
 
     /**
@@ -52,7 +52,7 @@ class JobSheet extends Model
      */
     public function technician()
     {
-        return $this->belongsTo('App\User', 'service_staff');
+        return $this->belongsTo(\App\User::class, 'service_staff');
     }
 
     /**
@@ -68,7 +68,7 @@ class JobSheet extends Model
      */
     public function Device()
     {
-        return $this->belongsTo('App\Category', 'device_id');
+        return $this->belongsTo(\App\Category::class, 'device_id');
     }
 
     /**
@@ -76,7 +76,7 @@ class JobSheet extends Model
      */
     public function Brand()
     {
-        return $this->belongsTo('App\Brands', 'brand_id');
+        return $this->belongsTo(\App\Brands::class, 'brand_id');
     }
 
     /**
@@ -92,7 +92,7 @@ class JobSheet extends Model
      */
     public function businessLocation()
     {
-        return $this->belongsTo('App\BusinessLocation', 'location_id');
+        return $this->belongsTo(\App\BusinessLocation::class, 'location_id');
     }
 
     /**
@@ -100,7 +100,7 @@ class JobSheet extends Model
      */
     public function invoices()
     {
-        return $this->hasMany('App\Transaction', 'repair_job_sheet_id');
+        return $this->hasMany(\App\Transaction::class, 'repair_job_sheet_id');
     }
 
     public function media()
@@ -111,16 +111,16 @@ class JobSheet extends Model
     public function getPartsUsed()
     {
         $parts = [];
-        if (!empty($this->parts)) {
+        if (! empty($this->parts)) {
             $variation_ids = [];
             $job_sheet_parts = $this->parts;
 
-            foreach($job_sheet_parts as $key => $value) {
+            foreach ($job_sheet_parts as $key => $value) {
                 $variation_ids[] = $key;
-            } 
+            }
 
             $variations = Variation::whereIn('id', $variation_ids)
-                                ->with(['product_variation', 'product', 'product.unit'])  
+                                ->with(['product_variation', 'product', 'product.unit'])
                                 ->get();
 
             foreach ($variations as $variation) {

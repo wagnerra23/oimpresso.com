@@ -40,25 +40,6 @@ class CreateDummyBusiness extends Command
      */
     public function handle()
     {
-        //Drop database and create the db with same name.
-//        $servername = config('database.connections.mysql.host');
-//        $username = config('database.connections.mysql.username');
-//        $password = config('database.connections.mysql.password');
-//        $db = config('database.connections.mysql.database');
-
-//        $conn = mysqli_connect($servername, $username, $password);
-//        if (!$conn) {
-//            die("Connection failed: " . mysqli_connect_error());
-//        }
-        //Drop DB
-//        $delete_db = "DROP DATABASE $db";
-//        if (mysqli_query($conn, $delete_db)) {
-//            $create_db = "CREATE DATABASE $db";
-//            mysqli_query($conn, $create_db);
-//        } else {
-//            die("Error deleting db");
-//        }
-        
         ini_set('max_execution_time', 0);
         ini_set('memory_limit', '512M');
 
@@ -87,6 +68,6 @@ class CreateDummyBusiness extends Command
         //  system('chmod 777 -R /var/www/pos/storage');
         //}
 
-        DB::commit();
+        // DB::commit();
     }
 }

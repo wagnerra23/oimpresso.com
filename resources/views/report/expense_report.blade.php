@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>{{ __('report.expense_report')}}</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">{{ __('report.expense_report')}}</h1>
 </section>
 
 <!-- Main content -->
@@ -13,7 +13,7 @@
     <div class="row no-print">
         <div class="col-md-12">
             @component('components.filters', ['title' => __('report.filters')])
-              {!! Form::open(['url' => action('ReportController@getExpenseReport'), 'method' => 'get' ]) !!}
+              {!! Form::open(['url' => action([\App\Http\Controllers\ReportController::class, 'getExpenseReport']), 'method' => 'get' ]) !!}
                 <div class="col-md-4">
                     <div class="form-group">
                         {!! Form::label('location_id',  __('purchase.business_location') . ':') !!}
@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 <div class="col-sm-12">
-                  <button type="submit" class="btn btn-primary pull-right">@lang('report.apply_filters')</button>
+                  <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-dw-btn-sm tw-text-white pull-right">@lang('report.apply_filters')</button>
                 </div> 
                 {!! Form::close() !!}
             @endcomponent

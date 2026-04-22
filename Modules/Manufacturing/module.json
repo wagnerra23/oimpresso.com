@@ -1,7 +1,7 @@
 {
     "name": "Manufacturing",
     "alias": "manufacturing",
-    "description": "Fábrica - Usado por empresas produzem de produtos - Composição",
+    "description": "Used for businesses where products needs to be manufactured",
     "keywords": [],
     "active": 1,
     "order": 0,
@@ -10,7 +10,7 @@
     ],
     "aliases": {},
     "files": [
-        "start.php"
+        
     ],
     "requires": []
 }

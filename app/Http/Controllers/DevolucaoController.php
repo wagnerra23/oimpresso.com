@@ -7,7 +7,7 @@ use App\Devolucao;
 use App\ItemDevolucao;
 use App\Business;
 use App\Contact;
-use App\Cidades;
+use App\City;
 use App\Product;
 use App\Unit;
 use App\NaturezaOperacao;
@@ -59,7 +59,7 @@ class DevolucaoController extends Controller
 					$user_id = $request->session()->get('user.id');
 					$business_id = request()->session()->get('user.business_id');
 
-					$cidade = Cidades::getCidadeCod($xml->NFe->infNFe->emit->enderEmit->cMun);
+					$cidade = City::getCidadeCod($xml->NFe->infNFe->emit->enderEmit->cMun);
 					$contact = [
 						'business_id' => $business_id,
 						'city_id' => $cidade->id,

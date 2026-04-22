@@ -83,6 +83,7 @@
 <div class="modal fade schedule" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
 </div>
 <div class="modal fade edit_schedule" tabindex="-1" role="dialog"></div>
+<div class="modal fade schedule_log_modal" tabindex="-1" role="dialog"></div>
 @endsection
 @section('javascript')
 	<script src="{{ asset('modules/crm/js/crm.js?v=' . $asset_v) }}"></script>
@@ -94,7 +95,7 @@
 
         $('#lead_id').change( function() {
             if ($(this).val()) {
-                window.location = "{{url('/contact-leads')}}/" + $(this).val();
+                window.location = "{{url('/crm/leads')}}/" + $(this).val();
             }
         });
     </script>

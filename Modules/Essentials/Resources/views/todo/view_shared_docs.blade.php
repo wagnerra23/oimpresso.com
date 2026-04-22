@@ -38,7 +38,7 @@
                                         {{$spreadsheet->sheet_name}}
                                     </td>
                                     <td>
-                                        <a href="{{action('\Modules\Spreadsheet\Http\Controllers\SpreadsheetController@show', [$spreadsheet->sheet_id])}}" target="_blank" title="@lang('messages.view')" class="btn btn-success btn-xs">
+                                        <a href="{{action([\Modules\Spreadsheet\Http\Controllers\SpreadsheetController::class, 'show'], [$spreadsheet->sheet_id])}}" target="_blank" title="@lang('messages.view')" class="btn btn-success btn-xs">
                                             <i class="fas fa-eye"></i>
                                             @lang('messages.view')
                                         </a>

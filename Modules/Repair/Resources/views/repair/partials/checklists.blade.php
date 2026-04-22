@@ -1,11 +1,17 @@
 @forelse($checklists as $key => $list)
+    @php
+        $is_yes_no = false;
+    @endphp
     <div class="col-xs-4">
         <fieldset>
             <label style="color: #525f7f;">{{$list}}</label>
             <div class="switch-toggle switch-candy">
 
                 <input id="{{$key}}_yes" name="repair_checklist[{{$list}}]" type="radio" value="yes"
-                    @if(!empty($selected_checklist) && $selected_checklist[$list] == 'yes')
+                    @if(!empty($selected_checklist[$list]) && $selected_checklist[$list] == 'yes')
+                        @php
+                            $is_yes_no = true;
+                        @endphp
                         checked
                     @endif
                 >
@@ -14,7 +20,10 @@
                 </label>
                 
                 <input id="{{$key}}_no" name="repair_checklist[{{$list}}]" type="radio" value="no"
-                    @if((!empty($selected_checklist) && $selected_checklist[$list] == 'no'))
+                    @if((!empty($selected_checklist[$list]) && $selected_checklist[$list] == 'no'))
+                        @php
+                            $is_yes_no = true;
+                        @endphp
                         checked
                     @endif
                 >
@@ -23,7 +32,7 @@
                 </label>
 
                 <input id="{{$key}}_not_applicable" name="repair_checklist[{{$list}}]" type="radio" value="not_applicable"
-                    @if((!empty($selected_checklist) && $selected_checklist[$list] == 'not_applicable') || empty($selected_checklist))
+                    @if((!empty($selected_checklist[$list]) && $selected_checklist[$list] == 'not_applicable') || empty($selected_checklist) || !$is_yes_no)
                         checked
                     @endif
                 >

@@ -4,8 +4,6 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\ConfigNota;
-use App\Cidades;
-
 class Cte extends Model
 {
     protected $fillable = [
@@ -67,11 +65,11 @@ class Cte extends Model
     }
 
     public function municipioTomador(){
-        return $this->belongsTo(Cidades::class, 'municipio_tomador');
+        return $this->belongsTo(City::class, 'municipio_tomador');
     }
 
     public function municipioEnvio(){
-        return $this->belongsTo(Cidades::class, 'municipio_envio');
+        return $this->belongsTo(City::class, 'municipio_envio');
     }
 
     public function lastCTe(){

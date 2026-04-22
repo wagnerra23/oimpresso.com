@@ -59,6 +59,14 @@
             {!! Form::text('job_sheet_prefix', !empty($repair_settings['job_sheet_prefix'])? $repair_settings['job_sheet_prefix'] : '', ['class' => 'form-control', 'placeholder' => __('repair::lang.job_sheet_prefix')]); !!}
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('default_repair_checklist', __('repair::lang.default_repair_checklist') . ':') !!}
+             @show_tooltip(__('repair::lang.repair_checklist_tooltip'))
+            {!! Form::textarea('default_repair_checklist', !empty($repair_settings['default_repair_checklist'])? $repair_settings['default_repair_checklist'] : ''
+            , ['class' => 'form-control ', 'id' => 'default_repair_checklist', 'rows' => '3']); !!}
+        </div>
+    </div>
 </div>
 <div class="row">
     <div class="col-md-4">

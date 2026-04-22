@@ -31,7 +31,7 @@
 				@endif
 
 				@if(!empty($receipt_details->contact))
-					, {{ $receipt_details->contact }}
+					, {!! $receipt_details->contact !!}
 				@endif
 
 				@if(!empty($receipt_details->website))

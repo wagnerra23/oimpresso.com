@@ -1,17 +1,23 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [
+    react(),
     laravel({
-      input: ['resources/sass/tailwind/tailwind.scss'],
+      input: [
+        'resources/js/app.jsx',
+        'resources/css/app.css', // Tailwind importado aqui
+      ],
+      refresh: true,
     }),
   ],
   build: {
-    outDir: 'public',
-    manifest: false,
-    emptyOutDir: false,
-    assetsDir: 'fonts',
+    outDir: 'public/build',
+    manifest: true,
+    emptyOutDir: true,
+    assetsDir: 'assets',
     rollupOptions: {
       output: {
         assetFileNames: (assetInfo) => {
@@ -31,14 +37,16 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['oi.wr2.com.br', 'localhost'],
-    host: true,
+    host: '0.0.0.0',
     port: 5173,
-    https: true,
+    strictPort: true,
+    cors: true,
+    allowedHosts: 'all',
     hmr: {
-      protocol: 'wss',
-      host: 'oi.wr2.com.br',
+      host: 'oidev.wr2.com.br',
       port: 5173,
+      protocol: 'wss',   // pode trocar para 'ws' se não quiser HTTPS no dev
+      clientPort: 443,
     },
   },
 });

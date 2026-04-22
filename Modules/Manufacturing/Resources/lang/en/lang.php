@@ -1,4 +1,5 @@
 <?php
+
 return [
     'manufacturing_module' => 'Manufacturing Module',
     'manufacturing' => 'Manufacturing',
@@ -14,7 +15,7 @@ return [
     'total_cost' => 'Total Cost',
     'mfg_date' => 'Manufacturing Date',
     'finalize' => 'Finalize',
-    'finalize_tooltip' => "Once finalized all ingredient stock will be deducted & production item stock will increase and editing of production will not be allowed.",
+    'finalize_tooltip' => 'Once finalized all ingredient stock will be deducted & production item stock will increase and editing of production will not be allowed.',
     'unit_quantity' => 'Unit Quantity',
     'total_quantity' => 'Total Quantity',
     'total_price' => 'Total Price',
@@ -63,4 +64,5 @@ return [
     'price_updated_live' => 'Price is updated based on ingredient purchase cost',
     'per_unit' => 'Per Unit',
     'production_cost_tooltip' => 'If fixed it will be directly added to total ingredient cost, if percentage percentage of total ingredient cost will be added and if per unit total unit will be multiplied to production cost',
+    'manufactured' => 'Manufactured',
 ];

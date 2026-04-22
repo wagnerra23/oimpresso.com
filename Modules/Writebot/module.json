@@ -1,0 +1,16 @@
+{
+    "name": "Writebot",
+    "alias": "writebot",
+    "description": "IA - Módulo reponsável pela Inteligencia artificial",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Writebot\\Providers\\WritebotServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

@@ -2,7 +2,7 @@
 @section('title', __('superadmin::lang.superadmin') . ' | ' . __('superadmin::lang.packages'))
 
 @section('content')
-
+@include('superadmin::layouts.nav')
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>@lang('superadmin::lang.packages') <small>@lang('superadmin::lang.all_packages')</small></h1>
@@ -16,11 +16,11 @@
 <section class="content">
 	@include('superadmin::layouts.partials.currency')
 
-	<div class="box">
+	<div class="box box-solid">
         <div class="box-header">
             <h3 class="box-title">&nbsp;</h3>
         	<div class="box-tools">
-                <a href="{{action('\Modules\Superadmin\Http\Controllers\PackagesController@create')}}" 
+                <a href="{{action([\Modules\Superadmin\Http\Controllers\PackagesController::class, 'create'])}}" 
                     class="btn btn-block btn-primary">
                 	<i class="fa fa-plus"></i> @lang( 'messages.add' )</a>
             </div>
@@ -35,6 +35,20 @@
 							<h2 class="box-title">{{$package->name}}</h2>
 
 							<div class="row">
+								@if($package->is_private)
+									<a href="#!" class="btn btn-box-tool">
+										<i class="fas fa-lock fa-lg text-warning" data-toggle="tooltip"
+										title="@lang('superadmin::lang.private_superadmin_only')"></i>
+									</a>
+								@endif
+
+								@if($package->is_one_time)
+									<a href="#!" class="btn btn-box-tool">
+										<i class="fas fa-dot-circle fa-lg text-info" data-toggle="tooltip"
+										title="@lang('superadmin::lang.one_time_only_subscription')"></i>
+									</a>
+								@endif
+								
 								@if($package->is_active == 1)
 									<span class="badge bg-green">
 										@lang('superadmin::lang.active')
@@ -45,8 +59,8 @@
 									</span>
 								@endif
 								
-								<a href="{{action('\Modules\Superadmin\Http\Controllers\PackagesController@edit', [$package->id])}}" class="btn btn-box-tool" title="edit"><i class="fa fa-edit"></i></a>
-								<a href="{{action('\Modules\Superadmin\Http\Controllers\PackagesController@destroy', [$package->id])}}" class="btn btn-box-tool link_confirmation" title="delete"><i class="fa fa-trash"></i></a>
+								<a href="{{action([\Modules\Superadmin\Http\Controllers\PackagesController::class, 'edit'], [$package->id])}}" class="btn btn-box-tool" title="edit"><i class="fa fa-edit"></i></a>
+								<a href="{{action([\Modules\Superadmin\Http\Controllers\PackagesController::class, 'destroy'], [$package->id])}}" class="btn btn-box-tool link_confirmation" title="delete"><i class="fa fa-trash"></i></a>
               					
 							</div>
 						</div>

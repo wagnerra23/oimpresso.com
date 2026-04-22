@@ -2,17 +2,14 @@
 
 namespace Modules\Connector\Http\Controllers\Api;
 
+use App\User;
+use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Modules\Connector\Notifications\NewPassword;
 use Modules\Connector\Transformers\CommonResource;
-use App\Utils\Util;
-use App\User;
-use App\Business;
-use Modules\Connector\Utils\Cryptography;
-use Carbon\Carbon;
 
 /**
  * @group User management
@@ -24,7 +21,6 @@ class UserController extends ApiController
 {
     /**
      * All Utils instance.
-     *
      */
     protected $commonUtil;
 
@@ -92,8 +88,8 @@ class UserController extends ApiController
         $user = Auth::user();
 
         $business_id = $user->business_id;
-        
-        if (!empty(request()->service_staff) && request()->service_staff == 1) {
+
+        if (! empty(request()->service_staff) && request()->service_staff == 1) {
             $users = $this->commonUtil->getServiceStaff($business_id);
         } else {
             $users = User::where('business_id', $business_id)
@@ -105,7 +101,7 @@ class UserController extends ApiController
 
     /**
      * Get the specified user
-     * 
+     *
      * @response {
             "data": [
                 {
@@ -172,7 +168,7 @@ class UserController extends ApiController
 
     /**
      * Get the loggedin user details.
-     * 
+     *
      * @response {
             "data":{
                 "id": 1,
@@ -223,14 +219,23 @@ class UserController extends ApiController
     public function loggedin()
     {
         $user = Auth::user();
+        $user->is_admin = $this->commonUtil->is_admin($user);
+
+        if (! $user->is_admin) {
+            $user->all_permissions = $user->getAllPermissions()->pluck('name');
+        }
+        unset($user->permissions);
+        unset($user->roles);
+
         return new CommonResource($user);
     }
 
     /**
      * Update user password.
+     *
      * @bodyParam current_password string required Current password of the user
      * @bodyParam new_password string required New password of the user
-     * 
+     *
      * @response {
             "success":1,
             "msg":"Password updated successfully"
@@ -240,31 +245,30 @@ class UserController extends ApiController
     {
         try {
             $user = Auth::user();
-            
-            if (!empty($request->input('current_password')) && !empty($request->input('new_password'))) {
+
+            if (! empty($request->input('current_password')) && ! empty($request->input('new_password'))) {
                 if (Hash::check($request->input('current_password'), $user->password)) {
                     $user->password = Hash::make($request->input('new_password'));
                     $user->save();
                     $output = ['success' => 1,
-                                'msg' => __('lang_v1.password_updated_successfully')
-                            ];
+                        'msg' => __('lang_v1.password_updated_successfully'),
+                    ];
                 } else {
                     $output = ['success' => 0,
-                                'msg' => __('lang_v1.u_have_entered_wrong_password')
-                            ];
+                        'msg' => __('lang_v1.u_have_entered_wrong_password'),
+                    ];
                 }
             } else {
                 $output = ['success' => 0,
-                            'msg' => __('messages.something_went_wrong')
-                        ];
+                    'msg' => __('messages.something_went_wrong'),
+                ];
             }
-
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => 0,
-                            'msg' => __('messages.something_went_wrong')
-                        ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
 
         if ($output['success']) {
@@ -275,318 +279,190 @@ class UserController extends ApiController
     }
 
     /**
-     * Cria e retorna os detalhes de um usuário proprietário gerado automaticamente.
+     * Register User
      *
-     * @return array Os detalhes do usuário criado.
-     */
-    public static function createOwnerUser(): array
-    {
-        $first_name = 'Sistema';
-        $last_name = 'OfficeLocal';
-
-        // Gera um username único
-        do {
-            $username_base = 'officelocal' . substr(md5(uniqid()), 0, 5);
-        } while (User::where('username', $username_base)->exists());
-
-        // Gera um email único
-        do {
-            $email_base = $username_base . '@wr2.com.br';
-        } while (User::where('email', $email_base)->exists());
-
-        // Define a senha padrão
-        $password = bcrypt('wr2.01');
-
-        // Detalhes do usuário
-        $owner_details = [
-            'first_name' => $first_name,
-            'last_name' => $last_name,
-            'username' => $username_base,
-            'email' => $email_base,
-            'password' => $password,
-            'language' => 'pt', // Ou use config('app.locale') para pegar o idioma padrão.
-            'officeimpresso_codigo' => 1,
-        ];
-
-        // Cria o usuário no banco de dados
-        $user = User::create($owner_details);
-
-        // Retorna os detalhes completos do usuário criado
-        return $user->toArray();
-    }
-
-
-    /**
-     * Sync GET method
-     * 
-     * @queryParam filter optional Provide filters for syncing data
+     * @bodyParam surname string prefix like Mr, Mrs,Dr
+     * @bodyParam first_name string required
+     * @bodyParam last_name string
+     * @bodyParam email string required
+     * @bodyParam is_active string required 'active', 'inactive', 'terminated'
+     * @bodyParam user_type string required 'user_customer' for contact/customer login & 'user' for general user
+     * @bodyParam crm_contact_id integer if user_type is 'user_customer' then required
+     * @bodyParam allow_login boolean 1 to allow login & 0 to disable login
+     * @bodyParam username string minimum 5 characters
+     * @bodyParam password string minimum 6 characters & required if 'allow_login' is 1
+     * @bodyParam role integer id of role to be assigned to user & required if user_type is 'user'
+     * @bodyParam access_all_locations boolean 1 if user has access all location else 0 & required if user_type is 'user'
+     * @bodyParam location_permissions array array of location ids to be assigned to user & required if user_type is 'user' and 'access_all_locations' is 0
+     * @bodyParam cmmsn_percent decimal
+     * @bodyParam max_sales_discount_percent decimal
+     * @bodyParam selected_contacts boolean 1 or 0
+     * @bodyParam selected_contact_ids array array of contact ids & required if 'selected_contacts' is 1
+     * @bodyParam dob date dob of user in "Y-m-d" format Ex: 1997-10-29
+     * @bodyParam gender string if user is 'male', 'female', 'others'
+     * @bodyParam marital_status string if user is 'married', 'unmarried', 'divorced'
+     * @bodyParam blood_group string
+     * @bodyParam contact_number string
+     * @bodyParam alt_number string
+     * @bodyParam family_number string
+     * @bodyParam fb_link string
+     * @bodyParam twitter_link string
+     * @bodyParam social_media_1 string
+     * @bodyParam social_media_2 string
+     * @bodyParam custom_field_1 string
+     * @bodyParam custom_field_2 string
+     * @bodyParam custom_field_3 string
+     * @bodyParam custom_field_4 string
+     * @bodyParam guardian_name string
+     * @bodyParam id_proof_name string ID proof of user like Adhar No.
+     * @bodyParam id_proof_number string Id Number like adhar number
+     * @bodyParam permanent_address string
+     * @bodyParam current_address string
+     * @bodyParam bank_details.*.account_holder_name string
+     * @bodyParam bank_details.*.account_number string
+     * @bodyParam bank_details.*.bank_name string
+     * @bodyParam bank_details.*.bank_code string
+     * @bodyParam bank_details.*.branch string
+     * @bodyParam bank_details.*.tax_payer_id string
+     *
      * @response {
-     *    "success": 1,
-     *    "data": []
-     * }
-     */
-    
-    public function syncGet(Request $request)
-    {
-        if (!$request->has('date') || !$request->filled('date')) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Parâmetro date está ausente ou vazio.',
-            ], 422);
+        "success": 1,
+        "msg": "User added successfully",
+        "user": {
+            "surname": "Mr",
+            "first_name": "Test",
+            "last_name": "kumar",
+            "email": "test@example.com",
+            "user_type": "user_customer",
+            "crm_contact_id": "2",
+            "allow_login": 1,
+            "username": "0017",
+            "cmmsn_percent": "25",
+            "max_sales_discount_percent": "52",
+            "dob": "1997-10-12",
+            "gender": "male",
+            "marital_status": "unmarried",
+            "blood_group": "0+",
+            "contact_number": "4578451245",
+            "alt_number": "7474747474",
+            "family_number": "7474147414",
+            "fb_link": "fb.com/username",
+            "twitter_link": "twitter.com/username",
+            "social_media_1": "test",
+            "social_media_2": "test",
+            "custom_field_1": "test",
+            "custom_field_2": "test",
+            "custom_field_3": "test",
+            "custom_field_4": "test",
+            "guardian_name": "test",
+            "id_proof_name": "uid",
+            "id_proof_number": "747845120124",
+            "permanent_address": "test permanent adrress",
+            "current_address": "test current address",
+            "bank_details": "{\"account_holder_name\":\"test\",\"account_number\":\"test\",\"bank_name\":\"test\",\"bank_code\":\"test\",\"branch\":\"test\",\"tax_payer_id\":\"test\"}",
+            "selected_contacts": "1",
+            "status": "active",
+            "business_id": 1,
+            "updated_at": "2021-08-12 18:03:58",
+            "created_at": "2021-08-12 18:03:58",
+            "id": 140
         }
+    }
+     */
+    public function registerUser(Request $request)
+    {
+        $request->validate([
+            'username' => 'unique:users',
+            'email' => 'required|unique:users',
+            'user_type' => 'required',
+        ]);
 
-        try {  
-            $user = Auth::user();
-            $business_id = $user->business_id;
-            $date = Carbon::parse($request->input('date'))->format('Y-m-d H:i:s');
-    
-            $usuarios = User::where('business_id', $business_id)
-                            ->where('updated_at', '>', $date) // Filtra todos alterados depois da data informada
-                            ->get();       
-    
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Dados sincronizados.',
-                'data' => $usuarios->map(function ($user) {
-                    return [
-                        'id' => $user->id,
-                        'usuario' => $user->usuario,
-                        'email' => $user->email,
-                        'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
-                        'officeimpresso_codigo' => $user->officeimpresso_codigo,
-                        'officeimpresso_dt_alteracao' => $user->officeimpresso_dt_alteracao,
-                        'officeimpresso_action' => 'update local',
-                        'officeimpresso_message' => 'Registro modificado no site. Atualização realizada no banco de dados local.',
-                    ];
-                }),
-            ]);
-    
+        try {
+            $user = $this->commonUtil->createUser($request);
+
+            $output = [
+                'success' => 1,
+                'msg' => __('user.user_added'),
+                'user' => $user,
+            ];
         } catch (\Exception $e) {
-            \Log::error('Erro ao buscar dados sincronizados: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erro ao buscar os dados.'. $e->getMessage(),
-            ], 500);
-        }
-    }  
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
-    
+            $output = [
+                'success' => 0,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        if ($output['success']) {
+            return $this->respond($output);
+        } else {
+            return $this->otherExceptions($output['msg']);
+        }
+    }
+
+    public function generateRandomString($length = 6)
+    {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ#@_$&%*(){}[]!^?><=';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+
+        return $randomString;
+    }
 
     /**
-     * Sync POST method
-     * 
-     * @bodyParam data array required Provide data to be synced
+     * Recover forgotten password.
+     *
+     * @bodyParam email string required Users email id
+     *
      * @response {
-     *    "success": 1,
-     *    "msg": "Data synced successfully"
-     * }
+            "success":1,
+            "msg":"New password sent to user@example.com successfully"
+        }
      */
-
-     public function syncPost(Request $request)
-     {
-         $response = [];
-         try {
-             // Validação básica do payload
-             $request->validate([
-                 'data' => 'required|array',
-                 'data.*.codigo' => 'required|integer',
-                 'data.*.usuario' => 'required|string|max:255',
-                 'data.*.email' => 'nullable|email',
-                 'data.*.senha' => 'nullable|string|min:6',
-                 'data.*.login' => 'nullable|string|max:255',
-                 'data.*.dt_alteracao' => 'nullable|date_format:Y-m-d\TH:i:s.v\Z',
-                 'data.*.oimpresso_id' => 'nullable|integer',
-             ]);
-     
-             $user = Auth::user();
-             $business_id = $user->business_id;
-     
-             foreach ($request->input('data') as $item) {
-                 try {
-                     // Processar cada item
-                     $result = $this->processItem($item, $business_id);
-                     $response[] = array_merge(['officeimpresso_status' => 'success'], $result);
-                 } catch (\Exception $e) {
-                     // Retornar erro específico para o item
-                     $response[] = [
-                         'officeimpresso_action' => 'error',
-                         'officeimpresso_message' => $e->getMessage(),
-                         'officeimpresso_codigo' => $item['codigo'] ?? null,
-                         'officeimpresso_dt_alteracao' => $item['dt_alteracao'],
-                     ];
-                 }
-             }
-     
-             return response()->json([
-                 'status' => 'completed',
-                 'message' => 'Sincronização finalizada.',
-                 'data' => $response,
-             ]);
-     
-         } catch (\Exception $e) {
-             // Retornar erro geral
-             \Log::error('Erro na sincronização: ' . $e->getMessage());
-             return response()->json([
-                 'status' => 'error',
-                 'message' => 'Erro ao processar a sincronização.'. $e->getMessage(),
-             ], 500);
-         }
-     }
-     
-     /**
-      * Processa um único item, atualizando ou criando no banco de dados.
-      */
-     private function processItem(array $item, int $business_id)
-     {
-        $userRecord = User::where('business_id', $business_id)
-        ->where(function ($query) use ($item) {
-            $query->where('id', $item['oimpresso_id'])
-                  ->orWhere('officeimpresso_codigo', $item['codigo']);
-        })
-        ->first();
-    
-             
-         $usernameBusinnesID = $this->generateUsername($item['usuario'], $business_id);
-         $email = $this->generateEmail($item['email'], $business_id);
-         $senha = $this->decryptPassword($item['senha']);                  
-      
-         if ($userRecord) {
-
-            $updatedAt = $userRecord->updated_at->format('Y-m-d H:i:s');
-            $oimpressoUpdatedAt = Carbon::parse($item['oimpresso_updated_at'])->format('Y-m-d H:i:s');
-            
-            if ($updatedAt !== $oimpressoUpdatedAt) {   //  if  ($userRecord->updated_at->diffInSeconds(Carbon::parse($item['oimpresso_updated_at'])) > 0) {  não usar assim 
-                // Aqui deve retornar conflito, Vai ter baixar resolver os conflitos para depois postar            
-                // Retorna um status de conflito, sem atualizar o registro
-                return [
-                    'officeimpresso_action' => 'conflict',
-                    'officeimpresso_message' => 'Conflito detectado. O registro foi modificado após a última sincronização.',
-                    'id' => $userRecord->id,
-                    'updated_at' => $userRecord->fresh()->updated_at->format('Y-m-d H:i:s'),
-                    'deleted_at'=> $userRecord->deleted_at,
-                    'officeimpresso_codigo' => $userRecord->officeimpresso_codigo,
-                    'officeimpresso_dt_alteracao' => $userRecord->officeimpresso_dt_alteracao,
-                ];
-            }
-
-             // Atualizar usuário existente
-             $userRecord->update([
-                'first_name' => $item['login'] ?? $usernameBusinnesID,
-                'last_name' => $usernameBusinnesID ?? null,
-                'email' => $email,
-                'username' => $usernameBusinnesID ?? $userRecord->username,
-                'password' => isset($senha) ? bcrypt($senha) : $userRecord->password,
-                'officeimpresso_senha' => isset($item['senha']) ? $item['senha'] : null,
-                'language' => $item['language'] ?? $userRecord->language, 
-                'officeimpresso_codigo' => $item['codigo'],
-                'officeimpresso_dt_alteracao' => $item['dt_alteracao'] ?? null,
-             ]);
-             return [
-                 'officeimpresso_action' => 'updated',
-                 'officeimpresso_message' => 'O registro foi modificado com sucesso.',
-                 'id' => $userRecord->id,
-                 'updated_at' => $userRecord->fresh()->updated_at->format('Y-m-d H:i:s'),
-                 'deleted_at'=> $userRecord->deleted_at,
-                 'officeimpresso_codigo' => $userRecord->officeimpresso_codigo,
-                 'officeimpresso_dt_alteracao' => $userRecord->officeimpresso_dt_alteracao,
-             ];
-         } else {
-             // Criar novo usuário
-             $newUser = User::create([
-                'business_id' => $business_id,
-                'first_name' => $item['login'] ?? $usernameBusinnesID,
-                'last_name' => $usernameBusinnesID ?? null,
-                'email' => $email,
-                'username' => $usernameBusinnesID,
-                'password' => isset($senha) ? bcrypt($senha) : $newUser->password,
-                'officeimpresso_senha' => isset($item['senha']) ? $item['senha'] : null,
-                'language' => $item['language'] ?? 'pt',
-                'officeimpresso_codigo' => $item['codigo'],
-                'officeimpresso_dt_alteracao' => $item['dt_alteracao'] ?? null,
-             ]);
-             return [
-                 'officeimpresso_action' => 'created',
-                 'officeimpresso_message' => 'O registro foi criado com sucesso.',
-                 'id' => $newUser->id,
-                 'updated_at' => $newUser->fresh()->updated_at->format('Y-m-d H:i:s'),
-                 'deleted_at'=> $newUser->deleted_at,
-                 'officeimpresso_codigo' => $newUser->officeimpresso_codigo,
-                 'officeimpresso_dt_alteracao' => $newUser->officeimpresso_dt_alteracao,
-             ];
-         }
-     }
-
-    
-    public function getUserByBusinessCNPJ(Request $request)
-    {
-        $cnpj = $request->input('cnpj');
-
-        $business = Business::where('cnpj', $cnpj)->first();
-
-        if ($business) {
-            // Busca o usuário com email no padrão, ignorando case sensitivity
-            $user = User::where('business_id', $business->id)
-                ->where('email', 'LIKE', '%@wr2.com.br')
-                ->first();
-        
-            return response()->json([
-                'business_id' => $business->id,
-                'username' => $user ? $user->username : null,
-                'senha' => $user ? $user->password : null,
-            ]);
-        }
-
-        return response()->json(['error' => 'Business not found'. $cnpj], 404);
-    }
-
-    private function generateEmail($emailInput, $business_id)
-    {
-        // Se o email estiver vazio ou inválido, cria um placeholder
-        if (empty($emailInput) || !filter_var($emailInput, FILTER_VALIDATE_EMAIL)) {
-            $emailBase = 'geraroffice' . str_pad($business_id, 2, '0', STR_PAD_LEFT) . '@office.com';
-        } else {
-            $emailBase = strtolower($emailInput); // Normaliza o email fornecido
-        }
-    
-        // Garante que o email seja único
-        while (User::where('email', $emailBase)->exists()) {
-            $uniqueSuffix = substr(md5(uniqid()), 0, 5); // Gera sufixo único
-            $emailBase = 'geraroffice' . str_pad($business_id, 2, '0', STR_PAD_LEFT) . $uniqueSuffix . '@office.com';
-        }
-    
-        return $emailBase;
-    }
-
-    private function decryptPassword($encryptedPassword)
+    public function forgetPassword(Request $request)
     {
         try {
-            // Verifica se a senha está presente
-            if (!is_null($encryptedPassword)) {
-                return Cryptography::decrypt($encryptedPassword, 23);
+            $user = Auth::user();
+
+            if (! empty($request->input('email'))) {
+                $forgotten_user = User::where('business_id', $user->business_id)
+                                    ->where('email', $request->input('email'))
+                                    ->first();
+                if (! empty($forgotten_user)) {
+                    $new_password = $this->generateRandomString();
+                    $forgotten_user->password = Hash::make($new_password);
+                    $forgotten_user->save();
+
+                    $forgotten_user->notify(new NewPassword($new_password));
+                    $output = ['success' => 1,
+                        'msg' => "New password sent to {$forgotten_user->email} successfully",
+                    ];
+                } else {
+                    $output = ['success' => 0,
+                        'msg' => 'User not found',
+                    ];
+                }
             } else {
-                return null; // Retorna null se não houver senha
+                $output = ['success' => 0,
+                    'msg' => 'Email Required',
+                ];
             }
         } catch (\Exception $e) {
-            // Loga o erro e lança uma exceção personalizada
-            Log::error('Erro ao descriptografar a senha.', [
-                'exception' => $e->getMessage(),
-                'encryptedPassword' => $encryptedPassword,
-            ]);
-            throw new \Exception('Erro ao processar a senha.');
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            $output = ['success' => 0,
+                'msg' => $e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage(),
+            ];
+        }
+
+        if ($output['success']) {
+            return $this->respond($output);
+        } else {
+            return $this->otherExceptions($output['msg']);
         }
     }
-        
-
-    function generateUsername($usuario, $business_id)
-    {
-        // Formata o Business_ID para ter pelo menos 2 dígitos, usando STR_PAD_LEFT
-        $formattedBusinessID = str_pad($business_id, 2, '0', STR_PAD_LEFT);
-    
-        // Gera o username no padrão usuario-Business_ID
-        $username = strtolower($usuario) . '-' . $formattedBusinessID;
-    
-        return $username;
-    }
-
-
 }

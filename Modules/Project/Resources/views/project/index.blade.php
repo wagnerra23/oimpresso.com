@@ -64,16 +64,16 @@
 			<div class="box-tools pull-right">
 				<div class="btn-group btn-group-toggle" data-toggle="buttons">
 				    <label class="btn btn-info btn-sm active list">
-				        <input type="radio" name="project_view" value="list_view" class="project_view" data-href="{{action('\Modules\Project\Http\Controllers\ProjectController@index').'?project_view=list_view'}}">
+				        <input type="radio" name="project_view" value="list_view" class="project_view" data-href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'index']).'?project_view=list_view'}}">
 				        @lang('project::lang.list_view')
 				    </label>
 				    <label class="btn btn-info btn-sm kanban">
-				        <input type="radio" name="project_view" value="kanban" class="project_view" data-href="{{action('\Modules\Project\Http\Controllers\ProjectController@index').'?project_view=kanban'}}">
+				        <input type="radio" name="project_view" value="kanban" class="project_view" data-href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'index']).'?project_view=kanban'}}">
 				        @lang('project::lang.kanban_board')
 				    </label>
 				</div>
 				@can('project.create_project')
-					<button type="button" class="btn btn-primary btn-sm add_new_project" data-href="{{action('\Modules\Project\Http\Controllers\ProjectController@create')}}">
+					<button type="button" class="btn btn-primary btn-sm add_new_project" data-href="{{action([\Modules\Project\Http\Controllers\ProjectController::class, 'create'])}}">
 						@lang('project::lang.new_project')&nbsp;
 						<i class="fa fa-plus"></i>
 					</button>

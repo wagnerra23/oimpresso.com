@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\EssentialsLeaveTypeController@update', [$leave_type->id]), 'method' => 'put', 'id' => 'edit_leave_type_form' ]) !!}
+    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\EssentialsLeaveTypeController::class, 'update'], [$leave_type->id]), 'method' => 'put', 'id' => 'edit_leave_type_form' ]) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

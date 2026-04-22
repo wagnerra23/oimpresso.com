@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('VariationTemplateController@store'), 'method' => 'post', 'id' => 'variation_add_form', 'class' => 'form-horizontal' ]) !!}
+    {!! Form::open(['url' => action([\App\Http\Controllers\VariationTemplateController::class, 'store']), 'method' => 'post', 'id' => 'variation_add_form', 'class' => 'form-horizontal' ]) !!}
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <h4 class="modal-title">@lang('lang_v1.add_variation')</h4>
@@ -21,15 +21,15 @@
            {!! Form::text('variation_values[]', null, ['class' => 'form-control', 'required']); !!}
         </div>
         <div class="col-sm-2">
-          <button type="button" class="btn btn-primary" id="add_variation_values">+</button>
+          <button type="button" class="tw-dw-btn tw-dw-btn-primary tw-text-white tw-dw-btn-sm" id="add_variation_values">+</button>
         </div>
       </div>
       <div id="variation_values"></div>
     </div>
 
     <div class="modal-footer">
-      <button type="submit" class="btn btn-primary">@lang('messages.save')</button>
-      <button type="button" class="btn btn-default" data-dismiss="modal">@lang('messages.close')</button>
+      <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">@lang('messages.save')</button>
+      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white" data-dismiss="modal">@lang('messages.close')</button>
     </div>
 
     {!! Form::close() !!}

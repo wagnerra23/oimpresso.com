@@ -100,7 +100,10 @@
 					@if($activity->subject_type == 'Modules\Project\Entities\Project')
 
 						@if($activity->description == 'created')
-							<code>{{$activity->properties['attributes']['name']}}</code>
+                            @if(!empty($activity->properties['attributes']))
+                                <code>{{$activity->properties['attributes']['name']}}</code>
+                            @endif
+							
 							<!-- check if updated value's key exist or not then create table -->
 						@elseif(($activity->description == 'updated') && 
 						(
@@ -115,22 +118,22 @@
 
 					@elseif($activity->subject_type == 'Modules\Project\Entities\ProjectTask')
 
-						@if($activity->description == 'created')
-							<a data-href='{{action("\Modules\Project\Http\Controllers\TaskController@show", ["id" => $activity->subject->id, "project_id" => $activity->subject->project_id])}}' class="cursor-pointer view_a_project_task text-black">
+						@if($activity->description == 'created' && !empty($activity->properties['attributes']))
+							<a data-href='{{action([\Modules\Project\Http\Controllers\TaskController::class, 'show'], ["project_task" => $activity->subject->id, "project_id" => $activity->subject->project_id])}}' class="cursor-pointer view_a_project_task text-black">
 								{{$activity->properties['attributes']['subject']}}
 								<code>
 									{{$activity->properties['attributes']['task_id']}}	
 								</code>
 							</a>
-						@elseif($activity->description == 'deleted')
+						@elseif($activity->description == 'deleted' && !empty($activity->properties['attributes']))
 							<span>
 								{{$activity->properties['attributes']['subject']}}
 								<code>
 									{{$activity->properties['attributes']['task_id']}}	
 								</code>
 							</span>
-						@elseif($activity->description == 'updated')
-							<a data-href='{{action("\Modules\Project\Http\Controllers\TaskController@show", ["id" => $activity->subject->id, "project_id" => $activity->subject->project_id])}}' class="cursor-pointer view_a_project_task text-black">
+						@elseif($activity->description == 'updated' && !empty($activity->properties['attributes']))
+							<a data-href='{{action([\Modules\Project\Http\Controllers\TaskController::class, 'show'], ["project_task" => $activity->subject->id, "project_id" => $activity->subject->project_id])}}' class="cursor-pointer view_a_project_task text-black">
 								{{$activity->subject->subject}}
 								<code>
 									{{$activity->subject->task_id}}
@@ -153,23 +156,23 @@
 
 					@elseif($activity->subject_type == 'App\DocumentAndNote')
 
-						@if($activity->description == 'created')
+						@if($activity->description == 'created' && !empty($activity->properties['attributes']))
 							
-							<a data-href='{{action("DocumentAndNoteController@show", ["id" => $activity->subject->id, "notable_id" => $activity->subject->notable_id, "notable_type" => $activity->subject->notable_type])}}' class="cursor-pointer view_a_docs_note text-black">
+							<a data-href='{{action([\App\Http\Controllers\DocumentAndNoteController::class, 'show'], ["id" => $activity->subject->id, "notable_id" => $activity->subject->notable_id, "notable_type" => $activity->subject->notable_type])}}' class="cursor-pointer view_a_docs_note text-black">
 							    <code>
 							    	{{$activity->properties['attributes']['heading']}}
 							    </code>
 							</a>
 						@elseif($activity->description == 'updated')
 							
-							<a data-href='{{action("DocumentAndNoteController@show", ["id" => $activity->subject->id, "notable_id" => $activity->subject->notable_id, "notable_type" => $activity->subject->notable_type])}}' class="cursor-pointer view_a_docs_note text-black">
+							<a data-href='{{action([\App\Http\Controllers\DocumentAndNoteController::class, 'show'], ["id" => $activity->subject->id, "notable_id" => $activity->subject->notable_id, "notable_type" => $activity->subject->notable_type])}}' class="cursor-pointer view_a_docs_note text-black">
 							    <code>{{$activity->subject->heading}}</code>
 							</a>
 						@endif
 
 					@elseif($activity->subject_type == 'Modules\Project\Entities\ProjectTimeLog')
 
-						@if($activity->description == 'created')
+						@if($activity->description == 'created' && !empty($activity->properties['attributes']))
 							<b>@lang('project::lang.work_hour'):</b>
 							<span>
 								@includeIf('project::activity.partials.time_log')

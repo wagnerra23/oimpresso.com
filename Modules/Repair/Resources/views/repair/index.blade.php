@@ -51,7 +51,7 @@
                     <div class="tab-pane active" id="pending_repair_tab">
                         <div class="row">
                             <div class="col-md-12 mb-12">
-                                <a target="_blank" class="btn btn-sm btn-primary pull-right" href="{{action('SellPosController@create'). '?sub_type=repair'}}">
+                                <a target="_blank" class="btn btn-sm btn-primary pull-right" href="{{action([\App\Http\Controllers\SellPosController::class, 'create']). '?sub_type=repair'}}">
                                     <i class="fa fa-plus"></i> @lang('messages.add')
                                 </a>
                             </div>
@@ -116,7 +116,7 @@
                     <div class="tab-pane" id="completed_repair_tab">
                         <div class="row">
                             <div class="col-md-12 mb-12">
-                                <a target="_blank" class="btn btn-sm btn-primary pull-right" href="{{action('SellPosController@create'). '?sub_type=repair'}}">
+                                <a target="_blank" class="btn btn-sm btn-primary pull-right" href="{{action([\App\Http\Controllers\SellPosController::class, 'create']). '?sub_type=repair'}}">
                                     <i class="fa fa-plus"></i> @lang('messages.add')
                                 </a>
                             </div>
@@ -253,7 +253,7 @@ $(document).ready( function(){
             { data: 'name', name: 'contacts.name'},
             { data: 'brand', name: 'b.name'},
             { data: 'device_model', name: 'rdm.name'},
-            { data: 'repair_serial_no', name: 'rs.name'},
+            { data: 'repair_serial_no', name: 'transactions.repair_serial_no'},
             { data: 'repair_status', name: 'rs.name'},
             { data: 'business_location', name: 'bl.name'},
             { data: 'warranty_name', name: 'rw.name'},
@@ -321,7 +321,7 @@ $(document).ready( function(){
             { data: 'name', name: 'contacts.name'},
             { data: 'brand', name: 'b.name'},
             { data: 'device_model', name: 'rdm.name'},
-            { data: 'repair_serial_no', name: 'rs.name'},
+            { data: 'repair_serial_no', name: 'transactions.repair_serial_no'},
             { data: 'repair_status', name: 'rs.name'},
             { data: 'business_location', name: 'bl.name'},
             { data: 'warranty_name', name: 'rw.name'},

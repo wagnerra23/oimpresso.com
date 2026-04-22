@@ -2,6 +2,6 @@
 
 return [
     'name' => 'Crm',
-    'module_version' => "1.0",
-    'pid' => 7
+    'module_version' => '2.1',
+    'pid' => 7,
 ];

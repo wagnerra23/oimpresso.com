@@ -60,7 +60,7 @@ class NFeEntradaService {
 		$stdIde->dhSaiEnt = date("Y-m-d\TH:i:sP");
 		$stdIde->tpNF = 0; // 0 Entrada;
 		$stdIde->idDest = $config->cidade->uf != $compra->contact->cidade->uf ? 2 : 1;
-		$stdIde->cMunFG = $config->cidade->officeimpresso_codigo;
+		$stdIde->cMunFG = $config->cidade->codigo;
 
 		$stdIde->tpImp = 1;
 		$stdIde->tpEmis = 1;
@@ -100,7 +100,7 @@ class NFeEntradaService {
 		$stdEnderEmit->xCpl = "";
 		
 		$stdEnderEmit->xBairro = $config->bairro;
-		$stdEnderEmit->cMun = $config->cidade->officeimpresso_codigo;
+		$stdEnderEmit->cMun = $config->cidade->codigo;
 		$stdEnderEmit->xMun = $config->cidade->nome;
 		$stdEnderEmit->UF = $config->cidade->uf;
 
@@ -152,7 +152,7 @@ class NFeEntradaService {
 		$stdEnderDest->nro = $compra->contact->numero;
 		$stdEnderDest->xCpl = "";
 		$stdEnderDest->xBairro = $compra->contact->bairro;
-		$stdEnderDest->cMun = $compra->contact->cidade->officeimpresso_codigo;
+		$stdEnderDest->cMun = $compra->contact->cidade->codigo;
 		$stdEnderDest->xMun = strtoupper($compra->contact->cidade->nome);
 		$stdEnderDest->UF = $compra->contact->cidade->uf;
 

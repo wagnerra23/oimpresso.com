@@ -12,7 +12,7 @@ class PurchaseLine extends Model
      * @var array
      */
     protected $guarded = ['id'];
-    
+
     public function transaction()
     {
         return $this->belongsTo(\App\Transaction::class);
@@ -36,7 +36,7 @@ class PurchaseLine extends Model
      */
     public function getQuantityAttribute($value)
     {
-        return (float)$value;
+        return (float) $value;
     }
 
     /**
@@ -55,7 +55,7 @@ class PurchaseLine extends Model
      */
     public function getQuantityRemainingAttribute()
     {
-        return (float)($this->quantity - $this->quantity_used);
+        return (float) ($this->quantity - $this->quantity_used);
     }
 
     /**
@@ -65,11 +65,21 @@ class PurchaseLine extends Model
      */
     public function getQuantityUsedAttribute()
     {
-        return (float)($this->quantity_sold + $this->quantity_adjusted + $this->quantity_returned + $this->mfg_quantity_used);
+        return (float) ($this->quantity_sold + $this->quantity_adjusted + $this->quantity_returned + $this->mfg_quantity_used);
     }
 
     public function line_tax()
     {
         return $this->belongsTo(\App\TaxRate::class, 'tax_id');
+    }
+
+    public function purchase_order_line()
+    {
+        return $this->belongsTo(\App\PurchaseLine::class, 'purchase_order_line_id');
+    }
+
+    public function purchase_requisition_line()
+    {
+        return $this->belongsTo(\App\PurchaseLine::class, 'purchase_requisition_line_id');
     }
 }

@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('Restaurant\ProductModifierSetController@update', [$modifer_set->id]), 'method' => 'post', 'id' => 'table_add_form' ]) !!}
+    {!! Form::open(['url' => action([\App\Http\Controllers\Restaurant\ProductModifierSetController::class, 'update'], [$modifer_set->id]), 'method' => 'post', 'id' => 'table_add_form' ]) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -31,7 +31,7 @@
                 <tr>
                   <td>{{$product->name}} ({{$product->sku}})</td>
                   <input type="hidden" name="products[]" value="{{$product->id}}">
-                  <td><button type="button" class="btn btn-danger btn-xs remove_modifier_product"><i class="fa fa-times"></i></button></td>
+                  <td><button type="button" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-error remove_modifier_product"><i class="fa fa-times"></i></button></td>
                 </tr>
               @endforeach
             </tbody>
@@ -42,8 +42,8 @@
     </div>
 
     <div class="modal-footer">
-      <button type="submit" class="btn btn-primary">@lang( 'messages.save' )</button>
-      <button type="button" class="btn btn-default" data-dismiss="modal">@lang( 'messages.close' )</button>
+      <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">@lang( 'messages.save' )</button>
+      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white" data-dismiss="modal">@lang( 'messages.close' )</button>
     </div>
 
     {!! Form::close() !!}

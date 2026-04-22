@@ -3,7 +3,7 @@
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 
-		{!! Form::open(['url' => action('\Modules\Crm\Http\Controllers\ContactBookingController@store'), 'method' => 'post', 'id' => 'add_booking_form' ]) !!}
+		{!! Form::open(['url' => action([\Modules\Crm\Http\Controllers\ContactBookingController::class, 'store']), 'method' => 'post', 'id' => 'add_booking_form' ]) !!}
 			{!! Form::hidden('contact_id', auth()->user()->crm_contact_id); !!}
 			{!! Form::hidden('booking_status', 'waiting'); !!}
 			<div class="modal-header">

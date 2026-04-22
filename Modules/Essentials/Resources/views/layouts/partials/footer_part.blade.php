@@ -75,53 +75,45 @@
             },
         });
     });
+    
+    $(document).on('click', '#get_current_location', function(){
+        getFullAddress();
+    });
 
-    $('div#clock_in_clock_out_modal').on('shown.bs.modal', function () {
-        function getUserLocation () {
-            function getUserLocationDetails (latitude, longitude) {
+    function getFullAddress() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+                var latitude = position.coords.latitude;
+                var longitude = position.coords.longitude;
 
                 $.ajax({
-                    method: $(this).attr('method'),
-                    url: '/essentials/user-location/' + latitude + ',' + longitude,
+                    url: '/user-location/' + latitude + ',' + longitude,
                     dataType: 'json',
                     success: function(result) {
-                        if (typeof result.results[0] !== 'undefined' && typeof result.results[0].formatted_address !== 'undefined') {
+                        if (typeof result.address !== 'undefined') {
 
-                            $("input#clock_in_out_location").val(result.results[0].formatted_address);
-                            $("span.clock_in_out_location").text(result.results[0].formatted_address);
+                            $("input#clock_in_out_location").val(result.address);
+                            $("span.clock_in_out_location").text(result.address);
                             $("div.ask_location").hide();
                         } else if (typeof result.error_message !== 'undefined') {
                             console.log(result.error_message);
                         }
                     }
                 });
-            }
-            
-            function success(position) {
-                getUserLocationDetails(position.coords.latitude, position.coords.longitude);
-            }
 
-            function error(error) {
-                if (error.PERMISSION_DENIED) {
-                    $("div.ask_location").show();
-                    $("span.location_required").text("{{__('essentials::lang.you_must_enable_location')}}")
-                }
+            },
+            () => {
+                $("div.ask_location").show();
+                $("span.location_required").text("{{__('essentials::lang.you_must_enable_location')}}")
+              console.log( "Error: The Geolocation service failed.");
             }
-
-            @if(!empty(env('GOOGLE_MAP_API_KEY')))
-                if(!navigator.geolocation) {
-                    console.error('Geolocation is not supported by this browser');
-                } else {
-                    navigator.geolocation.getCurrentPosition(success, error);
-                }
-
-            @endif
+          );
+        } else {
+            $("div.ask_location").show();
+            $("span.location_required").text("{{__('essentials::lang.you_must_enable_location')}}")
+          // Browser doesn't support Geolocation
+          console.log("Browser doesn't support Geolocation");
         }
-
-        getUserLocation();
-
-        $("button.allow_location").on('click', function () {
-            getUserLocation();
-        });
-    });
+    }
 </script>

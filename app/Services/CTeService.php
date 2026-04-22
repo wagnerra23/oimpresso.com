@@ -88,10 +88,10 @@ class CTeService{
 		$ide->modal = $cteEmit->modal; 
 		$ide->tpServ = '0'; 
 
-		$ide->cMunIni = $cteEmit->remetente->cidade->officeimpresso_codigo; 
+		$ide->cMunIni = $cteEmit->remetente->cidade->codigo; 
 		$ide->xMunIni = strtoupper($cteEmit->remetente->cidade->nome); 
 		$ide->UFIni = $cteEmit->remetente->cidade->uf; 
-		$ide->cMunFim = $cteEmit->destinatario->cidade->officeimpresso_codigo; 
+		$ide->cMunFim = $cteEmit->destinatario->cidade->codigo; 
 		$ide->xMunFim = strtoupper($cteEmit->destinatario->cidade->nome); 
 		$ide->UFFim = $cteEmit->destinatario->cidade->uf; 
 		$ide->retira = $cteEmit->retira ? 0 : 1;

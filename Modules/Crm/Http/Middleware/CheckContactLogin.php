@@ -19,7 +19,7 @@ class CheckContactLogin
         if ($request->user()->user_type != 'user_customer') {
             abort(403, 'Unauthorized action.');
         }
-        
+
         return $next($request);
     }
 }

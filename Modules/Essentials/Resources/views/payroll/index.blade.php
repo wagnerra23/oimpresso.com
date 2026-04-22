@@ -19,14 +19,14 @@
                             @lang('essentials::lang.all_payrolls')
                         </a>
                     </li>
-                    @if($is_admin)
+                    @can('essentials.view_all_payroll')
                         <li>
                             <a href="#payroll_group_tab" data-toggle="tab" aria-expanded="true">
                                 <i class="fas fa-layer-group" aria-hidden="true"></i>
                                 @lang('essentials::lang.all_payroll_groups')
                             </a>
                         </li>
-                    @endif
+                    @endcan
                     @if(auth()->user()->can('essentials.view_allowance_and_deduction') || auth()->user()->can('essentials.add_allowance_and_deduction'))
                         <li>
                             <a href="#pay_component_tab" data-toggle="tab" aria-expanded="true">
@@ -41,11 +41,18 @@
                         <div class="row">
                             <div class="col-md-12">
                                 @component('components.filters', ['title' => __('report.filters'), 'class' => 'box-solid', 'closed' => true])
-                                    @if($is_admin)
+                                    @can('essentials.view_all_payroll')
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 {!! Form::label('user_id_filter', __('essentials::lang.employee') . ':') !!}
                                                 {!! Form::select('user_id_filter', $employees, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                {!! Form::label('location_id_filter',  __('purchase.business_location') . ':') !!}
+
+                                                {!! Form::select('location_id_filter', $locations, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all') ]); !!}
                                             </div>
                                         </div>
                                         <div class="col-md-3">
@@ -60,7 +67,7 @@
                                                 {!! Form::select('designation_id', $designations, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
                                             </div>
                                         </div>
-                                    @endif
+                                    @endcan
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             {!! Form::label('month_year_filter', __( 'essentials::lang.month_year' ) . ':') !!}
@@ -74,7 +81,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            @if($is_admin)
+                            @can('essentials.create_payroll')
                                 <div class="col-md-12">
                                     <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#payroll_modal">
                                         <i class="fa fa-plus"></i>
@@ -82,7 +89,7 @@
                                     </button>
                                 </div>
                                 <br><br><br>
-                            @endif
+                            @endcan
                             <div class="col-md-12">
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-striped" id="payrolls_table" style="width: 100%;">
@@ -103,7 +110,7 @@
                             </div>
                         </div>
                     </div>
-                    @if($is_admin)
+                    @can('essentials.view_all_payroll')
                         <div class="tab-pane" id="payroll_group_tab">
                             <div class="row">
                                 <div class="col-md-12">
@@ -116,6 +123,7 @@
                                                     <th>@lang( 'sale.payment_status' )</th>
                                                     <th>@lang('essentials::lang.total_gross_amount')</th>
                                                     <th>@lang('lang_v1.added_by')</th>
+                                                    <th>@lang('business.location')</th>
                                                     <th>@lang('lang_v1.created_at')</th>
                                                     <th>@lang( 'messages.action' )</th>
                                                 </tr>
@@ -125,13 +133,13 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    @endcan
                     @if(auth()->user()->can('essentials.view_allowance_and_deduction') || auth()->user()->can('essentials.add_allowance_and_deduction'))
                         <div class="tab-pane" id="pay_component_tab">
                             <div class="row">
                                 @can('essentials.add_allowance_and_deduction')
                                     <div class="col-md-12">
-                                        <button type="button" class="btn btn-primary btn-modal pull-right" data-href="{{action('\Modules\Essentials\Http\Controllers\EssentialsAllowanceAndDeductionController@create')}}" data-container="#add_allowance_deduction_modal">
+                                        <button type="button" class="btn btn-primary btn-modal pull-right" data-href="{{action([\Modules\Essentials\Http\Controllers\EssentialsAllowanceAndDeductionController::class, 'create'])}}" data-container="#add_allowance_deduction_modal">
                                                 <i class="fa fa-plus"></i> @lang( 'messages.add' )
                                         </button>
                                     </div><br><br><br>
@@ -160,9 +168,9 @@
             </div>
         </div>
     </div>
-    @if($is_admin)
+    @can('essentials.create_payroll')
         @includeIf('essentials::payroll.payroll_modal')
-    @endif
+    @endcan
     <div class="modal fade" id="add_allowance_deduction_modal" tabindex="-1" role="dialog"
  aria-labelledby="gridSystemModalLabel"></div>
 </section>
@@ -185,10 +193,13 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: "{{action('\Modules\Essentials\Http\Controllers\PayrollController@index')}}",
+                    url: "{{action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'index'])}}",
                     data: function (d) {
                         if ($('#user_id_filter').length) {
                             d.user_id = $('#user_id_filter').val();
+                        }
+                        if ($('#location_id_filter').length) {
+                            d.location_id = $('#location_id_filter').val();
                         }
                         d.month_year = $('#month_year_filter').val();
                         if ($('#department_id').length) {
@@ -222,7 +233,7 @@
                 },
             });
 
-            $(document).on('change', '#user_id_filter, #month_year_filter, #department_id, #designation_id', function() {
+            $(document).on('change', '#user_id_filter, #month_year_filter, #department_id, #designation_id, #location_id_filter', function() {
                 payrolls_table.ajax.reload();
             });
 
@@ -241,36 +252,6 @@
                 autoclose: true,
                 format: 'mm/yyyy',
                 minViewMode: "months"
-            });
-
-            $(document).on('click', '.delete-payroll', function(e) {
-                e.preventDefault();
-                swal({
-                    title: LANG.sure,
-                    icon: 'warning',
-                    buttons: true,
-                    dangerMode: true,
-                }).then(willDelete => {
-                    if (willDelete) {
-                        var href = $(this).attr('href');
-                        var data = $(this).serialize();
-
-                        $.ajax({
-                            method: 'DELETE',
-                            url: href,
-                            dataType: 'json',
-                            data: data,
-                            success: function(result) {
-                                if (result.success == true) {
-                                    toastr.success(result.msg);
-                                    payrolls_table.ajax.reload();
-                                } else {
-                                    toastr.error(result.msg);
-                                }
-                            },
-                        });
-                    }
-                });
             });
 
             //pay components
@@ -307,7 +288,7 @@
                 ad_pc_table = $('#ad_pc_table').DataTable({
                     processing: true,
                     serverSide: true,
-                    ajax: "{{action('\Modules\Essentials\Http\Controllers\EssentialsAllowanceAndDeductionController@index')}}",
+                    ajax: "{{action([\Modules\Essentials\Http\Controllers\EssentialsAllowanceAndDeductionController::class, 'index'])}}",
                     columns: [
                         { data: 'description', name: 'description' },
                         { data: 'type', name: 'type' },
@@ -352,23 +333,73 @@
                 });
             @endif
             //payroll groups
-            @if($is_admin)
+            @can('essentials.view_all_payroll')
                 payroll_group_table = $('#payroll_group_table').DataTable({
                         processing: true,
                         serverSide: true,
-                        ajax: "{{action('\Modules\Essentials\Http\Controllers\PayrollController@payrollGroupDatatable')}}",
-                        aaSorting: [[5, 'desc']],
+                        ajax: "{{action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'payrollGroupDatatable'])}}",
+                        aaSorting: [[6, 'desc']],
                         columns: [
-                            { data: 'name', name: 'name' },
+                            { data: 'name', name: 'essentials_payroll_groups.name' },
                             { data: 'status', name: 'essentials_payroll_groups.status' },
                             { data: 'payment_status', name: 'essentials_payroll_groups.payment_status' },
                             { data: 'gross_total', name: 'essentials_payroll_groups.gross_total' },
                             { data: 'added_by', name: 'added_by' },
+                            { data: 'location_name', name: 'BL.name' },
                             { data: 'created_at', name: 'essentials_payroll_groups.created_at', searchable: false},
                             { data: 'action', name: 'action', searchable: false, orderable: false}
                         ]
                     });
-            @endif
+            @endcan
+            @can('essentials.delete_payroll')
+                $(document).on('click', '.delete-payroll', function(e) {
+                    e.preventDefault();
+                    swal({
+                        title: LANG.sure,
+                        icon: 'warning',
+                        buttons: true,
+                        dangerMode: true,
+                    }).then(willDelete => {
+                        if (willDelete) {
+                            var href = $(this).attr('href');
+                            var data = $(this).serialize();
+
+                            $.ajax({
+                                method: 'DELETE',
+                                url: href,
+                                dataType: 'json',
+                                data: data,
+                                success: function(result) {
+                                    if (result.success == true) {
+                                        toastr.success(result.msg);
+                                        payroll_group_table.ajax.reload();
+                                    } else {
+                                        toastr.error(result.msg);
+                                    }
+                                },
+                            });
+                        }
+                    });
+                });
+            @endcan
+
+            $(document).on('change', '#primary_work_location', function () {
+                let location_id = $(this).val();
+                $.ajax({
+                    method: 'GET',
+                    url: "{{action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'getEmployeesBasedOnLocation'])}}",
+                    dataType: 'json',
+                    data: {
+                        'location_id' : location_id
+                    },
+                    success: function(result) {
+                        if (result.success == true) {
+                            $('select#employee_ids').html('');
+                            $('select#employee_ids').html(result.employees_html);
+                        }
+                    }
+                });
+            });
         });
     </script>
     <script src="{{ asset('js/payment.js?v=' . $asset_v) }}"></script>

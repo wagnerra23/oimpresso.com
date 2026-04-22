@@ -11,7 +11,7 @@
 <!-- Main content -->
 <section class="content">
 	<div class="row">
-		{!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\PayrollController@postAddPayment'), 'method' => 'post', 'id' => 'payroll_group_payment' ]) !!}
+		{!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'postAddPayment']), 'method' => 'post', 'id' => 'payroll_group_payment' ]) !!}
 		{!! Form::hidden('payroll_group_id', $payroll_group->id); !!}
 		<div class="col-md-12">
 			<div class="box box-solid" id="payroll-group">
@@ -25,12 +25,19 @@
 					</div>
 					<div class="row margin-bottom-20">
 						<div class="col-md-6 text-center">
+							<strong class="font-23">{{$payroll_group->business->name}}</strong> <br>
+							@if(!empty($payroll_group->businessLocation))
+								{{$payroll_group->businessLocation->name}} <br>
+								{!!$payroll_group->businessLocation->location_address!!}
+							@else
+								{{__('report.all_locations')}}
+							@endif
+						</div>
+						<div class="col-md-6 text-center">
 							<b class="font-17">
 								@lang('essentials::lang.payroll_group'):
 							</b>
-							{{$payroll_group->name}}
-						</div>
-						<div class="col-md-6 text-center">
+							{{$payroll_group->name}} <br>
 							<b class="font-17">
 								@lang('sale.status'):
 							</b>

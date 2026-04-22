@@ -185,7 +185,7 @@
             $(this).html(syncing_text); 
             $(this).attr('disabled', true);
             $.ajax({
-                url: "{{action('\Modules\Woocommerce\Http\Controllers\WoocommerceController@syncCategories')}}",
+                url: "{{action([\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncCategories'])}}",
                 dataType: "json",
                 timeout: 0,
                 success: function(result){
@@ -226,7 +226,7 @@
             btn.attr('disabled', true);
 
             $.ajax({
-                url: "{{action('\Modules\Woocommerce\Http\Controllers\WoocommerceController@syncOrders')}}",
+                url: "{{action([\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncOrders'])}}",
                 dataType: "json",
                 timeout: 0,
                 success: function(result){
@@ -246,7 +246,7 @@
 
     function update_sync_date() {
         $.ajax({
-            url: "{{action('\Modules\Woocommerce\Http\Controllers\WoocommerceController@getSyncLog')}}",
+            url: "{{action([\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'getSyncLog'])}}",
             dataType: "json",
             timeout: 0,
             success: function(data){
@@ -288,7 +288,7 @@
                     var btn = $(this);
                     btn.attr('disabled', true);
                     $.ajax({
-                        url: "{{action('\Modules\Woocommerce\Http\Controllers\WoocommerceController@resetCategories')}}",
+                        url: "{{action([\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'resetCategories'])}}",
                         dataType: "json",
                         success: function(result){
                             if(result.success == true){
@@ -327,7 +327,7 @@
                     var btn = $(this);
                     btn.attr('disabled', true);
                     $.ajax({
-                        url: "{{action('\Modules\Woocommerce\Http\Controllers\WoocommerceController@resetProducts')}}",
+                        url: "{{action([\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'resetProducts'])}}",
                         dataType: "json",
                         success: function(result){
                             if(result.success == true){
@@ -348,7 +348,7 @@
     function sync_products(btn, btn_html, offset = 0) {
         var type = btn.data('sync-type');
         $.ajax({
-            url: "{{action('\Modules\Woocommerce\Http\Controllers\WoocommerceController@syncProducts')}}?type=" + type + "&offset=" + offset,
+            url: "{{action([\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncProducts'])}}?type=" + type + "&offset=" + offset,
             dataType: "json",
             timeout: 0,
             success: function(result){

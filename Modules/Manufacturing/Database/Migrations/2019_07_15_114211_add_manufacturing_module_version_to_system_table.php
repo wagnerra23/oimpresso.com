@@ -13,8 +13,8 @@ class AddManufacturingModuleVersionToSystemTable extends Migration
     public function up()
     {
         DB::table('system')->insert([
-            'key'=>'manufacturing_version',
-            'value' => config('manufacturing.module_version', 0.1)
+            'key' => 'manufacturing_version',
+            'value' => config('manufacturing.module_version', 0.1),
         ]);
     }
 

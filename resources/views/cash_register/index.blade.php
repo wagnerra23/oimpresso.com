@@ -5,8 +5,8 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang( 'cash_register.cash_register' )
-        <small>@lang( 'cash_register.manage_your_cash_register' )</small>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang( 'cash_register.cash_register' )
+        <small class="tw-text-sm md:tw-text-base tw-text-gray-700 tw-font-semibold">@lang( 'cash_register.manage_your_cash_register' )</small>
     </h1>
     <!-- <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
@@ -22,7 +22,7 @@
         	<h3 class="box-title">@lang( 'cash_register.all_your_cash_register' )</h3>
         	<div class="box-tools">
                 <button type="button" class="btn btn-block btn-primary btn-modal" 
-                	data-href="{{action('CashRegisterController@create')}}" 
+                	data-href="{{action([\App\Http\Controllers\CashRegisterController::class, 'create'])}}" 
                 	data-container=".location_add_modal">
                 	<i class="fa fa-plus"></i> @lang( 'messages.add' )</button>
             </div>

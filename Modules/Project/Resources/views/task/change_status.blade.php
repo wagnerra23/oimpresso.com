@@ -1,5 +1,5 @@
 <div class="modal-dialog" role="document">
-    {!! Form::open(['url' => action('\Modules\Project\Http\Controllers\TaskController@postTaskStatus', $project_task->id), 'id' => 'change_status', 'method' => 'put']) !!}
+    {!! Form::open(['url' => action([\Modules\Project\Http\Controllers\TaskController::class, 'postTaskStatus'], $project_task->id), 'id' => 'change_status', 'method' => 'put']) !!}
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">

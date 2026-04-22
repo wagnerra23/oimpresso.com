@@ -9,11 +9,11 @@
         $opening_balance = 0;
         $lead_users = $contact->leadUsers->pluck('id');
     } else {
-      $url = action('ContactController@update', [$contact->id]);
+      $url = action([\App\Http\Controllers\ContactController::class, 'update'], [$contact->id]);
       $sources = [];
       $life_stages = [];
-      $users = [];
       $lead_users = [];
+      $assigned_to_users = $contact->userHavingAccess->pluck('id');
     }
   @endphp
 
@@ -39,6 +39,16 @@
               </div>
           </div>
         </div>
+        <div class="col-md-4 mt-15">
+            <label class="radio-inline">
+                <input type="radio" name="contact_type_radio" @if($contact->contact_type == 'individual') checked @endif id="inlineRadio1" value="individual">
+                @lang('lang_v1.individual')
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="contact_type_radio" @if($contact->contact_type == 'business') checked @endif id="inlineRadio2" value="business">
+                @lang('business.business')
+            </label>
+        </div>
         <div class="col-md-4">
           <div class="form-group">
               {!! Form::label('contact_id', __('lang_v1.contact_id') . ':') !!}
@@ -49,39 +59,24 @@
                   <input type="hidden" id="hidden_id" value="{{$contact->id}}">
                   {!! Form::text('contact_id', $contact->contact_id, ['class' => 'form-control','placeholder' => __('lang_v1.contact_id')]); !!}
               </div>
+              <p class="help-block">
+                @lang('lang_v1.leave_empty_to_autogenerate')
+            </p>
           </div>
         </div>
-
-        <div class="clearfix"></div>        
-	      <div class="col-md-2">
+        <div class="col-md-4 customer_fields">
           <div class="form-group">
-            {!! Form::label('tipo', 'Tipo' . ':') !!}
-            <div class="input-group" style="width: 100%;">
-
-              {!! Form::select('tipo', ['Jurídica' => 'Jurídica', 'Física' => 'Física', 'Outros' => 'Outros'], $contact->tipo, ['class' => 'form-control']); !!}
-            </div>
+              {!! Form::label('customer_group_id', __('lang_v1.customer_group') . ':') !!}
+              <div class="input-group">
+                  <span class="input-group-addon">
+                      <i class="fa fa-users"></i>
+                  </span>
+                  {!! Form::select('customer_group_id', $customer_groups, $contact->customer_group_id, ['class' => 'form-control']); !!}
+              </div>
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="form-group">
-                {!! Form::label('cpf_cnpj', 'CNPJ/CPF:'. ':') !!}
-                {!! Form::text('cpf_cnpj', $contact->cpf_cnpj, ['class' => 'form-control', '', 'placeholder' => 'CNPJ/CPF' ]); !!}
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="form-group">
-                {!! Form::label('ie_rg', 'I.E/RG'. ':') !!}
-                {!! Form::text('ie_rg', $contact->ie_rg, ['class' => 'form-control', '', 'placeholder' => 'Inscrição EEstadual/RG' ]); !!}
-          </div>
-        </div>    
-        <div class="clearfix"></div>
-        <div class="col-md-5">
-          <div class="form-group">
-              {!! Form::label('name', 'Razão Social/Nome'. ':*') !!}
-              {!! Form::text('name', $contact->name, ['class' => 'form-control', 'required', 'placeholder' => __( 'business.name' ) ]); !!}
-          </div>
-        </div>        
-        <div class="col-md-5">
+        <div class="clearfix customer_fields"></div>
+        <div class="col-md-4 business" @if($contact->contact_type == 'individual' || empty($contact->contact_type)) style="display: none;"  @endif>
           <div class="form-group">
               {!! Form::label('supplier_business_name', __('business.business_name') . ':') !!}
               <div class="input-group">
@@ -93,7 +88,32 @@
               </div>
           </div>
         </div>
-      <div class="clearfix"></div>
+        <div class="clearfix"></div>
+        <div class="col-md-3 individual"  @if($contact->contact_type == 'business' || empty($contact->contact_type)) style="display: none;"  @endif>
+                <div class="form-group">
+                    {!! Form::label('prefix', __( 'business.prefix' ) . ':') !!}
+                    {!! Form::text('prefix', $contact->prefix, ['class' => 'form-control', 'placeholder' => __( 'business.prefix_placeholder' ) ]); !!}
+                </div>
+            </div>
+            <div class="col-md-3 individual" @if($contact->contact_type == 'business' || empty($contact->contact_type)) style="display: none;"  @endif>
+                <div class="form-group">
+                    {!! Form::label('first_name', __( 'business.first_name' ) . ':*') !!}
+                    {!! Form::text('first_name', $contact->first_name, ['class' => 'form-control', 'required', 'placeholder' => __( 'business.first_name' ) ]); !!}
+                </div>
+            </div>
+            <div class="col-md-3 individual" @if($contact->contact_type == 'business' || empty($contact->contact_type)) style="display: none;"  @endif>
+                <div class="form-group">
+                    {!! Form::label('middle_name', __( 'lang_v1.middle_name' ) . ':') !!}
+                    {!! Form::text('middle_name', $contact->middle_name, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.middle_name' ) ]); !!}
+                </div>
+            </div>
+            <div class="col-md-3 individual" @if($contact->contact_type == 'business' || empty($contact->contact_type)) style="display: none;"  @endif>
+                <div class="form-group">
+                    {!! Form::label('last_name', __( 'business.last_name' ) . ':') !!}
+                    {!! Form::text('last_name', $contact->last_name, ['class' => 'form-control', 'placeholder' => __( 'business.last_name' ) ]); !!}
+                </div>
+            </div>
+            <div class="clearfix"></div>
 
       <div class="col-md-3">
         <div class="form-group">
@@ -139,10 +159,9 @@
                 </div>
             </div>
         </div>
-        <div class="clearfix"></div>        
 
         <div class="col-sm-4">
-            <div class="form-group">
+            <div class="form-group individual" @if($contact->contact_type == 'business') style="display: none;"  @endif>
                 {!! Form::label('dob', __('lang_v1.dob') . ':') !!}
                 <div class="input-group">
                     <span class="input-group-addon">
@@ -153,30 +172,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4 customer_fields">
-          <div class="form-group">
-              {!! Form::label('customer_group_id', __('lang_v1.customer_group') . ':') !!}
-              <div class="input-group">
-                  <span class="input-group-addon">
-                      <i class="fa fa-users"></i>
-                  </span>
-                  {!! Form::select('customer_group_id', $customer_groups, $contact->customer_group_id, ['class' => 'form-control']); !!}
-              </div>
-          </div>
-        </div>       
-        <div class="col-md-3">
-          <div class="form-group">
-              {!! Form::label('state', __('business.state') . ':') !!}
-              <div class="input-group">
-                  <span class="input-group-addon">
-                      <i class="fa fa-map-marker"></i>
-                  </span>
-                  {!! Form::text('state', $contact->state, ['class' => 'form-control', 'placeholder' => __('business.state')]); !!}
-              </div>
-          </div>
-        </div>     
-        <div class="clearfix"></div>           
         
         <!-- lead additional field -->
         <div class="col-md-4 lead_additional_div">
@@ -213,25 +208,41 @@
           </div>
         </div>
 
+        @if(config('constants.enable_contact_assign') && $contact->type !== 'lead')
+          <!-- User in create customer & supplier -->
+          <div class="col-md-6">
+                <div class="form-group">
+                    {!! Form::label('assigned_to_users', __('lang_v1.assigned_to') . ':' ) !!}
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="fa fa-user"></i>
+                        </span>
+                        {!! Form::select('assigned_to_users[]', $users, $assigned_to_users ?? [] , ['class' => 'form-control select2', 'id' => 'assigned_to_users', 'multiple', 'style' => 'width: 100%;']); !!}
+                    </div>
+                </div>
+          </div>
+        @endif
+
         <div class="col-md-12">
-            <button type="button" class="btn btn-primary center-block" id="more_btn">@lang('lang_v1.more_info') <i class="fa fa-chevron-down"></i></button>
+            <button type="button" class="tw-dw-btn tw-dw-btn-primary tw-text-white center-block more_btn" data-target="#more_div">@lang('lang_v1.more_info') <i class="fa fa-chevron-down"></i></button>
         </div>
         
         <div id="more_div" class="hide">
 
             <div class="col-md-12"><hr/></div>
-
-        <div class="col-md-4 pay_term">
+        
+        <div class="col-md-4">
           <div class="form-group">
-            <div class="multi-input">
-              {!! Form::label('pay_term_number', __('contact.pay_term') . ':') !!} @show_tooltip(__('tooltip.pay_term'))
-              <br/>
-              {!! Form::number('pay_term_number', $contact->pay_term_number, ['class' => 'form-control width-40 pull-left', 'placeholder' => __('contact.pay_term')]); !!}
-
-              {!! Form::select('pay_term_type', ['months' => __('lang_v1.months'), 'days' => __('lang_v1.days')], $contact->pay_term_type, ['class' => 'form-control width-60 pull-left','placeholder' => __('messages.please_select')]); !!}
-            </div>
+              {!! Form::label('tax_number', __('contact.tax_no') . ':') !!}
+              <div class="input-group">
+                  <span class="input-group-addon">
+                      <i class="fa fa-info"></i>
+                  </span>
+                  {!! Form::text('tax_number', $contact->tax_number, ['class' => 'form-control', 'placeholder' => __('contact.tax_no')]); !!}
+              </div>
           </div>
-        </div>        
+        </div>
+
         
         <div class="col-md-4 opening_balance">
           <div class="form-group">
@@ -244,7 +255,20 @@
               </div>
           </div>
         </div>
-       
+
+        <div class="col-md-4 pay_term">
+          <div class="form-group">
+            <div class="multi-input">
+              {!! Form::label('pay_term_number', __('contact.pay_term') . ':') !!} @show_tooltip(__('tooltip.pay_term'))
+              <br/>
+              {!! Form::number('pay_term_number', $contact->pay_term_number, ['class' => 'form-control width-40 pull-left', 'placeholder' => __('contact.pay_term')]); !!}
+
+              {!! Form::select('pay_term_type', ['months' => __('lang_v1.months'), 'days' => __('lang_v1.days')], $contact->pay_term_type, ['class' => 'form-control width-60 pull-left','placeholder' => __('messages.please_select')]); !!}
+            </div>
+          </div>
+        </div>
+        <div class="clearfix"></div>
+        
         <div class="col-md-4 customer_fields">
           <div class="form-group">
               {!! Form::label('credit_limit', __('lang_v1.credit_limit') . ':') !!}
@@ -257,82 +281,17 @@
               <p class="help-block">@lang('lang_v1.credit_limit_help')</p>
           </div>
         </div>
-        <div class="clearfix"></div>
-
-         <div class="col-md-2">
-            <div class="form-group">
-              {!! Form::label('consumidor_final', 'Consumidor final' . ':') !!}
-              <div class="input-group">
-                <span class="input-group-addon">
-                    <i class="fa fa-map-marker"></i>
-                </span>
-                {!! Form::select('consumidor_final', ['1' => 'Sim', '0' => 'Não'], '', ['class' => 'form-control']); !!}
-              </div>
-            </div>
-          </div>
-          <div class="col-md-2">
-            <div class="form-group">
-              {!! Form::label('contribuinte', 'Contribuinte' . ':') !!}
-              <div class="input-group">
-                <span class="input-group-addon">
-                    <i class="fa fa-map-marker"></i>
-                </span>
-                {!! Form::select('contribuinte', ['1' => 'Sim', '0' => 'Não'], '', ['class' => 'form-control']); !!}
-              </div>
-            </div>
-          </div>      
-          <div class="col-md-3">
-            <div class="form-group">
-              {!! Form::label('regime', 'Regime' . ':') !!}
-              <div class="input-group">
-                <span class="input-group-addon">
-                    <i class="fa fa-map-marker"></i>
-                </span>
-                {!! Form::select('regime', ['1' => 'Simples', '0' => 'Normal'], '', ['class' => 'form-control']); !!}        
-              </div>
-            </div>
-          </div>                    
           
-      <div class="clearfix"></div>
-       <div class="col-md-12">
+      <div class="col-md-12">
         <hr/>
       </div>
-
-      <div class="col-md-3">
-        <div class="form-group">
-            {!! Form::label('cep', 'CEP' . ':') !!}
-            <div class="input-group">
-                <span class="input-group-addon">
-                    <i class="fa fa-map-marker"></i>
-                </span>
-                {!! Form::text('cep', $contact->cep, ['class' => 'form-control', 'placeholder' => 'Cep']); !!}
-            </div>
-        </div>
-      </div>    
-      <div class="clearfix"></div>   
-
-      <div class="col-md-5 ">
-      <div class="form-group">
-        <label for="endereco">Rua:*</label>
-        <input class="form-control" value="{{$contact->rua}}" required placeholder="Rua" name="rua" type="text" id="rua">
-      </div>
-      </div>      
       
-      <div class="col-md-2 ">
-        <div class="form-group">
-          <label for="numero">Nº:*</label>
-          <input class="form-control" value="{{$contact->numero}}" required placeholder="Nº" name="numero" type="text" id="numero">
-      </div>
-      </div>    
-      <div class="col-md-5">
+      <div class="col-md-6">
         <div class="form-group">
             {!! Form::label('address_line_1', __('lang_v1.address_line_1') . ':') !!}
             {!! Form::text('address_line_1', $contact->address_line_1, ['class' => 'form-control', 'placeholder' => __('lang_v1.address_line_1'), 'rows' => 3]); !!}
         </div>
-      </div>     
- 
-      <div class="clearfix"></div>   
-
+      </div>
       <div class="col-md-6">
         <div class="form-group">
             {!! Form::label('address_line_2', __('lang_v1.address_line_2') . ':') !!}
@@ -340,7 +299,7 @@
                 'placeholder' => __('lang_v1.address_line_2'), 'rows' => 3]); !!}
         </div>
       </div>
-
+      <div class="clearfix"></div>
       <div class="col-md-3">
         <div class="form-group">
             {!! Form::label('city', __('business.city') . ':') !!}
@@ -349,6 +308,17 @@
                     <i class="fa fa-map-marker"></i>
                 </span>
                 {!! Form::text('city', $contact->city, ['class' => 'form-control', 'placeholder' => __('business.city')]); !!}
+            </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('state', __('business.state') . ':') !!}
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="fa fa-map-marker"></i>
+                </span>
+                {!! Form::text('state', $contact->state, ['class' => 'form-control', 'placeholder' => __('business.state')]); !!}
             </div>
         </div>
       </div>
@@ -363,10 +333,66 @@
             </div>
         </div>
       </div>
+      <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('zip_code', __('business.zip_code') . ':') !!}
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="fa fa-map-marker"></i>
+                </span>
+                {!! Form::text('zip_code', $contact->zip_code, ['class' => 'form-control', 
+                'placeholder' => __('business.zip_code_placeholder')]); !!}
+            </div>
+        </div>
+      </div>
+
+      
+      <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('land_mark', __('business.land_mark') . ':') !!}
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="fa fa-map-marker"></i>
+                </span>
+                {!! Form::text('land_mark', $contact->land_mark, ['class' => 'form-control', 'placeholder' => __('business.land_mark')]); !!}
+            </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('street_name', __('business.street_name') . ':') !!}
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="fa fa-map-marker"></i>
+                </span>
+                {!! Form::text('street_name', $contact->street_name, ['class' => 'form-control', 'placeholder' => __('business.street_name')]); !!}
+            </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('building_number', __('business.building_number') . ':') !!}
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="fa fa-map-marker"></i>
+                </span>
+                {!! Form::text('building_number', $contact->building_number, ['class' => 'form-control', 'placeholder' => __('business.building_number')]); !!}
+            </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('additional_number', __('business.additional_number') . ':') !!}
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="fa fa-map-marker"></i>
+                </span>
+                {!! Form::text('additional_number', $contact->additional_number, ['class' => 'form-control', 'placeholder' => __('business.additional_number')]); !!}
+            </div>
+        </div>
+      </div>
 
       <div class="clearfix"></div>
-
-      <!--
       <div class="col-md-12">
         <hr/>
       </div>
@@ -455,106 +481,117 @@
       </div>
       <div class="clearfix"></div>
       <div class="col-md-12 shipping_addr_div"><hr></div>
-      <div class="col-md-8 col-md-offset-2 shipping_addr_div" >
+      <div class="col-md-8 col-md-offset-2 shipping_addr_div mb-10" >
           <strong>{{__('lang_v1.shipping_address')}}</strong><br>
           {!! Form::text('shipping_address', $contact->shipping_address, ['class' => 'form-control', 
                 'placeholder' => __('lang_v1.search_address'), 'id' => 'shipping_address']); !!}
-        <div id="map"></div>
+        <div class="mb-10" id="map"></div>
       </div>
-      -->
       {!! Form::hidden('position', $contact->position, ['id' => 'position']); !!}
+        @php
+            $shipping_custom_label_1 = !empty($custom_labels['shipping']['custom_field_1']) ? $custom_labels['shipping']['custom_field_1'] : '';
 
+            $shipping_custom_label_2 = !empty($custom_labels['shipping']['custom_field_2']) ? $custom_labels['shipping']['custom_field_2'] : '';
+
+            $shipping_custom_label_3 = !empty($custom_labels['shipping']['custom_field_3']) ? $custom_labels['shipping']['custom_field_3'] : '';
+
+            $shipping_custom_label_4 = !empty($custom_labels['shipping']['custom_field_4']) ? $custom_labels['shipping']['custom_field_4'] : '';
+
+            $shipping_custom_label_5 = !empty($custom_labels['shipping']['custom_field_5']) ? $custom_labels['shipping']['custom_field_5'] : '';
+        @endphp
+
+        @if(!empty($custom_labels['shipping']['is_custom_field_1_contact_default']) && !empty($shipping_custom_label_1))
+            @php
+                $label_1 = $shipping_custom_label_1 . ':';
+            @endphp
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    {!! Form::label('shipping_custom_field_1', $label_1 ) !!}
+                    {!! Form::text('shipping_custom_field_details[shipping_custom_field_1]', !empty($contact->shipping_custom_field_details['shipping_custom_field_1']) ? $contact->shipping_custom_field_details['shipping_custom_field_1'] : null, ['class' => 'form-control','placeholder' => $shipping_custom_label_1]); !!}
+                </div>
+            </div>
+        @endif
+        @if(!empty($custom_labels['shipping']['is_custom_field_2_contact_default']) && !empty($shipping_custom_label_2))
+            @php
+                $label_2 = $shipping_custom_label_2 . ':';
+            @endphp
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    {!! Form::label('shipping_custom_field_2', $label_2 ) !!}
+                    {!! Form::text('shipping_custom_field_details[shipping_custom_field_2]', !empty($contact->shipping_custom_field_details['shipping_custom_field_2']) ? $contact->shipping_custom_field_details['shipping_custom_field_2'] : null, ['class' => 'form-control','placeholder' => $shipping_custom_label_2]); !!}
+                </div>
+            </div>
+        @endif
+        @if(!empty($custom_labels['shipping']['is_custom_field_3_contact_default']) && !empty($shipping_custom_label_3))
+            @php
+                $label_3 = $shipping_custom_label_3 . ':';
+            @endphp
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    {!! Form::label('shipping_custom_field_3', $label_3 ) !!}
+                    {!! Form::text('shipping_custom_field_details[shipping_custom_field_3]', !empty($contact->shipping_custom_field_details['shipping_custom_field_3']) ? $contact->shipping_custom_field_details['shipping_custom_field_3'] : null, ['class' => 'form-control','placeholder' => $shipping_custom_label_3]); !!}
+                </div>
+            </div>
+        @endif
+        @if(!empty($custom_labels['shipping']['is_custom_field_4_contact_default']) && !empty($shipping_custom_label_4))
+            @php
+                $label_4 = $shipping_custom_label_4 . ':';
+            @endphp
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    {!! Form::label('shipping_custom_field_4', $label_4 ) !!}
+                    {!! Form::text('shipping_custom_field_details[shipping_custom_field_4]', !empty($contact->shipping_custom_field_details['shipping_custom_field_4']) ? $contact->shipping_custom_field_details['shipping_custom_field_4'] : null, ['class' => 'form-control','placeholder' => $shipping_custom_label_4]); !!}
+                </div>
+            </div>
+        @endif
+        @if(!empty($custom_labels['shipping']['is_custom_field_5_contact_default']) && !empty($shipping_custom_label_5))
+            @php
+                $label_5 = $shipping_custom_label_5 . ':';
+            @endphp
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    {!! Form::label('shipping_custom_field_5', $label_5 ) !!}
+                    {!! Form::text('shipping_custom_field_details[shipping_custom_field_5]', !empty($contact->shipping_custom_field_details['shipping_custom_field_5']) ? $contact->shipping_custom_field_details['shipping_custom_field_5'] : null, ['class' => 'form-control','placeholder' => $shipping_custom_label_5]); !!}
+                </div>
+            </div>
+        @endif
+        @php
+          $common_settings = session()->get('business.common_settings');
+        @endphp
+        @if(!empty($common_settings['is_enabled_export']))
+            <div class="col-md-12 mb-12">
+                <div class="form-check">
+                    <input type="checkbox" name="is_export" class="form-check-input" id="is_customer_export" @if(!empty($contact->is_export)) checked @endif>
+                    <label class="form-check-label" for="is_customer_export">@lang('lang_v1.is_export')</label>
+                </div>
+            </div>
+            @php
+                $i = 1;
+            @endphp
+            @for($i; $i <= 6 ; $i++)
+                <div class="col-md-4 export_div" style="display: none;">
+                    <div class="form-group">
+                        {!! Form::label('export_custom_field_'.$i, __('lang_v1.export_custom_field'.$i).':' ) !!}
+                        {!! Form::text('export_custom_field_'.$i, !empty($contact['export_custom_field_'.$i]) ? $contact['export_custom_field_'.$i] : null, ['class' => 'form-control','placeholder' => __('lang_v1.export_custom_field'.$i)]); !!}
+                    </div>
+                </div>
+            @endfor
+        @endif
     </div>
 </div>
     </div>
 
     <div class="modal-footer">
-      <button type="submit" class="btn btn-primary">@lang( 'messages.update' )</button>
-      <button type="button" class="btn btn-default" data-dismiss="modal">@lang( 'messages.close' )</button>
+      <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">@lang( 'messages.update' )</button>
+      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white" data-dismiss="modal">@lang( 'messages.close' )</button>
     </div>
 
     {!! Form::close() !!}
-
-<script>
-
-  $('#cpf_cnpj').mask('00.000.000/0000-00')
-  $('#cep').mask('00000-000')
-  $('#tipo').change((val) => {
-    
-  let t = $('#tipo').val()
-  if(t == 'Jurídica'){
-    $('#cpf_cnpj').mask('00.000.000/0000-00')
-  }else
-    if(t == 'Física'){
-      $('#cpf_cnpj').mask('000.000.000-00');      
-    }else{
-      $('#cpf_cnpj').mask('999999999999999999');
-    }
-  })
-
-function limpa_formulário_cep() {
-    // Limpa valores do formulário de cep.
-    $("#rua").val("");
-    $("#bairro").val("");
-    $("#city").val("");
-    $("#state").val("");
-    $("#city_id").val("");
-}
-    
-//Quando o campo cep perde o foco.
-$("#cep").blur(function() {
-
-    //Nova variável "cep" somente com dígitos.
-    var cep = $(this).val().replace(/\D/g, '');
-
-    //Verifica se campo cep possui valor informado.
-    if (cep != "") {
-
-        //Expressão regular para validar o CEP.
-        var validacep = /^[0-9]{8}$/;
-
-        //Valida o formato do CEP.
-        if(validacep.test(cep)) {
-
-            //Preenche os campos com "..." enquanto consulta webservice.
-            $("#rua").val("...");
-            $("#bairro").val("...");
-            $("#city").val("...");
-            $("#state").val("...");
-            $("#city_id").val("...");
-
-            //Consulta o webservice viacep.com.br/
-            $.getJSON("https://viacep.com.br/ws/"+ cep +"/json/?callback=?", function(dados) {
-
-                if (!("erro" in dados)) {
-                    //Atualiza os campos com os valores da consulta.
-                    $("#rua").val(dados.logradouro);
-                    $("#bairro").val(dados.bairro);
-                    $("#city").val(dados.localidade);
-                    $("#state").val(dados.uf);
-                    $("#city_id").val(dados.ibge);
-                } //end if.
-                else {
-                    //CEP pesquisado não foi encontrado.
-                    limpa_formulário_cep();
-                    alert("CEP não encontrado.");
-                }
-            });
-        } //end if.
-        else {
-            //cep é inválido.
-            limpa_formulário_cep();
-            alert("Formato de CEP inválido.");
-        }
-    } //end if.
-    else {
-        //cep sem valor, limpa formulário.
-        limpa_formulário_cep();
-    }
-});
-</script>
-
-
 
   </div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->

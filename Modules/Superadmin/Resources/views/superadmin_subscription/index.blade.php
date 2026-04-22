@@ -2,7 +2,7 @@
 @section('title', 'Superadmin Subscription')
 
 @section('content')
-
+@include('superadmin::layouts.nav')
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>@lang( 'superadmin::lang.subscription' )
@@ -14,8 +14,28 @@
 <section class="content">
 
     @include('superadmin::layouts.partials.currency')
-
-    <div class="box">  
+    @component('components.filters', ['title' => __('report.filters')])
+        <div class="col-md-3">
+            <div class="form-group">
+                {!! Form::label('package_id',  __('superadmin::lang.packages') . ':') !!}
+                {!! Form::select('package_id', $packages, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                {!! Form::label('subscription_status',  __('superadmin::lang.status') . ':') !!}
+                {!! Form::select('subscription_status', $subscription_statuses, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                {!! Form::label('created_at', __('lang_v1.created_at') . ':') !!}
+                {!! Form::text('created_at', null, ['placeholder' => __('lang_v1.select_a_date_range'), 
+                    'class' => 'form-control', 'readonly']); !!}
+            </div>
+        </div>
+    @endcomponent
+    <div class="box box-solid">  
         <div class="box-body">
             @can('superadmin')
                 <div class="table-responsive">
@@ -25,6 +45,7 @@
                             <th>@lang( 'superadmin::lang.business_name' )</th>
             				<th>@lang( 'superadmin::lang.package_name' )</th>
                             <th>@lang( 'superadmin::lang.status' )</th>
+                            <th>@lang( 'lang_v1.created_at' )</th>
                             <th>@lang( 'superadmin::lang.start_date' )</th>
             				<th>@lang( 'superadmin::lang.trial_end_date' )</th>
                             <th>@lang( 'superadmin::lang.end_date' )</th>
@@ -51,11 +72,52 @@
 <script>
     $(document).ready(function(){
 
+        $('#created_at').daterangepicker(
+        dateRangeSettings,
+            function (start, end) {
+                $('#created_at').val(start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format));
+                superadmin_subscription_table.ajax.reload();
+            }
+        );
+        $('#created_at').on('cancel.daterangepicker', function(ev, picker) {
+            $('#created_at').val('');
+            superadmin_subscription_table.ajax.reload();
+        });
+
+        $('#package_id, #subscription_status').change( function(){
+            superadmin_subscription_table.ajax.reload();
+        });
+
         // superadmin_subscription_table
         var superadmin_subscription_table = $('#superadmin_subscription_table').DataTable({
                         processing: true,
                         serverSide: true,
-                        ajax: '/superadmin/superadmin-subscription',
+                        ajax: {
+                            url: '/superadmin/superadmin-subscription',
+                            data: function(d) {
+                                if ($('#package_id').length) {
+                                    d.package_id = $('#package_id').val();
+                                }
+                                if ($('#subscription_status').length) {
+                                    d.status = $('#subscription_status').val();
+                                }
+
+                                var start = '';
+                                var end = '';
+                                if ($('#created_at').val()) {
+                                    start = $('input#created_at')
+                                        .data('daterangepicker')
+                                        .startDate.format('YYYY-MM-DD');
+                                    end = $('input#created_at')
+                                        .data('daterangepicker')
+                                        .endDate.format('YYYY-MM-DD');
+                                }
+                                d.start_date = start;
+                                d.end_date = end;
+
+                                d = __datatable_ajax_callback(d);
+                            },
+                        },
                         columnDefs:[{
                                 "targets": 9,
                                 "orderable": false,

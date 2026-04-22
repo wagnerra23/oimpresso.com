@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>{{ __('lang_v1.items_report')}}</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">{{ __('lang_v1.items_report')}}</h1>
 </section>
 
 <!-- Main content -->
@@ -20,7 +20,7 @@
                         <span class="input-group-addon">
                             <i class="fa fa-user"></i>
                         </span>
-                        {!! Form::select('ir_supplier_id', $suppliers, null, ['class' => 'form-control select2', 'placeholder' => __('lang_v1.all')]); !!}
+                        {!! Form::select('ir_supplier_id', $suppliers, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
                     </div>
                 </div>
             </div>
@@ -37,7 +37,7 @@
                         <span class="input-group-addon">
                             <i class="fa fa-user"></i>
                         </span>
-                        {!! Form::select('ir_customer_id', $customers, null, ['class' => 'form-control select2', 'placeholder' => __('lang_v1.all')]); !!}
+                        {!! Form::select('ir_customer_id', $customers, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
                     </div>
                 </div>
             </div>
@@ -54,7 +54,7 @@
                         <span class="input-group-addon">
                             <i class="fa fa-map-marker"></i>
                         </span>
-                        {!! Form::select('ir_location_id', $business_locations, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'required']); !!}
+                        {!! Form::select('ir_location_id', $business_locations, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('messages.please_select'), 'required']); !!}
                     </div>
                 </div>
             </div>
@@ -84,22 +84,24 @@
                             <tr>
                                 <th>@lang('sale.product')</th>
                                 <th>@lang('product.sku')</th>
+                                <th>@lang('lang_v1.description')</th>
                                 <th>@lang('purchase.purchase_date')</th>
                                 <th>@lang('lang_v1.purchase')</th>
+                                <th>@lang('lang_v1.lot_number')</th>
                                 <th>@lang('purchase.supplier')</th>
                                 <th>@lang('lang_v1.purchase_price')</th>
                                 <th>@lang('lang_v1.sell_date')</th>
                                 <th>@lang('business.sale')</th>
                                 <th>@lang('contact.customer')</th>
                                 <th>@lang('sale.location')</th>
-                                <th>@lang('lang_v1.quantity')</th>
+                                <th>@lang('lang_v1.sell_quantity')</th>
                                 <th>@lang('lang_v1.selling_price')</th>
                                 <th>@lang('sale.subtotal')</th>
                             </tr>
                         </thead>
                         <tfoot>
                             <tr class="bg-gray font-17 text-center footer-total">
-                                <td colspan="5"><strong>@lang('sale.total'):</strong></td>
+                                <td colspan="7"><strong>@lang('sale.total'):</strong></td>
                                 <td id="footer_total_pp" 
                                     class="display_currency" data-currency_symbol="true"></td>
                                 <td colspan="4"></td>

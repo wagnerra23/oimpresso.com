@@ -1,4 +1,4 @@
-{!! Form::open(['url' => action('\Modules\Project\Http\Controllers\ProjectController@postSettings', ['project_id' => $project->id]), 'id' => 'settings_form', 'method' => 'put']) !!}
+{!! Form::open(['url' => action([\Modules\Project\Http\Controllers\ProjectController::class, 'postSettings'], ['project_id' => $project->id]), 'id' => 'settings_form', 'method' => 'put']) !!}
 	<div class="row">
 		<div class="col-md-4">
 			<div class="checkbox">

@@ -24,7 +24,7 @@
           <hr>
           <div class="row">
               <div class="col-md-9">
-                  {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\ReminderController@update', [$reminder->id]), 'method' => 'PUT', 'id' => 'update_reminder_repeat' ]) !!}
+                  {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\ReminderController::class, 'update'], [$reminder->id]), 'method' => 'PUT', 'id' => 'update_reminder_repeat' ]) !!}
                     <div class="input-group">
                       <!-- /btn-group -->
                       {!! Form::select('repeat', $repeat, $reminder->repeat, ['class' => 'form-control', 'required']) !!}
@@ -35,7 +35,7 @@
                   {!! Form::close() !!}
               </div>
               <div class="col-md-3">
-                <button type="button" class="btn btn-danger" id="delete_reminder" data-href="{{action('\Modules\Essentials\Http\Controllers\ReminderController@destroy', [$reminder->id])}}">
+                <button type="button" class="btn btn-danger" id="delete_reminder" data-href="{{action([\Modules\Essentials\Http\Controllers\ReminderController::class, 'destroy'], [$reminder->id])}}">
                   @lang('essentials::lang.delete_reminder')
                 </button>
               </div>

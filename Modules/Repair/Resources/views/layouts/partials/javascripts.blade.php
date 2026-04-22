@@ -165,28 +165,5 @@
 		@endif
 
 		getModelRepairChecklists();
-
-		@if(!empty($view_data['repair_settings']))
-		    @php
-		        $defects = isset($view_data['repair_settings']['problem_reported_by_customer']) ? explode(',', $view_data['repair_settings']['problem_reported_by_customer']) : [];
-		    @endphp
-		@else
-		    @php
-		        $defects = [];
-		    @endphp
-		@endif
-		
-		//initialize tags input (tagify)
-        var repair_defects = document.querySelector('textarea#repair_defects');
-        tagify_rd = new Tagify(repair_defects, {
-          whitelist: {!!json_encode($defects)!!},
-          maxTags: 100,
-          dropdown: {
-            maxItems: 100,           // <- mixumum allowed rendered suggestions
-            classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
-            enabled: 0,             // <- show suggestions on focus
-            closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
-          }
-        });
 	});
 </script>

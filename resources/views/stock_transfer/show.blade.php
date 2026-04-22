@@ -75,7 +75,7 @@
 				          <th>#</th>
 				          <th>@lang('sale.product')</th>
 				          <th>@lang('sale.qty')</th>
-				          <th>@lang('sale.subtotal')</th>
+				          <th class="@cannot('view_purchase_price') show_price_with_permission no-print @endcan">@lang('sale.subtotal')</th>
 				        </tr>
 				        @php 
 				          $total = 0.00;
@@ -89,6 +89,7 @@
 				                - {{ $sell_lines->variations->product_variation->name}}
 				                - {{ $sell_lines->variations->name}}
 				               @endif
+				               - {{ $sell_lines->variations->sub_sku}}
 				               @if($lot_n_exp_enabled && !empty($sell_lines->lot_details))
 				                <br>
 				                <strong>@lang('lang_v1.lot_n_expiry'):</strong> 
@@ -100,9 +101,9 @@
 				                @endif
 				               @endif
 				            </td>
-				            <td>{{ @format_quantity($sell_lines->quantity) }} {{$sell_lines->product->unit->short_name ?? ""}}</td>
-				            <td>
-				              <span class="display_currency" data-currency_symbol="true">{{ $sell_lines->unit_price_inc_tax * $sell_lines->quantity }}</span>
+				            <td>{{ @format_quantity($sell_lines->quantity) }} @if(!empty($sell_lines->sub_unit)) {{$sell_lines->sub_unit->short_name}} @else {{$sell_lines->product->unit->short_name}} @endif</td>
+				            <td class="@cannot('view_purchase_price') show_price_with_permission no-print @endcan">
+				              <span class="display_currency " data-currency_symbol="true">{{ $sell_lines->unit_price_inc_tax * $sell_lines->quantity }}</span>
 				            </td>
 				          </tr>
 				          @php 
@@ -119,19 +120,19 @@
 				  <div class="col-xs-12 col-md-6 col-md-offset-6">
 				    <div class="table-responsive">
 				      <table class="table">
-				        <tr>
-				          <th>@lang('purchase.net_total_amount'): </th>
+				        <tr class="@cannot('view_purchase_price') show_price_with_permission no-print @endcan">
+				          <th >@lang('purchase.net_total_amount'): </th>
 				          <td></td>
 				          <td><span class="display_currency pull-right" data-currency_symbol="true">{{ $total }}</span></td>
 				        </tr>
 				        @if( !empty( $sell_transfer->shipping_charges ) )
-				          <tr>
+				          <tr class="@cannot('view_purchase_price') show_price_with_permission no-print @endcan">
 				            <th>@lang('purchase.additional_shipping_charges'):</th>
 				            <td><b>(+)</b></td>
 				            <td><span class="display_currency pull-right" data-currency_symbol="true">{{ $sell_transfer->shipping_charges }}</span></td>
 				          </tr>
 				        @endif
-				        <tr>
+				        <tr class="@cannot('view_purchase_price') show_price_with_permission no-print @endcan">
 				          <th>@lang('purchase.purchase_total'):</th>
 				          <td></td>
 				          <td><span class="display_currency pull-right" data-currency_symbol="true" >{{ $sell_transfer->final_total }}</span></td>
@@ -152,6 +153,12 @@
 				    </p>
 				  </div>
 				</div>
+				<div class="row">
+			      <div class="col-md-12">
+			            <strong>{{ __('lang_v1.activities') }}:</strong><br>
+			            @includeIf('activity_log.activities', ['activity_type' => 'sell'])
+			        </div>
+			    </div>
 				<div class="row print_section">
 				  <div class="col-xs-12">
 				    <img class="center-block" src="data:image/png;base64,{{DNS1D::getBarcodePNG($sell_transfer->ref_no, 'C128', 2,30,array(39, 48, 54), true)}}">
@@ -159,10 +166,10 @@
 				</div>
 		</div>
 		<div class="modal-footer">
-			<button type="button" class="btn btn-primary no-print" aria-label="Print" 
+			<button type="button" class="tw-dw-btn tw-dw-btn-primary tw-text-white no-print" aria-label="Print" 
 			onclick="$(this).closest('div.modal-content').printThis();"><i class="fa fa-print"></i> @lang( 'messages.print' )
 			</button>
-			<button type="button" class="btn btn-default no-print" data-dismiss="modal">@lang( 'messages.close' )</button>
+			<button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white no-print" data-dismiss="modal">@lang( 'messages.close' )</button>
 		</div>
 	</div>
 </div>

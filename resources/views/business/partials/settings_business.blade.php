@@ -9,18 +9,6 @@
         </div>
         <div class="col-sm-4">
             <div class="form-group">
-                {!! Form::label('razao_social',__('business.business_razao') . ':*') !!}
-                {!! Form::text('razao_social', $business->razao_social, ['class' => 'form-control', 'required',
-                'placeholder' => __('business.business_razao')]); !!}
-                @if($errors->has('razao_social'))
-                <span class="text-danger">{{ $errors->first('razao_social') }}</span>
-                @endif
-
-            </div>
-        </div>
-
-        <div class="col-sm-4">
-            <div class="form-group">
                 {!! Form::label('start_date', __('business.start_date') . ':') !!}
                 <div class="input-group">
                     <span class="input-group-addon">
@@ -138,182 +126,74 @@
             </div>
         </div>
 
-
-
         <div class="col-sm-4">
             <div class="form-group">
-                {!! Form::label('cnpj', 'CNPJ' . ':*') !!}
-                {!! Form::text('cnpj', $business->cnpj, ['class' => 'form-control', 'required', 'data-mask="00.000.000/0000-00"', 
-                'placeholder' => 'CNPJ']); !!}
-    </div>
+                {!! Form::label('currency_precision', __('lang_v1.currency_precision') . ':*') !!} @show_tooltip(__('lang_v1.currency_precision_help'))
+                {!! Form::select('currency_precision', [0 =>0, 1=>1, 2=>2, 3=>3,4=>4], $business->currency_precision, ['class' => 'form-control select2', 'required']); !!}
+            </div>
         </div>
-
         <div class="col-sm-4">
             <div class="form-group">
-                {!! Form::label('ie', 'IE' . ':*') !!}
-                {!! Form::text('ie', $business->ie, ['class' => 'form-control', 'required',
-                'placeholder' => 'IE']); !!}
+                {!! Form::label('quantity_precision', __('lang_v1.quantity_precision') . ':*') !!} @show_tooltip(__('lang_v1.quantity_precision_help'))
+                {!! Form::select('quantity_precision', [0 =>0, 1=>1, 2=>2, 3=>3,4=>4], $business->quantity_precision, ['class' => 'form-control select2', 'required']); !!}
             </div>
         </div>
-
-        <div class="clearfix"></div>
-        <div class="col-sm-4">
+    </div>
+     {{-- code --}}
+    <div class="row hide">
+        <div class="col-sm-6">
             <div class="form-group">
-                <label for="certificado">Certificado:</label>
-                <input name="certificado" type="file" id="certificado">
-                <p class="help-block"><i>O Certificado anterior (se existir) será substituído</i></p>
+                {!! Form::label('code_label_1', __('lang_v1.code_1_name') . ':') !!}
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <i class="fa fa-info"></i>
+                    </span>
+                    {!! Form::text('code_label_1', $business->code_label_1, ['class' => 'form-control']); !!}
+                </div>
             </div>
         </div>
-
-        @if($infoCertificado != null && $infoCertificado != -1)
-        <h5>Serial: <strong>{{$infoCertificado['serial']}}</strong></h5>
-        <h5>Expiração: <strong>{{$infoCertificado['expiracao']}}</strong></h5>
-        <h5>ID: <strong>{{$infoCertificado['id']}}</strong></h5>
-        @endif
-
-        @if($infoCertificado == -1)
-        <h5 style="color: #ff0000">Erro na leitura do certificado, verifique a senha e outros dados, e realize o upload novamente!!</h5>
-        @endif
-
-
-        <div class="clearfix"></div>
-
-        <div class="col-sm-2">
+        <div class="col-sm-6">
             <div class="form-group">
-                {!! Form::label('senha_certificado', 'Senha' . ':*') !!}
-                {!! Form::text('senha_certificado', '', ['class' => 'form-control',
-                'placeholder' => 'Senha']); !!}
+                {!! Form::label('code_1', __('lang_v1.code_1') . ':') !!}
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <i class="fa fa-info"></i>
+                    </span>
+                    {!! Form::text('code_1', $business->code_1, ['class' => 'form-control']); !!}
+                </div>
             </div>
         </div>
-
-        <div class="clearfix"></div>
-
-        <div class="col-sm-5">
+        <div class="col-sm-6">
             <div class="form-group">
-                {!! Form::label('rua', 'Rua' . ':*') !!}
-                {!! Form::text('rua', $business->rua, ['class' => 'form-control', 'required',
-                'placeholder' => 'Rua']); !!}
+                {!! Form::label('code_label_2', __('lang_v1.code_2_name') . ':') !!}
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <i class="fa fa-info"></i>
+                    </span>
+                    {!! Form::text('code_label_2', $business->code_label_2, ['class' => 'form-control']); !!}
+                </div>
             </div>
         </div>
-
-        <div class="col-sm-2">
+        <div class="col-sm-6">
             <div class="form-group">
-                {!! Form::label('numero', 'Número' . ':*') !!}
-                {!! Form::text('numero', $business->numero, ['class' => 'form-control', 'required',
-                'placeholder' => 'Número']); !!}
+                {!! Form::label('code_2', __('lang_v1.code_2') . ':') !!}
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <i class="fa fa-info"></i>
+                    </span>
+                    {!! Form::text('code_2', $business->code_2, ['class' => 'form-control']); !!}
+                </div>
             </div>
         </div>
-        <div class="col-md-3 customer_fields">
+    </div>
+    <div class="row hide">
+        <div class="col-sm-8">
             <div class="form-group">
-              {!! Form::label('cidade_id', 'Cidade:*') !!}
-              {!! Form::select('cidade_id', $cities, $business->cidade_id, ['class' => 'form-control select2', 'required']); !!}
-          </div>
-      </div>
-
-      <div class="clearfix"></div>
-
-      <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('bairro', 'Bairro' . ':*') !!}
-            {!! Form::text('bairro', $business->bairro, ['class' => 'form-control', 'required',
-            'placeholder' => 'Bairro']); !!}
+                <label>
+                    {!! Form::checkbox('common_settings[is_enabled_export]', true, !empty($common_settings['is_enabled_export']) ? true : false , 
+                    [ 'class' => 'input-icheck']); !!} {{ __( 'lang_v1.enable_export' ) }}
+                </label>
+            </div>
         </div>
     </div>
-
-    <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('cep', 'CEP' . ':*') !!}
-            {!! Form::text('cep', $business->cep, ['class' => 'form-control', 'required', 'data-mask="00000-000"',
-            'placeholder' => 'CEP']); !!}
-        </div>
-    </div>
-
-    <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('telefone', 'Telefone' . ':*') !!}
-            {!! Form::text('telefone', $business->telefone, ['class' => 'form-control', 'required', 'data-mask="00 000000000"',
-            'placeholder' => 'Telefone']); !!}
-        </div>
-    </div>
-
-
-    <div class="col-md-2">
-        <div class="form-group">
-
-            {!! Form::label('regime', 'Regime' . ':') !!}
-            {!! Form::select('regime', ['1' => 'Simples', '3' => 'Normal'], $business->regime, ['class' => 'form-control select2', 'required']); !!}
-        </div>
-    </div>
-
-    <div class="clearfix"></div>
-
-    <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('ultimo_numero_nfe', 'Ultimo Núm. NF-e' . ':*') !!}
-            {!! Form::text('ultimo_numero_nfe', $business->ultimo_numero_nfe, ['class' => 'form-control', 'required',
-            'placeholder' => 'Ultimo Núm. NF-e']); !!}
-        </div>
-    </div>
-
-    <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('ultimo_numero_nfce', 'Ultimo Núm. NFC-e' . ':*') !!}
-            {!! Form::text('ultimo_numero_nfce', $business->ultimo_numero_nfce, ['class' => 'form-control', 'required',
-            'placeholder' => 'Ultimo Núm. NFC-e']); !!}
-        </div>
-    </div>
-
-    <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('ultimo_numero_cte', 'Ultimo Núm. CT-e' . ':*') !!}
-            {!! Form::text('ultimo_numero_cte', $business->ultimo_numero_cte, ['class' => 'form-control', 'required',
-            'placeholder' => 'Ultimo Núm. CT-e']); !!}
-        </div>
-    </div>
-
-    <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('numero_serie_nfe', 'Núm. Série NF-e' . ':*') !!}
-            {!! Form::text('numero_serie_nfe', $business->numero_serie_nfe, ['class' => 'form-control', 'required',
-            'placeholder' => 'Núm. Série NF-e']); !!}
-        </div>
-    </div>
-
-    <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('numero_serie_nfce', 'Núm. Série NFC-e' . ':*') !!}
-            {!! Form::text('numero_serie_nfce', $business->numero_serie_nfce, ['class' => 'form-control', 'required',
-            'placeholder' => 'Núm. Série NFC-e']); !!}
-        </div>
-    </div>
-
-    
-
-    <div class="col-md-4">
-        <div class="form-group">
-
-            {!! Form::label('ambiente', 'Ambiente' . ':') !!}
-            {!! Form::select('ambiente', ['1' => 'Produção', '2' => 'Homologação'], $business->ambiente, ['class' => 'form-control select2', 'required']); !!}
-        </div>
-    </div>
-
-    <div class="clearfix"></div>
-
-    <div class="col-sm-3">
-        <div class="form-group">
-            {!! Form::label('csc_id', 'CSCID' . ':*') !!}
-            {!! Form::text('csc_id', $business->csc_id, ['class' => 'form-control', 'required', 
-            'placeholder' => 'CSCID']); !!}
-        </div>
-    </div>
-
-    <div class="col-sm-5">
-        <div class="form-group">
-            {!! Form::label('csc', 'CSC' . ':*') !!}
-            {!! Form::text('csc', $business->csc, ['class' => 'form-control', 'required', 
-            'placeholder' => 'CSC']); !!}
-        </div>
-    </div>
-
-</div>
 </div>

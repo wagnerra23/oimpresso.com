@@ -95,19 +95,40 @@
                     <div class="col-sm-4">
                         <div class="form-group">
                             {!! Form::label('brand_id', __('product.brand') . ':') !!}
+                            <div class="input-group">
                             {!! Form::select('brand_id', $brands, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default bg-white btn-flat btn-modal" 
+                                    data-href="{{action([\App\Http\Controllers\BrandController::class, 'create'])}}" 
+                                    data-container=".brands_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-sm-4">
                         <div class="form-group">
                             {!! Form::label('device_id', __('repair::lang.device') . ':') !!}
-                            {!! Form::select('device_id', $devices, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+                            <div class="input-group">
+                                {!! Form::select('device_id', $devices, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default bg-white btn-flat btn-modal" 
+                                     data-href="{{action([\App\Http\Controllers\TaxonomyController::class, 'create'])}}?type=device" data-container=".category_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-sm-4">
                         <div class="form-group">
-                            {!! Form::label('device_model_id', __('repair::lang.device_model') . ':') !!}
-                            {!! Form::select('device_model_id', $device_models, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+                                {!! Form::label('device_model_id', __('repair::lang.device_model') . ':') !!}
+                                <div class="input-group">
+                                    {!! Form::select('device_model_id', $device_models, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default bg-white btn-flat" 
+                                        data-href="{{action([\Modules\Repair\Http\Controllers\DeviceModelController::class, 'create'])}}" id="add_device_model"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+                                    </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -204,7 +225,7 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            {!! Form::label('delivery_date', __('repair::lang.expected_delivery_date') . ':') !!}
+                            {!! Form::label('delivery_date', __('lang_v1.due_date') . ':') !!}
                             @show_tooltip(__('repair::lang.delivery_date_tooltip'))
                             <div class="input-group">
                                 <span class="input-group-addon">
@@ -297,13 +318,13 @@
                 </div>
                 <div class="col-sm-12 text-right">
                     <input type="hidden" name="submit_type" id="submit_type">
-                    <button type="submit" class="btn btn-success submit_button" value="save_and_add_parts">
-                    @lang('repair::lang.save_and_add_parts')
+                    <button type="submit" class="btn btn-success submit_button" value="save_and_add_parts" id="save_and_add_parts">
+                        @lang('repair::lang.save_and_add_parts')
                     </button>
-                    <button type="submit" class="btn btn-primary submit_button" value="submit">
+                    <button type="submit" class="btn btn-primary submit_button" value="submit" id="save">
                         @lang('messages.save')
                     </button>
-                    <button type="submit" class="btn btn-info submit_button" value="save_and_upload_docs">
+                    <button type="submit" class="btn btn-info submit_button" value="save_and_upload_docs" id="save_and_upload_docs">
                         @lang('repair::lang.save_and_upload_docs')
                     </button>
                 </div>
@@ -316,6 +337,12 @@
         @include('contact.create', ['quick_add' => true])
     </div>
 </section>
+<div class="modal fade brands_modal" tabindex="-1" role="dialog" 
+    	aria-labelledby="gridSystemModalLabel">
+</div>
+<div class="modal fade" id="device_model_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"></div>
+<div class="modal fade category_modal" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
+</div>
 @stop
 @section('css')
     @include('repair::job_sheet.tagify_css')
@@ -324,6 +351,28 @@
     <script src="{{ asset('js/pos.js?v=' . $asset_v) }}"></script>
     <script type="text/javascript">
         $(document).ready( function() {
+            window.addEventListener("brandAdded", function(evt) {
+                var brand = evt.detail;
+                if(brand.use_for_repair == 1) {
+                    var newBrand = new Option(brand.name, brand.id, true, true);
+                    // Append it to the select
+                    $("select#brand_id").append(newBrand);
+                    $("#brand_id").val(brand.id).trigger('change');
+                }
+                
+            }, false);
+
+            window.addEventListener("categoryAdded", function(evt) {
+                var device = evt.detail;
+                if(device.category_type == 'device') {
+                    var newDevice = new Option(device.name, device.id, true, true);
+                    // Append it to the select
+                    $("select#device_id").append(newDevice);
+                    $("#device_id").val(device.id).trigger('change');
+                }
+                
+            }, false);
+
             $('.submit_button').click( function(){
                 $('#submit_type').val($(this).attr('value'));
             });
@@ -346,10 +395,12 @@
               id: "",
               text: '@lang("messages.please_select")',
               html: '@lang("messages.please_select")',
+              is_complete : '0',
             }, 
             @foreach($repair_statuses as $repair_status)
                 {
                 id: {{$repair_status->id}},
+                is_complete : '{{$repair_status->is_completed_status}}',
                 @if(!empty($repair_status->color))
                     text: '<i class="fa fa-circle" aria-hidden="true" style="color: {{$repair_status->color}};"></i> {{$repair_status->name}}',
                     title: '{{$repair_status->name}}'
@@ -361,10 +412,14 @@
             ];
 
             $("select#status_id").select2({
-              data: data,
-              escapeMarkup: function(markup) {
-                return markup;
-              }
+                data: data,
+                escapeMarkup: function(markup) {
+                    return markup;
+                },
+                templateSelection: function (data, container) {
+                    $(data.element).attr('data-is_complete', data.is_complete);
+                    return data.text;
+                }
             });
 
             @if(!empty($default_status))
@@ -487,6 +542,66 @@
                 closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
               }
             });
+
+            //TODO:Uncomment the below code
+
+            // function toggleSubmitButton () {
+            //     if ($('select#status_id').find(':selected').data('is_complete')) {
+            //         $("#save_and_add_parts").attr('disabled', false);
+            //         $("#save_and_upload_docs").attr('disabled', true);
+            //         $("#save").attr('disabled', false);
+            //     } else {
+            //         $("#save_and_add_parts").attr('disabled', true);
+            //         $("#save_and_upload_docs").attr('disabled', false);
+            //         $("#save").attr('disabled', true);
+            //     }
+            // }
+
+            // $("select#status_id").on('change', function () {
+            //     toggleSubmitButton();
+            // });
+
+            // toggleSubmitButton();
+        });
+
+        $(document).on('click', '#add_device_model', function () {
+            var url = $(this).data('href');
+            $.ajax({
+                method: 'GET',
+                url: url,
+                dataType: 'html',
+                success: function(result) {
+                    $('#device_model_modal').html(result).modal('show');
+                }
+            });
+        });
+
+        $(document).on('submit', 'form#device_model', function(e){
+            e.preventDefault();
+            var url = $('form#device_model').attr('action');
+            var method = $('form#device_model').attr('method');
+            var data = $('form#device_model').serialize();
+            $.ajax({
+                method: method,
+                dataType: "json",
+                url: url,
+                data:data,
+                success: function(result){
+                    if (result.success) {
+                        $('#device_model_modal').modal("hide");
+                        toastr.success(result.msg);
+                        var model = result.data;
+                        var newModel= new Option(model.name, model.id, true, true);
+                        // Append it to the select
+                        $("select#device_model_id").append(newModel);
+                        $("#device_model_id").val(model.id).trigger('change');
+
+                    } else {
+                        toastr.error(result.msg);
+                    }
+                }
+            });
         });
     </script>
+    @includeIf('taxonomy.taxonomies_js', ['cat_code_enabled' => false])
 @endsection

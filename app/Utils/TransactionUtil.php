@@ -1103,6 +1103,20 @@ class TransactionUtil extends Util
                 if (! empty($customer->contact_address)) {
                     $output['customer_info'] .= '<br>';
                 }
+                // Endereço brasileiro (rua, numero, bairro, cep)
+                if (! empty($customer->rua)) {
+                    $output['customer_info'] .= $customer->rua;
+                    if (! empty($customer->numero)) {
+                        $output['customer_info'] .= ', '.$customer->numero;
+                    }
+                    $output['customer_info'] .= '<br>';
+                }
+                if (! empty($customer->bairro)) {
+                    $output['customer_info'] .= $customer->bairro.'<br>';
+                }
+                if (! empty($customer->cep)) {
+                    $output['customer_info'] .= 'CEP: '.$customer->cep.'<br>';
+                }
                 $output['customer_info'] .= '<b>'.__('contact.mobile').'</b>: '.$customer->mobile;
                 if (! empty($customer->landline)) {
                     $output['customer_info'] .= ', '.$customer->landline;

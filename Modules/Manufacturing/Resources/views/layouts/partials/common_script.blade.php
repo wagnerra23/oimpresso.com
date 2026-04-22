@@ -1,15 +1,36 @@
 <script type="text/javascript">
 	$(document).ready( function () {
 
+		$('#production_list_filter_date_range').daterangepicker(
+        dateRangeSettings,
+	        function (start, end) {
+	            $('#production_list_filter_date_range').val(start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format));
+	            productions_table.ajax.reload();
+	        }
+	    );
+	    $('#production_list_filter_date_range').on('cancel.daterangepicker', function(ev, picker) {
+	        $('#production_list_filter_date_range').val('');
+	        productions_table.ajax.reload();
+	    });
 		//Purchase table
 	    productions_table = $('#productions_table').DataTable({
 	        processing: true,
 	        serverSide: true,
 	        aaSorting: [[0, 'desc']],
 	        ajax: {
-	            url: '{{action("\Modules\Manufacturing\Http\Controllers\ProductionController@index")}}',
-	            data: function(d) {
-	                
+	            url: '{{action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index'])}}',
+	            "data": function ( d ) {
+	                if($('#production_list_filter_date_range').val()) {
+	                    var start = $('#production_list_filter_date_range').data('daterangepicker').startDate.format('YYYY-MM-DD');
+	                    var end = $('#production_list_filter_date_range').data('daterangepicker').endDate.format('YYYY-MM-DD');
+	                    d.start_date = start;
+	                    d.end_date = end;
+	                }
+	                d.location_id = $('#productstion_list_filter_location_id').val();
+	                if($('#production_list_is_final').is(':checked')) {
+                        d.is_final = 1;
+                    }
+	                d = __datatable_ajax_callback(d);
 	            },
 	        },
 	        columnDefs: [
@@ -33,6 +54,13 @@
 	        }
 	    });
 
+	    $(document).on('change', '#production_list_filter_date_range, #productstion_list_filter_location_id',  function() {
+        	productions_table.ajax.reload();
+    	});
+    	$('#production_list_is_final').on('ifChanged', function(event){
+            productions_table.ajax.reload();
+        });
+
 	    if ($('textarea#instructions').length > 0) {
             tinymce.init({
                 selector: 'textarea#instructions',
@@ -51,7 +79,7 @@
     	recipe_table = $('#recipe_table').DataTable({
 	        processing: true,
 	        serverSide: true,
-	        ajax: '{{action("\Modules\Manufacturing\Http\Controllers\RecipeController@index")}}',
+	        ajax: '{{action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index'])}}',
 	        columnDefs: [
 	            {
 	                targets: [0, 5, 6, 7],

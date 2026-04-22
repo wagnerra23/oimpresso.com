@@ -1,0 +1,22 @@
+/* Botões */
+.btn-primary {
+    @apply bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition;
+}
+
+.btn-secondary {
+    @apply bg-secondary text-white px-4 py-2 rounded-md hover:bg-red-700 transition;
+}
+
+/* Cards */
+.card {
+    @apply bg-white shadow-md p-4 rounded-lg;
+}
+
+/* Tabelas */
+.table {
+    @apply w-full border-collapse;
+}
+
+.table th, .table td {
+    @apply border border-gray-300 px-4 py-2;
+}

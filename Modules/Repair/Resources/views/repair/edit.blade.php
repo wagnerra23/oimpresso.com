@@ -17,7 +17,7 @@
 @if(session('business.enable_rp') == 1)
     <input type="hidden" id="reward_point_enabled">
 @endif
-	{!! Form::open(['url' => action('SellPosController@update', ['id' => $transaction->id ]), 'method' => 'put', 'id' => 'edit_sell_form', 'files' => true ]) !!}
+	{!! Form::open(['url' => action([\App\Http\Controllers\SellPosController::class, 'update'], ['id' => $transaction->id ]), 'method' => 'put', 'id' => 'edit_sell_form', 'files' => true ]) !!}
 
 	{!! Form::hidden('location_id', $transaction->location_id, ['id' => 'location_id', 'data-receipt_printer_type' => !empty($location_printer_type) ? $location_printer_type : 'browser']); !!}
 	{!! Form::hidden('has_module_data', true); !!}
@@ -291,7 +291,7 @@
 			                {!! Form::select('tax_rate_id', $taxes['tax_rates'], $transaction->tax_id, ['placeholder' => __('messages.please_select'), 'class' => 'form-control', 'data-default'=> $business_details->default_sales_tax], $taxes['attributes']); !!}
 
 							<input type="hidden" name="tax_calculation_amount" id="tax_calculation_amount" 
-							value="{{@num_format(optional($transaction->tax)->amount)}}" data-default="{{$business_details->tax_calculation_amount}}">
+							value="{{@num_format($transaction->tax?->amount)}}" data-default="{{$business_details->tax_calculation_amount}}">
 			            </div>
 			        </div>
 			    </div>

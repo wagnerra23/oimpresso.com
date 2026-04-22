@@ -19,7 +19,7 @@
 
 <!-- Main content -->
 <section class="content">
-{!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\KnowledgeBaseController@store'), 'method' => 'post' ]) !!}
+{!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'store']), 'method' => 'post' ]) !!}
     @if(!empty($parent))
         {!! Form::hidden('kb_type', $kb_type); !!}
         {!! Form::hidden('parent_id', $parent->id); !!}

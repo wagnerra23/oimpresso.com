@@ -2,30 +2,31 @@
 
 namespace Modules\Superadmin\Http\Controllers;
 
-use \Notification;
 use App\System;
 use Illuminate\Routing\Controller;
+use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Notifications\NewSubscriptionNotification;
+use Notification;
 
 class BaseController extends Controller
 {
-
     /**
      * Returns the list of all configured payment gateway
+     *
      * @return Response
      */
-    protected function _payment_gateways()
+    public function _payment_gateways()
     {
         $gateways = [];
-        
+
         //Check if stripe is configured or not
         if (env('STRIPE_PUB_KEY') && env('STRIPE_SECRET_KEY')) {
             $gateways['stripe'] = 'Stripe';
         }
 
         //Check if paypal is configured or not
-        if ((env('PAYPAL_SANDBOX_API_USERNAME') && env('PAYPAL_SANDBOX_API_PASSWORD')  && env('PAYPAL_SANDBOX_API_SECRET')) || (env('PAYPAL_LIVE_API_USERNAME') && env('PAYPAL_LIVE_API_PASSWORD')  && env('PAYPAL_LIVE_API_SECRET'))) {
+        if ((env('PAYPAL_SANDBOX_API_USERNAME') && env('PAYPAL_SANDBOX_API_PASSWORD') && env('PAYPAL_SANDBOX_API_SECRET')) || (env('PAYPAL_LIVE_API_USERNAME') && env('PAYPAL_LIVE_API_PASSWORD') && env('PAYPAL_LIVE_API_SECRET'))) {
             $gateways['paypal'] = 'PayPal';
         }
 
@@ -37,6 +38,17 @@ class BaseController extends Controller
         //Check if Pesapal is configured or not
         if ((config('pesapal.consumer_key') && config('pesapal.consumer_secret'))) {
             $gateways['pesapal'] = 'PesaPal';
+        }
+
+        //check if Paystack is configured or not
+        $system = System::getCurrency();
+        if (in_array($system->country, ['Nigeria', 'Ghana']) && (config('paystack.publicKey') && config('paystack.secretKey'))) {
+            $gateways['paystack'] = 'Paystack';
+        }
+
+        //check if Flutterwave is configured or not
+        if (env('FLUTTERWAVE_PUBLIC_KEY') && env('FLUTTERWAVE_SECRET_KEY') && env('FLUTTERWAVE_ENCRYPTION_KEY')) {
+            $gateways['flutterwave'] = 'Flutterwave';
         }
 
         // check if offline payment is enabled or not
@@ -51,17 +63,22 @@ class BaseController extends Controller
 
     /**
      * Enter details for subscriptions
+     *
      * @return object
      */
-    protected function _add_subscription($business_id, $package, $gateway, $payment_transaction_id, $user_id, $is_superadmin = false)
+    public function _add_subscription($business_id, $package, $gateway, $payment_transaction_id, $user_id, $is_superadmin = false)
     {
-        $subscription = ['business_id' => $business_id,
-                        'package_id' => $package->id,
-                        'paid_via' => $gateway,
-                        'payment_transaction_id' => $payment_transaction_id
-                    ];
+        if (! is_object($package)) {
+            $package = Package::active()->find($package);
+        }
 
-        if (in_array($gateway, ['offline', 'pesapal']) && !$is_superadmin) {
+        $subscription = ['business_id' => $business_id,
+            'package_id' => $package->id,
+            'paid_via' => $gateway,
+            'payment_transaction_id' => $payment_transaction_id,
+        ];
+
+        if ($package->price != 0 && (in_array($gateway, ['offline', 'pesapal']) && ! $is_superadmin)) {
             //If offline then dates will be decided when approved by superadmin
             $subscription['start_date'] = null;
             $subscription['end_date'] = null;
@@ -78,28 +95,27 @@ class BaseController extends Controller
 
         $subscription['package_price'] = $package->price;
         $subscription['package_details'] = [
-                'location_count' => $package->location_count,
-                'user_count' => $package->user_count,
-                'product_count' => $package->product_count,
-                'invoice_count' => $package->invoice_count,
-                'name' => $package->name
-            ];
+            'location_count' => $package->location_count,
+            'user_count' => $package->user_count,
+            'product_count' => $package->product_count,
+            'invoice_count' => $package->invoice_count,
+            'name' => $package->name,
+        ];
         //Custom permissions.
-        if (!empty($package->custom_permissions)) {
+        if (! empty($package->custom_permissions)) {
             foreach ($package->custom_permissions as $name => $value) {
                 $subscription['package_details'][$name] = $value;
             }
         }
-        
-        $subscription['created_id'] = $user_id;
 
+        $subscription['created_id'] = $user_id;
         $subscription = Subscription::create($subscription);
 
-        if (!$is_superadmin) {
+        if (! $is_superadmin) {
             $email = System::getProperty('email');
             $is_notif_enabled = System::getProperty('enable_new_subscription_notification');
 
-            if (!empty($email) && $is_notif_enabled == 1) {
+            if (! empty($email) && $is_notif_enabled == 1) {
                 Notification::route('mail', $email)
                 ->notify(new NewSubscriptionNotification($subscription));
             }
@@ -111,9 +127,8 @@ class BaseController extends Controller
     /**
      * The function returns the start/end/trial end date for a package.
      *
-     * @param int $business_id
-     * @param object $package
-     *
+     * @param  int  $business_id
+     * @param  object  $package
      * @return array
      */
     protected function _get_package_dates($business_id, $package)
@@ -132,7 +147,7 @@ class BaseController extends Controller
         } elseif ($package->interval == 'years') {
             $output['end'] = $start_date->addYears($package->interval_count)->toDateString();
         }
-        
+
         $output['trial'] = $start_date->addDays($package->trial_days);
 
         return $output;

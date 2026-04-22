@@ -6,7 +6,6 @@ use App\Transaction;
 
 class ProjectTransaction extends Transaction
 {
-
     /**
      * Get the invoice lines for the transaction.
      */
@@ -16,8 +15,8 @@ class ProjectTransaction extends Transaction
     }
 
     /**
-    * Get the project for the transaction.
-    */
+     * Get the project for the transaction.
+     */
     public function project()
     {
         return $this->belongsTo('Modules\Project\Entities\Project', 'pjt_project_id');
@@ -29,8 +28,8 @@ class ProjectTransaction extends Transaction
     public static function invoiceStatuses()
     {
         return [
-                'final' => __('sale.final'),
-                'draft' => __('sale.draft')
-            ];
+            'final' => __('sale.final'),
+            'draft' => __('sale.draft'),
+        ];
     }
 }

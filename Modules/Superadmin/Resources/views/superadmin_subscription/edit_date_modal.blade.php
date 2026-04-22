@@ -1,7 +1,7 @@
 <!-- Modal -->
 <div class="modal-dialog" role="document">
     <div class="modal-content edit-subscription-modal">
-     {!! Form::open(['url' => action('\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController@updateSubscription'), 'method' => 'POST', 'id' => 'edit_subscription_form']) !!}
+     {!! Form::open(['url' => action([\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'updateSubscription']), 'method' => 'POST', 'id' => 'edit_subscription_form']) !!}
       {!! Form::hidden('subscription_id', $subscription->id); !!}
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

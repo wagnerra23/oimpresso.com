@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\EssentialsHolidayController@update', [$holiday->id]), 'method' => 'put', 'id' => 'add_holiday_form' ]) !!}
+    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\EssentialsHolidayController::class, 'update'], [$holiday->id]), 'method' => 'put', 'id' => 'add_holiday_form' ]) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

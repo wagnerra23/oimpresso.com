@@ -3,7 +3,7 @@
         @lang('messages.add')&nbsp;
         <i class="fa fa-plus"></i>
     </button>
-    <input type="hidden" name="schedule_create_url" id="schedule_create_url" value="{{action('\Modules\Crm\Http\Controllers\ScheduleController@create')}}?schedule_for=lead&contact_id={{$contact->id}}">
+    <input type="hidden" name="schedule_create_url" id="schedule_create_url" value="{{action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'create'])}}?schedule_for=lead&contact_id={{$contact->id}}">
     <input type="hidden" name="lead_id" value="{{$contact->id}}" id="lead_id">
     <input type="hidden" name="view_type" value="lead_info" id="view_type">
 </div> <br><br>

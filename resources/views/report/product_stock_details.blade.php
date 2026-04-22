@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>{{ __('lang_v1.product_stock_details')}}</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">{{ __('lang_v1.product_stock_details')}}</h1>
 </section>
 
 <!-- Main content -->
@@ -23,7 +23,7 @@
               <div id="collapseFilter" class="panel-collapse active collapse in" aria-expanded="true">
                 <div class="box-body">
                     <div class="row">
-                        {!! Form::open(['url' => action('ReportController@productStockDetails'), 'method' => 'get' ]) !!}
+                        {!! Form::open(['url' => action([\App\Http\Controllers\ReportController::class, 'productStockDetails']), 'method' => 'get' ]) !!}
                         <div class="col-md-4">
                             <div class="form-group">
                             {!! Form::label('search_product', __('lang_v1.search_product') . ':') !!}
@@ -43,14 +43,14 @@
                                     <span class="input-group-addon">
                                         <i class="fa fa-map-marker"></i>
                                     </span>
-                                    {!! Form::select('location_id', $business_locations, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'required']); !!}
+                                    {!! Form::select('location_id', $business_locations, (!empty($location) ? $location->id: null), ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'required']); !!}
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
                                 <br>
-                                <button type="submit" class="btn btn-primary">@lang('lang_v1.search')</button>
+                                <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">@lang('lang_v1.search')</button>
                             </div>
                         </div>
                         {!! Form::close() !!}
@@ -111,7 +111,7 @@
 
                             @foreach($stock_details as $row)
                                 @php
-                                    $stock_mismatch = $row->stock - $row->total_stock_calculated;
+                                    $stock_mismatch = round($row->stock) - round($row->total_stock_calculated);
                                 @endphp
                                 @if($stock_mismatch == 0)
                                     @continue
@@ -164,7 +164,7 @@
                                         {{$row->stock}}
                                     </td>
                                     <td>
-                                        <a href="{{action('ReportController@adjustProductStock')}}?location_id={{$location->id}}&variation_id={{$row->variation_id}}&stock={{$row->total_stock_calculated}}" class="btn btn-primary">Fix</a>
+                                        <a href="{{action([\App\Http\Controllers\ReportController::class, 'adjustProductStock'])}}?location_id={{$location->id}}&variation_id={{$row->variation_id}}&stock={{$row->total_stock_calculated}}" class="btn btn-primary">Fix</a>
                                     </td>
                                 </tr>
                             @endforeach

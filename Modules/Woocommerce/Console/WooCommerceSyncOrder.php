@@ -2,16 +2,13 @@
 
 namespace Modules\Woocommerce\Console;
 
-use Illuminate\Console\Command;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
-
 use App\Business;
-use Modules\Woocommerce\Utils\WoocommerceUtil;
-
-use Modules\Woocommerce\Notifications\SyncOrdersNotification;
-
 use DB;
+use Illuminate\Console\Command;
+use Modules\Woocommerce\Notifications\SyncOrdersNotification;
+use Modules\Woocommerce\Utils\WoocommerceUtil;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 class WooCommerceSyncOrder extends Command
 {
@@ -31,14 +28,13 @@ class WooCommerceSyncOrder extends Command
 
     /**
      * All Utils instance.
-     *
      */
     protected $woocommerceUtil;
 
     /**
      * Create a new command instance.
      *
-     * @param WoocommerceUtil $woocommerceUtil
+     * @param  WoocommerceUtil  $woocommerceUtil
      * @return void
      */
     public function __construct(WoocommerceUtil $woocommerceUtil)
@@ -63,10 +59,10 @@ class WooCommerceSyncOrder extends Command
             $owner_id = $business->owner_id;
 
             //Set timezone to business timezone
-            $timezone =$business->time_zone;
+            $timezone = $business->time_zone;
             config(['app.timezone' => $timezone]);
             date_default_timezone_set($timezone);
-           
+
             $this->woocommerceUtil->syncOrders($business_id, $owner_id);
 
             $this->notify($owner_id);
@@ -74,8 +70,8 @@ class WooCommerceSyncOrder extends Command
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            print_r("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            print_r('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
         }
     }
 
@@ -105,6 +101,7 @@ class WooCommerceSyncOrder extends Command
 
     /**
      * Sends notification to the user.
+     *
      * @return void
      */
     private function notify($user_id)

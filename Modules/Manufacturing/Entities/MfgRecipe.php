@@ -14,7 +14,6 @@ class MfgRecipe extends Model
      */
     protected $guarded = ['id'];
 
-    
     /**
      * Get the variations associated with the product.
      */
@@ -51,7 +50,6 @@ class MfgRecipe extends Model
         } else {
             return $recipes->pluck('recipe_name', 'id');
         }
-        
     }
 
     /**

@@ -3,22 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\BusinessLocation;
-use App\Contact;
-use App\System;
 use App\User;
 use App\Utils\ModuleUtil;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
+use App\Events\UserCreatedOrModified;
 
 class ManageUserController extends Controller
 {
     /**
      * Constructor
      *
-     * @param Util $commonUtil
+     * @param  Util  $commonUtil
      * @return void
      */
     public function __construct(ModuleUtil $moduleUtil)
@@ -33,7 +34,7 @@ class ManageUserController extends Controller
      */
     public function index()
     {
-        if (!auth()->user()->can('user.view') && !auth()->user()->can('user.create')) {
+        if (! auth()->user()->can('user.view') && ! auth()->user()->can('user.create')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -45,7 +46,7 @@ class ManageUserController extends Controller
                         ->user()
                         ->where('is_cmmsn_agnt', 0)
                         ->select(['id', 'username',
-                            DB::raw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as full_name"), 'email', 'allow_login']);
+                            DB::raw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as full_name"), 'email', 'allow_login', ]);
 
             return Datatables::of($users)
                 ->editColumn('username', '{{$username}} @if(empty($allow_login)) <span class="label bg-gray">@lang("lang_v1.login_not_allowed")</span>@endif')
@@ -53,21 +54,22 @@ class ManageUserController extends Controller
                     'role',
                     function ($row) {
                         $role_name = $this->moduleUtil->getUserRoleName($row->id);
+
                         return $role_name;
                     }
                 )
                 ->addColumn(
                     'action',
                     '@can("user.update")
-                        <a href="{{action(\'ManageUserController@edit\', [$id])}}" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</a>
+                        <a href="{{action(\'App\Http\Controllers\ManageUserController@edit\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-primary"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</a>
                         &nbsp;
                     @endcan
                     @can("user.view")
-                    <a href="{{action(\'ManageUserController@show\', [$id])}}" class="btn btn-xs btn-info"><i class="fa fa-eye"></i> @lang("messages.view")</a>
+                    <a href="{{action(\'App\Http\Controllers\ManageUserController@show\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-info"><i class="fa fa-eye"></i> @lang("messages.view")</a>
                     &nbsp;
                     @endcan
                     @can("user.delete")
-                        <button data-href="{{action(\'ManageUserController@destroy\', [$id])}}" class="btn btn-xs btn-danger delete_user_button"><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>
+                        <button data-href="{{action(\'App\Http\Controllers\ManageUserController@destroy\', [$id])}}" class="tw-dw-btn tw-dw-btn-outline tw-dw-btn-xs tw-dw-btn-error delete_user_button"><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>
                     @endcan'
                 )
                 ->filterColumn('full_name', function ($query, $keyword) {
@@ -88,22 +90,21 @@ class ManageUserController extends Controller
      */
     public function create()
     {
-        if (!auth()->user()->can('user.create')) {
+        if (! auth()->user()->can('user.create')) {
             abort(403, 'Unauthorized action.');
         }
 
         $business_id = request()->session()->get('user.business_id');
 
         //Check if subscribed or not, then check for users quota
-        if (!$this->moduleUtil->isSubscribed($business_id)) {
+        if (! $this->moduleUtil->isSubscribed($business_id)) {
             return $this->moduleUtil->expiredResponse();
-        } elseif (!$this->moduleUtil->isQuotaAvailable('users', $business_id)) {
-            return $this->moduleUtil->quotaExpiredResponse('users', $business_id, action('ManageUserController@index'));
+        } elseif (! $this->moduleUtil->isQuotaAvailable('users', $business_id)) {
+            return $this->moduleUtil->quotaExpiredResponse('users', $business_id, action([\App\Http\Controllers\ManageUserController::class, 'index']));
         }
 
-        $roles  = $this->getRolesArray($business_id);
-        $username_ext = $this->getUsernameExtension();
-        $contacts = Contact::contactDropdown($business_id, true, false);
+        $roles = $this->getRolesArray($business_id);
+        $username_ext = $this->moduleUtil->getUsernameExtension();
         $locations = BusinessLocation::where('business_id', $business_id)
                                     ->Active()
                                     ->get();
@@ -112,7 +113,7 @@ class ManageUserController extends Controller
         $form_partials = $this->moduleUtil->getModuleData('moduleViewPartials', ['view' => 'manage_user.create']);
 
         return view('manage_user.create')
-                ->with(compact('roles', 'username_ext', 'contacts', 'locations', 'form_partials'));
+                ->with(compact('roles', 'username_ext', 'locations', 'form_partials'));
     }
 
     /**
@@ -123,97 +124,32 @@ class ManageUserController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('user.create')) {
+        if (! auth()->user()->can('user.create')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $user_details = $request->only(['surname', 'first_name', 'last_name', 'username', 'email', 'password', 'selected_contacts', 'marital_status',
-                'blood_group', 'contact_number', 'fb_link', 'twitter_link', 'social_media_1',
-                'social_media_2', 'permanent_address', 'current_address',
-                'guardian_name', 'custom_field_1', 'custom_field_2',
-                'custom_field_3', 'custom_field_4', 'id_proof_name', 'id_proof_number', 'cmmsn_percent', 'gender', 'max_sales_discount_percent']);
-            
-            $user_details['status'] = !empty($request->input('is_active')) ? 'active' : 'inactive';
-
-            $user_details['user_type'] = 'user';
-
-            if (empty($request->input('allow_login'))) {
-                unset($user_details['username']);
-                unset($user_details['password']);
-                $user_details['allow_login'] = 0;
-            } else {
-                $user_details['allow_login'] = 1;
-            }
-            
-            if (!isset($user_details['selected_contacts'])) {
-                $user_details['selected_contacts'] = false;
+            if (! empty($request->input('dob'))) {
+                $request['dob'] = $this->moduleUtil->uf_date($request->input('dob'));
             }
 
-            if (!empty($request->input('dob'))) {
-                $user_details['dob'] = $this->moduleUtil->uf_date($request->input('dob'));
-            }
+            $request['cmmsn_percent'] = ! empty($request->input('cmmsn_percent')) ? $this->moduleUtil->num_uf($request->input('cmmsn_percent')) : 0;
 
-            if (!empty($request->input('bank_details'))) {
-                $user_details['bank_details'] = json_encode($request->input('bank_details'));
-            }
+            $request['max_sales_discount_percent'] = ! is_null($request->input('max_sales_discount_percent')) ? $this->moduleUtil->num_uf($request->input('max_sales_discount_percent')) : null;
 
-            $business_id = $request->session()->get('user.business_id');
-            $user_details['business_id'] = $business_id;
-            $user_details['password'] = $user_details['allow_login'] ? Hash::make($user_details['password']) : null;
+            $user = $this->moduleUtil->createUser($request);
 
-            if ($user_details['allow_login']) {
-                $ref_count = $this->moduleUtil->setAndGetReferenceCount('username');
-                if (blank($user_details['username'])) {
-                    $user_details['username'] = $this->moduleUtil->generateReferenceNumber('username', $ref_count);
-                }
-
-                $username_ext = $this->getUsernameExtension();
-                if (!empty($username_ext)) {
-                    $user_details['username'] .= $username_ext;
-                }
-            }
-
-            //Check if subscribed or not, then check for users quota
-            if (!$this->moduleUtil->isSubscribed($business_id)) {
-                return $this->moduleUtil->expiredResponse();
-            } elseif (!$this->moduleUtil->isQuotaAvailable('users', $business_id)) {
-                return $this->moduleUtil->quotaExpiredResponse('users', $business_id, action('ManageUserController@index'));
-            }
-
-            //Sales commission percentage
-            $user_details['cmmsn_percent'] = !empty($user_details['cmmsn_percent']) ? $this->moduleUtil->num_uf($user_details['cmmsn_percent']) : 0;
-
-            $user_details['max_sales_discount_percent'] = !is_null($user_details['max_sales_discount_percent']) ? $this->moduleUtil->num_uf($user_details['max_sales_discount_percent']) : null;
-
-            //Create the user
-            $user = User::create($user_details);
-
-            $role_id = $request->input('role');
-            $role = Role::findOrFail($role_id);
-            $user->assignRole($role->name);
-
-            //Grant Location permissions
-            $this->giveLocationPermissions($user, $request);
-
-            //Assign selected contacts
-            if ($user_details['selected_contacts'] == 1) {
-                $contact_ids = $request->get('selected_contact_ids');
-                $user->contactAccess()->sync($contact_ids);
-            }
-
-            //Save module fields for user
-            $this->moduleUtil->getModuleData('afterModelSaved', ['event' => 'user_saved', 'model_instance' => $user]);
+            event(new UserCreatedOrModified($user, 'added'));
 
             $output = ['success' => 1,
-                        'msg' => __("user.user_added")
-                    ];
+                'msg' => __('user.user_added'),
+            ];
         } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => 0,
-                        'msg' => __("messages.something_went_wrong")
-                    ];
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
 
         return redirect('users')->with('status', $output);
@@ -227,7 +163,7 @@ class ManageUserController extends Controller
      */
     public function show($id)
     {
-        if (!auth()->user()->can('user.view')) {
+        if (! auth()->user()->can('user.view')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -242,7 +178,12 @@ class ManageUserController extends Controller
 
         $users = User::forDropdown($business_id, false);
 
-        return view('manage_user.show')->with(compact('user', 'view_partials', 'users'));
+        $activities = Activity::forSubject($user)
+           ->with(['causer', 'subject'])
+           ->latest()
+           ->get();
+
+        return view('manage_user.show')->with(compact('user', 'view_partials', 'users', 'activities'));
     }
 
     /**
@@ -253,7 +194,7 @@ class ManageUserController extends Controller
      */
     public function edit($id)
     {
-        if (!auth()->user()->can('user.update')) {
+        if (! auth()->user()->can('user.update')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -264,8 +205,7 @@ class ManageUserController extends Controller
 
         $roles = $this->getRolesArray($business_id);
 
-        $contact_access = $user->contactAccess->pluck('id')->toArray();
-        $contacts = Contact::contactDropdown($business_id, true, false);
+        $contact_access = $user->contactAccess->pluck('name', 'id')->toArray();
 
         if ($user->status == 'active') {
             $is_checked_checkbox = true;
@@ -277,13 +217,13 @@ class ManageUserController extends Controller
                                     ->get();
 
         $permitted_locations = $user->permitted_locations();
-        $username_ext = $this->getUsernameExtension();
+        $username_ext = $this->moduleUtil->getUsernameExtension();
 
         //Get user form part from modules
         $form_partials = $this->moduleUtil->getModuleData('moduleViewPartials', ['view' => 'manage_user.edit', 'user' => $user]);
-        
+
         return view('manage_user.edit')
-                ->with(compact('roles', 'user', 'contact_access', 'contacts', 'is_checked_checkbox', 'locations', 'permitted_locations', 'form_partials', 'username_ext'));
+                ->with(compact('roles', 'user', 'contact_access', 'is_checked_checkbox', 'locations', 'permitted_locations', 'form_partials', 'username_ext'));
     }
 
     /**
@@ -295,7 +235,13 @@ class ManageUserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!auth()->user()->can('user.update')) {
+        //Disable in demo
+        $notAllowed = $this->moduleUtil->notAllowedInDemo();
+        if (! empty($notAllowed)) {
+            return $notAllowed;
+        }
+        
+        if (! auth()->user()->can('user.update')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -304,12 +250,15 @@ class ManageUserController extends Controller
                 'blood_group', 'contact_number', 'fb_link', 'twitter_link', 'social_media_1',
                 'social_media_2', 'permanent_address', 'current_address',
                 'guardian_name', 'custom_field_1', 'custom_field_2',
-                'custom_field_3', 'custom_field_4', 'id_proof_name', 'id_proof_number', 'cmmsn_percent', 'gender', 'max_sales_discount_percent']);
+                'custom_field_3', 'custom_field_4', 'id_proof_name', 'id_proof_number', 'cmmsn_percent', 'gender', 'max_sales_discount_percent', 'family_number', 'alt_number', 'is_enable_service_staff_pin']);
 
-            $user_data['status'] = !empty($request->input('is_active')) ? 'active' : 'inactive';
+            $user_data['status'] = ! empty($request->input('is_active')) ? 'active' : 'inactive';
+
+            $user_data['is_enable_service_staff_pin'] = ! empty($request->input('is_enable_service_staff_pin')) ? true : false;
+
             $business_id = request()->session()->get('user.business_id');
 
-            if (!isset($user_data['selected_contacts'])) {
+            if (! isset($user_data['selected_contacts'])) {
                 $user_data['selected_contacts'] = 0;
             }
 
@@ -321,22 +270,30 @@ class ManageUserController extends Controller
                 $user_data['allow_login'] = 1;
             }
 
-            if (!empty($request->input('password'))) {
+            if (! empty($request->input('password'))) {
                 $user_data['password'] = $user_data['allow_login'] == 1 ? Hash::make($request->input('password')) : null;
             }
 
+
+            if (! empty($request->input('service_staff_pin'))) {
+                $user_data['service_staff_pin'] = $request->input('service_staff_pin');
+            }
+            
+
             //Sales commission percentage
-            $user_data['cmmsn_percent'] = !empty($user_data['cmmsn_percent']) ? $this->moduleUtil->num_uf($user_data['cmmsn_percent']) : 0;
+            $user_data['cmmsn_percent'] = ! empty($user_data['cmmsn_percent']) ? $this->moduleUtil->num_uf($user_data['cmmsn_percent']) : 0;
 
-            $user_data['max_sales_discount_percent'] = !is_null($user_data['max_sales_discount_percent']) ? $this->moduleUtil->num_uf($user_data['max_sales_discount_percent']) : null;
+            $user_data['max_sales_discount_percent'] = ! is_null($user_data['max_sales_discount_percent']) ? $this->moduleUtil->num_uf($user_data['max_sales_discount_percent']) : null;
 
-            if (!empty($request->input('dob'))) {
+            if (! empty($request->input('dob'))) {
                 $user_data['dob'] = $this->moduleUtil->uf_date($request->input('dob'));
             }
 
-            if (!empty($request->input('bank_details'))) {
+            if (! empty($request->input('bank_details'))) {
                 $user_data['bank_details'] = json_encode($request->input('bank_details'));
             }
+
+            DB::beginTransaction();
 
             if ($user_data['allow_login'] && $request->has('username')) {
                 $user_data['username'] = $request->input('username');
@@ -345,8 +302,8 @@ class ManageUserController extends Controller
                     $user_data['username'] = $this->moduleUtil->generateReferenceNumber('username', $ref_count);
                 }
 
-                $username_ext = $this->getUsernameExtension();
-                if (!empty($username_ext)) {
+                $username_ext = $this->moduleUtil->getUsernameExtension();
+                if (! empty($username_ext)) {
                     $user_data['username'] .= $username_ext;
                 }
             }
@@ -357,18 +314,24 @@ class ManageUserController extends Controller
             $user->update($user_data);
             $role_id = $request->input('role');
             $user_role = $user->roles->first();
-            $previous_role = !empty($user_role->id) ? $user_role->id : 0;
+            $previous_role = ! empty($user_role->id) ? $user_role->id : 0;
             if ($previous_role != $role_id) {
-                if (!empty($previous_role)) {
+                $is_admin = $this->moduleUtil->is_admin($user);
+                $all_admins = $this->getAdmins();
+                //If only one admin then can not change role
+                if ($is_admin && count($all_admins) <= 1) {
+                    throw new \Exception(__('lang_v1.cannot_change_role'));
+                }
+                if (! empty($previous_role)) {
                     $user->removeRole($user_role->name);
                 }
-                
+
                 $role = Role::findOrFail($role_id);
                 $user->assignRole($role->name);
             }
 
             //Grant Location permissions
-            $this->giveLocationPermissions($user, $request);
+            $this->moduleUtil->giveLocationPermissions($user, $request);
 
             //Assign selected contacts
             if ($user_data['selected_contacts'] == 1) {
@@ -381,18 +344,34 @@ class ManageUserController extends Controller
             //Update module fields for user
             $this->moduleUtil->getModuleData('afterModelSaved', ['event' => 'user_saved', 'model_instance' => $user]);
 
-            $output = ['success' => 1,
-                        'msg' => __("user.user_update_success")
-                    ];
-        } catch (\Exception $e) {
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            $this->moduleUtil->activityLog($user, 'edited', null, ['name' => $user->user_full_name]);
+           
+            event(new UserCreatedOrModified($user, 'updated'));
             
+            $output = ['success' => 1,
+                'msg' => __('user.user_update_success'),
+            ];
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
             $output = ['success' => 0,
-                            'msg' => __('messages.something_went_wrong')
-                        ];
+                'msg' => $e->getMessage(),
+            ];
         }
 
         return redirect('users')->with('status', $output);
+    }
+
+    private function getAdmins()
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $admins = User::role('Admin#'.$business_id)->get();
+
+        return $admins;
     }
 
     /**
@@ -403,36 +382,41 @@ class ManageUserController extends Controller
      */
     public function destroy($id)
     {
-        if (!auth()->user()->can('user.delete')) {
+        //Disable in demo
+        $notAllowed = $this->moduleUtil->notAllowedInDemo();
+        if (! empty($notAllowed)) {
+            return $notAllowed;
+        }
+
+        if (! auth()->user()->can('user.delete')) {
             abort(403, 'Unauthorized action.');
         }
 
         if (request()->ajax()) {
             try {
                 $business_id = request()->session()->get('user.business_id');
-                
-                User::where('business_id', $business_id)
-                    ->where('id', $id)->delete();
+
+                $user = User::where('business_id', $business_id)
+                    ->findOrFail($id);
+
+                $this->moduleUtil->activityLog($user, 'deleted', null, ['name' => $user->user_full_name, 'id' => $user->id]);
+
+                $user->delete();
+                event(new UserCreatedOrModified($user, 'deleted'));
 
                 $output = ['success' => true,
-                                'msg' => __("user.user_delete_success")
-                                ];
+                    'msg' => __('user.user_delete_success'),
+                ];
             } catch (\Exception $e) {
-                \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
                 $output = ['success' => false,
-                            'msg' => __("messages.something_went_wrong")
-                        ];
+                    'msg' => __('messages.something_went_wrong'),
+                ];
             }
 
             return $output;
         }
-    }
-
-    private function getUsernameExtension()
-    {
-        $extension = !empty(System::getProperty('enable_business_based_username')) ? '-' .str_pad(session()->get('business.id'), 2, 0, STR_PAD_LEFT) : null;
-        return $extension;
     }
 
     /**
@@ -449,61 +433,36 @@ class ManageUserController extends Controller
         $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
 
         foreach ($roles_array as $key => $value) {
-            if (!$is_admin && $value == 'Admin#' . $business_id) {
+            if (! $is_admin && $value == 'Admin#'.$business_id) {
                 continue;
             }
-            $roles[$key] = str_replace('#' . $business_id, '', $value);
+            $roles[$key] = str_replace('#'.$business_id, '', $value);
         }
+
         return $roles;
     }
 
     /**
-     * Adds or updates location permissions of a user
+     * Signes in from user id
+     *
+     * @param  int  $id
      */
-    private function giveLocationPermissions($user, $request)
+    public function signInAsUser($id)
     {
-        $permitted_locations = $user->permitted_locations();
-        $permissions = $request->input('access_all_locations');
-        $revoked_permissions = [];
-        //If not access all location then revoke permission
-        if ($permitted_locations == 'all' && $permissions != 'access_all_locations') {
-            $user->revokePermissionTo('access_all_locations');
+        if (! auth()->user()->can('superadmin') && empty(session('previous_user_id'))) {
+            abort(403, 'Unauthorized action.');
         }
 
-        //Include location permissions
-        $location_permissions = $request->input('location_permissions');
-        if (empty($permissions) &&
-            !empty($location_permissions)) {
-            $permissions = [];
-            foreach ($location_permissions as $location_permission) {
-                $permissions[] = $location_permission;
-            }
+        $user_id = auth()->user()->id;
+        $username = auth()->user()->username;
+        session()->flush();
 
-            if (is_array($permitted_locations)) {
-                foreach ($permitted_locations as $key => $value) {
-                    if (!in_array('location.' . $value, $permissions)) {
-                        $revoked_permissions[] = 'location.' . $value;
-                    }
-                }
-            }
+        if (request()->has('save_current')) {
+            session(['previous_user_id' => $user_id, 'previous_username' => $username]);
         }
 
-        if (!empty($revoked_permissions)) {
-            $user->revokePermissionTo($revoked_permissions);
-        }
+        Auth::loginUsingId($id);
 
-        if (!empty($permissions)) {
-            $user->givePermissionTo($permissions);
-        } else {
-            //if no location permission given revoke previous permissions
-            if (!empty($permitted_locations)) {
-                $revoked_permissions = [];
-                foreach ($permitted_locations as $key => $value) {
-                    $revoke_permissions[] = 'location.' . $value;
-                }
-
-                $user->revokePermissionTo($revoke_permissions);
-            }
-        }
+        return redirect()->route('home');
     }
 }

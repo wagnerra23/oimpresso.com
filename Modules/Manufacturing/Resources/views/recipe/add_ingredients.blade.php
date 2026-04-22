@@ -10,7 +10,7 @@
 
 <!-- Main content -->
 <section class="content">
-	{!! Form::open(['url' => action('\Modules\Manufacturing\Http\Controllers\RecipeController@store'), 'method' => 'post', 'id' => 'recipe_form' ]) !!}
+	{!! Form::open(['url' => action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'store']), 'method' => 'post', 'id' => 'recipe_form' ]) !!}
 	<div id="box_group">
 	<div class="box box-solid">
 		<div class="box-header"> 
@@ -121,7 +121,7 @@
 					<div class="form-group">
 						{!! Form::label('total_quantity', __('manufacturing::lang.total_output_quantity').':') !!}
 						<div class="@if(!is_array($unit_html)) input-group @else input_inline @endif">
-							{!! Form::text('total_quantity',!empty($recipe->total_quantity) ? @num_format($recipe->total_quantity) : 1, ['class' => 'form-control input_number', 'placeholder' => __('manufacturing::lang.total_output_quantity') ]); !!}
+							{!! Form::text('total_quantity',!empty($recipe->total_quantity) ? @format_quantity($recipe->total_quantity) : 1, ['class' => 'form-control input_number', 'placeholder' => __('manufacturing::lang.total_output_quantity') ]); !!}
 							<span class="@if(!is_array($unit_html)) input-group-addon @endif">
 								@if(is_array($unit_html))
 									<select name="sub_unit_id" class="form-control" id="sub_unit_id">

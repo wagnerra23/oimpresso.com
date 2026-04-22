@@ -24,7 +24,7 @@ class NewProjectAssignedNotification extends Notification
     /**
      * Get the notification's delivery channels.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function via($notifiable)
@@ -33,14 +33,14 @@ class NewProjectAssignedNotification extends Notification
         if (isPusherEnabled()) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
     /**
      * Get the mail representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
@@ -54,13 +54,13 @@ class NewProjectAssignedNotification extends Notification
     /**
      * Get the array representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function toArray($notifiable)
     {
         return [
-            'project_id' => $this->project->id
+            'project_id' => $this->project->id,
         ];
     }
 
@@ -75,7 +75,7 @@ class NewProjectAssignedNotification extends Notification
         return new BroadcastMessage([
             'title' => $this->project->title,
             'body' => $this->project->body,
-            'link' => $this->project->link
+            'link' => $this->project->link,
         ]);
     }
 }

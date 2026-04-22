@@ -2,6 +2,6 @@
 
 return [
     'name' => 'ProductCatalogue',
-    'module_version' => "0.6",
-    'pid' => 8
+    'module_version' => '1.0',
+    'pid' => 8,
 ];

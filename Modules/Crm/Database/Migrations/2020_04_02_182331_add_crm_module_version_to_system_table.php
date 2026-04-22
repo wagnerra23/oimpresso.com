@@ -12,8 +12,8 @@ class AddCrmModuleVersionToSystemTable extends Migration
     public function up()
     {
         DB::table('system')->insert([
-            'key'=>'crm_version',
-            'value' => config('crm.module_version', 0.1)
+            'key' => 'crm_version',
+            'value' => config('crm.module_version', 0.1),
         ]);
     }
 

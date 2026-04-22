@@ -2,18 +2,15 @@
 
 namespace Modules\Superadmin\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Utils\ModuleUtil;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Superadmin\Entities\Package;
-
-use App\Utils\ModuleUtil;
 
 class PricingController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $moduleUtil;
 
@@ -29,6 +26,7 @@ class PricingController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()

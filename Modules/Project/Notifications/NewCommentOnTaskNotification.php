@@ -25,7 +25,7 @@ class NewCommentOnTaskNotification extends Notification
     /**
      * Get the notification's delivery channels.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function via($notifiable)
@@ -34,14 +34,14 @@ class NewCommentOnTaskNotification extends Notification
         if (isPusherEnabled()) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
     /**
      * Get the mail representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
@@ -55,7 +55,7 @@ class NewCommentOnTaskNotification extends Notification
     /**
      * Get the array representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function toArray($notifiable)
@@ -63,7 +63,7 @@ class NewCommentOnTaskNotification extends Notification
         return [
             'project_task_id' => $this->project_task->id,
             'project_id' => $this->project_task->project_id,
-            'commented_by' => $this->project_comment->commented_by
+            'commented_by' => $this->project_comment->commented_by,
         ];
     }
 
@@ -78,7 +78,7 @@ class NewCommentOnTaskNotification extends Notification
         return new BroadcastMessage([
             'title' => $this->project_comment->title,
             'body' => $this->project_comment->body,
-            'link' => $this->project_comment->link
+            'link' => $this->project_comment->link,
         ]);
     }
 }

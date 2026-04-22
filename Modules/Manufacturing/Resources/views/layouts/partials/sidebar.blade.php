@@ -11,7 +11,7 @@
 	    <ul class="treeview-menu">
 	    	@can('manufacturing.access_recipe')
 		    	<li class="{{ $request->segment(1) == 'manufacturing' && in_array($request->segment(2), ['recipe', 'add-ingredient']) ? 'active active-sub' : '' }}">
-					<a href="{{action('\Modules\Manufacturing\Http\Controllers\RecipeController@index')}}">
+					<a href="{{action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index'])}}">
 						<i class="fa fa-cutlery"></i>
 						<span class="title">
 							@lang('manufacturing::lang.recipe')
@@ -21,7 +21,7 @@
 			@endcan
 			@can('manufacturing.access_production')
 				<li class="{{ $request->segment(2) == 'production' && empty($request->segment(3))  ? 'active active-sub' : '' }}">
-					<a href="{{action('\Modules\Manufacturing\Http\Controllers\ProductionController@index')}}">
+					<a href="{{action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index'])}}">
 						<i class="fa fa-cogs"></i>
 						<span class="title">
 							@lang('manufacturing::lang.production')
@@ -29,7 +29,7 @@
 				  	</a>
 				</li>
 				<li class="{{ $request->segment(2) == 'production' && $request->segment(3) == 'create'  ? 'active active-sub' : '' }}">
-					<a href="{{action('\Modules\Manufacturing\Http\Controllers\ProductionController@create')}}">
+					<a href="{{action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'create'])}}">
 						<i class="fa fa-plus"></i>
 						<span class="title">
 							@lang('manufacturing::lang.add_production')
@@ -37,7 +37,7 @@
 				  	</a>
 				</li>
 				<li class="{{ $request->segment(1) == 'manufacturing' && $request->segment(2) == 'settings' ? 'active active-sub' : '' }}">
-					<a href="{{action('\Modules\Manufacturing\Http\Controllers\SettingsController@index')}}">
+					<a href="{{action([\Modules\Manufacturing\Http\Controllers\SettingsController::class, 'index'])}}">
 						<i class="fa fa-wrench"></i>
 						<span class="title">
 							@lang('messages.settings')
@@ -45,7 +45,7 @@
 				  	</a>
 				</li>
 				<li class="{{ $request->segment(2) == 'report' ? 'active active-sub' : '' }}">
-					<a href="{{action('\Modules\Manufacturing\Http\Controllers\ProductionController@getManufacturingReport')}}">
+					<a href="{{action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'getManufacturingReport'])}}">
 						<i class="fa fa-line-chart"></i>
 						<span class="title">
 							@lang('manufacturing::lang.manufacturing_report')

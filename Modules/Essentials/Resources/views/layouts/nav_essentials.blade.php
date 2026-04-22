@@ -9,30 +9,29 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{action('\Modules\Essentials\Http\Controllers\ToDoController@index')}}"><i class="fas fa-check-circle"></i> {{__('essentials::lang.essentials')}}</a>
+                <a class="navbar-brand" href="{{action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'index'])}}"><i class="fas fa-check-circle"></i> {{__('essentials::lang.essentials')}}</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
-            <!-- <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1"> -->
-                <!-- <ul class="nav navbar-nav"> -->
-                    <!-- <li @if(request()->segment(2) == 'todo') class="active" @endif><a href="{{action('\Modules\Essentials\Http\Controllers\ToDoController@index')}}">@lang('essentials::lang.todo')</a></li> -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li @if(request()->segment(2) == 'todo') class="active" @endif><a href="{{action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'index'])}}">@lang('essentials::lang.todo')</a></li>
 
-                    <!-- <li @if(request()->segment(2) == 'document' && request()->get('type') != 'memos') class="active" @endif><a href="{{action('\Modules\Essentials\Http\Controllers\DocumentController@index')}}">@lang('essentials::lang.document')</a></li> -->
+                    <li @if(request()->segment(2) == 'document' && request()->get('type') != 'memos') class="active" @endif><a href="{{action([\Modules\Essentials\Http\Controllers\DocumentController::class, 'index'])}}">@lang('essentials::lang.document')</a></li>
 
-                    <!-- <li @if(request()->segment(2) == 'document' && request()->get('type') == 'memos') class="active" @endif><a href="{{action('\Modules\Essentials\Http\Controllers\DocumentController@index') .'?type=memos'}}">@lang('essentials::lang.memos')</a></li> -->
+                    <li @if(request()->segment(2) == 'document' && request()->get('type') == 'memos') class="active" @endif><a href="{{action([\Modules\Essentials\Http\Controllers\DocumentController::class, 'index']) .'?type=memos'}}">@lang('essentials::lang.memos')</a></li>
 
-                    <!-- <li @if(request()->segment(2) == 'reminder') class="active" @endif><a href="{{action('\Modules\Essentials\Http\Controllers\ReminderController@index')}}">@lang('essentials::lang.reminders')</a></li> -->
-                    <!-- @if (auth()->user()->can('essentials.view_message') || auth()->user()->can('essentials.create_message')) -->
-                        <!-- <li @if(request()->segment(2) == 'messages') class="active" @endif><a href="{{action('\Modules\Essentials\Http\Controllers\EssentialsMessageController@index')}}">@lang('essentials::lang.messages')</a></li> -->
-                    <!-- @endif -->
-                    <!-- <li @if(request()->segment(2) == 'knowledge-base') class="active" @endif><a href="{{action('\Modules\Essentials\Http\Controllers\KnowledgeBaseController@index')}}">@lang('essentials::lang.knowledge_base')</a></li> -->
-                    <!-- @if (auth()->user()->can('edit_essentials_settings')) -->
-                        <!-- <li @if(request()->segment(2) == 'hrm' && request()->segment(2) == 'settings') class="active" @endif><a href="{{action('\Modules\Essentials\Http\Controllers\EssentialsSettingsController@edit')}}">@lang('business.settings')</a></li> -->
-                    <!-- @endif -->
-                <!-- </ul> -->
+                    <li @if(request()->segment(2) == 'reminder') class="active" @endif><a href="{{action([\Modules\Essentials\Http\Controllers\ReminderController::class, 'index'])}}">@lang('essentials::lang.reminders')</a></li>
+                    @if (auth()->user()->can('essentials.view_message') || auth()->user()->can('essentials.create_message'))
+                        <li @if(request()->segment(2) == 'messages') class="active" @endif><a href="{{action([\Modules\Essentials\Http\Controllers\EssentialsMessageController::class, 'index'])}}">@lang('essentials::lang.messages')</a></li>
+                    @endif
+                    <li @if(request()->segment(2) == 'knowledge-base') class="active" @endif><a href="{{action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index'])}}">@lang('essentials::lang.knowledge_base')</a></li>
+                    @if (auth()->user()->can('edit_essentials_settings'))
+                        <li @if(request()->segment(2) == 'hrm' && request()->segment(2) == 'settings') class="active" @endif><a href="{{action([\Modules\Essentials\Http\Controllers\EssentialsSettingsController::class, 'edit'])}}">@lang('business.settings')</a></li>
+                    @endif
+                </ul>
 
-            <!-- </div> -->
-            <!-- /.navbar-collapse -->
+            </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
 </section>

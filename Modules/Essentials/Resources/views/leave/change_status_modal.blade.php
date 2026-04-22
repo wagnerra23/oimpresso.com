@@ -3,7 +3,7 @@
 	<div class="modal-dialog" role="document">
 	  <div class="modal-content">
 
-	    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\EssentialsLeaveController@changeStatus'), 'method' => 'post', 'id' => 'change_status_form' ]) !!}
+	    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\EssentialsLeaveController::class, 'changeStatus']), 'method' => 'post', 'id' => 'change_status_form' ]) !!}
 
 	    <div class="modal-header">
 	      	<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

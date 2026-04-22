@@ -1,4 +1,4 @@
- <a class="btn btn-sm btn-primary pull-right" data-href="{{action('\Modules\Repair\Http\Controllers\DeviceModelController@create')}}" id="add_device_model">
+ <a class="btn btn-sm btn-primary pull-right" data-href="{{action([\Modules\Repair\Http\Controllers\DeviceModelController::class, 'create'])}}" id="add_device_model">
 	<i class="fa fa-plus"></i>
 	@lang('messages.add')
 </a>

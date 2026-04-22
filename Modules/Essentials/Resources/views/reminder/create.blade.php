@@ -1,6 +1,6 @@
 <div class="modal fade reminder" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
-  {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\ReminderController@store'), 'id' => 'reminder_form']) !!}
+  {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\ReminderController::class, 'store']), 'id' => 'reminder_form']) !!}
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title" id="exampleModalCenterTitle">

@@ -1,5 +1,5 @@
 <div class="modal-dialog" role="document">
-	{!! Form::open(['url' => action('\Modules\Crm\Http\Controllers\ContactLoginController@update', ['id' => $user->id]), 'method' => 'put', 'id' => 'contact_login_edit' ]) !!}
+	{!! Form::open(['url' => action([\Modules\Crm\Http\Controllers\ContactLoginController::class, 'update'], [$user->id]), 'method' => 'put', 'id' => 'contact_login_edit' ]) !!}
 	<div class="modal-content">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -49,8 +49,8 @@
 				</div>
 				<div class="col-md-6">
 					<div class="form-group">
-					    {!! Form::label("contact_number", __( 'lang_v1.mobile_number' ) . ':') !!}
-					    {!! Form::text('contact_number', $user->contact_number, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.mobile_number')]); !!}
+					    {!! Form::label("contact_no", __( 'lang_v1.mobile_number' ) . ':') !!}
+					    {!! Form::text('contact_no', $user->contact_no, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.mobile_number')]); !!}
 					</div>
 				</div>
 				<div class="col-md-6">
@@ -67,6 +67,18 @@
 				</div>
 				<div class="col-md-6">
 					<div class="form-group">
+					    {!! Form::label("crm_department", __( 'lang_v1.department' ) . ':') !!}
+					    {!! Form::text("crm_department", !empty($user->crm_department) ? $user->crm_department : null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.department'), 'id'=>"crm_department" ]); !!}
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+					    {!! Form::label("crm_designation", __( 'lang_v1.designation' ) . ':') !!}
+					    {!! Form::text("crm_designation", !empty($user->crm_designation) ? $user->crm_designation : null, ['class' => 'form-control', 'placeholder' => __( 'lang_v1.designation'), 'id'=>"crm_designation" ]); !!}
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
 						{!! Form::label('password', __( 'business.password' ) . ':') !!}
 						{!! Form::password('password', ['class' => 'form-control', 'placeholder' => __( 'business.password' ) ]); !!}
 						<p class="help-block">@lang('user.leave_password_blank')</p>
@@ -79,12 +91,19 @@
 					</div>
 				</div>
 		      	<div class="clearfix"></div>
+		      	<div class="col-md-6">
+			        <div class="form-group">
+			          {!! Form::label('cmmsn_percent', __( 'lang_v1.cmmsn_percent' ) . ':') !!}
+			            {!! Form::text('cmmsn_percent', $user->cmmsn_percent, ['class' => 'form-control input_number', 'placeholder' => __( 'lang_v1.cmmsn_percent' ) ]); !!}
+			        </div>
+			    </div>
 				<div class="col-md-4">
 					@php
 						$status = $user->status;
 						$is_active = !empty($status) && $status == 'active' ? true : false;
 					@endphp
 					<div class="form-group">
+						<br>
 						<label>
 							{!! Form::checkbox('is_active', 'active', $is_active, ['class' => 'input-icheck status']); !!} {{ __('lang_v1.status_for_user') }}
 						</label>

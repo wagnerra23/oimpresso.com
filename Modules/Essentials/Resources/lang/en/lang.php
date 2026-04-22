@@ -1,4 +1,5 @@
 <?php
+
 return [
     'essentials' => 'Essentials',
     'document' => 'Document',
@@ -285,4 +286,27 @@ return [
     'auto_clockout_time' => 'Auto clock out time',
     'work_duration_hour' => ':duration hour',
     'total_leaves_days' => ':total_leaves days',
+    'my_payrolls' => 'My Payrolls',
+    'view_all_payroll' => 'View all Payroll',
+    'delete_payroll' => 'Delete Payroll',
+    'access_sales_target' => 'Access Sales Targets',
+    'sales_target' => 'Sales Targets',
+    'set_sales_target' => 'Set Sales Target',
+    'set_sales_target_for' => 'Set Sales Target for :user',
+    'total_sales_amount_from' => 'Total sales amount from',
+    'total_sales_amount_to' => 'Total sale amount to',
+    'commission_percent' => 'Commission Percent',
+    'sales_target_commission' => 'Sales Target Commission',
+    'calculate_sales_target_commission_without_tax' => 'Calculate Sales Target Commission without Tax',
+    'calculate_sales_target_commission_without_tax_help' => 'If checked sales target commission will be calculated on total sales by the employee without including taxes',
+    'targets' => 'Targets',
+    'target_achieved_this_month' => 'Target achieved this month',
+    'target_achieved_last_month' => 'Target achieved last month',
+    'my_sales_targets' => 'My sales targets',
+    'sales_targets' => 'Sales targets',
+    'get_current_location' => 'Get current location',
+    'payroll_cant_be_deleted_if_final' => 'Payroll can not be deleted if status is final',
+    'add_todos' => "Add To Do's",
+    'edit_todos' => "Edit To Do's",
+    'delete_todos' => "Delete To Do's",
 ];

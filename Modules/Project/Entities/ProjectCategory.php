@@ -6,15 +6,12 @@ use App\Category;
 
 class ProjectCategory extends Category
 {
-
-
     /**
      * The table associated with the model.
      *
      * @var string
      */
     protected $table = 'categorizables';
-
 
     /**
      * Get all of the category that are assigned to project.

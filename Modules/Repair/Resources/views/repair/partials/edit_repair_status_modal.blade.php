@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
 	<div class="modal-content">
 
-		{!! Form::open(['url' => action('\Modules\Repair\Http\Controllers\RepairController@updateRepairStatus'), 'method' => 'post', 'id' => 'update_repair_status_form']) !!}
+		{!! Form::open(['url' => action([\Modules\Repair\Http\Controllers\RepairController::class, 'updateRepairStatus']), 'method' => 'post', 'id' => 'update_repair_status_form']) !!}
 			{!! Form::hidden('repair_id', $transaction->id, ['id' => 'repair_id']); !!}
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

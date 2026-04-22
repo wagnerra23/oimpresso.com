@@ -2,7 +2,7 @@
     	aria-labelledby="gridSystemModalLabel">
     <div class="modal-dialog" role="document">
 	  	<div class="modal-content">
-	  	{!! Form::open(['url' => action('\Modules\Superadmin\Http\Controllers\BusinessController@updatePassword'), 'method' => 'post', 'id' => 'password_update_form' ]) !!}
+	  	{!! Form::open(['url' => action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'updatePassword']), 'method' => 'post', 'id' => 'password_update_form' ]) !!}
 	    <div class="modal-header">
 	      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 	      <h4 class="modal-title"><span id="user_name"></span> - @lang( 'superadmin::lang.update_password' )</h4>

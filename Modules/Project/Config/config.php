@@ -2,6 +2,6 @@
 
 return [
     'name' => 'Project',
-    'module_version' => "1.6",
-    'pid' => 5
+    'module_version' => '2.1',
+    'pid' => 5,
 ];

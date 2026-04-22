@@ -314,8 +314,20 @@
                 </div>
             </div>
         </div>
-    </div>
 
+        <div class="col-sm-4">
+            <div class="form-group">
+                <div class="checkbox">
+                <br>
+                  <label>
+                    {!! Form::checkbox('pos_settings[show_pricing_on_product_sugesstion]', 1,  
+                        !empty($pos_settings['show_pricing_on_product_sugesstion']) , 
+                    [ 'class' => 'input-icheck']); !!} {{ __( 'lang_v1.show_pricing_on_product_sugesstion' ) }}
+                  </label>
+                </div>
+            </div>
+        </div>
+    </div>    
     <hr>
     @include('business.partials.settings_weighing_scale')
 </div>

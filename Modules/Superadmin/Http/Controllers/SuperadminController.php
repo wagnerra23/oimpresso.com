@@ -2,32 +2,32 @@
 
 namespace Modules\Superadmin\Http\Controllers;
 
-use Modules\Superadmin\Entities\Subscription;
 use App\Business;
+use App\Charts\CommonChart;
 use App\System;
-use \Carbon;
-use Charts;
-use Illuminate\Support\Facades\DB;
+use Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Modules\Superadmin\Entities\Subscription;
 use Illuminate\Routing\Controller;
-use App\Charts\CommonChart;
 
-class SuperadminController extends BaseController
+class SuperadminController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()
     {
-        if (!auth()->user()->can('superadmin')) {
+        if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
         $date_filters['this_yr'] = ['start' => Carbon::today()->startOfYear()->toDateString(),
-                'end' => Carbon::today()->endOfYear()->toDateString()
-            ];
+            'end' => Carbon::today()->endOfYear()->toDateString(),
+        ];
         $date_filters['this_month']['start'] = date('Y-m-01');
         $date_filters['this_month']['end'] = date('Y-m-t');
         $date_filters['this_week']['start'] = date('Y-m-d', strtotime('monday this week'));
@@ -44,8 +44,7 @@ class SuperadminController extends BaseController
 
         $monthly_sells_chart = new CommonChart;
         $monthly_sells_chart->labels(array_keys($subscriptions))
-            ->dataset(__('superadmin::lang.total_subscriptions', ['currency' => 'Real']), 'column', array_values($subscriptions));
-
+            ->dataset(__('superadmin::lang.total_subscriptions', ['currency' => $currency->currency]), 'column', array_values($subscriptions));
 
         return view('superadmin::superadmin.index')
             ->with(compact(
@@ -57,6 +56,7 @@ class SuperadminController extends BaseController
 
     /**
      * Returns the monthly sell data for chart
+     *
      * @return array
      */
     protected function _monthly_sell_data()
@@ -70,7 +70,7 @@ class SuperadminController extends BaseController
         $subscription_formatted = [];
         foreach ($subscriptions as $value) {
             $month_year = Carbon::createFromFormat('Y-m-d H:i:s', $value->created_at)->format('M-Y');
-            if (!isset($subscription_formatted[$month_year])) {
+            if (! isset($subscription_formatted[$month_year])) {
                 $subscription_formatted[$month_year] = 0;
             }
             $subscription_formatted[$month_year] += (float) $value->package_price;
@@ -84,12 +84,11 @@ class SuperadminController extends BaseController
      *
      * @param $start date
      * @param $end date
-     *
      * @return json
      */
     public function stats(Request $request)
     {
-        if (!auth()->user()->can('superadmin')) {
+        if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -97,6 +96,7 @@ class SuperadminController extends BaseController
         $end_date = $request->get('end');
 
         $subscription = Subscription::whereRaw('DATE(created_at) BETWEEN ? AND ?', [$start_date, $end_date])
+            ->where('status', 'approved')
             ->select(DB::raw('SUM(package_price) as total'))
             ->first()
             ->total;
@@ -107,7 +107,7 @@ class SuperadminController extends BaseController
             ->total;
 
         return ['new_subscriptions' => $subscription,
-                'new_registrations' => $registrations
-            ];
+            'new_registrations' => $registrations,
+        ];
     }
 }

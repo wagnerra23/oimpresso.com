@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\EssentialsAllowanceAndDeductionController@update', $allowance->id), 'method' => 'put', 'id' => 'add_allowance_form' ]) !!}
+    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\EssentialsAllowanceAndDeductionController::class, 'update'], $allowance->id), 'method' => 'put', 'id' => 'add_allowance_form' ]) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

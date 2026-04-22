@@ -6,10 +6,10 @@ use App\System;
 use Composer\Semver\Comparator;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Artisan;
-
 use Illuminate\Support\Facades\DB;
+use Illuminate\Routing\Controller;
 
-class InstallController extends BaseController
+class InstallController extends Controller
 {
     public function __construct()
     {
@@ -19,11 +19,12 @@ class InstallController extends BaseController
 
     /**
      * Install
+     *
      * @return Response
      */
     public function index()
     {
-        if (!auth()->user()->can('superadmin')) {
+        if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -31,33 +32,31 @@ class InstallController extends BaseController
         ini_set('memory_limit', '512M');
 
         $this->installSettings();
-        
+
         //Check if installed or not.
-        $is_installed = System::getProperty($this->module_name . '_version');
+        $is_installed = System::getProperty($this->module_name.'_version');
         if (empty($is_installed)) {
             DB::statement('SET default_storage_engine=INNODB;');
-            Artisan::call('module:migrate', ['module' => "Superadmin"]);
-            System::addProperty($this->module_name . '_version', $this->appVersion);
+            Artisan::call('module:migrate', ['module' => 'Superadmin', '--force' => true]);
+            System::addProperty($this->module_name.'_version', $this->appVersion);
         }
 
         $output = ['success' => 1,
-                    'msg' => 'Superadmin module installed succesfully'
-                ];
+            'msg' => 'Superadmin module installed succesfully',
+        ];
 
         return redirect()
-            ->action('\App\Http\Controllers\Install\ModulesController@index')
+            ->action([\App\Http\Controllers\Install\ModulesController::class, 'index'])
             ->with('status', $output);
     }
 
     /**
      * Initialize all install functions
-     *
      */
     private function installSettings()
     {
         config(['app.debug' => true]);
         Artisan::call('config:clear');
-        Artisan::call('cache:clear');
     }
 
     //Updating
@@ -67,7 +66,7 @@ class InstallController extends BaseController
         //If appVersion > superadmin_version - run update script.
         //Else there is some problem.
 
-        if (!auth()->user()->can('superadmin')) {
+        if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -76,57 +75,58 @@ class InstallController extends BaseController
 
             ini_set('max_execution_time', 0);
             ini_set('memory_limit', '512M');
-            
-            $superadmin_version = System::getProperty($this->module_name . '_version');
-            
+
+            $superadmin_version = System::getProperty($this->module_name.'_version');
+
             if (Comparator::greaterThan($this->appVersion, $superadmin_version)) {
                 ini_set('max_execution_time', 0);
                 ini_set('memory_limit', '512M');
                 $this->installSettings();
-                
-                DB::statement('SET default_storage_engine=INNODB;');
-                Artisan::call('module:migrate', ['module' => "Superadmin"]);
 
-                System::setProperty($this->module_name . '_version', $this->appVersion);
+                DB::statement('SET default_storage_engine=INNODB;');
+                Artisan::call('module:migrate', ['module' => 'Superadmin', '--force' => true]);
+
+                System::setProperty($this->module_name.'_version', $this->appVersion);
             } else {
                 abort(404);
             }
 
             DB::commit();
-            
+
             $output = ['success' => 1,
-                        'msg' => 'Superadmin module updated Succesfully to version ' . $this->appVersion . ' !!'
-                    ];
+                'msg' => 'Superadmin module updated Succesfully to version '.$this->appVersion.' !!',
+            ];
 
             return redirect()
-            ->action('\App\Http\Controllers\Install\ModulesController@index')
+            ->action([\App\Http\Controllers\Install\ModulesController::class, 'index'])
             ->with('status', $output);
         } catch (Exception $e) {
             DB::rollBack();
-            die($e->getMessage());
+            exit($e->getMessage());
         }
     }
 
     /**
      * Uninstall
+     *
      * @return Response
      */
     public function uninstall()
     {
-        if (!auth()->user()->can('superadmin')) {
+        if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            System::removeProperty($this->module_name . '_version');
+            System::removeProperty($this->module_name.'_version');
 
             $output = ['success' => true,
-                            'msg' => __("lang_v1.success")
-                        ];
+                'msg' => __('lang_v1.success'),
+            ];
         } catch (\Exception $e) {
             $output = ['success' => false,
-                        'msg' => $e->getMessage()
-                    ];
+                'msg' => $e->getMessage(),
+            ];
         }
 
         return redirect()->back()->with(['status' => $output]);

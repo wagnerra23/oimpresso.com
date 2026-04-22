@@ -19,15 +19,12 @@
         		<h3>
         			{{$package->name}}
 
-        			<span class="display_currency" data-currency_symbol="true">{{$package->price}}</span>
+        			(<span class="display_currency" data-currency_symbol="true">{{$package->price}}</span>
 
-					<!-- <small>
+					<small>
 						/ {{$package->interval_count}} {{ucfirst($package->interval)}}
-					</small> -->
-					
+					</small>)
         		</h3>
-
-
         		<ul>
 					<li>
 						@if($package->location_count == 0)

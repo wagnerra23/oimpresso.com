@@ -17,17 +17,19 @@ class WoocommerceWebhookController extends Controller
 {
     /**
      * All Utils instance.
-     *
      */
     protected $woocommerceUtil;
+
     protected $moduleUtil;
+
     protected $transactionUtil;
+
     protected $productUtil;
 
     /**
      * Constructor
      *
-     * @param WoocommerceUtil $woocommerceUtil
+     * @param  WoocommerceUtil  $woocommerceUtil
      * @return void
      */
     public function __construct(WoocommerceUtil $woocommerceUtil, ModuleUtil $moduleUtil, TransactionUtil $transactionUtil, ProductUtil $productUtil)
@@ -40,6 +42,7 @@ class WoocommerceWebhookController extends Controller
 
     /**
      * Function to create sale from woocommerce webhook request.
+     *
      * @return Response
      */
     public function orderCreated(Request $request, $business_id)
@@ -50,8 +53,8 @@ class WoocommerceWebhookController extends Controller
 
             $is_valid_request = $this->isValidWebhookRequest($request, $business->woocommerce_wh_oc_secret);
 
-            if (!$is_valid_request) {
-                \Log::emergency("Woocommerce webhook signature mismatch");
+            if (! $is_valid_request) {
+                \Log::emergency('Woocommerce webhook signature mismatch');
             } else {
                 $user_id = $business->owner->id;
                 $woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
@@ -59,31 +62,32 @@ class WoocommerceWebhookController extends Controller
                     'id' => $business_id,
                     'accounting_method' => $business->accounting_method,
                     'location_id' => $woocommerce_api_settings->location_id,
-                    'business' => $business
+                    'business' => $business,
                 ];
 
                 $order_data = json_decode($payload);
 
                 DB::beginTransaction();
                 $created = $this->woocommerceUtil->createNewSaleFromOrder($business_id, $user_id, $order_data, $business_data);
-                
+
                 $create_error_data = $created !== true ? $created : [];
                 $created_data[] = $order_data->number;
 
                 //Create log
-                if (!empty($created_data)) {
+                if (! empty($created_data)) {
                     $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'orders', 'created', $created_data, $create_error_data);
                 }
                 DB::commit();
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
         }
     }
 
     /**
      * Function to update sale from woocommerce webhook request.
+     *
      * @return Response
      */
     public function orderUpdated(Request $request, $business_id)
@@ -94,15 +98,15 @@ class WoocommerceWebhookController extends Controller
 
             $is_valid_request = $this->isValidWebhookRequest($request, $business->woocommerce_wh_ou_secret);
 
-            if (!$is_valid_request) {
-                \Log::emergency("Woocommerce webhook signature mismatch");
+            if (! $is_valid_request) {
+                \Log::emergency('Woocommerce webhook signature mismatch');
             } else {
                 $user_id = $business->owner->id;
                 $woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
                 $business_data = [
                     'id' => $business_id,
                     'accounting_method' => $business->accounting_method,
-                    'location_id' => $woocommerce_api_settings->location_id
+                    'location_id' => $woocommerce_api_settings->location_id,
                 ];
 
                 $order_data = json_decode($payload);
@@ -112,7 +116,7 @@ class WoocommerceWebhookController extends Controller
                                 ->with('sell_lines', 'sell_lines.product', 'payment_lines')
                                 ->first();
 
-                if (!empty($sell)) {
+                if (! empty($sell)) {
                     DB::beginTransaction();
 
                     $updated = $this->woocommerceUtil->updateSaleFromOrder($business_id, $user_id, $order_data, $sell, $business_data);
@@ -121,7 +125,7 @@ class WoocommerceWebhookController extends Controller
                     $update_error_data = $updated !== true ? $updated : [];
 
                     //Create log
-                    if (!empty($updated_data)) {
+                    if (! empty($updated_data)) {
                         $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'orders', 'updated', $updated_data, $update_error_data);
                     }
                     DB::commit();
@@ -129,12 +133,13 @@ class WoocommerceWebhookController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
         }
     }
 
     /**
      * Function to delete sale from woocommerce webhook request.
+     *
      * @return Response
      */
     public function orderDeleted(Request $request, $business_id)
@@ -145,8 +150,8 @@ class WoocommerceWebhookController extends Controller
 
             $is_valid_request = $this->isValidWebhookRequest($request, $business->woocommerce_wh_od_secret);
 
-            if (!$is_valid_request) {
-                \Log::emergency("Woocommerce webhook signature mismatch");
+            if (! $is_valid_request) {
+                \Log::emergency('Woocommerce webhook signature mismatch');
             } else {
                 $user_id = $business->owner->id;
                 //$woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
@@ -162,9 +167,9 @@ class WoocommerceWebhookController extends Controller
 
                 DB::beginTransaction();
 
-                if (!empty($transaction)) {
+                if (! empty($transaction)) {
                     $status_before = $transaction->status;
-                    $transaction->status = "draft";
+                    $transaction->status = 'draft';
                     $transaction->save();
 
                     $input['location_id'] = $transaction->location_id;
@@ -179,14 +184,14 @@ class WoocommerceWebhookController extends Controller
                     $this->productUtil->adjustProductStockForInvoice($status_before, $transaction, $input);
 
                     $business = ['id' => $business_id,
-                                'accounting_method' => $business->accounting_method,
-                                'location_id' => $transaction->location_id
-                            ];
+                        'accounting_method' => $business->accounting_method,
+                        'location_id' => $transaction->location_id,
+                    ];
                     $this->transactionUtil->adjustMappingPurchaseSell($status_before, $transaction, $business);
                 }
 
                 //Create log
-                if (!empty($log_data)) {
+                if (! empty($log_data)) {
                     $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'orders', 'deleted', $log_data);
                 }
 
@@ -194,12 +199,13 @@ class WoocommerceWebhookController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
         }
     }
 
     /**
      * Function to restore sale from woocommerce webhook request.
+     *
      * @return Response
      */
     public function orderRestored(Request $request, $business_id)
@@ -210,8 +216,8 @@ class WoocommerceWebhookController extends Controller
 
             $is_valid_request = $this->isValidWebhookRequest($request, $business->woocommerce_wh_or_secret);
 
-            if (!$is_valid_request) {
-                \Log::emergency("Woocommerce webhook signature mismatch");
+            if (! $is_valid_request) {
+                \Log::emergency('Woocommerce webhook signature mismatch');
             } else {
                 $user_id = $business->owner->id;
                 $woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
@@ -219,7 +225,7 @@ class WoocommerceWebhookController extends Controller
                     'id' => $business_id,
                     'accounting_method' => $business->accounting_method,
                     'location_id' => $woocommerce_api_settings->location_id,
-                    'business' => $business
+                    'business' => $business,
                 ];
 
                 $order_data = json_decode($payload);
@@ -230,24 +236,24 @@ class WoocommerceWebhookController extends Controller
 
                 DB::beginTransaction();
                 //If sell not deleted restore from draft else create new sale
-                if (!empty($sell)) {
+                if (! empty($sell)) {
                     $updated = $this->woocommerceUtil->updateSaleFromOrder($business_id, $user_id, $order_data, $sell, $business_data);
 
                     $updated_data[] = $order_data->number;
                     $update_error_data = $updated !== true ? $updated : [];
 
                     //Create log
-                    if (!empty($updated_data)) {
+                    if (! empty($updated_data)) {
                         $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'orders', 'restored', $updated_data, $update_error_data);
                     }
                 } else {
                     $created = $this->woocommerceUtil->createNewSaleFromOrder($business_id, $user_id, $order_data, $business_data);
-                
+
                     $create_error_data = $created !== true ? $created : [];
                     $created_data[] = $order_data->number;
 
                     //Create log
-                    if (!empty($created_data)) {
+                    if (! empty($created_data)) {
                         $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'orders', 'created', $created_data, $create_error_data);
                     }
                 }
@@ -256,7 +262,7 @@ class WoocommerceWebhookController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
         }
     }
 

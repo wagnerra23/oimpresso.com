@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>{{ __('lang_v1.product_purchase_report')}}</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">{{ __('lang_v1.product_purchase_report')}}</h1>
 </section>
 
 <!-- Main content -->
@@ -13,7 +13,7 @@
     <div class="row">
         <div class="col-md-12">
             @component('components.filters', ['title' => __('report.filters')])
-          {!! Form::open(['url' => action('ReportController@getStockReport'), 'method' => 'get', 'id' => 'product_purchase_report_form' ]) !!}
+          {!! Form::open(['url' => action([\App\Http\Controllers\ReportController::class, 'getStockReport']), 'method' => 'get', 'id' => 'product_purchase_report_form' ]) !!}
             <div class="col-md-3">
                 <div class="form-group">
                 {!! Form::label('search_product', __('lang_v1.search_product') . ':') !!}
@@ -33,7 +33,7 @@
                         <span class="input-group-addon">
                             <i class="fa fa-user"></i>
                         </span>
-                        {!! Form::select('supplier_id', $suppliers, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'required']); !!}
+                        {!! Form::select('supplier_id', $suppliers, null, ['class' => 'form-control select2', 'style' => 'width:100%;', 'placeholder' => __('messages.please_select'), 'required']); !!}
                     </div>
                 </div>
             </div>
@@ -44,7 +44,7 @@
                         <span class="input-group-addon">
                             <i class="fa fa-map-marker"></i>
                         </span>
-                        {!! Form::select('location_id', $business_locations, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'required']); !!}
+                        {!! Form::select('location_id', $business_locations, null, ['class' => 'form-control select2', 'style' => 'width:100%;', 'placeholder' => __('messages.please_select'), 'required']); !!}
                     </div>
                 </div>
             </div>
@@ -53,6 +53,13 @@
 
                     {!! Form::label('product_pr_date_filter', __('report.date_range') . ':') !!}
                     {!! Form::text('date_range', null, ['placeholder' => __('lang_v1.select_a_date_range'), 'class' => 'form-control', 'id' => 'product_pr_date_filter', 'readonly']); !!}
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group">
+                    {!! Form::label('ppr_brand_id', __('product.brand').':') !!}
+                    {!! Form::select('ppr_brand_id', $brands, null, ['class' => 'form-control select2', 'style' => 'width:100%;', 'placeholder' => __('lang_v1.all')]); !!}
                 </div>
             </div>
             {!! Form::close() !!}

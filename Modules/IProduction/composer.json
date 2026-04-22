@@ -1,0 +1,25 @@
+{
+    "name": "wr2/Fabricação",
+    "description": "Software de Gestão de Produção e Fabricação",
+    "authors": [
+        {
+            "name": "Office Impresso",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\IProduction\\Providers\\IProductionServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\IProduction\\": ""
+        }
+    }
+}

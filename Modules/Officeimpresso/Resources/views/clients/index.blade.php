@@ -1,23 +1,20 @@
 @extends('layouts.app')
-@section('title', __('officeimpresso::lang.licencas'))
+@section('title', __('officeimpresso::lang.clients'))
 
 @section('vue')
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('officeimpresso::lang.licencas')</h1>
+    <h1>@lang('officeimpresso::lang.clients')</h1>
 </section>
 
 @if(empty($is_demo))
 <section class="content">
-    @component('components.widget', ['class' => 'box-solid', 'title' => __('officeimpresso::lang.licencas')])
+    @component('components.widget', ['class' => 'box-solid', 'title' => __('officeimpresso::lang.clients')])
         @slot('tool')
             <div class="box-tools">
-                @can('superadmin')
-                    <a href="{{action('\Modules\Officeimpresso\Http\Controllers\LicencaController@regenerate')}}" class="btn btn-block btn-default">
-                        <i class="fas fa-plus"></i> @lang('officeimpresso::lang.regenerate_doc')
-                    </a>
-                @endcan
-
+                <a href="{{ url('officeimpresso/regenerate') }}" class="btn btn-block btn-default">
+                    <i class="fas fa-sync"></i> @lang('officeimpresso::lang.regenerate_doc')
+                </a>
                 <button type="button" class="btn btn-block btn-primary btn-modal"
                     data-toggle="modal"
                     data-target="#create_client_modal">
@@ -26,37 +23,23 @@
             </div>
         @endslot
         <div class="table-responsive">
-            <table class="table table-bordered table-striped" id="licencas_table">
+            <table class="table table-bordered table-striped" id="clients_table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>@lang('officeimpresso::lang.ipinterno')</th>
-                        <th>@lang('officeimpresso::lang.ultimoacesso')</th>
-                        <th>@lang('officeimpresso::lang.cliente')</th>
-                        <th>@lang('officeimpresso::lang.cnpjcpf')</th>
-                        <th>@lang('officeimpresso::lang.versaodisponivel')</th>
-                        <th>@lang('officeimpresso::lang.versaominima')</th>
-                        <th>@lang('officeimpresso::lang.bloqueado')</th>
-                        <th>@lang('officeimpresso::lang.quantidademaquinas')</th>
+                        <th>@lang('user.name')</th>
                         <th>@lang('officeimpresso::lang.client_secret')</th>
                         <th>@lang('messages.action')</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($licencas as $licenca)
+                    @foreach($clients as $client)
                         <tr>
-                            <td>{{ $licenca->id }}</td>
-                            <td>{{ $licenca->ip_interno }}</td>
-                            <td>{{ $licenca->ultimo_acesso }}</td>
-                            <td>{{ $licenca->cliente }}</td>
-                            <td>{{ $licenca->cnpj_cpf }}</td>
-                            <td>{{ $licenca->versao_disponivel }}</td>
-                            <td>{{ $licenca->versao_minima }}</td>
-                            <td>{{ $licenca->bloqueado ? 'Sim' : 'Não' }}</td>
-                            <td>{{ $licenca->quantidade_maquinas }}</td>
-                            <td>{{ $licenca->client_secret }}</td>
+                            <td>{{ $client->id }}</td>
+                            <td>{{ $client->name }}</td>
+                            <td><code>{{ $client->secret }}</code></td>
                             <td>
-                                {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\LicencaController@destroy', [$licenca->id]), 'method' => 'delete', 'id' => 'delete_client_form_' . $licenca->id ]) !!}
+                                {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\ClientController@destroy', [$client->id]), 'method' => 'delete', 'id' => 'delete_client_form_' . $client->id]) !!}
                                     <button type="submit" class="btn btn-danger btn-xs">
                                         <i class="fas fa-trash"></i> @lang('messages.delete')
                                     </button>
@@ -83,7 +66,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
 
-            {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\LicencaController@store'), 'method' => 'post', 'id' => 'create_client_form' ]) !!}
+            {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\ClientController@store'), 'method' => 'post', 'id' => 'create_client_form']) !!}
 
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -112,7 +95,7 @@
 @section('javascript')
 <script type="text/javascript">
     $(document).ready(function() {
-        licencas_table = $('#licencas_table').DataTable();
+        $('#clients_table').DataTable();
     });
 </script>
 @endsection

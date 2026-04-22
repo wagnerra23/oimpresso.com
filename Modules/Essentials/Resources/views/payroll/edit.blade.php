@@ -11,7 +11,7 @@
 
 <!-- Main content -->
 <section class="content">
-{!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\PayrollController@update', [$payroll->id]), 'method' => 'put', 'id' => 'add_payroll_form' ]) !!}
+{!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'update'], [$payroll->id]), 'method' => 'put', 'id' => 'add_payroll_form' ]) !!}
     <div class="row">
         <div class="col-md-12">
             @component('components.widget')

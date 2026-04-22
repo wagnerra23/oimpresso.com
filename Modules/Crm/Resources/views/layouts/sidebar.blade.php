@@ -4,7 +4,7 @@
   <!-- sidebar: style can be found in sidebar.less -->
   <section class="sidebar">
 
-	<a href="{{action('\Modules\Crm\Http\Controllers\DashboardController@index')}}" class="logo">
+	<a href="{{action([\Modules\Crm\Http\Controllers\DashboardController::class, 'index'])}}" class="logo">
 		<span class="logo-lg">{{ Session::get('business.name') }}</span>
 	</a>
 

@@ -1,5 +1,5 @@
 <div class="modal-dialog modal-lg" role="document">
-    {!! Form::open(['url' => action('DocumentAndNoteController@update', $document_note->id), 'id' => 'docus_notes_form', 'method' => 'put']) !!}
+    {!! Form::open(['url' => action([\App\Http\Controllers\DocumentAndNoteController::class, 'update'], $document_note->id), 'id' => 'docus_notes_form', 'method' => 'put']) !!}
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -55,10 +55,10 @@
             @endif
         </div>
         <div class="modal-footer">
-            <button type="submit" class="btn btn-primary btn-sm">
+            <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">
                 @lang('messages.update')
             </button>
-            <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+            <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white" data-dismiss="modal">
                 @lang('messages.close')
             </button>
         </div>

@@ -19,35 +19,35 @@
 						@php 
     						$custom_labels = json_decode(session('business.custom_labels'), true);
 						@endphp
-						@if(!empty($product->product_custom_field1))
-							<br/>
-							<b>{{ $custom_labels['product']['custom_field_1'] ?? __('lang_v1.product_custom_field1') }}: </b>
-							{{$product->product_custom_field1 }}
-						@endif
 
-						@if(!empty($product->product_custom_field2))
-							<br/>
-							<b>{{ $custom_labels['product']['custom_field_2'] ?? __('lang_v1.product_custom_field2') }}: </b>
-							{{$product->product_custom_field2 }}
-						@endif
+                        @for($i = 1; $i <= 20; $i++)
+                            @php
+                                $db_field = 'product_custom_field' . $i;
+                                $label = 'custom_field_' .$i;
+                            @endphp
 
-						@if(!empty($product->product_custom_field3))
-							<br/>
-							<b>{{ $custom_labels['product']['custom_field_3'] ?? __('lang_v1.product_custom_field3') }}: </b>
-							{{$product->product_custom_field3 }}
-						@endif
-
-						@if(!empty($product->product_custom_field4))
-							<br/>
-							<b>{{ $custom_labels['product']['custom_field_4'] ?? __('lang_v1.product_custom_field4') }}: </b>
-							{{$product->product_custom_field4 }}
-						@endif
+                            @if(!empty($product->$db_field))
+                                <br/>
+                                <b>{{ $custom_labels['product'][$label] ?? '' }}: </b>
+                                {{$product->$db_field }}
+                            @endif
+                        @endfor
+						
 						<br>
 						<strong>@lang('lang_v1.available_in_locations'):</strong>
 						@if(count($product->product_locations) > 0)
 							{{implode(', ', $product->product_locations->pluck('name')->toArray())}}
 						@else
 							@lang('lang_v1.none')
+						@endif
+						@if(!empty($product->media->first())) <br>
+							<strong>@lang('lang_v1.product_brochure'):</strong>
+							<a href="{{$product->media->first()->display_url}}" download="{{$product->media->first()->display_name}}">
+								<span class="label label-info">
+									<i class="fas fa-download"></i>
+									{{$product->media->first()->display_name}}
+								</span>
+							</a>
 						@endif
 	      			</div>
 
@@ -173,12 +173,12 @@
       		@endif
       	</div>
       	<div class="modal-footer">
-      		<button type="button" class="btn btn-primary no-print" 
+      		<button type="button" class="tw-dw-btn tw-dw-btn-primary tw-text-white no-print" 
 	        aria-label="Print" 
 	          onclick="$(this).closest('div.modal').printThis();">
 	        <i class="fa fa-print"></i> @lang( 'messages.print' )
 	      </button>
-	      	<button type="button" class="btn btn-default no-print" data-dismiss="modal">@lang( 'messages.close' )</button>
+	      	<button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white no-print" data-dismiss="modal">@lang( 'messages.close' )</button>
 	    </div>
 	</div>
 </div>

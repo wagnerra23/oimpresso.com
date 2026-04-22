@@ -14,8 +14,8 @@
 	<div style="width: 75%;">
 		{{$schedule->title}}
 		<br>
-		<a href="{{action('\Modules\Crm\Http\Controllers\ScheduleController@show', ['follow-ups' => $schedule->id ])}}" class="text-white mr-8" data-toggle="tooltip" title="{{__('crm::lang.view_follow_up')}}"><i class="fas fa-eye"></i></a>
-		<a href="{{action('\Modules\Crm\Http\Controllers\ScheduleLogController@create', ['schedule_id' => $schedule->id])}}" class="add-schedule-log text-white" class="text-white" data-toggle="tooltip" title="{{__('crm::lang.add_schedule_log')}}"><i class="fas fa-business-time"></i></a>
+		<a href="{{action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'show'], ['follow-ups' => $schedule->id ])}}" class="text-white mr-8" data-toggle="tooltip" title="{{__('crm::lang.view_follow_up')}}"><i class="fas fa-eye"></i></a>
+		<a href="{{action([\Modules\Crm\Http\Controllers\ScheduleLogController::class, 'create'], ['schedule_id' => $schedule->id])}}" class="add-schedule-log text-white" class="text-white" data-toggle="tooltip" title="{{__('crm::lang.add_schedule_log')}}"><i class="fas fa-business-time"></i></a>
 	</div>
 	
 </div>

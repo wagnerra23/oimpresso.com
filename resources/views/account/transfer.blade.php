@@ -1,7 +1,7 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
 
-    {!! Form::open(['url' => action('AccountController@postFundTransfer'), 'method' => 'post', 'id' => 'fund_transfer_form', 'files' => true ]) !!}
+    {!! Form::open(['url' => action([\App\Http\Controllers\AccountController::class, 'postFundTransfer']), 'method' => 'post', 'id' => 'fund_transfer_form', 'files' => true ]) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -9,10 +9,10 @@
     </div>
 
     <div class="modal-body">
+
             <div class="form-group">
-                <strong>@lang('account.selected_account')</strong>: 
-                {{$from_account->name}}
-                {!! Form::hidden('from_account', $from_account->id) !!}
+                {!! Form::label('from_account', __( 'lang_v1.transfer_from' ) .":*") !!}
+                {!! Form::select('from_account', $to_accounts, $from_account->id, ['class' => 'form-control', 'required' ]); !!}
             </div>
 
             <div class="form-group">
@@ -26,9 +26,9 @@
             </div>
 
             <div class="form-group">
-                {!! Form::label('operation_date', __( 'messages.date' ) .":*") !!}
-                <div class="input-group date" id='od_datetimepicker'>
-                  {!! Form::text('operation_date', 0, ['class' => 'form-control', 'required','placeholder' => __( 'messages.date' ) ]); !!}
+                {!! Form::label('od_datetimepicker', __( 'messages.date' ) .":*") !!}
+                <div class="input-group">
+                  {!! Form::text('operation_date', null, ['class' => 'form-control', 'required','placeholder' => __( 'messages.date' ), 'id' => 'od_datetimepicker' ]); !!}
                   <span class="input-group-addon">
                     <span class="glyphicon glyphicon-calendar"></span>
                   </span>
@@ -51,8 +51,8 @@
     </div>
 
     <div class="modal-footer">
-      <button type="submit" class="btn btn-primary">@lang( 'messages.submit' )</button>
-      <button type="button" class="btn btn-default" data-dismiss="modal">@lang( 'messages.close' )</button>
+      <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white">@lang( 'messages.submit' )</button>
+      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white" data-dismiss="modal">@lang( 'messages.close' )</button>
     </div>
 
     {!! Form::close() !!}

@@ -1,6 +1,6 @@
 <div class="modal-dialog" role="document">
     <div class="modal-content">
-        {!! Form::open(['url' => action('\Modules\Repair\Http\Controllers\DeviceModelController@update', [$model->id]), 'method' => 'put', 'id' => 'device_model' ]) !!}
+        {!! Form::open(['url' => action([\Modules\Repair\Http\Controllers\DeviceModelController::class, 'update'], [$model->id]), 'method' => 'put', 'id' => 'device_model' ]) !!}
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>

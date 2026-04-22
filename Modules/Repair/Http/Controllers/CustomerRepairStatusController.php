@@ -2,17 +2,18 @@
 
 namespace Modules\Repair\Http\Controllers;
 
-use Modules\Repair\Entities\JobSheet;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\View;
+use Modules\Repair\Entities\JobSheet;
 use Spatie\Activitylog\Models\Activity;
 
 class CustomerRepairStatusController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
      * @return Response
      */
     public function index()
@@ -22,7 +23,8 @@ class CustomerRepairStatusController extends Controller
 
     /**
      * Show the specified resource.
-     * @param int $id
+     *
+     * @param  int  $id
      * @return Response
      */
     public function postRepairStatus(Request $request)
@@ -60,15 +62,15 @@ class CustomerRepairStatusController extends Controller
                                 'repair_job_sheets.device_id'
                             );
 
-                if (!empty($search_type) && $search_type == 'job_sheet_no') {
+                if (! empty($search_type) && $search_type == 'job_sheet_no') {
                     $query->where('repair_job_sheets.job_sheet_no', $search_number);
-                } elseif (!empty($search_type) && $search_type == 'invoice_no') {
+                } elseif (! empty($search_type) && $search_type == 'invoice_no') {
                     $query->where('transactions.invoice_no', $search_number);
-                } elseif (!empty($search_type) && $search_type == 'mobile_num') {
+                } elseif (! empty($search_type) && $search_type == 'mobile_num') {
                     $query->where('contacts.mobile', $search_number);
                 }
 
-                if (!empty($request->input('serial_no'))) {
+                if (! empty($request->input('serial_no'))) {
                     $query->where('repair_job_sheets.serial_no', $request->input('serial_no'));
                 }
 
@@ -85,7 +87,7 @@ class CustomerRepairStatusController extends Controller
 
                 if (count($sells) < 1) {
                     return ['success' => false,
-                        'msg' => __("repair::lang.invalid_repair_details")
+                        'msg' => __('repair::lang.invalid_repair_details'),
                     ];
                 }
 
@@ -96,19 +98,19 @@ class CustomerRepairStatusController extends Controller
                                            ->get();
                 }
 
-                $repair_html = View::make('repair::customer_repair.repair_details')
+                $repair_html = view('repair::customer_repair.repair_details')
                                 ->with(compact('sells'))
                                 ->render();
 
                 $output = ['success' => true,
-                    'msg' => __("lang_v1.success"),
-                    'repair_html' => $repair_html
+                    'msg' => __('lang_v1.success'),
+                    'repair_html' => $repair_html,
                 ];
             } catch (Exception $e) {
-                \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-            
+                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
                 $output = ['success' => false,
-                    'msg' => __("messages.something_went_wrong")
+                    'msg' => __('messages.something_went_wrong'),
                 ];
             }
 

@@ -37,7 +37,7 @@
 					</div>
 					<div class="col-md-6">
 						<strong>
-							{{ __('repair::lang.expected_delivery_date') }}:
+							{{ __('lang_v1.due_date') }}:
 						</strong>
 						@if(!empty($sell->delivery_date))
 							{{\Carbon::parse($sell->delivery_date)->toDayDateTimeString()}}

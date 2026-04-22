@@ -16,7 +16,7 @@
 
 <!-- Main content -->
 <section class="content">
-{!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\KnowledgeBaseController@update', [$kb->id]), 'method' => 'put' ]) !!}
+{!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'update'], [$kb->id]), 'method' => 'put', 'id' => 'knowledgeBaseForm']) !!}
     @component('components.widget', ['title' => $page_title])
         <div class="row">
             <div class="col-md-12">
@@ -28,7 +28,8 @@
             <div class="col-md-12">
                 <div class="form-group">
                     {!! Form::label('content', __( 'essentials::lang.content' ) . ':') !!}
-                    {!! Form::textarea('content', $kb->content, ['class' => 'form-control', 'placeholder' => __( 'essentials::lang.content' ) ]); !!}
+                    {!! Form::textarea('content', $kb->content, ['class' => 'form-control', 'placeholder' => __( 'essentials::lang.content' ), 'id' => 'content' ]); !!}
+                    {!! Form::hidden('content_encoded', null, ['id' => 'content_encoded']) !!}
                 </div>
             </div>
             @if($kb->kb_type == 'knowledge_base')
@@ -64,6 +65,31 @@
                 $('#user_ids_div').fadeOut();
             }
         });
+
+        // Listener para o submit do formulário
+        document.getElementById('knowledgeBaseForm').addEventListener('submit', function (event) {
+            // Obter o conteúdo do TinyMCE
+            const conteudoOriginal = tinymce.get('content').getContent();
+            
+            // Codificar o conteúdo
+            const conteudoCodificado = encodeHTML(conteudoOriginal);
+            
+            // Armazenar o conteúdo codificado no campo oculto
+            document.getElementById('content_encoded').value = conteudoCodificado;
+        });
+
+        // Função para codificar HTML
+        function encodeHTML(str) {
+            return str.replace(/[<>&"']/g, function (char) {
+                switch (char) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case '"': return '&quot;';
+                    case "'": return '&#39;';
+                }
+            });
+        }
     });
 </script>
 @endsection

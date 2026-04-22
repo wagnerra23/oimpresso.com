@@ -3,6 +3,28 @@ $(document).ready(function(){
 	 * CRM MODULE
 	 * contact login related code
 	 */
+	all_contact_login_datatable = $("#all_contact_login_table").DataTable({
+            processing: true,
+            serverSide: true,
+            'ajax': {
+                url: "/crm/contact-login",
+                data: function (d) {
+                    if ($("#contact_id").length > 0) {
+                    	d.crm_contact_id = $("#contact_id").val();
+                    }
+                }
+            },
+            columns: [
+                { data: 'action', name: 'action', searchable: false, sortable: false },
+                { data: 'contact', name: 'contact', searchable: false, sortable: false },
+                { data: 'username', name: 'username' },
+                { data: 'name', name: 'name', searchable: false, sortable: false },
+                { data: 'email', name: 'email' },
+                { data: 'crm_department', name: 'crm_department' },
+                { data: 'crm_designation', name: 'crm_designation' }
+            ],
+	});
+
 	contact_login_datatable = $("#contact_login_table").DataTable({
             processing: true,
             serverSide: true,
@@ -13,16 +35,25 @@ $(document).ready(function(){
                 }
             },
             columns: [
-                { data: 'action', name: 'action', searchable: false, sortable: false },
-                { data: 'username', name: 'username' },
-                { data: 'name', name: 'name' },
-                { data: 'email', name: 'email' }
-            ],
+					{ data: 'action', name: 'action', searchable: false, sortable: false },
+	                { data: 'username', name: 'username' },
+	                { data: 'name', name: 'name', searchable: false, sortable: false },
+	                { data: 'email', name: 'email' },
+	                { data: 'crm_department', name: 'crm_department' },
+	            	{ data: 'crm_designation', name: 'crm_designation' }
+	            ]
+	});
+
+	$(document).on('change', '#contact_id', function() {
+		all_contact_login_datatable.ajax.reload();
 	});
 
 	$(document).on('click', '.contact-login-add', function () {
 	    var url = $(this).data('href');
-	    var data = {contact_id : $('input#contact_id_for_login').val()};
+	    var data = {
+	    			contact_id : $('input#contact_id_for_login').val(),
+	    			crud_type: $("input#login_view_type").val()
+	    		};
 	    $.ajax({
 	        method: 'GET',
 	        url: url,
@@ -88,7 +119,7 @@ $(document).ready(function(){
 	                    remote: 'Invalid username or User already exist'
 	                },
 	                email: {
-	                    remote: '{{ __("validation.unique", ["attribute" => __("business.email")]) }}'
+	                    remote: 'Email already exists'
 	                }
 	            }
 	        });
@@ -148,6 +179,7 @@ $(document).ready(function(){
 	            if (result.success) {
 	                $('.contact_login_modal').modal('hide');
 	                toastr.success(result.msg);
+	                all_contact_login_datatable.ajax.reload();
 	                contact_login_datatable.ajax.reload();
 	            } else {
 	                toastr.error(result.msg);
@@ -174,6 +206,7 @@ $(document).ready(function(){
 	                success: function(result) {
 	                    if (result.success) {
 	                        toastr.success(result.msg);
+	                        all_contact_login_datatable.ajax.reload();
 	                        contact_login_datatable.ajax.reload();
 	                    } else {
 	                        toastr.error(result.msg);
@@ -183,13 +216,17 @@ $(document).ready(function(){
 	        }
 	    });
 	});
-
+	
 	$(document).on('click', '.edit_contact_login', function() {
 	    var url = $(this).data('href');
+	    var data = {
+	    			crud_type: $("input#login_view_type").val()
+	    		};
 	    $.ajax({
 	        method: 'GET',
 	        url: url,
 	        dataType: 'html',
+	        data: data,
 	        success: function(result) {
 	            $('.contact_login_modal').html(result).modal('show');
 	        }
@@ -209,6 +246,7 @@ $(document).ready(function(){
 	            if (result.success) {
 	                $('.contact_login_modal').modal('hide');
 	                toastr.success(result.msg);
+	                all_contact_login_datatable.ajax.reload();
 	                contact_login_datatable.ajax.reload();
 	            } else {
 	                toastr.error(result.msg);
@@ -503,6 +541,10 @@ $(document).ready(function(){
 	                        if (typeof(follow_up_datatable) != 'undefined') {
 							    follow_up_datatable.ajax.reload();
 							}
+
+							if (typeof(recursive_follow_up_table) != 'undefined') {
+							    recursive_follow_up_table.ajax.reload();
+							}
 	                    } else {
 	                        toastr.error(result.msg);
 	                    }
@@ -660,7 +702,7 @@ $(document).ready(function(){
 	            if (result.success) {
 	                $('.schedule_log_modal').modal("hide");
 	                toastr.success(result.msg);
-	                getScheduleLog();
+	                getScheduleLog($("input#schedule_id").val());
 	            } else {
 	                toastr.error(result.msg);
 	            }
@@ -685,7 +727,7 @@ $(document).ready(function(){
 	                success: function(result) {
 	                    if (result.success) {
 	                        toastr.success(result.msg);
-	                        getScheduleLog();
+	                        getScheduleLog($("input#schedule_id").val());
 	                    } else {
 	                        toastr.error(result.msg);
 	                    }
@@ -1046,7 +1088,12 @@ function initializeLeadScheduleDatatable() {
 		            { data: 'start_datetime', name: 'start_datetime' },
 		            { data: 'end_datetime', name: 'end_datetime' },
 		            { data: 'users', name: 'users' },
-		        ] 
+		        ],
+		        "fnDrawCallback": function( oSettings ) {
+		        	$('a.view_schedule_log').click(function(){
+		        		getScheduleLog($(this).data('schedule_id'), true);
+		        	})
+			    }, 
 			});
 	} else {
         lead_schedule_datatable.ajax.reload();
@@ -1112,8 +1159,8 @@ function getLedger() {
     });
 }
 
-function getScheduleLog() {
-	var data = {schedule_id : $("input#schedule_id").val()};
+function getScheduleLog(schedule_id, modal_content = false) {
+	var data = {schedule_id : schedule_id, modal_content: modal_content};
 	$.ajax({
         method: 'GET',
         url: '/crm/follow-up-log',
@@ -1121,7 +1168,12 @@ function getScheduleLog() {
         data:data,
         success: function(result) {
             if (result.success) {
-                $(".timeline").html(result.log);
+
+            	if(modal_content){
+            		$('div.schedule_log_modal').html(result.log).modal('show');
+            	}else{
+            		$(".followup_timeline").html(result.log);
+            	}
             } else {
                 toastr.error(result.msg);
             }

@@ -14,9 +14,10 @@ class IsSincronizadoContacts extends Migration
     public function up()
     {
         Schema::table('contacts', function (Blueprint $table) {
-            $table->boolean('is_sincronizado') // Nome da coluna
-                    ->nullable(); // Preenchimento não obrigatório
-    });
+            if (!Schema::hasColumn('contacts', 'is_sincronizado')) {
+                $table->boolean('is_sincronizado')->nullable();
+            }
+        });
     }
 
     /**

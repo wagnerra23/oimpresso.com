@@ -1,5 +1,5 @@
 <button type="button" class="btn btn-sm btn-primary btn-modal pull-right" 
-    data-href="{{action('\Modules\Repair\Http\Controllers\RepairStatusController@create')}}" 
+    data-href="{{action([\Modules\Repair\Http\Controllers\RepairStatusController::class, 'create'])}}" 
     data-container=".view_modal">
     <i class="fa fa-plus"></i>
     @lang( 'messages.add' )

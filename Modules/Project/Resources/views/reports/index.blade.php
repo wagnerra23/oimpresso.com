@@ -20,7 +20,7 @@
 					</span>
 				</div>
 				<div class="box-footer text-center">
-					<a href="{{action('\Modules\Project\Http\Controllers\ReportController@getEmployeeTimeLogReport')}}" class="btn btn-block bg-navy btn-flat">
+					<a href="{{action([\Modules\Project\Http\Controllers\ReportController::class, 'getEmployeeTimeLogReport'])}}" class="btn btn-block bg-navy btn-flat">
 						<i class="fa fa-eye"></i>
 						@lang("messages.view")
 					</a>
@@ -37,7 +37,7 @@
 					</span>
 				</div>
 				<div class="box-footer text-center">
-					<a href="{{action('\Modules\Project\Http\Controllers\ReportController@getProjectTimeLogReport')}}" class="btn btn-block bg-navy btn-flat">
+					<a href="{{action([\Modules\Project\Http\Controllers\ReportController::class, 'getProjectTimeLogReport'])}}" class="btn btn-block bg-navy btn-flat">
 						<i class="fa fa-eye"></i>
 						@lang("messages.view")
 					</a>

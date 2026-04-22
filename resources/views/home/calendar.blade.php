@@ -5,7 +5,7 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang( 'lang_v1.calendar' )</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang( 'lang_v1.calendar' )</h1>
 </section>
 
 <!-- Main content -->
@@ -42,8 +42,8 @@
                         @endforeach
                         @if(Module::has('Essentials'))
                         <div class="col-md-12">
-                            <button class="btn btn-block btn-success btn-modal" 
-                                data-href="{{action('\Modules\Essentials\Http\Controllers\ToDoController@create')}}?from_calendar=true" 
+                            <button class="tw-dw-btn tw-dw-btn-success tw-text-white tw-dw-btn-sm tw-w-full btn-modal" 
+                                data-href="{{action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'create'])}}?from_calendar=true" 
                                 data-container="#task_modal">
                                 <i class="fa fa-plus"></i> @lang( 'essentials::lang.add_to_do' )</a>
                             </button>
@@ -141,10 +141,4 @@
             $('#calendar').fullCalendar( 'addEventSource', events_source);
         }
     </script>
-    @if(Module::has('Essentials'))
-        <div class="modal fade" id="task_modal" tabindex="-1" role="dialog" 
-        aria-labelledby="gridSystemModalLabel">
-        </div>
-        @include('essentials::todo.todo_javascript')
-    @endif
 @endsection

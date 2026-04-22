@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateJobSheetsTable extends Migration
 {
@@ -34,7 +34,7 @@ class CreateJobSheetsTable extends Migration
 
             $table->text('pick_up_on_site_addr')
                 ->nullable();
-                
+
             $table->integer('brand_id')
                 ->nullable()->unsigned();
             $table->foreign('brand_id')
@@ -64,7 +64,7 @@ class CreateJobSheetsTable extends Migration
 
             $table->dateTime('delivery_date')
                 ->nullable();
-            
+
             $table->text('product_configuration')
                 ->nullable();
 

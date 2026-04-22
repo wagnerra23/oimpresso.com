@@ -1,0 +1,14 @@
+/* Tema Azul */
+[data-theme="blue"] {
+    --theme-color: #1572E8;
+}
+
+/* Tema Vermelho */
+[data-theme="red"] {
+    --theme-color: #f5365c;
+}
+
+/* Aplicando ao layout */
+.main-header, .main-sidebar {
+    background-color: var(--theme-color);
+}

@@ -2,9 +2,10 @@
 @section('title', __('superadmin::lang.superadmin') . ' | ' . __('superadmin::lang.packages'))
 
 @section('content')
+	@include('superadmin::layouts.nav')
 	<section class="content-header">
 		<h1>
-			Olá SuperAdmin
+			@lang('superadmin::lang.welcome_superadmin')
 		</h1>
 	</section>
 
@@ -56,7 +57,7 @@
 	            <div class="icon">
 	              <i class="fa fa-refresh"></i>
 	            </div>
-	            <a href="{{action('\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController@index')}}" class="small-box-footer">@lang('superadmin::lang.more_info') <i class="fa fa-arrow-circle-right"></i></a>
+	            <a href="{{action([\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'index'])}}" class="small-box-footer">@lang('superadmin::lang.more_info') <i class="fa fa-arrow-circle-right"></i></a>
 	          </div>
 	        </div>
 	        <!-- ./col -->
@@ -87,7 +88,7 @@
 	            <div class="icon">
 	              <i class="ion ion-person-add"></i>
 	            </div>
-	            <a href="{{action('\Modules\Superadmin\Http\Controllers\BusinessController@index')}}" class="small-box-footer">@lang('superadmin::lang.more_info') <i class="fa fa-arrow-circle-right"></i></a>
+	            <a href="{{action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'index'])}}" class="small-box-footer">@lang('superadmin::lang.more_info') <i class="fa fa-arrow-circle-right"></i></a>
 	          </div>
 	        </div>
 	        <!-- ./col -->
@@ -103,7 +104,7 @@
 	            <div class="icon">
 	              <i class="ion ion-pie-graph"></i>
 	            </div>
-	            <a href="{{action('\Modules\Superadmin\Http\Controllers\BusinessController@index')}}" class="small-box-footer">@lang('superadmin::lang.more_info') <i class="fa fa-arrow-circle-right"></i></a>
+	            <a href="{{action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'index'])}}" class="small-box-footer">@lang('superadmin::lang.more_info') <i class="fa fa-arrow-circle-right"></i></a>
 	          </div>
 	        </div>
         	<!-- ./col -->

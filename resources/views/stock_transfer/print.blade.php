@@ -74,8 +74,7 @@
           <th>#</th>
           <th>@lang('sale.product')</th>
           <th>@lang('sale.qty')</th>
-          <th>@lang('sale.unit_price')</th>
-          <th>@lang('sale.subtotal')</th>
+          <th class="show_price_with_permission">@lang('sale.subtotal')</th>
         </tr>
         @php 
           $total = 0.00;
@@ -89,6 +88,7 @@
                 - {{ $sell_lines->variations->product_variation->name}}
                 - {{ $sell_lines->variations->name}}
                @endif
+               - {{ $sell_lines->variations->sub_sku}}
                @if($lot_n_exp_enabled && !empty($sell_lines->lot_details))
                 <br>
                 <strong>@lang('lang_v1.lot_n_expiry'):</strong> 
@@ -101,10 +101,7 @@
                @endif
             </td>
             <td>{{ @format_quantity($sell_lines->quantity) }} {{$sell_lines->product->unit->short_name ?? ""}}</td>
-            <td>
-              <span class="display_currency" data-currency_symbol="true">{{ $sell_lines->unit_price_inc_tax}}</span>
-            </td>
-            <td>
+            <td class="show_price_with_permission">
               <span class="display_currency" data-currency_symbol="true">{{ $sell_lines->unit_price_inc_tax * $sell_lines->quantity }}</span>
             </td>
           </tr>
@@ -121,9 +118,9 @@
   
   <div class="col-xs-6">
     <div class="table-responsive">
-      <table class="table">
+      <table class="table show_price_with_permission">
         <tr>
-          <th>@lang('purchase.net_total_amount'): </th>
+          <th >@lang('purchase.net_total_amount'): </th>
           <td></td>
           <td><span class="display_currency pull-right" data-currency_symbol="true">{{ $total }}</span></td>
         </tr>

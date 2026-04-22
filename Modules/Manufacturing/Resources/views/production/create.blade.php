@@ -11,7 +11,7 @@
 <!-- Main content -->
 <section class="content">
 
-	{!! Form::open(['url' => action('\Modules\Manufacturing\Http\Controllers\ProductionController@store'), 'method' => 'post', 'id' => 'production_form', 'files' => true ]) !!}
+	{!! Form::open(['url' => action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'store']), 'method' => 'post', 'id' => 'production_form', 'files' => true ]) !!}
 	@component('components.widget', ['class' => 'box-solid'])
 		<div class="row">
 			<div class="col-sm-3">
@@ -63,6 +63,16 @@
 					</div>
 				</div>
 			</div>
+			<div class="col-sm-3">
+                <div class="form-group">
+                    {!! Form::label('upload_document', __('purchase.attach_document') . ':') !!}
+                    {!! Form::file('documents[]', ['id' => 'upload_document', 'multiple', 'accept' => implode(',', array_keys(config('constants.document_upload_mimes_types')))]); !!}
+                    <p class="help-block">
+                    	@lang('purchase.max_file_size', ['size' => (config('constants.document_size_limit') / 1000000)])
+                    	@includeIf('components.document_help_text')
+                    </p>
+                </div>
+            </div>
 		</div>
 	@endcomponent
 

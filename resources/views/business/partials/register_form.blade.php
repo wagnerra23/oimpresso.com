@@ -1,10 +1,11 @@
+
 @if(empty($is_admin))
     <h3>@lang('business.business')</h3>
 @endif
 {!! Form::hidden('language', request()->lang); !!}
 
 <fieldset>
-<legend>@lang('business.business_details'):</legend>
+<legend class="text-black">@lang('business.business_details'):</legend>
 <div class="col-md-12">
     <div class="form-group">
         {!! Form::label('name', __('business.business_name') . ':*' ) !!}
@@ -160,7 +161,7 @@
     <h3>@lang('business.business_settings')</h3>
 
     <fieldset>
-    <legend>@lang('business.business_settings'):</legend>
+    <legend class="text-black">@lang('business.business_settings'):</legend>
     <div class="col-md-6">
         <div class="form-group">
             {!! Form::label('tax_label_1', __('business.tax_1_name') . ':') !!}
@@ -240,7 +241,7 @@
 @endif
 
 <fieldset>
-<legend>@lang('business.owner_info')</legend>
+<legend class="text-black">@lang('business.owner_info')</legend>
 <div class="col-md-4">
     <div class="form-group">
         {!! Form::label('surname', __('business.prefix') . ':') !!}
@@ -291,12 +292,12 @@
 
 <div class="col-md-6">
     <div class="form-group">
-        {!! Form::label('email', __('business.email') . ':') !!}
+        {!! Form::label('email', __('business.email') . ':*') !!}
         <div class="input-group">
             <span class="input-group-addon">
                 <i class="fa fa-envelope"></i>
             </span>
-            {!! Form::text('email', null, ['class' => 'form-control','placeholder' => __('business.email')]); !!}
+            {!! Form::text('email', null, ['class' => 'form-control','placeholder' => __('business.email'), 'required']); !!}
         </div>
     </div>
 </div>
@@ -327,12 +328,12 @@
 <div class="clearfix"></div>
 <div class="col-md-6">
     @if(!empty($system_settings['superadmin_enable_register_tc']))
-        <div class="form-group">
+        <div>
             <label>
-                {!! Form::checkbox('accept_tc', 0, false, ['required', 'class' => 'input-icheck']); !!}
-                <u><a class="terms_condition cursor-pointer" data-toggle="modal" data-target="#tc_modal">
+                {!! Form::checkbox('accept_tc', 0, false, ['required', 'class' => 'input-check-box']); !!}
+                <a class="terms_condition cursor-pointer" data-toggle="modal" data-target="#tc_modal">
                     @lang('lang_v1.accept_terms_and_conditions') <i></i>
-                </a></u>
+                </a>
             </label>
         </div>
         @include('business.partials.terms_conditions')

@@ -1,5 +1,5 @@
 <div class="modal-dialog" role="document">
-    {!! Form::open(['url' => action('\Modules\Project\Http\Controllers\ProjectTimeLogController@update', $project_task_time_log->id), 'id' => 'time_log_form', 'method' => 'put']) !!}
+    {!! Form::open(['url' => action([\Modules\Project\Http\Controllers\ProjectTimeLogController::class, 'update'], $project_task_time_log->id), 'id' => 'time_log_form', 'method' => 'put']) !!}
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">

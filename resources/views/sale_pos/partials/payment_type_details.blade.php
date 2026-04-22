@@ -61,27 +61,14 @@
 		</div>
 	</div>
 </div>
-<div class="payment_details_div @if( $payment_line['method'] !== 'custom_pay_1' ) {{ 'hide' }} @endif" data-type="custom_pay_1" >
+
+@for ($i = 1; $i < 8; $i++)
+<div class="payment_details_div @if( $payment_line['method'] !== 'custom_pay_' . $i ) {{ 'hide' }} @endif" data-type="custom_pay_{{$i}}" >
 	<div class="col-md-12">
 		<div class="form-group">
-			{!! Form::label("transaction_no_1_$row_index", __('lang_v1.transaction_no')) !!}
-			{!! Form::text("payment[$row_index][transaction_no_1]", $payment_line['transaction_no'], ['class' => 'form-control', 'placeholder' => __('lang_v1.transaction_no'), 'id' => "transaction_no_1_$row_index"]); !!}
+			{!! Form::label("transaction_no_{$i}_{$row_index}", __('lang_v1.transaction_no')) !!}
+			{!! Form::text("payment[$row_index][transaction_no_{$i}]", $payment_line['transaction_no'], ['class' => 'form-control', 'placeholder' => __('lang_v1.transaction_no'), 'id' => "transaction_no_{$i}_{$row_index}"]); !!}
 		</div>
 	</div>
 </div>
-<div class="payment_details_div @if( $payment_line['method'] !== 'custom_pay_2' ) {{ 'hide' }} @endif" data-type="custom_pay_2" >
-	<div class="col-md-12">
-		<div class="form-group">
-			{!! Form::label("transaction_no_2_$row_index", __('lang_v1.transaction_no')) !!}
-			{!! Form::text("payment[$row_index][transaction_no_2]", $payment_line['transaction_no'], ['class' => 'form-control', 'placeholder' => __('lang_v1.transaction_no'), 'id' => "transaction_no_2_$row_index"]); !!}
-		</div>
-	</div>
-</div>
-<div class="payment_details_div @if( $payment_line['method'] !== 'custom_pay_3' ) {{ 'hide' }} @endif" data-type="custom_pay_3" >
-	<div class="col-md-12">
-		<div class="form-group">
-			{!! Form::label("transaction_no_3_$row_index", __('lang_v1.transaction_no')) !!}
-			{!! Form::text("payment[$row_index][transaction_no_3]", $payment_line['transaction_no'], ['class' => 'form-control', 'placeholder' => __('lang_v1.transaction_no'), 'id' => "transaction_no_3_$row_index"]); !!}
-		</div>
-	</div>
-</div>
+@endfor

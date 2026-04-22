@@ -6,12 +6,12 @@
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang( 'user.edit_user' )</h1>
+    <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang( 'user.edit_user' )</h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
-    {!! Form::open(['url' => action('ManageUserController@update', [$user->id]), 'method' => 'PUT', 'id' => 'user_edit_form' ]) !!}
+    {!! Form::open(['url' => action([\App\Http\Controllers\ManageUserController::class, 'update'], [$user->id]), 'method' => 'PUT', 'id' => 'user_edit_form']) !!}
     <div class="row">
         <div class="col-md-12">
         @component('components.widget', ['class' => 'box-primary'])
@@ -41,7 +41,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <div class="form-group">
                   <div class="checkbox">
                     <br>
@@ -52,7 +52,23 @@
                   </div>
                 </div>
             </div>
-            
+            <div class="col-md-3">
+              <div class="form-group">
+                <div class="checkbox">
+                  <br/>
+                  <label>
+                       {!! Form::checkbox('is_enable_service_staff_pin', 1, $user->is_enable_service_staff_pin, ['class' => 'input-icheck status', 'id' => 'is_enable_service_staff_pin']); !!} {{ __('lang_v1.enable_service_staff_pin') }}
+                  </label>
+                  @show_tooltip(__('lang_v1.tooltip_is_enable_service_staff_pin'))
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2 service_staff_pin_div {{ $user->is_enable_service_staff_pin == 1 ? '' : 'hide' }}">
+              <div class="form-group">
+                {!! Form::label('service_staff_pin', __( 'lang_v1.staff_pin' ) . ':') !!}
+                  {!! Form::password('service_staff_pin', ['class' => 'form-control','placeholder' => __( 'lang_v1.staff_pin' ) ]); !!}
+              </div>
+            </div>
         @endcomponent
         </div>
         <div class="col-md-12">
@@ -127,7 +143,7 @@
                     <div class="checkbox">
                       <label>
                         {!! Form::checkbox('location_permissions[]', 'location.' . $location->id, is_array($permitted_locations) && in_array($location->id, $permitted_locations), 
-                        [ 'class' => 'input-icheck']); !!} {{ $location->name }}
+                        [ 'class' => 'input-icheck']); !!} {{ $location->name }} @if(!empty($location->location_id))({{ $location->location_id}}) @endif
                       </label>
                     </div>
                 </div>
@@ -169,9 +185,9 @@
             
             <div class="col-sm-4 selected_contacts_div @if(!$user->selected_contacts) hide @endif">
                 <div class="form-group">
-                  {!! Form::label('selected_contacts', __('lang_v1.selected_contacts') . ':') !!}
+                  {!! Form::label('user_allowed_contacts', __('lang_v1.selected_contacts') . ':') !!}
                     <div class="form-group">
-                      {!! Form::select('selected_contact_ids[]', $contacts, $contact_access, ['class' => 'form-control select2', 'multiple', 'style' => 'width: 100%;' ]); !!}
+                      {!! Form::select('selected_contact_ids[]', $contact_access, array_keys($contact_access), ['class' => 'form-control select2', 'multiple', 'style' => 'width: 100%;', 'id' => 'user_allowed_contacts' ]); !!}
                     </div>
                 </div>
             </div>
@@ -186,8 +202,8 @@
       @endforeach
     @endif
     <div class="row">
-        <div class="col-md-12">
-            <button type="submit" class="btn btn-primary pull-right" id="submit_user_button">@lang( 'messages.update' )</button>
+        <div class="col-md-12 text-center">
+            <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-dw-btn-lg tw-text-white" id="submit_user_button">@lang( 'messages.update' )</button>
         </div>
     </div>
     {!! Form::close() !!}
@@ -203,11 +219,54 @@
     $('#selected_contacts').on('ifUnchecked', function(event){
       $('div.selected_contacts_div').addClass('hide');
     });
+
+    $('#is_enable_service_staff_pin').on('ifChecked', function(event){
+      $('div.service_staff_pin_div').removeClass('hide');
+    });
+
+    $('#is_enable_service_staff_pin').on('ifUnchecked', function(event){
+      $('div.service_staff_pin_div').addClass('hide');
+      $('#service_staff_pin').val('');
+    });
+
     $('#allow_login').on('ifChecked', function(event){
       $('div.user_auth_fields').removeClass('hide');
     });
     $('#allow_login').on('ifUnchecked', function(event){
       $('div.user_auth_fields').addClass('hide');
+    });
+
+    $('#user_allowed_contacts').select2({
+        ajax: {
+            url: '/contacts/customers',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term, // search term
+                    page: params.page,
+                    all_contact: true
+                };
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+        },
+        templateResult: function (data) { 
+            var template = '';
+            if (data.supplier_business_name) {
+                template += data.supplier_business_name + "<br>";
+            }
+            template += data.text + "<br>" + LANG.mobile + ": " + data.mobile;
+
+            return  template;
+        },
+        minimumInputLength: 1,
+        escapeMarkup: function(markup) {
+            return markup;
+        },
     });
   });
 

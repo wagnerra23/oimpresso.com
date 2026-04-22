@@ -116,7 +116,7 @@
                             processing: true,
                             serverSide: true,
                             "ajax": {
-                                "url": "{{action('\Modules\Crm\Http\Controllers\ContactBookingController@index')}}",
+                                "url": "{{action([\Modules\Crm\Http\Controllers\ContactBookingController::class, 'index'])}}",
                                 "data": function ( d ) {
                                     d.location_id = $('#business_location_id').val();
                                 }

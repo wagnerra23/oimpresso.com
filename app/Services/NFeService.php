@@ -61,7 +61,7 @@ class NFeService{
 		$stdIde->dhSaiEnt = date("Y-m-d\TH:i:sP");
 		$stdIde->tpNF = 1;
 		$stdIde->idDest = $config->cidade->uf != $venda->contact->cidade->uf ? 2 : 1;
-		$stdIde->cMunFG = $config->cidade->officeimpresso_codigo;
+		$stdIde->cMunFG = $config->cidade->codigo;
 
 		$stdIde->tpImp = 1;
 		$stdIde->tpEmis = 1;
@@ -103,7 +103,7 @@ class NFeService{
 		$stdEnderEmit->xCpl = "";
 		
 		$stdEnderEmit->xBairro = $config->bairro;
-		$stdEnderEmit->cMun = $config->cidade->officeimpresso_codigo;
+		$stdEnderEmit->cMun = $config->cidade->codigo;
 		$stdEnderEmit->xMun = $config->cidade->nome;
 		$stdEnderEmit->UF = $config->cidade->uf;
 
@@ -155,7 +155,7 @@ class NFeService{
 		$stdEnderDest->nro = $venda->contact->numero;
 		$stdEnderDest->xCpl = "";
 		$stdEnderDest->xBairro = $venda->contact->bairro;
-		$stdEnderDest->cMun = $venda->contact->cidade->officeimpresso_codigo;
+		$stdEnderDest->cMun = $venda->contact->cidade->codigo;
 		$stdEnderDest->xMun = strtoupper($venda->contact->cidade->nome);
 		$stdEnderDest->UF = $venda->contact->cidade->uf;
 

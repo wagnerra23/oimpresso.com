@@ -1,6 +1,6 @@
 <div class="modal-dialog" role="document">
   <div class="modal-content">
-    {!! Form::open(['url' => action('\Modules\Essentials\Http\Controllers\ToDoController@update', $todo->id), 'id' => 'task_form', 'method' => 'put']) !!}
+    {!! Form::open(['url' => action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'update'], $todo->id), 'id' => 'task_form', 'method' => 'put']) !!}
 
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

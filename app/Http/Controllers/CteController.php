@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Cte;
 use App\Veiculo;
 use App\Contact;
-use App\Cidades;
+use App\City;
 use App\MedidaCte;
 use App\ComponenteCte;
 use App\NaturezaOperacao;
@@ -118,7 +118,7 @@ class CteController extends Controller
 	}
 
 	private function prepareCities(){
-		$cities = Cidades::all();
+		$cities = City::all();
 		$temp = [];
 		foreach($cities as $c){
             // array_push($temp, $c->id => $c->nome);

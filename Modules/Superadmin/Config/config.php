@@ -2,5 +2,5 @@
 
 return [
     'name' => 'Superadmin',
-    'module_version' => "2.2",
+    'module_version' => '4.0',
 ];

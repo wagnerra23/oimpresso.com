@@ -12,7 +12,7 @@ class ProjectTaskComment extends Model
      * @var string
      */
     protected $table = 'pjt_project_task_comments';
-    
+
     /**
      * The attributes that aren't mass assignable.
      *

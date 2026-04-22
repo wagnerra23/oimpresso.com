@@ -23,6 +23,7 @@ class InvoiceLayout extends Model
         'contact_custom_fields' => 'array',
         'location_custom_fields' => 'array',
         'common_settings' => 'array',
+        'qr_code_fields' => 'array',
     ];
 
     /**
@@ -36,8 +37,7 @@ class InvoiceLayout extends Model
     /**
      * Return list of invoice layouts for a business
      *
-     * @param int $business_id
-     *
+     * @param  int  $business_id
      * @return array
      */
     public static function forDropdown($business_id)
