@@ -7,6 +7,82 @@
 
 ---
 
+## Estado em 2026-04-22 (sessão 10 — Setup local + React migration inicial + specs + IA stub)
+
+### 🎯 Onde paramos
+
+Branch `6.7-react` no repo principal `D:\oimpresso.com` rodando em `https://oimpresso.test` via **Herd + Laragon MySQL + dump Hostinger importado**. Login Wagner: user `WR23`, senha **`dev123`** (reset local — senha de produção é outra).
+
+### ✅ Feito na sessão 10 (3 commits na branch `6.7-react`)
+
+1. **`3c21836e` — shell**: dark mode por usuário (coluna `users.ui_theme` + anti-flash) + sidebar 2 níveis + menu dinâmico (`LegacyMenuAdapter` extrai de `Menu::instance('admin-sidebar-menu')`) + `HandleInertiaRequests` com `shell.menu` + ThemeToggle
+2. **`86e37e45` — modulos**: Gerenciador React (`/modulos`) + `ModuleSpecGenerator` (`php artisan module:specs`) + **29 specs** em `memory/modulos/` + `memory/CHANGELOG.md` + limpeza (apagado `Modules/Officeimpresso1/`)
+3. **`a6dca851` — ponto**: Dashboard React (6 StatCards + chart 7 dias) + Welcome + Relatórios + **Intercorrências Create com IA** (`IntercorrenciaAIClassifier` via OpenAI gpt-4o-mini JSON mode, cache 24h, mascara CPF/PIS/email pra LGPD)
+
+**4 telas React dentro do AppShell**: `/ponto/react`, `/ponto/relatorios`, `/ponto` (Dashboard), `/ponto/intercorrencias/create`, `/modulos`.
+
+**Fixes**: HasFactory import em 5 models, AiAssistance/Officeimpresso DataController (action() quebrada desativada), scandir `public/assets/css/color/` (pasta vazia criada), permissões `ponto.*` registradas e concedidas a `Admin#1`.
+
+### ⚠️ Pendências imediatas — Wagner precisa fazer
+
+1. **Ativar IA no `.env`** para testar o botão "Preencher com IA" em Intercorrências/Create:
+   ```
+   AI_ENABLED=true
+   AI_CLASSIFICACAO_INTERCORRENCIA=true
+   OPENAI_API_KEY=sk-proj-...
+   ```
+   Sem isso, botão fica disabled (comportamento correto).
+
+2. **Decisões em aberto** (ver `memory/modulos/RECOMENDACOES.md`):
+   - Chat module — tinha backend Z-API/Evolution ou era stub?
+   - IProduction vs Grow — overlap ou complementares?
+   - codecanyon-ticketing — renomeado pra Grow ou módulo diferente?
+   - **Grow** — avaliar viabilidade (mini-ERP 797 rotas / 957 views CodeCanyon)
+
+### 🛠 Próximo passo sugerido — F13.4 (Telas restantes PontoWR2)
+
+Menor complexidade primeiro:
+1. **Aprovações** (index Inertia + Dialog Aprovar/Rejeitar)
+2. **Espelho** (index + show com totalizadores + chart)
+3. **Banco de Horas** (index + show + form ajuste manual)
+4. **Intercorrências Index + Show** (completar CRUD já iniciado)
+5. **Escalas** CRUD
+6. **Importações** com upload AFD + polling
+7. **Colaboradores** busca + edit
+8. **Configurações** + CRUD REPs
+
+### 🚫 Não mexer sem consultar Wagner
+
+- `modules_statuses.json` — lista decidida em 2026-04-22
+- `Modules/Grow/` — prioridade declarada, avaliar antes
+- Telas legadas AdminLTE funcionando — migrar 1 por vez
+
+### 📚 Onde está tudo
+
+- **Specs 29 módulos**: `memory/modulos/` + `INDEX.md` + `RECOMENDACOES.md`
+- **Roadmap M1-M10**: `memory/07-roadmap.md`
+- **Changelog**: `memory/CHANGELOG.md`
+- **Prefs Wagner**: `C:\Users\wagne\.claude\projects\D--oimpresso-com\memory\`
+
+### 🔑 Dev local
+
+- Site: `https://oimpresso.test` (Herd SSL)
+- MySQL: Laragon `127.0.0.1:3306` root sem senha, DB `oimpresso`
+- PHP: 8.4 Herd
+- Composer: `--ignore-platform-req=php` por causa de mpdf/lcobucci velhos
+
+### 🧭 Comandos úteis
+
+```bash
+cd D:\oimpresso.com
+npm run build:inertia                    # Build Inertia bundle
+php artisan module:specs                 # Regerar specs dos 29 módulos
+php artisan optimize:clear               # Limpar caches
+C:\Users\wagne\.config\herd\bin\herd.bat restart   # Restart Herd (opcache)
+```
+
+---
+
 ## Estado em 2026-04-21 (sessão 09 — upgrade stack Laravel 9.51/PHP 8.3, correção PontoWR2, git configurado)
 
 ### O que foi feito (sessão 09)
