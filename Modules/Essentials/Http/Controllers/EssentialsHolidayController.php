@@ -4,270 +4,185 @@ namespace Modules\Essentials\Http\Controllers;
 
 use App\BusinessLocation;
 use App\Utils\ModuleUtil;
+use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Essentials\Entities\EssentialsHoliday;
-use Yajra\DataTables\Facades\DataTables;
 
+/**
+ * EssentialsHolidayController — versão Inertia.
+ *
+ * Feriados do business, opcionalmente escopados por localidade. Apenas admin
+ * pode criar/editar/deletar. Todos podem ver (filtrado por permitted_locations).
+ *
+ * Paridade com Blade preservada:
+ *   - CRUD (create, store, edit, update, destroy)
+ *   - Filtros por location_id, start_date/end_date
+ *   - Scope por business_id + permitted_locations
+ *   - is_admin só pode editar/deletar
+ */
 class EssentialsHolidayController extends Controller
 {
-    /**
-     * All Utils instance.
-     */
-    protected $moduleUtil;
+    protected ModuleUtil $moduleUtil;
 
-    /**
-     * Constructor
-     *
-     * @param  ModuleUtil  $moduleUtil
-     * @return void
-     */
     public function __construct(ModuleUtil $moduleUtil)
     {
         $this->moduleUtil = $moduleUtil;
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return Response
-     */
-    public function index()
+    public function index(Request $request): Response
     {
-        $business_id = request()->session()->get('user.business_id');
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
+        $isAdmin = $this->moduleUtil->is_admin(auth()->user(), $businessId);
+
+        $query = EssentialsHoliday::where('business_id', $businessId)
+            ->with(['location:id,name']);
+
+        $permitted = auth()->user()->permitted_locations();
+        if ($permitted !== 'all') {
+            $query->where(function ($q) use ($permitted) {
+                $q->whereIn('location_id', $permitted)->orWhereNull('location_id');
+            });
         }
 
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-
-        if (request()->ajax()) {
-            $holidays = EssentialsHoliday::where('essentials_holidays.business_id', $business_id)
-                        ->leftJoin('business_locations as bl', 'bl.id', '=', 'essentials_holidays.location_id')
-                        ->select([
-                            'essentials_holidays.id',
-                            'essentials_holidays.name',
-                            'bl.name as location',
-                            'start_date',
-                            'end_date',
-                            'note',
-                        ]);
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $holidays->where(function ($query) use ($permitted_locations) {
-                    $query->whereIn('essentials_holidays.location_id', $permitted_locations)
-                        ->orWhereNull('essentials_holidays.location_id');
-                });
-            }
-
-            if (! empty(request()->input('location_id'))) {
-                $holidays->where('essentials_holidays.location_id', request()->input('location_id'));
-            }
-
-            if (! empty(request()->start_date) && ! empty(request()->end_date)) {
-                $start = request()->start_date;
-                $end = request()->end_date;
-                $holidays->whereDate('essentials_holidays.start_date', '>=', $start)
-                            ->whereDate('essentials_holidays.start_date', '<=', $end);
-            }
-
-            return Datatables::of($holidays)
-                ->addColumn(
-                    'action',
-                    function ($row) use ($is_admin) {
-                        $html = '';
-                        if ($is_admin) {
-                            $html .= '<button class="btn btn-xs btn-primary btn-modal" data-container="#add_holiday_modal" data-href="'.action([\Modules\Essentials\Http\Controllers\EssentialsHolidayController::class, 'edit'], [$row->id]).'"><i class="fa fa-edit"></i> '.__('messages.edit').'</button>
-                            &nbsp;
-                            <button class="btn btn-xs btn-danger delete-holiday" data-href="'.action([\Modules\Essentials\Http\Controllers\EssentialsHolidayController::class, 'destroy'], [$row->id]).'"><i class="fa fa-trash"></i> '.__('messages.delete').'</button>
-                            ';
-                        }
-
-                        return $html;
-                    }
-                )
-                ->editColumn('location', '{{$location ?? __("lang_v1.all")}}')
-                ->editColumn('start_date', function ($row) {
-                    $start_date = \Carbon::parse($row->start_date);
-                    $end_date = \Carbon::parse($row->end_date);
-
-                    $diff = $start_date->diffInDays($end_date);
-                    $diff += 1;
-                    $start_date_formated = $this->moduleUtil->format_date($start_date);
-                    $end_date_formated = $this->moduleUtil->format_date($end_date);
-
-                    return $start_date_formated.' - '.$end_date_formated.' ('.$diff.\Str::plural(__('lang_v1.day'), $diff).')';
-                })
-                ->removeColumn('id')
-                ->rawColumns(['action'])
-                ->make(true);
+        if ($request->filled('location_id')) {
+            $query->where('location_id', $request->integer('location_id'));
         }
 
-        $locations = BusinessLocation::forDropdown($business_id);
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereDate('start_date', '>=', $request->string('start_date'))
+                ->whereDate('start_date', '<=', $request->string('end_date'));
+        }
 
-        return view('essentials::holiday.index')->with(compact('locations', 'is_admin'));
+        $holidays = $query->orderByDesc('start_date')->get()->map(fn ($h) => $this->toShape($h))->values();
+
+        $locations = collect(BusinessLocation::forDropdown($businessId))
+            ->map(fn ($label, $id) => ['id' => (int) $id, 'label' => (string) $label])
+            ->values()->all();
+
+        return Inertia::render('Essentials/Holidays/Index', [
+            'holidays' => $holidays,
+            'locations' => $locations,
+            'filtros'   => [
+                'location_id' => $request->integer('location_id') ?: null,
+                'start_date'  => $request->string('start_date')->toString() ?: null,
+                'end_date'    => $request->string('end_date')->toString() ?: null,
+            ],
+            'can_manage' => $isAdmin,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
     public function create()
     {
-        $business_id = request()->session()->get('user.business_id');
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! $is_admin) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $locations = BusinessLocation::forDropdown($business_id);
-
-        return view('essentials::holiday.create')->with(compact('locations'));
+        // Inline no Index (Dialog). Redireciona para manter compat de links antigos.
+        return redirect('/hrm/holiday');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $business_id = $request->session()->get('user.business_id');
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAdmin($businessId);
 
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! $is_admin) {
-            abort(403, 'Unauthorized action.');
-        }
+        $data = $this->validateHoliday($request);
 
-        try {
-            $input = $request->only(['name', 'start_date', 'end_date', 'location_id', 'note']);
+        EssentialsHoliday::create(array_merge($data, ['business_id' => $businessId]));
 
-            $input['start_date'] = $this->moduleUtil->uf_date($input['start_date']);
-            $input['end_date'] = $this->moduleUtil->uf_date($input['end_date']);
-            $input['business_id'] = $business_id;
-
-            EssentialsHoliday::create($input);
-            $output = ['success' => true,
-                'msg' => __('lang_v1.added_success'),
-            ];
-        } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = ['success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        return $output;
+        return back()->with('success', __('lang_v1.added_success'));
     }
 
-    /**
-     * Show the specified resource.
-     *
-     * @return Response
-     */
     public function show()
     {
-        return view('essentials::show');
+        return redirect('/hrm/holiday');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @return Response
-     */
     public function edit($id)
     {
-        $business_id = request()->session()->get('user.business_id');
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! $is_admin) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $holiday = EssentialsHoliday::where('business_id', $business_id)
-                                    ->findOrFail($id);
-
-        $locations = BusinessLocation::forDropdown($business_id);
-
-        return view('essentials::holiday.edit')->with(compact('locations', 'holiday'));
+        return redirect('/hrm/holiday');
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): RedirectResponse
     {
-        $business_id = $request->session()->get('user.business_id');
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAdmin($businessId);
 
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! $is_admin) {
-            abort(403, 'Unauthorized action.');
-        }
+        $data = $this->validateHoliday($request);
 
-        try {
-            $input = $request->only(['name', 'start_date', 'end_date', 'location_id', 'note']);
+        EssentialsHoliday::where('business_id', $businessId)
+            ->where('id', $id)
+            ->update($data);
 
-            $input['start_date'] = $this->moduleUtil->uf_date($input['start_date']);
-            $input['end_date'] = $this->moduleUtil->uf_date($input['end_date']);
-
-            EssentialsHoliday::where('business_id', $business_id)
-                        ->where('id', $id)
-                        ->update($input);
-
-            $output = ['success' => true,
-                'msg' => __('lang_v1.updated_success'),
-            ];
-        } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = ['success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        return $output;
+        return back()->with('success', __('lang_v1.updated_success'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @return Response
-     */
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
-        $business_id = request()->session()->get('user.business_id');
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAdmin($businessId);
 
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! $is_admin) {
+        EssentialsHoliday::where('business_id', $businessId)
+            ->where('id', $id)
+            ->delete();
+
+        return back()->with('success', __('lang_v1.deleted_success'));
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected function validateHoliday(Request $request): array
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'start_date'  => 'required',
+            'end_date'    => 'required',
+            'location_id' => 'nullable|integer|exists:business_locations,id',
+            'note'        => 'nullable|string|max:2000',
+        ]);
+
+        $validated['start_date'] = Carbon::parse($validated['start_date'])->format('Y-m-d');
+        $validated['end_date']   = Carbon::parse($validated['end_date'])->format('Y-m-d');
+
+        return $validated;
+    }
+
+    protected function toShape(EssentialsHoliday $h): array
+    {
+        $start = $h->start_date ? Carbon::parse($h->start_date) : null;
+        $end = $h->end_date ? Carbon::parse($h->end_date) : null;
+
+        return [
+            'id'            => $h->id,
+            'name'          => $h->name,
+            'start_date'    => optional($start)->format('Y-m-d'),
+            'end_date'      => optional($end)->format('Y-m-d'),
+            'days'          => $start && $end ? $start->diffInDays($end) + 1 : 1,
+            'location_id'   => $h->location_id,
+            'location_name' => optional($h->location)->name,
+            'note'          => $h->note,
+        ];
+    }
+
+    protected function currentBusinessId(): int
+    {
+        return (int) (session('business.id') ?: request()->session()->get('user.business_id'));
+    }
+
+    protected function authorizeAccess(int $businessId): void
+    {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($businessId, 'essentials_module'))) {
             abort(403, 'Unauthorized action.');
         }
+    }
 
-        try {
-            EssentialsHoliday::where('business_id', $business_id)
-                        ->where('id', $id)
-                        ->delete();
-
-            $output = ['success' => true,
-                'msg' => __('lang_v1.deleted_success'),
-            ];
-        } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = ['success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
+    protected function authorizeAdmin(int $businessId): void
+    {
+        $this->authorizeAccess($businessId);
+        if (! $this->moduleUtil->is_admin(auth()->user(), $businessId)) {
+            abort(403, 'Apenas administradores podem gerenciar feriados.');
         }
-
-        return $output;
     }
 }

@@ -21,6 +21,43 @@ Datas no formato `YYYY-MM-DD`. Categorias:
 
 ## [Unreleased] — branch `6.7-react`
 
+### Added — 2026-04-22 (Essentials batch 3 — Lembretes + Feriados + Configurações)
+- **Lembretes** (`/essentials/reminder`) — lista cronológica dos lembretes do
+  usuário com dialog de create/edit, repetição (one_time, every_day,
+  every_week, every_month), filtros de data/hora/end_time. Substitui o
+  calendário FullCalendar do Blade por uma lista que é mais prática no
+  cotidiano e mantém a estrutura de dados do modelo intacta
+- **Feriados** (`/hrm/holiday`) — CRUD React com filtros (localidade, range
+  de datas), dialog inline de create/edit, badge calculado de "N dias" por
+  feriado, scope por `permitted_locations`. Apenas admin pode criar/editar
+- **Configurações do Essentials** (`/hrm/settings`) — 4 cards organizados:
+  Prefixos (tarefas, afastamentos, folha), Instruções de afastamento,
+  Tolerâncias de ponto (4 campos grace_*), Comportamentos (switches
+  `is_location_required` e comissão sem impostos). Valores persistem em
+  `businesses.essentials_settings` (JSON) e refletem na sessão pra ToDoController
+  ler sem refetch
+- **LegacyMenuAdapter** — 3 novos prefixes: `/essentials/reminder`,
+  `/hrm/holiday`, `/hrm/settings`
+- **Submenu Essentials** — DataController agora inclui "Lembretes" no
+  dropdown (5 itens: Tarefas, Mensagens, Documentos, KB, Lembretes). Feriados
+  e Configurações ficam sob HRM pois vivem em `/hrm/*`
+
+### Fixed — 2026-04-22 (testes destravados)
+- **`accounting()` helper sem guard** (`Modules/Accounting/Helpers/general_helper.php:10`)
+  causava fatal `Cannot redeclare function` no bootstrap do phpunit. Solução
+  minimalista: envolver em `if (!function_exists(...))`
+- **`get_days_past()` guard com nome errado** (linha 194 do mesmo arquivo):
+  `if (!function_exists('get_date_range'))` checava nome diferente da função
+  declarada. Corrigido o guard para bater com o nome real. Antes desses 2
+  fixes, `phpunit --testsuite=Essentials` e `--testsuite=PontoWr2` não
+  carregavam; agora rodam
+- **`EssentialsTestCase` setup** — `primeSession()` gravava `session.business`
+  como array enquanto o middleware `SetSessionData` grava como objeto
+  Business, causando `Attempt to read property "time_zone" on array` no
+  stack. Removido `primeSession`; `actingAs()` + middleware cuidam.
+  `inertiaGet()` agora calcula a versão real do manifest ao montar o header
+  `X-Inertia-Version` pra evitar falsos 409. **Resultado: suite 10/10** ✓
+
 ### Added — 2026-04-22 (Essentials batch 2 — submenu + 3 telas)
 - **Submenu "Essentials" na sidebar** — `DataController::modifyAdminMenu` agora
   cria um dropdown agrupando Tarefas, Mensagens, Documentos e Base de

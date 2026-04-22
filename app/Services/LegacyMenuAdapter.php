@@ -247,6 +247,9 @@ class LegacyMenuAdapter
             '/essentials/messages',
             '/essentials/knowledge-base',
             '/essentials/document',
+            '/essentials/reminder',
+            '/hrm/holiday',
+            '/hrm/settings',
             // Adicione aqui conforme migrar telas.
         ];
         // Dashboard do Ponto é `/ponto` exato (não prefixo) — o startsWith pegaria
