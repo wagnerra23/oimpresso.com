@@ -22,37 +22,28 @@ abstract class EssentialsTestCase extends TestCase
 
     protected function actAsAdmin(): User
     {
-        if ($this->admin) {
-            $this->actingAs($this->admin);
-            $this->primeSession();
-            return $this->admin;
-        }
+        // Começa cada teste com sessão limpa — SetSessionData popula o resto
+        session()->flush();
+        auth()->logout();
 
-        $this->business = Business::first();
+        if (!$this->business) {
+            $this->business = Business::first();
+        }
         if (!$this->business) {
             $this->markTestSkipped('Nenhum business encontrado — precisa de seeder do UltimatePOS rodado.');
         }
 
-        $this->admin = User::where('business_id', $this->business->id)->first();
+        if (!$this->admin) {
+            $this->admin = User::where('business_id', $this->business->id)->first();
+        }
         if (!$this->admin) {
             $this->markTestSkipped('Nenhum user encontrado no business.');
         }
 
         $this->ensureEssentialsPermissions($this->business->id);
-        $this->primeSession();
+
         $this->actingAs($this->admin);
         return $this->admin;
-    }
-
-    protected function primeSession(): void
-    {
-        session([
-            'user.business_id' => $this->business->id,
-            'user.id'          => $this->admin->id,
-            'business.id'      => $this->business->id,
-            'business.name'    => $this->business->name,
-            'is_admin'         => true,
-        ]);
     }
 
     protected function ensureEssentialsPermissions(int $businessId): void
@@ -91,10 +82,26 @@ abstract class EssentialsTestCase extends TestCase
         if (!empty($queryParams)) {
             $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($queryParams);
         }
+
+        // Inertia retorna 409 se X-Inertia-Version do request não bate com a
+        // versão real do servidor (hash do manifest). Pega a versão atual
+        // via middleware pra evitar falsos 409.
+        $version = $this->currentInertiaVersion();
+
         return $this->withHeaders([
             'X-Inertia'         => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => $version ?? '',
             'Accept'            => 'text/html',
         ])->get($url);
+    }
+
+    protected function currentInertiaVersion(): ?string
+    {
+        $middleware = new \App\Http\Middleware\HandleInertiaRequests;
+        try {
+            return $middleware->version(request());
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }
