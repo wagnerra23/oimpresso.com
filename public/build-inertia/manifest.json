@@ -1,100 +1,124 @@
 {
-  "_badge-BxNRElRf.js": {
-    "file": "assets/badge-BxNRElRf.js",
+  "_badge-BBBgh801.js": {
+    "file": "assets/badge-BBBgh801.js",
     "name": "badge",
     "imports": [
       "resources/js/app.tsx",
-      "_card-CY3CamIZ.js"
+      "_card-CgpcApbG.js"
     ]
   },
-  "_card-CY3CamIZ.js": {
-    "file": "assets/card-CY3CamIZ.js",
+  "_card-CgpcApbG.js": {
+    "file": "assets/card-CgpcApbG.js",
     "name": "card",
     "imports": [
       "resources/js/app.tsx"
     ]
   },
-  "_index-5dJT9VrN.js": {
-    "file": "assets/index-5dJT9VrN.js",
+  "_index-fYWj5UfZ.js": {
+    "file": "assets/index-fYWj5UfZ.js",
     "name": "index",
     "imports": [
       "resources/js/app.tsx"
     ]
   },
+  "_textarea-CN2NwTCS.js": {
+    "file": "assets/textarea-CN2NwTCS.js",
+    "name": "textarea",
+    "imports": [
+      "resources/js/app.tsx",
+      "_card-CgpcApbG.js",
+      "_index-fYWj5UfZ.js"
+    ]
+  },
   "resources/css/inertia.css": {
-    "file": "assets/inertia-CytPy1oJ.css",
+    "file": "assets/inertia-Beokpxbv.css",
     "src": "resources/css/inertia.css",
     "isEntry": true
   },
   "resources/js/Pages/Modules/Index.tsx": {
-    "file": "assets/Index-GULKoKYT.js",
+    "file": "assets/Index-CFNydUQg.js",
     "name": "Index",
     "src": "resources/js/Pages/Modules/Index.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_card-CY3CamIZ.js",
-      "_badge-BxNRElRf.js",
-      "_index-5dJT9VrN.js"
+      "_card-CgpcApbG.js",
+      "_badge-BBBgh801.js",
+      "_index-fYWj5UfZ.js"
+    ]
+  },
+  "resources/js/Pages/Ponto/Aprovacoes/Index.tsx": {
+    "file": "assets/Index-Cbf1xHkP.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.tsx",
+      "_card-CgpcApbG.js",
+      "_badge-BBBgh801.js",
+      "_textarea-CN2NwTCS.js",
+      "_index-fYWj5UfZ.js"
     ]
   },
   "resources/js/Pages/Ponto/Dashboard/Index.tsx": {
-    "file": "assets/Index-B_EGtifj.js",
+    "file": "assets/Index-Bm-IZJ9s.js",
     "name": "Index",
     "src": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_card-CY3CamIZ.js",
-      "_badge-BxNRElRf.js"
+      "_card-CgpcApbG.js",
+      "_badge-BBBgh801.js"
     ]
   },
   "resources/js/Pages/Ponto/Intercorrencias/Create.tsx": {
-    "file": "assets/Create--gEGWs3E.js",
+    "file": "assets/Create-CZnBTKAk.js",
     "name": "Create",
     "src": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_card-CY3CamIZ.js",
-      "_index-5dJT9VrN.js"
+      "_card-CgpcApbG.js",
+      "_textarea-CN2NwTCS.js",
+      "_index-fYWj5UfZ.js"
     ]
   },
   "resources/js/Pages/Ponto/Relatorios/Index.tsx": {
-    "file": "assets/Index-iK2StrRv.js",
+    "file": "assets/Index-DzAbbTKg.js",
     "name": "Index",
     "src": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_card-CY3CamIZ.js",
-      "_badge-BxNRElRf.js"
+      "_card-CgpcApbG.js",
+      "_badge-BBBgh801.js"
     ]
   },
   "resources/js/Pages/Ponto/Welcome.tsx": {
-    "file": "assets/Welcome-CKZNlX6h.js",
+    "file": "assets/Welcome-DvB393TX.js",
     "name": "Welcome",
     "src": "resources/js/Pages/Ponto/Welcome.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_card-CY3CamIZ.js"
+      "_card-CgpcApbG.js"
     ]
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-D2BOe19v.js",
+    "file": "assets/app-DeGVQRBM.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
     "dynamicImports": [
       "resources/js/Pages/Modules/Index.tsx",
+      "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
       "resources/js/Pages/Ponto/Dashboard/Index.tsx",
       "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
       "resources/js/Pages/Ponto/Relatorios/Index.tsx",
       "resources/js/Pages/Ponto/Welcome.tsx"
     ],
     "css": [
-      "assets/inertia-CytPy1oJ.css"
+      "assets/inertia-Beokpxbv.css"
     ]
   }
 }
