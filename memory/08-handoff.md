@@ -7,11 +7,57 @@
 
 ---
 
+## 🚀 Começo Rápido — leia isso primeiro
+
+**Repo:** `D:\oimpresso.com` · **Branch ativa:** `6.7-react` · **Data da última sessão:** 2026-04-22
+
+**Rodar local:**
+```bash
+cd D:\oimpresso.com
+# já está rodando em https://oimpresso.test (Herd + Laragon MySQL)
+# login: WR23 / Wscrct*2312  (tambem em .env DEV_LOGIN_PASSWORD)
+```
+
+**Stack real:** Laravel 9.51 · PHP 8.4 (Herd) · MySQL Laragon 127.0.0.1:3306 root sem senha · DB `oimpresso` · Inertia + React 19 + Tailwind 4 + shadcn/ui na branch 6.7-react.
+
+**O que está pronto (sessão 10):**
+- Shell React com AppShell, dark mode por usuário, sidebar 2 níveis, menu dinâmico via `LegacyMenuAdapter`
+- Gerenciador de módulos `/modulos` + `php artisan module:specs` gera 29 specs em `memory/modulos/`
+- 4 telas React: `/ponto` (Dashboard), `/ponto/react`, `/ponto/relatorios`, `/ponto/intercorrencias/create`, `/modulos`
+- `IntercorrenciaAIClassifier` (OpenAI gpt-4o-mini JSON mode, cache 24h, LGPD mask)
+- Backend PontoWR2 fase 2 completo: MarcacaoService com hash chain, AfdParserService, ApuracaoService (5 regras CLT + DSR), BancoHoras FIFO, ReportService (espelho PDF)
+
+**O que falta decidir (Wagner):**
+- Ativar IA no `.env` (`AI_ENABLED=true`, `OPENAI_API_KEY=...`) pra testar botão "Preencher com IA"
+- Decisões de módulos: Chat (Z-API?), IProduction vs Grow, codecanyon-ticketing, Grow viabilidade — ver `memory/modulos/RECOMENDACOES.md`
+
+**Próximo passo sugerido:** F13.4 — telas React restantes PontoWR2. Ordem de menor complexidade: Aprovações → Espelho → Banco de Horas → Intercorrências Index/Show → Escalas → Importações → Colaboradores → Configurações.
+
+**Preferências Wagner importantes:**
+- Sempre IPv4 pra Hostinger (ver `C:\Users\wagne\.claude\projects\D--oimpresso-com\memory\feedback_hostinger_ipv4.md`)
+- Prefere que Claude teste via Claude_in_Chrome/Preview em vez de pedir print de erro
+- Grow = prioridade produção; AiAssistance = descartar
+- Módulos perdidos na migração 3.7→6.7: Fiscal, Boleto, Chat, Jana, BI (vão precisar ressuscitar)
+
+**Não mexer sem consultar:**
+- `modules_statuses.json` (lista decidida 2026-04-22)
+- `Modules/Grow/` (prioridade, avaliar antes)
+- Telas legadas AdminLTE funcionando — migrar 1 por vez
+
+**Pointers:**
+- Specs 29 módulos: `memory/modulos/INDEX.md` + `memory/modulos/RECOMENDACOES.md`
+- Roadmap M1-M10: `memory/07-roadmap.md`
+- ADRs: `memory/decisions/` (0013-0016 são de sessão 09)
+- Changelog: `memory/CHANGELOG.md`
+- Sessão 10 detalhada: seção abaixo neste arquivo (logs em `memory/sessions/` vão até sessão 08)
+
+---
+
 ## Estado em 2026-04-22 (sessão 10 — Setup local + React migration inicial + specs + IA stub)
 
 ### 🎯 Onde paramos
 
-Branch `6.7-react` no repo principal `D:\oimpresso.com` rodando em `https://oimpresso.test` via **Herd + Laragon MySQL + dump Hostinger importado**. Login Wagner: user `WR23`, senha **`dev123`** (reset local — senha de produção é outra).
+Branch `6.7-react` no repo principal `D:\oimpresso.com` rodando em `https://oimpresso.test` via **Herd + Laragon MySQL + dump Hostinger importado**. Login Wagner: user `WR23`, senha **`Wscrct*2312`** (agora alinhada com produção; também exposta em `.env` como `DEV_LOGIN_PASSWORD`).
 
 ### ✅ Feito na sessão 10 (3 commits na branch `6.7-react`)
 
@@ -545,6 +591,6 @@ Nenhum bloqueio técnico. O crash de produção foi revertido (site voltou após
 
 ---
 
-**Última atualização:** 2026-04-21 (sessão 09 — upgrade L9.51/PHP 8.3, PontoWR2 corrigido, git configurado, ADR 0012)
-**Próxima sessão esperada:** após Eliana rodar `git pull + view:clear + cache:clear + composer dump-autoload` e corrigir o cache directory do Hostinger. Próximo foco sugerido: **piloto runtime** com AFD real + 1 colaborador, OU implementar os 7 relatórios remanescentes (AFD/AFDT/AEJ/HE/BH/atrasos/eSocial).
-**Estado geral:** 🟢 Fase 1 (UI AdminLTE) completa — 10/10 telas; 🟢 Fase 2 (backend CLT) completa — MarcacaoService com hash chain, AfdParserService full, ApuracaoService com 5 regras CLT + DSR, BancoHoras FIFO, ReportService (espelho PDF funcional), 2 Jobs, 5 factories, 2 seeders, 9 testes unitários; 🟡 7 relatórios ainda `RuntimeException`; 🟡 integração eSocial / ICP-Brasil / app REP-P mobile pendentes (fases 3+); remoção física de RouteServiceProvider + pt-BR/ pendente manual no servidor.
+**Última atualização:** 2026-04-22 (sessão 10 — setup local Herd + branch 6.7-react + Inertia/React 19/TW4/shadcn + 4 telas React + Gerenciador de Módulos + 29 specs + IA Intercorrências)
+**Próxima sessão esperada:** continuar F13.4 — telas React restantes PontoWR2 (Aprovações → Espelho → Banco de Horas → Intercorrências Index/Show → Escalas → Importações → Colaboradores → Configurações). Wagner ainda precisa: ativar IA no `.env` e decidir sobre Chat/IProduction/Grow (ver `memory/modulos/RECOMENDACOES.md`).
+**Estado geral:** 🟢 Ambiente local funcionando em `https://oimpresso.test`; 🟢 Shell React + dark mode + menu dinâmico; 🟢 Gerenciador de módulos `/modulos` + 29 specs gerados; 🟢 4 telas React no AppShell (Dashboard, Welcome, Relatórios, Intercorrências Create com IA); 🟢 Fase 1 (UI AdminLTE legado) completa — 10/10 telas; 🟢 Fase 2 (backend CLT) completa; 🟡 8 telas PontoWR2 ainda em AdminLTE aguardando migração pra React; 🟡 7 relatórios ainda `RuntimeException`; 🟡 IA desligada no `.env` (Wagner precisa ativar); 🟡 integração eSocial / ICP-Brasil / app REP-P mobile pendentes (fases 3+); 🟡 módulos Fiscal/Boleto/Chat/Jana/BI perdidos na migração 3.7→6.7 precisam ressuscitar.
