@@ -21,6 +21,12 @@ class DocVaultServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerTranslations();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\DocVault\Console\Commands\MigrateModuleCommand::class,
+            ]);
+        }
     }
 
     public function register(): void
