@@ -234,8 +234,14 @@ class LegacyMenuAdapter
         $inertiaPrefixes = [
             '/ponto/react',
             '/ponto/relatorios',
-            '/ponto/intercorrencias/create',
+            '/ponto/intercorrencias',
             '/ponto/aprovacoes',
+            '/ponto/espelho',
+            '/ponto/banco-horas',
+            '/ponto/escalas',
+            '/ponto/importacoes',
+            '/ponto/colaboradores',
+            '/ponto/configuracoes',
             '/modulos',
             // Adicione aqui conforme migrar telas.
         ];

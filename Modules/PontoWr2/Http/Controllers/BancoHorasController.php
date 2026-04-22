@@ -3,8 +3,9 @@
 namespace Modules\PontoWr2\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\PontoWr2\Entities\BancoHorasMovimento;
 use Modules\PontoWr2\Entities\BancoHorasSaldo;
 use Modules\PontoWr2\Services\BancoHorasService;
@@ -18,19 +19,31 @@ class BancoHorasController extends Controller
         $this->service = $service;
     }
 
-    public function index(Request $request): View
+    public function index(Request $request): Response
     {
         $businessId = session('business.id') ?: $request->user()->business_id;
 
-        $saldos = BancoHorasSaldo::where('business_id', $businessId)
-            ->with('colaborador.user')
+        $paginated = BancoHorasSaldo::where('business_id', $businessId)
+            ->with('colaborador.user:id,first_name,last_name')
             ->orderByDesc('saldo_minutos')
-            ->paginate(30);
+            ->paginate(30)
+            ->withQueryString();
+
+        $paginated->getCollection()->transform(fn ($s) => [
+            'colaborador_id' => $s->colaborador_config_id,
+            'matricula'      => optional($s->colaborador)->matricula,
+            'nome'           => trim(
+                optional(optional($s->colaborador)->user)->first_name . ' ' .
+                optional(optional($s->colaborador)->user)->last_name
+            ) ?: '—',
+            'saldo_minutos'  => (int) $s->saldo_minutos,
+            'atualizado_em'  => optional($s->updated_at)->diffForHumans(),
+        ]);
 
         $totais = [
-            'credito_total' => BancoHorasSaldo::where('business_id', $businessId)
+            'credito_total' => (int) BancoHorasSaldo::where('business_id', $businessId)
                 ->where('saldo_minutos', '>', 0)->sum('saldo_minutos'),
-            'debito_total' => BancoHorasSaldo::where('business_id', $businessId)
+            'debito_total' => (int) BancoHorasSaldo::where('business_id', $businessId)
                 ->where('saldo_minutos', '<', 0)->sum('saldo_minutos'),
             'colaboradores_credito' => BancoHorasSaldo::where('business_id', $businessId)
                 ->where('saldo_minutos', '>', 0)->count(),
@@ -38,20 +51,45 @@ class BancoHorasController extends Controller
                 ->where('saldo_minutos', '<', 0)->count(),
         ];
 
-        return view('pontowr2::banco-horas.index', compact('saldos', 'totais'));
+        return Inertia::render('Ponto/BancoHoras/Index', [
+            'saldos' => $paginated,
+            'totais' => $totais,
+        ]);
     }
 
-    public function show(Request $request, int $colaboradorId): View
+    public function show(Request $request, int $colaboradorId): Response
     {
         $saldo = BancoHorasSaldo::where('colaborador_config_id', $colaboradorId)
-            ->with('colaborador.user')
+            ->with('colaborador.user:id,first_name,last_name')
             ->firstOrFail();
 
-        $movimentos = BancoHorasMovimento::where('colaborador_config_id', $colaboradorId)
+        $paginated = BancoHorasMovimento::where('colaborador_config_id', $colaboradorId)
             ->orderByDesc('created_at')
-            ->paginate(50);
+            ->paginate(50)
+            ->withQueryString();
 
-        return view('pontowr2::banco-horas.show', compact('saldo', 'movimentos'));
+        $paginated->getCollection()->transform(fn ($m) => [
+            'id'             => $m->id,
+            'minutos'        => (int) $m->minutos,
+            'tipo'           => $m->tipo,
+            'data_referencia'=> optional($m->data_referencia)->format('Y-m-d'),
+            'observacao'     => $m->observacao,
+            'created_at'     => optional($m->created_at)->format('Y-m-d H:i'),
+            'created_at_human' => optional($m->created_at)->diffForHumans(),
+        ]);
+
+        return Inertia::render('Ponto/BancoHoras/Show', [
+            'saldo' => [
+                'colaborador_id' => $saldo->colaborador_config_id,
+                'matricula'      => optional($saldo->colaborador)->matricula,
+                'nome'           => trim(
+                    optional(optional($saldo->colaborador)->user)->first_name . ' ' .
+                    optional(optional($saldo->colaborador)->user)->last_name
+                ) ?: '—',
+                'saldo_minutos'  => (int) $saldo->saldo_minutos,
+            ],
+            'movimentos' => $paginated,
+        ]);
     }
 
     public function ajustarManual(Request $request, $colaboradorId)
