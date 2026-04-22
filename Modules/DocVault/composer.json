@@ -1,0 +1,23 @@
+{
+    "name": "nwidart/docvault",
+    "description": "DocVault — documentação viva alimentada por evidências",
+    "authors": [
+        {
+            "name": "Office Impresso",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\DocVault\\Providers\\DocVaultServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\DocVault\\": ""
+        }
+    }
+}

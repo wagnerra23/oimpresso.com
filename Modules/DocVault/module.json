@@ -1,0 +1,16 @@
+{
+    "name": "DocVault",
+    "alias": "docvault",
+    "description": "Cofre de documentação viva — ingestão de evidências (screenshots, chat logs, erros) → IA classifica → vira requisitos estruturados em memory/requisitos/.",
+    "keywords": ["documentation", "requirements", "knowledge-management", "evidence", "user-stories"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\DocVault\\Providers\\DocVaultServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}
