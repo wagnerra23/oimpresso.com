@@ -366,6 +366,11 @@ class DataController extends Controller
                             __('essentials::lang.knowledge_base'),
                             ['icon' => 'fa fas fa-book']
                         );
+                        $sub->url(
+                            action([\Modules\Essentials\Http\Controllers\ReminderController::class, 'index']),
+                            __('essentials::lang.reminder'),
+                            ['icon' => 'fa fas fa-bell']
+                        );
                     },
                     ['icon' => 'fa fas fa-cube', 'active' => request()->segment(1) == 'essentials', 'style' => config('app.env') == 'demo' ? 'background-color: #001f3f !important;' : '']
                 )

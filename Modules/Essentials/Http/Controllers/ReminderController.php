@@ -4,19 +4,34 @@ namespace Modules\Essentials\Http\Controllers;
 
 use App\Utils\ModuleUtil;
 use App\Utils\Util;
+use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Essentials\Entities\Reminder;
 
+/**
+ * ReminderController — versão Inertia (lista simples + form inline).
+ *
+ * Lembretes são POR USUÁRIO (cada um vê só os seus). O Blade original
+ * renderiza num calendário fullcalendar; a versão React troca por uma
+ * listagem ordenada cronologicamente que é mais prática para uso diário
+ * e padrão com as outras telas migradas. A estrutura de dados do modelo
+ * é preservada integralmente.
+ *
+ * Paridade com Blade:
+ *   - CRUD de lembretes (próprios)
+ *   - Campos: name, date, time, end_time, repeat
+ *   - Repeat: one_time, every_day, every_week, every_month
+ *   - Scope por business_id + user_id
+ */
 class ReminderController extends Controller
 {
-    /**
-     * All Utils instance.
-     */
-    protected $commonUtil;
+    protected Util $commonUtil;
 
-    protected $moduleUtil;
+    protected ModuleUtil $moduleUtil;
 
     public function __construct(Util $commonUtil, ModuleUtil $moduleUtil)
     {
@@ -24,190 +39,141 @@ class ReminderController extends Controller
         $this->moduleUtil = $moduleUtil;
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return Response
-     */
-    public function index()
+    public function index(Request $request): Response
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
-        $business_id = request()->session()->get('user.business_id');
-        $user_id = request()->session()->get('user.id');
+        $userId = auth()->user()->id;
 
-        if (request()->ajax()) {
-            $data = [
-                'start_date' => request()->start,
-                'end_date' => request()->end,
-                'user_id' => $user_id,
-                'business_id' => $business_id,
-            ];
+        $reminders = Reminder::where('business_id', $businessId)
+            ->where('user_id', $userId)
+            ->orderBy('date', 'asc')
+            ->orderBy('time', 'asc')
+            ->get()
+            ->map(fn (Reminder $r) => $this->toShape($r))
+            ->values();
 
-            $events = Reminder::getReminders($data);
-
-            return $events;
-        }
-
-        return view('essentials::reminder.index');
+        return Inertia::render('Essentials/Reminders/Index', [
+            'reminders' => $reminders,
+            'repeats'   => $this->repeatOptions(),
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $business_id = $request->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
-        if (request()->ajax()) {
-            try {
-                $user_id = $request->session()->get('user.id');
+        $validated = $request->validate([
+            'name'     => 'required|string|max:255',
+            'date'     => 'required',
+            'time'     => 'required|string|max:10',
+            'end_time' => 'nullable|string|max:10',
+            'repeat'   => 'required|in:one_time,every_day,every_week,every_month',
+        ]);
 
-                $input = $request->only(['name', 'date', 'repeat', 'time',
-                    'end_time', ]);
+        Reminder::create([
+            'business_id' => $businessId,
+            'user_id'     => auth()->user()->id,
+            'name'        => $validated['name'],
+            'date'        => Carbon::parse($validated['date'])->format('Y-m-d'),
+            'time'        => $this->normalizeTime($validated['time']),
+            'end_time'    => ! empty($validated['end_time']) ? $this->normalizeTime($validated['end_time']) : null,
+            'repeat'      => $validated['repeat'],
+        ]);
 
-                $reminder['date'] = $this->commonUtil->uf_date($input['date']);
-                $reminder['time'] = $this->commonUtil->uf_time($input['time']);
-                $reminder['end_time'] = ! empty($input['end_time']) ? $this->commonUtil->uf_time($input['end_time']) : null;
-                $reminder['name'] = $input['name'];
-                $reminder['repeat'] = $input['repeat'];
-                $reminder['user_id'] = $user_id;
-                $reminder['business_id'] = $business_id;
-
-                Reminder::create($reminder);
-
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                ];
-
-                return $output;
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-
-                return back()->with('status', $output);
-            }
-        }
+        return back()->with('success', __('lang_v1.success'));
     }
 
-    /**
-     * Show the specified resource.
-     *
-     * @return Response
-     */
     public function show($id)
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            $user_id = request()->session()->get('user.id');
-
-            $reminder = Reminder::where('business_id', $business_id)
-                              ->where('user_id', $user_id)
-                              ->find($id);
-
-            $time = $this->commonUtil->format_time($reminder->time);
-
-            $repeat = [
-                'one_time' => __('essentials::lang.one_time'),
-                'every_day' => __('essentials::lang.every_day'),
-                'every_week' => __('essentials::lang.every_week'),
-                'every_month' => __('essentials::lang.every_month'),
-            ];
-
-            return view('essentials::reminder.show')
-                ->with(compact('reminder', 'time', 'repeat'));
-        }
+        // Mantém endpoint para compatibilidade com links antigos (calendário legado).
+        // A página React usa o payload do index(), então aqui só redirecionamos.
+        return redirect('/essentials/reminder');
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): RedirectResponse
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
-        if (request()->ajax()) {
-            try {
-                $user_id = request()->session()->get('user.id');
+        $validated = $request->validate([
+            'name'     => 'required|string|max:255',
+            'date'     => 'required',
+            'time'     => 'required|string|max:10',
+            'end_time' => 'nullable|string|max:10',
+            'repeat'   => 'required|in:one_time,every_day,every_week,every_month',
+        ]);
 
-                $repeat = $request->only('repeat');
+        Reminder::where('business_id', $businessId)
+            ->where('user_id', auth()->user()->id)
+            ->where('id', $id)
+            ->update([
+                'name'     => $validated['name'],
+                'date'     => Carbon::parse($validated['date'])->format('Y-m-d'),
+                'time'     => $this->normalizeTime($validated['time']),
+                'end_time' => ! empty($validated['end_time']) ? $this->normalizeTime($validated['end_time']) : null,
+                'repeat'   => $validated['repeat'],
+            ]);
 
-                Reminder::where('business_id', $business_id)
-                    ->where('user_id', $user_id)
-                    ->where('id', $id)
-                    ->update($repeat);
-
-                $output = ['success' => true,
-                    'msg' => trans('lang_v1.updated_success'),
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-                $output = ['success' => 0,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
-        }
+        return back()->with('success', __('lang_v1.updated_success'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @return Response
-     */
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        Reminder::where('business_id', $businessId)
+            ->where('user_id', auth()->user()->id)
+            ->where('id', $id)
+            ->delete();
+
+        return back()->with('success', __('lang_v1.deleted_success'));
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected function toShape(Reminder $r): array
+    {
+        return [
+            'id'       => $r->id,
+            'name'     => $r->name,
+            'date'     => $r->date,
+            'time'     => $r->time ? substr($r->time, 0, 5) : null,
+            'end_time' => $r->end_time ? substr($r->end_time, 0, 5) : null,
+            'repeat'   => $r->repeat,
+        ];
+    }
+
+    protected function repeatOptions(): array
+    {
+        return [
+            ['value' => 'one_time',    'label' => 'Uma vez'],
+            ['value' => 'every_day',   'label' => 'Todo dia'],
+            ['value' => 'every_week',  'label' => 'Toda semana'],
+            ['value' => 'every_month', 'label' => 'Todo mês'],
+        ];
+    }
+
+    protected function normalizeTime(?string $time): ?string
+    {
+        if (empty($time)) return null;
+        // Garante HH:MM:SS
+        if (strlen($time) === 5) return $time . ':00';
+        return $time;
+    }
+
+    protected function currentBusinessId(): int
+    {
+        return (int) (session('business.id') ?: request()->session()->get('user.business_id'));
+    }
+
+    protected function authorizeAccess(int $businessId): void
+    {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($businessId, 'essentials_module'))) {
             abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            try {
-                $business_id = request()->session()->get('user.business_id');
-                $user_id = request()->session()->get('user.id');
-
-                Reminder::where('business_id', $business_id)
-                  ->where('user_id', $user_id)
-                  ->where('id', $id)
-                  ->delete();
-
-                $output = ['success' => true,
-                    'msg' => trans('lang_v1.deleted_success'),
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-                $output = ['success' => 0,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
         }
     }
 }
