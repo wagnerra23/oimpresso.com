@@ -24,6 +24,9 @@ Os documentos estão numerados para sugerir ordem de leitura em onboarding:
 | 08 | [`08-handoff.md`](08-handoff.md) | **Sempre ao retomar trabalho.** Estado atual. |
 | 09 | [`09-modulos-ultimatepos.md`](09-modulos-ultimatepos.md) | Inventário de módulos UltimatePOS da instância WR2 — referências canônicas |
 | — | [`CHANGELOG.md`](CHANGELOG.md) | **Eventos estruturais** em ordem cronológica (Keep a Changelog) — Added/Changed/Removed/Fixed/Decision |
+| — | [`COMO_PEDIR_NOVA_TELA_OU_MODULO.md`](COMO_PEDIR_NOVA_TELA_OU_MODULO.md) | **Template para Wagner pedir novas features** — prompt copy-paste, checklist, exemplos, red flags |
+| — | [`REQUISITOS_FUNCIONAIS_PONTO.md`](REQUISITOS_FUNCIONAIS_PONTO.md) | Requisitos funcionais do PontoWR2 — o que atende, o que é parcial, o que é stub |
+| — | [`COMPARATIVO_TELAS_BLADE_VS_REACT.md`](COMPARATIVO_TELAS_BLADE_VS_REACT.md) | Análise tela a tela do que o React ainda precisa restaurar do Blade antigo |
 | — | [`modulos/`](modulos/) | **Specs automáticas** dos 29 módulos + `RECOMENDACOES.md` + `INDEX.md` — gerado por `php artisan module:specs` |
 | — | [`decisions/`](decisions/) | ADRs — decisões arquiteturais registradas |
 | — | [`sessions/`](sessions/) | Session logs — histórico cronológico de mudanças |
