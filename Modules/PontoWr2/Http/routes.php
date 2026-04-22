@@ -29,6 +29,12 @@ Route::group(
         // 1. Dashboard
         Route::get('/', 'DashboardController@index')->name('ponto.dashboard');
 
+        // Piloto React/Inertia — página de boas-vindas para validar pipeline TW4+shadcn.
+        // Substituir pelo Dashboard real quando piloto estiver aprovado visualmente.
+        Route::get('/react', function () {
+            return \Inertia\Inertia::render('Ponto/Welcome');
+        })->name('ponto.react.welcome');
+
         // 2. Espelho de Ponto
         Route::get('/espelho', 'EspelhoController@index')->name('ponto.espelho.index');
         Route::get('/espelho/{colaborador}', 'EspelhoController@show')->name('ponto.espelho.show');
