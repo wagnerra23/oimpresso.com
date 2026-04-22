@@ -1,4 +1,4 @@
-import AppLayout from '@/Layouts/AppLayout';
+import AppShell from '@/Layouts/AppShell';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
@@ -60,7 +60,10 @@ const corClasses: Record<CorKey, string> = {
 
 export default function RelatoriosIndex({ relatorios }: Props) {
   return (
-    <AppLayout title="Relatórios · Ponto WR2">
+    <AppShell
+      title="Relatórios · Ponto WR2"
+      breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Relatórios' }]}
+    >
       <div className="mx-auto max-w-7xl p-6">
         <header className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Relatórios</h1>
@@ -111,6 +114,6 @@ export default function RelatoriosIndex({ relatorios }: Props) {
           })}
         </div>
       </div>
-    </AppLayout>
+    </AppShell>
   );
 }
