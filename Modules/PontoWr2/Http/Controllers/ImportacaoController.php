@@ -3,10 +3,11 @@
 namespace Modules\PontoWr2\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\PontoWr2\Entities\Importacao;
 use Modules\PontoWr2\Http\Requests\ImportacaoAfdRequest;
 use Modules\PontoWr2\Services\AfdParserService;
@@ -20,21 +21,35 @@ class ImportacaoController extends Controller
         $this->parser = $parser;
     }
 
-    public function index(Request $request): View
+    public function index(Request $request): Response
     {
         $businessId = session('business.id') ?: $request->user()->business_id;
 
-        $importacoes = Importacao::where('business_id', $businessId)
-            ->with('usuario')
+        $paginated = Importacao::where('business_id', $businessId)
+            ->with('usuario:id,first_name,last_name')
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('pontowr2::importacoes.index', compact('importacoes'));
+        $paginated->getCollection()->transform(fn ($i) => [
+            'id'               => $i->id,
+            'tipo'             => $i->tipo,
+            'nome_arquivo'     => $i->nome_arquivo,
+            'tamanho_bytes'    => (int) $i->tamanho_bytes,
+            'estado'           => $i->estado,
+            'linhas_processadas' => (int) ($i->linhas_processadas ?? 0),
+            'linhas_criadas'   => (int) ($i->linhas_criadas ?? 0),
+            'created_at'       => optional($i->created_at)->format('Y-m-d H:i'),
+            'created_at_human' => optional($i->created_at)->diffForHumans(),
+            'usuario'          => optional($i->usuario)->first_name,
+        ]);
+
+        return Inertia::render('Ponto/Importacoes/Index', ['importacoes' => $paginated]);
     }
 
-    public function create(): View
+    public function create(): Response
     {
-        return view('pontowr2::importacoes.create');
+        return Inertia::render('Ponto/Importacoes/Create');
     }
 
     public function store(ImportacaoAfdRequest $request): RedirectResponse
@@ -74,10 +89,27 @@ class ImportacaoController extends Controller
             ->with('success', 'Arquivo enfileirado para processamento.');
     }
 
-    public function show(int $id): View
+    public function show(int $id): Response
     {
-        $importacao = Importacao::with('usuario')->findOrFail($id);
-        return view('pontowr2::importacoes.show', compact('importacao'));
+        $i = Importacao::with('usuario:id,first_name,last_name')->findOrFail($id);
+
+        return Inertia::render('Ponto/Importacoes/Show', [
+            'importacao' => [
+                'id'                 => $i->id,
+                'tipo'               => $i->tipo,
+                'nome_arquivo'       => $i->nome_arquivo,
+                'hash_arquivo'       => $i->hash_arquivo,
+                'tamanho_bytes'      => (int) $i->tamanho_bytes,
+                'estado'             => $i->estado,
+                'linhas_processadas' => (int) ($i->linhas_processadas ?? 0),
+                'linhas_criadas'     => (int) ($i->linhas_criadas ?? 0),
+                'linhas_ignoradas'   => (int) ($i->linhas_ignoradas ?? 0),
+                'erro_mensagem'      => $i->erro_mensagem,
+                'created_at'         => optional($i->created_at)->format('Y-m-d H:i'),
+                'updated_at'         => optional($i->updated_at)->format('Y-m-d H:i'),
+                'usuario'            => optional($i->usuario)->first_name,
+            ],
+        ]);
     }
 
     public function baixarOriginal(int $id)

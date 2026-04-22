@@ -24,16 +24,42 @@ class IntercorrenciaController extends Controller
         $this->service = $service;
     }
 
-    public function index(Request $request): View
+    public function index(Request $request): Response
     {
         $businessId = session('business.id') ?: $request->user()->business_id;
 
-        $intercorrencias = Intercorrencia::where('business_id', $businessId)
-            ->with(['colaborador.user'])
-            ->orderByDesc('data')
-            ->paginate(25);
+        $estado = $request->input('estado');
+        $tipo   = $request->input('tipo');
 
-        return view('pontowr2::intercorrencias.index', compact('intercorrencias'));
+        $paginated = Intercorrencia::query()
+            ->where('business_id', $businessId)
+            ->when($estado, fn ($q) => $q->where('estado', $estado))
+            ->when($tipo, fn ($q) => $q->where('tipo', $tipo))
+            ->with(['colaborador.user:id,first_name,last_name'])
+            ->orderByDesc('data')
+            ->orderByDesc('created_at')
+            ->paginate(25)
+            ->withQueryString();
+
+        $paginated->getCollection()->transform(fn ($i) => [
+            'id'           => $i->id,
+            'codigo'       => $i->codigo ?? ('#' . substr((string) $i->id, 0, 8)),
+            'tipo'         => $i->tipo,
+            'estado'       => $i->estado,
+            'prioridade'   => $i->prioridade,
+            'data'         => optional($i->data)->format('Y-m-d'),
+            'justificativa'=> mb_substr((string) $i->justificativa, 0, 120),
+            'created_at_human' => optional($i->created_at)->diffForHumans(),
+            'colaborador'  => [
+                'nome'      => trim(optional(optional($i->colaborador)->user)->first_name ?? '—'),
+                'matricula' => optional($i->colaborador)->matricula,
+            ],
+        ]);
+
+        return Inertia::render('Ponto/Intercorrencias/Index', [
+            'intercorrencias' => $paginated,
+            'filtros' => ['estado' => $estado, 'tipo' => $tipo],
+        ]);
     }
 
     public function create(Request $request, IntercorrenciaAIClassifier $ai): Response
@@ -80,12 +106,36 @@ class IntercorrenciaController extends Controller
             ->with('success', "Intercorrência {$intercorrencia->codigo} criada.");
     }
 
-    public function show($id): View
+    public function show($id): Response
     {
-        $intercorrencia = Intercorrencia::with(['colaborador.user', 'solicitante', 'aprovador'])
-            ->findOrFail($id);
+        $i = Intercorrencia::with(['colaborador.user', 'solicitante', 'aprovador'])->findOrFail($id);
 
-        return view('pontowr2::intercorrencias.show', compact('intercorrencia'));
+        return Inertia::render('Ponto/Intercorrencias/Show', [
+            'intercorrencia' => [
+                'id'             => $i->id,
+                'codigo'         => $i->codigo ?? ('#' . substr((string) $i->id, 0, 8)),
+                'tipo'           => $i->tipo,
+                'estado'         => $i->estado,
+                'prioridade'     => $i->prioridade,
+                'data'           => optional($i->data)->format('Y-m-d'),
+                'dia_todo'       => (bool) $i->dia_todo,
+                'intervalo_inicio' => $i->intervalo_inicio,
+                'intervalo_fim'  => $i->intervalo_fim,
+                'justificativa'  => $i->justificativa,
+                'impacta_apuracao' => (bool) $i->impacta_apuracao,
+                'descontar_banco_horas' => (bool) $i->descontar_banco_horas,
+                'motivo_rejeicao'=> $i->motivo_rejeicao,
+                'created_at'     => optional($i->created_at)->format('Y-m-d H:i'),
+                'updated_at'     => optional($i->updated_at)->format('Y-m-d H:i'),
+                'colaborador'    => [
+                    'id'        => optional($i->colaborador)->id,
+                    'matricula' => optional($i->colaborador)->matricula,
+                    'nome'      => trim(optional(optional($i->colaborador)->user)->first_name ?? '—'),
+                ],
+                'solicitante'    => ['nome' => optional($i->solicitante)->first_name ?? '—'],
+                'aprovador'      => ['nome' => optional($i->aprovador)->first_name ?? null],
+            ],
+        ]);
     }
 
     public function edit($id): View
