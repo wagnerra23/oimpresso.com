@@ -63,12 +63,22 @@ class DashboardController extends Controller
             ],
             'modules' => array_map(fn ($m) => [
                 'name'          => $m['name'],
+                'format'        => $m['format'] ?? 'flat',
                 'status'        => $m['frontmatter']['status'] ?? 'unknown',
                 'priority'      => $m['frontmatter']['migration_priority'] ?? 'média',
                 'stories_count' => $m['stories_count'],
                 'rules_count'   => $m['rules_count'],
                 'dod_pct'       => $m['dod_pct'],
+                'coverage'      => $m['coverage'] ?? null,
             ], $modules),
+            'coverage_summary' => [
+                'folder_count' => count(array_filter($modules, fn ($m) => ($m['format'] ?? 'flat') === 'folder')),
+                'flat_count'   => count(array_filter($modules, fn ($m) => ($m['format'] ?? 'flat') === 'flat')),
+                'avg_score'    => count($modules) > 0
+                    ? (int) round(array_sum(array_map(fn ($m) => $m['coverage']['score'] ?? 0, $modules)) / count($modules))
+                    : 0,
+                'total_adrs'   => array_sum(array_map(fn ($m) => $m['coverage']['adrs'] ?? 0, $modules)),
+            ],
             'recent_sources' => $recentSources,
         ]);
     }
