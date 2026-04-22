@@ -33,7 +33,12 @@ class DataController extends Controller
     {
         $business_id = session()->get('user.business_id');
         $module_util = new ModuleUtil();
-        $is_officeimpresso_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'officeimpresso_module', 'superadmin_package');
+
+        // Desabilitado temporariamente (2026-04-22): action() falha porque as rotas
+        // do catalogue-qr em Routes/web.php estão comentadas. Reabilitar depois
+        // que as rotas forem restauradas.
+        $is_officeimpresso_enabled = false
+            && (bool) $module_util->hasThePermissionInSubscription($business_id, 'officeimpresso_module', 'superadmin_package');
 
         if ($is_officeimpresso_enabled) {
             Menu::modify('admin-sidebar-menu', function ($menu) {

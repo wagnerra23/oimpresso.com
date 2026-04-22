@@ -1,5 +1,9 @@
 <?php
 
+// Suprime deprecations do PHP 8.4 contra Laravel 9 + pacotes antigos.
+// Só afeta este projeto. Erros reais (E_ERROR/E_WARNING/E_PARSE) continuam aparecendo.
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_NOTICE);
+
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 

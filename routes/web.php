@@ -499,7 +499,35 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 //common route
 Route::middleware(['auth'])->group(function () {
     Route::get('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+
+    // Preferências de UI do usuário (tema, sidebar colapsado). Qualquer request
+    // autenticada pode atualizar — não depende de SetSessionData/business_id.
+    Route::post('/user/preferences/theme',
+        [\App\Http\Controllers\UserPreferencesController::class, 'updateTheme']
+    )->name('user.preferences.theme');
+    Route::post('/user/preferences/sidebar',
+        [\App\Http\Controllers\UserPreferencesController::class, 'updateSidebarCollapsed']
+    )->name('user.preferences.sidebar');
 });
+
+// Gerenciador de Módulos — substituto React do /manage-modules (AdminLTE quebrado).
+// Precisa de SetSessionData p/ ter business_id + is_admin na sessão, e
+// AdminSidebarMenu p/ popular o menu do shell (33 módulos).
+Route::middleware(['web', 'setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->group(function () {
+        Route::get('/modulos',
+            [\App\Http\Controllers\ModuleManagementController::class, 'index']
+        )->name('modules.index');
+        Route::post('/modulos/{name}/toggle',
+            [\App\Http\Controllers\ModuleManagementController::class, 'toggle']
+        )->name('modules.toggle');
+        Route::post('/modulos/{name}/install',
+            [\App\Http\Controllers\ModuleManagementController::class, 'install']
+        )->name('modules.install');
+        Route::post('/modulos/{name}/uninstall',
+            [\App\Http\Controllers\ModuleManagementController::class, 'uninstall']
+        )->name('modules.uninstall');
+    });
 
 Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])->group(function () {
     Route::get('/load-more-notifications', [HomeController::class, 'loadMoreNotifications']);
