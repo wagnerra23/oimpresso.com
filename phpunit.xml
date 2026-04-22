@@ -15,6 +15,9 @@
             <directory suffix="Test.php">./Modules/PontoWr2/Tests/Unit</directory>
             <directory suffix="Test.php">./Modules/PontoWr2/Tests/Feature</directory>
         </testsuite>
+        <testsuite name="Essentials">
+            <directory suffix="Test.php">./Modules/Essentials/Tests/Feature</directory>
+        </testsuite>
     </testsuites>
     <coverage processUncoveredFiles="true">
         <include>

@@ -20,6 +20,16 @@ class ToDo extends Model
      */
     protected $table = 'essentials_to_dos';
 
+    /**
+     * Cast das colunas de data. Em Laravel 9+ só timestamps são castados
+     * automaticamente — `date`/`end_date` precisam ser declarados explicitamente
+     * para que `->format()` e `Carbon` helpers funcionem.
+     */
+    protected $casts = [
+        'date'     => 'datetime',
+        'end_date' => 'datetime',
+    ];
+
     public function users()
     {
         return $this->belongsToMany(\App\User::class, 'essentials_todos_users', 'todo_id', 'user_id');

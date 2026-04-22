@@ -6,718 +6,602 @@ use App\Media;
 use App\User;
 use App\Utils\ModuleUtil;
 use App\Utils\Util;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\View;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Essentials\Entities\EssentialsTodoComment;
 use Modules\Essentials\Entities\ToDo;
+use Modules\Essentials\Http\Requests\ToDoCommentRequest;
+use Modules\Essentials\Http\Requests\ToDoStoreRequest;
+use Modules\Essentials\Http\Requests\ToDoUpdateRequest;
+use Modules\Essentials\Http\Requests\ToDoUploadDocumentRequest;
 use Modules\Essentials\Notifications\NewTaskCommentNotification;
 use Modules\Essentials\Notifications\NewTaskDocumentNotification;
 use Modules\Essentials\Notifications\NewTaskNotification;
 use Spatie\Activitylog\Models\Activity;
-use Yajra\DataTables\Facades\DataTables;
 
+/**
+ * ToDoController — versão Inertia (React).
+ *
+ * Migração das 9 views Blade para 4 Pages React:
+ *   - Essentials/Todo/Index  (listagem + filtros + deletar + troca rápida de status)
+ *   - Essentials/Todo/Create (form + anexo)
+ *   - Essentials/Todo/Edit   (form + anexo)
+ *   - Essentials/Todo/Show   (detalhe + tabs: comentários, anexos, atividades, docs compartilhados)
+ *
+ * Paridade com o Blade preservada (princípio "não perde nada"):
+ *   - Comentários (add/delete)
+ *   - Uploads de documentos + remoção
+ *   - View de Spreadsheets compartilhados (via hook moduleViewPartials)
+ *   - Notifications (NewTask, NewTaskComment, NewTaskDocument)
+ *   - Activity log
+ *   - Scope por business_id + filtro não-admin (só próprias OU atribuídas)
+ *   - Permissões Spatie: essentials.{assign,add,edit,delete}_todos
+ *   - task_id com prefixo configurável em essentials_settings
+ */
 class ToDoController extends Controller
 {
-    /**
-     * All Utils instance.
-     */
-    protected $commonUtil;
+    protected Util $commonUtil;
 
-    protected $moduleUtil;
+    protected ModuleUtil $moduleUtil;
 
-    /**
-     * Constructor
-     *
-     * @param CommonUtil
-     * @return void
-     */
     public function __construct(Util $commonUtil, ModuleUtil $moduleUtil)
     {
         $this->commonUtil = $commonUtil;
         $this->moduleUtil = $moduleUtil;
-
-        $this->priority_colors = [
-            'low' => 'bg-green',
-            'medium' => 'bg-yellow',
-            'high' => 'bg-orange',
-            'urgent' => 'bg-red',
-        ];
-
-        $this->status_colors = [
-            'new' => 'bg-yellow',
-            'in_progress' => 'bg-light-blue',
-            'on_hold' => 'bg-red',
-            'completed' => 'bg-green',
-        ];
     }
 
     /**
-     * Display a listing of the resource.
-     *
-     * @return Response
+     * Listagem paginada com filtros. Substitui o DataTables AJAX da versão Blade.
      */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-        $auth_id = auth()->user()->id;
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
-        $task_statuses = ToDo::getTaskStatus();
-        $priorities = ToDo::getTaskPriorities();
+        $authId = auth()->user()->id;
+        $isAdmin = $this->moduleUtil->is_admin(auth()->user(), $businessId);
 
-        if (request()->ajax()) {
-            $todos = ToDo::where('business_id', $business_id)
-                        ->with(['users', 'assigned_by'])
-                        ->select('*');
+        $query = ToDo::where('business_id', $businessId)
+            ->with([
+                'users:id,first_name,last_name,username',
+                'assigned_by:id,first_name,last_name,username',
+            ]);
 
-            if (! empty($request->priority)) {
-                $todos->where('priority', $request->priority);
-            }
-
-            if (! empty($request->status)) {
-                $todos->where('status', $request->status);
-            }
-
-            //If not admin show only assigned task
-            if (! $is_admin) {
-                $todos->where(function ($query) use ($auth_id) {
-                    $query->where('created_by', $auth_id)
-                        ->orWhereHas('users', function ($q) use ($auth_id) {
-                            $q->where('user_id', $auth_id);
-                        });
-                });
-            }
-
-            //Filter by user id.
-            if (! empty($request->user_id)) {
-                $user_id = $request->user_id;
-                $todos->whereHas('users', function ($q) use ($user_id) {
-                    $q->where('user_id', $user_id);
-                });
-            }
-
-            //Filter by date.
-            if (! empty($request->start_date) && ! empty($request->end_date)) {
-                $start = $request->start_date;
-                $end = $request->end_date;
-                $todos->whereDate('date', '>=', $start)
-                            ->whereDate('date', '<=', $end);
-            }
-
-            return Datatables::of($todos)
-                ->addColumn(
-                    'action',
-                    function ($row) {
-                        $html = '<div class="btn-group">
-                            <button type="button" class="btn btn-info dropdown-toggle btn-xs" data-toggle="dropdown" aria-expanded="false">'.__('messages.actions').'<span class="caret"></span><span class="sr-only">Toggle Dropdown</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-right" role="menu">';
-
-                        if (auth()->user()->can('essentials.edit_todos')) {
-                            $html .= '<li><a href="#" data-href="'.action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'edit'], [$row->id]).'" class="btn-modal" data-container="#task_modal"><i class="glyphicon glyphicon-edit"></i> '.__('messages.edit').'</a></li>';
-                        }
-
-                        if (auth()->user()->can('essentials.delete_todos')) {
-                            $html .= '<li><a href="#" data-href="'.action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'destroy'], [$row->id]).'" class="delete_task" ><i class="fa fa-trash"></i> '.__('messages.delete').'</a></li>';
-                        }
-
-                        $html .= '<li><a href="'.action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'show'], [$row->id]).'" ><i class="fa fa-eye"></i> '.__('messages.view').'</a></li>';
-
-                        $html .= '<li><a href="#" class="change_status" data-status="'.$row->status.'" data-task_id="'.$row->id.'"><i class="fas fa-check-circle"></i> '.__('essentials::lang.change_status').'</a></li>';
-
-                        $html .= '</ul></div>';
-
-                        return $html;
-                    }
-                )
-                ->editColumn('task', function ($row) use ($priorities) {
-                    $html = '<a href="'.action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'show'], [$row->id]).'" >'.$row->task.'</a> <br>
-                        <a data-href="'.action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'viewSharedDocs'], [$row->id]).'" class="btn btn-primary btn-xs view-shared-docs">'.__('essentials::lang.docs').'</a>';
-
-                    if (! empty($row->priority)) {
-                        $bg_color = ! empty($this->priority_colors[$row->priority]) ? $this->priority_colors[$row->priority] : 'bg-gray';
-
-                        $html .= ' &nbsp; <span class="label '.$bg_color.'"> '.$priorities[$row->priority].'</span>';
-                    }
-
-                    return $html;
-                })
-                ->addColumn('assigned_by', function ($row) {
-                    return $row->assigned_by?->user_full_name;
-                })
-                ->editColumn('users', function ($row) {
-                    $users = [];
-                    foreach ($row->users as $user) {
-                        $users[] = $user->user_full_name;
-                    }
-
-                    return implode(', ', $users);
-                })
-                ->editColumn('created_at', '{{@format_datetime($created_at)}}')
-                ->editColumn('date', '{{@format_datetime($date)}}')
-                ->editColumn('end_date', '@if(!empty($end_date)) {{@format_datetime($end_date)}} @endif')
-                ->editColumn('status', function ($row) use ($task_statuses) {
-                    $html = '';
-                    if (! empty($task_statuses[$row->status])) {
-                        $bg_color = ! empty($this->status_colors[$row->status]) ? $this->status_colors[$row->status] : 'bg-gray';
-
-                        $html = '<a href="#" class="change_status" data-status="'.$row->status.'" data-task_id="'.$row->id.'"><span class="label '.$bg_color.'"> '.$task_statuses[$row->status].'</span></a>';
-                    }
-
-                    return $html;
-                })
-                ->removeColumn('id')
-                ->rawColumns(['task', 'action', 'status'])
-                ->make(true);
-        }
-
-        $users = [];
-        if (auth()->user()->can('essentials.assign_todos')) {
-            $users = User::forDropdown($business_id, false);
-        }
-
-        return view('essentials::todo.index')->with(compact('users', 'task_statuses', 'priorities'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        $business_id = request()->session()->get('user.business_id');
-
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! auth()->user()->can('essentials.add_todos')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $users = [];
-        if (auth()->user()->can('essentials.assign_todos')) {
-            $users = User::forDropdown($business_id, false);
-        }
-        if (! empty(request()->input('from_calendar'))) {
-            $users = [];
-        }
-
-        $task_statuses = ToDo::getTaskStatus();
-        $priorities = ToDo::getTaskPriorities();
-
-        return view('essentials::todo.create')->with(compact('users', 'task_statuses', 'priorities'));
-    }
-
-    /**
-     * Show the specified resource.
-     *
-     * @return Response
-     */
-    public function show($id)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-
-        $query = ToDo::where('business_id', $business_id)
-                    ->with([
-                        'assigned_by',
-                        'comments',
-                        'comments.added_by',
-                        'media',
-                        'users',
-                        'media.uploaded_by_user',
-                    ]);
-
-        //If not admin show only assigned task
-        if (! $is_admin) {
-            $query->where(function ($query) {
-                $query->where('created_by', auth()->user()->id)
-                    ->orWhereHas('users', function ($q) {
-                        $q->where('user_id', auth()->user()->id);
+        // Não-admin só vê próprias OU atribuídas a ele
+        if (! $isAdmin) {
+            $query->where(function ($q) use ($authId) {
+                $q->where('created_by', $authId)
+                    ->orWhereHas('users', function ($inner) use ($authId) {
+                        $inner->where('user_id', $authId);
                     });
             });
         }
 
-        $todo = $query->findOrFail($id);
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->string('priority'));
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+        if ($request->filled('user_id')) {
+            $userId = $request->integer('user_id');
+            $query->whereHas('users', fn ($q) => $q->where('user_id', $userId));
+        }
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereDate('date', '>=', $request->string('start_date'))
+                ->whereDate('date', '<=', $request->string('end_date'));
+        }
+
+        $paginated = $query->orderByDesc('created_at')
+            ->paginate(25)
+            ->withQueryString();
+
+        $paginated->getCollection()->transform(fn (ToDo $t) => $this->toRowShape($t));
+
+        $assignableUsers = [];
+        if (auth()->user()->can('essentials.assign_todos')) {
+            $assignableUsers = $this->dropdownUsers($businessId);
+        }
+
+        return Inertia::render('Essentials/Todo/Index', [
+            'todos'            => $paginated,
+            'filtros'          => [
+                'status'     => $request->string('status')->toString() ?: null,
+                'priority'   => $request->string('priority')->toString() ?: null,
+                'user_id'    => $request->integer('user_id') ?: null,
+                'start_date' => $request->string('start_date')->toString() ?: null,
+                'end_date'   => $request->string('end_date')->toString() ?: null,
+            ],
+            'assignableUsers'  => $assignableUsers,
+            'statuses'         => $this->statusOptions(),
+            'priorities'       => $this->priorityOptions(),
+            'can'              => $this->policies(),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAdd($businessId);
 
         $users = [];
-        foreach ($todo->users as $user) {
-            $users[] = $user->user_full_name;
+        if (auth()->user()->can('essentials.assign_todos') && empty(request()->input('from_calendar'))) {
+            $users = $this->dropdownUsers($businessId);
         }
-        $task_statuses = ToDo::getTaskStatus();
-        $priorities = ToDo::getTaskPriorities();
+
+        return Inertia::render('Essentials/Todo/Create', [
+            'users'      => $users,
+            'statuses'   => $this->statusOptions(),
+            'priorities' => $this->priorityOptions(),
+            'can'        => $this->policies(),
+        ]);
+    }
+
+    public function store(ToDoStoreRequest $request): RedirectResponse
+    {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAdd($businessId);
+
+        $createdBy = $request->user()->id;
+        $data = $request->validated();
+
+        $data['date']        = $this->parseDate($data['date']);
+        $data['end_date']    = ! empty($data['end_date']) ? $this->parseDate($data['end_date']) : null;
+        $data['business_id'] = $businessId;
+        $data['created_by']  = $createdBy;
+        $data['status']      = $data['status'] ?? 'new';
+
+        $assignees = $data['users'] ?? [];
+        unset($data['users']);
+
+        if (! auth()->user()->can('essentials.assign_todos') || empty($assignees)) {
+            $assignees = [$createdBy];
+        }
+
+        $refCount = $this->commonUtil->setAndGetReferenceCount('essentials_todos');
+        $settings = request()->session()->get('business.essentials_settings');
+        $settings = ! empty($settings) ? json_decode($settings, true) : [];
+        $prefix   = ! empty($settings['essentials_todos_prefix']) ? $settings['essentials_todos_prefix'] : '';
+        $data['task_id'] = $this->commonUtil->generateReferenceNumber('essentials_todos', $refCount, null, $prefix);
+
+        $todo = ToDo::create($data);
+        $todo->users()->sync($assignees);
+
+        $this->commonUtil->activityLog($todo, 'added');
+
+        $toNotify = $todo->users->filter(fn ($u) => $u->id !== $createdBy);
+        \Notification::send($toNotify, new NewTaskNotification($todo));
+
+        return redirect()
+            ->route('todo.show', $todo->id)
+            ->with('success', __('essentials::lang.task') . ' ' . $todo->task_id . ' ' . __('lang_v1.added'));
+    }
+
+    public function show($id): Response
+    {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        $todo = $this->scopedQueryForUser($businessId)
+            ->with([
+                'assigned_by:id,first_name,last_name,username',
+                'users:id,first_name,last_name,username',
+                'comments.added_by:id,first_name,last_name,username',
+                'media.uploaded_by_user:id,first_name,last_name,username',
+            ])
+            ->findOrFail($id);
 
         $activities = Activity::forSubject($todo)
-           ->with(['causer', 'subject'])
-           ->latest()
-           ->get();
+            ->with(['causer:id,first_name,last_name,username'])
+            ->latest()
+            ->get()
+            ->map(fn (Activity $a) => [
+                'id'          => $a->id,
+                'description' => $a->description,
+                'causer_name' => optional($a->causer)->user_full_name ?? '—',
+                'created_at'  => optional($a->created_at)->format('Y-m-d H:i'),
+            ]);
 
-        return view('essentials::todo.view')->with(compact(
-            'todo',
-            'users',
-            'task_statuses',
-            'priorities',
-            'activities'
-        ));
+        return Inertia::render('Essentials/Todo/Show', [
+            'todo'       => $this->toDetailShape($todo),
+            'comments'   => $todo->comments->map(fn ($c) => $this->toCommentShape($c))->values(),
+            'documents'  => $todo->media->map(fn ($m) => $this->toMediaShape($m, $todo))->values(),
+            'activities' => $activities,
+            'statuses'   => $this->statusOptions(),
+            'priorities' => $this->priorityOptions(),
+            'can'        => $this->policies(),
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @return Response
-     */
-    public function edit($id)
+    public function edit($id): Response
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! auth()->user()->can('essentials.edit_todos')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $businessId = $this->currentBusinessId();
+        $this->authorizeEdit($businessId);
 
-        $user_id = auth()->user()->id;
-        $query = ToDo::where('business_id', $business_id);
-
-        //Non admin can update only assigned tasks
-        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-        if (! $is_admin) {
-            $query->where(function ($query) {
-                $query->where('created_by', auth()->user()->id)
-                    ->orWhereHas('users', function ($q) {
-                        $q->where('user_id', auth()->user()->id);
-                    });
-            });
-        }
-
-        $todo = $query->with(['users'])->findOrFail($id);
+        $todo = $this->scopedQueryForUser($businessId)
+            ->with(['users:id,first_name,last_name,username'])
+            ->findOrFail($id);
 
         $users = [];
         if (auth()->user()->can('essentials.assign_todos')) {
-            $users = User::forDropdown($business_id, false);
+            $users = $this->dropdownUsers($businessId);
         }
-        $task_statuses = ToDo::getTaskStatus();
-        $priorities = ToDo::getTaskPriorities();
 
-        return view('essentials::todo.edit')->with(compact('users', 'todo', 'task_statuses', 'priorities'));
+        return Inertia::render('Essentials/Todo/Edit', [
+            'todo'       => array_merge($this->toDetailShape($todo), [
+                'assigned_user_ids' => $todo->users->pluck('id')->all(),
+            ]),
+            'users'      => $users,
+            'statuses'   => $this->statusOptions(),
+            'priorities' => $this->priorityOptions(),
+            'can'        => $this->policies(),
+        ]);
+    }
+
+    public function update(ToDoUpdateRequest $request, $id): RedirectResponse
+    {
+        $businessId = $this->currentBusinessId();
+        $onlyStatus = $request->boolean('only_status');
+
+        if ($onlyStatus) {
+            $this->authorizeAccess($businessId);
+        } else {
+            $this->authorizeEdit($businessId);
+        }
+
+        $todo = $this->scopedQueryForUser($businessId)->findOrFail($id);
+        $before = $todo->replicate();
+
+        if ($onlyStatus) {
+            $todo->update(['status' => $request->string('status')]);
+        } else {
+            $data = $request->validated();
+            $data['date']     = $this->parseDate($data['date']);
+            $data['end_date'] = ! empty($data['end_date']) ? $this->parseDate($data['end_date']) : null;
+            $data['status']   = $data['status'] ?? 'new';
+
+            $assignees = $data['users'] ?? null;
+            unset($data['users']);
+
+            $todo->update($data);
+
+            if (auth()->user()->can('essentials.assign_todos') && $assignees !== null) {
+                $todo->users()->sync($assignees);
+            }
+        }
+
+        $this->commonUtil->activityLog($todo, 'edited', $before);
+
+        $redirect = $onlyStatus
+            ? back()
+            : redirect()->route('todo.show', $todo->id);
+
+        return $redirect->with('success', __('lang_v1.updated_success'));
+    }
+
+    public function destroy($id): RedirectResponse
+    {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeDelete($businessId);
+
+        $isAdmin = $this->moduleUtil->is_admin(auth()->user(), $businessId);
+        $query = ToDo::where('business_id', $businessId)->where('id', $id);
+        if (! $isAdmin) {
+            $query->where('created_by', auth()->user()->id);
+        }
+        $query->delete();
+
+        return redirect()
+            ->route('todo.index')
+            ->with('success', __('lang_v1.deleted_success'));
+    }
+
+    public function addComment(ToDoCommentRequest $request): RedirectResponse
+    {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        $authId = auth()->user()->id;
+        $todo = $this->scopedQueryForUser($businessId)
+            ->with('users')
+            ->findOrFail($request->integer('task_id'));
+
+        $comment = EssentialsTodoComment::create([
+            'task_id'    => $todo->id,
+            'comment'    => $request->string('comment'),
+            'comment_by' => $authId,
+        ]);
+
+        $toNotify = $todo->users->filter(fn ($u) => $u->id !== $authId);
+        \Notification::send($toNotify, new NewTaskCommentNotification($comment));
+
+        return back()->with('success', __('lang_v1.added'));
+    }
+
+    public function deleteComment($id): RedirectResponse
+    {
+        $this->authorizeAccess($this->currentBusinessId());
+
+        EssentialsTodoComment::where('comment_by', auth()->user()->id)
+            ->where('id', $id)
+            ->delete();
+
+        return back()->with('success', __('lang_v1.deleted_success'));
+    }
+
+    public function uploadDocument(ToDoUploadDocumentRequest $request): RedirectResponse
+    {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        $authId = auth()->user()->id;
+        $todo = $this->scopedQueryForUser($businessId)
+            ->with('users')
+            ->findOrFail($request->integer('task_id'));
+
+        Media::uploadMedia($todo->business_id, $todo, $request, 'documents');
+
+        $toNotify = $todo->users->filter(fn ($u) => $u->id !== $authId);
+        \Notification::send($toNotify, new NewTaskDocumentNotification([
+            'task_id'                => $todo->task_id,
+            'uploaded_by'            => $authId,
+            'id'                     => $todo->id,
+            'uploaded_by_user_name'  => auth()->user()->user_full_name,
+        ]));
+
+        return back()->with('success', __('lang_v1.added'));
+    }
+
+    public function deleteDocument($id): RedirectResponse
+    {
+        $this->authorizeAccess($this->currentBusinessId());
+
+        $media = Media::findOrFail($id);
+        if ($media->model_type === ToDo::class) {
+            $todo = ToDo::findOrFail($media->model_id);
+            $authId = auth()->user()->id;
+
+            // Só quem subiu ou o criador da task podem remover
+            if (in_array($authId, [$media->uploaded_by, $todo->created_by], true)) {
+                if (is_file((string) $media->display_path)) {
+                    @unlink($media->display_path);
+                }
+                $media->delete();
+            }
+        }
+
+        return back()->with('success', __('lang_v1.deleted_success'));
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  Request  $request
-     * @return Response
+     * Spreadsheets compartilhadas com a tarefa via hook moduleViewPartials.
+     * Retorna JSON pra ser consumido por um Dialog do React (não Inertia render —
+     * o Dialog é local à página).
      */
-    public function store(Request $request)
+    public function viewSharedDocs($id): JsonResponse
     {
-        $business_id = $request->session()->get('user.business_id');
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! auth()->user()->can('essentials.add_todos')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $todo = ToDo::where('business_id', $businessId)->findOrFail($id);
 
-        if (request()->ajax()) {
-            try {
-                $created_by = $request->session()->get('user.id');
-                $input = $request->only(
-                    'task',
-                    'date',
-                    'description',
-                    'estimated_hours',
-                    'priority',
-                    'status',
-                    'end_date'
-                );
+        $moduleData = $this->moduleUtil->getModuleData('getSharedSpreadsheetForGivenData', [
+            'business_id' => $businessId,
+            'shared_with' => 'todo',
+            'shared_id'   => $id,
+        ]);
 
-                $input['date'] = $this->commonUtil->uf_date($input['date'], true);
-                $input['end_date'] = ! empty($input['end_date']) ? $this->commonUtil->uf_date($input['end_date'], true) : null;
-                $input['business_id'] = $business_id;
-                $input['created_by'] = $created_by;
-                $input['status'] = ! empty($input['status']) ? $input['status'] : 'new';
-
-                $users = $request->input('users');
-                //Can add only own tasks if permission not given
-                if (! auth()->user()->can('essentials.assign_todos') || empty($users)) {
-                    $users = [$created_by];
-                }
-
-                $ref_count = $this->commonUtil->setAndGetReferenceCount('essentials_todos');
-                //Generate reference number
-                $settings = request()->session()->get('business.essentials_settings');
-                $settings = ! empty($settings) ? json_decode($settings, true) : [];
-                $prefix = ! empty($settings['essentials_todos_prefix']) ? $settings['essentials_todos_prefix'] : '';
-                $input['task_id'] = $this->commonUtil->generateReferenceNumber('essentials_todos', $ref_count, null, $prefix);
-
-                $to_dos = ToDo::create($input);
-
-                $to_dos->users()->sync($users);
-
-                //Exclude created user from notification
-                $users = $to_dos->users->filter(function ($item) use ($created_by) {
-                    return $item->id != $created_by;
-                });
-
-                $this->commonUtil->activityLog($to_dos, 'added');
-
-                \Notification::send($users, new NewTaskNotification($to_dos));
-
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                    'todo_id' => $to_dos->id,
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
+        $sheets = [];
+        if (! empty($moduleData['Spreadsheet']) && is_iterable($moduleData['Spreadsheet'])) {
+            foreach ($moduleData['Spreadsheet'] as $sheet) {
+                $sheets[] = [
+                    'id'         => $sheet->id ?? null,
+                    'name'       => $sheet->name ?? (string) ($sheet->title ?? '—'),
+                    'url'        => $sheet->url ?? null,
+                    'created_at' => isset($sheet->created_at) ? (string) $sheet->created_at : null,
                 ];
             }
-
-            return $output;
         }
+
+        return response()->json([
+            'task_id' => $todo->task_id,
+            'sheets'  => $sheets,
+        ]);
+    }
+
+    // ------------------------------------------------------------------------
+    // Helpers privados
+    // ------------------------------------------------------------------------
+
+    protected function currentBusinessId(): int
+    {
+        return (int) (session('business.id') ?: request()->session()->get('user.business_id'));
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  Request  $request
-     * @return Response
+     * Converte a data do input (ISO Y-m-d, opcionalmente com hora) em DATETIME MySQL.
+     * Tolera formatos configurados no business via uf_date como fallback.
      */
-    public function update(Request $request, $id)
+    protected function parseDate(?string $date): ?string
     {
-        $business_id = $request->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! auth()->user()->can('essentials.edit_todos')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            try {
-                if (! $request->has('only_status')) {
-                    $input = $request->only(
-                        'task',
-                        'date',
-                        'description',
-                        'estimated_hours',
-                        'priority',
-                        'status',
-                        'end_date'
-                    );
-
-                    $input['date'] = $this->commonUtil->uf_date($input['date'], true);
-                    $input['end_date'] = ! empty($input['end_date']) ? $this->commonUtil->uf_date($input['end_date'], true) : null;
-
-                    $input['status'] = ! empty($input['status']) ? $input['status'] : 'new';
-                } else {
-                    $input = ['status' => ! empty($request->input('status')) ? $request->input('status') : null];
-                }
-
-                $query = ToDo::where('business_id', $business_id);
-
-                //Non admin can update only assigned tasks
-                $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-                if (! $is_admin) {
-                    $query->where(function ($query) {
-                        $query->where('created_by', auth()->user()->id)
-                            ->orWhereHas('users', function ($q) {
-                                $q->where('user_id', auth()->user()->id);
-                            });
-                    });
-                }
-
-                $todo = $query->findOrFail($id);
-
-                $todo_before = $todo->replicate();
-
-                $todo->update($input);
-
-                if (auth()->user()->can('essentials.assign_todos') && ! $request->has('only_status')) {
-                    $users = $request->input('users');
-                    $todo->users()->sync($users);
-                }
-
-                $this->commonUtil->activityLog($todo, 'edited', $todo_before);
-
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @return Response
-     */
-    public function destroy($id)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! auth()->user()->can('essentials.delete_todos')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            try {
-                $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-
-                $todo = ToDo::where('business_id', $business_id);
-                //Can destroy only own created tasks if not admin
-                if (! $is_admin) {
-                    $todo->where('created_by', auth()->user()->id);
-                }
-                $todo->where('id', $id)
-                    ->delete();
-
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
-        }
-    }
-
-    /**
-     * Add comment to the task
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function addComment(Request $request)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            try {
-                $input = $request->only(['task_id', 'comment']);
-                $query = ToDo::where('business_id', $business_id)
-                            ->with('users');
-                $auth_id = auth()->user()->id;
-
-                //Non admin can add comment to only assigned tasks
-                $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-                if (! $is_admin) {
-                    $query->where(function ($query) {
-                        $query->where('created_by', auth()->user()->id)
-                            ->orWhereHas('users', function ($q) {
-                                $q->where('user_id', auth()->user()->id);
-                            });
-                    });
-                }
-
-                $todo = $query->findOrFail($input['task_id']);
-
-                $input['comment_by'] = $auth_id;
-
-                $comment = EssentialsTodoComment::create($input);
-
-                $comment_html = view('essentials::todo.comment')
-                                ->with(compact('comment'))
-                                ->render();
-                $output = [
-                    'success' => true,
-                    'comment_html' => $comment_html,
-                    'msg' => __('lang_v1.success'),
-                ];
-
-                //Remove auth user from users collection
-                $users = $todo->users->filter(function ($user) use ($auth_id) {
-                    return $user->id != $auth_id;
-                });
-
-                \Notification::send($users, new NewTaskCommentNotification($comment));
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
-        }
-    }
-
-    /**
-     * Upload documents for a task
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function uploadDocument(Request $request)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
+        if ($date === null || $date === '') {
+            return null;
         }
 
         try {
-            $task_id = $request->input('task_id');
-            $query = ToDo::with('users')->where('business_id', $business_id);
-            $auth_id = auth()->user()->id;
-
-            //Non admin can add comment to only assigned tasks
-            $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-            if (! $is_admin) {
-                $query->where(function ($query) {
-                    $query->where('created_by', auth()->user()->id)
-                        ->orWhereHas('users', function ($q) {
-                            $q->where('user_id', auth()->user()->id);
-                        });
-                });
+            return Carbon::parse($date)->format('Y-m-d H:i:s');
+        } catch (\Throwable $e) {
+            // Fallback para formato configurado no business
+            try {
+                return $this->commonUtil->uf_date($date, true);
+            } catch (\Throwable $e2) {
+                return null;
             }
+        }
+    }
 
-            $todo = $query->findOrFail($task_id);
+    protected function authorizeAccess(int $businessId): void
+    {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($businessId, 'essentials_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
 
-            Media::uploadMedia($todo->business_id, $todo, $request, 'documents');
+    protected function authorizeAdd(int $businessId): void
+    {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($businessId, 'essentials_module')) && ! auth()->user()->can('essentials.add_todos')) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
 
-            //Remove auth user from users collection
-            $users = $todo->users->filter(function ($user) use ($auth_id) {
-                return $user->id != $auth_id;
+    protected function authorizeEdit(int $businessId): void
+    {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($businessId, 'essentials_module')) && ! auth()->user()->can('essentials.edit_todos')) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    protected function authorizeDelete(int $businessId): void
+    {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($businessId, 'essentials_module')) && ! auth()->user()->can('essentials.delete_todos')) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    protected function scopedQueryForUser(int $businessId)
+    {
+        $query = ToDo::where('business_id', $businessId);
+        $isAdmin = $this->moduleUtil->is_admin(auth()->user(), $businessId);
+
+        if (! $isAdmin) {
+            $query->where(function ($q) {
+                $q->where('created_by', auth()->user()->id)
+                    ->orWhereHas('users', function ($inner) {
+                        $inner->where('user_id', auth()->user()->id);
+                    });
             });
-
-            $data = [
-                'task_id' => $todo->task_id,
-                'uploaded_by' => $auth_id,
-                'id' => $todo->id,
-                'uploaded_by_user_name' => auth()->user()->user_full_name,
-            ];
-
-            \Notification::send($users, new NewTaskDocumentNotification($data));
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
         }
 
-        return back()->with('status', $output);
+        return $query;
     }
 
-    /**
-     * Delete comment of a task
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function deleteComment($id)
+    protected function dropdownUsers(int $businessId): array
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        try {
-            $comment = EssentialsTodoComment::where('comment_by', auth()->user()->id)
-                                    ->where('id', $id)
-                                    ->delete();
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        return $output;
+        $raw = User::forDropdown($businessId, false);
+        // forDropdown retorna array id => nome. Converte pro shape de select.
+        return collect($raw)->map(fn ($label, $id) => [
+            'id'    => (int) $id,
+            'label' => (string) $label,
+        ])->values()->all();
     }
 
-    /**
-     * Delete comment of a task
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function deleteDocument($id)
+    protected function statusOptions(): array
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
+        $map = ToDo::getTaskStatus();
+        $out = [];
+        foreach ($map as $value => $label) {
+            $out[] = ['value' => $value, 'label' => (string) $label];
         }
-
-        try {
-            $media = Media::findOrFail($id);
-            if ($media->model_type == 'Modules\Essentials\Entities\ToDo') {
-                $todo = ToDo::findOrFail($media->model_id);
-
-                //Can delete document only if task is assigned by or assigned to the user
-                if (in_array(auth()->user()->id, [$todo->user_id, $todo->created_by])) {
-                    unlink($media->display_path);
-                    $media->delete();
-                }
-            }
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        return $output;
+        return $out;
     }
 
-    public function viewSharedDocs($id)
+    protected function priorityOptions(): array
     {
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
-
-            $module_data = $this->moduleUtil->getModuleData('getSharedSpreadsheetForGivenData', ['business_id' => $business_id, 'shared_with' => 'todo', 'shared_id' => $id]);
-
-            $sheets = [];
-            if (! empty($module_data['Spreadsheet'])) {
-                $sheets = $module_data['Spreadsheet'];
-            }
-
-            $todo = ToDo::findOrFail($id);
-
-            return view('essentials::todo.view_shared_docs')
-                ->with(compact('sheets', 'todo'));
+        $map = ToDo::getTaskPriorities();
+        $out = [];
+        foreach ($map as $value => $label) {
+            $out[] = ['value' => $value, 'label' => (string) $label];
         }
+        return $out;
+    }
+
+    protected function policies(): array
+    {
+        $u = auth()->user();
+        return [
+            'add'    => (bool) $u?->can('essentials.add_todos'),
+            'edit'   => (bool) $u?->can('essentials.edit_todos'),
+            'delete' => (bool) $u?->can('essentials.delete_todos'),
+            'assign' => (bool) $u?->can('essentials.assign_todos'),
+        ];
+    }
+
+    protected function toRowShape(ToDo $t): array
+    {
+        return [
+            'id'               => $t->id,
+            'task_id'          => $t->task_id,
+            'task'             => $t->task,
+            'status'           => $t->status,
+            'priority'         => $t->priority,
+            'date'             => optional($t->date)->format('Y-m-d H:i'),
+            'end_date'         => optional($t->end_date)->format('Y-m-d H:i'),
+            'estimated_hours'  => $t->estimated_hours,
+            'assigned_by'      => optional($t->assigned_by)->user_full_name,
+            'users'            => $t->users->map(fn ($u) => [
+                'id'   => $u->id,
+                'name' => $u->user_full_name,
+            ])->values(),
+            'created_at_human' => optional($t->created_at)->diffForHumans(),
+            'created_by'       => $t->created_by,
+        ];
+    }
+
+    protected function toDetailShape(ToDo $t): array
+    {
+        return [
+            'id'              => $t->id,
+            'task_id'         => $t->task_id,
+            'task'            => $t->task,
+            'description'     => $t->description,
+            'status'          => $t->status,
+            'priority'        => $t->priority,
+            'date'            => optional($t->date)->format('Y-m-d H:i'),
+            'end_date'        => optional($t->end_date)->format('Y-m-d H:i'),
+            'estimated_hours' => $t->estimated_hours,
+            'created_by'      => $t->created_by,
+            'created_at'      => optional($t->created_at)->format('Y-m-d H:i'),
+            'updated_at'      => optional($t->updated_at)->format('Y-m-d H:i'),
+            'assigned_by'     => [
+                'id'   => optional($t->assigned_by)->id,
+                'name' => optional($t->assigned_by)->user_full_name,
+            ],
+            'users'           => $t->users->map(fn ($u) => [
+                'id'   => $u->id,
+                'name' => $u->user_full_name,
+            ])->values(),
+        ];
+    }
+
+    protected function toCommentShape(EssentialsTodoComment $c): array
+    {
+        return [
+            'id'               => $c->id,
+            'comment'          => $c->comment,
+            'author_id'        => $c->comment_by,
+            'author_name'      => optional($c->added_by)->user_full_name ?? '—',
+            'created_at'       => optional($c->created_at)->format('Y-m-d H:i'),
+            'created_at_human' => optional($c->created_at)->diffForHumans(),
+            'can_delete'       => $c->comment_by === auth()->user()->id,
+        ];
+    }
+
+    protected function toMediaShape(Media $m, ToDo $todo): array
+    {
+        $authId = auth()->user()->id;
+        return [
+            'id'            => $m->id,
+            'name'          => $m->display_name,
+            'description'   => $m->description,
+            'url'           => $m->display_url,
+            'uploaded_by'   => optional($m->uploaded_by_user)->user_full_name ?? '',
+            'uploaded_at'   => optional($m->created_at)->format('Y-m-d H:i'),
+            'can_delete'    => in_array($authId, [$m->uploaded_by, $todo->created_by], true),
+        ];
     }
 }

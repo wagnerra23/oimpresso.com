@@ -21,6 +21,23 @@ Datas no formato `YYYY-MM-DD`. Categorias:
 
 ## [Unreleased] — branch `6.7-react`
 
+### Added — 2026-04-22 (Essentials/ToDo React)
+- **Módulo Essentials — ToDo migrado para React** (`/essentials/todo`) — primeira tela do Essentials no AppShell, paridade total com Blade:
+  - 4 Pages React (`resources/js/Pages/Essentials/Todo/`): `Index.tsx`, `Create.tsx`, `Edit.tsx`, `Show.tsx`
+  - Index: lista paginada (25/pág) com 5 filtros (status, prioridade, usuário atribuído, date range), troca rápida de status via Dialog, remoção via AlertDialog
+  - Show: 3 tabs internas (Comentários com add/delete, Anexos com upload/delete, Atividades via Activity log) + Dialog "Docs compartilhados" (hook `moduleViewPartials` → JSON)
+  - Create/Edit: form shadcn (task, multi-assign colaboradores, prioridade, status, data, end_date, estimated_hours, descrição rich text)
+  - Upload de arquivos com `forceFormData: true` + progress bar — **primeiro caso de upload React-Inertia do projeto**
+- **`ToDoController` reescrito para Inertia** (`Modules/Essentials/Http/Controllers/ToDoController.php`) — métodos retornam `Inertia::render` / `RedirectResponse` em vez de JSON AJAX; preserva scope `business_id`, filtro não-admin (próprias OU atribuídas), notifications (`NewTask`/`Comment`/`Document`), activity log, `task_id` com prefixo configurável
+- **4 FormRequests novos** em `Modules/Essentials/Http/Requests/`: `ToDoStoreRequest`, `ToDoUpdateRequest` (com branch `only_status`), `ToDoCommentRequest`, `ToDoUploadDocumentRequest`
+- **EssentialsTestCase** + **TodoTest Feature** (`Modules/Essentials/Tests/Feature/`) — 10 testes cobrindo auth, permissões, shape de props, validação, create/delete flow, JSON shared docs. Testsuite "Essentials" adicionada ao `phpunit.xml`
+- **Cast `date`/`end_date` → datetime** no `Entities/ToDo.php` (Laravel 9+ não cast automático para colunas DATETIME que não sejam timestamps)
+
+### Changed — 2026-04-22 (Essentials/ToDo React)
+- **`LegacyMenuAdapter::isInertiaRoute`** — `/essentials/todo` adicionado em `$inertiaPrefixes`, o item do menu sidebar agora é reconhecido como SPA e não dispara full-page load
+- **Rotas `Routes/web.php`** — resource `todo` agora aponta para o controller Inertia; legados `todo/add-comment`, `todo/delete-comment/{id}`, `todo/upload-document`, `todo/delete-document/{id}`, `view-todo-{id}-share-docs` mantidos (mesmas URLs, respostas Inertia/JSON)
+- **Parse de data no controller** — `uf_date()` substituído por `Carbon::parse()` (input HTML `<input type="date">` envia ISO, não formato business)
+
 ### Added — 2026-04-22
 - **Shell React** (`resources/js/Layouts/AppShell.tsx`) — sidebar 2 níveis (col 1 módulos + col 2 sub-páginas do módulo ativo), topbar com search, footer com user + theme toggle
 - **Dark mode por usuário** — coluna `users.ui_theme` + anti-flash blade + hook React `useTheme`
