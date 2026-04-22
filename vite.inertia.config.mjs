@@ -24,7 +24,7 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['oi.wr2.com.br', 'localhost'],
+    allowedHosts: ['oi.wr2.com.br', 'oimpresso.test', 'localhost'],
     host: true,
     port: 5174,
     strictPort: true,
