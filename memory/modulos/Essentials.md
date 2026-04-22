@@ -315,8 +315,8 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ### vs `origin/3.7-com-nfe`
 
-- **Arquivos alterados:** 213
-- **Linhas +:** 22752 **-:** 0
+- **Arquivos alterados:** 219
+- **Linhas +:** 23031 **-:** 0
 - **Primeiros arquivos alterados:**
   - `Config/.gitkeep`
   - `Config/config.php`
@@ -351,8 +351,8 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ### vs `main-wip-2026-04-22` (backup das customizações)
 
-- **Arquivos alterados:** 213
-- **Linhas +:** 22752 **-:** 0
+- **Arquivos alterados:** 219
+- **Linhas +:** 23031 **-:** 0
 - ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
   - `Config/.gitkeep`
   - `Config/config.php`
@@ -393,5 +393,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 15:50.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 16:06.**
 **Reaxecutar com:** `php artisan module:spec Essentials`

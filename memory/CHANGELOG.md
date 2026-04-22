@@ -21,6 +21,51 @@ Datas no formato `YYYY-MM-DD`. Categorias:
 
 ## [Unreleased] — branch `6.7-react`
 
+### Added — 2026-04-22 (Essentials batch 2 — submenu + 3 telas)
+- **Submenu "Essentials" na sidebar** — `DataController::modifyAdminMenu` agora
+  cria um dropdown agrupando Tarefas, Mensagens, Documentos e Base de
+  Conhecimento (antes eram URLs soltas). Item "HRM" segue à parte por cobrir
+  área diferente (`/hrm/*`). Quando cada tela é migrada, o `LegacyMenuAdapter`
+  detecta o prefixo e ativa SPA automaticamente
+- **Mensagens** (`/essentials/messages`) — chat mural React:
+  - `EssentialsMessageController` reescrito para Inertia (4 ações:
+    index/store/destroy + endpoint JSON `getNewMessages` para polling)
+  - `Pages/Essentials/Messages/Index.tsx` — mural com balões esquerda/direita
+    (minhas vs outras), auto-scroll pro fim a cada update, polling via fetch
+    no intervalo `chat_refresh_interval` (config), filtro por localidade no
+    send, Enter envia/Shift+Enter quebra linha, remoção de mensagem própria
+    via AlertDialog, notificações `NewMessageNotification` preservadas
+    (sem spam: DB notification só se passou >10min da última na mesma loja)
+- **Base de Conhecimento** (`/essentials/knowledge-base`) — hierarquia 3 níveis
+  (livro → seção → artigo) React:
+  - `KnowledgeBaseController` reescrito para Inertia (7 ações CRUD com eager
+    load de `children.children`, scope por business_id + visibilidade
+    public/only_with)
+  - 4 Pages em `Pages/Essentials/Knowledge/`: **Index** (grid 3 cards com
+    seções expansíveis e artigos inline + AlertDialog delete), **Create**
+    (inferência automática kb_type pelo parent — livro/seção/artigo, modo
+    compartilhamento com multi-select de usuários), **Show** (layout 2 col:
+    sidebar de navegação interna + conteúdo HTML renderizado), **Edit** (form
+    com compartilhamento só para livros)
+- **Documentos** (`/essentials/document`) — arquivos + memos em uma tela React:
+  - `DocumentController` reescrito: JOIN em `essentials_document_shares` para
+    expor arquivos meus + compartilhados comigo (via user ou role), filtra
+    por tipo (`document`/`memos`) numa única query, download restrito
+    respeitando DocumentShare
+  - `DocumentShareController` reescrito como endpoint JSON consumido pelo
+    Dialog do React (retorna users + roles + shared_*_ids; PUT sincroniza)
+  - `Pages/Essentials/Documents/Index.tsx` — tabs internas Arquivos/Memos,
+    Dialog de upload (progress bar + fileinput), Dialog de novo memo (title
+    + body), Dialog de share (chips selecionáveis usuários + roles), Dialog
+    de visualização do memo, Download direto, AlertDialog delete
+- **LegacyMenuAdapter** — 4 novos prefixes em `$inertiaPrefixes`:
+  `/essentials/messages`, `/essentials/knowledge-base`, `/essentials/document`
+
+### Changed — 2026-04-22 (Essentials batch 2)
+- Texto do item "Essentials" na sidebar agora abre dropdown em vez de
+  redirecionar para `/essentials/todo` direto — o usuário vê todas as áreas
+  do módulo
+
 ### Added — 2026-04-22 (Essentials/ToDo React)
 - **Módulo Essentials — ToDo migrado para React** (`/essentials/todo`) — primeira tela do Essentials no AppShell, paridade total com Blade:
   - 4 Pages React (`resources/js/Pages/Essentials/Todo/`): `Index.tsx`, `Create.tsx`, `Edit.tsx`, `Show.tsx`

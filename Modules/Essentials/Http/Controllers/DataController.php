@@ -330,6 +330,7 @@ class DataController extends Controller
 
         if ($is_essentials_enabled) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
+                // HRM mantém item solto (área diferente: /hrm/*)
                 $menu->url(
                         action([\Modules\Essentials\Http\Controllers\DashboardController::class, 'hrmDashboard']),
                         __('essentials::lang.hrm'),
@@ -337,10 +338,36 @@ class DataController extends Controller
                     )
                 ->order(87);
 
-                $menu->url(
-                    action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'index']),
+                // Dropdown "Essentials" agrupa as telas do módulo:
+                //   Tarefas, Mensagens, Documentos, Base de Conhecimento
+                // As URLs continuam apontando para as rotas existentes —
+                // quando migradas para React, o LegacyMenuAdapter detecta
+                // o prefixo e ativa SPA automaticamente.
+                $menu->dropdown(
                     __('essentials::lang.essentials'),
-                    ['icon' => 'fa fas fa-check-circle', 'active' => request()->segment(1) == 'essentials', 'style' => config('app.env') == 'demo' ? 'background-color: #001f3f !important;' : '']
+                    function ($sub) {
+                        $sub->url(
+                            action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'index']),
+                            __('essentials::lang.todo'),
+                            ['icon' => 'fa fas fa-check-circle']
+                        );
+                        $sub->url(
+                            action([\Modules\Essentials\Http\Controllers\EssentialsMessageController::class, 'index']),
+                            __('essentials::lang.messages'),
+                            ['icon' => 'fa fas fa-comments']
+                        );
+                        $sub->url(
+                            action([\Modules\Essentials\Http\Controllers\DocumentController::class, 'index']),
+                            __('essentials::lang.document'),
+                            ['icon' => 'fa fas fa-file-alt']
+                        );
+                        $sub->url(
+                            action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index']),
+                            __('essentials::lang.knowledge_base'),
+                            ['icon' => 'fa fas fa-book']
+                        );
+                    },
+                    ['icon' => 'fa fas fa-cube', 'active' => request()->segment(1) == 'essentials', 'style' => config('app.env') == 'demo' ? 'background-color: #001f3f !important;' : '']
                 )
                 ->order(87);
             });

@@ -4,277 +4,286 @@ namespace Modules\Essentials\Http\Controllers;
 
 use App\User;
 use App\Utils\ModuleUtil;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Essentials\Entities\KnowledgeBase;
 
+/**
+ * KnowledgeBaseController — versão Inertia.
+ *
+ * Hierarquia em 3 níveis:
+ *   knowledge_base (livro)
+ *     └── section (capítulo)
+ *           └── article (artigo)
+ *
+ * Paridade com Blade preservada:
+ *   - Scope por business_id
+ *   - Visibilidade: público, só criador, ou lista de users (share_with=only_with)
+ *   - CRUD completo
+ *   - Hierarquia eager-loaded (children + children.children)
+ */
 class KnowledgeBaseController extends Controller
 {
-    /**
-     * All Utils instance.
-     */
-    protected $moduleUtil;
+    protected ModuleUtil $moduleUtil;
 
-    /**
-     * Constructor
-     *
-     * @param  ModuleUtil  $moduleUtil
-     * @return void
-     */
     public function __construct(ModuleUtil $moduleUtil)
     {
         $this->moduleUtil = $moduleUtil;
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return Response
-     */
-    public function index()
+    public function index(): Response
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
-        $user_id = auth()->user()->id;
-        $knowledge_bases = KnowledgeBase::where('business_id', $business_id)
-                                    ->where('kb_type', 'knowledge_base')
-                                    ->whereNull('parent_id')
-                                    ->with(['children', 'children.children'])
-                                    ->where(function ($query) use ($user_id) {
-                                        $query->whereHas('users', function ($q) use ($user_id) {
-                                            $q->where('user_id', $user_id);
-                                        })->orWhere('created_by', $user_id)
-                                        ->orWhere('share_with', 'public');
-                                    })
-                                    ->get();
+        $userId = auth()->user()->id;
 
-        return view('essentials::knowledge_base.index')->with(compact('knowledge_bases'));
+        $books = KnowledgeBase::where('business_id', $businessId)
+            ->where('kb_type', 'knowledge_base')
+            ->whereNull('parent_id')
+            ->with(['children', 'children.children'])
+            ->where(function ($query) use ($userId) {
+                $query->whereHas('users', function ($q) use ($userId) {
+                    $q->where('user_id', $userId);
+                })
+                    ->orWhere('created_by', $userId)
+                    ->orWhere('share_with', 'public');
+            })
+            ->orderBy('title')
+            ->get()
+            ->map(fn (KnowledgeBase $k) => $this->toBookShape($k));
+
+        return Inertia::render('Essentials/Knowledge/Index', [
+            'books' => $books->values(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
+    public function create(Request $request): Response
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
         $parent = null;
-        $users = null;
-        if (! empty(request()->input('parent'))) {
-            $parent = KnowledgeBase::where('business_id', $business_id)
-                                ->findOrFail(request()->input('parent'));
+        $users = [];
+
+        if ($request->filled('parent')) {
+            $parent = KnowledgeBase::where('business_id', $businessId)
+                ->findOrFail($request->input('parent'));
         } else {
-            $users = User::forDropdown($business_id, false);
+            $users = $this->dropdownUsers($businessId);
         }
 
-        return view('essentials::knowledge_base.create')
-                    ->with(compact('parent', 'users'));
+        return Inertia::render('Essentials/Knowledge/Create', [
+            'parent' => $parent ? [
+                'id'      => $parent->id,
+                'title'   => $parent->title,
+                'kb_type' => $parent->kb_type,
+            ] : null,
+            'users'  => $users,
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $business_id = $request->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        $validated = $request->validate([
+            'title'      => 'required|string|max:255',
+            'content'    => 'nullable|string',
+            'kb_type'    => 'nullable|in:knowledge_base,section,article',
+            'parent_id'  => 'nullable|integer|exists:essentials_kb,id',
+            'share_with' => 'nullable|in:public,only_with',
+            'user_ids'   => 'nullable|array',
+            'user_ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $data = [
+            'business_id' => $businessId,
+            'created_by'  => $request->user()->id,
+            'title'       => $validated['title'],
+            'content'     => $validated['content'] ?? null,
+            'kb_type'     => $validated['kb_type'] ?? 'knowledge_base',
+            'parent_id'   => $validated['parent_id'] ?? null,
+            'share_with'  => $validated['share_with'] ?? null,
+        ];
+
+        $kb = KnowledgeBase::create($data);
+
+        if ($kb->kb_type === 'knowledge_base' && $kb->share_with === 'only_with') {
+            $kb->users()->sync($validated['user_ids'] ?? []);
         }
 
-        try {
-            $user_id = $request->session()->get('user.id');
-            $input = $request->only(['title', 'content']);
-
-            $input['business_id'] = $business_id;
-            $input['created_by'] = $user_id;
-            $input['kb_type'] = ! empty($request->input('kb_type')) ? $request->input('kb_type') : 'knowledge_base';
-            $input['parent_id'] = ! empty($request->input('parent_id')) ? $request->input('parent_id') : null;
-            $input['share_with'] = ! empty($request->input('share_with')) ? $request->input('share_with') : null;
-
-            $kb = KnowledgeBase::create($input);
-
-            if ($kb->kb_type == 'knowledge_base' && $kb->share_with == 'only_with') {
-                $kb->users()->sync($request->input('user_ids'));
-            }
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        return redirect()->action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index'])->with('status', $output);
+        return redirect()
+            ->route('knowledge-base.show', $kb->id)
+            ->with('success', __('lang_v1.success'));
     }
 
-    /**
-     * Show the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function show($id)
+    public function show($id): Response
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        $obj = KnowledgeBase::where('business_id', $businessId)
+            ->with(['children', 'children.children', 'users'])
+            ->findOrFail($id);
+
+        // Descobre qual é o "livro" de topo para renderizar o sidebar
+        if ($obj->kb_type === 'knowledge_base') {
+            $book = $obj;
+            $sectionId = null;
+            $articleId = null;
+        } elseif ($obj->kb_type === 'section') {
+            $book = KnowledgeBase::where('business_id', $businessId)
+                ->with(['children', 'children.children'])
+                ->findOrFail($obj->parent_id);
+            $sectionId = $obj->id;
+            $articleId = null;
+        } else { // article
+            $section = KnowledgeBase::where('business_id', $businessId)
+                ->findOrFail($obj->parent_id);
+            $book = KnowledgeBase::where('business_id', $businessId)
+                ->with(['children', 'children.children'])
+                ->findOrFail($section->parent_id);
+            $sectionId = $section->id;
+            $articleId = $obj->id;
         }
 
-        $kb_object = KnowledgeBase::where('business_id', $business_id)
-                                    ->with(['children', 'children.children', 'users'])
-                                    ->find($id);
-        $users = [];
-
-        if (count($kb_object->users) > 0) {
-            foreach ($kb_object->users as $user) {
-                $users[] = $user->user_full_name;
-            }
-        }
-        $section_id = '';
-        $article_id = '';
-        if ($kb_object->kb_type == 'knowledge_base') {
-            $knowledge_base = $kb_object;
-        } elseif ($kb_object->kb_type == 'section') {
-            $knowledge_base = KnowledgeBase::where('business_id', $business_id)
-                                    ->with(['children', 'children.children'])
-                                    ->find($kb_object->parent_id);
-            $section_id = $kb_object->id;
-        } elseif ($kb_object->kb_type == 'article') {
-            $section = KnowledgeBase::where('business_id', $business_id)
-                                    ->find($kb_object->parent_id);
-
-            $section_id = $section->id;
-            $article_id = $kb_object->id;
-            $knowledge_base = KnowledgeBase::where('business_id', $business_id)
-                                    ->with(['children', 'children.children'])
-                                    ->find($section->parent_id);
-        }
-
-        return view('essentials::knowledge_base.show')->with(compact('kb_object', 'knowledge_base', 'section_id', 'article_id', 'users'));
+        return Inertia::render('Essentials/Knowledge/Show', [
+            'item' => [
+                'id'         => $obj->id,
+                'title'      => $obj->title,
+                'content'    => $obj->content,
+                'kb_type'    => $obj->kb_type,
+                'share_with' => $obj->share_with,
+                'shared_users' => $obj->users->map(fn ($u) => $u->user_full_name)->values(),
+                'created_by' => $obj->created_by,
+                'parent_id'  => $obj->parent_id,
+            ],
+            'book'      => $this->toBookShape($book),
+            'sectionId' => $sectionId,
+            'articleId' => $articleId,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function edit($id)
+    public function edit($id): Response
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
 
-        $kb = KnowledgeBase::where('business_id', $business_id)
-                            ->with(['users'])
-                            ->findOrFail($id);
+        $kb = KnowledgeBase::where('business_id', $businessId)
+            ->with(['users:id,first_name,last_name,username'])
+            ->findOrFail($id);
 
         $users = [];
-
-        if ($kb->kb_type == 'knowledge_base') {
-            $users = User::forDropdown($business_id, false);
+        if ($kb->kb_type === 'knowledge_base') {
+            $users = $this->dropdownUsers($businessId);
         }
 
-        return view('essentials::knowledge_base.edit')->with(compact('kb', 'users'));
+        return Inertia::render('Essentials/Knowledge/Edit', [
+            'kb' => [
+                'id'              => $kb->id,
+                'title'           => $kb->title,
+                'content'         => $kb->content,
+                'kb_type'         => $kb->kb_type,
+                'parent_id'       => $kb->parent_id,
+                'share_with'      => $kb->share_with,
+                'assigned_user_ids' => $kb->users->pluck('id')->all(),
+            ],
+            'users' => $users,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  Request  $request
-     * @param  int  $id
-     * @return Response
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): RedirectResponse
     {
-        $business_id = $request->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        $validated = $request->validate([
+            'title'      => 'required|string|max:255',
+            'content'    => 'nullable|string',
+            'share_with' => 'nullable|in:public,only_with',
+            'user_ids'   => 'nullable|array',
+            'user_ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $kb = KnowledgeBase::where('business_id', $businessId)->findOrFail($id);
+        $kb->update([
+            'title'      => $validated['title'],
+            'content'    => $validated['content'] ?? null,
+            'share_with' => $validated['share_with'] ?? null,
+        ]);
+
+        if ($kb->kb_type === 'knowledge_base' && $kb->share_with === 'only_with') {
+            $kb->users()->sync($validated['user_ids'] ?? []);
         }
 
-        try {
-            $input = $request->only(['title', 'content']);
-
-            $kb = KnowledgeBase::where('business_id', $business_id)->findOrFail($id);
-
-            $input['share_with'] = ! empty($request->input('share_with')) ? $request->input('share_with') : null;
-
-            $kb->update($input);
-
-            $user_ids = ! empty($request->input('user_ids')) ? $request->input('user_ids') : [];
-
-            if ($kb->kb_type == 'knowledge_base' && $kb->share_with == 'only_with') {
-                $kb->users()->sync($user_ids);
-            }
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        return redirect()->action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index'])->with('status', $output);
+        return redirect()
+            ->route('knowledge-base.show', $kb->id)
+            ->with('success', __('lang_v1.success'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, $id): RedirectResponse
     {
-        $business_id = $request->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        KnowledgeBase::where('business_id', $businessId)
+            ->where('id', $id)
+            ->delete();
+
+        return redirect()
+            ->route('knowledge-base.index')
+            ->with('success', __('lang_v1.deleted_success'));
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected function toBookShape(KnowledgeBase $k): array
+    {
+        return [
+            'id'          => $k->id,
+            'title'       => $k->title,
+            'content'     => $k->content,
+            'kb_type'     => $k->kb_type,
+            'share_with'  => $k->share_with,
+            'children'    => $k->relationLoaded('children')
+                ? $k->children->map(fn ($section) => [
+                    'id'       => $section->id,
+                    'title'    => $section->title,
+                    'content'  => $section->content,
+                    'kb_type'  => $section->kb_type,
+                    'children' => $section->relationLoaded('children')
+                        ? $section->children->map(fn ($article) => [
+                            'id'      => $article->id,
+                            'title'   => $article->title,
+                            'kb_type' => $article->kb_type,
+                        ])->values()
+                        : [],
+                ])->values()
+                : [],
+        ];
+    }
+
+    protected function dropdownUsers(int $businessId): array
+    {
+        return collect(User::forDropdown($businessId, false))
+            ->map(fn ($label, $id) => ['id' => (int) $id, 'label' => (string) $label])
+            ->values()->all();
+    }
+
+    protected function currentBusinessId(): int
+    {
+        return (int) (session('business.id') ?: request()->session()->get('user.business_id'));
+    }
+
+    protected function authorizeAccess(int $businessId): void
+    {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($businessId, 'essentials_module'))) {
             abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            try {
-                KnowledgeBase::where('business_id', $business_id)
-                            ->where('id', $id)
-                            ->delete();
-
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
         }
     }
 }

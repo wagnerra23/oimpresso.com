@@ -244,6 +244,9 @@ class LegacyMenuAdapter
             '/ponto/configuracoes',
             '/modulos',
             '/essentials/todo',
+            '/essentials/messages',
+            '/essentials/knowledge-base',
+            '/essentials/document',
             // Adicione aqui conforme migrar telas.
         ];
         // Dashboard do Ponto é `/ponto` exato (não prefixo) — o startsWith pegaria
