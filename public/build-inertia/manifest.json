@@ -1,0 +1,47 @@
+{
+  "_AppLayout-VI-xEOjJ.js": {
+    "file": "assets/AppLayout-VI-xEOjJ.js",
+    "name": "AppLayout",
+    "imports": [
+      "resources/js/app.tsx"
+    ]
+  },
+  "resources/css/inertia.css": {
+    "file": "assets/inertia-DNt6YVxq.css",
+    "src": "resources/css/inertia.css",
+    "isEntry": true
+  },
+  "resources/js/Pages/Ponto/Relatorios/Index.tsx": {
+    "file": "assets/Index-BLxIcfJU.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.tsx",
+      "_AppLayout-VI-xEOjJ.js"
+    ]
+  },
+  "resources/js/Pages/Ponto/Welcome.tsx": {
+    "file": "assets/Welcome-PzLtEgS_.js",
+    "name": "Welcome",
+    "src": "resources/js/Pages/Ponto/Welcome.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.tsx",
+      "_AppLayout-VI-xEOjJ.js"
+    ]
+  },
+  "resources/js/app.tsx": {
+    "file": "assets/app-B_It46ej.js",
+    "name": "app",
+    "src": "resources/js/app.tsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/Pages/Ponto/Relatorios/Index.tsx",
+      "resources/js/Pages/Ponto/Welcome.tsx"
+    ],
+    "css": [
+      "assets/inertia-DNt6YVxq.css"
+    ]
+  }
+}
