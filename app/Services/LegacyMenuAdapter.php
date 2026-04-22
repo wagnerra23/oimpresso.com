@@ -235,6 +235,7 @@ class LegacyMenuAdapter
             '/ponto/react',
             '/ponto/relatorios',
             '/ponto/intercorrencias/create',
+            '/ponto/aprovacoes',
             '/modulos',
             // Adicione aqui conforme migrar telas.
         ];
