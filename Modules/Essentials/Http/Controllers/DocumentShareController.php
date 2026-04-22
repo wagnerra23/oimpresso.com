@@ -4,150 +4,130 @@ namespace Modules\Essentials\Http\Controllers;
 
 use App\User;
 use App\Utils\ModuleUtil;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Essentials\Entities\Document;
 use Modules\Essentials\Entities\DocumentShare;
 use Modules\Essentials\Notifications\DocumentShareNotification;
 
+/**
+ * DocumentShareController — endpoint JSON (consumido pelo Dialog React).
+ *
+ * `edit` retorna a lista de usuários, roles e quem já está compartilhado.
+ * `update` sincroniza os shares (cria/remove/notifica).
+ */
 class DocumentShareController extends Controller
 {
-    /**
-     * All Utils instance.
-     */
-    protected $moduleUtil;
+    protected ModuleUtil $moduleUtil;
 
-    /**
-     * Constructor
-     *
-     * @return void
-     */
     public function __construct(ModuleUtil $moduleUtil)
     {
         $this->moduleUtil = $moduleUtil;
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @return Response
-     */
-    public function edit($id)
+    public function edit($id): JsonResponse
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        $users = collect(User::forDropdown($businessId, false))
+            ->map(fn ($label, $uid) => ['id' => (int) $uid, 'label' => (string) $label])
+            ->values()->all();
+
+        $roles = collect($this->moduleUtil->getDropdownForRoles($businessId))
+            ->map(fn ($label, $rid) => ['id' => (int) $rid, 'label' => (string) $label])
+            ->values()->all();
+
+        $shared = DocumentShare::where('document_id', $id)->get()->groupBy('value_type');
+        $sharedUsers = isset($shared['user']) ? $shared['user']->pluck('value')->map(fn ($v) => (int) $v)->all() : [];
+        $sharedRoles = isset($shared['role']) ? $shared['role']->pluck('value')->map(fn ($v) => (int) $v)->all() : [];
+
+        return response()->json([
+            'users' => $users,
+            'roles' => $roles,
+            'shared_user_ids' => $sharedUsers,
+            'shared_role_ids' => $sharedRoles,
+            'document_id' => (int) $id,
+        ]);
+    }
+
+    public function update(Request $request): JsonResponse
+    {
+        $businessId = $this->currentBusinessId();
+        $this->authorizeAccess($businessId);
+
+        $validated = $request->validate([
+            'document_id' => 'required|integer|exists:essentials_documents,id',
+            'user'        => 'nullable|array',
+            'user.*'      => 'integer|exists:users,id',
+            'role'        => 'nullable|array',
+            'role.*'      => 'integer|exists:roles,id',
+        ]);
+
+        $documentId = (int) $validated['document_id'];
+        $document   = Document::findOrFail($documentId);
+        $userIds    = $validated['user'] ?? [];
+        $roleIds    = $validated['role'] ?? [];
+
+        // Users: cria novos + notifica + remove os que saíram
+        $existingUser = [0];
+        foreach ($userIds as $uid) {
+            $existingUser[] = $uid;
+            $share = DocumentShare::updateOrCreate([
+                'document_id' => $documentId,
+                'value_type'  => 'user',
+                'value'       => $uid,
+            ]);
+            if ($share->wasRecentlyCreated) {
+                $this->notify($document, $uid);
+            }
         }
+        DocumentShare::where('document_id', $documentId)
+            ->where('value_type', 'user')
+            ->whereNotIn('value', $existingUser)
+            ->delete();
 
-        if (request()->ajax()) {
-            $type = request()->get('type');
+        // Roles (sem notificação — é compartilhamento amplo)
+        $existingRole = [0];
+        foreach ($roleIds as $rid) {
+            $existingRole[] = $rid;
+            DocumentShare::updateOrCreate([
+                'document_id' => $documentId,
+                'value_type'  => 'role',
+                'value'       => $rid,
+            ]);
+        }
+        DocumentShare::where('document_id', $documentId)
+            ->where('value_type', 'role')
+            ->whereNotIn('value', $existingRole)
+            ->delete();
 
-            $users = User::forDropdown($business_id, false);
+        return response()->json([
+            'success' => true,
+            'msg'     => __('lang_v1.success'),
+        ]);
+    }
 
-            $roles = $this->moduleUtil->getDropdownForRoles($business_id);
+    // ------------------------------------------------------------------------
 
-            $shared_documents = DocumentShare::where('document_id', $id)
-                                ->get()
-                                ->groupBy('value_type');
-
-            $shared_role = [];
-            if (! empty($shared_documents['role'])) {
-                $shared_role = $shared_documents['role']->pluck('value')->toArray();
-            }
-
-            $shared_user = [];
-            if (! empty($shared_documents['user'])) {
-                $shared_user = $shared_documents['user']->pluck('value')->toArray();
-            }
-
-            return view('essentials::document_share.edit')
-                    ->with(compact('users', 'id', 'roles', 'shared_user', 'shared_role', 'type'));
+    protected function notify(Document $document, int $userId): void
+    {
+        $user = User::find($userId);
+        if ($user) {
+            $user->notify(new DocumentShareNotification($document, auth()->user()));
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
-    public function update(Request $request)
+    protected function currentBusinessId(): int
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            $document = $request->only(['user', 'role', 'document_id']);
-
-            $existing_user_id = [0];
-            $existing_role_id = [0];
-
-            $document_obj = Document::find($document['document_id']);
-
-            if (! empty($document['user'])) {
-                foreach ($document['user'] as $key => $user_id) {
-                    $existing_user_id[] = $user_id;
-                    $share = [
-                        'document_id' => $document['document_id'],
-                        'value_type' => 'user',
-                        'value' => $user_id,
-                    ];
-                    $doc_share = DocumentShare::updateOrCreate($share);
-
-                    //Notify document share only if newly created
-                    if ($doc_share->wasRecentlyCreated) {
-                        $this->notify($document_obj, $user_id);
-                    }
-                }
-            }
-
-            //deleting not existing users
-            DocumentShare::where('document_id', $document['document_id'])
-                    ->where('value_type', 'user')
-                    ->whereNotIn('value', $existing_user_id)
-                    ->delete();
-
-            if (! empty($document['role'])) {
-                foreach ($document['role'] as $key => $role_id) {
-                    $existing_role_id[] = $role_id;
-                    $share = [
-                        'document_id' => $document['document_id'],
-                        'value_type' => 'role',
-                        'value' => $role_id,
-                    ];
-
-                    DocumentShare::updateOrCreate($share);
-                }
-            }
-
-            //deleting not existing roles
-            DocumentShare::where('document_id', $document['document_id'])
-                       ->where('value_type', 'role')
-                       ->whereNotIn('value', $existing_role_id)
-                       ->delete();
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-
-            return $output;
-        }
+        return (int) (session('business.id') ?: request()->session()->get('user.business_id'));
     }
 
-    /**
-     * Sends notification to the user.
-     *
-     * @return void
-     */
-    private function notify($document, $user_id)
+    protected function authorizeAccess(int $businessId): void
     {
-        $user = User::find($user_id);
-        $shared_by = auth()->user();
-
-        $user->notify(new DocumentShareNotification($document, $shared_by));
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($businessId, 'essentials_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
     }
 }
