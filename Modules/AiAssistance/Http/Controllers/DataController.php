@@ -49,13 +49,22 @@ class DataController extends Controller
         $commonUtil = new Util();
         $is_admin = $commonUtil->is_admin(auth()->user(), $business_id);
 
+        // Desabilitado 2026-04-22: módulo AiAssistance marcado como false em
+        // modules_statuses.json (Wagner: "não útil"). A rota da AiAssistance
+        // não está registrada, então action() quebrava o menu inteiro.
+        $is_aiassistance_enabled = false && $is_aiassistance_enabled;
+
         if (auth()->user()->can('aiassistance.access_aiassistance_module') && $is_aiassistance_enabled) {
-            Menu::modify(
-                'admin-sidebar-menu',
-                function ($menu) {
-                    $menu->url(action([\Modules\AiAssistance\Http\Controllers\AiAssistanceController::class, 'index']), __('aiassistance::lang.aiassistance'), ['icon' => 'fas fa-robot', 'style' => config('app.env') == 'demo' ? 'background-color: #6EA194;' : '', 'active' => request()->segment(1) == 'aiassistance'])->order(50);
-                }
-            );
+            try {
+                Menu::modify(
+                    'admin-sidebar-menu',
+                    function ($menu) {
+                        $menu->url(action([\Modules\AiAssistance\Http\Controllers\AiAssistanceController::class, 'index']), __('aiassistance::lang.aiassistance'), ['icon' => 'fas fa-robot', 'style' => config('app.env') == 'demo' ? 'background-color: #6EA194;' : '', 'active' => request()->segment(1) == 'aiassistance'])->order(50);
+                    }
+                );
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ShellMenuBuilder;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -50,11 +51,13 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
-                    'id'          => $user->id,
-                    'name'        => $user->first_name . ' ' . ($user->last_name ?? ''),
-                    'email'       => $user->email,
-                    'business_id' => (int) $businessId,
-                    'is_admin'    => (bool) $session->get('is_admin', false),
+                    'id'                    => $user->id,
+                    'name'                  => $user->first_name . ' ' . ($user->last_name ?? ''),
+                    'email'                 => $user->email,
+                    'business_id'           => (int) $businessId,
+                    'is_admin'              => (bool) $session->get('is_admin', false),
+                    'ui_theme'              => $user->ui_theme,               // 'light'|'dark'|null
+                    'ui_sidebar_collapsed'  => (bool) ($user->ui_sidebar_collapsed ?? false),
                 ] : null,
                 'can' => $user ? $this->userPermissions($user) : [],
             ],
@@ -69,6 +72,10 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $session->get('status.success') ?? $session->get('success'),
                 'error'   => fn () => $session->get('status.error')   ?? $session->get('error'),
                 'info'    => fn () => $session->get('status.info')    ?? $session->get('info'),
+            ],
+            'shell' => [
+                // Menu lazy: só computa quando a página precisa
+                'menu' => fn () => $user ? app(ShellMenuBuilder::class)->build($request) : [],
             ],
             'locale'     => app()->getLocale(),
             'csrf_token' => fn () => csrf_token(),
