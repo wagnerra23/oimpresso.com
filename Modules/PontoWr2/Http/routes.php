@@ -59,6 +59,11 @@ Route::group(
         Route::post('/intercorrencias/{id}/submeter', 'IntercorrenciaController@submeter')->name('ponto.intercorrencias.submeter');
         Route::post('/intercorrencias/{id}/cancelar', 'IntercorrenciaController@cancelar')->name('ponto.intercorrencias.cancelar');
 
+        // IA — classifica descrição livre em campos estruturados
+        Route::post('/intercorrencias-ai/classify', 'IntercorrenciaController@aiClassify')
+            ->middleware('throttle:10,1')
+            ->name('ponto.intercorrencias.ai-classify');
+
         // 5. Banco de Horas
         Route::get('/banco-horas', 'BancoHorasController@index')->name('ponto.banco-horas.index');
         Route::get('/banco-horas/{colaborador}', 'BancoHorasController@show')->name('ponto.banco-horas.show');
