@@ -84,27 +84,69 @@ function detectShimError(string $body): ?array
  * 1) Rotas de VIEW (renderizam Blade/Inertia)
  * ========================================================================= */
 dataset('viewRoutes', [
+    // Core
     'home' => ['/home'],
     'business.settings' => ['/business/settings'],
     'user.profile' => ['/user/profile'],
+    // CRUD create (core)
     'brands.create' => ['/brands/create'],
     'tax-rates.create' => ['/tax-rates/create'],
+    'tax-groups.create' => ['/tax-groups/create'],
     'units.create' => ['/units/create'],
-    'customer-groups.create' => ['/customer-groups/create'],
     'warranties.create' => ['/warranties/create'],
+    'customer-groups.create' => ['/customer-groups/create'],
+    'selling-price-groups.create' => ['/selling-price-groups/create'],
     'contacts.customer' => ['/contacts/create?type=customer'],
     'contacts.supplier' => ['/contacts/create?type=supplier'],
     'products.create' => ['/products/create'],
     'invoice-schemes.create' => ['/invoice-schemes/create'],
+    'invoice-layouts.create' => ['/invoice-layouts/create'],
     'barcodes.create' => ['/barcodes/create'],
     'business-location.create' => ['/business-location/create'],
+    'types-of-service.create' => ['/types-of-service/create'],
+    'printers.create' => ['/printers/create'],
     'users.create' => ['/users/create'],
+    'roles.create' => ['/roles/create'],
+    'sales-commission-agents.create' => ['/sales-commission-agents/create'],
     'cash-register.create' => ['/cash-register/create'],
     'expenses.create' => ['/expenses/create'],
-    'contacts.index' => ['/contacts?type=customer'],
+    'expense-categories.create' => ['/expense-categories/create'],
+    'stock-transfers.create' => ['/stock-transfers/create'],
+    'stock-adjustments.create' => ['/stock-adjustments/create'],
+    'purchases.create' => ['/purchases/create'],
+    'purchase-order.create' => ['/purchase-order/create'],
+    'sells.create' => ['/sells/create'],
+    'discount.create' => ['/discount/create'],
+    'notification-templates.index' => ['/notification_template'],
+    // Index (listagens com filtros — exercita Form::select com placeholder)
+    'contacts.customer.index' => ['/contacts?type=customer'],
+    'contacts.supplier.index' => ['/contacts?type=supplier'],
     'products.index' => ['/products'],
     'sells.index' => ['/sells'],
     'purchases.index' => ['/purchases'],
+    'expenses.index' => ['/expenses'],
+    'tax-rates.index' => ['/tax-rates'],
+    'units.index' => ['/units'],
+    'brands.index' => ['/brands'],
+    'roles.index' => ['/roles'],
+    // Reports (forms pesados com filtros)
+    'reports.purchase-sell' => ['/reports/purchase-sell'],
+    'reports.stock-report' => ['/reports/stock-report'],
+    'reports.trending-products' => ['/reports/trending-products'],
+    'reports.sales-representative' => ['/reports/sales-representative'],
+    'reports.profit-loss' => ['/reports/profit-loss'],
+    'reports.expense-report' => ['/reports/expense-report'],
+    'reports.product-purchase' => ['/reports/product-purchase-report'],
+    'reports.product-sell' => ['/reports/product-sell-report'],
+    'reports.register' => ['/reports/register-report'],
+    'reports.stock-expiry' => ['/reports/stock-expiry-report'],
+    // Superadmin
+    'superadmin' => ['/superadmin'],
+    'superadmin.packages' => ['/superadmin/packages'],
+    'superadmin.subscription' => ['/superadmin/subscription'],
+    'superadmin.settings' => ['/superadmin/settings'],
+    // Modules
+    'modules.index' => ['/modules'],
 ]);
 
 it('view renderiza sem erros PHP/shim', function (string $url) {
@@ -133,8 +175,16 @@ it('view renderiza sem erros PHP/shim', function (string $url) {
 dataset('datatableAjaxRoutes', [
     'products.ajax' => ['/products'],
     'contacts.customer.ajax' => ['/contacts?type=customer'],
+    'contacts.supplier.ajax' => ['/contacts?type=supplier'],
     'sells.ajax' => ['/sells'],
     'purchases.ajax' => ['/purchases'],
+    'expenses.ajax' => ['/expenses'],
+    'tax-rates.ajax' => ['/tax-rates'],
+    'units.ajax' => ['/units'],
+    'brands.ajax' => ['/brands'],
+    'users.ajax' => ['/users'],
+    'stock-transfers.ajax' => ['/stock-transfers'],
+    'stock-adjustments.ajax' => ['/stock-adjustments'],
 ]);
 
 it('datatable AJAX retorna shape correto (draw, recordsTotal, data[])', function (string $url) {
@@ -175,3 +225,53 @@ it('datatable AJAX retorna shape correto (draw, recordsTotal, data[])', function
     // data eh array (pode ser vazio se DB vazio, aceitavel)
     expect($json['data'])->toBeArray("data nao-array em {$url}");
 })->with('datatableAjaxRoutes');
+
+/* =========================================================================
+ * 3) EDIT forms — exercita Form::select com value pre-selecionado
+ *    (regressao potencial: preserving selected nas collections do banco)
+ * ========================================================================= */
+dataset('editResourceTypes', [
+    'brand' => ['brand'],
+    'unit' => ['unit'],
+    'product' => ['product'],
+    'user' => ['user'],
+    'contact' => ['contact'],
+    'tax-rate' => ['tax-rate'],
+]);
+
+it('edit view renderiza sem erros PHP/shim', function (string $resourceType) {
+    // Lookup do ID real eh feito DENTRO do teste (Laravel ja esta bootstrapado)
+    $resolve = [
+        'brand'    => fn () => [\App\Brands::first(),   '/brands/%d/edit'],
+        'unit'     => fn () => [\App\Unit::first(),     '/units/%d/edit'],
+        'product'  => fn () => [\App\Product::first(),  '/products/%d/edit'],
+        'user'     => fn () => [\App\User::first(),     '/users/%d/edit'],
+        'contact'  => fn () => [\App\Contact::first(),  '/contacts/%d/edit'],
+        'tax-rate' => fn () => [\App\TaxRate::first(),  '/tax-rates/%d/edit'],
+    ];
+
+    [$record, $template] = $resolve[$resourceType]();
+    if (! $record) {
+        $this->markTestSkipped("Sem {$resourceType} no DB — seeder nao rodado?");
+    }
+    $url = sprintf($template, $record->id);
+
+    $response = $this->get($url);
+    $status = $response->getStatusCode();
+
+    if ($status >= 300 && $status < 400) {
+        $this->markTestSkipped("Redirect {$status} em {$url}");
+    }
+    if ($status === 404) {
+        $this->markTestSkipped("404 em {$url} — rota pode ter mudado");
+    }
+
+    $body = $response->getContent() ?: '';
+    $err = detectShimError($body);
+
+    if ($err && $err['kind'] === 'shim') {
+        $this->fail("SHIM bug em {$url}: {$err['class']}: {$err['message']} ({$err['file']})");
+    }
+
+    expect($err['kind'] ?? 'ok')->not->toBe('shim');
+})->with('editResourceTypes');
