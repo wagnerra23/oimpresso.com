@@ -27,3 +27,5 @@ npm-debug.log
 /public/js/skins/
 /public/js/icons/
 /.env.example
+/.phpunit.cache
+/.claude/settings.local.json

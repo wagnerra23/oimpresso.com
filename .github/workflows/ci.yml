@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 6.7-react]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: PHP / Pest (Unit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, json, bcmath, intl, gd, pdo_mysql, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict --no-check-publish
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: PHP syntax lint (app/ + Modules/)
+        run: |
+          set -e
+          find app Modules -name '*.php' -not -path '*/vendor/*' -not -path '*/node_modules/*' -print0 \
+            | xargs -0 -n1 -P4 php -l > /dev/null
+
+      - name: Prepare .env (minimal, CI-only)
+        run: |
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-ci
+          APP_ENV=testing
+          APP_DEBUG=true
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          BCRYPT_ROUNDS=4
+          EOF
+          php artisan key:generate
+
+      - name: Run Pest (Unit suite)
+        run: vendor/bin/pest --testsuite=Unit --no-coverage
+
+  frontend:
+    name: Frontend / Vite build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
