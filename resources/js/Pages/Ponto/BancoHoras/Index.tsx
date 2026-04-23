@@ -44,7 +44,7 @@ interface Props {
 }
 
 export default function BancoHorasIndex({ saldos, totais }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell

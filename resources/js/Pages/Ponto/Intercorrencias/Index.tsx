@@ -57,7 +57,7 @@ const estadoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
 };
 
 export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   const filter = (key: string, value: string) => {
     router.get('/ponto/intercorrencias',

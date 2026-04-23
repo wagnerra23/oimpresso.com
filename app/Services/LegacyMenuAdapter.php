@@ -107,6 +107,85 @@ class LegacyMenuAdapter
         'tribut'         => 'Percent',
     ];
 
+    /**
+     * Varre Modules/<Nome>/Resources/menus/topnav.php e devolve map
+     * ['<Nome>' => ['label' => ..., 'icon' => ..., 'items' => [...]]] filtrado
+     * por permissões Spatie do user atual.
+     *
+     * Espelho React do padrão Blade `Resources/views/layouts/nav.blade.php` que
+     * cada módulo do UltimatePOS tem. Formato declarativo:
+     *
+     *   return [
+     *       'label' => 'Ponto WR2',
+     *       'icon'  => 'Clock',
+     *       'items' => [
+     *           ['label' => 'Dashboard', 'href' => '/ponto', 'icon' => 'LayoutDashboard', 'can' => 'ponto.access'],
+     *           ...
+     *       ],
+     *   ];
+     *
+     * Items sem campo `can` passam direto. Com `can`, Spatie decide.
+     */
+    public function buildTopNavs(): array
+    {
+        $statusesFile = base_path('modules_statuses.json');
+        if (!file_exists($statusesFile)) return [];
+
+        $statuses = json_decode(file_get_contents($statusesFile), true) ?: [];
+        $active = array_keys(array_filter($statuses, fn ($v) => $v === true));
+
+        $out = [];
+        foreach ($active as $moduleName) {
+            $path = base_path("Modules/{$moduleName}/Resources/menus/topnav.php");
+            if (!file_exists($path)) continue;
+
+            try {
+                $config = require $path;
+                if (!is_array($config) || empty($config['items'])) continue;
+
+                $filteredItems = [];
+                foreach ($config['items'] as $item) {
+                    if (!empty($item['can']) && !auth()->user()?->can($item['can'])) {
+                        continue;
+                    }
+                    $filteredItems[] = [
+                        'label'   => $this->resolveLabel($item['label'] ?? ''),
+                        'icon'    => $item['icon'] ?? 'Circle',
+                        'href'    => $item['href'] ?? '#',
+                        'inertia' => $this->isInertiaRoute($item['href'] ?? null),
+                        'badge'   => $item['badge'] ?? null,
+                    ];
+                }
+
+                if (empty($filteredItems)) continue;
+
+                $out[$moduleName] = [
+                    'label' => $this->resolveLabel($config['label'] ?? $moduleName),
+                    'icon'  => $config['icon'] ?? 'Circle',
+                    'items' => $filteredItems,
+                ];
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Resolve string de label. Aceita literal ("Dashboard") ou chave i18n
+     * ("ponto::lang.dashboard") — trans() resolve o que for.
+     */
+    protected function resolveLabel(string $raw): string
+    {
+        if (empty($raw)) return '';
+        if (str_contains($raw, '::')) {
+            $translated = trans($raw);
+            return $translated !== $raw ? $translated : $raw;
+        }
+        return $raw;
+    }
+
     public function build(): array
     {
         $instance = Menu::instance('admin-sidebar-menu');

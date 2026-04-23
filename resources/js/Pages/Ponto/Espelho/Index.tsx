@@ -37,7 +37,7 @@ interface Props {
 }
 
 export default function EspelhoIndex({ colaboradores, mes }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   const onMesChange = (novoMes: string) => {
     router.get('/ponto/espelho', { mes: novoMes }, { preserveState: true, preserveScroll: true });

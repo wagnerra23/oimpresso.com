@@ -47,7 +47,7 @@ const estadoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
 };
 
 export default function ImportacoesIndex({ importacoes }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell

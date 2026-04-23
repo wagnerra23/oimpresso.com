@@ -91,7 +91,7 @@ const tipoMarcacaoIcon: Record<string, { icon: string; color: string }> = {
 };
 
 export default function DashboardIndex({ kpis, aprovacoes, atividade_recente, serie_7dias }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell

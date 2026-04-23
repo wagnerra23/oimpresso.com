@@ -68,7 +68,7 @@ const corClasses: Record<CorKey, string> = {
 };
 
 export default function RelatoriosIndex({ relatorios }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell

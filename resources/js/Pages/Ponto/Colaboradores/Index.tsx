@@ -40,7 +40,7 @@ interface Props {
 }
 
 export default function ColaboradoresIndex({ colaboradores, search }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
   const [q, setQ] = useState(search ?? '');
 
   useEffect(() => {
