@@ -1,3 +1,11 @@
+// @docvault
+//   tela: /essentials/todo/create
+//   module: Essentials
+//   status: implementada
+//   stories: US-ESSE-001
+//   rules: R-ESSE-001
+//   tests: Modules/Essentials/Tests/Feature/TodoCreateTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';

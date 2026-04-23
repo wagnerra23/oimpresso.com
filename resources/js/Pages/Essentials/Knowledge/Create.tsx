@@ -1,3 +1,10 @@
+// @docvault
+//   tela: /essentials/knowledge-base/create
+//   module: Essentials
+//   status: implementada
+//   rules: R-ESSE-001
+//   tests: Modules/Essentials/Tests/Feature/KnowledgeCreateTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';

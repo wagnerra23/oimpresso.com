@@ -1,3 +1,10 @@
+// @docvault
+//   tela: /ponto/welcome
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-006
+//   tests: Modules/PontoWr2/Tests/Feature/WelcomeTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { useBusiness, useAuth } from '@/Hooks/usePageProps';

@@ -1,3 +1,9 @@
+// @docvault
+//   tela: /modulos
+//   module: Superadmin
+//   status: implementada
+//   tests: Tests/Feature/ModulesIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';

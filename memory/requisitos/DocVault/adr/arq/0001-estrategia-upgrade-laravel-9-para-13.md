@@ -20,10 +20,20 @@ Laravel 9 perdeu security patches em Nov 2024 (EOL). Cada major (10, 11, 12, 13)
 | 12 | Feb 2025 | 8.2 | Broadcasting refactor, Pennant default |
 | 13 | Feb 2026 | 8.3 | **Inertia 2.0 nativo**, schedule em classes dedicadas, Prompts CLI, Livewire 4 integrado |
 
-Dependências críticas acompanham cada major:
-- **nwidart/laravel-modules**: exige versão compatível a cada upgrade
-- **UltimatePOS v6.7**: herança do fork — precisa confirmar versão Laravel upstream
-- **Spatie permission**, **intervention/image**, **mpdf** (já problemático), **guzzle**
+Dependências críticas acompanham cada major (versões atuais no `composer.json` — verificadas em 2026-04-22):
+- **laravel/framework**: `^9.51` → alvo 13.x
+- **nwidart/laravel-modules**: `^9.0` → precisa v10/v11/v12/v13 conforme upgrade
+- **nwidart/laravel-menus**: `6.0.x-dev` (fork em github.com/dineshsailor/nWidart-laravel-menus) — possível blocker, verificar upstream
+- **spatie/laravel-permission**: `^5.5` → v6 em Laravel 10+
+- **laravel/passport**: pinned em `11.6.1` — versões > 12 exigem Laravel 10
+- **laravel/ui**: `4.x` (compat Laravel 9, pode migrar pra Breeze/Fortify)
+- **laravel/legacy-factories**: `^1.3` (compat Laravel 7-9) — **remover ao migrar factories pro formato novo**
+- **inertiajs/inertia-laravel**: `^1.0` → v2.0 disponível (trivial upgrade)
+- **laravelcollective/html**: `^6.3` (Laravel 9 only) — considerar remoção em Laravel 11+
+- **barryvdh/laravel-dompdf**: `^2.0` (ok até Laravel 11)
+- **myfatoorah/laravel-package**: `^2.2` (gateway pagamento — verificar upstream)
+- **openai-php/laravel**: `^0.4.1` — **já instalado** ✅ (desbloqueia `DOCVAULT_AI_ENABLED=true` quando tiver OPENAI_API_KEY)
+- **mpdf**: conhecido problema com PHP 8.4, já no borderline
 
 Pergunta central: **quando fazer e como evitar retrabalho**.
 

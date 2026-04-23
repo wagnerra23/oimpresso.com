@@ -1,3 +1,11 @@
+// @docvault
+//   tela: /ponto/escalas
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-005
+//   rules: R-PONT-001, R-PONT-006
+//   tests: Modules/PontoWr2/Tests/Feature/EscalasIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { CalendarDays, Plus } from 'lucide-react';
