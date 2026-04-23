@@ -18,7 +18,7 @@ cd D:\oimpresso.com
 # login: WR23 / Wscrct*2312  (tambem em .env DEV_LOGIN_PASSWORD)
 ```
 
-**Stack real:** Laravel 9.51 · PHP 8.4 (Herd) · MySQL Laragon 127.0.0.1:3306 root sem senha · DB `oimpresso` · Inertia + React 19 + Tailwind 4 + shadcn/ui na branch 6.7-react.
+**Stack real (repo local):** Laravel **11.x** (`composer.json` indica `laravel/framework:^11.5`) · PHP 8.4 (Herd) · MySQL Laragon 127.0.0.1:3306 root sem senha · DB `oimpresso` · Inertia + React 19 + Tailwind 4 + shadcn/ui na branch 6.7-react.
 
 **O que está pronto (sessão 10):**
 - Shell React com AppShell, dark mode por usuário, sidebar 2 níveis, menu dinâmico via `LegacyMenuAdapter`
@@ -30,6 +30,12 @@ cd D:\oimpresso.com
 **O que falta decidir (Wagner):**
 - Ativar IA no `.env` (`AI_ENABLED=true`, `OPENAI_API_KEY=...`) pra testar botão "Preencher com IA"
 - Decisões de módulos: Chat (Z-API?), IProduction vs Grow, codecanyon-ticketing, Grow viabilidade — ver `memory/modulos/RECOMENDACOES.md`
+
+**Upgrade Laravel (IA-first) — status (2026-04-23):**
+- Repo atualizado para **Laravel 11** e testes passando.
+- Decisão IA: **não usar `openai-php/laravel`**; Wagner vai usar **Vizra ADK + Prisma**.
+- Trava prática para “ir até 13”: **Inertia adapter atual suporta até Laravel 12**; para 13, depende de releases do ecossistema.
+- Logs: `memory/sessions/2026-04-23-session-11.md` (diagnóstico) e `memory/sessions/2026-04-23-session-12.md` (execução do upgrade).
 
 **Próximo passo sugerido:** F13.4 — telas React restantes PontoWR2. Ordem de menor complexidade: Aprovações → Espelho → Banco de Horas → Intercorrências Index/Show → Escalas → Importações → Colaboradores → Configurações.
 

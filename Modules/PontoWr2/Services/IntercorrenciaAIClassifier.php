@@ -3,7 +3,6 @@
 namespace Modules\PontoWr2\Services;
 
 use Illuminate\Support\Facades\Cache;
-use OpenAI\Laravel\Facades\OpenAI;
 use Throwable;
 
 /**
@@ -77,7 +76,11 @@ class IntercorrenciaAIClassifier
         $sanitized = $this->mascararPII($descricao);
 
         try {
-            $response = OpenAI::chat()->create([
+            if (!class_exists(\OpenAI\Laravel\Facades\OpenAI::class)) {
+                return ['success' => false, 'error' => 'Provider de IA não instalado neste ambiente.'];
+            }
+
+            $response = \OpenAI\Laravel\Facades\OpenAI::chat()->create([
                 'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
                 'response_format' => ['type' => 'json_object'],
                 'temperature' => 0.2,
@@ -113,9 +116,12 @@ class IntercorrenciaAIClassifier
 
     public function aiHabilitada(): bool
     {
-        return (bool) env('AI_ENABLED', false)
-            && (bool) env('AI_CLASSIFICACAO_INTERCORRENCIA', false)
-            && !empty(env('OPENAI_API_KEY'));
+        // `env()` em runtime não reflete bem alterações via `putenv()` em testes.
+        $aiEnabled = filter_var((string) getenv('AI_ENABLED'), FILTER_VALIDATE_BOOL);
+        $aiClassificacao = filter_var((string) getenv('AI_CLASSIFICACAO_INTERCORRENCIA'), FILTER_VALIDATE_BOOL);
+        $apiKey = (string) getenv('OPENAI_API_KEY');
+
+        return (bool) $aiEnabled && (bool) $aiClassificacao && $apiKey !== '';
     }
 
     protected function systemPrompt(): string

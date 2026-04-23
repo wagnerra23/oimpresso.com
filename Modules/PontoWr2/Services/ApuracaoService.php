@@ -170,7 +170,8 @@ class ApuracaoService
         $prevista = Carbon::parse($a->data->toDateString() . ' ' . $a->prevista_entrada);
         $real     = Carbon::parse($a->data->toDateString() . ' ' . $a->realizada_entrada);
 
-        $atraso = $real->gt($prevista) ? $real->diffInMinutes($prevista) : 0;
+        // Carbon 3 / timezone edge-cases: usar diff "signed" e clamp para >= 0
+        $atraso = max(0, $prevista->diffInMinutes($real, false));
 
         if ($atraso > $toleranciaMinutos) {
             $a->atraso_minutos = $atraso;
@@ -184,11 +185,9 @@ class ApuracaoService
         if ($a->prevista_saida && $a->realizada_saida) {
             $prevSaida = Carbon::parse($a->data->toDateString() . ' ' . $a->prevista_saida);
             $realSaida = Carbon::parse($a->data->toDateString() . ' ' . $a->realizada_saida);
-            if ($realSaida->lt($prevSaida)) {
-                $antecipada = $realSaida->diffInMinutes($prevSaida);
-                if ($antecipada > $toleranciaMinutos) {
-                    $a->saida_antecipada_minutos = $antecipada;
-                }
+            $antecipada = max(0, $realSaida->diffInMinutes($prevSaida, false));
+            if ($antecipada > $toleranciaMinutos) {
+                $a->saida_antecipada_minutos = $antecipada;
             }
         }
 
