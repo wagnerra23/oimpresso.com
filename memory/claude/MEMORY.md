@@ -1,0 +1,9 @@
+- [Hostinger IPv4 only](feedback_hostinger_ipv4.md) — Conexões a oimpresso.com (Hostinger) sempre em IPv4, sem troca de protocolo
+- [Project has its own memory/](reference_project_memory.md) — Repo tem `memory/` próprio; ler `memory/08-handoff.md` antes de qualquer trabalho técnico
+- [Hostinger server access](reference_hostinger_server.md) — SSH/deploy path do servidor produção oimpresso.com
+- [User profile — Wagner](user_profile.md) — Dono do projeto, decide rápido, controla servidor Hostinger; alvo Laravel 13+Boost+IA; PHP 8.4+ ciente; workflow online-only até 2026-04-22 quando iniciou setup local
+- [Drive browser directly](preference_drive_browser.md) — Wagner prefere que Claude use Claude_in_Chrome/Preview pra testar em vez de pedir pra ele copiar erros
+- [Módulos — prioridades e decisões](preference_modulos_prioridade.md) — Grow=prioridade produção; AiAssistance=descartar; Fiscal/Boleto/Chat/Jana/BI perdidos na migração 3.7→6.7
+- [Roadmap milestones M1-M10](project_roadmap_milestones.md) — Estratégia interleaved Laravel 9→13 alternando entrega de telas com upgrades; cada upgrade em sessão dedicada
+- [Roadmap A+ (observabilidade/tests/CI-CD)](project_roadmap_a_plus.md) — Adiado 2026-04-22; Sentry+Pest+GH Actions para virar estado-da-arte-plus
+- [Roadmap fiscal (Boleto+NFe+Tributação)](project_roadmap_fiscal.md) — Adiado 2026-04-22; pacote padrão eduardokum/laravel-boleto + sped-nfe + tributação em cascata
