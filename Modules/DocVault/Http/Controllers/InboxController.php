@@ -17,14 +17,27 @@ class InboxController extends Controller
 
         $status = $request->string('status')->toString() ?: 'pending';
         $module = $request->string('module')->toString() ?: null;
+        $search = trim((string) $request->query('q', ''));
 
-        $evidences = DocEvidence::where('business_id', $businessId)
-            ->where('status', $status)
-            ->when($module, fn ($q) => $q->where('module_target', $module))
-            ->with(['source:id,type,title,storage_path,source_url'])
-            ->orderByDesc('created_at')
-            ->paginate(25)
-            ->withQueryString();
+        // Busca via Scout (ADR arq/0006) quando há termo, senão Eloquent direto.
+        if ($search !== '') {
+            $evidences = DocEvidence::search($search)
+                ->where('business_id', $businessId)
+                ->when($status, fn ($q) => $q->where('status', $status))
+                ->when($module, fn ($q) => $q->where('module_target', $module))
+                ->paginate(25)
+                ->withQueryString();
+            // Scout::paginate não carrega relations — hidratar.
+            $evidences->getCollection()->load(['source:id,type,title,storage_path,source_url']);
+        } else {
+            $evidences = DocEvidence::where('business_id', $businessId)
+                ->where('status', $status)
+                ->when($module, fn ($q) => $q->where('module_target', $module))
+                ->with(['source:id,type,title,storage_path,source_url'])
+                ->orderByDesc('created_at')
+                ->paginate(25)
+                ->withQueryString();
+        }
 
         $evidences->getCollection()->transform(fn (DocEvidence $e) => [
             'id'             => $e->id,
@@ -54,6 +67,7 @@ class InboxController extends Controller
             'filtros'   => [
                 'status' => $status,
                 'module' => $module,
+                'q'      => $search,
             ],
             'counts'    => DocEvidence::where('business_id', $businessId)
                 ->selectRaw('status, count(*) as total')

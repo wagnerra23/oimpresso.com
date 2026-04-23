@@ -9,13 +9,14 @@
 
 import AppShell from '@/Layouts/AppShell';
 import { Link, router, useForm } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import {
   Check,
   ExternalLink,
   Inbox as InboxIcon,
   Save,
+  Search,
   Sparkles,
   Trash2,
   X,
@@ -84,7 +85,7 @@ interface Paginated {
 
 interface Props {
   evidences: Paginated;
-  filtros: { status: string; module: string | null };
+  filtros: { status: string; module: string | null; q?: string };
   counts: Record<string, number>;
 }
 
@@ -107,6 +108,20 @@ const kindLabel: Record<string, string> = {
 export default function DocVaultInbox({ evidences, filtros, counts }: Props) {
   const [editTarget, setEditTarget] = useState<Evidence | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Evidence | null>(null);
+  const [searchTerm, setSearchTerm] = useState(filtros.q ?? '');
+
+  // Debounce 300ms — envia busca pro backend via Scout (ADR arq/0006)
+  useEffect(() => {
+    if (searchTerm === (filtros.q ?? '')) return;
+    const handle = setTimeout(() => {
+      router.get('/docs/inbox',
+        { ...filtros, q: searchTerm || undefined },
+        { preserveScroll: true, preserveState: true, replace: true }
+      );
+    }, 300);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
 
   const editForm = useForm({
     status: 'pending',
@@ -181,6 +196,32 @@ export default function DocVaultInbox({ evidences, filtros, counts }: Props) {
             </p>
           </div>
         </header>
+
+        {/* Search bar (Scout via backend — driver `database` agora, `meilisearch` quando ativar) */}
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar no conteúdo, notes, IDs sugeridos..."
+            className="pl-9 pr-9"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Limpar busca"
+            >
+              <X size={14} />
+            </button>
+          )}
+          {filtros.q && (
+            <div className="text-[10px] text-muted-foreground mt-1 ml-1">
+              Buscando via Scout · {evidences.total} resultado(s)
+            </div>
+          )}
+        </div>
 
         {/* Status tabs */}
         <div className="border-b border-border flex gap-1 flex-wrap">
