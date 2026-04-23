@@ -99,7 +99,10 @@ class Form
 
     public static function label($name, $text = null, array $options = []): HtmlString
     {
-        return self::render(Html::label($text, $name)->attributes($options));
+        // spatie nao escapa conteudo de label — laravelcollective sempre escapou (seguranca + entities UTF-8)
+        $escaped = e((string) ($text ?? ''));
+
+        return self::render(Html::label($escaped, $name)->attributes($options));
     }
 
     public static function submit($text = null, array $options = []): HtmlString
