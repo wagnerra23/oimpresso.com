@@ -28,6 +28,11 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
         // Módulo (ver requisitos consolidados)
         Route::get('/modulos/{module}', [\Modules\DocVault\Http\Controllers\ModuloController::class, 'show'])->name('docvault.modulo');
 
+        // Chat assistente (pergunte pro conhecimento do DocVault)
+        Route::get('/chat', [\Modules\DocVault\Http\Controllers\ChatController::class, 'index'])->name('docvault.chat');
+        Route::post('/chat/ask', [\Modules\DocVault\Http\Controllers\ChatController::class, 'ask'])->name('docvault.chat.ask');
+        Route::post('/chat/new', [\Modules\DocVault\Http\Controllers\ChatController::class, 'newSession'])->name('docvault.chat.new');
+
         // Install (padrão UltimatePOS)
         Route::get('/install', [\Modules\DocVault\Http\Controllers\InstallController::class, 'index'])->name('docvault.install');
     });

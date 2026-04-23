@@ -85,7 +85,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [ ] Usa OpenAI quando `AI_ENABLED=true`, senão responde "desabilitado"
 - [ ] Histórico por usuário persistido em `docs_chat_messages`
 
-**Implementado em:** [TODO — Fase 3]
+**Implementado em:** `ChatController.php` + `ChatAssistant.php` + `resources/js/Pages/DocVault/Chat.tsx` (modo offline funcionando; modo AI com stub aguardando OPENAI_API_KEY).
 
 ## 3. Regras
 
