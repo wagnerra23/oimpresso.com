@@ -48,6 +48,9 @@ interface ModuleItem {
   rules_count: number;
   dod_pct: number;
   coverage: Coverage | null;
+  pages_count: number;
+  trace_score: number;
+  health_score: number | null;
 }
 
 interface CoverageSummary {
@@ -71,9 +74,10 @@ interface Props {
   modules: ModuleItem[];
   recent_sources: RecentSource[];
   coverage_summary: CoverageSummary;
+  pages_total: number;
 }
 
-export default function DocVaultDashboard({ stats, modules, recent_sources, coverage_summary }: Props) {
+export default function DocVaultDashboard({ stats, modules, recent_sources, coverage_summary, pages_total }: Props) {
   return (
     <AppShell
       title="DocVault — Dashboard"
@@ -164,11 +168,12 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <StatusBox label="Formato pasta" value={coverage_summary.folder_count} tone="emerald" />
               <StatusBox label="Formato plano" value={coverage_summary.flat_count} tone="amber" />
               <StatusBox label="Score médio" value={`${coverage_summary.avg_score}%`} />
               <StatusBox label="ADRs totais" value={coverage_summary.total_adrs} tone="sky" />
+              <StatusBox label="Telas rastreadas" value={pages_total} tone={pages_total > 0 ? 'emerald' : undefined} />
             </div>
           </CardContent>
         </Card>
@@ -191,6 +196,8 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
                     <th className="text-right p-3 font-medium">Stories</th>
                     <th className="text-right p-3 font-medium">Regras</th>
                     <th className="text-right p-3 font-medium">ADRs</th>
+                    <th className="text-right p-3 font-medium">Telas</th>
+                    <th className="text-left p-3 font-medium">Trace</th>
                     <th className="text-left p-3 font-medium">DoD</th>
                     <th className="text-right p-3 font-medium"></th>
                   </tr>
@@ -234,7 +241,23 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
                           <span className="text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="p-3 w-40">
+                      <td className="p-3 text-right font-mono text-xs">
+                        {m.pages_count > 0 ? m.pages_count : <span className="text-muted-foreground">—</span>}
+                      </td>
+                      <td className="p-3 w-32">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
+                            <div
+                              className={`h-full ${m.trace_score >= 80 ? 'bg-emerald-500' : m.trace_score >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                              style={{ width: `${Math.min(100, m.trace_score)}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-mono w-8">
+                            {m.trace_score}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-3 w-32">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                             <div
