@@ -3,7 +3,6 @@
 namespace App\Services\Menu;
 
 use Closure;
-use Collective\Html\HtmlFacade as HTML;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Request;
@@ -184,7 +183,12 @@ class MenuItem implements Arrayable
     {
         $attributes = $this->attributes ?: [];
         Arr::forget($attributes, ['active', 'icon']);
-        return HTML::attributes($attributes);
+
+        $parts = [];
+        foreach ($attributes as $k => $v) {
+            $parts[] = is_int($k) ? e($v) : sprintf('%s="%s"', $k, e($v));
+        }
+        return $parts ? ' ' . implode(' ', $parts) : '';
     }
 
     // ---------- type checks ----------

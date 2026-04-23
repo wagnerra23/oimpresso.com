@@ -191,7 +191,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-        Collective\Html\HtmlServiceProvider::class,
+        // Collective\Html\HtmlServiceProvider — removido na migracao pra spatie/laravel-html
         //Yajra\Datatables\DatatablesServiceProvider::class,
         // Spatie\Permission\PermissionServiceProvider::class,
         Milon\Barcode\BarcodeServiceProvider::class,
@@ -217,8 +217,8 @@ return [
         'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
         'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
         'Datatables' => Yajra\DataTables\Facades\DataTables::class,
-        'Form' => Collective\Html\FormFacade::class,
-        'Html' => Collective\Html\HtmlFacade::class,
+        'Form' => App\View\Helpers\Form::class,
+        // 'Html' => removido — spatie/laravel-html auto-registra via package discovery
         'Redis' => Illuminate\Support\Facades\Redis::class,
         'Menu' => App\Facades\Menu::class,
         'Pesapal' => Knox\Pesapal\Facades\Pesapal::class,
