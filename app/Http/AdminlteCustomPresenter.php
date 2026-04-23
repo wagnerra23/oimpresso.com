@@ -2,7 +2,7 @@
 
 namespace App\Http;
 
-use Nwidart\Menus\Presenters\Presenter;
+use App\Services\Menu\Presenter;
 
 class AdminlteCustomPresenter extends Presenter
 {

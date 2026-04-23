@@ -196,7 +196,7 @@ return [
         // Spatie\Permission\PermissionServiceProvider::class,
         Milon\Barcode\BarcodeServiceProvider::class,
         ConsoleTVs\Charts\ChartsServiceProvider::class,
-        Nwidart\Menus\MenusServiceProvider::class,
+        App\Providers\MenuServiceProvider::class,
         Knox\Pesapal\PesapalServiceProvider::class,
     ],
 
@@ -220,7 +220,7 @@ return [
         'Form' => Collective\Html\FormFacade::class,
         'Html' => Collective\Html\HtmlFacade::class,
         'Redis' => Illuminate\Support\Facades\Redis::class,
-        'Menu' => Nwidart\Menus\Facades\Menu::class,
+        'Menu' => App\Facades\Menu::class,
         'Pesapal' => Knox\Pesapal\Facades\Pesapal::class,
     ])->toArray(),
 ];
