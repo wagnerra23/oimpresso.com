@@ -9,7 +9,7 @@ use Spatie\Backup\BackupDestination\BackupDestination;
 
 class KeepLatestBackups extends CleanupStrategy
 {
-    public function deleteOldBackups(BackupCollection $backups)
+    public function deleteOldBackups(BackupCollection $backups): void
     {
         // Sort the backups by date in descending order
         $backups = $backups->sortByDesc('date');
