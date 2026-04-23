@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'officeimpresso_limitemaquinas' => 'Limite de Máquinas',
     'superadmin' => 'Superadmin',
     'dashboard' => 'Painel de controle',
     'all_business' => 'Todas as empresas',

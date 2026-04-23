@@ -1,9 +1,13 @@
-@extends('layout')
+@extends('layouts.app')
+
+@section('title', __('officeimpresso::lang.officeimpresso'))
 
 @section('content')
-    <h2>Cadastrar Novo Computador</h2>
-
-    <form action="{{ route('licencas_computador.store') }}" method="POST">
+<section class="content-header">
+    <h1>Cadastrar Novo Computador</h1>
+</section>
+<section class="content">
+    <form action="{{ route('licenca_computador.store') }}" method="POST">
         @csrf
         <label for="licenca_id">Licença:</label>
         <input type="text" name="licenca_id" id="licenca_id" required>
@@ -20,6 +24,7 @@
         <label for="versao_exe">Versão Executável:</label>
         <input type="text" name="versao_exe" id="versao_exe" required>
 
-        <button type="submit">Cadastrar</button>
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
     </form>
+</section>
 @endsection

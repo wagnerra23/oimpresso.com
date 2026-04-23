@@ -48,5 +48,16 @@ return [
 	"liberado"=>"Liberado",
 	"liberar"=>"Liberar",
 	"dados_empresa"=>"Dados da Empresa",
-	"licenca_officeimpresso"=>"Licenças Office Impresso"
+	"licenca_officeimpresso"=>"Licenças Office Impresso",
+	"action"=>"Ação",
+	"catalogue_qr"=>"QR do Catálogo",
+	"cliente"=>"Cliente",
+	"computadores_cadastrados"=>"Computadores Cadastrados",
+	"memoria"=>"Memória",
+	"processador"=>"Processador",
+	"regenerate_doc"=>"Regenerar Documentação",
+	"user_win"=>"Usuário Windows",
+	"versao_exe"=>"Versão Executável",
+	"superadmin_package"=>"Pacote Officeimpresso",
+	"officeimpresso_limitemaquinas"=>"Limite de Máquinas",
 ];

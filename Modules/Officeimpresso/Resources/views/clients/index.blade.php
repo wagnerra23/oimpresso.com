@@ -13,7 +13,7 @@
         @slot('tool')
             <div class="box-tools">
                 @can('superadmin')
-                    <a href="{{action('\Modules\Officeimpresso\Http\Controllers\LicencaController@regenerate')}}" class="btn btn-block btn-default">
+                    <a href="{{action('\Modules\Officeimpresso\Http\Controllers\ClientController@regenerate')}}" class="btn btn-block btn-default">
                         <i class="fas fa-plus"></i> @lang('officeimpresso::lang.regenerate_doc')
                     </a>
                 @endcan
@@ -56,7 +56,7 @@
                             <td>{{ $licenca->quantidade_maquinas }}</td>
                             <td>{{ $licenca->client_secret }}</td>
                             <td>
-                                {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\LicencaController@destroy', [$licenca->id]), 'method' => 'delete', 'id' => 'delete_client_form_' . $licenca->id ]) !!}
+                                {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\ClientController@destroy', [$licenca->id]), 'method' => 'delete', 'id' => 'delete_client_form_' . $licenca->id ]) !!}
                                     <button type="submit" class="btn btn-danger btn-xs">
                                         <i class="fas fa-trash"></i> @lang('messages.delete')
                                     </button>
@@ -83,7 +83,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
 
-            {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\LicencaController@store'), 'method' => 'post', 'id' => 'create_client_form' ]) !!}
+            {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\ClientController@store'), 'method' => 'post', 'id' => 'create_client_form' ]) !!}
 
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
