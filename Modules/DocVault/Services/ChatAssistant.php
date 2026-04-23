@@ -14,7 +14,8 @@ namespace Modules\DocVault\Services;
 class ChatAssistant
 {
     public function __construct(
-        protected RequirementsFileReader $reader
+        protected RequirementsFileReader $reader,
+        protected MemoryReader $memoryReader
     ) {}
 
     /**
@@ -43,7 +44,8 @@ class ChatAssistant
     }
 
     /**
-     * Busca snippets relevantes nos arquivos dos módulos. Keyword-based, simples.
+     * Busca snippets relevantes nos arquivos dos módulos E nas memórias
+     * (Primer + Projeto + Claude). Keyword-based, simples.
      */
     protected function retrieve(string $question, ?string $moduleContext): array
     {
@@ -56,6 +58,11 @@ class ChatAssistant
         if (empty($terms)) return [];
 
         $hits = [];
+
+        // Pergunta sem escopo de módulo: vasculha TAMBÉM as memórias globais
+        if (! $moduleContext) {
+            $hits = array_merge($hits, $this->retrieveFromMemory($terms));
+        }
         foreach ($modules as $m) {
             // Quando vem de listModules, não tem conteúdo bruto — carregamos on-demand
             $data = $m['name'] ? $this->reader->readModule($m['name']) : null;
@@ -100,6 +107,50 @@ class ChatAssistant
 
         usort($hits, fn ($a, $b) => $b['score'] <=> $a['score']);
         return array_slice($hits, 0, 6);
+    }
+
+    /**
+     * Vasculha as 3 raízes de memória (primer, project, claude). Memórias
+     * Claude tipo `user` ganham boost 1.5x (dão contexto pessoal forte).
+     */
+    protected function retrieveFromMemory(array $terms): array
+    {
+        $roots = $this->memoryReader->listRoots();
+        $out = [];
+
+        $walk = function (array $node, string $rootKey) use (&$walk, &$out, $terms) {
+            if (($node['type'] ?? '') === 'file') {
+                $key = $node['key'] ?? null;
+                if (! $key) return;
+                $data = $this->memoryReader->readFile($key);
+                if (! $data) return;
+
+                $score = $this->scoreText($data['content'], $terms);
+                if ($score <= 0) return;
+
+                $type = $data['meta']['type'] ?? null;
+                $weight = match ($rootKey) {
+                    'primer'  => 1.3,              // CLAUDE.md é referência institucional
+                    'claude'  => $type === 'user' ? 1.5 : 1.1,
+                    'project' => 1.0,
+                    default   => 1.0,
+                };
+
+                $out[] = [
+                    'module'  => ucfirst($rootKey) . ' memory',
+                    'source'  => $data['relative'],
+                    'title'   => $data['meta']['name'] ?? $data['relative'],
+                    'score'   => $score * $weight,
+                    'snippet' => $this->extractSnippet($data['content'], $terms),
+                ];
+                return;
+            }
+            foreach (($node['children'] ?? []) as $c) $walk($c, $rootKey);
+        };
+
+        foreach ($roots as $rootKey => $tree) $walk($tree, $rootKey);
+
+        return $out;
     }
 
     protected function extractTerms(string $question): array
