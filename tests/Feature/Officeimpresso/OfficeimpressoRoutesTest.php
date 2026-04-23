@@ -84,6 +84,29 @@ it('api/officeimpresso devolve 401 sem Bearer', function () {
     expect($r->getStatusCode())->toBe(401);
 });
 
+it('api/officeimpresso/audit devolve 401 sem Bearer', function () {
+    auth()->logout();
+    session()->flush();
+    $r = $this->withHeaders(['Accept' => 'application/json'])->postJson('/api/officeimpresso/audit', []);
+    expect($r->getStatusCode())->toBe(401);
+});
+
+it('licenca_log/index renderiza com KPIs', function () {
+    if (! auth()->user()->can('superadmin')) {
+        $this->markTestSkipped('Requer superadmin');
+    }
+    $r = $this->get('/officeimpresso/licenca_log');
+    expect($r->getStatusCode())->toBe(200);
+    $r->assertSee('Log de Acesso', false);
+    $r->assertSee('Sucessos', false);
+    $r->assertSee('Erros', false);
+});
+
+it('command licenca-log:parse executa sem erro', function () {
+    $exit = \Artisan::call('licenca-log:parse', ['--limit' => 10]);
+    expect($exit)->toBe(0);
+});
+
 it('menu admin-sidebar inclui Officeimpresso como 2o item pra superadmin', function () {
     if (! auth()->user()->can('superadmin')) {
         $this->markTestSkipped('Teste requer user com permissao superadmin');
