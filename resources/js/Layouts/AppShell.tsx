@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback } from '@/Components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { cn } from '@/Lib/utils';
 import { useAuth, useBusiness, useFlash, usePageProps } from '@/Hooks/usePageProps';
+import ModuleTopNav from '@/Components/shared/ModuleTopNav';
 import type { MenuItem } from '@/Types';
 
 /**
@@ -39,13 +40,25 @@ import type { MenuItem } from '@/Types';
  * - Rodapé: user (avatar + nome + email) + theme toggle + logout
  * - Mobile: Sheet drawer com mesma estrutura
  */
+/**
+ * Prop opcional pra renderizar barra horizontal entre topbar e breadcrumb.
+ * Alimentada pelo hook useModuleNav(moduleKey).
+ */
+interface ModuleNavProp {
+  items: MenuItem[];
+  activeHref?: string;
+  moduleLabel?: string;
+  moduleIcon?: string;
+}
+
 interface AppShellProps {
   title?: string;
   breadcrumb?: Array<{ label: string; href?: string }>;
+  moduleNav?: ModuleNavProp;
   children: ReactNode;
 }
 
-export default function AppShell({ title, breadcrumb, children }: AppShellProps) {
+export default function AppShell({ title, breadcrumb, moduleNav, children }: AppShellProps) {
   const { shell } = usePageProps();
   const auth = useAuth();
   const business = useBusiness();
@@ -174,6 +187,17 @@ export default function AppShell({ title, breadcrumb, children }: AppShellProps)
             <div className="flex-1" />
             <UserQuickMenu />
           </header>
+
+          {/* ModuleTopNav: barra horizontal com sub-items do módulo — fonte
+              independente da sidebar, alimentada por Resources/menus/topnav.php */}
+          {moduleNav && moduleNav.items.length > 0 && (
+            <ModuleTopNav
+              items={moduleNav.items}
+              activeHref={moduleNav.activeHref}
+              moduleLabel={moduleNav.moduleLabel}
+              moduleIcon={moduleNav.moduleIcon}
+            />
+          )}
 
           {breadcrumb && breadcrumb.length > 0 && (
             <div className="flex items-center gap-1 border-b border-border bg-background px-4 py-1.5 text-xs text-muted-foreground">

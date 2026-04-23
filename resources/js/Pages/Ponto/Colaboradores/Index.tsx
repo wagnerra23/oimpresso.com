@@ -8,6 +8,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ColaboradoresIndexTest
 
 import AppShell from '@/Layouts/AppShell';
+import { useModuleNav } from '@/Hooks/usePageProps';
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { Search, Users } from 'lucide-react';
@@ -39,6 +40,7 @@ interface Props {
 }
 
 export default function ColaboradoresIndex({ colaboradores, search }: Props) {
+  const moduleNav = useModuleNav('PontoWr2');
   const [q, setQ] = useState(search ?? '');
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
     <AppShell
       title="Colaboradores"
       breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Colaboradores' }]}
+      moduleNav={moduleNav}
     >
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>
