@@ -1,10 +1,38 @@
 # ADR ARQ-0004 (DocVault) · `yajra/laravel-datatables-oracle` — inventário e migração
 
-- **Status**: accepted
-- **Data**: 2026-04-22
+- **Status**: accepted (revisado 2026-04-23 — yajra NÃO é blocker)
+- **Data**: 2026-04-22 · **Revisado**: 2026-04-23
 - **Decisores**: Wagner, Claude
 - **Categoria**: arq
-- **Desbloqueia**: ADR arq/0002 Fase 2 (P0 blocker)
+- **Desbloqueia**: ADR arq/0002 Fase 2 (**ajuste: não é P0, é P1 simples**)
+
+## 🔄 REVISÃO 2026-04-23 — Yajra não é blocker
+
+Wagner apontou: pesquisei versões yajra e achei até **v13**. Verificação via `composer show -a yajra/laravel-datatables-oracle`:
+
+| Versão yajra | PHP | Laravel |
+|---|---|---|
+| v9.x | ^8.0 | ^7-9 |
+| **v10.11.4** | **^8.0.2** | **^9 OR ^10** ← duplo compat |
+| v11.1.6 | ^8.2 | ^11 |
+| v12.7.0 | ^8.2 | ^12 |
+| v13.0 | ^8.3 | ^13 |
+
+**Conclusão**: yajra mantém major sincronizado com major do Laravel. **v10.11 aceita Laravel 9 E Laravel 10 simultaneamente** — pode bumpar hoje, sem esperar upgrade framework. Na hora do upgrade Laravel N, é só bumpar yajra vN junto.
+
+**Yajra sai do status de P0 blocker do ADR arq/0002** — é trivialmente upgradável.
+
+### Estratégia revisada
+
+**Track A (executar agora — trivial):**
+- Bumpar `yajra/laravel-datatables-oracle: ^10.11` → aceita L9 atual E L10 futuro
+- Testar que as 7 telas que usam DataTables continuam funcionando
+- Commit como melhoria incremental
+
+**Track B (continua válido, mas opcional):**
+- Migrar 4 telas DataTables pra React+TanStack não é mais pré-requisito do upgrade Laravel
+- Vira modernização progressiva: cada tela migrada remove dívida técnica (140kB jQuery, XSS risk, zero TypeScript)
+- Ordem e timing fica à critério de Wagner — sem pressão
 
 ## Contexto
 
