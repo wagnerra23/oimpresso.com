@@ -8,6 +8,12 @@ class CreateLicencaLogTable extends Migration
 {
     public function up()
     {
+        // Se existir stub antigo (3 colunas: id, created_at, updated_at
+        // residuo do 3.7), dropa — nao tem dados de valor.
+        if (Schema::hasTable('licenca_log') && ! Schema::hasColumn('licenca_log', 'event')) {
+            Schema::dropIfExists('licenca_log');
+        }
+
         Schema::create('licenca_log', function (Blueprint $table) {
             $table->bigIncrements('id');
 
