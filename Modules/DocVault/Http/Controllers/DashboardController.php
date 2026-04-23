@@ -7,11 +7,21 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\DocVault\Entities\DocEvidence;
+use Modules\DocVault\Entities\DocPage;
 use Modules\DocVault\Entities\DocSource;
+use Modules\DocVault\Entities\DocValidationRun;
 use Modules\DocVault\Services\RequirementsFileReader;
 
 class DashboardController extends Controller
 {
+    protected function countRulesWithoutTest(array $m): int
+    {
+        // O reader não carrega rules detalhadas em listModules() — sempre recarrega.
+        $data = app(RequirementsFileReader::class)->readModule($m['name']);
+        if (! $data) return $m['rules_count'] ?? 0;
+        return count(array_filter($data['rules'], fn ($r) => empty($r['testado_em'])));
+    }
+
     public function index(Request $request, RequirementsFileReader $reader): Response
     {
         $businessId = (int) (session('business.id') ?: $request->session()->get('user.business_id'));
@@ -32,6 +42,13 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
+
+        // Trace score por módulo (ADR 0005)
+        $pagesByModule = DocPage::all()->groupBy('module');
+        $lastValidationByModule = DocValidationRun::orderByDesc('run_at')
+            ->get()
+            ->unique('module')
+            ->keyBy('module');
 
         // Fontes recentes (últimas 5)
         $recentSources = DocSource::where('business_id', $businessId)
@@ -61,16 +78,35 @@ class DashboardController extends Controller
                 'evidences_triaged' => $evidencesByStatus['triaged'] ?? 0,
                 'evidences_applied' => $evidencesByStatus['applied'] ?? 0,
             ],
-            'modules' => array_map(fn ($m) => [
-                'name'          => $m['name'],
-                'format'        => $m['format'] ?? 'flat',
-                'status'        => $m['frontmatter']['status'] ?? 'unknown',
-                'priority'      => $m['frontmatter']['migration_priority'] ?? 'média',
-                'stories_count' => $m['stories_count'],
-                'rules_count'   => $m['rules_count'],
-                'dod_pct'       => $m['dod_pct'],
-                'coverage'      => $m['coverage'] ?? null,
-            ], $modules),
+            'modules' => array_map(function ($m) use ($pagesByModule, $lastValidationByModule) {
+                $pages = $pagesByModule->get($m['name'], collect());
+                $validation = $lastValidationByModule->get($m['name']);
+                $storiesInPages = $pages->flatMap(fn ($p) => $p->stories ?? [])->unique()->count();
+                $rulesTested = ($m['rules_count'] ?? 0) > 0
+                    ? (int) round((($m['rules_count'] - $this->countRulesWithoutTest($m)) / $m['rules_count']) * 100)
+                    : 0;
+
+                $traceScore = 0;
+                if ($m['stories_count'] > 0 || $m['rules_count'] > 0) {
+                    $storiesPct = $m['stories_count'] > 0 ? ($storiesInPages / $m['stories_count']) * 100 : 100;
+                    $traceScore = (int) round(($storiesPct + $rulesTested) / 2);
+                }
+
+                return [
+                    'name'           => $m['name'],
+                    'format'         => $m['format'] ?? 'flat',
+                    'status'         => $m['frontmatter']['status'] ?? 'unknown',
+                    'priority'       => $m['frontmatter']['migration_priority'] ?? 'média',
+                    'stories_count'  => $m['stories_count'],
+                    'rules_count'    => $m['rules_count'],
+                    'dod_pct'        => $m['dod_pct'],
+                    'coverage'       => $m['coverage'] ?? null,
+                    'pages_count'    => $pages->count(),
+                    'trace_score'    => $traceScore,
+                    'health_score'   => $validation ? $validation->health_score : null,
+                ];
+            }, $modules),
+            'pages_total' => DocPage::count(),
             'coverage_summary' => [
                 'folder_count' => count(array_filter($modules, fn ($m) => ($m['format'] ?? 'flat') === 'folder')),
                 'flat_count'   => count(array_filter($modules, fn ($m) => ($m['format'] ?? 'flat') === 'flat')),
