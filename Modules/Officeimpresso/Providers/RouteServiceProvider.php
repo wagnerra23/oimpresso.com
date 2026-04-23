@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ProductCatalogue\Providers;
+namespace Modules\Officeimpresso\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
@@ -12,7 +12,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    protected $moduleNamespace = 'Modules\ProductCatalogue\Http\Controllers';
+    protected $moduleNamespace = 'Modules\Officeimpresso\Http\Controllers';
 
     /**
      * Called before routes are registered.
