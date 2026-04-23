@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="{{ asset('css/tailwind/app.css?v=' . $asset_v) }}">
+
 <link rel="stylesheet" href="{{ asset('css/vendor.css?v=' . $asset_v) }}">
 
 @if (in_array(session()->get('user.language', config('app.locale')), config('constants.langs_rtl')))
