@@ -8,8 +8,8 @@
 //   tests: Modules/DocVault/Tests/Feature/ModuloTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link } from '@inertiajs/react';
+import { useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   BookA,
@@ -137,13 +137,8 @@ export default function DocVaultModulo({
   const rulesTestadas = rules.filter((r) => r.testado_em).length;
 
   return (
-    <AppShell
-      title={`DocVault — ${module}`}
-      breadcrumb={[
-        { label: 'DocVault', href: '/docs' },
-        { label: module },
-      ]}
-    >
+    <>
+      <Head title={`DocVault — ${module}`} />
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -523,9 +518,18 @@ export default function DocVaultModulo({
           </Card>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }
+
+DocVaultModulo.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'DocVault', href: '/docs' },
+    { label: 'Módulo' },
+  ]}>
+    {page}
+  </AppShell>
+);
 
 function Kpi({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string | number; hint?: string }) {
   return (

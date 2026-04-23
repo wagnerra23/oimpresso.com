@@ -6,8 +6,8 @@
 //   tests: Modules/Essentials/Tests/Feature/KnowledgeEditTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, BookOpen, FileText, FolderOpen, Save } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -76,15 +76,8 @@ export default function KnowledgeEdit({ kb, users }: Props) {
   };
 
   return (
-    <AppShell
-      title={`Editar ${labelFor(kb.kb_type).toLowerCase()}`}
-      breadcrumb={[
-        { label: 'Essentials' },
-        { label: 'Base de conhecimento', href: '/essentials/knowledge-base' },
-        { label: kb.title, href: `/essentials/knowledge-base/${kb.id}` },
-        { label: 'Editar' },
-      ]}
-    >
+    <>
+      <Head title={`Editar ${labelFor(kb.kb_type).toLowerCase()}`} />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -186,6 +179,16 @@ export default function KnowledgeEdit({ kb, users }: Props) {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+KnowledgeEdit.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Essentials' },
+    { label: 'Base de conhecimento', href: '/essentials/knowledge-base' },
+    { label: 'Editar' },
+  ]}>
+    {page}
+  </AppShell>
+);

@@ -8,8 +8,8 @@
 //   tests: Modules/DocVault/Tests/Feature/IngestTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
@@ -96,13 +96,8 @@ export default function DocVaultIngest({ source_types, modules, evidence_kinds }
   const needsText = ['chat', 'text', 'error'].includes(form.data.type);
 
   return (
-    <AppShell
-      title="Nova evidência"
-      breadcrumb={[
-        { label: 'DocVault', href: '/docs' },
-        { label: 'Nova evidência' },
-      ]}
-    >
+    <>
+      <Head title="Nova evidência" />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -301,6 +296,15 @@ export default function DocVaultIngest({ source_types, modules, evidence_kinds }
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+DocVaultIngest.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'DocVault', href: '/docs' },
+    { label: 'Nova evidência' },
+  ]}>
+    {page}
+  </AppShell>
+);

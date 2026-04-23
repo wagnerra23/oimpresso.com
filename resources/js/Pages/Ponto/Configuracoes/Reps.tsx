@@ -7,8 +7,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ConfiguracoesRepsTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, Plus, Server } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -64,14 +64,8 @@ export default function ReposIndex({ reps }: Props) {
   };
 
   return (
-    <AppShell
-      title="REPs"
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Configurações', href: '/ponto/configuracoes' },
-        { label: 'REPs' },
-      ]}
-    >
+    <>
+      <Head title="REPs" />
       <div className="mx-auto max-w-5xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -191,6 +185,16 @@ export default function ReposIndex({ reps }: Props) {
           </Card>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+ReposIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Configurações', href: '/ponto/configuracoes' },
+    { label: 'REPs' },
+  ]}>
+    {page}
+  </AppShell>
+);

@@ -8,7 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/EspelhoShowTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -92,14 +93,8 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
   };
 
   return (
-    <AppShell
-      title={`Espelho · ${colaborador.nome} · ${mes}`}
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Espelho', href: '/ponto/espelho' },
-        { label: colaborador.nome },
-      ]}
-    >
+    <>
+      <Head title={`Espelho · ${colaborador.nome} · ${mes}`} />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -233,9 +228,18 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+EspelhoShow.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Espelho', href: '/ponto/espelho' },
+  ]}>
+    {page}
+  </AppShell>
+);
 
 function Totalizador({
   label,

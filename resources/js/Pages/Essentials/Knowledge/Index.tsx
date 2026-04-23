@@ -6,8 +6,8 @@
 //   tests: Modules/Essentials/Tests/Feature/KnowledgeIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   BookOpen,
@@ -80,10 +80,8 @@ export default function KnowledgeIndex({ books }: Props) {
   };
 
   return (
-    <AppShell
-      title="Base de conhecimento"
-      breadcrumb={[{ label: 'Essentials' }, { label: 'Base de conhecimento' }]}
-    >
+    <>
+      <Head title="Base de conhecimento" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -235,6 +233,12 @@ export default function KnowledgeIndex({ books }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppShell>
+    </>
   );
 }
+
+KnowledgeIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Essentials' }, { label: 'Base de conhecimento' }]}>
+    {page}
+  </AppShell>
+);

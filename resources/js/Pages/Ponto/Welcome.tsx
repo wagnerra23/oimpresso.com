@@ -6,6 +6,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/WelcomeTest
 
 import AppShell from '@/Layouts/AppShell';
+import { Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { useBusiness, useAuth } from '@/Hooks/usePageProps';
 
@@ -14,13 +16,8 @@ export default function PontoWelcome() {
   const auth = useAuth();
 
   return (
-    <AppShell
-      title="Ponto WR2 · React"
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Bem-vindo' },
-      ]}
-    >
+    <>
+      <Head title="Ponto WR2 · React" />
       <div className="mx-auto max-w-5xl p-6">
         <header className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Ponto WR2 — nova interface</h1>
@@ -51,6 +48,12 @@ export default function PontoWelcome() {
           </Card>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+PontoWelcome.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Bem-vindo' }]}>
+    {page}
+  </AppShell>
+);

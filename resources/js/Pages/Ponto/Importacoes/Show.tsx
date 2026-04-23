@@ -8,8 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ImportacoesShowTest
 
 import AppShell from '@/Layouts/AppShell';
-import { router } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useEffect, type ReactNode } from 'react';
 import { AlertTriangle, ArrowLeft, Download, FileUp } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
@@ -51,14 +51,8 @@ export default function ImportacoesShow({ importacao: i }: Props) {
   }, [i.estado]);
 
   return (
-    <AppShell
-      title={`Importação #${i.id}`}
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Importações', href: '/ponto/importacoes' },
-        { label: `#${i.id}` },
-      ]}
-    >
+    <>
+      <Head title={`Importação #${i.id}`} />
       <div className="mx-auto max-w-4xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -132,9 +126,18 @@ export default function ImportacoesShow({ importacao: i }: Props) {
           </Card>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+ImportacoesShow.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Importações', href: '/ponto/importacoes' },
+  ]}>
+    {page}
+  </AppShell>
+);
 
 function Row({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
   return (

@@ -6,8 +6,8 @@
 //   tests: Modules/Essentials/Tests/Feature/RemindersIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { router, useForm } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Bell, Clock, Edit, Plus, Repeat, Trash2 } from 'lucide-react';
 import {
@@ -127,10 +127,8 @@ export default function RemindersIndex({ reminders, repeats }: Props) {
     repeats.find((r) => r.value === value)?.label ?? value;
 
   return (
-    <AppShell
-      title="Lembretes"
-      breadcrumb={[{ label: 'Essentials' }, { label: 'Lembretes' }]}
-    >
+    <>
+      <Head title="Lembretes" />
       <div className="mx-auto max-w-4xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -288,6 +286,12 @@ export default function RemindersIndex({ reminders, repeats }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppShell>
+    </>
   );
 }
+
+RemindersIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Essentials' }, { label: 'Lembretes' }]}>
+    {page}
+  </AppShell>
+);

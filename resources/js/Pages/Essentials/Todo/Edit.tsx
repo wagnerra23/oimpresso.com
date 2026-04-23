@@ -7,8 +7,8 @@
 //   tests: Modules/Essentials/Tests/Feature/TodoEditTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, ClipboardList, Save } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -91,15 +91,8 @@ export default function TodoEdit({ todo, users, statuses, priorities, can }: Pro
   };
 
   return (
-    <AppShell
-      title={`Editar tarefa ${todo.task_id ?? ''}`}
-      breadcrumb={[
-        { label: 'Essentials' },
-        { label: 'Tarefas', href: '/essentials/todo' },
-        { label: todo.task_id ?? '#' + todo.id, href: `/essentials/todo/${todo.id}` },
-        { label: 'Editar' },
-      ]}
-    >
+    <>
+      <Head title={`Editar tarefa ${todo.task_id ?? ''}`} />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -250,6 +243,16 @@ export default function TodoEdit({ todo, users, statuses, priorities, can }: Pro
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+TodoEdit.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Essentials' },
+    { label: 'Tarefas', href: '/essentials/todo' },
+    { label: 'Editar' },
+  ]}>
+    {page}
+  </AppShell>
+);

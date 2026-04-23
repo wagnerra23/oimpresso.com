@@ -7,8 +7,8 @@
 //   tests: Modules/Essentials/Tests/Feature/TodoCreateTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, ClipboardList, Save } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -71,14 +71,8 @@ export default function TodoCreate({ users, statuses, priorities, can }: Props) 
   };
 
   return (
-    <AppShell
-      title="Nova tarefa"
-      breadcrumb={[
-        { label: 'Essentials' },
-        { label: 'Tarefas', href: '/essentials/todo' },
-        { label: 'Nova' },
-      ]}
-    >
+    <>
+      <Head title="Nova tarefa" />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -233,6 +227,16 @@ export default function TodoCreate({ users, statuses, priorities, can }: Props) 
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+TodoCreate.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Essentials' },
+    { label: 'Tarefas', href: '/essentials/todo' },
+    { label: 'Nova' },
+  ]}>
+    {page}
+  </AppShell>
+);

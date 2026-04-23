@@ -8,7 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/IntercorrenciasShowTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { AlertTriangle, ArrowLeft, Check, Send, X, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
@@ -66,14 +67,8 @@ export default function IntercorrenciasShow({ intercorrencia: i }: Props) {
   const canCancel  = ['RASCUNHO', 'PENDENTE'].includes(i.estado);
 
   return (
-    <AppShell
-      title={`Intercorrência ${i.codigo}`}
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Intercorrências', href: '/ponto/intercorrencias' },
-        { label: i.codigo },
-      ]}
-    >
+    <>
+      <Head title={`Intercorrência ${i.codigo}`} />
       <div className="mx-auto max-w-4xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -155,9 +150,18 @@ export default function IntercorrenciasShow({ intercorrencia: i }: Props) {
           )}
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+IntercorrenciasShow.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Intercorrências', href: '/ponto/intercorrencias' },
+  ]}>
+    {page}
+  </AppShell>
+);
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
