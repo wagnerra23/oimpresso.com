@@ -89,6 +89,24 @@ class LicencaComputadorController extends Controller
     }
 
     /**
+     * Show the form for creating a new license.
+     */
+    public function create()
+    {
+        return view('officeimpresso::licenca_computador.create');
+    }
+
+    /**
+     * Show the form for editing a license.
+     */
+    public function edit($id)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $licenca = Licenca_Computador::where('business_id', $business_id)->findOrFail($id);
+        return view('officeimpresso::licenca_computador.create', compact('licenca'));
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)

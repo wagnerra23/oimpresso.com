@@ -1,46 +1,63 @@
-@extends('layout')
+@extends('layouts.app')
+
+@section('title', __('officeimpresso::lang.officeimpresso'))
 
 @section('content')
-    <h2>Computadores Cadastrados</h2>
-    <a href="{{ route('licencas_computador.create') }}">Empresa licensiada</a>
+<section class="content-header">
+    <h1>@lang('officeimpresso::lang.computadores_cadastrados', [], 'Computadores Cadastrados')</h1>
+</section>
 
-
-    <input type="text" name="busimess_id" id="busimess_id" required>
-
-    <label for="versao_minima">Versão Minima:</label>
-    <input type="text" name="hd" id="hd" required>
-
-    <label for="versao_obrigatoria">Versão Obrigatoria:</label>
-    <input type="text" name="processador" id="processador" required>
-
-    <label for="caminho_banco">Caminho do banco servidor:</label>
-    <input type="text" name="memoria" id="memoria" required>
-
-
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>HD</th>
-                <th>User Win</th>
-                <th>Processador</th>
-                <th>Memória</th>
-                <th>Versão Executável</th>
-                <th>Bloqueado</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($computadores as $computador)
-                <tr>
-                    <td>{{ $computador->id }}</td>
-                    <td>{{ $computador->hd }}</td>
-                    <td>{{ $computador->user_win }}</td>
-                    <td>{{ $computador->processador }}</td>
-                    <td>{{ $computador->memoria }}</td>
-                    <td>{{ $computador->versao_exe }}</td>
-                    <td>{{ $computador->bloqueado ? 'Sim' : 'Não' }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+<section class="content">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <a href="{{ route('licenca_computador.create') }}" class="btn btn-primary">
+                <i class="fa fa-plus"></i> @lang('officeimpresso::lang.create_client', [], 'Cadastrar')
+            </a>
+        </div>
+        <div class="box-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>HD</th>
+                        <th>@lang('officeimpresso::lang.user_win', [], 'User Win')</th>
+                        <th>@lang('officeimpresso::lang.processador', [], 'Processador')</th>
+                        <th>@lang('officeimpresso::lang.memoria', [], 'Memória')</th>
+                        <th>@lang('officeimpresso::lang.versao_exe', [], 'Versão Executável')</th>
+                        <th>@lang('officeimpresso::lang.bloqueado', [], 'Bloqueado')</th>
+                        <th>@lang('officeimpresso::lang.action', [], 'Ação')</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($licencas as $licenca)
+                        <tr>
+                            <td>{{ $licenca->id }}</td>
+                            <td>{{ $licenca->hd }}</td>
+                            <td>{{ $licenca->user_win }}</td>
+                            <td>{{ $licenca->processador }}</td>
+                            <td>{{ $licenca->memoria }}</td>
+                            <td>{{ $licenca->versao_exe }}</td>
+                            <td>
+                                @if($licenca->bloqueado)
+                                    <span class="label label-danger">Bloqueado</span>
+                                @else
+                                    <span class="label label-success">Liberado</span>
+                                @endif
+                            </td>
+                            <td>
+                                <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}" class="btn btn-xs btn-warning">
+                                    {{ $licenca->bloqueado ? 'Desbloquear' : 'Bloquear' }}
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">Nenhuma licença cadastrada.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 @endsection
