@@ -28,6 +28,7 @@ class DocVaultServiceProvider extends ServiceProvider
                 \Modules\DocVault\Console\Commands\SyncPagesCommand::class,
                 \Modules\DocVault\Console\Commands\ValidateCommand::class,
                 \Modules\DocVault\Console\Commands\GenTestCommand::class,
+                \Modules\DocVault\Console\Commands\SyncMemoriesCommand::class,
             ]);
         }
     }
