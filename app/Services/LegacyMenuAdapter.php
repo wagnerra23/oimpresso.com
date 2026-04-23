@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Utils\ModuleUtil;
 use Menu;
-use Nwidart\Menus\MenuItem as NwidartItem;
+use App\Services\Menu\MenuItem as NwidartItem;
 use Throwable;
 
 /**
