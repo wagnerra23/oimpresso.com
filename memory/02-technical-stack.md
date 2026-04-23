@@ -5,29 +5,34 @@
 | Item | Versão real na instância | Razão |
 |---|---|---|
 | PHP | **8.4.20** (Herd) | Atualizado em 2026-04-22 (Herd local) |
-| Laravel | **12.57** | Upgrade em cascata 9→10→11→12 na sessão 13 (2026-04-23) |
+| Laravel | **13.6** | Upgrade em cascata 9→10→11→12→13 na sessão 13 (2026-04-23) |
 | MySQL | 8.0+ | Triggers de imutabilidade exigem recursos modernos |
 | Redis | 7.x | Filas (Horizon), cache de sessão |
 
-> ✅ **Stack atualizada em 2026-04-23 (sessão 13):** upgrade em cascata Laravel 9.51 → 10.50 → 11.51 → **12.57** em 4 milestones isolados no mesmo dia. Cada salto validado com Pest + crawler browser (99+ tests). L13 tentado mas bloqueado por `knox/pesapal` e `arcanedev/log-viewer` sem versão stable L13 — aguardar upstream (3-6 meses).
+> ✅ **Stack atualizada em 2026-04-23 (sessão 13):** upgrade em cascata Laravel 9.51 → 10.50 → 11.51 → 12.57 → **13.6** em 5 milestones isolados no mesmo dia. Cada salto validado com Pest + crawler browser (99 tests, zero shim regressions).
+>
+> L13 foi desbloqueado ao inlinear `knox/pesapal` em `app/Vendor/Pesapal` (576 LOC) — upstream não tem versão L13 stable. `arcanedev/log-viewer` e `barryvdh/laravel-debugbar` removidos (sem compat L13; reinstalar quando upstream publicar).
 
 ## Helpers / UI
 
 | Item | Versão | Notas |
 |---|---|---|
 | `spatie/laravel-html` | **^3.13** | Substituiu `laravelcollective/html` (removido em sessão 13). Acesso via shim `App\View\Helpers\Form` pra preservar API `Form::text`, `Form::select`, etc. nas ~6.433 chamadas em ~460 Blade views. |
-| `inertiajs/inertia-laravel` | ^1.3 | **Teto L12** — precisa bump pra v2 antes de atacar L13 |
-| `yajra/laravel-datatables-oracle` | ^12.0 | |
+| `inertiajs/inertia-laravel` | **^2.0** | Bumpado em L13 (antes era ^1.3 / teto L12) |
+| `laravel/passport` | **^13.0** | Bumpado em L13 |
+| `laravel/tinker` | **^3.0** | Bumpado em L13 |
+| `yajra/laravel-datatables-oracle` | **^13.0** | |
 | `barryvdh/laravel-dompdf` | ^3.0 | |
 | `spatie/laravel-backup` | ^10.0 | v10 mudou `disks` string → array em `config/backup.php` |
 | `nwidart/laravel-modules` | ^10.0 | |
+| `App\Vendor\Pesapal` | inline | 576 LOC copiados de knox/pesapal (removido). Namespace renomeado. Gateway Pesapal continua funcional. |
 
 ## Testing
 
 | Item | Versão | Notas |
 |---|---|---|
-| `pestphp/pest` + `pest-plugin-laravel` | ^3.0 | |
-| `phpunit/phpunit` | ^11.0 | |
+| `pestphp/pest` + `pest-plugin-laravel` | **^4.0** | Bumpado em L13 |
+| `phpunit/phpunit` | **^12.0** | Bumpado em L13 |
 | CI/CD | `.github/workflows/ci.yml` | Pest Unit + Vite build |
 | Suite atual | **99 Pest tests** | 26 Form shim + 73 crawler de rotas |
 

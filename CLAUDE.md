@@ -10,12 +10,12 @@
 Módulo Laravel chamado **Ponto WR2** que adiciona controle de **ponto eletrônico brasileiro** (Portaria MTP 671/2021) ao **UltimatePOS v6** da WR2 Sistemas. Estende o **Essentials & HRM** existente sem modificar o core. Inclui: marcações (REP-P/AFD), banco de horas, intercorrências, apuração CLT, integração eSocial.
 
 **Cliente:** WR2 Sistemas (Eliana, eliana@wr2.com.br)
-**Stack REAL (atualizada em 2026-04-23):** **Laravel 12.57 + PHP 8.4** (Herd local), MySQL 8, nWidart/laravel-modules ^10, Redis 7. UltimatePOS v6.7.
-**Stack helpers/UI:** `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form` (sessão 13 em 2026-04-23 migrou de laravelcollective/html removido). Inertia v1.3 + React + Tailwind 4. Pest v3 + PHPUnit v11.
-**IA:** `openai-php/laravel` REMOVIDO na sessão 12 — Wagner vai usar **Vizra ADK + Prisma** como motor de IA.
+**Stack REAL (atualizada em 2026-04-23):** **Laravel 13.6 + PHP 8.4** (Herd local), MySQL 8, nWidart/laravel-modules ^10, Redis 7. UltimatePOS v6.7.
+**Stack helpers/UI:** `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form` (substitui laravelcollective/html removido). **Inertia v2 + React + Tailwind 4**. Pest v4 + PHPUnit v12.
+**IA:** `openai-php/laravel` REMOVIDO — Wagner vai usar **Vizra ADK + Prisma** como motor de IA.
 **Padrão arquitetural:** Modular monolith, DDD leve, append-only onde a lei exige.
 **Módulos de referência canônica:** `Modules/Jana/`, `Modules/Repair/`, `Modules/Project/` — antes de criar ou ajustar qualquer arquivo no PontoWr2, olhe o equivalente em um desses três (preferir o mais próximo em complexidade/propósito) e imite. Ver ADR 0011.
-**Status atual (2026-04-23):** Laravel 12.57 + shim Form:: funcionando; 102 tests automatizados (Pest + crawler) + 73 rotas sweep via browser. L13 diagnosticado como **bloqueado pelo ecossistema** (knox/pesapal e arcanedev/log-viewer sem versão L13 stable) — aguardar 3-6 meses para revisitar.
+**Status atual (2026-04-23):** Laravel 13.6 rodando; 99 tests automatizados verdes (26 Form shim + 73 crawler); browser validado via oimpresso.test (Herd). Upgrade em cascata 9→10→11→12→13 executado no mesmo dia. `knox/pesapal` inlined em `app/Vendor/Pesapal` pra destravar L13 (upstream sem versão L13).
 
 ---
 
@@ -111,7 +111,7 @@ D:\oimpresso.com\                  # Raiz do projeto (workspace do usuário)
 - **Não crie novas tecnologias/dependências** sem registrar uma ADR.
 - **Não responda ao usuário em inglês** — este cliente é brasileiro e prefere PT-BR.
 - **Não assuma que o usuário quer completude** — ele valoriza economia de crédito; confirme escopo com perguntas curtas antes de implementar massivamente.
-- ~~**Não use sintaxe PHP 8+.**~~ **REVOGADO em 2026-04-21** — stack atual é PHP 8.4 + Laravel 12.57. Toda sintaxe PHP 8.x está liberada.
+- ~~**Não use sintaxe PHP 8+.**~~ **REVOGADO em 2026-04-21** — stack atual é PHP 8.4 + Laravel 13.6. Toda sintaxe PHP 8.x está liberada.
 - **Não remover o shim `App\View\Helpers\Form`** sem antes migrar as ~6.433 chamadas `Form::` em ~460 Blade views. O shim preserva paridade HTML com laravelcollective (removido). Ver `memory/sessions/2026-04-23-session-13.md`.
 - **Antes de criar/mudar estrutura do módulo, verifique o padrão dos módulos existentes no servidor atualizado.** nWidart v10+ usa `Routes/web.php` + `RouteServiceProvider`. Inspecionar `Modules/Jana/` antes de codificar.
 - **Identificadores MySQL com mais de 64 chars** — ainda válido. Sempre passar nome explícito em índices compostos em tabelas com nome longo.
@@ -140,5 +140,5 @@ D:\oimpresso.com\                  # Raiz do projeto (workspace do usuário)
 
 ---
 
-> **Última atualização deste arquivo:** 2026-04-23 (sessão 13 — Laravel 9→12.57 em 4 milestones, shim spatie/laravel-html, 102 tests Pest, L13 bloqueado aguardando ecossistema)
-> **Próxima revisão sugerida:** quando L13 for viável (knox/pesapal e arcanedev/log-viewer com versão stable L13) OU quando M2 Intercorrências for iniciado
+> **Última atualização deste arquivo:** 2026-04-23 (sessão 13 — Laravel 9→13.6 em 5 milestones; knox/pesapal inlined pra desbloquear L13; 99 tests Pest verdes)
+> **Próxima revisão sugerida:** quando iniciar M2 Intercorrências (Vizra ADK + Prisma) OU quando Wagner integrar Laravel Boost
