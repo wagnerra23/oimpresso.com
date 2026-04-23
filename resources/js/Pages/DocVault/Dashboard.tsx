@@ -52,6 +52,7 @@ interface ModuleItem {
   pages_count: number;
   trace_score: number;
   health_score: number | null;
+  audit_score: number | null;
 }
 
 interface CoverageSummary {
@@ -204,6 +205,7 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
                     <th className="text-right p-3 font-medium">ADRs</th>
                     <th className="text-right p-3 font-medium">Telas</th>
                     <th className="text-left p-3 font-medium">Trace</th>
+                    <th className="text-left p-3 font-medium">Audit</th>
                     <th className="text-left p-3 font-medium">DoD</th>
                     <th className="text-right p-3 font-medium"></th>
                   </tr>
@@ -250,7 +252,7 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
                       <td className="p-3 text-right font-mono text-xs">
                         {m.pages_count > 0 ? m.pages_count : <span className="text-muted-foreground">—</span>}
                       </td>
-                      <td className="p-3 w-32">
+                      <td className="p-3 w-28">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                             <div
@@ -263,7 +265,24 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
                           </span>
                         </div>
                       </td>
-                      <td className="p-3 w-32">
+                      <td className="p-3 w-28">
+                        {m.audit_score !== null ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
+                              <div
+                                className={`h-full ${m.audit_score >= 80 ? 'bg-emerald-500' : m.audit_score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                style={{ width: `${Math.min(100, m.audit_score)}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] text-muted-foreground font-mono w-8">
+                              {m.audit_score}%
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="p-3 w-28">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                             <div

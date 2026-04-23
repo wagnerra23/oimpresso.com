@@ -10,6 +10,7 @@ use Modules\DocVault\Entities\DocEvidence;
 use Modules\DocVault\Entities\DocPage;
 use Modules\DocVault\Entities\DocSource;
 use Modules\DocVault\Entities\DocValidationRun;
+use Modules\DocVault\Services\ModuleAuditor;
 use Modules\DocVault\Services\RequirementsFileReader;
 
 class DashboardController extends Controller
@@ -92,6 +93,13 @@ class DashboardController extends Controller
                     $traceScore = (int) round(($storiesPct + $rulesTested) / 2);
                 }
 
+                // Audit score só pra módulos em formato pasta (rápido, cacheado numa request)
+                $auditScore = null;
+                if (($m['format'] ?? 'flat') === 'folder') {
+                    $audit = app(ModuleAuditor::class)->audit($m['name']);
+                    $auditScore = $audit['score'];
+                }
+
                 return [
                     'name'           => $m['name'],
                     'format'         => $m['format'] ?? 'flat',
@@ -104,6 +112,7 @@ class DashboardController extends Controller
                     'pages_count'    => $pages->count(),
                     'trace_score'    => $traceScore,
                     'health_score'   => $validation ? $validation->health_score : null,
+                    'audit_score'    => $auditScore,
                 ];
             }, $modules),
             'pages_total' => DocPage::count(),
