@@ -51,6 +51,7 @@ interface Adr {
   title: string;
   status: string;
   date: string | null;
+  category: string | null;
   raw: string;
 }
 
@@ -87,7 +88,11 @@ export default function DocVaultModulo({
 }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
   const [selectedAdr, setSelectedAdr] = useState<Adr | null>(null);
+  const [adrFilter, setAdrFilter] = useState<string>('');
   const hasFolder = format === 'folder';
+
+  const adrCategories = Array.from(new Set(adrs.map((a) => a.category).filter(Boolean))) as string[];
+  const filteredAdrs = adrFilter ? adrs.filter((a) => a.category === adrFilter) : adrs;
 
   const totalDod = stories.reduce((acc, s) => acc + s.dod_total, 0);
   const doneDod = stories.reduce((acc, s) => acc + s.dod_done, 0);
@@ -256,8 +261,32 @@ export default function DocVaultModulo({
           <div className="grid md:grid-cols-[280px_1fr] gap-3">
             <Card>
               <CardContent className="p-0">
+                {adrCategories.length > 0 && (
+                  <div className="p-2 border-b border-border flex gap-1 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setAdrFilter('')}
+                      className={`text-[10px] px-2 py-1 rounded ${adrFilter === '' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'}`}
+                    >
+                      todas ({adrs.length})
+                    </button>
+                    {adrCategories.map((cat) => {
+                      const n = adrs.filter((a) => a.category === cat).length;
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setAdrFilter(cat)}
+                          className={`text-[10px] px-2 py-1 rounded ${adrFilter === cat ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'}`}
+                        >
+                          {cat} ({n})
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 <ul className="divide-y divide-border">
-                  {adrs.map((a) => {
+                  {filteredAdrs.map((a) => {
                     const toneCls = a.status === 'accepted'
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : a.status === 'proposed'

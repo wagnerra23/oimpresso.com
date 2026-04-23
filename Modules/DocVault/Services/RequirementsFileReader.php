@@ -201,41 +201,57 @@ class RequirementsFileReader
         if (! File::isDirectory($adrDir)) return [];
 
         $out = [];
+
+        // ADRs na raiz de adr/ (sem categoria)
         foreach (File::files($adrDir) as $f) {
             if ($f->getExtension() !== 'md') continue;
-            $content = File::get($f->getPathname());
-
-            $title = '';
-            if (preg_match('/^#\s+(.+?)$/m', $content, $m)) {
-                $title = trim($m[1]);
-            }
-
-            $status = 'unknown';
-            if (preg_match('/\*\*Status\*\*:\s*([a-z][a-z\-]*)/i', $content, $m)) {
-                $status = strtolower(trim($m[1]));
-            }
-
-            $date = null;
-            if (preg_match('/\*\*Data\*\*:\s*(\d{4}-\d{2}-\d{2})/', $content, $m)) {
-                $date = $m[1];
-            }
-
-            // Número vem do nome do arquivo: 0001-slug.md → 0001
-            $filename = $f->getFilenameWithoutExtension();
-            $number = preg_match('/^(\d{4})/', $filename, $nm) ? $nm[1] : '0000';
-
-            $out[] = [
-                'number'  => $number,
-                'slug'    => $filename,
-                'title'   => $title,
-                'status'  => $status,
-                'date'    => $date,
-                'raw'     => $content,
-            ];
+            $out[] = $this->parseAdrFile($f->getPathname(), null);
         }
 
-        usort($out, fn ($a, $b) => strcmp($a['number'], $b['number']));
+        // ADRs em subpastas: adr/arq/, adr/ui/, adr/tech/, etc.
+        foreach (File::directories($adrDir) as $subDir) {
+            $category = basename($subDir);
+            foreach (File::files($subDir) as $f) {
+                if ($f->getExtension() !== 'md') continue;
+                $out[] = $this->parseAdrFile($f->getPathname(), $category);
+            }
+        }
+
+        usort($out, fn ($a, $b) => strcmp(($a['category'] ?? '') . $a['number'], ($b['category'] ?? '') . $b['number']));
         return $out;
+    }
+
+    protected function parseAdrFile(string $path, ?string $category): array
+    {
+        $content = File::get($path);
+
+        $title = '';
+        if (preg_match('/^#\s+(.+?)$/m', $content, $m)) {
+            $title = trim($m[1]);
+        }
+
+        $status = 'unknown';
+        if (preg_match('/\*\*Status\*\*:\s*([a-z][a-z\-]*)/i', $content, $m)) {
+            $status = strtolower(trim($m[1]));
+        }
+
+        $date = null;
+        if (preg_match('/\*\*Data\*\*:\s*(\d{4}-\d{2}-\d{2})/', $content, $m)) {
+            $date = $m[1];
+        }
+
+        $filename = pathinfo($path, PATHINFO_FILENAME);
+        $number = preg_match('/^(\d{4})/', $filename, $nm) ? $nm[1] : '0000';
+
+        return [
+            'number'   => $number,
+            'slug'     => $filename,
+            'title'    => $title,
+            'status'   => $status,
+            'date'     => $date,
+            'category' => $category,
+            'raw'      => $content,
+        ];
     }
 
     // ------------------------------------------------------------------------
