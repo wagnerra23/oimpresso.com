@@ -1,6 +1,6 @@
 # ADR 0005 · Rastreabilidade tripla: Fluxo ↔ Tela ↔ Teste
 
-- **Status**: proposed
+- **Status**: accepted
 - **Data**: 2026-04-22
 - **Decisores**: Wagner, Claude
 
