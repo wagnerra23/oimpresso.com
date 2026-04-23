@@ -15,7 +15,7 @@
     "IProduction": false,
     "InboxReport": true,
     "Manufacturing": true,
-    "Officeimpresso": false,
+    "Officeimpresso": true,
     "PontoWr2": true,
     "ProductCatalogue": true,
     "Project": true,
