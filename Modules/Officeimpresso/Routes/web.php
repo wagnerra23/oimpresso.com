@@ -19,18 +19,19 @@ use Modules\Officeimpresso\Http\Controllers\ClientController;
 use Modules\Officeimpresso\Http\Controllers\LicencaComputadorController;
 use Modules\Officeimpresso\Http\Controllers\LicencaLogController;
 
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])->prefix('officeimpresso')->name('officeimpresso.')->group(function () {
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])->prefix('officeimpresso')->group(function () {
 
     // Catalogue QR (legacy ProductCatalogue feature)
-    Route::get('catalogue-qr', [OfficeimpressoController::class, 'generateQr'])->name('catalogue-qr');
-    Route::get('/catalogue/{business_id}/{location_id}', [OfficeimpressoController::class, 'index'])->name('catalogue');
-    Route::get('/show-catalogue/{business_id}/{product_id}', [OfficeimpressoController::class, 'show'])->name('show-catalogue');
+    Route::get('catalogue-qr', [OfficeimpressoController::class, 'generateQr'])->name('officeimpresso.catalogue-qr');
+    Route::get('/catalogue/{business_id}/{location_id}', [OfficeimpressoController::class, 'index'])->name('officeimpresso.catalogue');
+    Route::get('/show-catalogue/{business_id}/{product_id}', [OfficeimpressoController::class, 'show'])->name('officeimpresso.show-catalogue');
 
     // OAuth clients management
     Route::resource('client', ClientController::class);
     Route::get('/regenerate', [ClientController::class, 'regenerate'])->name('client.regenerate');
 
-    // Licenca de computador (desktop license) — CRUD + extras
+    // Licenca de computador (desktop license) — CRUD + extras (nomes sem prefix
+    // porque as views do 3.7 chamam route('business.bloqueado') etc. diretamente)
     Route::resource('licenca_computador', LicencaComputadorController::class);
     Route::get('businessall', [LicencaComputadorController::class, 'businessall'])->name('licenca_computador.businessall');
     Route::get('computadores', [LicencaComputadorController::class, 'computadores'])->name('computadores');
@@ -48,8 +49,8 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     })->name('superadmin.docs');
 
     // Install hooks
-    Route::get('install', [InstallController::class, 'index'])->name('install');
-    Route::post('install', [InstallController::class, 'install'])->name('install.post');
-    Route::get('install/uninstall', [InstallController::class, 'uninstall'])->name('install.uninstall');
-    Route::get('install/update', [InstallController::class, 'update'])->name('install.update');
+    Route::get('install', [InstallController::class, 'index'])->name('officeimpresso.install');
+    Route::post('install', [InstallController::class, 'install'])->name('officeimpresso.install.post');
+    Route::get('install/uninstall', [InstallController::class, 'uninstall'])->name('officeimpresso.install.uninstall');
+    Route::get('install/update', [InstallController::class, 'update'])->name('officeimpresso.install.update');
 });
