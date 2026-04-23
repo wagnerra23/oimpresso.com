@@ -4,14 +4,39 @@
 
 | Item | Versão real na instância | Razão |
 |---|---|---|
-| PHP | **8.3** | Atualizado em 2026-04-21 junto com UltimatePOS 6.7 |
-| Laravel | **9.51** | UltimatePOS v6.7 roda Laravel 9 |
+| PHP | **8.4.20** (Herd) | Atualizado em 2026-04-22 (Herd local) |
+| Laravel | **12.57** | Upgrade em cascata 9→10→11→12 na sessão 13 (2026-04-23) |
 | MySQL | 8.0+ | Triggers de imutabilidade exigem recursos modernos |
 | Redis | 7.x | Filas (Horizon), cache de sessão |
 
-> ✅ **Stack atualizada em 2026-04-21 (sessão 09):** UltimatePOS foi atualizado de v6 (Laravel 5.8 + PHP 7.1) para **v6.7 (Laravel 9.51 + PHP 8.3)**. Toda a restrição de sintaxe PHP 7.1 foi removida. O módulo PontoWR2 foi desativado no servidor por incompatibilidade e precisa ser adaptado para a nova stack.
+> ✅ **Stack atualizada em 2026-04-23 (sessão 13):** upgrade em cascata Laravel 9.51 → 10.50 → 11.51 → **12.57** em 4 milestones isolados no mesmo dia. Cada salto validado com Pest + crawler browser (99+ tests). L13 tentado mas bloqueado por `knox/pesapal` e `arcanedev/log-viewer` sem versão stable L13 — aguardar upstream (3-6 meses).
 
-> ~~⚠️ **Atenção — descoberta de 2026-04-19 (sessão 05):** este arquivo dizia "PHP 8.1+ / Laravel 10" mas a verdade é Laravel 5.8 + PHP 7.1.3 (mínimo).~~ — **Superado pela atualização de 2026-04-21.**
+## Helpers / UI
+
+| Item | Versão | Notas |
+|---|---|---|
+| `spatie/laravel-html` | **^3.13** | Substituiu `laravelcollective/html` (removido em sessão 13). Acesso via shim `App\View\Helpers\Form` pra preservar API `Form::text`, `Form::select`, etc. nas ~6.433 chamadas em ~460 Blade views. |
+| `inertiajs/inertia-laravel` | ^1.3 | **Teto L12** — precisa bump pra v2 antes de atacar L13 |
+| `yajra/laravel-datatables-oracle` | ^12.0 | |
+| `barryvdh/laravel-dompdf` | ^3.0 | |
+| `spatie/laravel-backup` | ^10.0 | v10 mudou `disks` string → array em `config/backup.php` |
+| `nwidart/laravel-modules` | ^10.0 | |
+
+## Testing
+
+| Item | Versão | Notas |
+|---|---|---|
+| `pestphp/pest` + `pest-plugin-laravel` | ^3.0 | |
+| `phpunit/phpunit` | ^11.0 | |
+| CI/CD | `.github/workflows/ci.yml` | Pest Unit + Vite build |
+| Suite atual | **99 Pest tests** | 26 Form shim + 73 crawler de rotas |
+
+## IA
+
+| Item | Status |
+|---|---|
+| `openai-php/laravel` | ❌ REMOVIDO em sessão 12 |
+| Vizra ADK + Prisma | 🟡 Planejado — substituirá OpenAI como motor de IA |
 
 ## Sintaxe PHP agora DISPONÍVEL (PHP 8.3)
 
