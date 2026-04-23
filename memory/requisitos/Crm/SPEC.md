@@ -32,7 +32,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Crm/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-CRM-002 · Autorização Spatie `crm.access_all_schedule`
 
@@ -43,7 +43,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('crm.access_all_schedule')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Crm/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-CRM-003 · Autorização Spatie `crm.access_own_schedule`
 
@@ -54,7 +54,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('crm.access_own_schedule')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Crm/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-CRM-004 · Autorização Spatie `crm.access_all_leads`
 
@@ -65,7 +65,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('crm.access_all_leads')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Crm/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-CRM-005 · Autorização Spatie `crm.access_own_leads`
 
@@ -76,7 +76,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('crm.access_own_leads')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Crm/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-CRM-006 · Autorização Spatie `crm.access_all_campaigns`
 
@@ -87,7 +87,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('crm.access_all_campaigns')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Crm/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-CRM-007 · Autorização Spatie `crm.access_own_campaigns`
 
@@ -98,4 +98,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('crm.access_own_campaigns')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Crm/Tests/Feature/PermissionsTest` (stub pendente)

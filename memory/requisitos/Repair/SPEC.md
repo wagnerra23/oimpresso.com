@@ -32,7 +32,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Repair/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-REPA-002 · Autorização Spatie `repair.create`
 
@@ -43,7 +43,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('repair.create')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Repair/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-REPA-003 · Autorização Spatie `repair.update`
 
@@ -54,7 +54,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('repair.update')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Repair/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-REPA-004 · Autorização Spatie `repair.view`
 
@@ -65,7 +65,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('repair.view')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Repair/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-REPA-005 · Autorização Spatie `repair.view_own`
 
@@ -76,7 +76,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('repair.view_own')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Repair/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-REPA-006 · Autorização Spatie `repair.delete`
 
@@ -87,7 +87,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('repair.delete')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Repair/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-REPA-007 · Autorização Spatie `repair_status.update`
 
@@ -98,4 +98,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('repair_status.update')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Repair/Tests/Feature/PermissionsTest` (stub pendente)
