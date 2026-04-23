@@ -2,6 +2,10 @@
 
 @section('title', 'Log de Acesso — Office Impresso')
 
+@section('css')
+@include('officeimpresso::layouts.partials.design-system')
+@endsection
+
 @section('content')
 @include('officeimpresso::layouts.nav')
 
@@ -14,89 +18,94 @@
 <section class="content">
     {{-- KPIs --}}
     <div class="row">
-        <div class="col-md-3 col-sm-6 col-xs-12">
-            <div class="info-box">
-                <span class="info-box-icon bg-green"><i class="fa fas fa-check"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Logins com sucesso</span>
-                    <span class="info-box-number">{{ number_format($kpis['login_success']) }}</span>
+        <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+            <div class="oi-kpi">
+                <div class="icon bg-green"><i class="fa fa-check"></i></div>
+                <div>
+                    <div class="label">Sucessos</div>
+                    <div class="value">{{ number_format($kpis['login_success']) }}</div>
+                    <div class="delta">logins nas últimas 24h</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12">
-            <div class="info-box">
-                <span class="info-box-icon bg-red"><i class="fa fas fa-times"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Logins com erro</span>
-                    <span class="info-box-number">{{ number_format($kpis['login_error']) }}</span>
+        <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+            <div class="oi-kpi">
+                <div class="icon bg-red"><i class="fa fa-times"></i></div>
+                <div>
+                    <div class="label">Erros</div>
+                    <div class="value">{{ number_format($kpis['login_error']) }}</div>
+                    <div class="delta">tentativas falhas</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12">
-            <div class="info-box">
-                <span class="info-box-icon bg-aqua"><i class="fa fas fa-exchange-alt"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Chamadas API</span>
-                    <span class="info-box-number">{{ number_format($kpis['api_call']) }}</span>
+        <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+            <div class="oi-kpi">
+                <div class="icon bg-blue"><i class="fa fa-exchange-alt"></i></div>
+                <div>
+                    <div class="label">Chamadas API</div>
+                    <div class="value">{{ number_format($kpis['api_call']) }}</div>
+                    <div class="delta">/api/officeimpresso/*</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12">
-            <div class="info-box">
-                <span class="info-box-icon bg-yellow"><i class="fa fas fa-lock"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Bloqueios</span>
-                    <span class="info-box-number">{{ number_format($kpis['block']) }}</span>
+        <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+            <div class="oi-kpi">
+                <div class="icon bg-amber"><i class="fa fa-lock"></i></div>
+                <div>
+                    <div class="label">Bloqueios</div>
+                    <div class="value">{{ number_format($kpis['block']) }}</div>
+                    <div class="delta">licenças bloqueadas</div>
                 </div>
             </div>
         </div>
     </div>
 
     {{-- Filtros --}}
-    <div class="box box-primary">
-        <div class="box-header with-border">
-            <h3 class="box-title">Filtros</h3>
-        </div>
-        <div class="box-body">
-            <div class="row">
-                <div class="col-md-3">
-                    <label>Evento</label>
-                    <select id="filter_event" class="form-control">
-                        <option value="">Todos</option>
-                        @foreach ($events as $ev)
-                            <option value="{{ $ev }}">{{ $ev }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label>De</label>
-                    <input type="date" id="filter_from" class="form-control">
-                </div>
-                <div class="col-md-3">
-                    <label>Até</label>
-                    <input type="date" id="filter_to" class="form-control">
-                </div>
-                <div class="col-md-3" style="padding-top: 25px;">
-                    <button id="btn_apply" class="btn btn-primary"><i class="fa fa-search"></i> Aplicar</button>
-                </div>
+    <div class="oi-filter-bar">
+        <div class="row">
+            <div class="col-md-3">
+                <label>Evento</label>
+                <select id="filter_event" class="form-control">
+                    <option value="">Todos</option>
+                    @foreach ($events as $ev)
+                        <option value="{{ $ev }}">{{ $ev }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>De</label>
+                <input type="date" id="filter_from" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label>Até</label>
+                <input type="date" id="filter_to" class="form-control">
+            </div>
+            <div class="col-md-3" style="padding-top: 24px;">
+                <button id="btn_apply" class="btn btn-primary"><i class="fa fa-search"></i> Aplicar</button>
+                <button id="btn_clear" class="btn btn-default"><i class="fa fa-eraser"></i> Limpar</button>
             </div>
         </div>
+        @if($filter_licenca_id ?? null)
+            <div class="alert alert-info" style="margin-top: 10px; margin-bottom: 0;">
+                <i class="fa fa-filter"></i> Filtrado por <strong>licença #{{ $filter_licenca_id }}</strong>.
+                <a href="{{ route('licenca_log.index') }}">Remover filtro</a>
+            </div>
+        @endif
     </div>
 
     {{-- Tabela --}}
-    <div class="box box-primary">
+    <div class="box box-primary" style="border-top-color: #3b82f6;">
         <div class="box-body">
-            <table id="licenca_log_table" class="table table-bordered table-striped">
+            <table id="licenca_log_table" class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Data/Hora</th>
-                        <th>Evento</th>
-                        <th>Origem</th>
-                        <th>IP</th>
-                        <th>Endpoint</th>
-                        <th>Status</th>
-                        <th>Duração</th>
-                        <th>Erro</th>
+                        <th style="width: 160px;">Data/Hora</th>
+                        <th style="width: 140px;">Evento</th>
+                        <th style="width: 90px;">Origem</th>
+                        <th style="width: 110px;">IP</th>
+                        <th>Endpoint / Erro</th>
+                        <th style="width: 70px;">Status</th>
+                        <th style="width: 80px;">Duração</th>
                     </tr>
                 </thead>
             </table>
@@ -116,28 +125,44 @@ $(function () {
         serverSide: true,
         pageLength: 25,
         order: [[0, 'desc']],
+        language: {
+            processing: 'Carregando…',
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ registros',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_',
+            infoEmpty: 'Nenhum registro',
+            infoFiltered: '(filtrado de _MAX_)',
+            zeroRecords: 'Nenhum log encontrado',
+            emptyTable: 'Nenhum log ainda. Triggers MySQL irão preencher assim que um desktop autenticar.',
+            paginate: { first: '«', previous: '‹', next: '›', last: '»' }
+        },
         ajax: {
             url: "{{ route('licenca_log.index') }}",
             data: function (d) {
-                d.event = $('#filter_event').val();
+                d.event      = $('#filter_event').val();
                 d.licenca_id = initialLicencaId;
-                d.from  = $('#filter_from').val();
-                d.to    = $('#filter_to').val();
+                d.from       = $('#filter_from').val();
+                d.to         = $('#filter_to').val();
             }
         },
         columns: [
-            { data: 'created_at',   name: 'created_at' },
+            { data: 'created_at',   name: 'created_at', className: 'text-mono' },
             { data: 'event',        name: 'event' },
             { data: 'source_badge', name: 'source', orderable: false, searchable: false },
-            { data: 'ip',           name: 'ip' },
+            { data: 'ip',           name: 'ip', className: 'text-mono' },
             { data: 'endpoint',     name: 'endpoint' },
             { data: 'http_status',  name: 'http_status' },
             { data: 'duration_ms',  name: 'duration_ms', orderable: false },
-            { data: 'error_message',name: 'error_message' },
         ]
     });
 
     $('#btn_apply').click(function () { table.ajax.reload(); });
+    $('#btn_clear').click(function () {
+        $('#filter_event').val('');
+        $('#filter_from').val('');
+        $('#filter_to').val('');
+        table.ajax.reload();
+    });
 });
 </script>
 @endsection

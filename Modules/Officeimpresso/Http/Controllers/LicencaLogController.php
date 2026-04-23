@@ -42,15 +42,18 @@ class LicencaLogController extends Controller
 
             return DataTables::of($query->orderBy('created_at', 'desc'))
                 ->editColumn('created_at', fn ($r) => $r->created_at ? $r->created_at->format('d/m/Y H:i:s') : '')
-                ->editColumn('event', function ($r) {
-                    $cls = $r->eventBadgeClass();
-                    return '<span class="label ' . $cls . '">' . e($r->event) . '</span>';
-                })
+                ->editColumn('event', fn ($r) => '<span class="event-badge event-' . e($r->event) . '">' . e($r->event) . '</span>')
                 ->editColumn('http_status', fn ($r) => $r->http_status ? e($r->http_status) : '—')
                 ->editColumn('duration_ms', fn ($r) => $r->duration_ms ? e($r->duration_ms) . 'ms' : '—')
-                ->editColumn('error_message', fn ($r) => e(mb_substr((string) $r->error_message, 0, 120)))
-                ->addColumn('source_badge', fn ($r) => '<small class="text-muted">' . e($r->source) . '</small>')
-                ->rawColumns(['event', 'source_badge'])
+                ->editColumn('endpoint', function ($r) {
+                    if ($r->event === 'login_error' && $r->error_message) {
+                        return '<span class="text-danger" title="' . e($r->error_message) . '">' . e(\Illuminate\Support\Str::limit($r->error_message, 100)) . '</span>';
+                    }
+                    return $r->endpoint ? e($r->endpoint) : '—';
+                })
+                ->editColumn('ip', fn ($r) => $r->ip ?: '—')
+                ->addColumn('source_badge', fn ($r) => '<span class="source-tag">' . e($r->source) . '</span>')
+                ->rawColumns(['event', 'source_badge', 'endpoint'])
                 ->make(true);
         }
 
