@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /docs/ingest
+//   module: DocVault
+//   status: implementada
+//   stories: US-DOCVAULT-002
+//   rules: R-DOCVAULT-002, R-DOCVAULT-003
+//   adrs: 0004
+//   tests: Modules/DocVault/Tests/Feature/IngestTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';

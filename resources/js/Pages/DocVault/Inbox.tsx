@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /docs/inbox
+//   module: DocVault
+//   status: implementada
+//   stories: US-DOCVAULT-003
+//   rules: R-DOCVAULT-001, R-DOCVAULT-003
+//   adrs: 0003, 0004
+//   tests: Modules/DocVault/Tests/Feature/InboxTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';

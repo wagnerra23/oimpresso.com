@@ -1,3 +1,10 @@
+// @docvault
+//   tela: /docs/memoria
+//   module: DocVault
+//   status: implementada
+//   adrs: 0007
+//   tests: Modules/DocVault/Tests/Feature/MemoriaTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';

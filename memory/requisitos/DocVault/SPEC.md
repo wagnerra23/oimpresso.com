@@ -100,7 +100,7 @@ E não é aplicada automaticamente no SPEC.md
 
 **Por quê**: ruído não vira documentação. Requer curadoria humana.
 
-**Testado em:** [TODO]
+**Testado em:** `Modules/DocVault/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
 
 ### R-DOCVAULT-002 · Uma fonte pode gerar múltiplas evidências
 
@@ -111,7 +111,7 @@ Então pode criar N DocEvidences apontando pra diferentes trechos
 E cada evidência tem seu próprio status/triagem
 ```
 
-**Testado em:** [TODO]
+**Testado em:** `Modules/DocVault/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
 
 ### R-DOCVAULT-003 · business_id obrigatório
 
@@ -124,7 +124,7 @@ E tentativa de acessar business Y retorna 404
 
 **Por quê**: multi-tenancy (padrão UltimatePOS).
 
-**Testado em:** [TODO]
+**Testado em:** `Modules/DocVault/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
 
 ### R-DOCVAULT-004 · Reader faz fallback de formato
 
@@ -142,7 +142,7 @@ E o módulo funciona normalmente com 3 tabs
 
 **Por quê**: migração gradual — não migrar os 29 de uma vez.
 
-**Testado em:** [TODO]
+**Testado em:** `Modules/DocVault/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
 
 ### R-DOCVAULT-005 · IA desligada por padrão
 
@@ -155,4 +155,4 @@ E deixa kind/module_target pra ser preenchido manualmente
 
 **Por quê**: evita custo/latência/alucinação em ambiente sem validação.
 
-**Testado em:** [TODO]
+**Testado em:** `Modules/DocVault/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
