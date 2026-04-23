@@ -6,8 +6,8 @@
 //   tests: Modules/Essentials/Tests/Feature/KnowledgeCreateTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, BookOpen, FileText, FolderOpen, Save } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -90,15 +90,8 @@ export default function KnowledgeCreate({ parent, users }: Props) {
     : '/essentials/knowledge-base';
 
   return (
-    <AppShell
-      title={`Novo ${labelFor(kbType).toLowerCase()}`}
-      breadcrumb={[
-        { label: 'Essentials' },
-        { label: 'Base de conhecimento', href: '/essentials/knowledge-base' },
-        ...(parent ? [{ label: parent.title, href: `/essentials/knowledge-base/${parent.id}` }] : []),
-        { label: `Novo ${labelFor(kbType).toLowerCase()}` },
-      ]}
-    >
+    <>
+      <Head title={`Novo ${labelFor(kbType).toLowerCase()}`} />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -206,6 +199,16 @@ export default function KnowledgeCreate({ parent, users }: Props) {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+KnowledgeCreate.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Essentials' },
+    { label: 'Base de conhecimento', href: '/essentials/knowledge-base' },
+    { label: 'Novo' },
+  ]}>
+    {page}
+  </AppShell>
+);

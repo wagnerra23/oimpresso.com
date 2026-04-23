@@ -8,8 +8,8 @@
 //   tests: Modules/DocVault/Tests/Feature/ChatTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, router } from '@inertiajs/react';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { FormEvent, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   Bot,
@@ -134,13 +134,8 @@ export default function DocVaultChat({ session_id, history, recent, modules, ai_
   };
 
   return (
-    <AppShell
-      title="DocVault — Chat"
-      breadcrumb={[
-        { label: 'DocVault', href: '/docs' },
-        { label: 'Chat' },
-      ]}
-    >
+    <>
+      <Head title="DocVault — Chat" />
       <div className="mx-auto max-w-7xl p-6">
         <header className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
@@ -293,6 +288,15 @@ export default function DocVaultChat({ session_id, history, recent, modules, ai_
           </Card>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+DocVaultChat.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'DocVault', href: '/docs' },
+    { label: 'Chat' },
+  ]}>
+    {page}
+  </AppShell>
+);

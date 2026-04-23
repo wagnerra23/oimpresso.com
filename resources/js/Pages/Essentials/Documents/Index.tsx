@@ -6,8 +6,8 @@
 //   tests: Modules/Essentials/Tests/Feature/DocumentsIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { router, useForm } from '@inertiajs/react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -235,10 +235,8 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
   const rows = tab === 'documents' ? documents : memos;
 
   return (
-    <AppShell
-      title="Documentos"
-      breadcrumb={[{ label: 'Essentials' }, { label: tab === 'memos' ? 'Memos' : 'Documentos' }]}
-    >
+    <>
+      <Head title="Documentos" />
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
@@ -545,9 +543,15 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppShell>
+    </>
   );
 }
+
+DocumentsIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Essentials' }, { label: 'Documentos' }]}>
+    {page}
+  </AppShell>
+);
 
 function TabButton({
   active,

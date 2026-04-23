@@ -7,8 +7,8 @@
 //   tests: Modules/Essentials/Tests/Feature/SettingsIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Clock, Hash, MapPin, Save, Settings as SettingsIcon, Target } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -47,10 +47,8 @@ export default function SettingsIndex({ settings }: Props) {
   };
 
   return (
-    <AppShell
-      title="Configurações do Essentials"
-      breadcrumb={[{ label: 'HRM' }, { label: 'Configurações' }]}
-    >
+    <>
+      <Head title="Configurações do Essentials" />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -215,6 +213,12 @@ export default function SettingsIndex({ settings }: Props) {
           </div>
         </form>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+SettingsIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'HRM' }, { label: 'Configurações' }]}>
+    {page}
+  </AppShell>
+);

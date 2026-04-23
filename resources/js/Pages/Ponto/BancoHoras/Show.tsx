@@ -8,8 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/BancoHorasShowTest
 
 import AppShell from '@/Layouts/AppShell';
-import { router, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, Info, PiggyBank, Save } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
@@ -86,14 +86,8 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
   };
 
   return (
-    <AppShell
-      title={`BH · ${saldo.nome}`}
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Banco de Horas', href: '/ponto/banco-horas' },
-        { label: saldo.nome },
-      ]}
-    >
+    <>
+      <Head title={`BH · ${saldo.nome}`} />
       <div className="mx-auto max-w-5xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -227,6 +221,15 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+BancoHorasShow.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Banco de Horas', href: '/ponto/banco-horas' },
+  ]}>
+    {page}
+  </AppShell>
+);

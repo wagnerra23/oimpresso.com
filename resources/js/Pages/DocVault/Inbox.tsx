@@ -8,8 +8,8 @@
 //   tests: Modules/DocVault/Tests/Feature/InboxTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, router, useForm } from '@inertiajs/react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   Check,
@@ -181,10 +181,8 @@ export default function DocVaultInbox({ evidences, filtros, counts }: Props) {
   };
 
   return (
-    <AppShell
-      title="DocVault — Inbox"
-      breadcrumb={[{ label: 'DocVault', href: '/docs' }, { label: 'Inbox' }]}
-    >
+    <>
+      <Head title="DocVault — Inbox" />
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -477,6 +475,12 @@ export default function DocVaultInbox({ evidences, filtros, counts }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppShell>
+    </>
   );
 }
+
+DocVaultInbox.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'DocVault', href: '/docs' }, { label: 'Inbox' }]}>
+    {page}
+  </AppShell>
+);

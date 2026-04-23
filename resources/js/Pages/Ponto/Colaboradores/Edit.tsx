@@ -8,8 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ColaboradoresEditTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, UserCog } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -65,14 +65,8 @@ export default function ColaboradorEdit({ colaborador, escalas }: Props) {
   };
 
   return (
-    <AppShell
-      title={`Config ${colaborador.nome}`}
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Colaboradores', href: '/ponto/colaboradores' },
-        { label: colaborador.nome },
-      ]}
-    >
+    <>
+      <Head title={`Config ${colaborador.nome}`} />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -167,6 +161,15 @@ export default function ColaboradorEdit({ colaborador, escalas }: Props) {
           </div>
         </form>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+ColaboradorEdit.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Colaboradores', href: '/ponto/colaboradores' },
+  ]}>
+    {page}
+  </AppShell>
+);

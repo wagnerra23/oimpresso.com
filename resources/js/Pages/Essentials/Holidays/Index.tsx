@@ -6,8 +6,8 @@
 //   tests: Modules/Essentials/Tests/Feature/HolidaysIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { router, useForm } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   CalendarDays,
@@ -155,10 +155,8 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
     !!filtros.location_id || !!filtros.start_date || !!filtros.end_date;
 
   return (
-    <AppShell
-      title="Feriados"
-      breadcrumb={[{ label: 'HRM' }, { label: 'Feriados' }]}
-    >
+    <>
+      <Head title="Feriados" />
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -387,6 +385,12 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppShell>
+    </>
   );
 }
+
+HolidaysIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'HRM' }, { label: 'Feriados' }]}>
+    {page}
+  </AppShell>
+);

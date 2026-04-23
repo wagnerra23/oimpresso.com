@@ -8,8 +8,8 @@
 //   tests: Modules/Essentials/Tests/Feature/TodoShowTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link, router, useForm } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   Activity,
@@ -239,14 +239,8 @@ export default function TodoShow({
   };
 
   return (
-    <AppShell
-      title={`Tarefa ${todo.task_id ?? '#' + todo.id}`}
-      breadcrumb={[
-        { label: 'Essentials' },
-        { label: 'Tarefas', href: '/essentials/todo' },
-        { label: todo.task_id ?? '#' + todo.id },
-      ]}
-    >
+    <>
+      <Head title={`Tarefa ${todo.task_id ?? '#' + todo.id}`} />
       <div className="mx-auto max-w-5xl p-6 space-y-4">
         <header className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
           <div className="min-w-0">
@@ -630,9 +624,18 @@ export default function TodoShow({
           </div>
         </DialogContent>
       </Dialog>
-    </AppShell>
+    </>
   );
 }
+
+TodoShow.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Essentials' },
+    { label: 'Tarefas', href: '/essentials/todo' },
+  ]}>
+    {page}
+  </AppShell>
+);
 
 function TabButton({
   active,

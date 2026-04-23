@@ -7,8 +7,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/EscalasFormTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, CalendarDays, Save } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -69,14 +69,8 @@ export default function EscalaForm({ escala }: Props) {
   };
 
   return (
-    <AppShell
-      title={isEdit ? `Editar ${escala!.nome}` : 'Nova escala'}
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Escalas', href: '/ponto/escalas' },
-        { label: isEdit ? escala!.nome : 'Nova' },
-      ]}
-    >
+    <>
+      <Head title={isEdit ? `Editar ${escala!.nome}` : 'Nova escala'} />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -202,6 +196,15 @@ export default function EscalaForm({ escala }: Props) {
           </div>
         </form>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+EscalaForm.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Escalas', href: '/ponto/escalas' },
+  ]}>
+    {page}
+  </AppShell>
+);

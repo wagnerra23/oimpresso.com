@@ -8,8 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/IntercorrenciasCreateTest
 
 import AppShell from '@/Layouts/AppShell';
-import { router, useForm } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
@@ -152,14 +152,8 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
   };
 
   return (
-    <AppShell
-      title="Nova Intercorrência"
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Intercorrências', href: '/ponto/intercorrencias' },
-        { label: 'Nova' },
-      ]}
-    >
+    <>
+      <Head title="Nova Intercorrência" />
       <div className="mx-auto max-w-5xl p-6 space-y-6">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -408,9 +402,19 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
           </div>
         </form>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+IntercorrenciasCreate.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Intercorrências', href: '/ponto/intercorrencias' },
+    { label: 'Nova' },
+  ]}>
+    {page}
+  </AppShell>
+);
 
 // ============================================================================
 // Helper: Field com label + erro

@@ -6,7 +6,8 @@
 //   tests: Modules/Essentials/Tests/Feature/KnowledgeShowTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import {
   ArrowLeft,
   BookOpen,
@@ -61,14 +62,8 @@ const typeIcon = (kbType: string) => {
 
 export default function KnowledgeShow({ item, book, sectionId, articleId }: Props) {
   return (
-    <AppShell
-      title={item.title}
-      breadcrumb={[
-        { label: 'Essentials' },
-        { label: 'Base de conhecimento', href: '/essentials/knowledge-base' },
-        { label: item.title },
-      ]}
-    >
+    <>
+      <Head title={item.title} />
       <div className="mx-auto max-w-7xl p-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
         {/* Sidebar: navegação dentro do livro */}
         <aside className="space-y-2">
@@ -176,6 +171,15 @@ export default function KnowledgeShow({ item, book, sectionId, articleId }: Prop
           </Card>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+KnowledgeShow.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Essentials' },
+    { label: 'Base de conhecimento', href: '/essentials/knowledge-base' },
+  ]}>
+    {page}
+  </AppShell>
+);

@@ -7,8 +7,8 @@
 
 import AppShell from '@/Layouts/AppShell';
 import SimpleMarkdown from '@/Components/shared/SimpleMarkdown';
-import { Link, router } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   Bot,
@@ -124,13 +124,8 @@ export default function Memoria({ roots, stats, selected: initialSelected, paths
   const filterTerm = search.trim().toLowerCase();
 
   return (
-    <AppShell
-      title="DocVault — Memória"
-      breadcrumb={[
-        { label: 'DocVault', href: '/docs' },
-        { label: 'Memória' },
-      ]}
-    >
+    <>
+      <Head title="DocVault — Memória" />
       <div className="mx-auto max-w-7xl p-6">
         <header className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
@@ -270,9 +265,18 @@ export default function Memoria({ roots, stats, selected: initialSelected, paths
           </Card>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+Memoria.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'DocVault', href: '/docs' },
+    { label: 'Memória' },
+  ]}>
+    {page}
+  </AppShell>
+);
 
 interface TreeNodeProps {
   node: TreeFile | TreeDir;

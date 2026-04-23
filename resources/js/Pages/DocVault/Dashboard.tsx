@@ -8,7 +8,8 @@
 //   tests: Modules/DocVault/Tests/Feature/DashboardTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import {
   BookOpen,
   BookText,
@@ -90,10 +91,8 @@ interface Props {
 
 export default function DocVaultDashboard({ stats, modules, recent_sources, coverage_summary, pages_total }: Props) {
   return (
-    <AppShell
-      title="DocVault — Dashboard"
-      breadcrumb={[{ label: 'DocVault' }]}
-    >
+    <>
+      <Head title="DocVault — Dashboard" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
@@ -346,9 +345,15 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
           </Card>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }
+
+DocVaultDashboard.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'DocVault' }]}>
+    {page}
+  </AppShell>
+);
 
 function Kpi({
   icon,

@@ -8,8 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ImportacoesCreateTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, FileUp, Info, Upload } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
@@ -45,14 +45,8 @@ export default function ImportacoesCreate() {
   };
 
   return (
-    <AppShell
-      title="Nova importação"
-      breadcrumb={[
-        { label: 'Ponto WR2' },
-        { label: 'Importações', href: '/ponto/importacoes' },
-        { label: 'Nova' },
-      ]}
-    >
+    <>
+      <Head title="Nova importação" />
       <div className="mx-auto max-w-2xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -133,6 +127,16 @@ export default function ImportacoesCreate() {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+ImportacoesCreate.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[
+    { label: 'Ponto WR2' },
+    { label: 'Importações', href: '/ponto/importacoes' },
+    { label: 'Nova' },
+  ]}>
+    {page}
+  </AppShell>
+);
