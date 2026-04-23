@@ -3,17 +3,23 @@ import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import {
   ArrowLeft,
+  BookA,
   Boxes,
   CheckCircle2,
   Circle,
   ClipboardList,
+  ClipboardCheck,
   Code,
   ExternalLink,
+  FileCode,
   FileText,
   History,
   Lightbulb,
+  Network,
   Scale,
+  ShieldCheck,
   Target,
+  Wrench,
 } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -55,6 +61,15 @@ interface Adr {
   raw: string;
 }
 
+interface SubFile {
+  slug: string;
+  name: string;
+  ext: string;
+  title: string;
+  raw: string;
+  size: number;
+}
+
 interface Props {
   module: string;
   format?: 'folder' | 'flat';
@@ -65,12 +80,17 @@ interface Props {
   readme?: string | null;
   architecture?: string | null;
   changelog?: string | null;
+  glossary?: string | null;
+  runbook?: string | null;
   adrs?: Adr[];
+  diagrams?: SubFile[];
+  contracts?: SubFile[];
+  audits?: SubFile[];
   size_kb: number;
   mtime: string;
 }
 
-type Tab = 'overview' | 'architecture' | 'stories' | 'rules' | 'adrs' | 'changelog' | 'raw';
+type Tab = 'overview' | 'architecture' | 'stories' | 'rules' | 'adrs' | 'glossary' | 'runbook' | 'diagrams' | 'contracts' | 'audits' | 'changelog' | 'raw';
 
 export default function DocVaultModulo({
   module,
@@ -82,12 +102,18 @@ export default function DocVaultModulo({
   readme,
   architecture,
   changelog,
+  glossary,
+  runbook,
   adrs = [],
+  diagrams = [],
+  contracts = [],
+  audits = [],
   size_kb,
   mtime,
 }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
   const [selectedAdr, setSelectedAdr] = useState<Adr | null>(null);
+  const [selectedSub, setSelectedSub] = useState<SubFile | null>(null);
   const [adrFilter, setAdrFilter] = useState<string>('');
   const hasFolder = format === 'folder';
 
@@ -187,6 +213,34 @@ export default function DocVaultModulo({
               <Badge variant="secondary" className="ml-1 text-[10px]">{adrs.length}</Badge>
             </TabBtn>
           )}
+          {glossary && (
+            <TabBtn active={tab === 'glossary'} onClick={() => setTab('glossary')}>
+              <BookA size={13} className="mr-1" /> Glossário
+            </TabBtn>
+          )}
+          {runbook && (
+            <TabBtn active={tab === 'runbook'} onClick={() => setTab('runbook')}>
+              <Wrench size={13} className="mr-1" /> Runbook
+            </TabBtn>
+          )}
+          {diagrams.length > 0 && (
+            <TabBtn active={tab === 'diagrams'} onClick={() => setTab('diagrams')}>
+              <Network size={13} className="mr-1" /> Diagramas
+              <Badge variant="secondary" className="ml-1 text-[10px]">{diagrams.length}</Badge>
+            </TabBtn>
+          )}
+          {contracts.length > 0 && (
+            <TabBtn active={tab === 'contracts'} onClick={() => setTab('contracts')}>
+              <FileCode size={13} className="mr-1" /> Contratos
+              <Badge variant="secondary" className="ml-1 text-[10px]">{contracts.length}</Badge>
+            </TabBtn>
+          )}
+          {audits.length > 0 && (
+            <TabBtn active={tab === 'audits'} onClick={() => setTab('audits')}>
+              <ShieldCheck size={13} className="mr-1" /> Auditorias
+              <Badge variant="secondary" className="ml-1 text-[10px]">{audits.length}</Badge>
+            </TabBtn>
+          )}
           {changelog && (
             <TabBtn active={tab === 'changelog'} onClick={() => setTab('changelog')}>
               <History size={13} className="mr-1" /> Changelog
@@ -255,6 +309,31 @@ export default function DocVaultModulo({
               <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{changelog}</pre>
             </CardContent>
           </Card>
+        )}
+
+        {tab === 'glossary' && glossary && (
+          <Card>
+            <CardContent>
+              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{glossary}</pre>
+            </CardContent>
+          </Card>
+        )}
+
+        {tab === 'runbook' && runbook && (
+          <Card>
+            <CardContent>
+              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{runbook}</pre>
+            </CardContent>
+          </Card>
+        )}
+
+        {(tab === 'diagrams' || tab === 'contracts' || tab === 'audits') && (
+          <SubFilesPane
+            files={tab === 'diagrams' ? diagrams : tab === 'contracts' ? contracts : audits}
+            selected={selectedSub}
+            onSelect={setSelectedSub}
+            emptyLabel={tab === 'diagrams' ? 'diagramas' : tab === 'contracts' ? 'contratos' : 'auditorias'}
+          />
         )}
 
         {tab === 'adrs' && adrs.length > 0 && (
@@ -450,6 +529,66 @@ function Kpi({ icon, label, value, hint }: { icon: React.ReactNode; label: strin
         {hint && <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div>}
       </CardContent>
     </Card>
+  );
+}
+
+function SubFilesPane({
+  files,
+  selected,
+  onSelect,
+  emptyLabel,
+}: {
+  files: SubFile[];
+  selected: SubFile | null;
+  onSelect: (f: SubFile) => void;
+  emptyLabel: string;
+}) {
+  if (files.length === 0) {
+    return (
+      <Card>
+        <CardContent>
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            Nenhum {emptyLabel} ainda.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const current = selected && files.some((f) => f.slug === selected.slug) ? selected : files[0];
+
+  return (
+    <div className="grid md:grid-cols-[240px_1fr] gap-3">
+      <Card>
+        <CardContent className="p-0">
+          <ul className="divide-y divide-border">
+            {files.map((f) => {
+              const active = current?.slug === f.slug;
+              return (
+                <li
+                  key={f.slug}
+                  onClick={() => onSelect(f)}
+                  className={`p-3 cursor-pointer hover:bg-accent/30 ${active ? 'bg-accent/50' : ''}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[9px] uppercase">{f.ext}</Badge>
+                    <code className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">{f.name}</code>
+                  </div>
+                  <div className="text-sm font-medium mt-1 line-clamp-2">{f.title}</div>
+                </li>
+              );
+            })}
+          </ul>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+            {current?.raw ?? ''}
+          </pre>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

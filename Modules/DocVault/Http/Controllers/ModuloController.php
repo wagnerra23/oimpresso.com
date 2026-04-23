@@ -27,7 +27,12 @@ class ModuloController extends Controller
             'readme'       => $data['readme'] ?? null,
             'architecture' => $data['architecture'] ?? null,
             'changelog'    => $data['changelog'] ?? null,
+            'glossary'     => $data['glossary'] ?? null,
+            'runbook'      => $data['runbook'] ?? null,
             'adrs'         => $data['adrs'] ?? [],
+            'diagrams'     => $data['diagrams'] ?? [],
+            'contracts'    => $data['contracts'] ?? [],
+            'audits'       => $data['audits'] ?? [],
             'size_kb'      => round($data['size_bytes'] / 1024, 1),
             'mtime'        => date('Y-m-d H:i', $data['mtime']),
         ]);

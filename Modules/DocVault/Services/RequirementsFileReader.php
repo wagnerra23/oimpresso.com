@@ -34,16 +34,19 @@ class RequirementsFileReader
         $seen = [];
         $out = [];
 
-        // Formato novo: pastas com SPEC.md
+        // Formato novo: pastas com SPEC.md ou README.md (módulos virtuais podem ter só README)
         foreach (File::directories($dir) as $d) {
             $name = basename($d);
             if (in_array($name, ['INDEX', 'RECOMENDACOES'], true)) continue;
             $spec = $d . DIRECTORY_SEPARATOR . 'SPEC.md';
-            if (! File::exists($spec)) continue;
-
             $readme = $d . DIRECTORY_SEPARATOR . 'README.md';
-            $fmSource = File::exists($readme) ? $readme : $spec;
-            $meta = $this->readMeta($spec, $fmSource);
+            $hasSpec = File::exists($spec);
+            $hasReadme = File::exists($readme);
+            if (! $hasSpec && ! $hasReadme) continue;
+
+            $fmSource = $hasReadme ? $readme : $spec;
+            $metaSource = $hasSpec ? $spec : $readme;
+            $meta = $this->readMeta($metaSource, $fmSource);
             $coverage = $this->coverageForFolder($d);
             $out[] = array_merge(['name' => $name, 'format' => 'folder'], $meta, ['coverage' => $coverage]);
             $seen[$name] = true;
@@ -103,41 +106,95 @@ class RequirementsFileReader
 
     protected function readModuleFolder(string $name, string $folder): array
     {
-        $spec    = File::get($folder . DIRECTORY_SEPARATOR . 'SPEC.md');
+        $specPath = $folder . DIRECTORY_SEPARATOR . 'SPEC.md';
+        $hasSpec = File::exists($specPath);
+        $spec    = $hasSpec ? File::get($specPath) : '';
         $readme  = File::exists($folder . DIRECTORY_SEPARATOR . 'README.md')
             ? File::get($folder . DIRECTORY_SEPARATOR . 'README.md') : null;
         $arch    = File::exists($folder . DIRECTORY_SEPARATOR . 'ARCHITECTURE.md')
             ? File::get($folder . DIRECTORY_SEPARATOR . 'ARCHITECTURE.md') : null;
         $change  = File::exists($folder . DIRECTORY_SEPARATOR . 'CHANGELOG.md')
             ? File::get($folder . DIRECTORY_SEPARATOR . 'CHANGELOG.md') : null;
+        $glossary = File::exists($folder . DIRECTORY_SEPARATOR . 'GLOSSARY.md')
+            ? File::get($folder . DIRECTORY_SEPARATOR . 'GLOSSARY.md') : null;
+        $runbook = File::exists($folder . DIRECTORY_SEPARATOR . 'RUNBOOK.md')
+            ? File::get($folder . DIRECTORY_SEPARATOR . 'RUNBOOK.md') : null;
         $adrs    = $this->readAdrs($folder . DIRECTORY_SEPARATOR . 'adr');
+        $diagrams = $this->readSubfolder($folder . DIRECTORY_SEPARATOR . 'diagrams');
+        $contracts = $this->readSubfolder($folder . DIRECTORY_SEPARATOR . 'contracts', ['md', 'yaml', 'yml', 'json']);
+        $audits = $this->readSubfolder($folder . DIRECTORY_SEPARATOR . 'audits');
 
         // Frontmatter vem do README se existir (fonte oficial do módulo); senão do SPEC.
         $fmContent = $readme ?? $spec;
         $fm = $this->parseFrontmatter($fmContent);
 
-        $specBody = $this->stripFrontmatter($spec);
+        $specBody = $hasSpec ? $this->stripFrontmatter($spec) : '';
         $totalBytes = strlen($spec)
             + ($readme ? strlen($readme) : 0)
             + ($arch ? strlen($arch) : 0)
             + ($change ? strlen($change) : 0)
-            + array_sum(array_map(fn ($a) => strlen($a['raw']), $adrs));
+            + ($glossary ? strlen($glossary) : 0)
+            + ($runbook ? strlen($runbook) : 0)
+            + array_sum(array_map(fn ($a) => strlen($a['raw']), $adrs))
+            + array_sum(array_map(fn ($x) => strlen($x['raw']), $diagrams))
+            + array_sum(array_map(fn ($x) => strlen($x['raw']), $contracts))
+            + array_sum(array_map(fn ($x) => strlen($x['raw']), $audits));
+
+        $mtimeBase = $hasSpec ? File::lastModified($specPath)
+            : ($readme !== null ? File::lastModified($folder . DIRECTORY_SEPARATOR . 'README.md')
+                : File::lastModified($folder));
 
         return [
             'name'         => $name,
             'format'       => 'folder',
             'path'         => $folder,
             'frontmatter'  => $fm,
-            'stories'      => $this->extractStories($specBody),
-            'rules'        => $this->extractRules($specBody),
+            'stories'      => $hasSpec ? $this->extractStories($specBody) : [],
+            'rules'        => $hasSpec ? $this->extractRules($specBody) : [],
             'raw'          => $specBody,
             'readme'       => $readme ? $this->stripFrontmatter($readme) : null,
             'architecture' => $arch,
             'changelog'    => $change,
+            'glossary'     => $glossary,
+            'runbook'      => $runbook,
             'adrs'         => $adrs,
+            'diagrams'     => $diagrams,
+            'contracts'    => $contracts,
+            'audits'       => $audits,
             'size_bytes'   => $totalBytes,
-            'mtime'        => File::lastModified($folder . DIRECTORY_SEPARATOR . 'SPEC.md'),
+            'mtime'        => $mtimeBase,
         ];
+    }
+
+    /**
+     * Lê arquivos de uma subpasta (diagrams/, contracts/, audits/) e retorna
+     * como lista ordenada por nome.
+     */
+    protected function readSubfolder(string $dir, array $allowedExt = ['md']): array
+    {
+        if (! File::isDirectory($dir)) return [];
+        $out = [];
+        foreach (File::files($dir) as $f) {
+            if (! in_array(strtolower($f->getExtension()), $allowedExt, true)) continue;
+            $filename = $f->getFilenameWithoutExtension();
+            $content = File::get($f->getPathname());
+
+            $title = '';
+            if (preg_match('/^#\s+(.+?)$/m', $content, $m)) {
+                $title = trim($m[1]);
+            }
+
+            $out[] = [
+                'slug'  => $filename,
+                'name'  => $f->getFilename(),
+                'ext'   => strtolower($f->getExtension()),
+                'title' => $title ?: $f->getFilename(),
+                'raw'   => $content,
+                'size'  => strlen($content),
+            ];
+        }
+        usort($out, fn ($a, $b) => strcmp($a['name'], $b['name']));
+        return $out;
     }
 
     /**
