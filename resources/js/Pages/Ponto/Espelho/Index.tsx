@@ -8,7 +8,6 @@
 //   tests: Modules/PontoWr2/Tests/Feature/EspelhoIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
 import { Link, router } from '@inertiajs/react';
 import { ClipboardList, Search, ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -37,7 +36,6 @@ interface Props {
 }
 
 export default function EspelhoIndex({ colaboradores, mes }: Props) {
-  const moduleNav = useModuleNav('PontoWr2');
 
   const onMesChange = (novoMes: string) => {
     router.get('/ponto/espelho', { mes: novoMes }, { preserveState: true, preserveScroll: true });
@@ -47,7 +45,6 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
     <AppShell
       title="Espelho de Ponto"
       breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Espelho' }]}
-      moduleNav={moduleNav}
     >
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>

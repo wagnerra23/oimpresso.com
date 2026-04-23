@@ -2,16 +2,15 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
+  ChevronDown,
   ChevronRight,
   LogOut,
   Menu as MenuIcon,
-  Search,
   UserCircle2,
 } from 'lucide-react';
 import { Icon } from '@/Components/Icon';
 import { ThemeToggle } from '@/Components/ThemeToggle';
 import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/Components/ui/sheet';
 import {
   DropdownMenu,
@@ -25,46 +24,33 @@ import { Avatar, AvatarFallback } from '@/Components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { cn } from '@/Lib/utils';
 import { useAuth, useBusiness, useFlash, usePageProps } from '@/Hooks/usePageProps';
-import ModuleTopNav from '@/Components/shared/ModuleTopNav';
 import type { MenuItem } from '@/Types';
 
 /**
- * Layout principal — sidebar 1 coluna com módulos flat + topbar + main.
+ * Layout principal — sidebar vertical com módulos accordion (estilo AdminLTE/Blade).
  *
- * Cada página escolhe se quer barra de sub-navegação horizontal no topo do
- * main content (`moduleNav`) OU se usa tabs internas próprias (ex: DocVault
- * Modulo que tem 7 tabs contextuais).
- *
- * Decisão arquitetural (2026-04-23): sub-menu estilo Blade (topo da página)
- * + sidebar flat, ao invés de accordion expansível. Permissões e ordem do
- * backend preservadas via LegacyMenuAdapter.
+ * Características (paridade com Blade original):
+ * - Ordem dos módulos vem do backend (LegacyMenuAdapter já fez usort)
+ * - Permissões Spatie já filtradas no backend (items que usuário não pode não chegam)
+ * - Módulos com children: click expande/colapsa (chevron ▾/▸)
+ * - Módulo contendo URL corrente: auto-expandido no mount
+ * - Sub-items indentados com ícones próprios
+ * - Ícones Lucide via componente Icon (nomes inferidos heuristicamente no backend)
+ * - Rodapé: user (avatar + nome + email) + theme toggle + logout
+ * - Mobile: Sheet drawer com mesma estrutura
  */
-interface ModuleNavProp {
-  items: MenuItem[];
-  activeHref?: string;
-  moduleLabel?: string;
-  moduleIcon?: string;
-}
-
 interface AppShellProps {
   title?: string;
   breadcrumb?: Array<{ label: string; href?: string }>;
-  /** Barra horizontal de sub-navegação no topo. Opcional — se omitir, nada aparece */
-  moduleNav?: ModuleNavProp;
   children: ReactNode;
 }
 
-export default function AppShell({ title, breadcrumb, moduleNav, children }: AppShellProps) {
+export default function AppShell({ title, breadcrumb, children }: AppShellProps) {
   const { shell } = usePageProps();
   const auth = useAuth();
   const business = useBusiness();
   const flash = useFlash();
   const { url } = usePage();
-
-  const activeModule = useMemo(
-    () => findActiveModule(shell.menu, url),
-    [shell.menu, url],
-  );
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -80,32 +66,22 @@ export default function AppShell({ title, breadcrumb, moduleNav, children }: App
 
       <div className="flex h-screen overflow-hidden bg-muted/30 text-foreground">
         {/* ======================================================================
-            Sidebar desktop — 1 coluna flat (256px) · módulos + user rodapé
+            Sidebar desktop — accordion
             ====================================================================== */}
-        <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card h-full overflow-hidden">
-          {/* Topo: business */}
-          <div className="flex h-12 items-center gap-2 border-b border-border px-3">
+        <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card h-full overflow-hidden">
+          {/* Topo: brand business + status */}
+          <div className="h-14 flex items-center gap-2 border-b border-border px-4 bg-primary/5">
             <Link href="/home" className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-80">
-              <Avatar className="size-8 shrink-0">
-                <AvatarFallback className="bg-primary text-primary-foreground text-[11px] font-bold">
-                  {getInitials(business?.name ?? 'OI')}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-semibold tracking-tight truncate">
+              <span className="text-base font-bold tracking-tight truncate">
                 {business?.name ?? 'OI Impresso'}
               </span>
+              <span className="size-2 rounded-full bg-emerald-500 shrink-0" title="Online" />
             </Link>
           </div>
 
-          {/* Módulos top-level flat */}
+          {/* Menu accordion */}
           <nav className="flex-1 overflow-y-auto py-2">
-            {shell.menu.map((mod, i) => (
-              <ModuleFlatLink
-                key={`${mod.label}-${i}`}
-                module={mod}
-                isActive={mod.label === activeModule?.label}
-              />
-            ))}
+            <MenuList items={shell.menu} currentUrl={url} />
           </nav>
 
           {/* Rodapé: user + theme + logout */}
@@ -144,22 +120,22 @@ export default function AppShell({ title, breadcrumb, moduleNav, children }: App
         </aside>
 
         {/* ======================================================================
-            Mobile drawer
+            Mobile drawer — mesma estrutura accordion
             ====================================================================== */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent side="left" className="w-72 p-0 flex flex-col">
-            <SheetHeader className="border-b border-border px-4 py-3">
-              <SheetTitle className="text-left">{business?.name ?? 'OI Impresso'}</SheetTitle>
+            <SheetHeader className="border-b border-border px-4 py-3 bg-primary/5">
+              <SheetTitle className="text-left flex items-center gap-2">
+                {business?.name ?? 'OI Impresso'}
+                <span className="size-2 rounded-full bg-emerald-500" />
+              </SheetTitle>
             </SheetHeader>
             <nav className="flex-1 overflow-y-auto py-2">
-              {shell.menu.map((mod, i) => (
-                <ModuleFlatLink
-                  key={`${mod.label}-${i}`}
-                  module={mod}
-                  isActive={mod.label === activeModule?.label}
-                  onNavigate={() => setMobileOpen(false)}
-                />
-              ))}
+              <MenuList
+                items={shell.menu}
+                currentUrl={url}
+                onNavigate={() => setMobileOpen(false)}
+              />
             </nav>
             {auth.user && (
               <div className="border-t border-border p-3">
@@ -184,10 +160,10 @@ export default function AppShell({ title, breadcrumb, moduleNav, children }: App
         </Sheet>
 
         {/* ======================================================================
-            Main column — topbar + (moduleNav opcional) + breadcrumb + content
+            Main
             ====================================================================== */}
         <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
-          <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-border bg-background px-4">
+          <header className="flex h-12 items-center gap-3 border-b border-border bg-background px-4">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden" aria-label="Abrir menu">
@@ -195,29 +171,9 @@ export default function AppShell({ title, breadcrumb, moduleNav, children }: App
                 </Button>
               </SheetTrigger>
             </Sheet>
-
-            <div className="hidden md:flex flex-1 max-w-md items-center gap-2 rounded-md border border-input bg-muted/40 px-3 py-1 text-sm text-muted-foreground">
-              <Search size={14} />
-              <Input
-                className="h-7 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
-                placeholder="Buscar… (Cmd+K em breve)"
-              />
-            </div>
-
-            <div className="flex flex-1 md:flex-none" />
-
+            <div className="flex-1" />
             <UserQuickMenu />
           </header>
-
-          {/* Module top nav (opcional — cada página decide) */}
-          {moduleNav && (
-            <ModuleTopNav
-              items={moduleNav.items}
-              activeHref={moduleNav.activeHref}
-              moduleLabel={moduleNav.moduleLabel ?? activeModule?.label}
-              moduleIcon={moduleNav.moduleIcon ?? activeModule?.icon}
-            />
-          )}
 
           {breadcrumb && breadcrumb.length > 0 && (
             <div className="flex items-center gap-1 border-b border-border bg-background px-4 py-1.5 text-xs text-muted-foreground">
@@ -244,48 +200,148 @@ export default function AppShell({ title, breadcrumb, moduleNav, children }: App
 }
 
 // ============================================================================
-// Módulo flat na sidebar (1 coluna, sem expansão)
+// MenuList — lista de módulos accordion
 // ============================================================================
-function ModuleFlatLink({
-  module,
-  isActive,
+function MenuList({
+  items,
+  currentUrl,
   onNavigate,
 }: {
-  module: MenuItem;
-  isActive: boolean;
+  items: MenuItem[];
+  currentUrl: string;
   onNavigate?: () => void;
 }) {
-  const href = module.href ?? firstLeafHref(module) ?? '#';
-  const asInertia = module.inertia ?? !module.children?.length;
-
-  const className = cn(
-    'flex items-center gap-2.5 px-3 py-2 mx-1 my-0.5 rounded-md text-sm transition-colors',
-    isActive
-      ? 'bg-primary/10 text-primary font-medium'
-      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+  return (
+    <ul className="flex flex-col gap-0.5 px-2">
+      {items.map((mod, i) => (
+        <MenuEntry
+          key={`${mod.label}-${i}`}
+          item={mod}
+          currentUrl={currentUrl}
+          onNavigate={onNavigate}
+        />
+      ))}
+    </ul>
   );
+}
 
-  const content = (
-    <>
-      <Icon name={module.icon} size={16} className="shrink-0" />
-      <span className="flex-1 truncate">{module.label}</span>
-      {module.badge != null && (
-        <span className="rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-medium text-destructive-foreground">
-          {module.badge}
-        </span>
-      )}
-    </>
+function MenuEntry({
+  item,
+  currentUrl,
+  onNavigate,
+  depth = 0,
+}: {
+  item: MenuItem;
+  currentUrl: string;
+  onNavigate?: () => void;
+  depth?: number;
+}) {
+  const hasChildren = (item.children?.length ?? 0) > 0;
+  const currentPath = currentUrl.split('?')[0]?.split('#')[0] ?? currentUrl;
+
+  const hrefMatches = (candidate: string | undefined): boolean => {
+    if (!candidate || candidate === '#') return false;
+    return currentPath === candidate
+      || currentPath.startsWith(candidate + '?')
+      || currentPath.startsWith(candidate + '/');
+  };
+
+  const isSelfActive = hrefMatches(item.href);
+  const childActive = useMemo(
+    () => (item.children ?? []).some((c) => hrefMatches(c.href)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [item.children, currentUrl],
   );
+  const isActive = isSelfActive || childActive;
 
-  if (asInertia && href !== '#') {
-    return <Link href={href} onClick={onNavigate} className={className}>{content}</Link>;
+  const [expanded, setExpanded] = useState(isActive);
+  useEffect(() => {
+    if (isActive) setExpanded(true);
+  }, [isActive]);
+
+  const paddingClass = depth === 0 ? 'px-3 py-2' : 'pl-9 pr-3 py-1.5';
+  const iconSize = depth === 0 ? 16 : 14;
+
+  // Sem children — link direto
+  if (!hasChildren) {
+    const href = item.href ?? '#';
+    const asInertia = item.inertia ?? true;
+    const className = cn(
+      'flex items-center gap-2 rounded-md text-sm transition-colors',
+      paddingClass,
+      isSelfActive
+        ? 'bg-primary/10 text-primary font-medium'
+        : 'text-foreground/80 hover:bg-accent hover:text-accent-foreground',
+    );
+    const content = (
+      <>
+        <Icon name={item.icon} size={iconSize} className="shrink-0" />
+        <span className="flex-1 truncate">{item.label}</span>
+        {item.badge != null && (
+          <span className="rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-medium text-destructive-foreground">
+            {item.badge}
+          </span>
+        )}
+      </>
+    );
+    return (
+      <li>
+        {asInertia && href !== '#' ? (
+          <Link href={href} onClick={onNavigate} className={className}>{content}</Link>
+        ) : (
+          <a href={href} onClick={onNavigate} className={className}>{content}</a>
+        )}
+      </li>
+    );
   }
-  return <a href={href} onClick={onNavigate} className={className}>{content}</a>;
+
+  // Com children — botão expansível
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className={cn(
+          'w-full flex items-center gap-2 rounded-md text-sm transition-colors',
+          paddingClass,
+          isActive
+            ? 'text-primary font-medium'
+            : 'text-foreground/80 hover:bg-accent hover:text-accent-foreground',
+        )}
+        aria-expanded={expanded}
+      >
+        <Icon name={item.icon} size={iconSize} className="shrink-0" />
+        <span className="flex-1 text-left truncate">{item.label}</span>
+        {item.badge != null && (
+          <span className="rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-medium text-destructive-foreground">
+            {item.badge}
+          </span>
+        )}
+        {expanded ? (
+          <ChevronDown size={14} className="shrink-0 opacity-60" />
+        ) : (
+          <ChevronRight size={14} className="shrink-0 opacity-60" />
+        )}
+      </button>
+      {expanded && (
+        <ul className="flex flex-col gap-0.5 mt-0.5">
+          {item.children!.map((child, i) => (
+            <MenuEntry
+              key={`${child.label}-${i}`}
+              item={child}
+              currentUrl={currentUrl}
+              onNavigate={onNavigate}
+              depth={depth + 1}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
 }
 
 // ============================================================================
-// User quick menu (topbar direita — atalho redundante com o rodapé da sidebar,
-// útil em desktop pequeno ou quando sidebar está escondida)
+// UserQuickMenu (topbar direita — redundante com rodapé, útil em mobile)
 // ============================================================================
 function UserQuickMenu() {
   const auth = useAuth();
@@ -329,46 +385,6 @@ function UserQuickMenu() {
   );
 }
 
-// ============================================================================
-// Helpers
-// ============================================================================
-
 function getInitials(name: string): string {
   return name.split(' ').filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase() ?? '').join('');
-}
-
-function findActiveModule(menu: MenuItem[], url: string): MenuItem | null {
-  const currentPath = url.split('?')[0]?.split('#')[0] ?? url;
-
-  const hrefMatches = (href: string | undefined, target: string): boolean => {
-    if (!href || href === '#') return false;
-    return target === href || target.startsWith(href + '?') || target.startsWith(href + '/');
-  };
-
-  for (const mod of menu) {
-    if (hrefMatches(mod.href, currentPath)) return mod;
-    if (mod.children?.some((c) => hrefMatches(c.href, currentPath))) return mod;
-  }
-
-  const rootSegment = currentPath.split('/').filter(Boolean)[0];
-  if (rootSegment) {
-    const rootPrefix = `/${rootSegment}`;
-    for (const mod of menu) {
-      const modStarts = mod.href && mod.href !== '#' && mod.href.startsWith(rootPrefix);
-      const childStarts = mod.children?.some((c) => c.href && c.href.startsWith(rootPrefix));
-      if (modStarts || childStarts) return mod;
-    }
-  }
-
-  return menu.find((m) => m.children?.length) ?? menu[0] ?? null;
-}
-
-function firstLeafHref(module: MenuItem): string | null {
-  if (module.href) return module.href;
-  for (const child of module.children ?? []) {
-    if (child.href) return child.href;
-    const nested = firstLeafHref(child);
-    if (nested) return nested;
-  }
-  return null;
 }
