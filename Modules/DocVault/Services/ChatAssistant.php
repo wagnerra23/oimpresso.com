@@ -216,11 +216,62 @@ class ChatAssistant
 
     protected function askWithAi(string $question, array $snippets): array
     {
-        // Stub: integração real com OpenAI vem quando o AI for ligado de fato.
-        // Por ora, comporta-se como offline + marca mode=ai pra rastrear intenção.
-        $base = $this->buildOfflineReply($question, $snippets);
-        $base['mode'] = 'ai';
-        $base['reply'] = "[MODO AI STUB] " . $base['reply'];
-        return $base;
+        // Monta contexto RAG: snippets viram messages de sistema; pergunta é user.
+        $contextBlocks = [];
+        foreach ($snippets as $i => $s) {
+            $title = $s['title'] ?? $s['source'];
+            $contextBlocks[] = sprintf(
+                "### Fonte %d · %s · %s\n%s",
+                $i + 1, $s['module'], $title, $s['snippet']
+            );
+        }
+
+        $systemPrompt = <<<SYS
+Você é o assistente do DocVault — sistema de documentação viva do projeto OI Impresso (stack Laravel 9.51 + PHP 8.4 + React/Inertia + Tailwind 4).
+
+Responda em português brasileiro, curto e direto. Use markdown quando ajudar (listas, code blocks).
+
+Consulte EXCLUSIVAMENTE os trechos fornecidos abaixo. Se a resposta não estiver neles, diga "não encontrei no DocVault" e sugira onde procurar (módulo, tipo de arquivo).
+
+Sempre cite a fonte no formato `[Módulo · Arquivo]` ao final de cada afirmação técnica.
+
+### Contexto recuperado ({count} trechos relevantes):
+
+{context}
+SYS;
+
+        $systemPrompt = str_replace(
+            ['{count}', '{context}'],
+            [count($snippets), implode("\n\n", $contextBlocks)],
+            $systemPrompt
+        );
+
+        try {
+            $result = \OpenAI\Laravel\Facades\OpenAI::chat()->create([
+                'model'       => (string) config('docvault.ai.model', 'gpt-4o-mini'),
+                'messages'    => [
+                    ['role' => 'system', 'content' => $systemPrompt],
+                    ['role' => 'user',   'content' => $question],
+                ],
+                'temperature' => (float) config('docvault.ai.temperature', 0.2),
+                'max_tokens'  => (int) config('docvault.ai.max_tokens', 800),
+            ]);
+
+            $reply = $result->choices[0]->message->content ?? '';
+            $tokens = $result->usage->totalTokens ?? null;
+
+            return [
+                'reply'       => $reply ?: '(resposta vazia da API)',
+                'sources'     => array_map(fn ($s) => ['module' => $s['module'], 'source' => $s['source']], $snippets),
+                'mode'        => 'ai',
+                'tokens_used' => $tokens,
+            ];
+        } catch (\Throwable $e) {
+            // Fallback gracioso pra modo offline se OpenAI falhar
+            \Log::warning('[DocVault] OpenAI falhou, caindo pra offline: ' . $e->getMessage());
+            $fallback = $this->buildOfflineReply($question, $snippets);
+            $fallback['reply'] = "⚠️ IA indisponível (" . substr($e->getMessage(), 0, 80) . "). Modo offline:\n\n" . $fallback['reply'];
+            return $fallback;
+        }
     }
 }
