@@ -7,8 +7,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/DashboardIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -91,14 +91,9 @@ const tipoMarcacaoIcon: Record<string, { icon: string; color: string }> = {
 };
 
 export default function DashboardIndex({ kpis, aprovacoes, atividade_recente, serie_7dias }: Props) {
-  const moduleNav = useModuleNav('PontoWr2');
-
   return (
-    <AppShell
-      title="Dashboard · Ponto WR2"
-      breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Dashboard' }]}
-      moduleNav={moduleNav}
-    >
+    <>
+      <Head title="Dashboard · Ponto WR2" />
       <div className="mx-auto max-w-7xl p-6 space-y-6">
         <header>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -186,9 +181,15 @@ export default function DashboardIndex({ kpis, aprovacoes, atividade_recente, se
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+DashboardIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Dashboard' }]}>
+    {page}
+  </AppShell>
+);
 
 // ============================================================================
 // StatCard

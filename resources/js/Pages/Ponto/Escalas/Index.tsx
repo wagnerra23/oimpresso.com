@@ -7,8 +7,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/EscalasIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
-import { Link, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { CalendarDays, Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -37,14 +37,9 @@ interface Paginated {
 interface Props { escalas: Paginated; }
 
 export default function EscalasIndex({ escalas }: Props) {
-  const moduleNav = useModuleNav('PontoWr2');
-
   return (
-    <AppShell
-      title="Escalas"
-      breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Escalas' }]}
-      moduleNav={moduleNav}
-    >
+    <>
+      <Head title="Escalas" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -123,6 +118,12 @@ export default function EscalasIndex({ escalas }: Props) {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+EscalasIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Escalas' }]}>
+    {page}
+  </AppShell>
+);

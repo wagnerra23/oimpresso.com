@@ -8,9 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ColaboradoresIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
-import { Link, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Search, Users } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -40,7 +39,6 @@ interface Props {
 }
 
 export default function ColaboradoresIndex({ colaboradores, search }: Props) {
-  const moduleNav = useModuleNav('PontoWr2');
   const [q, setQ] = useState(search ?? '');
 
   useEffect(() => {
@@ -55,11 +53,8 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
   }, [q, search]);
 
   return (
-    <AppShell
-      title="Colaboradores"
-      breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Colaboradores' }]}
-      moduleNav={moduleNav}
-    >
+    <>
+      <Head title="Colaboradores" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -143,6 +138,12 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+ColaboradoresIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Colaboradores' }]}>
+    {page}
+  </AppShell>
+);

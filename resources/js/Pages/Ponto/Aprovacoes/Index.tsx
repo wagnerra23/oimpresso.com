@@ -8,9 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/AprovacoesIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
-import { Link, router } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
@@ -167,14 +166,9 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
   };
 
 
-  const moduleNav = useModuleNav('PontoWr2');
-
   return (
-    <AppShell
-      title="Aprovações · Ponto WR2"
-      breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Aprovações' }]}
-      moduleNav={moduleNav}
-    >
+    <>
+      <Head title="Aprovações · Ponto WR2" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -471,9 +465,15 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
           </form>
         </DialogContent>
       </Dialog>
-    </AppShell>
+    </>
   );
 }
+
+AprovacoesIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Aprovações' }]}>
+    {page}
+  </AppShell>
+);
 
 function tipoLabel(value: string, tipos: Array<{ value: string; label: string }>): string {
   return tipos.find((t) => t.value === value)?.label ?? value;
