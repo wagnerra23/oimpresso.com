@@ -73,12 +73,6 @@ class DataController extends Controller
                     );
 
                     $sub->url(
-                        action([\Modules\Officeimpresso\Http\Controllers\OfficeimpressoController::class, 'generateQr']),
-                        __('officeimpresso::lang.catalogue_qr'),
-                        ['icon' => 'fa fas fa-qrcode', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'catalogue-qr']
-                    );
-
-                    $sub->url(
                         url('/officeimpresso/docs'),
                         __('officeimpresso::lang.documentation'),
                         ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'docs']
