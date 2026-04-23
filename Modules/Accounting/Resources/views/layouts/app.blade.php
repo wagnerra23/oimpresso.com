@@ -69,7 +69,7 @@ $whitelist = ['127.0.0.1', '::1'];
 
             <div class="tw-flex-1 tw-overflow-y-auto tw-h-screen" id="scrollable-container">
                 <!-- Content Wrapper. Contains page content -->
-                <div class="@if (!$pos_layout) content-wrapper @endif">
+                <div style="margin-left: 0;">
                     <!-- empty div for vuejs -->
                     <div id="app">
                         @yield('vue')
