@@ -32,7 +32,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Project/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-PROJ-002 · Autorização Spatie `project.create_project`
 
@@ -43,7 +43,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('project.create_project')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Project/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-PROJ-003 · Autorização Spatie `project.edit_project`
 
@@ -54,7 +54,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('project.edit_project')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Project/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-PROJ-004 · Autorização Spatie `project.delete_project`
 
@@ -65,4 +65,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('project.delete_project')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Project/Tests/Feature/PermissionsTest` (stub pendente)
