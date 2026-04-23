@@ -1,3 +1,11 @@
+// @docvault
+//   tela: /ponto/configuracoes
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-005
+//   rules: R-PONT-001, R-PONT-006
+//   tests: Modules/PontoWr2/Tests/Feature/ConfiguracoesIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link } from '@inertiajs/react';
 import { Clock, FileSpreadsheet, PiggyBank, Settings, ShieldCheck } from 'lucide-react';

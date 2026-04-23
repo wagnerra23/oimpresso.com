@@ -1,3 +1,11 @@
+// @docvault
+//   tela: /ponto
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-006
+//   rules: R-PONT-001, R-PONT-002
+//   tests: Modules/PontoWr2/Tests/Feature/DashboardIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link } from '@inertiajs/react';
 import {

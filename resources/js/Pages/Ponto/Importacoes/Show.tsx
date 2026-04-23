@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/importacoes/show
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-011
+//   rules: R-PONT-001
+//   adrs: tech/0001
+//   tests: Modules/PontoWr2/Tests/Feature/ImportacoesShowTest
+
 import AppShell from '@/Layouts/AppShell';
 import { router } from '@inertiajs/react';
 import { useEffect } from 'react';

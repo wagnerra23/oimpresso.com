@@ -1,3 +1,11 @@
+// @docvault
+//   tela: /hrm/settings
+//   module: Essentials
+//   status: implementada
+//   rules: R-ESSE-001
+//   adrs: arq/0001
+//   tests: Modules/Essentials/Tests/Feature/SettingsIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';

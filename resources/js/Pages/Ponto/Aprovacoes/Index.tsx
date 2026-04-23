@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/aprovacoes
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-001
+//   rules: R-PONT-001, R-PONT-004
+//   adrs: arq/0001
+//   tests: Modules/PontoWr2/Tests/Feature/AprovacoesIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';

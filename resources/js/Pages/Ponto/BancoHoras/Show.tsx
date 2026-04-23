@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/banco-horas/show
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-003
+//   rules: R-PONT-001
+//   adrs: arq/0001
+//   tests: Modules/PontoWr2/Tests/Feature/BancoHorasShowTest
+
 import AppShell from '@/Layouts/AppShell';
 import { router, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';

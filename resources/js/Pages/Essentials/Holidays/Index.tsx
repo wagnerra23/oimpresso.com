@@ -1,3 +1,10 @@
+// @docvault
+//   tela: /hrm/holiday
+//   module: Essentials
+//   status: implementada
+//   rules: R-ESSE-001
+//   tests: Modules/Essentials/Tests/Feature/HolidaysIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';

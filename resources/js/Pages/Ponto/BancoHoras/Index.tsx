@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/banco-horas
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-002
+//   rules: R-PONT-001
+//   adrs: arq/0001
+//   tests: Modules/PontoWr2/Tests/Feature/BancoHorasIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { ArrowRight, PiggyBank, TrendingDown, TrendingUp, Users } from 'lucide-react';
