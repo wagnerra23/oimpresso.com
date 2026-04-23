@@ -90,15 +90,23 @@ abstract class PontoTestCase extends TestCase
 
     /**
      * Envia request com header Inertia para garantir JSON response.
+     *
+     * X-Inertia-Version precisa bater com o que HandleInertiaRequests::version()
+     * calcula (md5 de build-inertia/manifest.json). Sem bater, o Inertia retorna
+     * 409 + X-Inertia-Location pra forcar reload no client.
      */
     protected function inertiaGet(string $url, array $queryParams = [])
     {
         if (!empty($queryParams)) {
             $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($queryParams);
         }
+
+        $manifestPath = public_path('build-inertia/manifest.json');
+        $version = file_exists($manifestPath) ? md5_file($manifestPath) : '1';
+
         return $this->withHeaders([
             'X-Inertia'         => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => $version,
             'Accept'            => 'text/html',
         ])->get($url);
     }
