@@ -105,8 +105,19 @@ Recomendação: **entrar primeiro em produção Laravel 9.51**. Quando upgrade a
 
 ## Sinais de conclusão
 
-- [ ] `composer require sentry/sentry-laravel` feito (1 min)
-- [ ] DSN configurado no `.env` (Wagner cria conta sentry.io)
-- [ ] `sentry:test` manda evento teste
-- [ ] `before_send` configurado pra scrubbing LGPD
+- [x] `composer require sentry/sentry-laravel` feito (sentry-laravel ^4.25 instalado em Laravel 9.52.4)
+- [x] `vendor:publish` gerou `config/sentry.php`
+- [x] `.env` com `SENTRY_LARAVEL_DSN=` (vazio — aguardando conta), `SENTRY_TRACES_SAMPLE_RATE=0.2`, `SENTRY_SEND_DEFAULT_PII=false`
+- [ ] **Wagner cria conta em sentry.io e preenche DSN**
+- [ ] `php artisan sentry:test` manda evento teste (após DSN preenchido)
 - [ ] Dashboard Sentry mostra eventos reais da semana
+- [ ] `before_send` configurado pra scrubbing LGPD adicional (opcional — `send_default_pii=false` já cobre a maior parte)
+
+## Estado da instalação (2026-04-22)
+
+- **Pacote**: `sentry/sentry-laravel ^4.25` no composer.json ✅
+- **Config**: `config/sentry.php` com defaults OK pra LGPD (pii=false) ✅
+- **Integração**: ExceptionHandler do Laravel 9 integra automaticamente via ServiceProvider ✅
+- **DSN**: vazio no `.env` — sem efeito até preencher ✅ (não quebra nada)
+
+Quando DSN for preenchido, Sentry passa a capturar exceptions automaticamente. Zero código adicional necessário pro fluxo básico.
