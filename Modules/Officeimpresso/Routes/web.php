@@ -16,9 +16,9 @@
 Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->prefix('officeimpresso')->group(function () {
 
 
-    // Route::get('catalogue-qr', [\Modules\Officeimpresso\Http\Controllers\OfficeimpressoController::class, 'generateQr']);
-    // Route::get('/catalogue/{business_id}/{location_id}', [\Modules\Officeimpresso\Http\Controllers\OfficeimpressoController::class, 'index']);
-    // Route::get('/show-catalogue/{business_id}/{product_id}', [\Modules\Officeimpresso\Http\Controllers\OfficeimpressoController::class, 'show']);
+    Route::get('catalogue-qr', [\Modules\Officeimpresso\Http\Controllers\OfficeimpressoController::class, 'generateQr'])->name('officeimpresso.catalogue-qr');
+    Route::get('/catalogue/{business_id}/{location_id}', [\Modules\Officeimpresso\Http\Controllers\OfficeimpressoController::class, 'index']);
+    Route::get('/show-catalogue/{business_id}/{product_id}', [\Modules\Officeimpresso\Http\Controllers\OfficeimpressoController::class, 'show']);
 
 
     Route::get('install', [\Modules\Officeimpresso\Http\Controllers\InstallController::class, 'index']);
