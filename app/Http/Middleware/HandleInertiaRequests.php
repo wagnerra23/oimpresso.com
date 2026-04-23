@@ -16,9 +16,22 @@ class HandleInertiaRequests extends Middleware
     /**
      * Versão de assets — usada pelo Inertia para invalidar cache do cliente
      * quando o bundle muda.
+     *
+     * IMPORTANTE: o default do Inertia lê `public/mix-manifest.json` (legado
+     * do UltimatePOS com Laravel Mix). Esse arquivo muda quando rodamos `npm
+     * run production` do core, mesmo sem mexer no bundle Inertia — causando
+     * version mismatch em toda navegação → 409 + full page reload.
+     *
+     * Solução: usar APENAS o manifest do nosso build Inertia
+     * (`public/build-inertia/manifest.json`). Assim, a versão só muda quando
+     * o bundle Inertia muda de fato.
      */
     public function version(Request $request): ?string
     {
+        $inertiaManifest = public_path('build-inertia/manifest.json');
+        if (file_exists($inertiaManifest)) {
+            return md5_file($inertiaManifest);
+        }
         return parent::version($request);
     }
 
