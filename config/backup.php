@@ -215,7 +215,8 @@ return [
     'monitor_backups' => [
         [
             'name' => env('APP_NAME', 'laravel-backup'),
-            'disks' => env('BACKUP_DISK', 'local'),
+            // spatie/laravel-backup v10 exige array de disks (era string em v8)
+            'disks' => [env('BACKUP_DISK', 'local')],
             'health_checks' => [
                 \Spatie\Backup\Tasks\Monitor\HealthChecks\MaximumAgeInDays::class => 1,
                 \Spatie\Backup\Tasks\Monitor\HealthChecks\MaximumStorageInMegabytes::class => 5000,
