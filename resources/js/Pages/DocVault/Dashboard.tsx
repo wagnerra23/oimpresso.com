@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /docs
+//   module: DocVault
+//   status: implementada
+//   stories: US-DOCVAULT-001
+//   rules: R-DOCVAULT-003
+//   adrs: 0004
+//   tests: Modules/DocVault/Tests/Feature/DashboardTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link } from '@inertiajs/react';
 import {

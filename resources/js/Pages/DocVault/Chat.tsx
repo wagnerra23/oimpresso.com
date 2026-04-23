@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /docs/chat
+//   module: DocVault
+//   status: implementada
+//   stories: US-DOCVAULT-005
+//   rules: R-DOCVAULT-005
+//   adrs: 0003, tech/0001, ui/0001
+//   tests: Modules/DocVault/Tests/Feature/ChatTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { FormEvent, useEffect, useRef, useState } from 'react';
