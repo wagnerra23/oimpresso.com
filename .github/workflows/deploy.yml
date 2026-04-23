@@ -1,0 +1,139 @@
+name: Deploy to Hostinger
+
+# Manual trigger only (workflow_dispatch) — evita deploy acidental em push.
+# Dispara via: github.com/wagnerra23/oimpresso.com/actions/workflows/deploy.yml → "Run workflow"
+on:
+  workflow_dispatch:
+    inputs:
+      skip_backup:
+        description: 'Pular backup? (risk)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      skip_migrate:
+        description: 'Pular artisan migrate?'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy L13 to Hostinger oimpresso.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: SSH helper
+        run: |
+          cat > /tmp/ssh_exec.sh <<'EOF'
+          #!/bin/bash
+          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=20 \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "$@"
+          EOF
+          chmod +x /tmp/ssh_exec.sh
+
+      - name: Pré-deploy check — server state
+        run: |
+          echo "=== PHP ==="
+          /tmp/ssh_exec.sh "php -v | head -1"
+          echo "=== Path ==="
+          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && pwd && git branch --show-current"
+          echo "=== Laravel atual ==="
+          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && grep '\"laravel/framework\"' composer.json"
+          echo "=== Disco livre ==="
+          /tmp/ssh_exec.sh "df -h /home/u906587222 | tail -1"
+
+      - name: Backup (arquivos + DB)
+        if: ${{ inputs.skip_backup != 'true' }}
+        run: |
+          TS=$(date +%Y%m%d-%H%M)
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            tar czf ~/backup-predeploy-${TS}.tar.gz \
+              --exclude='node_modules' \
+              --exclude='vendor' \
+              --exclude='storage/logs' \
+              . 2>&1 | tail -3 &&
+            ls -lh ~/backup-predeploy-${TS}.tar.gz
+          "
+          echo "Backup arquivos feito: ~/backup-predeploy-${TS}.tar.gz"
+
+      - name: Maintenance mode ON
+        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan down --retry=60 --refresh=60 || true"
+
+      - name: Git pull — branch 6.7-bootstrap
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            git fetch origin &&
+            git checkout 6.7-bootstrap &&
+            git reset --hard origin/6.7-bootstrap &&
+            git log --oneline -3
+          "
+
+      - name: Composer install (produção, sem dev)
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            composer install --no-dev --optimize-autoloader --no-interaction --no-scripts 2>&1 | tail -20 &&
+            composer dump-autoload --optimize --no-dev 2>&1 | tail -3
+          "
+
+      - name: Artisan migrate (se necessário)
+        if: ${{ inputs.skip_migrate != 'true' }}
+        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan migrate --force 2>&1 | tail -20"
+
+      - name: Clear caches + re-cache
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            php artisan config:clear &&
+            php artisan route:clear &&
+            php artisan view:clear &&
+            php artisan cache:clear &&
+            php artisan config:cache &&
+            php artisan route:cache
+          "
+
+      - name: Package discover
+        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan package:discover --ansi 2>&1 | tail -10"
+
+      - name: Permissions storage + bootstrap/cache
+        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && chmod -R 775 storage bootstrap/cache 2>&1 | tail -3 || true"
+
+      - name: Maintenance mode OFF
+        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan up"
+
+      - name: Smoke test — HTTPS home
+        run: |
+          echo "=== curl https://oimpresso.com/login ==="
+          curl -sL -o /dev/null -w "HTTP %{http_code} (%{time_total}s)\n" https://oimpresso.com/login
+          curl -sL https://oimpresso.com/login | grep -i "Login to your\|Bem-vindo\|Username" | head -3 || echo "⚠️  marker nao encontrado (pode ser redirect)"
+
+      - name: Verify Laravel version deployed
+        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan --version"
+
+      - name: Deploy SUCCESS
+        run: |
+          echo "✅ Deploy concluído."
+          echo "📦 Backup: ~/backup-predeploy-*.tar.gz no servidor (se nao pulado)"
+          echo "🌐 Testar manualmente: https://oimpresso.com"
