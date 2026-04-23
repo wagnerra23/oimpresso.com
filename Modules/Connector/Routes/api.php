@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:api', 'timezone')->prefix('connector/api')->group(function () {
+Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connector.')->group(function () {
     Route::resource('business-location', Modules\Connector\Http\Controllers\Api\BusinessLocationController::class)->only('index', 'show');
 
     Route::resource('contactapi', Modules\Connector\Http\Controllers\Api\ContactController::class)->only('index', 'show', 'store', 'update');
@@ -73,7 +73,7 @@ Route::middleware('auth:api', 'timezone')->prefix('connector/api')->group(functi
     Route::get('new_contactapi', [Modules\Connector\Http\Controllers\Api\ProductSellController::class, 'newContactApi'])->name('new_contactapi');
 });
 
-Route::middleware('auth:api', 'timezone')->prefix('connector/api/crm')->group(function () {
+Route::middleware('auth:api', 'timezone')->prefix('connector/api/crm')->name('connector.crm.')->group(function () {
     Route::resource('follow-ups', 'Modules\Connector\Http\Controllers\Api\Crm\FollowUpController')->only('index', 'store', 'show', 'update');
 
     Route::get('follow-up-resources', [Modules\Connector\Http\Controllers\Api\Crm\FollowUpController::class, 'getFollowUpResources']);
@@ -83,7 +83,7 @@ Route::middleware('auth:api', 'timezone')->prefix('connector/api/crm')->group(fu
     Route::post('call-logs', [Modules\Connector\Http\Controllers\Api\Crm\CallLogsController::class, 'saveCallLogs']);
 });
 
-Route::middleware('auth:api', 'timezone')->prefix('connector/api')->group(function () {
+Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connector.fieldforce.')->group(function () {
     Route::get('field-force', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'index']);
     Route::post('field-force/create', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'store']);
     Route::post('field-force/update-visit-status/{id}', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'updateStatus']);
