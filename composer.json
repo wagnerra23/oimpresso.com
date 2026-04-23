@@ -51,6 +51,8 @@
         "knuckleswtf/scribe": "^4.14",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^7.0",
+        "pestphp/pest": "^2.34",
+        "pestphp/pest-plugin-laravel": "^2.3",
         "phpunit/phpunit": "^10.0",
         "spatie/laravel-ignition": "^2.0"
     },
@@ -99,6 +101,7 @@
         "optimize-autoloader": true,
         "allow-plugins": {
             "ocramius/package-versions": true,
+            "pestphp/pest-plugin": true,
             "php-http/discovery": true
         },
         "platform": {

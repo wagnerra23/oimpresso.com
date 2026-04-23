@@ -1,35 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="random"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
 >
     <testsuites>
         <testsuite name="Unit">
-            <directory suffix="Test.php">./tests/Unit</directory>
+            <directory>./tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
-            <directory suffix="Test.php">./tests/Feature</directory>
-        </testsuite>
-        <testsuite name="PontoWr2">
-            <directory suffix="Test.php">./Modules/PontoWr2/Tests/Unit</directory>
-            <directory suffix="Test.php">./Modules/PontoWr2/Tests/Feature</directory>
-        </testsuite>
-        <testsuite name="Essentials">
-            <directory suffix="Test.php">./Modules/Essentials/Tests/Feature</directory>
+            <directory>./tests/Feature</directory>
+            <directory>./Modules/PontoWr2/Tests/Unit</directory>
+            <directory>./Modules/PontoWr2/Tests/Feature</directory>
+            <directory>./Modules/Essentials/Tests/Feature</directory>
         </testsuite>
     </testsuites>
-    <coverage processUncoveredFiles="true">
+    <source>
         <include>
-            <directory suffix=".php">./app</directory>
+            <directory>./app</directory>
+            <directory>./Modules</directory>
         </include>
-    </coverage>
+        <exclude>
+            <directory>./Modules/*/Tests</directory>
+        </exclude>
+    </source>
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
-        <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
-        <!-- <env name="DB_DATABASE" value=":memory:"/> -->
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
