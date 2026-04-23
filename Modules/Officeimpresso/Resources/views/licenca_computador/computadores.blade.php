@@ -2,134 +2,143 @@
 
 @section('title', __('officeimpresso::lang.licenca_officeimpresso'))
 
+@section('css')
+@include('officeimpresso::layouts.partials.design-system')
+@endsection
+
 @section('content')
 @include('officeimpresso::layouts.nav')
-<!-- Content Header (Page header) -->
-<section class="content-header">
-    <h1>@lang('officeimpresso::lang.licenca_officeimpresso')</h1>
-</section>
 
-<!-- Main content -->
-<section class="content no-print">
-    <div class="row">
-        <!-- Bloco de Dados da Empresa -->
-        <div class="col-md-12 col-lg-12">
-            @component('components.widget', ['class' => 'box-primary', 'title' => __('officeimpresso::lang.dados_empresa')])
-            <div class="box box-success hvr-grow-shadow">
-                <div class="box-header with-border text-center">
-                    <h2 class="box-title">{{ $empresa->name }}</h2>
-                </div>           
-                    
-                <div class="box-body text-center">                  
-                    <p><i class="fa fa-user mr-2"></i> {{ $empresa->razao_social }}</p>
-                    <p><i class="fa fa-map-marker mr-2"></i> {{ $empresa->rua }} </p>
-                    <p><i class="fa fa-phone mr-2"></i> {{ $empresa->telefone }} </p>
-                    <p><i class="fa fa-credit-card mr-2"></i> Versão Obrigatória: <strong>{{ $empresa->versao_obrigatoria }}</strong></p>
-                    <p><i class="fa fa-credit-card mr-2"></i> Versão Disponível: <strong>{{ $empresa->versao_disponivel }}</strong></p>
-                    <p><i class="fa fa-database mr-2"></i> Caminho Banco do Servidor: <strong>{{ $empresa->caminho_banco_servidor }} </strong></p>
-                    <p><i class="fa fa-calendar mr-2"></i> Último Acesso: <strong>{{ $empresa->dt_ultimo_acesso }}</strong></p>   
-                                       
-                    @if(isset($package) && !empty($package))
-                        <i class="fa fa-desktop mr-2"></i> @lang('superadmin::lang.officeimpresso_limitemaquinas') : 
-                        <strong>{{ $package->officeimpresso_limitemaquinas == 0 ? 'Ilimitado' : $package->officeimpresso_limitemaquinas }}</strong><br/>
-                    @endif
+<div class="oi-page">
+    <div class="oi-page-header">
+        <h1>Licenças Office Impresso</h1>
+        <div class="subtitle">Gestão de desktops Delphi por empresa</div>
+    </div>
 
-                    @if(isset($active) && !empty($active))
-                        @lang('superadmin::lang.end_date') : {{ @format_date($active->end_date) }} <br/>
-                        @lang('superadmin::lang.remaining', ['days' => \Carbon::today()->diffInDays($active->end_date)])
-                    @endif                    
+    {{-- Dados da empresa --}}
+    <div class="oi-card">
+        <div class="hdr">
+            <h3><i class="fa fa-building"></i> Dados da Empresa</h3>
+            @if($empresa->officeimpresso_bloqueado)
+                <span class="oi-pill oi-pill-blocked"><i class="fa fa-lock"></i> Bloqueada</span>
+            @else
+                <span class="oi-pill oi-pill-ok"><i class="fa fa-check-circle"></i> Ativa</span>
+            @endif
+        </div>
+        <div class="body">
+            <div class="oi-company">
+                <h2>{{ $empresa->name }}</h2>
+                <p><i class="fa fa-user"></i> {{ $empresa->razao_social }}</p>
+                <p><i class="fa fa-map-marker"></i> {{ $empresa->rua }}</p>
+                <p><i class="fa fa-phone"></i> {{ $empresa->telefone }}</p>
+                <p><i class="fa fa-code-branch"></i> Versão Obrigatória: <strong>{{ $empresa->versao_obrigatoria }}</strong></p>
+                <p><i class="fa fa-download"></i> Versão Disponível: <strong>{{ $empresa->versao_disponivel }}</strong></p>
+                <p><i class="fa fa-database"></i> Caminho Banco: <strong>{{ $empresa->caminho_banco_servidor ?: '—' }}</strong></p>
+                <p><i class="fa fa-clock"></i> Último Acesso: <strong>{{ $empresa->dt_ultimo_acesso ?: '—' }}</strong></p>
 
-                </div>
-                
-                <!-- Botões de ação -->
-                <div class="text-center mt-3">
-                    <a href="{{ action('\Modules\Superadmin\Http\Controllers\SubscriptionController@index', [$empresa->id]) }}" class="btn btn-primary mx-2">
+                @if(isset($package) && !empty($package))
+                    <p><i class="fa fa-desktop"></i> @lang('superadmin::lang.officeimpresso_limitemaquinas'):
+                        <strong>{{ $package->officeimpresso_limitemaquinas == 0 ? 'Ilimitado' : $package->officeimpresso_limitemaquinas }}</strong>
+                    </p>
+                @endif
+
+                @if(isset($active) && !empty($active))
+                    <p><i class="fa fa-calendar"></i> @lang('superadmin::lang.end_date'): {{ @format_date($active->end_date) }}</p>
+                    <p><i class="fa fa-hourglass-half"></i> @lang('superadmin::lang.remaining', ['days' => \Carbon::today()->diffInDays($active->end_date)])</p>
+                @endif
+
+                <div class="actions">
+                    <a href="{{ action('\Modules\Superadmin\Http\Controllers\SubscriptionController@index', [$empresa->id]) }}" class="oi-btn oi-btn-primary">
                         <i class="fa fa-box"></i> Ver pacote
                     </a>
-                
-                    <a href="{{ action('\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController@businessupdate', [$empresa->id]) }}" class="btn btn-primary mx-2" data-toggle="modal" data-target="#editBusinessModal">
+                    <a href="#" class="oi-btn oi-btn-ghost" data-toggle="modal" data-target="#editBusinessModal">
                         <i class="fa fa-edit"></i> Editar
                     </a>
-                    
                     @if($empresa->officeimpresso_bloqueado)
-                        <a href="{{ route('business.bloqueado', $empresa->id) }}" class="btn btn-danger mx-2">
-                            <i class="fa fa-lock"></i> Bloqueado
+                        <a href="{{ route('business.bloqueado', $empresa->id) }}" class="oi-btn oi-btn-danger">
+                            <i class="fa fa-lock"></i> Bloqueada
                         </a>
                     @else
-                        <a href="{{ route('business.bloqueado', $empresa->id) }}" class="btn btn-success mx-2">
-                            <i class="fa fa-unlock"></i> Liberado
+                        <a href="{{ route('business.bloqueado', $empresa->id) }}" class="oi-btn oi-btn-success">
+                            <i class="fa fa-unlock"></i> Liberada
                         </a>
                     @endif
                 </div>
-
             </div>
-            @endcomponent
         </div>
+    </div>
 
-        <!-- Bloco de Computadores -->
-        <div class="col-md-12 col-lg-12">
-            @component('components.widget', ['class' => 'box-primary', 'title' => __('officeimpresso::lang.computadores')])
+    {{-- Tabela de computadores --}}
+    <div class="oi-card">
+        <div class="hdr">
+            <h3><i class="fa fa-desktop"></i> Computadores <small style="color:#6b7280;">({{ count($licencas) }})</small></h3>
+            <a href="{{ url('/officeimpresso/licenca_log?business_id=' . $empresa->id) }}" class="oi-btn oi-btn-ghost oi-btn-xs">
+                <i class="fa fa-clipboard-list"></i> Ver log da empresa
+            </a>
+        </div>
+        <div class="body no-pad">
             <div class="table-responsive">
-                <table class="table table-bordered table-striped" id="computadores_table">
+                <table class="oi-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>@lang('officeimpresso::lang.dt_cadastro')</th>
-                            <th>@lang('officeimpresso::lang.descricao')</th>
-                            <th>@lang('officeimpresso::lang.exe_path')</th>
-                            <th>@lang('officeimpresso::lang.exe_versao')</th>
-                            <th>@lang('officeimpresso::lang.ip_interno')</th>
-                            <th>@lang('officeimpresso::lang.exe_caminho_banco')</th>
-                            <th>@lang('officeimpresso::lang.token')</th>
-                            <th>@lang('officeimpresso::lang.dt_ultimoacesso')</th>
-                            <th>@lang('messages.action')</th>
+                            <th>#</th>
+                            <th>Cadastro</th>
+                            <th>Máquina</th>
+                            <th>Executável</th>
+                            <th>Versão</th>
+                            <th>IP</th>
+                            <th>Banco</th>
+                            <th>Último Acesso</th>
+                            <th>Status</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($licencas as $licenca)
                             <tr>
-                                <td>{{ $licenca->id }}</td>
-                                <td>{{ $licenca->dt_cadastro }}</td>
-                                <td>{{ $licenca->user_win }}</td>
-                                <td>{{ $licenca->pasta_instalacao }}</td>
-                                <td>{{ $licenca->versao_exe }}</td>
-                                <td>{{ $licenca->ip_interno }}</td>
-                                <td>{{ $licenca->caminho_banco }}</td>
-                                <td>{{ $licenca->token }}</td>
-                                <td>{{ $licenca->dt_ultimo_acesso }}</td>
+                                <td class="text-mono">{{ $licenca->id }}</td>
+                                <td class="text-mono">{{ $licenca->dt_cadastro }}</td>
+                                <td><strong>{{ $licenca->user_win ?: '—' }}</strong></td>
+                                <td class="text-mono" title="{{ $licenca->pasta_instalacao }}">{{ \Illuminate\Support\Str::limit($licenca->pasta_instalacao, 30) }}</td>
+                                <td class="text-mono">{{ $licenca->versao_exe ?: '—' }}</td>
+                                <td class="text-mono">{{ $licenca->ip_interno ?: '—' }}</td>
+                                <td class="text-mono" title="{{ $licenca->caminho_banco }}">{{ \Illuminate\Support\Str::limit($licenca->caminho_banco, 20) }}</td>
+                                <td class="text-mono">{{ $licenca->dt_ultimo_acesso ?: '—' }}</td>
                                 <td>
-                                    <div class="btn-group" role="group">
-                                        @if($licenca->bloqueado)
-                                            <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}" class="btn btn-danger btn-xs" title="Clique pra desbloquear">
-                                                <i class="fas fa-lock"></i> @lang('officeimpresso::lang.bloqueado')
-                                            </a>
-                                        @else
-                                            <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}" class="btn btn-success btn-xs" title="Clique pra bloquear">
-                                                <i class="fas fa-unlock"></i> @lang('officeimpresso::lang.liberado')
-                                            </a>
-                                        @endif
-                                        <a href="{{ url('/officeimpresso/licenca_log?licenca_id=' . $licenca->id) }}" class="btn btn-info btn-xs" title="Ver log de acesso deste computador">
-                                            <i class="fas fa-clipboard-list"></i> Log
-                                        </a>
-                                    </div>
+                                    @if($licenca->bloqueado)
+                                        <span class="oi-pill oi-pill-blocked">Bloqueada</span>
+                                    @else
+                                        <span class="oi-pill oi-pill-ok">Ativa</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}"
+                                       class="oi-btn {{ $licenca->bloqueado ? 'oi-btn-danger' : 'oi-btn-success' }} oi-btn-xs"
+                                       title="{{ $licenca->bloqueado ? 'Clique pra desbloquear' : 'Clique pra bloquear' }}">
+                                        <i class="fas fa-{{ $licenca->bloqueado ? 'lock' : 'unlock' }}"></i>
+                                    </a>
+                                    <a href="{{ url('/officeimpresso/licenca_log?licenca_id=' . $licenca->id) }}"
+                                       class="oi-btn oi-btn-ghost oi-btn-xs"
+                                       title="Ver log de acesso desta máquina">
+                                        <i class="fas fa-clipboard-list"></i> Log
+                                    </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center">@lang('officeimpresso::lang.no_records_found')</td>
+                                <td colspan="10" style="text-align: center; padding: 30px; color: #9ca3af;">
+                                    @lang('officeimpresso::lang.no_records_found')
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-            @endcomponent
         </div>
     </div>
-</section>
+</div>
 
-@stop
-
-<!-- Modal de Edição de Dados da Empresa -->
+{{-- Modal de edição --}}
 <div class="modal fade" id="editBusinessModal" tabindex="-1" role="dialog" aria-labelledby="editBusinessModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -161,18 +170,12 @@
     </div>
 </div>
 
-
+@endsection
 
 @section('javascript')
-<script type="text/javascript">
-
-    $(document).ready(function() {
-        $('#licencas_table').DataTable();
-        $('#empresa_table').DataTable();
-    });
-
+<script>
     @if(session('status'))
-        $('<div class="alert alert-info">{{ session('status') }}</div>').insertBefore('.content-header');
+        $('<div class="alert alert-info">{{ session('status') }}</div>').insertBefore('.oi-page-header');
     @endif
 
     $('#editBusinessModal').on('hidden.bs.modal', function () {

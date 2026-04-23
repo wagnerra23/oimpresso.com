@@ -13,6 +13,14 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/officeimpresso', function (Request $request) {
-    return $request->user();
+Route::middleware('auth:api')->group(function () {
+    // Ping + user — endpoint existente (nao mexer)
+    Route::get('/officeimpresso', function (Request $request) {
+        return $request->user();
+    });
+
+    // Audit opt-in (Delphi futuro) — aditivo, nunca obrigatorio
+    Route::post('/officeimpresso/audit', [
+        \Modules\Officeimpresso\Http\Controllers\AuditController::class, 'store'
+    ])->name('api.officeimpresso.audit');
 });
