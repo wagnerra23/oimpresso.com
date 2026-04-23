@@ -32,7 +32,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Essentials/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-ESSE-002 · Autorização Spatie `essentials.crud_leave_type`
 
@@ -43,7 +43,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('essentials.crud_leave_type')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Essentials/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-ESSE-003 · Autorização Spatie `essentials.crud_all_leave`
 
@@ -54,7 +54,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('essentials.crud_all_leave')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Essentials/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-ESSE-004 · Autorização Spatie `essentials.crud_own_leave`
 
@@ -65,7 +65,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('essentials.crud_own_leave')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Essentials/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-ESSE-005 · Autorização Spatie `essentials.approve_leave`
 
@@ -76,7 +76,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('essentials.approve_leave')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Essentials/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-ESSE-006 · Autorização Spatie `essentials.crud_all_attendance`
 
@@ -87,7 +87,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('essentials.crud_all_attendance')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Essentials/Tests/Feature/PermissionsTest` (stub pendente)
 
 ### R-ESSE-007 · Autorização Spatie `essentials.view_own_attendance`
 
@@ -98,4 +98,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('essentials.view_own_attendance')`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/Essentials/Tests/Feature/PermissionsTest` (stub pendente)

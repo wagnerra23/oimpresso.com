@@ -1,3 +1,10 @@
+// @docvault
+//   tela: /essentials/messages
+//   module: Essentials
+//   status: implementada
+//   rules: R-ESSE-001
+//   tests: Modules/Essentials/Tests/Feature/MessagesIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';

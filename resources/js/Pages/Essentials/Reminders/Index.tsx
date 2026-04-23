@@ -1,3 +1,10 @@
+// @docvault
+//   tela: /essentials/reminder
+//   module: Essentials
+//   status: implementada
+//   rules: R-ESSE-001
+//   tests: Modules/Essentials/Tests/Feature/RemindersIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';

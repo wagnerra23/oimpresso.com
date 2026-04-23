@@ -1,3 +1,11 @@
+// @docvault
+//   tela: /ponto/relatorios
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-012
+//   rules: R-PONT-001, R-PONT-005
+//   tests: Modules/PontoWr2/Tests/Feature/RelatoriosIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';

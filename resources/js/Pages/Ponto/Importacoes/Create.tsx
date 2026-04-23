@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/importacoes/create
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-010
+//   rules: R-PONT-001
+//   adrs: tech/0001
+//   tests: Modules/PontoWr2/Tests/Feature/ImportacoesCreateTest
+
 import AppShell from '@/Layouts/AppShell';
 import { useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';

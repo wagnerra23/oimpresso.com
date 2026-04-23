@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/espelho
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-007
+//   rules: R-PONT-001, R-PONT-005
+//   adrs: ui/0001
+//   tests: Modules/PontoWr2/Tests/Feature/EspelhoIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { ClipboardList, Search, ArrowRight } from 'lucide-react';

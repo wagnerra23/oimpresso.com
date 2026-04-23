@@ -1,3 +1,10 @@
+// @docvault
+//   tela: /essentials/knowledge-base
+//   module: Essentials
+//   status: implementada
+//   rules: R-ESSE-001
+//   tests: Modules/Essentials/Tests/Feature/KnowledgeIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
