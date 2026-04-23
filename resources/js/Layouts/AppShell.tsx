@@ -23,7 +23,7 @@ import {
 import { Avatar, AvatarFallback } from '@/Components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { cn } from '@/Lib/utils';
-import { useAuth, useBusiness, useFlash, usePageProps } from '@/Hooks/usePageProps';
+import { useAuth, useAutoModuleNav, useBusiness, useFlash, usePageProps } from '@/Hooks/usePageProps';
 import ModuleTopNav from '@/Components/shared/ModuleTopNav';
 import type { MenuItem } from '@/Types';
 
@@ -64,6 +64,10 @@ export default function AppShell({ title, breadcrumb, moduleNav, children }: App
   const business = useBusiness();
   const flash = useFlash();
   const { url } = usePage();
+
+  // Auto-detecta topnav se page não passou moduleNav explícito
+  const autoModuleNav = useAutoModuleNav();
+  const effectiveModuleNav = moduleNav ?? autoModuleNav;
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -190,12 +194,12 @@ export default function AppShell({ title, breadcrumb, moduleNav, children }: App
 
           {/* ModuleTopNav: barra horizontal com sub-items do módulo — fonte
               independente da sidebar, alimentada por Resources/menus/topnav.php */}
-          {moduleNav && moduleNav.items.length > 0 && (
+          {effectiveModuleNav && effectiveModuleNav.items.length > 0 && (
             <ModuleTopNav
-              items={moduleNav.items}
-              activeHref={moduleNav.activeHref}
-              moduleLabel={moduleNav.moduleLabel}
-              moduleIcon={moduleNav.moduleIcon}
+              items={effectiveModuleNav.items}
+              activeHref={effectiveModuleNav.activeHref}
+              moduleLabel={effectiveModuleNav.moduleLabel}
+              moduleIcon={effectiveModuleNav.moduleIcon}
             />
           )}
 

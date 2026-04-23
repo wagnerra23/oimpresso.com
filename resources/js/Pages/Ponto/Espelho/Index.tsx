@@ -8,8 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/EspelhoIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
-import { Link, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { ClipboardList, Search, ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -37,18 +37,13 @@ interface Props {
 }
 
 export default function EspelhoIndex({ colaboradores, mes }: Props) {
-  const moduleNav = useModuleNav('PontoWr2');
-
   const onMesChange = (novoMes: string) => {
     router.get('/ponto/espelho', { mes: novoMes }, { preserveState: true, preserveScroll: true });
   };
 
   return (
-    <AppShell
-      title="Espelho de Ponto"
-      breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Espelho' }]}
-      moduleNav={moduleNav}
-    >
+    <>
+      <Head title="Espelho de Ponto" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -149,6 +144,12 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+EspelhoIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Espelho' }]}>
+    {page}
+  </AppShell>
+);

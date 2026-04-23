@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import type { MenuItem, SharedProps } from '@/Types';
+import type { MenuItem, ModuleTopNav, SharedProps } from '@/Types';
 
 export function usePageProps() {
   return usePage<SharedProps>().props;
@@ -40,5 +40,36 @@ export function useModuleNav(
     moduleLabel: entry.label,
     moduleIcon: entry.icon,
   };
+}
+
+/**
+ * Detecta automaticamente qual topnav mostrar baseado na URL atual.
+ * Usado pelo AppShell em persistent layout — não precisa cada page passar
+ * moduleNav manualmente.
+ *
+ * Ex: em `/ponto/espelho`, acha o topnav cujos items começam com `/ponto/`.
+ */
+export function useAutoModuleNav():
+  | { items: MenuItem[]; moduleLabel: string; moduleIcon?: string }
+  | undefined {
+  const { shell } = usePageProps();
+  const page = usePage();
+  const currentPath = page.url.split('?')[0]?.split('#')[0] ?? page.url;
+  const currentRoot = '/' + (currentPath.split('/')[1] ?? '');
+
+  if (!shell?.topnavs) return undefined;
+
+  for (const entry of Object.values(shell.topnavs as Record<string, ModuleTopNav>)) {
+    if (!entry?.items?.length) continue;
+    for (const item of entry.items) {
+      const href = item.href ?? '';
+      if (!href || href === '#') continue;
+      const itemRoot = '/' + (href.split('/')[1] ?? '');
+      if (itemRoot === currentRoot) {
+        return { items: entry.items, moduleLabel: entry.label, moduleIcon: entry.icon };
+      }
+    }
+  }
+  return undefined;
 }
 

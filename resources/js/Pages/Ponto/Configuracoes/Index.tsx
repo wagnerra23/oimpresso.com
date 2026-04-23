@@ -7,8 +7,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ConfiguracoesIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { Clock, FileSpreadsheet, PiggyBank, Settings, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -52,14 +52,9 @@ interface Props {
 }
 
 export default function ConfiguracoesIndex({ config }: Props) {
-  const moduleNav = useModuleNav('PontoWr2');
-
   return (
-    <AppShell
-      title="Configurações"
-      breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Configurações' }]}
-      moduleNav={moduleNav}
-    >
+    <>
+      <Head title="Configurações" />
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -140,9 +135,15 @@ export default function ConfiguracoesIndex({ config }: Props) {
           </Card>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+ConfiguracoesIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Configurações' }]}>
+    {page}
+  </AppShell>
+);
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (

@@ -8,8 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/BancoHorasIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
-import { Link, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { ArrowRight, PiggyBank, TrendingDown, TrendingUp, Users } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -44,14 +44,9 @@ interface Props {
 }
 
 export default function BancoHorasIndex({ saldos, totais }: Props) {
-  const moduleNav = useModuleNav('PontoWr2');
-
   return (
-    <AppShell
-      title="Banco de Horas"
-      breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Banco de Horas' }]}
-      moduleNav={moduleNav}
-    >
+    <>
+      <Head title="Banco de Horas" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -120,9 +115,15 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </>
   );
 }
+
+BancoHorasIndex.layout = (page: ReactNode) => (
+  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Banco de Horas' }]}>
+    {page}
+  </AppShell>
+);
 
 function Stat({
   label,
