@@ -28,6 +28,10 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
         // Módulo (ver requisitos consolidados)
         Route::get('/modulos/{module}', [\Modules\DocVault\Http\Controllers\ModuloController::class, 'show'])->name('docvault.modulo');
 
+        // Memória unificada (CLAUDE.md + memory/ + ~/.claude/.../memory/)
+        Route::get('/memoria', [\Modules\DocVault\Http\Controllers\MemoriaController::class, 'index'])->name('docvault.memoria');
+        Route::get('/memoria/file', [\Modules\DocVault\Http\Controllers\MemoriaController::class, 'file'])->name('docvault.memoria.file');
+
         // Chat assistente (pergunte pro conhecimento do DocVault)
         Route::get('/chat', [\Modules\DocVault\Http\Controllers\ChatController::class, 'index'])->name('docvault.chat');
         Route::post('/chat/ask', [\Modules\DocVault\Http\Controllers\ChatController::class, 'ask'])->name('docvault.chat.ask');

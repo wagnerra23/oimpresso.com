@@ -2,6 +2,7 @@ import AppShell from '@/Layouts/AppShell';
 import { Link } from '@inertiajs/react';
 import {
   BookOpen,
+  BookText,
   FileText,
   FolderOpen,
   Inbox,
@@ -94,6 +95,11 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
             </p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/docs/memoria">
+                <BookText size={14} className="mr-1.5" /> Memória
+              </Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link href="/docs/chat">
                 <Sparkles size={14} className="mr-1.5" /> Chat

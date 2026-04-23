@@ -17,6 +17,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Pastas de memória lidas pela tela /docs/memoria
+    |--------------------------------------------------------------------------
+    | project_dir: memória do projeto, versionada no git (handoff, ADRs
+    |   globais, sessions, convenções). Exclui subpastas dedicadas que já
+    |   aparecem em outras telas (requisitos/, modulos/, memory_backup/).
+    |
+    | claude_dir: memória pessoal persistida pelo Claude Code entre sessões
+    |   (user profile, feedback, references). Vive fora do repo, no
+    |   perfil do usuário. Caminho derivado de USERPROFILE; configurável
+    |   por CLAUDE_MEMORY_DIR no .env pra outros ambientes.
+    */
+    'memory' => [
+        // Root 1 — primer do projeto (CLAUDE.md + AGENTS.md se existir).
+        'primer_files' => [
+            base_path('CLAUDE.md'),
+            base_path('AGENTS.md'),
+        ],
+
+        // Root 2 — memória do projeto (versionada no git).
+        'project_dir' => base_path('memory'),
+
+        // Root 3 — memória persistente do Claude Code (fora do repo).
+        'claude_dir'  => env(
+            'CLAUDE_MEMORY_DIR',
+            ($_SERVER['USERPROFILE'] ?? $_SERVER['HOME'] ?? '')
+                . DIRECTORY_SEPARATOR . '.claude'
+                . DIRECTORY_SEPARATOR . 'projects'
+                . DIRECTORY_SEPARATOR . 'D--oimpresso-com'
+                . DIRECTORY_SEPARATOR . 'memory'
+        ),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Tipos de fonte aceitos no ingest
     |--------------------------------------------------------------------------
     */
