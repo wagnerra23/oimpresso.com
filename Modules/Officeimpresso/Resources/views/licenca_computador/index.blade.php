@@ -5,14 +5,14 @@
 @section('content')
 @include('officeimpresso::layouts.nav')
 <section class="content-header">
-    <h1>@lang('officeimpresso::lang.computadores_cadastrados', [], 'Computadores Cadastrados')</h1>
+    <h1>@lang('officeimpresso::lang.computadores_cadastrados')</h1>
 </section>
 
 <section class="content">
     <div class="box box-primary">
         <div class="box-header with-border">
             <a href="{{ route('licenca_computador.create') }}" class="btn btn-primary">
-                <i class="fa fa-plus"></i> @lang('officeimpresso::lang.create_client', [], 'Cadastrar')
+                <i class="fa fa-plus"></i> @lang('officeimpresso::lang.create_client')
             </a>
         </div>
         <div class="box-body">
@@ -21,12 +21,12 @@
                     <tr>
                         <th>ID</th>
                         <th>HD</th>
-                        <th>@lang('officeimpresso::lang.user_win', [], 'User Win')</th>
-                        <th>@lang('officeimpresso::lang.processador', [], 'Processador')</th>
-                        <th>@lang('officeimpresso::lang.memoria', [], 'Memória')</th>
-                        <th>@lang('officeimpresso::lang.versao_exe', [], 'Versão Executável')</th>
-                        <th>@lang('officeimpresso::lang.bloqueado', [], 'Bloqueado')</th>
-                        <th>@lang('officeimpresso::lang.action', [], 'Ação')</th>
+                        <th>@lang('officeimpresso::lang.user_win')</th>
+                        <th>@lang('officeimpresso::lang.processador')</th>
+                        <th>@lang('officeimpresso::lang.memoria')</th>
+                        <th>@lang('officeimpresso::lang.versao_exe')</th>
+                        <th>@lang('officeimpresso::lang.bloqueado')</th>
+                        <th>@lang('officeimpresso::lang.action')</th>
                     </tr>
                 </thead>
                 <tbody>

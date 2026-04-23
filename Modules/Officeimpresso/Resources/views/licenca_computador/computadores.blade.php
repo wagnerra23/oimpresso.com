@@ -98,19 +98,20 @@
                                 <td>{{ $licenca->token }}</td>
                                 <td>{{ $licenca->dt_ultimo_acesso }}</td>
                                 <td>
-                                    @if($licenca->bloqueado)
-                                        {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController@toggleBlock', [$licenca->id]), 'method' => 'GET', 'id' => 'toggle_bloqueado_form_' . $licenca->id]) !!}
-                                            <button type="submit" class="btn btn-danger btn-xs">
+                                    <div class="btn-group" role="group">
+                                        @if($licenca->bloqueado)
+                                            <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}" class="btn btn-danger btn-xs" title="Clique pra desbloquear">
                                                 <i class="fas fa-lock"></i> @lang('officeimpresso::lang.bloqueado')
-                                            </button>
-                                        {!! Form::close() !!}
-                                    @else
-                                        {!! Form::open(['url' => action('\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController@toggleBlock', [$licenca->id]), 'method' => 'GET', 'id' => 'toggle_liberado_form_' . $licenca->id]) !!}
-                                            <button type="submit" class="btn btn-success btn-xs">
+                                            </a>
+                                        @else
+                                            <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}" class="btn btn-success btn-xs" title="Clique pra bloquear">
                                                 <i class="fas fa-unlock"></i> @lang('officeimpresso::lang.liberado')
-                                            </button>
-                                        {!! Form::close() !!}
-                                    @endif
+                                            </a>
+                                        @endif
+                                        <a href="{{ url('/officeimpresso/licenca_log?licenca_id=' . $licenca->id) }}" class="btn btn-info btn-xs" title="Ver log de acesso deste computador">
+                                            <i class="fas fa-clipboard-list"></i> Log
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

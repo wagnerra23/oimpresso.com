@@ -30,6 +30,9 @@ class LicencaLogController extends Controller
             if ($request->filled('event')) {
                 $query->where('event', $request->input('event'));
             }
+            if ($request->filled('licenca_id')) {
+                $query->where('licenca_id', $request->input('licenca_id'));
+            }
             if ($request->filled('from')) {
                 $query->where('created_at', '>=', $request->input('from'));
             }
@@ -71,7 +74,8 @@ class LicencaLogController extends Controller
             'businessupdate',
         ];
 
-        return view('officeimpresso::licenca_log.index', compact('kpis', 'events'));
+        $filter_licenca_id = $request->query('licenca_id');
+        return view('officeimpresso::licenca_log.index', compact('kpis', 'events', 'filter_licenca_id'));
     }
 
     public function show($id)
