@@ -3,6 +3,7 @@
 @section('title', __('officeimpresso::lang.licenca_officeimpresso'))
 
 @section('content')
+@include('officeimpresso::layouts.nav')
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>@lang('officeimpresso::lang.licenca_officeimpresso')</h1>

@@ -4,21 +4,101 @@ namespace Modules\Officeimpresso\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Officeimpresso\Entities\LicencaLog;
+use Yajra\DataTables\Facades\DataTables;
 
 class LicencaLogController extends Controller
 {
-    // TODO: implementar model LicencaLog quando a tabela `licenca_log` existir.
-    // Por enquanto, todas as actions retornam 501 Not Implemented.
-    private function stub()
+    /**
+     * Lista de logs — pagina admin.
+     */
+    public function index(Request $request)
     {
-        abort(501, 'LicencaLog ainda nao implementado nesta versao.');
+        if (! auth()->user()->can('superadmin')) {
+            $business_id = session()->get('user.business_id');
+        } else {
+            $business_id = null;
+        }
+
+        if ($request->ajax()) {
+            $query = LicencaLog::query();
+
+            if ($business_id !== null) {
+                $query->where('business_id', $business_id);
+            }
+
+            if ($request->filled('event')) {
+                $query->where('event', $request->input('event'));
+            }
+            if ($request->filled('from')) {
+                $query->where('created_at', '>=', $request->input('from'));
+            }
+            if ($request->filled('to')) {
+                $query->where('created_at', '<=', $request->input('to'));
+            }
+
+            return DataTables::of($query->orderBy('created_at', 'desc'))
+                ->editColumn('created_at', fn ($r) => $r->created_at ? $r->created_at->format('d/m/Y H:i:s') : '')
+                ->editColumn('event', function ($r) {
+                    $cls = $r->eventBadgeClass();
+                    return '<span class="label ' . $cls . '">' . e($r->event) . '</span>';
+                })
+                ->editColumn('http_status', fn ($r) => $r->http_status ? e($r->http_status) : '—')
+                ->editColumn('duration_ms', fn ($r) => $r->duration_ms ? e($r->duration_ms) . 'ms' : '—')
+                ->editColumn('error_message', fn ($r) => e(mb_substr((string) $r->error_message, 0, 120)))
+                ->addColumn('source_badge', fn ($r) => '<small class="text-muted">' . e($r->source) . '</small>')
+                ->rawColumns(['event', 'source_badge'])
+                ->make(true);
+        }
+
+        // KPIs das ultimas 24h
+        $since = now()->subHours(24);
+        $base = LicencaLog::where('created_at', '>=', $since);
+        if ($business_id !== null) {
+            $base = $base->where('business_id', $business_id);
+        }
+
+        $kpis = [
+            'login_success' => (clone $base)->where('event', 'login_success')->count(),
+            'login_error'   => (clone $base)->where('event', 'login_error')->count(),
+            'api_call'      => (clone $base)->where('event', 'api_call')->count(),
+            'block'         => (clone $base)->where('event', 'block')->count(),
+        ];
+
+        $events = [
+            'login_attempt', 'login_success', 'login_error', 'token_refresh',
+            'api_call', 'create_licenca', 'update_licenca', 'block', 'unblock',
+            'businessupdate',
+        ];
+
+        return view('officeimpresso::licenca_log.index', compact('kpis', 'events'));
     }
 
-    public function index() { $this->stub(); }
-    public function create() { $this->stub(); }
-    public function store(Request $request) { $this->stub(); }
-    public function show($id) { $this->stub(); }
-    public function edit($id) { $this->stub(); }
-    public function update(Request $request, $id) { $this->stub(); }
-    public function destroy($id) { $this->stub(); }
+    public function show($id)
+    {
+        $log = LicencaLog::findOrFail($id);
+        if (! auth()->user()->can('superadmin')) {
+            abort_unless($log->business_id === session()->get('user.business_id'), 403);
+        }
+        return response()->json([
+            'id'            => $log->id,
+            'event'         => $log->event,
+            'created_at'    => $log->created_at?->toDateTimeString(),
+            'user_id'       => $log->user_id,
+            'business_id'   => $log->business_id,
+            'licenca_id'    => $log->licenca_id,
+            'client_id'     => $log->client_id,
+            'token_hint'    => $log->token_hint,
+            'ip'            => $log->ip,
+            'user_agent'    => $log->user_agent,
+            'endpoint'      => $log->endpoint,
+            'http_method'   => $log->http_method,
+            'http_status'   => $log->http_status,
+            'duration_ms'   => $log->duration_ms,
+            'error_code'    => $log->error_code,
+            'error_message' => $log->error_message,
+            'metadata'      => $log->metadata,
+            'source'        => $log->source,
+        ]);
+    }
 }

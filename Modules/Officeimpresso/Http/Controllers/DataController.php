@@ -73,6 +73,12 @@ class DataController extends Controller
                     );
 
                     $sub->url(
+                        action([\Modules\Officeimpresso\Http\Controllers\LicencaLogController::class, 'index']),
+                        'Log de Acesso',
+                        ['icon' => 'fa fas fa-clipboard-list', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'licenca_log']
+                    );
+
+                    $sub->url(
                         url('/officeimpresso/docs'),
                         __('officeimpresso::lang.documentation'),
                         ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'docs']

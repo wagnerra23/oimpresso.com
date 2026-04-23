@@ -3,6 +3,7 @@
 @section('title', __('officeimpresso::lang.officeimpresso'))
 
 @section('content')
+@include('officeimpresso::layouts.nav')
 <section class="content-header">
     <h1>Cadastrar Novo Computador</h1>
 </section>
