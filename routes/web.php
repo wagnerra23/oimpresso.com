@@ -498,7 +498,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
 //common route
 Route::middleware(['auth'])->group(function () {
-    Route::get('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+    Route::get('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout']);
 
     // Preferências de UI do usuário (tema, sidebar colapsado). Qualquer request
     // autenticada pode atualizar — não depende de SetSessionData/business_id.
