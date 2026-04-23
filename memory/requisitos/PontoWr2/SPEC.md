@@ -283,7 +283,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** _[TODO — apontar caminho do teste]_
+**Testado em:** `Modules/PontoWr2/Tests/Feature/EspelhoShowTest::test_business_isolation`
 
 ### R-PONT-002 · Autorização Spatie `ponto.access`
 

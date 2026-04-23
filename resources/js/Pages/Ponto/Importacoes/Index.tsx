@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/importacoes
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-009, US-PONT-010, US-PONT-011
+//   rules: R-PONT-001
+//   adrs: 0004
+//   tests: Modules/PontoWr2/Tests/Feature/ImportacoesIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { ArrowRight, FileUp, Plus } from 'lucide-react';

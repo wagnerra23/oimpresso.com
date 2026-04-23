@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/intercorrencias
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-001
+//   rules: R-PONT-001, R-PONT-004
+//   adrs: 0004
+//   tests: Modules/PontoWr2/Tests/Feature/IntercorrenciasIndexTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import { AlertTriangle, ArrowRight, Inbox, Plus } from 'lucide-react';
