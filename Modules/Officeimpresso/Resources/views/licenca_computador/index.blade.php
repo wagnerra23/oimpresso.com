@@ -3,6 +3,7 @@
 @section('title', __('officeimpresso::lang.officeimpresso'))
 
 @section('content')
+@include('officeimpresso::layouts.nav')
 <section class="content-header">
     <h1>@lang('officeimpresso::lang.computadores_cadastrados', [], 'Computadores Cadastrados')</h1>
 </section>

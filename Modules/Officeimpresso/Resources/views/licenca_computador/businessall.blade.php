@@ -2,6 +2,7 @@
 @section('title', __('officeimpresso::lang.businessall'))
 
 @section('vue')
+@include('officeimpresso::layouts.nav')
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>@lang('officeimpresso::lang.businessall')</h1>
