@@ -1,3 +1,10 @@
+// @docvault
+//   tela: /essentials/knowledge-base/show
+//   module: Essentials
+//   status: implementada
+//   rules: R-ESSE-001
+//   tests: Modules/Essentials/Tests/Feature/KnowledgeShowTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link } from '@inertiajs/react';
 import {

@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/colaboradores/edit
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-004
+//   rules: R-PONT-001, R-PONT-003
+//   adrs: arq/0002
+//   tests: Modules/PontoWr2/Tests/Feature/ColaboradoresEditTest
+
 import AppShell from '@/Layouts/AppShell';
 import { useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
