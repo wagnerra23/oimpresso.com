@@ -51,20 +51,21 @@ function ensurePersonalAccessClient(): Client
 
 it('rejeita /api/user sem token com 401', function () {
     $r = $this->withHeaders(['Accept' => 'application/json'])->getJson('/api/user');
-    expect($r->status())->toBe(401);
+    expect($r->getStatusCode())->toBe(401);
     $r->assertJson(['message' => 'Unauthenticated.']);
 });
 
 it('rejeita /api/officeimpresso sem token com 401', function () {
     $r = $this->withHeaders(['Accept' => 'application/json'])->getJson('/api/officeimpresso');
-    expect($r->status())->toBe(401);
+    expect($r->getStatusCode())->toBe(401);
     $r->assertJson(['message' => 'Unauthenticated.']);
 });
 
 it('rejeita /oauth/token sem grant_type com 400 unsupported_grant_type', function () {
     $r = $this->withHeaders(['Accept' => 'application/json'])->postJson('/oauth/token', []);
-    expect($r->status())->toBe(400);
-    expect($r->json('error'))->toBe('unsupported_grant_type');
+    expect($r->getStatusCode())->toBe(400);
+    $data = json_decode($r->getContent(), true);
+    expect($data['error'] ?? null)->toBe('unsupported_grant_type');
 });
 
 it('aceita /oauth/token com password grant e retorna access_token', function () {
@@ -83,12 +84,13 @@ it('aceita /oauth/token com password grant e retorna access_token', function () 
         'scope' => '*',
     ]);
 
-    if ($r->status() !== 200) {
-        $this->markTestSkipped('Password grant falhou (provavel user/senha divergente em ambiente de teste): ' . $r->body());
+    if ($r->getStatusCode() !== 200) {
+        $this->markTestSkipped('Password grant falhou (provavel user/senha divergente em ambiente de teste): ' . $r->getContent());
     }
 
-    expect($r->json())->toHaveKeys(['token_type', 'expires_in', 'access_token', 'refresh_token']);
-    expect($r->json('token_type'))->toBe('Bearer');
+    $data = json_decode($r->getContent(), true);
+    expect($data)->toHaveKeys(['token_type', 'expires_in', 'access_token', 'refresh_token']);
+    expect($data['token_type'])->toBe('Bearer');
 });
 
 it('aceita /api/user com Bearer token (Personal Access Token)', function () {
@@ -105,7 +107,7 @@ it('aceita /api/user com Bearer token (Personal Access Token)', function () {
         'Authorization' => 'Bearer ' . $token,
     ])->getJson('/api/user');
 
-    expect($r->status())->toBe(200);
+    expect($r->getStatusCode())->toBe(200);
     expect($r->json('id'))->toBe($user->id);
 });
 
@@ -130,6 +132,6 @@ it('aceita /api/officeimpresso com Bearer token (Personal Access Token)', functi
         'Authorization' => 'Bearer ' . $token,
     ])->getJson('/api/officeimpresso');
 
-    expect($r->status())->toBe(200);
+    expect($r->getStatusCode())->toBe(200);
     expect($r->json('id'))->toBe($user->id);
 });
