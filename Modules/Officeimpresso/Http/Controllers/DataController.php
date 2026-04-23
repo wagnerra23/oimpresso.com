@@ -25,26 +25,67 @@ class DataController extends Controller
     }
 
     /**
-     * Adds Catalogue QR menus
+     * Adds Officeimpresso menus a sidebar admin.
+     *
+     * Apenas superadmin vê o menu — Officeimpresso é ferramenta interna
+     * de gestão de licenças desktop. Ordem 2 (logo depois de Superadmin
+     * que tem order 1).
      *
      * @return null
      */
     public function modifyAdminMenu()
     {
-        $business_id = session()->get('user.business_id');
+        if (! auth()->check() || ! auth()->user()->can('superadmin')) {
+            return;
+        }
+
         $module_util = new ModuleUtil();
+        if (! $module_util->isModuleInstalled('Officeimpresso')) {
+            return;
+        }
 
-        $is_officeimpresso_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'officeimpresso_module', 'superadmin_package');
+        Menu::modify('admin-sidebar-menu', function ($menu) {
+            $menu->dropdown(
+                __('officeimpresso::lang.officeimpresso'),
+                function ($sub) {
+                    $sub->url(
+                        action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'businessall']),
+                        __('officeimpresso::lang.businessall'),
+                        ['icon' => 'fa fas fa-network-wired', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'businessall']
+                    );
 
-        if ($is_officeimpresso_enabled) {
-            Menu::modify('admin-sidebar-menu', function ($menu) {
-                $menu->url(
+                    $sub->url(
+                        action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'computadores']),
+                        __('officeimpresso::lang.computadores'),
+                        ['icon' => 'fa fas fa-desktop', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'computadores']
+                    );
+
+                    $sub->url(
+                        action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'index']),
+                        __('officeimpresso::lang.licencas'),
+                        ['icon' => 'fa fas fa-key', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'licenca_computador']
+                    );
+
+                    $sub->url(
+                        action([\Modules\Officeimpresso\Http\Controllers\ClientController::class, 'index']),
+                        __('officeimpresso::lang.clients'),
+                        ['icon' => 'fa fas fa-user-tag', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'client']
+                    );
+
+                    $sub->url(
                         action([\Modules\Officeimpresso\Http\Controllers\OfficeimpressoController::class, 'generateQr']),
                         __('officeimpresso::lang.catalogue_qr'),
-                        ['icon' => 'fa fas fa-qrcode', 'active' => request()->segment(1) == 'product-catalogue', 'style' => config('app.env') == 'demo' ? 'background-color: #ff851b;' : '']
-                    )
-                ->order(95);
-            });
-        }
+                        ['icon' => 'fa fas fa-qrcode', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'catalogue-qr']
+                    );
+
+                    $sub->url(
+                        url('/officeimpresso/docs'),
+                        __('officeimpresso::lang.documentation'),
+                        ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'docs']
+                    );
+                },
+                ['icon' => 'fas fa-plug', 'style' => 'background-color: #2dce89 !important;']
+            )->order(2);
+        });
     }
 }
