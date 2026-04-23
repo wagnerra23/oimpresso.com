@@ -26,6 +26,7 @@ class DocVaultServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\DocVault\Console\Commands\MigrateModuleCommand::class,
                 \Modules\DocVault\Console\Commands\SyncPagesCommand::class,
+                \Modules\DocVault\Console\Commands\ValidateCommand::class,
             ]);
         }
     }
