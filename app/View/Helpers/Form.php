@@ -84,7 +84,23 @@ class Form
             $list = (array) $list;
         }
 
-        return self::render(Html::select($name, $list, $selected)->attributes($options));
+        // laravelcollective tratava `placeholder` key no array de options como special:
+        // virava <option value="">TEXT</option> no topo (default-selected se nenhum value bate).
+        // Spatie NAO tem esse comportamento — sem tratamento, `placeholder` virava atributo HTML
+        // do <select>, e o primeiro option REAL ficava default-selected — bug grave nos filtros
+        // do UltimatePOS onde primeira brand/category/tax virava filtro ativo automatico.
+        $placeholder = null;
+        if (array_key_exists('placeholder', $options)) {
+            $placeholder = $options['placeholder'];
+            unset($options['placeholder']);
+        }
+
+        $el = Html::select($name, $list, $selected);
+        if ($placeholder !== null) {
+            $el = $el->placeholder((string) $placeholder);
+        }
+
+        return self::render($el->attributes($options));
     }
 
     public static function checkbox($name, $value = 1, $checked = false, array $options = []): HtmlString

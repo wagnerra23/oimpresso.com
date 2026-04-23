@@ -102,6 +102,26 @@ it('shim Form::select aceita objeto Arrayable', function () {
     expect($html)->toContain('<option value="b" selected="selected">Beta</option>');
 });
 
+it('shim Form::select com placeholder vira <option> prepended (regressao /products)', function () {
+    // Bug real achado em /products: filtros brand_id/category_id/tax_id/unit_id
+    // usavam Form::select(..., null, ['placeholder' => 'All']). Spatie NAO suporta
+    // `placeholder` no attrs — virava <select placeholder="All"> e primeiro option
+    // real ficava default-selected, quebrando o datatable com filtros acidentais
+    // (brand_id=1 = "Imprimax" applied as filter, recordsTotal=0).
+    $html = (string) Form::select('brand_id', ['1' => 'Imprimax', '2' => 'WR2'], null, [
+        'placeholder' => 'All',
+        'class' => 'select2',
+    ]);
+
+    expect($html)
+        ->toContain('<select')
+        ->toContain('class="select2"')
+        ->not->toContain('placeholder="All"')          // nao virou atributo HTML invalido
+        ->toContain('>All</option>')                    // option com label do placeholder
+        ->toContain('>Imprimax</option>')               // options reais presentes
+        ->not->toMatch('/value="1"\s+selected/');       // primeiro option REAL nao fica default-selected
+});
+
 it('shim Form::checkbox renderiza checked correto', function () {
     $checked = (string) Form::checkbox('terms', 1, true);
     $unchecked = (string) Form::checkbox('terms', 1, false);
