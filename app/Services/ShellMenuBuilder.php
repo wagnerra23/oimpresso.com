@@ -44,4 +44,17 @@ class ShellMenuBuilder
         return $this->legacy->build();
     }
 
+    /**
+     * TopNavs declarativos por módulo (ADR arq/0011). Fonte independente da
+     * sidebar — vem de Modules/<Nome>/Resources/menus/topnav.php.
+     *
+     * @return array<string, array{label: string, icon: string, items: array}>
+     */
+    public function buildTopNavs(Request $request): array
+    {
+        if (!$request->user()) {
+            return [];
+        }
+        return $this->legacy->buildTopNavs();
+    }
 }

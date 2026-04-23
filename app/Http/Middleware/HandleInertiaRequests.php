@@ -75,7 +75,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'shell' => [
                 // Menu lazy: só computa quando a página precisa
-                'menu' => fn () => $user ? app(ShellMenuBuilder::class)->build($request) : [],
+                'menu'    => fn () => $user ? app(ShellMenuBuilder::class)->build($request) : [],
+                // TopNavs por módulo (ADR arq/0011) — fonte independente da sidebar
+                'topnavs' => fn () => $user ? app(ShellMenuBuilder::class)->buildTopNavs($request) : (object) [],
             ],
             'locale'     => app()->getLocale(),
             'csrf_token' => fn () => csrf_token(),

@@ -7,6 +7,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/EscalasIndexTest
 
 import AppShell from '@/Layouts/AppShell';
+import { useModuleNav } from '@/Hooks/usePageProps';
 import { Link, router } from '@inertiajs/react';
 import { CalendarDays, Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -36,11 +37,13 @@ interface Paginated {
 interface Props { escalas: Paginated; }
 
 export default function EscalasIndex({ escalas }: Props) {
+  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell
       title="Escalas"
       breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Escalas' }]}
+      moduleNav={moduleNav}
     >
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
