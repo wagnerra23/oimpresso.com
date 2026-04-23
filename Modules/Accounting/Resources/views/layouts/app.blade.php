@@ -45,7 +45,7 @@ $whitelist = ['127.0.0.1', '::1'];
 <body class="@if ($pos_layout) hold-transition lockscreen @else hold-transition 
         @if (!empty(session('business.theme_color')))
     {{ 'skin-' . session('business.theme_color') }}@else{{ 'skin-blue-light' }} @endif sidebar-mini @endif">
-    <div class="wrapper thetop">
+    <div class="wrapper thetop tw-flex tw-h-screen tw-overflow-hidden">
         <script type="text/javascript">
             if (localStorage.getItem("upos_sidebar_collapse") == 'true') {
                 var body = document.getElementsByTagName("body")[0];
@@ -53,58 +53,65 @@ $whitelist = ['127.0.0.1', '::1'];
             }
         </script>
         @if (!$pos_layout)
-            @include('layouts.partials.header')
             @include('layouts.partials.sidebar')
-        @else
-            @include('layouts.partials.header-pos')
         @endif
 
         @if (in_array($_SERVER['REMOTE_ADDR'], $whitelist))
             <input type="hidden" id="__is_localhost" value="true">
         @endif
 
-        <!-- Content Wrapper. Contains page content -->
-        <div class="@if (!$pos_layout) content-wrapper @endif">
-            <!-- empty div for vuejs -->
-            <div id="app">
-                @yield('vue')
-            </div>
-
-            <!-- Add currency related field-->
-            <input type="hidden" id="__code" value="{{ session('currency')['code'] }}">
-            <input type="hidden" id="__symbol" value="{{ session('currency')['symbol'] }}">
-            <input type="hidden" id="__thousand" value="{{ session('currency')['thousand_separator'] }}">
-            <input type="hidden" id="__decimal" value="{{ session('currency')['decimal_separator'] }}">
-            <input type="hidden" id="__symbol_placement" value="{{ session('business.currency_symbol_placement') }}">
-            <input type="hidden" id="__precision" value="{{ config('constants.currency_precision', 2) }}">
-            <input type="hidden" id="__quantity_precision" value="{{ config('constants.quantity_precision', 2) }}">
-            <!-- End of currency related field-->
-
-            @include('accounting::layouts.partials.alert-feedback')
-
-            @yield('content')
-
-            <div class='scrolltop no-print'>
-                <div class='scroll icon'><i class="fas fa-angle-up"></i></div>
-            </div>
-
-            @if (config('constants.iraqi_selling_price_adjustment'))
-                <input type="hidden" id="iraqi_selling_price_adjustment">
+        <main class="tw-flex tw-flex-col tw-flex-1 tw-h-full tw-min-w-0 tw-bg-gray-100">
+            @if (!$pos_layout)
+                @include('layouts.partials.header')
+            @else
+                @include('layouts.partials.header-pos')
             @endif
 
-            <!-- This will be printed -->
-            <section class="invoice print_section" id="receipt_section">
-            </section>
+            <div class="tw-flex-1 tw-overflow-y-auto tw-h-screen" id="scrollable-container">
+                <!-- Content Wrapper. Contains page content -->
+                <div class="@if (!$pos_layout) content-wrapper @endif">
+                    <!-- empty div for vuejs -->
+                    <div id="app">
+                        @yield('vue')
+                    </div>
 
-        </div>
+                    <!-- Add currency related field-->
+                    <input type="hidden" id="__code" value="{{ session('currency')['code'] }}">
+                    <input type="hidden" id="__symbol" value="{{ session('currency')['symbol'] }}">
+                    <input type="hidden" id="__thousand" value="{{ session('currency')['thousand_separator'] }}">
+                    <input type="hidden" id="__decimal" value="{{ session('currency')['decimal_separator'] }}">
+                    <input type="hidden" id="__symbol_placement" value="{{ session('business.currency_symbol_placement') }}">
+                    <input type="hidden" id="__precision" value="{{ config('constants.currency_precision', 2) }}">
+                    <input type="hidden" id="__quantity_precision" value="{{ config('constants.quantity_precision', 2) }}">
+                    <!-- End of currency related field-->
+
+                    @include('accounting::layouts.partials.alert-feedback')
+
+                    @yield('content')
+
+                    <div class='scrolltop no-print'>
+                        <div class='scroll icon'><i class="fas fa-angle-up"></i></div>
+                    </div>
+
+                    @if (config('constants.iraqi_selling_price_adjustment'))
+                        <input type="hidden" id="iraqi_selling_price_adjustment">
+                    @endif
+
+                    <!-- This will be printed -->
+                    <section class="invoice print_section" id="receipt_section">
+                    </section>
+
+                </div>
+
+                @if (!$pos_layout)
+                    @include('layouts.partials.footer')
+                @else
+                    @include('layouts.partials.footer_pos')
+                @endif
+            </div>
+        </main>
+
         @include('home.todays_profit_modal')
-        <!-- /.content-wrapper -->
-
-        @if (!$pos_layout)
-            @include('layouts.partials.footer')
-        @else
-            @include('layouts.partials.footer_pos')
-        @endif
     </div>
 
     @if (!empty($__additional_html))
