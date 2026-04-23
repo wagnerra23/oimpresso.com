@@ -166,7 +166,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
     );
   };
 
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell

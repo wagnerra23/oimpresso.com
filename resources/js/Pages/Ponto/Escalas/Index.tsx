@@ -37,7 +37,7 @@ interface Paginated {
 interface Props { escalas: Paginated; }
 
 export default function EscalasIndex({ escalas }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell

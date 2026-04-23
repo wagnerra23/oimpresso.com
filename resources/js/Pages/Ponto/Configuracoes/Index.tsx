@@ -52,7 +52,7 @@ interface Props {
 }
 
 export default function ConfiguracoesIndex({ config }: Props) {
-  const moduleNav = useModuleNav('Ponto');
+  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell

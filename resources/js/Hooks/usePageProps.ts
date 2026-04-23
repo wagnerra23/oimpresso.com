@@ -23,23 +23,40 @@ export function useFlash() {
 
 /**
  * Retorna os sub-items de um módulo pra usar no ModuleTopNav do AppShell.
- * Match por label exato (case-insensitive) OU por URL root.
+ *
+ * Estratégia em camadas (ADR arq/0009):
+ *   1. shell.topnavs[moduleName] — declarativo em Modules/<Nome>/Resources/menus/topnav.php
+ *   2. Fallback: children do módulo em shell.menu (sidebar nwidart)
+ *
+ * Primeiro argumento aceita:
+ *   - Nome do módulo (pra chave em topnavs): 'PontoWr2', 'Accounting', etc.
+ *   - OU label exato/parcial pra match em shell.menu (case-insensitive).
  *
  * Uso típico:
- *   const moduleNav = useModuleNav('Ponto WR2');
+ *   const moduleNav = useModuleNav('PontoWr2');
  *   <AppShell moduleNav={moduleNav}>...</AppShell>
  *
- * Preserva a ordem do backend (LegacyMenuAdapter já fez usort por order).
- * Preserva permissões (items filtrados no backend antes de chegar aqui).
+ * Preserva ordem e permissões do backend.
  */
 export function useModuleNav(
-  moduleLabel: string,
+  moduleKey: string,
 ): { items: MenuItem[]; moduleLabel: string; moduleIcon?: string } | undefined {
   const { shell } = usePageProps();
-  if (!shell?.menu) return undefined;
+  if (!shell) return undefined;
 
-  const target = moduleLabel.trim().toLowerCase();
+  // 1. Prefere topnav declarativo (Resources/menus/topnav.php)
+  const declarative = shell.topnavs?.[moduleKey];
+  if (declarative && declarative.items.length > 0) {
+    return {
+      items: declarative.items,
+      moduleLabel: declarative.label,
+      moduleIcon: declarative.icon,
+    };
+  }
 
+  // 2. Fallback: children da sidebar nwidart via label match
+  if (!shell.menu) return undefined;
+  const target = moduleKey.trim().toLowerCase();
   const match = shell.menu.find((m) => {
     const label = (m.label ?? '').trim().toLowerCase();
     return label === target || label.includes(target) || target.includes(label);

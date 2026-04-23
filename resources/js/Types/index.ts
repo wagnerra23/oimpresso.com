@@ -45,8 +45,19 @@ export interface MenuItem {
   children?: MenuItem[];
 }
 
+/**
+ * TopNav declarativo por módulo (ADR arq/0009). Vem de
+ * `Modules/<Nome>/Resources/menus/topnav.php`, filtrado por Spatie no backend.
+ */
+export interface ModuleTopNav {
+  label: string;
+  icon: string;
+  items: MenuItem[];
+}
+
 export interface ShellProps {
   menu: MenuItem[];
+  topnavs?: Record<string, ModuleTopNav>;
 }
 
 export interface SharedProps extends InertiaPageProps {
