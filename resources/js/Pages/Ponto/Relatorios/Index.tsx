@@ -7,6 +7,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/RelatoriosIndexTest
 
 import AppShell from '@/Layouts/AppShell';
+import { useModuleNav } from '@/Hooks/usePageProps';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
@@ -67,10 +68,13 @@ const corClasses: Record<CorKey, string> = {
 };
 
 export default function RelatoriosIndex({ relatorios }: Props) {
+  const moduleNav = useModuleNav('Ponto');
+
   return (
     <AppShell
       title="Relatórios · Ponto WR2"
       breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Relatórios' }]}
+      moduleNav={moduleNav}
     >
       <div className="mx-auto max-w-7xl p-6">
         <header className="mb-6">
