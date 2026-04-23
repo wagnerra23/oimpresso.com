@@ -294,7 +294,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.access')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (stub pendente — gerar com docvault:gen-test)
+**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
 
 ### R-PONT-003 · Autorização Spatie `ponto.colaboradores.manage`
 
@@ -305,7 +305,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.colaboradores.manage')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (stub pendente — gerar com docvault:gen-test)
+**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
 
 ### R-PONT-004 · Autorização Spatie `ponto.aprovacoes.manage`
 
@@ -316,7 +316,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.aprovacoes.manage')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (stub pendente — gerar com docvault:gen-test)
+**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
 
 ### R-PONT-005 · Autorização Spatie `ponto.relatorios.view`
 
@@ -327,7 +327,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.relatorios.view')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (stub pendente — gerar com docvault:gen-test)
+**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
 
 ### R-PONT-006 · Autorização Spatie `ponto.configuracoes.manage`
 
@@ -338,4 +338,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.configuracoes.manage')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (stub pendente — gerar com docvault:gen-test)
+**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)

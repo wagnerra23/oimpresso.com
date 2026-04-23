@@ -30,6 +30,7 @@ class DocVaultServiceProvider extends ServiceProvider
                 \Modules\DocVault\Console\Commands\GenTestCommand::class,
                 \Modules\DocVault\Console\Commands\SyncMemoriesCommand::class,
                 \Modules\DocVault\Console\Commands\AuditModuleCommand::class,
+                \Modules\DocVault\Console\Commands\InstallHooksCommand::class,
             ]);
         }
     }

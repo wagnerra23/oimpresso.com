@@ -1,0 +1,61 @@
+#!/bin/bash
+# DocVault pre-commit hook
+# Instalado por: php artisan docvault:install-hooks
+#
+# Funções:
+#   1. Sync automático de docs_pages quando .tsx foi editado
+#   2. Bloqueia commit se audit-module tem issues CRITICAL
+#
+# Pra pular em caso de emergência: git commit --no-verify
+
+set -e
+
+# Não bloqueia em merges e rebases
+if [ -f .git/MERGE_MSG ] || [ -d .git/rebase-merge ]; then
+    exit 0
+fi
+
+# Detecta arquivos .tsx adicionados/modificados
+CHANGED_TSX=$(git diff --cached --name-only --diff-filter=ACM | grep '\.tsx$' || true)
+
+if [ -n "$CHANGED_TSX" ]; then
+    echo "[docvault] .tsx modificados — executando sync-pages..."
+    php artisan docvault:sync-pages --dry > /tmp/docvault-sync-dry.log 2>&1 || true
+    # Nota: usa --dry porque não queremos mudar docs_pages via hook
+    # (só validar). Sync real acontece manualmente ou no schedule.
+fi
+
+# Detecta se algum SPEC.md/README.md em memory/requisitos foi modificado
+CHANGED_DOCS=$(git diff --cached --name-only --diff-filter=ACM | grep '^memory/requisitos/' || true)
+
+if [ -n "$CHANGED_DOCS" ]; then
+    echo "[docvault] Documentação modificada — rodando auditoria..."
+
+    # Extrai módulos afetados (primeiro segmento após memory/requisitos/)
+    MODULES=$(echo "$CHANGED_DOCS" | awk -F'/' '{print $3}' | sort -u | grep -v '^$' || true)
+
+    FAIL=0
+    for MOD in $MODULES; do
+        # Pula módulos virtuais como _DesignSystem no pre-commit
+        if [[ "$MOD" == _* ]]; then continue; fi
+
+        echo "  - auditando $MOD..."
+        OUTPUT=$(php artisan docvault:audit-module "$MOD" 2>&1 || true)
+
+        if echo "$OUTPUT" | grep -q "critical: [1-9]"; then
+            echo ""
+            echo "[docvault] ❌ Módulo $MOD tem issues CRITICAL:"
+            echo "$OUTPUT" | grep -A 1 "CRITICAL:"
+            echo ""
+            FAIL=1
+        fi
+    done
+
+    if [ $FAIL -eq 1 ]; then
+        echo "Pra ignorar (emergência): git commit --no-verify"
+        exit 1
+    fi
+fi
+
+echo "[docvault] ✓ pre-commit OK"
+exit 0
