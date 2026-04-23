@@ -1,3 +1,12 @@
+// @docvault
+//   tela: /ponto/espelho/show
+//   module: PontoWr2
+//   status: implementada
+//   stories: US-PONT-007, US-PONT-008
+//   rules: R-PONT-001, R-PONT-002
+//   adrs: 0004
+//   tests: Modules/PontoWr2/Tests/Feature/EspelhoShowTest
+
 import AppShell from '@/Layouts/AppShell';
 import { Link, router } from '@inertiajs/react';
 import {

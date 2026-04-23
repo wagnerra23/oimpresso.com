@@ -124,17 +124,29 @@ class SyncPagesCommand extends Command
      */
     protected function parseDocvaultBlock(string $head): ?array
     {
-        if (! preg_match('/\/\/\s*@docvault\b(.*?)(?=\n(?:[^\/\s]|\/\/\s*[^\s]))/s', $head . "\n\nSTOP", $m)) {
-            return null;
-        }
-
-        $block = $m[1];
+        // Procura a linha '// @docvault' e coleta linhas seguintes '// campo: valor'
+        $lines = preg_split('/\R/', $head);
+        $inBlock = false;
         $meta = [];
-        foreach (preg_split('/\R/', $block) as $line) {
-            $line = trim($line);
-            if (! str_starts_with($line, '//')) continue;
-            $line = trim(substr($line, 2));
-            if (preg_match('/^(\w+)\s*:\s*(.+)$/', $line, $mm)) {
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+
+            if (! $inBlock) {
+                if (preg_match('/^\/\/\s*@docvault\b/', $trimmed)) {
+                    $inBlock = true;
+                }
+                continue;
+            }
+
+            // Se saiu de linhas de comentário, encerra o bloco
+            if (! str_starts_with($trimmed, '//')) break;
+
+            // Extrai conteúdo após //
+            $comment = trim(substr($trimmed, 2));
+            if ($comment === '') continue;
+
+            if (preg_match('/^(\w+)\s*:\s*(.+)$/', $comment, $mm)) {
                 $meta[strtolower($mm[1])] = trim($mm[2]);
             }
         }
