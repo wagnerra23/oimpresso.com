@@ -1,10 +1,27 @@
 # ADR ARQ-0002 (DocVault) · Procedimento Fase 2 · Laravel 9.51 → 10.x
 
-- **Status**: blocked
-- **Data**: 2026-04-22
+- **Status**: blocked (revisado 2026-04-23 — 2 dos 3 P0 eram P1 trivial)
+- **Data**: 2026-04-22 · **Revisado**: 2026-04-23
 - **Decisores**: Wagner, Claude
 - **Categoria**: arq
 - **Implementa**: ADR arq/0001 Fase 2
+
+## 🔄 REVISÃO 2026-04-23 — Reclassificação dos blockers
+
+Wagner pesquisou versões e apontou que alguns "P0" têm upgrade direto disponível. Investigação via `composer show -a` corrigiu o quadro:
+
+| Blocker | Classificação original | **Classificação correta** | Razão |
+|---|---|---|---|
+| nwidart/laravel-menus (fork) | P0 sem substituto | **P0 ainda** (fork dineshsailor não tem v10+) | Decisão: migrar pra React (ADR arq/0003) |
+| yajra/laravel-datatables-oracle | P0 breaking changes | **~~P0~~ P1 trivial** | v10.11 aceita L9+L10 simultâneo — bumpa hoje |
+| monolog v2→v3 | P0 transitivo | **~~P0~~ P1 automático** | Vem junto no `composer update` Laravel 10 |
+
+**Novo status**: só **1 P0 real** (nwidart/laravel-menus). Os outros 2 que eu classifiquei como P0 eram P1 trivial que se resolvem em 1 minuto cada. Mea culpa da análise anterior.
+
+**Implicação**: Fase 2 do upgrade Laravel 10 é **muito menos assustadora** do que o ADR original sugeria. Só resta:
+1. P0: resolver `nwidart/laravel-menus` (ADR arq/0003 — migrar pra React)
+2. P1 batch: bumpar pacotes em pequenas doses
+3. Pular o framework depois que 1 e 2 estiverem verdes
 
 ## Contexto
 
