@@ -72,8 +72,18 @@ class Form
         return self::render($el->attributes($options));
     }
 
-    public static function select($name, array $list = [], $selected = null, array $options = []): HtmlString
+    public static function select($name, $list = [], $selected = null, array $options = []): HtmlString
     {
+        // laravelcollective aceitava array, Collection, ou qualquer iterable.
+        // Spatie's options() tambem aceita iterable. Convertemos pra array pra garantir.
+        if ($list instanceof \Illuminate\Support\Collection || $list instanceof \Illuminate\Contracts\Support\Arrayable) {
+            $list = $list->toArray();
+        } elseif ($list instanceof \Traversable) {
+            $list = iterator_to_array($list);
+        } elseif (! is_array($list)) {
+            $list = (array) $list;
+        }
+
         return self::render(Html::select($name, $list, $selected)->attributes($options));
     }
 
@@ -113,6 +123,78 @@ class Form
         $el = Html::input('submit', null, $text);
 
         return self::render($el->attributes($options));
+    }
+
+    /**
+     * Form::open(['url' => ..., 'method' => 'post', 'files' => true, ...])
+     *
+     * Chaves internas (nao viram atributo HTML): url, route, action, method, files.
+     * Renderiza <form> + CSRF token + _method spoof (PUT/PATCH/DELETE -> hidden input).
+     *
+     * laravelcollective default: accept-charset="UTF-8". Mantido pra paridade.
+     */
+    public static function open(array $options = []): HtmlString
+    {
+        $method = strtoupper((string) ($options['method'] ?? 'POST'));
+        $httpMethod = in_array($method, ['GET', 'POST'], true) ? $method : 'POST';
+        $spoofedMethod = in_array($method, ['PUT', 'PATCH', 'DELETE'], true) ? $method : null;
+
+        $action = '';
+        if (isset($options['url'])) {
+            $action = is_array($options['url'])
+                ? url($options['url'][0], array_slice($options['url'], 1))
+                : (string) $options['url'];
+        } elseif (isset($options['route'])) {
+            $action = is_array($options['route'])
+                ? route($options['route'][0], array_slice($options['route'], 1))
+                : route($options['route']);
+        } elseif (isset($options['action'])) {
+            $action = is_array($options['action'])
+                ? action($options['action'][0], array_slice($options['action'], 1))
+                : action($options['action']);
+        }
+
+        $enctype = $options['enctype'] ?? null;
+        if (! empty($options['files'])) {
+            $enctype = 'multipart/form-data';
+        }
+
+        $internal = ['url', 'route', 'action', 'method', 'files', 'enctype'];
+        $attrs = array_diff_key($options, array_flip($internal));
+
+        $html = sprintf(
+            '<form method="%s" action="%s" accept-charset="UTF-8"',
+            $httpMethod,
+            e($action)
+        );
+        if ($enctype) {
+            $html .= sprintf(' enctype="%s"', e($enctype));
+        }
+        foreach ($attrs as $k => $v) {
+            $html .= is_int($k)
+                ? ' ' . e($v)
+                : sprintf(' %s="%s"', $k, e((string) $v));
+        }
+        $html .= '>';
+
+        if ($httpMethod !== 'GET') {
+            $html .= csrf_field();
+        }
+        if ($spoofedMethod) {
+            $html .= sprintf('<input name="_method" type="hidden" value="%s">', $spoofedMethod);
+        }
+
+        return new HtmlString($html);
+    }
+
+    public static function close(): HtmlString
+    {
+        return new HtmlString('</form>');
+    }
+
+    public static function token(): HtmlString
+    {
+        return new HtmlString(csrf_field());
     }
 
     protected static function render($element): HtmlString

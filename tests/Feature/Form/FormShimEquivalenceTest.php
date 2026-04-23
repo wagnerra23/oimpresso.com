@@ -81,6 +81,27 @@ it('shim Form::select com null selected nao marca nenhuma option', function () {
     expect($html)->not->toContain('selected=');
 });
 
+it('shim Form::select aceita Illuminate\\Support\\Collection (regressao)', function () {
+    // Bug achado em /business/register: Eloquent/config retorna Collection.
+    // laravelcollective aceitava, shim so aceitava array. Fix: converter internamente.
+    $collection = collect(['BR' => 'Brasil', 'PT' => 'Portugal']);
+    $html = (string) Form::select('pais', $collection, 'BR');
+
+    expect($html)
+        ->toContain('<select')
+        ->toContain('name="pais"')
+        ->toContain('<option value="BR" selected="selected">Brasil</option>')
+        ->toContain('<option value="PT">Portugal</option>');
+});
+
+it('shim Form::select aceita objeto Arrayable', function () {
+    $arrayable = new class implements \Illuminate\Contracts\Support\Arrayable {
+        public function toArray(): array { return ['a' => 'Alpha', 'b' => 'Beta']; }
+    };
+    $html = (string) Form::select('x', $arrayable, 'b');
+    expect($html)->toContain('<option value="b" selected="selected">Beta</option>');
+});
+
 it('shim Form::checkbox renderiza checked correto', function () {
     $checked = (string) Form::checkbox('terms', 1, true);
     $unchecked = (string) Form::checkbox('terms', 1, false);
