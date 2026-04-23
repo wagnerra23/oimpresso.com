@@ -18,7 +18,11 @@ class AdminSidebarMenu
      */
     public function handle($request, Closure $next)
     {
-        if ($request->ajax()) {
+        // Pula criação do menu em AJAX tradicional (DataTables, dropdowns, etc.)
+        // EXCETO Inertia — navegação SPA precisa do menu em toda resposta
+        // porque HandleInertiaRequests::share('shell.menu') lê a instância
+        // populada aqui. Sem isso o sidebar fica vazio ao clicar em links.
+        if ($request->ajax() && ! $request->header('X-Inertia')) {
             return $next($request);
         }
 
