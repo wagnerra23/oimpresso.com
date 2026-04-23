@@ -109,6 +109,8 @@
 @section('javascript')
 <script>
 $(function () {
+    var initialLicencaId = {!! json_encode($filter_licenca_id ?? null) !!};
+
     var table = $('#licenca_log_table').DataTable({
         processing: true,
         serverSide: true,
@@ -118,6 +120,7 @@ $(function () {
             url: "{{ route('licenca_log.index') }}",
             data: function (d) {
                 d.event = $('#filter_event').val();
+                d.licenca_id = initialLicencaId;
                 d.from  = $('#filter_from').val();
                 d.to    = $('#filter_to').val();
             }
