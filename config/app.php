@@ -197,7 +197,7 @@ return [
         Milon\Barcode\BarcodeServiceProvider::class,
         ConsoleTVs\Charts\ChartsServiceProvider::class,
         App\Providers\MenuServiceProvider::class,
-        Knox\Pesapal\PesapalServiceProvider::class,
+        App\Vendor\Pesapal\PesapalServiceProvider::class,
     ],
 
     /*
@@ -221,6 +221,6 @@ return [
         // 'Html' => removido — spatie/laravel-html auto-registra via package discovery
         'Redis' => Illuminate\Support\Facades\Redis::class,
         'Menu' => App\Facades\Menu::class,
-        'Pesapal' => Knox\Pesapal\Facades\Pesapal::class,
+        'Pesapal' => App\Vendor\Pesapal\Facades\Pesapal::class,
     ])->toArray(),
 ];
