@@ -46,6 +46,7 @@
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
         "knuckleswtf/scribe": "^5.0",
+        "laravel/boost": "*",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^8.5",
         "pestphp/pest": "^4.0",
