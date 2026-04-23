@@ -6,6 +6,7 @@
 //   tests: Modules/DocVault/Tests/Feature/MemoriaTest
 
 import AppShell from '@/Layouts/AppShell';
+import SimpleMarkdown from '@/Components/shared/SimpleMarkdown';
 import { Link, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import {
@@ -69,6 +70,10 @@ interface Props {
     project_dir: string;
     claude_dir: string;
   };
+}
+
+function stripFrontmatter(content: string): string {
+  return content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
 }
 
 export default function Memoria({ roots, stats, selected: initialSelected, paths }: Props) {
@@ -250,9 +255,15 @@ export default function Memoria({ roots, stats, selected: initialSelected, paths
                       ))}
                     </div>
                   )}
-                  <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono max-h-[65vh] overflow-y-auto">
-                    {selected.content}
-                  </pre>
+                  <div className="max-h-[65vh] overflow-y-auto">
+                    {selected.relative.endsWith('.md') ? (
+                      <SimpleMarkdown source={stripFrontmatter(selected.content)} />
+                    ) : (
+                      <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+                        {selected.content}
+                      </pre>
+                    )}
+                  </div>
                 </>
               )}
             </CardContent>
