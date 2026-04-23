@@ -2,6 +2,24 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/lang/pt-BR/).
 
+## [0.3.0] - 2026-04-22
+
+### Added
+
+- `/docs/chat` — assistente conversacional que busca no conhecimento do DocVault (README + ARCHITECTURE + SPEC + CHANGELOG + ADRs de todos os módulos).
+- Modo offline: keyword-based com ranking por score, cita fonte (módulo + arquivo/ADR) em cada trecho.
+- Modo AI (stub): desligado por padrão; ativado com `DOCVAULT_AI_ENABLED=true` e `OPENAI_API_KEY`.
+- Tabela `docs_chat_messages` persistindo histórico por usuário + business + session_id.
+- Sidebar com conversas recentes + seletor de escopo por módulo.
+- Dashboard ganha coluna "Formato" (pasta/plano), coluna "Doc" com 5 dots de cobertura, coluna "ADRs".
+- Card "Maturidade da documentação" com score médio global + contagem por formato.
+- Comando artisan `docvault:migrate-module {Nome}` que divide automaticamente o .md plano em README/ARCHITECTURE/SPEC/CHANGELOG/adr + backup .bak.
+- 2 módulos migrados como piloto: PontoWr2 (12 stories + 6 regras) e Essentials (1 story + 7 regras).
+
+### Fixed
+
+- Regex do parser de stories/regras agora captura todas as stories em sequência sob um único heading `##` (antes `[UR]-` quebrava com `US-`).
+
 ## [0.2.0] - 2026-04-22
 
 ### Added

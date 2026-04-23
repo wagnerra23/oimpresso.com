@@ -8,6 +8,7 @@ import {
   Lightbulb,
   Plus,
   Scale,
+  Sparkles,
   Target,
   TrendingUp,
   Upload,
@@ -89,6 +90,11 @@ export default function DocVaultDashboard({ stats, modules, recent_sources, cove
             </p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/docs/chat">
+                <Sparkles size={14} className="mr-1.5" /> Chat
+              </Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link href="/docs/inbox">
                 <Inbox size={14} className="mr-1.5" />
