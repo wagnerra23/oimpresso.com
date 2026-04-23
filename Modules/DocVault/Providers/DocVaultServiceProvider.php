@@ -25,6 +25,7 @@ class DocVaultServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\DocVault\Console\Commands\MigrateModuleCommand::class,
+                \Modules\DocVault\Console\Commands\SyncPagesCommand::class,
             ]);
         }
     }
