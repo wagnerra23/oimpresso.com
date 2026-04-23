@@ -8,6 +8,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/IntercorrenciasIndexTest
 
 import AppShell from '@/Layouts/AppShell';
+import { useModuleNav } from '@/Hooks/usePageProps';
 import { Link, router } from '@inertiajs/react';
 import { AlertTriangle, ArrowRight, Inbox, Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -56,6 +57,8 @@ const estadoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
 };
 
 export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props) {
+  const moduleNav = useModuleNav('Ponto');
+
   const filter = (key: string, value: string) => {
     router.get('/ponto/intercorrencias',
       { ...filtros, [key]: value === 'ALL' ? undefined : value },
@@ -66,6 +69,7 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
     <AppShell
       title="Intercorrências"
       breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Intercorrências' }]}
+      moduleNav={moduleNav}
     >
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">

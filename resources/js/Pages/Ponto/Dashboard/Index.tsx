@@ -7,6 +7,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/DashboardIndexTest
 
 import AppShell from '@/Layouts/AppShell';
+import { useModuleNav } from '@/Hooks/usePageProps';
 import { Link } from '@inertiajs/react';
 import {
   AlertTriangle,
@@ -90,10 +91,13 @@ const tipoMarcacaoIcon: Record<string, { icon: string; color: string }> = {
 };
 
 export default function DashboardIndex({ kpis, aprovacoes, atividade_recente, serie_7dias }: Props) {
+  const moduleNav = useModuleNav('Ponto');
+
   return (
     <AppShell
       title="Dashboard · Ponto WR2"
       breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Dashboard' }]}
+      moduleNav={moduleNav}
     >
       <div className="mx-auto max-w-7xl p-6 space-y-6">
         <header>
