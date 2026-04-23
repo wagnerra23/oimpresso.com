@@ -1,10 +1,24 @@
 # ADR ARQ-0009 (DocVault) · TopNav declarativo por módulo em `Resources/menus/topnav.php`
 
-- **Status**: accepted
+- **Status**: superseded-by-arq/0010 (2026-04-23 — mesmo dia, Wagner preferiu sidebar accordion)
 - **Data**: 2026-04-23
 - **Decisores**: Wagner, Claude
 - **Categoria**: arq
-- **Relacionado**: ADR UI-0001 (_DesignSystem)
+- **Relacionado**: ADR UI-0001 (_DesignSystem), ADR arq/0010
+
+## Motivo da supersedência
+
+Após implementação do piloto (PontoWr2 com 10 items), Wagner avaliou UX
+e preferiu **sidebar vertical com accordion** (padrão AdminLTE/Blade original)
+ao invés de ModuleTopNav horizontal + sidebar flat.
+
+Razão principal: com 20+ módulos ativos e 7-10 sub-items por módulo ativo,
+navegação vertical com expansão por click é mais limpa que 2 barras
+horizontais (TopNav global + ModuleTopNav) competindo por espaço.
+
+Código backend removido (`LegacyMenuAdapter::buildTopNavs`, `ShellMenuBuilder::buildTopNavs`, `Resources/menus/topnav.php`). Sidebar accordion implementada em `AppShell.tsx` usa `shell.menu` com children expansíveis — mesma fonte do backend, zero duplicação.
+
+ADR arq/0010 registra a decisão final de arquitetura de navegação.
 
 ## Contexto
 

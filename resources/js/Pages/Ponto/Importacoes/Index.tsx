@@ -8,7 +8,6 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ImportacoesIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
 import { Link, router } from '@inertiajs/react';
 import { ArrowRight, FileUp, Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -47,13 +46,11 @@ const estadoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
 };
 
 export default function ImportacoesIndex({ importacoes }: Props) {
-  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell
       title="Importações AFD"
       breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Importações' }]}
-      moduleNav={moduleNav}
     >
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">

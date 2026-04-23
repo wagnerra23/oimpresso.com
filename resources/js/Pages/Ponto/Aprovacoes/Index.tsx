@@ -8,7 +8,6 @@
 //   tests: Modules/PontoWr2/Tests/Feature/AprovacoesIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { useModuleNav } from '@/Hooks/usePageProps';
 import { Link, router } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
@@ -166,13 +165,11 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
     );
   };
 
-  const moduleNav = useModuleNav('PontoWr2');
 
   return (
     <AppShell
       title="Aprovações · Ponto WR2"
       breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Aprovações' }]}
-      moduleNav={moduleNav}
     >
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>
