@@ -67,7 +67,19 @@ class LicencaLogController extends Controller
                     $ipInt = $lic->ip_interno ? ' · ' . $lic->ip_interno : '';
                     return '<a href="' . url('/officeimpresso/licenca_log?licenca_id=' . $r->licenca_id) . '" title="Filtrar por maquina"><strong>' . e($machine) . '</strong><small class="text-muted">' . e($ipInt) . '</small></a>';
                 })
-                ->rawColumns(['event', 'source_badge', 'endpoint', 'business_info', 'machine_info'])
+                ->addColumn('blocked_info', function ($r) {
+                    $m = $r->metadata;
+                    if (is_string($m)) $m = json_decode($m, true);
+                    if (! is_array($m)) return '<span class="oi-pill oi-pill-ok">Liberada</span>';
+                    if (! empty($m['business_blocked'])) {
+                        return '<span class="oi-pill oi-pill-blocked" title="Empresa inteira bloqueada">🔒 Empresa</span>';
+                    }
+                    if (! empty($m['licenca_blocked'])) {
+                        return '<span class="oi-pill oi-pill-blocked" title="Apenas essa licenca bloqueada">🔒 Máquina</span>';
+                    }
+                    return '<span class="oi-pill oi-pill-ok">Liberada</span>';
+                })
+                ->rawColumns(['event', 'source_badge', 'endpoint', 'business_info', 'machine_info', 'blocked_info'])
                 ->make(true);
         }
 

@@ -27,11 +27,37 @@ class LogDesktopAccess
         try {
             $user = $request->user();
             $token = $user?->token();
+            $businessId = $user?->business_id;
+
+            // Resolver licenca via hd (se Delphi enviar) — futuro
+            $licencaId = null;
+            $hd = $request->input('hd') ?: $request->header('X-OI-HD');
+            if ($hd && $businessId) {
+                $licencaId = \DB::table('licenca_computador')
+                    ->where('business_id', $businessId)
+                    ->where('hd', $hd)->value('id');
+            }
+
+            // Snapshot do estado de bloqueio neste acesso
+            $businessBlocked = $businessId
+                ? (bool) \DB::table('business')->where('id', $businessId)->value('officeimpresso_bloqueado')
+                : false;
+            $licencaBlocked = $licencaId
+                ? (bool) \DB::table('licenca_computador')->where('id', $licencaId)->value('bloqueado')
+                : false;
+
+            $metadata = array_filter([
+                'hd'               => $hd,
+                'was_blocked'      => $businessBlocked || $licencaBlocked,
+                'business_blocked' => $businessBlocked,
+                'licenca_blocked'  => $licencaBlocked,
+            ], fn ($v) => $v !== null && $v !== false);
 
             LicencaLog::create([
                 'event'       => 'api_call',
                 'user_id'     => $user?->id,
-                'business_id' => $user?->business_id,
+                'business_id' => $businessId,
+                'licenca_id'  => $licencaId,
                 'client_id'   => $token?->client_id ? (string) $token->client_id : null,
                 'token_hint'  => $token?->id ? substr($token->id, 0, 8) . '…' . substr($token->id, -4) : null,
                 'ip'          => $request->ip(),
@@ -40,6 +66,7 @@ class LogDesktopAccess
                 'http_method' => $request->method(),
                 'http_status' => $response->getStatusCode(),
                 'duration_ms' => $durationMs,
+                'metadata'    => $metadata ?: null,
                 'source'      => 'api_middleware',
                 'created_at'  => now(),
             ]);

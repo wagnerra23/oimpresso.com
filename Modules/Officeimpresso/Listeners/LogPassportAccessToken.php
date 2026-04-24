@@ -52,8 +52,29 @@ class LogPassportAccessToken
                     ->where('hd', $hdFromRequest)
                     ->value('id');
             }
-            // metadata guarda o hd recebido pra debug futuro
-            $metadata = $hdFromRequest ? ['hd' => $hdFromRequest] : null;
+            // Snapshot do status de bloqueio no momento do acesso.
+            // business.officeimpresso_bloqueado = corta TODAS as maquinas do grupo.
+            // licenca_computador.bloqueado = corta apenas essa maquina.
+            $businessBlocked = false;
+            $licencaBlocked = false;
+            if ($businessId) {
+                $businessBlocked = (bool) \DB::table('business')
+                    ->where('id', $businessId)
+                    ->value('officeimpresso_bloqueado');
+            }
+            if ($licencaId) {
+                $licencaBlocked = (bool) \DB::table('licenca_computador')
+                    ->where('id', $licencaId)
+                    ->value('bloqueado');
+            }
+            $wasBlocked = $businessBlocked || $licencaBlocked;
+
+            $metadata = array_filter([
+                'hd'               => $hdFromRequest,
+                'was_blocked'      => $wasBlocked,
+                'business_blocked' => $businessBlocked,
+                'licenca_blocked'  => $licencaBlocked,
+            ], fn ($v) => $v !== null && $v !== false);
 
             LicencaLog::create([
                 'event'       => 'login_success',
