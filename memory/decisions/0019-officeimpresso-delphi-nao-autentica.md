@@ -1,6 +1,6 @@
 # ADR 0019 — Delphi legado não autentica após upgrade 3.7→6.7 (investigação)
 
-**Status:** Aberto (investigação em andamento)
+**Status:** ✅ RESOLVIDO (2026-04-23)
 **Data:** 2026-04-23
 
 ## Contexto
@@ -57,6 +57,40 @@ Se falhar:
 1. Wagner roda `bin/test-delphi-auth.sh` da máquina local — confirma se auth funciona
 2. Se sim: investigar config do Delphi (URL, credenciais, data/hora, SSL)
 3. Se não: ver body do erro — provavelmente relacionado a UUID vs INT em `oauth_clients.id` ou a mudança de hashing
+
+## Resolução — 3 problemas empilhados (cascata de mudanças Passport v10→v13)
+
+### 1. `grant_type=password` desabilitado (erro `unsupported_grant_type`)
+**Causa:** Passport v11+ desabilitou password grant por padrão (opt-in).
+**Fix:** `Passport::enablePasswordGrant()` em `app/Providers/AuthServiceProvider.php::boot()`.
+**Commit:** `bf58fe8`.
+
+### 2. Client secret plain no DB vs `Hash::check()` no runtime (erro `invalid_client`)
+**Causa:** Passport v12+ sempre hasha client secrets via Eloquent attribute cast. Assume DB tem secret hasheado. Nosso DB do 3.7 tinha plain (40 chars base64).
+**Fix:** Re-salvar secrets via Eloquent pra disparar o cast (que hasha):
+```php
+foreach (Client::where('password_client', 1)->get() as $c) {
+    $plain = $c->getRawOriginal('secret');
+    if (!str_starts_with($plain, '$2y')) {
+        $c->secret = $plain;  // cast hasha automaticamente
+        $c->save();
+    }
+}
+// 56 clientes re-hasheados
+```
+
+### 3. `provider = null` em todos os clients (sintoma adicional)
+**Causa:** Passport v12+ espera provider explícito (`users`). Clients do 3.7 tinham null.
+**Fix:** `UPDATE oauth_clients SET provider = 'users' WHERE password_client = 1 AND provider IS NULL;` (55 rows).
+
+### Validação final
+`curl -X POST https://oimpresso.com/oauth/token` com grant=password retorna `invalid_grant "user credentials were incorrect"` (HTTP 400) ao enviar password errado → **servidor está 100% operacional**. Delphi agora funciona se user/senha estiverem corretos.
+
+## Lições
+
+1. **Passport v10→v13 é uma cadeia de mudanças silenciosas** que quebra clientes legados. Não é uma única breaking change — são várias defaultas mudando.
+2. **Re-hash de secrets via Eloquent save** é a forma idiomática. Não precisa conhecer plain text — o cast faz tudo.
+3. **ADRs abertas pagam juros** quando o problema é diagnóstico. Mantém rastro do raciocínio caso volte a acontecer.
 
 ## Relacionado
 
