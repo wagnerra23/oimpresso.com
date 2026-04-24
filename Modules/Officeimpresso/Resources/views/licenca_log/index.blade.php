@@ -93,10 +93,34 @@
                                 @endif
                             </td>
                             <td>
-                                @if($m->hd)
-                                    <strong class="text-mono">{{ $m->hd }}</strong>
+                                @if($m->hd && $m->guessed_machine)
+                                    {{-- Match exato via HD --}}
+                                    <strong class="text-mono">{{ $m->guessed_machine->user_win ?: '(sem hostname)' }}</strong>
+                                    <br><small class="text-muted text-mono">HD {{ $m->hd }}</small>
+                                @elseif($m->total_maquinas > 0)
+                                    {{-- Sem hd: lista candidatas --}}
+                                    <details class="oi-guess">
+                                        <summary>
+                                            <em class="text-warning"><i class="fa fa-question-circle"></i> 1 de {{ $m->total_maquinas }} {{ $m->total_maquinas == 1 ? 'máquina' : 'máquinas' }}</em>
+                                            <small class="text-muted" style="display:block; font-size:10px;">Delphi ainda sem hd — clique pra ver</small>
+                                        </summary>
+                                        <ul style="margin: 6px 0 0; padding-left: 14px; font-size: 11px;">
+                                            @foreach($m->known_machines as $known)
+                                                <li>
+                                                    <strong>{{ $known->user_win ?: '(sem hostname)' }}</strong>
+                                                    <span class="text-muted text-mono">· HD {{ $known->hd }}</span>
+                                                    @if($known->ip_interno)
+                                                        <span class="text-muted">· IP int {{ $known->ip_interno }}</span>
+                                                    @endif
+                                                    @if($known->bloqueado)
+                                                        <span class="oi-pill oi-pill-blocked" style="font-size:10px;">bloq</span>
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </details>
                                 @else
-                                    <em class="text-muted" title="Delphi ainda não envia o hd — aguardando atualização">sem hd</em>
+                                    <em class="text-muted">sem cadastro</em>
                                 @endif
                             </td>
                             <td class="text-mono">{{ $m->ip ?: '—' }}</td>

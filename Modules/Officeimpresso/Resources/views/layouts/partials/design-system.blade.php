@@ -107,6 +107,12 @@
     }
     .oi-page label { color: #374151; }
 
+    /* ======== GUESS (maquina desconhecida) ======== */
+    .oi-guess summary { cursor: pointer; list-style: none; }
+    .oi-guess summary::-webkit-details-marker { display: none; }
+    .oi-guess[open] summary { margin-bottom: 4px; }
+    .text-warning { color: #d97706; font-weight: 500; }
+
     /* ======== EQUALIZE KPI HEIGHTS ======== */
     .oi-kpi-row { display: flex; flex-wrap: wrap; margin-right: -7px; margin-left: -7px; }
     .oi-kpi-row > [class*="col-"] { padding-left: 7px; padding-right: 7px; display: flex; margin-bottom: 14px; }
