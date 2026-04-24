@@ -55,7 +55,7 @@
 
 <script>
     Dropzone.autoDiscover = false;
-    moment.tz.setDefault('{{ Session::get('business.time_zone') }}');
+    moment.tz.setDefault('{{ session('business_timezone') ?? (is_object(session('business')) ? session('business')->time_zone : (session('business.time_zone') ?? config('app.timezone'))) }}');
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
