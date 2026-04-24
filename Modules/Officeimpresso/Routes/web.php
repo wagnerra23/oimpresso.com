@@ -41,6 +41,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     Route::get('/licenca_computado/licencas/{id}', [LicencaComputadorController::class, 'viewLicencas'])->name('empresa.licencas');
 
     // Logs de licenca
+    Route::get('licenca_log/timeline/{licenca_id}', [LicencaLogController::class, 'timeline'])->name('licenca_log.timeline');
     Route::resource('licenca_log', LicencaLogController::class);
 
     // Documentacao (iframe superadmin)

@@ -115,17 +115,17 @@
             <small style="color: #6b7280;">Clique na empresa ou no equipamento para filtrar</small>
         </div>
         <div class="body no-pad">
-            <table class="oi-table">
+            <table id="maquinas_table" class="oi-table table">
                 <thead>
                     <tr>
                         <th>Empresa</th>
                         <th>Máquina</th>
                         <th>HD</th>
                         <th>IP</th>
-                        <th>Último Login</th>
+                        <th data-order-type="num">Último Login</th>
                         <th>Estado no Último Login</th>
                         <th>Estado Atual</th>
-                        <th style="width: 160px;">Ação rápida</th>
+                        <th style="width: 220px;" class="no-sort">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -149,7 +149,7 @@
                             </td>
                             <td class="text-mono">{{ $m->hd ?: '—' }}</td>
                             <td class="text-mono">{{ $m->last_ip ?: $m->ip_interno ?: '—' }}</td>
-                            <td class="text-mono">
+                            <td class="text-mono" data-order="{{ $m->effective_ts ? \Carbon\Carbon::parse($m->effective_ts)->getTimestamp() : 0 }}">
                                 @if($m->last_login)
                                     {{ \Carbon\Carbon::parse($m->last_login)->format('d/m/Y H:i:s') }}
                                 @elseif($m->dt_ultimo_acesso)
@@ -178,26 +178,30 @@
                                 @endif
                             </td>
                             <td>
+                                <a href="{{ route('licenca_log.timeline', $m->licenca_id) }}"
+                                   class="oi-btn oi-btn-ghost oi-btn-xs" title="Ver histórico desta máquina">
+                                    <i class="fa fa-history"></i> Timeline
+                                </a>
                                 @if($m->business_blocked && $m->business_id)
                                     <a href="{{ route('business.bloqueado', $m->business_id) }}"
                                        class="oi-btn oi-btn-success oi-btn-xs"
                                        onclick="return confirm('Desbloquear empresa {{ addslashes($m->business_name) }} ?')"
                                        title="Desbloquear empresa inteira">
-                                        <i class="fa fa-unlock"></i> Desbloquear empresa
+                                        <i class="fa fa-unlock"></i> Desbloq. empresa
                                     </a>
                                 @elseif($m->machine_blocked)
                                     <a href="{{ route('licenca_computador.toggleBlock', $m->licenca_id) }}"
                                        class="oi-btn oi-btn-success oi-btn-xs"
                                        onclick="return confirm('Desbloquear máquina {{ addslashes($m->user_win ?? '') }} ?')"
                                        title="Desbloquear essa máquina">
-                                        <i class="fa fa-unlock"></i> Desbloquear máquina
+                                        <i class="fa fa-unlock"></i> Desbloq. máquina
                                     </a>
                                 @else
                                     <a href="{{ route('licenca_computador.toggleBlock', $m->licenca_id) }}"
                                        class="oi-btn oi-btn-danger oi-btn-xs"
                                        onclick="return confirm('Bloquear máquina {{ addslashes($m->user_win ?? '') }} ?')"
                                        title="Bloquear essa máquina">
-                                        <i class="fa fa-lock"></i> Bloquear máquina
+                                        <i class="fa fa-lock"></i> Bloq. máquina
                                     </a>
                                 @endif
                             </td>
@@ -228,4 +232,28 @@
     </div>
 </div>
 
+@endsection
+
+@section('javascript')
+<script>
+$(function () {
+    if (! $.fn.DataTable) return;
+    $('#maquinas_table').DataTable({
+        pageLength: 25,
+        order: [[4, 'desc']], // Último Login desc
+        columnDefs: [{ targets: 'no-sort', orderable: false }],
+        language: {
+            processing: 'Carregando…',
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_',
+            info: '_START_–_END_ de _TOTAL_',
+            infoEmpty: 'Nenhum registro',
+            infoFiltered: '(filtrado de _MAX_)',
+            zeroRecords: 'Nenhum registro encontrado',
+            emptyTable: 'Nenhuma máquina cadastrada',
+            paginate: { first: '«', previous: '‹', next: '›', last: '»' }
+        }
+    });
+});
+</script>
 @endsection
