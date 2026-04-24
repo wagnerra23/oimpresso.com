@@ -1,0 +1,17 @@
+# Conversas claude.ai pendentes de extração para _Ideias/
+# Formato: <url>\t<output_path>
+# Linhas começando com # são ignoradas.
+#
+# Ferramentas (rodar a partir do diretório _tools/):
+#   python import_claude_export.py D:/path/to/export.zip conversas-pendentes.tsv
+#   python scrape_claude_conversation.py --batch conversas-pendentes.tsv  (fallback Playwright)
+#
+# === Já extraídas (pelo scraper screenshot+manual em 2026-04-24) ===
+# https://claude.ai/chat/b782e544-d84d-4e00-8d0c-a40e2215ebd3	D:/oimpresso.com/memory/requisitos/_Ideias/NfeBrasil/evidencias/conversa-claude-2026-04-mobile.md
+# https://claude.ai/chat/9e05ee7a-315a-4162-b5e4-adb7f0ae55c6	D:/oimpresso.com/memory/requisitos/_Ideias/Financeiro/evidencias/conversa-claude-2026-04-mobile.md
+#
+# === Pendentes (vão ser importadas via export oficial) ===
+
+https://claude.ai/chat/dda41749-c416-4e78-9a3a-e5255d7282c0	D:/oimpresso.com/memory/requisitos/_Ideias/CobrancaRecorrente/evidencias/conversa-claude-2026-04-mobile.md
+https://claude.ai/chat/78c2af50-ffd7-4fea-97fd-bb92700fcac1	D:/oimpresso.com/memory/requisitos/_Ideias/LaravelAI/evidencias/conversa-claude-2026-04-mobile.md
+https://claude.ai/chat/c113a681-899d-4d92-9012-b9f4784086fe	D:/oimpresso.com/memory/requisitos/_Ideias/AutomacaoCC/evidencias/conversa-claude-2026-04-mobile.md
