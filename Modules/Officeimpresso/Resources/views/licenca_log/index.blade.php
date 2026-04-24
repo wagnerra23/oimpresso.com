@@ -100,9 +100,10 @@
                 <thead>
                     <tr>
                         <th style="width: 150px;">Data/Hora</th>
-                        <th style="width: 130px;">Evento</th>
-                        <th style="width: 180px;">Empresa</th>
-                        <th style="width: 160px;">Máquina</th>
+                        <th style="width: 120px;">Evento</th>
+                        <th style="width: 100px;">Bloqueado?</th>
+                        <th style="width: 170px;">Empresa</th>
+                        <th style="width: 150px;">Máquina</th>
                         <th style="width: 100px;">IP</th>
                         <th>Endpoint / Erro</th>
                         <th style="width: 65px;">Status</th>
@@ -152,6 +153,7 @@ $(function () {
         columns: [
             { data: 'created_at',    name: 'created_at', className: 'text-mono' },
             { data: 'event',         name: 'event' },
+            { data: 'blocked_info',  name: 'blocked',    orderable: false, searchable: false },
             { data: 'business_info', name: 'business_id', orderable: false, searchable: false },
             { data: 'machine_info',  name: 'licenca_id',  orderable: false, searchable: false },
             { data: 'ip',            name: 'ip', className: 'text-mono' },
