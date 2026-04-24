@@ -10,8 +10,7 @@
 import AppShell from '@/Layouts/AppShell';
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { AlertTriangle, ArrowRight, Inbox, Plus } from 'lucide-react';
-import { Badge } from '@/Components/ui/badge';
+import { ArrowRight, Plus } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import {
@@ -21,6 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+
+import PageHeader from '@/Components/shared/PageHeader';
+import PageFilters from '@/Components/shared/PageFilters';
+import StatusBadge from '@/Components/shared/StatusBadge';
+import EmptyState from '@/Components/shared/EmptyState';
 
 interface Row {
   id: number | string;
@@ -47,87 +51,114 @@ interface Props {
   filtros: { estado: string | null; tipo: string | null };
 }
 
-const estadoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  RASCUNHO:  'outline',
-  PENDENTE:  'default',
-  APROVADA:  'default',
-  REJEITADA: 'destructive',
-  APLICADA:  'secondary',
-  CANCELADA: 'outline',
+const estadoLabelMap: Record<string, string> = {
+  RASCUNHO: 'Rascunho', PENDENTE: 'Pendente', APROVADA: 'Aprovada',
+  REJEITADA: 'Rejeitada', APLICADA: 'Aplicada', CANCELADA: 'Cancelada',
 };
+
+const tipoOptions = [
+  { value: 'CONSULTA_MEDICA', label: 'Consulta médica' },
+  { value: 'ATESTADO_MEDICO', label: 'Atestado médico' },
+  { value: 'REUNIAO_EXTERNA', label: 'Reunião externa' },
+  { value: 'VISITA_CLIENTE', label: 'Visita a cliente' },
+  { value: 'HORA_EXTRA_AUTORIZADA', label: 'Hora extra autorizada' },
+  { value: 'ESQUECIMENTO_MARCACAO', label: 'Esquecimento de marcação' },
+  { value: 'PROBLEMA_EQUIPAMENTO', label: 'Problema no equipamento' },
+  { value: 'OUTRO', label: 'Outro' },
+];
 
 export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props) {
   const filter = (key: string, value: string) => {
-    router.get('/ponto/intercorrencias',
+    router.get(
+      '/ponto/intercorrencias',
       { ...filtros, [key]: value === 'ALL' ? undefined : value },
-      { preserveState: true, preserveScroll: true });
+      { preserveState: true, preserveScroll: true },
+    );
   };
+
+  const resetFilters = () => router.get('/ponto/intercorrencias', {}, { preserveScroll: true });
+
+  const tipoLabel = (v: string) => tipoOptions.find((o) => o.value === v)?.label ?? v.replace(/_/g, ' ');
+
+  const activeChips = [
+    ...(filtros.estado
+      ? [{ label: `Estado: ${estadoLabelMap[filtros.estado] ?? filtros.estado}`, onRemove: () => filter('estado', 'ALL') }]
+      : []),
+    ...(filtros.tipo
+      ? [{ label: `Tipo: ${tipoLabel(filtros.tipo)}`, onRemove: () => filter('tipo', 'ALL') }]
+      : []),
+  ];
+
+  const hasFilters = activeChips.length > 0;
 
   return (
     <>
       <Head title="Intercorrências" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <AlertTriangle size={22} /> Intercorrências
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Ausências, atestados, esquecimentos de marcação e outras ocorrências
-              que afetam a apuração de ponto.
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/ponto/intercorrencias/create">
-              <Plus size={14} className="mr-1.5" /> Nova
-            </Link>
-          </Button>
-        </header>
+        <PageHeader
+          icon="alert-triangle"
+          title="Intercorrências"
+          description="Ausências, atestados, esquecimentos de marcação e outras ocorrências que afetam a apuração de ponto."
+          action={
+            <Button asChild>
+              <Link href="/ponto/intercorrencias/create">
+                <Plus size={14} className="mr-1.5" /> Nova
+              </Link>
+            </Button>
+          }
+        />
 
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex gap-2 flex-wrap">
-              <Select value={filtros.estado ?? 'ALL'} onValueChange={(v) => filter('estado', v)}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Todos os estados</SelectItem>
-                  <SelectItem value="RASCUNHO">Rascunho</SelectItem>
-                  <SelectItem value="PENDENTE">Pendente</SelectItem>
-                  <SelectItem value="APROVADA">Aprovada</SelectItem>
-                  <SelectItem value="REJEITADA">Rejeitada</SelectItem>
-                  <SelectItem value="APLICADA">Aplicada</SelectItem>
-                  <SelectItem value="CANCELADA">Cancelada</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filtros.tipo ?? 'ALL'} onValueChange={(v) => filter('tipo', v)}>
-                <SelectTrigger className="w-52">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Todos os tipos</SelectItem>
-                  <SelectItem value="CONSULTA_MEDICA">Consulta médica</SelectItem>
-                  <SelectItem value="ATESTADO_MEDICO">Atestado médico</SelectItem>
-                  <SelectItem value="REUNIAO_EXTERNA">Reunião externa</SelectItem>
-                  <SelectItem value="VISITA_CLIENTE">Visita a cliente</SelectItem>
-                  <SelectItem value="HORA_EXTRA_AUTORIZADA">Hora extra autorizada</SelectItem>
-                  <SelectItem value="ESQUECIMENTO_MARCACAO">Esquecimento de marcação</SelectItem>
-                  <SelectItem value="PROBLEMA_EQUIPAMENTO">Problema no equipamento</SelectItem>
-                  <SelectItem value="OUTRO">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <PageFilters activeChips={activeChips} onReset={hasFilters ? resetFilters : undefined} cols={2}>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Estado</label>
+            <Select value={filtros.estado ?? 'ALL'} onValueChange={(v) => filter('estado', v)}>
+              <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Todos os estados</SelectItem>
+                {Object.entries(estadoLabelMap).map(([v, l]) => (
+                  <SelectItem key={v} value={v}>{l}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>
+            <Select value={filtros.tipo ?? 'ALL'} onValueChange={(v) => filter('tipo', v)}>
+              <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Todos os tipos</SelectItem>
+                {tipoOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </PageFilters>
 
         <Card>
           <CardContent className="p-0">
             {intercorrencias.data.length === 0 ? (
-              <div className="p-12 text-center text-muted-foreground">
-                <Inbox size={32} className="mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Nenhuma intercorrência com esses filtros.</p>
-              </div>
+              <EmptyState
+                icon={hasFilters ? 'search-x' : 'inbox'}
+                title={hasFilters ? 'Nenhum resultado' : 'Sem intercorrências'}
+                description={
+                  hasFilters
+                    ? 'Nenhuma intercorrência com esses filtros. Tente limpar a busca.'
+                    : 'Nenhuma intercorrência registrada. Colaboradores podem submeter pelo app mobile ou você pode criar manualmente.'
+                }
+                variant={hasFilters ? 'search' : 'default'}
+                action={
+                  hasFilters ? (
+                    <Button variant="outline" size="sm" onClick={resetFilters}>Limpar filtros</Button>
+                  ) : (
+                    <Button asChild size="sm">
+                      <Link href="/ponto/intercorrencias/create">
+                        <Plus size={14} className="mr-1.5" /> Criar primeira
+                      </Link>
+                    </Button>
+                  )
+                }
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -152,15 +183,15 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
                             <div className="text-[10px] text-muted-foreground">{i.colaborador.matricula}</div>
                           )}
                         </td>
-                        <td className="p-3 text-xs">{i.tipo.replace(/_/g, ' ')}</td>
+                        <td className="p-3 text-xs">{tipoLabel(i.tipo)}</td>
                         <td className="p-3 text-xs">{i.data ?? '—'}</td>
                         <td className="p-3">
-                          <Badge variant={estadoVariant[i.estado] ?? 'outline'} className="text-[10px]">
-                            {i.estado}
-                          </Badge>
-                          {i.prioridade === 'URGENTE' && (
-                            <Badge variant="destructive" className="ml-1 text-[10px]">URG</Badge>
-                          )}
+                          <div className="flex items-center gap-1">
+                            <StatusBadge kind="intercorrencia" value={i.estado} />
+                            {i.prioridade === 'URGENTE' && (
+                              <StatusBadge kind="prioridade" value="urgente" />
+                            )}
+                          </div>
                         </td>
                         <td className="p-3 text-xs text-muted-foreground">{i.created_at_human ?? '—'}</td>
                         <td className="p-3 text-right">
@@ -183,9 +214,14 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
                 </span>
                 <div className="flex gap-1">
                   {intercorrencias.links.map((link, i) => (
-                    <Button key={i} variant={link.active ? 'default' : 'outline'} size="sm"
-                            className="h-7 min-w-8 px-2 text-xs" disabled={!link.url}
-                            onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}>
+                    <Button
+                      key={i}
+                      variant={link.active ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 min-w-8 px-2 text-xs"
+                      disabled={!link.url}
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                    >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>
                   ))}
