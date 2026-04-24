@@ -160,22 +160,25 @@ class LicencaLogController extends Controller
         }
 
         // ==========================================================
-        // Status de Login por Máquina (aggregate) — 1 linha por
-        // business_id+ip+user. INCLUI login_error pra mostrar erros tambem.
+        // Status de Login por Máquina (aggregate) — identificacao REAL do
+        // cliente vem do body de /connector/api/processa-dados-cliente (CNPJ
+        // + HD) — logado pelo LogDelphiAccess middleware com source=
+        // 'delphi_middleware'. /oauth/token NAO identifica cliente (eh
+        // autenticacao tecnica do master user) — excluido daqui.
         // ==========================================================
-        $statusQuery = LicencaLog::whereIn('event', ['login_success', 'login_error'])
+        $statusQuery = LicencaLog::whereIn('source', ['delphi_middleware', 'desktop_audit'])
             ->selectRaw("
                 business_id,
+                licenca_id,
                 ip,
-                user_id,
                 MAX(created_at) as last_login,
-                COUNT(CASE WHEN event='login_success' THEN 1 END) as login_count_24h,
-                COUNT(CASE WHEN event='login_error'   THEN 1 END) as errors_24h,
+                COUNT(CASE WHEN http_status < 400 THEN 1 END) as login_count_24h,
+                COUNT(CASE WHEN http_status >= 400 THEN 1 END) as errors_24h,
                 SUM(CASE WHEN metadata LIKE '%\"was_blocked\":true%' THEN 1 ELSE 0 END) as blocked_attempts,
                 MAX(metadata) as last_metadata
             ")
             ->where('created_at', '>=', now()->subHours(24))
-            ->groupBy('business_id', 'ip', 'user_id')
+            ->groupBy('business_id', 'licenca_id', 'ip')
             ->orderByDesc('last_login');
         if ($business_id !== null) {
             $statusQuery->where('business_id', $business_id);
