@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Input } from '@/Components/ui/input';
 import { cn, formatMinutes } from '@/Lib/utils';
+import MonthHeatmap from '@/Components/shared/ponto/MonthHeatmap';
 
 interface Colaborador {
   id: number;
@@ -155,10 +156,24 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             <AlertTriangle size={16} className="text-amber-600" />
             <span>
               <strong>{totais.divergencias}</strong> dia(s) com divergência detectada na apuração.
-              Dias destacados em âmbar na tabela abaixo.
+              Dias destacados em âmbar abaixo (heatmap e tabela).
             </span>
           </div>
         )}
+
+        {/* Heatmap mensal */}
+        <MonthHeatmap
+          mes={mes}
+          linhas={linhas}
+          onDayClick={(linha) => {
+            const el = document.getElementById(`dia-${linha.data}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+              setTimeout(() => el.classList.remove('ring-2', 'ring-primary', 'ring-offset-2'), 1500);
+            }
+          }}
+        />
 
         {/* Tabela dia a dia */}
         <Card>
@@ -182,8 +197,9 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                   {linhas.map((l) => (
                     <tr
                       key={l.data}
+                      id={`dia-${l.data}`}
                       className={cn(
-                        'hover:bg-accent/30 transition-colors',
+                        'hover:bg-accent/30 transition-all scroll-mt-20',
                         l.divergencia && 'bg-amber-500/5',
                         l.is_weekend && 'text-muted-foreground',
                       )}

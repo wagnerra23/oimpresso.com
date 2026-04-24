@@ -17,7 +17,68 @@ import StatusBadge from '@/Components/shared/StatusBadge';
 import PageFilters from '@/Components/shared/PageFilters';
 import EmptyState from '@/Components/shared/EmptyState';
 import BulkActionBar from '@/Components/shared/BulkActionBar';
+import PresenceStrip from '@/Components/shared/ponto/PresenceStrip';
+import ActivityFeed from '@/Components/shared/ponto/ActivityFeed';
+import AlertInbox from '@/Components/shared/ponto/AlertInbox';
+import MonthHeatmap from '@/Components/shared/ponto/MonthHeatmap';
 import { Plus, Download, CheckCheck } from 'lucide-react';
+import { formatMinutes } from '@/Lib/utils';
+
+// Mock data para componentes de ponto
+
+const mockPresenca = [
+  { id: 1, nome: 'Larissa Fernandes', matricula: '001', iniciais: 'LF', status: 'presente' as const,  entrada: '08:05', saida: null,   ultima: '08:05', marcacoes: 1 },
+  { id: 2, nome: 'Wagner Rocha',      matricula: '002', iniciais: 'WR', status: 'presente' as const,  entrada: '07:55', saida: null,   ultima: '12:30', marcacoes: 3 },
+  { id: 3, nome: 'Eduarda Silva',     matricula: '003', iniciais: 'ES', status: 'atrasado' as const,  entrada: null,    saida: null,   ultima: null,    marcacoes: 0 },
+  { id: 4, nome: 'João Pereira',      matricula: '004', iniciais: 'JP', status: 'saiu' as const,      entrada: '08:00', saida: '17:45', ultima: '17:45', marcacoes: 4 },
+  { id: 5, nome: 'Ana Beatriz',       matricula: '005', iniciais: 'AB', status: 'ausente' as const,   entrada: null,    saida: null,   ultima: null,    marcacoes: 0 },
+  { id: 6, nome: 'Carlos Mendes',     matricula: '006', iniciais: 'CM', status: 'presente' as const,  entrada: '08:10', saida: null,   ultima: '13:00', marcacoes: 3 },
+];
+
+const mockAtividade = [
+  { id: 1, tipo: 'ENTRADA',          momento: '13:00', origem: 'REP', tempo: '5min',  colaborador: { id: 6, nome: 'Carlos Mendes',     matricula: '006' }, rep: { identificador: 'BL0001', tipo: 'REP-P' } },
+  { id: 2, tipo: 'INTERVALO_FIM',    momento: '12:55', origem: 'REP', tempo: '10min', colaborador: { id: 2, nome: 'Wagner Rocha',      matricula: '002' }, rep: { identificador: 'BL0001', tipo: 'REP-P' } },
+  { id: 3, tipo: 'INTERVALO_INICIO', momento: '12:00', origem: 'APP', tempo: '1h',    colaborador: { id: 2, nome: 'Wagner Rocha',      matricula: '002' }, rep: { identificador: null, tipo: 'APP' } },
+  { id: 4, tipo: 'SAIDA',            momento: '17:45', origem: 'REP', tempo: '15min', colaborador: { id: 4, nome: 'João Pereira',      matricula: '004' }, rep: { identificador: 'BL0001', tipo: 'REP-P' } },
+  { id: 5, tipo: 'ENTRADA',          momento: '08:05', origem: 'REP', tempo: '5h',    colaborador: { id: 1, nome: 'Larissa Fernandes', matricula: '001' }, rep: { identificador: 'BL0001', tipo: 'REP-P' } },
+];
+
+const mockAlertas = [
+  { tipo: 'atraso',           titulo: 'Atraso de 35min',            subtitulo: 'Eduarda Silva',   acao_label: 'Ver espelho', acao_href: '#', severidade: 'warning' as const },
+  { tipo: 'aprovacao_parada', titulo: 'Aprovação parada há 2 dias', subtitulo: 'Larissa Fernandes', acao_label: 'Aprovar',     acao_href: '#', severidade: 'danger'  as const },
+  { tipo: 'falta',            titulo: 'Falta de 240min',            subtitulo: 'Ana Beatriz',     acao_label: 'Justificar',   acao_href: '#', severidade: 'danger'  as const },
+];
+
+// Gera um mês sintético pra heatmap — 2026-04 (30 dias), padrões variados
+const mockLinhasEspelho = Array.from({ length: 30 }, (_, i) => {
+  const dia = i + 1;
+  const date = new Date(2026, 3, dia);
+  const dow = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'][date.getDay()];
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+  // Padrão fictício:
+  let trabalhado = 0, atraso = 0, falta = 0, he = 0, divergencia = false;
+  if (!isWeekend) {
+    trabalhado = 480;
+    if (dia === 7)  { atraso = 45; }
+    if (dia === 14) { falta = 240; divergencia = true; }
+    if (dia === 10) { he = 90; }
+    if (dia === 17) { he = 180; } // HE alta
+    if (dia === 22) { atraso = 120; divergencia = true; }
+    if (dia === 28) { he = 60; }
+  }
+  return {
+    data: `2026-04-${String(dia).padStart(2, '0')}`,
+    dow,
+    dia,
+    is_weekend: isWeekend,
+    trabalhado,
+    atraso,
+    falta,
+    he,
+    divergencia,
+    marcacoes: isWeekend ? [] : [{ hora: '08:00', tipo: 'ENTRADA', origem: 'REP' }],
+  };
+});
 
 /**
  * Showcase das primitivas de produto (shared).
@@ -272,8 +333,30 @@ export default function Showcase() {
           </BulkActionBar>
         </Section>
 
+        {/* ========================================= PONTO: PRESENÇA STRIP ========================================= */}
+        <Section title="7. Ponto · PresenceStrip (dashboard vivo)">
+          <PresenceStrip colaboradores={mockPresenca} />
+        </Section>
+
+        {/* ========================================= PONTO: ACTIVITY FEED + ALERT INBOX ========================================= */}
+        <Section title="8. Ponto · ActivityFeed + AlertInbox (side by side)">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <ActivityFeed marcacoes={mockAtividade} />
+            <AlertInbox alertas={mockAlertas} />
+          </div>
+        </Section>
+
+        {/* ========================================= PONTO: MONTH HEATMAP ========================================= */}
+        <Section title="9. Ponto · MonthHeatmap (Espelho do mês)">
+          <MonthHeatmap
+            mes="2026-04"
+            linhas={mockLinhasEspelho}
+            onDayClick={(l) => alert(`Click no dia ${l.dia} · ${formatMinutes(l.trabalhado)} trabalhado`)}
+          />
+        </Section>
+
         {/* ========================================= DESIGN SYSTEM RULES ========================================= */}
-        <Section title="7. Conformidade — Design System">
+        <Section title="10. Conformidade — Design System">
           <div className="rounded-lg border border-border bg-card p-4 text-sm space-y-2">
             <p className="text-muted-foreground">Todos os componentes obedecem:</p>
             <ul className="list-disc list-inside space-y-1 text-foreground/80">
