@@ -118,7 +118,8 @@
 @section('javascript')
 <script>
 $(function () {
-    var initialLicencaId = {!! json_encode($filter_licenca_id ?? null) !!};
+    var initialLicencaId  = {!! json_encode($filter_licenca_id ?? null) !!};
+    var initialBusinessId = {!! json_encode($filter_business_id ?? null) !!};
 
     var table = $('#licenca_log_table').DataTable({
         processing: true,
@@ -139,10 +140,11 @@ $(function () {
         ajax: {
             url: "{{ route('licenca_log.index') }}",
             data: function (d) {
-                d.event      = $('#filter_event').val();
-                d.licenca_id = initialLicencaId;
-                d.from       = $('#filter_from').val();
-                d.to         = $('#filter_to').val();
+                d.event       = $('#filter_event').val();
+                d.licenca_id  = initialLicencaId;
+                d.business_id = initialBusinessId;
+                d.from        = $('#filter_from').val();
+                d.to          = $('#filter_to').val();
             }
         },
         columns: [
