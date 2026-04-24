@@ -2,6 +2,24 @@
 
 ## Roadmap / Futuro
 
+### [vX.Y] — Restaurar endpoints do Connector 3.7 que o Delphi realmente usa
+
+**Descoberta 2026-04-24 (ADR 0021):** o Delphi **não usa** `/api/officeimpresso/*` como eu tinha assumido. Ele tem 3 gerações de código convivendo, todas usando **Connector**:
+
+1. **Geração 1 — legada em produção** (`/connector/api/processa-dados-cliente` + `/salvar-equipamento/{business_id}` + `/salvar-cliente`) — JSON com EMPRESA+LICENCIAMENTO, resposta `S;msg` ou `N;motivo`.
+2. **Geração 2 — sync genérico** (`/connector/api/{tabela}/sync-post` + `sync-get`) — chunks de 100 registros modificados (OIMPRESSO_SINCRONIZADO IS NULL).
+3. **Geração 3 — novo padrão em dev** (`/api/oimpresso/registrar` etc.) — não está em prod ainda.
+
+Estes endpoints **já existem em `origin/3.7-com-nfe:Modules/Connector/`** mas foram perdidos na migração 3.7→6.7. **147 arquivos faltando no Connector** do 6.7 (ver `reference_branch_3_7.md`).
+
+**Plano:**
+1. Restaurar `Modules/Connector/Http/routes.php` completo do 3.7
+2. Restaurar controllers API (namespace `Modules\Connector\Http\Controllers\Api\*`) — `LicencaComputadorController`, `BusinessController`, `EquipamentoImpressoraController`, `HistoricoImpressoesController`
+3. Prefixar names de rotas pra evitar colisão com route:cache (padrão aplicado na correção de `business-location.index`)
+4. Testar com curl simulando o Delphi
+
+**Prioridade: alta** — sem isso o Delphi não sincroniza nada, mesmo autenticando OK.
+
 ### [vX.Y] — Delphi envia `hd` no /oauth/token (identificação de máquina)
 
 **Problema:** `licenca_log` não consegue resolver `licenca_id` corretamente porque `/oauth/token` não carrega identificador único de máquina. Wagner apontou que **`hd` (serial do disco) é a chave única** — cada `licenca_computador` tem um `hd` distinto.
