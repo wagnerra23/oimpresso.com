@@ -111,6 +111,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     Route::get('/sign-in-as-user/{id}', [ManageUserController::class, 'signInAsUser'])->name('sign-in-as-user');
 
+    // Design System — showcase dos componentes shared (dev/design review)
+    Route::get('/showcase/components', fn () => inertia('_Showcase/Components'))
+        ->middleware('superadmin')
+        ->name('showcase.components');
+
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);
