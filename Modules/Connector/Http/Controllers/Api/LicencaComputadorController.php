@@ -41,6 +41,21 @@ class LicencaComputadorController extends Controller
                 return $this->processarComEmpresa($dadosEmpresa, $dadosLicenciamento);
             }
 
+            // Edge case: Delphi mandou array com LICENCIAMENTO mas SEM EMPRESA.
+            // Acontece quando FrmPrincipal.CONECTAR.Connected=false ou EmpresaAtiva
+            // nao setado no momento de GerarJsonRegistro. Resolvemos via lookup do HD
+            // (mesma politica do body flat).
+            if ($dadosLicenciamento && ! empty($dadosLicenciamento['HD'])) {
+                $flat = [
+                    'host'       => $dadosLicenciamento['DESCRICAO'] ?? null,
+                    'ip'         => $dadosLicenciamento['IP_INTERNO'] ?? null,
+                    'serial_hd'  => $dadosLicenciamento['HD'],
+                    'sistema'    => $dadosLicenciamento['SISTEMA'] ?? null,
+                    'versao'     => $dadosLicenciamento['VERSAO_EXE'] ?? null,
+                ];
+                return $this->processarApenasHd($dadosLicenciamento['HD'], $flat);
+            }
+
             return response()->json(['error' => 'Dados de EMPRESA ou LICENCIAMENTO ausentes'], 400);
         }
 

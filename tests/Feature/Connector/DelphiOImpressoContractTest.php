@@ -321,6 +321,18 @@ it('LogDelphiAccess resolve CNPJ do body flat', function () {
     expect($lid)->toBeNull();
 });
 
+it('ProcessaDadosCliente fallback para array com SO LICENCIAMENTO (sem EMPRESA)', function () {
+    // Edge case real observado: GerarJsonRegistro as vezes deixa de incluir
+    // NOME_TABELA=EMPRESA se FrmPrincipal.CONECTAR.Connected=false ou
+    // EmpresaAtiva invalido no momento do boot. Resultado: body chega com
+    // array de 1 elemento (so LICENCIAMENTO). Antes caia em 400. Agora
+    // resolvemos via HD lookup.
+    $controller = new \Modules\Connector\Http\Controllers\Api\LicencaComputadorController();
+    $source = file_get_contents((new ReflectionClass($controller))->getFileName());
+    expect($source)->toContain("\$dadosLicenciamento && ! empty(\$dadosLicenciamento['HD'])");
+    expect($source)->toContain("processarApenasHd(\$dadosLicenciamento['HD']");
+});
+
 it('ProcessaDadosCliente aceita body flat com serial_hd (Services.LicencaThread.pas)', function () {
     // Guarda do fallback: quando Delphi envia apenas {host, ip, serial_hd,
     // sistema, versao} (sem CNPJ, formato TThreadLicenca), o controller
