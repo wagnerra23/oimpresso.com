@@ -105,7 +105,45 @@ class LicencaLogController extends Controller
 
         $filter_licenca_id  = $request->query('licenca_id');
         $filter_business_id = $request->query('business_id');
-        return view('officeimpresso::licenca_log.index', compact('kpis', 'events', 'filter_licenca_id', 'filter_business_id'));
+
+        // ==========================================================
+        // Status de Login por Máquina (aggregate) — 1 linha por
+        // business_id+user_agent+ip (identidade da maquina ate hd chegar)
+        // ==========================================================
+        $statusQuery = LicencaLog::where('event', 'login_success')
+            ->selectRaw("
+                business_id,
+                ip,
+                user_id,
+                MAX(created_at) as last_login,
+                COUNT(*) as login_count_24h,
+                SUM(CASE WHEN metadata LIKE '%\"was_blocked\":true%' THEN 1 ELSE 0 END) as blocked_attempts,
+                MAX(metadata) as last_metadata
+            ")
+            ->where('created_at', '>=', now()->subHours(24))
+            ->groupBy('business_id', 'ip', 'user_id')
+            ->orderByDesc('last_login');
+        if ($business_id !== null) {
+            $statusQuery->where('business_id', $business_id);
+        }
+        $maquinas = $statusQuery->get()->map(function ($row) {
+            $business = $row->business_id ? \DB::table('business')->where('id', $row->business_id)->first(['name', 'officeimpresso_bloqueado']) : null;
+            $meta = is_string($row->last_metadata) ? json_decode($row->last_metadata, true) : [];
+            return (object) [
+                'business_id'       => $row->business_id,
+                'business_name'     => $business->name ?? '—',
+                'business_blocked'  => (bool) ($business->officeimpresso_bloqueado ?? false),
+                'ip'                => $row->ip,
+                'last_login'        => $row->last_login,
+                'login_count_24h'   => $row->login_count_24h,
+                'blocked_attempts'  => $row->blocked_attempts,
+                'was_blocked_last'  => (bool) ($meta['was_blocked'] ?? false),
+                'hd'                => $meta['hd'] ?? null,
+                'user_id'           => $row->user_id,
+            ];
+        });
+
+        return view('officeimpresso::licenca_log.index', compact('kpis', 'events', 'filter_licenca_id', 'filter_business_id', 'maquinas'));
     }
 
     public function show($id)
