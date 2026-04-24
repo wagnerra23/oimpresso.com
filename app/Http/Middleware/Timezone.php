@@ -18,9 +18,13 @@ class Timezone
     {
         $timezone = config('app.timezone');
 
-        if ($request->session()->has('business_timezone')) {
+        // Rotas API nao tem session store configurado — check defensivo
+        // pra nao quebrar em /api/*, /connector/api/*, etc.
+        $hasSession = $request->hasSession();
+
+        if ($hasSession && $request->session()->has('business_timezone')) {
             $timezone = $request->session()->get('business_timezone');
-        } elseif ($request->session()->has('business')) {
+        } elseif ($hasSession && $request->session()->has('business')) {
             $business = $request->session()->get('business');
             $business_tz = is_object($business)
                 ? ($business->time_zone ?? null)

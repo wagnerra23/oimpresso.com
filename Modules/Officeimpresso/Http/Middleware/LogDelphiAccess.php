@@ -29,8 +29,10 @@ class LogDelphiAccess
         $durationMs = (int) round((microtime(true) - $start) * 1000);
 
         try {
+            // HD pode ou nao vir no body. Antes a gente pulava o log quando
+            // nao tinha HD — agora logamos tudo pra descobrir endpoints novos
+            // que o Delphi bate. HD continua sendo gravado quando presente.
             $hd = $this->extractHd($request);
-            if (! $hd) return $response;  // sem hd = sem log
 
             $user = $request->user();
             // CNPJ do body tem prioridade sobre user->business_id — o Delphi
