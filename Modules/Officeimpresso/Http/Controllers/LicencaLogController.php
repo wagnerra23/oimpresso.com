@@ -38,6 +38,19 @@ class LicencaLogController extends Controller
                     $query->whereIn('event', $events_list);
                 }
             }
+            // Busca textual por nome empresa / cnpj / hd / hostname — resolve
+            // pra business_ids e restringe na query
+            if ($request->filled('q')) {
+                $like = '%' . trim($request->input('q')) . '%';
+                $biz  = \DB::table('business')->where(function ($qq) use ($like) {
+                    $qq->where('name', 'like', $like)->orWhere('razao_social', 'like', $like)->orWhere('cnpj', 'like', $like);
+                })->pluck('id');
+                $maq  = \DB::table('licenca_computador')->where(function ($qq) use ($like) {
+                    $qq->where('hd', 'like', $like)->orWhere('user_win', 'like', $like)->orWhere('hostname', 'like', $like);
+                })->pluck('business_id');
+                $ids = $biz->merge($maq)->unique()->values();
+                $query->whereIn('business_id', $ids->isEmpty() ? [0] : $ids);
+            }
             if ($request->filled('licenca_id')) {
                 $query->where('licenca_id', $request->input('licenca_id'));
             }
@@ -121,18 +134,43 @@ class LicencaLogController extends Controller
 
         $filter_licenca_id  = $request->query('licenca_id');
         $filter_business_id = $request->query('business_id');
+        $filter_q           = trim((string) $request->query('q', ''));
+
+        // ==========================================================
+        // Busca por empresa (name/cnpj/razao_social) e maquina (hd/user_win).
+        // Quando `q` bate, restringimos business_ids elegiveis na query principal.
+        // ==========================================================
+        $qBusinessIds = null;
+        if ($filter_q !== '') {
+            $like = '%' . $filter_q . '%';
+            $fromBusiness = \DB::table('business')
+                ->where(function ($qq) use ($like) {
+                    $qq->where('name', 'like', $like)
+                        ->orWhere('razao_social', 'like', $like)
+                        ->orWhere('cnpj', 'like', $like);
+                })->pluck('id');
+            $fromMaquina = \DB::table('licenca_computador')
+                ->where(function ($qq) use ($like) {
+                    $qq->where('hd', 'like', $like)
+                        ->orWhere('user_win', 'like', $like)
+                        ->orWhere('hostname', 'like', $like)
+                        ->orWhere('ip_interno', 'like', $like);
+                })->pluck('business_id');
+            $qBusinessIds = $fromBusiness->merge($fromMaquina)->unique()->values();
+        }
 
         // ==========================================================
         // Status de Login por Máquina (aggregate) — 1 linha por
-        // business_id+user_agent+ip (identidade da maquina ate hd chegar)
+        // business_id+ip+user. INCLUI login_error pra mostrar erros tambem.
         // ==========================================================
-        $statusQuery = LicencaLog::where('event', 'login_success')
+        $statusQuery = LicencaLog::whereIn('event', ['login_success', 'login_error'])
             ->selectRaw("
                 business_id,
                 ip,
                 user_id,
                 MAX(created_at) as last_login,
-                COUNT(*) as login_count_24h,
+                COUNT(CASE WHEN event='login_success' THEN 1 END) as login_count_24h,
+                COUNT(CASE WHEN event='login_error'   THEN 1 END) as errors_24h,
                 SUM(CASE WHEN metadata LIKE '%\"was_blocked\":true%' THEN 1 ELSE 0 END) as blocked_attempts,
                 MAX(metadata) as last_metadata
             ")
@@ -141,6 +179,9 @@ class LicencaLogController extends Controller
             ->orderByDesc('last_login');
         if ($business_id !== null) {
             $statusQuery->where('business_id', $business_id);
+        }
+        if ($qBusinessIds !== null) {
+            $statusQuery->whereIn('business_id', $qBusinessIds->isEmpty() ? [0] : $qBusinessIds);
         }
         $maquinas = $statusQuery->get()->map(function ($row) {
             $business = $row->business_id ? \DB::table('business')->where('id', $row->business_id)->first(['name', 'officeimpresso_bloqueado']) : null;
@@ -175,6 +216,7 @@ class LicencaLogController extends Controller
                 'ip'                => $row->ip,
                 'last_login'        => $row->last_login,
                 'login_count_24h'   => $row->login_count_24h,
+                'errors_24h'        => $row->errors_24h ?? 0,
                 'blocked_attempts'  => $row->blocked_attempts,
                 'was_blocked_last'  => (bool) ($meta['was_blocked'] ?? false),
                 'hd'                => $hd,
@@ -185,7 +227,7 @@ class LicencaLogController extends Controller
             ];
         });
 
-        return view('officeimpresso::licenca_log.index', compact('kpis', 'events', 'filter_licenca_id', 'filter_business_id', 'maquinas'));
+        return view('officeimpresso::licenca_log.index', compact('kpis', 'events', 'filter_licenca_id', 'filter_business_id', 'filter_q', 'maquinas'));
     }
 
     public function show($id)

@@ -59,7 +59,30 @@
         </div>
     </div>
 
-    {{-- Filtros --}}
+    {{-- BUSCA RÁPIDA — filtra empresa por name/cnpj OU máquina por hd/hostname --}}
+    <form method="GET" action="{{ route('licenca_log.index') }}" class="oi-filter-bar" style="margin-bottom: 12px;">
+        <div class="row">
+            <div class="col-md-8">
+                <label>🔍 Buscar por empresa ou máquina</label>
+                <input type="text" name="q" value="{{ $filter_q ?? '' }}" class="form-control"
+                       placeholder="Nome, CNPJ, HD (F0A24779), hostname (BOOK-GV80BF5507)…"
+                       autocomplete="off">
+            </div>
+            <div class="col-md-4" style="padding-top: 24px;">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Buscar</button>
+                @if($filter_q ?? null)
+                    <a href="{{ route('licenca_log.index') }}" class="btn btn-default"><i class="fa fa-times"></i> Limpar</a>
+                @endif
+            </div>
+        </div>
+        @if($filter_q ?? null)
+            <div class="alert alert-info" style="margin: 10px 0 0;">
+                <i class="fa fa-filter"></i> Buscando por <strong>"{{ $filter_q }}"</strong> — mostrando empresas/máquinas que batem.
+            </div>
+        @endif
+    </form>
+
+    {{-- Filtros da timeline --}}
     <div class="oi-filter-bar">
         <div class="row">
             <div class="col-md-3">
@@ -113,14 +136,15 @@
                         <th>IP</th>
                         <th>Último Login</th>
                         <th style="text-align: center;">Logins 24h</th>
+                        <th style="text-align: center;">Erros 24h</th>
                         <th>Estado no Último Login</th>
                         <th>Estado Atual</th>
-                        <th style="width: 110px;">Ações</th>
+                        <th style="width: 150px;">Ação rápida</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($maquinas as $m)
-                        <tr>
+                        <tr @if($m->errors_24h > 0) style="background: #fef3c7;" @endif>
                             <td>
                                 @if($m->business_id)
                                     <a href="{{ url('/officeimpresso/licenca_computado/licencas/' . $m->business_id) }}" class="text-primary">
@@ -164,6 +188,13 @@
                             <td style="text-align: center;">
                                 <span class="oi-pill oi-pill-neutral">{{ $m->login_count_24h }}</span>
                             </td>
+                            <td style="text-align: center;">
+                                @if($m->errors_24h > 0)
+                                    <span class="oi-pill oi-pill-blocked" title="Tentativas rejeitadas" style="font-weight: 700;">{{ $m->errors_24h }}</span>
+                                @else
+                                    <span class="text-muted">0</span>
+                                @endif
+                            </td>
                             <td>
                                 @if($m->was_blocked_last)
                                     <span class="oi-pill oi-pill-blocked"><i class="fa fa-lock"></i> Bloqueada quando logou</span>
@@ -179,8 +210,24 @@
                                 @endif
                             </td>
                             <td>
-                                @if($m->business_id)
-                                    <a href="{{ url('/officeimpresso/licenca_log?business_id=' . $m->business_id) }}" class="oi-btn oi-btn-ghost oi-btn-xs" title="Filtrar timeline por esta empresa">
+                                @if($m->business_blocked && $m->business_id)
+                                    <a href="{{ route('business.bloqueado', $m->business_id) }}"
+                                       class="oi-btn oi-btn-success oi-btn-xs"
+                                       onclick="return confirm('Liberar empresa {{ addslashes($m->business_name) }} ?')"
+                                       title="Desbloquear empresa inteira">
+                                        <i class="fa fa-unlock"></i> Liberar empresa
+                                    </a>
+                                @elseif($m->guessed_machine && $m->guessed_machine->bloqueado)
+                                    <a href="{{ route('licenca_computador.toggleBlock', $m->guessed_machine->id) }}"
+                                       class="oi-btn oi-btn-success oi-btn-xs"
+                                       onclick="return confirm('Liberar máquina {{ addslashes($m->guessed_machine->user_win ?? '') }} ?')"
+                                       title="Desbloquear essa máquina">
+                                        <i class="fa fa-unlock"></i> Liberar máquina
+                                    </a>
+                                @elseif($m->business_id)
+                                    <a href="{{ url('/officeimpresso/licenca_log?business_id=' . $m->business_id) }}"
+                                       class="oi-btn oi-btn-ghost oi-btn-xs"
+                                       title="Filtrar timeline por esta empresa">
                                         <i class="fa fa-filter"></i> Timeline
                                     </a>
                                 @endif
@@ -188,8 +235,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" style="text-align: center; padding: 30px; color: #9ca3af;">
-                                Nenhuma máquina logou nas últimas 24h.
+                            <td colspan="9" style="text-align: center; padding: 30px; color: #9ca3af;">
+                                @if($filter_q ?? null)
+                                    Nenhuma máquina encontrada com <strong>"{{ $filter_q }}"</strong> nas últimas 24h.
+                                @else
+                                    Nenhuma máquina logou nas últimas 24h.
+                                @endif
                             </td>
                         </tr>
                     @endforelse
@@ -228,6 +279,7 @@
 $(function () {
     var initialLicencaId  = {!! json_encode($filter_licenca_id ?? null) !!};
     var initialBusinessId = {!! json_encode($filter_business_id ?? null) !!};
+    var initialQ          = {!! json_encode($filter_q ?? '') !!};
 
     var table = $('#licenca_log_table').DataTable({
         processing: true,
@@ -253,6 +305,7 @@ $(function () {
                 d.event       = $('#filter_event').val();
                 d.licenca_id  = initialLicencaId;
                 d.business_id = initialBusinessId;
+                d.q           = initialQ;
                 d.from        = $('#filter_from').val();
                 d.to          = $('#filter_to').val();
             }
