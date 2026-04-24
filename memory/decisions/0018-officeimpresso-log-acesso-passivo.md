@@ -1,6 +1,6 @@
 # ADR 0018 — Log de acesso do desktop via triggers MySQL (passivo)
 
-**Status:** Aceito
+**Status:** ⚠️ SUPERSEDED pela arquitetura event-listener/middleware (ver seção "Update 2026-04-24" no final)
 **Data:** 2026-04-23
 
 ## Contexto
@@ -83,8 +83,50 @@ Command agendado que lê linhas novas do `storage/logs/laravel.log`, extrai:
 
 ## Links
 - `Modules/Officeimpresso/Database/Migrations/2026_04_23_200000_create_licenca_log_table.php`
-- `Modules/Officeimpresso/Database/Migrations/2026_04_23_200100_create_licenca_log_triggers.php`
+- `Modules/Officeimpresso/Database/Migrations/2026_04_23_200100_create_licenca_log_triggers.php` (SUPERSEDED — dropped na migration 2026_04_24_000000)
 - `Modules/Officeimpresso/Entities/LicencaLog.php`
 - `Modules/Officeimpresso/Http/Controllers/LicencaLogController.php`
 - `Modules/Officeimpresso/Resources/views/licenca_log/index.blade.php`
 - ADR 0017 (restauração Officeimpresso)
+
+---
+
+## Update 2026-04-24 — Migração pra event listener + middleware
+
+### Motivo
+
+Triggers MySQL gravam apenas `user_id` + `client_id` + `token_hint`. Quando Delphi começou a autenticar, os registros apareceram **duplicados (4 rows por login)** e **sem contexto útil** — sem IP, sem user-agent, sem endpoint, sem duration.
+
+Wagner confirmou: *"está registrando errado, acho que pode ser uma api no lugar da trigger teria mais controle"*.
+
+### Nova arquitetura
+
+1. **`LogPassportAccessToken` listener** escuta `Laravel\Passport\Events\AccessTokenCreated`:
+   - Captura `request()->ip()`, `userAgent()`, `user_id`, `client_id`, `token_hint`
+   - Grava `event='login_success'` com `source='passport_event'`
+   - Wrapped em try/catch — se listener falhar, Passport emite token normalmente
+
+2. **`LogDesktopAccess` middleware** aplicado em `/api/officeimpresso/*`:
+   - Mede timing com `microtime(true)` antes e depois do `$next()`
+   - Captura endpoint, método, status HTTP, duration_ms, user, token
+   - Grava `event='api_call'` com `source='api_middleware'`
+   - Try/catch — falha de log nunca quebra response do Delphi
+
+3. **Triggers MySQL dropados** via migration `2026_04_24_000000_drop_licenca_log_triggers`.
+
+### Vantagens
+- IP e user-agent capturados (trigger não enxergava)
+- Endpoint + duration em cada chamada API (observability real)
+- Dedup natural — 1 evento por tipo por request (não 4)
+- Evolução mais fácil — só editar PHP, não touching DB schema
+- try/catch garante que log nunca quebra fluxo do Delphi
+
+### Por que seguro pro Delphi legado
+Requisito da ADR original: *"O fluxo Passport tem que continuar funcionando mesmo se o log falhar."*
+- Event listener roda APÓS token já emitido (Passport já respondeu ao Delphi)
+- Middleware roda APÓS `$next()` — resposta já pronta
+- Exception em listener/middleware é capturada e logada sem propagar
+- Nenhum path do Delphi depende do log funcionando
+
+### Fase 2 (parser de log) e 3 (audit endpoint)
+**Mantidos** — parser continua útil pra login_error que Passport registra antes do evento AccessTokenCreated disparar; audit endpoint `POST /api/officeimpresso/audit` continua disponível.

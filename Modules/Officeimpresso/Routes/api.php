@@ -13,7 +13,10 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->group(function () {
+// log.desktop middleware captura IP, UA, endpoint, status, duration de
+// cada request autenticada em /api/officeimpresso/*. Wrapped em try/catch
+// — nunca afeta o processamento da request do Delphi.
+Route::middleware(['auth:api', 'log.desktop'])->group(function () {
     // Ping + user — endpoint existente (nao mexer)
     Route::get('/officeimpresso', function (Request $request) {
         return $request->user();

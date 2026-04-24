@@ -25,6 +25,19 @@ class OfficeimpressoServiceProvider extends ServiceProvider
                 \Modules\Officeimpresso\Console\ParseLicencaLogCommand::class,
             ]);
         }
+
+        // Listener pra Passport AccessTokenCreated — grava login_success com
+        // contexto completo (IP, UA, user, client). Substitui trigger MySQL.
+        \Illuminate\Support\Facades\Event::listen(
+            \Laravel\Passport\Events\AccessTokenCreated::class,
+            \Modules\Officeimpresso\Listeners\LogPassportAccessToken::class
+        );
+
+        // Middleware registrado como alias 'log.desktop' pra uso nas rotas.
+        $this->app['router']->aliasMiddleware(
+            'log.desktop',
+            \Modules\Officeimpresso\Http\Middleware\LogDesktopAccess::class
+        );
     }
 
     /**
