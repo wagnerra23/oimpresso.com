@@ -22,23 +22,20 @@ class LicencaLogController extends Controller
         }
 
         if ($request->ajax()) {
-            // Tela EXCLUSIVA para /connector/api/processa-dados-cliente.
-            // Qualquer outro endpoint (oauth/token, salvar-*, audit) nao aparece aqui.
-            $query = LicencaLog::query()
-                ->where('source', 'delphi_middleware')
-                ->where('endpoint', 'like', '%processa-dados-cliente%');
+            $query = LicencaLog::query();
 
             if ($business_id !== null) {
                 $query->where('business_id', $business_id);
             }
 
-            // Filtro de status: 'ok' (http<400) ou 'erro' (>=400).
-            if ($request->filled('status')) {
-                $status = $request->input('status');
-                if ($status === 'ok') {
-                    $query->where('http_status', '<', 400);
-                } elseif ($status === 'erro') {
-                    $query->where('http_status', '>=', 400);
+            if ($request->filled('event')) {
+                $query->where('event', $request->input('event'));
+            }
+            // event_in=login_success,login_error limita a eventos de autorizacao de uso
+            if ($request->filled('event_in')) {
+                $events_list = array_filter(array_map('trim', explode(',', $request->input('event_in'))));
+                if (! empty($events_list)) {
+                    $query->whereIn('event', $events_list);
                 }
             }
             // Busca textual por nome empresa / cnpj / hd / hostname — resolve
@@ -67,11 +64,13 @@ class LicencaLogController extends Controller
             return DataTables::of($query->orderBy('created_at', 'desc'))
                 ->editColumn('created_at', fn ($r) => $r->created_at ? $r->created_at->format('d/m/Y H:i:s') : '')
                 ->editColumn('event', function ($r) {
-                    // Tela exclusiva processa-dados-cliente — status pelo http_status
-                    if ($r->http_status && $r->http_status < 400) {
-                        return '<span class="event-badge event-login_success">Processado</span>';
-                    }
-                    return '<span class="event-badge event-login_error">Falhou</span>';
+                    // Tela de Autorizacao de Uso — traduz rotulos do login_*
+                    $labels = [
+                        'login_success' => 'Autorização concedida',
+                        'login_error'   => 'Autorização negada',
+                    ];
+                    $label = $labels[$r->event] ?? $r->event;
+                    return '<span class="event-badge event-' . e($r->event) . '">' . e($label) . '</span>';
                 })
                 ->editColumn('http_status', fn ($r) => $r->http_status ? e($r->http_status) : '—')
                 ->editColumn('duration_ms', fn ($r) => $r->duration_ms ? e($r->duration_ms) . 'ms' : '—')
@@ -112,26 +111,25 @@ class LicencaLogController extends Controller
                 ->make(true);
         }
 
-        // KPIs das ultimas 24h — EXCLUSIVAMENTE processa-dados-cliente
+        // KPIs das ultimas 24h
         $since = now()->subHours(24);
-        $base = LicencaLog::where('created_at', '>=', $since)
-            ->where('source', 'delphi_middleware')
-            ->where('endpoint', 'like', '%processa-dados-cliente%');
+        $base = LicencaLog::where('created_at', '>=', $since);
         if ($business_id !== null) {
             $base = $base->where('business_id', $business_id);
         }
 
         $kpis = [
-            'processado' => (clone $base)->where('http_status', '<', 400)->count(),
-            'falhou'     => (clone $base)->where('http_status', '>=', 400)->count(),
-            'bloqueado'  => (clone $base)->where('metadata', 'like', '%"was_blocked":true%')->count(),
-            'total'      => (clone $base)->count(),
+            'login_success' => (clone $base)->where('event', 'login_success')->count(),
+            'login_error'   => (clone $base)->where('event', 'login_error')->count(),
+            'api_call'      => (clone $base)->where('event', 'api_call')->count(),
+            'block'         => (clone $base)->where('event', 'block')->count(),
         ];
 
-        // Dropdown de status na timeline
+        // Tela Autorizacao de Uso — dropdown so tem 2 opcoes agora.
+        // Map value (DB) => label (UI).
         $events = [
-            'ok'   => 'Processado (http<400)',
-            'erro' => 'Falhou (http≥400)',
+            'login_success' => 'Autorização concedida',
+            'login_error'   => 'Autorização negada',
         ];
 
         $filter_licenca_id  = $request->query('licenca_id');
@@ -162,12 +160,13 @@ class LicencaLogController extends Controller
         }
 
         // ==========================================================
-        // Agregado EXCLUSIVO de /connector/api/processa-dados-cliente.
-        // Este endpoint carrega CNPJ (EMPRESA) + HD (LICENCIAMENTO) no body —
-        // unica fonte confiavel de identidade do cliente desktop Delphi.
+        // Status de Login por Máquina (aggregate) — identificacao REAL do
+        // cliente vem do body de /connector/api/processa-dados-cliente (CNPJ
+        // + HD) — logado pelo LogDelphiAccess middleware com source=
+        // 'delphi_middleware'. /oauth/token NAO identifica cliente (eh
+        // autenticacao tecnica do master user) — excluido daqui.
         // ==========================================================
-        $statusQuery = LicencaLog::where('source', 'delphi_middleware')
-            ->where('endpoint', 'like', '%processa-dados-cliente%')
+        $statusQuery = LicencaLog::whereIn('source', ['delphi_middleware', 'desktop_audit'])
             ->selectRaw("
                 business_id,
                 licenca_id,
