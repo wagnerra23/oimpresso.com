@@ -298,6 +298,30 @@ class Util
     }
 
     /**
+     * Retorna "agora" formatado no padrão do business, SEM o shift +3h histórico
+     * do format_date. Use pra pré-preencher campos de form tipo transaction_date
+     * onde o valor é "agora" e não um dado histórico de DB.
+     *
+     * Por que existir? format_date() mantém bug intencional de +3h pra
+     * preservar consistência visual com vendas antigas (ver
+     * feedback_carbon_timezone_bug.md). Mas pra "now" isso empurra o horário
+     * 3 horas pro futuro, travando/confundindo o operador.
+     *
+     * Diferente de format_date(), este método usa Carbon::now() que respeita
+     * config('app.timezone') setado pelo middleware Timezone.
+     */
+    public function format_now_local($show_time = false, $business_details = null)
+    {
+        $format = ! empty($business_details) ? $business_details->date_format : session('business.date_format', config('constants.default_date_format', 'd/m/Y'));
+        if (! empty($show_time)) {
+            $time_format = ! empty($business_details) ? $business_details->time_format : session('business.time_format');
+            $format .= ($time_format == 12) ? ' h:i A' : ' H:i';
+        }
+
+        return \Carbon::now()->format($format);
+    }
+
+    /**
      * Increments reference count for a given type and given business
      * and gives the updated reference count
      *

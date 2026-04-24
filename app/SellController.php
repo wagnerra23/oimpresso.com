@@ -547,7 +547,8 @@ class SellController extends Controller
         //Selling Price Group Dropdown
         $price_groups = SellingPriceGroup::forDropdown($business_id);
 
-        $default_datetime = $this->businessUtil->format_date('now', true);
+        // format_now_local pra evitar shift +3h intencional do format_date.
+        $default_datetime = $this->businessUtil->format_now_local(true);
 
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 

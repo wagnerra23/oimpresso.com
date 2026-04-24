@@ -928,7 +928,7 @@
     				$('#payment_rows_div').addClass('hide');
     			}
     		});
-    		$('.paid_on').datetimepicker({
+    		$('.paid_on, #transaction_date').datetimepicker({
                 format: moment_date_format + ' ' + moment_time_format,
                 ignoreReadonly: true,
             });
