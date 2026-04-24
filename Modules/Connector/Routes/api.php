@@ -2,31 +2,30 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connector.')->group(function () {
+// log.delphi aplica a TODO /connector/api/* pra capturar payload + formato
+// de qualquer endpoint que o Delphi bate — facilita mapear novos fluxos
+// e descobrir endpoints que o Delphi usa mas nao estao documentados.
+Route::middleware(['auth:api', 'timezone', 'log.delphi'])->prefix('connector/api')->name('connector.')->group(function () {
     // === DELPHI OImpresso endpoints (restaurado do 3.7 — ADR 0021) ===
     // Fluxo primario: Delphi manda JSON com EMPRESA + LICENCIAMENTO;
     // backend cria/atualiza Business + Licenca_Computador; responde
     // 'S;Cliente e equipamento liberados' ou 'N;<motivo>' (string simples).
-    // log.delphi middleware extrai `HD` do body e grava licenca_log
-    // com source=delphi_middleware.
-    Route::middleware('log.delphi')->group(function () {
-        // Legacy (3.7): body JSON array com NOME_TABELA=EMPRESA/LICENCIAMENTO, response string S;/N;
-        Route::post('processa-dados-cliente', [
-            \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'ProcessaDadosCliente'
-        ])->name('delphi.processa-dados-cliente');
-        Route::post('salvar-cliente', [
-            \Modules\Connector\Http\Controllers\Api\BusinessController::class, 'saveBusiness'
-        ])->name('delphi.salvar-cliente');
-        Route::post('salvar-equipamento/{business_id}', [
-            \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamento'
-        ])->name('delphi.salvar-equipamento');
+    // Legacy (3.7): body JSON array com NOME_TABELA=EMPRESA/LICENCIAMENTO, response string S;/N;
+    Route::post('processa-dados-cliente', [
+        \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'ProcessaDadosCliente'
+    ])->name('delphi.processa-dados-cliente');
+    Route::post('salvar-cliente', [
+        \Modules\Connector\Http\Controllers\Api\BusinessController::class, 'saveBusiness'
+    ])->name('delphi.salvar-cliente');
+    Route::post('salvar-equipamento/{business_id}', [
+        \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamento'
+    ])->name('delphi.salvar-equipamento');
 
-        // WR Comercial (atual): body JSON flat (cnpj, serial_hd, ...), response JSON estruturado.
-        // Services.OImpresso.Registro.pas chama este endpoint apos autenticar em /oauth/token.
-        Route::post('oimpresso/registrar', [
-            \Modules\Connector\Http\Controllers\Api\OImpressoRegistroController::class, 'registrar'
-        ])->name('delphi.oimpresso.registrar');
-    });
+    // WR Comercial (atual): body JSON flat (cnpj, serial_hd, ...), response JSON estruturado.
+    // Services.OImpresso.Registro.pas chama este endpoint apos autenticar em /oauth/token.
+    Route::post('oimpresso/registrar', [
+        \Modules\Connector\Http\Controllers\Api\OImpressoRegistroController::class, 'registrar'
+    ])->name('delphi.oimpresso.registrar');
     // === fim endpoints Delphi ===
 
     Route::resource('business-location', Modules\Connector\Http\Controllers\Api\BusinessLocationController::class)->only('index', 'show');
@@ -99,7 +98,7 @@ Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connec
     Route::get('new_contactapi', [Modules\Connector\Http\Controllers\Api\ProductSellController::class, 'newContactApi'])->name('new_contactapi');
 });
 
-Route::middleware('auth:api', 'timezone')->prefix('connector/api/crm')->name('connector.crm.')->group(function () {
+Route::middleware(['auth:api', 'timezone', 'log.delphi'])->prefix('connector/api/crm')->name('connector.crm.')->group(function () {
     Route::resource('follow-ups', 'Modules\Connector\Http\Controllers\Api\Crm\FollowUpController')->only('index', 'store', 'show', 'update');
 
     Route::get('follow-up-resources', [Modules\Connector\Http\Controllers\Api\Crm\FollowUpController::class, 'getFollowUpResources']);
@@ -109,7 +108,7 @@ Route::middleware('auth:api', 'timezone')->prefix('connector/api/crm')->name('co
     Route::post('call-logs', [Modules\Connector\Http\Controllers\Api\Crm\CallLogsController::class, 'saveCallLogs']);
 });
 
-Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connector.fieldforce.')->group(function () {
+Route::middleware(['auth:api', 'timezone', 'log.delphi'])->prefix('connector/api')->name('connector.fieldforce.')->group(function () {
     Route::get('field-force', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'index']);
     Route::post('field-force/create', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'store']);
     Route::post('field-force/update-visit-status/{id}', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'updateStatus']);

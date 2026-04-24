@@ -134,7 +134,9 @@ it('LogDelphiAccess extrai hd via header X-OI-HD (fallback)', function () {
     expect($method->invoke($mw, $request))->toBe('HEADERHD123');
 });
 
-it('LogDelphiAccess retorna null sem hd (nao gera log)', function () {
+it('LogDelphiAccess::extractHd retorna null quando body nao tem HD', function () {
+    // extractHd isoladamente — o middleware agora loga mesmo sem HD
+    // pra capturar qualquer endpoint que o Delphi bate.
     $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
     $ref = new ReflectionClass($mw);
     $method = $ref->getMethod('extractHd');
@@ -144,6 +146,25 @@ it('LogDelphiAccess retorna null sem hd (nao gera log)', function () {
     $request->headers->set('Content-Type', 'application/json');
 
     expect($method->invoke($mw, $request))->toBeNull();
+});
+
+it('LogDelphiAccess loga TODAS as chamadas, mesmo sem HD', function () {
+    // Guard que o middleware NAO tem early-return quando hd=null. Permite
+    // capturar endpoints novos do Delphi (sync endpoints, GETs, etc) que
+    // nao carregam HD no body.
+    $source = file_get_contents(
+        (new ReflectionClass(\Modules\Officeimpresso\Http\Middleware\LogDelphiAccess::class))->getFileName()
+    );
+    expect($source)->not->toContain('if (! $hd) return $response;');
+    expect($source)->not->toContain('if (!$hd) return $response;');
+});
+
+it('log.delphi aplicado a TODO /connector/api/*', function () {
+    // Guarda que o route widen esta em vigor — nao regrede pro padrao
+    // antigo de aplicar so em 4 endpoints especificos.
+    $routes = file_get_contents(base_path('Modules/Connector/Routes/api.php'));
+    expect($routes)->toContain("'log.delphi'");
+    expect($routes)->toContain("'auth:api', 'timezone', 'log.delphi'");
 });
 
 // ==========================================================
