@@ -10,11 +10,15 @@
 import AppShell from '@/Layouts/AppShell';
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { ArrowRight, FileUp, Plus } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { formatBytes } from '@/Lib/utils';
+
+import PageHeader from '@/Components/shared/PageHeader';
+import StatusBadge from '@/Components/shared/StatusBadge';
+import EmptyState from '@/Components/shared/EmptyState';
 
 interface Importacao {
   id: number;
@@ -39,38 +43,50 @@ interface Props {
   };
 }
 
-const estadoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  ESTADO_PENDENTE:    'outline',
-  ESTADO_PROCESSANDO: 'default',
-  ESTADO_CONCLUIDO:   'secondary',
-  ESTADO_FALHOU:      'destructive',
-};
+/**
+ * Normaliza estado vindo do backend (ESTADO_PENDENTE etc.) para os values
+ * mapeados no StatusBadge kind='importacao' (pendente/processando/sucesso/erro).
+ */
+function normalizeEstado(s: string): string {
+  const raw = (s ?? '').replace('ESTADO_', '').toLowerCase();
+  if (raw === 'concluido') return 'sucesso';
+  if (raw === 'falhou') return 'erro';
+  return raw;
+}
 
 export default function ImportacoesIndex({ importacoes }: Props) {
   return (
     <>
       <Head title="Importações AFD" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <FileUp size={22} /> Importações AFD
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Arquivos AFD/AFDT lidos por REPs conforme Portaria MTP 671/2021. Dedup por SHA-256.
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/ponto/importacoes/novo"><Plus size={14} className="mr-1.5" /> Nova importação</Link>
-          </Button>
-        </header>
+        <PageHeader
+          icon="file-up"
+          title="Importações AFD"
+          description="Arquivos AFD/AFDT lidos por REPs conforme Portaria MTP 671/2021. Dedup por SHA-256."
+          action={
+            <Button asChild>
+              <Link href="/ponto/importacoes/novo">
+                <Plus size={14} className="mr-1.5" /> Nova importação
+              </Link>
+            </Button>
+          }
+        />
 
         <Card>
           <CardContent className="p-0">
             {importacoes.data.length === 0 ? (
-              <div className="p-12 text-center text-sm text-muted-foreground">
-                Nenhuma importação.
-              </div>
+              <EmptyState
+                icon="file-up"
+                title="Nenhuma importação"
+                description="Faça upload do primeiro arquivo AFD/AFDT exportado do REP (relógio de ponto)."
+                action={
+                  <Button asChild size="sm">
+                    <Link href="/ponto/importacoes/novo">
+                      <Plus size={14} className="mr-1.5" /> Fazer primeira importação
+                    </Link>
+                  </Button>
+                }
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -93,13 +109,11 @@ export default function ImportacoesIndex({ importacoes }: Props) {
                         <td className="p-3 text-xs">
                           <Badge variant="outline" className="text-[10px]">{i.tipo}</Badge>
                         </td>
-                        <td className="p-3 text-right font-mono text-xs">{formatBytes(i.tamanho_bytes)}</td>
+                        <td className="p-3 text-right font-mono text-xs tabular-nums">{formatBytes(i.tamanho_bytes)}</td>
                         <td className="p-3">
-                          <Badge variant={estadoVariant[i.estado] ?? 'outline'} className="text-[10px]">
-                            {(i.estado ?? '').replace('ESTADO_', '')}
-                          </Badge>
+                          <StatusBadge kind="importacao" value={normalizeEstado(i.estado)} />
                         </td>
-                        <td className="p-3 text-right font-mono text-xs">
+                        <td className="p-3 text-right font-mono text-xs tabular-nums">
                           {i.linhas_criadas}/{i.linhas_processadas}
                         </td>
                         <td className="p-3 text-xs text-muted-foreground">{i.usuario ?? '—'}</td>
@@ -126,9 +140,14 @@ export default function ImportacoesIndex({ importacoes }: Props) {
                 </span>
                 <div className="flex gap-1">
                   {importacoes.links.map((link, i) => (
-                    <Button key={i} variant={link.active ? 'default' : 'outline'} size="sm"
-                            className="h-7 min-w-8 px-2 text-xs" disabled={!link.url}
-                            onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}>
+                    <Button
+                      key={i}
+                      variant={link.active ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 min-w-8 px-2 text-xs"
+                      disabled={!link.url}
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                    >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>
                   ))}

@@ -9,11 +9,14 @@
 import AppShell from '@/Layouts/AppShell';
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { CalendarDays, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { formatMinutes } from '@/Lib/utils';
+
+import PageHeader from '@/Components/shared/PageHeader';
+import EmptyState from '@/Components/shared/EmptyState';
 
 interface Escala {
   id: number;
@@ -41,26 +44,34 @@ export default function EscalasIndex({ escalas }: Props) {
     <>
       <Head title="Escalas" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <CalendarDays size={22} /> Escalas
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Padrões de jornada (fixa, flexível, 12x36, etc.). Cada escala tem turnos por dia da semana.
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/ponto/escalas/create"><Plus size={14} className="mr-1.5" /> Nova escala</Link>
-          </Button>
-        </header>
+        <PageHeader
+          icon="calendar-days"
+          title="Escalas"
+          description="Padrões de jornada (fixa, flexível, 12x36, etc.). Cada escala tem turnos por dia da semana."
+          action={
+            <Button asChild>
+              <Link href="/ponto/escalas/create">
+                <Plus size={14} className="mr-1.5" /> Nova escala
+              </Link>
+            </Button>
+          }
+        />
 
         <Card>
           <CardContent className="p-0">
             {escalas.data.length === 0 ? (
-              <div className="p-12 text-center text-sm text-muted-foreground">
-                Nenhuma escala cadastrada.
-              </div>
+              <EmptyState
+                icon="calendar-days"
+                title="Nenhuma escala cadastrada"
+                description="Crie a primeira escala — turnos por dia da semana, carga horária e regra de banco de horas."
+                action={
+                  <Button asChild size="sm">
+                    <Link href="/ponto/escalas/create">
+                      <Plus size={14} className="mr-1.5" /> Criar escala
+                    </Link>
+                  </Button>
+                }
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -84,12 +95,16 @@ export default function EscalasIndex({ escalas }: Props) {
                         <td className="p-3 text-xs">
                           <Badge variant="outline" className="text-[10px]">{e.tipo.replace('_', ' ')}</Badge>
                         </td>
-                        <td className="p-3 text-right font-mono text-xs">{formatMinutes(e.carga_diaria_minutos)}</td>
-                        <td className="p-3 text-right font-mono text-xs">{formatMinutes(e.carga_semanal_minutos)}</td>
+                        <td className="p-3 text-right font-mono text-xs tabular-nums">{formatMinutes(e.carga_diaria_minutos)}</td>
+                        <td className="p-3 text-right font-mono text-xs tabular-nums">{formatMinutes(e.carga_semanal_minutos)}</td>
                         <td className="p-3 text-center">
-                          {e.permite_banco_horas ? <Badge variant="default" className="text-[10px]">Sim</Badge> : <span className="text-xs text-muted-foreground">Não</span>}
+                          {e.permite_banco_horas ? (
+                            <Badge variant="default" className="text-[10px]">Sim</Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Não</span>
+                          )}
                         </td>
-                        <td className="p-3 text-center text-xs">{e.turnos_count}</td>
+                        <td className="p-3 text-center text-xs tabular-nums">{e.turnos_count}</td>
                         <td className="p-3 text-right">
                           <Button size="sm" variant="outline" asChild>
                             <Link href={`/ponto/escalas/${e.id}/edit`} className="text-xs">Editar</Link>
@@ -106,9 +121,14 @@ export default function EscalasIndex({ escalas }: Props) {
                 <span className="text-muted-foreground">Página {escalas.current_page}/{escalas.last_page} · {escalas.total}</span>
                 <div className="flex gap-1">
                   {escalas.links.map((link, i) => (
-                    <Button key={i} variant={link.active ? 'default' : 'outline'} size="sm"
-                            className="h-7 min-w-8 px-2 text-xs" disabled={!link.url}
-                            onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}>
+                    <Button
+                      key={i}
+                      variant={link.active ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 min-w-8 px-2 text-xs"
+                      disabled={!link.url}
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                    >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>
                   ))}
