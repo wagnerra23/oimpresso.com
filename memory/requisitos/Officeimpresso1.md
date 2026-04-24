@@ -1,39 +1,27 @@
 ---
 module: Officeimpresso1
-status: ausente_branch_atual
-action_required: decidir_ressuscitar_ou_deprecar
-present_in_branches: [main-wip-2026-04-22, origin/6.7-bootstrap]
-last_generated: 2026-04-22
+status: deprecated
+superseded_by: Officeimpresso
+deprecated_at: 2026-04-23
 ---
 
-# Requisitos funcionais — Officeimpresso1 _(legado)_
+# Officeimpresso1 — DEPRECATED
 
-> ⚠️ **Módulo não existe no branch atual (`6.7-react`).**
-> Decidir entre **ressuscitar** ou **deprecar** antes de escrever
-> requisitos completos.
+> Este arquivo refere-se a um **backup** do módulo Officeimpresso 3.7 que ficou
+> residual no filesystem após a migração 3.7 → 6.7. Causava conflito de namespace
+> (mesmo `name: Officeimpresso` no `module.json`) impedindo Laravel de carregar
+> traduções novas.
 
-## O que fazer com este módulo?
+## Resolução
 
-- [ ] **Ressuscitar** — trazer do branch X, atualizar stack, migrar React
-- [ ] **Deprecar** — decisão de não trazer; apagar spec obsoleta
-- [ ] **Adiar** — congelado até próxima revisão
+Em 2026-04-23 o diretório `Modules/Officeimpresso1/` foi **movido para `~/Officeimpresso1-3.7-BACKUP/`** no servidor de produção. Todo o código relevante foi restaurado dentro do módulo principal `Modules/Officeimpresso/` via ADR 0017.
 
-## Histórico
+## Ver
 
-Presente em: main-wip-2026-04-22, origin/6.7-bootstrap
-
-## Se ressuscitar, preencher:
-
-1. **Objetivo** — que valor entregava?
-2. **Áreas funcionais** — telas/fluxos
-3. **Motivação da volta**
-4. **Integrações** — módulos atuais que tocaria
-5. **Critérios de aceite** — quando considerar pronto
-
-## Referências
-
-- Spec técnica (se existir): `memory/modulos/Officeimpresso1.md`
-- Recomendações: `memory/modulos/RECOMENDACOES.md`
+- `Modules/Officeimpresso/` — implementação atual (v1.3.0)
+- `memory/requisitos/Officeimpresso.md` — requisitos funcionais vigentes
+- `memory/decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md`
+- `origin/3.7-com-nfe` — snapshot original (fonte da restauração)
 
 ---
-_Gerado por `module:requirements` em 2026-04-22 16:35_
+_Este arquivo existe apenas pra manter trail de auditoria. Não há mais código Officeimpresso1 ativo._
