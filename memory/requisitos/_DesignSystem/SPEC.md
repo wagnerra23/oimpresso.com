@@ -103,3 +103,21 @@ E documenta o hack no comment do código
 **Por quê**: evita drift silencioso, força documentação de decisão.
 
 **Testado em:** [TODO]
+
+### R-DS-008 · Telas de listagem operacional seguem o template ADR 0006
+
+```gherkin
+Dado que uma tela nova é uma listagem filtrada com ações (padrão CRUD)
+Quando o dev cria o .tsx
+Então importa os componentes shared: PageHeader, KpiGrid+KpiCard, PageFilters,
+  StatusBadge, EmptyState, BulkActionBar (os que aplicarem)
+E NÃO reescreve <h1>/Badge com variant calculado/div com Inbox icon custom
+
+Dado que a tela não se encaixa no template (gráfico custom, chat, árvore, form)
+Quando o dev abre ADR per-tela em memory/requisitos/{Modulo}/adr/ui/
+Então a exceção é documentada + referenciada na tabela "Exceções" do ADR UI-0006
+```
+
+**Por quê**: consistência cross-módulo + velocidade de novo dev + facilita auditoria.
+
+**Testado em:** `Modules/PontoWr2/Tests/Feature/AprovacoesIndexTest` (prova de conceito 2026-04-24). Check C16 futuro no `ModuleAuditor`: toda page em listagem importa de `@/Components/shared/`.
