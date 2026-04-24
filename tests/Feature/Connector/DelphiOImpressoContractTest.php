@@ -312,6 +312,19 @@ it('ProcessaDadosCliente aceita body flat com serial_hd (Services.LicencaThread.
     expect($source)->toContain("Maquina nao cadastrada");
 });
 
+it('processarApenasHd atualiza TODAS as licenca_computador com aquele HD', function () {
+    // HD compartilhado em N businesses (notebook de suporte remoto):
+    // sem CNPJ pra desambiguar, atualizamos todas as linhas. Guarda que
+    // a politica "update all" esta no source — previne alguem voltar pra
+    // comportamento ->first() que pega so a mais recente.
+    $source = file_get_contents(
+        (new ReflectionClass(\Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class))->getFileName()
+    );
+    expect($source)->toContain('Licenca_Computador::where(\'hd\', $hd)->update(');
+    // Nao regrede pra pegar so o mais recente
+    expect($source)->not->toContain('orderByDesc(\'dt_ultimo_acesso\')->first()');
+});
+
 it('ProcessaDadosCliente com HD nao cadastrado retorna N;Maquina nao cadastrada', function () {
     $user = \App\User::first();
     if (! $user) { expect(true)->toBeTrue(); return; }
