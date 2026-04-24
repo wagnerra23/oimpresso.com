@@ -26,6 +26,7 @@ class OfficeimpressoServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Officeimpresso\Console\ParseLicencaLogCommand::class,
+                \Modules\Officeimpresso\Console\InspectDelphiApiCommand::class,
             ]);
         }
 
