@@ -9,13 +9,12 @@
 @section('content')
 @include('officeimpresso::layouts.nav')
 
-<section class="content-header">
-    <h1>Status de Login por Máquina
-        <small>últimas 24h</small>
-    </h1>
-</section>
+<div class="oi-page">
+    <div class="oi-page-header">
+        <h1>Status de Login por Máquina</h1>
+        <div class="subtitle">Máquinas que logaram nas últimas 24h — status mostra o bloqueio no momento do login</div>
+    </div>
 
-<section class="content">
     {{-- KPIs --}}
     <div class="row oi-kpi-row">
         <div class="col-md-3 col-sm-6 col-xs-12">
@@ -40,7 +39,7 @@
         </div>
         <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="oi-kpi">
-                <div class="icon bg-red"><i class="fa fa-lock"></i></div>
+                <div class="icon bg-amber"><i class="fa fa-lock"></i></div>
                 <div>
                     <div class="label">Bloqueadas logando</div>
                     <div class="value">{{ $maquinas->where('was_blocked_last', true)->count() }}</div>
@@ -50,34 +49,73 @@
         </div>
         <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="oi-kpi">
-                <div class="icon bg-amber"><i class="fa fa-exclamation-triangle"></i></div>
+                <div class="icon bg-red"><i class="fa fa-times"></i></div>
                 <div>
                     <div class="label">Erros auth</div>
                     <div class="value">{{ number_format($kpis['login_error']) }}</div>
-                    <div class="delta">credencial inválida</div>
+                    <div class="delta">credencial inválida ou bloqueada</div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- STATUS POR MÁQUINA (view principal) --}}
+    {{-- Filtros --}}
+    <div class="oi-filter-bar">
+        <div class="row">
+            <div class="col-md-3">
+                <label>Tipo</label>
+                <select id="filter_event" class="form-control">
+                    <option value="">Todas</option>
+                    @foreach ($events as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>De</label>
+                <input type="date" id="filter_from" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label>Até</label>
+                <input type="date" id="filter_to" class="form-control">
+            </div>
+            <div class="col-md-3" style="padding-top: 24px;">
+                <button id="btn_apply" class="btn btn-primary"><i class="fa fa-search"></i> Aplicar</button>
+                <button id="btn_clear" class="btn btn-default"><i class="fa fa-eraser"></i> Limpar</button>
+            </div>
+        </div>
+        @if($filter_licenca_id ?? null)
+            <div class="alert alert-info" style="margin-top: 10px; margin-bottom: 0;">
+                <i class="fa fa-filter"></i> Filtrado por <strong>licença #{{ $filter_licenca_id }}</strong>.
+                <a href="{{ route('licenca_log.index') }}">Remover filtro</a>
+            </div>
+        @endif
+        @if($filter_business_id ?? null)
+            <div class="alert alert-info" style="margin-top: 10px; margin-bottom: 0;">
+                <i class="fa fa-filter"></i> Filtrado por <strong>empresa #{{ $filter_business_id }}</strong>.
+                <a href="{{ route('licenca_log.index') }}">Remover filtro</a>
+            </div>
+        @endif
+    </div>
+
+    {{-- STATUS POR MÁQUINA --}}
     <div class="oi-card">
         <div class="hdr">
             <h3><i class="fa fa-desktop"></i> Máquinas que logaram <small style="color:#6b7280;">({{ $maquinas->count() }})</small></h3>
-            <small style="color: #6b7280;">Status mostra o bloqueio <strong>no momento do último login</strong></small>
+            <small style="color: #6b7280;">Status mostra o bloqueio <strong>no momento do login</strong></small>
         </div>
         <div class="body no-pad">
             <table class="oi-table">
                 <thead>
                     <tr>
                         <th>Empresa</th>
-                        <th>Máquina (HD)</th>
+                        <th>Máquina</th>
                         <th>IP</th>
                         <th>Último Login</th>
                         <th style="text-align: center;">Logins 24h</th>
                         <th>Estado no Último Login</th>
                         <th>Estado Atual</th>
-                        <th style="width: 100px;">Ações</th>
+                        <th style="width: 110px;">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,11 +132,9 @@
                             </td>
                             <td>
                                 @if($m->hd && $m->guessed_machine)
-                                    {{-- Match exato via HD --}}
                                     <strong class="text-mono">{{ $m->guessed_machine->user_win ?: '(sem hostname)' }}</strong>
                                     <br><small class="text-muted text-mono">HD {{ $m->hd }}</small>
                                 @elseif($m->total_maquinas > 0)
-                                    {{-- Sem hd: lista candidatas --}}
                                     <details class="oi-guess">
                                         <summary>
                                             <em class="text-warning"><i class="fa fa-question-circle"></i> 1 de {{ $m->total_maquinas }} {{ $m->total_maquinas == 1 ? 'máquina' : 'máquinas' }}</em>
@@ -144,8 +180,8 @@
                             </td>
                             <td>
                                 @if($m->business_id)
-                                    <a href="{{ url('/officeimpresso/licenca_log?business_id=' . $m->business_id) }}#timeline" class="oi-btn oi-btn-ghost oi-btn-xs" title="Ver timeline detalhada">
-                                        <i class="fa fa-list"></i> Timeline
+                                    <a href="{{ url('/officeimpresso/licenca_log?business_id=' . $m->business_id) }}" class="oi-btn oi-btn-ghost oi-btn-xs" title="Filtrar timeline por esta empresa">
+                                        <i class="fa fa-filter"></i> Timeline
                                     </a>
                                 @endif
                             </td>
@@ -162,66 +198,28 @@
         </div>
     </div>
 
-    <div style="margin: 24px 0 12px;" id="timeline">
-        <h3 style="font-size: 16px; color: #374151;"><i class="fa fa-list"></i> Timeline detalhada de eventos</h3>
-        <small style="color: #6b7280;">Todos os eventos (login, api_call, block, etc.) — filtros abaixo</small>
-    </div>
-
-    {{-- Filtros --}}
-    <div class="oi-filter-bar">
-        <div class="row">
-            <div class="col-md-3">
-                <label>Evento</label>
-                <select id="filter_event" class="form-control">
-                    <option value="">Todos</option>
-                    @foreach ($events as $ev)
-                        <option value="{{ $ev }}">{{ $ev }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label>De</label>
-                <input type="date" id="filter_from" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <label>Até</label>
-                <input type="date" id="filter_to" class="form-control">
-            </div>
-            <div class="col-md-3" style="padding-top: 24px;">
-                <button id="btn_apply" class="btn btn-primary"><i class="fa fa-search"></i> Aplicar</button>
-                <button id="btn_clear" class="btn btn-default"><i class="fa fa-eraser"></i> Limpar</button>
-            </div>
+    {{-- TIMELINE DETALHADA DE AUTORIZAÇÃO --}}
+    <div class="oi-card" style="margin-top: 24px;">
+        <div class="hdr">
+            <h3><i class="fa fa-history"></i> Timeline detalhada da autorização de uso</h3>
+            <small style="color: #6b7280;">Autorizações concedidas e negadas</small>
         </div>
-        @if($filter_licenca_id ?? null)
-            <div class="alert alert-info" style="margin-top: 10px; margin-bottom: 0;">
-                <i class="fa fa-filter"></i> Filtrado por <strong>licença #{{ $filter_licenca_id }}</strong>.
-                <a href="{{ route('licenca_log.index') }}">Remover filtro</a>
-            </div>
-        @endif
-    </div>
-
-    {{-- Tabela --}}
-    <div class="box box-primary" style="border-top-color: #3b82f6;">
-        <div class="box-body">
+        <div class="body no-pad">
             <table id="licenca_log_table" class="table table-hover">
                 <thead>
                     <tr>
                         <th style="width: 150px;">Data/Hora</th>
-                        <th style="width: 120px;">Evento</th>
-                        <th style="width: 100px;">Bloqueado?</th>
-                        <th style="width: 170px;">Empresa</th>
-                        <th style="width: 150px;">Máquina</th>
-                        <th style="width: 100px;">IP</th>
-                        <th>Endpoint / Erro</th>
-                        <th style="width: 65px;">Status</th>
-                        <th style="width: 75px;">Duração</th>
-                        <th style="width: 90px;">Origem</th>
+                        <th style="width: 170px;">Tipo</th>
+                        <th style="width: 140px;">Estado no Login</th>
+                        <th>Empresa</th>
+                        <th style="width: 120px;">IP</th>
+                        <th>Motivo (se negada)</th>
                     </tr>
                 </thead>
             </table>
         </div>
     </div>
-</section>
+</div>
 
 @endsection
 
@@ -243,13 +241,15 @@ $(function () {
             info: 'Mostrando _START_ a _END_ de _TOTAL_',
             infoEmpty: 'Nenhum registro',
             infoFiltered: '(filtrado de _MAX_)',
-            zeroRecords: 'Nenhum log encontrado',
-            emptyTable: 'Nenhum log ainda. Triggers MySQL irão preencher assim que um desktop autenticar.',
+            zeroRecords: 'Nenhum registro',
+            emptyTable: 'Nenhuma autorização registrada ainda.',
             paginate: { first: '«', previous: '‹', next: '›', last: '»' }
         },
         ajax: {
             url: "{{ route('licenca_log.index') }}",
             data: function (d) {
+                // Timeline: so login_success + login_error (autorizacao de uso)
+                d.event_in    = 'login_success,login_error';
                 d.event       = $('#filter_event').val();
                 d.licenca_id  = initialLicencaId;
                 d.business_id = initialBusinessId;
@@ -262,12 +262,8 @@ $(function () {
             { data: 'event',         name: 'event' },
             { data: 'blocked_info',  name: 'blocked',    orderable: false, searchable: false },
             { data: 'business_info', name: 'business_id', orderable: false, searchable: false },
-            { data: 'machine_info',  name: 'licenca_id',  orderable: false, searchable: false },
             { data: 'ip',            name: 'ip', className: 'text-mono' },
-            { data: 'endpoint',      name: 'endpoint' },
-            { data: 'http_status',   name: 'http_status' },
-            { data: 'duration_ms',   name: 'duration_ms', orderable: false },
-            { data: 'source_badge',  name: 'source', orderable: false, searchable: false },
+            { data: 'endpoint',      name: 'endpoint', orderable: false },
         ]
     });
 

@@ -31,6 +31,13 @@ class LicencaLogController extends Controller
             if ($request->filled('event')) {
                 $query->where('event', $request->input('event'));
             }
+            // event_in=login_success,login_error limita a eventos de autorizacao de uso
+            if ($request->filled('event_in')) {
+                $events_list = array_filter(array_map('trim', explode(',', $request->input('event_in'))));
+                if (! empty($events_list)) {
+                    $query->whereIn('event', $events_list);
+                }
+            }
             if ($request->filled('licenca_id')) {
                 $query->where('licenca_id', $request->input('licenca_id'));
             }
@@ -43,7 +50,15 @@ class LicencaLogController extends Controller
 
             return DataTables::of($query->orderBy('created_at', 'desc'))
                 ->editColumn('created_at', fn ($r) => $r->created_at ? $r->created_at->format('d/m/Y H:i:s') : '')
-                ->editColumn('event', fn ($r) => '<span class="event-badge event-' . e($r->event) . '">' . e($r->event) . '</span>')
+                ->editColumn('event', function ($r) {
+                    // Tela de Autorizacao de Uso — traduz rotulos do login_*
+                    $labels = [
+                        'login_success' => 'Autorização concedida',
+                        'login_error'   => 'Autorização negada',
+                    ];
+                    $label = $labels[$r->event] ?? $r->event;
+                    return '<span class="event-badge event-' . e($r->event) . '">' . e($label) . '</span>';
+                })
                 ->editColumn('http_status', fn ($r) => $r->http_status ? e($r->http_status) : '—')
                 ->editColumn('duration_ms', fn ($r) => $r->duration_ms ? e($r->duration_ms) . 'ms' : '—')
                 ->editColumn('endpoint', function ($r) {
@@ -97,10 +112,11 @@ class LicencaLogController extends Controller
             'block'         => (clone $base)->where('event', 'block')->count(),
         ];
 
+        // Tela Autorizacao de Uso — dropdown so tem 2 opcoes agora.
+        // Map value (DB) => label (UI).
         $events = [
-            'login_attempt', 'login_success', 'login_error', 'token_refresh',
-            'api_call', 'create_licenca', 'update_licenca', 'block', 'unblock',
-            'businessupdate',
+            'login_success' => 'Autorização concedida',
+            'login_error'   => 'Autorização negada',
         ];
 
         $filter_licenca_id  = $request->query('licenca_id');
