@@ -10,11 +10,15 @@
 import AppShell from '@/Layouts/AppShell';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Search, Users } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+
+import PageHeader from '@/Components/shared/PageHeader';
+import PageFilters from '@/Components/shared/PageFilters';
+import EmptyState from '@/Components/shared/EmptyState';
 
 interface C {
   id: number;
@@ -32,7 +36,10 @@ interface C {
 
 interface Props {
   colaboradores: {
-    data: C[]; total: number; current_page: number; last_page: number;
+    data: C[];
+    total: number;
+    current_page: number;
+    last_page: number;
     links: Array<{ url: string | null; label: string; active: boolean }>;
   };
   search: string | null;
@@ -44,42 +51,63 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
   useEffect(() => {
     const h = setTimeout(() => {
       if (q !== (search ?? '')) {
-        router.get('/ponto/colaboradores', q ? { q } : {}, {
-          preserveState: true, preserveScroll: true, replace: true,
-        });
+        router.get(
+          '/ponto/colaboradores',
+          q ? { q } : {},
+          { preserveState: true, preserveScroll: true, replace: true },
+        );
       }
     }, 350);
     return () => clearTimeout(h);
   }, [q, search]);
 
+  const activeChips = q
+    ? [{ label: `Busca: "${q}"`, onRemove: () => setQ('') }]
+    : [];
+
+  const hasFilters = activeChips.length > 0;
+
   return (
     <>
       <Head title="Colaboradores" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <header>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Users size={22} /> Colaboradores
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Configuração de ponto por colaborador. Nome/email vêm do HRM (UltimatePOS core).
-          </p>
-        </header>
+        <PageHeader
+          icon="users"
+          title="Colaboradores"
+          description="Configuração de ponto por colaborador. Nome/email vêm do HRM (UltimatePOS core)."
+        />
 
-        <Card>
-          <CardContent className="pt-4">
+        <PageFilters activeChips={activeChips} onReset={hasFilters ? () => setQ('') : undefined} cols={2}>
+          <div className="col-span-full md:col-span-1">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Busca</label>
             <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5">
-              <Search size={14} className="text-muted-foreground" />
-              <Input value={q} onChange={(e) => setQ(e.target.value)}
-                     placeholder="Buscar por matrícula, nome ou CPF…"
-                     className="h-7 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0" />
+              <Search size={14} className="text-muted-foreground shrink-0" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Matrícula, nome ou CPF…"
+                className="h-7 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </PageFilters>
 
         <Card>
           <CardContent className="p-0">
             {colaboradores.data.length === 0 ? (
-              <div className="p-12 text-center text-sm text-muted-foreground">Nenhum colaborador.</div>
+              <EmptyState
+                icon={hasFilters ? 'search-x' : 'users'}
+                title={hasFilters ? 'Nenhum colaborador encontrado' : 'Nenhum colaborador cadastrado'}
+                description={
+                  hasFilters
+                    ? `Nenhum resultado pra "${q}". Tente outro termo ou limpe a busca.`
+                    : 'Cadastre colaboradores no HRM (UltimatePOS) — eles aparecerão aqui automaticamente pra configuração de ponto.'
+                }
+                variant={hasFilters ? 'search' : 'default'}
+                action={hasFilters ? (
+                  <Button variant="outline" size="sm" onClick={() => setQ('')}>Limpar busca</Button>
+                ) : undefined}
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -105,10 +133,18 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
                         <td className="p-3 text-xs font-mono">{c.cpf ?? '—'}</td>
                         <td className="p-3 text-xs">{c.escala ?? '—'}</td>
                         <td className="p-3 text-center">
-                          {c.controla_ponto ? <Badge className="text-[10px]">Sim</Badge> : <span className="text-xs text-muted-foreground">Não</span>}
+                          {c.controla_ponto ? (
+                            <Badge className="text-[10px]">Sim</Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Não</span>
+                          )}
                         </td>
                         <td className="p-3 text-center">
-                          {c.usa_banco_horas ? <Badge variant="secondary" className="text-[10px]">Sim</Badge> : <span className="text-xs text-muted-foreground">Não</span>}
+                          {c.usa_banco_horas ? (
+                            <Badge variant="secondary" className="text-[10px]">Sim</Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Não</span>
+                          )}
                         </td>
                         <td className="p-3 text-right">
                           <Button size="sm" variant="outline" asChild>
@@ -123,12 +159,19 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
             )}
             {colaboradores.last_page > 1 && (
               <div className="flex items-center justify-between border-t border-border p-3 text-xs">
-                <span className="text-muted-foreground">Página {colaboradores.current_page}/{colaboradores.last_page} · {colaboradores.total}</span>
+                <span className="text-muted-foreground">
+                  Página {colaboradores.current_page}/{colaboradores.last_page} · {colaboradores.total}
+                </span>
                 <div className="flex gap-1">
                   {colaboradores.links.map((link, i) => (
-                    <Button key={i} variant={link.active ? 'default' : 'outline'} size="sm"
-                            className="h-7 min-w-8 px-2 text-xs" disabled={!link.url}
-                            onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}>
+                    <Button
+                      key={i}
+                      variant={link.active ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 min-w-8 px-2 text-xs"
+                      disabled={!link.url}
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                    >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>
                   ))}
