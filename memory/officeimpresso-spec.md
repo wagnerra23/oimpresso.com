@@ -77,9 +77,20 @@ Ponto crítico: **qualquer novo endpoint é aditivo**. Nenhum é obrigatório pr
 - ❌ Alertas automáticos email/SMS
 - ❌ Dashboard analytics pesado
 
+## Descobertas de produção (2026-04-23)
+
+1. **Servidor tinha `Modules/Officeimpresso1/`** — backup 3.7 não removido pela migração. Causava conflito de namespace (mesmo `name: Officeimpresso`) que impedia carregamento de novas chaves de tradução. Movido pra `~/Officeimpresso1-3.7-BACKUP/`.
+
+2. **`oauth_clients.id` continua INT** (não UUID) — stack Passport v13 convive porque os registros existentes funcionam, mas criação de novos clients via `passport:client` falha. Workaround: usar clients existentes.
+
+3. **Delphi não autentica pós-upgrade** (ADR 0019 aberto) — nenhum hit em `/oauth/token` nem `/api/officeimpresso/*` observado quando cliente abre o app. Hipóteses em investigação.
+
 ## Links
 
 - ADR 0017 — Restauração Officeimpresso 3.7 → 6.7
 - ADR 0018 — Log acesso via triggers MySQL (passivo)
+- ADR 0019 — Delphi legado não autentica (aberto)
 - `Modules/Officeimpresso/CHANGELOG.md` — histórico de mudanças
+- `bin/test-delphi-auth.sh` — script de diagnóstico do password grant
 - `origin/3.7-com-nfe:Modules/Officeimpresso/` — fonte da restauração
+- `~/Officeimpresso1-3.7-BACKUP/` (servidor) — backup do código 3.7 original

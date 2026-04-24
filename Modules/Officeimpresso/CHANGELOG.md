@@ -1,5 +1,19 @@
 # Officeimpresso — Changelog
 
+## [1.2.0] — 2026-04-23 — UI refinada + business_id filter + Officeimpresso1 dedup
+
+### Corrigido
+- **Fundo preto no topnav** — override `skin-purple` com `nav.bg-white` branco + pills + azul suave no item ativo
+- **Inputs dark** — `background: #fff !important` nas `.form-control` dentro de `.oi-page`
+- **KPI Bloqueadas menor que outros** — flexbox `.oi-kpi-row` equaliza altura (min-height: 76px)
+- **Link "Documentação"** removido do menu (apontava pra docs comercial, não admin)
+- **Translations não resolviam** (user_win, processador, memoria…) — causa: `Modules/Officeimpresso1/` no servidor era backup 3.7 com mesmo `name: Officeimpresso` no `module.json` causando conflito de namespace nwidart. Movido pra `~/Officeimpresso1-3.7-BACKUP/`
+
+### Adicionado
+- **Filtro `?business_id=`** no `/licenca_log` — superadmin pode clicar "Ver log da empresa" em businessall
+- **ADR 0019** — investigação do Delphi não autenticando pós-upgrade
+- **`bin/test-delphi-auth.sh`** — script pra testar grant password via curl, isolar problema entre server e client
+
 ## [1.1.0] — 2026-04-23 — Log de Acesso Fase 2 + UI polish
 
 ### Adicionado
