@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Status de Login por Máquina — Office Impresso')
+@section('title', 'Máquinas Cadastradas — Office Impresso')
 
 @section('css')
 @include('officeimpresso::layouts.partials.design-system')
@@ -11,16 +11,11 @@
 
 <div class="oi-page">
     <div class="oi-page-header">
-        <h1>Status de Login por Máquina</h1>
+        <h1>Máquinas Cadastradas</h1>
         <div class="subtitle">
-            @if(($filter_from ?? '') !== '' || ($filter_to ?? '') !== '')
-                Período:
-                <strong>{{ $filter_from ?: '—' }}</strong> até
-                <strong>{{ $filter_to ?: 'agora' }}</strong>
-            @else
-                Máquinas que logaram nas últimas 24h
-            @endif
-            — status mostra o bloqueio no momento do login
+            Registro da máquina é a chave desta tela. A rotina
+            <code class="text-mono">/connector/api/processa-dados-cliente</code>
+            popula/atualiza o cadastro; o log do último acesso aparece em cada linha.
         </div>
     </div>
 
@@ -30,19 +25,9 @@
             <div class="oi-kpi">
                 <div class="icon bg-blue"><i class="fa fa-desktop"></i></div>
                 <div>
-                    <div class="label">Máquinas ativas</div>
-                    <div class="value">{{ $maquinas->count() }}</div>
-                    <div class="delta">logaram nas últimas 24h</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6 col-xs-12">
-            <div class="oi-kpi">
-                <div class="icon bg-green"><i class="fa fa-check"></i></div>
-                <div>
-                    <div class="label">Logins OK</div>
-                    <div class="value">{{ number_format($kpis['login_success']) }}</div>
-                    <div class="delta">total 24h</div>
+                    <div class="label">Máquinas cadastradas</div>
+                    <div class="value">{{ number_format($kpis['total_maquinas']) }}</div>
+                    <div class="delta">total de equipamentos</div>
                 </div>
             </div>
         </div>
@@ -50,49 +35,50 @@
             <div class="oi-kpi">
                 <div class="icon bg-amber"><i class="fa fa-lock"></i></div>
                 <div>
-                    <div class="label">Bloqueadas logando</div>
-                    <div class="value">{{ $maquinas->where('was_blocked_last', true)->count() }}</div>
-                    <div class="delta">acessos com bloqueio ativo</div>
+                    <div class="label">Máquinas bloqueadas</div>
+                    <div class="value">{{ number_format($kpis['maquinas_bloqueadas']) }}</div>
+                    <div class="delta">bloqueio individual</div>
                 </div>
             </div>
         </div>
         <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="oi-kpi">
-                <div class="icon bg-red"><i class="fa fa-times"></i></div>
+                <div class="icon bg-red"><i class="fa fa-ban"></i></div>
                 <div>
-                    <div class="label">Erros auth</div>
-                    <div class="value">{{ number_format($kpis['login_error']) }}</div>
-                    <div class="delta">credencial inválida ou bloqueada</div>
+                    <div class="label">Empresas bloqueadas</div>
+                    <div class="value">{{ number_format($kpis['empresas_bloqueadas']) }}</div>
+                    <div class="delta">bloqueio em massa</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="oi-kpi">
+                <div class="icon bg-green"><i class="fa fa-refresh"></i></div>
+                <div>
+                    <div class="label">Acessos 24h</div>
+                    <div class="value">{{ number_format($kpis['chamadas_24h']) }}</div>
+                    <div class="delta">processa-dados-cliente</div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- FILTROS — empresa/maquina, periodo, estado atual, estado no login --}}
+    {{-- FILTROS: busca livre + estado atual. Empresa/Equipamento via hyperlinks nas linhas. --}}
     @php
         $hasAnyFilter = ($filter_q ?? '') !== ''
-            || ($filter_from ?? '') !== ''
-            || ($filter_to ?? '') !== ''
-            || ($filter_estado_atual ?? null)
-            || ($filter_estado_login ?? null);
+            || ($filter_business_id ?? null)
+            || ($filter_licenca_id ?? null)
+            || ($filter_estado_atual ?? null);
     @endphp
     <form method="GET" action="{{ route('licenca_log.index') }}" class="oi-filter-bar" style="margin-bottom: 12px;">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-7">
                 <label>🔍 Empresa / Máquina</label>
                 <input type="text" name="q" value="{{ $filter_q ?? '' }}" class="form-control"
-                       placeholder="Nome, CNPJ, HD, hostname…"
+                       placeholder="Nome, CNPJ, HD, hostname, IP…"
                        autocomplete="off">
             </div>
-            <div class="col-md-2">
-                <label>De</label>
-                <input type="date" name="from" value="{{ $filter_from ?? '' }}" class="form-control">
-            </div>
-            <div class="col-md-2">
-                <label>Até</label>
-                <input type="date" name="to" value="{{ $filter_to ?? '' }}" class="form-control">
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <label>Estado atual</label>
                 <select name="estado_atual" class="form-control">
                     <option value="">Todos</option>
@@ -100,36 +86,33 @@
                     <option value="bloqueada" @if(($filter_estado_atual ?? null) === 'bloqueada') selected @endif>Bloqueada</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <label>Estado no login</label>
-                <select name="estado_login" class="form-control">
-                    <option value="">Todos</option>
-                    <option value="liberada"  @if(($filter_estado_login ?? null) === 'liberada') selected @endif>Liberada</option>
-                    <option value="bloqueada" @if(($filter_estado_login ?? null) === 'bloqueada') selected @endif>Bloqueada</option>
-                </select>
+            <div class="col-md-2" style="padding-top: 24px;">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Aplicar</button>
+                @if($hasAnyFilter)
+                    <a href="{{ route('licenca_log.index') }}" class="btn btn-default"><i class="fa fa-times"></i> Limpar</a>
+                @endif
             </div>
-        </div>
-        <div style="margin-top: 10px;">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Aplicar</button>
-            @if($hasAnyFilter)
-                <a href="{{ route('licenca_log.index') }}" class="btn btn-default"><i class="fa fa-times"></i> Limpar</a>
-            @endif
-            <small class="text-muted" style="margin-left:10px;">Sem período → últimas 24h.</small>
         </div>
     </form>
 
     @if($filter_business_id ?? null)
         <div class="alert alert-info" style="margin-bottom: 12px;">
             <i class="fa fa-filter"></i> Filtrado por <strong>empresa #{{ $filter_business_id }}</strong>.
-            <a href="{{ route('licenca_log.index') }}">Remover filtro</a>
+            <a href="{{ route('licenca_log.index', array_filter(['q' => $filter_q, 'estado_atual' => $filter_estado_atual])) }}">Remover</a>
+        </div>
+    @endif
+    @if($filter_licenca_id ?? null)
+        <div class="alert alert-info" style="margin-bottom: 12px;">
+            <i class="fa fa-filter"></i> Filtrado por <strong>equipamento #{{ $filter_licenca_id }}</strong>.
+            <a href="{{ route('licenca_log.index', array_filter(['q' => $filter_q, 'estado_atual' => $filter_estado_atual])) }}">Remover</a>
         </div>
     @endif
 
-    {{-- STATUS POR MÁQUINA --}}
+    {{-- GRID — licenca_computador com enriquecimento de ultimo acesso --}}
     <div class="oi-card">
         <div class="hdr">
-            <h3><i class="fa fa-desktop"></i> Máquinas que logaram <small style="color:#6b7280;">({{ $maquinas->count() }})</small></h3>
-            <small style="color: #6b7280;">Status mostra o bloqueio <strong>no momento do login</strong></small>
+            <h3><i class="fa fa-desktop"></i> Máquinas <small style="color:#6b7280;">({{ $maquinas->count() }})</small></h3>
+            <small style="color: #6b7280;">Clique na empresa ou no equipamento para filtrar</small>
         </div>
         <div class="body no-pad">
             <table class="oi-table">
@@ -139,7 +122,7 @@
                         <th>Máquina</th>
                         <th>HD</th>
                         <th>IP</th>
-                        <th>Login</th>
+                        <th>Último Login</th>
                         <th>Estado no Último Login</th>
                         <th>Estado Atual</th>
                         <th style="width: 160px;">Ação rápida</th>
@@ -147,37 +130,40 @@
                 </thead>
                 <tbody>
                     @forelse ($maquinas as $m)
-                        <tr @if($m->errors_24h > 0) style="background: #fef3c7;" @endif>
+                        <tr>
                             <td>
                                 @if($m->business_id)
-                                    <a href="{{ url('/officeimpresso/licenca_computado/licencas/' . $m->business_id) }}" class="text-primary">
+                                    <a href="{{ route('licenca_log.index', array_filter(['business_id' => $m->business_id, 'q' => $filter_q, 'estado_atual' => $filter_estado_atual])) }}"
+                                       class="text-primary" title="Filtrar por esta empresa">
                                         <strong>{{ $m->business_name }}</strong>
                                     </a>
-                                @else
-                                    <em class="text-muted">desconhecido</em>
-                                @endif
-                            </td>
-                            <td>
-                                @if($m->guessed_machine)
-                                    <strong class="text-mono">{{ $m->guessed_machine->user_win ?: '(sem hostname)' }}</strong>
-                                @elseif($m->hd)
-                                    <em class="text-warning" title="HD no log nao bate com nenhum computador cadastrado"><i class="fa fa-exclamation-triangle"></i> não cadastrado</em>
                                 @else
                                     <em class="text-muted">—</em>
                                 @endif
                             </td>
+                            <td>
+                                <a href="{{ route('licenca_log.index', array_filter(['licenca_id' => $m->licenca_id, 'q' => $filter_q, 'estado_atual' => $filter_estado_atual])) }}"
+                                   class="text-primary" title="Filtrar por este equipamento">
+                                    <strong class="text-mono">{{ $m->user_win ?: $m->hostname ?: '(sem hostname)' }}</strong>
+                                </a>
+                            </td>
+                            <td class="text-mono">{{ $m->hd ?: '—' }}</td>
+                            <td class="text-mono">{{ $m->last_ip ?: $m->ip_interno ?: '—' }}</td>
                             <td class="text-mono">
-                                @if($m->hd)
-                                    {{ $m->hd }}
+                                @if($m->last_login)
+                                    {{ \Carbon\Carbon::parse($m->last_login)->format('d/m/Y H:i:s') }}
+                                @elseif($m->dt_ultimo_acesso)
+                                    {{ \Carbon\Carbon::parse($m->dt_ultimo_acesso)->format('d/m/Y H:i:s') }}
+                                    <br><small class="text-muted">(cadastro)</small>
                                 @else
-                                    <span class="text-muted">—</span>
+                                    <span class="text-muted">nunca</span>
                                 @endif
                             </td>
-                            <td class="text-mono">{{ $m->ip ?: '—' }}</td>
-                            <td class="text-mono">{{ \Carbon\Carbon::parse($m->last_login)->format('d/m/Y H:i:s') }}</td>
                             <td>
-                                @if($m->was_blocked_last)
-                                    <span class="oi-pill oi-pill-blocked"><i class="fa fa-lock"></i> Bloqueada quando logou</span>
+                                @if($m->was_blocked_last === null)
+                                    <span class="text-muted">—</span>
+                                @elseif($m->was_blocked_last)
+                                    <span class="oi-pill oi-pill-blocked"><i class="fa fa-lock"></i> Bloqueada</span>
                                 @else
                                     <span class="oi-pill oi-pill-ok"><i class="fa fa-check"></i> Liberada</span>
                                 @endif
@@ -185,7 +171,7 @@
                             <td>
                                 @if($m->business_blocked)
                                     <span class="oi-pill oi-pill-blocked">🔒 Empresa bloqueada</span>
-                                @elseif($m->guessed_machine && $m->guessed_machine->bloqueado)
+                                @elseif($m->machine_blocked)
                                     <span class="oi-pill oi-pill-blocked">🔒 Máquina bloqueada</span>
                                 @else
                                     <span class="oi-pill oi-pill-ok">Ativa</span>
@@ -199,26 +185,19 @@
                                        title="Desbloquear empresa inteira">
                                         <i class="fa fa-unlock"></i> Desbloquear empresa
                                     </a>
-                                @elseif($m->guessed_machine && $m->guessed_machine->bloqueado)
-                                    <a href="{{ route('licenca_computador.toggleBlock', $m->guessed_machine->id) }}"
+                                @elseif($m->machine_blocked)
+                                    <a href="{{ route('licenca_computador.toggleBlock', $m->licenca_id) }}"
                                        class="oi-btn oi-btn-success oi-btn-xs"
-                                       onclick="return confirm('Desbloquear máquina {{ addslashes($m->guessed_machine->user_win ?? '') }} ?')"
+                                       onclick="return confirm('Desbloquear máquina {{ addslashes($m->user_win ?? '') }} ?')"
                                        title="Desbloquear essa máquina">
                                         <i class="fa fa-unlock"></i> Desbloquear máquina
                                     </a>
-                                @elseif($m->guessed_machine)
-                                    <a href="{{ route('licenca_computador.toggleBlock', $m->guessed_machine->id) }}"
+                                @else
+                                    <a href="{{ route('licenca_computador.toggleBlock', $m->licenca_id) }}"
                                        class="oi-btn oi-btn-danger oi-btn-xs"
-                                       onclick="return confirm('Bloquear máquina {{ addslashes($m->guessed_machine->user_win ?? '') }} ?')"
+                                       onclick="return confirm('Bloquear máquina {{ addslashes($m->user_win ?? '') }} ?')"
                                        title="Bloquear essa máquina">
                                         <i class="fa fa-lock"></i> Bloquear máquina
-                                    </a>
-                                @elseif($m->business_id)
-                                    <a href="{{ route('business.bloqueado', $m->business_id) }}"
-                                       class="oi-btn oi-btn-danger oi-btn-xs"
-                                       onclick="return confirm('Bloquear empresa {{ addslashes($m->business_name) }} ?')"
-                                       title="Bloquear empresa inteira">
-                                        <i class="fa fa-lock"></i> Bloquear empresa
                                     </a>
                                 @endif
                             </td>
@@ -226,17 +205,17 @@
                     @empty
                         <tr>
                             <td colspan="8" style="text-align: center; padding: 30px; color: #9ca3af;">
-                                @if($filter_q ?? null)
-                                    Nenhuma máquina encontrada com <strong>"{{ $filter_q }}"</strong> no período.
+                                @if($hasAnyFilter)
+                                    Nenhuma máquina encontrada com os filtros aplicados.
                                 @else
                                     <div style="max-width: 520px; margin: 0 auto; text-align: left;">
                                         <p style="margin: 0 0 10px; color: #374151;">
-                                            <strong>Nenhum cliente Delphi identificado no período.</strong>
+                                            <strong>Nenhuma máquina cadastrada ainda.</strong>
                                         </p>
                                         <p style="margin: 0; font-size: 12px;">
-                                            Esta tela é exclusiva de
+                                            A tabela é populada pela rotina
                                             <code class="text-mono">/connector/api/processa-dados-cliente</code>
-                                            — único endpoint onde CNPJ + HD chegam no body do request.
+                                            quando o Delphi envia CNPJ + HD.
                                         </p>
                                     </div>
                                 @endif
@@ -250,4 +229,3 @@
 </div>
 
 @endsection
-
