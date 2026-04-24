@@ -33,7 +33,10 @@ class LogDelphiAccess
             if (! $hd) return $response;  // sem hd = sem log
 
             $user = $request->user();
-            $businessId = $user?->business_id ?? $this->extractBusinessId($request);
+            // CNPJ do body tem prioridade sobre user->business_id — o Delphi
+            // usa master user compartilhado entre clientes, entao user->business_id
+            // sempre aponta pro business do master (ex: WR2) e nao pro cliente real.
+            $businessId = $this->extractBusinessId($request) ?? $user?->business_id;
 
             $licencaId = null;
             if ($businessId && $hd) {

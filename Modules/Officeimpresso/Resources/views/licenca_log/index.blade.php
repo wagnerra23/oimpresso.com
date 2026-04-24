@@ -239,7 +239,21 @@
                                 @if($filter_q ?? null)
                                     Nenhuma máquina encontrada com <strong>"{{ $filter_q }}"</strong> nas últimas 24h.
                                 @else
-                                    Nenhuma máquina logou nas últimas 24h.
+                                    <div style="max-width: 520px; margin: 0 auto; text-align: left;">
+                                        <p style="margin: 0 0 10px; color: #374151;">
+                                            <strong>Nenhum cliente Delphi identificado nas últimas 24h.</strong>
+                                        </p>
+                                        <p style="margin: 0 0 8px; font-size: 12px;">
+                                            Esta lista mostra máquinas que chamaram
+                                            <code class="text-mono">/connector/api/processa-dados-cliente</code>
+                                            (ou <code class="text-mono">salvar-equipamento</code>) — onde CNPJ + HD chegam no body.
+                                        </p>
+                                        <p style="margin: 0; font-size: 12px; color: #6b7280;">
+                                            Se o Delphi está apenas autenticando
+                                            (<code class="text-mono">/oauth/token</code>), consulte a
+                                            <strong>timeline de autorização de uso</strong> abaixo.
+                                        </p>
+                                    </div>
                                 @endif
                             </td>
                         </tr>
