@@ -3,9 +3,9 @@
  return [
      'product' => 'Produto',
      'qty' => 'Quantidade',
-     'unit_price' => 'preço unitário',
+     'unit_price' => 'Preço unitário',
      'subtotal' => 'Subtotal',
-     'desconto' => 'Desconto',
+     'discount' => 'Desconto',
      'tax' => 'Taxa',
      'total' => 'Total',
      'invoice_number' => 'No. da fatura',
