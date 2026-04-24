@@ -4,32 +4,25 @@
 //   status: implementada
 //   stories: US-PONT-006
 //   rules: R-PONT-001, R-PONT-002
+//   adrs: ui/0002
 //   tests: Modules/PontoWr2/Tests/Feature/DashboardIndexTest
 
 import AppShell from '@/Layouts/AppShell';
-import { Head, Link } from '@inertiajs/react';
-import type { ReactNode } from 'react';
-import {
-  AlertTriangle,
-  ArrowRight,
-  CheckCheck,
-  Clock,
-  LogIn,
-  LogOut,
-  UserMinus,
-  Users,
-} from 'lucide-react';
-import { Icon } from '@/Components/Icon';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/Components/ui/card';
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, type ReactNode } from 'react';
+import { ArrowRight, AlertTriangle, CheckCheck } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
+
+import PageHeader from '@/Components/shared/PageHeader';
+import KpiGrid from '@/Components/shared/KpiGrid';
+import KpiCard from '@/Components/shared/KpiCard';
+import StatusBadge from '@/Components/shared/StatusBadge';
+import PresenceStrip from '@/Components/shared/ponto/PresenceStrip';
+import ActivityFeed from '@/Components/shared/ponto/ActivityFeed';
+import AlertInbox from '@/Components/shared/ponto/AlertInbox';
 
 interface Kpis {
   colaboradores_ativos: number;
@@ -56,8 +49,10 @@ interface Marcacao {
   id: number;
   tipo: string;
   momento: string | null;
+  momento_completo?: string | null;
   origem: string;
-  colaborador: { nome: string };
+  tempo?: string | null;
+  colaborador: { id: number | null; nome: string; matricula: string | null };
   rep: { identificador: string | null; tipo: string | null };
 }
 
@@ -68,118 +63,177 @@ interface SeriePonto {
   he: number;
 }
 
+interface Presenca {
+  id: number;
+  nome: string;
+  matricula: string | null;
+  iniciais: string;
+  status: 'presente' | 'saiu' | 'atrasado' | 'ausente';
+  entrada: string | null;
+  saida: string | null;
+  ultima: string | null;
+  marcacoes: number;
+}
+
+interface Alerta {
+  tipo: string;
+  titulo: string;
+  subtitulo: string;
+  acao_label: string;
+  acao_href: string;
+  severidade: 'info' | 'warning' | 'danger';
+}
+
 interface Props {
   kpis: Kpis;
   aprovacoes: Aprovacao[];
   atividade_recente: Marcacao[];
   serie_7dias: SeriePonto[];
+  presenca_agora: Presenca[];
+  alertas: Alerta[];
+  server_time: string;
 }
 
-const prioridadeConfig: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
-  URGENTE:  { variant: 'destructive', label: 'Urgente' },
-  ALTA:     { variant: 'destructive', label: 'Alta' },
-  NORMAL:   { variant: 'secondary',   label: 'Normal' },
-  BAIXA:    { variant: 'outline',     label: 'Baixa' },
-};
+export default function DashboardIndex({
+  kpis,
+  aprovacoes,
+  atividade_recente,
+  serie_7dias,
+  presenca_agora,
+  alertas,
+  server_time,
+}: Props) {
+  // Polling ao vivo — recarrega presença + atividade + alertas a cada 30s
+  // sem perder scroll position nem recriar a sidebar.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.reload({
+        only: ['kpis', 'presenca_agora', 'atividade_recente', 'alertas', 'server_time'],
+      });
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-const tipoMarcacaoIcon: Record<string, { icon: string; color: string }> = {
-  ENTRADA:        { icon: 'LogIn',  color: 'text-emerald-600 dark:text-emerald-400' },
-  ALMOCO_INICIO:  { icon: 'Coffee', color: 'text-amber-600 dark:text-amber-400' },
-  ALMOCO_FIM:     { icon: 'Coffee', color: 'text-amber-600 dark:text-amber-400' },
-  SAIDA:          { icon: 'LogOut', color: 'text-red-600 dark:text-red-400' },
-  ANULACAO:       { icon: 'XCircle', color: 'text-muted-foreground' },
-};
-
-export default function DashboardIndex({ kpis, aprovacoes, atividade_recente, serie_7dias }: Props) {
   return (
     <>
       <Head title="Dashboard · Ponto WR2" />
-      <div className="mx-auto max-w-7xl p-6 space-y-6">
-        <header>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Visão geral do ponto eletrônico — hoje, {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-          </p>
-        </header>
+      <div className="mx-auto max-w-7xl p-6 space-y-4">
+        <PageHeader
+          icon="layout-dashboard"
+          title="Dashboard"
+          description={`Visão geral do ponto eletrônico — hoje, ${new Date().toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+          })}`}
+          action={
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+              <span>atualizado agora · {server_time}</span>
+            </span>
+          }
+        />
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <StatCard label="Colaboradores" value={kpis.colaboradores_ativos} icon={Users} tone="blue" href="/ponto/colaboradores" />
-          <StatCard label="Presentes hoje" value={kpis.presentes_agora} icon={LogIn} tone="emerald" />
-          <StatCard label="Atrasos hoje" value={kpis.atrasos_hoje} icon={Clock} tone={kpis.atrasos_hoje > 0 ? 'amber' : 'muted'} />
-          <StatCard label="Faltas hoje" value={kpis.faltas_hoje} icon={UserMinus} tone={kpis.faltas_hoje > 0 ? 'red' : 'muted'} />
-          <StatCard label="HE do mês" value={formatMinutes(kpis.he_mes_minutos)} icon={Clock} tone="violet" small />
-          <StatCard label="Aprovações pendentes" value={kpis.aprovacoes_pendentes} icon={CheckCheck} tone={kpis.aprovacoes_pendentes > 0 ? 'red' : 'muted'} href="/ponto/aprovacoes" />
-        </div>
+        <KpiGrid cols={6}>
+          <KpiCard
+            label="Colaboradores"
+            value={kpis.colaboradores_ativos}
+            icon="users"
+            tone="info"
+            size="compact"
+            onClick={() => router.visit('/ponto/colaboradores')}
+          />
+          <KpiCard
+            label="Presentes agora"
+            value={kpis.presentes_agora}
+            icon="user-check"
+            tone="success"
+            size="compact"
+          />
+          <KpiCard
+            label="Atrasos hoje"
+            value={kpis.atrasos_hoje}
+            icon="clock-alert"
+            tone={kpis.atrasos_hoje > 0 ? 'warning' : 'default'}
+            size="compact"
+          />
+          <KpiCard
+            label="Faltas hoje"
+            value={kpis.faltas_hoje}
+            icon="user-x"
+            tone={kpis.faltas_hoje > 0 ? 'danger' : 'default'}
+            size="compact"
+          />
+          <KpiCard
+            label="HE do mês"
+            value={formatMinutes(kpis.he_mes_minutos)}
+            icon="trending-up"
+            tone="info"
+            size="compact"
+          />
+          <KpiCard
+            label="Aprovações"
+            value={kpis.aprovacoes_pendentes}
+            icon="check-check"
+            tone={kpis.aprovacoes_pendentes > 0 ? 'danger' : 'default'}
+            size="compact"
+            onClick={() => router.visit('/ponto/aprovacoes')}
+          />
+        </KpiGrid>
 
+        {/* Presença ao vivo */}
+        <PresenceStrip colaboradores={presenca_agora} />
+
+        {/* Grid 2 colunas — esquerda: gráfico + atividade | direita: alertas + aprovações */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Série 7 dias */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-base">Últimos 7 dias</CardTitle>
-              <CardDescription className="text-xs">Minutos trabalhados + horas extras por dia</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BarChart7Days serie={serie_7dias} />
-            </CardContent>
-          </Card>
+          {/* Esquerda (2 cols): gráfico + atividade */}
+          <div className="lg:col-span-2 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Últimos 7 dias</CardTitle>
+                <CardDescription className="text-xs">
+                  Minutos trabalhados + horas extras por dia
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BarChart7Days serie={serie_7dias} />
+              </CardContent>
+            </Card>
 
-          {/* Aprovações pendentes */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle className="text-base flex items-center gap-1.5">
-                  <CheckCheck size={16} className="text-primary" /> Aprovações
-                </CardTitle>
-                <CardDescription className="text-xs">Intercorrências pendentes</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/ponto/aprovacoes" className="text-xs">
-                  Ver todas <ArrowRight size={12} className="ml-1" />
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {aprovacoes.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-6">
-                  Nenhuma pendência 🎉
-                </p>
-              ) : (
-                aprovacoes.map((a) => (
-                  <ApprovalRow key={a.id} item={a} />
-                ))
-              )}
-            </CardContent>
-          </Card>
+            <ActivityFeed marcacoes={atividade_recente} title="Atividade de hoje" />
+          </div>
+
+          {/* Direita (1 col): alertas + aprovações */}
+          <div className="space-y-4">
+            <AlertInbox alertas={alertas} />
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-1.5">
+                    <CheckCheck size={16} className="text-primary" /> Aprovações
+                  </CardTitle>
+                  <CardDescription className="text-xs">Intercorrências pendentes</CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/ponto/aprovacoes" className="text-xs">
+                    Ver todas <ArrowRight size={12} className="ml-1" />
+                  </Link>
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {aprovacoes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">
+                    Nenhuma pendência
+                  </p>
+                ) : (
+                  aprovacoes.map((a) => <ApprovalRow key={a.id} item={a} />)
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Atividade recente */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-base">Atividade recente</CardTitle>
-              <CardDescription className="text-xs">Últimas 10 marcações</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/ponto/espelho" className="text-xs">
-                Ver espelho <ArrowRight size={12} className="ml-1" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {atividade_recente.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">
-                Nenhuma marcação recente
-              </p>
-            ) : (
-              <div className="divide-y divide-border">
-                {atividade_recente.map((m) => (
-                  <MarcacaoRow key={m.id} item={m} />
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </>
   );
@@ -192,55 +246,7 @@ DashboardIndex.layout = (page: ReactNode) => (
 );
 
 // ============================================================================
-// StatCard
-// ============================================================================
-
-type Tone = 'blue' | 'emerald' | 'amber' | 'red' | 'violet' | 'muted';
-
-const toneBgClass: Record<Tone, string> = {
-  blue:    'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
-  emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
-  amber:   'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
-  red:     'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
-  violet:  'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
-  muted:   'bg-muted text-muted-foreground',
-};
-
-function StatCard({
-  label,
-  value,
-  icon: IconComp,
-  tone,
-  href,
-  small,
-}: {
-  label: string;
-  value: number | string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  tone: Tone;
-  href?: string;
-  small?: boolean;
-}) {
-  const card = (
-    <Card className={cn('h-full', href && 'hover:border-primary/50 transition-colors cursor-pointer')}>
-      <CardContent className="pt-4 pb-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">{label}</p>
-            <p className={cn('font-bold mt-0.5', small ? 'text-lg' : 'text-2xl')}>{value}</p>
-          </div>
-          <div className={cn('flex size-9 items-center justify-center rounded-lg shrink-0', toneBgClass[tone])}>
-            <IconComp size={16} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-  return href ? <Link href={href}>{card}</Link> : card;
-}
-
-// ============================================================================
-// Bar chart simples (sem dep — CSS puro)
+// Bar chart 7 dias (canvas simples — ADR PontoWr2 UI-0001, sem lib externa)
 // ============================================================================
 
 function BarChart7Days({ serie }: { serie: SeriePonto[] }) {
@@ -267,10 +273,7 @@ function BarChart7Days({ serie }: { serie: SeriePonto[] }) {
                 />
               )}
               <div
-                className={cn(
-                  'bg-primary/80',
-                  d.he === 0 && 'rounded-t',
-                )}
+                className={cn('bg-primary/80', d.he === 0 && 'rounded-t')}
                 style={{ height: `${regPct}%` }}
                 title={`Trabalhado: ${formatMinutes(d.trabalhado)}`}
               />
@@ -284,11 +287,10 @@ function BarChart7Days({ serie }: { serie: SeriePonto[] }) {
 }
 
 // ============================================================================
-// Linhas de lista
+// ApprovalRow
 // ============================================================================
 
 function ApprovalRow({ item }: { item: Aprovacao }) {
-  const prio = prioridadeConfig[item.prioridade] ?? prioridadeConfig.NORMAL;
   return (
     <Link
       href={`/ponto/intercorrencias/${item.id}`}
@@ -298,34 +300,13 @@ function ApprovalRow({ item }: { item: Aprovacao }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-medium truncate">{item.colaborador.nome}</span>
-          <Badge variant={prio.variant} className="text-[9px] px-1 py-0">
-            {prio.label}
-          </Badge>
+          <StatusBadge kind="prioridade" value={item.prioridade} />
         </div>
-        <p className="text-xs text-muted-foreground truncate">{item.tipo} · {item.data_inicio}</p>
+        <p className="text-xs text-muted-foreground truncate">
+          {item.tipo.replace(/_/g, ' ').toLowerCase()} · {item.data_inicio}
+        </p>
         <p className="text-[10px] text-muted-foreground">{item.created_at}</p>
       </div>
     </Link>
-  );
-}
-
-function MarcacaoRow({ item }: { item: Marcacao }) {
-  const config = tipoMarcacaoIcon[item.tipo] ?? { icon: 'Circle', color: 'text-muted-foreground' };
-  return (
-    <div className="flex items-center gap-3 py-2.5">
-      <div className={cn('size-8 rounded-full flex items-center justify-center bg-muted', config.color)}>
-        <Icon name={config.icon} size={14} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">{item.colaborador.nome}</p>
-        <p className="text-xs text-muted-foreground">
-          {item.tipo.replace('_', ' ').toLowerCase()} · {item.momento}
-          {item.rep.identificador && <span> · REP {item.rep.identificador}</span>}
-        </p>
-      </div>
-      <Badge variant="outline" className="text-[10px] shrink-0">
-        {item.origem}
-      </Badge>
-    </div>
   );
 }
