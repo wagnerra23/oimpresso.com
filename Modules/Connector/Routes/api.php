@@ -3,6 +3,21 @@
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connector.')->group(function () {
+    // === DELPHI OImpresso endpoints (restaurado do 3.7 — ADR 0021) ===
+    // Fluxo primario: Delphi manda JSON com EMPRESA + LICENCIAMENTO;
+    // backend cria/atualiza Business + Licenca_Computador; responde
+    // 'S;Cliente e equipamento liberados' ou 'N;<motivo>' (string simples).
+    Route::post('processa-dados-cliente', [
+        \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'ProcessaDadosCliente'
+    ])->name('delphi.processa-dados-cliente');
+    Route::post('salvar-cliente', [
+        \Modules\Connector\Http\Controllers\Api\BusinessController::class, 'saveBusiness'
+    ])->name('delphi.salvar-cliente');
+    Route::post('salvar-equipamento/{business_id}', [
+        \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamento'
+    ])->name('delphi.salvar-equipamento');
+    // === fim endpoints Delphi ===
+
     Route::resource('business-location', Modules\Connector\Http\Controllers\Api\BusinessLocationController::class)->only('index', 'show');
 
     Route::resource('contactapi', Modules\Connector\Http\Controllers\Api\ContactController::class)->only('index', 'show', 'store', 'update');
