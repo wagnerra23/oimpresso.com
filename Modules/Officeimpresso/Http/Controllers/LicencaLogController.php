@@ -111,26 +111,25 @@ class LicencaLogController extends Controller
                 ->make(true);
         }
 
-        // KPIs das ultimas 24h
+        // KPIs das ultimas 24h — EXCLUSIVO processa-dados-cliente,
+        // unica rotina onde CNPJ+HD vem no body e identificam cliente real.
         $since = now()->subHours(24);
-        $base = LicencaLog::where('created_at', '>=', $since);
+        $base = LicencaLog::where('created_at', '>=', $since)
+            ->where('source', 'delphi_middleware')
+            ->where('endpoint', 'like', '%processa-dados-cliente%');
         if ($business_id !== null) {
             $base = $base->where('business_id', $business_id);
         }
 
         $kpis = [
-            'login_success' => (clone $base)->where('event', 'login_success')->count(),
-            'login_error'   => (clone $base)->where('event', 'login_error')->count(),
-            'api_call'      => (clone $base)->where('event', 'api_call')->count(),
-            'block'         => (clone $base)->where('event', 'block')->count(),
+            'login_success' => (clone $base)->where('http_status', '<', 400)->count(),
+            'login_error'   => (clone $base)->where('http_status', '>=', 400)->count(),
+            'api_call'      => (clone $base)->count(),
+            'block'         => (clone $base)->where('metadata', 'like', '%"was_blocked":true%')->count(),
         ];
 
-        // Tela Autorizacao de Uso — dropdown so tem 2 opcoes agora.
-        // Map value (DB) => label (UI).
-        $events = [
-            'login_success' => 'Autorização concedida',
-            'login_error'   => 'Autorização negada',
-        ];
+        // Dropdown legado (nao mais usado na view, mantido para show() API)
+        $events = [];
 
         $filter_licenca_id  = $request->query('licenca_id');
         $filter_business_id = $request->query('business_id');
@@ -160,13 +159,14 @@ class LicencaLogController extends Controller
         }
 
         // ==========================================================
-        // Status de Login por Máquina (aggregate) — identificacao REAL do
-        // cliente vem do body de /connector/api/processa-dados-cliente (CNPJ
-        // + HD) — logado pelo LogDelphiAccess middleware com source=
-        // 'delphi_middleware'. /oauth/token NAO identifica cliente (eh
-        // autenticacao tecnica do master user) — excluido daqui.
+        // Agregado EXCLUSIVO /connector/api/processa-dados-cliente.
+        // Unico endpoint onde o Delphi envia CNPJ (EMPRESA) + HD
+        // (LICENCIAMENTO) no body — identidade REAL do cliente.
+        // /oauth/token (master user), salvar-equipamento, salvar-cliente,
+        // audit, etc. NAO entram aqui.
         // ==========================================================
-        $statusQuery = LicencaLog::whereIn('source', ['delphi_middleware', 'desktop_audit'])
+        $statusQuery = LicencaLog::where('source', 'delphi_middleware')
+            ->where('endpoint', 'like', '%processa-dados-cliente%')
             ->selectRaw("
                 business_id,
                 licenca_id,

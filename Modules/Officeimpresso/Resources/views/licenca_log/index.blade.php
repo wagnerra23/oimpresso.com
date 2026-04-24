@@ -121,32 +121,14 @@
                                 @endif
                             </td>
                             <td>
-                                @if($m->hd && $m->guessed_machine)
+                                @if($m->guessed_machine)
                                     <strong class="text-mono">{{ $m->guessed_machine->user_win ?: '(sem hostname)' }}</strong>
                                     <br><small class="text-muted text-mono">HD {{ $m->hd }}</small>
-                                @elseif($m->total_maquinas > 0)
-                                    <details class="oi-guess">
-                                        <summary>
-                                            <em class="text-warning"><i class="fa fa-question-circle"></i> 1 de {{ $m->total_maquinas }} {{ $m->total_maquinas == 1 ? 'máquina' : 'máquinas' }}</em>
-                                            <small class="text-muted" style="display:block; font-size:10px;">Delphi ainda sem hd — clique pra ver</small>
-                                        </summary>
-                                        <ul style="margin: 6px 0 0; padding-left: 14px; font-size: 11px;">
-                                            @foreach($m->known_machines as $known)
-                                                <li>
-                                                    <strong>{{ $known->user_win ?: '(sem hostname)' }}</strong>
-                                                    <span class="text-muted text-mono">· HD {{ $known->hd }}</span>
-                                                    @if($known->ip_interno)
-                                                        <span class="text-muted">· IP int {{ $known->ip_interno }}</span>
-                                                    @endif
-                                                    @if($known->bloqueado)
-                                                        <span class="oi-pill oi-pill-blocked" style="font-size:10px;">bloq</span>
-                                                    @endif
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </details>
+                                @elseif($m->hd)
+                                    <em class="text-warning"><i class="fa fa-exclamation-triangle"></i> HD não cadastrado</em>
+                                    <br><small class="text-muted text-mono">HD {{ $m->hd }}</small>
                                 @else
-                                    <em class="text-muted">sem cadastro</em>
+                                    <em class="text-muted">sem HD no log</em>
                                 @endif
                             </td>
                             <td class="text-mono">{{ $m->ip ?: '—' }}</td>
