@@ -244,7 +244,8 @@ class SellPosController extends Controller
 
         $shipping_statuses = $this->transactionUtil->shipping_statuses();
 
-        $default_datetime = $this->businessUtil->format_date('now', true);
+        // format_now_local pra evitar shift +3h intencional do format_date.
+        $default_datetime = $this->businessUtil->format_now_local(true);
 
         $featured_products = !empty($default_location) ? $default_location->getFeaturedProducts() : [];
 
