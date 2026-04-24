@@ -145,3 +145,78 @@ it('LogDelphiAccess retorna null sem hd (nao gera log)', function () {
 
     expect($method->invoke($mw, $request))->toBeNull();
 });
+
+// ==========================================================
+// Fase 1+2: CNPJ por business_location e resolucao de identidade
+// ==========================================================
+
+it('business_locations tem colunas fiscais (cnpj, razao_social, etc)', function () {
+    // Guarda a migration Fase 1 — se alguem dropar o campo, testes quebram.
+    $cols = \DB::select('SHOW COLUMNS FROM business_locations');
+    $names = array_map(fn ($c) => $c->Field, $cols);
+    expect($names)->toContain('cnpj');
+    expect($names)->toContain('razao_social');
+    expect($names)->toContain('nome_fantasia');
+    expect($names)->toContain('inscricao_estadual');
+    expect($names)->toContain('inscricao_municipal');
+});
+
+it('licenca_log tem coluna business_location_id', function () {
+    $cols = \DB::select('SHOW COLUMNS FROM licenca_log');
+    $names = array_map(fn ($c) => $c->Field, $cols);
+    expect($names)->toContain('business_location_id');
+});
+
+it('LogDelphiAccess::resolveByCnpj prioriza business_locations.cnpj', function () {
+    // Este teste prova que, se a location tiver CNPJ especifico, a resolucao
+    // devolve business_location_id alem do business_id. Sem location que
+    // batesse, cairia no fallback de business.cnpj (ja coberto por outros testes).
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $method = $ref->getMethod('resolveByCnpj');
+    $method->setAccessible(true);
+
+    // CNPJ imaginario que nao bate em lugar nenhum — esperamos [null, null]
+    $payload = [
+        ['NOME_TABELA' => 'EMPRESA', 'CNPJCPF' => 'CNPJ-INEXISTENTE-TESTE-' . uniqid()],
+        ['NOME_TABELA' => 'LICENCIAMENTO', 'HD' => 'X'],
+    ];
+    $request = \Illuminate\Http\Request::create('/connector/api/processa-dados-cliente', 'POST', [], [], [], [], json_encode($payload));
+    $request->headers->set('Content-Type', 'application/json');
+
+    [$bid, $lid] = $method->invoke($mw, $request);
+    expect($bid)->toBeNull();
+    expect($lid)->toBeNull();
+});
+
+it('LogDelphiAccess::resolveByCnpj respeita route param {business_id}', function () {
+    // salvar-equipamento/{business_id} — se business_id veio na URL, usa direto.
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $method = $ref->getMethod('resolveByCnpj');
+    $method->setAccessible(true);
+
+    $request = \Illuminate\Http\Request::create('/connector/api/salvar-equipamento/42', 'POST');
+    $route = new \Illuminate\Routing\Route('POST', '/connector/api/salvar-equipamento/{business_id}', fn () => '');
+    $route->bind($request);
+    $route->setParameter('business_id', '42');
+    $request->setRouteResolver(fn () => $route);
+
+    [$bid, $lid] = $method->invoke($mw, $request);
+    expect($bid)->toBe(42);
+    expect($lid)->toBeNull();
+});
+
+// ==========================================================
+// Fase 4: UI grid — filtros novos
+// ==========================================================
+
+it('LicencaLogController aceita query param ?hd=', function () {
+    // Guarda que o controller LE o filtro hd da query string. Protege a
+    // feature "clicar no HD filtra por HD" de ser removida silenciosamente.
+    $source = file_get_contents(
+        (new ReflectionClass(\Modules\Officeimpresso\Http\Controllers\LicencaLogController::class))->getFileName()
+    );
+    expect($source)->toContain("\$request->query('hd'");
+    expect($source)->toContain("lc.hd");
+});

@@ -36,7 +36,10 @@ class LogDelphiAccess
             // CNPJ do body tem prioridade sobre user->business_id — o Delphi
             // usa master user compartilhado entre clientes, entao user->business_id
             // sempre aponta pro business do master (ex: WR2) e nao pro cliente real.
-            $businessId = $this->extractBusinessId($request) ?? $user?->business_id;
+            // resolveByCnpj devolve [business_id, business_location_id] — location
+            // pode vir null se o CNPJ casou em business.cnpj e nao em location.
+            [$businessId, $businessLocationId] = $this->resolveByCnpj($request);
+            $businessId ??= $user?->business_id;
 
             $licencaId = null;
             if ($businessId && $hd) {
@@ -56,18 +59,20 @@ class LogDelphiAccess
             $token = $user?->token();
 
             $metadata = array_filter([
-                'hd'               => $hd,
-                'generation'       => $this->detectGeneration($request),
-                'was_blocked'      => $businessBlocked || $licencaBlocked,
-                'business_blocked' => $businessBlocked,
-                'licenca_blocked'  => $licencaBlocked,
+                'hd'                   => $hd,
+                'generation'           => $this->detectGeneration($request),
+                'was_blocked'          => $businessBlocked || $licencaBlocked,
+                'business_blocked'     => $businessBlocked,
+                'licenca_blocked'      => $licencaBlocked,
+                'business_location_id' => $businessLocationId,
             ], fn ($v) => $v !== null && $v !== false && $v !== '');
 
             LicencaLog::create([
-                'event'       => 'api_call',
-                'user_id'     => $user?->id,
-                'business_id' => $businessId,
-                'licenca_id'  => $licencaId,
+                'event'                => 'api_call',
+                'user_id'              => $user?->id,
+                'business_id'          => $businessId,
+                'business_location_id' => $businessLocationId,
+                'licenca_id'           => $licencaId,
                 'client_id'   => $token?->client_id ? (string) $token->client_id : null,
                 'token_hint'  => $token?->id ? substr($token->id, 0, 8) . '…' . substr($token->id, -4) : null,
                 'ip'          => $request->ip(),
@@ -112,23 +117,38 @@ class LogDelphiAccess
         return null;
     }
 
-    private function extractBusinessId(Request $request): ?int
+    /**
+     * Resolve (business_id, business_location_id) a partir do CNPJ no body ou
+     * da route. Prioridade:
+     *   1. route param {business_id} se presente (salvar-equipamento/{id})
+     *   2. business_locations.cnpj = CNPJ do body (unidade fiscal especifica)
+     *   3. business.cnpj = CNPJ do body (compat com setup sem location fiscal)
+     * Retorna [business_id, business_location_id]. Ambos podem ser null.
+     */
+    private function resolveByCnpj(Request $request): array
     {
         $bid = $request->route('business_id');
-        if ($bid && is_numeric($bid)) return (int) $bid;
+        if ($bid && is_numeric($bid)) return [(int) $bid, null];
 
         $payload = $request->json()->all();
-        if (is_array($payload)) {
-            foreach ($payload as $row) {
-                if (is_array($row) && isset($row['NOME_TABELA']) && $row['NOME_TABELA'] === 'EMPRESA') {
-                    $cnpj = $row['CNPJCPF'] ?? null;
-                    if ($cnpj) {
-                        return (int) \DB::table('business')->where('cnpj', $cnpj)->value('id');
-                    }
-                }
+        if (! is_array($payload)) return [null, null];
+
+        $cnpj = null;
+        foreach ($payload as $row) {
+            if (is_array($row) && isset($row['NOME_TABELA']) && $row['NOME_TABELA'] === 'EMPRESA') {
+                $cnpj = $row['CNPJCPF'] ?? null;
+                break;
             }
         }
-        return null;
+        if (! $cnpj) return [null, null];
+
+        $loc = \DB::table('business_locations')
+            ->where('cnpj', $cnpj)
+            ->first(['id', 'business_id']);
+        if ($loc) return [(int) $loc->business_id, (int) $loc->id];
+
+        $bid = \DB::table('business')->where('cnpj', $cnpj)->value('id');
+        return [$bid ? (int) $bid : null, null];
     }
 
     /** 'g1' (processa-dados-cliente) | 'g2' (salvar-equipamento) | null */

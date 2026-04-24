@@ -24,6 +24,7 @@ class LicencaLog extends Model
     protected $fillable = [
         'licenca_id',
         'business_id',
+        'business_location_id',
         'user_id',
         'event',
         'client_id',
@@ -54,6 +55,11 @@ class LicencaLog extends Model
     public function business()
     {
         return $this->belongsTo(\App\Business::class, 'business_id');
+    }
+
+    public function businessLocation()
+    {
+        return $this->belongsTo(\App\BusinessLocation::class, 'business_location_id');
     }
 
     public function user()
