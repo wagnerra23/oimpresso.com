@@ -99,13 +99,15 @@
             <table id="licenca_log_table" class="table table-hover">
                 <thead>
                     <tr>
-                        <th style="width: 160px;">Data/Hora</th>
-                        <th style="width: 140px;">Evento</th>
-                        <th style="width: 90px;">Origem</th>
-                        <th style="width: 110px;">IP</th>
+                        <th style="width: 150px;">Data/Hora</th>
+                        <th style="width: 130px;">Evento</th>
+                        <th style="width: 180px;">Empresa</th>
+                        <th style="width: 160px;">Máquina</th>
+                        <th style="width: 100px;">IP</th>
                         <th>Endpoint / Erro</th>
-                        <th style="width: 70px;">Status</th>
-                        <th style="width: 80px;">Duração</th>
+                        <th style="width: 65px;">Status</th>
+                        <th style="width: 75px;">Duração</th>
+                        <th style="width: 90px;">Origem</th>
                     </tr>
                 </thead>
             </table>
@@ -148,13 +150,15 @@ $(function () {
             }
         },
         columns: [
-            { data: 'created_at',   name: 'created_at', className: 'text-mono' },
-            { data: 'event',        name: 'event' },
-            { data: 'source_badge', name: 'source', orderable: false, searchable: false },
-            { data: 'ip',           name: 'ip', className: 'text-mono' },
-            { data: 'endpoint',     name: 'endpoint' },
-            { data: 'http_status',  name: 'http_status' },
-            { data: 'duration_ms',  name: 'duration_ms', orderable: false },
+            { data: 'created_at',    name: 'created_at', className: 'text-mono' },
+            { data: 'event',         name: 'event' },
+            { data: 'business_info', name: 'business_id', orderable: false, searchable: false },
+            { data: 'machine_info',  name: 'licenca_id',  orderable: false, searchable: false },
+            { data: 'ip',            name: 'ip', className: 'text-mono' },
+            { data: 'endpoint',      name: 'endpoint' },
+            { data: 'http_status',   name: 'http_status' },
+            { data: 'duration_ms',   name: 'duration_ms', orderable: false },
+            { data: 'source_badge',  name: 'source', orderable: false, searchable: false },
         ]
     });
 

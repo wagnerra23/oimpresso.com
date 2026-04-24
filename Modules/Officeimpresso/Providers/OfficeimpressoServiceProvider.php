@@ -7,6 +7,9 @@ use Illuminate\Support\ServiceProvider;
 
 class OfficeimpressoServiceProvider extends ServiceProvider
 {
+    /** @var bool flag pra evitar double-registration de listener */
+    protected static $listenerRegistered = false;
+
     /**
      * Boot the application events.
      *
@@ -26,13 +29,6 @@ class OfficeimpressoServiceProvider extends ServiceProvider
             ]);
         }
 
-        // Listener pra Passport AccessTokenCreated — grava login_success com
-        // contexto completo (IP, UA, user, client). Substitui trigger MySQL.
-        \Illuminate\Support\Facades\Event::listen(
-            \Laravel\Passport\Events\AccessTokenCreated::class,
-            \Modules\Officeimpresso\Listeners\LogPassportAccessToken::class
-        );
-
         // Middleware registrado como alias 'log.desktop' pra uso nas rotas.
         $this->app['router']->aliasMiddleware(
             'log.desktop',
@@ -42,12 +38,21 @@ class OfficeimpressoServiceProvider extends ServiceProvider
 
     /**
      * Register the service provider.
-     *
-     * @return void
      */
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
+
+        // Listener pra AccessTokenCreated — guarded por flag static pra
+        // evitar double-registration (provider pode ser carregado 2x pelo
+        // nwidart/modules em algumas condicoes de boot).
+        if (! self::$listenerRegistered) {
+            \Illuminate\Support\Facades\Event::listen(
+                \Laravel\Passport\Events\AccessTokenCreated::class,
+                \Modules\Officeimpresso\Listeners\LogPassportAccessToken::class
+            );
+            self::$listenerRegistered = true;
+        }
     }
 
     /**

@@ -21,13 +21,43 @@ class LogPassportAccessToken
     {
         try {
             $request = request();
+            $ip = $request?->ip();
+            $userId = $event->userId;
+
+            // Dedup: mesmo user + ip + token dentro de 2s = skip (listener pode
+            // ser registrado mais de uma vez por module reload)
+            $tokenHint = $this->tokenHint($event->tokenId);
+            $exists = LicencaLog::where('user_id', $userId)
+                ->where('token_hint', $tokenHint)
+                ->where('event', 'login_success')
+                ->where('created_at', '>=', now()->subSeconds(2))
+                ->exists();
+            if ($exists) return;
+
+            // Enriquece com business_id via user
+            $businessId = null;
+            if ($userId) {
+                $businessId = \DB::table('users')->where('id', $userId)->value('business_id');
+            }
+
+            // Tenta matchar licenca_computador pelo business + user_win (hostname)
+            // OU pelo ip_interno (fallback). Nao 100% preciso mas ajuda identificacao.
+            $licencaId = null;
+            if ($businessId) {
+                $licencaId = \DB::table('licenca_computador')
+                    ->where('business_id', $businessId)
+                    ->orderBy('dt_ultimo_acesso', 'desc')
+                    ->value('id');
+            }
 
             LicencaLog::create([
                 'event'       => 'login_success',
-                'user_id'     => $event->userId,
+                'licenca_id'  => $licencaId,
+                'business_id' => $businessId,
+                'user_id'     => $userId,
                 'client_id'   => (string) $event->clientId,
-                'token_hint'  => $this->tokenHint($event->tokenId),
-                'ip'          => $request?->ip(),
+                'token_hint'  => $tokenHint,
+                'ip'          => $ip,
                 'user_agent'  => Str::limit($request?->userAgent() ?? '', 500, ''),
                 'endpoint'    => '/oauth/token',
                 'http_method' => 'POST',
@@ -36,8 +66,6 @@ class LogPassportAccessToken
                 'created_at'  => now(),
             ]);
         } catch (\Throwable $e) {
-            // Nao propaga — Passport tem que continuar emitindo token mesmo se
-            // o log falhar. Registra em laravel.log pra debug.
             Log::warning('LogPassportAccessToken falhou: ' . $e->getMessage());
         }
     }
