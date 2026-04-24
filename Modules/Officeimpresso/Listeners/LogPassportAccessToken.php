@@ -24,31 +24,36 @@ class LogPassportAccessToken
             $ip = $request?->ip();
             $userId = $event->userId;
 
-            // Dedup: mesmo user + ip + token dentro de 2s = skip (listener pode
-            // ser registrado mais de uma vez por module reload)
-            $tokenHint = $this->tokenHint($event->tokenId);
+            // Dedup por (user + ip + event) no mesmo minuto — passwor grant pode
+            // emitir multiplos AccessTokenCreated por login (1 access + 1
+            // personal_access). Tratamos como 1 evento de UX.
             $exists = LicencaLog::where('user_id', $userId)
-                ->where('token_hint', $tokenHint)
+                ->where('ip', $ip)
                 ->where('event', 'login_success')
-                ->where('created_at', '>=', now()->subSeconds(2))
+                ->where('created_at', '>=', now()->subMinute())
                 ->exists();
             if ($exists) return;
 
-            // Enriquece com business_id via user
+            // Enriquece com business_id via user (seguro — 1:1)
             $businessId = null;
             if ($userId) {
                 $businessId = \DB::table('users')->where('id', $userId)->value('business_id');
             }
 
-            // Tenta matchar licenca_computador pelo business + user_win (hostname)
-            // OU pelo ip_interno (fallback). Nao 100% preciso mas ajuda identificacao.
+            // Match exato de licenca_computador pelo `hd` (serial do disco)
+            // que o Delphi POR ENQUARTO nao envia em /oauth/token.
+            // Quando Delphi for atualizado pra enviar hd como custom param,
+            // este match vai funcionar automaticamente. Fallback: null.
             $licencaId = null;
-            if ($businessId) {
+            $hdFromRequest = $request?->input('hd') ?: $request?->header('X-OI-HD');
+            if ($hdFromRequest && $businessId) {
                 $licencaId = \DB::table('licenca_computador')
                     ->where('business_id', $businessId)
-                    ->orderBy('dt_ultimo_acesso', 'desc')
+                    ->where('hd', $hdFromRequest)
                     ->value('id');
             }
+            // metadata guarda o hd recebido pra debug futuro
+            $metadata = $hdFromRequest ? ['hd' => $hdFromRequest] : null;
 
             LicencaLog::create([
                 'event'       => 'login_success',
@@ -56,12 +61,13 @@ class LogPassportAccessToken
                 'business_id' => $businessId,
                 'user_id'     => $userId,
                 'client_id'   => (string) $event->clientId,
-                'token_hint'  => $tokenHint,
+                'token_hint'  => $this->tokenHint($event->tokenId),
                 'ip'          => $ip,
                 'user_agent'  => Str::limit($request?->userAgent() ?? '', 500, ''),
                 'endpoint'    => '/oauth/token',
                 'http_method' => 'POST',
                 'http_status' => 200,
+                'metadata'    => $metadata,
                 'source'      => 'passport_event',
                 'created_at'  => now(),
             ]);
