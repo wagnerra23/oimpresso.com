@@ -2,6 +2,18 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/lang/pt-BR/).
 
+## [0.4.0] - 2026-04-24
+
+### Added
+
+- **Seção "Diff de versão" na documentação de módulo** — padrão pra módulos restaurados após upgrade (ex.: Officeimpresso restaurado do 3.7 pro 6.7). Formato: tabela comparativa de controllers + endpoints + infra, com coluna "Mudança contrato" pra sinalizar impacto externo.
+- ADR 0008 DocVault (arq): padrão de documentação pra restaurações entre versões — comparar o que foi preservado, o que foi adaptado e o que é novo.
+- Arquivo `reference_diff_3_7_vs_6_7_officeimpresso.md` em memória durável (fora do repo) — consulta rápida durante manutenção.
+
+### Context
+
+A restauração do módulo Officeimpresso da branch `origin/3.7-com-nfe` gerou 5 ADRs (0017–0021) e o `Modules/Officeimpresso/CHANGELOG.md` v1.0.0→v1.3.0. A demanda de navegar entre eles pra entender "o que é igual ao 3.7 e o que é novo" justificou consolidar num único doc de referência — o padrão "Diff de versão" nasceu aí.
+
 ## [0.3.0] - 2026-04-22
 
 ### Added
