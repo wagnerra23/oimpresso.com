@@ -14,7 +14,7 @@
      'required' => 'Este campo é obrigatório',
      'please_select' => 'Selecionar',
      'cancel' => 'Cancelar',
-     'date' => 'Date',
+     'date' => 'Data',
      'filter_by_date' => 'Filtrar por data',
      'location' => 'Localização',
      'go_back' => 'Return',
