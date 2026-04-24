@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Status de Login por Máquina — Office Impresso')
+@section('title', 'Processa Dados Cliente — Office Impresso')
 
 @section('css')
 @include('officeimpresso::layouts.partials.design-system')
@@ -11,8 +11,8 @@
 
 <div class="oi-page">
     <div class="oi-page-header">
-        <h1>Status de Login por Máquina</h1>
-        <div class="subtitle">Máquinas que logaram nas últimas 24h — status mostra o bloqueio no momento do login</div>
+        <h1>Processa Dados Cliente</h1>
+        <div class="subtitle">Chamadas exclusivas a <code class="text-mono">/connector/api/processa-dados-cliente</code> nas últimas 24h</div>
     </div>
 
     {{-- KPIs --}}
@@ -21,9 +21,9 @@
             <div class="oi-kpi">
                 <div class="icon bg-blue"><i class="fa fa-desktop"></i></div>
                 <div>
-                    <div class="label">Máquinas ativas</div>
+                    <div class="label">Máquinas identificadas</div>
                     <div class="value">{{ $maquinas->count() }}</div>
-                    <div class="delta">logaram nas últimas 24h</div>
+                    <div class="delta">CNPJ + HD únicos 24h</div>
                 </div>
             </div>
         </div>
@@ -31,9 +31,9 @@
             <div class="oi-kpi">
                 <div class="icon bg-green"><i class="fa fa-check"></i></div>
                 <div>
-                    <div class="label">Logins OK</div>
-                    <div class="value">{{ number_format($kpis['login_success']) }}</div>
-                    <div class="delta">total 24h</div>
+                    <div class="label">Processados</div>
+                    <div class="value">{{ number_format($kpis['processado']) }}</div>
+                    <div class="delta">http &lt; 400</div>
                 </div>
             </div>
         </div>
@@ -41,9 +41,9 @@
             <div class="oi-kpi">
                 <div class="icon bg-amber"><i class="fa fa-lock"></i></div>
                 <div>
-                    <div class="label">Bloqueadas logando</div>
-                    <div class="value">{{ $maquinas->where('was_blocked_last', true)->count() }}</div>
-                    <div class="delta">acessos com bloqueio ativo</div>
+                    <div class="label">Bloqueadas</div>
+                    <div class="value">{{ number_format($kpis['bloqueado']) }}</div>
+                    <div class="delta">empresa ou máquina bloqueada</div>
                 </div>
             </div>
         </div>
@@ -51,9 +51,9 @@
             <div class="oi-kpi">
                 <div class="icon bg-red"><i class="fa fa-times"></i></div>
                 <div>
-                    <div class="label">Erros auth</div>
-                    <div class="value">{{ number_format($kpis['login_error']) }}</div>
-                    <div class="delta">credencial inválida ou bloqueada</div>
+                    <div class="label">Falhas</div>
+                    <div class="value">{{ number_format($kpis['falhou']) }}</div>
+                    <div class="delta">http ≥ 400</div>
                 </div>
             </div>
         </div>
@@ -86,9 +86,9 @@
     <div class="oi-filter-bar">
         <div class="row">
             <div class="col-md-3">
-                <label>Tipo</label>
-                <select id="filter_event" class="form-control">
-                    <option value="">Todas</option>
+                <label>Status</label>
+                <select id="filter_status" class="form-control">
+                    <option value="">Todos</option>
                     @foreach ($events as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
@@ -124,8 +124,8 @@
     {{-- STATUS POR MÁQUINA --}}
     <div class="oi-card">
         <div class="hdr">
-            <h3><i class="fa fa-desktop"></i> Máquinas que logaram <small style="color:#6b7280;">({{ $maquinas->count() }})</small></h3>
-            <small style="color: #6b7280;">Status mostra o bloqueio <strong>no momento do login</strong></small>
+            <h3><i class="fa fa-desktop"></i> Máquinas que chamaram processa-dados-cliente <small style="color:#6b7280;">({{ $maquinas->count() }})</small></h3>
+            <small style="color: #6b7280;">Estado mostra o bloqueio <strong>no momento da chamada</strong></small>
         </div>
         <div class="body no-pad">
             <table class="oi-table">
@@ -241,17 +241,11 @@
                                 @else
                                     <div style="max-width: 520px; margin: 0 auto; text-align: left;">
                                         <p style="margin: 0 0 10px; color: #374151;">
-                                            <strong>Nenhum cliente Delphi identificado nas últimas 24h.</strong>
-                                        </p>
-                                        <p style="margin: 0 0 8px; font-size: 12px;">
-                                            Esta lista mostra máquinas que chamaram
-                                            <code class="text-mono">/connector/api/processa-dados-cliente</code>
-                                            (ou <code class="text-mono">salvar-equipamento</code>) — onde CNPJ + HD chegam no body.
+                                            <strong>Nenhuma chamada a <code class="text-mono">processa-dados-cliente</code> nas últimas 24h.</strong>
                                         </p>
                                         <p style="margin: 0; font-size: 12px; color: #6b7280;">
-                                            Se o Delphi está apenas autenticando
-                                            (<code class="text-mono">/oauth/token</code>), consulte a
-                                            <strong>timeline de autorização de uso</strong> abaixo.
+                                            Esta tela é exclusiva desse endpoint — único ponto onde o Delphi envia
+                                            CNPJ + HD no body, permitindo identificar o cliente real.
                                         </p>
                                     </div>
                                 @endif
@@ -263,22 +257,22 @@
         </div>
     </div>
 
-    {{-- TIMELINE DETALHADA DE AUTORIZAÇÃO --}}
+    {{-- TIMELINE DETALHADA --}}
     <div class="oi-card" style="margin-top: 24px;">
         <div class="hdr">
-            <h3><i class="fa fa-history"></i> Timeline detalhada da autorização de uso</h3>
-            <small style="color: #6b7280;">Autorizações concedidas e negadas</small>
+            <h3><i class="fa fa-history"></i> Timeline das chamadas a processa-dados-cliente</h3>
+            <small style="color: #6b7280;">Cada linha é uma chamada real do Delphi com CNPJ + HD no body</small>
         </div>
         <div class="body no-pad">
             <table id="licenca_log_table" class="table table-hover">
                 <thead>
                     <tr>
                         <th style="width: 150px;">Data/Hora</th>
-                        <th style="width: 170px;">Tipo</th>
-                        <th style="width: 140px;">Estado no Login</th>
+                        <th style="width: 130px;">Status</th>
+                        <th style="width: 140px;">Bloqueio no Login</th>
                         <th>Empresa</th>
                         <th style="width: 120px;">IP</th>
-                        <th>Motivo (se negada)</th>
+                        <th>Endpoint / motivo</th>
                     </tr>
                 </thead>
             </table>
@@ -314,9 +308,8 @@ $(function () {
         ajax: {
             url: "{{ route('licenca_log.index') }}",
             data: function (d) {
-                // Timeline: so login_success + login_error (autorizacao de uso)
-                d.event_in    = 'login_success,login_error';
-                d.event       = $('#filter_event').val();
+                // Tela exclusiva processa-dados-cliente — controller ja restringe server-side.
+                d.status      = $('#filter_status').val();
                 d.licenca_id  = initialLicencaId;
                 d.business_id = initialBusinessId;
                 d.q           = initialQ;
@@ -336,7 +329,7 @@ $(function () {
 
     $('#btn_apply').click(function () { table.ajax.reload(); });
     $('#btn_clear').click(function () {
-        $('#filter_event').val('');
+        $('#filter_status').val('');
         $('#filter_from').val('');
         $('#filter_to').val('');
         table.ajax.reload();
