@@ -82,44 +82,12 @@
         @endif
     </form>
 
-    {{-- Filtros da timeline --}}
-    <div class="oi-filter-bar">
-        <div class="row">
-            <div class="col-md-3">
-                <label>Tipo</label>
-                <select id="filter_event" class="form-control">
-                    <option value="">Todas</option>
-                    @foreach ($events as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label>De</label>
-                <input type="date" id="filter_from" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <label>Até</label>
-                <input type="date" id="filter_to" class="form-control">
-            </div>
-            <div class="col-md-3" style="padding-top: 24px;">
-                <button id="btn_apply" class="btn btn-primary"><i class="fa fa-search"></i> Aplicar</button>
-                <button id="btn_clear" class="btn btn-default"><i class="fa fa-eraser"></i> Limpar</button>
-            </div>
+    @if($filter_business_id ?? null)
+        <div class="alert alert-info" style="margin-bottom: 12px;">
+            <i class="fa fa-filter"></i> Filtrado por <strong>empresa #{{ $filter_business_id }}</strong>.
+            <a href="{{ route('licenca_log.index') }}">Remover filtro</a>
         </div>
-        @if($filter_licenca_id ?? null)
-            <div class="alert alert-info" style="margin-top: 10px; margin-bottom: 0;">
-                <i class="fa fa-filter"></i> Filtrado por <strong>licença #{{ $filter_licenca_id }}</strong>.
-                <a href="{{ route('licenca_log.index') }}">Remover filtro</a>
-            </div>
-        @endif
-        @if($filter_business_id ?? null)
-            <div class="alert alert-info" style="margin-top: 10px; margin-bottom: 0;">
-                <i class="fa fa-filter"></i> Filtrado por <strong>empresa #{{ $filter_business_id }}</strong>.
-                <a href="{{ route('licenca_log.index') }}">Remover filtro</a>
-            </div>
-        @endif
-    </div>
+    @endif
 
     {{-- STATUS POR MÁQUINA --}}
     <div class="oi-card">
@@ -134,12 +102,10 @@
                         <th>Empresa</th>
                         <th>Máquina</th>
                         <th>IP</th>
-                        <th>Último Login</th>
-                        <th style="text-align: center;">Logins 24h</th>
-                        <th style="text-align: center;">Erros 24h</th>
+                        <th>Login</th>
                         <th>Estado no Último Login</th>
                         <th>Estado Atual</th>
-                        <th style="width: 150px;">Ação rápida</th>
+                        <th style="width: 160px;">Ação rápida</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,16 +151,6 @@
                             </td>
                             <td class="text-mono">{{ $m->ip ?: '—' }}</td>
                             <td class="text-mono">{{ \Carbon\Carbon::parse($m->last_login)->format('d/m/Y H:i:s') }}</td>
-                            <td style="text-align: center;">
-                                <span class="oi-pill oi-pill-neutral">{{ $m->login_count_24h }}</span>
-                            </td>
-                            <td style="text-align: center;">
-                                @if($m->errors_24h > 0)
-                                    <span class="oi-pill oi-pill-blocked" title="Tentativas rejeitadas" style="font-weight: 700;">{{ $m->errors_24h }}</span>
-                                @else
-                                    <span class="text-muted">0</span>
-                                @endif
-                            </td>
                             <td>
                                 @if($m->was_blocked_last)
                                     <span class="oi-pill oi-pill-blocked"><i class="fa fa-lock"></i> Bloqueada quando logou</span>
@@ -205,6 +161,8 @@
                             <td>
                                 @if($m->business_blocked)
                                     <span class="oi-pill oi-pill-blocked">🔒 Empresa bloqueada</span>
+                                @elseif($m->guessed_machine && $m->guessed_machine->bloqueado)
+                                    <span class="oi-pill oi-pill-blocked">🔒 Máquina bloqueada</span>
                                 @else
                                     <span class="oi-pill oi-pill-ok">Ativa</span>
                                 @endif
@@ -213,29 +171,37 @@
                                 @if($m->business_blocked && $m->business_id)
                                     <a href="{{ route('business.bloqueado', $m->business_id) }}"
                                        class="oi-btn oi-btn-success oi-btn-xs"
-                                       onclick="return confirm('Liberar empresa {{ addslashes($m->business_name) }} ?')"
+                                       onclick="return confirm('Desbloquear empresa {{ addslashes($m->business_name) }} ?')"
                                        title="Desbloquear empresa inteira">
-                                        <i class="fa fa-unlock"></i> Liberar empresa
+                                        <i class="fa fa-unlock"></i> Desbloquear empresa
                                     </a>
                                 @elseif($m->guessed_machine && $m->guessed_machine->bloqueado)
                                     <a href="{{ route('licenca_computador.toggleBlock', $m->guessed_machine->id) }}"
                                        class="oi-btn oi-btn-success oi-btn-xs"
-                                       onclick="return confirm('Liberar máquina {{ addslashes($m->guessed_machine->user_win ?? '') }} ?')"
+                                       onclick="return confirm('Desbloquear máquina {{ addslashes($m->guessed_machine->user_win ?? '') }} ?')"
                                        title="Desbloquear essa máquina">
-                                        <i class="fa fa-unlock"></i> Liberar máquina
+                                        <i class="fa fa-unlock"></i> Desbloquear máquina
+                                    </a>
+                                @elseif($m->guessed_machine)
+                                    <a href="{{ route('licenca_computador.toggleBlock', $m->guessed_machine->id) }}"
+                                       class="oi-btn oi-btn-danger oi-btn-xs"
+                                       onclick="return confirm('Bloquear máquina {{ addslashes($m->guessed_machine->user_win ?? '') }} ?')"
+                                       title="Bloquear essa máquina">
+                                        <i class="fa fa-lock"></i> Bloquear máquina
                                     </a>
                                 @elseif($m->business_id)
-                                    <a href="{{ url('/officeimpresso/licenca_log?business_id=' . $m->business_id) }}"
-                                       class="oi-btn oi-btn-ghost oi-btn-xs"
-                                       title="Filtrar timeline por esta empresa">
-                                        <i class="fa fa-filter"></i> Timeline
+                                    <a href="{{ route('business.bloqueado', $m->business_id) }}"
+                                       class="oi-btn oi-btn-danger oi-btn-xs"
+                                       onclick="return confirm('Bloquear empresa {{ addslashes($m->business_name) }} ?')"
+                                       title="Bloquear empresa inteira">
+                                        <i class="fa fa-lock"></i> Bloquear empresa
                                     </a>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" style="text-align: center; padding: 30px; color: #9ca3af;">
+                            <td colspan="7" style="text-align: center; padding: 30px; color: #9ca3af;">
                                 @if($filter_q ?? null)
                                     Nenhuma máquina encontrada com <strong>"{{ $filter_q }}"</strong> nas últimas 24h.
                                 @else
@@ -248,11 +214,6 @@
                                             <code class="text-mono">/connector/api/processa-dados-cliente</code>
                                             (ou <code class="text-mono">salvar-equipamento</code>) — onde CNPJ + HD chegam no body.
                                         </p>
-                                        <p style="margin: 0; font-size: 12px; color: #6b7280;">
-                                            Se o Delphi está apenas autenticando
-                                            (<code class="text-mono">/oauth/token</code>), consulte a
-                                            <strong>timeline de autorização de uso</strong> abaixo.
-                                        </p>
                                     </div>
                                 @endif
                             </td>
@@ -262,85 +223,7 @@
             </table>
         </div>
     </div>
-
-    {{-- TIMELINE DETALHADA DE AUTORIZAÇÃO --}}
-    <div class="oi-card" style="margin-top: 24px;">
-        <div class="hdr">
-            <h3><i class="fa fa-history"></i> Timeline detalhada da autorização de uso</h3>
-            <small style="color: #6b7280;">Autorizações concedidas e negadas</small>
-        </div>
-        <div class="body no-pad">
-            <table id="licenca_log_table" class="table table-hover">
-                <thead>
-                    <tr>
-                        <th style="width: 150px;">Data/Hora</th>
-                        <th style="width: 170px;">Tipo</th>
-                        <th style="width: 140px;">Estado no Login</th>
-                        <th>Empresa</th>
-                        <th style="width: 120px;">IP</th>
-                        <th>Motivo (se negada)</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
 </div>
 
 @endsection
 
-@section('javascript')
-<script>
-$(function () {
-    var initialLicencaId  = {!! json_encode($filter_licenca_id ?? null) !!};
-    var initialBusinessId = {!! json_encode($filter_business_id ?? null) !!};
-    var initialQ          = {!! json_encode($filter_q ?? '') !!};
-
-    var table = $('#licenca_log_table').DataTable({
-        processing: true,
-        serverSide: true,
-        pageLength: 25,
-        order: [[0, 'desc']],
-        language: {
-            processing: 'Carregando…',
-            search: 'Buscar:',
-            lengthMenu: 'Mostrar _MENU_ registros',
-            info: 'Mostrando _START_ a _END_ de _TOTAL_',
-            infoEmpty: 'Nenhum registro',
-            infoFiltered: '(filtrado de _MAX_)',
-            zeroRecords: 'Nenhum registro',
-            emptyTable: 'Nenhuma autorização registrada ainda.',
-            paginate: { first: '«', previous: '‹', next: '›', last: '»' }
-        },
-        ajax: {
-            url: "{{ route('licenca_log.index') }}",
-            data: function (d) {
-                // Timeline: so login_success + login_error (autorizacao de uso)
-                d.event_in    = 'login_success,login_error';
-                d.event       = $('#filter_event').val();
-                d.licenca_id  = initialLicencaId;
-                d.business_id = initialBusinessId;
-                d.q           = initialQ;
-                d.from        = $('#filter_from').val();
-                d.to          = $('#filter_to').val();
-            }
-        },
-        columns: [
-            { data: 'created_at',    name: 'created_at', className: 'text-mono' },
-            { data: 'event',         name: 'event' },
-            { data: 'blocked_info',  name: 'blocked',    orderable: false, searchable: false },
-            { data: 'business_info', name: 'business_id', orderable: false, searchable: false },
-            { data: 'ip',            name: 'ip', className: 'text-mono' },
-            { data: 'endpoint',      name: 'endpoint', orderable: false },
-        ]
-    });
-
-    $('#btn_apply').click(function () { table.ajax.reload(); });
-    $('#btn_clear').click(function () {
-        $('#filter_event').val('');
-        $('#filter_from').val('');
-        $('#filter_to').val('');
-        table.ajax.reload();
-    });
-});
-</script>
-@endsection
