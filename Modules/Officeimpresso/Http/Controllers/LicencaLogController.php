@@ -129,6 +129,29 @@ class LicencaLogController extends Controller
         $maquinas = $statusQuery->get()->map(function ($row) {
             $business = $row->business_id ? \DB::table('business')->where('id', $row->business_id)->first(['name', 'officeimpresso_bloqueado']) : null;
             $meta = is_string($row->last_metadata) ? json_decode($row->last_metadata, true) : [];
+            $hd = $meta['hd'] ?? null;
+
+            // Tentar identificar maquina sem hd:
+            // 1. Se tem hd, match exato
+            // 2. Senao, listar todas as maquinas do business + sugerir a que bate com ip_interno
+            $guessedMachine = null;
+            $totalMaquinas  = 0;
+            $knownMachines  = [];
+            if ($row->business_id) {
+                $query = \DB::table('licenca_computador')->where('business_id', $row->business_id);
+                $totalMaquinas = (clone $query)->count();
+                if ($hd) {
+                    $guessedMachine = (clone $query)->where('hd', $hd)->first(['id', 'hd', 'user_win', 'ip_interno', 'bloqueado']);
+                } else {
+                    // Sem hd: tenta por ip_interno (ultimos octetos podem bater com o publico)
+                    // Fallback: listar todas as maquinas ativas (nao bloqueadas)
+                    $knownMachines = (clone $query)->select(['id', 'hd', 'user_win', 'ip_interno', 'bloqueado', 'dt_ultimo_acesso'])
+                        ->orderByDesc('dt_ultimo_acesso')
+                        ->limit(10)
+                        ->get();
+                }
+            }
+
             return (object) [
                 'business_id'       => $row->business_id,
                 'business_name'     => $business->name ?? '—',
@@ -138,8 +161,11 @@ class LicencaLogController extends Controller
                 'login_count_24h'   => $row->login_count_24h,
                 'blocked_attempts'  => $row->blocked_attempts,
                 'was_blocked_last'  => (bool) ($meta['was_blocked'] ?? false),
-                'hd'                => $meta['hd'] ?? null,
+                'hd'                => $hd,
                 'user_id'           => $row->user_id,
+                'guessed_machine'   => $guessedMachine,
+                'total_maquinas'    => $totalMaquinas,
+                'known_machines'    => $knownMachines,
             ];
         });
 
