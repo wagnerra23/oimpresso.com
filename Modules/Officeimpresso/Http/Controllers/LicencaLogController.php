@@ -191,6 +191,8 @@ class LicencaLogController extends Controller
         $maquinas = $maquinas->map(function ($m) use ($lastByLicenca) {
             $last = $lastByLicenca[$m->licenca_id] ?? null;
             $meta = $last && is_string($last->metadata) ? json_decode($last->metadata, true) : [];
+            // last_login_ts: usa log se existir, senao dt_ultimo_acesso do cadastro
+            $effectiveTs = $last?->created_at ?? $m->dt_ultimo_acesso;
             return (object) [
                 'licenca_id'        => $m->licenca_id,
                 'business_id'       => $m->business_id,
@@ -205,8 +207,12 @@ class LicencaLogController extends Controller
                 'last_ip'           => $last?->ip ?? $m->ip_interno,
                 'was_blocked_last'  => $last ? (bool) ($meta['was_blocked'] ?? false) : null,
                 'dt_ultimo_acesso'  => $m->dt_ultimo_acesso,
+                'effective_ts'      => $effectiveTs,  // pra ordenacao
             ];
         });
+
+        // Ordena pelo ultimo acesso efetivo desc (log > cadastro; nulls no fim)
+        $maquinas = $maquinas->sortByDesc(fn ($m) => $m->effective_ts ?: '0000-00-00')->values();
 
         // KPIs gerais (nao dependem do filtro aplicado)
         $kpis = [
@@ -223,6 +229,37 @@ class LicencaLogController extends Controller
             'kpis', 'filter_licenca_id', 'filter_business_id', 'filter_q',
             'filter_estado_atual', 'maquinas'
         ));
+    }
+
+    /**
+     * Timeline de logins de uma maquina especifica.
+     * URL: /officeimpresso/licenca_log/timeline/{licenca_id}
+     */
+    public function timeline($licenca_id)
+    {
+        $maquina = \DB::table('licenca_computador as lc')
+            ->leftJoin('business as b', 'b.id', '=', 'lc.business_id')
+            ->where('lc.id', $licenca_id)
+            ->select([
+                'lc.id', 'lc.business_id', 'lc.hd', 'lc.user_win', 'lc.hostname',
+                'lc.ip_interno', 'lc.bloqueado as machine_blocked', 'lc.dt_ultimo_acesso',
+                'b.name as business_name',
+                \DB::raw('COALESCE(b.officeimpresso_bloqueado, 0) as business_blocked'),
+            ])->first();
+        if (! $maquina) abort(404);
+
+        if (! auth()->user()->can('superadmin')) {
+            abort_unless($maquina->business_id === session()->get('user.business_id'), 403);
+        }
+
+        $logs = LicencaLog::where('licenca_id', $licenca_id)
+            ->where('source', 'delphi_middleware')
+            ->where('endpoint', 'like', '%processa-dados-cliente%')
+            ->orderByDesc('created_at')
+            ->limit(200)
+            ->get();
+
+        return view('officeimpresso::licenca_log.timeline', compact('maquina', 'logs'));
     }
 
     public function show($id)
