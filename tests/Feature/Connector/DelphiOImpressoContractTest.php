@@ -312,6 +312,94 @@ it('ProcessaDadosCliente aceita body flat com serial_hd (Services.LicencaThread.
     expect($source)->toContain("Maquina nao cadastrada");
 });
 
+// ==========================================================
+// Fixtures reais dos 3 formatos que o Delphi envia
+// (tests/Feature/Connector/fixtures/*)
+// ==========================================================
+
+function fixtureBody(string $name): string
+{
+    return file_get_contents(__DIR__ . '/fixtures/' . $name);
+}
+
+it('fixture array_tabelas parse e extrai HD + CNPJ corretos', function () {
+    $body = fixtureBody('delphi_body_array_tabelas.json');
+    $payload = json_decode($body, true);
+
+    $empresa = collect($payload)->firstWhere('NOME_TABELA', 'EMPRESA');
+    $licenciamento = collect($payload)->firstWhere('NOME_TABELA', 'LICENCIAMENTO');
+
+    expect($empresa['CNPJCPF'])->toBe('10.609.954/0001-50');
+    expect($empresa['RAZAOSOCIAL'])->toBe('JAIR UMBELINA VARGAS ME');
+    expect($licenciamento['HD'])->toBe('F0A24779');
+    expect($licenciamento['VERSAO_EXE'])->toBe('2026.1.1.6');
+
+    // Middleware consegue extrair
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $req = \Illuminate\Http\Request::create('/connector/api/processa-dados-cliente', 'POST', [], [], [], [], $body);
+    $req->headers->set('Content-Type', 'application/json');
+
+    $hdMethod = $ref->getMethod('extractHd'); $hdMethod->setAccessible(true);
+    expect($hdMethod->invoke($mw, $req))->toBe('F0A24779');
+
+    $fmtMethod = $ref->getMethod('detectBodyFormat'); $fmtMethod->setAccessible(true);
+    expect($fmtMethod->invoke($mw, $body))->toBe('array_tabelas');
+});
+
+it('fixture json_flat parse extrai HD (sem CNPJ)', function () {
+    $body = fixtureBody('delphi_body_json_flat.json');
+    $payload = json_decode($body, true);
+
+    expect($payload['serial_hd'])->toBe('F0A24779');
+    expect($payload['versao'])->toBe('2026.1.1.6');
+    expect($payload)->not->toHaveKey('cnpj'); // Este e o gap real: TThreadLicenca nao manda CNPJ
+
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $req = \Illuminate\Http\Request::create('/connector/api/processa-dados-cliente', 'POST', [], [], [], [], $body);
+    $req->headers->set('Content-Type', 'application/json');
+
+    $hdMethod = $ref->getMethod('extractHd'); $hdMethod->setAccessible(true);
+    expect($hdMethod->invoke($mw, $req))->toBe('F0A24779');
+
+    $fmtMethod = $ref->getMethod('detectBodyFormat'); $fmtMethod->setAccessible(true);
+    expect($fmtMethod->invoke($mw, $body))->toBe('json_flat');
+});
+
+it('fixture pipe extrai HD e CNPJ via posicao', function () {
+    $body = fixtureBody('delphi_body_pipe.txt');
+
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $req = \Illuminate\Http\Request::create('/connector/api/processa-dados-cliente', 'POST', [], [], [], [], $body);
+    // pipe usa text/plain
+    $req->headers->set('Content-Type', 'text/plain');
+
+    $hdMethod = $ref->getMethod('extractHd'); $hdMethod->setAccessible(true);
+    expect($hdMethod->invoke($mw, $req))->toBe('F0A24779');
+
+    $fmtMethod = $ref->getMethod('detectBodyFormat'); $fmtMethod->setAccessible(true);
+    expect($fmtMethod->invoke($mw, $body))->toBe('pipe');
+});
+
+it('LogDelphiAccess metadata captura body_preview + body_format + headers', function () {
+    // Guarda que o middleware loga info suficiente pra debug pos-hoc.
+    $source = file_get_contents(
+        (new ReflectionClass(\Modules\Officeimpresso\Http\Middleware\LogDelphiAccess::class))->getFileName()
+    );
+    expect($source)->toContain("'body_preview'");
+    expect($source)->toContain("'body_format'");
+    expect($source)->toContain("'body_size'");
+    expect($source)->toContain("'request_headers'");
+    expect($source)->toContain('extractRelevantHeaders');
+});
+
+it('comando artisan officeimpresso:inspect-api existe', function () {
+    $cmds = \Illuminate\Support\Facades\Artisan::all();
+    expect(array_key_exists('officeimpresso:inspect-api', $cmds))->toBeTrue();
+});
+
 it('processarApenasHd atualiza TODAS as licenca_computador com aquele HD', function () {
     // HD compartilhado em N businesses (notebook de suporte remoto):
     // sem CNPJ pra desambiguar, atualizamos todas as linhas. Guarda que

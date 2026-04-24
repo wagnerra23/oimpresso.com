@@ -58,6 +58,11 @@ class LogDelphiAccess
 
             $token = $user?->token();
 
+            // Captura preview do body pra inspecao — util pra entender novos
+            // formatos que o Delphi envia. Trunca em 4KB pra nao inchar DB.
+            $rawBody = $request->getContent();
+            $bodyPreview = $rawBody !== '' ? Str::limit($rawBody, 4000, '…[truncado]') : null;
+
             $metadata = array_filter([
                 'hd'                   => $hd,
                 'generation'           => $this->detectGeneration($request),
@@ -65,6 +70,10 @@ class LogDelphiAccess
                 'business_blocked'     => $businessBlocked,
                 'licenca_blocked'      => $licencaBlocked,
                 'business_location_id' => $businessLocationId,
+                'body_format'          => $this->detectBodyFormat($rawBody),
+                'body_size'            => strlen($rawBody),
+                'body_preview'         => $bodyPreview,
+                'request_headers'      => $this->extractRelevantHeaders($request),
             ], fn ($v) => $v !== null && $v !== false && $v !== '');
 
             LicencaLog::create([
@@ -186,6 +195,40 @@ class LogDelphiAccess
         if (str_contains($path, 'processa-dados-cliente')) return 'g1';
         if (str_contains($path, 'salvar-equipamento'))     return 'g2';
         if (str_contains($path, 'salvar-cliente'))         return 'g1';
+        if (str_contains($path, 'oimpresso/registrar'))    return 'g3';
         return null;
+    }
+
+    /**
+     * Classifica o formato do body — util pra filtrar logs por como o
+     * Delphi esta mandando.
+     *   - 'array_tabelas'  : [{NOME_TABELA:'EMPRESA',...},{NOME_TABELA:'LICENCIAMENTO',...}]
+     *   - 'json_flat'      : {host, ip, serial_hd, ...}
+     *   - 'pipe'           : SERIAL|HOST|VERSAO|IP|CNPJ|RAZAO|...
+     *   - 'empty'          : body vazio
+     *   - 'unknown'        : nao identificado
+     */
+    private function detectBodyFormat(string $raw): string
+    {
+        $raw = trim($raw);
+        if ($raw === '') return 'empty';
+        if (str_starts_with($raw, '[')) return 'array_tabelas';
+        if (str_starts_with($raw, '{')) return 'json_flat';
+        if (str_contains($raw, '|')) return 'pipe';
+        return 'unknown';
+    }
+
+    /**
+     * Pega so headers relevantes pro troubleshooting (evita logar
+     * Authorization completo ou cookies).
+     */
+    private function extractRelevantHeaders(Request $request): array
+    {
+        return array_filter([
+            'content_type' => $request->header('Content-Type'),
+            'x_api_key'    => $request->header('X-API-Key'),
+            'x_oi_hd'      => $request->header('X-OI-HD'),
+            'has_bearer'   => $request->bearerToken() ? true : null,
+        ], fn ($v) => $v !== null);
     }
 }
