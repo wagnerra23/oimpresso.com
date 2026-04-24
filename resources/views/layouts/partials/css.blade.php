@@ -72,8 +72,7 @@
 	  transform: rotate(315deg);
 	}
 </style>
-<link rel="stylesheet" href="{{ asset('css/app.all.css?v='.$asset_v) }}">
-<link rel="stylesheet" href="{{ asset('css/1E202D.css?v='.$asset_v) }}">
+{{-- css/app.all.css e css/1E202D.css removidos — arquivos nao existem (404) e o 1E202D era tema escuro que quebrava inputs/pagination. Conforme git 3.7-com-nfe. --}}
 @if(!empty($__system_settings['additional_css']))
     {!! $__system_settings['additional_css'] !!}
 @endif
