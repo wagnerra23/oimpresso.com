@@ -29,10 +29,16 @@ class OfficeimpressoServiceProvider extends ServiceProvider
             ]);
         }
 
-        // Middleware registrado como alias 'log.desktop' pra uso nas rotas.
+        // Middlewares de log:
+        // 'log.desktop' — API moderna /api/officeimpresso/* (flat `hd`)
+        // 'log.delphi'  — API legada /connector/api/* (extrai HD de NOME_TABELA=LICENCIAMENTO)
         $this->app['router']->aliasMiddleware(
             'log.desktop',
             \Modules\Officeimpresso\Http\Middleware\LogDesktopAccess::class
+        );
+        $this->app['router']->aliasMiddleware(
+            'log.delphi',
+            \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess::class
         );
     }
 

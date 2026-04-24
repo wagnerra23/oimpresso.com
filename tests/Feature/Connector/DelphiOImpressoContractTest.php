@@ -90,3 +90,58 @@ it('BusinessController::saveBusiness valida CNPJCPF obrigatorio', function () {
     expect($source)->toContain("'CNPJCPF'");
     expect($source)->toContain("'RAZAOSOCIAL'");
 });
+
+it('LogDelphiAccess extrai hd do body g1 (NOME_TABELA=LICENCIAMENTO)', function () {
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $method = $ref->getMethod('extractHd');
+    $method->setAccessible(true);
+
+    $payload = [
+        ['NOME_TABELA' => 'EMPRESA', 'CNPJCPF' => '12.345.678/0001-99'],
+        ['NOME_TABELA' => 'LICENCIAMENTO', 'HD' => 'F0A24779', 'DESCRICAO' => 'BOOK-GV80BF5507'],
+    ];
+    $request = \Illuminate\Http\Request::create('/connector/api/processa-dados-cliente', 'POST', [], [], [], [], json_encode($payload));
+    $request->headers->set('Content-Type', 'application/json');
+
+    $hd = $method->invoke($mw, $request);
+    expect($hd)->toBe('F0A24779');
+});
+
+it('LogDelphiAccess extrai hd do body g2 (salvar-equipamento flat)', function () {
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $method = $ref->getMethod('extractHd');
+    $method->setAccessible(true);
+
+    $payload = ['HD' => 'C4DC39FC', 'DESCRICAO' => 'ELIANA'];
+    $request = \Illuminate\Http\Request::create('/connector/api/salvar-equipamento/1', 'POST', [], [], [], [], json_encode($payload));
+    $request->headers->set('Content-Type', 'application/json');
+
+    $hd = $method->invoke($mw, $request);
+    expect($hd)->toBe('C4DC39FC');
+});
+
+it('LogDelphiAccess extrai hd via header X-OI-HD (fallback)', function () {
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $method = $ref->getMethod('extractHd');
+    $method->setAccessible(true);
+
+    $request = \Illuminate\Http\Request::create('/any', 'POST');
+    $request->headers->set('X-OI-HD', 'HEADERHD123');
+
+    expect($method->invoke($mw, $request))->toBe('HEADERHD123');
+});
+
+it('LogDelphiAccess retorna null sem hd (nao gera log)', function () {
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $method = $ref->getMethod('extractHd');
+    $method->setAccessible(true);
+
+    $request = \Illuminate\Http\Request::create('/any', 'POST', [], [], [], [], '{}');
+    $request->headers->set('Content-Type', 'application/json');
+
+    expect($method->invoke($mw, $request))->toBeNull();
+});

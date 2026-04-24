@@ -7,15 +7,19 @@ Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connec
     // Fluxo primario: Delphi manda JSON com EMPRESA + LICENCIAMENTO;
     // backend cria/atualiza Business + Licenca_Computador; responde
     // 'S;Cliente e equipamento liberados' ou 'N;<motivo>' (string simples).
-    Route::post('processa-dados-cliente', [
-        \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'ProcessaDadosCliente'
-    ])->name('delphi.processa-dados-cliente');
-    Route::post('salvar-cliente', [
-        \Modules\Connector\Http\Controllers\Api\BusinessController::class, 'saveBusiness'
-    ])->name('delphi.salvar-cliente');
-    Route::post('salvar-equipamento/{business_id}', [
-        \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamento'
-    ])->name('delphi.salvar-equipamento');
+    // log.delphi middleware extrai `HD` do body e grava licenca_log
+    // com source=delphi_middleware.
+    Route::middleware('log.delphi')->group(function () {
+        Route::post('processa-dados-cliente', [
+            \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'ProcessaDadosCliente'
+        ])->name('delphi.processa-dados-cliente');
+        Route::post('salvar-cliente', [
+            \Modules\Connector\Http\Controllers\Api\BusinessController::class, 'saveBusiness'
+        ])->name('delphi.salvar-cliente');
+        Route::post('salvar-equipamento/{business_id}', [
+            \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamento'
+        ])->name('delphi.salvar-equipamento');
+    });
     // === fim endpoints Delphi ===
 
     Route::resource('business-location', Modules\Connector\Http\Controllers\Api\BusinessLocationController::class)->only('index', 'show');
