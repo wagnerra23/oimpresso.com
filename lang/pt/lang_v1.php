@@ -328,7 +328,7 @@ return [
     'previous_image_will_be_replaced' => 'A imagem previamente carregada será substituída',
     'all_category' => 'todas as categorias',
     'all_brands' => 'Todas as marcas',
-    'backup' => 'Suporte',
+    'backup' => 'Backup',
     'download_complete_backup' => 'Fazer o backup completo',
     'backup_doesnt_exist' => 'O backup não existe',
     'lot_report' => 'Relatório em lote',
