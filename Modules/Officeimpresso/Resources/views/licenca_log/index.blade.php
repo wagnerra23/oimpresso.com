@@ -137,6 +137,7 @@
                     <tr>
                         <th>Empresa</th>
                         <th>Máquina</th>
+                        <th>HD</th>
                         <th>IP</th>
                         <th>Login</th>
                         <th>Estado no Último Login</th>
@@ -159,12 +160,17 @@
                             <td>
                                 @if($m->guessed_machine)
                                     <strong class="text-mono">{{ $m->guessed_machine->user_win ?: '(sem hostname)' }}</strong>
-                                    <br><small class="text-muted text-mono">HD {{ $m->hd }}</small>
                                 @elseif($m->hd)
-                                    <em class="text-warning"><i class="fa fa-exclamation-triangle"></i> HD não cadastrado</em>
-                                    <br><small class="text-muted text-mono">HD {{ $m->hd }}</small>
+                                    <em class="text-warning" title="HD no log nao bate com nenhum computador cadastrado"><i class="fa fa-exclamation-triangle"></i> não cadastrado</em>
                                 @else
-                                    <em class="text-muted">sem HD no log</em>
+                                    <em class="text-muted">—</em>
+                                @endif
+                            </td>
+                            <td class="text-mono">
+                                @if($m->hd)
+                                    {{ $m->hd }}
+                                @else
+                                    <span class="text-muted">—</span>
                                 @endif
                             </td>
                             <td class="text-mono">{{ $m->ip ?: '—' }}</td>
@@ -219,18 +225,18 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 30px; color: #9ca3af;">
+                            <td colspan="8" style="text-align: center; padding: 30px; color: #9ca3af;">
                                 @if($filter_q ?? null)
-                                    Nenhuma máquina encontrada com <strong>"{{ $filter_q }}"</strong> nas últimas 24h.
+                                    Nenhuma máquina encontrada com <strong>"{{ $filter_q }}"</strong> no período.
                                 @else
                                     <div style="max-width: 520px; margin: 0 auto; text-align: left;">
                                         <p style="margin: 0 0 10px; color: #374151;">
-                                            <strong>Nenhum cliente Delphi identificado nas últimas 24h.</strong>
+                                            <strong>Nenhum cliente Delphi identificado no período.</strong>
                                         </p>
-                                        <p style="margin: 0 0 8px; font-size: 12px;">
-                                            Esta lista mostra máquinas que chamaram
+                                        <p style="margin: 0; font-size: 12px;">
+                                            Esta tela é exclusiva de
                                             <code class="text-mono">/connector/api/processa-dados-cliente</code>
-                                            (ou <code class="text-mono">salvar-equipamento</code>) — onde CNPJ + HD chegam no body.
+                                            — único endpoint onde CNPJ + HD chegam no body do request.
                                         </p>
                                     </div>
                                 @endif
