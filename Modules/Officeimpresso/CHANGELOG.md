@@ -1,5 +1,63 @@
 # Officeimpresso — Changelog
 
+## Roadmap / Futuro
+
+### [vX.Y] — Delphi envia `hd` no /oauth/token (identificação de máquina)
+
+**Problema:** `licenca_log` não consegue resolver `licenca_id` corretamente porque `/oauth/token` não carrega identificador único de máquina. Wagner apontou que **`hd` (serial do disco) é a chave única** — cada `licenca_computador` tem um `hd` distinto.
+
+**Solução:**
+- Delphi inclui `"hd": "<serial>"` no body do POST `/oauth/token` (extra param, Passport ignora)
+- OU envia via header `X-OI-HD: <serial>`
+- Listener `LogPassportAccessToken` **já lê** `$request->input('hd')` / `header('X-OI-HD')` — quando Delphi passar a enviar, match automático acontece. Match exato: `licenca_computador.business_id = X AND hd = Y`.
+- Metadata guarda `hd` recebido pra debug mesmo quando match falha.
+
+**Impacto no Delphi:**
+```pascal
+JsonEnvio.AddPair('grant_type', 'password');
+JsonEnvio.AddPair('client_id', '39');
+JsonEnvio.AddPair('client_secret', '...');
+JsonEnvio.AddPair('username', AUsuario);
+JsonEnvio.AddPair('password', ASenha);
+JsonEnvio.AddPair('hd', SerialDisco);  // <-- NOVO (chave de hardware)
+```
+
+**Alternativa intermediária:** `POST /api/officeimpresso/audit` depois do login com `{"hd":"..."}` — log aparece como `desktop_audit`, não `login_success`, mas identifica a máquina. Já funciona hoje sem mudar `/oauth/token`.
+
+### [vX.Y] — Grupo econômico (matriz + filiais)
+
+**Problema observado:** quando o cliente abre o Delphi da filial, o sistema não encontra o CNPJ principal (da matriz) e se perde — a filial é um Business separado em UltimatePOS, mas na prática compartilha licença/configuração com a matriz.
+
+**Hipótese de solução:**
+- Nova coluna `business.matriz_id` (self-FK) — se preenchido, aponta pro Business da matriz
+- Ao autenticar desktop, resolver `effective_business_id = matriz_id ?: id`
+- Consolidar `versao_obrigatoria`, `caminho_banco_servidor`, `officeimpresso_limitemaquinas`, `officeimpresso_bloqueado` na matriz; filiais herdam
+- UI `/officeimpresso/businessall` com agrupamento visual (matriz + filiais recolhíveis)
+- `LicencaLog` grava `business_id` da filial mas indexa também pela matriz pra queries agregadas
+
+**Impacto:** mudança de schema (`ALTER TABLE business ADD matriz_id INT NULLABLE`). Retrocompat: `matriz_id=NULL` = comportamento atual.
+
+**Priority:** alto — cliente reporta perda ao abrir filial.
+
+---
+
+## [1.3.0] — 2026-04-24 — Event listener + middleware no lugar de triggers MySQL
+
+### Mudado
+- **Triggers MySQL → Event listener + middleware** (ADR 0018 update):
+  - `LogPassportAccessToken` listener escuta `AccessTokenCreated` do Passport com contexto completo (IP, user-agent, user, client, endpoint)
+  - `LogDesktopAccess` middleware aplicado em `/api/officeimpresso/*` grava cada request com `method`, `http_status`, `duration_ms`, `endpoint`
+  - Triggers `licenca_log_after_oauth_*_insert` dropados via migration `2026_04_24_000000`
+  - Motivo: triggers gravavam dados rasos (só user+token, sem IP nem endpoint). API-based tem controle total e é mais fácil de evoluir.
+
+### Corrigido
+- **Login duplicado** (2 rows por login): `Event::listen()` estava sendo registrado 2x pelo nwidart/modules em `boot()`. Guard com `static $listenerRegistered` + dedup no listener (token_hint + user + 2s window).
+- **Rows sem business/máquina**: listener agora faz lookup de `users.business_id` pelo `user_id` e best-effort match de `licenca_computador` por business + última máquina ativa.
+
+### Adicionado
+- Colunas **Empresa** (nome + link pra computadores) e **Máquina** (hostname + IP interno + link pra filtrar log) na UI de `/officeimpresso/licenca_log`.
+- Todo log write em try/catch — falha de log nunca quebra fluxo do Delphi.
+
 ## [1.2.0] — 2026-04-23 — UI refinada + business_id filter + Officeimpresso1 dedup
 
 ### Corrigido
