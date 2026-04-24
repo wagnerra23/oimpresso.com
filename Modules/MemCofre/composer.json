@@ -1,0 +1,23 @@
+{
+    "name": "nwidart/memcofre",
+    "description": "MemCofre — documentação viva alimentada por evidências",
+    "authors": [
+        {
+            "name": "Office Impresso",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\MemCofre\\Providers\\MemCofreServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\MemCofre\\": ""
+        }
+    }
+}

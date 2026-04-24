@@ -7,9 +7,9 @@
 
 ## Contexto
 
-As primitivas `shadcn/ui` (Button, Card, Badge, Input, etc.) cobrem o nível UI mais baixo — são genéricas e acessíveis. Mas cada uma das 19 pages do módulo Ponto (e 6 do DocVault, 12 do Modules, etc.) reimplementa do zero padrões recorrentes:
+As primitivas `shadcn/ui` (Button, Card, Badge, Input, etc.) cobrem o nível UI mais baixo — são genéricas e acessíveis. Mas cada uma das 19 pages do módulo Ponto (e 6 do MemCofre, 12 do Modules, etc.) reimplementa do zero padrões recorrentes:
 
-- KPI card (Dashboard, Espelho, BancoHoras, DocVault dashboard)
+- KPI card (Dashboard, Espelho, BancoHoras, MemCofre dashboard)
 - Cabeçalho de tela (h1 + description + action)
 - Container de filtros com chips ativos
 - Badge de status por domínio (intercorrência, pagamento, importação)

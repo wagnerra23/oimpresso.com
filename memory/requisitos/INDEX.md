@@ -61,7 +61,7 @@ Clique para ver requisitos funcionais.
 2. **Fonte única da verdade funcional** — quando o código muda, atualizar o requisito.
 3. **Regerar** — `php artisan module:requirements` gera arquivos faltantes
    sem sobrescrever edições manuais. Use `--force` com cuidado.
-4. **Módulo DocVault** (`/docs`) consome esses arquivos e linka com evidências
+4. **Módulo MemCofre** (`/docs`) consome esses arquivos e linka com evidências
    (screenshots de bug, chat logs, erros reportados).
 
 ---

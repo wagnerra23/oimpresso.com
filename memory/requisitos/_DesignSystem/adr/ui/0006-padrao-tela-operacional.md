@@ -10,7 +10,7 @@
 
 Com a camada de componentes shared em `Components/shared/` (ADR 0005), emergiu um padrão claro pras telas CRUD/operacionais (aprovações, intercorrências, banco de horas, espelho, colaboradores, escalas, etc.). Formalizamos esse padrão pra:
 
-1. Garantir consistência visual cross-módulo (Ponto, DocVault, Modules, Sells, etc.)
+1. Garantir consistência visual cross-módulo (Ponto, MemCofre, Modules, Sells, etc.)
 2. Reduzir tempo de criação de tela nova (copy template + preencher)
 3. Facilitar auditoria (C16 futura no ModuleAuditor: "segue template oficial?")
 
@@ -71,7 +71,7 @@ Component.layout = (page) => <AppShell breadcrumb={[...]}>{page}</AppShell>
 
 ## Regras
 
-- Container: `max-w-7xl p-6 space-y-4` no desktop (consistente com DocVault).
+- Container: `max-w-7xl p-6 space-y-4` no desktop (consistente com MemCofre).
 - **Sempre** `<PageHeader>` no topo — não escrever `<h1>` cru.
 - **Sempre** `<EmptyState>` quando `data.length === 0` — não escrever div custom.
 - **Sempre** `<StatusBadge kind=... value=...>` — não importar `Badge` cru com variant calculado em runtime.
@@ -84,7 +84,7 @@ Component.layout = (page) => <AppShell breadcrumb={[...]}>{page}</AppShell>
 **Positivas:**
 - Tela nova vira copy-paste do template `_Showcase/Components.tsx` + preencher dados.
 - Auditoria fica simples: checar se import de `@/Components/shared/*` está presente.
-- Visual consistente entre módulos — dev que conhece Ponto aprende DocVault/Sells em minutos.
+- Visual consistente entre módulos — dev que conhece Ponto aprende MemCofre/Sells em minutos.
 - Qualquer melhoria no shared (ex: dark mode fix, acessibilidade) aparece em TODAS as telas automaticamente.
 
 **Negativas:**
@@ -97,8 +97,8 @@ Component.layout = (page) => <AppShell breadcrumb={[...]}>{page}</AppShell>
 |---|---|
 | `Ponto/Espelho/Show` | Documento legal com gráfico custom + print A4 (ADR PontoWr2 UI-0001) |
 | `Ponto/Dashboard/Index` | Dashboard multi-painel (mistura KPIs + atividade recente + próximos) — usa PageHeader + KpiGrid mas não Table |
-| `DocVault/Chat` | Interface conversacional, não listagem |
-| `DocVault/Memoria` | Árvore de arquivos navegável, não listagem tabular |
+| `MemCofre/Chat` | Interface conversacional, não listagem |
+| `MemCofre/Memoria` | Árvore de arquivos navegável, não listagem tabular |
 | Qualquer `Create.tsx`/`Edit.tsx` | Formulário, não listagem — usa padrão separado (ADR futura) |
 
 ## Validação
@@ -114,8 +114,8 @@ Telas que devem seguir (19 do Ponto + análogas em outros módulos):
 - `Ponto/Escalas/Index` ⏳ fase 2
 - `Ponto/Importacoes/Index` ⏳ fase 2
 - `Ponto/Relatorios/Index` ⏳ fase 2 (adaptação — não tem dados listados)
-- `DocVault/Dashboard` ⏳ (já próximo do template, revisar)
-- `DocVault/Inbox` ⏳ (já próximo do template, revisar)
+- `MemCofre/Dashboard` ⏳ (já próximo do template, revisar)
+- `MemCofre/Inbox` ⏳ (já próximo do template, revisar)
 
 ## Como consultar
 

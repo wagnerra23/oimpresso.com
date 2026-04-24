@@ -33,7 +33,7 @@ class Kernel extends ConsoleKernel
 
         }
 
-        // DocVault — sincroniza memória Claude pra dentro do repo todo dia 23:00
+        // MemCofre — sincroniza memória Claude pra dentro do repo todo dia 23:00
         $schedule->command('docvault:sync-memories')
             ->dailyAt('23:00')
             ->withoutOverlapping()

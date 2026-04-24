@@ -22,7 +22,7 @@ E nunca copia markup de uma tela pra outra
 
 **Por quê**: consistência visual + acessibilidade embutida + manutenção centralizada.
 
-**Testado em:** `Modules/DocVault/Tests/Unit/DesignSystemAuditTest::test_no_raw_buttons` (futuro)
+**Testado em:** `Modules/MemCofre/Tests/Unit/DesignSystemAuditTest::test_no_raw_buttons` (futuro)
 
 ### R-DS-002 · Cores sempre via tokens semânticos
 
