@@ -111,4 +111,93 @@
     .oi-kpi-row { display: flex; flex-wrap: wrap; margin-right: -7px; margin-left: -7px; }
     .oi-kpi-row > [class*="col-"] { padding-left: 7px; padding-right: 7px; display: flex; margin-bottom: 14px; }
     .oi-kpi-row > [class*="col-"] > .oi-kpi { flex: 1 1 auto; min-height: 76px; }
+
+    /* ======== DATATABLES OVERRIDES ======== */
+    /* Paginacao — fundo branco, texto cinza escuro, hover azul */
+    .oi-page .dataTables_wrapper .paginate_button,
+    .oi-page .dataTables_wrapper .paginate_button.disabled,
+    .oi-page .dataTables_wrapper .paginate_button.previous,
+    .oi-page .dataTables_wrapper .paginate_button.next,
+    .oi-page .dataTables_wrapper .paginate_button.first,
+    .oi-page .dataTables_wrapper .paginate_button.last {
+        background: #fff !important;
+        background-image: none !important;
+        color: #374151 !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 4px !important;
+        padding: 5px 10px !important;
+        margin: 0 2px !important;
+        box-shadow: none !important;
+    }
+    .oi-page .dataTables_wrapper .paginate_button:hover {
+        background: #eff6ff !important;
+        color: #1d4ed8 !important;
+        border-color: #93c5fd !important;
+    }
+    .oi-page .dataTables_wrapper .paginate_button.current,
+    .oi-page .dataTables_wrapper .paginate_button.current:hover {
+        background: #3b82f6 !important;
+        color: #fff !important;
+        border-color: #3b82f6 !important;
+    }
+    .oi-page .dataTables_wrapper .paginate_button.disabled,
+    .oi-page .dataTables_wrapper .paginate_button.disabled:hover {
+        color: #d1d5db !important;
+        cursor: not-allowed;
+    }
+
+    /* Info + length text */
+    .oi-page .dataTables_info,
+    .oi-page .dataTables_length,
+    .oi-page .dataTables_length label,
+    .oi-page .dataTables_filter,
+    .oi-page .dataTables_filter label { color: #374151 !important; }
+
+    /* Search input + length select + ALL inputs/selects dentro de .oi-page (broader) */
+    .oi-page .dataTables_filter input[type="search"],
+    .oi-page .dataTables_length select,
+    .oi-page input,
+    .oi-page select,
+    .oi-page textarea {
+        background: #fff !important;
+        background-color: #fff !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 6px !important;
+        padding: 6px 10px !important;
+        box-shadow: none !important;
+        appearance: auto !important;
+    }
+    .oi-page input::placeholder { color: #9ca3af !important; }
+    .oi-page input[type="date"]::-webkit-calendar-picker-indicator { filter: none !important; cursor: pointer; }
+    .oi-page input:focus,
+    .oi-page select:focus,
+    .oi-page textarea:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
+        outline: none;
+    }
+
+    /* Export buttons (dt-buttons) */
+    .oi-page .dt-buttons .buttons-csv,
+    .oi-page .dt-buttons .buttons-excel,
+    .oi-page .dt-buttons .buttons-print,
+    .oi-page .dt-buttons .buttons-colvis,
+    .oi-page .dt-buttons .buttons-pdf {
+        background: #fff !important;
+        color: #374151 !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 4px !important;
+        padding: 4px 10px !important;
+        font-size: 12px !important;
+        margin-right: 4px !important;
+    }
+    .oi-page .dt-buttons .buttons-csv:hover,
+    .oi-page .dt-buttons .buttons-excel:hover,
+    .oi-page .dt-buttons .buttons-print:hover,
+    .oi-page .dt-buttons .buttons-colvis:hover,
+    .oi-page .dt-buttons .buttons-pdf:hover {
+        background: #f9fafb !important;
+        color: #111827 !important;
+    }
 </style>
