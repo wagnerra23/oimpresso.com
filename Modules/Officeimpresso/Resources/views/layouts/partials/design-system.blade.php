@@ -169,6 +169,13 @@
         appearance: auto !important;
     }
     .oi-page input::placeholder { color: #9ca3af !important; }
+    .oi-page input[type="date"],
+    .oi-page input[type="datetime-local"],
+    .oi-page input[type="time"],
+    .oi-page input[type="month"],
+    .oi-page input[type="week"] {
+        color-scheme: light !important; /* força Windows/Chrome a usar tema claro no date picker */
+    }
     .oi-page input[type="date"]::-webkit-calendar-picker-indicator { filter: none !important; cursor: pointer; }
     .oi-page input:focus,
     .oi-page select:focus,
