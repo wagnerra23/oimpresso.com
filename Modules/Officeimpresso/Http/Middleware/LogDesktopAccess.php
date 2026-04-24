@@ -25,14 +25,17 @@ class LogDesktopAccess
         $durationMs = (int) round((microtime(true) - $start) * 1000);
 
         try {
+            // REGRA: so loga api_call quando Delphi enviar `hd`. Sem identificar
+            // a maquina, o log fica inutil — melhor pular.
+            $hd = $request->input('hd') ?: $request->header('X-OI-HD');
+            if (! $hd) return $response;
+
             $user = $request->user();
             $token = $user?->token();
             $businessId = $user?->business_id;
 
-            // Resolver licenca via hd (se Delphi enviar) — futuro
             $licencaId = null;
-            $hd = $request->input('hd') ?: $request->header('X-OI-HD');
-            if ($hd && $businessId) {
+            if ($businessId) {
                 $licencaId = \DB::table('licenca_computador')
                     ->where('business_id', $businessId)
                     ->where('hd', $hd)->value('id');
