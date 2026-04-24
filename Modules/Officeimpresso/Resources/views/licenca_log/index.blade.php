@@ -108,11 +108,11 @@
         </div>
     @endif
 
-    {{-- GRID — licenca_computador com enriquecimento de ultimo acesso --}}
+    {{-- GRID — timeline de maquinas (1 linha por maquina cadastrada, ordem por ultimo login) --}}
     <div class="oi-card">
         <div class="hdr">
-            <h3><i class="fa fa-desktop"></i> Máquinas <small style="color:#6b7280;">({{ $maquinas->count() }})</small></h3>
-            <small style="color: #6b7280;">Clique na empresa ou no equipamento para filtrar</small>
+            <h3><i class="fa fa-history"></i> Timeline de Máquinas <small style="color:#6b7280;">({{ $maquinas->count() }})</small></h3>
+            <small style="color: #6b7280;">1 linha por máquina · última atividade primeiro · clique em empresa ou máquina para filtrar</small>
         </div>
         <div class="body no-pad">
             <table id="maquinas_table" class="oi-table table">
@@ -121,11 +121,12 @@
                         <th>Empresa</th>
                         <th>Máquina</th>
                         <th>HD</th>
+                        <th>Versão</th>
                         <th>IP</th>
                         <th data-order-type="num">Último Login</th>
                         <th>Estado no Último Login</th>
                         <th>Estado Atual</th>
-                        <th style="width: 220px;" class="no-sort">Ações</th>
+                        <th style="width: 160px;" class="no-sort">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -148,6 +149,14 @@
                                 </a>
                             </td>
                             <td class="text-mono">{{ $m->hd ?: '—' }}</td>
+                            <td class="text-mono">
+                                @if($m->versao_exe || $m->versao_banco)
+                                    @if($m->versao_exe)<span title="Versão do .exe">{{ $m->versao_exe }}</span>@endif
+                                    @if($m->versao_banco)<small class="text-muted" title="Versão do banco">/ {{ $m->versao_banco }}</small>@endif
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
                             <td class="text-mono">{{ $m->last_ip ?: $m->ip_interno ?: '—' }}</td>
                             <td class="text-mono" data-order="{{ $m->effective_ts ? \Carbon\Carbon::parse($m->effective_ts)->getTimestamp() : 0 }}">
                                 @if($m->last_login)
@@ -178,10 +187,6 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('licenca_log.timeline', $m->licenca_id) }}"
-                                   class="oi-btn oi-btn-ghost oi-btn-xs" title="Ver histórico desta máquina">
-                                    <i class="fa fa-history"></i> Timeline
-                                </a>
                                 @if($m->business_blocked && $m->business_id)
                                     <a href="{{ route('business.bloqueado', $m->business_id) }}"
                                        class="oi-btn oi-btn-success oi-btn-xs"
@@ -208,7 +213,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" style="text-align: center; padding: 30px; color: #9ca3af;">
+                            <td colspan="9" style="text-align: center; padding: 30px; color: #9ca3af;">
                                 @if($hasAnyFilter)
                                     Nenhuma máquina encontrada com os filtros aplicados.
                                 @else
@@ -240,7 +245,7 @@ $(function () {
     if (! $.fn.DataTable) return;
     $('#maquinas_table').DataTable({
         pageLength: 25,
-        order: [[4, 'desc']], // Último Login desc
+        order: [[5, 'desc']], // Último Login desc
         columnDefs: [{ targets: 'no-sort', orderable: false }],
         language: {
             processing: 'Carregando…',
