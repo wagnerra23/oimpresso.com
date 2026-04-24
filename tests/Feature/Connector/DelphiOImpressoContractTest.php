@@ -300,6 +300,38 @@ it('LogDelphiAccess resolve CNPJ do body flat', function () {
     expect($lid)->toBeNull();
 });
 
+it('ProcessaDadosCliente aceita body flat com serial_hd (Services.LicencaThread.pas)', function () {
+    // Guarda do fallback: quando Delphi envia apenas {host, ip, serial_hd,
+    // sistema, versao} (sem CNPJ, formato TThreadLicenca), o controller
+    // resolve business via lookup de HD em licenca_computador em vez de
+    // devolver 400.
+    $controller = new \Modules\Connector\Http\Controllers\Api\LicencaComputadorController();
+    $source = file_get_contents((new ReflectionClass($controller))->getFileName());
+    expect($source)->toContain('processarApenasHd');
+    expect($source)->toContain("'serial_hd'");
+    expect($source)->toContain("Maquina nao cadastrada");
+});
+
+it('ProcessaDadosCliente com HD nao cadastrado retorna N;Maquina nao cadastrada', function () {
+    $user = \App\User::first();
+    if (! $user) { expect(true)->toBeTrue(); return; }
+    $token = $user->createToken('t')->accessToken;
+
+    $r = $this->withHeaders([
+        'Accept' => 'application/json',
+        'Authorization' => 'Bearer ' . $token,
+    ])->postJson('/connector/api/processa-dados-cliente', [
+        'host' => 'TEST-HOST',
+        'ip' => '127.0.0.1',
+        'serial_hd' => 'HD-INEXISTENTE-' . uniqid(),
+        'sistema' => 'Teste',
+        'versao' => '1.0',
+    ]);
+
+    expect($r->getStatusCode())->toBe(200);
+    expect($r->getContent())->toStartWith('N;');
+});
+
 it('resposta do registrar segue contrato WR Comercial (autorizado S/N)', function () {
     // Guarda a shape: Services.OImpresso.Registro.pas faz
     //   Result.Autorizado := Resp.GetValue<string>('autorizado', 'N') = 'S';
