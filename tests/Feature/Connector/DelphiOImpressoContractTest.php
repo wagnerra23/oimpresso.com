@@ -220,3 +220,97 @@ it('LicencaLogController aceita query param ?hd=', function () {
     expect($source)->toContain("\$request->query('hd'");
     expect($source)->toContain("lc.hd");
 });
+
+// ==========================================================
+// WR Comercial: /connector/api/oimpresso/registrar
+// ==========================================================
+
+it('rota oimpresso/registrar existe e exige auth', function () {
+    $r = $this->postJson('/connector/api/oimpresso/registrar', ['cnpj' => 'X', 'serial_hd' => 'Y']);
+    expect($r->getStatusCode())->toBe(401); // Sem Bearer = unauthenticated
+});
+
+it('OImpressoRegistroController aceita JSON flat com serial_hd e cnpj', function () {
+    $controller = new \Modules\Connector\Http\Controllers\Api\OImpressoRegistroController();
+    $ref = new ReflectionClass($controller);
+    $method = $ref->getMethod('extractPayload');
+    $method->setAccessible(true);
+
+    $body = [
+        'cnpj' => '12.345.678/0001-99',
+        'razao_social' => 'EMPRESA TESTE LTDA',
+        'hostname' => 'BOOK-TEST',
+        'serial_hd' => 'F0A24779',
+        'versao_exe' => '1.2.3',
+    ];
+    $request = \Illuminate\Http\Request::create('/connector/api/oimpresso/registrar', 'POST', [], [], [], [], json_encode($body));
+    $request->headers->set('Content-Type', 'application/json');
+
+    $parsed = $method->invoke($controller, $request);
+    expect($parsed['serial_hd'])->toBe('F0A24779');
+    expect($parsed['cnpj'])->toBe('12.345.678/0001-99');
+    expect($parsed['versao_exe'])->toBe('1.2.3');
+});
+
+it('OImpressoRegistroController parseia string pipe-separated legado', function () {
+    $controller = new \Modules\Connector\Http\Controllers\Api\OImpressoRegistroController();
+    $ref = new ReflectionClass($controller);
+    $method = $ref->getMethod('extractPayload');
+    $method->setAccessible(true);
+
+    // Formato do MontarString: SERIAL|HOST|VERSAO|IP|CNPJ|RAZAO|PASTA|SO|PROC|MEM|VER_BANCO|CAM_BANCO|SISTEMA|PAF
+    $pipe = 'F0A24779|BOOK-TEST|1.2.3|192.168.0.10|12.345.678/0001-99|EMPRESA LTDA|C:\\app|Win11|i7|16GB|2024.1|C:\\db|WR|N';
+    $request = \Illuminate\Http\Request::create('/connector/api/oimpresso/registrar', 'POST', [], [], [], [], $pipe);
+    $request->headers->set('Content-Type', 'text/plain');
+
+    $parsed = $method->invoke($controller, $request);
+    expect($parsed['serial_hd'])->toBe('F0A24779');
+    expect($parsed['cnpj'])->toBe('12.345.678/0001-99');
+    expect($parsed['hostname'])->toBe('BOOK-TEST');
+    expect($parsed['versao_exe'])->toBe('1.2.3');
+});
+
+it('LogDelphiAccess extrai serial_hd do body flat (WR Comercial)', function () {
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $method = $ref->getMethod('extractHd');
+    $method->setAccessible(true);
+
+    $body = ['cnpj' => 'X', 'serial_hd' => 'WRHDXXX'];
+    $request = \Illuminate\Http\Request::create('/connector/api/oimpresso/registrar', 'POST', [], [], [], [], json_encode($body));
+    $request->headers->set('Content-Type', 'application/json');
+
+    expect($method->invoke($mw, $request))->toBe('WRHDXXX');
+});
+
+it('LogDelphiAccess resolve CNPJ do body flat', function () {
+    $mw = new \Modules\Officeimpresso\Http\Middleware\LogDelphiAccess();
+    $ref = new ReflectionClass($mw);
+    $method = $ref->getMethod('resolveByCnpj');
+    $method->setAccessible(true);
+
+    // CNPJ inexistente — prova que o middleware LE o campo cnpj flat e nao
+    // cai so no formato NOME_TABELA=EMPRESA.
+    $body = ['cnpj' => 'CNPJ-INEXISTENTE-' . uniqid(), 'serial_hd' => 'X'];
+    $request = \Illuminate\Http\Request::create('/connector/api/oimpresso/registrar', 'POST', [], [], [], [], json_encode($body));
+    $request->headers->set('Content-Type', 'application/json');
+
+    [$bid, $lid] = $method->invoke($mw, $request);
+    expect($bid)->toBeNull();
+    expect($lid)->toBeNull();
+});
+
+it('resposta do registrar segue contrato WR Comercial (autorizado S/N)', function () {
+    // Guarda a shape: Services.OImpresso.Registro.pas faz
+    //   Result.Autorizado := Resp.GetValue<string>('autorizado', 'N') = 'S';
+    // Qualquer mudanca pra bool quebra o Delphi.
+    $source = file_get_contents(
+        (new ReflectionClass(\Modules\Connector\Http\Controllers\Api\OImpressoRegistroController::class))->getFileName()
+    );
+    expect($source)->toContain("'autorizado'");
+    expect($source)->toContain("'S'");
+    expect($source)->toContain("'N'");
+    expect($source)->toContain("'licenca_id'");
+    expect($source)->toContain("'dias_restantes'");
+    expect($source)->toContain("'data_expiracao'");
+});

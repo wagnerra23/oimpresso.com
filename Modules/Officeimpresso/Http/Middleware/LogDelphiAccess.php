@@ -97,6 +97,8 @@ class LogDelphiAccess
      *   - Geração 1 (processa-dados-cliente): JSON array de tabelas,
      *     LICENCIAMENTO tem campo HD
      *   - Geração 2 (salvar-equipamento): JSON flat com HD no root
+     *   - Geração 3 (oimpresso/registrar WR Comercial): JSON flat com serial_hd
+     *     no root OU pipe-separated string
      *   - Header X-OI-HD (generico)
      */
     private function extractHd(Request $request): ?string
@@ -104,6 +106,7 @@ class LogDelphiAccess
         if ($hd = $request->header('X-OI-HD')) return $hd;
         if ($hd = $request->input('HD'))       return $hd;
         if ($hd = $request->input('hd'))       return $hd;
+        if ($hd = $request->input('serial_hd')) return $hd;
 
         // Gerção 1: array de {NOME_TABELA, ...}
         $payload = $request->json()->all();
@@ -114,6 +117,14 @@ class LogDelphiAccess
                 }
             }
         }
+
+        // String pipe-separated legado (WR Comercial): 1o campo eh SERIAL/HD
+        $raw = trim($request->getContent());
+        if ($raw !== '' && ! str_starts_with($raw, '{') && ! str_starts_with($raw, '[') && str_contains($raw, '|')) {
+            $parts = explode('|', $raw);
+            return $parts[0] !== '' ? $parts[0] : null;
+        }
+
         return null;
     }
 
@@ -130,16 +141,33 @@ class LogDelphiAccess
         $bid = $request->route('business_id');
         if ($bid && is_numeric($bid)) return [(int) $bid, null];
 
-        $payload = $request->json()->all();
-        if (! is_array($payload)) return [null, null];
-
         $cnpj = null;
-        foreach ($payload as $row) {
-            if (is_array($row) && isset($row['NOME_TABELA']) && $row['NOME_TABELA'] === 'EMPRESA') {
-                $cnpj = $row['CNPJCPF'] ?? null;
-                break;
+
+        // Formato 1: array com NOME_TABELA=EMPRESA (processa-dados-cliente)
+        $payload = $request->json()->all();
+        if (is_array($payload)) {
+            foreach ($payload as $row) {
+                if (is_array($row) && isset($row['NOME_TABELA']) && $row['NOME_TABELA'] === 'EMPRESA') {
+                    $cnpj = $row['CNPJCPF'] ?? null;
+                    break;
+                }
             }
         }
+
+        // Formato 2: JSON flat com campo cnpj na raiz (oimpresso/registrar WR Comercial)
+        if (! $cnpj) {
+            $cnpj = $request->input('cnpj') ?: $request->input('CNPJ') ?: $request->input('CNPJCPF');
+        }
+
+        // Formato 3: string pipe-separated (5o campo é CNPJ em MontarString do Delphi)
+        if (! $cnpj) {
+            $raw = trim($request->getContent());
+            if ($raw !== '' && ! str_starts_with($raw, '{') && ! str_starts_with($raw, '[') && str_contains($raw, '|')) {
+                $parts = explode('|', $raw);
+                $cnpj = $parts[4] ?? null;
+            }
+        }
+
         if (! $cnpj) return [null, null];
 
         $loc = \DB::table('business_locations')
