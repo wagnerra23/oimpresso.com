@@ -43,9 +43,9 @@
                         </li>
                     @endcan
 
-                    <li @if(request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'docs') class="active" @endif>
-                        <a href="{{ url('/officeimpresso/docs') }}">
-                            <i class="fa fas fa-book"></i> @lang('officeimpresso::lang.documentation')
+                    <li @if(request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'licenca_log') class="active" @endif>
+                        <a href="{{ action([\Modules\Officeimpresso\Http\Controllers\LicencaLogController::class, 'index']) }}">
+                            <i class="fa fas fa-clipboard-list"></i> Log de Acesso
                         </a>
                     </li>
                 </ul>
