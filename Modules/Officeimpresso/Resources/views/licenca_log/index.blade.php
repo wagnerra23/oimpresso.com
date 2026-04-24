@@ -12,7 +12,16 @@
 <div class="oi-page">
     <div class="oi-page-header">
         <h1>Status de Login por Máquina</h1>
-        <div class="subtitle">Máquinas que logaram nas últimas 24h — status mostra o bloqueio no momento do login</div>
+        <div class="subtitle">
+            @if(($filter_from ?? '') !== '' || ($filter_to ?? '') !== '')
+                Período:
+                <strong>{{ $filter_from ?: '—' }}</strong> até
+                <strong>{{ $filter_to ?: 'agora' }}</strong>
+            @else
+                Máquinas que logaram nas últimas 24h
+            @endif
+            — status mostra o bloqueio no momento do login
+        </div>
     </div>
 
     {{-- KPIs --}}
@@ -59,27 +68,54 @@
         </div>
     </div>
 
-    {{-- BUSCA RÁPIDA — filtra empresa por name/cnpj OU máquina por hd/hostname --}}
+    {{-- FILTROS — empresa/maquina, periodo, estado atual, estado no login --}}
+    @php
+        $hasAnyFilter = ($filter_q ?? '') !== ''
+            || ($filter_from ?? '') !== ''
+            || ($filter_to ?? '') !== ''
+            || ($filter_estado_atual ?? null)
+            || ($filter_estado_login ?? null);
+    @endphp
     <form method="GET" action="{{ route('licenca_log.index') }}" class="oi-filter-bar" style="margin-bottom: 12px;">
         <div class="row">
-            <div class="col-md-8">
-                <label>🔍 Buscar por empresa ou máquina</label>
+            <div class="col-md-4">
+                <label>🔍 Empresa / Máquina</label>
                 <input type="text" name="q" value="{{ $filter_q ?? '' }}" class="form-control"
-                       placeholder="Nome, CNPJ, HD (F0A24779), hostname (BOOK-GV80BF5507)…"
+                       placeholder="Nome, CNPJ, HD, hostname…"
                        autocomplete="off">
             </div>
-            <div class="col-md-4" style="padding-top: 24px;">
-                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Buscar</button>
-                @if($filter_q ?? null)
-                    <a href="{{ route('licenca_log.index') }}" class="btn btn-default"><i class="fa fa-times"></i> Limpar</a>
-                @endif
+            <div class="col-md-2">
+                <label>De</label>
+                <input type="date" name="from" value="{{ $filter_from ?? '' }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>Até</label>
+                <input type="date" name="to" value="{{ $filter_to ?? '' }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>Estado atual</label>
+                <select name="estado_atual" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="ativa"     @if(($filter_estado_atual ?? null) === 'ativa') selected @endif>Ativa</option>
+                    <option value="bloqueada" @if(($filter_estado_atual ?? null) === 'bloqueada') selected @endif>Bloqueada</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label>Estado no login</label>
+                <select name="estado_login" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="liberada"  @if(($filter_estado_login ?? null) === 'liberada') selected @endif>Liberada</option>
+                    <option value="bloqueada" @if(($filter_estado_login ?? null) === 'bloqueada') selected @endif>Bloqueada</option>
+                </select>
             </div>
         </div>
-        @if($filter_q ?? null)
-            <div class="alert alert-info" style="margin: 10px 0 0;">
-                <i class="fa fa-filter"></i> Buscando por <strong>"{{ $filter_q }}"</strong> — mostrando empresas/máquinas que batem.
-            </div>
-        @endif
+        <div style="margin-top: 10px;">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Aplicar</button>
+            @if($hasAnyFilter)
+                <a href="{{ route('licenca_log.index') }}" class="btn btn-default"><i class="fa fa-times"></i> Limpar</a>
+            @endif
+            <small class="text-muted" style="margin-left:10px;">Sem período → últimas 24h.</small>
+        </div>
     </form>
 
     @if($filter_business_id ?? null)

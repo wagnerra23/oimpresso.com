@@ -111,29 +111,43 @@ class LicencaLogController extends Controller
                 ->make(true);
         }
 
-        // KPIs das ultimas 24h — EXCLUSIVO processa-dados-cliente,
-        // unica rotina onde CNPJ+HD vem no body e identificam cliente real.
-        $since = now()->subHours(24);
-        $base = LicencaLog::where('created_at', '>=', $since)
-            ->where('source', 'delphi_middleware')
-            ->where('endpoint', 'like', '%processa-dados-cliente%');
-        if ($business_id !== null) {
-            $base = $base->where('business_id', $business_id);
-        }
-
-        $kpis = [
-            'login_success' => (clone $base)->where('http_status', '<', 400)->count(),
-            'login_error'   => (clone $base)->where('http_status', '>=', 400)->count(),
-            'api_call'      => (clone $base)->count(),
-            'block'         => (clone $base)->where('metadata', 'like', '%"was_blocked":true%')->count(),
-        ];
-
-        // Dropdown legado (nao mais usado na view, mantido para show() API)
-        $events = [];
-
+        // ==========================================================
+        // Filtros aceitos na tela (todos opcionais):
+        //   q              — empresa/CNPJ/HD/hostname
+        //   from / to      — periodo (YYYY-MM-DD). Default: ultimas 24h
+        //   estado_login   — 'liberada' | 'bloqueada' (snapshot no login)
+        //   estado_atual   — 'ativa' | 'bloqueada' (aplicado pos-aggregate)
+        // ==========================================================
         $filter_licenca_id  = $request->query('licenca_id');
         $filter_business_id = $request->query('business_id');
         $filter_q           = trim((string) $request->query('q', ''));
+        $filter_from        = trim((string) $request->query('from', ''));
+        $filter_to          = trim((string) $request->query('to', ''));
+        $filter_estado_login = $request->query('estado_login');
+        $filter_estado_atual = $request->query('estado_atual');
+
+        // Janela: se nenhum from/to informado, default ultimas 24h.
+        // Se to informado sem hora, considera fim-do-dia (23:59:59).
+        $fromTs = $filter_from !== '' ? \Carbon\Carbon::parse($filter_from)->startOfDay() : now()->subHours(24);
+        $toTs   = $filter_to   !== '' ? \Carbon\Carbon::parse($filter_to)->endOfDay()     : null;
+
+        // Base: source=delphi_middleware + endpoint processa-dados-cliente
+        $base = LicencaLog::where('source', 'delphi_middleware')
+            ->where('endpoint', 'like', '%processa-dados-cliente%')
+            ->where('created_at', '>=', $fromTs);
+        if ($toTs) {
+            $base = $base->where('created_at', '<=', $toTs);
+        }
+        if ($business_id !== null) {
+            $base = $base->where('business_id', $business_id);
+        }
+        if ($filter_estado_login === 'bloqueada') {
+            $base = $base->where('metadata', 'like', '%"was_blocked":true%');
+        } elseif ($filter_estado_login === 'liberada') {
+            $base = $base->where(function ($q) {
+                $q->whereNull('metadata')->orWhere('metadata', 'not like', '%"was_blocked":true%');
+            });
+        }
 
         // ==========================================================
         // Busca por empresa (name/cnpj/razao_social) e maquina (hd/user_win).
@@ -156,17 +170,23 @@ class LicencaLogController extends Controller
                         ->orWhere('ip_interno', 'like', $like);
                 })->pluck('business_id');
             $qBusinessIds = $fromBusiness->merge($fromMaquina)->unique()->values();
+            $base = $base->whereIn('business_id', $qBusinessIds->isEmpty() ? [0] : $qBusinessIds);
         }
 
+        // KPIs refletem os filtros aplicados ao $base (periodo + q + estado_login)
+        $kpis = [
+            'login_success' => (clone $base)->where('http_status', '<', 400)->count(),
+            'login_error'   => (clone $base)->where('http_status', '>=', 400)->count(),
+            'api_call'      => (clone $base)->count(),
+            'block'         => (clone $base)->where('metadata', 'like', '%"was_blocked":true%')->count(),
+        ];
+        $events = [];
+
         // ==========================================================
-        // Agregado EXCLUSIVO /connector/api/processa-dados-cliente.
-        // Unico endpoint onde o Delphi envia CNPJ (EMPRESA) + HD
-        // (LICENCIAMENTO) no body — identidade REAL do cliente.
-        // /oauth/token (master user), salvar-equipamento, salvar-cliente,
-        // audit, etc. NAO entram aqui.
+        // Agregado — 1 linha por (business+licenca+ip) representando o
+        // ULTIMO login no periodo selecionado. Reusa os filtros do $base.
         // ==========================================================
-        $statusQuery = LicencaLog::where('source', 'delphi_middleware')
-            ->where('endpoint', 'like', '%processa-dados-cliente%')
+        $statusQuery = (clone $base)
             ->selectRaw("
                 business_id,
                 licenca_id,
@@ -177,15 +197,8 @@ class LicencaLogController extends Controller
                 SUM(CASE WHEN metadata LIKE '%\"was_blocked\":true%' THEN 1 ELSE 0 END) as blocked_attempts,
                 MAX(metadata) as last_metadata
             ")
-            ->where('created_at', '>=', now()->subHours(24))
             ->groupBy('business_id', 'licenca_id', 'ip')
             ->orderByDesc('last_login');
-        if ($business_id !== null) {
-            $statusQuery->where('business_id', $business_id);
-        }
-        if ($qBusinessIds !== null) {
-            $statusQuery->whereIn('business_id', $qBusinessIds->isEmpty() ? [0] : $qBusinessIds);
-        }
         $maquinas = $statusQuery->get()->map(function ($row) {
             $business = $row->business_id ? \DB::table('business')->where('id', $row->business_id)->first(['name', 'officeimpresso_bloqueado']) : null;
             $meta = is_string($row->last_metadata) ? json_decode($row->last_metadata, true) : [];
@@ -230,7 +243,18 @@ class LicencaLogController extends Controller
             ];
         });
 
-        return view('officeimpresso::licenca_log.index', compact('kpis', 'events', 'filter_licenca_id', 'filter_business_id', 'filter_q', 'maquinas'));
+        // estado_atual: filtragem pos-aggregate porque depende de joins
+        if ($filter_estado_atual === 'bloqueada') {
+            $maquinas = $maquinas->filter(fn ($m) => $m->business_blocked || ($m->guessed_machine && $m->guessed_machine->bloqueado))->values();
+        } elseif ($filter_estado_atual === 'ativa') {
+            $maquinas = $maquinas->filter(fn ($m) => ! $m->business_blocked && ! ($m->guessed_machine && $m->guessed_machine->bloqueado))->values();
+        }
+
+        return view('officeimpresso::licenca_log.index', compact(
+            'kpis', 'events', 'filter_licenca_id', 'filter_business_id', 'filter_q',
+            'filter_from', 'filter_to', 'filter_estado_login', 'filter_estado_atual',
+            'maquinas'
+        ));
     }
 
     public function show($id)
