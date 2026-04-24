@@ -1,0 +1,47 @@
+{
+  "processing": "Processando...",
+  "search": "Pesquisar:",
+  "lengthMenu": "Mostrar _MENU_ registros",
+  "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+  "infoEmpty": "Mostrando 0 a 0 de 0 registros",
+  "infoFiltered": "(filtrado de _MAX_ registros)",
+  "infoPostFix": "",
+  "loadingRecords": "Carregando...",
+  "zeroRecords": "Nenhum registro encontrado",
+  "emptyTable": "Nenhum dado disponível na tabela",
+  "paginate": {
+    "first": "Primeiro",
+    "previous": "Anterior",
+    "next": "Próximo",
+    "last": "Último"
+  },
+  "aria": {
+    "sortAscending": ": ordenar colunas de forma ascendente",
+    "sortDescending": ": ordenar colunas de forma descendente"
+  },
+  "select": {
+    "rows": {
+      "_": "%d linhas selecionadas",
+      "0": "Nenhuma linha selecionada",
+      "1": "1 linha selecionada"
+    }
+  },
+  "buttons": {
+    "copy": "Copiar",
+    "copyTitle": "Copiar para área de transferência",
+    "copyKeys": "Pressione <i>ctrl</i> ou <i>\u2318</i> + <i>C</i> para copiar.",
+    "copySuccess": {
+      "1": "1 linha copiada",
+      "_": "%d linhas copiadas"
+    },
+    "csv": "Exportar para CSV",
+    "excel": "Exportar para Excel",
+    "pdf": "Exportar para PDF",
+    "print": "Imprimir",
+    "colvis": "Visibilidade da coluna",
+    "pageLength": {
+      "_": "Mostrar %d registros",
+      "-1": "Mostrar todos os registros"
+    }
+  }
+}

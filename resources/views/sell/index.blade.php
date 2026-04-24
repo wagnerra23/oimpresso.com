@@ -151,6 +151,10 @@
                 aaSorting: [
                     [1, 'desc']
                 ],
+                language: { url: '{{ asset('locale/datatables/pt-BR.json') }}' },
+                columnDefs: [
+                    { targets: [11, 12, 21, 22, 23], visible: false }
+                ],
                 "ajax": {
                     "url": "/sells",
                     "data": function(d) {
