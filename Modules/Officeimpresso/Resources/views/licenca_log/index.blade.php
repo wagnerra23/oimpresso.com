@@ -107,6 +107,12 @@
             <a href="{{ route('licenca_log.index', array_filter(['q' => $filter_q, 'estado_atual' => $filter_estado_atual])) }}">Remover</a>
         </div>
     @endif
+    @if(($filter_hd ?? '') !== '')
+        <div class="alert alert-info" style="margin-bottom: 12px;">
+            <i class="fa fa-filter"></i> Filtrado por <strong>HD {{ $filter_hd }}</strong> — mostrando todas as empresas onde esse HD tem cadastro.
+            <a href="{{ route('licenca_log.index', array_filter(['q' => $filter_q, 'estado_atual' => $filter_estado_atual])) }}">Remover</a>
+        </div>
+    @endif
 
     {{-- GRID — timeline de maquinas (1 linha por maquina cadastrada, ordem por ultimo login) --}}
     <div class="oi-card">
@@ -119,6 +125,7 @@
                 <thead>
                     <tr>
                         <th>Empresa</th>
+                        <th>Location / CNPJ</th>
                         <th>Máquina</th>
                         <th>HD</th>
                         <th>Versão</th>
@@ -143,12 +150,31 @@
                                 @endif
                             </td>
                             <td>
+                                @if($m->last_location)
+                                    <strong>{{ $m->last_location->name }}</strong>
+                                    @if($m->last_location->cnpj)
+                                        <br><small class="text-muted text-mono">CNPJ {{ $m->last_location->cnpj }}</small>
+                                    @endif
+                                @else
+                                    <em class="text-muted">—</em>
+                                @endif
+                            </td>
+                            <td>
                                 <a href="{{ route('licenca_log.index', array_filter(['licenca_id' => $m->licenca_id, 'q' => $filter_q, 'estado_atual' => $filter_estado_atual])) }}"
                                    class="text-primary" title="Filtrar por este equipamento">
                                     <strong class="text-mono">{{ $m->user_win ?: $m->hostname ?: '(sem hostname)' }}</strong>
                                 </a>
                             </td>
-                            <td class="text-mono">{{ $m->hd ?: '—' }}</td>
+                            <td class="text-mono">
+                                @if($m->hd)
+                                    <a href="{{ route('licenca_log.index', array_filter(['hd' => $m->hd, 'q' => $filter_q, 'estado_atual' => $filter_estado_atual])) }}"
+                                       class="text-primary" title="Ver todas empresas com este HD">
+                                        {{ $m->hd }}
+                                    </a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="text-mono">
                                 @if($m->versao_exe || $m->versao_banco)
                                     @if($m->versao_exe)<span title="Versão do .exe">{{ $m->versao_exe }}</span>@endif
@@ -213,7 +239,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" style="text-align: center; padding: 30px; color: #9ca3af;">
+                            <td colspan="10" style="text-align: center; padding: 30px; color: #9ca3af;">
                                 @if($hasAnyFilter)
                                     Nenhuma máquina encontrada com os filtros aplicados.
                                 @else
@@ -245,7 +271,7 @@ $(function () {
     if (! $.fn.DataTable) return;
     $('#maquinas_table').DataTable({
         pageLength: 25,
-        order: [[5, 'desc']], // Último Login desc
+        order: [[6, 'desc']], // Último Login desc
         columnDefs: [{ targets: 'no-sort', orderable: false }],
         language: {
             processing: 'Carregando…',

@@ -17,6 +17,45 @@
                     </div>
                 </div>
                 <div class="clearfix"></div>
+                {{-- Dados fiscais por location (CNPJ proprio para separar PJ dentro de 1 business) --}}
+                <div class="col-sm-12">
+                    <h5 style="border-bottom:1px solid #eee; padding-bottom:6px; margin:10px 0;">Dados fiscais</h5>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        {!! Form::label('cnpj', 'CNPJ:') !!}
+                        {!! Form::text('cnpj', null, ['class' => 'form-control', 'placeholder' => '00.000.000/0000-00']); !!}
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        {!! Form::label('inscricao_estadual', 'Inscrição Estadual:') !!}
+                        {!! Form::text('inscricao_estadual', null, ['class' => 'form-control']); !!}
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        {!! Form::label('inscricao_municipal', 'Inscrição Municipal:') !!}
+                        {!! Form::text('inscricao_municipal', null, ['class' => 'form-control']); !!}
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        {!! Form::label('razao_social', 'Razão Social:') !!}
+                        {!! Form::text('razao_social', null, ['class' => 'form-control']); !!}
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        {!! Form::label('nome_fantasia', 'Nome Fantasia:') !!}
+                        {!! Form::text('nome_fantasia', null, ['class' => 'form-control']); !!}
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+                <div class="col-sm-12">
+                    <h5 style="border-bottom:1px solid #eee; padding-bottom:6px; margin:10px 0;">Endereço</h5>
+                </div>
                 <div class="col-sm-6">
                     <div class="form-group">
                         {!! Form::label('location_id', __( 'lang_v1.location_id' ) . ':') !!}

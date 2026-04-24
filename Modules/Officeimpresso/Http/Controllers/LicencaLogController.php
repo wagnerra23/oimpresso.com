@@ -122,6 +122,7 @@ class LicencaLogController extends Controller
         $filter_business_id  = $request->query('business_id');
         $filter_q            = trim((string) $request->query('q', ''));
         $filter_estado_atual = $request->query('estado_atual');
+        $filter_hd           = trim((string) $request->query('hd', ''));
 
         $query = \DB::table('licenca_computador as lc')
             ->leftJoin('business as b', 'b.id', '=', 'lc.business_id')
@@ -147,6 +148,9 @@ class LicencaLogController extends Controller
         }
         if ($filter_licenca_id) {
             $query->where('lc.id', $filter_licenca_id);
+        }
+        if ($filter_hd !== '') {
+            $query->where('lc.hd', $filter_hd);
         }
         if ($filter_q !== '') {
             $like = '%' . $filter_q . '%';
@@ -184,7 +188,7 @@ class LicencaLogController extends Controller
                 ->where('source', 'delphi_middleware')
                 ->where('endpoint', 'like', '%processa-dados-cliente%')
                 ->orderByDesc('created_at')
-                ->get(['licenca_id', 'created_at', 'metadata', 'ip']);
+                ->get(['licenca_id', 'created_at', 'metadata', 'ip', 'business_location_id']);
             foreach ($logs as $log) {
                 if (! isset($lastByLicenca[$log->licenca_id])) {
                     $lastByLicenca[$log->licenca_id] = $log;
@@ -192,11 +196,23 @@ class LicencaLogController extends Controller
             }
         }
 
-        $maquinas = $maquinas->map(function ($m) use ($lastByLicenca) {
+        // Carrega dados das locations referenciadas (1 query so)
+        $locationIds = collect($lastByLicenca)->pluck('business_location_id')->filter()->unique()->values();
+        $locationsById = [];
+        if ($locationIds->isNotEmpty()) {
+            $locationsById = \DB::table('business_locations')
+                ->whereIn('id', $locationIds)
+                ->get(['id', 'name', 'cnpj', 'razao_social'])
+                ->keyBy('id')
+                ->toArray();
+        }
+
+        $maquinas = $maquinas->map(function ($m) use ($lastByLicenca, $locationsById) {
             $last = $lastByLicenca[$m->licenca_id] ?? null;
             $meta = $last && is_string($last->metadata) ? json_decode($last->metadata, true) : [];
             // last_login_ts: usa log se existir, senao dt_ultimo_acesso do cadastro
             $effectiveTs = $last?->created_at ?? $m->dt_ultimo_acesso;
+            $lastLocation = $last && $last->business_location_id ? ($locationsById[$last->business_location_id] ?? null) : null;
             return (object) [
                 'licenca_id'        => $m->licenca_id,
                 'business_id'       => $m->business_id,
@@ -216,6 +232,7 @@ class LicencaLogController extends Controller
                 'was_blocked_last'  => $last ? (bool) ($meta['was_blocked'] ?? false) : null,
                 'dt_ultimo_acesso'  => $m->dt_ultimo_acesso,
                 'effective_ts'      => $effectiveTs,  // pra ordenacao
+                'last_location'     => $lastLocation,  // business_location usada na ultima chamada
             ];
         });
 
@@ -235,7 +252,7 @@ class LicencaLogController extends Controller
 
         return view('officeimpresso::licenca_log.index', compact(
             'kpis', 'filter_licenca_id', 'filter_business_id', 'filter_q',
-            'filter_estado_atual', 'maquinas'
+            'filter_estado_atual', 'filter_hd', 'maquinas'
         ));
     }
 
