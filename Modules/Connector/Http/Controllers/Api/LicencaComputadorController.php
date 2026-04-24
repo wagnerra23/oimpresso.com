@@ -15,57 +15,101 @@ class LicencaComputadorController extends Controller
 
     /**
      * Processa os dados do cliente e do equipamento recebidos em um JSON.
+     *
+     * Aceita 2 formatos de body:
+     *
+     * 1. ARRAY (Services.RegistroSistema.pas — fluxo completo, traz CNPJ):
+     *    [{NOME_TABELA:'EMPRESA', CNPJCPF:..., RAZAOSOCIAL:..., ...},
+     *     {NOME_TABELA:'LICENCIAMENTO', HD:..., DESCRICAO:..., ...}]
+     *
+     * 2. FLAT (Services.LicencaThread.pas — fluxo rapido, SO o HD):
+     *    {host, ip, serial_hd, sistema, versao}
+     *    Sem CNPJ: resolve business via lookup do HD em licenca_computador.
+     *
+     * Response (contrato Delphi): STRING 'S;msg' ou 'N;motivo'.
      */
     public function ProcessaDadosCliente(Request $request)
     {
-        // Recebe os dados do JSON
         $dados = $request->json()->all();
 
-        // Inicializa as variáveis de bloqueio
-        $bloqueado_computador = '';
+        // Formato 1: array com NOME_TABELA (fluxo completo com CNPJ)
+        if (is_array($dados) && ! empty($dados) && isset($dados[0])) {
+            $dadosEmpresa = collect($dados)->firstWhere('NOME_TABELA', 'EMPRESA');
+            $dadosLicenciamento = collect($dados)->firstWhere('NOME_TABELA', 'LICENCIAMENTO');
 
-        // Extrai os dados da tabela 'EMPRESA' e 'LICENCIAMENTO'
-        $dadosEmpresa = collect($dados)->firstWhere('NOME_TABELA', 'EMPRESA');
-        $dadosLicenciamento = collect($dados)->firstWhere('NOME_TABELA', 'LICENCIAMENTO');
+            if ($dadosEmpresa && $dadosLicenciamento) {
+                return $this->processarComEmpresa($dadosEmpresa, $dadosLicenciamento);
+            }
 
-        // Verifica se os dados estão presentes
-        if (!$dadosEmpresa || !$dadosLicenciamento) {
             return response()->json(['error' => 'Dados de EMPRESA ou LICENCIAMENTO ausentes'], 400);
         }
 
-        // Chama o BusinessController para processar o cliente
+        // Formato 2: flat com serial_hd (fluxo rapido sem CNPJ) — Services.LicencaThread.pas
+        $flat = is_array($dados) ? array_change_key_case($dados, CASE_LOWER) : [];
+        $hd = $flat['serial_hd'] ?? $flat['hd'] ?? null;
+
+        if ($hd) {
+            return $this->processarApenasHd($hd, $flat);
+        }
+
+        return response()->json(['error' => 'Dados de EMPRESA ou LICENCIAMENTO ausentes'], 400);
+    }
+
+    /**
+     * Fluxo completo: cria/atualiza business + equipamento.
+     */
+    private function processarComEmpresa(array $dadosEmpresa, array $dadosLicenciamento)
+    {
         $businessController = new BusinessController();
         $business = $businessController->saveBusiness(new Request($dadosEmpresa));
 
-        // Verifica se o cliente foi bloqueado durante o processamento
         if ($business->officeimpresso_bloqueado) {
-            return response('N;Cliente bloqueado', 200); 
+            return response('N;Cliente bloqueado', 200);
         }
 
-        // Aqui deve guardar o último acesso do cliente
-        // Aqui deve guardar o Caminho do Banco do Cliente
-        // Versao_Minima
-        // Varsao_Obrigatória
-        // Cliente_secret
-        // Login e senha do cliente
-
-
-        // Chama o LicencaComputadorController para processar o equipamento
-        $licencaComputadorController = new LicencaComputadorController();
-        $equipamento = $licencaComputadorController->saveEquipamento(new Request($dadosLicenciamento), $business->id);   // Aqui grava e pega o histórico de acesso
-
+        $equipamento = $this->saveEquipamento(new Request($dadosLicenciamento), $business->id);
 
         if ($equipamento->bloqueado) {
-            $motivo = !empty($equipamento->motivo) ? $equipamento->motivo : 'Motivo não informado';
+            $motivo = ! empty($equipamento->motivo) ? $equipamento->motivo : 'Motivo não informado';
             return response('N;' . $motivo, 200);
         }
-        
 
-        // // Chama o LicencaComputadorController para processar o equipamento
-        // $licencaLogController = new LicencaLogController();
-        // $Log = $licencaLogController->saveEquipamento(new Request($dadosLicenciamento), $business->id);   // Aqui grava e pega o histórico de acesso        
+        return response('S;Cliente e equipamento liberados', 200);
+    }
 
-        // Se cliente e equipamento não estiverem bloqueados, retorna status de sucesso
+    /**
+     * Fluxo rapido: sem CNPJ no body, resolve business via HD.
+     * Atualiza dt_ultimo_acesso + metadados (versao, hostname, ip) na
+     * licenca_computador existente.
+     */
+    private function processarApenasHd(string $hd, array $flat)
+    {
+        $equipamento = Licenca_Computador::where('hd', $hd)
+            ->orderByDesc('dt_ultimo_acesso')
+            ->first();
+
+        if (! $equipamento) {
+            return response('N;Maquina nao cadastrada. Contate o suporte.', 200);
+        }
+
+        $business = \App\Business::find($equipamento->business_id);
+        if ($business && $business->officeimpresso_bloqueado) {
+            return response('N;Cliente bloqueado', 200);
+        }
+
+        // Atualiza metadados do cadastro com o que veio no flat
+        if (! empty($flat['host']))     $equipamento->hostname = $flat['host'];
+        if (! empty($flat['ip']))       $equipamento->ip_interno = $flat['ip'];
+        if (! empty($flat['sistema']))  $equipamento->sistema = $flat['sistema'];
+        if (! empty($flat['versao']))   $equipamento->versao_exe = $flat['versao'];
+        $equipamento->dt_ultimo_acesso = now();
+        $equipamento->save();
+
+        if ($equipamento->bloqueado) {
+            $motivo = ! empty($equipamento->motivo) ? $equipamento->motivo : 'Motivo não informado';
+            return response('N;' . $motivo, 200);
+        }
+
         return response('S;Cliente e equipamento liberados', 200);
     }
 
