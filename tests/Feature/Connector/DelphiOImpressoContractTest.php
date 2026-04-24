@@ -159,12 +159,12 @@ it('LogDelphiAccess loga TODAS as chamadas, mesmo sem HD', function () {
     expect($source)->not->toContain('if (!$hd) return $response;');
 });
 
-it('log.delphi aplicado a TODO /connector/api/*', function () {
-    // Guarda que o route widen esta em vigor — nao regrede pro padrao
-    // antigo de aplicar so em 4 endpoints especificos.
+it('log.delphi aplicado ANTES de auth:api (captura 401 tambem)', function () {
+    // Ordem importa: log.delphi tem que rodar ANTES de auth:api pra poder
+    // registrar 401s (Delphi mandando token invalido/expirado). Se rodar
+    // depois, auth:api rejeita antes do log.
     $routes = file_get_contents(base_path('Modules/Connector/Routes/api.php'));
-    expect($routes)->toContain("'log.delphi'");
-    expect($routes)->toContain("'auth:api', 'timezone', 'log.delphi'");
+    expect($routes)->toContain("'log.delphi', 'auth:api'");
 });
 
 // ==========================================================
