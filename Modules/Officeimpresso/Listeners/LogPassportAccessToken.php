@@ -21,12 +21,10 @@ class LogPassportAccessToken
     {
         try {
             $request = request();
-
-            // REGRA: só loga quando o Delphi enviar `hd` (serial do disco).
-            // Sem hd nao conseguimos identificar a maquina, entao nao polui
-            // o log com linhas inuteis.
             $hdFromRequest = $request?->input('hd') ?: $request?->header('X-OI-HD');
-            if (! $hdFromRequest) return;
+            // NAO filtra por hd — Delphi atual nao envia. Logamos todo login,
+            // com ou sem hd. Se tiver, metadata preserva identificacao da
+            // maquina. Sem hd, Wagner ainda ve 'login aconteceu'.
 
             $ip = $request?->ip();
             $userId = $event->userId;
