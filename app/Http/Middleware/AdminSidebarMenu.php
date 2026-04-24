@@ -775,7 +775,7 @@ class AdminSidebarMenu
               <path d="M12 4l-8 4l8 4l8 -4l-8 -4"></path>
               <path d="M4 12l8 4l8 -4"></path>
               <path d="M4 16l8 4l8 -4"></path>
-            </svg>', 'active' => request()->segment(1) == 'manage-modules'])->order(60);
+            </svg>', 'active' => request()->segment(1) == 'manage-modules'])->order(3); // junto com Officeimpresso (order=2), perto do Superadmin
             }
 
             //Booking menu

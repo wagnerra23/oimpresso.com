@@ -223,7 +223,7 @@ class DataController extends Controller
                         'style' => 'background-color:' . $background_color,
                         'active' => $segmento_ativo,
                     ]
-                )->order(3); // logo apos Officeimpresso (order=2), perto do Superadmin (default)
+                )->order(88); // logo abaixo do HRM/Essentials (order=87)
             }
         );
     }
