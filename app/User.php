@@ -20,6 +20,53 @@ class User extends Authenticatable
     use HasApiTokens;
 
     /**
+     * Override do Passport password grant.
+     * Rejeita login se business tem officeimpresso_bloqueado=1 (aplicavel
+     * apenas pra clients Delphi — identificados pelo client_id da request).
+     * Nao muda contrato Delphi: mesma resposta OAuth padrao de credencial
+     * errada (400 invalid_grant), que o Delphi ja trata.
+     */
+    public function validateForPassportPasswordGrant($password)
+    {
+        if (! Hash::check($password, $this->password)) {
+            return false;
+        }
+
+        // Clients de desktop Delphi (officeimpresso). Se adicionar novos,
+        // listar aqui — validacao so bloqueia desktop, nao usuarios web.
+        $desktopClients = [39, 107]; // WR Server, Registro do OfficeImpresso Offliine
+        $clientId = (int) request()->input('client_id');
+
+        if (in_array($clientId, $desktopClients, true)) {
+            $business = \App\Business::find($this->business_id);
+            if ($business && $business->officeimpresso_bloqueado) {
+                // Loga a rejeicao em licenca_log pra trilha de auditoria
+                try {
+                    \DB::table('licenca_log')->insert([
+                        'event'         => 'login_error',
+                        'user_id'       => $this->id,
+                        'business_id'   => $this->business_id,
+                        'client_id'     => (string) $clientId,
+                        'ip'            => request()->ip(),
+                        'user_agent'    => substr(request()->userAgent() ?? '', 0, 500),
+                        'endpoint'      => '/oauth/token',
+                        'http_method'   => 'POST',
+                        'http_status'   => 400,
+                        'error_code'    => 'business_blocked',
+                        'error_message' => 'Empresa bloqueada no modulo Officeimpresso',
+                        'metadata'      => json_encode(['business_blocked' => true, 'was_blocked' => true]),
+                        'source'        => 'passport_enforce',
+                        'created_at'    => now(),
+                    ]);
+                } catch (\Throwable $e) { /* nao impede a rejeicao */ }
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * The attributes that aren't mass assignable.
      *
      * @var array
