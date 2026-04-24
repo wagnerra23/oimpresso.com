@@ -219,6 +219,18 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
+        // Diretiva pra retornar "agora" SEM o shift +3h intencional do format_datetime.
+        // Use em campos pre-preenchidos com NOW (ex: paid_on no payment_row_form).
+        // Ver feedback_format_now_local_e_default_datetime na auto-memoria.
+        Blade::directive('format_now_local', function () {
+            $time_format = 'h:i A';
+            if (session('business.time_format') == 24) {
+                $time_format = 'H:i';
+            }
+
+            return "\Carbon::now()->format(session('business.date_format') . ' ' . '$time_format')";
+        });
+
         //Blade directive to format currency.
         Blade::directive('format_currency', function ($number) {
             return '<?php 

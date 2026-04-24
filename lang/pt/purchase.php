@@ -53,7 +53,7 @@
      'p_exchange_rate' => 'Taxa de câmbio',
      'diff_purchase_currency_help' => 'A moeda de compra está definida para <strong>:currency </ strong>',
      'list_purchase' => 'Lista de compras',
-     'attach_document' => 'documento anexo',
+     'attach_document' => 'Anexar documento',
      'download_document' => 'Baixar documento',
      'max_file_size' => 'Tamanho máximo do arquivo: :sizeMB',
  ];
