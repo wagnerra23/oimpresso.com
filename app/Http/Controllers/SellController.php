@@ -703,7 +703,10 @@ class SellController extends Controller
 
         $default_price_group_id = ! empty($default_location->selling_price_group_id) && array_key_exists($default_location->selling_price_group_id, $price_groups) ? $default_location->selling_price_group_id : null;
 
-        $default_datetime = $this->businessUtil->format_date('now', true);
+        // format_now_local pra evitar shift +3h intencional do format_date
+        // (ver feedback_carbon_timezone_bug.md). format_date('now') empurra 3h
+        // pro futuro porque mantem o shift histórico — pra "agora" e errado.
+        $default_datetime = $this->businessUtil->format_now_local(true);
 
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 
