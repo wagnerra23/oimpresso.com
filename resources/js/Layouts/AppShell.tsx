@@ -180,10 +180,12 @@ export default function AppShell({ title, breadcrumb, moduleNav, children }: App
             Main
             ====================================================================== */}
         <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
-          <header className="flex h-12 items-center gap-3 border-b border-border bg-background px-4">
+          {/* Mobile-only header: hamburger + avatar no canto.
+              Desktop: hidden — sidebar + breadcrumb já cobrem navegação. */}
+          <header className="md:hidden flex h-12 items-center gap-3 border-b border-border bg-background px-4">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Abrir menu">
+                <Button variant="ghost" size="icon" aria-label="Abrir menu">
                   <MenuIcon size={18} />
                 </Button>
               </SheetTrigger>
