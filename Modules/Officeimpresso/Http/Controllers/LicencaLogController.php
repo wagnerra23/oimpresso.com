@@ -54,7 +54,20 @@ class LicencaLogController extends Controller
                 })
                 ->editColumn('ip', fn ($r) => $r->ip ?: '—')
                 ->addColumn('source_badge', fn ($r) => '<span class="source-tag">' . e($r->source) . '</span>')
-                ->rawColumns(['event', 'source_badge', 'endpoint'])
+                ->addColumn('business_info', function ($r) {
+                    if (! $r->business_id) return '—';
+                    $name = \DB::table('business')->where('id', $r->business_id)->value('name');
+                    return '<a href="' . url('/officeimpresso/licenca_computado/licencas/' . $r->business_id) . '" title="Ver computadores" class="text-primary">' . e($name ?: ('#' . $r->business_id)) . '</a>';
+                })
+                ->addColumn('machine_info', function ($r) {
+                    if (! $r->licenca_id) return '—';
+                    $lic = \DB::table('licenca_computador')->where('id', $r->licenca_id)->first(['user_win', 'ip_interno']);
+                    if (! $lic) return '—';
+                    $machine = $lic->user_win ?: '(sem hostname)';
+                    $ipInt = $lic->ip_interno ? ' · ' . $lic->ip_interno : '';
+                    return '<a href="' . url('/officeimpresso/licenca_log?licenca_id=' . $r->licenca_id) . '" title="Filtrar por maquina"><strong>' . e($machine) . '</strong><small class="text-muted">' . e($ipInt) . '</small></a>';
+                })
+                ->rawColumns(['event', 'source_badge', 'endpoint', 'business_info', 'machine_info'])
                 ->make(true);
         }
 
