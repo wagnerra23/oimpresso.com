@@ -21,6 +21,13 @@ class LogPassportAccessToken
     {
         try {
             $request = request();
+
+            // REGRA: só loga quando o Delphi enviar `hd` (serial do disco).
+            // Sem hd nao conseguimos identificar a maquina, entao nao polui
+            // o log com linhas inuteis.
+            $hdFromRequest = $request?->input('hd') ?: $request?->header('X-OI-HD');
+            if (! $hdFromRequest) return;
+
             $ip = $request?->ip();
             $userId = $event->userId;
 
@@ -40,13 +47,9 @@ class LogPassportAccessToken
                 $businessId = \DB::table('users')->where('id', $userId)->value('business_id');
             }
 
-            // Match exato de licenca_computador pelo `hd` (serial do disco)
-            // que o Delphi POR ENQUARTO nao envia em /oauth/token.
-            // Quando Delphi for atualizado pra enviar hd como custom param,
-            // este match vai funcionar automaticamente. Fallback: null.
+            // Match exato de licenca_computador pelo `hd`
             $licencaId = null;
-            $hdFromRequest = $request?->input('hd') ?: $request?->header('X-OI-HD');
-            if ($hdFromRequest && $businessId) {
+            if ($businessId) {
                 $licencaId = \DB::table('licenca_computador')
                     ->where('business_id', $businessId)
                     ->where('hd', $hdFromRequest)
