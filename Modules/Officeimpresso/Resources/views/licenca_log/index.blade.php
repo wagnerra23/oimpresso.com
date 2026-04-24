@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Log de Acesso — Office Impresso')
+@section('title', 'Status de Login por Máquina — Office Impresso')
 
 @section('css')
 @include('officeimpresso::layouts.partials.design-system')
@@ -10,54 +10,137 @@
 @include('officeimpresso::layouts.nav')
 
 <section class="content-header">
-    <h1>Log de Acesso do Desktop
+    <h1>Status de Login por Máquina
         <small>últimas 24h</small>
     </h1>
 </section>
 
 <section class="content">
     {{-- KPIs --}}
-    <div class="row">
-        <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+    <div class="row oi-kpi-row">
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="oi-kpi">
+                <div class="icon bg-blue"><i class="fa fa-desktop"></i></div>
+                <div>
+                    <div class="label">Máquinas ativas</div>
+                    <div class="value">{{ $maquinas->count() }}</div>
+                    <div class="delta">logaram nas últimas 24h</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="oi-kpi">
                 <div class="icon bg-green"><i class="fa fa-check"></i></div>
                 <div>
-                    <div class="label">Sucessos</div>
+                    <div class="label">Logins OK</div>
                     <div class="value">{{ number_format($kpis['login_success']) }}</div>
-                    <div class="delta">logins nas últimas 24h</div>
+                    <div class="delta">total 24h</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+        <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="oi-kpi">
-                <div class="icon bg-red"><i class="fa fa-times"></i></div>
+                <div class="icon bg-red"><i class="fa fa-lock"></i></div>
                 <div>
-                    <div class="label">Erros</div>
+                    <div class="label">Bloqueadas logando</div>
+                    <div class="value">{{ $maquinas->where('was_blocked_last', true)->count() }}</div>
+                    <div class="delta">acessos com bloqueio ativo</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="oi-kpi">
+                <div class="icon bg-amber"><i class="fa fa-exclamation-triangle"></i></div>
+                <div>
+                    <div class="label">Erros auth</div>
                     <div class="value">{{ number_format($kpis['login_error']) }}</div>
-                    <div class="delta">tentativas falhas</div>
+                    <div class="delta">credencial inválida</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
-            <div class="oi-kpi">
-                <div class="icon bg-blue"><i class="fa fa-exchange-alt"></i></div>
-                <div>
-                    <div class="label">Chamadas API</div>
-                    <div class="value">{{ number_format($kpis['api_call']) }}</div>
-                    <div class="delta">/api/officeimpresso/*</div>
-                </div>
-            </div>
+    </div>
+
+    {{-- STATUS POR MÁQUINA (view principal) --}}
+    <div class="oi-card">
+        <div class="hdr">
+            <h3><i class="fa fa-desktop"></i> Máquinas que logaram <small style="color:#6b7280;">({{ $maquinas->count() }})</small></h3>
+            <small style="color: #6b7280;">Status mostra o bloqueio <strong>no momento do último login</strong></small>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
-            <div class="oi-kpi">
-                <div class="icon bg-amber"><i class="fa fa-lock"></i></div>
-                <div>
-                    <div class="label">Bloqueios</div>
-                    <div class="value">{{ number_format($kpis['block']) }}</div>
-                    <div class="delta">licenças bloqueadas</div>
-                </div>
-            </div>
+        <div class="body no-pad">
+            <table class="oi-table">
+                <thead>
+                    <tr>
+                        <th>Empresa</th>
+                        <th>Máquina (HD)</th>
+                        <th>IP</th>
+                        <th>Último Login</th>
+                        <th style="text-align: center;">Logins 24h</th>
+                        <th>Estado no Último Login</th>
+                        <th>Estado Atual</th>
+                        <th style="width: 100px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($maquinas as $m)
+                        <tr>
+                            <td>
+                                @if($m->business_id)
+                                    <a href="{{ url('/officeimpresso/licenca_computado/licencas/' . $m->business_id) }}" class="text-primary">
+                                        <strong>{{ $m->business_name }}</strong>
+                                    </a>
+                                @else
+                                    <em class="text-muted">desconhecido</em>
+                                @endif
+                            </td>
+                            <td>
+                                @if($m->hd)
+                                    <strong class="text-mono">{{ $m->hd }}</strong>
+                                @else
+                                    <em class="text-muted" title="Delphi ainda não envia o hd — aguardando atualização">sem hd</em>
+                                @endif
+                            </td>
+                            <td class="text-mono">{{ $m->ip ?: '—' }}</td>
+                            <td class="text-mono">{{ \Carbon\Carbon::parse($m->last_login)->format('d/m/Y H:i:s') }}</td>
+                            <td style="text-align: center;">
+                                <span class="oi-pill oi-pill-neutral">{{ $m->login_count_24h }}</span>
+                            </td>
+                            <td>
+                                @if($m->was_blocked_last)
+                                    <span class="oi-pill oi-pill-blocked"><i class="fa fa-lock"></i> Bloqueada quando logou</span>
+                                @else
+                                    <span class="oi-pill oi-pill-ok"><i class="fa fa-check"></i> Liberada</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($m->business_blocked)
+                                    <span class="oi-pill oi-pill-blocked">🔒 Empresa bloqueada</span>
+                                @else
+                                    <span class="oi-pill oi-pill-ok">Ativa</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($m->business_id)
+                                    <a href="{{ url('/officeimpresso/licenca_log?business_id=' . $m->business_id) }}#timeline" class="oi-btn oi-btn-ghost oi-btn-xs" title="Ver timeline detalhada">
+                                        <i class="fa fa-list"></i> Timeline
+                                    </a>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 30px; color: #9ca3af;">
+                                Nenhuma máquina logou nas últimas 24h.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+    </div>
+
+    <div style="margin: 24px 0 12px;" id="timeline">
+        <h3 style="font-size: 16px; color: #374151;"><i class="fa fa-list"></i> Timeline detalhada de eventos</h3>
+        <small style="color: #6b7280;">Todos os eventos (login, api_call, block, etc.) — filtros abaixo</small>
     </div>
 
     {{-- Filtros --}}
