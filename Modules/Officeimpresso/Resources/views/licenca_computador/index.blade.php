@@ -2,11 +2,8 @@
 
 @section('title', __('officeimpresso::lang.officeimpresso'))
 
-@section('css')
-@include('officeimpresso::layouts.partials.design-system')
-@endsection
-
 @section('content')
+@include('officeimpresso::layouts.partials.design-system')
 @include('officeimpresso::layouts.nav')
 
 <div class="oi-page">
