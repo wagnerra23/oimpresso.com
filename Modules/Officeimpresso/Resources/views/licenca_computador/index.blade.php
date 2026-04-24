@@ -21,8 +21,8 @@
         $bloqueadas = collect($licencas)->where('bloqueado', true)->count();
         $ativas = $total - $bloqueadas;
     @endphp
-    <div class="row">
-        <div class="col-md-4 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+    <div class="row oi-kpi-row">
+        <div class="col-md-4 col-sm-6 col-xs-12">
             <div class="oi-kpi">
                 <div class="icon bg-blue"><i class="fa fa-desktop"></i></div>
                 <div>
@@ -32,7 +32,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+        <div class="col-md-4 col-sm-6 col-xs-12">
             <div class="oi-kpi">
                 <div class="icon bg-green"><i class="fa fa-check"></i></div>
                 <div>
@@ -42,12 +42,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
+        <div class="col-md-4 col-sm-6 col-xs-12">
             <div class="oi-kpi">
                 <div class="icon bg-red"><i class="fa fa-lock"></i></div>
                 <div>
                     <div class="label">Bloqueadas</div>
                     <div class="value">{{ $bloqueadas }}</div>
+                    <div class="delta">requerem ação</div>
                 </div>
             </div>
         </div>

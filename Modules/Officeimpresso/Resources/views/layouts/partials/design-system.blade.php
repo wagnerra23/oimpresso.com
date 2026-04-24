@@ -73,4 +73,42 @@
     .oi-btn-ghost { background: #fff; color: #374151; border-color: #d1d5db; }
     .oi-btn-ghost:hover { background: #f9fafb; color: #111827; }
     .oi-btn-xs { padding: 3px 10px; font-size: 11px; }
+
+    /* ======== OVERRIDES AdminLTE (skin-purple) ======== */
+    /* Topnav do modulo — forca fundo branco, sem herdar skin dark */
+    .oi-page ~ *, .oi-page {}
+    nav.navbar.navbar-default.bg-white { background: #fff !important; border: 1px solid #e5e7eb !important; border-radius: 8px; margin: 14px 20px !important; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    nav.navbar.navbar-default.bg-white .navbar-brand,
+    nav.navbar.navbar-default.bg-white .nav > li > a { color: #374151 !important; background: transparent !important; padding: 12px 16px; font-size: 13px; font-weight: 500; }
+    nav.navbar.navbar-default.bg-white .nav > li > a:hover { background: #f3f4f6 !important; color: #111827 !important; }
+    nav.navbar.navbar-default.bg-white .nav > li.active > a,
+    nav.navbar.navbar-default.bg-white .nav > li.active > a:hover { background: #eff6ff !important; color: #1d4ed8 !important; }
+    nav.navbar.navbar-default.bg-white .nav > li > a i { margin-right: 4px; color: #6b7280; }
+    nav.navbar.navbar-default.bg-white .nav > li.active > a i { color: #1d4ed8; }
+    nav.navbar.navbar-default.bg-white .navbar-brand i { color: #3b82f6; }
+
+    /* Inputs — garante fundo claro e texto legivel (pop de skin roxa) */
+    .oi-page input.form-control,
+    .oi-page select.form-control,
+    .oi-page textarea.form-control,
+    .oi-filter-bar input,
+    .oi-filter-bar select {
+        background: #fff !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+        box-shadow: none !important;
+    }
+    .oi-page input.form-control:focus,
+    .oi-page select.form-control:focus,
+    .oi-filter-bar input:focus,
+    .oi-filter-bar select:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
+    }
+    .oi-page label { color: #374151; }
+
+    /* ======== EQUALIZE KPI HEIGHTS ======== */
+    .oi-kpi-row { display: flex; flex-wrap: wrap; margin-right: -7px; margin-left: -7px; }
+    .oi-kpi-row > [class*="col-"] { padding-left: 7px; padding-right: 7px; display: flex; margin-bottom: 14px; }
+    .oi-kpi-row > [class*="col-"] > .oi-kpi { flex: 1 1 auto; min-height: 76px; }
 </style>
