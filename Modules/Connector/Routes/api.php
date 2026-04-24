@@ -10,6 +10,7 @@ Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connec
     // log.delphi middleware extrai `HD` do body e grava licenca_log
     // com source=delphi_middleware.
     Route::middleware('log.delphi')->group(function () {
+        // Legacy (3.7): body JSON array com NOME_TABELA=EMPRESA/LICENCIAMENTO, response string S;/N;
         Route::post('processa-dados-cliente', [
             \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'ProcessaDadosCliente'
         ])->name('delphi.processa-dados-cliente');
@@ -19,6 +20,12 @@ Route::middleware('auth:api', 'timezone')->prefix('connector/api')->name('connec
         Route::post('salvar-equipamento/{business_id}', [
             \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamento'
         ])->name('delphi.salvar-equipamento');
+
+        // WR Comercial (atual): body JSON flat (cnpj, serial_hd, ...), response JSON estruturado.
+        // Services.OImpresso.Registro.pas chama este endpoint apos autenticar em /oauth/token.
+        Route::post('oimpresso/registrar', [
+            \Modules\Connector\Http\Controllers\Api\OImpressoRegistroController::class, 'registrar'
+        ])->name('delphi.oimpresso.registrar');
     });
     // === fim endpoints Delphi ===
 
