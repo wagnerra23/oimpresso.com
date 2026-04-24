@@ -191,3 +191,51 @@ it('shim Form::file renderiza input type=file (nunca tem value)', function () {
         ->toContain('accept="image/*"')
         ->not->toContain('value=');
 });
+
+/**
+ * Regressão 2026-04-24 — atributos booleanos com valor false/null devem ser OMITIDOS
+ * do HTML, não renderizados como atributo vazio (presença = true em HTML).
+ *
+ * Bug descoberto em /sells/create (ROTA LIVRE): o blade passava
+ *   `'disabled' => is_null($default_location) ? true : false`
+ * O shim passava `disabled=false` pro spatie/laravel-html que renderizava
+ * `disabled=""`. Browser interpretava como disabled ativo — campo de busca de
+ * produto ficava travado mesmo com default_location preenchido.
+ */
+dataset('boolean_attributes', [
+    ['disabled'],
+    ['readonly'],
+    ['required'],
+    ['autofocus'],
+    ['multiple'],
+    ['hidden'],
+]);
+
+it('shim omite attr booleano quando valor false', function (string $attr) {
+    $html = (string) Form::text('teste', null, ['class' => 'x', $attr => false]);
+    expect($html)
+        ->toContain('class="x"')
+        ->not->toContain($attr);
+})->with('boolean_attributes');
+
+it('shim omite attr booleano quando valor null', function (string $attr) {
+    $html = (string) Form::text('teste', null, ['class' => 'x', $attr => null]);
+    expect($html)
+        ->not->toContain($attr);
+})->with('boolean_attributes');
+
+it('shim mantem attr booleano quando valor true', function (string $attr) {
+    $html = (string) Form::text('teste', null, [$attr => true]);
+    expect($html)->toContain($attr);
+})->with('boolean_attributes');
+
+it('shim disabled=false + autofocus=true rendeiriza APENAS autofocus (regressao /sells/create)', function () {
+    $html = (string) Form::text('search_product', null, [
+        'class' => 'form-control',
+        'disabled' => false,
+        'autofocus' => true,
+    ]);
+    expect($html)
+        ->toContain('autofocus')
+        ->not->toContain('disabled');
+});

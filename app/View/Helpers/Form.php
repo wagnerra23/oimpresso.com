@@ -23,43 +23,66 @@ use Spatie\Html\Facades\Html;
  */
 class Form
 {
+    /**
+     * Atributos HTML booleanos: quando valor for false/null, o atributo é OMITIDO
+     * (em HTML, a mera presença de `disabled`/`readonly`/etc já ativa a flag — não
+     * importa o valor). O spatie/laravel-html renderiza tudo que recebe, então
+     * precisamos filtrar aqui antes de passar.
+     */
+    private const BOOL_ATTRS = [
+        'disabled', 'readonly', 'required', 'checked', 'selected', 'autofocus',
+        'multiple', 'hidden', 'async', 'defer', 'reversed', 'open', 'autoplay',
+        'controls', 'loop', 'muted', 'formnovalidate', 'nomodule', 'ismap',
+        'default', 'novalidate',
+    ];
+
+    private static function normalizeOptions(array $options): array
+    {
+        foreach (self::BOOL_ATTRS as $attr) {
+            if (array_key_exists($attr, $options) && ($options[$attr] === false || $options[$attr] === null)) {
+                unset($options[$attr]);
+            }
+        }
+        return $options;
+    }
+
     public static function text($name, $value = null, array $options = []): HtmlString
     {
-        return self::render(Html::text($name, $value)->attributes($options));
+        return self::render(Html::text($name, $value)->attributes(self::normalizeOptions($options)));
     }
 
     public static function email($name, $value = null, array $options = []): HtmlString
     {
-        return self::render(Html::email($name, $value)->attributes($options));
+        return self::render(Html::email($name, $value)->attributes(self::normalizeOptions($options)));
     }
 
     public static function password($name, array $options = []): HtmlString
     {
         $el = Html::password($name)->attribute('value', '');
 
-        return self::render($el->attributes($options));
+        return self::render($el->attributes(self::normalizeOptions($options)));
     }
 
     public static function hidden($name, $value = null, array $options = []): HtmlString
     {
-        return self::render(Html::hidden($name, $value)->attributes($options));
+        return self::render(Html::hidden($name, $value)->attributes(self::normalizeOptions($options)));
     }
 
     public static function number($name, $value = null, array $options = []): HtmlString
     {
         $el = Html::input('number', $name, $value);
 
-        return self::render($el->attributes($options));
+        return self::render($el->attributes(self::normalizeOptions($options)));
     }
 
     public static function date($name, $value = null, array $options = []): HtmlString
     {
-        return self::render(Html::date($name, $value)->attributes($options));
+        return self::render(Html::date($name, $value)->attributes(self::normalizeOptions($options)));
     }
 
     public static function file($name, array $options = []): HtmlString
     {
-        return self::render(Html::file($name)->attributes($options));
+        return self::render(Html::file($name)->attributes(self::normalizeOptions($options)));
     }
 
     public static function textarea($name, $value = null, array $options = []): HtmlString
@@ -69,7 +92,7 @@ class Form
         $escaped = e((string) ($value ?? ''));
         $el = Html::textarea($name)->value($escaped);
 
-        return self::render($el->attributes($options));
+        return self::render($el->attributes(self::normalizeOptions($options)));
     }
 
     public static function select($name, $list = [], $selected = null, array $options = []): HtmlString
@@ -100,7 +123,7 @@ class Form
             $el = $el->placeholder((string) $placeholder);
         }
 
-        return self::render($el->attributes($options));
+        return self::render($el->attributes(self::normalizeOptions($options)));
     }
 
     public static function checkbox($name, $value = 1, $checked = false, array $options = []): HtmlString
@@ -110,7 +133,7 @@ class Form
             $el = $el->attribute('checked', 'checked');
         }
 
-        return self::render($el->attributes($options));
+        return self::render($el->attributes(self::normalizeOptions($options)));
     }
 
     public static function radio($name, $value = null, $checked = false, array $options = []): HtmlString
@@ -120,7 +143,7 @@ class Form
             $el = $el->attribute('checked', 'checked');
         }
 
-        return self::render($el->attributes($options));
+        return self::render($el->attributes(self::normalizeOptions($options)));
     }
 
     public static function label($name, $text = null, array $options = []): HtmlString
@@ -128,7 +151,7 @@ class Form
         // spatie nao escapa conteudo de label — laravelcollective sempre escapou (seguranca + entities UTF-8)
         $escaped = e((string) ($text ?? ''));
 
-        return self::render(Html::label($escaped, $name)->attributes($options));
+        return self::render(Html::label($escaped, $name)->attributes(self::normalizeOptions($options)));
     }
 
     public static function submit($text = null, array $options = []): HtmlString
@@ -138,7 +161,7 @@ class Form
         // Usar Html::input direto pra preservar <input>.
         $el = Html::input('submit', null, $text);
 
-        return self::render($el->attributes($options));
+        return self::render($el->attributes(self::normalizeOptions($options)));
     }
 
     /**
