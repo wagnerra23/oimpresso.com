@@ -2,6 +2,21 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/lang/pt-BR/).
 
+## [0.4.1] - 2026-04-24
+
+### Changed
+
+- **Docs do próprio DocVault sincronizadas com o código atual.** README, SPEC, ARCHITECTURE, RUNBOOK e GLOSSARY estavam congelados em 2026-04-22 (versão 0.1) enquanto o módulo evoluiu pra 0.4.0 — sync manual corrigiu a divergência.
+- README: frontmatter atualizado (`version: 0.4`, `last_generated: 2026-04-24`, `areas` expandido com `auditoria` e `memoria`). Tabela de rotas completa (14 endpoints, antes 4). Status atual expandido pras fases 1, 2, 2.5, 2.6, 2.7, 3 (em curso), 4 (futuro).
+- SPEC: adicionadas 6 stories (US-006 memória unificada, US-007 migrate plano→pasta, US-008 anotação `@docvault`, US-009 auditoria, US-010 validação global, US-011 gen-test a partir de Gherkin) com DoD marcado conforme o que já está implementado.
+- ARCHITECTURE: stack corrigida (Laravel 9.51 → **13.6**). Modelo de dados completo (7 tabelas — antes 4; incluiu `docs_chat_messages`, `docs_pages`, `docs_validation_runs`). Camadas expandidas (8 controllers, 7 commands, 5 services — antes 1). Decisões D5/D6/D7 adicionadas (memória tripartite, auditoria+validação separadas, fallback offline do chat). Fluxos F4-F9 novos (leitura de módulo, sync memories/pages, audit, validate, chat).
+- RUNBOOK: branch corrigida (`6.7-react` → `6.7-bootstrap`). Problemas novos de auditoria/validação documentados. Comando de deploy na Hostinger adicionado.
+- GLOSSARY: termos novos (`docs_validation_runs`, `docs_chat_messages`, `docs_pages`, `Health score`, `MemoryReader`, `ModuleAuditor`, `DocValidator`, `ChatAssistant`, `RequirementsFileReader`).
+
+### Context
+
+DocVault era o piloto da estrutura pasta-por-módulo mas ironicamente tinha a própria documentação mais desatualizada que a do PontoWr2 ou Essentials. Sessão de 2026-04-24 foi dedicada a rodar `docvault:audit-module DocVault` mental/manual e corrigir os findings — agora o módulo pratica o que prega.
+
 ## [0.4.0] - 2026-04-24
 
 ### Added
