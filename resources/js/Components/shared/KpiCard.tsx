@@ -80,6 +80,10 @@ interface Props extends VariantProps<typeof kpiCardVariants> {
   deltaIsGood?: boolean; // se true, up=verde, down=vermelho. Se false, inverte.
   action?: React.ReactNode;
   className?: string;
+  /** Se passado, o card vira botão clicável (útil como filtro toggle). */
+  onClick?: () => void;
+  /** Visual de "selecionado" quando card é clicável e representa filtro ativo. */
+  selected?: boolean;
 }
 
 export default function KpiCard({
@@ -93,6 +97,8 @@ export default function KpiCard({
   tone,
   size,
   className,
+  onClick,
+  selected,
 }: Props) {
   const iconSize = size === 'compact' ? 14 : size === 'large' ? 22 : 18;
   const valueClass =
@@ -102,8 +108,8 @@ export default function KpiCard({
         ? 'text-4xl font-bold'
         : 'text-2xl font-bold';
 
-  return (
-    <div data-slot="kpi-card" data-tone={tone ?? 'default'} className={cn(kpiCardVariants({ tone, size }), className)}>
+  const content = (
+    <>
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
           {label}
@@ -122,6 +128,34 @@ export default function KpiCard({
         <p className="text-xs text-muted-foreground leading-snug">{description}</p>
       )}
       {action && <div className="mt-1">{action}</div>}
+    </>
+  );
+
+  const classes = cn(
+    kpiCardVariants({ tone, size }),
+    onClick && 'text-left hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer',
+    selected && 'border-primary ring-1 ring-primary/40',
+    className,
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={selected}
+        data-slot="kpi-card"
+        data-tone={tone ?? 'default'}
+        className={classes}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div data-slot="kpi-card" data-tone={tone ?? 'default'} className={classes}>
+      {content}
     </div>
   );
 }

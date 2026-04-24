@@ -11,18 +11,7 @@ import AppShell from '@/Layouts/AppShell';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import {
-  AlertTriangle,
-  Check,
-  CheckCheck,
-  Clock,
-  FileCheck,
-  Inbox,
-  Search,
-  Settings2,
-  X,
-  XCircle,
-} from 'lucide-react';
+import { Check, CheckCheck, X } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +22,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
-import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import {
@@ -44,7 +32,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/Components/ui/dialog';
-import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import {
   Select,
@@ -54,7 +41,14 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
-import { cn } from '@/Lib/utils';
+
+import PageHeader from '@/Components/shared/PageHeader';
+import KpiGrid from '@/Components/shared/KpiGrid';
+import KpiCard from '@/Components/shared/KpiCard';
+import PageFilters from '@/Components/shared/PageFilters';
+import StatusBadge from '@/Components/shared/StatusBadge';
+import EmptyState from '@/Components/shared/EmptyState';
+import BulkActionBar from '@/Components/shared/BulkActionBar';
 
 interface Aprovacao {
   id: number | string;
@@ -91,21 +85,33 @@ interface Props {
   tipos: Array<{ value: string; label: string }>;
 }
 
-const estadoConfig: Record<
-  string,
-  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ComponentType<{ size?: number; className?: string }> }
-> = {
-  RASCUNHO:  { label: 'Rascunho',  variant: 'outline',     icon: FileCheck },
-  PENDENTE:  { label: 'Pendente',  variant: 'default',     icon: Clock },
-  APROVADA:  { label: 'Aprovada',  variant: 'default',     icon: Check },
-  REJEITADA: { label: 'Rejeitada', variant: 'destructive', icon: X },
-  APLICADA:  { label: 'Aplicada',  variant: 'secondary',   icon: CheckCheck },
-  CANCELADA: { label: 'Cancelada', variant: 'outline',     icon: XCircle },
+const estadoOrder = ['PENDENTE', 'APROVADA', 'REJEITADA', 'APLICADA', 'RASCUNHO', 'CANCELADA'] as const;
+
+const estadoIconMap: Record<string, string> = {
+  PENDENTE:  'clock',
+  APROVADA:  'check',
+  REJEITADA: 'x',
+  APLICADA:  'check-check',
+  RASCUNHO:  'file-edit',
+  CANCELADA: 'x-circle',
 };
 
-const prioridadeConfig: Record<string, { label: string; variant: 'default' | 'destructive' | 'secondary' }> = {
-  URGENTE: { label: 'Urgente', variant: 'destructive' },
-  NORMAL:  { label: 'Normal',  variant: 'secondary' },
+const estadoToneMap: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+  PENDENTE:  'warning',
+  APROVADA:  'success',
+  REJEITADA: 'danger',
+  APLICADA:  'info',
+  RASCUNHO:  'default',
+  CANCELADA: 'default',
+};
+
+const estadoLabelMap: Record<string, string> = {
+  PENDENTE:  'Pendente',
+  APROVADA:  'Aprovada',
+  REJEITADA: 'Rejeitada',
+  APLICADA:  'Aplicada',
+  RASCUNHO:  'Rascunho',
+  CANCELADA: 'Cancelada',
 };
 
 export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos }: Props) {
@@ -113,6 +119,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
   const [rejectTarget, setRejectTarget] = useState<Aprovacao | null>(null);
   const [rejectMotivo, setRejectMotivo] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Array<number | string>>([]);
 
   const filterChange = (key: string, value: string) => {
     const params: Record<string, string> = {};
@@ -122,6 +129,31 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
     if (value) params[key] = value;
     router.get('/ponto/aprovacoes', params, { preserveState: true, preserveScroll: true });
   };
+
+  const resetFilters = () => {
+    router.get('/ponto/aprovacoes', {}, { preserveScroll: true });
+  };
+
+  const activeChips = [
+    ...(filtros.tipo
+      ? [{
+          label: `Tipo: ${tipoLabel(filtros.tipo, tipos)}`,
+          onRemove: () => filterChange('tipo', ''),
+        }]
+      : []),
+    ...(filtros.prioridade
+      ? [{
+          label: `Prioridade: ${filtros.prioridade === 'URGENTE' ? 'Urgente' : 'Normal'}`,
+          onRemove: () => filterChange('prioridade', ''),
+        }]
+      : []),
+    ...(filtros.estado
+      ? [{
+          label: `Estado: ${estadoLabelMap[filtros.estado] ?? filtros.estado}`,
+          onRemove: () => filterChange('estado', ''),
+        }]
+      : []),
+  ];
 
   const handleAprovar = () => {
     if (!approveTarget) return;
@@ -165,113 +197,144 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
     );
   };
 
+  const handleBulkApprove = () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Aprovar ${selectedIds.length} intercorrência(s) em lote?`)) return;
+    setProcessing(true);
+    router.post(
+      '/ponto/aprovacoes/lote',
+      { ids: selectedIds },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast.success(`${selectedIds.length} intercorrência(s) aprovadas em lote.`);
+          setSelectedIds([]);
+        },
+        onError: () => toast.error('Falha no lote.'),
+        onFinish: () => setProcessing(false),
+      },
+    );
+  };
+
+  const pendentes = aprovacoes.data.filter((a) => a.estado === 'PENDENTE');
+  const allPendentesSelected =
+    pendentes.length > 0 && pendentes.every((a) => selectedIds.includes(a.id));
+  const toggleAllPendentes = () => {
+    if (allPendentesSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !pendentes.some((p) => p.id === id)));
+    } else {
+      setSelectedIds((prev) => [
+        ...prev,
+        ...pendentes.map((p) => p.id).filter((id) => !prev.includes(id)),
+      ]);
+    }
+  };
 
   return (
     <>
       <Head title="Aprovações · Ponto WR2" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <header>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <CheckCheck size={22} /> Aprovações
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Fila de intercorrências aguardando decisão do RH / gestor.
-          </p>
-        </header>
+        <PageHeader
+          icon="check-check"
+          title="Aprovações"
+          description="Fila de intercorrências aguardando decisão do RH / gestor."
+        />
 
-        {/* KPIs por estado */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-          {(['PENDENTE', 'APROVADA', 'REJEITADA', 'APLICADA', 'RASCUNHO', 'CANCELADA'] as const).map(
-            (estado) => {
-              const cfg = estadoConfig[estado];
-              const IconEl = cfg.icon;
-              const active = filtros.estado === estado;
-              return (
-                <button
-                  key={estado}
-                  onClick={() => filterChange('estado', active ? '' : estado)}
-                  className={cn(
-                    'rounded-lg border p-3 text-left transition-colors',
-                    active
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border bg-card hover:border-primary/40',
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      {cfg.label}
-                    </span>
-                    <IconEl size={12} className="text-muted-foreground" />
-                  </div>
-                  <p className="text-xl font-bold mt-1">{contagens[estado] ?? 0}</p>
-                </button>
-              );
-            },
-          )}
-        </div>
+        {/* KPIs por estado — cada card filtra quando clicado */}
+        <KpiGrid cols={6}>
+          {estadoOrder.map((estado) => {
+            const active = filtros.estado === estado;
+            return (
+              <KpiCard
+                key={estado}
+                label={estadoLabelMap[estado]}
+                value={contagens[estado] ?? 0}
+                icon={estadoIconMap[estado]}
+                tone={estadoToneMap[estado]}
+                size="compact"
+                selected={active}
+                onClick={() => filterChange('estado', active ? '' : estado)}
+              />
+            );
+          })}
+        </KpiGrid>
 
         {/* Filtros adicionais */}
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1 flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5">
-                <Search size={14} className="text-muted-foreground" />
-                <Input
-                  disabled
-                  placeholder="Busca por colaborador/justificativa (em breve)"
-                  className="h-7 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Select
-                  value={filtros.tipo ?? 'ALL'}
-                  onValueChange={(v) => filterChange('tipo', v === 'ALL' ? '' : v)}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">Todos os tipos</SelectItem>
-                    {tipos.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>
-                        {t.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={filtros.prioridade ?? 'ALL'}
-                  onValueChange={(v) => filterChange('prioridade', v === 'ALL' ? '' : v)}
-                >
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Prioridade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">Todas</SelectItem>
-                    <SelectItem value="URGENTE">Urgente</SelectItem>
-                    <SelectItem value="NORMAL">Normal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <PageFilters activeChips={activeChips} onReset={activeChips.length > 0 ? resetFilters : undefined} cols={2}>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>
+            <Select
+              value={filtros.tipo ?? 'ALL'}
+              onValueChange={(v) => filterChange('tipo', v === 'ALL' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Todos os tipos</SelectItem>
+                {tipos.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Prioridade</label>
+            <Select
+              value={filtros.prioridade ?? 'ALL'}
+              onValueChange={(v) => filterChange('prioridade', v === 'ALL' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Prioridade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Todas</SelectItem>
+                <SelectItem value="URGENTE">Urgente</SelectItem>
+                <SelectItem value="NORMAL">Normal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </PageFilters>
 
         {/* Tabela */}
         <Card>
           <CardContent className="p-0">
             {aprovacoes.data.length === 0 ? (
-              <div className="p-12 text-center text-muted-foreground">
-                <Inbox size={32} className="mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Nenhuma intercorrência com esses filtros.</p>
-              </div>
+              <EmptyState
+                icon={activeChips.length > 0 || filtros.estado ? 'search-x' : 'inbox'}
+                title={activeChips.length > 0 || filtros.estado ? 'Nenhum resultado' : 'Caixa vazia'}
+                description={
+                  activeChips.length > 0 || filtros.estado
+                    ? 'Nenhuma intercorrência com esses filtros. Tente limpar os filtros ou ampliar a busca.'
+                    : 'Nenhuma intercorrência foi registrada. Quando os colaboradores submeterem solicitações, elas aparecerão aqui.'
+                }
+                variant={activeChips.length > 0 || filtros.estado ? 'search' : 'default'}
+                action={
+                  activeChips.length > 0 || filtros.estado ? (
+                    <Button variant="outline" size="sm" onClick={resetFilters}>
+                      Limpar filtros
+                    </Button>
+                  ) : undefined
+                }
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
                     <tr>
+                      {pendentes.length > 0 && (
+                        <th className="w-10 p-3">
+                          <input
+                            type="checkbox"
+                            checked={allPendentesSelected}
+                            onChange={toggleAllPendentes}
+                            aria-label="Selecionar todas as pendentes"
+                            className="h-4 w-4"
+                          />
+                        </th>
+                      )}
                       <th className="text-left p-3 font-medium">Colaborador</th>
                       <th className="text-left p-3 font-medium">Tipo</th>
                       <th className="text-left p-3 font-medium">Data</th>
@@ -283,12 +346,29 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
                   </thead>
                   <tbody className="divide-y divide-border">
                     {aprovacoes.data.map((a) => {
-                      const estadoCfg = estadoConfig[a.estado] ?? estadoConfig.PENDENTE;
-                      const prioCfg = prioridadeConfig[a.prioridade] ?? prioridadeConfig.NORMAL;
-                      const IconEstado = estadoCfg.icon;
                       const canActOn = a.estado === 'PENDENTE';
+                      const isSelected = selectedIds.includes(a.id);
                       return (
                         <tr key={a.id} className="hover:bg-accent/30 transition-colors">
+                          {pendentes.length > 0 && (
+                            <td className="p-3">
+                              {canActOn ? (
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) =>
+                                    setSelectedIds((prev) =>
+                                      e.target.checked
+                                        ? [...prev, a.id]
+                                        : prev.filter((id) => id !== a.id),
+                                    )
+                                  }
+                                  aria-label={`Selecionar ${a.codigo}`}
+                                  className="h-4 w-4"
+                                />
+                              ) : null}
+                            </td>
+                          )}
                           <td className="p-3">
                             <div className="font-medium">{a.colaborador.nome}</div>
                             {a.colaborador.matricula && (
@@ -317,15 +397,10 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
                             )}
                           </td>
                           <td className="p-3">
-                            <Badge variant={estadoCfg.variant} className="gap-1 text-[10px]">
-                              <IconEstado size={10} />
-                              {estadoCfg.label}
-                            </Badge>
+                            <StatusBadge kind="intercorrencia" value={a.estado} />
                           </td>
                           <td className="p-3">
-                            <Badge variant={prioCfg.variant} className="text-[10px]">
-                              {prioCfg.label}
-                            </Badge>
+                            <StatusBadge kind="prioridade" value={a.prioridade} />
                           </td>
                           <td className="p-3 text-xs text-muted-foreground" title={a.created_at ?? ''}>
                             {a.created_at_human ?? '—'}
@@ -393,6 +468,19 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
           </CardContent>
         </Card>
       </div>
+
+      {/* ==================== BulkActionBar ==================== */}
+      <BulkActionBar selectedCount={selectedIds.length} onClear={() => setSelectedIds([])}>
+        <Button
+          size="sm"
+          onClick={handleBulkApprove}
+          disabled={processing}
+          className="bg-emerald-600 hover:bg-emerald-700"
+        >
+          <CheckCheck size={14} className="mr-1" />
+          Aprovar selecionadas
+        </Button>
+      </BulkActionBar>
 
       {/* ==================== Dialog: Aprovar ==================== */}
       <AlertDialog open={approveTarget !== null} onOpenChange={(o) => !o && setApproveTarget(null)}>
