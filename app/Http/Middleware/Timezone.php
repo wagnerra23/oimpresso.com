@@ -18,9 +18,17 @@ class Timezone
     {
         $timezone = config('app.timezone');
 
-        if (session()->has('business.time_zone')) {
-            $timezone = $request->session()->get('business.time_zone');
-        } else {
+        if ($request->session()->has('business_timezone')) {
+            $timezone = $request->session()->get('business_timezone');
+        } elseif ($request->session()->has('business')) {
+            $business = $request->session()->get('business');
+            $business_tz = is_object($business)
+                ? ($business->time_zone ?? null)
+                : ($business['time_zone'] ?? null);
+            if (! empty($business_tz)) {
+                $timezone = $business_tz;
+            }
+        } elseif (Auth::check() && optional(Auth::user()->business)->time_zone) {
             $timezone = Auth::user()->business->time_zone;
         }
 
