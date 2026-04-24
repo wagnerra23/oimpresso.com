@@ -27,6 +27,15 @@ Tabela MySQL. Cache de user stories e regras Gherkin extraídas dos `SPEC.md`. R
 ## docs_sources
 Tabela MySQL. Fonte bruta da evidência — arquivo uploaded, URL, texto livre, screenshot. Uma fonte gera N evidences.
 
+## docs_validation_runs
+Tabela MySQL. Histórico de execuções do `DocValidator`. Cada run guarda `health_score` (0-100), `issues` JSON, `only_module` (se limitado), `ran_at`, `duration_ms`. Base pra gráfico de tendência de saúde da documentação.
+
+## docs_chat_messages
+Tabela MySQL. Persiste histórico de chat por `(user_id, business_id, session_id)`. Role ∈ {user, assistant, system}. Suporta múltiplas sessões por usuário no sidebar do `/docs/chat`.
+
+## docs_pages
+Tabela MySQL. Cada registro é uma tela React anotada com `@docvault`, com arrays JSON de stories/rules/adrs/tests associados + `last_seen_at` pra detectar páginas removidas.
+
 ## Evidence
 Pedaço de informação não-estruturada que *pode* virar requisito depois de curadoria. Vive em `docs_evidences`.
 
@@ -51,3 +60,21 @@ ADR 0005. Loop Fluxo ↔ Tela ↔ Teste: cada user story tem página associada, 
 
 ## Trace score
 Pontuação 0-100 do dashboard = média de (% stories com página + % regras com teste). Proxy de "docs-reality alignment".
+
+## Health score
+Pontuação 0-100 gravada em `docs_validation_runs.health_score`. Calculado pelo `DocValidator` como `100 - penalidades`, onde cada issue tem peso definido no ADR 0005. Diferente de **Audit score** (per-módulo) e **Coverage score** (arquivos presentes).
+
+## MemoryReader
+Service `Modules/DocVault/Services/MemoryReader.php`. Lê as 3 fontes de memória do projeto (primer/project/Claude), expõe árvore navegável e preview controlado de arquivo. Whitelist: `md`, `txt`, `json`, `yaml`, `yml`.
+
+## ModuleAuditor
+Service `Modules/DocVault/Services/ModuleAuditor.php`. Implementa os 15 checks C01-C15 do ADR 0007. Ponto de entrada: `docvault:audit-module {Nome} [--save]`.
+
+## DocValidator
+Service `Modules/DocVault/Services/DocValidator.php`. Implementa os 5 checks de integridade global (STORY_ORPHAN, RULE_NO_TEST, ADR_DANGLING, PAGE_NO_META, PAGE_STALE). Ponto de entrada: `docvault:validate [--module=X]`.
+
+## ChatAssistant
+Service `Modules/DocVault/Services/ChatAssistant.php`. Orquestra busca offline (keyword + scoring) e modo AI stub. Retorna `(answer, citations)`. Citações apontam `{módulo, arquivo, linha}` pra cada trecho usado.
+
+## RequirementsFileReader
+Service `Modules/DocVault/Services/RequirementsFileReader.php`. Parser central do formato de documentação. Detecta formato pasta vs plano, extrai frontmatter YAML, stories (US-XXX-NNN), regras (R-XXX-NNN), ADRs, auditorias.

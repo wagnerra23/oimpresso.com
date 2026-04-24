@@ -105,8 +105,35 @@ php artisan docvault:audit-module DocVault --save
 php artisan docvault:gen-test R-PONT-002
 ```
 
+## Problema: auditoria reporta score < 70 sem findings claros
+
+**Sintoma**: `docvault:audit-module NomeModulo` retorna score baixo mas a lista de findings parece genérica.
+
+**Diagnóstico**: auditoria tem 15 checks. Score é ponderado; um único `C06 RULES_HAVE_TEST` falhando com 10 regras derruba 10+ pontos. Rode:
+```bash
+php artisan docvault:audit-module NomeModulo --save
+```
+E leia o arquivo gerado em `memory/requisitos/NomeModulo/audits/YYYY-MM-DD.md` — lá vem a tabela detalhada com cada regra faltando teste.
+
+## Problema: `docvault:validate` não encontra telas mesmo com `@docvault`
+
+**Sintoma**: findings `PAGE_NO_META` listam páginas que JÁ têm o bloco.
+
+**Causa**: `docs_pages` está desatualizada. O validate não varre filesystem — usa o cache.
+
+**Correção**: rodar `php artisan docvault:sync-pages` antes de `docvault:validate`. Ou instalar hook:
+```bash
+php artisan docvault:install-hooks
+```
+Que configura pre-commit para rodar sync-pages + validate automaticamente.
+
+## Problema: modo AI do chat sempre retorna stub
+
+Ver seção anterior "Chat retorna 'desabilitado' mesmo com AI ligada". Resumo: `ChatAssistant::askWithAi()` é stub — esperado, implementação real fica pendente.
+
 ## Contatos em caso de incidente
 
 - **Dono/decisor**: Wagner — wagnerra@gmail.com
-- **Repo**: branch `6.7-react` em `D:\oimpresso.com`
+- **Repo**: branch `6.7-bootstrap` em `D:\oimpresso.com` (Wagner commita direto nela; `main` está atrás)
 - **Servidor produção**: Hostinger (ver `reference_hostinger_server.md` na memória Claude)
+- **Deploy**: `git pull origin 6.7-bootstrap && php artisan view:clear && php artisan config:clear`
