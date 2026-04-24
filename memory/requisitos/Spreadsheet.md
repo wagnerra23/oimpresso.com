@@ -20,7 +20,7 @@ scale:
 > **Documentação viva.** Foca em _o que o módulo faz de valor pro negócio_,
 > separada da spec técnica em `memory/modulos/Spreadsheet.md`.
 >
-> Arquivos deste formato são consumidos pelo módulo **DocVault**
+> Arquivos deste formato são consumidos pelo módulo **MemCofre**
 > (`/docs/modulos/Spreadsheet`) que linka user stories com telas React,
 > regras Gherkin com testes, e mantém rastreabilidade evidência → requisito.
 
@@ -141,4 +141,4 @@ _[TODO — APIs, webhooks, serviços de terceiros, SSO, etc.]_
 ---
 _Última regeneração: 2026-04-22 16:35_  
 _Regerar: `php artisan module:requirements Spreadsheet`_  
-_Ver no DocVault: `/docs/modulos/Spreadsheet`_
+_Ver no MemCofre: `/docs/modulos/Spreadsheet`_

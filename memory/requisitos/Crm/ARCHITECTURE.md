@@ -176,4 +176,4 @@ _[TODO — APIs, webhooks, serviços de terceiros, SSO, etc.]_
 ---
 _Última regeneração: 2026-04-22 16:34_  
 _Regerar: `php artisan module:requirements Crm`_  
-_Ver no DocVault: `/docs/modulos/Crm`_
+_Ver no MemCofre: `/docs/modulos/Crm`_

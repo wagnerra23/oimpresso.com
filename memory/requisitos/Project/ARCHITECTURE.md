@@ -99,4 +99,4 @@ _[TODO — APIs, webhooks, serviços de terceiros, SSO, etc.]_
 ---
 _Última regeneração: 2026-04-22 16:35_  
 _Regerar: `php artisan module:requirements Project`_  
-_Ver no DocVault: `/docs/modulos/Project`_
+_Ver no MemCofre: `/docs/modulos/Project`_

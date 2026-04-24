@@ -226,4 +226,4 @@ created_at
 
 _Última atualização: 2026-04-24_
 _Regerar dados estruturais: `php artisan module:requirements Officeimpresso`_
-_Ver no DocVault: `/docs/modulos/Officeimpresso`_
+_Ver no MemCofre: `/docs/modulos/Officeimpresso`_

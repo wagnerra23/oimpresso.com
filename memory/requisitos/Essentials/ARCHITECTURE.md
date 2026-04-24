@@ -171,4 +171,4 @@ _[TODO — APIs, webhooks, serviços de terceiros, SSO, etc.]_
 ---
 _Última regeneração: 2026-04-22 16:34_  
 _Regerar: `php artisan module:requirements Essentials`_  
-_Ver no DocVault: `/docs/modulos/Essentials`_
+_Ver no MemCofre: `/docs/modulos/Essentials`_

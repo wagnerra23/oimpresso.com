@@ -20,7 +20,7 @@ scale:
 > **Documentação viva.** Foca em _o que o módulo faz de valor pro negócio_,
 > separada da spec técnica em `memory/modulos/Woocommerce.md`.
 >
-> Arquivos deste formato são consumidos pelo módulo **DocVault**
+> Arquivos deste formato são consumidos pelo módulo **MemCofre**
 > (`/docs/modulos/Woocommerce`) que linka user stories com telas React,
 > regras Gherkin com testes, e mantém rastreabilidade evidência → requisito.
 
@@ -180,4 +180,4 @@ _[TODO — APIs, webhooks, serviços de terceiros, SSO, etc.]_
 ---
 _Última regeneração: 2026-04-22 16:35_  
 _Regerar: `php artisan module:requirements Woocommerce`_  
-_Ver no DocVault: `/docs/modulos/Woocommerce`_
+_Ver no MemCofre: `/docs/modulos/Woocommerce`_

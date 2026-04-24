@@ -20,7 +20,7 @@ scale:
 > **Documentação viva.** Foca em _o que o módulo faz de valor pro negócio_,
 > separada da spec técnica em `memory/modulos/ProductCatalogue.md`.
 >
-> Arquivos deste formato são consumidos pelo módulo **DocVault**
+> Arquivos deste formato são consumidos pelo módulo **MemCofre**
 > (`/docs/modulos/ProductCatalogue`) que linka user stories com telas React,
 > regras Gherkin com testes, e mantém rastreabilidade evidência → requisito.
 
@@ -115,4 +115,4 @@ _Módulo não declara entities próprias._
 ---
 _Última regeneração: 2026-04-22 16:35_  
 _Regerar: `php artisan module:requirements ProductCatalogue`_  
-_Ver no DocVault: `/docs/modulos/ProductCatalogue`_
+_Ver no MemCofre: `/docs/modulos/ProductCatalogue`_

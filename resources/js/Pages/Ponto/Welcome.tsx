@@ -1,4 +1,4 @@
-// @docvault
+// @memcofre
 //   tela: /ponto/welcome
 //   module: PontoWr2
 //   status: implementada

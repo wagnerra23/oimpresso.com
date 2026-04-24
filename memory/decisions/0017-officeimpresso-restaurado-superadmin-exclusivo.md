@@ -22,7 +22,7 @@ A tabela `licenca_computador` no DB de produção foi preservada (não sofreu DR
 
 4. **Topnav em dois formatos:**
    - `Resources/views/layouts/nav.blade.php` — barra AdminLTE/Bootstrap 3 (convenção UPOS)
-   - `Resources/menus/topnav.php` — declarativo pra futuro React/Inertia (convenção DocVault)
+   - `Resources/menus/topnav.php` — declarativo pra futuro React/Inertia (convenção MemCofre)
 
 5. **Log de Acesso do Desktop (fase 1 — passivo):** `licenca_log` alimentada por **triggers MySQL** em `oauth_access_tokens` / `oauth_refresh_tokens`, sem middleware no request path. **Zero risco de quebrar auth do Delphi legado.**
 

@@ -29,7 +29,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver]
 
 ### Added
 
-- Rastreabilidade tripla aplicada (ADR DocVault 0005): 3 telas principais declaram stories/regras/ADRs/tests via bloco @docvault no topo do arquivo.
+- Rastreabilidade tripla aplicada (ADR MemCofre 0005): 3 telas principais declaram stories/regras/ADRs/tests via bloco @docvault no topo do arquivo.
   - Ponto/Espelho/Show.tsx → US-PONT-007, US-PONT-008, R-PONT-001, R-PONT-002
   - Ponto/Intercorrencias/Index.tsx → US-PONT-001, R-PONT-001, R-PONT-004
   - Ponto/Importacoes/Index.tsx → US-PONT-009/010/011, R-PONT-001

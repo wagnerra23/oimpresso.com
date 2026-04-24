@@ -178,7 +178,7 @@ class GenerateModuleRequirementsCommand extends Command
         $md .= "2. **Fonte única da verdade funcional** — quando o código muda, atualizar o requisito.\n";
         $md .= "3. **Regerar** — `php artisan module:requirements` gera arquivos faltantes\n";
         $md .= "   sem sobrescrever edições manuais. Use `--force` com cuidado.\n";
-        $md .= "4. **Módulo DocVault** (`/docs`) consome esses arquivos e linka com evidências\n";
+        $md .= "4. **Módulo MemCofre** (`/docs`) consome esses arquivos e linka com evidências\n";
         $md .= "   (screenshots de bug, chat logs, erros reportados).\n\n";
 
         $md .= "---\n";
