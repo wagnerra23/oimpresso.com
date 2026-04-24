@@ -79,36 +79,53 @@ class LicencaComputadorController extends Controller
 
     /**
      * Fluxo rapido: sem CNPJ no body, resolve business via HD.
-     * Atualiza dt_ultimo_acesso + metadados (versao, hostname, ip) na
-     * licenca_computador existente.
+     *
+     * Um mesmo HD pode estar cadastrado em N businesses (ex: notebook de
+     * suporte que acessa DBs de varios clientes). Sem CNPJ no body, NAO
+     * da pra desambiguar qual business o Delphi esta atendendo naquela
+     * chamada especifica.
+     *
+     * Politica adotada: **atualizar TODAS as linhas licenca_computador com
+     * aquele HD**. "O HD pingou agora" -> todas as suas instancias sobem
+     * pro topo do grid. Se qualquer uma estiver com business ou maquina
+     * bloqueada, responde N com esse motivo (conservador — se uma das
+     * empresas bloqueou o HD, o Delphi respeita).
      */
     private function processarApenasHd(string $hd, array $flat)
     {
-        $equipamento = Licenca_Computador::where('hd', $hd)
-            ->orderByDesc('dt_ultimo_acesso')
-            ->first();
+        $equipamentos = Licenca_Computador::where('hd', $hd)->get();
 
-        if (! $equipamento) {
+        if ($equipamentos->isEmpty()) {
             return response('N;Maquina nao cadastrada. Contate o suporte.', 200);
         }
 
-        $business = \App\Business::find($equipamento->business_id);
-        if ($business && $business->officeimpresso_bloqueado) {
+        // Se QUALQUER business deste HD esta bloqueado, recusa (conservador)
+        $businessIds = $equipamentos->pluck('business_id')->filter()->unique();
+        $bizBloqueada = \DB::table('business')
+            ->whereIn('id', $businessIds)
+            ->where('officeimpresso_bloqueado', 1)
+            ->exists();
+        if ($bizBloqueada) {
             return response('N;Cliente bloqueado', 200);
         }
 
-        // Atualiza metadados do cadastro com o que veio no flat
-        if (! empty($flat['host']))     $equipamento->hostname = $flat['host'];
-        if (! empty($flat['ip']))       $equipamento->ip_interno = $flat['ip'];
-        if (! empty($flat['sistema']))  $equipamento->sistema = $flat['sistema'];
-        if (! empty($flat['versao']))   $equipamento->versao_exe = $flat['versao'];
-        $equipamento->dt_ultimo_acesso = now();
-        $equipamento->save();
-
-        if ($equipamento->bloqueado) {
-            $motivo = ! empty($equipamento->motivo) ? $equipamento->motivo : 'Motivo não informado';
+        // Se qualquer maquina esta com bloqueado=1, recusa
+        $bloqueada = $equipamentos->firstWhere('bloqueado', 1);
+        if ($bloqueada) {
+            $motivo = ! empty($bloqueada->motivo) ? $bloqueada->motivo : 'Motivo não informado';
             return response('N;' . $motivo, 200);
         }
+
+        // Atualiza TODAS as linhas com aquele HD (1 UPDATE eficiente)
+        $fields = array_filter([
+            'hostname'      => $flat['host'] ?? null,
+            'ip_interno'    => $flat['ip'] ?? null,
+            'sistema'       => $flat['sistema'] ?? null,
+            'versao_exe'    => $flat['versao'] ?? null,
+        ], fn ($v) => ! empty($v));
+        $fields['dt_ultimo_acesso'] = now();
+
+        Licenca_Computador::where('hd', $hd)->update($fields);
 
         return response('S;Cliente e equipamento liberados', 200);
     }
