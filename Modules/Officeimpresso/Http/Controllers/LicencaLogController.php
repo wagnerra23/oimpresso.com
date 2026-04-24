@@ -17,7 +17,8 @@ class LicencaLogController extends Controller
         if (! auth()->user()->can('superadmin')) {
             $business_id = session()->get('user.business_id');
         } else {
-            $business_id = null;
+            // Superadmin pode filtrar por qualquer business via query string
+            $business_id = $request->query('business_id') ?: null;
         }
 
         if ($request->ajax()) {
@@ -77,8 +78,9 @@ class LicencaLogController extends Controller
             'businessupdate',
         ];
 
-        $filter_licenca_id = $request->query('licenca_id');
-        return view('officeimpresso::licenca_log.index', compact('kpis', 'events', 'filter_licenca_id'));
+        $filter_licenca_id  = $request->query('licenca_id');
+        $filter_business_id = $request->query('business_id');
+        return view('officeimpresso::licenca_log.index', compact('kpis', 'events', 'filter_licenca_id', 'filter_business_id'));
     }
 
     public function show($id)
