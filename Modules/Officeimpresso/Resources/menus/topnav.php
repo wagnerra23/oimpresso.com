@@ -24,6 +24,5 @@ return [
         ['label' => 'Licenças',             'href' => '/officeimpresso/licenca_computador', 'icon' => 'KeyRound'],
         ['label' => 'Clientes',             'href' => '/officeimpresso/client',             'icon' => 'UserCog',        'can' => 'superadmin'],
         ['label' => 'Log de Acesso',        'href' => '/officeimpresso/licenca_log',        'icon' => 'ClipboardList'],
-        ['label' => 'Documentação',         'href' => '/officeimpresso/docs',               'icon' => 'BookOpen'],
     ],
 ];

@@ -77,12 +77,6 @@ class DataController extends Controller
                         'Log de Acesso',
                         ['icon' => 'fa fas fa-clipboard-list', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'licenca_log']
                     );
-
-                    $sub->url(
-                        url('/officeimpresso/docs'),
-                        __('officeimpresso::lang.documentation'),
-                        ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'docs']
-                    );
                 },
                 ['icon' => 'fas fa-plug', 'style' => 'background-color: #2dce89 !important;']
             )->order(2);
