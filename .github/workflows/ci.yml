@@ -67,9 +67,9 @@ jobs:
 
       - name: Run Pest (offline-safe tests)
         # Suite legada precisa DB completa do UltimatePOS migrada (incluindo tabela 'system')
-        # — fora do escopo CI atual. Rodamos apenas tests offline-safe (form shim + strategies)
+        # — fora do escopo CI atual. Rodamos apenas tests offline-safe (form shim)
         # ate ter setup de migrations no runner.
-        run: vendor/bin/pest tests/Feature/Modules/Financeiro/CnabDirectStrategyContractTest.php tests/Feature/Form --no-coverage
+        run: vendor/bin/pest tests/Feature/Form --no-coverage
 
   frontend:
     name: Frontend / Vite build
