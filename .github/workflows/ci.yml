@@ -70,11 +70,10 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (offline-safe — contract test e Form shim)
-        # TituloService + TransactionObserver tests bootam app que consulta
-        # system.crm_version no boot do CrmServiceProvider — precisa migrate
-        # completo. Setup MySQL+migrate em PR separado.
-        run: vendor/bin/pest tests/Feature/Modules/Financeiro/CnabDirectStrategyContractTest.php tests/Feature/Form --no-coverage
+      - name: Run Pest (suite Financeiro + Form shim)
+        # ModuleUtil::isModuleInstalled e getModuleVersionInfo agora sao
+        # graceful (try/catch) — boot da app funciona sem migrate completo.
+        run: vendor/bin/pest tests/Feature/Modules/Financeiro/ tests/Feature/Form --no-coverage
 
   frontend:
     name: Frontend / Vite build
