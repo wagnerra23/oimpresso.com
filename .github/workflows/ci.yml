@@ -13,6 +13,21 @@ jobs:
   php:
     name: PHP / Pest (Unit)
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: oimpresso_ci
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +61,7 @@ jobs:
           find app Modules -name '*.php' -not -path '*/vendor/*' -not -path '*/node_modules/*' -print0 \
             | xargs -0 -n1 -P4 php -l > /dev/null
 
-      - name: Prepare .env (minimal, CI-only)
+      - name: Prepare .env (CI com MySQL)
         run: |
           cat > .env <<'EOF'
           APP_NAME=oimpresso-ci
@@ -54,8 +69,12 @@ jobs:
           APP_DEBUG=true
           APP_URL=http://localhost
           LOG_CHANNEL=stderr
-          DB_CONNECTION=sqlite
-          DB_DATABASE=:memory:
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=oimpresso_ci
+          DB_USERNAME=root
+          DB_PASSWORD=root
           CACHE_DRIVER=array
           QUEUE_CONNECTION=sync
           SESSION_DRIVER=array
@@ -65,10 +84,20 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (offline-safe tests)
-        # Suite legada precisa DB completa do UltimatePOS migrada (incluindo tabela 'system')
-        # — fora do escopo CI atual. Rodamos apenas tests offline-safe (form shim + strategies)
-        # ate ter setup de migrations no runner.
+      - name: Wait for MySQL
+        run: |
+          for i in $(seq 1 30); do
+            mysqladmin ping -h 127.0.0.1 -P 3306 -u root -proot --silent && break
+            echo "MySQL not ready, waiting..."
+            sleep 2
+          done
+
+      - name: Run all migrations (core + modules)
+        run: |
+          php artisan migrate --force
+          php artisan module:migrate --force || true
+
+      - name: Run Pest (full suite Financeiro + Form)
         run: vendor/bin/pest tests/Feature/Modules/Financeiro/ tests/Feature/Form --no-coverage
 
   frontend:
