@@ -2,17 +2,17 @@ const COLUMNS = [
   {
     heading: 'Produto',
     links: [
-      { label: 'Recursos', href: '/c/page/recursos' },
-      { label: 'Preços', href: '/c/page/precos' },
+      { label: 'Recursos', href: '/#recursos' },
+      { label: 'Preços', href: '/pricing' },
       { label: 'Novidades', href: '/c/blogs' },
     ],
   },
   {
     heading: 'Soluções',
     links: [
-      { label: 'Comunicação visual', href: '/c/page/comunicacao-visual' },
-      { label: 'Varejo & multi-loja', href: '/c/page/varejo' },
-      { label: 'Serviços', href: '/c/page/servicos' },
+      { label: 'Comunicação visual', href: '/#recursos' },
+      { label: 'Varejo & multi-loja', href: '/#recursos' },
+      { label: 'Serviços', href: '/#recursos' },
     ],
   },
   {
@@ -20,15 +20,13 @@ const COLUMNS = [
     links: [
       { label: 'Central de ajuda', href: '/ajuda/' },
       { label: 'Fale com a gente', href: '/c/contact-us' },
-      { label: 'Status', href: '/status' },
     ],
   },
   {
     heading: 'Empresa',
     links: [
-      { label: 'Sobre', href: '/c/page/sobre' },
-      { label: 'Política de privacidade', href: '/c/page/privacidade' },
-      { label: 'Termos de uso', href: '/c/page/termos' },
+      { label: 'Entrar no app', href: '/login' },
+      { label: 'Fale com vendas', href: '/c/contact-us' },
     ],
   },
 ];
