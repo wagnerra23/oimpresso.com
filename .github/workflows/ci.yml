@@ -81,8 +81,6 @@ jobs:
           MAIL_MAILER=array
           BCRYPT_ROUNDS=4
           EOF
-          php artisan key:generate
-          php artisan package:discover --ansi
 
       - name: Wait for MySQL
         run: |
@@ -92,10 +90,12 @@ jobs:
             sleep 2
           done
 
-      - name: Run all migrations (core + modules)
+      - name: APP_KEY + migrate (core + modules) ANTES de package:discover
         run: |
+          php artisan key:generate
           php artisan migrate --force
           php artisan module:migrate --force || true
+          php artisan package:discover --ansi
 
       - name: Run Pest (full suite Financeiro + Form)
         run: vendor/bin/pest tests/Feature/Modules/Financeiro/ tests/Feature/Form --no-coverage
