@@ -3,17 +3,24 @@ module: Cms
 alias: cms
 status: ativo
 migration_target: react
-migration_priority: baixa (grande, fazer por último ou dividir)
+migration_priority: alta (em andamento — PR1 mergeado 2026-04-25)
+migration_status: in-progress
 risk: alto
-areas: [Core, Page, Settings]
+areas: [Core, Page, Settings, Site (novo, PR1)]
 last_generated: 2026-04-22
+last_updated: 2026-04-25
 scale:
-  routes: 12
+  routes: 14
   controllers: 5
   views: 45
   entities: 3
   permissions: 0
+  inertia_pages: 2  # Site/Home + Site/Pricing (PR1)
+adrs: [0025]
 ---
+
+> **Atualização 2026-04-25 (PR1, commit `aabe142d`):** Landing pública e `/pricing` migrados pra Inertia/React. Versão Blade legada preservada em `/old` e `/pricing/old`. Veja [ADR 0025](../decisions/0025-cms-redesign-inertia-react.md). PR2 hidratará componentes a partir de `cms_pages` (hoje copy hardcoded em PT-BR).
+
 
 # Requisitos funcionais — Cms
 

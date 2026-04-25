@@ -47,4 +47,24 @@ class SiteHomeTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    /** @test */
+    public function pricing_publico_renderiza_componente_inertia_site_pricing(): void
+    {
+        $response = $this->get('/pricing', ['X-Inertia' => 'true']);
+
+        $response->assertStatus(200);
+        $payload = $response->json();
+        $this->assertSame('Site/Pricing', $payload['component'] ?? null);
+        $this->assertArrayHasKey('packages', $payload['props']);
+        $this->assertArrayHasKey('permissions', $payload['props']);
+    }
+
+    /** @test */
+    public function pricing_old_mantem_blade_legado_funcionando(): void
+    {
+        $response = $this->get('/pricing/old');
+
+        $response->assertStatus(200);
+    }
 }
