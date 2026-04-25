@@ -147,6 +147,17 @@ class DataController extends Controller
                             );
                         }
 
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.access')) {
+                            $sub->url(
+                                url('/financeiro/categorias'),
+                                __('financeiro::financeiro.menu.categorias'),
+                                [
+                                    'icon'   => 'fa fas fa-tags',
+                                    'active' => request()->segment(2) == 'categorias',
+                                ]
+                            );
+                        }
+
                         if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.boletos.view')) {
                             $sub->url(
                                 url('/financeiro/boletos'),
