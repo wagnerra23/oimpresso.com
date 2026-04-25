@@ -3,69 +3,43 @@
 namespace Modules\Financeiro\Observers;
 
 use App\Transaction;
-use Illuminate\Support\Facades\Log;
-use Modules\Financeiro\Jobs\CriarTituloDeVendaJob;
+use Modules\Financeiro\Services\TituloAutoService;
 
 /**
  * Observer no Transaction core do UltimatePOS.
  *
- * Registrado no boot do FinanceiroServiceProvider:
+ * Registrado no boot do FinanceiroServiceProvider via:
  *   \App\Transaction::observe(\Modules\Financeiro\Observers\TransactionObserver::class);
  *
- * Disparos:
- *  - created (sell/purchase com payment_status=due) → cria título auto via job
- *  - updated (cancellation/payment changed) → recalcula valor_aberto
- *  - deleted → marca título como cancelado (não hard delete)
+ * MVP: sincronização sincrona (sem queue). Job assincrono fica pra
+ * onda 2 se latencia em /sells/create incomodar.
  *
- * Idempotência garantida pela UNIQUE em fin_titulos
+ * Idempotencia garantida pela UNIQUE em fin_titulos
  *   (business_id, origem, origem_id, parcela_numero) — TECH-0001.
  */
 class TransactionObserver
 {
-    public function created(Transaction $transaction): void
+    public function __construct(private TituloAutoService $service)
     {
-        // Só auto-cria título pra vendas/compras com pagamento devido
-        if (! in_array($transaction->type, ['sell', 'purchase'], true)) {
-            return;
-        }
-
-        if (! in_array($transaction->payment_status, ['due', 'partial'], true)) {
-            return;
-        }
-
-        // Dispatch em queue 'financeiro' — não bloqueia salvamento da transaction
-        CriarTituloDeVendaJob::dispatch($transaction->id)
-            ->onQueue('financeiro');
     }
 
-    public function updated(Transaction $transaction): void
+    public function created(Transaction $tx): void
     {
-        // Só recalcula se status de pagamento OU final_total mudou
-        if (! $transaction->wasChanged(['payment_status', 'final_total'])) {
+        $this->service->sincronizarDeVenda($tx);
+    }
+
+    public function updated(Transaction $tx): void
+    {
+        // So re-sincroniza se algo financeiramente relevante mudou.
+        if (! $tx->wasChanged(['payment_status', 'final_total', 'pay_term_number', 'pay_term_type'])) {
             return;
         }
 
-        // Recálculo é responsabilidade do listener de TransactionPaymentCreated/Updated.
-        // Aqui apenas log pra observabilidade.
-        Log::channel('financeiro')->info('Transaction atualizada', [
-            'transaction_id' => $transaction->id,
-            'payment_status' => $transaction->payment_status,
-            'final_total' => $transaction->final_total,
-        ]);
+        $this->service->sincronizarDeVenda($tx);
     }
 
-    public function deleted(Transaction $transaction): void
+    public function deleted(Transaction $tx): void
     {
-        // Cancelamento de venda → marca título como cancelado (não delete)
-        \Modules\Financeiro\Models\Titulo::query()
-            ->withoutGlobalScope(\Modules\Financeiro\Models\Concerns\BusinessScopeImpl::class)
-            ->where('business_id', $transaction->business_id)
-            ->where('origem', $transaction->type === 'sell' ? 'venda' : 'compra')
-            ->where('origem_id', $transaction->id)
-            ->where('status', '!=', 'quitado')
-            ->update([
-                'status' => 'cancelado',
-                'observacoes' => trim((string) ($titulo->observacoes ?? '')) . "\n[Auto] Venda/compra cancelada em " . now()->toDateTimeString(),
-            ]);
+        $this->service->cancelarSeExistir($tx, motivo: 'venda excluida');
     }
 }
