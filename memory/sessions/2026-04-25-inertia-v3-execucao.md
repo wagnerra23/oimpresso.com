@@ -69,16 +69,27 @@ Páginas com `useForm` (auditar caso a caso ao tocar cada uma):
 - `Ponto/Configuracoes/Reps.tsx`
 - `MemCofre/{Inbox,Ingest}.tsx`
 
+## Smoke browser — resultado (executado 2026-04-25 manhã)
+
+Todas as Inertia testadas hidrataram limpas, **zero erros de console relevantes**:
+
+| Página | hydrated | h1 | nav | OK |
+|---|---|---|---|---|
+| `/memcofre/inbox` | ✅ | (sidebar/inbox) | ✅ | ✅ |
+| `/ponto` | ✅ | "Dashboard" | ✅ | ✅ |
+| `/essentials/todo` | ✅ | "Tarefas (To-Do)" | ✅ | ✅ |
+| `/essentials/document` | ✅ | "Documentos" | — | ✅ |
+
+**Não testadas (priorizar antes do merge):**
+- `/sells/create` — Blade puro, **NÃO** é Inertia. Smoke pegou `hasContent=0` + `SyntaxError: Unexpected string` em `/sells/create:1767:34` e `/home:1786:34`. Esses dois são templates Blade tradicionais (admin LTE), não foram tocados pelo upgrade — provavelmente **pré-existentes**. Wagner investigar separado.
+- `/ponto/espelho`, `/ponto/aprovacoes`, `/memcofre/ingest`, `/essentials/todo/create` (formulários)
+
 ## Próximos passos pro Wagner
 
-1. **Smoke browser** das páginas críticas (junto comigo, via Claude_in_Chrome):
-   - `/sells/create` (ROTA LIVRE — não pode quebrar)
-   - `/ponto/dashboard` + `/ponto/espelho/show`
-   - `/memcofre/inbox` + `/memcofre/ingest`
-   - `/essentials/todo/create`
-   - `/essentials/documents`
-2. Se smoke passar → push `feat/inertia-v3` → abrir PR para `6.7-bootstrap`
-3. Em PR separado depois: corrigir o tipo do `app.tsx:14` (workaround acima ou esperar update do `laravel-vite-plugin`)
+1. **Validar `/sells/create`** (cliente ROTA LIVRE) — confirmar se SyntaxError é pré-existente fazendo checkout em `6.7-bootstrap` e abrindo a mesma página. Se for igual, é débito separado, não bloqueia este PR.
+2. Auditar `useForm` nas páginas listadas (apenas onde ele já estava editando — sem refactor preventivo).
+3. Push `feat/inertia-v3` → abrir PR para `6.7-bootstrap`.
+4. Em PR separado depois: corrigir o tipo do `app.tsx:14` (workaround acima ou esperar update do `laravel-vite-plugin`).
 
 ## Referências
 - ADR: [memory/decisions/0023-inertia-v3-upgrade.md](../decisions/0023-inertia-v3-upgrade.md)
