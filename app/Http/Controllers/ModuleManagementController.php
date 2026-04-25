@@ -54,10 +54,18 @@ class ModuleManagementController extends Controller
     public function install(string $name)
     {
         try {
-            $result = $this->manager->install($name);
+            $businessId = (int) session('user.business_id');
+            $result = $this->manager->install($name, $businessId > 0 ? $businessId : null);
+
             if ($result['success']) {
-                return back()->with('status', ['success' => "Módulo {$name} instalado (migrations OK)."]);
+                $msg = "Módulo {$name} instalado (migrations OK).";
+                if (! empty($result['install_output'])) {
+                    // Comando <modulo>:install rodou: permissões + package + seed
+                    $msg .= ' Setup completo: permissões + plano de contas pré-populados.';
+                }
+                return back()->with('status', ['success' => $msg]);
             }
+
             return back()->with('status', ['error' => "Falha ao instalar {$name}: " . $result['output']]);
         } catch (\Throwable $e) {
             return back()->with('status', ['error' => "Falha: {$e->getMessage()}"]);

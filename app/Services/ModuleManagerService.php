@@ -177,11 +177,17 @@ class ModuleManagerService
     }
 
     /**
-     * Ativa + roda migrations (first-time install).
+     * Ativa + roda migrations + chama comando <modulo>:install se existir.
      *
-     * @return array{success: bool, output: string}
+     * Convenção: módulos podem ter `Modules/<Name>/Console/Commands/InstallCommand.php`
+     * exposto como artisan command `<alias>:install` (ex: `financeiro:install`).
+     * Esse comando faz setup pós-migration: permissões Spatie nos roles, habilita
+     * no package do business corrente, seedpa dados iniciais, etc.
+     *
+     * @param  int|null  $businessId  Business ID para passar pro install command (default: session)
+     * @return array{success: bool, output: string, install_output: string|null}
      */
-    public function install(string $name): array
+    public function install(string $name, ?int $businessId = null): array
     {
         if (!$this->moduleExists($name)) {
             throw new \InvalidArgumentException("Módulo '{$name}' não existe em Modules/.");
@@ -195,16 +201,69 @@ class ModuleManagerService
                 'module' => $name,
                 '--force' => true,
             ]);
+            $migrateOutput = Artisan::output();
+
+            // Tenta chamar <modulo>:install pra setup pós-migrations
+            $installOutput = $this->runModuleInstallCommand($name, $businessId);
 
             return [
                 'success' => true,
-                'output'  => Artisan::output(),
+                'output'  => $migrateOutput,
+                'install_output' => $installOutput,
             ];
         } catch (Throwable $e) {
             return [
                 'success' => false,
                 'output'  => $e->getMessage(),
+                'install_output' => null,
             ];
+        }
+    }
+
+    /**
+     * Detecta e chama `<modulo-alias>:install` se o módulo tiver tal comando.
+     * Convenção: arquivo `Modules/<Name>/Console/Commands/InstallCommand.php`
+     * registrado como artisan command `<alias>:install`.
+     */
+    protected function runModuleInstallCommand(string $name, ?int $businessId): ?string
+    {
+        $cmdFile = $this->modulesDir . DIRECTORY_SEPARATOR . $name
+            . DIRECTORY_SEPARATOR . 'Console'
+            . DIRECTORY_SEPARATOR . 'Commands'
+            . DIRECTORY_SEPARATOR . 'InstallCommand.php';
+
+        if (!File::exists($cmdFile)) {
+            return null; // módulo não tem InstallCommand opcional
+        }
+
+        // Lê alias do module.json
+        $moduleJsonPath = $this->modulesDir . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR . 'module.json';
+        $alias = strtolower($name);
+        if (File::exists($moduleJsonPath)) {
+            $json = json_decode(File::get($moduleJsonPath), true) ?? [];
+            $alias = strtolower($json['alias'] ?? $name);
+        }
+
+        $command = "{$alias}:install";
+
+        // Verifica se comando está realmente registrado
+        if (!array_key_exists($command, Artisan::all())) {
+            return "[skip] Comando '{$command}' não registrado no Artisan.";
+        }
+
+        $params = [];
+        $businessId = $businessId ?? (int) session('user.business_id');
+        if ($businessId > 0) {
+            $params['--business'] = $businessId;
+        } else {
+            $params['--all'] = true;
+        }
+
+        try {
+            Artisan::call($command, $params);
+            return Artisan::output();
+        } catch (Throwable $e) {
+            return "[erro] {$command}: {$e->getMessage()}";
         }
     }
 
