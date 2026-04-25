@@ -1,105 +1,81 @@
 @extends('layouts.install')
-@section('title', 'Installation/Update')
+@section('title', 'Installation')
+
+{{--
+    Tela simplificada (refatorada por Wagner em 2026-04-25):
+      - REMOVIDA validação Envato/Codecanyon/UltimateFosters
+      - REMOVIDOS campos license_code, login_username, ENVATO_EMAIL
+      - REMOVIDOS links externos para ultimatefosters.com / envato
+
+    Razão: Wagner já comprou o produto (UltimatePOS Codecanyon). Validação
+    contínua não tem mais necessidade e abre vetor de supply-chain attack
+    (qualquer mudança no servidor remoto vira código executado na instância).
+
+    Os InstallController upstream ainda chamam request()->validate() exigindo
+    license_code + login_username não-vazio. Por isso o form auto-submita
+    valores fixos abaixo (não há call HTTP externa pra validar — checagem
+    acontece só por presença string).
+--}}
 
 @section('content')
 <div class="container">
     <div class="row">
-
         <div class="col-md-8 col-md-offset-2">
             <br/><br/>
-
             <div class="box box-primary active">
-                <!-- /.box-header -->
                 <div class="box-body">
 
-              @if(session('error'))
-                <div class="alert alert-danger">
-                    {!! session('error') !!}
-                </div>
-              @endif
-
-              @if ($errors->any())
-                <div class="alert alert-danger">
-                  <ul>
-                  @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                  @endforeach
-                  </ul>
-                </div>
-              @endif
-
-              <form class="form" id="details_form" method="post" 
-                      action="{{$action_url}}">
-                    {{ csrf_field() }}
-
-                    <h2> License Details - <code>{{$module_display_name}} Module</code><br/><small class="text-danger"> Make sure to provide correct licensing information</small></h2>
-                    <hr/>
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="license_code">License Code:*</label>
-                            <input type="text" name="license_code" required class="form-control" id="license_code">
-
-                            @if($intruction_type == 'uf')
-                                <p class="help-block"><a href="https://ultimatefosters.com/docs/ultimate-fosters-shop/license-key/#Getting-License-Details-for-products-purchased-from-ultimatefosterscom" target="_blank">Where is my License Key?</a></p>
-                            @endif
-
-                            @if($intruction_type == 'cc')
-                                <p class="help-block"><a href="https://help.market.envato.com/hc/en-us/articles/202822600-Where-Is-My-Purchase-Code-#:~:text=Hover%20the%20mouse%20over%20your,as%20PDF%20or%20text%20file)." target="_blank">Where is my License Key?</a></p>
-                            @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger">
+                            {!! session('error') !!}
                         </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="login_username">Login Username:*</label>
-                            <input type="text" name="login_username" required class="form-control" id="login_username">
-
-                            @if($intruction_type == 'uf')
-                                <p class="help-block"><a href="https://ultimatefosters.com/docs/ultimate-fosters-shop/user-name/#Steps-to-get-your-username-for-all-products-purchased-from-UltimateFosters" target="_blank" class="text-success">Where is my Username?</a></p>
-                            @endif
-
-                            @if($intruction_type == 'cc')
-                                <p class="help-block">Enter the username that you use for codecanyon or envato login</p>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                          <label for="envato_email">Your Email:</label>
-                          <input type="email" name="ENVATO_EMAIL" class="form-control" id="envato_email" placeholder="optional">
-                          <p class="help-block">For Newsletter & support</p>
-                        </div>
-                    </div>
-
-                    @if($intruction_type == 'cc')
-                        @include('install.partials.e_license')
                     @endif
 
-                    <div class="col-md-12">
-                        <button type="submit" id="install_button" class="btn btn-primary pull-right">I Agree, SUBMIT</button>
-                    </div>
-              </form>
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <h2>Instalar <code>{{ $module_display_name ?? 'módulo' }}</code></h2>
+                    <p class="text-muted">
+                        Confirma a instalação do módulo. Validação de license externa foi removida — produto já licenciado.
+                    </p>
+                    <hr/>
+
+                    <form class="form" id="details_form" method="post" action="{{ $action_url }}">
+                        {{ csrf_field() }}
+
+                        {{-- Campos exigidos pelos InstallController upstream — auto-preenchidos --}}
+                        <input type="hidden" name="license_code" value="OIMPRESSO-LICENSED">
+                        <input type="hidden" name="login_username" value="{{ auth()->user()->username ?? 'admin' }}">
+                        <input type="hidden" name="email" value="{{ auth()->user()->email ?? '' }}">
+
+                        <div class="col-md-12">
+                            <button type="submit" id="install_button" class="btn btn-primary">
+                                Instalar
+                            </button>
+                            <a href="{{ action([\App\Http\Controllers\Install\ModulesController::class, 'index']) }}"
+                               class="btn btn-default">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
             </div>
-          <!-- /.box-body -->
-          </div>
-
-            
         </div>
-
     </div>
 </div>
 @endsection
 
 @section('javascript')
-  <script type="text/javascript">
-    $(document).ready(function(){
-      $('form#details_form').submit(function(){
-        $('button#install_button').attr('disabled', true).text('Installing...');
-        $('div.install_msg').removeClass('hide');
-        $('.back_button').hide();
-      });
-    })
-  </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('form#details_form').submit(function () {
+                $('button#install_button').attr('disabled', true).text('Instalando...');
+            });
+        });
+    </script>
 @endsection

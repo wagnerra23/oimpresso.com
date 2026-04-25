@@ -1,8 +1,8 @@
 {
     "name": "RecurringBilling",
     "alias": "recurringbilling",
-    "description": "",
-    "keywords": [],
+    "description": "Cobrança recorrente brasileira: assinaturas, Pix Automático, smart retries, NFSe automática, régua de inadimplência.",
+    "keywords": ["assinatura", "subscription", "pix-automatico", "boleto-recorrente", "dunning", "mrr"],
     "priority": 0,
     "providers": [
         "Modules\\RecurringBilling\\Providers\\RecurringBillingServiceProvider"
