@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Financeiro\Http\Controllers\BoletoController;
+use Modules\Financeiro\Http\Controllers\CategoriaController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
@@ -56,4 +57,17 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/contas-bancarias/{accountId}', [ContaBancariaController::class, 'upsert'])
             ->whereNumber('accountId')
             ->name('contas-bancarias.upsert');
+
+        // Categorias livres (CRUD complementar ao plano de contas)
+        Route::get('/categorias', [CategoriaController::class, 'index'])->name('categorias.index');
+        Route::post('/categorias', [CategoriaController::class, 'store'])->name('categorias.store');
+        Route::put('/categorias/{id}', [CategoriaController::class, 'update'])
+            ->whereNumber('id')
+            ->name('categorias.update');
+        Route::delete('/categorias/{id}', [CategoriaController::class, 'destroy'])
+            ->whereNumber('id')
+            ->name('categorias.destroy');
+        Route::post('/categorias/{id}/toggle', [CategoriaController::class, 'toggleAtivo'])
+            ->whereNumber('id')
+            ->name('categorias.toggle');
     });
