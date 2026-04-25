@@ -18,10 +18,10 @@ class CreateFinBoletoRemessasTable extends Migration
     public function up(): void
     {
         Schema::create('fin_boleto_remessas', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
             $table->integer('business_id')->unsigned()->index();
-            $table->bigInteger('titulo_id')->unsigned();
-            $table->bigInteger('conta_bancaria_id')->unsigned();
+            $table->integer('titulo_id')->unsigned();
+            $table->integer('conta_bancaria_id')->unsigned();
 
             $table->string('nosso_numero', 30)
                   ->comment('Sequencial gerado pelo sistema; banco confirma no retorno');
