@@ -4,7 +4,7 @@ import { Button } from '@/Components/ui/button';
 import PricingTiers from '@/Components/Site/PricingTiers';
 import PricingFaq from '@/Components/Site/PricingFaq';
 
-export default function SitePricing() {
+function SitePricing() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('annual');
 
   return (
@@ -107,3 +107,5 @@ export default function SitePricing() {
 }
 
 SitePricing.layout = (page: ReactNode) => <SiteLayout title="Preços">{page}</SiteLayout>;
+
+export default SitePricing;

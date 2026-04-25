@@ -5,7 +5,7 @@ import SocialProof from '@/Components/Site/SocialProof';
 import FeatureGrid from '@/Components/Site/FeatureGrid';
 import { Button } from '@/Components/ui/button';
 
-export default function SiteHome() {
+function SiteHome() {
   return (
     <>
       <Hero />
@@ -45,3 +45,5 @@ export default function SiteHome() {
 }
 
 SiteHome.layout = (page: ReactNode) => <SiteLayout title="ERP completo pra sua empresa">{page}</SiteLayout>;
+
+export default SiteHome;
