@@ -58,7 +58,7 @@ dataset('bancos_mvp', [
         'numero_conta' => '1234567',
         'convenio' => null,
         'codigo_cedente' => null,
-        'metadata_extra' => ['operacao' => '1'],
+        'metadata_extra' => ['operacao' => '1', 'nossoNumero' => '00000000001'],
     ],
     'C6' => [
         'banco_codigo' => '336',
