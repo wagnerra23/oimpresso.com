@@ -22,6 +22,16 @@ class FinanceiroServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+        $this->registerObservers();
+    }
+
+    /**
+     * Registra observers nas tabelas core do UltimatePOS.
+     * Pattern explicado em ARCHITECTURE.md §5.2 e auto-memória reference_financeiro_integracao.md.
+     */
+    protected function registerObservers(): void
+    {
+        \App\Transaction::observe(\Modules\Financeiro\Observers\TransactionObserver::class);
     }
 
     /**
