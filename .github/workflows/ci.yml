@@ -34,8 +34,11 @@ jobs:
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
-      - name: Install PHP deps
-        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Prepare storage + bootstrap dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+      - name: Install PHP deps (sem scripts ate .env existir)
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
       - name: PHP syntax lint (app/ + Modules/)
         run: |
@@ -60,6 +63,7 @@ jobs:
           BCRYPT_ROUNDS=4
           EOF
           php artisan key:generate
+          php artisan package:discover --ansi
 
       - name: Run Pest (Unit suite)
         run: vendor/bin/pest --testsuite=Unit --no-coverage
