@@ -79,5 +79,5 @@ jobs:
       - name: Install JS deps
         run: npm ci
 
-      - name: Build production bundle
-        run: npm run build
+      - name: Build production bundle (Inertia/React pipeline)
+        run: npm run build:inertia
