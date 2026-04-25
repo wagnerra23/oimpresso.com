@@ -162,7 +162,7 @@ class CnabDirectStrategy implements BoletoStrategy
 
         $sequencial = (int) ($titulo->numero ?: $titulo->id);
 
-        return [
+        $params = [
             'numero' => $sequencial,
             'numeroDocumento' => $titulo->numero ?: (string) $titulo->id,
             'carteira' => $conta->carteira,
@@ -180,5 +180,17 @@ class CnabDirectStrategy implements BoletoStrategy
             'beneficiario' => $beneficiario,
             'pagador' => $pagador,
         ];
+
+        // Campos especificos por banco vem do metadata (ex: Inter requer 'operacao',
+        // Rendimento requer 'modalidadeCarteira'). Espalhamos por cima.
+        if (! empty($conta->metadata) && is_array($conta->metadata)) {
+            foreach ($conta->metadata as $key => $value) {
+                if ($value !== null && $value !== '') {
+                    $params[$key] = $value;
+                }
+            }
+        }
+
+        return $params;
     }
 }
