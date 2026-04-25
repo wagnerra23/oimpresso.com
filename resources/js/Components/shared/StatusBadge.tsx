@@ -47,6 +47,12 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     due:            { variant: 'destructive', label: 'Vencido' },
     overdue:        { variant: 'destructive', label: 'Atrasado' },
   },
+  financeiro_titulo: {
+    aberto:    { variant: 'secondary',   label: 'Aberto' },
+    parcial:   { variant: 'default',     label: 'Parcial',   className: 'bg-amber-600 hover:bg-amber-700' },
+    quitado:   { variant: 'default',     label: 'Quitado',   className: 'bg-emerald-600 hover:bg-emerald-700' },
+    cancelado: { variant: 'outline',     label: 'Cancelado' },
+  },
   importacao: {
     pendente:    { variant: 'secondary', label: 'Pendente' },
     processando: { variant: 'default',   label: 'Processando', className: 'bg-blue-600' },

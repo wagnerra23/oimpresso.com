@@ -10,7 +10,6 @@
 import AppShell from '@/Layouts/AppShell';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
-import { ArrowDown, ArrowUp, CheckCircle2, AlertTriangle, Plus, Search } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -19,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
+import StatusBadge from '@/Components/shared/StatusBadge';
 
 interface KpiAberto {
   valor: number;
@@ -56,12 +56,16 @@ interface Titulo {
 
 interface PaginatedTitulos {
   data: Titulo[];
-  meta: {
+  meta?: {
     current_page: number;
     per_page: number;
     total: number;
     last_page: number;
   };
+  current_page?: number;
+  per_page?: number;
+  total?: number;
+  last_page?: number;
   links: { url: string | null; label: string; active: boolean }[];
 }
 
@@ -78,10 +82,18 @@ interface Props {
 }
 
 const brl = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v ?? 0);
 
 function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
-  const [busca, setBusca] = useState(filters.busca);
+  const [busca, setBusca] = useState(filters.busca ?? '');
+
+  // Inertia paginator pode vir achatado (current_page direto) ou em meta
+  const meta = titulos.meta ?? {
+    current_page: titulos.current_page ?? 1,
+    per_page: titulos.per_page ?? 25,
+    total: titulos.total ?? titulos.data.length,
+    last_page: titulos.last_page ?? 1,
+  };
 
   const aplicarFiltro = (patch: Partial<Filters>) => {
     router.get('/financeiro', { ...filters, ...patch }, {
@@ -96,75 +108,93 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
     aplicarFiltro({ busca });
   };
 
+  const r = kpis.receber_aberto;
+  const p = kpis.pagar_aberto;
+  const rm = kpis.recebido_mes;
+  const pm = kpis.pago_mes;
+
   return (
     <>
       <Head title="Financeiro — Dashboard" />
 
       <PageHeader
+        icon="coins"
         title="Financeiro"
-        subtitle="Visão geral das contas a pagar e a receber"
-        actions={
+        description="Visão geral das contas a pagar e a receber"
+        action={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}
+            >
               Limpar filtros
             </Button>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-1" />
-              Novo título
-            </Button>
+            <Button size="sm">Novo título</Button>
           </div>
         }
       />
 
-      {/* KPI Grid (UI-0002) */}
-      <KpiGrid columns={4} className="mb-6">
+      {/* KPI Grid (UI-0002) — props CORRETOS: cols, icon string, description, selected, tone */}
+      <KpiGrid cols={4} className="mt-6">
         <KpiCard
-          icon={<ArrowDown className="w-5 h-5 text-emerald-600" />}
-          label="A RECEBER"
-          value={brl(kpis.receber_aberto.valor)}
-          sublabel={`${kpis.receber_aberto.qtd} títulos`}
-          warning={kpis.receber_aberto.vencidos_qtd > 0
-            ? `${kpis.receber_aberto.vencidos_qtd} vencidos · ${brl(kpis.receber_aberto.vencidos_valor)}`
-            : undefined}
+          icon="arrow-down-circle"
+          tone="success"
+          label="A receber"
+          value={brl(r.valor)}
+          description={
+            r.vencidos_qtd > 0
+              ? `${r.qtd} títulos · ${r.vencidos_qtd} vencidos (${brl(r.vencidos_valor)})`
+              : `${r.qtd} títulos abertos`
+          }
           onClick={() => aplicarFiltro({ tipo: 'receber', status: 'aberto' })}
-          active={filters.tipo === 'receber' && filters.status === 'aberto'}
+          selected={filters.tipo === 'receber' && filters.status === 'aberto'}
         />
         <KpiCard
-          icon={<ArrowUp className="w-5 h-5 text-rose-600" />}
-          label="A PAGAR"
-          value={brl(kpis.pagar_aberto.valor)}
-          sublabel={`${kpis.pagar_aberto.qtd} títulos`}
-          warning={kpis.pagar_aberto.vencidos_qtd > 0
-            ? `${kpis.pagar_aberto.vencidos_qtd} vencidos · ${brl(kpis.pagar_aberto.vencidos_valor)}`
-            : undefined}
+          icon="arrow-up-circle"
+          tone={p.vencidos_qtd > 0 ? 'warning' : 'default'}
+          label="A pagar"
+          value={brl(p.valor)}
+          description={
+            p.vencidos_qtd > 0
+              ? `${p.qtd} títulos · ${p.vencidos_qtd} vencidos (${brl(p.vencidos_valor)})`
+              : `${p.qtd} títulos abertos`
+          }
           onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'aberto' })}
-          active={filters.tipo === 'pagar' && filters.status === 'aberto'}
+          selected={filters.tipo === 'pagar' && filters.status === 'aberto'}
         />
         <KpiCard
-          icon={<CheckCircle2 className="w-5 h-5 text-emerald-700" />}
-          label="RECEBIDOS"
-          value={brl(kpis.recebido_mes.valor)}
-          sublabel={`${kpis.recebido_mes.qtd} no mês`}
+          icon="check-circle-2"
+          tone="success"
+          label="Recebidos no mês"
+          value={brl(rm.valor)}
+          description={`${rm.qtd} baixas`}
           onClick={() => aplicarFiltro({ tipo: 'receber', status: 'quitado' })}
-          active={filters.tipo === 'receber' && filters.status === 'quitado'}
+          selected={filters.tipo === 'receber' && filters.status === 'quitado'}
         />
         <KpiCard
-          icon={<CheckCircle2 className="w-5 h-5 text-slate-700" />}
-          label="PAGOS"
-          value={brl(kpis.pago_mes.valor)}
-          sublabel={`${kpis.pago_mes.qtd} no mês`}
+          icon="check-circle-2"
+          tone="info"
+          label="Pagos no mês"
+          value={brl(pm.valor)}
+          description={`${pm.qtd} baixas`}
           onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'quitado' })}
-          active={filters.tipo === 'pagar' && filters.status === 'quitado'}
+          selected={filters.tipo === 'pagar' && filters.status === 'quitado'}
         />
       </KpiGrid>
 
       {/* Filtros */}
-      <Card className="mb-4">
-        <CardContent className="pt-6 flex flex-col md:flex-row gap-3 items-end">
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground">Tipo</label>
-            <Select value={filters.tipo} onValueChange={(v) => aplicarFiltro({ tipo: v as Filters['tipo'] })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+      <Card className="mt-6 mb-4">
+        <CardContent className="pt-6 flex flex-col md:flex-row gap-3 md:items-end">
+          <div className="flex-1 min-w-[140px]">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">Tipo</label>
+            <Select
+              value={filters.tipo}
+              onValueChange={(v) => aplicarFiltro({ tipo: v as Filters['tipo'] })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="receber">A receber</SelectItem>
@@ -172,10 +202,16 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground">Status</label>
-            <Select value={filters.status} onValueChange={(v) => aplicarFiltro({ status: v as Filters['status'] })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+
+          <div className="flex-1 min-w-[140px]">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">Status</label>
+            <Select
+              value={filters.status}
+              onValueChange={(v) => aplicarFiltro({ status: v as Filters['status'] })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="aberto">Aberto</SelectItem>
@@ -185,17 +221,18 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <form onSubmit={onSearch} className="flex-1 md:flex-2 flex gap-2">
+
+          <form onSubmit={onSearch} className="flex-[2] flex gap-2 items-end">
             <div className="flex-1">
-              <label className="text-xs font-medium text-muted-foreground">Busca</label>
+              <label className="text-xs font-medium text-muted-foreground block mb-1">Busca</label>
               <Input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
                 placeholder="Número ou cliente..."
               />
             </div>
-            <Button type="submit" size="sm" className="self-end">
-              <Search className="w-4 h-4" />
+            <Button type="submit" size="sm">
+              Buscar
             </Button>
           </form>
         </CardContent>
@@ -204,28 +241,32 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
       {/* Tabela única */}
       <Card>
         <CardHeader>
-          <CardTitle>{titulos.meta.total} títulos</CardTitle>
+          <CardTitle>{meta.total} títulos</CardTitle>
           <CardDescription>
-            Página {titulos.meta.current_page} de {titulos.meta.last_page}
+            Página {meta.current_page} de {meta.last_page}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {titulos.data.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               Nenhum título encontrado com os filtros atuais.
+              <br />
+              <span className="text-xs mt-2 block">
+                Vendas finalizadas com pagamento devido aparecerão aqui automaticamente.
+              </span>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2 px-2">#</th>
-                    <th className="text-left py-2 px-2">Cliente / Fornecedor</th>
-                    <th className="text-center py-2 px-2">Tipo</th>
-                    <th className="text-center py-2 px-2">Status</th>
-                    <th className="text-left py-2 px-2">Vencimento</th>
-                    <th className="text-right py-2 px-2">Valor</th>
-                    <th className="text-right py-2 px-2">Saldo</th>
+                    <th className="text-left py-2 px-2 font-medium">#</th>
+                    <th className="text-left py-2 px-2 font-medium">Cliente / Fornecedor</th>
+                    <th className="text-center py-2 px-2 font-medium">Tipo</th>
+                    <th className="text-center py-2 px-2 font-medium">Status</th>
+                    <th className="text-left py-2 px-2 font-medium">Vencimento</th>
+                    <th className="text-right py-2 px-2 font-medium">Valor</th>
+                    <th className="text-right py-2 px-2 font-medium">Saldo</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -235,11 +276,11 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
                       <td className="py-2 px-2">{t.cliente_nome}</td>
                       <td className="text-center py-2 px-2">
                         <Badge variant={t.tipo === 'receber' ? 'default' : 'secondary'}>
-                          {t.tipo === 'receber' ? '📥 R' : '📤 P'}
+                          {t.tipo === 'receber' ? 'Receber' : 'Pagar'}
                         </Badge>
                       </td>
                       <td className="text-center py-2 px-2">
-                        <StatusBadge status={t.status} />
+                        <StatusBadge kind="financeiro_titulo" value={t.status} />
                       </td>
                       <td className="py-2 px-2">
                         {t.vencimento_label}
@@ -250,50 +291,47 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
                         )}
                       </td>
                       <td className="text-right py-2 px-2 font-mono">{brl(t.valor_total)}</td>
-                      <td className="text-right py-2 px-2 font-mono font-semibold">{brl(t.valor_aberto)}</td>
+                      <td className="text-right py-2 px-2 font-mono font-semibold">
+                        {brl(t.valor_aberto)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
               {/* Paginação */}
-              <div className="flex justify-center gap-1 mt-4">
-                {titulos.links.map((link, i) => (
-                  link.url ? (
-                    <Link
-                      key={i}
-                      href={link.url}
-                      preserveState
-                      preserveScroll
-                      className={`px-3 py-1 text-sm rounded ${link.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-                      dangerouslySetInnerHTML={{ __html: link.label }}
-                    />
-                  ) : (
-                    <span
-                      key={i}
-                      className="px-3 py-1 text-sm text-muted-foreground"
-                      dangerouslySetInnerHTML={{ __html: link.label }}
-                    />
-                  )
-                ))}
-              </div>
+              {meta.last_page > 1 && (
+                <div className="flex justify-center gap-1 mt-4">
+                  {titulos.links.map((link, i) =>
+                    link.url ? (
+                      <Link
+                        key={i}
+                        href={link.url}
+                        preserveState
+                        preserveScroll
+                        className={`px-3 py-1 text-sm rounded ${
+                          link.active
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-muted'
+                        }`}
+                        dangerouslySetInnerHTML={{ __html: link.label }}
+                      />
+                    ) : (
+                      <span
+                        key={i}
+                        className="px-3 py-1 text-sm text-muted-foreground"
+                        dangerouslySetInnerHTML={{ __html: link.label }}
+                      />
+                    ),
+                  )}
+                </div>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
     </>
   );
-}
-
-function StatusBadge({ status }: { status: Titulo['status'] }) {
-  const map = {
-    aberto: { label: 'Aberto', variant: 'default' as const },
-    parcial: { label: 'Parcial', variant: 'secondary' as const },
-    quitado: { label: 'Quitado', variant: 'outline' as const },
-    cancelado: { label: 'Cancelado', variant: 'destructive' as const },
-  };
-  const cfg = map[status];
-  return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
 }
 
 FinanceiroDashboard.layout = (page: ReactNode) => <AppShell children={page} />;
