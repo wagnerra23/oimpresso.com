@@ -19,7 +19,7 @@ class CreateFinContasBancariasTable extends Migration
     public function up(): void
     {
         Schema::create('fin_contas_bancarias', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
             $table->integer('business_id')->unsigned()->index();
             $table->integer('account_id')->unsigned()->unique()
                   ->comment('FK 1-1 accounts.id (core UltimatePOS)');
