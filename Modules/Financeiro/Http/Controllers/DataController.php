@@ -76,10 +76,12 @@ class DataController extends Controller
             return;
         }
 
-        $usuario_pode_ver = auth()->user()->can('superadmin')
-            || auth()->user()->can('financeiro.access');
-
-        if (! $usuario_pode_ver) {
+        // SUPERADMIN-ONLY (em desenvolvimento) — pedido Wagner 2026-04-25.
+        // Razão: módulo ainda em construção; só Wagner deve ver no menu pra
+        // evitar confusão de usuários comuns com features incompletas.
+        // Quando módulo virar produção, voltar pra:
+        //   auth()->user()->can('superadmin') || auth()->user()->can('financeiro.access')
+        if (! auth()->user()->can('superadmin')) {
             return;
         }
 

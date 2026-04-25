@@ -1,8 +1,8 @@
 {
     "name": "NfeBrasil",
     "alias": "nfebrasil",
-    "description": "",
-    "keywords": [],
+    "description": "Vender com nota fiscal sem virar contador. NFC-e em 1 clique no caixa, NF-e B2B sem fricção, SPED pronto no fim do mês.",
+    "keywords": ["nfe", "nfc-e", "sefaz", "sped", "icms", "fiscal", "nota-fiscal"],
     "priority": 0,
     "providers": [
         "Modules\\NfeBrasil\\Providers\\NfeBrasilServiceProvider"
