@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
+use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DashboardController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 
@@ -30,8 +31,13 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Dashboard unificado (US-FIN-013)
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+        // Contas a receber (lista + emitir boleto)
+        Route::get('/contas-receber', [ContaReceberController::class, 'index'])->name('contas-receber.index');
+        Route::post('/contas-receber/{tituloId}/boleto', [ContaReceberController::class, 'emitirBoleto'])
+            ->whereNumber('tituloId')
+            ->name('contas-receber.emitir-boleto');
+
         // Rotas legadas — redirect 301 pra dashboard com filtro pré-aplicado (UI-0002)
-        Route::get('/contas-receber', fn () => redirect()->route('financeiro.dashboard', ['tipo' => 'receber', 'status' => 'aberto'], 301));
         Route::get('/contas-pagar', fn () => redirect()->route('financeiro.dashboard', ['tipo' => 'pagar', 'status' => 'aberto'], 301));
 
         // Contas bancarias — cadastro de complemento de boleto (ADR TECH-0003)
