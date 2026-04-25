@@ -28,10 +28,13 @@ class FinanceiroServiceProvider extends ServiceProvider
     /**
      * Registra observers nas tabelas core do UltimatePOS.
      * Pattern explicado em ARCHITECTURE.md §5.2 e auto-memória reference_financeiro_integracao.md.
+     *
+     * Onda 2 (2026-04-25): + TransactionPaymentObserver pra baixa automática.
      */
     protected function registerObservers(): void
     {
         \App\Transaction::observe(\Modules\Financeiro\Observers\TransactionObserver::class);
+        \App\TransactionPayment::observe(\Modules\Financeiro\Observers\TransactionPaymentObserver::class);
     }
 
     /**
