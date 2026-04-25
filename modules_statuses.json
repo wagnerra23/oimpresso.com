@@ -23,5 +23,9 @@
     "Spreadsheet": true,
     "Superadmin": true,
     "Woocommerce": true,
-    "Writebot": false
+    "Writebot": false,
+    "Financeiro": true,
+    "NfeBrasil": true,
+    "RecurringBilling": true,
+    "LaravelAI": true
 }

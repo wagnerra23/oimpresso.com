@@ -6,7 +6,7 @@ em `~/.claude/projects/D--oimpresso-com/memory/`.
 Sincronizado automaticamente por:
 
 ```
-php artisan docvault:sync-memories
+php artisan memcofre:sync-memories
 ```
 
 Agendado pra rodar todo dia às 23:00 via Laravel Scheduler (ver

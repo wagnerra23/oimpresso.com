@@ -1,9 +1,41 @@
+- [Delphi contrato IMUTÁVEL](feedback_delphi_contrato_imutavel.md) — Delphi em produção NÃO será recompilado; mudar contrato request/response quebra cliente permanentemente
+- [Testes junto da feature](feedback_testes_com_nova_feature.md) — Função/endpoint/migration nova sempre sai com teste Pest que proteja o contrato
 - [Hostinger IPv4 only](feedback_hostinger_ipv4.md) — Conexões a oimpresso.com (Hostinger) sempre em IPv4, sem troca de protocolo
-- [Project has its own memory/](reference_project_memory.md) — Repo tem `memory/` próprio; ler `memory/08-handoff.md` antes de qualquer trabalho técnico
-- [Hostinger server access](reference_hostinger_server.md) — SSH/deploy path do servidor produção oimpresso.com
-- [User profile — Wagner](user_profile.md) — Dono do projeto, decide rápido, controla servidor Hostinger; alvo Laravel 13+Boost+IA; PHP 8.4+ ciente; workflow online-only até 2026-04-22 quando iniciou setup local
-- [Drive browser directly](preference_drive_browser.md) — Wagner prefere que Claude use Claude_in_Chrome/Preview pra testar em vez de pedir pra ele copiar erros
-- [Módulos — prioridades e decisões](preference_modulos_prioridade.md) — Grow=prioridade produção; AiAssistance=descartar; Fiscal/Boleto/Chat/Jana/BI perdidos na migração 3.7→6.7
-- [Roadmap milestones M1-M10](project_roadmap_milestones.md) — Estratégia interleaved Laravel 9→13 alternando entrega de telas com upgrades; cada upgrade em sessão dedicada
-- [Roadmap A+ (observabilidade/tests/CI-CD)](project_roadmap_a_plus.md) — Adiado 2026-04-22; Sentry+Pest+GH Actions para virar estado-da-arte-plus
-- [Roadmap fiscal (Boleto+NFe+Tributação)](project_roadmap_fiscal.md) — Adiado 2026-04-22; pacote padrão eduardokum/laravel-boleto + sped-nfe + tributação em cascata
+- [Project has its own memory/](reference_project_memory.md) — Repo tem `memory/` próprio + `memory/decisions/` (ADRs 0017-0020); L13.6 + PHP 8.4
+- [Cursor collaboration](reference_cursor_collaboration.md) — Cursor é outra IA paralela; checa `memory/sessions/` + `git status` antes de começar
+- [Local dev setup](reference_local_dev_setup.md) — Herd + MySQL + worktrees; testar no `oimpresso.test` (Herd) não em artisan serve
+- [Hostinger server access](reference_hostinger_server.md) — SSH `-4 -i ~/.ssh/id_ed25519_oimpresso` funciona direto da Claude (key instalada 2026-04-23)
+- [User profile — Wagner](user_profile.md) — Dono/operador; stack L13.6; usa Cursor em paralelo
+- [Drive browser directly](preference_drive_browser.md) — Wagner prefere que Claude use Claude_in_Chrome/Preview pra testar
+- [Persistent Layouts (Inertia)](preference_persistent_layouts.md) — Pages Inertia usam Component.layout, nunca envolvem em <AppShell>
+- [Shell nav architecture](project_shell_nav_architecture.md) — Menu:: próprio em app\Services\Menu + topnav declarativo em Modules/<Nome>/Resources/menus/topnav.php
+- [Módulos — prioridades](preference_modulos_prioridade.md) — Grow=prioridade; AiAssistance=descartar; Fiscal/Boleto/Chat/Jana/BI perdidos na migração
+- [Roadmap milestones](project_roadmap_milestones.md) — M3+M5+M7+M10 feitos em 2026-04-23; L13.6 via inline knox/pesapal
+- [Form:: shim migration](project_form_shim_migration.md) — laravelcollective→spatie via App\View\Helpers\Form; 25 tests Pest
+- [Roadmap A+ observabilidade](project_roadmap_a_plus.md) — Pest+GH Actions feito (M8 parcial); Sentry pendente
+- [Roadmap fiscal](project_roadmap_fiscal.md) — eduardokum/laravel-boleto + sped-nfe + tributação cascata, adiado
+- [Officeimpresso módulo](project_officeimpresso_modulo.md) — Superadmin-only, restaurado 3.7→6.7; tela licenca_log v3 machine-centric sobre licenca_computador
+- [Diff 3.7 vs 6.7 Officeimpresso](reference_diff_3_7_vs_6_7_officeimpresso.md) — Controllers restaurados, armadilha master user, campos do registry licenca_computador
+- [Delphi WR Comercial](reference_delphi_wr_comercial.md) — Código Delphi cliente em D:/Programas/WR Comercial (SVN monorepo); como ler wc.db via Python; fluxo login→processa-dados-cliente
+- [Branch 3.7-com-nfe](reference_branch_3_7.md) — Snapshot pré-migração; Connector tem 147 arquivos pendentes de restauração
+- [Branch atual: 6.7-bootstrap](project_current_branch.md) — Wagner commita direto em 6.7-bootstrap (não main) em 2026-04; verificar antes de PR
+- [Carbon::createFromTimestamp bug](feedback_carbon_timezone_bug.md) — format_date INTENCIONALMENTE mantém shift +3h (fix revertido 2026-04-24 por regressão no ROTA LIVRE); não reaplicar sem migrar históricos
+- [session('business') é Eloquent](project_session_business_model.md) — dot-notation session('business.x') retorna null; chave dedicada business_timezone adicionada
+- [DataTables locale pt-BR](reference_datatables_locale.md) — public/locale/datatables/pt-BR.json; usar language: { url: asset(...) } em toda init nova
+- [Form shim normaliza bool attrs](feedback_form_shim_bool_attrs.md) — disabled/readonly/etc com valor false/null são OMITIDOS automaticamente; bug crítico corrigido em 2026-04-24 travava /sells/create
+- [Clientes ativos oimpresso](reference_clientes_ativos.md) — 56 businesses mas só 7 com vendas; ROTA LIVRE (biz=4) concentra 99% do volume; 56/56 em SP (uniformizado 2026-04-24)
+- [Cliente ROTA LIVRE — perfil e sensibilidades](cliente_rotalivre.md) — biz=4, Larissa dona/operadora; histórico completo de incidentes 2026-04-24; decorou horário com shift +3h (não mexer); digita tx_date retroativo é NORMAL; monitor 1280px
+- [DB schema oimpresso](reference_db_schema.md) — UltimatePOS multi-tenant por business_id; transactions core (sell/purchase/expense/etc); time_zone só em business, não em location; roles Spatie `{Nome}#{biz_id}`
+- [Análise DB Hostinger — receita SSH+MySQL](reference_hostinger_analise.md) — warm com curl, SSH com timeouts altos, mysql CLI ou heredoc PHP inline; nunca tinker --execute com namespaces
+- [Ideia: chat IA contextual](ideia_chat_ia_contextual.md) — Wagner quer chat flutuante que sabe exatamente a tela/dados/user atual; diferente de /memcofre/chat; implementar após Fase 1-3 do redesign Ponto
+- [PontoWr2 — visão estado da arte](reference_ponto_evolucao_estado_arte.md) — 3 personas (colaborador/gestor/auditor), 8 capacidades baseline do mercado, 10 moves priorizados Tier A/B/C; ADR formal em memory/requisitos/PontoWr2/adr/ui/0002; começar Tier A (Dashboard vivo)
+- [UltimatePOS — integração](reference_ultimatepos_integracao.md) — hooks DataController (user_permissions/modifyAdminMenu/superadmin_package); multi-tenant via session('user.business_id'); tabelas HR essentials_*; events UserCreatedOrModified; ModuleUtil::getModuleData é o coração da extensibilidade
+- [format_now_local pra "agora" + readonly precisa datetimepicker](feedback_format_now_local_e_default_datetime.md) — Util::format_now_local() pra pré-preencher form com "agora" sem shift +3h do format_date histórico; campo readonly só edita se datetimepicker inicializar; sentinela protege shift histórico de regressão; Edit silencioso = grep no servidor pós-deploy
+- [Trigger "guarde no cofre"](trigger_guarde_no_cofre.md) — quando Wagner pedir "guarde no cofre"/variações, salvar artefato no MemCofre (Cofre de Memórias); classificar (decisão/regra/evidência) e gravar no local apropriado (ADR, SPEC, docs_evidences, auto-memória); confirmar com link curto
+- [DocVault renomeado para MemCofre](trigger_guarde_no_cofre.md) — Modules/DocVault → Modules/MemCofre, namespace Modules\\DocVault → Modules\\MemCofre, URL /docs → /memcofre, comandos docvault:* → memcofre:*, label visual "Cofre de Memórias", lang namespace memcofre::memcofre.* — feito em 2026-04-24 (não toca tabelas docs_* que ficam com prefixo legado)
+- [Meta oimpresso R$ 5mi/ano](project_meta_5mi_ano.md) — Meta oficial de faturamento 2026-04-24; ADR 0022 + `memory/11-metas-negocio.md` com 3 trilhas (ativar base, PontoWr2 âncora, upsell); prazo e faturamento atual pendentes
+- [Módulo Copiloto (novo)](project_modulo_copiloto.md) — spec-ready 2026-04-24; chat IA que propõe metas + monitora; tenancy híbrida business_id nullable; adapter IA LaravelAI-ou-OpenAI; nome escolhido sobre BI/MetasNegocio/Farol
+- [4 módulos promovidos 2026-04-24](project_modulos_promovidos_2026_04_24.md) — Financeiro, NfeBrasil, RecurringBilling, LaravelAI saíram de _Ideias/ pra requisitos/ com SPEC + ADRs por categoria; spec-ready (sem código ainda)
+- [ADRs separados por categoria](feedback_adr_separados_por_categoria.md) — adr/{arq,tech,ui}/ com numeração própria (ARQ-0001/TECH-0001/UI-0001); Wagner explicit 2026-04-24
+- [Revenue thesis dos 4 módulos](reference_revenue_thesis_modulos.md) — Pricing tiers + take rate por módulo; revenue model dual (subscription + take rate) só em Modo MoR oimpresso
+- [Financeiro × UltimatePOS integração](reference_financeiro_integracao.md) — Hooks DataController + Observer Transaction + retro-vínculo transaction_payment; tela unificada US-FIN-013 com 4 estados juntos; armadilhas timezone/session; paralelo a Accounting (ADR arq/0005)

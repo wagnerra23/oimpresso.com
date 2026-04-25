@@ -1,0 +1,11 @@
+{
+    "name": "NfeBrasil",
+    "alias": "nfebrasil",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\NfeBrasil\\Providers\\NfeBrasilServiceProvider"
+    ],
+    "files": []
+}

@@ -1,0 +1,11 @@
+{
+    "name": "LaravelAI",
+    "alias": "laravelai",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\LaravelAI\\Providers\\LaravelAIServiceProvider"
+    ],
+    "files": []
+}
