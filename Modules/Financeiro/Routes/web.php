@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Financeiro\Http\Controllers\BoletoController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
@@ -37,6 +38,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/contas-receber/{tituloId}/boleto', [ContaReceberController::class, 'emitirBoleto'])
             ->whereNumber('tituloId')
             ->name('contas-receber.emitir-boleto');
+
+        // Boletos emitidos (lista + cancelar)
+        Route::get('/boletos', [BoletoController::class, 'index'])->name('boletos.index');
+        Route::post('/boletos/{remessaId}/cancelar', [BoletoController::class, 'cancelar'])
+            ->whereNumber('remessaId')
+            ->name('boletos.cancelar');
 
         // Contas a pagar (lista + registrar baixa)
         Route::get('/contas-pagar', [ContaPagarController::class, 'index'])->name('contas-pagar.index');
