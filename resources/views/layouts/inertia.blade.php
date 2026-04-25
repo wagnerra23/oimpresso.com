@@ -19,7 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-    <title inertia>{{ config('app.name', 'OI Impresso') }}</title>
+    <title data-inertia>{{ config('app.name', 'OI Impresso') }}</title>
 
     {{-- Anti-flash dark mode. Rodamos ANTES do <body> pintar: se modo=auto, decide
          pela preferência do sistema; senão já veio correto do servidor.

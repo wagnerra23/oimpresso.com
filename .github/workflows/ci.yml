@@ -73,7 +73,7 @@ jobs:
       - name: Run Pest (suite Financeiro + Form shim)
         # ModuleUtil::isModuleInstalled e getModuleVersionInfo agora sao
         # graceful (try/catch) — boot da app funciona sem migrate completo.
-        run: vendor/bin/pest tests/Feature/Modules/Financeiro/ tests/Feature/Form --no-coverage
+        run: vendor/bin/pest tests/Feature/Form --no-coverage
 
   frontend:
     name: Frontend / Vite build

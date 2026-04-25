@@ -85,12 +85,14 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
   const [shareLoading, setShareLoading] = useState(false);
 
   // Form: Upload (tipo document)
+  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const uploadForm = useForm<{ name: File | null; description: string }>({
     name: null,
     description: '',
   });
 
   // Form: Memo
+  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const memoForm = useForm<{ name: string; body: string }>({
     name: '',
     body: '',
