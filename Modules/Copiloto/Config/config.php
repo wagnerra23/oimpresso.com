@@ -1,0 +1,89 @@
+<?php
+
+return [
+    'name' => 'Copiloto',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Identificação do módulo na UI / instalador
+    |--------------------------------------------------------------------------
+    */
+    'module_label'       => 'Copiloto',
+    'module_description' => 'Copiloto de IA do negócio — chat + metas + monitoramento',
+    'module_icon'        => 'fa fa-compass',
+    'module_version'     => '0.1',
+    'pid'                => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Adapter de IA
+    |--------------------------------------------------------------------------
+    | 'auto'           — usa LaravelAI se presente, senão OpenAI direto
+    | 'laravel_ai'     — força LaravelAI (falha se módulo ausente)
+    | 'openai_direct'  — força openai-php/laravel direto
+    */
+    'ai_adapter' => env('COPILOTO_AI_ADAPTER', 'auto'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Modelo default pra OpenAI direto
+    |--------------------------------------------------------------------------
+    */
+    'openai' => [
+        'model_chat'         => env('COPILOTO_OPENAI_CHAT_MODEL', 'gpt-4o-mini'),
+        'model_suggestions'  => env('COPILOTO_OPENAI_SUGGEST_MODEL', 'gpt-4o'),
+        'max_tokens_chat'    => 2000,
+        'max_tokens_suggest' => 4000,
+        'temperature'        => 0.7,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dry-run (propostas fixtures, sem chamada de API) — útil em dev
+    |--------------------------------------------------------------------------
+    */
+    'dry_run' => env('COPILOTO_AI_DRY_RUN', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Apuração
+    |--------------------------------------------------------------------------
+    */
+    'apuracao' => [
+        'sql_timeout_seconds'  => 10,
+        'http_timeout_seconds' => 15,
+        'http_retry_times'     => 3,
+        'historico_dias_max'   => 730, // 2 anos; mover pra arquivo frio depois
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cache do snapshot de contexto (ContextSnapshotService)
+    |--------------------------------------------------------------------------
+    */
+    'context_cache_ttl_minutes' => 10,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Alertas
+    |--------------------------------------------------------------------------
+    */
+    'alertas' => [
+        'desvio_threshold_default' => 10,   // percentual
+        'canais_default'           => ['in_app'], // ['in_app', 'email', 'whatsapp']
+        'cadencia_avaliacao'       => 'everyFifteenMinutes',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Meta da plataforma (seed) — ver memory/decisions/0022 e memory/11-metas-negocio.md
+    |--------------------------------------------------------------------------
+    */
+    'meta_plataforma' => [
+        'habilitada'   => true,
+        'slug'         => 'faturamento_oimpresso_anual',
+        'nome'         => 'Faturamento anual oimpresso',
+        'valor_alvo'   => 5000000, // R$ 5 milhões
+        'unidade'      => 'R$',
+    ],
+];
