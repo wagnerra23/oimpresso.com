@@ -82,6 +82,71 @@ dataset('bancos_mvp', [
         'codigo_cedente' => null,
         'metadata_extra' => [],
     ],
+    'Ailos' => [
+        'banco_codigo' => '085', 'carteira' => '1', 'agencia' => '1234', 'agencia_dv' => '0',
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => '12345', 'codigo_cedente' => null,
+        'metadata_extra' => ['nossoNumero' => '00000001', 'modalidadeCarteira' => '01'],
+    ],
+    'Banrisul' => [
+        'banco_codigo' => '041', 'carteira' => '1', 'agencia' => '1234', 'agencia_dv' => '0',
+        'conta_dv' => '0', 'numero_conta' => '1234567', 'convenio' => null, 'codigo_cedente' => '1234567',
+        'metadata_extra' => ['range' => '01'],
+    ],
+    'BNB' => [
+        'banco_codigo' => '004', 'carteira' => '21', 'agencia' => '1234', 'agencia_dv' => '0',
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => '1234567', 'codigo_cedente' => null,
+        'metadata_extra' => [],
+    ],
+    'BTG' => [
+        'banco_codigo' => '208', 'carteira' => '1', 'agencia' => '1234', 'agencia_dv' => null,
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '12345',
+        'metadata_extra' => [],
+    ],
+    'Bradesco' => [
+        'banco_codigo' => '237', 'carteira' => '09', 'agencia' => '1234', 'agencia_dv' => null,
+        'conta_dv' => '6', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => null,
+        'metadata_extra' => [],
+    ],
+    'Caixa' => [
+        'banco_codigo' => '104', 'carteira' => 'RG', 'agencia' => '1234', 'agencia_dv' => null,
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '123456',
+        'metadata_extra' => [],
+    ],
+    'Cresol' => [
+        'banco_codigo' => '133', 'carteira' => '09', 'agencia' => '1234', 'agencia_dv' => null,
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '12345',
+        'metadata_extra' => ['nossoNumero' => '00000001'],
+    ],
+    'HSBC' => [
+        'banco_codigo' => '362', 'carteira' => 'CSB', 'agencia' => '1234', 'agencia_dv' => '0',
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '1234567',
+        'metadata_extra' => ['range' => '01'],
+    ],
+    'Pine' => [
+        'banco_codigo' => '643', 'carteira' => '112', 'agencia' => '1234', 'agencia_dv' => '0',
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '12345',
+        'metadata_extra' => ['range' => '01', 'modalidadeCarteira' => '01'],
+    ],
+    'Rendimento' => [
+        'banco_codigo' => '633', 'carteira' => '112', 'agencia' => '1234', 'agencia_dv' => null,
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '12345',
+        'metadata_extra' => ['modalidadeCarteira' => '01'],
+    ],
+    'Santander' => [
+        'banco_codigo' => '033', 'carteira' => '101', 'agencia' => '1234', 'agencia_dv' => null,
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '1234567',
+        'metadata_extra' => [],
+    ],
+    'Sicredi' => [
+        'banco_codigo' => '748', 'carteira' => '1', 'agencia' => '1234', 'agencia_dv' => null,
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => null,
+        'metadata_extra' => ['byte' => '2', 'posto' => '01'],
+    ],
+    'Unicred' => [
+        'banco_codigo' => '136', 'carteira' => '21', 'agencia' => '1234', 'agencia_dv' => null,
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => null,
+        'metadata_extra' => [],
+    ],
 ]);
 
 it('gera boleto valido por banco', function (
@@ -118,9 +183,11 @@ it('gera boleto valido por banco', function (
         'beneficiario_uf' => 'SP',
         'beneficiario_cep' => '01000-000',
         'ativo_para_boleto' => true,
-        'metadata' => $metadata_extra,
     ]);
     $conta->id = 1;
+    // Setamos metadata explicitamente porque o cast 'array' no fillable nao
+    // dispara em new Model() — só em saved/loaded models.
+    $conta->metadata = $metadata_extra;
     $conta->setRelation('account', $account);
 
     $titulo = new Titulo([
