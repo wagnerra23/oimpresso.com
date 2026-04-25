@@ -44,7 +44,8 @@ Nome do arquivo: `NNNN-titulo-curto-em-kebab.md`
 | [0009](./0009-prototipos-html-puro.md) | Protótipos em HTML+Tailwind+Chart.js (não React) | ✅ Aceita |
 | [0010](./0010-sistema-memoria-projeto.md) | Sistema de memória do projeto (CLAUDE.md + /memory/) | ✅ Aceita |
 | [0011](./0011-alinhamento-padrao-jana.md) | Alinhamento com padrão Jana (UltimatePOS) | ✅ Aceita |
+| [0023](./0023-inertia-v3-upgrade.md) | Upgrade Inertia.js v2 → v3 (faseado) | ✅ Aceita |
 
 ---
 
-**Última atualização:** 2026-04-18
+**Última atualização:** 2026-04-24
