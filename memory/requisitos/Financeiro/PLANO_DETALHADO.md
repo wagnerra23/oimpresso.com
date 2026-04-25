@@ -1,7 +1,7 @@
 # Plano Detalhado — Módulo Financeiro
 
-> **Última atualização:** 2026-04-25
-> **Status:** Onda 1 UI parcialmente entregue (telas básicas); backend MVP completo
+> **Última atualização:** 2026-04-25 (sessão maratona — 6 PRs mergeados)
+> **Status:** Onda 1 quase fechada — backend ✅ + 4 telas operacionais ✅; falta categorias/plano-contas + integration test
 > **Stack confirmada:** Laravel 13.6 + PHP 8.4 + Inertia v3 + React 19 + Tailwind 4 + lib eduardokum/laravel-boleto v0.11.1 (fork local)
 
 ---
