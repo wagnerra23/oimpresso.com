@@ -1,8 +1,8 @@
 {
     "name": "Financeiro",
     "alias": "financeiro",
-    "description": "",
-    "keywords": [],
+    "description": "Contas a pagar, a receber, fluxo de caixa e DRE — tudo na mesma tela. Foundation BR pra virar ERP completo.",
+    "keywords": ["financeiro", "contas-a-pagar", "contas-a-receber", "fluxo-caixa", "dre", "boleto", "pix"],
     "priority": 0,
     "providers": [
         "Modules\\Financeiro\\Providers\\FinanceiroServiceProvider"
