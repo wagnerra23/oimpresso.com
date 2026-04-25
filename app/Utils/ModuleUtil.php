@@ -25,7 +25,13 @@ class ModuleUtil extends Util
 
         if ($is_available) {
             //Check if installed by checking the system table {module_name}_version
-            $module_version = System::getProperty(strtolower($module_name).'_version');
+            // CI/fresh DB: tabela `system` pode nao existir antes do migrate.
+            // Tratamos como "nao instalado" sem quebrar o boot.
+            try {
+                $module_version = System::getProperty(strtolower($module_name).'_version');
+            } catch (\Throwable $e) {
+                return false;
+            }
             if (empty($module_version)) {
                 return false;
             } else {
@@ -456,12 +462,19 @@ class ModuleUtil extends Util
 
         if ($is_available) {
             //Check if installed by checking the system table {module_name}_version
-            $module_version = System::getProperty(strtolower($module_name).'_version');
+            // Graceful: tabela system pode nao existir em CI/fresh DB.
+            try {
+                $module_version = System::getProperty(strtolower($module_name).'_version');
+            } catch (\Throwable $e) {
+                $module_version = null;
+            }
 
             $output['installed_version'] = $module_version;
             $output['available_version'] = config(strtolower($module_name).'.module_version');
 
-            $output['is_update_available'] = Comparator::greaterThan($output['available_version'], $output['installed_version']);
+            $output['is_update_available'] = $module_version !== null
+                ? Comparator::greaterThan($output['available_version'], $output['installed_version'])
+                : false;
         }
 
         return $output;
