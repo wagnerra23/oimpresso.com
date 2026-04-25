@@ -1,0 +1,29 @@
+{
+    "name": "oimpresso/copiloto",
+    "description": "Copiloto de IA do negócio — chat conversacional, sugestão e monitoramento de metas. Parte do ecossistema oimpresso/UltimatePOS.",
+    "authors": [
+        {
+            "name": "oimpresso",
+            "email": "contato@oimpresso.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Copiloto\\Providers\\CopilotoServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Copiloto\\": ""
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "spatie/laravel-permission": "^6.0",
+        "spatie/laravel-activitylog": "^4.0",
+        "openai-php/laravel": "*"
+    }
+}
