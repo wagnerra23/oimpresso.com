@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get('/', [Modules\Cms\Http\Controllers\CmsController::class, 'index']);
+// Fallback Blade (template UltimatePOS legado) — remover após validar a Inertia em produção
+Route::get('/old', [Modules\Cms\Http\Controllers\CmsController::class, 'indexLegacy']);
 Route::get('c/page/{page}', [Modules\Cms\Http\Controllers\CmsPageController::class, 'showPage']);
 Route::get('c/blogs', [Modules\Cms\Http\Controllers\CmsController::class, 'getBlogList']);
 Route::get('c/blog/{slug}-{id}', [Modules\Cms\Http\Controllers\CmsController::class, 'viewBlog']);

@@ -5,6 +5,8 @@
 // use Illuminate\Support\Facades\Route;
 
 Route::get('/pricing', [Modules\Superadmin\Http\Controllers\PricingController::class, 'index'])->name('pricing');
+// Fallback Blade legado (template UltimatePOS roxo) — remover após validar a Inertia
+Route::get('/pricing/old', [Modules\Superadmin\Http\Controllers\PricingController::class, 'indexLegacy'])->name('pricing.legacy');
 
 Route::middleware('web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin')->prefix('superadmin')->group(function () {
     Route::get('/install', [Modules\Superadmin\Http\Controllers\InstallController::class, 'index']);
