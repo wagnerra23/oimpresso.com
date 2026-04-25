@@ -40,6 +40,14 @@ class FinanceiroServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        // Default BoletoStrategy: CnabDirectStrategy via lib eduardokum/laravel-boleto.
+        // Sobrescrever via container binding em testes ou para usar GatewayStrategy
+        // (futura — ADR ARQ-0003).
+        $this->app->bind(
+            \Modules\Financeiro\Contracts\BoletoStrategy::class,
+            \Modules\Financeiro\Strategies\CnabDirectStrategy::class
+        );
     }
 
     /**
