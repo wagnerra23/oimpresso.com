@@ -147,6 +147,21 @@ dataset('bancos_mvp', [
         'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => null,
         'metadata_extra' => [],
     ],
+    'Delbank' => [
+        'banco_codigo' => '405', 'carteira' => '112', 'agencia' => '1234', 'agencia_dv' => '0',
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '12345',
+        'metadata_extra' => ['nossoNumero' => '00000001'],
+    ],
+    'Fibra' => [
+        'banco_codigo' => '224', 'carteira' => '01', 'agencia' => '1234', 'agencia_dv' => '0',
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '12345',
+        'metadata_extra' => ['nossoNumero' => '00000001', 'modalidadeCarteira' => '01'],
+    ],
+    'Ourinvest' => [
+        'banco_codigo' => '712', 'carteira' => '01', 'agencia' => '1234', 'agencia_dv' => '0',
+        'conta_dv' => '0', 'numero_conta' => '12345', 'convenio' => null, 'codigo_cedente' => '12345',
+        'metadata_extra' => ['nossoNumero' => '00000001'],
+    ],
 ]);
 
 it('gera boleto valido por banco', function (
