@@ -39,3 +39,4 @@
 - [ADRs separados por categoria](feedback_adr_separados_por_categoria.md) — adr/{arq,tech,ui}/ com numeração própria (ARQ-0001/TECH-0001/UI-0001); Wagner explicit 2026-04-24
 - [Revenue thesis dos 4 módulos](reference_revenue_thesis_modulos.md) — Pricing tiers + take rate por módulo; revenue model dual (subscription + take rate) só em Modo MoR oimpresso
 - [Financeiro × UltimatePOS integração](reference_financeiro_integracao.md) — Hooks DataController + Observer Transaction + retro-vínculo transaction_payment; tela unificada US-FIN-013 com 4 estados juntos; armadilhas timezone/session; paralelo a Accounting (ADR arq/0005)
+- [Pattern install módulos 1-click](feedback_pattern_install_modulos.md) — Todo InstallController estende BaseModuleInstallController (3 abstract + 4 hooks); tela install-module.blade.php simplificada; ADR 0024 grava decisão; 20 módulos refatorados em 2026-04-25 com 2 bug fixes (IProduction/Writebot namespace='Boleto')
