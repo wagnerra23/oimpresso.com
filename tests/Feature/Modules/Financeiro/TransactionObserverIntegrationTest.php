@@ -1,12 +1,15 @@
 <?php
 
 use App\Transaction;
+use App\TransactionPayment;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Financeiro\Models\CaixaMovimento;
 use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
+use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
+use Modules\Financeiro\Models\TituloBaixa;
 use Modules\Financeiro\Observers\TransactionObserver;
 use Modules\Financeiro\Services\TituloAutoService;
 
@@ -122,9 +125,8 @@ it('cenario 1: created sell com payment_status=due gera Titulo aberto a receber'
     expect((float) $titulo->valor_total)->toBe(250.00);
     expect((float) $titulo->valor_aberto)->toBe(250.00);
     expect($titulo->moeda)->toBe('BRL');
-    // numero == (string) tx.id pelo TituloAutoService atual (Job CriarTituloDeVendaJob
-    // gera R000001 mas o Observer nao chama o Job).
-    expect($titulo->numero)->toBe((string) $tx->id);
+    // Onda 2: numeração R000001/P000001 prefixada (R = receber, P = pagar).
+    expect($titulo->numero)->toMatch('/^R\d{6}$/');
 });
 
 it('cenario 2: idempotencia — chamar observer 2x cria 1 unico titulo', function () {
@@ -151,11 +153,119 @@ it('cenario 2: idempotencia — chamar observer 2x cria 1 unico titulo', functio
     expect($count)->toBe(1, 'UNIQUE (business_id, origem, origem_id, parcela_numero) deve garantir unicidade');
 });
 
-it('cenario 3: pagamento parcial via transaction_payment marca titulo parcial e cria CaixaMovimento')
-    ->skip('BUG-1: nao ha Observer no TransactionPayment. Inserir transaction_payment NAO atualiza Titulo nem cria CaixaMovimento. Onda 2.');
+it('cenario 3: pagamento parcial via transaction_payment marca titulo parcial e cria CaixaMovimento', function () {
+    $conta = ContaBancaria::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('business_id', $this->business->id)
+        ->first();
+    if (! $conta) {
+        $this->markTestSkipped('Sem fin_contas_bancarias pro business — rode FinanceiroDatabaseSeeder.');
+    }
 
-it('cenario 4: pagamento total via transaction_payment marca titulo quitado e cria CaixaMovimento')
-    ->skip('BUG-2: idem BUG-1. transaction_payment com amount = final_total nao dispara baixa automatica. Onda 2.');
+    $tx = fin_makeSell(
+        $this->business->id,
+        $this->location->id,
+        $this->contact->id,
+        $this->user->id,
+        ['final_total' => 200.00, 'total_remaining_amount' => 200.00]
+    );
+
+    // Pagamento parcial — 80 de 200
+    $tp = TransactionPayment::create([
+        'transaction_id' => $tx->id,
+        'business_id' => $tx->business_id,
+        'amount' => 80.00,
+        'method' => 'cash',
+        'paid_on' => Carbon::now()->toDateTimeString(),
+        'created_by' => $this->user->id,
+        'payment_for' => $tx->contact_id,
+    ]);
+
+    $titulo = Titulo::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('origem_id', $tx->id)
+        ->where('origem', 'venda')
+        ->first();
+
+    expect($titulo)->not->toBeNull();
+    expect($titulo->status)->toBe('parcial', 'Pagamento parcial deve marcar titulo como parcial');
+    expect((float) $titulo->valor_aberto)->toBe(120.00, '200 - 80 = 120 em aberto');
+
+    $baixa = TituloBaixa::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('transaction_payment_id', $tp->id)
+        ->first();
+
+    expect($baixa)->not->toBeNull('TituloBaixa deveria ter sido criada pelo TransactionPaymentObserver');
+    expect((float) $baixa->valor_baixa)->toBe(80.00);
+    expect($baixa->meio_pagamento)->toBe('dinheiro');
+    expect($baixa->idempotency_key)->toBe('tp_' . $tp->id);
+
+    $movimento = CaixaMovimento::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('origem_tipo', 'titulo_baixa')
+        ->where('origem_id', $baixa->id)
+        ->first();
+
+    expect($movimento)->not->toBeNull('CaixaMovimento deveria ter sido criado');
+    expect($movimento->tipo)->toBe('entrada');
+    expect((float) $movimento->valor)->toBe(80.00);
+});
+
+it('cenario 4: pagamento total via transaction_payment marca titulo quitado e cria CaixaMovimento', function () {
+    $conta = ContaBancaria::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('business_id', $this->business->id)
+        ->first();
+    if (! $conta) {
+        $this->markTestSkipped('Sem fin_contas_bancarias pro business — rode FinanceiroDatabaseSeeder.');
+    }
+
+    $tx = fin_makeSell(
+        $this->business->id,
+        $this->location->id,
+        $this->contact->id,
+        $this->user->id,
+        ['final_total' => 150.00, 'total_remaining_amount' => 150.00]
+    );
+
+    // Pagamento total — 150 de 150
+    $tp = TransactionPayment::create([
+        'transaction_id' => $tx->id,
+        'business_id' => $tx->business_id,
+        'amount' => 150.00,
+        'method' => 'bank_transfer',
+        'paid_on' => Carbon::now()->toDateTimeString(),
+        'created_by' => $this->user->id,
+        'payment_for' => $tx->contact_id,
+    ]);
+
+    $titulo = Titulo::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('origem_id', $tx->id)
+        ->where('origem', 'venda')
+        ->first();
+
+    expect($titulo)->not->toBeNull();
+    expect($titulo->status)->toBe('quitado', 'Pagamento total deve marcar titulo como quitado');
+    expect((float) $titulo->valor_aberto)->toBe(0.0);
+
+    $baixa = TituloBaixa::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('transaction_payment_id', $tp->id)
+        ->first();
+    expect($baixa)->not->toBeNull();
+    expect($baixa->meio_pagamento)->toBe('transferencia');
+
+    $movimento = CaixaMovimento::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('origem_tipo', 'titulo_baixa')
+        ->where('origem_id', $baixa->id)
+        ->first();
+    expect($movimento)->not->toBeNull();
+    expect($movimento->tipo)->toBe('entrada');
+    expect((float) $movimento->valor)->toBe(150.00);
+});
 
 it('cenario 5: updated com payment_status mudando due->paid cancela o Titulo', function () {
     $tx = fin_makeSell(
@@ -292,5 +402,42 @@ it('cenario 8: multi-tenant — sells em 2 businesses geram titulos isolados', f
     expect($titulo1->id)->not->toBe($titulo2->id);
 });
 
-it('cenario 9: purchase type=purchase deveria gerar titulo a pagar')
-    ->skip('BUG-3: TituloAutoService::sincronizarDeVenda retorna null pra type !== sell. Job CriarTituloDeVendaJob cobre purchase mas Observer nao o invoca. Onda 2.');
+it('cenario 9: purchase type=purchase gera titulo a pagar com numero P000001', function () {
+    $supplier = DB::table('contacts')
+        ->where('business_id', $this->business->id)
+        ->where('type', 'supplier')
+        ->first();
+
+    if (! $supplier) {
+        // Aceita usar contact tipo customer também — schema pode estar misto.
+        $supplier = $this->contact;
+    }
+
+    $tx = Transaction::create([
+        'business_id' => $this->business->id,
+        'location_id' => $this->location->id,
+        'type' => 'purchase',
+        'status' => 'received',
+        'payment_status' => 'due',
+        'contact_id' => $supplier->id,
+        'transaction_date' => Carbon::now()->toDateTimeString(),
+        'final_total' => 333.00,
+        'total_remaining_amount' => 333.00,
+        'created_by' => $this->user->id,
+        'ref_no' => 'PUR-INT-' . uniqid(),
+    ]);
+
+    $titulo = Titulo::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('origem', 'compra')
+        ->where('origem_id', $tx->id)
+        ->first();
+
+    expect($titulo)->not->toBeNull('Observer deveria ter criado Titulo de compra');
+    expect($titulo->tipo)->toBe('pagar');
+    expect($titulo->status)->toBe('aberto');
+    expect((float) $titulo->valor_total)->toBe(333.00);
+    expect((float) $titulo->valor_aberto)->toBe(333.00);
+    expect($titulo->cliente_id)->toBe($supplier->id);
+    expect($titulo->numero)->toMatch('/^P\d{6}$/');
+});
