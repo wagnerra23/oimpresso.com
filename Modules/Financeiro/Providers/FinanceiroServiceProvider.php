@@ -47,7 +47,11 @@ class FinanceiroServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Financeiro\Console\Commands\InstallCommand::class,
+            ]);
+        }
     }
 
     /**
