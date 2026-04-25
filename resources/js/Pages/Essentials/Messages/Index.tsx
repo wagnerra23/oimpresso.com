@@ -70,6 +70,7 @@ export default function MessagesIndex({
   const [deleteTarget, setDeleteTarget] = useState<Message | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
+  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const form = useForm<{ message: string; location_id: number | null }>({
     message: '',
     location_id: null,
