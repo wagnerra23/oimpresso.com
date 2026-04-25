@@ -1,6 +1,7 @@
 {
     "name": "eduardokum/laravel-boleto",
-    "description": "Biblioteca com boletos para o laravel",
+    "version": "0.11.1",
+    "description": "Biblioteca com boletos para o laravel (fork local — patch L13)",
     "keywords": [
         "eduardokum",
         "laravel-boleto"
