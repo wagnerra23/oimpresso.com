@@ -31,11 +31,13 @@ class CnabDirectStrategy implements BoletoStrategy
      */
     public const BANCO_MAP = [
         '001' => \Eduardokum\LaravelBoleto\Boleto\Banco\Bb::class,
+        '004' => \Eduardokum\LaravelBoleto\Boleto\Banco\Bnb::class,
         '033' => \Eduardokum\LaravelBoleto\Boleto\Banco\Santander::class,
         '041' => \Eduardokum\LaravelBoleto\Boleto\Banco\Banrisul::class,
         '077' => \Eduardokum\LaravelBoleto\Boleto\Banco\Inter::class,
         '085' => \Eduardokum\LaravelBoleto\Boleto\Banco\Ailos::class,
         '104' => \Eduardokum\LaravelBoleto\Boleto\Banco\Caixa::class,
+        '133' => \Eduardokum\LaravelBoleto\Boleto\Banco\Cresol::class,
         '136' => \Eduardokum\LaravelBoleto\Boleto\Banco\Unicred::class,
         '208' => \Eduardokum\LaravelBoleto\Boleto\Banco\Btg::class,
         '224' => \Eduardokum\LaravelBoleto\Boleto\Banco\Fibra::class,
@@ -43,6 +45,7 @@ class CnabDirectStrategy implements BoletoStrategy
         '336' => \Eduardokum\LaravelBoleto\Boleto\Banco\C6::class,
         '341' => \Eduardokum\LaravelBoleto\Boleto\Banco\Itau::class,
         '362' => \Eduardokum\LaravelBoleto\Boleto\Banco\Hsbc::class,
+        '405' => \Eduardokum\LaravelBoleto\Boleto\Banco\Delbank::class,
         '633' => \Eduardokum\LaravelBoleto\Boleto\Banco\Rendimento::class,
         '643' => \Eduardokum\LaravelBoleto\Boleto\Banco\Pine::class,
         '712' => \Eduardokum\LaravelBoleto\Boleto\Banco\Ourinvest::class,
