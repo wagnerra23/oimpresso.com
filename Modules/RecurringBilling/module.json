@@ -1,0 +1,11 @@
+{
+    "name": "RecurringBilling",
+    "alias": "recurringbilling",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\RecurringBilling\\Providers\\RecurringBillingServiceProvider"
+    ],
+    "files": []
+}

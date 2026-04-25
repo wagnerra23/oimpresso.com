@@ -93,15 +93,21 @@ Fallback Playwright (se não tiver export disponível): [`_tools/scrape_claude_c
 
 ## Índice de ideias atuais
 
-(Atualizado quando entradas novas surgem; a tabela abaixo é populada conforme as conversas mobile do Claude vão sendo extraídas em 2026-04-24.)
+**Atualizado 2026-04-24** — as 4 ideias principais foram **promovidas** para `memory/requisitos/{Modulo}/` (status `shipped` aqui = "virou spec formal", não código entregue).
 
-| Ideia | Status | Prioridade | Esforço | Origem principal |
+| Ideia | Status | Promovida para | Esforço | Origem principal |
 |---|---|---|---|---|
-| [NfeBrasil](NfeBrasil/) | researching | alta | 5-6 semanas | Conversa Claude mobile "Implementar documentos fiscais" |
-| [Financeiro](Financeiro/) | researching | alta | 4-6 semanas | Conversa Claude mobile "Módulo financeiro brasileiro" |
-| [CobrancaRecorrente](CobrancaRecorrente/) | researching | alta | 12-14 semanas | Conversa Claude mobile "Estado da arte em módulos de cobrança recorrente" |
-| [LaravelAI](LaravelAI/) | idea | média | 2-3 sem MVP / 6-8 sem prod | Conversa Claude mobile "Laravel AI SDK / RAG / knowledge graph" |
-| [AutomacaoCC](AutomacaoCC/) | shipped | - | já entregue (M3+M5+M7+M10) | Conversa Claude mobile "Upgrade UltimatePOS via Claude Code" |
+| [NfeBrasil](NfeBrasil/) | shipped (spec) | [`requisitos/NfeBrasil/`](../NfeBrasil/) | 5-6 semanas | Conversa Claude mobile "Implementar documentos fiscais" |
+| [Financeiro](Financeiro/) | shipped (spec) | [`requisitos/Financeiro/`](../Financeiro/) | 5-6 semanas | Conversa Claude mobile "Módulo financeiro brasileiro" |
+| [CobrancaRecorrente](CobrancaRecorrente/) | shipped (spec) | [`requisitos/RecurringBilling/`](../RecurringBilling/) — renomeado | 12-14 semanas | Conversa Claude mobile "Estado da arte em módulos de cobrança recorrente" |
+| [LaravelAI](LaravelAI/) | shipped (spec) | [`requisitos/LaravelAI/`](../LaravelAI/) | 2-3 sem MVP / 6-8 sem prod | Conversa Claude mobile "Laravel AI SDK / RAG / knowledge graph" |
+| [AutomacaoCC](AutomacaoCC/) | shipped (código) | - (foi infra, não módulo) | já entregue (M3+M5+M7+M10) | Conversa Claude mobile "Upgrade UltimatePOS via Claude Code" |
+
+**Status `shipped` significa duas coisas distintas aqui:**
+- **`shipped (spec)`** — ideia virou SPEC formal em `requisitos/{Modulo}/`. Ainda não tem código.
+- **`shipped (código)`** — ideia foi entregue como código real (caso AutomacaoCC, que era infra de upgrade).
+
+Ver também: [_Roadmap_Faturamento.md](../_Roadmap_Faturamento.md) — sequência das 4 SPECs para meta de faturamento 2 anos.
 
 ## Política de housekeeping
 
