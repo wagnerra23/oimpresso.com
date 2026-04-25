@@ -17,9 +17,13 @@ use Modules\Financeiro\Models\Titulo;
  *
  * Idempotência: UNIQUE (business_id, origem, origem_id, parcela_numero) — retry seguro.
  *
- * Dispara: TransactionObserver::created().
- *
  * R-FIN-003 (cria título a partir de venda) + R-FIN-004 (cria título a partir de compra).
+ *
+ * @deprecated Onda 2 (2026-04-25). A lógica (incluindo numeração R/P000001) foi migrada
+ * pra TituloAutoService::sincronizarDeTransacao() chamado diretamente pelo
+ * TransactionObserver. Este Job é órfão (nunca foi dispatchado em produção) e
+ * deve ser removido em onda futura. Mantido neste commit apenas pra evitar
+ * quebrar referências externas eventuais.
  */
 class CriarTituloDeVendaJob implements ShouldQueue
 {
