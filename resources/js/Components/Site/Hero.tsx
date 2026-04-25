@@ -18,17 +18,19 @@ export default function Hero() {
         <div className="flex flex-col justify-center">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-            ERP brasileiro · 100% em português
+            Comunicação visual · Varejo · Serviços · Multi-loja
           </span>
 
-          <h1 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            <span className="block">O ERP completo</span>
-            <span className="block text-primary">pra sua empresa.</span>
+          <h1 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-[3.75rem]">
+            <span className="block text-foreground">O ERP pra quem</span>
+            <span className="block text-primary">orça, imprime, monta</span>
+            <span className="block text-primary">e entrega.</span>
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Do orçamento à NF-e, do ponto ao financeiro — em uma plataforma só.
-            PDV, estoque, fiscal, RH, cobrança e BI integrados.
+            Cálculo automático por <strong className="font-semibold text-foreground">m²</strong>,
+            ordem de produção em tempo real e fechamento fiscal sem retrabalho.
+            PDV, NF-e, estoque, ponto, financeiro e BI integrados — em uma plataforma só.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -36,13 +38,20 @@ export default function Hero() {
               <a href="/login">Começar grátis</a>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <a href="/c/page/recursos">Ver recursos</a>
+              <a href="#recursos">Ver recursos</a>
             </Button>
           </div>
 
-          <p className="mt-4 text-xs text-muted-foreground">
-            Sem cartão de crédito. Suporte humano em português.
-          </p>
+          <div className="mt-4 flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
+            <span>Sem cartão de crédito · Suporte humano em português.</span>
+            <a
+              href="/c/contact-us"
+              className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+            >
+              Não sabe qual plano? Me ajuda a escolher
+              <span aria-hidden>→</span>
+            </a>
+          </div>
         </div>
 
         <div className="relative flex items-center justify-center">
