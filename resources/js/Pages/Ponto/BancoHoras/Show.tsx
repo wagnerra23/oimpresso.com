@@ -60,6 +60,7 @@ const tipoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'out
 };
 
 export default function BancoHorasShow({ saldo, movimentos }: Props) {
+  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const form = useForm({
     minutos: 0,
     observacao: '',
