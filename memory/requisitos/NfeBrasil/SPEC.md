@@ -206,18 +206,43 @@
 > **Rota:** `POST /nfe-brasil/tributacao/regras`
 > **Controller/ação:** `TributacaoController@store`
 > **Permissão Spatie:** `nfe.tributacao.manage`
+> **ADRs relacionados:** [ARQ-0004](adr/arq/0004-schema-flexivel-cbs-ibs-reforma-tributaria.md) (schema CBS/IBS), [ARQ-0005](adr/arq/0005-tax-rates-core-vs-fiscal-rules.md) (bridge), [ARQ-0006](adr/arq/0006-cascade-defaults-ncm-produto.md) (cascade), [UI-0003](adr/ui/0003-configuracao-fiscal-3-niveis.md) (3 níveis)
 
 **Como** Gestor / Contador
 **Quero** definir tributação por NCM/UF: ICMS, ICMS-ST (com MVA), IPI, PIS, COFINS, CBS, IBS
 **Para** automatizar cálculo na emissão sem digitar imposto a imposto
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Tributacao/Regras.tsx`]_
+**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Tributacao/Regras/Index.tsx`, `.../Form.tsx`]_
 
 **Definition of Done:**
-- [ ] Tabela `nfe_fiscal_rules` com `(business_id, ncm, uf_origem, uf_destino)` UNIQUE composta
-- [ ] Schema flexível: campos `cbs_*` e `ibs_*` nullables (Reforma Tributária 2026-2033)
-- [ ] Importação CSV em massa (upload datasets Receita Federal/CONFAZ)
-- [ ] Test Feature: criar regra + duplicidade rejeitada + import CSV + isolamento
+- [ ] Tabela `nfe_fiscal_rules` com `UNIQUE (business_id, ncm, uf_origem, uf_destino)` composta (ARQ-0004 schema)
+- [ ] FormRequest valida: `ncm` 8 dígitos, `uf_origem` em FEBRABAN UFs, `uf_destino` opcional (NULL = todas), CSOSN OU CST exclusive
+- [ ] Schema flexível: campos `cbs_*` e `ibs_*` nullables (Reforma Tributária 2026-2033, ARQ-0004)
+- [ ] **Cascade fallback respeitado** (ARQ-0006): regra criada participa do cascade Nível 2 ou 3 dependendo de `uf_destino` ser NULL
+- [ ] **Bridge automática** (ARQ-0005): listener `SyncFiscalRuleToTaxRate` upsert linha em `tax_rates` core (compat Connector)
+- [ ] **Importação CSV** em massa: upload datasets Receita Federal (NCM 8d) ou CONFAZ (CEST 7d):
+  - Preview antes de aplicar (10 primeiras linhas + totais)
+  - Detecta duplicados existentes (skip ou update via `--update-existing` flag)
+  - Validação por linha (erros não bloqueiam linhas válidas)
+  - Resultado: "150 criadas, 12 atualizadas, 3 falharam (ver log)"
+- [ ] **Buscador NCM** com autocomplete (dataset core 15k entries; lookup por digit ou nome)
+- [ ] **Preview de cálculo** com produto exemplo: usuário digita valor R$ 100 → mostra ICMS=18, ICMS-ST=12, IPI=5, PIS=0,65, COFINS=3 (carga efetiva calculada antes de salvar)
+- [ ] **Tabela com filtros** (UI-0003 Aba 2):
+  - Sort por "Uso" (count emissões 30d) DESC default
+  - Filtro "Sem uso 90d" (candidatos a limpeza)
+  - Filtro "Suspeitas" (heurísticas: ICMS=0 fora Simples, ICMS-ST sem MVA, etc.)
+- [ ] **Override por produto** opt-in via `products.fiscal_rule_override_id` (ARQ-0006 Nível 1)
+- [ ] **Evento publicado** `FiscalRuleCreated`/`Updated`/`Deleted` (consumido pelo bridge ARQ-0005)
+- [ ] **Audit log** Spatie em todas mutações (R-NFE-013)
+- [ ] **Multi-tenant scope** `business_id` em todas queries (R-NFE-001)
+- [ ] **Permissão Spatie** `nfe.tributacao.manage` (R-NFE-002)
+- [ ] **Test Feature** cobre:
+  - Criar regra simples + duplicidade rejeitada (UNIQUE constraint)
+  - Importação CSV happy path + linhas inválidas (parsial sucesso)
+  - Cascade fallback Nível 2 → 3 → 4 com fixtures
+  - Bridge cria/atualiza/deleta `tax_rates` espelho
+  - Preview de cálculo retorna shape correto
+  - Multi-tenant isolation (business A não vê regras de B)
 
 ## 3. Regras de negócio (Gherkin)
 
