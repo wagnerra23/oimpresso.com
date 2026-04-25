@@ -2,9 +2,8 @@ import { Link } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 
 const NAV = [
-  { label: 'Recursos', href: '/c/page/recursos' },
-  { label: 'Preços', href: '/c/page/precos' },
-  { label: 'Soluções', href: '/c/page/solucoes' },
+  { label: 'Recursos', href: '/#recursos' },
+  { label: 'Preços', href: '/pricing' },
   { label: 'Ajuda', href: '/ajuda/' },
   { label: 'Contato', href: '/c/contact-us' },
 ];
