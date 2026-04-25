@@ -13,6 +13,11 @@ jobs:
   php:
     name: PHP / Pest (Unit)
     runs-on: ubuntu-latest
+
+    # NOTE: Suite UPos legacy boota providers que consultam system.crm_version
+    # ANTES de migrate criar a tabela. Setup MySQL+migrate full em CI fica pra
+    # PR separado. Por ora rodamos apenas tests offline-safe (sem boot DB).
+
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +51,7 @@ jobs:
           find app Modules -name '*.php' -not -path '*/vendor/*' -not -path '*/node_modules/*' -print0 \
             | xargs -0 -n1 -P4 php -l > /dev/null
 
-      - name: Prepare .env (minimal, CI-only)
+      - name: Prepare .env (sqlite, sem boot DB-heavy)
         run: |
           cat > .env <<'EOF'
           APP_NAME=oimpresso-ci
@@ -65,10 +70,9 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (offline-safe tests)
-        # Suite legada precisa DB completa do UltimatePOS migrada (incluindo tabela 'system')
-        # — fora do escopo CI atual. Rodamos apenas tests offline-safe (form shim)
-        # ate ter setup de migrations no runner.
+      - name: Run Pest (suite Financeiro + Form shim)
+        # ModuleUtil::isModuleInstalled e getModuleVersionInfo agora sao
+        # graceful (try/catch) — boot da app funciona sem migrate completo.
         run: vendor/bin/pest tests/Feature/Form --no-coverage
 
   frontend:
