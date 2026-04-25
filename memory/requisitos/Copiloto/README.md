@@ -11,10 +11,17 @@ areas: [Chat, Metas, Períodos, Apuração, Fontes, Dashboard, Alertas]
 marca_comercial: "Copiloto"
 pitch: "O Copiloto de IA do seu negócio — ele olha seus números, sugere metas e te avisa quando algo desvia."
 last_generated: 2026-04-24 (módulo novo, escrito a mão)
+revenue_pricing:
+  tier: "3 (multiplier add-on)"
+  starter: "R$ 99/mês"
+  pro: "R$ 299/mês"
+  enterprise: "R$ 799/mês"
+  take_rate: "n/a (subscription puro)"
+  posicionamento_vs_laravelai: "Copiloto = front de decisão (chat + metas + alertas); LaravelAI = engine (RAG + agent). Vendem juntos ou separados. Copiloto roda sem LaravelAI via fallback OpenAI."
 scale:
-  routes: 0 (design)
-  controllers: 0 (design)
-  entities: 7 (design)
+  routes: 21 (scaffold)
+  controllers: 7 (scaffold)
+  entities: 7 (scaffold)
   permissions: 6 (design)
 ---
 
@@ -83,9 +90,21 @@ Ver [`adr/arq/0001-tenancy-hibrida.md`](adr/arq/0001-tenancy-hibrida.md).
 - Auto-memória `ideia_chat_ia_contextual.md` — Copiloto é a primeira materialização do chat contextual previsto.
 - Auto-memória `reference_revenue_thesis_modulos.md` — pricing/take rate do Copiloto deve entrar na mesma tese.
 
+## Revenue / pricing
+
+| Tier | Preço | O que inclui |
+|---|---|---|
+| **Starter** | R$ 99/mês | Chat com IA limitado (50 msgs/mês), metas manuais, alerta in-app |
+| **Pro** | R$ 299/mês | Chat ilimitado + sugestão IA de metas, 3 canais de alerta (in-app/email), integrações Financeiro/POS/Ponto |
+| **Enterprise** | R$ 799/mês | Tudo do Pro + visão cross-business (grupos), prioridade na fila de IA, analytics profundas, consultoria de metas por WhatsApp |
+
+Take rate: **n/a** (subscription puro). Ver `reference_revenue_thesis_modulos.md` na auto-memória.
+
 ## Status (2026-04-24)
 
-`spec-ready` — documentação completa, sem código. Próximo passo: scaffold `Modules/Copiloto/` (padrão PontoWr2).
+- **Spec:** ✅ completa (README + ARCHITECTURE + SPEC + GLOSSARY + RUNBOOK + CHANGELOG + 5 ADRs)
+- **Scaffold Laravel:** ✅ mínimo em `Modules/Copiloto/` (module.json active:0 — Wagner ativa quando quiser)
+- **Lógica real:** ⏳ TODOs marcados nos controllers/services (chamada IA, driver SQL com binds, job de apuração, views React)
 
 ---
 
