@@ -1,0 +1,11 @@
+/vendor
+.DS_Store
+/.idea
+.composer.lock
+/tests/_reports/
+/docs/build/
+/composer.lock
+.phpunit.result.cache
+.vs/
+exemplos/arquivos/*.txt
+exemplos/teste.php
