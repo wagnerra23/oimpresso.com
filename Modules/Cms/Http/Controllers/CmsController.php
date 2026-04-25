@@ -5,6 +5,7 @@ namespace Modules\Cms\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsSiteDetail;
 use Modules\Cms\Notifications\NewLeadGeneratedNotification;
@@ -35,6 +36,27 @@ class CmsController extends Controller
      * @return Response
      */
     public function index()
+    {
+        // PR2: hidratar Hero/Features/SocialProof a partir destes dados
+        // (atualmente Pages/Site/Home.tsx tem copy hardcoded em PT-BR pra acelerar PR1)
+        $testimonials = $this->cmsUtil->getPageByType('testimonial');
+        $page = $this->cmsUtil->getPageByLayout('home');
+        $faqs = CmsSiteDetail::getValue('faqs');
+        $statistics = CmsSiteDetail::getValue('statistics');
+
+        return Inertia::render('Site/Home', [
+            'testimonials' => $testimonials,
+            'page' => $page,
+            'faqs' => $faqs,
+            'statistics' => $statistics,
+        ]);
+    }
+
+    /**
+     * Versão Blade legada da home (template UltimatePOS em inglês).
+     * Mantida atrás de /old durante a transição pra Inertia — remover após validação.
+     */
+    public function indexLegacy()
     {
         $testimonials = $this->cmsUtil->getPageByType('testimonial');
         $page = $this->cmsUtil->getPageByLayout('home');
