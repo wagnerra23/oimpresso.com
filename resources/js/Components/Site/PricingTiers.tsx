@@ -36,13 +36,15 @@ const TIERS: Tier[] = [
   },
   {
     name: 'Profissional',
-    tagline: 'Pra quem precisa de tudo, sem gambiarra.',
+    tagline: 'Pra gráfica, varejo ou serviço que precisa de tudo, sem gambiarra.',
     price: { monthly: 'R$ 349', annual: 'R$ 279' },
     priceSuffix: '/mês',
     cta: { label: 'Começar 14 dias grátis', href: '/login' },
     highlighted: true,
     features: [
       'Tudo do Essencial',
+      'Cálculo automático por m² (gráficas e com. visual)',
+      'Ordem de produção em tempo real',
       'Multi-loja + transferência entre filiais',
       'Financeiro, boletos e conciliação',
       'Ponto eletrônico + folha simplificada',

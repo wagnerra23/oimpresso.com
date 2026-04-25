@@ -6,6 +6,18 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
+    icon: '📐',
+    title: 'Orçamento por m² (com. visual)',
+    description:
+      'Cálculo automático por m² com tabelas próprias por substrato, acabamento e instalação. Adeus planilha.',
+  },
+  {
+    icon: '🏭',
+    title: 'Ordem de produção (OP)',
+    description:
+      'Do orçamento aprovado direto pra OP. Acompanha produção em tempo real, alerta atraso e fecha entrega.',
+  },
+  {
     icon: '🛒',
     title: 'PDV completo',
     description:
@@ -52,14 +64,14 @@ export default function FeatureGrid() {
             Tudo num lugar
           </span>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Seis módulos. Uma plataforma.
+            Oito módulos. Uma plataforma.
           </h2>
           <p className="mt-4 text-base text-muted-foreground">
-            Pare de pular entre 5 sistemas pra fechar o mês. O oimpresso integra a operação de ponta a ponta.
+            Pare de pular entre 5 sistemas pra fechar o mês. Do orçamento à entrega — o oimpresso integra a operação de ponta a ponta.
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
