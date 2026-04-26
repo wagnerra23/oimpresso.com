@@ -27,6 +27,10 @@ class ContaBancariaController extends Controller
     {
         $businessId = $request->session()->get('business.id');
 
+        // accounts.account_type foi REMOVIDA pela migration core
+        // 2019_10_18_155633_create_account_types_table.php (DROP COLUMN). O FK
+        // novo é accounts.account_type_id → account_types.id. Selecionamos o id
+        // e deixamos pro frontend só exibir.
         $accounts = Account::where('accounts.business_id', $businessId)
             ->where('is_closed', 0)
             ->leftJoin('fin_contas_bancarias as cb', 'cb.account_id', '=', 'accounts.id')
@@ -34,7 +38,7 @@ class ContaBancariaController extends Controller
                 'accounts.id',
                 'accounts.name',
                 'accounts.account_number',
-                'accounts.account_type',
+                'accounts.account_type_id',
                 'cb.id as complemento_id',
                 'cb.banco_codigo',
                 'cb.agencia',
