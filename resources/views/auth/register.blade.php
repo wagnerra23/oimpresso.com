@@ -4,7 +4,7 @@
 
 <div class="row">
 
-    <h1 class="page-header text-center">{{ config('app.name', 'ultimatePOS') }}</h2>
+    <h1 class="page-header text-center">{{ config('app.name', 'oimpresso') }}</h1>
     
     <div class="col-md-8 col-md-offset-2">
         
@@ -13,7 +13,7 @@
                 <h3 class="box-title text-center">Register and Get Started in minutes</h3>
             </div>
 
-            {!! Form::open(['url' => {{ route('business.postRegister') }}]) !!}
+            {!! Form::open(['url' => route('business.postRegister')]) !!}
             {!! Form::token(); !!}
 
                 <!-- /.box-header -->
