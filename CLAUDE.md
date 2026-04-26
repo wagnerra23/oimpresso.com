@@ -132,7 +132,28 @@ D:\oimpresso.com\                  # Raiz do projeto (workspace do usuário)
 
 ---
 
-## 7. Acesso à produção (Hostinger)
+## 7. Cofre de comparativos & gestão de memória
+
+**Comparativos competitivos** (estilo Capterra/G2) ficam em [`memory/comparativos/`](memory/comparativos/):
+- Template oficial: [`memory/comparativos/_TEMPLATE_capterra_oimpresso.md`](memory/comparativos/_TEMPLATE_capterra_oimpresso.md) v1.0
+- Índice: [`memory/comparativos/_INDEX.md`](memory/comparativos/_INDEX.md)
+- Checklist obrigatório: TL;DR 5 frases + ≥4 concorrentes + 30+ features + exatamente 3 GAPs + exatamente 3 vantagens + ≥3 caminhos de posicionamento + math da meta + 3 ações prioritárias + métrica de fé 90d + sources literais
+
+**Trigger "guarde no cofre":** quando Wagner pedir, classifique antes de salvar:
+- Comparativo competitivo → `memory/comparativos/`
+- Decisão arquitetural → `memory/decisions/NNNN-slug.md` (formato Nygard, ver ADR 0028)
+- User story / requisito → `memory/requisitos/{Modulo}/SPEC.md`
+- Preferência do usuário ou quirk de cliente → auto-memória do agente (fora do git)
+- Evidência (print, log, chat) → `Modules/MemCofre/` (entidades `Doc*`) — ainda sem UI de upload, registrar em arquivo na branch enquanto isso
+- Sempre confirmar com link curto pra Wagner.
+
+**Papéis canônicos** de cada sistema de memória estão formalizados em [ADR 0027](memory/decisions/0027-gestao-memoria-roles-claros.md) (meta-ADR). Resumo: handoff em `memory/08-handoff.md`, ADRs em `memory/decisions/`, sessões cronológicas em `memory/sessions/`, specs por módulo em `memory/requisitos/{Mod}/`, cross-conversation em auto-memória, evidências em MemCofre, auditoria em git.
+
+**Não duplicar info entre sistemas.** Se já está no repo (cross-agent), auto-memória só aponta. Conflito de fato entre 2 fontes = bug.
+
+---
+
+## 8. Acesso à produção (Hostinger)
 
 Servidor de produção do oimpresso.com (Cloud Startup, IPv4 only — sempre `-4`):
 
@@ -172,7 +193,7 @@ Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
 
 ---
 
-## 8. Contato
+## 9. Contato
 
 **Cliente:** WR2 Sistemas — Eliana — eliana@wr2.com.br
 **Repositório:** local, selecionado pelo usuário em `D:\oimpresso.com`
