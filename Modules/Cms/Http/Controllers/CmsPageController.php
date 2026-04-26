@@ -6,6 +6,7 @@ use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsPageMeta;
 
@@ -104,6 +105,24 @@ class CmsPageController extends Controller
      * @return Response
      */
     public function showPage($page_title)
+    {
+        $title = str_replace('-', ' ', $page_title);
+
+        $page = CmsPage::with(['pageMeta'])
+                    ->where('title', $title)
+                    ->first();
+
+        if (empty($page)) {
+            abort(404);
+        }
+
+        return Inertia::render('Site/Page', [
+            'page' => $page,
+        ]);
+    }
+
+    /** Versão Blade legada de /c/page/{slug} — em /c/page/{slug}/old. */
+    public function showPageLegacy($page_title)
     {
         $title = str_replace('-', ' ', $page_title);
 

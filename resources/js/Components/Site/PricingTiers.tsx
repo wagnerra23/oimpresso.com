@@ -1,4 +1,5 @@
 import { Button } from '@/Components/ui/button';
+import { motion, useReducedMotion } from 'framer-motion';
 
 type Billing = 'monthly' | 'annual';
 
@@ -13,12 +14,28 @@ interface Tier {
   ctaVariant?: 'default' | 'outline' | 'secondary';
 }
 
-/**
- * Preços PLACEHOLDER — Wagner ainda não definiu valores oficiais.
- * Memória: project_meta_5mi_ano + meta de receita pendente.
- * Substituir pelos valores reais quando definidos (vinda do DB de packages).
- */
-const TIERS: Tier[] = [
+interface PackageRow {
+  id: number | string;
+  name: string;
+  description?: string | null;
+  price?: number | string | null;
+  interval?: string | null;
+  interval_count?: number | null;
+  trial_days?: number | null;
+  location_count?: number | null;
+  user_count?: number | null;
+  product_count?: number | null;
+  invoice_count?: number | null;
+  custom_permissions?: Record<string, any> | null;
+  sort_order?: number | null;
+}
+
+interface PricingTiersProps {
+  billing: Billing;
+  packages?: PackageRow[] | null;
+}
+
+const FALLBACK_TIERS: Tier[] = [
   {
     name: 'Essencial',
     tagline: 'Pra começar a operar com o básico bem feito.',
@@ -71,16 +88,111 @@ const TIERS: Tier[] = [
   },
 ];
 
-export default function PricingTiers({ billing }: { billing: Billing }) {
+function formatPrice(value: number | string | null | undefined): string {
+  if (value === null || value === undefined || value === '') return 'Sob consulta';
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (!Number.isFinite(num) || num === 0) return 'Grátis';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(num);
+}
+
+function tiersFromPackages(packages: PackageRow[]): Tier[] {
+  return packages.map((pkg, idx) => {
+    const priceMonthly = formatPrice(pkg.price);
+    const features: string[] = [];
+
+    if (pkg.location_count) {
+      features.push(
+        pkg.location_count === 0
+          ? 'Lojas ilimitadas'
+          : `Até ${pkg.location_count} ${pkg.location_count === 1 ? 'loja' : 'lojas'}`,
+      );
+    }
+    if (pkg.user_count) {
+      features.push(
+        pkg.user_count === 0 ? 'Usuários ilimitados' : `Até ${pkg.user_count} usuários`,
+      );
+    }
+    if (pkg.product_count) {
+      features.push(
+        pkg.product_count === 0 ? 'Produtos ilimitados' : `Até ${pkg.product_count} produtos`,
+      );
+    }
+    if (pkg.invoice_count) {
+      features.push(
+        pkg.invoice_count === 0
+          ? 'NF-e ilimitadas'
+          : `Até ${pkg.invoice_count} NF-e/mês`,
+      );
+    }
+
+    if (pkg.custom_permissions && typeof pkg.custom_permissions === 'object') {
+      for (const key of Object.keys(pkg.custom_permissions)) {
+        if (pkg.custom_permissions[key]) {
+          features.push(prettifyPermissionKey(key));
+        }
+      }
+    }
+
+    if (pkg.trial_days && pkg.trial_days > 0) {
+      features.unshift(`${pkg.trial_days} dias grátis pra testar`);
+    }
+
+    if (features.length === 0 && pkg.description) {
+      features.push(...pkg.description.split('\n').map((s) => s.trim()).filter(Boolean));
+    }
+
+    const interval = pkg.interval ?? 'months';
+    const suffix = interval === 'months' ? '/mês' : interval === 'years' ? '/ano' : '/dia';
+
+    return {
+      name: pkg.name,
+      tagline: (pkg.description ?? '').toString().split('\n')[0] || '',
+      price: { monthly: priceMonthly, annual: priceMonthly },
+      priceSuffix: priceMonthly === 'Grátis' || priceMonthly === 'Sob consulta' ? '' : suffix,
+      cta: { label: 'Começar agora', href: '/register' },
+      highlighted: idx === 1 && packages.length >= 3,
+      features: features.length > 0 ? features : ['Recursos sob medida'],
+      ctaVariant: idx === 1 && packages.length >= 3 ? 'default' : 'outline',
+    };
+  });
+}
+
+function prettifyPermissionKey(key: string): string {
+  return key
+    .replace(/_module$/, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export default function PricingTiers({ billing, packages }: PricingTiersProps) {
+  const reduceMotion = useReducedMotion();
+  const tiers =
+    packages && Array.isArray(packages) && packages.length > 0
+      ? tiersFromPackages(packages)
+      : FALLBACK_TIERS;
+
   return (
     <section className="py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-3">
-          {TIERS.map((tier) => {
+          {tiers.map((tier, idx) => {
             const isHighlighted = tier.highlighted;
             return (
-              <div
+              <motion.div
                 key={tier.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{
+                  duration: reduceMotion ? 0 : 0.45,
+                  delay: reduceMotion ? 0 : idx * 0.08,
+                }}
+                whileHover={reduceMotion ? undefined : { scale: 1.02 }}
                 className={`relative flex flex-col rounded-2xl border p-7 transition-all ${
                   isHighlighted
                     ? 'border-primary bg-card shadow-2xl shadow-primary/10 lg:-mt-4 lg:mb-4'
@@ -95,7 +207,9 @@ export default function PricingTiers({ billing }: { billing: Billing }) {
 
                 <div>
                   <h3 className="text-lg font-bold text-foreground">{tier.name}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{tier.tagline}</p>
+                  {tier.tagline && (
+                    <p className="mt-2 text-sm text-muted-foreground">{tier.tagline}</p>
+                  )}
                 </div>
 
                 <div className="mt-6 flex items-baseline gap-2">
@@ -142,7 +256,7 @@ export default function PricingTiers({ billing }: { billing: Billing }) {
                     <a href={tier.cta.href}>{tier.cta.label}</a>
                   </Button>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

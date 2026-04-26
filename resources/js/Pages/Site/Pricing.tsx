@@ -4,7 +4,12 @@ import { Button } from '@/Components/ui/button';
 import PricingTiers from '@/Components/Site/PricingTiers';
 import PricingFaq from '@/Components/Site/PricingFaq';
 
-function SitePricing() {
+interface SitePricingProps {
+  packages?: any[] | null;
+  permissions?: Record<string, string> | null;
+}
+
+function SitePricing({ packages }: SitePricingProps) {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('annual');
 
   return (
@@ -57,7 +62,7 @@ function SitePricing() {
         </div>
       </section>
 
-      <PricingTiers billing={billing} />
+      <PricingTiers billing={billing} packages={packages} />
 
       {/* Confidence row */}
       <section className="border-y border-border bg-muted/20 py-10">
