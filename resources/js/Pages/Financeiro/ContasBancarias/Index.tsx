@@ -12,7 +12,7 @@ interface Account {
   id: number;
   name: string;
   account_number: string;
-  account_type: 'saving_current' | 'capital' | null;
+  account_type_id: number | null;
   complemento_id: number | null;
   banco_codigo: string | null;
   agencia: string | null;
