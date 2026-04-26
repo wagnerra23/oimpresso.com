@@ -50,6 +50,27 @@ class CmsServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
+
+        // PR3: registra a conexão DB do WP officeimpresso.com.br para o
+        // command cms:import-wp-officeimpresso (definida via .env).
+        $this->app['config']->set('database.connections.wp_officeimpresso', [
+            'driver' => 'mysql',
+            'host' => env('WP_OFFICEIMPRESSO_DB_HOST', 'localhost'),
+            'port' => env('WP_OFFICEIMPRESSO_DB_PORT', '3306'),
+            'database' => env('WP_OFFICEIMPRESSO_DB_NAME', ''),
+            'username' => env('WP_OFFICEIMPRESSO_DB_USER', ''),
+            'password' => env('WP_OFFICEIMPRESSO_DB_PASS', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => env('WP_OFFICEIMPRESSO_DB_PREFIX', 'wp_'),
+            'strict' => false,
+        ]);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Cms\Console\ImportWpOfficeImpressoCommand::class,
+            ]);
+        }
     }
 
     /**

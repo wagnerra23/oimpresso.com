@@ -8,6 +8,7 @@ use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use App\Rules\ReCaptcha;
 
 
@@ -53,6 +54,22 @@ class LoginController extends Controller
     }
 
     public function showLoginForm()
+    {
+        // PR3: tela de login redesenhada em Inertia (com login social Google + Microsoft).
+        // Blade legado disponível em /login/old enquanto a transição se estabiliza.
+        return Inertia::render('Site/Login', [
+            'socialEnabled' => [
+                'google' => ! empty(config('services.google.client_id')),
+                'microsoft' => ! empty(config('services.microsoft.client_id')),
+            ],
+            'allowRegistration' => (bool) config('constants.allow_registration', true),
+        ]);
+    }
+
+    /**
+     * Versão Blade legada (UltimatePOS) — mantida em /login/old durante a transição.
+     */
+    public function showLoginFormLegacy()
     {
         return view('auth.login');
     }

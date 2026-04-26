@@ -17,8 +17,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [Modules\Cms\Http\Controllers\CmsController::class, 'index']);
 // Fallback Blade (template UltimatePOS legado) — remover após validar a Inertia em produção
 Route::get('/old', [Modules\Cms\Http\Controllers\CmsController::class, 'indexLegacy']);
+// PR3: /c/page/{slug}, /c/blogs e /c/blog/{slug}-{id} agora rendem Inertia.
+// Mantidos atrás de /old enquanto a transição valida em produção.
+Route::get('c/page/{page}/old', [Modules\Cms\Http\Controllers\CmsPageController::class, 'showPageLegacy']);
 Route::get('c/page/{page}', [Modules\Cms\Http\Controllers\CmsPageController::class, 'showPage']);
+Route::get('c/blogs/old', [Modules\Cms\Http\Controllers\CmsController::class, 'getBlogListLegacy']);
 Route::get('c/blogs', [Modules\Cms\Http\Controllers\CmsController::class, 'getBlogList']);
+Route::get('c/blog/{slug}-{id}/old', [Modules\Cms\Http\Controllers\CmsController::class, 'viewBlogLegacy']);
 Route::get('c/blog/{slug}-{id}', [Modules\Cms\Http\Controllers\CmsController::class, 'viewBlog']);
 Route::get('c/contact-us', [Modules\Cms\Http\Controllers\CmsController::class, 'contactUs'])->name('cms.contact.us');
 Route::post('c/submit-contact-form', [Modules\Cms\Http\Controllers\CmsController::class, 'postContactForm'])->name('cms.submit.contact.form');

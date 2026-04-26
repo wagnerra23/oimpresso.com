@@ -81,6 +81,18 @@ Route::middleware(['setData'])->group(function () {
 
     Auth::routes();
 
+    // PR3: login social via Socialite (Google + Microsoft).
+    Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\Auth\SocialAuthController::class, 'redirect'])
+        ->where('provider', 'google|microsoft')
+        ->name('auth.social.redirect');
+    Route::get('/auth/{provider}/callback', [\App\Http\Controllers\Auth\SocialAuthController::class, 'callback'])
+        ->where('provider', 'google|microsoft')
+        ->name('auth.social.callback');
+
+    // Blade legado (UltimatePOS) — mantém /login/old e /register/old durante a transição.
+    Route::get('/login/old', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginFormLegacy'])
+        ->name('login.legacy');
+
     Route::get('/business/register', [BusinessController::class, 'getRegister'])->name('business.getRegister');
     Route::post('/business/register', [BusinessController::class, 'postRegister'])->name('business.postRegister');
     Route::post('/business/register/check-username', [BusinessController::class, 'postCheckUsername'])->name('business.postCheckUsername');
