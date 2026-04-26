@@ -6,6 +6,8 @@ use App\Http\Controllers\BaseModuleInstallController;
 use Illuminate\Support\Facades\Route;
 use Modules\Copiloto\Http\Controllers\InstallController;
 
+uses(\Tests\TestCase::class);
+
 /**
  * Garante que o módulo Copiloto integra com o /manage-modules:
  *
