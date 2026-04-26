@@ -22,7 +22,8 @@
 |---|---|---|---|
 | 2026-04-25 | [site_marketing_concorrentes_comunicacao_visual_2026_04_25.md](site_marketing_concorrentes_comunicacao_visual_2026_04_25.md) | Copy/visual concorrentes vertical CV | Reescrita do site (Hero PT-BR "orça/imprime/monta/entrega") |
 | 2026-04-25 | [oimpresso_vs_concorrentes_capterra_2026_04_25.md](oimpresso_vs_concorrentes_capterra_2026_04_25.md) | oimpresso vs Mubisys/Zênite/Calcgraf/Calcme/Visua/Bling/Omie | ADR 0026 (posicionamento "ERP gráfico com IA"); 3 features 6m: PricingFpv + Copiloto v1 + CT-e/MDF-e |
-| 2026-04-26 | [sistemas_memoria_oimpresso_capterra_2026_04_26.md](sistemas_memoria_oimpresso_capterra_2026_04_26.md) | 9 sistemas de memória do projeto (CLAUDE.md vs decisions/ vs auto-mem vs MemCofre vs Git/PRs etc) | ADRs 0027/0028/0030 da sessão 15; 3 ações próximos 30d (CLAUDE.md aponta cofre, rename 0024 dup, AGENTS.md vira tombstone) |
+| 2026-04-26 | [sistemas_memoria_oimpresso_capterra_2026_04_26.md](sistemas_memoria_oimpresso_capterra_2026_04_26.md) | **Camada A** — 9 sistemas de memória de DEV (CLAUDE.md vs decisions/ vs auto-mem vs MemCofre vs Git/PRs etc) | ADRs 0027/0028/0030; 3 ações 30d (CLAUDE.md aponta cofre, rename 0024 dup, AGENTS.md vira tombstone) |
+| 2026-04-26 | [copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md](copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md) | **Camada B** — Copiloto runtime memory vs Mem0/LangGraph/Letta/Zep/OMEGA (estado-da-arte) | Caminho B recomendado: REST adapter pra Mem0 (5 sprints, Tier 1→6-7); 14 US-COPI-MEM-NNN propostas |
 
 ## Próximos sugeridos (não criar sem motivo)
 
