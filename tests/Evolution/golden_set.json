@@ -1,0 +1,32 @@
+[
+    {
+        "id": "GOLD-001",
+        "escopo": "Financeiro",
+        "pergunta": "Qual e o proximo PR de maior ROI no Financeiro?",
+        "rubrica_esperada": "Deve mencionar backfill de purchases legadas em estado due, citar memory/requisitos/Financeiro/SPEC.md, e reconhecer que Onda 1 e 2 ja foram mergeadas em 6.7-bootstrap."
+    },
+    {
+        "id": "GOLD-002",
+        "escopo": "Cms",
+        "pergunta": "Quais ADRs do Cms estao em conflito ou pendentes de decisao?",
+        "rubrica_esperada": "Deve listar ADRs em memory/requisitos/Cms/adr/ ou comparar com memory/comparativos/. Se nao houver conflito, deve dizer explicitamente sem inventar."
+    },
+    {
+        "id": "GOLD-003",
+        "escopo": "Financeiro",
+        "pergunta": "Onde mora a tabela de comissao? Em qual modulo e arquivo?",
+        "rubrica_esperada": "Deve buscar via ModelSchema ou ListAdrs, citar arquivo de migration ou model. Se nao encontrar, dizer sem inventar."
+    },
+    {
+        "id": "GOLD-004",
+        "escopo": "Copiloto",
+        "pergunta": "Por que o PR #13 de Copiloto foi fechado sem merge?",
+        "rubrica_esperada": "Deve reconhecer que precisa consultar histórico Git ou memory/sessions/. Se nao tem dado, indicar limitacao em vez de chutar."
+    },
+    {
+        "id": "GOLD-005",
+        "escopo": "geral",
+        "pergunta": "Qual e o limite de timezone shift +3h em format_date?",
+        "rubrica_esperada": "Deve citar memory/claude/feedback_carbon_timezone_bug.md, mencionar que o shift +3h em format_date e PRESERVADO INTENCIONALMENTE (clientes operacionais decoraram horarios), e que NAO deve corrigir sem plano de migracao de dados historicos."
+    }
+]
