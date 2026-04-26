@@ -11,12 +11,9 @@ interface HeroProps {
   page?: HeroPage | null;
 }
 
-export default function Hero({ page }: HeroProps) {
+export default function Hero(_props: HeroProps) {
   const reduceMotion = useReducedMotion();
   const baseTransition = reduceMotion ? { duration: 0 } : { duration: 0.6 };
-
-  const cmsTitle = page?.title?.trim();
-  const cmsContent = page?.content?.trim();
 
   return (
     <section className="relative overflow-hidden">
@@ -42,15 +39,9 @@ export default function Hero({ page }: HeroProps) {
             transition={{ ...baseTransition, delay: 0 }}
             className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-[3.75rem]"
           >
-            {cmsTitle ? (
-              <span className="block text-foreground">{cmsTitle}</span>
-            ) : (
-              <>
-                <span className="block text-foreground">O ERP pra quem</span>
-                <span className="block text-primary">orça, imprime, monta</span>
-                <span className="block text-primary">e entrega.</span>
-              </>
-            )}
+            <span className="block text-foreground">O ERP pra quem</span>
+            <span className="block text-primary">orça, imprime, monta</span>
+            <span className="block text-primary">e entrega.</span>
           </motion.h1>
 
           <motion.p
@@ -59,15 +50,9 @@ export default function Hero({ page }: HeroProps) {
             transition={{ ...baseTransition, delay: reduceMotion ? 0 : 0.15 }}
             className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
           >
-            {cmsContent ? (
-              <span dangerouslySetInnerHTML={{ __html: cmsContent }} />
-            ) : (
-              <>
-                Cálculo automático por <strong className="font-semibold text-foreground">m²</strong>,
-                ordem de produção em tempo real e fechamento fiscal sem retrabalho.
-                PDV, NF-e, estoque, ponto, financeiro e BI integrados — em uma plataforma só.
-              </>
-            )}
+            Cálculo automático por <strong className="font-semibold text-foreground">m²</strong>,
+            ordem de produção em tempo real e fechamento fiscal sem retrabalho.
+            PDV, NF-e, estoque, ponto, financeiro e BI integrados — em uma plataforma só.
           </motion.p>
 
           <motion.div
