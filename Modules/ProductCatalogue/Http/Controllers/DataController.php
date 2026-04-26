@@ -25,6 +25,23 @@ class DataController extends Controller
     }
 
     /**
+     * Permissões registradas no UI de Roles do UltimatePOS.
+     *
+     * Adicionado 2026-04-26 (audit DataController) pra permitir
+     * delegação granular do acesso ao catálogo QR.
+     */
+    public function user_permissions()
+    {
+        return [
+            [
+                'value' => 'productcatalogue.access',
+                'label' => __('productcatalogue::lang.productcatalogue_module'),
+                'default' => false,
+            ],
+        ];
+    }
+
+    /**
      * Adds Catalogue QR menus
      *
      * @return null

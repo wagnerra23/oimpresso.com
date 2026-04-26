@@ -25,6 +25,24 @@ class DataController extends Controller
     }
 
     /**
+     * Permissões registradas no UI de Roles do UltimatePOS.
+     *
+     * Adicionado 2026-04-26 (audit DataController). Officeimpresso é
+     * superadmin-only por design, mas registramos permissão pra aparecer
+     * no UI de Roles (auditoria) e permitir delegação futura.
+     */
+    public function user_permissions()
+    {
+        return [
+            [
+                'value' => 'officeimpresso.access',
+                'label' => __('officeimpresso::lang.officeimpresso_module'),
+                'default' => false,
+            ],
+        ];
+    }
+
+    /**
      * Adds Officeimpresso menus a sidebar admin.
      *
      * Apenas superadmin vê o menu — Officeimpresso é ferramenta interna
