@@ -128,6 +128,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->middleware('superadmin')
         ->name('showcase.components');
 
+    // Design System v2 — tokens enterprise + tipografia + componentes base
+    Route::get('/showcase/design-system', fn () => inertia('_Showcase/DesignSystem'))
+        ->middleware('superadmin')
+        ->name('showcase.design-system');
+
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);

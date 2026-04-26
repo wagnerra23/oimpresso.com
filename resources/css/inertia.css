@@ -1,13 +1,66 @@
 @import "tailwindcss";
+@import url("https://rsms.me/inter/inter.css");
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+/* ==========================================================================
+   Design System — oimpresso v2 (enterprise)
+   ----------------------------------------------------------------------------
+   - Tipografia: Inter (variable). Tabular numerals em dashboards.
+   - Paleta base: slate (shadcn new-york). Accent: azul-ardósia (221°).
+   - Type scale: 6 níveis (display / h1..h4 / body / small).
+   - Spacing: 4px-base (Tailwind default).
+   - Radius: 6/8/12/16 (sm/md/lg/xl).
+   - Theme: light + dark com CSS vars. Anti-flash via inline script no layout.
 
-  /* Light (default) — shadcn new-york slate */
+   Mantém compat com 100% dos componentes shadcn já existentes —
+   só polui token-level, nada de breaking change em <Button/>, <Card/> etc.
+   ========================================================================== */
+
+@theme {
+  /* ---- Tipografia ---------------------------------------------------- */
+  --font-sans: "Inter", "Inter var", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Type scale (rem, base 16) — usar via text-display, text-h1..h4, text-body */
+  --text-display: 3.5rem; /* 56px — landing hero */
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+
+  --text-h1: 2.25rem; /* 36px */
+  --text-h1--line-height: 1.15;
+  --text-h1--letter-spacing: -0.015em;
+  --text-h1--font-weight: 600;
+
+  --text-h2: 1.75rem; /* 28px */
+  --text-h2--line-height: 1.2;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1.375rem; /* 22px */
+  --text-h3--line-height: 1.3;
+  --text-h3--font-weight: 600;
+
+  --text-h4: 1.125rem; /* 18px */
+  --text-h4--line-height: 1.4;
+  --text-h4--font-weight: 600;
+
+  --text-body: 0.9375rem; /* 15px — leitura confortável */
+  --text-body--line-height: 1.6;
+
+  --text-small: 0.8125rem; /* 13px */
+  --text-small--line-height: 1.5;
+
+  --text-caption: 0.75rem; /* 12px — labels, badges */
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.01em;
+
+  /* ---- Cores · Light (default) — shadcn new-york slate refinado ------- */
   --color-border: hsl(214.3 31.8% 91.4%);
   --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(222.2 84% 4.9%);
+  --color-ring: hsl(221.2 83.2% 53.3%); /* alinha ring com primary pra coesão */
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(222.2 84% 4.9%);
 
@@ -26,20 +79,47 @@
   --color-popover: hsl(0 0% 100%);
   --color-popover-foreground: hsl(222.2 84% 4.9%);
 
-  --radius-lg: 0.5rem;
-  --radius-md: calc(0.5rem - 2px);
-  --radius-sm: calc(0.5rem - 4px);
+  /* Cores semânticas extras (enterprise) */
+  --color-success: hsl(142.1 76.2% 36.3%);
+  --color-success-foreground: hsl(0 0% 100%);
+  --color-warning: hsl(38 92% 50%);
+  --color-warning-foreground: hsl(48 96% 89%);
+  --color-info: hsl(199 89% 48%);
+  --color-info-foreground: hsl(0 0% 100%);
+
+  /* Surfaces (camadas sutis pra hierarquia visual em dashboards) */
+  --color-surface-1: hsl(210 20% 98%);
+  --color-surface-2: hsl(214.3 31.8% 95%);
+
+  /* ---- Radius ---------------------------------------------------------- */
+  --radius-sm: 0.375rem; /* 6px  */
+  --radius-md: 0.5rem; /*  8px  */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem; /*    16px */
+  --radius-2xl: 1.25rem; /* 20px */
+
+  /* ---- Sombras enterprise (sutis, em camadas) ------------------------- */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+
+  /* ---- Animações default (microinterações enterprise) ----------------- */
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 240ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ==========================================================================
    Dark mode — ativa quando <html class="dark">
    Anti-flash: script inline em layouts/inertia.blade.php aplica a classe
-   ANTES do React hidratar, evitando "piscar" branco-para-escuro.
+   ANTES do React hidratar.
    ========================================================================== */
 .dark {
   --color-border: hsl(217.2 32.6% 17.5%);
   --color-input: hsl(217.2 32.6% 17.5%);
-  --color-ring: hsl(212.7 26.8% 83.9%);
+  --color-ring: hsl(217.2 91.2% 59.8%);
   --color-background: hsl(222.2 84% 4.9%);
   --color-foreground: hsl(210 40% 98%);
 
@@ -57,14 +137,33 @@
   --color-card-foreground: hsl(210 40% 98%);
   --color-popover: hsl(222.2 84% 4.9%);
   --color-popover-foreground: hsl(210 40% 98%);
+
+  --color-success: hsl(142.1 70.6% 45.3%);
+  --color-warning: hsl(38 92% 60%);
+  --color-info: hsl(199 89% 58%);
+
+  --color-surface-1: hsl(222.2 47.4% 9%);
+  --color-surface-2: hsl(217.2 32.6% 14%);
 }
 
 @layer base {
   html {
     color-scheme: light;
+    /* Suaviza renderização de Inter em macOS/Windows */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Inter v4 tem features tipográficas modernas */
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   html.dark {
     color-scheme: dark;
+  }
+  /* Inter variable se disponível, fallback Inter regular */
+  @supports (font-variation-settings: normal) {
+    html {
+      font-family: "Inter var", "Inter", ui-sans-serif, system-ui, sans-serif;
+    }
   }
   * {
     border-color: var(--color-border);
@@ -72,6 +171,147 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    transition: background-color 150ms ease, color 150ms ease;
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    transition: background-color var(--transition-base), color var(--transition-base);
+  }
+
+  /* Headings com tracking ajustado — padrão enterprise */
+  h1 {
+    font-size: var(--text-h1);
+    line-height: var(--text-h1--line-height);
+    letter-spacing: var(--text-h1--letter-spacing);
+    font-weight: var(--text-h1--font-weight);
+  }
+  h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    letter-spacing: var(--text-h2--letter-spacing);
+    font-weight: var(--text-h2--font-weight);
+  }
+  h3 {
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    font-weight: var(--text-h3--font-weight);
+  }
+  h4 {
+    font-size: var(--text-h4);
+    line-height: var(--text-h4--line-height);
+    font-weight: var(--text-h4--font-weight);
+  }
+
+  /* Code inline + blocks usam mono */
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  /* Selection com tom primary diluído */
+  ::selection {
+    background-color: hsl(221.2 83.2% 53.3% / 0.18);
+  }
+  .dark ::selection {
+    background-color: hsl(217.2 91.2% 59.8% / 0.28);
+  }
+
+  /* Scrollbar enterprise (sutil, não invasiva) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+    background-clip: padding-box;
+  }
+}
+
+@layer utilities {
+  /* Tabular numerals — uso obrigatório em tabelas, dashboards, valores monetários */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Skeleton shimmer enterprise (alternativa ao animate-pulse) */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-muted);
+  }
+  .shimmer::after {
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.2) 20%,
+      rgba(255, 255, 255, 0.5) 60%,
+      rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 2s infinite;
+    content: "";
+  }
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Focus ring enterprise — visível mas elegante, alinha com componentes shadcn */
+  .focus-ring {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /* Surface levels — pra dashboards com hierarquia visual */
+  .bg-surface-1 {
+    background-color: var(--color-surface-1);
+  }
+  .bg-surface-2 {
+    background-color: var(--color-surface-2);
+  }
+
+  /* Cores semânticas como bg/text */
+  .bg-success {
+    background-color: var(--color-success);
+    color: var(--color-success-foreground);
+  }
+  .bg-warning {
+    background-color: var(--color-warning);
+    color: var(--color-warning-foreground);
+  }
+  .bg-info {
+    background-color: var(--color-info);
+    color: var(--color-info-foreground);
+  }
+  .text-success {
+    color: var(--color-success);
+  }
+  .text-warning {
+    color: var(--color-warning);
+  }
+  .text-info {
+    color: var(--color-info);
   }
 }
