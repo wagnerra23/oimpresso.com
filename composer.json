@@ -75,6 +75,10 @@
             "Tests\\": "tests/"
         }
     },
+    "replace": {
+        "myfatoorah/library": "2.2.9",
+        "myfatoorah/laravel-package": "2.2.6"
+    },
     "scripts": {
         "post-root-package-install": [
             "php -r \"file_exists('.env') || copy('.env.example', '.env');\""
