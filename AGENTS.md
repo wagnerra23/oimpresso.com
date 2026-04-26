@@ -2,13 +2,15 @@
 
 Este repositório segue o padrão emergente de agentes de IA. Para instruções completas, leia `CLAUDE.md` na raiz — ele é canônico.
 
-Resumo operacional:
+Resumo operacional (atualizado 2026-04-26):
 
 - Idioma: PT-BR (cliente brasileiro)
-- Stack: Laravel 10 + nWidart/laravel-modules + MySQL 8
-- Módulo: `Modules/PontoWr2/` (ponto eletrônico)
+- Stack: Laravel 13.6 + PHP 8.4 + nWidart/laravel-modules ^10 + MySQL 8 + Inertia v3 + React + Tailwind 4
+- Módulo principal: `Modules/PontoWr2/` (ponto eletrônico). Outros: Copiloto, Financeiro, Cms, MemCofre, Officeimpresso.
 - Conformidade: Portaria MTP 671/2021, CLT, LGPD
-- Sistema de memória: `memory/` (leia `memory/INDEX.md` primeiro)
+- Branch ativa: `6.7-bootstrap` (Wagner commita direto, não em main)
+- Sistema de memória: `memory/` (`CLAUDE.md` é canônico; `memory/INDEX.md` é índice)
+- Gestão de papéis das memórias: ver ADR 0027 (meta-ADR)
 
 Ao iniciar uma tarefa:
 1. Leia `CLAUDE.md`
