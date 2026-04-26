@@ -19,6 +19,11 @@
             <directory>./Modules/PontoWr2/Tests/Feature</directory>
             <directory>./Modules/Essentials/Tests/Feature</directory>
             <directory>./Modules/Cms/Tests/Feature</directory>
+            <directory>./Modules/Repair/Tests/Feature</directory>
+            <directory>./Modules/Officeimpresso/Tests/Feature</directory>
+            <directory>./Modules/Superadmin/Tests/Feature</directory>
+            <directory>./Modules/Woocommerce/Tests/Feature</directory>
+            <directory>./Modules/Writebot/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>
