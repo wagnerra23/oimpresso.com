@@ -60,7 +60,7 @@ class ApuracaoService
         return MetaApuracao::updateOrCreate(
             [
                 'meta_id'          => $meta->id,
-                'data_ref'         => $dataRef->toDateString(),
+                'data_ref'         => $dataRef->startOfDay(), // Carbon para consistência cross-DB
                 'fonte_query_hash' => $hash,
             ],
             [

@@ -49,6 +49,12 @@ class SqlDriver implements CalculaMeta
             ]
         );
 
+        // Filtra apenas os binds realmente referenciados na query (evita erros PDO
+        // com drivers que rejeitam parâmetros não utilizados, como SQLite).
+        preg_match_all('/:[a-zA-Z_][a-zA-Z0-9_]*/', $query, $paramMatches);
+        $usedParams = array_map(fn($p) => ltrim($p, ':'), $paramMatches[0]);
+        $binds      = array_filter($binds, fn($k) => in_array($k, $usedParams, true), ARRAY_FILTER_USE_KEY);
+
         $resultado = DB::selectOne($query, $binds);
 
         if ($resultado === null) {

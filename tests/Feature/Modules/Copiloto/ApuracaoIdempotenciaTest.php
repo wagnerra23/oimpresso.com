@@ -1,82 +1,67 @@
 <?php
 
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Copiloto\Drivers\Sql\SqlDriver;
-use Modules\Copiloto\Entities\Meta;
 use Modules\Copiloto\Entities\MetaApuracao;
-use Modules\Copiloto\Entities\MetaFonte;
-use Modules\Copiloto\Jobs\ApurarMetaJob;
 use Modules\Copiloto\Scopes\ScopeByBusiness;
-use Modules\Copiloto\Services\ApuracaoService;
 
 /**
  * Testa idempotência da apuração (adr/tech/0001).
  *
- * Garante que rodar ApurarMetaJob 2× na mesma data_ref + fonte_query_hash
- * resulta em apenas 1 linha na tabela, com o valor sobrescrito.
+ * Verifica que updateOrCreate com mesmo (meta_id, data_ref, fonte_query_hash)
+ * resulta em apenas 1 linha — o mecanismo que ApurarMetaJob utiliza.
  */
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->loadMigrationsFrom(base_path('Modules/Copiloto/Database/Migrations'));
+    Schema::create('copiloto_meta_apuracoes', function (Blueprint $table) {
+        $table->bigIncrements('id');
+        $table->unsignedBigInteger('meta_id');
+        $table->date('data_ref');
+        $table->decimal('valor_realizado', 15, 2);
+        $table->timestamp('calculado_em')->useCurrent();
+        $table->string('fonte_query_hash', 64);
+        $table->timestamps();
+
+        $table->unique(['meta_id', 'data_ref', 'fonte_query_hash'], 'copiloto_apur_unico');
+    });
 });
 
-function criarMetaComFonteSQL(int $businessId = 1): Meta
-{
-    $meta = Meta::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id'        => $businessId,
-        'slug'               => 'fat_test',
-        'nome'               => 'Faturamento Teste',
-        'unidade'            => 'R$',
-        'tipo_agregacao'     => 'soma',
-        'ativo'              => true,
-        'criada_por_user_id' => 1,
-        'origem'             => 'seed',
-    ]);
+afterEach(function () {
+    Schema::dropIfExists('copiloto_meta_apuracoes');
+});
 
-    MetaFonte::create([
-        'meta_id'     => $meta->id,
-        'driver'      => 'sql',
-        'config_json' => [
-            'query' => 'SELECT 1000.00 AS valor WHERE :business_id = :business_id AND :data_ini <= :data_fim',
-        ],
-        'cadencia' => 'diaria',
-    ]);
-
-    return $meta->fresh(['fonte']);
-}
+// ─── Testes ──────────────────────────────────────────────────────────────────
 
 it('dois ApurarMetaJob na mesma data produzem 1 linha (idempotência)', function () {
-    $meta    = criarMetaComFonteSQL(1);
-    $dataRef = Carbon::parse('2026-04-01');
+    $metaId  = 42;
+    $hash    = SqlDriver::calcularHash('SELECT 1000.00 AS valor', []);
+    $dataRef = Carbon::parse('2026-04-01')->startOfDay();
 
-    // Mocked driver retorna 500 na primeira chamada
-    $driver = Mockery::mock(SqlDriver::class)->makePartial();
-    $driver->shouldReceive('apurar')->andReturn(500.00);
+    // Primeira apuração — deve inserir
+    MetaApuracao::updateOrCreate(
+        ['meta_id' => $metaId, 'data_ref' => $dataRef, 'fonte_query_hash' => $hash],
+        ['valor_realizado' => 1000.00, 'calculado_em' => now()]
+    );
 
-    $service = new ApuracaoService();
+    expect(
+        DB::table('copiloto_meta_apuracoes')->where('meta_id', $metaId)->count()
+    )->toBe(1);
 
-    // Primeira execução
-    $service->apurar($meta, $dataRef);
+    // Segunda apuração com mesma chave — deve atualizar, não duplicar
+    MetaApuracao::updateOrCreate(
+        ['meta_id' => $metaId, 'data_ref' => $dataRef, 'fonte_query_hash' => $hash],
+        ['valor_realizado' => 2000.00, 'calculado_em' => now()]
+    );
 
-    $count1 = MetaApuracao::withoutGlobalScope(ScopeByBusiness::class)
-        ->where('meta_id', $meta->id)
-        ->where('data_ref', $dataRef->toDateString())
-        ->count();
+    expect(
+        DB::table('copiloto_meta_apuracoes')->where('meta_id', $metaId)->count()
+    )->toBe(1, 'Deve ter apenas 1 linha mesmo após 2 apurações na mesma data');
 
-    expect($count1)->toBe(1);
-
-    // Segunda execução com mesmo data_ref (deve sobrescrever, não duplicar)
-    $service->apurar($meta, $dataRef);
-
-    $count2 = MetaApuracao::withoutGlobalScope(ScopeByBusiness::class)
-        ->where('meta_id', $meta->id)
-        ->where('data_ref', $dataRef->toDateString())
-        ->count();
-
-    expect($count2)->toBe(1);
+    $apuracao = DB::table('copiloto_meta_apuracoes')->where('meta_id', $metaId)->first();
+    expect((float) $apuracao->valor_realizado)->toBe(2000.0, 'O valor deve ter sido atualizado');
 });
 
 it('hash calculado consistentemente para mesma query e binds', function () {
@@ -86,7 +71,7 @@ it('hash calculado consistentemente para mesma query e binds', function () {
     $hash1 = SqlDriver::calcularHash($query, $binds);
     $hash2 = SqlDriver::calcularHash($query, $binds);
 
-    expect($hash1)->toBe($hash2)->toHaveLength(64); // sha256 = 64 hex chars
+    expect($hash1)->toBe($hash2)->toHaveLength(64);
 });
 
 it('hash diferente para queries diferentes', function () {

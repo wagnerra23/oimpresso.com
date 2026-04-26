@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d1f83931759a8419d0ef1f89398991c5",
+    "content-hash": "6265c9458564140e1b3c3b4e1babdbc4",
     "packages": [
         {
             "name": "aloha/twilio",
@@ -5126,129 +5126,6 @@
                 }
             ],
             "time": "2025-08-01T08:46:24+00:00"
-        },
-        {
-            "name": "myfatoorah/laravel-package",
-            "version": "2.2.6",
-            "source": {
-                "type": "git",
-                "url": "https://dev.azure.com/myfatoorahsc/Public-Repo/_git/Laravel-Package",
-                "reference": "8be307dd92bf58cd4ffba0a24ed0812c16c0400b"
-            },
-            "require": {
-                "myfatoorah/library": "~2.2.6"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "MyFatoorah\\LaravelPackage\\MyFatoorahServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "MyFatoorah\\LaravelPackage\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-3.0-only"
-            ],
-            "authors": [
-                {
-                    "name": "MyFatoorah Plugin Team",
-                    "email": "plugins@myfatoorah.com"
-                },
-                {
-                    "name": "Nermeen Shoman",
-                    "email": "nshoman@myfatoorah.com",
-                    "role": "Senior Software Engineer"
-                },
-                {
-                    "name": "Rasha Saeed",
-                    "email": "rsaeed@myfatoorah.com",
-                    "role": "Senior Software Engineer"
-                }
-            ],
-            "description": "The official MyFatoorah Payment Gateway for Laravel.",
-            "homepage": "https://myfatoorah.com/",
-            "keywords": [
-                "My Fatoorah",
-                "api",
-                "commerce",
-                "fatoorah",
-                "gateway",
-                "laravel",
-                "myfatoorah",
-                "payment",
-                "shipping"
-            ],
-            "time": "2026-02-19T12:46:31+00:00"
-        },
-        {
-            "name": "myfatoorah/library",
-            "version": "2.2.9",
-            "source": {
-                "type": "git",
-                "url": "https://dev.azure.com/myfatoorahsc/Public-Repo/_git/Library",
-                "reference": "9950fc1741cc2b205d89fcdadae0bcb0a71a09e2"
-            },
-            "require": {
-                "ext-curl": "*",
-                "ext-json": "*",
-                "php": ">=7"
-            },
-            "require-dev": {
-                "phan/phan": "^5.4",
-                "phpcompatibility/php-compatibility": "*",
-                "phpstan/phpstan": "^1.10",
-                "phpunit/phpunit": "^9.5",
-                "squizlabs/php_codesniffer": "*"
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "autoload.php"
-                ],
-                "psr-4": {
-                    "MyFatoorah\\Library\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-3.0-only"
-            ],
-            "authors": [
-                {
-                    "name": "MyFatoorah Plugin Team",
-                    "email": "plugins@myfatoorah.com"
-                },
-                {
-                    "name": "Nermeen Shoman",
-                    "email": "nshoman@myfatoorah.com",
-                    "role": "Senior Software Engineer"
-                },
-                {
-                    "name": "Rasha Saeed",
-                    "email": "rsaeed@myfatoorah.com",
-                    "role": "Senior Software Engineer"
-                }
-            ],
-            "description": "MyFatoorah PHP Library",
-            "homepage": "https://myfatoorah.com/",
-            "keywords": [
-                "My Fatoorah",
-                "api",
-                "commerce",
-                "fatoorah",
-                "gateway",
-                "library",
-                "myfatoorah",
-                "payment",
-                "shipping"
-            ],
-            "time": "2026-02-12T11:50:30+00:00"
         },
         {
             "name": "neitanod/forceutf8",
@@ -15741,5 +15618,5 @@
         "php": "^8.1"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
