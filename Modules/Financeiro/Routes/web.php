@@ -8,6 +8,7 @@ use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DashboardController;
 use Modules\Financeiro\Http\Controllers\InstallController;
+use Modules\Financeiro\Http\Controllers\RelatoriosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,13 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/contas-bancarias/{accountId}', [ContaBancariaController::class, 'upsert'])
             ->whereNumber('accountId')
             ->name('contas-bancarias.upsert');
+
+        // Relatórios (DRE / Fluxo / Resumo) — US-FIN-014
+        Route::get('/relatorios', [RelatoriosController::class, 'index'])->name('relatorios.index');
+        Route::get('/relatorios/export-csv', [RelatoriosController::class, 'exportCsv'])->name('relatorios.export-csv');
+
+        // Alias canonical: /financeiro/dashboard → /financeiro (URL canônica é a raiz)
+        Route::redirect('/dashboard', '/financeiro', 301)->name('dashboard.alias');
 
         // Categorias livres (CRUD complementar ao plano de contas)
         Route::get('/categorias', [CategoriaController::class, 'index'])->name('categorias.index');
