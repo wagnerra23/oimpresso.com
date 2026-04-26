@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 class RegisterController extends Controller
 {
@@ -39,6 +41,21 @@ class RegisterController extends Controller
     public function __construct()
     {
         $this->middleware('guest');
+    }
+
+    /**
+     * Tela de cadastro Inertia com social-first (PR3).
+     * Blade legado mantido pelos overrides de RegistersUsers em /register/old.
+     */
+    public function showRegistrationForm()
+    {
+        return Inertia::render('Site/Register', [
+            'socialEnabled' => [
+                'google' => ! empty(config('services.google.client_id')),
+                'microsoft' => ! empty(config('services.microsoft.client_id')),
+            ],
+            'allowRegistration' => (bool) config('constants.allow_registration', true),
+        ]);
     }
 
     /**

@@ -5,12 +5,19 @@ import SocialProof from '@/Components/Site/SocialProof';
 import FeatureGrid from '@/Components/Site/FeatureGrid';
 import { Button } from '@/Components/ui/button';
 
-function SiteHome() {
+interface SiteHomeProps {
+  page?: any;
+  testimonials?: any[];
+  faqs?: any[] | string | null;
+  statistics?: any[] | null;
+}
+
+function SiteHome({ page, statistics }: SiteHomeProps) {
   return (
     <>
-      <Hero />
-      <SocialProof />
-      <FeatureGrid />
+      <Hero page={page} />
+      <SocialProof statistics={Array.isArray(statistics) ? statistics : null} />
+      <FeatureGrid page={page} />
 
       {/* Final CTA */}
       <section className="relative isolate overflow-hidden border-t border-border bg-primary py-20 text-primary-foreground sm:py-24">
