@@ -135,6 +135,19 @@ class CmsController extends Controller
 
     public function getBlogList()
     {
+        $posts = CmsPage::where('type', 'blog')
+                    ->orderBy('priority', 'asc')
+                    ->where('is_enabled', 1)
+                    ->get();
+
+        return Inertia::render('Site/Blogs', [
+            'posts' => $posts,
+        ]);
+    }
+
+    /** Versão Blade legada de /c/blogs — em /c/blogs/old durante a transição. */
+    public function getBlogListLegacy()
+    {
         $blogs = CmsPage::where('type', 'blog')
                     ->orderBy('priority', 'asc')
                     ->where('is_enabled', 1)
@@ -145,6 +158,20 @@ class CmsController extends Controller
     }
 
     public function viewBlog(Request $request)
+    {
+        $id = $this->cmsUtil->findIdFromGivenUrl($request->url());
+
+        $post = CmsPage::where('type', 'blog')
+                    ->where('is_enabled', 1)
+                    ->findOrFail($id);
+
+        return Inertia::render('Site/BlogPost', [
+            'post' => $post,
+        ]);
+    }
+
+    /** Versão Blade legada de /c/blog/{slug}-{id} — em /c/blog/{slug}-{id}/old. */
+    public function viewBlogLegacy(Request $request)
     {
         $id = $this->cmsUtil->findIdFromGivenUrl($request->url());
 

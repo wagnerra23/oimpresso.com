@@ -1,10 +1,25 @@
 import { Button } from '@/Components/ui/button';
 import DashboardMockup from '@/Components/Site/DashboardMockup';
+import { motion, useReducedMotion } from 'framer-motion';
 
-export default function Hero() {
+interface HeroPage {
+  title?: string | null;
+  content?: string | null;
+}
+
+interface HeroProps {
+  page?: HeroPage | null;
+}
+
+export default function Hero({ page }: HeroProps) {
+  const reduceMotion = useReducedMotion();
+  const baseTransition = reduceMotion ? { duration: 0 } : { duration: 0.6 };
+
+  const cmsTitle = page?.title?.trim();
+  const cmsContent = page?.content?.trim();
+
   return (
     <section className="relative overflow-hidden">
-      {/* Subtle gradient backdrop */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--color-primary)_0%,_transparent_55%)] opacity-[0.08]"
@@ -21,26 +36,53 @@ export default function Hero() {
             Comunicação visual · Varejo · Serviços · Multi-loja
           </span>
 
-          <h1 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-[3.75rem]">
-            <span className="block text-foreground">O ERP pra quem</span>
-            <span className="block text-primary">orça, imprime, monta</span>
-            <span className="block text-primary">e entrega.</span>
-          </h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...baseTransition, delay: 0 }}
+            className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-[3.75rem]"
+          >
+            {cmsTitle ? (
+              <span className="block text-foreground">{cmsTitle}</span>
+            ) : (
+              <>
+                <span className="block text-foreground">O ERP pra quem</span>
+                <span className="block text-primary">orça, imprime, monta</span>
+                <span className="block text-primary">e entrega.</span>
+              </>
+            )}
+          </motion.h1>
 
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Cálculo automático por <strong className="font-semibold text-foreground">m²</strong>,
-            ordem de produção em tempo real e fechamento fiscal sem retrabalho.
-            PDV, NF-e, estoque, ponto, financeiro e BI integrados — em uma plataforma só.
-          </p>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...baseTransition, delay: reduceMotion ? 0 : 0.15 }}
+            className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
+          >
+            {cmsContent ? (
+              <span dangerouslySetInnerHTML={{ __html: cmsContent }} />
+            ) : (
+              <>
+                Cálculo automático por <strong className="font-semibold text-foreground">m²</strong>,
+                ordem de produção em tempo real e fechamento fiscal sem retrabalho.
+                PDV, NF-e, estoque, ponto, financeiro e BI integrados — em uma plataforma só.
+              </>
+            )}
+          </motion.p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...baseTransition, delay: reduceMotion ? 0 : 0.3 }}
+            className="mt-8 flex flex-col gap-3 sm:flex-row"
+          >
             <Button size="lg" asChild>
               <a href="/login">Começar grátis</a>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a href="#recursos">Ver recursos</a>
             </Button>
-          </div>
+          </motion.div>
 
           <div className="mt-4 flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
             <span>Sem cartão de crédito · Suporte humano em português.</span>
