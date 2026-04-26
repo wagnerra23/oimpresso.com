@@ -6,6 +6,7 @@ namespace App\Console\Commands\Evolution;
 
 use App\Services\Evolution\Embeddings\EmbeddingDriverFactory;
 use App\Services\Evolution\MemoryIngest;
+use App\Services\Evolution\SchemaGuard;
 use Illuminate\Console\Command;
 
 /**
@@ -27,6 +28,14 @@ class IndexCommand extends Command
     {
         $rebuild = (bool) $this->option('rebuild');
         $json = (bool) $this->option('json');
+
+        $schema = SchemaGuard::check();
+        if (! $schema['ready']) {
+            $this->error('Schema vizra_* incompleto. '.$schema['hint']);
+            $this->line('Tabelas faltando: '.implode(', ', $schema['missing']));
+
+            return self::FAILURE;
+        }
 
         if ($rebuild) {
             \App\Models\Evolution\MemoryChunk::query()->truncate();

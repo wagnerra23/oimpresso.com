@@ -7,6 +7,7 @@ namespace App\Console\Commands\Evolution;
 use App\Models\Evolution\EvalRun;
 use App\Models\Evolution\Evaluation;
 use App\Services\Evolution\Eval\GoldenSetRunner;
+use App\Services\Evolution\SchemaGuard;
 use Illuminate\Console\Command;
 
 /**
@@ -30,6 +31,12 @@ class EvalCommand extends Command
     {
         $json = (bool) $this->option('json');
 
+        $schema = SchemaGuard::check();
+        if (! $schema['ready']) {
+            $this->warn('Schema vizra_* incompleto — rodando eval em modo efêmero (sem persistir histórico).');
+            $this->line('Pra persistir runs: '.$schema['hint']);
+        }
+
         $runner = new GoldenSetRunner;
         $report = $runner->run();
 
@@ -39,7 +46,9 @@ class EvalCommand extends Command
             return self::FAILURE;
         }
 
-        $this->persistRun($report);
+        if ($schema['ready']) {
+            $this->persistRun($report);
+        }
 
         if ($json) {
             $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
