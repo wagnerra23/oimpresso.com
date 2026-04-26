@@ -22,6 +22,47 @@ cd D:\oimpresso.com
 
 ---
 
+## 🎯 Estado em 2026-04-26 (sessão 15 — EvolutionAgent + Design System v2)
+
+### 🟡 PRs draft abertos (aguardando review/merge)
+
+| PR | Branch | Conteúdo | CI |
+|---|---|---|---|
+| **#21** | `claude/evolution-agent-vizra` | EvolutionAgent Fase 1a+1b: Vizra-shaped layer + Prism PHP + 6 migrations `vizra_*` + 9 tools + 4 commands (`evolution:query/index/rank/eval`) + multi-provider routing (Anthropic/DeepSeek/OpenAI/xAI) + SchemaGuard | ✅✅ |
+| **#22** | issue tracking | Deploy EvolutionAgent na Hostinger (checklist destacável) | — |
+| **#23** | `claude/design-system-enterprise` | Design System v2: Inter + 6 níveis tipografia + cores semânticas (`success`/`warning`/`info` + `surface-1/2`) + 4 componentes novos (Kbd, Spinner, Empty, CodeBlock) + showcase `/showcase/design-system` + prova em `Site/Pricing.tsx` | ✅✅ |
+
+### ⚠️ Bloqueio importante
+
+**Vizra ADK não suporta Laravel 13** (latest 0.0.46 requer ^11|^12). Solução implementada: layer Vizra-shaped local em `app/Services/Evolution/Agents/`. Quando upstream publicar L13, trocar `extends BaseAgent` por `extends Vizra\BaseLlmAgent` é mecânico. `prism-php/prism:^0.100` instalado normalmente.
+
+### 🔐 API keys que Wagner precisa setar (`.env` gitignored)
+
+- `ANTHROPIC_API_KEY` (default: router + sub-agents Sonnet 4.5; judge Opus 4.5)
+- `VOYAGEAI_API_KEY` (embeddings PT-BR Voyage-3-lite)
+- `DEEPSEEK_API_KEY` (extração 3× barato — Wagner setou local; **rotacionar** a chave compartilhada em chat)
+- `XAI_API_KEY` (opcional, Grok realtime)
+
+### 🗺️ Próximos PRs no cofre (`memory/claude/ideia_copiloto_ui_estilo_claude.md`)
+
+| # | Branch | Conteúdo | Estimativa |
+|---|---|---|---|
+| 2 | `claude/copiloto-chat-streaming` | Reabrir scaffold #13; react-markdown + shiki + Pusher streaming | ~400 |
+| 3 | `claude/copiloto-chat-history` | Sidebar `copiloto_conversas` | ~300 |
+| 4 | `claude/copiloto-fab-global` | FAB admin + `/copiloto/chat` full-screen | ~200 |
+
+EvolutionAgent Fase 2: 3 sub-agents restantes + GH Actions eval + subagent CC `.claude/agents/evolucao.md`.
+
+### 🐛 Bug fix descoberto na sessão
+
+`Components/ui/empty.tsx` TS2430 — `title?: ReactNode` colidia com `HTMLAttributes.title: string`. Fix: `Omit<HTMLAttributes, "title">` (commit `cdeec9d7`).
+
+### Session log completo
+
+`memory/sessions/2026-04-26-evolution-fase1b-design-system.md`
+
+---
+
 ## 🎯 Estado em 2026-04-26 (sessão 14 — Copiloto completo + merges financeiro)
 
 ### ✅ Mergeado em `6.7-bootstrap` nesta sessão (3 PRs fechados)
