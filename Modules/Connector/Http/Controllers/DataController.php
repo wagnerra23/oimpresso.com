@@ -20,6 +20,24 @@ class DataController extends Controller
     }
 
     /**
+     * Permissões registradas no UI de Roles do UltimatePOS.
+     *
+     * Adicionado 2026-04-26 (audit DataController) — antes não havia
+     * permissão dedicada e o menu era 100% gated por `can('superadmin')`,
+     * impedindo delegar acesso à API a usuários técnicos não-superadmin.
+     */
+    public function user_permissions()
+    {
+        return [
+            [
+                'value' => 'connector.access',
+                'label' => __('connector::lang.connector_module'),
+                'default' => false,
+            ],
+        ];
+    }
+
+    /**
      * Adds Connectoe menus
      *
      * @return null

@@ -9,6 +9,40 @@ use Menu;
 class DataController extends Controller
 {
     /**
+     * Defines module as a superadmin package.
+     *
+     * Adicionado 2026-04-26 (audit DataController) — antes Cms era 100%
+     * superadmin-gated mas faltava o registro formal de pacote.
+     */
+    public function superadmin_package()
+    {
+        return [
+            [
+                'name' => 'cms_module',
+                'label' => __('cms::lang.cms_module'),
+                'default' => false,
+            ],
+        ];
+    }
+
+    /**
+     * Permissões registradas no UI de Roles do UltimatePOS.
+     *
+     * Adicionado 2026-04-26 (audit DataController). Cms gerencia páginas,
+     * blogs e contact-us — registramos permissão `cms.access` mínima.
+     */
+    public function user_permissions()
+    {
+        return [
+            [
+                'value' => 'cms.access',
+                'label' => __('cms::lang.cms_module'),
+                'default' => false,
+            ],
+        ];
+    }
+
+    /**
      * Adds cms menus
      *
      * @return null
