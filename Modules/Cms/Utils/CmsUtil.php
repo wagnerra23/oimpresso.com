@@ -31,4 +31,18 @@ class CmsUtil extends Util
 
         return $page;
     }
+
+    /**
+     * Buscar página pelo slug (slug = strtolower(replace(' ', '-', title))).
+     * Usado pelas rotas /c/page/{slug}.
+     */
+    public function getPageBySlug($slug)
+    {
+        $title = str_replace('-', ' ', $slug);
+
+        return CmsPage::with(['pageMeta'])
+                ->where('title', $title)
+                ->where('is_enabled', 1)
+                ->first();
+    }
 }
