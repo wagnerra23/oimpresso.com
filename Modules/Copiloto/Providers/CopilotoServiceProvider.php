@@ -3,7 +3,11 @@
 namespace Modules\Copiloto\Providers;
 
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Copiloto\Drivers\Sql\SqlDriver;
+use Modules\Copiloto\Events\CopilotoDesvioDetectado;
+use Modules\Copiloto\Listeners\NotificarDesvioListener;
 use Nwidart\Modules\Facades\Module;
 
 /**
@@ -28,6 +32,9 @@ class CopilotoServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        // Eventos do módulo
+        Event::listen(CopilotoDesvioDetectado::class, NotificarDesvioListener::class);
     }
 
     /**
@@ -39,6 +46,9 @@ class CopilotoServiceProvider extends ServiceProvider
         $this->app->singleton(\Modules\Copiloto\Services\ApuracaoService::class);
         $this->app->singleton(\Modules\Copiloto\Services\ContextSnapshotService::class);
         $this->app->singleton(\Modules\Copiloto\Services\AlertaService::class);
+
+        // Drivers de apuração — ver adr/tech/0001
+        $this->app->tag([SqlDriver::class], 'copiloto.drivers');
 
         // Adapter IA — ver adr/tech/0002
         $this->app->bind(
