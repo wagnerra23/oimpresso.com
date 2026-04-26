@@ -18,7 +18,7 @@ cd D:\oimpresso.com
 # login: WR23 / Wscrct*2312
 ```
 
-**Stack real:** Laravel **13.6** · PHP 8.4 (Herd) · MySQL Laragon 127.0.0.1:3306 root sem senha · DB `oimpresso` · Inertia v2 + React + Tailwind 4 · Pest v4 + PHPUnit v12 · nWidart/laravel-modules ^10
+**Stack real:** Laravel **13.6** · PHP 8.4 (Herd) · MySQL Laragon 127.0.0.1:3306 root sem senha · DB `oimpresso` · Inertia **v3** + React + Tailwind 4 · Pest v4 + PHPUnit v12 · nWidart/laravel-modules ^10
 
 ---
 
@@ -107,5 +107,19 @@ php artisan optimize:clear
 
 ---
 
-**Última atualização:** 2026-04-26 (sessão 14 — 3 PRs mergeados em 6.7-bootstrap; Copiloto 100% implementado com testes SQLite)
-**Estado geral:** 🟢 `6.7-bootstrap` com financeiro fix + relatorios + copiloto completos; 🟡 assets precisam rebuild local; 🟡 PRs #2/#3 para `main` aguardam decisão Wagner
+## 🔄 Sessão 15 (2026-04-26 noite) — Deploy Hero fix + conflitos de memória
+
+- ✅ Deploy manual de `039a810d` em produção (Hero CMS hardcoded). Validado: HTTP 200 + bundle PT-BR.
+- ✅ Comparativo Capterra de 9 sistemas de memória (15 funções) com vencedor por categoria.
+- ✅ 10 conflitos de auto-memória resolvidos (Inertia v2/v3, stack IA, status módulos, SSH 65002, EvolutionAgent, CMS hidratação, ADRs lista, branch produção, Connector untracked).
+- ✅ ADRs novos: 0027 (gestão memória, meta-ADR), 0028 (numeração monotônica), 0030 (credenciais nunca em git).
+- ✅ CLAUDE.md ganhou seção 7 "Acesso à produção (Hostinger)" + reescrita do bloco IA.
+- ✅ AGENTS.md desestaleado.
+- 📝 Detalhe completo em [memory/sessions/2026-04-26-deploy-hero-fix-e-conflitos-memoria.md](sessions/2026-04-26-deploy-hero-fix-e-conflitos-memoria.md).
+
+**Pendente:** rename ADR 0024 duplicado pra 0029 (aguarda aval); materializar ADRs 0031–0036 se aprovar; auditoria untracked Modules/Connector no servidor (SSH flaky impediu na sessão).
+
+---
+
+**Última atualização:** 2026-04-26 noite (sessão 15 — Hero deploy + conflitos memória + ADR 0027 meta-gestão)
+**Estado geral:** 🟢 `6.7-bootstrap` deployado em produção (HTTP 200, Hero PT-BR ok); 🟢 papéis das memórias formalizados (ADR 0027); 🟡 ADR 0024 duplicado aguarda rename
