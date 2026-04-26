@@ -11,8 +11,8 @@ Módulo Laravel chamado **Ponto WR2** que adiciona controle de **ponto eletrôni
 
 **Cliente:** WR2 Sistemas (Eliana, eliana@wr2.com.br)
 **Stack REAL (atualizada em 2026-04-23):** **Laravel 13.6 + PHP 8.4** (Herd local), MySQL 8, nWidart/laravel-modules ^10, Redis 7. UltimatePOS v6.7.
-**Stack helpers/UI:** `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form` (substitui laravelcollective/html removido). **Inertia v2 + React + Tailwind 4**. Pest v4 + PHPUnit v12.
-**IA:** `openai-php/laravel` REMOVIDO — Wagner vai usar **Vizra ADK + Prisma** como motor de IA.
+**Stack helpers/UI:** `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form` (substitui laravelcollective/html removido). **Inertia v3 + React + Tailwind 4** (upgrade v2→v3 mergeado em 2026-04-25, ver ADR 0023). Pest v4 + PHPUnit v12.
+**IA:** sem pacote IA instalado em `composer.lock` (`openai-php/laravel` foi removido). Drivers do Copiloto ainda referenciam `OpenAI\Laravel\Facades\OpenAI` em [Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php](Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php), portanto **Copiloto só roda em `COPILOTO_AI_DRY_RUN=true`** (devolve fixtures). Plano EvolutionAgent: **Vizra ADK + Prism PHP** (não Prisma — pacote chama-se `prism-php`). Pra ligar IA real, escolher: (a) `composer require openai-php/laravel` + setar `OPENAI_API_KEY`, OU (b) implementar `LaravelAiDriver` via Vizra ADK + Prism.
 **Padrão arquitetural:** Modular monolith, DDD leve, append-only onde a lei exige.
 **Módulos de referência canônica:** `Modules/Jana/`, `Modules/Repair/`, `Modules/Project/` — antes de criar ou ajustar qualquer arquivo no PontoWr2, olhe o equivalente em um desses três (preferir o mais próximo em complexidade/propósito) e imite. Ver ADR 0011.
 **Status atual (2026-04-23):** Laravel 13.6 rodando; 99 tests automatizados verdes (26 Form shim + 73 crawler); browser validado via oimpresso.test (Herd). Upgrade em cascata 9→10→11→12→13 executado no mesmo dia. `knox/pesapal` inlined em `app/Vendor/Pesapal` pra destravar L13 (upstream sem versão L13).
@@ -132,7 +132,47 @@ D:\oimpresso.com\                  # Raiz do projeto (workspace do usuário)
 
 ---
 
-## 7. Contato
+## 7. Acesso à produção (Hostinger)
+
+Servidor de produção do oimpresso.com (Cloud Startup, IPv4 only — sempre `-4`):
+
+```
+Host: 148.135.133.115
+Port: 65002
+User: u906587222
+Key:  ~/.ssh/id_ed25519_oimpresso
+Repo: ~/domains/oimpresso.com/public_html      (Laravel)
+DB:   u906587222 / o51617061                    (MySQL, no mesmo host)
+PHP:  /usr/bin/php          (8.4.19)
+Composer: /usr/local/bin/composer
+```
+
+**Comando padrão:**
+```bash
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 -o ConnectTimeout=60 u906587222@148.135.133.115 'CMD'
+```
+
+**Cuidados:**
+- Sempre `-4` (IPv4 forçado). Sem isso o handshake falha intermitentemente.
+- SSH é **flaky**: 1ª tentativa frequentemente dá timeout. Receita: `curl -s4 https://oimpresso.com/ > /dev/null` pra warm e retry com `ConnectTimeout=120`.
+- Multiplexing (`ControlMaster=auto`) **não funciona** no Hostinger — uma conexão por comando.
+- **Nunca editar arquivo direto via SSH** — sempre `git pull origin 6.7-bootstrap` no repo. Bypass git = drift permanente (já queimou Eliana no 3.7→6.7).
+- **Após push em 6.7-bootstrap com mudança em `composer.json`/`composer.lock`:** rodar `composer install` (sem `--no-dev` — Faker é usado em prod). O workflow `quick-sync.yml` NÃO faz isso; sintoma de skip é tela branca Inertia. Ver `memory/sessions/` para incidente do upgrade Inertia v3.
+- WP `/ajuda/` tem patch manual de PHP 8.4 (`create_function` → closures) — atualização via wp-admin reverte; ver auto-memória `reference_wp_ajuda_fix.md` se precisar repatchar.
+
+**Receita de deploy manual** (quando `quick-sync.yml` falhar — ver auto-memória `reference_quick_sync_quebrada.md`):
+```bash
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
+  "cd domains/oimpresso.com/public_html && \
+   git pull origin 6.7-bootstrap && \
+   php artisan optimize:clear && \
+   composer dump-autoload"
+```
+Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
+
+---
+
+## 8. Contato
 
 **Cliente:** WR2 Sistemas — Eliana — eliana@wr2.com.br
 **Repositório:** local, selecionado pelo usuário em `D:\oimpresso.com`
@@ -140,5 +180,5 @@ D:\oimpresso.com\                  # Raiz do projeto (workspace do usuário)
 
 ---
 
-> **Última atualização deste arquivo:** 2026-04-23 (sessão 13 — Laravel 9→13.6 em 5 milestones; knox/pesapal inlined pra desbloquear L13; 99 tests Pest verdes)
-> **Próxima revisão sugerida:** quando iniciar M2 Intercorrências (Vizra ADK + Prisma) OU quando Wagner integrar Laravel Boost
+> **Última atualização deste arquivo:** 2026-04-26 (sessão 15 — resolução de conflitos de memória; deploy manual `039a810d` validado; SSH Hostinger documentado direto no primer)
+> **Próxima revisão sugerida:** quando iniciar M2 Intercorrências (Vizra ADK + Prism PHP) OU quando Wagner integrar Laravel Boost
