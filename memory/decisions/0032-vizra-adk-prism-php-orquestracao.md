@@ -1,6 +1,6 @@
 # ADR 0032 — Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto
 
-**Status:** ✅ Aceita
+**Status:** ✅ Aceita — **sprint 1 revisado por ADR 0034**
 **Data decisão:** 2026-04-26
 **Autor:** Wagner (dono/operador)
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`)
@@ -8,7 +8,11 @@
 - [ADR 0026 — Posicionamento "ERP gráfico com IA"](0026-posicionamento-erp-grafico-com-ia.md)
 - [ADR 0027 — Gestão de memória do projeto](0027-gestao-memoria-roles-claros.md)
 - [ADR 0031 — `MemoriaContrato` + Mem0 default](0031-memoriacontrato-mem0-default.md)
+- [ADR 0033 — Vector store backend](0033-vector-store-meilisearch-pgvector-mem0.md)
+- [ADR 0034 — Laravel AI SDK oficial + Boost + MCP](0034-laravel-ai-sdk-oficial-boost-mcp.md) — **revisa sprint 1 deste ADR**
 - Revoga parcialmente: nota "Vizra ADK + Prisma" do CLAUDE.md (typo "Prisma" → corrigido pra "Prism PHP")
+
+> **⚠️ Atualização 2026-04-26 (ADR 0034):** Sprint 1 deste ADR foi revisado: trocar `prism-php/prism` por `laravel/ai` (Laravel AI SDK oficial, lançado fev/2026). Prism PHP fica como **fallback documentado** se SDK oficial perder feature crítica. Camadas B (Vizra ADK) e C (Mem0/Meilisearch) **permanecem inalteradas**. Detalhes em ADR 0034.
 
 ---
 
