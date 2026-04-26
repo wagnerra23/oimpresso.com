@@ -4,6 +4,7 @@
     "AssetManagement": true,
     "Cms": true,
     "Connector": true,
+    "Copiloto": true,
     "Crm": true,
     "CustomDashboard": true,
     "Ecommerce": true,
