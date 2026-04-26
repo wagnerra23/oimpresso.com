@@ -3,7 +3,7 @@
     "alias": "copiloto",
     "description": "Copiloto de IA do negócio — conversa, sugere metas em cenários, monitora execução com apuração + alertas. Tenancy híbrida (business_id nullable). Spec-ready 2026-04-24.",
     "keywords": ["copiloto", "metas", "kpi", "ia", "chat", "scorecard", "business-intelligence"],
-    "active": 0,
+    "active": 1,
     "order": 0,
     "providers": [
         "Modules\\Copiloto\\Providers\\CopilotoServiceProvider"

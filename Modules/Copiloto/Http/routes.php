@@ -62,3 +62,22 @@ Route::group(
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('copiloto.superadmin.metas');
     }
 );
+
+// ===========================================================================
+// 2) Rotas de instalação 1-clique — prefixo /copiloto/install
+// ===========================================================================
+// Padrão BaseModuleInstallController + ADR memory/decisions/0023.
+// Disparado pelo /manage-modules (superadmin); roda migrations + seta version.
+Route::group(
+    [
+        'middleware' => ['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'namespace'  => 'Modules\Copiloto\Http\Controllers',
+        'prefix'     => 'copiloto/install',
+    ],
+    function () {
+        Route::get('/',          'InstallController@index')->name('copiloto.install.index');
+        Route::post('/',         'InstallController@install')->name('copiloto.install.run');
+        Route::get('/uninstall', 'InstallController@uninstall')->name('copiloto.install.uninstall');
+        Route::get('/update',    'InstallController@update')->name('copiloto.install.update');
+    }
+);
