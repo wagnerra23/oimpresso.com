@@ -142,9 +142,15 @@ WP_OFFICEIMPRESSO_DB_PREFIX=wp_
 ANTHROPIC_API_KEY=
 # VOYAGEAI_API_KEY: gere em https://dash.voyageai.com/api-keys (embeddings PT-BR)
 VOYAGEAI_API_KEY=
+# DEEPSEEK_API_KEY: gere em https://platform.deepseek.com/api_keys (extracao em volume — 30x mais barato)
+DEEPSEEK_API_KEY=
+# OPENAI_API_KEY ja existe acima — usado tambem por evolution:* pra vision/structured (gpt-4o)
+# XAI_API_KEY: gere em https://console.x.ai/team (Grok — contexto realtime/X)
+XAI_API_KEY=
 EVOLUTION_DEFAULT_MODEL=claude-sonnet-4-5
 EVOLUTION_JUDGE_MODEL=claude-opus-4-5
-EVOLUTION_EXTRACTOR_MODEL=claude-haiku-4-5
+EVOLUTION_EXTRACTOR_MODEL=deepseek-chat
+EVOLUTION_EXTRACTOR_PROVIDER=deepseek
 EVOLUTION_EMBEDDING_PROVIDER=voyageai
 EVOLUTION_EMBEDDING_MODEL=voyage-3-lite
 EVOLUTION_MONTHLY_CAP_USD=30

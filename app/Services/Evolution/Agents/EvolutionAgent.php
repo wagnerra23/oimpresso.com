@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Evolution\Agents;
 
 use App\Services\Evolution\Tools\EvalGoldenSetTool;
+use App\Services\Evolution\Tools\ExtractorTool;
 use App\Services\Evolution\Tools\GitDiffStatTool;
 use App\Services\Evolution\Tools\ListAdrsTool;
 use App\Services\Evolution\Tools\MemoryQueryTool;
@@ -34,7 +35,8 @@ class EvolutionAgent extends BaseAgent
             ->withTool(new RouteListTool)
             ->withTool(new ModelSchemaTool)
             ->withTool(new GitDiffStatTool)
-            ->withTool(new EvalGoldenSetTool);
+            ->withTool(new EvalGoldenSetTool)
+            ->withTool(new ExtractorTool);
     }
 
     public function getSystemPrompt(): string

@@ -24,6 +24,7 @@ class QueryCommand extends Command
                             {--top=5 : Número de chunks a retornar}
                             {--escopo= : Filtrar/rotear por escopo (Financeiro, PontoWr2, Cms, Copiloto)}
                             {--agent : Rota via EvolutionAgent (Vizra-shaped) em vez de busca textual}
+                            {--model= : Override de provider:modelo (ex: deepseek:deepseek-chat, opus, sonnet, grok)}
                             {--json : Saída JSON pra consumo programático}';
 
     protected $description = 'Busca top-K chunks ou rota via EvolutionAgent (Fase 1b)';
@@ -85,6 +86,11 @@ class QueryCommand extends Command
             'Financeiro' => new FinanceiroAgent,
             default => new EvolutionAgent,
         };
+
+        $modelOverride = $this->option('model');
+        if (is_string($modelOverride) && $modelOverride !== '') {
+            $agent->withModel($modelOverride);
+        }
 
         $response = $agent->run($question);
 

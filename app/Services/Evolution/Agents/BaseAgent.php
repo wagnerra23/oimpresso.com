@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Evolution\Agents;
 
+use App\Services\Evolution\ProviderRouter;
 use App\Services\Evolution\Tools\Tool;
-use Prism\Prism\Enums\Provider;
-use Prism\Prism\Prism;
+use Prism\Prism\Facades\Prism;
 
 /**
  * Base de todos os agentes EvolutionAgent.
@@ -44,6 +44,13 @@ abstract class BaseAgent
         return $this->model;
     }
 
+    public function withModel(string $model): static
+    {
+        $this->model = $model;
+
+        return $this;
+    }
+
     public function getScope(): string
     {
         return $this->scope;
@@ -69,7 +76,8 @@ abstract class BaseAgent
             $memoryHits = is_array($hits) ? $hits : [];
         }
 
-        $apiKey = (string) config('prism.providers.anthropic.api_key', '');
+        [$provider, $modelId] = ProviderRouter::resolve($this->model);
+        $apiKey = (string) config('prism.providers.'.$provider->value.'.api_key', '');
 
         if ($apiKey === '') {
             // Modo offline: resposta baseada em tools, sem custo.
@@ -87,7 +95,7 @@ abstract class BaseAgent
 
         try {
             $response = Prism::text()
-                ->using(Provider::Anthropic, $this->model)
+                ->using($provider, $modelId)
                 ->withSystemPrompt($this->getSystemPrompt())
                 ->withPrompt($prompt)
                 ->asText();

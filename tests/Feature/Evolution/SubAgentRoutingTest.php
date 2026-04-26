@@ -50,7 +50,7 @@ it('FinanceiroAgent tem scope=Financeiro pra filtrar MemoryQuery', function () {
     expect($agent->getScope())->toBe('Financeiro');
 });
 
-it('EvolutionAgent registra as 8 tools', function () {
+it('EvolutionAgent registra as 9 tools (8 base + Extractor)', function () {
     $agent = new EvolutionAgent;
     $names = array_keys($agent->getTools());
 
@@ -61,7 +61,8 @@ it('EvolutionAgent registra as 8 tools', function () {
         ->toContain('RouteList')
         ->toContain('ModelSchema')
         ->toContain('GitDiffStat')
-        ->toContain('EvalGoldenSet');
+        ->toContain('EvalGoldenSet')
+        ->toContain('Extractor');
 });
 
 it('FinanceiroAgent.run em modo offline retorna texto + traces sem chamar API', function () {

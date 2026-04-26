@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Evolution\Eval;
 
 use App\Services\Evolution\Agents\EvolutionAgent;
-use Prism\Prism\Enums\Provider;
-use Prism\Prism\Prism;
+use App\Services\Evolution\ProviderRouter;
+use Prism\Prism\Facades\Prism;
 
 /**
  * Roda golden set + LLM-as-judge em Opus 4.5 (modelo diferente do agente: anti-viés).
@@ -76,7 +76,8 @@ class GoldenSetRunner
 
     private function judge(string $question, string $response, string $rubric, string $judgeModel): float
     {
-        $apiKey = (string) config('prism.providers.anthropic.api_key', '');
+        [$provider, $modelId] = ProviderRouter::resolve($judgeModel);
+        $apiKey = (string) config('prism.providers.'.$provider->value.'.api_key', '');
 
         if ($apiKey === '') {
             return $this->offlineHeuristicScore($response, $rubric);
@@ -96,7 +97,7 @@ PROMPT;
 
         try {
             $r = Prism::text()
-                ->using(Provider::Anthropic, $judgeModel)
+                ->using($provider, $modelId)
                 ->withSystemPrompt($system)
                 ->withPrompt($user)
                 ->asText();

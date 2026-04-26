@@ -21,9 +21,11 @@ return [
     | Ver memory/requisitos/EvolutionAgent/adr/tech/0001-prism-php-claude-padrao.md
     |
     */
-    'default_model' => env('EVOLUTION_DEFAULT_MODEL', 'anthropic.claude-sonnet-4-6'),
-    'judge_model' => env('EVOLUTION_JUDGE_MODEL', 'anthropic.claude-opus-4-7'),
-    'extractor_model' => env('EVOLUTION_EXTRACTOR_MODEL', 'anthropic.claude-haiku-4-5'),
+    'default_model' => env('EVOLUTION_DEFAULT_MODEL', 'claude-sonnet-4-5'),
+    'judge_model' => env('EVOLUTION_JUDGE_MODEL', 'claude-opus-4-5'),
+    'extractor_model' => env('EVOLUTION_EXTRACTOR_MODEL', 'deepseek-chat'),
+    'extractor_provider' => env('EVOLUTION_EXTRACTOR_PROVIDER', 'deepseek'),
+    'fallback_enabled' => env('EVOLUTION_FALLBACK_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------
