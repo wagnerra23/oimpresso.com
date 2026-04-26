@@ -114,6 +114,42 @@
 - **Rota:** `GET /copiloto/alertas/config` + `PATCH`
 - **Campos:** desvio % aceitável, canal (email, in-app, WhatsApp futuro), frequência.
 
+### Área Administração — Onda 1 (ROI direto, ver ADR [`arq/0003`](adr/arq/0003-administracao-roi-governance.md))
+
+#### US-COPI-070 · Dashboard de custo IA
+- **Rota:** `GET /copiloto/admin/custos`
+- **Controller:** `Admin\CustosController@index`
+- **Como** admin do business **quero** ver quanto a IA custou esse mês **para** controlar orçamento e justificar ROI.
+- **DoD extra:** card "Esse mês" (R$, #mensagens, #tokens, #usuários ativos); tabela por usuário (nome, #conversas, #mensagens, tokens consumidos, R$ aprox); gráfico diário 90d; preço lido de `config('copiloto.ai.pricing.{modelo}.{input,output}')` em USD/1k tokens × câmbio configurável; permissão `copiloto.admin.custos.view`.
+
+#### US-COPI-071 · Definir orçamento mensal de IA
+- **Rota:** `GET /copiloto/admin/orcamento` + `POST`
+- **Controller:** `Admin\OrcamentoController@show` + `@update`
+- **Como** admin do business **quero** definir limite de R$ por mês de IA **para** nunca tomar susto na fatura.
+- **DoD extra:** tabela `copiloto_orcamentos` (id, business_id, tipo enum [`mensal_business`, `diario_user`], limite_tokens, limite_brl, acao_estouro enum [`bloquear`, `alertar`, `degradar_modelo`]); plano comercial (Essencial/Profissional/Enterprise) define teto que admin não pode ultrapassar; wizard no primeiro acesso pergunta "quanto você quer gastar com IA por mês? R$ ___" + sugestão baseada no plano; permissão `copiloto.admin.orcamento.manage`.
+
+#### US-COPI-072 · Bloquear chamada IA quando orçamento estourar
+- **Componente:** middleware `EnforceOrcamento` (cross-cutting, sem rota própria)
+- **Como** admin do business **quero** que usuários não consigam usar IA depois de estourar o limite **para** conter custo.
+- **DoD extra:** middleware aplicado em `ChatController@send` e qualquer rota futura que chame IA; resposta HTTP `402 Payment Required` (ou `429`) com mensagem clara "Cota IA esgotada esse mês — fale com o admin"; admin recebe notificação in-app + email quando atinge 80% e 100% do limite; soft-degrade opcional (troca pra modelo mais barato em vez de bloquear).
+
+#### US-COPI-073 · Listar conversas do business (admin)
+- **Rota:** `GET /copiloto/admin/conversas`
+- **Controller:** `Admin\ConversasController@index`
+- **Como** admin do business **quero** ver todas as conversas dos meus funcionários **para** auditar uso e extrair valor (FAQ recorrente, dúvidas comuns).
+- **DoD extra:** filtros (usuário, período, busca full-text no `content`); paginação; permissão `copiloto.admin.conversas.view` (SEPARADA de `copiloto.superadmin` que é cross-business); link drill-down pra US-COPI-074.
+
+#### US-COPI-074 · Visualizar conversa em modo read-only (admin)
+- **Rota:** `GET /copiloto/admin/conversas/{id}`
+- **Controller:** `Admin\ConversasController@show`
+- **Como** admin do business **quero** abrir uma conversa de funcionário em modo só-leitura **para** auditar contexto sem poder responder.
+- **DoD extra:** UI sem campo de input; ao abrir, insere mensagem `role='system'` na própria conversa com texto "Visualizada por {admin_nome} em {timestamp}" (transparência — usuário vê na próxima vez que abrir); activitylog grava a ação; permissão `copiloto.admin.conversas.view`.
+
+#### US-COPI-075 · Card "Status do orçamento" no chat
+- **Componente:** `OrcamentoStatusCard` (visível em todas as telas `/copiloto/*`)
+- **Como** qualquer usuário **quero** ver quanto da minha cota / cota do business já foi consumida **para** me autorregular sem precisar perguntar pro admin.
+- **DoD extra:** badge no canto superior; verde (<60%), amarelo (60-90%), vermelho (>90%); admin enxerga cota do business, usuário comum enxerga cota individual; tooltip mostra detalhe (ex.: "23.4k de 50k tokens — sobram 7 dias do mês"); polling a cada 5min ou após cada mensagem enviada.
+
 ## 3. Regras de negócio (Gherkin)
 
 ### Feature: Proposta de metas pelo Copiloto
@@ -205,10 +241,12 @@ Cenário: Desvio acima do threshold dispara alerta
 
 ## 5. Decisões em aberto (que viram US futuras)
 
-- Limite de tokens por conversa (custo IA)? Hoje sem limite → vira tarefa de observabilidade v1.1.
+- ~~Limite de tokens por conversa (custo IA)?~~ → endereçado por US-COPI-070/071/072/075 (Onda 1 da camada admin, ADR `arq/0003`).
+- Audit log + LGPD (export/delete/anonimização) → Onda 2 da ADR `arq/0003`, ainda não quebrado em US.
+- Insights agregados (top tópicos, heatmap), tags, cross-business pra grupo econômico → Onda 3 da ADR `arq/0003`, depende da implementação da ADR `decisions/0020` (matriz_id em business).
 - Exportação do dashboard em PDF? v2.
 - Comparação com período anterior no dashboard? Já dá pra fazer desde v1 — incluir se sobrar tempo.
 
 ---
 
-**Última atualização:** 2026-04-24
+**Última atualização:** 2026-04-26 (adicionadas US-COPI-070..075 da Onda 1 da camada administrativa, ver ADR `arq/0003-administracao-roi-governance.md`)
