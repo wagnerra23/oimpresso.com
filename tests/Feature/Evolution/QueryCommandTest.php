@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Services\Evolution\MemoryQuery;
 
+uses(\Tests\TestCase::class);
+
 beforeEach(function () {
     config(['evolution.memory_path' => base_path('tests/fixtures/memory-fake')]);
 });
