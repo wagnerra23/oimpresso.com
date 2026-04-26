@@ -59,12 +59,25 @@ date: 2026-04-26
 
 ## Decisões pendentes pra confirmar com Wagner
 
-- [ ] Reabrir branch `claude/copiloto-implement-real` ou criar novo?
-- [ ] Sidebar com conversas históricas: persiste em qual tabela? (já existe `copiloto_conversas`, ver migration)
-- [ ] Streaming via SSE ou WebSocket (Pusher já configurado)?
-- [ ] FAB global vs página dedicada `/copiloto/chat` — manter ambos?
-- [ ] Theme (Tailwind 4 já tem dark mode no Cms — replicar)?
+- [x] Reabrir branch `claude/copiloto-implement-real` ou criar novo? → **Reabrir, mas com foco enterprise** (qualidade, não scaffold cru)
+- [x] Sidebar com conversas históricas: persiste em qual tabela? → **`copiloto_conversas` + `copiloto_mensagens`** (já existem, business_id-scoped). Vizra (`vizra_messages`) é estrutura paralela pra Wagner-internal — confirma que o shape tá certo, mas Copiloto tem o seu.
+- [x] Streaming via SSE ou WebSocket (Pusher já configurado)? → **Pusher/Echo** (já temos)
+- [x] FAB global vs página dedicada `/copiloto/chat` — manter ambos? → **Ambos** (FAB global + página dedicada)
+- [x] Theme (Tailwind 4 já tem dark mode no Cms — replicar)? → **Enterprise design system, melhorar padrão Cms também**
 
-## Decision log (quando virar PR)
+## Plano fatiado (4 PRs)
 
-Registrar em `memory/requisitos/Copiloto/adr/ui/0002-chat-streaming-markdown.md` quando começar a codar.
+| # | Branch | Conteúdo | Linhas |
+|---|---|---|---|
+| 1 | `claude/design-system-enterprise` | Audit Cms + tokens (cores, type, spacing) + componentes shadcn (Button/Card/Input/Sheet/ScrollArea/Avatar/Tooltip/CodeBlock) + tipografia (Inter ou Geist) + theme light/dark via CSS vars + aplica em 1-2 telas Cms como prova | ~500 |
+| 2 | `claude/copiloto-chat-streaming` | Reabre `claude/copiloto-implement-real` extraindo só Chat.tsx; adiciona react-markdown + shiki/prism + streaming via Echo (Pusher); auto-scroll, copy-code, Cmd+Enter | ~400 |
+| 3 | `claude/copiloto-chat-history` | Sidebar com `copiloto_conversas` (lista user/business), nova conversa, arquivar, troca de conversa carrega mensagens | ~300 |
+| 4 | `claude/copiloto-fab-global` | FAB sempre visível em layout admin; `/copiloto/chat` full-screen dedicada; FAB abre Sheet com Chat embutido | ~200 |
+
+Total: ~1400 linhas em 4 PRs vs 5485 do PR #13 monolítico (que foi rejeitado por tamanho).
+
+## Recomendação de ordem
+
+PR 1 primeiro (design system) — é base que serve Copiloto + Cms + qualquer tela futura.
+PR 2 depende do 1 (componentes prontos).
+PR 3 e 4 paralelos depois do 2.
