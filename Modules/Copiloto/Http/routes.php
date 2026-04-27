@@ -24,6 +24,10 @@ Route::group(
     function () {
         // ---- Chat (entry-point, ver adr/arq/0002) --------------------------
         Route::get('/',                                    'ChatController@index')->name('copiloto.chat.index');
+
+        // ---- Cockpit MVP (padrao "Chat Cockpit", ADR 0039 - rota paralela
+        //      pra validacao visual sem substituir a /copiloto atual). ----------
+        Route::get('/cockpit',                             'ChatController@cockpit')->name('copiloto.cockpit');
         Route::post('/conversas',                          'ChatController@criarConversa')->name('copiloto.conversas.store');
         Route::get('/conversas/{id}',                      'ChatController@show')->name('copiloto.conversas.show');
         Route::post('/conversas/{id}/mensagens',           'ChatController@send')->name('copiloto.conversas.mensagens.store');
