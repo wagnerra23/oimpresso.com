@@ -107,6 +107,39 @@ php artisan optimize:clear
 
 ---
 
+## 🔄 Sessão 18 (2026-04-26 madrugada) — Sprint 4 + ferramentas Laravel IA
+
+- ✅ **PR #25 mergeado** em `6.7-bootstrap` (`e1d4c9de`): Sprint 4 do roadmap canônico (ADR 0036).
+  - **MemoriaContrato + MeilisearchDriver + NullMemoriaDriver** implementados
+  - Tabela `copiloto_memoria_facts` com schema temporal (`valid_from/until`) + LGPD soft delete
+  - **Eloquent `CopilotoMemoriaFato`** com `Searchable` + `SoftDeletes`
+  - **37/38 Pest passing** (11 testes novos cobrem multi-tenant, append-only temporal, LGPD opt-out)
+- ✅ **Pacotes Laravel IA instalados:** `laravel/horizon` + `laravel/telescope` + `laravel/pail`
+  - `Vizra ADK` ❌ adiado (exige `^11|^12`, projeto é `^13.0`); `LaravelAiSdkDriver` (PR #24) sustenta Copiloto sozinho
+  - `Reverb` ❌ adiado (conflita com `pusher 5.0` lockado; `BROADCAST_DRIVER=null` em uso real, upgrade pusher 5→7 pode fazer em PR separado)
+  - `spatie/laravel-data` ❌ adiado (conflito `phpdocumentor/reflection 6.0`)
+- 🟡 **Deploy SSH em curso** (background) — verificar `composer install` + `php artisan migrate` no Hostinger
+- 📝 Detalhes: ADR 0036 + commit `f6fefa9a`
+
+**Pendências críticas pra próxima sessão (revisado):**
+
+🚨 **Após deploy de Sprint 4 completar, validar:**
+1. `php artisan migrate` rodou (tabela `copiloto_memoria_facts`)
+2. Setar Meilisearch no `.env`: `SCOUT_DRIVER=meilisearch` + `MEILISEARCH_HOST=http://127.0.0.1:7700` + `MEILISEARCH_KEY=TFLfQX3Diuz42MydPn68AYH9Km1JbaBI`
+3. Setar `OPENAI_API_KEY` (ou `ANTHROPIC_API_KEY`) no `.env`
+4. Setar `COPILOTO_AI_DRY_RUN=false`
+5. Configurar embedder no Meilisearch index (POST settings/embedders com OpenAI text-embedding-3-small)
+
+📋 **Sprint 5 (próximo):** `ExtrairFatosDaConversaJob` async via Horizon + bridge `ChatController@send` → busca top-K antes / extrai fatos depois.
+
+📋 **Sprint 6:** Tela `/copiloto/memoria` (LGPD US-COPI-MEM-012).
+
+📋 **PRs separados pendentes:**
+- Reverb: confirmar Pusher não-usado em produção (`isPusherEnabled()` em `app/Http/helpers.php`) → upgrade `pusher/pusher-php-server 5→7` + `composer require laravel/reverb`
+- Vizra ADK: aguardar upstream lançar suporte L13 (sem issue aberta no GitHub vizra-ai/vizra-adk)
+
+---
+
 ## 🔄 Sessão 17 (2026-04-26 fim do dia) — Sprint 1 stack-alvo IA canônica
 
 - ✅ **PR #24 mergeado** em `6.7-bootstrap` (`3d64e5bb`): Sprint 1 do roadmap canônico ADR 0035.
@@ -119,8 +152,8 @@ php artisan optimize:clear
 - ✅ CLAUDE.md + AGENTS.md + auto-memória relevante revisados.
 - ✅ **Meilisearch local Windows** rodando em `http://127.0.0.1:7700` (PID 31928, master key `D:\oimpresso.com\meilisearch\.meilisearch-key.txt`).
 - ✅ **Meilisearch v1.10.3 instalado no Hostinger** em `~/meilisearch/` (versão antiga compatível com GLIBC 2.34).
-- 🟡 **Daemon Meilisearch no Hostinger ainda NÃO iniciado** — SSH flaky no fim da sessão. Comando documentado em `memory/sessions/2026-04-26-sprint1-stack-canonica.md`.
-- 🟡 **Deploy do PR #24 pra produção** ainda NÃO feito — `composer install` precisa rodar no servidor (sprint 1 mexeu em `composer.json`/`composer.lock`).
+- ✅ **Deploy do PR #24 em produção CONFIRMADO** — `git pull` + `composer install` (laravel/ai + boost) + `optimize:clear` rodaram OK.
+- ✅ **Meilisearch daemon RODANDO no Hostinger** — PID 632084, `http://127.0.0.1:7700/health` retornou `{"status":"available"}`, 32 workers iniciados. Log em `~/meilisearch/logs/meilisearch.log`.
 - 📝 Detalhes em [memory/sessions/2026-04-26-sprint1-stack-canonica.md](sessions/2026-04-26-sprint1-stack-canonica.md).
 
 **Pendências críticas pra próxima sessão (ordem revisada por ADR 0036 — Meilisearch first, Mem0 último):**
