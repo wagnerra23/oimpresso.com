@@ -14,7 +14,7 @@ Módulo Laravel chamado **Ponto WR2** que adiciona controle de **ponto eletrôni
 **Stack helpers/UI:** `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form` (substitui laravelcollective/html removido). **Inertia v3 + React + Tailwind 4** (upgrade v2→v3 mergeado em 2026-04-25, ver ADR 0023). Pest v4 + PHPUnit v12.
 **IA:** sem pacote IA instalado em `composer.lock` (`openai-php/laravel` foi removido). Drivers do Copiloto ainda referenciam `OpenAI\Laravel\Facades\OpenAI` em [Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php](Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php), portanto **Copiloto só roda em `COPILOTO_AI_DRY_RUN=true`** (devolve fixtures).
 
-**Stack-alvo (decidida 2026-04-26 sessões 16-17, formalizada em ADRs 0031/0032/0033/0034):**
+**Stack-alvo (VERDADE CANÔNICA — declarada por Wagner em 2026-04-26 sessão 17 como "melhor ROI", formalizada em ADR 0035 que consolida ADRs 0031/0032/0033/0034):**
 - **Camada A (LLM wrapper):** **Laravel AI SDK oficial** ([`laravel/ai`](https://github.com/laravel/ai), lançado fev/2026, first-party Laravel team). Cobre texto+audio+images+embeddings+tools+structured+vector store. Fallback documentado: Prism PHP.
 - **Camada B (framework de agente):** **Vizra ADK** ([`vizra/vizra-adk`](https://github.com/vizra-ai/vizra-adk)). Multi-agent workflows, sub-agent delegation, eval LLM-as-Judge, auto-tracing, 20+ assertions, Vizra Cloud opcional.
 - **Camada C (memória):** `MemoriaContrato` interface PHP com 3 drivers — `Mem0RestDriver` default (managed, $25-300/mês), `MeilisearchDriver` fallback self-hosted (zero recurring cost), `NullMemoriaDriver` em dev. **`pgvector` rejeitado** — exige PostgreSQL (não temos). Ver ADR 0033.
