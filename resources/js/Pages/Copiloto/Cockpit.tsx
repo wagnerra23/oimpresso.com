@@ -10,7 +10,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import {
   Bell, Check, ChevronDown, ChevronUp, Cog, Hash, Inbox, Keyboard, LogOut,
-  MessageCircle, Moon, Paperclip, Phone, Pin, Plus, Search, Send, Smile, User,
+  MessageCircle, Moon, Paperclip, Phone, Pin, Plus, Search, Send, Smile, Sliders, User, X,
 } from 'lucide-react';
 
 import '../../../css/cockpit.css';
@@ -65,6 +65,17 @@ const LS_TAB = 'oimpresso.cockpit.sidebar.tab';
 const LS_CHAT_TAB = 'oimpresso.cockpit.chat.tab';
 const LS_LINKED = 'oimpresso.cockpit.linked.collapsed';
 const LS_CONV = 'oimpresso.cockpit.conv';
+const LS_TW_VIBE = 'oimpresso.cockpit.tweaks.vibe';
+const LS_TW_DENSITY = 'oimpresso.cockpit.tweaks.density';
+const LS_TW_HUE = 'oimpresso.cockpit.tweaks.accentHue';
+const LS_TW_OPEN = 'oimpresso.cockpit.tweaks.open';
+
+type Vibe = 'workspace' | 'daylight' | 'focus';
+const VIBES: Array<{ id: Vibe; label: string }> = [
+  { id: 'workspace', label: 'workspace' },
+  { id: 'daylight', label: 'daylight' },
+  { id: 'focus', label: 'focus' },
+];
 
 const CHAT_TABS: Array<{ id: string; label: string }> = [
   { id: 'todos', label: 'Todos' },
@@ -353,6 +364,100 @@ function LinkedAppsPanel({ conv }: { conv: ConversaFoco }) {
   );
 }
 
+function TweaksPanel({
+  vibe, onVibe,
+  density, onDensity,
+  hue, onHue,
+  open, onToggle,
+}: {
+  vibe: Vibe; onVibe: (v: Vibe) => void;
+  density: number; onDensity: (n: number) => void;
+  hue: number; onHue: (n: number) => void;
+  open: boolean; onToggle: () => void;
+}) {
+  if (!open) {
+    return (
+      <div className="cockpit-tweaks">
+        <button
+          className="cockpit-tweaks-fab"
+          type="button"
+          title="Abrir Tweaks"
+          onClick={onToggle}
+        >
+          <Sliders size={18} />
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="cockpit-tweaks">
+      <div className="cockpit-tweaks-card">
+        <div className="cockpit-tweaks-card-h">
+          <span className="title">Tweaks</span>
+          <button className="close" type="button" onClick={onToggle} title="Fechar">
+            <X size={14} />
+          </button>
+        </div>
+
+        <div className="cockpit-tweaks-section">
+          <div className="cockpit-tweaks-label">Vibe</div>
+          <div className="cockpit-tweaks-sublabel">
+            <span>Atmosfera</span>
+            <span style={{ color: 'var(--text-mute)' }}>{vibe}</span>
+          </div>
+          <div className="cockpit-tweaks-radio">
+            {VIBES.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                className={vibe === v.id ? 'active' : ''}
+                onClick={() => onVibe(v.id)}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="cockpit-tweaks-section">
+          <div className="cockpit-tweaks-label">Densidade</div>
+          <div className="cockpit-tweaks-sublabel">
+            <span>Skim ↔ Briefing</span>
+            <span style={{ color: 'var(--text-mute)' }}>{density}%</span>
+          </div>
+          <input
+            type="range"
+            className="cockpit-tweaks-slider"
+            min={0}
+            max={100}
+            step={5}
+            value={density}
+            onChange={(e) => onDensity(Number(e.target.value))}
+          />
+        </div>
+
+        <div className="cockpit-tweaks-section">
+          <div className="cockpit-tweaks-label">Cor</div>
+          <div className="cockpit-tweaks-sublabel">
+            <span>Tom do accent</span>
+            <span style={{ color: 'var(--text-mute)' }}>{hue}°</span>
+          </div>
+          <input
+            type="range"
+            className="cockpit-tweaks-slider"
+            min={0}
+            max={360}
+            step={10}
+            value={hue}
+            onChange={(e) => onHue(Number(e.target.value))}
+          />
+          <div className="cockpit-tweaks-hue-preview" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── página principal ────────────────────────────────────────────────────
 
 export default function Cockpit({
@@ -380,12 +485,51 @@ export default function Cockpit({
   });
   const [mensagensLocal, setMensagensLocal] = useState<Mensagem[]>(conversaFoco.mensagens);
 
+  // Tweaks (vibe / densidade / accent hue)
+  const [tweaksOpen, setTweaksOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(LS_TW_OPEN) === '1';
+  });
+  const [vibe, setVibe] = useState<Vibe>(() => {
+    if (typeof window === 'undefined') return 'workspace';
+    return (localStorage.getItem(LS_TW_VIBE) as Vibe) || 'workspace';
+  });
+  const [density, setDensity] = useState<number>(() => {
+    if (typeof window === 'undefined') return 50;
+    const v = Number(localStorage.getItem(LS_TW_DENSITY));
+    return isFinite(v) && v > 0 ? v : 50;
+  });
+  const [accentHue, setAccentHue] = useState<number>(() => {
+    if (typeof window === 'undefined') return 220;
+    const v = Number(localStorage.getItem(LS_TW_HUE));
+    return isFinite(v) && v > 0 ? v : 220;
+  });
+
   useEffect(() => { localStorage.setItem(LS_TAB, tab); }, [tab]);
   useEffect(() => { localStorage.setItem(LS_CHAT_TAB, chatTab); }, [chatTab]);
   useEffect(() => { localStorage.setItem(LS_CONV, activeConvId); }, [activeConvId]);
   useEffect(() => {
     localStorage.setItem(LS_LINKED, linkedCollapsed ? '1' : '0');
   }, [linkedCollapsed]);
+
+  useEffect(() => { localStorage.setItem(LS_TW_VIBE, vibe); }, [vibe]);
+  useEffect(() => { localStorage.setItem(LS_TW_DENSITY, String(density)); }, [density]);
+  useEffect(() => { localStorage.setItem(LS_TW_HUE, String(accentHue)); }, [accentHue]);
+  useEffect(() => { localStorage.setItem(LS_TW_OPEN, tweaksOpen ? '1' : '0'); }, [tweaksOpen]);
+
+  // Aplica densidade + accentHue como CSS vars no .cockpit
+  const cockpitStyle: React.CSSProperties = {
+    // Densidade afeta altura de linha e padding dos cards
+    ['--row-h' as never]: `${26 + (density / 100) * 16}px`,
+    ['--card-pad' as never]: `${8 + (density / 100) * 8}px`,
+    // Accent hue repinta o accent + variações
+    ['--accent' as never]: `oklch(0.58 0.12 ${accentHue})`,
+    ['--accent-2' as never]: `oklch(0.66 0.12 ${accentHue})`,
+    ['--accent-soft' as never]: `oklch(0.94 0.04 ${accentHue})`,
+    ['--bubble-me' as never]: `oklch(0.58 0.12 ${accentHue})`,
+  };
+
+  const densityLabel = density < 30 ? 'skim' : density > 70 ? 'briefing' : 'normal';
 
   function handleSend(texto: string) {
     const novaMsg: Mensagem = {
@@ -401,7 +545,13 @@ export default function Cockpit({
   return (
     <>
       <Head title="Copiloto · Cockpit" />
-      <div className="cockpit" data-linked={linkedCollapsed ? 'off' : 'on'}>
+      <div
+        className="cockpit"
+        data-linked={linkedCollapsed ? 'off' : 'on'}
+        data-vibe={vibe}
+        data-density={densityLabel}
+        style={cockpitStyle}
+      >
         {/* SIDEBAR */}
         <aside className="sb">
           <div className="sb-top">
@@ -462,6 +612,18 @@ export default function Cockpit({
 
         {/* APPS VINCULADOS */}
         {!linkedCollapsed && <LinkedAppsPanel conv={conversaFoco} />}
+
+        {/* TWEAKS PANEL (flutuante, fora do grid) */}
+        <TweaksPanel
+          vibe={vibe}
+          onVibe={setVibe}
+          density={density}
+          onDensity={setDensity}
+          hue={accentHue}
+          onHue={setAccentHue}
+          open={tweaksOpen}
+          onToggle={() => setTweaksOpen((v) => !v)}
+        />
       </div>
     </>
   );
