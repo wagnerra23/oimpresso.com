@@ -7,7 +7,7 @@
 //   adrs: 0003, 0004
 //   tests: Modules/MemCofre/Tests/Feature/InboxTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -480,7 +480,7 @@ export default function MemCofreInbox({ evidences, filtros, counts }: Props) {
 }
 
 MemCofreInbox.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Cofre de Memórias', href: '/memcofre' }, { label: 'Inbox' }]}>
+  <AppShellV2 title="Inbox · Cofre" breadcrumbItems={[{ label: 'Cofre de Memórias', href: '/memcofre' }, { label: 'Inbox' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
