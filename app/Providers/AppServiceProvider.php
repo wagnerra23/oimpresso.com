@@ -256,7 +256,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        // Why: Laravel auto-deteta `resources/lang/` se existir, senao `lang/`
+        // (Foundation\Application::bindPathsInContainer). Como o servidor mantem
+        // `resources/lang/` legado do UltimatePOS pre-Laravel 9 + tambem `lang/`,
+        // o auto-detect cai sempre no legado e ignora as traducoes atualizadas.
+        // Forcar o path canonico Laravel 9+ resolve definitivamente (sem precisar
+        // deletar `resources/lang/` no servidor — fica como fallback historico).
+        $this->app->useLangPath($this->app->basePath('lang'));
     }
 
     /**
