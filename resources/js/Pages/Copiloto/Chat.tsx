@@ -2,73 +2,139 @@
 //   tela: /copiloto
 //   stories: US-COPI-001, US-COPI-002, US-COPI-003, US-COPI-MEM-007
 //   rules: R-COPI-001, R-COPI-MEM-005
-//   adrs: 0026, 0031, 0032, 0034, 0035, 0036
+//   adrs: 0026, 0031, 0032, 0034, 0035, 0036, 0039 (Cockpit), UI-0008
 //   tests: tests/Feature/Modules/Copiloto/AdapterResolverTest, tests/Feature/Modules/Copiloto/BridgeMemoriaChatTest
-//   status: implementada
+//   status: implementada (Sprint 1: migrada pra AppShellV2)
 //   module: Copiloto
 
-import React, { useEffect, useRef, useState } from 'react'
-import AppShell from '@/Layouts/AppShell'
-import { Head, router } from '@inertiajs/react'
-import { Button } from '@/Components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card'
-import { Badge } from '@/Components/ui/badge'
-import { ScrollArea } from '@/Components/ui/scroll-area'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/Components/ui/sheet'
-import { Textarea } from '@/Components/ui/textarea'
-import { Bot, User, MessagesSquare, Plus, ChevronRight, Send } from 'lucide-react'
-import { toast } from 'sonner'
+import { Head, router } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
-interface Mensagem {
-  id: number
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  created_at: string
-  propostas?: Proposta[]
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Composer, Thread, ThreadHeader } from '@/Components/cockpit/Thread';
+import {
+  AvatarRef,
+  BusinessOpt,
+  ConversaFoco,
+  ConversaResumo,
+  Mensagem as CockpitMensagem,
+  Rotina,
+} from '@/Components/cockpit/shared';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import {
+  Card, CardContent, CardFooter, CardHeader, CardTitle,
+} from '@/Components/ui/card';
+
+// ── tipos do backend Copiloto ──────────────────────────────────────────
+
+interface MensagemBackend {
+  id: number;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  created_at: string;
+  propostas?: Proposta[];
 }
 
 interface Proposta {
-  nome: string
-  metrica: string
-  valor_alvo: number
-  periodo: string
-  dificuldade: 'facil' | 'realista' | 'ambicioso'
-  racional: string
-  dependencias: string[]
+  nome: string;
+  metrica: string;
+  valor_alvo: number;
+  periodo: string;
+  dificuldade: 'facil' | 'realista' | 'ambicioso';
+  racional: string;
+  dependencias: string[];
 }
 
 interface Sugestao {
-  id: number
-  payload_json: Proposta
+  id: number;
+  payload_json: Proposta;
 }
 
-interface Conversa {
-  id: number
-  titulo: string
-  status: string
-  iniciada_em: string
+interface ConversaBackend {
+  id: number;
+  titulo: string;
+  status: string;
+  iniciada_em: string;
 }
 
 interface Props {
-  conversa: Conversa & { id: number }
-  conversas: Conversa[]
-  mensagens: Mensagem[]
-  sugestoesPendentes?: Sugestao[]
+  // Shell props (vindos do shellPropsFor() do controller)
+  businessNome: string;
+  businesses: BusinessOpt[];
+  usuarioNome: string;
+  usuarioNomeCurto: string;
+  usuarioEmail: string;
+  usuarioCargo: string;
+  usuarioIniciais: string;
+  conversas: {
+    fixadas: ConversaResumo[];
+    rotinas: Rotina[];
+    recentes: ConversaResumo[];
+  };
+  // Props específicos do Copiloto Chat
+  conversa: ConversaBackend;
+  mensagens: MensagemBackend[];
+  sugestoesPendentes?: Sugestao[];
 }
+
+// ── helpers ────────────────────────────────────────────────────────────
 
 const DIFICULDADE_CONFIG: Record<string, { label: string; className: string }> = {
   facil:     { label: 'Fácil',     className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' },
   realista:  { label: 'Realista',  className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
   ambicioso: { label: 'Ambicioso', className: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300' },
-}
+};
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
+// Gradiente do avatar do Copiloto (usado em todas msgs do assistant)
+const COPILOTO_AVATAR: AvatarRef = { iniciais: 'CP', gradId: 17 };
+
+// Adaptador: converte Mensagem do backend (role/content) → Mensagem do Cockpit (autor/texto)
+function adaptarMensagem(m: MensagemBackend): CockpitMensagem {
+  const dt = new Date(m.created_at);
+  const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  // Day separator: usa "Hoje" se a msg é do mesmo dia que agora; senão data dd/mm
+  const hoje = new Date();
+  const sameDay =
+    dt.getFullYear() === hoje.getFullYear() &&
+    dt.getMonth() === hoje.getMonth() &&
+    dt.getDate() === hoje.getDate();
+  const dia = sameDay
+    ? 'Hoje'
+    : dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+  if (m.role === 'user') {
+    return {
+      id: m.id,
+      autor: 'me',
+      texto: m.content,
+      hora,
+      dia,
+      lida: true,
+    };
+  }
+  // assistant ou system → them, com avatar do Copiloto
+  return {
+    id: m.id,
+    autor: 'them',
+    texto: m.content,
+    hora,
+    dia,
+    whoAvatar: COPILOTO_AVATAR,
+    whoNome: 'Copiloto',
+  };
+}
+
+// ── PropostaCard (componente especifico do Copiloto, mantido inline) ───
+
 function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
-  const p = sugestao.payload_json
-  const dif = DIFICULDADE_CONFIG[p.dificuldade] ?? DIFICULDADE_CONFIG['realista']!
+  const p = sugestao.payload_json;
+  const dif = DIFICULDADE_CONFIG[p.dificuldade] ?? DIFICULDADE_CONFIG['realista']!;
 
   function escolher() {
     router.post(`/copiloto/sugestoes/${sugestao.id}/escolher`, {}, {
@@ -76,7 +142,7 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
       preserveState: true,
       onSuccess: () => toast.success('Meta criada com sucesso!'),
       onError: () => toast.error('Erro ao escolher meta.'),
-    })
+    });
   }
 
   function rejeitar() {
@@ -84,7 +150,7 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
       preserveScroll: true,
       preserveState: true,
       onSuccess: () => toast.info('Proposta rejeitada.'),
-    })
+    });
   }
 
   return (
@@ -128,208 +194,103 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
 
-function MessageBubble({ msg }: { msg: Mensagem }) {
-  const isUser = msg.role === 'user'
+// ── pagina ──────────────────────────────────────────────────────────────
 
-  return (
-    <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4 text-primary" />}
-      </div>
-      <div className={`max-w-[80%] space-y-2 ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
-        <div
-          className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-            isUser
-              ? 'rounded-tr-sm bg-primary text-primary-foreground'
-              : 'rounded-tl-sm bg-muted text-foreground'
-          }`}
-        >
-          {msg.content}
-        </div>
-      </div>
-    </div>
-  )
-}
+export default function Chat({
+  businessNome,
+  businesses,
+  usuarioNome,
+  usuarioNomeCurto,
+  usuarioEmail,
+  usuarioCargo,
+  usuarioIniciais,
+  conversas,
+  conversa,
+  mensagens,
+  sugestoesPendentes = [],
+}: Props) {
+  const [enviando, setEnviando] = useState(false);
 
-export default function Chat({ conversa, conversas, mensagens, sugestoesPendentes = [] }: Props) {
-  const threadRef = useRef<HTMLDivElement>(null)
-  const [texto, setTexto] = useState('')
-  const [enviando, setEnviando] = useState(false)
+  // Adapta mensagens backend → formato Cockpit
+  const mensagensCockpit = useMemo(
+    () => mensagens.map(adaptarMensagem),
+    [mensagens],
+  );
 
-  // Rola pra baixo ao carregar e ao receber novas mensagens
-  useEffect(() => {
-    if (threadRef.current) {
-      threadRef.current.scrollTop = threadRef.current.scrollHeight
-    }
-  }, [mensagens])
+  // ConversaFoco da conversa atual (fora do mock — vem do backend real agora)
+  const conversaFoco: ConversaFoco = useMemo(() => ({
+    id: String(conversa.id),
+    titulo: conversa.titulo,
+    tipo: 'copiloto',
+    online: true,
+    avatar: COPILOTO_AVATAR,
+    mensagens: mensagensCockpit,
+  }), [conversa, mensagensCockpit]);
 
-  function enviar() {
-    if (! texto.trim() || enviando) return
-
-    setEnviando(true)
+  function handleSend(texto: string) {
+    if (!texto.trim() || enviando) return;
+    setEnviando(true);
     router.post(
       `/copiloto/conversas/${conversa.id}/mensagens`,
       { content: texto },
       {
-        onSuccess: () => {
-          setTexto('')
-          setEnviando(false)
-        },
+        onSuccess: () => setEnviando(false),
         onError: () => {
-          toast.error('Erro ao enviar mensagem.')
-          setEnviando(false)
+          toast.error('Erro ao enviar mensagem.');
+          setEnviando(false);
         },
         preserveScroll: true,
-      }
-    )
+      },
+    );
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      e.preventDefault()
-      enviar()
-    }
-  }
-
-  function novaConversa() {
-    router.post('/copiloto/conversas', { titulo: 'Nova conversa' }, {
+  function selectConv(id: string) {
+    router.get(`/copiloto/conversas/${id}`, {}, {
       preserveScroll: true,
       preserveState: true,
-    })
+    });
   }
 
-  // Lista lateral de conversas
-  const ConversaLista = (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <span className="font-semibold text-sm">Conversas</span>
-        <Button size="icon" variant="ghost" onClick={novaConversa} aria-label="Nova conversa">
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
-      <ScrollArea className="flex-1">
-        <div className="space-y-1 p-2">
-          {conversas.map(c => (
-            <button
-              key={c.id}
-              onClick={() => router.get(`/copiloto/conversas/${c.id}`, {}, { preserveScroll: true, preserveState: true })}
-              className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
-                c.id === conversa.id ? 'bg-muted font-medium' : ''
-              }`}
-            >
-              <MessagesSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <span className="truncate flex-1">{c.titulo}</span>
-              <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
-            </button>
-          ))}
-        </div>
-      </ScrollArea>
-    </div>
-  )
-
   return (
-    <>
-      <Head title="Copiloto — Chat" />
+    <AppShellV2
+      title="Copiloto · Chat"
+      business={{ nome: businessNome, opcoes: businesses }}
+      user={{
+        nome: usuarioNome,
+        nomeCurto: usuarioNomeCurto,
+        email: usuarioEmail,
+        cargo: usuarioCargo,
+        iniciais: usuarioIniciais,
+      }}
+      conversas={conversas}
+      conversaFoco={conversaFoco}
+      activeConvId={String(conversa.id)}
+      onSelectConv={selectConv}
+    >
+      <Head title="Copiloto · Chat" />
 
-      <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-        {/* Desktop: coluna esquerda 40% */}
-        <aside className="hidden lg:flex lg:w-[40%] flex-col border-r border-border bg-background">
-          {ConversaLista}
-        </aside>
+      <ThreadHeader conv={conversaFoco} />
 
-        {/* Mobile: sheet lateral */}
-        <div className="flex lg:hidden items-center p-2 border-b border-border">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Abrir lista de conversas">
-                <MessagesSquare className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
-              <SheetHeader className="sr-only">
-                <SheetTitle>Conversas</SheetTitle>
-              </SheetHeader>
-              {ConversaLista}
-            </SheetContent>
-          </Sheet>
-          <span className="ml-2 text-sm font-medium truncate">{conversa.titulo}</span>
-        </div>
+      <Thread mensagens={mensagensCockpit} typing={false} />
 
-        {/* Coluna direita: thread + composer */}
-        <main className="flex flex-1 flex-col overflow-hidden">
-          {/* Thread */}
-          <div
-            ref={threadRef}
-            role="log"
-            aria-live="polite"
-            aria-label="Histórico de conversa com Copiloto"
-            className="flex-1 overflow-y-auto p-4 space-y-4"
-          >
-            {mensagens.map(msg => (
-              <MessageBubble key={msg.id} msg={msg} />
+      {/* Cards de propostas pendentes — específico Copiloto, não estão no Components/cockpit */}
+      {sugestoesPendentes.length > 0 && (
+        <div className="px-5 pb-3 space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-mute)' }}>
+            Propostas de metas
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {sugestoesPendentes.map((s) => (
+              <PropostaCard key={s.id} sugestao={s} />
             ))}
-
-            {/* Cards de propostas pendentes */}
-            {sugestoesPendentes.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Propostas de metas
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {sugestoesPendentes.map(s => (
-                    <PropostaCard key={s.id} sugestao={s} />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
+        </div>
+      )}
 
-          {/* Composer */}
-          <div className="border-t border-border bg-background p-4">
-            {/* Sugestões rápidas */}
-            <div className="mb-2 flex flex-wrap gap-2">
-              {['Sugira metas', 'Compare com mês passado', 'Explique o desvio'].map(s => (
-                <button
-                  key={s}
-                  onClick={() => setTexto(s)}
-                  className="rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-end gap-2">
-              <Textarea
-                value={texto}
-                onChange={e => setTexto(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Mensagem para o Copiloto (Cmd+Enter para enviar)"
-                aria-label="Mensagem para o Copiloto"
-                rows={1}
-                className="min-h-[2.5rem] max-h-40 resize-none flex-1"
-                disabled={enviando}
-              />
-              <Button
-                onClick={enviar}
-                disabled={! texto.trim() || enviando}
-                size="icon"
-                aria-label="Enviar mensagem"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Cmd+Enter envia · Enter quebra linha
-            </p>
-          </div>
-        </main>
-      </div>
-    </>
-  )
+      <Composer onSend={handleSend} conv={conversaFoco} />
+    </AppShellV2>
+  );
 }
-
-Chat.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>
