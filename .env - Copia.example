@@ -136,3 +136,32 @@ WP_OFFICEIMPRESSO_DB_NAME=
 WP_OFFICEIMPRESSO_DB_USER=
 WP_OFFICEIMPRESSO_DB_PASS=
 WP_OFFICEIMPRESSO_DB_PREFIX=wp_
+
+# === IA do Copiloto — verdade canônica ADRs 0031/0032/0033/0034/0035/0036 ===
+# Camada A: laravel/ai oficial (PR #24)
+# Camada B: vizra/vizra-adk (sprint 3 — bloqueado em L13, aguardando upstream)
+# Camada C: MeilisearchDriver DEFAULT (Mem0 sprint 8+ condicional)
+COPILOTO_AI_ADAPTER=auto
+COPILOTO_AI_DRY_RUN=false
+COPILOTO_MEMORIA_DRIVER=auto
+COPILOTO_MEMORIA_INDEX=copiloto_memoria_facts
+COPILOTO_MEMORIA_SEMANTIC_RATIO=0.5
+COPILOTO_MEMORIA_EMBEDDER=openai-text-embedding-3-small
+
+# === Laravel Scout + Meilisearch self-hosted (camada C) ===
+SCOUT_DRIVER=meilisearch
+MEILISEARCH_HOST=http://127.0.0.1:7700
+MEILISEARCH_KEY=
+# Em produção Hostinger: daemon em ~/meilisearch (v1.10.3, GLIBC 2.34 compat)
+# Local Windows: D:\oimpresso.com\meilisearch\meilisearch.exe rodando
+# Master key em ambos: TFLfQX3Diuz42MydPn68AYH9Km1JbaBI (ou rotacionar)
+
+# === Anthropic API (alternativa a OpenAI via laravel/ai) ===
+ANTHROPIC_API_KEY=
+
+# === Horizon (queue monitoring — sprint 5: ExtrairFatosDaConversaJob) ===
+HORIZON_DOMAIN=
+HORIZON_PATH=horizon
+
+# === Telescope (debug AI calls em dev) ===
+TELESCOPE_ENABLED=false
