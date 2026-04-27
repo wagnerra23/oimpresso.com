@@ -9,16 +9,113 @@
 
 ## 🚀 Começo Rápido — leia isso primeiro
 
-**Repo:** `D:\oimpresso.com` · **Branch ativa:** `6.7-bootstrap` · **Data da última sessão:** 2026-04-26
+**Repo:** `D:\oimpresso.com` · **Branch ativa:** `6.7-bootstrap` · **Última sessão:** 2026-04-27 (sessões 18+19 consolidadas)
 
 **Rodar local:**
 ```bash
 cd D:\oimpresso.com
-# já está rodando em https://oimpresso.test (Herd + Laragon MySQL)
+# rodando em https://oimpresso.test (Herd + Laragon MySQL)
 # login: WR23 / Wscrct*2312
+# Meilisearch local em http://127.0.0.1:7700 (PID auto, ver D:\oimpresso.com\meilisearch\)
 ```
 
-**Stack real:** Laravel **13.6** · PHP 8.4 (Herd) · MySQL Laragon 127.0.0.1:3306 root sem senha · DB `oimpresso` · Inertia **v3** + React + Tailwind 4 · Pest v4 + PHPUnit v12 · nWidart/laravel-modules ^10
+**Stack real:** Laravel **13.6** · PHP 8.4 (Herd) · MySQL Laragon · DB `oimpresso` · Inertia **v3** + React + Tailwind 4 · Pest v4 + PHPUnit v12 · nWidart/laravel-modules ^10
+
+**Stack IA (verdade canônica ADR 0035 + 0036):**
+- A = `laravel/ai ^0.6.3` (oficial fev/2026)
+- B = `LaravelAiSdkDriver` + 4 Agents (Vizra ADK aguarda L13)
+- C = `MemoriaContrato` + `MeilisearchDriver` default + `NullDriver` dev (Mem0 sprint 8+ condicional)
+- Tooling = Boost + MCP + Scout + Horizon + Telescope + Pail
+
+---
+
+## 🎯 PRA INICIAR AMANHÃ (2026-04-28+) — **LEIA ESSA SEÇÃO**
+
+### 🔴 Bloqueante crítico
+**Validar com Larissa do ROTA LIVRE (1-2h)** antes de qualquer sprint novo.
+3 cenários de teste pra ela:
+1. Pergunta sobre meta atual
+2. Conversa >15 turnos (testa contexto longo)
+3. Corrige um fato (testa LGPD `/copiloto/memoria`)
+
+Resposta dela determina sprint 7:
+
+| Feedback Larissa | Sprint 7 = | ADR base |
+|---|---|---|
+| "Lembrou minha meta!" / quer + memória | **A — RAGAS evaluation** | 0037 |
+| "Preciso PricingFpv/CT-e" | **Pivot ADR 0026** (caminho B) | 0026 |
+| "Não entendi pra que serve" | **MCP server pro Claude Desktop** | 0036 + comparativo 2026-04-27 |
+| Silêncio em 30d | **Pivot comercial** | 0026 |
+
+### 🟡 Operacional (antes/depois da call)
+
+**Deploy completo SSH (PRs #26/#27/#29 ainda pendentes):**
+```bash
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115
+cd domains/oimpresso.com/public_html
+git pull origin 6.7-bootstrap
+composer install --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix
+php artisan migrate --no-interaction
+php artisan optimize:clear
+```
+
+**Configurar embedder Meilisearch (1h):**
+```bash
+curl -X PATCH http://127.0.0.1:7700/indexes/copiloto_memoria_facts/settings/embedders \
+  -H "Authorization: Bearer TFLfQX3Diuz42MydPn68AYH9Km1JbaBI" \
+  -H "Content-Type: application/json" \
+  -d '{"openai":{"source":"openAi","model":"text-embedding-3-small","apiKey":"sk-..."}}'
+```
+
+**`.env` Hostinger pra IA real:**
+```env
+OPENAI_API_KEY=sk-...           # Wagner gera no platform.openai.com/api-keys
+COPILOTO_AI_ADAPTER=auto
+COPILOTO_AI_DRY_RUN=false
+COPILOTO_MEMORIA_DRIVER=auto
+SCOUT_DRIVER=meilisearch
+MEILISEARCH_HOST=http://127.0.0.1:7700
+MEILISEARCH_KEY=TFLfQX3Diuz42MydPn68AYH9Km1JbaBI
+```
+
+**Smoke manual:** abrir https://oimpresso.com/copiloto + mandar 1 mensagem + confirmar resposta real (não fixture).
+
+---
+
+## 📚 ADRs canônicos (memory/decisions/) — leitura obrigatória
+
+| ADR | Tema | Status |
+|---|---|---|
+| 0026 | Posicionamento "ERP gráfico com IA" | ✅ |
+| 0027 | Gestão de memória (papéis canônicos) | ✅ |
+| 0028 | ADRs numeração monotônica | ✅ |
+| 0030 | Credenciais nunca em git | ✅ |
+| 0031 | `MemoriaContrato` interface | ✅ revisado por 0036 |
+| 0032 | Vizra ADK + Prism | ✅ sprint 1 revisado por 0034 |
+| 0033 | Vector store backend | ✅ revisado por 0036 |
+| 0034 | Laravel AI ecosystem 2026 | ✅ |
+| **0035** | **Stack canônica IA (verdade)** | ✅ Wagner *"melhor ROI"* |
+| **0036** | **Replanejamento Meilisearch first** | ✅ economiza R$1.500-18k/ano |
+| **0037** | **Roadmap Tier 7-9 LongMemEval** | ✅ aceita |
+
+## 🗂️ Comparativos Capterra canônicos (memory/comparativos/)
+
+| Arquivo | Pra quê |
+|---|---|
+| `_TEMPLATE_capterra_oimpresso.md` v1.0 | template oficial pra novos comparativos |
+| `oimpresso_vs_concorrentes_capterra_2026_04_25.md` | Produto vs Mubisys/Zênite/Calcgraf/Calcme/Visua |
+| `sistemas_memoria_oimpresso_capterra_2026_04_26.md` | Camada A — dev memory (9 sistemas) |
+| `copiloto_runtime_memory_vs_mem0_*` | Camada C — memória runtime (5 frameworks) |
+| `stack_agente_php_vizra_prism_mem0_*` | Stack completa A+B+C (7 players) |
+| **`revisao_caminho_2026_04_27_capterra.md`** | **Auditoria pós-sprint 6** — recomenda validar Larissa |
+| **`claude_desktop_vs_laravel_mcp_oimpresso_2026_04_27.md`** | **Plugins Claude Desktop** vs nossa stack — vácuo no vertical brasileiro |
+
+## 📜 Documentos enterprise
+
+- [memory/requisitos/Copiloto/ENTERPRISE.md](requisitos/Copiloto/ENTERPRISE.md) — overview executivo + ops + compliance LGPD (12 seções, 420 linhas)
+- [memory/CHANGELOG.md](CHANGELOG.md) — Keep-a-Changelog format, sessões 15-18
+
+---
 
 ---
 
