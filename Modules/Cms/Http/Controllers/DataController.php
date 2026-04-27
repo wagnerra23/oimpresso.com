@@ -59,7 +59,7 @@ class DataController extends Controller
                     action([\Modules\Cms\Http\Controllers\CmsPageController::class, 'index'], ['type' => 'page']),
                     __('cms::lang.cms'),
                     ['icon' => 'fas fa-window-restore fa', 'style' => config('app.env') == 'demo' ? 'background-color: #9E458B !important;' : '', 'active' => request()->segment(1) == 'cms']
-                )->order(100);
+                )->order(5);
             });
         }
     }
