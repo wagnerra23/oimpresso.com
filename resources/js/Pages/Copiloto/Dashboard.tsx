@@ -1,3 +1,12 @@
+// @memcofre
+//   tela: /copiloto/dashboard
+//   stories: US-COPI-010, US-COPI-011, US-COPI-012
+//   rules: R-COPI-002, R-COPI-FAROL-001
+//   adrs: 0026, 0031, 0035, 0036
+//   tests: tests/Feature/Modules/Copiloto/MemoriaContratoTest
+//   status: implementada
+//   module: Copiloto
+
 import React from 'react'
 import AppShell from '@/Layouts/AppShell'
 import { Head, Link } from '@inertiajs/react'
