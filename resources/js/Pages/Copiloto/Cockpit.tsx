@@ -7,10 +7,12 @@
 //   nota: rota PARALELA ao /copiloto atual; nao substitui Chat.tsx.
 
 import { Head, usePage } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Bell, Check, ChevronDown, ChevronUp, Cog, Hash, Inbox, Keyboard, LogOut,
-  MessageCircle, Moon, Paperclip, Phone, Pin, Plus, Search, Send, Smile, Sliders, User, X,
+  Bell, Briefcase, Check, CheckCheck, ChevronDown, ChevronRight, ChevronUp, Cog,
+  DollarSign, FileText, Hash, History, Inbox, Info, Keyboard, LogOut,
+  MessageCircle, MoreHorizontal, Moon, Paperclip, Phone, Pin, Plus, Search,
+  Send, Smile, Sliders, User, X,
 } from 'lucide-react';
 
 import '../../../css/cockpit.css';
@@ -28,22 +30,54 @@ interface Rotina {
   titulo: string;
   frequencia: string;
 }
+interface AvatarRef {
+  iniciais: string;
+  gradId: number;
+}
 interface Mensagem {
   id: number;
   autor: 'me' | 'them';
   texto: string;
   hora: string;
+  dia?: string;
   lida?: boolean;
+  whoAvatar?: AvatarRef;
+  whoNome?: string;
+}
+interface OsContext {
+  numero: string;
+  cliente: string;
+  estagio: string;
+  prazo: string;
+}
+interface FinContext {
+  saldo: string;
+  boletos: string;
+}
+interface HistoricoEvent {
+  quando: string;
+  quem: string;
+  oque: string;
+}
+interface AnexoFile {
+  nome: string;
+  tamanho: string;
 }
 interface ConversaFoco {
   id: string;
   titulo: string;
   tipo: string;
+  online?: boolean;
+  avatar?: AvatarRef;
   cliente?: {
     nome: string;
     telefone: string;
     ultimoContato: string;
   };
+  os?: OsContext;
+  financeiro?: FinContext;
+  historico?: HistoricoEvent[];
+  anexos?: AnexoFile[];
   mensagens: Mensagem[];
 }
 
@@ -521,52 +555,152 @@ function ChatTabs({
   );
 }
 
-function Thread({ mensagens }: { mensagens: Mensagem[] }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    ref.current?.scrollTo({ top: ref.current.scrollHeight });
-  }, [mensagens]);
-
+function ThreadHeader({ conv }: { conv: ConversaFoco }) {
+  const av = conv.avatar ?? { iniciais: conv.titulo.slice(0, 2).toUpperCase(), gradId: 1 };
+  const sub =
+    conv.tipo === 'os' && conv.os
+      ? `OS ${conv.os.numero} · ${conv.os.cliente}`
+      : conv.tipo === 'team'
+      ? 'Canal interno da equipe'
+      : conv.cliente?.nome || 'Cliente';
   return (
-    <div className="chat-thread" ref={ref}>
-      <div className="day-sep">Hoje</div>
-      {mensagens.map((m) => (
-        <div key={m.id} className={`msg-row ${m.autor === 'me' ? 'me' : ''}`}>
-          <div className={`bubble ${m.autor === 'me' ? 'me' : 'them'}`}>
-            <div>{m.texto}</div>
-            <div className="meta">
-              {m.hora} {m.autor === 'me' && (m.lida ? <Check size={12} /> : null)}
-            </div>
-          </div>
-        </div>
-      ))}
+    <header className="th-head">
+      <div className="th-av" style={{ background: gradientFor(av.gradId) }}>
+        {av.iniciais}
+        {conv.online && <span className="th-online" />}
+      </div>
+      <div className="th-who">
+        <b>{conv.titulo}</b>
+        <small>{sub}</small>
+      </div>
+      <div className="th-actions">
+        <button className="icon-btn" type="button" title="Ligar"><Phone size={14} /></button>
+        <button className="icon-btn" type="button" title="Detalhes"><Info size={14} /></button>
+        <button className="icon-btn" type="button" title="Mais"><MoreHorizontal size={14} /></button>
+      </div>
+    </header>
+  );
+}
+
+function ThreadContext({ conv }: { conv: ConversaFoco }) {
+  if (!conv.os) return null;
+  return (
+    <div className="th-context">
+      <span>OS <span className="pill">{conv.os.numero}</span></span>
+      <span><b>{conv.os.cliente}</b></span>
+      <span className="stage">● {conv.os.estagio}</span>
+      <span className="th-deadline">
+        Entrega prevista: <b>{conv.os.prazo}</b>
+      </span>
     </div>
   );
 }
 
-function Composer({ onSend }: { onSend: (texto: string) => void }) {
+function Bubble({ m, prev }: { m: Mensagem; prev?: Mensagem }) {
+  const continued =
+    !!prev && prev.autor === m.autor && prev.whoNome === m.whoNome;
+  if (m.autor === 'me') {
+    return (
+      <div className={`msg-row me ${continued ? 'continued' : ''}`}>
+        <div className="bubble me">
+          <div className="bubble-text">{m.texto}</div>
+          <div className="meta">
+            {m.hora}
+            <span className="check">
+              {m.lida ? <CheckCheck size={12} /> : <Check size={12} />}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // them
+  const av = m.whoAvatar ?? { iniciais: '??', gradId: 1 };
+  return (
+    <div className={`msg-row them ${continued ? 'continued' : ''}`}>
+      {!continued ? (
+        <div className="bubble-av" style={{ background: gradientFor(av.gradId) }}>
+          {av.iniciais}
+        </div>
+      ) : (
+        <div className="bubble-av-spacer" />
+      )}
+      <div className="bubble them">
+        {!continued && m.whoNome && <span className="author">{m.whoNome}</span>}
+        <div className="bubble-text">{m.texto}</div>
+        <div className="meta">{m.hora}</div>
+      </div>
+    </div>
+  );
+}
+
+function TypingIndicator({ avatar }: { avatar?: AvatarRef }) {
+  const av = avatar ?? { iniciais: '??', gradId: 1 };
+  return (
+    <div className="msg-row them typing-row">
+      <div className="bubble-av" style={{ background: gradientFor(av.gradId) }}>
+        {av.iniciais}
+      </div>
+      <div className="typing">
+        <span /><span /><span />
+      </div>
+    </div>
+  );
+}
+
+function Thread({ mensagens, typing, typingAvatar }: { mensagens: Mensagem[]; typing: boolean; typingAvatar?: AvatarRef }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollTo({ top: ref.current.scrollHeight });
+  }, [mensagens, typing]);
+
+  // agrupar por dia
+  const rows: Array<{ msg: Mensagem; prev?: Mensagem; showDay: boolean }> = [];
+  for (let i = 0; i < mensagens.length; i++) {
+    const m = mensagens[i]!;
+    const prev = mensagens[i - 1];
+    rows.push({ msg: m, prev, showDay: !prev || prev.dia !== m.dia });
+  }
+
+  return (
+    <div className="chat-thread" ref={ref}>
+      {rows.map(({ msg, prev, showDay }) => (
+        <React.Fragment key={msg.id}>
+          {showDay && msg.dia && <div className="day-sep">{msg.dia}</div>}
+          <Bubble m={msg} prev={prev} />
+        </React.Fragment>
+      ))}
+      {typing && <TypingIndicator avatar={typingAvatar} />}
+    </div>
+  );
+}
+
+function Composer({ onSend, conv }: { onSend: (texto: string) => void; conv: ConversaFoco }) {
   const [texto, setTexto] = useState('');
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-grow
+  useEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }, [texto]);
+
   function submit() {
     const t = texto.trim();
     if (!t) return;
     onSend(t);
     setTexto('');
   }
+  const empty = !texto.trim();
   return (
     <div className="composer">
       <div className="composer-box">
-        <button className="icon-btn" type="button" title="Anexar">
-          <Paperclip size={14} />
-        </button>
-        <button className="icon-btn" type="button" title="Emoji">
-          <Smile size={14} />
-        </button>
-        <button className="icon-btn" type="button" title="Tag">
-          <Hash size={14} />
-        </button>
         <textarea
+          ref={taRef}
           rows={1}
-          placeholder="Mensagem para Clínica Vida — Marcos…"
+          placeholder={`Mensagem para ${conv.titulo}…`}
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={(e) => {
@@ -576,38 +710,158 @@ function Composer({ onSend }: { onSend: (texto: string) => void }) {
             }
           }}
         />
-        <button className="send-btn" type="button" onClick={submit}>
-          Enviar <Send size={12} style={{ marginLeft: 4, verticalAlign: -1 }} />
-        </button>
-      </div>
-      <div className="composer-hint">
-        <span><span className="kbd">Enter</span> envia</span>
-        <span><span className="kbd">⇧+Enter</span> nova linha</span>
+        <div className="composer-toolbar">
+          <button className="icon-btn" type="button" title="Anexo"><Paperclip size={14} /></button>
+          <button className="icon-btn" type="button" title="Emoji"><Smile size={14} /></button>
+          <button className="icon-btn" type="button" title="Mencionar"><Hash size={14} /></button>
+          <span className="composer-spacer" />
+          <span className="composer-hint-inline">
+            <span className="kbd">Enter</span> envia · <span className="kbd">⇧+Enter</span> nova linha
+          </span>
+          <button className="send-btn" type="button" onClick={submit} disabled={empty}>
+            Enviar <Send size={12} style={{ marginLeft: 4, verticalAlign: -1 }} />
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
+// ── LinkedApps blocks ──────────────────────────────────────────────────
+
+function LBlock({
+  title,
+  origem,
+  children,
+  blockKey,
+  ctaLabel,
+  icon: Ico,
+}: {
+  title: string;
+  origem?: string;
+  children: React.ReactNode;
+  blockKey: string;
+  ctaLabel?: string;
+  icon: React.ComponentType<{ size?: number }>;
+}) {
+  const lsKey = `oimpresso.linked.${blockKey}.collapsed`;
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(lsKey) === '1';
+  });
+  useEffect(() => {
+    localStorage.setItem(lsKey, collapsed ? '1' : '0');
+  }, [collapsed, lsKey]);
+
+  return (
+    <section className={`lblock ${collapsed ? 'collapsed' : ''}`}>
+      <header className="lblock-h" onClick={() => setCollapsed((v) => !v)}>
+        <Ico size={13} />
+        <b>{title}</b>
+        {origem && <span className={`origin-badge o-${origem}`}>{origem}</span>}
+        <span className="lblock-spacer" />
+        <ChevronRight
+          size={11}
+          className="lblock-chev"
+          style={{ transform: collapsed ? 'rotate(0)' : 'rotate(90deg)' }}
+        />
+      </header>
+      {!collapsed && (
+        <div className="lblock-b">
+          {children}
+          {ctaLabel && (
+            <button className="lblock-cta" type="button">
+              {ctaLabel} <ChevronRight size={11} />
+            </button>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LinkedKv({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
+  return (
+    <div className="lkv">
+      <span>{label}</span>
+      <b className={mono ? 'mono' : ''}>{value}</b>
+    </div>
+  );
+}
+
 function LinkedAppsPanel({ conv }: { conv: ConversaFoco }) {
-  if (!conv.cliente) return null;
   return (
     <aside className="apps">
       <div className="apps-h">Apps Vinculados</div>
-      <div className="linked-card">
-        <div className="linked-card-h">
-          <User size={14} /> Cliente <span className="badge">CRM</span>
-        </div>
-        <div className="linked-row"><b>Nome</b> <span>{conv.cliente.nome}</span></div>
-        <div className="linked-row"><b>Telefone</b> <span>{conv.cliente.telefone}</span></div>
-        <div className="linked-row"><b>Último contato</b> <span style={{ flex: 1 }}>{conv.cliente.ultimoContato}</span></div>
-        <div className="linked-actions">
-          <button className="linked-btn" type="button"><Phone size={12} style={{ verticalAlign: -1, marginRight: 4 }} />Ligar</button>
-          <button className="linked-btn" type="button">WhatsApp</button>
-        </div>
-        <div className="linked-actions">
-          <button className="linked-btn primary" type="button">Ligar agora ▸</button>
-        </div>
-      </div>
+
+      {conv.os && (
+        <LBlock title="Ordem de Serviço" origem="OS" blockKey="os" icon={Briefcase} ctaLabel="Abrir OS">
+          <LinkedKv label="Número" value={conv.os.numero} mono />
+          <LinkedKv label="Cliente" value={conv.os.cliente} />
+          <div className="lkv">
+            <span>Estágio</span>
+            <span className="lstage">● {conv.os.estagio}</span>
+          </div>
+          <LinkedKv label="Prazo" value={conv.os.prazo} />
+        </LBlock>
+      )}
+
+      {conv.cliente && (
+        <LBlock title="Cliente" origem="CRM" blockKey="client" icon={User} ctaLabel="Ligar agora">
+          <LinkedKv label="Nome" value={conv.cliente.nome} />
+          <LinkedKv label="Telefone" value={conv.cliente.telefone} mono />
+          <div className="lkv col">
+            <span>Último contato</span>
+            <span className="lhint">{conv.cliente.ultimoContato}</span>
+          </div>
+          <div className="lrow-btns">
+            <button className="lbtn-sec" type="button">
+              <Phone size={11} /> Ligar
+            </button>
+            <button className="lbtn-sec" type="button">
+              <MessageCircle size={11} /> WhatsApp
+            </button>
+          </div>
+        </LBlock>
+      )}
+
+      {conv.financeiro && (
+        <LBlock title="Financeiro" origem="FIN" blockKey="fin" icon={DollarSign} ctaLabel="Emitir cobrança">
+          <LinkedKv label="Saldo cliente" value={conv.financeiro.saldo} />
+          <LinkedKv label="Boletos abertos" value={conv.financeiro.boletos} />
+        </LBlock>
+      )}
+
+      {conv.anexos && conv.anexos.length > 0 && (
+        <LBlock title="Anexos" blockKey="att" icon={Paperclip}>
+          <div className="latts">
+            {conv.anexos.map((a, i) => (
+              <div className="latt" key={i}>
+                <FileText size={11} />
+                <div className="latt-body">
+                  <b>{a.nome}</b>
+                  <small>{a.tamanho}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+        </LBlock>
+      )}
+
+      {conv.historico && conv.historico.length > 0 && (
+        <LBlock title="Histórico" blockKey="hist" icon={History}>
+          <ul className="lhist">
+            {conv.historico.map((e, i) => (
+              <li key={i}>
+                <span className="lhist-when">{e.quando}</span>
+                <span className="lhist-who">
+                  <b>{e.quem}</b> {e.oque}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </LBlock>
+      )}
     </aside>
   );
 }
@@ -741,6 +995,7 @@ export default function Cockpit({
     return localStorage.getItem(LS_LINKED) === '1';
   });
   const [mensagensLocal, setMensagensLocal] = useState<Mensagem[]>(conversaFoco.mensagens);
+  const [typing, setTyping] = useState<boolean>(false);
 
   // Tweaks (vibe / densidade / accent hue)
   const [tweaksOpen, setTweaksOpen] = useState<boolean>(() => {
@@ -795,8 +1050,26 @@ export default function Cockpit({
       texto,
       hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       lida: false,
+      dia: 'Hoje',
     };
     setMensagensLocal((arr) => [...arr, novaMsg]);
+    // Simula resposta em 2-3s pra demonstrar typing indicator
+    setTimeout(() => setTyping(true), 600);
+    setTimeout(() => {
+      setTyping(false);
+      const replyAvatar = conversaFoco.mensagens.find((m) => m.autor === 'them')?.whoAvatar;
+      const replyNome = conversaFoco.mensagens.find((m) => m.autor === 'them')?.whoNome;
+      const reply: Mensagem = {
+        id: Date.now() + 1,
+        autor: 'them',
+        whoAvatar: replyAvatar,
+        whoNome: replyNome,
+        texto: 'Recebido, vou verificar e te respondo já já 👍',
+        hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        dia: 'Hoje',
+      };
+      setMensagensLocal((arr) => [...arr, reply]);
+    }, 2400);
   }
 
   return (
@@ -868,9 +1141,15 @@ export default function Cockpit({
             </div>
           </header>
           <div className="main-body">
+            <ThreadHeader conv={conversaFoco} />
             <ChatTabs active={chatTab} onChange={setChatTab} />
-            <Thread mensagens={mensagensLocal} />
-            <Composer onSend={handleSend} />
+            <ThreadContext conv={conversaFoco} />
+            <Thread
+              mensagens={mensagensLocal}
+              typing={typing}
+              typingAvatar={conversaFoco.mensagens.find((m) => m.autor === 'them')?.whoAvatar}
+            />
+            <Composer onSend={handleSend} conv={conversaFoco} />
           </div>
         </div>
 
