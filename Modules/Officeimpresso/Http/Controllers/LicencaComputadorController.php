@@ -40,13 +40,13 @@ class LicencaComputadorController extends Controller
 
         //Get active subscription and upcoming subscriptions.
         $active = Subscription::active_subscription($business_id);
-    
-        $package = Package::find($active->package_id)->first();
+
+        $package = $active ? Package::find($active->package_id) : null;
 
         // Filtrar as licenças que pertencem ao business_id do usuário
         $licencas = Licenca_Computador::where('business_id', $business_id)->get();
 
-        $empresa = business::where('id', $business_id)->first(); 
+        $empresa = business::where('id', $business_id)->first();
 
         // Retornar a view com as licenças
         return view('officeimpresso::licenca_computador.computadores', compact('licencas', 'empresa','active','package'));
@@ -62,13 +62,13 @@ class LicencaComputadorController extends Controller
 
         //Get active subscription and upcoming subscriptions.
         $active = Subscription::active_subscription($id);
-    
-        $package = Package::find($active->package_id)->first();
-        
+
+        $package = $active ? Package::find($active->package_id) : null;
+
         // Filtrar as licenças que pertencem ao business_id do usuário
         $licencas = Licenca_Computador::where('business_id', $id)->get();
 
-        $empresa = business::where('id', $id)->first(); 
+        $empresa = business::where('id', $id)->first();
 
         // Retornar a view com as licenças
         return view('officeimpresso::licenca_computador.computadores', compact('licencas', 'empresa','active','package'));
