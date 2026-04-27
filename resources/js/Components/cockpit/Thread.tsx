@@ -58,6 +58,8 @@ export function ThreadHeader({ conv }: { conv: ConversaFoco }) {
       ? `OS ${conv.os.numero} · ${conv.os.cliente}`
       : conv.tipo === 'team'
       ? 'Canal interno da equipe'
+      : conv.tipo === 'copiloto'
+      ? 'Assistente IA · Copiloto'
       : conv.cliente?.nome || 'Cliente';
   return (
     <header className="th-head">
