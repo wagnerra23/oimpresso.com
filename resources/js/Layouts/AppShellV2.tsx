@@ -137,13 +137,18 @@ export default function AppShellV2({
 }: AppShellV2Props) {
   // Pega o menu compartilhado do shell (LegacyMenuAdapter via Inertia share)
   const page = usePage();
-  const shellProps = (page.props as {
+  const allProps = page.props as {
     shell?: {
       menu?: ShellMenuItem[];
       cockpit?: CockpitShellPropsRaw;
     };
-  })?.shell;
+    auth?: { user?: { ui_theme?: 'light' | 'dark' | null } };
+  };
+  const shellProps = allProps?.shell;
   const shellMenu: ShellMenuItem[] = shellProps?.menu ?? [];
+  // Tema do user — aplicado no .cockpit pra cores ficarem coerentes com
+  // shadcn (que usa dark mode automatico via classe 'dark' no <html>).
+  const userTheme = allProps?.auth?.user?.ui_theme ?? 'light';
   const superadminItems = shellMenu.filter((i) => isSuperadminMenu(i.label));
 
   // Fallback pra business + user via shell.cockpit (Inertia shared) quando a
@@ -268,9 +273,10 @@ export default function AppShellV2({
       {title && <Head title={title} />}
       <div
         className="cockpit"
-        data-linked={linkedCollapsed ? 'off' : 'on'}
+        data-linked={!conversaFoco || linkedCollapsed ? 'off' : 'on'}
         data-vibe={vibe}
         data-density={densityLabel}
+        data-theme={userTheme}
         style={cockpitStyle}
       >
         {/* SIDEBAR */}
