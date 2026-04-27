@@ -7,8 +7,10 @@ use Modules\Copiloto\Ai\Agents\BriefingAgent;
 use Modules\Copiloto\Ai\Agents\ChatCopilotoAgent;
 use Modules\Copiloto\Ai\Agents\SugestoesMetasAgent;
 use Modules\Copiloto\Contracts\AiAdapter;
+use Modules\Copiloto\Contracts\MemoriaContrato;
 use Modules\Copiloto\Entities\Conversa;
 use Modules\Copiloto\Entities\Mensagem;
+use Modules\Copiloto\Jobs\ExtrairFatosDaConversaJob;
 use Modules\Copiloto\Support\ContextoNegocio;
 
 /**
@@ -102,7 +104,10 @@ class LaravelAiSdkDriver implements AiAdapter
             return "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
         }
 
-        $agent = new ChatCopilotoAgent($conv);
+        // Sprint 5 (ADR 0036) — recall de memória semântica antes de chamar LLM.
+        $memoriaContexto = $this->recallMemoria($conv, $mensagem);
+
+        $agent = new ChatCopilotoAgent($conv, $memoriaContexto);
 
         try {
             $response = $agent->prompt($mensagem);
@@ -120,13 +125,63 @@ class LaravelAiSdkDriver implements AiAdapter
             Log::channel('copiloto-ai')->info('responderChat', [
                 'conversa_id' => $conv->id,
                 'driver' => 'laravel_ai_sdk',
+                'memoria_recall_chars' => strlen($memoriaContexto),
             ]);
+
+            // Sprint 5 — após resposta, extrair fatos novos em background (Horizon).
+            if (config('copiloto.memoria.write_enabled', true)) {
+                ExtrairFatosDaConversaJob::dispatch(
+                    conversaId: $conv->id,
+                    businessId: (int) $conv->business_id,
+                    userId: (int) $conv->user_id,
+                );
+            }
 
             return $texto;
         } catch (\Throwable $e) {
             Log::channel('copiloto-ai')->error('responderChat error: ' . $e->getMessage());
 
             return 'Estou sem conexão com IA no momento. Você quer criar a meta manualmente?';
+        }
+    }
+
+    /**
+     * Busca top-K memórias relevantes via MemoriaContrato e retorna texto pronto pra
+     * injetar como system additional message. Falha silente — recall não pode quebrar chat.
+     */
+    protected function recallMemoria(Conversa $conv, string $query): string
+    {
+        if (! config('copiloto.memoria.recall_enabled', true)) {
+            return '';
+        }
+
+        try {
+            /** @var MemoriaContrato $memoria */
+            $memoria = app(MemoriaContrato::class);
+            $topK = (int) config('copiloto.memoria.meilisearch.top_k_default', 5);
+
+            $resultados = $memoria->buscar(
+                businessId: (int) $conv->business_id,
+                userId: (int) $conv->user_id,
+                query: $query,
+                topK: $topK,
+            );
+
+            if (empty($resultados)) {
+                return '';
+            }
+
+            $linhas = collect($resultados)
+                ->map(fn ($m) => '- ' . $m->fato)
+                ->implode("\n");
+
+            return "Você lembra dos seguintes fatos sobre este usuário/business:\n{$linhas}\n";
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('recallMemoria falhou (degradação silenciosa)', [
+                'conversa_id' => $conv->id,
+                'error' => $e->getMessage(),
+            ]);
+            return '';
         }
     }
 
