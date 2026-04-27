@@ -250,7 +250,7 @@
                          <div class="theme-changer">
                                 <span class="color-tag clickable mr15 change-theme" data-color="F2F2F2" style="background:#F2F2F2"></span>
 
-                                @foreach (scandir(getcwd() . '/assets/css/color/') as $file)
+                                @foreach (is_dir($colorDir = getcwd() . '/assets/css/color/') ? scandir($colorDir) : [] as $file)
                                     @if ($file != "." && $file != ".." && $file != "index.html" && $file != ".DS_Store")
                                         @php($color_code = str_replace(".css", "", $file))
                                         <span class="color-tag clickable mr15 change-theme" style="background:#{{ $color_code }}" data-color="{{ $color_code }}"></span>
