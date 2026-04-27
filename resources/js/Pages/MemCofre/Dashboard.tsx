@@ -7,7 +7,7 @@
 //   adrs: 0004
 //   tests: Modules/MemCofre/Tests/Feature/DashboardTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import {
@@ -350,9 +350,9 @@ export default function MemCofreDashboard({ stats, modules, recent_sources, cove
 }
 
 MemCofreDashboard.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Cofre de Memórias' }]}>
+  <AppShellV2 title="Cofre de Memórias" breadcrumbItems={[{ label: 'Cofre de Memórias' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 function Kpi({

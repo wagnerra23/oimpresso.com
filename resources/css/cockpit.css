@@ -526,6 +526,38 @@
 }
 .cockpit .bc-cur { color: var(--text); font-weight: 500; }
 .cockpit .bc-sep { color: var(--text-mute); }
+.cockpit .bc-link { color: var(--text-dim); text-decoration: none; }
+.cockpit .bc-link:hover { color: var(--accent); }
+
+/* Breadcrumb module dropdown (segundo item — submenu do modulo) */
+.cockpit .bc-mod { display: inline-flex; align-items: center; }
+.cockpit .bc-mod-btn {
+  background: transparent; border: none; cursor: pointer;
+  padding: 2px 6px; border-radius: var(--radius-sm);
+  color: var(--text); font-weight: 500;
+  font-family: var(--font-sans); font-size: 12.5px;
+  display: inline-flex; align-items: center;
+}
+.cockpit .bc-mod-btn:hover { background: var(--bg-2); color: var(--accent); }
+.cockpit .bc-mod-dd {
+  position: absolute; top: calc(100% + 4px); left: 0;
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px -4px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.06);
+  padding: 6px;
+  z-index: 200;
+  display: flex; flex-direction: column;
+}
+.cockpit .bc-mod-dd-i {
+  padding: 6px 10px;
+  font-size: 12.5px;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+.cockpit .bc-mod-dd-i:hover { background: var(--bg-2); color: var(--accent); }
 
 .cockpit .main-body {
   min-height: 0; min-width: 0; overflow: hidden;

@@ -91,6 +91,11 @@ class HandleInertiaRequests extends Middleware
                 'menu'    => fn () => $user ? app(ShellMenuBuilder::class)->build($request) : [],
                 // TopNavs por módulo (ADR arq/0011) — fonte independente da sidebar
                 'topnavs' => fn () => $user ? app(ShellMenuBuilder::class)->buildTopNavs($request) : (object) [],
+                // Cockpit shell props (ADR UI-0008): business + user formatados pra
+                // AppShellV2 consumir direto via usePage().shell.cockpit. Lazy:
+                // só computa quando a página tem layout Cockpit, não impacta páginas
+                // que ainda usam AppShell legado.
+                'cockpit' => fn () => $user ? $this->cockpitShellProps($request, $user, $businessId) : null,
             ],
             'locale'     => app()->getLocale(),
             'csrf_token' => fn () => csrf_token(),
@@ -119,5 +124,57 @@ class HandleInertiaRequests extends Middleware
         }
 
         return $can;
+    }
+
+    /**
+     * Shell props pro AppShellV2 (Cockpit) — single source of truth pra
+     * business/user/businesses-disponiveis. Lazy via Inertia closure: só roda
+     * quando o cliente solicitar `shell.cockpit` (ou seja, quando a página
+     * usa AppShellV2). Páginas no AppShell legado não pagam custo.
+     */
+    protected function cockpitShellProps(Request $request, $user, $businessId): array
+    {
+        $isSuper = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
+
+        // Businesses disponíveis pro CompanyPicker:
+        // - Superadmin/admin oimpresso: TODAS (limit 50)
+        // - Outros: apenas a current
+        $businessesQuery = $isSuper
+            ? \App\Business::orderBy('name')->limit(50)
+            : \App\Business::where('id', $businessId);
+
+        $businesses = $businessesQuery->get(['id', 'name'])->map(fn ($b) => [
+            'id'       => $b->id,
+            'nome'     => $b->name,
+            'iniciais' => $this->iniciais($b->name),
+            'ativa'    => $b->id === (int) $businessId,
+        ])->values()->all();
+
+        $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
+
+        return [
+            'businessNome'     => $request->session()->get('business.name', 'Oimpresso Matriz'),
+            'businesses'       => $businesses,
+            'usuarioNome'      => $userNome,
+            'usuarioNomeCurto' => $user->first_name ?? 'Usuário',
+            'usuarioEmail'     => $user->email ?? '',
+            'usuarioCargo'     => $isSuper ? 'Administrador' : 'Usuário',
+            'usuarioIniciais'  => $this->iniciais($userNome),
+        ];
+    }
+
+    /**
+     * Iniciais (até 2 letras) pra avatares: "Wagner Rocha" -> "WR".
+     */
+    protected function iniciais(string $nome): string
+    {
+        $partes = preg_split('/\s+/', trim($nome)) ?: [];
+        $iniciais = '';
+        foreach ($partes as $p) {
+            if ($p === '') continue;
+            $iniciais .= mb_strtoupper(mb_substr($p, 0, 1));
+            if (mb_strlen($iniciais) >= 2) break;
+        }
+        return $iniciais ?: '?';
     }
 }
