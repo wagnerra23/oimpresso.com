@@ -19,6 +19,79 @@ Datas no formato `YYYY-MM-DD`. Categorias:
 
 ---
 
+## [Unreleased] — branch `6.7-bootstrap`
+
+### Decision — 2026-04-27 (revisão de caminho Capterra)
+- **Comparativo `revisao_caminho_2026_04_27_capterra.md`** mapeia 5 caminhos pós-sprint 6
+  (atual ADR 0037 sequencial / pivot comercial ADR 0026 / Typesense / Mem0 cedo / validar Larissa)
+- **Recomendação:** validar com Larissa do ROTA LIVRE ANTES de continuar — sprint 7 pode ser
+  RAGAS (continua A) OU pivota pra ADR 0026 dependendo do feedback dela
+- 3 GAPs vs caminho atual: zero validação de demanda; Vizra ADK bloqueado em L13;
+  embedder Meilisearch ainda não configurado em produção
+
+### Added — 2026-04-27 (sessão 18 — Sprints 5/6 + ADR 0037 + revisão)
+- **Sprint 5 (PR #26):** bridge memória↔chat dual-layer Hot/Cold
+  - `Modules/Copiloto/Ai/Agents/ExtrairFatosAgent` (HasStructuredOutput, schema com 5 categorias enum)
+  - `Modules/Copiloto/Jobs/ExtrairFatosDaConversaJob` (queue `copiloto-memoria`, async via Horizon)
+  - `LaravelAiSdkDriver::responderChat` ganha `recallMemoria()` antes do LLM + dispatch após
+  - `ChatCopilotoAgent` aceita `$memoriaContexto` injetado no system prompt
+  - Config flags `copiloto.memoria.recall_enabled` e `write_enabled` (default true)
+  - +8 testes Pest, 43 passed total (3 skipped intencional)
+- **Sprint 6 (PR #27):** tela `/copiloto/memoria` LGPD (US-COPI-MEM-012)
+  - `Modules/Copiloto/Http/Controllers/MemoriaController` (index/update/destroy via DI MemoriaContrato)
+  - `resources/js/Pages/Copiloto/Memoria.tsx` Inertia/React (agrupamento por categoria, badges,
+    edit inline, esquecer com confirm, AppShell + FabCopiloto)
+  - 3 rotas novas: `copiloto.memoria.index/update/destroy`
+  - +5 testes Pest, **48/51 total Copiloto passing**
+- **ADR 0037** — roadmap evolução Tier 5-6 → Tier 7-9 LongMemEval (5 sprints sequenciais 7-11
+  com gates mensuráveis: RAGAS first, depois caching/RRF/HyDE, Mem0 condicional)
+- **Auto-memória** `reference_rag_estado_arte_2026.md` (cross-conversation, fora do git)
+- **Pesquisa profunda 2026-04-26** documentada com 9 sources externas
+
+### Added — 2026-04-26 (sessões 15-17 — stack canônica IA)
+- **PR #24** (sprint 1): `laravel/ai ^0.6.3` + `laravel/boost ^2.4 --dev` + 3 Agents
+  (Briefing/Sugestoes/Chat) + `LaravelAiSdkDriver`. Stub `LaravelAiDriver.php` deletado.
+- **PR #25** (sprint 4): `MemoriaContrato` + `MemoriaPersistida` (DTO) + `MeilisearchDriver`
+  (default canônico) + `NullMemoriaDriver` (dev/CI). Schema `copiloto_memoria_facts` com
+  `valid_from/until` + soft delete LGPD + indexes. Eloquent `CopilotoMemoriaFato` com
+  `Searchable`+`SoftDeletes`. **+3 pacotes Laravel:** horizon, telescope, pail.
+- **Meilisearch local Windows** rodando em `127.0.0.1:7700` (PID 31928)
+- **Meilisearch Hostinger v1.10.3** instalado em `~/meilisearch/` (GLIBC 2.34 compat)
+- **Comparativos Capterra:** `sistemas_memoria_oimpresso` (camada A — dev memory),
+  `copiloto_runtime_memory_vs_mem0_langgraph_letta_zep` (camada C apenas),
+  `stack_agente_php_vizra_prism_mem0` (stack completa A+B+C)
+- **`memory/comparativos/_INDEX.md`** com convenções de naming
+- **CLAUDE.md** ganhou seção 7 "Cofre de comparativos & gestão de memória" + seção 8
+  "Acesso à produção (Hostinger)" com SSH credentials (sem chave privada)
+- **AGENTS.md** desestaleado (Laravel 10 → 13.6, Inertia v3, lista de módulos)
+- **ADRs novos:** 0027 (gestão memória — papéis canônicos), 0028 (numeração monotônica),
+  0030 (credenciais nunca em git), 0031 (`MemoriaContrato`+`Mem0RestDriver` default),
+  0032 (Vizra ADK + Prism PHP — sprint 1 revisado por 0034), 0033 (vector store —
+  pgvector rejeitado, Meilisearch fallback condicional → ADR 0036 promove pra default),
+  0034 (Laravel AI ecosystem — `laravel/ai` oficial supersedes Prism), 0035 (verdade
+  canônica IA — Wagner *"melhor ROI"*), 0036 (replanejamento Meilisearch first, Mem0
+  último — economiza R$1.500-18.000/ano)
+
+### Changed — 2026-04-26
+- **Hero da landing** (`Modules/Cms`): hidratação de `cms_pages` revertida (commit
+  `039a810d`), copy hardcoded PT-BR ("orça/imprime/monta/entrega") fica como decisão
+  final. Tentativa anterior trouxe seed UltimatePOS em inglês.
+- **`AiAdapter` bind no `CopilotoServiceProvider`**: `LaravelAiSdkDriver` virou default
+  em modo `auto` (resolve quando `class_exists(\Laravel\Ai\AiManager::class)`)
+- **CLAUDE.md/AGENTS.md** marcados com "VERDADE CANÔNICA" apontando pro ADR 0035
+
+### Removed — 2026-04-26
+- `Modules/Copiloto/Services/Ai/LaravelAiDriver.php` (stub do módulo interno LaravelAI —
+  substituído por `LaravelAiSdkDriver` no PR #24)
+
+### Migration — 2026-04-26
+- **10 conflitos de auto-memória resolvidos** (Inertia v2/v3, status Copiloto, EvolutionAgent
+  bloqueado, CMS hidratação, ADRs lista, branch produção, Connector untracked, etc)
+- **Deploy SSH manual** documentado (Hostinger SSH flaky; receita pra `quick-sync.yml`
+  voltar via GH secrets atualizados)
+
+---
+
 ## [Unreleased] — branch `6.7-react`
 
 ### Added — 2026-04-22 (Essentials batch 3 — Lembretes + Feriados + Configurações)
