@@ -49,7 +49,7 @@
 							<span class="input-group-addon">
 								<i class="fa fa-user"></i>
 							</span>
-							{!! Form::select('contact_id', [], null, ['class' => 'form-control', 'id' => 'customer_id', 'placeholder' => 'Enter Customer name / phone', 'required']); !!}
+							{!! Form::select('contact_id', [], null, ['class' => 'form-control', 'id' => 'customer_id', 'placeholder' => 'Digite nome do cliente / telefone', 'required']); !!}
 						</div>
 					</div>
 				</div>
