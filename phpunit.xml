@@ -19,6 +19,7 @@
             <directory>./Modules/PontoWr2/Tests/Feature</directory>
             <directory>./Modules/Essentials/Tests/Feature</directory>
             <directory>./Modules/Cms/Tests/Feature</directory>
+            <directory>./Modules/Grow/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>

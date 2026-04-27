@@ -26,17 +26,24 @@ abstract class EssentialsTestCase extends TestCase
         session()->flush();
         auth()->logout();
 
-        if (!$this->business) {
-            $this->business = Business::first();
-        }
-        if (!$this->business) {
-            $this->markTestSkipped('Nenhum business encontrado — precisa de seeder do UltimatePOS rodado.');
+        // Guard pra ambientes sem DB (CI SQLite :memory: vazio): converte
+        // QueryException em markTestSkipped em vez de explodir o test runner.
+        try {
+            if (! $this->business) {
+                $this->business = Business::first();
+            }
+            if (! $this->business) {
+                $this->markTestSkipped('Nenhum business encontrado — precisa de seeder do UltimatePOS rodado.');
+            }
+
+            if (! $this->admin) {
+                $this->admin = User::where('business_id', $this->business->id)->first();
+            }
+        } catch (\Illuminate\Database\QueryException $e) {
+            $this->markTestSkipped('DB sem tabelas do UltimatePOS (SQLite vazio): ' . $e->getMessage());
         }
 
-        if (!$this->admin) {
-            $this->admin = User::where('business_id', $this->business->id)->first();
-        }
-        if (!$this->admin) {
+        if (! $this->admin) {
             $this->markTestSkipped('Nenhum user encontrado no business.');
         }
 
