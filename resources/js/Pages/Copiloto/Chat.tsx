@@ -72,6 +72,8 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
 
   function escolher() {
     router.post(`/copiloto/sugestoes/${sugestao.id}/escolher`, {}, {
+      preserveScroll: true,
+      preserveState: true,
       onSuccess: () => toast.success('Meta criada com sucesso!'),
       onError: () => toast.error('Erro ao escolher meta.'),
     })
@@ -79,6 +81,8 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
 
   function rejeitar() {
     router.post(`/copiloto/sugestoes/${sugestao.id}/rejeitar`, {}, {
+      preserveScroll: true,
+      preserveState: true,
       onSuccess: () => toast.info('Proposta rejeitada.'),
     })
   }
@@ -191,7 +195,10 @@ export default function Chat({ conversa, conversas, mensagens, sugestoesPendente
   }
 
   function novaConversa() {
-    router.post('/copiloto/conversas', { titulo: 'Nova conversa' })
+    router.post('/copiloto/conversas', { titulo: 'Nova conversa' }, {
+      preserveScroll: true,
+      preserveState: true,
+    })
   }
 
   // Lista lateral de conversas
@@ -208,7 +215,7 @@ export default function Chat({ conversa, conversas, mensagens, sugestoesPendente
           {conversas.map(c => (
             <button
               key={c.id}
-              onClick={() => router.get(`/copiloto/conversas/${c.id}`)}
+              onClick={() => router.get(`/copiloto/conversas/${c.id}`, {}, { preserveScroll: true, preserveState: true })}
               className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
                 c.id === conversa.id ? 'bg-muted font-medium' : ''
               }`}
