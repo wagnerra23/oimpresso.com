@@ -190,15 +190,15 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 -o ConnectTimeout=60 u906587222@1
 - Sempre `-4` (IPv4 forçado). Sem isso o handshake falha intermitentemente.
 - SSH é **flaky**: 1ª tentativa frequentemente dá timeout. Receita: `curl -s4 https://oimpresso.com/ > /dev/null` pra warm e retry com `ConnectTimeout=120`.
 - Multiplexing (`ControlMaster=auto`) **não funciona** no Hostinger — uma conexão por comando.
-- **Nunca editar arquivo direto via SSH** — sempre `git pull origin 6.7-bootstrap` no repo. Bypass git = drift permanente (já queimou Eliana no 3.7→6.7).
-- **Após push em 6.7-bootstrap com mudança em `composer.json`/`composer.lock`:** rodar `composer install` (sem `--no-dev` — Faker é usado em prod). O workflow `quick-sync.yml` NÃO faz isso; sintoma de skip é tela branca Inertia. Ver `memory/sessions/` para incidente do upgrade Inertia v3.
+- **Nunca editar arquivo direto via SSH** — sempre `git pull origin main` no repo. Bypass git = drift permanente (já queimou Eliana no 3.7→6.7).
+- **Após push em `main` com mudança em `composer.json`/`composer.lock`:** rodar `composer install` (sem `--no-dev` — Faker é usado em prod). O workflow `quick-sync.yml` NÃO faz isso; sintoma de skip é tela branca Inertia. Ver `memory/sessions/` para incidente do upgrade Inertia v3.
 - WP `/ajuda/` tem patch manual de PHP 8.4 (`create_function` → closures) — atualização via wp-admin reverte; ver auto-memória `reference_wp_ajuda_fix.md` se precisar repatchar.
 
 **Receita de deploy manual** (quando `quick-sync.yml` falhar — ver auto-memória `reference_quick_sync_quebrada.md`):
 ```bash
 ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
   "cd domains/oimpresso.com/public_html && \
-   git pull origin 6.7-bootstrap && \
+   git pull origin main && \
    php artisan optimize:clear && \
    composer dump-autoload"
 ```
