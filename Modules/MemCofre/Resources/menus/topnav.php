@@ -19,7 +19,7 @@ return [
     'label' => 'Cofre de Memórias',
     'icon'  => 'FolderOpen',
     'items' => [
-        ['label' => 'Dashboard', 'href' => '/docs',         'icon' => 'LayoutDashboard', 'can' => 'memcofre.access'],
+        ['label' => 'Dashboard', 'href' => '/memcofre',     'icon' => 'LayoutDashboard', 'can' => 'memcofre.access'],
         ['label' => 'Ingest',    'href' => '/memcofre/ingest',  'icon' => 'Upload',          'can' => 'memcofre.access'],
         ['label' => 'Inbox',     'href' => '/memcofre/inbox',   'icon' => 'Inbox',           'can' => 'memcofre.access'],
         ['label' => 'Memória',   'href' => '/memcofre/memoria', 'icon' => 'BookOpen',        'can' => 'memcofre.access'],
