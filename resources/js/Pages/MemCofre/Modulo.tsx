@@ -7,7 +7,7 @@
 //   adrs: 0004, 0007
 //   tests: Modules/MemCofre/Tests/Feature/ModuloTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import {
@@ -523,12 +523,12 @@ export default function MemCofreModulo({
 }
 
 MemCofreModulo.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 title="Módulo · Cofre" breadcrumbItems={[
     { label: 'Cofre de Memórias', href: '/memcofre' },
     { label: 'Módulo' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 function Kpi({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string | number; hint?: string }) {

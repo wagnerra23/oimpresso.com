@@ -6,8 +6,10 @@
 //         core do ERP — substitui AppShell legado pra fluxo operacional.
 
 import { Head, usePage } from '@inertiajs/react';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+
+import { useAutoModuleNav } from '@/Hooks/usePageProps';
 
 import '../../css/cockpit.css';
 
@@ -29,11 +31,21 @@ import {
   isSuperadminMenu,
 } from '@/Components/cockpit/shared';
 
-interface AppShellV2Props extends CockpitShellProps {
+interface AppShellV2Props {
   /** Título da aba do navegador */
   title?: string;
   /** Conteúdo do main column (chat / dashboard / lista CRUD / etc) */
   children: ReactNode;
+  /**
+   * Shell props (business + user). OPCIONAL — se omitido, lê de
+   * `shell.cockpit` via Inertia shared props (HandleInertiaRequests::share).
+   * Páginas que já têm os dados (ex.: Copiloto/Cockpit que recebe via Props
+   * próprios) podem passar pra evitar dupla query.
+   */
+  business?: { nome: string; opcoes: Array<{ id: number; nome: string; iniciais: string; ativa: boolean }> };
+  user?: { nome: string; nomeCurto: string; email: string; cargo: string; iniciais: string };
+  /** Conversas pra Sidebar Chat. Opcional — default vazio (Chat tab fica só com atalhos). */
+  conversas?: { fixadas: ConversaResumo[]; rotinas: Rotina[]; recentes: ConversaResumo[] };
   /** Conversa em foco (opcional) — alimenta LinkedAppsPanel + breadcrumb */
   conversaFoco?: ConversaFoco;
   /** Id da conversa ativa pra highlight na sidebar */
@@ -42,24 +54,114 @@ interface AppShellV2Props extends CockpitShellProps {
   onSelectConv?: (id: string) => void;
   /** Override do breadcrumb — array de strings ou React nodes. Default: business / Chat / conversaFoco.titulo */
   breadcrumb?: ReactNode[];
+  /** Alternativa ao `breadcrumb` em formato AppShell legado (compat). Convertido internamente. */
+  breadcrumbItems?: Array<{ label: string; href?: string }>;
+}
+
+// ── BreadcrumbModuleDropdown ──────────────────────────────────────────
+// Segundo item do breadcrumb vira dropdown listando outras telas do módulo.
+// Alimentado pelo hook useAutoModuleNav() que lê de shell.topnavs[Modulo]
+// (Modules/<Nome>/Resources/menus/topnav.php — ADR arq/0011).
+function BreadcrumbModuleDropdown({
+  label,
+  items,
+}: {
+  label: string;
+  items: Array<{ label: string; href?: string; icon?: string }>;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Sem items: renderiza estático (não vira dropdown)
+  if (!items || items.length === 0) {
+    return <span className="bc-cur">{label}</span>;
+  }
+
+  return (
+    <span className="bc-mod" ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        className="bc-mod-btn"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        {label}
+        <ChevronDown size={11} style={{ marginLeft: 3, opacity: 0.6 }} />
+      </button>
+      {open && (
+        <div className="bc-mod-dd">
+          {items.map((it, i) => (
+            <a
+              key={i}
+              href={it.href ?? '#'}
+              className="bc-mod-dd-i"
+            >
+              {it.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </span>
+  );
+}
+
+interface CockpitShellPropsRaw {
+  businessNome?: string;
+  businesses?: Array<{ id: number; nome: string; iniciais: string; ativa: boolean }>;
+  usuarioNome?: string;
+  usuarioNomeCurto?: string;
+  usuarioEmail?: string;
+  usuarioCargo?: string;
+  usuarioIniciais?: string;
 }
 
 export default function AppShellV2({
   title,
   children,
-  business,
-  user,
-  conversas,
+  business: businessProp,
+  user: userProp,
+  conversas: conversasProp,
   conversaFoco,
   activeConvId,
   onSelectConv,
   breadcrumb,
+  breadcrumbItems,
 }: AppShellV2Props) {
   // Pega o menu compartilhado do shell (LegacyMenuAdapter via Inertia share)
   const page = usePage();
-  const shellMenu: ShellMenuItem[] =
-    ((page.props as { shell?: { menu?: ShellMenuItem[] } })?.shell?.menu) ?? [];
+  const shellProps = (page.props as {
+    shell?: {
+      menu?: ShellMenuItem[];
+      cockpit?: CockpitShellPropsRaw;
+    };
+  })?.shell;
+  const shellMenu: ShellMenuItem[] = shellProps?.menu ?? [];
   const superadminItems = shellMenu.filter((i) => isSuperadminMenu(i.label));
+
+  // Fallback pra business + user via shell.cockpit (Inertia shared) quando a
+  // página não passa via props. Isso permite páginas MemCofre/Financeiro/etc
+  // usar <AppShellV2 title="...">{content}</...> sem boilerplate.
+  const cockpitShared = shellProps?.cockpit;
+  const business = businessProp ?? {
+    nome: cockpitShared?.businessNome ?? 'Oimpresso',
+    opcoes: cockpitShared?.businesses ?? [],
+  };
+  const user = userProp ?? {
+    nome: cockpitShared?.usuarioNome ?? 'Usuário',
+    nomeCurto: cockpitShared?.usuarioNomeCurto ?? 'Usuário',
+    email: cockpitShared?.usuarioEmail ?? '',
+    cargo: cockpitShared?.usuarioCargo ?? 'Usuário',
+    iniciais: cockpitShared?.usuarioIniciais ?? '?',
+  };
+  const conversas = conversasProp ?? { fixadas: [], rotinas: [], recentes: [] };
 
   // ── State do shell (sidebar tab + apps colapsado + conversa ativa fallback)
   const [tab, setTab] = useState<'chat' | 'menu'>(() => {
@@ -121,13 +223,45 @@ export default function AppShellV2({
   };
   const densityLabel = density < 30 ? 'skim' : density > 70 ? 'briefing' : 'normal';
 
-  // ── Breadcrumb default (business / Chat / titulo da conversa em foco)
-  const defaultCrumb: ReactNode[] = [
-    business.nome,
-    <span className="bc-cur" key="cur">Chat</span>,
-    ...(conversaFoco ? [conversaFoco.titulo] : []),
-  ];
-  const crumb = breadcrumb ?? defaultCrumb;
+  // ── Module nav (auto-detecta o módulo ativo via URL e popula dropdown)
+  // Reusa o hook que ja existe pro AppShell legado — alimentado por
+  // Resources/menus/topnav.php de cada modulo (ADR arq/0011).
+  const moduleNav = useAutoModuleNav();
+  const moduleSlug = moduleNav?.moduleLabel ?? 'Chat';
+  const moduleItems = moduleNav?.items ?? [];
+
+  // ── Breadcrumb computado
+  let crumb: ReactNode[];
+  if (breadcrumb) {
+    crumb = breadcrumb;
+  } else if (breadcrumbItems) {
+    // Compat AppShell legado: { label, href? }[]
+    // Heurística: PRIMEIRO item vira dropdown se houver topnav do módulo ativo
+    // (segundo item do shell é o nome do módulo no padrão AppShell legado).
+    crumb = breadcrumbItems.map((b, i) => {
+      const isFirst = i === 0;
+      const isCurrent = i === breadcrumbItems.length - 1;
+      if (isFirst && moduleItems.length > 0) {
+        return <BreadcrumbModuleDropdown key={i} label={b.label} items={moduleItems} />;
+      }
+      return b.href ? (
+        <a key={i} href={b.href} className="bc-link">{b.label}</a>
+      ) : (
+        <span key={i} className={isCurrent ? 'bc-cur' : ''}>{b.label}</span>
+      );
+    });
+  } else {
+    // Default: business / [moduleSlug com dropdown se houver items] / [conversaFoco.titulo]
+    crumb = [
+      business.nome,
+      <BreadcrumbModuleDropdown
+        key="mod"
+        label={moduleSlug}
+        items={moduleItems}
+      />,
+      ...(conversaFoco ? [conversaFoco.titulo] : []),
+    ];
+  }
 
   return (
     <>
