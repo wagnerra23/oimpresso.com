@@ -121,3 +121,80 @@ Então a exceção é documentada + referenciada na tabela "Exceções" do ADR U
 **Por quê**: consistência cross-módulo + velocidade de novo dev + facilita auditoria.
 
 **Testado em:** `Modules/PontoWr2/Tests/Feature/AprovacoesIndexTest` (prova de conceito 2026-04-24). Check C16 futuro no `ModuleAuditor`: toda page em listagem importa de `@/Components/shared/`.
+
+### R-DS-009 · Telas core do ERP nascem dentro do Cockpit (AppShellV2)
+
+```gherkin
+Dado que uma tela nova faz parte do fluxo operacional do ERP
+  (chat, tarefas, dashboard de módulo, listagem CRUD de OS/CRM/FIN/PNT)
+Quando o dev cria o .tsx
+Então envolve o conteúdo em <AppShellV2> (Cockpit) — não em <AppShell> legado
+E persiste estado de UI em localStorage com prefixo "oimpresso.cockpit.*"
+
+Dado que a tela é administrativa standalone (Showcase, Modulos manage, settings superadmin isolado)
+Quando o dev cria o .tsx
+Então pode usar <AppShell> legado — mas registra a exceção em ADR per-tela
+```
+
+**Por quê**: o Cockpit traz sidebar dual Chat/Menu, topbar contextual e Apps Vinculados — eliminando a rotação entre N telas pra montar contexto. Telas administrativas raras (1-2x/mês) não precisam disso.
+
+**Testado em:** `Pages/Copiloto/Cockpit.tsx` (rota `/copiloto/cockpit` em produção 2026-04-27).
+
+### R-DS-010 · Apps Vinculados pra contexto multi-módulo na coluna direita
+
+```gherkin
+Dado que uma tela do Cockpit tem entidade em foco
+  (uma conversa, uma OS, uma tarefa, um cliente)
+Quando essa entidade tem dados em outros módulos relacionados
+Então o painel da coluna direita renderiza blocos LBlock por módulo
+  (Os/Cliente/Financeiro/Ponto/Anexos/Historico)
+E cada bloco é colapsável com persistência localStorage por chave individual
+E cada bloco mostra resumo enxuto + 1 CTA primária (não duplica a info inteira)
+
+Dado que a tela não tem entidade em foco
+Quando renderiza
+Então a coluna direita some — não fica vazia ou com placeholder estático
+```
+
+**Por quê**: o usuário operacional precisa ver "tudo do contexto" ao mesmo tempo, sem trocar de tela. Mas só faz sentido quando há contexto.
+
+**Testado em:** `LinkedAppsPanel` em `Pages/Copiloto/Cockpit.tsx` — 5 cards (OS+CRM+FIN+Anexos+Historico) reagindo à conversa em foco.
+
+### R-DS-011 · Origin badges identificam módulo de origem cross-cockpit
+
+```gherkin
+Dado que um item ou bloco tem origem em um módulo específico do ERP
+  (uma tarefa, uma conversa-tipo, um app vinculado)
+Quando renderiza o badge de origem
+Então usa as cores semânticas oficiais:
+  • OS  = amber  (oklch 0.93/0.07/70)
+  • CRM = blue   (oklch 0.92/0.06/220)
+  • FIN = green  (oklch 0.93/0.07/145)
+  • PNT = violet (oklch 0.93/0.06/295)
+  • MFG = orange (oklch 0.93/0.05/30)
+E nunca inventa cor própria pra "destacar" o módulo
+```
+
+**Por quê**: o usuário escaneia origens visualmente em meio segundo. 5 cores fixas mapeadas no cérebro. Inventar nova cor pra novo módulo quebra o padrão.
+
+**Reservado pra futuros módulos:** se aparecer 6º grupo, abre ADR escolhendo nova cor harmônica (não diluindo as 5 existentes).
+
+**Testado em:** classes `.origin-badge.o-{OS|CRM|FIN|PNT|MFG}` em `cockpit.css`.
+
+### R-DS-012 · Persistência de UI em `localStorage` com namespacing
+
+```gherkin
+Dado que uma tela do Cockpit guarda estado entre sessões
+  (aba ativa, conversa selecionada, painel colapsado, filtro ativo, tweaks)
+Quando salva no localStorage
+Então usa prefixo "oimpresso.cockpit.*" pras chaves do shell e
+       prefixo "oimpresso.linked.*" pros blocos vinculados
+       prefixo "oimpresso.<modulo>.*" pra estado interno do módulo
+
+E nunca sessionStorage (perde na nova aba)
+E nunca chaves sem prefixo (colide com outras libs)
+```
+
+**Por quê**: F5 não pode trocar a UX. Wagner exigiu em 2026-04-26 (ver auto-memória `preference_cache_estado_preservado`).
+
+**Testado em:** chaves `oimpresso.cockpit.{sidebar.tab,chat.tab,linked.collapsed,conv,tweaks.{vibe,density,accentHue,open}}` + `oimpresso.linked.{os,client,fin,att,hist}.collapsed`.
