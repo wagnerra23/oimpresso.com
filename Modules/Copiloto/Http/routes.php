@@ -58,6 +58,11 @@ Route::group(
         Route::get('/alertas/config',                      'AlertasController@config')->name('copiloto.alertas.config');
         Route::patch('/alertas/config',                    'AlertasController@updateConfig')->name('copiloto.alertas.config.update');
 
+        // ---- Memória (tela "O Copiloto lembra de você", LGPD US-COPI-MEM-012) -
+        Route::get('/memoria',                             'MemoriaController@index')->name('copiloto.memoria.index');
+        Route::patch('/memoria/{id}',                      'MemoriaController@update')->name('copiloto.memoria.update');
+        Route::delete('/memoria/{id}',                     'MemoriaController@destroy')->name('copiloto.memoria.destroy');
+
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('copiloto.superadmin.metas');
     }
