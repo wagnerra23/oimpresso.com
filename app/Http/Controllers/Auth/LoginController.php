@@ -155,6 +155,39 @@ class LoginController extends Controller
         return '/home';
     }
 
+    /**
+     * Override do AuthenticatesUsers trait pra fechar bug do redirect pos-login.
+     *
+     * Why: a tela /login e Inertia (Site/Login.tsx) e o destino /pos/create
+     * e /home sao Blade legado. Um redirect() simples vira 302 que o cliente
+     * Inertia tenta seguir como se fosse fluxo Inertia, recebe HTML cru e
+     * acaba caindo de volta em /login (F5 resolve porque cookie ja esta no
+     * browser e o middleware guest redireciona corretamente).
+     *
+     * Inertia::location() retorna HTTP 409 com X-Inertia-Location, sinal
+     * canonico pro cliente fazer window.location = url (full page nav).
+     */
+    protected function sendLoginResponse(Request $request)
+    {
+        $request->session()->regenerate();
+
+        $this->clearLoginAttempts($request);
+
+        if ($response = $this->authenticated($request, $this->guard()->user())) {
+            return $response;
+        }
+
+        if ($request->wantsJson()) {
+            return new \Illuminate\Http\JsonResponse([], 204);
+        }
+
+        $url = $request->session()->pull('url.intended', $this->redirectPath());
+
+        return $request->header('X-Inertia')
+            ? Inertia::location($url)
+            : redirect()->to($url);
+    }
+
     public function validateLogin(Request $request)
     {
         if(config('constants.enable_recaptcha')){
