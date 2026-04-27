@@ -21,6 +21,21 @@ Datas no formato `YYYY-MM-DD`. Categorias:
 
 ## [Unreleased] — branch `6.7-bootstrap`
 
+### Added — 2026-04-27 (sessão 19 — Documentação enterprise + comparativo Claude Desktop)
+- **PR #28 — MemCofre score boost:** 3 telas Copiloto (Chat/Dashboard/Memoria) ganharam bloco
+  `@memcofre` no header → `php artisan memcofre:sync-pages` populou `docs_pages` em produção
+  (14 telas total — 3 do Copiloto com 10 stories, 6 rules, 15 ADRs, 5 tests linkados)
+- **PR #29 — `memory/requisitos/Copiloto/ENTERPRISE.md`:** documento enterprise (12 seções, 420
+  linhas) — executive summary, arquitetura 4 camadas com diagrama ASCII, 5 fluxos críticos
+  com latência/custo/pontos de falha, modelo de dados ER, compliance LGPD por artigo
+  (Art 7/9/16/18/37/46/48), riscos e mitigações, runbook ops, SLA/SLO targets, modelo de
+  custo em 3 tiers, roadmap 9 sprints, inventário rastreável, glossário enterprise
+- **Comparativo `claude_desktop_vs_laravel_mcp_oimpresso_2026_04_27.md`:** 7 MCP servers
+  populares (GitHub/Brave/Slack/Postgres/Filesystem/Linear/Notion) vs potencial do oimpresso.
+  Achado-chave: vácuo absoluto no vertical brasileiro de gráfica/CV. Setup técnico
+  passo-a-passo completo. Score potencial 4.6/5 (acima dos 7 atuais). Recomenda MCP server
+  como sprint 7 alternativo se foco for receita/leads.
+
 ### Decision — 2026-04-27 (revisão de caminho Capterra)
 - **Comparativo `revisao_caminho_2026_04_27_capterra.md`** mapeia 5 caminhos pós-sprint 6
   (atual ADR 0037 sequencial / pivot comercial ADR 0026 / Typesense / Mem0 cedo / validar Larissa)
