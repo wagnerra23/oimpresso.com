@@ -17,7 +17,7 @@ use Modules\Financeiro\Services\TituloService;
  * Lista titulos tipo='receber' com badge de status. Acao "Emitir boleto"
  * chama TituloService que delega pra CnabDirectStrategy.
  *
- * Pattern: ADR 0024 (Inertia + React + UPos).
+ * Pattern: ADR 0029 (Inertia + React + UPos).
  */
 class ContaReceberController extends Controller
 {

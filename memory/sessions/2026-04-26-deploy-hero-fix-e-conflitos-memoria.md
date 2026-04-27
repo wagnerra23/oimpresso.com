@@ -37,7 +37,7 @@ Edits em `~/.claude/projects/D--oimpresso-com/memory/`:
 - **0027** — Gestão de memória do projeto: papéis claros por função (meta-ADR).
 - **0028** — ADRs com numeração monotônica e formato Nygard.
 - **0030** — Credenciais sensíveis: nunca em git.
-- 0029 reservado pro rename de `0024-padrao-inertia-react-ultimatepos.md` (aguarda aval do Wagner).
+- 0029 reservado pro rename de `0024-padrao-inertia-react-ultimatepos.md` ✅ executado em 2026-04-27.
 - 0031–0036 listados como propostas no comparativo (não materializados).
 
 ### 5. CLAUDE.md ampliado
@@ -84,7 +84,7 @@ memory/sessions/2026-04-26-deploy-hero-fix-e-conflitos-memoria.md (este arquivo)
 
 ## Pendente
 
-- Renomear `0024-padrao-inertia-react-ultimatepos.md` → `0029-padrao-inertia-react-ultimatepos.md` (aguarda aval — pode ter referências cruzadas).
+- ~~Renomear `0024-padrao-inertia-react-ultimatepos.md` → `0029-padrao-inertia-react-ultimatepos.md`~~ ✅ feito em 2026-04-27.
 - Materializar ADRs 0031–0036 se Wagner aprovar.
 - Investigar `Modules/Connector/` no servidor: contar untracked vs tracked, decidir versionar/deletar/restaurar (SSH instável durante esta sessão impediu confirmação).
 - Re-rodar `gh run list --workflow=quick-sync.yml` quando o secret SSH for atualizado pra recuperar deploy automático.

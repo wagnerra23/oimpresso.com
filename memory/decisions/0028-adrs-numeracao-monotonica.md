@@ -37,9 +37,7 @@ Sem regra explícita, o próximo agente vai adivinhar.
 ## Ações imediatas
 
 1. Renomear `0024-instalacao-1-clique-modulos.md` → mantém (foi o primeiro 0024)
-2. Renomear `0024-padrao-inertia-react-ultimatepos.md` → `0029-padrao-inertia-react-ultimatepos.md` (próximo livre depois deste 0028)
-
-> Aguarda comando do Wagner — não executar rename automaticamente sem aval (já que ambos arquivos podem ter referências cruzadas em outros docs).
+2. ✅ **Executado em 2026-04-27** — `0024-padrao-inertia-react-ultimatepos.md` renomeado para `0029-padrao-inertia-react-ultimatepos.md`. Referências cruzadas atualizadas em: `memory/sessions/2026-04-25-maratona-financeiro.md`, `memory/sessions/2026-04-26-deploy-hero-fix-e-conflitos-memoria.md`, `memory/requisitos/Financeiro/PLANO_DETALHADO.md`, `memory/requisitos/Financeiro/DOC_TELAS_E_SCORE.md`, e 5 arquivos em `Modules/Financeiro/Http/`.
 
 ## Consequências
 

@@ -23,7 +23,7 @@ use Modules\Financeiro\Models\TituloBaixa;
  *
  * Multi-tenant: BusinessScope nos models filtra por session('user.business_id').
  *
- * Pattern: ADR 0024 (Inertia + React + UPos), espelha DashboardController.
+ * Pattern: ADR 0029 (Inertia + React + UPos), espelha DashboardController.
  */
 class RelatoriosController extends Controller
 {
