@@ -1,3 +1,12 @@
+// @memcofre
+//   tela: /copiloto/memoria
+//   stories: US-COPI-MEM-005, US-COPI-MEM-008, US-COPI-MEM-012
+//   rules: R-COPI-MEM-LGPD-001, R-COPI-MEM-MULTITENANT-001
+//   adrs: 0031, 0033, 0035, 0036, 0037
+//   tests: tests/Feature/Modules/Copiloto/MemoriaContratoTest, tests/Feature/Modules/Copiloto/MemoriaControllerTest
+//   status: implementada
+//   module: Copiloto
+
 import React, { useState } from 'react'
 import AppShell from '@/Layouts/AppShell'
 import { Head, router, useForm } from '@inertiajs/react'
