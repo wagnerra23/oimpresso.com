@@ -593,13 +593,27 @@
   display: flex; flex-direction: column;
 }
 
-/* Override container max-w-7xl das paginas internas (MemCofre/etc).
-   Dentro do Cockpit, o conteudo ja tem estrutura (sidebar + apps vinculados),
-   nao precisa de max-w fixo que centraliza com lateral em branco. */
-.cockpit .main-body > .mx-auto.max-w-7xl,
-.cockpit .main-body .max-w-7xl.mx-auto {
+/* Override containers das paginas internas — Wagner pedido 2026-04-27:
+   "paginas internas devem ocupar todo monitor, feio nao aproveitar largura".
+   Cobre todos containers max-w-* + container Tailwind comuns. */
+.cockpit .main-body .max-w-7xl,
+.cockpit .main-body .max-w-6xl,
+.cockpit .main-body .max-w-5xl,
+.cockpit .main-body .max-w-4xl,
+.cockpit .main-body .max-w-3xl,
+.cockpit .main-body .max-w-2xl,
+.cockpit .main-body .max-w-screen-xl,
+.cockpit .main-body .max-w-screen-2xl,
+.cockpit .main-body > .container,
+.cockpit .main-body .mx-auto.container {
   max-width: 100% !important;
   width: 100%;
+}
+/* Anula mx-auto centralizador APENAS no primeiro nivel (filho direto do
+   main-body) — assim cards internos com mx-auto continuam funcionando. */
+.cockpit .main-body > .mx-auto {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 /* Permite scroll vertical no body quando conteudo e mais alto que viewport */
 .cockpit .main-body { overflow-y: auto; }
