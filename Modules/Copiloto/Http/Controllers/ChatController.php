@@ -206,4 +206,72 @@ class ChatController extends Controller
 
         return response()->json(['ok' => true]);
     }
+
+    /**
+     * MVP do padrão "Chat Cockpit" (ADR 0039) — rota paralela ao /copiloto.
+     *
+     * Não substitui o ChatController@index. Coexiste em /copiloto/cockpit pra
+     * Wagner comparar a UX nova com a atual, lado-a-lado, sem risco. Mock data
+     * por enquanto — o backend real só será plugado depois da validação visual.
+     */
+    public function cockpit(Request $request)
+    {
+        $businessId = $request->session()->get('user.business_id');
+        $userId     = auth()->id();
+
+        // Tenta puxar a conversa real ativa do usuário (se houver) — só pra
+        // ter um ID válido pro composer de teste. Se não tiver, usa null.
+        $conversaAtiva = Conversa::where('user_id', $userId)
+            ->where('business_id', $businessId)
+            ->where('status', 'ativa')
+            ->latest('iniciada_em')
+            ->first(['id', 'titulo']);
+
+        // Mock de conversas espelhando a vibe do protótipo (Cowork "Oimpresso ERP
+        // Comunicação Visual"). Categorias: fixadas, rotinas, recentes.
+        // Gradualmente vai virar dado real conforme TaskProvider/CRM forem
+        // entregando contexto (ver ADR 0039 plano de migração).
+        $mockConversas = [
+            'fixadas' => [
+                ['id' => 'p1', 'titulo' => 'Banner Loja Acme 3×2m', 'unread' => 0, 'origem' => 'OS'],
+                ['id' => 'p2', 'titulo' => 'Produção — Turno A',     'unread' => 2, 'origem' => 'MFG'],
+            ],
+            'rotinas' => [
+                ['id' => 'r1', 'titulo' => 'Banner Acme — aprovação',  'frequencia' => 'Diário'],
+                ['id' => 'r2', 'titulo' => 'Cobrança Padaria Estrela', 'frequencia' => 'Uma vez'],
+                ['id' => 'r3', 'titulo' => 'Reunião PCP — 8h30',       'frequencia' => 'Diário'],
+                ['id' => 'r4', 'titulo' => 'Fechamento Caixa',         'frequencia' => 'Diário'],
+            ],
+            'recentes' => [
+                ['id' => 'c1', 'titulo' => 'Padaria Estrela — Renato',     'unread' => 1, 'origem' => 'CRM'],
+                ['id' => 'c2', 'titulo' => 'Adesivos Recortados — TechPro', 'unread' => 0, 'origem' => 'OS'],
+                ['id' => 'c3', 'titulo' => 'Comercial',                     'unread' => 0, 'origem' => null],
+                ['id' => 'c4', 'titulo' => 'Clínica Vida — Marcos',         'unread' => 0, 'origem' => 'CRM', 'ativa' => true],
+            ],
+        ];
+
+        // Conversa em foco (mock — Clínica Vida)
+        $conversaFoco = [
+            'id'    => 'c4',
+            'titulo'=> 'Clínica Vida — Marcos',
+            'tipo'  => 'cliente',
+            'cliente' => [
+                'nome'         => 'Clínica Vida — Marcos',
+                'telefone'     => '+55 11 98712-3344',
+                'ultimoContato'=> 'hoje 11:48 — perguntou se pode retirar 9h amanhã',
+            ],
+            'mensagens' => [
+                ['id' => 1, 'autor' => 'me',   'texto' => 'Vou te enviar o mockup hoje.', 'hora' => '10:00', 'lida' => true],
+            ],
+        ];
+
+        return Inertia::render('Copiloto/Cockpit', [
+            'businessNome'  => session('business.name', 'Oimpresso Matriz'),
+            'usuarioNome'   => auth()->user()->first_name ?? 'Usuário',
+            'usuarioCargo'  => 'Administrador',
+            'conversas'     => $mockConversas,
+            'conversaFoco'  => $conversaFoco,
+            'conversaAtivaRealId' => $conversaAtiva?->id,
+        ]);
+    }
 }
