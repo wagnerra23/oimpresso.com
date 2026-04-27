@@ -133,6 +133,7 @@ export default function AppShellV2({
   activeConvId,
   onSelectConv,
   breadcrumb,
+  breadcrumbItems,
 }: AppShellV2Props) {
   // Pega o menu compartilhado do shell (LegacyMenuAdapter via Inertia share)
   const page = usePage();
