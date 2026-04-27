@@ -110,19 +110,20 @@
 }
 
 /* ───── DARK THEME (auth.user.ui_theme === 'dark') ─────
-   Sobrescreve tokens de surface pro Cockpit ficar coerente com shadcn dark.
-   Sidebar continua dark fixa (nao muda). Apenas main + apps vinculados
-   adaptam pra fundo escuro. */
+   Tokens ALINHADOS com shadcn slate dark do projeto (rgb(15,23,42) = slate-900).
+   Antes: usavamos OKLCH neutro (0.16 0.003 240) que deixava cards shadcn
+   "diferentes" do bg da main column (Wagner reportou "cores fora do padrao"
+   2026-04-27). Agora os 2 sistemas usam exatamente a mesma escala azul-slate. */
 .cockpit[data-theme="dark"] {
-  --bg:           oklch(0.16 0.003 240);
-  --bg-2:         oklch(0.14 0.003 240);
-  --surface:      oklch(0.19 0.003 240);
-  --border:       oklch(0.26 0.005 240);
-  --border-2:     oklch(0.23 0.005 240);
-  --text:         oklch(0.92 0.005 90);
-  --text-dim:     oklch(0.68 0.005 90);
-  --text-mute:    oklch(0.55 0.005 90);
-  --bubble-them:  oklch(0.24 0.005 240);
+  --bg:           rgb(2, 6, 23);          /* slate-950 (mais escuro que main) */
+  --bg-2:         rgb(15, 23, 42);        /* slate-900 = shadcn card */
+  --surface:      rgb(15, 23, 42);        /* slate-900 = shadcn card */
+  --border:       rgb(30, 41, 59);        /* slate-800 = shadcn border */
+  --border-2:     rgb(51, 65, 85);        /* slate-700 */
+  --text:         rgb(248, 250, 252);     /* slate-50 = shadcn foreground */
+  --text-dim:     rgb(148, 163, 184);     /* slate-400 = shadcn muted-foreground */
+  --text-mute:    rgb(100, 116, 139);     /* slate-500 */
+  --bubble-them:  rgb(30, 41, 59);        /* slate-800 */
   --accent-soft:  oklch(0.30 0.04 220);
   /* Origem badges no dark: aumentar lightness pra contraste sobre bg escuro */
   --origin-OS-bg:  oklch(0.30 0.07 60);   --origin-OS-fg:  oklch(0.85 0.07 60);

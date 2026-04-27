@@ -109,7 +109,7 @@ export default function MemCofreIngest({ source_types, modules, evidence_kinds }
             </p>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/docs">
+            <Link href="/memcofre">
               <ArrowLeft size={14} className="mr-1.5" /> Voltar
             </Link>
           </Button>
@@ -286,7 +286,7 @@ export default function MemCofreIngest({ source_types, modules, evidence_kinds }
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" asChild>
-                  <Link href="/docs">Cancelar</Link>
+                  <Link href="/memcofre">Cancelar</Link>
                 </Button>
                 <Button type="submit" disabled={form.processing} className="gap-1.5">
                   <Upload size={14} /> Registrar
