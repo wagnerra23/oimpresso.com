@@ -109,6 +109,35 @@
   --bubble-me:    oklch(0.30 0 0);
 }
 
+/* ───── DARK THEME (auth.user.ui_theme === 'dark') ─────
+   Sobrescreve tokens de surface pro Cockpit ficar coerente com shadcn dark.
+   Sidebar continua dark fixa (nao muda). Apenas main + apps vinculados
+   adaptam pra fundo escuro. */
+.cockpit[data-theme="dark"] {
+  --bg:           oklch(0.16 0.003 240);
+  --bg-2:         oklch(0.14 0.003 240);
+  --surface:      oklch(0.19 0.003 240);
+  --border:       oklch(0.26 0.005 240);
+  --border-2:     oklch(0.23 0.005 240);
+  --text:         oklch(0.92 0.005 90);
+  --text-dim:     oklch(0.68 0.005 90);
+  --text-mute:    oklch(0.55 0.005 90);
+  --bubble-them:  oklch(0.24 0.005 240);
+  --accent-soft:  oklch(0.30 0.04 220);
+  /* Origem badges no dark: aumentar lightness pra contraste sobre bg escuro */
+  --origin-OS-bg:  oklch(0.30 0.07 60);   --origin-OS-fg:  oklch(0.85 0.07 60);
+  --origin-CRM-bg: oklch(0.30 0.07 220);  --origin-CRM-fg: oklch(0.85 0.07 220);
+  --origin-FIN-bg: oklch(0.30 0.07 145);  --origin-FIN-fg: oklch(0.85 0.07 145);
+  --origin-PNT-bg: oklch(0.30 0.07 295);  --origin-PNT-fg: oklch(0.85 0.07 295);
+  --origin-MFG-bg: oklch(0.30 0.07 30);   --origin-MFG-fg: oklch(0.85 0.07 30);
+}
+
+/* Daylight + Dark = fundo escuro mas sem conflitar com cores quentes do daylight */
+.cockpit[data-theme="dark"][data-vibe="daylight"] {
+  --bg:           oklch(0.18 0.012 60);
+  --bg-2:         oklch(0.15 0.015 60);
+}
+
 /* Densidade — o JS recalcula --row-h, --card-pad em runtime.
    Apenas refletimos o atributo no padding global. */
 .cockpit[data-density="skim"]      .sb-conv,
@@ -563,6 +592,17 @@
   min-height: 0; min-width: 0; overflow: hidden;
   display: flex; flex-direction: column;
 }
+
+/* Override container max-w-7xl das paginas internas (MemCofre/etc).
+   Dentro do Cockpit, o conteudo ja tem estrutura (sidebar + apps vinculados),
+   nao precisa de max-w fixo que centraliza com lateral em branco. */
+.cockpit .main-body > .mx-auto.max-w-7xl,
+.cockpit .main-body .max-w-7xl.mx-auto {
+  max-width: 100% !important;
+  width: 100%;
+}
+/* Permite scroll vertical no body quando conteudo e mais alto que viewport */
+.cockpit .main-body { overflow-y: auto; }
 
 .cockpit .chat-tabsbar {
   display: flex; align-items: center; gap: 16px; padding: 12px 20px 8px;
