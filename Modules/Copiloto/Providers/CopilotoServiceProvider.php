@@ -65,6 +65,30 @@ class CopilotoServiceProvider extends ServiceProvider
                 return $this->app->make(\Modules\Copiloto\Services\Ai\OpenAiDirectDriver::class);
             }
         );
+
+        // MemoriaContrato — verdade canônica ADR 0036 (Meilisearch first, Mem0 último)
+        $this->app->bind(
+            \Modules\Copiloto\Contracts\MemoriaContrato::class,
+            function () {
+                $driver = config('copiloto.memoria.driver', 'auto');
+
+                // 'null' — dev / dry_run / CI (não chama rede)
+                if ($driver === 'null' || config('copiloto.dry_run')) {
+                    return $this->app->make(\Modules\Copiloto\Services\Memoria\NullMemoriaDriver::class);
+                }
+
+                // 'meilisearch' (CANÔNICO) — Scout + Meilisearch self-hosted
+                if ($driver === 'meilisearch' || $driver === 'auto') {
+                    return $this->app->make(\Modules\Copiloto\Services\Memoria\MeilisearchDriver::class);
+                }
+
+                // 'mem0_rest' (CONDICIONAL sprint 8+) — placeholder, não implementado ainda
+                throw new \RuntimeException(
+                    "Driver de memória '{$driver}' não implementado. ".
+                    'Drivers válidos: meilisearch (default), null (dev), mem0_rest (sprint 8+).'
+                );
+            }
+        );
     }
 
     /**
