@@ -1,8 +1,8 @@
 # ADR 0031 — `MemoriaContrato` interface PHP + driver default `Mem0RestDriver`
 
-**Status:** ✅ Aceita
+**Status:** ✅ Aceita — **VERDADE CANÔNICA** (consolidada em ADR 0035, 2026-04-26)
 **Data decisão:** 2026-04-26
-**Autor:** Wagner (dono/operador)
+**Autor:** Wagner (dono/operador) — *"melhor ROI"* (declaração canônica em ADR 0035)
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`)
 **Relacionado:**
 - [ADR 0026 — Posicionamento "ERP gráfico com IA"](0026-posicionamento-erp-grafico-com-ia.md)

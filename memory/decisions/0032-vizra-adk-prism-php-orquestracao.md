@@ -1,6 +1,6 @@
 # ADR 0032 — Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto
 
-**Status:** ✅ Aceita — **sprint 1 revisado por ADR 0034**
+**Status:** ✅ Aceita — **VERDADE CANÔNICA** (camada B, consolidada em ADR 0035, 2026-04-26). **Sprint 1 revisado por ADR 0034** (camada A trocada de Prism PHP pra `laravel/ai`).
 **Data decisão:** 2026-04-26
 **Autor:** Wagner (dono/operador)
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`)

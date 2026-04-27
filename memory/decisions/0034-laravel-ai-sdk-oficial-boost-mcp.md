@@ -1,6 +1,6 @@
 # ADR 0034 — Laravel AI ecosystem 2026: SDK oficial + Boost + MCP + Vizra ADK + alternativas
 
-**Status:** ✅ Aceita (revisa parcialmente ADR 0032)
+**Status:** ✅ Aceita — **VERDADE CANÔNICA** (consolidada em ADR 0035, 2026-04-26). Revisa parcialmente ADR 0032.
 **Data decisão:** 2026-04-26
 **Autor:** Wagner (dono/operador)
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`, pesquisa profunda solicitada — "pesquise profundamente Vizra, Laravel IA")
