@@ -46,6 +46,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Memória (camada C) — verdade canônica ADR 0036
+    |--------------------------------------------------------------------------
+    | 'auto'         — usa MeilisearchDriver (default)
+    | 'meilisearch'  — força Scout + Meilisearch self-hosted (CANÔNICO)
+    | 'null'         — fixtures em memória, dev/CI
+    | 'mem0_rest'    — sprint 8+ condicional (não implementado ainda)
+    */
+    'memoria' => [
+        'driver' => env('COPILOTO_MEMORIA_DRIVER', 'auto'),
+        'meilisearch' => [
+            'index'          => env('COPILOTO_MEMORIA_INDEX', 'copiloto_memoria_facts'),
+            'top_k_default'  => 5,
+            'semantic_ratio' => env('COPILOTO_MEMORIA_SEMANTIC_RATIO', 0.5),
+            'embedder'       => env('COPILOTO_MEMORIA_EMBEDDER', 'openai-text-embedding-3-small'),
+        ],
+        // 'mem0_rest' fica reservado pra sprint 8+ (ver triggers em ADR 0036)
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Apuração
     |--------------------------------------------------------------------------
     */
