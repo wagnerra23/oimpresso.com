@@ -26,6 +26,7 @@
 | 2026-04-26 | [copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md](copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md) | **Camada C apenas** — Copiloto runtime memory vs Mem0/LangGraph/Letta/Zep/OMEGA (foco em memória especializada) | Caminho B: REST adapter pra Mem0 (5 sprints, Tier 1→6-7); 14 US-COPI-MEM-NNN |
 | 2026-04-26 | [stack_agente_php_vizra_prism_mem0_capterra_2026_04_26.md](stack_agente_php_vizra_prism_mem0_capterra_2026_04_26.md) | **Stack completa A+B+C** — 7 players: Prism PHP, Vizra ADK, Mem0, LangGraph, Letta, Zep, OMEGA | ADR 0031 (MemoriaContrato + Mem0 default) + ADR 0032 (Vizra ADK + Prism PHP); roadmap 7 sprints |
 | 2026-04-27 | [revisao_caminho_2026_04_27_capterra.md](revisao_caminho_2026_04_27_capterra.md) | **Revisão de caminho** — auditoria pós-sprint 6 com 5 caminhos avaliados (atual ADR 0037 / pivot comercial / Typesense / Mem0 cedo / validar Larissa) | Recomenda validar com Larissa ANTES de sprint 7; gatilho de pivot mensurável 30/90d |
+| 2026-04-27 | [claude_desktop_vs_laravel_mcp_oimpresso_2026_04_27.md](claude_desktop_vs_laravel_mcp_oimpresso_2026_04_27.md) | **Claude Desktop ecosystem vs nossa stack Laravel MCP** — 7 MCP servers populares (GitHub/Brave/Slack/Postgres/Filesystem/Linear/Notion) vs potencial do oimpresso | Vácuo absoluto no vertical brasileiro de gráfica; recomenda MCP server como sprint 7 alternativo se foco for receita; setup técnico completo passo-a-passo |
 
 ## Próximos sugeridos (não criar sem motivo)
 
