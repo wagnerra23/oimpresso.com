@@ -222,7 +222,7 @@ export default function MemCofreDashboard({ stats, modules, recent_sources, cove
                   {modules.map((m) => (
                     <tr key={m.name} className="hover:bg-accent/30">
                       <td className="p-3 font-medium">
-                        <Link href={`/docs/modulos/${m.name}`} className="hover:underline">
+                        <Link href={`/memcofre/modulos/${m.name}`} className="hover:underline">
                           {m.name}
                         </Link>
                         <div className="mt-0.5">
@@ -305,7 +305,7 @@ export default function MemCofreDashboard({ stats, modules, recent_sources, cove
                       </td>
                       <td className="p-3 text-right">
                         <Button size="sm" variant="outline" asChild>
-                          <Link href={`/docs/modulos/${m.name}`} className="text-xs">
+                          <Link href={`/memcofre/modulos/${m.name}`} className="text-xs">
                             Ver
                           </Link>
                         </Button>
