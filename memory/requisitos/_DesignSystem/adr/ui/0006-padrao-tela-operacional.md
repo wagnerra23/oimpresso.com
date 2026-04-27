@@ -1,10 +1,16 @@
 # ADR UI-0006 · Padrão de tela operacional (template page)
 
-- **Status**: accepted
-- **Data**: 2026-04-24
+> 📐 **CONTINUA VÁLIDA em 2026-04-27** — convive com [UI-0008 Cockpit](0008-cockpit-layout-mae-do-erp.md).
+>
+> O Cockpit (layout-mãe novo) **envelopa** as telas operacionais — `PageHeader + KpiGrid + PageFilters + Card(Table) + EmptyState + BulkActionBar` continuam o conteúdo canônico da **coluna principal** quando a tela é uma listagem CRUD (Aprovações, Intercorrências, etc.).
+>
+> Diferença: antes a tela montava `<AppShell>{template}</AppShell>` direto. Agora monta `<AppShellV2>{template}</AppShellV2>`, e o AppShellV2 já dá sidebar dual + topbar contextual + apps vinculados (opcionais). O template do conteúdo é o mesmo.
+
+- **Status**: accepted (envelope migra de AppShell → AppShellV2/Cockpit)
+- **Data**: 2026-04-24 (atualizada 2026-04-27)
 - **Decisores**: Wagner, Claude
 - **Categoria**: ui
-- **Depende de**: [0005 · Componentes shared](0005-product-components-shared.md)
+- **Depende de**: [0005 · Componentes shared](0005-product-components-shared.md), [0008 · Cockpit layout-mãe](0008-cockpit-layout-mae-do-erp.md)
 
 ## Contexto
 

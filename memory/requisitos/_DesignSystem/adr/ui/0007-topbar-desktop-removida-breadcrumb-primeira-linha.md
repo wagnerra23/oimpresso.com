@@ -1,6 +1,12 @@
 # ADR UI-0007 · Topbar desktop removida, breadcrumb vira a primeira linha
 
-- **Status**: accepted
+> ⚠️ **PARCIALMENTE DEPRECADA em 2026-04-27** — superseded by [UI-0008 Cockpit layout-mãe](0008-cockpit-layout-mae-do-erp.md).
+>
+> No **Cockpit** (layout-mãe do core ERP), a topbar **volta a existir** porque agora tem função real: breadcrumb dinâmico + ações contextuais (phone/info/more no chat, toggle Apps Vinculados). Não é mais a topbar redundante de antes.
+>
+> Esta ADR continua válida pro **AppShell legado** que sobrevive em telas administrativas isoladas (`/showcase/components`, `/modulos`, settings superadmin) — onde topbar continua sem função e a remoção +48px de altura útil ainda vale.
+
+- **Status**: accepted (escopo: AppShell legado) · superseded for Cockpit by UI-0008
 - **Data**: 2026-04-24
 - **Decisores**: Wagner, Claude
 
