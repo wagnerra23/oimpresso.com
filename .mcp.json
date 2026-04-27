@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "laravel-boost": {
+      "command": "C:/Users/wagne/.config/herd/bin/php84/php.exe",
+      "args": ["artisan", "boost:mcp"]
+    }
+  }
+}
