@@ -5,7 +5,7 @@
 //   adrs: 0007
 //   tests: Modules/MemCofre/Tests/Feature/MemoriaTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import SimpleMarkdown from '@/Components/shared/SimpleMarkdown';
 import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
@@ -270,12 +270,12 @@ export default function Memoria({ roots, stats, selected: initialSelected, paths
 }
 
 Memoria.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 title="Memória · Cofre" breadcrumbItems={[
     { label: 'Cofre de Memórias', href: '/memcofre' },
     { label: 'Memória' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 interface TreeNodeProps {

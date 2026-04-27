@@ -7,7 +7,7 @@
 //   adrs: 0004
 //   tests: Modules/MemCofre/Tests/Feature/IngestTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -301,10 +301,10 @@ export default function MemCofreIngest({ source_types, modules, evidence_kinds }
 }
 
 MemCofreIngest.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 title="Nova evidência · Cofre" breadcrumbItems={[
     { label: 'Cofre de Memórias', href: '/memcofre' },
     { label: 'Nova evidência' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
