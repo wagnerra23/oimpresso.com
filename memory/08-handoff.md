@@ -123,12 +123,22 @@ php artisan optimize:clear
 - 🟡 **Deploy do PR #24 pra produção** ainda NÃO feito — `composer install` precisa rodar no servidor (sprint 1 mexeu em `composer.json`/`composer.lock`).
 - 📝 Detalhes em [memory/sessions/2026-04-26-sprint1-stack-canonica.md](sessions/2026-04-26-sprint1-stack-canonica.md).
 
-**Pendências críticas pra próxima sessão:**
+**Pendências críticas pra próxima sessão (ordem revisada por ADR 0036 — Meilisearch first, Mem0 último):**
+
+🚨 **Sprint 2 = DEPLOY URGENTE** (não Vizra ADK ainda):
 1. Deploy SSH no Hostinger: `git pull origin 6.7-bootstrap && composer install && php artisan optimize:clear`
-2. Setar `OPENAI_API_KEY` (ou `ANTHROPIC_API_KEY`) no `.env` de produção
-3. Setar `COPILOTO_AI_DRY_RUN=false` quando estiver pronto pra IA real
-4. Iniciar daemon Meilisearch no Hostinger (comando no session log)
-5. Smoke manual em `/copiloto`
+2. **Iniciar daemon Meilisearch no Hostinger** com nohup (comando completo em [memory/sessions/2026-04-26-sprint1-stack-canonica.md](sessions/2026-04-26-sprint1-stack-canonica.md))
+3. Setar `OPENAI_API_KEY` (ou `ANTHROPIC_API_KEY`) no `.env` de produção
+4. Setar `COPILOTO_AI_DRY_RUN=false`
+5. Smoke manual em `/copiloto` — **resultado:** Copiloto sai de fixtures EM PRODUÇÃO
+
+📋 **Sprints 3-7** seguem ADR 0036:
+- Sprint 3: Vizra ADK + tools registry
+- Sprint 4-5: **MeilisearchDriver primeiro** (não Mem0!) — R$0/mês recorrente
+- Sprint 6: Tela LGPD `/copiloto/memoria`
+- Sprint 7: Eval LLM-as-Judge + stress
+
+⏭️ **Sprint 8+ CONDICIONAL:** Mem0 só se trigger ativar (dedup Meilisearch falhar, conversas longas perderem contexto, Wagner pedir explicitamente). Ver ADR 0036 pra triggers mensuráveis.
 
 ---
 
