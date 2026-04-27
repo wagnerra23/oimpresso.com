@@ -482,6 +482,35 @@
 }
 .cockpit .um-sep { height: 1px; background: var(--sb-border); margin: 4px 0; }
 
+/* Superadmin accordion DENTRO do user-menu (Sprint 0 — antes ficava standalone) */
+.cockpit .um-superadmin-header {
+  cursor: pointer;
+}
+.cockpit .um-superadmin-header .um-superadmin-chev {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.cockpit .um-superadmin-children {
+  display: flex; flex-direction: column;
+  padding: 2px 0 4px 8px;
+  border-left: 1px solid var(--sb-border);
+  margin-left: 11px; /* alinha com o ícone do header */
+}
+.cockpit .um-item.um-superadmin-item {
+  padding: 4px 8px;
+  font-size: 11.5px;
+  color: var(--sb-text-dim);
+}
+.cockpit .um-item.um-superadmin-item:hover {
+  background: var(--sb-hover);
+  color: var(--sb-text);
+}
+.cockpit .um-item.um-superadmin-item .ic.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--sb-text-dim); flex-shrink: 0;
+  margin-left: 5px;
+}
+
 /* ═══════════════════════ MAIN COLUMN ═══════════════════════ */
 .cockpit .main {
   display: grid; grid-template-rows: 44px 1fr;
