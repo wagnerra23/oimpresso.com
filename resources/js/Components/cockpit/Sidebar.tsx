@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Bell, Check, ChevronDown, ChevronUp, Cog, Hash, Inbox, Keyboard, LogOut,
-  MessageCircle, Moon, Pin, Plus, Search, User,
+  MessageCircle, Moon, Pin, Plus, Search, ShieldAlert, User,
 } from 'lucide-react';
 
 import {
@@ -274,12 +274,14 @@ function SidebarUserMenu({
   nome,
   email,
   iniciais,
+  superadminItems,
 }: {
   open: boolean;
   onClose: () => void;
   nome: string;
   email: string;
   iniciais: string;
+  superadminItems: ShellMenuItem[];
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -290,6 +292,19 @@ function SidebarUserMenu({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open, onClose]);
+
+  // Superadmin separado: header + children
+  const headerSuper = superadminItems.find((i) => /^superadmin$/i.test(i.label.trim()));
+  const childrenSuper = superadminItems.filter((i) => !/^superadmin$/i.test(i.label.trim()));
+  const hasSuperadmin = !!(headerSuper || childrenSuper.length > 0);
+
+  const [superExpanded, setSuperExpanded] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(LS.SUPER_EXPANDED) === '1';
+  });
+  useEffect(() => {
+    localStorage.setItem(LS.SUPER_EXPANDED, superExpanded ? '1' : '0');
+  }, [superExpanded]);
 
   if (!open) return null;
   return (
@@ -305,6 +320,56 @@ function SidebarUserMenu({
         <User size={14} className="ic" />
         <span className="label">Meu perfil</span>
       </div>
+
+      {/* Superadmin accordion — entra logo abaixo de Meu perfil */}
+      {hasSuperadmin && (
+        <>
+          <div
+            className="um-item um-superadmin-header"
+            onClick={() => setSuperExpanded((v) => !v)}
+            aria-expanded={superExpanded}
+            role="button"
+          >
+            <ShieldAlert size={14} className="ic" />
+            <span className="label">{headerSuper?.label ?? 'Superadmin'}</span>
+            <ChevronDown
+              size={11}
+              className="um-superadmin-chev"
+              style={{
+                transform: superExpanded ? 'rotate(0)' : 'rotate(-90deg)',
+                transition: 'transform 150ms ease',
+                opacity: 0.6,
+              }}
+            />
+          </div>
+          {superExpanded && (
+            <div className="um-superadmin-children">
+              {childrenSuper.map((item, idx) => (
+                <a
+                  key={`super-${idx}`}
+                  href={item.href ?? '#'}
+                  className="um-item um-superadmin-item"
+                  title={item.label}
+                >
+                  <span className="ic dot" />
+                  <span className="label">{item.label}</span>
+                </a>
+              ))}
+              {headerSuper && headerSuper.href && headerSuper.href !== '#' && (
+                <a
+                  href={headerSuper.href}
+                  className="um-item um-superadmin-item"
+                  title="Acessar tela Superadmin"
+                >
+                  <span className="ic dot" />
+                  <span className="label">Acessar Superadmin ›</span>
+                </a>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
       <div className="um-item">
         <span
           className="um-status"
@@ -356,70 +421,12 @@ export function SidebarFooter({
 }) {
   const [openUser, setOpenUser] = useState(false);
 
-  // Separa o item header "Superadmin" dos demais — eles viram children dentro do accordion
-  const headerSuper = superadminItems.find((i) => /^superadmin$/i.test(i.label.trim()));
-  const childrenSuper = superadminItems.filter((i) => !/^superadmin$/i.test(i.label.trim()));
-
-  const [superExpanded, setSuperExpanded] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(LS.SUPER_EXPANDED) === '1';
-  });
-  useEffect(() => {
-    localStorage.setItem(LS.SUPER_EXPANDED, superExpanded ? '1' : '0');
-  }, [superExpanded]);
-
-  const hasSuperadmin = headerSuper || childrenSuper.length > 0;
-
+  // Sprint 0 (2026-04-27): items superadmin migraram pro user dropdown
+  // (logo abaixo de "Meu perfil") — antes ficavam separados num accordion
+  // standalone acima do user button, agora consolidados pra rodapé limpo.
   return (
     <div className="sb-user-wrap">
-      {/* Grupo Superadmin colapsavel */}
-      {hasSuperadmin && (
-        <div className="sb-superadmin">
-          <button
-            type="button"
-            className="sb-superadmin-header"
-            onClick={() => setSuperExpanded((v) => !v)}
-            aria-expanded={superExpanded}
-          >
-            <ChevronDown
-              size={11}
-              className="sb-superadmin-chev"
-              style={{
-                transform: superExpanded ? 'rotate(0)' : 'rotate(-90deg)',
-                transition: 'transform 150ms ease',
-              }}
-            />
-            <span className="label">{headerSuper?.label ?? 'Superadmin'}</span>
-          </button>
-          {superExpanded && (
-            <div className="sb-superadmin-children">
-              {childrenSuper.map((item, idx) => (
-                <a
-                  key={`super-${idx}`}
-                  href={item.href ?? '#'}
-                  className="sb-superadmin-item"
-                  title={item.label}
-                >
-                  <span className="ic dot" />
-                  <span className="label">{item.label}</span>
-                </a>
-              ))}
-              {headerSuper && headerSuper.href && headerSuper.href !== '#' && (
-                <a
-                  href={headerSuper.href}
-                  className="sb-superadmin-item"
-                  title="Acessar tela Superadmin"
-                >
-                  <span className="ic dot" />
-                  <span className="label">Acessar Superadmin ›</span>
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* User dropdown */}
+      {/* User dropdown — agora inclui Superadmin entre Meu perfil e Disponível */}
       <div className="sb-user" style={{ position: 'relative' }}>
         <SidebarUserMenu
           open={openUser}
@@ -427,6 +434,7 @@ export function SidebarFooter({
           nome={nome}
           email={email}
           iniciais={iniciais}
+          superadminItems={superadminItems}
         />
         <button
           className="sb-user-btn"
