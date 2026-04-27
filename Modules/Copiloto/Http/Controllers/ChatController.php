@@ -93,12 +93,66 @@ class ChatController extends Controller
             ->whereNull('rejeitada_em')
             ->get();
 
-        return Inertia::render('Copiloto/Chat', [
-            'conversa'           => $conversa,
-            'conversas'          => $conversas,
-            'mensagens'          => $mensagens,
-            'sugestoesPendentes' => $sugestoesPendentes,
-        ]);
+        // Sprint 1 (2026-04-27): Chat.tsx agora usa AppShellV2 (Cockpit) como
+        // layout-mae, então precisa dos shell props (business, user, conversas
+        // formatadas pra fixadas/rotinas/recentes).
+        return Inertia::render('Copiloto/Chat', array_merge(
+            $this->shellPropsFor($businessId, $conversas, $conversa),
+            [
+                'conversa'           => $conversa,
+                'mensagens'          => $mensagens,
+                'sugestoesPendentes' => $sugestoesPendentes,
+            ]
+        ));
+    }
+
+    /**
+     * Shell props comuns pro AppShellV2 (Cockpit) — reusado por @index, @show,
+     * @cockpit. Retorna business + user + conversas mapeadas pro formato esperado
+     * pelo layout (fixadas/rotinas/recentes).
+     */
+    protected function shellPropsFor($businessId, $conversasReais, ?Conversa $conversaFoco = null): array
+    {
+        $user    = auth()->user();
+        $isSuper = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
+
+        $businessesDisponiveis = $isSuper
+            ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
+            : \App\Business::where('id', $businessId)->get(['id', 'name']);
+
+        $businesses = $businessesDisponiveis->map(fn ($b) => [
+            'id'       => $b->id,
+            'nome'     => $b->name,
+            'iniciais' => $this->iniciais($b->name),
+            'ativa'    => $b->id === (int) $businessId,
+        ])->values();
+
+        $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
+
+        // Conversas reais → formato Cockpit. Pra Sprint 1, todas viram "recentes".
+        // Fixadas e rotinas são mocks vazios — Fase 2 vai modelar isso de verdade.
+        $recentes = collect($conversasReais)->map(fn ($c) => [
+            'id'     => (string) $c->id,
+            'titulo' => $c->titulo,
+            'unread' => 0,
+            'origem' => 'COPI', // tag interna; UI ainda usa só 5 origin badges canônicas
+            'ativa'  => $conversaFoco && (int) $c->id === (int) $conversaFoco->id,
+        ])->values()->all();
+
+        return [
+            'businessNome'     => session('business.name', 'Oimpresso Matriz'),
+            'businesses'       => $businesses,
+            'usuarioNome'      => $userNome,
+            'usuarioNomeCurto' => $user->first_name ?? 'Usuário',
+            'usuarioEmail'     => $user->email ?? '',
+            'usuarioCargo'     => $isSuper ? 'Administrador' : 'Usuário',
+            'usuarioIniciais'  => $this->iniciais($userNome),
+            'conversas'        => [
+                'fixadas'  => [],
+                'rotinas'  => [],
+                'recentes' => $recentes,
+            ],
+        ];
     }
 
     public function criarConversa(Request $request)
