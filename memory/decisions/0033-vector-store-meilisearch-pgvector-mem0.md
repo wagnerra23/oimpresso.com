@@ -1,8 +1,8 @@
 # ADR 0033 — Vector store / search backend do oimpresso: pgvector vs Meilisearch+Scout vs Mem0
 
-**Status:** ✅ Aceita
+**Status:** ✅ Aceita — **VERDADE CANÔNICA** (consolidada em ADR 0035, 2026-04-26)
 **Data decisão:** 2026-04-26
-**Autor:** Wagner (dono/operador)
+**Autor:** Wagner (dono/operador) — *"melhor ROI"* (ADR 0035)
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`, pesquisa profunda solicitada — "procure o pgvector e o meilisearch... scout do laravel")
 **Relacionado:**
 - [ADR 0026 — Posicionamento "ERP gráfico com IA"](0026-posicionamento-erp-grafico-com-ia.md)
