@@ -9,7 +9,7 @@
 
 ## 🚀 Começo Rápido — leia isso primeiro
 
-**Repo:** `D:\oimpresso.com` · **Branch ativa:** `6.7-bootstrap` · **Última sessão:** 2026-04-27 (sessões 18+19 consolidadas)
+**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` (promoção `6.7-bootstrap`→`main` em 2026-04-27, ver ADR 0038) · **Última sessão:** 2026-04-27 noite (promoção branch + cleanup ADR 0024)
 
 **Rodar local:**
 ```bash
@@ -53,7 +53,7 @@ Resposta dela determina sprint 7:
 ```bash
 ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115
 cd domains/oimpresso.com/public_html
-git pull origin 6.7-bootstrap
+git pull origin main
 composer install --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix
 php artisan migrate --no-interaction
 php artisan optimize:clear
@@ -87,6 +87,7 @@ MEILISEARCH_KEY=TFLfQX3Diuz42MydPn68AYH9Km1JbaBI
 | ADR | Tema | Status |
 |---|---|---|
 | 0026 | Posicionamento "ERP gráfico com IA" | ✅ |
+| **0029** | **Padrão Inertia + React + UPos** (era 0024 duplicado, renomeado em 2026-04-27) | ✅ |
 | 0027 | Gestão de memória (papéis canônicos) | ✅ |
 | 0028 | ADRs numeração monotônica | ✅ |
 | 0030 | Credenciais nunca em git | ✅ |
@@ -97,6 +98,7 @@ MEILISEARCH_KEY=TFLfQX3Diuz42MydPn68AYH9Km1JbaBI
 | **0035** | **Stack canônica IA (verdade)** | ✅ Wagner *"melhor ROI"* |
 | **0036** | **Replanejamento Meilisearch first** | ✅ economiza R$1.500-18k/ano |
 | **0037** | **Roadmap Tier 7-9 LongMemEval** | ✅ aceita |
+| **0038** | **Promoção `6.7-bootstrap` → `main`** | ✅ executada 2026-04-27 |
 
 ## 🗂️ Comparativos Capterra canônicos (memory/comparativos/)
 
@@ -180,14 +182,14 @@ Recomendação: fechar #2 e #3 manualmente se não houver intenção de mergear 
 - Site: `https://oimpresso.test` (Herd SSL)
 - MySQL: Laragon `127.0.0.1:3306` root sem senha, DB `oimpresso`
 - PHP: 8.4 Herd
-- Branch principal: `6.7-bootstrap`
-- Último commit: `e9cf6dc1` (feat copiloto)
+- Branch principal: `main` (era `6.7-bootstrap` até 2026-04-27)
+- Último commit: `bd74b80f` (Merge PR #36 — header scandir defensivo)
 
 ## 🧭 Comandos úteis
 
 ```bash
 cd D:\oimpresso.com
-git pull origin 6.7-bootstrap
+git pull origin main
 npm run build:inertia                # NECESSÁRIO após pull (assets não mergeados)
 php artisan optimize:clear
 ./vendor/bin/pest tests/Feature/Modules/Copiloto/ --no-coverage  # 24 passed, 1 skipped
@@ -201,6 +203,23 @@ php artisan optimize:clear
 - PT-BR em tudo (commits, comments, labels)
 - Confirmar escopo antes de implementar massivamente
 - Grow = prioridade produção
+
+---
+
+## 🔄 Sessão 2026-04-27 noite — Promoção `6.7-bootstrap` → `main` + cleanup ADR 0024
+
+- ✅ **Branch principal trocada**: `6.7-bootstrap` (326 commits únicos) promovida pra `main` via force-push (`origin/main` antigo, com 7 commits 3.7-com-nfe + city migration, foi descartado).
+- ✅ **Backup preservado** em `origin/archive/main-pre-6.7-merge` (SHA `0c3a8300`) — recomendado manter por 90 dias.
+- ✅ **6.7-bootstrap deletada** (local + remoto). Worktree `D:/oimpresso.com` movido pra `main`.
+- ✅ **Cleanup do ADR 0024 duplicado** (pendência desde sessão 15): `0024-padrao-inertia-react-ultimatepos.md` renomeado pra `0029-...md` via `git mv`. 11 referências cruzadas atualizadas (sessions, requisitos Financeiro, 5 arquivos PHP em `Modules/Financeiro/Http/`).
+- ✅ **ADR 0038** criado documentando a promoção (formato Nygard, com seção de reversão).
+- ✅ **Evidência MemCofre** em `Modules/MemCofre/Database/evidences/2026-04-27-promocao-main.md` (timeline literal de comandos + SHAs).
+- ✅ Auto-memórias `project_current_branch.md` e `reference_composer_install_obrigatorio_pos_deploy.md` atualizadas.
+- 📝 Detalhes em [memory/sessions/2026-04-27-promocao-6-7-bootstrap-para-main.md](sessions/2026-04-27-promocao-6-7-bootstrap-para-main.md).
+
+**Pendências:**
+- 🟡 PR de cleanup pra `.github/workflows/deploy.yml` (linhas 83-89), `.github/workflows/quick-sync.yml` (linhas 9, 54) e `CLAUDE.md` (linhas 193, 194, 201) — ainda hardcoded em `6.7-bootstrap`. Wagner aguardado pra autorizar.
+- 🟡 PR #18 (DRAFT) vai precisar rebase quando virar não-draft.
 
 ---
 
@@ -286,5 +305,5 @@ php artisan optimize:clear
 
 ---
 
-**Última atualização:** 2026-04-26 noite (sessão 15 — Hero deploy + conflitos memória + ADR 0027 meta-gestão)
-**Estado geral:** 🟢 `6.7-bootstrap` deployado em produção (HTTP 200, Hero PT-BR ok); 🟢 papéis das memórias formalizados (ADR 0027); 🟡 ADR 0024 duplicado aguarda rename
+**Última atualização:** 2026-04-27 noite (promoção `6.7-bootstrap` → `main` + cleanup ADR 0024 duplicado)
+**Estado geral:** 🟢 branch principal agora é `main` (ADR 0038); 🟢 ADR 0024 duplicado resolvido (renomeado pra 0029); 🟡 workflows CI (`deploy.yml`, `quick-sync.yml`) e CLAUDE.md ainda referenciam `6.7-bootstrap` — PR de cleanup pendente; 🟡 PR #18 DRAFT vai precisar rebase
