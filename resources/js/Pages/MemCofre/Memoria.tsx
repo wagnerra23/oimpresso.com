@@ -137,7 +137,7 @@ export default function Memoria({ roots, stats, selected: initialSelected, paths
             </p>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/docs">
+            <Link href="/memcofre">
               <ArrowLeft size={14} className="mr-1.5" /> Voltar
             </Link>
           </Button>

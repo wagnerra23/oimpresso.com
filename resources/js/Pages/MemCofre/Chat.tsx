@@ -151,7 +151,7 @@ export default function MemCofreChat({ session_id, history, recent, modules, ai_
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href="/docs">
+              <Link href="/memcofre">
                 <ArrowLeft size={14} className="mr-1.5" /> Voltar
               </Link>
             </Button>
