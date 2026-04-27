@@ -14,7 +14,7 @@ use Modules\Financeiro\Models\PlanoConta;
  * (ex: "Marketing Digital Q4", "Comissão Vendedor Z"). Cada business
  * tem suas próprias categorias — nome único POR business.
  *
- * Pattern: ADR 0024 (FormRequest + Inertia).
+ * Pattern: ADR 0029 (FormRequest + Inertia).
  */
 class UpsertCategoriaRequest extends FormRequest
 {

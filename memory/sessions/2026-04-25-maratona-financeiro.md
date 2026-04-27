@@ -20,7 +20,8 @@ Começou com Wagner perguntando sobre ADR para upgrade Inertia v3, terminou com 
 ## Decisões arquiteturais salvas
 
 - **ADR 0023** — Inertia v3 upgrade aceito + executado
-- **ADR 0024** — Padrão Inertia + React + UPos (template oficial pra módulos novos)
+- **ADR 0029** — Padrão Inertia + React + UPos (template oficial pra módulos novos) <!-- era 0024, renomeado em 2026-04-27 -->
+
 - **ADR TECH-0003 (Financeiro)** — fork local lib eduardokum + complemento 1-1 com accounts core
 
 ## Bugs do core resolvidos no caminho
@@ -95,5 +96,5 @@ Próximo passo natural: **smoke browser** das 4 telas em https://oimpresso.test/
 ## Refs
 - [memory/requisitos/Financeiro/PLANO_DETALHADO.md](../requisitos/Financeiro/PLANO_DETALHADO.md)
 - [memory/decisions/0023-inertia-v3-upgrade.md](../decisions/0023-inertia-v3-upgrade.md)
-- [memory/decisions/0024-padrao-inertia-react-ultimatepos.md](../decisions/0024-padrao-inertia-react-ultimatepos.md)
+- [memory/decisions/0029-padrao-inertia-react-ultimatepos.md](../decisions/0029-padrao-inertia-react-ultimatepos.md)
 - [memory/requisitos/Financeiro/adr/tech/0003-mvp-eduardokum-com-mock-cnab.md](../requisitos/Financeiro/adr/tech/0003-mvp-eduardokum-com-mock-cnab.md)
