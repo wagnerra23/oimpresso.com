@@ -25,6 +25,7 @@
 | 2026-04-26 | [sistemas_memoria_oimpresso_capterra_2026_04_26.md](sistemas_memoria_oimpresso_capterra_2026_04_26.md) | **Camada A** — 9 sistemas de memória de DEV (CLAUDE.md vs decisions/ vs auto-mem vs MemCofre vs Git/PRs etc) | ADRs 0027/0028/0030; 3 ações 30d (CLAUDE.md aponta cofre, rename 0024 dup, AGENTS.md vira tombstone) |
 | 2026-04-26 | [copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md](copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md) | **Camada C apenas** — Copiloto runtime memory vs Mem0/LangGraph/Letta/Zep/OMEGA (foco em memória especializada) | Caminho B: REST adapter pra Mem0 (5 sprints, Tier 1→6-7); 14 US-COPI-MEM-NNN |
 | 2026-04-26 | [stack_agente_php_vizra_prism_mem0_capterra_2026_04_26.md](stack_agente_php_vizra_prism_mem0_capterra_2026_04_26.md) | **Stack completa A+B+C** — 7 players: Prism PHP, Vizra ADK, Mem0, LangGraph, Letta, Zep, OMEGA | ADR 0031 (MemoriaContrato + Mem0 default) + ADR 0032 (Vizra ADK + Prism PHP); roadmap 7 sprints |
+| 2026-04-27 | [revisao_caminho_2026_04_27_capterra.md](revisao_caminho_2026_04_27_capterra.md) | **Revisão de caminho** — auditoria pós-sprint 6 com 5 caminhos avaliados (atual ADR 0037 / pivot comercial / Typesense / Mem0 cedo / validar Larissa) | Recomenda validar com Larissa ANTES de sprint 7; gatilho de pivot mensurável 30/90d |
 
 ## Próximos sugeridos (não criar sem motivo)
 
