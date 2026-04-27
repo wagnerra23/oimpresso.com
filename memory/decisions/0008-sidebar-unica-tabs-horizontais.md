@@ -1,6 +1,13 @@
 # ADR 0008 — Sidebar com 1 item + menu horizontal em abas dentro do módulo
 
-**Status:** ✅ Aceita
+> ⚠️ **DEPRECADO em 2026-04-27** — substituída por [ADR raiz 0039](./0039-ui-chat-cockpit-padrao.md) e [ADR UI-0008](../requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md).
+>
+> Esta ADR foi escrita pro AppShell legado (sidebar única vertical AdminLTE-like). O ERP completo agora vive dentro do **Cockpit** — sidebar é dual Chat↔Menu, módulos vêm do `shell.menu` real, módulos administrativos (Backup/CMS/Connector/Office Impresso) ficam no rodapé separados, e tabs horizontais foram absorvidos pela coluna principal contextual.
+>
+> Não usar este padrão pra telas novas. Mantida como referência histórica de quando o Ponto WR2 vivia isolado dentro do UltimatePOS.
+
+**Status:** ⚠️ Superseded by ADR 0039 + UI-0008 (2026-04-27)
+**Status anterior:** ✅ Aceita
 **Data:** 2026-04-18
 
 ## Contexto
