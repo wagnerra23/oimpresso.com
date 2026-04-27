@@ -1,3 +1,12 @@
+// @memcofre
+//   tela: /copiloto
+//   stories: US-COPI-001, US-COPI-002, US-COPI-003, US-COPI-MEM-007
+//   rules: R-COPI-001, R-COPI-MEM-005
+//   adrs: 0026, 0031, 0032, 0034, 0035, 0036
+//   tests: tests/Feature/Modules/Copiloto/AdapterResolverTest, tests/Feature/Modules/Copiloto/BridgeMemoriaChatTest
+//   status: implementada
+//   module: Copiloto
+
 import React, { useEffect, useRef, useState } from 'react'
 import AppShell from '@/Layouts/AppShell'
 import { Head, router } from '@inertiajs/react'
