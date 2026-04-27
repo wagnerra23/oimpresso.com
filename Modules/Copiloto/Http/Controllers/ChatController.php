@@ -206,4 +206,134 @@ class ChatController extends Controller
 
         return response()->json(['ok' => true]);
     }
+
+    /**
+     * MVP do padrão "Chat Cockpit" (ADR 0039) — rota paralela ao /copiloto.
+     *
+     * Não substitui o ChatController@index. Coexiste em /copiloto/cockpit pra
+     * Wagner comparar a UX nova com a atual, lado-a-lado, sem risco. Mock data
+     * por enquanto — o backend real só será plugado depois da validação visual.
+     */
+    public function cockpit(Request $request)
+    {
+        $businessId = $request->session()->get('user.business_id');
+        $userId     = auth()->id();
+        $user       = auth()->user();
+        $isSuper    = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
+
+        // Lista de businesses disponiveis pro CompanyPicker:
+        // - Superadmin/admin oimpresso: TODAS as businesses ativas
+        // - Outros: apenas a business atual do user
+        $businessesDisponiveis = $isSuper
+            ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
+            : \App\Business::where('id', $businessId)->get(['id', 'name']);
+
+        $businesses = $businessesDisponiveis->map(fn ($b) => [
+            'id'       => $b->id,
+            'nome'     => $b->name,
+            'iniciais' => $this->iniciais($b->name),
+            'ativa'    => $b->id === (int) $businessId,
+        ])->values();
+
+        // Tenta puxar a conversa real ativa do usuário (se houver) — só pra
+        // ter um ID válido pro composer de teste. Se não tiver, usa null.
+        $conversaAtiva = Conversa::where('user_id', $userId)
+            ->where('business_id', $businessId)
+            ->where('status', 'ativa')
+            ->latest('iniciada_em')
+            ->first(['id', 'titulo']);
+
+        // Mock de conversas espelhando a vibe do protótipo (Cowork "Oimpresso ERP
+        // Comunicação Visual"). Categorias: fixadas, rotinas, recentes.
+        // Gradualmente vai virar dado real conforme TaskProvider/CRM forem
+        // entregando contexto (ver ADR 0039 plano de migração).
+        $mockConversas = [
+            'fixadas' => [
+                ['id' => 'p1', 'titulo' => 'Banner Loja Acme 3×2m', 'unread' => 0, 'origem' => 'OS'],
+                ['id' => 'p2', 'titulo' => 'Produção — Turno A',     'unread' => 2, 'origem' => 'MFG'],
+            ],
+            'rotinas' => [
+                ['id' => 'r1', 'titulo' => 'Banner Acme — aprovação',  'frequencia' => 'Diário'],
+                ['id' => 'r2', 'titulo' => 'Cobrança Padaria Estrela', 'frequencia' => 'Uma vez'],
+                ['id' => 'r3', 'titulo' => 'Reunião PCP — 8h30',       'frequencia' => 'Diário'],
+                ['id' => 'r4', 'titulo' => 'Fechamento Caixa',         'frequencia' => 'Diário'],
+            ],
+            'recentes' => [
+                ['id' => 'c1', 'titulo' => 'Padaria Estrela — Renato',     'unread' => 1, 'origem' => 'CRM'],
+                ['id' => 'c2', 'titulo' => 'Adesivos Recortados — TechPro', 'unread' => 0, 'origem' => 'OS'],
+                ['id' => 'c3', 'titulo' => 'Comercial',                     'unread' => 0, 'origem' => null],
+                ['id' => 'c4', 'titulo' => 'Clínica Vida — Marcos',         'unread' => 0, 'origem' => 'CRM', 'ativa' => true],
+            ],
+        ];
+
+        // Conversa em foco (mock rico — protótipo de referência Cowork)
+        $conversaFoco = [
+            'id'         => 'c2',
+            'titulo'     => 'Adesivos Recortados — TechPro',
+            'tipo'       => 'os',
+            'online'     => true,
+            'avatar'     => ['iniciais' => 'TP', 'gradId' => 7],
+            'cliente'    => [
+                'nome'          => 'TechPro Soluções',
+                'telefone'      => '+55 11 98712-3344',
+                'ultimoContato' => 'hoje 11:48 — perguntou se pode retirar 9h amanhã',
+            ],
+            'os'         => [
+                'numero'   => '#OS-2814',
+                'cliente'  => 'TechPro Soluções',
+                'estagio'  => 'Em produção',
+                'prazo'    => '30/04 às 16h',
+            ],
+            'financeiro' => [
+                'saldo'    => 'R$ 4.820,00 a receber',
+                'boletos'  => '2 boletos · R$ 4.820,00',
+            ],
+            'historico' => [
+                ['quando' => '14:32',       'quem' => 'Mateus PCP',  'oque' => 'liberou para impressão'],
+                ['quando' => '13:55',       'quem' => 'Joana Lima',  'oque' => 'subiu versão v3'],
+                ['quando' => '10:02',       'quem' => 'Mateus PCP',  'oque' => 'alocou na Roland 540'],
+                ['quando' => 'ontem 17:30', 'quem' => 'Camila (cli)','oque' => 'pediu logo +6%'],
+            ],
+            'anexos' => [
+                ['nome' => 'arte-final-v3.pdf', 'tamanho' => '2.4 MB'],
+                ['nome' => 'briefing.pdf',      'tamanho' => '180 KB'],
+            ],
+            'mensagens' => [
+                ['id' => 1, 'autor' => 'them', 'whoAvatar' => ['iniciais' => 'CT', 'gradId' => 12], 'whoNome' => 'Camila — TechPro', 'dia' => 'Hoje', 'texto' => 'Bom dia! Conseguem me passar a previsão de entrega?', 'hora' => '09:42'],
+                ['id' => 2, 'autor' => 'me',   'dia' => 'Hoje', 'texto' => 'Bom dia, Camila! Estamos imprimindo agora — entrega 30/04 às 16h conforme combinado.', 'hora' => '09:48', 'lida' => true],
+                ['id' => 3, 'autor' => 'them', 'whoAvatar' => ['iniciais' => 'CT', 'gradId' => 12], 'whoNome' => 'Camila — TechPro', 'dia' => 'Hoje', 'texto' => 'Perfeito! Posso retirar 9h amanhã em vez de 16h hoje?', 'hora' => '11:48'],
+                ['id' => 4, 'autor' => 'me',   'dia' => 'Hoje', 'texto' => 'Vou confirmar com produção e te aviso em 5 min.', 'hora' => '11:50', 'lida' => true],
+            ],
+        ];
+
+        $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
+
+        return Inertia::render('Copiloto/Cockpit', [
+            'businessNome'  => session('business.name', 'Oimpresso Matriz'),
+            'businesses'    => $businesses,
+            'usuarioNome'        => $userNome,
+            'usuarioNomeCurto'   => $user->first_name ?? 'Usuário',
+            'usuarioEmail'  => $user->email ?? '',
+            'usuarioCargo'  => $isSuper ? 'Administrador' : 'Usuário',
+            'usuarioIniciais'    => $this->iniciais($userNome),
+            'conversas'     => $mockConversas,
+            'conversaFoco'  => $conversaFoco,
+            'conversaAtivaRealId' => $conversaAtiva?->id,
+        ]);
+    }
+
+    /**
+     * Iniciais (até 2 letras) pra usar em avatars: "Wagner Rocha" -> "WR".
+     */
+    protected function iniciais(string $nome): string
+    {
+        $partes = preg_split('/\s+/', trim($nome)) ?: [];
+        $iniciais = '';
+        foreach ($partes as $p) {
+            if ($p === '') continue;
+            $iniciais .= mb_strtoupper(mb_substr($p, 0, 1));
+            if (mb_strlen($iniciais) >= 2) break;
+        }
+        return $iniciais ?: '?';
+    }
 }
