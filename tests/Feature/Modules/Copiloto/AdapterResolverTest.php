@@ -1,7 +1,7 @@
 <?php
 
 use Modules\Copiloto\Contracts\AiAdapter;
-use Modules\Copiloto\Services\Ai\LaravelAiDriver;
+use Modules\Copiloto\Services\Ai\LaravelAiSdkDriver;
 use Modules\Copiloto\Services\Ai\OpenAiDirectDriver;
 
 /**
@@ -9,7 +9,7 @@ use Modules\Copiloto\Services\Ai\OpenAiDirectDriver;
  *
  * Cenários:
  * 1. LaravelAI ausente → driver é OpenAiDirectDriver
- * 2. LaravelAI ativo   → driver é LaravelAiDriver
+ * 2. laravel_ai_sdk    → driver é LaravelAiSdkDriver (canônico, ADR 0035)
  * 3. Config openai_direct força OpenAI mesmo com LaravelAI ativo
  *
  * Não requer DB — testa apenas o binding do container.
@@ -42,21 +42,28 @@ it('resolve OpenAiDirectDriver quando config força openai_direct', function () 
     expect($driver)->toBeInstanceOf(OpenAiDirectDriver::class);
 });
 
-it('resolve LaravelAiDriver quando ai_adapter=laravel_ai e módulo existe', function () {
-    config(['copiloto.ai_adapter' => 'laravel_ai']);
-
-    // Simula LaravelAI disponível via binding direto
-    app()->bind(AiAdapter::class, fn () => app(LaravelAiDriver::class));
+it('resolve LaravelAiSdkDriver quando ai_adapter=laravel_ai_sdk (canônico ADR 0035)', function () {
+    config(['copiloto.ai_adapter' => 'laravel_ai_sdk']);
 
     $driver = app(AiAdapter::class);
 
-    expect($driver)->toBeInstanceOf(LaravelAiDriver::class);
+    expect($driver)->toBeInstanceOf(LaravelAiSdkDriver::class);
 });
 
 it('OpenAiDirectDriver é instanciável', function () {
     $driver = new OpenAiDirectDriver();
 
     expect($driver)->toBeInstanceOf(AiAdapter::class);
+});
+
+it('LaravelAiSdkDriver é instanciável (canônico ADR 0035)', function () {
+    $driver = new LaravelAiSdkDriver();
+
+    expect($driver)->toBeInstanceOf(AiAdapter::class);
+});
+
+it('laravelAiSdkAvailable detecta laravel/ai instalado', function () {
+    expect(class_exists(\Laravel\Ai\AiManager::class))->toBeTrue();
 });
 
 it('dry_run retorna fixture sem chamar API', function () {
