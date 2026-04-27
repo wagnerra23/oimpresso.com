@@ -465,6 +465,8 @@ function SidebarUserMenu({
   );
 }
 
+const LS_SUPER_EXPANDED = 'oimpresso.cockpit.superadmin.expanded';
+
 function SidebarFooter({
   nome,
   nomeCurto,
@@ -481,22 +483,67 @@ function SidebarFooter({
   superadminItems: ShellMenuItem[];
 }) {
   const [openUser, setOpenUser] = useState(false);
+
+  // Separa o item header "Superadmin" dos demais — eles viram children dentro do accordion
+  const headerSuper = superadminItems.find((i) => /^superadmin$/i.test(i.label.trim()));
+  const childrenSuper = superadminItems.filter((i) => !/^superadmin$/i.test(i.label.trim()));
+
+  const [superExpanded, setSuperExpanded] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(LS_SUPER_EXPANDED) === '1';
+  });
+  useEffect(() => {
+    localStorage.setItem(LS_SUPER_EXPANDED, superExpanded ? '1' : '0');
+  }, [superExpanded]);
+
+  const hasSuperadmin = headerSuper || childrenSuper.length > 0;
+
   return (
     <div className="sb-user-wrap">
-      {/* Items superadmin (Backup, CMS, Connector, etc) */}
-      {superadminItems.length > 0 && (
+      {/* Grupo Superadmin colapsável */}
+      {hasSuperadmin && (
         <div className="sb-superadmin">
-          {superadminItems.map((item, idx) => (
-            <a
-              key={`super-${idx}`}
-              href={item.href ?? '#'}
-              className="sb-superadmin-item"
-              title={item.label}
-            >
-              <span className="ic dot" />
-              <span className="label">{item.label}</span>
-            </a>
-          ))}
+          <button
+            type="button"
+            className="sb-superadmin-header"
+            onClick={() => setSuperExpanded((v) => !v)}
+            aria-expanded={superExpanded}
+          >
+            <ChevronDown
+              size={11}
+              className="sb-superadmin-chev"
+              style={{
+                transform: superExpanded ? 'rotate(0)' : 'rotate(-90deg)',
+                transition: 'transform 150ms ease',
+              }}
+            />
+            <span className="label">{headerSuper?.label ?? 'Superadmin'}</span>
+          </button>
+          {superExpanded && (
+            <div className="sb-superadmin-children">
+              {childrenSuper.map((item, idx) => (
+                <a
+                  key={`super-${idx}`}
+                  href={item.href ?? '#'}
+                  className="sb-superadmin-item"
+                  title={item.label}
+                >
+                  <span className="ic dot" />
+                  <span className="label">{item.label}</span>
+                </a>
+              ))}
+              {headerSuper && headerSuper.href && headerSuper.href !== '#' && (
+                <a
+                  href={headerSuper.href}
+                  className="sb-superadmin-item"
+                  title="Acessar tela Superadmin"
+                >
+                  <span className="ic dot" />
+                  <span className="label">Acessar Superadmin ›</span>
+                </a>
+              )}
+            </div>
+          )}
         </div>
       )}
 
