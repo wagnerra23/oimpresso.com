@@ -75,7 +75,7 @@ LANG = {
     'show': 'Mostrar',
     'entries': 'entradas',
     'table_emptyTable':'Sem dados disponíveis na tabela',
-    'table_info':'Showing _START_ to _END_ of _TOTAL_ entries',
+    'table_info':'Mostrando _START_ a _END_ de _TOTAL_ entradas',
     'table_infoEmpty':'Mostrando 0 a 0 de 0 entradas',
     'table_loadingRecords':'Carregando...',
     "table_processing":     "Em processamento...",
@@ -114,6 +114,6 @@ LANG = {
     'enter_pin_here': 'Digite o PIN aqui',
     'authentication_failed': 'Autenticação falhou!',
     'authentication_successfull': 'Autenticação bem-sucedida',	
-    'please_enter' : 'Vui lòng nhập',
-    'or_more_characters' : 'hoặc nhiều hơn ký tự',		   
+    'please_enter' : 'Por favor, digite ',
+    'or_more_characters' : ' ou mais caracteres',
 };
