@@ -1,6 +1,6 @@
 # ADR 0033 — Vector store / search backend do oimpresso: pgvector vs Meilisearch+Scout vs Mem0
 
-**Status:** ✅ Aceita — **VERDADE CANÔNICA** (consolidada em ADR 0035, 2026-04-26)
+**Status:** ✅ Aceita — **VERDADE CANÔNICA** (consolidada em ADR 0035) — ⚠️ **promovido por ADR 0036**: `MeilisearchDriver` virou **driver default** (não mais fallback condicional). Mem0 ficou como upgrade condicional Sprint 8+.
 **Data decisão:** 2026-04-26
 **Autor:** Wagner (dono/operador) — *"melhor ROI"* (ADR 0035)
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`, pesquisa profunda solicitada — "procure o pgvector e o meilisearch... scout do laravel")

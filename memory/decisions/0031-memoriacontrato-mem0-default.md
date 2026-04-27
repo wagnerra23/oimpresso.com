@@ -1,6 +1,6 @@
 # ADR 0031 — `MemoriaContrato` interface PHP + driver default `Mem0RestDriver`
 
-**Status:** ✅ Aceita — **VERDADE CANÔNICA** (consolidada em ADR 0035, 2026-04-26)
+**Status:** ✅ Aceita — **VERDADE CANÔNICA** (consolidada em ADR 0035) — ⚠️ **driver default revisado por ADR 0036**: `MeilisearchDriver` agora é default, `Mem0RestDriver` virou condicional (Sprint 8+, com triggers documentados)
 **Data decisão:** 2026-04-26
 **Autor:** Wagner (dono/operador) — *"melhor ROI"* (declaração canônica em ADR 0035)
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`)
