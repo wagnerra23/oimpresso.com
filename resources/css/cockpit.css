@@ -311,8 +311,11 @@
   font-size: 12px; line-height: 1.5;
 }
 
+.cockpit .sb-user-wrap {
+  border-top: 1px solid var(--sb-border);
+}
 .cockpit .sb-user {
-  border-top: 1px solid var(--sb-border); padding: 8px;
+  padding: 8px;
 }
 .cockpit .sb-user-btn {
   width: 100%; display: flex; align-items: center; gap: 8px;
@@ -327,6 +330,135 @@
 .cockpit .sb-user-btn .who { flex: 1; text-align: left; line-height: 1.2; }
 .cockpit .sb-user-btn .who b { font-size: 12.5px; font-weight: 500; }
 .cockpit .sb-user-btn .who small { font-size: 10.5px; color: var(--sb-text-dim); display: block; }
+
+/* CompanyPicker dropdown */
+.cockpit .sb-cp { position: relative; }
+.cockpit .sb-cp-btn .avatar {
+  width: 22px; height: 22px; border-radius: 6px;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+}
+.cockpit .sb-dd {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--sb-bg-2);
+  border: 1px solid var(--sb-border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px -4px rgba(0,0,0,.4);
+  padding: 6px; z-index: 100;
+  color: var(--sb-text);
+}
+.cockpit .sb-dd-h {
+  padding: 6px 8px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; color: var(--sb-text-dim); text-transform: uppercase;
+}
+.cockpit .sb-dd-i {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; cursor: pointer; border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+.cockpit .sb-dd-i:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+.cockpit .sb-dd-i.active { color: var(--sb-text-hi); }
+.cockpit .sb-dd-i .avatar-sm {
+  width: 18px; height: 18px; border-radius: 4px;
+  display: grid; place-items: center;
+  color: #fff; font-size: 10px; font-weight: 700; flex-shrink: 0;
+}
+.cockpit .sb-dd-i .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cockpit .sb-dd-i .check { color: var(--accent); }
+.cockpit .sb-dd-empty {
+  padding: 12px 8px; text-align: center; font-size: 11.5px; color: var(--sb-text-dim);
+}
+.cockpit .sb-dd-sep {
+  height: 1px; background: var(--sb-border); margin: 4px 0;
+}
+.cockpit .sb-dd-foot {
+  padding: 6px 8px; font-size: 12px; color: var(--sb-text-dim);
+  cursor: pointer; border-radius: var(--radius-sm);
+}
+.cockpit .sb-dd-foot:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+
+/* SidebarMenu items (aba Menu real) */
+.cockpit .sb-item {
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px;
+  color: var(--sb-text); cursor: pointer; border-radius: var(--radius-sm);
+  font-size: 12.5px; text-decoration: none;
+}
+.cockpit .sb-item:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+.cockpit .sb-item.active { background: var(--sb-active); color: var(--sb-text-hi); }
+.cockpit .sb-item .ic.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--sb-text-dim); flex-shrink: 0; margin-left: 5px;
+}
+.cockpit .sb-item .label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cockpit .sb-item-child { padding-left: 24px; }
+
+/* Superadmin items no rodapé */
+.cockpit .sb-superadmin {
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--sb-border);
+}
+.cockpit .sb-superadmin-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 8px;
+  color: var(--sb-text-dim);
+  cursor: pointer; border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  text-decoration: none;
+}
+.cockpit .sb-superadmin-item:hover { background: var(--sb-hover); color: var(--sb-text); }
+.cockpit .sb-superadmin-item .ic.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--sb-text-dim); flex-shrink: 0;
+}
+.cockpit .sb-superadmin-item .label { flex: 1; }
+
+/* User menu (popup completo) */
+.cockpit .user-menu {
+  position: absolute; bottom: calc(100% + 4px); left: 8px; right: 8px;
+  background: var(--sb-bg-2);
+  border: 1px solid var(--sb-border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px -4px rgba(0,0,0,.4);
+  padding: 6px; z-index: 100;
+  color: var(--sb-text);
+}
+.cockpit .user-menu-head {
+  padding: 8px 8px 12px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--sb-border);
+  margin-bottom: 4px;
+}
+.cockpit .user-menu-head .avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: oklch(0.55 0.12 30);
+  color: #fff; display: grid; place-items: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.cockpit .user-menu-head .meta { line-height: 1.25; }
+.cockpit .user-menu-head .meta b { display: block; font-size: 12.5px; color: var(--sb-text-hi); font-weight: 500; }
+.cockpit .user-menu-head .meta small { font-size: 10.5px; color: var(--sb-text-dim); }
+.cockpit .um-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; cursor: pointer;
+  border-radius: var(--radius-sm); font-size: 12.5px;
+  color: var(--sb-text);
+  text-decoration: none;
+}
+.cockpit .um-item:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+.cockpit .um-item .ic { color: var(--sb-text-dim); flex-shrink: 0; }
+.cockpit .um-item .label { flex: 1; }
+.cockpit .um-item .arrow { color: var(--sb-text-dim); font-size: 14px; }
+.cockpit .um-item .um-status {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  margin-left: 3px;
+}
+.cockpit .um-item .kbd {
+  background: oklch(0.30 0 0); color: var(--sb-text-dim);
+  border: 1px solid var(--sb-border);
+  border-radius: 4px; padding: 1px 5px; font-size: 10px;
+  font-family: var(--font-mono);
+}
+.cockpit .um-sep { height: 1px; background: var(--sb-border); margin: 4px 0; }
 
 /* ═══════════════════════ MAIN COLUMN ═══════════════════════ */
 .cockpit .main {

@@ -47,10 +47,21 @@ interface ConversaFoco {
   mensagens: Mensagem[];
 }
 
+interface BusinessOpt {
+  id: number;
+  nome: string;
+  iniciais: string;
+  ativa: boolean;
+}
+
 interface Props {
   businessNome: string;
+  businesses: BusinessOpt[];
   usuarioNome: string;
+  usuarioNomeCurto: string;
+  usuarioEmail: string;
   usuarioCargo: string;
+  usuarioIniciais: string;
   conversas: {
     fixadas: ConversaResumo[];
     rotinas: Rotina[];
@@ -58,6 +69,29 @@ interface Props {
   };
   conversaFoco: ConversaFoco;
   conversaAtivaRealId: number | null;
+}
+
+// MenuItem do shell global (vem via Inertia shared props)
+interface ShellMenuItem {
+  label: string;
+  href?: string;
+  icon?: string;
+  inertia?: boolean;
+  children?: ShellMenuItem[];
+}
+
+// Labels de menu items que pertencem ao "rodapé superadmin"
+// (heurística por enquanto — TODO: virar flag no MenuItem do backend)
+const SUPERADMIN_LABELS = new Set<string>([
+  'Backup', 'CMS', 'Connector', 'Office Impresso', 'Officeimpresso',
+  'Módulos', 'Modulos', 'Manage Modules', 'Personalizar', 'Memória', 'MemCofre',
+]);
+
+function isSuperadminMenu(label: string): boolean {
+  const norm = label.trim();
+  if (SUPERADMIN_LABELS.has(norm)) return true;
+  // matching parcial pra labels longos
+  return /superadmin|module|backup|connector|cms\b/i.test(norm);
 }
 
 // ── constantes ──────────────────────────────────────────────────────────
@@ -86,19 +120,80 @@ const CHAT_TABS: Array<{ id: string; label: string }> = [
 
 // ── componentes internos ────────────────────────────────────────────────
 
-function CompanyPicker({ businessNome }: { businessNome: string }) {
-  const initials = businessNome
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+// Gradiente determinístico por id (mesma empresa = mesma cor)
+function gradientFor(id: number): string {
+  const hue = (id * 47) % 360;
+  return `linear-gradient(135deg, oklch(0.55 0.15 ${hue}), oklch(0.65 0.15 ${(hue + 60) % 360}))`;
+}
+
+function CompanyPicker({
+  businesses,
+  fallbackNome,
+}: {
+  businesses: BusinessOpt[];
+  fallbackNome: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const ativa = businesses.find((b) => b.ativa) ?? businesses[0];
+  const nome = ativa?.nome ?? fallbackNome;
+  const iniciais = ativa?.iniciais ?? fallbackNome.slice(0, 2).toUpperCase();
+  const grad = ativa ? gradientFor(ativa.id) : gradientFor(1);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
   return (
-    <button className="sb-cp-btn" type="button">
-      <span className="avatar">{initials}</span>
-      <span className="name">{businessNome}</span>
-      <ChevronDown size={14} />
-    </button>
+    <div className="sb-cp" ref={ref}>
+      <button
+        className="sb-cp-btn"
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="avatar" style={{ background: grad }}>
+          {iniciais}
+        </span>
+        <span className="name">{nome}</span>
+        <ChevronDown size={14} />
+      </button>
+      {open && (
+        <div className="sb-dd">
+          <div className="sb-dd-h">EMPRESAS</div>
+          {businesses.length === 0 && (
+            <div className="sb-dd-empty">Nenhuma empresa disponível</div>
+          )}
+          {businesses.map((b) => (
+            <div
+              key={b.id}
+              className={`sb-dd-i ${b.ativa ? 'active' : ''}`}
+              onClick={() => {
+                if (b.ativa) {
+                  setOpen(false);
+                  return;
+                }
+                // TODO Fase 4: POST /copiloto/cockpit/switch-business
+                alert(`Switch para "${b.nome}" — em breve (Fase 4 do cockpit).`);
+                setOpen(false);
+              }}
+            >
+              <span className="avatar-sm" style={{ background: gradientFor(b.id) }}>
+                {b.iniciais}
+              </span>
+              <span className="name">{b.nome}</span>
+              {b.ativa && <Check size={14} className="check" />}
+            </div>
+          ))}
+          <div className="sb-dd-sep" />
+          <div className="sb-dd-foot">+ Adicionar empresa</div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -204,42 +299,195 @@ function SidebarChat({
   );
 }
 
-function SidebarMenuStub() {
+function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = !!item.children?.length;
+  const href = item.href ?? '#';
+
+  if (hasChildren) {
+    return (
+      <>
+        <div className="sb-item" onClick={() => setExpanded((v) => !v)}>
+          <ChevronDown
+            size={12}
+            className="ic"
+            style={{
+              transform: expanded ? 'rotate(0)' : 'rotate(-90deg)',
+              transition: 'transform 120ms',
+              opacity: 0.6,
+            }}
+          />
+          <span className="label">{item.label}</span>
+        </div>
+        {expanded &&
+          item.children!.map((c, i) => (
+            <a
+              key={`${c.label}-${i}`}
+              href={c.href ?? '#'}
+              className="sb-item sb-item-child"
+            >
+              <span className="ic dot" />
+              <span className="label">{c.label}</span>
+            </a>
+          ))}
+      </>
+    );
+  }
+
   return (
-    <div className="sb-menu-stub">
-      <Hash size={20} style={{ opacity: 0.4, marginBottom: 8 }} />
-      <p>Aba <b>Menu</b> entra na próxima fase do MVP.</p>
-      <p style={{ marginTop: 8, fontSize: 11 }}>
-        Será espelho fiel do AppShell atual (LegacyMenuAdapter), zero
-        re-aprendizado pelo cliente final.
-      </p>
+    <a href={href} className="sb-item">
+      <span className="ic dot" />
+      <span className="label">{item.label}</span>
+    </a>
+  );
+}
+
+function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
+  if (!items?.length) {
+    return (
+      <div className="sb-menu-stub">
+        <Hash size={20} style={{ opacity: 0.4, marginBottom: 8 }} />
+        <p>Menu vazio — sem items disponíveis.</p>
+      </div>
+    );
+  }
+  // Filtra superadmin (vão pro rodapé)
+  const principais = items.filter((i) => !isSuperadminMenu(i.label));
+  return (
+    <div>
+      {principais.map((item, idx) => (
+        <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
+      ))}
     </div>
   );
 }
 
-function SidebarUser({
+function SidebarUserMenu({
+  open,
+  onClose,
   nome,
+  email,
+  iniciais,
+}: {
+  open: boolean;
+  onClose: () => void;
+  nome: string;
+  email: string;
+  iniciais: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div className="user-menu" ref={ref}>
+      <div className="user-menu-head">
+        <span className="avatar">{iniciais}</span>
+        <div className="meta">
+          <b>{nome}</b>
+          <small>{email}</small>
+        </div>
+      </div>
+      <div className="um-item">
+        <User size={14} className="ic" />
+        <span className="label">Meu perfil</span>
+      </div>
+      <div className="um-item">
+        <span
+          className="um-status"
+          style={{ background: 'oklch(0.72 0.18 145)' }}
+        />
+        <span className="label">Disponível</span>
+        <span className="arrow">›</span>
+      </div>
+      <div className="um-item">
+        <Moon size={14} className="ic" />
+        <span className="label">Aparência</span>
+        <span className="arrow">›</span>
+      </div>
+      <div className="um-sep" />
+      <div className="um-item">
+        <Keyboard size={14} className="ic" />
+        <span className="label">Atalhos</span>
+        <span className="kbd">⌘/</span>
+      </div>
+      <div className="um-item">
+        <Search size={14} className="ic" />
+        <span className="label">Central de ajuda</span>
+      </div>
+      <div className="um-sep" />
+      <a href="/logout" className="um-item">
+        <LogOut size={14} className="ic" />
+        <span className="label">Sair</span>
+      </a>
+    </div>
+  );
+}
+
+function SidebarFooter({
+  nome,
+  nomeCurto,
+  email,
   cargo,
+  iniciais,
+  superadminItems,
 }: {
   nome: string;
+  nomeCurto: string;
+  email: string;
   cargo: string;
+  iniciais: string;
+  superadminItems: ShellMenuItem[];
 }) {
-  const initials = nome
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const [openUser, setOpenUser] = useState(false);
   return (
-    <div className="sb-user">
-      <button className="sb-user-btn" type="button">
-        <span className="avatar">{initials}</span>
-        <div className="who">
-          <b>{nome}</b>
-          <small>{cargo}</small>
+    <div className="sb-user-wrap">
+      {/* Items superadmin (Backup, CMS, Connector, etc) */}
+      {superadminItems.length > 0 && (
+        <div className="sb-superadmin">
+          {superadminItems.map((item, idx) => (
+            <a
+              key={`super-${idx}`}
+              href={item.href ?? '#'}
+              className="sb-superadmin-item"
+              title={item.label}
+            >
+              <span className="ic dot" />
+              <span className="label">{item.label}</span>
+            </a>
+          ))}
         </div>
-        <ChevronUp size={12} />
-      </button>
+      )}
+
+      {/* User dropdown */}
+      <div className="sb-user" style={{ position: 'relative' }}>
+        <SidebarUserMenu
+          open={openUser}
+          onClose={() => setOpenUser(false)}
+          nome={nome}
+          email={email}
+          iniciais={iniciais}
+        />
+        <button
+          className="sb-user-btn"
+          type="button"
+          onClick={() => setOpenUser((v) => !v)}
+        >
+          <span className="avatar">{iniciais}</span>
+          <div className="who">
+            <b>{nomeCurto}</b>
+            <small>{cargo}</small>
+          </div>
+          <ChevronUp size={12} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -462,11 +710,20 @@ function TweaksPanel({
 
 export default function Cockpit({
   businessNome,
+  businesses,
   usuarioNome,
+  usuarioNomeCurto,
+  usuarioEmail,
   usuarioCargo,
+  usuarioIniciais,
   conversas,
   conversaFoco,
 }: Props) {
+  // Pega o menu compartilhado do shell (LegacyMenuAdapter já popula via Inertia share)
+  const page = usePage();
+  const shellMenu: ShellMenuItem[] =
+    ((page.props as { shell?: { menu?: ShellMenuItem[] } })?.shell?.menu) ?? [];
+  const superadminItems = shellMenu.filter((i) => isSuperadminMenu(i.label));
   const [tab, setTab] = useState<'chat' | 'menu'>(() => {
     if (typeof window === 'undefined') return 'chat';
     return (localStorage.getItem(LS_TAB) as 'chat' | 'menu') || 'chat';
@@ -555,7 +812,7 @@ export default function Cockpit({
         {/* SIDEBAR */}
         <aside className="sb">
           <div className="sb-top">
-            <CompanyPicker businessNome={businessNome} />
+            <CompanyPicker businesses={businesses} fallbackNome={businessNome} />
           </div>
           <SidebarTabs tab={tab} onTab={setTab} />
           <div className="sb-body">
@@ -568,10 +825,17 @@ export default function Cockpit({
                 onSelect={setActiveConvId}
               />
             ) : (
-              <SidebarMenuStub />
+              <SidebarMenu items={shellMenu} />
             )}
           </div>
-          <SidebarUser nome={usuarioNome} cargo={usuarioCargo} />
+          <SidebarFooter
+            nome={usuarioNome}
+            nomeCurto={usuarioNomeCurto}
+            email={usuarioEmail}
+            cargo={usuarioCargo}
+            iniciais={usuarioIniciais}
+            superadminItems={superadminItems}
+          />
         </aside>
 
         {/* MAIN */}
