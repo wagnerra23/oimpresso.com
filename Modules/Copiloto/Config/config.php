@@ -55,6 +55,9 @@ return [
     */
     'memoria' => [
         'driver' => env('COPILOTO_MEMORIA_DRIVER', 'auto'),
+        // Sprint 5 — bridge memória↔chat (ADR 0036)
+        'recall_enabled' => env('COPILOTO_MEMORIA_RECALL', true),
+        'write_enabled'  => env('COPILOTO_MEMORIA_WRITE', true),
         'meilisearch' => [
             'index'          => env('COPILOTO_MEMORIA_INDEX', 'copiloto_memoria_facts'),
             'top_k_default'  => 5,
