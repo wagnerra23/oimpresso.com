@@ -24,12 +24,13 @@ class ChatCopilotoAgent implements Agent
 
     public function __construct(
         public Conversa $conversa,
+        public string $memoriaContexto = '',
     ) {
     }
 
     public function instructions(): Stringable|string
     {
-        return <<<PROMPT
+        $base = <<<PROMPT
         Você é o Copiloto do oimpresso, um assistente de IA para gestores de pequenas e médias empresas brasileiras.
         Responda sempre em português brasileiro.
         Seja direto, prático e orientado a resultados.
@@ -37,6 +38,13 @@ class ChatCopilotoAgent implements Agent
         Nunca invente dados — baseie-se apenas no contexto fornecido.
         Quando não tiver informação suficiente, peça esclarecimentos.
         PROMPT;
+
+        // Sprint 5 (ADR 0036) — recall de fatos persistentes do user via MemoriaContrato.
+        if ($this->memoriaContexto !== '') {
+            return $base . "\n\n" . trim($this->memoriaContexto);
+        }
+
+        return $base;
     }
 
     /**
