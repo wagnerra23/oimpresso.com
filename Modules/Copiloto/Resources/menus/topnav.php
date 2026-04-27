@@ -15,13 +15,13 @@
  */
 
 return [
-    'label' => 'Copiloto',
+    'label' => 'copiloto::copiloto.module_label',
     'icon'  => 'Compass',
     'items' => [
-        ['label' => 'Conversar',      'href' => '/copiloto',                'icon' => 'MessageSquare',   'can' => 'copiloto.chat'],
-        ['label' => 'Dashboard',      'href' => '/copiloto/dashboard',      'icon' => 'LayoutDashboard', 'can' => 'copiloto.access'],
-        ['label' => 'Metas',          'href' => '/copiloto/metas',          'icon' => 'Target',          'can' => 'copiloto.metas.manage'],
-        ['label' => 'Alertas',        'href' => '/copiloto/alertas',        'icon' => 'Bell',            'can' => 'copiloto.access'],
-        ['label' => 'Plataforma',     'href' => '/copiloto/superadmin/metas', 'icon' => 'Building2',     'can' => 'copiloto.superadmin'],
+        ['label' => 'copiloto::copiloto.menu.conversar',  'href' => '/copiloto',                  'icon' => 'MessageSquare',   'can' => 'copiloto.chat'],
+        ['label' => 'copiloto::copiloto.menu.dashboard',  'href' => '/copiloto/dashboard',        'icon' => 'LayoutDashboard', 'can' => 'copiloto.access'],
+        ['label' => 'copiloto::copiloto.menu.metas',      'href' => '/copiloto/metas',            'icon' => 'Target',          'can' => 'copiloto.metas.manage'],
+        ['label' => 'copiloto::copiloto.menu.alertas',    'href' => '/copiloto/alertas',          'icon' => 'Bell',            'can' => 'copiloto.access'],
+        ['label' => 'copiloto::copiloto.menu.plataforma', 'href' => '/copiloto/superadmin/metas', 'icon' => 'Building2',       'can' => 'copiloto.superadmin'],
     ],
 ];
