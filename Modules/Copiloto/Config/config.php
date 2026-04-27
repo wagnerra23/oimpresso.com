@@ -16,11 +16,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Adapter de IA
+    | Adapter de IA — verdade canônica ADR 0035
     |--------------------------------------------------------------------------
-    | 'auto'           — usa LaravelAI se presente, senão OpenAI direto
-    | 'laravel_ai'     — força LaravelAI (falha se módulo ausente)
-    | 'openai_direct'  — força openai-php/laravel direto
+    | 'auto'             — detecta laravel/ai instalado, fallback OpenAiDirect (legado)
+    | 'laravel_ai_sdk'   — força Laravel AI SDK oficial (CANÔNICO, fev/2026)
+    | 'openai_direct'    — LEGADO, depende de openai-php/laravel (não instalado)
     */
     'ai_adapter' => env('COPILOTO_AI_ADAPTER', 'auto'),
 

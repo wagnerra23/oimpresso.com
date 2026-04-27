@@ -50,23 +50,34 @@ class CopilotoServiceProvider extends ServiceProvider
         // Drivers de apuração — ver adr/tech/0001
         $this->app->tag([SqlDriver::class], 'copiloto.drivers');
 
-        // Adapter IA — ver adr/tech/0002
+        // Adapter IA — verdade canônica em ADRs 0031/0032/0033/0034/0035
         $this->app->bind(
             \Modules\Copiloto\Contracts\AiAdapter::class,
             function () {
                 $adapterMode = config('copiloto.ai_adapter', 'auto');
 
-                if ($adapterMode === 'laravel_ai' || ($adapterMode === 'auto' && $this->laravelAiAvailable())) {
-                    return $this->app->make(\Modules\Copiloto\Services\Ai\LaravelAiDriver::class);
+                // 'laravel_ai_sdk' (CANÔNICO) — pacote oficial laravel/ai (fev/2026)
+                if ($adapterMode === 'laravel_ai_sdk' || ($adapterMode === 'auto' && $this->laravelAiSdkAvailable())) {
+                    return $this->app->make(\Modules\Copiloto\Services\Ai\LaravelAiSdkDriver::class);
                 }
 
+                // 'openai_direct' (LEGADO/deprecated) — depende de openai-php/laravel não instalado
                 return $this->app->make(\Modules\Copiloto\Services\Ai\OpenAiDirectDriver::class);
             }
         );
     }
 
     /**
-     * Módulo LaravelAI instalado e ativo?
+     * Pacote laravel/ai (Laravel AI SDK oficial) está instalado?
+     * Detecta via class_exists no autoload, sem exigir publish de config.
+     */
+    protected function laravelAiSdkAvailable(): bool
+    {
+        return class_exists(\Laravel\Ai\AiManager::class);
+    }
+
+    /**
+     * Módulo LaravelAI interno instalado e ativo? (legado, ainda referenciado por config)
      */
     protected function laravelAiAvailable(): bool
     {
