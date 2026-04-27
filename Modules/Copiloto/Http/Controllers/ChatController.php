@@ -218,6 +218,22 @@ class ChatController extends Controller
     {
         $businessId = $request->session()->get('user.business_id');
         $userId     = auth()->id();
+        $user       = auth()->user();
+        $isSuper    = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
+
+        // Lista de businesses disponiveis pro CompanyPicker:
+        // - Superadmin/admin oimpresso: TODAS as businesses ativas
+        // - Outros: apenas a business atual do user
+        $businessesDisponiveis = $isSuper
+            ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
+            : \App\Business::where('id', $businessId)->get(['id', 'name']);
+
+        $businesses = $businessesDisponiveis->map(fn ($b) => [
+            'id'       => $b->id,
+            'nome'     => $b->name,
+            'iniciais' => $this->iniciais($b->name),
+            'ativa'    => $b->id === (int) $businessId,
+        ])->values();
 
         // Tenta puxar a conversa real ativa do usuário (se houver) — só pra
         // ter um ID válido pro composer de teste. Se não tiver, usa null.
@@ -265,13 +281,34 @@ class ChatController extends Controller
             ],
         ];
 
+        $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
+
         return Inertia::render('Copiloto/Cockpit', [
             'businessNome'  => session('business.name', 'Oimpresso Matriz'),
-            'usuarioNome'   => auth()->user()->first_name ?? 'Usuário',
-            'usuarioCargo'  => 'Administrador',
+            'businesses'    => $businesses,
+            'usuarioNome'        => $userNome,
+            'usuarioNomeCurto'   => $user->first_name ?? 'Usuário',
+            'usuarioEmail'  => $user->email ?? '',
+            'usuarioCargo'  => $isSuper ? 'Administrador' : 'Usuário',
+            'usuarioIniciais'    => $this->iniciais($userNome),
             'conversas'     => $mockConversas,
             'conversaFoco'  => $conversaFoco,
             'conversaAtivaRealId' => $conversaAtiva?->id,
         ]);
+    }
+
+    /**
+     * Iniciais (até 2 letras) pra usar em avatars: "Wagner Rocha" -> "WR".
+     */
+    protected function iniciais(string $nome): string
+    {
+        $partes = preg_split('/\s+/', trim($nome)) ?: [];
+        $iniciais = '';
+        foreach ($partes as $p) {
+            if ($p === '') continue;
+            $iniciais .= mb_strtoupper(mb_substr($p, 0, 1));
+            if (mb_strlen($iniciais) >= 2) break;
+        }
+        return $iniciais ?: '?';
     }
 }
