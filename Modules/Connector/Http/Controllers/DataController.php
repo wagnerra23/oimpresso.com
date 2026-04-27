@@ -71,7 +71,7 @@ class DataController extends Controller
                         );
                     },
                     ['icon' => 'fas fa-plug']
-                )->order(89);
+                )->order(6);
             });
         }
     }
