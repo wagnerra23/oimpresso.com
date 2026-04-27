@@ -107,6 +107,31 @@ php artisan optimize:clear
 
 ---
 
+## 🔄 Sessão 17 (2026-04-26 fim do dia) — Sprint 1 stack-alvo IA canônica
+
+- ✅ **PR #24 mergeado** em `6.7-bootstrap` (`3d64e5bb`): Sprint 1 do roadmap canônico ADR 0035.
+  - `composer require laravel/ai ^0.6.3 + laravel/boost ^2.4 --dev`
+  - 4 arquivos novos: `LaravelAiSdkDriver` + 3 Agents (`BriefingAgent` / `SugestoesMetasAgent` / `ChatCopilotoAgent`)
+  - Stub legado `LaravelAiDriver.php` removido
+  - **26/27 testes Pest passing** (1 skipped intencional)
+- ✅ **ADR 0035 — verdade canônica** declarada por Wagner ("melhor ROI"). Stack-alvo: `laravel/ai` (camada A) + Vizra ADK (camada B, sprints 2-3) + `MemoriaContrato`/Mem0/Meilisearch (camada C, sprints 4-5/8-10) + Boost (DEV).
+- ✅ ADRs 0031/0032/0033/0034 atualizados com header "VERDADE CANÔNICA" apontando pro 0035.
+- ✅ CLAUDE.md + AGENTS.md + auto-memória relevante revisados.
+- ✅ **Meilisearch local Windows** rodando em `http://127.0.0.1:7700` (PID 31928, master key `D:\oimpresso.com\meilisearch\.meilisearch-key.txt`).
+- ✅ **Meilisearch v1.10.3 instalado no Hostinger** em `~/meilisearch/` (versão antiga compatível com GLIBC 2.34).
+- 🟡 **Daemon Meilisearch no Hostinger ainda NÃO iniciado** — SSH flaky no fim da sessão. Comando documentado em `memory/sessions/2026-04-26-sprint1-stack-canonica.md`.
+- 🟡 **Deploy do PR #24 pra produção** ainda NÃO feito — `composer install` precisa rodar no servidor (sprint 1 mexeu em `composer.json`/`composer.lock`).
+- 📝 Detalhes em [memory/sessions/2026-04-26-sprint1-stack-canonica.md](sessions/2026-04-26-sprint1-stack-canonica.md).
+
+**Pendências críticas pra próxima sessão:**
+1. Deploy SSH no Hostinger: `git pull origin 6.7-bootstrap && composer install && php artisan optimize:clear`
+2. Setar `OPENAI_API_KEY` (ou `ANTHROPIC_API_KEY`) no `.env` de produção
+3. Setar `COPILOTO_AI_DRY_RUN=false` quando estiver pronto pra IA real
+4. Iniciar daemon Meilisearch no Hostinger (comando no session log)
+5. Smoke manual em `/copiloto`
+
+---
+
 ## 🔄 Sessão 15 (2026-04-26 noite) — Deploy Hero fix + conflitos de memória
 
 - ✅ Deploy manual de `039a810d` em produção (Hero CMS hardcoded). Validado: HTTP 200 + bundle PT-BR.
