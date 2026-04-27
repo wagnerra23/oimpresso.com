@@ -1,6 +1,6 @@
 # ADR 0035 — Stack-alvo de IA do Copiloto: declaração canônica
 
-**Status:** ✅ Aceita — **VERDADE CANÔNICA do projeto**
+**Status:** ✅ Aceita — **VERDADE CANÔNICA do projeto** — ⚠️ ordem dos sprints **revisada por ADR 0036** (Meilisearch first, Mem0 último)
 **Data decisão:** 2026-04-26 (sessão 17, fim do dia)
 **Autor:** Wagner (dono/operador) — *"quero sim, e grave isso como verdade canônica. acho que isso vai ser o melhor ROI"*
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`)
