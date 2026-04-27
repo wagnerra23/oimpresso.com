@@ -21,7 +21,7 @@ use Modules\Financeiro\Models\PlanoConta;
  * Multi-tenant: BusinessScope (Concerns\BusinessScope) filtra por
  * session('user.business_id') automaticamente em todas as queries.
  *
- * Pattern: ADR 0024 (Inertia + React + UPos).
+ * Pattern: ADR 0029 (Inertia + React + UPos).
  */
 class CategoriaController extends Controller
 {

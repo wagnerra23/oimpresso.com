@@ -18,7 +18,7 @@ use Modules\Financeiro\Strategies\CnabDirectStrategy;
  * Lista todas accounts do business + complemento (fin_contas_bancarias) se
  * tiver. Permite configurar dados de boleto via Sheet.
  *
- * Pattern: ADR 0024 (Inertia + React + UPos).
+ * Pattern: ADR 0029 (Inertia + React + UPos).
  * Decisao schema: ADR TECH-0003 (complemento 1-1 com accounts core).
  */
 class ContaBancariaController extends Controller

@@ -474,6 +474,6 @@ Controller::emitirBoleto
 
 - ADR UI-0001 (conciliação 3 colunas) e UI-0002 (dashboard unificado)
 - ADR ARQ-0001 a 0005, TECH-0001 a 0003
-- ADR 0024 (padrão Inertia + React + UPos)
+- ADR 0029 (padrão Inertia + React + UPos) <!-- era 0024, renomeado em 2026-04-27 -->
 - [PLANO_DETALHADO.md](PLANO_DETALHADO.md) — 4 ondas
 - Concorrentes: contaazul.com, tiny.com.br, bling.com.br, quickbooks.intuit.com

@@ -327,6 +327,6 @@ ROTA LIVRE consegue:
 - ADR ARQ-0001 a 0005 (Financeiro)
 - ADR TECH-0001 a 0003 (Financeiro)
 - ADR UI-0001 (conciliação) e UI-0002 (dashboard)
-- ADR 0024 (padrão Inertia + React + UPos)
+- ADR 0029 (padrão Inertia + React + UPos) <!-- era 0024, renomeado em 2026-04-27 -->
 - [_Roadmap_Faturamento.md](../_Roadmap_Faturamento.md)
 - [auto-memória cliente_rotalivre](../../cliente_rotalivre.md) — sensibilidades Larissa
