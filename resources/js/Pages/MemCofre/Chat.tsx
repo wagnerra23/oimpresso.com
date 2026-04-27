@@ -7,7 +7,7 @@
 //   adrs: 0003, tech/0001, ui/0001
 //   tests: Modules/MemCofre/Tests/Feature/ChatTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
 import { FormEvent, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
@@ -293,10 +293,10 @@ export default function MemCofreChat({ session_id, history, recent, modules, ai_
 }
 
 MemCofreChat.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 title="Chat · Cofre" breadcrumbItems={[
     { label: 'Cofre de Memórias', href: '/memcofre' },
     { label: 'Chat' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
