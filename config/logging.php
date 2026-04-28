@@ -63,6 +63,13 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
+        'copiloto-ai' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/copiloto-ai.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

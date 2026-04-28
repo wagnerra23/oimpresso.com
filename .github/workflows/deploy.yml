@@ -80,22 +80,23 @@ jobs:
       - name: Maintenance mode ON
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan down --retry=60 --refresh=60 || true"
 
-      - name: Git pull — branch 6.7-bootstrap
+      - name: Git pull — branch main
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             git fetch origin &&
-            git checkout 6.7-bootstrap &&
-            git reset --hard origin/6.7-bootstrap &&
+            git checkout main &&
+            git reset --hard origin/main &&
             git log --oneline -3
           "
 
-      - name: Composer install (produção, sem dev)
+      - name: Composer install (produção)
+        # NÃO usar --no-dev: Faker é usado em prod (incidente 2026-04-25, tela branca Inertia "null.component"). Ver auto-mem reference_composer_install_obrigatorio_pos_deploy.md
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
-            composer install --no-dev --optimize-autoloader --no-interaction --no-scripts 2>&1 | tail -20 &&
-            composer dump-autoload --optimize --no-dev 2>&1 | tail -3
+            composer install --optimize-autoloader --no-interaction --no-scripts 2>&1 | tail -20 &&
+            composer dump-autoload --optimize 2>&1 | tail -3
           "
 
       - name: Artisan migrate (se necessário)

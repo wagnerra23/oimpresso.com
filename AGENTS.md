@@ -8,7 +8,7 @@ Resumo operacional (atualizado 2026-04-26):
 - Stack: Laravel 13.6 + PHP 8.4 + nWidart/laravel-modules ^10 + MySQL 8 + Inertia v3 + React + Tailwind 4
 - Módulo principal: `Modules/PontoWr2/` (ponto eletrônico). Outros: Copiloto, Financeiro, Cms, MemCofre, Officeimpresso.
 - Conformidade: Portaria MTP 671/2021, CLT, LGPD
-- Branch ativa: `6.7-bootstrap` (Wagner commita direto, não em main)
+- Branch ativa: `main` (promoção `6.7-bootstrap`→`main` em 2026-04-27, ver ADR 0038)
 - Sistema de memória: `memory/` (`CLAUDE.md` é canônico; `memory/INDEX.md` é índice)
 - Gestão de papéis das memórias: ver ADR 0027 (meta-ADR)
 - **Stack-alvo de IA (VERDADE CANÔNICA):** `laravel/ai` (camada A) + `vizra/vizra-adk` (camada B) + `MemoriaContrato` com `Mem0RestDriver` default ou `MeilisearchDriver` fallback (camada C) + `laravel/boost --dev` (tooling). Declarada por Wagner em 2026-04-26 como "melhor ROI". Ver ADR 0035 (consolida 0031/0032/0033/0034).
