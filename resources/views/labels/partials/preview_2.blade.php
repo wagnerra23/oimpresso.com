@@ -41,7 +41,7 @@
 					{{-- <br> --}}
 					{{-- Barcode --}}
 					<img style="max-width:85% !important;height: {{$barcode_details->height*0.34}}cm !important;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($page_product->sub_sku, $page_product->barcode_type, 4,100,array(39, 48, 54), false)}}">
-					<span style="display: block !important; font-size: {{13*$factor}}px; margin-top: -3px;">
+					<span style="display: block !important; font-size: {{13*$factor}}px; margin-top: 1px;">
 						{{$page_product->sub_sku}}
 					</span>
 				</div>
