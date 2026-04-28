@@ -174,18 +174,38 @@ Login:         <pendente Wagner passar — guardar no Vaultwarden quando subir>
 - DB FireBird (banco antigo do WR Comercial)
 - Serviços diversos legados (Horse:19000, THorse:8050, socket_horce:55666, Rat:214)
 
-### 6.4 Central VoIP (Issabel / Asterisk / Elastix)
+### 6.4 Central VoIP Issabel (`sip.wr2.com.br`)
 
 ```
-Status:        ✅ Em produção (telefonia interna)
+Status:        ✅ Em produção (telefonia interna; sem trunk SIP outbound)
 IP LAN:        192.168.0.21 (reserva DHCP por MAC 94:DE:80:F4:59:2D)
-Plataforma:    Issabel/Asterisk/Elastix (família PBX)
-Painel:        https://192.168.0.21/ (admin web)
-SIP:           UDP 5060 (LAN, sem port forward visível)
-Login:         <pendente Wagner passar — Vaultwarden>
+Hostname:      sip.wr2.com.br
+SO:            CentOS 7.7.1908  ⚠️ EOL desde junho/2024
+Plataforma:    Issabel + Asterisk 13.30.0  ⚠️ versões antigas (Asterisk atual = 22 LTS)
+Uptime:        40 dias (2026-04-28 captura)
+RAM/Swap:      1.9 GB / 3.8 GB
+Painel:        https://192.168.0.21/ (admin) ou https://192.168.0.21:10000/ (Webmin)
+SSH:           ssh root@192.168.0.21 (mesma senha do painel)
+SIP:           UDP 5060 fechado externamente (só LAN)
 ```
 
-Range UDP 4000-5999 do TP-Link regra #7 (`Telefone`) direciona pra **192.168.0.2** (Proxmox), o que é provavelmente regra obsoleta — a central real está em `.21` na LAN. Verificar e ajustar quando tiver tempo.
+**Inventário detalhado** (extensions, trunks, serviços, riscos): [`reference_central_voip_inventario.md`](memory/reference_central_voip_inventario.md) (auto-memória local, fora do git)
+
+**Resumo:**
+- 16 ramais cadastrados (apenas 2 online: 1220 em 192.168.0.108 e 1230 em 192.168.0.103)
+- **0 trunks SIP** — sem provedor VoIP outbound; só intercom interno
+- **Khomp K3L** (placa de telefonia analógica/GSM) detectada nas portas 14101-14130 — sugere linhas físicas
+- Cyrus IMAP/POP3 rodando no mesmo host (servidor de e-mail @wr2.com.br?)
+- Webmin em 10000
+
+**Riscos:**
+- CentOS 7 EOL — sem updates de segurança
+- Asterisk 13 fim de suporte 2021
+- Painel + e-mail server na mesma máquina aumenta superfície de ataque
+
+**Pendências:**
+- Range UDP 4000-5999 do TP-Link regra #7 (`Telefone`) direciona pra `.2` (Proxmox), regra obsoleta — central real está em `.21`. Apertar quando tiver tempo.
+- Avaliar migração CentOS 7 → distro moderna (provável Issabel containerizada no `docker-host`)
 
 ### 6.5 KingHost / Uni5 (DNS legado + e-mails)
 
