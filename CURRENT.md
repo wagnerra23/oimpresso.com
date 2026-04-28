@@ -56,12 +56,19 @@
 
 ## 🚧 Bloqueios ativos
 
-| Bloqueio | Impacto | Quem destrava | Prazo destrava |
-|---|---|---|---|
-| **OPENAI_API_KEY** ainda fora do `.env` Hostinger | Bloqueia tudo IA-real (A3, O3, O4, O5) | Wagner — gera em platform.openai.com/api-keys | **qua 30-abr** |
-| **Daemon Meilisearch Hostinger** sem PID confirmado | Bloqueia COP-008 embedder + busca real | Felipe — confirma PID 632084 ou re-inicia nohup | **qua 30-abr** |
-| **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 | Wagner — manda WhatsApp hoje | **hoje 28-abr** |
-| **Reverb KEY/SECRET** — Hostinger `.env` precisa KEY+SECRET do CT `/opt/docker-host/.env` | Streaming Copiloto não ativa sem isso | Wagner — `ssh root@192.168.0.50` ou Portainer → reverb → Inspect → Env | **até merge PR #64** |
+| Bloqueio | Impacto | Quem destrava | Prazo destrava | Status |
+|---|---|---|---|---|
+| **OPENAI_API_KEY** ainda fora do `.env` Hostinger | Bloqueia tudo IA-real (A3, O3, O4, O5) | Wagner — gera em platform.openai.com/api-keys | **qua 30-abr** | 🔴 aberto |
+| **DNS `meilisearch.oimpresso.com`** — Hostinger API retornando HTTP 530 (Cloudflare down) | Meilisearch container rodando mas sem URL externa → Copiloto memória vetorial off | Wagner — criar via hPanel Hostinger → Domínios → DNS → A record `meilisearch` → `177.74.67.30` (proxy OFF) | **qua 30-abr** | 🟡 aguarda API/manual |
+| **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 | Wagner — manda WhatsApp hoje | **hoje 28-abr** | 🔴 aberto |
+| ~~**Reverb KEY/SECRET**~~ | ~~Streaming Copiloto não ativa~~ | — | — | ✅ RESOLVIDO (2026-04-28) |
+| ~~**Daemon Meilisearch Hostinger**~~ | ~~Bloqueia busca real~~ | — | — | ✅ Container CT 100 rodando (2026-04-28) |
+
+**Desbloqueio crítico para IA real funcionar em produção (tudo junto):**
+```
+OPENAI_API_KEY  +  DNS meilisearch  +  .env Hostinger (SCOUT_DRIVER + MEILISEARCH_HOST + MEILISEARCH_KEY)
+→ configurar embedder no índice Meilisearch (curl PATCH) → Copiloto usa memória vetorial real
+```
 
 **Se algum bloqueio ainda existir em 02-mai (sex):** virou **risco do cycle** — escalonar pra Wagner imediatamente, considerar replanejamento.
 
@@ -156,30 +163,32 @@ Quem fica >2 dias na mesma task **sem mover status** → Wagner pinga (não-acus
 - Smoke test ponta-a-ponta ✅ — `reverb:ping "smoke"` → HTTP 200 via DNS público → TP-Link 443 → Traefik → container
 - ADRs: 0042 (Reverb vs Pusher), 0043 (Docker+Traefik vs N LXCs), 0044 (Vaultwarden self-hosted)
 
-**🔴 Pendente Wagner para ativar em Hostinger (prod):**
+**✅ Reverb ativo em produção (2026-04-28 sessão 2):**
+Hostinger `.env` já tem REVERB KEY/SECRET corretos. Smoke test via `php artisan reverb:ping` → 200 OK.
+
+**🔴 Pendente para ativar Meilisearch em produção:**
 ```bash
-# 1. Pegar credenciais do CT:
-ssh root@192.168.0.50 "grep REVERB_APP_ /opt/docker-host/.env"
-# ou Portainer → Containers → reverb → Inspect → Env
+# 1. Criar DNS no hPanel Hostinger (API Hostinger fora do ar — HTTP 530):
+#    Domínios → oimpresso.com → DNS → Add A record:
+#    Name: meilisearch | Value: 177.74.67.30 | TTL: 3600 | Proxy: OFF
 
-# 2. Adicionar ao .env do Hostinger:
-BROADCAST_DRIVER=reverb
-BROADCAST_CONNECTION=reverb
-REVERB_APP_ID=oimpresso
-REVERB_APP_KEY=<do CT>
-REVERB_APP_SECRET=<do CT>
-REVERB_HOST=reverb.oimpresso.com
-REVERB_PORT=443
-REVERB_SCHEME=https
-VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
-VITE_REVERB_HOST=reverb.oimpresso.com
-VITE_REVERB_PORT=443
-VITE_REVERB_SCHEME=https
+# 2. Após DNS propagar, adicionar ao .env Hostinger:
+SCOUT_DRIVER=meilisearch
+MEILISEARCH_HOST=https://meilisearch.oimpresso.com
+MEILISEARCH_KEY=9c08945878571ecb76b70d25deb3852b
 
-# 3. Hostinger:
+# 3. Configurar embedder OpenAI no índice (após OPENAI_API_KEY estar no .env):
+curl -X PATCH https://meilisearch.oimpresso.com/indexes/copiloto_memoria_facts/settings/embedders \
+  -H "Authorization: Bearer 9c08945878571ecb76b70d25deb3852b" \
+  -H "Content-Type: application/json" \
+  -d '{"openai":{"source":"openAi","model":"text-embedding-3-small","apiKey":"sk-..."}}'
+
+# 4. Hostinger:
+php artisan scout:import "Modules\\Copiloto\\Models\\MemoriaFato"
 php artisan optimize:clear
-npm run build  # rebuild do bundle VITE_REVERB_*
 ```
+
+**Estado dos 5 containers CT 100 (2026-04-28 verificado):** todos `running` ✅
 
 ---
 
