@@ -80,13 +80,13 @@ jobs:
       - name: Maintenance mode ON
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan down --retry=60 --refresh=60 || true"
 
-      - name: Git pull — branch 6.7-bootstrap
+      - name: Git pull — branch main
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             git fetch origin &&
-            git checkout 6.7-bootstrap &&
-            git reset --hard origin/6.7-bootstrap &&
+            git checkout main &&
+            git reset --hard origin/main &&
             git log --oneline -3
           "
 
