@@ -49,6 +49,7 @@
 | O4 | Felipe [F] | **`ApurarQualidadeJob` Horizon + tabela `copiloto_qualidade_scores`** | 2 dias úteis | O3 |
 | O5 | Luiz [L+C] | **Page `/copiloto/admin/qualidade` HITL — lógica anotação** (continua A7) | 3 dias úteis | O4 |
 | O6 | Maíra [M] | **Backfill purchases legadas em `due` (FIN-001)** | 1 dia | — |
+| O7 | Wagner [W] | **Apply Meilisearch docker-host** — `docker compose up -d meilisearch` no CT .50 + DNS `meilisearch.oimpresso.com` no Hostinger hPanel + atualizar `.env` Hostinger (`MEILISEARCH_HOST=https://meilisearch.oimpresso.com`) | 1h | compose.yml mergeado PR #68 ✅ |
 
 **Soma estimativas O1-O5 (caminho crítico Copiloto):** 13 dias úteis distribuídos entre Felipe (10d) e Luiz (3d com pair). Cycle 01 tem 10 dias úteis. **Gap:** Felipe vai estourar. **Mitigação possível:** Wagner pega O3 (Langfuse infra é familiar pra ele) liberando Felipe pra concentrar em O1/O2/O4. Decidir até **02-mai**.
 
@@ -58,8 +59,8 @@
 
 | Bloqueio | Impacto | Quem destrava | Prazo destrava |
 |---|---|---|---|
-| **OPENAI_API_KEY** ainda fora do `.env` Hostinger | Bloqueia tudo IA-real (A3, O3, O4, O5) | Wagner — gera em platform.openai.com/api-keys | **qua 30-abr** |
-| **Daemon Meilisearch Hostinger** sem PID confirmado | Bloqueia COP-008 embedder + busca real | Felipe — confirma PID 632084 ou re-inicia nohup | **qua 30-abr** |
+| **OPENAI_API_KEY** setada no Hostinger ✅ | — | Wagner confirmou 2026-04-28 | ~~qua 30-abr~~ ✅ |
+| **Meilisearch migrado pro docker-host** — compose.yml pronto (PR #68), aguarda `docker compose up -d` + DNS `meilisearch.oimpresso.com → 177.74.67.30` no Hostinger hPanel | Bloqueia COP-008 embedder + busca real | Wagner — console Proxmox CT .50 + hPanel DNS | **qui 30-abr** |
 | **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 | Wagner — manda WhatsApp hoje | **hoje 28-abr** |
 | **Reverb KEY/SECRET** — Hostinger `.env` precisa KEY+SECRET do CT `/opt/docker-host/.env` | Streaming Copiloto não ativa sem isso | Wagner — `ssh root@192.168.0.50` ou Portainer → reverb → Inspect → Env | **até merge PR #64** |
 
