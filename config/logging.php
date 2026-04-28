@@ -117,6 +117,16 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        // Channel dedicado para o Copiloto IA (LaravelAiSdkDriver, OpenAiDirectDriver, recall memória).
+        // Adicionado 2026-04-28 — driver chamava Log::channel('copiloto-ai') sem o channel existir,
+        // gerando emergência no laravel.log e travando responderChat com fallback "sem conexão".
+        'copiloto-ai' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/copiloto-ai.log'),
+            'level' => env('COPILOTO_AI_LOG_LEVEL', 'info'),
+            'days' => 14,
+        ],
     ],
 
 ];
