@@ -23,6 +23,7 @@ Criar 3 A records, **proxy DESLIGADO** (laranja-OFF se Cloudflare — senão Web
 reverb.oimpresso.com      A   177.74.67.30
 portainer.oimpresso.com   A   177.74.67.30
 traefik.oimpresso.com     A   177.74.67.30
+vault.oimpresso.com       A   177.74.67.30
 ```
 
 ### 2. Port forwards no router TP-Link (192.168.0.1 → Direcionamento NAT → Servidores Virtuais)
