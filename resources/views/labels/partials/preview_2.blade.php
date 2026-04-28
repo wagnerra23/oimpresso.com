@@ -1,4 +1,4 @@
-<table align="center" style="border-spacing: {{$barcode_details->col_distance * 1}}in {{$barcode_details->row_distance * 1}}in; overflow: hidden !important;">
+<table align="center" style="border-spacing: {{$barcode_details->col_distance * 1}}cm {{$barcode_details->row_distance * 1}}cm; overflow: hidden !important;">
 @foreach($page_products as $page_product)
 
 	@if($loop->index % $barcode_details->stickers_in_one_row == 0)
@@ -7,7 +7,7 @@
 		<!-- <columns column-count="{{$barcode_details->stickers_in_one_row}}" column-gap="{{$barcode_details->col_distance*1}}"> -->
 	@endif
 		<td align="center" valign="center">
-			<div style="overflow: hidden !important;display: flex; flex-wrap: wrap;align-content: center;width: {{$barcode_details->width * 1}}in; height: {{$barcode_details->height * 1}}in; justify-content: center;">
+			<div style="overflow: hidden !important;display: flex; flex-wrap: wrap;align-content: center;width: {{$barcode_details->width * 1}}cm; height: {{$barcode_details->height * 1}}cm; justify-content: center;">
 				
 
 				<div>
@@ -87,7 +87,7 @@
 						</span>
 					@endif
 					{{-- Barcode --}}
-					<img style="max-width:90% !important;height: {{$barcode_details->height*0.24}}in !important; display: block;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($page_product->sub_sku, $page_product->barcode_type, 1,30, array(0, 0, 0), false)}}">
+					<img style="max-width:90% !important;height: {{$barcode_details->height*0.34}}cm !important; display: block;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($page_product->sub_sku, $page_product->barcode_type, 1,30, array(0, 0, 0), false)}}">
 					
 					<span style="font-size: 10px !important">
 						{{$page_product->sub_sku}}
@@ -116,14 +116,14 @@
 
 		
 		@page {
-		size: {{$paper_width}}in {{$paper_height}}in;
+		size: {{$paper_width}}cm {{$paper_height}}cm;
 
-		/*width: {{$barcode_details->paper_width}}in !important;*/
-		/*height:@if($barcode_details->paper_height != 0){{$barcode_details->paper_height}}in !important @else auto @endif;*/
-		margin-top: {{$margin_top}}in !important;
-		margin-bottom: {{$margin_top}}in !important;
-		margin-left: {{$margin_left}}in !important;
-		margin-right: {{$margin_left}}in !important;
+		/*width: {{$barcode_details->paper_width}}cm !important;*/
+		/*height:@if($barcode_details->paper_height != 0){{$barcode_details->paper_height}}cm !important @else auto @endif;*/
+		margin-top: {{$margin_top}}cm !important;
+		margin-bottom: {{$margin_top}}cm !important;
+		margin-left: {{$margin_left}}cm !important;
+		margin-right: {{$margin_left}}cm !important;
 	}
 	}
 </style>
