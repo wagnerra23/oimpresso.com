@@ -6,7 +6,7 @@
 		<!-- <columns column-count="{{$barcode_details->stickers_in_one_row}}" column-gap="{{$barcode_details->col_distance*1}}"> -->
 	@endif
 		<td align="center" valign="center">
-			<div style="justify-content:center; overflow: hidden !important;display: flex; flex-wrap: wrap;align-content: center;width: {{$barcode_details->width * 1}}cm; height: {{$barcode_details->height * 1}}cm; padding-top: 0.15cm; box-sizing: border-box;">
+			<div style="justify-content:center; overflow: hidden !important;display: flex; flex-wrap: wrap;align-content: center;width: {{$barcode_details->width * 1}}cm; height: {{$barcode_details->height * 1}}cm;">		
 				<div>
 					{{-- Business Name --}}
 					@if(!empty($print['business_name']))
@@ -53,13 +53,13 @@
 @endforeach
 </table>
 <style type="text/css">
-	@media print{
+	@media print{		
 		/* padding-top: -20cm; */
 		body { margin: 0cm; }
 		table{
 			page-break-after: always;
 			font-family: Arial, Helvetica, sans-serif;
-		}
+		} 
 		@page {
 	
 		size: {{$paper_width}}cm {{$paper_height}}cm;
