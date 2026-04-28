@@ -28,4 +28,8 @@ npm-debug.log
 /public/js/icons/
 /.env.example
 /.phpunit.cache
+/.phpunit.result.cache
 /.claude/settings.local.json
+/.claude/worktrees/
+/.claude/*.diff
+/meilisearch/
