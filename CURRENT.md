@@ -27,15 +27,15 @@
 | # | Pessoa | WIP | Task | Prazo duro | Status |
 |---|---|---|---|---|---|
 | A1 | Wagner [W] | 1/2 | **Validar Larissa do ROTA LIVRE** (1h, 3 cenários — meta atual / conv >15 turnos / corrigir fato LGPD) | qua **30-abr** | ⏳ |
-| A2 | Wagner [W] | 2/2 | **Merge US-COPI-070 Dashboard custo IA** (validação visual `https://oimpresso.test/copiloto/admin/custos`, branch `claude/nervous-burnell-f497b8`) | sex **02-mai** | 🔄 |
+| A2 | Wagner [W] | 2/2 | **Merge US-COPI-070 Dashboard custo IA** (validação visual `https://oimpresso.test/copiloto/admin/custos`, branch `claude/nervous-burnell-f497b8`) | sex **02-mai** | ✅ |
 | A3 | Felipe [F] | 1/2 | **PII redactor BR** (regex CPF/CNPJ/email/tel-BR em `OpenAiDirectDriver`) — LGPD-blocker | seg **05-mai** | ⏳ |
 | A4 | Felipe [F] | 2/2 | **OPENAI_API_KEY + Meilisearch daemon Hostinger** (deploy operacional) | qui **30-abr** | ⏳ |
-| A5 | Maíra [M] | 1/2 | **Cleanup workflows YAML `6.7-bootstrap` → `main`** (`.github/workflows/{deploy,quick-sync}.yml`) | qua **30-abr** | ⏳ |
+| A5 | Maíra [M] | 1/2 | **Cleanup workflows YAML `6.7-bootstrap` → `main`** (`.github/workflows/{deploy,quick-sync}.yml`) | qua **30-abr** | ✅ |
 | A6 | Maíra [M] | 2/2 | **Smoke /copiloto manual após A4** + registrar resultado | sex **02-mai** | ⏳ |
 | A7 | Luiz [L+C] | 1/1 | **Pair Claude — Page `/copiloto/admin/qualidade` Inertia (skeleton)** seguindo padrão Chat Cockpit ADR 0039, sem lógica ainda | qui **08-mai** | ⏳ |
 | A8 | Eliana [E] | 1/1 | **Atualizar cobrança ROTA LIVRE** (validar plano + emitir mensalidade) — sem dependência técnica | sex **02-mai** | ⏳ |
 
-**WIP total time:** 8/8 (no limite — não puxa nada novo até fechar)
+**WIP total time:** 6/8 (A2+A5 fechadas — 2 slots livres: Wagner [W] e Maíra [M])
 
 ---
 
