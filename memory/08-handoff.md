@@ -29,11 +29,22 @@ cd D:\oimpresso.com
 
 ---
 
-## 🎯 PRA INICIAR AMANHÃ (2026-04-28+) — **LEIA ESSA SEÇÃO**
+## 🎯 PRA INICIAR (2026-04-29+) — **LEIA ESSA SEÇÃO**
 
-### 🔴 Bloqueante crítico
-**Validar com Larissa do ROTA LIVRE (1-2h)** antes de qualquer sprint novo.
-3 cenários de teste pra ela:
+### 🔴 Bloqueantes críticos (em ordem de desbloqueio)
+
+**1. OPENAI_API_KEY no Hostinger** — toda IA real para até isso entrar:
+```bash
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115
+echo 'OPENAI_API_KEY=sk-...' >> ~/domains/oimpresso.com/public_html/.env
+```
+
+**2. DNS meilisearch.oimpresso.com** — hPanel manual (API Hostinger down):
+- hPanel → oimpresso.com → DNS → A record `meilisearch` → `177.74.67.30` (Proxy OFF)
+
+**3. Após DNS propagar:** adicionar SCOUT_DRIVER + MEILISEARCH_HOST + KEY ao .env Hostinger
+
+**4. Validar com Larissa do ROTA LIVRE (1-2h)** — determina Sprint 7:
 1. Pergunta sobre meta atual
 2. Conversa >15 turnos (testa contexto longo)
 3. Corrige um fato (testa LGPD `/copiloto/memoria`)
@@ -203,6 +214,57 @@ php artisan optimize:clear
 - PT-BR em tudo (commits, comments, labels)
 - Confirmar escopo antes de implementar massivamente
 - Grow = prioridade produção
+
+---
+
+## 🔄 Sessões 2026-04-28 (infra Reverb + Meilisearch + Vaultwarden)
+
+**Estado pós-sessão:** PR #64 (Reverb) + PR #68 (Meilisearch compose) **mergeados em main**.
+
+### ✅ Entregues (2026-04-28)
+- **CT 100 docker-host** operacional: 5 containers rodando (`traefik`, `portainer`, `vaultwarden`, `reverb`, `meilisearch`)
+- **Reverb ativo em produção** — Hostinger `.env` tem KEY/SECRET corretos; `reverb:ping` → 200 OK
+- **Vaultwarden** — Wagner criou conta `wagnerra@gmail.com`; SIGNUPS desabilitado
+- **Meilisearch v1.10.3** — container rodando em CT 100, volume `meilisearch-data` persistente
+- **ADRs 0042/0043/0044** em main — Reverb, Docker+Traefik, Vaultwarden
+- **build fix**: `npm run build` agora usa `vite.config.ts` explicitamente; `_oimpresso.scss` criado
+
+### 🔴 Ainda pendente (próxima sessão Wagner)
+
+1. **OPENAI_API_KEY no Hostinger** — bloqueio crítico de toda IA real (platform.openai.com/api-keys)
+2. **DNS `meilisearch.oimpresso.com`** — Hostinger API HTTP 530 (Cloudflare down). Fazer manual:
+   - hPanel → Domínios → oimpresso.com → DNS → A record `meilisearch` → `177.74.67.30` (Proxy OFF)
+3. **`.env` Hostinger — vars Meilisearch** (após DNS propagar):
+   ```env
+   SCOUT_DRIVER=meilisearch
+   MEILISEARCH_HOST=https://meilisearch.oimpresso.com
+   MEILISEARCH_KEY=9c08945878571ecb76b70d25deb3852b
+   COPILOTO_AI_ADAPTER=auto
+   COPILOTO_MEMORIA_DRIVER=auto
+   COPILOTO_AI_DRY_RUN=false
+   ```
+4. **Embedder OpenAI no índice Meilisearch** (após key + host configurados):
+   ```bash
+   curl -X PATCH https://meilisearch.oimpresso.com/indexes/copiloto_memoria_facts/settings/embedders \
+     -H "Authorization: Bearer 9c08945878571ecb76b70d25deb3852b" \
+     -H "Content-Type: application/json" \
+     -d '{"openai":{"source":"openAi","model":"text-embedding-3-small","apiKey":"$OPENAI_API_KEY"}}'
+   ```
+5. **Migrar credenciais pro Vaultwarden** (vault.oimpresso.com — Wagner tem acesso)
+
+### 📊 Stack de memória IA — estado-da-arte (ADR 0037 roadmap)
+
+```
+HOJE (prod): NullDriver (sem OPENAI_API_KEY) — Tier ~2 funcional
+APÓS desbloqueio: MeilisearchDriver ativo — Tier 5-6 estimado
+SPRINT 7: RAGAS evaluation (gate obrigatório) — mede baseline real
+SPRINT 8: Semantic caching (-68.8% tokens, maior ROI)
+SPRINT 9: RRF tuning (+10-15% recall)
+SPRINT 10: HyDE query expansion (+15% recall)
+SPRINT 11: Mem0/Zep condicional (5 triggers ADR 0036)
+```
+
+Session log completo: `memory/sessions/2026-04-28-meilisearch-vaultwarden.md`
 
 ---
 
