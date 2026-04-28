@@ -23,11 +23,13 @@ use Menu;
  *  - copiloto::copiloto.permissao_chat
  *  - copiloto::copiloto.permissao_metas
  *  - copiloto::copiloto.permissao_superadmin
+ *  - copiloto::copiloto.permissao_admin_custos
  *  - copiloto::copiloto.menu.conversar
  *  - copiloto::copiloto.menu.dashboard
  *  - copiloto::copiloto.menu.metas
  *  - copiloto::copiloto.menu.alertas
  *  - copiloto::copiloto.menu.plataforma
+ *  - copiloto::copiloto.menu.custos
  */
 class DataController extends Controller
 {
@@ -75,6 +77,11 @@ class DataController extends Controller
             [
                 'value'   => 'copiloto.superadmin',
                 'label'   => __('copiloto::copiloto.permissao_superadmin'),
+                'default' => false,
+            ],
+            [
+                'value'   => 'copiloto.admin.custos.view',
+                'label'   => __('copiloto::copiloto.permissao_admin_custos'),
                 'default' => false,
             ],
         ];
@@ -170,6 +177,19 @@ class DataController extends Controller
                                 'active' => request()->segment(2) == 'alertas',
                             ]
                         );
+
+                        // Custos de IA (admin do business — US-COPI-070)
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.admin.custos.view')) {
+                            $sub->url(
+                                route('copiloto.admin.custos.index'),
+                                __('copiloto::copiloto.menu.custos'),
+                                [
+                                    'icon'   => 'fa fas fa-coins',
+                                    'active' => request()->segment(2) == 'admin'
+                                                && request()->segment(3) == 'custos',
+                                ]
+                            );
+                        }
 
                         // Plataforma (superadmin-only)
                         if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.superadmin')) {

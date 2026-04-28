@@ -39,6 +39,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custo da IA — pricing por modelo + câmbio (US-COPI-070)
+    |--------------------------------------------------------------------------
+    | Preços em USD por 1k tokens (input/output). Modelo default usado quando
+    | o registro de mensagem não identifica o modelo. Câmbio configurável em
+    | env (default 5.50 BRL/USD) — pode evoluir pra fonte cotação automática.
+    |
+    | Referência: https://openai.com/api/pricing/ (snapshot 2026-04-27).
+    */
+    'ai' => [
+        'pricing_default_model' => env('COPILOTO_PRICING_DEFAULT_MODEL', 'gpt-4o-mini'),
+        'pricing' => [
+            'gpt-4o-mini' => [
+                'input'  => 0.00015,  // USD / 1k tokens
+                'output' => 0.0006,
+            ],
+            'gpt-4o' => [
+                'input'  => 0.0025,
+                'output' => 0.01,
+            ],
+            'gpt-4-turbo' => [
+                'input'  => 0.01,
+                'output' => 0.03,
+            ],
+        ],
+        'cambio_brl_usd' => (float) env('COPILOTO_CAMBIO_BRL_USD', 5.50),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Dry-run (propostas fixtures, sem chamada de API) — útil em dev
     |--------------------------------------------------------------------------
     */
