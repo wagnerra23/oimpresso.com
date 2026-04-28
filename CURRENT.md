@@ -61,6 +61,7 @@
 | **OPENAI_API_KEY** ainda fora do `.env` Hostinger | Bloqueia tudo IA-real (A3, O3, O4, O5) | Wagner — gera em platform.openai.com/api-keys | **qua 30-abr** |
 | **Daemon Meilisearch Hostinger** sem PID confirmado | Bloqueia COP-008 embedder + busca real | Felipe — confirma PID 632084 ou re-inicia nohup | **qua 30-abr** |
 | **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 | Wagner — manda WhatsApp hoje | **hoje 28-abr** |
+| **Reverb KEY/SECRET** — Hostinger `.env` precisa KEY+SECRET do CT `/opt/docker-host/.env` | Streaming Copiloto não ativa sem isso | Wagner — `ssh root@192.168.0.50` ou Portainer → reverb → Inspect → Env | **até merge PR #64** |
 
 **Se algum bloqueio ainda existir em 02-mai (sex):** virou **risco do cycle** — escalonar pra Wagner imediatamente, considerar replanejamento.
 
@@ -140,6 +141,45 @@ Quem fica >2 dias na mesma task **sem mover status** → Wagner pinga (não-acus
 - CLAUDE.md ganhou §11 Equipe (não substitui o slim de main; complementa)
 
 **Mantidos da main como vieram (não duplicar):** CLAUDE.md slim, INFRA.md, DESIGN.md, `.claude/settings.json` (PowerShell version), `.claude/commands/continuar.md`, `.claude/skills/multi-tenant-patterns/`, `.claude/skills/publication-policy/`, ADR 0040 publication-policy.
+
+---
+
+## 🖥️ Infra Reverb — CT 100 docker-host ao vivo (2026-04-28)
+
+> Sessão adicional no mesmo dia. PR #64 `claude/reverb-install`. Session log: `memory/sessions/2026-04-28-reverb-docker-host.md`.
+
+**✅ Entregue:**
+- CT 100 (LXC Debian 12, `192.168.0.50`) provisionado com Docker + stack completo
+- Stack: **Traefik v3.6** (TLS automático) + **Portainer CE** + **Vaultwarden 1.35.8** + **Reverb daemon**
+- 4/4 subdomínios com cert Let's Encrypt válido (expira 2026-07-27):
+  `reverb` / `portainer` / `traefik` / `vault` `.oimpresso.com`
+- Smoke test ponta-a-ponta ✅ — `reverb:ping "smoke"` → HTTP 200 via DNS público → TP-Link 443 → Traefik → container
+- ADRs: 0042 (Reverb vs Pusher), 0043 (Docker+Traefik vs N LXCs), 0044 (Vaultwarden self-hosted)
+
+**🔴 Pendente Wagner para ativar em Hostinger (prod):**
+```bash
+# 1. Pegar credenciais do CT:
+ssh root@192.168.0.50 "grep REVERB_APP_ /opt/docker-host/.env"
+# ou Portainer → Containers → reverb → Inspect → Env
+
+# 2. Adicionar ao .env do Hostinger:
+BROADCAST_DRIVER=reverb
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=oimpresso
+REVERB_APP_KEY=<do CT>
+REVERB_APP_SECRET=<do CT>
+REVERB_HOST=reverb.oimpresso.com
+REVERB_PORT=443
+REVERB_SCHEME=https
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST=reverb.oimpresso.com
+VITE_REVERB_PORT=443
+VITE_REVERB_SCHEME=https
+
+# 3. Hostinger:
+php artisan optimize:clear
+npm run build  # rebuild do bundle VITE_REVERB_*
+```
 
 ---
 
