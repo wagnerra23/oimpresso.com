@@ -69,6 +69,11 @@ Route::group(
 
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('copiloto.superadmin.metas');
+
+        // ---- Administração — Onda 1 (ROI direto, ver adr/arq/0003) ----------
+        // US-COPI-070: dashboard de custo de IA por business
+        Route::get('/admin/custos',                        'Admin\CustosController@index')
+            ->name('copiloto.admin.custos.index');
     }
 );
 
