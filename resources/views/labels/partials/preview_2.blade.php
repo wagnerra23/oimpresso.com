@@ -1,4 +1,4 @@
-<table align="center" style="border-spacing: {{$barcode_details->col_distance * 1}}cm {{$barcode_details->row_distance * 1}}cm; overflow: hidden !important; margin: 0; padding: 0; border-collapse: separate;">
+<table align="center" style="border-spacing: {{$barcode_details->col_distance * 1}}cm {{$barcode_details->row_distance * 1}}cm; overflow: hidden !important;">
 @foreach($page_products as $page_product)
 	@if($loop->index % $barcode_details->stickers_in_one_row == 0)
 		<!-- create a new row -->
@@ -55,14 +55,11 @@
 <style type="text/css">
 	@media print{
 		/* padding-top: -20cm; */
-		html, body { margin: 0 !important; padding: 0 !important; }
+		body { margin: 0cm; }
 		table{
 			page-break-after: always;
 			font-family: Arial, Helvetica, sans-serif;
-			margin: 0 !important;
-			padding: 0 !important;
 		}
-		tr { page-break-inside: avoid; }
 		@page {
 	
 		size: {{$paper_width}}cm {{$paper_height}}cm;
