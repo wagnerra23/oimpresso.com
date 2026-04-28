@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (Test-Path 'CURRENT.md') { Write-Host '=== CURRENT.md ==='; Get-Content 'CURRENT.md' -Encoding UTF8; Write-Host '' } ; if (Test-Path 'memory/08-handoff.md') { Write-Host '=== memory/08-handoff.md (últimas 30 linhas) ==='; Get-Content 'memory/08-handoff.md' -Tail 30 -Encoding UTF8 }\""
+          }
+        ]
+      }
+    ]
+  }
+}
