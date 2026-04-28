@@ -58,11 +58,11 @@
 
 | Bloqueio | Impacto | Quem destrava | Prazo destrava | Status |
 |---|---|---|---|---|
-| **OPENAI_API_KEY** ainda fora do `.env` Hostinger | Bloqueia tudo IA-real (A3, O3, O4, O5) | Wagner — gera em platform.openai.com/api-keys | **qua 30-abr** | 🔴 aberto |
-| **DNS `meilisearch.oimpresso.com`** — Hostinger API retornando HTTP 530 (Cloudflare down) | Meilisearch container rodando mas sem URL externa → Copiloto memória vetorial off | Wagner — criar via hPanel Hostinger → Domínios → DNS → A record `meilisearch` → `177.74.67.30` (proxy OFF) | **qua 30-abr** | 🟡 aguarda API/manual |
+| **DNS `meilisearch.oimpresso.com`** — A record NÃO está no autoritativo `ns1.dns-parking.com` (verificado 2026-04-28). Wagner pode ter aberto hPanel mas o registro não foi salvo. | Hostinger PHP não resolve → `scout:import` falha → Copiloto sem memória vetorial em prod | Wagner — hPanel Hostinger → Domínios → oimpresso.com → DNS Zone → **Add A record** → Name: `meilisearch` (sem o domínio), Points to: `177.74.67.30`, TTL: 14400 → **CLICAR EM SAVE** | **hoje 28-abr** | 🔴 aberto — único bloqueio crítico |
 | **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 | Wagner — manda WhatsApp hoje | **hoje 28-abr** | 🔴 aberto |
-| ~~**Reverb KEY/SECRET**~~ | ~~Streaming Copiloto não ativa~~ | — | — | ✅ RESOLVIDO (2026-04-28) |
-| ~~**Daemon Meilisearch Hostinger**~~ | ~~Bloqueia busca real~~ | — | — | ✅ Container CT 100 rodando (2026-04-28) |
+| ~~**OPENAI_API_KEY**~~ | ~~Bloqueia IA real~~ | — | — | ✅ RESOLVIDO (2026-04-28 — Wagner forneceu chave) |
+| ~~**Reverb KEY/SECRET**~~ | ~~Streaming Copiloto~~ | — | — | ✅ RESOLVIDO (2026-04-28) |
+| ~~**Daemon Meilisearch + embedder**~~ | ~~Bloqueia busca vetorial~~ | — | — | ✅ Container + embedder OpenAI + vector search **end-to-end validado** (2026-04-28: query "meta financeira" → recuperou "meta de faturamento" via semanticHitCount=1) |
 
 **Desbloqueio crítico para IA real funcionar em produção (tudo junto):**
 ```
