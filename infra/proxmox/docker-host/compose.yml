@@ -1,0 +1,72 @@
+# Stack Docker do CT 100 docker-host (192.168.0.50) no Proxmox empresa
+#
+# Hospeda:
+#   - Traefik (reverse-proxy + Let's Encrypt automático)
+#   - Portainer (UI Docker)
+#   - Reverb (Laravel WebSocket broadcaster — adicionado em PR seguinte)
+#
+# Pré-requisitos pra TLS funcionar (responsabilidade do Wagner antes de subir):
+#   1. DNS: A records pra reverb/portainer/traefik.wr2.com.br → 177.74.67.30
+#      (laranja-OFF se for Cloudflare, senão WS quebra)
+#   2. TP-Link port forwards:
+#      - regra "https" 443 → 192.168.0.50:443
+#      - nova regra        80  → 192.168.0.50:80  (HTTP-01 challenge ACME)
+#
+# Sem isso, Let's Encrypt falha emitir cert e Traefik fica em fallback self-signed.
+# Pra teste LAN sem TLS válido, use --certificatesresolvers.le.acme.caserver=staging
+# (ver compose.yml.staging) ou aceite warning de cert no browser.
+
+services:
+  traefik:
+    image: traefik:v3.6
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "127.0.0.1:8085:8080"  # dashboard só LAN do CT (acessar via SSH tunnel)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-acme:/acme
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL:-wagnerra@gmail.com}"
+      - "--certificatesresolvers.le.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.wr2.com.br`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls.certresolver=le"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: portainer
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.wr2.com.br`)"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
+      - "traefik.http.routers.portainer.tls.certresolver=le"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+volumes:
+  traefik-acme:
+    name: traefik-acme
+  portainer-data:
+    name: portainer-data
