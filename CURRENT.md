@@ -20,37 +20,41 @@
 
 ---
 
-## 🔥 Active (WIP por pessoa, máximo do TEAM.md)
+## 🔥 Active — TODAS as tasks repassadas pra Wagner [W+C] (modelo operacional 2026-04-28+)
 
-> **Regra:** ninguém puxa mais task antes de fechar uma das próprias. Bloqueado conta como puxado.
+> **Decisão 2026-04-28:** Wagner é executor único de TODAS as tasks por enquanto, na conta MAX dele pareado com Claude (`[W+C]`). Os "donos originais" (Felipe/Maíra/Luiz/Eliana) viram **observadores/revisores** até Wagner se acostumar com o processo. Ver [`TEAM.md` §"Modelo operacional ATUAL"](TEAM.md).
+>
+> **WIP máximo do Wagner subiu pra 6 ativas** temporariamente (4 absorvidas + 2 originais). Aceito como gargalo intencional.
 
-| # | Pessoa | WIP | Task | Prazo duro | Status |
+| # | Executor | Original | Task | Prazo duro | Status |
 |---|---|---|---|---|---|
-| A1 | Wagner [W] | 1/2 | **Validar Larissa do ROTA LIVRE** (1h, 3 cenários — meta atual / conv >15 turnos / corrigir fato LGPD) | qua **30-abr** | ⏳ |
-| A2 | Wagner [W] | 2/2 | **Merge US-COPI-070 Dashboard custo IA** (validação visual `https://oimpresso.test/copiloto/admin/custos`, branch `claude/nervous-burnell-f497b8`) | sex **02-mai** | 🔄 |
-| A3 | Felipe [F] | 1/2 | **PII redactor BR** (regex CPF/CNPJ/email/tel-BR em `OpenAiDirectDriver`) — LGPD-blocker | seg **05-mai** | ⏳ |
-| A4 | Felipe [F] | 2/2 | **OPENAI_API_KEY + Meilisearch daemon Hostinger** (deploy operacional) | qui **30-abr** | ⏳ |
-| A5 | Maíra [M] | 1/2 | **Cleanup workflows YAML `6.7-bootstrap` → `main`** (`.github/workflows/{deploy,quick-sync}.yml`) | qua **30-abr** | ⏳ |
-| A6 | Maíra [M] | 2/2 | **Smoke /copiloto manual após A4** + registrar resultado | sex **02-mai** | ⏳ |
-| A7 | Luiz [L+C] | 1/1 | **Pair Claude — Page `/copiloto/admin/qualidade` Inertia (skeleton)** seguindo padrão Chat Cockpit ADR 0039, sem lógica ainda | qui **08-mai** | ⏳ |
-| A8 | Eliana [E] | 1/1 | **Atualizar cobrança ROTA LIVRE** (validar plano + emitir mensalidade) — sem dependência técnica | sex **02-mai** | ⏳ |
+| A1 | **W** | W | **Validar Larissa do ROTA LIVRE** (1h, 3 cenários — meta atual / conv >15 turnos / corrigir fato LGPD) | qua **30-abr** | ⏳ |
+| A2 | **W** | W | **Merge US-COPI-070 Dashboard custo IA** (validação visual `https://oimpresso.test/copiloto/admin/custos`, branch `claude/nervous-burnell-f497b8`) | sex **02-mai** | ✅ validado, aguarda merge |
+| A3 | **W+C** | F (revisor) | **PII redactor BR** (regex CPF/CNPJ/email/tel-BR em `OpenAiDirectDriver`) — LGPD-blocker | seg **05-mai** | ⏳ |
+| A4 | **W+C** | F (revisor) | **Fix `OPENAI_API_KEY` no `.env` local** (chave colada como `OPENAI_KEY` linha 170 — renomear) + smoke `/copiloto` local | qui **30-abr** | 🔄 chave local OK, falta renomear var |
+| A5 | **W+C** | M (revisor) | **Cleanup workflows YAML `6.7-bootstrap` → `main`** (`.github/workflows/{deploy,quick-sync}.yml`) | qua **30-abr** | ⏳ |
+| A6 | **W+C** | M (revisor) | **Smoke /copiloto manual após A4** + registrar resultado | sex **02-mai** | ⏳ |
+| A7 | **W+C-Design** | L (observador) | **Page `/copiloto/admin/qualidade` Inertia (skeleton)** seguindo padrão Chat Cockpit ADR 0039 — sessão **Claude Design** rotacionando contas Pro | qui **08-mai** | ⏳ |
+| A8 | **W ou E** | E | **Atualizar cobrança ROTA LIVRE** (validar plano + emitir mensalidade) — única task que faz sentido manter com Eliana real (não-técnica) | sex **02-mai** | ⏳ |
 
-**WIP total time:** 8/8 (no limite — não puxa nada novo até fechar)
+**WIP atual:** 7/6 (acima do teto temporário, justificado por absorção). Não puxar O-deck até cair pra ≤4.
 
 ---
 
 ## 📋 On-deck (próxima fila do mesmo Cycle 01, em ordem)
 
-| # | Dono provável | Task | Estimativa | Bloqueado por |
-|---|---|---|---|---|
-| O1 | Felipe [F] | **Sprint 7 ADR 0041 — Golden set v1 (50 perguntas)** | 3 dias úteis | A1 (Larissa OK) + A2 (US-070 merged) |
-| O2 | Felipe [F] | **Sprint 7 ADR 0041 — DeepEval CI gate** (`.github/workflows/eval.yml`) | 2 dias úteis | O1 |
-| O3 | Felipe [F] | **Langfuse self-host Hostinger** (Docker compose + OTEL no LaravelAiSdkDriver) | 3 dias úteis | A4 (key OK) |
-| O4 | Felipe [F] | **`ApurarQualidadeJob` Horizon + tabela `copiloto_qualidade_scores`** | 2 dias úteis | O3 |
-| O5 | Luiz [L+C] | **Page `/copiloto/admin/qualidade` HITL — lógica anotação** (continua A7) | 3 dias úteis | O4 |
-| O6 | Maíra [M] | **Backfill purchases legadas em `due` (FIN-001)** | 1 dia | — |
+> **Todas as tasks On-deck também repassadas pra W+C** enquanto modelo atual vigorar. "Original" = quem seria o dono no estado-alvo.
 
-**Soma estimativas O1-O5 (caminho crítico Copiloto):** 13 dias úteis distribuídos entre Felipe (10d) e Luiz (3d com pair). Cycle 01 tem 10 dias úteis. **Gap:** Felipe vai estourar. **Mitigação possível:** Wagner pega O3 (Langfuse infra é familiar pra ele) liberando Felipe pra concentrar em O1/O2/O4. Decidir até **02-mai**.
+| # | Executor | Original | Task | Estimativa | Bloqueado por |
+|---|---|---|---|---|---|
+| O1 | **W+C** | F | **Sprint 7 ADR 0041 — Golden set v1 (50 perguntas)** | 3 dias úteis | A1 (Larissa OK) + A2 (US-070 merged) |
+| O2 | **W+C** | F | **Sprint 7 ADR 0041 — DeepEval CI gate** (`.github/workflows/eval.yml`) | 2 dias úteis | O1 |
+| O3 | **W+C** | F | **Langfuse self-host Hostinger** (Docker compose + OTEL no LaravelAiSdkDriver) | 3 dias úteis | A4 (key OK) |
+| O4 | **W+C** | F | **`ApurarQualidadeJob` Horizon + tabela `copiloto_qualidade_scores`** | 2 dias úteis | O3 |
+| O5 | **W+C-Design** | L | **Page `/copiloto/admin/qualidade` HITL — lógica anotação** (continua A7) | 3 dias úteis | O4 |
+| O6 | **W+C** | M | **Backfill purchases legadas em `due` (FIN-001)** | 1 dia | — |
+
+**Soma estimativas O1-O5 (caminho crítico Copiloto):** 13 dias úteis. Wagner sozinho com Claude Opus → realisticamente 6-8d se priorizar isso (sem multitarefa de líder). **Gap fica em ~3-5d** dentro do Cycle 01 — risco de estourar O3-O5 pro Cycle 02.
 
 ---
 
@@ -58,9 +62,10 @@
 
 | Bloqueio | Impacto | Quem destrava | Prazo destrava |
 |---|---|---|---|
-| **OPENAI_API_KEY** ainda fora do `.env` Hostinger | Bloqueia tudo IA-real (A3, O3, O4, O5) | Wagner — gera em platform.openai.com/api-keys | **qua 30-abr** |
-| **Daemon Meilisearch Hostinger** sem PID confirmado | Bloqueia COP-008 embedder + busca real | Felipe — confirma PID 632084 ou re-inicia nohup | **qua 30-abr** |
-| **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 | Wagner — manda WhatsApp hoje | **hoje 28-abr** |
+| **`OPENAI_API_KEY` com nome errado no `.env` LOCAL** (linha 170 colada como `OPENAI_KEY=`) | Bloqueia smoke `/copiloto` local | W+C — renomear var (1min) | **hoje 28-abr** |
+| **`.env` HOSTINGER ainda sem `OPENAI_API_KEY`** (Wagner colou no local achando que era prod) | Bloqueia smoke `/copiloto` em PROD | W+C — copiar bloco IA do `.env - Copia.example` (já tem skeleton) pro `.env` real + colar key | **qui 30-abr** |
+| **Daemon Meilisearch Hostinger** sem PID confirmado | Bloqueia COP-008 embedder + busca real em prod | W+C — `curl http://127.0.0.1:7700/health` via SSH | **qui 30-abr** |
+| **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 | Wagner (não-técnico, só ele) — manda WhatsApp hoje | **hoje 28-abr** |
 
 **Se algum bloqueio ainda existir em 02-mai (sex):** virou **risco do cycle** — escalonar pra Wagner imediatamente, considerar replanejamento.
 

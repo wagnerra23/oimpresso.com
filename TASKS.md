@@ -23,31 +23,35 @@
 
 ---
 
+## ⚠️ TODAS as tasks repassadas pra Wagner [W+C] (modelo operacional 2026-04-28+)
+
+> Decisão Wagner em 2026-04-28: Wagner é executor único de TODAS as tasks por enquanto. Coluna `Pessoa` abaixo (e em todas as tabelas P0/P1/P2 deste arquivo) deve ser lida como `Executor=W+C` independente do que está escrito. Owner "original" continua na tabela como referência pro estado-alvo. Ver [`TEAM.md` §"Modelo operacional ATUAL"](TEAM.md). Exceção única: A8 (cobrança ROTA LIVRE) pode ficar com Eliana real.
+
 ## ⚡ Ativos no Cycle 01 (29-abr → 12-mai)
 
 > Sincronizado com [`CURRENT.md`](CURRENT.md). Editar lá pra mudar o cycle ativo.
 
-| ID | Status | Pessoa | Task | Prazo | Dias est. |
-|---|---|---|---|---|---|
-| A1 | ⏳ | W | Validar Larissa ROTA LIVRE (1h) | qua 30-abr | 0.5 |
-| A2 | 🔄 | W | Merge US-COPI-070 Dashboard custo IA | sex 02-mai | 1 |
-| A3 | ⏳ | F | PII redactor BR (LGPD-blocker) | seg 05-mai | 2 |
-| A4 | ⏳ | F | OPENAI_KEY + Meilisearch daemon Hostinger | qui 30-abr | 0.5 |
-| A5 | ⏳ | M | Cleanup workflows YAML 6.7→main | qua 30-abr | 0.5 |
-| A6 | ⏳ | M | Smoke /copiloto manual após A4 | sex 02-mai | 0.5 |
-| A7 | ⏳ | L+C | Page /copiloto/admin/qualidade Inertia (skeleton) | qui 08-mai | 3 |
-| A8 | ⏳ | E | Atualizar cobrança ROTA LIVRE | sex 02-mai | 1 |
+| ID | Status | Executor | Original | Task | Prazo | Dias est. |
+|---|---|---|---|---|---|---|
+| A1 | ⏳ | W | W | Validar Larissa ROTA LIVRE (1h) | qua 30-abr | 0.5 |
+| A2 | ✅ valid | W | W | Merge US-COPI-070 Dashboard custo IA | sex 02-mai | 1 |
+| A3 | ⏳ | W+C | F | PII redactor BR (LGPD-blocker) | seg 05-mai | 2 |
+| A4 | 🔄 | W+C | F | Fix `OPENAI_API_KEY` local (var name) + Meilisearch daemon Hostinger | qui 30-abr | 0.5 |
+| A5 | ⏳ | W+C | M | Cleanup workflows YAML 6.7→main | qua 30-abr | 0.5 |
+| A6 | ⏳ | W+C | M | Smoke /copiloto manual após A4 | sex 02-mai | 0.5 |
+| A7 | ⏳ | W+C-Design | L | Page /copiloto/admin/qualidade Inertia (skeleton) | qui 08-mai | 3 |
+| A8 | ⏳ | W ou E | E | Atualizar cobrança ROTA LIVRE | sex 02-mai | 1 |
 
 **On-deck Cycle 01:**
 
-| ID | Pessoa | Task | Dias est. | Bloqueado por |
-|---|---|---|---|---|
-| O1 | F | Sprint 7 ADR 0041 — Golden set v1 (50 q.) | 3 | A1 + A2 |
-| O2 | F | Sprint 7 ADR 0041 — DeepEval CI gate | 2 | O1 |
-| O3 | W ou F | Langfuse self-host Hostinger | 3 | A4 |
-| O4 | F | ApurarQualidadeJob + tabela | 2 | O3 |
-| O5 | L+C | Page /copiloto/admin/qualidade lógica | 3 | O4 |
-| O6 | M | FIN-001 Backfill purchases legadas | 1 | — |
+| ID | Executor | Original | Task | Dias est. | Bloqueado por |
+|---|---|---|---|---|---|
+| O1 | W+C | F | Sprint 7 ADR 0041 — Golden set v1 (50 q.) | 3 | A1 + A2 |
+| O2 | W+C | F | Sprint 7 ADR 0041 — DeepEval CI gate | 2 | O1 |
+| O3 | W+C | F | Langfuse self-host Hostinger | 3 | A4 |
+| O4 | W+C | F | ApurarQualidadeJob + tabela | 2 | O3 |
+| O5 | W+C-Design | L | Page /copiloto/admin/qualidade lógica | 3 | O4 |
+| O6 | W+C | M | FIN-001 Backfill purchases legadas | 1 | — |
 
 ---
 
