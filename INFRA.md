@@ -81,11 +81,13 @@ Status:        ✅ ATIVO E DISPONÍVEL (a partir de 2026-04-28)
 Localização:   Escritório oimpresso (Wagner)
 Hardware:      128 GB RAM, 2 TB HD
 Hypervisor:    Proxmox VE
-IP fixo:       <preencher: IP público da empresa>
+IP LAN:        192.168.0.2 (rede interna do escritório)
+IP público:    <preencher: precisa pra DNS reverb.oimpresso.com apontar de fora>
 Hostname:      <preencher>
 Upload Mbps:   <preencher: importante pra dimensionar conexões WS>
-Acesso SSH:    <preencher: porta + chave a configurar>
-Painel Proxmox: <preencher: URL https://...:8006>
+Acesso SSH:    192.168.0.2:22 (TCP confirmado 2026-04-28; chave/senha a configurar)
+Painel Proxmox: https://192.168.0.2:8006/ (TCP confirmado 2026-04-28; senha em busca)
+MCP Proxmox:   <preencher: configurar em .mcp.json ou settings quando Wagner ativar>
 ```
 
 **Uso planejado (ordem de prioridade):**
