@@ -90,8 +90,12 @@ return [
         'meilisearch' => [
             'index'          => env('COPILOTO_MEMORIA_INDEX', 'copiloto_memoria_facts'),
             'top_k_default'  => 5,
-            'semantic_ratio' => env('COPILOTO_MEMORIA_SEMANTIC_RATIO', 0.5),
-            'embedder'       => env('COPILOTO_MEMORIA_EMBEDDER', 'openai-text-embedding-3-small'),
+            // ADR 0047 / MEM-HOT-1 — defaults batem com o que está deployado em prod
+            // (2026-04-28): embedder name = 'openai' (chave JSON do PATCH), ratio 0.7
+            // (sweet spot Meilisearch hybrid pra cross-phrasing PT-BR).
+            // RRF tuning A/B (0.3 vs 0.7) é uma task futura — MEM-P2-2 / Cycle 02.
+            'semantic_ratio' => (float) env('COPILOTO_MEMORIA_SEMANTIC_RATIO', 0.7),
+            'embedder'       => env('COPILOTO_MEMORIA_EMBEDDER', 'openai'),
         ],
         // 'mem0_rest' fica reservado pra sprint 8+ (ver triggers em ADR 0036)
     ],

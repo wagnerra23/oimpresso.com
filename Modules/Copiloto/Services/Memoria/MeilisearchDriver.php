@@ -53,12 +53,47 @@ class MeilisearchDriver implements MemoriaContrato
 
     public function buscar(int $businessId, int $userId, string $query, int $topK = 5): array
     {
-        // Scout search com filtros multi-tenant + scope ativos
-        $results = CopilotoMemoriaFato::search($query)
-            ->where('business_id', $businessId)
-            ->where('user_id', $userId)
+        // MEM-HOT-1 (ADR 0047): Scout default = só full-text. Pra ativar hybrid
+        // (full-text + semantic via embedder OpenAI configurado no índice), passamos
+        // callback que sobrescreve os search params do MeilisearchEngine::performSearch.
+        //
+        // Antes: ->where('business_id',...)->where('user_id',...)->take($topK)->get()
+        //         → sem 'hybrid', semanticHitCount sempre 0, recall=0 em prod.
+        //
+        // Agora: 'hybrid:{embedder, semanticRatio}' + filter string Meilisearch literal.
+        // Filterable attributes [business_id,user_id,valid_from,valid_until] já
+        // configurados no índice em 2026-04-28 (sessão Meilisearch+Vaultwarden).
+        $embedder      = (string) config('copiloto.memoria.meilisearch.embedder', 'openai');
+        $semanticRatio = (float)  config('copiloto.memoria.meilisearch.semantic_ratio', 0.7);
+
+        $callback = function ($index, string $q, array $params) use ($businessId, $userId, $topK, $embedder, $semanticRatio) {
+            $params['hybrid'] = [
+                'embedder'      => $embedder,
+                'semanticRatio' => $semanticRatio,
+            ];
+            $params['filter'] = sprintf(
+                'business_id = %d AND user_id = %d',
+                $businessId,
+                $userId
+            );
+            $params['limit'] = $topK;
+
+            return $index->search($q, $params);
+        };
+
+        $results = CopilotoMemoriaFato::search($query, $callback)
             ->take($topK)
             ->get();
+
+        Log::channel('copiloto-ai')->debug('MeilisearchDriver::buscar', [
+            'business_id'    => $businessId,
+            'user_id'        => $userId,
+            'query_chars'    => strlen($query),
+            'top_k'          => $topK,
+            'embedder'       => $embedder,
+            'semantic_ratio' => $semanticRatio,
+            'hits'           => $results->count(),
+        ]);
 
         return $results
             ->filter(fn (CopilotoMemoriaFato $f) => $f->valid_until === null)
