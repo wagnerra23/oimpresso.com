@@ -1,0 +1,69 @@
+# .dockerignore — minimiza o build context enviado ao daemon Docker
+# (esse arquivo é usado quando build context = raiz do repo)
+
+# Dependências reinstaladas no Dockerfile
+node_modules/
+vendor/
+
+# Git
+.git/
+.gitattributes
+.gitignore
+
+# IDEs / dev
+.idea/
+.vscode/
+.cursor/
+*.swp
+
+# Build outputs
+public/build/
+public/hot
+public/js/
+public/css/
+*.log
+
+# Storage runtime / dumps
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/*
+!storage/app/.gitkeep
+storage/debugbar/*
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Tests / docs
+tests/
+phpunit.*
+*.md
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.bak.*
+
+# Sensitive
+.env
+.env.*
+!.env.example
+storage/oauth-*.key
+
+# Worktrees / outras infra
+.claude/worktrees/
+
+# Local artefatos
+*.zip
+*.tar.gz
+*.dump
+*.sql
+*.tmp
