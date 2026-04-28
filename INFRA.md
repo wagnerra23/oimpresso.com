@@ -50,7 +50,7 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
 ```
 Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
 
-**Branch hardcoded em workflows CI:** `.github/workflows/deploy.yml` e `quick-sync.yml` ainda referenciam `6.7-bootstrap` em algumas linhas — PR de cleanup pendente (ver handoff).
+**Workflows CI** apontam para `main` (cleanup de `6.7-bootstrap` feito em A5, 2026-04-28).
 
 ---
 
