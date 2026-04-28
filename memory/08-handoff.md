@@ -31,23 +31,37 @@ cd D:\oimpresso.com
 
 ## 🎯 PRA INICIAR (2026-04-29+) — **LEIA ESSA SEÇÃO**
 
-### 🔴 Bloqueantes críticos (em ordem de desbloqueio)
+### ✅ Estado em 2026-04-28 fim do dia
 
-**1. OPENAI_API_KEY no Hostinger** — toda IA real para até isso entrar:
-```bash
-ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115
-echo 'OPENAI_API_KEY=sk-...' >> ~/domains/oimpresso.com/public_html/.env
-```
+**Infra docker-host CT 100 (192.168.0.50)** — 5 containers rodando, todos acessíveis publicamente via Traefik+TLS LE:
+- `traefik.oimpresso.com` (dashboard) ✅
+- `portainer.oimpresso.com` (admin: `Infra@Docker2026!`) ✅
+- `vault.oimpresso.com` (Wagner tem conta; signups OFF) ✅
+- `reverb.oimpresso.com` (WebSocket; KEY/SECRET no Hostinger .env) ✅
+- `meilisearch.oimpresso.com` (TLS R12 ativo; embedder OpenAI configurado) ✅
 
-**2. DNS meilisearch.oimpresso.com** — hPanel manual (API Hostinger down):
-- hPanel → oimpresso.com → DNS → A record `meilisearch` → `177.74.67.30` (Proxy OFF)
+**Hostinger .env (oimpresso.com app)** — IA real ativa em prod:
+- ✅ OPENAI_API_KEY presente (gpt-4o-mini)
+- ✅ MEILISEARCH_HOST=https://meilisearch.oimpresso.com + KEY
+- ✅ SCOUT_DRIVER=meilisearch + COPILOTO_AI_*
+- ✅ BROADCAST_CONNECTION=reverb + REVERB_APP_KEY/SECRET
 
-**3. Após DNS propagar:** adicionar SCOUT_DRIVER + MEILISEARCH_HOST + KEY ao .env Hostinger
+**Validado em prod:** Wagner testou /copiloto/chat na conta da Larissa biz=4 — IA responde em PT-BR, não cai mais no fallback "sem conexão".
 
-**4. Validar com Larissa do ROTA LIVRE (1-2h)** — determina Sprint 7:
+### 🟡 Gaps de produto (próximo Cycle 02)
+
+1. **`ChatCopilotoAgent` "burrinho"** ([ADR 0046](decisions/0046-chat-agent-gap-contexto-rico.md)) — não tem contexto sobre faturamento/clientes/metas. Larissa pergunta "qual o faturamento desse mês?" e o agent pede pra ela informar período. Resolver com **tools/function-calling** (laravel/ai suporta) OU injetando `ContextoNegocio` no system prompt.
+
+2. **`MeilisearchDriver::buscar` usa Scout default** — só full-text, sem hybrid embedder. Recall não traz semantic matches em prod. Fix: override Scout `search()` callback pra passar `hybrid:{embedder,semanticRatio}`. Curl direto na API Meilisearch funciona perfeito (semanticHitCount=2).
+
+### 🔴 Único bloqueio crítico restante
+
+**Validar com Larissa do ROTA LIVRE (1-2h)** — determina Sprint 7:
 1. Pergunta sobre meta atual
 2. Conversa >15 turnos (testa contexto longo)
 3. Corrige um fato (testa LGPD `/copiloto/memoria`)
+
+Larissa **provavelmente vai descobrir o Gap 1 acima** — e isso é OK, vira input pro Cycle 02.
 
 Resposta dela determina sprint 7:
 

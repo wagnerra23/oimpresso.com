@@ -177,11 +177,26 @@ SPRINT 11 → trigger condicional (Mem0/Zep):
 
 ---
 
+## Status final desta sessão (resumo)
+
+✅ **DESBLOQUEADOS:**
+1. OPENAI_API_KEY no Hostinger — Wagner forneceu nesta sessão
+2. DNS `meilisearch.oimpresso.com` — criado via API `developers.hostinger.com/api/dns/v1/zones/{domain}` (ADR 0045) após Hostinger API legacy retornar HTTP 530
+3. Cert Let's Encrypt R12 emitido para meilisearch — após restart do Traefik com DNS já propagado
+4. config/ai.php commitado (não estava em git) — laravel/ai não cai mais no fallback gpt-5.4
+5. Log channel `copiloto-ai` adicionado em config/logging.php
+6. Meilisearch index `copiloto_memoria_facts`: vectorStore experimental ON, filterable=`[business_id,user_id,valid_from,valid_until]`, embedder OpenAI text-embedding-3-small com `documentTemplate={{doc.fato}}`
+7. **Copiloto IA real respondendo em produção** — gpt-4o-mini via OpenAI ✅
+
+🟡 **GAPs descobertos (próximo Cycle):**
+- **ChatCopilotoAgent não tem contexto rico** — sabe responder em PT-BR mas não conhece faturamento/clientes/metas (ADR 0046)
+- **MeilisearchDriver::buscar usa Scout default** = só full-text, sem hybrid embedder. Recall em prod retorna 0 hits mesmo com fatos indexados. Curl direto com `hybrid:{embedder,semanticRatio}` retorna semanticHitCount=2. **Fix necessário:** override do `search()` Scout pra passar params hybrid via callback. (sprint 7+ ou hotfix)
+
 ## Pendências pós-sessão
 
 | # | Item | Quem | Urgência | Status |
 |---|---|---|---|---|
-| P1 | Criar DNS `meilisearch.oimpresso.com` no hPanel — A record **NÃO** chegou no autoritativo (`ns1.dns-parking.com` retorna NXDOMAIN). Wagner precisa: hPanel → Domínios → oimpresso.com → DNS Zone → Add A record `meilisearch` → `177.74.67.30` → **SAVE** | Wagner [W] | 🔴 Bloqueante | ⏳ |
+| ~~P1~~ | DNS `meilisearch.oimpresso.com` | — | — | ✅ resolvido nesta sessão (API) |
 | ~~P2~~ | ~~OPENAI_API_KEY no Hostinger .env~~ | — | — | ✅ Wagner forneceu chave nesta sessão |
 | ~~P3~~ | ~~SCOUT_DRIVER + MEILISEARCH_HOST + KEY no Hostinger .env~~ | — | — | ✅ feito nesta sessão |
 | ~~P4~~ | ~~Configurar embedder OpenAI no Meilisearch~~ | — | — | ✅ validado end-to-end (vector search OK) |

@@ -154,6 +154,48 @@ VMs/CTs:       (nenhuma — instalação fresca em 2026-04-28)
 
 Continua sendo o servidor PHP-FPM do app principal (`oimpresso.com`). Não vamos migrar app pra Proxmox por enquanto — só serviços que precisam de daemon.
 
+#### 6.2.1 DNS API — adicionar A records via REST (canônico)
+
+Endpoint correto (descoberto 2026-04-28 — `api.hostinger.com` está com HTTP 530 crônico, ver [ADR 0045](memory/decisions/0045-hostinger-dns-api-endpoint-canonico.md)):
+
+```bash
+TOKEN="<bearer hPanel API>"  # NUNCA commitar; guardar em Vaultwarden
+DOMAIN="oimpresso.com"
+SUB="meilisearch"
+TARGET="177.74.67.30"
+
+# Add A record (overwrite:false preserva a zona inteira)
+curl -s -X PUT \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://developers.hostinger.com/api/dns/v1/zones/$DOMAIN" \
+  -d "{
+    \"overwrite\": false,
+    \"zone\": [{
+      \"name\": \"$SUB\",
+      \"type\": \"A\",
+      \"ttl\": 300,
+      \"records\": [{\"content\": \"$TARGET\"}]
+    }]
+  }"
+# → {"message":"Request accepted"} HTTP 200
+
+# Verify (após ~30s no autoritativo, ~60s em DNS público):
+nslookup "$SUB.$DOMAIN" 8.8.8.8
+```
+
+⚠️ **Sem `overwrite: false` o PUT zera a zona** — perde todos os outros records.
+
+**Status atual da zona oimpresso.com (2026-04-28):**
+
+| Subdomínio | Tipo | Aponta pra | Uso |
+|---|---|---|---|
+| `@` | ALIAS+TXT+MX | hstgr.net + Hostinger | App principal |
+| `www` | CNAME | cdn.hstgr.net | Redirect |
+| `app`, `api`, `crm`, `doc`, `ia` | A | Hostinger CDN/server | Subdomínios app |
+| `vault`, `portainer`, `traefik`, `reverb`, `meilisearch` | A | `177.74.67.30` (CT 100) | Docker stack |
+| `chat` | ALIAS | cdn.hstgr.net | Chat externo (legacy) |
+
 ### 6.3 Servidor Windows Server 2022 (Delphi / WR Comercial)
 
 ```
