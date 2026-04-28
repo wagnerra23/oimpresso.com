@@ -79,15 +79,25 @@ Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
 ```
 Status:        ✅ ATIVO E DISPONÍVEL (a partir de 2026-04-28)
 Localização:   Escritório oimpresso (Wagner)
-Hardware:      128 GB RAM, 2 TB HD
-Hypervisor:    Proxmox VE
-IP LAN:        192.168.0.2 (rede interna do escritório)
-IP público:    <preencher: precisa pra DNS reverb.oimpresso.com apontar de fora>
-Hostname:      <preencher>
+Hardware:      Intel Xeon E5-2680v4 14C / 125.7 GB RAM / 2 TB HD
+Hypervisor:    Proxmox VE 9.1.1 (kernel 6.17.2)
+Node:          sistema
+IP LAN:        192.168.0.2 (bridge vmbr0)
+IP público:    177.74.67.30 (ISP ateky.net.br — IP fixo da empresa)
+DNS planejado: reverb.wr2.com.br A 177.74.67.30 (Cloudflare laranja-OFF — pendente Wagner criar)
+Port forward:  TCP 443 externo → 192.168.0.50:443 LAN (pendente Wagner config router)
 Upload Mbps:   <preencher: importante pra dimensionar conexões WS>
-Acesso SSH:    192.168.0.2:22 (TCP confirmado 2026-04-28; chave/senha a configurar)
-Painel Proxmox: https://192.168.0.2:8006/ (TCP confirmado 2026-04-28; senha em busca)
-MCP Proxmox:   <preencher: configurar em .mcp.json ou settings quando Wagner ativar>
+Acesso SSH:    192.168.0.2:22 (root, mesma senha do painel)
+Painel Proxmox: https://192.168.0.2:8006/ (login root@pam — senha em auto-memória, não commitar)
+Token API:     root@pam!mcp2 criado 2026-04-28 via REST (privsep=0; secret em auto-memória)
+MCP Proxmox:   pendente configurar em .mcp.json quando Wagner ativar
+Disco SSD:     /dev/sda Kingston SA400S37 480 GB (boot + LVM)
+Disco HDD 2TB: ❌ DECLARADO PELO WAGNER MAS NÃO DETECTADO (pendente investigar
+                via Shell Proxmox: lsblk -a / fdisk -l / dmesg)
+Storage:       local-lvm (lvmthin, 319.6 GB livres) → disks de VM/CT
+                local (dir, 85 GB livres) → ISOs, templates LXC, backups
+Templates LXC: debian-12-standard_12.12-1_amd64.tar.zst (118 MB, baixado 2026-04-28)
+VMs/CTs:       (nenhuma — instalação fresca em 2026-04-28)
 ```
 
 **Uso planejado (ordem de prioridade):**
