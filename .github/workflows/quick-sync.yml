@@ -1,12 +1,12 @@
 name: Quick Sync (auto on push)
 
 # Deploy leve pra fixes pequenos (views, configs, assets estaticos).
-# Dispara automatico em push pra 6.7-bootstrap, E manual via workflow_dispatch.
+# Dispara automatico em push pra main, E manual via workflow_dispatch.
 # Pra mudancas pesadas (composer, migrations), usar deploy.yml.
 on:
   push:
     branches:
-      - 6.7-bootstrap
+      - main
     paths:
       - 'resources/**'
       - 'public/**'
@@ -51,7 +51,7 @@ jobs:
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             git fetch origin &&
-            git reset --hard origin/6.7-bootstrap &&
+            git reset --hard origin/main &&
             git log --oneline -3
           "
 
