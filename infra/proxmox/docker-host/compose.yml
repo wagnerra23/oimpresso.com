@@ -1,0 +1,142 @@
+# Stack Docker do CT 100 docker-host (192.168.0.50) no Proxmox empresa
+#
+# Hospeda:
+#   - Traefik (reverse-proxy + Let's Encrypt automático)
+#   - Portainer (UI Docker)
+#   - Reverb (Laravel WebSocket broadcaster — adicionado em PR seguinte)
+#
+# Pré-requisitos pra TLS funcionar (responsabilidade do Wagner antes de subir):
+#   1. DNS: A records pra reverb/portainer/traefik.oimpresso.com → 177.74.67.30
+#      (laranja-OFF se for Cloudflare, senão WS quebra)
+#   2. TP-Link port forwards:
+#      - regra "https" 443 → 192.168.0.50:443
+#      - nova regra        80  → 192.168.0.50:80  (HTTP-01 challenge ACME)
+#
+# Sem isso, Let's Encrypt falha emitir cert e Traefik fica em fallback self-signed.
+# Pra teste LAN sem TLS válido, use --certificatesresolvers.le.acme.caserver=staging
+# (ver compose.yml.staging) ou aceite warning de cert no browser.
+
+services:
+  traefik:
+    image: traefik:v3.6
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "127.0.0.1:8085:8080"  # dashboard só LAN do CT (acessar via SSH tunnel)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-acme:/acme
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL:-wagnerra@gmail.com}"
+      - "--certificatesresolvers.le.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.oimpresso.com`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls.certresolver=le"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: portainer
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.oimpresso.com`)"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
+      - "traefik.http.routers.portainer.tls.certresolver=le"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+  # Vaultwarden — cofre de senhas self-hosted (compatível com clientes Bitwarden)
+  # ADR 0044. Acesso: https://vault.oimpresso.com
+  # IMPORTANTE: SIGNUPS_ALLOWED=true só na 1ª inicialização (Wagner cria conta);
+  # depois trocar pra false em .env e `docker compose up -d vaultwarden` pra
+  # recriar com cadastro fechado. Convidar equipe via email-invite do admin.
+  vaultwarden:
+    image: vaultwarden/server:1.35.8-alpine
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: https://vault.oimpresso.com
+      SIGNUPS_ALLOWED: ${VAULTWARDEN_SIGNUPS_ALLOWED:-false}
+      INVITATIONS_ALLOWED: "true"
+      WEBSOCKET_ENABLED: "true"
+      ADMIN_TOKEN: ${VAULTWARDEN_ADMIN_TOKEN}
+      LOG_LEVEL: warn
+      ROCKET_PORT: "80"
+      # Backup interno SQLite + envio por email do reset (configurar SMTP futuro)
+    volumes:
+      - vaultwarden-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vault.rule=Host(`vault.oimpresso.com`)"
+      - "traefik.http.routers.vault.entrypoints=websecure"
+      - "traefik.http.routers.vault.tls.certresolver=le"
+      - "traefik.http.services.vault.loadbalancer.server.port=80"
+
+  # Reverb — Laravel WebSocket broadcaster (ADR 0042 + 0043)
+  # Build do repo sincronizado em /opt/oimpresso-app no host CT.
+  # Update: rsync/tar repo → /opt/oimpresso-app → docker compose up -d --build reverb
+  reverb:
+    build:
+      context: /opt/oimpresso-app
+      dockerfile: infra/proxmox/docker-host/reverb/Dockerfile
+    image: oimpresso/reverb:latest
+    container_name: reverb
+    restart: unless-stopped
+    environment:
+      APP_NAME: "OI Impresso Reverb"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://reverb.oimpresso.com
+      APP_KEY: ${REVERB_APP_LARAVEL_KEY}
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: info
+      BROADCAST_DRIVER: reverb
+      BROADCAST_CONNECTION: reverb
+      TELESCOPE_ENABLED: "false"
+      DEBUGBAR_ENABLED: "false"
+      REVERB_SERVER_HOST: 0.0.0.0
+      REVERB_SERVER_PORT: 8080
+      REVERB_HOST: reverb.oimpresso.com
+      REVERB_PORT: 443
+      REVERB_SCHEME: https
+      REVERB_APP_ID: ${REVERB_APP_ID}
+      REVERB_APP_KEY: ${REVERB_APP_KEY}
+      REVERB_APP_SECRET: ${REVERB_APP_SECRET}
+      # DB ainda não conectado — canais privados/presence precisarão depois
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /tmp/reverb.sqlite
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.reverb.rule=Host(`reverb.oimpresso.com`)"
+      - "traefik.http.routers.reverb.entrypoints=websecure"
+      - "traefik.http.routers.reverb.tls.certresolver=le"
+      - "traefik.http.services.reverb.loadbalancer.server.port=8080"
+      # WebSocket support (Traefik 3 default já lida com Upgrade headers)
+
+volumes:
+  traefik-acme:
+    name: traefik-acme
+  portainer-data:
+    name: portainer-data
+  vaultwarden-data:
+    name: vaultwarden-data
