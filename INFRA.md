@@ -70,7 +70,28 @@ Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
 
 ---
 
-## 6. Ativos disponíveis (homologação / serviços que precisam de daemon)
+## 6. Ativos da empresa
+
+> Inventário completo de servidores, serviços externos e painéis usados pelo projeto e operação. Credenciais detalhadas em auto-memória (fora do git) — aqui só método de acesso e responsabilidade.
+
+### 6.0 Resumo (de relance)
+
+| # | Ativo | Onde / IP | Função | Acesso |
+|---|---|---|---|---|
+| 6.1 | **Proxmox empresa `sistema`** | LAN 192.168.0.2 / pública 177.74.67.30:8006 | Hypervisor — hospeda CT 100 (Docker: Traefik+Portainer+Vaultwarden+Reverb futuro) | root@pam SSH/web + Token API mcp2 |
+| 6.2 | **Hostinger Cloud Startup** | 148.135.133.115 | App PHP-FPM principal (oimpresso.com) | SSH key + hPanel (Google OAuth) + API token |
+| 6.3 | **Windows Server 2022** | LAN 192.168.0.3 + 192.168.0.4 (2 NICs) | Sistemas Delphi (WR Comercial) + FireBird DB + serviços legados | RDS 3389 (login pendente Wagner) |
+| 6.4 | **Central VoIP** | LAN 192.168.0.21 | PBX Issabel/Asterisk/Elastix — telefonia interna | painel `https://192.168.0.21/` admin/wscrct.000465 |
+| 6.5 | **KingHost / Uni5** | painel.kinghost.com.br | DNS de `wr2.com.br` + e-mails da empresa | login eliana@wr2.com.br (senha em auto-memória, 2 candidatas) |
+
+**Onde estão as credenciais detalhadas (auto-memória local, fora do git):**
+
+- Proxmox + CT 100: `reference_proxmox_credenciais.md`
+- Hostinger SSH: `reference_hostinger_ssh_credenciais.md` + `reference_hostinger_server.md`
+- Hostinger hPanel + API: `reference_hostinger_hpanel.md`
+- Central VoIP: `reference_central_voip_issabel.md`
+- KingHost/Uni5: `reference_painel_kinghost.md`
+- Vaultwarden (cofre que vai centralizar tudo isso): `reference_vaultwarden_credenciais.md`
 
 > Hostinger compartilhado **não roda daemons persistentes** (sem supervisord, sem controle do nginx pra WS proxy). Pra Reverb, Meilisearch como serviço, agentes Vizra ADK em background, Horizon supervised, etc., usar os ativos abaixo.
 
@@ -165,6 +186,22 @@ Login:         <pendente Wagner passar — Vaultwarden>
 ```
 
 Range UDP 4000-5999 do TP-Link regra #7 (`Telefone`) direciona pra **192.168.0.2** (Proxmox), o que é provavelmente regra obsoleta — a central real está em `.21` na LAN. Verificar e ajustar quando tiver tempo.
+
+### 6.5 KingHost / Uni5 (DNS legado + e-mails)
+
+```
+Painel web:    https://painel.kinghost.com.br/index.php
+Login:         eliana@wr2.com.br
+Senha:         <em auto-memória — não commitar>
+Plataforma:    Uni5 (https://api.uni5.net/) — fabricante por trás da KingHost
+```
+
+**Pra que serve:**
+- Hospeda zona DNS de **`wr2.com.br`** (domínio da empresa Wagner — diferente de WR2 Sistemas/Eliana(WR2) que é cliente do PontoWr2)
+- Serve e-mails @wr2.com.br
+- **NÃO usar pra `oimpresso.com`** — esse fica na Hostinger (§6.2)
+
+**API Uni5:** documentação aponta `https://api.uni5.net/<recurso>` (cliente/dominio/dns/etc.) com auth via header. Token API ainda não estabelecido (testado em 2026-04-28 = 401). Quando precisar automatizar DNS de `wr2.com.br`, gerar token específico no painel e atualizar auto-memória.
 
 ---
 
