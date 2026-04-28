@@ -1,197 +1,126 @@
 # CURRENT — Cycle 01 (29-abr → 12-mai-2026, 10 dias úteis)
 
-> Foto do agora. Backlog completo: [`TASKS.md`](TASKS.md). Equipe: [`TEAM.md`](TEAM.md). Histórico: `memory/sessions/`. Cycles fechados: `memory/cycles/`.
+> Foto do agora. Backlog completo: [`TASKS.md`](TASKS.md). Histórico: `memory/sessions/`. Cycles fechados: `memory/cycles/`.
 
-**Branch ativa:** `main` · **Cycle anterior:** N/A (este é o primeiro Cycle formal) · **Cycle owner:** Wagner [W]
+**Branch ativa:** `main` · **Cycle anterior:** N/A (primeiro Cycle formal) · **Cycle owner:** Wagner [W] · **Modo:** ⚡ **SOLO** (time redistribuído no Cycle 02)
 
 ---
 
 ## 🎯 Goal do ciclo (outcome, não output)
 
-> **"Tirar Copiloto de fixtures e ter Larissa do ROTA LIVRE conversando ≥10× em produção real, sem PII vazado, com dashboard `/copiloto/admin/qualidade` rodando — tudo até 12-mai-2026."**
+> **"Copiloto assertivo e econômico em produção: Larissa pergunta faturamento e recebe resposta correta, com cache semântico reduzindo custos de token ≥50%."**
 
-**3 métricas de sucesso (todas mensuráveis, todas precisam bater):**
-1. ✅ **≥10 conversas reais Larissa** registradas em Langfuse (não-fixture)
-2. ✅ **0 incidente de PII detectado** (CPF/CNPJ no payload outbound)
-3. ✅ **Dashboard `/copiloto/admin/qualidade` no ar** com trend de faithfulness últimos 7 dias
+**3 métricas de sucesso:**
+1. 🔲 **Copiloto responde faturamento/metas Larissa corretamente** (MEM-HOT-2 — ContextoNegocio injetado)
+2. 🔲 **`memoria_recall_chars > 0` nos logs** (MEM-HOT-1 — Hybrid embedder ativo)
+3. 🔲 **Dashboard `/copiloto/admin/custos` validado em test + merged** (US-COPI-070)
 
-**Se 3/3 batem em 12-mai → Cycle 01 sucesso. Avança Cycle 02 com PontoWr2 Tier A + Eliana(WR2) validação.**
-**Se ≤1/3 batem → diagnóstico no fim do cycle: bloqueio Larissa? técnico? capacidade? capítulo crítico no retro.**
-
----
-
-## 🔥 Active (WIP por pessoa, máximo do TEAM.md)
-
-> **Regra:** ninguém puxa mais task antes de fechar uma das próprias. Bloqueado conta como puxado.
-
-| # | Pessoa | WIP | Task | Prazo duro | Status |
-|---|---|---|---|---|---|
-| A1 | Wagner [W] | 1/2 | **Validar Larissa do ROTA LIVRE** (1h, 3 cenários — meta atual / conv >15 turnos / corrigir fato LGPD) | qua **30-abr** | ⏳ |
-| A2 | Wagner [W] | 2/2 | **Merge US-COPI-070 Dashboard custo IA** (validação visual `https://oimpresso.test/copiloto/admin/custos`, branch `claude/nervous-burnell-f497b8`) | sex **02-mai** | ✅ |
-| A3 | Felipe [F] | 1/2 | **PII redactor BR** (regex CPF/CNPJ/email/tel-BR em `OpenAiDirectDriver`) — LGPD-blocker | seg **05-mai** | ⏳ |
-| A4 | Felipe [F] | 2/2 | **OPENAI_API_KEY + Meilisearch daemon Hostinger** (deploy operacional) | qui **30-abr** | ⏳ |
-| A5 | Maíra [M] | 1/2 | **Cleanup workflows YAML `6.7-bootstrap` → `main`** (`.github/workflows/{deploy,quick-sync}.yml`) | qua **30-abr** | ✅ |
-| A6 | Maíra [M] | 2/2 | **Smoke /copiloto manual após A4** + registrar resultado | sex **02-mai** | ⏳ |
-| A7 | Luiz [L+C] | 1/1 | **Pair Claude — Page `/copiloto/admin/qualidade` Inertia (skeleton)** seguindo padrão Chat Cockpit ADR 0039, sem lógica ainda | qui **08-mai** | ⏳ |
-| A8 | Eliana [E] | 1/1 | **Atualizar cobrança ROTA LIVRE** (validar plano + emitir mensalidade) — sem dependência técnica | sex **02-mai** | ⏳ |
-
-**WIP total time:** 6/8 (A2+A5 fechadas — 2 slots livres: Wagner [W] e Maíra [M])
+**Gate opcional Cycle 01:**
+- 🔲 Semantic cache hit rate >30% após 10 conversas similares (MEM-S8-1)
+- 🔲 50 perguntas golden set — baseline RAGAS registrado (MEM-P2-1)
 
 ---
 
-## 📋 On-deck (próxima fila do mesmo Cycle 01, em ordem)
+## 🔥 Active — Wagner solo (WIP máx 2)
 
-| # | Dono provável | Task | Estimativa | Bloqueado por |
+| # | WIP | Task | Prazo | Status |
 |---|---|---|---|---|
-| O1 | Felipe [F] | **Sprint 7 ADR 0041 — Golden set v1 (50 perguntas)** | 3 dias úteis | A1 (Larissa OK) + A2 (US-070 merged) |
-| O2 | Felipe [F] | **Sprint 7 ADR 0041 — DeepEval CI gate** (`.github/workflows/eval.yml`) | 2 dias úteis | O1 |
-| O3 | Felipe [F] | **Langfuse self-host Hostinger** (Docker compose + OTEL no LaravelAiSdkDriver) | 3 dias úteis | A4 (key OK) |
-| O4 | Felipe [F] | **`ApurarQualidadeJob` Horizon + tabela `copiloto_qualidade_scores`** | 2 dias úteis | O3 |
-| O5 | Luiz [L+C] | **Page `/copiloto/admin/qualidade` HITL — lógica anotação** (continua A7) | 3 dias úteis | O4 |
-| O6 | Maíra [M] | **Backfill purchases legadas em `due` (FIN-001)** | 1 dia | — |
+| A1 | 1/2 | **MEM-HOT-1: Hybrid embedder no MeilisearchDriver** — `buscar()` passa `hybrid:{embedder:'openai',semanticRatio:0.7}` via client direto | **30-abr** | ⏳ |
+| A2 | 2/2 | **MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent** (ADR 0046 Caminho A) — system prompt recebe meta/faturamento/produtos do negócio | **02-mai** | ⏳ |
 
-**Soma estimativas O1-O5 (caminho crítico Copiloto):** 13 dias úteis distribuídos entre Felipe (10d) e Luiz (3d com pair). Cycle 01 tem 10 dias úteis. **Gap:** Felipe vai estourar. **Mitigação possível:** Wagner pega O3 (Langfuse infra é familiar pra ele) liberando Felipe pra concentrar em O1/O2/O4. Decidir até **02-mai**.
+**On-deck imediato (puxar quando A1 ou A2 fechar):**
 
----
-
-## 🚧 Bloqueios ativos
-
-| Bloqueio | Impacto | Quem destrava | Prazo destrava | Status |
-|---|---|---|---|---|
-| **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 RAGAS | Wagner — manda WhatsApp hoje | **hoje 28-abr** | 🔴 aberto |
-| **GAP produto: ChatCopilotoAgent não tem tools/contexto rico** | Copiloto está "burrinho" (não sabe faturamento, clientes, top vendas) — só responde com prompt vazio + memoria recall | Sprint futuro — adicionar tools/function-calling OR injetar `ContextoNegocio` no system prompt | Médio prazo | 🟡 aberto — descoberto na 1ª conversa real Larissa-style 2026-04-28 |
-| ~~**OPENAI_API_KEY**~~ | — | — | — | ✅ RESOLVIDO (2026-04-28 — Wagner forneceu) |
-| ~~**Reverb KEY/SECRET**~~ | — | — | — | ✅ RESOLVIDO (2026-04-28) |
-| ~~**Daemon Meilisearch + embedder + DNS + TLS**~~ | — | — | — | ✅ TUDO ATIVO em prod (2026-04-28): DNS criado via API `developers.hostinger.com/api/dns/v1/zones/{domain}` PUT; cert Let's Encrypt R12 emitido após restart Traefik; pipeline e2e validado |
-| ~~**`config/ai.php` não commitado**~~ | — | — | — | ✅ RESOLVIDO (2026-04-28 commit `7bc2f683`) — `gpt-5.4` fallback do laravel/ai era o motivo de "Estou sem conexão IA" |
-| ~~**Log channel `copiloto-ai` faltando**~~ | — | — | — | ✅ RESOLVIDO (2026-04-28) — emergency logger lançava Throwable em `responderChat` |
-
-**Desbloqueio crítico para IA real funcionar em produção (tudo junto):**
-```
-OPENAI_API_KEY  +  DNS meilisearch  +  .env Hostinger (SCOUT_DRIVER + MEILISEARCH_HOST + MEILISEARCH_KEY)
-→ configurar embedder no índice Meilisearch (curl PATCH) → Copiloto usa memória vetorial real
-```
-
-**Se algum bloqueio ainda existir em 02-mai (sex):** virou **risco do cycle** — escalonar pra Wagner imediatamente, considerar replanejamento.
+| # | Task | Dias | Bloqueado por |
+|---|------|------|--------------|
+| O1 | **MEM-S8-1: SemanticCacheMiddleware** (-68.8% tokens LLM) | 1.5d | A1 pronto |
+| O2 | **MEM-S8-2: ConversationSummarizer** (comprime hot window >15 turnos) | 1.5d | — |
+| O3 | **MEM-S8-3: ProfileDistiller** (job diário extrai perfil negócio <300 tokens) | 1d | O2 |
+| O4 | **Validar Larissa ROTA LIVRE** (1h, 3 cenários: meta atual / conv >15 turnos / corrigir fato LGPD) | 0.5d | A1+A2 |
+| O5 | **MEM-P2-1: Golden set v1** (50 perguntas Larissa-style para RAGAS baseline) | 1.5d | O4 |
 
 ---
 
-## 🚦 Diagrama de desbloqueio (resposta da Larissa A1)
+## ✅ Desbloqueados neste Cycle (2026-04-28)
 
-```
-[A1: Validar Larissa qua 30-abr]
-       │
-       ├─ "lembrou da meta!" / quer + memória ─────► Cycle 01 segue como planejado
-       │                                              O1→O2 sprint 7 (golden set + CI)
-       │
-       ├─ "preciso PricingFpv/CT-e" ────────────────► PIVOT meio-cycle
-       │                                              • Active O1-O5 viram blocked
-       │                                              • CURRENT é re-escrito com goal
-       │                                                "PricingFpv MVP + CT-e SPEC"
-       │                                              • TASKS Copiloto sprints 7-9 viram P2
-       │                                              • Felipe migra pro Modulo Financeiro
-       │
-       └─ silêncio / "não entendi" ─────────────────► PIVOT comercial
-                                                       • Cycle 02 muda pra MCP server pro
-                                                         Claude Desktop OU PontoWr2 Tier A
-                                                       • Decisão Wagner mid-cycle
-```
-
-A1, A2, A4, A5, A8 **rodam paralelo** — não esperam Larissa. Bloqueio só se a A1 retornar pivot.
+| Item | Data | Notas |
+|------|------|-------|
+| OPENAI_API_KEY no Hostinger | 2026-04-28 | Wagner forneceu |
+| DNS `meilisearch.oimpresso.com` | 2026-04-28 | API `developers.hostinger.com` — PUT overwrite:false |
+| Cert Let's Encrypt R12 Meilisearch | 2026-04-28 | Restart Traefik após DNS propagar |
+| `config/ai.php` commitado | 2026-04-28 | Era untracked; gpt-5.4 fallback eliminado |
+| Log channel `copiloto-ai` | 2026-04-28 | Estava faltando em `config/logging.php` |
+| SCOUT_DRIVER + MEILISEARCH env | 2026-04-28 | `.env` Hostinger configurado |
+| Embedder OpenAI text-embedding-3-small | 2026-04-28 | Index `copiloto_memoria_facts` configurado e validado e2e |
+| **Copiloto IA real em produção** | 2026-04-28 | gpt-4o-mini respondendo (Wagner + Larissa testaram) |
 
 ---
 
-## 📅 Daily async (15 min cada manhã)
+## 🚧 Gaps conhecidos (não-bloqueantes, roadmap)
 
-Cada um atualiza no `TASKS.md` antes das 09h:
-- ✅ O que fechei ontem
-- 🔄 O que vou tocar hoje
-- ⛔ Bloqueado em quê (se algum)
-
-Quem fica >2 dias na mesma task **sem mover status** → Wagner pinga (não-acusatório, "tá precisando de pair?").
-
----
-
-## 📊 Métrica do cycle (atualizada por Wagner toda sex)
-
-| Indicador | Alvo Cycle 01 | Track |
-|---|---|---|
-| Tasks fechadas (Active+On-deck) | ≥ 12 | 0/12 |
-| Conversas Larissa em Langfuse | ≥ 10 | 0/10 |
-| Incidentes PII | 0 | 0 |
-| WIP médio time | 6-8 ativos | — |
-| Bloqueios resolvidos < 48h | ≥ 80% | — |
+| Gap | ADR | Sprint | Status |
+|-----|-----|--------|--------|
+| MeilisearchDriver usa Scout default = full-text, sem hybrid | ADR 0046 | **A1 esta semana** | 🔴 fix imediato |
+| ChatCopilotoAgent "burrinho" — sem contexto de negócio | ADR 0046 | **A2 esta semana** | 🔴 fix imediato |
+| Semantic cache não implementado (-68.8% tokens) | ADR 0037 Sprint 8 | O1 semana 2 | 🟡 on-deck |
+| Conversation summarizer não implementado | ADR 0047 | O2 semana 2 | 🟡 on-deck |
+| RAGAS golden set (50 perguntas) — baseline nunca medido | ADR 0037/0041 | O5 semana 3 | 🟠 P2 |
 
 ---
 
-## 📅 Próximo cycle (Cycle 02): 13-mai → 26-mai-2026
+## 📊 Métricas do Cycle (Wagner atualiza toda sexta)
 
-**Goal provável** (re-decidir 12-mai com base em Cycle 01):
-> *"Validar PontoWr2 Tier A com Eliana(WR2) + começar Pricing Copiloto pago pra ROTA LIVRE."*
-
-**Tasks candidatas pro Cycle 02 (não puxar antes!):**
-- PNT-001 PontoWr2 Tier A Dashboard vivo
-- PNT-002 Validar Eliana(WR2) — bloqueante comercial
-- COP-001 (precificação Copiloto se Larissa quiser pagar)
-- O1-O6 que escapam do Cycle 01 (planejado: 0)
-
----
-
-## 🔄 Mudanças desta sessão (2026-04-28, Wagner+Claude)
-
-**Reconciliação com main necessária:** sessão paralela (PR #56 mergeada antes desta) já tinha entregue slim CLAUDE.md + INFRA + DESIGN + /continuar + skill multi-tenant + ADR 0040 publication-policy. Esta branch **acrescenta** sem sobrescrever:
-
-- `TEAM.md` (novo) — perfis das 5 pessoas, capacidade, matriz quem-pode-fazer-o-quê
-- `TASKS.md` (novo) — backlog completo por módulo, donos por iniciais, estimativa em dias úteis
-- `CURRENT.md` (sobrescreve versão narrativa de main) — agora Cycle 01 estado-da-arte com goal outcome-oriented + Active WIP + On-deck + bloqueios
-- `memory/decisions/0041-stack-qa-ia-vizra-langfuse-deepeval.md` — ADR formal Caminho B (renumerado de 0040 → 0041 porque main já tem 0040 publication-policy)
-- `memory/comparativos/qa_eval_ia_estado_arte_capterra_2026_04_28.md` — 564 linhas, 8 plataformas, 42 features
-- `memory/cycles/README.md` — convenção arquivamento de Cycle ao fechar
-- CLAUDE.md ganhou §11 Equipe (não substitui o slim de main; complementa)
-
-**Mantidos da main como vieram (não duplicar):** CLAUDE.md slim, INFRA.md, DESIGN.md, `.claude/settings.json` (PowerShell version), `.claude/commands/continuar.md`, `.claude/skills/multi-tenant-patterns/`, `.claude/skills/publication-policy/`, ADR 0040 publication-policy.
+| Indicador | Alvo | Track |
+|-----------|------|-------|
+| `memoria_recall_chars > 0` | sim | ❌ hoje |
+| Copiloto responde faturamento Larissa | sim | ❌ hoje |
+| Conv 20 turnos usa <2.000 tokens contexto | sim | — |
+| Semantic cache hit rate | >30% | — |
+| PRs merged / tasks fechadas | ≥ 5 | 0 |
 
 ---
 
-## 🖥️ Infra Reverb — CT 100 docker-host ao vivo (2026-04-28)
+## 🖥️ Infra ativa (2026-04-28 estado final)
 
-> Sessão adicional no mesmo dia. PR #64 `claude/reverb-install`. Session log: `memory/sessions/2026-04-28-reverb-docker-host.md`.
+| Serviço | URL | Status |
+|---------|-----|--------|
+| App Hostinger | `https://oimpresso.com` | ✅ L13.6 PHP 8.4 |
+| Traefik v3.6 | `https://traefik.oimpresso.com` | ✅ TLS auto |
+| Portainer | `https://portainer.oimpresso.com` | ✅ |
+| Vaultwarden | `https://vault.oimpresso.com` | ✅ |
+| Reverb | `https://reverb.oimpresso.com` | ✅ WebSocket |
+| Meilisearch v1.10.3 | `https://meilisearch.oimpresso.com` | ✅ TLS R12 |
+| Copiloto IA | `/copiloto/chat` | ✅ gpt-4o-mini |
 
-**✅ Entregue:**
-- CT 100 (LXC Debian 12, `192.168.0.50`) provisionado com Docker + stack completo
-- Stack: **Traefik v3.6** (TLS automático) + **Portainer CE** + **Vaultwarden 1.35.8** + **Reverb daemon**
-- 4/4 subdomínios com cert Let's Encrypt válido (expira 2026-07-27):
-  `reverb` / `portainer` / `traefik` / `vault` `.oimpresso.com`
-- Smoke test ponta-a-ponta ✅ — `reverb:ping "smoke"` → HTTP 200 via DNS público → TP-Link 443 → Traefik → container
-- ADRs: 0042 (Reverb vs Pusher), 0043 (Docker+Traefik vs N LXCs), 0044 (Vaultwarden self-hosted)
+**Copiloto stack de memória:**
 
-**✅ Reverb ativo em produção (2026-04-28 sessão 2):**
-Hostinger `.env` já tem REVERB KEY/SECRET corretos. Smoke test via `php artisan reverb:ping` → 200 OK.
-
-**🔴 Pendente para ativar Meilisearch em produção:**
-```bash
-# 1. Criar DNS no hPanel Hostinger (API Hostinger fora do ar — HTTP 530):
-#    Domínios → oimpresso.com → DNS → Add A record:
-#    Name: meilisearch | Value: 177.74.67.30 | TTL: 3600 | Proxy: OFF
-
-# 2. Após DNS propagar, adicionar ao .env Hostinger:
-SCOUT_DRIVER=meilisearch
-MEILISEARCH_HOST=https://meilisearch.oimpresso.com
-MEILISEARCH_KEY=9c08945878571ecb76b70d25deb3852b
-
-# 3. Configurar embedder OpenAI no índice (após OPENAI_API_KEY estar no .env):
-curl -X PATCH https://meilisearch.oimpresso.com/indexes/copiloto_memoria_facts/settings/embedders \
-  -H "Authorization: Bearer 9c08945878571ecb76b70d25deb3852b" \
-  -H "Content-Type: application/json" \
-  -d '{"openai":{"source":"openAi","model":"text-embedding-3-small","apiKey":"sk-..."}}'
-
-# 4. Hostinger:
-php artisan scout:import "Modules\\Copiloto\\Models\\MemoriaFato"
-php artisan optimize:clear
-```
-
-**Estado dos 5 containers CT 100 (2026-04-28 verificado):** todos `running` ✅
+| Camada | Componente | Estado |
+|--------|-----------|--------|
+| A | `laravel/ai ^0.6.3` + `config/ai.php` | ✅ gpt-4o-mini |
+| B | `LaravelAiSdkDriver` + 4 Agents | ✅ prod |
+| C Hot | `SqlDriver` — conversas em DB | ✅ |
+| C Cold | `MeilisearchDriver` | ⚠️ ativo; bug hybrid (A1 fix) |
+| Embedder | OpenAI text-embedding-3-small | ✅ funcional |
 
 ---
 
-> Esse arquivo é sobrescrito quando Cycle muda. Cycle anterior é arquivado em `memory/cycles/CICLO-NN-YYYY-MM-DD.md` antes da sobrescrita (com retro de 5 linhas).
+## 📅 Próximo Cycle 02 (13-mai → 26-mai-2026)
+
+**Goal provável:** *Redistribuir time + iniciar PontoWr2 Tier A + Eliana(WR2) validação.*
+
+Tasks candidatas (não puxar antes!):
+- MEM-P2-2: RRF tuning (semantic_ratio A/B)
+- PNT-001: PontoWr2 Tier A Dashboard vivo
+- PNT-002: Validar Eliana(WR2)
+
+---
+
+## 🔄 Mudanças desde abertura do Cycle (2026-04-28)
+
+- Infra CT 100: Traefik + Portainer + Vaultwarden + Reverb + Meilisearch todos ✅ em prod
+- Copiloto IA real ativo (gpt-4o-mini) — primeiro dia de conversas reais
+- ADRs criados: 0042 (Reverb) · 0043 (Docker) · 0044 (Vaultwarden) · 0045 (DNS API) · 0046 (ChatAgent gap) · 0047 (Wagner solo + sprint memória)
+- CURRENT re-escrito: time 5 pessoas → Wagner solo, foco memória assertiva
+
+---
+
+> Esse arquivo é sobrescrito quando Cycle muda. Cycle anterior arquivado em `memory/cycles/CICLO-NN-YYYY-MM-DD.md` com retro de 5 linhas.
