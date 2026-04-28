@@ -181,11 +181,41 @@ SPRINT 11 → trigger condicional (Mem0/Zep):
 
 | # | Item | Quem | Urgência | Status |
 |---|---|---|---|---|
-| P1 | Criar DNS `meilisearch.oimpresso.com` no hPanel Hostinger | Wagner [W] | Alta | ⏳ (API down) |
-| P2 | OPENAI_API_KEY no Hostinger .env | Wagner [W] | Crítica | ⏳ |
-| P3 | SCOUT_DRIVER + MEILISEARCH_HOST + KEY no Hostinger .env | Wagner [W] | Alta | ⏳ (depende P1) |
-| P4 | Configurar embedder OpenAI no Meilisearch | Wagner [W] | Alta | ⏳ (depende P2+P3) |
+| P1 | Criar DNS `meilisearch.oimpresso.com` no hPanel — A record **NÃO** chegou no autoritativo (`ns1.dns-parking.com` retorna NXDOMAIN). Wagner precisa: hPanel → Domínios → oimpresso.com → DNS Zone → Add A record `meilisearch` → `177.74.67.30` → **SAVE** | Wagner [W] | 🔴 Bloqueante | ⏳ |
+| ~~P2~~ | ~~OPENAI_API_KEY no Hostinger .env~~ | — | — | ✅ Wagner forneceu chave nesta sessão |
+| ~~P3~~ | ~~SCOUT_DRIVER + MEILISEARCH_HOST + KEY no Hostinger .env~~ | — | — | ✅ feito nesta sessão |
+| ~~P4~~ | ~~Configurar embedder OpenAI no Meilisearch~~ | — | — | ✅ validado end-to-end (vector search OK) |
 | P5 | Migrar credenciais pro Vaultwarden | Wagner [W] | Média | ⏳ |
 | P6 | `postcss.config.cjs` commitado no git | Wagner [W] | Baixa | ⏳ |
-| P7 | Sprint 7 RAGAS golden set (50 perguntas) | Wagner [W] | Média | ⏳ (depende Larissa + P2) |
+| P7 | Sprint 7 RAGAS golden set (50 perguntas) | Wagner [W] | Média | ⏳ (depende Larissa + P1) |
 | P8 | Validar Larissa (A1) | Wagner [W] | Alta | ⏳ |
+| P9 | Após DNS resolver: `php artisan scout:import "Modules\\Copiloto\\Entities\\CopilotoMemoriaFato"` no Hostinger (classe está em Entities, não Models) | Auto | Auto | ⏳ (depende P1) |
+
+---
+
+## Validação end-to-end Meilisearch (2026-04-28)
+
+Confirmado via `--resolve` direto no Traefik (DNS bypass):
+
+```bash
+# 1. Insert: "Meta de faturamento da Larissa do ROTA LIVRE eh R$ 80 mil por mes"
+# 2. Vector search: "qual a meta financeira mensal"
+# 3. Resultado:
+{
+  "hits": [{"id":"test-1","descricao":"Meta de faturamento ... 80 mil por mes",...}],
+  "semanticHitCount": 1,
+  "processingTimeMs": 1269
+}
+```
+
+✅ Cross-phrasing match: "financeira"≈"faturamento", "mensal"≈"por mes"
+✅ Pipeline OpenAI text-embedding-3-small + Meilisearch hybrid search funcionando
+✅ Estamos prontos para Tier 5-6 LongMemEval em produção (assim que DNS resolver)
+
+## Fix técnico aplicado: rede Docker
+
+Problema descoberto: container Meilisearch estava em network `bridge` (default Docker) mas Traefik em `docker-host_default`. Traefik retornava HTTP 504 Gateway Timeout.
+
+**Fix:** recriar container com `NetworkMode: docker-host_default` + label `traefik.docker.network: docker-host_default` para forçar Traefik a usar o IP correto (`172.18.0.6`).
+
+**Lição:** sempre que adicionar serviço novo via API/compose, conferir `NetworkMode` antes de Traefik labels.
