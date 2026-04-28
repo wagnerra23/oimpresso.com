@@ -84,7 +84,7 @@ Hypervisor:    Proxmox VE 9.1.1 (kernel 6.17.2)
 Node:          sistema
 IP LAN:        192.168.0.2 (bridge vmbr0)
 IP público:    177.74.67.30 (ISP ateky.net.br — IP fixo da empresa)
-DNS planejado: reverb.wr2.com.br A 177.74.67.30 (Cloudflare laranja-OFF — pendente Wagner criar)
+DNS planejado: reverb.oimpresso.com A 177.74.67.30 (Cloudflare laranja-OFF — pendente Wagner criar)
 Port forward:  TCP 443 externo → 192.168.0.50:443 LAN (pendente Wagner config router)
 Upload Mbps:   <preencher: importante pra dimensionar conexões WS>
 Acesso SSH:    192.168.0.2:22 (root, mesma senha do painel)

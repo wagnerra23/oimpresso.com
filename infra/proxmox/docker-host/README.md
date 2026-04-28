@@ -15,14 +15,14 @@ Ver [ADR 0043](../../../memory/decisions/0043-docker-host-traefik-vs-lxc-nativo.
 
 ## Pré-requisitos pra subir o stack
 
-### 1. DNS (Cloudflare ou onde estiver o `wr2.com.br`)
+### 1. DNS (Cloudflare ou onde estiver o `oimpresso.com`)
 
 Criar 3 A records, **proxy DESLIGADO** (laranja-OFF se Cloudflare — senão WebSocket quebra):
 
 ```
-reverb.wr2.com.br      A   177.74.67.30
-portainer.wr2.com.br   A   177.74.67.30
-traefik.wr2.com.br     A   177.74.67.30
+reverb.oimpresso.com      A   177.74.67.30
+portainer.oimpresso.com   A   177.74.67.30
+traefik.oimpresso.com     A   177.74.67.30
 ```
 
 ### 2. Port forwards no router TP-Link (192.168.0.1 → Direcionamento NAT → Servidores Virtuais)
@@ -67,9 +67,9 @@ docker compose logs -f traefik
 
 ```bash
 # Em qualquer máquina externa:
-curl -I https://traefik.wr2.com.br/        # 401 (basic auth) ou 200 — ok
-curl -I https://portainer.wr2.com.br/      # 200 — ok
-openssl s_client -connect traefik.wr2.com.br:443 -servername traefik.wr2.com.br < /dev/null 2>&1 | grep -E "issuer|subject"
+curl -I https://traefik.oimpresso.com/        # 401 (basic auth) ou 200 — ok
+curl -I https://portainer.oimpresso.com/      # 200 — ok
+openssl s_client -connect traefik.oimpresso.com:443 -servername traefik.oimpresso.com < /dev/null 2>&1 | grep -E "issuer|subject"
 # Esperar: issuer=Let's Encrypt
 ```
 

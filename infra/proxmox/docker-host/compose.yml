@@ -6,7 +6,7 @@
 #   - Reverb (Laravel WebSocket broadcaster — adicionado em PR seguinte)
 #
 # Pré-requisitos pra TLS funcionar (responsabilidade do Wagner antes de subir):
-#   1. DNS: A records pra reverb/portainer/traefik.wr2.com.br → 177.74.67.30
+#   1. DNS: A records pra reverb/portainer/traefik.oimpresso.com → 177.74.67.30
 #      (laranja-OFF se for Cloudflare, senão WS quebra)
 #   2. TP-Link port forwards:
 #      - regra "https" 443 → 192.168.0.50:443
@@ -44,7 +44,7 @@ services:
       - "--accesslog=true"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.wr2.com.br`)"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.oimpresso.com`)"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.tls.certresolver=le"
@@ -60,7 +60,7 @@ services:
       - portainer-data:/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`portainer.wr2.com.br`)"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.oimpresso.com`)"
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls.certresolver=le"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"

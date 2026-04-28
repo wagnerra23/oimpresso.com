@@ -21,7 +21,7 @@ A primeira proposta era **1 LXC nativo por serviço** (CT 100 reverb, CT 101 mei
 
 **Reverse-proxy:** Traefik 3.5 com Let's Encrypt automático (HTTP-01 challenge), descobre serviços via labels Docker.
 
-**UI:** Portainer CE LTS, exposto em `portainer.wr2.com.br` via Traefik.
+**UI:** Portainer CE LTS, exposto em `portainer.oimpresso.com` via Traefik.
 
 ## Alternativas consideradas
 
@@ -67,7 +67,7 @@ A primeira proposta era **1 LXC nativo por serviço** (CT 100 reverb, CT 101 mei
 
 **Pendências (Wagner — fora do código):**
 
-- 🟡 Criar A records DNS: `reverb / portainer / traefik.wr2.com.br → 177.74.67.30` (proxy OFF)
+- 🟡 Criar A records DNS: `reverb / portainer / traefik.oimpresso.com → 177.74.67.30` (proxy OFF)
 - 🟡 Editar TP-Link: regra #3 (https) IP Interno `192.168.0.2 → 192.168.0.50`; adicionar nova regra `80 → 192.168.0.50:80`
 
 **Pendências (Claude — PR seguinte):**
@@ -79,8 +79,8 @@ A primeira proposta era **1 LXC nativo por serviço** (CT 100 reverb, CT 101 mei
 **Smoke test ponta-a-ponta:**
 
 Vai rodar quando DNS + port forwards prontos. Critérios:
-1. `curl -I https://traefik.wr2.com.br/` → 401 (basic auth) com cert Let's Encrypt válido
-2. `curl -I https://portainer.wr2.com.br/` → 200 com cert válido
+1. `curl -I https://traefik.oimpresso.com/` → 401 (basic auth) com cert Let's Encrypt válido
+2. `curl -I https://portainer.oimpresso.com/` → 200 com cert válido
 3. Painel Portainer abre normalmente do browser externo
 
 ## Rollback
