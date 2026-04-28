@@ -87,9 +87,8 @@
 						</span>
 					@endif
 					{{-- Barcode --}}
-					<img style="max-width:90% !important;height: {{$barcode_details->height*0.34}}cm !important; display: block;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($page_product->sub_sku, $page_product->barcode_type, 1,30, array(0, 0, 0), false)}}">
-					
-					<span style="display: block !important; font-size: {{13*$factor}}px; margin-top: -3px;">
+					<img style="max-width:90% !important;height: {{$barcode_details->height*0.34}}cm !important; display: block; margin: 0 auto; vertical-align: bottom;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($page_product->sub_sku, $page_product->barcode_type, 1,30, array(0, 0, 0), false)}}">
+					<span style="display: block !important; font-size: {{13*$factor}}px; margin-top: -8px; line-height: 1;">
 						{{$page_product->sub_sku}}
 					</span>
 				</div>
