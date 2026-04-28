@@ -58,11 +58,13 @@
 
 | Bloqueio | Impacto | Quem destrava | Prazo destrava | Status |
 |---|---|---|---|---|
-| **DNS `meilisearch.oimpresso.com`** — A record NÃO está no autoritativo `ns1.dns-parking.com` (verificado 2026-04-28). Wagner pode ter aberto hPanel mas o registro não foi salvo. | Hostinger PHP não resolve → `scout:import` falha → Copiloto sem memória vetorial em prod | Wagner — hPanel Hostinger → Domínios → oimpresso.com → DNS Zone → **Add A record** → Name: `meilisearch` (sem o domínio), Points to: `177.74.67.30`, TTL: 14400 → **CLICAR EM SAVE** | **hoje 28-abr** | 🔴 aberto — único bloqueio crítico |
-| **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 | Wagner — manda WhatsApp hoje | **hoje 28-abr** | 🔴 aberto |
-| ~~**OPENAI_API_KEY**~~ | ~~Bloqueia IA real~~ | — | — | ✅ RESOLVIDO (2026-04-28 — Wagner forneceu chave) |
-| ~~**Reverb KEY/SECRET**~~ | ~~Streaming Copiloto~~ | — | — | ✅ RESOLVIDO (2026-04-28) |
-| ~~**Daemon Meilisearch + embedder**~~ | ~~Bloqueia busca vetorial~~ | — | — | ✅ Container + embedder OpenAI + vector search **end-to-end validado** (2026-04-28: query "meta financeira" → recuperou "meta de faturamento" via semanticHitCount=1) |
+| **Larissa indisponível** (ainda não agendamos 1h) | Bloqueia A1 → cascata sprint 7 RAGAS | Wagner — manda WhatsApp hoje | **hoje 28-abr** | 🔴 aberto |
+| **GAP produto: ChatCopilotoAgent não tem tools/contexto rico** | Copiloto está "burrinho" (não sabe faturamento, clientes, top vendas) — só responde com prompt vazio + memoria recall | Sprint futuro — adicionar tools/function-calling OR injetar `ContextoNegocio` no system prompt | Médio prazo | 🟡 aberto — descoberto na 1ª conversa real Larissa-style 2026-04-28 |
+| ~~**OPENAI_API_KEY**~~ | — | — | — | ✅ RESOLVIDO (2026-04-28 — Wagner forneceu) |
+| ~~**Reverb KEY/SECRET**~~ | — | — | — | ✅ RESOLVIDO (2026-04-28) |
+| ~~**Daemon Meilisearch + embedder + DNS + TLS**~~ | — | — | — | ✅ TUDO ATIVO em prod (2026-04-28): DNS criado via API `developers.hostinger.com/api/dns/v1/zones/{domain}` PUT; cert Let's Encrypt R12 emitido após restart Traefik; pipeline e2e validado |
+| ~~**`config/ai.php` não commitado**~~ | — | — | — | ✅ RESOLVIDO (2026-04-28 commit `7bc2f683`) — `gpt-5.4` fallback do laravel/ai era o motivo de "Estou sem conexão IA" |
+| ~~**Log channel `copiloto-ai` faltando**~~ | — | — | — | ✅ RESOLVIDO (2026-04-28) — emergency logger lançava Throwable em `responderChat` |
 
 **Desbloqueio crítico para IA real funcionar em produção (tudo junto):**
 ```
