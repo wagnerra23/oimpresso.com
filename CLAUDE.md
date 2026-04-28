@@ -151,10 +151,32 @@ Ver [`DESIGN.md`](DESIGN.md) — hub visual + padrão técnico Chat Cockpit (App
 
 ## 9. Contato e referências externas
 
-**Cliente PontoWr2:** WR2 Sistemas — Eliana — eliana@wr2.com.br
+**Cliente PontoWr2:** WR2 Sistemas — Eliana(WR2) — eliana@wr2.com.br
+**Cliente principal Copiloto:** ROTA LIVRE — Larissa (`business_id=4`)
 **Repositório local:** `D:\oimpresso.com`
 **Outros documentos do projeto** (fora desta pasta): `projeto_ponto_eletronico_wr2.md`, `especificacao_tecnica_laravel_wr2.md`, `ultimatepos6_hrm_especificacao_e_adaptacao.md`, `design_projeto_ponto_wr2.md` — pasta de outputs temporários do Cowork.
 
 ---
 
-> **Última atualização:** 2026-04-28 (slim §8 → INFRA.md, §10 → DESIGN.md; +CURRENT.md / /continuar / skills / disciplina de contexto)
+## 10. Equipe interna e atribuição de tasks
+
+**Time atual (5 pessoas):** Wagner [W] líder · Maíra [M] suporte+dev · Felipe [F] dev+suporte · Luiz [L] iniciante+dev IA-pair · Eliana [E] financeiro+dev IA (esposa Wagner)
+
+**Antes de atribuir / pegar uma task:** ler [`TEAM.md`](TEAM.md) — perfis, **WIP máximo por pessoa** (W/M/F=2, L/E=1), e **matriz "quem pode pegar qual tipo de task"** com 4 níveis (✅ owner / 🟢 pode / 🟡 com supervisão / ❌ não-pegar).
+
+**Regras duras:**
+- Luiz [L] não mergeia PR sozinho (Felipe ou Wagner aprova).
+- Eliana [E] não mexe em Copiloto sprints LGPD.
+- Maíra [M] não faz deploy produção sozinha.
+- Wagner [W] deve evitar virar bottleneck — delegar code review pra Felipe quando puder.
+- PIIs reais (CPF/CNPJ de cliente) NUNCA aparecem em PR ou commit. Logs com `[REDACTED]`.
+
+**2 Elianas no projeto:** `Eliana[E]` (esposa, time interno) ≠ `Eliana(WR2)` (cliente externa, PontoWr2). Sempre desambiguar em commits/notas.
+
+**Convenção em commits:** `[W]`, `[M]`, `[F]`, `[L]`, `[E]`, `[L+C]` (Luiz pareado Claude), etc. Ex.: `feat(copiloto): PII redactor BR [F]`.
+
+**Ciclo de trabalho:** Cycle de 2 semanas — `CURRENT.md` define goal outcome-oriented + Active (WIP por pessoa) + On-deck. Daily async 09h cada um atualiza próprio status no `TASKS.md`. Sex final do cycle: Wagner arquiva `CURRENT.md` em `memory/cycles/CICLO-NN-YYYY-MM-DD.md` com retro de 5 linhas.
+
+---
+
+> **Última atualização:** 2026-04-28 (slim §8 → INFRA.md, §10 → DESIGN.md; +CURRENT.md/CYCLE/TASKS/TEAM, /continuar, skills, ADR 0040 publication-policy + ADR 0041 stack QA de IA)
