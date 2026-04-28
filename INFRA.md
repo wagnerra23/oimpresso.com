@@ -70,4 +70,57 @@ Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
 
 ---
 
-> **Última atualização:** 2026-04-28 (extraído do CLAUDE.md §8 pra centralizar tudo de produção/infra num arquivo só)
+## 6. Ativos disponíveis (homologação / serviços que precisam de daemon)
+
+> Hostinger compartilhado **não roda daemons persistentes** (sem supervisord, sem controle do nginx pra WS proxy). Pra Reverb, Meilisearch como serviço, agentes Vizra ADK em background, Horizon supervised, etc., usar os ativos abaixo.
+
+### 6.1 Servidor Proxmox da empresa (oimpresso, escritório)
+
+```
+Status:        ✅ ATIVO E DISPONÍVEL (a partir de 2026-04-28)
+Localização:   Escritório oimpresso (Wagner)
+Hardware:      128 GB RAM, 2 TB HD
+Hypervisor:    Proxmox VE
+IP fixo:       <preencher: IP público da empresa>
+Hostname:      <preencher>
+Upload Mbps:   <preencher: importante pra dimensionar conexões WS>
+Acesso SSH:    <preencher: porta + chave a configurar>
+Painel Proxmox: <preencher: URL https://...:8006>
+```
+
+**Uso planejado (ordem de prioridade):**
+
+1. **VM `reverb`** — Reverb daemon + cloudflared (ou direto se IP fixo expor 443) — ver [ADR 0042](memory/decisions/0042-reverb-substitui-pusher-cloud.md)
+2. **VM `meilisearch`** — Meilisearch como serviço persistente (substitui o `~/meilisearch/` instalado mas não rodando do Hostinger) — ver task A4 de Felipe em [`CURRENT.md`](CURRENT.md) e [ADR 0036](memory/decisions/0036-replanejamento-meilisearch-first.md)
+3. **VM `copiloto-workers`** — Horizon + queue workers + agentes Vizra ADK em background (Larissa, FaithCheck, etc.) — ver [ADR 0035](memory/decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)
+4. **VM `staging`** — réplica Laravel pra teste pré-produção (evita os 3 incidentes de crash em prod do histórico — CLAUDE.md §4)
+
+**Vantagens vs migrar tudo pra VPS pago:**
+
+- 128 GB RAM acomoda todas as VMs acima com folga
+- IP fixo na empresa = sem custo de cloud + sem latência cross-region (Larissa em SP, servidor em SP)
+- Proxmox dá snapshot/backup nativo
+- Wagner tem controle físico (CLT compliance, LGPD residency, etc.)
+
+**Riscos a mitigar antes de produção:**
+
+- 🟡 **Energia / link da empresa** — quedas afetam disponibilidade. Mitigação: UPS + 4G failover ou manter Hostinger como fallback HTTP-only.
+- 🟡 **Backup off-site** — Proxmox snapshots não saem do hardware. Mitigação: replicação pra Hostinger ou S3 weekly.
+- 🟡 **Acesso remoto** — SSH inbound pelo IP fixo precisa de firewall + chave forte. Sem senha, só chave pública.
+- 🟡 **DNS** — apontar `reverb.oimpresso.com` / `meili.oimpresso.com` pro IP da empresa via Cloudflare (proxy laranja off pra WS funcionar nativo, ou laranja on com plano que suporta WS).
+
+**Próximos passos pra ativar:**
+
+1. [ ] Wagner preenche os campos `<preencher>` desta seção
+2. [ ] Wagner configura DNS dos subdomínios pro IP fixo
+3. [ ] Claude/Felipe instalam VM Debian 12 + provisionam Reverb (PR #64)
+4. [ ] Claude/Felipe instalam VM Debian 12 + provisionam Meilisearch (A4 do Felipe)
+5. [ ] Smoke test ponta-a-ponta: Larissa em browser → wss://reverb.oimpresso.com → daemon Proxmox → broadcast OK
+
+### 6.2 Hostinger Cloud Startup (já em uso — §1)
+
+Continua sendo o servidor PHP-FPM do app principal (`oimpresso.com`). Não vamos migrar app pra Proxmox por enquanto — só serviços que precisam de daemon.
+
+---
+
+> **Última atualização:** 2026-04-28 (sessão Reverb install — adicionada §6 Ativos: Proxmox empresa disponível pra Reverb/Meilisearch/workers; Hostinger fica só com PHP-FPM do app)

@@ -84,7 +84,16 @@ Wagner pediu **"reverb pra comunicação instantânea sem custo do push"** em 20
 
 - 🟡 **Cliente React ouvindo `reverb-test`** — não criado nessa PR pra manter escopo enxuto. Snippet abaixo.
 - 🟡 **Tests Pest** — não criados (smoke test imperativo via artisan basta pro Cycle 01).
-- 🔴 **Deploy Hostinger** — daemon Reverb + supervisor + nginx WS proxy. Encaixar junto da A4 do Felipe (Meilisearch daemon). Sem deploy, BROADCAST_DRIVER em produção fica `null` (rollback automático).
+- 🔴 **Deploy** — daemon Reverb + supervisor + reverse-proxy WS. **Plano revisado em 2026-04-28:** Hostinger compartilhado é **inviável** (sem supervisord, sem controle do nginx pra WS proxy, hPanel cron resolve só heartbeat — não resolve roteamento WS externo). Wagner indicou ativo disponível: **servidor Proxmox da empresa (128 GB RAM, 2 TB HD, IP fixo)** — ver [INFRA.md §6.1](../../INFRA.md). Deploy redirecionado pra VM Debian no Proxmox, controle total de daemons + nginx + DNS. Sem deploy, `BROADCAST_DRIVER` em produção fica `null` (rollback automático).
+
+**Decisão de deploy (substitui plano original "junto com A4 Felipe no Hostinger"):**
+
+| Item | Onde | Status |
+|---|---|---|
+| App PHP-FPM (`oimpresso.com`) | Hostinger Cloud Startup | Mantém |
+| Reverb daemon | VM `reverb` no Proxmox empresa | Pendente provisão |
+| Meilisearch daemon | VM `meilisearch` no Proxmox empresa | Pendente provisão (Hostinger tem binário em `~/meilisearch/` mas não roda como daemon — descartar) |
+| DNS `reverb.oimpresso.com` | Cloudflare → IP fixo empresa | Pendente |
 
 ## Como testar local
 
