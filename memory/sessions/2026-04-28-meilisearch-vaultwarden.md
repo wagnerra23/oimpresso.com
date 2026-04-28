@@ -193,6 +193,32 @@ SPRINT 11 → trigger condicional (Mem0/Zep):
 
 ---
 
+## Validação Copiloto IA real em produção (2026-04-28 17:30)
+
+Wagner testou /copiloto/chat e levou 2 bugs:
+- "Estou sem conexão com IA no momento" mesmo com key válida
+- 403 da OpenAI: `Project does not have access to model gpt-5.4`
+
+**Diagnóstico:**
+1. `config/ai.php` existia local mas **nunca tinha sido commitado** — `laravel/ai` caía no fallback hardcoded `gpt-5.4` (não existe). Commit `7bc2f683`
+2. `Log::channel('copiloto-ai')` chamado mas channel inexistente em `config/logging.php` → emergency logger lançava Throwable em `responderChat()` → fallback "sem conexão"
+
+**Fix deploy:**
+- `config/ai.php` commitado: `AI_OPENAI_TEXT_DEFAULT=gpt-4o-mini` (override do hardcoded)
+- `config/logging.php`: channel `copiloto-ai` adicionado (daily, 14d)
+- Hostinger: `git pull` + `config:cache`
+
+**Teste pós-deploy:**
+```
+> conv id=3, biz=4 (ROTA LIVRE)
+> $driver->responderChat($conv, 'oi, voce esta funcionando?')
+→ "Oi! Sim, estou funcionando. Como posso te ajudar hoje?" ✅
+```
+
+IA real ativa em prod. Memória vetorial só vira ON quando DNS Meilisearch resolver (degradação silenciosa enquanto isso — chat funciona como GPT genérico).
+
+---
+
 ## Validação end-to-end Meilisearch (2026-04-28)
 
 Confirmado via `--resolve` direto no Traefik (DNS bypass):
