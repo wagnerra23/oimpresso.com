@@ -133,6 +133,39 @@ VMs/CTs:       (nenhuma — instalação fresca em 2026-04-28)
 
 Continua sendo o servidor PHP-FPM do app principal (`oimpresso.com`). Não vamos migrar app pra Proxmox por enquanto — só serviços que precisam de daemon.
 
+### 6.3 Servidor Windows Server 2022 (Delphi / WR Comercial)
+
+```
+Status:        ✅ Em produção (sistemas Delphi do Wagner)
+Localização:   Escritório oimpresso (mesma LAN do Proxmox)
+Hardware:      2× Intel Xeon (multi-socket), 128 GB RAM, placa de vídeo dedicada
+SO:            Windows Server 2022
+NICs:          duas placas
+                ├─ 192.168.0.4 — interface principal (RDS, Cpanel, FTP, FireBird, Horse, etc.)
+                └─ 192.168.0.3 — interface secundária (sem port forward público)
+Acesso RDS:    rdp://192.168.0.4:3389 (público via TP-Link regra #4)
+DB FireBird:   192.168.0.4:3050 (público via TP-Link regra #8)
+Login:         <pendente Wagner passar — guardar no Vaultwarden quando subir>
+```
+
+**Roda:**
+- Sistema Delphi WR Comercial (`reference_delphi_wr_comercial.md`)
+- DB FireBird (banco antigo do WR Comercial)
+- Serviços diversos legados (Horse:19000, THorse:8050, socket_horce:55666, Rat:214)
+
+### 6.4 Central VoIP (Issabel / Asterisk / Elastix)
+
+```
+Status:        ✅ Em produção (telefonia interna)
+IP LAN:        192.168.0.21 (reserva DHCP por MAC 94:DE:80:F4:59:2D)
+Plataforma:    Issabel/Asterisk/Elastix (família PBX)
+Painel:        https://192.168.0.21/ (admin web)
+SIP:           UDP 5060 (LAN, sem port forward visível)
+Login:         <pendente Wagner passar — Vaultwarden>
+```
+
+Range UDP 4000-5999 do TP-Link regra #7 (`Telefone`) direciona pra **192.168.0.2** (Proxmox), o que é provavelmente regra obsoleta — a central real está em `.21` na LAN. Verificar e ajustar quando tiver tempo.
+
 ---
 
 > **Última atualização:** 2026-04-28 (sessão Reverb install — adicionada §6 Ativos: Proxmox empresa disponível pra Reverb/Meilisearch/workers; Hostinger fica só com PHP-FPM do app)
