@@ -48,7 +48,9 @@ Pra qualquer coisa visual/UX, comece em [`DESIGN.md`](DESIGN.md). Pra acesso/dep
 - Use **Plan mode** (Shift+Tab×2) pra mudanças não-triviais — Claude planeja antes de tocar arquivo.
 - Use **`/continuar`** pra retomar sessão sem re-explorar o repo do zero (lê CURRENT.md + handoff + último session log + abre só os arquivos do próximo passo).
 
-**Skills auto-ativáveis:** arquivos em `.claude/skills/<nome>/SKILL.md` ativam automaticamente quando o `description:` do frontmatter casa com a tarefa em andamento. Use pra encapsular padrões recorrentes (ex.: `multi-tenant-patterns` ativa ao criar nova Entity/Controller/Service que toca dados de negócio).
+**Skills auto-ativáveis:** arquivos em `.claude/skills/<nome>/SKILL.md` ativam automaticamente quando o `description:` do frontmatter casa com a tarefa em andamento. Use pra encapsular padrões recorrentes:
+- `multi-tenant-patterns` — ativa ao criar Entity/Controller/Service/Job que toca dados de negócio (`business_id`).
+- `publication-policy` — ativa antes de git push, abertura/merge de PR, deploy em produção, ou postagem externa. Decide se Claude executa direto ou escala pro Wagner. Wagner explicitamente delegou supervisão; Claude não pergunta antes de ação rotineira reversível. Ver [ADR 0040](memory/decisions/0040-policy-publicacao-claude-supervisiona.md).
 
 Ao terminar uma sessão:
 
