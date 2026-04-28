@@ -10,7 +10,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --config vite.config.ts",
     "dev:inertia": "vite --config vite.inertia.config.mjs",
     "build:inertia": "vite build --config vite.inertia.config.mjs",
     "typecheck": "tsc --noEmit"
@@ -32,6 +32,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@inertiajs/react": "^3.0.3",
+    "@laravel/echo-react": "^2.3.3",
     "@radix-ui/react-alert-dialog": "^1.1.0",
     "@radix-ui/react-checkbox": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.0",
@@ -51,7 +52,9 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.18.0",
+    "laravel-echo": "^2.3.4",
     "lucide-react": "^0.460.0",
+    "pusher-js": "^8.5.0",
     "radix-ui": "^1.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
