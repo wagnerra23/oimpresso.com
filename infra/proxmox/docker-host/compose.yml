@@ -92,6 +92,47 @@ services:
       - "traefik.http.routers.vault.tls.certresolver=le"
       - "traefik.http.services.vault.loadbalancer.server.port=80"
 
+  # Reverb — Laravel WebSocket broadcaster (ADR 0042 + 0043)
+  # Build do repo sincronizado em /opt/oimpresso-app no host CT.
+  # Update: rsync/tar repo → /opt/oimpresso-app → docker compose up -d --build reverb
+  reverb:
+    build:
+      context: /opt/oimpresso-app
+      dockerfile: infra/proxmox/docker-host/reverb/Dockerfile
+    image: oimpresso/reverb:latest
+    container_name: reverb
+    restart: unless-stopped
+    environment:
+      APP_NAME: "OI Impresso Reverb"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://reverb.oimpresso.com
+      APP_KEY: ${REVERB_APP_LARAVEL_KEY}
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: info
+      BROADCAST_DRIVER: reverb
+      BROADCAST_CONNECTION: reverb
+      TELESCOPE_ENABLED: "false"
+      DEBUGBAR_ENABLED: "false"
+      REVERB_SERVER_HOST: 0.0.0.0
+      REVERB_SERVER_PORT: 8080
+      REVERB_HOST: reverb.oimpresso.com
+      REVERB_PORT: 443
+      REVERB_SCHEME: https
+      REVERB_APP_ID: ${REVERB_APP_ID}
+      REVERB_APP_KEY: ${REVERB_APP_KEY}
+      REVERB_APP_SECRET: ${REVERB_APP_SECRET}
+      # DB ainda não conectado — canais privados/presence precisarão depois
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /tmp/reverb.sqlite
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.reverb.rule=Host(`reverb.oimpresso.com`)"
+      - "traefik.http.routers.reverb.entrypoints=websecure"
+      - "traefik.http.routers.reverb.tls.certresolver=le"
+      - "traefik.http.services.reverb.loadbalancer.server.port=8080"
+      # WebSocket support (Traefik 3 default já lida com Upgrade headers)
+
 volumes:
   traefik-acme:
     name: traefik-acme
