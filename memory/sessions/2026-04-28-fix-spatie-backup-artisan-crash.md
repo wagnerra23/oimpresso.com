@@ -45,24 +45,40 @@ clean) pra rodar artisan com vendor instalado:
 Após validação, `git checkout -- config/backup.php` no main checkout reverteu o teste; checkout
 voltou clean. Fix permanente fica só na branch `claude/sharp-williamson-d8767b`.
 
-## Hostinger — pendente
+## Hostinger — validado, prod NÃO afetado
 
-Tentativa de SSH `-4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115` deu
-**Connection timed out** (2 tentativas, 30s timeout cada). Não consegui validar se prod está
-crashando nem aplicar fix lá. Possíveis causas: instabilidade rede Hostinger ou bloqueio
-temporário do meu IP.
+1ª tentativa de SSH deu `Connection timed out` (com `ConnectTimeout=30`). Wagner apontou que eu
+ignorei a receita oficial em [`INFRA.md`](../../INFRA.md): SSH Hostinger é flaky por design, sempre
+`curl -s4 https://oimpresso.com/ > /dev/null` pra warm + `ConnectTimeout=120` no SSH.
 
-**Quando SSH voltar**, validar:
-```bash
-ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
-  'cd ~/domains/oimpresso.com/public_html && \
-   grep -E "^(MAIL_FROM|BACKUP_NOTIFICATION)" .env ; \
-   php artisan list 2>&1 | head -3 ; echo EXIT=$?'
+Aplicada a receita certa, validação read-only em prod:
+
+```
+$ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -o ConnectTimeout=120 -p 65002 u906587222@148.135.133.115 \
+    'cd ~/domains/oimpresso.com/public_html && grep ^MAIL_FROM .env && php artisan list 2>&1 | head -3'
+MAIL_FROM_ADDRESS="no-reply@wr2.com.br"
+MAIL_FROM_NAME="WR2 Sistemas"
+Laravel Framework 13.6.0
+EXIT=0
 ```
 
-Se prod estiver crashando: aplicar mesma edição em `config/backup.php` em prod (via merge da
-branch + deploy normal) ou setar `MAIL_FROM_ADDRESS=noreply@oimpresso.com` direto no `.env` de
-prod (fix mais rápido, dispensa deploy de código).
+**Conclusão:** prod tem `MAIL_FROM_ADDRESS` preenchido (provavelmente desde quando configuraram
+notificações pro WR2), então a config não bate na string vazia, não há crash. O bug só afeta:
+
+1. Dev clonando o repo e copiando `.env.example` literal sem editar
+2. Dev "resetando" `MAIL_FROM_ADDRESS=` durante debug (caso do Wagner — mexendo no `.env` pra
+   ajustar `OPENAI_API_KEY` e por algum motivo apagou também o `MAIL_FROM_ADDRESS`)
+
+O fix em `config/backup.php` continua valendo como **medida defensiva** (proteger contra
+regressão se alguém esvaziar a var em prod no futuro), e o fix em `.env.example` evita a mesma
+pegadinha pra próximo dev. Mas não há urgência de deploy em prod — fica pro próximo deploy
+normal qualquer.
+
+## Lição
+
+`reference_hostinger_server.md` em auto-memória já mencionava IPv4. Faltava warm com curl +
+timeout grande. Deveria ter lido [`INFRA.md`](../../INFRA.md) antes do 1º SSH em vez de chutar o
+timeout. Atualizar auto-memória.
 
 ## Definition of Done
 
@@ -70,7 +86,7 @@ prod (fix mais rápido, dispensa deploy de código).
 - [x] `.env.example` atualizado com fallback sensato + `BACKUP_NOTIFICATION_MAIL_TO` documentado
 - [x] `php artisan config:clear` valida limpo (exit 0) com fix aplicado
 - [x] Session log criado (este arquivo)
-- [ ] Hostinger validado — bloqueado por SSH timeout
+- [x] Hostinger validado — prod NÃO afetado (`MAIL_FROM_ADDRESS` preenchido)
 - [ ] PR mergeado em main
 
 ## Decisões
