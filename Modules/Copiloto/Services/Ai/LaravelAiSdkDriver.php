@@ -115,9 +115,14 @@ class LaravelAiSdkDriver implements AiAdapter
 
         $agent = new ChatCopilotoAgent($conv, $memoriaContexto, $ctx);
 
+        // MEM-OTEL-1 (ADR 0051) — clock pra medir gen_ai.response.duration_ms
+        $startedAt = microtime(true);
+
         try {
             $response = $agent->prompt($mensagem);
             $texto = (string) $response;
+
+            $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
 
             Mensagem::where('conversa_id', $conv->id)
                 ->where('role', 'assistant')
@@ -135,6 +140,10 @@ class LaravelAiSdkDriver implements AiAdapter
                 'contexto_negocio' => $ctx !== null ? 'on' : 'off',
             ]);
 
+            // MEM-OTEL-1 (ADR 0051) — emite atributos gen_ai.* OpenTelemetry
+            // semantic conventions. Plugável em Datadog/Langfuse/Arize sem rename.
+            $this->emitirOtelGenAi($conv, $mensagem, $response, $durationMs, ok: true);
+
             // Sprint 5 — após resposta, extrair fatos novos em background (Horizon).
             if (config('copiloto.memoria.write_enabled', true)) {
                 ExtrairFatosDaConversaJob::dispatch(
@@ -146,9 +155,79 @@ class LaravelAiSdkDriver implements AiAdapter
 
             return $texto;
         } catch (\Throwable $e) {
+            $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
+
             Log::channel('copiloto-ai')->error('responderChat error: ' . $e->getMessage());
 
+            // OTel emite mesmo em erro — observability precisa do span de falha
+            $this->emitirOtelGenAi($conv, $mensagem, null, $durationMs, ok: false, error: $e);
+
             return 'Estou sem conexão com IA no momento. Você quer criar a meta manualmente?';
+        }
+    }
+
+    /**
+     * MEM-OTEL-1 (ADR 0051) — emite 1 evento estruturado seguindo
+     * OpenTelemetry GenAI semantic conventions (atributos `gen_ai.*`).
+     *
+     * Hoje grava no log channel `otel-gen-ai`; quando OTel SDK PHP entrar,
+     * o mesmo dict vira `Span::setAttributes()`. Datadog/Langfuse/Arize
+     * mapeiam direto sem rename.
+     *
+     * Atributos inclusos:
+     *   - gen_ai.system / gen_ai.request.model / gen_ai.operation.name
+     *   - gen_ai.usage.input_tokens / output_tokens
+     *   - gen_ai.response.duration_ms / gen_ai.response.finish_reason
+     *   - gen_ai.business_id (custom — multi-tenant audit LGPD)
+     *   - gen_ai.conversation.id / gen_ai.user.id
+     *   - gen_ai.copiloto.memoria_recall_chars / contexto_negocio (custom)
+     *
+     * Falha silente — telemetria nunca quebra chat.
+     */
+    protected function emitirOtelGenAi(
+        Conversa $conv,
+        string $prompt,
+        mixed $response,
+        int $durationMs,
+        bool $ok,
+        ?\Throwable $error = null,
+    ): void {
+        try {
+            $sistema = (string) config('ai.default', 'openai');
+            $modelo  = (string) config(
+                "ai.providers.{$sistema}.models.text.default",
+                config('copiloto.openai.model_chat', 'gpt-4o-mini'),
+            );
+
+            $attrs = [
+                // Padrão OTel GenAI
+                'gen_ai.system'                  => $sistema,
+                'gen_ai.request.model'           => $modelo,
+                'gen_ai.operation.name'          => 'chat',
+                'gen_ai.response.duration_ms'    => $durationMs,
+                // Identidade (custom, multi-tenant + LGPD audit)
+                'gen_ai.business_id'             => $conv->business_id !== null ? (int) $conv->business_id : null,
+                'gen_ai.user.id'                 => (int) $conv->user_id,
+                'gen_ai.conversation.id'         => (int) $conv->id,
+                // Contexto Copiloto (custom)
+                'gen_ai.copiloto.prompt_chars'   => strlen($prompt),
+                'gen_ai.copiloto.driver'         => 'laravel_ai_sdk',
+            ];
+
+            if ($ok && $response !== null) {
+                $attrs['gen_ai.usage.input_tokens']  = $response->usage->promptTokens ?? null;
+                $attrs['gen_ai.usage.output_tokens'] = $response->usage->completionTokens ?? null;
+                $attrs['gen_ai.response.finish_reason'] = $response->finishReason ?? 'stop';
+            } else {
+                $attrs['gen_ai.error.type']    = $error !== null ? get_class($error) : 'unknown';
+                $attrs['gen_ai.error.message'] = $error !== null ? $error->getMessage() : 'unknown';
+                $attrs['gen_ai.response.finish_reason'] = 'error';
+            }
+
+            Log::channel('otel-gen-ai')->info('gen_ai.span', $attrs);
+        } catch (\Throwable $logErr) {
+            // Never crash chat over telemetry
+            Log::channel('copiloto-ai')->debug('emitirOtelGenAi falhou: ' . $logErr->getMessage());
         }
     }
 
