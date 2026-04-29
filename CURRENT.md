@@ -126,7 +126,9 @@ Tasks candidatas (não puxar antes!):
   - **0048** — Vizra ADK rejeitada oficialmente (quebrou L13); `laravel/ai` consolidado; **COP-015 cancelada**
   - **0049** — 6 camadas memória (Working/ConvHist/Episodic/Semantic/Procedural/Reflective); gate Recall@3>0.80
   - **0050** — 8 métricas obrigatórias + tabela `copiloto_memoria_metricas`; tasks MEM-MET-1..5 adicionadas
+  - **0051** — Schema próprio + adapter pattern + emissão OpenTelemetry GenAI (estratégia formal pós-pesquisa de tendências)
   - **0036 estendida** — benchmark BM25+vetor=95.2% LongMemEval (supera Mem0 93.4%, Zep 71.2%) + 5 triggers concretos pra reavaliar
+- **MEM-MET-1 deployado** 29-abr (`21644f4e`) — `copiloto_memoria_metricas` em prod com 8 obrigatórias + 3 RAGAS (faithfulness, answer_relevancy, context_precision); 7 testes passing
 
 ---
 
