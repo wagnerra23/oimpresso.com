@@ -82,6 +82,18 @@ Route::group(
         // Permission: copiloto.mcp.usage.all (Wagner/superadmin).
         Route::get('/admin/governanca',                    'Admin\GovernancaController@index')
             ->name('copiloto.admin.governanca.index');
+
+        // ---- Team admin — equivalente self-host Anthropic Team plan (ADR 0055)
+        Route::get('/admin/team',                          'Admin\TeamController@index')
+            ->name('copiloto.admin.team.index');
+        Route::post('/admin/team/{user}/token',            'Admin\TeamController@gerarToken')
+            ->name('copiloto.admin.team.token.gerar');
+        Route::delete('/admin/team/token/{token}',         'Admin\TeamController@revogarToken')
+            ->name('copiloto.admin.team.token.revogar');
+        Route::post('/admin/team/{user}/quota',            'Admin\TeamController@atualizarQuota')
+            ->name('copiloto.admin.team.quota.update');
+        Route::get('/admin/team/export.csv',               'Admin\TeamController@exportCsv')
+            ->name('copiloto.admin.team.export.csv');
     }
 );
 
