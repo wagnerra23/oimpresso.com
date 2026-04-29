@@ -79,7 +79,7 @@ class ModuleSpecGenerator
      */
     protected function checkBranchPresence(string $name): array
     {
-        $branches = ['main-wip-2026-04-22', 'origin/3.7-com-nfe', 'origin/6.7-bootstrap'];
+        $branches = ['main-wip-2026-04-22', 'origin/3.7-com-nfe'];
         $out = [
             'current' => File::isDirectory(base_path("Modules/{$name}")),
         ];
@@ -418,10 +418,9 @@ class ModuleSpecGenerator
         if (!empty($pres)) {
             $md .= "## Presença em branches\n\n";
             $md .= "| Branch | Presente |\n|---|:-:|\n";
-            $md .= "| atual (6.7-react) | " . ($pres['current'] ?? false ? '✅' : '❌') . " |\n";
+            $md .= "| atual (main) | " . ($pres['current'] ?? false ? '✅' : '❌') . " |\n";
             $md .= "| `main-wip-2026-04-22` (backup Wagner) | " . ($pres['main-wip-2026-04-22'] ?? false ? '✅' : '❌') . " |\n";
-            $md .= "| `origin/3.7-com-nfe` (versão antiga) | " . ($pres['origin/3.7-com-nfe'] ?? false ? '✅' : '❌') . " |\n";
-            $md .= "| `origin/6.7-bootstrap` | " . ($pres['origin/6.7-bootstrap'] ?? false ? '✅' : '❌') . " |\n\n";
+            $md .= "| `origin/3.7-com-nfe` (versão antiga) | " . ($pres['origin/3.7-com-nfe'] ?? false ? '✅' : '❌') . " |\n\n";
         }
 
         // Git changes (diffs)

@@ -81,16 +81,15 @@ class GenerateModuleSpecsCommand extends Command
 
     /**
      * Lista TODOS os módulos únicos encontrados em qualquer branch conhecida:
-     *  - atual (working dir / 6.7-react)
+     *  - atual (working dir / main)
      *  - main-wip-2026-04-22 (backup Wagner)
      *  - origin/3.7-com-nfe (versão antiga)
-     *  - origin/6.7-bootstrap
      */
     protected function discoverAllModules(ModuleManagerService $mgr): array
     {
         $names = array_column($mgr->list(), 'name');
 
-        $branches = ['main-wip-2026-04-22', 'origin/3.7-com-nfe', 'origin/6.7-bootstrap'];
+        $branches = ['main-wip-2026-04-22', 'origin/3.7-com-nfe'];
         // Redirecionamento compatível com Windows (NUL) e Unix (/dev/null)
         $nullDev = stripos(PHP_OS, 'WIN') === 0 ? 'NUL' : '/dev/null';
         foreach ($branches as $br) {
@@ -122,7 +121,7 @@ class GenerateModuleSpecsCommand extends Command
 
         $md  = "# Índice de Specs dos Módulos\n\n";
         $md .= "Gerado por `php artisan module:specs` em " . now()->format('Y-m-d H:i') . ".\n\n";
-        $md .= "**Total:** " . count($index) . " módulos únicos encontrados em todas as branches conhecidas (atual, `main-wip-2026-04-22`, `origin/3.7-com-nfe`, `origin/6.7-bootstrap`).\n\n";
+        $md .= "**Total:** " . count($index) . " módulos únicos encontrados em todas as branches conhecidas (atual, `main-wip-2026-04-22`, `origin/3.7-com-nfe`).\n\n";
 
         // Separar em 3 grupos: ativos / inativos locais / perdidos (não existem no atual)
         $active = array_values(array_filter($index, fn($r) => $r['active']));
@@ -142,13 +141,12 @@ class GenerateModuleSpecsCommand extends Command
             $md .= "\n## ❌ Perdidos na migração 3.7 → 6.7 (" . count($lost) . ")\n\n";
             $md .= "_**Existem em branches antigas** (`main-wip-2026-04-22` ou `origin/3.7-com-nfe`) **mas não na branch atual 6.7-react.**_\n";
             $md .= "_Potenciais funcionalidades que ficaram para trás. Decidir se trazer de volta ou abandonar._\n\n";
-            $md .= "| Módulo | main-wip | 3.7 | 6.7-bootstrap | Ação sugerida |\n";
-            $md .= "|---|:-:|:-:|:-:|---|\n";
+            $md .= "| Módulo | main-wip | 3.7 | Ação sugerida |\n";
+            $md .= "|---|:-:|:-:|---|\n";
             foreach ($lost as $row) {
                 $mw = ($row['branches']['main-wip-2026-04-22'] ?? false) ? '✅' : '—';
                 $v37 = ($row['branches']['origin/3.7-com-nfe'] ?? false) ? '✅' : '—';
-                $bs = ($row['branches']['origin/6.7-bootstrap'] ?? false) ? '✅' : '—';
-                $md .= "| [{$row['name']}]({$row['name']}.md) | {$mw} | {$v37} | {$bs} | (definir) |\n";
+                $md .= "| [{$row['name']}]({$row['name']}.md) | {$mw} | {$v37} | (definir) |\n";
             }
         }
 
