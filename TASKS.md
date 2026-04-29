@@ -81,9 +81,10 @@
 
 | # | Status | Pri | Dono | Task | Dias est. | DoD |
 |---|---|---|---|---|---|---|
-| MEM-MET-1 | ⏳ | 🔴 P0 | W | **Migration `copiloto_memoria_metricas`** + Entity (ADR 0050) | 0.5 | Tabela criada em prod com índice `mem_metr_ux` (apurado_em, business_id) |
-| MEM-MET-2 | ⏳ | 🔴 P0 | W | **Comando `copiloto:metrics:apurar`** — apura 8 métricas (Recall@3, Precision@3, MRR, Latência p95, Tokens médios, Memory bloat, Contradições, Cross-tenant) | 1.5 | Roda local + Hostinger; baseline 2026-04-29 gravado |
+| MEM-MET-1 | ⏳ | 🔴 P0 | W | **Migration `copiloto_memoria_metricas`** + Entity (ADR 0050+0051) — 8 colunas obrigatórias + 3 RAGAS-aligned | 0.5 | Tabela criada em prod com índice `mem_metr_ux` (apurado_em, business_id) |
+| MEM-MET-2 | ⏳ | 🔴 P0 | W | **Comando `copiloto:metrics:apurar`** — apura 8 obrigatórias + 3 RAGAS (faithfulness, answer_relevancy, context_precision) | 1.5 | Roda local + Hostinger; baseline 2026-04-29 gravado |
 | MEM-MET-3 | ⏳ | 🟠 P1 | W | **Scheduler diário** `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` | 0.25 | Cron Hostinger registra 1 linha/dia/business sem intervenção |
+| **MEM-OTEL-1** | ⏳ | 🟠 P1 | W | **Emissão OpenTelemetry GenAI** — log channel `otel-gen-ai` com atributos `gen_ai.*` (system, model, usage tokens, business_id) no `LaravelAiSdkDriver::responderChat` (ADR 0051) | 0.5 | Cada `responderChat` em prod gera 1 linha JSON com schema OTel GenAI |
 | COP-002 | ⏳ | 🟠 P1 | W | **MEM-P2-1: Golden set v1 (50 perguntas Larissa-style)** — pré-requisito do MEM-MET-2 | 1.5 | CSV commitado em `tests/fixtures/copiloto/golden_set_v1.csv` |
 | COP-P22 | ⏳ | 🟠 P1 | W | **MEM-P2-2: RRF tuning** — A/B `semanticRatio` 0.3 vs 0.7 no Meilisearch | 0.5 | Vencedor documentado + ADR 0036 atualizado |
 | COP-012 | ⏳ | 🟠 P1 | W | Sprint 7 ADR 0041 — DeepEval CI gate (`.github/workflows/eval.yml`) | 2 | PR com regression >5% em qualquer das 8 métricas FAILS CI |
