@@ -22,6 +22,8 @@
         "laravel/framework": "^13.0",
         "laravel/horizon": "^5.46",
         "laravel/legacy-factories": "^1.4",
+        "laravel/mcp": "^0.7.0",
+        "laravel/octane": "^2.15",
         "laravel/pail": "^1.2",
         "laravel/passport": "^13.0",
         "laravel/reverb": "^1.10",
