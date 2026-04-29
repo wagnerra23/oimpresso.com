@@ -30,20 +30,29 @@
 
 | ID | Status | Pessoa | Task | Prazo | Dias est. |
 |---|---|---|---|---|---|
-| A1 | ✅ | W | MEM-HOT-1: Hybrid embedder MeilisearchDriver::buscar (29-abr `c631042c`) | qua 30-abr | 0.5 |
-| A2 | ✅ | W | MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent (29-abr `2be9930c`) | sex 02-mai | 1 |
-| A3 | ⏳ | W | MEM-S8-1: SemanticCacheMiddleware (-68.8% tokens) | seg 06-mai | 1.5 |
-| A4 | ⏳ | W | Validar Larissa: "qual meu faturamento de março" → R$ 38.215,07 | sex 02-mai | 0.5 |
+| A1 | ⏳ | W | **MEM-MET-3: Scheduler diário** — `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` | qui 30-abr | 0.25 |
+| A2 | ⏳ | W | **A4: Validar Larissa** — "qual meu faturamento de março?" → R$ 38.215,07 | sex 02-mai | 0.5 |
 
-**On-deck Cycle 01:**
+**On-deck Cycle 01 (ordem por impacto×esforço):**
 
 | ID | Pessoa | Task | Dias est. | Bloqueado por |
 |---|---|---|---|---|
-| O1 | W | MEM-S8-1: SemanticCacheMiddleware (-68.8% tokens) | 1.5 | A1 |
-| O2 | W | MEM-S8-2: ConversationSummarizer (>15 turnos → resumo) | 1.5 | — |
-| O3 | W | MEM-S8-3: ProfileDistiller (job diário perfil negócio <300 tokens) | 1 | O2 |
-| O4 | W | Validar Larissa ROTA LIVRE (1h, 3 cenários) | 0.5 | A1+A2 |
-| O5 | W | MEM-P2-1: Golden set v1 (50 perguntas Larissa-style RAGAS) | 1.5 | O4 |
+| O1 | W | **COP-002 = MEM-MET-5: Golden set v1** (50 perguntas Larissa-style) — destrava 6 colunas RAGAS (gate Recall@3>0.80 do ADR 0049) | 1.5 | A2 (Larissa) |
+| O2 | W | **MEM-MET-4 = COP-007 ampliada: Page `/copiloto/admin/qualidade`** — trend 30d das 8 métricas + HITL anotação | 2 | O1 |
+| O3 | W | **MEM-S8-1: SemanticCacheMiddleware** (-68.8% tokens LLM) | 1.5 | — |
+| O4 | W | **MEM-S8-2: ConversationSummarizer** (>15 turnos → resumo) | 1.5 | — |
+| O5 | W | **MEM-S8-3: ProfileDistiller** (job diário perfil negócio <300 tokens) | 1 | O4 |
+| O6 | W | **COP-P22 = MEM-P2-2: RRF tuning** A/B `semanticRatio` 0.3 vs 0.7 | 0.5 | O1 |
+
+**Histórico do Cycle 01 — sprint memória 29-abr (todas ✅):**
+
+| ID | Status | Task | Commit |
+|----|--------|------|--------|
+| ~~A1~~ | ✅ | ~~MEM-HOT-1: Hybrid embedder MeilisearchDriver~~ | `c631042c` (recall 0→190) |
+| ~~A2~~ | ✅ | ~~MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent~~ | `2be9930c` (164 tokens prod) |
+| ~~MEM-MET-1~~ | ✅ | ~~Migration `copiloto_memoria_metricas` + Entity~~ | `21644f4e` (14 colunas) |
+| ~~MEM-OTEL-1~~ | ✅ | ~~Emissão `gen_ai.*` OpenTelemetry GenAI~~ | `5acf27de` (12 atributos) |
+| ~~MEM-MET-2~~ | ✅ | ~~Comando `copiloto:metrics:apurar` + baseline em prod~~ | `6d2dc7eb`+`6aa9b524` |
 
 ---
 
@@ -53,6 +62,7 @@
 |---|---|---|---|---|---|
 | B1 | ✅ | — | W | ~~MEM-HOT-1 hybrid fix~~ | resolvido 29-abr `c631042c` — prod log: `memoria_recall_chars: 190` (de 0) |
 | B2 | ✅ | — | W | ~~MEM-HOT-2 contexto rico~~ | resolvido 29-abr `2be9930c` — prompt biz=4 com 4 meses faturamento + 5993 clientes em 164 tokens |
+| B3 | ⏳ | 🔴 P0 | W | **A4 Validar Larissa** — única dependência humana pendente do Goal #1 | aguarda chat real Larissa |
 
 ---
 
@@ -83,7 +93,7 @@
 |---|---|---|---|---|---|---|
 | MEM-MET-1 | ✅ | — | W | ~~Migration `copiloto_memoria_metricas` + Entity (ADR 0050+0051) — 8 obrigatórias + 3 RAGAS~~ | 0.5 | ✅ prod 29-abr (`21644f4e`): tabela com 14 colunas, 7 testes passing, schema validado |
 | MEM-MET-2 | ✅ | — | W | ~~Comando `copiloto:metrics:apurar`~~ — apura 8 obrigatórias + contadores; RAGAS NULL até golden set (MEM-P2-1) | 1.5 | ✅ prod 29-abr (`6d2dc7eb`): 3 linhas baseline (plataforma + biz=1 + biz=4); 9 testes passing |
-| MEM-MET-3 | ⏳ | 🟠 P1 | W | **Scheduler diário** `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` | 0.25 | Cron Hostinger registra 1 linha/dia/business sem intervenção |
+| MEM-MET-3 | ⏳ | 🔴 P0 | W | **Scheduler diário** `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` (= A1 ATIVA) | 0.25 | Cron Hostinger registra 1 linha/dia/business sem intervenção; baseline 30-abr deve aparecer auto |
 | MEM-OTEL-1 | ✅ | — | W | ~~Emissão OpenTelemetry GenAI~~ — log channel `otel-gen-ai` com atributos `gen_ai.*` (ADR 0051) | 0.5 | ✅ prod 29-abr (`5acf27de`): smoke gera linha JSON OTel-compliant com 12 atributos; 5 testes passing |
 | COP-002 | ⏳ | 🟠 P1 | W | **MEM-P2-1: Golden set v1 (50 perguntas Larissa-style)** — pré-requisito do MEM-MET-2 | 1.5 | CSV commitado em `tests/fixtures/copiloto/golden_set_v1.csv` |
 | COP-P22 | ⏳ | 🟠 P1 | W | **MEM-P2-2: RRF tuning** — A/B `semanticRatio` 0.3 vs 0.7 no Meilisearch | 0.5 | Vencedor documentado + ADR 0036 atualizado |
@@ -315,6 +325,13 @@
 
 | Data | Módulo | Task |
 |------|--------|------|
+| 2026-04-29 | Copiloto | **MEM-MET-2** comando `copiloto:metrics:apurar` + baseline 29-abr em prod (`6d2dc7eb`) |
+| 2026-04-29 | Copiloto | **MEM-OTEL-1** emissão `gen_ai.*` OTel — 12 atributos por evento (`5acf27de`) |
+| 2026-04-29 | Copiloto | **MEM-MET-1** tabela `copiloto_memoria_metricas` em prod — 14 colunas (`21644f4e`) |
+| 2026-04-29 | Memory | **ADRs 0048-0051 + 0036 estendida** — Vizra rejeitada, 6 camadas memória, 8 métricas, schema próprio + OTel |
+| 2026-04-29 | Copiloto | **MEM-HOT-2** ContextoNegocio injetado no ChatCopilotoAgent (164 tokens prod) — `2be9930c` |
+| 2026-04-29 | Copiloto | **MEM-HOT-1** Hybrid embedder MeilisearchDriver (recall 0→190) — `c631042c` |
+| 2026-04-29 | Memory | **ADR 0047** Wagner solo + sprint memória priorizado (`da6ce166`) |
 | 2026-04-28 | Infra | Meilisearch v1.10.3 + TLS + embedder OpenAI e2e validado |
 | 2026-04-28 | Infra | Reverb daemon + smoke test ponta-a-ponta |
 | 2026-04-28 | Infra | Traefik + Portainer + Vaultwarden — 5 containers running |
