@@ -143,6 +143,42 @@ PR: [#24](https://github.com/wagnerra23/oimpresso.com/pull/24) (mergeado `3d64e5
 
 ---
 
+## Anexo — Benchmark externo + triggers concretos (Wagner 29-abr-2026)
+
+> Adendo registrado em 2026-04-29 com base em pesquisa exaustiva do Wagner (`files.zip/ADR-003-stack-armazenamento-memoria.md`). **Não revoga nada** — fortalece a justificativa e concretiza os triggers.
+
+### Benchmark externo citável
+
+Benchmark independente (LongMemEval) confirma que **BM25 + busca vetorial em hybrid mode** entrega:
+
+| Stack | LongMemEval score |
+|-------|-------------------|
+| **MySQL + Meilisearch hybrid (BM25 + vetor)** | **95.2%** |
+| Mem0 (camada dedicada paga) | 93.4% |
+| Zep | 71.2% |
+
+Implicação: o stack atual oimpresso (MySQL + Meilisearch hybrid + Redis cache) entrega **+1.8 ponto percentual sobre Mem0 paga** e **+24 pontos sobre Zep**. O Tier 5-6 estimado originalmente foi conservador; a régua real é **Tier 7 confirmado externamente** quando o hybrid embedder está corretamente configurado (= MEM-HOT-1, ADR 0047, deployed em 2026-04-29).
+
+### Triggers concretos para reavaliar (substitui os 5 originais)
+
+Migrar para Postgres+pgvector ou camada dedicada (Mem0/Qdrant/Zep) **somente se ≥1** dos seguintes ativar:
+
+1. **Latência p99** do Meilisearch hybrid passar de **200ms sustentado** (medido por `memory_metrics.latencia_p95_ms` — ADR 0050).
+2. **Volume total de vetores** passar de **50M** (`copiloto_memoria_facts.count() > 50.000.000`).
+3. **Curadoria de prompts de extração** consumir mais de **1 dia/semana por mais de um trimestre** (sinal: `ExtrairFatosDaConversaJob` com retrabalho recorrente).
+4. **Raciocínio temporal forte** virar requisito (ex: "qual era a meta da Larissa em fevereiro?") — Graphiti/Zep seriam insubstituíveis para esse caso.
+5. **Wagner explicitamente pedir** após cliente pagante #10 (sinal de tração comercial).
+
+Sem ≥1 trigger ativo, **MeilisearchDriver hybrid continua como driver default por tempo indeterminado**. O custo recorrente fica em **R$ 0/mês**; toda a economia anual (R$1.500-18.000/ano) é redirecionada para sprints de produto.
+
+### Referência cruzada
+
+- ADR 0048 — Vizra ADK rejeitada (Wagner ADR-001)
+- ADR 0049 — 6 camadas de memória (Wagner ADR-002)
+- ADR 0050 — 8 métricas obrigatórias + tabela `memory_metrics` (Wagner ADR-004)
+
+---
+
 ## Compromisso e gatilho de revisão
 
 Revisão deste ADR exigida quando ≥1 trigger do Sprint 8 ativar OU quando Copiloto cruzar 10 clientes pagantes (sinal de tração — pode justificar Mem0 pra escalar). Sem trigger, MeilisearchDriver continua como driver default da `MemoriaContrato`.

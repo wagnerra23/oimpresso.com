@@ -115,12 +115,18 @@ Tasks candidatas (não puxar antes!):
 
 ---
 
-## 🔄 Mudanças desde abertura do Cycle (2026-04-28)
+## 🔄 Mudanças desde abertura do Cycle (2026-04-28 → 29)
 
 - Infra CT 100: Traefik + Portainer + Vaultwarden + Reverb + Meilisearch todos ✅ em prod
 - Copiloto IA real ativo (gpt-4o-mini) — primeiro dia de conversas reais
-- ADRs criados: 0042 (Reverb) · 0043 (Docker) · 0044 (Vaultwarden) · 0045 (DNS API) · 0046 (ChatAgent gap) · 0047 (Wagner solo + sprint memória)
-- CURRENT re-escrito: time 5 pessoas → Wagner solo, foco memória assertiva
+- **MEM-HOT-1 deployado** 29-abr (`c631042c`) — recall 0→190 chars em prod
+- **MEM-HOT-2 deployado** 29-abr (`2be9930c`) — ContextoNegocio injetado, 164 tokens em prod
+- ADRs do Cycle: 0042-0044 (infra) · 0045 (DNS API) · 0046 (ChatAgent gap) · 0047 (Wagner solo + sprint memória)
+- **ADRs novos 29-abr (pesquisa Wagner consolidada):**
+  - **0048** — Vizra ADK rejeitada oficialmente (quebrou L13); `laravel/ai` consolidado; **COP-015 cancelada**
+  - **0049** — 6 camadas memória (Working/ConvHist/Episodic/Semantic/Procedural/Reflective); gate Recall@3>0.80
+  - **0050** — 8 métricas obrigatórias + tabela `copiloto_memoria_metricas`; tasks MEM-MET-1..5 adicionadas
+  - **0036 estendida** — benchmark BM25+vetor=95.2% LongMemEval (supera Mem0 93.4%, Zep 71.2%) + 5 triggers concretos pra reavaliar
 
 ---
 
