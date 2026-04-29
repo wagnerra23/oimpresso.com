@@ -100,18 +100,111 @@ class LaravelAiSdkDriver implements AiAdapter
     }
 
     /**
-     * Streaming não-nativo: o driver Vizra ADK ainda não expõe stream API,
-     * então este método chama responderChat() e yields o resultado inteiro
-     * em um chunk só (backwards-compatible com a interface).
+     * Streaming nativo bypassando Vizra ADK (que ainda não tem stream API).
      *
-     * Para streaming real de tokens, use OpenAiDirectDriver (default em prod).
-     * Este driver é fallback histórico — Vizra rejeitada via ADR 0048.
+     * Estratégia: replica o setup do system prompt do ChatCopilotoAgent (memoria
+     * recall + ContextoNegocio) e chama OpenAI direto com stream. Preserva o
+     * mesmo enriquecimento contextual da versão blocking.
+     *
+     * Vizra foi rejeitada via ADR 0048 — esta migração começa pelo streaming.
      */
     public function responderChatStream(Conversa $conv, string $mensagem): \Generator
     {
-        $texto = $this->responderChat($conv, $mensagem);
-        if ($texto !== '') {
-            yield $texto;
+        if (config('copiloto.dry_run')) {
+            $fake = "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
+            foreach (str_split($fake, 8) as $chunk) {
+                usleep(50_000);
+                yield $chunk;
+            }
+            return;
+        }
+
+        // Mesma pipeline de enriquecimento do responderChat() blocking
+        $memoriaContexto = $this->recallMemoria($conv, $mensagem);
+        $ctx = $this->snapshotContexto($conv);
+
+        // Re-usa o sistema de instructions do ChatCopilotoAgent — fonte de
+        // verdade pra ContextoNegocio + memoria recall format.
+        $agent = new ChatCopilotoAgent($conv, $memoriaContexto, $ctx);
+        $systemPrompt = (string) $agent->instructions();
+
+        // Histórico (até 20 últimas msgs user/assistant)
+        $historico = $conv->mensagens()
+            ->whereIn('role', ['user', 'assistant'])
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get()
+            ->reverse()
+            ->values();
+
+        $messages = [['role' => 'system', 'content' => $systemPrompt]];
+        foreach ($historico as $msg) {
+            $messages[] = ['role' => $msg->role, 'content' => $msg->content];
+        }
+        // Garante a msg atual no fim
+        $last = end($messages);
+        if ($last['role'] !== 'user' || $last['content'] !== $mensagem) {
+            $messages[] = ['role' => 'user', 'content' => $mensagem];
+        }
+
+        $startedAt = microtime(true);
+        $tokensIn = 0;
+        $tokensOut = 0;
+        $textoCompleto = '';
+
+        try {
+            $stream = \OpenAI\Laravel\Facades\OpenAI::chat()->createStreamed([
+                'model'         => config('copiloto.openai.model_chat', 'gpt-4o-mini'),
+                'max_tokens'    => config('copiloto.openai.max_tokens_chat', 2000),
+                'temperature'   => (float) config('copiloto.openai.temperature', 0.7),
+                'messages'      => $messages,
+                'stream_options' => ['include_usage' => true],
+            ]);
+
+            foreach ($stream as $response) {
+                $delta = $response->choices[0]->delta->content ?? null;
+                if (! empty($delta)) {
+                    $textoCompleto .= $delta;
+                    yield $delta;
+                }
+
+                if (isset($response->usage)) {
+                    $tokensIn = $response->usage->promptTokens ?? 0;
+                    $tokensOut = $response->usage->completionTokens ?? 0;
+                }
+            }
+
+            $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
+
+            // Persiste tokens na latest assistant message (controller cria após stream)
+            Mensagem::where('conversa_id', $conv->id)
+                ->where('role', 'assistant')
+                ->latest('created_at')
+                ->first()
+                ?->update(['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut]);
+
+            Log::channel('copiloto-ai')->info('responderChatStream', [
+                'conversa_id'           => $conv->id,
+                'driver'                => 'laravel_ai_sdk',
+                'memoria_recall_chars'  => strlen($memoriaContexto),
+                'contexto_negocio'      => $ctx !== null ? 'on' : 'off',
+                'tokens_in'             => $tokensIn,
+                'tokens_out'            => $tokensOut,
+                'chars_out'             => mb_strlen($textoCompleto),
+                'duration_ms'           => $durationMs,
+            ]);
+
+            // Sprint 5 — extrair fatos novos em background (Horizon)
+            if (config('copiloto.memoria.write_enabled', true)) {
+                ExtrairFatosDaConversaJob::dispatch(
+                    conversaId: $conv->id,
+                    businessId: (int) $conv->business_id,
+                    userId: (int) $conv->user_id,
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->error('responderChatStream error: ' . $e->getMessage());
+            yield "\n\n_(Erro de IA: " . substr($e->getMessage(), 0, 100) . ")_";
         }
     }
 
