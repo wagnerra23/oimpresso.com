@@ -170,11 +170,15 @@ return [
         'notifiable' => \Spatie\Backup\Notifications\Notifiable::class,
 
         'mail' => [
-            'to' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+            // env() retorna string vazia (nao null) quando a chave existe vazia no .env,
+            // entao o default do segundo arg nao eh usado. spatie/laravel-backup ^10 valida
+            // que isso eh email valido na bootstrap dos providers e fail-fast travaria
+            // qualquer `php artisan ...`. Usar `?:` cai pro default tambem em string vazia.
+            'to' => env('BACKUP_NOTIFICATION_MAIL_TO') ?: (env('MAIL_FROM_ADDRESS') ?: 'hello@example.com'),
 
             'from' => [
-                'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-                'name' => env('MAIL_FROM_NAME', 'Example'),
+                'address' => env('MAIL_FROM_ADDRESS') ?: 'hello@example.com',
+                'name' => env('MAIL_FROM_NAME') ?: 'Example',
             ],
         ],
 
