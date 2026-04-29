@@ -36,12 +36,15 @@ class CopilotoServiceProvider extends ServiceProvider
         // Eventos do módulo
         Event::listen(CopilotoDesvioDetectado::class, NotificarDesvioListener::class);
 
-        // MEM-MET-2 (ADR 0050+0051) — comando de apuração de métricas
-        // MEM-MCP-1.a (ADR 0053) — comando de sync memory git → DB
+        // MEM-MCP-1.b (ADR 0053) — middleware de auth do MCP server
+        $router->aliasMiddleware('mcp.auth', \Modules\Copiloto\Http\Middleware\McpAuthMiddleware::class);
+
+        // Comandos artisan
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Modules\Copiloto\Console\Commands\ApurarMetricasCommand::class,
-                \Modules\Copiloto\Console\Commands\McpSyncMemoryCommand::class,
+                \Modules\Copiloto\Console\Commands\ApurarMetricasCommand::class,    // MEM-MET-2
+                \Modules\Copiloto\Console\Commands\McpSyncMemoryCommand::class,     // MEM-MCP-1.a
+                \Modules\Copiloto\Console\Commands\McpTokenGerarCommand::class,     // MEM-MCP-1.b
             ]);
         }
     }
