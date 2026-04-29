@@ -88,6 +88,9 @@ services:
   # autossh roda em loop forever; reconecta automaticamente se cair.
   # Expõe localhost:3306 dentro da rede docker (alias: tunnel:3306)
   # No app, DB_HOST=tunnel.
+  #
+  # Comando lê o script start-tunnel.sh (bind-mountado do repo) — evita
+  # quoting issue de YAML folded scalar com aspas aninhadas.
   tunnel:
     image: kroniak/ssh-client:3.20
     container_name: oimpresso-mcp-tunnel
@@ -97,21 +100,11 @@ services:
 
     volumes:
       - /opt/oimpresso-mcp/ssh:/root/.ssh:ro
+      - ./scripts:/scripts:ro
 
-    # Encadeia autossh em foreground com keepalive agressivo
-    command: >
-      sh -c "
-        apk add --no-cache autossh netcat-openbsd &&
-        echo 'Iniciando tunnel SSH ao Hostinger MySQL...' &&
-        autossh -M 0
-          -o 'ServerAliveInterval=30'
-          -o 'ServerAliveCountMax=3'
-          -o 'ExitOnForwardFailure=yes'
-          -o 'StrictHostKeyChecking=accept-new'
-          -N -L 0.0.0.0:3306:127.0.0.1:3306
-          -p 65002 -i /root/.ssh/id_ed25519_oimpresso
-          u906587222@148.135.133.115
-      "
+    # Lista (não string) — Docker NÃO faz sh -c implícito
+    entrypoint: ["/bin/sh"]
+    command: ["/scripts/start-tunnel.sh"]
 
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 3306 || exit 1"]
