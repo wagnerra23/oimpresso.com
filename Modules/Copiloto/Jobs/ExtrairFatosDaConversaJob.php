@@ -91,14 +91,30 @@ class ExtrairFatosDaConversaJob implements ShouldQueue
                 return;
             }
 
+            // MEM-EVAL-2 (2026-04-29): threshold relaxado de 5 → 3.
+            // Baseline com threshold=5: 6% taxa de aceite (94% rejeitados),
+            // levando a corpus de 6 fatos total e Recall@3 de 0.125.
+            // Com 3, esperamos ~30-50% taxa de aceite + Recall@3 ~0.30.
+            // Tag `relevancia` fica salva em metadata pra filtro DOWNSTREAM
+            // no recall (a busca pode penalizar relevância baixa, sem ter
+            // descartado o fato).
+            $thresholdRelevancia = (int) config('copiloto.memoria.relevancia_min', 3);
+
             $totalSalvos = 0;
+            $totalRejeitados = 0;
+            $rejeitadosPorRelevancia = [];
+
             foreach ($fatos as $f) {
                 if (! isset($f['fato'], $f['categoria'], $f['relevancia'])) {
+                    $totalRejeitados++;
                     continue;
                 }
 
-                if ($f['relevancia'] < 5) {
-                    // Filtro de qualidade — relevancia <5 é ruído
+                $rel = (int) $f['relevancia'];
+
+                if ($rel < $thresholdRelevancia) {
+                    $totalRejeitados++;
+                    $rejeitadosPorRelevancia[$rel] = ($rejeitadosPorRelevancia[$rel] ?? 0) + 1;
                     continue;
                 }
 
@@ -108,7 +124,7 @@ class ExtrairFatosDaConversaJob implements ShouldQueue
                     fato: $f['fato'],
                     metadata: [
                         'categoria' => $f['categoria'],
-                        'relevancia' => $f['relevancia'],
+                        'relevancia' => $rel,
                         'origem' => 'ExtrairFatosDaConversaJob',
                         'conversa_id' => $this->conversaId,
                         'extraido_em' => now()->toIso8601String(),
@@ -123,6 +139,9 @@ class ExtrairFatosDaConversaJob implements ShouldQueue
                 'user_id' => $this->userId,
                 'fatos_recebidos' => count($fatos),
                 'fatos_salvos' => $totalSalvos,
+                'fatos_rejeitados' => $totalRejeitados,
+                'threshold_min' => $thresholdRelevancia,
+                'rejeitados_por_relevancia' => $rejeitadosPorRelevancia,
             ]);
         } catch (\Throwable $e) {
             Log::channel('copiloto-ai')->error('ExtrairFatosDaConversaJob: erro', [
