@@ -152,26 +152,7 @@ class OpenAiDirectDriver implements AiAdapter
             return "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
         }
 
-        // Histórico: últimas 20 mensagens (system não conta)
-        $historico = $conv->mensagens()
-            ->whereIn('role', ['user', 'assistant'])
-            ->orderByDesc('created_at')
-            ->limit(20)
-            ->get()
-            ->reverse()
-            ->values();
-
-        $messages = [['role' => 'system', 'content' => $this->systemPrompt()]];
-
-        foreach ($historico as $msg) {
-            $messages[] = ['role' => $msg->role, 'content' => $msg->content];
-        }
-
-        // Adiciona a mensagem atual (pode já estar no histórico se foi salva antes, mas garantimos)
-        $lastMessage = end($messages);
-        if ($lastMessage['role'] !== 'user' || $lastMessage['content'] !== $mensagem) {
-            $messages[] = ['role' => 'user', 'content' => $mensagem];
-        }
+        $messages = $this->montarMessagesChat($conv, $mensagem);
 
         try {
             $response = OpenAI::chat()->create([
@@ -204,6 +185,106 @@ class OpenAiDirectDriver implements AiAdapter
 
             return 'Estou sem conexão com IA no momento. Você quer criar a meta manualmente?';
         }
+    }
+
+    /**
+     * Streaming via OpenAI::chat()->createStreamed() — SSE-friendly.
+     *
+     * Yields chunks de texto à medida que o modelo gera. Caller (controller)
+     * é responsável por enviar cada chunk pro client via SSE e persistir o
+     * texto completo + tokens ao fim.
+     *
+     * Tokens vêm no último chunk (com finish_reason). API OpenAI streaming
+     * não envia usage por padrão — precisa `stream_options: {include_usage: true}`.
+     */
+    public function responderChatStream(Conversa $conv, string $mensagem): \Generator
+    {
+        if (config('copiloto.dry_run')) {
+            // Simula stream em dry-run pra UX dev (sem custo).
+            $fake = "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
+            foreach (str_split($fake, 8) as $chunk) {
+                usleep(50_000); // 50ms entre chunks pra simular network
+                yield $chunk;
+            }
+            return;
+        }
+
+        $messages = $this->montarMessagesChat($conv, $mensagem);
+        $tokensIn = 0;
+        $tokensOut = 0;
+        $textoCompleto = '';
+
+        try {
+            $stream = OpenAI::chat()->createStreamed([
+                'model'         => config('copiloto.openai.model_chat', 'gpt-4o-mini'),
+                'max_tokens'    => config('copiloto.openai.max_tokens_chat', 2000),
+                'temperature'   => (float) config('copiloto.openai.temperature', 0.7),
+                'messages'      => $messages,
+                'stream_options' => ['include_usage' => true],
+            ]);
+
+            foreach ($stream as $response) {
+                // Cada $response é uma CreateResponse (delta) ou final usage object.
+                $delta = $response->choices[0]->delta->content ?? null;
+                if (! empty($delta)) {
+                    $textoCompleto .= $delta;
+                    yield $delta;
+                }
+
+                // Último chunk traz usage (gpt-4o-mini com include_usage)
+                if (isset($response->usage)) {
+                    $tokensIn = $response->usage->promptTokens ?? 0;
+                    $tokensOut = $response->usage->completionTokens ?? 0;
+                }
+            }
+
+            // Persiste tokens na ÚLTIMA mensagem assistant criada
+            // (controller cria a Mensagem com texto acumulado ao fim do stream).
+            Mensagem::where('conversa_id', $conv->id)
+                ->where('role', 'assistant')
+                ->latest('created_at')
+                ->first()
+                ?->update(['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut]);
+
+            Log::channel('copiloto-ai')->info('responderChatStream', [
+                'conversa_id' => $conv->id,
+                'tokens_in'   => $tokensIn,
+                'tokens_out'  => $tokensOut,
+                'chars_out'   => mb_strlen($textoCompleto),
+            ]);
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->error('responderChatStream error: ' . $e->getMessage());
+            yield "\n\n_(Erro de IA: " . substr($e->getMessage(), 0, 100) . ")_";
+        }
+    }
+
+    /**
+     * Monta o array messages [system, ...histórico, user] — extraído de
+     * responderChat() pra reuso entre versões blocking e streaming.
+     */
+    protected function montarMessagesChat(Conversa $conv, string $mensagem): array
+    {
+        $historico = $conv->mensagens()
+            ->whereIn('role', ['user', 'assistant'])
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get()
+            ->reverse()
+            ->values();
+
+        $messages = [['role' => 'system', 'content' => $this->systemPrompt()]];
+
+        foreach ($historico as $msg) {
+            $messages[] = ['role' => $msg->role, 'content' => $msg->content];
+        }
+
+        // Garante que a mensagem atual está no fim (pode já estar no histórico)
+        $lastMessage = end($messages);
+        if ($lastMessage['role'] !== 'user' || $lastMessage['content'] !== $mensagem) {
+            $messages[] = ['role' => 'user', 'content' => $mensagem];
+        }
+
+        return $messages;
     }
 
     // ─── Sanitização ─────────────────────────────────────────────────────────
