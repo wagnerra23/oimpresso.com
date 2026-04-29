@@ -97,10 +97,14 @@ Route::group(
 );
 
 // ===========================================================================
-// 3) Webhook MCP sync memory (ADR 0053 / MEM-MCP-1.a) — POST /api/mcp/sync-memory
+// 3) MCP server endpoints (ADR 0053) — prefixo /api/mcp
 // ===========================================================================
-// Auth via header X-MCP-Sync-Token (config copiloto.mcp.sync_webhook_token).
-// Sem middleware web/auth — é endpoint de servidor pra servidor (GitHub webhook).
+// Públicos (sem auth):
+//   POST /api/mcp/sync-memory  — webhook GitHub (auth via X-MCP-Sync-Token)
+//   GET  /api/mcp/health       — status básico do server
+// Autenticados (Bearer mcp_*):
+//   GET  /api/mcp/health/auth  — info do user/token autenticado
+//   (Dia 3) tools/list, tools/call, resources/*, prompts/*
 Route::group(
     [
         'middleware' => ['api'],
@@ -108,7 +112,17 @@ Route::group(
         'namespace'  => 'Modules\Copiloto\Http\Controllers\Mcp',
     ],
     function () {
+        // Públicos
         Route::post('/sync-memory', 'SyncMemoryWebhookController@handle')
             ->name('copiloto.mcp.sync-memory');
+        Route::get('/health', 'HealthController@publico')
+            ->name('copiloto.mcp.health');
+
+        // Autenticados via McpAuth
+        Route::group(['middleware' => 'mcp.auth'], function () {
+            Route::get('/health/auth', 'HealthController@autenticado')
+                ->name('copiloto.mcp.health.auth');
+            // Dia 3: tools/list, tools/call, resources/list, resources/read, prompts/*
+        });
     }
 );
