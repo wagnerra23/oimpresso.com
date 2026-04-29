@@ -94,7 +94,7 @@ class GabaritoEvaluator
                 businessId: $bizParaBusca,
                 userId: $userParaBusca,
                 query: $p->pergunta,
-                limit: $topK,
+                topK: $topK,
             );
         } catch (\Throwable $e) {
             return [
