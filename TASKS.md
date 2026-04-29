@@ -30,8 +30,9 @@
 
 | ID | Status | Pessoa | Task | Prazo | Dias est. |
 |---|---|---|---|---|---|
-| A1 | ⏳ | W | **MEM-MET-3: Scheduler diário** — `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` | qui 30-abr | 0.25 |
-| A2 | ⏳ | W | **A4: Validar Larissa (rodada 2)** — repetir 3 perguntas (Quanto vendi? / Líquido? / Caixa?) → 3 respostas distintas | sex 02-mai | 0.5 |
+| ~~A1~~ | ✅ | W | ~~MEM-MET-3: Scheduler diário~~ — `01e4e214` 29-abr; cron Hostinger 23:55, próx run ~14h | qui 30-abr | 0.25 |
+| A1 | 1/2 | W | **A4: Validar Larissa (rodada 2)** — repetir 3 perguntas (Quanto vendi? / Líquido? / Caixa?) → 3 respostas distintas | sex 02-mai | 0.5 |
+| A2 | 2/2 | W | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style com resposta esperada (destrava 6 colunas RAGAS) | seg 05-mai | 1.5 |
 | ~~MEM-FAT-1~~ | ✅ | W | ~~ContextoNegocio expor 3 ângulos (bruto/líquido/caixa)~~ — `fac96a19` 29-abr | 1 | ✅ prod: prompt 270 tokens; ADR 0052 |
 
 **On-deck Cycle 01 (ordem por impacto×esforço):**
@@ -94,7 +95,7 @@
 |---|---|---|---|---|---|---|
 | MEM-MET-1 | ✅ | — | W | ~~Migration `copiloto_memoria_metricas` + Entity (ADR 0050+0051) — 8 obrigatórias + 3 RAGAS~~ | 0.5 | ✅ prod 29-abr (`21644f4e`): tabela com 14 colunas, 7 testes passing, schema validado |
 | MEM-MET-2 | ✅ | — | W | ~~Comando `copiloto:metrics:apurar`~~ — apura 8 obrigatórias + contadores; RAGAS NULL até golden set (MEM-P2-1) | 1.5 | ✅ prod 29-abr (`6d2dc7eb`): 3 linhas baseline (plataforma + biz=1 + biz=4); 9 testes passing |
-| MEM-MET-3 | ⏳ | 🔴 P0 | W | **Scheduler diário** `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` (= A1 ATIVA) | 0.25 | Cron Hostinger registra 1 linha/dia/business sem intervenção; baseline 30-abr deve aparecer auto |
+| MEM-MET-3 | ✅ | — | W | ~~Scheduler diário `daily(23:55)` chama `copiloto:metrics:apurar --business=all`~~ — `01e4e214` 29-abr | 0.25 | ✅ prod: `php artisan schedule:list` mostra `55 23 * * *` cron Hostinger; baseline 30-abr deve aparecer auto às 23:55 |
 | MEM-OTEL-1 | ✅ | — | W | ~~Emissão OpenTelemetry GenAI~~ — log channel `otel-gen-ai` com atributos `gen_ai.*` (ADR 0051) | 0.5 | ✅ prod 29-abr (`5acf27de`): smoke gera linha JSON OTel-compliant com 12 atributos; 5 testes passing |
 | COP-002 | ⏳ | 🟠 P1 | W | **MEM-P2-1: Golden set v1 (50 perguntas Larissa-style)** — pré-requisito do MEM-MET-2 | 1.5 | CSV commitado em `tests/fixtures/copiloto/golden_set_v1.csv` |
 | COP-P22 | ⏳ | 🟠 P1 | W | **MEM-P2-2: RRF tuning** — A/B `semanticRatio` 0.3 vs 0.7 no Meilisearch | 0.5 | Vencedor documentado + ADR 0036 atualizado |
@@ -326,6 +327,8 @@
 
 | Data | Módulo | Task |
 |------|--------|------|
+| 2026-04-29 | Copiloto | **MEM-MET-3** scheduler diário 23:55 `copiloto:metrics:apurar --business=all` — cron Hostinger (`01e4e214`) |
+| 2026-04-29 | Copiloto | **MEM-FAT-1** ContextoNegocio expõe 3 ângulos (bruto/líquido/caixa) + ADR 0052 (`fac96a19`) |
 | 2026-04-29 | Copiloto | **MEM-MET-2** comando `copiloto:metrics:apurar` + baseline 29-abr em prod (`6d2dc7eb`) |
 | 2026-04-29 | Copiloto | **MEM-OTEL-1** emissão `gen_ai.*` OTel — 12 atributos por evento (`5acf27de`) |
 | 2026-04-29 | Copiloto | **MEM-MET-1** tabela `copiloto_memoria_metricas` em prod — 14 colunas (`21644f4e`) |

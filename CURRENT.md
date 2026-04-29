@@ -25,19 +25,19 @@
 
 | # | WIP | Task | Prazo | Status |
 |---|---|---|---|---|
-| A1 | 1/2 | **MEM-MET-3: Scheduler diário** — `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` (automatiza apuração de métricas a partir de amanhã) | qui **30-abr** | ⏳ |
-| A2 | 2/2 | **A4: Validar Larissa** — chat real "qual meu faturamento de março?" → R$ 38.215,07 (destrava Goal #1 do Cycle) | sex **02-mai** | ⏳ |
+| ~~A1~~ | — | ~~MEM-MET-3: Scheduler diário~~ | qui 30-abr | ✅ **29-abr** (`01e4e214` — cron Hostinger 55 23 * * * confirmado) |
+| A1 | 1/2 | **A4 rodada 2: Validar Larissa** — chat real com 3 perguntas (Quanto vendi? / Líquido? / Caixa?) → 3 respostas distintas | sex **02-mai** | ⏳ |
+| A2 | 2/2 | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style (destrava 6 colunas RAGAS) | seg **05-mai** | ⏳ |
 
-**On-deck imediato (puxar quando A1 ou A2 fechar, em ordem de impacto×esforço):**
+**On-deck imediato (puxar quando A1/A2 fechar, em ordem de impacto×esforço):**
 
 | # | Task | Dias | Por que esta ordem |
 |---|------|------|---------------------|
-| O1 | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style com resposta esperada confirmada | 1.5d | Destrava 6 colunas RAGAS (recall_at_3, faithfulness etc) — gate Recall@3>0.80 do ADR 0049 |
-| O2 | **MEM-MET-4 = COP-007 ampliada: Page `/copiloto/admin/qualidade`** trend 30d das 8 métricas + HITL anotação | 2d | Bug visibility — sem dashboard, métricas viram "informativas" |
-| O3 | **MEM-S8-1: SemanticCacheMiddleware** (-68.8% tokens LLM) | 1.5d | Token economy direta; depende de mais conversas pra calibrar threshold |
-| O4 | **MEM-S8-2: ConversationSummarizer** (>15 turnos → resumo <200 tokens) | 1.5d | Token economy em conversas longas (não temos ainda) |
-| O5 | **MEM-S8-3: ProfileDistiller** (job diário perfil negócio <300 tokens) | 1d | Refina ContextoNegocio do MEM-HOT-2 |
-| O6 | **COP-P22 = MEM-P2-2: RRF tuning** A/B `semanticRatio` 0.3 vs 0.7 | 0.5d | Calibração; precisa de golden set primeiro |
+| O1 | **MEM-MET-4 = COP-007 ampliada: Page `/copiloto/admin/qualidade`** trend 30d das 8 métricas + HITL anotação | 2d | Bug visibility — sem dashboard, métricas viram "informativas" |
+| O2 | **MEM-S8-1: SemanticCacheMiddleware** (-68.8% tokens LLM) | 1.5d | Token economy direta; depende de mais conversas pra calibrar threshold |
+| O3 | **MEM-S8-2: ConversationSummarizer** (>15 turnos → resumo <200 tokens) | 1.5d | Token economy em conversas longas (não temos ainda) |
+| O4 | **MEM-S8-3: ProfileDistiller** (job diário perfil negócio <300 tokens) | 1d | Refina ContextoNegocio do MEM-HOT-2 |
+| O5 | **COP-P22 = MEM-P2-2: RRF tuning** A/B `semanticRatio` 0.3 vs 0.7 | 0.5d | Calibração; precisa de golden set primeiro |
 
 ---
 
