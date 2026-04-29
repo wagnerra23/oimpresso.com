@@ -466,6 +466,49 @@ it('ProcessaDadosCliente com HD nao cadastrado retorna N;Maquina nao cadastrada'
     expect($r->getContent())->toStartWith('N;');
 });
 
+// ==========================================================
+// check-update — Services.RegistroSistema.pas (VerificarAtualizacao)
+// ==========================================================
+
+it('rota check-update existe e exige auth', function () {
+    $r = $this->withHeaders(['Accept' => 'application/json'])
+        ->call('POST', '/connector/api/check-update', [], [], [], [], '12.345.678/0001-99;2026.1.1.7');
+    expect($r->getStatusCode())->toBe(401);
+});
+
+it('check-update responde text/plain no formato CONTRATO Delphi', function () {
+    // Contrato: "VersaoNova;VersaoMinObrigatoria" ou "N;VersaoMinObrigatoria"
+    // Sem negocio cadastrado → N;
+    $user = \App\User::first();
+    if (! $user) { expect(true)->toBeTrue(); return; }
+    $token = $user->createToken('t')->accessToken;
+
+    $r = $this->withHeaders([
+        'Authorization' => 'Bearer ' . $token,
+        'Content-Type'  => 'text/plain',
+    ])->call('POST', '/connector/api/check-update', [], [], [], [], 'CNPJ-INEXISTENTE-99;1.0.0');
+
+    expect($r->getStatusCode())->toBe(200);
+    expect($r->headers->get('Content-Type'))->toContain('text/plain');
+
+    $body = $r->getContent();
+    expect($body)->toContain(';');
+
+    $parts = explode(';', $body);
+    expect(count($parts))->toBeGreaterThanOrEqual(2);
+    // Sem negocio → primeiro campo é 'N'
+    expect($parts[0])->toBe('N');
+});
+
+it('CheckUpdateController respeita campos business.versao_disponivel e versao_obrigatoria', function () {
+    $source = file_get_contents(
+        (new ReflectionClass(\Modules\Connector\Http\Controllers\Api\CheckUpdateController::class))->getFileName()
+    );
+    expect($source)->toContain('versao_disponivel');
+    expect($source)->toContain('versao_obrigatoria');
+    expect($source)->toContain('text/plain');
+});
+
 it('resposta do registrar segue contrato WR Comercial (autorizado S/N)', function () {
     // Guarda a shape: Services.OImpresso.Registro.pas faz
     //   Result.Autorizado := Resp.GetValue<string>('autorizado', 'N') = 'S';

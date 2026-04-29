@@ -26,6 +26,14 @@ Route::middleware(['log.delphi', 'auth:api', 'timezone'])->prefix('connector/api
     Route::post('oimpresso/registrar', [
         \Modules\Connector\Http\Controllers\Api\OImpressoRegistroController::class, 'registrar'
     ])->name('delphi.oimpresso.registrar');
+
+    // Verificacao de atualizacao — Services.RegistroSistema.pas (VerificarAtualizacao).
+    // Body: text/plain "CNPJ;VersaoAtual"
+    // Response: text/plain "VersaoNova;VersaoMinObrigatoria" ou "N;VersaoMinObrigatoria"
+    // Gerenciado por: business.versao_disponivel + business.versao_obrigatoria (superadmin).
+    Route::post('check-update', [
+        \Modules\Connector\Http\Controllers\Api\CheckUpdateController::class, 'check'
+    ])->name('delphi.check-update');
     // === fim endpoints Delphi ===
 
     Route::resource('business-location', Modules\Connector\Http\Controllers\Api\BusinessLocationController::class)->only('index', 'show');
