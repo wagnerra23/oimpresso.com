@@ -48,6 +48,19 @@ class McpAuthMiddleware
             return $this->denied($request, $startedAt, 'user_not_found', "User #{$token->user_id} não encontrado");
         }
 
+        // RBAC gate — MEM-MCP-1.d (ADR 0053): user precisa da permission
+        // `copiloto.mcp.use` mesmo com token válido. Sem isso → 403 + audit.
+        // Granularidade fina (decisions.read, governanca.financeiro, etc.)
+        // fica nos Tools individuais (cada Tool checa o scope via $user->can).
+        if (method_exists($user, 'can') && ! $user->can('copiloto.mcp.use')) {
+            return $this->denied(
+                $request,
+                $startedAt,
+                'no_permission',
+                "User não tem permission `copiloto.mcp.use`. Atribua via Spatie role/permission."
+            );
+        }
+
         // Registra uso do token (last_used_at, last_used_ip)
         $token->registrarUso(
             ip: $request->ip(),
