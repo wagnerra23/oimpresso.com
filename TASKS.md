@@ -82,7 +82,7 @@
 | # | Status | Pri | Dono | Task | Dias est. | DoD |
 |---|---|---|---|---|---|---|
 | MEM-MET-1 | ✅ | — | W | ~~Migration `copiloto_memoria_metricas` + Entity (ADR 0050+0051) — 8 obrigatórias + 3 RAGAS~~ | 0.5 | ✅ prod 29-abr (`21644f4e`): tabela com 14 colunas, 7 testes passing, schema validado |
-| MEM-MET-2 | ⏳ | 🔴 P0 | W | **Comando `copiloto:metrics:apurar`** — apura 8 obrigatórias + 3 RAGAS (faithfulness, answer_relevancy, context_precision) | 1.5 | Roda local + Hostinger; baseline 2026-04-29 gravado |
+| MEM-MET-2 | ✅ | — | W | ~~Comando `copiloto:metrics:apurar`~~ — apura 8 obrigatórias + contadores; RAGAS NULL até golden set (MEM-P2-1) | 1.5 | ✅ prod 29-abr (`6d2dc7eb`): 3 linhas baseline (plataforma + biz=1 + biz=4); 9 testes passing |
 | MEM-MET-3 | ⏳ | 🟠 P1 | W | **Scheduler diário** `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` | 0.25 | Cron Hostinger registra 1 linha/dia/business sem intervenção |
 | MEM-OTEL-1 | ✅ | — | W | ~~Emissão OpenTelemetry GenAI~~ — log channel `otel-gen-ai` com atributos `gen_ai.*` (ADR 0051) | 0.5 | ✅ prod 29-abr (`5acf27de`): smoke gera linha JSON OTel-compliant com 12 atributos; 5 testes passing |
 | COP-002 | ⏳ | 🟠 P1 | W | **MEM-P2-1: Golden set v1 (50 perguntas Larissa-style)** — pré-requisito do MEM-MET-2 | 1.5 | CSV commitado em `tests/fixtures/copiloto/golden_set_v1.csv` |
