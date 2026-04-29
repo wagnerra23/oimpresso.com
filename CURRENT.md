@@ -11,7 +11,7 @@
 > **"Copiloto assertivo e econômico em produção: Larissa pergunta faturamento e recebe resposta correta, com cache semântico reduzindo custos de token ≥50%."**
 
 **3 métricas de sucesso:**
-1. 🔲 **Copiloto responde faturamento/metas Larissa corretamente** (MEM-HOT-2 — ContextoNegocio injetado)
+1. 🟡 **Copiloto responde faturamento/metas Larissa corretamente** — código deployed (29-abr `2be9930c`); ctx prod = 4 meses faturamento + 5993 clientes em 164 tokens; aguarda validação real Larissa (A4)
 2. ✅ **`memoria_recall_chars > 0` nos logs** — bateu 190 em 2026-04-29 (prod) após MEM-HOT-1
 3. 🔲 **Dashboard `/copiloto/admin/custos` validado em test + merged** (US-COPI-070)
 
@@ -25,18 +25,19 @@
 
 | # | WIP | Task | Prazo | Status |
 |---|---|---|---|---|
-| A1 | — | ~~MEM-HOT-1: Hybrid embedder no MeilisearchDriver~~ | 30-abr | ✅ **29-abr** (commit `c631042c` — `memoria_recall_chars` saltou de 0 → 190 em prod, 2 hits no smoke real Larissa) |
-| A2 | 1/2 | **MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent** (ADR 0046 Caminho A) — system prompt recebe meta/faturamento/produtos do negócio | **02-mai** | ⏳ |
+| A1 | — | ~~MEM-HOT-1: Hybrid embedder no MeilisearchDriver~~ | 30-abr | ✅ **29-abr** (`c631042c` — recall 0→190 chars em prod) |
+| A2 | — | ~~MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent~~ | 02-mai | ✅ **29-abr** (`2be9930c` — prompt biz=4 ROTA LIVRE com 4 meses faturamento + 5993 clientes em 164 tokens) |
+| A3 | 1/2 | **MEM-S8-1: SemanticCacheMiddleware** (-68.8% tokens LLM, ADR 0037 Sprint 8) | 06-mai | ⏳ |
+| A4 | 2/2 | **Validar Larissa** — pedir pra ela perguntar "qual meu faturamento de março" no chat (esperado: R$ 38.215,07) | sex 02-mai | ⏳ |
 
-**On-deck imediato (puxar quando A1 ou A2 fechar):**
+**On-deck imediato (puxar quando A3 fechar):**
 
 | # | Task | Dias | Bloqueado por |
 |---|------|------|--------------|
-| O1 | **MEM-S8-1: SemanticCacheMiddleware** (-68.8% tokens LLM) | 1.5d | A1 pronto |
-| O2 | **MEM-S8-2: ConversationSummarizer** (comprime hot window >15 turnos) | 1.5d | — |
-| O3 | **MEM-S8-3: ProfileDistiller** (job diário extrai perfil negócio <300 tokens) | 1d | O2 |
-| O4 | **Validar Larissa ROTA LIVRE** (1h, 3 cenários: meta atual / conv >15 turnos / corrigir fato LGPD) | 0.5d | A1+A2 |
-| O5 | **MEM-P2-1: Golden set v1** (50 perguntas Larissa-style para RAGAS baseline) | 1.5d | O4 |
+| O1 | **MEM-S8-2: ConversationSummarizer** (comprime hot window >15 turnos) | 1.5d | A3 pronto |
+| O2 | **MEM-S8-3: ProfileDistiller** (job diário extrai perfil negócio <300 tokens) | 1d | O1 |
+| O3 | **MEM-P2-1: Golden set v1** (50 perguntas Larissa-style para RAGAS baseline) | 1.5d | A4 |
+| O4 | **MEM-P2-2: RRF tuning** A/B `semanticRatio` 0.3 vs 0.7 | 0.5d | O3 |
 
 ---
 
@@ -59,8 +60,8 @@
 
 | Gap | ADR | Sprint | Status |
 |-----|-----|--------|--------|
-| ~~MeilisearchDriver usa Scout default = full-text~~ | ADR 0046 | A1 fechou 29-abr | ✅ resolvido (commit `c631042c`, prod recall=190 chars) |
-| ChatCopilotoAgent "burrinho" — sem contexto de negócio | ADR 0046 | **A2 esta semana** | 🔴 fix imediato |
+| ~~MeilisearchDriver usa Scout default = full-text~~ | ADR 0046 | A1 fechou 29-abr | ✅ resolvido `c631042c` (prod recall=190 chars) |
+| ~~ChatCopilotoAgent "burrinho" — sem contexto de negócio~~ | ADR 0046 | A2 fechou 29-abr | ✅ resolvido `2be9930c` (164 tokens ctx em prod) |
 | Semantic cache não implementado (-68.8% tokens) | ADR 0037 Sprint 8 | O1 semana 2 | 🟡 on-deck |
 | Conversation summarizer não implementado | ADR 0047 | O2 semana 2 | 🟡 on-deck |
 | RAGAS golden set (50 perguntas) — baseline nunca medido | ADR 0037/0041 | O5 semana 3 | 🟠 P2 |

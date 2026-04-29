@@ -31,7 +31,9 @@
 | ID | Status | Pessoa | Task | Prazo | Dias est. |
 |---|---|---|---|---|---|
 | A1 | ✅ | W | MEM-HOT-1: Hybrid embedder MeilisearchDriver::buscar (29-abr `c631042c`) | qua 30-abr | 0.5 |
-| A2 | ⏳ | W | MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent (ADR 0046 Caminho A) | sex 02-mai | 1 |
+| A2 | ✅ | W | MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent (29-abr `2be9930c`) | sex 02-mai | 1 |
+| A3 | ⏳ | W | MEM-S8-1: SemanticCacheMiddleware (-68.8% tokens) | seg 06-mai | 1.5 |
+| A4 | ⏳ | W | Validar Larissa: "qual meu faturamento de março" → R$ 38.215,07 | sex 02-mai | 0.5 |
 
 **On-deck Cycle 01:**
 
@@ -50,7 +52,7 @@
 | # | Status | Pri | Dono | Task | Notas |
 |---|---|---|---|---|---|
 | B1 | ✅ | — | W | ~~MEM-HOT-1 hybrid fix~~ | resolvido 29-abr `c631042c` — prod log: `memoria_recall_chars: 190` (de 0) |
-| B2 | ⏳ | 🔴 P0 | W | **MEM-HOT-2** contexto rico | Copiloto "burrinho" sem dados negócio |
+| B2 | ✅ | — | W | ~~MEM-HOT-2 contexto rico~~ | resolvido 29-abr `2be9930c` — prompt biz=4 com 4 meses faturamento + 5993 clientes em 164 tokens |
 
 ---
 
@@ -63,7 +65,7 @@
 | # | Status | Pri | Dono | Task | Dias est. | DoD |
 |---|---|---|---|---|---|---|
 | COP-H01 | ✅ | — | W | ~~MEM-HOT-1: MeilisearchDriver hybrid~~ — Scout callback com `hybrid:{embedder,semanticRatio}` + filter `business_id/user_id` | 0.5 | ✅ prod 29-abr: 2 hits + log `memoria_recall_chars: 190` (commit `c631042c`) |
-| COP-H02 | ⏳ | 🔴 P0 | W | **MEM-HOT-2: ChatCopilotoAgent ContextoNegocio** — `instructions()` recebe e injeta meta/faturamento/produtos/período/usuário | 1 | Larissa pergunta "qual meu faturamento deste mês" → resposta com número correto |
+| COP-H02 | ✅ | — | W | ~~MEM-HOT-2: ChatCopilotoAgent ContextoNegocio~~ — `instructions()` injeta empresa/faturamento/clientes/metas | 1 | ✅ prod 29-abr (`2be9930c`): biz=4 ROTA LIVRE em 164 tokens; aguarda validação real Larissa |
 | COP-001 | ✅ | — | W | US-COPI-070 Dashboard custo IA — merged | — | Mergeado em Cycle 01 |
 
 ### P1 — Sprint 8 (Cycle 01 semana 2)
