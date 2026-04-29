@@ -12,7 +12,7 @@
 
 **3 métricas de sucesso:**
 1. 🔲 **Copiloto responde faturamento/metas Larissa corretamente** (MEM-HOT-2 — ContextoNegocio injetado)
-2. 🔲 **`memoria_recall_chars > 0` nos logs** (MEM-HOT-1 — Hybrid embedder ativo)
+2. ✅ **`memoria_recall_chars > 0` nos logs** — bateu 190 em 2026-04-29 (prod) após MEM-HOT-1
 3. 🔲 **Dashboard `/copiloto/admin/custos` validado em test + merged** (US-COPI-070)
 
 **Gate opcional Cycle 01:**
@@ -25,8 +25,8 @@
 
 | # | WIP | Task | Prazo | Status |
 |---|---|---|---|---|
-| A1 | 1/2 | **MEM-HOT-1: Hybrid embedder no MeilisearchDriver** — `buscar()` passa `hybrid:{embedder:'openai',semanticRatio:0.7}` via client direto | **30-abr** | ⏳ |
-| A2 | 2/2 | **MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent** (ADR 0046 Caminho A) — system prompt recebe meta/faturamento/produtos do negócio | **02-mai** | ⏳ |
+| A1 | — | ~~MEM-HOT-1: Hybrid embedder no MeilisearchDriver~~ | 30-abr | ✅ **29-abr** (commit `c631042c` — `memoria_recall_chars` saltou de 0 → 190 em prod, 2 hits no smoke real Larissa) |
+| A2 | 1/2 | **MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent** (ADR 0046 Caminho A) — system prompt recebe meta/faturamento/produtos do negócio | **02-mai** | ⏳ |
 
 **On-deck imediato (puxar quando A1 ou A2 fechar):**
 
@@ -59,7 +59,7 @@
 
 | Gap | ADR | Sprint | Status |
 |-----|-----|--------|--------|
-| MeilisearchDriver usa Scout default = full-text, sem hybrid | ADR 0046 | **A1 esta semana** | 🔴 fix imediato |
+| ~~MeilisearchDriver usa Scout default = full-text~~ | ADR 0046 | A1 fechou 29-abr | ✅ resolvido (commit `c631042c`, prod recall=190 chars) |
 | ChatCopilotoAgent "burrinho" — sem contexto de negócio | ADR 0046 | **A2 esta semana** | 🔴 fix imediato |
 | Semantic cache não implementado (-68.8% tokens) | ADR 0037 Sprint 8 | O1 semana 2 | 🟡 on-deck |
 | Conversation summarizer não implementado | ADR 0047 | O2 semana 2 | 🟡 on-deck |
@@ -98,7 +98,7 @@
 | A | `laravel/ai ^0.6.3` + `config/ai.php` | ✅ gpt-4o-mini |
 | B | `LaravelAiSdkDriver` + 4 Agents | ✅ prod |
 | C Hot | `SqlDriver` — conversas em DB | ✅ |
-| C Cold | `MeilisearchDriver` | ⚠️ ativo; bug hybrid (A1 fix) |
+| C Cold | `MeilisearchDriver` | ✅ hybrid embedder ativo (29-abr commit `c631042c`) |
 | Embedder | OpenAI text-embedding-3-small | ✅ funcional |
 
 ---
