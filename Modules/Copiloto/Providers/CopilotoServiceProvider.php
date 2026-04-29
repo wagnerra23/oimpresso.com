@@ -45,6 +45,7 @@ class CopilotoServiceProvider extends ServiceProvider
                 \Modules\Copiloto\Console\Commands\ApurarMetricasCommand::class,    // MEM-MET-2
                 \Modules\Copiloto\Console\Commands\AvaliarGabaritoCommand::class,   // MEM-EVAL-1
                 \Modules\Copiloto\Console\Commands\BackfillFatosCommand::class,     // MEM-EVAL-2
+                \Modules\Copiloto\Console\Commands\McpSystemTokenCommand::class,    // MEM-MEM-MCP-1
                 \Modules\Copiloto\Console\Commands\McpSyncMemoryCommand::class,     // MEM-MCP-1.a
                 \Modules\Copiloto\Console\Commands\McpTokenGerarCommand::class,     // MEM-MCP-1.b
             ]);
@@ -91,15 +92,22 @@ class CopilotoServiceProvider extends ServiceProvider
                     return $this->app->make(\Modules\Copiloto\Services\Memoria\NullMemoriaDriver::class);
                 }
 
-                // 'meilisearch' (CANÔNICO) — Scout + Meilisearch self-hosted
+                // 'meilisearch' (CANÔNICO até abr/2026) — Scout + Meilisearch self-hosted
                 if ($driver === 'meilisearch' || $driver === 'auto') {
                     return $this->app->make(\Modules\Copiloto\Services\Memoria\MeilisearchDriver::class);
+                }
+
+                // 'mcp' (NOVO ADR 0056) — Copiloto chat consome MCP server.
+                // Fallback automático: se MCP indisponível, usa MeilisearchDriver direto.
+                if ($driver === 'mcp') {
+                    $fallback = $this->app->make(\Modules\Copiloto\Services\Memoria\MeilisearchDriver::class);
+                    return new \Modules\Copiloto\Services\Memoria\McpMemoriaDriver($fallback);
                 }
 
                 // 'mem0_rest' (CONDICIONAL sprint 8+) — placeholder, não implementado ainda
                 throw new \RuntimeException(
                     "Driver de memória '{$driver}' não implementado. ".
-                    'Drivers válidos: meilisearch (default), null (dev), mem0_rest (sprint 8+).'
+                    'Drivers válidos: meilisearch (default), mcp (ADR 0056), null (dev), mem0_rest (futuro).'
                 );
             }
         );

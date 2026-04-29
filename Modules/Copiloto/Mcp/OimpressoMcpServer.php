@@ -48,6 +48,9 @@ class OimpressoMcpServer extends Server
         Tools\DecisionsFetchTool::class,
         Tools\SessionsRecentTool::class,
         Tools\ClaudeCodeUsageSelfTool::class,
+        // MEM-MEM-MCP-1 (ADR 0056) — MCP-as-Memory-Source
+        // Copiloto chat web (Laravel) + Claude Code consomem mesma fonte.
+        Tools\MemoriaSearchTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
