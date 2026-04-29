@@ -180,4 +180,18 @@ return [
         'ttl_segundos'        => env('COPILOTO_CACHE_TTL', 3600),       // 1h default
         'threshold_jaccard'   => env('COPILOTO_CACHE_THRESHOLD', 0.85), // similaridade mínima
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | MEM-S8-2 — ConversationSummarizer (ADR 0037 Sprint 8)
+    |--------------------------------------------------------------------------
+    | Comprime histórico de conversas longas (>15 turnos): resume msgs antigas
+    | em ~200 tokens via LLM, mantém últimas 8 msgs íntegras. -40-70% tokens
+    | hot window em conversas longas.
+    */
+    'summarizer' => [
+        'enabled'           => env('COPILOTO_SUMMARIZER_ENABLED', true),
+        'threshold_turnos'  => env('COPILOTO_SUMMARIZER_THRESHOLD', 15),
+        'msgs_recentes'     => env('COPILOTO_SUMMARIZER_RECENT', 8),
+    ],
 ];

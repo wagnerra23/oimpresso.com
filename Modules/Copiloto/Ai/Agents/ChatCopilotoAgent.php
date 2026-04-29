@@ -125,15 +125,31 @@ class ChatCopilotoAgent implements Agent
      */
     public function messages(): iterable
     {
-        return $this->conversa
+        // MEM-S8-2 (ADR 0037 Sprint 8) — se conversa tem summary, usa
+        // summary + últimas 8 msgs (vs 20 sem summary). Comprime hot window.
+        $metadata = $this->conversa->metadata ?? [];
+        $summary = $metadata['summary'] ?? null;
+
+        $limite = $summary !== null ? 8 : 20;
+
+        $msgs = $this->conversa
             ->mensagens()
             ->whereIn('role', ['user', 'assistant'])
             ->orderByDesc('created_at')
-            ->limit(20)
+            ->limit($limite)
             ->get()
             ->reverse()
             ->values()
             ->map(fn ($m) => new Message($m->role, $m->content))
             ->all();
+
+        // Injeta summary como system message no início (se existir)
+        if ($summary !== null) {
+            array_unshift($msgs, new Message('system',
+                "Resumo do histórico anterior desta conversa (turnos antigos comprimidos):\n\n{$summary}"
+            ));
+        }
+
+        return $msgs;
     }
 }
