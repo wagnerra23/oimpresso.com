@@ -45,6 +45,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisord.conf
 COPY php.ini /usr/local/etc/php/conf.d/zz-mcp-overrides.ini
+# Override pool php-fpm — bump pm.max_children 5→20 (MEM-MCP-1.c-perf)
+COPY www.conf /usr/local/etc/php-fpm.d/zz-mcp-pool.conf
+# Entrypoint roda warm-up Laravel antes do supervisord (config:cache, etc.)
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Diretórios necessários + permissões
 RUN mkdir -p /var/log/nginx /run/nginx /var/log/supervisor /var/www/html \
@@ -59,4 +64,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
 
 EXPOSE 80
 
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
