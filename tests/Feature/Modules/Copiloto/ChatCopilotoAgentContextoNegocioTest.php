@@ -33,15 +33,16 @@ function ctxLarissa(): ContextoNegocio
     return new ContextoNegocio(
         businessId: 4,
         businessName: 'ROTA LIVRE',
+        // MEM-FAT-1 — 3 ângulos por mês (bruto / líquido / caixa)
         faturamento90d: [
-            ['mes' => '2026-02', 'valor' => 78450.00],
-            ['mes' => '2026-03', 'valor' => 82100.50],
-            ['mes' => '2026-04', 'valor' => 24300.00],
+            ['mes' => '2026-02', 'valor' => 78450.00, 'bruto' => 78450.00, 'liquido' => 77000.00, 'caixa' => 76500.00],
+            ['mes' => '2026-03', 'valor' => 38215.07, 'bruto' => 38215.07, 'liquido' => 37518.47, 'caixa' => 35440.25],
+            ['mes' => '2026-04', 'valor' => 31513.29, 'bruto' => 31513.29, 'liquido' => 31513.29, 'caixa' => 28100.00],
         ],
         clientesAtivos: 3,
         modulosAtivos: ['Copiloto', 'Financeiro'],
         metasAtivas: [
-            ['nome' => 'Faturamento mensal', 'valor_alvo' => 80000.0, 'realizado' => 24300.0],
+            ['nome' => 'Faturamento mensal', 'valor_alvo' => 80000.0, 'realizado' => 31513.29],
         ],
         observacoes: null,
     );
@@ -57,7 +58,7 @@ it('BC-compat: ChatCopilotoAgent sem ctx mantém prompt genérico', function () 
     expect($prompt)->not->toContain('EMPRESA');
 });
 
-it('com ctx Larissa, instructions inclui empresa + faturamento + cliente + metas', function () {
+it('com ctx Larissa, instructions inclui empresa + faturamento (3 ângulos) + cliente + metas', function () {
     $agent = new ChatCopilotoAgent(fakeConversa(), '', ctxLarissa());
 
     $prompt = (string) $agent->instructions();
@@ -65,13 +66,62 @@ it('com ctx Larissa, instructions inclui empresa + faturamento + cliente + metas
     expect($prompt)->toContain('CONTEXTO DO NEGÓCIO');
     expect($prompt)->toContain('EMPRESA: ROTA LIVRE (id 4)');
     expect($prompt)->toContain('CLIENTES ATIVOS: 3');
-    expect($prompt)->toContain('FATURAMENTO ÚLTIMOS 90 DIAS');
-    expect($prompt)->toContain('2026-02: R$ 78.450,00');
-    expect($prompt)->toContain('2026-03: R$ 82.100,50');
-    expect($prompt)->toContain('2026-04: R$ 24.300,00');
+    expect($prompt)->toContain('FATURAMENTO ÚLTIMOS 90 DIAS (3 ângulos por mês)');
+    // MEM-FAT-1 — 3 ângulos distintos pra LLM responder corretamente
+    expect($prompt)->toContain('BRUTO');
+    expect($prompt)->toContain('LÍQUIDO');
+    expect($prompt)->toContain('CAIXA');
+    // Marcador de mês (2026-03 com 3 valores distintos: bruto/líquido/caixa)
+    expect($prompt)->toContain('2026-03: bruto R$ 38.215,07 · líquido R$ 37.518,47 · caixa R$ 35.440,25');
     expect($prompt)->toContain('METAS ATIVAS');
-    expect($prompt)->toContain('Faturamento mensal: alvo R$ 80.000,00 / realizado R$ 24.300,00');
+    expect($prompt)->toContain('Faturamento mensal: alvo R$ 80.000,00 / realizado R$ 31.513,29');
     expect($prompt)->toContain('MÓDULOS ATIVOS: Copiloto, Financeiro');
+});
+
+it('MEM-FAT-1 — quando bruto≠líquido, o LLM vê 3 números distintos (não confunde)', function () {
+    $ctx = new ContextoNegocio(
+        businessId: 4,
+        businessName: 'TESTE',
+        faturamento90d: [
+            ['mes' => '2026-03', 'valor' => 38215.07, 'bruto' => 38215.07, 'liquido' => 37518.47, 'caixa' => 35440.25],
+        ],
+        clientesAtivos: 0,
+        modulosAtivos: [],
+        metasAtivas: [],
+    );
+
+    $agent = new ChatCopilotoAgent(fakeConversa(), '', $ctx);
+    $prompt = (string) $agent->instructions();
+
+    // Os 3 valores devem aparecer literalmente — LLM NÃO pode reportar bruto pra "caixa"
+    expect($prompt)->toContain('R$ 38.215,07'); // bruto
+    expect($prompt)->toContain('R$ 37.518,47'); // líquido
+    expect($prompt)->toContain('R$ 35.440,25'); // caixa
+    // Glossário no prompt deixa claro o que é cada um
+    expect($prompt)->toContain('BRUTO    = total vendido');
+    expect($prompt)->toContain('LÍQUIDO  = bruto menos devoluções');
+    expect($prompt)->toContain('CAIXA    = pagamentos efetivamente recebidos');
+});
+
+it('MEM-FAT-1 BC-compat — registro antigo só com `valor` ainda funciona (fallback bruto)', function () {
+    $ctx = new ContextoNegocio(
+        businessId: 4,
+        businessName: 'LEGADO',
+        // Shape antigo (sem bruto/liquido/caixa) — não deveria existir mais em prod,
+        // mas garante que cache stale ou fixture velho não quebra
+        faturamento90d: [
+            ['mes' => '2026-01', 'valor' => 4140.82],
+        ],
+        clientesAtivos: 0,
+        modulosAtivos: [],
+        metasAtivas: [],
+    );
+
+    $agent = new ChatCopilotoAgent(fakeConversa(), '', $ctx);
+    $prompt = (string) $agent->instructions();
+
+    // Fallback: bruto=liquido=caixa=valor (todos iguais ao único número disponível)
+    expect($prompt)->toContain('2026-01: bruto R$ 4.140,82 · líquido R$ 4.140,82 · caixa R$ 4.140,82');
 });
 
 it('com ctx + memoria recall, ambos aparecem (ordem: base → ctx → memoria)', function () {
