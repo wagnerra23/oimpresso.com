@@ -132,6 +132,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | MCP server (ADR 0053 / MEM-MCP-1)
+    |--------------------------------------------------------------------------
+    | Configuração do MCP server da empresa — governança de memória
+    | compartilhada com auth, RBAC, audit log e quotas.
+    */
+    'mcp' => [
+        // Token shared-secret entre GitHub webhook e endpoint sync-memory.
+        // Setar em .env: COPILOTO_MCP_SYNC_TOKEN=...
+        'sync_webhook_token' => env('COPILOTO_MCP_SYNC_TOKEN'),
+
+        // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
+        'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),
+
+        // Pricing pra calcular custo_brl em mcp_audit_log (snapshot abr/2026)
+        'pricing_per_million' => [
+            'opus'   => ['input' => 15.00, 'output' => 75.00, 'cache_read' => 1.50,  'cache_write' => 18.75],
+            'sonnet' => ['input' =>  3.00, 'output' => 15.00, 'cache_read' => 0.30,  'cache_write' =>  3.75],
+            'haiku'  => ['input' =>  1.00, 'output' =>  5.00, 'cache_read' => 0.10,  'cache_write' =>  1.25],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Meta da plataforma (seed) — ver memory/decisions/0022 e memory/11-metas-negocio.md
     |--------------------------------------------------------------------------
     */

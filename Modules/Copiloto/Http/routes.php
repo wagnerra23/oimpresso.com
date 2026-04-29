@@ -95,3 +95,20 @@ Route::group(
         Route::get('/update',    'InstallController@update')->name('copiloto.install.update');
     }
 );
+
+// ===========================================================================
+// 3) Webhook MCP sync memory (ADR 0053 / MEM-MCP-1.a) — POST /api/mcp/sync-memory
+// ===========================================================================
+// Auth via header X-MCP-Sync-Token (config copiloto.mcp.sync_webhook_token).
+// Sem middleware web/auth — é endpoint de servidor pra servidor (GitHub webhook).
+Route::group(
+    [
+        'middleware' => ['api'],
+        'prefix'     => 'api/mcp',
+        'namespace'  => 'Modules\Copiloto\Http\Controllers\Mcp',
+    ],
+    function () {
+        Route::post('/sync-memory', 'SyncMemoryWebhookController@handle')
+            ->name('copiloto.mcp.sync-memory');
+    }
+);
