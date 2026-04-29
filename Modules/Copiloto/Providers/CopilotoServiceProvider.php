@@ -44,6 +44,7 @@ class CopilotoServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\Copiloto\Console\Commands\ApurarMetricasCommand::class,    // MEM-MET-2
                 \Modules\Copiloto\Console\Commands\AvaliarGabaritoCommand::class,   // MEM-EVAL-1
+                \Modules\Copiloto\Console\Commands\BackfillFatosCommand::class,     // MEM-EVAL-2
                 \Modules\Copiloto\Console\Commands\McpSyncMemoryCommand::class,     // MEM-MCP-1.a
                 \Modules\Copiloto\Console\Commands\McpTokenGerarCommand::class,     // MEM-MCP-1.b
             ]);
