@@ -129,6 +129,7 @@ Tasks candidatas (não puxar antes!):
   - **0051** — Schema próprio + adapter pattern + emissão OpenTelemetry GenAI (estratégia formal pós-pesquisa de tendências)
   - **0036 estendida** — benchmark BM25+vetor=95.2% LongMemEval (supera Mem0 93.4%, Zep 71.2%) + 5 triggers concretos pra reavaliar
 - **MEM-MET-1 deployado** 29-abr (`21644f4e`) — `copiloto_memoria_metricas` em prod com 8 obrigatórias + 3 RAGAS (faithfulness, answer_relevancy, context_precision); 7 testes passing
+- **MEM-OTEL-1 deployado** 29-abr (`5acf27de`) — emissão `gen_ai.*` OpenTelemetry GenAI em prod; 12 atributos OTel-compliant por evento (system/model/usage/duration + custom business_id); 5 testes passing; pronto pra plug Langfuse/Datadog/Arize
 
 ---
 
