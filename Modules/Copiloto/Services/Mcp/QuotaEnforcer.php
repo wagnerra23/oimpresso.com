@@ -31,9 +31,9 @@ class QuotaEnforcer
      */
     public function checar(int $userId): array
     {
-        // Pega TODAS quotas ativas BRL deste user
+        // Pega TODAS quotas ativas (BRL OU calls OU tokens) deste user
         $quotas = McpQuota::where('user_id', $userId)
-            ->where('kind', 'brl')
+            ->whereIn('kind', ['brl', 'calls', 'tokens'])
             ->where('ativo', true)
             ->get();
 
@@ -46,7 +46,7 @@ class QuotaEnforcer
 
         $resultados = [];
         foreach ($quotas as $q) {
-            $usoAtual = $this->calcularUsoAtual($userId, $q->period);
+            $usoAtual = $this->calcularUsoAtual($userId, $q->period, $q->kind);
             $pctAtingido = $q->limit > 0 ? ($usoAtual / (float) $q->limit) * 100 : 0;
 
             // Atualiza current_usage no quota row pra dashboard ler rápido
@@ -55,7 +55,9 @@ class QuotaEnforcer
             // Verifica thresholds e dispara alertas idempotentes
             $this->verificarAlertas($userId, $q, $usoAtual, $pctAtingido);
 
-            $resultados[$q->period] = [
+            $resultados["{$q->kind}_{$q->period}"] = [
+                'kind' => $q->kind,
+                'period' => $q->period,
                 'limit' => (float) $q->limit,
                 'uso_atual' => $usoAtual,
                 'pct_atingido' => round($pctAtingido, 1),
@@ -81,16 +83,27 @@ class QuotaEnforcer
     }
 
     /**
-     * Calcula uso BRL atual no período (daily/weekly/monthly).
+     * Calcula uso atual no período pelo tipo da quota.
+     *   kind=brl    → SUM(custo_brl)
+     *   kind=calls  → COUNT(*)
+     *   kind=tokens → SUM(tokens_in + tokens_out + cache_read + cache_write)
      */
-    protected function calcularUsoAtual(int $userId, string $period): float
+    protected function calcularUsoAtual(int $userId, string $period, string $kind = 'brl'): float
     {
         [$inicio, $fim] = $this->resolverPeriodo($period);
 
-        return (float) DB::table('mcp_audit_log')
+        $base = DB::table('mcp_audit_log')
             ->where('user_id', $userId)
-            ->whereBetween('ts', [$inicio, $fim])
-            ->sum('custo_brl');
+            ->whereBetween('ts', [$inicio, $fim]);
+
+        return match ($kind) {
+            'calls'  => (float) $base->count(),
+            'tokens' => (float) $base->selectRaw(
+                'COALESCE(SUM(tokens_in), 0) + COALESCE(SUM(tokens_out), 0) +
+                 COALESCE(SUM(cache_read), 0) + COALESCE(SUM(cache_write), 0) as total'
+            )->value('total'),
+            default  => (float) $base->sum('custo_brl'),
+        };
     }
 
     protected function resolverPeriodo(string $period): array
