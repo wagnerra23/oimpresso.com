@@ -8,11 +8,11 @@
 //   module: Copiloto
 
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { toast } from 'sonner';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Composer, Thread, ThreadHeader } from '@/Components/cockpit/Thread';
+import { ThreadHeader } from '@/Components/cockpit/Thread';
 import {
   AvatarRef,
   BusinessOpt,
@@ -21,6 +21,7 @@ import {
   Mensagem as CockpitMensagem,
   Rotina,
 } from '@/Components/cockpit/shared';
+import { CopilotoAssistantUiChat } from '@/Components/copiloto/AssistantUiChat';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import {
@@ -212,57 +213,14 @@ export default function Chat({
   mensagens,
   sugestoesPendentes = [],
 }: Props) {
-  // streaming: optimistic UI + SSE — UX Claude-style (token por token)
-  const [enviando, setEnviando] = useState(false);
-  const [streamingTexto, setStreamingTexto] = useState('');           // chunks acumulados
-  const [optimisticUserMsg, setOptimisticUserMsg] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-
-  // Hora "agora" formatada pra mensagens otimistas (re-calculada a cada render).
-  const agoraHora = useMemo(
-    () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-    [streamingTexto, optimisticUserMsg],
+  // Adapta mensagens só pra metadata visual da sidebar de conversas (avatar,
+  // último excerto). O Thread real é renderizado pela lib assistant-ui.
+  const mensagensCockpit = useMemo(
+    () => mensagens.map(adaptarMensagem),
+    [mensagens],
   );
 
-  // CSRF token pra fetch (Inertia injeta via meta)
-  function getCsrfToken(): string {
-    const m = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
-    return m?.content ?? '';
-  }
-
-  // Adapta mensagens backend → formato Cockpit + injeta bolhas otimistas
-  const mensagensCockpit = useMemo(() => {
-    const reais = mensagens.map(adaptarMensagem);
-
-    // Enquanto streaming: adiciona bolha "user" otimista (se ainda não voltou
-    // do backend) + bolha "assistant" parcial com o texto acumulado.
-    const extras: CockpitMensagem[] = [];
-
-    if (optimisticUserMsg !== null) {
-      extras.push({
-        id: -1,
-        autor: 'me',
-        texto: optimisticUserMsg,
-        hora: agoraHora,
-        dia: 'Hoje',
-        lida: true,
-      });
-    }
-    if (streamingTexto !== '') {
-      extras.push({
-        id: -2,
-        autor: 'them',
-        texto: streamingTexto,
-        hora: agoraHora,
-        dia: 'Hoje',
-        whoAvatar: COPILOTO_AVATAR,
-        whoNome: 'Copiloto',
-      });
-    }
-    return [...reais, ...extras];
-  }, [mensagens, optimisticUserMsg, streamingTexto, agoraHora]);
-
-  // ConversaFoco da conversa atual (fora do mock — vem do backend real agora)
+  // ConversaFoco — informacional pra ThreadHeader/sidebar (não usado no Thread real)
   const conversaFoco: ConversaFoco = useMemo(() => ({
     id: String(conversa.id),
     titulo: conversa.titulo,
@@ -271,100 +229,6 @@ export default function Chat({
     avatar: COPILOTO_AVATAR,
     mensagens: mensagensCockpit,
   }), [conversa, mensagensCockpit]);
-
-  // Cleanup: abortar stream se user sair da página
-  useEffect(() => () => {
-    abortRef.current?.abort();
-  }, []);
-
-  /**
-   * Streaming SSE — UX Claude-style. Lê o ReadableStream chunk-by-chunk e
-   * atualiza streamingTexto pra renderização token-por-token. Ao fim do
-   * stream, reload Inertia das mensagens reais (com IDs do DB) e limpa a
-   * bolha otimista.
-   */
-  async function handleSend(texto: string) {
-    if (!texto.trim() || enviando) return;
-
-    setEnviando(true);
-    setOptimisticUserMsg(texto);
-    setStreamingTexto('');
-
-    // AbortController pra suportar Stop button + cleanup
-    abortRef.current?.abort();
-    const ctrl = new AbortController();
-    abortRef.current = ctrl;
-
-    try {
-      const resp = await fetch(`/copiloto/conversas/${conversa.id}/mensagens/stream`, {
-        method: 'POST',
-        signal: ctrl.signal,
-        headers: {
-          'Content-Type':     'application/json',
-          'Accept':           'text/event-stream',
-          'X-CSRF-TOKEN':     getCsrfToken(),
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({ content: texto }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        throw new Error(`HTTP ${resp.status}`);
-      }
-
-      const reader  = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer    = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        // SSE: cada evento separado por linha em branco; data: <json>
-        let idx: number;
-        while ((idx = buffer.indexOf('\n\n')) !== -1) {
-          const raw = buffer.slice(0, idx).trim();
-          buffer = buffer.slice(idx + 2);
-          if (!raw.startsWith('data:')) continue;
-
-          const json = raw.replace(/^data:\s*/, '');
-          try {
-            const ev = JSON.parse(json);
-            if (ev.type === 'chunk' && typeof ev.content === 'string') {
-              setStreamingTexto((t) => t + ev.content);
-            } else if (ev.type === 'error') {
-              toast.error(ev.message ?? 'Erro no streaming.');
-            }
-            // 'start' e 'end' são informativos — não atualizamos UI direto deles.
-          } catch {
-            // chunk parcial, ignora — vai juntar com o próximo decode()
-          }
-        }
-      }
-    } catch (e: any) {
-      if (e?.name !== 'AbortError') {
-        toast.error('Erro ao enviar mensagem.');
-      }
-    } finally {
-      setEnviando(false);
-      // Recarrega só as mensagens reais — limpa otimismo
-      router.reload({
-        only: ['mensagens', 'sugestoesPendentes'],
-        preserveScroll: true,
-        preserveState: true,
-        onFinish: () => {
-          setOptimisticUserMsg(null);
-          setStreamingTexto('');
-        },
-      });
-    }
-  }
-
-  /** Cancela streaming em andamento (UX Claude-style stop button). */
-  function handleStop() {
-    abortRef.current?.abort();
-  }
 
   function selectConv(id: string) {
     router.get(`/copiloto/conversas/${id}`, {}, {
@@ -393,46 +257,27 @@ export default function Chat({
 
       <ThreadHeader conv={conversaFoco} />
 
-      {/* typing dots aparece somente enquanto enviando E ainda não chegou
-          o primeiro chunk (depois disso a bolha streamingTexto já mostra texto). */}
-      <Thread
-        mensagens={mensagensCockpit}
-        typing={enviando && streamingTexto === ''}
-        typingAvatar={COPILOTO_AVATAR}
+      {/* MEM-CHAT-ENT (assistant-ui) — Thread + Composer + Stop + Markdown +
+          code highlight + edit/regenerate vêm tudo prontos da lib.
+          Rascunho propostas-de-metas continua entre o thread e o composer. */}
+      <CopilotoAssistantUiChat
+        conversaId={conversa.id}
+        mensagensIniciais={mensagens}
+        belowThread={
+          sugestoesPendentes.length > 0 ? (
+            <div className="px-5 pb-3 space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-mute)' }}>
+                Propostas de metas
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {sugestoesPendentes.map((s) => (
+                  <PropostaCard key={s.id} sugestao={s} />
+                ))}
+              </div>
+            </div>
+          ) : null
+        }
       />
-
-      {/* Cards de propostas pendentes — específico Copiloto, não estão no Components/cockpit */}
-      {sugestoesPendentes.length > 0 && (
-        <div className="px-5 pb-3 space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-mute)' }}>
-            Propostas de metas
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {sugestoesPendentes.map((s) => (
-              <PropostaCard key={s.id} sugestao={s} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Stop button — UX Claude-style: cancela streaming em andamento */}
-      {enviando && (
-        <div className="px-5 pb-2 flex justify-center">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={handleStop}
-            className="gap-2 text-xs"
-            aria-label="Parar geração da resposta"
-          >
-            <span className="inline-block w-2 h-2 rounded-sm bg-current" />
-            Parar resposta
-          </Button>
-        </div>
-      )}
-
-      <Composer onSend={handleSend} conv={conversaFoco} />
     </AppShellV2>
   );
 }
