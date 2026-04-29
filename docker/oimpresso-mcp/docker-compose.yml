@@ -25,7 +25,9 @@ services:
   mcp:
     build:
       context: .
-      dockerfile: Dockerfile
+      # MEM-MCP-1.c-perf Fase 1: switch FPM → FrankenPHP+Octane.
+      # Dockerfile (FPM legacy) preservado pra rollback rápido se precisar.
+      dockerfile: Dockerfile.octane
     image: oimpresso/mcp:latest
     container_name: oimpresso-mcp
     restart: unless-stopped

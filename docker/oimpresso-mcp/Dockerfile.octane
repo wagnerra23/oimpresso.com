@@ -1,0 +1,46 @@
+# MEM-MCP-1.c-perf Fase 1 (ADR 0053) — FrankenPHP + Laravel Octane
+#
+# Ganho esperado vs PHP-FPM: 200-400 RPS → 4.000-15.000 RPS, latência 30ms → <5ms.
+# Cold start de cada request: 1-3s (boot Laravel) → ~50ms (worker mantido em mem).
+#
+# Single binary: FrankenPHP = PHP 8.4 + Caddy + HTTP/2/3 + auto-TLS.
+# Tudo num só processo, sem supervisord/nginx/php-fpm.
+
+FROM dunglas/frankenphp:php8.4-alpine
+
+WORKDIR /var/www/html
+
+# Extensões PHP do Laravel (mesmo set do FPM anterior)
+RUN install-php-extensions \
+        pdo_mysql \
+        intl \
+        bcmath \
+        zip \
+        opcache \
+        pcntl \
+        redis
+
+# OPcache + JIT em produção pra acelerar boot inicial e código quente
+COPY php.ini /usr/local/etc/php/conf.d/zz-mcp-overrides.ini
+
+# Entrypoint Octane: warm-up + octane:start em foreground
+COPY entrypoint-octane.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# www-data já existe na base image FrankenPHP
+RUN chown -R www-data:www-data /var/www/html
+
+# Healthcheck — Traefik usa pra detectar container vivo
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -fsS http://localhost/api/mcp/health || exit 1
+
+EXPOSE 80
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Default: octane:start em foreground (FrankenPHP server)
+CMD ["php", "artisan", "octane:start", \
+     "--server=frankenphp", \
+     "--host=0.0.0.0", \
+     "--port=80", \
+     "--workers=4", \
+     "--max-requests=500"]
