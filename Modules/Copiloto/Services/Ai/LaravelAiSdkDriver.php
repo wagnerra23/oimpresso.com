@@ -118,6 +118,22 @@ class LaravelAiSdkDriver implements AiAdapter
             return;
         }
 
+        // MEM-CACHE-1 — tenta cache semântico ANTES de chamar LLM.
+        // Hit → emite resposta cacheada como 1 chunk e termina (zero token cost).
+        // Miss → segue pipeline normal e GRAVA ao final.
+        if (config('copiloto.cache.enabled', true)) {
+            $cacheService = app(\Modules\Copiloto\Services\Cache\SemanticCacheService::class);
+            if ($cached = $cacheService->buscar($conv, $mensagem)) {
+                Log::channel('copiloto-ai')->info('responderChatStream: CACHE HIT', [
+                    'conversa_id' => $conv->id,
+                    'cache_id' => $cached->id,
+                    'hits_acumulados' => $cached->hits,
+                ]);
+                yield $cached->resposta;
+                return;
+            }
+        }
+
         // Mesma pipeline do responderChat() blocking — DRY.
         $memoriaContexto = $this->recallMemoria($conv, $mensagem);
         $ctx = $this->snapshotContexto($conv);
@@ -168,6 +184,19 @@ class LaravelAiSdkDriver implements AiAdapter
                 'duration_ms'           => $durationMs,
             ]);
 
+            // MEM-CACHE-1 — grava resposta no cache pra futuras queries similares
+            if (config('copiloto.cache.enabled', true) && $textoCompleto !== '') {
+                try {
+                    app(\Modules\Copiloto\Services\Cache\SemanticCacheService::class)
+                        ->gravar($conv, $mensagem, $textoCompleto, $tokensIn, $tokensOut, [
+                            'duration_ms' => $durationMs,
+                            'memoria_recall_chars' => strlen($memoriaContexto),
+                        ]);
+                } catch (\Throwable $e) {
+                    Log::channel('copiloto-ai')->warning('SemanticCache: gravar falhou: ' . $e->getMessage());
+                }
+            }
+
             // Sprint 5 — extrair fatos em background (Horizon)
             if (config('copiloto.memoria.write_enabled', true)) {
                 ExtrairFatosDaConversaJob::dispatch(
@@ -186,6 +215,21 @@ class LaravelAiSdkDriver implements AiAdapter
     {
         if (config('copiloto.dry_run')) {
             return "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
+        }
+
+        // MEM-CACHE-1 — antes de TUDO, tenta cache semântico.
+        // Hit → retorno imediato com 0 token de custo.
+        if (config('copiloto.cache.enabled', true)) {
+            $cacheService = app(\Modules\Copiloto\Services\Cache\SemanticCacheService::class);
+            if ($cached = $cacheService->buscar($conv, $mensagem)) {
+                Log::channel('copiloto-ai')->info('responderChat: CACHE HIT', [
+                    'conversa_id' => $conv->id,
+                    'cache_id' => $cached->id,
+                    'hits_acumulados' => $cached->hits,
+                    'r$_economizado_total' => $cached->totalEconomizado(),
+                ]);
+                return $cached->resposta;
+            }
         }
 
         // Sprint 5 (ADR 0036) — recall de memória semântica antes de chamar LLM.
@@ -226,6 +270,19 @@ class LaravelAiSdkDriver implements AiAdapter
             // MEM-OTEL-1 (ADR 0051) — emite atributos gen_ai.* OpenTelemetry
             // semantic conventions. Plugável em Datadog/Langfuse/Arize sem rename.
             $this->emitirOtelGenAi($conv, $mensagem, $response, $durationMs, ok: true);
+
+            // MEM-CACHE-1 — grava resposta no cache pra futuras queries similares.
+            if (config('copiloto.cache.enabled', true) && $texto !== '') {
+                try {
+                    app(\Modules\Copiloto\Services\Cache\SemanticCacheService::class)
+                        ->gravar($conv, $mensagem, $texto,
+                            $response->usage->promptTokens ?? null,
+                            $response->usage->completionTokens ?? null,
+                            ['duration_ms' => $durationMs]);
+                } catch (\Throwable $e) {
+                    Log::channel('copiloto-ai')->warning('SemanticCache: gravar falhou: ' . $e->getMessage());
+                }
+            }
 
             // Sprint 5 — após resposta, extrair fatos novos em background (Horizon).
             if (config('copiloto.memoria.write_enabled', true)) {

@@ -165,4 +165,19 @@ return [
         'valor_alvo'   => 5000000, // R$ 5 milhões
         'unidade'      => 'R$',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | MEM-CACHE-1 — Cache semântico de respostas LLM (ADR 0037 Sprint 8)
+    |--------------------------------------------------------------------------
+    | Antes de chamar OpenAI: busca query similar no cache. Hit → retorna
+    | resposta cacheada (zero token cost). Miss → chama LLM + grava resposta.
+    |
+    | Estado-da-arte 2026: -68.8% tokens em produção.
+    */
+    'cache' => [
+        'enabled'             => env('COPILOTO_CACHE_ENABLED', true),
+        'ttl_segundos'        => env('COPILOTO_CACHE_TTL', 3600),       // 1h default
+        'threshold_jaccard'   => env('COPILOTO_CACHE_THRESHOLD', 0.85), // similaridade mínima
+    ],
 ];
