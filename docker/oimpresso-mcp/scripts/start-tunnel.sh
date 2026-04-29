@@ -23,19 +23,23 @@ if [ ! -f "$KEY" ]; then
     exit 1
 fi
 
-echo "[tunnel] Garantindo permissões da chave..."
-chmod 600 "$KEY" 2>/dev/null || true
+# /root/.ssh é bind-mountado :ro (proteção da chave) — known_hosts vai pra /tmp
+KNOWN_HOSTS="/tmp/ssh_known_hosts"
 
-echo "[tunnel] Adicionando host ao known_hosts (não-interativo)..."
-mkdir -p /root/.ssh
-ssh-keyscan -p "$HOST_PORT" "$HOST_IP" 2>/dev/null > /root/.ssh/known_hosts || true
-chmod 600 /root/.ssh/known_hosts
+echo "[tunnel] Adicionando host ao known_hosts em $KNOWN_HOSTS (não-interativo)..."
+ssh-keyscan -p "$HOST_PORT" "$HOST_IP" 2>/dev/null > "$KNOWN_HOSTS" || true
+chmod 600 "$KNOWN_HOSTS"
+
+if [ ! -s "$KNOWN_HOSTS" ]; then
+    echo "[tunnel] AVISO: ssh-keyscan retornou vazio — vai aceitar host na primeira conexão"
+fi
 
 echo "[tunnel] Validando conexão SSH ao Hostinger (test rápido)..."
 if ssh -i "$KEY" -p "$HOST_PORT" \
        -o BatchMode=yes \
        -o ConnectTimeout=10 \
        -o StrictHostKeyChecking=accept-new \
+       -o UserKnownHostsFile="$KNOWN_HOSTS" \
        "${HOST_USER}@${HOST_IP}" 'echo "[tunnel] SSH test OK"'; then
     echo "[tunnel] SSH validado com sucesso. Iniciando autossh..."
 else
@@ -56,7 +60,7 @@ exec autossh -M 0 \
     -o ServerAliveCountMax=3 \
     -o ExitOnForwardFailure=yes \
     -o StrictHostKeyChecking=accept-new \
-    -o UserKnownHostsFile=/root/.ssh/known_hosts \
+    -o UserKnownHostsFile="$KNOWN_HOSTS" \
     -i "$KEY" \
     -p "$HOST_PORT" \
     -N \
