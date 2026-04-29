@@ -205,6 +205,16 @@ class LaravelAiSdkDriver implements AiAdapter
                     userId: (int) $conv->user_id,
                 );
             }
+
+            // MEM-S8-2 — comprime histórico se passou threshold de turnos (>15)
+            if (config('copiloto.summarizer.enabled', true)) {
+                try {
+                    app(\Modules\Copiloto\Services\Memoria\ConversationSummarizer::class)
+                        ->comprimirSeNecessario($conv);
+                } catch (\Throwable $e) {
+                    Log::channel('copiloto-ai')->warning('Summarizer: falhou (não-crítico): ' . $e->getMessage());
+                }
+            }
         } catch (\Throwable $e) {
             Log::channel('copiloto-ai')->error('responderChatStream error: ' . $e->getMessage());
             yield "\n\n_(Erro de IA: " . substr($e->getMessage(), 0, 100) . ")_";
