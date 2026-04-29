@@ -34,10 +34,12 @@ services:
 
     # Volume bind: código vem do clone git em /opt/oimpresso-mcp/code (host)
     # Atualização: git pull no host + reload PHP-FPM no container
+    # NOTA: code NÃO é :ro porque submount :rw (storage, bootstrap/cache) dentro de
+    # parent :ro falha com "read-only file system" no overlayfs
     volumes:
-      - /opt/oimpresso-mcp/code:/var/www/html:ro
-      - /opt/oimpresso-mcp/storage:/var/www/html/storage:rw
-      - /opt/oimpresso-mcp/bootstrap-cache:/var/www/html/bootstrap/cache:rw
+      - /opt/oimpresso-mcp/code:/var/www/html
+      - /opt/oimpresso-mcp/storage:/var/www/html/storage
+      - /opt/oimpresso-mcp/bootstrap-cache:/var/www/html/bootstrap/cache
 
     # Variáveis de ambiente — usar .env (não commitado)
     env_file:
