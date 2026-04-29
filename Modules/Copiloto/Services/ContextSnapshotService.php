@@ -53,8 +53,62 @@ class ContextSnapshotService
             faturamento90d:  $faturamento90d,
             clientesAtivos:  $clientesAtivos,
             modulosAtivos:   [], // TODO: ler de modules_statuses.json
-            metasAtivas:     [], // TODO: ler de copiloto_metas (sem recursão se for este contexto)
+            metasAtivas:     $this->metasAtivas($businessId),
             observacoes:     null,
         );
+    }
+
+    /**
+     * MEM-HOT-2 (ADR 0047) — top 5 metas ativas do tenant com último realizado.
+     *
+     * Defensivo: se as tabelas copiloto_metas/* não existirem (ambiente novo,
+     * migrations não rodadas), retorna [] silenciosamente. Não há recursão —
+     * ContextoNegocio aqui só ALIMENTA o chat, não é consumido por SugestoesMetasAgent.
+     *
+     * @return array<array{nome: string, valor_alvo: float, realizado: float}>
+     */
+    protected function metasAtivas(?int $businessId): array
+    {
+        if ($businessId === null) {
+            return [];
+        }
+
+        try {
+            // Joins mínimos: meta + período corrente + última apuração desse período
+            $rows = DB::table('copiloto_metas as m')
+                ->where('m.ativo', true)
+                ->where('m.business_id', $businessId)
+                ->leftJoin('copiloto_meta_periodos as p', function ($join) {
+                    $join->on('p.meta_id', '=', 'm.id')
+                         ->where('p.data_inicio', '<=', now())
+                         ->where('p.data_fim', '>=', now());
+                })
+                ->leftJoinSub(
+                    DB::table('copiloto_meta_apuracoes')
+                        ->select('meta_periodo_id', DB::raw('MAX(valor) as realizado'))
+                        ->groupBy('meta_periodo_id'),
+                    'a',
+                    'a.meta_periodo_id', '=', 'p.id'
+                )
+                ->orderByDesc('m.id')
+                ->limit(5)
+                ->select('m.nome', 'p.valor_alvo', 'a.realizado')
+                ->get();
+
+            return $rows
+                ->filter(fn ($r) => $r->valor_alvo !== null)
+                ->map(fn ($r) => [
+                    'nome'       => (string) $r->nome,
+                    'valor_alvo' => (float) $r->valor_alvo,
+                    'realizado'  => (float) ($r->realizado ?? 0),
+                ])
+                ->values()
+                ->all();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::channel('copiloto-ai')->debug(
+                'ContextSnapshotService::metasAtivas degradou: ' . $e->getMessage()
+            );
+            return [];
+        }
     }
 }
