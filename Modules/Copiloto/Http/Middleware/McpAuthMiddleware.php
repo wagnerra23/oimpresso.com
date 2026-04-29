@@ -81,7 +81,7 @@ class McpAuthMiddleware
                 'user_id'             => $user->id,
                 'business_id'         => method_exists($user, 'business_id') ? $user->business_id : (data_get($user, 'business_id')),
                 'endpoint'            => $this->detectarEndpoint($request),
-                'tool_or_resource'    => $request->input('name') ?? $request->input('uri'),
+                'tool_or_resource'    => $this->extrairToolOrResource($request),
                 'status'              => $response->isSuccessful() ? 'ok' : 'error',
                 'ip'                  => $request->ip(),
                 'user_agent'          => $request->userAgent(),
@@ -123,12 +123,50 @@ class McpAuthMiddleware
     }
 
     /**
-     * Mapeia URL pra endpoint MCP enum.
+     * Extrai o nome da tool/resource do payload MCP JSON-RPC.
+     *
+     * MCP JSON-RPC body: {jsonrpc, id, method, params: {name|uri, arguments}}
+     * Para tools/call → params.name (ex: "tasks-current")
+     * Para resources/read → params.uri (ex: "oimpresso://memory/handoff")
+     * Para tools/list, resources/list, prompts/list → null (sem target específico)
+     */
+    protected function extrairToolOrResource(Request $request): ?string
+    {
+        // Tenta JSON-RPC params primeiro (formato canônico MCP)
+        $name = $request->input('params.name');
+        if (! empty($name)) {
+            return (string) $name;
+        }
+
+        $uri = $request->input('params.uri');
+        if (! empty($uri)) {
+            return (string) $uri;
+        }
+
+        // Fallback: forma antiga (root-level), backwards-compat
+        return $request->input('name') ?? $request->input('uri');
+    }
+
+    /**
+     * Mapeia para endpoint MCP enum.
+     *
+     * Prioridade:
+     *   1. JSON-RPC body field "method" (formato canônico MCP — todas as
+     *      chamadas vêm via POST /api/mcp com method={tools/list|tools/call|...})
+     *   2. URL path (fallback pra rotas antigas /api/mcp/tools/call, etc.)
      */
     protected function detectarEndpoint(Request $request): string
     {
-        $path = $request->path();
+        // 1. Body method (canônico MCP)
+        $method = $request->input('method');
+        $valid = ['tools/list', 'tools/call', 'resources/list', 'resources/read',
+                  'prompts/list', 'prompts/get', 'initialize'];
+        if (is_string($method) && in_array($method, $valid, true)) {
+            return $method;
+        }
 
+        // 2. Fallback URL path
+        $path = $request->path();
         return match (true) {
             str_contains($path, '/tools/list')      => 'tools/list',
             str_contains($path, '/tools/call')      => 'tools/call',
