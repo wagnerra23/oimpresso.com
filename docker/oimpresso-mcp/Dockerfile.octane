@@ -38,9 +38,14 @@ EXPOSE 80
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 # Default: octane:start em foreground (FrankenPHP server)
+# --admin-port=2019: explicit pq Octane calcula admin_port = 2019 + (port - 8000)
+#                    e port=80 dá admin_port negativo (crash).
+# --workers=4: matching CT 100 (4 cores). Bumpar quando CT 100 ganhar +cores.
+# --max-requests=500: recycle worker periodic pra evitar memory leaks.
 CMD ["php", "artisan", "octane:start", \
      "--server=frankenphp", \
      "--host=0.0.0.0", \
      "--port=80", \
+     "--admin-port=2019", \
      "--workers=4", \
      "--max-requests=500"]
