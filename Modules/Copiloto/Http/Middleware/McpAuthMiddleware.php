@@ -90,6 +90,24 @@ class McpAuthMiddleware
         // Continua a request
         $response = $next($request);
 
+        // Estimativa de custo (MEM-TEAM-1 Fase 4):
+        //   - tokens_in:  Content-Length do request body / 4 (chars/token)
+        //   - tokens_out: Content-Length do response body / 4
+        //   - custo_brl:  (in × $0.15/1M + out × $0.60/1M) × cambio
+        // Heurística é aproximada — superestima ~30% do custo real Claude API,
+        // mas suficiente pra enforcement de quota. Calls que tocam LLM
+        // (decisions-search com FULLTEXT) ficam mais caras (override em tool).
+        $reqBytes = (int) ($request->server('CONTENT_LENGTH') ?: strlen($request->getContent() ?? ''));
+        $respContent = $response->getContent() ?? '';
+        $respBytes = strlen($respContent);
+        $tokensIn = (int) ceil($reqBytes / 4);
+        $tokensOut = (int) ceil($respBytes / 4);
+        $modeloPricing = config('copiloto.openai.pricing.gpt-4o-mini', ['input' => 0.00000015, 'output' => 0.0000006]);
+        $cambio = (float) config('copiloto.ai.cambio_brl_usd', 5.5);
+        $custoUsd = ($tokensIn * (float) ($modeloPricing['input'] ?? 0))
+            + ($tokensOut * (float) ($modeloPricing['output'] ?? 0));
+        $custoBrl = round($custoUsd * $cambio, 6);
+
         // Audit log de sucesso (best-effort, não quebra request se falhar)
         try {
             McpAuditLog::registrar([
@@ -98,6 +116,9 @@ class McpAuthMiddleware
                 'endpoint'            => $this->detectarEndpoint($request),
                 'tool_or_resource'    => $this->extrairToolOrResource($request),
                 'status'              => $response->isSuccessful() ? 'ok' : 'error',
+                'tokens_in'           => $tokensIn,
+                'tokens_out'          => $tokensOut,
+                'custo_brl'           => $custoBrl,
                 'ip'                  => $request->ip(),
                 'user_agent'          => $request->userAgent(),
                 'mcp_token_id'        => $token->id,
@@ -118,10 +139,18 @@ class McpAuthMiddleware
     {
         $user = $request->user();
         $message = 'Quota excedida — chamadas bloqueadas. Detalhes:';
-        foreach ($check['quotas'] ?? [] as $period => $r) {
+        foreach ($check['quotas'] ?? [] as $key => $r) {
             if ($r['excedido'] && $r['block_on_exceed']) {
-                $message .= sprintf(' [%s: R$ %.4f de R$ %.4f (%s%%)]',
-                    $period, $r['uso_atual'], $r['limit'], $r['pct_atingido']);
+                $unidade = match ($r['kind'] ?? 'brl') {
+                    'calls'  => 'calls',
+                    'tokens' => 'tokens',
+                    default  => 'R$',
+                };
+                $message .= sprintf(' [%s_%s: %s %.4f de %s %.4f (%s%%)]',
+                    $r['kind'] ?? '?', $r['period'] ?? '?',
+                    $unidade, $r['uso_atual'],
+                    $unidade, $r['limit'],
+                    $r['pct_atingido']);
             }
         }
 
