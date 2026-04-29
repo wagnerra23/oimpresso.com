@@ -381,5 +381,61 @@ Session log completo: `memory/sessions/2026-04-28-meilisearch-vaultwarden.md`
 
 ---
 
-**Última atualização:** 2026-04-27 noite (promoção `6.7-bootstrap` → `main` + cleanup ADR 0024 duplicado)
-**Estado geral:** 🟢 branch principal agora é `main` (ADR 0038); 🟢 ADR 0024 duplicado resolvido (renomeado pra 0029); 🟡 workflows CI (`deploy.yml`, `quick-sync.yml`) e CLAUDE.md ainda referenciam `6.7-bootstrap` — PR de cleanup pendente; 🟡 PR #18 DRAFT vai precisar rebase
+**Última atualização:** 2026-04-29 fim do dia (sprint memória — 8 entregas, baseline 29-abr em prod, 51 ADRs total)
+**Estado geral:** 🟢 Copiloto IA real ativo prod desde 28-abr; 🟢 sprint memória do dia completa (MEM-HOT-1, MEM-HOT-2, MEM-MET-1, MEM-MET-2, MEM-OTEL-1 todos deployed); 🟢 baseline 2026-04-29 em `copiloto_memoria_metricas`; 🟢 modo solo Wagner (ADR 0047); 🟢 estratégia "schema próprio + OTel GenAI" formalizada (ADR 0051)
+
+---
+
+## 🔄 Sessão 16 (2026-04-28) — Reverb + Meilisearch + IA real ativa
+
+- ✅ CT 100 docker-host LXC Debian 12 provisionado em Proxmox empresa
+- ✅ Stack Docker: Traefik v3.6 + Portainer + Vaultwarden + Reverb + Meilisearch v1.10.3 (5/5 running)
+- ✅ DNS criado via API canônica `developers.hostinger.com/api/dns/v1/zones/{domain}` (ADR 0045) — `api.hostinger.com` está com HTTP 530 crônico
+- ✅ Cert Let's Encrypt R12 emitido pra reverb/portainer/traefik/vault/meilisearch.oimpresso.com
+- ✅ OPENAI_API_KEY no Hostinger .env + SCOUT_DRIVER=meilisearch + embedder OpenAI text-embedding-3-small no índice
+- ✅ `config/ai.php` commitado (era untracked → laravel/ai caía no fallback `gpt-5.4`); log channel `copiloto-ai` adicionado
+- ✅ **Copiloto IA real respondendo Larissa em prod** (gpt-4o-mini)
+- 🟡 Gap descoberto: ChatCopilotoAgent "burrinho" — sem ContextoNegocio (ADR 0046)
+- 🟡 Gap descoberto: MeilisearchDriver::buscar usa Scout default (full-text) — `memoria_recall_chars: 0` mesmo com fato indexado
+- 📝 Detalhe completo em [memory/sessions/2026-04-28-meilisearch-vaultwarden.md](sessions/2026-04-28-meilisearch-vaultwarden.md) + [memory/sessions/2026-04-28-reverb-docker-host.md](sessions/2026-04-28-reverb-docker-host.md)
+- ✅ ADRs criados: 0042 (Reverb) · 0043 (Docker+Traefik) · 0044 (Vaultwarden) · 0045 (Hostinger DNS API) · 0046 (Gap ChatAgent)
+
+---
+
+## 🔄 Sessão 17 (2026-04-29) — Sprint memória completa: 8 entregas em 1 dia
+
+Wagner pediu modo solo + foco em token economy + assertividade. Time delegated → todos os donos para [W].
+
+**8 entregas em prod:**
+
+1. **ADR 0047** Wagner solo + sprint memória priorizado (`da6ce166`)
+2. **MEM-HOT-1** Hybrid embedder MeilisearchDriver (`c631042c`) — recall **0 → 190 chars** em log conversa Larissa real
+3. **MEM-HOT-2** ContextoNegocio injetado no ChatCopilotoAgent (`2be9930c`) — system prompt biz=4 ROTA LIVRE com 4 meses faturamento + 5993 clientes em **164 tokens**
+4. **ADRs 0048-0050 + 0036 estendida** consolidam pesquisa Wagner (ZIP `files.zip`):
+   - 0048 — Vizra ADK rejeitada oficialmente (quebrou L13); **COP-015 cancelada**
+   - 0049 — 6 camadas memória + gate Recall@3>0.80
+   - 0050 — 8 métricas obrigatórias + tabela `copiloto_memoria_metricas`
+   - 0036 anexo — benchmark BM25+vetor=95.2% LongMemEval (supera Mem0 93.4%, Zep 71.2%)
+5. **ADR 0051** Schema próprio + adapter + OTel GenAI (após pesquisa de tendências) (`21644f4e`)
+6. **MEM-MET-1** Tabela `copiloto_memoria_metricas` em prod com 14 colunas (8 obrigatórias + 3 RAGAS-aligned `faithfulness/answer_relevancy/context_precision` + 3 contexto)
+7. **MEM-OTEL-1** Emissão `gen_ai.*` OpenTelemetry GenAI no log channel `otel-gen-ai` (`5acf27de`) — 12 atributos OTel-compliant por evento
+8. **MEM-MET-2** Comando `copiloto:metrics:apurar` + baseline 2026-04-29 gravado em prod (`6d2dc7eb`+`6aa9b524`):
+
+   ```
+   | apurado_em | biz_id      | p95_ms | tokens | inter | mem | bloat | contr |
+   |------------|-------------|--------|--------|-------|-----|-------|-------|
+   | 2026-04-29 | NULL (plat) |   1234 |    307 |     6 |   2 | 1.000 |  0.00 |
+   | 2026-04-29 |           1 |   NULL |   NULL |     0 |   0 |  NULL |  NULL |
+   | 2026-04-29 |           4 |   1234 |    307 |     6 |   2 | 1.000 |  0.00 |
+   ```
+
+**Suite Copiloto:** 50 → **77 passed (+27 testes)**, 3 skipped, **zero regressão**.
+
+**Estratégia formalizada (ADR 0051):** 4 pilares — schema próprio + adapter sobre `Laravel\Ai\Contracts\ConversationStore` + métricas RAGAS-aligned + emissão OTel GenAI. Triggers trimestrais pra reavaliar (laravel/ai 1.0 saiu 17-mar-2026 sem eval framework nem multi-tenancy).
+
+📝 Detalhe completo: [memory/sessions/2026-04-29-sprint-memoria-completa.md](sessions/2026-04-29-sprint-memoria-completa.md)
+
+**Pendências P0 imediatas (sex 02-mai):**
+- A4 — Validar Larissa: "qual meu faturamento de março?" → R$ 38.215,07
+- MEM-MET-3 — scheduler diário `daily()` chama `copiloto:metrics:apurar --all` (15 min)
+- COP-002 = MEM-MET-5 — Golden set 50 perguntas Larissa-style (destrava 6 colunas RAGAS)
