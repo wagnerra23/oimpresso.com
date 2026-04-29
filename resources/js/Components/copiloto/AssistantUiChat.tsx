@@ -1,33 +1,34 @@
 // @memcofre
 //   modulo: Copiloto / Chat
 //   adrs: 0035, 0036, 0046, 0047, 0053
-//   status: implementada (Sprint chat enterprise via assistant-ui)
+//   status: implementada (Sprint chat enterprise via assistant-ui v0.10)
 //
 // Integra @assistant-ui/react ao Copiloto. Usa ExternalStoreRuntime pra adaptar
 // nosso endpoint SSE Laravel (/copiloto/conversas/{id}/mensagens/stream) ao
 // modelo de runtime da lib. Recursos out-of-box:
 //   - Streaming token-por-token (já era nosso, agora com UX rica)
-//   - Markdown render + code blocks com syntax highlight + botão Copy
+//   - Markdown render + code blocks + botão Copy
 //   - Edit user message + Regenerate assistant
-//   - Auto-scroll, retry, attachments (futuro)
+//   - Auto-scroll, retry, attachments
 //   - Stop button (interrupt)
 //
-// Backend SSE protocol custom (linha JSON):
-//   data: {"type":"start","user_message_id":42}
-//   data: {"type":"chunk","content":"Olá"}
-//   data: {"type":"end","assistant_message_id":43,"chars":120}
+// v0.10 da lib só exporta primitives (não Thread pré-cozido) — então a gente
+// compõe nossa própria Thread aqui, com nossas classes Tailwind 4.
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   AssistantRuntimeProvider,
   useExternalStoreRuntime,
-  Thread,
+  ThreadPrimitive,
+  MessagePrimitive,
+  ComposerPrimitive,
   type AppendMessage,
   type ThreadMessageLike,
 } from '@assistant-ui/react';
 import { MarkdownTextPrimitive } from '@assistant-ui/react-markdown';
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
+import { ArrowDown, ArrowUp, Square } from 'lucide-react';
 
 // ---- Tipos do nosso backend Laravel -----------------------------------
 
@@ -43,13 +44,11 @@ interface Props {
   mensagensIniciais: MensagemBackend[];
   /** Sugestões de prompt iniciais (quando conversa vazia) */
   sugestoesIniciais?: string[];
-  /** Renderiza um header customizado acima do Thread (ex: cards de propostas) */
-  headerExtra?: ReactNode;
-  /** Renderiza extras abaixo do Thread, antes do Composer */
+  /** Renderiza extras abaixo do Thread, antes do Composer (ex: cards) */
   belowThread?: ReactNode;
 }
 
-// ---- Mensagem interna (formato externo do runtime) ---------------------
+// ---- Mensagem interna ----------------------------------------------------
 
 type ChatMessage = {
   id: string;
@@ -75,8 +74,121 @@ const fmtFromBackend = (m: MensagemBackend): ChatMessage => ({
 });
 
 function getCsrfToken(): string {
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
-  return meta?.content ?? '';
+  return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+}
+
+// ---- Componentes Compondo Thread ---------------------------------------
+
+const SUGESTOES_DEFAULT = [
+  'Qual o faturamento de hoje?',
+  'Top 5 clientes do mês',
+  'Despesas vencendo nos próximos 7 dias',
+  'Criar uma meta de faturamento mensal',
+];
+
+function ThreadEmpty({ sugestoes }: { sugestoes: string[] }) {
+  return (
+    <ThreadPrimitive.Empty>
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-12 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <span className="text-2xl font-semibold">CP</span>
+        </div>
+        <div>
+          <p className="text-lg font-semibold">Como posso ajudar?</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Pergunte sobre faturamento, clientes, despesas, metas — ou inicie com uma sugestão.
+          </p>
+        </div>
+        <div className="grid w-full max-w-xl grid-cols-1 gap-2 sm:grid-cols-2">
+          {sugestoes.map((s) => (
+            <ThreadPrimitive.Suggestion
+              key={s}
+              prompt={s}
+              method="replace"
+              autoSend
+              className="rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {s}
+            </ThreadPrimitive.Suggestion>
+          ))}
+        </div>
+      </div>
+    </ThreadPrimitive.Empty>
+  );
+}
+
+function UserMessage() {
+  return (
+    <MessagePrimitive.Root className="flex justify-end px-4 py-2">
+      <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground whitespace-pre-wrap break-words">
+        <MessagePrimitive.Parts />
+      </div>
+    </MessagePrimitive.Root>
+  );
+}
+
+function AssistantMessage() {
+  return (
+    <MessagePrimitive.Root className="flex gap-3 px-4 py-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+        CP
+      </div>
+      <div className="flex-1 max-w-[85%] rounded-2xl rounded-bl-sm bg-card border border-border px-4 py-2.5 text-sm">
+        <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed">
+          <MessagePrimitive.Parts components={{ Text: MarkdownTextPrimitive }} />
+        </div>
+      </div>
+    </MessagePrimitive.Root>
+  );
+}
+
+function ScrollToBottomBtn() {
+  return (
+    <ThreadPrimitive.ScrollToBottom asChild>
+      <button
+        type="button"
+        aria-label="Rolar pro fim"
+        className="absolute bottom-24 right-6 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background shadow-md transition hover:bg-accent disabled:invisible"
+      >
+        <ArrowDown className="h-4 w-4" />
+      </button>
+    </ThreadPrimitive.ScrollToBottom>
+  );
+}
+
+function Composer() {
+  return (
+    <ComposerPrimitive.Root className="relative mx-auto flex w-full max-w-3xl items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 focus-within:ring-offset-background">
+      <ComposerPrimitive.Input
+        autoFocus
+        rows={1}
+        placeholder="Pergunte algo ao Copiloto…"
+        className="min-h-[40px] max-h-40 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
+      />
+      <ThreadPrimitive.If running={false}>
+        <ComposerPrimitive.Send asChild>
+          <button
+            type="submit"
+            aria-label="Enviar"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground transition hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+        </ComposerPrimitive.Send>
+      </ThreadPrimitive.If>
+      <ThreadPrimitive.If running>
+        <ComposerPrimitive.Cancel asChild>
+          <button
+            type="button"
+            aria-label="Parar geração"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition hover:bg-accent"
+          >
+            <Square className="h-3.5 w-3.5" />
+          </button>
+        </ComposerPrimitive.Cancel>
+      </ThreadPrimitive.If>
+    </ComposerPrimitive.Root>
+  );
 }
 
 // ---- Runtime Provider --------------------------------------------------
@@ -85,7 +197,6 @@ export function CopilotoAssistantUiChat({
   conversaId,
   mensagensIniciais,
   sugestoesIniciais,
-  headerExtra,
   belowThread,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(
@@ -94,12 +205,12 @@ export function CopilotoAssistantUiChat({
   const [isRunning, setIsRunning] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Sync mensagens vindas do backend (Inertia partial reload pós-stream)
+  // Sync mensagens quando vier partial reload (após stream salvo no DB)
   useEffect(() => {
     setMessages(mensagensIniciais.map(fmtFromBackend));
   }, [mensagensIniciais]);
 
-  // Cleanup: aborta stream em andamento se user sair da página/conversa
+  // Cleanup: aborta stream em andamento se user sair da página
   useEffect(
     () => () => {
       abortRef.current?.abort();
@@ -116,7 +227,6 @@ export function CopilotoAssistantUiChat({
       }
       const userText = part.text;
 
-      // 1. Adiciona bolha user otimista
       const userMsgId = newId();
       const assistantMsgId = newId();
       setMessages((prev) => [
@@ -162,7 +272,6 @@ export function CopilotoAssistantUiChat({
             try {
               const ev = JSON.parse(json);
               if (ev.type === 'chunk' && typeof ev.content === 'string') {
-                // Atualiza assistant in-place — assistant-ui detecta via re-render
                 setMessages((prev) =>
                   prev.map((m) =>
                     m.id === assistantMsgId
@@ -208,28 +317,30 @@ export function CopilotoAssistantUiChat({
     onCancel,
   });
 
+  const sugestoes = sugestoesIniciais ?? SUGESTOES_DEFAULT;
+
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      {headerExtra}
-      <div className="flex-1 min-h-0 flex flex-col aui-root-wrapper">
-        <Thread
-          welcome={{
-            message: 'Como posso ajudar com a gestão da sua empresa hoje?',
-            suggestions: (sugestoesIniciais ?? [
-              'Qual o faturamento de hoje?',
-              'Top 5 clientes do mês',
-              'Despesas vencendo nos próximos 7 dias',
-              'Criar uma meta de faturamento mensal',
-            ]).map((s) => ({ prompt: s })),
-          }}
-          assistantMessage={{
-            components: {
-              Text: MarkdownTextPrimitive,
-            },
-          }}
-        />
-      </div>
-      {belowThread}
+      <ThreadPrimitive.Root className="relative flex h-full flex-1 flex-col bg-background">
+        <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto">
+          <ThreadEmpty sugestoes={sugestoes} />
+          <ThreadPrimitive.Messages
+            components={{
+              UserMessage,
+              AssistantMessage,
+            }}
+          />
+          <div className="h-4" />
+        </ThreadPrimitive.Viewport>
+
+        <ScrollToBottomBtn />
+
+        {belowThread}
+
+        <div className="border-t border-border bg-background/80 px-4 py-3 backdrop-blur">
+          <Composer />
+        </div>
+      </ThreadPrimitive.Root>
     </AssistantRuntimeProvider>
   );
 }
