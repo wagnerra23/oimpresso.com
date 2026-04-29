@@ -39,31 +39,18 @@ Adotar metodologia padrão de avaliação de retrieval com gabarito interno como
 | 7 | **Taxa de contradições** | < 2% | Memórias contraditórias sem `valid_until` setado | Query nos próprios fatos |
 | 8 | **Cross-tenant violations** | = 0 | Memórias retornadas com `business_id ≠` business da query | Red-team trimestral + assert no `MeilisearchDriver::buscar` |
 
-### Tabela `memory_metrics` (proposta)
+### Tabela `copiloto_memoria_metricas` (deployed 2026-04-29)
 
-```php
-Schema::create('copiloto_memoria_metricas', function (Blueprint $t) {
-    $t->bigIncrements('id');
-    $t->date('apurado_em');                          // 1 linha/dia
-    $t->unsignedInteger('business_id')->nullable(); // null = plataforma agregada
-    $t->decimal('recall_at_3', 4, 3)->nullable();   // 0.000 a 1.000
-    $t->decimal('precision_at_3', 4, 3)->nullable();
-    $t->decimal('mrr', 4, 3)->nullable();
-    $t->unsignedInteger('latencia_p95_ms')->nullable();
-    $t->unsignedInteger('tokens_medio_interacao')->nullable();
-    $t->decimal('memory_bloat_ratio', 4, 3)->nullable();
-    $t->decimal('taxa_contradicoes_pct', 5, 2)->nullable();
-    $t->unsignedInteger('cross_tenant_violations')->default(0);
-    $t->unsignedInteger('total_interacoes_dia')->default(0);
-    $t->unsignedInteger('total_memorias_ativas')->default(0);
-    $t->json('detalhes')->nullable();                // shape de eval, falhas, etc.
-    $t->timestamps();
+Schema final em [`Modules/Copiloto/Database/Migrations/2026_04_29_000001_create_copiloto_memoria_metricas_table.php`](../../Modules/Copiloto/Database/Migrations/2026_04_29_000001_create_copiloto_memoria_metricas_table.php):
 
-    $t->unique(['apurado_em', 'business_id'], 'mem_metr_ux');
-    $t->index('apurado_em');
-    $t->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
-});
-```
+- 8 colunas das métricas obrigatórias acima
+- **+3 colunas RAGAS-aligned** (ver ADR 0051 — `faithfulness`, `answer_relevancy`, `context_precision`)
+- Contadores: `total_interacoes_dia`, `total_memorias_ativas`
+- `detalhes` JSON pra payload de rastreio
+- Unique `(apurado_em, business_id)` → upsert idempotente
+- FK `business_id → business.id` cascade delete
+
+Entity: `Modules\Copiloto\Entities\MemoriaMetrica` com scopes `doBusinessOuPlataforma`, `ultimosDias` e helpers `metricasObrigatorias()` / `metricasRagas()`.
 
 ---
 
