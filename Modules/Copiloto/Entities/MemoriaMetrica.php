@@ -46,7 +46,9 @@ class MemoriaMetrica extends Model
     ];
 
     protected $casts = [
-        'apurado_em'              => 'date',
+        // 'date:Y-m-d' força format Y-m-d no INSERT (sem 00:00:00 datetime),
+        // crucial pra updateOrCreate WHERE casar em SQLite e MySQL.
+        'apurado_em'              => 'date:Y-m-d',
         'recall_at_3'             => 'float',
         'precision_at_3'          => 'float',
         'mrr'                     => 'float',

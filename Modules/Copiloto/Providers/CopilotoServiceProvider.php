@@ -35,6 +35,13 @@ class CopilotoServiceProvider extends ServiceProvider
 
         // Eventos do módulo
         Event::listen(CopilotoDesvioDetectado::class, NotificarDesvioListener::class);
+
+        // MEM-MET-2 (ADR 0050+0051) — comando de apuração de métricas
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Copiloto\Console\Commands\ApurarMetricasCommand::class,
+            ]);
+        }
     }
 
     /**
