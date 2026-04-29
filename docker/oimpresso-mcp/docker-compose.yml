@@ -3,15 +3,19 @@
 # Hospedagem: CT 100 docker-host (Proxmox empresa, 192.168.0.50)
 # Subdomínio: mcp.oimpresso.com → 177.74.67.30 → Traefik → este container
 # Cert: Let's Encrypt R12 automático via Traefik labels
-# DB: MySQL Hostinger via SSH tunnel (autossh sidecar)
+# DB: MySQL Hostinger DIRETO via porta 3306 (Remote MySQL whitelist 177.74.67.30)
+#
+# DECISÃO 29-abr 2026: SSH tunnel via autossh (ver scripts/start-tunnel.sh)
+# foi REJEITADO porque CT 100 → Hostinger:65002 dá Connection timed out
+# (provável bloqueio fail2ban ou firewall stateful no upstream Hostinger).
+# nc -zv reporta porta open mas SSH handshake não completa.
+# Solução: ativar Remote MySQL no hPanel Hostinger pra IP 177.74.67.30 +
+# conectar direto na 3306 (com TLS).
 #
 # Deploy:
-#   ssh root@<ct-100>
-#   cd /opt/oimpresso-mcp
-#   git pull && docker compose up -d
-#
-# NÃO usar Portainer Stacks (tem limitações com compose-spec novo —
-# ver discussão na sessão de 29-abr-2026). Portainer apenas observa.
+#   tailscale ssh root@ct100-mcp
+#   cd /opt/oimpresso-mcp/code && git pull
+#   cd docker/oimpresso-mcp && docker compose up -d --build
 
 services:
 
@@ -40,16 +44,12 @@ services:
       - .env
 
     environment:
-      # Conecta ao MySQL Hostinger via tunnel rodando no sidecar
-      DB_HOST: tunnel
+      # Conecta MySQL Hostinger DIRETO (Remote MySQL whitelist no hPanel)
+      DB_HOST: 148.135.133.115
       DB_PORT: 3306
       # Laravel paths
       APP_ENV: ${APP_ENV:-production}
       APP_DEBUG: ${APP_DEBUG:-false}
-
-    depends_on:
-      tunnel:
-        condition: service_healthy
 
     # Healthcheck pra Traefik saber quando o container está pronto
     healthcheck:
@@ -81,37 +81,6 @@ services:
       - "traefik.http.routers.mcp-http.middlewares=mcp-redirect"
       - "traefik.http.middlewares.mcp-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.mcp-redirect.redirectscheme.permanent=true"
-
-  # ========================================================================
-  # SSH tunnel sidecar — mantém túnel persistente pro MySQL Hostinger
-  # ========================================================================
-  # autossh roda em loop forever; reconecta automaticamente se cair.
-  # Expõe localhost:3306 dentro da rede docker (alias: tunnel:3306)
-  # No app, DB_HOST=tunnel.
-  #
-  # Comando lê o script start-tunnel.sh (bind-mountado do repo) — evita
-  # quoting issue de YAML folded scalar com aspas aninhadas.
-  tunnel:
-    image: kroniak/ssh-client:3.20
-    container_name: oimpresso-mcp-tunnel
-    restart: unless-stopped
-    networks:
-      - docker-host_default
-
-    volumes:
-      - /opt/oimpresso-mcp/ssh:/root/.ssh:ro
-      - ./scripts:/scripts:ro
-
-    # Lista (não string) — Docker NÃO faz sh -c implícito
-    entrypoint: ["/bin/sh"]
-    command: ["/scripts/start-tunnel.sh"]
-
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 3306 || exit 1"]
-      interval: 15s
-      timeout: 3s
-      retries: 5
-      start_period: 30s
 
 networks:
   docker-host_default:
