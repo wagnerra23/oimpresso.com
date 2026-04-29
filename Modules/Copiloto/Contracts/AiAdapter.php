@@ -22,4 +22,18 @@ interface AiAdapter
     public function sugerirMetas(ContextoNegocio $ctx, string $prompt): array;
 
     public function responderChat(Conversa $conv, string $mensagem): string;
+
+    /**
+     * Streaming de chat: retorna Generator que yields chunks de texto à medida
+     * que a IA gera. Permite UX SSE (token-por-token) em vez de blocking.
+     *
+     * O caller é responsável por:
+     *   - Persistir a mensagem do user ANTES de chamar (igual responderChat)
+     *   - Acumular chunks numa string e persistir Mensagem assistant ao fim
+     *   - Persistir tokens_in/out via callback do último chunk
+     *
+     * @return \Generator<int, string, void, void> Yields chunks de texto.
+     *         Itera até retornar (fim do stream OpenAI).
+     */
+    public function responderChatStream(Conversa $conv, string $mensagem): \Generator;
 }
