@@ -46,14 +46,21 @@ chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
 
 echo "[entrypoint-octane] Limpando caches stale..."
-php artisan config:clear 2>&1 | tail -2 || true
-php artisan event:clear 2>&1 | tail -2 || true
-php artisan view:clear 2>&1 | tail -2 || true
+# CADA artisan call com timeout 30s — alguns boot path do Laravel/módulos hangam
+# em queries SQL durante boot (visto em 29-abr, deps Spatie/Scout). Timeout
+# garante que entrypoint nunca trava o container.
+timeout 30 php artisan config:clear 2>&1 | tail -2 || echo "[skip config:clear]"
+timeout 30 php artisan event:clear 2>&1 | tail -2 || echo "[skip event:clear]"
+# view:clear pulado: o diretório storage/framework/views começa vazio, e
+# view:clear historicamente trava em alguns boot paths Laravel + nWidart.
+# Octane recompila views on-demand a cada request — sem prejuízo.
+rm -rf /var/www/html/storage/framework/views/*.php 2>/dev/null || true
 
 echo "[entrypoint-octane] Compilando caches..."
-php artisan config:cache 2>&1 | tail -2 || true
-php artisan event:cache 2>&1 | tail -2 || true
-php artisan view:cache 2>&1 | tail -2 || true
+timeout 60 php artisan config:cache 2>&1 | tail -2 || echo "[skip config:cache]"
+timeout 60 php artisan event:cache 2>&1 | tail -2 || echo "[skip event:cache]"
+# view:cache também pulado — Octane handle on-demand. Pré-compilar dá GAIN
+# pequeno mas ARRIESGA travar entrypoint inteiro se algum view/Blade falhar parse.
 
 # Octane install — idempotente, publica config/octane.php se ainda não existe.
 if [ ! -f config/octane.php ]; then
