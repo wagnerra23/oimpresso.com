@@ -32,8 +32,11 @@
 |---|---|---|---|---|---|
 | ~~A1~~ | ✅ | W | ~~MEM-MET-3: Scheduler diário~~ — `01e4e214` 29-abr; cron Hostinger 23:55, próx run ~14h | qui 30-abr | 0.25 |
 | ~~A1~~ | ✅ | W | ~~A4 rodada 2: Validar Larissa~~ — 29-abr 09:06-09:25 chat real prod: 3 perguntas → 3 respostas distintas (caixa R$ 27.272,62 ≠ bruto R$ 31.513,29 ≠ líquido R$ 31.513,29 abril) | sex 02-mai | 0.5 |
-| A1 | 1/2 | W | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style com resposta esperada (destrava 6 colunas RAGAS) | seg 05-mai | 1.5 |
-| A2 | 2/2 | W | **MEM-MET-4 = COP-007 ampliada: Page `/copiloto/admin/qualidade`** — trend 30d das 8 métricas + HITL anotação | qui 08-mai | 2 |
+| A1 | 1/2 | W | **MEM-MCP-1.b: Container `oimpresso-mcp` em CT 100 + Sanctum auth** | qui 30-abr | 1 |
+| A2 | 2/2 | W | **MEM-MCP-1.c: 12 tools + 4 Resources + 2 Prompts** consultando mcp_memory_documents | sex 02-mai | 1 |
+| ~~MEM-MCP-1.a~~ | ✅ | W | ~~Schema 9 migrations + 9 Entities + sync job + comando + endpoint webhook + 2 skills~~ — `Dia 1` 29-abr | 1 | ✅ 18 testes Mcp + Skills oimpresso-stack/copiloto-arch publicados; ADR 0053 + DNS criados |
+| ~~A1 antigo~~ | 🟡 | W | COP-002 Golden set Larissa-style — adiada pra Cycle 02 (depende MCP server pra audit das respostas) | — | 1.5 |
+| ~~A2 antigo~~ | 🟡 | W | MEM-MET-4 Page `/copiloto/admin/qualidade` — vira parte do MEM-MCP-1.f Dia 6 | — | 2 |
 | ~~MEM-FAT-1~~ | ✅ | W | ~~ContextoNegocio expor 3 ângulos (bruto/líquido/caixa)~~ — `fac96a19` 29-abr | 1 | ✅ prod: prompt 270 tokens; ADR 0052 |
 
 **On-deck Cycle 01 (ordem por impacto×esforço):**
