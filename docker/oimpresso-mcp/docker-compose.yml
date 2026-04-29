@@ -75,11 +75,22 @@ services:
       - "traefik.http.routers.mcp.entrypoints=websecure"
       - "traefik.http.routers.mcp.tls=true"
       - "traefik.http.routers.mcp.tls.certresolver=le"
+      - "traefik.http.routers.mcp.service=mcp"
 
-      # Backend (nginx interno na 80)
+      # Backend (FrankenPHP/Octane na 80)
       - "traefik.http.services.mcp.loadbalancer.server.port=80"
       - "traefik.http.services.mcp.loadbalancer.healthcheck.path=/api/mcp/health"
       - "traefik.http.services.mcp.loadbalancer.healthcheck.interval=30s"
+
+      # ServersTransport — Bottleneck DESCOBERTO 29-abr-2026 sessão 21:
+      # default Traefik `maxIdleConnsPerHost=2` causa timeout em parallel >2.
+      # Bench: 20 paralelas ⇒ 9 timeout em 30s (dialTimeout default).
+      # Fix: bump pool pra 500 + tighten dialTimeout pra 5s.
+      - "traefik.http.services.mcp.loadbalancer.serversTransport=mcp-pool@docker"
+      - "traefik.http.serversTransports.mcp-pool.maxIdleConnsPerHost=500"
+      - "traefik.http.serversTransports.mcp-pool.forwardingTimeouts.dialTimeout=5s"
+      - "traefik.http.serversTransports.mcp-pool.forwardingTimeouts.responseHeaderTimeout=60s"
+      - "traefik.http.serversTransports.mcp-pool.forwardingTimeouts.idleConnTimeout=90s"
 
       # HTTP → HTTPS redirect
       - "traefik.http.routers.mcp-http.rule=Host(`mcp.oimpresso.com`)"
