@@ -47,7 +47,9 @@ services:
 
     environment:
       # Conecta MySQL Hostinger DIRETO (Remote MySQL whitelist no hPanel)
-      DB_HOST: 148.135.133.115
+      # Hostname descoberto 29-abr: srv1818.hstgr.io (193.203.166.217) — NÃO é
+      # 148.135.133.115 (esse é só web/SSH). MySQL fica em servidor separado.
+      DB_HOST: srv1818.hstgr.io
       DB_PORT: 3306
       # Laravel paths
       APP_ENV: ${APP_ENV:-production}
