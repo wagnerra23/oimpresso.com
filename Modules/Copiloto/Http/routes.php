@@ -74,6 +74,12 @@ Route::group(
         // US-COPI-070: dashboard de custo de IA por business
         Route::get('/admin/custos',                        'Admin\CustosController@index')
             ->name('copiloto.admin.custos.index');
+
+        // ---- Administração — Governança MCP (MEM-MCP-1.e, ADR 0053) --------
+        // Visão cross-team do consumo do MCP server.
+        // Permission: copiloto.mcp.usage.all (Wagner/superadmin).
+        Route::get('/admin/governanca',                    'Admin\GovernancaController@index')
+            ->name('copiloto.admin.governanca.index');
     }
 );
 
