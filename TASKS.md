@@ -81,7 +81,7 @@
 
 | # | Status | Pri | Dono | Task | Dias est. | DoD |
 |---|---|---|---|---|---|---|
-| MEM-MET-1 | ⏳ | 🔴 P0 | W | **Migration `copiloto_memoria_metricas`** + Entity (ADR 0050+0051) — 8 colunas obrigatórias + 3 RAGAS-aligned | 0.5 | Tabela criada em prod com índice `mem_metr_ux` (apurado_em, business_id) |
+| MEM-MET-1 | ✅ | — | W | ~~Migration `copiloto_memoria_metricas` + Entity (ADR 0050+0051) — 8 obrigatórias + 3 RAGAS~~ | 0.5 | ✅ prod 29-abr (`21644f4e`): tabela com 14 colunas, 7 testes passing, schema validado |
 | MEM-MET-2 | ⏳ | 🔴 P0 | W | **Comando `copiloto:metrics:apurar`** — apura 8 obrigatórias + 3 RAGAS (faithfulness, answer_relevancy, context_precision) | 1.5 | Roda local + Hostinger; baseline 2026-04-29 gravado |
 | MEM-MET-3 | ⏳ | 🟠 P1 | W | **Scheduler diário** `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` | 0.25 | Cron Hostinger registra 1 linha/dia/business sem intervenção |
 | **MEM-OTEL-1** | ⏳ | 🟠 P1 | W | **Emissão OpenTelemetry GenAI** — log channel `otel-gen-ai` com atributos `gen_ai.*` (system, model, usage tokens, business_id) no `LaravelAiSdkDriver::responderChat` (ADR 0051) | 0.5 | Cada `responderChat` em prod gera 1 linha JSON com schema OTel GenAI |
