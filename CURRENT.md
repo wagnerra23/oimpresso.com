@@ -130,6 +130,7 @@ Tasks candidatas (não puxar antes!):
   - **0036 estendida** — benchmark BM25+vetor=95.2% LongMemEval (supera Mem0 93.4%, Zep 71.2%) + 5 triggers concretos pra reavaliar
 - **MEM-MET-1 deployado** 29-abr (`21644f4e`) — `copiloto_memoria_metricas` em prod com 8 obrigatórias + 3 RAGAS (faithfulness, answer_relevancy, context_precision); 7 testes passing
 - **MEM-OTEL-1 deployado** 29-abr (`5acf27de`) — emissão `gen_ai.*` OpenTelemetry GenAI em prod; 12 atributos OTel-compliant por evento (system/model/usage/duration + custom business_id); 5 testes passing; pronto pra plug Langfuse/Datadog/Arize
+- **MEM-MET-2 deployado** 29-abr (`6d2dc7eb`) — comando `copiloto:metrics:apurar` em prod; **baseline 2026-04-29 gravado** (3 linhas: plataforma + biz=1 + biz=4 ROTA LIVRE com latência p95=1234ms, tokens_médios=307, 6 interações, 2 memórias, bloat=1.000, contradições=0%); 9 testes passing
 
 ---
 
