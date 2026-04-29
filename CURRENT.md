@@ -34,11 +34,13 @@
 
 | # | Task | Dias | Por que esta ordem |
 |---|------|------|---------------------|
-| O1 | **MEM-MET-4 = COP-007 ampliada: Page `/copiloto/admin/qualidade`** trend 30d das 8 métricas + HITL anotação | 2d | Bug visibility — sem dashboard, métricas viram "informativas" |
-| O2 | **MEM-S8-1: SemanticCacheMiddleware** (-68.8% tokens LLM) | 1.5d | Token economy direta; depende de mais conversas pra calibrar threshold |
-| O3 | **MEM-S8-2: ConversationSummarizer** (>15 turnos → resumo <200 tokens) | 1.5d | Token economy em conversas longas (não temos ainda) |
-| O4 | **MEM-S8-3: ProfileDistiller** (job diário perfil negócio <300 tokens) | 1d | Refina ContextoNegocio do MEM-HOT-2 |
-| O5 | **COP-P22 = MEM-P2-2: RRF tuning** A/B `semanticRatio` 0.3 vs 0.7 | 0.5d | Calibração; precisa de golden set primeiro |
+| O1 | **MEM-CC-team-1: `.mcp.json` + onboarding doc + watcher Node** — time entra (Felipe/Maíra/Luiz/Eliana usando MCP) | 1.5d | Compartilhar conhecimento Claude Code = 5× output/$ time inteiro |
+| O2 | **MEM-EVAL-3 backfill facts**: `copiloto:backfill-fatos --business=all --sync` + re-rodar gabarito → mede ΔR@3 | 0.5d | Phase 1→2 ADR 0054 (corpus famished, deve subir R@3 0.125→~0.30) |
+| O3 | **MEM-MEM-WIRE Phase 2**: wire HyDE + Reranker + Negative cache no MeilisearchDriver | 1.5d | +15-20pp recall esperado (services prontos do `3d060fec`) |
+| O4 | **Fix ProfileDistiller** (output vazio com biz=4) | 1h | -30% system prompt em todas requests |
+| O5 | **MEM-S8-4 Auto-promote logic** — service que marca facts hits≥5 → core_memory | 0.5d | Phase 4 ADR 0054 |
+| O6 | **MEM-MET-4 = `/copiloto/admin/qualidade`** trend 30d das 8 métricas + RAGAS + HITL | 2d | Cycle 01 goal métrica 3 |
+| O7 | **MEM-P2-2 RRF tuning** A/B `semantic_ratio` 0.3 vs 0.7 (Sprint 9 ADR 0037) | 0.5d | Phase 2-3 ADR 0054 |
 
 ---
 
