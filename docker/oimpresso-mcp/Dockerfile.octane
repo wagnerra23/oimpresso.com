@@ -30,9 +30,12 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # www-data já existe na base image FrankenPHP
 RUN chown -R www-data:www-data /var/www/html
 
-# Healthcheck — Traefik usa pra detectar container vivo
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -fsS http://localhost/api/mcp/health || exit 1
+# Healthcheck — Traefik usa pra detectar container vivo.
+# 127.0.0.1 explícito (não `localhost`): Caddy/FrankenPHP em alguns setups
+# bind preferencialmente em IPv6; `localhost` no curl resolve IPv4 e falha,
+# embora request real entre via Docker network IP funcione perfeito.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
+    CMD curl -fsS http://127.0.0.1/api/mcp/health || exit 1
 
 EXPOSE 80
 
