@@ -3,6 +3,7 @@
 namespace Modules\Copiloto\Services\Metricas;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Copiloto\Contracts\AiAdapter;
 use Modules\Copiloto\Contracts\MemoriaContrato;
@@ -89,7 +90,18 @@ class GabaritoEvaluator
         // 1. Recall direto via MemoriaContrato
         try {
             $bizParaBusca = $p->business_id ?? $businessId ?? 0;
-            $userParaBusca = 0; // gabarito não amarrado a user específico
+
+            // MeilisearchDriver::buscar filtra por user_id estrito → gabarito
+            // precisa resolver pra um user real do business pra recall funcionar.
+            // Pega o user com mais facts persistidos no business.
+            $userParaBusca = (int) (DB::table('copiloto_memoria_facts')
+                ->where('business_id', $bizParaBusca)
+                ->whereNull('valid_until')
+                ->select('user_id', DB::raw('COUNT(*) as cnt'))
+                ->groupBy('user_id')
+                ->orderByDesc('cnt')
+                ->value('user_id') ?? 0);
+
             $hits = $this->memoria->buscar(
                 businessId: $bizParaBusca,
                 userId: $userParaBusca,
