@@ -61,6 +61,21 @@ class McpAuthMiddleware
             );
         }
 
+        // MEM-TEAM-1 Fase 4 (ADR 0055) — quota enforcement.
+        // Verifica spend cap antes de processar; bloqueia 429 se excedeu
+        // E `block_on_exceed=true`. Alertas 50/80/100% disparados idempotentemente.
+        try {
+            $quotaCheck = app(\Modules\Copiloto\Services\Mcp\QuotaEnforcer::class)->checar((int) $user->id);
+            if (! $quotaCheck['ok']) {
+                return $this->quotaExceeded($request, $startedAt, $quotaCheck);
+            }
+        } catch (\Throwable $e) {
+            // Degradação silenciosa — quota check falhar não pode bloquear chat
+            \Illuminate\Support\Facades\Log::channel('copiloto-ai')->warning(
+                'QuotaEnforcer: falha (degradação): ' . $e->getMessage()
+            );
+        }
+
         // Registra uso do token (last_used_at, last_used_ip)
         $token->registrarUso(
             ip: $request->ip(),
@@ -94,6 +109,46 @@ class McpAuthMiddleware
         }
 
         return $response;
+    }
+
+    /**
+     * Retorna 429 + grava audit log de quota exceeded.
+     */
+    protected function quotaExceeded(Request $request, float $startedAt, array $check): Response
+    {
+        $user = $request->user();
+        $message = 'Quota excedida — chamadas bloqueadas. Detalhes:';
+        foreach ($check['quotas'] ?? [] as $period => $r) {
+            if ($r['excedido'] && $r['block_on_exceed']) {
+                $message .= sprintf(' [%s: R$ %.4f de R$ %.4f (%s%%)]',
+                    $period, $r['uso_atual'], $r['limit'], $r['pct_atingido']);
+            }
+        }
+
+        try {
+            McpAuditLog::registrar([
+                'user_id' => $user?->id ?? 0,
+                'business_id' => method_exists($user, 'business_id')
+                    ? $user->business_id
+                    : (data_get($user, 'business_id')),
+                'endpoint' => $this->detectarEndpoint($request),
+                'tool_or_resource' => $this->extrairToolOrResource($request),
+                'status' => 'quota_exceeded',
+                'error_code' => 'quota_exceeded',
+                'error_message' => $message,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+            ]);
+        } catch (\Throwable $e) {
+            // best-effort
+        }
+
+        return response()->json([
+            'error' => 'Quota Exceeded',
+            'message' => $message,
+            'quotas' => $check['quotas'] ?? [],
+        ], 429);
     }
 
     /**
