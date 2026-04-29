@@ -104,7 +104,6 @@ Route::group(
 //   GET  /api/mcp/health       — status básico do server
 // Autenticados (Bearer mcp_*):
 //   GET  /api/mcp/health/auth  — info do user/token autenticado
-//   (Dia 3) tools/list, tools/call, resources/*, prompts/*
 Route::group(
     [
         'middleware' => ['api'],
@@ -122,7 +121,14 @@ Route::group(
         Route::group(['middleware' => 'mcp.auth'], function () {
             Route::get('/health/auth', 'HealthController@autenticado')
                 ->name('copiloto.mcp.health.auth');
-            // Dia 3: tools/list, tools/call, resources/list, resources/read, prompts/*
         });
     }
 );
+
+// MEM-MCP-1.c (ADR 0053) — Servidor MCP protocol (JSON-RPC) via laravel/mcp
+// Auth via mcp.auth middleware (mesmo Bearer mcp_* do health/auth).
+// Endpoint POST /api/mcp protocolo JSON-RPC 2.0 — clientes Claude Code/Desktop
+// usam configurando .claude/settings.local.json com URL + Bearer.
+\Laravel\Mcp\Facades\Mcp::web('/api/mcp', \Modules\Copiloto\Mcp\OimpressoMcpServer::class)
+    ->middleware(['api', 'mcp.auth'])
+    ->name('copiloto.mcp.server');
