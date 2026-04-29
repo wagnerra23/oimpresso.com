@@ -5,6 +5,7 @@ namespace Modules\Copiloto\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Modules\Copiloto\Contracts\AiAdapter;
 use Modules\Copiloto\Entities\Conversa;
 use Modules\Copiloto\Entities\Mensagem;
@@ -209,6 +210,98 @@ class ChatController extends Controller
         ]);
 
         return back();
+    }
+
+    /**
+     * Variante streaming SSE do `send()`. UX token-por-token (sem freeze).
+     *
+     * Protocolo SSE custom (linha-a-linha JSON):
+     *   data: {"type":"start","user_message_id":42}\n\n
+     *   data: {"type":"chunk","content":"Olá"}\n\n
+     *   data: {"type":"chunk","content":", como"}\n\n
+     *   ...
+     *   data: {"type":"end","assistant_message_id":43,"chars":120}\n\n
+     *
+     * Em erro:
+     *   data: {"type":"error","message":"..."}\n\n
+     *
+     * Frontend: fetch() + ReadableStream + TextDecoder pra parse linha-a-linha.
+     * NÃO usa EventSource (que só faz GET; nosso endpoint é POST com body).
+     */
+    public function sendStream(Request $request, $id): StreamedResponse
+    {
+        $request->validate(['content' => 'required|string|max:5000']);
+
+        $conversa = Conversa::findOrFail($id);
+        abort_unless($conversa->user_id === auth()->id(), 403);
+
+        // Persiste mensagem do user IMEDIATAMENTE (antes do stream).
+        $msgUser = Mensagem::create([
+            'conversa_id' => $conversa->id,
+            'role'        => 'user',
+            'content'     => $request->input('content'),
+        ]);
+
+        $userInput = $request->input('content');
+
+        $response = new StreamedResponse(function () use ($conversa, $userInput, $msgUser) {
+            // Disable output buffering em todos os layers PHP/nginx pra SSE real-time
+            @ini_set('zlib.output_compression', '0');
+            @ini_set('output_buffering', 'off');
+            @ini_set('implicit_flush', '1');
+            while (ob_get_level() > 0) {
+                @ob_end_flush();
+            }
+            ob_implicit_flush(true);
+
+            $write = function (array $payload) {
+                echo 'data: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n\n";
+                @flush();
+            };
+
+            $write(['type' => 'start', 'user_message_id' => $msgUser->id]);
+
+            $textoCompleto = '';
+
+            try {
+                foreach ($this->ai->responderChatStream($conversa, $userInput) as $chunk) {
+                    if ($chunk === '') {
+                        continue;
+                    }
+                    $textoCompleto .= $chunk;
+                    $write(['type' => 'chunk', 'content' => $chunk]);
+                }
+            } catch (\Throwable $e) {
+                $write([
+                    'type'    => 'error',
+                    'message' => 'Erro ao gerar resposta: ' . substr($e->getMessage(), 0, 200),
+                ]);
+                $textoCompleto = $textoCompleto !== '' ? $textoCompleto : '_(erro)_';
+            }
+
+            // Persiste mensagem assistant ao fim do stream.
+            // OpenAiDirectDriver atualiza tokens_in/tokens_out via segunda query
+            // ao final do stream — depende de UPDATE na latest assistant.
+            $msgAssistant = Mensagem::create([
+                'conversa_id' => $conversa->id,
+                'role'        => 'assistant',
+                'content'     => $textoCompleto,
+            ]);
+
+            $write([
+                'type'                  => 'end',
+                'assistant_message_id'  => $msgAssistant->id,
+                'chars'                 => mb_strlen($textoCompleto),
+            ]);
+        });
+
+        $response->headers->set('Content-Type', 'text/event-stream; charset=utf-8');
+        $response->headers->set('Cache-Control', 'no-cache, no-transform');
+        $response->headers->set('Connection', 'keep-alive');
+        // Força nginx/Apache a NÃO buffer o stream (ambiente Hostinger)
+        $response->headers->set('X-Accel-Buffering', 'no');
+
+        return $response;
     }
 
     /**

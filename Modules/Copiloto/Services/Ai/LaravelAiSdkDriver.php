@@ -99,6 +99,22 @@ class LaravelAiSdkDriver implements AiAdapter
         }
     }
 
+    /**
+     * Streaming não-nativo: o driver Vizra ADK ainda não expõe stream API,
+     * então este método chama responderChat() e yields o resultado inteiro
+     * em um chunk só (backwards-compatible com a interface).
+     *
+     * Para streaming real de tokens, use OpenAiDirectDriver (default em prod).
+     * Este driver é fallback histórico — Vizra rejeitada via ADR 0048.
+     */
+    public function responderChatStream(Conversa $conv, string $mensagem): \Generator
+    {
+        $texto = $this->responderChat($conv, $mensagem);
+        if ($texto !== '') {
+            yield $texto;
+        }
+    }
+
     public function responderChat(Conversa $conv, string $mensagem): string
     {
         if (config('copiloto.dry_run')) {

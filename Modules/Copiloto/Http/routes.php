@@ -31,6 +31,8 @@ Route::group(
         Route::post('/conversas',                          'ChatController@criarConversa')->name('copiloto.conversas.store');
         Route::get('/conversas/{id}',                      'ChatController@show')->name('copiloto.conversas.show');
         Route::post('/conversas/{id}/mensagens',           'ChatController@send')->name('copiloto.conversas.mensagens.store');
+        // Streaming SSE — UX token-por-token (versão preferencial pelo frontend)
+        Route::post('/conversas/{id}/mensagens/stream',    'ChatController@sendStream')->name('copiloto.conversas.mensagens.stream');
         Route::patch('/conversas/{id}',                    'ChatController@updateConversa')->name('copiloto.conversas.update');
         Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')->name('copiloto.sugestoes.escolher');
         Route::post('/sugestoes/{id}/rejeitar',            'ChatController@rejeitar')->name('copiloto.sugestoes.rejeitar');
