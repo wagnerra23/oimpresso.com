@@ -30,6 +30,8 @@
     "vite-plugin-mkcert": "^1.17.7"
   },
   "dependencies": {
+    "@assistant-ui/react": "^0.10.20",
+    "@assistant-ui/react-markdown": "^0.10.6",
     "@hookform/resolvers": "^3.9.0",
     "@inertiajs/react": "^3.0.3",
     "@laravel/echo-react": "^2.3.3",
