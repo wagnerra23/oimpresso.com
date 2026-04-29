@@ -30,7 +30,7 @@
 
 | ID | Status | Pessoa | Task | Prazo | Dias est. |
 |---|---|---|---|---|---|
-| A1 | ⏳ | W | MEM-HOT-1: Hybrid embedder MeilisearchDriver::buscar | qua 30-abr | 0.5 |
+| A1 | ✅ | W | MEM-HOT-1: Hybrid embedder MeilisearchDriver::buscar (29-abr `c631042c`) | qua 30-abr | 0.5 |
 | A2 | ⏳ | W | MEM-HOT-2: ContextoNegocio → ChatCopilotoAgent (ADR 0046 Caminho A) | sex 02-mai | 1 |
 
 **On-deck Cycle 01:**
@@ -49,7 +49,7 @@
 
 | # | Status | Pri | Dono | Task | Notas |
 |---|---|---|---|---|---|
-| B1 | ⏳ | 🔴 P0 | W | **MEM-HOT-1** hybrid fix | recall=0 mesmo com fatos indexados |
+| B1 | ✅ | — | W | ~~MEM-HOT-1 hybrid fix~~ | resolvido 29-abr `c631042c` — prod log: `memoria_recall_chars: 190` (de 0) |
 | B2 | ⏳ | 🔴 P0 | W | **MEM-HOT-2** contexto rico | Copiloto "burrinho" sem dados negócio |
 
 ---
@@ -62,7 +62,7 @@
 
 | # | Status | Pri | Dono | Task | Dias est. | DoD |
 |---|---|---|---|---|---|---|
-| COP-H01 | ⏳ | 🔴 P0 | W | **MEM-HOT-1: MeilisearchDriver hybrid** — substituir Scout default por chamada direta com `hybrid:{embedder:'openai',semanticRatio:0.7}` | 0.5 | Log `memoria_recall_chars > 0` após conversa com fato indexado |
+| COP-H01 | ✅ | — | W | ~~MEM-HOT-1: MeilisearchDriver hybrid~~ — Scout callback com `hybrid:{embedder,semanticRatio}` + filter `business_id/user_id` | 0.5 | ✅ prod 29-abr: 2 hits + log `memoria_recall_chars: 190` (commit `c631042c`) |
 | COP-H02 | ⏳ | 🔴 P0 | W | **MEM-HOT-2: ChatCopilotoAgent ContextoNegocio** — `instructions()` recebe e injeta meta/faturamento/produtos/período/usuário | 1 | Larissa pergunta "qual meu faturamento deste mês" → resposta com número correto |
 | COP-001 | ✅ | — | W | US-COPI-070 Dashboard custo IA — merged | — | Mergeado em Cycle 01 |
 
