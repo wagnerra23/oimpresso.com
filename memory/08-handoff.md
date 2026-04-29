@@ -436,6 +436,30 @@ Wagner pediu modo solo + foco em token economy + assertividade. Time delegated �
 📝 Detalhe completo: [memory/sessions/2026-04-29-sprint-memoria-completa.md](sessions/2026-04-29-sprint-memoria-completa.md)
 
 **Pendências P0 imediatas (sex 02-mai):**
-- A4 — Validar Larissa: "qual meu faturamento de março?" → R$ 38.215,07
+- A4 rodada 2 — Validar Larissa repetir 3 perguntas (vendi/líquido/caixa) → 3 respostas distintas
 - MEM-MET-3 — scheduler diário `daily()` chama `copiloto:metrics:apurar --all` (15 min)
 - COP-002 = MEM-MET-5 — Golden set 50 perguntas Larissa-style (destrava 6 colunas RAGAS)
+
+---
+
+## 🔄 Sessão 18 (2026-04-29 noite) — MEM-FAT-1 + ADR 0052 (validação Larissa expôs gap semântico)
+
+Larissa testou as 3 perguntas em prod (Quanto vendi? / Faturamento líquido? / Quanto entrou no caixa?) e recebeu **mesmo R$ 31.513,29** pras 3 — gap exposto.
+
+**Causa-raiz**: `ContextoNegocio.faturamento90d` só tinha 1 valor por mês. LLM não tinha como saber que líquido e caixa eram números diferentes.
+
+**Fix MEM-FAT-1** (commit `fac96a19`):
+- `ContextSnapshotService::faturamento90d()` retorna 3 ângulos: `bruto` (sell.final) + `liquido` (bruto - sell_return) + `caixa` (transaction_payments.amount via paid_on)
+- Glossário inline no system prompt define cada métrica
+- BC-compat: campo `valor` mantido como alias do bruto
+
+**Smoke prod**: prompt biz=4 ROTA LIVRE = 270 tokens com 4 meses × 3 ângulos. Mar/2026: bruto R$ 38.215,07 · líquido R$ 37.518,47 · caixa R$ 37.141,22.
+
+**ADR 0052** formaliza princípio: quando métrica admite múltiplos recortes legítimos, `ContextoNegocio` expõe TODOS — não confiar que LLM deriva matemática que ele não tem como fazer. Padrão replicável pra custos / lucro / inadimplência / metas.
+
+**Aprendizado meta**: smoke técnico passou em MEM-HOT-2 (`2be9930c`) com bug semântico latente. Validação real do usuário foi o único filtro que detectou. A4 (validar Larissa) **NÃO é formalidade** — é gate de produto.
+
+**Suite Copiloto**: 79 passed (era 77, +2), 3 skipped, zero regressão.
+**52 ADRs total.**
+
+**Última atualização:** 2026-04-29 noite — MEM-FAT-1 deployed + ADR 0052

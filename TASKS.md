@@ -31,7 +31,8 @@
 | ID | Status | Pessoa | Task | Prazo | Dias est. |
 |---|---|---|---|---|---|
 | A1 | ⏳ | W | **MEM-MET-3: Scheduler diário** — `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` | qui 30-abr | 0.25 |
-| A2 | ⏳ | W | **A4: Validar Larissa** — "qual meu faturamento de março?" → R$ 38.215,07 | sex 02-mai | 0.5 |
+| A2 | ⏳ | W | **A4: Validar Larissa (rodada 2)** — repetir 3 perguntas (Quanto vendi? / Líquido? / Caixa?) → 3 respostas distintas | sex 02-mai | 0.5 |
+| ~~MEM-FAT-1~~ | ✅ | W | ~~ContextoNegocio expor 3 ângulos (bruto/líquido/caixa)~~ — `fac96a19` 29-abr | 1 | ✅ prod: prompt 270 tokens; ADR 0052 |
 
 **On-deck Cycle 01 (ordem por impacto×esforço):**
 

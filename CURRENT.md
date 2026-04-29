@@ -155,6 +155,7 @@ Tasks candidatas (não puxar antes!):
 - **MEM-MET-1 deployado** 29-abr (`21644f4e`) — `copiloto_memoria_metricas` em prod com 8 obrigatórias + 3 RAGAS (faithfulness, answer_relevancy, context_precision); 7 testes passing
 - **MEM-OTEL-1 deployado** 29-abr (`5acf27de`) — emissão `gen_ai.*` OpenTelemetry GenAI em prod; 12 atributos OTel-compliant por evento (system/model/usage/duration + custom business_id); 5 testes passing; pronto pra plug Langfuse/Datadog/Arize
 - **MEM-MET-2 deployado** 29-abr (`6d2dc7eb`) — comando `copiloto:metrics:apurar` em prod; **baseline 2026-04-29 gravado** (3 linhas: plataforma + biz=1 + biz=4 ROTA LIVRE com latência p95=1234ms, tokens_médios=307, 6 interações, 2 memórias, bloat=1.000, contradições=0%); 9 testes passing
+- **MEM-FAT-1 deployado** 29-abr (`fac96a19`) — `ContextoNegocio.faturamento90d` expõe 3 ângulos (bruto/líquido/caixa) — Larissa testou e gap exposto (mesmo R$ pra 3 perguntas); fix: glossário inline + 3 valores por mês; prompt 270 tokens; ADR 0052 formaliza padrão "expose multiple angles"
 
 ---
 
