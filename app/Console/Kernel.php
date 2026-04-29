@@ -39,6 +39,20 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->environments(['local', 'live']);
 
+        // MEM-MET-3 (ADRs 0050+0051) — apura 8 métricas obrigatórias + 3 RAGAS
+        // por business + plataforma, gravando 1 linha/dia em
+        // copiloto_memoria_metricas via upsert idempotente.
+        // Roda 23:55 pra fechar o dia (após scout:import e antes da rotação de log).
+        $schedule->command('copiloto:metrics:apurar --business=all')
+            ->dailyAt('23:55')
+            ->withoutOverlapping()
+            ->environments(['local', 'live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule MEM-MET-3 (copiloto:metrics:apurar --business=all) FALHOU'
+                );
+            });
+
         if ($env === 'demo') {
             //IMPORTANT NOTE: This command will delete all business details and create dummy business, run only in demo server.
             $schedule->command('pos:dummyBusiness')
