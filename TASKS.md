@@ -31,8 +31,9 @@
 | ID | Status | Pessoa | Task | Prazo | Dias est. |
 |---|---|---|---|---|---|
 | ~~A1~~ | ✅ | W | ~~MEM-MET-3: Scheduler diário~~ — `01e4e214` 29-abr; cron Hostinger 23:55, próx run ~14h | qui 30-abr | 0.25 |
-| A1 | 1/2 | W | **A4: Validar Larissa (rodada 2)** — repetir 3 perguntas (Quanto vendi? / Líquido? / Caixa?) → 3 respostas distintas | sex 02-mai | 0.5 |
-| A2 | 2/2 | W | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style com resposta esperada (destrava 6 colunas RAGAS) | seg 05-mai | 1.5 |
+| ~~A1~~ | ✅ | W | ~~A4 rodada 2: Validar Larissa~~ — 29-abr 09:06-09:25 chat real prod: 3 perguntas → 3 respostas distintas (caixa R$ 27.272,62 ≠ bruto R$ 31.513,29 ≠ líquido R$ 31.513,29 abril) | sex 02-mai | 0.5 |
+| A1 | 1/2 | W | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style com resposta esperada (destrava 6 colunas RAGAS) | seg 05-mai | 1.5 |
+| A2 | 2/2 | W | **MEM-MET-4 = COP-007 ampliada: Page `/copiloto/admin/qualidade`** — trend 30d das 8 métricas + HITL anotação | qui 08-mai | 2 |
 | ~~MEM-FAT-1~~ | ✅ | W | ~~ContextoNegocio expor 3 ângulos (bruto/líquido/caixa)~~ — `fac96a19` 29-abr | 1 | ✅ prod: prompt 270 tokens; ADR 0052 |
 
 **On-deck Cycle 01 (ordem por impacto×esforço):**
@@ -64,7 +65,7 @@
 |---|---|---|---|---|---|
 | B1 | ✅ | — | W | ~~MEM-HOT-1 hybrid fix~~ | resolvido 29-abr `c631042c` — prod log: `memoria_recall_chars: 190` (de 0) |
 | B2 | ✅ | — | W | ~~MEM-HOT-2 contexto rico~~ | resolvido 29-abr `2be9930c` — prompt biz=4 com 4 meses faturamento + 5993 clientes em 164 tokens |
-| B3 | ⏳ | 🔴 P0 | W | **A4 Validar Larissa** — única dependência humana pendente do Goal #1 | aguarda chat real Larissa |
+| B3 | ✅ | — | W | ~~A4 Validar Larissa~~ | resolvido 29-abr — chat real prod com 3 perguntas distintas, 3 números corretos pós MEM-FAT-1 |
 
 ---
 

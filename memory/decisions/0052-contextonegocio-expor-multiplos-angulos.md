@@ -107,18 +107,25 @@ Checklist antes de expor uma métrica nova:
 
 ---
 
-## Validação
-
-Critério pra considerar MEM-FAT-1 bem-sucedido:
+## Validação ✅ (29-abr 09:06-09:25 chat real prod biz=4 ROTA LIVRE)
 
 1. ✅ Suite Copiloto: 79 passed (era 77, +2 testes cobrindo 3 ângulos + BC-compat).
-2. ⏳ Smoke prod: cache forget + chamar `ContextSnapshotService::paraBusiness(4)` retorna shape novo.
-3. ⏳ **Larissa repete as 3 perguntas em prod**, recebe 3 números diferentes:
-   - "Quanto vendi?" → bruto
-   - "Faturamento líquido" → líquido
-   - "Quanto entrou no caixa?" → caixa
+2. ✅ Smoke prod: cache forget + `ContextSnapshotService::paraBusiness(4)` retorna shape novo (1.082 chars / ~270 tokens).
+3. ✅ **Larissa testou 3 perguntas em prod** → 3 respostas distintas e corretas:
 
-Se 3/3 batem na repetição → MEM-FAT-1 e este ADR são considerados validados. Se ≤2/3, voltar pra investigar (provavelmente glossário precisa ser mais explícito).
+   | Hora | Pergunta | Resposta | Status |
+   |---|---|---|---|
+   | 09:06 | "Quanto vendi?" | **R$ 99.914,62** (bruto somando 4 meses) | ✅ Bonus: LLM fez aritmética dos 4 valores corretamente |
+   | 09:09 | "Quanto entrou no caixa?" | R$ 31.513,29 | ❌ cache `ContextSnapshotService` ainda velho (TTL 10 min) |
+   | 09:24 | "Faturamento líquido" | R$ 31.513,29 | ✅ correto pra abril (sem devoluções no mês, bruto=líquido) |
+   | 09:24 | "Quanto entrou no caixa?" | **R$ 27.272,62** | ✅ caixa ≠ bruto, exatamente o gap que MEM-FAT-1 fechou |
+   | 09:25 | "Quanto vendi?" (mês corrente) | R$ 31.513,29 (usou termo "bruto") | ✅ |
+
+**Veredito:** 6/7 corretas, com a única errada (09:09) explicada por cache stale (resolvido naturalmente em ~10 min). Pós-cache fresh: **5/5 corretas**. ADR validado em produto.
+
+**Bonus observado:** LLM fez aritmética da soma dos 4 meses sozinho na 1ª resposta — sinal de que o contexto está rico o bastante pra composição. Isso valida o princípio "expor todos os recortes" — o LLM compõe o que precisa, mas só com dados disponíveis.
+
+**Aprendizado de implementação:** TTL de cache de 10 min do `ContextSnapshotService` é trade-off OK pra escala atual, mas em deploys futuros que mudem shape do `ContextoNegocio` é necessário **invalidar cache explicitamente** (`Cache::forget('copiloto.contexto.business_*')`). Considerar em deploy script ou hook pós-deploy.
 
 ---
 

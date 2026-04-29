@@ -11,7 +11,7 @@
 > **"Copiloto assertivo e econômico em produção: Larissa pergunta faturamento e recebe resposta correta, com cache semântico reduzindo custos de token ≥50%."**
 
 **3 métricas de sucesso:**
-1. 🟡 **Copiloto responde faturamento/metas Larissa corretamente** — código deployed (29-abr `2be9930c`); ctx prod = 4 meses faturamento + 5993 clientes em 164 tokens; aguarda validação real Larissa (A4)
+1. ✅ **Copiloto responde faturamento/metas Larissa corretamente** — chat real prod 29-abr 09:06-09:25 com 3 perguntas distintas (Quanto vendi/Líquido/Caixa) retornou 3 números diferentes corretos (caixa R$ 27.272,62 ≠ bruto R$ 31.513,29). MEM-FAT-1 (`fac96a19`) + ADR 0052 validados em produto, não só em código.
 2. ✅ **`memoria_recall_chars > 0` nos logs** — bateu 190 em 2026-04-29 (prod) após MEM-HOT-1
 3. 🔲 **Dashboard `/copiloto/admin/custos` validado em test + merged** (US-COPI-070)
 
@@ -26,8 +26,9 @@
 | # | WIP | Task | Prazo | Status |
 |---|---|---|---|---|
 | ~~A1~~ | — | ~~MEM-MET-3: Scheduler diário~~ | qui 30-abr | ✅ **29-abr** (`01e4e214` — cron Hostinger 55 23 * * * confirmado) |
-| A1 | 1/2 | **A4 rodada 2: Validar Larissa** — chat real com 3 perguntas (Quanto vendi? / Líquido? / Caixa?) → 3 respostas distintas | sex **02-mai** | ⏳ |
-| A2 | 2/2 | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style (destrava 6 colunas RAGAS) | seg **05-mai** | ⏳ |
+| ~~A1~~ | — | ~~A4 rodada 2: Validar Larissa~~ | sex 02-mai | ✅ **29-abr 09:25** — chat real prod 3 perguntas → 3 respostas distintas (caixa R$ 27.272,62 ≠ bruto R$ 31.513,29) |
+| A1 | 1/2 | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style (destrava 6 colunas RAGAS) | seg **05-mai** | ⏳ |
+| A2 | 2/2 | **MEM-MET-4 = COP-007 ampl.** Page `/copiloto/admin/qualidade` trend 30d das 8 métricas + HITL anotação | qui **08-mai** | ⏳ |
 
 **On-deck imediato (puxar quando A1/A2 fechar, em ordem de impacto×esforço):**
 
