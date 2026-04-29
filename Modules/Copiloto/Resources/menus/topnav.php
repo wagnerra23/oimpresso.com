@@ -23,6 +23,7 @@ return [
         ['label' => 'copiloto::copiloto.menu.metas',      'href' => '/copiloto/metas',            'icon' => 'Target',          'can' => 'copiloto.metas.manage'],
         ['label' => 'copiloto::copiloto.menu.alertas',    'href' => '/copiloto/alertas',          'icon' => 'Bell',            'can' => 'copiloto.access'],
         ['label' => 'Governança MCP',                     'href' => '/copiloto/admin/governanca', 'icon' => 'ShieldCheck',     'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Team Admin',                         'href' => '/copiloto/admin/team',       'icon' => 'Users',           'can' => 'copiloto.mcp.usage.all'],
         ['label' => 'copiloto::copiloto.menu.plataforma', 'href' => '/copiloto/superadmin/metas', 'icon' => 'Building2',       'can' => 'copiloto.superadmin'],
     ],
 ];
