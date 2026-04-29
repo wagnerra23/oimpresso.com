@@ -321,8 +321,11 @@ export function CopilotoAssistantUiChat({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <ThreadPrimitive.Root className="relative flex h-full flex-1 flex-col bg-background">
-        <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto">
+      {/* `flex-1 min-h-0` é crítico: ancestor .main-body é flex-col com min-height:0
+          mas SEM altura explícita; sem isso, nosso viewport infla pra altura do
+          conteúdo (todas as mensagens) e empurra o composer pra fora da tela. */}
+      <ThreadPrimitive.Root className="relative flex flex-1 flex-col bg-background min-h-0 overflow-hidden">
+        <ThreadPrimitive.Viewport className="flex-1 min-h-0 overflow-y-auto">
           <ThreadEmpty sugestoes={sugestoes} />
           <ThreadPrimitive.Messages
             components={{
@@ -337,7 +340,7 @@ export function CopilotoAssistantUiChat({
 
         {belowThread}
 
-        <div className="border-t border-border bg-background/80 px-4 py-3 backdrop-blur">
+        <div className="shrink-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur">
           <Composer />
         </div>
       </ThreadPrimitive.Root>
