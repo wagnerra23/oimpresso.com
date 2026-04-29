@@ -194,4 +194,23 @@ return [
         'threshold_turnos'  => env('COPILOTO_SUMMARIZER_THRESHOLD', 15),
         'msgs_recentes'     => env('COPILOTO_SUMMARIZER_RECENT', 8),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | MEM-MEM-MCP-1 — MCP server como fonte única de memória (ADR 0056)
+    |--------------------------------------------------------------------------
+    | Copiloto chat web (Laravel) consulta MCP server pra recall de memória.
+    | Mesma camada usada pelo Claude Code do Wagner — governança unificada.
+    |
+    | Pra ativar: COPILOTO_MEMORIA_DRIVER=mcp + COPILOTO_MCP_SYSTEM_TOKEN=mcp_xxx
+    | Token system gerado via /copiloto/admin/team (1× pra Wagner).
+    |
+    | Fallback: se MCP indisponível, degrada pra MeilisearchDriver direto
+    | (configurado no provider). Sem indisponibilidade do chat.
+    */
+    'mcp' => [
+        'url'              => env('COPILOTO_MCP_URL', 'https://mcp.oimpresso.com/api/mcp'),
+        'system_token'     => env('COPILOTO_MCP_SYSTEM_TOKEN', ''),
+        'timeout_seconds'  => env('COPILOTO_MCP_TIMEOUT', 5),
+    ],
 ];
