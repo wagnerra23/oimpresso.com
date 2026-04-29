@@ -11,6 +11,7 @@ use Modules\Copiloto\Contracts\MemoriaContrato;
 use Modules\Copiloto\Entities\Conversa;
 use Modules\Copiloto\Entities\Mensagem;
 use Modules\Copiloto\Jobs\ExtrairFatosDaConversaJob;
+use Modules\Copiloto\Services\ContextSnapshotService;
 use Modules\Copiloto\Support\ContextoNegocio;
 
 /**
@@ -107,7 +108,12 @@ class LaravelAiSdkDriver implements AiAdapter
         // Sprint 5 (ADR 0036) — recall de memória semântica antes de chamar LLM.
         $memoriaContexto = $this->recallMemoria($conv, $mensagem);
 
-        $agent = new ChatCopilotoAgent($conv, $memoriaContexto);
+        // MEM-HOT-2 (ADR 0047, Caminho A do ADR 0046) — snapshot de contexto de
+        // negócio (faturamento/clientes/metas reais) injetado no system prompt.
+        // Cache 10min em ContextSnapshotService; degradação silenciosa em erro.
+        $ctx = $this->snapshotContexto($conv);
+
+        $agent = new ChatCopilotoAgent($conv, $memoriaContexto, $ctx);
 
         try {
             $response = $agent->prompt($mensagem);
@@ -126,6 +132,7 @@ class LaravelAiSdkDriver implements AiAdapter
                 'conversa_id' => $conv->id,
                 'driver' => 'laravel_ai_sdk',
                 'memoria_recall_chars' => strlen($memoriaContexto),
+                'contexto_negocio' => $ctx !== null ? 'on' : 'off',
             ]);
 
             // Sprint 5 — após resposta, extrair fatos novos em background (Horizon).
@@ -182,6 +189,34 @@ class LaravelAiSdkDriver implements AiAdapter
                 'error' => $e->getMessage(),
             ]);
             return '';
+        }
+    }
+
+    /**
+     * MEM-HOT-2 (ADR 0047) — busca ContextoNegocio do business da conversa pra
+     * injetar no system prompt do ChatCopilotoAgent. Falha silente: se o
+     * snapshot quebrar (DB lento, query erro), retorna null e o chat funciona
+     * sem contexto rico (degradação como `recallMemoria`).
+     */
+    protected function snapshotContexto(Conversa $conv): ?ContextoNegocio
+    {
+        if ($conv->business_id === null) {
+            return null;
+        }
+
+        try {
+            $service = app(ContextSnapshotService::class);
+            $ctx = $service->paraBusiness((int) $conv->business_id);
+
+            // Sanitiza CPF/CNPJ no nome/observações antes de mandar pra LLM.
+            return $this->sanitizarContexto($ctx);
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('snapshotContexto falhou (degradação silenciosa)', [
+                'conversa_id' => $conv->id,
+                'business_id' => $conv->business_id,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
         }
     }
 
