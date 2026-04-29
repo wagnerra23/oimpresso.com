@@ -6,6 +6,7 @@ use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Messages\Message;
 use Laravel\Ai\Promptable;
 use Modules\Copiloto\Entities\Conversa;
+use Modules\Copiloto\Support\ContextoNegocio;
 use Stringable;
 
 /**
@@ -17,6 +18,11 @@ use Stringable;
  * NOTA: usa nosso schema próprio (copiloto_conversas + copiloto_mensagens) em vez do
  * Conversational do laravel/ai (que cria tabelas próprias). Migração pra schema do
  * laravel/ai pode ser sprint 2 quando Vizra ADK entrar (ADR 0032).
+ *
+ * Sprint MEM-HOT-2 (ADR 0047, fix Gap 1 do ADR 0046): aceita ContextoNegocio
+ * opcional no construtor. Quando presente, injeta dados reais de negócio
+ * (empresa, faturamento 90d, clientes, metas) no system prompt — Caminho A.
+ * BC-compat: ChatCopilotoAgent($conv) sem ctx mantém comportamento anterior.
  */
 class ChatCopilotoAgent implements Agent
 {
@@ -25,6 +31,7 @@ class ChatCopilotoAgent implements Agent
     public function __construct(
         public Conversa $conversa,
         public string $memoriaContexto = '',
+        public ?ContextoNegocio $ctx = null,
     ) {
     }
 
@@ -39,12 +46,65 @@ class ChatCopilotoAgent implements Agent
         Quando não tiver informação suficiente, peça esclarecimentos.
         PROMPT;
 
-        // Sprint 5 (ADR 0036) — recall de fatos persistentes do user via MemoriaContrato.
-        if ($this->memoriaContexto !== '') {
-            return $base . "\n\n" . trim($this->memoriaContexto);
+        $partes = [$base];
+
+        // MEM-HOT-2 (ADR 0047) — contexto de negócio compacto (token-economy).
+        if ($this->ctx !== null) {
+            $partes[] = $this->formatarContextoNegocio($this->ctx);
         }
 
-        return $base;
+        // Sprint 5 (ADR 0036) — recall de fatos persistentes do user via MemoriaContrato.
+        if ($this->memoriaContexto !== '') {
+            $partes[] = trim($this->memoriaContexto);
+        }
+
+        return implode("\n\n", $partes);
+    }
+
+    /**
+     * Formata ContextoNegocio em bloco system-prompt compacto (~150-250 tokens).
+     * Pula seções vazias pra não desperdiçar tokens.
+     */
+    protected function formatarContextoNegocio(ContextoNegocio $ctx): string
+    {
+        $linhas = ['CONTEXTO DO NEGÓCIO (dados reais — use estes números, não invente):'];
+
+        $bizLabel = $ctx->businessId !== null
+            ? "{$ctx->businessName} (id {$ctx->businessId})"
+            : $ctx->businessName;
+        $linhas[] = "EMPRESA: {$bizLabel}";
+        $linhas[] = 'DATA HOJE: ' . now()->toDateString();
+
+        if ($ctx->clientesAtivos > 0) {
+            $linhas[] = "CLIENTES ATIVOS: {$ctx->clientesAtivos}";
+        }
+
+        if (! empty($ctx->faturamento90d)) {
+            $linhas[] = 'FATURAMENTO ÚLTIMOS 90 DIAS (por mês):';
+            foreach ($ctx->faturamento90d as $m) {
+                $valor = number_format((float) $m['valor'], 2, ',', '.');
+                $linhas[] = "  {$m['mes']}: R$ {$valor}";
+            }
+        }
+
+        if (! empty($ctx->metasAtivas)) {
+            $linhas[] = 'METAS ATIVAS:';
+            foreach ($ctx->metasAtivas as $meta) {
+                $alvo = number_format((float) $meta['valor_alvo'], 2, ',', '.');
+                $real = number_format((float) ($meta['realizado'] ?? 0), 2, ',', '.');
+                $linhas[] = "  - {$meta['nome']}: alvo R$ {$alvo} / realizado R$ {$real}";
+            }
+        }
+
+        if (! empty($ctx->modulosAtivos)) {
+            $linhas[] = 'MÓDULOS ATIVOS: ' . implode(', ', $ctx->modulosAtivos);
+        }
+
+        if ($ctx->observacoes !== null && $ctx->observacoes !== '') {
+            $linhas[] = "OBSERVAÇÕES: {$ctx->observacoes}";
+        }
+
+        return implode("\n", $linhas);
     }
 
     /**
