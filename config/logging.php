@@ -127,6 +127,18 @@ return [
             'level' => env('COPILOTO_AI_LOG_LEVEL', 'info'),
             'days' => 14,
         ],
+
+        // MEM-OTEL-1 (ADR 0051) — emissão OpenTelemetry GenAI semantic conventions.
+        // Cada linha é 1 evento JSON com atributos `gen_ai.*` (system, model,
+        // usage, business_id, conversation.id, response.duration_ms, etc).
+        // Quando ligarmos OTel SDK PHP de verdade, o channel vira sink dele.
+        // Datadog/Langfuse/Arize mapeiam direto sem rename.
+        'otel-gen-ai' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/otel-gen-ai.log'),
+            'level' => env('OTEL_GEN_AI_LOG_LEVEL', 'info'),
+            'days' => env('OTEL_GEN_AI_LOG_DAYS', 30),
+        ],
     ],
 
 ];
