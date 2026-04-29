@@ -80,10 +80,22 @@ class ChatCopilotoAgent implements Agent
         }
 
         if (! empty($ctx->faturamento90d)) {
-            $linhas[] = 'FATURAMENTO ÚLTIMOS 90 DIAS (por mês):';
+            $linhas[] = 'FATURAMENTO ÚLTIMOS 90 DIAS (3 ângulos por mês):';
+            $linhas[] = '  - BRUTO    = total vendido (somar sell.final, ignora devoluções)';
+            $linhas[] = '  - LÍQUIDO  = bruto menos devoluções (sell_return)';
+            $linhas[] = '  - CAIXA    = pagamentos efetivamente recebidos no mês (transaction_payments)';
             foreach ($ctx->faturamento90d as $m) {
-                $valor = number_format((float) $m['valor'], 2, ',', '.');
-                $linhas[] = "  {$m['mes']}: R$ {$valor}";
+                // Compat: registros antigos podem ter só 'valor' (alias do bruto)
+                $bruto   = (float) ($m['bruto']   ?? $m['valor'] ?? 0);
+                $liquido = (float) ($m['liquido'] ?? $bruto);
+                $caixa   = (float) ($m['caixa']   ?? $bruto);
+                $linhas[] = sprintf(
+                    '  %s: bruto R$ %s · líquido R$ %s · caixa R$ %s',
+                    $m['mes'],
+                    number_format($bruto, 2, ',', '.'),
+                    number_format($liquido, 2, ',', '.'),
+                    number_format($caixa, 2, ',', '.'),
+                );
             }
         }
 

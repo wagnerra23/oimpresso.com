@@ -31,17 +31,7 @@ class ContextSnapshotService
             ? (DB::table('business')->where('id', $businessId)->value('name') ?? 'Business')
             : 'oimpresso (plataforma)';
 
-        $faturamento90d = DB::table('transactions')
-            ->when($businessId, fn ($q) => $q->where('business_id', $businessId))
-            ->where('type', 'sell')
-            ->where('status', 'final')
-            ->where('transaction_date', '>=', now()->subDays(90))
-            ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') as mes, SUM(final_total) as valor")
-            ->groupBy('mes')
-            ->orderBy('mes')
-            ->get()
-            ->map(fn ($r) => ['mes' => $r->mes, 'valor' => (float) $r->valor])
-            ->all();
+        $faturamento90d = $this->faturamento90d($businessId);
 
         $clientesAtivos = $businessId
             ? (int) DB::table('contacts')->where('business_id', $businessId)->where('type', 'customer')->count()
@@ -56,6 +46,86 @@ class ContextSnapshotService
             metasAtivas:     $this->metasAtivas($businessId),
             observacoes:     null,
         );
+    }
+
+    /**
+     * MEM-FAT-1 (29-abr) — Faturamento 90d agregado por mês com 3 ângulos
+     * distintos pra LLM responder corretamente "vendi"/"líquido"/"caixa":
+     *
+     *   bruto    = SUM(sell.final.final_total)             — o que foi vendido
+     *   liquido  = bruto - SUM(sell_return.final.final_total) — descontando devoluções
+     *   caixa    = SUM(transaction_payments.amount no mês descontando estornos) — o que entrou
+     *
+     * Caixa usa `transaction_payments.paid_on` (data real do pagamento), não
+     * `transactions.transaction_date` — venda de Mar com pagamento Abr conta
+     * em Abr no caixa, conforme regime de caixa.
+     *
+     * Compatibilidade: campo `valor` é mantido como alias do `bruto` pra
+     * código legado (ex: BriefingAgent::montarPromptBriefing).
+     *
+     * @return array<array{mes: string, valor: float, bruto: float, liquido: float, caixa: float}>
+     */
+    protected function faturamento90d(?int $businessId): array
+    {
+        $cutoff = now()->subDays(90)->startOfDay();
+
+        // 1. Bruto (sell + sell_return) agregado por mês via single query
+        //    com SUM condicional pra pegar os 2 sinais de uma vez.
+        $vendasPorMes = DB::table('transactions')
+            ->when($businessId, fn ($q) => $q->where('business_id', $businessId))
+            ->whereIn('type', ['sell', 'sell_return'])
+            ->where('status', 'final')
+            ->where('transaction_date', '>=', $cutoff)
+            ->selectRaw(
+                "DATE_FORMAT(transaction_date, '%Y-%m') as mes,
+                 SUM(CASE WHEN type='sell' THEN final_total ELSE 0 END) as bruto,
+                 SUM(CASE WHEN type='sell_return' THEN final_total ELSE 0 END) as devolucoes"
+            )
+            ->groupBy('mes')
+            ->orderBy('mes')
+            ->get()
+            ->keyBy('mes');
+
+        // 2. Caixa entrado por mês via paid_on de transaction_payments,
+        //    descontando estornos (is_return=1) — só vendas (não compra/expense).
+        $caixaPorMes = DB::table('transaction_payments as tp')
+            ->join('transactions as t', 't.id', '=', 'tp.transaction_id')
+            ->when($businessId, fn ($q) => $q->where('t.business_id', $businessId))
+            ->whereIn('t.type', ['sell', 'sell_return'])
+            ->where('tp.paid_on', '>=', $cutoff)
+            ->selectRaw(
+                "DATE_FORMAT(tp.paid_on, '%Y-%m') as mes,
+                 SUM(CASE WHEN tp.is_return=1 THEN -tp.amount ELSE tp.amount END) as caixa"
+            )
+            ->groupBy('mes')
+            ->orderBy('mes')
+            ->get()
+            ->keyBy('mes');
+
+        // 3. Merge dos meses (alguns podem ter venda e zero caixa, ou vice-versa)
+        $meses = collect($vendasPorMes->keys())
+            ->merge($caixaPorMes->keys())
+            ->unique()
+            ->sort()
+            ->values();
+
+        return $meses
+            ->map(function (string $mes) use ($vendasPorMes, $caixaPorMes) {
+                $vendas = $vendasPorMes->get($mes);
+                $bruto       = (float) ($vendas->bruto ?? 0);
+                $devolucoes  = (float) ($vendas->devolucoes ?? 0);
+                $liquido     = $bruto - $devolucoes;
+                $caixa       = (float) ($caixaPorMes->get($mes)->caixa ?? 0);
+
+                return [
+                    'mes'     => $mes,
+                    'valor'   => $bruto, // alias legado pra BriefingAgent
+                    'bruto'   => $bruto,
+                    'liquido' => $liquido,
+                    'caixa'   => $caixa,
+                ];
+            })
+            ->all();
     }
 
     /**

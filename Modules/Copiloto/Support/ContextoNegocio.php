@@ -13,7 +13,20 @@ final class ContextoNegocio
     public function __construct(
         public readonly ?int $businessId,
         public readonly string $businessName,
-        /** @var array<array{mes: string, valor: float}> */
+        /**
+         * Faturamento últimos 90 dias agregado por mês.
+         *
+         * MEM-FAT-1 (29-abr): expõe 3 números distintos pra LLM saber qual usar:
+         *  - bruto    = SUM(sell.final.final_total)
+         *  - liquido  = bruto - SUM(sell_return.final.final_total)
+         *  - caixa    = SUM(transaction_payments.amount no mês, descontando estornos)
+         *
+         * Compatibilidade legado: `valor` mantido como alias do bruto pra
+         * snapshots antigos não quebrarem (ContextoNegocio é DTO imutável,
+         * mas BriefingAgent ainda lê `$m['valor']`).
+         *
+         * @var array<array{mes: string, valor: float, bruto: float, liquido: float, caixa: float}>
+         */
         public readonly array $faturamento90d,
         public readonly int $clientesAtivos,
         /** @var string[] */
