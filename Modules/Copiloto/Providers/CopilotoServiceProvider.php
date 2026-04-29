@@ -37,9 +37,11 @@ class CopilotoServiceProvider extends ServiceProvider
         Event::listen(CopilotoDesvioDetectado::class, NotificarDesvioListener::class);
 
         // MEM-MET-2 (ADR 0050+0051) — comando de apuração de métricas
+        // MEM-MCP-1.a (ADR 0053) — comando de sync memory git → DB
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Copiloto\Console\Commands\ApurarMetricasCommand::class,
+                \Modules\Copiloto\Console\Commands\McpSyncMemoryCommand::class,
             ]);
         }
     }
