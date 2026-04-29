@@ -77,13 +77,16 @@
 | COP-S83 | ⏳ | 🔴 P0 | W | **MEM-S8-3: ProfileDistiller** — job diário por business_id extrai perfil <300 tokens no Redis | 1 | Profile aparece no system prompt de toda nova conversa |
 | COP-003 | ⏳ | 🟠 P1 | W | PII redactor BR (regex CPF/CNPJ/email/tel em LaravelAiSdkDriver) — LGPD-blocker | 2 | Test Pest: payload outbound = `[REDACTED]` |
 
-### P1 — Sprint 7 RAGAS baseline (Cycle 01 semana 3)
+### P1 — Sprint 7 RAGAS baseline + 8 métricas obrigatórias (ADR 0050)
 
 | # | Status | Pri | Dono | Task | Dias est. | DoD |
 |---|---|---|---|---|---|---|
-| COP-002 | ⏳ | 🟠 P1 | W | **MEM-P2-1: Golden set v1 (50 perguntas Larissa-style)** | 1.5 | CSV commitado em `tests/fixtures/copiloto/golden_set_v1.csv` |
-| COP-P22 | ⏳ | 🟠 P1 | W | **MEM-P2-2: RRF tuning** — A/B `semanticRatio` 0.3 vs 0.7 no Meilisearch | 0.5 | Vencedor documentado + ADR atualizado |
-| COP-012 | ⏳ | 🟠 P1 | W | Sprint 7 ADR 0041 — DeepEval CI gate (`.github/workflows/eval.yml`) | 2 | PR com regression >5% FAILS CI |
+| MEM-MET-1 | ⏳ | 🔴 P0 | W | **Migration `copiloto_memoria_metricas`** + Entity (ADR 0050) | 0.5 | Tabela criada em prod com índice `mem_metr_ux` (apurado_em, business_id) |
+| MEM-MET-2 | ⏳ | 🔴 P0 | W | **Comando `copiloto:metrics:apurar`** — apura 8 métricas (Recall@3, Precision@3, MRR, Latência p95, Tokens médios, Memory bloat, Contradições, Cross-tenant) | 1.5 | Roda local + Hostinger; baseline 2026-04-29 gravado |
+| MEM-MET-3 | ⏳ | 🟠 P1 | W | **Scheduler diário** `Console/Kernel.php->daily()` chama `copiloto:metrics:apurar --all` | 0.25 | Cron Hostinger registra 1 linha/dia/business sem intervenção |
+| COP-002 | ⏳ | 🟠 P1 | W | **MEM-P2-1: Golden set v1 (50 perguntas Larissa-style)** — pré-requisito do MEM-MET-2 | 1.5 | CSV commitado em `tests/fixtures/copiloto/golden_set_v1.csv` |
+| COP-P22 | ⏳ | 🟠 P1 | W | **MEM-P2-2: RRF tuning** — A/B `semanticRatio` 0.3 vs 0.7 no Meilisearch | 0.5 | Vencedor documentado + ADR 0036 atualizado |
+| COP-012 | ⏳ | 🟠 P1 | W | Sprint 7 ADR 0041 — DeepEval CI gate (`.github/workflows/eval.yml`) | 2 | PR com regression >5% em qualquer das 8 métricas FAILS CI |
 
 ### P1 — Observabilidade
 
@@ -91,7 +94,7 @@
 |---|---|---|---|---|---|---|
 | COP-005 | ⏳ | 🟠 P1 | W | Langfuse self-host CT 100 + OTEL no LaravelAiSdkDriver | 3 | 5 traces aparecem após smoke |
 | COP-006 | ⏳ | 🟠 P1 | W | ApurarQualidadeJob + tabela `copiloto_qualidade_scores` | 2 | Job Horizon, 5% sampling |
-| COP-007 | ⏳ | 🟠 P1 | W | Page `/copiloto/admin/qualidade` HITL — skeleton + lógica anotação | 4 | Lista 20 conv/sem + anotação Larissa |
+| COP-007 | ⏳ | 🟠 P1 | W | Page `/copiloto/admin/qualidade` HITL — skeleton + lógica anotação + **trend 30d das 8 métricas (MEM-MET-4)** | 4 | Lista 20 conv/sem + anotação Larissa + gráfico das métricas (ADR 0050) |
 
 ### P2 (Cycle 03+)
 
@@ -102,7 +105,7 @@
 | COP-011 | ⏳ | 🟡 P2 | W | Tela LGPD `/copiloto/memoria` (listar + esquecer + opt-out) | 3 |
 | COP-013 | ⏳ | 🟡 P2 | W | Drivers `php` e `http` (além de SqlDriver) | 3 |
 | COP-014 | ⏳ | 🟡 P2 | W | Wizard 3 passos `/copiloto/metas/create` | 3 |
-| COP-015 | 🟡 | 🟡 P2 | W | Vizra ADK install + migrar conversas → vizra_sessions | 5 (deps Vizra L13) |
+| ~~COP-015~~ | ❌ | — | — | ~~Vizra ADK install + migrar conversas~~ | **CANCELADA 29-abr (ADR 0048)** — Vizra quebrou no L13, oimpresso fica em `laravel/ai` |
 | COP-016 | ✅ | — | W | MeilisearchDriver implementação (código OK; hotfix COP-H01 corrige runtime) | — |
 | COP-017 | ⏳ | 🟡 P2 | W | Bridge memória↔chat (top-K + extrai async) aprimoramento | 3 |
 | COP-020 | 🟡 | 🟡 P2 | W | Testes superadmin (`copiloto.superadmin`) | 1 |
@@ -331,7 +334,7 @@
 
 | Task | Motivo |
 |------|--------|
-| Vizra ADK install imediato | Requer L11/L12, projeto é L13 — adia |
+| Vizra ADK install imediato | **REJEITADO 29-abr (ADR 0048)** — Vizra quebrou no L13, oimpresso fica em `laravel/ai` indefinidamente |
 | Reverb broadcasting | Conflita pusher 5.0; `BROADCAST_DRIVER=null` era → agora Reverb ✅ |
 | spatie/laravel-data | Conflito phpdocumentor/reflection 6.0 |
 | pgvector | Exige PostgreSQL — não temos (ADR 0033) |
