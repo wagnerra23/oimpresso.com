@@ -72,7 +72,7 @@ services:
       - "traefik.http.routers.mcp.rule=Host(`mcp.oimpresso.com`)"
       - "traefik.http.routers.mcp.entrypoints=websecure"
       - "traefik.http.routers.mcp.tls=true"
-      - "traefik.http.routers.mcp.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp.tls.certresolver=le"
 
       # Backend (nginx interno na 80)
       - "traefik.http.services.mcp.loadbalancer.server.port=80"
