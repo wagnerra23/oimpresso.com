@@ -37,8 +37,8 @@ class LlmReranker
 
         // Cache: query + ids dos candidatos (mesma combinação, mesmo resultado por 5min)
         $ids = collect($candidatos)->pluck('id')->sort()->values()->all();
-        $cacheKey = 'rerank:' . hash('sha256', $query . '|' . implode(',', $ids));
-        $cached = Cache::tags(['copiloto:rerank'])->get($cacheKey);
+        $cacheKey = 'copiloto:rerank:' . hash('sha256', $query . '|' . implode(',', $ids));
+        $cached = Cache::get($cacheKey);
         if ($cached !== null) {
             return array_slice($cached, 0, $topK);
         }
@@ -88,7 +88,7 @@ class LlmReranker
                 }
             }
 
-            Cache::tags(['copiloto:rerank'])->put($cacheKey, $reordenados, now()->addMinutes(5));
+            Cache::put($cacheKey, $reordenados, now()->addMinutes(5));
 
             Log::channel('copiloto-ai')->info('LlmReranker: reranked', [
                 'query' => mb_substr($query, 0, 80),
