@@ -148,13 +148,16 @@ class TeamController extends Controller
             ],
         ];
 
-        // Wrapper Node — spawna `npx mcp-remote` com shell:true (resolve npx.cmd no Windows).
+        // Wrapper Node — spawna `npx mcp-remote` com shell:false em Windows (evita
+        // bug do cmd parsing quando Node está em "C:\Program Files\nodejs\" com espaço).
+        // Em Windows, command='npx.cmd' (Node spawn resolve .cmd via CreateProcess).
+        // Em POSIX, command='npx' direto. shell:false em ambos.
         // Lê URL/token de env vars definidas no manifest.json.
-        // stdio:inherit garante que STDIO MCP passa transparente entre Claude e mcp-remote.
         $serverStub = <<<'JS'
 #!/usr/bin/env node
 // Oimpresso MCP DXT — bridge stdio↔HTTP via mcp-remote.
-// Spawna `npx mcp-remote` com shell:true pra funcionar em Windows (.cmd) e POSIX.
+// shell:false em Windows pra evitar parser bug do cmd com paths que têm espaço
+// (e.g. "C:\Program Files\nodejs\npx.cmd" → quebra em "C:\Program").
 const { spawn } = require('child_process');
 
 const url   = process.env.MCP_URL;
@@ -165,17 +168,24 @@ if (!url || !auth) {
   process.exit(1);
 }
 
+const isWindows = process.platform === 'win32';
+const command   = isWindows ? 'npx.cmd' : 'npx';
+
 const args = ['-y', 'mcp-remote@latest', url, '--header', `Authorization: ${auth}`];
 
-const child = spawn('npx', args, {
+console.error(`[oimpresso-mcp] Spawning: ${command} ${args.slice(0, 3).join(' ')} --header [redacted]`);
+
+const child = spawn(command, args, {
   stdio: 'inherit',
-  shell: true,           // resolve npx.cmd em Windows
+  shell: false,          // CRÍTICO: shell:true quebra em paths com espaço no Windows
   env: process.env,
+  windowsHide: true,
 });
 
 child.on('error', (err) => {
-  console.error('[oimpresso-mcp] Erro ao spawnar npx mcp-remote:', err.message);
+  console.error('[oimpresso-mcp] Erro ao spawnar', command + ':', err.message);
   console.error('[oimpresso-mcp] Verifique se Node.js + npx estão instalados e no PATH.');
+  console.error('[oimpresso-mcp] PATH atual:', process.env.PATH);
   process.exit(1);
 });
 
