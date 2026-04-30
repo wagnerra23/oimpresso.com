@@ -1,10 +1,11 @@
 # ADR ARQ-0002 (RecurringBilling) · NFSe é sub-módulo dedicado, não estende NfeBrasil direto
 
-- **Status**: accepted
+- **Status**: ⚠️ parcialmente superseded em 2026-04-30
 - **Data**: 2026-04-24
 - **Decisores**: Wagner
 - **Categoria**: arq
 - **Relacionado**: ARQ-0001, `NfeBrasil/adr/arq/0002-lib-sped-nfe-vs-acbr.md`
+- **Superseded por**: `NFSe/adr/arq/0001-cliente-oimpresso-modulo-standalone.md` — Wagner decidiu (2026-04-30) que NFSe vira `Modules/NFSe/` standalone (NÃO dentro de RecurringBilling). Cliente é a empresa oimpresso (não ROTA LIVRE) e UltimatePOS já tem `recurring_invoice` nativo. Esta ADR fica como referência arquitetural (NFSe separada de NfeBrasil) mas a localização no RecurringBilling está cancelada.
 
 ## Contexto
 
