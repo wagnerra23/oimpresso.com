@@ -36,6 +36,7 @@ class IndexarMemoryGitParaDb
         protected string $repoBasePath,
         protected string $reason = 'manual',
         protected ?int $userId = null,
+        protected int $businessId = 1,
     ) {
     }
 
@@ -271,6 +272,7 @@ class IndexarMemoryGitParaDb
         $contentMudou = $doc->content_md !== $contentRedacted || $doc->git_sha !== $gitSha;
 
         $atributos = [
+            'business_id'          => $this->businessId,
             'type'                 => $info['type'],
             'module'               => $info['module'],
             'title'                => $title,
