@@ -112,6 +112,15 @@ Route::group(
         Route::post('/admin/memoria/{slug}/restore',       'Admin\MemoriaKbController@restore')
             ->where('slug', '[A-Za-z0-9\-_]+')
             ->name('copiloto.admin.memoria.restore');
+
+        // ---- MEM-CC-UI-1 (SPEC-cc-sessions) — KB sessões Claude Code do time
+        Route::get('/admin/cc-sessions',                   'Admin\CcSessionsController@index')
+            ->name('copiloto.admin.cc.index');
+        Route::get('/admin/cc-sessions/search',            'Admin\CcSessionsController@search')
+            ->name('copiloto.admin.cc.search');
+        Route::get('/admin/cc-sessions/{sessionUuid}',     'Admin\CcSessionsController@show')
+            ->where('sessionUuid', '[A-Za-z0-9\-]+')
+            ->name('copiloto.admin.cc.show');
     }
 );
 
