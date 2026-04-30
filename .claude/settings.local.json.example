@@ -1,0 +1,12 @@
+{
+  "_comment": "MEM-CC-team-1 (ADR 0056) — Template per-dev. Copie pra .claude/settings.local.json e cole seu token MCP pessoal (gerado via /copiloto/admin/team). Este arquivo é gitignored.",
+  "_setup": "Ver MEMORY_TEAM_ONBOARDING.md",
+  "mcpServers": {
+    "oimpresso": {
+      "url": "https://mcp.oimpresso.com/api/mcp",
+      "headers": {
+        "Authorization": "Bearer mcp_COLE_SEU_TOKEN_AQUI"
+      }
+    }
+  }
+}

@@ -1,8 +1,16 @@
 {
+  "_comment": "MEM-CC-team-1 (ADR 0056) — config oficial MCP servers do projeto oimpresso. Commitado no repo: time inteiro vê esse arquivo via git pull. Cada dev cola seu próprio Bearer token em .claude/settings.local.json (gitignored).",
+  "_setup": "Ver MEMORY_TEAM_ONBOARDING.md para passo-a-passo",
+  "_admin_console": "https://oimpresso.com/copiloto/admin/team",
   "mcpServers": {
+    "oimpresso": {
+      "url": "https://mcp.oimpresso.com/api/mcp",
+      "_note": "Tools: tasks-current, decisions-search, decisions-fetch, sessions-recent, claude-code-usage-self, memoria-search. Token via .claude/settings.local.json"
+    },
     "laravel-boost": {
       "command": "C:/Users/wagne/.config/herd/bin/php84/php.exe",
-      "args": ["artisan", "boost:mcp"]
+      "args": ["artisan", "boost:mcp"],
+      "_note": "Boost local — tools de framework (Laravel route:list, model:show, etc). Cada dev ajusta o path do php conforme seu OS/Herd."
     }
   }
 }
