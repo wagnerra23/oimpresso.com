@@ -33,8 +33,10 @@
 | ~~A1~~ | — | ~~MEM-CC-team-2: Wagner roda watcher~~ — V1 watcher Node criado em `scripts/cc-watcher/` (npm install + npm start). Ingestou várias sessões em prod (4697+ msgs em 1 sessão validada) | sex 02-mai | ✅ **30-abr** (`770357af`) |
 | ~~A2~~ | — | ~~COP-002 = MEM-MET-5: Golden set v1~~ — 50 perguntas em prod (`copiloto_memoria_gabarito`); comando `copiloto:eval` em prod com flags `--persist`/`--resposta`/`--top-k`/`--business`; eval baseline rodado | seg 05-mai | ✅ **30-abr** (gabarito seedado + comando AvaliarGabaritoCommand validado) |
 | ~~A1~~ | — | ~~MEM-MET-4 Page /copiloto/admin/qualidade~~ V1 entregue 30-abr (`4fa0eb1d`) — KPIs 8 métricas + sparklines + gates ADR 0049/0050 | qui 08-mai | ✅ **30-abr** |
-| A1 | 1/2 | **MEM-MEM-WIRE Phase 2: HyDE + Reranker + Negative cache** — eval CT confirmou Recall@3=0.000 (era 0.125 antes; serviços `3d060fec` prontos mas sem wire). ÚNICO caminho técnico pra subir 0→0.80. Feedback loop: eval roda 106s no CT | dom **11-mai** | 🔴 **NOVO BLOQUEANTE TOP** |
-| A2 | 2/2 | **F2 migração auto-mems P1** (16 references infra → runbooks `memory/requisitos/Infra/`) — destrava Felipe/Maíra. Plano em `memory/requisitos/Infra/PLANO-MIGRACAO-AUTOMEM.md` | seg **05-mai** | ⏳ |
+| ~~A1~~ | — | ~~MEM-MEM-WIRE Phase 2~~ (HyDE + Reranker + Negative cache) — **EM ESPERA** (30-abr): foco trocou pra MCP memória + ADRs. Retomar quando Recall@3 for bloqueante pro goal do Cycle 02. | dom **11-mai** | ⏸️ **ESPERA** |
+| ~~A2~~ | — | ~~F2 migração auto-mems P1~~ — **EM ESPERA** (30-abr): englobada pela nova prioridade MCP KB (MEM-KB-3 cobre ADRs + referências infra juntos). | seg **05-mai** | ⏸️ **ESPERA** |
+| A1 | 1/2 | **MEM-KB-3 F2: frontmatter YAML + migração 57 ADRs** — frontmatter obrigatório em `memory/decisions/*.md` + Claude infere campos faltantes (status/authority/lifecycle/quarter) + colunas tipadas em `mcp_memory_documents`. Destrava filtros queryable na KB UI. | sex **09-mai** | 🔥 **NOVO FOCO** |
+| A2 | 2/2 | **MEM-MEM-MCP-1.b: ligar driver MCP no Copiloto** — `copiloto:mcp:system-token` + `COPILOTO_MEMORIA_DRIVER=mcp` no `.env` Hostinger + smoke chat → recall via MCP | ter **06-mai** | 🔥 **NOVO FOCO** |
 
 **On-deck imediato (puxar quando A1/A2 fechar, em ordem de impacto×esforço):**
 

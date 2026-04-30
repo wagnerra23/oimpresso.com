@@ -11,8 +11,7 @@ ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas ráp
 
 **Originalmente nasceu** como módulo Ponto WR2 (controle de ponto eletrônico Portaria MTP 671/2021) e evoluiu pra plataforma vertical completa.
 
-**Cliente principal de produção:** ROTA LIVRE (`business_id=4`, Larissa).
-**Cliente PontoWr2:** WR2 Sistemas (Eliana, eliana@wr2.com.br).
+> ⚠️ **Foco Cycle 01 (30-abr-2026):** Copiloto em espera. **Foco total: MCP memória + ADRs.**
 
 **Stack REAL:** Laravel **13.6** + PHP 8.4 (Herd) · MySQL Laragon · DB `oimpresso` · Inertia **v3** + React 19 + Tailwind 4 · Pest v4 · nWidart/laravel-modules ^10 · `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form`.
 
