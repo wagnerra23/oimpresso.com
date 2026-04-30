@@ -32,8 +32,9 @@
 | ~~A1~~ | — | ~~MEM-MEM-MCP-1 MCP-as-memory-source~~ — McpMemoriaDriver + MemoriaSearchTool + ADR 0056 + Copiloto chat usa MCP | qui 30-abr | ✅ **29-abr** (`a58e7f34`) |
 | ~~A1~~ | — | ~~MEM-CC-team-2: Wagner roda watcher~~ — V1 watcher Node criado em `scripts/cc-watcher/` (npm install + npm start). Ingestou várias sessões em prod (4697+ msgs em 1 sessão validada) | sex 02-mai | ✅ **30-abr** (`770357af`) |
 | ~~A2~~ | — | ~~COP-002 = MEM-MET-5: Golden set v1~~ — 50 perguntas em prod (`copiloto_memoria_gabarito`); comando `copiloto:eval` em prod com flags `--persist`/`--resposta`/`--top-k`/`--business`; eval baseline rodado | seg 05-mai | ✅ **30-abr** (gabarito seedado + comando AvaliarGabaritoCommand validado) |
-| A1 | 1/2 | **MEM-MET-4 = COP-007 ampl.** Page `/copiloto/admin/qualidade` trend 30d das 8 métricas + RAGAS + HITL anotação (eval contra gabarito mostrou Recall@3=0.125 — gate ADR 0049 reprovado, dashboard precisa pra visibility) | qui **08-mai** | ⏳ |
-| A2 | 2/2 | **MEM-MEM-WIRE Phase 2: HyDE + Reranker + Negative cache** wire no MeilisearchDriver — único caminho pra subir Recall@3 0.125 → 0.80 (gate). Services prontos do `3d060fec` | dom **11-mai** | 🔴 NOVO ALVO bloqueante |
+| ~~A1~~ | — | ~~MEM-MET-4 Page /copiloto/admin/qualidade~~ V1 entregue 30-abr (`4fa0eb1d`) — KPIs 8 métricas + sparklines + gates ADR 0049/0050 | qui 08-mai | ✅ **30-abr** |
+| A1 | 1/2 | **MEM-MEM-WIRE Phase 2: HyDE + Reranker + Negative cache** — eval CT confirmou Recall@3=0.000 (era 0.125 antes; serviços `3d060fec` prontos mas sem wire). ÚNICO caminho técnico pra subir 0→0.80. Feedback loop: eval roda 106s no CT | dom **11-mai** | 🔴 **NOVO BLOQUEANTE TOP** |
+| A2 | 2/2 | **F2 migração auto-mems P1** (16 references infra → runbooks `memory/requisitos/Infra/`) — destrava Felipe/Maíra. Plano em `memory/requisitos/Infra/PLANO-MIGRACAO-AUTOMEM.md` | seg **05-mai** | ⏳ |
 
 **On-deck imediato (puxar quando A1/A2 fechar, em ordem de impacto×esforço):**
 
