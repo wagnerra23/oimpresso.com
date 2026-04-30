@@ -11,15 +11,9 @@
 
 import AppShell from '@/Layouts/AppShell';
 import { Head, router } from '@inertiajs/react';
-import {
-  useEffect, useRef, useState, useMemo, type ReactNode, type AnchorHTMLAttributes,
-} from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeSlug from 'rehype-slug';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import 'highlight.js/styles/github-dark.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -138,15 +132,6 @@ function typeBadge(type: string): { className: string; label: string } {
 }
 
 const PANEL_STORAGE_KEY = 'oimpresso-kb-panel';
-
-// Componente custom de link no markdown — externos abrem em nova aba
-function MdLink({ href, children, ...rest }: AnchorHTMLAttributes<HTMLAnchorElement>) {
-  const isExternal = href && /^(https?:|mailto:)/.test(href);
-  if (isExternal) {
-    return <a href={href} target="_blank" rel="noopener noreferrer" {...rest}>{children}</a>;
-  }
-  return <a href={href} {...rest}>{children}</a>;
-}
 
 function MemoriaIndex(props: Props) {
   const { docs, filters, kpis } = props;
@@ -550,12 +535,14 @@ function MemoriaIndex(props: Props) {
               prose-img:rounded-md">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
-                rehypePlugins={[
-                  rehypeSlug,
-                  [rehypeAutolinkHeadings, { behavior: 'wrap' }],
-                  [rehypeHighlight, { ignoreMissing: true, detect: true }],
-                ]}
-                components={{ a: MdLink as any }}
+                components={{
+                  a: ({ href, children, ...rest }) => {
+                    const isExternal = href && /^(https?:|mailto:)/.test(href);
+                    return isExternal
+                      ? <a href={href} target="_blank" rel="noopener noreferrer" {...rest}>{children}</a>
+                      : <a href={href} {...rest}>{children}</a>;
+                  },
+                }}
               >
                 {detail.content_md || '*conteúdo vazio*'}
               </ReactMarkdown>
