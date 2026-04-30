@@ -7,8 +7,8 @@
 //   adrs: arq/0001
 //   tests: Modules/PontoWr2/Tests/Feature/IntercorrenciasCreateTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
@@ -153,7 +153,6 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
 
   return (
     <>
-      <Head title="Nova Intercorrência" />
       <div className="mx-auto max-w-5xl p-6 space-y-6">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -407,13 +406,13 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
 }
 
 IntercorrenciasCreate.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 title="Nova Intercorrência" breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Intercorrências', href: '/ponto/intercorrencias' },
     { label: 'Nova' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 // ============================================================================

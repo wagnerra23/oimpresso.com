@@ -7,8 +7,8 @@
 //   adrs: tech/0001
 //   tests: Modules/PontoWr2/Tests/Feature/ImportacoesCreateTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, FileUp, Info, Upload } from 'lucide-react';
@@ -46,7 +46,6 @@ export default function ImportacoesCreate() {
 
   return (
     <>
-      <Head title="Nova importação" />
       <div className="mx-auto max-w-2xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -132,11 +131,11 @@ export default function ImportacoesCreate() {
 }
 
 ImportacoesCreate.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 title="Nova importação" breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Importações', href: '/ponto/importacoes' },
     { label: 'Nova' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

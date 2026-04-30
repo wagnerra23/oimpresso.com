@@ -7,8 +7,8 @@
 //   adrs: arq/0001
 //   tests: Modules/PontoWr2/Tests/Feature/AprovacoesIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Check, CheckCheck, X } from 'lucide-react';
@@ -232,7 +232,6 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
 
   return (
     <>
-      <Head title="Aprovações · Ponto WR2" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <PageHeader
           icon="check-check"
@@ -558,9 +557,9 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
 }
 
 AprovacoesIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Aprovações' }]}>
+  <AppShellV2 title="Aprovações · Ponto WR2" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Aprovações' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 function tipoLabel(value: string, tipos: Array<{ value: string; label: string }>): string {

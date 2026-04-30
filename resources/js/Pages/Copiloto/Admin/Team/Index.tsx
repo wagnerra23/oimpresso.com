@@ -13,8 +13,8 @@
 //   - Último uso MCP
 //   - Actions: gerar/revogar token, editar quota, export CSV
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -152,7 +152,6 @@ function TeamIndex(props: Props) {
 
   return (
     <>
-      <Head title="Copiloto — Team Admin" />
 
       <PageHeader
         icon="users"
@@ -479,6 +478,10 @@ function QuotaForm({ user, onClose }: { user: TeamMember; onClose: () => void })
   );
 }
 
-TeamIndex.layout = (page: ReactNode) => <AppShell>{page}</AppShell>;
+TeamIndex.layout = (page: ReactNode) => (
+  <AppShellV2 title="Copiloto — Team Admin" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Team Admin' }]}>
+    {page}
+  </AppShellV2>
+);
 
 export default TeamIndex;

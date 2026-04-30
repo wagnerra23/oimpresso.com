@@ -7,8 +7,8 @@
 //   status: implementada
 //   permissao: copiloto.admin.custos.view
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -208,8 +208,6 @@ function CustosIaIndex(props: Props) {
 
   return (
     <>
-      <Head title="Copiloto — Custos de IA" />
-
       <PageHeader
         icon="coins"
         title="Custos de IA"
@@ -383,6 +381,10 @@ function CustosIaIndex(props: Props) {
   );
 }
 
-CustosIaIndex.layout = (page: ReactNode) => <AppShell>{page}</AppShell>;
+CustosIaIndex.layout = (page: ReactNode) => (
+  <AppShellV2 title="Copiloto — Custos de IA" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Custos de IA' }]}>
+    {page}
+  </AppShellV2>
+);
 
 export default CustosIaIndex;

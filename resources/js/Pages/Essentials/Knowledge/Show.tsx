@@ -5,7 +5,7 @@
 //   rules: R-ESSE-001
 //   tests: Modules/Essentials/Tests/Feature/KnowledgeShowTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import {
@@ -176,10 +176,10 @@ export default function KnowledgeShow({ item, book, sectionId, articleId }: Prop
 }
 
 KnowledgeShow.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Essentials' },
     { label: 'Base de conhecimento', href: '/essentials/knowledge-base' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

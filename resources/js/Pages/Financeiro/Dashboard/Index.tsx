@@ -7,8 +7,8 @@
 //   adrs: ui/0002, arq/0005
 //   tests: Modules/Financeiro/Tests/Feature/MultiTenantIsolationTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -115,8 +115,6 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
 
   return (
     <>
-      <Head title="Financeiro — Dashboard" />
-
       <PageHeader
         icon="coins"
         title="Financeiro"
@@ -334,6 +332,10 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
   );
 }
 
-FinanceiroDashboard.layout = (page: ReactNode) => <AppShell children={page} />;
+FinanceiroDashboard.layout = (page: ReactNode) => (
+  <AppShellV2 title="Financeiro — Dashboard" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Dashboard' }]}>
+    {page}
+  </AppShellV2>
+);
 
 export default FinanceiroDashboard;

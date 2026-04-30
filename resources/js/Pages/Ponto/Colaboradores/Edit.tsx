@@ -7,7 +7,7 @@
 //   adrs: arq/0002
 //   tests: Modules/PontoWr2/Tests/Feature/ColaboradoresEditTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -166,10 +166,10 @@ export default function ColaboradorEdit({ colaborador, escalas }: Props) {
 }
 
 ColaboradorEdit.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Colaboradores', href: '/ponto/colaboradores' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

@@ -7,8 +7,8 @@
 //   adrs: 0004
 //   tests: Modules/PontoWr2/Tests/Feature/ImportacoesIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { ArrowRight, Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -57,7 +57,6 @@ function normalizeEstado(s: string): string {
 export default function ImportacoesIndex({ importacoes }: Props) {
   return (
     <>
-      <Head title="Importações AFD" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <PageHeader
           icon="file-up"
@@ -162,7 +161,7 @@ export default function ImportacoesIndex({ importacoes }: Props) {
 }
 
 ImportacoesIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Importações' }]}>
+  <AppShellV2 title="Importações AFD" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Importações' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

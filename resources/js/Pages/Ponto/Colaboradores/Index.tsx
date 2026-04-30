@@ -7,8 +7,8 @@
 //   adrs: arq/0002
 //   tests: Modules/PontoWr2/Tests/Feature/ColaboradoresIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Search } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -69,7 +69,6 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
 
   return (
     <>
-      <Head title="Colaboradores" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <PageHeader
           icon="users"
@@ -186,7 +185,7 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
 }
 
 ColaboradoresIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Colaboradores' }]}>
+  <AppShellV2 title="Colaboradores" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Colaboradores' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

@@ -7,7 +7,7 @@
 //   adrs: tech/0001
 //   tests: Modules/PontoWr2/Tests/Feature/ImportacoesShowTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
 import { AlertTriangle, ArrowLeft, Download, FileUp } from 'lucide-react';
@@ -131,12 +131,12 @@ export default function ImportacoesShow({ importacao: i }: Props) {
 }
 
 ImportacoesShow.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Importações', href: '/ponto/importacoes' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 function Row({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
