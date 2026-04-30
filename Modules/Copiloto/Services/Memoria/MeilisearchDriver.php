@@ -2,6 +2,7 @@
 
 namespace Modules\Copiloto\Services\Memoria;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Modules\Copiloto\Contracts\MemoriaContrato;
 use Modules\Copiloto\Contracts\MemoriaPersistida;
@@ -23,6 +24,11 @@ use Modules\Copiloto\Entities\CopilotoMemoriaFato;
  *
  * Multi-tenant scope (US-COPI-MEM-005): filtros business_id + user_id em toda query.
  * Temporal validity: valid_until=NULL = ativo; preenchido = superseded.
+ *
+ * Phase 2 (MEM-MEM-WIRE) — pipeline enhancers (ADR 0054):
+ *   1. NegativeCacheService — skip Scout + LLM se query conhecidamente vazia
+ *   2. HydeQueryExpander    — expande query em doc hipotético (bridge phrasing gap)
+ *   3. LlmReranker          — reordena candidatos por relevância LLM-as-judge
  *
  * Triggers pra upgrade pra Mem0RestDriver (ADR 0036 sprint 8+):
  *   - dedup falha em ≥10% dos casos
@@ -57,33 +63,91 @@ class MeilisearchDriver implements MemoriaContrato
         // (full-text + semantic via embedder OpenAI configurado no índice), passamos
         // callback que sobrescreve os search params do MeilisearchEngine::performSearch.
         //
-        // Antes: ->where('business_id',...)->where('user_id',...)->take($topK)->get()
-        //         → sem 'hybrid', semanticHitCount sempre 0, recall=0 em prod.
-        //
-        // Agora: 'hybrid:{embedder, semanticRatio}' + filter string Meilisearch literal.
-        // Filterable attributes [business_id,user_id,valid_from,valid_until] já
-        // configurados no índice em 2026-04-28 (sessão Meilisearch+Vaultwarden).
+        // MEM-MEM-WIRE Phase 2 (ADR 0054): 3 enhancers opcionais em sequência:
+        //   1. NegativeCache — skip tudo se query conhecidamente vazia (TTL 5min)
+        //   2. HyDE          — expande query em doc hipotético → melhor vector match
+        //   3. Reranker      — reordena candidatos via LLM-as-judge pós-retrieval
+
+        // 1. Negative cache — retorna [] imediatamente se query recentemente vazia
+        /** @var NegativeCacheService $negCache */
+        $negCache = app(NegativeCacheService::class);
+        if ($negCache->ehNegativo($businessId, $userId, $query)) {
+            return [];
+        }
+
         $embedder      = (string) config('copiloto.memoria.meilisearch.embedder', 'openai');
         $semanticRatio = (float)  config('copiloto.memoria.meilisearch.semantic_ratio', 0.7);
 
-        $callback = function ($index, string $q, array $params) use ($businessId, $userId, $topK, $embedder, $semanticRatio) {
-            $params['hybrid'] = [
-                'embedder'      => $embedder,
-                'semanticRatio' => $semanticRatio,
-            ];
-            $params['filter'] = sprintf(
-                'business_id = %d AND user_id = %d',
-                $businessId,
-                $userId
-            );
-            $params['limit'] = $topK;
+        // 2. HyDE expansion — retorna [query] ou [query, doc_hipotetico]
+        /** @var HydeQueryExpander $hyde */
+        $hyde    = app(HydeQueryExpander::class);
+        $queries = $hyde->expandir($query);
 
-            return $index->search($q, $params);
-        };
+        // Quando reranker está ativo, buscamos 2× candidatos pra ele ter material
+        $fetchK = config('copiloto.reranker.enabled', false) ? $topK * 2 : $topK;
 
-        $results = CopilotoMemoriaFato::search($query, $callback)
-            ->take($topK)
-            ->get();
+        // 3. Scout hybrid search — uma iteração por query (original + HyDE se ativo)
+        $resultSets = [];
+        foreach ($queries as $searchQuery) {
+            $callback = function ($index, string $q, array $params) use ($businessId, $userId, $fetchK, $embedder, $semanticRatio) {
+                $params['hybrid'] = [
+                    'embedder'      => $embedder,
+                    'semanticRatio' => $semanticRatio,
+                ];
+                $params['filter'] = sprintf(
+                    'business_id = %d AND user_id = %d',
+                    $businessId,
+                    $userId
+                );
+                $params['limit'] = $fetchK;
+
+                return $index->search($q, $params);
+            };
+
+            $hits = CopilotoMemoriaFato::search($searchQuery, $callback)
+                ->take($fetchK)
+                ->get()
+                ->filter(fn (CopilotoMemoriaFato $f) => $f->valid_until === null);
+
+            $resultSets[] = $hits;
+        }
+
+        // RRF merge quando HyDE produziu 2 result sets
+        $merged = $this->rrfMerge($resultSets, $fetchK);
+
+        // Marca negativo se zero resultados pra evitar overhead futuro
+        if ($merged->isEmpty()) {
+            $negCache->marcarNegativo($businessId, $userId, $query);
+
+            Log::channel('copiloto-ai')->debug('MeilisearchDriver::buscar', [
+                'business_id' => $businessId,
+                'user_id'     => $userId,
+                'query_chars' => strlen($query),
+                'top_k'       => $topK,
+                'hits'        => 0,
+                'hyde_queries' => count($queries),
+            ]);
+
+            return [];
+        }
+
+        // 4. LLM Reranker — reordena candidatos por relevância à query original
+        /** @var LlmReranker $reranker */
+        $reranker   = app(LlmReranker::class);
+        $candidatos = $merged->map(fn (CopilotoMemoriaFato $f) => [
+            'id'      => $f->id,
+            'snippet' => mb_substr($f->fato, 0, 300),
+            'score'   => 1.0,
+        ])->values()->all();
+
+        $reranked = $reranker->reranquear($query, $candidatos, $topK);
+
+        // Mapeia ids reranqueados de volta pra models
+        $idMap = $merged->keyBy('id');
+        $final = collect($reranked)
+            ->map(fn (array $c) => $idMap->get($c['id']))
+            ->filter()
+            ->values();
 
         Log::channel('copiloto-ai')->debug('MeilisearchDriver::buscar', [
             'business_id'    => $businessId,
@@ -92,14 +156,41 @@ class MeilisearchDriver implements MemoriaContrato
             'top_k'          => $topK,
             'embedder'       => $embedder,
             'semantic_ratio' => $semanticRatio,
-            'hits'           => $results->count(),
+            'hyde_queries'   => count($queries),
+            'candidates'     => $merged->count(),
+            'hits'           => $final->count(),
         ]);
 
-        return $results
-            ->filter(fn (CopilotoMemoriaFato $f) => $f->valid_until === null)
-            ->map(fn (CopilotoMemoriaFato $f) => $this->toPersistida($f))
-            ->values()
-            ->all();
+        return $final->map(fn (CopilotoMemoriaFato $f) => $this->toPersistida($f))->all();
+    }
+
+    /**
+     * Reciprocal Rank Fusion — merge de múltiplos result sets em ranking único.
+     * k=60 é o valor canônico da literatura (Cormack 2009).
+     *
+     * @param array<int, Collection> $resultSets
+     */
+    private function rrfMerge(array $resultSets, int $topK): Collection
+    {
+        if (count($resultSets) === 1) {
+            return $resultSets[0];
+        }
+
+        $scores = [];
+        $models = [];
+
+        foreach ($resultSets as $results) {
+            foreach ($results as $rank => $model) {
+                $id           = $model->id;
+                $models[$id]  = $model;
+                $scores[$id]  = ($scores[$id] ?? 0.0) + 1.0 / (60 + $rank + 1);
+            }
+        }
+
+        arsort($scores);
+        $topIds = array_slice(array_keys($scores), 0, $topK);
+
+        return collect(array_map(fn ($id) => $models[$id], $topIds));
     }
 
     public function atualizar(int $memoriaId, string $novoFato, array $metadata = []): void
