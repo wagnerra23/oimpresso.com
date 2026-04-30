@@ -55,6 +55,7 @@
 | O16 | **MEM-KB-7 F6 (Cycle 02):** signals dinâmicos (`authority_score`/`freshness_score`/`usage_score` + `hits_count`) + auto-promote `hits>=5` (Phase 4 ADR 0054) | 1d | Claude prefere docs canônicos automático |
 | O17 | **MEM-KB-8 F7 (Cycle 02):** integração log retrieval com `copiloto_memoria_metricas` (NÃO duplicar OTel GenAI ADR 0051) + dashboard "docs mais lidos pela IA" | 0.5d | Governança do que IA está usando vs ignorando |
 | O18 | **INFRA-RT-1: Centrifugo + FrankenPHP no CT 100** (ADR 0058) — DNS `realtime.oimpresso.com`, JWT auth, broadcast driver, migra hooks Echo→Centrifuge | 4d | Reverb crashou em testes; realtime canônico empresa |
+| O19 | **MEM-CC-UI-1: Page `/copiloto/admin/cc-sessions`** — KB sessões Claude Code do time (lista split/preview + thread reconstruction + search FULLTEXT + Cmd+K + drill-down per-dev + watcher Node ingest) | 6d | **Maior lacuna estratégica** — schema `mcp_cc_*` pronto, falta UI; capitaliza R$ 11k/dia em conhecimento institucional. SPEC: [memory/requisitos/Copiloto/SPEC-cc-sessions.md](memory/requisitos/Copiloto/SPEC-cc-sessions.md) |
 
 ---
 
