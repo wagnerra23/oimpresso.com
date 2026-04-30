@@ -159,6 +159,16 @@ class McpScopesSeeder extends Seeder
             'business_required' => false,
             'admin_only'        => true,
         ],
+        [
+            'slug'              => 'copiloto.cc.ingest.self',
+            'nome'              => 'Ingerir minhas sessões CC',
+            'descricao'         => 'Permite POST /api/cc/ingest pra watcher Node empurrar JSONL local. Default todos com mcp.use.',
+            'resources_pattern' => null,
+            'tools_pattern'     => null,
+            'is_destructive'    => false,
+            'business_required' => false,
+            'admin_only'        => false,
+        ],
     ];
 
     public function run(): void
