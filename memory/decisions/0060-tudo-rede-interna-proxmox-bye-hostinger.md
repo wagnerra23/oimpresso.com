@@ -1,6 +1,7 @@
-# ADR 0060 — Tudo na rede interna (Proxmox empresa), bye Hostinger
+# ADR 0060 — IA + workers pesados na rede interna (Proxmox), app principal continua Hostinger (Opção C híbrida)
 
-**Status:** ✅ Aceita (decisão Wagner 2026-04-30)
+**Status:** ✅ Aceita (decisão revisada Wagner 2026-04-30 noite — "podemos tentar")
+**Versão anterior (deprecated):** "Tudo na rede interna" — proposta original substituída por Opção C após análise de trade-offs
 **Data:** 2026-04-30
 **Decisores:** Wagner [W]
 **Tags:** infra · proxmox · hostinger · migracao · soberania-dados · lgpd
@@ -43,9 +44,80 @@ CT 100 docker-host (Debian 12 LXC) já tem:
 
 ---
 
-## Decisão
+## Decisão (Opção C — híbrida pragmática)
 
-**Migrar 100% do oimpresso (app Laravel + MySQL + filesystem) pra CT em Proxmox empresa em até 60 dias.** Hostinger vira read-only backup ou cancelado depois de cutover validado.
+**Mover IA + workers pesados pro Proxmox CT 100 sem migrar app principal.** Hostinger continua servindo Larissa/admin/dashboards (estável, SLA 99.9%, sem downtime). CT recebe daemon persistente, jobs CPU-pesados e LLM/embedder local.
+
+### Por que Opção C ganhou de A (mover tudo)
+
+| Critério | A. Tudo CT | **C. Híbrido** |
+|---|---|---|
+| Downtime Larissa cutover DNS | 30 min noturno | **0** |
+| Risco | alto (single point empresa) | **baixo** |
+| Implementação | 7 dias | **8h Cycle 02** |
+| Economia mensal | R$ 134→30 | R$ 134→119 |
+| Resolve dores técnicas hoje? | sim | **sim** (mesmas) |
+| LGPD soberania | 100% | 80% (memória/eval no BR) |
+
+**Principal vantagem C:** resolve 100% das dores técnicas que motivaram a discussão (`shell_exec` disabled, memory cap, rate-limit, daemon, sem GPU) **sem cutover DNS arriscado** e Larissa zero downtime.
+
+### O que MOVE pro CT (Cycle 02-03)
+
+| Componente | Hoje | Destino |
+|---|---|---|
+| `/api/cc/ingest` ingest sessões CC | Hostinger (rate-limit 429) | CT 100 container `oimpresso-workers` |
+| `php artisan copiloto:eval --persist` | Hostinger (Killed memory) | CT 100 batch job |
+| `php artisan copiloto:metrics:apurar` | Hostinger | CT 100 cron systemd |
+| Embedder OpenAI text-embedding-3-small | API externa (R$ recorrente) | CT 100 `ollama-embedder` (Nomic/BGE-M3) |
+| Horizon workers + queue | Hostinger sync | CT 100 daemon Redis |
+| Centrifugo realtime | n/a (Reverb crashou) | CT 100 (já planejado ADR 0058) |
+| `IndexarMemoryGitParaDb::lerGitSha()` | fallback null (`shell_exec` off) | CT 100 (recupera funcionalidade) |
+| LLM eval batch / LLM-as-judge RAGAS | OpenAI (R$ 5-10/run) | CT 100 `ollama-llm` (Cycle 04+) |
+
+### O que CONTINUA no Hostinger
+
+| Componente | Por quê |
+|---|---|
+| App Laravel principal (chat Larissa, admin, dashboards) | SLA 99.9%, SSL auto, suporte 24/7 |
+| MySQL primary `u906587222_oimpresso` | escritura aqui; CT pode ter replica leitura |
+| DNS + email (`@oimpresso.com`) | infra estável |
+| Webhook GitHub + sync memory | já funciona |
+| **LLM principal real-time** (gpt-4o-mini OpenAI) | CPU LLM 8B = 3-5 tok/s, inviável pra Larissa real-time |
+
+### Arquitetura Cycle 02
+
+```
+[oimpresso.com — Hostinger]                 [CT 100 — Proxmox empresa]
+  app Laravel principal                       ├ mcp.oimpresso.com (já)
+  Larissa chat                                ├ meilisearch.oimpresso.com (já)
+  /admin/* dashboards                         ├ workers.oimpresso.com (NOVO)
+  /api/mcp/* leves                            │  ├ /api/cc/ingest (mudou de Hostinger)
+                                              │  ├ copiloto:eval batch
+                                              │  ├ copiloto:metrics:apurar cron
+                ↑                             │  └ Horizon workers
+   Redis queue / webhook ←────────────        ├ ollama-embedder (NOVO)
+                                              │  └ Nomic-Embed-Text v1.5
+                ↓                             ├ centrifugo.oimpresso.com (NOVO)
+   resultados retornam ────────────→          │  └ realtime WS+SSE
+                                              └ ollama-llm (Cycle 04+)
+                                                 └ Llama 3.1 8B batch
+```
+
+### Quando migrar app principal um dia
+
+Triggers que justificam evolução pra Opção A:
+- Hostinger sofrer outage >4h consecutivas
+- Custo Hostinger subir >R$ 200/mês
+- Empresa ganhar UPS + link redundante (SLA matches)
+- Hostinger não atender feature crítica (ex: PHP 9, etc)
+
+Até lá: **Opção C estável**.
+
+---
+
+## Decisão original (deprecated 30-abr noite — mantida como histórico)
+
+~~Migrar 100% do oimpresso (app Laravel + MySQL + filesystem) pra CT em Proxmox empresa em até 60 dias.~~
 
 ### Stack alvo (Proxmox empresa)
 
