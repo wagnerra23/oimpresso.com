@@ -96,6 +96,22 @@ Route::group(
             ->name('copiloto.admin.team.quota.update');
         Route::get('/admin/team/export.csv',               'Admin\TeamController@exportCsv')
             ->name('copiloto.admin.team.export.csv');
+
+        // ---- MEM-KB-1 (ADR 0053) — KB browser dos docs servidos via MCP server
+        Route::get('/admin/memoria',                       'Admin\MemoriaKbController@index')
+            ->name('copiloto.admin.memoria.index');
+        Route::get('/admin/memoria/{slug}/show',           'Admin\MemoriaKbController@show')
+            ->where('slug', '[A-Za-z0-9\-_]+')
+            ->name('copiloto.admin.memoria.show');
+        Route::get('/admin/memoria/{slug}/history',        'Admin\MemoriaKbController@history')
+            ->where('slug', '[A-Za-z0-9\-_]+')
+            ->name('copiloto.admin.memoria.history');
+        Route::delete('/admin/memoria/{slug}',             'Admin\MemoriaKbController@softDelete')
+            ->where('slug', '[A-Za-z0-9\-_]+')
+            ->name('copiloto.admin.memoria.softdelete');
+        Route::post('/admin/memoria/{slug}/restore',       'Admin\MemoriaKbController@restore')
+            ->where('slug', '[A-Za-z0-9\-_]+')
+            ->name('copiloto.admin.memoria.restore');
     }
 );
 

@@ -109,6 +109,16 @@ class McpScopesSeeder extends Seeder
             'business_required' => false,
             'admin_only'        => false,
         ],
+        [
+            'slug'              => 'copiloto.mcp.memory.manage',
+            'nome'              => 'Gerenciar KB MCP (mcp_memory_documents)',
+            'descricao'         => 'Acesso à tela /copiloto/admin/memoria — listar, ler, soft-delete LGPD e ver history dos docs sincronizados. Wagner/superadmin v1.',
+            'resources_pattern' => 'oimpresso://memory/.*',
+            'tools_pattern'     => null,
+            'is_destructive'    => true,
+            'business_required' => false,
+            'admin_only'        => true,
+        ],
     ];
 
     public function run(): void
