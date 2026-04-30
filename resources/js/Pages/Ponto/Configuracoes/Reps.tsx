@@ -6,8 +6,8 @@
 //   rules: R-PONT-001, R-PONT-006
 //   tests: Modules/PontoWr2/Tests/Feature/ConfiguracoesRepsTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, Plus, Server } from 'lucide-react';
@@ -66,7 +66,6 @@ export default function ReposIndex({ reps }: Props) {
 
   return (
     <>
-      <Head title="REPs" />
       <div className="mx-auto max-w-5xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -191,11 +190,11 @@ export default function ReposIndex({ reps }: Props) {
 }
 
 ReposIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 title="REPs · Ponto" breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Configurações', href: '/ponto/configuracoes' },
     { label: 'REPs' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

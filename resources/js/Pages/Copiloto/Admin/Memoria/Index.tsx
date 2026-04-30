@@ -9,8 +9,8 @@
 // aba) + UX (keyboard j/k/Enter/Esc/`/`, debounce search 350ms, scroll-to-top no
 // doc novo, copy slug button, contador resultados, breadcrumb anchors).
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -552,8 +552,6 @@ function MemoriaIndex(props: Props) {
 
   return (
     <>
-      <Head title="KB MCP — Memória" />
-
       <PageHeader
         icon="book-open"
         title="KB MCP — Memória"
@@ -710,6 +708,10 @@ function MemoriaIndex(props: Props) {
   );
 }
 
-MemoriaIndex.layout = (page: ReactNode) => <AppShell>{page}</AppShell>;
+MemoriaIndex.layout = (page: ReactNode) => (
+  <AppShellV2 title="KB MCP — Memória" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'KB MCP' }]}>
+    {page}
+  </AppShellV2>
+);
 
 export default MemoriaIndex;

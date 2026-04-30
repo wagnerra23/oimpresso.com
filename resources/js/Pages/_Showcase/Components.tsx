@@ -4,8 +4,7 @@
 //   status: showcase
 //   stories: (showcase, não mapeada)
 
-import AppShell from '@/Layouts/AppShell';
-import { Head } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -103,8 +102,6 @@ export default function Showcase() {
 
   return (
     <>
-      <Head title="Showcase · Componentes shared" />
-
       <div className="mx-auto max-w-7xl p-6 space-y-8">
         {/* ========================================= PAGE HEADER ========================================= */}
         <Section title="1. PageHeader">
@@ -391,5 +388,7 @@ function Wrap({ children }: { children: ReactNode }) {
 }
 
 Showcase.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Design System' }, { label: 'Showcase' }]}>{page}</AppShell>
+  <AppShellV2 title="Showcase · Componentes" breadcrumbItems={[{ label: 'Design System' }, { label: 'Showcase' }]}>
+    {page}
+  </AppShellV2>
 );

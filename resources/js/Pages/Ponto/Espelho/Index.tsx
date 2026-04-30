@@ -7,8 +7,8 @@
 //   adrs: ui/0001
 //   tests: Modules/PontoWr2/Tests/Feature/EspelhoIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { ClipboardList, Search, ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -43,7 +43,6 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
 
   return (
     <>
-      <Head title="Espelho de Ponto" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -149,7 +148,7 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
 }
 
 EspelhoIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Espelho' }]}>
+  <AppShellV2 title="Espelho de Ponto" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Espelho' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

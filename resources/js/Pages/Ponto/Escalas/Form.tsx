@@ -6,7 +6,7 @@
 //   rules: R-PONT-001, R-PONT-006
 //   tests: Modules/PontoWr2/Tests/Feature/EscalasFormTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -201,10 +201,10 @@ export default function EscalaForm({ escala }: Props) {
 }
 
 EscalaForm.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Escalas', href: '/ponto/escalas' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

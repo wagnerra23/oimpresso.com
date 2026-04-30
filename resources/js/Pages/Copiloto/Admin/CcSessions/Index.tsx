@@ -7,8 +7,8 @@
 // V1: lista de sessões CC do time + preview lateral (split layout) com thread.
 // Reaproveita patterns de /copiloto/admin/memoria.
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -408,8 +408,6 @@ function CcSessionsIndex(props: Props) {
 
   return (
     <>
-      <Head title="CC do time — Sessões Claude Code" />
-
       <PageHeader
         icon="code-2"
         title="CC do time"
@@ -542,6 +540,10 @@ function MessageBubble({ m }: { m: Message }) {
   );
 }
 
-CcSessionsIndex.layout = (page: ReactNode) => <AppShell>{page}</AppShell>;
+CcSessionsIndex.layout = (page: ReactNode) => (
+  <AppShellV2 title="CC do time — Sessões Claude Code" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Sessões CC' }]}>
+    {page}
+  </AppShellV2>
+);
 
 export default CcSessionsIndex;

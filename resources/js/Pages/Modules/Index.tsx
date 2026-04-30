@@ -4,8 +4,8 @@
 //   status: implementada
 //   tests: Tests/Feature/ModulesIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
@@ -126,7 +126,6 @@ export default function ModulesIndex({ modules }: Props) {
 
   return (
     <>
-      <Head title="Gerenciador de Módulos" />
       <div className="mx-auto max-w-7xl p-6 space-y-6">
         <header>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -224,9 +223,9 @@ export default function ModulesIndex({ modules }: Props) {
 }
 
 ModulesIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Administração' }, { label: 'Módulos' }]}>
+  <AppShellV2 title="Gerenciador de Módulos" breadcrumbItems={[{ label: 'Administração' }, { label: 'Módulos' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 // ============================================================================

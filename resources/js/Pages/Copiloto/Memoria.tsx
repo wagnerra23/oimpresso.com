@@ -8,8 +8,8 @@
 //   module: Copiloto
 
 import React, { useState } from 'react'
-import AppShell from '@/Layouts/AppShell'
-import { Head, router, useForm } from '@inertiajs/react'
+import AppShellV2 from '@/Layouts/AppShellV2'
+import { router, useForm } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
@@ -143,7 +143,6 @@ function Memoria({ memorias }: Props) {
 
   return (
     <>
-      <Head title="O Copiloto lembra de você" />
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div className="flex items-center gap-3">
           <Brain className="size-7 text-primary" />
@@ -196,6 +195,10 @@ function Memoria({ memorias }: Props) {
   )
 }
 
-Memoria.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>
+Memoria.layout = (page: React.ReactNode) => (
+  <AppShellV2 title="O Copiloto lembra de você" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Memória' }]}>
+    {page}
+  </AppShellV2>
+)
 
 export default Memoria

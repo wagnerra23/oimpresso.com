@@ -7,7 +7,7 @@
 //   adrs: arq/0001
 //   tests: Modules/PontoWr2/Tests/Feature/IntercorrenciasShowTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { AlertTriangle, ArrowLeft, Check, Send, X, XCircle } from 'lucide-react';
@@ -155,12 +155,12 @@ export default function IntercorrenciasShow({ intercorrencia: i }: Props) {
 }
 
 IntercorrenciasShow.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Intercorrências', href: '/ponto/intercorrencias' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {

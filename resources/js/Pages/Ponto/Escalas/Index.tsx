@@ -6,8 +6,8 @@
 //   rules: R-PONT-001, R-PONT-006
 //   tests: Modules/PontoWr2/Tests/Feature/EscalasIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -42,7 +42,6 @@ interface Props { escalas: Paginated; }
 export default function EscalasIndex({ escalas }: Props) {
   return (
     <>
-      <Head title="Escalas" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <PageHeader
           icon="calendar-days"
@@ -143,7 +142,7 @@ export default function EscalasIndex({ escalas }: Props) {
 }
 
 EscalasIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Escalas' }]}>
+  <AppShellV2 title="Escalas" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Escalas' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

@@ -7,8 +7,8 @@
 //   adrs: ui/0002
 //   tests: Modules/PontoWr2/Tests/Feature/DashboardIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
 import { ArrowRight, AlertTriangle, CheckCheck } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -116,7 +116,6 @@ export default function DashboardIndex({
 
   return (
     <>
-      <Head title="Dashboard · Ponto WR2" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <PageHeader
           icon="layout-dashboard"
@@ -240,9 +239,9 @@ export default function DashboardIndex({
 }
 
 DashboardIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Dashboard' }]}>
+  <AppShellV2 title="Dashboard · Ponto WR2" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Dashboard' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 // ============================================================================

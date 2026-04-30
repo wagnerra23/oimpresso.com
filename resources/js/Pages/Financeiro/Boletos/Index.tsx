@@ -1,7 +1,7 @@
 // @memcofre tela=/financeiro/boletos module=Financeiro
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router, useForm } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Receipt, X, Copy, AlertTriangle, CheckCircle2, Hourglass, FileText } from 'lucide-react';
@@ -77,7 +77,6 @@ function Index({ remessas, filtros }: Props) {
 
   return (
     <>
-      <Head title="Boletos Emitidos" />
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Boletos Emitidos</h1>
@@ -168,5 +167,9 @@ function Index({ remessas, filtros }: Props) {
   );
 }
 
-Index.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>;
+Index.layout = (page: React.ReactNode) => (
+  <AppShellV2 title="Boletos Emitidos" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Boletos' }]}>
+    {page}
+  </AppShellV2>
+);
 export default Index;

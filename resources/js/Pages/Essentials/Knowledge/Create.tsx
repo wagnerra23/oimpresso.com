@@ -5,7 +5,7 @@
 //   rules: R-ESSE-001
 //   tests: Modules/Essentials/Tests/Feature/KnowledgeCreateTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -204,11 +204,11 @@ export default function KnowledgeCreate({ parent, users }: Props) {
 }
 
 KnowledgeCreate.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Essentials' },
     { label: 'Base de conhecimento', href: '/essentials/knowledge-base' },
     { label: 'Novo' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
