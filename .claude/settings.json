@@ -21,6 +21,15 @@
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/mcp-first-warning.ps1"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-automem.ps1"
+          }
+        ]
       }
     ]
   }

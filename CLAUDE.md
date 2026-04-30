@@ -173,7 +173,9 @@ D:\oimpresso.com\
 | MemCofre | Evidências (DocVault) | DB | tela `/memcofre` |
 | `mcp_memory_documents` | DB cache de tudo acima exceto auto-mem | sync git→DB | tools MCP |
 
-**Não duplicar info entre sistemas.** Git é canônico; MCP é cache governado; auto-memória só aponta. Conflito de fato entre 2 fontes = bug.
+**Não duplicar info entre sistemas.** Git é canônico; MCP é cache governado.
+
+⛔ **ZERO auto-mem privada** (ADR 0061). Hook `block-automem.ps1` BLOQUEIA `Write/Edit` em `~/.claude/projects/*/memory/*.md`. Todo conhecimento canônico vai pra git → webhook → MCP. As 82 auto-mems históricas estão sendo migradas (plano em [`memory/requisitos/Infra/PLANO-MIGRACAO-AUTOMEM.md`](memory/requisitos/Infra/PLANO-MIGRACAO-AUTOMEM.md)). Conflito de fato entre 2 fontes = bug.
 
 **KB MCP UI (`/copiloto/admin/memoria`)** — tela de governança Wagner: lista 352 docs, filtros (type/module/PII), Sheet preview markdown render + git_sha→GitHub, soft-delete LGPD double-confirm, history. Permission: `copiloto.mcp.memory.manage` (ADR 0057).
 

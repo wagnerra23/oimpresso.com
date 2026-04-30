@@ -1,6 +1,6 @@
 ---
 name: oimpresso-mcp-first
-description: ATIVAR antes de qualquer Read/Glob/Grep em memory/, ler ADR/session/spec do projeto, buscar conhecimento canônico do oimpresso, ou explorar comparativos/audits/runbooks. Lembrar de usar tool MCP do servidor (mcp.oimpresso.com) ANTES de filesystem — auditado, governado, 73% mais barato em tokens. Ver ADR 0059 (governança canônica).
+description: ATIVAR antes de Read/Glob/Grep em memory/, ler ADR/session/spec do projeto, buscar conhecimento canônico do oimpresso, criar arquivo em ~/.claude/projects/*/memory/, OU pensar em "vou guardar isso na memória pra lembrar". Lembra: tool MCP primeiro (não filesystem); zero auto-mem privada (ADR 0061 — todo conhecimento vai pra git/MCP).
 ---
 
 # Skill: oimpresso-mcp-first
@@ -39,6 +39,32 @@ Antes de qualquer ação de leitura/busca em conhecimento canônico do projeto, 
 - Wagner explicit pediu Read
 
 Em todos os outros casos: **tool MCP primeiro**, mesmo que pareça mais lento. Não é. É auditado.
+
+## ⛔ ZERO auto-mem privada (ADR 0061)
+
+**NUNCA criar arquivo em `~/.claude/projects/*/memory/*.md`** — hook `block-automem.ps1` BLOQUEIA com `decision: deny`.
+
+Quando pensar "vou guardar pra próxima sessão lembrar", **PARA** e:
+
+| Tipo de conhecimento | Caminho git correto |
+|---|---|
+| Decisão arquitetural | `memory/decisions/NNNN-slug.md` (Nygard) → commit + push |
+| Receita/runbook reproduzível | `memory/requisitos/{Mod}/RUNBOOK-tema.md` |
+| Quirk de cliente / preferência coletiva | `memory/05-preferences.md` (apenda) |
+| Estado/incidente histórico | `memory/sessions/YYYY-MM-DD-slug.md` |
+| Comparativo competitivo | `memory/comparativos/slug_capterra.md` |
+| Endpoint / SSH / credencial | `INFRA.md` (apenda) + Vaultwarden secrets |
+| Convenção projeto | `memory/04-conventions.md` (apenda) |
+
+Webhook GitHub sincroniza pro MCP em <60s — todo time enxerga via `decisions-search`.
+
+**4 exceções permitidas pra working memory ad-hoc** (ADR 0061):
+1. Credencial temporária dev (descartável <24h)
+2. Working memory dentro da sessão atual (não persiste)
+3. Cache local de tools/skills (`.claude/skills/` é OK pq versionado git)
+4. Hint pessoal Wagner-only EXPLICITAMENTE pedido por ele
+
+Em qualquer outro caso, hook bloqueia e pede migração pro git.
 
 ## Refs canônicos no MCP
 
