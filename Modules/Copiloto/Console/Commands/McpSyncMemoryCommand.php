@@ -22,26 +22,29 @@ use Modules\Copiloto\Services\Mcp\IndexarMemoryGitParaDb;
 class McpSyncMemoryCommand extends Command
 {
     protected $signature = 'mcp:sync-memory
-                            {--reason=manual : Origem da sincronização (manual|webhook|cron|fallback)}
-                            {--user= : ID do user que disparou (opcional)}
-                            {--base= : Override do path base do repo (default: base_path())}';
+                            {--reason=manual   : Origem da sincronização (manual|webhook|cron|fallback)}
+                            {--user=           : ID do user que disparou (opcional)}
+                            {--business=1      : business_id dono destes documentos (default: 1 = oimpresso dev)}
+                            {--base=           : Override do path base do repo (default: base_path())}';
 
     protected $description = 'Sincroniza memory/ do filesystem com mcp_memory_documents (ADR 0053)';
 
     public function handle(): int
     {
-        $base = (string) ($this->option('base') ?? base_path());
-        $reason = (string) $this->option('reason');
-        $userId = $this->option('user') ? (int) $this->option('user') : null;
+        $base       = (string) ($this->option('base') ?? base_path());
+        $reason     = (string) $this->option('reason');
+        $userId     = $this->option('user')     ? (int) $this->option('user')     : null;
+        $businessId = $this->option('business') ? (int) $this->option('business') : 1;
 
         $this->info("Sincronizando memory/ → mcp_memory_documents");
-        $this->line("  base: $base");
-        $this->line("  reason: $reason");
+        $this->line("  base       : $base");
+        $this->line("  reason     : $reason");
+        $this->line("  business_id: $businessId");
         if ($userId) {
             $this->line("  user: $userId");
         }
 
-        $service = new IndexarMemoryGitParaDb($base, $reason, $userId);
+        $service = new IndexarMemoryGitParaDb($base, $reason, $userId, $businessId);
 
         try {
             $stats = $service->run();
