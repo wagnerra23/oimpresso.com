@@ -266,26 +266,30 @@
   display: flex; flex-direction: column;
   min-height: 0;
 }
-.cockpit .sb-top { padding: 12px 12px 8px; border-bottom: 1px solid var(--sb-border); }
+.cockpit .sb-top { padding: 10px 10px 8px; border-bottom: 1px solid var(--sb-border); position: relative; }
+.cockpit .sb-cp { position: relative; }
 .cockpit .sb-cp-btn {
   width: 100%; display: flex; align-items: center; gap: 8px;
-  background: transparent; border: 1px solid transparent; cursor: pointer;
-  color: var(--sb-text-hi); padding: 6px 8px; border-radius: var(--radius-sm);
+  background: var(--sb-bg-2); border: 1px solid var(--sb-border); cursor: pointer;
+  color: var(--sb-text-hi); height: 32px; padding: 0 8px; border-radius: var(--radius-sm);
+  font-size: 12.5px; font: inherit; font-weight: 500;
 }
 .cockpit .sb-cp-btn:hover { background: var(--sb-hover); }
-.cockpit .sb-cp-btn .name { flex: 1; text-align: left; font-weight: 500; font-size: 13px; }
+.cockpit .sb-cp-btn .name { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; font-weight: 500; font-size: 12.5px; }
 .cockpit .sb-cp-btn .avatar {
-  width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center;
-  font-size: 11px; font-weight: 700; color: #fff;
+  width: 20px; height: 20px; border-radius: 4px; display: grid; place-items: center;
+  font-size: 10px; font-weight: 700; color: #fff; flex: 0 0 auto;
   background: linear-gradient(135deg, oklch(0.55 0.15 220), oklch(0.65 0.15 280));
 }
+.cockpit .sb-cp-btn .chev { width: 12px; height: 12px; opacity: 0.55; flex: 0 0 auto; }
 
-.cockpit .sb-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 8px; gap: 4px; }
+.cockpit .sb-tabs { display: flex; gap: 2px; padding: 8px; border-bottom: 1px solid var(--sb-border); }
 .cockpit .sb-tab {
-  background: transparent; border: 1px solid transparent;
-  color: var(--sb-text-dim); padding: 6px 10px; border-radius: var(--radius-sm);
-  font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 6px;
-  justify-content: center;
+  flex: 1 1 0;
+  background: transparent; border: 0;
+  color: var(--sb-text-dim); padding: 6px 8px; border-radius: var(--radius-sm);
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  justify-content: center; font: inherit;
 }
 .cockpit .sb-tab:hover { background: var(--sb-hover); color: var(--sb-text); }
 .cockpit .sb-tab.active { background: var(--sb-active); color: var(--sb-text-hi); }
