@@ -5,12 +5,13 @@
 //   adrs: 0053, 0057
 //   permissao: copiloto.mcp.memory.manage
 //
-// Layout split: tabela à esquerda (lista compacta) + preview à direita
-// (markdown render + metadata + ações). Click linha → preview popula.
+// Layout: lista full-width inicialmente. Click linha → preview abre à direita
+// (ResizablePanelGroup, drag pra ajustar). Botão X fecha preview.
+// Estado persiste em localStorage.
 
 import AppShell from '@/Layouts/AppShell';
 import { Head, router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -26,6 +27,7 @@ import {
 } from '@/Components/ui/alert-dialog';
 import { Label } from '@/Components/ui/label';
 import { ScrollArea } from '@/Components/ui/scroll-area';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/Components/ui/resizable';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -114,6 +116,8 @@ function typeBadge(type: string): { className: string; label: string } {
   return map[type] ?? { className: 'bg-gray-100 text-gray-800', label: type };
 }
 
+const PANEL_STORAGE_KEY = 'oimpresso-kb-panel';
+
 function MemoriaIndex(props: Props) {
   const { docs, filters, kpis } = props;
   const [search, setSearch] = useState(filters.q ?? '');
@@ -122,6 +126,15 @@ function MemoriaIndex(props: Props) {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<DocDetail | null>(null);
   const [confirmText, setConfirmText] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Restaura estado preview do localStorage (sessões anteriores)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(PANEL_STORAGE_KEY);
+      if (saved === 'open') setPreviewOpen(true);
+    } catch {}
+  }, []);
 
   const csrf = () =>
     document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
@@ -145,6 +158,8 @@ function MemoriaIndex(props: Props) {
     setSelectedSlug(slug);
     setDetail(null);
     setLoadingDetail(true);
+    setPreviewOpen(true);
+    try { localStorage.setItem(PANEL_STORAGE_KEY, 'open'); } catch {}
     fetch(`/copiloto/admin/memoria/${slug}/show`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
     })
@@ -152,6 +167,13 @@ function MemoriaIndex(props: Props) {
       .then((d: DocDetail) => setDetail(d))
       .catch(() => toast.error('Erro ao carregar doc'))
       .finally(() => setLoadingDetail(false));
+  }
+
+  function closePreview() {
+    setPreviewOpen(false);
+    setSelectedSlug(null);
+    setDetail(null);
+    try { localStorage.setItem(PANEL_STORAGE_KEY, 'closed'); } catch {}
   }
 
   async function doSoftDelete() {
@@ -176,7 +198,7 @@ function MemoriaIndex(props: Props) {
         toast.success(data.message);
         setConfirmDelete(null);
         setConfirmText('');
-        if (selectedSlug) openDoc(selectedSlug); // refresh detail
+        if (selectedSlug) openDoc(selectedSlug);
         router.reload({ only: ['docs', 'kpis'] });
       } else {
         toast.error(data.message ?? 'Erro');
@@ -206,6 +228,197 @@ function MemoriaIndex(props: Props) {
     }
   }
 
+  // ─── Componente lista ─────────────────────────────────────────────────
+  const ListPanel = (
+    <Card className="flex flex-col h-full">
+      <CardHeader className="py-3 border-b flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-sm">
+          Docs ({num(docs.total)}) — pág {docs.current_page}/{docs.last_page}
+        </CardTitle>
+        {!previewOpen && selectedSlug === null && (
+          <span className="text-xs text-muted-foreground">click pra abrir preview →</span>
+        )}
+      </CardHeader>
+      <CardContent className="p-0 flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-background z-10">
+              <tr className="border-b">
+                <th className="text-left py-2 px-2 font-medium w-16">Tipo</th>
+                <th className="text-left py-2 px-2 font-medium">Título</th>
+                {!previewOpen && (
+                  <>
+                    <th className="text-left py-2 px-2 font-medium w-32">Módulo</th>
+                    <th className="text-left py-2 px-2 font-medium w-28">Indexado</th>
+                  </>
+                )}
+                <th className="text-right py-2 px-2 font-medium w-12">PII</th>
+                <th className="text-right py-2 px-2 font-medium w-14">Tam.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {docs.data.map((d) => {
+                const tb = typeBadge(d.type);
+                const isSel = d.slug === selectedSlug;
+                return (
+                  <tr
+                    key={d.id}
+                    className={`border-b cursor-pointer hover:bg-muted/40 ${isSel ? 'bg-blue-50 dark:bg-blue-950/30 border-l-2 border-l-blue-500' : ''} ${d.deleted_at ? 'opacity-50' : ''}`}
+                    onClick={() => openDoc(d.slug)}
+                  >
+                    <td className="py-1.5 px-2">
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${tb.className}`}>
+                        {tb.label}
+                      </span>
+                    </td>
+                    <td className="py-1.5 px-2">
+                      <div className="font-medium text-xs leading-tight">{d.title}</div>
+                      <div className="text-[10px] text-muted-foreground font-mono truncate" title={d.slug}>
+                        {previewOpen && d.module && <span className="mr-1">[{d.module}]</span>}
+                        {d.slug}
+                      </div>
+                    </td>
+                    {!previewOpen && (
+                      <>
+                        <td className="py-1.5 px-2 text-xs">{d.module ?? '—'}</td>
+                        <td className="py-1.5 px-2 text-[10px] text-muted-foreground">{fmtDate(d.indexed_at)}</td>
+                      </>
+                    )}
+                    <td className="text-right py-1.5 px-2">
+                      {d.pii_redactions_count > 0 ? (
+                        <span className="text-[10px] text-orange-700 font-mono">{d.pii_redactions_count}</span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="text-right py-1.5 px-2 font-mono text-[10px] text-muted-foreground">{fmtSize(d.size_chars)}</td>
+                  </tr>
+                );
+              })}
+              {docs.data.length === 0 && (
+                <tr><td colSpan={previewOpen ? 4 : 6} className="text-center py-8 text-muted-foreground">Nenhum doc.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </ScrollArea>
+      </CardContent>
+
+      {docs.last_page > 1 && (
+        <div className="border-t p-2 flex justify-center gap-1 flex-wrap">
+          {docs.links.map((l, i) => (
+            <Button
+              key={i}
+              variant={l.active ? 'default' : 'outline'}
+              size="sm"
+              className="h-7 px-2 text-xs"
+              disabled={!l.url}
+              onClick={() => l.url && router.get(l.url, {}, { preserveScroll: true, preserveState: true, only: ['docs'] })}
+              dangerouslySetInnerHTML={{ __html: l.label }}
+            />
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+
+  // ─── Componente preview ───────────────────────────────────────────────
+  const PreviewPanel = (
+    <Card className="flex flex-col h-full">
+      <CardHeader className="py-3 border-b flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-sm truncate">
+          {detail ? detail.title : selectedSlug ? `Carregando ${selectedSlug}...` : 'Preview'}
+        </CardTitle>
+        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={closePreview} title="Fechar preview">
+          ✕
+        </Button>
+      </CardHeader>
+
+      {!selectedSlug && (
+        <div className="flex-1 flex items-center justify-center text-muted-foreground p-12 text-sm text-center">
+          ← Selecione um doc na lista pra ver o conteúdo aqui.
+        </div>
+      )}
+
+      {selectedSlug && loadingDetail && (
+        <div className="flex-1 flex items-center justify-center text-muted-foreground p-12 text-sm">
+          Carregando...
+        </div>
+      )}
+
+      {selectedSlug && detail && !loadingDetail && (
+        <>
+          <div className="px-4 pt-3 pb-2 border-b">
+            <div className="flex items-start gap-2 flex-wrap">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${typeBadge(detail.type).className}`}>
+                {typeBadge(detail.type).label}
+              </span>
+              {detail.module && <Badge variant="outline" className="text-xs">{detail.module}</Badge>}
+              {detail.scope_required && (
+                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs" title="Spatie permission requerida">
+                  🔒 {detail.scope_required}
+                </Badge>
+              )}
+              {detail.admin_only && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">admin only</Badge>}
+              {detail.pii_redactions_count > 0 && (
+                <Badge variant="outline" className="bg-orange-50 text-orange-800 border-orange-200 text-xs">
+                  ⚠️ {detail.pii_redactions_count} PII redacted
+                </Badge>
+              )}
+              {detail.deleted_at && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">deletado</Badge>}
+            </div>
+
+            <div className="text-xs text-muted-foreground font-mono mt-2">
+              {detail.slug}
+              {detail.git_sha && <> · git {detail.git_sha.slice(0, 7)}</>}
+              {detail.indexed_at && <> · indexado {fmtDate(detail.indexed_at)}</>}
+            </div>
+
+            <div className="flex gap-2 flex-wrap mt-2">
+              {detail.github_url && (
+                <a href={detail.github_url} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="sm" className="h-7 text-xs">📂 GitHub</Button>
+                </a>
+              )}
+              {detail.history_count > 0 && (
+                <Button variant="outline" size="sm" className="h-7 text-xs" disabled title="Em breve (O11)">
+                  📜 {detail.history_count} versões
+                </Button>
+              )}
+              {!detail.deleted_at ? (
+                <Button
+                  variant="destructive" size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setConfirmDelete(detail)}
+                >
+                  🗑️ Soft-delete LGPD
+                </Button>
+              ) : (
+                <Button
+                  variant="default" size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => doRestore(detail.slug)}
+                >
+                  ♻️ Restaurar
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-6 prose prose-sm dark:prose-invert max-w-none prose-headings:scroll-mt-4 prose-pre:bg-muted prose-pre:text-foreground prose-code:before:content-none prose-code:after:content-none prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {detail.content_md || '*conteúdo vazio*'}
+                </ReactMarkdown>
+              </div>
+            </ScrollArea>
+          </div>
+        </>
+      )}
+    </Card>
+  );
+
+  // ─── Render ───────────────────────────────────────────────────────────
   return (
     <>
       <Head title="KB MCP — Memória" />
@@ -247,7 +460,7 @@ function MemoriaIndex(props: Props) {
         />
       </KpiGrid>
 
-      {/* Filtros compactos numa única linha */}
+      {/* Filtros */}
       <Card className="mt-4">
         <CardContent className="py-3 flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
@@ -300,174 +513,33 @@ function MemoriaIndex(props: Props) {
           <Button variant="outline" className="h-8" onClick={() => { setSearch(''); applyFilter({ q: '', type: '', module: '', with_pii: false }); }}>
             Limpar
           </Button>
+          {!previewOpen && selectedSlug && (
+            <Button variant="default" size="sm" className="h-8 text-xs" onClick={() => openDoc(selectedSlug)}>
+              📖 Abrir preview
+            </Button>
+          )}
         </CardContent>
       </Card>
 
-      {/* Layout SPLIT — lista esquerda + preview direita */}
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-4" style={{ minHeight: '70vh' }}>
-
-        {/* COL ESQUERDA — lista compacta */}
-        <Card className="lg:col-span-5 flex flex-col" style={{ maxHeight: '78vh' }}>
-          <CardHeader className="py-3 border-b">
-            <CardTitle className="text-sm">
-              Docs ({num(docs.total)}) — pág {docs.current_page}/{docs.last_page}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-background z-10">
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-2 font-medium w-16">Tipo</th>
-                    <th className="text-left py-2 px-2 font-medium">Título</th>
-                    <th className="text-right py-2 px-2 font-medium w-12">PII</th>
-                    <th className="text-right py-2 px-2 font-medium w-14">Tam.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {docs.data.map((d) => {
-                    const tb = typeBadge(d.type);
-                    const isSel = d.slug === selectedSlug;
-                    return (
-                      <tr
-                        key={d.id}
-                        className={`border-b cursor-pointer hover:bg-muted/40 ${isSel ? 'bg-blue-50 dark:bg-blue-950/30 border-l-2 border-l-blue-500' : ''} ${d.deleted_at ? 'opacity-50' : ''}`}
-                        onClick={() => openDoc(d.slug)}
-                      >
-                        <td className="py-1.5 px-2">
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${tb.className}`}>
-                            {tb.label}
-                          </span>
-                        </td>
-                        <td className="py-1.5 px-2">
-                          <div className="font-medium text-xs leading-tight">{d.title}</div>
-                          <div className="text-[10px] text-muted-foreground font-mono truncate" title={d.slug}>
-                            {d.module && <span className="mr-1">[{d.module}]</span>}
-                            {d.slug}
-                          </div>
-                        </td>
-                        <td className="text-right py-1.5 px-2">
-                          {d.pii_redactions_count > 0 ? (
-                            <span className="text-[10px] text-orange-700 font-mono">{d.pii_redactions_count}</span>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground">—</span>
-                          )}
-                        </td>
-                        <td className="text-right py-1.5 px-2 font-mono text-[10px] text-muted-foreground">{fmtSize(d.size_chars)}</td>
-                      </tr>
-                    );
-                  })}
-                  {docs.data.length === 0 && (
-                    <tr><td colSpan={4} className="text-center py-8 text-muted-foreground">Nenhum doc.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </ScrollArea>
-          </CardContent>
-
-          {/* Paginação no rodapé */}
-          {docs.last_page > 1 && (
-            <div className="border-t p-2 flex justify-center gap-1">
-              {docs.links.map((l, i) => (
-                <Button
-                  key={i}
-                  variant={l.active ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  disabled={!l.url}
-                  onClick={() => l.url && router.get(l.url, {}, { preserveScroll: true, preserveState: true, only: ['docs'] })}
-                  dangerouslySetInnerHTML={{ __html: l.label }}
-                />
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* COL DIREITA — preview do doc */}
-        <Card className="lg:col-span-7 flex flex-col" style={{ maxHeight: '78vh' }}>
-          {!selectedSlug && (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground p-12 text-sm">
-              ← Selecione um doc na lista pra ver o conteúdo aqui.
-            </div>
-          )}
-
-          {selectedSlug && loadingDetail && (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground p-12 text-sm">
-              Carregando {selectedSlug}...
-            </div>
-          )}
-
-          {selectedSlug && detail && !loadingDetail && (
-            <>
-              <CardHeader className="py-3 border-b">
-                <div className="flex items-start gap-2 flex-wrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${typeBadge(detail.type).className}`}>
-                    {typeBadge(detail.type).label}
-                  </span>
-                  {detail.module && <Badge variant="outline" className="text-xs">{detail.module}</Badge>}
-                  {detail.scope_required && (
-                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs" title="Spatie permission requerida">
-                      🔒 {detail.scope_required}
-                    </Badge>
-                  )}
-                  {detail.admin_only && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">admin only</Badge>}
-                  {detail.pii_redactions_count > 0 && (
-                    <Badge variant="outline" className="bg-orange-50 text-orange-800 border-orange-200 text-xs">
-                      ⚠️ {detail.pii_redactions_count} PII redacted
-                    </Badge>
-                  )}
-                  {detail.deleted_at && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">deletado</Badge>}
-                </div>
-                <CardTitle className="text-lg mt-2 leading-tight">{detail.title}</CardTitle>
-                <div className="text-xs text-muted-foreground font-mono mt-1">
-                  {detail.slug}
-                  {detail.git_sha && <> · git {detail.git_sha.slice(0, 7)}</>}
-                  {detail.indexed_at && <> · indexado {fmtDate(detail.indexed_at)}</>}
-                </div>
-
-                <div className="flex gap-2 flex-wrap mt-2">
-                  {detail.github_url && (
-                    <a href={detail.github_url} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="sm" className="h-7 text-xs">📂 GitHub</Button>
-                    </a>
-                  )}
-                  {detail.history_count > 0 && (
-                    <Button variant="outline" size="sm" className="h-7 text-xs" disabled title="Em breve (O11)">
-                      📜 {detail.history_count} versões
-                    </Button>
-                  )}
-                  {!detail.deleted_at ? (
-                    <Button
-                      variant="destructive" size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => setConfirmDelete(detail)}
-                    >
-                      🗑️ Soft-delete LGPD
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="default" size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => doRestore(detail.slug)}
-                    >
-                      ♻️ Restaurar
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-
-              <CardContent className="flex-1 overflow-hidden p-0">
-                <ScrollArea className="h-full">
-                  <div className="p-6 prose prose-sm dark:prose-invert max-w-none prose-headings:scroll-mt-4 prose-pre:bg-muted prose-pre:text-foreground prose-code:before:content-none prose-code:after:content-none prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {detail.content_md || '*conteúdo vazio*'}
-                    </ReactMarkdown>
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </>
-          )}
-        </Card>
+      {/* Layout: lista full-width OU resizable split */}
+      <div className="mt-4" style={{ height: '78vh' }}>
+        {!previewOpen ? (
+          <div className="h-full">{ListPanel}</div>
+        ) : (
+          <ResizablePanelGroup
+            direction="horizontal"
+            autoSaveId="oimpresso-kb-resize"
+            className="h-full"
+          >
+            <ResizablePanel defaultSize={40} minSize={25} maxSize={70}>
+              <div className="h-full pr-1">{ListPanel}</div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={60} minSize={30}>
+              <div className="h-full pl-1">{PreviewPanel}</div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
       </div>
 
       {/* Confirm soft-delete */}
