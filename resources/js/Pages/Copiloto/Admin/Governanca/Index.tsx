@@ -7,8 +7,8 @@
 //   status: implementada
 //   permissao: copiloto.mcp.usage.all (Wagner/superadmin)
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -163,8 +163,6 @@ function GovernancaIndex(props: Props) {
 
   return (
     <>
-      <Head title="Copiloto — Governança MCP" />
-
       <PageHeader
         icon="shield-check"
         title="Governança MCP"
@@ -391,6 +389,10 @@ function GovernancaIndex(props: Props) {
   );
 }
 
-GovernancaIndex.layout = (page: ReactNode) => <AppShell>{page}</AppShell>;
+GovernancaIndex.layout = (page: ReactNode) => (
+  <AppShellV2 title="Copiloto — Governança MCP" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Governança MCP' }]}>
+    {page}
+  </AppShellV2>
+);
 
 export default GovernancaIndex;

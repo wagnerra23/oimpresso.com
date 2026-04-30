@@ -7,7 +7,7 @@
 //   adrs: arq/0001
 //   tests: Modules/PontoWr2/Tests/Feature/BancoHorasShowTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -227,10 +227,10 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
 }
 
 BancoHorasShow.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Banco de Horas', href: '/ponto/banco-horas' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

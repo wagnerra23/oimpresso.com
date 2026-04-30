@@ -1,7 +1,6 @@
 // @memcofre tela=/financeiro/contas-bancarias module=Financeiro
 
-import AppShell from '@/Layouts/AppShell';
-import { Head } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -64,8 +63,6 @@ function Index({ accounts, bancos_suportados }: Props) {
 
   return (
     <>
-      <Head title="Contas Bancárias · Boleto" />
-
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -157,5 +154,9 @@ function Index({ accounts, bancos_suportados }: Props) {
   );
 }
 
-Index.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>;
+Index.layout = (page: React.ReactNode) => (
+  <AppShellV2 title="Contas Bancárias · Boleto" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas Bancárias' }]}>
+    {page}
+  </AppShellV2>
+);
 export default Index;

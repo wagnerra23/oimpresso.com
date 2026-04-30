@@ -7,8 +7,8 @@
 //   adrs: 0004
 //   tests: Modules/PontoWr2/Tests/Feature/IntercorrenciasIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { ArrowRight, Plus } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -93,7 +93,6 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
 
   return (
     <>
-      <Head title="Intercorrências" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <PageHeader
           icon="alert-triangle"
@@ -236,7 +235,7 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
 }
 
 IntercorrenciasIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Intercorrências' }]}>
+  <AppShellV2 title="Intercorrências" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Intercorrências' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

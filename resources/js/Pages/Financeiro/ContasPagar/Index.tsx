@@ -1,7 +1,7 @@
 // @memcofre tela=/financeiro/contas-pagar module=Financeiro
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router, useForm } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -160,7 +160,6 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
 
   return (
     <>
-      <Head title="Contas a Pagar" />
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Contas a Pagar</h1>
@@ -249,5 +248,9 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
   );
 }
 
-Index.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>;
+Index.layout = (page: React.ReactNode) => (
+  <AppShellV2 title="Contas a Pagar" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas a Pagar' }]}>
+    {page}
+  </AppShellV2>
+);
 export default Index;

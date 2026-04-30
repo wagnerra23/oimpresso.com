@@ -7,7 +7,7 @@
 //   adrs: ui/0001
 //   tests: Modules/Essentials/Tests/Feature/TodoShowTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -631,12 +631,12 @@ export default function TodoShow({
 }
 
 TodoShow.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Essentials' },
     { label: 'Tarefas', href: '/essentials/todo' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 function TabButton({

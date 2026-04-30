@@ -7,8 +7,8 @@
 //   adrs: ui/0001
 //   tests: Modules/Essentials/Tests/Feature/TodoIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
@@ -183,7 +183,6 @@ export default function TodoIndex({
 
   return (
     <>
-      <Head title="Tarefas" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
@@ -474,7 +473,7 @@ export default function TodoIndex({
 }
 
 TodoIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Essentials' }, { label: 'Tarefas' }]}>
+  <AppShellV2 title="Tarefas" breadcrumbItems={[{ label: 'Essentials' }, { label: 'Tarefas' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

@@ -8,8 +8,8 @@
 //   module: Copiloto
 
 import React from 'react'
-import AppShell from '@/Layouts/AppShell'
-import { Head, Link } from '@inertiajs/react'
+import AppShellV2 from '@/Layouts/AppShellV2'
+import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
@@ -178,8 +178,6 @@ function MetaCard({ meta }: { meta: Meta }) {
 export default function Dashboard({ metas }: Props) {
   return (
     <>
-      <Head title="Copiloto — Dashboard" />
-
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -219,4 +217,8 @@ export default function Dashboard({ metas }: Props) {
   )
 }
 
-Dashboard.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>
+Dashboard.layout = (page: React.ReactNode) => (
+  <AppShellV2 title="Copiloto — Dashboard" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Dashboard' }]}>
+    {page}
+  </AppShellV2>
+)

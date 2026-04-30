@@ -1,7 +1,7 @@
 // @memcofre tela=/financeiro/categorias module=Financeiro
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -67,8 +67,6 @@ function Index({ categorias, planos_conta }: Props) {
 
   return (
     <>
-      <Head title="Categorias · Financeiro" />
-
       <div className="p-6 max-w-5xl mx-auto space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -192,5 +190,9 @@ function Index({ categorias, planos_conta }: Props) {
   );
 }
 
-Index.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>;
+Index.layout = (page: React.ReactNode) => (
+  <AppShellV2 title="Categorias · Financeiro" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Categorias' }]}>
+    {page}
+  </AppShellV2>
+);
 export default Index;

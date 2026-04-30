@@ -7,7 +7,7 @@
 //   adrs: 0004
 //   tests: Modules/PontoWr2/Tests/Feature/EspelhoShowTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import {
@@ -249,12 +249,12 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
 }
 
 EspelhoShow.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 breadcrumbItems={[
     { label: 'Ponto WR2' },
     { label: 'Espelho', href: '/ponto/espelho' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 function Totalizador({
