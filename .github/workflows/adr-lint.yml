@@ -1,0 +1,70 @@
+name: ADR frontmatter lint
+
+# MEM-KB-3 / F1 — Bloqueia PR que toca memory/decisions/*.md sem frontmatter válido.
+# Schema canônico: memory/decisions/_SCHEMA.md
+# Validador formal: memory/decisions/_schema.json
+# Testes: tests/Feature/Memory/AdrFrontmatterLinterTest.php
+
+on:
+  push:
+    branches: [main, 6.7-react]
+    paths:
+      - 'memory/decisions/**'
+      - 'tests/Feature/Memory/AdrFrontmatterLinterTest.php'
+      - '.github/workflows/adr-lint.yml'
+  pull_request:
+    paths:
+      - 'memory/decisions/**'
+      - 'tests/Feature/Memory/AdrFrontmatterLinterTest.php'
+      - '.github/workflows/adr-lint.yml'
+
+concurrency:
+  group: adr-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: ADR frontmatter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-adr-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-adr-${{ runner.os }}-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Prepare storage dirs + .env mínimo
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-adr-lint
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          EOF
+          php artisan key:generate
+
+      - name: Pest — ADR frontmatter linter
+        run: vendor/bin/pest tests/Feature/Memory/AdrFrontmatterLinterTest.php --no-coverage

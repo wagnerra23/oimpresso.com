@@ -26,6 +26,10 @@ class McpMemoryDocument extends Model
         'scope_required', 'admin_only', 'metadata',
         'git_sha', 'git_path', 'pii_redactions_count',
         'embedding', 'indexed_at',
+        // MEM-KB-3 / F1 — colunas tipadas do frontmatter
+        'status', 'authority', 'lifecycle', 'quarter', 'decided_at',
+        'decided_by', 'tags', 'supersedes', 'superseded_by', 'related',
+        'has_pii',
     ];
 
     protected $casts = [
@@ -33,6 +37,14 @@ class McpMemoryDocument extends Model
         'admin_only'           => 'boolean',
         'pii_redactions_count' => 'integer',
         'indexed_at'           => 'datetime',
+        // MEM-KB-3 / F1
+        'decided_at'    => 'date',
+        'decided_by'    => 'array',
+        'tags'          => 'array',
+        'supersedes'    => 'array',
+        'superseded_by' => 'array',
+        'related'       => 'array',
+        'has_pii'       => 'boolean',
     ];
 
     protected $hidden = ['embedding']; // BLOB, não enviar nas APIs
