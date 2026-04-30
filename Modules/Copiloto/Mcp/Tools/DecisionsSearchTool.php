@@ -49,13 +49,18 @@ class DecisionsSearchTool extends Tool
         }
 
         $user = $request->user();
+        $businessId = (int) data_get($user, 'business_id', 0);
 
-        // Filtra por permissão Spatie (admin_only respeita user_role)
-        $rows = McpMemoryDocument::doTipo('adr')
+        // Filtra por empresa (multi-tenant MEM-MULTI-1) + permissão Spatie
+        $q = McpMemoryDocument::doTipo('adr')
             ->acessiveisPara($user)
-            ->buscarTexto($query)
-            ->limit($limit)
-            ->get(['slug', 'title', 'content_md', 'metadata']);
+            ->buscarTexto($query);
+
+        if ($businessId > 0) {
+            $q->doBusiness($businessId);
+        }
+
+        $rows = $q->limit($limit)->get(['slug', 'title', 'content_md', 'metadata']);
 
         if ($rows->isEmpty()) {
             return Response::text("Nenhum ADR encontrado pra query: \"$query\".");
