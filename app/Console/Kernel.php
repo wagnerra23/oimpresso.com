@@ -53,6 +53,19 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // MEM-FASE8 — esquecimento semanal (domingo 03:00).
+        // Remove bloat (hits=0, >30d) + expirados (valid_until >90d) + órfãos MCP.
+        // Soft-delete por padrão. Hard-delete LGPD só via comando manual com --hard.
+        $schedule->command('copiloto:cleanup-memoria')
+            ->weeklyOn(0, '03:00')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule MEM-FASE8 (copiloto:cleanup-memoria) FALHOU'
+                );
+            });
+
         if ($env === 'demo') {
             //IMPORTANT NOTE: This command will delete all business details and create dummy business, run only in demo server.
             $schedule->command('pos:dummyBusiness')

@@ -177,6 +177,17 @@ return [
     |
     | Desabilitado por default — habilitar via env COPILOTO_HYDE_ENABLED=true.
     */
+    /*
+    |--------------------------------------------------------------------------
+    | MEM-FASE6 — Hit tracking + core_memory promotion
+    |--------------------------------------------------------------------------
+    | hits_count >= threshold → fato promovido a core_memory (injetado direto
+    | no system prompt sem passar pelo recall). Padrão 5 hits.
+    */
+    'hits' => [
+        'core_memory_threshold' => (int) env('COPILOTO_HITS_THRESHOLD', 5),
+    ],
+
     'hyde' => [
         'enabled' => env('COPILOTO_HYDE_ENABLED', false),
     ],

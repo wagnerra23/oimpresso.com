@@ -135,7 +135,9 @@ class LaravelAiSdkDriver implements AiAdapter
         }
 
         // Mesma pipeline do responderChat() blocking — DRY.
-        $memoriaContexto = $this->recallMemoria($conv, $mensagem);
+        $recall = $this->recallMemoria($conv, $mensagem);
+        $memoriaContexto = $recall['texto'];
+        $memoriaIds = $recall['ids'];
         $ctx = $this->snapshotContexto($conv);
         $agent = new ChatCopilotoAgent($conv, $memoriaContexto, $ctx);
 
@@ -197,6 +199,12 @@ class LaravelAiSdkDriver implements AiAdapter
                 }
             }
 
+            // MEM-FASE6 — registra uso dos fatos que foram injetados no prompt
+            if (! empty($memoriaIds)) {
+                app(\Modules\Copiloto\Services\Memoria\HitTrackerService::class)
+                    ->registrarUso($memoriaIds);
+            }
+
             // Sprint 5 — extrair fatos em background (Horizon)
             if (config('copiloto.memoria.write_enabled', true)) {
                 ExtrairFatosDaConversaJob::dispatch(
@@ -243,7 +251,9 @@ class LaravelAiSdkDriver implements AiAdapter
         }
 
         // Sprint 5 (ADR 0036) — recall de memória semântica antes de chamar LLM.
-        $memoriaContexto = $this->recallMemoria($conv, $mensagem);
+        $recall = $this->recallMemoria($conv, $mensagem);
+        $memoriaContexto = $recall['texto'];
+        $memoriaIds = $recall['ids'];
 
         // MEM-HOT-2 (ADR 0047, Caminho A do ADR 0046) — snapshot de contexto de
         // negócio (faturamento/clientes/metas reais) injetado no system prompt.
@@ -292,6 +302,12 @@ class LaravelAiSdkDriver implements AiAdapter
                 } catch (\Throwable $e) {
                     Log::channel('copiloto-ai')->warning('SemanticCache: gravar falhou: ' . $e->getMessage());
                 }
+            }
+
+            // MEM-FASE6 — registra uso dos fatos injetados no prompt
+            if (! empty($memoriaIds)) {
+                app(\Modules\Copiloto\Services\Memoria\HitTrackerService::class)
+                    ->registrarUso($memoriaIds);
             }
 
             // Sprint 5 — após resposta, extrair fatos novos em background (Horizon).
@@ -384,11 +400,13 @@ class LaravelAiSdkDriver implements AiAdapter
     /**
      * Busca top-K memórias relevantes via MemoriaContrato e retorna texto pronto pra
      * injetar como system additional message. Falha silente — recall não pode quebrar chat.
+     *
+     * @return array{texto:string, ids:int[]}
      */
-    protected function recallMemoria(Conversa $conv, string $query): string
+    protected function recallMemoria(Conversa $conv, string $query): array
     {
         if (! config('copiloto.memoria.recall_enabled', true)) {
-            return '';
+            return ['texto' => '', 'ids' => []];
         }
 
         try {
@@ -404,20 +422,25 @@ class LaravelAiSdkDriver implements AiAdapter
             );
 
             if (empty($resultados)) {
-                return '';
+                return ['texto' => '', 'ids' => []];
             }
+
+            $ids = collect($resultados)->pluck('id')->filter()->map(fn ($id) => (int) $id)->all();
 
             $linhas = collect($resultados)
                 ->map(fn ($m) => '- ' . $m->fato)
                 ->implode("\n");
 
-            return "Você lembra dos seguintes fatos sobre este usuário/business:\n{$linhas}\n";
+            return [
+                'texto' => "Você lembra dos seguintes fatos sobre este usuário/business:\n{$linhas}\n",
+                'ids'   => $ids,
+            ];
         } catch (\Throwable $e) {
             Log::channel('copiloto-ai')->warning('recallMemoria falhou (degradação silenciosa)', [
                 'conversa_id' => $conv->id,
                 'error' => $e->getMessage(),
             ]);
-            return '';
+            return ['texto' => '', 'ids' => []];
         }
     }
 
