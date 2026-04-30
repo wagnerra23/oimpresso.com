@@ -396,15 +396,23 @@ class IndexarMemoryGitParaDb
 
     /**
      * Best-effort: pega SHA do último commit que toca o arquivo.
+     * Hostinger shared hosting tem shell_exec disabled — degrada gracioso.
      */
     protected function lerGitSha(string $relativePath): ?string
     {
+        if (!function_exists('shell_exec') || in_array('shell_exec', explode(',', (string) ini_get('disable_functions')))) {
+            return null;
+        }
         $cmd = sprintf(
             'git -C %s log -n 1 --format=%%H -- %s 2>/dev/null',
             escapeshellarg($this->repoBasePath),
             escapeshellarg($relativePath)
         );
-        $sha = trim((string) @shell_exec($cmd));
-        return $sha !== '' ? $sha : null;
+        try {
+            $sha = trim((string) @shell_exec($cmd));
+            return $sha !== '' ? $sha : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }
