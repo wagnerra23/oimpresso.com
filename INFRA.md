@@ -268,3 +268,48 @@ Plataforma:    Uni5 (https://api.uni5.net/) — fabricante por trás da KingHost
 ---
 
 > **Última atualização:** 2026-04-28 (sessão Reverb install — adicionada §6 Ativos: Proxmox empresa disponível pra Reverb/Meilisearch/workers; Hostinger fica só com PHP-FPM do app)
+
+---
+
+## 6.2. CT 100 Proxmox empresa — estado 2026-04-30
+
+**Acesso via Tailscale** (SSH 22 não exposto público):
+- `ct100-mcp` IP Tailscale: `100.99.207.66` (Linux 6.17 Debian 12 LXC)
+- `ssh root@100.99.207.66` direto, ACL via Tailscale console
+
+### Containers ativos (docker-host_default network)
+
+| Container | RAM | Função | Subdomínio |
+|---|---|---|---|
+| oimpresso-mcp | 217MB | MCP server FrankenPHP | `mcp.oimpresso.com` |
+| traefik | 191MB | TLS routing Let's Encrypt | `traefik.oimpresso.com` |
+| meilisearch | 139MB | Search BM25+vector | `meilisearch.oimpresso.com` |
+| portainer | 181MB | Docker UI | `portainer.oimpresso.com` |
+| vaultwarden | 184MB | Cofre senhas | `vault.oimpresso.com` |
+| **ollama-embedder** ⭐ | 6.31GB | Embedder local Nomic-Embed-Text | (interno LAN 11434) |
+| **mysql-workers** ⭐ | varia | MySQL 8 com 14 tabelas mcp_*/copiloto_memoria_* | (interno LAN 3306) |
+
+Recursos CT 100: **32GB RAM total, 30GB livre · 14C/28T Xeon E5-2680v4 · 50GB disco livre**.
+
+Reverb stopped (ADR 0058 abandonado, Centrifugo planejado).
+
+### MySQL workers (oimpresso_workers)
+
+Database `oimpresso_workers` com 14 tabelas sincronizadas do Hostinger:
+- `mcp_cc_*` (sessions/messages/blobs) — 17/17.686/n
+- `mcp_memory_documents` + history — 352
+- `mcp_tokens/quotas/scopes/user_scopes` — 11/0/14/n
+- `mcp_audit_log` + `mcp_usage_diaria` + `mcp_alertas_eventos` — 338/n/n
+- `copiloto_memoria_metricas` — 6 baselines
+- `copiloto_memoria_gabarito` — 50 perguntas Larissa-style
+
+Senhas em `/opt/oimpresso-mysql/.mysql_root_password` (CT) — também salvar Vaultwarden.
+Source-of-truth: continua Hostinger (writes app principal). CT é staging pros workers + admin pages.
+
+### Ollama embedder
+
+- Modelo: nomic-embed-text (768 dim, multi-lingual decente PT-BR)
+- Latência: 35-38ms por embedding (LAN <1ms + CPU inference)
+- Acesso interno: `http://ollama-embedder:11434/api/embeddings`
+- Acesso CT host: `http://localhost:11434`
+- Cap: 8GB RAM, 8 CPU, OLLAMA_KEEP_ALIVE=24h, NUM_PARALLEL=8
