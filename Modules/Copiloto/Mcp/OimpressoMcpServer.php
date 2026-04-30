@@ -51,6 +51,9 @@ class OimpressoMcpServer extends Server
         // MEM-MEM-MCP-1 (ADR 0056) — MCP-as-Memory-Source
         // Copiloto chat web (Laravel) + Claude Code consomem mesma fonte.
         Tools\MemoriaSearchTool::class,
+        // MEM-CC-team-1 (ADR 0055/0056) — busca cross-dev em sessões Claude Code
+        // ingeridas via watcher local. Permission `copiloto.cc.read.all` pra cross.
+        Tools\CcSearchTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
