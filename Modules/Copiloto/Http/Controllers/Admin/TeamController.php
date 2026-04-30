@@ -87,20 +87,14 @@ class TeamController extends Controller
     public function gerarToken(Request $request, int $userId)
     {
         $request->validate([
-            'note' => 'nullable|string|max:255',
+            'note' => 'nullable|string|max:120',
         ]);
         $user = User::findOrFail($userId);
 
-        // Gera token raw + persist hash
-        $raw = 'mcp_' . bin2hex(random_bytes(32));
-        $token = McpToken::create([
-            'user_id' => $user->id,
-            'token_hash' => hash('sha256', $raw),
-            'note' => $request->input('note', "Gerado por admin em " . now()->toDateString()),
-            'expires_at' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // Usa helper canônico que computa sha256_token corretamente.
+        // Schema tem `name` (não `note`) — 'note' é alias UI-side.
+        $name = $request->input('note') ?: 'Gerado por admin em ' . now()->toDateString();
+        [$token, $raw] = McpToken::gerar($user->id, $name);
 
         return response()->json([
             'ok' => true,
