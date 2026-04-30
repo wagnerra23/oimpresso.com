@@ -119,25 +119,44 @@ class TeamController extends Controller
         [$token, $raw] = McpToken::gerar($user->id, $tokenName);
 
         $slug = Str::slug($nomeCurto . '-' . $user->id);
+
+        // DXT spec atual NÃO suporta server.type=http — apenas {python, node, binary}.
+        // Pra MCP HTTP remoto, empacotamos como type=node com mcp-remote como bridge stdio↔HTTP.
+        // Requisito no host: Node.js + npx (Claude Desktop tipicamente já tem).
         $manifest = [
             'dxt_version'  => '0.1',
             'name'         => 'oimpresso-mcp-' . $slug,
             'display_name' => 'Oimpresso MCP — ' . $nomeCurto,
             'version'      => '1.0.0',
-            'description'  => 'Acesso MCP ao Oimpresso ERP — memória, ADRs, sessões, decisões. Token pessoal de ' . $nomeCurto . ' embutido.',
+            'description'  => 'Acesso MCP ao Oimpresso ERP — memória, ADRs, sessões, decisões. Token pessoal de ' . $nomeCurto . ' embutido. Bridge via mcp-remote.',
             'author' => [
                 'name'  => 'Oimpresso ERP',
                 'email' => 'wagner@oimpresso.com',
                 'url'   => 'https://oimpresso.com',
             ],
             'server' => [
-                'type' => 'http',
-                'url'  => 'https://mcp.oimpresso.com/api/mcp',
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $raw,
+                'type'        => 'node',
+                'entry_point' => 'server/index.js',
+                'mcp_config'  => [
+                    'command' => 'npx',
+                    'args'    => [
+                        '-y',
+                        'mcp-remote@latest',
+                        'https://mcp.oimpresso.com/api/mcp',
+                        '--header',
+                        'Authorization: Bearer ' . $raw,
+                    ],
                 ],
             ],
         ];
+
+        // Stub server/index.js — não roda direto; mcp_config.command=npx mcp-remote é quem roda.
+        // Existe só pra satisfazer a validação do entry_point pelo Claude Desktop.
+        $serverStub = "#!/usr/bin/env node\n"
+            . "// Oimpresso MCP DXT bridge — apenas placeholder.\n"
+            . "// O servidor real é invocado via mcp_config.command=npx mcp-remote no manifest.json.\n"
+            . "// Este arquivo existe pra satisfazer DXT spec entry_point.\n"
+            . "console.error('[oimpresso-mcp] Bridge ativo via mcp-remote. URL: https://mcp.oimpresso.com/api/mcp');\n";
 
         // Empacota ZIP (.dxt) em arquivo temporário
         $tmpFile = tempnam(sys_get_temp_dir(), 'dxt_');
@@ -147,6 +166,7 @@ class TeamController extends Controller
             'manifest.json',
             json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
         );
+        $zip->addFromString('server/index.js', $serverStub);
         $zip->close();
 
         $contents = file_get_contents($tmpFile);
