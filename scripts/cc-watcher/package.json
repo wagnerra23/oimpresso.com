@@ -1,0 +1,22 @@
+{
+  "name": "oimpresso-cc-watcher",
+  "version": "0.1.0",
+  "description": "Watcher Node que ingere ~/.claude/projects/<projeto>/*.jsonl pro MCP server (mcp.oimpresso.com) — MEM-CC-UI-1 US-COPI-CC-040",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "cc-watcher": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "watch": "node index.js --watch",
+    "ingest-once": "node index.js --once"
+  },
+  "dependencies": {
+    "chokidar": "^4.0.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "Proprietary"
+}
