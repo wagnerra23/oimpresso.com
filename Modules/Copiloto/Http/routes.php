@@ -172,6 +172,20 @@ Route::group(
     }
 );
 
+// MEM-CC-1 (ADR 0053 + SPEC-cc-sessions) — Endpoint ingest pra watcher Node
+//   POST /api/cc/ingest  — Bearer mcp_*  — payload {session, messages}
+Route::group(
+    [
+        'middleware' => ['api', 'mcp.auth'],
+        'prefix'     => 'api/cc',
+        'namespace'  => 'Modules\Copiloto\Http\Controllers\Mcp',
+    ],
+    function () {
+        Route::post('/ingest', 'CcIngestController@ingest')
+            ->name('copiloto.cc.ingest');
+    }
+);
+
 // MEM-MCP-1.c (ADR 0053) — Servidor MCP protocol (JSON-RPC) via laravel/mcp
 // Auth via mcp.auth middleware (mesmo Bearer mcp_* do health/auth).
 // Endpoint POST /api/mcp protocolo JSON-RPC 2.0 — clientes Claude Code/Desktop
