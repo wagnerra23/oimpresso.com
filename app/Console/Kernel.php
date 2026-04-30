@@ -53,6 +53,21 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // MemoriaAutonoma Fase 1 — auto-sintese semanal (sex 18:00).
+        // Le commits + arquivos memory/ + diffs CURRENT/TASKS/TEAM da semana
+        // anterior, chama Haiku 4.5, salva memory/sessions/SEMANA-YYYY-Www-resumo.md.
+        // Custo ~R$ 0.10/execucao. Ver ADR MemoriaAutonoma/0001.
+        $schedule->command('copiloto:sintese-semanal')
+            ->fridays()
+            ->at('18:00')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule MemoriaAutonoma F1 (copiloto:sintese-semanal) FALHOU'
+                );
+            });
+
         // MEM-FASE8 — esquecimento semanal (domingo 03:00).
         // Remove bloat (hits=0, >30d) + expirados (valid_until >90d) + órfãos MCP.
         // Soft-delete por padrão. Hard-delete LGPD só via comando manual com --hard.
