@@ -1,0 +1,140 @@
+# oimpresso-workers — container Laravel pra rodar comandos pesados que
+# Hostinger não aguenta (memory_limit 256MB, shell_exec disabled, rate-limits).
+#
+# ADR 0060 (Opção C híbrida) — workers pesados no CT, app principal Hostinger.
+#
+# Hospeda:
+#   - php artisan copiloto:eval --persist (50 perguntas batch contra gabarito)
+#   - php artisan copiloto:metrics:apurar (cron 23:55 BRT)
+#   - php artisan horizon (queue worker daemon)
+#   - php artisan schedule:work (scheduler Laravel)
+#   - HTTP endpoint /api/cc/ingest (NÃO rate-limited como Hostinger)
+#   - Outros artisan que precisam memory >256MB OU daemon persistente
+#
+# Conecta no MESMO MySQL Hostinger (via tunnel SSH ou IP whitelist 177.74.67.30).
+# Source-of-truth do código: GitHub main (git pull em deploy).
+#
+# Setup CT 100:
+#   1. /opt/oimpresso-workers/code <- git clone wagnerra23/oimpresso.com.git
+#   2. cp .env.workers.example .env  (ajustar com creds Hostinger MySQL)
+#   3. docker compose -f workers/docker-compose.yml up -d
+#   4. Aguarda 2-3 min build inicial
+#   5. Smoke: curl https://workers.oimpresso.com/api/cc/health
+#
+# Acesso público via Traefik:
+#   - workers.oimpresso.com/api/cc/ingest    → POST com Bearer mcp_*
+#   - workers.oimpresso.com/api/health       → status
+
+services:
+  oimpresso-workers:
+    image: dunglas/frankenphp:1-builder-php8.4-alpine
+    container_name: oimpresso-workers
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+    working_dir: /app
+    volumes:
+      - ./code:/app                          # código Laravel (git clone)
+      - oimpresso-workers-storage:/app/storage  # logs/cache persistente
+      - oimpresso-workers-cache:/app/bootstrap/cache
+    env_file:
+      - ./.env  # creds Hostinger MySQL + OpenAI + Meilisearch + Ollama URLs
+    deploy:
+      resources:
+        limits:
+          memory: 4G    # 16x mais que Hostinger (256MB)
+          cpus: '6'
+    command: |
+      sh -c "
+      composer install --no-interaction --no-dev --optimize-autoloader --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix &&
+      php artisan optimize:clear &&
+      php artisan config:cache &&
+      frankenphp run --config /app/Caddyfile
+      "
+    depends_on:
+      - oimpresso-workers-redis
+      - oimpresso-workers-horizon
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=docker-host_default"
+      - "traefik.http.routers.workers.rule=Host(`workers.oimpresso.com`)"
+      - "traefik.http.routers.workers.entrypoints=websecure"
+      - "traefik.http.routers.workers.tls=true"
+      - "traefik.http.routers.workers.tls.certresolver=letsencrypt"
+      - "traefik.http.services.workers.loadbalancer.server.port=80"
+      - "traefik.http.routers.workers-http.rule=Host(`workers.oimpresso.com`)"
+      - "traefik.http.routers.workers-http.entrypoints=web"
+      - "traefik.http.routers.workers-http.middlewares=workers-redirect"
+      - "traefik.http.middlewares.workers-redirect.redirectscheme.scheme=https"
+
+  oimpresso-workers-horizon:
+    image: dunglas/frankenphp:1-builder-php8.4-alpine
+    container_name: oimpresso-workers-horizon
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+    working_dir: /app
+    volumes:
+      - ./code:/app
+      - oimpresso-workers-storage:/app/storage
+    env_file:
+      - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '4'
+    command: |
+      sh -c "
+      while [ ! -f /app/vendor/autoload.php ]; do sleep 5; done &&
+      php artisan horizon
+      "
+
+  oimpresso-workers-scheduler:
+    image: dunglas/frankenphp:1-builder-php8.4-alpine
+    container_name: oimpresso-workers-scheduler
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+    working_dir: /app
+    volumes:
+      - ./code:/app
+      - oimpresso-workers-storage:/app/storage
+    env_file:
+      - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2'
+    command: |
+      sh -c "
+      while [ ! -f /app/vendor/autoload.php ]; do sleep 5; done &&
+      while true; do
+        php artisan schedule:run >> /dev/null 2>&1
+        sleep 60
+      done
+      "
+
+  oimpresso-workers-redis:
+    image: redis:7-alpine
+    container_name: oimpresso-workers-redis
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+    volumes:
+      - oimpresso-workers-redis-data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1'
+
+volumes:
+  oimpresso-workers-storage: { driver: local }
+  oimpresso-workers-cache: { driver: local }
+  oimpresso-workers-redis-data: { driver: local }
+
+networks:
+  docker-host_default:
+    external: true
