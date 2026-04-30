@@ -22,7 +22,7 @@ class McpMemoryDocument extends Model
     protected $table = 'mcp_memory_documents';
 
     protected $fillable = [
-        'slug', 'type', 'module', 'title', 'content_md',
+        'business_id', 'slug', 'type', 'module', 'title', 'content_md',
         'scope_required', 'admin_only', 'metadata',
         'git_sha', 'git_path', 'pii_redactions_count',
         'embedding', 'indexed_at',
@@ -40,6 +40,18 @@ class McpMemoryDocument extends Model
     public function history(): HasMany
     {
         return $this->hasMany(McpMemoryDocumentHistory::class, 'document_id');
+    }
+
+    /**
+     * Filtra por empresa dona do documento (multi-tenant).
+     * NULL = global (legado pré-MEM-MULTI-1 ou docs compartilhados).
+     */
+    public function scopeDoBusiness($query, int $businessId)
+    {
+        return $query->where(function ($q) use ($businessId) {
+            $q->where('business_id', $businessId)
+              ->orWhereNull('business_id');
+        });
     }
 
     public function scopeAcessiveisPara($query, ?\App\User $user)
