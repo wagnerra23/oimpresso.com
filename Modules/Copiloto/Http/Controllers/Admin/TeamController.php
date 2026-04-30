@@ -156,12 +156,17 @@ class TeamController extends Controller
         $serverStub = <<<'JS'
 #!/usr/bin/env node
 // Oimpresso MCP DXT — bridge stdio↔HTTP via mcp-remote.
-// shell:false em Windows pra evitar parser bug do cmd com paths que têm espaço
-// (e.g. "C:\Program Files\nodejs\npx.cmd" → quebra em "C:\Program").
-const { spawn } = require('child_process');
+//
+// Windows é traiçoeiro:
+//   - shell:false + 'npx.cmd' → EINVAL (CVE-2024-27980 mitigation no Node 18.20+/20.12+/22+)
+//   - shell:true  + 'npx'     → cmd.exe quebra "C:\Program Files\nodejs\npx.cmd" no espaço
+//
+// Solução: cmd.exe /c com windowsVerbatimArguments e command line montada manualmente.
+// Procura npx.cmd via `where`, prefere o path SEM espaço (AppData\Roaming\npm).
+const { spawn, execSync } = require('child_process');
 
-const url   = process.env.MCP_URL;
-const auth  = process.env.MCP_AUTHORIZATION;
+const url  = process.env.MCP_URL;
+const auth = process.env.MCP_AUTHORIZATION;
 
 if (!url || !auth) {
   console.error('[oimpresso-mcp] MCP_URL ou MCP_AUTHORIZATION ausente no env do manifest');
@@ -169,23 +174,47 @@ if (!url || !auth) {
 }
 
 const isWindows = process.platform === 'win32';
-const command   = isWindows ? 'npx.cmd' : 'npx';
+let child;
 
-const args = ['-y', 'mcp-remote@latest', url, '--header', `Authorization: ${auth}`];
+if (isWindows) {
+  let npxPath;
+  try {
+    const wherePaths = execSync('where npx.cmd', { encoding: 'utf-8', windowsHide: true })
+      .split(/\r?\n/).map(p => p.trim()).filter(Boolean);
+    // Prefere caminhos sem espaço pra simplificar quoting
+    npxPath = wherePaths.find(p => !p.includes(' ')) || wherePaths[0];
+    if (!npxPath) throw new Error('where retornou vazio');
+  } catch (e) {
+    console.error('[oimpresso-mcp] npx.cmd não encontrado no PATH:', e.message);
+    console.error('[oimpresso-mcp] Instale Node.js: https://nodejs.org');
+    process.exit(1);
+  }
 
-console.error(`[oimpresso-mcp] Spawning: ${command} ${args.slice(0, 3).join(' ')} --header [redacted]`);
+  console.error(`[oimpresso-mcp] Bridge via ${npxPath} → ${url}`);
 
-const child = spawn(command, args, {
-  stdio: 'inherit',
-  shell: false,          // CRÍTICO: shell:true quebra em paths com espaço no Windows
-  env: process.env,
-  windowsHide: true,
-});
+  // Monta linha de comando com cmd.exe /d /c. Aspas externas obrigatórias quando
+  // a string toda contém aspas internas (regra antiga do cmd /c).
+  const escapedAuth = auth.replace(/"/g, '\\"');
+  const cmdline = `""${npxPath}" -y mcp-remote@latest "${url}" --header "Authorization: ${escapedAuth}""`;
+
+  child = spawn('cmd.exe', ['/d', '/s', '/c', cmdline], {
+    stdio: 'inherit',
+    windowsVerbatimArguments: true,
+    env: process.env,
+    windowsHide: true,
+  });
+} else {
+  console.error(`[oimpresso-mcp] Bridge via npx → ${url}`);
+  child = spawn('npx', ['-y', 'mcp-remote@latest', url, '--header', `Authorization: ${auth}`], {
+    stdio: 'inherit',
+    shell: false,
+    env: process.env,
+  });
+}
 
 child.on('error', (err) => {
-  console.error('[oimpresso-mcp] Erro ao spawnar', command + ':', err.message);
-  console.error('[oimpresso-mcp] Verifique se Node.js + npx estão instalados e no PATH.');
-  console.error('[oimpresso-mcp] PATH atual:', process.env.PATH);
+  console.error('[oimpresso-mcp] Erro ao spawnar processo:', err.message);
+  console.error('[oimpresso-mcp] PATH:', process.env.PATH);
   process.exit(1);
 });
 
@@ -194,7 +223,6 @@ child.on('exit', (code, signal) => {
   process.exit(code ?? 0);
 });
 
-// Encaminha sinais (Ctrl+C, etc) pro processo filho
 ['SIGINT', 'SIGTERM', 'SIGHUP'].forEach((sig) => {
   process.on(sig, () => child.kill(sig));
 });
