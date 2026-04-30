@@ -1,0 +1,8 @@
+{
+  "_instrucoes": "Copie este arquivo para tokens.json, preencha os tokens reais e NUNCA commite tokens.json",
+  "Wagner":  "mcp_COLE_TOKEN_WAGNER_AQUI",
+  "Felipe":  "mcp_COLE_TOKEN_FELIPE_AQUI",
+  "Maira":   "mcp_COLE_TOKEN_MAIRA_AQUI",
+  "Luiz":    "mcp_COLE_TOKEN_LUIZ_AQUI",
+  "Eliana":  "mcp_COLE_TOKEN_ELIANA_AQUI"
+}

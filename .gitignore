@@ -33,3 +33,8 @@ npm-debug.log
 /.claude/worktrees/
 /.claude/*.diff
 /meilisearch/
+
+# DXT generation
+scripts/tokens.json
+dxt/
+storage/app/dxt/

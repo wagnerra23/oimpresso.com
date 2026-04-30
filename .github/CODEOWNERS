@@ -1,0 +1,65 @@
+# CODEOWNERS — oimpresso ERP
+# Mapeia módulos/pastas para reviewers obrigatórios no GitHub.
+# Sintaxe: path @github-user1 @github-user2
+# Substitua @FELIPE e @MAIRA pelo handle GitHub real de cada um.
+# Referência: TEAM.md §3 — matriz de quem-pode-fazer-o-quê
+
+# ──────────────────────────────────────────────
+# DEFAULT — Wagner aprova qualquer coisa não mapeada
+# ──────────────────────────────────────────────
+*                               @wagnerra23
+
+# ──────────────────────────────────────────────
+# FINANCEIRO / FISCAL / RECORRÊNCIA — Eliana owner
+# PR precisa de Eliana OU Wagner (Wagner como fallback)
+# ──────────────────────────────────────────────
+Modules/Financeiro/             @ELIANAMARCELINOALVES @wagnerra23
+Modules/NfeBrasil/              @ELIANAMARCELINOALVES @wagnerra23
+Modules/RecurringBilling/       @ELIANAMARCELINOALVES @wagnerra23
+memory/requisitos/Financeiro/   @ELIANAMARCELINOALVES @wagnerra23
+memory/requisitos/NfeBrasil/    @ELIANAMARCELINOALVES @wagnerra23
+memory/requisitos/RecurringBilling/ @ELIANAMARCELINOALVES @wagnerra23
+memory/requisitos/Boleto.md     @ELIANAMARCELINOALVES @wagnerra23
+
+# ──────────────────────────────────────────────
+# COPILOTO — Wagner + Felipe (LGPD-crítico, Eliana ❌)
+# ──────────────────────────────────────────────
+Modules/Copiloto/               @wagnerra23 @FELIPE
+memory/requisitos/Copiloto/     @wagnerra23 @FELIPE
+memory/requisitos/EvolutionAgent/ @wagnerra23 @FELIPE
+
+# ──────────────────────────────────────────────
+# PONTO WR2 — Wagner + Felipe
+# ──────────────────────────────────────────────
+Modules/PontoWr2/               @wagnerra23 @FELIPE
+memory/requisitos/PontoWr2/     @wagnerra23 @FELIPE
+
+# ──────────────────────────────────────────────
+# INFRA / CI / DEPLOY — Wagner (ninguém mergeia sem ele)
+# ──────────────────────────────────────────────
+.github/workflows/              @wagnerra23
+INFRA.md                        @wagnerra23
+docker-compose*.yml             @wagnerra23
+
+# ──────────────────────────────────────────────
+# ADRs / MEMÓRIA — Wagner aprova, Felipe pode propor
+# ──────────────────────────────────────────────
+memory/decisions/               @wagnerra23
+CLAUDE.md                       @wagnerra23
+TEAM.md                         @wagnerra23
+CURRENT.md                      @wagnerra23
+
+# ──────────────────────────────────────────────
+# CMS / LANDING — Maíra owner, Wagner fallback
+# ──────────────────────────────────────────────
+Modules/Cms/                    @MAIRA @wagnerra23
+
+# ──────────────────────────────────────────────
+# MEMCOFRE — Maíra + Felipe, Wagner fallback
+# ──────────────────────────────────────────────
+Modules/MemCofre/               @MAIRA @FELIPE @wagnerra23
+
+# ──────────────────────────────────────────────
+# FRONTEND COMPARTILHADO — Maíra + Felipe
+# ──────────────────────────────────────────────
+resources/js/                   @MAIRA @FELIPE @wagnerra23
