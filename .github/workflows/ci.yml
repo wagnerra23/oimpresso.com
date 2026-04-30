@@ -29,8 +29,13 @@ jobs:
           coverage: none
           tools: composer:v2
 
-      - name: Validate composer.json (sem strict — path repo desincroniza)
-        run: composer validate --no-check-publish || true
+      - name: Validate composer.json + lock em sync (gate anti-drift)
+        # Bloqueia PR onde composer.json foi editado sem regenerar composer.lock.
+        # Drift causa "Required package X is not present in the lock file" em
+        # `composer install`, quebrando deploy. Pra resolver, dispare o workflow
+        # `composer-lock-sync` (workflow_dispatch) ou rode `composer update <pkgs>
+        # --no-install` localmente e commit do lock.
+        run: composer validate --strict --no-check-publish
 
       - name: Cache composer
         uses: actions/cache@v4
