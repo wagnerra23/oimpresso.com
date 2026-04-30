@@ -1,1 +1,0 @@
-import{j as t}from"./app-C8SSwdKH.js";import{c as s}from"./button-BKy2fDkt.js";function c({className:r,children:o,...a}){return t.jsx("div",{"data-slot":"scroll-area",className:s("relative overflow-auto",r),...a,children:o})}export{c as S};
