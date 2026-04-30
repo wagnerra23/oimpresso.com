@@ -49,6 +49,7 @@ class CopilotoServiceProvider extends ServiceProvider
                 \Modules\Copiloto\Console\Commands\McpSyncMemoryCommand::class,     // MEM-MCP-1.a
                 \Modules\Copiloto\Console\Commands\McpTokenGerarCommand::class,     // MEM-MCP-1.b
                 \Modules\Copiloto\Console\Commands\SeedAdrsCommand::class,          // MEM-MULTI-1
+                \Modules\Copiloto\Console\Commands\CleanupMemoriaCommand::class,   // MEM-FASE8
             ]);
         }
     }
