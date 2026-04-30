@@ -25,22 +25,27 @@
 
 | # | WIP | Task | Prazo | Status |
 |---|---|---|---|---|
-| ~~A1~~ | — | ~~MEM-MET-3: Scheduler diário~~ | qui 30-abr | ✅ **29-abr** (`01e4e214` — cron Hostinger 55 23 * * * confirmado) |
-| ~~A1~~ | — | ~~A4 rodada 2: Validar Larissa~~ | sex 02-mai | ✅ **29-abr 09:25** — chat real prod 3 perguntas → 3 respostas distintas (caixa R$ 27.272,62 ≠ bruto R$ 31.513,29) |
-| A1 | 1/2 | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style (destrava 6 colunas RAGAS) | seg **05-mai** | ⏳ |
-| A2 | 2/2 | **MEM-MET-4 = COP-007 ampl.** Page `/copiloto/admin/qualidade` trend 30d das 8 métricas + HITL anotação | qui **08-mai** | ⏳ |
+| ~~A1~~ | — | ~~MEM-MET-3: Scheduler diário~~ | qui 30-abr | ✅ **29-abr** (`01e4e214`) |
+| ~~A1~~ | — | ~~A4 rodada 2: Validar Larissa~~ | sex 02-mai | ✅ **29-abr 09:25** chat real prod 3 perguntas → 3 respostas distintas |
+| ~~A1~~ | — | ~~MEM-CC-team-1 Sprint A+B~~: `.mcp.json` + skill onboarding + skill watcher + CcSearchTool + 3 tabelas mcp_cc_* em prod | qui 30-abr | ✅ **29-abr noite** (`4fa97dd8` + `c807d5db` + `acc3b0c1`) |
+| ~~A1~~ | — | ~~MEM-TEAM-1 Self-host equiv Anthropic Team plan~~ — Team Admin + QuotaEnforcer + alertas idempotentes 50/80/100% + ADR 0055 | qui 30-abr | ✅ **29-abr** (`c4706bef` + `c2339ba1` + `8c8b7ccb`) |
+| ~~A1~~ | — | ~~MEM-MEM-MCP-1 MCP-as-memory-source~~ — McpMemoriaDriver + MemoriaSearchTool + ADR 0056 + Copiloto chat usa MCP | qui 30-abr | ✅ **29-abr** (`a58e7f34`) |
+| A1 | 1/2 | **MEM-CC-team-2: Wagner roda skill `oimpresso-cc-watcher-setup` 1×** — ingere ~83 sessões locais → cc-search retorna hits | sex **02-mai** | ⏳ |
+| A2 | 2/2 | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style (destrava 6 colunas RAGAS) | seg **05-mai** | ⏳ |
 
 **On-deck imediato (puxar quando A1/A2 fechar, em ordem de impacto×esforço):**
 
 | # | Task | Dias | Por que esta ordem |
 |---|------|------|---------------------|
-| O1 | **MEM-CC-team-1: `.mcp.json` + onboarding doc + watcher Node** — time entra (Felipe/Maíra/Luiz/Eliana usando MCP) | 1.5d | Compartilhar conhecimento Claude Code = 5× output/$ time inteiro |
+| O1 | **MEM-MEM-MCP-1.b**: gerar system token (`copiloto:mcp:system-token`) + add `COPILOTO_MEMORIA_DRIVER=mcp` em `.env` Hostinger + smoke chat → recall via MCP | 0.5d | Liga MCP no fluxo Copiloto chat real (config commitada, falta env) |
 | O2 | **MEM-EVAL-3 backfill facts**: `copiloto:backfill-fatos --business=all --sync` + re-rodar gabarito → mede ΔR@3 | 0.5d | Phase 1→2 ADR 0054 (corpus famished, deve subir R@3 0.125→~0.30) |
 | O3 | **MEM-MEM-WIRE Phase 2**: wire HyDE + Reranker + Negative cache no MeilisearchDriver | 1.5d | +15-20pp recall esperado (services prontos do `3d060fec`) |
 | O4 | **Fix ProfileDistiller** (output vazio com biz=4) | 1h | -30% system prompt em todas requests |
 | O5 | **MEM-S8-4 Auto-promote logic** — service que marca facts hits≥5 → core_memory | 0.5d | Phase 4 ADR 0054 |
 | O6 | **MEM-MET-4 = `/copiloto/admin/qualidade`** trend 30d das 8 métricas + RAGAS + HITL | 2d | Cycle 01 goal métrica 3 |
 | O7 | **MEM-P2-2 RRF tuning** A/B `semantic_ratio` 0.3 vs 0.7 (Sprint 9 ADR 0037) | 0.5d | Phase 2-3 ADR 0054 |
+| O8 | **MEM-GAP-1: Knowledge UI** equivalente Anthropic Projects — upload PDF/MD/CSV, dedup SHA256, perms can-use/can-edit | 2d | Saved gap ADR 0055 |
+| O9 | **MEM-GAP-2/3/4** (Projects shared / file restrictions / centralized policy) — equivalentes Team plan | 4.5d | Saved gaps ADR 0055 |
 
 ---
 
