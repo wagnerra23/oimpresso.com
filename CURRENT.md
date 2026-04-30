@@ -46,7 +46,15 @@
 | O7 | **MEM-P2-2 RRF tuning** A/B `semantic_ratio` 0.3 vs 0.7 (Sprint 9 ADR 0037) | 0.5d | Phase 2-3 ADR 0054 |
 | O8 | **MEM-GAP-1: Knowledge UI** equivalente Anthropic Projects — upload PDF/MD/CSV, dedup SHA256, perms can-use/can-edit | 2d | Saved gap ADR 0055 |
 | O9 | **MEM-GAP-2/3/4** (Projects shared / file restrictions / centralized policy) — equivalentes Team plan | 4.5d | Saved gaps ADR 0055 |
-| O10 | **MEM-KB-1: Page `/copiloto/admin/memoria` — KB browser do MCP server** (DataTable filtros type/module/scope, Sheet 600px preview markdown + git_sha→GitHub, history/diff inline, audit log read-only, PII badge + soft-delete double-confirm) | 1d | Transparência LGPD Art. 18 + auditoria pré-onboarding Felipe/Maíra/Luiz/Eliana; refs Mem0 OpenMemory, Letta ADE, MCP Inspector — ADR 0053 já tem schema (`mcp_memory_documents` 107 docs), só falta UI |
+| O10 | **MEM-KB-1: Page `/copiloto/admin/memoria` — KB browser do MCP server** (DataTable filtros type/module/scope, Sheet 600px preview markdown + git_sha→GitHub, history/diff inline, audit log read-only, PII badge + soft-delete double-confirm) | ✅ entregue 2026-04-30 (`d687b890..5c250cfd`) | Transparência LGPD Art. 18 + auditoria pré-onboarding Felipe/Maíra/Luiz/Eliana; refs Mem0 OpenMemory, Letta ADE, MCP Inspector |
+| O11 | **MEM-KB-2 F1: sync expansion** — `IndexarMemoryGitParaDb` cobre comparativos + ADRs por módulo + RUNBOOK/AUDITS/CHANGELOG + memory raiz (~270 docs faltando) | ✅ entregue 2026-04-30 | Backfill destrava 488/488 docs no MCP |
+| O12 | **MEM-KB-3 F2 (Cycle 02):** frontmatter YAML obrigatório + migração 57 ADRs antigos com Claude inferindo + colunas tipadas (status/authority/lifecycle/quarter) em `mcp_memory_documents` | 1d | Pré-filtros queryable + governance taxonomy |
+| O13 | **MEM-KB-4 F3 (Cycle 02):** taxonomia 2 tabelas (`mcp_taxonomy_terms` + `mcp_document_terms`) — kinds tag/stakeholder/area | 0.5d | Filtros multi-eixo na KB UI; tag cloud sidebar |
+| O14 | **MEM-KB-5 F4 (Cycle 02):** grafo `mcp_memory_relations` (supersedes/related/cites/depends_on parsed) + tool MCP `memory-graph` | 0.5d | Claude descarta superseded automaticamente |
+| O15 | **MEM-KB-6 F5 (Cycle 02):** chunking semântico (~800 tokens overlap 150) + tabela `mcp_memory_chunks` + Scout searchable + Meilisearch index dedicado com hybrid embedder | 1.5d | -75% tokens contexto IA — biggest win |
+| O16 | **MEM-KB-7 F6 (Cycle 02):** signals dinâmicos (`authority_score`/`freshness_score`/`usage_score` + `hits_count`) + auto-promote `hits>=5` (Phase 4 ADR 0054) | 1d | Claude prefere docs canônicos automático |
+| O17 | **MEM-KB-8 F7 (Cycle 02):** integração log retrieval com `copiloto_memoria_metricas` (NÃO duplicar OTel GenAI ADR 0051) + dashboard "docs mais lidos pela IA" | 0.5d | Governança do que IA está usando vs ignorando |
+| O18 | **INFRA-RT-1: Centrifugo + FrankenPHP no CT 100** (ADR 0058) — DNS `realtime.oimpresso.com`, JWT auth, broadcast driver, migra hooks Echo→Centrifuge | 4d | Reverb crashou em testes; realtime canônico empresa |
 
 ---
 

@@ -10,15 +10,13 @@ use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
  * MEM-MCP-1.a (ADR 0053) — Sincroniza memory/ do filesystem (git) pra
  * mcp_memory_documents (DB cache governado).
  *
- * Workflow:
- *   1. Scaneia diretórios memory/decisions/, memory/sessions/, memory/requisitos/
- *      + arquivos raiz CURRENT.md, TASKS.md, memory/08-handoff.md
- *   2. Pra cada arquivo:
- *      - parseia frontmatter YAML (slug, type, module, scope_required)
- *      - PII redactor (regex CPF/CNPJ — ADR 0030)
- *      - calcula git_sha do commit que toca o arquivo
- *      - UPSERT por slug (UPDATE move row antiga pra _history)
- *   3. Soft-delete documentos que sumiram do filesystem
+ * F1 KB expansion (2026-04-30): cobre agora além de decisions/sessions/SPEC:
+ *   - memory/comparativos/*.md           → type=comparativo
+ *   - memory/requisitos/*/adr/*/*.md     → type=adr, module=parent dir
+ *   - memory/requisitos/*/{RUNBOOK,ARCHITECTURE,GLOSSARY,CHANGELOG,README}.md
+ *   - memory/requisitos/*/audits/*.md    → type=audit
+ *   - memory/*.md raiz (00-overview..., CHANGELOG, INDEX...)
+ *   - memory/requisitos/*.md raiz (BI.md, Boleto.md...)
  *
  * Idempotente: re-rodar com mesmos arquivos é no-op (sha igual).
  */
@@ -140,6 +138,105 @@ class IndexarMemoryGitParaDb
             if (file_exists($r['full'])) {
                 $arquivos[] = $r;
             }
+        }
+
+        // ─── F1 KB expansion ──────────────────────────────────────────────
+
+        // Comparativos Capterra-style
+        foreach (glob("$base/memory/comparativos/*.md") as $file) {
+            $name = basename($file, '.md');
+            if (str_starts_with($name, '_')) continue; // skip _INDEX, _TEMPLATE
+            $arquivos[] = [
+                'slug'   => "comparativo-$name",
+                'type'   => 'comparativo',
+                'module' => $this->detectarModulo($name),
+                'path'   => "memory/comparativos/$name.md",
+                'full'   => $file,
+            ];
+        }
+
+        // ADRs por módulo (memory/requisitos/{Modulo}/adr/{cat}/*.md)
+        foreach (glob("$base/memory/requisitos/*/adr/*/*.md") as $file) {
+            $name = basename($file, '.md');
+            if (str_starts_with($name, '_') || $name === 'README') continue;
+            $cat = strtolower(basename(dirname($file)));            // arq | tech | ui
+            $moduleDir = basename(dirname(dirname(dirname($file)))); // capitalized
+            $module = strtolower($moduleDir);
+            $arquivos[] = [
+                'slug'   => "adr-$module-$cat-$name",
+                'type'   => 'adr',
+                'module' => $module,
+                'path'   => "memory/requisitos/$moduleDir/adr/$cat/$name.md",
+                'full'   => $file,
+            ];
+        }
+
+        // Docs por módulo: RUNBOOK, ARCHITECTURE, GLOSSARY, CHANGELOG, README
+        $docsPorModulo = [
+            'RUNBOOK'      => 'runbook',
+            'ARCHITECTURE' => 'reference',
+            'GLOSSARY'     => 'reference',
+            'CHANGELOG'    => 'changelog',
+            'README'       => 'reference',
+            'COMPARATIVO_CONCORRENCIA' => 'comparativo',
+        ];
+        foreach (glob("$base/memory/requisitos/*/*.md") as $file) {
+            $name = basename($file, '.md');
+            if ($name === 'SPEC') continue; // já coberto acima
+            if (!isset($docsPorModulo[$name])) continue;
+            $moduleDir = basename(dirname($file));
+            $module = strtolower($moduleDir);
+            $arquivos[] = [
+                'slug'   => strtolower($name) . "-$module",
+                'type'   => $docsPorModulo[$name],
+                'module' => $module,
+                'path'   => "memory/requisitos/$moduleDir/$name.md",
+                'full'   => $file,
+            ];
+        }
+
+        // Audits por módulo (memory/requisitos/{Modulo}/audits/*.md)
+        foreach (glob("$base/memory/requisitos/*/audits/*.md") as $file) {
+            $name = basename($file, '.md'); // ex: 2026-04-22
+            if (str_starts_with($name, '_')) continue;
+            $moduleDir = basename(dirname(dirname($file)));
+            $module = strtolower($moduleDir);
+            $arquivos[] = [
+                'slug'   => "audit-$module-$name",
+                'type'   => 'audit',
+                'module' => $module,
+                'path'   => "memory/requisitos/$moduleDir/audits/$name.md",
+                'full'   => $file,
+            ];
+        }
+
+        // Memory/*.md raiz (00-user-profile..., CHANGELOG, INDEX, REQUISITOS_FUNCIONAIS_PONTO, etc)
+        // Evita duplicar 08-handoff já coberto acima
+        $raizSlugs = ['08-handoff'];
+        foreach (glob("$base/memory/*.md") as $file) {
+            $name = basename($file, '.md');
+            if (in_array($name, $raizSlugs, true)) continue;
+            if (str_starts_with($name, '_')) continue;
+            $arquivos[] = [
+                'slug'   => "memory-" . strtolower(str_replace(['_', ' '], '-', $name)),
+                'type'   => 'reference',
+                'module' => $this->detectarModulo($name),
+                'path'   => "memory/$name.md",
+                'full'   => $file,
+            ];
+        }
+
+        // memory/requisitos/*.md raiz (BI.md, AiAssistance.md, AssetManagement.md, Boleto.md...)
+        foreach (glob("$base/memory/requisitos/*.md") as $file) {
+            $name = basename($file, '.md');
+            if (str_starts_with($name, '_')) continue;
+            $arquivos[] = [
+                'slug'   => "module-overview-" . strtolower($name),
+                'type'   => 'reference',
+                'module' => strtolower($name),
+                'path'   => "memory/requisitos/$name.md",
+                'full'   => $file,
+            ];
         }
 
         return $arquivos;
