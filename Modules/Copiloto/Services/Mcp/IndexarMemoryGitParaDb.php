@@ -5,6 +5,7 @@ namespace Modules\Copiloto\Services\Mcp;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Sincroniza memory/ do filesystem (git) pra
@@ -271,10 +272,12 @@ class IndexarMemoryGitParaDb
         $novo = ! $doc->exists;
         $contentMudou = $doc->content_md !== $contentRedacted || $doc->git_sha !== $gitSha;
 
-        $atributos = [
+        $tipadas = $this->extrairColunasTipadas($frontmatter, $piiCount);
+
+        $atributos = array_merge([
             'business_id'          => $this->businessId,
             'type'                 => $info['type'],
-            'module'               => $info['module'],
+            'module'               => $frontmatter['module'] ?? $info['module'],
             'title'                => $title,
             'content_md'           => $contentRedacted,
             'scope_required'       => $scopeRequired,
@@ -284,7 +287,7 @@ class IndexarMemoryGitParaDb
             'git_path'             => $info['path'],
             'pii_redactions_count' => $piiCount,
             'indexed_at'           => now(),
-        ];
+        ], $tipadas);
 
         if ($novo) {
             McpMemoryDocument::create(array_merge(['slug' => $info['slug']], $atributos));
@@ -304,7 +307,12 @@ class IndexarMemoryGitParaDb
     }
 
     /**
-     * Parse YAML frontmatter simples (entre --- ... ---).
+     * Parse YAML frontmatter (entre --- ... ---) usando symfony/yaml.
+     *
+     * MEM-KB-3 / F1 — substitui parser minimalista linha-a-linha por parser
+     * completo (suporta listas, datas ISO, strings com `:`, nesting). Garante
+     * que `tags`, `supersedes`, `superseded_by`, `related` e `decided_by` venham
+     * como array PHP, não string.
      *
      * @return array{frontmatter:array, body:string}
      */
@@ -317,21 +325,62 @@ class IndexarMemoryGitParaDb
         $yaml = $m[1];
         $body = $m[2];
 
-        // Parser YAML minimalista (key: value, suporta string/bool/int)
-        $fm = [];
-        foreach (explode("\n", $yaml) as $linha) {
-            if (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.+)$/', trim($linha), $kv)) {
-                $val = trim($kv[2], " \t\"'");
-                $fm[$kv[1]] = match (strtolower($val)) {
-                    'true'  => true,
-                    'false' => false,
-                    'null'  => null,
-                    default => is_numeric($val) ? (str_contains($val, '.') ? (float) $val : (int) $val) : $val,
-                };
+        try {
+            $fm = Yaml::parse($yaml, Yaml::PARSE_DATETIME) ?? [];
+            if (! is_array($fm)) {
+                $fm = [];
             }
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('YAML frontmatter inválido — ignorando', [
+                'erro' => $e->getMessage(),
+                'yaml' => substr($yaml, 0, 200),
+            ]);
+            $fm = [];
         }
 
         return ['frontmatter' => $fm, 'body' => $body];
+    }
+
+    /**
+     * Extrai colunas tipadas do frontmatter pra colunas do mcp_memory_documents.
+     * MEM-KB-3 / F1.
+     *
+     * @return array<string, mixed>
+     */
+    protected function extrairColunasTipadas(array $fm, int $piiCount): array
+    {
+        $supersedes = array_unique(array_merge(
+            (array) ($fm['supersedes'] ?? []),
+            (array) ($fm['supersedes_partially'] ?? []),
+        ));
+
+        $decidedAt = $fm['decided_at'] ?? null;
+        if ($decidedAt instanceof \DateTimeInterface) {
+            $decidedAt = $decidedAt->format('Y-m-d');
+        }
+
+        return [
+            'status'        => $this->normalizarEnum($fm['status'] ?? null, ['rascunho', 'proposto', 'aceito', 'deprecated', 'superseded']),
+            'authority'     => $this->normalizarEnum($fm['authority'] ?? null, ['canonical', 'reference', 'exploratory']),
+            'lifecycle'     => $this->normalizarEnum($fm['lifecycle'] ?? null, ['ativo', 'arquivado', 'substituido']),
+            'quarter'       => is_string($fm['quarter'] ?? null) ? $fm['quarter'] : null,
+            'decided_at'    => $decidedAt,
+            'decided_by'    => isset($fm['decided_by']) ? array_values((array) $fm['decided_by']) : null,
+            'tags'          => isset($fm['tags']) ? array_values((array) $fm['tags']) : null,
+            'supersedes'    => $supersedes ? array_values($supersedes) : null,
+            'superseded_by' => isset($fm['superseded_by']) ? array_values((array) $fm['superseded_by']) : null,
+            'related'       => isset($fm['related']) ? array_values((array) $fm['related']) : null,
+            'has_pii'       => (bool) ($fm['pii'] ?? ($piiCount > 0)),
+        ];
+    }
+
+    protected function normalizarEnum(mixed $valor, array $permitidos): ?string
+    {
+        if (! is_string($valor)) {
+            return null;
+        }
+        $v = strtolower(trim($valor));
+        return in_array($v, $permitidos, true) ? $v : null;
     }
 
     /**
