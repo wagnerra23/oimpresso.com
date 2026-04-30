@@ -30,8 +30,10 @@
 | ~~A1~~ | — | ~~MEM-CC-team-1 Sprint A+B~~: `.mcp.json` + skill onboarding + skill watcher + CcSearchTool + 3 tabelas mcp_cc_* em prod | qui 30-abr | ✅ **29-abr noite** (`4fa97dd8` + `c807d5db` + `acc3b0c1`) |
 | ~~A1~~ | — | ~~MEM-TEAM-1 Self-host equiv Anthropic Team plan~~ — Team Admin + QuotaEnforcer + alertas idempotentes 50/80/100% + ADR 0055 | qui 30-abr | ✅ **29-abr** (`c4706bef` + `c2339ba1` + `8c8b7ccb`) |
 | ~~A1~~ | — | ~~MEM-MEM-MCP-1 MCP-as-memory-source~~ — McpMemoriaDriver + MemoriaSearchTool + ADR 0056 + Copiloto chat usa MCP | qui 30-abr | ✅ **29-abr** (`a58e7f34`) |
-| A1 | 1/2 | **MEM-CC-team-2: Wagner roda skill `oimpresso-cc-watcher-setup` 1×** — ingere ~83 sessões locais → cc-search retorna hits | sex **02-mai** | ⏳ |
-| A2 | 2/2 | **COP-002 = MEM-MET-5: Golden set v1** — 50 perguntas Larissa-style (destrava 6 colunas RAGAS) | seg **05-mai** | ⏳ |
+| ~~A1~~ | — | ~~MEM-CC-team-2: Wagner roda watcher~~ — V1 watcher Node criado em `scripts/cc-watcher/` (npm install + npm start). Ingestou várias sessões em prod (4697+ msgs em 1 sessão validada) | sex 02-mai | ✅ **30-abr** (`770357af`) |
+| ~~A2~~ | — | ~~COP-002 = MEM-MET-5: Golden set v1~~ — 50 perguntas em prod (`copiloto_memoria_gabarito`); comando `copiloto:eval` em prod com flags `--persist`/`--resposta`/`--top-k`/`--business`; eval baseline rodado | seg 05-mai | ✅ **30-abr** (gabarito seedado + comando AvaliarGabaritoCommand validado) |
+| A1 | 1/2 | **MEM-MET-4 = COP-007 ampl.** Page `/copiloto/admin/qualidade` trend 30d das 8 métricas + RAGAS + HITL anotação (eval contra gabarito mostrou Recall@3=0.125 — gate ADR 0049 reprovado, dashboard precisa pra visibility) | qui **08-mai** | ⏳ |
+| A2 | 2/2 | **MEM-MEM-WIRE Phase 2: HyDE + Reranker + Negative cache** wire no MeilisearchDriver — único caminho pra subir Recall@3 0.125 → 0.80 (gate). Services prontos do `3d060fec` | dom **11-mai** | 🔴 NOVO ALVO bloqueante |
 
 **On-deck imediato (puxar quando A1/A2 fechar, em ordem de impacto×esforço):**
 
