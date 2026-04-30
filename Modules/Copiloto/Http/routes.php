@@ -113,6 +113,10 @@ Route::group(
             ->where('slug', '[A-Za-z0-9\-_]+')
             ->name('copiloto.admin.memoria.restore');
 
+        // ---- MEM-MET-4 (ADR 0050) — Page /copiloto/admin/qualidade
+        Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
+            ->name('copiloto.admin.qualidade.index');
+
         // ---- MEM-CC-UI-1 (SPEC-cc-sessions) — KB sessões Claude Code do time
         Route::get('/admin/cc-sessions',                   'Admin\CcSessionsController@index')
             ->name('copiloto.admin.cc.index');

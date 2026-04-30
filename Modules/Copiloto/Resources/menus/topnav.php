@@ -26,6 +26,7 @@ return [
         ['label' => 'Team Admin',                         'href' => '/copiloto/admin/team',       'icon' => 'Users',           'can' => 'copiloto.mcp.usage.all'],
         ['label' => 'KB MCP (memória)',                   'href' => '/copiloto/admin/memoria',    'icon' => 'BookOpen',        'can' => 'copiloto.mcp.memory.manage'],
         ['label' => 'CC do time',                         'href' => '/copiloto/admin/cc-sessions','icon' => 'Code2',           'can' => 'copiloto.cc.read.team'],
+        ['label' => 'Qualidade IA',                       'href' => '/copiloto/admin/qualidade',  'icon' => 'TrendingUp',      'can' => 'copiloto.mcp.usage.all'],
         ['label' => 'copiloto::copiloto.menu.plataforma', 'href' => '/copiloto/superadmin/metas', 'icon' => 'Building2',       'can' => 'copiloto.superadmin'],
     ],
 ];
