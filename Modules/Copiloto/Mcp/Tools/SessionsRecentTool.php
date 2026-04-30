@@ -41,10 +41,14 @@ class SessionsRecentTool extends Tool
         $limit = max(1, min(20, $limit));
 
         $user = $request->user();
+        $businessId = (int) data_get($user, 'business_id', 0);
 
-        $rows = McpMemoryDocument::doTipo('session')
-            ->acessiveisPara($user)
-            ->orderByDesc('indexed_at')
+        $q = McpMemoryDocument::doTipo('session')->acessiveisPara($user);
+        if ($businessId > 0) {
+            $q->doBusiness($businessId);
+        }
+
+        $rows = $q->orderByDesc('indexed_at')
             ->limit($limit)
             ->get(['slug', 'title', 'indexed_at', 'metadata']);
 
