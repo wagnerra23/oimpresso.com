@@ -46,6 +46,7 @@
 | O7 | **MEM-P2-2 RRF tuning** A/B `semantic_ratio` 0.3 vs 0.7 (Sprint 9 ADR 0037) | 0.5d | Phase 2-3 ADR 0054 |
 | O8 | **MEM-GAP-1: Knowledge UI** equivalente Anthropic Projects — upload PDF/MD/CSV, dedup SHA256, perms can-use/can-edit | 2d | Saved gap ADR 0055 |
 | O9 | **MEM-GAP-2/3/4** (Projects shared / file restrictions / centralized policy) — equivalentes Team plan | 4.5d | Saved gaps ADR 0055 |
+| O10 | **MEM-KB-1: Page `/copiloto/admin/memoria` — KB browser do MCP server** (DataTable filtros type/module/scope, Sheet 600px preview markdown + git_sha→GitHub, history/diff inline, audit log read-only, PII badge + soft-delete double-confirm) | 1d | Transparência LGPD Art. 18 + auditoria pré-onboarding Felipe/Maíra/Luiz/Eliana; refs Mem0 OpenMemory, Letta ADE, MCP Inspector — ADR 0053 já tem schema (`mcp_memory_documents` 107 docs), só falta UI |
 
 ---
 
