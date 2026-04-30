@@ -16,10 +16,12 @@ ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas ráp
 
 **Stack REAL:** Laravel **13.6** + PHP 8.4 (Herd) · MySQL Laragon · DB `oimpresso` · Inertia **v3** + React 19 + Tailwind 4 · Pest v4 · nWidart/laravel-modules ^10 · `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form`.
 
-**Stack-alvo IA (verdade canônica ADR 0035 + 0036):**
+**Stack-alvo IA (verdade canônica ADR 0035 + 0036 + 0048):**
 - **Camada A:** `laravel/ai` ^0.6.3 (oficial fev/2026)
-- **Camada B:** Vizra ADK quando suportar L13 (hoje `LaravelAiSdkDriver` + 4 Agents)
-- **Camada C:** `MemoriaContrato` + `MeilisearchDriver` default + `NullDriver` dev (Mem0 sprint 8+ condicional)
+- **Camada B:** `LaravelAiSdkDriver` + 4 Agents próprios em `Modules/Copiloto/Agents/` — **Vizra ADK REJEITADA (ADR 0048, ADR 0032 superseded)** — não puxar/sugerir
+- **Camada C:** `MemoriaContrato` + `MeilisearchDriver` (hybrid embedder OpenAI text-embedding-3-small ativo, ADR 0036) + `MeilisearchDriver` default + `NullDriver` dev
+- **MCP server canônico:** `mcp.oimpresso.com` (CT 100/FrankenPHP) — 352 docs sincronizados de `memory/*` (ADR 0053). Token gerenciado em `/copiloto/admin/team`, KB inspecionável em `/copiloto/admin/memoria`
+- **Real-time:** Centrifugo + FrankenPHP (CT 100, ADR 0058) — **Reverb ABANDONADO** após crash em testes
 - **Tooling:** Boost + MCP + Scout + Horizon + Telescope + Pail
 
 **Padrão arquitetural:** Modular monolith, DDD leve, append-only onde a lei exige, `business_id` global scope obrigatório.
@@ -30,14 +32,32 @@ ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas ráp
 
 ## 2. Como trabalhar neste projeto (fluxo obrigatório)
 
-Sempre que você (agente ou humano) for atuar neste projeto:
+### Caminho preferido: tools MCP (quando conectado)
 
-1. **Leia o estado vivo** em [`CURRENT.md`](CURRENT.md) — sprint, em-andamento, próximo passo, bloqueios.
-2. **Leia o handoff** em [`memory/08-handoff.md`](memory/08-handoff.md) — estado canônico mais recente.
-3. **Leia o session log mais recente** em `memory/sessions/` — contexto imediato da última sessão.
-4. **Consulte ADRs relevantes** em [`memory/decisions/`](memory/decisions/) — decisões com justificativa.
-5. **Siga as convenções** de [`memory/04-conventions.md`](memory/04-conventions.md).
-6. **Respeite as preferências** em [`memory/05-preferences.md`](memory/05-preferences.md).
+Se você tem o MCP server `oimpresso` conectado (`.claude/settings.local.json` com Bearer `mcp_*` apontando pra `mcp.oimpresso.com/api/mcp`), **prefira tools MCP em vez de Read** — são governadas, auditadas em `mcp_audit_log` e retornam só o que importa:
+
+| Pergunta | Tool MCP |
+|---|---|
+| "Qual o estado do cycle?" | `tasks-current` |
+| "Qual ADR fala sobre X?" | `decisions-search query:"X"` |
+| "Ler ADR 0053 completa" | `decisions-fetch slug:"0053-mcp-server-governanca-como-produto"` |
+| "Últimas sessões" | `sessions-recent limit:5` |
+| "Fato do business sobre Y" | `memoria-search query:"Y"` |
+| "O que time usou no Claude Code?" | `cc-search query:"..."` |
+| "Quanto eu consumi?" | `claude-code-usage-self` |
+
+UI humana: `/copiloto/admin/memoria` lista 352 docs (ADRs/sessions/refs/comparativos/audits/runbooks) com filtros + preview markdown.
+
+### Fallback: filesystem (se sem MCP)
+
+Sem MCP conectado, lê na ordem:
+
+1. **Estado vivo** em [`CURRENT.md`](CURRENT.md) — sprint, em-andamento, próximo passo, bloqueios.
+2. **Handoff** em [`memory/08-handoff.md`](memory/08-handoff.md) — estado canônico mais recente.
+3. **Session log mais recente** em `memory/sessions/` — contexto imediato da última sessão.
+4. **ADRs relevantes** em [`memory/decisions/`](memory/decisions/) — decisões com justificativa.
+5. **Convenções** de [`memory/04-conventions.md`](memory/04-conventions.md).
+6. **Preferências** em [`memory/05-preferences.md`](memory/05-preferences.md).
 
 Pra qualquer coisa visual/UX, comece em [`DESIGN.md`](DESIGN.md). Pra acesso/deploy de produção, em [`INFRA.md`](INFRA.md).
 
@@ -121,19 +141,37 @@ D:\oimpresso.com\
 
 ## 6. Cofre de comparativos & gestão de memória
 
+**Fluxo:** git (source-of-truth) → webhook GitHub → `mcp_memory_documents` (DB cache governado) → tools MCP / `/copiloto/admin/memoria` UI.
+
 **Comparativos competitivos** (estilo Capterra/G2) ficam em [`memory/comparativos/`](memory/comparativos/) — template oficial em `_TEMPLATE_capterra_oimpresso.md` v1.0, índice em `_INDEX.md`.
 
 **Trigger "guarde no cofre":** quando Wagner pedir, classifique antes de salvar:
 - Comparativo competitivo → `memory/comparativos/`
 - Decisão arquitetural → `memory/decisions/NNNN-slug.md` (formato Nygard, ver ADR 0028)
 - User story / requisito → `memory/requisitos/{Modulo}/SPEC.md`
-- Preferência do usuário ou quirk de cliente → auto-memória do agente (fora do git)
+- ADR específico de módulo → `memory/requisitos/{Modulo}/adr/{arq|tech|ui}/NNNN-slug.md`
+- Runbook/audit/architecture → `memory/requisitos/{Modulo}/{RUNBOOK|ARCHITECTURE|GLOSSARY|CHANGELOG}.md`
+- Preferência do usuário ou quirk de cliente → auto-memória do agente (fora do git, fora do MCP)
 - Evidência (print, log, chat) → `Modules/MemCofre/` (entidades `Doc*`)
-- Sempre confirmar com link curto pra Wagner.
+- Após `git push`, **webhook GitHub sincroniza em <60s** pra `mcp_memory_documents` automaticamente. Confirmar via `decisions-search` ou na tela.
 
-**Papéis canônicos** de cada sistema de memória estão formalizados em [ADR 0027](memory/decisions/0027-gestao-memoria-roles-claros.md). Resumo: estado vivo em `CURRENT.md`, handoff em `memory/08-handoff.md`, ADRs em `memory/decisions/`, sessões em `memory/sessions/`, specs por módulo em `memory/requisitos/{Mod}/`, cross-conversation em auto-memória, evidências em MemCofre, auditoria em git.
+**Papéis canônicos** de cada sistema de memória estão formalizados em [ADR 0027](memory/decisions/0027-gestao-memoria-roles-claros.md) e expandidos em [ADR 0053](memory/decisions/0053-mcp-server-governanca-como-produto.md):
 
-**Não duplicar info entre sistemas.** Se já está no repo (cross-agent), auto-memória só aponta. Conflito de fato entre 2 fontes = bug.
+| Sistema | Conteúdo | Source-of-truth | Acesso IA |
+|---|---|---|---|
+| `CURRENT.md` | Estado vivo cycle/sprint | git | tool MCP `tasks-current` |
+| `memory/08-handoff.md` | Handoff estado canônico | git | tool MCP via slug `handoff` |
+| `memory/decisions/*.md` | ADRs Nygard | git | tools `decisions-search`/`decisions-fetch` |
+| `memory/sessions/*.md` | Logs cronológicos | git | tool MCP `sessions-recent` |
+| `memory/requisitos/{Mod}/` | SPECs + ADRs por módulo + runbook + audit | git | tool MCP `decisions-search module:` |
+| `memory/comparativos/*.md` | Capterra-style competitive briefs | git | tool MCP via slug `comparativo-*` |
+| Auto-memória | Cross-conversation Claude (preferências) | local user | NÃO sobe pro MCP |
+| MemCofre | Evidências (DocVault) | DB | tela `/memcofre` |
+| `mcp_memory_documents` | DB cache de tudo acima exceto auto-mem | sync git→DB | tools MCP |
+
+**Não duplicar info entre sistemas.** Git é canônico; MCP é cache governado; auto-memória só aponta. Conflito de fato entre 2 fontes = bug.
+
+**KB MCP UI (`/copiloto/admin/memoria`)** — tela de governança Wagner: lista 352 docs, filtros (type/module/PII), Sheet preview markdown render + git_sha→GitHub, soft-delete LGPD double-confirm, history. Permission: `copiloto.mcp.memory.manage` (ADR 0057).
 
 ---
 
@@ -179,4 +217,4 @@ Ver [`DESIGN.md`](DESIGN.md) — hub visual + padrão técnico Chat Cockpit (App
 
 ---
 
-> **Última atualização:** 2026-04-28 (slim §8 → INFRA.md, §10 → DESIGN.md; +CURRENT.md/CYCLE/TASKS/TEAM, /continuar, skills, ADR 0040 publication-policy + ADR 0041 stack QA de IA)
+> **Última atualização:** 2026-04-30 — §1 stack atualizada (Vizra REJEITADA ADR 0048, Reverb ABANDONADO ADR 0058 → Centrifugo); §2 fluxo MCP-first (tools sobre filesystem); §6 KB MCP UI `/copiloto/admin/memoria` + 352 docs sincronizados (F1 sync expansion)
