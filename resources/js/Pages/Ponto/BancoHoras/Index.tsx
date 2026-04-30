@@ -7,8 +7,8 @@
 //   adrs: arq/0001
 //   tests: Modules/PontoWr2/Tests/Feature/BancoHorasIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -51,7 +51,6 @@ interface Props {
 export default function BancoHorasIndex({ saldos, totais }: Props) {
   return (
     <>
-      <Head title="Banco de Horas" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <PageHeader
           icon="piggy-bank"
@@ -163,7 +162,7 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
 }
 
 BancoHorasIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Banco de Horas' }]}>
+  <AppShellV2 title="Banco de Horas" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Banco de Horas' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

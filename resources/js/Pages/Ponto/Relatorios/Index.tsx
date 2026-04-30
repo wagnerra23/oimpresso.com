@@ -6,8 +6,7 @@
 //   rules: R-PONT-001, R-PONT-005
 //   tests: Modules/PontoWr2/Tests/Feature/RelatoriosIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import type { ReactNode } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -71,7 +70,6 @@ const corClasses: Record<CorKey, string> = {
 export default function RelatoriosIndex({ relatorios }: Props) {
   return (
     <>
-      <Head title="Relatórios · Ponto WR2" />
       <div className="mx-auto max-w-7xl p-6">
         <header className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Relatórios</h1>
@@ -127,7 +125,7 @@ export default function RelatoriosIndex({ relatorios }: Props) {
 }
 
 RelatoriosIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Ponto WR2' }, { label: 'Relatórios' }]}>
+  <AppShellV2 title="Relatórios · Ponto WR2" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'Relatórios' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

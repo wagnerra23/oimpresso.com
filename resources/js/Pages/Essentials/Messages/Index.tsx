@@ -5,8 +5,8 @@
 //   rules: R-ESSE-001
 //   tests: Modules/Essentials/Tests/Feature/MessagesIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { MessageCircle, Send, Trash2 } from 'lucide-react';
@@ -159,7 +159,6 @@ export default function MessagesIndex({
 
   return (
     <>
-      <Head title="Mensagens" />
       <div className="mx-auto max-w-4xl p-6">
         <Card className="flex flex-col h-[calc(100vh-12rem)]">
           <CardHeader className="border-b border-border">
@@ -290,7 +289,7 @@ export default function MessagesIndex({
 }
 
 MessagesIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Essentials' }, { label: 'Mensagens' }]}>
+  <AppShellV2 title="Mensagens" breadcrumbItems={[{ label: 'Essentials' }, { label: 'Mensagens' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

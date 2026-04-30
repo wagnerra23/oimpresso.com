@@ -5,8 +5,8 @@
 //   rules: R-ESSE-001
 //   tests: Modules/Essentials/Tests/Feature/DocumentsIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
@@ -238,7 +238,6 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
 
   return (
     <>
-      <Head title="Documentos" />
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
@@ -550,9 +549,9 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
 }
 
 DocumentsIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Essentials' }, { label: 'Documentos' }]}>
+  <AppShellV2 title="Documentos" breadcrumbItems={[{ label: 'Essentials' }, { label: 'Documentos' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 function TabButton({

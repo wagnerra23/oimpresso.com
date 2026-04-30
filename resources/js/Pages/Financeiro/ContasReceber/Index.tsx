@@ -1,7 +1,7 @@
 // @memcofre tela=/financeiro/contas-receber module=Financeiro
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router, useForm } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router, useForm } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Receipt, AlertTriangle, CheckCircle2, Circle, Hourglass } from 'lucide-react';
@@ -86,8 +86,6 @@ function Index({ titulos, filtros }: Props) {
 
   return (
     <>
-      <Head title="Contas a Receber" />
-
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Contas a Receber</h1>
@@ -207,5 +205,9 @@ function Index({ titulos, filtros }: Props) {
   );
 }
 
-Index.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>;
+Index.layout = (page: React.ReactNode) => (
+  <AppShellV2 title="Contas a Receber" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas a Receber' }]}>
+    {page}
+  </AppShellV2>
+);
 export default Index;

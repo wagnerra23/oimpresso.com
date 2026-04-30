@@ -5,8 +5,8 @@
 //   rules: R-ESSE-001
 //   tests: Modules/Essentials/Tests/Feature/KnowledgeIndexTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
@@ -81,7 +81,6 @@ export default function KnowledgeIndex({ books }: Props) {
 
   return (
     <>
-      <Head title="Base de conhecimento" />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
@@ -238,7 +237,7 @@ export default function KnowledgeIndex({ books }: Props) {
 }
 
 KnowledgeIndex.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Essentials' }, { label: 'Base de conhecimento' }]}>
+  <AppShellV2 title="Base de conhecimento" breadcrumbItems={[{ label: 'Essentials' }, { label: 'Base de conhecimento' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

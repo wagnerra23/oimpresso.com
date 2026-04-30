@@ -7,8 +7,8 @@
 //   adrs: ui/0002, arq/0005
 //   tests: Modules/Financeiro/Tests/Feature/RelatoriosTest
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, Link, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Link, router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -118,8 +118,6 @@ function FinanceiroRelatorios({ filters, dre, fluxo, resumo }: Props) {
 
   return (
     <>
-      <Head title="Financeiro — Relatórios" />
-
       <PageHeader
         icon="bar-chart-3"
         title="Relatórios"
@@ -586,9 +584,9 @@ function EmptyMsg({ text }: { text: string }) {
 }
 
 FinanceiroRelatorios.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[{ label: 'Financeiro', href: '/financeiro' }, { label: 'Relatórios' }]}>
+  <AppShellV2 title="Financeiro — Relatórios" breadcrumbItems={[{ label: 'Financeiro', href: '/financeiro' }, { label: 'Relatórios' }]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );
 
 export default FinanceiroRelatorios;

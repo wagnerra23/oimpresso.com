@@ -6,7 +6,7 @@
 //   rules: R-ESSE-001
 //   tests: Modules/Essentials/Tests/Feature/TodoEditTest
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -248,11 +248,11 @@ export default function TodoEdit({ todo, users, statuses, priorities, can }: Pro
 }
 
 TodoEdit.layout = (page: ReactNode) => (
-  <AppShell breadcrumb={[
+  <AppShellV2 title="Editar tarefa" breadcrumbItems={[
     { label: 'Essentials' },
     { label: 'Tarefas', href: '/essentials/todo' },
     { label: 'Editar' },
   ]}>
     {page}
-  </AppShell>
+  </AppShellV2>
 );

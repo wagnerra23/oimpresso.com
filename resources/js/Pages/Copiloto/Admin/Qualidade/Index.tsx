@@ -8,8 +8,8 @@
 // das 8 métricas obrigatórias + 3 RAGAS-aligned. Sem chart libs — sparklines
 // SVG inline minimalistas (1 line por série).
 
-import AppShell from '@/Layouts/AppShell';
-import { Head, router } from '@inertiajs/react';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -153,8 +153,6 @@ function QualidadeIndex(props: Props) {
 
   return (
     <>
-      <Head title="Qualidade IA — Métricas de memória" />
-
       <PageHeader
         icon="trending-up"
         title="Qualidade IA"
@@ -368,6 +366,10 @@ function QualidadeIndex(props: Props) {
   );
 }
 
-QualidadeIndex.layout = (page: ReactNode) => <AppShell>{page}</AppShell>;
+QualidadeIndex.layout = (page: ReactNode) => (
+  <AppShellV2 title="Qualidade IA — Métricas de memória" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Qualidade IA' }]}>
+    {page}
+  </AppShellV2>
+);
 
 export default QualidadeIndex;
