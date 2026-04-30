@@ -43,10 +43,13 @@ class DecisionsFetchTool extends Tool
         }
 
         $user = $request->user();
+        $businessId = (int) data_get($user, 'business_id', 0);
 
-        $doc = McpMemoryDocument::where('slug', $slug)
-            ->acessiveisPara($user)
-            ->first();
+        $baseQuery = McpMemoryDocument::where('slug', $slug)->acessiveisPara($user);
+        if ($businessId > 0) {
+            $baseQuery->doBusiness($businessId);
+        }
+        $doc = $baseQuery->first();
 
         if ($doc === null) {
             // Diferenciação: existe mas sem permissão vs não existe
