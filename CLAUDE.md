@@ -117,6 +117,19 @@ D:\oimpresso.com\
 
 ## 4. O que NÃO fazer
 
+> ⚠️ Mapa de ambientes (Hostinger / CT 100 Proxmox / Local / CI) e credenciais ficam em [`INFRA.md`](INFRA.md). As regras abaixo são as **invioláveis** — violar = incidente.
+
+**Ambiente — onde NÃO mexer:**
+
+- ⛔ **Nunca instalar `laravel/mcp` ou `laravel/octane` no Hostinger** (nem em worktree, nem em `/tmp`). Esses pacotes só vivem em CT 100 Proxmox e local. Hostinger é shared hosting do app web; MCP/Octane lá é violação de contrato.
+- ⛔ **Nunca rodar Pest da suite Copiloto/MCP no Hostinger** — usar CT 100 (via Tailscale) ou local.
+- ⛔ **Nunca rodar `composer update` (sem `--lock`) em servidor de produção** sem PR aprovado.
+- ⛔ **Nunca alterar branch ativa em produção pra "testar"** (Hostinger ou CT 100) — usar worktree e limpar depois.
+- ⛔ **Nunca editar arquivo direto via SSH** sem commit no git — drift mata governança (já queimou Eliana no 3.7→6.7, ver INFRA.md §2).
+- ⛔ **Nunca rodar daemons no Hostinger** (Reverb, Centrifugo, Horizon, autossh, Meilisearch). Shared hosting não suporta. Pra daemons → CT 100.
+
+**Código — onde NÃO mexer:**
+
 - **Não modifique tabelas do core UltimatePOS** (`users`, `business`, `employees`, etc.). Use a tabela bridge `ponto_colaborador_config` no PontoWr2.
 - **Não faça UPDATE ou DELETE em `ponto_marcacoes`** — append-only por força de lei (Portaria 671/2021). Use `Marcacao::anular()`.
 - **Não remova triggers MySQL** de imutabilidade sem abrir ADR justificando.
