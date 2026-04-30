@@ -138,25 +138,57 @@ class TeamController extends Controller
                 'type'        => 'node',
                 'entry_point' => 'server/index.js',
                 'mcp_config'  => [
-                    'command' => 'npx',
-                    'args'    => [
-                        '-y',
-                        'mcp-remote@latest',
-                        'https://mcp.oimpresso.com/api/mcp',
-                        '--header',
-                        'Authorization: Bearer ' . $raw,
+                    'command' => 'node',
+                    'args'    => ['${__dirname}/server/index.js'],
+                    'env'     => [
+                        'MCP_URL'           => 'https://mcp.oimpresso.com/api/mcp',
+                        'MCP_AUTHORIZATION' => 'Bearer ' . $raw,
                     ],
                 ],
             ],
         ];
 
-        // Stub server/index.js — não roda direto; mcp_config.command=npx mcp-remote é quem roda.
-        // Existe só pra satisfazer a validação do entry_point pelo Claude Desktop.
-        $serverStub = "#!/usr/bin/env node\n"
-            . "// Oimpresso MCP DXT bridge — apenas placeholder.\n"
-            . "// O servidor real é invocado via mcp_config.command=npx mcp-remote no manifest.json.\n"
-            . "// Este arquivo existe pra satisfazer DXT spec entry_point.\n"
-            . "console.error('[oimpresso-mcp] Bridge ativo via mcp-remote. URL: https://mcp.oimpresso.com/api/mcp');\n";
+        // Wrapper Node — spawna `npx mcp-remote` com shell:true (resolve npx.cmd no Windows).
+        // Lê URL/token de env vars definidas no manifest.json.
+        // stdio:inherit garante que STDIO MCP passa transparente entre Claude e mcp-remote.
+        $serverStub = <<<'JS'
+#!/usr/bin/env node
+// Oimpresso MCP DXT — bridge stdio↔HTTP via mcp-remote.
+// Spawna `npx mcp-remote` com shell:true pra funcionar em Windows (.cmd) e POSIX.
+const { spawn } = require('child_process');
+
+const url   = process.env.MCP_URL;
+const auth  = process.env.MCP_AUTHORIZATION;
+
+if (!url || !auth) {
+  console.error('[oimpresso-mcp] MCP_URL ou MCP_AUTHORIZATION ausente no env do manifest');
+  process.exit(1);
+}
+
+const args = ['-y', 'mcp-remote@latest', url, '--header', `Authorization: ${auth}`];
+
+const child = spawn('npx', args, {
+  stdio: 'inherit',
+  shell: true,           // resolve npx.cmd em Windows
+  env: process.env,
+});
+
+child.on('error', (err) => {
+  console.error('[oimpresso-mcp] Erro ao spawnar npx mcp-remote:', err.message);
+  console.error('[oimpresso-mcp] Verifique se Node.js + npx estão instalados e no PATH.');
+  process.exit(1);
+});
+
+child.on('exit', (code, signal) => {
+  if (signal) console.error(`[oimpresso-mcp] mcp-remote encerrado por sinal ${signal}`);
+  process.exit(code ?? 0);
+});
+
+// Encaminha sinais (Ctrl+C, etc) pro processo filho
+['SIGINT', 'SIGTERM', 'SIGHUP'].forEach((sig) => {
+  process.on(sig, () => child.kill(sig));
+});
+JS;
 
         // Empacota ZIP (.dxt) em arquivo temporário
         $tmpFile = tempnam(sys_get_temp_dir(), 'dxt_');
