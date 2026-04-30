@@ -110,6 +110,36 @@ function TeamIndex(props: Props) {
       .catch(() => toast.error('Erro de rede'));
   }
 
+  async function gerarDxt(member: TeamMember) {
+    if (!confirm(`Gerar arquivo .dxt (Claude Desktop) pra ${member.nome}? Cria token novo embutido — entrega via canal seguro.`)) return;
+    try {
+      const res = await fetch(`/copiloto/admin/team/${member.id}/dxt`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      if (!res.ok) { toast.error('Erro ao gerar .dxt'); return; }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') ?? '';
+      const m = /filename="([^"]+)"/.exec(cd);
+      const filename = m?.[1] ?? `oimpresso-mcp-${member.id}.dxt`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      router.reload({ only: ['team'] });
+      toast.success(`.dxt baixado pra ${member.nome} — entrega via Vaultwarden`);
+    } catch {
+      toast.error('Erro de rede ao gerar .dxt');
+    }
+  }
+
   function exportarCsv() {
     const periodo = prompt('Período (de,ate em YYYY-MM-DD,YYYY-MM-DD ou ENTER pra mês corrente):', '');
     let url = '/copiloto/admin/team/export.csv';
@@ -248,9 +278,18 @@ function TeamIndex(props: Props) {
                     <td className="text-right py-2 px-2">
                       <div className="flex gap-1 justify-end">
                         <Button
+                          variant="default" size="sm"
+                          onClick={() => gerarDxt(m)}
+                          className="text-xs"
+                          title="Gera token + arquivo .dxt pro Claude Desktop"
+                        >
+                          📦 + DXT
+                        </Button>
+                        <Button
                           variant="outline" size="sm"
                           onClick={() => gerarToken(m)}
                           className="text-xs"
+                          title="Gera token raw (Claude Code CLI / setup manual)"
                         >
                           + Token
                         </Button>

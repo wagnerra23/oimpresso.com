@@ -88,6 +88,8 @@ Route::group(
             ->name('copiloto.admin.team.index');
         Route::post('/admin/team/{user}/token',            'Admin\TeamController@gerarToken')
             ->name('copiloto.admin.team.token.gerar');
+        Route::post('/admin/team/{user}/dxt',              'Admin\TeamController@gerarDxt')
+            ->name('copiloto.admin.team.dxt.gerar');
         Route::delete('/admin/team/token/{token}',         'Admin\TeamController@revogarToken')
             ->name('copiloto.admin.team.token.revogar');
         Route::post('/admin/team/{user}/quota',            'Admin\TeamController@atualizarQuota')
