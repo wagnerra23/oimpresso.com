@@ -11,12 +11,12 @@ use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
  * mcp_memory_documents (DB cache governado).
  *
  * F1 KB expansion (2026-04-30): cobre agora além de decisions/sessions/SPEC:
- *   - memory/comparativos/*.md           → type=comparativo
- *   - memory/requisitos/*/adr/*/*.md     → type=adr, module=parent dir
- *   - memory/requisitos/*/{RUNBOOK,ARCHITECTURE,GLOSSARY,CHANGELOG,README}.md
- *   - memory/requisitos/*/audits/*.md    → type=audit
- *   - memory/*.md raiz (00-overview..., CHANGELOG, INDEX...)
- *   - memory/requisitos/*.md raiz (BI.md, Boleto.md...)
+ *   - memory/comparativos/X.md           → type=comparativo
+ *   - memory/requisitos/M/adr/CAT/X.md   → type=adr (module=M, cat=arq|tech|ui)
+ *   - memory/requisitos/M/RUNBOOK.md, ARCHITECTURE.md, GLOSSARY.md, etc
+ *   - memory/requisitos/M/audits/X.md    → type=audit
+ *   - memory/X.md raiz (00-overview..., CHANGELOG, INDEX...)
+ *   - memory/requisitos/X.md raiz (BI.md, Boleto.md...)
  *
  * Idempotente: re-rodar com mesmos arquivos é no-op (sha igual).
  */
