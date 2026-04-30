@@ -39,8 +39,8 @@ class HydeQueryExpander
             return [$queryOriginal];
         }
 
-        $cacheKey = 'hyde:' . hash('sha256', $queryOriginal . json_encode($contextoMinimal));
-        $cached = Cache::tags(['copiloto:hyde'])->get($cacheKey);
+        $cacheKey = 'copiloto:hyde:' . hash('sha256', $queryOriginal . json_encode($contextoMinimal));
+        $cached = Cache::get($cacheKey);
         if ($cached !== null) {
             return [$queryOriginal, $cached];
         }
@@ -61,7 +61,7 @@ class HydeQueryExpander
             $response = $agent->prompt($userPrompt);
             $docHipotetico = (string) $response;
 
-            Cache::tags(['copiloto:hyde'])->put($cacheKey, $docHipotetico, now()->addHour());
+            Cache::put($cacheKey, $docHipotetico, now()->addHour());
 
             Log::channel('copiloto-ai')->info('HyDE: expandido', [
                 'query' => mb_substr($queryOriginal, 0, 100),

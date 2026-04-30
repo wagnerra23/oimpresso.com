@@ -168,6 +168,50 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | MEM-MEM-WIRE Phase 2 — HyDE Query Expansion (ADR 0054 / Sprint 10)
+    |--------------------------------------------------------------------------
+    | Gera "documento hipotético" que responderia a pergunta do user e usa
+    | esse doc (não a query original) pra busca semântica — bridge phrasing gap.
+    | Ganho esperado: +15% Recall@10 (literatura 2026).
+    | Custo: ~80 tokens gpt-4o-mini por expand (cache 1h).
+    |
+    | Desabilitado por default — habilitar via env COPILOTO_HYDE_ENABLED=true.
+    */
+    'hyde' => [
+        'enabled' => env('COPILOTO_HYDE_ENABLED', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | MEM-MEM-WIRE Phase 2 — LLM Reranker (ADR 0054 / Sprint 10)
+    |--------------------------------------------------------------------------
+    | Após retrieval BM25/vector, pede pra gpt-4o-mini reordenar candidatos
+    | por relevância à query. Substitui cross-encoder (precisaria GPU).
+    | Ganho esperado: +5pp recall@5 (literatura RAG 2026).
+    | Custo: ~150 tokens por rerank (cache 5min).
+    |
+    | Desabilitado por default — habilitar via env COPILOTO_RERANKER_ENABLED=true.
+    */
+    'reranker' => [
+        'enabled' => env('COPILOTO_RERANKER_ENABLED', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | MEM-MEM-WIRE Phase 2 — Negative Cache (ADR 0054)
+    |--------------------------------------------------------------------------
+    | Queries que retornam 0 resultados são marcadas por TTL segundos.
+    | Chamadas subsequentes da mesma query retornam [] sem hit Scout ou LLM.
+    |
+    | Desabilitado por default — habilitar via env COPILOTO_NEGATIVE_CACHE_ENABLED=true.
+    */
+    'negative_cache' => [
+        'enabled'      => env('COPILOTO_NEGATIVE_CACHE_ENABLED', false),
+        'ttl_segundos' => (int) env('COPILOTO_NEGATIVE_CACHE_TTL', 300),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | MEM-CACHE-1 — Cache semântico de respostas LLM (ADR 0037 Sprint 8)
     |--------------------------------------------------------------------------
     | Antes de chamar OpenAI: busca query similar no cache. Hit → retorna
