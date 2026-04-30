@@ -153,79 +153,112 @@ class TeamController extends Controller
         // Em Windows, command='npx.cmd' (Node spawn resolve .cmd via CreateProcess).
         // Em POSIX, command='npx' direto. shell:false em ambos.
         // Lê URL/token de env vars definidas no manifest.json.
+        // Bridge nativo Node 18+ — fetch HTTP direto, sem mcp-remote/npx/cmd.exe.
+        // Funciona em Windows/macOS/Linux out-of-box. Tamanho < 4KB.
+        // Lê JSON-RPC linha-a-linha do stdin, POST com Bearer pro endpoint, SSE+JSON response.
+        // Validado: handshake initialize + tools/list (7 tools) sem deps externas.
         $serverStub = <<<'JS'
 #!/usr/bin/env node
-// Oimpresso MCP DXT — bridge stdio↔HTTP via mcp-remote.
-//
-// Windows é traiçoeiro:
-//   - shell:false + 'npx.cmd' → EINVAL (CVE-2024-27980 mitigation no Node 18.20+/20.12+/22+)
-//   - shell:true  + 'npx'     → cmd.exe quebra "C:\Program Files\nodejs\npx.cmd" no espaço
-//
-// Solução: cmd.exe /c com windowsVerbatimArguments e command line montada manualmente.
-// Procura npx.cmd via `where`, prefere o path SEM espaço (AppData\Roaming\npm).
-const { spawn, execSync } = require('child_process');
+// Oimpresso MCP DXT — bridge stdio↔HTTP nativo (Node 18+ fetch).
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+
+const LOG = path.join(os.tmpdir(), 'oimpresso-mcp-debug.log');
+function log(msg) { try { fs.appendFileSync(LOG, `[${new Date().toISOString()}] ${msg}\n`); } catch {} }
 
 const url  = process.env.MCP_URL;
 const auth = process.env.MCP_AUTHORIZATION;
 
-if (!url || !auth) {
-  console.error('[oimpresso-mcp] MCP_URL ou MCP_AUTHORIZATION ausente no env do manifest');
-  process.exit(1);
-}
+log('========== START ==========');
+log(`platform=${process.platform} node=${process.version}`);
+log(`url=${url || '<MISSING>'} auth=${auth ? '<SET>' : '<MISSING>'}`);
 
-const isWindows = process.platform === 'win32';
-let child;
+if (!url || !auth) { log('FATAL env'); process.exit(1); }
+if (typeof fetch !== 'function') { log('FATAL: fetch ausente — Node < 18'); process.exit(1); }
 
-if (isWindows) {
-  let npxPath;
+let sessionId = null;
+let buffer = '';
+
+async function postOne(line) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json, text/event-stream',
+    'Authorization': auth,
+  };
+  if (sessionId) headers['Mcp-Session-Id'] = sessionId;
+
+  let res;
   try {
-    const wherePaths = execSync('where npx.cmd', { encoding: 'utf-8', windowsHide: true })
-      .split(/\r?\n/).map(p => p.trim()).filter(Boolean);
-    // Prefere caminhos sem espaço pra simplificar quoting
-    npxPath = wherePaths.find(p => !p.includes(' ')) || wherePaths[0];
-    if (!npxPath) throw new Error('where retornou vazio');
+    res = await fetch(url, { method: 'POST', headers, body: line });
   } catch (e) {
-    console.error('[oimpresso-mcp] npx.cmd não encontrado no PATH:', e.message);
-    console.error('[oimpresso-mcp] Instale Node.js: https://nodejs.org');
-    process.exit(1);
+    log(`fetch error: ${e.message}`);
+    try {
+      const msg = JSON.parse(line);
+      if (msg.id !== undefined) {
+        process.stdout.write(JSON.stringify({
+          jsonrpc: '2.0', id: msg.id,
+          error: { code: -32603, message: 'Bridge fetch error: ' + e.message },
+        }) + '\n');
+      }
+    } catch {}
+    return;
   }
 
-  console.error(`[oimpresso-mcp] Bridge via ${npxPath} → ${url}`);
+  const newSession = res.headers.get('mcp-session-id');
+  if (newSession && newSession !== sessionId) {
+    sessionId = newSession;
+    log(`session=${sessionId}`);
+  }
 
-  // Monta linha de comando com cmd.exe /d /c. Aspas externas obrigatórias quando
-  // a string toda contém aspas internas (regra antiga do cmd /c).
-  const escapedAuth = auth.replace(/"/g, '\\"');
-  const cmdline = `""${npxPath}" -y mcp-remote@latest "${url}" --header "Authorization: ${escapedAuth}""`;
+  if (res.status === 202 || res.status === 204) { log(`-> ${res.status} (no body)`); return; }
 
-  child = spawn('cmd.exe', ['/d', '/s', '/c', cmdline], {
-    stdio: 'inherit',
-    windowsVerbatimArguments: true,
-    env: process.env,
-    windowsHide: true,
-  });
-} else {
-  console.error(`[oimpresso-mcp] Bridge via npx → ${url}`);
-  child = spawn('npx', ['-y', 'mcp-remote@latest', url, '--header', `Authorization: ${auth}`], {
-    stdio: 'inherit',
-    shell: false,
-    env: process.env,
-  });
+  const ct = (res.headers.get('content-type') || '').toLowerCase();
+
+  if (ct.includes('text/event-stream') && res.body) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let sseBuf = '';
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        sseBuf += decoder.decode(value, { stream: true });
+        let evEnd;
+        while ((evEnd = sseBuf.indexOf('\n\n')) >= 0) {
+          const ev = sseBuf.slice(0, evEnd);
+          sseBuf = sseBuf.slice(evEnd + 2);
+          for (const evLine of ev.split('\n')) {
+            if (evLine.startsWith('data:')) {
+              const data = evLine.slice(5).trim();
+              if (data) process.stdout.write(data + '\n');
+            }
+          }
+        }
+      }
+    } catch (e) { log(`SSE read error: ${e.message}`); }
+  } else {
+    const text = await res.text();
+    if (text) process.stdout.write(text.endsWith('\n') ? text : text + '\n');
+  }
 }
 
-child.on('error', (err) => {
-  console.error('[oimpresso-mcp] Erro ao spawnar processo:', err.message);
-  console.error('[oimpresso-mcp] PATH:', process.env.PATH);
-  process.exit(1);
+process.stdin.setEncoding('utf-8');
+process.stdin.on('data', (chunk) => {
+  buffer += chunk;
+  let nl;
+  while ((nl = buffer.indexOf('\n')) >= 0) {
+    const line = buffer.slice(0, nl).replace(/\r$/, '').trim();
+    buffer = buffer.slice(nl + 1);
+    if (!line) continue;
+    postOne(line).catch((e) => log(`postOne uncaught: ${e.message}`));
+  }
 });
 
-child.on('exit', (code, signal) => {
-  if (signal) console.error(`[oimpresso-mcp] mcp-remote encerrado por sinal ${signal}`);
-  process.exit(code ?? 0);
-});
+process.stdin.on('end', () => { log('stdin ended'); process.exit(0); });
+process.stdin.on('error', (e) => { log(`stdin error: ${e.message}`); process.exit(1); });
 
-['SIGINT', 'SIGTERM', 'SIGHUP'].forEach((sig) => {
-  process.on(sig, () => child.kill(sig));
-});
+log('bridge listening');
 JS;
 
         // Empacota ZIP (.dxt) em arquivo temporário
