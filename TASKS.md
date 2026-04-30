@@ -52,6 +52,11 @@
 | ~~A1 antigo~~ | 🟡 | W | COP-002 Golden set Larissa-style — adiada pra Cycle 02 (depende MCP server pra audit das respostas) | — | 1.5 |
 | ~~A2 antigo~~ | 🟡 | W | MEM-MET-4 Page `/copiloto/admin/qualidade` — vira parte do MEM-MCP-1.f Dia 6 | — | 2 |
 | ~~MEM-FAT-1~~ | ✅ | W | ~~ContextoNegocio expor 3 ângulos (bruto/líquido/caixa)~~ — `fac96a19` 29-abr | 1 | ✅ prod: prompt 270 tokens; ADR 0052 |
+| ~~MEM-CC-team-1~~ | ✅ | W | ~~Sprint A: `.mcp.json` + `.claude/settings.local.json.example` + skill onboarding + `MEMORY_TEAM_ONBOARDING.md`~~ | 1 | ✅ `4fa97dd8` |
+| ~~MEM-CC-team-1.B~~ | ✅ | W | ~~Sprint B: schema MEM-CC-1 (3 tabelas) em prod + CcSearchTool + skill `oimpresso-cc-watcher-setup`~~ | 0.5 | ✅ `c807d5db` (fix binary) + verificação 3/3 migrations OK |
+| ~~MEM-TEAM-1~~ | ✅ | W | ~~Self-host equiv Anthropic Team plan: TeamController + 5 entities Mcp + QuotaEnforcer (brl/calls/tokens) + alertas idempotentes 50/80/100% + middleware popular custo_brl~~ | 1 | ✅ `c4706bef`+`c2339ba1`+`8c8b7ccb`; ADR 0055 |
+| ~~MEM-MEM-MCP-1~~ | ✅ | W | ~~MCP-as-memory-source: McpMemoriaDriver com fallback Meilisearch + MemoriaSearchTool MCP + system token command + ADR 0056~~ | 0.5 | ✅ `a58e7f34`; falta gerar token + add env Hostinger |
+| ~~ADR 0054/0055/0056~~ | ✅ | W | ~~3 ADRs canônicos: pacote enterprise busca memória + self-host team plan + MCP fonte única~~ | 0.5 | ✅ `e3ea5b92`+`c4706bef`+`a58e7f34` |
 
 **On-deck Cycle 01 (ordem por impacto×esforço):**
 

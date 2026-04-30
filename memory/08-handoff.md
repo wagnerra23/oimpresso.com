@@ -9,7 +9,26 @@
 
 ## 🚀 Começo Rápido — leia isso primeiro
 
-**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` (promoção `6.7-bootstrap`→`main` em 2026-04-27, ver ADR 0038) · **Última sessão:** 2026-04-27 noite (promoção branch + cleanup ADR 0024)
+**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` (promoção `6.7-bootstrap`→`main` em 2026-04-27, ver ADR 0038) · **Última sessão:** 2026-04-29 noite (MCP team self-host + memória cross-source — log completo em `memory/sessions/2026-04-29-mcp-team-self-host.md`)
+
+> **⚠️ Sessão 29-abr noite estourou ~970K tokens** — ver `HOW_TO_ASK_CLAUDE.md` na raiz do repo pra padrão correto. **Próximas sessões:** sempre `/clear` ao trocar de escopo, `/compact` após cada feature, e perguntas com arquivo+linha+o-que-mudar.
+
+### 🆕 Estado pós-29-abr noite
+
+**Entregas (commits `e3ea5b92`→`c807d5db`):**
+- ✅ ADR 0054 (pacote enterprise busca memória) + ADR 0055 (self-host equiv Anthropic Team plan) + ADR 0056 (MCP fonte única)
+- ✅ Self-host Team plan: TeamController + 5 entities Mcp + QuotaEnforcer (brl/calls/tokens) + alertas idempotentes + middleware popular custo
+- ✅ MCP fonte única memória: `McpMemoriaDriver` com fallback Meilisearch + tool MCP `memoria-search` + comando `copiloto:mcp:system-token`
+- ✅ Onboarding time: `.mcp.json` + `.claude/settings.local.json.example` + skill `oimpresso-team-onboarding` + `MEMORY_TEAM_ONBOARDING.md`
+- ✅ Sprint B Claude Code: 3 tabelas `mcp_cc_*` em prod + tool MCP `cc-search` + skill `oimpresso-cc-watcher-setup` (orquestra watcher local)
+- ✅ MCP server CT 100: agora expõe **7 tools** (5 originais + `memoria-search` + `cc-search`)
+
+**Pendências manuais (curtas, NÃO requer mais código):**
+1. `ssh hostinger && php artisan copiloto:mcp:system-token --user-email=wagner@…` → copia token raw
+2. Add `COPILOTO_MEMORIA_DRIVER=mcp` + `COPILOTO_MCP_SYSTEM_TOKEN=mcp_xxx` em `.env` Hostinger
+3. Smoke chat real → recall via MCP
+4. Wagner abre Claude Code local e roda skill `oimpresso-cc-watcher-setup` 1× → ingere ~83 sessões
+
 
 **Rodar local:**
 ```bash
