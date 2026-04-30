@@ -82,6 +82,26 @@ class SeedAdrsCommand extends Command
 
         $stats = ['inserted' => 0, 'updated' => 0, 'superseded' => 0, 'skipped' => 0];
 
+        // Carrega slugs existentes de uma só query (evita N+1 com JSON_EXTRACT por linha)
+        $existingBySlug = [];
+        if (! $dryRun) {
+            $existing = DB::table('copiloto_memoria_facts')
+                ->where('business_id', $businessId)
+                ->where('user_id', $userId)
+                ->whereRaw("JSON_EXTRACT(metadata, '$.seeded_from_mcp') = true")
+                ->get(['id', 'metadata', 'valid_until']);
+
+            foreach ($existing as $row) {
+                $m = json_decode($row->metadata ?? '{}', true) ?: [];
+                if (isset($m['source_slug'])) {
+                    $existingBySlug[$m['source_slug']] = $row;
+                }
+            }
+        }
+
+        $toInsert = [];
+        $now = now()->toDateTimeString();
+
         foreach ($docs as $doc) {
             $meta = json_decode($doc->metadata ?? '{}', true) ?: [];
 
@@ -90,7 +110,7 @@ class SeedAdrsCommand extends Command
 
             // Determina validade temporal
             $isSuperseded = in_array($status, ['superseded', 'deprecated', 'rejected'], true);
-            $validUntil   = $isSuperseded ? ($doc->indexed_at ?? now()->toDateTimeString()) : null;
+            $validUntil   = $isSuperseded ? ($doc->indexed_at ?? $now) : null;
 
             // Extrai resumo do conteúdo (primeiros ~300 chars sem headers)
             $summary = $this->extractSummary($doc->content_md ?? '');
@@ -98,7 +118,7 @@ class SeedAdrsCommand extends Command
             // Monta o "fato" textual que irá pro índice Meilisearch
             $fato = $this->buildFatoText($doc, $meta, $summary, $status);
 
-            $fatoMeta = [
+            $fatoMeta = json_encode([
                 'seeded_from_mcp' => true,
                 'source_type'     => $doc->type,
                 'source_slug'     => $doc->slug,
@@ -107,7 +127,7 @@ class SeedAdrsCommand extends Command
                 'supersedes'      => $supersedes,
                 'module'          => $meta['module'] ?? null,
                 'indexed_at'      => $doc->indexed_at,
-            ];
+            ]);
 
             if ($dryRun) {
                 $this->line("  [DRY] [{$doc->slug}] status={$status} superseded=" . ($isSuperseded ? 'sim' : 'não'));
@@ -115,33 +135,37 @@ class SeedAdrsCommand extends Command
                 continue;
             }
 
-            // Upsert por (business_id, user_id, source_slug)
-            $existing = DB::table('copiloto_memoria_facts')
-                ->where('business_id', $businessId)
-                ->where('user_id', $userId)
-                ->whereRaw("JSON_EXTRACT(metadata, '$.source_slug') = ?", [$doc->slug])
-                ->first();
-
-            if ($existing) {
-                DB::table('copiloto_memoria_facts')->where('id', $existing->id)->update([
-                    'fato'        => $fato,
-                    'metadata'    => json_encode($fatoMeta),
-                    'valid_until' => $validUntil,
-                    'updated_at'  => now(),
-                ]);
+            if (isset($existingBySlug[$doc->slug])) {
+                // Update individual (poucos — só quando re-seed)
+                DB::table('copiloto_memoria_facts')
+                    ->where('id', $existingBySlug[$doc->slug]->id)
+                    ->update([
+                        'fato'        => $fato,
+                        'metadata'    => $fatoMeta,
+                        'valid_until' => $validUntil,
+                        'updated_at'  => $now,
+                    ]);
                 $stats[$isSuperseded ? 'superseded' : 'updated']++;
             } else {
-                DB::table('copiloto_memoria_facts')->insert([
+                // Acumula pra batch insert
+                $toInsert[] = [
                     'business_id' => $businessId,
                     'user_id'     => $userId,
                     'fato'        => $fato,
-                    'metadata'    => json_encode($fatoMeta),
-                    'valid_from'  => now(),
+                    'metadata'    => $fatoMeta,
+                    'valid_from'  => $now,
                     'valid_until' => $validUntil,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
-                ]);
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ];
                 $stats[$isSuperseded ? 'superseded' : 'inserted']++;
+            }
+        }
+
+        // Batch insert em chunks de 50 (evita query muito longa)
+        if (! empty($toInsert)) {
+            foreach (array_chunk($toInsert, 50) as $chunk) {
+                DB::table('copiloto_memoria_facts')->insert($chunk);
             }
         }
 
