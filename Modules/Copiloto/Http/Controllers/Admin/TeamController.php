@@ -105,6 +105,65 @@ class TeamController extends Controller
     }
 
     /**
+     * Gera token MCP novo + empacota arquivo .dxt (Desktop Extension)
+     * pronto pro dev arrastar no Claude Desktop. Token embutido no manifest.
+     *
+     * Spec: https://github.com/anthropics/dxt
+     */
+    public function gerarDxt(Request $request, int $userId)
+    {
+        $user = User::findOrFail($userId);
+
+        $nomeCurto = trim($user->first_name ?? $user->username ?? 'dev') ?: 'dev';
+        $tokenName = 'DXT — ' . $nomeCurto . ' (gerado ' . now()->format('d/m/Y H:i') . ')';
+        [$token, $raw] = McpToken::gerar($user->id, $tokenName);
+
+        $slug = Str::slug($nomeCurto . '-' . $user->id);
+        $manifest = [
+            'dxt_version'  => '0.1',
+            'name'         => 'oimpresso-mcp-' . $slug,
+            'display_name' => 'Oimpresso MCP — ' . $nomeCurto,
+            'version'      => '1.0.0',
+            'description'  => 'Acesso MCP ao Oimpresso ERP — memória, ADRs, sessões, decisões. Token pessoal de ' . $nomeCurto . ' embutido.',
+            'author' => [
+                'name'  => 'Oimpresso ERP',
+                'email' => 'wagner@oimpresso.com',
+                'url'   => 'https://oimpresso.com',
+            ],
+            'server' => [
+                'type' => 'http',
+                'url'  => 'https://mcp.oimpresso.com/api/mcp',
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $raw,
+                ],
+            ],
+        ];
+
+        // Empacota ZIP (.dxt) em arquivo temporário
+        $tmpFile = tempnam(sys_get_temp_dir(), 'dxt_');
+        $zip = new \ZipArchive();
+        $zip->open($tmpFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip->addFromString(
+            'manifest.json',
+            json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+        );
+        $zip->close();
+
+        $contents = file_get_contents($tmpFile);
+        @unlink($tmpFile);
+
+        $filename = 'oimpresso-mcp-' . $slug . '.dxt';
+
+        return response($contents, 200, [
+            'Content-Type'        => 'application/zip',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Length'      => (string) strlen($contents),
+            'X-Token-Id'          => (string) $token->id,
+            'Cache-Control'       => 'no-store',
+        ]);
+    }
+
+    /**
      * Revoga token (soft-delete).
      */
     public function revogarToken(int $tokenId)
