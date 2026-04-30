@@ -25,7 +25,11 @@ use Illuminate\Support\Facades\Log;
  */
 class HitTrackerService
 {
-    public function registrarUso(array $fatoIds): void
+    /**
+     * @param int[] $fatoIds IDs de fatos retornados pelo recall
+     * @param int   $businessId Empresa dona dos fatos — filtra por segurança multi-tenant
+     */
+    public function registrarUso(array $fatoIds, int $businessId): void
     {
         if (empty($fatoIds)) {
             return;
@@ -35,9 +39,10 @@ class HitTrackerService
             $threshold = (int) config('copiloto.hits.core_memory_threshold', 5);
             $now = now();
 
-            // Incrementa hits e atualiza timestamp
+            // Incrementa hits e atualiza timestamp — só fatos do business correto
             DB::table('copiloto_memoria_facts')
                 ->whereIn('id', $fatoIds)
+                ->where('business_id', $businessId)
                 ->whereNull('deleted_at')
                 ->update([
                     'hits_count'    => DB::raw('hits_count + 1'),
@@ -45,9 +50,10 @@ class HitTrackerService
                     'updated_at'    => $now,
                 ]);
 
-            // Promove a core_memory quem atingiu o threshold
+            // Promove a core_memory quem atingiu o threshold (mesmo filtro business_id)
             $promovidos = DB::table('copiloto_memoria_facts')
                 ->whereIn('id', $fatoIds)
+                ->where('business_id', $businessId)
                 ->where('hits_count', '>=', $threshold)
                 ->where('core_memory', false)
                 ->whereNull('deleted_at')

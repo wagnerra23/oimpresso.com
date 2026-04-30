@@ -35,9 +35,12 @@ class CopilotoMemoriaFato extends Model
     ];
 
     protected $casts = [
-        'metadata' => 'array',
-        'valid_from' => 'datetime',
-        'valid_until' => 'datetime',
+        'metadata'     => 'array',
+        'valid_from'   => 'datetime',
+        'valid_until'  => 'datetime',
+        'ultimo_hit_em'=> 'datetime',
+        'hits_count'   => 'integer',
+        'core_memory'  => 'boolean',
     ];
 
     public function searchableAs(): string
