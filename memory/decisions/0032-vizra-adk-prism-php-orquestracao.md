@@ -1,6 +1,13 @@
 # ADR 0032 — Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto
 
-**Status:** ✅ Aceita — **VERDADE CANÔNICA** (camada B, consolidada em ADR 0035, 2026-04-26). **Sprint 1 revisado por ADR 0034** (camada A trocada de Prism PHP pra `laravel/ai`).
+> ⛔ **SUPERSEDED em 2026-04-30 por [ADR 0048](0048-vizra-rejeitada-laravel-ai-consolidado.md).**
+> Vizra ADK ficou em PHP `^11|^12`, nunca atualizou pra Laravel 13 (stack canônica
+> oimpresso). `laravel/ai` ^0.6.3 + LaravelAiSdkDriver + 4 Agents próprios cobrem
+> os casos de uso (Sprint 1 já em prod desde `3d64e5bb`). Tasks **COP-015 cancelada**.
+> Nada de Vizra deve ser puxado a partir desta data — ler ADR 0048 antes de propor
+> qualquer dependência relacionada.
+
+**Status:** ⛔ Superseded by ADR 0048 (2026-04-30) — historicamente Aceita 26-abr.
 **Data decisão:** 2026-04-26
 **Autor:** Wagner (dono/operador)
 **Registrado por:** Claude (sessão `dazzling-lichterman-e59b61`)
