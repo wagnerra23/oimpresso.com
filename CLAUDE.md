@@ -16,6 +16,10 @@ ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas ráp
 
 **Stack REAL:** Laravel **13.6** + PHP 8.4 (Herd) · MySQL Laragon · DB `oimpresso` · Inertia **v3** + React 19 + Tailwind 4 · Pest v4 · nWidart/laravel-modules ^10 · `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form`.
 
+**Governança canônica (ADR 0059 — estilo Anthropic Team plan adaptado):**
+- 10 pilares: source-of-truth git, dual-mode edição (commit / UI manual tags), PR-based approval, 3-layer backup, LGPD-aware retention 365d, audit total, RBAC fino (cc.read.self/team/all), spend caps, token zero-fricção (DXT one-click), lifecycle docs (status/authority).
+- Self-host equivalente — **NÃO** SaaS Anthropic (LGPD + custo + custom).
+
 **Stack-alvo IA (verdade canônica ADR 0035 + 0036 + 0048):**
 - **Camada A:** `laravel/ai` ^0.6.3 (oficial fev/2026)
 - **Camada B:** `LaravelAiSdkDriver` + 4 Agents próprios em `Modules/Copiloto/Agents/` — **Vizra ADK REJEITADA (ADR 0048, ADR 0032 superseded)** — não puxar/sugerir
@@ -178,6 +182,17 @@ D:\oimpresso.com\
 ## 7. Acesso à produção
 
 Ver [`INFRA.md`](INFRA.md) — credenciais SSH Hostinger, deploy manual, patches ativos, dev local Herd/Laragon.
+
+**SSH é flaky** — sempre **warm-up + retry**:
+```bash
+# 1) Warm-up (5 hits curl)
+for i in 1 2 3 4 5; do curl -s -o /dev/null --max-time 15 https://oimpresso.com/login; done
+# 2) SSH robusto (auto-mem reference_hostinger_analise.md)
+ssh -4 -o ConnectTimeout=900 -o ServerAliveInterval=3 \
+    -o ServerAliveCountMax=200 -o ConnectionAttempts=5 \
+    -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 'CMD'
+```
+Sem isso, primeiro try quase sempre dá `Connection timed out`.
 
 ---
 
