@@ -49,15 +49,19 @@ jobs:
           key: composer-lock-sync-${{ hashFiles('composer.json') }}
           restore-keys: composer-lock-sync-
 
-      - name: Composer update --lock
+      - name: Composer update lock
+        # Composer não permite combinar --lock com lista de pacotes:
+        # "You cannot simultaneously update only a selection of packages and regenerate the lock file metadata."
+        # Solução: --no-install atualiza só o composer.lock dos pacotes mencionados,
+        # sem instalar vendor/ (não precisamos do vendor no CI desse workflow).
         run: |
           set -e
           if [ -z "${{ inputs.packages }}" ]; then
-            echo "→ Sincronizando lock completo"
+            echo "→ Sincronizando lock completo (refresh hashes sem mudar versões)"
             composer update --lock --no-interaction --no-progress --no-scripts
           else
-            echo "→ Sincronizando lock para: ${{ inputs.packages }}"
-            composer update --lock ${{ inputs.packages }} --no-interaction --no-progress --no-scripts
+            echo "→ Atualizando lock para: ${{ inputs.packages }}"
+            composer update ${{ inputs.packages }} --no-install --no-interaction --no-progress --no-scripts
           fi
 
       - name: Diff resumido
