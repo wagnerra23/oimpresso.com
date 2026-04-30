@@ -32,8 +32,8 @@ class CreateMcpCcBlobsTable extends Migration
             $t->string('mime_type', 100)->nullable();
             $t->unsignedInteger('size_original_bytes');
             $t->unsignedInteger('size_compressed_bytes');
-            $t->mediumBlob('compressed_data')
-                ->comment('zlib::compress($content, 6)');
+            $t->binary('compressed_data')
+                ->comment('zlib::compress($content, 6) — MEDIUMBLOB via DBAL');
 
             $t->unsignedInteger('refs_count')->default(1)
                 ->comment('Quantas mcp_cc_messages apontam pra este blob');
