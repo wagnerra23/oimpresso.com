@@ -1,20 +1,70 @@
-# Onboarding Claude Code — Time oimpresso
+# Onboarding Claude — Time oimpresso
 
 > **Pra quem:** dev novo (Felipe / Maíra / Luiz / Eliana) ou Wagner adicionando alguém.
 >
-> **Pra quê:** conectar Claude Code ao MCP server do time pra ter acesso a CLAUDE.md + 56 ADRs + sessions logs + memória semântica do Copiloto + custo per-user.
+> **Pra quê:** conectar Claude ao MCP server do time — acesso a ADRs, session logs, memória semântica, estado do cycle, custo per-user.
+>
+> **Time usa Claude Desktop (app).** Claude Code CLI é secundário.
 
 ---
 
-## TL;DR — 3 passos
+## TL;DR — 2 passos (Claude Desktop)
 
 | # | Quem faz | O que |
 |---|---|---|
-| 1 | **Wagner** | Gera token MCP em [/copiloto/admin/team](https://oimpresso.com/copiloto/admin/team) e entrega via Vaultwarden |
-| 2 | **Dev novo** | Cola token em `.claude/settings.local.json` (template em `.claude/settings.local.json.example`) |
-| 3 | **Dev novo** | Abre Claude Code na pasta — pronto. Skill `oimpresso-team-onboarding` ajuda |
+| 1 | **Wagner** | Gera DXT em `/copiloto/admin/team` → entrega `.dxt` via Vaultwarden |
+| 2 | **Dev novo** | Abre Claude Desktop → arrasta o `.dxt` na janela → reinicia |
 
-Tempo total: **5 minutos por dev**.
+Tempo total: **2 minutos por dev**.
+
+---
+
+## Como Wagner gera o DXT
+
+### Via artisan (recomendado — gera token + DXT num comando)
+```bash
+# SSH no servidor
+ssh hostinger
+cd ~/domains/oimpresso.com/public_html
+php artisan copiloto:mcp:generate-dxt --user-email=eliana@oimpresso.com.br
+# → storage/app/dxt/oimpresso-mcp-eliana.dxt
+# → Token novo gerado e gravado no DB
+```
+
+### Via script local (quando repo está em D:\oimpresso.com)
+```bash
+# 1. Pegue o token em oimpresso.com/copiloto/admin/team
+# 2. Rode:
+node scripts/generate-dxt.js --name="Eliana" --token="mcp_xxx..."
+# → ./dxt/oimpresso-mcp-eliana.dxt
+
+# Para gerar todos de uma vez:
+cp scripts/tokens.json.example scripts/tokens.json
+# edite tokens.json com os tokens reais (NÃO commitar!)
+node scripts/generate-dxt.js --all
+# → ./dxt/oimpresso-mcp-*.dxt  (1 por membro)
+```
+
+### Entregar o arquivo
+- ✅ **Vaultwarden** (`vault.oimpresso.com`) — recomendado
+- ✅ WhatsApp criptografado
+- ❌ Email plain, Slack público, SMS
+
+---
+
+## Como o membro do time instala (Claude Desktop)
+
+1. Baixar o `.dxt` do Vaultwarden
+2. Abrir **Claude Desktop**
+3. Ir em **Settings → Extensions** → clicar **Install from file** → selecionar o `.dxt`
+   — OU simplesmente **arrastar o `.dxt` para a janela do Claude Desktop**
+4. Reiniciar o Claude Desktop (1×)
+5. Testar: perguntar `qual o estado do cycle?` — deve retornar tabela com tasks
+
+> ⚠️ **Sempre abrir o projeto em `D:\oimpresso.com`** (não em worktrees).
+> Se Claude Desktop abrir num worktree, feche e abra na pasta principal.
+
+---
 
 ---
 

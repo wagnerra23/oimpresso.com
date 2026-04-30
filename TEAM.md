@@ -47,14 +47,14 @@
 - **Plano de evolução:** após 3 cycles bem (sem hotfix em prod por task dele), promove WIP=2 e libera tasks de complexidade média
 - **Sempre revisado por:** Felipe ou Wagner antes de PR mergear
 
-### Eliana [E] — Financeiro + Dev com IA (Esposa Wagner)
-- **Responsabilidade primária:** faturamento e cobrança da empresa oimpresso, ops financeiro, validação de cliente WR2 (PontoWr2 — Eliana é cliente, não confundir com Eliana-time)
+### Eliana [E] — Financeiro + NFSe + Boletos + Recorrência (Esposa Wagner)
+- **Responsabilidade primária:** faturamento e cobrança da empresa oimpresso, ops financeiro, módulos Financeiro/NfeBrasil/RecurringBilling, validação de cliente WR2 (PontoWr2 — Eliana é cliente, não confundir com Eliana-time)
 - **Aviso semântico:** o time tem **2 Elianas distintas** — **Eliana[E]** é a esposa do Wagner (time interno) e **Eliana-WR2** é a cliente (externa). Em commits/notas usar `Eliana[E]` interno e `Eliana(WR2)` externa
-- **Pode mexer em:** Modulo Financeiro (tela, relatórios, configuração), CMS copy revisão, validação UX como usuária real
-- **Não deve fazer:** Copiloto sprints técnicos, ADRs, deploy produção
+- **Pode mexer em:** Módulo Financeiro completo (tela, relatórios, configuração, boleto CNAB, gateway), Módulo NfeBrasil (NFSe/NF-e), Módulo RecurringBilling (recorrência/assinatura), CMS copy revisão, validação UX como usuária real
+- **Não deve fazer:** Copiloto sprints técnicos (LGPD), ADRs, deploy produção
 - **WIP máximo:** **1 task ativa** (financeiro principal + opcional 1 task IA-pareada)
 - **Hora ativa:** baixa (compartilha agenda com financeiro real do casal/empresa)
-- **Diferencial:** **única que vivencia o produto como usuária final** — feedback dela vale ouro pra UX
+- **Diferencial:** **única que vivencia o produto como usuária final** — feedback dela vale ouro pra UX. Owner canônica dos módulos fiscais/financeiros.
 
 ---
 
@@ -88,7 +88,9 @@
 | **Blade views legacy (UltimatePOS)** | 🟢 | ✅ | 🟢 | ✅ (pair) | ❌ |
 | **CMS copy / blog / landing** | 🟢 | ✅ | 🟢 | ✅ (pair) | ✅ |
 | **Modulo Financeiro (relatório, tela)** | 🟢 | ✅ | 🟢 | 🟡 (pair) | ✅ |
-| **Modulo Financeiro (boleto CNAB, gateway)** | 🟢 | 🟡 | ✅ | ❌ | 🟡 |
+| **Modulo Financeiro (boleto CNAB, gateway)** | 🟢 | 🟡 | ✅ | ❌ | ✅ |
+| **Módulo NfeBrasil (NFSe/NF-e)** | 🟢 | 🟡 | ✅ | ❌ | ✅ |
+| **Módulo RecurringBilling (recorrência)** | 🟢 | 🟡 | ✅ | ❌ | ✅ |
 | **PontoWr2 Tier A** | 🟢 | 🟢 | ✅ | 🟡 | ❌ |
 | **MemCofre (UI evidência)** | 🟢 | ✅ | 🟢 | 🟢 (pair) | ❌ |
 | **Suporte tier 1 (triage cliente)** | 🟢 | ✅ | ✅ (backup) | ✅ | ❌ |
