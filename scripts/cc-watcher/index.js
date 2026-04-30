@@ -23,7 +23,10 @@ import readline from 'node:readline';
 // ──────────────────────────────────────────────────────────────────────
 // Config
 // ──────────────────────────────────────────────────────────────────────
-const MCP_URL = process.env.MCP_URL || 'https://mcp.oimpresso.com/api/cc/ingest';
+// Default = Hostinger (oimpresso.com) — onde a rota /api/cc/ingest está deployada.
+// CT 100 (mcp.oimpresso.com) tem versão própria do código que pode não estar atualizada.
+// Pra usar CT 100, defina MCP_URL=https://mcp.oimpresso.com/api/cc/ingest no env.
+const MCP_URL = process.env.MCP_URL || 'https://oimpresso.com/api/cc/ingest';
 const MCP_TOKEN = process.env.MCP_TOKEN || readTokenFromSettings();
 const PROJECT_GLOB = process.env.PROJECT_GLOB || 'D--oimpresso-com';
 const PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');

@@ -21,6 +21,11 @@ on:
         options:
           - 'false'
           - 'true'
+      extra_artisan:
+        description: 'Comando artisan extra (ex: db:seed --class=...). Vazio = nada.'
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: deploy-production
@@ -102,6 +107,10 @@ jobs:
       - name: Artisan migrate (se necessário)
         if: ${{ inputs.skip_migrate != 'true' }}
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan migrate --force 2>&1 | tail -20"
+
+      - name: Artisan extra (input customizado)
+        if: ${{ inputs.extra_artisan != '' }}
+        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan ${{ inputs.extra_artisan }} 2>&1 | tail -30"
 
       - name: Clear caches + re-cache
         run: |
