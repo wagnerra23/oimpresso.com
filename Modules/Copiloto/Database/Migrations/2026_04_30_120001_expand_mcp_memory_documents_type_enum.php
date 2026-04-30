@@ -22,15 +22,7 @@ return new class extends Migration
                 'comparativo', 'audit', 'runbook', 'changelog'
             ) NOT NULL
         ");
-
-        DB::statement("
-            ALTER TABLE mcp_memory_documents_history
-            MODIFY COLUMN type ENUM(
-                'adr', 'session', 'reference', 'spec',
-                'handoff', 'current', 'tasks', 'other',
-                'comparativo', 'audit', 'runbook', 'changelog'
-            ) NOT NULL
-        ");
+        // mcp_memory_documents_history não tem coluna type (snapshot só content_md/title/metadata)
     }
 
     public function down(): void
@@ -42,10 +34,6 @@ return new class extends Migration
 
         DB::statement("
             ALTER TABLE mcp_memory_documents
-            MODIFY COLUMN type ENUM('adr','session','reference','spec','handoff','current','tasks','other') NOT NULL
-        ");
-        DB::statement("
-            ALTER TABLE mcp_memory_documents_history
             MODIFY COLUMN type ENUM('adr','session','reference','spec','handoff','current','tasks','other') NOT NULL
         ");
     }
