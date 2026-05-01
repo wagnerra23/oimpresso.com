@@ -257,7 +257,7 @@ class TaskParserService
 
     protected function headSha(): ?string
     {
-        $out = trim((string) shell_exec('git -C ' . escapeshellarg(base_path()) . ' rev-parse HEAD 2>/dev/null'));
+        $out = trim((string) \shell_exec('git -C ' . escapeshellarg(base_path()) . ' rev-parse HEAD 2>/dev/null'));
         return $out !== '' ? substr($out, 0, 40) : null;
     }
 
