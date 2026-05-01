@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\NFSe\Http\Controllers\InstallController;
 use Modules\NFSe\Http\Controllers\NfseController;
 
 /*
@@ -10,6 +11,17 @@ use Modules\NFSe\Http\Controllers\NfseController;
 | Stack middlewares UltimatePOS (CLAUDE.md §5)
 */
 
+// Rotas de instalação (acessadas via /manage-modules → Install).
+// Pattern: memory/claude/feedback_pattern_install_modulos.md
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('nfse')
+    ->group(function () {
+        Route::get('install', [InstallController::class, 'index']);
+        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
+        Route::get('install/update', [InstallController::class, 'update']);
+    });
+
+// Rotas operacionais
 Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('nfse')
     ->name('nfse.')
