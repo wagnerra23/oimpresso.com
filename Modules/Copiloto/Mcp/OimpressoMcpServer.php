@@ -54,6 +54,14 @@ class OimpressoMcpServer extends Server
         // MEM-CC-team-1 (ADR 0055/0056) — busca cross-dev em sessões Claude Code
         // ingeridas via watcher local. Permission `copiloto.cc.read.all` pra cross.
         Tools\CcSearchTool::class,
+        // TaskRegistry F0 (ADR TaskRegistry/0001) — Jira-like nativo MCP.
+        // US-* extraidas dos SPECs canonicos via mcp:tasks:sync (webhook github).
+        Tools\TasksListTool::class,
+        Tools\TasksDetailTool::class,
+        // TaskRegistry F1 (US-TR-005) — CRUD tools.
+        Tools\TasksUpdateTool::class,
+        Tools\TasksCommentTool::class,
+        Tools\TasksCreateTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
