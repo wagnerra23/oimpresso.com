@@ -4,7 +4,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, useEffect, type ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -219,6 +219,14 @@ function TasksIndex({ kanban, backlog, kpis, modulos, owners, sprints, filters }
   const [modulo, setModulo] = useState(filters.module ?? '__all__');
   const [owner,  setOwner]  = useState(filters.owner  ?? '__all__');
   const [sprint, setSprint] = useState(filters.sprint  ?? '__all__');
+
+  // Polling: atualiza kanban+kpis a cada 10s e ao focar a janela
+  useEffect(() => {
+    const reload = () => router.reload({ only: ['kanban', 'kpis', 'backlog'], preserveScroll: true });
+    const interval = setInterval(reload, 10_000);
+    window.addEventListener('focus', reload);
+    return () => { clearInterval(interval); window.removeEventListener('focus', reload); };
+  }, []);
 
   function applyFilter() {
     const params: Record<string, string> = {};
