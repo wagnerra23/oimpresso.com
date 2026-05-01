@@ -1,10 +1,10 @@
 # NFSe — SPEC + Lista de tarefas
 
-> **Status**: planejamento (2026-04-30)
+> **Status**: Sprint A em progresso (2026-05-01) · US-001 ✅ · US-002 ✅ · US-003 🔄 próxima
 > **Owner**: Eliana[E]
 > **Paralelo a**: Cycle 01 (foco Copiloto/Larissa) — não bloqueia
 > **Cliente**: oimpresso (empresa Wagner) — **NÃO** ROTA LIVRE
-> **Cidade**: Tubarão-SC (verificar SN-NFSe na primeira task)
+> **Cidade**: Tubarão-SC — **SN-NFSe federal** desde 01/01/2026 ([pesquisa](PESQUISA_TUBARAO.md))
 > **Decisão arquitetural**: [ADR ARQ-0001](adr/arq/0001-cliente-oimpresso-modulo-standalone.md)
 
 ---
@@ -38,26 +38,30 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-001 · Pesquisa fiscal Tubarão
 
-> owner: eliana · sprint: A · priority: p0 · estimate: 8h · status: todo
+> owner: eliana · sprint: A · priority: p0 · estimate: 8h · status: done
 > blocked_by: —
 
-🔴 bloqueante. Tudo o resto depende disso.
+✅ **concluída 2026-04-30** — decisão: SN-NFSe federal direto, sem provider terceiro.
 
-- [ ] Confirmar se Tubarão-SC está no **Sistema Nacional NFSe** (SN-NFSe federal LC 214/2025) ou ainda no **ABRASF municipal** próprio
-- [ ] Se SN-NFSe: webservice https://www.gov.br/nfse — sem provider terceiro
-- [ ] Se ABRASF municipal: avaliar provider (Focus NFe ~R$ 0.50-1.50/emissão recomendado)
-- [ ] Coletar dados fiscais oimpresso completos (CNPJ/IE/IM/regime/CNAE/cód serviço LC 116)
-- [ ] Documentar resultado em `memory/requisitos/NFSe/PESQUISA_TUBARAO.md`
-- **Output**: decisão "SN-NFSe direto" vs "Provider X"
+- [x] Confirmar se Tubarão-SC está no **Sistema Nacional NFSe** (SN-NFSe federal LC 214/2025) ou ainda no **ABRASF municipal** próprio → ✅ **SN-NFSe federal** desde 01/01/2026
+- [x] Library PHP escolhida → `nfse-nacional/nfse-php` (Packagist)
+- [x] Auth method definido → cert A1 (.pfx)
+- [x] Cód LC 116 mapeado → 1.05 (licenciamento) + 1.07 (suporte)
+- [ ] Coletar dados fiscais oimpresso completos (CNPJ/IE/IM/regime/CNAE/alíquota ISS Tubarão) — **owner: Eliana** confirmar com contador
+- [x] Documentar resultado em [`PESQUISA_TUBARAO.md`](PESQUISA_TUBARAO.md)
+- **Output**: ✅ **decisão = SN-NFSe direto** (sem provider terceiro, custo zero per-emissão)
 
 ### US-NFSE-002 · Setup composer + .env
 
-> owner: eliana · sprint: A · priority: p1 · estimate: 4h · status: todo
+> owner: eliana · sprint: A · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-001
 
-- [ ] `composer require` da lib escolhida (`rafwell/laravel-focusnfe`, `nfeio/php-sdk`, ou cliente SOAP custom pra SN-NFSe)
-- [ ] `.env`: `NFSE_PROVIDER`, `NFSE_TOKEN_SANDBOX`, `NFSE_AMBIENTE=sandbox`
-- [ ] Doc em `Modules/NFSe/README.md`
+✅ **concluída 2026-05-01** — scaffold `Modules/NFSe/` criado, dep adicionada ao `composer.json`, vars no `.env - Copia.example`.
+
+- [x] `composer require nfse-nacional/nfse-php ^1.19` adicionado ao `composer.json` raiz — Wagner roda `composer update` localmente e no Hostinger
+- [x] `.env - Copia.example`: `NFSE_AMBIENTE=homologacao`, `NFSE_CERT_PATH=storage/certs/oimpresso.pfx`, `NFSE_CERT_SENHA=`, `NFSE_MUNICIPIO_IBGE=4218707`
+- [x] Endpoints configurados em `Modules/NFSe/Config/config.php`: sandbox `https://sefin.producaorestrita.nfse.gov.br` · prod `https://sefin.nfse.gov.br`
+- [x] Scaffold completo: `module.json`, `Providers/`, `Routes/web.php` + `Routes/api.php`, `Http/Controllers/NfseController.php` (stub 501), `Resources/menus/topnav.php`, `README.md`
 
 ### US-NFSE-003 · Migrations base
 
@@ -77,9 +81,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 > blocked_by: US-NFSE-003
 
 - [ ] Interface `NfseProvider` (3 métodos: `emitir/consultar/cancelar`)
-- [ ] Implementação concreta (`NfseNacionalAdapter` OU `FocusNFeAdapter` — depende US-001)
+- [ ] Implementação concreta `SnNfseAdapter` (US-001 decidiu: SN-NFSe federal direto, sem provider terceiro)
 - [ ] `NfseEmissaoService` (validação payload + chamada adapter + persistência + retry)
 - [ ] Testes Pest com mock do provider (golden flow + idempotência + cancelamento)
+- [ ] Adapter pattern preserva flexibilidade pra ABRASF futuro (municípios não-aderidos)
 
 ### US-NFSE-005 · Job assíncrono
 
@@ -204,9 +209,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ## Bloqueios conhecidos
 
-1. **Pesquisa Tubarão** (US-001) decide tudo — se SN-NFSe federal já vigente lá, simplifica MUITO (sem provider terceiro, custo zero per-emissão)
+1. ~~**Pesquisa Tubarão** (US-001)~~ ✅ resolvido 2026-04-30 — SN-NFSe federal, custo zero per-emissão, lib `nfse-nacional/nfse-php`
 2. **Cert A1** depende de Wagner liberar com contador
-3. **Cód serviço LC 116** pra software/ERP — provavelmente `1.05 Licenciamento de software` ou `1.07 Suporte técnico em informática` — contador valida
+3. **Cód serviço LC 116** ✅ mapeado: `1.05` (licenciamento) + `1.07` (suporte) — contador valida
+4. **Alíquota ISS Tubarão** pra cód 1.05/1.07 — Eliana confirma com `fazenda@tubarao.sc.gov.br` ou contador
 
 ## Não-objetivos do MVP (postpone)
 

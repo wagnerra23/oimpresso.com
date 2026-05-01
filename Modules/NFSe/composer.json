@@ -1,0 +1,31 @@
+{
+    "name": "oimpresso/nfse",
+    "description": "Módulo NFSe — emissão via Sistema Nacional NFSe (LC 214/2025)",
+    "authors": [
+        {
+            "name": "Eliana",
+            "email": "eliana@oimpresso.com"
+        }
+    ],
+    "require": {
+        "nfse-nacional/nfse-php": "^1.19"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\NFSe\\": "",
+            "Modules\\NFSe\\Database\\Factories\\": "database/factories/",
+            "Modules\\NFSe\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\NFSe\\Tests\\": "tests/"
+        }
+    }
+}

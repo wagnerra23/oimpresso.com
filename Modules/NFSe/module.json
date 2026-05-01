@@ -1,0 +1,11 @@
+{
+    "name": "NFSe",
+    "alias": "nfse",
+    "description": "Emissão de Nota Fiscal de Serviços Eletrônica via Sistema Nacional NFSe (LC 214/2025). Integração direta com webservice federal — sem provider terceiro, custo zero por emissão.",
+    "keywords": ["nfse", "nota-fiscal-servico", "sn-nfse", "fiscal", "iss", "lc214"],
+    "priority": 0,
+    "providers": [
+        "Modules\\NFSe\\Providers\\NfseServiceProvider"
+    ],
+    "files": []
+}

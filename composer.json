@@ -37,6 +37,7 @@
         "milon/barcode": "^13.1",
         "mpdf/mpdf": "^8.1",
         "myfatoorah/laravel-package": "^2.2",
+        "nfse-nacional/nfse-php": "^1.19",
         "nwidart/laravel-modules": "^10.0",
         "razorpay/razorpay": "2.*",
         "sentry/sentry-laravel": "^4.25",
