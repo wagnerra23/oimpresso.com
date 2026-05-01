@@ -1,6 +1,6 @@
 # NFSe — SPEC + Lista de tarefas
 
-> **Status**: Sprint A em progresso (2026-05-01) · US-001 ✅ · US-002 ✅ · US-003 🔄 próxima
+> **Status**: Sprint A concluída · Sprint B em progresso (2026-05-01) · US-001 ✅ · US-002 ✅ · US-003 ✅ · US-004 ✅ parcial (Service+Adapter stub)
 > **Owner**: Eliana[E]
 > **Paralelo a**: Cycle 01 (foco Copiloto/Larissa) — não bloqueia
 > **Cliente**: oimpresso (empresa Wagner) — **NÃO** ROTA LIVRE
@@ -65,26 +65,31 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-003 · Migrations base
 
-> owner: eliana · sprint: A · priority: p1 · estimate: 8h · status: todo
+> owner: eliana · sprint: A · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-NFSE-002
 
-- [ ] `nfe_certificados` (compartilhado pra futuro NfeBrasil) — `business_id`, `cert_pfx_encrypted`, `senha_encrypted`, `valido_ate`
-- [ ] `nfse_emissoes` — `business_id`, `numero`, `serie`, `tomador_cnpj/cpf`, `valor`, `iss`, `xml`, `pdf_url`, `status` (rascunho/processando/emitida/cancelada/erro), `provider_protocolo`, `idempotency_key`
-- [ ] `nfse_provider_configs` — `business_id`, `provider`, `municipio_codigo_ibge`, `serie_default`, `cnae`, `lc116_default`
-- [ ] Seeder com dados oimpresso
+✅ **concluída 2026-05-01** — 3 migrations + NfseSeeder com dados Tubarão (IBGE 4218707).
+
+- [x] `nfe_certificados` — `cert_pfx_encrypted`, `senha_encrypted`, `valido_ate`, `titular_cnpj/nome`
+- [x] `nfse_emissoes` — `status` (5 valores), `idempotency_key`, `xml_envio/retorno`, `pdf_url`, vínculo `recurring_invoice_id`
+- [x] `nfse_provider_configs` — `provider`, `municipio_codigo_ibge`, `serie_default`, `cnae`, `lc116_codigo_default`, `aliquota_iss`, `ambiente`, `cert_id`
+- [x] `NfseSeeder` — seeds config oimpresso: IBGE 4218707, CNAE 6201-5/00, LC 116 → 1.05, ambiente homologação
 
 ### Sprint B — Backend (3-4 dias)
 
 ### US-NFSE-004 · Adapter + Service
 
-> owner: eliana · sprint: B · priority: p1 · estimate: 12h · status: todo
+> owner: eliana · sprint: B · priority: p1 · estimate: 12h · status: done
 > blocked_by: US-NFSE-003
 
-- [ ] Interface `NfseProvider` (3 métodos: `emitir/consultar/cancelar`)
-- [ ] Implementação concreta `SnNfseAdapter` (US-001 decidiu: SN-NFSe federal direto, sem provider terceiro)
-- [ ] `NfseEmissaoService` (validação payload + chamada adapter + persistência + retry)
-- [ ] Testes Pest com mock do provider (golden flow + idempotência + cancelamento)
-- [ ] Adapter pattern preserva flexibilidade pra ABRASF futuro (municípios não-aderidos)
+✅ **concluída 2026-05-01** — ver ADR TECH-0001 e TECH-0002.
+
+- [x] `NfseProviderInterface` (3 métodos: `emitir/consultar/cancelar`)
+- [x] `SnNfseAdapter` — HTTP direto ao SN-NFSe (lib `nfse-nacional/nfse-php` integra quando ADR 0062 split composer.json)
+- [x] DTOs imutáveis: `NfseEmissaoPayload` + `NfseResultado`
+- [x] `NfseEmissaoService` — idempotência SHA256 + retry 3x backoff + 9 exceções tipadas PT-BR
+- [x] **13 testes Pest** cobrindo: golden path, idempotência, cert inválido, cert expirado, RPS duplicado, ISS E501, serviço inválido, tomador inválido, prestador não autorizado L1, timeout retry, cancelamento, já cancelada, config ausente, cálculo ISS
+- [x] Adapter pattern preserva flexibilidade pra ABRASF futuro
 
 ### US-NFSE-005 · Job assíncrono
 
