@@ -5,9 +5,9 @@ namespace Modules\Copiloto\Http\Controllers\Mcp;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Modules\Copiloto\Services\Mcp\IndexarMemoryGitParaDb;
+use Modules\Copiloto\Services\TaskRegistry\TaskParserService;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Webhook GitHub que sincroniza memory/ → DB.
@@ -62,12 +62,18 @@ class SyncMemoryWebhookController extends Controller
             return response()->json(['error' => 'Sync failed', 'message' => $e->getMessage()], 500);
         }
 
-        // US-TR-004: dispara mcp:tasks:sync se algum SPEC.md foi tocado no push
+        // US-TR-004: dispara tasks sync se algum SPEC.md foi tocado no push
         $tasksStats = null;
         if ($this->specMdModificada($request)) {
             try {
-                Artisan::call('mcp:tasks:sync');
-                $tasksStats = ['synced' => true, 'output' => trim(Artisan::output())];
+                $relatorio = app(TaskParserService::class)->syncAll();
+                $tasksStats = [
+                    'synced'     => true,
+                    'processadas' => $relatorio['tasks_processadas'],
+                    'inseridas'  => $relatorio['inseridas'],
+                    'atualizadas' => $relatorio['atualizadas'],
+                    'canceladas' => $relatorio['canceladas'],
+                ];
             } catch (\Throwable $e) {
                 Log::channel('copiloto-ai')->error('SyncMemoryWebhook: tasks sync falhou', [
                     'error' => $e->getMessage(),
