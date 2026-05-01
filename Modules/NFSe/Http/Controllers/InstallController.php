@@ -3,6 +3,7 @@
 namespace Modules\NFSe\Http\Controllers;
 
 use App\Http\Controllers\BaseModuleInstallController;
+use Illuminate\Support\Facades\Artisan;
 
 /**
  * InstallController — NFSe.
@@ -28,6 +29,14 @@ class InstallController extends BaseModuleInstallController
     protected function moduleVersion(): string
     {
         return (string) config('nfse.module_version', '0.1.0');
+    }
+
+    protected function postMigrationSteps(): void
+    {
+        Artisan::call('db:seed', [
+            '--class' => \Modules\NFSe\Database\Seeders\NfseSeeder::class,
+            '--force' => true,
+        ]);
     }
 
     protected function successMessage(): string
