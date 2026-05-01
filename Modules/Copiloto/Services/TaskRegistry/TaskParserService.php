@@ -257,8 +257,21 @@ class TaskParserService
 
     protected function headSha(): ?string
     {
-        $out = trim((string) \shell_exec('git -C ' . escapeshellarg(base_path()) . ' rev-parse HEAD 2>/dev/null'));
-        return $out !== '' ? substr($out, 0, 40) : null;
+        // Lê HEAD do filesystem (funciona em shared hosting onde shell_exec é desabilitado)
+        $headFile = base_path('.git/HEAD');
+        if (! is_file($headFile)) {
+            return null;
+        }
+        $head = trim((string) file_get_contents($headFile));
+        if (str_starts_with($head, 'ref: ')) {
+            $refPath = base_path('.git/' . substr($head, 5));
+            if (is_file($refPath)) {
+                return substr(trim((string) file_get_contents($refPath)), 0, 40);
+            }
+            return null;
+        }
+        // HEAD detached — o próprio conteúdo é o SHA
+        return $head !== '' ? substr($head, 0, 40) : null;
     }
 
     protected function relatorio(int $processadas, int $ins, int $upd, int $can, array $modulos): array
