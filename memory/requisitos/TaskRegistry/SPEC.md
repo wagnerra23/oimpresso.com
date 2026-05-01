@@ -80,7 +80,7 @@ Migrations `mcp_task_comments` + `mcp_task_events` pra timeline e audit completo
 
 ### US-TR-007 · UI Kanban /copiloto/admin/tasks
 
-> owner: wagner · sprint: F2 · priority: p2 · estimate: 12h · status: todo
+> owner: wagner · sprint: F2 · priority: p2 · estimate: 12h · status: done
 > blocked_by: US-TR-005
 
 Tela Inertia com Kanban (todo/doing/review/done) drag-drop + Backlog filtros + Burndown.
