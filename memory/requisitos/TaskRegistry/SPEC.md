@@ -59,7 +59,7 @@ Como sistema, quero parser idempotente que sync ATUAL (não acumula registros ve
 
 ### US-TR-004 · Webhook GitHub dispara mcp:tasks:sync
 
-> owner: wagner · sprint: F0 · priority: p1 · estimate: 2h · status: todo
+> owner: wagner · sprint: F0 · priority: p1 · estimate: 2h · status: done
 > blocked_by: US-TR-003
 
 Hoje webhook só sincroniza `mcp_memory_documents`. Adicionar gatilho pra `mcp:tasks:sync` após push em `memory/requisitos/*/SPEC.md`.
