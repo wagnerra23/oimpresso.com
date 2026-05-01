@@ -66,14 +66,14 @@ Hoje webhook só sincroniza `mcp_memory_documents`. Adicionar gatilho pra `mcp:t
 
 ### US-TR-005 · Tools CRUD (tasks-create/update/comment)
 
-> owner: wagner · sprint: F1 · priority: p1 · estimate: 8h · status: todo
+> owner: wagner · sprint: F1 · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-TR-004
 
 CRUD via MCP: criar US (gera entry no SPEC + commita), update status, comentários (DB-only).
 
 ### US-TR-006 · Tabelas comments + events (audit)
 
-> owner: wagner · sprint: F1 · priority: p1 · estimate: 4h · status: todo
+> owner: wagner · sprint: F1 · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-TR-003
 
 Migrations `mcp_task_comments` + `mcp_task_events` pra timeline e audit completo.

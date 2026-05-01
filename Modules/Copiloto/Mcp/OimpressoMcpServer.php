@@ -58,6 +58,10 @@ class OimpressoMcpServer extends Server
         // US-* extraidas dos SPECs canonicos via mcp:tasks:sync (webhook github).
         Tools\TasksListTool::class,
         Tools\TasksDetailTool::class,
+        // TaskRegistry F1 (US-TR-005) — CRUD tools.
+        Tools\TasksUpdateTool::class,
+        Tools\TasksCommentTool::class,
+        Tools\TasksCreateTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
