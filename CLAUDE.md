@@ -5,6 +5,22 @@
 
 ---
 
+## 0. Fontes da verdade — INVIOLÁVEL (ADR 0063)
+
+🔴 **Antes de Read/Glob/Grep em `memory/`, `CURRENT.md`, `TASKS.md`, `TEAM.md`, `INFRA.md`, `DESIGN.md`, `08-handoff.md`:**
+
+| Prioridade | Fonte | Uso |
+|---|---|---|
+| **1ª** | **MCP server** `mcp.oimpresso.com` | Conhecimento canônico — ADRs, sessions, specs, tasks, perfis. Tools: `tasks-current`, `decisions-search`, `decisions-fetch`, `sessions-recent`, `memoria-search`, `cc-search`, `claude-code-usage-self` |
+| **2ª** | **Servidores de produção** (quando MCP não cobre) | Dados vivos: **Hostinger SSH** (app + MySQL `oimpresso` — faturamento, clientes, métricas, logs `copiloto-ai`); **CT 100 Proxmox/Docker** (MCP server, Meilisearch, Reverb, Vaultwarden, Telescope, Centrifugo) |
+| **3ª** | **Filesystem local** | APENAS com permissão explícita do user na mensagem atual |
+
+**Bloqueio físico:** hook `.claude/hooks/mcp-first.ps1` retorna `decision: deny` em Read/Glob/Grep batendo nos paths canônicos. Override pra dev local: editar `.claude/settings.local.json` (gitignored).
+
+**Histórico:** Eliana [E] frustrou-se em 2026-04-30 porque Claude leu filesystem em vez de MCP. Não repetir.
+
+---
+
 ## 1. O que é este projeto em 30 segundos
 
 ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas rápidas, plotters, fachadas, brindes). Construído em cima do **UltimatePOS v6** com módulos próprios em `Modules/` (Copiloto IA, Financeiro, MemCofre, Cms, Officeimpresso, Ponto, Connector, etc.).

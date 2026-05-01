@@ -1,17 +1,28 @@
 ---
 name: oimpresso-mcp-first
-description: ATIVAR antes de Read/Glob/Grep em memory/, ler ADR/session/spec do projeto, buscar conhecimento canônico do oimpresso, criar arquivo em ~/.claude/projects/*/memory/, OU pensar em "vou guardar isso na memória pra lembrar". Lembra: tool MCP primeiro (não filesystem); zero auto-mem privada (ADR 0061 — todo conhecimento vai pra git/MCP).
+description: ATIVAR SEMPRE no INÍCIO da sessão e antes de qualquer Read/Glob/Grep/Bash que toque memory/, decisions/, sessions/, requisitos/, TASKS.md, CURRENT.md, TEAM.md, handoff, SPEC, ADR, ou qualquer pergunta sobre estado/tasks/skills/perfis do projeto oimpresso. Tool MCP é a ÚNICA fonte válida; filesystem só com permissão explícita. Eliana e Wagner ficam frustrados quando Claude lê filesystem em vez de MCP.
 ---
 
 # Skill: oimpresso-mcp-first
 
-🔴 **REGRA FUNDAMENTAL** — Wagner formalizou em 2026-04-30:
+🔴 **REGRA FUNDAMENTAL** — Wagner formalizou em 2026-04-30; **Eliana reforçou 2026-04-30 (frustrada)**:
 
-> *"seu conhecimento é MCP"*
+> *"seu conhecimento é MCP"* — Wagner
+> *"só o MCP é válido. Não use nenhuma outra fonte vai me deixar frustrado."* — Eliana [E], 2026-04-30
 
-Antes de qualquer ação de leitura/busca em conhecimento canônico do projeto, **tentar tool MCP primeiro**. Filesystem só como fallback documentado.
+**Default obrigatório:** ao iniciar sessão E antes de QUALQUER pergunta sobre projeto (tasks, ADR, perfil, skills, estado, infra, decisão, sessão), use **exclusivamente** tools MCP. Filesystem (Read/Glob/Grep/Bash em `memory/`, `TASKS.md`, `CURRENT.md`, `TEAM.md`, `INFRA.md`, `DESIGN.md`, etc.) **só com permissão explícita** do usuário na própria mensagem.
 
-## Mapeamento pergunta → tool
+**Se a tool MCP não retornar o que precisa:** diga isso ao usuário e peça permissão antes de cair em filesystem. Não caia em silêncio.
+
+## Hierarquia de fontes (ADR 0063 — INVIOLÁVEL)
+
+| # | Fonte | Quando usar | Como acessar |
+|---|---|---|---|
+| **1ª** | **MCP server** `mcp.oimpresso.com` | Conhecimento canônico do projeto (ADR, session, SPEC, task, perfil time) | Tools `tasks-current` / `decisions-search` / `decisions-fetch` / `sessions-recent` / `memoria-search` / `cc-search` / `claude-code-usage-self` |
+| **2ª** | **Servidores de produção** (quando MCP não cobre) | Dados vivos: faturamento real, métricas runtime, logs IA, estado de containers | **Hostinger SSH** (app + MySQL `oimpresso` — `mcp_*`, `copiloto_memoria_*`, `transactions`, logs `storage/logs/copiloto-ai.log`); **CT 100 Proxmox/Docker** (MCP server, Meilisearch index, Reverb, Vaultwarden, Telescope, Centrifugo) |
+| **3ª** | **Filesystem local** | APENAS com permissão explícita do user na mensagem atual | Read/Glob/Grep — bloqueado pelo hook `.claude/hooks/mcp-first.ps1` em paths canônicos |
+
+## Mapeamento pergunta → tool MCP
 
 | Quero saber | NÃO faça | Faça |
 |---|---|---|
@@ -22,6 +33,18 @@ Antes de qualquer ação de leitura/busca em conhecimento canônico do projeto, 
 | Fato persistente do business | (sem fonte) | `memoria-search query:"..."` |
 | Sessão Claude Code do time | (sem fonte) | `cc-search query:"..."` |
 | Quanto Wagner consumiu | (estimar) | `claude-code-usage-self` |
+| Perfil/WIP do time | `Read TEAM.md` | `decisions-search query:"TEAM perfis"` |
+| Acesso SSH/credencial | `Read INFRA.md` | `decisions-search query:"INFRA SSH"` + Vaultwarden |
+
+## Quando cair em SSH (2ª fonte)
+
+| Pergunta | Servidor | Comando exemplo |
+|---|---|---|
+| Faturamento real biz=4 | Hostinger | `mysql oimpresso -e "select sum(final_total) from transactions where business_id=4 and type='sell' and transaction_date >= ..."` |
+| Logs IA de hoje | Hostinger | `tail -200 storage/logs/copiloto-ai.log` |
+| Métricas Meilisearch index | CT 100 | `curl -H "Authorization: Bearer $KEY" https://meilisearch.oimpresso.com/indexes/copiloto_memoria_facts/stats` |
+| Status containers Docker | CT 100 | `docker ps`, `docker logs <name>` |
+| Audit log MCP | CT 100 ou Hostinger MySQL | `select * from mcp_audit_log order by id desc limit 50` |
 
 ## Por que importa
 
