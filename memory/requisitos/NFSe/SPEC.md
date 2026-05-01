@@ -1,6 +1,6 @@
 # NFSe — SPEC + Lista de tarefas
 
-> **Status**: planejamento (2026-04-30) · US-001 ✅ concluída
+> **Status**: Sprint A em progresso (2026-05-01) · US-001 ✅ · US-002 ✅ · US-003 🔄 próxima
 > **Owner**: Eliana[E]
 > **Paralelo a**: Cycle 01 (foco Copiloto/Larissa) — não bloqueia
 > **Cliente**: oimpresso (empresa Wagner) — **NÃO** ROTA LIVRE
@@ -53,13 +53,15 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-002 · Setup composer + .env
 
-> owner: eliana · sprint: A · priority: p1 · estimate: 4h · status: todo
+> owner: eliana · sprint: A · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-001
 
-- [ ] `composer require nfse-nacional/nfse-php` (fallback: `Rainzart/nfse-nacional` se gap em RTC v2.00)
-- [ ] `.env`: `NFSE_AMBIENTE=homologacao|producao`, `NFSE_CERT_PATH=/storage/certs/oimpresso.pfx`, `NFSE_CERT_SENHA=...`
-- [ ] Endpoints: sandbox `https://sefin.producaorestrita.nfse.gov.br` · prod `https://sefin.nfse.gov.br`
-- [ ] Doc em `Modules/NFSe/README.md`
+✅ **concluída 2026-05-01** — scaffold `Modules/NFSe/` criado, dep adicionada ao `composer.json`, vars no `.env - Copia.example`.
+
+- [x] `composer require nfse-nacional/nfse-php ^1.19` adicionado ao `composer.json` raiz — Wagner roda `composer update` localmente e no Hostinger
+- [x] `.env - Copia.example`: `NFSE_AMBIENTE=homologacao`, `NFSE_CERT_PATH=storage/certs/oimpresso.pfx`, `NFSE_CERT_SENHA=`, `NFSE_MUNICIPIO_IBGE=4218707`
+- [x] Endpoints configurados em `Modules/NFSe/Config/config.php`: sandbox `https://sefin.producaorestrita.nfse.gov.br` · prod `https://sefin.nfse.gov.br`
+- [x] Scaffold completo: `module.json`, `Providers/`, `Routes/web.php` + `Routes/api.php`, `Http/Controllers/NfseController.php` (stub 501), `Resources/menus/topnav.php`, `README.md`
 
 ### US-NFSE-003 · Migrations base
 
