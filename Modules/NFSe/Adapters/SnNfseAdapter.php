@@ -28,8 +28,8 @@ class SnNfseAdapter implements NfseProviderInterface
     public function __construct(private readonly string $ambiente = 'homologacao')
     {
         $this->baseUrl = $ambiente === 'producao'
-            ? config('nfse.endpoint_producao', 'https://sefin.nfse.gov.br/sefinnacional')
-            : config('nfse.endpoint_homologacao', 'https://sefin.producaorestrita.nfse.gov.br/sefinnacional');
+            ? config('nfse.endpoints.producao', 'https://sefin.nfse.gov.br/sefinnacional')
+            : config('nfse.endpoints.homologacao', 'https://sefin.producaorestrita.nfse.gov.br/sefinnacional');
     }
 
     public function emitir(NfseEmissaoPayload $payload): NfseResultado
