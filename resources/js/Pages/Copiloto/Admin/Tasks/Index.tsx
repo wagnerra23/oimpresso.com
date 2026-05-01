@@ -107,11 +107,16 @@ function KanbanView({ kanban }: { kanban: Record<string, Task[]> }) {
     setDraggingOver(null);
     dragId.current = null;
     setOptimistic(prev => ({ ...prev, [id]: targetStatus }));
-    router.patch(`/copiloto/admin/tasks/${id}/status`, { status: targetStatus, author: 'wagner' }, {
-      preserveScroll: true,
-      preserveState: true,
-      onError: () => setOptimistic(prev => { const n = { ...prev }; delete n[id]; return n; }),
-      onSuccess: () => setOptimistic(prev => { const n = { ...prev }; delete n[id]; return n; }),
+
+    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+    fetch(`/copiloto/admin/tasks/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+      body: JSON.stringify({ status: targetStatus, author: 'wagner' }),
+    }).then(r => {
+      if (!r.ok) setOptimistic(prev => { const n = { ...prev }; delete n[id]; return n; });
+    }).catch(() => {
+      setOptimistic(prev => { const n = { ...prev }; delete n[id]; return n; });
     });
   }
 
