@@ -168,3 +168,10 @@ HORIZON_PATH=horizon
 
 # === Telescope (debug AI calls em dev) ===
 TELESCOPE_ENABLED=false
+
+# === NFSe — Sistema Nacional NFSe (LC 214/2025) ===
+# Módulo: Modules/NFSe  |  US-NFSE-002  |  owner: Eliana[E]
+NFSE_AMBIENTE=homologacao              # homologacao | producao
+NFSE_CERT_PATH=storage/certs/oimpresso.pfx   # relativo a storage_path()
+NFSE_CERT_SENHA=                       # senha do .pfx — NUNCA commitar valor real
+NFSE_MUNICIPIO_IBGE=4218707            # Tubarão-SC
