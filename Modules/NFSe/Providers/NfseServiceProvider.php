@@ -4,6 +4,8 @@ namespace Modules\NFSe\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\NFSe\Adapters\SnNfseAdapter;
+use Modules\NFSe\Contracts\NfseProviderInterface;
 
 class NfseServiceProvider extends ServiceProvider
 {
@@ -24,6 +26,10 @@ class NfseServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        $this->app->bind(NfseProviderInterface::class, function () {
+            return new SnNfseAdapter(config('nfse.ambiente', 'homologacao'));
+        });
     }
 
     protected function registerCommands(): void
