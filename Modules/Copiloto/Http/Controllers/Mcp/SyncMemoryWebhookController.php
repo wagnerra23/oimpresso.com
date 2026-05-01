@@ -28,11 +28,28 @@ class SyncMemoryWebhookController extends Controller
 {
     public function handle(Request $request): JsonResponse
     {
-        // Auth via shared secret no header
-        $expected = (string) config('copiloto.mcp.sync_webhook_token', env('COPILOTO_MCP_SYNC_TOKEN'));
-        $received = (string) $request->header('X-MCP-Sync-Token', '');
+        // Auth via dois mecanismos:
+        //  1) X-Hub-Signature-256 (GitHub padrão): HMAC-SHA256 do body com o token como secret
+        //  2) X-MCP-Sync-Token (header direto): para testes manuais e chamadas não-GitHub
+        $secret = (string) config('copiloto.mcp.sync_webhook_token', env('COPILOTO_MCP_SYNC_TOKEN'));
 
-        if ($expected === '' || ! hash_equals($expected, $received)) {
+        if ($secret === '') {
+            Log::channel('copiloto-ai')->warning('SyncMemoryWebhook: COPILOTO_MCP_SYNC_TOKEN não configurado');
+            return response()->json(['error' => 'Misconfigured'], 500);
+        }
+
+        $githubSig = (string) $request->header('X-Hub-Signature-256', '');
+        $directToken = (string) $request->header('X-MCP-Sync-Token', '');
+        $authorized = false;
+
+        if ($githubSig !== '') {
+            $expected = 'sha256=' . hash_hmac('sha256', $request->getContent(), $secret);
+            $authorized = hash_equals($expected, $githubSig);
+        } elseif ($directToken !== '') {
+            $authorized = hash_equals($secret, $directToken);
+        }
+
+        if (! $authorized) {
             Log::channel('copiloto-ai')->warning('SyncMemoryWebhook: token inválido', [
                 'ip' => $request->ip(),
             ]);
