@@ -119,6 +119,33 @@
   color: var(--text-dim);
 }.cockpit .bc-tenant { color: var(--text); font-weight: 600; }.cockpit .bc-sep { color: var(--text-mute); }.cockpit .bc-up { color: var(--text-dim); }.cockpit .bc-cur { color: var(--text); font-weight: 500; }.cockpit .topbar-r { margin-left: auto; display: flex; gap: 4px; }
 
+/* ── Breadcrumb module dropdown ── */
+.cockpit .bc-mod { position: relative; display: inline-flex; align-items: center; }
+.cockpit .bc-mod-btn {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 6px; border-radius: 5px; border: none;
+  background: transparent; cursor: pointer;
+  font-size: 12.5px; font-weight: 600;
+  color: var(--text); transition: background 0.15s;
+}
+.cockpit .bc-mod-btn:hover { background: var(--bg-2); }
+.cockpit .bc-mod-dd {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 200;
+  min-width: 180px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  display: flex; flex-direction: column; gap: 1px;
+}
+.cockpit .bc-mod-dd-i {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 5px;
+  font-size: 12.5px; color: var(--text-dim);
+  text-decoration: none; transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.cockpit .bc-mod-dd-i:hover { background: var(--bg-2); color: var(--text); }
+
 /* ────────────────── Sidebar ────────────────── */.cockpit .sb {
   background: var(--sb-bg);
   color: var(--sb-text);
