@@ -202,7 +202,7 @@ class LaravelAiSdkDriver implements AiAdapter
             // MEM-FASE6 — registra uso dos fatos que foram injetados no prompt
             if (! empty($memoriaIds)) {
                 app(\Modules\Copiloto\Services\Memoria\HitTrackerService::class)
-                    ->registrarUso($memoriaIds);
+                    ->registrarUso($memoriaIds, (int) $conv->business_id);
             }
 
             // Sprint 5 — extrair fatos em background (Horizon)
@@ -307,7 +307,7 @@ class LaravelAiSdkDriver implements AiAdapter
             // MEM-FASE6 — registra uso dos fatos injetados no prompt
             if (! empty($memoriaIds)) {
                 app(\Modules\Copiloto\Services\Memoria\HitTrackerService::class)
-                    ->registrarUso($memoriaIds);
+                    ->registrarUso($memoriaIds, (int) $conv->business_id);
             }
 
             // Sprint 5 — após resposta, extrair fatos novos em background (Horizon).
