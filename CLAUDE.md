@@ -3,6 +3,13 @@
 > **Leia este arquivo ANTES de qualquer outro quando abrir este repositório pela primeira vez.**
 > Este é o ponto de entrada oficial para agentes de IA (Claude, Claude Code, Cursor, outros) e para desenvolvedores humanos.
 
+> ⚠️ **CONTEXTO DE EXECUÇÃO — leia antes de qualquer ação:**
+> Claude aqui roda como **agente desktop (GUI)**, **NÃO como CLI interativo**.
+> - `gh auth login`, `gh pr create` e similares **não funcionam** — `gh` não está autenticado nesta máquina. Para PRs/issues no GitHub, forneça o link do push e oriente o usuário a abrir manualmente em `github.com`.
+> - Comandos interativos (`ssh` com senha, `git rebase -i`, prompts de stdin) também não funcionam — use alternativas não-interativas ou oriente o usuário.
+> - Browser Chrome está disponível via `mcp__Claude_in_Chrome__*` (quando a extensão estiver conectada) ou `mcp__computer-use__*` em tier **read** (screenshot only, sem click/type).
+> - Para abrir URLs no browser, use as tools MCP de browser — **nunca tente contornar via shell** (`start`, `xdg-open`, etc.).
+
 ---
 
 ## 1. O que é este projeto em 30 segundos
