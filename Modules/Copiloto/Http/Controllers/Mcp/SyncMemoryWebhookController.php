@@ -5,11 +5,13 @@ namespace Modules\Copiloto\Http\Controllers\Mcp;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Modules\Copiloto\Services\Mcp\IndexarMemoryGitParaDb;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Webhook GitHub que sincroniza memory/ → DB.
+ * US-TR-004 — também dispara mcp:tasks:sync quando SPEC.md é modificada.
  *
  * Endpoint: POST /api/mcp/sync-memory
  * Auth: header X-MCP-Sync-Token (env COPILOTO_MCP_SYNC_TOKEN)
@@ -60,9 +62,51 @@ class SyncMemoryWebhookController extends Controller
             return response()->json(['error' => 'Sync failed', 'message' => $e->getMessage()], 500);
         }
 
+        // US-TR-004: dispara mcp:tasks:sync se algum SPEC.md foi tocado no push
+        $tasksStats = null;
+        if ($this->specMdModificada($request)) {
+            try {
+                Artisan::call('mcp:tasks:sync');
+                $tasksStats = ['synced' => true, 'output' => trim(Artisan::output())];
+            } catch (\Throwable $e) {
+                Log::channel('copiloto-ai')->error('SyncMemoryWebhook: tasks sync falhou', [
+                    'error' => $e->getMessage(),
+                ]);
+                $tasksStats = ['synced' => false, 'error' => $e->getMessage()];
+            }
+        }
+
         return response()->json([
-            'ok'    => true,
-            'stats' => $stats,
+            'ok'         => true,
+            'stats'      => $stats,
+            'tasks_sync' => $tasksStats,
         ]);
+    }
+
+    /**
+     * Verifica se algum commit do push tocou em memory/requisitos/ * /SPEC.md.
+     */
+    private function specMdModificada(Request $request): bool
+    {
+        $commits = $request->input('commits', []);
+        if (empty($commits)) {
+            // Push sem payload de commits detalhado — roda sync preventivo
+            $headCommit = $request->input('head_commit');
+            if ($headCommit) {
+                $commits = [$headCommit];
+            }
+        }
+
+        foreach ($commits as $commit) {
+            foreach (['added', 'modified', 'removed'] as $chave) {
+                foreach ((array) ($commit[$chave] ?? []) as $path) {
+                    if (preg_match('#^memory/requisitos/[^/]+/SPEC\.md$#', $path)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }
