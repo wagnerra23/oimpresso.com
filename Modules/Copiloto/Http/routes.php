@@ -117,6 +117,13 @@ Route::group(
         Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
             ->name('copiloto.admin.qualidade.index');
 
+        // ---- TaskRegistry F2 (US-TR-007) — Kanban /copiloto/admin/tasks
+        Route::get('/admin/tasks',                         'Admin\TasksAdminController@index')
+            ->name('copiloto.admin.tasks.index');
+        Route::patch('/admin/tasks/{taskId}/status',       'Admin\TasksAdminController@updateStatus')
+            ->where('taskId', '[A-Z0-9\-]+')
+            ->name('copiloto.admin.tasks.update-status');
+
         // ---- MEM-CC-UI-1 (SPEC-cc-sessions) — KB sessões Claude Code do time
         Route::get('/admin/cc-sessions',                   'Admin\CcSessionsController@index')
             ->name('copiloto.admin.cc.index');
