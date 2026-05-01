@@ -36,7 +36,13 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### Sprint A — Pesquisa + setup (3 dias)
 
-#### US-NFSE-001 · Pesquisa fiscal Tubarão (1d) 🔴 bloqueante
+### US-NFSE-001 · Pesquisa fiscal Tubarão
+
+> owner: eliana · sprint: A · priority: p0 · estimate: 8h · status: todo
+> blocked_by: —
+
+🔴 bloqueante. Tudo o resto depende disso.
+
 - [ ] Confirmar se Tubarão-SC está no **Sistema Nacional NFSe** (SN-NFSe federal LC 214/2025) ou ainda no **ABRASF municipal** próprio
 - [ ] Se SN-NFSe: webservice https://www.gov.br/nfse — sem provider terceiro
 - [ ] Se ABRASF municipal: avaliar provider (Focus NFe ~R$ 0.50-1.50/emissão recomendado)
@@ -44,12 +50,20 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 - [ ] Documentar resultado em `memory/requisitos/NFSe/PESQUISA_TUBARAO.md`
 - **Output**: decisão "SN-NFSe direto" vs "Provider X"
 
-#### US-NFSE-002 · Setup composer + .env (0.5d)
+### US-NFSE-002 · Setup composer + .env
+
+> owner: eliana · sprint: A · priority: p1 · estimate: 4h · status: todo
+> blocked_by: US-NFSE-001
+
 - [ ] `composer require` da lib escolhida (`rafwell/laravel-focusnfe`, `nfeio/php-sdk`, ou cliente SOAP custom pra SN-NFSe)
 - [ ] `.env`: `NFSE_PROVIDER`, `NFSE_TOKEN_SANDBOX`, `NFSE_AMBIENTE=sandbox`
 - [ ] Doc em `Modules/NFSe/README.md`
 
-#### US-NFSE-003 · Migrations base (1d)
+### US-NFSE-003 · Migrations base
+
+> owner: eliana · sprint: A · priority: p1 · estimate: 8h · status: todo
+> blocked_by: US-NFSE-002
+
 - [ ] `nfe_certificados` (compartilhado pra futuro NfeBrasil) — `business_id`, `cert_pfx_encrypted`, `senha_encrypted`, `valido_ate`
 - [ ] `nfse_emissoes` — `business_id`, `numero`, `serie`, `tomador_cnpj/cpf`, `valor`, `iss`, `xml`, `pdf_url`, `status` (rascunho/processando/emitida/cancelada/erro), `provider_protocolo`, `idempotency_key`
 - [ ] `nfse_provider_configs` — `business_id`, `provider`, `municipio_codigo_ibge`, `serie_default`, `cnae`, `lc116_default`
@@ -57,71 +71,119 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### Sprint B — Backend (3-4 dias)
 
-#### US-NFSE-004 · Adapter + Service (1.5d)
+### US-NFSE-004 · Adapter + Service
+
+> owner: eliana · sprint: B · priority: p1 · estimate: 12h · status: todo
+> blocked_by: US-NFSE-003
+
 - [ ] Interface `NfseProvider` (3 métodos: `emitir/consultar/cancelar`)
 - [ ] Implementação concreta (`NfseNacionalAdapter` OU `FocusNFeAdapter` — depende US-001)
 - [ ] `NfseEmissaoService` (validação payload + chamada adapter + persistência + retry)
 - [ ] Testes Pest com mock do provider (golden flow + idempotência + cancelamento)
 
-#### US-NFSE-005 · Job assíncrono (0.5d)
+### US-NFSE-005 · Job assíncrono
+
+> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: todo
+> blocked_by: US-NFSE-004
+
 - [ ] `EmitirNfseJob` (queue `nfse` separada — não bloqueia outras filas)
 - [ ] Retry policy: 3 tentativas com backoff exponencial
 - [ ] Idempotência: `idempotency_key = hash(business_id + tomador + valor + descricao + data)`
 
-#### US-NFSE-006 · HTTP Controller + rotas (0.5d)
+### US-NFSE-006 · HTTP Controller + rotas
+
+> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: todo
+> blocked_by: US-NFSE-004
+
 - [ ] `POST /nfse/emitir` (cria registro + dispara job)
 - [ ] `GET /nfse/{id}` (detalhe + status)
 - [ ] `POST /nfse/{id}/cancelar` (motivo)
 - [ ] `GET /nfse/{id}/pdf` (proxy PDF do provider)
 - [ ] Spatie permissions: `nfse.emit`, `nfse.cancel`, `nfse.view`
 
-#### US-NFSE-007 · Bridge recurring nativo UPOS (0.5-1d) 🟡 opcional Sprint B
+### US-NFSE-007 · Bridge recurring nativo UPOS
+
+> owner: eliana · sprint: B · priority: p2 · estimate: 8h · status: todo
+> blocked_by: US-NFSE-005
+
+🟡 opcional Sprint B (pode adiar pra Sprint D se travar).
+
 - [ ] Listener no evento de geração de `recurring_invoice` UPOS → cria NFSe `rascunho`
 - [ ] Mapeamento item venda → código serviço LC 116 (config no produto)
 - [ ] Botão "Emitir NFSe" no detalhe do recurring invoice (legacy Blade)
 
 ### Sprint C — UI Inertia/React (3 dias)
 
-#### US-NFSE-008 · Pages/Nfse/Index.tsx (1d)
+### US-NFSE-008 · Pages/Nfse/Index.tsx
+
+> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: todo
+> blocked_by: US-NFSE-006
+
 - [ ] AppShellV2 + breadcrumb `[{ label: 'Fiscal' }, { label: 'NFSe' }]`
 - [ ] DataTable com colunas: número, data, tomador, valor, status (StatusBadge), ações
 - [ ] PageFilters: status (rascunho/processando/emitida/cancelada/erro), período
 - [ ] EmptyState "Nenhuma NFSe emitida ainda"
 - [ ] Componentes shared (PageHeader, KpiGrid, DataTable, StatusBadge)
 
-#### US-NFSE-009 · Pages/Nfse/Emitir.tsx (1d)
+### US-NFSE-009 · Pages/Nfse/Emitir.tsx
+
+> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: todo
+> blocked_by: US-NFSE-006
+
 - [ ] Form: tomador (CNPJ ou CPF + razão social + endereço), serviço (descrição + cód LC 116 + valor), retenções opcionais
 - [ ] Auto-preenchimento por busca de cliente (autocomplete contacts UPOS)
 - [ ] Submit → POST /nfse/emitir → toast "NFSe sendo processada" + redirect lista
 - [ ] Validação react-hook-form + zod
 
-#### US-NFSE-010 · Action "Imprimir DANFSE" (0.5d)
+### US-NFSE-010 · Action "Imprimir DANFSE"
+
+> owner: eliana · sprint: C · priority: p2 · estimate: 4h · status: todo
+> blocked_by: US-NFSE-008
+
 - [ ] Botão na linha de cada NFSe emitida → abre PDF em nova aba
 - [ ] Fallback: download se provider só dá base64
 - [ ] Action "Cancelar" com modal motivo (NFSe ainda no prazo legal de cancelamento)
 
 ### Sprint D — Validação + produção (2-3 dias)
 
-#### US-NFSE-011 · Testes Pest end-to-end (1d)
+### US-NFSE-011 · Testes Pest end-to-end
+
+> owner: eliana · sprint: D · priority: p1 · estimate: 8h · status: todo
+> blocked_by: US-NFSE-009
+
 - [ ] Golden test: criar → emitir → consultar → cancelar
 - [ ] Mock provider Focus/SN-NFSe
 - [ ] Cobertura: idempotência, retry, contingência (provider down)
 - [ ] Coverage mínimo: 80% das linhas do `NfseEmissaoService`
 
-#### US-NFSE-012 · Deploy sandbox (0.5d)
+### US-NFSE-012 · Deploy sandbox
+
+> owner: eliana · sprint: D · priority: p1 · estimate: 4h · status: todo
+> blocked_by: US-NFSE-011
+
 - [ ] Subir migrations no Hostinger
 - [ ] `.env` produção com cert + token sandbox
 - [ ] Smoke test: emitir 1 NFSe sandbox + verificar XML/PDF
 - [ ] Validar que prefeitura Tubarão aceita o XML
 
-#### US-NFSE-013 · Deploy produção real (0.5d) 🔴 marco de sucesso
+### US-NFSE-013 · Deploy produção real
+
+> owner: eliana · sprint: D · priority: p0 · estimate: 4h · status: todo
+> blocked_by: US-NFSE-012
+
+🔴 marco de sucesso da SPEC inteira.
+
 - [ ] Trocar token sandbox → produção
 - [ ] Cert A1 produção (vault encrypted)
 - [ ] Emitir **1 NFSe real de teste** (cliente fake oimpresso pra oimpresso, valor mínimo)
 - [ ] Confirmar com contador/prefeitura
 - [ ] Documentar em session log + Eliana ganha lap
 
-#### US-NFSE-014 · Rollout pros clientes oimpresso (1d)
+### US-NFSE-014 · Rollout pros clientes oimpresso
+
+> owner: eliana · sprint: D · priority: p2 · estimate: 8h · status: todo
+> blocked_by: US-NFSE-013
+
 - [ ] Tela de configuração `/nfse/config` (provider + cert + dados fiscais por business)
 - [ ] Permission gating (só superadmin oimpresso libera)
 - [ ] **ROTA LIVRE permanece OFF** (config flag `nfse_habilitado=false` no business 4)
