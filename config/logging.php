@@ -139,6 +139,14 @@ return [
             'level' => env('OTEL_GEN_AI_LOG_LEVEL', 'info'),
             'days' => env('OTEL_GEN_AI_LOG_DAYS', 30),
         ],
+
+        // Módulo NFSe — emissões, cancelamentos e erros da prefeitura.
+        'nfse' => [
+            'driver' => 'daily',
+            'path'   => storage_path('logs/nfse.log'),
+            'level'  => env('NFSE_LOG_LEVEL', 'info'),
+            'days'   => 90,
+        ],
     ],
 
 ];
