@@ -36,7 +36,7 @@
 | ~~A1~~ | — | ~~MEM-MEM-WIRE Phase 2~~ (HyDE + Reranker + Negative cache) — **EM ESPERA** (30-abr): foco trocou pra MCP memória + ADRs. Retomar quando Recall@3 for bloqueante pro goal do Cycle 02. | dom **11-mai** | ⏸️ **ESPERA** |
 | ~~A2~~ | — | ~~F2 migração auto-mems P1~~ — **EM ESPERA** (30-abr): englobada pela nova prioridade MCP KB (MEM-KB-3 cobre ADRs + referências infra juntos). | seg **05-mai** | ⏸️ **ESPERA** |
 | ~~A1~~ | — | ~~**MemoriaAutonoma F1**: `copiloto:sintese-semanal` + cron sex 18h + `SinteseSemanalAgent` (Haiku 4.5)~~ | sex 30-abr | ✅ **30-abr** (`395be83a`) |
-| ~~A1~~ | — | ~~**TaskRegistry F0** (Jira-like MCP): migration `mcp_tasks` + `McpTasksSyncCommand` + parser SPEC + `TasksListTool` + `TasksDetailTool` + 133 tasks sincronizadas em prod~~ | qua 30-abr | ✅ **30-abr** (`95ab92c7` + migrations CT 100 + sync prod validado) |
+| ~~A1~~ | — | ~~**TaskRegistry F0** (Jira-like MCP): migration `mcp_tasks` + `McpTasksSyncCommand` + parser SPEC + `TasksListTool` + `TasksDetailTool` + 133 tasks sincronizadas em prod + US-TR-004 webhook GitHub→`mcp:tasks:sync` automático~~ | qua 30-abr | ✅ **30-abr/01-mai** (`009dc127` + webhook id 614879953 ativo) |
 | A1 | 1/2 | **MEM-KB-3 F2: frontmatter YAML + migração 57 ADRs** — frontmatter obrigatório em `memory/decisions/*.md` + Claude infere campos faltantes (status/authority/lifecycle/quarter) + colunas tipadas em `mcp_memory_documents`. Destrava filtros queryable na KB UI. | sex **09-mai** | 🔥 **NOVO FOCO** |
 | A2 | 2/2 | **MEM-MEM-MCP-1.b: ligar driver MCP no Copiloto** — `copiloto:mcp:system-token` + `COPILOTO_MEMORIA_DRIVER=mcp` no `.env` Hostinger + smoke chat → recall via MCP | ter **06-mai** | 🔥 **NOVO FOCO** |
 
