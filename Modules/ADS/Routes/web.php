@@ -51,6 +51,9 @@ Route::group([
     Route::get('/admin/patterns',   [PatternsController::class,   'index'])->name('ads.admin.patterns.index');
     Route::get('/admin/skills',     [PatternsController::class,   'index'])->name('ads.admin.skills.index'); // alias semântico
     Route::get('/admin/tools',      [ToolsController::class,      'index'])->name('ads.admin.tools.index');
+    Route::post('/admin/tools/{name}/execute', [ToolsController::class, 'execute'])
+        ->where('name', '[a-z0-9_\-\.]+')
+        ->name('ads.admin.tools.execute');
     Route::get('/admin/learning',   [LearningController::class,   'index'])->name('ads.admin.learning.index');
     Route::get('/admin/meta-skills', [MetaSkillsController::class, 'index'])->name('ads.admin.metaskills.index');
     Route::post('/admin/meta-skills/{id}/toggle', [MetaSkillsController::class, 'toggle'])
