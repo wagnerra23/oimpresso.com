@@ -1,28 +1,30 @@
 <?php
 
 /**
- * TopNav declarativo do ADS.
+ * TopNav declarativo do ADS — modelo Cognitive Control Panel.
  *
- * Espelho React do padrão UltimatePOS. Lido pelo LegacyMenuAdapter::buildTopNavs()
- * e exposto em `shell.topnavs.ADS` via Inertia.
- *
- * Convenções (feedback_topnav_i18n_pattern):
- * - Ordem do array = ordem na barra horizontal (esquerda → direita)
- * - `can` opcional — Spatie filtra por permissão do user
- * - `icon` usa nome Lucide
- * - `href` é path relativo (/ads/...)
- * - `label` aceita literal OU chave `ads::ads.x` (resolveLabel converte)
+ * Estrutura mental: Decisão → Conhecimento → Evolução → Controle.
+ * Items ordenados por essa hierarquia.
  */
 
 return [
     'label' => 'ADS',
     'icon'  => 'Brain',
     'items' => [
-        ['label' => 'Decisões',   'href' => '/ads/admin/decisoes',   'icon' => 'Inbox',       'can' => 'ads.decisoes.review'],
-        ['label' => 'Tools',      'href' => '/ads/admin/tools',      'icon' => 'Wrench',      'can' => 'ads.access'],
-        ['label' => 'Métricas',   'href' => '/ads/admin/metricas',   'icon' => 'BarChart3',   'can' => 'ads.access'],
-        ['label' => 'Confidence', 'href' => '/ads/admin/confidence', 'icon' => 'TrendingUp',  'can' => 'ads.access'],
-        ['label' => 'Padrões',    'href' => '/ads/admin/patterns',   'icon' => 'Zap',         'can' => 'ads.access'],
-        ['label' => 'Policy',     'href' => '/ads/admin/policy',     'icon' => 'ShieldCheck', 'can' => 'ads.policy.manage'],
+        // ─── DECISÃO ───
+        ['label' => 'Decisões',          'href' => '/ads/admin/decisoes',    'icon' => 'Inbox',       'can' => 'ads.decisoes.review'],
+
+        // ─── CONHECIMENTO ───
+        ['label' => 'Skills',            'href' => '/ads/admin/skills',      'icon' => 'Zap',         'can' => 'ads.access'],
+        ['label' => 'Meta-skills',       'href' => '/ads/admin/meta-skills', 'icon' => 'Brain',       'can' => 'ads.access'],
+        ['label' => 'Tools',             'href' => '/ads/admin/tools',       'icon' => 'Wrench',      'can' => 'ads.access'],
+
+        // ─── EVOLUÇÃO ───
+        ['label' => 'Learning Pipeline', 'href' => '/ads/admin/learning',    'icon' => 'Repeat',      'can' => 'ads.access'],
+
+        // ─── CONTROLE ───
+        ['label' => 'Métricas',          'href' => '/ads/admin/metricas',    'icon' => 'BarChart3',   'can' => 'ads.access'],
+        ['label' => 'Confidence',        'href' => '/ads/admin/confidence',  'icon' => 'TrendingUp',  'can' => 'ads.access'],
+        ['label' => 'Policy',            'href' => '/ads/admin/policy',      'icon' => 'ShieldCheck', 'can' => 'ads.policy.manage'],
     ],
 ];

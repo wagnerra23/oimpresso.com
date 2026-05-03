@@ -103,14 +103,34 @@ class DataController extends Controller
                     'ADS',
                     function ($sub) {
                         $segment3 = request()->segment(3);
+
+                        // ─── DECISÃO ───
                         $sub->url(url('/ads/admin/decisoes'), 'Decisões', [
                             'icon'   => 'fa fas fa-inbox',
                             'active' => $segment3 === 'decisoes',
+                        ]);
+
+                        // ─── CONHECIMENTO ───
+                        $sub->url(url('/ads/admin/skills'), 'Skills', [
+                            'icon'   => 'fa fas fa-bolt',
+                            'active' => in_array($segment3, ['skills', 'patterns'], true),
+                        ]);
+                        $sub->url(url('/ads/admin/meta-skills'), 'Meta-skills', [
+                            'icon'   => 'fa fas fa-brain',
+                            'active' => $segment3 === 'meta-skills',
                         ]);
                         $sub->url(url('/ads/admin/tools'), 'Tools', [
                             'icon'   => 'fa fas fa-wrench',
                             'active' => $segment3 === 'tools',
                         ]);
+
+                        // ─── EVOLUÇÃO ───
+                        $sub->url(url('/ads/admin/learning'), 'Learning Pipeline', [
+                            'icon'   => 'fa fas fa-sync',
+                            'active' => $segment3 === 'learning',
+                        ]);
+
+                        // ─── CONTROLE ───
                         $sub->url(url('/ads/admin/metricas'), 'Métricas', [
                             'icon'   => 'fa fas fa-chart-bar',
                             'active' => $segment3 === 'metricas',
@@ -118,10 +138,6 @@ class DataController extends Controller
                         $sub->url(url('/ads/admin/confidence'), 'Confidence', [
                             'icon'   => 'fa fas fa-chart-line',
                             'active' => $segment3 === 'confidence',
-                        ]);
-                        $sub->url(url('/ads/admin/patterns'), 'Padrões', [
-                            'icon'   => 'fa fas fa-bolt',
-                            'active' => $segment3 === 'patterns',
                         ]);
                         $sub->url(url('/ads/admin/policy'), 'Policy', [
                             'icon'   => 'fa fas fa-shield-alt',

@@ -7,6 +7,8 @@ use Modules\ADS\Http\Controllers\Admin\ConfidenceController;
 use Modules\ADS\Http\Controllers\Admin\MetricasController;
 use Modules\ADS\Http\Controllers\Admin\PatternsController;
 use Modules\ADS\Http\Controllers\Admin\ToolsController;
+use Modules\ADS\Http\Controllers\Admin\LearningController;
+use Modules\ADS\Http\Controllers\Admin\MetaSkillsController;
 use Modules\ADS\Http\Controllers\InstallController;
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
@@ -44,5 +46,11 @@ Route::group([
     Route::get('/admin/confidence', [ConfidenceController::class, 'index'])->name('ads.admin.confidence.index');
     Route::get('/admin/metricas',   [MetricasController::class,   'index'])->name('ads.admin.metricas.index');
     Route::get('/admin/patterns',   [PatternsController::class,   'index'])->name('ads.admin.patterns.index');
+    Route::get('/admin/skills',     [PatternsController::class,   'index'])->name('ads.admin.skills.index'); // alias semântico
     Route::get('/admin/tools',      [ToolsController::class,      'index'])->name('ads.admin.tools.index');
+    Route::get('/admin/learning',   [LearningController::class,   'index'])->name('ads.admin.learning.index');
+    Route::get('/admin/meta-skills', [MetaSkillsController::class, 'index'])->name('ads.admin.metaskills.index');
+    Route::post('/admin/meta-skills/{id}/toggle', [MetaSkillsController::class, 'toggle'])
+        ->whereNumber('id')
+        ->name('ads.admin.metaskills.toggle');
 });
