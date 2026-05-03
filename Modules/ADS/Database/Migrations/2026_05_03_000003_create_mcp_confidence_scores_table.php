@@ -15,7 +15,7 @@ class CreateMcpConfidenceScoresTable extends Migration
             $table->string('event_type', 80);
 
             $table->decimal('score', 4, 3)->default(0.500);    // inicial = 0.5 (ARQ-0005)
-            $table->unsignedSmallInt('sample_size')->default(0);
+            $table->unsignedSmallInteger('sample_size')->default(0);
             $table->tinyInteger('hitl_level')->default(2);      // progride 2→1→0 por histórico
 
             $table->enum('last_outcome', [
@@ -23,8 +23,8 @@ class CreateMcpConfidenceScoresTable extends Migration
             ])->nullable();
 
             // Contadores para cálculo sem precisar de JOIN com decisions
-            $table->unsignedSmallInt('consecutive_approvals')->default(0);
-            $table->unsignedSmallInt('consecutive_failures')->default(0);
+            $table->unsignedSmallInteger('consecutive_approvals')->default(0);
+            $table->unsignedSmallInteger('consecutive_failures')->default(0);
 
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 
