@@ -15,6 +15,10 @@ use Modules\ADS\Ai\Agents\ProjectDecomposerAgent;
  */
 class ProjectDecomposerService
 {
+    public function __construct(
+        private readonly DecisionLinksService $links,
+    ) {}
+
     public function decompose(int $projectId): array
     {
         $project = DB::table('mcp_projects')->where('id', $projectId)->first();
@@ -98,10 +102,23 @@ class ProjectDecomposerService
                 'updated_at'          => now(),
             ]);
 
+            // C — Vincula ADRs consultadas ao project (auditoria reversa)
+            $regrasConsultadas = $plan['regras_consultadas'] ?? [];
+            $linksGravados = 0;
+            if (! empty($regrasConsultadas)) {
+                $linksGravados = $this->links->linkFromTexts(
+                    DecisionLinksService::TARGET_PROJECT,
+                    $projectId,
+                    $regrasConsultadas,
+                    'referenced',
+                );
+            }
+
             Log::channel('single')->info('ads.project_decomposer.completed', [
                 'project_id'    => $projectId,
                 'parts_created' => $created,
                 'viability'     => $plan['viability_overall'] ?? null,
+                'adr_links'     => $linksGravados,
             ]);
 
             return [

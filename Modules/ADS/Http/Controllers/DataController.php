@@ -110,24 +110,20 @@ class DataController extends Controller
                             'active' => $segment3 === 'projects',
                         ]);
 
-                        // ─── DECISÃO ───
+                        // ─── DECISÃO (Conflitos virou tab interna) ───
                         $sub->url(url('/ads/admin/decisoes'), 'Decisões', [
                             'icon'   => 'fa fas fa-inbox',
-                            'active' => $segment3 === 'decisoes',
-                        ]);
-                        $sub->url(url('/ads/admin/conflicts'), 'Conflitos', [
-                            'icon'   => 'fa fas fa-exclamation-triangle',
-                            'active' => $segment3 === 'conflicts',
+                            'active' => $segment3 === 'decisoes' || $segment3 === 'conflicts',
                         ]);
 
                         // ─── CONHECIMENTO ───
+                        $sub->url(url('/ads/admin/kb'), 'Knowledge Base', [
+                            'icon'   => 'fa fas fa-book',
+                            'active' => $segment3 === 'kb',
+                        ]);
                         $sub->url(url('/ads/admin/skills'), 'Skills', [
                             'icon'   => 'fa fas fa-bolt',
-                            'active' => in_array($segment3, ['skills', 'patterns'], true),
-                        ]);
-                        $sub->url(url('/ads/admin/meta-skills'), 'Meta-skills', [
-                            'icon'   => 'fa fas fa-brain',
-                            'active' => $segment3 === 'meta-skills',
+                            'active' => in_array($segment3, ['skills', 'patterns', 'confidence'], true),
                         ]);
                         $sub->url(url('/ads/admin/tools'), 'Tools', [
                             'icon'   => 'fa fas fa-wrench',
@@ -138,24 +134,20 @@ class DataController extends Controller
                             'active' => $segment3 === 'graph',
                         ]);
 
-                        // ─── EVOLUÇÃO ───
-                        $sub->url(url('/ads/admin/learning'), 'Learning Pipeline', [
-                            'icon'   => 'fa fas fa-sync',
-                            'active' => $segment3 === 'learning',
-                        ]);
-
-                        // ─── CONTROLE ───
-                        $sub->url(url('/ads/admin/metricas'), 'Métricas', [
-                            'icon'   => 'fa fas fa-chart-bar',
-                            'active' => $segment3 === 'metricas',
-                        ]);
-                        $sub->url(url('/ads/admin/confidence'), 'Confidence', [
-                            'icon'   => 'fa fas fa-chart-line',
-                            'active' => $segment3 === 'confidence',
+                        // ─── GOVERNANÇA ───
+                        $sub->url(url('/ads/admin/meta-skills'), 'Meta-skills', [
+                            'icon'   => 'fa fas fa-brain',
+                            'active' => $segment3 === 'meta-skills',
                         ]);
                         $sub->url(url('/ads/admin/policy'), 'Policy', [
                             'icon'   => 'fa fas fa-shield-alt',
                             'active' => $segment3 === 'policy',
+                        ]);
+
+                        // ─── MEDIÇÃO (Learning virou tab interna) ───
+                        $sub->url(url('/ads/admin/metricas'), 'Métricas', [
+                            'icon'   => 'fa fas fa-chart-bar',
+                            'active' => $segment3 === 'metricas' || $segment3 === 'learning',
                         ]);
                     },
                     [
