@@ -2,6 +2,17 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\ADS\Http\Controllers\Admin\DecisoesController;
+use Modules\ADS\Http\Controllers\InstallController;
+
+// Rotas de instalação 1-click (via /manage-modules → botão Install)
+// Pattern: ADR 0024 / feedback_pattern_install_modulos
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('ads')
+    ->group(function () {
+        Route::get('install',           [InstallController::class, 'index']);
+        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
+        Route::get('install/update',    [InstallController::class, 'update']);
+    });
 
 Route::group([
     'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
