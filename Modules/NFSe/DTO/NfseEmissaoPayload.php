@@ -25,6 +25,7 @@ final class NfseEmissaoPayload
         public readonly string  $municipioIbge = '4218707',
         public readonly ?string $prestadorCnpj = null,
         public readonly ?string $prestadorIm = null,
+        public readonly ?int    $transactionId = null,
     ) {}
 
     public function valorIss(): float
