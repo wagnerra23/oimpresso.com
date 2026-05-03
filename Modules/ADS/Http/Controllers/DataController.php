@@ -104,6 +104,12 @@ class DataController extends Controller
                     function ($sub) {
                         $segment3 = request()->segment(3);
 
+                        // ─── ESTRATÉGIA ───
+                        $sub->url(url('/ads/admin/projects'), 'Projects', [
+                            'icon'   => 'fa fas fa-folder-tree',
+                            'active' => $segment3 === 'projects',
+                        ]);
+
                         // ─── DECISÃO ───
                         $sub->url(url('/ads/admin/decisoes'), 'Decisões', [
                             'icon'   => 'fa fas fa-inbox',

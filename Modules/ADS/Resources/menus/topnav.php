@@ -11,6 +11,9 @@ return [
     'label' => 'ADS',
     'icon'  => 'Brain',
     'items' => [
+        // ─── ESTRATÉGIA ───
+        ['label' => 'Projects',          'href' => '/ads/admin/projects',    'icon' => 'FolderKanban','can' => 'ads.access'],
+
         // ─── DECISÃO ───
         ['label' => 'Decisões',          'href' => '/ads/admin/decisoes',    'icon' => 'Inbox',       'can' => 'ads.decisoes.review'],
         ['label' => 'Conflitos',         'href' => '/ads/admin/conflicts',   'icon' => 'AlertTriangle','can' => 'ads.access'],
