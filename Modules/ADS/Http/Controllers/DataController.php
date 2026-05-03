@@ -109,6 +109,10 @@ class DataController extends Controller
                             'icon'   => 'fa fas fa-inbox',
                             'active' => $segment3 === 'decisoes',
                         ]);
+                        $sub->url(url('/ads/admin/conflicts'), 'Conflitos', [
+                            'icon'   => 'fa fas fa-exclamation-triangle',
+                            'active' => $segment3 === 'conflicts',
+                        ]);
 
                         // ─── CONHECIMENTO ───
                         $sub->url(url('/ads/admin/skills'), 'Skills', [
@@ -122,6 +126,10 @@ class DataController extends Controller
                         $sub->url(url('/ads/admin/tools'), 'Tools', [
                             'icon'   => 'fa fas fa-wrench',
                             'active' => $segment3 === 'tools',
+                        ]);
+                        $sub->url(url('/ads/admin/graph'), 'Knowledge Graph', [
+                            'icon'   => 'fa fas fa-project-diagram',
+                            'active' => $segment3 === 'graph',
                         ]);
 
                         // ─── EVOLUÇÃO ───
