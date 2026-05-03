@@ -3,16 +3,22 @@
 namespace Modules\ADS\Services;
 
 use Modules\ADS\Contracts\Tool;
+use Modules\ADS\Tools\BoostToolAdapter;
+use Modules\ADS\Tools\GitCommitWipTool;
 use Modules\ADS\Tools\GitInspectTool;
 use Modules\ADS\Tools\LogReaderTool;
 use Modules\ADS\Tools\MetricsQueryTool;
+use Modules\ADS\Tools\RunTestTool;
+use Modules\ADS\Tools\WriteFileTool;
 
 /**
- * T12 — Catálogo de Tools registradas.
+ * Catálogo de Tools registradas (Anthropic tool use compatible).
  *
- * Tools são singletons (sem estado). Registry expõe lista pra UI e métodos
- * de discovery pra agentes (futuramente: Brain B chama `getToolsForContext()`
- * e recebe só tools relevantes pro event_type atual).
+ * Estrutura por categoria:
+ *   - 'leitura (Laravel Boost)' — 8 tools nativas Boost (preferência Wagner)
+ *   - 'leitura'                 — 2 tools customizadas (GitInspect, MetricsQuery — Boost não cobre direto)
+ *   - 'análise'                 — (legado) MetricsQueryTool
+ *   - 'escrita'                 — 3 tools customizadas (Write/RunTest/GitWip)
  */
 class ToolRegistry
 {
@@ -21,9 +27,21 @@ class ToolRegistry
 
     public function __construct()
     {
-        $this->register(new LogReaderTool());
-        $this->register(new MetricsQueryTool());
-        $this->register(new GitInspectTool());
+        // ─── Tools nativas Laravel Boost (preferência Wagner) ───
+        foreach (BoostToolAdapter::listKeys() as $key) {
+            $this->register(new BoostToolAdapter($key));
+        }
+
+        // ─── Tools customizadas read-only que Boost NÃO cobre ───
+        $this->register(new GitInspectTool());     // Boost não tem git inspect
+        $this->register(new MetricsQueryTool());   // Boost db-query é mais raw; nossa é específica ADS
+
+        // LogReaderTool removido — Boost::read-log-entries cobre
+
+        // ─── Tools de ESCRITA (custom, exigem aprovação Wagner) ───
+        $this->register(new WriteFileTool());
+        $this->register(new RunTestTool());
+        $this->register(new GitCommitWipTool());
     }
 
     public function register(Tool $tool): void
@@ -49,25 +67,32 @@ class ToolRegistry
     }
 
     /** @return Tool[] */
+    public function writeOnly(): array
+    {
+        return array_filter($this->all(), fn (Tool $t) => ! $t->isReadOnly());
+    }
+
+    /** @return Tool[] */
     public function byCategory(string $category): array
     {
         return array_filter($this->all(), fn (Tool $t) => $t->category() === $category);
     }
 
     /**
-     * Schema Anthropic-compatible pra todas as tools (passar pro Brain B).
+     * Schema Anthropic-compatible pra todas (ou só safe) tools.
      */
-    public function schemasForLlm(): array
+    public function schemasForLlm(bool $readOnlyOnly = true): array
     {
+        $tools = $readOnlyOnly ? $this->readOnly() : $this->all();
         return array_map(fn (Tool $t) => [
             'name'         => $t->name(),
             'description'  => $t->description(),
             'input_schema' => $t->inputSchema(),
-        ], $this->all());
+        ], $tools);
     }
 
     /**
-     * Executa uma tool por nome. Wrapper centralizado pra logging/audit.
+     * Executa uma tool por nome com audit log.
      */
     public function execute(string $name, array $input): array
     {
@@ -77,7 +102,20 @@ class ToolRegistry
         }
 
         try {
-            return $tool->execute($input);
+            $started = microtime(true);
+            $result = $tool->execute($input);
+            $duration = (int) ((microtime(true) - $started) * 1000);
+
+            // Audit log
+            \Illuminate\Support\Facades\Log::channel('single')->info('ads.tool.executed', [
+                'tool_name'  => $name,
+                'is_read_only' => $tool->isReadOnly(),
+                'ok'         => $result['ok'] ?? false,
+                'error'      => $result['error'] ?? null,
+                'duration_ms' => $duration,
+            ]);
+
+            return $result;
         } catch (\Throwable $e) {
             return ['ok' => false, 'output' => null, 'error' => 'tool_exception: ' . $e->getMessage()];
         }
