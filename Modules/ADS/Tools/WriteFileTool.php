@@ -84,6 +84,20 @@ class WriteFileTool implements Tool
         $content = $input['content'] ?? '';
         $mode = $input['mode'] ?? 'create';
 
+        // Validação 0: per-user scope (camada NOVA — caso Maíra)
+        $userId = $input['_user_id'] ?? auth()->id();
+        if ($userId !== null) {
+            $scope = app(\Modules\ADS\Services\UserScopeService::class);
+            if (! $scope->canWriteToPath((int) $userId, $path)) {
+                return [
+                    'ok'     => false,
+                    'output' => null,
+                    'error'  => 'user_scope_denied',
+                    'message' => "User #{$userId} sem permissão de escrita no módulo extraído de '{$path}'. Wagner precisa autorizar via /ads/admin/team-scopes.",
+                ];
+            }
+        }
+
         // Validação 1: path obrigatório
         if (empty($path)) {
             return ['ok' => false, 'output' => null, 'error' => 'path_required'];

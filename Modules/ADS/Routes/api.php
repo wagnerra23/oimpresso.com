@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\ADS\Http\Controllers\Api\DecisionController;
 use Modules\ADS\Http\Controllers\Api\RecentEventsController;
+use Modules\ADS\Http\Controllers\Api\ScopeController;
 
 // Health check público (não exige auth)
 Route::get('ads/health', [DecisionController::class, 'health']);
@@ -12,4 +13,7 @@ Route::middleware(['ads.api'])->group(function () {
     Route::post('ads/route',           [DecisionController::class,      'route']);
     Route::get('ads/recent-commits',   [RecentEventsController::class,  'commits']);
     Route::get('ads/recent-errors',    [RecentEventsController::class,  'errors']);
+    Route::get('ads/scope/check',      [ScopeController::class,         'check']);
+    Route::get('ads/scope/user/{user_id}', [ScopeController::class,    'listUserModules'])
+        ->whereNumber('user_id');
 });
