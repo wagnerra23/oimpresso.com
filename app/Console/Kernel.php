@@ -68,6 +68,19 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADS Brain B — processa decisions com destination=brain_b a cada 5 min.
+        // Custo estimado ~$0.05/dia em prod com prompt caching Sonnet. Limit=5
+        // por execução evita gastos descontrolados; ajustar via Policy se necessário.
+        $schedule->command('ads:process-brain-b --limit=5')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule ADS Brain B (ads:process-brain-b) FALHOU'
+                );
+            });
+
         // MEM-FASE8 — esquecimento semanal (domingo 03:00).
         // Remove bloat (hits=0, >30d) + expirados (valid_until >90d) + órfãos MCP.
         // Soft-delete por padrão. Hard-delete LGPD só via comando manual com --hard.
