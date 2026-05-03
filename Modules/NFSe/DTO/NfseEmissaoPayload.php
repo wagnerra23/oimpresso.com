@@ -23,6 +23,8 @@ final class NfseEmissaoPayload
         public readonly ?string $certSenha = null,
         public readonly string  $ambiente = 'homologacao',
         public readonly string  $municipioIbge = '4218707',
+        public readonly ?string $prestadorCnpj = null,
+        public readonly ?string $prestadorIm = null,
     ) {}
 
     public function valorIss(): float
