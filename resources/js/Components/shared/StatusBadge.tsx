@@ -59,6 +59,13 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     sucesso:     { variant: 'default',   label: 'Sucesso',     className: 'bg-emerald-600' },
     erro:        { variant: 'destructive', label: 'Erro' },
   },
+  nfse: {
+    rascunho:    { variant: 'outline',     label: 'Rascunho' },
+    processando: { variant: 'default',     label: 'Processando', className: 'bg-blue-600 hover:bg-blue-700' },
+    emitida:     { variant: 'default',     label: 'Emitida',     className: 'bg-emerald-600 hover:bg-emerald-700' },
+    cancelada:   { variant: 'outline',     label: 'Cancelada' },
+    erro:        { variant: 'destructive', label: 'Erro' },
+  },
   rep: {
     REP_P: { variant: 'outline', label: 'REP-P' },
     REP_C: { variant: 'outline', label: 'REP-C' },

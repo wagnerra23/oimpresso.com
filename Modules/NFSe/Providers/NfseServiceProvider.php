@@ -2,10 +2,13 @@
 
 namespace Modules\NFSe\Providers;
 
+use App\Transaction;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\NFSe\Adapters\SnNfseAdapter;
+use Modules\NFSe\Console\Commands\ImportarCertificadoCommand;
 use Modules\NFSe\Contracts\NfseProviderInterface;
+use Modules\NFSe\Observers\TransactionNfseObserver;
 
 class NfseServiceProvider extends ServiceProvider
 {
@@ -26,6 +29,7 @@ class NfseServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+        Transaction::observe(TransactionNfseObserver::class);
 
         $this->app->bind(NfseProviderInterface::class, function () {
             return new SnNfseAdapter(config('nfse.ambiente', 'homologacao'));
@@ -34,7 +38,9 @@ class NfseServiceProvider extends ServiceProvider
 
     protected function registerCommands(): void
     {
-        // US-NFSE-005: EmitirNfseJob não precisa de command separado
+        $this->commands([
+            ImportarCertificadoCommand::class,
+        ]);
     }
 
     protected function registerCommandSchedules(): void
