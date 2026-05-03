@@ -107,6 +107,10 @@ class DataController extends Controller
                             'icon'   => 'fa fas fa-inbox',
                             'active' => $segment3 === 'decisoes',
                         ]);
+                        $sub->url(url('/ads/admin/tools'), 'Tools', [
+                            'icon'   => 'fa fas fa-wrench',
+                            'active' => $segment3 === 'tools',
+                        ]);
                         $sub->url(url('/ads/admin/metricas'), 'Métricas', [
                             'icon'   => 'fa fas fa-chart-bar',
                             'active' => $segment3 === 'metricas',

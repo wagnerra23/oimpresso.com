@@ -19,6 +19,7 @@ return [
     'icon'  => 'Brain',
     'items' => [
         ['label' => 'Decisões',   'href' => '/ads/admin/decisoes',   'icon' => 'Inbox',       'can' => 'ads.decisoes.review'],
+        ['label' => 'Tools',      'href' => '/ads/admin/tools',      'icon' => 'Wrench',      'can' => 'ads.access'],
         ['label' => 'Métricas',   'href' => '/ads/admin/metricas',   'icon' => 'BarChart3',   'can' => 'ads.access'],
         ['label' => 'Confidence', 'href' => '/ads/admin/confidence', 'icon' => 'TrendingUp',  'can' => 'ads.access'],
         ['label' => 'Padrões',    'href' => '/ads/admin/patterns',   'icon' => 'Zap',         'can' => 'ads.access'],
