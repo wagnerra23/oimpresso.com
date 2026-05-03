@@ -1,10 +1,12 @@
 <?php
 
 /**
- * TopNav declarativo do ADS — modelo Cognitive Control Panel.
+ * TopNav declarativo do ADS — Cognitive Control Panel consolidado.
  *
- * Estrutura mental: Decisão → Conhecimento → Evolução → Controle.
- * Items ordenados por essa hierarquia.
+ * 13 → 10 itens (Movement D consolidação): Conflitos/Confidence/Learning Pipeline
+ * NÃO aparecem mais no menu — agora são tabs internas das telas principais.
+ *
+ * Estrutura: Estratégia → Decisão → Conhecimento → Governança → Medição.
  */
 
 return [
@@ -15,21 +17,22 @@ return [
         ['label' => 'Projects',          'href' => '/ads/admin/projects',    'icon' => 'FolderKanban','can' => 'ads.access'],
 
         // ─── DECISÃO ───
+        // (Conflitos virou tab dentro de Decisões)
         ['label' => 'Decisões',          'href' => '/ads/admin/decisoes',    'icon' => 'Inbox',       'can' => 'ads.decisoes.review'],
-        ['label' => 'Conflitos',         'href' => '/ads/admin/conflicts',   'icon' => 'AlertTriangle','can' => 'ads.access'],
 
         // ─── CONHECIMENTO ───
+        ['label' => 'Knowledge Base',    'href' => '/ads/admin/kb',          'icon' => 'BookOpen',    'can' => 'ads.access'],
         ['label' => 'Skills',            'href' => '/ads/admin/skills',      'icon' => 'Zap',         'can' => 'ads.access'],
-        ['label' => 'Meta-skills',       'href' => '/ads/admin/meta-skills', 'icon' => 'Brain',       'can' => 'ads.access'],
+        // (Confidence virou tab dentro de Skills)
         ['label' => 'Tools',             'href' => '/ads/admin/tools',       'icon' => 'Wrench',      'can' => 'ads.access'],
         ['label' => 'Knowledge Graph',   'href' => '/ads/admin/graph',       'icon' => 'GitBranch',   'can' => 'ads.access'],
 
-        // ─── EVOLUÇÃO ───
-        ['label' => 'Learning Pipeline', 'href' => '/ads/admin/learning',    'icon' => 'Repeat',      'can' => 'ads.access'],
-
-        // ─── CONTROLE ───
-        ['label' => 'Métricas',          'href' => '/ads/admin/metricas',    'icon' => 'BarChart3',   'can' => 'ads.access'],
-        ['label' => 'Confidence',        'href' => '/ads/admin/confidence',  'icon' => 'TrendingUp',  'can' => 'ads.access'],
+        // ─── GOVERNANÇA ───
+        ['label' => 'Meta-skills',       'href' => '/ads/admin/meta-skills', 'icon' => 'Brain',       'can' => 'ads.access'],
         ['label' => 'Policy',            'href' => '/ads/admin/policy',      'icon' => 'ShieldCheck', 'can' => 'ads.policy.manage'],
+
+        // ─── MEDIÇÃO ───
+        // (Learning Pipeline virou tab dentro de Métricas)
+        ['label' => 'Métricas',          'href' => '/ads/admin/metricas',    'icon' => 'BarChart3',   'can' => 'ads.access'],
     ],
 ];
