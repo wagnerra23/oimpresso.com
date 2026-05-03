@@ -20,6 +20,7 @@ import { CheckCircle2, XCircle, ShieldAlert, Clock, Archive, ExternalLink } from
 
 interface Decision {
   id: number
+  parent_decision_id: number | null
   event_type: string
   event_source: string
   domain: string
@@ -43,13 +44,14 @@ interface Decision {
 }
 
 interface Props {
-  tab: 'pendentes' | 'em_andamento' | 'historico'
+  tab: 'pendentes' | 'em_andamento' | 'subtarefas' | 'historico'
   decisions: Decision[]
   kpis: {
     pendentes: number
     em_andamento: number
     concluidas_7d: number
     rejeitadas_7d: number
+    subtarefas: number
   }
 }
 
@@ -69,13 +71,13 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
       />
 
       {/* 2. KPIs como filtros (clicáveis, selected = aba ativa) */}
-      <KpiGrid cols={4}>
+      <KpiGrid cols={5}>
         <KpiCard
           icon="hourglass"
           tone="warning"
           label="Aguardando você"
           value={num(kpis.pendentes)}
-          description="Precisam de decisão ou dispensa"
+          description="Precisam de decisão"
           onClick={() => setTab('pendentes')}
           selected={tab === 'pendentes'}
         />
@@ -84,9 +86,18 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
           tone="info"
           label="Brain B processando"
           value={num(kpis.em_andamento)}
-          description="Claude API gerando instruções"
+          description="Claude API gerando"
           onClick={() => setTab('em_andamento')}
           selected={tab === 'em_andamento'}
+        />
+        <KpiCard
+          icon="git-branch"
+          tone="default"
+          label="Subtarefas"
+          value={num(kpis.subtarefas)}
+          description="Geradas pelo Planner"
+          onClick={() => setTab('subtarefas')}
+          selected={tab === 'subtarefas'}
         />
         <KpiCard
           icon="check-circle-2"
@@ -102,7 +113,7 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
           tone="danger"
           label="Rejeitadas 7d"
           value={num(kpis.rejeitadas_7d)}
-          description="Você rejeitou — IA aprende"
+          description="IA aprende"
         />
       </KpiGrid>
 
@@ -137,6 +148,15 @@ function DecisionRow({ d, tab }: { d: Decision; tab: string }) {
             <span className="font-mono text-xs text-muted-foreground tabular-nums">
               #{String(d.id).padStart(4, '0')}
             </span>
+            {d.parent_decision_id && (
+              <Link
+                href={`/ads/admin/decisoes/${d.parent_decision_id}`}
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                title="Esta é subtarefa — clique pra ver decisão pai"
+              >
+                ↳ subtarefa de #{String(d.parent_decision_id).padStart(4, '0')}
+              </Link>
+            )}
             <Link
               href={`/ads/admin/decisoes/${d.id}`}
               className="font-medium text-foreground hover:underline inline-flex items-center gap-1"
@@ -198,6 +218,7 @@ function emptyTitle(tab: string): string {
   return {
     pendentes: 'Nenhuma decisão aguardando',
     em_andamento: 'Nenhuma decisão em processamento',
+    subtarefas: 'Nenhuma subtarefa ativa',
     historico: 'Histórico vazio',
   }[tab] ?? 'Sem decisões'
 }
@@ -206,6 +227,7 @@ function emptyDescription(tab: string): string {
   return {
     pendentes: 'Quando o Brain A detectar eventos que precisam da sua atenção, eles aparecerão aqui.',
     em_andamento: 'Quando o Brain B começar a gerar instruções via Claude API, elas aparecerão aqui em até 5 minutos.',
+    subtarefas: 'Quando o PlannerAgent decompor decisões complexas, as subtarefas aparecem aqui com link pra decisão pai.',
     historico: 'Decisões concluídas, rejeitadas ou dispensadas aparecerão aqui.',
   }[tab] ?? ''
 }

@@ -12,11 +12,14 @@ use Modules\ADS\Services\BrainBService;
 use Modules\ADS\Services\ReviewerService;
 use Modules\ADS\Services\PatternLearningService;
 use Modules\ADS\Services\AutoTaskGeneratorService;
+use Modules\ADS\Services\PlannerService;
+use Modules\ADS\Services\ToolRegistry;
 use Modules\ADS\Http\Middleware\AdsApiAuth;
 use Modules\ADS\Console\Commands\ProcessBrainBCommand;
 use Modules\ADS\Console\Commands\LearnPatternsCommand;
 use Modules\ADS\Console\Commands\ReviewDecisionsCommand;
 use Modules\ADS\Console\Commands\AutoGenerateTasksCommand;
+use Modules\ADS\Console\Commands\PlanDecisionsCommand;
 
 class AdsServiceProvider extends ServiceProvider
 {
@@ -32,6 +35,7 @@ class AdsServiceProvider extends ServiceProvider
                 LearnPatternsCommand::class,
                 ReviewDecisionsCommand::class,
                 AutoGenerateTasksCommand::class,
+                PlanDecisionsCommand::class,
             ]);
         }
     }
@@ -48,6 +52,8 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(ReviewerService::class);
         $this->app->singleton(PatternLearningService::class);
         $this->app->singleton(AutoTaskGeneratorService::class);
+        $this->app->singleton(PlannerService::class);
+        $this->app->singleton(ToolRegistry::class);
     }
 
     protected function registerConfig(): void

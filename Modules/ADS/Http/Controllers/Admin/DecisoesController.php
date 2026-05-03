@@ -29,7 +29,7 @@ class DecisoesController extends Controller
     {
         $businessId = (int) $request->session()->get('user.business_id', 1);
 
-        $tab = $request->get('tab', 'pendentes'); // pendentes | em_andamento | historico
+        $tab = $request->get('tab', 'pendentes'); // pendentes | em_andamento | subtarefas | historico
 
         $query = DB::table('mcp_dual_brain_decisions')
             ->where('business_id', $businessId);
@@ -37,10 +37,14 @@ class DecisoesController extends Controller
         if ($tab === 'pendentes') {
             $query->whereIn('destination', ['pending_wagner', 'blocked'])
                   ->where('outcome', 'cancelled')
-                  ->whereNull('dismissed_at');
+                  ->whereNull('dismissed_at')
+                  ->whereNull('parent_decision_id');
         } elseif ($tab === 'em_andamento') {
             $query->where('destination', 'brain_b')
                   ->where('outcome', 'cancelled')
+                  ->whereNull('dismissed_at');
+        } elseif ($tab === 'subtarefas') {
+            $query->whereNotNull('parent_decision_id')
                   ->whereNull('dismissed_at');
         } else { // historico — inclui dispensados
             $query->where(function ($q) {
@@ -52,10 +56,11 @@ class DecisoesController extends Controller
         $decisions = $query->orderByDesc('id')->limit(50)->get()->map(function ($d) {
             $explained = DecisionPresenter::explain($d);
             return [
-                'id'                => $d->id,
-                'event_type'        => $d->event_type,
-                'event_source'      => $d->event_source,
-                'domain'            => $d->domain,
+                'id'                  => $d->id,
+                'parent_decision_id'  => $d->parent_decision_id,
+                'event_type'          => $d->event_type,
+                'event_source'        => $d->event_source,
+                'domain'              => $d->domain,
                 'risk_score'        => (float) $d->risk_score,
                 'confidence_score'  => (float) $d->confidence_score,
                 'policy_applied'    => $d->policy_applied,
@@ -101,6 +106,12 @@ class DecisoesController extends Controller
                 ->where('business_id', $businessId)
                 ->where('outcome', 'wagner_rejected')
                 ->where('created_at', '>=', now()->subDays(7))
+                ->count(),
+            'subtarefas'    => DB::table('mcp_dual_brain_decisions')
+                ->where('business_id', $businessId)
+                ->whereNotNull('parent_decision_id')
+                ->whereNull('dismissed_at')
+                ->where('outcome', 'cancelled')
                 ->count(),
         ];
 
