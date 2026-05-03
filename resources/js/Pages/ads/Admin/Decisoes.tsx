@@ -1,10 +1,22 @@
-import React from 'react'
+// @ads
+//   tela: /ads/admin/decisoes
+//   module: ADS
+//   adrs: UI-0006 (padrão operacional), UI-0008 (Cockpit), ARQ-0008 (HiTL 4 níveis)
+//   status: implementada
+//   permissao: superadmin (V1) → ads.decisoes.review (V2)
+
+import React, { type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Link, router } from '@inertiajs/react'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
-import { CheckCircle2, XCircle, Hourglass, ShieldAlert, Clock, Brain, Info, Archive } from 'lucide-react'
+import PageHeader from '@/Components/shared/PageHeader'
+import KpiGrid from '@/Components/shared/KpiGrid'
+import KpiCard from '@/Components/shared/KpiCard'
+import StatusBadge from '@/Components/shared/StatusBadge'
+import EmptyState from '@/Components/shared/EmptyState'
+import { CheckCircle2, XCircle, ShieldAlert, Clock, Archive, ExternalLink } from 'lucide-react'
 
 interface Decision {
   id: number
@@ -41,163 +53,161 @@ interface Props {
   }
 }
 
-const statusColor: Record<string, string> = {
-  blocked:        'bg-red-100 text-red-700 border-red-300',
-  pending_wagner: 'bg-amber-100 text-amber-800 border-amber-300',
-  brain_b:        'bg-blue-100 text-blue-700 border-blue-300',
-  brain_a:        'bg-emerald-100 text-emerald-700 border-emerald-300',
-  queued:         'bg-zinc-100 text-zinc-700 border-zinc-300',
-}
+const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 
-const riskColor: Record<string, string> = {
-  Baixo:    'bg-emerald-50 text-emerald-700 border-emerald-200',
-  Médio:    'bg-yellow-50 text-yellow-700 border-yellow-200',
-  Alto:     'bg-orange-50 text-orange-700 border-orange-200',
-  Crítico:  'bg-red-50 text-red-700 border-red-200',
-}
+const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ tab, decisions, kpis }) => {
+  const setTab = (value: string) => router.get('/ads/admin/decisoes', { tab: value }, { preserveState: false })
 
-const Decisoes: React.FC<Props> & { layout?: (p: React.ReactNode) => React.ReactNode } = ({ tab, decisions, kpis }) => {
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="mx-auto max-w-7xl p-6 space-y-4">
 
-      {/* Cabeçalho explicativo */}
-      <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4 text-sm text-zinc-700">
-        <div className="flex gap-2">
-          <Info className="w-5 h-5 text-zinc-500 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p><strong>O que você vê aqui:</strong> decisões automatizadas que o sistema (ADS) detectou e roteou para Brain A (autônomo), Brain B (Claude API) ou para você.</p>
-            <p><strong>O que precisa fazer:</strong> revisar itens com botão <em>Aprovar/Rejeitar</em> visível. Itens bloqueados pelo firewall e já executados são apenas para auditoria.</p>
-          </div>
-        </div>
-      </div>
+      {/* 1. Cabeçalho operacional canônico (UI-0006) */}
+      <PageHeader
+        icon="brain"
+        title="ADS — Decisões"
+        description="Decisões automatizadas detectadas e roteadas pelo Adaptive Decision System. Aprove, rejeite ou dispense para auditoria."
+      />
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard icon={<Hourglass className="text-amber-600" />} label="Aguardando você" value={kpis.pendentes} hint="Precisam da sua decisão" />
-        <KpiCard icon={<Brain className="text-blue-600" />}      label="Brain B processando" value={kpis.em_andamento} hint="Claude API gerando instruções" />
-        <KpiCard icon={<CheckCircle2 className="text-emerald-600" />} label="Concluídas (7d)" value={kpis.concluidas_7d} hint="Aprovadas + executadas" />
-        <KpiCard icon={<XCircle className="text-red-600" />}     label="Rejeitadas (7d)" value={kpis.rejeitadas_7d} hint="Você rejeitou — IA aprende" />
-      </div>
+      {/* 2. KPIs como filtros (clicáveis, selected = aba ativa) */}
+      <KpiGrid cols={4}>
+        <KpiCard
+          icon="hourglass"
+          tone="warning"
+          label="Aguardando você"
+          value={num(kpis.pendentes)}
+          description="Precisam de decisão ou dispensa"
+          onClick={() => setTab('pendentes')}
+          selected={tab === 'pendentes'}
+        />
+        <KpiCard
+          icon="brain"
+          tone="info"
+          label="Brain B processando"
+          value={num(kpis.em_andamento)}
+          description="Claude API gerando instruções"
+          onClick={() => setTab('em_andamento')}
+          selected={tab === 'em_andamento'}
+        />
+        <KpiCard
+          icon="check-circle-2"
+          tone="success"
+          label="Concluídas 7d"
+          value={num(kpis.concluidas_7d)}
+          description="Aprovadas + executadas"
+          onClick={() => setTab('historico')}
+          selected={tab === 'historico'}
+        />
+        <KpiCard
+          icon="x-circle"
+          tone="danger"
+          label="Rejeitadas 7d"
+          value={num(kpis.rejeitadas_7d)}
+          description="Você rejeitou — IA aprende"
+        />
+      </KpiGrid>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b">
-        <TabLink current={tab} value="pendentes" label="Aguardando ação" />
-        <TabLink current={tab} value="em_andamento" label="Em andamento" />
-        <TabLink current={tab} value="historico" label="Histórico" />
-      </div>
-
-      {/* Lista */}
-      {decisions.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-zinc-500">Nenhuma decisão nesta aba.</CardContent></Card>
-      ) : (
-        <div className="space-y-3">
-          {decisions.map(d => <DecisionCard key={d.id} d={d} tab={tab} />)}
-        </div>
-      )}
+      {/* 3. Lista canônica — Card + lista de decisões OU EmptyState */}
+      <Card>
+        <CardContent className="p-0">
+          {decisions.length === 0 ? (
+            <EmptyState
+              icon="inbox"
+              title={emptyTitle(tab)}
+              description={emptyDescription(tab)}
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {decisions.map(d => <DecisionRow key={d.id} d={d} tab={tab} />)}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
 
-function DecisionCard({ d, tab }: { d: Decision; tab: string }) {
-  const statusBg = statusColor[d.destination] ?? 'bg-zinc-100 text-zinc-700 border-zinc-300'
-  const riskBg = riskColor[d.risk_label] ?? 'bg-zinc-50 text-zinc-700 border-zinc-200'
-
+function DecisionRow({ d, tab }: { d: Decision; tab: string }) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="py-4 space-y-3">
-        {/* Linha 1 — resumo */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <Link href={`/ads/admin/decisoes/${d.id}`} className="block">
-              <h3 className="font-medium text-zinc-900 hover:underline">
-                <span className="text-zinc-400 font-mono text-sm mr-2">#{d.id}</span>
-                {d.one_line}
-              </h3>
+    <li className="px-4 py-4 hover:bg-muted/30 transition-colors">
+      <div className="flex items-start justify-between gap-4">
+        {/* Lado esquerdo — conteúdo principal estilo "Ordem" */}
+        <div className="flex-1 min-w-0 space-y-2">
+          {/* Linha 1: ID + título + link de detalhe */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-xs text-muted-foreground tabular-nums">
+              #{String(d.id).padStart(4, '0')}
+            </span>
+            <Link
+              href={`/ads/admin/decisoes/${d.id}`}
+              className="font-medium text-foreground hover:underline inline-flex items-center gap-1"
+            >
+              {d.one_line}
+              <ExternalLink className="w-3 h-3 opacity-50" />
             </Link>
-            <p className="text-sm text-zinc-600 mt-1">{d.action_hint}</p>
           </div>
 
-          {/* Botões: Aprovar/Rejeitar se acionável; Dispensar se não-acionável */}
-          {tab === 'pendentes' && d.actionable && (
-            <ActionButtons decisionId={d.id} />
-          )}
-          {tab === 'pendentes' && !d.actionable && (
-            <DismissButton decisionId={d.id} />
-          )}
-        </div>
-
-        {/* Linha 2 — badges legíveis */}
-        <div className="flex items-center gap-2 flex-wrap text-xs">
-          <Badge className={`border ${statusBg}`} title="Estado da decisão">
-            {d.status_label}
-          </Badge>
-          {d.policy_applied && (
-            <Badge variant="outline" className="border-zinc-300" title="Regra do firewall (Policy Engine)">
-              <ShieldAlert className="w-3 h-3 mr-1 inline" />
-              {d.why_badge}
-            </Badge>
-          )}
-          <Badge className={`border ${riskBg}`} title={`Score técnico: ${d.risk_score.toFixed(2)}`}>
-            Risco {d.risk_label}
-          </Badge>
-        </div>
-
-        {/* Instrução curta do Brain B (se houver) */}
-        {d.instruction_short && (
-          <div className="text-sm text-zinc-600 bg-zinc-50 rounded p-3 border border-zinc-200">
-            <strong className="text-zinc-700">Brain B sugere:</strong> {d.instruction_short}
+          {/* Linha 2: badges canônicos */}
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            <StatusBadge kind="ads_destination" value={d.destination} />
+            <StatusBadge kind="ads_risco" value={d.risk_label} />
+            {d.policy_applied && (
+              <Badge variant="outline" className="font-medium gap-1">
+                <ShieldAlert className="w-3 h-3" />
+                {d.why_badge}
+              </Badge>
+            )}
           </div>
-        )}
 
-        {/* Linha 3 — meta */}
-        <div className="flex items-center gap-3 text-xs text-zinc-400">
-          <span><Clock className="inline w-3 h-3 mr-1" />{new Date(d.created_at).toLocaleString('pt-BR')}</span>
-          <span>Origem: {d.event_source}</span>
-          <span>Módulo: {d.domain}</span>
+          {/* Linha 3: hint de ação + meta */}
+          {d.action_hint && (
+            <p className="text-sm text-muted-foreground">{d.action_hint}</p>
+          )}
+
+          {/* Instrução do Brain B (resumida) */}
+          {d.instruction_short && (
+            <div className="text-sm rounded-md bg-blue-500/5 border border-blue-500/20 p-3">
+              <strong className="text-foreground">Brain B sugere:</strong>{' '}
+              <span className="text-muted-foreground">{d.instruction_short}</span>
+            </div>
+          )}
+
+          {/* Linha 4: meta info (timestamp · origem · módulo) */}
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {new Date(d.created_at).toLocaleString('pt-BR')}
+            </span>
+            <span>·</span>
+            <span>Origem: <strong className="text-foreground/70">{d.event_source}</strong></span>
+            <span>·</span>
+            <span>Módulo: <strong className="text-foreground/70">{d.domain}</strong></span>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Lado direito — ações contextuais */}
+        <div className="shrink-0">
+          {tab === 'pendentes' && d.actionable && <ActionButtons decisionId={d.id} />}
+          {tab === 'pendentes' && !d.actionable && <DismissButton decisionId={d.id} />}
+        </div>
+      </div>
+    </li>
   )
 }
 
-function KpiCard({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: number; hint?: string }) {
-  return (
-    <Card>
-      <CardContent className="py-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-zinc-50 rounded-lg shrink-0">{icon}</div>
-          <div className="min-w-0">
-            <div className="text-xs text-zinc-500">{label}</div>
-            <div className="text-2xl font-bold leading-tight">{value}</div>
-            {hint && <div className="text-xs text-zinc-400 mt-0.5">{hint}</div>}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+function emptyTitle(tab: string): string {
+  return {
+    pendentes: 'Nenhuma decisão aguardando',
+    em_andamento: 'Nenhuma decisão em processamento',
+    historico: 'Histórico vazio',
+  }[tab] ?? 'Sem decisões'
 }
 
-function TabLink({ current, value, label }: { current: string; value: string; label: string }) {
-  const active = current === value
-  return (
-    <Link
-      href={`/ads/admin/decisoes?tab=${value}`}
-      className={`px-4 py-2 -mb-px border-b-2 text-sm font-medium ${
-        active ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-500 hover:text-zinc-700'
-      }`}
-    >{label}</Link>
-  )
-}
-
-function DismissButton({ decisionId }: { decisionId: number }) {
-  const dismiss = () => router.post(`/ads/admin/decisoes/${decisionId}/dismiss`, {}, { preserveScroll: true })
-  return (
-    <div className="shrink-0">
-      <Button size="sm" variant="outline" onClick={dismiss} title="Move para Histórico — sem ação executada">
-        <Archive className="w-4 h-4 mr-1" /> Dispensar
-      </Button>
-    </div>
-  )
+function emptyDescription(tab: string): string {
+  return {
+    pendentes: 'Quando o Brain A detectar eventos que precisam da sua atenção, eles aparecerão aqui.',
+    em_andamento: 'Quando o Brain B começar a gerar instruções via Claude API, elas aparecerão aqui em até 5 minutos.',
+    historico: 'Decisões concluídas, rejeitadas ou dispensadas aparecerão aqui.',
+  }[tab] ?? ''
 }
 
 function ActionButtons({ decisionId }: { decisionId: number }) {
@@ -207,7 +217,7 @@ function ActionButtons({ decisionId }: { decisionId: number }) {
     router.post(`/ads/admin/decisoes/${decisionId}/reject`, { reason }, { preserveScroll: true })
   }
   return (
-    <div className="flex gap-2 shrink-0">
+    <div className="flex gap-2">
       <Button size="sm" onClick={approve}>
         <CheckCircle2 className="w-4 h-4 mr-1" /> Aprovar
       </Button>
@@ -218,8 +228,20 @@ function ActionButtons({ decisionId }: { decisionId: number }) {
   )
 }
 
-Decisoes.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="ADS — Decisões" breadcrumbItems={[{ label: 'ADS' }, { label: 'Decisões' }]}>
+function DismissButton({ decisionId }: { decisionId: number }) {
+  const dismiss = () => router.post(`/ads/admin/decisoes/${decisionId}/dismiss`, {}, { preserveScroll: true })
+  return (
+    <Button size="sm" variant="outline" onClick={dismiss} title="Move para Histórico — sem ação executada">
+      <Archive className="w-4 h-4 mr-1" /> Dispensar
+    </Button>
+  )
+}
+
+Decisoes.layout = (page: ReactNode) => (
+  <AppShellV2
+    title="ADS — Decisões"
+    breadcrumbItems={[{ label: 'ADS' }, { label: 'Decisões' }]}
+  >
     {page}
   </AppShellV2>
 )

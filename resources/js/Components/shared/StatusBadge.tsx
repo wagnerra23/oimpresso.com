@@ -71,6 +71,19 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     REP_C: { variant: 'outline', label: 'REP-C' },
     REP_A: { variant: 'outline', label: 'REP-A' },
   },
+  ads_destination: {
+    blocked:        { variant: 'destructive', label: 'Bloqueado' },
+    pending_wagner: { variant: 'default',     label: 'Aguardando você', className: 'bg-amber-600 hover:bg-amber-700' },
+    brain_b:        { variant: 'default',     label: 'Brain B',          className: 'bg-blue-600 hover:bg-blue-700' },
+    brain_a:        { variant: 'default',     label: 'Brain A',          className: 'bg-emerald-600 hover:bg-emerald-700' },
+    queued:         { variant: 'outline',     label: 'Na fila' },
+  },
+  ads_risco: {
+    Baixo:   { variant: 'default',     label: 'Risco Baixo',   className: 'bg-emerald-600 hover:bg-emerald-700' },
+    Médio:   { variant: 'default',     label: 'Risco Médio',   className: 'bg-amber-600 hover:bg-amber-700' },
+    Alto:    { variant: 'default',     label: 'Risco Alto',    className: 'bg-orange-600 hover:bg-orange-700' },
+    Crítico: { variant: 'destructive', label: 'Risco Crítico' },
+  },
 };
 
 interface Props {
