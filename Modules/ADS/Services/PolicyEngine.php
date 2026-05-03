@@ -86,6 +86,31 @@ final class PolicyEngine
         return in_array($eventType, self::BLOCK_ALWAYS, true);
     }
 
+    /**
+     * Retorna todas as regras agrupadas por categoria.
+     * Read-only: usado pela UI de transparência (ARQ-0006 — firewall só muda via PR git).
+     */
+    public function getAllRules(): array
+    {
+        return [
+            'BLOCK_ALWAYS'         => self::BLOCK_ALWAYS,
+            'REQUIRE_HUMAN_REVIEW' => self::REQUIRE_HUMAN_REVIEW,
+            'REQUIRE_BRAIN_B'      => self::REQUIRE_BRAIN_B,
+            'ALLOW_BRAIN_A'        => self::ALLOW_BRAIN_A,
+        ];
+    }
+
+    public function categoryDescription(string $category): string
+    {
+        return match ($category) {
+            'BLOCK_ALWAYS'         => 'Firewall imutável. Nenhum agente pode executar — sempre exige humano. Mudança só via PR aprovado.',
+            'REQUIRE_HUMAN_REVIEW' => 'Sempre cria task pendente Wagner, mesmo com Brain B aprovando. Casos estruturais.',
+            'REQUIRE_BRAIN_B'      => 'Brain A não toca. Brain B (Claude API) obrigatório com instrução detalhada.',
+            'ALLOW_BRAIN_A'        => 'Brain A pode executar autônomo se confiança ≥ threshold (0.70 padrão).',
+            default                => '',
+        };
+    }
+
     public function allowsBrainA(string $eventType): bool
     {
         return in_array($eventType, self::ALLOW_BRAIN_A, true);

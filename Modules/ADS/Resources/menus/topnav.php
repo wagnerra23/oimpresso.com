@@ -18,11 +18,9 @@ return [
     'label' => 'ADS',
     'icon'  => 'Brain',
     'items' => [
-        [
-            'label' => 'Decisões',
-            'href'  => '/ads/admin/decisoes',
-            'icon'  => 'Inbox',
-            'can'   => 'ads.decisoes.review',
-        ],
+        ['label' => 'Decisões',   'href' => '/ads/admin/decisoes',   'icon' => 'Inbox',       'can' => 'ads.decisoes.review'],
+        ['label' => 'Métricas',   'href' => '/ads/admin/metricas',   'icon' => 'BarChart3',   'can' => 'ads.access'],
+        ['label' => 'Confidence', 'href' => '/ads/admin/confidence', 'icon' => 'TrendingUp',  'can' => 'ads.access'],
+        ['label' => 'Policy',     'href' => '/ads/admin/policy',     'icon' => 'ShieldCheck', 'can' => 'ads.policy.manage'],
     ],
 ];

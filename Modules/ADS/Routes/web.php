@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\ADS\Http\Controllers\Admin\DecisoesController;
+use Modules\ADS\Http\Controllers\Admin\PolicyController;
+use Modules\ADS\Http\Controllers\Admin\ConfidenceController;
+use Modules\ADS\Http\Controllers\Admin\MetricasController;
 use Modules\ADS\Http\Controllers\InstallController;
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
@@ -33,4 +36,9 @@ Route::group([
     Route::post('/admin/decisoes/{id}/dismiss',    [DecisoesController::class, 'dismiss'])
         ->whereNumber('id')
         ->name('ads.admin.decisoes.dismiss');
+
+    // Páginas read-only de transparência
+    Route::get('/admin/policy',     [PolicyController::class,     'index'])->name('ads.admin.policy.index');
+    Route::get('/admin/confidence', [ConfidenceController::class, 'index'])->name('ads.admin.confidence.index');
+    Route::get('/admin/metricas',   [MetricasController::class,   'index'])->name('ads.admin.metricas.index');
 });
