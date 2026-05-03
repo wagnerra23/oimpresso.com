@@ -91,6 +91,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->environments(['live']);
 
+        // ADS Planner (T9 PlannerAgent) — decompõe decisions complexas a cada 10min.
+        $schedule->command('ads:plan-decisions --limit=3')
+            ->everyTenMinutes()
+            ->withoutOverlapping()
+            ->environments(['live']);
+
         // ADS Brain B — processa decisions com destination=brain_b a cada 5 min.
         // Custo estimado ~$0.05/dia em prod com prompt caching Sonnet. Limit=5
         // por execução evita gastos descontrolados; ajustar via Policy se necessário.
