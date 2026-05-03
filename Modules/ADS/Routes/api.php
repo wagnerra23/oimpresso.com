@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\ADS\Http\Controllers\Api\DecisionController;
 use Modules\ADS\Http\Controllers\Api\RecentEventsController;
 use Modules\ADS\Http\Controllers\Api\ScopeController;
+use Modules\ADS\Http\Controllers\Api\ContextController;
 
 // Health check público (não exige auth)
 Route::get('ads/health', [DecisionController::class, 'health']);
@@ -16,4 +17,5 @@ Route::middleware(['ads.api'])->group(function () {
     Route::get('ads/scope/check',      [ScopeController::class,         'check']);
     Route::get('ads/scope/user/{user_id}', [ScopeController::class,    'listUserModules'])
         ->whereNumber('user_id');
+    Route::post('ads/context-for-task',    [ContextController::class,  'forTask']);
 });
