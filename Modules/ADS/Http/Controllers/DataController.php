@@ -102,14 +102,23 @@ class DataController extends Controller
                 $menu->dropdown(
                     'ADS',
                     function ($sub) {
-                        $sub->url(
-                            url('/ads/admin/decisoes'),
-                            'Decisões',
-                            [
-                                'icon'   => 'fa fas fa-brain',
-                                'active' => request()->segment(2) === 'admin' && request()->segment(3) === 'decisoes',
-                            ]
-                        );
+                        $segment3 = request()->segment(3);
+                        $sub->url(url('/ads/admin/decisoes'), 'Decisões', [
+                            'icon'   => 'fa fas fa-inbox',
+                            'active' => $segment3 === 'decisoes',
+                        ]);
+                        $sub->url(url('/ads/admin/metricas'), 'Métricas', [
+                            'icon'   => 'fa fas fa-chart-bar',
+                            'active' => $segment3 === 'metricas',
+                        ]);
+                        $sub->url(url('/ads/admin/confidence'), 'Confidence', [
+                            'icon'   => 'fa fas fa-chart-line',
+                            'active' => $segment3 === 'confidence',
+                        ]);
+                        $sub->url(url('/ads/admin/policy'), 'Policy', [
+                            'icon'   => 'fa fas fa-shield-alt',
+                            'active' => $segment3 === 'policy',
+                        ]);
                     },
                     [
                         'icon'   => 'fa fas fa-microchip',
