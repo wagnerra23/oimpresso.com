@@ -64,8 +64,10 @@ class BrainBService
                     'instruction_generated' => $rawText,
                     'tokens_used'           => $tokensUsed,
                     'execution_ms'          => $executionMs,
-                    'resolved_at'           => now(),
-                    'resolved_by'           => 'brain_b',
+                    // Resetar outcome para 'cancelled' (= aguardando Wagner aprovar na UI HiTL-2).
+                    // Se rodou anteriormente como 'fail' e agora deu certo, volta ao estado pendente.
+                    'outcome'               => 'cancelled',
+                    // resolved_at/by só preenchemos quando Wagner aprovar/rejeitar (não aqui).
                 ]);
 
             Log::channel('single')->info('ads.brain_b.processed', [
