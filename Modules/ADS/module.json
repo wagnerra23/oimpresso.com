@@ -1,0 +1,11 @@
+{
+    "name": "ADS",
+    "alias": "ads",
+    "description": "Adaptive Decision System — meta-orquestrador de decisões automatizadas. Risk Engine + Confidence Engine + Policy Engine + Decision Router + Learning Loop.",
+    "keywords": ["ads", "decision", "autonomous", "dual-brain", "risk", "governance"],
+    "priority": 0,
+    "providers": [
+        "Modules\\ADS\\Providers\\AdsServiceProvider"
+    ],
+    "files": []
+}
