@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\ADS\Services\DecisionPresenter;
 
 /**
  * UI Inbox — Wagner aprova/rejeita/modifica decisions pendentes.
@@ -44,6 +45,7 @@ class DecisoesController extends Controller
         }
 
         $decisions = $query->orderByDesc('id')->limit(50)->get()->map(function ($d) {
+            $explained = DecisionPresenter::explain($d);
             return [
                 'id'                => $d->id,
                 'event_type'        => $d->event_type,
@@ -61,6 +63,14 @@ class DecisoesController extends Controller
                     : null,
                 'created_at'        => $d->created_at,
                 'resolved_at'       => $d->resolved_at,
+
+                // Campos legíveis (DecisionPresenter)
+                'one_line'          => $explained['one_line'],
+                'why_badge'         => $explained['why_badge'],
+                'status_label'      => $explained['status_label'],
+                'actionable'        => $explained['actionable'],
+                'action_hint'       => $explained['action_hint'],
+                'risk_label'        => $explained['risk_label'],
             ];
         });
 
