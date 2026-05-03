@@ -12,6 +12,7 @@ use Modules\ADS\Http\Controllers\Admin\MetaSkillsController;
 use Modules\ADS\Http\Controllers\Admin\GraphController;
 use Modules\ADS\Http\Controllers\Admin\ConflictsController;
 use Modules\ADS\Http\Controllers\Admin\ProjectsController;
+use Modules\ADS\Http\Controllers\Admin\KnowledgeBaseController;
 use Modules\ADS\Http\Controllers\InstallController;
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
@@ -59,6 +60,16 @@ Route::group([
     Route::post('/admin/meta-skills/{id}/toggle', [MetaSkillsController::class, 'toggle'])
         ->whereNumber('id')
         ->name('ads.admin.metaskills.toggle');
+    Route::post('/admin/meta-skills', [MetaSkillsController::class, 'store'])
+        ->name('ads.admin.metaskills.store');
+    Route::post('/admin/meta-skills/validate', [MetaSkillsController::class, 'validateRule'])
+        ->name('ads.admin.metaskills.validate');
+
+    // Knowledge Base (KB Obsidian-style)
+    Route::get('/admin/kb',         [KnowledgeBaseController::class, 'index'])->name('ads.admin.kb.index');
+    Route::get('/admin/kb/{slug}',  [KnowledgeBaseController::class, 'show'])
+        ->where('slug', '[A-Za-z0-9\-_\.]+')
+        ->name('ads.admin.kb.show');
     Route::get('/admin/graph',     [GraphController::class,     'index'])->name('ads.admin.graph.index');
     Route::get('/admin/conflicts', [ConflictsController::class, 'index'])->name('ads.admin.conflicts.index');
 

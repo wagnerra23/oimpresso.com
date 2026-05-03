@@ -46,4 +46,77 @@ class MetaSkillsController extends Controller
         $service->toggle($id, (bool) $request->input('enabled', true));
         return back()->with('status', "Meta-skill #{$id} atualizada.");
     }
+
+    /**
+     * Cria nova meta-skill via editor UI.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'rule_key'    => 'required|string|max:80|unique:mcp_governance_rules,rule_key|regex:/^[a-z0-9_]+$/',
+            'name'        => 'required|string|max:150',
+            'description' => 'required|string|max:2000',
+            'category'    => 'required|in:promotion,archival,escalation,retry,budget,review',
+            'condition'   => 'required|array',
+            'action'      => 'required|array',
+            'enabled'     => 'sometimes|boolean',
+        ]);
+
+        \Illuminate\Support\Facades\DB::table('mcp_governance_rules')->insert([
+            'rule_key'    => $data['rule_key'],
+            'name'        => $data['name'],
+            'description' => $data['description'],
+            'category'    => $data['category'],
+            'condition'   => json_encode($data['condition']),
+            'action'      => json_encode($data['action']),
+            'enabled'     => (bool) ($data['enabled'] ?? false),
+            'version'     => 1,
+            'created_by'  => 'wagner',
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        return back()->with('status', "Meta-skill {$data['rule_key']} criada (draft).");
+    }
+
+    /**
+     * Testa condição contra mcp_decision_patterns reais.
+     */
+    public function validateRule(Request $request, GovernanceRulesService $service): \Illuminate\Http\JsonResponse
+    {
+        $condition = $request->input('condition', []);
+        if (! is_array($condition)) {
+            return response()->json(['ok' => false, 'error' => 'invalid_condition']);
+        }
+
+        $patterns = \Illuminate\Support\Facades\DB::table('mcp_decision_patterns')
+            ->limit(50)
+            ->get();
+
+        $matched = 0;
+        $sampleMatches = [];
+        foreach ($patterns as $p) {
+            $context = [
+                'wilson_lower_bound' => 0.7, // simulado pra teste
+                'success_count'      => (int) $p->success_count,
+                'total_count'        => (int) $p->total_count,
+                'success_rate'       => (float) $p->success_rate,
+                'is_hardcoded'       => (bool) $p->is_hardcoded,
+                'days_since_last_outcome' => 0,
+            ];
+            if ($service->evaluate($condition, $context)) {
+                $matched++;
+                if (count($sampleMatches) < 5) {
+                    $sampleMatches[] = "{$p->domain} · {$p->event_type}";
+                }
+            }
+        }
+
+        return response()->json([
+            'ok'              => true,
+            'samples_total'   => $patterns->count(),
+            'samples_matched' => $matched,
+            'sample_matches'  => $sampleMatches,
+        ]);
+    }
 }

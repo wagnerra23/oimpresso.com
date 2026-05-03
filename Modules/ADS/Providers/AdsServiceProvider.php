@@ -16,6 +16,7 @@ use Modules\ADS\Services\PlannerService;
 use Modules\ADS\Services\ToolRegistry;
 use Modules\ADS\Services\GovernanceRulesService;
 use Modules\ADS\Services\ProjectDecomposerService;
+use Modules\ADS\Services\DecisionLinksService;
 use Modules\ADS\Http\Middleware\AdsApiAuth;
 use Modules\ADS\Console\Commands\ProcessBrainBCommand;
 use Modules\ADS\Console\Commands\LearnPatternsCommand;
@@ -58,6 +59,7 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(ToolRegistry::class);
         $this->app->singleton(GovernanceRulesService::class);
         $this->app->singleton(ProjectDecomposerService::class);
+        $this->app->singleton(DecisionLinksService::class);
     }
 
     protected function registerConfig(): void
