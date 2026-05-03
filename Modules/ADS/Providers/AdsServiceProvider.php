@@ -18,6 +18,7 @@ class AdsServiceProvider extends ServiceProvider
     {
         $this->registerConfig();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'ads');
         $this->registerMiddleware();
 
         if ($this->app->runningInConsole()) {
