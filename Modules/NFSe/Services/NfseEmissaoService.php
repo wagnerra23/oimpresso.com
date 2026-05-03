@@ -57,6 +57,7 @@ class NfseEmissaoService
             'iss_retido'      => $payload->issRetido,
             'status'          => 'processando',
             'idempotency_key' => $payload->idempotencyKey(),
+            'transaction_id'  => $payload->transactionId,
         ]);
 
         $tentativa = 0;

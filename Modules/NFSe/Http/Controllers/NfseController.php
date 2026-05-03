@@ -3,6 +3,7 @@
 namespace Modules\NFSe\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -56,12 +57,35 @@ class NfseController extends Controller
     }
 
     // US-NFSE-009: formulário de emissão
-    public function create()
+    public function create(Request $request)
     {
         $this->authorize('nfse.emit');
 
         $businessId = session('user.business_id');
         $config = NfseProviderConfig::where('business_id', $businessId)->with('certificado')->first();
+
+        $venda = null;
+        if ($request->filled('transaction_id')) {
+            $tx = Transaction::with('contact')
+                ->where('business_id', $businessId)
+                ->where('type', 'sell')
+                ->find((int) $request->transaction_id);
+
+            if ($tx) {
+                $taxRaw   = $tx->contact?->tax_number ?? $tx->contact?->cpf_cnpj ?? '';
+                $taxDigits = preg_replace('/\D/', '', $taxRaw);
+                $venda = [
+                    'transaction_id'  => $tx->id,
+                    'invoice_no'      => $tx->invoice_no,
+                    'transaction_date'=> optional($tx->transaction_date)->format('Y-m'),
+                    'contact_nome'    => $tx->contact?->name ?? $tx->contact?->supplier_business_name ?? '',
+                    'contact_cnpj'    => strlen($taxDigits) === 14 ? $taxRaw : null,
+                    'contact_cpf'     => strlen($taxDigits) === 11 ? $taxRaw : null,
+                    'contact_email'   => $tx->contact?->email,
+                    'final_total'     => (float) $tx->final_total,
+                ];
+            }
+        }
 
         return Inertia::render('Nfse/Emitir', [
             'config'   => $config ? [
@@ -71,6 +95,7 @@ class NfseController extends Controller
                 'cert_valido'          => $config->certificado?->isExpirado() === false,
                 'cert_expira'          => $config->certificado?->valido_ate?->format('d/m/Y'),
             ] : null,
+            'venda'    => $venda,
             'flash'    => session('status'),
         ]);
     }
@@ -91,6 +116,7 @@ class NfseController extends Controller
             'valor_servicos'  => ['required', 'numeric', 'min:0.01'],
             'aliquota_iss'    => ['required', 'numeric', 'min:0', 'max:1'],
             'iss_retido'      => ['boolean'],
+            'transaction_id'  => ['nullable', 'integer'],
         ]);
 
         $businessId = session('user.business_id');
@@ -122,6 +148,7 @@ class NfseController extends Controller
             certSenha: $certSenha,
             prestadorCnpj: $config?->prestador_cnpj,
             prestadorIm: $config?->prestador_im,
+            transactionId: !empty($data['transaction_id']) ? (int) $data['transaction_id'] : null,
         );
 
         EmitirNfseJob::dispatch($payload)->onQueue('nfse');
@@ -137,6 +164,20 @@ class NfseController extends Controller
     public function show(NfseEmissao $nfse)
     {
         $this->authorize('nfse.view');
+
+        $nfse->load('transaction.contact');
+
+        $vendaData = null;
+        if ($nfse->transaction) {
+            $tx = $nfse->transaction;
+            $vendaData = [
+                'id'              => $tx->id,
+                'invoice_no'      => $tx->invoice_no,
+                'transaction_date'=> optional($tx->transaction_date)->format('d/m/Y'),
+                'final_total'     => (float) $tx->final_total,
+                'contact_nome'    => $tx->contact?->name ?? $tx->contact?->supplier_business_name ?? null,
+            ];
+        }
 
         return Inertia::render('Nfse/Show', [
             'nfse' => [
@@ -157,7 +198,9 @@ class NfseController extends Controller
                 'pdf_url'        => $nfse->pdf_url,
                 'erro_mensagem'  => $nfse->erro_mensagem,
                 'created_at'     => $nfse->created_at?->format('d/m/Y H:i'),
+                'transaction_id' => $nfse->transaction_id,
             ],
+            'venda' => $vendaData,
             'flash' => session('status'),
         ]);
     }

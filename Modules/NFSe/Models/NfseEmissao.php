@@ -20,7 +20,7 @@ class NfseEmissao extends Model
         'aliquota_iss', 'valor_iss', 'iss_retido',
         'status', 'provider_protocolo', 'provider_codigo_verificacao',
         'pdf_url', 'xml_envio', 'xml_retorno', 'erro_mensagem',
-        'idempotency_key', 'recurring_invoice_id',
+        'idempotency_key', 'recurring_invoice_id', 'transaction_id',
     ];
 
     protected $casts = [
@@ -59,5 +59,10 @@ class NfseEmissao extends Model
             'processando'  => 'info',
             default        => 'secondary',
         };
+    }
+
+    public function transaction()
+    {
+        return $this->belongsTo(\App\Transaction::class);
     }
 }
