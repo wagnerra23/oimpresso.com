@@ -27,15 +27,15 @@ class GovernanceRulesService
      */
     public function evaluate(array $condition, array $context): bool
     {
+        // Folha — condição simples (avalia primeiro, antes de checar conds)
+        if (isset($condition['field'])) {
+            return $this->evalLeaf($condition, $context);
+        }
+
         $op = $condition['op'] ?? 'AND';
         $conds = $condition['conds'] ?? [];
 
         if (empty($conds)) return false;
-
-        // Folha — condição simples
-        if (isset($condition['field'])) {
-            return $this->evalLeaf($condition, $context);
-        }
 
         $results = array_map(fn ($c) => $this->evaluate($c, $context), $conds);
 

@@ -5,7 +5,7 @@
 //   status: implementada
 //   permissao: superadmin (V1) → ads.decisoes.review (V2)
 
-import React, { type ReactNode } from 'react'
+import React, { useEffect, useRef, useState, type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Link, router } from '@inertiajs/react'
 import { Card, CardContent } from '@/Components/ui/card'
@@ -60,6 +60,24 @@ const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ tab, decisions, kpis }) => {
   const setTab = (value: string) => router.get('/ads/admin/decisoes', { tab: value }, { preserveState: false })
 
+  // Auto-refresh: polling 10s nas abas operacionais (não no histórico)
+  const [autoRefresh, setAutoRefresh] = useState(true)
+  const lastRefresh = useRef<number>(Date.now())
+
+  useEffect(() => {
+    if (!autoRefresh) return
+    if (tab === 'historico') return // histórico não muda em tempo real
+
+    const id = setInterval(() => {
+      // Só refresh se o usuário NÃO está mexendo (sem foco em input)
+      if (document.hasFocus() && document.activeElement?.tagName !== 'INPUT') {
+        router.reload({ only: ['decisions', 'kpis'], preserveScroll: true, preserveState: true })
+        lastRefresh.current = Date.now()
+      }
+    }, 10000)
+    return () => clearInterval(id)
+  }, [autoRefresh, tab])
+
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
 
@@ -68,6 +86,21 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
         icon="brain"
         title="ADS — Decisões"
         description="Decisões automatizadas detectadas e roteadas pelo Adaptive Decision System. Aprove, rejeite ou dispense para auditoria."
+        action={tab !== 'historico' && (
+          <button
+            type="button"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`text-xs px-3 py-1.5 rounded-md border transition-colors flex items-center gap-1.5 ${
+              autoRefresh
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                : 'bg-zinc-50 text-zinc-500 border-zinc-300'
+            }`}
+            title={autoRefresh ? 'Auto-refresh a cada 10s' : 'Clique para reativar auto-refresh'}
+          >
+            <span className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
+            {autoRefresh ? 'Live (10s)' : 'Pausado'}
+          </button>
+        )}
       />
 
       {/* 2. KPIs como filtros (clicáveis, selected = aba ativa) */}
