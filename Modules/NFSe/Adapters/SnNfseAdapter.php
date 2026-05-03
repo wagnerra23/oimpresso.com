@@ -93,7 +93,10 @@ class SnNfseAdapter implements NfseProviderInterface
                 'nDPS'     => $payload->rpsNumero,
                 'dhEmi'    => now()->toIso8601String(),
                 'dCompet'  => $payload->competencia->format('Y-m-d'),
-                'prest'    => ['CNPJ' => $payload->tomadorCnpj ?? ''],
+                'prest'    => array_filter([
+                    'CNPJ' => $payload->prestadorCnpj,
+                    'IM'   => $payload->prestadorIm,
+                ]),
                 'toma'     => array_filter([
                     'CNPJ'  => $payload->tomadorCnpj,
                     'CPF'   => $payload->tomadorCpf,
