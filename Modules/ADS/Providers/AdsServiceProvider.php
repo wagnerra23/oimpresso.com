@@ -14,6 +14,7 @@ use Modules\ADS\Services\PatternLearningService;
 use Modules\ADS\Services\AutoTaskGeneratorService;
 use Modules\ADS\Services\PlannerService;
 use Modules\ADS\Services\ToolRegistry;
+use Modules\ADS\Services\GovernanceRulesService;
 use Modules\ADS\Http\Middleware\AdsApiAuth;
 use Modules\ADS\Console\Commands\ProcessBrainBCommand;
 use Modules\ADS\Console\Commands\LearnPatternsCommand;
@@ -54,6 +55,7 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(AutoTaskGeneratorService::class);
         $this->app->singleton(PlannerService::class);
         $this->app->singleton(ToolRegistry::class);
+        $this->app->singleton(GovernanceRulesService::class);
     }
 
     protected function registerConfig(): void
