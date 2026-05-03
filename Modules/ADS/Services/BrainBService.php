@@ -47,12 +47,14 @@ class BrainBService
                 confidenceScore: (float) $decision->confidence_score,
             );
 
-            $response = $agent->ask($agent->montarPrompt());
-            $rawText  = trim($response->text ?? (string) $response);
+            $response = $agent->prompt($agent->montarPrompt());
+            $rawText  = trim((string) $response);
             $instruction = $this->parseJson($rawText);
 
             $executionMs = (int) ((microtime(true) - $startedAt) * 1000);
-            $tokensUsed  = $response->usage->totalTokens ?? null;
+            $tokensUsed  = is_object($response) && isset($response->usage)
+                ? ($response->usage->totalTokens ?? null)
+                : null;
 
             DB::table('mcp_dual_brain_decisions')
                 ->where('id', $decisionId)
