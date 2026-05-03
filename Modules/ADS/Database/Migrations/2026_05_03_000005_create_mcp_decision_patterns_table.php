@@ -19,8 +19,8 @@ class CreateMcpDecisionPatternsTable extends Migration
             $table->text('description');
             $table->json('example_decision_ids')->nullable();
 
-            $table->unsignedSmallInt('success_count')->default(0);
-            $table->unsignedSmallInt('total_count')->default(0);
+            $table->unsignedSmallInteger('success_count')->default(0);
+            $table->unsignedSmallInteger('total_count')->default(0);
 
             // success_rate calculado na aplicação (evita coluna GENERATED que cria problema em testes)
             $table->decimal('success_rate', 4, 3)->default(0.000);
