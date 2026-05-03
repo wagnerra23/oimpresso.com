@@ -13,11 +13,13 @@ return [
     'items' => [
         // ─── DECISÃO ───
         ['label' => 'Decisões',          'href' => '/ads/admin/decisoes',    'icon' => 'Inbox',       'can' => 'ads.decisoes.review'],
+        ['label' => 'Conflitos',         'href' => '/ads/admin/conflicts',   'icon' => 'AlertTriangle','can' => 'ads.access'],
 
         // ─── CONHECIMENTO ───
         ['label' => 'Skills',            'href' => '/ads/admin/skills',      'icon' => 'Zap',         'can' => 'ads.access'],
         ['label' => 'Meta-skills',       'href' => '/ads/admin/meta-skills', 'icon' => 'Brain',       'can' => 'ads.access'],
         ['label' => 'Tools',             'href' => '/ads/admin/tools',       'icon' => 'Wrench',      'can' => 'ads.access'],
+        ['label' => 'Knowledge Graph',   'href' => '/ads/admin/graph',       'icon' => 'GitBranch',   'can' => 'ads.access'],
 
         // ─── EVOLUÇÃO ───
         ['label' => 'Learning Pipeline', 'href' => '/ads/admin/learning',    'icon' => 'Repeat',      'can' => 'ads.access'],
