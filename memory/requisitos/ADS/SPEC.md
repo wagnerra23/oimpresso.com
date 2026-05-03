@@ -22,6 +22,7 @@ Recebe eventos, decide qual agente age, com qual autoridade, e retroalimenta o s
 | ARQ-0008 | [hitl-quatro-niveis](adr/arq/ARQ-0008-hitl-quatro-niveis.md) | accepted |
 | ARQ-0009 | [decision-memory-schema](adr/arq/ARQ-0009-decision-memory-schema.md) | accepted |
 | ARQ-0010 | [governance-conflito-hierarquia](adr/arq/ARQ-0010-governance-conflito-hierarquia.md) | accepted |
+| ARQ-0011 | [topologia-deployment](adr/arq/ARQ-0011-topologia-deployment.md) | accepted |
 
 ## Módulos clientes do ADS
 
@@ -33,6 +34,14 @@ O ADS é agnóstico de domínio. Estes módulos submetem eventos a ele:
 | `EvolutionAgent/` | Submete eventos de oportunidade de evolução de codebase |
 | `Brain A daemon` | Submete eventos de monitoramento (git, logs, métricas) |
 | `TaskRegistry/` | Recebe tasks criadas pelo ADS; não submete eventos |
+
+## Topologia de deployment (ARQ-0011)
+
+| Ambiente | Componentes |
+|---|---|
+| **Hostinger** (app web) | Modules/ADS/ completo · 5 tabelas mcp_dual_brain_* · UI /ads/admin/decisoes · POST /api/ads/route · GET /api/ads/recent-{commits,errors} · cron `ads:process-brain-b` |
+| **CT 100 Proxmox** | Brain A daemon (Node.js, systemd) · Ollama qwen2.5-coder:14b · OllamaClient → localhost:11434 · watchers HTTP poll Hostinger |
+| **Anthropic API** | Brain B (Sonnet/Opus) — chamado pelo cron Hostinger |
 
 ## Stack técnico
 
