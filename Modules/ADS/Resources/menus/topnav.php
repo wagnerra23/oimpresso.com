@@ -29,6 +29,7 @@ return [
 
         // ─── GOVERNANÇA ───
         ['label' => 'Meta-skills',       'href' => '/ads/admin/meta-skills', 'icon' => 'Brain',       'can' => 'ads.access'],
+        ['label' => 'Team Scopes',       'href' => '/ads/admin/team-scopes', 'icon' => 'Users',       'can' => 'ads.access'],
         ['label' => 'Policy',            'href' => '/ads/admin/policy',      'icon' => 'ShieldCheck', 'can' => 'ads.policy.manage'],
 
         // ─── MEDIÇÃO ───
