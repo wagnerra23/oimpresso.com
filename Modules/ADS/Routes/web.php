@@ -11,6 +11,7 @@ use Modules\ADS\Http\Controllers\Admin\LearningController;
 use Modules\ADS\Http\Controllers\Admin\MetaSkillsController;
 use Modules\ADS\Http\Controllers\Admin\GraphController;
 use Modules\ADS\Http\Controllers\Admin\ConflictsController;
+use Modules\ADS\Http\Controllers\Admin\ProjectsController;
 use Modules\ADS\Http\Controllers\InstallController;
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
@@ -57,4 +58,10 @@ Route::group([
         ->name('ads.admin.metaskills.toggle');
     Route::get('/admin/graph',     [GraphController::class,     'index'])->name('ads.admin.graph.index');
     Route::get('/admin/conflicts', [ConflictsController::class, 'index'])->name('ads.admin.conflicts.index');
+
+    // Projects (Wagner modelo: Project → Parts → ADRs)
+    Route::get('/admin/projects',                [ProjectsController::class, 'index'])->name('ads.admin.projects.index');
+    Route::post('/admin/projects',               [ProjectsController::class, 'store'])->name('ads.admin.projects.store');
+    Route::get('/admin/projects/{id}',           [ProjectsController::class, 'show'])->whereNumber('id')->name('ads.admin.projects.show');
+    Route::post('/admin/projects/{id}/decompose', [ProjectsController::class, 'decompose'])->whereNumber('id')->name('ads.admin.projects.decompose');
 });
