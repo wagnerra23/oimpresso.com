@@ -15,11 +15,11 @@
  */
 
 return [
-    'label' => 'ads::ads.module_label',
+    'label' => 'ADS',
     'icon'  => 'Brain',
     'items' => [
         [
-            'label' => 'ads::ads.menu.decisoes',
+            'label' => 'Decisões',
             'href'  => '/ads/admin/decisoes',
             'icon'  => 'Inbox',
             'can'   => 'ads.decisoes.review',

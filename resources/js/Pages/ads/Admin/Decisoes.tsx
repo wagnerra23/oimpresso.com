@@ -85,7 +85,7 @@ const Decisoes: React.FC<Props> & { layout?: (p: React.ReactNode) => React.React
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Link
-                        href={route('ads.admin.decisoes.show', d.id)}
+                        href={`/ads/admin/decisoes/${d.id}`}
                         className="font-mono text-sm text-zinc-500"
                       >#{d.id}</Link>
                       <span className="font-semibold">{d.event_type}</span>
@@ -137,7 +137,7 @@ function TabLink({ current, value, label }: { current: string; value: string; la
   const active = current === value
   return (
     <Link
-      href={route('ads.admin.decisoes.index', { tab: value })}
+      href={`/ads/admin/decisoes?tab=${value}`}
       className={`px-4 py-2 -mb-px border-b-2 text-sm font-medium ${
         active ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-500 hover:text-zinc-700'
       }`}
@@ -146,10 +146,10 @@ function TabLink({ current, value, label }: { current: string; value: string; la
 }
 
 function ActionButtons({ decisionId }: { decisionId: number }) {
-  const approve = () => router.post(route('ads.admin.decisoes.approve', decisionId), {}, { preserveScroll: true })
+  const approve = () => router.post(`/ads/admin/decisoes/${decisionId}/approve`, {}, { preserveScroll: true })
   const reject = () => {
     const reason = window.prompt('Motivo da rejeição (opcional, ajuda o ConfidenceEngine):') ?? ''
-    router.post(route('ads.admin.decisoes.reject', decisionId), { reason }, { preserveScroll: true })
+    router.post(`/ads/admin/decisoes/${decisionId}/reject`, { reason }, { preserveScroll: true })
   }
   return (
     <div className="flex gap-2">

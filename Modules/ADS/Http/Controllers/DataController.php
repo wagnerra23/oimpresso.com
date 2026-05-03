@@ -28,7 +28,7 @@ class DataController extends Controller
         return [
             [
                 'name'    => 'ads_module',
-                'label'   => __('ads::ads.module_label'),
+                'label'   => 'Módulo ADS (Adaptive Decision System)',
                 'default' => false,
             ],
         ];
@@ -42,22 +42,22 @@ class DataController extends Controller
         return [
             [
                 'value'   => 'ads.access',
-                'label'   => __('ads::ads.permissao_acesso'),
+                'label'   => 'ADS: acessar módulo',
                 'default' => false,
             ],
             [
                 'value'   => 'ads.decisoes.review',
-                'label'   => __('ads::ads.permissao_decisoes_review'),
+                'label'   => 'ADS: revisar decisões pendentes',
                 'default' => false,
             ],
             [
                 'value'   => 'ads.decisoes.approve',
-                'label'   => __('ads::ads.permissao_decisoes_approve'),
+                'label'   => 'ADS: aprovar/rejeitar decisões (HiTL-2/HiTL-3)',
                 'default' => false,
             ],
             [
                 'value'   => 'ads.policy.manage',
-                'label'   => __('ads::ads.permissao_policy_manage'),
+                'label'   => 'ADS: gerenciar Policy Engine (firewall)',
                 'default' => false,
             ],
         ];
@@ -100,11 +100,11 @@ class DataController extends Controller
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
                 $menu->dropdown(
-                    __('ads::ads.module_label'),
+                    'ADS',
                     function ($sub) {
                         $sub->url(
                             url('/ads/admin/decisoes'),
-                            __('ads::ads.menu.decisoes'),
+                            'Decisões',
                             [
                                 'icon'   => 'fa fas fa-brain',
                                 'active' => request()->segment(2) === 'admin' && request()->segment(3) === 'decisoes',
