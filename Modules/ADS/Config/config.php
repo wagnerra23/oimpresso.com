@@ -4,6 +4,12 @@ return [
     'name' => 'ADS',
 
     /*
+     * Token Bearer obrigatório em POST /api/ads/route.
+     * Usado pelo Brain A daemon e integrações server-to-server.
+     */
+    'api_key' => env('ADS_API_KEY'),
+
+    /*
      * Thresholds padrão do Decision Router (substituídos por mcp_decision_thresholds em runtime).
      * ARQ-0003 + ARQ-0004
      */
