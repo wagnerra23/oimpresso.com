@@ -139,6 +139,10 @@ class DataController extends Controller
                             'icon'   => 'fa fas fa-brain',
                             'active' => $segment3 === 'meta-skills',
                         ]);
+                        $sub->url(url('/ads/admin/team-scopes'), 'Team Scopes', [
+                            'icon'   => 'fa fas fa-users-cog',
+                            'active' => $segment3 === 'team-scopes',
+                        ]);
                         $sub->url(url('/ads/admin/policy'), 'Policy', [
                             'icon'   => 'fa fas fa-shield-alt',
                             'active' => $segment3 === 'policy',

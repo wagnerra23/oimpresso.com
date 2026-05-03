@@ -13,6 +13,7 @@ use Modules\ADS\Http\Controllers\Admin\GraphController;
 use Modules\ADS\Http\Controllers\Admin\ConflictsController;
 use Modules\ADS\Http\Controllers\Admin\ProjectsController;
 use Modules\ADS\Http\Controllers\Admin\KnowledgeBaseController;
+use Modules\ADS\Http\Controllers\Admin\TeamScopesController;
 use Modules\ADS\Http\Controllers\InstallController;
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
@@ -70,6 +71,11 @@ Route::group([
     Route::get('/admin/kb/{slug}',  [KnowledgeBaseController::class, 'show'])
         ->where('slug', '[A-Za-z0-9\-_\.]+')
         ->name('ads.admin.kb.show');
+
+    // Team Scopes (caso Maíra: governance per-user × module)
+    Route::get('/admin/team-scopes',          [TeamScopesController::class, 'index'])->name('ads.admin.teamscopes.index');
+    Route::post('/admin/team-scopes/grant',   [TeamScopesController::class, 'grant'])->name('ads.admin.teamscopes.grant');
+    Route::post('/admin/team-scopes/revoke',  [TeamScopesController::class, 'revoke'])->name('ads.admin.teamscopes.revoke');
     Route::get('/admin/graph',     [GraphController::class,     'index'])->name('ads.admin.graph.index');
     Route::get('/admin/conflicts', [ConflictsController::class, 'index'])->name('ads.admin.conflicts.index');
 
