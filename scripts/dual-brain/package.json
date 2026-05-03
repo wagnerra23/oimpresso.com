@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node brain-a-daemon.js",
-    "smoke": "node smoke-test.js"
+    "smoke": "node smoke-test.js",
+    "smoke-watchers": "node smoke-watchers.js",
+    "smoke-e2e": "node smoke-e2e.js"
   },
   "engines": {
     "node": ">=18"
