@@ -45,14 +45,14 @@ class KnowledgeBaseController extends Controller
         if ($q !== '') {
             $query->where(function ($w) use ($q) {
                 $w->where('title', 'like', "%{$q}%")
-                  ->orWhere('content_raw', 'like', "%{$q}%")
+                  ->orWhere('content_md', 'like', "%{$q}%")
                   ->orWhere('slug', 'like', "%{$q}%");
             });
         }
 
         $docs = $query->orderByDesc('updated_at')
             ->limit(50)
-            ->get(['id', 'slug', 'title', 'type', 'module', 'status', 'updated_at']);
+            ->get(['id', 'slug', 'title', 'type', 'module', 'updated_at']);
 
         // Para cada doc, conta backlinks
         $slugs = $docs->pluck('slug')->all();
@@ -69,7 +69,7 @@ class KnowledgeBaseController extends Controller
             'title'        => $d->title,
             'type'         => $d->type,
             'module'       => $d->module,
-            'status'       => $d->status,
+            'status'       => null,
             'updated_at'   => $d->updated_at,
             'links_count'  => (int) ($linkCounts[$d->slug] ?? 0),
         ]);
@@ -132,8 +132,8 @@ class KnowledgeBaseController extends Controller
                 'title'        => $doc->title,
                 'type'         => $doc->type,
                 'module'       => $doc->module,
-                'status'       => $doc->status,
-                'content_md'   => $doc->content_raw ?? '',
+                'status'       => null,
+                'content_md'   => $doc->content_md ?? '',
                 'git_path'     => $doc->git_path ?? null,
                 'updated_at'   => $doc->updated_at,
             ],
