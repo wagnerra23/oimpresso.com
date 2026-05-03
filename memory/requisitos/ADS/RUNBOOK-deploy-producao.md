@@ -9,8 +9,21 @@ date: 2026-05-03
 
 # RUNBOOK — Deploy do ADS em produção
 
-> ⚠️ Antes de executar este runbook, ler ARQ-0006 (Policy Engine) e ARQ-0010 (Governance).
-> Wagner deve aprovar cada uma das 5 fases manualmente.
+> ⚠️ Antes de executar este runbook, ler ARQ-0006 (Policy Engine), ARQ-0010 (Governance)
+> e **ARQ-0011 (Topologia de deployment)**. Wagner deve aprovar cada fase manualmente.
+
+## Topologia (ARQ-0011)
+
+```
+HOSTINGER                              CT 100 PROXMOX
+  Laravel ADS code                       Brain A daemon (Node.js)
+  MySQL mcp_dual_brain_*                 Ollama qwen2.5-coder:14b
+  UI /ads/admin/decisoes                 Watchers HTTP poll Hostinger
+  Cron php artisan ads:process-brain-b   systemd ads-brain-a.service
+  API endpoints (/route, /recent-*)
+        ▲                                        │
+        └────────── HTTPS Bearer ────────────────┘
+```
 
 ## Pré-requisitos
 
