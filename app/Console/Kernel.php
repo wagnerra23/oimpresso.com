@@ -68,6 +68,29 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADS Reviewer (T11 G-Eval) — review automático cada 15min de decisions sem score.
+        $schedule->command('ads:review-decisions --limit=10')
+            ->everyFifteenMinutes()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule ADS Reviewer (ads:review-decisions) FALHOU'
+                );
+            });
+
+        // ADS Pattern Learning (T15 Wilson Score) — diário 02:00.
+        $schedule->command('ads:learn-patterns --business=all --detect-drift')
+            ->dailyAt('02:00')
+            ->withoutOverlapping()
+            ->environments(['live']);
+
+        // ADS Auto Task Generator (T7 Self-Instruct) — horário de 9h às 18h.
+        $schedule->command('ads:auto-generate-tasks')
+            ->cron('0 9-18 * * 1-5')
+            ->withoutOverlapping()
+            ->environments(['live']);
+
         // ADS Brain B — processa decisions com destination=brain_b a cada 5 min.
         // Custo estimado ~$0.05/dia em prod com prompt caching Sonnet. Limit=5
         // por execução evita gastos descontrolados; ajustar via Policy se necessário.

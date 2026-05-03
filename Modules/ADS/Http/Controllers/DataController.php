@@ -115,6 +115,10 @@ class DataController extends Controller
                             'icon'   => 'fa fas fa-chart-line',
                             'active' => $segment3 === 'confidence',
                         ]);
+                        $sub->url(url('/ads/admin/patterns'), 'Padrões', [
+                            'icon'   => 'fa fas fa-bolt',
+                            'active' => $segment3 === 'patterns',
+                        ]);
                         $sub->url(url('/ads/admin/policy'), 'Policy', [
                             'icon'   => 'fa fas fa-shield-alt',
                             'active' => $segment3 === 'policy',

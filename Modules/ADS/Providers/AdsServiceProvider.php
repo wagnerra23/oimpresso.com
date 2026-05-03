@@ -9,8 +9,14 @@ use Modules\ADS\Services\PolicyEngine;
 use Modules\ADS\Services\ConfidenceEngine;
 use Modules\ADS\Services\DecisionRouter;
 use Modules\ADS\Services\BrainBService;
+use Modules\ADS\Services\ReviewerService;
+use Modules\ADS\Services\PatternLearningService;
+use Modules\ADS\Services\AutoTaskGeneratorService;
 use Modules\ADS\Http\Middleware\AdsApiAuth;
 use Modules\ADS\Console\Commands\ProcessBrainBCommand;
+use Modules\ADS\Console\Commands\LearnPatternsCommand;
+use Modules\ADS\Console\Commands\ReviewDecisionsCommand;
+use Modules\ADS\Console\Commands\AutoGenerateTasksCommand;
 
 class AdsServiceProvider extends ServiceProvider
 {
@@ -23,6 +29,9 @@ class AdsServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ProcessBrainBCommand::class,
+                LearnPatternsCommand::class,
+                ReviewDecisionsCommand::class,
+                AutoGenerateTasksCommand::class,
             ]);
         }
     }
@@ -36,6 +45,9 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(ConfidenceEngine::class);
         $this->app->singleton(DecisionRouter::class);
         $this->app->singleton(BrainBService::class);
+        $this->app->singleton(ReviewerService::class);
+        $this->app->singleton(PatternLearningService::class);
+        $this->app->singleton(AutoTaskGeneratorService::class);
     }
 
     protected function registerConfig(): void
