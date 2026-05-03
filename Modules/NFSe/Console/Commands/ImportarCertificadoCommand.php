@@ -70,7 +70,7 @@ class ImportarCertificadoCommand extends Command
             return self::FAILURE;
         }
 
-        $certReg = NfseCertificado::uploadCert($businessId, $pfxContent, $senha);
+        $certReg = NfseCertificado::uploadCert($businessId, base64_encode($pfxContent), $senha);
 
         // Vincula à config do provider
         NfseProviderConfig::where('business_id', $businessId)
