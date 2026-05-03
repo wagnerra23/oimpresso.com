@@ -8,7 +8,9 @@ use Modules\ADS\Services\RiskEngine;
 use Modules\ADS\Services\PolicyEngine;
 use Modules\ADS\Services\ConfidenceEngine;
 use Modules\ADS\Services\DecisionRouter;
+use Modules\ADS\Services\BrainBService;
 use Modules\ADS\Http\Middleware\AdsApiAuth;
+use Modules\ADS\Console\Commands\ProcessBrainBCommand;
 
 class AdsServiceProvider extends ServiceProvider
 {
@@ -17,6 +19,12 @@ class AdsServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->registerMiddleware();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ProcessBrainBCommand::class,
+            ]);
+        }
     }
 
     public function register(): void
@@ -27,6 +35,7 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(RiskEngine::class);
         $this->app->singleton(ConfidenceEngine::class);
         $this->app->singleton(DecisionRouter::class);
+        $this->app->singleton(BrainBService::class);
     }
 
     protected function registerConfig(): void

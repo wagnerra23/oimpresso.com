@@ -12,6 +12,7 @@
 
 import 'dotenv/config';
 import { AdsClient } from './ads-client.js';
+import { OllamaClient } from './ollama-client.js';
 import { GitWatcher } from './watchers/git-watcher.js';
 import { LogWatcher } from './watchers/log-watcher.js';
 import { triageCommit, triageLogEntry } from './triage.js';
@@ -28,6 +29,40 @@ async function main() {
 
   const businessId = parseInt(env('DEFAULT_BUSINESS_ID', '1'), 10);
 
+  // Ollama opcional — se OLLAMA_HOST setado E health OK, usa LLM; senão fallback rule-based.
+  let ollama = null;
+  if (env('OLLAMA_HOST')) {
+    const probe = new OllamaClient({
+      host:  env('OLLAMA_HOST'),
+      model: env('OLLAMA_MODEL', 'qwen2.5-coder:14b'),
+    });
+    const oh = await probe.health();
+    if (oh.ok) {
+      ollama = probe;
+      console.log(`[boot] Ollama OK em ${env('OLLAMA_HOST')} (modelo: ${env('OLLAMA_MODEL', 'qwen2.5-coder:14b')})`);
+    } else {
+      console.warn(`[boot] Ollama indisponível (${oh.reason}) — usando triage rule-based`);
+    }
+  } else {
+    console.log('[boot] OLLAMA_HOST não setado — usando triage rule-based');
+  }
+
+  // Triage híbrido: tenta Ollama, fallback para regex
+  async function classifyCommit({ subject, files }) {
+    if (ollama) {
+      const cls = await ollama.classify({ kind: 'commit', content: `${subject}\n\nfiles: ${files.slice(0,5).join(', ')}` });
+      if (cls) return cls;
+    }
+    return triageCommit({ subject, files });
+  }
+  async function classifyLog({ line }) {
+    if (ollama) {
+      const cls = await ollama.classify({ kind: 'log', content: line });
+      if (cls) return cls;
+    }
+    return triageLogEntry({ line });
+  }
+
   // Health check inicial
   const h = await client.health();
   if (!h.ok) {
@@ -41,7 +76,7 @@ async function main() {
     repoPath:    env('REPO_PATH'),
     intervalMs:  parseInt(env('GIT_POLL_INTERVAL_MS', '30000'), 10),
     onCommit: async ({ sha, subject, files }) => {
-      const { eventType, domain } = triageCommit({ subject, files });
+      const { eventType, domain } = await classifyCommit({ subject, files });
       console.log(`[git] ${sha.slice(0,8)} "${subject.slice(0,60)}" → ${eventType} (${domain})`);
       try {
         const decision = await client.route({
@@ -60,7 +95,7 @@ async function main() {
     logPath:    env('LARAVEL_LOG_PATH'),
     intervalMs: parseInt(env('LOG_POLL_INTERVAL_MS', '5000'), 10),
     onError: async ({ line }) => {
-      const t = triageLogEntry({ line });
+      const t = await classifyLog({ line });
       if (!t) return;
       console.log(`[log] ERROR detectado → ${t.eventType} (${t.domain})`);
       try {
