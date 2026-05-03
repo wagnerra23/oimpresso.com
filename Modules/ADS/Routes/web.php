@@ -30,4 +30,7 @@ Route::group([
     Route::post('/admin/decisoes/{id}/reject',     [DecisoesController::class, 'reject'])
         ->whereNumber('id')
         ->name('ads.admin.decisoes.reject');
+    Route::post('/admin/decisoes/{id}/dismiss',    [DecisoesController::class, 'dismiss'])
+        ->whereNumber('id')
+        ->name('ads.admin.decisoes.dismiss');
 });

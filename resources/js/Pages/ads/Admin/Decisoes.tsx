@@ -4,7 +4,7 @@ import { Link, router } from '@inertiajs/react'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
-import { CheckCircle2, XCircle, Hourglass, ShieldAlert, Clock, Brain, Info } from 'lucide-react'
+import { CheckCircle2, XCircle, Hourglass, ShieldAlert, Clock, Brain, Info, Archive } from 'lucide-react'
 
 interface Decision {
   id: number
@@ -117,9 +117,12 @@ function DecisionCard({ d, tab }: { d: Decision; tab: string }) {
             <p className="text-sm text-zinc-600 mt-1">{d.action_hint}</p>
           </div>
 
-          {/* Botões só se acionável */}
+          {/* Botões: Aprovar/Rejeitar se acionável; Dispensar se não-acionável */}
           {tab === 'pendentes' && d.actionable && (
             <ActionButtons decisionId={d.id} />
+          )}
+          {tab === 'pendentes' && !d.actionable && (
+            <DismissButton decisionId={d.id} />
           )}
         </div>
 
@@ -183,6 +186,17 @@ function TabLink({ current, value, label }: { current: string; value: string; la
         active ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-500 hover:text-zinc-700'
       }`}
     >{label}</Link>
+  )
+}
+
+function DismissButton({ decisionId }: { decisionId: number }) {
+  const dismiss = () => router.post(`/ads/admin/decisoes/${decisionId}/dismiss`, {}, { preserveScroll: true })
+  return (
+    <div className="shrink-0">
+      <Button size="sm" variant="outline" onClick={dismiss} title="Move para Histórico — sem ação executada">
+        <Archive className="w-4 h-4 mr-1" /> Dispensar
+      </Button>
+    </div>
   )
 }
 

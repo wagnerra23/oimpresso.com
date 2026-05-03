@@ -36,12 +36,17 @@ class DecisoesController extends Controller
 
         if ($tab === 'pendentes') {
             $query->whereIn('destination', ['pending_wagner', 'blocked'])
-                  ->where('outcome', 'cancelled');
+                  ->where('outcome', 'cancelled')
+                  ->whereNull('dismissed_at');
         } elseif ($tab === 'em_andamento') {
             $query->where('destination', 'brain_b')
-                  ->where('outcome', 'cancelled');
-        } else { // historico
-            $query->whereNotIn('outcome', ['cancelled']);
+                  ->where('outcome', 'cancelled')
+                  ->whereNull('dismissed_at');
+        } else { // historico — inclui dispensados
+            $query->where(function ($q) {
+                $q->whereNotIn('outcome', ['cancelled'])
+                  ->orWhereNotNull('dismissed_at');
+            });
         }
 
         $decisions = $query->orderByDesc('id')->limit(50)->get()->map(function ($d) {
@@ -177,5 +182,19 @@ class DecisoesController extends Controller
             ]);
 
         return back()->with('status', "Decision #{$id} rejeitada. ConfidenceEngine vai aprender (-2.0).");
+    }
+
+    /**
+     * Dispensa item não-acionável do inbox (ex: blocked pelo firewall).
+     * Não muda outcome — só seta dismissed_at. Item vai pra Histórico.
+     */
+    public function dismiss(Request $request, int $id): RedirectResponse
+    {
+        DB::table('mcp_dual_brain_decisions')
+            ->where('id', $id)
+            ->whereNull('dismissed_at')
+            ->update(['dismissed_at' => now()]);
+
+        return back()->with('status', "Decision #{$id} dispensada. Movida pra Histórico.");
     }
 }
