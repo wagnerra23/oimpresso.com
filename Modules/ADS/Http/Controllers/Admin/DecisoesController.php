@@ -141,27 +141,114 @@ class DecisoesController extends Controller
             $instruction = is_array($parsed) ? $parsed : ['raw' => $decision->instruction_generated];
         }
 
+        // ─── Drill-down chain ───
+        // 1. Decisão pai (se for subtarefa)
+        $parent = null;
+        if ($decision->parent_decision_id) {
+            $p = DB::table('mcp_dual_brain_decisions')
+                ->where('id', $decision->parent_decision_id)
+                ->first();
+            if ($p) {
+                $parent = [
+                    'id'         => $p->id,
+                    'event_type' => $p->event_type,
+                    'domain'     => $p->domain,
+                    'destination' => $p->destination,
+                    'outcome'    => $p->outcome,
+                ];
+            }
+        }
+
+        // 2. Subtarefas (se for decisão pai)
+        $children = DB::table('mcp_dual_brain_decisions')
+            ->where('parent_decision_id', $decision->id)
+            ->orderBy('id')
+            ->get(['id', 'event_type', 'domain', 'destination', 'outcome', 'review_score'])
+            ->map(fn ($c) => [
+                'id'           => $c->id,
+                'event_type'   => $c->event_type,
+                'domain'       => $c->domain,
+                'destination'  => $c->destination,
+                'outcome'      => $c->outcome,
+                'review_score' => $c->review_score,
+            ])
+            ->all();
+
+        // 3. Skill (pattern) relacionado a esse (domain × event_type)
+        $skill = DB::table('mcp_decision_patterns')
+            ->where('business_id', $businessId)
+            ->where('domain', $decision->domain)
+            ->where('event_type', $decision->event_type)
+            ->first();
+        $skillData = $skill ? [
+            'id'            => $skill->id,
+            'description'   => $skill->description,
+            'success_count' => (int) $skill->success_count,
+            'total_count'   => (int) $skill->total_count,
+            'success_rate'  => (float) $skill->success_rate,
+            'is_hardcoded'  => (bool) $skill->is_hardcoded,
+        ] : null;
+
+        // 4. Meta-skills que poderiam ter sido aplicadas (categoria correspondente ao destination/outcome)
+        $applicableCategories = match ($decision->destination) {
+            'pending_wagner' => ['escalation'],
+            'brain_b'        => ['retry'],
+            'blocked'        => [],
+            default          => ['promotion'],
+        };
+        if ($decision->review_score !== null) {
+            $applicableCategories[] = 'retry';
+        }
+        $metaSkills = DB::table('mcp_governance_rules')
+            ->whereIn('category', $applicableCategories)
+            ->where('enabled', true)
+            ->get(['id', 'rule_key', 'name', 'category', 'condition', 'triggered_count'])
+            ->map(fn ($r) => [
+                'id'              => $r->id,
+                'rule_key'        => $r->rule_key,
+                'name'            => $r->name,
+                'category'        => $r->category,
+                'triggered_count' => (int) $r->triggered_count,
+            ])
+            ->all();
+
+        // 5. Review breakdown (se já foi reviewed)
+        $reviewBreakdown = $decision->review_breakdown
+            ? json_decode($decision->review_breakdown, true)
+            : null;
+
         return Inertia::render('ads/Admin/DecisaoShow', [
             'decision' => [
-                'id'               => $decision->id,
-                'event_type'       => $decision->event_type,
-                'event_source'     => $decision->event_source,
-                'domain'           => $decision->domain,
-                'risk_score'       => (float) $decision->risk_score,
-                'confidence_score' => (float) $decision->confidence_score,
-                'policy_applied'   => $decision->policy_applied,
-                'destination'      => $decision->destination,
-                'hitl_level'       => (int) $decision->hitl_level,
-                'brain_used'       => $decision->brain_used,
-                'model_used'       => $decision->model_used,
-                'outcome'          => $decision->outcome,
-                'tokens_used'      => $decision->tokens_used,
-                'execution_ms'     => $decision->execution_ms,
-                'files_affected'   => json_decode($decision->files_affected ?? '[]', true) ?: [],
-                'event_metadata'   => json_decode($decision->event_metadata ?? '{}', true) ?: [],
-                'instruction'      => $instruction,
-                'created_at'       => $decision->created_at,
-                'resolved_at'      => $decision->resolved_at,
+                'id'                  => $decision->id,
+                'parent_decision_id'  => $decision->parent_decision_id,
+                'event_type'          => $decision->event_type,
+                'event_source'        => $decision->event_source,
+                'domain'              => $decision->domain,
+                'risk_score'          => (float) $decision->risk_score,
+                'confidence_score'    => (float) $decision->confidence_score,
+                'policy_applied'      => $decision->policy_applied,
+                'destination'         => $decision->destination,
+                'hitl_level'          => (int) $decision->hitl_level,
+                'brain_used'          => $decision->brain_used,
+                'model_used'          => $decision->model_used,
+                'outcome'             => $decision->outcome,
+                'tokens_used'         => $decision->tokens_used,
+                'execution_ms'        => $decision->execution_ms,
+                'files_affected'      => json_decode($decision->files_affected ?? '[]', true) ?: [],
+                'event_metadata'      => json_decode($decision->event_metadata ?? '{}', true) ?: [],
+                'instruction'         => $instruction,
+                'created_at'          => $decision->created_at,
+                'resolved_at'         => $decision->resolved_at,
+                'review_score'        => $decision->review_score,
+                'review_confidence'   => $decision->review_confidence !== null ? (float) $decision->review_confidence : null,
+                'attempts'            => (int) ($decision->attempts ?? 0),
+            ],
+            'chain' => [
+                'parent'      => $parent,
+                'children'    => $children,
+                'skill'       => $skillData,
+                'meta_skills' => $metaSkills,
+                'review_breakdown' => $reviewBreakdown,
             ],
         ]);
     }
