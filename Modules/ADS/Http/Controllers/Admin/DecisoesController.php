@@ -84,11 +84,13 @@ class DecisoesController extends Controller
                 ->where('business_id', $businessId)
                 ->whereIn('destination', ['pending_wagner', 'blocked'])
                 ->where('outcome', 'cancelled')
+                ->whereNull('dismissed_at')
                 ->count(),
             'em_andamento' => DB::table('mcp_dual_brain_decisions')
                 ->where('business_id', $businessId)
                 ->where('destination', 'brain_b')
                 ->where('outcome', 'cancelled')
+                ->whereNull('dismissed_at')
                 ->count(),
             'concluidas_7d' => DB::table('mcp_dual_brain_decisions')
                 ->where('business_id', $businessId)
