@@ -48,15 +48,15 @@ const DecisaoShow: React.FC<Props> & { layout?: (p: React.ReactNode) => React.Re
   const i = d.instruction
   const isPending = d.outcome === 'cancelled' && (d.destination === 'pending_wagner' || d.destination === 'brain_b')
 
-  const approve = () => router.post(route('ads.admin.decisoes.approve', d.id))
+  const approve = () => router.post(`/ads/admin/decisoes/${d.id}/approve`)
   const reject = () => {
     const reason = window.prompt('Motivo da rejeição:') ?? ''
-    router.post(route('ads.admin.decisoes.reject', d.id), { reason })
+    router.post(`/ads/admin/decisoes/${d.id}/reject`, { reason })
   }
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-4">
-      <Link href={route('ads.admin.decisoes.index')} className="text-sm text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1">
+      <Link href="/ads/admin/decisoes" className="text-sm text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1">
         <ArrowLeft className="w-4 h-4" /> Voltar para inbox
       </Link>
 
@@ -160,7 +160,7 @@ function KV({ k, v }: { k: string; v: string }) {
 DecisaoShow.layout = (page: React.ReactNode) => (
   <AppShellV2
     title="ADS — Decisão"
-    breadcrumbItems={[{ label: 'ADS' }, { label: 'Decisões', href: route('ads.admin.decisoes.index') }, { label: 'Detalhe' }]}
+    breadcrumbItems={[{ label: 'ADS' }, { label: 'Decisões', href: '/ads/admin/decisoes' }, { label: 'Detalhe' }]}
   >
     {page}
   </AppShellV2>
