@@ -91,9 +91,15 @@ class TaskParserService
             }
         }
 
-        // Tasks que não apareceram no SPEC mais → cancelar (soft)
+        // Tasks que não apareceram no SPEC mais → cancelar (soft).
+        // ADR 0070: NÃO cancelar tasks ad-hoc ou backfilled — só vivem no DB,
+        // não são esperadas no SPEC.
         $canceladas = 0;
-        $query = McpTask::where('status', '!=', 'cancelled');
+        $query = McpTask::where('status', '!=', 'cancelled')
+            ->where(function ($q) {
+                $q->where('source_path', 'LIKE', 'memory/requisitos/%')
+                  ->orWhereNull('source_path');
+            });
         if ($apenasModulo !== null) {
             $query->where('module', $apenasModulo);
         }
