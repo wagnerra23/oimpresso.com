@@ -153,24 +153,45 @@ Fix: parar Meilisearch → Alpine container para deletar `/meili_data/tasks/` �
 
 ## Próximos passos para superar 0.72
 
-### Opção A — Trocar modelo embedding (recomendado)
+> **Pesquisa 2026-05-04 mai/2026 documentada em [`RETRIEVAL-ESTADO-ARTE-2026-05.md`](./RETRIEVAL-ESTADO-ARTE-2026-05.md).**
+> Recomendação canônica: `qwen3-embedding:4b` (Alibaba) — #1 MTEB multilingual Jun/2025,
+> 100+ idiomas com PT-BR explícito, registry oficial Ollama.
 
-Instalar modelo multilingual com suporte real a PT-BR:
+### Opção A — Trocar modelo embedding (RECOMENDADO)
+
 ```bash
-# No CT 100, dentro do container Ollama:
-ollama pull multilingual-e5-large  # 560M, top MTEB multilingual
-# OU:
-ollama pull nomic-embed-text:latest  # verificar se nova versão tem PT-BR melhorado
+# CT 100, container Ollama:
+ollama pull qwen3-embedding:4b   # 3.5GB VRAM, MTEB ~68
+# OU se VRAM apertada:
+ollama pull qwen3-embedding:0.6b  # 1.5GB VRAM, MTEB ~65
 ```
 
-Após instalar, atualizar embedder no Meilisearch e re-importar:
+Após instalar, criar novo embedder Meilisearch e re-importar:
 ```bash
-# Atualizar settings embedder
-curl -X PATCH https://meilisearch.oimpresso.com/indexes/mcp_memory_documents/settings/embedders \
-  -H "Authorization: Bearer $MEILI_KEY" \
-  -d '{"nomic_local": {"model": "multilingual-e5-large"}}'
-# Re-importar (garante novos embeddings)
+# Criar embedder qwen3_local
+curl -X PATCH "$MEILI/indexes/mcp_memory_documents/settings/embedders" \
+  -H "Authorization: Bearer $MEILI_KEY" -H "Content-Type: application/json" \
+  -d '{
+    "qwen3_local": {
+      "source": "ollama",
+      "url": "http://ollama-embedder:11434",
+      "model": "qwen3-embedding:4b",
+      "dimensions": 1024,
+      "documentTemplate": "{{doc.title}}. {{doc.content_excerpt}}"
+    }
+  }'
+# Re-importar (Ollama gera novos embeddings)
 php artisan scout:import "Modules\Copiloto\Entities\Mcp\McpMemoryDocument"
+# Atualizar EvalRagasBaselineCommand pra usar 'qwen3_local' como embedder
+```
+
+Adicionalmente, configurar stopwords PT-BR + localizedAttributes (ganho +5-10%):
+```bash
+# Stopwords PT-BR (lista canônica em RETRIEVAL-ESTADO-ARTE-2026-05.md)
+curl -X PUT "$MEILI/indexes/mcp_memory_documents/settings/stop-words" -d '[...]'
+# Localized attributes
+curl -X PUT "$MEILI/indexes/mcp_memory_documents/settings/localized-attributes" \
+  -d '[{"locales": ["por"], "attributePatterns": ["*"]}]'
 ```
 
 ### Opção B — Cross-encoder reranker (pós-fetch top-10)
