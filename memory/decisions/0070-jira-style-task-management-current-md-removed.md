@@ -257,7 +257,7 @@ Detalhado neste ADR como referência canônica:
 | **Fase 3** | 18 tools MCP novas + permissions Spatie | 4h |
 | **Fase 4** | Backfill — Cycle 01 + tasks de CURRENT.md/TASKS.md → mcp_tasks | 2h |
 | **Fase 5** | Apagar CURRENT.md/TASKS.md/cycles/README + atualizar SPEC TaskRegistry | 15min |
-| **Fase 6** | Git sync bidirectional (webhook commits → tasks-update auto) | 1.5h |
+| **Fase 6** | Git sync bidirectional (GitTaskLinkerService + webhook commits/PR → tasks-update auto + 9 Pest tests) | ✅ |
 | **Fase 7** | UI Web (Kanban + Backlog + Roadmap + Triage + Inbox) | 8-12h (sessão futura) |
 
 ## Referências
