@@ -3,6 +3,7 @@
 namespace Modules\ADS\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Consolida o conhecimento ESPALHADO em UMA chamada cache-friendly.
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  *     decisions-fetch slug:Y          →  bate DB
  *     check user scope                →  bate DB
  *     consulta policy                 →  bate Reflection
- *     lê CURRENT.md                   →  bate filesystem
+ *     lê mcp_tasks                    →  bate DB (governado, US-COPI-077)
  *
  *   depois (1 chamada, output cacheável):
  *     ads.context-for-task            →  pacote enriquecido em <500ms
@@ -51,7 +52,7 @@ class ContextForTaskService
             'skills_with_confidence'     => $this->buildSkills($domain, $eventType),
             'active_meta_skills'         => $this->buildMetaSkills(),
             'recent_decisions_same_domain' => $this->buildRecentDecisions($domain),
-            'current_cycle_focus'        => $this->buildCycleFocus(),
+            'active_tasks_cycle'         => $this->buildActiveTasks($domain),
             'tool_recommendations'       => $this->buildToolRecommendations($input),
         ];
     }
@@ -212,24 +213,63 @@ class ContextForTaskService
             ])->all();
     }
 
-    private function buildCycleFocus(): array
+    /**
+     * US-COPI-077 — substitui leitura filesystem CURRENT.md por query no DB
+     * (mcp_tasks, cache governado sincronizado via webhook GitHub do SPEC.md).
+     *
+     * Por que? CURRENT.md frequentemente fica desatualizado, e Wagner pediu
+     * "tarefas que já foram feitas / em andamento" em vez de "goal estático".
+     * mcp_tasks é fonte canônica das US-* extraídas dos SPECs por parser idempotente.
+     */
+    private function buildActiveTasks(?string $domain): array
     {
-        $currentMd = base_path('CURRENT.md');
-        $focus = '(CURRENT.md não encontrado)';
-        if (is_file($currentMd)) {
-            $content = @file_get_contents($currentMd);
-            if ($content) {
-                // Extrai o "Goal do ciclo" se existir
-                if (preg_match('/Goal do ciclo[^\n]*\n+>(.+?)\n/s', $content, $m)) {
-                    $focus = trim(strip_tags($m[1]));
-                } else {
-                    $focus = mb_strimwidth(strip_tags($content), 0, 400, '…');
-                }
-            }
+        if (! Schema::hasTable('mcp_tasks')) {
+            return [
+                'active'    => [],
+                'completed' => [],
+                'source'    => 'mcp_tasks (tabela não existe — TaskRegistry F0 não rodada)',
+            ];
         }
+
+        $base = DB::table('mcp_tasks');
+        if ($domain) {
+            // Module match case-insensitive — domain pode vir 'nfse'/'NFSe'/'NFSE'
+            // (ADS sintetiza o domain de várias fontes; tabela tem casing canônico).
+            $base->whereRaw('LOWER(module) = ?', [strtolower($domain)]);
+        }
+
+        // priority p0/p1/p2/p3 — ordenação string asc dá ordem correta lexicográfica
+        // e funciona em MySQL + SQLite (FIELD() é MySQL-only e quebra os testes).
+        $active = (clone $base)
+            ->whereIn('status', ['todo', 'doing', 'review'])
+            ->orderBy('priority', 'asc')
+            ->orderBy('id', 'desc')
+            ->limit(8)
+            ->get(['task_id', 'title', 'status', 'owner', 'sprint', 'priority'])
+            ->map(fn ($t) => [
+                'task_id'  => $t->task_id,
+                'title'    => mb_strimwidth($t->title, 0, 120, '…'),
+                'status'   => $t->status,
+                'owner'    => $t->owner,
+                'sprint'   => $t->sprint,
+                'priority' => $t->priority,
+            ])->all();
+
+        $completed = (clone $base)
+            ->where('status', 'done')
+            ->orderBy('id', 'desc')
+            ->limit(5)
+            ->get(['task_id', 'title', 'sprint'])
+            ->map(fn ($t) => [
+                'task_id' => $t->task_id,
+                'title'   => mb_strimwidth($t->title, 0, 120, '…'),
+                'sprint'  => $t->sprint,
+            ])->all();
+
         return [
-            'cycle_focus' => $focus,
-            'source'      => 'CURRENT.md',
+            'active'    => $active,
+            'completed' => $completed,
+            'source'    => 'mcp_tasks (cache governado, ADR 0053 + TaskRegistry F0)',
         ];
     }
 
