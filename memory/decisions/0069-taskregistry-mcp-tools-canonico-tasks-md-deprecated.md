@@ -8,14 +8,22 @@ quarter: Q2-2026
 decided_at: 2026-05-04
 decided_by: [Wagner, Claude]
 supersedes: []
-superseded_by: []
-related: [0027, 0053, 0064]
+superseded_by: [0070]
+related: [0027, 0053, 0064, 0070]
 tags: [governance, tasks, mcp, taskregistry, policy]
 ---
 
 # ADR 0069 — TaskRegistry MCP tools canônico, TASKS.md ASCII deprecated
 
 ## Status
+
+**SUPERSEDED por [ADR 0070](0070-jira-style-task-management-current-md-removed.md) — 2026-05-04 (mesmo dia).**
+
+Em poucas horas após adoção, ficou claro que CURRENT.md continuou sendo o
+source-of-truth real enquanto `mcp_tasks` apodrecia (tasks MEM-* nunca foram
+criadas via tool). ADR 0070 mata CURRENT.md/TASKS.md de vez e adota Jira/Linear-style.
+
+---
 
 Aceito — 2026-05-04
 

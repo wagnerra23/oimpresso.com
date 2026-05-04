@@ -47,7 +47,6 @@ docker-compose*.yml             @wagnerra23
 memory/decisions/               @wagnerra23
 CLAUDE.md                       @wagnerra23
 TEAM.md                         @wagnerra23
-CURRENT.md                      @wagnerra23
 
 # ──────────────────────────────────────────────
 # CMS / LANDING — Maíra owner, Wagner fallback
