@@ -192,41 +192,54 @@ class EvalRagasBaselineCommand extends Command
      * MEILI_EXPERIMENTAL_ALLOWED_IP_NETWORKS permite Meilisearch chamar Ollama
      * no CIDR Docker privado sem bloqueio SSRF.
      * $fetchK > $topK reserva espaço para reranker (bge-reranker-v2-m3) futuro.
+     *
+     * Threshold semântico: abaixo de 0.25, bypassa Meilisearch e vai direto pro
+     * MySQL FT. Diagnóstico Sprint 9: Meilisearch BM25 ranqueia CHANGELOG acima
+     * de ADRs específicas porque o CHANGELOG tem alta frequência de termos do
+     * projeto — MySQL FT NATURAL LANGUAGE MODE usa IDF puro e é mais preciso.
+     * O semantic acima de 0.25 ainda pode ajudar quando tivermos modelo PT-BR
+     * melhor (substituir nomic-embed-text por multilingual-e5 ou similar).
      */
     private function retrieveKbContext(string $query, int $topK = 3): string
     {
         $fetchK = $topK;
+        $statusExcluidos = ['superseded', 'deprecated', 'rascunho'];
 
-        try {
-            $ratioOverride = $this->option('semantic-ratio');
-            $semanticRatio = $ratioOverride !== null
-                ? (float) $ratioOverride
-                : (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.5);
+        $ratioOverride = $this->option('semantic-ratio');
+        $semanticRatio = $ratioOverride !== null
+            ? (float) $ratioOverride
+            : (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.5);
 
-            $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($semanticRatio, $fetchK) {
-                $params['hybrid'] = [
-                    'embedder'      => 'nomic_local',
-                    'semanticRatio' => $semanticRatio,
-                ];
-                $params['filter'] = "status NOT IN ['superseded', 'deprecated', 'rascunho']";
-                $params['limit']  = $fetchK;
+        // Bypass Meilisearch quando semanticRatio é muito baixo para contribuir:
+        // BM25 do Meilisearch ranqueia pior que MySQL FT NATURAL LANGUAGE para
+        // este corpus (CHANGELOG long-tail supera ADRs específicas no BM25).
+        if ($semanticRatio >= 0.25) {
+            try {
+                $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($semanticRatio, $fetchK) {
+                    $params['hybrid'] = [
+                        'embedder'      => 'nomic_local',
+                        'semanticRatio' => $semanticRatio,
+                    ];
+                    $params['filter'] = "status NOT IN ['superseded', 'deprecated', 'rascunho']";
+                    $params['limit']  = $fetchK;
 
-                return $index->search($q, $params);
-            })->take($fetchK)->get();
+                    return $index->search($q, $params);
+                })->take($fetchK)->get();
 
-            if ($docs->isNotEmpty()) {
-                // TODO Sprint 9b: rerank via Ollama cross-encoder (bge-reranker-v2-m3)
-                return $this->buildContextFromDocs($docs->take($topK));
+                if ($docs->isNotEmpty()) {
+                    // TODO Sprint 9b: rerank via Ollama cross-encoder (bge-reranker-v2-m3)
+                    return $this->buildContextFromDocs($docs->take($topK));
+                }
+            } catch (\Throwable $e) {
+                $this->line(sprintf(
+                    '    ⚠ Meilisearch indisponível (%s) — fallback MySQL FULLTEXT',
+                    class_basename($e)
+                ));
             }
-        } catch (\Throwable $e) {
-            $this->line(sprintf(
-                '    ⚠ Meilisearch indisponível (%s) — fallback MySQL FULLTEXT',
-                class_basename($e)
-            ));
         }
 
         $docs = McpMemoryDocument::buscarTexto($query)
-            ->whereNotIn('status', ['superseded', 'deprecated', 'rascunho'])
+            ->whereNotIn('status', $statusExcluidos)
             ->whereNull('deleted_at')
             ->orderByRaw('MATCH(title, content_md) AGAINST(? IN NATURAL LANGUAGE MODE) DESC', [$query])
             ->limit($topK)
