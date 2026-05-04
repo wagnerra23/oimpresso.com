@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Modules\Copiloto\Services\Mcp\IndexarMemoryGitParaDb;
+use Modules\Copiloto\Services\TaskRegistry\GitTaskLinkerService;
 use Modules\Copiloto\Services\TaskRegistry\TaskParserService;
 
 /**
@@ -57,10 +58,25 @@ class SyncMemoryWebhookController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        // Roteamento por evento GitHub: push (default), pull_request (PR sync)
+        $githubEvent = (string) $request->header('X-GitHub-Event', 'push');
+
+        // ADR 0070 — pull_request event: linka task ↔ PR + status auto
+        if ($githubEvent === 'pull_request') {
+            return $this->handlePullRequest($request);
+        }
+
         // GitHub envia ref + commits no body — só processa push em main
         $ref = $request->input('ref');
-        if ($ref !== null && $ref !== 'refs/heads/main') {
-            return response()->json(['skipped' => true, 'reason' => "ref=$ref (só main)"]);
+        if ($ref !== null && ! in_array($ref, ['refs/heads/main', 'refs/heads/master'], true)) {
+            // ADR 0070: ainda processamos linkagem de tasks de branches feature
+            $gitLinks = $this->processarGitLinks($request);
+            return response()->json([
+                'ok'        => true,
+                'skipped'   => 'sync_memory',
+                'reason'    => "ref=$ref (só main pra sync memory)",
+                'git_links' => $gitLinks,
+            ]);
         }
 
         // Sincroniza filesystem com origin/main antes de indexar.
@@ -104,12 +120,51 @@ class SyncMemoryWebhookController extends Controller
             }
         }
 
+        // ADR 0070 — bidirectional git sync (todo push)
+        $gitLinks = $this->processarGitLinks($request);
+
         return response()->json([
             'ok'         => true,
             'git'        => $gitInfo,
             'stats'      => $stats,
             'tasks_sync' => $tasksStats,
+            'git_links'  => $gitLinks,
         ]);
+    }
+
+    /**
+     * ADR 0070 — handler de pull_request event (opened/synchronize/closed/merged).
+     */
+    protected function handlePullRequest(Request $request): JsonResponse
+    {
+        try {
+            $stats = app(GitTaskLinkerService::class)->handlePullRequestEvent($request->all());
+            return response()->json([
+                'ok'        => true,
+                'event'     => 'pull_request',
+                'git_links' => $stats,
+            ]);
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->error('SyncMemoryWebhook PR handler falhou', [
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'PR handler failed', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * ADR 0070 — extrai refs de tasks dos commits e cria mcp_git_links.
+     */
+    protected function processarGitLinks(Request $request): ?array
+    {
+        try {
+            return app(GitTaskLinkerService::class)->handlePushEvent($request->all());
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->error('SyncMemoryWebhook git links falhou', [
+                'error' => $e->getMessage(),
+            ]);
+            return ['error' => $e->getMessage()];
+        }
     }
 
     /**
