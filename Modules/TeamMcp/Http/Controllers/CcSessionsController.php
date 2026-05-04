@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Copiloto\Http\Controllers\Admin;
+namespace Modules\TeamMcp\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\User;
@@ -15,7 +15,7 @@ use Modules\Copiloto\Entities\Mcp\McpCcSession;
 
 /**
  * MEM-CC-UI-1 (SPEC memory/requisitos/Copiloto/SPEC-cc-sessions.md) —
- * Tela /copiloto/admin/cc-sessions — KB sessões Claude Code do time.
+ * Tela /team-mcp/cc-sessions — KB sessões Claude Code do time.
  *
  * Schema mcp_cc_* já em prod desde 29-abr (3 tabelas).
  * Tool MCP cc-search consulta as mesmas tabelas.
@@ -107,7 +107,7 @@ class CcSessionsController extends Controller
         // Project paths distintos pra dropdown
         $projects = $kpiQuery->select('project_path')->distinct()->orderBy('project_path')->pluck('project_path');
 
-        return Inertia::render('Copiloto/Admin/CcSessions/Index', [
+        return Inertia::render('team-mcp/CcSessions/Index', [
             'sessions' => $paginator,
             'filters'  => [
                 'user_id'      => $userId ?: null,
