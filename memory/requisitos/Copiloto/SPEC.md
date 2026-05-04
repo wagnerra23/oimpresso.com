@@ -249,4 +249,83 @@ Cenário: Desvio acima do threshold dispara alerta
 
 ---
 
-**Última atualização:** 2026-04-26 (adicionadas US-COPI-070..075 da Onda 1 da camada administrativa, ver ADR `arq/0003-administracao-roi-governance.md`)
+**Última atualização:** 2026-05-04 (adicionadas US-COPI-076..081 — cronograma Cycle 01 W19/W20 pós-modularização)
+
+---
+
+## US-COPI-076..081 · Cronograma Cycle 01 (semanas W19+W20)
+
+Tasks criadas após sessão 2026-05-04 que entregou 4 PRs de modularização (split TeamMcp, split KB, Usuário 360°, delete /ads/admin/kb duplicado). Sequência prioriza fechar dívida documental, evoluir contexto Claude, validar com user real, e medir com RAGAS no fim do cycle.
+
+### US-COPI-076 · ADRs formais split modular + Permission Registry + atualizar 5 ADRs com URLs antigas
+
+> owner: wagner · sprint: 2026-W19 · priority: p2 · estimate: 2h · status: todo
+
+Fechar dívida documental da sessão 2026-05-04:
+
+- Criar ADR "Modularização — split TeamMcp/KB/360°" (registra a decisão arquitetural dos 4 PRs mergeados)
+- Criar ADR "Permission Registry contract" (formaliza padrão `Modules/*/Resources/permissions.php`)
+- Atualizar URLs antigas em 5 ADRs (search & replace doc-only): 0055, 0057, 0059, 0061, _SCHEMA
+
+**Acceptance**: 2 ADRs novos commitados + 5 ADRs com URLs `/copiloto/admin/{team,memoria,cc-sessions}` substituídas por `/team-mcp/*` e `/kb`.
+
+### US-COPI-077 · ContextForTaskService consumir tasks-current MCP em vez de ler CURRENT.md
+
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: todo
+
+Wagner reclamou 2026-05-03: "CURRENT.md ativo deve ser substituido pelas tarefas que ja foi feito". Hoje `Modules/ADS/Services/ContextForTaskService.php::buildCycleFocus()` lê filesystem CURRENT.md.
+
+Trocar por chamada interna à tool MCP `tasks-current` (mesma fonte que `/team-mcp/tasks` consome). Output: últimas 5 tasks `outcome=success` + tasks ativas, em vez do "Goal do ciclo" estático.
+
+**Acceptance**: `buildCycleFocus()` removido/reescrito pra `buildRecentlyCompleted()` · lê de `mcp_dual_brain_decisions WHERE outcome='success' ORDER BY id DESC LIMIT 5` + tasks ativas · `POST /api/ads/context-for-task` retorna seção atualizada · 1 teste Pest.
+
+### US-COPI-078 · Schema tipado KB — migration + validação webhook
+
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 6h · status: todo
+
+Etapa 2.5 do plano modular (adiada do PR feat/split-kb). KB hoje é schema genérico (`mcp_memory_documents` com `type` text livre). Tipar formalmente:
+
+- Migration: `status` (active/deprecated/superseded), `expires_at`, `superseded_by` (FK self), `frontmatter_json`
+- Contrato por type: ADR, Session, Runbook, Comparativo
+- Validação no webhook GitHub `/api/mcp/sync-memory`: rejeita doc inválido com mensagem clara
+- Tela `/kb` mostra status colorido + filtro por type+status
+
+**Acceptance**: migration aplicada · 3 types validados (ADR/Session/Runbook) · webhook rejeita doc inválido · 5 testes Pest.
+
+### US-COPI-079 · Demo Maíra real — Claude Code + /team-mcp + tela 360°
+
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: todo
+
+Validação de produto end-to-end com user real (Maíra, dev junior). Sessão presencial Wagner+Maíra:
+
+1. Maíra abre Claude Code dela apontando pro `mcp.oimpresso.com` com token MCP
+2. Tenta tocar arquivo NFSe → bloqueio Permission Registry / scopes ADS
+3. Wagner abre `/superadmin/usuarios/{maira_id}/360` e mostra tudo dela num lugar
+4. Wagner concede acesso a Compras via `/ads/admin/team-scopes`
+5. Maíra repete e funciona
+6. Wagner trança usuário (botão Trancar) → Maíra perde acesso em <30s
+7. Wagner destranca
+
+**Acceptance**: 6 passos rodam sem manual fix · gravação curta · session log com lessons learned.
+
+### US-COPI-080 · Buffer fix — corrigir o que demo Maíra encontrar
+
+> owner: wagner · sprint: 2026-W19 · priority: p2 · estimate: 4h · status: todo · blocked_by: US-COPI-079
+
+Slot reservado pra fix dos bugs/UX issues que aparecerem na demo. Margem de segurança Cycle 01 antes do gate RAGAS.
+
+**Acceptance**: backlog vazio do que veio da demo OR documentado como tech-debt pra Cycle 02 com priority justificada.
+
+### US-COPI-081 · Sprint 7 RAGAS — gate de medição Cycle 01
+
+> owner: wagner · sprint: 2026-W20 · priority: p0 · estimate: 12h · status: todo
+
+Sprint 7 do roadmap Tier 7-9 (ADR 0037). Gate quantitativo do Cycle 01: provar que memória/RAG funciona com métrica reproduzível.
+
+- Setup RAGAS no CT 100 (pip install + container Docker se necessário)
+- Golden set: 50 perguntas Larissa-style (faturamento, metas, custos) com resposta correta conhecida
+- Pipeline: pergunta → ContextoNegocio + memoria_recall → resposta Sonnet → score RAGAS (faithfulness + answer_relevancy + context_precision)
+- Baseline: rodar contra prod, registrar score
+- Documentar em `memory/sessions/2026-05-NN-ragas-baseline.md`
+
+**Acceptance**: golden set 50q · script RAGAS reproduzível · baseline numérico em ADR ou session log · 3 perguntas+scores como evidência.
