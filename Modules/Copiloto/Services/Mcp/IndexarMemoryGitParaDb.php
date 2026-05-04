@@ -264,6 +264,12 @@ class IndexarMemoryGitParaDb
         $scopeRequired = $frontmatter['scope_required'] ?? $this->inferirScopeRequired($info);
         $adminOnly = (bool) ($frontmatter['admin_only'] ?? false);
 
+        // Sanitização UTF-8 — protege contra !!binary YAML / BOM / chars inválidos
+        // gerados pelo mcp:adr:migrar-frontmatter inferindo título de body com BOM.
+        // Sem isso, json_encode falha "Malformed UTF-8 characters" ao salvar metadata.
+        $title = $this->sanitizarUtf8($title);
+        $frontmatter = $this->sanitizarUtf8Recursivo($frontmatter);
+
         // Git SHA do último commit que toca o arquivo (best-effort, falha silente)
         $gitSha = $this->lerGitSha($info['path']);
 
@@ -415,6 +421,39 @@ class IndexarMemoryGitParaDb
         }
 
         return ['redacted' => $redacted, 'count' => $count];
+    }
+
+    /**
+     * Sanitiza string pra UTF-8 válido. Remove bytes inválidos que quebram
+     * json_encode (!!binary do YAML, BOM, caracteres de controle).
+     */
+    protected function sanitizarUtf8(?string $s): string
+    {
+        if ($s === null || $s === '') return '';
+        // Remove BOM UTF-8 e BOMs UTF-16
+        $s = preg_replace('/^(\xEF\xBB\xBF|\xFF\xFE|\xFE\xFF)/', '', $s);
+        // Substitui bytes UTF-8 inválidos por '?' usando iconv
+        $clean = @iconv('UTF-8', 'UTF-8//IGNORE', $s);
+        return $clean !== false ? $clean : '';
+    }
+
+    /**
+     * Aplica sanitizarUtf8 recursivamente em arrays (frontmatter aninhado).
+     */
+    protected function sanitizarUtf8Recursivo(array $arr): array
+    {
+        $out = [];
+        foreach ($arr as $k => $v) {
+            $key = is_string($k) ? $this->sanitizarUtf8($k) : $k;
+            if (is_string($v)) {
+                $out[$key] = $this->sanitizarUtf8($v);
+            } elseif (is_array($v)) {
+                $out[$key] = $this->sanitizarUtf8Recursivo($v);
+            } else {
+                $out[$key] = $v;
+            }
+        }
+        return $out;
     }
 
     /**
