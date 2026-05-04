@@ -149,24 +149,43 @@ class EvalRagasBaselineCommand extends Command
 
     private function pipelineAdr(array $q, string $apiKey, string $model, string $provider): ?array
     {
-        // Retrieval BM25-like: rankeia TODAS as ADRs por score keyword-match,
-        // pega top-3. Antes era linear e parava no primeiro 3 hits — deixava
-        // ADRs canônicas relevantes (ex: 0066) fora se aparecessem alfabéticamente
-        // depois de 3 falsos positivos. Descoberto pelo próprio teste RAGAS
-        // (relevancy 0.0 mesmo com ctx_prec 1.0 — context recuperado errado).
+        // Retrieval melhorado (US-COPI-078):
+        // 1. Separa frontmatter YAML do body — grep só no body (frontmatter
+        //    contém slugs/tags que poluem keyword match)
+        // 2. Filtra ADRs com status superseded/deprecated/rascunho — ativos primeiro
+        // 3. Rankeia TODAS por score, top-3 desc
         $keywords = $this->extractKeywords($q['question']);
         $scored = [];
         foreach (glob(base_path('memory/decisions/*.md')) as $f) {
             if (str_starts_with(basename($f), '_')) continue;
-            $content = file_get_contents($f);
+            $raw = file_get_contents($f);
+
+            // Separa frontmatter YAML (--- ... ---)
+            $fm = [];
+            $body = $raw;
+            if (preg_match('/^---\n(.*?)\n---\n(.*)$/s', $raw, $m)) {
+                $body = $m[2];
+                try {
+                    $fm = \Symfony\Component\Yaml\Yaml::parse($m[1]) ?? [];
+                } catch (\Throwable $e) {
+                    $fm = [];
+                }
+            }
+
+            // Filtra ADRs não-canônicas: superseded/deprecated/rascunho
+            $status = $fm['status'] ?? 'aceito'; // default aceito pra ADRs sem frontmatter
+            if (in_array($status, ['superseded', 'deprecated', 'rascunho'], true)) {
+                continue;
+            }
+
+            // Score só no body + título H1 (frontmatter ignorado)
             $score = 0;
             foreach ($keywords as $kw) {
-                if (mb_stripos($content, $kw) !== false) $score++;
-                // Bonus se keyword aparece no título (linha do # H1)
-                if (preg_match('/^#\s.*' . preg_quote($kw, '/') . '/im', $content)) $score += 2;
+                if (mb_stripos($body, $kw) !== false) $score++;
+                if (preg_match('/^#\s.*' . preg_quote($kw, '/') . '/im', $body)) $score += 2;
             }
             if ($score >= 2) {
-                $scored[] = ['file' => $f, 'score' => $score, 'content' => $content];
+                $scored[] = ['file' => $f, 'score' => $score, 'body' => $body, 'fm' => $fm];
             }
         }
         // Top-3 por score desc
@@ -174,7 +193,7 @@ class EvalRagasBaselineCommand extends Command
         $contextChunks = [];
         foreach (array_slice($scored, 0, 3) as $hit) {
             $contextChunks[] = sprintf("# %s (score=%d)\n%s",
-                basename($hit['file']), $hit['score'], mb_substr($hit['content'], 0, 2000));
+                basename($hit['file']), $hit['score'], mb_substr($hit['body'], 0, 2000));
         }
 
         $context = implode("\n\n---\n\n", $contextChunks);
