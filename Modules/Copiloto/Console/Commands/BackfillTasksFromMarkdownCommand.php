@@ -50,7 +50,7 @@ class BackfillTasksFromMarkdownCommand extends Command
 
         // Garantir projects (chama seeder se faltar)
         if (McpProject::count() === 0) {
-            $this->error("mcp_projects vazia. Rode antes: php artisan db:seed --class=Modules\\\\Copiloto\\\\Database\\\\Seeders\\\\McpDefaultsSeeder");
+            $this->error("mcp_jira_projects vazia. Rode antes: php artisan db:seed --class=Modules\\\\Copiloto\\\\Database\\\\Seeders\\\\McpDefaultsSeeder");
             return self::FAILURE;
         }
 
