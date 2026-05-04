@@ -39,18 +39,31 @@ class EvalRagasBaselineCommand extends Command
                             {--question= : Roda apenas 1 question por id}
                             {--category= : Filtra por categoria (ex: larissa-faturamento)}
                             {--pipeline=adr : Modo (adr | copiloto)}
-                            {--judge-model=claude-sonnet-4-6 : Modelo do LLM judge}
+                            {--judge-model= : Modelo do LLM judge (auto-detect: gpt-4o-mini se OpenAI, claude-sonnet-4-6 se Anthropic)}
+                            {--provider= : Forçar provider (openai | anthropic). Auto-detect via env por default.}
                             {--threshold=0.7 : Score médio mínimo pra exit 0}';
 
     protected $description = 'Sprint 7 RAGAS — baseline com 3 metrics LLM-as-judge sobre golden questions';
 
     public function handle(): int
     {
-        $apiKey = env('ANTHROPIC_API_KEY');
-        if (! $apiKey) {
-            $this->warn('ANTHROPIC_API_KEY ausente — eval pulado (graceful exit pra CI).');
+        // Auto-detect provider: prefer OpenAI (mais barato), fallback Anthropic
+        $provider = $this->option('provider');
+        if (! $provider) {
+            $provider = env('OPENAI_API_KEY') ? 'openai' : (env('ANTHROPIC_API_KEY') ? 'anthropic' : null);
+        }
+        if (! $provider) {
+            $this->warn('Nem OPENAI_API_KEY nem ANTHROPIC_API_KEY no .env — eval pulado (graceful exit).');
             return 0;
         }
+
+        $apiKey = $provider === 'openai' ? env('OPENAI_API_KEY') : env('ANTHROPIC_API_KEY');
+        if (! $apiKey) {
+            $this->warn(strtoupper($provider) . '_API_KEY ausente — eval pulado.');
+            return 0;
+        }
+
+        $this->info("Provider: $provider");
 
         $yamlPath = base_path('tests/eval/golden-questions.yaml');
         if (! file_exists($yamlPath)) {
@@ -71,7 +84,8 @@ class EvalRagasBaselineCommand extends Command
         }
 
         $pipeline = $this->option('pipeline');
-        $judgeModel = $this->option('judge-model');
+        $judgeModel = $this->option('judge-model')
+            ?: ($provider === 'openai' ? 'gpt-4o-mini' : 'claude-sonnet-4-6');
         $this->info(sprintf('Pipeline: %s · Judge: %s · Perguntas: %d',
             $pipeline, $judgeModel, count($questions)));
 
@@ -81,7 +95,7 @@ class EvalRagasBaselineCommand extends Command
             $this->line(sprintf('→ [%d/%d] %s', $i + 1, count($questions), $id));
 
             // 1. Pega resposta + contexto via pipeline escolhida
-            $rag = $this->runPipeline($pipeline, $q, $apiKey, $judgeModel);
+            $rag = $this->runPipeline($pipeline, $q, $apiKey, $judgeModel, $provider);
             if ($rag === null) {
                 $results[] = ['id' => $id, 'erro' => 'pipeline falhou'];
                 continue;
@@ -93,7 +107,8 @@ class EvalRagasBaselineCommand extends Command
                 $rag['answer'],
                 $rag['context'] ?? '',
                 $apiKey,
-                $judgeModel
+                $judgeModel,
+                $provider
             );
 
             // 3. must_contain fallback (continuidade com eval:adr-discovery)
@@ -123,16 +138,16 @@ class EvalRagasBaselineCommand extends Command
      * Pipeline ADR: contexto = ADRs canônicas grep-ed por keywords da pergunta.
      * Pipeline Copiloto: chama endpoint configurado em COPILOTO_EVAL_ENDPOINT.
      */
-    private function runPipeline(string $mode, array $q, string $apiKey, string $model): ?array
+    private function runPipeline(string $mode, array $q, string $apiKey, string $model, string $provider): ?array
     {
         return match ($mode) {
-            'adr'      => $this->pipelineAdr($q, $apiKey, $model),
+            'adr'      => $this->pipelineAdr($q, $apiKey, $model, $provider),
             'copiloto' => $this->pipelineCopiloto($q),
             default    => null,
         };
     }
 
-    private function pipelineAdr(array $q, string $apiKey, string $model): ?array
+    private function pipelineAdr(array $q, string $apiKey, string $model, string $provider): ?array
     {
         // Recupera ADRs relevantes via grep simples (proxy de retrieval)
         $keywords = $this->extractKeywords($q['question']);
@@ -155,7 +170,7 @@ class EvalRagasBaselineCommand extends Command
             "(extraído de memory/decisions/) pra responder. Se a info não está no contexto, " .
             "diga 'não tenho info canônica'.\n\nCONTEXTO:\n" . ($context ?: '(vazio)');
 
-        $answer = $this->askAnthropic($apiKey, $model, $system, $q['question']);
+        $answer = $this->askLlm($provider, $apiKey, $model, $system, $q['question']);
         if ($answer === null) return null;
 
         return ['answer' => $answer, 'context' => $context];
@@ -199,10 +214,11 @@ class EvalRagasBaselineCommand extends Command
         string $answer,
         string $context,
         string $apiKey,
-        string $model
+        string $model,
+        string $provider
     ): array {
         $faithfulness = $this->judge(
-            $apiKey, $model,
+            $provider, $apiKey, $model,
             'Você avalia FIDELIDADE: a resposta tem afirmações que NÃO estão no contexto? ' .
             'Retorne APENAS um número 0.0-1.0 onde 1.0 = todas afirmações têm suporte no contexto, ' .
             '0.0 = resposta inventou tudo. Sem explicação, só o número.',
@@ -210,14 +226,14 @@ class EvalRagasBaselineCommand extends Command
         );
 
         $relevancy = $this->judge(
-            $apiKey, $model,
+            $provider, $apiKey, $model,
             'Você avalia RELEVÂNCIA: a resposta endereça a pergunta? Retorne APENAS um número ' .
             '0.0-1.0 onde 1.0 = resposta direta e completa, 0.5 = parcial, 0.0 = irrelevante. Só o número.',
             "PERGUNTA: $question\n\nRESPOSTA:\n$answer"
         );
 
         $contextPrec = $this->judge(
-            $apiKey, $model,
+            $provider, $apiKey, $model,
             'Você avalia PRECISÃO DO CONTEXTO: o contexto recuperado contém info útil pra a pergunta? ' .
             'Retorne APENAS um número 0.0-1.0 onde 1.0 = contexto totalmente relevante, ' .
             '0.0 = contexto inútil/sem relação. Só o número.',
@@ -234,9 +250,9 @@ class EvalRagasBaselineCommand extends Command
         ];
     }
 
-    private function judge(string $apiKey, string $model, string $criterio, string $payload): float
+    private function judge(string $provider, string $apiKey, string $model, string $criterio, string $payload): float
     {
-        $resp = $this->askAnthropic($apiKey, $model, $criterio, $payload);
+        $resp = $this->askLlm($provider, $apiKey, $model, $criterio, $payload);
         if ($resp === null) return 0.0;
         // Extrai primeiro número decimal da resposta
         if (preg_match('/(\d+(?:\.\d+)?)/', $resp, $m)) {
@@ -244,6 +260,36 @@ class EvalRagasBaselineCommand extends Command
             return max(0.0, min(1.0, $n)); // clamp [0,1]
         }
         return 0.0;
+    }
+
+    private function askLlm(string $provider, string $apiKey, string $model, string $system, string $userMsg): ?string
+    {
+        return $provider === 'openai'
+            ? $this->askOpenAi($apiKey, $model, $system, $userMsg)
+            : $this->askAnthropic($apiKey, $model, $system, $userMsg);
+    }
+
+    private function askOpenAi(string $apiKey, string $model, string $system, string $userMsg): ?string
+    {
+        try {
+            $resp = Http::withHeaders([
+                'Authorization' => "Bearer $apiKey",
+                'Content-Type'  => 'application/json',
+            ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
+                'model'    => $model,
+                'messages' => [
+                    ['role' => 'system', 'content' => $system],
+                    ['role' => 'user',   'content' => $userMsg],
+                ],
+                'max_tokens'  => 1024,
+                'temperature' => 0,
+            ]);
+            if (! $resp->successful()) return null;
+            $data = $resp->json();
+            return $data['choices'][0]['message']['content'] ?? null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     private function scoreStringMatch(string $answer, array $q): array
