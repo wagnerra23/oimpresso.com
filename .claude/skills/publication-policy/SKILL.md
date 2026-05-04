@@ -39,7 +39,7 @@ Quando você (Claude) está prestes a executar uma ação que toca **estado fora
 | Tocar `.env` de produção | **Wagner** | Sempre |
 | Adicionar dep dev-only | Claude | OK |
 | Adicionar dep que afeta runtime crítico (DB, IA, pagamento) | **Wagner** | Sempre |
-| Atualizar `CURRENT.md` / `memory/08-handoff.md` / session log | Claude | Sempre — é parte do trabalho |
+| Atualizar tasks via tools MCP (`tasks-update`/`tasks-comment`) / `memory/08-handoff.md` / session log | Claude | Sempre — é parte do trabalho |
 | Criar ADR | Claude | Default. Wagner valida no PR review |
 
 ## Matriz — Comunicação externa
@@ -77,7 +77,7 @@ Quando você (Claude) está prestes a executar uma ação que toca **estado fora
 
 ## O que SEMPRE fazer
 
-- ✅ Em cada ação Claude-side, registrar o que foi feito (commit message, session log, CURRENT.md). Wagner audita a posteriori.
+- ✅ Em cada ação Claude-side, registrar o que foi feito (commit message, session log, `tasks-comment` via MCP). Wagner audita a posteriori.
 - ✅ Em cada escalation, dar o draft pronto pra Wagner aprovar com 1 OK — não mandar problema, mandar solução pronta.
 - ✅ Se a matriz não cobre, **registrar o caso** no session log do dia pra entrar na próxima revisão da ADR 0040.
 

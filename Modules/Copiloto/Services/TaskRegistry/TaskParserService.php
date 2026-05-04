@@ -2,23 +2,38 @@
 
 namespace Modules\Copiloto\Services\TaskRegistry;
 
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Modules\Copiloto\Entities\Mcp\McpComponent;
+use Modules\Copiloto\Entities\Mcp\McpCycle;
+use Modules\Copiloto\Entities\Mcp\McpEpic;
+use Modules\Copiloto\Entities\Mcp\McpProject;
 use Modules\Copiloto\Entities\Mcp\McpTask;
 
 /**
- * TaskRegistry Fase 0 — parseia US-* de SPECs canônicos e sincroniza com mcp_tasks.
+ * TaskRegistry parser (ADR 0070, supersedes ADR 0069).
  *
  * Fonte: memory/requisitos/<Mod>/SPEC.md
+ *
+ * Suporta frontmatter YAML opcional no topo do SPEC (defaults pra todas as USs):
+ *
+ *   ---
+ *   project: COPI
+ *   default_epic: COPI-EP-001
+ *   default_component: BE
+ *   default_cycle: CYCLE-01
+ *   ---
+ *
  * Formato esperado de cada US:
+ *
  *   ### US-NFSE-001 · Pesquisa fiscal Tubarão
  *
  *   > owner: eliana · sprint: A · priority: p0 · estimate: 8h · status: todo
- *   > blocked_by: —
+ *   > epic: COPI-EP-001 · cycle: CYCLE-01 · component: BE · type: bug
+ *   > story_points: 5 · due: 2026-05-09 · labels: lgpd,perf
+ *   > blocked_by: US-NFSE-000
  *
  *   - [ ] Confirmar SN-NFSe vs ABRASF
- *   - [ ] ...
  *
  * Idempotente: rodar 2x sem mudança = 0 inserts/updates.
  * US deletada do SPEC vira status=cancelled (soft) em vez de DELETE.
@@ -113,10 +128,18 @@ class TaskParserService
         }
         $modulo ??= basename(dirname($path));
 
-        $conteudo = file_get_contents($path);
+        $conteudoBruto = file_get_contents($path);
         $sha = $this->headSha();
 
-        // Encontra todos os headings de US
+        // Extrai frontmatter YAML do topo (defaults globais do SPEC)
+        [$globalDefaults, $conteudo] = $this->parseGlobalFrontmatter($conteudoBruto);
+
+        // Resolve projeto/epic/cycle/component default
+        $projectId   = isset($globalDefaults['project'])   ? $this->resolveProjectId($globalDefaults['project']) : null;
+        $defaultEpic = isset($globalDefaults['default_epic'])      ? $this->resolveEpicId($globalDefaults['default_epic'], $projectId) : null;
+        $defaultCycle = isset($globalDefaults['default_cycle'])    ? $this->resolveCycleId($globalDefaults['default_cycle'], $projectId) : null;
+        $defaultComp  = isset($globalDefaults['default_component']) ? $this->resolveComponentId($globalDefaults['default_component'], $projectId) : null;
+
         preg_match_all(self::US_HEADING_REGEX, $conteudo, $matches, PREG_OFFSET_CAPTURE);
         if (empty($matches[1])) {
             return collect();
@@ -137,16 +160,33 @@ class TaskParserService
             $meta = $this->parseFrontmatterInline($bloco);
             $description = $this->extrairDescription($bloco);
 
+            // Resolve epic/cycle/component da própria US (override do default)
+            $epicId   = isset($meta['epic_key'])      ? $this->resolveEpicId($meta['epic_key'], $projectId)            : $defaultEpic;
+            $cycleId  = isset($meta['cycle_key'])     ? $this->resolveCycleId($meta['cycle_key'], $projectId)          : $defaultCycle;
+            $compId   = isset($meta['component_key']) ? $this->resolveComponentId($meta['component_key'], $projectId)  : $defaultComp;
+
             $candidatos->push([
                 'task_id' => $taskId,
+                'identifier' => $meta['identifier'] ?? null,
+                'project_id' => $projectId,
+                'epic_id' => $epicId,
+                'cycle_id' => $cycleId,
+                'component_id' => $compId,
                 'module' => $modulo,
                 'title' => $title !== '' ? $title : $taskId,
                 'description' => $description,
                 'status' => $meta['status'] ?? 'todo',
+                'type' => $meta['type'] ?? 'story',
                 'owner' => $meta['owner'] ?? null,
                 'sprint' => $meta['sprint'] ?? null,
                 'priority' => $meta['priority'] ?? 'p2',
                 'estimate_h' => $meta['estimate_h'] ?? null,
+                'story_points' => $meta['story_points'] ?? null,
+                'estimate_unit' => $meta['estimate_unit'] ?? 'points',
+                'estimate_value' => $meta['estimate_value'] ?? null,
+                'due_date' => $meta['due_date'] ?? null,
+                'labels' => $meta['labels'] ?? null,
+                'custom_fields' => $meta['custom_fields'] ?? null,
                 'blocked_by' => $meta['blocked_by'] ?? null,
                 'source_path' => 'memory/requisitos/' . $modulo . '/SPEC.md#' . $taskId,
                 'source_git_sha' => $sha,
@@ -158,9 +198,32 @@ class TaskParserService
     }
 
     /**
+     * Extrai frontmatter YAML do topo do arquivo se presente.
+     *
+     * @return array{0:array<string,string>, 1:string} [defaults, conteudoSemFrontmatter]
+     */
+    protected function parseGlobalFrontmatter(string $conteudo): array
+    {
+        if (! preg_match('/^---\s*\n(.*?)\n---\s*\n/s', $conteudo, $m)) {
+            return [[], $conteudo];
+        }
+        $defaults = [];
+        foreach (preg_split('/\r?\n/', trim($m[1])) as $linha) {
+            if (preg_match('/^([a-z_]+)\s*:\s*(.+)$/i', trim($linha), $kv)) {
+                $defaults[strtolower(trim($kv[1]))] = trim($kv[2], "\"' \t");
+            }
+        }
+        $conteudoSem = substr($conteudo, strlen($m[0]));
+        return [$defaults, $conteudoSem];
+    }
+
+    /**
      * Parseia linhas tipo:
      *   > owner: eliana · sprint: A · priority: p0 · estimate: 8h · status: todo
+     *   > epic: COPI-EP-001 · cycle: CYCLE-01 · component: BE · type: bug
+     *   > story_points: 5 · due: 2026-05-09 · labels: lgpd,perf
      *   > blocked_by: US-NFSE-001
+     *   > identifier: COPI-123
      */
     protected function parseFrontmatterInline(string $bloco): array
     {
@@ -198,12 +261,58 @@ class TaskParserService
                             $meta['status'] = $val;
                         }
                         break;
+                    case 'type':
+                        $val = strtolower($val);
+                        if (in_array($val, McpTask::TYPES, true)) {
+                            $meta['type'] = $val;
+                        }
+                        break;
                     case 'estimate':
                     case 'estimate_h':
                     case 'estimativa':
                         if (preg_match('/(\d+(?:\.\d+)?)/', $val, $mm)) {
                             $meta['estimate_h'] = (float) $mm[1];
+                            $meta['estimate_unit'] = 'hours';
+                            $meta['estimate_value'] = (float) $mm[1];
                         }
+                        break;
+                    case 'story_points':
+                    case 'pontos':
+                        if (is_numeric($val)) {
+                            $meta['story_points'] = (float) $val;
+                            $meta['estimate_unit'] = 'points';
+                            $meta['estimate_value'] = (float) $val;
+                        }
+                        break;
+                    case 'due':
+                    case 'due_date':
+                    case 'prazo':
+                        try {
+                            $meta['due_date'] = \Carbon\Carbon::parse($val);
+                        } catch (\Throwable) {
+                            // formato inválido — ignora
+                        }
+                        break;
+                    case 'labels':
+                    case 'tags':
+                        $list = array_values(array_filter(array_map('trim', explode(',', $val))));
+                        if (! empty($list)) {
+                            $meta['labels'] = $list;
+                        }
+                        break;
+                    case 'identifier':
+                        if (preg_match('/^[A-Z]+-\d+$/', $val)) {
+                            $meta['identifier'] = $val;
+                        }
+                        break;
+                    case 'epic':
+                        $meta['epic_key'] = $val;
+                        break;
+                    case 'cycle':
+                        $meta['cycle_key'] = $val;
+                        break;
+                    case 'component':
+                        $meta['component_key'] = $val;
                         break;
                     case 'blocked_by':
                     case 'depends_on':
@@ -213,6 +322,9 @@ class TaskParserService
                             $meta['blocked_by'] = array_values(array_map('strtoupper', $ids));
                         }
                         break;
+                    default:
+                        // chave não-canônica → custom field
+                        $meta['custom_fields'][$key] = $val;
                 }
             }
         }
@@ -228,7 +340,7 @@ class TaskParserService
             $trimmed = trim($l);
             if ($trimmed === '' || str_starts_with($trimmed, '>')) {
                 if (! empty($body)) {
-                    continue; // tolera linha vazia depois do início
+                    continue;
                 }
                 continue;
             }
@@ -242,22 +354,83 @@ class TaskParserService
 
     protected function precisaAtualizar(McpTask $existente, array $cand): bool
     {
-        foreach (['title', 'description', 'status', 'owner', 'sprint', 'priority', 'estimate_h', 'source_path'] as $campo) {
+        $campos = [
+            'title', 'description', 'status', 'owner', 'sprint',
+            'priority', 'estimate_h', 'source_path', 'identifier',
+            'project_id', 'epic_id', 'cycle_id', 'component_id',
+            'type', 'story_points', 'estimate_unit', 'estimate_value',
+        ];
+        foreach ($campos as $campo) {
             if ((string) ($existente->{$campo} ?? '') !== (string) ($cand[$campo] ?? '')) {
                 return true;
             }
         }
-        $existBlocked = $existente->blocked_by ?? [];
-        $candBlocked = $cand['blocked_by'] ?? [];
-        if (json_encode($existBlocked) !== json_encode($candBlocked)) {
+        // Comparar arrays (labels, blocked_by, custom_fields)
+        foreach (['labels', 'blocked_by', 'custom_fields'] as $jsonField) {
+            if (json_encode($existente->{$jsonField} ?? null) !== json_encode($cand[$jsonField] ?? null)) {
+                return true;
+            }
+        }
+        // due_date
+        $existDue = $existente->due_date?->toDateString();
+        $candDue = $cand['due_date'] instanceof \Carbon\Carbon ? $cand['due_date']->toDateString() : null;
+        if ($existDue !== $candDue) {
             return true;
         }
         return false;
     }
 
+    /** Cache em-memória pra evitar query repetida no mesmo sync. */
+    protected array $cacheProjetos = [];
+    protected array $cacheEpics = [];
+    protected array $cacheCycles = [];
+    protected array $cacheComponents = [];
+
+    protected function resolveProjectId(string $key): ?int
+    {
+        $key = strtoupper(trim($key));
+        if (isset($this->cacheProjetos[$key])) {
+            return $this->cacheProjetos[$key];
+        }
+        $id = McpProject::where('key', $key)->value('id');
+        return $this->cacheProjetos[$key] = $id ? (int) $id : null;
+    }
+
+    protected function resolveEpicId(string $key, ?int $projectId): ?int
+    {
+        if (! $projectId) return null;
+        $cacheKey = $projectId . ':' . $key;
+        if (isset($this->cacheEpics[$cacheKey])) {
+            return $this->cacheEpics[$cacheKey];
+        }
+        $id = McpEpic::where('project_id', $projectId)->where('key', $key)->value('id');
+        return $this->cacheEpics[$cacheKey] = $id ? (int) $id : null;
+    }
+
+    protected function resolveCycleId(string $key, ?int $projectId): ?int
+    {
+        if (! $projectId) return null;
+        $cacheKey = $projectId . ':' . $key;
+        if (isset($this->cacheCycles[$cacheKey])) {
+            return $this->cacheCycles[$cacheKey];
+        }
+        $id = McpCycle::where('project_id', $projectId)->where('key', $key)->value('id');
+        return $this->cacheCycles[$cacheKey] = $id ? (int) $id : null;
+    }
+
+    protected function resolveComponentId(string $key, ?int $projectId): ?int
+    {
+        if (! $projectId) return null;
+        $cacheKey = $projectId . ':' . $key;
+        if (isset($this->cacheComponents[$cacheKey])) {
+            return $this->cacheComponents[$cacheKey];
+        }
+        $id = McpComponent::where('project_id', $projectId)->where('key', $key)->value('id');
+        return $this->cacheComponents[$cacheKey] = $id ? (int) $id : null;
+    }
+
     protected function headSha(): ?string
     {
-        // Lê HEAD do filesystem (funciona em shared hosting onde shell_exec é desabilitado)
         $headFile = base_path('.git/HEAD');
         if (! is_file($headFile)) {
             return null;
@@ -270,7 +443,6 @@ class TaskParserService
             }
             return null;
         }
-        // HEAD detached — o próprio conteúdo é o SHA
         return $head !== '' ? substr($head, 0, 40) : null;
     }
 
