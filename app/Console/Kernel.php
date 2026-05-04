@@ -127,6 +127,22 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // MCP sync-memory — rede de proteção pra webhook GitHub.
+        // Webhook (SyncMemoryWebhookController) já roda pull-safe + sync a cada
+        // push em main; este cron cobre falhas (timeout/network) e drift de
+        // filesystem-vs-DB (admin fez git pull manual e esqueceu o sync).
+        // Idempotente: só re-indexa quando sha de arquivo muda.
+        $schedule->command('mcp:sync-memory --reason=cron')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(10)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/mcp-cron.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule mcp:sync-memory FALHOU'
+                );
+            });
+
         if ($env === 'demo') {
             //IMPORTANT NOTE: This command will delete all business details and create dummy business, run only in demo server.
             $schedule->command('pos:dummyBusiness')
