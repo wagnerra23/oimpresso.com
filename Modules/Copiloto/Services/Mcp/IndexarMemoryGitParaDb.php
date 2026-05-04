@@ -321,8 +321,10 @@ class IndexarMemoryGitParaDb
             return ['novo' => false, 'atualizado' => true, 'redactions' => $piiCount];
         }
 
-        // Sem mudança — só atualiza indexed_at
-        $doc->update(['indexed_at' => now()]);
+        // Sem mudança — só atualiza indexed_at, SEM disparar Scout observer.
+        // withoutSyncingToSearch garante que Ollama não re-embeda doc inalterado.
+        // Sem isso, update() dispara Eloquent 'updated' event → Scout → 383 embeddings por sync.
+        McpMemoryDocument::withoutSyncingToSearch(fn () => $doc->update(['indexed_at' => now()]));
         return ['novo' => false, 'atualizado' => false, 'redactions' => $piiCount];
     }
 
