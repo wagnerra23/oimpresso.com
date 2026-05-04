@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Copiloto\Http\Controllers\Admin;
+namespace Modules\TeamMcp\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\User;
@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /**
  * MEM-TEAM-1 (ADR 0055) — Self-host equivalent ao Anthropic Team plan admin console.
  *
- * Tela `/copiloto/admin/team` lista todos devs do business com:
+ * Tela `/team-mcp/team` lista todos devs do business com:
  *   - Tokens MCP ativos
  *   - Custo hoje + mês + % do limite
  *   - Quotas configuradas (daily/monthly em BRL)
@@ -66,7 +66,7 @@ class TeamController extends Controller
             ->whereDate('ts', $hoje)
             ->count();
 
-        return Inertia::render('Copiloto/Admin/Team/Index', [
+        return Inertia::render('team-mcp/Team/Index', [
             'team' => $rows->values(),
             'stats_globais' => [
                 'custo_hoje_brl' => $totalCustoHoje,

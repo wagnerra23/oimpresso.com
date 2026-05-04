@@ -1,0 +1,58 @@
+<?php
+
+namespace Modules\TeamMcp\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+/**
+ * ServiceProvider do módulo TeamMcp.
+ *
+ * Modelado conforme Modules/Copiloto/Providers/CopilotoServiceProvider.php.
+ * Rotas carregadas via start.php (ver module.json "files").
+ */
+class TeamMcpServiceProvider extends ServiceProvider
+{
+    /**
+     * @var bool
+     */
+    protected $defer = false;
+
+    public function boot(): void
+    {
+        $this->registerTranslations();
+        $this->registerConfig();
+    }
+
+    public function register(): void
+    {
+        //
+    }
+
+    protected function registerConfig(): void
+    {
+        $this->publishes([
+            __DIR__ . '/../Config/config.php' => config_path('teammcp.php'),
+        ], 'config');
+
+        $this->mergeConfigFrom(
+            __DIR__ . '/../Config/config.php',
+            'teammcp'
+        );
+    }
+
+    protected function registerTranslations(): void
+    {
+        $langPath = resource_path('lang/modules/teammcp');
+
+        if (is_dir($langPath)) {
+            $this->loadTranslationsFrom($langPath, 'teammcp');
+        } else {
+            $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'teammcp');
+        }
+    }
+
+    public function provides(): array
+    {
+        return [];
+    }
+}
