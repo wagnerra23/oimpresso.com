@@ -122,14 +122,16 @@ class McpMemoryDocument extends Model
     public function toSearchableArray(): array
     {
         return [
-            'id'         => $this->id,
-            'slug'       => $this->slug,
-            'title'      => $this->title,
-            'content_md' => $this->content_md,
-            'type'       => $this->type,
-            'module'     => $this->module,
-            'status'     => $this->status ?? 'aceito',
-            'tags'       => $this->tags ?? [],
+            'id'              => $this->id,
+            'slug'            => $this->slug,
+            'title'           => $this->title,
+            'content_md'      => $this->content_md,
+            // Sprint 9: excerpt pra embedder (template curto, sem overflow de tokens)
+            'content_excerpt' => mb_substr($this->content_md ?? '', 0, 400),
+            'type'            => $this->type,
+            'module'          => $this->module,
+            'status'          => $this->status ?? 'aceito',
+            'tags'            => $this->tags ?? [],
         ];
     }
 

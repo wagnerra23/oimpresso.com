@@ -174,39 +174,46 @@ class EvalRagasBaselineCommand extends Command
      *
      * Ambas as camadas respeitam shouldBeSearchable() / scope de status ativo.
      */
+    /**
+     * Recupera contexto da KB (mcp_memory_documents) em 2 camadas:
+     *   1. Meilisearch hybrid (full-text + semantic) — preferencial
+     *   2. MySQL FULLTEXT scope — fallback automático
+     *
+     * Sprint 9: $fetchK > $topK permite reranking futuro via Ollama cross-encoder.
+     * Hoje fetchK == topK (sem reranker instalado).
+     */
     private function retrieveKbContext(string $query, int $topK = 3): string
     {
-        // Tenta Meilisearch hybrid primeiro
+        // Sprint 9: pré-fetch maior pra reranker; hoje passa direto pois sem reranker
+        $fetchK = $topK;
+
         try {
             $embedder      = config('copiloto.memoria.meilisearch.embedder', 'openai');
             $semanticRatio = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.5);
 
-            $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($embedder, $semanticRatio, $topK) {
+            $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($embedder, $semanticRatio, $fetchK) {
                 $params['hybrid'] = [
                     'embedder'      => $embedder,
                     'semanticRatio' => $semanticRatio,
                 ];
-                // Exclui docs que escaparam do shouldBeSearchable() por lag de re-index
                 // Sintaxe Meilisearch: aspas simples em string literals
                 $params['filter'] = "status NOT IN ['superseded', 'deprecated', 'rascunho']";
-                $params['limit']  = $topK;
+                $params['limit']  = $fetchK;
 
                 return $index->search($q, $params);
-            })->take($topK)->get();
+            })->take($fetchK)->get();
 
             if ($docs->isNotEmpty()) {
-                return $this->buildContextFromDocs($docs);
+                // TODO Sprint 9: rerank $docs via Ollama cross-encoder, take($topK)
+                return $this->buildContextFromDocs($docs->take($topK));
             }
-            // Meilisearch retornou vazio → cai no fallback MySQL sem logar como erro
         } catch (\Throwable $e) {
-            // Index não existe ainda, embedder não configurado, ou Meilisearch offline
             $this->line(sprintf(
                 '    ⚠ Meilisearch indisponível (%s) — fallback MySQL FULLTEXT',
                 class_basename($e)
             ));
         }
 
-        // Fallback: MySQL FULLTEXT + filtro de status via Eloquent
         $docs = McpMemoryDocument::buscarTexto($query)
             ->whereNotIn('status', ['superseded', 'deprecated', 'rascunho'])
             ->whereNull('deleted_at')
