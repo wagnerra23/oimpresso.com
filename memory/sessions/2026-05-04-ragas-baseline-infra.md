@@ -161,10 +161,70 @@ php artisan eval:ragas-baseline --question=format-date-shift
 - ✅ Pipeline RAGAS 3 metrics implementado
 - ✅ Comando configurável (modo ADR ou Copiloto)
 - ✅ Output JSON estruturado pra histórico
-- ⏸️ **Pendente**: Wagner valida golden set Larissa + roda baseline real (depende de API key + DB queries)
-- ⏸️ **Pendente**: endpoint `/api/copiloto/eval` pra modo `--pipeline=copiloto` end-to-end
+- ✅ **Suporte multi-provider** (OpenAI gpt-4o-mini auto-detect via OPENAI_API_KEY)
+- ✅ **Baseline real executado em prod** (Cycle 01 gate atingido)
+- ⏸️ Validar golden set Larissa com queries SQL prod (próxima sessão)
+- ⏸️ Endpoint `/api/copiloto/eval` pra modo `--pipeline=copiloto` end-to-end
 
-Status: **80% done — infra pronta, falta validação humana e execução real.**
+Status: **DONE pra Cycle 01 gate** — baseline registrado.
+
+## 🎯 Baseline numérico Cycle 01 (executado 2026-05-04 10:11 BRT)
+
+JSON: `tests/eval/results/ragas-2026-05-04-101125-baseline-cycle01.json`
+
+**ADRs (8 perguntas, threshold 0.70)**:
+
+| Métrica | Valor |
+|---|---|
+| **RAGAS médio** | **0.72** ✅ |
+| avg faithfulness | 0.74 |
+| avg answer_relevancy | 0.63 |
+| avg context_precision | 0.80 |
+
+| Pergunta | Score |
+|---|---|
+| format-date-shift | 1.00 ✅ |
+| permission-registry | 1.00 ✅ |
+| split-modular | 1.00 ✅ |
+| usuario-360-location | 0.90 ✅ |
+| kb-mora | 0.67 ⚠️ |
+| vizra-rejeitada | 0.67 ⚠️ |
+| reverb-status | 0.33 ❌ |
+| governance-criar | 0.20 ❌ |
+
+**Larissa (22 perguntas, pipeline=adr)**:
+- Score 0.00 quase universal — ADRs canônicas NÃO contêm faturamento operacional
+- **Esperado**: Larissa precisa pipeline=copiloto chamando `/api/copiloto/chat` (ContextoNegocio + memoria_recall)
+- Validação de Larissa fica pra **próxima iteração** quando endpoint `/api/copiloto/eval` existir
+
+## Insights do baseline (pra Cycle 02)
+
+### 1. Retrieval keyword-match tem limites claros
+
+3 das 4 perguntas com score baixo erraram retrieval:
+- `vizra-rejeitada` recuperou ADR 0032 (Vizra superseded) em vez de ADR 0048 (rejeição) — **não considera frontmatter `superseded_by`** pra rebaixar relevância
+- `reverb-status` recuperou ADR 0042 (Reverb substitui Pusher) em vez de ADR 0058 (Reverb abandonado por Centrifugo) — mesmo problema
+- `governance-criar` recuperou ADR 0065 (Permission Registry) em vez de ADR 0064 (decisão de NÃO criar Governance) — keyword "Governance" matcha 0065 também
+
+**Trigger Cycle 02**: implementar retrieval que respeita `superseded_by` (ADRs ativos primeiro) e usa Meilisearch hybrid em vez de grep.
+
+### 2. Modelo conservador demais com "não tenho info canônica"
+
+Várias respostas onde o contexto FOI relevante (ctx_prec 1.0) mas modelo respondeu "não tenho info canônica" mesmo assim, derrubando faithfulness e relevancy. System prompt instrui isso de forma muito rígida.
+
+**Trigger Cycle 02**: refinar system prompt: "use o contexto, parafraseie sem inventar, mas RESPONDA — só diga 'não tenho info' se contexto for zero/irrelevante."
+
+### 3. Pipeline `copiloto` end-to-end virou prioridade
+
+22/30 perguntas (Larissa-style) só fazem sentido contra produto real, não ADR retrieval. Endpoint `/api/copiloto/eval` é gate pra completar US-COPI-081 100%.
+
+## Custo real
+
+- 30 perguntas × 4 calls (1 resposta + 3 metrics) = 120 chamadas gpt-4o-mini
+- ~500 tokens cada = ~60k tokens total
+- **~$0.02 total** (estimado pelo pricing oficial OpenAI)
+
+Compatível com nightly cron. Ou pode rodar a cada PR sem problema.
 
 ## Próxima sessão
 
