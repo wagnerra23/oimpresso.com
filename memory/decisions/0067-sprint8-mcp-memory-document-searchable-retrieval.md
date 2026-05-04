@@ -94,26 +94,36 @@ Package estava no `composer.json` mas não no lock (US-NFSE-004 adicionou sem ro
 
 ### Comparativo ADR 8 perguntas
 
-| Pergunta | Baseline grep (0.72) | Pós-fix (0.68) | Sprint 8 MySQL FT |
-|---|---|---|---|
-| format-date-shift | 1.00 | 1.00 | **1.00** |
-| permission-registry | 1.00 | 1.00 | **1.00** |
-| split-modular | 1.00 | 1.00 | **1.00** |
-| usuario-360-location | 0.90 | 0.27 | **0.00** ↓ |
-| kb-mora | 0.67 | 0.67 | **0.67** |
-| vizra-rejeitada | 0.67 | 1.00 | **0.67** ↓ |
-| reverb-status | 0.33 | 0.33 | **0.00** ↓ |
-| governance-criar | 0.20 | 0.17 | **0.93** ↑↑ |
-| **Média** | **0.72** | **0.68** | **0.66** |
+| Pergunta | Baseline grep (0.72) | Pós-fix (0.68) | Sprint 8 MySQL FT | Sprint 8 Hybrid |
+|---|---|---|---|---|
+| format-date-shift | 1.00 | 1.00 | **1.00** | **1.00** |
+| permission-registry | 1.00 | 1.00 | **1.00** | **1.00** |
+| split-modular | 1.00 | 1.00 | **1.00** | **1.00** |
+| usuario-360-location | 0.90 | 0.27 | **0.00** ↓ | **0.27** ↑ |
+| kb-mora | 0.67 | 0.67 | **0.67** | **0.00** ↓ |
+| vizra-rejeitada | 0.67 | 1.00 | **0.67** ↓ | **0.67** |
+| reverb-status | 0.33 | 0.33 | **0.00** ↓ | **0.67** ↑↑ |
+| governance-criar | 0.20 | 0.17 | **0.93** ↑↑ | **0.67** ↓ |
+| **Média** | **0.72** | **0.68** | **0.66** | **0.66** |
 
 ### Observações
 
-- `governance-criar` 0.17 → 0.93: MySQL FULLTEXT encontrou ADR 0064 correto. Grep falhava por
-  keyword "Governance" presente em múltiplos ADRs sem distinção de relevância.
-- `usuario-360-location` e `reverb-status` regrediram para 0: MySQL FULLTEXT não casa bem com
-  termos hifenizados e perguntas de status contextual. Grep substring exato funcionava melhor aqui.
-- **MySQL FULLTEXT não é estritamente superior ao grep** para o conjunto ADR. Empate técnico (0.68 → 0.66).
-- O ganho real do Sprint 8 está no Meilisearch hybrid — que resolve os casos de fracasso semântico.
+- `reverb-status` 0.00 → 0.67: Hybrid semântico encontrou relação Reverb/Centrifugo. Era o caso
+  de uso central do Sprint 8 — semântico funcionou onde grep/MySQL FULLTEXT falhavam.
+- `governance-criar` 0.93 → 0.67: regrediu vs MySQL FT. MySQL FULLTEXT com keyword exacto era
+  mais preciso para perguntas de decisão arquitetural direta.
+- `kb-mora` 0.67 → 0.00: vetores do doc KB muito fracos — documentTemplate só metadados,
+  sem conteúdo textual suficiente para similaridade vetorial.
+- **Empate técnico MySQL FT vs Hybrid (0.66 = 0.66)**. A raiz é o `documentTemplate` minimalista:
+  `"{{doc.title}} | {{doc.slug}} | {{doc.type}} | {{doc.module}}"` — sem trecho de conteúdo,
+  o embedder não gera vetores com semântica suficiente.
+- **Próximo passo**: `documentTemplate` deve incluir primeiros ~300 chars do `content_md` para
+  vetores com semântica real. Limitação anterior (token overflow do OpenAI) era com o doc completo.
+
+### Resultado final Sprint 8
+
+Score ADR hybrid: **0.66** — infra Meilisearch em prod, fallback MySQL FT funcionando.
+Ganho de score pós-embedder esperado na Sprint 9 via melhoria do `documentTemplate`.
 
 ## Consequências
 
