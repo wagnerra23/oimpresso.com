@@ -203,14 +203,23 @@ Stream cronológico de mcp_task_events com filtros (tipo, autor, projeto). Shape
 
 Chart line do cycle ativo: total story_points vs done over time. Comparado com ideal burndown.
 
-## User stories — Cycle 03+ (Bidirectional Git Sync)
+## User stories — Bidirectional Git Sync (Fase 6 entregue)
 
-### US-TR-301 · Webhook GitHub commit→task auto
+### US-TR-301 · Webhook GitHub commit→task auto ✅
 
-> owner: wagner · priority: p1 · estimate: 1.5d · status: backlog · type: feature
+> owner: wagner · sprint: 2026-W18 · priority: p1 · estimate: 1.5d · status: done · type: feature
 > epic: TR-EP-004 · component: BE · labels: webhook,git
 
-Webhook detecta padrão `(refs|fixes|closes|resolves)\s+(<KEY>-\d+)` em commit messages. Cria mcp_git_links row + comment auto. Status auto pra `review` se `fixes/closes/resolves`. PR aberto/merged → status review/done.
+`GitTaskLinkerService` detecta padrão `(refs|fixes|closes|resolves)\s+([A-Z]{2,8}-\d+)` em commit messages e branch names. Cria `mcp_git_links` row idempotente + comment auto na task. Status auto:
+- `fixes/closes/resolves` em push pra main → status=done + completed_at
+- `fixes/closes/resolves` em branch feature → status=review
+- `refs` apenas → cria link sem mudança de status
+- PR opened (qualquer branch) → status=review
+- PR merged em main/master → status=done
+
+`SyncMemoryWebhookController` roteado por `X-GitHub-Event` header: `push` (default + sync memory) ou `pull_request` (só PR handler). Idempotência: mesmo commit_sha+task+action = no-op no replay.
+
+Pest: `GitTaskLinkerServiceTest` cobre 9 cenários (parsing regex, idempotência, push em main vs branch, PR opened/merged).
 
 ### US-TR-302 · tasks-suggest-* (D2 AI-native)
 
@@ -294,12 +303,14 @@ curl -s -X POST https://mcp.oimpresso.com/api/mcp \
 - ✅ BackfillTasksFromMarkdownCommand idempotente com Cycle 01 + 70+ tasks hardcoded
 - ✅ Pest smoke test JiraStyleSchemaTest
 
-Pendente próxima sessão (Fase 6 + 7):
+- ✅ Fase 6 — webhook bidirectional (GitTaskLinkerService + SyncMemoryWebhookController estendido + 9 Pest tests)
 
-- 🔲 Webhook GitHub commit→tasks-update bidirectional (US-TR-301)
-- 🔲 Tools D2 AI-native (US-TR-302)
-- 🔲 UI Web /copiloto/admin/board (US-TR-201..206)
+Pendente próxima sessão (Fase 7 UI + D2 AI):
+
+- 🔲 Tools D2 AI-native: tasks-summarize, tasks-suggest-priority, tasks-suggest-memory (US-TR-302)
+- 🔲 UI Web /copiloto/admin/board: Kanban + Backlog + Roadmap + Triage + Inbox (US-TR-201..206)
 - 🔲 SPECs por módulo migrados pra usar frontmatter YAML novo (gradual, conforme Wagner edita)
+- 🔲 Configurar webhook GitHub Settings → adicionar pull_request event ao Sync Memory webhook existente
 
 ## Referências
 
