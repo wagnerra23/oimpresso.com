@@ -74,17 +74,32 @@ em `McpMemoryDocument::withoutSyncingToSearch()`.
 
 ### Próximo passo — Sprint 9b (para superar 0.72)
 
-Instalar modelo multilingual melhor no CT 100:
+Pesquisa estado da arte mai/2026 (documentada em
+[`memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md`](../requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md))
+identifica `qwen3-embedding` (Alibaba) como #1 MTEB multilingual Jun/2025,
+com 100+ idiomas e PT-BR explícito documentado.
+
 ```bash
-# Opções rankeadas por qualidade PT-BR (MTEB):
-# 1. multilingual-e5-large (top MTEB multilingual, 560M, ~1.1GB)
-ollama pull multilingual-e5-large  # ou equivalente
-# 2. jina-embeddings-v2-base-multilingual (100M, mais leve)
-# 3. paraphrase-multilingual-mpnet-base-v2 (278M)
+# CT 100, container Ollama:
+ollama pull qwen3-embedding:4b   # RECOMENDADO: 3.5GB VRAM, MTEB ~68
+# Alternativa se VRAM apertada:
+ollama pull qwen3-embedding:0.6b  # 1.5GB VRAM, MTEB ~65
 ```
 
-Ajustar embedder Meilisearch para novo modelo e re-rodar eval com `--semantic-ratio=0.5`.
-Meta: superar 0.72 com hybrid semântico real em PT-BR.
+**Pipeline recomendado pra ~400 docs PT-BR (100% local):**
+```
+Query → BM25 + dense (qwen3-embedding:4b) → RRF Meilisearch nativo
+      → cross-encoder reranker (qwen3-reranker:0.6b ou bge-reranker-v2-m3)
+      → top-3 → LLM
+```
+
+**Expectativa de ganho RAGAS:**
+- BM25 only (atual): 0.700
+- BM25 + qwen3 dense (semantic_ratio=0.6): **0.80-0.84**
+- BM25 + dense + reranker: **0.85-0.90**
+
+Adicionalmente: configurar stopwords PT-BR + localizedAttributes no Meilisearch
+(ganho BM25 standalone +5-10%).
 
 ## Contexto
 
