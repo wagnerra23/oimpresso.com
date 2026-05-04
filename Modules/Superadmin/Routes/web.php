@@ -9,6 +9,13 @@ Route::get('/pricing', [Modules\Superadmin\Http\Controllers\PricingController::c
 Route::get('/pricing/old', [Modules\Superadmin\Http\Controllers\PricingController::class, 'indexLegacy'])->name('pricing.legacy');
 
 Route::middleware('web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin')->prefix('superadmin')->group(function () {
+    // Usuário 360° — vista única (roles, permissions, tokens, scopes, sessions, lockouts)
+    Route::get('/usuarios',                 [Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'index'])->name('superadmin.usuarios.index');
+    Route::get('/usuarios/{id}/360',        [Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'show'])->name('superadmin.usuarios.show');
+    Route::post('/usuarios/{id}/lock',      [Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'lock'])->name('superadmin.usuarios.lock');
+    Route::post('/usuarios/{id}/unlock',    [Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'unlock'])->name('superadmin.usuarios.unlock');
+    Route::get('/usuarios/{id}/history',    [Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'history'])->name('superadmin.usuarios.history');
+
     Route::get('/install', [Modules\Superadmin\Http\Controllers\InstallController::class, 'index']);
     Route::get('/install/update', [Modules\Superadmin\Http\Controllers\InstallController::class, 'update']);
     Route::get('/install/uninstall', [Modules\Superadmin\Http\Controllers\InstallController::class, 'uninstall']);
