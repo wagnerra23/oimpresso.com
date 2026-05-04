@@ -31,7 +31,7 @@ class McpProject extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'mcp_jira_projects';
+    protected $table = 'mcp_projects';
 
     protected $fillable = [
         'key', 'name', 'description', 'lead_user_id',
