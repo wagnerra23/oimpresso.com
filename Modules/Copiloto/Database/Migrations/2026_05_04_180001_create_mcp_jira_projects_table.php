@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Schema;
  * NOTA — nome da tabela: mcp_jira_projects (não mcp_projects).
  * mcp_projects já está ocupado pelo Modules/ADS Decision Engine de Wagner
  * (commit a7e6da54, schema viability/decision/proceed-pivot-kill).
- * Prefixo mcp_jira_* deixa namespace claro.
+ * Prefixo mcp_jira_* deixa namespace claro e evita conflito de classe PHP.
  */
-class CreateMcpProjectsTable extends Migration
+class CreateMcpJiraProjectsTable extends Migration
 {
     public function up(): void
     {
