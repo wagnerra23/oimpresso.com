@@ -12,7 +12,6 @@ use Modules\ADS\Http\Controllers\Admin\MetaSkillsController;
 use Modules\ADS\Http\Controllers\Admin\GraphController;
 use Modules\ADS\Http\Controllers\Admin\ConflictsController;
 use Modules\ADS\Http\Controllers\Admin\ProjectsController;
-use Modules\ADS\Http\Controllers\Admin\KnowledgeBaseController;
 use Modules\ADS\Http\Controllers\Admin\TeamScopesController;
 use Modules\ADS\Http\Controllers\InstallController;
 
@@ -66,11 +65,11 @@ Route::group([
     Route::post('/admin/meta-skills/validate', [MetaSkillsController::class, 'validateRule'])
         ->name('ads.admin.metaskills.validate');
 
-    // Knowledge Base (KB Obsidian-style)
-    Route::get('/admin/kb',         [KnowledgeBaseController::class, 'index'])->name('ads.admin.kb.index');
-    Route::get('/admin/kb/{slug}',  [KnowledgeBaseController::class, 'show'])
-        ->where('slug', '[A-Za-z0-9\-_\.]+')
-        ->name('ads.admin.kb.show');
+    // KB duplicado removido (PR feat/delete-ads-kb-duplicate) — ver módulo Modules/KB
+    // URL canônica é /kb (não mais /ads/admin/kb)
+    Route::redirect('/admin/kb', '/kb', 301);
+    Route::redirect('/admin/kb/{slug}', '/kb/{slug}/show', 301)
+        ->where('slug', '[A-Za-z0-9\-_\.]+');
 
     // Team Scopes (caso Maíra: governance per-user × module)
     Route::get('/admin/team-scopes',          [TeamScopesController::class, 'index'])->name('ads.admin.teamscopes.index');
