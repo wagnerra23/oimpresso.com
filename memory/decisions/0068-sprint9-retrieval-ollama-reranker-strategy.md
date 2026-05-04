@@ -72,7 +72,30 @@ em `McpMemoryDocument::withoutSyncingToSearch()`.
 - Score recuperado: **0.700** (MySQL FT path, baseline era 0.72)
 - Score com semantic: 0.158-0.388 (inutilizável com nomic-embed-text PT-BR)
 
-### Próximo passo — Sprint 9b (para superar 0.72)
+### Sprint 9b ENTREGUE (2026-05-04) — qwen3-embedding:0.6b
+
+CT 100 é CPU-only, então 4b foi descartado (proibitivo). Validado 0.6b:
+
+**Smoke test cosine PT-BR:**
+- 3 ADRs distintas → cosine **0.55** entre elas (vs nomic ~0.97 uniforme) ✓ semantic discrimina
+
+**Eval matrix (qwen3 + stopwords PT-BR + localizedAttributes):**
+| ratio | Score RAGAS |
+|---|---|
+| 0.4 | 0.637 |
+| 0.5 | 0.642 |
+| **0.6** | **0.692** ← vencedor |
+| 0.0 (MySQL FT bypass) | 0.700 (comparativo) |
+
+**Decisão:** semanticRatio=0.6 + qwen3_local em prod. Score em par com MySQL FT — ganho real fica para reranker (US-COPI-087, Cycle 02).
+
+**Configs aplicadas:**
+- Meilisearch embedder `qwen3_local` (model: qwen3-embedding:0.6b, dim: 1024)
+- Stopwords PT-BR (97 palavras canônicas)
+- localizedAttributes `[{locales: [por], attributePatterns: [*]}]`
+- `Modules/Copiloto/Config/config.php` → defaults: ratio=0.6, embedder=qwen3_local
+
+### Próximo passo — Sprint 9c (Cycle 02, US-COPI-087)
 
 Pesquisa estado da arte mai/2026 (documentada em
 [`memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md`](../requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md))
