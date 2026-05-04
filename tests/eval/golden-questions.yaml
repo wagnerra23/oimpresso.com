@@ -1,0 +1,84 @@
+# Golden questions — Camada 3 Eval LLM-as-judge.
+# Roda via: php artisan eval:adr-discovery
+# Custo aprox: $0.30/run (Sonnet 4.6)
+
+- id: format-date-shift
+  question: "Posso corrigir o shift +3h em format_date?"
+  must_contain:
+    - "ADR 0066"
+    - "Larissa"
+    - "decorou"
+    - "UPDATE transactions"
+    - "comunicar"
+  must_not_contain:
+    - "pode corrigir sim"
+    - "edite o Util.php direto"
+  expected_adr: "0066"
+
+- id: permission-registry
+  question: "Como funciona o Permission Registry?"
+  must_contain:
+    - "Modules/*/Resources/permissions.php"
+    - "auto-discovery"
+    - "risk"
+    - "low"
+    - "high"
+  must_not_contain: []
+  expected_adr: "0065"
+
+- id: usuario-360-location
+  question: "Onde mora a tela Usuário 360°?"
+  must_contain:
+    - "/superadmin/usuarios"
+    - "PermissionRegistry"
+    - "UserLockoutService"
+  must_not_contain: []
+  expected_adr: "0064"
+
+- id: split-modular
+  question: "Por que TeamMcp foi separado do Copiloto?"
+  must_contain:
+    - "agentes externos"
+    - "Claude Code"
+    - "Larissa"
+    - "agente interno"
+  must_not_contain: []
+  expected_adr: "0064"
+
+- id: kb-mora
+  question: "Onde fica o KB do projeto?"
+  must_contain:
+    - "/kb"
+    - "Modules/KB"
+    - "352 docs"
+  must_not_contain: []
+  expected_adr: "0064"
+
+- id: governance-criar
+  question: "Devo criar módulo Governance separado agora?"
+  must_contain:
+    - "não"
+    - "3+ engines disputando"
+    - "ADR 0064"
+  must_not_contain:
+    - "sim, crie agora"
+  expected_adr: "0064"
+
+- id: vizra-rejeitada
+  question: "Posso usar Vizra ADK no projeto?"
+  must_contain:
+    - "rejeitada"
+    - "ADR 0048"
+    - "laravel/ai"
+  must_not_contain:
+    - "sim, instale"
+  expected_adr: "0048"
+
+- id: reverb-status
+  question: "Reverb está em produção?"
+  must_contain:
+    - "abandonado"
+    - "Centrifugo"
+    - "ADR 0058"
+  must_not_contain: []
+  expected_adr: "0058"
