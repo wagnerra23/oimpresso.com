@@ -97,21 +97,10 @@ Route::group(
         Route::get('/admin/team/export.csv',               'Admin\TeamController@exportCsv')
             ->name('copiloto.admin.team.export.csv');
 
-        // ---- MEM-KB-1 (ADR 0053) — KB browser dos docs servidos via MCP server
-        Route::get('/admin/memoria',                       'Admin\MemoriaKbController@index')
-            ->name('copiloto.admin.memoria.index');
-        Route::get('/admin/memoria/{slug}/show',           'Admin\MemoriaKbController@show')
-            ->where('slug', '[A-Za-z0-9\-_]+')
-            ->name('copiloto.admin.memoria.show');
-        Route::get('/admin/memoria/{slug}/history',        'Admin\MemoriaKbController@history')
-            ->where('slug', '[A-Za-z0-9\-_]+')
-            ->name('copiloto.admin.memoria.history');
-        Route::delete('/admin/memoria/{slug}',             'Admin\MemoriaKbController@softDelete')
-            ->where('slug', '[A-Za-z0-9\-_]+')
-            ->name('copiloto.admin.memoria.softdelete');
-        Route::post('/admin/memoria/{slug}/restore',       'Admin\MemoriaKbController@restore')
-            ->where('slug', '[A-Za-z0-9\-_]+')
-            ->name('copiloto.admin.memoria.restore');
+        // ---- MEM-KB-1 (ADR 0053) — KB MOVIDO PRO MÓDULO Modules/KB (Etapa 2 modularização, 2026-05-03)
+        // Rotas /copiloto/admin/memoria* foram migradas pra /kb*. Redirects 301
+        // GET ficam no fim deste arquivo (DELETE/POST não redirecionam — clients
+        // novos chamam /kb diretamente).
 
         // ---- MEM-MET-4 (ADR 0050) — Page /copiloto/admin/qualidade
         Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
@@ -134,6 +123,18 @@ Route::group(
             ->name('copiloto.admin.cc.show');
     }
 );
+
+// ===========================================================================
+// 1.5) Redirects 301 — KB migrado pra módulo próprio (Etapa 2, 2026-05-03)
+// ===========================================================================
+// Só GETs redirecionam — clients novos devem chamar /kb diretamente.
+Route::middleware(['web'])->group(function () {
+    Route::redirect('/copiloto/admin/memoria', '/kb', 301);
+    Route::redirect('/copiloto/admin/memoria/{slug}/show', '/kb/{slug}/show', 301)
+        ->where('slug', '[A-Za-z0-9\-_]+');
+    Route::redirect('/copiloto/admin/memoria/{slug}/history', '/kb/{slug}/history', 301)
+        ->where('slug', '[A-Za-z0-9\-_]+');
+});
 
 // ===========================================================================
 // 2) Rotas de instalação 1-clique — prefixo /copiloto/install
