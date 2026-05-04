@@ -200,6 +200,21 @@ D:\oimpresso.com\
 
 **KB MCP UI (`/copiloto/admin/memoria`)** — tela de governança Wagner: lista 352 docs, filtros (type/module/PII), Sheet preview markdown render + git_sha→GitHub, soft-delete LGPD double-confirm, history. Permission: `copiloto.mcp.memory.manage` (ADR 0057).
 
+### Docs canônicos críticos — regra anti-regressão
+
+Os arquivos abaixo formalizam decisões já tomadas. **Modificar via ADR nova que supersede a anterior** — não editar inline pra "atualizar". Se Wagner pedir mudança, criar ADR primeiro, depois atualizar o doc:
+
+| Doc | Origem | Regra de mudança |
+|---|---|---|
+| ADR `memory/decisions/NNNN-*.md` | Decisões Nygard | NUNCA editar; criar ADR nova com `supersedes: [NNNN]` |
+| `memory/requisitos/Copiloto/MEILISEARCH-EVOLUCAO.md` | Sprint 7→9 timeline | Adicionar fases novas ao final; não reescrever passado |
+| `memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md` | Pesquisa mai/2026 | Substituir por novo arquivo `RETRIEVAL-ESTADO-ARTE-AAAA-MM.md` quando atualizar (versionado por data) |
+| `memory/requisitos/Copiloto/RETRIEVAL-GOTCHAS.md` | 13 armadilhas Sprint 9 | Apenda novos itens; nunca remover sem ADR justificando |
+| `HOW_TO_ASK_CLAUDE.md` | Estado-da-arte 2026 | Substituir inteiro quando Anthropic publicar guidance nova; registrar mudança em ADR se inverter princípio |
+| `memory/requisitos/<Mod>/SPEC.md` | TaskRegistry source-of-truth | Editar via `tasks-create`/`tasks-update`/`tasks-comment` (ADR 0069), não à mão |
+
+Quando Claude propor edição em qualquer doc desta lista, **mostrar diff antes** e confirmar se há ADR de origem. Sem ADR de origem = recusar, pedir Wagner pra criar ADR primeiro.
+
 ---
 
 ## 7. Acesso à produção
