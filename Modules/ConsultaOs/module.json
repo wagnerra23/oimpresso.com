@@ -1,0 +1,11 @@
+{
+    "name": "ConsultaOs",
+    "alias": "consultaos",
+    "description": "Portal público de consulta de Ordem de Serviço — cliente acompanha pipeline de produção (orçado → aprovação → produção → acabamento → expedição → entregue) sem login.",
+    "keywords": ["consulta", "os", "ordem-servico", "publico", "tracking"],
+    "priority": 0,
+    "providers": [
+        "Modules\\ConsultaOs\\Providers\\ConsultaOsServiceProvider"
+    ],
+    "files": []
+}

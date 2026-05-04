@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/consulta-os",
+    "description": "Portal publico de consulta de OS",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\ConsultaOs\\Providers\\ConsultaOsServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ConsultaOs\\": ""
+        }
+    }
+}
