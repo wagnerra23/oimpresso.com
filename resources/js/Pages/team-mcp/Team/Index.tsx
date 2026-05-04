@@ -1,6 +1,6 @@
 // @memcofre
-//   tela: /copiloto/admin/team
-//   module: Copiloto
+//   tela: /team-mcp/team
+//   module: TeamMcp (split do Copiloto, ADR pendente)
 //   stories: MEM-TEAM-1 (ADR 0055) — self-host equivalent Anthropic Team plan admin
 //   adrs: 0053, 0055
 //   tests: TODO
@@ -88,7 +88,7 @@ function TeamIndex(props: Props) {
 
   function gerarToken(member: TeamMember) {
     if (!confirm(`Gerar token MCP novo pra ${member.nome}?`)) return;
-    fetch(`/copiloto/admin/team/${member.id}/token`, {
+    fetch(`/team-mcp/team/${member.id}/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ function TeamIndex(props: Props) {
   async function gerarDxt(member: TeamMember) {
     if (!confirm(`Gerar arquivo .dxt (Claude Desktop) pra ${member.nome}? Cria token novo embutido — entrega via canal seguro.`)) return;
     try {
-      const res = await fetch(`/copiloto/admin/team/${member.id}/dxt`, {
+      const res = await fetch(`/team-mcp/team/${member.id}/dxt`, {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
@@ -142,7 +142,7 @@ function TeamIndex(props: Props) {
 
   function exportarCsv() {
     const periodo = prompt('Período (de,ate em YYYY-MM-DD,YYYY-MM-DD ou ENTER pra mês corrente):', '');
-    let url = '/copiloto/admin/team/export.csv';
+    let url = '/team-mcp/team/export.csv';
     if (periodo) {
       const [de, ate] = periodo.split(',').map(s => s.trim());
       if (de && ate) url += `?de=${de}&ate=${ate}`;
@@ -387,7 +387,7 @@ function QuotaForm({ user, onClose }: { user: TeamMember; onClose: () => void })
 
   function salvar() {
     setSaving(true);
-    fetch(`/copiloto/admin/team/${user.id}/quota`, {
+    fetch(`/team-mcp/team/${user.id}/quota`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

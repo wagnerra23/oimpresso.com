@@ -1,0 +1,16 @@
+{
+    "name": "TeamMcp",
+    "alias": "teammcp",
+    "description": "Team MCP — governança self-host equivalente ao Anthropic Team plan: tokens MCP, DXT, quotas, Kanban backlog do time e auditoria de sessões Claude Code. Separado do Copiloto (agente IA do ERP) — ver ADR 0055/0057/0059.",
+    "keywords": ["team", "mcp", "governanca", "tokens", "claude-code", "dxt", "anthropic"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\TeamMcp\\Providers\\TeamMcpServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

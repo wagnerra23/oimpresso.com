@@ -1,6 +1,6 @@
 // @memcofre
-//   tela: /copiloto/admin/cc-sessions
-//   module: Copiloto
+//   tela: /team-mcp/cc-sessions
+//   module: TeamMcp (split do Copiloto, ADR pendente)
 //   stories: MEM-CC-UI-1 (SPEC memory/requisitos/Copiloto/SPEC-cc-sessions.md)
 //   permissao: copiloto.cc.read.team
 //
@@ -205,7 +205,7 @@ function CcSessionsIndex(props: Props) {
       const v = (params as Record<string, unknown>)[k];
       if (v === '' || v === null || v === undefined) delete (params as Record<string, unknown>)[k];
     });
-    router.get('/copiloto/admin/cc-sessions', params, {
+    router.get('/team-mcp/cc-sessions', params, {
       preserveScroll: true, preserveState: true, only: ['sessions', 'filters', 'kpis'],
     });
   }
@@ -215,7 +215,7 @@ function CcSessionsIndex(props: Props) {
     setDetail(null);
     setPreviewOpen(true);
     setLoadingDetail(true);
-    fetch(`/copiloto/admin/cc-sessions/${uuid}`, {
+    fetch(`/team-mcp/cc-sessions/${uuid}`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
     })
       .then(r => r.json())
