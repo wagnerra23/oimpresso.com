@@ -12,17 +12,12 @@ use Illuminate\Support\Facades\Schema;
  *
  * Tasks têm identifier humano: "<PROJECT_KEY>-<NNNN>" (Linear-style).
  * next_task_number é contador atômico por projeto.
- *
- * NOTA — nome da tabela: mcp_jira_projects (não mcp_projects).
- * mcp_projects já está ocupado pelo Modules/ADS Decision Engine de Wagner
- * (commit a7e6da54, schema viability/decision/proceed-pivot-kill).
- * Prefixo mcp_jira_* deixa namespace claro.
  */
 class CreateMcpProjectsTable extends Migration
 {
     public function up(): void
     {
-        Schema::create('mcp_jira_projects', function (Blueprint $table) {
+        Schema::create('mcp_projects', function (Blueprint $table) {
             $table->bigIncrements('id');
 
             $table->string('key', 16)->unique()
@@ -57,13 +52,13 @@ class CreateMcpProjectsTable extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index('status', 'idx_mcp_jira_projects_status');
-            $table->index('lead_user_id', 'idx_mcp_jira_projects_lead');
+            $table->index('status', 'idx_mcp_projects_status');
+            $table->index('lead_user_id', 'idx_mcp_projects_lead');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('mcp_jira_projects');
+        Schema::dropIfExists('mcp_projects');
     }
 }
