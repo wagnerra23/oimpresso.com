@@ -329,3 +329,30 @@ Sprint 7 do roadmap Tier 7-9 (ADR 0037). Gate quantitativo do Cycle 01: provar q
 - Documentar em `memory/sessions/2026-05-NN-ragas-baseline.md`
 
 **Acceptance**: golden set 50q · script RAGAS reproduzível · baseline numérico em ADR ou session log · 3 perguntas+scores como evidência.
+
+### US-COPI-082 · Sprint 9 retrieval — diagnóstico nomic + fixes (recovery 0.158 → 0.700)
+
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 6h · status: done · done_at: 2026-05-04 · score_ragas: 0.700 · session: memory/sessions/2026-05-04-sprint9-retrieval-diagnostico.md
+> blocked_by: —
+
+Sprint 9 fase 2 — investigar regressão score RAGAS 0.66 → 0.158 após troca embedder OpenAI → Ollama nomic-embed-text, e implementar fixes.
+
+**Diagnósticos:**
+- `nomic-embed-text:137M` é EN-only — gera cosine ~0.97 uniforme em PT-BR (treinado predominantemente em inglês)
+- Meilisearch BM25 sem stopwords PT-BR ranqueia CHANGELOG longo acima de ADRs específicas (`format-date-shift`, `permission-registry` foram 0.00 com Meilisearch, 1.00 com MySQL FT)
+- Scout observer dispara em qualquer `model->update()` — `IndexarMemoryGitParaDb` re-embedava 383 docs a cada `mcp:sync-memory` mesmo sem mudança de conteúdo
+
+**Entregas:**
+- [x] `IndexarMemoryGitParaDb`: `withoutSyncingToSearch()` no branch sem mudança (`ebca7a37`)
+- [x] `EvalRagasBaselineCommand`: `--semantic-ratio` option + bypass MySQL FT quando ratio < 0.25 (`1b33f258`)
+- [x] ADR 0068 aceito + session log retrieval-diagnostico (`d260c33a`)
+- [x] Doc canônico `MEILISEARCH-EVOLUCAO.md` (Sprint 7→9 timeline) (`32686abe`)
+- [x] Pesquisa estado da arte 2026 + `RETRIEVAL-ESTADO-ARTE-2026-05.md` com recomendação `qwen3-embedding:4b` (`d1eff5af`)
+- [x] `RETRIEVAL-GOTCHAS.md` — 13 armadilhas anti-regressão (`fbb89adc`)
+- [x] ADR 0069 — TaskRegistry MCP tools canônico, TASKS.md ASCII deprecated
+
+**Score recuperado:** 0.158 → **0.700** RAGAS (8 perguntas ADR) via MySQL FT bypass.
+
+**Próximo passo (Sprint 9b — futura US):** `ollama pull qwen3-embedding:4b` no CT 100 (top MTEB multilingual Jun/2025, PT-BR explícito) → reconfigurar embedder Meilisearch → re-importar 383 docs → meta superar 0.72 com semantic real PT-BR.
+
+**Acceptance**: score RAGAS recuperado pra ≥0.66 (atingido 0.700) · 3 fixes commitados em prod · 3 docs canônicos de governança em `memory/requisitos/Copiloto/` · ADR 0068 + 0069 aceitas · session log gravado.

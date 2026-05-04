@@ -17,7 +17,89 @@ tags: [retrieval, meilisearch, ollama, reranker, ragas, eval, copiloto]
 
 ## Status
 
-Rascunho — 2026-05-04 (aprovado estrategicamente, implementação Sprint 9)
+Aceito — 2026-05-04 (Sprint 9 executado — resultados documentados abaixo)
+
+## Resultados Sprint 9 (2026-05-04)
+
+### Score RAGAS — evolução
+
+| Configuração | Score | vs baseline 0.72 |
+|---|---|---|
+| Baseline grep (original) | 0.72 | referência |
+| Sprint 8 MySQL FT | 0.66 | -0.06 |
+| Sprint 8 Hybrid (nomic ratio=0.5) | 0.66 | -0.06 |
+| Sprint 9 nomic ratio=0.7 | 0.158 | ⛔ -0.562 |
+| Sprint 9 nomic ratio=0.1 | 0.388 | -0.332 |
+| Sprint 9 nomic ratio=0.0 | 0.517 | -0.203 |
+| Sprint 9 MySQL FT bypass | **0.700** | **-0.02** |
+
+### Diagnósticos críticos Sprint 9
+
+#### Problema 1 — nomic-embed-text PT-BR: embeddings near-idênticos
+`nomic-embed-text:137M` gera cosine similarity ~0.97 para TODOS os documentos
+em queries PT-BR. O modelo foi treinado primariamente em inglês. Semantic search
+com esse modelo torna-se aleatório para o corpus, destruindo o score.
+
+#### Problema 2 — Meilisearch BM25 vs MySQL FT NATURAL LANGUAGE
+Mesmo com `semanticRatio=0.0` (sem semantic), Meilisearch BM25 ranqueia PIOR
+que MySQL FT NATURAL LANGUAGE MODE para queries PT-BR longas.
+Causa: CHANGELOG é um documento muito longo com alta frequência de termos do
+projeto → BM25 satura incorretamente. MySQL FT NATURAL LANGUAGE usa IDF puro,
+penalizando documentos com muitas ocorrências de termos raros.
+Resultado: Meilisearch keyword retorna CHANGELOG antes de ADR 0066/0065.
+
+#### Problema 3 — Scout observer bypassava checksum
+`$doc->update(['indexed_at' => now()])` no branch "sem mudança" do
+`IndexarMemoryGitParaDb` disparava Scout observer via evento Eloquent `updated`,
+forçando Ollama a re-embedar 383 docs a cada `mcp:sync-memory`. Fix: wrapping
+em `McpMemoryDocument::withoutSyncingToSearch()`.
+
+### Fixes implementados Sprint 9
+
+1. **`IndexarMemoryGitParaDb.php`**: `withoutSyncingToSearch()` no branch sem
+   mudança — checksum git_sha agora funciona de verdade para evitar re-embedding.
+2. **`McpMemoryDocument::toSearchableArray()`**: frontmatter YAML stripping
+   (`preg_replace`) antes de gerar `content_excerpt` — ADRs não geram vetores
+   idênticos baseados em YAML estrutural.
+3. **`EvalRagasBaselineCommand.php`**: `--semantic-ratio` option + bypass quando
+   ratio < 0.25 (usa MySQL FT direto, que é mais preciso que BM25 para corpus PT-BR).
+
+### Estado atual infra (2026-05-04 fim de Sprint 9)
+
+- Meilisearch v1.43.0: ✅ em prod (CT 100 Docker)
+- Ollama nomic-embed-text: ✅ configurado como embedder `nomic_local`
+- `mcp_memory_documents`: ✅ 383 docs indexados com `content_excerpt` sem frontmatter
+- Score recuperado: **0.700** (MySQL FT path, baseline era 0.72)
+- Score com semantic: 0.158-0.388 (inutilizável com nomic-embed-text PT-BR)
+
+### Próximo passo — Sprint 9b (para superar 0.72)
+
+Pesquisa estado da arte mai/2026 (documentada em
+[`memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md`](../requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md))
+identifica `qwen3-embedding` (Alibaba) como #1 MTEB multilingual Jun/2025,
+com 100+ idiomas e PT-BR explícito documentado.
+
+```bash
+# CT 100, container Ollama:
+ollama pull qwen3-embedding:4b   # RECOMENDADO: 3.5GB VRAM, MTEB ~68
+# Alternativa se VRAM apertada:
+ollama pull qwen3-embedding:0.6b  # 1.5GB VRAM, MTEB ~65
+```
+
+**Pipeline recomendado pra ~400 docs PT-BR (100% local):**
+```
+Query → BM25 + dense (qwen3-embedding:4b) → RRF Meilisearch nativo
+      → cross-encoder reranker (qwen3-reranker:0.6b ou bge-reranker-v2-m3)
+      → top-3 → LLM
+```
+
+**Expectativa de ganho RAGAS:**
+- BM25 only (atual): 0.700
+- BM25 + qwen3 dense (semantic_ratio=0.6): **0.80-0.84**
+- BM25 + dense + reranker: **0.85-0.90**
+
+Adicionalmente: configurar stopwords PT-BR + localizedAttributes no Meilisearch
+(ganho BM25 standalone +5-10%).
 
 ## Contexto
 
