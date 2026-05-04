@@ -5,6 +5,7 @@ namespace Modules\Copiloto\Entities\Mcp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Scout\Searchable;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Documento da memory/ cacheado em DB.
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class McpMemoryDocument extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Searchable;
 
     protected $table = 'mcp_memory_documents';
 
@@ -107,6 +108,38 @@ class McpMemoryDocument extends Model
             'MATCH(title, content_md) AGAINST(? IN NATURAL LANGUAGE MODE)',
             [$termo]
         );
+    }
+
+    // -------------------------------------------------------------------------
+    // Scout / Meilisearch hybrid (Sprint 8 — ADR 0037)
+    // -------------------------------------------------------------------------
+
+    public function searchableAs(): string
+    {
+        return 'mcp_memory_documents';
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id'         => $this->id,
+            'slug'       => $this->slug,
+            'title'      => $this->title,
+            'content_md' => $this->content_md,
+            'type'       => $this->type,
+            'module'     => $this->module,
+            'status'     => $this->status ?? 'aceito',
+            'tags'       => $this->tags ?? [],
+        ];
+    }
+
+    /**
+     * Exclui do índice Meilisearch ADRs que não são mais canônicas.
+     * Assim hybrid search nunca retorna um doc superseded/deprecated.
+     */
+    public function shouldBeSearchable(): bool
+    {
+        return ! in_array($this->status, ['superseded', 'deprecated', 'rascunho'], true);
     }
 
     /**
