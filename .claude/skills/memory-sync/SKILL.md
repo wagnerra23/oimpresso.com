@@ -1,6 +1,6 @@
 ---
 name: memory-sync
-description: ATIVAR após criar/editar arquivo em memory/, atualizar TASKS.md/CURRENT.md/TEAM.md, salvar SPEC/ADR/session log, ou usar trigger "salve no cofre"/"guarde"/"grave na memória". Lembra Claude que conhecimento canônico precisa ir pro MCP server via git push antes de encerrar — o webhook GitHub→MCP só sincroniza após push, então team (Eliana/Felipe) só enxerga via tools MCP depois disso.
+description: ATIVAR após criar/editar arquivo em memory/, atualizar SPEC.md/CURRENT.md/TEAM.md, salvar ADR/session log, ou usar trigger "salve no cofre"/"guarde"/"grave na memória". Lembra Claude que conhecimento canônico precisa ir pro MCP server via git push antes de encerrar — o webhook GitHub→MCP só sincroniza após push, então team (Eliana/Felipe) só enxerga via tools MCP depois disso. Tasks → TaskRegistry MCP (ADR 0069), não TASKS.md.
 ---
 
 # memory-sync — propagar memória pro team via MCP
@@ -14,8 +14,9 @@ Knowledge no oimpresso é **git → webhook GitHub → MCP server (`mcp_memory_d
 Triggers literais:
 - "salve no cofre" / "guarde no cofre" / "grave na memória"
 - "atualiza/cria SPEC/ADR/session log"
-- Após Write/Edit em `memory/**`, `MEMORY.md`, `CURRENT.md`, `TASKS.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`
-- Após criar arquivo em `memory/decisions/`, `memory/sessions/`, `memory/requisitos/<Mod>/`
+- Após Write/Edit em `memory/**`, `MEMORY.md`, `CURRENT.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`, `HOW_TO_ASK_CLAUDE.md`
+- Após criar arquivo em `memory/decisions/`, `memory/sessions/`, `memory/requisitos/<Mod>/` (incluindo `SPEC.md` que é canônico TaskRegistry — ADR 0069)
+- ⚠️ `TASKS.md` é deprecated (ADR 0069) — não receber edições novas; tasks vão pra `tasks-create`/`tasks-update`/`tasks-comment`
 - Após decisão arquitetural ou pattern novo
 
 ## O que fazer

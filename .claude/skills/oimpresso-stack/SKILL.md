@@ -59,8 +59,8 @@ ERP gráfico brasileiro pra setor comunicação visual (gráficas rápidas, plot
 ```
 D:\oimpresso.com\
 ├── CLAUDE.md           # primer slim
-├── CURRENT.md          # estado vivo (Cycle ativo)
-├── TASKS.md            # backlog completo
+├── CURRENT.md          # foto do cycle (goal + Active + On-deck)
+├── TASKS.md            # ⚠️ DEPRECATED (ADR 0069) — backlog migrou pra TaskRegistry MCP (tasks-list/SPEC.md)
 ├── INFRA.md            # acesso SSH + deploy + Proxmox
 ├── DESIGN.md           # padrão visual/UX
 ├── memory/             # memória persistente

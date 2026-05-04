@@ -1,5 +1,5 @@
 ---
-description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/CURRENT/TASKS/TEAM/CLAUDE/DESIGN/INFRA/MANUAL_CLAUDE_CODE) pra propagar pro MCP server via webhook GitHub. Uso quando criar/alterar SPEC, ADR, session log, atualizar TASKS, ou qualquer doc canônico.
+description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/CURRENT/TEAM/CLAUDE/DESIGN/INFRA/MANUAL_CLAUDE_CODE/HOW_TO_ASK_CLAUDE) pra propagar pro MCP server via webhook GitHub. Uso quando criar/alterar SPEC.md (TaskRegistry), ADR, session log, ou qualquer doc canônico. Tasks → TaskRegistry MCP tools (ADR 0069), não TASKS.md.
 ---
 
 # /sync-mem — propaga memória pro team via MCP
@@ -17,7 +17,8 @@ description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/
 
 **Paths considerados memória/governança:**
 - `memory/**` (recursivo)
-- Arquivos raiz: `MEMORY.md`, `CURRENT.md`, `TASKS.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`, `CLAUDE_DESIGN.md`
+- Arquivos raiz: `MEMORY.md`, `CURRENT.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`, `CLAUDE_DESIGN.md`, `HOW_TO_ASK_CLAUDE.md`
+- ⚠️ `TASKS.md` deprecated (ADR 0069) — não receber edições; tasks vão pra TaskRegistry MCP. Manter no `git add` só se o arquivo já tem mudança histórica pendente
 
 **NÃO inclui:** código (`Modules/`, `app/`, `resources/`), build assets (`public/`), composer/package locks. Estes seguem fluxo PR normal.
 

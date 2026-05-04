@@ -251,7 +251,7 @@ Ver [`DESIGN.md`](DESIGN.md) — hub visual + padrão técnico Chat Cockpit (App
 
 **Convenção em commits:** `[W]`, `[M]`, `[F]`, `[L]`, `[E]`, `[L+C]` (Luiz pareado Claude), etc. Ex.: `feat(copiloto): PII redactor BR [F]`.
 
-**Ciclo de trabalho:** Cycle de 2 semanas — `CURRENT.md` define goal outcome-oriented + Active (WIP por pessoa) + On-deck. Daily async 09h cada um atualiza próprio status no `TASKS.md`. Sex final do cycle: Wagner arquiva `CURRENT.md` em `memory/cycles/CICLO-NN-YYYY-MM-DD.md` com retro de 5 linhas.
+**Ciclo de trabalho:** Cycle de 2 semanas — `CURRENT.md` define goal outcome-oriented + Active (WIP por pessoa) + On-deck. Daily async 09h cada um atualiza status das próprias US via **TaskRegistry MCP tool** `tasks-update` (ADR 0069). Sex final do cycle: Wagner arquiva `CURRENT.md` em `memory/cycles/CICLO-NN-YYYY-MM-DD.md` com retro de 5 linhas.
 
 ---
 

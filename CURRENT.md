@@ -1,6 +1,6 @@
 # CURRENT — Cycle 01 (29-abr → 12-mai-2026, 10 dias úteis)
 
-> Foto do agora. Backlog completo: [`TASKS.md`](TASKS.md). Histórico: `memory/sessions/`. Cycles fechados: `memory/cycles/`.
+> Foto do agora. Backlog completo: **TaskRegistry MCP** (`tasks-list module:Mod` ou ler `memory/requisitos/<Mod>/SPEC.md`). Histórico: `memory/sessions/`. Cycles fechados: `memory/cycles/`. Política: [ADR 0069](memory/decisions/0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated.md).
 
 **Branch ativa:** `main` · **Cycle anterior:** N/A (primeiro Cycle formal) · **Cycle owner:** Wagner [W] · **Modo:** ⚡ **SOLO** (time redistribuído no Cycle 02)
 
