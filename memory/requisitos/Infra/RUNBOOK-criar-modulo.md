@@ -202,6 +202,19 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 'cd ~/
 | Inertia retorna `null.component` em prod | `composer install` não rodou pós-deploy | SSH + `composer install` no servidor |
 | Bundle Page React não aparece em `manifest.json` | Rodou `npm run build` (config errado) em vez de `npm run build:inertia` | Sempre `npm run build:inertia` pra Inertia |
 
+## Link público condicional (padrão `Route::has`)
+
+Se o módulo expõe rota pública (ex: `/consulta-os`, `/repair-status`) que deve aparecer no header do CMS APENAS quando o módulo está ativo, espelhar o padrão antigo do Repair:
+
+**Blade legado** (`resources/views/layouts/partials/home_header.blade.php` + `auth2.blade.php`):
+```blade
+@if(Route::has('<rota-nomeada>'))
+    <li><a href="{{ route('<rota-nomeada>') }}">Acompanhar pedido</a></li>
+@endif
+```
+
+**Inertia/React** — adicionar flag em [HandleInertiaRequests::share()](../../../app/Http/Middleware/HandleInertiaRequests.php) chave `publicRoutes`, e ler em `SiteHeader.tsx` via `usePage().props.publicRoutes`. Quando módulo é desativado em /manage-modules, a rota some, `Route::has()` vira false, link some do menu.
+
 ## Pegadinhas (descobertas em ADS 2026-05-03 + ConsultaOs 2026-05-04)
 
 - ❌ NÃO usar `__('alias::file.key')` em DataController/topnav — `LegacyMenuAdapter` lê literal, não resolve traduções → labels saem crus.
