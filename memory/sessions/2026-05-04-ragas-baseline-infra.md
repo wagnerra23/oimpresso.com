@@ -292,14 +292,63 @@ Após adicionar frontmatter aos 56 ADRs, RAGAS caiu de 0.72 → 0.65. Causa: ret
 
 4. **117 ADRs em memory/requisitos/** ainda sem frontmatter — comando precisa estender pra esses paths.
 
+## Update 2026-05-04 — Sprint 8 Meilisearch retrieval
+
+### Entregue (commit `69be3d27`)
+
+**4 mudanças:**
+
+1. **`McpMemoryDocument` agora tem `Searchable`** — `toSearchableArray()` + `shouldBeSearchable()`
+   (exclui superseded/deprecated/rascunho do índice) + `searchableAs() → 'mcp_memory_documents'`
+
+2. **`pipelineAdr()` → `retrieveKbContext()`** — retrieval em 2 camadas:
+   - Meilisearch hybrid (semanticRatio=0.5) via Scout — preferencial
+   - MySQL FULLTEXT (`scopeBuscarTexto`) — fallback automático quando Meilisearch offline
+
+3. **`phpunit.xml` SCOUT_DRIVER=null** — impede CommunicationException nas suites que
+   criam McpMemoryDocument
+
+4. **composer.json: remove `nfse-nacional/nfse-php`** — drift resolvido (ADR 0063)
+
+### Baseline Sprint 8 medido (MySQL FULLTEXT, Meilisearch offline localmente)
+
+| Categoria | Perguntas | Score |
+|---|---|---|
+| ADR 8 | 8 | **0.66** |
+| Larissa 22 | 22 | ~0.00 (esperado — precisa pipeline=copiloto) |
+| Total 30 | 30 | 0.22 |
+
+Comparativo ADR 8: baseline original 0.72 → pós-retrieval-fix 0.68 → Sprint 8 MySQL FT 0.66
+
+Detalhe:
+- `governance-criar` 0.17 → **0.93** (MySQL FT achou ADR 0064 corretamente)
+- `usuario-360-location` 0.27 → **0.00** (MySQL FT falha em termos hifenizados)
+- `reverb-status` 0.33 → **0.00** (MySQL FT não casa semântica contextual)
+
+**MySQL FULLTEXT ≈ grep em termos de RAGAS ADR. O ganho real vem quando Meilisearch
+hybrid + embedder estiver configurado em prod.**
+
+### ADR 0067 criado
+
+`memory/decisions/0067-sprint8-mcp-memory-document-searchable-retrieval.md` —
+documenta decisão, comparativo, e pendências pra completar em prod.
+
+### Pendências pra desbloquear ganho real (prod)
+
+```bash
+# SSH Hostinger
+php artisan scout:import "Modules\Copiloto\Entities\Mcp\McpMemoryDocument"
+
+# Configurar embedder OpenAI no índice Meilisearch
+curl -X PATCH https://meilisearch.oimpresso.com/indexes/mcp_memory_documents/settings/embedders \
+  -H "Authorization: Bearer $MEILISEARCH_KEY" -H "Content-Type: application/json" \
+  -d '{"openai":{"source":"openAi","model":"text-embedding-3-small","apiKey":"$OPENAI_API_KEY"}}'
+
+# Re-rodar baseline → espera superar 0.72
+php artisan eval:ragas-baseline --pipeline=adr
+```
+
 ## Próxima sessão
-
-Wagner pode:
-
-1. **Setar ANTHROPIC_API_KEY** + rodar `eval:ragas-baseline --pipeline=adr` → baseline numérico para Cycle 01
-2. **Validar golden set Larissa** com queries SQL prod (8h estimadas, 22 perguntas × ~20min cada)
-3. **Criar endpoint `/api/copiloto/eval`** se quiser pipeline end-to-end (ADR + ~3h)
-4. **Resolver composer drift** (1 PR rápido removendo nfse-nacional ou adicionando ao lock corretamente)
 
 ## Referências
 
