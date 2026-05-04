@@ -182,21 +182,24 @@ class EvalRagasBaselineCommand extends Command
      * Sprint 9: $fetchK > $topK permite reranking futuro via Ollama cross-encoder.
      * Hoje fetchK == topK (sem reranker instalado).
      */
+    /**
+     * Sprint 9 (ADR 0068): Meilisearch hybrid via Ollama nomic-embed-text.
+     * MEILI_EXPERIMENTAL_ALLOWED_IP_NETWORKS permite Meilisearch chamar Ollama
+     * no CIDR Docker privado sem bloqueio SSRF.
+     * $fetchK > $topK reserva espaço para reranker (bge-reranker-v2-m3) futuro.
+     */
     private function retrieveKbContext(string $query, int $topK = 3): string
     {
-        // Sprint 9: pré-fetch maior pra reranker; hoje passa direto pois sem reranker
         $fetchK = $topK;
 
         try {
-            $embedder      = config('copiloto.memoria.meilisearch.embedder', 'openai');
             $semanticRatio = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.5);
 
-            $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($embedder, $semanticRatio, $fetchK) {
+            $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($semanticRatio, $fetchK) {
                 $params['hybrid'] = [
-                    'embedder'      => $embedder,
+                    'embedder'      => 'nomic_local',
                     'semanticRatio' => $semanticRatio,
                 ];
-                // Sintaxe Meilisearch: aspas simples em string literals
                 $params['filter'] = "status NOT IN ['superseded', 'deprecated', 'rascunho']";
                 $params['limit']  = $fetchK;
 
@@ -204,7 +207,7 @@ class EvalRagasBaselineCommand extends Command
             })->take($fetchK)->get();
 
             if ($docs->isNotEmpty()) {
-                // TODO Sprint 9: rerank $docs via Ollama cross-encoder, take($topK)
+                // TODO Sprint 9b: rerank via Ollama cross-encoder (bge-reranker-v2-m3)
                 return $this->buildContextFromDocs($docs->take($topK));
             }
         } catch (\Throwable $e) {
