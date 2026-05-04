@@ -356,3 +356,76 @@ Sprint 9 fase 2 — investigar regressão score RAGAS 0.66 → 0.158 após troca
 **Próximo passo (Sprint 9b — futura US):** `ollama pull qwen3-embedding:4b` no CT 100 (top MTEB multilingual Jun/2025, PT-BR explícito) → reconfigurar embedder Meilisearch → re-importar 383 docs → meta superar 0.72 com semantic real PT-BR.
 
 **Acceptance**: score RAGAS recuperado pra ≥0.66 (atingido 0.700) · 3 fixes commitados em prod · 3 docs canônicos de governança em `memory/requisitos/Copiloto/` · ADR 0068 + 0069 aceitas · session log gravado.
+
+### US-COPI-083 · Sprint 9b — qwen3-embedding:4b + stopwords PT-BR (meta superar 0.72)
+
+> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 4h · status: todo
+> blocked_by: —
+
+Substituir nomic-embed-text (EN-only, gera cosine ~0.97 uniforme em PT-BR) por qwen3-embedding:4b (#1 MTEB multilingual Jun/2025, PT-BR explícito) + ajustes Meilisearch PT-BR.
+
+**Steps:**
+1. CT 100: `ollama pull qwen3-embedding:4b` (~3.5GB VRAM)
+2. Smoke test cosine similarity: 2 docs PT-BR diferentes devem dar cosine 0.3-0.8 (não mais ~0.97 uniforme)
+3. PATCH embedder Meilisearch `mcp_memory_documents` (model: `qwen3-embedding:4b`, dimensions: 1024)
+4. PUT stopwords PT-BR (lista canônica em `memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md` §2)
+5. PUT localizedAttributes `[{"locales": ["por"], "attributePatterns": ["*"]}]`
+6. `php artisan scout:import McpMemoryDocument` (re-embeda 383 docs)
+7. Eval matrix: `eval:ragas-baseline --semantic-ratio=0.0|0.4|0.6|0.8` → escolher melhor
+8. Atualizar `COPILOTO_MEMORIA_SEMANTIC_RATIO` no .env Hostinger com vencedor
+
+**Acceptance:** Score RAGAS médio ≥ **0.80** (meta) ou ≥ 0.72 (baseline original) · semanticRatio vencedor documentado em ADR ou comment · 383 docs reindexados sem erro · stopwords PT-BR + localizedAttributes aplicados.
+
+**Referências:** ADR 0068, RETRIEVAL-ESTADO-ARTE-2026-05.md, RETRIEVAL-GOTCHAS.md.
+
+### US-COPI-084 · Slash command /ultrareview — code review adversarial automático
+
+> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 2h · status: todo
+> blocked_by: —
+
+Implementar `.claude/commands/ultrareview.md` que pede ao Claude (ou sub-agent via Task tool) pra revisar `git diff staged|HEAD` como adversário cético: encontre 3 bugs, 2 race conditions, 1 LGPD issue, 1 anti-padrão de stack canônica.
+
+**Por quê:** Reflexion (NeurIPS 2023) e Self-Refine (2023) mostraram que LLM revisar próprio output melhora qualidade em 15-30% sem custo de novo modelo. Prevenção barata vs custo de bug em prod.
+
+**Acceptance:** Slash command `/ultrareview` em `.claude/commands/` com prompt template estruturado · roleplay "tech lead cético" · output em formato lista priorizada (severity/file:line/fix sugerido) · documentado no HOW_TO_ASK_CLAUDE §3.5 · testado em 1 PR real e reportado.
+
+### US-COPI-085 · Hook block-destructive — guardrails Bash em produção
+
+> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 3h · status: todo
+> blocked_by: —
+
+Hook PreToolUse em `.claude/settings.json` que bloqueia (exit 2) comandos Bash destrutivos sem confirmação humana: `rm -rf`, `git push --force`, `git reset --hard origin/`, `DROP TABLE`, `DELETE FROM ... WHERE 1`, `composer update` (sem `--lock`), `php artisan migrate:fresh --force` em produção.
+
+**Por quê:** HOW_TO_ASK_CLAUDE §3.1. Padrão Anthropic Cookbook (set/2025). Wagner já tem precedente: `block-automem.ps1` bloqueando Write em auto-mem. Replicar pattern pra Bash destrutivo.
+
+**Acceptance:** `.claude/hooks/block-destructive.ps1` testado · regex cobrindo 7 categorias de destrutivo · whitelist explícita pra casos legítimos (ex.: `rm -rf` em `/tmp/`) · README com receita de bypass via `--allow-destructive` flag explícita · zero falso-positivo em 1 semana de uso.
+
+### US-COPI-086 · Hook pii-redactor — bloquear commit com PII (LGPD)
+
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 3h · status: todo
+> blocked_by: —
+
+Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por regex PII (CPF, CNPJ, email, cartão) e bloqueia se achar. Avisa ao Claude com mensagem "[PII detectada em path:line] — substitua por [REDACTED] ou fixture fake (ex.: 123.456.789-09)".
+
+**Por quê:** HOW_TO_ASK_CLAUDE §3.4. LGPD Art. 7º (princípio de minimização). Já houve incidente: log de prod com CPF real colado em prompt — risco de vazar em commit/transcript.
+
+**Acceptance:** `.claude/hooks/pii-redactor.ps1` testado · regex BR validados (CPF formato 000.000.000-00 e 00000000000; CNPJ idem; email RFC 5322 simplificado; cartão Luhn) · whitelist pra fixtures conhecidos (123.456.789-09, etc.) · documentação com lista de PIIs cobertos · zero falso-positivo em 50 commits validados.
+
+### US-COPI-087 · Sprint 9c — Cross-encoder reranker (qwen3-reranker ou bge-reranker-v2-m3)
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 6h · status: todo
+> blocked_by: US-COPI-083
+
+Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top-3 pra LLM. Meta: superar 0.85 RAGAS.
+
+**Steps:**
+1. CT 100: `ollama pull dengcao/Qwen3-Reranker-0.6B` (community Ollama) OU `docker run TEI bge-reranker-v2-m3`
+2. Implementar `RerankerService` em `Modules/Copiloto/Services/Retrieval/`
+3. Modificar `EvalRagasBaselineCommand::retrieveKbContext()` pra fetch top-50 → reranker → top-3
+4. Eval com e sem reranker, comparar score + latência
+5. ADR documentando trade-off (latência +100-200ms vs ganho de score)
+6. Aplicar em prod chat real-time se latência < 500ms total
+
+**Acceptance:** Score RAGAS médio ≥ 0.85 · latência reranker documentada · ADR criada · serviço testado · feature flag `COPILOTO_RERANKER_ENABLED` (default false até validar).
+
+**Pré-requisito:** US-COPI-083 entregue (qwen3 base funcionando).
