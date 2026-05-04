@@ -75,13 +75,13 @@ class McpCycle extends Model
 
     public function daysRemaining(): int
     {
-        return max(0, today()->diffInDays($this->end_date, false));
+        return (int) max(0, today()->diffInDays($this->end_date, false));
     }
 
     public function progressPercent(): float
     {
-        $total = $this->start_date->diffInDays($this->end_date) ?: 1;
-        $elapsed = $this->start_date->diffInDays(today());
+        $total = (float) ($this->start_date->diffInDays($this->end_date) ?: 1);
+        $elapsed = (float) $this->start_date->diffInDays(today());
         return min(100.0, max(0.0, ($elapsed / $total) * 100));
     }
 }
