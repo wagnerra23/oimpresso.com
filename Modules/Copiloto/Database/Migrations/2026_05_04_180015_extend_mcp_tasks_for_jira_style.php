@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  *   - story_points + estimate_unit + estimate_value (flexível)
  *   - due_date, started_at, completed_at
  *   - labels JSON (free-form)
- *   - custom_fields JSON (validável por mcp_projects.custom_field_schema)
+ *   - custom_fields JSON (validável por mcp_jira_projects.custom_field_schema)
  *
  * Mantém status enum compatível (adiciona "backlog" como state inicial).
  */
@@ -32,7 +32,7 @@ class ExtendMcpTasksForJiraStyle extends Migration
                 ->comment('Linear-style: <PROJECT_KEY>-<NNNN>, ex: COPI-123');
 
             $table->unsignedBigInteger('project_id')->nullable()->after('identifier')
-                ->comment('FK lógico mcp_projects.id');
+                ->comment('FK lógico mcp_jira_projects.id');
 
             $table->unsignedBigInteger('epic_id')->nullable()->after('project_id');
             $table->unsignedBigInteger('cycle_id')->nullable()->after('epic_id');
@@ -62,7 +62,7 @@ class ExtendMcpTasksForJiraStyle extends Migration
                 ->comment('Array de strings: ["lgpd","perf","tier-a"]');
 
             $table->json('custom_fields')->nullable()->after('labels')
-                ->comment('Schema validável via mcp_projects.custom_field_schema');
+                ->comment('Schema validável via mcp_jira_projects.custom_field_schema');
 
             $table->unique('identifier', 'uq_mcp_tasks_identifier');
             $table->index(['project_id', 'cycle_id', 'status'], 'idx_mcp_tasks_proj_cycle_status');
