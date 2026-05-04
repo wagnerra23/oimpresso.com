@@ -123,6 +123,8 @@ class BackfillTasksFromMarkdownCommand extends Command
         $cycleId = $cycle?->id;
 
         $cycleTasks = $this->cycle01Tasks($cycleId, $copi->id);
+        // Injeta cycle_id e project_id em cada task pra createTasks gravar correto
+        $cycleTasks = array_map(fn ($t) => array_merge(['cycle_id' => $cycleId, 'project_id' => $copi->id], $t), $cycleTasks);
         $insertedActive = $this->createTasks($cycleTasks, $dry, $force);
         $this->info("  ✅ Cycle 01 active/done tasks: {$insertedActive} criadas");
 
