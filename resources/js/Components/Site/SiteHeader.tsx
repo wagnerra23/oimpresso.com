@@ -1,15 +1,35 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 
-const NAV = [
+type PublicRoutes = {
+  consultaOs?: boolean;
+  repairStatus?: boolean;
+};
+
+const NAV_FIXO = [
   { label: 'Recursos', href: '/#recursos' },
   { label: 'Preços', href: '/pricing' },
-  { label: 'Acompanhar pedido', href: '/consulta-os' },
+];
+
+const NAV_TAIL = [
   { label: 'Ajuda', href: '/ajuda/' },
   { label: 'Contato', href: '/c/contact-us' },
 ];
 
 export default function SiteHeader() {
+  const { publicRoutes } = usePage<{ publicRoutes?: PublicRoutes }>().props;
+
+  // Itens condicionais a modulos ativos. Espelha @if(Route::has(...)) do Blade.
+  const condicional: { label: string; href: string }[] = [];
+  if (publicRoutes?.consultaOs) {
+    condicional.push({ label: 'Acompanhar pedido', href: '/consulta-os' });
+  }
+  if (publicRoutes?.repairStatus) {
+    condicional.push({ label: 'Status do reparo', href: '/repair-status' });
+  }
+
+  const NAV = [...NAV_FIXO, ...condicional, ...NAV_TAIL];
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
