@@ -13,10 +13,19 @@ Decisões explícitas do Wagner (2026-04-22):
 - **Tamanho:** gigante (797 rotas, 957 views) — tratar como sub-sistema, não como módulo simples
 - **Ação sugerida:** antes de migrar pra React, avaliar **viabilidade de manter vs reescrever** em React. Se for 957 views de ERP de suporte, o custo de migrar é enorme.
 
-## AiAssistance ❌ descartado
-- Wagner: "acho que não vai ser útil"
-- **Ação:** desativar em `modules_statuses.json`. Não investir migração.
-- Alternativa de IA é o Jana (do 3.7, perdido na migração) + OpenAI direto via `openai-php/laravel`.
+## AiAssistance ❌ removido (2026-04-27)
+- Wagner: "acho que não vai ser útil" + "é um esboço antigo do ultmatepos, muito fraco na minha opnião, o copiloto vai ser muitomelhor"
+- **Status:** PR #30 (2026-04-27) deletou `Modules/AiAssistance/` do git e tirou a chave do `modules_statuses.json`. Não migrar nem restaurar.
+
+## LaravelAI ❌ removido (2026-04-27)
+- Spec original (2026-04-24): "agente que responde sobre o ERP" — placeholder scaffold-only
+- Wagner: "pode remover LaravelA" — Copiloto absorveu a visão e foi muito além
+- **Status:** PR #30 (2026-04-27) deletou `Modules/LaravelAI/` do git. Copiloto continua tendo `LaravelAiSdkDriver` (que usa o **package** `laravel/ai`, não o módulo) — adapter resolver cai pro `OpenAiDirectDriver` quando o package não está disponível.
+
+## Estratégia IA (2026-04-27)
+- **Copiloto** (Modules/Copiloto) = motor de IA atual: drivers `OpenAi*Driver`/`LaravelAiSdkDriver`/`MeilisearchDriver`/`NullDriver` em `Modules/Copiloto/Services/Ai/`
+- **EvolutionAgent** (meta-tool de evolução do projeto, não SaaS) = plano usa Vizra ADK + Prism PHP
+- Hoje nem `laravel/ai` (package) nem Vizra estão em `composer.lock` — Copiloto roda em `dry_run`
 
 ## Módulos perdidos na migração 3.7 → 6.7 (decisão pendente)
 Descobertos em 2026-04-22 via `git diff` entre branches `6.7-bootstrap` e `3.7-com-nfe`:
@@ -25,11 +34,11 @@ Descobertos em 2026-04-22 via `git diff` entre branches `6.7-bootstrap` e `3.7-c
 |--------|----------------|----------------------------|---------|
 | **Fiscal** (NFe) | ✅ | ✅ | Restaurar via pacote padrão `nfephp-org/sped-nfe` (Fase 15) |
 | **Boleto** | ✅ | ✅ | Wagner: apagar e usar `eduardokum/laravel-boleto` (Fase 15) |
-| **Chat** (WhatsApp/Telegram/Email) | ✅ | ✅ | Avaliar — pode ser valioso |
-| **Jana** (IA assistente antigo) | ✅ | ✅ | Avaliar — potencial de fundir com nova estratégia IA |
+| **Chat** (WhatsApp/Telegram/Email) | ✅ | ✅ | ❌ removido do Hostinger 2026-04-27 (Copiloto substitui) |
+| **Jana** (IA assistente antigo) | ✅ | ✅ | 📦 movido pra `~/backups/Jana_2026-04-27` no Hostinger (Wagner usaria Dify) |
 | **BI** (Business Intelligence) | ✅ | ✅ | Avaliar uso real antes |
 | **Dashboard** | ✅ | ✅ | Overlap com `CustomDashboard` (existe em 6.7) — comparar |
-| **Help** | ✅ | ✅ | Docs/treinamento — substituir por docs externas |
+| **Help** | ✅ | ✅ | ❌ removido do Hostinger 2026-04-27 (docs vão pro Laravel) |
 | **Knowledgebase** | ✅ | ✅ | Semelhante a Help |
 | **codecanyon-ticketing** | ✅ | ✅ | Renomeado pra "Grow" em 6.7? Investigar |
 

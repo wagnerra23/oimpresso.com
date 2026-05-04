@@ -21,8 +21,13 @@ O repo `D:\oimpresso.com` (site oimpresso.com, UltimatePOS v6.7 + módulo Ponto 
 - Módulos nwidart seguem namespace próprio (`Modules\Officeimpresso\Entities\*`, etc.)
 - Ao importar modelo em controller novo ou restaurado, usar `use App\Business` — **nunca** `use App\Models\*` (namespace não existe).
 
-**ADRs em `memory/decisions/`** (relevantes pro trabalho Officeimpresso 2026-04-23/24):
+**ADRs em `memory/decisions/`** (atualizado 2026-04-26):
 - 0017 — Restauração Officeimpresso 3.7 → 6.7
 - 0018 — Log acesso via listener+middleware (substituiu triggers MySQL)
 - 0019 ✅ — Delphi auth pós-upgrade (3 fixes: enablePasswordGrant + re-hash secrets + provider='users')
 - 0020 — Grupo econômico (matriz + filiais) — proposto, não implementado
+- 0022 — Meta R$ [redacted Tier 0]mi/ano (compromisso oficial de faturamento)
+- 0023 ✅ — Inertia v3 upgrade (mergeado em 6.7-bootstrap em 2026-04-25)
+- 0024 — Pattern install módulos 1-click (`BaseModuleInstallController`)
+- 0025 — CMS redesign Inertia/React (Site/Home + Site/Pricing)
+- 0026 — Posicionamento "ERP gráfico com IA" (Caminho B; 3 features 6m: PricingFpv + Copiloto v1 + CT-e/MDF-e)
