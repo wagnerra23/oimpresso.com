@@ -78,3 +78,70 @@ it('retorna skipped para push em branch diferente de main', function () {
         'X-MCP-Sync-Token' => 'token-teste',
     ])->assertStatus(200)->assertJson(['skipped' => true]);
 });
+
+it('detecta push perigoso quando composer.lock muda', function () {
+    $controller = new \Modules\Copiloto\Http\Controllers\Mcp\SyncMemoryWebhookController();
+
+    $request = \Illuminate\Http\Request::create('/api/mcp/sync-memory', 'POST', [], [], [], [], json_encode([
+        'commits' => [
+            ['added' => [], 'modified' => ['composer.lock'], 'removed' => []],
+        ],
+    ]));
+    $request->headers->set('Content-Type', 'application/json');
+
+    $reflection = new \ReflectionClass($controller);
+    $metodo = $reflection->getMethod('pushExigeDeployManual');
+    $metodo->setAccessible(true);
+
+    expect($metodo->invoke($controller, $request))->toBeTrue();
+});
+
+it('detecta push perigoso quando migration nova é adicionada', function () {
+    $controller = new \Modules\Copiloto\Http\Controllers\Mcp\SyncMemoryWebhookController();
+
+    $request = \Illuminate\Http\Request::create('/api/mcp/sync-memory', 'POST', [], [], [], [], json_encode([
+        'commits' => [
+            ['added' => ['Modules/Foo/Database/Migrations/2026_05_04_create_foo.php'], 'modified' => [], 'removed' => []],
+        ],
+    ]));
+    $request->headers->set('Content-Type', 'application/json');
+
+    $reflection = new \ReflectionClass($controller);
+    $metodo = $reflection->getMethod('pushExigeDeployManual');
+    $metodo->setAccessible(true);
+
+    expect($metodo->invoke($controller, $request))->toBeTrue();
+});
+
+it('considera push só de docs como seguro', function () {
+    $controller = new \Modules\Copiloto\Http\Controllers\Mcp\SyncMemoryWebhookController();
+
+    $request = \Illuminate\Http\Request::create('/api/mcp/sync-memory', 'POST', [], [], [], [], json_encode([
+        'commits' => [
+            ['added' => ['memory/decisions/0099-foo.md'], 'modified' => ['CLAUDE.md'], 'removed' => []],
+        ],
+    ]));
+    $request->headers->set('Content-Type', 'application/json');
+
+    $reflection = new \ReflectionClass($controller);
+    $metodo = $reflection->getMethod('pushExigeDeployManual');
+    $metodo->setAccessible(true);
+
+    expect($metodo->invoke($controller, $request))->toBeFalse();
+});
+
+it('considera push em head_commit também', function () {
+    $controller = new \Modules\Copiloto\Http\Controllers\Mcp\SyncMemoryWebhookController();
+
+    $request = \Illuminate\Http\Request::create('/api/mcp/sync-memory', 'POST', [], [], [], [], json_encode([
+        'commits'     => [],
+        'head_commit' => ['added' => [], 'modified' => ['package.json'], 'removed' => []],
+    ]));
+    $request->headers->set('Content-Type', 'application/json');
+
+    $reflection = new \ReflectionClass($controller);
+    $metodo = $reflection->getMethod('pushExigeDeployManual');
+    $metodo->setAccessible(true);
+
+    expect($metodo->invoke($controller, $request))->toBeTrue();
+});
