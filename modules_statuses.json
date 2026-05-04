@@ -27,6 +27,7 @@
     "Repair": true,
     "Spreadsheet": true,
     "Superadmin": true,
+    "TeamMcp": true,
     "Woocommerce": true,
     "Writebot": false
 }
