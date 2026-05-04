@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Copiloto\Entities\Mcp;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+/**
+ * ADR 0070 — Jira-style task management.
+ *
+ * @property int     $id
+ * @property int     $project_id
+ * @property string  $key             ex: COPI-EP-001
+ * @property string  $title
+ * @property ?string $description
+ * @property ?string $owner
+ * @property ?string $target_quarter
+ * @property string  $status          planning|active|done|cancelled
+ */
+class McpEpic extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'mcp_epics';
+
+    protected $fillable = [
+        'project_id', 'key', 'title', 'description', 'owner',
+        'target_quarter', 'status', 'color', 'sort_order',
+    ];
+
+    protected $casts = [
+        'sort_order' => 'int',
+    ];
+
+    public const STATUSES = ['planning', 'active', 'done', 'cancelled'];
+
+    public function project()
+    {
+        return $this->belongsTo(McpProject::class, 'project_id');
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(McpTask::class, 'epic_id');
+    }
+
+    public function scopeProject($q, ?int $projectId)
+    {
+        return $projectId ? $q->where('project_id', $projectId) : $q;
+    }
+
+    public function scopeStatus($q, ?string $status)
+    {
+        return $status ? $q->where('status', $status) : $q;
+    }
+}

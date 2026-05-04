@@ -1,10 +1,10 @@
 # TEAM.md — Equipe oimpresso e atribuição de tasks
 
-> **Pra quem é:** todo agente IA (Claude/Cursor/outro) que vai sugerir/atribuir tarefas E todo humano do time que vai pegar uma US via **TaskRegistry MCP** (`tasks-list owner:NOME`) ou via [`CURRENT.md`](CURRENT.md) (foto do cycle ativo).
+> **Pra quem é:** todo agente IA (Claude/Cursor/outro) que vai sugerir/atribuir tarefas E todo humano do time que vai pegar uma US via tool MCP `tasks-list owner:NOME` ou `my-work`.
 >
-> **Regra base:** toda task tem dono **antes** de virar ativa. Sem dono = fica em on-deck. Donos só puxam tasks compatíveis com seu perfil (matriz §3).
+> **Regra base:** toda task tem dono **antes** de virar ativa. Sem dono = fica em triage (`triage` tool) ou backlog. Donos só puxam tasks compatíveis com seu perfil (matriz §3).
 >
-> **Source-of-truth tasks (ADR 0069):** SPECs canônicos em `memory/requisitos/<Mod>/SPEC.md` (formato `### US-XXX-NNN`) → cache `mcp_tasks` via webhook → MCP tools (`tasks-list`, `tasks-detail`, `tasks-create`, `tasks-update`, `tasks-comment`). `TASKS.md` ASCII é deprecated.
+> **Source-of-truth tasks (ADR 0070):** hierarquia Project → Epic → Cycle → Story → Subtask em tabelas `mcp_*` no MCP server. SPECs canônicos em `memory/requisitos/<Mod>/SPEC.md` (formato `### US-XXX-NNN`) → cache `mcp_tasks` via webhook. Mutação via tools MCP (`tasks-list`, `tasks-detail`, `tasks-create`, `tasks-update`, `tasks-comment`, `cycles-*`, `epics-*`). **`CURRENT.md`/`TASKS.md` REMOVIDOS** em 2026-05-04.
 
 ---
 
@@ -147,7 +147,7 @@ chore(memcofre): copy do botão "Anexar evidência" [E+C]
 
 ## 5. Onboarding pra nova task (checklist mental)
 
-Quando alguém vai pegar uma US (via `tasks-list owner:NOME` ou olhando `CURRENT.md`):
+Quando alguém vai pegar uma US (via `my-work` ou `tasks-list owner:NOME`):
 
 1. Olhe a coluna "Pode pegar?" da matriz §3 — sua inicial está em ✅ ou 🟢?
 2. Olhe seu WIP atual — está abaixo do máximo (§1)?

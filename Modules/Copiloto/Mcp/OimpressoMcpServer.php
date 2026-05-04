@@ -22,43 +22,58 @@ class OimpressoMcpServer extends Server
     protected string $instructions = <<<'MARKDOWN'
         Servidor MCP da empresa oimpresso (ERP gráfico com IA).
 
-        Use as tools pra consultar:
-          - `tasks-current`: estado vivo de tarefas/cycle (CURRENT.md)
-          - `decisions-search`: full-text search nos 53 ADRs do projeto
-          - `decisions-fetch`: carrega 1 ADR específico por slug
-          - `sessions-recent`: últimos session logs cronológicos
-          - `claude-code-usage-self`: quanto você consumiu hoje (auto-tracking)
+        Hierarquia Jira-style (ADR 0070): Project → Epic → Cycle → Story → Subtask.
+        CURRENT.md/TASKS.md REMOVIDOS — tudo via tools MCP.
 
-        Resources cacheáveis:
-          - `oimpresso://memory/handoff`: estado canônico mais recente
-          - `oimpresso://memory/current`: cycle/sprint ativo
+        Estado vivo:
+          - `cycles-active`: cycle ativo + goals + tasks ativas
+          - `my-work`: minhas tasks ativas (status doing/review/blocked)
+          - `my-inbox`: notificações unread (mentions/assignments/reviews)
+          - `triage`: tasks novas sem owner/prio
+          - `cycle-goals-track`: trackear achieved_value de goals
+          - `cycles-close --rollover`: fechar cycle e mover incompletas
 
-        Prompts:
-          - `briefing-oimpresso`: primer compacto do projeto (~300 tokens)
+        Backlog & detalhe:
+          - `tasks-list module:X status:doing owner:Y`: filtros profissionais
+          - `tasks-detail task_id:COPI-123`: detalhe + timeline + memory links
+          - `tasks-create / tasks-update / tasks-comment`: mutação
+
+        Conhecimento:
+          - `decisions-search` / `decisions-fetch`: ADRs Nygard
+          - `sessions-recent`: session logs cronológicos
+          - `memoria-search`: fatos persistentes do business
+          - `cc-search`: sessões Claude Code do time
+          - `claude-code-usage-self`: meu consumo
 
         Stack: Laravel 13.6 + PHP 8.4 · Multi-tenant via business_id.
-        ADRs canônicas: 0035 (stack IA), 0046 (gap chat), 0047 (sprint mem),
-        0050 (8 métricas), 0051 (schema próprio + OTel), 0053 (este server).
+        ADRs canônicas: 0035 (stack IA), 0053 (este server), 0055 (Team plan equiv),
+        0070 (Jira-style task management).
         MARKDOWN;
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Tool>> */
     protected array $tools = [
+        // ADR 0070 — Jira-style task management (CURRENT.md/TASKS.md removidos).
+        // Tools canônicas:
+        Tools\CyclesActiveTool::class,
+        Tools\MyWorkTool::class,
+        Tools\MyInboxTool::class,
+        Tools\TriageTool::class,
+        Tools\CycleGoalsTrackTool::class,
+        Tools\CyclesCloseTool::class,
+        // Alias deprecated (mantido durante migração — redireciona pra cycles-active):
         Tools\TasksCurrentTool::class,
+        // Knowledge & meta:
         Tools\DecisionsSearchTool::class,
         Tools\DecisionsFetchTool::class,
         Tools\SessionsRecentTool::class,
         Tools\ClaudeCodeUsageSelfTool::class,
-        // MEM-MEM-MCP-1 (ADR 0056) — MCP-as-Memory-Source
-        // Copiloto chat web (Laravel) + Claude Code consomem mesma fonte.
+        // MEM-MEM-MCP-1 (ADR 0056) — MCP-as-Memory-Source.
         Tools\MemoriaSearchTool::class,
-        // MEM-CC-team-1 (ADR 0055/0056) — busca cross-dev em sessões Claude Code
-        // ingeridas via watcher local. Permission `copiloto.cc.read.all` pra cross.
+        // MEM-CC-team-1 (ADR 0055/0056) — busca cross-dev em sessões Claude Code.
         Tools\CcSearchTool::class,
-        // TaskRegistry F0 (ADR TaskRegistry/0001) — Jira-like nativo MCP.
-        // US-* extraidas dos SPECs canonicos via mcp:tasks:sync (webhook github).
+        // TaskRegistry CRUD (ADR 0070, ex-F0/F1):
         Tools\TasksListTool::class,
         Tools\TasksDetailTool::class,
-        // TaskRegistry F1 (US-TR-005) — CRUD tools.
         Tools\TasksUpdateTool::class,
         Tools\TasksCommentTool::class,
         Tools\TasksCreateTool::class,

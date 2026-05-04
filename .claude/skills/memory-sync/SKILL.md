@@ -1,22 +1,22 @@
 ---
 name: memory-sync
-description: ATIVAR após criar/editar arquivo em memory/, atualizar SPEC.md/CURRENT.md/TEAM.md, salvar ADR/session log, ou usar trigger "salve no cofre"/"guarde"/"grave na memória". Lembra Claude que conhecimento canônico precisa ir pro MCP server via git push antes de encerrar — o webhook GitHub→MCP só sincroniza após push, então team (Eliana/Felipe) só enxerga via tools MCP depois disso. Tasks → TaskRegistry MCP (ADR 0069), não TASKS.md.
+description: ATIVAR após criar/editar arquivo em memory/, atualizar SPEC.md/TEAM.md, salvar ADR/session log, ou usar trigger "salve no cofre"/"guarde"/"grave na memória". Lembra Claude que conhecimento canônico precisa ir pro MCP server via git push antes de encerrar — o webhook GitHub→MCP só sincroniza após push, então team (Eliana/Felipe) só enxerga via tools MCP depois disso. Tasks → tools MCP `tasks-*` (ADR 0070), nunca markdown.
 ---
 
 # memory-sync — propagar memória pro team via MCP
 
 ## O problema
 
-Knowledge no oimpresso é **git → webhook GitHub → MCP server (`mcp_memory_documents`) → tools MCP**. Se você cria SPEC, ADR, session log, ou edita TASKS/CURRENT mas **não dá push**, o time não vê via `decisions-search`, `tasks-current`, `memoria-search`. Já queimou: arquivo `memory/requisitos/NFSe/SPEC.md` criado mas não-pushed = Eliana abre Claude e procura "NFSe" via MCP, vem vazio, ela acha que não foi planejado ainda.
+Knowledge no oimpresso é **git → webhook GitHub → MCP server (`mcp_memory_documents`) → tools MCP**. Se você cria SPEC, ADR, session log mas **não dá push**, o time não vê via `decisions-search`, `cycles-active`, `memoria-search`. Já queimou: arquivo `memory/requisitos/NFSe/SPEC.md` criado mas não-pushed = Eliana abre Claude e procura "NFSe" via MCP, vem vazio, ela acha que não foi planejado ainda.
 
 ## Quando esta skill ativa
 
 Triggers literais:
 - "salve no cofre" / "guarde no cofre" / "grave na memória"
 - "atualiza/cria SPEC/ADR/session log"
-- Após Write/Edit em `memory/**`, `MEMORY.md`, `CURRENT.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`, `HOW_TO_ASK_CLAUDE.md`
-- Após criar arquivo em `memory/decisions/`, `memory/sessions/`, `memory/requisitos/<Mod>/` (incluindo `SPEC.md` que é canônico TaskRegistry — ADR 0069)
-- ⚠️ `TASKS.md` é deprecated (ADR 0069) — não receber edições novas; tasks vão pra `tasks-create`/`tasks-update`/`tasks-comment`
+- Após Write/Edit em `memory/**`, `MEMORY.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`, `HOW_TO_ASK_CLAUDE.md`
+- Após criar arquivo em `memory/decisions/`, `memory/sessions/`, `memory/requisitos/<Mod>/` (incluindo `SPEC.md` que é canônico TaskRegistry — ADR 0070)
+- ⚠️ `CURRENT.md`/`TASKS.md` REMOVIDOS (ADR 0070) — tasks vão pra tools MCP `tasks-create`/`tasks-update`/`tasks-comment`, status do cycle via `cycles-active`/`cycle-goals-track`
 - Após decisão arquitetural ou pattern novo
 
 ## O que fazer
@@ -32,6 +32,7 @@ Triggers literais:
 - ❌ Usar `git add -A` ou `git add .` — pode pegar `.env`, locks, código não-relacionado
 - ❌ Usar `--no-verify` (gitleaks/pre-commit existem por razão)
 - ❌ Pular `/sync-mem` "porque é mudança pequena" — pequena também precisa ir pro MCP
+- ❌ Recriar `CURRENT.md`/`TASKS.md` — foram removidos pelo ADR 0070; tasks ficam em `mcp_tasks` via tools
 
 ## Hook complementar
 
@@ -41,7 +42,7 @@ Triggers literais:
 
 ✅ Criou `memory/requisitos/NFSe/SPEC.md` + `adr/arq/0001-*.md` + atualizou ADR-0002 RecurringBilling como superseded → fim de turno: `/sync-mem` → 1 commit "docs(nfse): SPEC + ADR + tasks Eliana" → push → MCP webhook em <60s → Eliana vê via `decisions-search nfse`.
 
-✅ Wagner: "atualiza CURRENT.md e marca cycle como concluído" → editou CURRENT.md → fim de turno: `/sync-mem`.
+✅ Wagner: "fechei a task COPI-145" → `tasks-update COPI-145 status:done` (tool MCP, sem commit). Se também criou ADR ou session log no caminho → `/sync-mem` no fim do turno.
 
 ❌ Editou SPEC.md no início, fez 5 outras tasks de código, esqueceu o SPEC.md no final. Hook avisa, mas você já encerrou turno. Resultado: time não vê a SPEC até próxima sessão lembrar.
 
