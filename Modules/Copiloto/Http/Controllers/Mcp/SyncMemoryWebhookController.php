@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 use Modules\Copiloto\Services\Mcp\IndexarMemoryGitParaDb;
 use Modules\Copiloto\Services\TaskRegistry\TaskParserService;
 
@@ -62,6 +63,10 @@ class SyncMemoryWebhookController extends Controller
             return response()->json(['skipped' => true, 'reason' => "ref=$ref (só main)"]);
         }
 
+        // Sincroniza filesystem com origin/main antes de indexar.
+        // Sem isso, IndexarMemoryGitParaDb indexa estado parado do disco.
+        $gitInfo = $this->sincronizarComOrigin($request);
+
         // Roda em foreground (job não-async pra retornar 200 rápido com stats)
         // Se ficar lento, pode virar dispatch em queue
         $service = new IndexarMemoryGitParaDb(
@@ -101,9 +106,117 @@ class SyncMemoryWebhookController extends Controller
 
         return response()->json([
             'ok'         => true,
+            'git'        => $gitInfo,
             'stats'      => $stats,
             'tasks_sync' => $tasksStats,
         ]);
+    }
+
+    /**
+     * Faz `git fetch + reset --hard origin/main` no filesystem antes de indexar.
+     *
+     * Pula o reset se o push tocou arquivos que exigem deploy manual
+     * (composer.lock, migrations, package.json, build assets) — nesse caso
+     * retorna `pulled: false, reason: needs_manual_deploy` e ainda assim
+     * deixa a indexação rodar sobre o filesystem atual.
+     */
+    private function sincronizarComOrigin(Request $request): array
+    {
+        if ($this->pushExigeDeployManual($request)) {
+            return [
+                'pulled' => false,
+                'reason' => 'needs_manual_deploy',
+                'head'   => $this->gitHead(),
+            ];
+        }
+
+        $repo = base_path();
+
+        $fetch = Process::path($repo)->timeout(30)->run('git fetch origin main');
+        if (! $fetch->successful()) {
+            Log::channel('copiloto-ai')->error('SyncMemoryWebhook: git fetch falhou', [
+                'stderr' => $fetch->errorOutput(),
+            ]);
+            return [
+                'pulled' => false,
+                'reason' => 'git_fetch_failed',
+                'head'   => $this->gitHead(),
+            ];
+        }
+
+        $reset = Process::path($repo)->timeout(15)->run('git reset --hard origin/main');
+        if (! $reset->successful()) {
+            Log::channel('copiloto-ai')->error('SyncMemoryWebhook: git reset falhou', [
+                'stderr' => $reset->errorOutput(),
+            ]);
+            return [
+                'pulled' => false,
+                'reason' => 'git_reset_failed',
+                'head'   => $this->gitHead(),
+            ];
+        }
+
+        return [
+            'pulled' => true,
+            'head'   => $this->gitHead(),
+        ];
+    }
+
+    private function gitHead(): ?string
+    {
+        $r = Process::path(base_path())->timeout(5)->run('git rev-parse --short HEAD');
+
+        return $r->successful() ? trim($r->output()) : null;
+    }
+
+    /**
+     * Detecta paths que precisam de composer install / migrate / build pra
+     * não desnudar produção. Se algum push tem esses paths, mantemos o
+     * filesystem na versão anterior até alguém deployar manualmente.
+     */
+    private function pushExigeDeployManual(Request $request): bool
+    {
+        $padroes = [
+            '#^composer\.lock$#',
+            '#^composer\.json$#',
+            '#^package\.json$#',
+            '#^package-lock\.json$#',
+            '#^bun\.lockb?$#',
+            '#^vite\.config\.(js|ts)$#',
+            '#^database/migrations/#',
+            '#/Database/Migrations/#',
+            '#^public/build/#',
+        ];
+
+        foreach ($this->pathsTocadosNoPush($request) as $path) {
+            foreach ($padroes as $regex) {
+                if (preg_match($regex, $path)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return iterable<string>
+     */
+    private function pathsTocadosNoPush(Request $request): iterable
+    {
+        $commits = $request->input('commits', []);
+        $headCommit = $request->input('head_commit');
+        if ($headCommit) {
+            $commits[] = $headCommit;
+        }
+
+        foreach ($commits as $commit) {
+            foreach (['added', 'modified', 'removed'] as $chave) {
+                foreach ((array) ($commit[$chave] ?? []) as $path) {
+                    yield $path;
+                }
+            }
+        }
     }
 
     /**
@@ -111,22 +224,9 @@ class SyncMemoryWebhookController extends Controller
      */
     private function specMdModificada(Request $request): bool
     {
-        $commits = $request->input('commits', []);
-        if (empty($commits)) {
-            // Push sem payload de commits detalhado — roda sync preventivo
-            $headCommit = $request->input('head_commit');
-            if ($headCommit) {
-                $commits = [$headCommit];
-            }
-        }
-
-        foreach ($commits as $commit) {
-            foreach (['added', 'modified', 'removed'] as $chave) {
-                foreach ((array) ($commit[$chave] ?? []) as $path) {
-                    if (preg_match('#^memory/requisitos/[^/]+/SPEC\.md$#', $path)) {
-                        return true;
-                    }
-                }
+        foreach ($this->pathsTocadosNoPush($request) as $path) {
+            if (preg_match('#^memory/requisitos/[^/]+/SPEC\.md$#', $path)) {
+                return true;
             }
         }
 
