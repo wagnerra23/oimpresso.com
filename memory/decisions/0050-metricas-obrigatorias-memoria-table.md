@@ -1,3 +1,26 @@
+---
+slug: 0050-metricas-obrigatorias-memoria-table
+number: 50
+title: !!binary gJQgOCBtw6l0cmljYXMgb2JyaWdhdMOzcmlhcyBkZSBtZW3Ds3JpYSArIHRhYmVsYSBgbWVtb3J5X21ldHJpY3Ng
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-29'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0041'
+  - 0041-stack-qa-ia-vizra-langfuse-deepeval
+  - '0046'
+  - '0047'
+  - '0049'
+  - 0049-camadas-memoria-agente-fase-por-fase
+  - '0051'
+pii: false
+---
 # ADR 0050 — 8 métricas obrigatórias de memória + tabela `memory_metrics`
 
 **Status:** Aceito · Concretiza [ADR 0041](0041-stack-qa-ia-vizra-langfuse-deepeval.md) · Aterrissa o gate do [ADR 0049](0049-camadas-memoria-agente-fase-por-fase.md)

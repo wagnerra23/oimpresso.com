@@ -1,3 +1,27 @@
+---
+slug: 0031-memoriacontrato-mem0-default
+number: 31
+title: !!binary gJQgYE1lbW9yaWFDb250cmF0b2AgaW50ZXJmYWNlIFBIUCArIGRyaXZlciBkZWZhdWx0IGBNZW0wUmVzdERyaXZlcmA=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-26'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0026'
+  - 0026-posicionamento-erp-grafico-com-ia
+  - '0027'
+  - 0027-gestao-memoria-roles-claros
+  - '0032'
+  - 0032-vizra-adk-prism-php-orquestracao
+  - '0035'
+  - '0036'
+pii: false
+---
 # ADR 0031 — `MemoriaContrato` interface PHP + driver default `Mem0RestDriver`
 
 **Status:** ✅ Aceita — **VERDADE CANÔNICA** (consolidada em ADR 0035) — ⚠️ **driver default revisado por ADR 0036**: `MeilisearchDriver` agora é default, `Mem0RestDriver` virou condicional (Sprint 8+, com triggers documentados)

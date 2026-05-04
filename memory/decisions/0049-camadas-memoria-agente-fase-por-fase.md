@@ -1,3 +1,25 @@
+---
+slug: 0049-camadas-memoria-agente-fase-por-fase
+number: 49
+title: !!binary gJQgQ2FtYWRhcyBkZSBtZW3Ds3JpYSBkbyBhZ2VudGU6IGxpZ2FyIGZhc2UgcG9yIGZhc2UsIG1lZGlyIGFudGVzIGRlIGV2b2x1aXI=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-29'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0036'
+  - 0036-replanejamento-meilisearch-first
+  - '0037'
+  - 0037-roadmap-evolucao-tier-7-plus
+  - '0047'
+  - '0051'
+pii: false
+---
 # ADR 0049 — Camadas de memória do agente: ligar fase por fase, medir antes de evoluir
 
 **Status:** Aceito · Estende [ADR 0036](0036-replanejamento-meilisearch-first.md) · Estende [ADR 0037](0037-roadmap-evolucao-tier-7-plus.md)

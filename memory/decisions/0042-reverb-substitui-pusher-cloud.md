@@ -1,3 +1,26 @@
+---
+slug: 0042-reverb-substitui-pusher-cloud
+number: 42
+title: !!binary gJQgUmV2ZXJiIChzZWxmLWhvc3RlZCkgc3Vic3RpdHVpIFB1c2hlciBDbG91ZCBjb21vIGJyb2FkY2FzdGVy
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-28'
+module: copiloto
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0035'
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - '0036'
+  - 0036-replanejamento-meilisearch-first
+  - '0040'
+  - 0040-policy-publicacao-claude-supervisiona
+pii: false
+---
 # ADR 0042 — Reverb (self-hosted) substitui Pusher Cloud como broadcaster
 
 **Status:** ✅ Aceita

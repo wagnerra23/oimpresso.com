@@ -1,3 +1,32 @@
+---
+slug: 0048-framework-agentes-laravel-ai-vizra-rejeitada
+number: 48
+title: !!binary gJQgRnJhbWV3b3JrIGRlIGFnZW50ZXMgSUE6IGBsYXJhdmVsL2FpYCAoVml6cmEgQURLIHJlamVpdGFkYSBvZmljaWFsbWVudGUp
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-29'
+quarter: 2026-Q2
+tags: {  }
+supersedes:
+  - '0032'
+  - 0032-vizra-adk-prism-php-orquestracao
+  - '0035'
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+related:
+  - '0032'
+  - 0032-vizra-adk-prism-php-orquestracao
+  - '0035'
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - '0046'
+  - '0047'
+  - '0051'
+  - '0053'
+pii: false
+---
 # ADR 0048 — Framework de agentes IA: `laravel/ai` (Vizra ADK rejeitada oficialmente)
 
 **Status:** Aceito · Supersede parcialmente [ADR 0032](0032-vizra-adk-prism-php-orquestracao.md) · Confirma e fortalece [ADR 0035](0035-stack-ai-canonica-wagner-2026-04-26.md)

@@ -1,3 +1,30 @@
+---
+slug: 0053-mcp-server-governanca-como-produto
+number: 53
+title: !!binary gJQgTUNQIHNlcnZlciBkYSBlbXByZXNhOiBnb3Zlcm5hbsOnYSBjb21vIHByb2R1dG8sIG7Do28gb3ZlcmhlYWQ=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-29'
+quarter: 2026-Q2
+tags: {  }
+supersedes:
+  - '0036'
+  - 0036-replanejamento-meilisearch-first
+related:
+  - '0026'
+  - '0030'
+  - '0036'
+  - 0036-replanejamento-meilisearch-first
+  - '0046'
+  - '0047'
+  - '0050'
+  - '0051'
+pii: false
+---
 # ADR 0053 — MCP server da empresa: governança como produto, não overhead
 
 **Status:** Aceito

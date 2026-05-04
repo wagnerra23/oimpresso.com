@@ -1,3 +1,27 @@
+---
+slug: 0061-conhecimento-canonico-git-mcp-zero-automem
+number: 61
+title: !!binary gJQgQ29uaGVjaW1lbnRvIGNhbsO0bmljbyBlbSBnaXQvTUNQLCBaRVJPIGF1dG8tbWVtIHByaXZhZGE=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-30'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0027'
+  - 0027-gestao-memoria-roles-claros
+  - '0040'
+  - '0053'
+  - 0053-mcp-server-governanca-como-produto
+  - '0055'
+  - 0055-self-host-team-plan-equivalente-anthropic
+  - '0056'
+pii: false
+---
 # ADR 0061 — Conhecimento canônico em git/MCP, ZERO auto-mem privada
 
 **Status:** ✅ Aceita

@@ -1,3 +1,20 @@
+---
+slug: 0001-estender-ultimatepos-opcao-c
+number: 1
+title: !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZvcms=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - E
+decided_at: '2026-04-18'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0004'
+pii: false
+---
 # ADR 0001 — Estender UltimatePOS em vez de build próprio ou fork
 
 **Status:** ✅ Aceita

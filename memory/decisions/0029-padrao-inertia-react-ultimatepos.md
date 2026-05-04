@@ -1,3 +1,22 @@
+---
+slug: 0029-padrao-inertia-react-ultimatepos
+number: 29
+title: !!binary gJQgUGFkcsOjbyBJbmVydGlhICsgUmVhY3QgKyBVbHRpbWF0ZVBPUyBwcmEgbcOzZHVsb3Mgbm92b3M=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-25'
+module: copiloto
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0023'
+  - '0024'
+pii: false
+---
 # ADR 0024 — Padrão Inertia + React + UltimatePOS pra módulos novos
 
 **Status:** ✅ Aceita

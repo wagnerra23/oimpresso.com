@@ -1,3 +1,26 @@
+---
+slug: 0008-sidebar-unica-tabs-horizontais
+number: 8
+title: !!binary gJQgU2lkZWJhciBjb20gMSBpdGVtICsgbWVudSBob3Jpem9udGFsIGVtIGFiYXMgZGVudHJvIGRvIG3Ds2R1bG8=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-18'
+quarter: 2026-Q2
+tags: {  }
+supersedes:
+  - '0039'
+  - 0039-ui-chat-cockpit-padrao
+  - '0008'
+  - 0008-cockpit-layout-mae-do-erp
+  - '2026-04-27'
+related:
+  - '0039'
+pii: false
+---
 # ADR 0008 — Sidebar com 1 item + menu horizontal em abas dentro do módulo
 
 > ⚠️ **DEPRECADO em 2026-04-27** — substituída por [ADR raiz 0039](./0039-ui-chat-cockpit-padrao.md) e [ADR UI-0008](../requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md).
