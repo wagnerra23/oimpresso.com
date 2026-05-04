@@ -76,18 +76,20 @@ Se o user colar o token (`mcp_<hex>`):
 
 3. **Se HTTP 200 + tools listadas:**
    ```
-   ✅ Conectado! Você tem acesso a:
-   - tasks-current        → estado vivo do cycle
-   - decisions-search     → 56 ADRs do projeto
-   - decisions-fetch      → carregar 1 ADR
-   - sessions-recent      → últimos session logs
-   - memoria-search       → memória persistente do Copiloto
-   - claude-code-usage-self → seu próprio uso/custo
+   ✅ Conectado! Você tem acesso a (entre outras):
+   - cycles-active / cycle-goals-track → cycle vigente + goals
+   - my-work / my-inbox / triage       → suas tasks + caixa de entrada
+   - tasks-list / tasks-detail         → backlog filtrável + detalhe
+   - tasks-create / tasks-update / tasks-comment → CRUD de tasks
+   - decisions-search / decisions-fetch → ADRs (Nygard)
+   - sessions-recent                    → últimos session logs
+   - memoria-search                     → memória persistente Copiloto
+   - claude-code-usage-self             → seu próprio uso/custo
 
    Pra começar, te recomendo:
    1. Ler CLAUDE.md (orientação geral)
    2. Ler memory/08-handoff.md (estado canônico)
-   3. Pedir "tasks-current" pra ver o que o time tá fazendo
+   3. Pedir "my-work" pra ver suas tasks ativas
 
    Reinicia Claude Code pra carregar a config (Ctrl+C + abrir de novo).
    ```
@@ -180,7 +182,10 @@ mcp tools list
 mcp call decisions-fetch --slug=0046-chat-agent-gap
 
 # Pedir estado vivo do cycle
-mcp call tasks-current
+mcp call cycles-active
+
+# Pedir minhas tasks
+mcp call my-work
 
 # Buscar memória semântica
 mcp call memoria-search --query="meta de faturamento"
@@ -205,12 +210,12 @@ Antes de finalizar a skill, verifica que:
 
 - [ ] `.claude/settings.local.json` existe + token real (sem placeholder)
 - [ ] `tools/list` retorna ≥6 tools
-- [ ] `tools/call tasks-current` funciona (response não-vazio)
+- [ ] `tools/call cycles-active` funciona (response não-vazio)
 - [ ] Skills auto-ativáveis (`multi-tenant-patterns`, `publication-policy`) carregam
 - [ ] Dev sabe que precisa reiniciar Claude Code 1× pra config carregar
 
 Reporta:
 ```
 ✅ Setup completo. Você tem acesso ao MCP server do time.
-Próximo: reinicia Claude Code e pergunta "tasks-current" pra ver o que tá rolando.
+Próximo: reinicia Claude Code e pergunta "cycles-active" + "my-work" pra ver o que tá rolando.
 ```

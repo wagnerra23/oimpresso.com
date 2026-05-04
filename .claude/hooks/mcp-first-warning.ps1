@@ -5,6 +5,8 @@
 #   { "tool_name": "Read", "tool_input": { "file_path": "memory/decisions/0053-...md" } }
 #
 # Se path bate com pattern, retorna systemMessage avisando pra usar MCP.
+#
+# CURRENT.md/TASKS.md foram REMOVIDOS em 2026-05-04 (ADR 0070).
 
 $ErrorActionPreference = 'Stop'
 $input = [Console]::In.ReadToEnd()
@@ -25,8 +27,7 @@ $mcpPatterns = @(
     'memory/sessions/',
     'memory/requisitos/.*\.md',
     'memory/comparativos/',
-    'memory/08-handoff',
-    'CURRENT\.md$'
+    'memory/08-handoff'
 )
 
 $target = if ($path) { $path } else { $pattern }
@@ -45,7 +46,8 @@ switch -regex ($target) {
     'memory/decisions/(\d+-[\w-]+)\.md'        { $suggestion = "decisions-fetch slug:`"$($Matches[1])`""; break }
     'memory/decisions/'                         { $suggestion = "decisions-search query:`"...`""; break }
     'memory/sessions/'                          { $suggestion = "sessions-recent limit:5"; break }
-    'CURRENT\.md|memory/08-handoff'             { $suggestion = "tasks-current"; break }
+    'memory/08-handoff'                         { $suggestion = "cycles-active + my-work"; break }
+    'memory/requisitos/.*SPEC\.md'              { $suggestion = "tasks-list module:<Mod> ou tasks-detail task_id:<ID>"; break }
     default                                     { $suggestion = "decisions-search ou cc-search" }
 }
 

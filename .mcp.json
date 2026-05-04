@@ -5,7 +5,7 @@
   "mcpServers": {
     "oimpresso": {
       "url": "https://mcp.oimpresso.com/api/mcp",
-      "_note": "Tools: tasks-current, decisions-search, decisions-fetch, sessions-recent, claude-code-usage-self, memoria-search. Token via .claude/settings.local.json"
+      "_note": "Tools (ADR 0070): cycles-active, cycle-goals-track, my-work, my-inbox, triage, tasks-list, tasks-detail, tasks-create, tasks-update, tasks-comment, projects-*, epics-*, dashboard-burndown, dashboard-velocity, decisions-search, decisions-fetch, sessions-recent, memoria-search, cc-search, claude-code-usage-self. Token via .claude/settings.local.json"
     },
     "laravel-boost": {
       "command": "C:/Users/wagne/.config/herd/bin/php84/php.exe",
