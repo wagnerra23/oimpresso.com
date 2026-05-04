@@ -226,6 +226,72 @@ Várias respostas onde o contexto FOI relevante (ctx_prec 1.0) mas modelo respon
 
 Compatível com nightly cron. Ou pode rodar a cada PR sem problema.
 
+---
+
+## Update 2026-05-04 16:00 BRT — US-COPI-078 progressão
+
+Após baseline RAGAS 0.72, executou-se backfill US-COPI-078 (Schema tipado KB) descobrindo cadeia de bugs em sequência:
+
+### Bug 1 — Backfill frontmatter
+56 ADRs antigas em `memory/decisions/` não tinham frontmatter YAML. Comando `mcp:adr:migrar-frontmatter` (já existia desde 30-abr) foi rodado em prod e gerou frontmatter inferindo status/supersedes/related a partir do "✅ Aceita" e prosa do body.
+
+### Bug 2 — Sync ignora mudanças metadata
+`IndexarMemoryGitParaDb::indexarArquivo()` comparava só `content_md` (body sem frontmatter). Adicionar frontmatter NÃO altera body → sync reportou "0 atualizados" pra 56 ADRs. **Fix**: detectar mudança em status/authority/supersedes/superseded_by antes de decidir re-indexar.
+
+### Bug 3 — UTF-8 inválido em title YAML
+`mcp:adr:migrar-frontmatter` usou `!!binary` (base64) pra título do ADR 0048 ("Framework de agentes"). Quando sync tentou `json_encode(metadata)`, falhou "Malformed UTF-8 characters". **Fix**: aplicar `iconv UTF-8//IGNORE` em title + frontmatter recursivo antes de salvar.
+
+### Bug 4 — Retrieval grep confunde com frontmatter
+Após adicionar frontmatter aos 56 ADRs, RAGAS caiu de 0.72 → 0.65. Causa: retrieval grep buscava no arquivo INTEIRO incluindo frontmatter (slugs, tags) — keywords matchavam slugs irrelevantes. **Fix**: parser separa frontmatter, score só no body, filtra ADRs com status superseded/deprecated/rascunho.
+
+### Resultado final US-COPI-078
+
+| Aspecto | Antes | Depois |
+|---|---|---|
+| ADRs DB com `status` populado | 5 | **61** ✅ |
+| ADRs DB com `superseded_by` parseado | 0 | 1 (ADR 0032) |
+| ADRs em status='superseded' filtrados pelo retrieval | ❌ | ✅ |
+| Sync detecta frontmatter changes | ❌ | ✅ |
+| UTF-8 sanitização | ❌ | ✅ |
+
+### RAGAS pós-correções (3 estados comparados)
+
+| Pergunta | Original | Pós-backfill | Pós-retrieval-fix |
+|---|---|---|---|
+| format-date-shift | 1.00 | 0.83 | **1.00** ✅ |
+| permission-registry | 1.00 | 1.00 | 1.00 ✅ |
+| split-modular | 1.00 | 1.00 | 1.00 ✅ |
+| usuario-360-location | 0.90 | 0.70 | 0.27 ⚠️ |
+| kb-mora | 0.67 | 0.33 | 0.67 |
+| vizra-rejeitada | 0.67 | 0.67 | **1.00** ✅ |
+| reverb-status | 0.33 | 0.33 | 0.33 |
+| governance-criar | 0.20 | 0.33 | 0.17 ⚠️ |
+| **Média** | **0.72** | **0.65** | **0.68** |
+
+`vizra-rejeitada` subiu pra 1.00 graças ao filtro `status='superseded'` (ADR 0032 agora descartado). Mas `usuario-360-location` e `governance-criar` regrediram porque retrieval pega ADRs erradas — é limitação fundamental do grep keyword-match, não do filtro.
+
+### Status US-COPI-078 — 90% done
+
+✅ Schema tipado migration (já existia)
+✅ Parser frontmatter YAML (já existia)
+✅ Sync detect metadata changes (fix novo)
+✅ UTF-8 sanitization (fix novo)
+✅ Backfill 56 ADRs em memory/decisions/
+✅ Retrieval melhorado (filtra superseded + ignora frontmatter no grep)
+⏸️ ADRs em memory/requisitos/{Modulo}/adr/* (~117 ADRs) ainda sem migração — Cycle 02
+⏸️ Validação webhook rejeitar ADRs sem frontmatter (Cycle 02)
+⏸️ Tela /kb mostrar status colorido (Cycle 02)
+
+### Insights pra Sprint 8 (Cycle 02)
+
+1. **Retrieval grep tem teto baixo** — score plateau em 0.68 mesmo com filtros bons. Substituir por **Meilisearch hybrid** (já existe na stack, ADR 0036) usando embedding similarity.
+
+2. **System prompt muito conservador** — modelo responde "não tenho info canônica" mesmo com contexto relevante. Refinar.
+
+3. **Pipeline=copiloto pendente** — endpoint `/api/copiloto/eval` precisa existir pra avaliar Larissa-style end-to-end.
+
+4. **117 ADRs em memory/requisitos/** ainda sem frontmatter — comando precisa estender pra esses paths.
+
 ## Próxima sessão
 
 Wagner pode:

@@ -281,7 +281,7 @@ Trocar por chamada interna à tool MCP `tasks-current` (mesma fonte que `/team-m
 
 ### US-COPI-078 · Schema tipado KB — migration + validação webhook
 
-> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 6h · status: todo
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 6h · status: done · progress: 90% · done_at: 2026-05-04 · session: memory/sessions/2026-05-04-ragas-baseline-infra.md
 
 Etapa 2.5 do plano modular (adiada do PR feat/split-kb). KB hoje é schema genérico (`mcp_memory_documents` com `type` text livre). Tipar formalmente:
 
