@@ -217,7 +217,7 @@ class EvalRagasBaselineCommand extends Command
             try {
                 $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($semanticRatio, $fetchK) {
                     $params['hybrid'] = [
-                        'embedder'      => 'nomic_local',
+                        'embedder'      => 'qwen3_local',
                         'semanticRatio' => $semanticRatio,
                     ];
                     $params['filter'] = "status NOT IN ['superseded', 'deprecated', 'rascunho']";
