@@ -83,19 +83,12 @@ Route::group(
         Route::get('/admin/governanca',                    'Admin\GovernancaController@index')
             ->name('copiloto.admin.governanca.index');
 
-        // ---- Team admin — equivalente self-host Anthropic Team plan (ADR 0055)
-        Route::get('/admin/team',                          'Admin\TeamController@index')
-            ->name('copiloto.admin.team.index');
-        Route::post('/admin/team/{user}/token',            'Admin\TeamController@gerarToken')
-            ->name('copiloto.admin.team.token.gerar');
-        Route::post('/admin/team/{user}/dxt',              'Admin\TeamController@gerarDxt')
-            ->name('copiloto.admin.team.dxt.gerar');
-        Route::delete('/admin/team/token/{token}',         'Admin\TeamController@revogarToken')
-            ->name('copiloto.admin.team.token.revogar');
-        Route::post('/admin/team/{user}/quota',            'Admin\TeamController@atualizarQuota')
-            ->name('copiloto.admin.team.quota.update');
-        Route::get('/admin/team/export.csv',               'Admin\TeamController@exportCsv')
-            ->name('copiloto.admin.team.export.csv');
+        // ---- Team admin / Tasks / CC sessions MOVIDOS pra Modules/TeamMcp/ ----
+        // URLs antigas redirecionam via Route::redirect 301 (ver fim deste arquivo).
+        // Permissions copiloto.mcp.usage.all / copiloto.cc.read.team mantidas
+        // (rename pra team-mcp.* vira ADR + migration de permissões em etapa
+        // futura — não nesta separação). Sub-rotas POST/PATCH/DELETE não
+        // têm redirect (UI Inertia foi atualizada pra apontar pras novas URLs).
 
         // ---- MEM-KB-1 (ADR 0053) — KB browser dos docs servidos via MCP server
         Route::get('/admin/memoria',                       'Admin\MemoriaKbController@index')
@@ -117,23 +110,20 @@ Route::group(
         Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
             ->name('copiloto.admin.qualidade.index');
 
-        // ---- TaskRegistry F2 (US-TR-007) — Kanban /copiloto/admin/tasks
-        Route::get('/admin/tasks',                         'Admin\TasksAdminController@index')
-            ->name('copiloto.admin.tasks.index');
-        Route::patch('/admin/tasks/{taskId}/status',       'Admin\TasksAdminController@updateStatus')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('copiloto.admin.tasks.update-status');
-
-        // ---- MEM-CC-UI-1 (SPEC-cc-sessions) — KB sessões Claude Code do time
-        Route::get('/admin/cc-sessions',                   'Admin\CcSessionsController@index')
-            ->name('copiloto.admin.cc.index');
-        Route::get('/admin/cc-sessions/search',            'Admin\CcSessionsController@search')
-            ->name('copiloto.admin.cc.search');
-        Route::get('/admin/cc-sessions/{sessionUuid}',     'Admin\CcSessionsController@show')
-            ->where('sessionUuid', '[A-Za-z0-9\-]+')
-            ->name('copiloto.admin.cc.show');
+        // (TaskRegistry F2 e MEM-CC-UI-1 movidos pra Modules/TeamMcp/ — ver
+        //  Modules/TeamMcp/Http/routes.php; redirects 301 no rodapé deste arquivo)
     }
 );
+
+// ===========================================================================
+// 1.b) Redirects 301 — URLs antigas → /team-mcp/* (split TeamMcp)
+// ===========================================================================
+// Mantém bookmarks/links externos vivos. POST/PATCH/DELETE NÃO redirecionam
+// (UI Inertia foi atualizada pra novas rotas; chamadas server-to-server não
+//  existiam fora da própria UI).
+Route::redirect('/copiloto/admin/team',         '/team-mcp/team',         301);
+Route::redirect('/copiloto/admin/tasks',        '/team-mcp/tasks',        301);
+Route::redirect('/copiloto/admin/cc-sessions',  '/team-mcp/cc-sessions',  301);
 
 // ===========================================================================
 // 2) Rotas de instalação 1-clique — prefixo /copiloto/install
