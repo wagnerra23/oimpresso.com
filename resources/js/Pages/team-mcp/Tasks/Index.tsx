@@ -1,5 +1,5 @@
-// tela: /copiloto/admin/tasks
-// module: Copiloto — TaskRegistry F2 (US-TR-007)
+// tela: /team-mcp/tasks
+// module: TeamMcp (split do Copiloto) — TaskRegistry F2 (US-TR-007)
 // permissao: copiloto.mcp.usage.all
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -109,7 +109,7 @@ function KanbanView({ kanban }: { kanban: Record<string, Task[]> }) {
     setOptimistic(prev => ({ ...prev, [id]: targetStatus }));
 
     const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
-    fetch(`/copiloto/admin/tasks/${id}/status`, {
+    fetch(`/team-mcp/tasks/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
       body: JSON.stringify({ status: targetStatus, author: 'wagner' }),
@@ -233,12 +233,12 @@ function TasksIndex({ kanban, backlog, kpis, modulos, owners, sprints, filters }
     if (modulo !== '__all__') params.module = modulo;
     if (owner  !== '__all__') params.owner  = owner;
     if (sprint !== '__all__') params.sprint = sprint;
-    router.get('/copiloto/admin/tasks', params, { preserveScroll: true, preserveState: true });
+    router.get('/team-mcp/tasks', params, { preserveScroll: true, preserveState: true });
   }
 
   function clearFilter() {
     setModulo('__all__'); setOwner('__all__'); setSprint('__all__');
-    router.get('/copiloto/admin/tasks', {}, { preserveScroll: true, preserveState: true });
+    router.get('/team-mcp/tasks', {}, { preserveScroll: true, preserveState: true });
   }
 
   return (

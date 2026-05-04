@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Copiloto\Http\Controllers\Admin;
+namespace Modules\TeamMcp\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -11,7 +11,7 @@ use Modules\Copiloto\Entities\Mcp\McpTask;
 use Modules\Copiloto\Services\TaskRegistry\TaskCrudService;
 
 /**
- * TaskRegistry Fase 2 (US-TR-007) — Page /copiloto/admin/tasks.
+ * TaskRegistry Fase 2 (US-TR-007) — Page /team-mcp/tasks.
  *
  * Kanban (todo/doing/review/done) + Backlog filtros.
  * Permissão: copiloto.mcp.usage.all (Wagner/superadmin).
@@ -97,7 +97,7 @@ class TasksAdminController extends Controller
         $owners   = McpTask::whereNotNull('owner')->distinct()->orderBy('owner')->pluck('owner');
         $sprints  = McpTask::whereNotNull('sprint')->distinct()->orderBy('sprint')->pluck('sprint');
 
-        return Inertia::render('Copiloto/Admin/Tasks/Index', [
+        return Inertia::render('team-mcp/Tasks/Index', [
             'kanban'  => $porStatus,
             'backlog' => $backlog,
             'kpis'    => $kpis,
@@ -113,7 +113,7 @@ class TasksAdminController extends Controller
     }
 
     /**
-     * PATCH /copiloto/admin/tasks/{taskId}/status
+     * PATCH /team-mcp/tasks/{taskId}/status
      * Atualiza status via drag-drop no Kanban.
      */
     public function updateStatus(Request $request, string $taskId): JsonResponse
