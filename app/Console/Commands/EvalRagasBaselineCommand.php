@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -149,62 +150,83 @@ class EvalRagasBaselineCommand extends Command
 
     private function pipelineAdr(array $q, string $apiKey, string $model, string $provider): ?array
     {
-        // Retrieval melhorado (US-COPI-078):
-        // 1. Separa frontmatter YAML do body — grep só no body (frontmatter
-        //    contém slugs/tags que poluem keyword match)
-        // 2. Filtra ADRs com status superseded/deprecated/rascunho — ativos primeiro
-        // 3. Rankeia TODAS por score, top-3 desc
-        $keywords = $this->extractKeywords($q['question']);
-        $scored = [];
-        foreach (glob(base_path('memory/decisions/*.md')) as $f) {
-            if (str_starts_with(basename($f), '_')) continue;
-            $raw = file_get_contents($f);
+        // Sprint 8 (ADR 0037): retrieval via Meilisearch hybrid (full-text + semantic).
+        // shouldBeSearchable() já exclui status=superseded/deprecated/rascunho do índice.
+        // Fallback para MySQL FULLTEXT se Scout/Meilisearch não estiver disponível.
+        $context = $this->retrieveKbContext($q['question'], topK: 3);
 
-            // Separa frontmatter YAML (--- ... ---)
-            $fm = [];
-            $body = $raw;
-            if (preg_match('/^---\n(.*?)\n---\n(.*)$/s', $raw, $m)) {
-                $body = $m[2];
-                try {
-                    $fm = \Symfony\Component\Yaml\Yaml::parse($m[1]) ?? [];
-                } catch (\Throwable $e) {
-                    $fm = [];
-                }
-            }
-
-            // Filtra ADRs não-canônicas: superseded/deprecated/rascunho
-            $status = $fm['status'] ?? 'aceito'; // default aceito pra ADRs sem frontmatter
-            if (in_array($status, ['superseded', 'deprecated', 'rascunho'], true)) {
-                continue;
-            }
-
-            // Score só no body + título H1 (frontmatter ignorado)
-            $score = 0;
-            foreach ($keywords as $kw) {
-                if (mb_stripos($body, $kw) !== false) $score++;
-                if (preg_match('/^#\s.*' . preg_quote($kw, '/') . '/im', $body)) $score += 2;
-            }
-            if ($score >= 2) {
-                $scored[] = ['file' => $f, 'score' => $score, 'body' => $body, 'fm' => $fm];
-            }
-        }
-        // Top-3 por score desc
-        usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
-        $contextChunks = [];
-        foreach (array_slice($scored, 0, 3) as $hit) {
-            $contextChunks[] = sprintf("# %s (score=%d)\n%s",
-                basename($hit['file']), $hit['score'], mb_substr($hit['body'], 0, 2000));
-        }
-
-        $context = implode("\n\n---\n\n", $contextChunks);
         $system = "Você é Claude no projeto oimpresso. Use apenas o CONTEXTO abaixo " .
             "(extraído de memory/decisions/) pra responder. Se a info não está no contexto, " .
-            "diga 'não tenho info canônica'.\n\nCONTEXTO:\n" . ($context ?: '(vazio)');
+            "diga 'não tenho info canônica'. Use o contexto disponível mesmo que parcial — " .
+            "só diga 'não tenho info' se o contexto for completamente vazio ou irrelevante.\n\n" .
+            "CONTEXTO:\n" . ($context ?: '(vazio)');
 
         $answer = $this->askLlm($provider, $apiKey, $model, $system, $q['question']);
         if ($answer === null) return null;
 
         return ['answer' => $answer, 'context' => $context];
+    }
+
+    /**
+     * Recupera contexto da KB (mcp_memory_documents) em 2 camadas:
+     *   1. Meilisearch hybrid (full-text + semantic) via Scout — preferencial
+     *   2. MySQL FULLTEXT scope — fallback quando Meilisearch index ainda não existe
+     *
+     * Ambas as camadas respeitam shouldBeSearchable() / scope de status ativo.
+     */
+    private function retrieveKbContext(string $query, int $topK = 3): string
+    {
+        // Tenta Meilisearch hybrid primeiro
+        try {
+            $embedder      = config('copiloto.memoria.meilisearch.embedder', 'openai');
+            $semanticRatio = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.5);
+
+            $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($embedder, $semanticRatio, $topK) {
+                $params['hybrid'] = [
+                    'embedder'      => $embedder,
+                    'semanticRatio' => $semanticRatio,
+                ];
+                // Exclui docs que escaparam do shouldBeSearchable() por lag de re-index
+                $params['filter'] = 'status NOT IN ["superseded", "deprecated", "rascunho"]';
+                $params['limit']  = $topK;
+
+                return $index->search($q, $params);
+            })->take($topK)->get();
+
+            if ($docs->isNotEmpty()) {
+                return $this->buildContextFromDocs($docs);
+            }
+            // Meilisearch retornou vazio → cai no fallback MySQL sem logar como erro
+        } catch (\Throwable $e) {
+            // Index não existe ainda, embedder não configurado, ou Meilisearch offline
+            $this->line(sprintf(
+                '    ⚠ Meilisearch indisponível (%s) — fallback MySQL FULLTEXT',
+                class_basename($e)
+            ));
+        }
+
+        // Fallback: MySQL FULLTEXT + filtro de status via Eloquent
+        $docs = McpMemoryDocument::buscarTexto($query)
+            ->whereNotIn('status', ['superseded', 'deprecated', 'rascunho'])
+            ->whereNull('deleted_at')
+            ->orderByRaw('MATCH(title, content_md) AGAINST(? IN NATURAL LANGUAGE MODE) DESC', [$query])
+            ->limit($topK)
+            ->get();
+
+        return $this->buildContextFromDocs($docs);
+    }
+
+    private function buildContextFromDocs(\Illuminate\Support\Collection $docs): string
+    {
+        $chunks = $docs->map(fn (McpMemoryDocument $doc) =>
+            sprintf("# %s (%s)\n%s",
+                $doc->title ?? $doc->slug,
+                $doc->status ?? 'aceito',
+                mb_substr($doc->content_md ?? '', 0, 2000)
+            )
+        );
+
+        return $chunks->implode("\n\n---\n\n");
     }
 
     private function pipelineCopiloto(array $q): ?array
@@ -367,16 +389,6 @@ class EvalRagasBaselineCommand extends Command
         } catch (\Throwable $e) {
             return null;
         }
-    }
-
-    private function extractKeywords(string $question): array
-    {
-        // Tokens >3 chars, sem stopwords PT
-        $stop = ['quero', 'como', 'qual', 'onde', 'quanto', 'quais', 'esse', 'esta', 'isso',
-                 'para', 'pelo', 'pela', 'sobre', 'tenho', 'tive', 'sou', 'estou', 'estão',
-                 'mais', 'menos', 'foi', 'são', 'pode', 'devo', 'usar', 'fiz', 'faz', 'que'];
-        $tokens = preg_split('/\s+|[?,.!:;]/', mb_strtolower($question));
-        return array_values(array_unique(array_filter($tokens, fn($t) => mb_strlen($t) > 3 && ! in_array($t, $stop))));
     }
 
     private function renderTable(array $results): void
