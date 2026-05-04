@@ -90,12 +90,16 @@ return [
         'meilisearch' => [
             'index'          => env('COPILOTO_MEMORIA_INDEX', 'copiloto_memoria_facts'),
             'top_k_default'  => 5,
-            // ADR 0047 / MEM-HOT-1 — defaults batem com o que está deployado em prod
-            // (2026-04-28): embedder name = 'openai' (chave JSON do PATCH), ratio 0.7
-            // (sweet spot Meilisearch hybrid pra cross-phrasing PT-BR).
-            // RRF tuning A/B (0.3 vs 0.7) é uma task futura — MEM-P2-2 / Cycle 02.
-            'semantic_ratio' => (float) env('COPILOTO_MEMORIA_SEMANTIC_RATIO', 0.7),
-            'embedder'       => env('COPILOTO_MEMORIA_EMBEDDER', 'openai'),
+            // Sprint 9b (US-COPI-083, 2026-05-04) — qwen3-embedding:0.6b + stopwords PT-BR
+            // + ratio=0.6 venceu eval matrix:
+            //   ratio=0.4 → 0.637 RAGAS
+            //   ratio=0.5 → 0.642 RAGAS
+            //   ratio=0.6 → 0.692 RAGAS ← vencedor
+            //   ratio=0.0 (MySQL FT bypass) → 0.700 RAGAS (comparativo)
+            // qwen3 PT-BR cosine ~0.55 (vs nomic ~0.97 uniforme). Infra pronta pra
+            // ganho real quando reranker (US-COPI-087) entrar.
+            'semantic_ratio' => (float) env('COPILOTO_MEMORIA_SEMANTIC_RATIO', 0.6),
+            'embedder'       => env('COPILOTO_MEMORIA_EMBEDDER', 'qwen3_local'),
         ],
         // 'mem0_rest' fica reservado pra sprint 8+ (ver triggers em ADR 0036)
     ],
