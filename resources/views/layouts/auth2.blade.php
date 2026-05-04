@@ -50,6 +50,12 @@
                                 @lang('repair::lang.repair_status')
                             </a>
                         @endif
+                        @if(Route::has('consulta-os.index'))
+                            <a class="tw-text-white tw-font-medium tw-text-sm md:tw-text-base hover:tw-text-white"
+                                href="{{ route('consulta-os.index') }}">
+                                Acompanhar pedido
+                            </a>
+                        @endif
                     </div>
 
                     <div class="tw-absolute tw-top-5 md:tw-top-8 tw-right-5 md:tw-right-10 tw-flex tw-items-center tw-gap-4"
