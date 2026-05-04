@@ -38,6 +38,8 @@ ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas ráp
 
 **Módulos de referência canônica:** `Modules/Jana/`, `Modules/Repair/`, `Modules/Project/` — antes de criar ou ajustar qualquer arquivo, olhe o equivalente e imite. Ver ADR 0011.
 
+**Criar módulo novo:** ler [`memory/requisitos/Infra/RUNBOOK-criar-modulo.md`](memory/requisitos/Infra/RUNBOOK-criar-modulo.md) — checklist das 8 peças obrigatórias + 3 rotas Install + padrão `Route::has()` pra link público condicional + pegadinhas. Validado em Modules/ADS (2026-05-03) e Modules/ConsultaOs (2026-05-04).
+
 ---
 
 ## 2. Como trabalhar neste projeto (fluxo obrigatório)
