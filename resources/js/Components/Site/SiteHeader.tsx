@@ -4,6 +4,7 @@ import { Button } from '@/Components/ui/button';
 const NAV = [
   { label: 'Recursos', href: '/#recursos' },
   { label: 'Preços', href: '/pricing' },
+  { label: 'Acompanhar pedido', href: '/consulta-os' },
   { label: 'Ajuda', href: '/ajuda/' },
   { label: 'Contato', href: '/c/contact-us' },
 ];
