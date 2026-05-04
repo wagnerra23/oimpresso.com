@@ -1,28 +1,38 @@
 <?php
 
-namespace Modules\Copiloto\Http\Controllers\Admin;
+namespace Modules\KB\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
 
 /**
- * MEM-KB-1 (ADR 0053) — KB browser dos documentos servidos via MCP server.
+ * KbController — Knowledge Base browser dos documentos servidos via MCP server.
  *
- * Tela /copiloto/admin/memoria mostra os 100+ docs de mcp_memory_documents
- * (sincronizados de memory/decisions/, memory/sessions/, etc via webhook git).
+ * Tela /kb mostra os docs de mcp_memory_documents (sincronizados de
+ * memory/decisions/, memory/sessions/, memory/comparativos/, etc via webhook
+ * git → POST /api/mcp/sync-memory).
+ *
+ * Histórico (Etapa 2 modularização — 2026-05-03):
+ *   - Antes: Modules\Copiloto\Http\Controllers\Admin\MemoriaKbController @ /copiloto/admin/memoria
+ *   - Agora: Modules\KB\Http\Controllers\KbController @ /kb
  *
  * Diferente de:
- *   - /copiloto/memoria (runtime facts, LGPD opt-out usuário-final)
+ *   - /copiloto/memoria (runtime facts, LGPD opt-out usuário-final, fica no Copiloto)
  *   - /memcofre/memoria (Cofre de Memórias / DocVault — workflow ingest→inbox)
  *
- * Permissão: `copiloto.mcp.memory.manage` (Wagner/superadmin v1).
+ * Permissão Spatie atual: `copiloto.mcp.memory.manage` (mantida pra evitar
+ * migration de rename — dívida técnica registrada pra rename em PR separado
+ * pra `kb.manage` ou `kb.softdelete`).
+ *
+ * O contrato de permissions novo (`Modules/KB/Resources/permissions.php`)
+ * declara as chaves `kb.view`, `kb.softdelete`, `kb.restore`,
+ * `kb.history.view` apenas pra agregação visual no PermissionRegistry.
  */
-class MemoriaKbController extends Controller
+class KbController extends Controller
 {
     public function __construct()
     {
@@ -85,7 +95,7 @@ class MemoriaKbController extends Controller
             'ultimo_sync'    => McpMemoryDocument::max('indexed_at'),
         ];
 
-        return Inertia::render('Copiloto/Admin/Memoria/Index', [
+        return Inertia::render('kb/Index', [
             'docs'    => $paginator,
             'filters' => [
                 'type'     => $type,

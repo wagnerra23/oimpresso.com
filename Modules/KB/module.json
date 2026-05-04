@@ -1,0 +1,16 @@
+{
+    "name": "KB",
+    "alias": "kb",
+    "description": "Knowledge Base — biblioteca compartilhada de ADRs, sessions, runbooks, comparativos. Split do Copiloto (Etapa 2 modularização) — vive em /kb e consome a tabela mcp_memory_documents (sincronizada do git via webhook GitHub).",
+    "keywords": ["kb", "knowledge-base", "memoria", "adr", "session", "runbook", "comparativo", "mcp"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\KB\\Providers\\KBServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}
