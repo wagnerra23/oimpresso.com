@@ -1,4 +1,4 @@
-# ADR 0057 — Tela `/copiloto/admin/team`: regras de governança de tokens MCP e distribuição via `.dxt`
+# ADR 0057 — Tela `/team-mcp/team`: regras de governança de tokens MCP e distribuição via `.dxt`
 
 **Status:** Aceita
 **Data:** 2026-04-30
@@ -11,7 +11,7 @@ Relacionada: [ADR 0053](0053-mcp-server-governanca-como-produto.md), [ADR 0055](
 
 ## Contexto
 
-A tela `/copiloto/admin/team` é o **único ponto de gestão** de quem tem acesso ao MCP server `mcp.oimpresso.com` (CT 100/FrankenPHP). Ela faz:
+A tela `/team-mcp/team` é o **único ponto de gestão** de quem tem acesso ao MCP server `mcp.oimpresso.com` (CT 100/FrankenPHP). Ela faz:
 
 1. **Listar** todos os users do business com tokens ativos, custo hoje/mês, top tools, último uso, quota.
 2. **Gerar** token MCP raw (`mcp_<64-hex>`) — mostrado **1× só**, raw descartado, hash SHA256 gravado.
@@ -182,7 +182,7 @@ Em vez de Bearer estático, fluxo OAuth com refresh token e expiração curta.
 
 ### Gerar `.dxt` pra novo dev
 ```
-Wagner → /copiloto/admin/team → linha do dev → 📦 + DXT
+Wagner → /team-mcp/team → linha do dev → 📦 + DXT
    ↓ confirm
 Backend: McpToken::gerar() + ZipArchive(manifest.json) → .dxt
    ↓ Content-Disposition: attachment
@@ -197,7 +197,7 @@ Dev → 1ª chamada MCP → HTTP 200 + audit log entry
 
 ### Revogar acesso de dev
 ```
-Wagner → /copiloto/admin/team → linha do dev → contador "X ativos" → X
+Wagner → /team-mcp/team → linha do dev → contador "X ativos" → X
    ↓ confirm "revogar todos"
 Backend: UPDATE mcp_tokens SET revoked_at=now(), expires_at=now() WHERE user_id=...
    ↓
@@ -206,7 +206,7 @@ Próxima chamada MCP do dev → HTTP 401 invalid_token
 
 ### Auditoria mensal (Wagner)
 ```
-Wagner → /copiloto/admin/team → 📊 Export CSV → escolhe período
+Wagner → /team-mcp/team → 📊 Export CSV → escolhe período
    ↓
 Browser baixa: oimpresso-team-usage-{YYYYMMDD}.csv
    ↓

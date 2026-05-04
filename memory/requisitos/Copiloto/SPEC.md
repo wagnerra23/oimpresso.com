@@ -259,7 +259,7 @@ Tasks criadas após sessão 2026-05-04 que entregou 4 PRs de modularização (sp
 
 ### US-COPI-076 · ADRs formais split modular + Permission Registry + atualizar 5 ADRs com URLs antigas
 
-> owner: wagner · sprint: 2026-W19 · priority: p2 · estimate: 2h · status: todo
+> owner: wagner · sprint: 2026-W19 · priority: p2 · estimate: 2h · status: done · done_at: 2026-05-04
 
 Fechar dívida documental da sessão 2026-05-04:
 
@@ -271,7 +271,7 @@ Fechar dívida documental da sessão 2026-05-04:
 
 ### US-COPI-077 · ContextForTaskService consumir tasks-current MCP em vez de ler CURRENT.md
 
-> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: todo
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: done · done_at: 2026-05-04 · commit: 6bca4c1b
 
 Wagner reclamou 2026-05-03: "CURRENT.md ativo deve ser substituido pelas tarefas que ja foi feito". Hoje `Modules/ADS/Services/ContextForTaskService.php::buildCycleFocus()` lê filesystem CURRENT.md.
 

@@ -117,7 +117,7 @@ Após migração validada (3 meses sem violação), `rm -rf C:/Users/wagne/.clau
 
 **Anthropic Team plan** (referência ADR 0055/0059) tem **conhecimento compartilhado por design** — Projects/Files/skills são visíveis ao workspace inteiro. Auto-mem privada do Claude Code do Wagner viola esse princípio.
 
-Quando Felipe entrar (`/copiloto/admin/team` token gerado), ele vai abrir Claude Code e **não enxergar** nada que Wagner aprendeu nos últimos 6 meses. Time perde knowledge institucional acumulado.
+Quando Felipe entrar (`/team-mcp/team` token gerado), ele vai abrir Claude Code e **não enxergar** nada que Wagner aprendeu nos últimos 6 meses. Time perde knowledge institucional acumulado.
 
 ### Por que MCP, não só git
 

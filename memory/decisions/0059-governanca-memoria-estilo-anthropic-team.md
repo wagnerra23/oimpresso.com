@@ -42,10 +42,10 @@ Wagner: *"escolha a melhor governança. estilo Claude Team"*. Decisão arquitetu
 | Projects (KBs) | `mcp_memory_documents` agrupado por `module` | ✅ | 0053 |
 | Files in Projects | Linhas em `mcp_memory_documents` (typed: adr/session/spec/...) | ✅ | 0053 |
 | Spend caps per-user | `mcp_quotas` daily/monthly BRL block_on_exceed | ✅ | 0055 |
-| Usage analytics per-user | `mcp_audit_log` + `mcp_usage_diaria` + `/copiloto/admin/team` | ✅ | 0055 |
+| Usage analytics per-user | `mcp_audit_log` + `mcp_usage_diaria` + `/team-mcp/team` | ✅ | 0055 |
 | API keys revogáveis | `mcp_tokens` SHA256-hashed + soft-delete | ✅ | 0055/0057 |
 | Audit log retention | 365d (`COPILOTO_MCP_AUDIT_RETENTION_DAYS`) | ✅ | 0053 |
-| Knowledge governance UI | `/copiloto/admin/memoria` + `/admin/team` + `/admin/governanca` | 🟡 v1 | 0057 |
+| Knowledge governance UI | `/kb` + `/admin/team` + `/admin/governanca` | 🟡 v1 | 0057 |
 | SSO/SCIM | OAuth Sanctum (próximo: bug `claude-code#10250` resolver) | 🔲 | 0053 |
 | Right to explanation | Soft-delete LGPD + history + audit | ✅ | 0053 |
 | **Per-doc visibility** (admin/restricted) | `scope_required` + `admin_only` por linha | ✅ | 0053 |
@@ -123,7 +123,7 @@ Triple-redundância: 2 layers caindo simultaneamente = ainda recuperável.
 - Default novo dev: **R$ [redacted Tier 0]/dia, R$ [redacted Tier 0]/mês**, block=true
 - Tiers de alerta: 50% (log), 80% (notif dashboard), 100% (HTTP 429)
 - Reset: 00:00 BRT diário, dia 1 mensal
-- Wagner edita anytime em `/copiloto/admin/team`
+- Wagner edita anytime em `/team-mcp/team`
 
 #### Pilar 9 — Token management (zero-fricção onboarding)
 
@@ -187,7 +187,7 @@ Triple-redundância: 2 layers caindo simultaneamente = ainda recuperável.
 - **Wagner mantém workflow Cursor/Claude Code** — zero atrito de adoção
 - **Devs novos onboarded em 5 min** via `.dxt` + Vaultwarden token
 - **Audit defensável LGPD** — query SQL em <10s responde "quem acessou X em Y data"
-- **Spend visível em tempo real** — `/copiloto/admin/team` cross-team
+- **Spend visível em tempo real** — `/team-mcp/team` cross-team
 - **Knowledge institucional** acumula via `mcp_cc_sessions` (MEM-CC-UI-1 em build)
 - **Self-host = zero recorrente** (CT 100 já existe; Hostinger MySQL idem)
 - **Reverse engineering** simples: git é fonte → MCP é replay determinístico
