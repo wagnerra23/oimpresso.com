@@ -1,11 +1,13 @@
 #!/usr/bin/env pwsh
-# Stop hook — detecta arquivos em memory/, MEMORY*.md, TASKS.md, CURRENT.md, *.SPEC.md
+# Stop hook — detecta arquivos em memory/, MEMORY*.md, *.SPEC.md, governança raiz
 # que estão modificados/novos sem push e avisa o agente que precisa rodar /sync-mem
 # antes de encerrar o turno.
 #
 # Por que: webhook GitHub → MCP só sincroniza após push. Esquecer de pushar = team
 # (Eliana, Felipe, etc) não enxerga a mudança via tools MCP. Ver MANUAL_CLAUDE_CODE.md
 # §5 (bug recorrente do push de assets — mesma classe de problema).
+#
+# CURRENT.md/TASKS.md foram REMOVIDOS em 2026-05-04 (ADR 0070) — não constam aqui.
 
 $ErrorActionPreference = 'SilentlyContinue'
 
@@ -13,8 +15,6 @@ $ErrorActionPreference = 'SilentlyContinue'
 $tracked = git status --porcelain -- `
     'memory/' `
     'MEMORY.md' `
-    'CURRENT.md' `
-    'TASKS.md' `
     'TEAM.md' `
     'CLAUDE.md' `
     'DESIGN.md' `

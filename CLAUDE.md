@@ -18,7 +18,7 @@ ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas ráp
 
 **Originalmente nasceu** como módulo Ponto WR2 (controle de ponto eletrônico Portaria MTP 671/2021) e evoluiu pra plataforma vertical completa.
 
-> ⚠️ **Foco Cycle 01 (30-abr-2026):** Copiloto em espera. **Foco total: MCP memória + ADRs.**
+> ⚠️ **Estado do trabalho atual:** chame `cycles-active` + `my-work` via tools MCP. CURRENT.md/TASKS.md foram removidos em 2026-05-04 ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)).
 
 **Stack REAL:** Laravel **13.6** + PHP 8.4 (Herd) · MySQL Laragon · DB `oimpresso` · Inertia **v3** + React 19 + Tailwind 4 · Pest v4 · nWidart/laravel-modules ^10 · `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form`.
 
@@ -50,7 +50,14 @@ Se você tem o MCP server `oimpresso` conectado (`.claude/settings.local.json` c
 
 | Pergunta | Tool MCP |
 |---|---|
-| "Qual o estado do cycle?" | `tasks-current` |
+| "O que estou fazendo hoje?" | `my-work` |
+| "Tem algo na minha caixa de entrada?" | `my-inbox` |
+| "Estado do cycle ativo" | `cycles-active` |
+| "Goals do cycle batendo?" | `cycle-goals-track cycle:current` |
+| "Backlog do módulo X" | `tasks-list module:X` |
+| "Detalhe da task COPI-123" | `tasks-detail task_id:COPI-123` |
+| "Tasks novas sem owner/prio" | `triage` |
+| "Velocity / burndown" | `dashboard-velocity` / `dashboard-burndown` |
 | "Qual ADR fala sobre X?" | `decisions-search query:"X"` |
 | "Ler ADR 0053 completa" | `decisions-fetch slug:"0053-mcp-server-governanca-como-produto"` |
 | "Últimas sessões" | `sessions-recent limit:5` |
@@ -64,12 +71,14 @@ UI humana: `/copiloto/admin/memoria` lista 352 docs (ADRs/sessions/refs/comparat
 
 Sem MCP conectado, lê na ordem:
 
-1. **Estado vivo** em [`CURRENT.md`](CURRENT.md) — sprint, em-andamento, próximo passo, bloqueios.
-2. **Handoff** em [`memory/08-handoff.md`](memory/08-handoff.md) — estado canônico mais recente.
-3. **Session log mais recente** em `memory/sessions/` — contexto imediato da última sessão.
-4. **ADRs relevantes** em [`memory/decisions/`](memory/decisions/) — decisões com justificativa.
+1. **Handoff** em [`memory/08-handoff.md`](memory/08-handoff.md) — estado narrativo mais recente.
+2. **Session log mais recente** em `memory/sessions/` — contexto imediato da última sessão.
+3. **ADRs relevantes** em [`memory/decisions/`](memory/decisions/) — decisões com justificativa (ADR 0070 define hierarquia de tasks).
+4. **SPECs** em [`memory/requisitos/<Mod>/SPEC.md`](memory/requisitos/) — US-XXX-NNN canônicos (parser → mcp_tasks).
 5. **Convenções** de [`memory/04-conventions.md`](memory/04-conventions.md).
 6. **Preferências** em [`memory/05-preferences.md`](memory/05-preferences.md).
+
+> ⚠️ **CURRENT.md e TASKS.md foram REMOVIDOS** em 2026-05-04 ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)). Estado de tasks/cycles é 100% via tools MCP (`cycles-active`, `my-work`, `tasks-list`, etc) ou direto no DB `mcp_*`.
 
 Pra qualquer coisa visual/UX, comece em [`DESIGN.md`](DESIGN.md). Pra acesso/deploy de produção, em [`INFRA.md`](INFRA.md).
 
@@ -78,7 +87,7 @@ Pra qualquer coisa visual/UX, comece em [`DESIGN.md`](DESIGN.md). Pra acesso/dep
 - Use **`/compact`** após cada feature mergeada/validada — comprime o histórico mantendo só o essencial.
 - Use **`/clear`** ao trocar de escopo (ex.: terminou Copiloto, vai mexer em Ponto) — começa limpo.
 - Use **Plan mode** (Shift+Tab×2) pra mudanças não-triviais — Claude planeja antes de tocar arquivo.
-- Use **`/continuar`** pra retomar sessão sem re-explorar o repo do zero (lê CURRENT.md + handoff + último session log + abre só os arquivos do próximo passo).
+- Use **`/continuar`** pra retomar sessão sem re-explorar o repo do zero (chama `cycles-active` + `my-work` via tools MCP + handoff + último session log + abre só os arquivos do próximo passo).
 
 **Skills auto-ativáveis:** arquivos em `.claude/skills/<nome>/SKILL.md` ativam automaticamente quando o `description:` do frontmatter casa com a tarefa em andamento. Use pra encapsular padrões recorrentes:
 - `multi-tenant-patterns` — ativa ao criar Entity/Controller/Service/Job que toca dados de negócio (`business_id`).
@@ -86,7 +95,7 @@ Pra qualquer coisa visual/UX, comece em [`DESIGN.md`](DESIGN.md). Pra acesso/dep
 
 Ao terminar uma sessão:
 
-7. **Registre via TaskRegistry MCP tools** — `tasks-comment` em US existente, OU `tasks-create` se for trabalho novo. Política completa em [ADR 0069](memory/decisions/0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated.md) — `TASKS.md` ASCII é deprecated; `CURRENT.md` é só foto do cycle.
+7. **Registre via tools MCP** — `tasks-update <ID> status:done` ao fechar; `tasks-comment <ID>` se ainda em progresso; `tasks-create` se for trabalho novo. Política completa em [ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md) — Jira-style hierarquia (Project/Epic/Cycle/Task), `CURRENT.md`/`TASKS.md` REMOVIDOS.
 8. **Apenda em [`memory/08-handoff.md`](memory/08-handoff.md)** com o novo estado narrativo.
 9. **Crie um session log** em `memory/sessions/YYYY-MM-DD-*.md` descrevendo o que foi feito.
 10. **Se tomou decisão arquitetural nova**, crie ADR em `memory/decisions/NNNN-slug.md`.
@@ -98,8 +107,6 @@ Ao terminar uma sessão:
 ```
 D:\oimpresso.com\
 ├── CLAUDE.md          # Este arquivo — primer pra agentes
-├── CURRENT.md         # Foto do cycle — goal + Active WIP + On-deck (status diário NÃO vai aqui — ver ADR 0069)
-├── TASKS.md           # ⚠️ DEPRECATED (ADR 0069) — backlog canônico migrou pra TaskRegistry MCP tools (SPEC.md + mcp_tasks)
 ├── DESIGN.md          # Hub visual/UX + padrão técnico React
 ├── INFRA.md           # Acesso SSH Hostinger, deploy, fixes manuais
 ├── AGENTS.md          # Mirror para outros agentes (opcional)
@@ -112,8 +119,9 @@ D:\oimpresso.com\
 │   ├── 00-user-profile.md ... 08-handoff.md
 │   ├── decisions/     # ADRs (Michael Nygard format)
 │   ├── sessions/      # Logs cronológicos por sessão
-│   ├── requisitos/    # SPECs por módulo + ADRs específicos
+│   ├── requisitos/    # SPECs por módulo (US-XXX-NNN → mcp_tasks)
 │   └── comparativos/  # Capterra-style competitive briefs
+│   # ⚠️ Estado vivo de tasks/cycles → tabelas mcp_* (DB) via tools MCP — ADR 0070
 ├── Modules/
 │   ├── Copiloto/      # Chat IA + metas + custos (ADR 0035)
 │   ├── Financeiro/    # Contas a pagar/receber, dashboard, relatórios
@@ -186,15 +194,16 @@ D:\oimpresso.com\
 
 | Sistema | Conteúdo | Source-of-truth | Acesso IA |
 |---|---|---|---|
-| `CURRENT.md` | Estado vivo cycle/sprint | git | tool MCP `tasks-current` |
+| `mcp_projects/epics/cycles/tasks/...` | Estado vivo de tasks/cycles/projetos (Jira-style) | DB | tools `tasks-*`, `cycles-*`, `epics-*`, `my-work`, `triage` |
 | `memory/08-handoff.md` | Handoff estado canônico | git | tool MCP via slug `handoff` |
 | `memory/decisions/*.md` | ADRs Nygard | git | tools `decisions-search`/`decisions-fetch` |
 | `memory/sessions/*.md` | Logs cronológicos | git | tool MCP `sessions-recent` |
-| `memory/requisitos/{Mod}/` | SPECs + ADRs por módulo + runbook + audit | git | tool MCP `decisions-search module:` |
+| `memory/requisitos/{Mod}/SPEC.md` | US-XXX-NNN canônicos (parser → mcp_tasks) | git | tools `tasks-*` |
+| `memory/requisitos/{Mod}/` (resto) | ADRs por módulo + runbook + audit | git | tool MCP `decisions-search module:` |
 | `memory/comparativos/*.md` | Capterra-style competitive briefs | git | tool MCP via slug `comparativo-*` |
 | Auto-memória | Cross-conversation Claude (preferências) | local user | NÃO sobe pro MCP |
 | MemCofre | Evidências (DocVault) | DB | tela `/memcofre` |
-| `mcp_memory_documents` | DB cache de tudo acima exceto auto-mem | sync git→DB | tools MCP |
+| `mcp_memory_documents` | DB cache de docs git acima | sync git→DB | tools MCP |
 
 **Não duplicar info entre sistemas.** Git é canônico; MCP é cache governado.
 
@@ -213,7 +222,7 @@ Os arquivos abaixo formalizam decisões já tomadas. **Modificar via ADR nova qu
 | `memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md` | Pesquisa mai/2026 | Substituir por novo arquivo `RETRIEVAL-ESTADO-ARTE-AAAA-MM.md` quando atualizar (versionado por data) |
 | `memory/requisitos/Copiloto/RETRIEVAL-GOTCHAS.md` | 13 armadilhas Sprint 9 | Apenda novos itens; nunca remover sem ADR justificando |
 | `HOW_TO_ASK_CLAUDE.md` | Estado-da-arte 2026 | Substituir inteiro quando Anthropic publicar guidance nova; registrar mudança em ADR se inverter princípio |
-| `memory/requisitos/<Mod>/SPEC.md` | TaskRegistry source-of-truth | Editar via `tasks-create`/`tasks-update`/`tasks-comment` (ADR 0069), não à mão |
+| `memory/requisitos/<Mod>/SPEC.md` | TaskRegistry source-of-truth dos US-XXX-NNN | Editar via `tasks-create`/`tasks-update`/`tasks-comment` (ADR 0070), não à mão |
 
 Quando Claude propor edição em qualquer doc desta lista, **mostrar diff antes** e confirmar se há ADR de origem. Sem ADR de origem = recusar, pedir Wagner pra criar ADR primeiro.
 
@@ -268,8 +277,8 @@ Ver [`DESIGN.md`](DESIGN.md) — hub visual + padrão técnico Chat Cockpit (App
 
 **Convenção em commits:** `[W]`, `[M]`, `[F]`, `[L]`, `[E]`, `[L+C]` (Luiz pareado Claude), etc. Ex.: `feat(copiloto): PII redactor BR [F]`.
 
-**Ciclo de trabalho:** Cycle de 2 semanas — `CURRENT.md` define goal outcome-oriented + Active (WIP por pessoa) + On-deck. Daily async 09h cada um atualiza status das próprias US via **TaskRegistry MCP tool** `tasks-update` (ADR 0069). Sex final do cycle: Wagner arquiva `CURRENT.md` em `memory/cycles/CICLO-NN-YYYY-MM-DD.md` com retro de 5 linhas.
+**Ciclo de trabalho:** Cycle de 2 semanas como entidade `mcp_cycles` — criado via `cycles-create` com goal outcome-oriented; goals trackados via `cycle-goals-track`; WIP+backlog via `tasks-list cycle:current`. Daily async 09h cada um atualiza status das próprias US via **tool MCP** `tasks-update` (ADR 0070). Sex final do cycle: `cycles-close --rollover` move incompletas pro próximo cycle e fecha o atual com retro em `mcp_cycles.retro` JSON.
 
 ---
 
-> **Última atualização:** 2026-04-30 — §1 stack atualizada (Vizra REJEITADA ADR 0048, Reverb ABANDONADO ADR 0058 → Centrifugo); §2 fluxo MCP-first (tools sobre filesystem); §6 KB MCP UI `/copiloto/admin/memoria` + 352 docs sincronizados (F1 sync expansion)
+> **Última atualização:** 2026-05-04 — §2 §3 §6 §10 reescritos pra Jira-style task management ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)): CURRENT.md/TASKS.md REMOVIDOS; estado vivo via tools `cycles-active`/`my-work`/`tasks-list`/`triage`/`my-inbox` + tabelas `mcp_projects/epics/cycles/tasks`. Hierarquia profissional: Project → Epic → Cycle → Story → Subtask + Components cross-cut + Custom fields + Saved views + Inbox + Bidirectional git sync + Memory-linked tasks (D1) + AI-native (D2).
