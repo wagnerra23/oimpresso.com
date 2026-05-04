@@ -111,7 +111,9 @@ class McpMemoryDocument extends Model
     }
 
     // -------------------------------------------------------------------------
-    // Scout / Meilisearch hybrid (Sprint 8 — ADR 0037)
+    // Scout / Meilisearch hybrid (Sprint 9 — ADR 0068)
+    // Embedder: Ollama nomic-embed-text (local, custo zero).
+    // MEILI_EXPERIMENTAL_ALLOWED_IP_NETWORKS no compose permite CIDR privado.
     // -------------------------------------------------------------------------
 
     public function searchableAs(): string
@@ -126,7 +128,6 @@ class McpMemoryDocument extends Model
             'slug'            => $this->slug,
             'title'           => $this->title,
             'content_md'      => $this->content_md,
-            // Sprint 9: excerpt pra embedder (template curto, sem overflow de tokens)
             'content_excerpt' => mb_substr($this->content_md ?? '', 0, 400),
             'type'            => $this->type,
             'module'          => $this->module,
