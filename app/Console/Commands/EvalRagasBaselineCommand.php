@@ -42,7 +42,8 @@ class EvalRagasBaselineCommand extends Command
                             {--pipeline=adr : Modo (adr | copiloto)}
                             {--judge-model= : Modelo do LLM judge (auto-detect: gpt-4o-mini se OpenAI, claude-sonnet-4-6 se Anthropic)}
                             {--provider= : Forçar provider (openai | anthropic). Auto-detect via env por default.}
-                            {--threshold=0.7 : Score médio mínimo pra exit 0}';
+                            {--threshold=0.7 : Score médio mínimo pra exit 0}
+                            {--semantic-ratio= : Override do semanticRatio Meilisearch (0.0-1.0). Default: valor em config}';
 
     protected $description = 'Sprint 7 RAGAS — baseline com 3 metrics LLM-as-judge sobre golden questions';
 
@@ -87,8 +88,12 @@ class EvalRagasBaselineCommand extends Command
         $pipeline = $this->option('pipeline');
         $judgeModel = $this->option('judge-model')
             ?: ($provider === 'openai' ? 'gpt-4o-mini' : 'claude-sonnet-4-6');
-        $this->info(sprintf('Pipeline: %s · Judge: %s · Perguntas: %d',
-            $pipeline, $judgeModel, count($questions)));
+        $ratioOverride = $this->option('semantic-ratio');
+        $semanticInfo = $ratioOverride !== null
+            ? sprintf('semanticRatio=%.2f (override)', (float) $ratioOverride)
+            : sprintf('semanticRatio=%.2f (config)', (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.5));
+        $this->info(sprintf('Pipeline: %s · Judge: %s · Perguntas: %d · %s',
+            $pipeline, $judgeModel, count($questions), $semanticInfo));
 
         $results = [];
         foreach ($questions as $i => $q) {
@@ -193,7 +198,10 @@ class EvalRagasBaselineCommand extends Command
         $fetchK = $topK;
 
         try {
-            $semanticRatio = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.5);
+            $ratioOverride = $this->option('semantic-ratio');
+            $semanticRatio = $ratioOverride !== null
+                ? (float) $ratioOverride
+                : (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.5);
 
             $docs = McpMemoryDocument::search($query, function ($index, $q, $params) use ($semanticRatio, $fetchK) {
                 $params['hybrid'] = [
