@@ -270,9 +270,23 @@ class IndexarMemoryGitParaDb
         // UPSERT
         $doc = McpMemoryDocument::firstOrNew(['slug' => $info['slug']]);
         $novo = ! $doc->exists;
-        $contentMudou = $doc->content_md !== $contentRedacted || $doc->git_sha !== $gitSha;
 
         $tipadas = $this->extrairColunasTipadas($frontmatter, $piiCount);
+
+        // Bug fix US-COPI-078 backfill: detectar mudança no FRONTMATTER mesmo
+        // quando body não muda (caso típico: ADR antigo ganhou frontmatter
+        // YAML pelo `mcp:adr:migrar-frontmatter` mas body permaneceu idêntico).
+        // Sem isso, sync ignora a atualização e colunas tipadas ficam NULL.
+        $metadataMudou = $doc->exists && (
+            ($doc->status ?? null) !== ($tipadas['status'] ?? null) ||
+            ($doc->authority ?? null) !== ($tipadas['authority'] ?? null) ||
+            json_encode($doc->supersedes ?? null) !== json_encode($tipadas['supersedes'] ?? null) ||
+            json_encode($doc->superseded_by ?? null) !== json_encode($tipadas['superseded_by'] ?? null)
+        );
+
+        $contentMudou = $doc->content_md !== $contentRedacted
+            || $doc->git_sha !== $gitSha
+            || $metadataMudou;
 
         $atributos = array_merge([
             'business_id'          => $this->businessId,
