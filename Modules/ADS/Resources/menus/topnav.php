@@ -21,7 +21,7 @@ return [
         ['label' => 'Decisões',          'href' => '/ads/admin/decisoes',    'icon' => 'Inbox',       'can' => 'ads.decisoes.review'],
 
         // ─── CONHECIMENTO ───
-        ['label' => 'Knowledge Base',    'href' => '/ads/admin/kb',          'icon' => 'BookOpen',    'can' => 'ads.access'],
+        ['label' => 'KB →',              'href' => '/kb',                    'icon' => 'BookOpen',    'can' => 'ads.access'],
         ['label' => 'Skills',            'href' => '/ads/admin/skills',      'icon' => 'Zap',         'can' => 'ads.access'],
         // (Confidence virou tab dentro de Skills)
         ['label' => 'Tools',             'href' => '/ads/admin/tools',       'icon' => 'Wrench',      'can' => 'ads.access'],
