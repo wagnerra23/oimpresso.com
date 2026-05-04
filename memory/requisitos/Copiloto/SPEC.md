@@ -318,7 +318,7 @@ Slot reservado pra fix dos bugs/UX issues que aparecerem na demo. Margem de segu
 
 ### US-COPI-081 · Sprint 7 RAGAS — gate de medição Cycle 01
 
-> owner: wagner · sprint: 2026-W20 · priority: p0 · estimate: 12h · status: in-progress · progress: 80% · session: memory/sessions/2026-05-04-ragas-baseline-infra.md
+> owner: wagner · sprint: 2026-W20 · priority: p0 · estimate: 12h · status: done · done_at: 2026-05-04 · baseline_ragas: 0.72 (8 ADRs, OpenAI gpt-4o-mini) · session: memory/sessions/2026-05-04-ragas-baseline-infra.md
 
 Sprint 7 do roadmap Tier 7-9 (ADR 0037). Gate quantitativo do Cycle 01: provar que memória/RAG funciona com métrica reproduzível.
 
