@@ -149,20 +149,32 @@ class EvalRagasBaselineCommand extends Command
 
     private function pipelineAdr(array $q, string $apiKey, string $model, string $provider): ?array
     {
-        // Recupera ADRs relevantes via grep simples (proxy de retrieval)
+        // Retrieval BM25-like: rankeia TODAS as ADRs por score keyword-match,
+        // pega top-3. Antes era linear e parava no primeiro 3 hits — deixava
+        // ADRs canônicas relevantes (ex: 0066) fora se aparecessem alfabéticamente
+        // depois de 3 falsos positivos. Descoberto pelo próprio teste RAGAS
+        // (relevancy 0.0 mesmo com ctx_prec 1.0 — context recuperado errado).
         $keywords = $this->extractKeywords($q['question']);
-        $contextChunks = [];
+        $scored = [];
         foreach (glob(base_path('memory/decisions/*.md')) as $f) {
             if (str_starts_with(basename($f), '_')) continue;
             $content = file_get_contents($f);
             $score = 0;
             foreach ($keywords as $kw) {
                 if (mb_stripos($content, $kw) !== false) $score++;
+                // Bonus se keyword aparece no título (linha do # H1)
+                if (preg_match('/^#\s.*' . preg_quote($kw, '/') . '/im', $content)) $score += 2;
             }
             if ($score >= 2) {
-                $contextChunks[] = sprintf("# %s\n%s", basename($f), mb_substr($content, 0, 2000));
+                $scored[] = ['file' => $f, 'score' => $score, 'content' => $content];
             }
-            if (count($contextChunks) >= 3) break;
+        }
+        // Top-3 por score desc
+        usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+        $contextChunks = [];
+        foreach (array_slice($scored, 0, 3) as $hit) {
+            $contextChunks[] = sprintf("# %s (score=%d)\n%s",
+                basename($hit['file']), $hit['score'], mb_substr($hit['content'], 0, 2000));
         }
 
         $context = implode("\n\n---\n\n", $contextChunks);
