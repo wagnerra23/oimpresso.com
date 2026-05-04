@@ -3,6 +3,7 @@
 # Custo aprox: $0.30/run (Sonnet 4.6)
 
 - id: format-date-shift
+  category: adr
   question: "Posso corrigir o shift +3h em format_date?"
   must_contain:
     - "ADR 0066"
@@ -16,6 +17,7 @@
   expected_adr: "0066"
 
 - id: permission-registry
+  category: adr
   question: "Como funciona o Permission Registry?"
   must_contain:
     - "Modules/*/Resources/permissions.php"
@@ -27,6 +29,7 @@
   expected_adr: "0065"
 
 - id: usuario-360-location
+  category: adr
   question: "Onde mora a tela Usuário 360°?"
   must_contain:
     - "/superadmin/usuarios"
@@ -36,6 +39,7 @@
   expected_adr: "0064"
 
 - id: split-modular
+  category: adr
   question: "Por que TeamMcp foi separado do Copiloto?"
   must_contain:
     - "agentes externos"
@@ -46,6 +50,7 @@
   expected_adr: "0064"
 
 - id: kb-mora
+  category: adr
   question: "Onde fica o KB do projeto?"
   must_contain:
     - "/kb"
@@ -55,6 +60,7 @@
   expected_adr: "0064"
 
 - id: governance-criar
+  category: adr
   question: "Devo criar módulo Governance separado agora?"
   must_contain:
     - "não"
@@ -65,6 +71,7 @@
   expected_adr: "0064"
 
 - id: vizra-rejeitada
+  category: adr
   question: "Posso usar Vizra ADK no projeto?"
   must_contain:
     - "rejeitada"
@@ -75,6 +82,7 @@
   expected_adr: "0048"
 
 - id: reverb-status
+  category: adr
   question: "Reverb está em produção?"
   must_contain:
     - "abandonado"
