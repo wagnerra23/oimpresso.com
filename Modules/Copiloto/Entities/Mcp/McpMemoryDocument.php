@@ -123,12 +123,18 @@ class McpMemoryDocument extends Model
 
     public function toSearchableArray(): array
     {
+        // Remove frontmatter YAML (---\n...\n---\n) antes de gerar o excerpt.
+        // Sem isso, ADRs com 200-400 chars de frontmatter geram vetores semanticamente
+        // idênticos entre si e sem relação com o conteúdo real do documento.
+        $body    = preg_replace('/^\s*---\n.*?\n---\n?/s', '', $this->content_md ?? '');
+        $excerpt = mb_substr(trim($body), 0, 400);
+
         return [
             'id'              => $this->id,
             'slug'            => $this->slug,
             'title'           => $this->title,
             'content_md'      => $this->content_md,
-            'content_excerpt' => mb_substr($this->content_md ?? '', 0, 400),
+            'content_excerpt' => $excerpt,
             'type'            => $this->type,
             'module'          => $this->module,
             'status'          => $this->status ?? 'aceito',
