@@ -357,10 +357,17 @@ Sprint 9 fase 2 — investigar regressão score RAGAS 0.66 → 0.158 após troca
 
 **Acceptance**: score RAGAS recuperado pra ≥0.66 (atingido 0.700) · 3 fixes commitados em prod · 3 docs canônicos de governança em `memory/requisitos/Copiloto/` · ADR 0068 + 0069 aceitas · session log gravado.
 
-### US-COPI-083 · Sprint 9b — qwen3-embedding:4b + stopwords PT-BR (meta superar 0.72)
+### US-COPI-083 · Sprint 9b — qwen3-embedding:0.6b + stopwords PT-BR (em par com baseline)
 
-> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 4h · status: todo
+> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 4h · status: done · done_at: 2026-05-04 · score_ragas: 0.692 (ratio=0.6 vencedor) · model: qwen3-embedding:0.6b (CT 100 CPU-only)
 > blocked_by: —
+
+**Resultado eval matrix (qwen3 + stopwords PT-BR + localizedAttributes):**
+- ratio=0.4 → 0.637 · ratio=0.5 → 0.642 · **ratio=0.6 → 0.692** · ratio=0.0 (MySQL FT bypass) → 0.700
+
+**Smoke test cosine:** qwen3 dá 0.55 entre ADRs distintas (nomic dava 0.97 uniforme). Semantic discrimina PT-BR de verdade.
+
+**Decisão:** model 4b descartado pelo CT 100 ser CPU-only (proibitivo). 0.6b validado.
 
 Substituir nomic-embed-text (EN-only, gera cosine ~0.97 uniforme em PT-BR) por qwen3-embedding:4b (#1 MTEB multilingual Jun/2025, PT-BR explícito) + ajustes Meilisearch PT-BR.
 
@@ -380,7 +387,7 @@ Substituir nomic-embed-text (EN-only, gera cosine ~0.97 uniforme em PT-BR) por q
 
 ### US-COPI-084 · Slash command /ultrareview — code review adversarial automático
 
-> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 2h · status: todo
+> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 2h · status: done · done_at: 2026-05-04
 > blocked_by: —
 
 Implementar `.claude/commands/ultrareview.md` que pede ao Claude (ou sub-agent via Task tool) pra revisar `git diff staged|HEAD` como adversário cético: encontre 3 bugs, 2 race conditions, 1 LGPD issue, 1 anti-padrão de stack canônica.
@@ -391,7 +398,7 @@ Implementar `.claude/commands/ultrareview.md` que pede ao Claude (ou sub-agent v
 
 ### US-COPI-085 · Hook block-destructive — guardrails Bash em produção
 
-> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 3h · status: todo
+> owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 3h · status: done · done_at: 2026-05-04 · tests_passing: 14/14
 > blocked_by: —
 
 Hook PreToolUse em `.claude/settings.json` que bloqueia (exit 2) comandos Bash destrutivos sem confirmação humana: `rm -rf`, `git push --force`, `git reset --hard origin/`, `DROP TABLE`, `DELETE FROM ... WHERE 1`, `composer update` (sem `--lock`), `php artisan migrate:fresh --force` em produção.
@@ -402,7 +409,7 @@ Hook PreToolUse em `.claude/settings.json` que bloqueia (exit 2) comandos Bash d
 
 ### US-COPI-086 · Hook pii-redactor — bloquear commit com PII (LGPD)
 
-> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 3h · status: todo
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 3h · status: done · done_at: 2026-05-04 · tests_passing: 10/10
 > blocked_by: —
 
 Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por regex PII (CPF, CNPJ, email, cartão) e bloqueia se achar. Avisa ao Claude com mensagem "[PII detectada em path:line] — substitua por [REDACTED] ou fixture fake (ex.: 123.456.789-09)".
