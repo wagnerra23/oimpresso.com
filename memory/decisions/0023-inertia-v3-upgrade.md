@@ -1,3 +1,19 @@
+---
+slug: 0023-inertia-v3-upgrade
+number: 23
+title: !!binary gJQgVXBncmFkZSBwYXJhIEluZXJ0aWEuanMgdjM=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-26'
+quarter: 2026-Q2
+tags: {  }
+related: {  }
+pii: false
+---
 # ADR 0023 — Upgrade para Inertia.js v3
 
 **Status:** ✅ Aceita

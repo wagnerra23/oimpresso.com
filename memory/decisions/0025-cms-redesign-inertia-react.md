@@ -1,3 +1,22 @@
+---
+slug: 0025-cms-redesign-inertia-react
+number: 25
+title: !!binary gJQgUmVkZXNpZ24gZGEgbGFuZGluZyBww7pibGljYSAoYE1vZHVsZXMvQ21zYCkgZW0gSW5lcnRpYS9SZWFjdA==
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-26'
+module: cms
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0023'
+  - '0024'
+pii: false
+---
 # ADR 0025 — Redesign da landing pública (`Modules/Cms`) em Inertia/React
 
 **Status:** ✅ Aceita

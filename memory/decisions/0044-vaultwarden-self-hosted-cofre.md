@@ -1,3 +1,23 @@
+---
+slug: 0044-vaultwarden-self-hosted-cofre
+number: 44
+title: !!binary gJQgVmF1bHR3YXJkZW4gc2VsZi1ob3N0ZWQgY29tbyBjb2ZyZSBkZSBjcmVkZW5jaWFpcw==
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-28'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0040'
+  - 0040-policy-publicacao-claude-supervisiona
+  - '0043'
+  - 0043-docker-host-traefik-vs-lxc-nativo
+pii: false
+---
 # ADR 0044 — Vaultwarden self-hosted como cofre de credenciais
 
 **Status:** ✅ Aceita

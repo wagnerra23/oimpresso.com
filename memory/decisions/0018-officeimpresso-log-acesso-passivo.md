@@ -1,3 +1,25 @@
+---
+slug: 0018-officeimpresso-log-acesso-passivo
+number: 18
+title: !!binary gJQgTG9nIGRlIGFjZXNzbyBkbyBkZXNrdG9wIHZpYSB0cmlnZ2VycyBNeVNRTCAocGFzc2l2byk=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-23'
+module: officeimpresso
+quarter: 2026-Q2
+tags: {  }
+supersedes:
+  - '2026-04-24'
+  - '2026'
+  - '0000'
+related:
+  - '0017'
+pii: false
+---
 # ADR 0018 — Log de acesso do desktop via triggers MySQL (passivo)
 
 **Status:** ⚠️ SUPERSEDED pela arquitetura event-listener/middleware (ver seção "Update 2026-04-24" no final)

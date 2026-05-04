@@ -1,3 +1,19 @@
+---
+slug: 0009-prototipos-html-puro
+number: 9
+title: !!binary gJQgUHJvdMOzdGlwb3MgdmlzdWFpcyBlbSBIVE1MICsgVGFpbHdpbmQgKyBDaGFydC5qcyAobsOjbyBSZWFjdCk=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-18'
+quarter: 2026-Q2
+tags: {  }
+related: {  }
+pii: false
+---
 # ADR 0009 — Protótipos visuais em HTML + Tailwind + Chart.js (não React)
 
 **Status:** ✅ Aceita

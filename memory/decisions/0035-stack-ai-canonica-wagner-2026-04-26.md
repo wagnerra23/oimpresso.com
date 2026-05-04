@@ -1,3 +1,29 @@
+---
+slug: 0035-stack-ai-canonica-wagner-2026-04-26
+number: 35
+title: !!binary gJQgU3RhY2stYWx2byBkZSBJQSBkbyBDb3BpbG90bzogZGVjbGFyYcOnw6NvIGNhbsO0bmljYQ==
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+  - E
+decided_at: '2026-04-26'
+module: copiloto
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0022'
+  - '0026'
+  - 0026-posicionamento-erp-grafico-com-ia
+  - '0027'
+  - 0027-gestao-memoria-roles-claros
+  - '0031'
+  - 0031-memoriacontrato-mem0-default
+  - '0032'
+pii: false
+---
 # ADR 0035 — Stack-alvo de IA do Copiloto: declaração canônica
 
 **Status:** ✅ Aceita — **VERDADE CANÔNICA do projeto** — ⚠️ ordem dos sprints **revisada por ADR 0036** (Meilisearch first, Mem0 último)

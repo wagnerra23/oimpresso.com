@@ -1,3 +1,23 @@
+---
+slug: 0026-posicionamento-erp-grafico-com-ia
+number: 26
+title: !!binary gJQgUG9zaWNpb25hbWVudG8gZXN0cmF0w6lnaWNvOiBFUlAgZGUgQ29tdW5pY2HDp8OjbyBWaXN1YWwgY29tIElB
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-26'
+module: cms
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0022'
+  - '0023'
+  - '0025'
+pii: false
+---
 # ADR 0026 — Posicionamento estratégico: ERP de Comunicação Visual com IA
 
 **Status:** ✅ Aceita

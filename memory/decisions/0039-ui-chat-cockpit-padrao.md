@@ -1,3 +1,22 @@
+---
+slug: 0039-ui-chat-cockpit-padrao
+number: 39
+title: !!binary gJQgUGFkcsOjbyBkZSBVSSAiQ2hhdCBDb2NrcGl0IiAoMyBjb2x1bmFzKSBwYXJhIG8gRVJQ
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-27'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0008'
+  - '0011'
+  - '0023'
+pii: false
+---
 # ADR 0039 — Padrão de UI "Chat Cockpit" (3 colunas) para o ERP
 
 **Status:** ✅ Aceita

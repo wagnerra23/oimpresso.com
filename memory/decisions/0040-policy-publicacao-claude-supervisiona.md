@@ -1,3 +1,21 @@
+---
+slug: 0040-policy-publicacao-claude-supervisiona
+number: 40
+title: !!binary gJQgUG9saWN5IGRlIHB1YmxpY2HDp8OjbzogQ2xhdWRlIHN1cGVydmlzaW9uYSwgV2FnbmVyIGVzY2FsYQ==
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-28'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0027'
+  - '0030'
+pii: false
+---
 # ADR 0040 — Policy de publicação: Claude supervisiona, Wagner escala
 
 **Status:** ✅ Aceita

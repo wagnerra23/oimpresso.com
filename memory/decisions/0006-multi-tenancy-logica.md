@@ -1,3 +1,19 @@
+---
+slug: 0006-multi-tenancy-logica
+number: 6
+title: !!binary gJQgTXVsdGktdGVuYW5jeSBsw7NnaWNhIHZpYSBgYnVzaW5lc3NfaWRg
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-18'
+quarter: 2026-Q2
+tags: {  }
+related: {  }
+pii: false
+---
 # ADR 0006 — Multi-tenancy lógica via `business_id`
 
 **Status:** ✅ Aceita

@@ -1,3 +1,25 @@
+---
+slug: 0052-contextonegocio-expor-multiplos-angulos
+number: 52
+title: !!binary gJQgYENvbnRleHRvTmVnb2Npb2AgZGV2ZSBleHBvciBtw7psdGlwbG9zIMOibmd1bG9zIHBvciBtw6l0cmljYSAobsOjbyAxIG7Dum1lcm8p
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-29'
+module: copiloto
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0046'
+  - '0047'
+  - '0049'
+  - '0050'
+  - '0051'
+pii: false
+---
 # ADR 0052 — `ContextoNegocio` deve expor múltiplos ângulos por métrica (não 1 número)
 
 **Status:** Aceito

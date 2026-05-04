@@ -1,3 +1,21 @@
+---
+slug: 0017-officeimpresso-restaurado-superadmin-exclusivo
+number: 17
+title: !!binary gJQgT2ZmaWNlaW1wcmVzc28gcmVzdGF1cmFkbyBkYSAzLjcgY29tbyBtw7NkdWxvIFN1cGVyYWRtaW4gZXhjbHVzaXZv
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-23'
+module: officeimpresso
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0018'
+pii: false
+---
 # ADR 0017 — Officeimpresso restaurado da 3.7 como módulo Superadmin exclusivo
 
 **Status:** Aceito

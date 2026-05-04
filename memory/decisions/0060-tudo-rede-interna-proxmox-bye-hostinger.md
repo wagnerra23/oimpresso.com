@@ -1,3 +1,31 @@
+---
+slug: 0060-tudo-rede-interna-proxmox-bye-hostinger
+number: 60
+title: !!binary gJQgSUEgKyB3b3JrZXJzIHBlc2Fkb3MgbmEgcmVkZSBpbnRlcm5hIChQcm94bW94KSwgYXBwIHByaW5jaXBhbCBjb250aW51YSBIb3N0aW5nZXIgKE9ww6fDo28gQyBow61icmlkYSk=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-30'
+module: infra
+quarter: 2026-Q2
+tags: {  }
+supersedes:
+  - '0042'
+  - '0044'
+related:
+  - '0030'
+  - '0042'
+  - 0042-infra-empresa-padrao
+  - '0044'
+  - '0053'
+  - 0053-mcp-server-governanca-como-produto
+  - '0058'
+  - 0058-reverb-substituido-por-centrifugo-frankenphp
+pii: false
+---
 # ADR 0060 — IA + workers pesados na rede interna (Proxmox), app principal continua Hostinger (Opção C híbrida)
 
 **Status:** ✅ Aceita (decisão revisada Wagner 2026-04-30 noite — "podemos tentar")

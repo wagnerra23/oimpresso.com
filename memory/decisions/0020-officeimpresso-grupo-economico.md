@@ -1,3 +1,23 @@
+---
+slug: 0020-officeimpresso-grupo-economico
+number: 20
+title: !!binary gJQgR3J1cG8gZWNvbsO0bWljbyAobWF0cml6ICsgZmlsaWFpcykgbm8gT2ZmaWNlaW1wcmVzc28=
+type: adr
+status: proposto
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-24'
+module: officeimpresso
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0017'
+  - '0018'
+  - '0019'
+pii: false
+---
 # ADR 0020 — Grupo econômico (matriz + filiais) no Officeimpresso
 
 > "Grupo econômico" é o termo legal/contábil correto em PT-BR para conjunto de empresas com controle/ownership comum (matriz + filiais, holdings).

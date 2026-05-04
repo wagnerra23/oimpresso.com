@@ -1,3 +1,20 @@
+---
+slug: 0007-banco-horas-ledger
+number: 7
+title: !!binary gJQgQmFuY28gZGUgaG9yYXMgY29tbyBsZWRnZXIgYXBwZW5kLW9ubHk=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-18'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0003'
+pii: false
+---
 # ADR 0007 — Banco de horas como ledger append-only
 
 **Status:** ✅ Aceita
