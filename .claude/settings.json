@@ -30,6 +30,15 @@
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-automem.ps1"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-destructive.ps1"
+          }
+        ]
       }
     ],
     "Stop": [
