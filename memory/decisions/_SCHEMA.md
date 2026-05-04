@@ -6,7 +6,7 @@
 
 ## Por que existe
 
-Sem frontmatter tipado, a coluna `metadata` em `mcp_memory_documents` vira lixeira de strings. Ferramentas MCP (`decisions-search`, `decisions-fetch`) não filtram por `status:aceito` ou `module:copiloto` porque o dado não está estruturado. UI `/copiloto/admin/memoria` mostra filtro só por `type` (hardcoded) — nada além disso é queryable.
+Sem frontmatter tipado, a coluna `metadata` em `mcp_memory_documents` vira lixeira de strings. Ferramentas MCP (`decisions-search`, `decisions-fetch`) não filtram por `status:aceito` ou `module:copiloto` porque o dado não está estruturado. UI `/kb` mostra filtro só por `type` (hardcoded) — nada além disso é queryable.
 
 Frontmatter YAML resolve em uma jogada: dado vai pra colunas tipadas no DB, filtros viram WHERE clauses reais, Claude consegue descartar ADR superseded automaticamente.
 

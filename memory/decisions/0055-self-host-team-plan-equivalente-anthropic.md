@@ -29,7 +29,7 @@ Construir equivalente self-host completo de **todas as features Anthropic Team p
 
 | Feature Anthropic | Self-host oimpresso | Tabelas usadas | Status |
 |---|---|---|---|
-| Lista de seats (devs ativos) | `/copiloto/admin/team` lista users com tokens MCP ativos | `users`, `mcp_tokens` | 🔲 TODO |
+| Lista de seats (devs ativos) | `/team-mcp/team` lista users com tokens MCP ativos | `users`, `mcp_tokens` | 🔲 TODO |
 | Add/remove dev (seat management) | Cmd `copiloto:mcp-token:gerar` + `copiloto:mcp-token:revogar` | `mcp_tokens` | ✅ schema |
 | Spend limits per-org | `mcp_quotas` row com user_id=NULL = limite global | `mcp_quotas` | ✅ schema |
 | Spend limits per-user | `mcp_quotas` row por user_id | `mcp_quotas` | ✅ schema |
@@ -37,7 +37,7 @@ Construir equivalente self-host completo de **todas as features Anthropic Team p
 | Usage analytics dashboard | `/copiloto/admin/governanca` (já feito) + expansões | `mcp_audit_log`, `mcp_usage_diaria` | ✅ base, expandir |
 | DAU/WAU/MAU | Widget no dashboard | `mcp_audit_log` agregado | 🔲 TODO |
 | Per-user activity (sessions, tokens, custo) | Tabela no dashboard | `mcp_audit_log` + `mcp_cc_sessions` | parcial |
-| Cost CSV export | Endpoint `/copiloto/admin/team/export.csv` | `mcp_audit_log` | 🔲 TODO |
+| Cost CSV export | Endpoint `/team-mcp/team/export.csv` | `mcp_audit_log` | 🔲 TODO |
 | Centralized billing visibility | Total mensal + breakdown per-user | `mcp_usage_diaria.custo_brl` | 🔲 TODO |
 | Spend cap enforcement | Middleware bloqueia call se limite atingido | `McpAuthMiddleware` + `QuotaEnforcer` | 🔲 TODO |
 | Skill invocations analytics | Top skills por user/período | `mcp_audit_log.tool_or_resource` | ✅ tem, só dashboard pequeno |
@@ -49,7 +49,7 @@ Construir equivalente self-host completo de **todas as features Anthropic Team p
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  /copiloto/admin/team  (Inertia React, agora)                  │
+│  /team-mcp/team  (Inertia React, agora)                  │
 │  ┌────────────────────────────────────────────────────────┐    │
 │  │ Wagner [W]    | tokens=1 | hoje=R$2,40 | limite=R$50/d │    │
 │  │ Felipe [F]    | tokens=0 | (revoke)    | (atribuir)   │    │
@@ -138,7 +138,7 @@ Construir equivalente self-host completo de **todas as features Anthropic Team p
 
 - [ ] Widget DAU/WAU/MAU em `/copiloto/admin/governanca`
 - [ ] Tabela per-user (sessions, tokens, custo, último login, % quota)
-- [ ] Endpoint `/copiloto/admin/team/export.csv` com filtros (periodo, user)
+- [ ] Endpoint `/team-mcp/team/export.csv` com filtros (periodo, user)
 - [ ] Skills/tools breakdown por user
 
 ### Fase 3 — Spend cap enforcement (0.5d)
