@@ -1,3 +1,26 @@
+---
+slug: 0056-mcp-fonte-unica-memoria-copiloto-claude-code
+number: 56
+title: !!binary gJQgTUNQIHNlcnZlciBjb21vIGZvbnRlIMO6bmljYSBkZSBtZW3Ds3JpYSBwcm8gQ29waWxvdG8gY2hhdCArIENsYXVkZSBDb2Rl
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+  - E
+decided_at: '2026-04-29'
+module: copiloto
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0053'
+  - 0053-mcp-server-governanca-como-produto
+  - '0054'
+  - '0055'
+  - 0055-self-host-team-plan-equivalente-anthropic
+pii: false
+---
 # ADR 0056 — MCP server como fonte única de memória pro Copiloto chat + Claude Code
 
 **Status:** Aceito

@@ -1,3 +1,27 @@
+---
+slug: 0059-governanca-memoria-estilo-anthropic-team
+number: 59
+title: !!binary gJQgR292ZXJuYW7Dp2EgZGEgbWVtw7NyaWEgZXN0aWxvIEFudGhyb3BpYyBUZWFtIHBsYW4gYWRhcHRhZG8=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-30'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0027'
+  - 0027-gestao-memoria-roles-claros
+  - '0030'
+  - '0040'
+  - '0053'
+  - 0053-mcp-server-governanca-como-produto
+  - '0054'
+  - '0055'
+pii: false
+---
 # ADR 0059 — Governança da memória estilo Anthropic Team plan adaptado
 
 **Status:** ✅ Aceita

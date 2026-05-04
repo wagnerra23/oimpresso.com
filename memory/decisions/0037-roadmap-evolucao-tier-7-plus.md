@@ -1,3 +1,26 @@
+---
+slug: 0037-roadmap-evolucao-tier-7-plus
+number: 37
+title: !!binary gJQgUm9hZG1hcCBkZSBldm9sdcOnw6NvIHDDs3MtU3ByaW50IDU6IFRpZXIgNS02IOKGkiBUaWVyIDctOSBMb25nTWVtRXZhbA==
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+  - E
+decided_at: '2026-04-26'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0033'
+  - 0033-vector-store-meilisearch-pgvector-mem0
+  - '0035'
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - '0036'
+  - 0036-replanejamento-meilisearch-first
+pii: false
+---
 # ADR 0037 — Roadmap de evolução pós-Sprint 5: Tier 5-6 → Tier 7-9 LongMemEval
 
 **Status:** ✅ Aceita — roadmap derivado de pesquisa profunda 2026-04-26 sessão 18

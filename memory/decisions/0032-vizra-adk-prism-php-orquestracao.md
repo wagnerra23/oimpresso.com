@@ -1,3 +1,32 @@
+---
+slug: 0032-vizra-adk-prism-php-orquestracao
+number: 32
+title: !!binary gJQgVml6cmEgQURLICsgUHJpc20gUEhQIGNvbW8gY2FtYWRhIGRlIG9ycXVlc3RyYcOnw6NvIGUgd3JhcHBlciBMTE0gZG8gQ29waWxvdG8=
+type: adr
+status: superseded
+authority: canonical
+lifecycle: substituido
+decided_by:
+  - W
+decided_at: '2026-04-26'
+module: copiloto
+quarter: 2026-Q2
+tags: {  }
+supersedes:
+  - '2026-04-30'
+  - '0048'
+  - 0048-vizra-rejeitada-laravel-ai-consolidado
+related:
+  - '0026'
+  - 0026-posicionamento-erp-grafico-com-ia
+  - '0027'
+  - 0027-gestao-memoria-roles-claros
+  - '0031'
+  - 0031-memoriacontrato-mem0-default
+  - '0033'
+  - 0033-vector-store-meilisearch-pgvector-mem0
+pii: false
+---
 # ADR 0032 — Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto
 
 > ⛔ **SUPERSEDED em 2026-04-30 por [ADR 0048](0048-vizra-rejeitada-laravel-ai-consolidado.md).**

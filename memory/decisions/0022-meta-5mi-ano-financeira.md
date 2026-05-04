@@ -1,3 +1,20 @@
+---
+slug: 0022-meta-5mi-ano-financeira
+number: 22
+title: !!binary gJQgTWV0YSBmaW5hbmNlaXJhIG9pbXByZXNzbzogUiQgNSBtaWxow7Vlcy9hbm8=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-24'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0016'
+pii: false
+---
 # ADR 0022 — Meta financeira oimpresso: R$ 5 milhões/ano
 
 **Data:** 2026-04-24

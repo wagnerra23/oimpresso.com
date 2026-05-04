@@ -1,3 +1,20 @@
+---
+slug: 0004-bridge-colaborador-config
+number: 4
+title: !!binary gJQgVGFiZWxhIGJyaWRnZSBgcG9udG9fY29sYWJvcmFkb3JfY29uZmlnYA==
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-18'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0001'
+pii: false
+---
 # ADR 0004 — Tabela bridge `ponto_colaborador_config`
 
 **Status:** ✅ Aceita

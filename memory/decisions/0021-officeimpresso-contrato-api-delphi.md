@@ -1,3 +1,24 @@
+---
+slug: 0021-officeimpresso-contrato-api-delphi
+number: 21
+title: !!binary gJQgQ29udHJhdG8gcmVhbCBkYSBBUEkgY29uc3VtaWRhIHBlbG8gRGVscGhp
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-24'
+module: officeimpresso
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0017'
+  - '0018'
+  - '0019'
+  - '0020'
+pii: false
+---
 # ADR 0021 — Contrato real da API consumida pelo Delphi
 
 **Status:** Descoberto (2026-04-24) — implementação backend pendente

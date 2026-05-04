@@ -1,3 +1,20 @@
+---
+slug: 0010-sistema-memoria-projeto
+number: 10
+title: !!binary gJQgU2lzdGVtYSBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvIChDTEFVREUubWQgKyAvbWVtb3J5Lyk=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-18'
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0005'
+pii: false
+---
 # ADR 0010 — Sistema de memória do projeto (CLAUDE.md + /memory/)
 
 **Status:** ✅ Aceita

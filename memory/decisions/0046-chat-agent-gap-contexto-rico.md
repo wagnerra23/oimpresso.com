@@ -1,3 +1,28 @@
+---
+slug: 0046-chat-agent-gap-contexto-rico
+number: 46
+title: !!binary gJQgYENoYXRDb3BpbG90b0FnZW50YCBwcmVjaXNhIGRlIGNvbnRleHRvIHJpY28gKyB0b29scyAoZ2FwIGRlc2NvYmVydG8p
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-28'
+module: copiloto
+quarter: 2026-Q2
+tags: {  }
+related:
+  - '0026'
+  - '0034'
+  - '0035'
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - '0037'
+  - 0037-roadmap-evolucao-tier-7-plus
+  - '0042'
+  - 0042-reverb-substitui-pusher-cloud
+pii: false
+---
 # ADR 0046 — `ChatCopilotoAgent` precisa de contexto rico + tools (gap descoberto)
 
 **Status:** ✅ Aceita — gap formalmente reconhecido, prioridade de Cycle 02

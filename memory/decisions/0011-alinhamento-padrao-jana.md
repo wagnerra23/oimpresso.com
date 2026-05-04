@@ -1,3 +1,25 @@
+---
+slug: 0011-alinhamento-padrao-jana
+number: 11
+title: !!binary gJQgQWxpbmhhbWVudG8gY29tIG8gcGFkcsOjbyBKYW5hIChVbHRpbWF0ZVBPUyk=
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by:
+  - W
+decided_at: '2026-04-18'
+module: pontowr2
+quarter: 2026-Q2
+tags: {  }
+supersedes:
+  - '0002'
+  - '0001'
+related:
+  - '0001'
+  - '0002'
+pii: false
+---
 # ADR 0011 — Alinhamento com o padrão Jana (UltimatePOS)
 
 **Status:** ✅ Aceita
