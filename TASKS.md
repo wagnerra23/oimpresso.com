@@ -350,6 +350,7 @@
 
 | Data | Módulo | Task |
 |------|--------|------|
+| 2026-05-04 | Copiloto | **Sprint 9 retrieval — diagnóstico nomic + fixes** — `withoutSyncingToSearch` evita re-embedding (`ebca7a37`) · `--semantic-ratio` no eval + bypass MySQL FT quando < 0.25 (`1b33f258`) · ADR 0068 aceito + session log (`d260c33a`) · 3 docs canônicos: MEILISEARCH-EVOLUCAO + RETRIEVAL-ESTADO-ARTE-2026-05 + RETRIEVAL-GOTCHAS (`32686abe`...`fbb89adc`). Score 0.158 → **0.700** (recovery). Próximo: `qwen3-embedding:4b` (#1 MTEB multilingual) pra superar 0.72 |
 | 2026-04-29 | Copiloto | **MEM-MET-3** scheduler diário 23:55 `copiloto:metrics:apurar --business=all` — cron Hostinger (`01e4e214`) |
 | 2026-04-29 | Copiloto | **MEM-FAT-1** ContextoNegocio expõe 3 ângulos (bruto/líquido/caixa) + ADR 0052 (`fac96a19`) |
 | 2026-04-29 | Copiloto | **MEM-MET-2** comando `copiloto:metrics:apurar` + baseline 29-abr em prod (`6d2dc7eb`) |
