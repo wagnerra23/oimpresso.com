@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\Schema;
  * Tasks têm identifier humano: "<PROJECT_KEY>-<NNNN>" (Linear-style).
  * next_task_number é contador atômico por projeto.
  *
- * NOTA: mcp_projects já está ocupado pelo Modules/ADS Decision Engine
+ * NOTA — nome da tabela: mcp_jira_projects (não mcp_projects).
+ * mcp_projects já está ocupado pelo Modules/ADS Decision Engine de Wagner
  * (commit a7e6da54, schema viability/decision/proceed-pivot-kill).
  * Prefixo mcp_jira_* deixa namespace claro e evita conflito de classe PHP.
  */

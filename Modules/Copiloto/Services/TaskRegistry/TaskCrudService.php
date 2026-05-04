@@ -167,7 +167,7 @@ class TaskCrudService
 
         // Modo ad-hoc: precisa de project pra gerar identifier
         if (! $project) {
-            throw new \RuntimeException("Sem 'module' canônico, é obrigatório passar 'project' (key existente em mcp_projects).");
+            throw new \RuntimeException("Sem 'module' canônico, é obrigatório passar 'project' (key existente em mcp_jira_projects).");
         }
 
         return $this->createAdHoc($title, $data, $project);
