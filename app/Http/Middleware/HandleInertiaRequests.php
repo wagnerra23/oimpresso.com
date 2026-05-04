@@ -99,6 +99,14 @@ class HandleInertiaRequests extends Middleware
             ],
             'locale'     => app()->getLocale(),
             'csrf_token' => fn () => csrf_token(),
+            // Rotas publicas condicionais a modulos ativos. Espelha o padrao
+            // Blade `@if(Route::has('xxx'))` (home_header.blade.php, auth2.blade.php)
+            // pra menus Inertia (SiteHeader). Quando o modulo e desativado em
+            // /manage-modules, a rota some, a flag vira false, link some do menu.
+            'publicRoutes' => [
+                'consultaOs'   => \Route::has('consulta-os.index'),
+                'repairStatus' => \Route::has('repair-status'),
+            ],
         ]);
     }
 
