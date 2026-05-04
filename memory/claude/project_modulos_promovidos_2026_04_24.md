@@ -9,7 +9,11 @@ Em 2026-04-24, 4 ideias de `memory/requisitos/_Ideias/` foram promovidas para SP
 **Why:** Wagner pediu "crie os modulos e amadureça com profundo conhecimento do ultimatepos. Faça a melhor frase para o melhor faturamento". Validou pattern de ADRs separados ("acho bom separar em adrs os assuntos"). Aprovou continuar com os 4 ("acho todos benvindo").
 
 **How to apply:**
-- Status `spec-ready` em `memory/requisitos/{Modulo}/`. Próximo passo é scaffold de código (não feito ainda).
+- Status atualizado em 2026-04-26:
+  - **Financeiro** — `implementado`. Ondas 1+2 mergeadas em `6.7-bootstrap` em 2026-04-25; 49 testes Pest. Backfill de purchases legadas em `due` ainda pendente.
+  - **LaravelAI** — `scaffold-only`. Pasta `Modules/LaravelAI/` existe com `LaravelAIController` e provider, mas zero implementação real. Ainda spec-ready em `memory/requisitos/`.
+  - **NfeBrasil** — `spec-ready`. Sem código.
+  - **RecurringBilling** — `spec-ready`. Sem código.
 - Cada módulo tem **frase de posicionamento** + **revenue thesis** no README (Financeiro tier 1A R$ [redacted Tier 0]-599 + take rate 0,5%; NfeBrasil tier 1B R$ [redacted Tier 0]-599; RecurringBilling tier 2 R$ [redacted Tier 0]-999 + take rate 0,8%; LaravelAI tier 3 add-on R$ [redacted Tier 0]-599).
 - ADRs seguem padrão `adr/arq/`, `adr/tech/`, `adr/ui/` com numeração separada por categoria (ARQ-0001, TECH-0001, UI-0001) — NÃO monolítico.
 - `_Roadmap_Faturamento.md` em `memory/requisitos/` tem build sequence 24 meses; precisa reconciliação com meta R$ [redacted Tier 0]mi/ano (ver `project_meta_5mi_ano.md`).

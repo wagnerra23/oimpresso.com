@@ -1,6 +1,6 @@
 ---
-name: Módulo Copiloto (novo)
-description: Módulo novo — chat IA conversacional que sugere e monitora metas de negócio; tenancy híbrida; spec-ready, sem código ainda
+name: Módulo Copiloto (implementado)
+description: Chat IA que sugere e monitora metas de negócio; tenancy híbrida; implementação real mergeada em 6.7-bootstrap em 2026-04-26 (PR #13, 24 testes Pest). Roda só em dry_run hoje (sem pacote OpenAI no composer.lock).
 type: project
 originSessionId: 3ea423cc-141d-477e-b072-2e0171a6fdd7
 ---
@@ -35,7 +35,20 @@ originSessionId: 3ea423cc-141d-477e-b072-2e0171a6fdd7
 - `memory/requisitos/Copiloto/adr/tech/0002-adapter-ia-laravelai-ou-openai.md`
 - `memory/requisitos/Copiloto/adr/ui/0001-chat-inline-no-dashboard.md`
 
-**Status:** `spec-ready` — documentação completa, sem código. Próximo passo aguardado pelo Wagner: scaffold `Modules/Copiloto/` (padrão PontoWr2).
+**Status:** `implementado` — mergeado em `6.7-bootstrap` na sessão 14 (2026-04-26, commit `e9cf6dc1`, PR #13). Em `Modules/Copiloto/`: 10 controllers (`Chat`, `Dashboard`, `Metas`, `Periodos`, `Fontes`, `Alertas`, `Superadmin`, `Install`, `Data`), 7 entidades, drivers `OpenAiDirectDriver` + `LaravelAiDriver` (stub legado) + `SqlDriver`, jobs `ApurarMetaJob`, services `Apuracao`/`Alerta`/`Suggestion`/`ContextSnapshot`, 24 testes Pest passando.
+
+**Stack-alvo CANÔNICA (Wagner declarou em 2026-04-26 sessão 17 como "melhor ROI", ADR 0035):**
+- Camada A: `laravel/ai` (Laravel AI SDK oficial fev/2026) — substitui `OpenAi\Laravel\Facades\OpenAI`. Sprint 1 em execução na branch `feat/copiloto-laravel-ai-sdk-sprint1`.
+- Camada B: `vizra/vizra-adk` (sprints 2-3)
+- Camada C: `MemoriaContrato` PHP com `Mem0RestDriver` default OU `MeilisearchDriver` fallback (sprints 4-5 e 8-10)
+- Tooling DEV: `laravel/boost --dev`
+
+**Pendências do código atual:**
+- Sprint 1: deletar stub `LaravelAiDriver.php` + criar `LaravelAiSdkDriver.php` real + 3 Agent classes em `Modules/Copiloto/Ai/Agents/`
+- `ApurarMetasAtivasJob` scheduler
+- Drivers `php`/`http` da apuração
+- Wizard `metas/create`
+- Parsing real do `SuggestionEngine`
 
 **Relações:**
 - Materializa `ADR 0022 — Meta R$ [redacted Tier 0]mi/ano`.

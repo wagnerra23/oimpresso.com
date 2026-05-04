@@ -33,8 +33,12 @@ class Kernel extends ConsoleKernel
 
         }
 
-        // MemCofre — sincroniza memória Claude pra dentro do repo todo dia 23:00
-        $schedule->command('docvault:sync-memories')
+        // MemCofre — sincroniza memória Claude pra dentro do repo todo dia 23:00.
+        // Renomeado de docvault:sync-memories → memcofre:sync-memories em 2026-04-24
+        // junto com rename DocVault → MemCofre. Scheduler ficou apontando pro nome
+        // antigo até 2026-05-04, causando 40+ arquivos atrasados (drift descoberto
+        // ao auditar 2 fontes de verdade auto-mem ↔ git).
+        $schedule->command('memcofre:sync-memories')
             ->dailyAt('23:00')
             ->withoutOverlapping()
             ->environments(['local', 'live']);
