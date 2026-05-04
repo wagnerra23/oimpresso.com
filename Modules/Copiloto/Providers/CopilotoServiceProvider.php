@@ -53,6 +53,7 @@ class CopilotoServiceProvider extends ServiceProvider
                 \Modules\Copiloto\Console\Commands\CleanupMemoriaCommand::class,   // MEM-FASE8
                 \Modules\Copiloto\Console\Commands\SinteseSemanalCommand::class,   // MemoriaAutonoma F1
                 \Modules\Copiloto\Console\Commands\McpTasksSyncCommand::class,     // TaskRegistry F0
+                \Modules\Copiloto\Console\Commands\BackfillTasksFromMarkdownCommand::class, // ADR 0070 — backfill 1× CURRENT.md/TASKS.md
             ]);
         }
     }

@@ -15,7 +15,13 @@ Antes de qualquer ação de leitura/busca em conhecimento canônico do projeto, 
 
 | Quero saber | NÃO faça | Faça |
 |---|---|---|
-| Estado do cycle | `Read CURRENT.md` | `tasks-current` |
+| Estado do cycle | (CURRENT.md não existe — ADR 0070) | `cycles-active` |
+| Goals do cycle | — | `cycle-goals-track cycle:current` |
+| Minhas tasks ativas | (TASKS.md não existe — ADR 0070) | `my-work` |
+| Caixa de entrada | — | `my-inbox` |
+| Backlog de módulo | `Read memory/requisitos/X/SPEC.md` | `tasks-list module:X` |
+| Detalhe de uma task | — | `tasks-detail task_id:COPI-123` |
+| Tasks novas sem owner | — | `triage` |
 | ADR sobre X | `Glob memory/decisions/*X*` + Read | `decisions-search query:"X"` |
 | ADR completa | `Read memory/decisions/0053-...md` | `decisions-fetch slug:"0053-..."` |
 | Última sessão | `ls memory/sessions/ -t \| head -1` | `sessions-recent limit:1` |

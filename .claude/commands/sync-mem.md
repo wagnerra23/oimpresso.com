@@ -1,5 +1,5 @@
 ---
-description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/CURRENT/TEAM/CLAUDE/DESIGN/INFRA/MANUAL_CLAUDE_CODE/HOW_TO_ASK_CLAUDE) pra propagar pro MCP server via webhook GitHub. Uso quando criar/alterar SPEC.md (TaskRegistry), ADR, session log, ou qualquer doc canônico. Tasks → TaskRegistry MCP tools (ADR 0069), não TASKS.md.
+description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/TEAM/CLAUDE/DESIGN/INFRA/MANUAL_CLAUDE_CODE/HOW_TO_ASK_CLAUDE) pra propagar pro MCP server via webhook GitHub. Uso quando criar/alterar SPEC.md, ADR, session log, ou qualquer doc canônico. Tasks → tools MCP `tasks-*` (ADR 0070), nunca markdown.
 ---
 
 # /sync-mem — propaga memória pro team via MCP
@@ -17,14 +17,13 @@ description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/
 
 **Paths considerados memória/governança:**
 - `memory/**` (recursivo)
-- Arquivos raiz: `MEMORY.md`, `CURRENT.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`, `CLAUDE_DESIGN.md`, `HOW_TO_ASK_CLAUDE.md`
-- ⚠️ `TASKS.md` deprecated (ADR 0069) — não receber edições; tasks vão pra TaskRegistry MCP. Manter no `git add` só se o arquivo já tem mudança histórica pendente
+- Arquivos raiz: `MEMORY.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`, `CLAUDE_DESIGN.md`, `HOW_TO_ASK_CLAUDE.md`
+- ⚠️ `CURRENT.md`/`TASKS.md` REMOVIDOS em 2026-05-04 (ADR 0070) — não devem ser recriados; tasks vão pra tools MCP `tasks-*`/`cycles-*`
 
 **NÃO inclui:** código (`Modules/`, `app/`, `resources/`), build assets (`public/`), composer/package locks. Estes seguem fluxo PR normal.
 
 **Quando rodar:**
 - Após criar SPEC/ADR/session log
-- Após atualizar TASKS.md ou CURRENT.md
 - Após salvar comparativo competitivo, runbook, audit
 - Quando hook `memory-pending.ps1` avisar no fim de turno
 - Antes de chamar a outra Claude/agente que vai ler via MCP (Eliana/Felipe)
@@ -36,8 +35,6 @@ description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/
    - `memory/decisions/NNNN-*.md` novo → `docs(adr): NNNN <slug>`
    - `memory/sessions/YYYY-MM-DD-*.md` novo → `docs(session): YYYY-MM-DD <slug>`
    - `memory/requisitos/<Mod>/SPEC.md` modificado → `docs(<mod>): atualizar SPEC`
-   - `TASKS.md` modificado → `docs(tasks): <resumo do diff>`
-   - `CURRENT.md` modificado → `docs(cycle): <resumo do diff>`
    - Múltiplos → `docs: <descrição agregada>`
 4. Mostre o título sugerido + lista de arquivos
 5. Se aprovado pelo usuário (ou autoaprova se rodando autônomo): `git add <paths> && git commit -m "..." && git push origin main`
@@ -54,3 +51,4 @@ description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/
 - Usar `--no-verify` ou skipar hooks (gitleaks protege segredos)
 - Force push
 - Commitar `Modules/Copiloto/Entities/CopilotoMemoriaFato.php` ou outros arquivos código não-mem
+- Recriar `CURRENT.md`/`TASKS.md` (foram removidos pelo ADR 0070)
