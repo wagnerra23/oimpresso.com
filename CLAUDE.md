@@ -84,9 +84,10 @@ Pra qualquer coisa visual/UX, comece em [`DESIGN.md`](DESIGN.md). Pra acesso/dep
 
 Ao terminar uma sessão:
 
-7. **Atualize [`CURRENT.md`](CURRENT.md)** (sobrescrito) e [`memory/08-handoff.md`](memory/08-handoff.md) (apenda) com o novo estado.
-8. **Crie um session log** em `memory/sessions/YYYY-MM-DD-*.md` descrevendo o que foi feito.
-9. **Se tomou decisão arquitetural nova**, crie ADR em `memory/decisions/NNNN-slug.md`.
+7. **Registre status no [`TASKS.md`](TASKS.md)** — task entregue na seção "Concluído nas últimas 2 semanas" (não em CURRENT.md). `CURRENT.md` é só **foto do cycle** (goal + Active WIP + On-deck) — atualize-o **apenas quando uma task ativa do cycle muda de status macro** (entrou no Active, fechou o Active, virou On-deck). Tarefas pontuais e fixes do dia-a-dia NÃO vão pro CURRENT.md.
+8. **Apenda em [`memory/08-handoff.md`](memory/08-handoff.md)** com o novo estado narrativo.
+9. **Crie um session log** em `memory/sessions/YYYY-MM-DD-*.md` descrevendo o que foi feito.
+10. **Se tomou decisão arquitetural nova**, crie ADR em `memory/decisions/NNNN-slug.md`.
 
 ---
 
@@ -95,7 +96,8 @@ Ao terminar uma sessão:
 ```
 D:\oimpresso.com\
 ├── CLAUDE.md          # Este arquivo — primer pra agentes
-├── CURRENT.md         # Estado vivo (sobrescrito a cada handoff)
+├── CURRENT.md         # Foto do cycle — goal + Active WIP + On-deck (status diário NÃO vai aqui — vai em TASKS.md)
+├── TASKS.md           # Backlog canônico + "Concluído nas últimas 2 semanas" — registro diário
 ├── DESIGN.md          # Hub visual/UX + padrão técnico React
 ├── INFRA.md           # Acesso SSH Hostinger, deploy, fixes manuais
 ├── AGENTS.md          # Mirror para outros agentes (opcional)
