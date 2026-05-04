@@ -34,7 +34,6 @@
 - [Diff 3.7 vs 6.7 Officeimpresso](reference_diff_3_7_vs_6_7_officeimpresso.md) — Controllers restaurados, armadilha master user, campos do registry licenca_computador
 - [Delphi WR Comercial](reference_delphi_wr_comercial.md) — Código Delphi cliente em D:/Programas/WR Comercial (SVN monorepo); como ler wc.db via Python; fluxo login→processa-dados-cliente
 - [Branch 3.7-com-nfe](reference_branch_3_7.md) — Snapshot pré-migração; arquivos Connector existem como untracked no servidor (drift sem git) — decisão de versionar/restaurar/deletar pendente
-- [Carbon::createFromTimestamp bug](feedback_carbon_timezone_bug.md) — format_date INTENCIONALMENTE mantém shift +3h (fix revertido 2026-04-24 por regressão no ROTA LIVRE); não reaplicar sem migrar históricos
 - [session('business') é Eloquent](project_session_business_model.md) — dot-notation session('business.x') retorna null; chave dedicada business_timezone adicionada
 - [DataTables locale pt-BR](reference_datatables_locale.md) — public/locale/datatables/pt-BR.json; usar language: { url: asset(...) } em toda init nova
 - [Form shim normaliza bool attrs](feedback_form_shim_bool_attrs.md) — disabled/readonly/etc com valor false/null são OMITIDOS automaticamente; bug crítico corrigido em 2026-04-24 travava /sells/create
