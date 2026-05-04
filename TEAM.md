@@ -1,8 +1,10 @@
 # TEAM.md — Equipe oimpresso e atribuição de tasks
 
-> **Pra quem é:** todo agente IA (Claude/Cursor/outro) que vai sugerir/atribuir tarefas E todo humano do time que vai pegar uma task de [`TASKS.md`](TASKS.md) ou [`CURRENT.md`](CURRENT.md).
+> **Pra quem é:** todo agente IA (Claude/Cursor/outro) que vai sugerir/atribuir tarefas E todo humano do time que vai pegar uma US via **TaskRegistry MCP** (`tasks-list owner:NOME`) ou via [`CURRENT.md`](CURRENT.md) (foto do cycle ativo).
 >
 > **Regra base:** toda task tem dono **antes** de virar ativa. Sem dono = fica em on-deck. Donos só puxam tasks compatíveis com seu perfil (matriz §3).
+>
+> **Source-of-truth tasks (ADR 0069):** SPECs canônicos em `memory/requisitos/<Mod>/SPEC.md` (formato `### US-XXX-NNN`) → cache `mcp_tasks` via webhook → MCP tools (`tasks-list`, `tasks-detail`, `tasks-create`, `tasks-update`, `tasks-comment`). `TASKS.md` ASCII é deprecated.
 
 ---
 
@@ -114,7 +116,7 @@
 
 ---
 
-## 4. Convenção de identificação em commits / PRs / TASKS.md
+## 4. Convenção de identificação em commits / PRs / SPEC.md
 
 Use **iniciais entre colchetes** sempre que mencionar dono:
 
@@ -145,14 +147,14 @@ chore(memcofre): copy do botão "Anexar evidência" [E+C]
 
 ## 5. Onboarding pra nova task (checklist mental)
 
-Quando alguém vai pegar uma task de `CURRENT.md` ou `TASKS.md`:
+Quando alguém vai pegar uma US (via `tasks-list owner:NOME` ou olhando `CURRENT.md`):
 
 1. Olhe a coluna "Pode pegar?" da matriz §3 — sua inicial está em ✅ ou 🟢?
 2. Olhe seu WIP atual — está abaixo do máximo (§1)?
 3. **Bloqueio?** Se task depende de algo de outro dono, marque ⛔ e mova pra On-deck até desbloquear
 4. **Compreensão?** Se a task tem palavra que você não entende (ex.: "faithfulness", "shadow deployment"), pergunta antes de começar — NUNCA googla por 30 min sem checar com Wagner/Felipe
 5. **Pair com Claude/Cursor?** Default sim pra Luiz e Eliana. Felipe/Maíra/Wagner usam quando quiser acelerar
-6. **Definition of Done explícito?** Cada task em `TASKS.md` deveria ter DoD em 1 frase. Se não tem, pergunta antes de começar
+6. **Definition of Done explícito?** Cada US no SPEC.md tem campo `Acceptance:` em 1 frase. Se a US que você puxou não tem, peça pro owner adicionar via `tasks-comment` antes de começar
 
 ---
 
@@ -161,7 +163,7 @@ Quando alguém vai pegar uma task de `CURRENT.md` ou `TASKS.md`:
 - ❌ **Pegar 5 tasks de uma vez "pra fazer aos poucos"** — viola WIP, contexto switching come 20-40% do tempo (research)
 - ❌ **"Vou só dar uma olhada nessa também"** sem mover do On-deck pro Active
 - ❌ **Mergear PR sem code review por estar com pressa** — Wagner/Felipe fazem review same-day se for urgente
-- ❌ **Pular daily-async** — atualizar status no `TASKS.md` toma 30s, não economiza nada não fazer
+- ❌ **Pular daily-async** — `tasks-update US-XXX status:doing/done` toma 10s, não economiza nada não fazer
 - ❌ **Luiz aceitar task fora da zona** verde dele "pra aprender" — aprender em PR de produção é ruim, melhor pair-program em task verde
 - ❌ **Eliana[E] aceitar task técnica complexa "porque o Wagner pediu"** — defender o WIP=1 dela é responsabilidade do Wagner
 - ❌ **Trabalhar em múltiplos cycles ao mesmo tempo** — só o cycle ativo, resto fica On-deck/Backlog
