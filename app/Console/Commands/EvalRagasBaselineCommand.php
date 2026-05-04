@@ -187,7 +187,8 @@ class EvalRagasBaselineCommand extends Command
                     'semanticRatio' => $semanticRatio,
                 ];
                 // Exclui docs que escaparam do shouldBeSearchable() por lag de re-index
-                $params['filter'] = 'status NOT IN ["superseded", "deprecated", "rascunho"]';
+                // Sintaxe Meilisearch: aspas simples em string literals
+                $params['filter'] = "status NOT IN ['superseded', 'deprecated', 'rascunho']";
                 $params['limit']  = $topK;
 
                 return $index->search($q, $params);
