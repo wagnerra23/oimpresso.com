@@ -1,13 +1,17 @@
 // @memcofre
-//   tela: /copiloto/admin/memoria
-//   module: Copiloto
+//   tela: /kb
+//   module: KB
 //   stories: MEM-KB-1 (ADR 0053) — KB browser dos docs servidos via MCP server
 //   adrs: 0053, 0057
-//   permissao: copiloto.mcp.memory.manage
+//   permissao: copiloto.mcp.memory.manage (mantida — rename pra kb.manage em PR separado)
 //
 // V3 — markdown enriquecido (syntax highlight + anchors + external links em nova
 // aba) + UX (keyboard j/k/Enter/Esc/`/`, debounce search 350ms, scroll-to-top no
 // doc novo, copy slug button, contador resultados, breadcrumb anchors).
+//
+// Histórico (Etapa 2 modularização — 2026-05-03):
+//   - Antes: resources/js/Pages/Copiloto/Admin/Memoria/Index.tsx + /copiloto/admin/memoria
+//   - Agora: resources/js/Pages/kb/Index.tsx + /kb
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
@@ -130,7 +134,7 @@ function typeBadge(type: string): { className: string; label: string } {
 
 const PANEL_STORAGE_KEY = 'oimpresso-kb-panel';
 
-function MemoriaIndex(props: Props) {
+function KbIndex(props: Props) {
   const { docs, filters, kpis } = props;
   const [search, setSearch] = useState(filters.q ?? '');
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
@@ -226,7 +230,7 @@ function MemoriaIndex(props: Props) {
         delete (params as Record<string, unknown>)[k];
       }
     });
-    router.get('/copiloto/admin/memoria', params, {
+    router.get('/kb', params, {
       preserveScroll: true,
       preserveState: true,
       only: ['docs', 'filters'],
@@ -239,7 +243,7 @@ function MemoriaIndex(props: Props) {
     setLoadingDetail(true);
     setPreviewOpen(true);
     try { localStorage.setItem(PANEL_STORAGE_KEY, 'open'); } catch {}
-    fetch(`/copiloto/admin/memoria/${slug}/show`, {
+    fetch(`/kb/${slug}/show`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
     })
       .then((r) => r.json())
@@ -267,7 +271,7 @@ function MemoriaIndex(props: Props) {
       return;
     }
     try {
-      const res = await fetch(`/copiloto/admin/memoria/${confirmDelete.slug}`, {
+      const res = await fetch(`/kb/${confirmDelete.slug}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -294,7 +298,7 @@ function MemoriaIndex(props: Props) {
 
   async function doRestore(slug: string) {
     try {
-      const res = await fetch(`/copiloto/admin/memoria/${slug}/restore`, {
+      const res = await fetch(`/kb/${slug}/restore`, {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': csrf(),
@@ -554,7 +558,7 @@ function MemoriaIndex(props: Props) {
     <>
       <PageHeader
         icon="book-open"
-        title="KB MCP — Memória"
+        title="KB — Knowledge Base"
         description={`${num(kpis.total)} docs servidos via mcp.oimpresso.com — ADRs, sessions, references e specs sincronizados de memory/* via webhook GitHub.`}
       />
 
@@ -708,10 +712,10 @@ function MemoriaIndex(props: Props) {
   );
 }
 
-MemoriaIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="KB MCP — Memória" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'KB MCP' }]}>
+KbIndex.layout = (page: ReactNode) => (
+  <AppShellV2 title="KB — Knowledge Base" breadcrumbItems={[{ label: 'KB' }]}>
     {page}
   </AppShellV2>
 );
 
-export default MemoriaIndex;
+export default KbIndex;

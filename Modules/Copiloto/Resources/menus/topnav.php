@@ -23,7 +23,9 @@ return [
         ['label' => 'copiloto::copiloto.menu.metas',      'href' => '/copiloto/metas',            'icon' => 'Target',          'can' => 'copiloto.metas.manage'],
         ['label' => 'copiloto::copiloto.menu.alertas',    'href' => '/copiloto/alertas',          'icon' => 'Bell',            'can' => 'copiloto.access'],
         ['label' => 'Governança MCP',                     'href' => '/copiloto/admin/governanca', 'icon' => 'ShieldCheck',     'can' => 'copiloto.mcp.usage.all'],
-        ['label' => 'KB MCP (memória)',                   'href' => '/copiloto/admin/memoria',    'icon' => 'BookOpen',        'can' => 'copiloto.mcp.memory.manage'],
+        // KB foi splitado pro módulo Modules/KB em 2026-05-03 (Etapa 2 modularização).
+        // Link cross-module aqui pra continuidade visual.
+        ['label' => 'KB →',                               'href' => '/kb',                        'icon' => 'BookOpen',        'can' => 'copiloto.mcp.memory.manage'],
         ['label' => 'Qualidade IA',                       'href' => '/copiloto/admin/qualidade',  'icon' => 'TrendingUp',      'can' => 'copiloto.mcp.usage.all'],
         // Team MCP saiu do Copiloto e virou módulo próprio (split TeamMcp).
         // Mantém entry como atalho cross-module pra Wagner.

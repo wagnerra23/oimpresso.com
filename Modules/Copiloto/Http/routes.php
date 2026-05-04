@@ -90,21 +90,10 @@ Route::group(
         // futura — não nesta separação). Sub-rotas POST/PATCH/DELETE não
         // têm redirect (UI Inertia foi atualizada pra apontar pras novas URLs).
 
-        // ---- MEM-KB-1 (ADR 0053) — KB browser dos docs servidos via MCP server
-        Route::get('/admin/memoria',                       'Admin\MemoriaKbController@index')
-            ->name('copiloto.admin.memoria.index');
-        Route::get('/admin/memoria/{slug}/show',           'Admin\MemoriaKbController@show')
-            ->where('slug', '[A-Za-z0-9\-_]+')
-            ->name('copiloto.admin.memoria.show');
-        Route::get('/admin/memoria/{slug}/history',        'Admin\MemoriaKbController@history')
-            ->where('slug', '[A-Za-z0-9\-_]+')
-            ->name('copiloto.admin.memoria.history');
-        Route::delete('/admin/memoria/{slug}',             'Admin\MemoriaKbController@softDelete')
-            ->where('slug', '[A-Za-z0-9\-_]+')
-            ->name('copiloto.admin.memoria.softdelete');
-        Route::post('/admin/memoria/{slug}/restore',       'Admin\MemoriaKbController@restore')
-            ->where('slug', '[A-Za-z0-9\-_]+')
-            ->name('copiloto.admin.memoria.restore');
+        // ---- MEM-KB-1 (ADR 0053) — KB MOVIDO PRO MÓDULO Modules/KB (Etapa 2 modularização, 2026-05-03)
+        // Rotas /copiloto/admin/memoria* foram migradas pra /kb*. Redirects 301
+        // GET ficam no fim deste arquivo (DELETE/POST não redirecionam — clients
+        // novos chamam /kb diretamente).
 
         // ---- MEM-MET-4 (ADR 0050) — Page /copiloto/admin/qualidade
         Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
@@ -116,14 +105,25 @@ Route::group(
 );
 
 // ===========================================================================
-// 1.b) Redirects 301 — URLs antigas → /team-mcp/* (split TeamMcp)
+// 1.b) Redirects 301 — URLs antigas após modularização (TeamMcp + KB)
 // ===========================================================================
 // Mantém bookmarks/links externos vivos. POST/PATCH/DELETE NÃO redirecionam
-// (UI Inertia foi atualizada pra novas rotas; chamadas server-to-server não
+// (UI Inertia foi atualizada pras novas rotas; chamadas server-to-server não
 //  existiam fora da própria UI).
+//
+// Split TeamMcp (2026-05-03):
 Route::redirect('/copiloto/admin/team',         '/team-mcp/team',         301);
 Route::redirect('/copiloto/admin/tasks',        '/team-mcp/tasks',        301);
 Route::redirect('/copiloto/admin/cc-sessions',  '/team-mcp/cc-sessions',  301);
+
+// Split KB (2026-05-03) — clients novos devem chamar /kb diretamente:
+Route::middleware(['web'])->group(function () {
+    Route::redirect('/copiloto/admin/memoria', '/kb', 301);
+    Route::redirect('/copiloto/admin/memoria/{slug}/show', '/kb/{slug}/show', 301)
+        ->where('slug', '[A-Za-z0-9\-_]+');
+    Route::redirect('/copiloto/admin/memoria/{slug}/history', '/kb/{slug}/history', 301)
+        ->where('slug', '[A-Za-z0-9\-_]+');
+});
 
 // ===========================================================================
 // 2) Rotas de instalação 1-clique — prefixo /copiloto/install
