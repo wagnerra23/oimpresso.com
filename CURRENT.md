@@ -37,7 +37,6 @@
 | ~~A2~~ | — | ~~F2 migração auto-mems P1~~ — **EM ESPERA** (30-abr): englobada pela nova prioridade MCP KB (MEM-KB-3 cobre ADRs + referências infra juntos). | seg **05-mai** | ⏸️ **ESPERA** |
 | ~~A1~~ | — | ~~**MemoriaAutonoma F1**: `copiloto:sintese-semanal` + cron sex 18h + `SinteseSemanalAgent` (Haiku 4.5)~~ | sex 30-abr | ✅ **30-abr** (`395be83a`) |
 | ~~A1~~ | — | ~~**TaskRegistry F0+F1**: F0 parser+tools+webhook (`009dc127`) · F1 CRUD (tasks-update/comment/create) + mcp_task_comments + mcp_task_events + timeline no tasks-detail~~ | 01-mai | ✅ **01-mai** (`75d03d3c` + migrações CT 100 + validado em prod) |
-| ~~A1~~ | — | ~~**Sprint 9 retrieval — diagnóstico nomic + fixes**~~ — `withoutSyncingToSearch` + `--semantic-ratio` + bypass MySQL FT < 0.25 + ADR 0068 aceito + 3 docs canônicos (MEILISEARCH-EVOLUCAO + RETRIEVAL-ESTADO-ARTE-2026-05 + RETRIEVAL-GOTCHAS). Score 0.158 → **0.700** (recovery). Próximo: `qwen3-embedding:4b` pra superar 0.72. | 04-mai | ✅ **04-mai** (`ebca7a37`...`d1eff5af`) |
 | A1 | 1/2 | **MEM-KB-3 F2: frontmatter YAML + migração 57 ADRs** — frontmatter obrigatório em `memory/decisions/*.md` + Claude infere campos faltantes (status/authority/lifecycle/quarter) + colunas tipadas em `mcp_memory_documents`. Destrava filtros queryable na KB UI. | sex **09-mai** | 🔥 **NOVO FOCO** |
 | A2 | 2/2 | **MEM-MEM-MCP-1.b: ligar driver MCP no Copiloto** — `copiloto:mcp:system-token` + `COPILOTO_MEMORIA_DRIVER=mcp` no `.env` Hostinger + smoke chat → recall via MCP | ter **06-mai** | 🔥 **NOVO FOCO** |
 
