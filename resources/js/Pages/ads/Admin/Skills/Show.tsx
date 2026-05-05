@@ -4,14 +4,14 @@
 
 import React, { type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
-import { Link } from '@inertiajs/react'
+import { Link, router } from '@inertiajs/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import PageHeader from '@/Components/shared/PageHeader'
-import { ArrowLeft, ExternalLink, Pencil, History, Play } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Pencil, History, Play, Upload, GitBranch } from 'lucide-react'
 
 interface Skill {
   slug: string
@@ -148,7 +148,7 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
                   <th className="text-left py-1 pr-3">Origem</th>
                   <th className="text-left py-1 pr-3">Status</th>
                   <th className="text-left py-1 pr-3">Criada em</th>
-                  <th className="text-left py-1">Atual</th>
+                  <th className="text-left py-1">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,7 +158,39 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
                     <td className="py-1.5 pr-3"><Badge variant="outline" className="text-xs">{originLabel[v.origin]}</Badge></td>
                     <td className="py-1.5 pr-3"><Badge variant={statusVariant[v.status]} className="text-xs">{v.status}</Badge></td>
                     <td className="py-1.5 pr-3 text-xs text-muted-foreground">{v.created_at || '—'}</td>
-                    <td className="py-1.5">{v.is_current ? <Badge>production</Badge> : null}</td>
+                    <td className="py-1.5 space-x-1">
+                      {v.is_current && <Badge>production</Badge>}
+                      {!v.is_current && v.status === 'published' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 text-xs"
+                          onClick={() => {
+                            if (!confirm(`Mover label production pra v${v.version}? (rollback ou switch)`)) return
+                            router.post(`/ads/admin/skills/${skill.slug}/move-label`, {
+                              label: 'production',
+                              version_id: v.id,
+                              reason: `Manual switch via UI`,
+                            }, { preserveScroll: true })
+                          }}
+                        >
+                          <GitBranch className="w-3 h-3 mr-1" /> Promover production
+                        </Button>
+                      )}
+                      {v.status === 'published' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 text-xs"
+                          onClick={() => {
+                            if (!confirm(`Publicar v${v.version} no git? Vai criar PR.`)) return
+                            router.post(`/ads/admin/skills/versions/${v.id}/publish`, {}, { preserveScroll: true })
+                          }}
+                        >
+                          <Upload className="w-3 h-3 mr-1" /> Publish to git
+                        </Button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
