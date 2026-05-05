@@ -53,30 +53,30 @@ class OimpressoMcpServer extends Server
     /** @var array<int, class-string<\Laravel\Mcp\Server\Tool>> */
     protected array $tools = [
         // ADR 0070 — Jira-style task management (CURRENT.md/TASKS.md removidos).
-        // Tools canônicas:
+        // ⚠️ ListTools (laravel/mcp) PAGINA em 15 itens. 15 primeiras = essenciais.
+        // Tools de leitura cycle/work/inbox:
         Tools\CyclesActiveTool::class,
         Tools\MyWorkTool::class,
         Tools\MyInboxTool::class,
         Tools\TriageTool::class,
         Tools\CycleGoalsTrackTool::class,
         Tools\CyclesCloseTool::class,
-        // Alias deprecated (mantido durante migração — redireciona pra cycles-active):
-        Tools\TasksCurrentTool::class,
-        // Knowledge & meta:
-        Tools\DecisionsSearchTool::class,
-        Tools\DecisionsFetchTool::class,
-        Tools\SessionsRecentTool::class,
-        Tools\ClaudeCodeUsageSelfTool::class,
-        // MEM-MEM-MCP-1 (ADR 0056) — MCP-as-Memory-Source.
-        Tools\MemoriaSearchTool::class,
-        // MEM-CC-team-1 (ADR 0055/0056) — busca cross-dev em sessões Claude Code.
-        Tools\CcSearchTool::class,
-        // TaskRegistry CRUD (ADR 0070, ex-F0/F1):
+        // TaskRegistry CRUD (ADR 0070) — ESSENCIAIS pra agentes IA criarem/atualizarem:
         Tools\TasksListTool::class,
         Tools\TasksDetailTool::class,
         Tools\TasksUpdateTool::class,
         Tools\TasksCommentTool::class,
         Tools\TasksCreateTool::class,
+        // Alias deprecated (redireciona pra cycles-active):
+        Tools\TasksCurrentTool::class,
+        // Knowledge — top 3 mais usadas:
+        Tools\DecisionsSearchTool::class,
+        Tools\DecisionsFetchTool::class,
+        Tools\SessionsRecentTool::class,
+        // ─── PAGE 2 (cliente precisa paginar pra carregar) ───
+        Tools\ClaudeCodeUsageSelfTool::class,
+        Tools\MemoriaSearchTool::class,
+        Tools\CcSearchTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
