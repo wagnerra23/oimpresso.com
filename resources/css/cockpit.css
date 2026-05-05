@@ -169,7 +169,23 @@
 .cockpit .bc-mod-dd-i:hover { background: var(--accent-soft); color: var(--accent); }
 .cockpit[data-theme="dark"] .bc-mod-dd-i:hover { color: var(--accent-2); }
 
-/* ────────────────── Sidebar ────────────────── */.cockpit .sb {
+/* ────────────────── Sidebar — DARK FIXO (Wagner 2026-05-05) ──────────────────
+   Sobrescreve tokens --sb-* DENTRO da .sb com paleta dark, independente do
+   data-theme. Reverte UI-0009 (que tinha tornado sidebar adaptativa).
+   Justificativa Wagner: "Menu Fundo Black como no cokpit". Mesma paleta dark
+   do canon Cockpit / user menu. */
+.cockpit .sb {
+  --sb-bg:          oklch(0.18 0.006 240);
+  --sb-bg-2:        oklch(0.16 0.006 240);
+  --sb-border:      oklch(0.28 0.008 240);
+  --sb-text:        oklch(0.78 0.005 90);
+  --sb-text-dim:    oklch(0.58 0.005 90);
+  --sb-text-hi:     oklch(0.96 0.005 90);
+  --sb-hover:       oklch(0.27 0.008 240);
+  --sb-active:      oklch(0.32 0.008 240);
+  --sb-scroll:      oklch(0.32 0.008 240);
+  --sb-bullet-out:  oklch(0.55 0.005 240);
+
   background: var(--sb-bg);
   color: var(--sb-text);
   border-right: 1px solid var(--sb-border);
