@@ -1,0 +1,1 @@
+import{j as s}from"./app-CkDqVoLF.js";import{aa as a}from"./AppShellV2-DK_kJTtb.js";import{C as p}from"./search-BWZvnZin.js";function x({name:o,size:r=16,className:t,...m}){const n=a[o]??p;return s.jsx(n,{size:r,className:t,...m})}export{x as I};
