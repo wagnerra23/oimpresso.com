@@ -2,21 +2,23 @@
 
 namespace Modules\ADS\Services;
 
+use Illuminate\Support\Facades\Schema;
+use Modules\Copiloto\Entities\Mcp\McpSkill;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * MVP read-only — lê .claude/skills/<slug>/SKILL.md direto do filesystem.
+ * Lista skills do projeto. ADR 0076: lê de DB (mcp_skills + mcp_skill_versions)
+ * com fallback pra filesystem (.claude/skills/<slug>/SKILL.md) se DB vazio
+ * ou tabela ainda não migrada.
  *
- * Não usa DB. Quando ADR 0076 entregar mcp_skills via Sprint A do CYCLE-02,
- * este service vira fallback ou é substituído por leitura DB.
- *
- * @see memory/decisions/0076-skills-db-primary-git-destino-drift-alert.md
+ * Fallback é importante pra:
+ *   - Worktrees novas sem migrate rodado
+ *   - Janela entre deploy de migrations e import inicial
+ *   - Disaster recovery (DB caiu, filesystem é fallback)
  */
 class SkillsService
 {
     /**
-     * Lista todas as skills disponíveis em .claude/skills/.
-     *
      * @return array<int, array{
      *   slug: string,
      *   name: string,
@@ -24,9 +26,90 @@ class SkillsService
      *   module: ?string,
      *   git_path: string,
      *   body_chars: int,
+     *   source: string,
      * }>
      */
     public function listAll(): array
+    {
+        if ($this->canUseDb()) {
+            $dbList = $this->listFromDb();
+            if (count($dbList) > 0) {
+                return $dbList;
+            }
+        }
+
+        return $this->listFromFilesystem();
+    }
+
+    /**
+     * @return array{
+     *   slug: string,
+     *   frontmatter: array,
+     *   body: string,
+     *   git_path: string,
+     *   source: string,
+     * }|null
+     */
+    public function findBySlug(string $slug): ?array
+    {
+        if (! preg_match('/^[a-z0-9][a-z0-9-]*$/', $slug)) {
+            return null;
+        }
+
+        if ($this->canUseDb()) {
+            $skill = McpSkill::with('currentVersion')->where('slug', $slug)->first();
+            if ($skill !== null && $skill->currentVersion !== null) {
+                return [
+                    'slug'        => $skill->slug,
+                    'frontmatter' => $skill->currentVersion->frontmatter_json ?? [],
+                    'body'        => $skill->currentVersion->body_markdown,
+                    'git_path'    => $skill->git_path ?? ".claude/skills/{$slug}/SKILL.md",
+                    'source'      => 'db',
+                ];
+            }
+        }
+
+        return $this->findInFilesystem($slug);
+    }
+
+    private function canUseDb(): bool
+    {
+        try {
+            return Schema::hasTable('mcp_skills');
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function listFromDb(): array
+    {
+        $skills = McpSkill::with('currentVersion')
+            ->whereNull('deleted_at')
+            ->orderBy('slug')
+            ->get();
+
+        return $skills->map(function (McpSkill $s) {
+            $fm = $s->currentVersion->frontmatter_json ?? [];
+
+            return [
+                'slug'        => $s->slug,
+                'name'        => $fm['name'] ?? $s->slug,
+                'description' => $fm['description'] ?? '',
+                'module'      => $s->module ?: ($fm['module'] ?? null),
+                'git_path'    => $s->git_path ?? ".claude/skills/{$s->slug}/SKILL.md",
+                'body_chars'  => mb_strlen($s->currentVersion->body_markdown ?? ''),
+                'source'      => 'db',
+            ];
+        })->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function listFromFilesystem(): array
     {
         $skills = [];
         foreach ($this->skillFiles() as $file) {
@@ -38,9 +121,10 @@ class SkillsService
                 'slug'        => $parsed['slug'],
                 'name'        => $parsed['frontmatter']['name'] ?? $parsed['slug'],
                 'description' => $parsed['frontmatter']['description'] ?? '',
-                'module'      => $this->extractModule($parsed['frontmatter']),
+                'module'      => $parsed['frontmatter']['module'] ?? null,
                 'git_path'    => $parsed['git_path'],
                 'body_chars'  => mb_strlen($parsed['body']),
+                'source'      => 'filesystem',
             ];
         }
 
@@ -50,27 +134,27 @@ class SkillsService
     }
 
     /**
-     * Busca uma skill específica por slug. Retorna null se não existir.
-     *
-     * @return array{
-     *   slug: string,
-     *   frontmatter: array,
-     *   body: string,
-     *   git_path: string,
-     * }|null
+     * @return array{slug: string, frontmatter: array, body: string, git_path: string, source: string}|null
      */
-    public function findBySlug(string $slug): ?array
+    private function findInFilesystem(string $slug): ?array
     {
-        if (! preg_match('/^[a-z0-9][a-z0-9-]*$/', $slug)) {
+        $absolutePath = base_path('.claude/skills/'.$slug.'/SKILL.md');
+        if (! is_file($absolutePath)) {
             return null;
         }
 
-        $base = base_path('.claude/skills/'.$slug.'/SKILL.md');
-        if (! is_file($base)) {
+        $parsed = $this->parseFile($absolutePath);
+        if ($parsed === null) {
             return null;
         }
 
-        return $this->parseFile($base);
+        return [
+            'slug'        => $parsed['slug'],
+            'frontmatter' => $parsed['frontmatter'],
+            'body'        => $parsed['body'],
+            'git_path'    => $parsed['git_path'],
+            'source'      => 'filesystem',
+        ];
     }
 
     /**
@@ -83,26 +167,15 @@ class SkillsService
             return [];
         }
 
-        $matches = glob("$base/*/SKILL.md") ?: [];
-
-        return $matches;
+        return glob("$base/*/SKILL.md") ?: [];
     }
 
     /**
-     * @return array{
-     *   slug: string,
-     *   frontmatter: array,
-     *   body: string,
-     *   git_path: string,
-     * }|null
+     * @return array{slug: string, frontmatter: array, body: string, git_path: string}|null
      */
     private function parseFile(string $absolutePath): ?array
     {
-        if (! is_file($absolutePath)) {
-            return null;
-        }
-
-        $content = file_get_contents($absolutePath);
+        $content = @file_get_contents($absolutePath);
         if ($content === false) {
             return null;
         }
@@ -132,17 +205,5 @@ class SkillsService
             'body'        => $m[2],
             'git_path'    => $relativePath,
         ];
-    }
-
-    /**
-     * Tenta inferir módulo do frontmatter (campo `module`, ou tags, ou null).
-     */
-    private function extractModule(array $frontmatter): ?string
-    {
-        if (! empty($frontmatter['module'])) {
-            return (string) $frontmatter['module'];
-        }
-
-        return null;
     }
 }

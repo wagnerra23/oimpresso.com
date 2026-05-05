@@ -17,6 +17,7 @@ interface Skill {
   frontmatter: Record<string, any>
   body: string
   git_path: string
+  source: 'db' | 'filesystem'
 }
 
 interface Props {
@@ -42,6 +43,7 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
         icon="zap"
         title={fm.name || skill.slug}
         description={fm.description || ''}
+        action={<Badge variant={skill.source === 'db' ? 'default' : 'outline'}>{skill.source === 'db' ? 'DB' : 'Filesystem'}</Badge>}
       />
 
       <Card>
