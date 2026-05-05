@@ -85,10 +85,27 @@ $bid = session()->get('user.business_id');
 if (/* módulo A ou B habilitado e usuário pode ver */) {
     Menu::modify('admin-sidebar-menu', function ($menu) use ($has_a, $has_b) {
         $seg = request()->segment(1);
-        $menu->dropdown('Nome do Grupo', function ($sub) use ($has_a, $has_b) {
-            if ($has_a) { $sub->url(url('/modulo-a'), 'Módulo A', ['icon' => '...', 'active' => ...]); }
-            if ($has_b) { $sub->url(url('/modulo-b'), 'Módulo B', ['icon' => '...', 'active' => ...]); }
+        // ⚠️ PHP: $seg definida aqui NÃO está disponível em closures internas sem use explícito.
+        // A inner closure PRECISA de use ($seg) se ela ou seu array de opções referencia $seg.
+        $menu->dropdown('Nome do Grupo', function ($sub) use ($has_a, $has_b, $seg) {
+            if ($has_a) { $sub->url(url('/modulo-a'), 'Módulo A', ['icon' => '...', 'active' => $seg === 'modulo-a']); }
+            if ($has_b) { $sub->url(url('/modulo-b'), 'Módulo B', ['icon' => '...', 'active' => $seg === 'modulo-b']); }
         }, ['icon' => 'fa fas fa-icon', 'active' => in_array($seg, ['modulo-a', 'modulo-b'])])->order(NN);
+    });
+}
+
+// Caso com sub-dropdown aninhado (ex.: grupo que agrupa módulos complexos):
+if (/* ... */) {
+    Menu::modify('admin-sidebar-menu', function ($menu) {
+        $seg = request()->segment(1);
+        $menu->dropdown('Nome do Grupo', function ($sub) use ($seg) {
+            // $seg precisa de use aqui se usada em $sub->dropdown() ou urls internas
+            $sub->dropdown(
+                'Sub-módulo',
+                function ($s) { /* $s->url(...) */ },
+                ['icon' => '...', 'active' => $seg === 'sub-modulo']  // usa $seg → precisa do use acima
+            );
+        }, ['icon' => '...', 'active' => $seg === 'nome-grupo'])->order(NN);
     });
 }
 ```
@@ -144,5 +161,6 @@ Ou via React DevTools: buscar `SidebarMenu` e verificar `items` prop.
 - ❌ Usar order() duplicado → renderização não-determinística
 - ❌ Colocar grupo cross-módulo em DataController de módulo único → acoplamento ruim
 - ❌ Testar com usuário `superadmin` quando o item tem guard de permissão específica → falso positivo
+- ❌ **Closure PHP sem `use` explícito** — variável definida na outer closure (`$seg`, `$has_x`) NÃO está disponível em inner closures. PHP não captura escopo externo automaticamente (ao contrário de JS). Sempre declarar `use ($seg, $has_x)` em TODA closure que referencia essas variáveis, incluindo arrays de opções passados como 3º arg de `$sub->dropdown()` que estão dentro da inner closure.
 
 **Última atualização:** 2026-05-05
