@@ -9,6 +9,7 @@
 
 import { Head, router } from '@inertiajs/react';
 import { useMemo, type ReactNode } from 'react';
+import { Bell, Cog, Inbox, Pin, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -255,29 +256,108 @@ export default function Chat({
     >
       <Head title="Copiloto · Chat" />
 
-      <ThreadHeader conv={conversaFoco} />
-
-      {/* MEM-CHAT-ENT (assistant-ui) — Thread + Composer + Stop + Markdown +
-          code highlight + edit/regenerate vêm tudo prontos da lib.
-          Rascunho propostas-de-metas continua entre o thread e o composer. */}
-      <CopilotoAssistantUiChat
-        conversaId={conversa.id}
-        mensagensIniciais={mensagens}
-        belowThread={
-          sugestoesPendentes.length > 0 ? (
-            <div className="px-5 pb-3 space-y-2">
-              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-mute)' }}>
-                Propostas de metas
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {sugestoesPendentes.map((s) => (
-                  <PropostaCard key={s.id} sugestao={s} />
-                ))}
-              </div>
-            </div>
-          ) : null
-        }
-      />
+      {/* Master/detail interno — UI-0011 (sidebar single-pane) migrou conv
+          switcher pra dentro da própria Page. 320px lista + 1fr thread. */}
+      <div className="copiloto-chat-layout">
+        <ConvSidePanel
+          fixadas={conversas.fixadas}
+          recentes={conversas.recentes}
+          activeConvId={String(conversa.id)}
+          onSelectConv={selectConv}
+        />
+        <div className="copiloto-chat-thread">
+          <ThreadHeader conv={conversaFoco} />
+          <CopilotoAssistantUiChat
+            conversaId={conversa.id}
+            mensagensIniciais={mensagens}
+            belowThread={
+              sugestoesPendentes.length > 0 ? (
+                <div className="px-5 pb-3 space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-mute)' }}>
+                    Propostas de metas
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {sugestoesPendentes.map((s) => (
+                      <PropostaCard key={s.id} sugestao={s} />
+                    ))}
+                  </div>
+                </div>
+              ) : null
+            }
+          />
+        </div>
+      </div>
     </AppShellV2>
+  );
+}
+
+// ── ConvSidePanel — lista de conversas migrada da SidebarChat removida ─
+
+function ConvSidePanel({
+  fixadas,
+  recentes,
+  activeConvId,
+  onSelectConv,
+}: {
+  fixadas: ConversaResumo[];
+  recentes: ConversaResumo[];
+  activeConvId: string;
+  onSelectConv: (id: string) => void;
+}) {
+  return (
+    <aside className="copiloto-chat-convs">
+      <div className="sb-actions">
+        <a href="/copiloto/conversas/nova" className="sb-action">
+          <Plus size={14} /> <span>Nova conversa</span>
+          <span className="kbd" style={{ marginLeft: 'auto' }}>⌘N</span>
+        </a>
+        <a href="/tarefas" className="sb-action">
+          <Inbox size={14} /> <span>Tarefas</span>
+        </a>
+        <div className="sb-action">
+          <Bell size={14} /> <span>Despachos</span>
+          <span className="beta">Beta</span>
+        </div>
+        <div className="sb-action">
+          <Cog size={14} /> <span>Personalizar</span>
+        </div>
+      </div>
+
+      <div className="sb-section-h">Fixadas</div>
+      {fixadas.length === 0 ? (
+        <div className="sb-action" style={{ opacity: 0.6 }}>
+          <Pin size={14} /> <span>Arraste para fixar</span>
+        </div>
+      ) : (
+        fixadas.map((c) => (
+          <div
+            key={c.id}
+            className={`sb-conv ${c.id === activeConvId ? 'active' : ''}`}
+            onClick={() => onSelectConv(c.id)}
+          >
+            <span className={`sb-bullet ${c.unread ? 'filled' : ''}`} />
+            <span className="sb-conv-t">{c.titulo}</span>
+          </div>
+        ))
+      )}
+
+      <div className="sb-section-h">Recentes</div>
+      {recentes.length === 0 ? (
+        <div className="sb-action" style={{ opacity: 0.6 }}>
+          <span>Nenhuma conversa ainda</span>
+        </div>
+      ) : (
+        recentes.map((c) => (
+          <div
+            key={c.id}
+            className={`sb-conv ${c.id === activeConvId ? 'active' : ''}`}
+            onClick={() => onSelectConv(c.id)}
+          >
+            <span className={`sb-bullet ${c.unread ? 'filled' : ''}`} />
+            <span className="sb-conv-t">{c.titulo}</span>
+          </div>
+        ))
+      )}
+    </aside>
   );
 }
