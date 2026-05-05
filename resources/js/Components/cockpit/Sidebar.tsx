@@ -215,53 +215,61 @@ function SidebarShortcuts({
   );
 }
 
-// ── SidebarGroup — header uppercase colapsável + items ──────────────────
+// ── SidebarGroup — header com chevron à esquerda + popover suspenso lateral
+//    Canon Cowork: chevron antes do label, rotação -90deg fechado / 0 aberto.
+//    UI-0011 refinement Wagner 2026-05-05: submenu vira popover suspenso (não
+//    inline) pra otimizar espaço vertical. Apenas um grupo aberto por vez. ──
 
 function SidebarGroup({
   groupKey,
   label,
   children,
-  defaultOpen = true,
+  openKey,
+  onToggle,
 }: {
   groupKey: string;
   label: string;
   children: React.ReactNode;
-  defaultOpen?: boolean;
+  openKey: string | null;
+  onToggle: (key: string | null) => void;
 }) {
-  const lsKey = `oimpresso.cockpit.group.${groupKey}.expanded`;
-  const [expanded, setExpanded] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return defaultOpen;
-    const v = localStorage.getItem(lsKey);
-    return v === null ? defaultOpen : v === '1';
-  });
-  useEffect(() => {
-    localStorage.setItem(lsKey, expanded ? '1' : '0');
-  }, [expanded, lsKey]);
+  const ref = useRef<HTMLDivElement>(null);
+  const isOpen = openKey === groupKey;
 
-  // Grupo sem label (ex.: 'inicio') — renderiza items direto, sem header
+  // Fecha popover ao clicar fora
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onToggle(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isOpen, onToggle]);
+
+  // Grupo sem label (não usado mais — fallback) — renderiza inline
   if (!label) {
     return <div className="sb-group sb-group-noheader">{children}</div>;
   }
 
   return (
-    <div className="sb-group">
+    <div className={`sb-group ${isOpen ? 'is-open' : ''}`} ref={ref}>
       <button
         type="button"
         className="sb-group-h"
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
+        onClick={() => onToggle(isOpen ? null : groupKey)}
+        aria-expanded={isOpen}
       >
-        <span className="sb-group-label">{label}</span>
         <ChevronDown
-          size={11}
-          className="sb-group-chev"
+          size={10}
+          className="chev"
           style={{
-            transform: expanded ? 'rotate(0)' : 'rotate(-90deg)',
+            transform: isOpen ? 'rotate(0)' : 'rotate(-90deg)',
             transition: 'transform 150ms',
           }}
         />
+        <span>{label}</span>
       </button>
-      {expanded && <div className="sb-group-body">{children}</div>}
+      {isOpen && <div className="sb-group-popover">{children}</div>}
     </div>
   );
 }
@@ -295,6 +303,18 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
       : []),
   ];
 
+  return <SidebarMenuGrouped groupsToRender={groupsToRender} groupedItems={groupedItems} />;
+}
+
+// ── SidebarMenuGrouped — wrapper que gerencia o openKey (radio behavior) ──
+function SidebarMenuGrouped({
+  groupsToRender,
+  groupedItems,
+}: {
+  groupsToRender: Array<{ key: string; label: string; items: string[] }>;
+  groupedItems: Record<string, ShellMenuItem[]>;
+}) {
+  const [openKey, setOpenKey] = useState<string | null>(null);
   return (
     <div className="sb-menu-grouped">
       <SidebarShortcuts tarefasCount={6} chatCount={3} />
@@ -303,7 +323,8 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={g.key !== 'mais'}
+          openKey={openKey}
+          onToggle={setOpenKey}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
