@@ -2,14 +2,14 @@
 //   tela: /copiloto/admin/governanca
 //   module: Copiloto
 //   stories: MEM-MCP-1.e (ADR 0053)
-//   adrs: 0053 (MCP server governança como produto)
+//   adrs: 0053, 0039 (Chat Cockpit — portada 2026-05-05)
 //   tests: Modules/Copiloto/Tests/Feature/Admin/GovernancaControllerTest
 //   status: implementada
 //   permissao: copiloto.mcp.usage.all (Wagner/superadmin)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -17,6 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
+import StatusBadge from '@/Components/shared/StatusBadge';
+import EmptyState from '@/Components/shared/EmptyState';
+
+const LS_PRESET_KEY = 'oimpresso.copiloto.governanca.preset';
 
 type Preset = 'hoje' | 'ontem' | '7d' | '30d' | 'mes_anterior' | 'custom';
 
@@ -60,13 +64,12 @@ function formatDataCurta(iso: string): string {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
-function statusBadgeClass(status: string): string {
+function statusBarClass(status: string): string {
   switch (status) {
-    case 'ok':              return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300';
-    case 'denied':          return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300';
-    case 'error':           return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
-    case 'quota_exceeded':  return 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300';
-    default:                return 'bg-muted text-muted-foreground';
+    case 'ok':             return 'bg-emerald-500 h-2';
+    case 'denied':         return 'bg-amber-500 h-2';
+    case 'quota_exceeded': return 'bg-orange-500 h-2';
+    default:               return 'bg-rose-500 h-2';
   }
 }
 
@@ -83,7 +86,15 @@ function CallsDiariasChart({ dados }: { dados: DiaRow[] }) {
   const n = dados.length;
 
   if (n === 0) {
-    return <div className="text-center text-sm text-muted-foreground py-12">Sem dados no período.</div>;
+    return (
+      <EmptyState
+        icon="bar-chart-2"
+        title="Sem dados no período"
+        description="Nenhuma chamada MCP registrada no intervalo selecionado."
+        variant="search"
+        className="py-8"
+      />
+    );
   }
 
   const xAt = (i: number) => pad.left + (n === 1 ? innerW / 2 : (i / (n - 1)) * innerW);
@@ -116,7 +127,7 @@ function CallsDiariasChart({ dados }: { dados: DiaRow[] }) {
 
         <polygon points={areaPts} className="fill-primary/15" />
         <polyline points={linePts} fill="none" className="stroke-primary" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-        <polyline points={deniedPts} fill="none" className="stroke-yellow-500" strokeWidth={1.5} strokeDasharray="4 2" strokeLinecap="round" />
+        <polyline points={deniedPts} fill="none" className="stroke-amber-400 dark:stroke-amber-300" strokeWidth={1.5} strokeDasharray="4 2" strokeLinecap="round" />
 
         {xLabels.map(({ d, i }) => (
           <text key={`x-${i}`} x={xAt(i)} y={h - 8} textAnchor="middle" className="fill-muted-foreground text-[10px]">
@@ -129,7 +140,7 @@ function CallsDiariasChart({ dados }: { dados: DiaRow[] }) {
           <span className="inline-block w-3 h-0.5 bg-primary"></span> calls
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-0.5 bg-yellow-500" style={{ borderTop: '1px dashed' }}></span> denied
+          <span className="inline-block w-3 h-0.5 bg-amber-400 dark:bg-amber-300" style={{ borderTop: '1px dashed' }}></span> denied
         </span>
       </div>
     </div>
@@ -144,6 +155,27 @@ function GovernancaIndex(props: Props) {
 
   const [de, setDe] = useState(filters.de ?? '');
   const [ate, setAte] = useState(filters.ate ?? '');
+  const selectRef = useRef<HTMLButtonElement>(null);
+
+  // Persiste preset no localStorage (ADR 0039 §4)
+  useEffect(() => {
+    if (filters.preset !== 'custom') {
+      localStorage.setItem(LS_PRESET_KEY, filters.preset);
+    }
+  }, [filters.preset]);
+
+  // Atalho '/' → foca no seletor de período (DESIGN.md §13)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === '/') {
+        e.preventDefault();
+        selectRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const aplicar = (patch: Partial<Filters>) => {
     router.get('/copiloto/admin/governanca', { ...filters, ...patch }, {
@@ -211,12 +243,15 @@ function GovernancaIndex(props: Props) {
       <Card className="mt-6 mb-4">
         <CardContent className="pt-6 flex flex-col md:flex-row gap-3 md:items-end">
           <div className="flex-1 min-w-[160px]">
-            <label className="text-xs font-medium text-muted-foreground block mb-1">Período</label>
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
+              Período{' '}
+              <kbd className="ml-1 text-[10px] border border-border rounded px-1 py-0.5 font-mono">/</kbd>
+            </label>
             <Select
               value={filters.preset}
               onValueChange={(v) => aplicar({ preset: v as Preset, de: null, ate: null })}
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger ref={selectRef}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="hoje">Hoje</SelectItem>
                 <SelectItem value="ontem">Ontem</SelectItem>
@@ -262,23 +297,23 @@ function GovernancaIndex(props: Props) {
         <Card>
           <CardHeader>
             <CardTitle>Distribuição por status</CardTitle>
-            <CardDescription>{kpis.total_calls > 0 ? `${kpis.total_calls} calls totais` : 'Sem chamadas'}</CardDescription>
+            <CardDescription>{kpis.total_calls > 0 ? `${num(kpis.total_calls)} calls totais` : 'Sem chamadas'}</CardDescription>
           </CardHeader>
           <CardContent>
             {por_status.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground text-sm">Sem dados.</div>
+              <EmptyState
+                icon="activity"
+                title="Sem dados de status"
+                description="Nenhuma chamada registrada no período."
+                className="py-6"
+              />
             ) : (
               <div className="space-y-2">
                 {por_status.map((s) => (
                   <div key={s.status} className="flex items-center gap-3">
-                    <span className={`px-2 py-0.5 rounded text-xs font-mono ${statusBadgeClass(s.status)}`}>
-                      {s.status}
-                    </span>
+                    <StatusBadge kind="mcp_status" value={s.status} className="font-mono text-xs" />
                     <div className="flex-1 bg-muted rounded h-2 overflow-hidden">
-                      <div
-                        className={s.status === 'ok' ? 'bg-green-500 h-2' : s.status === 'denied' ? 'bg-yellow-500 h-2' : 'bg-red-500 h-2'}
-                        style={{ width: `${s.pct}%` }}
-                      />
+                      <div className={statusBarClass(s.status)} style={{ width: `${s.pct}%` }} />
                     </div>
                     <span className="text-xs font-mono w-16 text-right">{num(s.calls)}</span>
                     <span className="text-xs text-muted-foreground w-12 text-right">{s.pct}%</span>
@@ -296,9 +331,13 @@ function GovernancaIndex(props: Props) {
           </CardHeader>
           <CardContent>
             {denied_por_codigo.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground text-sm">
-                Nenhum denied no período.
-              </div>
+              <EmptyState
+                icon="shield-check"
+                title="Nenhum denied no período"
+                description="Todas as chamadas passaram nas políticas de acesso."
+                variant="success"
+                className="py-6"
+              />
             ) : (
               <table className="w-full text-sm">
                 <thead>
@@ -330,7 +369,12 @@ function GovernancaIndex(props: Props) {
           </CardHeader>
           <CardContent>
             {top_tools.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground text-sm">Sem dados.</div>
+              <EmptyState
+                icon="wrench"
+                title="Sem chamadas de tools"
+                description="Nenhuma tool ou resource foi invocada no período."
+                className="py-6"
+              />
             ) : (
               <table className="w-full text-sm">
                 <thead>
@@ -361,7 +405,12 @@ function GovernancaIndex(props: Props) {
           </CardHeader>
           <CardContent>
             {top_users.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground text-sm">Sem dados.</div>
+              <EmptyState
+                icon="users"
+                title="Sem dados de usuários"
+                description="Nenhum usuário consumiu o MCP no período."
+                className="py-6"
+              />
             ) : (
               <table className="w-full text-sm">
                 <thead>

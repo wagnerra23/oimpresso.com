@@ -84,6 +84,12 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     Alto:    { variant: 'default',     label: 'Risco Alto',    className: 'bg-orange-600 hover:bg-orange-700' },
     Crítico: { variant: 'destructive', label: 'Risco Crítico' },
   },
+  mcp_status: {
+    ok:             { variant: 'default',     label: 'ok',             className: 'bg-emerald-600 hover:bg-emerald-700' },
+    denied:         { variant: 'default',     label: 'denied',         className: 'bg-amber-600 hover:bg-amber-700' },
+    error:          { variant: 'destructive', label: 'error' },
+    quota_exceeded: { variant: 'default',     label: 'quota_exceeded', className: 'bg-orange-600 hover:bg-orange-700' },
+  },
 };
 
 interface Props {
