@@ -9,7 +9,22 @@
 
 ## 🚀 Começo Rápido — leia isso primeiro
 
-**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` (promoção `6.7-bootstrap`→`main` em 2026-04-27, ver ADR 0038) · **Última sessão:** 2026-04-29 noite (MCP team self-host + memória cross-source — log completo em `memory/sessions/2026-04-29-mcp-team-self-host.md`)
+**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-05 (triagem 135 tasks + roadmap 17 epics + auditoria tools MCP — log em [`memory/sessions/2026-05-05-triagem-roadmap-mcp-audit.md`](sessions/2026-05-05-triagem-roadmap-mcp-audit.md), bugs MCP em [ADR 0071](decisions/0071-mcp-tools-audit-2026-05-05-bugs-e-workarounds.md))
+
+### 🆕 Estado pós-2026-05-05 (triagem + roadmap)
+
+**Entregas desta sessão:**
+- ✅ **Triagem completa**: 135 tasks atualizadas (status + priority + owner + project_id + epic_id) + 17 canceladas. Triage MCP zerada (0 backlog, 0 sem owner).
+- ✅ **Roadmap estruturado**: 17 Epics distribuídas em 3 quarters. **2026-Q2** (atual) tem 7 epics / 45 tasks; **Q3** tem 5 epics / 84 tasks; **Q4** tem 5 epics / 49 tasks.
+- ✅ **6 projects criados** em `mcp_jira_projects`: PROJECT (Jira-style meta) + NFSE (Eliana) + ACCO (Accounting) + AI (permissions). Total 14 projects ativos.
+- ✅ **ADR 0071** documenta auditoria 18 tools MCP — 13 OK, 5 com bugs/auth-degradação. Schema decoded.
+
+**P0 pra próxima sessão (cycle 01 ainda tem 7 dias até 12-mai):**
+- **COPI-40** Semantic cache middleware (-68.8% tokens) — Wagner liberou nesta sessão; pivotou pra finalizar. Roadmap em ADR 0037 Sprint 8.
+- **COPI-43** PII redactor BR (LGPD-blocker) p0
+- **A4 rodada 2** — validar Larissa repetir 3 perguntas (handoff antigo, ainda pendente)
+
+**Atenção crítica:** **NÃO RODAR `php artisan mcp:tasks:sync`** até PROJECT-3 (frontmatter YAML SPECs, p3 → escalar p2) fechar. Parser sobrescreve a triagem desta sessão. Ver ADR 0071 §B3.
 
 > **⚠️ Sessão 29-abr noite estourou ~970K tokens** — ver `HOW_TO_ASK_CLAUDE.md` na raiz do repo pra padrão correto. **Próximas sessões:** sempre `/clear` ao trocar de escopo, `/compact` após cada feature, e perguntas com arquivo+linha+o-que-mudar.
 
@@ -400,8 +415,8 @@ Session log completo: `memory/sessions/2026-04-28-meilisearch-vaultwarden.md`
 
 ---
 
-**Última atualização:** 2026-04-29 fim do dia (sprint memória — 8 entregas, baseline 29-abr em prod, 51 ADRs total)
-**Estado geral:** 🟢 Copiloto IA real ativo prod desde 28-abr; 🟢 sprint memória do dia completa (MEM-HOT-1, MEM-HOT-2, MEM-MET-1, MEM-MET-2, MEM-OTEL-1 todos deployed); 🟢 baseline 2026-04-29 em `copiloto_memoria_metricas`; 🟢 modo solo Wagner (ADR 0047); 🟢 estratégia "schema próprio + OTel GenAI" formalizada (ADR 0051)
+**Última atualização:** 2026-05-05 noite (triagem + roadmap + auditoria MCP — 135 tasks, 17 epics, ADR 0071, **71 ADRs total**)
+**Estado geral:** 🟢 Copiloto IA real ativo prod desde 28-abr; 🟢 backlog 100% triado (0 sem owner, 0 backlog); 🟢 roadmap mapeado em 3 quarters; 🟡 5 tools MCP com auth-degradação (workarounds OK); 🟡 cache semântico COPI-40 ainda não-iniciado (handoff próxima sessão)
 
 ---
 
