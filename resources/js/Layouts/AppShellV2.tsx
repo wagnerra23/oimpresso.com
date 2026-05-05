@@ -44,10 +44,8 @@ import '../../css/cockpit.css';
 
 import {
   CompanyPicker,
-  SidebarChat,
   SidebarFooter,
   SidebarMenu,
-  SidebarTabs,
 } from '@/Components/cockpit/Sidebar';
 import { LinkedAppsPanel } from '@/Components/cockpit/LinkedApps';
 import { TweaksPanel } from '@/Components/cockpit/TweaksPanel';
@@ -199,13 +197,14 @@ export default function AppShellV2({
     cargo: cockpitShared?.usuarioCargo ?? 'Usuário',
     iniciais: cockpitShared?.usuarioIniciais ?? '?',
   };
-  const conversas = conversasProp ?? { fixadas: [], rotinas: [], recentes: [] };
+  // `conversas` aceito por compat — sidebar single-pane (UI-0011) NÃO renderiza
+  // mais conversas. Páginas que precisam do conv switcher devem renderizar lista
+  // própria dentro do main column (Pages/Copiloto/Chat.tsx faz isso).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _conversasIgnored = conversasProp;
 
-  // ── State do shell (sidebar tab + apps colapsado + conversa ativa fallback)
-  const [tab, setTab] = useState<'chat' | 'menu'>(() => {
-    if (typeof window === 'undefined') return 'chat';
-    return (localStorage.getItem(LS.TAB) as 'chat' | 'menu') || 'chat';
-  });
+  // ── State do shell (apps colapsado + conversa ativa fallback)
+  // Sidebar tab REMOVIDO em 2026-05-05 — sidebar agora é single-pane com Menu.
   const [linkedCollapsed, setLinkedCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(LS.LINKED) === '1';
@@ -240,7 +239,7 @@ export default function AppShellV2({
   });
 
   // ── Persistência localStorage
-  useEffect(() => { localStorage.setItem(LS.TAB, tab); }, [tab]);
+  // (LS.TAB removido — sidebar single-pane não tem toggle Chat/Menu mais)
   useEffect(() => { localStorage.setItem(LS.LINKED, linkedCollapsed ? '1' : '0'); }, [linkedCollapsed]);
   useEffect(() => {
     if (effectiveActiveConvId) localStorage.setItem(LS.CONV, effectiveActiveConvId);
@@ -312,24 +311,13 @@ export default function AppShellV2({
         data-theme={userTheme}
         style={cockpitStyle}
       >
-        {/* SIDEBAR */}
+        {/* SIDEBAR — single-pane (UI-0011, 2026-05-05). Toggle Chat/Menu removido. */}
         <aside className="sb">
           <div className="sb-top">
             <CompanyPicker businesses={business.opcoes} fallbackNome={business.nome} />
           </div>
-          <SidebarTabs tab={tab} onTab={setTab} />
           <div className="sb-body">
-            {tab === 'chat' ? (
-              <SidebarChat
-                fixadas={conversas.fixadas}
-                rotinas={conversas.rotinas}
-                recentes={conversas.recentes}
-                activeId={effectiveActiveConvId}
-                onSelect={effectiveOnSelectConv}
-              />
-            ) : (
-              <SidebarMenu items={shellMenu} />
-            )}
+            <SidebarMenu items={shellMenu} />
           </div>
           <SidebarFooter
             nome={user.nome}
