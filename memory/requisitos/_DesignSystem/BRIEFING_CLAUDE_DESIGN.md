@@ -39,8 +39,8 @@
 
 Estes pontos estão **fechados** — a aba Design não precisa repropor:
 
-### Padrão Cockpit (ADR UI-0008)
-- Layout 3 colunas: Sidebar 260px (dark) + Main 1fr + Apps Vinculados 320px
+### Padrão Cockpit (ADR UI-0008 + UI-0009)
+- Layout 3 colunas: Sidebar 260px (segue `data-theme` do usuário, light por padrão — ver UI-0009) + Main 1fr + Apps Vinculados 320px
 - Sidebar dual com toggle Chat↔Menu (estilo ChatGPT)
 - Aba Chat: atalhos + Fixadas + Rotinas + Recentes
 - Aba Menu: espelha `shell.menu` real (LegacyMenuAdapter — todos módulos do ERP)
@@ -164,7 +164,7 @@ HTML único auto-contido (estilo do `Oimpresso ERP - Chat.html`) usando React vi
 
 ### O que NÃO inventar
 
-- ❌ **Não muda o padrão Cockpit** — sidebar dual, 3 colunas, dark sidebar, IBM Plex são fixos
+- ❌ **Não muda o padrão Cockpit** — sidebar dual, 3 colunas, IBM Plex são fixos. Sidebar **segue `data-theme`** do usuário (light default, dark elegante — UI-0009), NÃO é mais dark fixo
 - ❌ **Não inventa nova cor de origin** — se módulo precisar, escolhe entre as 5 (OS/CRM/FIN/PNT/MFG)
 - ❌ **Não muda labels/ordem de itens do menu existente** — Eliana (cliente WR2) e Larissa (ROTA LIVRE) reconhecem o sistema atual
 - ❌ **Não usa cor crua** (`bg-blue-500`) — só tokens semânticos `--accent`, `--text`, etc.

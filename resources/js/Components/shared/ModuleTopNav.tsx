@@ -10,7 +10,7 @@ import type { MenuItem } from '@/Types';
  * Fonte INDEPENDENTE da sidebar. Alimentada por
  * `Modules/<Nome>/Resources/menus/topnav.php` → backend filtra Spatie →
  * Inertia expõe em `shell.topnavs[<Nome>]` → hook `useModuleNav(key)` →
- * page passa como prop pro `<AppShell moduleNav={...}>`.
+ * page passa como prop pro `<AppShellV2 moduleNav={...}>`.
  *
  * Sidebar accordion (DataController::modifyAdminMenu) continua funcionando
  * paralelamente e independente — os 2 sistemas não se comunicam.

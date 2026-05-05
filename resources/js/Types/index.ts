@@ -33,8 +33,9 @@ export interface FlashMessages {
 }
 
 /**
- * Item de menu do AppShell. Quando `inertia=false`, link é `<a>` tradicional
- * (telas legadas AdminLTE). Quando `inertia=true`, vira `<Link>` SPA.
+ * Item de menu do AppShellV2 (Cockpit). Quando `inertia=false`, link é `<a>`
+ * tradicional (telas legadas Blade UltimatePOS). Quando `inertia=true`, vira
+ * `<Link>` SPA.
  */
 export interface MenuItem {
   label: string;
