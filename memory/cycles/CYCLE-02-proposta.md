@@ -17,11 +17,11 @@ CYCLE-01 fecha em 2026-05-12 com 2/3 goals batidos (Larissa OK, recall_chars OK,
 
 **Pivô descoberto:** Wagner pediu UI de gerenciamento via `https://oimpresso.com/ads/admin/skills`. Originalmente fora de escopo P0, agora dentro.
 
-## Goal (outcome-oriented) — revisão 2
+## Goal (outcome-oriented) — revisão 3 (ADR 0076 fluxo invertido)
 
-> **CYCLE-02:** UI Skills V0.5 funcional — Wagner navega `/ads/admin/skills`, vê 16 skills sincronizadas via webhook, edita uma, vê history+diff+rationale 4 campos. Time descobre via `skills-search` tool MCP. (Test runner + approval queue ficam pro CYCLE-03.)
+> **CYCLE-02:** UI Skills V0.5 funcional **DB-primary** — Wagner navega `/ads/admin/skills`, vê 16 skills importadas do git no seed inicial, edita uma direto na UI (vai pra DB sem precisar PR), vê history + rationale 4 campos. Drift queue funcionando. Time descobre via `skills-search` tool MCP. (Test runner + Approval + Publish-to-git ficam pro CYCLE-03.)
 >
-> **CYCLE-03 (planejado, não inicia ainda):** UI Skills V1 completo — test runner contra inputs reais multi-tenant + approval queue obrigatório.
+> **CYCLE-03 (planejado, não inicia ainda):** UI Skills V1 completo — test runner contra inputs reais multi-tenant + approval queue + Publish-to-git via GitHub API.
 >
 > **CYCLE-04 (planejado):** P1 bi-temporal (`event_valid_*` + tool `memoria-historica`). Adiado de CYCLE-02.
 
@@ -37,32 +37,32 @@ CYCLE-01 fecha em 2026-05-12 com 2/3 goals batidos (Larissa OK, recall_chars OK,
 
 **Removidos:** goal de policies (saiu de escopo P0 após ADR 0075 supersede 0073) + goal de bi-temporal (escorrega pra CYCLE-04). Goals 1-5 redefinidos pra UI Skills V0.5.
 
-## Sprint A — Backend Skills (ADR 0075 — 5 dias úteis)
+## Sprint A — Backend Skills (ADR 0076 fluxo invertido — 5 dias úteis)
 
 | Dia | Task ID sugerida | Entrega | Files tocados |
 |---|---|---|---|
-| **A1** seg 13/05 | `COPI-A1` SKILLS-DB-1 | Migrations 5 tabelas (`mcp_skills`, `mcp_skill_versions`, `mcp_skill_labels`, `mcp_skill_approvals`, `mcp_skill_test_runs`) + FKs + indexes | 5 migrations em `Modules/Copiloto/Database/Migrations/` |
-| **A2** ter 14/05 | `COPI-A2` SKILLS-DB-2 | Entities Eloquent (5) + relationships + ScopeByBusiness onde aplicável | 5 entities em `Modules/Copiloto/Entities/Mcp/` |
-| **A3** qua 15/05 | `COPI-A3` SKILLS-SYNC | `IndexarSkillsParaDb` (lê `.claude/skills/*/SKILL.md`, parse YAML, PII redactor, upsert idempotente) + `mcp:sync-skills` command + integrar no webhook GitHub handler | 1 service + 1 command + 1 controller alterado |
-| **A4** qui 16/05 | `COPI-A4` SKILLS-MCP | 4 Tools MCP (`skills-search`, `skills-fetch`, `skills-history`, `skills-test-runs`) + registro em `OimpressoMcpServer` | 5 arquivos em `Modules/Copiloto/Mcp/Tools/` |
-| **A5** sex 17/05 | `COPI-A5` SKILLS-PEST | Testes Pest: SkillsSyncTest + SkillsLabelMoveTest + SkillsRationaleRequiredTest + SkillsPiiRedactorTest + RBAC seeder | 5 tests + 1 seeder |
+| **A1** seg 13/05 | `COPI-A1` SKILLS-DB-1 | Migrations 6 tabelas (`mcp_skills` com `git_sync_mode`+`origin`+`auto_publish_to_git`, `mcp_skill_versions` com `origin`+`status` enum drift_pending, `mcp_skill_labels`, `mcp_skill_approvals`, `mcp_skill_test_runs`, `mcp_skill_drift_alerts`) + FKs + indexes | 6 migrations em `Modules/Copiloto/Database/Migrations/` |
+| **A2** ter 14/05 | `COPI-A2` SKILLS-DB-2 | Entities Eloquent (6) + relationships + ScopeByBusiness onde aplicável | 6 entities em `Modules/Copiloto/Entities/Mcp/` |
+| **A3** qua 15/05 | `COPI-A3` SKILLS-IMPORT | `ImportarSkillsDoGitService` (one-time seed: lê `glob('.claude/skills/*/SKILL.md')`, INSERT `origin=imported`, `git_sync_mode=manual` default, version v1 `origin=git_seed`) + command `mcp:skills:import-from-git --once` | 1 service + 1 command |
+| **A4** qui 16/05 | `COPI-A4` SKILLS-DRIFT | `DetectarDriftSkillsService` (webhook handler — roteia por `git_sync_mode`: auto/manual/pinned) + `ResolverDriftAlertService` (accept/reject) + integração no webhook handler existente | 2 services + 1 controller alterado |
+| **A5** sex 17/05 | `COPI-A5` SKILLS-MCP+PEST | 4 Tools MCP atualizadas (filtra `status=published` por default) + Pest tests: ImportSeedTest + DriftDetectionTest (auto/manual/pinned) + LabelMoveTest + RationaleRequiredTest + RBAC seeder com `skills.publish` + `skills.config` | 4 tools + 5 tests + 1 seeder |
 
 **Critério de aceite Sprint A:**
 - Goals 1, 2, 4 batidos.
 - 4 tools MCP retornando dados reais.
 - Suite Pest verde.
 
-## Sprint B — UI Skills V0.5 (lista + detalhe + editor — 5 dias úteis)
+## Sprint B — UI Skills V0.5 (lista + detalhe + editor + drift queue — 5 dias úteis)
 
 UI segue padrão de [`/ads/admin/decisoes`](../../Modules/ADS/Routes/web.php) e [`/ads/admin/meta-skills`](../../Modules/ADS/Resources/menus/topnav.php) já em prod.
 
 | Dia | Task ID sugerida | Entrega | Files tocados |
 |---|---|---|---|
-| **B1** seg 20/05 | `COPI-B1` SKILLS-UI-1 | `SkillsController` + 4 rotas (`GET /skills`, `GET /skills/{slug}`, `GET /skills/{slug}/edit`, `POST /skills/{slug}/submit-review`) + Spatie permissions seeder | 1 controller em `Modules/ADS/Http/Controllers/Admin/` + `Routes/web.php` + 1 seeder |
-| **B2** ter 21/05 | `COPI-B2` SKILLS-UI-2 | Page React lista `Skills/Index.tsx` (table + filtros + KPIs) + Page detalhe `Skills/Show.tsx` (two-pane LangSmith-style: versions+labels esquerda, markdown render direita, toggle diff) | 2 Pages em `resources/js/Pages/ads/Admin/` |
-| **B3** qua 22/05 | `COPI-B3` SKILLS-UI-3 | Page editor `Skills/Edit.tsx` (Monaco markdown editor + form frontmatter + 4 textareas rationale obrigatórios) + integração GitHub API pra abrir PR ao "Submit for review" | 1 Page + 1 service `GitHubPrService` |
-| **B4** qui 23/05 | `COPI-B4` SKILLS-UI-4 | Diff component semantic (frontmatter highlight + body unified diff) + sidebar item AppShellV2 grupo CONHECIMENTO | 1 component + DataController ADS + SIDEBAR_GROUPS |
-| **B5** sex 24/05 | `COPI-B5` SKILLS-PEST | Testes Pest UI: SkillsControllerTest (5 rotas × permission) + smoke E2E manual | 1 test + manual checklist |
+| **B1** seg 20/05 | `COPI-B1` SKILLS-UI-1 | `SkillsController` (index/show/edit) + `DriftController` (index/accept/reject) + 7 rotas + Spatie permissions seeder (read/edit/test/approve/publish/config) | 2 controllers em `Modules/ADS/Http/Controllers/Admin/` + `Routes/web.php` + 1 seeder |
+| **B2** ter 21/05 | `COPI-B2` SKILLS-UI-2 | Page React lista `Skills/Index.tsx` (tabela com `git_sync_mode` badge + toggle `auto_publish_to_git`) + Page detalhe `Skills/Show.tsx` (two-pane + timeline mostrando origens ui/git_drift/git_seed) | 2 Pages em `resources/js/Pages/ads/Admin/` |
+| **B3** qua 22/05 | `COPI-B3` SKILLS-UI-3 | Page editor `Skills/Edit.tsx` (Monaco markdown + form frontmatter + 4 textareas rationale obrigatórios) — escreve direto em DB sem PR (fluxo invertido) | 1 Page |
+| **B4** qui 23/05 | `COPI-B4` SKILLS-UI-4 | **Page Drift Queue `Skills/Drift.tsx`** (lista versions com `status=drift_pending` + diff vs baseline + detected_author/PR + Accept/Reject actions) + Diff component semantic (frontmatter highlight + body unified diff) | 1 Page + 1 component |
+| **B5** sex 24/05 | `COPI-B5` SKILLS-UI-5 | Sidebar item AppShellV2 grupo CONHECIMENTO + Pest tests SkillsControllerTest + DriftControllerTest + smoke E2E manual | DataController ADS + SIDEBAR_GROUPS + 2 tests |
 
 **Critério de aceite Sprint B:**
 - Goals 3 e 5 batidos.

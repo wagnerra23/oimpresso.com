@@ -3,18 +3,19 @@ slug: 0075-team-mcp-skills-ui-prompt-management-style
 number: 0075
 title: "Team MCP P0 v2 — UI gestão de skills estilo prompt-management (5 tabelas, 5 telas, approval obrigatório)"
 type: adr
-status: proposto
-authority: canonical
-lifecycle: ativo
+status: superseded
+authority: reference
+lifecycle: substituido
 decided_by: [W]
 decided_at: 2026-05-05
 module: copiloto
 quarter: 2026-Q2
-tags: [mcp, team-mcp, skills, prompt-management, governance, approval, p0]
+tags: [mcp, team-mcp, skills, prompt-management, governance, approval, p0, superseded]
 supersedes:
   - 0073-team-mcp-skills-policies-entidades-governadas
 supersedes_partially: []
-superseded_by: []
+superseded_by:
+  - 0076-skills-db-primary-git-destino-drift-alert
 related:
   - 0053-mcp-server-governanca-como-produto
   - 0061-conhecimento-canonico-git-mcp-zero-automem
@@ -27,6 +28,11 @@ review_triggers:
 ---
 
 # ADR 0075 — Team MCP P0 v2: UI estilo prompt-management
+
+> **🔴 SUPERSEDED em 2026-05-05 mesmo dia por [ADR 0076](0076-skills-db-primary-git-destino-drift-alert.md).**
+> Wagner pediu **inverter o fluxo**: DB primary, git destino auditável (não git → DB). Drift por-skill (auto/manual/pinned). Skills criadas via UI são dinâmicas. ADR 0076 detalha: 6 tabelas (5 + drift_alerts), 6 telas (5 + drift queue), 4 services novos.
+>
+> **Mantida pra histórico.** Não implementar este schema — implementar 0076.
 
 ## Contexto
 
