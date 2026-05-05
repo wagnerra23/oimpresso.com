@@ -394,12 +394,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Rodapé usuário — compacto 2-linhas (UI-0011 refinement 2026-05-05).
-   Avatar pequeno preserva minimalismo; cargo volta como linha secundária
-   (Wagner pediu 2026-05-05). Tipografia IBM Plex Sans canon Cowork. */
+/* Rodapé usuário — slim 1-linha estilo Claude Desktop (UI-0011 refinement 2026-05-05).
+   Avatar 18px ultra-slim. Nome + cargo inline com "·". Tipografia IBM Plex Sans canon. */
 .cockpit .sb-user {
   border-top: 1px solid var(--sb-border);
-  padding: 6px;
+  padding: 4px 6px;
   position: relative;
 }
 .cockpit .sb-user-btn {
@@ -408,21 +407,22 @@
   background: transparent;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 6px 8px;
-  border-radius: 6px;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 5px;
   cursor: pointer;
   width: 100%;
   color: inherit;
   font-family: var(--font-sans);
+  line-height: 1;
 }
 .cockpit .sb-user-btn:hover { background: var(--sb-hover); }
 .cockpit .sb-user-btn .avatar {
-  width: 26px; height: 26px;
+  width: 18px; height: 18px;
   border-radius: 50%;
   background: linear-gradient(135deg, oklch(0.65 0.12 30), oklch(0.55 0.15 10));
   color: #fff;
-  font-size: 11px;
+  font-size: 8.5px;
   font-weight: 600;
   display: grid; place-items: center;
   flex: 0 0 auto;
@@ -432,7 +432,7 @@
   content: "";
   position: absolute;
   right: -1px; bottom: -1px;
-  width: 8px; height: 8px;
+  width: 6px; height: 6px;
   background: oklch(0.72 0.18 145);
   border: 1.5px solid var(--sb-bg);
   border-radius: 50%;
@@ -441,29 +441,28 @@
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
-  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cockpit .sb-user-btn .who b {
-  display: block;
+  display: inline;
   color: var(--sb-text-hi);
   font-weight: 600;
   font-size: 12.5px;
   font-family: var(--font-sans);
   letter-spacing: -0.005em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .cockpit .sb-user-btn .who small {
-  display: block;
+  display: inline;
   color: var(--sb-text-dim);
-  font-size: 10.5px;
+  font-size: 11px;
   font-family: var(--font-sans);
-  margin-top: 1px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
+.cockpit .sb-user-btn .who small::before { content: "· "; }
 .cockpit .sb-user-btn .chev { width: 12px; height: 12px; opacity: 0.5; flex: 0 0 auto; }.cockpit .user-menu {
   position: absolute;
   bottom: calc(100% + 6px);
@@ -1486,14 +1485,18 @@
   box-shadow: none;
   padding: 0;
 }
+/* Tokens dark-menu do user dropdown — Wagner pediu 2026-05-05:
+   "Menu Fundo Black como no cokpit". Independem do data-theme do main:
+   user menu é SEMPRE dark (estilo Claude Desktop / canon Cockpit). */
 .cockpit .user-menu-main,
 .cockpit .user-menu-sub {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: oklch(0.18 0.006 240);
+  border: 1px solid oklch(0.28 0.008 240);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-pop);
+  box-shadow: 0 12px 32px -8px rgba(0,0,0,.4), 0 4px 8px -2px rgba(0,0,0,.25);
   padding: 6px;
   min-width: 240px;
+  color: oklch(0.92 0.005 90);
 }
 .cockpit .user-menu-sub {
   margin-left: 6px;
@@ -1502,6 +1505,42 @@
 @keyframes userMenuSubIn {
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Items dentro do user menu (em dark fixo) */
+.cockpit .user-menu-main .um-item,
+.cockpit .user-menu-sub .um-item,
+.cockpit .user-menu-main .um-cascade-trigger,
+.cockpit .user-menu-sub .um-cascade-trigger {
+  color: oklch(0.92 0.005 90);
+}
+.cockpit .user-menu-main .um-item:hover,
+.cockpit .user-menu-sub .um-item:hover,
+.cockpit .user-menu-main .um-cascade-trigger:hover,
+.cockpit .user-menu-sub .um-cascade-trigger:hover {
+  background: oklch(0.27 0.008 240);
+}
+.cockpit .user-menu-main .um-cascade-trigger.active {
+  background: oklch(0.30 0.04 220);
+  color: oklch(0.78 0.10 220);
+}
+.cockpit .user-menu-main .um-cascade-trigger.active .um-cascade-arrow {
+  color: oklch(0.78 0.10 220);
+}
+.cockpit .user-menu-main .um-sep,
+.cockpit .user-menu-sub .um-sep {
+  background: oklch(0.28 0.008 240);
+}
+.cockpit .user-menu-main .user-menu-head .meta b {
+  color: oklch(0.96 0.005 90);
+}
+.cockpit .user-menu-main .user-menu-head .meta small {
+  color: oklch(0.68 0.005 90);
+}
+.cockpit .user-menu-main .um-item .kbd {
+  background: oklch(0.24 0.006 240);
+  color: oklch(0.78 0.005 90);
+  border-color: oklch(0.32 0.008 240);
 }
 
 .cockpit .um-cascade-trigger {
@@ -1516,26 +1555,22 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  color: var(--text);
   transition: background 120ms;
   line-height: 1.2;
 }
-.cockpit .um-cascade-trigger:hover { background: var(--bg-2); }
-.cockpit .um-cascade-trigger.active { background: var(--accent-soft); color: var(--accent); }
 .cockpit .um-cascade-trigger .label { flex: 1; }
 .cockpit .um-cascade-arrow { opacity: 0.5; flex-shrink: 0; }
-.cockpit .um-cascade-trigger.active .um-cascade-arrow { opacity: 1; color: var(--accent); }
 
 .cockpit .um-sub-h {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 10px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid oklch(0.28 0.008 240);
   margin-bottom: 4px;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--text);
+  color: oklch(0.96 0.005 90);
 }
 
 @media (max-width: 1023px) {
