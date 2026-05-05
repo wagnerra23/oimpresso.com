@@ -3,7 +3,7 @@ slug: 0074-whatsapp-channel-adapter-copiloto
 number: 0074
 title: "Channel adapter WhatsApp pro Copiloto — multi-canal sem clonar lógica de chat"
 type: adr
-status: proposto
+status: superseded_partially
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
@@ -13,8 +13,8 @@ quarter: 2026-Q3
 tags: [whatsapp, channel-adapter, multi-canal, copiloto, larissa, integration]
 supersedes: []
 supersedes_partially: []
-superseded_by: []
-related: [0035, 0048, 0050, 0058, 0059, 0060, 0073]
+superseded_by: [0075]
+related: [0035, 0048, 0050, 0058, 0059, 0060, 0073, 0075]
 pii: true
 review_triggers:
   - "Meta WhatsApp Cloud API mudar pricing > +50% (rever vendor)"
@@ -23,6 +23,10 @@ review_triggers:
 ---
 
 # ADR 0074 — Channel adapter WhatsApp pro Copiloto
+
+> ⚠️ **Superseded partially por ADR 0075 (2026-05-05)** — escolha de provider revisada.
+> O **adapter pattern** (interface `ChatChannel`, `ChannelIdentityResolver`, opt-in LGPD, schema multi-tenant, webhook em CT 100, métricas OTel) **continua válido** e é a base.
+> O **default provider para Fase 0 (dogfooding) e Fase 1 (beta)** mudou de Meta Cloud API → Evolution API self-host (Fase 0) → Z-API (Fase 1) → Meta Cloud API (Fase 2 — escala). Pesquisa fresca mai/2026 mostrou que Z-API custa R$55/mês fixo (praticamente não-pago) e Evolution API tem ecosystem Laravel maduro pra dogfooding zero-custo. Detalhes na ADR 0075.
 
 ## Contexto
 

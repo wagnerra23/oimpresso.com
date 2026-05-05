@@ -460,28 +460,78 @@ Implementar `AutoCaptureService` + `PiiRedactorService` (runtime) + tabela `mcp_
 
 **Pré-requisito:** US-COPI-087 entregue (rerank ativo — turn-level passa pela mesma pipeline).
 
-### US-COPI-089 · Channel adapter WhatsApp pro Copiloto (canário ROTA LIVRE)
+### US-COPI-089 · Channel adapter WhatsApp Fase 0 — Evolution API self-host (dogfooding ROTA LIVRE)
 
-> owner: wagner · sprint: 2026-W23 · priority: p1 · estimate: 24h · status: todo
+> owner: wagner · sprint: 2026-W23 · priority: p1 · estimate: 20h · status: todo
 > blocked_by: US-COPI-088
-> adr: 0074 (Channel adapter WhatsApp pro Copiloto)
+> adr: 0074 (adapter pattern) + 0075 (estratégia 3-fase Evolution → Z-API → Meta Cloud)
 
-Implementar submódulo `Modules/Copiloto/Channels/` com interface `ChatChannel` + driver `WhatsAppCloudChannel` (Meta WhatsApp Cloud API oficial) + webhook receiver em CT 100 + tabela `copiloto_channel_identity` pra mapear wire_id → user/business + opt-in LGPD obrigatório no primeiro turn. **Fecha pedido recorrente da Larissa (cliente_rotalivre.md). Decisão formal em ADR 0074.**
+Implementar submódulo `Modules/Copiloto/Channels/` com interface `ChatChannel` + **driver `EvolutionApiChannel` (Fase 0)** + webhook receiver em CT 100 + tabela `copiloto_channel_identity` pra mapear wire_id → user/business + opt-in LGPD obrigatório no primeiro turn. **Fecha pedido recorrente da Larissa (cliente_rotalivre.md). Decisão formal em ADR 0075 — começar zero-custo via Evolution API self-host antes de comprometer R$ com Z-API ou Meta Cloud.**
 
 **Steps:**
-1. Setup conta Meta Business + WhatsApp Business Account + número dedicado oimpresso (tarefa fora-código, Wagner).
-2. Templates HSM outbound mínimos (notificação, follow-up) submetidos à aprovação Meta.
-3. Migrations `copiloto_channel_identity` + `copiloto_hsm_templates`.
-4. Interface `ChatChannel` + adapter `WebChannel` (refactor do atual) + driver `WhatsAppCloudChannel`.
-5. `WhatsAppWebhookController` em rota `POST /api/copiloto/whatsapp/webhook` (CT 100, FrankenPHP, valida `X-Hub-Signature-256`).
-6. `ProcessWhatsAppMessageJob` (Horizon CT 100) → `ChannelIdentityResolver` → `ChatService::send()` (mesma do web).
-7. Opt-in flow: primeiro turn pede consentimento explícito ("Você fala com o Copiloto da {business}. Mensagens armazenadas conforme política. Para sair: SAIR.").
-8. `ChannelIdentityController@destroy` — LGPD delete cascata.
-9. Feature flag `COPILOTO_WHATSAPP_ENABLED=false` + `tenant_allowlist=[4]` (ROTA LIVRE canário).
-10. Stub OCR/STT pra mídia (foto/áudio) — fase 2.
+1. **Fora-código (Wagner):** comprar chip pré-pago dedicado (~R$15) pra número canário; ATIVAR número de teste. NÃO usar número pessoal.
+2. CT 100: subir Evolution API via Docker compose (mesmo padrão Centrifugo ADR 0058). Postgres + Redis já estão lá; adicionar serviço `evolution`.
+3. Adicionar package Composer: `samuelterra22/laravel-evolution-client` OU `happones/laravel-evolution-client` (avaliar última atualização e DX antes de escolher).
+4. Migrations `copiloto_channel_identity` + (opcional Fase 0) `copiloto_message_log` pra debug.
+5. Interface `ChatChannel` + `IncomingMessage` + `OutgoingMessage` em `Modules/Copiloto/Channels/Contracts/`.
+6. Adapter `WebChannel` (refactor do atual `ChatController` por trás da interface — sem mudança de comportamento).
+7. Driver `EvolutionApiChannel` em `Modules/Copiloto/Channels/Drivers/`.
+8. `EvolutionWebhookController` em rota `POST /api/copiloto/whatsapp/evolution/webhook` (CT 100, FrankenPHP) — valida `webhook_secret` no header.
+9. `ChannelIdentityResolver` (multi-tenant scope obrigatório — usa skill `multi-tenant-patterns`).
+10. `ProcessWhatsAppMessageJob` (Horizon CT 100) → resolver identity → `ChatService::send()` (mesma do web).
+11. Opt-in flow no primeiro turn: "Você fala com o Copiloto da {business}. Mensagens armazenadas conforme política. Para sair: SAIR." → não libera chat livre antes de "ACEITO" / "OK".
+12. `ChannelIdentityController@destroy` — LGPD delete cascata + `lgpd_audit_log`.
+13. Métricas OTel: `gen_ai.channel=evolution` em todos spans + counter de bans/desconexões + latência p95.
+14. Feature flag `COPILOTO_WHATSAPP_ENABLED=false` + `COPILOTO_WHATSAPP_PROVIDER=evolution` + `tenant_allowlist=[4]` (ROTA LIVRE canário).
+15. Documentar **runbook de rotação** (se número banir): rotinha de trocar chip + reconectar instância + comunicar Larissa.
 
-**Acceptance:** Larissa consegue conversar com Copiloto via WhatsApp em prod com mesma qualidade do web (tools, ContextoNegocio, reranker, recall) · opt-in funciona (segundo turn libera chat livre) · multi-tenant scope auditado (mensagem do biz 4 NUNCA vira contexto do biz X) · LGPD delete testado · custo Meta tracked em OTel · ADR 0074 referenciada.
+**Acceptance:**
+- Larissa conversa com Copiloto via WhatsApp Evolution em prod CT 100 com mesma qualidade do web (tools, ContextoNegocio, reranker ADR 0072, recall ADR 0073).
+- Opt-in funciona (segundo turn libera chat livre).
+- Multi-tenant scope auditado (mensagem do biz 4 NUNCA vira contexto do biz X) — teste Pest cobrindo.
+- LGPD delete cascata testado (audit_log gravado).
+- Métricas OTel exportando `gen_ai.channel=evolution`.
+- ADRs 0074 + 0075 referenciadas.
+- Runbook de rotação de chip documentado em `memory/requisitos/Copiloto/RUNBOOK.md`.
+
+**Gate de saída Fase 0 → Fase 1:** 30 dias sem banimento → segue planejamento Z-API. **OU** 2 banimentos consecutivos no mesmo número → exit precoce, criar US-COPI-090 (Z-API Fase 1) com prioridade alta.
 
 **Pré-requisito:** US-COPI-088 entregue (turn-level captura funciona idêntica pra web e WhatsApp).
 
-**Nota de pricing:** Meta cobra R$0,03-0,28/conversa. Wagner decide modelo (oimpresso paga vs cliente paga vs SaaS pricing) **antes** de habilitar canário em prod.
+**Custo Fase 0:** R$0 software + R$15 único do chip pré-pago. Tempo Wagner setup ~4h + manutenção ad-hoc.
+
+### US-COPI-090 · Channel adapter WhatsApp Fase 1 — Z-API (beta clientes pagantes)
+
+> owner: wagner · sprint: 2026-W27+ · priority: p2 · estimate: 8h · status: backlog
+> blocked_by: US-COPI-089 (gate de saída cumprido)
+> adr: 0075 (estratégia 3-fase WhatsApp)
+
+Adicionar driver `ZApiChannel` como drop-in do `EvolutionApiChannel` quando Fase 0 cumprir gate (30d sem ban OU 2 bans consecutivos forçando antecipação). Z-API: R$55-99/mês fixo, ban rate <0.3% reportado, suporte BR, billing R$.
+
+**Steps mínimos:**
+1. Trial Z-API 3 dias pra validar latência + qualidade do webhook.
+2. Driver `ZApiChannel` (REST simples, mesma interface `ChatChannel`).
+3. `EvolutionWebhookController` ganha irmão `ZApiWebhookController` em `/api/copiloto/whatsapp/zapi/webhook`.
+4. Config switch via `COPILOTO_WHATSAPP_PROVIDER=zapi` — sem mudança em agent core.
+5. Onboarding 2-3 clientes piloto (gratuidade Sprint 0 ou desconto).
+
+**Acceptance:** 3 clientes pagantes em prod 60d sem banimento · custo mensal ≤ R$99 × N tenants · latência p95 ≤ p95 Evolution · ADR 0075 referenciada.
+
+**Gate de saída Fase 1 → Fase 2:** volume > 5k conversas/mês × tenant **OU** 3 banimentos em 90d **OU** cliente enterprise pedir SLA contratual → criar US-COPI-091 (Meta Cloud Fase 2).
+
+### US-COPI-091 · Channel adapter WhatsApp Fase 2 — Meta Cloud API oficial (escala/SLA)
+
+> owner: wagner · sprint: TBD · priority: p3 · estimate: 12h · status: backlog
+> blocked_by: US-COPI-090 (gate de saída cumprido)
+> adr: 0074 + 0075
+
+Adicionar driver `WhatsAppCloudChannel` (Meta) como conforme planejado originalmente em ADR 0074. Acionar quando volume + SLA exigirem. Coexiste com Z-API — clientes Fase 1 não migram automaticamente.
+
+**Steps mínimos:**
+1. Setup conta Meta Business + WhatsApp Business Account + número oimpresso (tarefa fora-código).
+2. Templates HSM outbound submetidos à aprovação Meta (1-3 dias úteis).
+3. Migration `copiloto_hsm_templates`.
+4. Driver `WhatsAppCloudChannel` + `MetaWebhookController` (assinatura `X-Hub-Signature-256`).
+5. Wagner decide modelo de pricing (oimpresso paga vs cliente paga vs SaaS pricing) **antes** de habilitar.
+
+**Acceptance:** SLA Meta ativo · HSM templates aprovados · custo R$/conversa tracked em OTel · feature flag `COPILOTO_WHATSAPP_PROVIDER=meta` ativável por tenant · ADRs 0074 + 0075 referenciadas.

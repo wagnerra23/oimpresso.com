@@ -521,6 +521,28 @@ Wagner pediu comparativo formal **OpenClaw vs oimpresso (Copiloto + skills + MCP
 
 **Pipeline lógico:** US-COPI-087 (rerank, sprint W20) → US-COPI-088 (auto-capture, W21) → US-COPI-089 (WhatsApp, W23). Auto-capture entra no mesmo hybrid Meilisearch que o reranker já reordena, e WhatsApp herda turn-level captura idêntica ao web — adapter pattern paga aqui.
 
-**55 ADRs total** (era 71 + 3 = 74 — incluindo as 3 novas: 0072/0073/0074). Ajuste: na verdade 74 ADRs (0001-0074, com algumas lacunas).
+**75 ADRs total** (0001-0075).
 
-**Última atualização:** 2026-05-05 — ADRs 0072+0073+0074 + US-COPI-088+089 (planejamento; implementação depois de validar prioridade do cycle)
+### Adendo (mesmo dia, tarde) — ADR 0075 revisa provider WhatsApp pra estratégia 3-fase
+
+Wagner pediu pra estudar **alternativas ao pago** depois da ADR 0074 fechar em Meta Cloud. Pesquisa fresca mai/2026:
+
+- **Evolution API** (open Baileys-based, R$0 self-host): 6× crescimento em 2026; Laravel client `samuelterra22` atualizado fev/2026. Risco ban real e ativo (issue [#2298](https://github.com/EvolutionAPI/evolution-api/issues/2298) — bloqueio QR 24h após 1-2 dias de uso normal).
+- **Z-API** (BR wrapper Baileys, **R$55-99/mês fixo**): ban rate reportado <0.3%, trial 3 dias, billing R$. Praticamente não-pago.
+- **Meta Cloud** (R$0,03-0,28/conversa): zero ban risk, custo cresce linear com volume.
+
+**ADR 0075** formaliza estratégia 3-fase com **driver-per-fase atrás da mesma `ChatChannel`** (interface da ADR 0074, segue válida):
+
+| Fase | Provider | Custo (~200 conv/mês) | Quem usa | Gate de saída |
+|---|---|---|---|---|
+| 0 | Evolution self-host CT 100 | R$0 + chip pré-pago R$15 | Wagner+Larissa biz=4 | 30d sem ban OU 2 bans → Fase 1 |
+| 1 | Z-API | R$55-99/mês fixo | 2-3 clientes piloto | 5k conv/mês × tenant OU 3 bans/90d OU SLA enterprise → Fase 2 |
+| 2 | Meta Cloud (oficial, ADR 0074) | R$6-56/tenant variável | clientes em volume + enterprise | — |
+
+**ADR 0074 ficou em `superseded_partially`** — adapter pattern dela continua válido; só provider escolhido foi revisto.
+
+**SPEC atualizado**: `US-COPI-089` virou Fase 0 (Evolution, 20h). Criadas `US-COPI-090` (Z-API Fase 1, 8h, backlog) + `US-COPI-091` (Meta Cloud Fase 2, 12h, backlog).
+
+**Pendência fora-código (Wagner)**: comprar chip pré-pago dedicado pra número canário antes de iniciar US-COPI-089.
+
+**Última atualização:** 2026-05-05 tarde — ADR 0075 + US-COPI-090/091 (pipeline 3-fase WhatsApp)
