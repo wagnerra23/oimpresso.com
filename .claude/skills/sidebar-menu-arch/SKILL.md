@@ -112,17 +112,21 @@ Em `SIDEBAR_GROUPS` (lookup label → grupo visual):
 
 | Grupo (key) | Label visual | Items |
 |-------------|--------------|-------|
-| `office` | OFFICEIMPRESSO | Consulta de OS, Contatos, Produtos, Vender, Orçamentos |
+| `office` | OFFICEIMPRESSO | Consulta de OS, Contatos, Produtos, Vender, Orçamentos, Reparar |
 | `fin` | FINANCEIRO | Despesas, Contas de pagamento, Contabilidade, Financeiro |
 | `estoque` | ESTOQUE | Compras, Transferências, Ajuste de estoque, Gestão de ativos |
 | `fiscal` | FISCAL | NFSe, NF-e Brasil |
 | `rh` | RH | HRM, Essenciais, Ponto |
-| `produtividade` | PRODUTIVIDADE | Projeto, Team MCP |
 | `rel` | RELATÓRIOS | Iniciar, Início, Home, Dashboard, Relatórios, Reservas, Pedidos, Cocina |
-| `ia` | IA | Copiloto, ADS, CRM |
-| `config` | CONFIGURAÇÕES | Gerenciamento de usuários, Configurações, Modelos de notificação |
+| `ia` | IA & PRODUTIVIDADE | Copiloto, ADS, CRM, Team MCP, Projeto |
+| `notif` | NOTIFICAÇÕES | Modelos de notificação |
 | `mais` | MAIS (fallback) | Items não mapeados nos grupos acima |
-| Footer | (Superadmin user dropdown) | Conector, Backup, CMS, Officeimpresso, Módulos, MemCofre — filtrados por `isSuperadminMenu` em `shared.ts` |
+| **User dropdown** (footer) | (sem header) | **Gerenciamento de usuários, Configurações** — filtrados por `isUserMenuItem` em `shared.ts` |
+| **Superadmin** (user dropdown cascata) | (cascata Shield) | Conector, Backup, CMS, Officeimpresso, Módulos, MemCofre — filtrados por `isSuperadminMenu` |
+
+**Dois conjuntos vão pro footer (user dropdown), não pro menu principal:**
+- `USER_MENU_LABELS` (shared.ts) → admin do dia-a-dia (usuários, configurações)
+- `SUPERADMIN_LABELS` (shared.ts) → admin de plataforma (cascata "Superadmin")
 
 ## Checklist para adicionar item novo no sidebar
 
@@ -191,7 +195,8 @@ console.table(lookup);
 
 ## Histórico
 
-- **2026-05-05** — Reorganização Wagner: criado grupo PRODUTIVIDADE (Projeto + Team MCP). IA & PRODUTIVIDADE → IA (sem Team MCP/Conector). Iniciar/Home/Dashboard movidos para RELATÓRIOS. PontoWr2 label "Ponto WR2" → "Ponto" + entrou em RH. 'Conector' adicionado a SUPERADMIN_LABELS (regex single-n não batia o português).
+- **2026-05-05** — Reorg parte 2 (Wagner): Reparar entrou em OFFICEIMPRESSO. Gerenciamento de usuários + Configurações foram pro user dropdown footer (USER_MENU_LABELS em shared.ts). Grupo PRODUTIVIDADE removido — voltou pra IA & PRODUTIVIDADE com Projeto + Team MCP juntos. NOTIFICAÇÕES virou grupo isolado pra "Modelos de notificação".
+- **2026-05-05** — Reorg parte 1: Iniciar/Home/Dashboard movidos para RELATÓRIOS. PontoWr2 label "Ponto WR2" → "Ponto" + entrou em RH. 'Conector' adicionado a SUPERADMIN_LABELS (regex single-n não batia o português).
 - **2026-05-05** — Refactor: removidos grupos PHP cross-módulo (RH/Produtividade/Fiscal). Padrão único = DataController + SIDEBAR_GROUPS. Bug "Undefined variable $seg" foi gatilho.
 - **2026-05-05** — CSS `.sb-item.is-open` parou de clarear (Wagner: "sempre escuro, só hover ilumina").
 - **2026-04-27** — `MENU_ICON_MAP` + `SIDEBAR_GROUPS` introduzidos em `Sidebar.tsx` (UI-0011).

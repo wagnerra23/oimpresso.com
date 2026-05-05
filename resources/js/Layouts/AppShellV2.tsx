@@ -56,6 +56,7 @@ import {
   ShellMenuItem,
   Vibe,
   isSuperadminMenu,
+  isUserMenuItem,
 } from '@/Components/cockpit/shared';
 
 interface AppShellV2Props {
@@ -181,6 +182,7 @@ export default function AppShellV2({
   // shadcn (que usa dark mode automatico via classe 'dark' no <html>).
   const userTheme = allProps?.auth?.user?.ui_theme ?? 'light';
   const superadminItems = shellMenu.filter((i) => isSuperadminMenu(i.label));
+  const userMenuItems = shellMenu.filter((i) => isUserMenuItem(i.label));
 
   // Fallback pra business + user via shell.cockpit (Inertia shared) quando a
   // página não passa via props. Isso permite páginas MemCofre/Financeiro/etc
@@ -326,6 +328,7 @@ export default function AppShellV2({
             cargo={user.cargo}
             iniciais={user.iniciais}
             superadminItems={superadminItems}
+            userMenuItems={userMenuItems}
           />
         </aside>
 

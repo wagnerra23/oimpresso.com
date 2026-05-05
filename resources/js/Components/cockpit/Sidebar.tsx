@@ -13,7 +13,7 @@ import {
   FileSearch, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
   MessageSquare, Monitor, Moon, Package, PackageCheck, Plug, Receipt, Rocket,
   Search, Settings, ShieldAlert, ShieldCheck, ShoppingCart, Sun, UserCog,
-  Users, Utensils, User, Wallet,
+  Users, Utensils, User, Wallet, Wrench,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -50,6 +50,7 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   hrm: UserCog,
   essenciais: Box,
   ponto: Clock,
+  reparar: Wrench,
   'team mcp': Rocket,
   projeto: FolderKanban,
   nfse: FileText,
@@ -66,6 +67,7 @@ import {
   ShellMenuItem,
   gradientFor,
   isSuperadminMenu,
+  isUserMenuItem,
 } from './shared';
 
 // ── Mapeamento item → grupo (lookup table). Ratificado por Wagner 2026-05-05.
@@ -76,7 +78,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'office',
     label: 'OFFICEIMPRESSO',
-    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos'],
+    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar'],
   },
   {
     key: 'fin',
@@ -99,24 +101,19 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     items: ['HRM', 'Essenciais', 'Ponto'],
   },
   {
-    key: 'produtividade',
-    label: 'PRODUTIVIDADE',
-    items: ['Projeto', 'Team MCP'],
-  },
-  {
     key: 'rel',
     label: 'RELATÓRIOS',
     items: ['Iniciar', 'Início', 'Home', 'Dashboard', 'Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
   },
   {
     key: 'ia',
-    label: 'IA',
-    items: ['Copiloto', 'ADS', 'CRM', 'Crm'],
+    label: 'IA & PRODUTIVIDADE',
+    items: ['Copiloto', 'ADS', 'CRM', 'Crm', 'Team MCP', 'Projeto'],
   },
   {
-    key: 'config',
-    label: 'CONFIGURAÇÕES',
-    items: ['Gerenciamento de usuários', 'Configurações', 'Modelos de notificação'],
+    key: 'notif',
+    label: 'NOTIFICAÇÕES',
+    items: ['Modelos de notificação'],
   },
 ];
 
@@ -373,8 +370,11 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
       </div>
     );
   }
-  // Filtra superadmin (vão pro user dropdown no rodapé)
-  const principais = items.filter((i) => !isSuperadminMenu(i.label));
+  // Filtra superadmin + user-menu items (Gerenciamento de usuários,
+  // Configurações) — todos vão pro user dropdown no rodapé via SidebarFooter.
+  const principais = items.filter(
+    (i) => !isSuperadminMenu(i.label) && !isUserMenuItem(i.label)
+  );
 
   // Agrupa principais por lookup table (preservando ordem dentro do grupo)
   const groupedItems: Record<string, ShellMenuItem[]> = {};
@@ -420,6 +420,7 @@ function SidebarUserMenu({
   email,
   iniciais,
   superadminItems,
+  userMenuItems,
 }: {
   open: boolean;
   onClose: () => void;
@@ -427,6 +428,7 @@ function SidebarUserMenu({
   email: string;
   iniciais: string;
   superadminItems: ShellMenuItem[];
+  userMenuItems: ShellMenuItem[];
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -478,6 +480,24 @@ function SidebarUserMenu({
           <User size={14} className="ic" />
           <span className="label">Meu perfil</span>
         </a>
+
+        {/* User menu items extraídos do shell.menu (Gerenciamento de usuários,
+            Configurações) — Wagner 2026-05-05 moveu pro footer */}
+        {userMenuItems.map((item, idx) => {
+          const lower = item.label.toLowerCase();
+          const Icon = lower.startsWith('config') ? Settings : Users;
+          return (
+            <a
+              key={`um-${idx}`}
+              href={item.href ?? '#'}
+              className="um-item"
+              title={item.label}
+            >
+              <Icon size={14} className="ic" />
+              <span className="label">{item.label}</span>
+            </a>
+          );
+        })}
 
         {/* Superadmin — abre cascata lateral à direita */}
         {hasSuperadmin && (
@@ -631,6 +651,7 @@ export function SidebarFooter({
   cargo,
   iniciais,
   superadminItems,
+  userMenuItems = [],
 }: {
   nome: string;
   nomeCurto: string;
@@ -638,6 +659,7 @@ export function SidebarFooter({
   cargo: string;
   iniciais: string;
   superadminItems: ShellMenuItem[];
+  userMenuItems?: ShellMenuItem[];
 }) {
   const [openUser, setOpenUser] = useState(false);
 
@@ -655,6 +677,7 @@ export function SidebarFooter({
           email={email}
           iniciais={iniciais}
           superadminItems={superadminItems}
+          userMenuItems={userMenuItems}
         />
         <button
           className="sb-user-btn"

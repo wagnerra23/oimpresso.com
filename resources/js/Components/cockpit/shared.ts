@@ -165,3 +165,16 @@ export function isSuperadminMenu(label: string): boolean {
   // matching parcial pra labels longos
   return /superadmin|module|backup|connector|cms\b/i.test(norm);
 }
+
+// Items que vão pro user dropdown footer (botão de avatar/usuário no rodapé)
+// em vez de aparecerem no menu principal — Wagner 2026-05-05.
+// Mantém shell.menu canônico (LegacyMenuAdapter); o SidebarMenu filtra
+// e o SidebarUserMenu renderiza dentro do dropdown.
+export const USER_MENU_LABELS = new Set<string>([
+  'Gerenciamento de usuários', 'Gerenciamento de usuario',
+  'User Management', 'Configurações', 'Settings',
+]);
+
+export function isUserMenuItem(label: string): boolean {
+  return USER_MENU_LABELS.has(label.trim());
+}
