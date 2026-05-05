@@ -546,3 +546,33 @@ Wagner pediu pra estudar **alternativas ao pago** depois da ADR 0074 fechar em M
 **Pendência fora-código (Wagner)**: comprar chip pré-pago dedicado pra número canário antes de iniciar US-COPI-089.
 
 **Última atualização:** 2026-05-05 tarde — ADR 0075 + US-COPI-090/091 (pipeline 3-fase WhatsApp)
+
+### Adendo (final do dia) — ADR 0076 + scaffold US-COPI-089 commitado (refactor pendente)
+
+Wagner respondeu pendência de pricing da ADR 0074 com mudança estrutural: **"vai ser SaaS, número por `business_id`, em cada business deve poder ter vários números"**.
+
+**ADR 0076 formaliza 2 decisões acopladas:**
+
+1. **Tenancy SaaS desde dia 1** — `copiloto_channel_identity` (1 tabela do scaffold inicial) vira **2 tabelas**:
+   - `copiloto_channel_number` — números QUE O BUSINESS POSSUI (1 business → N números) com `provider_instance` + `provider_token` (encrypted) + `label`
+   - `copiloto_channel_contact` — clientes externos QUE FALAM com aquele número (1 number → N contacts) com opt-in/revoke
+2. **Pricing fechado** — cliente paga, oimpresso não absorve (exceto Fase 0 dogfooding). Tier/preço comercial fica pra ADR separada.
+
+**Webhook flow novo (2-step):** `instance` (Evolution/Z-API/Meta) → `ChannelNumberResolver` → `business_id`; depois `wireId` → `ChannelContactResolver` → `contact`. Sem isso, vazaria mensagem entre tenants quando 2 businesses tivessem clientes externos no mesmo número físico.
+
+**Scaffold já commitado (`d60ddc18`)** ficou com schema antigo (1 tabela) — **refactor pendente**:
+- Migration `2026_05_05_200000_create_copiloto_channel_identity_table.php` precisa virar `_create_copiloto_channels_tables.php` com 2 tabelas.
+- `IncomingMessage` ganha `?string $providerInstance`.
+- `EvolutionApiChannel::parseWebhook` extrai `instance` do payload.
+- `ChannelIdentityResolver` split em `ChannelNumberResolver` + `ChannelContactResolver`.
+- `EvolutionWebhookController` adapta fluxo 2-step.
+- `Config/config.php` — remove `evolution.instance` global; adiciona `evolution.global_api_key`.
+- Tests refatorados pro novo schema (cross-tenant blindagem refeita).
+
+**Wagner explicitou: vai fazer refactor depois.** Esta sessão entrega só planejamento (ADR + handoff). Implementação não.
+
+**Pricing pendente da ADR 0074: RESOLVIDA** (cliente paga, SaaS).
+
+**76 ADRs total** (0001-0076).
+
+**Última atualização:** 2026-05-05 final do dia — ADR 0076 (SaaS multi-number per business) + ADR 0074 superseded_by [0075, 0076]. Refactor scaffold US-COPI-089 fica pra próxima sessão.
