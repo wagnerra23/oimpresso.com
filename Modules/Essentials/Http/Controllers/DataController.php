@@ -328,12 +328,14 @@ class DataController extends Controller
         $business_id = session()->get('user.business_id');
         $is_essentials_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'essentials_module');
 
-        // Agrupamento visual em "RH" acontece no frontend (SIDEBAR_GROUPS
-        // em resources/js/Components/cockpit/Sidebar.tsx). DataController
-        // publica HRM + Essenciais como itens standalone.
+        // Agrupamento visual em "RH" e "CONHECIMENTO" acontece no frontend
+        // (SIDEBAR_GROUPS em resources/js/Components/cockpit/Sidebar.tsx).
+        // - HRM (top-level) → grupo RH
+        // - Essenciais (dropdown com Tarefas/Mensagens/Documentos/Lembretes) → grupo RH
+        // - Base de Conhecimento (top-level, extraído do dropdown) → grupo CONHECIMENTO
         if ($is_essentials_enabled) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
-                // HRM mantém item solto (área diferente: /hrm/*)
+                // HRM (área /hrm/*)
                 $menu->url(
                         action([\Modules\Essentials\Http\Controllers\DashboardController::class, 'hrmDashboard']),
                         __('essentials::lang.hrm'),
@@ -341,11 +343,15 @@ class DataController extends Controller
                     )
                 ->order(87);
 
-                // Dropdown "Essentials" agrupa as telas do módulo:
-                //   Tarefas, Mensagens, Documentos, Base de Conhecimento
-                // As URLs continuam apontando para as rotas existentes —
-                // quando migradas para React, o LegacyMenuAdapter detecta
-                // o prefixo e ativa SPA automaticamente.
+                // Base de Conhecimento — top-level (vai pra grupo CONHECIMENTO no frontend)
+                $menu->url(
+                        action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index']),
+                        __('essentials::lang.knowledge_base'),
+                        ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'knowledge-base']
+                    )
+                ->order(89);
+
+                // Dropdown "Essentials" — Tarefas, Mensagens, Documentos, Lembretes
                 $menu->dropdown(
                     __('essentials::lang.essentials'),
                     function ($sub) {
@@ -365,11 +371,6 @@ class DataController extends Controller
                             ['icon' => 'fa fas fa-file-alt']
                         );
                         $sub->url(
-                            action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index']),
-                            __('essentials::lang.knowledge_base'),
-                            ['icon' => 'fa fas fa-book']
-                        );
-                        $sub->url(
                             action([\Modules\Essentials\Http\Controllers\ReminderController::class, 'index']),
                             __('essentials::lang.reminder'),
                             ['icon' => 'fa fas fa-bell']
@@ -377,7 +378,7 @@ class DataController extends Controller
                     },
                     ['icon' => 'fa fas fa-cube', 'active' => request()->segment(1) == 'essentials', 'style' => config('app.env') == 'demo' ? 'background-color: #001f3f !important;' : '']
                 )
-                ->order(87);
+                ->order(88);
             });
         }
     }

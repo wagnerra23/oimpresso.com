@@ -8,12 +8,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  ArrowRightLeft, BarChart3, Bell, Bot, Box, Calculator, Calendar, Check,
-  ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
+  ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
+  Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
   FileSearch, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
   MessageSquare, Monitor, Moon, Package, PackageCheck, Plug, Receipt, Rocket,
-  Search, Settings, ShieldAlert, ShieldCheck, ShoppingCart, Sun, UserCog,
-  Users, Utensils, User, Wallet, Wrench,
+  Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
+  UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -53,8 +53,12 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   reparar: Wrench,
   'team mcp': Rocket,
   projeto: FolderKanban,
+  'project mgmt': ClipboardList,
   nfse: FileText,
   'nf-e brasil': FileText,
+  'cofre de memórias': Vault,
+  'base de conhecimento': BookOpen,
+  planilha: Sheet,
 };
 
 function findMenuIcon(label: string): LucideIcon {
@@ -77,7 +81,7 @@ import {
 const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'office',
-    label: 'OFFICEIMPRESSO',
+    label: 'ACESSOS RÁPIDOS',
     items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar'],
   },
   {
@@ -101,6 +105,11 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     items: ['HRM', 'Essenciais', 'Ponto'],
   },
   {
+    key: 'conhecimento',
+    label: 'CONHECIMENTO',
+    items: ['Cofre de Memórias', 'Base de Conhecimento', 'Planilha'],
+  },
+  {
     key: 'rel',
     label: 'RELATÓRIOS',
     items: ['Iniciar', 'Início', 'Home', 'Dashboard', 'Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
@@ -108,12 +117,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'ia',
     label: 'IA & PRODUTIVIDADE',
-    items: ['Copiloto', 'ADS', 'CRM', 'Crm', 'Team MCP', 'Projeto'],
-  },
-  {
-    key: 'notif',
-    label: 'NOTIFICAÇÕES',
-    items: ['Modelos de notificação'],
+    items: ['Copiloto', 'ADS', 'CRM', 'Crm', 'Team MCP', 'Projeto', 'Project Mgmt'],
   },
 ];
 
