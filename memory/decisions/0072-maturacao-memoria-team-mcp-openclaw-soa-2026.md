@@ -1,0 +1,176 @@
+---
+slug: 0072-maturacao-memoria-team-mcp-openclaw-soa-2026
+number: 0072
+title: "Maturação memória + Team MCP — gaps identificados vs OpenClaw/Mem0/Letta/Zep/A-Mem (mai/2026)"
+type: adr
+status: proposto
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: 2026-05-05
+module: copiloto
+quarter: 2026-Q2
+tags: [memoria, mcp, team-mcp, retrieval, governanca, roadmap]
+supersedes: []
+supersedes_partially: []
+superseded_by: []
+related:
+  - 0035-stack-canonica-ia-laravel-ai-memoria-contrato
+  - 0036-replanejamento-meilisearch-first
+  - 0037-roadmap-evolucao-tier-7-plus
+  - 0049-camadas-memoria-agente-fase-por-fase
+  - 0050-metricas-obrigatorias-memoria-table
+  - 0051-schema-proprio-adapter-otel-genai
+  - 0052-contextonegocio-expor-multiplos-angulos
+  - 0053-mcp-server-governanca-como-produto
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+pii: false
+review_triggers:
+  - "Mem0 publicar nova versão major (>=2.0)"
+  - "Letta atingir GA com sleep-time agents estáveis"
+  - "Anthropic Memory Tool sair de beta"
+  - "Atingir Recall@5 ≥ 0.85 em LongMemEval-PT (gate antes de P3)"
+---
+
+# ADR 0072 — Maturação memória + Team MCP
+
+## Contexto
+
+Wagner pediu pra "amadurecer o processo de memória estilo OpenClaw" e "amadurecer a memória do MCP do oimpresso pra entregar Team MCP — regras e conhecimento centralizado". Pesquisa **2026-05-05** validou:
+
+**OpenClaw é real** ([openclaw.ai](https://openclaw.ai/)) — framework MIT local-first com 3 arquivos Markdown core (`MEMORY.md`, `memory/YYYY-MM-DD.md`, `DREAMS.md`) + plugins (Memory Wiki, Dreaming, Commitments, Honcho/QMD/LanceDB backends). **A alegação dos "8 pilares" não é doutrina oficial OpenClaw** — bate com síntese terceirizada e/ou cruzamento com [arquitetura de 12 camadas de comunidade](https://github.com/coolmanns/openclaw-memory-architecture). Útil como provocação, não como referência canônica.
+
+**Estado-da-arte 2026 (8 frameworks comparados):**
+
+| Stack | Movimento canônico | Benchmark | OSS |
+|---|---|---|---|
+| [Mem0](https://github.com/mem0ai/mem0) | Extração seletiva + graph opcional + async writes | LongMemEval **93.4** / LoCoMo 91.6 (<7k tokens/query) | Apache 2.0 |
+| [Letta (ex-MemGPT)](https://github.com/letta-ai/letta) | Core/Recall/Archival; agente edita próprios memory blocks via tool calls; sleep-time agents | DMR (estabeleceu) | Apache 2.0 |
+| [Zep / Graphiti](https://arxiv.org/abs/2501.13956) | Temporal knowledge graph bi-temporal (cada fato com janela validade) | DMR **94.8**; LongMemEval **+18.5%** acc, **-90%** latência | Graphiti OSS, Zep Cloud SaaS |
+| [Cognee](https://github.com/topoteretes/cognee) | Graph-vector híbrido; pipelines `cognify`+`memify`; 14 modos retrieval; MCP server | LoCoMo (resultados em blog) | Apache 2.0 |
+| [A-Mem](https://arxiv.org/abs/2502.12110) | Zettelkasten dinâmico — cada fato vira nota com tags/links auto-gerados, reorganização contínua | NeurIPS 2025 — supera SOTA em 6 foundation models | Sim |
+| [Anthropic Memory Tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool) | Filesystem `/memory`; agente faz tool calls, app executa local; Managed Agents beta abr/2026 | Não publicado | Spec aberta |
+| OpenClaw | Markdown 3-file local-first + plugins; integra Mem0/Cognee | Não publicado | MIT |
+| **oimpresso** (atual) | laravel/ai + Meilisearch hybrid + ContextoNegocio 3 ângulos + MCP server governado | Recall@5 não medido em PT-BR golden set | privado |
+
+**8 princípios convergentes** (≥3 frameworks confirmam cada um):
+
+1. Multi-scope isolation (user/agent/session/org) — Mem0, Letta, Zep, Cognee
+2. Async writes / sleep-time consolidation — Letta, Mem0, OpenClaw (Dreaming)
+3. Hybrid retrieval (vector + estrutura + grafo) — Cognee, Zep, Mem0g, Letta
+4. Agente gerencia própria memória via tool-calls — Letta, Anthropic Memory Tool, A-Mem
+5. **Temporal validity** (fato com janela) — Zep/Graphiti, Cognee, A-Mem
+6. Compressão / consolidação dirigida por evento — OpenClaw, Letta, Mem0
+7. File-based / human-editable como source-of-truth — OpenClaw, Anthropic, Letta export
+8. **MCP como plano de controle inter-agente** — Cognee, Anthropic, oimpresso (já temos)
+
+## Decisão
+
+**Maturação em 4 movimentos priorizados**, cada um separado em ADR de implementação posterior. Sequência por dor decrescente / risco crescente:
+
+### P0 — Skills + Policies como entidades MCP governadas (Team MCP completo)
+
+**O que:** criar tabelas `mcp_skills` e `mcp_policies` (espelhos governados de `.claude/skills/*/SKILL.md` e regras hardcoded em `Modules/ADS/Services/PolicyEngine.php`). Sync via webhook GitHub (mesmo fluxo de `mcp_memory_documents`, ADR 0053). Tools MCP novas: `skills-search`, `skills-fetch`, `policies-active`. RBAC: leitura pra time inteiro, escrita só Wagner via PR.
+
+**Por quê é P0:** hoje skill nova exige cada dev (Felipe/Maíra/Luiz/Eliana) fazer `git pull` + reiniciar Claude Code. PolicyEngine vive só em código — auditoria de "quem aprovou esta regra" é impossível. Bloqueia o pedido literal "Team MCP".
+
+**Custo estimado:** 1 sprint (5 dias), reusa infra de 0053 + 0061.
+
+### P1 — Temporal validity (estilo Zep/Graphiti) em `copiloto_memoria_facts`
+
+**O que:** adicionar `valid_from` / `valid_until` (já existe parcial — `valid_until = NULL` significa atual; setado = superseded). Operacionalizar:
+- `MeilisearchDriver::buscar()` filtra por `valid_until IS NULL OR valid_until > NOW()` por padrão
+- nova tool MCP `memoria-historica` aceita parâmetro `as_of: <data>` pra time-travel queries
+- `ExtrairFatosAgent` detecta atualização (mesmo subject + predicate, valor diferente) e supersede em vez de duplicar
+
+**Por quê é P1:** [LongMemEval](https://arxiv.org/abs/2410.10813) mostra 30% queda em LLMs comerciais na capacidade "knowledge updates". Larissa pergunta "qual o faturamento" amanhã pega valor de hoje, não de 3 meses atrás. Pode-se medir.
+
+**Custo estimado:** 3 dias, mexe em 1 service + 1 migration.
+
+### P2 — Score por-memória + pruning inteligente
+
+**O que:** adicionar colunas em `copiloto_memoria_facts`: `confidence` (0-1, ajustada por hits + feedback), `last_validated_at`, `usage_count`, `success_rate`. Re-rank do `LlmReranker` passa a considerar score. Command mensal `copiloto:memoria:prune` aposenta fatos com `confidence < 0.3 AND last_validated_at < 90d`.
+
+**Por quê é P2 (não P1):** sem golden set LongMemEval-PT (gate review trigger), não dá pra calibrar threshold de confidence sem chutar. Faz mais sentido depois de ter métrica de baseline.
+
+**Custo estimado:** 1 sprint (5 dias) + dependência de golden set 50 perguntas Larissa-style (já está na fila — MEM-MET-5).
+
+### P3 — Action-aware retrieval + meta-memory (experimental)
+
+**O que:** memória sugere skill/tool ao agente. Estrutura: ao recall de fato, atrelar `skill_hint: "ads-decision-flow"` ou `tool_hint: "GitInspectTool"` se padrão se repetiu. Agente recebe junto com contexto. Meta-memory = memória sobre quais memórias funcionam (`copiloto_memoria_metricas` agregado por categoria).
+
+**Por quê é P3:** estado-da-arte em 2026 (A-Mem Zettelkasten + Cognee `memify`), mas custo/benefício depende de P1+P2. Faz pouco sentido sem temporal validity nem confidence — sugerir skill com base em padrão obsoleto piora o agente.
+
+**Custo estimado:** sprint inteiro (10 dias), envolve mudanças no prompt do `ChatCopilotoAgent`.
+
+### Não-decisões (deliberadamente fora)
+
+- **Sleep-time agents estilo Letta**: revisitar quando Letta atingir GA estável. Hoje seria reinventar antes de validar.
+- **Knowledge graph completo (Zep/Cognee)**: frontmatter `supersedes/superseded_by` + `mcp_memory_documents.related` já dá grafo leve. Investir em graph DB completo é prematuro.
+- **Substituir Meilisearch por Mem0/Letta**: ADR 0036 já lista 5 triggers concretos pra reavaliar. Nenhum disparou.
+- **Adotar OpenClaw como framework**: estamos mais maduros que ele em governança/multi-tenant. Útil como inspiração; não como dependência.
+
+## Justificativa
+
+**Sequência P0 → P3 é por reversibilidade × dor:**
+
+- P0 destrava o **uso pelo time** (Wagner pediu literalmente). Reusa infra existente. Reversível.
+- P1 ataca o **gap mensurável mais doloroso** (knowledge updates) com mudança cirúrgica. Reversível via migration de rollback.
+- P2 e P3 dependem de **sinal medido** (LongMemEval-PT). Fazer antes = chutar threshold. ADR aceita explicitamente que P2/P3 podem mudar de forma quando o sinal chegar.
+
+**Por que NÃO seguir os 8 pilares descritos pelo cliente literalmente:** 4 dos 8 já estão cobertos (governance, hybrid, file-based, multi-scope). Os outros 4 (separação de tipos, pipeline consolidação, score, action-aware) viram P1-P3 em sequência mensurável — não bloco único. Implementar 8 frentes paralelas é receita de drift.
+
+**Por que NÃO copiar Mem0/Letta diretamente:** nossa multi-tenancy `business_id` + LGPD + integração com 18 ADRs do Copiloto é mais rígida que o defaults deles. Reusar primitivas (temporal validity, scoring), não a stack.
+
+## Consequências
+
+**Positivas:**
+- Time MCP completo após P0 (3 tools novas + 2 entidades governadas).
+- Capacidade de responder "qual era o faturamento em 2026-Q1" com correção temporal após P1.
+- ADR 0036 fica reforçado: Meilisearch + governance vence stack monolítica de mercado em multi-tenant LGPD.
+- Cada movimento testável independente (anti-monolito).
+
+**Negativas / Trade-offs:**
+- 4 ADRs de implementação adicionais a escrever (uma por P).
+- Schema `copiloto_memoria_facts` cresce 4 colunas (P1+P2). Acceptable — append-only mantém auditoria.
+- Risco de over-engineering em P3 se P1/P2 não mostrarem ganho mensurável. Mitigação: review trigger explícito (Recall@5 ≥ 0.85 antes de P3).
+
+**Riscos mitigados:**
+- Não vira "rewrite memória do zero". Cada P é mudança cirúrgica.
+- Não compromete `business_id` scope (multi-tenant patterns mantidos).
+- Não toca PolicyEngine ADS firewall (só espelha em `mcp_policies` pra leitura governada).
+
+## Como Wagner deveria ter perguntado
+
+Pra evitar mistura de escopo na próxima (este ADR existe porque "criar 2 skills + testes" foi misturado com "amadurecer toda memória" no mesmo turno):
+
+```
+[Contexto] Li/descobri X (link)
+[Estado atual] O que JÁ TEMOS — Claude valida contra repo
+[Hipótese] O que ACHO que falta
+[Pedido] (a) Validar / (b) Comparar / (c) Decidir / (d) Implementar
+         + escopo: ADR-proposta? Sprint? Task única?
+[Restrições] Custo, prazo, quem aprova, cycle ativo?
+```
+
+## Próximos passos (não-decisões deste ADR)
+
+- ADR 0073 (P0): especificar `mcp_skills` + `mcp_policies` schema + tools MCP
+- ADR 0074 (P1): especificar temporal validity em `copiloto_memoria_facts` + tool `memoria-historica`
+- ADR 0075 (P2): especificar score por-memória — DEPOIS de golden set LongMemEval-PT
+- ADR 0076 (P3): action-aware retrieval — DEPOIS de gate Recall@5 ≥ 0.85
+
+Cada ADR de implementação vira `cycles-create` separado. Não fazer tudo no mesmo cycle — perde foco.
+
+## Referências
+
+- [State of Agent Memory 2026 — Mem0](https://mem0.ai/blog/state-of-ai-agent-memory-2026)
+- [Letta v1 agent loop](https://www.letta.com/blog/letta-v1-agent)
+- [Zep / Graphiti paper arXiv 2501.13956](https://arxiv.org/abs/2501.13956)
+- [A-Mem paper arXiv 2502.12110](https://arxiv.org/abs/2502.12110) · [GitHub](https://github.com/agiresearch/A-mem)
+- [LongMemEval paper arXiv 2410.10813](https://arxiv.org/abs/2410.10813)
+- [Anthropic Memory Tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool)
+- [OpenClaw oficial](https://openclaw.ai/) · [Docs memory](https://docs.openclaw.ai/concepts/memory)
+- [Cognee architecture](https://www.cognee.ai/blog/fundamentals/how-cognee-builds-ai-memory)
+- [Best AI Agent Memory Systems 2026 (Vectorize)](https://vectorize.io/articles/best-ai-agent-memory-systems)
+- ADRs internos: 0035, 0036, 0037, 0049, 0050, 0051, 0052, 0053, 0061 (ver frontmatter `related`)
