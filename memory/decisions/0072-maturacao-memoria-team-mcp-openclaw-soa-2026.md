@@ -162,6 +162,28 @@ Pra evitar mistura de escopo na próxima (este ADR existe porque "criar 2 skills
 
 Cada ADR de implementação vira `cycles-create` separado. Não fazer tudo no mesmo cycle — perde foco.
 
+## Erratum — 2026-05-05 (mesmo dia, levantamento exaustivo)
+
+Wagner pediu "estude o que já foi construído e compare" antes de seguir com 0075/0076. Levantamento revelou que a ADR 0072 ficou **datada em 4 pontos**:
+
+1. **P2 não está bloqueada por golden set inexistente.** A tabela [`copiloto_memoria_gabarito`](../../Modules/Copiloto/Database/Migrations/2026_04_29_200001_create_copiloto_memoria_gabarito_table.php) **já existe** (migration 2026-04-29) e o [`MemoriaGabaritoSeeder`](../../Modules/Copiloto/Database/Seeders/MemoriaGabaritoSeeder.php) **já popula 50 perguntas Larissa-style**. MEM-MET-5 está parcial/feito, não pendente.
+
+2. **Baseline real medido:** Recall@3 = **0.125** em prod (2026-04-29). Distância pro gate de P3 (Recall@5 ≥ 0.85) é gigante. **Diagnóstico:** corpus de apenas 6 fatos. Problema não é retrieval — é memória vazia. Implica: antes de medir P2, é preciso popular memória (ExtrairFatosAgent rodando regular em conversas de Larissa).
+
+3. **ADR 0054 não foi citada e é relevante.** [ADR 0054 — Pacote enterprise de busca de memória](0054-pacote-enterprise-busca-memoria-evolucao.md) formaliza Camadas A/B/C: Camada A (SemanticCache + ConversationSummarizer) ~50% wired; Camada B ([HydeQueryExpander](../../Modules/Copiloto/Services/Memoria/HydeQueryExpander.php) + [LlmReranker](../../Modules/Copiloto/Services/Memoria/LlmReranker.php)) código pronto + wiring pendente. **Boa parte do que P3 precisa já existe** — só não está conectado no pipeline.
+
+4. **Estimativas dos movimentos desatualizadas:**
+   - P0: 5 dias — **mantém** (0% implementado, mas trabalho real).
+   - P1: 3 dias — **revisão: 1.5–2 dias**. `valid_from`/`valid_until` + `hits_count` + `core_memory` + filtro supersedence + append-only no [`MeilisearchDriver:110`](../../Modules/Copiloto/Services/Memoria/MeilisearchDriver.php) **já em prod** (descoberta confirmada — ver erratum em ADR 0074).
+   - P2: 5 dias — **mantém**, mas **gate revisado**: depende de popular memória primeiro, não só do golden set.
+   - P3: 10 dias — **revisão: 5–6 dias**. Camada B pronta + ProfileDistiller já faz quase meta-memory.
+
+**O que NÃO muda:** 4 movimentos sequenciais P0→P3, ordem mantida. Cada P em ADR de implementação separado. Princípios canônicos preservados.
+
+**O que muda na prática:** P0 vira o único que precisa coding novo significativo. P1 é mudança cirúrgica. P2 vira "calibração + popular corpus". P3 é "wiring de pedaços já existentes". Custo total caiu de **~28 dias** estimado em 2026-05-05 manhã para **~12-15 dias úteis** após levantamento.
+
+**Status do ADR 0072:** mantido em `proposto`. Decisão central (sequenciamento P0→P3 + gates) sobrevive. Dados foram corrigidos.
+
 ## Referências
 
 - [State of Agent Memory 2026 — Mem0](https://mem0.ai/blog/state-of-ai-agent-memory-2026)
