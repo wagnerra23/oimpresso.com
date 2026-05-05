@@ -398,7 +398,8 @@
   width: 2px;
   background: var(--accent-2);
   border-radius: 2px;
-}.cockpit .sb-item.is-open { background: var(--sb-hover); color: var(--sb-text-hi); }
+}.cockpit .sb-item.is-open { background: transparent; color: var(--sb-text); }
+.cockpit .sb-item.is-open:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
 .cockpit .sb-item button.sb-item, .cockpit button.sb-item {
   appearance: none;
   border: 0;
