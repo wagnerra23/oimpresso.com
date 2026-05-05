@@ -233,14 +233,30 @@ function SidebarGroup({
   openKey: string | null;
   onToggle: (key: string | null) => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
   const isOpen = openKey === groupKey;
 
-  // Fecha popover ao clicar fora
+  // Calcula posição fixed do popover quando abre. Position fixed pra escapar do
+  // overflow-y:auto da .sb-body que cortava a versão absolute.
+  useEffect(() => {
+    if (!isOpen) { setPopPos(null); return; }
+    if (!buttonRef.current) return;
+    const r = buttonRef.current.getBoundingClientRect();
+    setPopPos({ top: r.top, left: r.right + 4 });
+  }, [isOpen]);
+
+  // Fecha popover ao clicar fora (considera tanto o group quanto o popover via portal)
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onToggle(null);
+      const target = e.target as Node;
+      if (wrapRef.current?.contains(target)) return;
+      // popover renderizado fora do wrap (fixed) — checar via classe
+      const popoverEl = document.querySelector('.sb-group-popover');
+      if (popoverEl?.contains(target)) return;
+      onToggle(null);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -252,8 +268,9 @@ function SidebarGroup({
   }
 
   return (
-    <div className={`sb-group ${isOpen ? 'is-open' : ''}`} ref={ref}>
+    <div className={`sb-group ${isOpen ? 'is-open' : ''}`} ref={wrapRef}>
       <button
+        ref={buttonRef}
         type="button"
         className="sb-group-h"
         onClick={() => onToggle(isOpen ? null : groupKey)}
@@ -269,7 +286,14 @@ function SidebarGroup({
         />
         <span>{label}</span>
       </button>
-      {isOpen && <div className="sb-group-popover">{children}</div>}
+      {isOpen && popPos && (
+        <div
+          className="sb-group-popover"
+          style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 }
