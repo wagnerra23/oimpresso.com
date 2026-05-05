@@ -501,4 +501,26 @@ Larissa testou as 3 perguntas em prod (Quanto vendi? / Faturamento líquido? / Q
 **Suite Copiloto**: 79 passed (era 77, +2), 3 skipped, zero regressão.
 **52 ADRs total.**
 
-**Última atualização:** 2026-04-29 noite — MEM-FAT-1 deployed + ADR 0052
+---
+
+## 🦞 Sessão 19 (2026-05-05) — Comparação OpenClaw + 3 ADRs novas (rerank / auto-capture LGPD / WhatsApp)
+
+Wagner pediu comparativo formal **OpenClaw vs oimpresso (Copiloto + skills + MCP)**. Pesquisa web detalhou:
+- OpenClaw = agente IA pessoal open-source (ex-Clawdbot, Steinberger), 247k★, 4 módulos core (channel adapter / agent core / skill plug-in / memory system), 5.700+ skills, plugin `memory-lancedb-pro` com cast wide + cross-encoder rerank.
+- 3 gaps identificados no oimpresso vs OpenClaw que **valem ação**:
+  1. **Cross-encoder rerank** no `MeilisearchDriver` (já tinha `US-COPI-087` mas sem ADR formal — `COPI-23` blocked).
+  2. **Auto-capture turn-level** com PII redactor LGPD (recall hoje ≈190 chars travado em `ContextoNegocio`).
+  3. **Channel adapter WhatsApp** (Larissa pede há semanas, vive no WA durante o dia).
+
+**Entregue nesta sessão (planejamento — NÃO implementação ainda):**
+- ADR 0072 — Cross-encoder rerank pós-fetch Meilisearch (top-50 → top-3) · self-host Ollama Qwen3-Reranker-0.6B + fallback TEI · feature flag default-off · desbloqueia `COPI-23` · referenciada em `US-COPI-087`.
+- ADR 0073 — Auto-capture turn-level + `PiiRedactorService` runtime + tabela `mcp_memoria_turn` + quota 10k/30d/tenant + `usable_for_recall` gate + LGPD delete cascata. Cria `US-COPI-088` (14h, p1, sprint W21, blocked_by US-COPI-087).
+- ADR 0074 — Channel adapter WhatsApp (Meta Cloud API oficial, NÃO Twilio/não-oficiais) · webhook em CT 100 · opt-in LGPD obrigatório · canário biz=4 · cria `US-COPI-089` (24h, p1, sprint W23, blocked_by US-COPI-088).
+
+**Pendência aberta:** Wagner precisa decidir modelo de pricing WhatsApp (R$0,03-0,28/conversa Meta) **antes** do canário ROTA LIVRE — oimpresso paga, cliente paga, ou pricing SaaS? ADR 0074 deixou aberto explicitamente.
+
+**Pipeline lógico:** US-COPI-087 (rerank, sprint W20) → US-COPI-088 (auto-capture, W21) → US-COPI-089 (WhatsApp, W23). Auto-capture entra no mesmo hybrid Meilisearch que o reranker já reordena, e WhatsApp herda turn-level captura idêntica ao web — adapter pattern paga aqui.
+
+**55 ADRs total** (era 71 + 3 = 74 — incluindo as 3 novas: 0072/0073/0074). Ajuste: na verdade 74 ADRs (0001-0074, com algumas lacunas).
+
+**Última atualização:** 2026-05-05 — ADRs 0072+0073+0074 + US-COPI-088+089 (planejamento; implementação depois de validar prioridade do cycle)

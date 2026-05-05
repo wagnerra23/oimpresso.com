@@ -422,17 +422,66 @@ Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por rege
 
 > owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 6h · status: todo
 > blocked_by: US-COPI-083
+> adr: 0072 (Cross-encoder rerank pós-fetch Meilisearch — top-50 → top-3)
 
-Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top-3 pra LLM. Meta: superar 0.85 RAGAS.
+Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top-3 pra LLM. Meta: superar 0.85 RAGAS. **Decisão formalizada em ADR 0072 (2026-05-05) — desbloqueia COPI-23 (Phase 2 MEM-MEM-WIRE).**
 
 **Steps:**
 1. CT 100: `ollama pull dengcao/Qwen3-Reranker-0.6B` (community Ollama) OU `docker run TEI bge-reranker-v2-m3`
-2. Implementar `RerankerService` em `Modules/Copiloto/Services/Retrieval/`
+2. Implementar `RerankerService` + `OllamaRerankerDriver` + `TeiRerankerDriver` + `NullRerankerDriver` em `Modules/Copiloto/Services/Retrieval/`
 3. Modificar `EvalRagasBaselineCommand::retrieveKbContext()` pra fetch top-50 → reranker → top-3
-4. Eval com e sem reranker, comparar score + latência
-5. ADR documentando trade-off (latência +100-200ms vs ganho de score)
-6. Aplicar em prod chat real-time se latência < 500ms total
+4. Eval com e sem reranker, comparar score + latência (export OTel `gen_ai.reranker.latency_ms`)
+5. Canário 10% queries em prod antes de geral; rollout depois se latência p95 < 500ms total
+6. Após validação prod: desbloquear COPI-23 (Phase 2)
 
-**Acceptance:** Score RAGAS médio ≥ 0.85 · latência reranker documentada · ADR criada · serviço testado · feature flag `COPILOTO_RERANKER_ENABLED` (default false até validar).
+**Acceptance:** Score RAGAS médio ≥ 0.85 · latência reranker documentada · ADR 0072 referenciada · serviço testado · feature flag `COPILOTO_RERANKER_ENABLED` (default false até validar).
 
 **Pré-requisito:** US-COPI-083 entregue (qwen3 base funcionando).
+
+### US-COPI-088 · Auto-capture turn-level com PII redactor LGPD
+
+> owner: wagner · sprint: 2026-W21 · priority: p1 · estimate: 14h · status: todo
+> blocked_by: US-COPI-087
+> adr: 0073 (Auto-capture turn-level com PII redactor LGPD-aware)
+
+Implementar `AutoCaptureService` + `PiiRedactorService` (runtime) + tabela `mcp_memoria_turn` pra capturar cada turn da conversa (user msg + assistant response + tools + cost) com redaction obrigatória antes do INSERT, quota por tenant, gating `usable_for_recall`, e endpoint admin LGPD delete cascata. **Fecha gap exposto pela pesquisa OpenClaw mai/2026 — recall útil hoje ≈190 chars (`ContextoNegocio`), passa a incluir histórico turn-level genuíno. Decisão formal em ADR 0073.**
+
+**Steps:**
+1. Migration `mcp_memoria_turn` + `mcp_memoria_turn_archive` (schema completo na ADR 0073).
+2. `PiiRedactorService` (regex BR: CPF/CNPJ/email/cartão Luhn/+55 telefone) — reaproveita stack do hook commit US-COPI-086, adapta pra runtime.
+3. `AutoCaptureService` no fim de cada turn (queue assíncrona, não bloqueia resposta) — redact → INSERT → enqueue `EmbedTurnJob`.
+4. `TurnRecallService` — só retorna `usable_for_recall=true`; entra no hybrid Meilisearch como source virtual junto com `mcp_memory_documents`.
+5. `MemoriaTurnController@destroy` — DELETE cascata + entrada em `lgpd_audit_log`.
+6. Quota 10k turns/30d/tenant + `ArchiveOldTurnsJob` daily.
+7. Métricas OTel: `gen_ai.memoria.turn.captured`, `pii_redacted`, `recall_hit_rate`, `archive_size_bytes`.
+8. Feature flag `COPILOTO_AUTO_CAPTURE_ENABLED=false` + canário biz=4 ROTA LIVRE primeiro.
+
+**Acceptance:** Recall hit rate ≥ 30% em sessões multi-turn de Larissa · zero PII raw em `mcp_memoria_turn` (auditoria 200 turns) · DELETE LGPD audit-logged · tests Pest cobrindo redaction + multi-tenant scope + flagged turns excluídos do recall · ADR 0073 referenciada.
+
+**Pré-requisito:** US-COPI-087 entregue (rerank ativo — turn-level passa pela mesma pipeline).
+
+### US-COPI-089 · Channel adapter WhatsApp pro Copiloto (canário ROTA LIVRE)
+
+> owner: wagner · sprint: 2026-W23 · priority: p1 · estimate: 24h · status: todo
+> blocked_by: US-COPI-088
+> adr: 0074 (Channel adapter WhatsApp pro Copiloto)
+
+Implementar submódulo `Modules/Copiloto/Channels/` com interface `ChatChannel` + driver `WhatsAppCloudChannel` (Meta WhatsApp Cloud API oficial) + webhook receiver em CT 100 + tabela `copiloto_channel_identity` pra mapear wire_id → user/business + opt-in LGPD obrigatório no primeiro turn. **Fecha pedido recorrente da Larissa (cliente_rotalivre.md). Decisão formal em ADR 0074.**
+
+**Steps:**
+1. Setup conta Meta Business + WhatsApp Business Account + número dedicado oimpresso (tarefa fora-código, Wagner).
+2. Templates HSM outbound mínimos (notificação, follow-up) submetidos à aprovação Meta.
+3. Migrations `copiloto_channel_identity` + `copiloto_hsm_templates`.
+4. Interface `ChatChannel` + adapter `WebChannel` (refactor do atual) + driver `WhatsAppCloudChannel`.
+5. `WhatsAppWebhookController` em rota `POST /api/copiloto/whatsapp/webhook` (CT 100, FrankenPHP, valida `X-Hub-Signature-256`).
+6. `ProcessWhatsAppMessageJob` (Horizon CT 100) → `ChannelIdentityResolver` → `ChatService::send()` (mesma do web).
+7. Opt-in flow: primeiro turn pede consentimento explícito ("Você fala com o Copiloto da {business}. Mensagens armazenadas conforme política. Para sair: SAIR.").
+8. `ChannelIdentityController@destroy` — LGPD delete cascata.
+9. Feature flag `COPILOTO_WHATSAPP_ENABLED=false` + `tenant_allowlist=[4]` (ROTA LIVRE canário).
+10. Stub OCR/STT pra mídia (foto/áudio) — fase 2.
+
+**Acceptance:** Larissa consegue conversar com Copiloto via WhatsApp em prod com mesma qualidade do web (tools, ContextoNegocio, reranker, recall) · opt-in funciona (segundo turn libera chat livre) · multi-tenant scope auditado (mensagem do biz 4 NUNCA vira contexto do biz X) · LGPD delete testado · custo Meta tracked em OTel · ADR 0074 referenciada.
+
+**Pré-requisito:** US-COPI-088 entregue (turn-level captura funciona idêntica pra web e WhatsApp).
+
+**Nota de pricing:** Meta cobra R$0,03-0,28/conversa. Wagner decide modelo (oimpresso paga vs cliente paga vs SaaS pricing) **antes** de habilitar canário em prod.
