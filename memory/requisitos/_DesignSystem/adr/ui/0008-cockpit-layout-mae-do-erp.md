@@ -6,6 +6,7 @@
 - **Categoria**: ui · estruturante
 - **Substitui**: parcialmente [UI-0006](0006-padrao-tela-operacional.md) (mantém-se válido para listagens dentro do cockpit), [UI-0007](0007-topbar-desktop-removida-breadcrumb-primeira-linha.md) (topbar volta com função real)
 - **Substituído**: [ADR raiz 0008](../../../decisions/0008-sidebar-unica-tabs-horizontais.md) (sidebar 1-item + tabs era pra Ponto isolado dentro do AppShell legado — agora todo o ERP vive dentro do Cockpit)
+- **Substituído parcialmente por**: [UI-0009](0009-cockpit-sidebar-light-padrao.md) — trecho "sidebar dark fixo" foi revisto em 2026-05-04: sidebar agora segue `data-theme` do usuário (light por padrão, dark elegante)
 - **Refs**: [ADR raiz 0039](../../../decisions/0039-ui-chat-cockpit-padrao.md), [CLAUDE.md §10](../../../../CLAUDE.md), branch `feat/copiloto-cockpit-piloto` em produção `https://oimpresso.com/copiloto/cockpit`
 
 ## Contexto
@@ -57,7 +58,7 @@ Agora o ERP tem 3 padrões coexistindo, o que vira problema rapidamente. Esta AD
 
 ### Componentes obrigatórios do Cockpit
 
-**Sidebar (260px, dark fixo na vibe workspace):**
+**Sidebar (260px — paleta segue `data-theme` do usuário, light default. Ver [UI-0009](0009-cockpit-sidebar-light-padrao.md)):**
 - `CompanyPicker` — dropdown listando empresas que o user tem acesso (todas se superadmin, current senão), avatar com gradiente determinístico por id, "+Adicionar empresa" no footer
 - `SidebarTabs` — toggle Chat ↔ Menu (estilo ChatGPT)
 - `SidebarChat` — atalhos (Nova conversa, Tarefas, Despachos, Personalizar) + Fixadas + Rotinas + Recentes
