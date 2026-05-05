@@ -17,6 +17,7 @@ if (! $alvos) {
         '0072-maturacao-memoria-team-mcp-openclaw-soa-2026',
         '0073-team-mcp-skills-policies-entidades-governadas',
         '0074-temporal-validity-bi-temporal-time-travel',
+        '0075-team-mcp-skills-ui-prompt-management-style',
     ];
 } else {
     $alvos = [$alvos];

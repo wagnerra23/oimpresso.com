@@ -3,17 +3,18 @@ slug: 0073-team-mcp-skills-policies-entidades-governadas
 number: 0073
 title: "Team MCP P0 — skills e policies como entidades governadas (mcp_skills + mcp_policies)"
 type: adr
-status: proposto
-authority: canonical
-lifecycle: ativo
+status: superseded
+authority: reference
+lifecycle: substituido
 decided_by: [W]
 decided_at: 2026-05-05
 module: copiloto
 quarter: 2026-Q2
-tags: [mcp, team-mcp, skills, policies, governanca, sync, p0]
+tags: [mcp, team-mcp, skills, policies, governanca, sync, p0, superseded]
 supersedes: []
 supersedes_partially: []
-superseded_by: []
+superseded_by:
+  - 0075-team-mcp-skills-ui-prompt-management-style
 related:
   - 0053-mcp-server-governanca-como-produto
   - 0061-conhecimento-canonico-git-mcp-zero-automem
@@ -25,6 +26,11 @@ review_triggers:
 ---
 
 # ADR 0073 — Team MCP P0: skills e policies como entidades governadas
+
+> **🔴 SUPERSEDED em 2026-05-05 mesmo dia por [ADR 0075](0075-team-mcp-skills-ui-prompt-management-style.md).**
+> Wagner pediu UI mais rica (versionamento DB+git + governance + history + rationale + testes inline). Pesquisa mostrou categoria de "prompt management" cobrindo o pedido. ADR 0075 expande este P0 com 5 tabelas + 5 telas + approval workflow + folder-per-skill. `mcp_policies` (espelho do PolicyEngine) saiu de escopo aqui — vira ADR separada se demanda aparecer.
+>
+> **Mantida pra histórico.** Não implementar este schema — implementar 0075.
 
 ## Contexto
 

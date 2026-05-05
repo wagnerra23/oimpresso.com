@@ -184,6 +184,17 @@ Wagner pediu "estude o que já foi construído e compare" antes de seguir com 00
 
 **Status do ADR 0072:** mantido em `proposto`. Decisão central (sequenciamento P0→P3 + gates) sobrevive. Dados foram corrigidos.
 
+## Erratum 2 — 2026-05-05 (mesmo dia, pesquisa de UI)
+
+Wagner pediu UI rica pra gerenciar skills (versionamento DB+git + governance + history + rationale + testes inline). Pesquisa exaustiva ([cofre `prompt_skill_management_2026_05_05.md`](../comparativos/prompt_skill_management_2026_05_05.md)) cobriu 10 ferramentas de prompt management.
+
+**Impacto no roadmap P0:**
+- ADR 0073 ficou pequena demais pro pedido real → **[ADR 0075](0075-team-mcp-skills-ui-prompt-management-style.md) supersede 0073** com modelo completo: 5 tabelas + 5 telas + approval workflow + 4 campos rationale estruturado + test runner com inputs reais multi-tenant. **NÃO existe equivalente no mercado** — fica à frente do estado-da-arte 2026.
+- `mcp_policies` (espelho do PolicyEngine) saiu de escopo P0. Vira ADR separada futura se demanda aparecer.
+- Estimativa P0 revisada: 5 dias → **15 dias úteis** (ou 7d com paralelismo total). Aumento justificado pelo escopo expandido (UI completa em vez de só backend).
+
+**P1/P2/P3 não mudam** — sequenciamento e gates preservados.
+
 ## Referências
 
 - [State of Agent Memory 2026 — Mem0](https://mem0.ai/blog/state-of-ai-agent-memory-2026)
