@@ -91,6 +91,10 @@ class DataController extends Controller
             return;
         }
 
+        // Agrupado em "Fiscal" pelo AdminSidebarMenu — sem item standalone.
+        return;
+
+        // @codeCoverageIgnoreStart (código abaixo mantido para referência)
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
         $segmento_ativo   = request()->segment(1) == 'nfse';
 
@@ -142,5 +146,6 @@ class DataController extends Controller
                 )->order(96);
             }
         );
+        // @codeCoverageIgnoreEnd
     }
 }

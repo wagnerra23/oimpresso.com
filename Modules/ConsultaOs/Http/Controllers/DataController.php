@@ -64,21 +64,6 @@ class DataController extends Controller
             return;
         }
 
-        $segmento_ativo = request()->segment(1) === 'consulta-os';
-
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($segmento_ativo) {
-                $menu->url(
-                    url('/consulta-os'),
-                    'Consulta de OS',
-                    [
-                        'icon'   => 'fa fas fa-magnifying-glass',
-                        'active' => $segmento_ativo,
-                        'target' => '_blank',
-                    ]
-                )->order(96);
-            }
-        );
+        // Removido da sidebar — aparece apenas no front-end (topnav/portal público).
     }
 }
