@@ -78,10 +78,9 @@ class DataController extends Controller
             return;
         }
 
-        // Movido para grupo "Produtividade" no AdminSidebarMenu — sem item standalone.
-        return;
-
-        // @codeCoverageIgnoreStart
+        // Agrupamento visual em "IA & Produtividade" acontece no frontend
+        // (SIDEBAR_GROUPS em resources/js/Components/cockpit/Sidebar.tsx).
+        // DataController publica o dropdown padrão.
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
         $segmento_ativo = request()->segment(1) == 'team-mcp';
 
@@ -132,6 +131,5 @@ class DataController extends Controller
                 )->order(91); // Logo após Copiloto (90)
             }
         );
-        // @codeCoverageIgnoreEnd
     }
 }

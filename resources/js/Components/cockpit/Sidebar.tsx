@@ -10,9 +10,9 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRightLeft, BarChart3, Bell, Bot, Box, Calculator, Calendar, Check,
   ChevronDown, ChevronRight, ChevronUp, ClipboardList, CreditCard, FileSearch,
-  Hash, Home, Inbox, Keyboard, LogOut, MessageSquare, Monitor, Moon, Package,
-  PackageCheck, Plug, Receipt, Search, Settings, ShieldAlert, ShieldCheck,
-  ShoppingCart, Sun, Users, Utensils, User, Wallet,
+  FileText, Hash, Home, Inbox, Keyboard, LogOut, MessageSquare, Monitor, Moon,
+  Package, PackageCheck, Plug, Receipt, Rocket, Search, Settings, ShieldAlert,
+  ShieldCheck, ShoppingCart, Sun, UserCog, Users, Utensils, User, Wallet,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -32,6 +32,7 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   despesas: CreditCard,
   'contas de pagamento': Wallet,
   accounting: Calculator, contabilidade: Calculator,
+  financeiro: Wallet,
   relatórios: BarChart3,
   reservas: Calendar,
   cocina: Utensils,
@@ -45,6 +46,11 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'ajuste de estoque': PackageCheck,
   'gestão de ativos': Box,
   'gerenciamento de usuários': Users,
+  hrm: UserCog,
+  essenciais: Box,
+  'team mcp': Rocket,
+  nfse: FileText,
+  'nf-e brasil': FileText,
 };
 
 function findMenuIcon(label: string): LucideIcon {
@@ -80,6 +86,16 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     items: ['Compras', 'Transferências de ações', 'Ajuste de estoque', 'Gestão de ativos'],
   },
   {
+    key: 'fiscal',
+    label: 'FISCAL',
+    items: ['NFSe', 'NF-e Brasil'],
+  },
+  {
+    key: 'rh',
+    label: 'RH',
+    items: ['HRM', 'Essenciais'],
+  },
+  {
     key: 'rel',
     label: 'RELATÓRIOS',
     items: ['Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
@@ -87,7 +103,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'ia',
     label: 'IA & PRODUTIVIDADE',
-    items: ['Copiloto', 'ADS', 'Conector', 'CRM', 'Crm'],
+    items: ['Copiloto', 'ADS', 'Conector', 'CRM', 'Crm', 'Team MCP'],
   },
   {
     key: 'config',
