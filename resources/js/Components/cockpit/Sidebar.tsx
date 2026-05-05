@@ -207,15 +207,16 @@ function SidebarShortcuts({
   return (
     <div className="sb-shortcuts">
       <a href="/tarefas" className="sb-shortcut">
-        <Inbox size={14} />
+        <Inbox size={13} />
         <span className="label">Tarefas</span>
         {!!tarefasCount && <span className="badge">{tarefasCount}</span>}
       </a>
       <a href="/copiloto" className="sb-shortcut">
-        <MessageSquare size={14} />
+        <MessageSquare size={13} />
         <span className="label">Chat</span>
         {!!chatCount && <span className="badge">{chatCount}</span>}
       </a>
+      <div className="sb-sep" />
     </div>
   );
 }
