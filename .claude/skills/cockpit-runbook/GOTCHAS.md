@@ -1,0 +1,59 @@
+# GOTCHAS — Pegadinhas curadas pro RUNBOOK
+
+> Append-only. Cada incidente vira pegadinha permanente.
+> Pegadinhas específicas da tela ficam no §10 do RUNBOOK gerado; estas aqui são as que se aplicam a QUALQUER tela do Cockpit.
+
+## Inertia / React
+
+- ❌ **Ziggy não está disponível** — não usar `route('xxx.yyy')` em Pages React. Sintoma: `route is not defined` no console em prod (dev às vezes passa). Fix: template literal `` href={`/<prefix>/admin/${id}`} `` (auto-mem `reference_modules_cms_landing` + `feedback_topnav_i18n_pattern`).
+- ❌ **Persistent Layouts** (auto-mem `preference_persistent_layouts`) — não envolver Page em `<AppShell>` inline. Usar `<Tela>.layout = (page) => <AppShellV2>{page}</AppShellV2>`. Sintoma: shell duplicado, scroll quebrado, breadcrumb sumindo entre navegações.
+- ❌ **Cache/estado preservado** (auto-mem `preference_cache_estado_preservado`) — telas não podem fazer reload total entre cliques. Usar `useForm({...}, { forceFormData: false })`, `<Link preserveScroll preserveState />`, `router.get(url, {}, { only: [...] })`. Nunca `window.location.reload()`. Wagner exigiu 2026-04-26 após regressão.
+- ❌ **`sessionStorage` pra estado UI** — perde na nova aba. Sempre `localStorage` com prefixo `oimpresso.` (DESIGN.md §12).
+
+## Build / Deploy
+
+- ❌ **`npm run build` errado** — config padrão gera só Tailwind, não bundles Inertia. Sempre `npm run build:inertia`. Sintoma: tela 404, bundle não aparece em `public/build-inertia/manifest.json`.
+- ❌ **`composer install` esquecido pós-deploy** (auto-mem `reference_composer_install_obrigatorio_pos_deploy`) — após push em main com mudança em composer.json/lock, rodar SSH + composer install. Quick-Sync GitHub Action NÃO faz isso. Sintoma: tela branca Inertia (`null.component`). Descoberto 2026-04-25 com upgrade Inertia v2→v3.
+
+## Tokens / Design System
+
+- ❌ **Cor crua Tailwind** (`bg-blue-500`, `text-gray-700`) viola R-DS-002 e quebra dark mode. Usar tokens semânticos (`bg-primary`, `text-muted-foreground`, `border-border`) ou variáveis do shell (`var(--accent)`). Exceções: cores de status fixo (emerald/amber/red) em KPIs.
+- ❌ **`<button>` HTML cru** viola R-DS-001 — perde acessibilidade embutida do `<Button>` shadcn. Sempre `import { Button } from '@/Components/ui/button'`.
+- ❌ **Inventar cor solta no CSS** — derive via `oklch()` a partir de `--accent` ou origem do módulo (DESIGN.md §9). Hex/rgb hardcoded não acompanha tweaks (vibe/densidade/accentHue do ADR 0039).
+- ❌ **Ícones de bibliotecas alternativas** — só `lucide-react` (R-DS-003). Não importar `@radix-ui/react-icons`, `heroicons`, `react-icons`, emojis nem SVG custom. Bundle penalty + inconsistência de traço.
+
+## Atalhos
+
+- ❌ **Listener sem cleanup** — `useEffect(() => { window.addEventListener(...) })` sem `removeEventListener` no return causa memory leak + atalho disparando em telas erradas após navegação. Sempre retornar cleanup function.
+- ❌ **Atalho disparando em `<input>`** — bloquear com `if (e.target instanceof HTMLInputElement) return` no início do handler. Sintoma: usuário digita "j" no campo de busca e a tela navega na lista.
+
+## Multi-tenant
+
+- ❌ **Query sem `business_id`** — vazar dados entre tenants é **o pior bug possível** deste projeto (CLAUDE.md §4). UltimatePOS usa `session('user.business_id')` + global scope. Skill irmã `multi-tenant-patterns` cobre.
+- ❌ **`session('business.timezone')` retorna null** (auto-mem `project_session_business_model`) — `session('business')` é Eloquent, dot-notation não funciona. Usar chave dedicada `session('business_timezone')` que foi adicionada.
+
+## I18n / labels
+
+- ❌ **`__('alias::file.key')` em DataController/topnav** — `LegacyMenuAdapter` lê literal, não resolve traduções → labels saem crus em prod. Hardcodar PT-BR (NFSe sempre fez assim). Auto-mem `feedback_topnav_i18n_pattern`.
+- ❌ **Blade `{{ }}` dentro de `{!! !!}`** (auto-mem `feedback_blade_double_escape_bug`) — duplo escape quebra parser PHP. Sintoma: erro 500 com "unexpected token <". Fix: chamar função PHP direto sem `{{ }}` aninhado. Encontrado em `register.blade.php:16` em 2026-04-26.
+
+## Datas / timezone
+
+- ❌ **`format_date()` em `tx_date` retroativo** (auto-mem `feedback_format_now_local_e_default_datetime`) — aplica shift histórico +3h. Pra "agora" usar `Util::format_now_local()`. Larissa (ROTA LIVRE) decorou esse comportamento (auto-mem `cliente_rotalivre`); não tentar "corrigir" sem alinhar.
+- ❌ **Campo `readonly` sem datetimepicker** — fica congelado. Inicializar datetimepicker mesmo em campos readonly se vai aceitar valor de "agora".
+
+## Hostinger / produção
+
+- ❌ **Daemons no Hostinger** — Reverb, Centrifugo, Horizon, autossh, Meilisearch NÃO rodam em shared hosting. Daemons → CT 100 Proxmox (skill `runtime-rules-hostinger-ct100`).
+- ❌ **`composer update` em prod sem PR** — sempre `composer install` no servidor com lockfile do PR mergeado.
+
+## Format / spatie shim
+
+- ❌ **Remover shim `App\View\Helpers\Form`** sem migrar ~6.433 chamadas `Form::` em ~460 Blade views (CLAUDE.md §4).
+- ✅ **Form shim normaliza bool attrs** (auto-mem `feedback_form_shim_bool_attrs`) — `disabled/readonly/etc` com `false/null` são omitidos automaticamente. Bug crítico corrigido 2026-04-24 que travava `/sells/create`.
+
+---
+
+**Quando apender:** após qualquer audit de tela ou session log que descubra novo modo de falha. Marcar data + módulo + 1 linha de contexto.
+
+**Última atualização:** 2026-05-05 (criação inicial baseada em 13 RUNBOOKs + 30+ auto-mems históricas).

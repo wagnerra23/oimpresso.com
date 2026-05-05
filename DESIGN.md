@@ -10,10 +10,12 @@
 
 | Cenário | Vá direto pra |
 |---|---|
+| **Comparar tela alvo com canon visual antes de codar** ⭐ | [`memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/) — UI Kit canônico (`os-page.jsx` é referência pra list+detail, [_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)) |
 | Codar uma tela React nova ou alterar uma existente | Seção "Padrão técnico de implementação React" abaixo nesse arquivo |
 | Mockup visual numa nova sessão Claude Design canvas | [`memory/requisitos/_DesignSystem/BRIEFING_CLAUDE_DESIGN.md`](memory/requisitos/_DesignSystem/BRIEFING_CLAUDE_DESIGN.md) — colar como 1ª mensagem + anexar arquivo |
-| Decidir se um padrão visual é canônico ou divergência | [`memory/decisions/0039-ui-chat-cockpit-padrao.md`](memory/decisions/0039-ui-chat-cockpit-padrao.md) — ADR principal de UI |
+| Decidir se um padrão visual é canônico ou divergência | [_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md) (canon visual) + [ADR raiz 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) (Cockpit layout-mãe) |
 | Buscar/usar um componente shared existente | [`memory/requisitos/_DesignSystem/SPEC.md`](memory/requisitos/_DesignSystem/SPEC.md) |
+| Gerar/auditar runbook de tela | Skill `cockpit-runbook` (pede `runbook da tela X` ou `audita tela X contra Cockpit`) |
 | Auditar uma tela contra o sistema de design | [`memory/requisitos/_DesignSystem/audits/`](memory/requisitos/_DesignSystem/audits/) |
 | Catálogo de acabamentos (lâminas, vinis, papéis) pra módulos gráficos | [`memory/requisitos/_DesignSystem/CATALOGO_ACABAMENTOS.md`](memory/requisitos/_DesignSystem/CATALOGO_ACABAMENTOS.md) |
 | Visão geral da arquitetura visual | [`memory/requisitos/_DesignSystem/ARCHITECTURE.md`](memory/requisitos/_DesignSystem/ARCHITECTURE.md) |
@@ -73,21 +75,27 @@ Wagner é o aprovador final em divergências de padrão. Cliente (WR2 Sistemas /
 
 ## 6. Antes de codificar qualquer tela
 
-1. **Leia [ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md)** — define layout-mãe "Chat Cockpit" 3-colunas, dual-tab Chat/Menu, painel direito de Apps Vinculados, atalhos J/K/E/A, Tweaks (vibe/densidade/accentHue).
-2. **Leia o session log mais recente em `memory/sessions/`** — pode ter ajuste de design não refletido no ADR ainda.
-3. **Olhe o protótipo de referência** — projeto Cowork "Oimpresso ERP Comunicação Visual", arquivo `Oimpresso ERP - Chat.html`. É a verdade visual mais atual.
-4. **Olhe `resources/js/Layouts/AppShell.tsx`** (atual) e o futuro `AppShellV2.tsx` (quando portado) — cliente final NÃO pode reaprender o sistema. Qualquer mudança de menu/labels/ícones precisa ser aprovada explicitamente.
+1. **Abra o canon visual** em [`memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/) — UI Kit Cowork. Identifique qual `.jsx` corresponde ao tipo da sua tela:
+   - **list+detail (CRUD operacional)** → [`os-page.jsx`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/os-page.jsx) ⭐ padrão canônico
+   - **inbox unificada** → [`tasks.jsx`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/tasks.jsx) + [`viewers.jsx`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/viewers.jsx)
+   - **conversação/chat** → [`chat.jsx`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/chat.jsx)
+2. **Leia [_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)** — formaliza zip Cowork como canon e lista conflitos resolvidos (ex.: sidebar light de UI-0009 sobrevive).
+3. **Leia [ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md)** — define layout-mãe "Chat Cockpit" 3-colunas, dual-tab Chat/Menu, painel direito de Apps Vinculados, atalhos J/K/E/A, Tweaks (vibe/densidade/accentHue).
+4. **Leia o session log mais recente em `memory/sessions/`** — pode ter ajuste de design não refletido no ADR ainda.
+5. **Olhe `resources/js/Layouts/AppShellV2.tsx`** — shell único do ERP em React (AppShell legado removido em 2026-05-04). Cliente final NÃO pode reaprender o sistema; mudança de menu/labels/ícones precisa ser aprovada explicitamente.
 
 ## 7. Hierarquia de decisões de UI
 
 Em ordem de precedência (de cima pra baixo, regra mais alta vence em conflito):
 
 1. **Stack-target do projeto** (Inertia v3 + React 19 + TS + Tailwind 4) — não muda sem ADR.
-2. **Layout-mãe "Chat Cockpit"** (ADR 0039) — não muda sem ADR substitutivo.
-3. **Padrão Jana** (ADR 0011) — UltimatePOS-like; vale para tudo que não conflita com 0039.
-4. **Componentes shared do projeto** (`PageHeader`, `DataTable`, `PageFilters`, `KpiCard`, `ModuleTopNav`, `StatusBadge`, `EmptyState`) — usar antes de criar novo.
-5. **Convenções 04** (`memory/04-conventions.md`) — naming PHP, rotas, blade.
-6. **Bom gosto do designer** — em última instância, Claude decide visual sem perguntar; mas registra a decisão no session log.
+2. **Canon visual Cowork 2026-04-27** ([_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)) — `os-page.jsx`/`tasks.jsx`/`viewers.jsx`/`chat.jsx`. Não muda sem ADR substitutivo.
+3. **Layout-mãe "Chat Cockpit"** ([ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) + [_DS UI-0008](memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)) — não muda sem ADR substitutivo.
+4. **Sidebar light por padrão** ([_DS UI-0009](memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)) — sobrevive ao canon Cowork (Wagner explícito 2026-05-05).
+5. **Padrão Jana** ([ADR 0011](memory/decisions/0011-alinhamento-padrao-jana.md)) — UltimatePOS-like estrutura modular; vale pra DataController/Install/módulos (não-visual).
+6. **Componentes shared do projeto** (`PageHeader`, `DataTable`, `PageFilters`, `KpiCard`, `ModuleTopNav`, `StatusBadge`, `EmptyState`) — usar antes de criar novo.
+7. **Convenções 04** (`memory/04-conventions.md`) — naming PHP, rotas, blade.
+8. **Bom gosto do designer** — em última instância, Claude decide visual sem perguntar; mas registra a decisão no session log.
 
 ## 8. Layout obrigatório de tela nova
 
@@ -193,5 +201,5 @@ Padrão muda por ADR, nunca por commit solto.
 
 ---
 
-> **Última atualização:** 2026-04-28 (consolidado: hub de design (criado 2026-04-28) + spec técnico React (antes em CLAUDE.md §10) num arquivo só)
-> **Próxima revisão sugerida:** quando portar `AppShellV2.tsx` pro repo (Fase 1 da migração ADR 0039)
+> **Última atualização:** 2026-05-05 — §1 + §6 + §7 atualizados pra apontar pro UI Kit Cowork canônico ([_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)). `os-page.jsx` agora é padrão canônico de tela list+detail.
+> **Próxima revisão sugerida:** quando 1ª tela for portada usando `os-page.jsx` como referência (provável piloto: Pages/Officeimpresso/OS).
