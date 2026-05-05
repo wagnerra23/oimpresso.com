@@ -292,76 +292,49 @@ function SidebarGroup({
   groupKey,
   label,
   children,
-  openKey,
-  onToggle,
+  defaultOpen = false,
 }: {
   groupKey: string;
   label: string;
   children: React.ReactNode;
-  openKey: string | null;
-  onToggle: (key: string | null) => void;
+  defaultOpen?: boolean;
 }) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
-  const isOpen = openKey === groupKey;
-
-  // Calcula posição fixed do popover quando abre. Position fixed pra escapar do
-  // overflow-y:auto da .sb-body que cortava a versão absolute.
+  // Inline accordion (não popover lateral) — Wagner 2026-05-05.
+  // Persistência por grupo em LS pra não recarregar entre navegações.
+  // Múltiplos grupos podem estar abertos simultaneamente.
+  const lsKey = `oimpresso.cockpit.group.${groupKey}.expanded`;
+  const [expanded, setExpanded] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return defaultOpen;
+    const v = localStorage.getItem(lsKey);
+    return v === null ? defaultOpen : v === '1';
+  });
   useEffect(() => {
-    if (!isOpen) { setPopPos(null); return; }
-    if (!buttonRef.current) return;
-    const r = buttonRef.current.getBoundingClientRect();
-    setPopPos({ top: r.top, left: r.right + 4 });
-  }, [isOpen]);
+    localStorage.setItem(lsKey, expanded ? '1' : '0');
+  }, [expanded, lsKey]);
 
-  // Fecha popover ao clicar fora (considera tanto o group quanto o popover via portal)
-  useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (wrapRef.current?.contains(target)) return;
-      // popover renderizado fora do wrap (fixed) — checar via classe
-      const popoverEl = document.querySelector('.sb-group-popover');
-      if (popoverEl?.contains(target)) return;
-      onToggle(null);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [isOpen, onToggle]);
-
-  // Grupo sem label (não usado mais — fallback) — renderiza inline
   if (!label) {
     return <div className="sb-group sb-group-noheader">{children}</div>;
   }
 
   return (
-    <div className={`sb-group ${isOpen ? 'is-open' : ''}`} ref={wrapRef}>
+    <div className={`sb-group ${expanded ? 'is-open' : ''}`}>
       <button
-        ref={buttonRef}
         type="button"
         className="sb-group-h"
-        onClick={() => onToggle(isOpen ? null : groupKey)}
-        aria-expanded={isOpen}
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
       >
         <ChevronDown
           size={10}
           className="chev"
           style={{
-            transform: isOpen ? 'rotate(0)' : 'rotate(-90deg)',
+            transform: expanded ? 'rotate(0)' : 'rotate(-90deg)',
             transition: 'transform 150ms',
           }}
         />
         <span>{label}</span>
       </button>
-      {isOpen && popPos && (
-        <div
-          className="sb-group-popover"
-          style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
-        >
-          {children}
-        </div>
-      )}
+      {expanded && <div className="sb-group-body">{children}</div>}
     </div>
   );
 }
@@ -395,18 +368,6 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
       : []),
   ];
 
-  return <SidebarMenuGrouped groupsToRender={groupsToRender} groupedItems={groupedItems} />;
-}
-
-// ── SidebarMenuGrouped — wrapper que gerencia o openKey (radio behavior) ──
-function SidebarMenuGrouped({
-  groupsToRender,
-  groupedItems,
-}: {
-  groupsToRender: Array<{ key: string; label: string; items: string[] }>;
-  groupedItems: Record<string, ShellMenuItem[]>;
-}) {
-  const [openKey, setOpenKey] = useState<string | null>(null);
   return (
     <div className="sb-menu-grouped">
       <SidebarShortcuts tarefasCount={6} chatCount={3} />
@@ -415,8 +376,7 @@ function SidebarMenuGrouped({
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          openKey={openKey}
-          onToggle={setOpenKey}
+          defaultOpen={g.key === 'office'}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
