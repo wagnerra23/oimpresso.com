@@ -19,8 +19,13 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
+import SubNav from '@/Components/shared/SubNav';
 
 const LS_PRESET_KEY = 'oimpresso.copiloto.governanca.preset';
+const LS_SECAO_KEY  = 'oimpresso.copiloto.governanca.secao';
+
+type Secao    = 'consumo' | 'acesso' | 'usuarios';
+type ChartMode = 'calls' | 'custo';
 
 type Preset = 'hoje' | 'ontem' | '7d' | '30d' | 'mes_anterior' | 'custom';
 
@@ -73,15 +78,15 @@ function statusBarClass(status: string): string {
   }
 }
 
-/** Gráfico de calls/dia (linha) — mesmo padrão SVG do CustosController. */
-function CallsDiariasChart({ dados }: { dados: DiaRow[] }) {
+/** Gráfico de calls/dia (linha) — suporta mode calls | custo. */
+function CallsDiariasChart({ dados, mode = 'calls' }: { dados: DiaRow[]; mode?: ChartMode }) {
   const w = 800;
   const h = 220;
   const pad = { top: 16, right: 16, bottom: 28, left: 56 };
   const innerW = w - pad.left - pad.right;
   const innerH = h - pad.top - pad.bottom;
 
-  const valores = dados.map((d) => d.calls);
+  const valores = dados.map((d) => mode === 'custo' ? d.custo_brl : d.calls);
   const max = Math.max(1, ...valores);
   const n = dados.length;
 
@@ -100,11 +105,14 @@ function CallsDiariasChart({ dados }: { dados: DiaRow[] }) {
   const xAt = (i: number) => pad.left + (n === 1 ? innerW / 2 : (i / (n - 1)) * innerW);
   const yAt = (v: number) => pad.top + innerH - (v / max) * innerH;
 
-  const linePts = dados.map((d, i) => `${xAt(i)},${yAt(d.calls)}`).join(' ');
-  const deniedPts = dados.map((d, i) => `${xAt(i)},${yAt(d.denied)}`).join(' ');
+  const mainVal = (d: DiaRow) => mode === 'custo' ? d.custo_brl : d.calls;
+  const linePts  = dados.map((d, i) => `${xAt(i)},${yAt(mainVal(d))}`).join(' ');
+  const deniedPts = mode === 'calls'
+    ? dados.map((d, i) => `${xAt(i)},${yAt(d.denied)}`).join(' ')
+    : null;
   const areaPts = [
     `${xAt(0)},${pad.top + innerH}`,
-    ...dados.map((d, i) => `${xAt(i)},${yAt(d.calls)}`),
+    ...dados.map((d, i) => `${xAt(i)},${yAt(mainVal(d))}`),
     `${xAt(n - 1)},${pad.top + innerH}`,
   ].join(' ');
 
@@ -120,14 +128,16 @@ function CallsDiariasChart({ dados }: { dados: DiaRow[] }) {
           <g key={`y-${i}`}>
             <line x1={pad.left} x2={pad.left + innerW} y1={yAt(t)} y2={yAt(t)} className="stroke-border" strokeDasharray="2 4" />
             <text x={pad.left - 6} y={yAt(t)} textAnchor="end" dominantBaseline="middle" className="fill-muted-foreground text-[10px]">
-              {num(t)}
+              {mode === 'custo' ? `R$${t.toFixed(0)}` : num(t)}
             </text>
           </g>
         ))}
 
         <polygon points={areaPts} className="fill-primary/15" />
         <polyline points={linePts} fill="none" className="stroke-primary" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-        <polyline points={deniedPts} fill="none" className="stroke-amber-400 dark:stroke-amber-300" strokeWidth={1.5} strokeDasharray="4 2" strokeLinecap="round" />
+        {deniedPts && (
+          <polyline points={deniedPts} fill="none" className="stroke-amber-400 dark:stroke-amber-300" strokeWidth={1.5} strokeDasharray="4 2" strokeLinecap="round" />
+        )}
 
         {xLabels.map(({ d, i }) => (
           <text key={`x-${i}`} x={xAt(i)} y={h - 8} textAnchor="middle" className="fill-muted-foreground text-[10px]">
@@ -137,11 +147,14 @@ function CallsDiariasChart({ dados }: { dados: DiaRow[] }) {
       </svg>
       <div className="flex gap-4 text-xs text-muted-foreground mt-2 ml-14">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-0.5 bg-primary"></span> calls
+          <span className="inline-block w-3 h-0.5 bg-primary"></span>
+          {mode === 'custo' ? 'custo (R$)' : 'calls'}
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-0.5 bg-amber-400 dark:bg-amber-300" style={{ borderTop: '1px dashed' }}></span> denied
-        </span>
+        {mode === 'calls' && (
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-0.5 bg-amber-400 dark:bg-amber-300" style={{ borderTop: '1px dashed' }}></span> denied
+          </span>
+        )}
       </div>
     </div>
   );
@@ -155,6 +168,10 @@ function GovernancaIndex(props: Props) {
 
   const [de, setDe] = useState(filters.de ?? '');
   const [ate, setAte] = useState(filters.ate ?? '');
+  const [secao, setSecao] = useState<Secao>(
+    () => (localStorage.getItem(LS_SECAO_KEY) as Secao | null) ?? 'consumo',
+  );
+  const [chartMode, setChartMode] = useState<ChartMode>('calls');
   const selectRef = useRef<HTMLButtonElement>(null);
 
   // Persiste preset no localStorage (ADR 0039 §4)
@@ -163,6 +180,11 @@ function GovernancaIndex(props: Props) {
       localStorage.setItem(LS_PRESET_KEY, filters.preset);
     }
   }, [filters.preset]);
+
+  // Persiste seção ativa
+  useEffect(() => {
+    localStorage.setItem(LS_SECAO_KEY, secao);
+  }, [secao]);
 
   // Atalho '/' → foca no seletor de período (DESIGN.md §13)
   useEffect(() => {
@@ -205,6 +227,20 @@ function GovernancaIndex(props: Props) {
             <div>Audit: <span className="font-mono">mcp_audit_log</span> (append-only)</div>
           </div>
         }
+      />
+
+      {/* Sub-navegação por seção — variante underline */}
+      <SubNav
+        className="mt-4"
+        variant="underline"
+        value={secao}
+        onChange={(v) => setSecao(v as Secao)}
+        items={[
+          { value: 'consumo',  label: 'Consumo',       icon: 'bar-chart-2' },
+          { value: 'acesso',   label: 'Acesso / RBAC', icon: 'shield-check',
+            badge: denied_por_codigo.length > 0 ? denied_por_codigo.length : undefined },
+          { value: 'usuarios', label: 'Usuários',      icon: 'users' },
+        ]}
       />
 
       {/* KPIs principais */}
@@ -279,20 +315,35 @@ function GovernancaIndex(props: Props) {
         </CardContent>
       </Card>
 
-      {/* Gráfico calls/dia */}
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle>Chamadas por dia</CardTitle>
-          <CardDescription>
-            {serie_diaria.length} dias · linha sólida = total · linha tracejada = denied
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CallsDiariasChart dados={serie_diaria} />
-        </CardContent>
-      </Card>
+      {/* ── Seção: Consumo ───────────────────────────────────────────── */}
+      {secao === 'consumo' && (
+        <Card className="mb-4">
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle>Chamadas por dia</CardTitle>
+              <CardDescription>
+                {serie_diaria.length} dias · linha sólida = total · linha tracejada = denied
+              </CardDescription>
+            </div>
+            {/* Segmented control — troca visualização do gráfico */}
+            <SubNav
+              variant="segmented"
+              value={chartMode}
+              onChange={(v) => setChartMode(v as ChartMode)}
+              items={[
+                { value: 'calls', label: 'Calls',  icon: 'activity' },
+                { value: 'custo', label: 'Custo',  icon: 'dollar-sign' },
+              ]}
+            />
+          </CardHeader>
+          <CardContent>
+            <CallsDiariasChart dados={serie_diaria} mode={chartMode} />
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Linha 2: Status + Denied por error_code */}
+      {/* ── Seção: Acesso / RBAC ─────────────────────────────────────── */}
+      {secao === 'acesso' && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <Card>
           <CardHeader>
@@ -359,8 +410,10 @@ function GovernancaIndex(props: Props) {
           </CardContent>
         </Card>
       </div>
+      )}
 
-      {/* Linha 3: Top tools + Top users */}
+      {/* ── Seção: Usuários ───────────────────────────────────────────── */}
+      {secao === 'usuarios' && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
@@ -434,6 +487,7 @@ function GovernancaIndex(props: Props) {
           </CardContent>
         </Card>
       </div>
+      )}
     </>
   );
 }
