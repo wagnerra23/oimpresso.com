@@ -160,13 +160,27 @@ class HandleInertiaRequests extends Middleware
 
         $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
 
+        // Cargo real do Spatie role (formato `{Nome}#{biz_id}` — strip suffix).
+        // Wagner pediu 2026-05-05: footer mostra role, não label genérico.
+        $roleName = null;
+        try {
+            $firstRole = method_exists($user, 'roles') ? $user->roles()->first() : null;
+            $roleName = $firstRole?->name;
+            if ($roleName) {
+                $roleName = preg_replace('/#\d+$/', '', $roleName);
+            }
+        } catch (\Throwable $e) {
+            $roleName = null;
+        }
+        $cargo = $isSuper ? 'Superadmin' : ($roleName ?: 'Usuário');
+
         return [
             'businessNome'     => $request->session()->get('business.name', 'Oimpresso Matriz'),
             'businesses'       => $businesses,
             'usuarioNome'      => $userNome,
             'usuarioNomeCurto' => $user->first_name ?? 'Usuário',
             'usuarioEmail'     => $user->email ?? '',
-            'usuarioCargo'     => $isSuper ? 'Administrador' : 'Usuário',
+            'usuarioCargo'     => $cargo,
             'usuarioIniciais'  => $this->iniciais($userNome),
         ];
     }

@@ -28,14 +28,9 @@ import {
 // migra pro backend e este lookup é deletado.
 const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
-    key: 'inicio',
-    label: '',  // sem header (fica direto após shortcuts)
-    items: ['Iniciar', 'Início', 'Home', 'Dashboard'],
-  },
-  {
     key: 'office',
     label: 'OFFICEIMPRESSO',
-    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos'],
+    items: ['Iniciar', 'Início', 'Home', 'Dashboard', 'Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos'],
   },
   {
     key: 'fin',
@@ -216,7 +211,6 @@ function SidebarShortcuts({
         <span className="label">Chat</span>
         {!!chatCount && <span className="badge">{chatCount}</span>}
       </a>
-      <div className="sb-sep" />
     </div>
   );
 }
@@ -383,10 +377,10 @@ function SidebarUserMenu({
             <small>{email}</small>
           </div>
         </div>
-        <div className="um-item">
+        <a href="/user/profile" className="um-item">
           <User size={14} className="ic" />
           <span className="label">Meu perfil</span>
-        </div>
+        </a>
 
         {/* Superadmin — abre cascata lateral à direita */}
         {hasSuperadmin && (
@@ -426,15 +420,15 @@ function SidebarUserMenu({
         </button>
 
         <div className="um-sep" />
-        <div className="um-item">
+        <a href="/business/settings#pos" className="um-item" title="Configuração de atalhos: aba POS em Settings">
           <Keyboard size={14} className="ic" />
           <span className="label">Atalhos</span>
           <span className="kbd">⌘/</span>
-        </div>
-        <div className="um-item">
+        </a>
+        <a href="/business/settings" className="um-item">
           <Search size={14} className="ic" />
           <span className="label">Central de ajuda</span>
-        </div>
+        </a>
         <div className="um-sep" />
         <a href="/logout" className="um-item">
           <LogOut size={14} className="ic" />

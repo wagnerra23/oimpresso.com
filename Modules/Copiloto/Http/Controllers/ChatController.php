@@ -146,7 +146,7 @@ class ChatController extends Controller
             'usuarioNome'      => $userNome,
             'usuarioNomeCurto' => $user->first_name ?? 'Usuário',
             'usuarioEmail'     => $user->email ?? '',
-            'usuarioCargo'     => $isSuper ? 'Administrador' : 'Usuário',
+            'usuarioCargo'     => $cargo,
             'usuarioIniciais'  => $this->iniciais($userNome),
             'conversas'        => [
                 'fixadas'  => [],
