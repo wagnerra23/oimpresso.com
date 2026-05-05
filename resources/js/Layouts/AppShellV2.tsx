@@ -7,8 +7,36 @@
 
 import { Head, usePage } from '@inertiajs/react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import * as Lucide from 'lucide-react';
-import { ChevronDown } from 'lucide-react';
+import {
+  Bell,
+  BookOpen,
+  Building2,
+  ChevronDown,
+  Compass,
+  LayoutDashboard,
+  type LucideIcon,
+  MessageSquare,
+  ShieldCheck,
+  Target,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+
+// Mapa estático dos ícones usados em topnav.php — evita `import * as Lucide`
+// que quebraria tree-shake e adicionaria ~330 KB ao bundle.
+// Pra adicionar ícone novo: importar acima + adicionar entry aqui.
+const TOPNAV_ICON_MAP: Record<string, LucideIcon> = {
+  Bell,
+  BookOpen,
+  Building2,
+  Compass,
+  LayoutDashboard,
+  MessageSquare,
+  ShieldCheck,
+  Target,
+  TrendingUp,
+  Users,
+};
 
 import { useAutoModuleNav } from '@/Hooks/usePageProps';
 
@@ -100,9 +128,7 @@ function BreadcrumbModuleDropdown({
       {open && (
         <div className="bc-mod-dd">
           {items.map((it, i) => {
-            const IconCmp = it.icon
-              ? ((Lucide as unknown as Record<string, React.ComponentType<{ size?: number }> | undefined>)[it.icon])
-              : undefined;
+            const IconCmp = it.icon ? TOPNAV_ICON_MAP[it.icon] : undefined;
             return (
               <a
                 key={i}
