@@ -1448,20 +1448,21 @@
 }
 
 /* ────────────────── Sidebar single-pane (UI-0011) ────────────────── */
-/* Tarefas + Chat no topo (atalhos primários) */
+/* Tarefas + Chat no topo — full-width até as bordas da sidebar
+   (Wagner 2026-05-05): borda hover estende de borda a borda. */
 .cockpit .sb-shortcuts {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 8px 6px 6px;
+  gap: 0;
+  padding: 8px 0 6px;
 }
 .cockpit .sb-shortcut {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 10px;
+  padding: 0 16px;
   height: 30px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
@@ -1544,11 +1545,30 @@
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+
+/* Popover-2 cascata lateral pro segundo nível (item com children).
+   Mesmo estilo do popover-1, z-index 1100 pra ficar acima. */
+.cockpit .sb-item-popover {
+  min-width: 200px;
+  background: oklch(0.18 0.006 240);
+  border: 1px solid oklch(0.28 0.008 240);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px -8px rgba(0,0,0,.5), 0 4px 8px -2px rgba(0,0,0,.3);
+  padding: 6px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  animation: sbGroupPopoverIn 160ms ease-out;
+  font-family: var(--font-sans);
+}
+
 @media (max-width: 1023px) {
-  /* Mobile: popover empilha embaixo do header em vez de lateral */
-  .cockpit .sb-group-popover {
-    position: relative;
-    top: auto; left: auto;
+  /* Mobile: popovers empilham embaixo (não lateral) */
+  .cockpit .sb-group-popover,
+  .cockpit .sb-item-popover {
+    position: relative !important;
+    top: auto !important; left: auto !important;
     margin-top: 4px;
     box-shadow: none;
   }
