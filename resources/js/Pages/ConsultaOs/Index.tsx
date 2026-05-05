@@ -1,4 +1,4 @@
-// Pagina publica — nao usa AppShell/Sidebar do ERP. Layout limpo
+// Pagina publica — nao usa AppShellV2/Sidebar do ERP. Layout limpo
 // e centralizado para o cliente final acompanhar o status do pedido.
 
 import { useState } from 'react'

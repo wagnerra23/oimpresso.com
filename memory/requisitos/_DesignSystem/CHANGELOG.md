@@ -1,5 +1,17 @@
 # Changelog · Design System
 
+## [0.3.1] - 2026-05-04
+
+### Changed
+
+- **Sidebar do Cockpit** segue agora `data-theme` do usuário (light por padrão, dark elegante azul-cinza profundo) — antes era dark fixo. Formalizado em [ADR UI-0009](adr/ui/0009-cockpit-sidebar-light-padrao.md). Tokens `--sb-*` em `resources/css/cockpit.css` agora têm variante em ambos temas; hardcodes pretos substituídos por tokens auxiliares (`--sb-bg-2`, `--sb-scroll`, `--sb-bullet-out`).
+- **ADR UI-0008** patchado: trecho "Sidebar 260px, dark fixo na vibe workspace" agora aponta pra UI-0009. Substituição parcial (estrutura do Cockpit segue válida).
+- **BRIEFING_CLAUDE_DESIGN.md §2 §6** atualizados pra refletir sidebar segue tema.
+
+### Removed
+
+- **`resources/js/Layouts/AppShell.tsx`** (legado AdminLTE-like) — removido. Já estava órfão (zero imports). Todas as 78 páginas Inertia agora usam `AppShellV2` (Cockpit) — shell único do ERP. Refs JSDoc em `Types/index.ts`, `Hooks/usePageProps.ts`, `Components/shared/ModuleTopNav.tsx`, `Pages/ConsultaOs/Index.tsx` atualizadas pra mencionar AppShellV2.
+
 ## [0.3.0] - 2026-04-27
 
 ### Added
