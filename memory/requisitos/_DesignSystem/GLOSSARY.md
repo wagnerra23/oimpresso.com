@@ -7,7 +7,7 @@ Helper do shadcn em `resources/js/lib/utils.ts`. Concatena classes Tailwind lida
 Componente shadcn/ui em `Components/ui/`. Agnóstico de domínio (Button, Card, Dialog). Nunca importa nada do negócio.
 
 ## Shared component
-Componente em `Components/shared/`. Específico do produto mas reusável entre módulos (AppShell, Kpi, Breadcrumb).
+Componente em `Components/shared/`. Específico do produto mas reusável entre módulos (PageHeader, KpiCard, DataTable, Breadcrumb). O shell em si vive em `Components/cockpit/` + `Layouts/AppShellV2.tsx`.
 
 ## Token semântico
 Nome de cor/espaço ligado a função, não a valor. Ex.: `primary`, `muted-foreground`, `border` (vs tokens cruos `blue-500`, `gray-600`).

@@ -27,7 +27,7 @@
 - `resources/css/cockpit.css` — CSS canônico completo (46KB)
 - `resources/js/Components/cockpit/` — Sidebar, LinkedApps, Thread, TweaksPanel, shared.ts
 - `resources/js/Components/shared/` — PageHeader, DataTable, KpiCard, KpiGrid, StatusBadge, EmptyState, BulkActionBar, PageFilters, ModuleTopNav
-- `resources/js/Layouts/AppShell.tsx` + `AppShellV2.tsx`
+- `resources/js/Layouts/AppShellV2.tsx` (shell único do ERP — AppShell legado removido em 2026-05-04)
 - `resources/js/Pages/Copiloto/` — Cockpit.tsx, Chat.tsx, Dashboard.tsx
 - `memory/requisitos/_DesignSystem/` — SPEC.md, BRIEFING, ARCHITECTURE, CHANGELOG, ADRs UI
 - `Modules/PontoWr2/Http/Controllers/DataController.php` — menu real Ponto

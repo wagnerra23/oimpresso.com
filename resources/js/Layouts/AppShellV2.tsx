@@ -1,9 +1,9 @@
 // @memcofre
 //   layout: AppShellV2 (Cockpit)
-//   adrs: UI-0008 (cockpit como layout-mae do ERP)
+//   adrs: UI-0008, ADR 0039 (cockpit como layout-mae do ERP)
 //   nota: layout-mae 3-colunas (Sidebar 260 + Main 1fr + LinkedApps 320). Usa
-//         shell.menu via Inertia shared props. Reusavel por qualquer pagina
-//         core do ERP — substitui AppShell legado pra fluxo operacional.
+//         shell.menu via Inertia shared props. Shell ÚNICO do ERP em React —
+//         AppShell legado removido em 2026-05-04 (ver git log).
 
 import { Head, usePage } from '@inertiajs/react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -54,7 +54,7 @@ interface AppShellV2Props {
   onSelectConv?: (id: string) => void;
   /** Override do breadcrumb — array de strings ou React nodes. Default: business / Chat / conversaFoco.titulo */
   breadcrumb?: ReactNode[];
-  /** Alternativa ao `breadcrumb` em formato AppShell legado (compat). Convertido internamente. */
+  /** Alternativa ao `breadcrumb` em formato `{ label, href? }[]` (compat). Convertido internamente. */
   breadcrumbItems?: Array<{ label: string; href?: string }>;
 }
 
@@ -229,8 +229,8 @@ export default function AppShellV2({
   const densityLabel = density < 30 ? 'skim' : density > 70 ? 'briefing' : 'normal';
 
   // ── Module nav (auto-detecta o módulo ativo via URL e popula dropdown)
-  // Reusa o hook que ja existe pro AppShell legado — alimentado por
-  // Resources/menus/topnav.php de cada modulo (ADR arq/0011).
+  // Hook compartilhado — alimentado por Resources/menus/topnav.php
+  // de cada modulo (ADR arq/0011).
   const moduleNav = useAutoModuleNav();
   const moduleSlug = moduleNav?.moduleLabel ?? 'Chat';
   const moduleItems = moduleNav?.items ?? [];
@@ -240,9 +240,9 @@ export default function AppShellV2({
   if (breadcrumb) {
     crumb = breadcrumb;
   } else if (breadcrumbItems) {
-    // Compat AppShell legado: { label, href? }[]
+    // Formato compat: { label, href? }[]
     // Heurística: PRIMEIRO item vira dropdown se houver topnav do módulo ativo
-    // (segundo item do shell é o nome do módulo no padrão AppShell legado).
+    // (primeiro item costuma ser o nome do módulo).
     crumb = breadcrumbItems.map((b, i) => {
       const isFirst = i === 0;
       const isCurrent = i === breadcrumbItems.length - 1;

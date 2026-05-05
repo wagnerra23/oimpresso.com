@@ -75,7 +75,7 @@ class <Recurso>Controller extends Controller
 ```tsx
 // @memcofre tela=/<modulo>/<recurso> module=<Modulo>
 
-import AppShell from '@/Layouts/AppShell';
+import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head } from '@inertiajs/react';
 import { PageHeader } from '@/Components/shared/PageHeader';
 import { DataTable } from '@/Components/shared/DataTable';
@@ -90,7 +90,7 @@ function Index(props: Props) {
   </>;
 }
 
-Index.layout = (page: React.ReactNode) => <AppShell>{page}</AppShell>;
+Index.layout = (page: React.ReactNode) => <AppShellV2>{page}</AppShellV2>;
 export default Index;
 ```
 
@@ -100,7 +100,7 @@ export default Index;
 |---|---|---|
 | 1 | `// @memcofre tela=... module=...` no header da Page | Rastreabilidade SPEC ↔ código |
 | 2 | `interface Props` em TS espelhando shape do controller | Type-safe, autocomplete |
-| 3 | `Index.layout = page => <AppShell>{page}</AppShell>` | NÃO envolver em `<AppShell>` dentro do componente — [preference_persistent_layouts](../preference_persistent_layouts.md) |
+| 3 | `Index.layout = page => <AppShellV2>{page}</AppShellV2>` | NÃO envolver em `<AppShellV2>` dentro do componente — [preference_persistent_layouts](../preference_persistent_layouts.md). Cockpit é shell único do ERP (UI-0008 + UI-0009) |
 | 4 | `useForm` do Inertia v3 (NÃO axios direto) | Inertia v3 removeu axios; tem HTTP client interno |
 | 5 | Errors inline via `form.errors[field]` | Inertia auto-popula |
 | 6 | Sheet shadcn pra forms ≥ 5 campos (não Modal) | Não bloqueia leitura da lista |
@@ -161,7 +161,7 @@ NÃO mergir os dois pipelines — AdminLTE é instável/legado, Inertia precisa 
 - Boot da app em test é caro: tabela `system` do core UPos é necessária — testes Pest novos precisam DB completa migrada (em andamento, ver `memory/sessions/2026-04-25-financeiro-mvp-progresso.md`)
 
 ### Neutras
-- Não impede usar React fora do AppShell (ex: tela pública / login) — apenas convenção
+- Não impede usar React fora do AppShellV2 (ex: tela pública / login com `SiteLayout` ou `GuestShell`) — apenas convenção
 
 ## Referências
 - ADR 0023 (Inertia v3 upgrade)
