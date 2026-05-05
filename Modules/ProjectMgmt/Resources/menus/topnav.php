@@ -17,12 +17,11 @@ return [
     'label' => 'Project Mgmt',
     'icon'  => 'KanbanSquare',
     'items' => [
-        ['label' => 'Board',    'href' => '/project-mgmt/board', 'icon' => 'KanbanSquare', 'can' => 'copiloto.mcp.usage.all'],
-        // Próximas (US-TR-202/204/203/205/206) — habilitar conforme PRs landam:
-        // ['label' => 'Backlog',  'href' => '/project-mgmt/backlog',  'icon' => 'List',           'can' => 'copiloto.mcp.usage.all'],
-        // ['label' => 'My Work',  'href' => '/project-mgmt/my-work',  'icon' => 'CheckSquare',    'can' => 'copiloto.mcp.usage.all'],
-        // ['label' => 'Roadmap',  'href' => '/project-mgmt/roadmap',  'icon' => 'CalendarRange',  'can' => 'copiloto.mcp.usage.all'],
-        // ['label' => 'Inbox',    'href' => '/project-mgmt/inbox',    'icon' => 'Inbox',          'can' => 'copiloto.mcp.usage.all'],
-        // ['label' => 'Triage',   'href' => '/project-mgmt/triage',   'icon' => 'AlertTriangle',  'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'My Work',  'href' => '/project-mgmt/my-work',  'icon' => 'CheckSquare',   'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Board',    'href' => '/project-mgmt/board',    'icon' => 'KanbanSquare',  'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Backlog',  'href' => '/project-mgmt/backlog',  'icon' => 'List',          'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Roadmap',  'href' => '/project-mgmt/roadmap',  'icon' => 'CalendarRange', 'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Activity', 'href' => '/project-mgmt/activity', 'icon' => 'Activity',      'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Burndown', 'href' => '/project-mgmt/burndown', 'icon' => 'TrendingDown',  'can' => 'copiloto.mcp.usage.all'],
     ],
 ];

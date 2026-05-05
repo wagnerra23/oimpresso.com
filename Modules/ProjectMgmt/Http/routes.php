@@ -38,6 +38,40 @@ Route::group(
         Route::patch('/board/{taskId}/status', 'BoardController@updateStatus')
             ->where('taskId', '[A-Z0-9\-]+')
             ->name('project-mgmt.board.update-status');
+
+        // ---- My Work + Inbox — US-TR-204 -----------------------------------
+        Route::get('/my-work', 'MyWorkController@index')
+            ->name('project-mgmt.my-work.index');
+
+        Route::post('/my-work/inbox/read-all', 'MyWorkController@markAllRead')
+            ->name('project-mgmt.my-work.inbox.read-all');
+
+        Route::post('/my-work/inbox/{id}/read', 'MyWorkController@markRead')
+            ->where('id', '[0-9]+')
+            ->name('project-mgmt.my-work.inbox.read');
+
+        Route::patch('/my-work/{taskId}/status', 'MyWorkController@bumpStatus')
+            ->where('taskId', '[A-Z0-9\-]+')
+            ->name('project-mgmt.my-work.bump-status');
+
+        // ---- Backlog — US-TR-202 -------------------------------------------
+        Route::get('/backlog', 'BacklogController@index')
+            ->name('project-mgmt.backlog.index');
+
+        Route::post('/backlog/bulk', 'BacklogController@bulk')
+            ->name('project-mgmt.backlog.bulk');
+
+        // ---- Roadmap — US-TR-203 -------------------------------------------
+        Route::get('/roadmap', 'RoadmapController@index')
+            ->name('project-mgmt.roadmap.index');
+
+        // ---- Activity feed — US-TR-205 -------------------------------------
+        Route::get('/activity', 'ActivityController@index')
+            ->name('project-mgmt.activity.index');
+
+        // ---- Burndown chart — US-TR-206 ------------------------------------
+        Route::get('/burndown', 'BurndownController@index')
+            ->name('project-mgmt.burndown.index');
     }
 );
 

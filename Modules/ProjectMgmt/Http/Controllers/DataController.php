@@ -83,11 +83,51 @@ class DataController extends Controller
                     'Project Mgmt',
                     function ($sub) {
                         $sub->url(
+                            route('project-mgmt.my-work.index'),
+                            'My Work + Inbox',
+                            [
+                                'icon'   => 'fa fas fa-check-square',
+                                'active' => request()->segment(2) == 'my-work',
+                            ]
+                        );
+                        $sub->url(
                             route('project-mgmt.board.index'),
                             'Board (Kanban)',
                             [
                                 'icon'   => 'fa fas fa-columns',
                                 'active' => request()->segment(2) == 'board',
+                            ]
+                        );
+                        $sub->url(
+                            route('project-mgmt.backlog.index'),
+                            'Backlog',
+                            [
+                                'icon'   => 'fa fas fa-list',
+                                'active' => request()->segment(2) == 'backlog',
+                            ]
+                        );
+                        $sub->url(
+                            route('project-mgmt.roadmap.index'),
+                            'Roadmap',
+                            [
+                                'icon'   => 'fa fas fa-calendar-alt',
+                                'active' => request()->segment(2) == 'roadmap',
+                            ]
+                        );
+                        $sub->url(
+                            route('project-mgmt.activity.index'),
+                            'Activity feed',
+                            [
+                                'icon'   => 'fa fas fa-stream',
+                                'active' => request()->segment(2) == 'activity',
+                            ]
+                        );
+                        $sub->url(
+                            route('project-mgmt.burndown.index'),
+                            'Burndown',
+                            [
+                                'icon'   => 'fa fas fa-chart-line',
+                                'active' => request()->segment(2) == 'burndown',
                             ]
                         );
                     },
