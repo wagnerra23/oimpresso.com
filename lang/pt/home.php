@@ -1,7 +1,7 @@
 <?php
 
  return [
-     'home' => 'Iniciar',
+     'home' => 'Dashboard',
      'welcome_message' => 'Bem-vindo :name',
      'total_sell' => 'Total de vendas',
      'total_purchase' => 'Total de compras',
