@@ -1,0 +1,16 @@
+{
+    "name": "ProjectMgmt",
+    "alias": "projectmgmt",
+    "description": "Project Management Jira-style — Kanban + Backlog + Roadmap + My Work + Inbox + Triage sobre as tabelas mcp_jira_projects/epics/cycles/tasks. Promovido a módulo próprio em 2026-05-04 (ADR 0070, supersede absorção em TeamMcp).",
+    "keywords": ["project", "jira", "kanban", "backlog", "roadmap", "tasks", "mcp"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\ProjectMgmt\\Providers\\ProjectMgmtServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}
