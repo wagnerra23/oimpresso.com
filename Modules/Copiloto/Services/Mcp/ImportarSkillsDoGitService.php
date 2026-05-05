@@ -183,8 +183,45 @@ class ImportarSkillsDoGitService
 
     private function resolveHeadSha(): ?string
     {
-        $sha = @exec('git -C '.escapeshellarg(base_path()).' rev-parse HEAD 2>&1');
+        // Lê .git/HEAD direto — Hostinger desabilita exec() por segurança shared hosting.
+        $gitDir = base_path('.git');
+        if (! is_dir($gitDir)) {
+            return null;
+        }
 
-        return is_string($sha) && preg_match('/^[a-f0-9]{40}$/', trim($sha)) ? trim($sha) : null;
+        $head = @file_get_contents($gitDir.'/HEAD');
+        if (! is_string($head)) {
+            return null;
+        }
+        $head = trim($head);
+
+        // Caso 1 — HEAD aponta direto pra SHA (detached): "abc123..."
+        if (preg_match('/^[a-f0-9]{40}$/', $head)) {
+            return $head;
+        }
+
+        // Caso 2 — HEAD aponta pra ref: "ref: refs/heads/main"
+        if (preg_match('/^ref:\s*(.+)$/', $head, $m)) {
+            $refPath = $gitDir.'/'.trim($m[1]);
+            if (is_file($refPath)) {
+                $sha = trim(@file_get_contents($refPath) ?: '');
+                if (preg_match('/^[a-f0-9]{40}$/', $sha)) {
+                    return $sha;
+                }
+            }
+
+            // Caso 3 — packed-refs (sem refs/heads/<branch> file)
+            $packed = @file_get_contents($gitDir.'/packed-refs');
+            if (is_string($packed)) {
+                $ref = trim($m[1]);
+                foreach (preg_split('/\R/', $packed) as $line) {
+                    if (preg_match('/^([a-f0-9]{40})\s+'.preg_quote($ref, '/').'$/', $line, $pm)) {
+                        return $pm[1];
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
