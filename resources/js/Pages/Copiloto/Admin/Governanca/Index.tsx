@@ -243,61 +243,64 @@ function GovernancaIndex(props: Props) {
         ]}
       />
 
-      {/* KPIs principais */}
-      <KpiGrid cols={4} className="mt-6">
-        <KpiCard
-          icon="activity"
-          tone="info"
-          label="Total de chamadas"
-          value={num(kpis.total_calls)}
-          description={`${num(kpis.usuarios_ativos)} usuários ativos`}
-        />
-        <KpiCard
-          icon="check-circle"
-          tone={taxaSucesso >= 95 ? 'success' : taxaSucesso >= 80 ? 'default' : 'warning'}
-          label="Taxa de sucesso"
-          value={`${taxaSucesso.toFixed(1)}%`}
-          description={`${num(okCount)} de ${num(kpis.total_calls)} ok`}
-        />
-        <KpiCard
-          icon="zap"
-          tone="default"
-          label="Latency p95"
-          value={`${num(latency.p95)} ms`}
-          description={`p50 ${num(latency.p50)} · p99 ${num(latency.p99)} · max ${num(latency.max)}`}
-        />
-        <KpiCard
-          icon="dollar-sign"
-          tone="success"
-          label="Custo MCP (R$)"
-          value={brl(kpis.custo_total)}
-          description={`${num(kpis.tokens_total)} tokens consumidos`}
-        />
-      </KpiGrid>
+      {/* ── Seção: Consumo ───────────────────────────────────────────── */}
+      {secao === 'consumo' && (
+        <>
+        {/* KPIs principais */}
+        <KpiGrid cols={4} className="mt-6">
+          <KpiCard
+            icon="activity"
+            tone="info"
+            label="Total de chamadas"
+            value={num(kpis.total_calls)}
+            description={`${num(kpis.usuarios_ativos)} usuários ativos`}
+          />
+          <KpiCard
+            icon="check-circle"
+            tone={taxaSucesso >= 95 ? 'success' : taxaSucesso >= 80 ? 'default' : 'warning'}
+            label="Taxa de sucesso"
+            value={`${taxaSucesso.toFixed(1)}%`}
+            description={`${num(okCount)} de ${num(kpis.total_calls)} ok`}
+          />
+          <KpiCard
+            icon="zap"
+            tone="default"
+            label="Latency p95"
+            value={`${num(latency.p95)} ms`}
+            description={`p50 ${num(latency.p50)} · p99 ${num(latency.p99)} · max ${num(latency.max)}`}
+          />
+          <KpiCard
+            icon="dollar-sign"
+            tone="success"
+            label="Custo MCP (R$)"
+            value={brl(kpis.custo_total)}
+            description={`${num(kpis.tokens_total)} tokens consumidos`}
+          />
+        </KpiGrid>
 
-      {/* Filtro de período */}
-      <Card className="mt-6 mb-4">
-        <CardContent className="pt-6 flex flex-col md:flex-row gap-3 md:items-end">
-          <div className="flex-1 min-w-[160px]">
-            <label className="text-xs font-medium text-muted-foreground block mb-1">
-              Período{' '}
-              <kbd className="ml-1 text-[10px] border border-border rounded px-1 py-0.5 font-mono">/</kbd>
-            </label>
-            <Select
-              value={filters.preset}
-              onValueChange={(v) => aplicar({ preset: v as Preset, de: null, ate: null })}
-            >
-              <SelectTrigger ref={selectRef}><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="hoje">Hoje</SelectItem>
-                <SelectItem value="ontem">Ontem</SelectItem>
-                <SelectItem value="7d">Últimos 7 dias</SelectItem>
-                <SelectItem value="30d">Últimos 30 dias</SelectItem>
-                <SelectItem value="mes_anterior">Mês anterior</SelectItem>
-                <SelectItem value="custom">Customizado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Filtro de período */}
+        <Card className="mt-6 mb-4">
+          <CardContent className="pt-6 flex flex-col md:flex-row gap-3 md:items-end">
+            <div className="flex-1 min-w-[160px]">
+              <label className="text-xs font-medium text-muted-foreground block mb-1">
+                Período{' '}
+                <kbd className="ml-1 text-[10px] border border-border rounded px-1 py-0.5 font-mono">/</kbd>
+              </label>
+              <Select
+                value={filters.preset}
+                onValueChange={(v) => aplicar({ preset: v as Preset, de: null, ate: null })}
+              >
+                <SelectTrigger ref={selectRef}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hoje">Hoje</SelectItem>
+                  <SelectItem value="ontem">Ontem</SelectItem>
+                  <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                  <SelectItem value="mes_anterior">Mês anterior</SelectItem>
+                  <SelectItem value="custom">Customizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
           {filters.preset === 'custom' && (
             <form onSubmit={aplicarCustom} className="flex-[2] flex gap-2 items-end">
@@ -312,11 +315,10 @@ function GovernancaIndex(props: Props) {
               <Button type="submit" size="sm">Aplicar</Button>
             </form>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* ── Seção: Consumo ───────────────────────────────────────────── */}
-      {secao === 'consumo' && (
+        {/* Gráfico de chamadas */}
         <Card className="mb-4">
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
@@ -325,7 +327,6 @@ function GovernancaIndex(props: Props) {
                 {serie_diaria.length} dias · linha sólida = total · linha tracejada = denied
               </CardDescription>
             </div>
-            {/* Segmented control — troca visualização do gráfico */}
             <SubNav
               variant="segmented"
               value={chartMode}
@@ -340,6 +341,7 @@ function GovernancaIndex(props: Props) {
             <CallsDiariasChart dados={serie_diaria} mode={chartMode} />
           </CardContent>
         </Card>
+        </>
       )}
 
       {/* ── Seção: Acesso / RBAC ─────────────────────────────────────── */}
