@@ -250,6 +250,16 @@ Se algum não bater no fim do sprint, ADR fica `aceito` mas com tarefa de débit
 
 Não criar UI `/admin/skills` ou `/admin/policies` neste sprint — backlog separado. Validar primeiro via tools MCP por 2 semanas antes de investir em UI.
 
+## Erratum — 2026-05-05 (mesmo dia, levantamento exaustivo)
+
+Levantamento confirmou: **0% das tabelas e tools de P0 existem hoje**. ADR 0073 está bem dimensionada — plano de 5 dias mantém, infra de [ADR 0053](0053-mcp-server-governanca-como-produto.md) é 100% reusável.
+
+**Único ajuste:** o levantamento contou **40 tabelas `mcp_*` + `copiloto_*`** já existentes (eu estimei ~15 ao escrever o ADR). Adicionar `mcp_skills` + `mcp_policies` não pesa em nada esse universo. Padrão das **18 tools MCP** existentes em [`Modules/Copiloto/Mcp/Tools/`](../../Modules/Copiloto/Mcp/Tools/) é claro e reusa autenticação/RBAC/audit já consolidados.
+
+**ADR 0071** (auditoria 2026-05-05 — bugs e workarounds em tools MCP) é dependência implícita: se houver bugs nos 18 tools, podem afetar wiring das 4 novas. Verificar antes de iniciar Sprint P0.
+
+**Status:** mantido em `proposto`. Pronto para implementação.
+
 ## Referências
 
 - [ADR 0072 — Maturação memória + Team MCP (P0–P3)](0072-maturacao-memoria-team-mcp-openclaw-soa-2026.md)

@@ -239,6 +239,24 @@ Se Recall@5 não subir 5pp em 30 dias → ADR fica com tarefa de débito ("revis
 - **Fact-checking automático contra ContextoNegocio** — não é P1. ADR de "validação semântica de fatos contra source of truth" é trabalho separado.
 - **Substituir Meilisearch por knowledge graph** — ADR 0036 mantém. Reavaliar só se 5 triggers dispararem.
 
+## Erratum — 2026-05-05 (mesmo dia, levantamento exaustivo)
+
+Levantamento confirmou que o ADR 0074 estava **certo no diagnóstico** (uni-temporal já em prod) mas **errou na estimativa de esforço**:
+
+1. **Esforço real é menor que estimado.** Plano original: **4 dias úteis**. Plano revisado pelo levantamento: **1.5–2 dias úteis**. Razão: as 3 colunas novas (`event_valid_from`/`event_valid_until`/`supersedes_id`) são migration trivial; estender [`MeilisearchDriver::atualizar()`](../../Modules/Copiloto/Services/Memoria/MeilisearchDriver.php) é ~5 linhas; tool `memoria-historica` é cópia de [`MemoriaSearchTool`](../../Modules/Copiloto/Mcp/Tools/MemoriaSearchTool.php). Os testes Pest (estimativa 0.5d cada × 5) seguem padrão das suites já existentes.
+
+2. **Detecção automática no `ExtrairFatosAgent` é menor que parecia.** Levantamento mostrou que o agente já é sofisticado — extrai 5 categorias estruturadas (`meta`, `preferencia`, `restricao`, `contexto`, `acao_pendente`) com lógica anti-fabricação. A mudança é **~50 linhas + 1 chamada Haiku** no fluxo, não rewrite. Estimativa: 0.5 dia mantém.
+
+3. **Pré-requisito do golden set** (mencionado no plano): **NÃO é mais bloqueio**. Tabela `copiloto_memoria_gabarito` + seeder de 50 perguntas Larissa-style **existem desde 2026-04-29**. ADR 0072 (mesma data, errata adicionada) já corrige isso.
+
+4. **Métricas obrigatórias** ([ADR 0050](0050-metricas-obrigatorias-memoria-table.md)) já em prod — `memoria_recall_chars`, `recall_at_3`, `precision_at_3`, `mrr_at_10`, `latency_p50/p95_ms`, `cost_token_in/out` na tabela `copiloto_memoria_metricas`. Bi-temporal pode reusar essas métricas pra medir ganho — **não precisa criar telemetria nova**.
+
+**O que NÃO muda:** decisão central (3 colunas + tool nova + detecção automática), arquitetura, gates de sucesso (Recall@5 +5pp em 30 dias), trade-offs.
+
+**O que muda:** estimativa de sprint passa de **4 dias** para **2 dias**. Plano dia-a-dia compactado.
+
+**Status:** mantido em `proposto`. Pronto para implementação após P0.
+
 ## Referências
 
 - [ADR 0072 — Maturação memória + Team MCP (P0–P3)](0072-maturacao-memoria-team-mcp-openclaw-soa-2026.md)
