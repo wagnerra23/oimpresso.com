@@ -18,6 +18,7 @@ if (! $alvos) {
         '0073-team-mcp-skills-policies-entidades-governadas',
         '0074-temporal-validity-bi-temporal-time-travel',
         '0075-team-mcp-skills-ui-prompt-management-style',
+        '0076-skills-db-primary-git-destino-drift-alert',
     ];
 } else {
     $alvos = [$alvos];

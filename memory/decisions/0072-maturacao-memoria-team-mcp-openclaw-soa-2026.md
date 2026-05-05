@@ -189,11 +189,26 @@ Wagner pediu "estude o que já foi construído e compare" antes de seguir com 00
 Wagner pediu UI rica pra gerenciar skills (versionamento DB+git + governance + history + rationale + testes inline). Pesquisa exaustiva ([cofre `prompt_skill_management_2026_05_05.md`](../comparativos/prompt_skill_management_2026_05_05.md)) cobriu 10 ferramentas de prompt management.
 
 **Impacto no roadmap P0:**
-- ADR 0073 ficou pequena demais pro pedido real → **[ADR 0075](0075-team-mcp-skills-ui-prompt-management-style.md) supersede 0073** com modelo completo: 5 tabelas + 5 telas + approval workflow + 4 campos rationale estruturado + test runner com inputs reais multi-tenant. **NÃO existe equivalente no mercado** — fica à frente do estado-da-arte 2026.
-- `mcp_policies` (espelho do PolicyEngine) saiu de escopo P0. Vira ADR separada futura se demanda aparecer.
-- Estimativa P0 revisada: 5 dias → **15 dias úteis** (ou 7d com paralelismo total). Aumento justificado pelo escopo expandido (UI completa em vez de só backend).
+- ADR 0073 ficou pequena demais pro pedido real → ADR 0075 supersede 0073 com 5 tabelas + 5 telas + approval workflow + rationale estruturado + test runner. **NÃO existe equivalente no mercado** — fica à frente do estado-da-arte 2026.
+- `mcp_policies` (espelho do PolicyEngine) saiu de escopo P0. Vira ADR separada futura.
+- Estimativa P0 revisada: 5 dias → 15 dias úteis (ou 7d com paralelismo). Aumento justificado pelo escopo expandido (UI completa em vez de só backend).
 
 **P1/P2/P3 não mudam** — sequenciamento e gates preservados.
+
+## Erratum 3 — 2026-05-05 (mesmo dia, inversão de fluxo)
+
+Wagner pediu **inverter primary**: DB é fonte autoritativa, git é destino auditável (não git → DB). Granularidade por-skill: ele decide quais aceitam drift automático e quais exigem revisão.
+
+**[ADR 0076](0076-skills-db-primary-git-destino-drift-alert.md) supersede 0075** com:
+- DB primary (UI edita direto, sem PR a cada experimento)
+- Git destino: ação "Publish to git" separada do approve (ou auto via flag `auto_publish_to_git`)
+- Drift detection por-skill via `git_sync_mode` ENUM(auto/manual/pinned) — Wagner controla onde tem fricção
+- Skills criadas via UI são dinâmicas (origin=created)
+- 6 tabelas (5 do 0075 + `mcp_skill_drift_alerts`), 6 telas (5 + drift queue), 4 services novos
+
+**ADR 0061 (zero auto-mem privada / git-first canônico) preservado:** continua valendo pra ADRs/sessions/runbooks/comparativos. Skills do Claude Code são artefatos operacionais com lifecycle próprio (escapam ADR 0061 explicitamente).
+
+Estimativa P0 mantida em ~15 dias úteis (escopo similar ao 0075, só mudou direção do fluxo).
 
 ## Referências
 
