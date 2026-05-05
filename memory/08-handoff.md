@@ -502,3 +502,83 @@ Larissa testou as 3 perguntas em prod (Quanto vendi? / Faturamento líquido? / Q
 **52 ADRs total.**
 
 **Última atualização:** 2026-04-29 noite — MEM-FAT-1 deployed + ADR 0052
+
+---
+
+## 🌟 Sessão maratona 2026-05-05 — UI Skills end-to-end (24 commits, 5 ADRs novas, ~5h)
+
+**Contexto:** Wagner pediu pra "amadurecer memória + Team MCP" → virou pesquisa profunda + 5 ADRs + UI completa de gestão de skills do Claude Code em prod.
+
+### Decisões arquiteturais (5 ADRs novas, 57 ADRs total)
+
+- **[ADR 0072](decisions/0072-maturacao-memoria-team-mcp-openclaw-soa-2026.md)** — Roadmap maturação memória + Team MCP (P0–P3). 2 erratums no mesmo dia após levantamento real.
+- **[ADR 0073](decisions/0073-team-mcp-skills-policies-entidades-governadas.md)** — P0 inicial. **SUPERSEDED** pelo 0076.
+- **[ADR 0074](decisions/0074-temporal-validity-bi-temporal-time-travel.md)** — P1 bi-temporal. Status: proposto.
+- **[ADR 0075](decisions/0075-team-mcp-skills-ui-prompt-management-style.md)** — P0 v2. **SUPERSEDED** pelo 0076.
+- **[ADR 0076](decisions/0076-skills-db-primary-git-destino-drift-alert.md)** — **canônica.** DB primary, git destino, drift por-skill (auto/manual/pinned). Inversão a pedido de Wagner: "deixa eu decidir, testar, evoluir".
+
+### Comparativo cofre
+
+[`prompt_skill_management_2026_05_05.md`](comparativos/prompt_skill_management_2026_05_05.md) — 10 ferramentas (Langfuse/LangSmith/Humanloop/Vellum/PromptLayer/Portkey/Agenta/Helicone/Anthropic Console/Anthropic Skills) × 31 features.
+
+### UI Skills em prod
+
+URL: **https://oimpresso.com/ads/admin/skills**
+
+| Rota | O que faz |
+|---|---|
+| `/ads/admin/skills` | Lista 15 skills (DB) + Approval queue button |
+| `/ads/admin/skills/{slug}` | Detalhe + timeline versions + "Promover production" + "Publish to git" |
+| `/ads/admin/skills/{slug}/edit` | Editor + 4 rationales obrigatórios + warning amber se frontmatter mudar |
+| `/ads/admin/skills/{slug}/test` | Test Runner: source manual OU "últimas N conversas reais multi-tenant" + PII redactor |
+| `/ads/admin/skills-review` | Approval queue: drafts + Aprovar/Rejeitar inline |
+
+### Backend (DB-primary — ADR 0076)
+
+**6 migrations:** `mcp_skills`, `mcp_skill_versions` (append-only, 4 rationales), `mcp_skill_labels` (Langfuse-style), `mcp_skill_test_runs`, `mcp_skill_approvals`.
+
+**Services:** `ImportarSkillsDoGitService`, `SkillTestRunnerService` (PII redactor), `PublicarSkillNoGitService` (GitHub API), `SkillsService` (DB com fallback filesystem).
+
+**Controller:** `SkillsController` (10 métodos: index/show/edit/store/test/runTest/review/approve/reject/publish/moveLabel).
+
+### Permissions Spatie atribuídas
+
+Wagner (id=1, `WR23`) tem todas 6: `read/edit/test/approve/publish/config`. Verificado em prod: `$u->can('ads.admin.skills.read') = 1` ✅
+
+### Skills Claude Code novas
+
+- `ads-decision-flow` — fluxo Risk→Confidence→Policy→Router→Brain A/B
+- `memoria-recall-flow` — Meilisearch hybrid + 14 gotchas
+
+### Slash command + hook + CI
+
+- `/sync-skills` — detecta drift filesystem
+- Hook `SessionStart` `check-skills-fresh.ps1` — auto-detecta drift
+- GitHub Action `build-inertia-auto.yml` — auto-rebuild bundles ao push tocar `resources/{js,css}` (previne reprise do bug do sidebar)
+
+### Status goals do CYCLE-02 (proposto, não criado em DB)
+
+| Goal | Status |
+|---|---|
+| 1. Skills DB ≥16 | 🟡 15 (1 SKILL.md fora do glob — investigar) |
+| 2. Versions ≥16 | 🟡 15 |
+| 3. UI lista+detalhe+editor em prod | ✅ + bonus (Test, Review) |
+| 4. Tool MCP `skills-search` | 🔴 não criada |
+| 5. Wagner editou ≥1 skill via UI | 🔲 pendente teste real |
+
+### Pendências P0 amanhã
+
+1. **Wagner testar fluxo end-to-end** (Goal 5) — ~5min.
+2. **Tool MCP `skills-search`** (Goal 4) — ~1h.
+3. **Investigar 15 vs 16 skills** — qual SKILL.md ficou de fora.
+4. **Criar CYCLE-02 oficial em DB** — SQL ou criar tool `cycles-create` (~30 linhas).
+5. **CYCLE-01 fechar em 12/05** — `cycles-close CYCLE-01 --rollover-to=CYCLE-02` com retro.
+
+### Bugs resolvidos durante a sessão
+
+- **Sidebar build stale** — 5 commits anteriores sem `npm run build:inertia` deixaram bundles velhos. Action CI previne reprise.
+- **Conflict markers no manifest** — rebase do FASE 4 vs CI deixou `<<<<<<< HEAD`. Regenerado.
+
+**24 commits** em main: `c04eaa53` → `62be2152`. **57 ADRs total.** **6 fases UI.** **5 telas em prod HTTP 200.**
+
+**Última atualização:** 2026-05-05 noite — UI Skills end-to-end deployed (Wagner testa amanhã)
