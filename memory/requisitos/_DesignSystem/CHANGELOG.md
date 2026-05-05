@@ -1,5 +1,32 @@
 # Changelog · Design System
 
+## [0.5.0] - 2026-05-05 (tarde)
+
+### Added
+
+- **ADR UI-0011**: sidebar single-pane minimalista contextualizada + user menu cascata lateral. Wagner pediu em sessão direta. Documenta toggle Chat/Menu REMOVIDO, items agrupados por scope (OFFICEIMPRESSO/FINANCEIRO/ESTOQUE/RELATÓRIOS/IA/CONFIG), Tarefas+Chat como atalhos primários no topo, user menu cascata estilo Claude Desktop.
+- **R-DS-015**: items do shell.menu sempre agrupados por scope visual via `SIDEBAR_GROUPS` lookup table. Items não-mapeados caem em "MAIS" (collapse fechado por default).
+- **R-DS-016**: cascade trigger (`▶` no item do user menu) abre subpainel à direita; padrão Claude Desktop / Linear / Notion.
+- **`<SidebarShortcuts>`**: Tarefas + Chat como ações primárias no topo da sidebar com badges live (count).
+- **`<SidebarGroup>`**: header uppercase mute + chevron + items, colapsável; persistência por `key` em `oimpresso.cockpit.group.<key>.expanded`.
+- **Subpainel Aparência funcional**: usa `useTheme()` hook existente; 3 botões (Claro/Escuro/Sistema) com check no ativo, persiste em `users.ui_theme` via POST `/user/preferences/theme`.
+- **Rota `/tarefas`**: stub Page Inertia placeholder pra inbox cross-módulo (Fase 4 plano migração ADR 0039).
+
+### Removed
+
+- Componentes `SidebarTabs` e `SidebarChat` deletados (eram parte da v UI-0008 dual-pane).
+- Imports lucide unused no Sidebar.tsx limpos: `MessageCircle`, `Hash`, `Bell`, `Cog`, `Inbox`, `Pin`, `Plus` da SidebarChat.
+
+### Changed
+
+- **ADR UI-0008** patched parcialmente: trecho "SidebarTabs (toggle Chat ↔ Menu)" e "SidebarChat" superseded por UI-0011. Estrutura 3-colunas continua válida.
+- **AppShellV2** sem state `tab` + sem `<SidebarTabs>`. `LS.TAB` continua existindo no shared.ts mas é ignorado (compat zerado — pode ser removido em ADR futura).
+
+### Débito técnico assumido
+
+- `SIDEBAR_GROUPS` lookup table está hardcoded em `Sidebar.tsx`. Migração planejada pra `LegacyMenuAdapter` (campo `group: string` no `MenuItem`) após validação UX em produção (~2 sprints).
+- Subpainel "Disponível" tem 3 placeholders estáticos (Disponível/Ausente/Não perturbe) — backend de status real pendente.
+
 ## [0.4.0] - 2026-05-05
 
 ### Added
