@@ -1,6 +1,6 @@
 // @ads
 //   tela: /ads/admin/skills/{slug}
-//   adrs: 0076 (V0 read-only — frontmatter + body markdown render)
+//   adrs: 0076 (Fase 2) — adiciona timeline de versions + botão Editar
 
 import React, { type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
@@ -9,8 +9,9 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
+import { Button } from '@/Components/ui/button'
 import PageHeader from '@/Components/shared/PageHeader'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Pencil, History } from 'lucide-react'
 
 interface Skill {
   slug: string
@@ -20,11 +21,36 @@ interface Skill {
   source: 'db' | 'filesystem'
 }
 
-interface Props {
-  skill: Skill
+interface Version {
+  id: number
+  version: number
+  origin: 'ui' | 'git_drift' | 'git_seed'
+  status: 'draft' | 'review' | 'published' | 'drift_pending' | 'archived'
+  created_at: string | null
+  is_current: boolean
 }
 
-const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skill }) => {
+interface Props {
+  skill: Skill
+  versions: Version[]
+  editable: boolean
+}
+
+const originLabel: Record<Version['origin'], string> = {
+  ui: 'UI',
+  git_drift: 'Git drift',
+  git_seed: 'Git seed',
+}
+
+const statusVariant: Record<Version['status'], 'default' | 'secondary' | 'outline' | 'destructive'> = {
+  published: 'default',
+  draft: 'secondary',
+  review: 'outline',
+  drift_pending: 'destructive',
+  archived: 'outline',
+}
+
+const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skill, versions, editable }) => {
   const fm = skill.frontmatter || {}
   const githubUrl = `https://github.com/wagnerra23/oimpresso.com/blob/main/${skill.git_path}`
 
@@ -34,9 +60,18 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
         <Link href="/ads/admin/skills" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
           <ArrowLeft className="w-4 h-4" /> Voltar pra lista
         </Link>
-        <a href={githubUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          Ver no GitHub <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        <div className="flex items-center gap-2">
+          {editable && (
+            <Link href={`/ads/admin/skills/${skill.slug}/edit`}>
+              <Button size="sm">
+                <Pencil className="w-4 h-4 mr-1" /> Editar
+              </Button>
+            </Link>
+          )}
+          <a href={githubUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            Ver no GitHub <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
       </div>
 
       <PageHeader
@@ -91,6 +126,40 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
         </CardContent>
       </Card>
 
+      {versions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <History className="w-4 h-4" /> Histórico de versões ({versions.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <table className="w-full text-sm">
+              <thead className="text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="text-left py-1 pr-3 w-16">v</th>
+                  <th className="text-left py-1 pr-3">Origem</th>
+                  <th className="text-left py-1 pr-3">Status</th>
+                  <th className="text-left py-1 pr-3">Criada em</th>
+                  <th className="text-left py-1">Atual</th>
+                </tr>
+              </thead>
+              <tbody>
+                {versions.map(v => (
+                  <tr key={v.id} className="border-t">
+                    <td className="py-1.5 pr-3 font-mono text-xs">v{v.version}</td>
+                    <td className="py-1.5 pr-3"><Badge variant="outline" className="text-xs">{originLabel[v.origin]}</Badge></td>
+                    <td className="py-1.5 pr-3"><Badge variant={statusVariant[v.status]} className="text-xs">{v.status}</Badge></td>
+                    <td className="py-1.5 pr-3 text-xs text-muted-foreground">{v.created_at || '—'}</td>
+                    <td className="py-1.5">{v.is_current ? <Badge>production</Badge> : null}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Conteúdo (markdown)</CardTitle>
@@ -112,7 +181,7 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
       </Card>
 
       <p className="text-xs text-muted-foreground">
-        V0 read-only. CYCLE-02 entrega edição inline, versionamento DB, history, rationale 4 campos e drift detection.
+        Edição cria nova version status=draft. Approval queue (Fase 4) move label production pra version aprovada.
       </p>
     </div>
   )
