@@ -91,10 +91,9 @@ class DataController extends Controller
             return;
         }
 
-        // Agrupado em "Fiscal" pelo AdminSidebarMenu — sem item standalone.
-        return;
-
-        // @codeCoverageIgnoreStart (código abaixo mantido para referência)
+        // Agrupamento visual em "FISCAL" acontece no frontend (SIDEBAR_GROUPS
+        // em resources/js/Components/cockpit/Sidebar.tsx). DataController
+        // publica o dropdown standalone do módulo.
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
         $segmento_ativo   = request()->segment(1) == 'nfse';
 
@@ -146,6 +145,5 @@ class DataController extends Controller
                 )->order(96);
             }
         );
-        // @codeCoverageIgnoreEnd
     }
 }

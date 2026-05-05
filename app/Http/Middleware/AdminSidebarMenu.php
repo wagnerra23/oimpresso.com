@@ -893,93 +893,10 @@ class AdminSidebarMenu
         $moduleUtil = new ModuleUtil;
         $moduleUtil->getModuleData('modifyAdminMenu');
 
-        // ── Grupos consolidados (RH · Produtividade · Fiscal) ────────────────────
-        // Os DataControllers abaixo têm modifyAdminMenu() desativado.
-        $g   = new ModuleUtil;
-        $bid = session()->get('user.business_id');
-
-        // Grupo: RH (order 88) — HRM + Essenciais
-        if (class_exists(\Modules\Essentials\Http\Controllers\DashboardController::class)) {
-            $ess_on = auth()->user()->can('superadmin')
-                ? $g->isModuleInstalled('Essentials')
-                : (bool) $g->hasThePermissionInSubscription($bid, 'essentials_module');
-            if ($ess_on) {
-                Menu::modify('admin-sidebar-menu', function ($menu) {
-                    $seg = request()->segment(1);
-                    $menu->dropdown('RH', function ($sub) {
-                        $sub->url(
-                            action([\Modules\Essentials\Http\Controllers\DashboardController::class, 'hrmDashboard']),
-                            'HRM',
-                            ['icon' => 'fa fas fa-users', 'active' => request()->segment(1) === 'hrm']
-                        );
-                        $sub->url(
-                            url('/essentials'),
-                            'Essenciais',
-                            ['icon' => 'fa fas fa-cube', 'active' => request()->segment(1) === 'essentials']
-                        );
-                    }, ['icon' => 'fa fas fa-user-tie', 'active' => in_array($seg, ['hrm', 'essentials'])])->order(88);
-                });
-            }
-        }
-
-        // Grupo: Produtividade (order 92) — Team MCP
-        if (class_exists(\Modules\TeamMcp\Http\Controllers\DataController::class)) {
-            $tmcp_on = auth()->user()->can('superadmin')
-                ? $g->isModuleInstalled('TeamMcp')
-                : (bool) $g->hasThePermissionInSubscription($bid, 'team_mcp_module', 'superadmin_package');
-            $tmcp_ver = auth()->user()->can('superadmin')
-                || auth()->user()->can('copiloto.mcp.usage.all')
-                || auth()->user()->can('copiloto.cc.read.team');
-            if ($tmcp_on && $tmcp_ver) {
-                Menu::modify('admin-sidebar-menu', function ($menu) {
-                    $seg = request()->segment(1);
-                    $menu->dropdown('Produtividade', function ($sub) use ($seg) {
-                        $sub->dropdown(
-                            __('teammcp::teammcp.module_label'),
-                            function ($s) {
-                                if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.mcp.usage.all')) {
-                                    $s->url(route('team-mcp.team.index'), __('teammcp::teammcp.menu.team'), ['icon' => 'fa fas fa-users', 'active' => request()->segment(2) === 'team']);
-                                    $s->url(route('team-mcp.tasks.index'), __('teammcp::teammcp.menu.tasks'), ['icon' => 'fa fas fa-columns', 'active' => request()->segment(2) === 'tasks']);
-                                }
-                                if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.cc.read.team')) {
-                                    $s->url(route('team-mcp.cc.index'), __('teammcp::teammcp.menu.cc_sessions'), ['icon' => 'fa fas fa-code', 'active' => request()->segment(2) === 'cc-sessions']);
-                                }
-                            },
-                            ['icon' => 'fa fas fa-users-cog', 'active' => $seg === 'team-mcp']
-                        );
-                    }, ['icon' => 'fa fas fa-rocket', 'active' => $seg === 'team-mcp'])->order(92);
-                });
-            }
-        }
-
-        // Grupo: Fiscal (order 93) — NFSe + NF-e Brasil
-        $has_nfse = false;
-        $has_nfe  = false;
-        if (class_exists(\Modules\NFSe\Http\Controllers\DataController::class)) {
-            $nfse_on = auth()->user()->can('superadmin')
-                ? $g->isModuleInstalled('NFSe')
-                : (bool) $g->hasThePermissionInSubscription($bid, 'nfse_module', 'superadmin_package');
-            $has_nfse = $nfse_on && (auth()->user()->can('superadmin') || auth()->user()->can('nfse.view') || auth()->user()->can('nfse.emit'));
-        }
-        if (class_exists(\Modules\NfeBrasil\Http\Controllers\DataController::class)) {
-            $nfe_on = auth()->user()->can('superadmin')
-                ? $g->isModuleInstalled('NfeBrasil')
-                : (bool) $g->hasThePermissionInSubscription($bid, 'nfebrasil_module', 'superadmin_package');
-            $has_nfe = $nfe_on && (auth()->user()->can('superadmin') || auth()->user()->can('nfebrasil.access') || auth()->user()->can('nfebrasil.emit.manage'));
-        }
-        if ($has_nfse || $has_nfe) {
-            Menu::modify('admin-sidebar-menu', function ($menu) use ($has_nfse, $has_nfe) {
-                $seg = request()->segment(1);
-                $menu->dropdown('Fiscal', function ($sub) use ($has_nfse, $has_nfe) {
-                    if ($has_nfse) {
-                        $sub->url(url('/nfse'), 'NFSe', ['icon' => 'fa fas fa-file-invoice', 'active' => request()->segment(1) === 'nfse']);
-                    }
-                    if ($has_nfe) {
-                        $sub->url(url('/nfebrasil'), 'NF-e / NFC-e', ['icon' => 'fa fas fa-file-alt', 'active' => request()->segment(1) === 'nfebrasil']);
-                    }
-                }, ['icon' => 'fa fas fa-receipt', 'active' => in_array($seg, ['nfse', 'nfebrasil'])])->order(93);
-            });
-        }
+        // Agrupamento visual (RH · FISCAL · IA & PRODUTIVIDADE) acontece no
+        // frontend via SIDEBAR_GROUPS lookup table em
+        // resources/js/Components/cockpit/Sidebar.tsx — padrão Financeiro/Estoque.
+        // Cada DataController publica o próprio item; ordem PHP é só fallback.
 
         return $next($request);
     }

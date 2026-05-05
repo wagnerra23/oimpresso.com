@@ -328,8 +328,10 @@ class DataController extends Controller
         $business_id = session()->get('user.business_id');
         $is_essentials_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'essentials_module');
 
-        // Agrupado em "RH" pelo AdminSidebarMenu — sem item standalone.
-        if (false && $is_essentials_enabled) {
+        // Agrupamento visual em "RH" acontece no frontend (SIDEBAR_GROUPS
+        // em resources/js/Components/cockpit/Sidebar.tsx). DataController
+        // publica HRM + Essenciais como itens standalone.
+        if ($is_essentials_enabled) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
                 // HRM mantém item solto (área diferente: /hrm/*)
                 $menu->url(
