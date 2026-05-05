@@ -9,22 +9,27 @@
 
 ## 🚀 Começo Rápido — leia isso primeiro
 
-**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-05 (triagem 135 tasks + roadmap 17 epics + auditoria tools MCP — log em [`memory/sessions/2026-05-05-triagem-roadmap-mcp-audit.md`](sessions/2026-05-05-triagem-roadmap-mcp-audit.md), bugs MCP em [ADR 0071](decisions/0071-mcp-tools-audit-2026-05-05-bugs-e-workarounds.md))
+**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-05 (COPI-40 cache semântico fechado — PR [#94](https://github.com/wagnerra23/oimpresso.com/pull/94) mergeado)
 
-### 🆕 Estado pós-2026-05-05 (triagem + roadmap)
+### 🆕 Estado pós-2026-05-05 noite (COPI-40)
 
-**Entregas desta sessão:**
-- ✅ **Triagem completa**: 135 tasks atualizadas (status + priority + owner + project_id + epic_id) + 17 canceladas. Triage MCP zerada (0 backlog, 0 sem owner).
-- ✅ **Roadmap estruturado**: 17 Epics distribuídas em 3 quarters. **2026-Q2** (atual) tem 7 epics / 45 tasks; **Q3** tem 5 epics / 84 tasks; **Q4** tem 5 epics / 49 tasks.
-- ✅ **6 projects criados** em `mcp_jira_projects`: PROJECT (Jira-style meta) + NFSE (Eliana) + ACCO (Accounting) + AI (permissions). Total 14 projects ativos.
-- ✅ **ADR 0071** documenta auditoria 18 tools MCP — 13 OK, 5 com bugs/auth-degradação. Schema decoded.
+**Entregas:**
+- ✅ **COPI-40 Semantic cache fechado** (status `done`) — implementação já existia em prod via `LaravelAiSdkDriver` (`responderChat` + `responderChatStream`); faltavam testes. PR #94 adicionou 15 tests Pest cobrindo o contrato (37 assertions, 0 regressão).
+- ✅ **Bug fix bonus**: branch FULLTEXT `MATCH AGAINST` em `SemanticCacheService::buscar()` agora detecta driver e degrada graciosamente em SQLite/Postgres. Antes quebrava qualquer não-MySQL com syntax error.
+- 🔓 **Cycle 01 goal #3 destravado** — cache em prod agora pode ser medido pra confirmar -68.8% tokens (ADR 0037 Sprint 8).
 
-**P0 pra próxima sessão (cycle 01 ainda tem 7 dias até 12-mai):**
-- **COPI-40** Semantic cache middleware (-68.8% tokens) — Wagner liberou nesta sessão; pivotou pra finalizar. Roadmap em ADR 0037 Sprint 8.
+**Contexto sessão anterior (mesma data, finalizada antes):**
+- ✅ Triagem 135 tasks + 17 canceladas — triage MCP zerada
+- ✅ 17 Epics em 14 projects (3 novos: NFSE/ACCO/AI), distribuídos Q2/Q3/Q4
+- ✅ ADR 0071 — auditoria 18 tools MCP (13 OK, 5 com bugs/auth-degradação)
+
+**P0 pra próxima sessão (cycle 01 vence 12-mai, 7 dias):**
 - **COPI-43** PII redactor BR (LGPD-blocker) p0
-- **A4 rodada 2** — validar Larissa repetir 3 perguntas (handoff antigo, ainda pendente)
+- **A4 rodada 2** Larissa — repetir 3 perguntas (vendi/líquido/caixa) → 3 respostas distintas em prod
+- **COPI-22** driver MCP no Copiloto (já doing, due 06-mai amanhã)
+- **10 testes pré-existentes falhando** em `tests/Feature/Modules/Copiloto/Mcp/` — não tocados nesta sessão; investigar quando der
 
-**Atenção crítica:** **NÃO RODAR `php artisan mcp:tasks:sync`** até PROJECT-3 (frontmatter YAML SPECs, p3 → escalar p2) fechar. Parser sobrescreve a triagem desta sessão. Ver ADR 0071 §B3.
+**Atenção crítica:** **NÃO RODAR `php artisan mcp:tasks:sync`** até PROJECT-3 (frontmatter YAML SPECs, escalar pra p2) fechar. Parser sobrescreve triagem 05-mai. Ver ADR 0071 §B3.
 
 > **⚠️ Sessão 29-abr noite estourou ~970K tokens** — ver `HOW_TO_ASK_CLAUDE.md` na raiz do repo pra padrão correto. **Próximas sessões:** sempre `/clear` ao trocar de escopo, `/compact` após cada feature, e perguntas com arquivo+linha+o-que-mudar.
 
