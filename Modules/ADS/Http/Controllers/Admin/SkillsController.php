@@ -8,9 +8,14 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ADS\Services\SkillsService;
+use Modules\Copiloto\Entities\Conversa;
 use Modules\Copiloto\Entities\Mcp\McpSkill;
+use Modules\Copiloto\Entities\Mcp\McpSkillApproval;
+use Modules\Copiloto\Entities\Mcp\McpSkillLabel;
 use Modules\Copiloto\Entities\Mcp\McpSkillTestRun;
 use Modules\Copiloto\Entities\Mcp\McpSkillVersion;
+use Modules\Copiloto\Entities\Mensagem;
+use Modules\Copiloto\Services\Skills\PublicarSkillNoGitService;
 use Modules\Copiloto\Services\Skills\SkillTestRunnerService;
 use Symfony\Component\Yaml\Yaml;
 
@@ -215,7 +220,10 @@ class SkillsController extends Controller
     public function runTest(string $slug, Request $request, SkillTestRunnerService $runner): RedirectResponse
     {
         $data = $request->validate([
-            'prompt' => 'required|string|min:3|max:8000',
+            'source'           => 'sometimes|in:manual,real_conversations',
+            'prompt'           => 'required_if:source,manual|nullable|string|min:3|max:8000',
+            'real_count'       => 'sometimes|integer|min:1|max:50',
+            'real_business_id' => 'sometimes|nullable|integer',
         ]);
 
         $skillModel = McpSkill::where('slug', $slug)->first();
@@ -228,14 +236,263 @@ class SkillsController extends Controller
             abort(404, 'Version current não encontrada.');
         }
 
+        $source = $data['source'] ?? 'manual';
+
+        if ($source === 'real_conversations') {
+            $bizId = $data['real_business_id'] ?? $request->session()->get('user.business_id');
+            $count = (int) ($data['real_count'] ?? 5);
+            $runs = $this->runAgainstRealConversations($runner, $version, (int) $bizId, $count);
+
+            return back()->with('status', count($runs).' test runs executados contra conversas reais (business_id='.$bizId.').');
+        }
+
         $run = $runner->run(
             $version,
-            $data['prompt'],
+            (string) $data['prompt'],
             $request->session()->get('user.business_id'),
             auth()->id(),
         );
 
         return back()
             ->with('status', "Test run #{$run->id} concluído ({$run->latency_ms}ms, {$run->output_tokens} tokens out)");
+    }
+
+    /**
+     * Item #15 — roda skill contra últimas N mensagens de user em conversas reais
+     * do business_id. PII redactor obrigatório.
+     *
+     * @return array<int, McpSkillTestRun>
+     */
+    private function runAgainstRealConversations(
+        SkillTestRunnerService $runner,
+        McpSkillVersion $version,
+        int $businessId,
+        int $count
+    ): array {
+        $userMessages = Mensagem::query()
+            ->whereHas('conversa', fn ($q) => $q->where('business_id', $businessId))
+            ->where('role', 'user')
+            ->orderByDesc('id')
+            ->limit($count)
+            ->pluck('content');
+
+        $runs = [];
+        foreach ($userMessages as $content) {
+            $prompt = trim((string) $content);
+            if (mb_strlen($prompt) < 3) {
+                continue;
+            }
+            try {
+                $runs[] = $runner->run($version, $prompt, $businessId, auth()->id());
+            } catch (\Throwable $e) {
+                // continua mesmo com erro em uma mensagem específica
+            }
+        }
+        return $runs;
+    }
+
+    /**
+     * Item #8 — fila de approval (versions com status=draft).
+     */
+    public function review(): Response
+    {
+        $drafts = McpSkillVersion::with(['skill'])
+            ->where('status', 'draft')
+            ->whereHas('skill') // evita órfãos
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->map(function (McpSkillVersion $v) {
+                $testRunsCount = McpSkillTestRun::where('version_id', $v->id)->count();
+                $testRunsPass = McpSkillTestRun::where('version_id', $v->id)->where('passed', true)->count();
+                return [
+                    'id'                  => $v->id,
+                    'skill_slug'          => $v->skill->slug,
+                    'skill_name'          => $v->frontmatter_json['name'] ?? $v->skill->slug,
+                    'version'             => $v->version,
+                    'origin'              => $v->origin,
+                    'rationale_problem'   => mb_substr((string) $v->rationale_problem, 0, 200),
+                    'rationale_hypothesis'=> mb_substr((string) $v->rationale_hypothesis, 0, 200),
+                    'created_at'          => $v->created_at?->format('Y-m-d H:i'),
+                    'test_runs_count'     => $testRunsCount,
+                    'test_runs_pass'      => $testRunsPass,
+                ];
+            });
+
+        return Inertia::render('ads/Admin/Skills/Review', [
+            'drafts' => $drafts,
+        ]);
+    }
+
+    /**
+     * Item #8 + #12 — approve version: status=published, label production move.
+     */
+    public function approve(int $versionId, Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'comment' => 'nullable|string|max:2000',
+        ]);
+
+        $version = McpSkillVersion::with('skill')->findOrFail($versionId);
+        $skill = $version->skill;
+
+        if ($version->status !== 'draft') {
+            return back()->withErrors(['decision' => "Version já está '{$version->status}', não pode ser aprovada."]);
+        }
+
+        $testRunsCount = McpSkillTestRun::where('version_id', $version->id)->count();
+        $testRunsPass = McpSkillTestRun::where('version_id', $version->id)->where('passed', true)->count();
+
+        // Registra approval
+        McpSkillApproval::create([
+            'version_id'      => $version->id,
+            'approver_id'     => auth()->id(),
+            'decision'        => 'approve',
+            'comment'         => $data['comment'] ?? null,
+            'decided_at'      => now(),
+            'test_runs_count' => $testRunsCount,
+            'test_runs_pass'  => $testRunsPass,
+        ]);
+
+        // Version → published
+        $version->status = 'published';
+        $version->save();
+
+        // Skill → published; current_version_id move
+        $previousCurrentVersionId = $skill->current_version_id;
+        $skill->status = 'published';
+        $skill->current_version_id = $version->id;
+        $skill->save();
+
+        // Label production move
+        $existingLabel = McpSkillLabel::where('skill_id', $skill->id)
+            ->where('label', 'production')
+            ->first();
+        if ($existingLabel) {
+            $existingLabel->update([
+                'previous_version_id' => $existingLabel->version_id,
+                'version_id'          => $version->id,
+                'moved_by'            => auth()->id(),
+                'moved_at'            => now(),
+                'reason'              => 'Approved via UI (approval id futuro)',
+            ]);
+        } else {
+            McpSkillLabel::create([
+                'skill_id'   => $skill->id,
+                'label'      => 'production',
+                'version_id' => $version->id,
+                'moved_by'   => auth()->id(),
+                'moved_at'   => now(),
+                'reason'     => 'Approved via UI (primeiro production)',
+            ]);
+        }
+
+        $autoPublishMsg = '';
+        if ($skill->auto_publish_to_git) {
+            $autoPublishMsg = ' auto_publish_to_git=true; rode "Publish to git" pra criar PR.';
+        }
+
+        return redirect()->route('ads.admin.skills.show', ['slug' => $skill->slug])
+            ->with('status', "Skill '{$skill->slug}' v{$version->version} aprovada. Label production movida.{$autoPublishMsg}");
+    }
+
+    /**
+     * Item #8 — reject version: status=archived.
+     */
+    public function reject(int $versionId, Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'comment' => 'required|string|min:5|max:2000',
+        ]);
+
+        $version = McpSkillVersion::with('skill')->findOrFail($versionId);
+
+        McpSkillApproval::create([
+            'version_id'      => $version->id,
+            'approver_id'     => auth()->id(),
+            'decision'        => 'reject',
+            'comment'         => $data['comment'],
+            'decided_at'      => now(),
+            'test_runs_count' => McpSkillTestRun::where('version_id', $version->id)->count(),
+            'test_runs_pass'  => McpSkillTestRun::where('version_id', $version->id)->where('passed', true)->count(),
+        ]);
+
+        $version->status = 'archived';
+        $version->save();
+
+        return back()->with('status', "Version v{$version->version} rejeitada e arquivada.");
+    }
+
+    /**
+     * Item #9 — Publish to git: gera SKILL.md + cria PR via GitHub API.
+     */
+    public function publish(int $versionId, PublicarSkillNoGitService $publisher): RedirectResponse
+    {
+        $version = McpSkillVersion::with('skill')->findOrFail($versionId);
+
+        if ($version->status !== 'published') {
+            return back()->withErrors(['publish' => "Version precisa estar 'published' (aprovada). Atual: '{$version->status}'."]);
+        }
+
+        try {
+            $result = $publisher->publish($version);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['publish' => 'Falha: '.$e->getMessage()]);
+        }
+
+        $msg = $result['dry_run']
+            ? "DRY_RUN: skill geraria PR em branch {$result['branch']} (sem GITHUB_API_TOKEN)."
+            : "PR #{$result['pr_number']} criado em {$result['branch']}: {$result['pr_url']}";
+
+        return back()->with('status', $msg);
+    }
+
+    /**
+     * Item #12 — promove staging → production OU rollback (mover label pra version anterior).
+     */
+    public function moveLabel(string $slug, Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'label'      => 'required|in:production,staging,dev',
+            'version_id' => 'required|integer|exists:mcp_skill_versions,id',
+            'reason'     => 'nullable|string|max:500',
+        ]);
+
+        $skillModel = McpSkill::where('slug', $slug)->firstOrFail();
+        $version = McpSkillVersion::findOrFail($data['version_id']);
+        if ($version->skill_id !== $skillModel->id) {
+            abort(422, 'Version pertence a outra skill.');
+        }
+
+        $existing = McpSkillLabel::where('skill_id', $skillModel->id)
+            ->where('label', $data['label'])
+            ->first();
+
+        if ($existing) {
+            $existing->update([
+                'previous_version_id' => $existing->version_id,
+                'version_id'          => $version->id,
+                'moved_by'            => auth()->id(),
+                'moved_at'            => now(),
+                'reason'              => $data['reason'] ?? "Moved via UI",
+            ]);
+        } else {
+            McpSkillLabel::create([
+                'skill_id'   => $skillModel->id,
+                'label'      => $data['label'],
+                'version_id' => $version->id,
+                'moved_by'   => auth()->id(),
+                'moved_at'   => now(),
+                'reason'     => $data['reason'] ?? "Moved via UI (primeiro {$data['label']})",
+            ]);
+        }
+
+        // Se moveu production, atualiza skill.current_version_id
+        if ($data['label'] === 'production') {
+            $skillModel->current_version_id = $version->id;
+            $skillModel->save();
+        }
+
+        return back()->with('status', "Label '{$data['label']}' movida pra v{$version->version}.");
     }
 }

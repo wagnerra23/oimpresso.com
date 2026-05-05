@@ -62,15 +62,18 @@ const Edit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
             <CardTitle className="text-sm">Frontmatter (YAML)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-xs text-muted-foreground">
-              Mudar <code className="text-xs">description</code> é alto-impacto — afeta auto-activation no harness.
-              Mudar <code className="text-xs">name</code> também. Edite com cuidado.
-            </p>
+            {data.frontmatter_yaml !== frontmatterYaml && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                ⚠️ <strong>Frontmatter modificado.</strong> Mudanças aqui são <em>alto-impacto</em>:
+                <code className="px-1">description</code> afeta auto-activation;
+                <code className="px-1">name</code> é a chave do matching. Confira antes de salvar.
+              </div>
+            )}
             <Textarea
               value={data.frontmatter_yaml}
               onChange={e => setData('frontmatter_yaml', e.target.value)}
               rows={8}
-              className="font-mono text-xs"
+              className={`font-mono text-xs ${data.frontmatter_yaml !== frontmatterYaml ? 'border-amber-400 bg-amber-50/30' : ''}`}
               spellCheck={false}
             />
             {errors.frontmatter_yaml && (

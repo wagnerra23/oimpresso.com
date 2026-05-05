@@ -42,7 +42,10 @@ interface Props {
 const Test: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skill, currentVersion, recentRuns, dryRun }) => {
   const flash = (usePage().props as any)?.flash?.status
   const { data, setData, post, processing } = useForm({
+    source: 'manual' as 'manual' | 'real_conversations',
     prompt: '',
+    real_count: 5,
+    real_business_id: '',
   })
 
   const submit = (e: React.FormEvent) => {
@@ -79,16 +82,72 @@ const Test: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="space-y-3">
-            <Textarea
-              value={data.prompt}
-              onChange={e => setData('prompt', e.target.value)}
-              rows={8}
-              placeholder="Escreva o prompt que você quer testar contra esta skill (ex: 'Crie um módulo Laravel chamado Foo')"
-              spellCheck={false}
-            />
+            {/* Source selector — manual vs real_conversations (item #15) */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Origem:</span>
+              <button
+                type="button"
+                onClick={() => setData('source', 'manual')}
+                className={`px-2 py-1 rounded border ${data.source === 'manual' ? 'bg-foreground text-background' : 'bg-background hover:bg-muted'}`}
+              >
+                Prompt manual
+              </button>
+              <button
+                type="button"
+                onClick={() => setData('source', 'real_conversations')}
+                className={`px-2 py-1 rounded border ${data.source === 'real_conversations' ? 'bg-foreground text-background' : 'bg-background hover:bg-muted'}`}
+              >
+                Últimas N conversas reais (multi-tenant + PII redactor)
+              </button>
+            </div>
+
+            {data.source === 'manual' ? (
+              <Textarea
+                value={data.prompt}
+                onChange={e => setData('prompt', e.target.value)}
+                rows={8}
+                placeholder="Escreva o prompt que você quer testar contra esta skill (ex: 'Crie um módulo Laravel chamado Foo')"
+                spellCheck={false}
+              />
+            ) : (
+              <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+                <p className="text-xs text-muted-foreground">
+                  Roda a skill contra as N últimas mensagens de user em <code>copiloto_mensagens</code> filtradas por <code>business_id</code>.
+                  PII redactor obrigatório (CPF/CNPJ mascarados antes da chamada).
+                </p>
+                <div className="flex gap-2 items-end">
+                  <div>
+                    <label className="text-xs">Quantas mensagens (1-50)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={data.real_count}
+                      onChange={e => setData('real_count', parseInt(e.target.value || '5', 10))}
+                      className="w-20 rounded border px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs">business_id (opcional — default: sessão)</label>
+                    <input
+                      type="text"
+                      value={data.real_business_id}
+                      onChange={e => setData('real_business_id', e.target.value)}
+                      placeholder="ex: 4 (ROTA LIVRE)"
+                      className="w-32 rounded border px-2 py-1 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{data.prompt.length} chars · 3 ≤ N ≤ 8000</span>
-              <Button type="submit" disabled={processing || data.prompt.length < 3}>
+              <span>
+                {data.source === 'manual'
+                  ? `${data.prompt.length} chars · 3 ≤ N ≤ 8000`
+                  : `Vai rodar ${data.real_count} test runs em batch`}
+              </span>
+              <Button type="submit" disabled={processing || (data.source === 'manual' && data.prompt.length < 3)}>
                 <Play className="w-4 h-4 mr-1" />
                 {processing ? 'Rodando…' : 'Rodar teste'}
               </Button>
