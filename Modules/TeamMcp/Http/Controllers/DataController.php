@@ -78,6 +78,10 @@ class DataController extends Controller
             return;
         }
 
+        // Movido para grupo "Produtividade" no AdminSidebarMenu — sem item standalone.
+        return;
+
+        // @codeCoverageIgnoreStart
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
         $segmento_ativo = request()->segment(1) == 'team-mcp';
 
@@ -128,5 +132,6 @@ class DataController extends Controller
                 )->order(91); // Logo após Copiloto (90)
             }
         );
+        // @codeCoverageIgnoreEnd
     }
 }
