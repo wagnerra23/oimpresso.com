@@ -1396,13 +1396,20 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12.5px;
   font-weight: 500;
   color: var(--sb-text);
   text-decoration: none;
   transition: background 120ms;
+  line-height: 1;
+}
+.cockpit .sb-sep {
+  height: 1px;
+  background: var(--sb-border);
+  margin: 8px 6px 6px;
+  opacity: 0.7;
 }
 .cockpit .sb-shortcut:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
 .cockpit .sb-shortcut .label { flex: 1; }
@@ -1478,15 +1485,16 @@
   width: 100%;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 6px 10px;
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: 5px;
   font: inherit;
   text-align: left;
   cursor: pointer;
   color: var(--text);
   transition: background 120ms;
+  line-height: 1.2;
 }
 .cockpit .um-cascade-trigger:hover { background: var(--bg-2); }
 .cockpit .um-cascade-trigger.active { background: var(--accent-soft); color: var(--accent); }
@@ -1510,4 +1518,88 @@
   /* Mobile: subpainel empilha embaixo, não à direita */
   .cockpit .user-menu-cascade { flex-direction: column; }
   .cockpit .user-menu-sub { margin-left: 0; margin-top: 6px; }
+}
+
+/* ────────────────── Tarefas (UI-0011, layout canon tasks.jsx) ────────────────── */
+.cockpit .tk-page {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.cockpit .tk-list {
+  border-right: 1px solid var(--border);
+  background: var(--bg-2);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.cockpit .tk-list-h { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.cockpit .tk-list-h-row { display: flex; align-items: center; gap: 8px; }
+.cockpit .tk-list-h-row h2 { font-size: 14px; font-weight: 600; margin: 0; flex: 1; }
+.cockpit .tk-count { background: var(--bg-2); color: var(--text-mute); padding: 1px 7px; border-radius: 10px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.cockpit .tk-mini-btn { background: transparent; border: 0; color: var(--text-mute); cursor: pointer; padding: 3px; border-radius: 4px; display: grid; place-items: center; }
+.cockpit .tk-mini-btn:hover { background: var(--bg-2); color: var(--text); }
+.cockpit .tk-list-h-sub { font-size: 11.5px; color: var(--text-mute); margin: 4px 0 10px; }
+.cockpit .tk-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+.cockpit .tk-kpi { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 8px; text-align: left; }
+.cockpit .tk-kpi b { display: block; font-size: 16px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cockpit .tk-kpi small { font-size: 9.5px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.04em; }
+.cockpit .tk-kpi.warn { background: oklch(0.96 0.06 25); border-color: oklch(0.85 0.08 25); }
+.cockpit .tk-kpi.warn b { color: oklch(0.55 0.18 25); }
+.cockpit .tk-kpi.muted b { color: var(--text-mute); }
+.cockpit[data-theme="dark"] .tk-kpi.warn { background: oklch(0.26 0.05 25); border-color: oklch(0.45 0.08 25); }
+.cockpit[data-theme="dark"] .tk-kpi.warn b { color: oklch(0.78 0.16 25); }
+.cockpit .tk-search { display: flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 8px; color: var(--text-mute); }
+.cockpit .tk-search input { flex: 1; background: transparent; border: 0; outline: none; font: inherit; font-size: 12px; color: var(--text); }
+.cockpit .tk-search input::placeholder { color: var(--text-mute); }
+.cockpit .tk-filters { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; background: var(--surface); }
+.cockpit .tk-filter { background: transparent; border: 1px solid transparent; border-radius: 12px; padding: 3px 9px; font: inherit; font-size: 11px; color: var(--text-mute); cursor: pointer; transition: background 120ms, color 120ms, border-color 120ms; }
+.cockpit .tk-filter:hover { background: var(--bg-2); color: var(--text); }
+.cockpit .tk-filter.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-soft); font-weight: 500; }
+.cockpit .tk-list-body { flex: 1 1 auto; overflow-y: auto; padding: 8px 8px 16px; }
+.cockpit .tk-group { margin-bottom: 12px; }
+.cockpit .tk-group-h { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; color: var(--text-mute); text-transform: uppercase; }
+.cockpit .tk-group-c { background: var(--bg-2); color: var(--text-mute); padding: 1px 6px; border-radius: 10px; font-variant-numeric: tabular-nums; font-weight: 500; }
+.cockpit .tk-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 4px; cursor: pointer; transition: background 120ms, border-color 120ms; }
+.cockpit .tk-card:hover { background: var(--bg-2); }
+.cockpit .tk-card.active { background: var(--accent-soft); border-color: var(--accent); }
+.cockpit .tk-card.urgent { border-left: 2px solid oklch(0.55 0.18 25); }
+.cockpit .tk-card-h { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.cockpit .tk-origin { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 600; letter-spacing: 0.04em; }
+.cockpit .tk-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.cockpit .tk-when { margin-left: auto; font-size: 10.5px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+.cockpit .tk-title { display: block; font-size: 12.5px; font-weight: 500; line-height: 1.3; margin-bottom: 2px; }
+.cockpit .tk-sub { display: block; font-size: 11px; color: var(--text-mute); line-height: 1.35; }
+.cockpit .tk-foot { margin-top: 4px; font-size: 10.5px; color: var(--text-mute); }
+.cockpit .tk-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 32px 16px; color: var(--text-mute); }
+.cockpit .tk-empty-ico { display: grid; place-items: center; width: 36px; height: 36px; background: var(--bg-2); border-radius: 50%; margin-bottom: 8px; }
+.cockpit .tk-empty-ico.lg { width: 56px; height: 56px; }
+.cockpit .tk-empty b { font-size: 13px; font-weight: 600; color: var(--text); }
+.cockpit .tk-empty small { font-size: 11.5px; margin-top: 4px; max-width: 240px; line-height: 1.4; }
+.cockpit .tk-detail { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.cockpit .tk-detail.empty { display: grid; place-items: center; }
+.cockpit .tk-empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; color: var(--text-mute); }
+.cockpit .tk-empty-state b { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 10px; }
+.cockpit .tk-empty-state small { font-size: 12px; margin-top: 4px; max-width: 280px; line-height: 1.4; }
+.cockpit .tk-shortcuts { display: flex; gap: 12px; margin-top: 16px; font-size: 11px; }
+.cockpit .tk-shortcuts kbd { display: inline-block; padding: 1px 5px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 3px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text); margin-right: 3px; }
+.cockpit .tk-detail-h { padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.cockpit .tk-detail-bc { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-mute); }
+.cockpit .tk-bc-sep { color: var(--text-mute); opacity: 0.5; }
+.cockpit .tk-bc-step { font-weight: 500; color: var(--text-dim); }
+.cockpit .tk-bc-spacer { flex: 1; }
+.cockpit .tk-bc-pos { font-family: var(--font-mono); font-size: 10.5px; }
+.cockpit .tk-detail-title-row { display: flex; align-items: flex-start; gap: 12px; margin-top: 6px; }
+.cockpit .tk-detail-title-row h1 { flex: 1; font-size: 17px; font-weight: 600; line-height: 1.3; margin: 0; }
+.cockpit .tk-detail-actions { display: flex; gap: 4px; }
+.cockpit .tk-detail-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; }
+.cockpit .tk-detail-meta .t-mute { color: var(--text-mute); }
+.cockpit .tk-detail-meta .urgent b { color: oklch(0.55 0.18 25); }
+.cockpit .tk-detail-body { flex: 1 1 auto; overflow-y: auto; padding: 24px; }
+.cockpit .tk-detail-body .empty { text-align: center; color: var(--text-mute); padding: 32px; font-size: 12.5px; }
+@media (max-width: 1023px) {
+  .cockpit .tk-page { grid-template-columns: 1fr; }
 }
