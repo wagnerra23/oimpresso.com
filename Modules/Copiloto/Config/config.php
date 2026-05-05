@@ -272,4 +272,47 @@ return [
         'system_token'     => env('COPILOTO_MCP_SYSTEM_TOKEN', ''),
         'timeout_seconds'  => env('COPILOTO_MCP_TIMEOUT', 5),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Channel adapter — WhatsApp em 3 fases (ADRs 0074 + 0075)
+    |--------------------------------------------------------------------------
+    | provider: 'evolution' (Fase 0, R$0 self-host) | 'zapi' (Fase 1, R$55-99/mês fixo)
+    |           | 'meta' (Fase 2, R$/conversa oficial)
+    |
+    | enabled = false (default) — flip pra true quando webhook estiver
+    | testado em CT 100 + número canário ativo. Allowlist = só ROTA LIVRE
+    | (biz=4) na Fase 0.
+    */
+    'channels' => [
+        'whatsapp' => [
+            'enabled'          => env('COPILOTO_WHATSAPP_ENABLED', false),
+            'provider'         => env('COPILOTO_WHATSAPP_PROVIDER', 'evolution'),
+            'tenant_allowlist' => array_filter(array_map('intval', explode(',', (string) env('COPILOTO_WHATSAPP_TENANT_ALLOWLIST', '4')))),
+
+            // Fase 0 — Evolution API self-host CT 100
+            'evolution' => [
+                'base_url'        => env('EVOLUTION_BASE_URL', 'http://evolution.ct100.local:8080'),
+                'api_key'         => env('EVOLUTION_API_KEY', ''),
+                'instance'        => env('EVOLUTION_INSTANCE', 'oimpresso-canario'),
+                'webhook_secret'  => env('EVOLUTION_WEBHOOK_SECRET', ''),
+                'timeout_seconds' => (int) env('EVOLUTION_TIMEOUT', 10),
+            ],
+
+            // Fase 1 — Z-API (drop-in quando US-COPI-090 ativar)
+            'zapi' => [
+                'instance_id'    => env('ZAPI_INSTANCE_ID', ''),
+                'token'          => env('ZAPI_TOKEN', ''),
+                'webhook_secret' => env('ZAPI_WEBHOOK_SECRET', ''),
+            ],
+
+            // Fase 2 — Meta Cloud API oficial (drop-in quando US-COPI-091 ativar)
+            'meta' => [
+                'business_phone_id' => env('META_WA_PHONE_ID', ''),
+                'access_token'      => env('META_WA_ACCESS_TOKEN', ''),
+                'webhook_secret'    => env('META_WA_WEBHOOK_SECRET', ''),
+                'verify_token'      => env('META_WA_VERIFY_TOKEN', ''),
+            ],
+        ],
+    ],
 ];

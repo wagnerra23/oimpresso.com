@@ -194,3 +194,21 @@ Route::group(
 \Laravel\Mcp\Facades\Mcp::web('/api/mcp', \Modules\Copiloto\Mcp\OimpressoMcpServer::class)
     ->middleware(['api', 'mcp.auth'])
     ->name('copiloto.mcp.server');
+
+// ===========================================================================
+// 5) Channel adapter — webhooks WhatsApp (ADRs 0074 + 0075)
+// ===========================================================================
+// Roda em CT 100 (FrankenPHP, ADR 0058 + ADR 0062). NUNCA Hostinger.
+// Cada provider valida assinatura no driver — middleware aqui é só `api`.
+//
+// Fase 0 — Evolution API self-host (default canário ROTA LIVRE biz=4):
+Route::post('/api/copiloto/whatsapp/evolution/webhook', \Modules\Copiloto\Http\Controllers\Channels\EvolutionWebhookController::class)
+    ->middleware('api')
+    ->name('copiloto.channel.evolution.webhook');
+
+// Fases 1 e 2 (Z-API + Meta Cloud) ficam comentados pra mover quando
+// drivers correspondentes entrarem (US-COPI-090 / US-COPI-091).
+// Route::post('/api/copiloto/whatsapp/zapi/webhook', \Modules\Copiloto\Http\Controllers\Channels\ZApiWebhookController::class)
+//     ->middleware('api')->name('copiloto.channel.zapi.webhook');
+// Route::post('/api/copiloto/whatsapp/meta/webhook', \Modules\Copiloto\Http\Controllers\Channels\MetaWebhookController::class)
+//     ->middleware('api')->name('copiloto.channel.meta.webhook');
