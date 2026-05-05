@@ -398,7 +398,31 @@
   width: 2px;
   background: var(--accent-2);
   border-radius: 2px;
-}.cockpit .sb-item .ic { width: 16px; height: 16px; flex: 0 0 auto; opacity: .85; }.cockpit .sb-item .label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.cockpit .sb-item .badge {
+}.cockpit .sb-item.is-open { background: var(--sb-hover); color: var(--sb-text-hi); }
+.cockpit .sb-item button.sb-item, .cockpit button.sb-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  font-family: var(--font-sans);
+}
+.cockpit .sb-item-chev { flex: 0 0 auto; margin-left: auto; }
+.cockpit .sb-item-child {
+  padding-left: 32px;
+  font-size: 12.5px;
+  color: var(--sb-text-dim);
+}
+.cockpit .sb-item-child:hover { color: var(--sb-text-hi); }
+.cockpit .sb-item-child .ic.dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--sb-text-dim);
+  flex: 0 0 auto;
+}
+.cockpit .sb-item .ic { width: 14px; height: 14px; flex: 0 0 auto; opacity: .85; }.cockpit .sb-item .label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.cockpit .sb-item .badge {
   font-size: 10.5px;
   font-weight: 600;
   background: var(--accent);
@@ -1435,15 +1459,17 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12.5px;
+  padding: 0 10px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
   font-weight: 500;
   color: var(--sb-text);
   text-decoration: none;
   transition: background 120ms;
-  line-height: 1;
 }
+.cockpit .sb-shortcut .label { flex: 1 1 auto; }
 .cockpit .sb-sep {
   height: 1px;
   background: var(--sb-border);

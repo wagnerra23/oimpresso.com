@@ -8,11 +8,48 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  Check, ChevronDown, ChevronRight, ChevronUp, Inbox, Keyboard, LogOut,
-  MessageSquare, Monitor, Moon, Search, ShieldAlert, Sun, User,
+  ArrowRightLeft, BarChart3, Bell, Bot, Box, Calculator, Calendar, Check,
+  ChevronDown, ChevronRight, ChevronUp, ClipboardList, CreditCard, FileSearch,
+  Hash, Home, Inbox, Keyboard, LogOut, MessageSquare, Monitor, Moon, Package,
+  PackageCheck, Plug, Receipt, Search, Settings, ShieldAlert, ShieldCheck,
+  ShoppingCart, Sun, Users, Utensils, User, Wallet,
+  type LucideIcon,
 } from 'lucide-react';
 
 import { useTheme } from '@/Hooks/useTheme';
+
+// Mapa estático de ícones por label do shell.menu (LegacyMenuAdapter entrega
+// items flat sem campo `icon`; resolvemos via lookup case-insensitive).
+// Items não mapeados caem em Hash genérico. Adicionar aqui ao escalar.
+const MENU_ICON_MAP: Record<string, LucideIcon> = {
+  iniciar: Home, início: Home, home: Home, dashboard: Home,
+  contatos: Users, clientes: Users, crm: Users,
+  produtos: Package,
+  compras: ShoppingCart,
+  vender: Receipt, vendas: Receipt,
+  'consulta de os': FileSearch,
+  'ordens de serviço': FileSearch,
+  despesas: CreditCard,
+  'contas de pagamento': Wallet,
+  accounting: Calculator, contabilidade: Calculator,
+  relatórios: BarChart3,
+  reservas: Calendar,
+  cocina: Utensils,
+  pedidos: ClipboardList,
+  'modelos de notificação': Bell,
+  configurações: Settings,
+  copiloto: Bot,
+  ads: ShieldCheck,
+  conector: Plug,
+  'transferências de ações': ArrowRightLeft,
+  'ajuste de estoque': PackageCheck,
+  'gestão de ativos': Box,
+  'gerenciamento de usuários': Users,
+};
+
+function findMenuIcon(label: string): LucideIcon {
+  return MENU_ICON_MAP[label.trim().toLowerCase()] ?? Hash;
+}
 
 import {
   BusinessOpt,
@@ -151,22 +188,29 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
   const [expanded, setExpanded] = useState(false);
   const hasChildren = !!item.children?.length;
   const href = item.href ?? '#';
+  const Icon = findMenuIcon(item.label);
 
   if (hasChildren) {
     return (
       <>
-        <div className="sb-item" onClick={() => setExpanded((v) => !v)}>
+        <button
+          type="button"
+          className={`sb-item ${expanded ? 'is-open' : ''}`}
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+        >
+          <Icon size={14} className="ic" />
+          <span className="label">{item.label}</span>
           <ChevronDown
-            size={12}
-            className="ic"
+            size={11}
+            className="sb-item-chev"
             style={{
               transform: expanded ? 'rotate(0)' : 'rotate(-90deg)',
               transition: 'transform 120ms',
               opacity: 0.6,
             }}
           />
-          <span className="label">{item.label}</span>
-        </div>
+        </button>
         {expanded &&
           item.children!.map((c, i) => (
             <a
@@ -184,7 +228,7 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
 
   return (
     <a href={href} className="sb-item">
-      <span className="ic dot" />
+      <Icon size={14} className="ic" />
       <span className="label">{item.label}</span>
     </a>
   );
