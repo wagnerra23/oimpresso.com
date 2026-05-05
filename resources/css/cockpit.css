@@ -1448,21 +1448,21 @@
 }
 
 /* ────────────────── Sidebar single-pane (UI-0011) ────────────────── */
-/* Tarefas + Chat no topo — full-width até as bordas da sidebar
-   (Wagner 2026-05-05): borda hover estende de borda a borda. */
+/* Tarefas + Chat — hover/active arredondado (canon Cowork 2026-04-27).
+   Wagner 2026-05-05: "seleção arredondada dos itens quando hover". */
 .cockpit .sb-shortcuts {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  padding: 8px 0 6px;
+  gap: 1px;
+  padding: 8px;
 }
 .cockpit .sb-shortcut {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 16px;
+  padding: 0 10px;
   height: 30px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
@@ -1502,10 +1502,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
-  padding: 12px 10px 6px;
+  width: calc(100% - 8px);
+  margin: 0 4px;
+  padding: 8px 6px 4px 8px;
   background: transparent;
   border: 0;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: var(--font-sans);
   font-size: 10px;
@@ -1514,8 +1516,12 @@
   color: var(--sb-text-dim);
   text-transform: uppercase;
   text-align: left;
+  transition: background 120ms, color 120ms;
 }
-.cockpit .sb-group-h:hover { color: var(--sb-text-hi); }
+.cockpit .sb-group-h:hover {
+  color: var(--sb-text-hi);
+  background: var(--sb-hover);
+}
 .cockpit .sb-group-h .chev {
   width: 10px;
   height: 10px;
