@@ -185,43 +185,67 @@ export function CompanyPicker({
 // ── SidebarMenuItem (recursivo p/ children) ─────────────────────────────
 
 function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
-  const [expanded, setExpanded] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const hasChildren = !!item.children?.length;
   const href = item.href ?? '#';
   const Icon = findMenuIcon(item.label);
+
+  // Calcula posição fixed do popover-2 quando abre. Cascata lateral à direita
+  // do popover-1 (UI-0011 segundo nível, Wagner 2026-05-05).
+  useEffect(() => {
+    if (!isOpen) { setPopPos(null); return; }
+    if (!buttonRef.current) return;
+    const r = buttonRef.current.getBoundingClientRect();
+    setPopPos({ top: r.top, left: r.right + 4 });
+  }, [isOpen]);
+
+  // Click fora fecha popover-2 (considera tanto o button quanto o popover via classe)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (buttonRef.current?.contains(target)) return;
+      const popoverEl = document.querySelector('.sb-item-popover');
+      if (popoverEl?.contains(target)) return;
+      setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isOpen]);
 
   if (hasChildren) {
     return (
       <>
         <button
+          ref={buttonRef}
           type="button"
-          className={`sb-item ${expanded ? 'is-open' : ''}`}
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
+          className={`sb-item ${isOpen ? 'is-open' : ''}`}
+          onClick={() => setIsOpen((v) => !v)}
+          aria-expanded={isOpen}
         >
           <Icon size={14} className="ic" />
           <span className="label">{item.label}</span>
-          <ChevronDown
-            size={11}
-            className="sb-item-chev"
-            style={{
-              transform: expanded ? 'rotate(0)' : 'rotate(-90deg)',
-              transition: 'transform 120ms',
-              opacity: 0.6,
-            }}
-          />
+          <ChevronRight size={11} className="sb-item-chev" style={{ opacity: 0.5 }} />
         </button>
-        {expanded &&
-          item.children!.map((c, i) => (
-            <a
-              key={`${c.label}-${i}`}
-              href={c.href ?? '#'}
-              className="sb-item sb-item-child"
-            >
-              <span className="ic dot" />
-              <span className="label">{c.label}</span>
-            </a>
-          ))}
+        {isOpen && popPos && (
+          <div
+            className="sb-item-popover"
+            style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
+          >
+            {item.children!.map((c, i) => (
+              <a
+                key={`${c.label}-${i}`}
+                href={c.href ?? '#'}
+                className="sb-item"
+              >
+                <span className="ic dot" />
+                <span className="label">{c.label}</span>
+              </a>
+            ))}
+          </div>
+        )}
       </>
     );
   }
