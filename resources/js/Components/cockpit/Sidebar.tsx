@@ -9,8 +9,10 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Check, ChevronDown, ChevronRight, ChevronUp, Inbox, Keyboard, LogOut,
-  MessageSquare, Moon, Search, ShieldAlert, User,
+  MessageSquare, Monitor, Moon, Search, ShieldAlert, Sun, User,
 } from 'lucide-react';
+
+import { useTheme } from '@/Hooks/useTheme';
 
 import {
   BusinessOpt,
@@ -482,17 +484,48 @@ function SidebarUserMenu({
         </div>
       )}
 
-      {activeSub === 'aparencia' && (
-        <div className="user-menu-sub">
-          <div className="um-sub-h">
-            <Moon size={14} className="ic" />
-            <span>Aparência</span>
-          </div>
-          <div className="um-item"><span className="ic dot" /><span className="label">Claro</span></div>
-          <div className="um-item"><span className="ic dot" /><span className="label">Escuro</span></div>
-          <div className="um-item"><span className="ic dot" /><span className="label">Sistema</span></div>
-        </div>
-      )}
+      {activeSub === 'aparencia' && <ThemeSubpanel />}
+    </div>
+  );
+}
+
+// ── ThemeSubpanel — plug do useTheme no subpainel Aparência (UI-0011) ─
+
+function ThemeSubpanel() {
+  const { mode, setTheme } = useTheme();
+  // mode: 'light' | 'dark' | null (sistema)
+  const options: Array<{
+    key: 'light' | 'dark' | null;
+    label: string;
+    Icon: typeof Sun;
+  }> = [
+    { key: 'light', label: 'Claro', Icon: Sun },
+    { key: 'dark', label: 'Escuro', Icon: Moon },
+    { key: null, label: 'Sistema', Icon: Monitor },
+  ];
+
+  return (
+    <div className="user-menu-sub">
+      <div className="um-sub-h">
+        <Moon size={14} className="ic" />
+        <span>Aparência</span>
+      </div>
+      {options.map((o) => {
+        const active = mode === o.key;
+        return (
+          <button
+            key={String(o.key)}
+            type="button"
+            className={`um-item um-cascade-trigger ${active ? 'active' : ''}`}
+            onClick={() => setTheme(o.key)}
+            aria-pressed={active}
+          >
+            <o.Icon size={14} className="ic" />
+            <span className="label">{o.label}</span>
+            {active && <Check size={14} className="um-cascade-arrow" style={{ opacity: 1, color: 'var(--accent)' }} />}
+          </button>
+        );
+      })}
     </div>
   );
 }
