@@ -155,7 +155,7 @@ export function gradientFor(id: number): string {
 // (heuristica por enquanto — TODO Fase 5: virar flag is_superadmin no MenuItem
 //  do LegacyMenuAdapter pra ficar declarativo)
 export const SUPERADMIN_LABELS = new Set<string>([
-  'Backup', 'CMS', 'Connector', 'Office Impresso', 'Officeimpresso',
+  'Backup', 'CMS', 'Connector', 'Conector', 'Office Impresso', 'Officeimpresso',
   'Módulos', 'Modulos', 'Manage Modules', 'Personalizar', 'Memória', 'MemCofre',
 ]);
 
