@@ -9,6 +9,7 @@ use Modules\ADS\Http\Controllers\Admin\PatternsController;
 use Modules\ADS\Http\Controllers\Admin\ToolsController;
 use Modules\ADS\Http\Controllers\Admin\LearningController;
 use Modules\ADS\Http\Controllers\Admin\MetaSkillsController;
+use Modules\ADS\Http\Controllers\Admin\SkillsController;
 use Modules\ADS\Http\Controllers\Admin\GraphController;
 use Modules\ADS\Http\Controllers\Admin\ConflictsController;
 use Modules\ADS\Http\Controllers\Admin\ProjectsController;
@@ -50,7 +51,13 @@ Route::group([
     Route::get('/admin/confidence', [ConfidenceController::class, 'index'])->name('ads.admin.confidence.index');
     Route::get('/admin/metricas',   [MetricasController::class,   'index'])->name('ads.admin.metricas.index');
     Route::get('/admin/patterns',   [PatternsController::class,   'index'])->name('ads.admin.patterns.index');
-    Route::get('/admin/skills',     [PatternsController::class,   'index'])->name('ads.admin.skills.index'); // alias semântico
+
+    // Skills MVP read-only — lê .claude/skills/<slug>/SKILL.md direto.
+    // Antes apontava pra PatternsController como alias semântico — substituído pela tela própria (ADR 0076).
+    Route::get('/admin/skills',         [SkillsController::class, 'index'])->name('ads.admin.skills.index');
+    Route::get('/admin/skills/{slug}',  [SkillsController::class, 'show'])
+        ->where('slug', '[a-z0-9][a-z0-9-]*')
+        ->name('ads.admin.skills.show');
     Route::get('/admin/tools',      [ToolsController::class,      'index'])->name('ads.admin.tools.index');
     Route::post('/admin/tools/{name}/execute', [ToolsController::class, 'execute'])
         ->where('name', '[a-z0-9_\-\.]+')
