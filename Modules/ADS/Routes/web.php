@@ -52,12 +52,18 @@ Route::group([
     Route::get('/admin/metricas',   [MetricasController::class,   'index'])->name('ads.admin.metricas.index');
     Route::get('/admin/patterns',   [PatternsController::class,   'index'])->name('ads.admin.patterns.index');
 
-    // Skills MVP read-only — lê .claude/skills/<slug>/SKILL.md direto.
-    // Antes apontava pra PatternsController como alias semântico — substituído pela tela própria (ADR 0076).
-    Route::get('/admin/skills',         [SkillsController::class, 'index'])->name('ads.admin.skills.index');
-    Route::get('/admin/skills/{slug}',  [SkillsController::class, 'show'])
+    // Skills (ADR 0076) — DB primary com fallback filesystem.
+    // Fase 1: lista + detalhe. Fase 2: edição inline (cria version draft em DB).
+    Route::get('/admin/skills',              [SkillsController::class, 'index'])->name('ads.admin.skills.index');
+    Route::get('/admin/skills/{slug}',       [SkillsController::class, 'show'])
         ->where('slug', '[a-z0-9][a-z0-9-]*')
         ->name('ads.admin.skills.show');
+    Route::get('/admin/skills/{slug}/edit',  [SkillsController::class, 'edit'])
+        ->where('slug', '[a-z0-9][a-z0-9-]*')
+        ->name('ads.admin.skills.edit');
+    Route::post('/admin/skills/{slug}',      [SkillsController::class, 'store'])
+        ->where('slug', '[a-z0-9][a-z0-9-]*')
+        ->name('ads.admin.skills.store');
     Route::get('/admin/tools',      [ToolsController::class,      'index'])->name('ads.admin.tools.index');
     Route::post('/admin/tools/{name}/execute', [ToolsController::class, 'execute'])
         ->where('name', '[a-z0-9_\-\.]+')
