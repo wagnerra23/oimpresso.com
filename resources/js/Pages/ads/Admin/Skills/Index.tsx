@@ -22,11 +22,17 @@ interface Skill {
   module: string | null
   git_path: string
   body_chars: number
+  source: 'db' | 'filesystem'
 }
 
 interface Props {
   skills: Skill[]
   kpis: { total: number; with_module: number; avg_body: number }
+}
+
+const sourceLabel: Record<Skill['source'], string> = {
+  db: 'DB',
+  filesystem: 'Filesystem (fallback)',
 }
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
@@ -49,7 +55,14 @@ const Skills: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ sk
       <PageHeader
         icon="zap"
         title="Skills"
-        description="Skills do Claude Code disponíveis no projeto. Lê direto de .claude/skills/<slug>/SKILL.md (MVP read-only). Edição inline + governance + drift detection vêm em CYCLE-02 (ADR 0076)."
+        description="Skills do Claude Code disponíveis no projeto. ADR 0076 — DB primary com fallback filesystem se import inicial não rodou."
+        action={
+          skills.length > 0 ? (
+            <Badge variant={skills[0].source === 'db' ? 'default' : 'outline'}>
+              Origem: {sourceLabel[skills[0].source]}
+            </Badge>
+          ) : null
+        }
       />
 
       <KpiGrid cols={3}>
