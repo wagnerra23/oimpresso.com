@@ -1,20 +1,20 @@
 // @memcofre
 //   modulo: Cockpit (Sidebar)
-//   adrs: UI-0008 (cockpit como layout-mae)
-//   nota: sidebar dual Chat<->Menu (260px dark) + rodape com superadmin
-//         accordion + user dropdown rico. Reusavel por qualquer pagina React.
+//   adrs: UI-0008 (cockpit como layout-mae), UI-0011 (sidebar single-pane)
+//   nota: sidebar single-pane (260px). Toggle Chat/Menu REMOVIDO em 2026-05-05.
+//         Conteúdo: CompanyPicker (topo) + SidebarMenu (corpo) + SidebarFooter
+//         com user dropdown + Superadmin accordion (rodapé). SidebarChat e
+//         SidebarTabs removidos — conv switcher migrou pra Pages/Copiloto/Chat.tsx.
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  Bell, Check, ChevronDown, ChevronUp, Cog, Hash, Inbox, Keyboard, LogOut,
-  MessageCircle, Moon, Pin, Plus, Search, ShieldAlert, User,
+  Check, ChevronDown, ChevronUp, Keyboard, LogOut,
+  Moon, Search, ShieldAlert, User,
 } from 'lucide-react';
 
 import {
   BusinessOpt,
-  ConversaResumo,
   LS,
-  Rotina,
   ShellMenuItem,
   gradientFor,
   isSuperadminMenu,
@@ -93,111 +93,10 @@ export function CompanyPicker({
   );
 }
 
-// ── SidebarTabs (toggle Chat/Menu) ──────────────────────────────────────
-
-export function SidebarTabs({
-  tab,
-  onTab,
-}: {
-  tab: 'chat' | 'menu';
-  onTab: (t: 'chat' | 'menu') => void;
-}) {
-  return (
-    <div className="sb-tabs">
-      <button
-        type="button"
-        className={`sb-tab ${tab === 'chat' ? 'active' : ''}`}
-        onClick={() => onTab('chat')}
-      >
-        <MessageCircle size={13} /> <span>Chat</span>
-      </button>
-      <button
-        type="button"
-        className={`sb-tab ${tab === 'menu' ? 'active' : ''}`}
-        onClick={() => onTab('menu')}
-      >
-        <Hash size={13} /> <span>Menu</span>
-      </button>
-    </div>
-  );
-}
-
-// ── SidebarChat (atalhos + Fixadas + Rotinas + Recentes) ────────────────
-
-export function SidebarChat({
-  fixadas,
-  rotinas,
-  recentes,
-  activeId,
-  onSelect,
-}: {
-  fixadas: ConversaResumo[];
-  rotinas: Rotina[];
-  recentes: ConversaResumo[];
-  activeId: string;
-  onSelect: (id: string) => void;
-}) {
-  return (
-    <div>
-      <div className="sb-actions">
-        <div className="sb-action">
-          <Plus size={14} /> <span>Nova conversa</span>
-          <span className="kbd" style={{ marginLeft: 'auto' }}>⌘N</span>
-        </div>
-        <div className="sb-action">
-          <Inbox size={14} /> <span>Tarefas</span>
-          <span className="badge">6</span>
-        </div>
-        <div className="sb-action">
-          <Bell size={14} /> <span>Despachos</span>
-          <span className="beta">Beta</span>
-        </div>
-        <div className="sb-action">
-          <Cog size={14} /> <span>Personalizar</span>
-        </div>
-      </div>
-
-      <div className="sb-section-h">Fixadas</div>
-      {fixadas.length === 0 ? (
-        <div className="sb-action" style={{ opacity: 0.6 }}>
-          <Pin size={14} /> <span>Arraste para fixar</span>
-        </div>
-      ) : (
-        fixadas.map((c) => (
-          <div
-            key={c.id}
-            className={`sb-conv ${c.id === activeId ? 'active' : ''}`}
-            onClick={() => onSelect(c.id)}
-          >
-            <span className={`sb-bullet ${c.unread ? 'filled' : ''}`} />
-            <span className="sb-conv-t">{c.titulo}</span>
-          </div>
-        ))
-      )}
-
-      <div className="sb-section-h">Rotinas</div>
-      {rotinas.map((r) => (
-        <div key={r.id} className="sb-routine">
-          <span className="sb-bullet" />
-          <span className="sb-routine-t">{r.titulo}</span>
-          <span className="sb-routine-f">{r.frequencia}</span>
-        </div>
-      ))}
-
-      <div className="sb-section-h">Recentes</div>
-      {recentes.map((c) => (
-        <div
-          key={c.id}
-          className={`sb-conv ${c.id === activeId ? 'active' : ''}`}
-          onClick={() => onSelect(c.id)}
-        >
-          <span className={`sb-bullet ${c.unread ? 'filled' : ''}`} />
-          <span className="sb-conv-t">{c.titulo}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
+// SidebarTabs + SidebarChat removidos em 2026-05-05 (UI-0011 single-pane).
+// Histórico: dual Chat/Menu introduzido em UI-0008 (2026-04-27). Wagner pediu
+// remoção em sessão 2026-05-05 — conteúdo de chat (atalhos + Fixadas + Rotinas
+// + Recentes) migrou pra `Pages/Copiloto/Chat.tsx` como master/detail interno.
 
 // ── SidebarMenuItem (recursivo p/ children) ─────────────────────────────
 
