@@ -9,7 +9,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ADS\Services\SkillsService;
 use Modules\Copiloto\Entities\Mcp\McpSkill;
+use Modules\Copiloto\Entities\Mcp\McpSkillTestRun;
 use Modules\Copiloto\Entities\Mcp\McpSkillVersion;
+use Modules\Copiloto\Services\Skills\SkillTestRunnerService;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -167,5 +169,73 @@ class SkillsController extends Controller
         return redirect()
             ->route('ads.admin.skills.show', ['slug' => $slug])
             ->with('status', "Skill '$slug' v{$newVersionNumber} salva como draft. Approval queue (Fase 4) vai aprovar pra production.");
+    }
+
+    public function test(string $slug, SkillsService $service): Response
+    {
+        $skill = $service->findBySlug($slug);
+        if ($skill === null || $skill['source'] !== 'db') {
+            abort(404, "Skill '{$slug}' não está em DB.");
+        }
+
+        $skillModel = McpSkill::where('slug', $slug)->first();
+        $currentVersion = $skillModel?->currentVersion;
+
+        $recentRuns = [];
+        if ($skillModel) {
+            $recentRuns = McpSkillTestRun::whereIn(
+                'version_id',
+                $skillModel->versions()->pluck('id')
+            )
+                ->orderByDesc('executed_at')
+                ->limit(10)
+                ->get()
+                ->map(fn (McpSkillTestRun $r) => [
+                    'id'             => $r->id,
+                    'version_id'     => $r->version_id,
+                    'prompt_preview' => mb_substr((string) ($r->input_json['prompt'] ?? ''), 0, 80),
+                    'output_preview' => mb_substr((string) ($r->output ?? ''), 0, 200),
+                    'latency_ms'     => $r->latency_ms,
+                    'output_tokens'  => $r->output_tokens,
+                    'pii_count'      => $r->pii_redactions_count,
+                    'executed_at'    => $r->executed_at?->format('Y-m-d H:i:s'),
+                ])
+                ->all();
+        }
+
+        return Inertia::render('ads/Admin/Skills/Test', [
+            'skill'          => $skill,
+            'currentVersion' => $currentVersion?->version,
+            'currentVersionId' => $currentVersion?->id,
+            'recentRuns'     => $recentRuns,
+            'dryRun'         => (bool) config('copiloto.dry_run', false),
+        ]);
+    }
+
+    public function runTest(string $slug, Request $request, SkillTestRunnerService $runner): RedirectResponse
+    {
+        $data = $request->validate([
+            'prompt' => 'required|string|min:3|max:8000',
+        ]);
+
+        $skillModel = McpSkill::where('slug', $slug)->first();
+        if ($skillModel === null || $skillModel->current_version_id === null) {
+            abort(404, "Skill '{$slug}' sem version current.");
+        }
+
+        $version = McpSkillVersion::find($skillModel->current_version_id);
+        if ($version === null) {
+            abort(404, 'Version current não encontrada.');
+        }
+
+        $run = $runner->run(
+            $version,
+            $data['prompt'],
+            $request->session()->get('user.business_id'),
+            auth()->id(),
+        );
+
+        return back()
+            ->with('status', "Test run #{$run->id} concluído ({$run->latency_ms}ms, {$run->output_tokens} tokens out)");
     }
 }
