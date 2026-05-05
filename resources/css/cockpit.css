@@ -1528,7 +1528,7 @@
   opacity: 0.7;
   flex: 0 0 auto;
 }
-.cockpit .sb-group.is-open .sb-group-h { color: var(--sb-text-hi); }
+/* título do grupo: claro só no hover — não persiste quando aberto */
 
 /* Inline accordion body — items renderizam direto abaixo do header
    quando grupo está expandido (Wagner 2026-05-05: voltou inline). */
