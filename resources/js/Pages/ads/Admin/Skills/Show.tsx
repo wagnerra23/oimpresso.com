@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import PageHeader from '@/Components/shared/PageHeader'
-import { ArrowLeft, ExternalLink, Pencil, History } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Pencil, History, Play } from 'lucide-react'
 
 interface Skill {
   slug: string
@@ -62,11 +62,18 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
         </Link>
         <div className="flex items-center gap-2">
           {editable && (
-            <Link href={`/ads/admin/skills/${skill.slug}/edit`}>
-              <Button size="sm">
-                <Pencil className="w-4 h-4 mr-1" /> Editar
-              </Button>
-            </Link>
+            <>
+              <Link href={`/ads/admin/skills/${skill.slug}/test`}>
+                <Button size="sm" variant="outline">
+                  <Play className="w-4 h-4 mr-1" /> Testar
+                </Button>
+              </Link>
+              <Link href={`/ads/admin/skills/${skill.slug}/edit`}>
+                <Button size="sm">
+                  <Pencil className="w-4 h-4 mr-1" /> Editar
+                </Button>
+              </Link>
+            </>
           )}
           <a href={githubUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             Ver no GitHub <ExternalLink className="w-3.5 h-3.5" />
