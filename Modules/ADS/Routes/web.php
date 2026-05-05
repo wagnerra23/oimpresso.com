@@ -64,6 +64,12 @@ Route::group([
     Route::post('/admin/skills/{slug}',      [SkillsController::class, 'store'])
         ->where('slug', '[a-z0-9][a-z0-9-]*')
         ->name('ads.admin.skills.store');
+    Route::get('/admin/skills/{slug}/test',  [SkillsController::class, 'test'])
+        ->where('slug', '[a-z0-9][a-z0-9-]*')
+        ->name('ads.admin.skills.test');
+    Route::post('/admin/skills/{slug}/test', [SkillsController::class, 'runTest'])
+        ->where('slug', '[a-z0-9][a-z0-9-]*')
+        ->name('ads.admin.skills.run-test');
     Route::get('/admin/tools',      [ToolsController::class,      'index'])->name('ads.admin.tools.index');
     Route::post('/admin/tools/{name}/execute', [ToolsController::class, 'execute'])
         ->where('name', '[a-z0-9_\-\.]+')
