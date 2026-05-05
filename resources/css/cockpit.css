@@ -1383,3 +1383,131 @@
   .cockpit .copiloto-chat-layout { grid-template-columns: 1fr; }
   .cockpit .copiloto-chat-convs { display: none; }
 }
+
+/* ────────────────── Sidebar single-pane (UI-0011) ────────────────── */
+/* Tarefas + Chat no topo (atalhos primários) */
+.cockpit .sb-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 6px 6px;
+}
+.cockpit .sb-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sb-text);
+  text-decoration: none;
+  transition: background 120ms;
+}
+.cockpit .sb-shortcut:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+.cockpit .sb-shortcut .label { flex: 1; }
+.cockpit .sb-shortcut .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px; height: 18px;
+  padding: 0 6px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-radius: 9px;
+  font-size: 10.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grupos colapsáveis (OFFICEIMPRESSO / FINANCEIRO / etc) */
+.cockpit .sb-menu-grouped { display: flex; flex-direction: column; }
+.cockpit .sb-group { padding: 4px 0; }
+.cockpit .sb-group-noheader { padding: 0; }
+.cockpit .sb-group-h {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 12px 4px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--sb-text-dim);
+  text-transform: uppercase;
+  gap: 6px;
+}
+.cockpit .sb-group-h:hover { color: var(--sb-text); }
+.cockpit .sb-group-label { flex: 1; text-align: left; }
+.cockpit .sb-group-chev { opacity: 0.5; }
+.cockpit .sb-group-body { display: flex; flex-direction: column; gap: 1px; padding: 2px 4px; }
+
+/* ────────────────── User menu cascata (UI-0011) ────────────────── */
+/* Painel principal + subpainel à direita (estilo Claude Desktop / Linear) */
+.cockpit .user-menu-cascade {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+.cockpit .user-menu-main,
+.cockpit .user-menu-sub {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  padding: 6px;
+  min-width: 240px;
+}
+.cockpit .user-menu-sub {
+  margin-left: 6px;
+  animation: userMenuSubIn 180ms ease-out;
+}
+@keyframes userMenuSubIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.cockpit .um-cascade-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 120ms;
+}
+.cockpit .um-cascade-trigger:hover { background: var(--bg-2); }
+.cockpit .um-cascade-trigger.active { background: var(--accent-soft); color: var(--accent); }
+.cockpit .um-cascade-trigger .label { flex: 1; }
+.cockpit .um-cascade-arrow { opacity: 0.5; flex-shrink: 0; }
+.cockpit .um-cascade-trigger.active .um-cascade-arrow { opacity: 1; color: var(--accent); }
+
+.cockpit .um-sub-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+@media (max-width: 1023px) {
+  /* Mobile: subpainel empilha embaixo, não à direita */
+  .cockpit .user-menu-cascade { flex-direction: column; }
+  .cockpit .user-menu-sub { margin-left: 0; margin-top: 6px; }
+}
