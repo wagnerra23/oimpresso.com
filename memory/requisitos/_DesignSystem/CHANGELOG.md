@@ -1,5 +1,20 @@
 # Changelog · Design System
 
+## [0.4.0] - 2026-05-05
+
+### Added
+
+- **UI Kit canônico Cowork 2026-04-27** importado em [`ui_kits/cowork-2026-04-27/`](ui_kits/cowork-2026-04-27/) (14 arquivos: 12 `.jsx` + `styles.css` 90 KB + HTML entry + README). Snapshot do projeto Anthropic Cowork "Oimpresso ERP Comunicação Visual" exportado por Wagner em 2026-04-27. Ratificado como **fonte da verdade visual** em 2026-05-05.
+- **ADR UI-0010**: zip Cowork 2026-04-27 é canon visual; **`os-page.jsx` é padrão canônico de tela list+detail**, substituindo parcialmente UI-0006 (template tela operacional) e Pattern Jana (ADR raiz 0011) onde houver conflito visual. ADR documenta tabela de **conflitos resolvidos** (ex.: UI-0009 sidebar light SOBREVIVE — Wagner explícito 2026-05-05 "manter sidebar").
+- **R-DS-013**: telas list+detail (Officeimpresso/OS, Repair, Project, Financeiro, Copiloto/Admin/*) seguem `os-page.jsx` como referência visual canônica.
+- **R-DS-014**: telas inbox unificada (Pages/Tarefas/Index.tsx, futuras) seguem `tasks.jsx` + `viewers.jsx`.
+- **Session 2026-04-28-design-prototype-chat-erp.md** apendida em `memory/sessions/` (estava em `memory-para-github/sessions/` do zip — sinal que era pra entrar no repo e nunca entrou).
+
+### Changed
+
+- **ADR UI-0006** (padrão tela operacional) — agora **substituído parcialmente por UI-0010** quando o conflito for visual. Continua válido pra estrutura de módulo (DataController hooks, modules_statuses.json) que UI-0010 não toca.
+- **DESIGN.md §1** apontando explicitamente pro UI Kit + ADR UI-0010 como referência visual antes de qualquer portagem.
+
 ## [0.3.1] - 2026-05-04
 
 ### Changed
