@@ -66,7 +66,7 @@ Adotar o padrão **"Chat Cockpit"** como layout-mãe do ERP em React, composto d
 - Seções: Fixadas · Rotinas · Recentes
 - Cada conversa é uma linha enxuta (bullet + título)
 
-**Aba Menu** (espelho fiel do `AppShell.tsx`):
+**Aba Menu** (espelho fiel do `shell.menu` real do `LegacyMenuAdapter`):
 - Mesma ordem, labels e ícones do `sidebar.blade.php` atual
 - Accordions agrupados por área de negócio
 - O cliente final **não percebe diferença** ao alternar do Blade pro React (LegacyMenuAdapter já entrega `MenuItem[]` com flag `inertia`, ver protocolo MWART)
@@ -142,12 +142,13 @@ Em ambiente de protótipo (e em prod via flag dev), o painel Tweaks expõe três
 
 ## Plano de migração
 
-1. **Fase 0 (atual):** protótipo HTML+React validado em `Oimpresso ERP - Chat.html` (este projeto Cowork). Wagner valida UX; Claude itera.
-2. **Fase 1:** portar protótipo pro repo (`resources/js/Layouts/AppShellV2.tsx` + `resources/js/Pages/Tarefas/Index.tsx`). Manter `AppShell.tsx` antigo em paralelo via flag `useV2Shell`.
-3. **Fase 2:** Officeimpresso ganha `OsAprovarArteTask` provider; `TasksController@inbox` agrega.
-4. **Fase 3:** CRM, FIN, PNT ganham providers.
-5. **Fase 4:** flag `useV2Shell` vira default.
-6. **Fase 5:** `AppShell.tsx` antigo é removido (decommission).
+1. ✅ **Fase 0:** protótipo HTML+React validado em `Oimpresso ERP - Chat.html` (Cowork). **(2026-04-27)**
+2. ✅ **Fase 1:** `AppShellV2.tsx` + `cockpit.css` portados pro repo. **(2026-04-27)**
+3. ✅ **Fase 2:** sidebar light por padrão (UI-0009) + AppShell legado removido. **(2026-05-04)** — todas as 78 páginas Inertia já em V2; AppShell.tsx deletado, refs JSDoc limpas.
+4. ⏳ **Fase 3:** Officeimpresso ganha `OsAprovarArteTask` provider; `TasksController@inbox` agrega.
+5. ⏳ **Fase 4:** CRM, FIN, PNT ganham providers.
+
+> **Plano original (2026-04-27)** previa 6 fases com flag `useV2Shell` e decomissão tardia. Em 2026-05-04 a faxina foi antecipada: nenhuma página importava AppShell legado, então removeu direto. Cockpit é shell único do ERP em React.
 
 ## Refs
 
