@@ -7,6 +7,7 @@
 
 import { Head, usePage } from '@inertiajs/react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
+import * as Lucide from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
 
 import { useAutoModuleNav } from '@/Hooks/usePageProps';
@@ -98,15 +99,21 @@ function BreadcrumbModuleDropdown({
       </button>
       {open && (
         <div className="bc-mod-dd">
-          {items.map((it, i) => (
-            <a
-              key={i}
-              href={it.href ?? '#'}
-              className="bc-mod-dd-i"
-            >
-              {it.label}
-            </a>
-          ))}
+          {items.map((it, i) => {
+            const IconCmp = it.icon
+              ? ((Lucide as unknown as Record<string, React.ComponentType<{ size?: number }> | undefined>)[it.icon])
+              : undefined;
+            return (
+              <a
+                key={i}
+                href={it.href ?? '#'}
+                className="bc-mod-dd-i"
+              >
+                {IconCmp ? <IconCmp size={14} /> : <span style={{ width: 14, display: 'inline-block' }} />}
+                <span>{it.label}</span>
+              </a>
+            );
+          })}
         </div>
       )}
     </span>
