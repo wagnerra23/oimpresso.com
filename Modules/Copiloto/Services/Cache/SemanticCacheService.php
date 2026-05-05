@@ -71,9 +71,14 @@ class SemanticCacheService
             return $exato;
         }
 
-        // 2. Fuzzy textual via FULLTEXT (NL mode)
+        // 2. Fuzzy textual via FULLTEXT (NL mode) — MySQL-only.
+        // SQLite (suite de testes) e outros drivers degradam graciosamente:
+        // só match exato funciona; cache miss retorna null em vez de quebrar.
         if (mb_strlen($normalizada) < 4) {
             return null; // muito curto pra fuzzy
+        }
+        if (\Illuminate\Support\Facades\DB::connection()->getDriverName() !== 'mysql') {
+            return null;
         }
 
         $candidatos = CacheSemantico::query()
