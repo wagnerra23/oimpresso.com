@@ -8,8 +8,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  Check, ChevronDown, ChevronUp, Keyboard, LogOut,
-  Moon, Search, ShieldAlert, User,
+  Check, ChevronDown, ChevronRight, ChevronUp, Inbox, Keyboard, LogOut,
+  MessageSquare, Moon, Search, ShieldAlert, User,
 } from 'lucide-react';
 
 import {
@@ -19,6 +19,56 @@ import {
   gradientFor,
   isSuperadminMenu,
 } from './shared';
+
+// ── Mapeamento item → grupo (lookup table). Ratificado por Wagner 2026-05-05.
+// Itens não mapeados caem no grupo "MAIS" (collapse fechado por default).
+// Quando LegacyMenuAdapter ganhar campo `group` no MenuItem, esse mapping
+// migra pro backend e este lookup é deletado.
+const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
+  {
+    key: 'inicio',
+    label: '',  // sem header (fica direto após shortcuts)
+    items: ['Iniciar', 'Início', 'Home', 'Dashboard'],
+  },
+  {
+    key: 'office',
+    label: 'OFFICEIMPRESSO',
+    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos'],
+  },
+  {
+    key: 'fin',
+    label: 'FINANCEIRO',
+    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro'],
+  },
+  {
+    key: 'estoque',
+    label: 'ESTOQUE',
+    items: ['Compras', 'Transferências de ações', 'Ajuste de estoque', 'Gestão de ativos'],
+  },
+  {
+    key: 'rel',
+    label: 'RELATÓRIOS',
+    items: ['Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
+  },
+  {
+    key: 'ia',
+    label: 'IA & PRODUTIVIDADE',
+    items: ['Copiloto', 'ADS', 'Conector', 'CRM', 'Crm'],
+  },
+  {
+    key: 'config',
+    label: 'CONFIGURAÇÕES',
+    items: ['Gerenciamento de usuários', 'Configurações', 'Modelos de notificação'],
+  },
+];
+
+function findGroupKey(label: string): string {
+  const norm = label.trim();
+  for (const g of SIDEBAR_GROUPS) {
+    if (g.items.some((i) => i.toLowerCase() === norm.toLowerCase())) return g.key;
+  }
+  return 'mais';  // fallback — group "MAIS" no final
+}
 
 // ── CompanyPicker ──────────────────────────────────────────────────────
 
@@ -143,23 +193,125 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
   );
 }
 
-// ── SidebarMenu (espelha shell.menu real) ───────────────────────────────
+// ── SidebarShortcuts — Tarefas + Chat no topo (UI-0011) ─────────────────
+
+function SidebarShortcuts({
+  tarefasCount,
+  chatCount,
+}: {
+  tarefasCount?: number;
+  chatCount?: number;
+}) {
+  return (
+    <div className="sb-shortcuts">
+      <a href="/tarefas" className="sb-shortcut">
+        <Inbox size={14} />
+        <span className="label">Tarefas</span>
+        {!!tarefasCount && <span className="badge">{tarefasCount}</span>}
+      </a>
+      <a href="/copiloto" className="sb-shortcut">
+        <MessageSquare size={14} />
+        <span className="label">Chat</span>
+        {!!chatCount && <span className="badge">{chatCount}</span>}
+      </a>
+    </div>
+  );
+}
+
+// ── SidebarGroup — header uppercase colapsável + items ──────────────────
+
+function SidebarGroup({
+  groupKey,
+  label,
+  children,
+  defaultOpen = true,
+}: {
+  groupKey: string;
+  label: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const lsKey = `oimpresso.cockpit.group.${groupKey}.expanded`;
+  const [expanded, setExpanded] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return defaultOpen;
+    const v = localStorage.getItem(lsKey);
+    return v === null ? defaultOpen : v === '1';
+  });
+  useEffect(() => {
+    localStorage.setItem(lsKey, expanded ? '1' : '0');
+  }, [expanded, lsKey]);
+
+  // Grupo sem label (ex.: 'inicio') — renderiza items direto, sem header
+  if (!label) {
+    return <div className="sb-group sb-group-noheader">{children}</div>;
+  }
+
+  return (
+    <div className="sb-group">
+      <button
+        type="button"
+        className="sb-group-h"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+      >
+        <span className="sb-group-label">{label}</span>
+        <ChevronDown
+          size={11}
+          className="sb-group-chev"
+          style={{
+            transform: expanded ? 'rotate(0)' : 'rotate(-90deg)',
+            transition: 'transform 150ms',
+          }}
+        />
+      </button>
+      {expanded && <div className="sb-group-body">{children}</div>}
+    </div>
+  );
+}
+
+// ── SidebarMenu (agrupa shell.menu por scope — UI-0011) ─────────────────
 
 export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
   if (!items?.length) {
     return (
       <div className="sb-menu-stub">
-        <Hash size={20} style={{ opacity: 0.4, marginBottom: 8 }} />
         <p>Menu vazio — sem items disponíveis.</p>
       </div>
     );
   }
-  // Filtra superadmin (vão pro rodapé)
+  // Filtra superadmin (vão pro user dropdown no rodapé)
   const principais = items.filter((i) => !isSuperadminMenu(i.label));
+
+  // Agrupa principais por lookup table (preservando ordem dentro do grupo)
+  const groupedItems: Record<string, ShellMenuItem[]> = {};
+  for (const item of principais) {
+    const key = findGroupKey(item.label);
+    if (!groupedItems[key]) groupedItems[key] = [];
+    groupedItems[key].push(item);
+  }
+
+  // Items não mapeados caem em "mais"
+  const groupsToRender = [
+    ...SIDEBAR_GROUPS.filter((g) => groupedItems[g.key]?.length),
+    ...(groupedItems.mais?.length
+      ? [{ key: 'mais', label: 'MAIS', items: [] }]
+      : []),
+  ];
+
   return (
-    <div>
-      {principais.map((item, idx) => (
-        <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
+    <div className="sb-menu-grouped">
+      <SidebarShortcuts tarefasCount={6} chatCount={3} />
+      {groupsToRender.map((g) => (
+        <SidebarGroup
+          key={g.key}
+          groupKey={g.key}
+          label={g.label}
+          defaultOpen={g.key !== 'mais'}
+        >
+          {(groupedItems[g.key] ?? []).map((item, idx) => (
+            <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
+          ))}
+        </SidebarGroup>
       ))}
     </div>
   );
@@ -205,98 +357,142 @@ function SidebarUserMenu({
     localStorage.setItem(LS.SUPER_EXPANDED, superExpanded ? '1' : '0');
   }, [superExpanded]);
 
+  // Estado da cascata: qual sub-menu está ativo (null = só painel principal)
+  const [activeSub, setActiveSub] = useState<'superadmin' | 'disponivel' | 'aparencia' | null>(null);
+
+  // Reset cascade quando fechar o menu
+  useEffect(() => {
+    if (!open) setActiveSub(null);
+  }, [open]);
+
+  // Suprime warning de superExpanded não-usado (mantido por compat)
+  void superExpanded; void setSuperExpanded;
+
   if (!open) return null;
   return (
-    <div className="user-menu" ref={ref}>
-      <div className="user-menu-head">
-        <span className="avatar">{iniciais}</span>
-        <div className="meta">
-          <b>{nome}</b>
-          <small>{email}</small>
+    <div className="user-menu user-menu-cascade" ref={ref}>
+      {/* PAINEL PRINCIPAL */}
+      <div className="user-menu-main">
+        <div className="user-menu-head">
+          <span className="avatar">{iniciais}</span>
+          <div className="meta">
+            <b>{nome}</b>
+            <small>{email}</small>
+          </div>
         </div>
-      </div>
-      <div className="um-item">
-        <User size={14} className="ic" />
-        <span className="label">Meu perfil</span>
-      </div>
+        <div className="um-item">
+          <User size={14} className="ic" />
+          <span className="label">Meu perfil</span>
+        </div>
 
-      {/* Superadmin accordion — entra logo abaixo de Meu perfil */}
-      {hasSuperadmin && (
-        <>
-          <div
-            className="um-item um-superadmin-header"
-            onClick={() => setSuperExpanded((v) => !v)}
-            aria-expanded={superExpanded}
-            role="button"
+        {/* Superadmin — abre cascata lateral à direita */}
+        {hasSuperadmin && (
+          <button
+            type="button"
+            className={`um-item um-cascade-trigger ${activeSub === 'superadmin' ? 'active' : ''}`}
+            onClick={() => setActiveSub((s) => (s === 'superadmin' ? null : 'superadmin'))}
+            aria-expanded={activeSub === 'superadmin'}
           >
             <ShieldAlert size={14} className="ic" />
             <span className="label">{headerSuper?.label ?? 'Superadmin'}</span>
-            <ChevronDown
-              size={11}
-              className="um-superadmin-chev"
-              style={{
-                transform: superExpanded ? 'rotate(0)' : 'rotate(-90deg)',
-                transition: 'transform 150ms ease',
-                opacity: 0.6,
-              }}
-            />
+            <ChevronRight size={12} className="um-cascade-arrow" />
+          </button>
+        )}
+
+        <button
+          type="button"
+          className={`um-item um-cascade-trigger ${activeSub === 'disponivel' ? 'active' : ''}`}
+          onClick={() => setActiveSub((s) => (s === 'disponivel' ? null : 'disponivel'))}
+        >
+          <span
+            className="um-status"
+            style={{ background: 'oklch(0.72 0.18 145)' }}
+          />
+          <span className="label">Disponível</span>
+          <ChevronRight size={12} className="um-cascade-arrow" />
+        </button>
+
+        <button
+          type="button"
+          className={`um-item um-cascade-trigger ${activeSub === 'aparencia' ? 'active' : ''}`}
+          onClick={() => setActiveSub((s) => (s === 'aparencia' ? null : 'aparencia'))}
+        >
+          <Moon size={14} className="ic" />
+          <span className="label">Aparência</span>
+          <ChevronRight size={12} className="um-cascade-arrow" />
+        </button>
+
+        <div className="um-sep" />
+        <div className="um-item">
+          <Keyboard size={14} className="ic" />
+          <span className="label">Atalhos</span>
+          <span className="kbd">⌘/</span>
+        </div>
+        <div className="um-item">
+          <Search size={14} className="ic" />
+          <span className="label">Central de ajuda</span>
+        </div>
+        <div className="um-sep" />
+        <a href="/logout" className="um-item">
+          <LogOut size={14} className="ic" />
+          <span className="label">Sair</span>
+        </a>
+      </div>
+
+      {/* SUBPAINEL CASCATA — desliza da direita quando activeSub != null */}
+      {activeSub === 'superadmin' && hasSuperadmin && (
+        <div className="user-menu-sub">
+          <div className="um-sub-h">
+            <ShieldAlert size={14} className="ic" />
+            <span>{headerSuper?.label ?? 'Superadmin'}</span>
           </div>
-          {superExpanded && (
-            <div className="um-superadmin-children">
-              {childrenSuper.map((item, idx) => (
-                <a
-                  key={`super-${idx}`}
-                  href={item.href ?? '#'}
-                  className="um-item um-superadmin-item"
-                  title={item.label}
-                >
-                  <span className="ic dot" />
-                  <span className="label">{item.label}</span>
-                </a>
-              ))}
-              {headerSuper && headerSuper.href && headerSuper.href !== '#' && (
-                <a
-                  href={headerSuper.href}
-                  className="um-item um-superadmin-item"
-                  title="Acessar tela Superadmin"
-                >
-                  <span className="ic dot" />
-                  <span className="label">Acessar Superadmin ›</span>
-                </a>
-              )}
-            </div>
+          {childrenSuper.map((item, idx) => (
+            <a
+              key={`super-${idx}`}
+              href={item.href ?? '#'}
+              className="um-item"
+              title={item.label}
+            >
+              <span className="ic dot" />
+              <span className="label">{item.label}</span>
+            </a>
+          ))}
+          {headerSuper && headerSuper.href && headerSuper.href !== '#' && (
+            <a
+              href={headerSuper.href}
+              className="um-item"
+              title="Acessar tela Superadmin"
+            >
+              <span className="ic dot" />
+              <span className="label">Acessar Superadmin ›</span>
+            </a>
           )}
-        </>
+        </div>
       )}
 
-      <div className="um-item">
-        <span
-          className="um-status"
-          style={{ background: 'oklch(0.72 0.18 145)' }}
-        />
-        <span className="label">Disponível</span>
-        <span className="arrow">›</span>
-      </div>
-      <div className="um-item">
-        <Moon size={14} className="ic" />
-        <span className="label">Aparência</span>
-        <span className="arrow">›</span>
-      </div>
-      <div className="um-sep" />
-      <div className="um-item">
-        <Keyboard size={14} className="ic" />
-        <span className="label">Atalhos</span>
-        <span className="kbd">⌘/</span>
-      </div>
-      <div className="um-item">
-        <Search size={14} className="ic" />
-        <span className="label">Central de ajuda</span>
-      </div>
-      <div className="um-sep" />
-      <a href="/logout" className="um-item">
-        <LogOut size={14} className="ic" />
-        <span className="label">Sair</span>
-      </a>
+      {activeSub === 'disponivel' && (
+        <div className="user-menu-sub">
+          <div className="um-sub-h">
+            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: 'oklch(0.72 0.18 145)' }} />
+            <span>Status</span>
+          </div>
+          <div className="um-item"><span className="um-status" style={{ background: 'oklch(0.72 0.18 145)' }} /> <span className="label">Disponível</span></div>
+          <div className="um-item"><span className="um-status" style={{ background: 'oklch(0.78 0.15 80)' }} /> <span className="label">Ausente</span></div>
+          <div className="um-item"><span className="um-status" style={{ background: 'oklch(0.55 0.20 25)' }} /> <span className="label">Não perturbe</span></div>
+        </div>
+      )}
+
+      {activeSub === 'aparencia' && (
+        <div className="user-menu-sub">
+          <div className="um-sub-h">
+            <Moon size={14} className="ic" />
+            <span>Aparência</span>
+          </div>
+          <div className="um-item"><span className="ic dot" /><span className="label">Claro</span></div>
+          <div className="um-item"><span className="ic dot" /><span className="label">Escuro</span></div>
+          <div className="um-item"><span className="ic dot" /><span className="label">Sistema</span></div>
+        </div>
+      )}
     </div>
   );
 }
