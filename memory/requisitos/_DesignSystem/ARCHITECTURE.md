@@ -17,8 +17,9 @@
 ```
 resources/js/
 ├── Components/ui/         ← primitivas shadcn copy-paste (button, card, badge, etc.)
-├── Components/shared/     ← componentes específicos do produto (AppShell, Kpi, etc.)
-├── Layouts/               ← layouts Inertia (AppShell, GuestShell)
+├── Components/shared/     ← componentes do produto (PageHeader, KpiCard, DataTable, etc.)
+├── Components/cockpit/    ← componentes do shell único (Sidebar, LinkedApps, TweaksPanel)
+├── Layouts/               ← layouts Inertia (AppShellV2, GuestShell, SiteLayout)
 ├── Pages/{Modulo}/        ← telas por módulo
 └── lib/utils.ts           ← cn() helper do shadcn
 ```

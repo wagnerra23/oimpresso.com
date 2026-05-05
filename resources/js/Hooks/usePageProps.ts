@@ -22,12 +22,12 @@ export function useFlash() {
 }
 
 /**
- * Retorna items do ModuleTopNav pra uma page passar como prop do AppShell.
+ * Retorna items do ModuleTopNav pra uma page passar como prop do AppShellV2.
  * Lê de `shell.topnavs[moduleName]` (alimentado por Resources/menus/topnav.php).
  *
  * Uso:
  *   const moduleNav = useModuleNav('PontoWr2');
- *   <AppShell moduleNav={moduleNav}>...</AppShell>
+ *   <AppShellV2 moduleNav={moduleNav}>...</AppShellV2>
  */
 export function useModuleNav(
   moduleKey: string,
@@ -44,7 +44,7 @@ export function useModuleNav(
 
 /**
  * Detecta automaticamente qual topnav mostrar baseado na URL atual.
- * Usado pelo AppShell em persistent layout — não precisa cada page passar
+ * Usado pelo AppShellV2 em persistent layout — não precisa cada page passar
  * moduleNav manualmente.
  *
  * Ex: em `/ponto/espelho`, acha o topnav cujos items começam com `/ponto/`.
