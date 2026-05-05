@@ -933,7 +933,7 @@ class AdminSidebarMenu
             if ($tmcp_on && $tmcp_ver) {
                 Menu::modify('admin-sidebar-menu', function ($menu) {
                     $seg = request()->segment(1);
-                    $menu->dropdown('Produtividade', function ($sub) {
+                    $menu->dropdown('Produtividade', function ($sub) use ($seg) {
                         $sub->dropdown(
                             __('teammcp::teammcp.module_label'),
                             function ($s) {
