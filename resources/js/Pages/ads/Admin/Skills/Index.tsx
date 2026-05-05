@@ -13,7 +13,8 @@ import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
-import { Zap, BookOpen, FileText } from 'lucide-react'
+import { Zap, BookOpen, FileText, CheckCircle } from 'lucide-react'
+import { Button } from '@/Components/ui/button'
 
 interface Skill {
   slug: string
@@ -57,11 +58,18 @@ const Skills: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ sk
         title="Skills"
         description="Skills do Claude Code disponíveis no projeto. ADR 0076 — DB primary com fallback filesystem se import inicial não rodou."
         action={
-          skills.length > 0 ? (
-            <Badge variant={skills[0].source === 'db' ? 'default' : 'outline'}>
-              Origem: {sourceLabel[skills[0].source]}
-            </Badge>
-          ) : null
+          <div className="flex items-center gap-2">
+            <Link href="/ads/admin/skills-review">
+              <Button size="sm" variant="outline">
+                <CheckCircle className="w-4 h-4 mr-1" /> Approval queue
+              </Button>
+            </Link>
+            {skills.length > 0 && (
+              <Badge variant={skills[0].source === 'db' ? 'default' : 'outline'}>
+                {sourceLabel[skills[0].source]}
+              </Badge>
+            )}
+          </div>
         }
       />
 

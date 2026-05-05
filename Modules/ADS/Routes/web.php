@@ -70,6 +70,22 @@ Route::group([
     Route::post('/admin/skills/{slug}/test', [SkillsController::class, 'runTest'])
         ->where('slug', '[a-z0-9][a-z0-9-]*')
         ->name('ads.admin.skills.run-test');
+
+    // Approval queue + actions (Fase 4)
+    Route::get('/admin/skills-review',                    [SkillsController::class, 'review'])
+        ->name('ads.admin.skills.review');
+    Route::post('/admin/skills/versions/{versionId}/approve', [SkillsController::class, 'approve'])
+        ->whereNumber('versionId')
+        ->name('ads.admin.skills.approve');
+    Route::post('/admin/skills/versions/{versionId}/reject',  [SkillsController::class, 'reject'])
+        ->whereNumber('versionId')
+        ->name('ads.admin.skills.reject');
+    Route::post('/admin/skills/versions/{versionId}/publish', [SkillsController::class, 'publish'])
+        ->whereNumber('versionId')
+        ->name('ads.admin.skills.publish');
+    Route::post('/admin/skills/{slug}/move-label',        [SkillsController::class, 'moveLabel'])
+        ->where('slug', '[a-z0-9][a-z0-9-]*')
+        ->name('ads.admin.skills.move-label');
     Route::get('/admin/tools',      [ToolsController::class,      'index'])->name('ads.admin.tools.index');
     Route::post('/admin/tools/{name}/execute', [ToolsController::class, 'execute'])
         ->where('name', '[a-z0-9_\-\.]+')
