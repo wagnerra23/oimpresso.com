@@ -1524,22 +1524,13 @@
 }
 .cockpit .sb-group.is-open .sb-group-h { color: var(--sb-text-hi); }
 
-/* Popover suspenso lateral (position fixed pra escapar overflow .sb-body).
-   Top/left calculados via JS no SidebarGroup (getBoundingClientRect). */
-.cockpit .sb-group-popover {
-  /* position fixed + top/left definidos inline pelo JS */
-  min-width: 220px;
-  background: oklch(0.18 0.006 240);
-  border: 1px solid oklch(0.28 0.008 240);
-  border-radius: var(--radius);
-  box-shadow: 0 12px 32px -8px rgba(0,0,0,.5), 0 4px 8px -2px rgba(0,0,0,.3);
-  padding: 6px;
-  z-index: 1000;
+/* Inline accordion body — items renderizam direto abaixo do header
+   quando grupo está expandido (Wagner 2026-05-05: voltou inline). */
+.cockpit .sb-group-body {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  animation: sbGroupPopoverIn 160ms ease-out;
-  font-family: var(--font-sans);
+  padding: 2px 4px 6px;
 }
 @keyframes sbGroupPopoverIn {
   from { opacity: 0; transform: translateX(-6px); }

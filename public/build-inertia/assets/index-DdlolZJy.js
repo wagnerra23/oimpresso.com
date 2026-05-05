@@ -1,1 +1,0 @@
-import{r as o}from"./app-cC6StE2n.js";import{u as n}from"./index-DupPbl25.js";function p(a,e=globalThis==null?void 0:globalThis.document){const t=n(a);o.useEffect(()=>{const r=s=>{s.key==="Escape"&&t(s)};return e.addEventListener("keydown",r,{capture:!0}),()=>e.removeEventListener("keydown",r,{capture:!0})},[t,e])}export{p as u};
