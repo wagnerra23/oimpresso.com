@@ -9,10 +9,11 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRightLeft, BarChart3, Bell, Bot, Box, Calculator, Calendar, Check,
-  ChevronDown, ChevronRight, ChevronUp, ClipboardList, CreditCard, FileSearch,
-  FileText, Hash, Home, Inbox, Keyboard, LogOut, MessageSquare, Monitor, Moon,
-  Package, PackageCheck, Plug, Receipt, Rocket, Search, Settings, ShieldAlert,
-  ShieldCheck, ShoppingCart, Sun, UserCog, Users, Utensils, User, Wallet,
+  ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
+  FileSearch, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
+  MessageSquare, Monitor, Moon, Package, PackageCheck, Plug, Receipt, Rocket,
+  Search, Settings, ShieldAlert, ShieldCheck, ShoppingCart, Sun, UserCog,
+  Users, Utensils, User, Wallet,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -48,7 +49,9 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'gerenciamento de usuários': Users,
   hrm: UserCog,
   essenciais: Box,
+  ponto: Clock,
   'team mcp': Rocket,
+  projeto: FolderKanban,
   nfse: FileText,
   'nf-e brasil': FileText,
 };
@@ -73,7 +76,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'office',
     label: 'OFFICEIMPRESSO',
-    items: ['Iniciar', 'Início', 'Home', 'Dashboard', 'Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos'],
+    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos'],
   },
   {
     key: 'fin',
@@ -93,17 +96,22 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'rh',
     label: 'RH',
-    items: ['HRM', 'Essenciais'],
+    items: ['HRM', 'Essenciais', 'Ponto'],
+  },
+  {
+    key: 'produtividade',
+    label: 'PRODUTIVIDADE',
+    items: ['Projeto', 'Team MCP'],
   },
   {
     key: 'rel',
     label: 'RELATÓRIOS',
-    items: ['Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
+    items: ['Iniciar', 'Início', 'Home', 'Dashboard', 'Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
   },
   {
     key: 'ia',
-    label: 'IA & PRODUTIVIDADE',
-    items: ['Copiloto', 'ADS', 'Conector', 'CRM', 'Crm', 'Team MCP'],
+    label: 'IA',
+    items: ['Copiloto', 'ADS', 'CRM', 'Crm'],
   },
   {
     key: 'config',

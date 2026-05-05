@@ -11,7 +11,7 @@
 */
 
 return [
-    'module_label'       => 'Ponto WR2',
+    'module_label'       => 'Ponto',
     'module_description' => 'Ponto Eletrônico · Portaria MTP 671/2021',
 
     'menu' => [
