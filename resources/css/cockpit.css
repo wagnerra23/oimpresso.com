@@ -394,10 +394,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Rodapé usuário — 1-linha estilo Claude Desktop (UI-0011, refinement 2026-05-05) */
+/* Rodapé usuário — compacto 2-linhas (UI-0011 refinement 2026-05-05).
+   Avatar pequeno preserva minimalismo; cargo volta como linha secundária
+   (Wagner pediu 2026-05-05). Tipografia IBM Plex Sans canon Cowork. */
 .cockpit .sb-user {
   border-top: 1px solid var(--sb-border);
-  padding: 5px 6px;
+  padding: 6px;
   position: relative;
 }
 .cockpit .sb-user-btn {
@@ -406,22 +408,21 @@
   background: transparent;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: 5px;
+  gap: 9px;
+  padding: 6px 8px;
+  border-radius: 6px;
   cursor: pointer;
   width: 100%;
   color: inherit;
-  font: inherit;
-  line-height: 1;
+  font-family: var(--font-sans);
 }
 .cockpit .sb-user-btn:hover { background: var(--sb-hover); }
 .cockpit .sb-user-btn .avatar {
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   border-radius: 50%;
   background: linear-gradient(135deg, oklch(0.65 0.12 30), oklch(0.55 0.15 10));
   color: #fff;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   display: grid; place-items: center;
   flex: 0 0 auto;
@@ -431,7 +432,7 @@
   content: "";
   position: absolute;
   right: -1px; bottom: -1px;
-  width: 7px; height: 7px;
+  width: 8px; height: 8px;
   background: oklch(0.72 0.18 145);
   border: 1.5px solid var(--sb-bg);
   border-radius: 50%;
@@ -440,25 +441,29 @@
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
+  line-height: 1.2;
+}
+.cockpit .sb-user-btn .who b {
+  display: block;
+  color: var(--sb-text-hi);
+  font-weight: 600;
+  font-size: 12.5px;
+  font-family: var(--font-sans);
+  letter-spacing: -0.005em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.cockpit .sb-user-btn .who b {
-  display: inline;
-  color: var(--sb-text-hi);
-  font-weight: 500;
-  font-size: 12.5px;
-}
 .cockpit .sb-user-btn .who small {
-  display: inline;
+  display: block;
   color: var(--sb-text-dim);
-  font-size: 11px;
+  font-size: 10.5px;
+  font-family: var(--font-sans);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.cockpit .sb-user-btn .who small::before { content: "· "; }
 .cockpit .sb-user-btn .chev { width: 12px; height: 12px; opacity: 0.5; flex: 0 0 auto; }.cockpit .user-menu {
   position: absolute;
   bottom: calc(100% + 6px);
