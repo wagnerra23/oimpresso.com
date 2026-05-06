@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * ADR 0090 — Tabela rename copiloto_* → jana_* (PR-9 da Fase 3.7).
+ * ADR 0092 — Tabela rename copiloto_* → jana_* (PR-9 da Fase 3.7).
  *
  * Renomeia 13 tabelas + cria 13 views legacy (drop planejado 2026-06-05).
  * Operação metadata-only no InnoDB; FKs intra-Jana preservadas automaticamente.

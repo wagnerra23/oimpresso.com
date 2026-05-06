@@ -6,7 +6,7 @@ contains:
   - "ChatController — UI chat principal"
   - "DashboardController — resumo executivo"
   - "Services/Memoria/* — recall hybrid (Hyde, Reranker, Meilisearch)"
-  - "Entities/jana_memoria_* — memória persistente do business (rename ADR 0090)"
+  - "Entities/jana_memoria_* — memória persistente do business (rename ADR 0092)"
   # Custos / Qualidade
   - "Admin/CustosController — dashboard custos LLM"
   - "Admin/QualidadeController — qualidade RAG/memória (RAGAS)"
@@ -56,7 +56,7 @@ db_tables_owned:
   - jana_negative_cache
 db_tables_legacy_views:
   # Views compat 30d criadas pela migration 2026_05_06_120000_rename_copiloto_tables_to_jana
-  # Drop planejado: 2026-06-05 (ADR 0090)
+  # Drop planejado: 2026-06-05 (ADR 0092)
   - copiloto_metas (view)
   - copiloto_meta_periodos (view)
   - copiloto_meta_fontes (view)
@@ -117,7 +117,7 @@ Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-onl
 
 1 controller a migrar (Admin/GovernancaController vai pra Modules/Governance em Fase 5). Os 5 drift controllers anteriores (MemoriaController, FontesController, Mcp/CcIngest, Mcp/Health, Mcp/SyncMemoryWebhook) foram **resolvidos em Fase 3.7 PR-1** (2026-05-06).
 
-Rename Copiloto→Jana **completado em Fase 3.7 PR-2** (2026-05-06). Tabelas DB renomeadas em **PR-9 (2026-05-06)** (ADR 0090): 13 tabelas `copiloto_*` → `jana_*` com views legacy 30d (drop planejado 2026-06-05).
+Rename Copiloto→Jana **completado em Fase 3.7 PR-2** (2026-05-06). Tabelas DB renomeadas em **PR-9 (2026-05-06)** (ADR 0092): 13 tabelas `copiloto_*` → `jana_*` com views legacy 30d (drop planejado 2026-06-05).
 
 ---
 
@@ -126,4 +126,4 @@ Rename Copiloto→Jana **completado em Fase 3.7 PR-2** (2026-05-06). Tabelas DB 
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. Drift atual documentado. Rename Jana mapeado pra Fase 3.7.
 - **v1.1.0** (2026-05-06) — Fase 3.7 PR-1: 5 drift controllers movidos pros donos corretos (KB/TeamMcp). URLs mantidas pra zero break.
 - **v1.2.0** (2026-05-06) — Fase 3.7 PR-2: rename PHP-only Copiloto→Jana. Pasta + namespace + ServiceProvider class + module.json + composer.json renomeados. URLs, permissions, config keys, log channels, Pages React e lang mantidos legacy `copiloto.*` por compatibilidade.
-- **v1.3.0** (2026-05-06) — Fase 3.7 PR-9 (ADR 0090): rename DB tables `copiloto_*` → `jana_*` (13 tabelas) + classe Eloquent `CopilotoMemoriaFato` → `MemoriaFato`. Views legacy `copiloto_*` criadas como fallback ad-hoc 30 dias (drop 2026-06-05). FKs intra-Jana preservadas pelo `RENAME TABLE`. Migrations originais não tocadas (append-only). Pós-deploy: `composer dump-autoload` + `php artisan scout:import "Modules\Jana\Entities\MemoriaFato"`.
+- **v1.3.0** (2026-05-06) — Fase 3.7 PR-9 (ADR 0092): rename DB tables `copiloto_*` → `jana_*` (13 tabelas) + classe Eloquent `CopilotoMemoriaFato` → `MemoriaFato`. Views legacy `copiloto_*` criadas como fallback ad-hoc 30 dias (drop 2026-06-05). FKs intra-Jana preservadas pelo `RENAME TABLE`. Migrations originais não tocadas (append-only). Pós-deploy: `composer dump-autoload` + `php artisan scout:import "Modules\Jana\Entities\MemoriaFato"`.

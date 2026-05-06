@@ -7,6 +7,95 @@
 
 ---
 
+## 🆕 Estado pós-2026-05-06 fim-tarde — PR #111 (PR-9: rename DB tabelas Jana)
+
+> Sessão Claude focada exclusivamente em PR-9 do ADR 0088 (rename tabelas DB). Mergeou após o burst Capterra-driven (estado anterior abaixo).
+
+### Entregue
+
+**[PR #111](https://github.com/wagnerra23/oimpresso.com/pull/111) — squash merge `196865cf`** — 13 tabelas Jana renomeadas `copiloto_*` → `jana_*` + 13 views legacy 30d (drop planejado **2026-06-05**) + 1 classe Eloquent renomeada (`CopilotoMemoriaFato` → `MemoriaFato`).
+
+| Item | Status |
+|---|---|
+| Migration `2026_05_06_120000_rename_copiloto_tables_to_jana` | ✅ idempotente (Schema::rename + CREATE OR REPLACE VIEW MySQL-gated) |
+| 11 Models `protected $table = 'jana_*'` + `searchableAs() = 'jana_memoria_facts'` | ✅ |
+| ~30 calls `DB::table('copiloto_*')` → `DB::table('jana_*')` | ✅ services/commands/controllers/tools/listeners/seeders/tests |
+| Config Jana default index Meilisearch | ✅ `jana_memoria_facts` |
+| FKs intra-Jana | ✅ preservadas pelo `RENAME TABLE` InnoDB |
+
+### ADR 0092 (renumerada de 0090)
+
+[**ADR 0092**](decisions/0092-tabela-rename-copiloto-para-jana.md) — superseding `§DB` do [ADR 0088](decisions/0088-module-rename-php-only.md).
+
+**Conflito monotônico:** minha branch `claude/vigilant-joliot-eb50cd` nasceu de `0e0c35f1` (RUNBOOK semanal) e em paralelo Wagner mergeou ADR 0089 + 0090-nfe + 0091-daily-brief. Após squash merge do PR #111, ficaram **2 arquivos com prefixo 0090**. [ADR 0028](decisions/0028-adrs-numeracao-monotonica.md) proíbe. Solução aplicada: `git mv 0090-tabela-rename → 0092-tabela-rename` + bulk update em 8 arquivos (frontmatter slug+number, ADR 0088 superseded_by_section.db, SCOPE.md Jana, MODULE-DRIFT-MIGRATION-PLAN, RUNBOOK-MEMORIA-SEMANAL, session log, 2 Models, migration docblock).
+
+### Mantidos legacy (NÃO mexido — fachada ADR 0088)
+
+- URLs `/copiloto/*`, permissions `copiloto.*`, config keys/env vars `COPILOTO_*`, log channel `copiloto-ai`, Pages React `Pages/Copiloto/`, lang `copiloto::`, route names
+- `DataController.copiloto_module` (chave de menu)
+- Migrations originais `2026_04_*` (append-only — criam `copiloto_*` antes do RENAME na ordem cronológica)
+
+### 📋 Pós-deploy obrigatório (Hostinger)
+
+```bash
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
+  'cd domains/oimpresso.com/public_html && \
+   git pull origin main && \
+   composer dump-autoload && \
+   php artisan migrate --no-interaction && \
+   php artisan scout:import "Modules\\Jana\\Entities\\MemoriaFato" && \
+   php artisan optimize:clear'
+```
+
+Smoke prod (HTTP 200 esperado): `/copiloto/chat`, `/copiloto/admin/qualidade`, `/copiloto/admin/custos`.
+
+Janela de downtime ~30s entre `migrate` e `optimize:clear`. Aceita pelo Wagner (decisão (c) do PR-9).
+
+### Aprendizados de workflow gh + worktree (apply-once)
+
+`gh pr merge --delete-branch` falha em worktrees Claude porque tenta `git checkout main` localmente, mas `main` já está em outra worktree (`D:/oimpresso.com`). Solução adotada (alias permanente):
+
+```bash
+gh alias set merge-squash 'pr merge --squash'
+# uso: gh merge-squash <num>  → merge no remote, sem touch local
+git push origin --delete <branch>     # cleanup remoto
+# Cleanup worktree Claude (rodar de outro terminal, não do shell Claude):
+git worktree remove --force .\.claude\worktrees\<random>
+git worktree prune
+```
+
+### Próxima sessão (P0)
+
+1. **Validação local** (~5min): `php bin/check-scope.php` + `./vendor/bin/pest tests/Feature/Modules/Copiloto/ --no-coverage`
+2. **Deploy Hostinger** PR-9 (cmds acima)
+3. **Cleanup worktree** `vigilant-joliot-eb50cd` no terminal real
+4. Voltar pro CYCLE-01 (vence 12-mai, 6 dias):
+   - **COPI-22** P0 (driver MCP Copiloto, vencia 06-mai)
+   - **Goal #3** Dashboard `/copiloto/admin/custos`
+5. **2026-06-05** — drop views legacy `copiloto_*` (ADR sub-decisão futura ou comando `php artisan jana:drop-legacy-views`)
+
+### Tabelas renomeadas (referência rápida)
+
+```
+copiloto_metas              → jana_metas
+copiloto_meta_periodos      → jana_meta_periodos
+copiloto_meta_fontes        → jana_meta_fontes
+copiloto_meta_apuracoes     → jana_meta_apuracoes
+copiloto_conversas          → jana_conversas
+copiloto_mensagens          → jana_mensagens
+copiloto_sugestoes          → jana_sugestoes
+copiloto_memoria_facts      → jana_memoria_facts
+copiloto_memoria_metricas   → jana_memoria_metricas
+copiloto_memoria_gabarito   → jana_memoria_gabarito
+copiloto_cache_semantico    → jana_cache_semantico
+copiloto_business_profile   → jana_business_profile
+copiloto_negative_cache     → jana_negative_cache
+```
+
+Session log: [memory/sessions/2026-05-06-pr-9-tabela-rename-copiloto-jana.md](sessions/2026-05-06-pr-9-tabela-rename-copiloto-jana.md)
+
+---
+
 ## 🆕 Estado pós-2026-05-06 noite — Capterra-driven Module Evolution + 7 US no backlog + foundation NfeBrasil
 
 > Sessão maratona Opus 4.7 (1M context). **24 commits** em main entre `01f69869` e `0b73514f`. Densidade altíssima. Use `/continuar` na próxima sessão pra retomar.
