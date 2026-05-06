@@ -56,8 +56,10 @@ Route::group(
         Route::resource('/metas.periodos',                 'PeriodosController', ['only' => ['store', 'update', 'destroy']]);
 
         // ---- Fontes (aninhado em meta, permissão restrita) -----------------
-        Route::get('/metas/{id}/fonte',                    'FontesController@show')->name('copiloto.fontes.show');
-        Route::patch('/metas/{id}/fonte',                  'FontesController@update')->name('copiloto.fontes.update');
+        // FontesController migrado pra Modules/KB em Fase 3.7 (drift resolution).
+        // URL mantém /copiloto/metas/{id}/fonte.
+        Route::get('/metas/{id}/fonte',                    [\Modules\KB\Http\Controllers\FontesController::class, 'show'])->name('copiloto.fontes.show');
+        Route::patch('/metas/{id}/fonte',                  [\Modules\KB\Http\Controllers\FontesController::class, 'update'])->name('copiloto.fontes.update');
 
         // ---- Alertas -------------------------------------------------------
         Route::get('/alertas',                             'AlertasController@index')->name('copiloto.alertas.index');
@@ -65,9 +67,11 @@ Route::group(
         Route::patch('/alertas/config',                    'AlertasController@updateConfig')->name('copiloto.alertas.config.update');
 
         // ---- Memória (tela "O Copiloto lembra de você", LGPD US-COPI-MEM-012) -
-        Route::get('/memoria',                             'MemoriaController@index')->name('copiloto.memoria.index');
-        Route::patch('/memoria/{id}',                      'MemoriaController@update')->name('copiloto.memoria.update');
-        Route::delete('/memoria/{id}',                     'MemoriaController@destroy')->name('copiloto.memoria.destroy');
+        // MemoriaController migrado pra Modules/KB em Fase 3.7 (drift resolution).
+        // URL mantém /copiloto/memoria.
+        Route::get('/memoria',                             [\Modules\KB\Http\Controllers\MemoriaController::class, 'index'])->name('copiloto.memoria.index');
+        Route::patch('/memoria/{id}',                      [\Modules\KB\Http\Controllers\MemoriaController::class, 'update'])->name('copiloto.memoria.update');
+        Route::delete('/memoria/{id}',                     [\Modules\KB\Http\Controllers\MemoriaController::class, 'destroy'])->name('copiloto.memoria.destroy');
 
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('copiloto.superadmin.metas');
@@ -152,11 +156,13 @@ Route::group(
 //   GET  /api/mcp/health       — status básico do server
 // Autenticados (Bearer mcp_*):
 //   GET  /api/mcp/health/auth  — info do user/token autenticado
+// Controllers migrados pra Modules/TeamMcp em Fase 3.7 (drift resolution).
+// URLs mantêm /api/mcp/* — só o namespace prefix mudou.
 Route::group(
     [
         'middleware' => ['api'],
         'prefix'     => 'api/mcp',
-        'namespace'  => 'Modules\Copiloto\Http\Controllers\Mcp',
+        'namespace'  => 'Modules\TeamMcp\Http\Controllers\Mcp',
     ],
     function () {
         // Públicos
@@ -175,11 +181,12 @@ Route::group(
 
 // MEM-CC-1 (ADR 0053 + SPEC-cc-sessions) — Endpoint ingest pra watcher Node
 //   POST /api/cc/ingest  — Bearer mcp_*  — payload {session, messages}
+// CcIngestController migrado pra Modules/TeamMcp em Fase 3.7 (URL mantida).
 Route::group(
     [
         'middleware' => ['api', 'mcp.auth'],
         'prefix'     => 'api/cc',
-        'namespace'  => 'Modules\Copiloto\Http\Controllers\Mcp',
+        'namespace'  => 'Modules\TeamMcp\Http\Controllers\Mcp',
     ],
     function () {
         Route::post('/ingest', 'CcIngestController@ingest')

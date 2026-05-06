@@ -1,7 +1,7 @@
 <?php
 
 use Modules\Copiloto\Contracts\MemoriaContrato;
-use Modules\Copiloto\Http\Controllers\MemoriaController;
+use Modules\KB\Http\Controllers\MemoriaController;
 use Modules\Copiloto\Services\Memoria\NullMemoriaDriver;
 
 /**

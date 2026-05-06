@@ -4,9 +4,9 @@ title: "Plano consolidado de migração de drift entre módulos"
 type: governance-spec
 authority: canonical
 lifecycle: ativo
-version: 1.0.0
+version: 1.1.0
 maintained_by: wagner
-last_updated: 2026-05-05
+last_updated: 2026-05-06
 charter_adr: 0080
 related:
   - 0079-constituicao-oimpresso-7-camadas-governanca
@@ -171,3 +171,4 @@ Critérios de "Fase 3.7 concluída":
 ## Histórico
 
 - **v1.0.0** (2026-05-05) — Plano inicial. 10 drift controllers mapeados. Renomeações + depreciações sequenciadas. GUARDA implementação iniciada.
+- **v1.1.0** (2026-05-06) — **Fase 3.7 PR-1 executada.** 9 dos 10 drift controllers movidos pros donos corretos (#1..#5 + #7..#10 da tabela §1). URLs **mantidas** (zero break) via `use` imports atualizadas em Routes/web.php do Copiloto/ADS — namespace prefix dos route groups + tuple `[Class::class, 'method']` apontam pros novos namespaces. SCOPE.md dos 5 módulos afetados (Copiloto/ADS/KB/TeamMcp/ProjectMgmt) com `drift_alerts[]` zerado. **Erratum §1**: o plano original confundiu MemoriaController (Copiloto) com browse de mcp_memory_documents — na verdade é tela LGPD pessoal US-COPI-MEM-012 sobre `copiloto_memoria_facts`. FontesController também é data source de meta de faturamento, não knowledge sources. Wagner confirmou destino KB pra ambos mesmo assim (decisão arquitetural L1, registrada nesta versão). PR-1 NÃO inclui renames Copiloto→Jana / PontoWr2→Ponto / MemCofre→SRS — esses ficam pra **PR-2** separado (URLs mudam aí). **Pendente §1 #6**: GovernancaController fica em Fase 5 (Modules/Governance já existe, mas absorção do controller é decisão separada).

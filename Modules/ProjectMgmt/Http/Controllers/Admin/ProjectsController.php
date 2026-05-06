@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ADS\Http\Controllers\Admin;
+namespace Modules\ProjectMgmt\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

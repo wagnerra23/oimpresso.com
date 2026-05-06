@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Copiloto\Http\Controllers;
+namespace Modules\KB\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
