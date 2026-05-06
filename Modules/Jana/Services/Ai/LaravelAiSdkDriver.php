@@ -472,12 +472,27 @@ class LaravelAiSdkDriver implements AiAdapter
         }
     }
 
+    /**
+     * Sanitiza PII BR antes de enviar pra LLM externo.
+     *
+     * COPI-43 (LGPD-blocker, 2026-05-06): substitui regex inline (cobria só CPF+CNPJ
+     * formatados) por PiiRedactor canônico — agora cobre 5 tipos: CPF, CNPJ, EMAIL,
+     * CEP, PHONE BR (com/sem máscara). 18 tests Pest cobrindo edge cases.
+     *
+     * Flag COPILOTO_PII_REDACT_DISABLE (default false): permite desativar emergencialmente
+     * se causar regressão — mas o redactor é mais conservador (redacta MAIS, não menos).
+     */
     public function mascararDocumentos(string $texto): string
     {
-        $texto = preg_replace('/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/', 'XXX.XXX.XXX-NN', $texto);
-        $texto = preg_replace('/\b\d{2}\.?\d{3}\.?\d{3}\/?0001-?\d{2}\b/', 'XX.XXX.XXX/0001-NN', $texto);
+        if (env('COPILOTO_PII_REDACT_DISABLE', false)) {
+            // Fallback ao regex inline antigo (CPF + CNPJ apenas).
+            $texto = preg_replace('/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/', 'XXX.XXX.XXX-NN', $texto);
+            $texto = preg_replace('/\b\d{2}\.?\d{3}\.?\d{3}\/?0001-?\d{2}\b/', 'XX.XXX.XXX/0001-NN', $texto);
 
-        return $texto;
+            return $texto;
+        }
+
+        return app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($texto);
     }
 
     protected function sanitizarContexto(ContextoNegocio $ctx): ContextoNegocio
