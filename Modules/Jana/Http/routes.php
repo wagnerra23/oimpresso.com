@@ -130,23 +130,33 @@ Route::middleware(['web'])->group(function () {
 });
 
 // ===========================================================================
-// 2) Rotas de instalação 1-clique — prefixo /copiloto/install
+// 2) Rotas de instalação 1-clique — prefixo /jana/install (canônico após rename)
 // ===========================================================================
 // Padrão BaseModuleInstallController + ADR memory/decisions/0023.
 // Disparado pelo /manage-modules (superadmin); roda migrations + seta version.
+//
+// Fix da regressão do PR #97 (Fase 3.7 PR-2): botão Install em /manage-modules
+// usa action(\Modules\Jana\...\InstallController), que precisa pegar o nome
+// novo /jana/install pra ficar consistente com o nome do módulo. URL antiga
+// /copiloto/install/* mantida via 301 redirect logo abaixo.
 Route::group(
     [
         'middleware' => ['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
         'namespace'  => 'Modules\Jana\Http\Controllers',
-        'prefix'     => 'copiloto/install',
+        'prefix'     => 'jana/install',
     ],
     function () {
-        Route::get('/',          'InstallController@index')->name('copiloto.install.index');
-        Route::post('/',         'InstallController@install')->name('copiloto.install.run');
-        Route::get('/uninstall', 'InstallController@uninstall')->name('copiloto.install.uninstall');
-        Route::get('/update',    'InstallController@update')->name('copiloto.install.update');
+        Route::get('/',          'InstallController@index')->name('jana.install.index');
+        Route::post('/',         'InstallController@install')->name('jana.install.run');
+        Route::get('/uninstall', 'InstallController@uninstall')->name('jana.install.uninstall');
+        Route::get('/update',    'InstallController@update')->name('jana.install.update');
     }
 );
+
+// 301 das URLs antigas /copiloto/install/* → /jana/install/* (compat bookmarks)
+Route::redirect('/copiloto/install',           '/jana/install',           301);
+Route::redirect('/copiloto/install/uninstall', '/jana/install/uninstall', 301);
+Route::redirect('/copiloto/install/update',    '/jana/install/update',    301);
 
 // ===========================================================================
 // 3) MCP server endpoints (ADR 0053) — prefixo /api/mcp
