@@ -187,6 +187,11 @@ class CertificadoService
      */
     public function lerCertLegado(int $businessId): ?array
     {
+        // Tabela ausente em testes isolados ou ambiente sem UltimatePOS core.
+        if (! \Illuminate\Support\Facades\Schema::hasTable('business')) {
+            return null;
+        }
+
         $row = DB::table('business')
             ->select(['certificado', 'senha_certificado'])
             ->where('id', $businessId)
