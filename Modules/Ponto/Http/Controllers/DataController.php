@@ -91,7 +91,7 @@ class DataController extends Controller
         $module_util = new ModuleUtil();
 
         if (auth()->user()->can('superadmin')) {
-            $is_ponto_enabled = $module_util->isModuleInstalled('PontoWr2');
+            $is_ponto_enabled = $module_util->isModuleInstalled('Ponto');
         } else {
             $business_id = session()->get('user.business_id');
             $is_ponto_enabled = (bool) $module_util->hasThePermissionInSubscription(
