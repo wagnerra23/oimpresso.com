@@ -8,6 +8,7 @@ contains:
   - "CertificadoController"
   - "TributacaoController — CRUD regras NCM (US-NFE-010 fase 2)"
   - "ConfigDefaultController — Nível 4 cascade (defaults business)"
+  - "ImportRegrasController — import CSV bulk (US-NFE-010 fase 3)"
 db_tables_owned:
   - nfe_certificados
   - nfe_emissoes
