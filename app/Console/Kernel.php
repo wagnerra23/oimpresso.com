@@ -146,6 +146,21 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Sprint 1 — Daily Brief (ADR 0091, camada L7 da Constituição V2).
+        // Gera o brief 6x/dia em horário comercial PT-BR (07/11/14/17/20/23h).
+        // Custo médio: $0.05/run × 6 = $0.30/dia. Cap diário no command.
+        $schedule->command('brief:generate')
+            ->cron('0 7,11,14,17,20,23 * * *')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping(10)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/brief-cron.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule brief:generate FALHOU — mantém snapshot anterior'
+                );
+            });
+
         if ($env === 'demo') {
             //IMPORTANT NOTE: This command will delete all business details and create dummy business, run only in demo server.
             $schedule->command('pos:dummyBusiness')
