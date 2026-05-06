@@ -4,8 +4,8 @@ namespace Modules\KB\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Copiloto\Entities\Meta;
-use Modules\Copiloto\Entities\MetaFonte;
+use Modules\Jana\Entities\Meta;
+use Modules\Jana\Entities\MetaFonte;
 
 /**
  * STUB spec-ready: configuração da fonte de apuração da meta.

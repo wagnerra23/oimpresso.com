@@ -18,7 +18,7 @@ related: [0027, 0053, 0040, 0065]
 pii: false
 review_triggers:
   - "Quando 3+ engines de governança disputarem a mesma tabela de regras → reconsiderar módulo Governance separado"
-  - "Quando TeamMcp ganhar entidades próprias (não depender mais de Modules\\Copiloto\\Entities\\Mcp) → revisitar dependência inversa"
+  - "Quando TeamMcp ganhar entidades próprias (não depender mais de Modules\\Jana\\Entities\\Mcp) → revisitar dependência inversa"
 ---
 
 # ADR 0064 — Modularização — split TeamMcp + KB + Superadmin 360°
@@ -72,7 +72,7 @@ Permissions Spatie **não foram renomeadas** nesta etapa (`copiloto.mcp.memory.m
 - 3+ engines disputando a mesma tabela de regras
 - RBAC Spatie + Policy hardcoded + DSL meta-skills + lifecycle KB ficarem em 4 lugares conflitantes
 
-**Por que dependência inversa TeamMcp → Copiloto é aceitável?** TeamMcp usa `Modules\Copiloto\Entities\Mcp\McpToken/McpQuota/McpTask/McpCcSession/McpCcMessage` e tabelas `mcp_*` (migrations no Copiloto). Não é módulo standalone. Aceitável nesta etapa porque:
+**Por que dependência inversa TeamMcp → Copiloto é aceitável?** TeamMcp usa `Modules\Jana\Entities\Mcp\McpToken/McpQuota/McpTask/McpCcSession/McpCcMessage` e tabelas `mcp_*` (migrations no Copiloto). Não é módulo standalone. Aceitável nesta etapa porque:
 
 - Schema único de tabelas mcp_* serve os 3 módulos (Copiloto + TeamMcp + ADS)
 - Mover Entities pro TeamMcp criaria churn sem ganho claro (rename + redirect classes)

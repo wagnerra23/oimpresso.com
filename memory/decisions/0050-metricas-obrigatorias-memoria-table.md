@@ -73,7 +73,7 @@ Schema final em [`Modules/Copiloto/Database/Migrations/2026_04_29_000001_create_
 - Unique `(apurado_em, business_id)` → upsert idempotente
 - FK `business_id → business.id` cascade delete
 
-Entity: `Modules\Copiloto\Entities\MemoriaMetrica` com scopes `doBusinessOuPlataforma`, `ultimosDias` e helpers `metricasObrigatorias()` / `metricasRagas()`.
+Entity: `Modules\Jana\Entities\MemoriaMetrica` com scopes `doBusinessOuPlataforma`, `ultimosDias` e helpers `metricasObrigatorias()` / `metricasRagas()`.
 
 ---
 

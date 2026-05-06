@@ -1,9 +1,9 @@
 <?php
 
-use Modules\Copiloto\Contracts\MemoriaContrato;
-use Modules\Copiloto\Contracts\MemoriaPersistida;
-use Modules\Copiloto\Services\Memoria\MeilisearchDriver;
-use Modules\Copiloto\Services\Memoria\NullMemoriaDriver;
+use Modules\Jana\Contracts\MemoriaContrato;
+use Modules\Jana\Contracts\MemoriaPersistida;
+use Modules\Jana\Services\Memoria\MeilisearchDriver;
+use Modules\Jana\Services\Memoria\NullMemoriaDriver;
 
 /**
  * Testes da MemoriaContrato — verdade canônica ADRs 0031/0033/0036.
@@ -114,7 +114,7 @@ it('Interface MemoriaContrato exige 5 métodos canônicos', function () {
 });
 
 it('CopilotoMemoriaFato model usa Searchable e SoftDeletes', function () {
-    $model = new \Modules\Copiloto\Entities\CopilotoMemoriaFato();
+    $model = new \Modules\Jana\Entities\CopilotoMemoriaFato();
     $traits = class_uses_recursive($model);
 
     expect($traits)->toContain(\Laravel\Scout\Searchable::class);
@@ -122,12 +122,12 @@ it('CopilotoMemoriaFato model usa Searchable e SoftDeletes', function () {
 });
 
 it('CopilotoMemoriaFato shouldBeSearchable só pra ativos não deletados', function () {
-    $ativo = new \Modules\Copiloto\Entities\CopilotoMemoriaFato([
+    $ativo = new \Modules\Jana\Entities\CopilotoMemoriaFato([
         'business_id' => 4, 'user_id' => 12, 'fato' => 'x',
     ]);
     expect($ativo->shouldBeSearchable())->toBeTrue();
 
-    $superseded = new \Modules\Copiloto\Entities\CopilotoMemoriaFato([
+    $superseded = new \Modules\Jana\Entities\CopilotoMemoriaFato([
         'business_id' => 4, 'user_id' => 12, 'fato' => 'x',
     ]);
     $superseded->valid_until = now();

@@ -104,7 +104,7 @@ Comparativo completo: [memory/comparativos/stack_agente_php_vizra_prism_mem0_cap
 
 **Sprint 1 — Prism PHP swap (resolve GAP 1):**
 - `composer require prism-php/prism`
-- Reescrever `Modules\Copiloto\Services\Ai\OpenAiDirectDriver` como `Modules\Copiloto\Services\Ai\PrismDriver`
+- Reescrever `Modules\Jana\Services\Ai\OpenAiDirectDriver` como `Modules\Jana\Services\Ai\PrismDriver`
 - Switch `OpenAI\Laravel\Facades\OpenAI::chat()->create()` por `Prism::text()->using(...)->withMessages(...)->generate()`
 - Manter `AiAdapter` interface intacta — Prism fica atrás dela
 - Testar com OpenAI primeiro; documentar swap pra Anthropic/Ollama
@@ -115,7 +115,7 @@ Comparativo completo: [memory/comparativos/stack_agente_php_vizra_prism_mem0_cap
 **Sprint 2 — Vizra ADK migration (resolve GAP 2 parcial):**
 - `composer require vizra/vizra-adk`
 - `php artisan vendor:publish --tag=vizra-config && php artisan migrate` (cria `vizra_sessions`, `vizra_messages`, `vizra_traces`)
-- Criar `Modules\Copiloto\Agents\CopilotoAgent` estendendo `Vizra\Agent`
+- Criar `Modules\Jana\Agents\CopilotoAgent` estendendo `Vizra\Agent`
 - Migrar `ChatController@send` pra usar `CopilotoAgent::session($conversaId)->send($mensagem)` em vez de chamar `OpenAiDirectDriver::responderChat()` direto
 - Mapear `copiloto_conversas` → `vizra_sessions` via Observer (ou migrar dados se for limpo)
 - Manter `copiloto_metas`, `copiloto_meta_periodos`, etc — só `Conversa`/`Mensagem` são substituídos por Vizra equivalentes

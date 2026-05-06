@@ -5,7 +5,7 @@ namespace Modules\TeamMcp\Http\Controllers\Mcp;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 
 /**
  * MEM-MCP-1.b (ADR 0053) — Endpoint de health do MCP server.

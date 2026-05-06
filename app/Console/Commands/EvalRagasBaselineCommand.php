@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
-use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Symfony\Component\Yaml\Yaml;
 
 /**

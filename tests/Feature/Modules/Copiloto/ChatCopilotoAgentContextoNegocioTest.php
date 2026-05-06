@@ -1,8 +1,8 @@
 <?php
 
-use Modules\Copiloto\Ai\Agents\ChatCopilotoAgent;
-use Modules\Copiloto\Entities\Conversa;
-use Modules\Copiloto\Support\ContextoNegocio;
+use Modules\Jana\Ai\Agents\ChatCopilotoAgent;
+use Modules\Jana\Entities\Conversa;
+use Modules\Jana\Support\ContextoNegocio;
 
 /**
  * Regressão MEM-HOT-2 (ADR 0047, fix Caminho A do ADR 0046).

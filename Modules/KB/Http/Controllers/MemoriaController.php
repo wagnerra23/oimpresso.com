@@ -5,7 +5,7 @@ namespace Modules\KB\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Modules\Copiloto\Contracts\MemoriaContrato;
+use Modules\Jana\Contracts\MemoriaContrato;
 
 /**
  * MemoriaController — tela "O Copiloto lembra de você" (US-COPI-MEM-012, LGPD).

@@ -1,12 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Queue;
-use Modules\Copiloto\Ai\Agents\ChatCopilotoAgent;
-use Modules\Copiloto\Ai\Agents\ExtrairFatosAgent;
-use Modules\Copiloto\Contracts\MemoriaContrato;
-use Modules\Copiloto\Entities\Conversa;
-use Modules\Copiloto\Jobs\ExtrairFatosDaConversaJob;
-use Modules\Copiloto\Services\Memoria\NullMemoriaDriver;
+use Modules\Jana\Ai\Agents\ChatCopilotoAgent;
+use Modules\Jana\Ai\Agents\ExtrairFatosAgent;
+use Modules\Jana\Contracts\MemoriaContrato;
+use Modules\Jana\Entities\Conversa;
+use Modules\Jana\Jobs\ExtrairFatosDaConversaJob;
+use Modules\Jana\Services\Memoria\NullMemoriaDriver;
 
 /**
  * Sprint 5 — bridge memória↔chat (ADR 0036).

@@ -52,12 +52,12 @@ Comparativos completos:
 
 ## Decisão
 
-**Adotamos `Modules\Copiloto\Contracts\MemoriaContrato` como interface PHP da camada de memória** com `Mem0RestDriver` como implementação default.
+**Adotamos `Modules\Jana\Contracts\MemoriaContrato` como interface PHP da camada de memória** com `Mem0RestDriver` como implementação default.
 
 ### Interface
 
 ```php
-namespace Modules\Copiloto\Contracts;
+namespace Modules\Jana\Contracts;
 
 interface MemoriaContrato
 {

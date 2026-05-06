@@ -2,14 +2,14 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\Mcp\McpAlerta;
-use Modules\Copiloto\Entities\Mcp\McpAuditLog;
-use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
-use Modules\Copiloto\Entities\Mcp\McpQuota;
-use Modules\Copiloto\Entities\Mcp\McpScope;
-use Modules\Copiloto\Entities\Mcp\McpToken;
-use Modules\Copiloto\Entities\Mcp\McpUsageDiaria;
-use Modules\Copiloto\Entities\Mcp\McpUserScope;
+use Modules\Jana\Entities\Mcp\McpAlerta;
+use Modules\Jana\Entities\Mcp\McpAuditLog;
+use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Entities\Mcp\McpQuota;
+use Modules\Jana\Entities\Mcp\McpScope;
+use Modules\Jana\Entities\Mcp\McpToken;
+use Modules\Jana\Entities\Mcp\McpUsageDiaria;
+use Modules\Jana\Entities\Mcp\McpUserScope;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Schema das 9 tabelas mcp_* + casts + scopes.

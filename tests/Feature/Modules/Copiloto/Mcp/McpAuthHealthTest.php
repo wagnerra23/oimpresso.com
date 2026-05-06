@@ -2,9 +2,9 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\Mcp\McpAuditLog;
-use Modules\Copiloto\Entities\Mcp\McpToken;
-use Modules\Copiloto\Http\Middleware\McpAuthMiddleware;
+use Modules\Jana\Entities\Mcp\McpAuditLog;
+use Modules\Jana\Entities\Mcp\McpToken;
+use Modules\Jana\Http\Middleware\McpAuthMiddleware;
 
 /**
  * MEM-MCP-1.b (ADR 0053) — Middleware McpAuth + endpoint /api/mcp/health.
