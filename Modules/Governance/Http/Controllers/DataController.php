@@ -15,8 +15,9 @@ class DataController extends Controller
     public function superadmin_package()
     {
         return [
-            'governance_module' => [
-                'label' => __('governance::governance.governance'),
+            [
+                'name'    => 'governance_module',
+                'label'   => __('governance::governance.governance'),
                 'default' => false,
             ],
         ];
@@ -26,18 +27,18 @@ class DataController extends Controller
     {
         return [
             [
-                'value' => 'governance.dashboard.view',
-                'label' => 'Ver painel de Governança',
+                'value'   => 'governance.dashboard.view',
+                'label'   => 'Ver painel de Governança',
                 'default' => false,
             ],
             [
-                'value' => 'governance.policies.edit',
-                'label' => 'Editar policies (mcp_governance_rules)',
+                'value'   => 'governance.policies.edit',
+                'label'   => 'Editar policies (mcp_governance_rules)',
                 'default' => false,
             ],
             [
-                'value' => 'governance.audit.view',
-                'label' => 'Ver audit log',
+                'value'   => 'governance.audit.view',
+                'label'   => 'Ver audit log',
                 'default' => false,
             ],
         ];
