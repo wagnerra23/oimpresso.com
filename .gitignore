@@ -43,3 +43,7 @@ storage/app/dxt/
 **/caddy
 frankenphp
 frankenphp-worker.php
+
+# RAGAS eval outputs — gerados por scripts, não commitar
+tests/eval/results/*.json
+!tests/eval/results/.gitkeep

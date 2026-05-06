@@ -8,6 +8,14 @@ contains:
   - "CertificadoController"
   - "TributacaoController — CRUD regras NCM (US-NFE-010 fase 2)"
   - "ConfigDefaultController — Nível 4 cascade (defaults business)"
+db_tables_owned:
+  - nfe_certificados
+  - nfe_emissoes
+  - nfe_eventos
+  - nfe_inutilizacoes
+  - nfe_fiscal_rules
+  - nfe_business_configs
+  - nfe_fiscal_rule_tax_rate_links (bridge ADR ARQ-0005)
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/ProjectMgmt"

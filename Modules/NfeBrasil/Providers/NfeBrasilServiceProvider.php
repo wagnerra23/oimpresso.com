@@ -5,9 +5,13 @@ namespace Modules\NfeBrasil\Providers;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\NfeBrasil\Events\FiscalRuleCreated;
+use Modules\NfeBrasil\Events\FiscalRuleDeleted;
+use Modules\NfeBrasil\Events\FiscalRuleUpdated;
 use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Listeners\EmitirNFeAoReceberPagamento;
 use Modules\NfeBrasil\Listeners\EnviarDanfePorEmail;
+use Modules\NfeBrasil\Listeners\SyncFiscalRuleToTaxRate;
 use Modules\RecurringBilling\Events\InvoicePaid;
 
 class NfeBrasilServiceProvider extends ServiceProvider
@@ -35,6 +39,13 @@ class NfeBrasilServiceProvider extends ServiceProvider
         // US-NFE-044: NFe autorizada → envia DANFE PDF + XML por e-mail ao destinatário.
         // Flag default true (recorrência sempre notifica cliente).
         Event::listen(NFeAutorizada::class, EnviarDanfePorEmail::class);
+
+        // ADR ARQ-0005: bridge nfe_fiscal_rules → tax_rates (core UPos compat).
+        // 1 listener handles 3 events via método explícito (não confiável p/ Laravel
+        // discovery automático — registra cada par event→method).
+        Event::listen(FiscalRuleCreated::class, [SyncFiscalRuleToTaxRate::class, 'handleCreated']);
+        Event::listen(FiscalRuleUpdated::class, [SyncFiscalRuleToTaxRate::class, 'handleUpdated']);
+        Event::listen(FiscalRuleDeleted::class, [SyncFiscalRuleToTaxRate::class, 'handleDeleted']);
     }
 
     /**
