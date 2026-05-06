@@ -33,11 +33,14 @@ class Kernel extends ConsoleKernel
 
         }
 
-        // MemCofre — sincroniza memória Claude pra dentro do repo todo dia 23:00.
-        // Renomeado de docvault:sync-memories → memcofre:sync-memories em 2026-04-24
-        // junto com rename DocVault → MemCofre. Scheduler ficou apontando pro nome
-        // antigo até 2026-05-04, causando 40+ arquivos atrasados (drift descoberto
-        // ao auditar 2 fontes de verdade auto-mem ↔ git).
+        // SRS — sincroniza memória Claude pra dentro do repo todo dia 23:00.
+        // Histórico de renames: docvault:sync-memories → memcofre:sync-memories
+        // (2026-04-24, DocVault → MemCofre) → Modules/MemCofre → Modules/SRS
+        // (2026-05-06, Fase 3.7 PR-2). Signature do command mantida `memcofre:*`
+        // por backwards compat (ADR 0088 — rename PHP-only, fachada legacy).
+        // Scheduler ficou apontando pro nome antigo `docvault:*` até 2026-05-04,
+        // causando 40+ arquivos atrasados (drift descoberto ao auditar 2 fontes
+        // de verdade auto-mem ↔ git).
         $schedule->command('memcofre:sync-memories')
             ->dailyAt('23:00')
             ->withoutOverlapping()

@@ -88,8 +88,8 @@ class ModuleRequirementsGenerator
         $md .= "> **Documentação viva.** Foca em _o que o módulo faz de valor pro negócio_,\n";
         $md .= "> separada da spec técnica em `memory/modulos/{$name}.md`.\n";
         $md .= ">\n";
-        $md .= "> Arquivos deste formato são consumidos pelo módulo **MemCofre**\n";
-        $md .= "> (`/docs/modulos/{$name}`) que linka user stories com telas React,\n";
+        $md .= "> Arquivos deste formato são consumidos pelo módulo **SRS**\n";
+        $md .= "> (URL legacy `/memcofre/modulos/{$name}`) que linka user stories com telas React,\n";
         $md .= "> regras Gherkin com testes, e mantém rastreabilidade evidência → requisito.\n\n";
 
         $md .= "## Sumário\n\n";
@@ -207,7 +207,7 @@ class ModuleRequirementsGenerator
         $md .= "---\n";
         $md .= "_Última regeneração: " . now()->format('Y-m-d H:i') . "_  \n";
         $md .= "_Regerar: `php artisan module:requirements {$name}`_  \n";
-        $md .= "_Ver no MemCofre: `/docs/modulos/{$name}`_\n";
+        $md .= "_Ver no SRS: `/memcofre/modulos/{$name}`_\n";
 
         return $md;
     }

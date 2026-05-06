@@ -158,7 +158,7 @@ class GenerateModuleSpecsCommand extends Command
         $md .= "## Regenerar\n\n";
         $md .= "```bash\n";
         $md .= "php artisan module:specs              # todos\n";
-        $md .= "php artisan module:specs PontoWr2     # um só\n";
+        $md .= "php artisan module:specs Ponto        # um só\n";
         $md .= "php artisan module:specs --stdout     # ver sem salvar\n";
         $md .= "```\n";
 
