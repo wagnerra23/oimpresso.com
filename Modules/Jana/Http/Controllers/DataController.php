@@ -101,7 +101,7 @@ class DataController extends Controller
         $module_util = new ModuleUtil();
 
         if (auth()->user()->can('superadmin')) {
-            $is_enabled = $module_util->isModuleInstalled('Copiloto');
+            $is_enabled = $module_util->isModuleInstalled('Jana');
         } else {
             $business_id = session()->get('user.business_id');
             $is_enabled = (bool) $module_util->hasThePermissionInSubscription(

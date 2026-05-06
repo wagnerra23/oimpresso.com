@@ -31,7 +31,7 @@ class DataController extends Controller
             $menu->dropdown(
                 __('memcofre::memcofre.docvault'),
                 function ($sub) {
-                    $sub->url('/docs',                __('memcofre::memcofre.dashboard'),  ['icon' => 'fa fas fa-chart-line']);
+                    $sub->url('/memcofre',            __('memcofre::memcofre.dashboard'),  ['icon' => 'fa fas fa-chart-line']);
                     $sub->url('/memcofre/ingest',         __('memcofre::memcofre.ingest'),     ['icon' => 'fa fas fa-upload']);
                     $sub->url('/memcofre/inbox',          __('memcofre::memcofre.inbox'),      ['icon' => 'fa fas fa-inbox']);
                 },
