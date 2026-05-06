@@ -1,0 +1,53 @@
+name: Scope Guard (anti-drift)
+
+# GUARDA Anti-Drift Constitution Art. 7 — bloqueia PR/push com controllers
+# fora do SCOPE.md.contains[] do módulo.
+#
+# Roda em PRs (modo strict — bloqueia merge) e em push pra main (warning).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Modules/**/Http/Controllers/**.php'
+      - 'Modules/**/SCOPE.md'
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/**/Http/Controllers/**.php'
+      - 'Modules/**/SCOPE.md'
+
+jobs:
+  check-scope:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Run scope guard
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Modo strict (PR) — bloqueia drift"
+            php bin/check-scope.php --strict
+          else
+            echo "Modo dev (push main) — apenas warning"
+            php bin/check-scope.php
+          fi
+
+      - name: Comment on PR (if drift)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ⚠️ Scope Guard detectou drift\n\nUm ou mais controllers neste PR não estão declarados em \`Modules/<X>/SCOPE.md\`.\n\n**Pra resolver:**\n1. Adicione o controller em \`SCOPE.md.contains[]\` do módulo correto\n2. **OU** mova o controller pro módulo correto\n3. **OU** declare em \`drift_alerts[]\` (transitório, com ADR justificando)\n\nDetalhes nos logs do job.\n\n_Constituição Art. 7 — Module Charter (ADR 0079)_`
+            })

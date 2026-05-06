@@ -1,6 +1,10 @@
 ---
 name: criar-modulo
 description: Use ao criar novo módulo Laravel modular (nWidart) no oimpresso — qualquer pasta nova em `Modules/<Nome>/`, ou pedido explícito "criar módulo", "novo módulo", "scaffold módulo". Carrega checklist das 8 peças obrigatórias + 3 rotas admin Install (sem elas botão Install fica sem ação) + padrão `Route::has()` pra link público condicional + pegadinhas. Substitui leitura repetida de ADR 0011 + 0024 + receita ADS/Repair.
+trust_level: L2
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Criar módulo Laravel no Oimpresso ERP

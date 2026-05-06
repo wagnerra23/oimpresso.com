@@ -1,6 +1,10 @@
 ---
 name: oimpresso-mcp-first
 description: ATIVAR antes de Read/Glob/Grep em memory/, ler ADR/session/spec do projeto, buscar conhecimento canônico do oimpresso, criar arquivo em ~/.claude/projects/*/memory/, OU pensar em "vou guardar isso na memória pra lembrar". Lembra: tool MCP primeiro (não filesystem); zero auto-mem privada (ADR 0061 — todo conhecimento vai pra git/MCP).
+trust_level: L2
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Skill: oimpresso-mcp-first

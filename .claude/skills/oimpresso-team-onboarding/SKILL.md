@@ -2,6 +2,10 @@
 name: oimpresso-team-onboarding
 description: Configura ou valida acesso ao MCP server da empresa oimpresso (Wagner/Felipe/Maíra/Luiz/Eliana). Ativa quando dev novo abre Claude Code pela 1ª vez no projeto, ou quando user pede "setup MCP", "configurar acesso à memória do time", "entrar no MCP server oimpresso", "conectar Claude Code ao oimpresso". Também guia Wagner pra adicionar dev novo ao time. Gera/valida `.claude/settings.local.json` automaticamente.
 allowed-tools: Read, Write, Edit, Bash, WebFetch, mcp__oimpresso__*
+trust_level: L2
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Skill — Onboarding Claude Code do time oimpresso

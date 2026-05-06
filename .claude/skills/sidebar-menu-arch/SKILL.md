@@ -1,6 +1,10 @@
 ---
 name: sidebar-menu-arch
 description: Reconhecer, auditar e modificar a arquitetura do sidebar do AppShellV2 — DataController por módulo + agrupamento visual via SIDEBAR_GROUPS no frontend.
+trust_level: L2
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Skill — Arquitetura do Sidebar (AdminSidebarMenu + SIDEBAR_GROUPS)
