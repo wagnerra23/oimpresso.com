@@ -66,11 +66,11 @@ class DashboardController extends Controller
             ->count();
 
         // Compliance score (heurístico — Constitution v1.1.0 Articles 1-10)
-        // Plenamente compliant: 1, 2, 3, 5, 6, 9, 10 = 7
-        // Parcial: 4, 7 = 2
-        // Pendente: 8 (Fase 5 — esta UI é o início) = 1
-        $complianceScore = round(7 * 10 / 10) + round(2 * 5 / 10) + 0; // = 80
-        $compliancePct = (int) $complianceScore;
+        // Plenamente compliant: 1, 2, 3, 5, 6, 9, 10 = 7 articles × 10pts = 70
+        // Parcial: 4, 7 = 2 articles × 5pts = 10
+        // Pendente: 8 (ActionGate Fase 5 ainda em warn) = 0
+        // Total: 80/100 = 80%
+        $compliancePct = (7 * 10) + (2 * 5) + 0; // = 80
 
         return Inertia::render('governance/Dashboard', [
             'kpis' => [
