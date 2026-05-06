@@ -77,9 +77,12 @@ it('preserva nossoNumero como referência', function () {
     expect($result->nossoNumero)->toBeString();
 });
 
-it('cancelar() é no-op e retorna true (C6 sem API)', function () {
-    expect($this->driver->cancelar('any-nosso-numero'))->toBeTrue();
-    expect($this->driver->cancelar('123456', 'ERROR'))->toBeTrue();
+it('cancelar() lança BadMethodCallException com instrução clara (US-RB-042)', function () {
+    expect(fn () => $this->driver->cancelar('any-nosso-numero'))
+        ->toThrow(\BadMethodCallException::class, 'C6Driver::cancelar() não suportado via API');
+
+    expect(fn () => $this->driver->cancelar('123456', 'ERROR'))
+        ->toThrow(\BadMethodCallException::class, 'manualmente no portal C6');
 });
 
 it('pdf() lança exceção pedindo re-emissão com dados originais', function () {

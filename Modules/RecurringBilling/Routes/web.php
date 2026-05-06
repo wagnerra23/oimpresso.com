@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\RecurringBilling\Http\Controllers\InstallController;
+use Modules\RecurringBilling\Http\Controllers\InvoiceController;
 use Modules\RecurringBilling\Http\Controllers\RecurringBillingController;
 
 /*
@@ -23,3 +24,11 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 Route::group([], function () {
     Route::resource('recurringbilling', RecurringBillingController::class)->names('recurringbilling');
 });
+
+// US-RB-042 — cancelamento de invoice via gateway + audit log + permissão
+Route::middleware(['web', 'auth', 'SetSessionData'])
+    ->prefix('financeiro')
+    ->group(function () {
+        Route::post('rb-invoices/{invoice}/cancelar', [InvoiceController::class, 'cancel'])
+            ->name('rb-invoices.cancel');
+    });
