@@ -25,8 +25,10 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Repair\Entities\DeviceModel;
 use Modules\Repair\Entities\RepairStatus;
+use Modules\Repair\Http\Resources\RepairListResource;
 use Modules\Repair\Utils\RepairUtil;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
@@ -423,6 +425,12 @@ class RepairController extends Controller
                       ->make(true);
         }
 
+        // MWART-0001 (Sprint 2) — branch Inertia/React quando flag está ativa
+        // pro business atual. Caminho Blade legacy continua intacto abaixo.
+        if ($this->mwartEnabled('repair_index', (int) $business_id)) {
+            return Inertia::render('Repair/Index', $this->buildInertiaIndexData(request(), (int) $business_id));
+        }
+
         $business_locations = BusinessLocation::forDropdown($business_id, false);
         $customers = Contact::customersDropdown($business_id, false);
         $service_staffs = $this->transactionUtil->serviceStaffDropdown($business_id);
@@ -438,6 +446,204 @@ class RepairController extends Controller
         }
 
         return view('repair::repair.index')->with(compact('business_locations', 'customers', 'service_staffs', 'repair_status_dropdown', 'sales_representative', 'is_service_staff'));
+    }
+
+    /**
+     * MWART-0001 — verifica se flag MWART está habilitada pro business atual.
+     *
+     * Lista vazia em `business_ids` = todos liberados. Lista populada = só os
+     * businesses listados. Permite rollout gradual sem deploy.
+     */
+    private function mwartEnabled(string $key, int $business_id): bool
+    {
+        if (! config("mwart.{$key}.enabled")) {
+            return false;
+        }
+        $beta = (array) config("mwart.{$key}.business_ids", []);
+        return empty($beta) || in_array($business_id, $beta, true);
+    }
+
+    /**
+     * MWART-0001 — monta props pro Inertia::render('Repair/Index', ...).
+     *
+     * Caminho independente da pipeline DataTables AJAX (que continua servindo
+     * o Blade legacy). Mesma origem (`transactions` filtrada por sub_type),
+     * mesmo conjunto de filtros, mesmos joins essenciais; saída paginada via
+     * Resource tipado.
+     *
+     * Permissions: respeita `repair.view` vs `repair.view_own` (mesmo critério
+     * dual created_by OR res_waiter_id que o caminho AJAX em Modules/Repair).
+     */
+    private function buildInertiaIndexData(Request $request, int $business_id): array
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'q'                  => 'nullable|string|max:200',
+            'repair_status_id'   => 'nullable|array',
+            'repair_status_id.*' => 'integer|exists:repair_statuses,id',
+            'contact_id'         => 'nullable|integer|exists:contacts,id',
+            'location_id'        => 'nullable|integer|exists:business_locations,id',
+            'service_staff_id'   => 'nullable|integer|exists:users,id',
+            'start_date'         => 'nullable|date',
+            'end_date'           => 'nullable|date|after_or_equal:start_date',
+            'due_start'          => 'nullable|date',
+            'due_end'            => 'nullable|date|after_or_equal:due_start',
+            'sort'               => 'nullable|in:invoice_no,repair_due_date,transaction_date,final_total,contact_name,repair_status',
+            'dir'                => 'nullable|in:asc,desc',
+            'per_page'           => 'nullable|in:25,50,100',
+            'is_completed'       => 'nullable|in:0,1',
+        ]);
+
+        $businessRaw = $request->session()->get('business');
+        $currencySymbol = $businessRaw['currency_symbol'] ?? $request->session()->get('business.currency_symbol') ?? 'R$';
+
+        $query = \App\Transaction::query()
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'final')
+            ->where('transactions.sub_type', 'repair')
+            ->leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+            ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
+            ->leftJoin('repair_statuses as rs', 'transactions.repair_status_id', '=', 'rs.id')
+            ->leftJoin('users as ss', 'ss.id', '=', 'transactions.res_waiter_id')
+            ->leftJoin('warranties as rw', 'rw.id', '=', 'transactions.repair_warranty_id')
+            ->leftJoin('repair_device_models as rdm', 'rdm.id', '=', 'transactions.repair_model_id')
+            ->select([
+                'transactions.id',
+                'transactions.invoice_no',
+                'transactions.transaction_date',
+                'transactions.repair_due_date',
+                'transactions.repair_status_id',
+                'transactions.repair_serial_no',
+                'transactions.repair_defects',
+                'transactions.final_total',
+                'transactions.payment_status',
+                'transactions.contact_id',
+                'transactions.res_waiter_id',
+                'transactions.location_id',
+                'transactions.created_by',
+                \DB::raw('contacts.name as contact_name'),
+                'rs.name as repair_status_name',
+                'rs.color as repair_status_color',
+                'rs.is_completed_status as is_completed_status',
+                'bl.name as location_name',
+                'ss.first_name as service_staff_first',
+                'ss.last_name as service_staff_last',
+                'rw.name as warranty_name',
+                'rdm.name as device_model_name',
+            ]);
+
+        // Permissions Spatie — espelha caminho AJAX legacy.
+        if (! $user->can('repair.view') && ! $user->can('superadmin') && $user->can('repair.view_own')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('transactions.created_by', $user->id)
+                  ->orWhere('transactions.res_waiter_id', $user->id);
+            });
+        }
+
+        // Permitted locations (UltimatePOS): replica restrição Blade.
+        $permitted = $user->permitted_locations();
+        if ($permitted !== 'all') {
+            $query->whereIn('transactions.location_id', $permitted);
+        }
+
+        // Filtros — todos opcionais, só aplicam quando vêm preenchidos.
+        if (! empty($validated['q'])) {
+            $term = $validated['q'];
+            $query->where(function ($w) use ($term) {
+                $w->where('transactions.invoice_no', 'like', "%{$term}%")
+                  ->orWhere('contacts.name', 'like', "%{$term}%")
+                  ->orWhere('transactions.repair_serial_no', 'like', "%{$term}%");
+            });
+        }
+        if (! empty($validated['repair_status_id'])) {
+            $query->whereIn('transactions.repair_status_id', $validated['repair_status_id']);
+        }
+        if (! empty($validated['contact_id'])) {
+            $query->where('transactions.contact_id', $validated['contact_id']);
+        }
+        if (! empty($validated['location_id'])) {
+            $query->where('transactions.location_id', $validated['location_id']);
+        }
+        if (! empty($validated['service_staff_id'])) {
+            $query->where('transactions.res_waiter_id', $validated['service_staff_id']);
+        }
+        if (! empty($validated['start_date'])) {
+            $query->whereDate('transactions.transaction_date', '>=', $validated['start_date']);
+        }
+        if (! empty($validated['end_date'])) {
+            $query->whereDate('transactions.transaction_date', '<=', $validated['end_date']);
+        }
+        if (! empty($validated['due_start'])) {
+            $query->whereDate('transactions.repair_due_date', '>=', $validated['due_start']);
+        }
+        if (! empty($validated['due_end'])) {
+            $query->whereDate('transactions.repair_due_date', '<=', $validated['due_end']);
+        }
+        if (isset($validated['is_completed']) && $validated['is_completed'] !== '') {
+            $query->where('rs.is_completed_status', (int) $validated['is_completed']);
+        }
+
+        // Ordenação por whitelist
+        $sort = $validated['sort'] ?? 'repair_due_date';
+        $dir  = $validated['dir']  ?? 'asc';
+        $sortMap = [
+            'invoice_no'       => 'transactions.invoice_no',
+            'repair_due_date'  => 'transactions.repair_due_date',
+            'transaction_date' => 'transactions.transaction_date',
+            'final_total'      => 'transactions.final_total',
+            'contact_name'     => 'contacts.name',
+            'repair_status'    => 'rs.name',
+        ];
+        $query->orderBy($sortMap[$sort] ?? 'transactions.repair_due_date', $dir === 'desc' ? 'desc' : 'asc');
+
+        $perPage = (int) ($validated['per_page'] ?? 25);
+        $paginated = $query->paginate($perPage)->withQueryString();
+
+        // Anota campos derivados antes do Resource (evita repetir logica no Resource).
+        $today = now();
+        $paginated->getCollection()->transform(function ($row) use ($today, $currencySymbol) {
+            $row->is_overdue = $row->repair_due_date
+                && $row->repair_due_date->lessThan($today)
+                && (int) ($row->is_completed_status ?? 0) === 0;
+            $row->final_total_formatted = $currencySymbol . ' ' . number_format((float) ($row->final_total ?? 0), 2, ',', '.');
+            return $row;
+        });
+
+        // Totais por status (em-progresso vs completas) pra KPI strip do header.
+        $totals = [
+            'em_andamento' => (clone $query)
+                ->getQuery()
+                ->where(function ($q) {
+                    $q->where('rs.is_completed_status', 0)
+                      ->orWhereNull('rs.is_completed_status');
+                })
+                ->count('transactions.id'),
+            'completas' => (clone $query)
+                ->getQuery()
+                ->where('rs.is_completed_status', 1)
+                ->count('transactions.id'),
+        ];
+
+        return [
+            'repairs'    => RepairListResource::collection($paginated)->response()->getData(true),
+            'filters'    => $validated,
+            'meta'       => [
+                'totals'           => $totals,
+                'repair_statuses'  => RepairStatus::forDropdown($business_id),
+                'service_staff'    => $this->transactionUtil->serviceStaffDropdown($business_id),
+                'business_locations' => BusinessLocation::forDropdown($business_id, false),
+                'currency_symbol'  => $currencySymbol,
+            ],
+            'permissions' => [
+                'create'        => (bool) $user->can('repair.create'),
+                'update'        => (bool) $user->can('repair.update'),
+                'delete'        => (bool) $user->can('repair.delete'),
+                'status_update' => (bool) $user->can('repair_status.update'),
+                'view_all'      => (bool) ($user->can('repair.view') || $user->can('superadmin')),
+            ],
+        ];
     }
 
     /**

@@ -5,6 +5,7 @@ contains:
   - "DataController"
   - "InstallController"
   - "NfeBrasilController"
+  - "CertificadoController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/ProjectMgmt"
