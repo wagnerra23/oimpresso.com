@@ -6,6 +6,8 @@ namespace Modules\NfeBrasil\Services;
 
 use Closure;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -58,7 +60,7 @@ class CertificadoService
             throw new InvalidArgumentException('Certificado não contém cert público — arquivo inválido.');
         }
 
-        $parsed = openssl_x509_parse($info['cert']);
+        $parsed = $this->parseCert($info['cert']);
         if (! $parsed) {
             throw new InvalidArgumentException('Falha ao parsear certificado X.509.');
         }
@@ -144,23 +146,66 @@ class CertificadoService
             ->where('ativo', true)
             ->first();
 
-        if (! $cert) {
-            throw new RuntimeException("Business {$businessId} não tem certificado A1 ativo.");
+        if ($cert) {
+            $diskPath = sprintf('nfe-brasil/%d/cert/%s.pfx.enc', $businessId, $cert->uuid);
+            if (! Storage::exists($diskPath)) {
+                throw new RuntimeException("Arquivo do certificado ausente em disco: {$diskPath}");
+            }
+
+            $encrypted = Storage::get($diskPath);
+            $binary = Crypt::decrypt($encrypted);
+            $senha = Crypt::decryptString($cert->encrypted_password);
+
+            return [
+                'pfx_binary' => $binary,
+                'senha'      => $senha,
+                'valido_ate' => $cert->valido_ate,
+                'source'     => 'nfe_brasil',
+            ];
         }
 
-        $diskPath = sprintf('nfe-brasil/%d/cert/%s.pfx.enc', $businessId, $cert->uuid);
-        if (! Storage::exists($diskPath)) {
-            throw new RuntimeException("Arquivo do certificado ausente em disco: {$diskPath}");
+        // Fallback ADR 0090 — lê do legado business.certificado durante coexistência
+        $legado = $this->lerCertLegado($businessId);
+        if ($legado) {
+            Log::warning('CertificadoService: FALLBACK_LEGACY usado', [
+                'business_id' => $businessId,
+                'todo'        => 'Rode `php artisan nfe:migrate-cert-business ' . $businessId . '` pra subir o cert pra nfe_certificados (encrypted)',
+            ]);
+            return $legado;
         }
 
-        $encrypted = Storage::get($diskPath);
-        $binary = Crypt::decrypt($encrypted);
-        $senha = Crypt::decryptString($cert->encrypted_password);
+        throw new RuntimeException(
+            "Business {$businessId} não tem certificado A1 ativo (nem em nfe_certificados nem em business.certificado legado)."
+        );
+    }
+
+    /**
+     * Lê cert do legado `business.certificado` (BLOB) + `business.senha_certificado` (base64).
+     * Retorna null se ausente. ADR 0090.
+     *
+     * @return array{pfx_binary: string, senha: string, valido_ate: ?\DateTimeInterface, source: string}|null
+     */
+    public function lerCertLegado(int $businessId): ?array
+    {
+        $row = DB::table('business')
+            ->select(['certificado', 'senha_certificado'])
+            ->where('id', $businessId)
+            ->first();
+
+        if (! $row || empty($row->certificado) || empty($row->senha_certificado)) {
+            return null;
+        }
+
+        $senha = base64_decode((string) $row->senha_certificado, true);
+        if ($senha === false) {
+            $senha = (string) $row->senha_certificado;
+        }
 
         return [
-            'pfx_binary' => $binary,
-            'senha'      => $senha,
-            'valido_ate' => $cert->valido_ate,
+            'pfx_binary' => (string) $row->certificado,
+            'senha'      => (string) $senha,
+            'valido_ate' => null,
+            'source'     => 'business_legado',
         ];
     }
 
@@ -193,6 +238,18 @@ class CertificadoService
             );
         }
         return $info;
+    }
+
+    /**
+     * Parseia cert X.509 + retorna subject/validity. Protected pra ser
+     * override-able em testes (openssl_x509_parse é função nativa, não
+     * mockável diretamente).
+     *
+     * @return array|false
+     */
+    protected function parseCert(string $certPem): array|false
+    {
+        return openssl_x509_parse($certPem);
     }
 
     private function extractCnpjFromCN(string $cn): ?string
