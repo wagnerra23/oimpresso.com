@@ -22,10 +22,17 @@ use Illuminate\Support\Facades\Log;
  * nunca pode quebrar o chat.
  *
  * Threshold configurável via copiloto.hits.core_memory_threshold (default 5).
+ *
+ * ## Multi-tenant (defesa de segurança 2026-05-06)
+ *
+ * `$businessId` é OBRIGATÓRIO. Todas as queries escopam por business_id pra
+ * impedir cross-tenant fact incrementing — se um ID de fato vazar entre tenants
+ * via bug em outro lugar (recall, cache compartilhado, etc.), o tracker NÃO
+ * incrementa o contador do tenant errado. Skill `multi-tenant-patterns`.
  */
 class HitTrackerService
 {
-    public function registrarUso(array $fatoIds): void
+    public function registrarUso(int $businessId, array $fatoIds): void
     {
         if (empty($fatoIds)) {
             return;
@@ -35,8 +42,9 @@ class HitTrackerService
             $threshold = (int) config('copiloto.hits.core_memory_threshold', 5);
             $now = now();
 
-            // Incrementa hits e atualiza timestamp
+            // Incrementa hits e atualiza timestamp — escopo multi-tenant
             DB::table('jana_memoria_facts')
+                ->where('business_id', $businessId)
                 ->whereIn('id', $fatoIds)
                 ->whereNull('deleted_at')
                 ->update([
@@ -45,8 +53,9 @@ class HitTrackerService
                     'updated_at'    => $now,
                 ]);
 
-            // Promove a core_memory quem atingiu o threshold
+            // Promove a core_memory quem atingiu o threshold — escopo multi-tenant
             $promovidos = DB::table('jana_memoria_facts')
+                ->where('business_id', $businessId)
                 ->whereIn('id', $fatoIds)
                 ->where('hits_count', '>=', $threshold)
                 ->where('core_memory', false)
@@ -55,18 +64,21 @@ class HitTrackerService
 
             if ($promovidos->isNotEmpty()) {
                 DB::table('jana_memoria_facts')
+                    ->where('business_id', $businessId)
                     ->whereIn('id', $promovidos)
                     ->update(['core_memory' => true, 'updated_at' => $now]);
 
                 Log::channel('copiloto-ai')->info('HitTracker: core_memory promovidos', [
-                    'ids' => $promovidos->all(),
-                    'count' => $promovidos->count(),
+                    'business_id' => $businessId,
+                    'ids'         => $promovidos->all(),
+                    'count'       => $promovidos->count(),
                 ]);
             }
 
             Log::channel('copiloto-ai')->debug('HitTracker: hits registrados', [
-                'fato_ids' => $fatoIds,
-                'count'    => count($fatoIds),
+                'business_id' => $businessId,
+                'fato_ids'    => $fatoIds,
+                'count'       => count($fatoIds),
             ]);
         } catch (\Throwable $e) {
             Log::channel('copiloto-ai')->warning('HitTracker: falhou (silente): ' . $e->getMessage());
