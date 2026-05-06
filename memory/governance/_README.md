@@ -105,19 +105,32 @@ Atravessam todas as camadas (cross-cutting):
 
 ---
 
+## Documentos canônicos da governance (esta pasta)
+
+| Doc | Versão | Função |
+|---|---|---|
+| [`CONSTITUTION.md`](CONSTITUTION.md) | v1.1.0 | 10 artigos supremos + §10.4 cascade review |
+| [`TRUST-TIERS.md`](TRUST-TIERS.md) | v1.0.0 | Operacionalização Art. 5 (L0-L4 + actor manifest) |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | v1.0.0 | 30 módulos + renomeações + depreciações + plano Fase 3 |
+| [`ENFORCEMENT.md`](ENFORCEMENT.md) | v1.0.0 | 8 mecanismos NIST/Cedar/OPA × 7 camadas |
+| [`audit-2026-05-05-v1.1.md`](audit-2026-05-05-v1.1.md) | — | Cascade audit cumprindo §10.4 |
+| `srs/` | ⏸️ pasta vazia | System Rules Spec append-only (Fase 3+) |
+| `IDENTITY-MESH.md` | ⏸️ pendente | Operacionaliza Art. 6 (Fase 4) |
+
 ## Estado de implementação (2026-05-05)
 
 | Camada | Status | Próximo passo |
 |---|---|---|
-| L1 Constitution | ✅ existe (versão 1.0) | Wagner valida amanhã |
-| L2 SRS | ⏸️ pasta vazia | criar SRS-0001 (multi-tenancy) primeiro |
-| L3 Trust Tiers | ⏸️ a documentar | TRUST-TIERS.md fase 3 |
-| L4 Identity Mesh | ⏸️ a documentar | IDENTITY-MESH.md + mcp_actors fase 4 |
-| L5 Module Charter | ⏸️ 0/30 SCOPE.md | SCOPE.md nos 6 críticos fase 3 |
-| L6 Policy Gating | ⚠️ tabela existe, sem UI | dashboard governance fase 5 |
-| L7 Audit | ✅ tabela popula; ❌ sem UI | UI fase 5 |
-| Skills (cross-cutting) | ✅ 16 skills + scaffolder + meta-skill | continua organicamente |
-| ADRs (cross-cutting) | ✅ 79 ADRs | continua organicamente |
+| L1 Constitution | ✅ v1.1.0 ratificada (audit cascata aplicada) | Wagner revisa Art 1-10 |
+| L2 SRS | ⏸️ pasta vazia | SRS-0001 (multi-tenancy) na Fase 3 |
+| L3 Trust Tiers | ✅ TRUST-TIERS.md v1.0.0 | mcp_actors precisa criar pra enforcement |
+| L4 Identity Mesh | ⏸️ schema definido em TRUST-TIERS §4 | IDENTITY-MESH.md + mcp_actors (Fase 4) |
+| L5 Module Charter | ⚠️ 1/30 SCOPE.md (ADS seed) | 5 críticos restantes na Fase 3.3 |
+| L6 Policy Gating | ⚠️ mcp_governance_rules existe, ActionGate ausente | Fase 5 |
+| L7 Audit | ⚠️ tabela popula, **trigger imutabilidade ausente (P0)** | Fase 3.x (urgente) + UI Fase 5 |
+| Skills (cross-cutting) | ⚠️ 16 skills, mas 15/16 sem manifest (P1) | batch update Fase 3.2 |
+| ADRs (cross-cutting) | ✅ 80 ADRs | continua organicamente |
+| 8 Mecanismos enforcement | 1/8 implementado | Fases 3.5/3.6/5 |
 
 ---
 
