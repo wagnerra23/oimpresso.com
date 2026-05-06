@@ -175,7 +175,7 @@ it('persiste event_type, business_id e payload completo em pg_webhook_events', f
     expect($row)->not()->toBeNull()
         ->and($row->event_type)->toBe('PAYMENT_OVERDUE')
         ->and($row->business_id)->toBe(77)
-        ->and($row->processed)->toBeFalse()
+        ->and((bool) $row->processed)->toBeFalse() // SQLite retorna int 0; bool cast funciona em SQLite e MySQL
         ->and(json_decode($row->payload, true))->toMatchArray([
             'id' => 'evt_full_payload',
             'event' => 'PAYMENT_OVERDUE',
