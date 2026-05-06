@@ -39,3 +39,7 @@ npm-debug.log
 scripts/tokens.json
 dxt/
 storage/app/dxt/
+
+**/caddy
+frankenphp
+frankenphp-worker.php
