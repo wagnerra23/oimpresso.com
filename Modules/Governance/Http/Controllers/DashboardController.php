@@ -42,9 +42,11 @@ class DashboardController extends Controller
             ->where('enabled', 1)
             ->count();
 
-        // Skills approvals pendentes
-        $skillApprovalsCount = (int) DB::table('mcp_skill_approvals')
-            ->where('status', 'pending')
+        // Skills approvals pendentes — versões em review aguardando approve/reject
+        // Schema: mcp_skill_versions.status enum (draft|review|published|drift_pending|archived)
+        // mcp_skill_approvals registra decision (approve/reject) — pending = sem approval row
+        $skillApprovalsCount = (int) DB::table('mcp_skill_versions')
+            ->where('status', 'review')
             ->count();
 
         // Audit highlights — últimas 24h, status != ok (denied/error/quota_exceeded)
