@@ -51,7 +51,6 @@ class ModuleManagerService
         'nfe'         => 'Financeiro',
         'aiassistance'=> 'IA',
         'jana'        => 'IA',
-        'writebot'    => 'IA',
         'chat'        => 'Comunicação',
         'inboxreport' => 'Comunicação',
         'connector'   => 'Integrações',

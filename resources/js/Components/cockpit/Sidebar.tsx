@@ -82,7 +82,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'office',
     label: 'ACESSOS RÁPIDOS',
-    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar'],
+    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar', 'CRM', 'Crm'],
   },
   {
     key: 'fin',
@@ -107,7 +107,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'conhecimento',
     label: 'CONHECIMENTO',
-    items: ['Cofre de Memórias', 'Base de Conhecimento', 'Planilha'],
+    items: ['Cofre de Memórias', 'SRS', 'Sistema de Regras', 'Base de Conhecimento', 'KB', 'Planilha', 'Notas'],
   },
   {
     key: 'rel',
@@ -117,7 +117,12 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'ia',
     label: 'IA & PRODUTIVIDADE',
-    items: ['Copiloto', 'ADS', 'CRM', 'Crm', 'Team MCP', 'Projeto', 'Project Mgmt'],
+    items: ['Copiloto', 'Jana', 'Projeto', 'Project Mgmt', 'Project'],
+  },
+  {
+    key: 'governanca',
+    label: 'GOVERNANÇA',
+    items: ['Governança', 'Governance', 'ADS', 'Adaptive Decision', 'Team MCP', 'TeamMcp'],
   },
 ];
 
