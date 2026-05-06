@@ -82,6 +82,11 @@ class DataController extends Controller
                 'label'   => 'NF-e Brasil: gerenciar configurações fiscais',
                 'default' => false,
             ],
+            [
+                'value'   => 'nfe.configuracao.manage',
+                'label'   => 'NF-e Brasil: configurar certificado A1',
+                'default' => false,
+            ],
         ];
     }
 
@@ -112,7 +117,8 @@ class DataController extends Controller
         $usuario_pode_ver = auth()->user()->can('superadmin')
             || auth()->user()->can('nfebrasil.access')
             || auth()->user()->can('nfebrasil.emit.manage')
-            || auth()->user()->can('nfebrasil.consult.view');
+            || auth()->user()->can('nfebrasil.consult.view')
+            || auth()->user()->can('nfe.configuracao.manage');
 
         if (! $usuario_pode_ver) {
             return;
@@ -179,6 +185,17 @@ class DataController extends Controller
                                 [
                                     'icon'   => 'fa fas fa-cog',
                                     'active' => request()->segment(2) == 'settings',
+                                ]
+                            );
+                        }
+
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfe.configuracao.manage')) {
+                            $sub->url(
+                                url('/nfe-brasil/configuracao/certificado'),
+                                'Certificado A1',
+                                [
+                                    'icon'   => 'fa fas fa-key',
+                                    'active' => request()->is('nfe-brasil/configuracao/certificado*'),
                                 ]
                             );
                         }

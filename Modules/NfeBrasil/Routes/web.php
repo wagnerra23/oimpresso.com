@@ -28,7 +28,9 @@ Route::group([], function () {
 
 // US-NFE-041 — gerenciamento do certificado A1 (upload + status)
 // Permissão `nfe.configuracao.manage` validada no FormRequest.
-Route::middleware(['web', 'auth', 'SetSessionData'])
+// Stack canônica oimpresso: web + auth + language + timezone + AdminSidebarMenu
+// (mesmo de Modules/Financeiro/Routes/web.php).
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('nfe-brasil/configuracao')
     ->group(function () {
         Route::get('certificado', [CertificadoController::class, 'status'])
