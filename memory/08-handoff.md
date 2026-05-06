@@ -11,7 +11,72 @@
 
 **Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-05 (COPI-40 cache semântico fechado — PR [#94](https://github.com/wagnerra23/oimpresso.com/pull/94) mergeado)
 
-### 🆕 Estado pós-2026-05-05 noite (COPI-40)
+### 🆕 Estado pós-2026-05-06 madrugada (Constituição v1.1.0 + Governance MVP)
+
+**14 commits da maratona 2026-05-05/06** (`b26781d9` → `d8785dbb`):
+
+**Fundação governance:**
+- ✅ **Constituição v1.1.0** — 10 artigos supremos + §10.4 cascade review obrigatória ([memory/governance/CONSTITUTION.md](memory/governance/CONSTITUTION.md))
+- ✅ **7 documentos governance:** _README, CONSTITUTION, TRUST-TIERS, ARCHITECTURE, ENFORCEMENT, IDENTITY-MESH, MODULE-DRIFT-MIGRATION-PLAN, audit-2026-05-05-v1.1
+- ✅ **8 ADRs novas** (0078..0086) + ADR 0077 superseded por 0081
+
+**Identity Mesh operacional:**
+- ✅ Tabela `mcp_actors` + 6 actors seed (Wagner L0, Felipe/Maíra L2, Luiz/Eliana L3, claude-code-wagner-laptop ai_agent L2)
+- ✅ 12 mcp_tokens com `actor_id` correto (backfill aplicado)
+- ✅ McpActor Eloquent + ActorResolver service em Modules/TeamMcp/
+- ✅ MyWorkTool + MyInboxTool resolver atualizado (CT 100 deployed)
+- ✅ `my-work` (sem owner) e `my-inbox` voltaram a funcionar — 30 tasks + 50 unread
+
+**Module Charter:**
+- ✅ 29 SCOPE.md (1 deletado: Writebot) — 100% módulos com charter
+- ✅ GUARDA anti-drift: `bin/check-scope.php` + `.githooks/pre-commit` + GitHub Action
+- ✅ Trigger MySQL append-only `mcp_audit_log` (ADR 0084) — `ponto_marcacoes` já tinha
+
+**Modules/Governance (Fase 5 MVP — backend + frontend completo):**
+- ✅ Scaffold módulo completo (8 peças)
+- ✅ ActionGate middleware (modo warn-only default — calibração 4 semanas)
+- ✅ DashboardController + Pages/governance/Dashboard.tsx (KPIs + ADRs pending + audit highlights + quick actions)
+- ✅ PoliciesController + Policies.tsx (toggle inline rules)
+- ✅ AuditController + Audit.tsx (drill-down filtros período/actor/endpoint/status)
+- ✅ DriftAlertsController + DriftAlerts.tsx (runtime scan + persisted alerts)
+- ✅ Sidebar SIDEBAR_GROUPS reorganizado: novo grupo **GOVERNANÇA** (ADS+TeamMcp+Governance), Jana/SRS preparados pra renames
+
+**Outras entregas:**
+- ✅ Skills 16 (incluindo meta-skill-roi-erp-autonomo) — 14 com manifest trust_level + owner
+- ✅ Comando `php artisan skill:scaffold "<missão>"` valida 4 testes da meta-skill antes de criar
+- ✅ PII Redactor BR (regex CPF/CNPJ/email/telefone/CEP) — Art. 4 LGPD
+- ✅ ADS Project (id=23) + CYCLE-02 (planning) + 6 ADS-1..6 tasks status=done com source_git_sha
+
+**Compliance Constitution v1.1.0: 8/10 plenamente, 2/10 parcial**
+
+| Artigo | Status |
+|---|---|
+| 1 Soberania | ✅ wagner=L0 root |
+| 2 Multi-tenancy | ✅ |
+| 3 Imutabilidade | ✅ ponto_marcacoes + mcp_audit_log triggers |
+| 4 Compliance | ⚠️ PII redactor disponível, falta wire-in nos services externos |
+| 5 Trust Tiers | ✅ 6 actors L0-L4 |
+| 6 Identity Mesh | ✅ mcp_actors + ActorResolver |
+| 7 Module Charter | ✅ 29/29 SCOPE.md + GUARDA |
+| 8 Policy Gating | ⚠️ ActionGate em warn — strict após 4 semanas |
+| 9 Auditoria | ✅ |
+| 10 Evolução | ✅ aplicado v1.0→v1.1 com cascade audit §10.4 |
+
+**P0 próxima sessão (deferred com transparência):**
+
+1. **Fase 3.7 renames** — Copiloto→Jana, PontoWr2→Ponto, MemCofre→SRS, ProjectMgmt→Project + 9 drift controllers (`memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md`). 4-6h sessão dedicada com Pest + 301 redirects + webhook validation.
+2. **ActionGate gradual rollout** em rotas L1+ existentes
+3. **Mode warn → strict** após 4 semanas calibração
+4. **Wagner valida visualmente** `/governance` (UI Inertia em prod após Action build-inertia-auto.yml rodar)
+
+**Pra continuar amanhã:**
+- `/governance` em prod → Painel consolidado (após Inertia build action commitar bundles)
+- `git config core.hooksPath .githooks` → instala GUARDA local
+- Ler `memory/governance/CONSTITUTION.md` v1.1.0
+
+---
+
+### Estado anterior — pós-2026-05-05 noite (COPI-40)
 
 **Entregas:**
 - ✅ **COPI-40 Semantic cache fechado** (status `done`) — implementação já existia em prod via `LaravelAiSdkDriver` (`responderChat` + `responderChatStream`); faltavam testes. PR #94 adicionou 15 tests Pest cobrindo o contrato (37 assertions, 0 regressão).

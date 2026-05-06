@@ -12,7 +12,7 @@
     "Essentials": true,
     "FieldForce": true,
     "Financeiro": true,
-    "Governance": false,
+    "Governance": true,
     "Grow": false,
     "Hms": true,
     "IProduction": false,
