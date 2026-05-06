@@ -159,6 +159,7 @@ D:\oimpresso.com\
 - **Antes de criar/mudar estrutura do módulo**, abra `Modules/Jana/` (ou `Repair`/`Project`) e imite. nWidart v10+ usa `Routes/web.php` + `RouteServiceProvider`.
 - **Identificadores MySQL com mais de 64 chars** — sempre passar nome explícito em índices compostos.
 - **Não suba código para produção sem alertar pré-requisitos e riscos.** Histórico de crashes: 2026-04-18 (scaffold incompatível), 2026-04-19 (PHP 8 em servidor PHP 7.1), 2026-04-21 (módulo desativado após upgrade 6.7). Sempre testar em staging antes de ativar.
+- **Não criar `Modules/X/Tests/{Feature,Unit}/` sem registrar em `phpunit.xml`** — testes ficam no repo mas CI nunca roda → falsa cobertura. Erro recorrente; runbook em [`memory/requisitos/Infra/RUNBOOK-pest-suite.md`](memory/requisitos/Infra/RUNBOOK-pest-suite.md). Antes de commitar primeiro teste de qualquer módulo: `grep -q "Modules/X/Tests" phpunit.xml`.
 
 ---
 
