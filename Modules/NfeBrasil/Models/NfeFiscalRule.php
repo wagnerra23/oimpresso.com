@@ -7,6 +7,9 @@ namespace Modules\NfeBrasil\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\NfeBrasil\Events\FiscalRuleCreated;
+use Modules\NfeBrasil\Events\FiscalRuleDeleted;
+use Modules\NfeBrasil\Events\FiscalRuleUpdated;
 
 /**
  * Regra tributária por (business, ncm, uf_origem, uf_destino?).
@@ -45,5 +48,28 @@ class NfeFiscalRule extends Model
     public function scopeDoBusinessAtual(Builder $q): Builder
     {
         return $q->where('business_id', session('business.id'));
+    }
+
+    /**
+     * Eloquent boot — dispatch dos events que o Listener `SyncFiscalRuleToTaxRate`
+     * (ADR ARQ-0005) consome pra manter `tax_rates` core sincronizada.
+     *
+     * `static::created()` em vez de `creating()` pra ter $rule->id disponível.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::created(function (self $rule) {
+            FiscalRuleCreated::dispatch($rule);
+        });
+
+        static::updated(function (self $rule) {
+            FiscalRuleUpdated::dispatch($rule);
+        });
+
+        static::deleted(function (self $rule) {
+            FiscalRuleDeleted::dispatch($rule->id, (int) $rule->business_id);
+        });
     }
 }
