@@ -5,21 +5,61 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
+use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Listeners\EmitirNFeAoReceberPagamento;
+use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Services\NfeService;
 use Modules\RecurringBilling\Events\InvoicePaid;
+use Modules\RecurringBilling\Models\Invoice;
 
 uses(Tests\TestCase::class);
 
 /**
- * US-RB-044 stub · Listener registrado, emissão real desabilitada por flag.
+ * US-RB-044 fase 2 · Listener Invoice→NFe — pipeline real ligado.
  *
  * Tests garantem:
- *   1. Listener está registrado no event dispatcher (provider faz binding)
- *   2. Quando flag desabilitada, listener loga "DISABLED" e não explode
- *   3. Quando flag habilitada (mas NfeService inexistente), lança LogicException
- *      explicando o que falta — feedback claro pra futuro implementador
- *   4. Listener implementa ShouldQueue + queue 'nfe' (separada de rb_webhooks)
+ *   1. Listener registrado no event dispatcher (provider faz binding)
+ *   2. Flag desabilitada → log + no-op (não toca service)
+ *   3. Flag habilitada + invoice ausente → log warning + no-op (defensivo)
+ *   4. Flag habilitada + invoice presente → service.emitirParaInvoice é chamado
+ *   5. Status autorizada → NFeAutorizada disparado
+ *   6. Status rejeitada → NFeAutorizada NÃO disparado
+ *   7. Listener implementa ShouldQueue + queue 'nfe' + tries=3 + backoff=60
+ *   8. Failed() loga erro estruturado
  */
+
+beforeEach(function () {
+    if (! Schema::hasTable('rb_invoices')) {
+        test()->markTestSkipped('Tabela rb_invoices ausente — rode migrations RecurringBilling antes.');
+    }
+});
+
+afterEach(function () {
+    config(['nfebrasil.auto_emission_on_invoice_paid' => false]);
+});
+
+// ── helpers ───────────────────────────────────────────────────────────────
+
+function fakeNfeServiceQue(NfeEmissao $emissao): NfeService
+{
+    $svc = \Mockery::mock(NfeService::class);
+    $svc->shouldReceive('emitirParaInvoice')->andReturn($emissao);
+    return $svc;
+}
+
+function fakeNfeEmissaoStub(string $status = 'autorizada', string $cstat = '100'): NfeEmissao
+{
+    $emissao = new NfeEmissao;
+    $emissao->id = 1;
+    $emissao->business_id = 4;
+    $emissao->status = $status;
+    $emissao->cstat = $cstat;
+    $emissao->chave_44 = $status === 'autorizada' ? '35210112345678000199550010000000011000000019' : null;
+    return $emissao;
+}
+
+// ── tests ─────────────────────────────────────────────────────────────────
 
 it('listener está registrado no event dispatcher pelo NfeBrasilServiceProvider', function () {
     $listeners = Event::getRawListeners()[InvoicePaid::class] ?? [];
@@ -32,50 +72,127 @@ it('listener está registrado no event dispatcher pelo NfeBrasilServiceProvider'
     expect($hasNfeListener)->toBeTrue();
 });
 
-it('com flag desabilitada (default), apenas loga e retorna sem explodir', function () {
+it('com flag desabilitada (default), apenas loga e retorna sem tocar service', function () {
     config(['nfebrasil.auto_emission_on_invoice_paid' => false]);
+    Log::spy();
+
+    $svc = \Mockery::mock(NfeService::class);
+    $svc->shouldNotReceive('emitirParaInvoice'); // crítico — desabilitado, não toca
+
+    $listener = new EmitirNFeAoReceberPagamento($svc);
+    $listener->handle(new InvoicePaid(
+        businessId: 4, invoiceRef: 'INV-2026-0001', valor: 199.90, paidAt: '2026-05-06',
+    ));
+
+    Log::shouldHaveReceived('info')->withArgs(function ($msg, $ctx) {
+        return str_contains($msg, 'DISABLED') && ($ctx['invoice_ref'] ?? '') === 'INV-2026-0001';
+    });
+});
+
+it('com flag habilitada e invoice ausente: log warning + no-op (não toca service)', function () {
+    config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
+    Log::spy();
+
+    $svc = \Mockery::mock(NfeService::class);
+    $svc->shouldNotReceive('emitirParaInvoice');
+
+    $listener = new EmitirNFeAoReceberPagamento($svc);
+    $listener->handle(new InvoicePaid(
+        businessId: 4, invoiceRef: 'INV-INEXISTENTE-9999', valor: 100, paidAt: '2026-05-06',
+    ));
+
+    Log::shouldHaveReceived('warning')->withArgs(function ($msg, $ctx) {
+        return str_contains($msg, 'Invoice não encontrada')
+            && ($ctx['invoice_ref'] ?? '') === 'INV-INEXISTENTE-9999';
+    });
+});
+
+it('com flag habilitada + invoice presente: chama service.emitirParaInvoice + dispara NFeAutorizada', function () {
+    config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
+
+    $invoice = Invoice::create([
+        'business_id'      => 4,
+        'numero_documento' => 'INV-LISTENER-' . uniqid(),
+        'valor'            => 199.90,
+        'status'           => 'paid',
+        'vencimento'       => now()->toDateString(),
+        'pago_em'          => now(),
+    ]);
+
+    Event::fake([NFeAutorizada::class]);
+
+    $emissao = fakeNfeEmissaoStub('autorizada', '100');
+    $svc = \Mockery::mock(NfeService::class);
+    $svc->shouldReceive('emitirParaInvoice')->once()->with(\Mockery::on(fn ($i) => $i->id === $invoice->id))
+        ->andReturn($emissao);
+
+    $listener = new EmitirNFeAoReceberPagamento($svc);
+    $listener->handle(new InvoicePaid(
+        businessId: 4, invoiceRef: $invoice->numero_documento, valor: 199.90, paidAt: '2026-05-06',
+    ));
+
+    Event::assertDispatched(NFeAutorizada::class, fn ($e) => $e->emissao->status === 'autorizada');
+
+    $invoice->forceDelete();
+});
+
+it('rejeitada: service grava status=rejeitada mas listener NÃO dispara NFeAutorizada', function () {
+    config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
+
+    $invoice = Invoice::create([
+        'business_id'      => 4,
+        'numero_documento' => 'INV-REJ-' . uniqid(),
+        'valor'            => 100,
+        'status'           => 'paid',
+        'vencimento'       => now()->toDateString(),
+        'pago_em'          => now(),
+    ]);
+
+    Event::fake([NFeAutorizada::class]);
+
+    $emissao = fakeNfeEmissaoStub('rejeitada', '225');
+    $svc = \Mockery::mock(NfeService::class);
+    $svc->shouldReceive('emitirParaInvoice')->andReturn($emissao);
+
+    $listener = new EmitirNFeAoReceberPagamento($svc);
+    $listener->handle(new InvoicePaid(
+        businessId: 4, invoiceRef: $invoice->numero_documento, valor: 100, paidAt: '2026-05-06',
+    ));
+
+    Event::assertNotDispatched(NFeAutorizada::class);
+
+    $invoice->forceDelete();
+});
+
+it('Throwable do service é re-throwado pra queue retry (3 tries)', function () {
+    config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
+
+    $invoice = Invoice::create([
+        'business_id'      => 4,
+        'numero_documento' => 'INV-ERR-' . uniqid(),
+        'valor'            => 100,
+        'status'           => 'paid',
+        'vencimento'       => now()->toDateString(),
+        'pago_em'          => now(),
+    ]);
 
     Log::spy();
 
-    $listener = new EmitirNFeAoReceberPagamento();
-    $event = new InvoicePaid(
-        businessId: 4,
-        invoiceRef: 'INV-2026-0001',
-        valor: 199.90,
-        paidAt: '2026-05-06',
-    );
+    $svc = \Mockery::mock(NfeService::class);
+    $svc->shouldReceive('emitirParaInvoice')->andThrow(new \RuntimeException('SEFAZ timeout'));
 
-    // Não deve explodir
-    $listener->handle($event);
+    $listener = new EmitirNFeAoReceberPagamento($svc);
 
-    Log::shouldHaveReceived('info')
-        ->withArgs(function ($message, $context) {
-            return $message === 'NFe emission requested'
-                && ($context['invoice_ref'] ?? '') === 'INV-2026-0001';
-        });
+    expect(fn () => $listener->handle(new InvoicePaid(
+        businessId: 4, invoiceRef: $invoice->numero_documento, valor: 100, paidAt: '2026-05-06',
+    )))->toThrow(\RuntimeException::class, 'SEFAZ timeout');
 
-    Log::shouldHaveReceived('info')
-        ->withArgs(function ($message, $context) {
-            return str_contains($message, 'DISABLED')
-                && ($context['invoice_ref'] ?? '') === 'INV-2026-0001';
-        });
-});
+    Log::shouldHaveReceived('error')->withArgs(function ($msg, $ctx) {
+        return str_contains($msg, 'NFe auto-emission falhou')
+            && str_contains($ctx['error'] ?? '', 'SEFAZ timeout');
+    });
 
-it('com flag habilitada e sem NfeService, lança LogicException explicando o gap', function () {
-    config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
-
-    $listener = new EmitirNFeAoReceberPagamento();
-    $event = new InvoicePaid(
-        businessId: 4,
-        invoiceRef: 'INV-X',
-        valor: 100,
-        paidAt: '2026-05-06',
-    );
-
-    expect(fn () => $listener->handle($event))
-        ->toThrow(\LogicException::class, 'NfeService não implementado');
-
-    config(['nfebrasil.auto_emission_on_invoice_paid' => false]); // reset
+    $invoice->forceDelete();
 });
 
 it('listener implementa ShouldQueue na fila nfe (separada de rb_webhooks)', function () {
@@ -92,10 +209,7 @@ it('event InvoicePaid dispatcha listener via queue (não síncrono)', function (
     config(['nfebrasil.auto_emission_on_invoice_paid' => false]);
 
     event(new InvoicePaid(
-        businessId: 4,
-        invoiceRef: 'INV-Q',
-        valor: 50,
-        paidAt: '2026-05-06',
+        businessId: 4, invoiceRef: 'INV-Q', valor: 50, paidAt: '2026-05-06',
     ));
 
     Queue::assertPushed(\Illuminate\Events\CallQueuedListener::class, function ($job) {
@@ -112,10 +226,9 @@ it('failed() loga erro estruturado pra observabilidade', function () {
 
     $listener->failed($event, $err);
 
-    Log::shouldHaveReceived('error')
-        ->withArgs(function ($message, $context) {
-            return str_contains($message, 'failed após retries')
-                && ($context['invoice_ref'] ?? '') === 'INV-FAILED'
-                && str_contains($context['error'] ?? '', 'SEFAZ timeout');
-        });
+    Log::shouldHaveReceived('error')->withArgs(function ($message, $context) {
+        return str_contains($message, 'failed após retries')
+            && ($context['invoice_ref'] ?? '') === 'INV-FAILED'
+            && str_contains($context['error'] ?? '', 'SEFAZ timeout');
+    });
 });

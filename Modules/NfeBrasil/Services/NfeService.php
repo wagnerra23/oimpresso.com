@@ -8,7 +8,10 @@ use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
+use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Make;
@@ -54,7 +57,156 @@ class NfeService
     public function __construct(
         private readonly CertificadoService $certificadoService,
         private readonly ?Closure $toolsFactory = null,
+        private readonly ?MotorTributarioService $motor = null,
     ) {}
+
+    /**
+     * US-RB-044 fase 2 · Emite NF-e modelo 55 a partir de uma Invoice
+     * de cobrança recorrente.
+     *
+     * Pré-requisitos no business (validados, falham fast):
+     *   1. `nfe_certificados` ativo (CertificadoService)
+     *   2. `nfe_business_configs.tributacao_default.ncm_default` configurado
+     *      — sem isso o motor não sabe qual NCM usar pra Cobrança Recorrente
+     *
+     * Idempotência: usa `transaction_id = invoice.id` (UNIQUE em nfe_emissoes)
+     * — segunda chamada com mesma invoice retorna emissão existente.
+     *
+     * Defensivo com dados ausentes do destinatário (UF/CEP/etc): fallback
+     * pra UF do business (operação interna). Documento (CNPJ/CPF) é único
+     * obrigatório no Contact — se ausente, lança RuntimeException.
+     *
+     * Usa MotorTributarioService (US-NFE-043 cascade ADR ARQ-0006) pra
+     * resolver CFOP/CSOSN/CST/alíquotas. Sem motor = constructor injection
+     * lazy resolve via container.
+     *
+     * @throws RuntimeException Quando ncm_default não configurado, contact
+     *                          ausente, ou invoice sem valor positivo.
+     */
+    public function emitirParaInvoice(Invoice $invoice): NfeEmissao
+    {
+        $businessId = (int) $invoice->business_id;
+
+        // Pré-validações — falham fast antes de tocar SEFAZ
+        if ((float) $invoice->valor <= 0) {
+            throw new RuntimeException(
+                "Invoice {$invoice->numero_documento} sem valor positivo — não emite NF-e."
+            );
+        }
+
+        $contact = $invoice->contact;
+        if (! $contact) {
+            throw new RuntimeException(
+                "Invoice {$invoice->numero_documento} sem contact_id — não há destinatário."
+            );
+        }
+
+        $documentoDest = preg_replace('/\D/', '', (string) ($contact->tax_number ?? ''));
+        if (! in_array(strlen($documentoDest), [11, 14], true)) {
+            throw new RuntimeException(
+                "Contact {$contact->id} sem CPF/CNPJ válido (tax_number)."
+            );
+        }
+
+        $config = NfeBusinessConfig::where('business_id', $businessId)->first();
+        $ncmDefault = (string) ($config?->tributacao_default['ncm_default'] ?? '');
+        if (strlen($ncmDefault) !== 8) {
+            throw new RuntimeException(
+                "Business {$businessId} sem `ncm_default` configurado em nfe_business_configs.tributacao_default — " .
+                "configure NCM padrão pra emissão automática de cobrança recorrente."
+            );
+        }
+
+        $business = DB::table('business')->where('id', $businessId)->first();
+        if (! $business) {
+            throw new RuntimeException("Business {$businessId} não encontrado.");
+        }
+
+        $ufOrigem = $this->resolverUF($business);
+        $ufDestino = strtoupper((string) ($contact->state ?? '')) ?: $ufOrigem;
+        if (! preg_match('/^[A-Z]{2}$/', $ufDestino)) {
+            $ufDestino = $ufOrigem;
+        }
+
+        // MotorTributarioService cascade — ADR ARQ-0006
+        $motor = $this->motor ?? app(MotorTributarioService::class);
+        $tributo = $motor->calcular(
+            new ProdutoFiscalContext(
+                ncm:         $ncmDefault,
+                valor:       (float) $invoice->valor,
+                description: "Cobrança recorrente {$invoice->numero_documento}",
+            ),
+            businessId: $businessId,
+            ufOrigem:   $ufOrigem,
+            ufDestino:  $ufDestino,
+        );
+
+        $dadosNfe = [
+            'transaction_id' => $invoice->id,
+            'nat_op'         => 'COBRANCA RECORRENTE',
+            'dest' => [
+                'nome'         => substr((string) ($contact->supplier_business_name ?: $contact->name), 0, 60),
+                strlen($documentoDest) === 14 ? 'cnpj' : 'cpf' => $documentoDest,
+                'ind_ie_dest'  => '9', // 9 = não contribuinte (default seguro pra recorrência B2C/B2B sem IE)
+                'logradouro'   => substr((string) ($contact->address_line_1 ?? 'NAO INFORMADO'), 0, 60),
+                'numero'       => 'SN',
+                'bairro'       => substr((string) ($contact->address_line_2 ?? 'CENTRO'), 0, 60),
+                'municipio'    => substr((string) ($contact->city ?? 'NAO INFORMADO'), 0, 60),
+                'cod_municipio' => '9999999', // UPos não tem código IBGE — placeholder; SEFAZ rejeita em prod, fix futuro
+                'uf'           => $ufDestino,
+                'cep'          => preg_replace('/\D/', '', (string) ($contact->zip_code ?? '00000000')),
+                'email'        => $contact->email ?? null,
+            ],
+            'dets' => [[
+                'cprod'   => 'INV-' . $invoice->id,
+                'xprod'   => substr((string) "Cobranca recorrente {$invoice->numero_documento}", 0, 120),
+                'ncm'     => $ncmDefault,
+                'cfop'    => $tributo->cfop,
+                'ucm'     => 'UN',
+                'qcom'    => 1.0,
+                'vuncom'  => (float) $invoice->valor,
+                'vprod'   => (float) $invoice->valor,
+                'utrib'   => 'UN',
+                'qtrib'   => 1.0,
+                'vuntrib' => (float) $invoice->valor,
+                'ind_tot' => 1,
+                'icms'    => [
+                    'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
+                    'orig'      => 0,
+                    'vbc'       => 0,
+                    'picms'     => $tributo->aliquota_icms,
+                    'vicms'     => $tributo->valor_icms,
+                ],
+                'pis'     => [
+                    'cst'   => '07', // 07 = isenta — default seguro Simples Nacional
+                    'vbc'   => 0,
+                    'ppis'  => $tributo->aliquota_pis,
+                    'vpis'  => $tributo->valor_pis,
+                ],
+                'cofins'  => [
+                    'cst'      => '07',
+                    'vbc'      => 0,
+                    'pcofins'  => $tributo->aliquota_cofins,
+                    'vcofins'  => $tributo->valor_cofins,
+                ],
+            ]],
+            'total' => [
+                'v_prod'    => (float) $invoice->valor,
+                'v_bc_icms' => 0,
+                'v_icms'    => $tributo->valor_icms,
+                'v_pis'     => $tributo->valor_pis,
+                'v_cofins'  => $tributo->valor_cofins,
+                'v_nf'      => (float) $invoice->valor,
+                'v_desc'    => 0,
+                'v_frete'   => 0,
+            ],
+            'pag'         => [['tpag' => '99', 'vpag' => (float) $invoice->valor]], // 99 = "outros" — gateway info não fica no XML
+            'valor_total' => (float) $invoice->valor,
+            'inf_cpl'     => "Cobranca recorrente referente a {$invoice->numero_documento}.",
+        ];
+
+        return $this->emitir($businessId, $dadosNfe);
+    }
 
     /**
      * Emite NF-e via SEFAZ e persiste resultado em nfe_emissoes.
