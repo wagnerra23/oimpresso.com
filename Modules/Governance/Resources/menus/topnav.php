@@ -5,15 +5,19 @@
  *
  * Aparece sob grupo SIDEBAR_GROUPS = "GOVERNANÇA" no AppShellV2.
  * Constituição Art. 8 + Art. 9 operacional.
+ *
+ * NOTA: skill criar-modulo lembra que LegacyMenuAdapter pode não resolver
+ * traduções (NFSe sempre hardcodou PT-BR). Mantemos i18n keys porque
+ * TeamMcp usa esse pattern e funciona — se quebrar, hardcodar.
  */
 
 return [
-    'label' => 'Governança',
+    'label' => 'governance::governance.module_label',
     'icon'  => 'ShieldCheck',
     'items' => [
-        ['label' => 'Painel',         'href' => '/governance',         'icon' => 'LayoutDashboard', 'can' => 'governance.dashboard.view'],
-        ['label' => 'Policies',       'href' => '/governance/policies', 'icon' => 'Settings',        'can' => 'governance.policies.edit'],
-        ['label' => 'Audit log',      'href' => '/governance/audit',    'icon' => 'Search',          'can' => 'governance.audit.view'],
-        ['label' => 'Drift alerts',   'href' => '/governance/drift',    'icon' => 'AlertTriangle',   'can' => 'governance.dashboard.view'],
+        ['label' => 'governance::governance.menu.dashboard', 'href' => '/governance',         'icon' => 'LayoutDashboard', 'can' => 'governance.dashboard.view'],
+        ['label' => 'governance::governance.menu.policies',  'href' => '/governance/policies', 'icon' => 'Settings',        'can' => 'governance.policies.edit'],
+        ['label' => 'governance::governance.menu.audit',     'href' => '/governance/audit',    'icon' => 'Search',          'can' => 'governance.audit.view'],
+        ['label' => 'governance::governance.menu.drift',     'href' => '/governance/drift',    'icon' => 'AlertTriangle',   'can' => 'governance.dashboard.view'],
     ],
 ];
