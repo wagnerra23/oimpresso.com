@@ -1,289 +1,88 @@
-# CLAUDE.md — Primer para agentes de IA no projeto Oimpresso ERP
+# CLAUDE.md — primer pra Claude Code @ oimpresso
 
-> **Leia este arquivo ANTES de qualquer outro quando abrir este repositório pela primeira vez.**
-> Este é o ponto de entrada oficial para agentes de IA (Claude, Claude Code, Cursor, outros) e para desenvolvedores humanos.
+> **Sempre comece com `mcp__oimpresso__brief-fetch` (skill `brief-first` Tier A always-on).**
+> Documento canônico — mudanças via ADR (ver "Como propor mudança" abaixo).
+> Best-practice 2026: ≤100 linhas + `@imports` recursivos pra detalhes.
 
-> ⚠️ **CONTEXTO DE EXECUÇÃO — leia antes de qualquer ação:**
-> Claude aqui roda como **agente desktop (GUI)**, **NÃO como CLI interativo**.
-> - `gh` **está autenticado** na máquina do Wagner (token `keyring`, validado 2026-05-06). `gh pr create`/`gh pr merge`/`gh pr view` funcionam. Confirme com `gh auth status` antes de assumir o contrário.
-> - Comandos interativos com prompt de stdin (`ssh` com senha digitada, `git rebase -i`, `gh auth login`) **não funcionam** — use alternativas não-interativas (chave SSH, `--no-edit`, flags explícitas) ou oriente o usuário.
-> - Browser Chrome está disponível via `mcp__Claude_in_Chrome__*` (quando a extensão estiver conectada) ou `mcp__computer-use__*` em tier **read** (screenshot only, sem click/type).
-> - Para abrir URLs no browser, use as tools MCP de browser — **nunca tente contornar via shell** (`start`, `xdg-open`, etc.).
+> ⚠️ **CONTEXTO DE EXECUÇÃO:** Claude aqui roda como **agente desktop (GUI)**, NÃO CLI interativo.
+> - `gh` autenticado, `git push`/`gh pr create`/`gh pr merge` funcionam
+> - SSH com senha digitada, `git rebase -i`, `gh auth login` **não funcionam** (sem stdin)
+> - Browser via `mcp__Claude_in_Chrome__*` (tier full) ou `mcp__computer-use__*` (tier read)
 
----
+## Por que existe
+@memory/why-oimpresso.md
 
-## 1. O que é este projeto em 30 segundos
+## Stack e estrutura
+@memory/what-oimpresso.md
 
-ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas rápidas, plotters, fachadas, brindes). Construído em cima do **UltimatePOS v6** com módulos próprios em `Modules/` (Copiloto IA, Financeiro, MemCofre, Cms, Officeimpresso, Ponto, Connector, etc.).
+## Como trabalhar (protocolo de sessão)
 
-**Originalmente nasceu** como módulo Ponto WR2 (controle de ponto eletrônico Portaria MTP 671/2021) e evoluiu pra plataforma vertical completa.
+1. `brief-fetch` → estado consolidado (~3k tokens) — Tier A always-on via hook `SessionStart`
+2. `my-work` → minhas tasks ativas
+3. (S4+) `charter-fetch <page-id>` antes de editar `.tsx` que tenha `.charter.md` ao lado
+4. Trabalhar (ler código, edit, test)
+5. (S5+) `decide(domain, intent, payload)` se mudança custosa
+6. Commit conventional + `Refs: SPRINT-N PASSO M` (skill `commit-discipline` Tier A)
 
-> ⚠️ **Estado do trabalho atual:** chame **`brief-fetch` PRIMEIRO** (skill `brief-first` Tier A always-on, ADR 0091). O brief é um markdown ≤3.5k tokens com cycle ativo + HITL pending + decisões 24h + skills uso 7d, gerado 6x/dia. Se brief estiver indisponível (503), faça fallback pra `cycles-active` + `my-work`. CURRENT.md/TASKS.md foram removidos em 2026-05-04 ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)).
+@memory/how-trabalhar.md
 
-**Stack REAL:** Laravel **13.6** + PHP 8.4 (Herd) · MySQL Laragon · DB `oimpresso` · Inertia **v3** + React 19 + Tailwind 4 · Pest v4 · nWidart/laravel-modules ^10 · `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form`.
+## Skills Tier A (always-on — hook SessionStart)
 
-**Governança canônica (ADR 0059 — estilo Anthropic Team plan adaptado):**
-- 10 pilares: source-of-truth git, dual-mode edição (commit / UI manual tags), PR-based approval, 3-layer backup, LGPD-aware retention 365d, audit total, RBAC fino (cc.read.self/team/all), spend caps, token zero-fricção (DXT one-click), lifecycle docs (status/authority).
-- Self-host equivalente — **NÃO** SaaS Anthropic (LGPD + custo + custom).
+- **brief-first** — força brief-fetch primeiro
+- **mcp-first** — usar tools MCP antes de Read/Glob/Grep filesystem
+- **multi-tenant-patterns** — Tier 0 isolation (`business_id` global scope) — [ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- **commit-discipline** — 1 PR = 1 intent, ≤300 linhas, conventional commits
+- (dormente — S4) **charter-first**
+- (dormente — S5) **ads-route**
 
-**Stack-alvo IA (verdade canônica ADR 0035 + 0036 + 0048):**
-- **Camada A:** `laravel/ai` ^0.6.3 (oficial fev/2026)
-- **Camada B:** `LaravelAiSdkDriver` + 4 Agents próprios em `Modules/Copiloto/Agents/` — **Vizra ADK REJEITADA (ADR 0048, ADR 0032 superseded)** — não puxar/sugerir
-- **Camada C:** `MemoriaContrato` + `MeilisearchDriver` (hybrid embedder OpenAI text-embedding-3-small ativo, ADR 0036) + `MeilisearchDriver` default + `NullDriver` dev
-- **MCP server canônico:** `mcp.oimpresso.com` (CT 100/FrankenPHP) — 352 docs sincronizados de `memory/*` (ADR 0053). Token gerenciado em `/copiloto/admin/team`, KB inspecionável em `/copiloto/admin/memoria`
-- **Real-time:** Centrifugo + FrankenPHP (CT 100, ADR 0058) — **Reverb ABANDONADO** após crash em testes
-- **Tooling:** Boost + MCP + Scout + Horizon + Telescope + Pail
+Tier de cada skill em [memory/sprints/s3-constituicao/03-skills-audit.md](memory/sprints/s3-constituicao/03-skills-audit.md). Convenção interna formalizada em [ADR 0095](memory/decisions/0095-skills-tiers-convencao-interna.md).
 
-**Padrão arquitetural:** Modular monolith, DDD leve, append-only onde a lei exige, `business_id` global scope obrigatório.
+## Constituição v2 (7 camadas + 8 princípios duros)
 
-**Módulos de referência canônica:** `Modules/Jana/`, `Modules/Repair/`, `Modules/Project/` — antes de criar ou ajustar qualquer arquivo, olhe o equivalente e imite. Ver ADR 0011.
+Documento mãe: **[ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)**.
 
-**Criar módulo novo:** ler [`memory/requisitos/Infra/RUNBOOK-criar-modulo.md`](memory/requisitos/Infra/RUNBOOK-criar-modulo.md) — checklist das 8 peças obrigatórias + 3 rotas Install + padrão `Route::has()` pra link público condicional + pegadinhas. Validado em Modules/ADS (2026-05-03) e Modules/ConsultaOs (2026-05-04).
+Princípios duros:
+1. Context as a product · 2. Tiered cost · 3. Charter > Spec · 4. Loop fechado por métrica · 5. SoC brutal · 6. **Multi-tenant Tier 0 IRREVOGÁVEL** · 7. Transparência · 8. Confiabilidade com fallback
 
----
+Lista completa de ADRs canon via tool MCP `decisions-search` (default: só ativas — convenção lifecycle [ADR 0095](memory/decisions/0095-skills-tiers-convencao-interna.md)).
 
-## 2. Como trabalhar neste projeto (fluxo obrigatório)
+## Proibições (Tier 0 — sem ADR mãe nova é proibido)
+@memory/proibicoes.md
 
-### Caminho preferido: tools MCP (quando conectado)
+## Time e responsabilidades
+@memory/regras-time.md
 
-Se você tem o MCP server `oimpresso` conectado (`.claude/settings.local.json` com Bearer `mcp_*` apontando pra `mcp.oimpresso.com/api/mcp`), **prefira tools MCP em vez de Read** — são governadas, auditadas em `mcp_audit_log` e retornam só o que importa:
+## Como propor mudança
 
-| Pergunta | Tool MCP |
+| Tipo | Caminho |
 |---|---|
-| **"Estado consolidado do projeto" (CHAME PRIMEIRO)** | **`brief-fetch`** (ADR 0091, skill `brief-first`) |
-| "O que estou fazendo hoje?" | `my-work` (redundante após brief-fetch — só se brief indisponível) |
-| "Tem algo na minha caixa de entrada?" | `my-inbox` |
-| "Estado do cycle ativo" | `cycles-active` |
-| "Goals do cycle batendo?" | `cycle-goals-track cycle:current` |
-| "Backlog do módulo X" | `tasks-list module:X` |
-| "Detalhe da task COPI-123" | `tasks-detail task_id:COPI-123` |
-| "Tasks novas sem owner/prio" | `triage` |
-| "Velocity / burndown" | `dashboard-velocity` / `dashboard-burndown` |
-| "Qual ADR fala sobre X?" | `decisions-search query:"X"` |
-| "Ler ADR 0053 completa" | `decisions-fetch slug:"0053-mcp-server-governanca-como-produto"` |
-| "Últimas sessões" | `sessions-recent limit:5` |
-| "Fato do business sobre Y" | `memoria-search query:"Y"` |
-| "O que time usou no Claude Code?" | `cc-search query:"..."` |
-| "Quanto eu consumi?" | `claude-code-usage-self` |
+| ADR canon | PR + ADR Nygard + aprovação Wagner |
+| ADR HISTORICAL | PR opcional, status `historical` |
+| Skill Tier A | PR + ADR específica + Wagner aprova |
+| Skill Tier B/C | PR + SKILL.md description "Use ao/quando..." |
+| Charter (S4+) | PR + `*.charter.md` ao lado do `.tsx` |
+| Mudança ADR canon existente | ❌ NÃO. Append-only. Criar nova com `supersedes: [N]` |
 
-UI humana: `/copiloto/admin/memoria` lista 352 docs (ADRs/sessions/refs/comparativos/audits/runbooks) com filtros + preview markdown.
+## Onde NÃO inventar (Tier 0)
 
-### Fallback: filesystem (se sem MCP)
+Detalhes em `memory/proibicoes.md`. Resumo:
+- Tokens MCP, schema `mcp_audit_log`, ADRs CANON, `business_id` global scope
+- Centrifugo + FrankenPHP runtime CT 100 ([ADR 0058](memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md))
+- Hostinger ≠ CT 100 separação ([ADR 0062](memory/decisions/0062-separacao-runtime-hostinger-ct100.md))
+- ZERO auto-mem privada ([ADR 0061](memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md))
+- `laravel/octane` no Hostinger
 
-Sem MCP conectado, lê na ordem:
+## Métricas de saúde
 
-1. **Handoff** em [`memory/08-handoff.md`](memory/08-handoff.md) — estado narrativo mais recente.
-2. **Session log mais recente** em `memory/sessions/` — contexto imediato da última sessão.
-3. **ADRs relevantes** em [`memory/decisions/`](memory/decisions/) — decisões com justificativa (ADR 0070 define hierarquia de tasks).
-4. **SPECs** em [`memory/requisitos/<Mod>/SPEC.md`](memory/requisitos/) — US-XXX-NNN canônicos (parser → mcp_tasks).
-5. **Convenções** de [`memory/04-conventions.md`](memory/04-conventions.md).
-6. **Preferências** em [`memory/05-preferences.md`](memory/05-preferences.md).
+Rodar `php artisan jana:health-check` (ou ver schedule daily 06:00 BRT em `app/Console/Kernel.php`).
+5 checks SQL: multi_tenant_isolation, brief_uptime_24h, custo_brain_b_24h, pii_leak_in_assistant_responses, profile_distiller_drift.
 
-> ⚠️ **CURRENT.md e TASKS.md foram REMOVIDOS** em 2026-05-04 ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)). Estado de tasks/cycles é 100% via tools MCP (`cycles-active`, `my-work`, `tasks-list`, etc) ou direto no DB `mcp_*`.
+Se algum falhar → investigar `storage/logs/laravel.log` ALERT entries.
 
-Pra qualquer coisa visual/UX, comece em [`DESIGN.md`](DESIGN.md). Pra acesso/deploy de produção, em [`INFRA.md`](INFRA.md).
+## Suporte ao usuário
 
-**Disciplina de contexto** (importa pra economia de crédito e qualidade):
-
-- Use **`/compact`** após cada feature mergeada/validada — comprime o histórico mantendo só o essencial.
-- Use **`/clear`** ao trocar de escopo (ex.: terminou Copiloto, vai mexer em Ponto) — começa limpo.
-- Use **Plan mode** (Shift+Tab×2) pra mudanças não-triviais — Claude planeja antes de tocar arquivo.
-- Use **`/continuar`** pra retomar sessão sem re-explorar o repo do zero (chama `cycles-active` + `my-work` via tools MCP + handoff + último session log + abre só os arquivos do próximo passo).
-
-**Skills auto-ativáveis:** arquivos em `.claude/skills/<nome>/SKILL.md` ativam automaticamente quando o `description:` do frontmatter casa com a tarefa em andamento. Use pra encapsular padrões recorrentes:
-- **`brief-first` (Tier A always-on)** — força `brief-fetch` como PRIMEIRA tool em toda sessão (ADR 0091, Sprint 1). Substitui 5-8 chamadas exploratórias (`cycles-active`/`sessions-recent`/`tasks-active`/`decisions-search`) por 1 brief de ~3k tokens. Economia média: ~27k tokens/sessão.
-- `multi-tenant-patterns` — ativa ao criar Entity/Controller/Service/Job que toca dados de negócio (`business_id`).
-- `publication-policy` — ativa antes de git push, abertura/merge de PR, deploy em produção, ou postagem externa. Decide se Claude executa direto ou escala pro Wagner. Wagner explicitamente delegou supervisão; Claude não pergunta antes de ação rotineira reversível. Ver [ADR 0040](memory/decisions/0040-policy-publicacao-claude-supervisiona.md).
-
-Ao terminar uma sessão:
-
-7. **Registre via tools MCP** — `tasks-update <ID> status:done` ao fechar; `tasks-comment <ID>` se ainda em progresso; `tasks-create` se for trabalho novo. Política completa em [ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md) — Jira-style hierarquia (Project/Epic/Cycle/Task), `CURRENT.md`/`TASKS.md` REMOVIDOS.
-8. **Apenda em [`memory/08-handoff.md`](memory/08-handoff.md)** com o novo estado narrativo.
-9. **Crie um session log** em `memory/sessions/YYYY-MM-DD-*.md` descrevendo o que foi feito.
-10. **Se tomou decisão arquitetural nova**, crie ADR em `memory/decisions/NNNN-slug.md`.
+- `/help`, `/clear`, `/compact` (slash commands Claude Code)
+- Reportar bug: https://github.com/anthropics/claude-code/issues
 
 ---
-
-## 3. Estrutura do repositório
-
-```
-D:\oimpresso.com\
-├── CLAUDE.md          # Este arquivo — primer pra agentes
-├── DESIGN.md          # Hub visual/UX + padrão técnico React
-├── INFRA.md           # Acesso SSH Hostinger, deploy, fixes manuais
-├── AGENTS.md          # Mirror para outros agentes (opcional)
-├── .claude/
-│   ├── commands/      # Slash commands (ex.: /continuar)
-│   ├── skills/        # Skills auto-ativáveis (ex.: multi-tenant-patterns)
-│   └── settings.json  # Config Claude Code + hooks
-├── memory/
-│   ├── INDEX.md
-│   ├── 00-user-profile.md ... 08-handoff.md
-│   ├── decisions/     # ADRs (Michael Nygard format)
-│   ├── sessions/      # Logs cronológicos por sessão
-│   ├── requisitos/    # SPECs por módulo (US-XXX-NNN → mcp_tasks)
-│   └── comparativos/  # Capterra-style competitive briefs
-│   # ⚠️ Estado vivo de tasks/cycles → tabelas mcp_* (DB) via tools MCP — ADR 0070
-├── Modules/
-│   ├── Copiloto/      # Chat IA + metas + custos (ADR 0035)
-│   ├── Financeiro/    # Contas a pagar/receber, dashboard, relatórios
-│   ├── MemCofre/      # Cofre de memórias e evidências
-│   ├── PontoWr2/      # Ponto eletrônico CLT (Portaria 671/2021)
-│   ├── Jana/          # Módulo de referência canônica (imitar)
-│   └── ...
-└── resources/js/      # Inertia + React (Pages, Components/shared, Layouts)
-```
-
----
-
-## 4. O que NÃO fazer
-
-> ⚠️ Mapa de ambientes (Hostinger / CT 100 Proxmox / Local / CI) e credenciais ficam em [`INFRA.md`](INFRA.md). As regras abaixo são as **invioláveis** — violar = incidente.
-
-**Ambiente — onde NÃO mexer:**
-
-- ⛔ **Nunca instalar `laravel/mcp` ou `laravel/octane` no Hostinger** (nem em worktree, nem em `/tmp`). Esses pacotes só vivem em CT 100 Proxmox e local. Hostinger é shared hosting do app web; MCP/Octane lá é violação de contrato.
-- ⛔ **Nunca rodar Pest da suite Copiloto/MCP no Hostinger** — usar CT 100 (via Tailscale) ou local.
-- ⛔ **Nunca rodar `composer update` (sem `--lock`) em servidor de produção** sem PR aprovado.
-- ⛔ **Nunca alterar branch ativa em produção pra "testar"** (Hostinger ou CT 100) — usar worktree e limpar depois.
-- ⛔ **Nunca editar arquivo direto via SSH** sem commit no git — drift mata governança (já queimou Eliana no 3.7→6.7, ver INFRA.md §2).
-- ⛔ **Nunca rodar daemons no Hostinger** (Reverb, Centrifugo, Horizon, autossh, Meilisearch). Shared hosting não suporta. Pra daemons → CT 100.
-
-**Código — onde NÃO mexer:**
-
-- **Não modifique tabelas do core UltimatePOS** (`users`, `business`, `employees`, etc.). Use a tabela bridge `ponto_colaborador_config` no PontoWr2.
-- **Não faça UPDATE ou DELETE em `ponto_marcacoes`** — append-only por força de lei (Portaria 671/2021). Use `Marcacao::anular()`.
-- **Não remova triggers MySQL** de imutabilidade sem abrir ADR justificando.
-- **Não crie novas tecnologias/dependências** sem registrar uma ADR.
-- **Não responda ao usuário em inglês** — Wagner e Eliana são brasileiros e preferem PT-BR.
-- **Não assuma que o usuário quer completude** — Wagner valoriza economia de crédito; confirme escopo com perguntas curtas antes de implementar massivamente.
-- **Não remover o shim `App\View\Helpers\Form`** sem antes migrar ~6.433 chamadas `Form::` em ~460 Blade views.
-- **Antes de criar/mudar estrutura do módulo**, abra `Modules/Jana/` (ou `Repair`/`Project`) e imite. nWidart v10+ usa `Routes/web.php` + `RouteServiceProvider`.
-- **Identificadores MySQL com mais de 64 chars** — sempre passar nome explícito em índices compostos.
-- **Não suba código para produção sem alertar pré-requisitos e riscos.** Histórico de crashes: 2026-04-18 (scaffold incompatível), 2026-04-19 (PHP 8 em servidor PHP 7.1), 2026-04-21 (módulo desativado após upgrade 6.7). Sempre testar em staging antes de ativar.
-- **Não criar `Modules/X/Tests/{Feature,Unit}/` sem registrar em `phpunit.xml`** — testes ficam no repo mas CI nunca roda → falsa cobertura. Erro recorrente; runbook em [`memory/requisitos/Infra/RUNBOOK-pest-suite.md`](memory/requisitos/Infra/RUNBOOK-pest-suite.md). Antes de commitar primeiro teste de qualquer módulo: `grep -q "Modules/X/Tests" phpunit.xml`.
-
----
-
-## 5. O que SEMPRE fazer
-
-- **PT-BR em tudo** — texto, commit, comentário, label. Código (classes, métodos, variáveis) em inglês é OK; domínio de negócio usa nomes PT (ex.: `Marcacao`, `Intercorrencia`, `BancoHoras`).
-- **Cite a lei** quando aplicável (ex.: *Art. 66 CLT*, *Portaria 671/2021 Anexo I*, *LGPD Art. 7º*).
-- **Preserve imutabilidade** de marcações e movimentos de banco de horas.
-- **Mantenha o `business_id` scopado** em todas as queries (multi-empresa UltimatePOS). Ver skill `multi-tenant-patterns`.
-- **Escreva testes** ao menos para regras CLT (tolerâncias, intrajornada, interjornada, HE) e isolamento multi-tenant.
-- **Antes de criar/mudar estrutura do módulo**, abra `Modules/Jana/` (ou `Repair`/`Project`) e imite. Se nenhum dos três tem — pense duas vezes. Se tem mas quero divergir — registre ADR explicando.
-- **Use stack de middlewares UltimatePOS** pra rotas web: `['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin']`.
-
----
-
-## 6. Cofre de comparativos & gestão de memória
-
-**Fluxo:** git (source-of-truth) → webhook GitHub → `mcp_memory_documents` (DB cache governado) → tools MCP / `/copiloto/admin/memoria` UI.
-
-**Comparativos competitivos** (estilo Capterra/G2) ficam em [`memory/comparativos/`](memory/comparativos/) — template oficial em `_TEMPLATE_capterra_oimpresso.md` v1.0, índice em `_INDEX.md`.
-
-**Trigger "guarde no cofre":** quando Wagner pedir, classifique antes de salvar:
-- Comparativo competitivo → `memory/comparativos/`
-- Decisão arquitetural → `memory/decisions/NNNN-slug.md` (formato Nygard, ver ADR 0028)
-- User story / requisito → `memory/requisitos/{Modulo}/SPEC.md`
-- ADR específico de módulo → `memory/requisitos/{Modulo}/adr/{arq|tech|ui}/NNNN-slug.md`
-- Runbook/audit/architecture → `memory/requisitos/{Modulo}/{RUNBOOK|ARCHITECTURE|GLOSSARY|CHANGELOG}.md`
-- Preferência do usuário ou quirk de cliente → auto-memória do agente (fora do git, fora do MCP)
-- Evidência (print, log, chat) → `Modules/MemCofre/` (entidades `Doc*`)
-- Após `git push`, **webhook GitHub sincroniza em <60s** pra `mcp_memory_documents` automaticamente. Confirmar via `decisions-search` ou na tela.
-
-**Papéis canônicos** de cada sistema de memória estão formalizados em [ADR 0027](memory/decisions/0027-gestao-memoria-roles-claros.md) e expandidos em [ADR 0053](memory/decisions/0053-mcp-server-governanca-como-produto.md):
-
-| Sistema | Conteúdo | Source-of-truth | Acesso IA |
-|---|---|---|---|
-| `mcp_projects/epics/cycles/tasks/...` | Estado vivo de tasks/cycles/projetos (Jira-style) | DB | tools `tasks-*`, `cycles-*`, `epics-*`, `my-work`, `triage` |
-| `memory/08-handoff.md` | Handoff estado canônico | git | tool MCP via slug `handoff` |
-| `memory/decisions/*.md` | ADRs Nygard | git | tools `decisions-search`/`decisions-fetch` |
-| `memory/sessions/*.md` | Logs cronológicos | git | tool MCP `sessions-recent` |
-| `memory/requisitos/{Mod}/SPEC.md` | US-XXX-NNN canônicos (parser → mcp_tasks) | git | tools `tasks-*` |
-| `memory/requisitos/{Mod}/` (resto) | ADRs por módulo + runbook + audit | git | tool MCP `decisions-search module:` |
-| `memory/comparativos/*.md` | Capterra-style competitive briefs | git | tool MCP via slug `comparativo-*` |
-| Auto-memória | Cross-conversation Claude (preferências) | local user | NÃO sobe pro MCP |
-| MemCofre | Evidências (DocVault) | DB | tela `/memcofre` |
-| `mcp_memory_documents` | DB cache de docs git acima | sync git→DB | tools MCP |
-
-**Não duplicar info entre sistemas.** Git é canônico; MCP é cache governado.
-
-⛔ **ZERO auto-mem privada** (ADR 0061). Hook `block-automem.ps1` BLOQUEIA `Write/Edit` em `~/.claude/projects/*/memory/*.md`. Todo conhecimento canônico vai pra git → webhook → MCP. As 82 auto-mems históricas estão sendo migradas (plano em [`memory/requisitos/Infra/PLANO-MIGRACAO-AUTOMEM.md`](memory/requisitos/Infra/PLANO-MIGRACAO-AUTOMEM.md)). Conflito de fato entre 2 fontes = bug.
-
-**KB MCP UI (`/copiloto/admin/memoria`)** — tela de governança Wagner: lista 352 docs, filtros (type/module/PII), Sheet preview markdown render + git_sha→GitHub, soft-delete LGPD double-confirm, history. Permission: `copiloto.mcp.memory.manage` (ADR 0057).
-
-### Docs canônicos críticos — regra anti-regressão
-
-Os arquivos abaixo formalizam decisões já tomadas. **Modificar via ADR nova que supersede a anterior** — não editar inline pra "atualizar". Se Wagner pedir mudança, criar ADR primeiro, depois atualizar o doc:
-
-| Doc | Origem | Regra de mudança |
-|---|---|---|
-| ADR `memory/decisions/NNNN-*.md` | Decisões Nygard | NUNCA editar; criar ADR nova com `supersedes: [NNNN]` |
-| `memory/requisitos/Copiloto/MEILISEARCH-EVOLUCAO.md` | Sprint 7→9 timeline | Adicionar fases novas ao final; não reescrever passado |
-| `memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md` | Pesquisa mai/2026 | Substituir por novo arquivo `RETRIEVAL-ESTADO-ARTE-AAAA-MM.md` quando atualizar (versionado por data) |
-| `memory/requisitos/Copiloto/RETRIEVAL-GOTCHAS.md` | 13 armadilhas Sprint 9 | Apenda novos itens; nunca remover sem ADR justificando |
-| `HOW_TO_ASK_CLAUDE.md` | Estado-da-arte 2026 | Substituir inteiro quando Anthropic publicar guidance nova; registrar mudança em ADR se inverter princípio |
-| `memory/requisitos/<Mod>/SPEC.md` | TaskRegistry source-of-truth dos US-XXX-NNN | Editar via `tasks-create`/`tasks-update`/`tasks-comment` (ADR 0070), não à mão |
-
-Quando Claude propor edição em qualquer doc desta lista, **mostrar diff antes** e confirmar se há ADR de origem. Sem ADR de origem = recusar, pedir Wagner pra criar ADR primeiro.
-
----
-
-## 7. Acesso à produção
-
-Ver [`INFRA.md`](INFRA.md) — credenciais SSH Hostinger, deploy manual, patches ativos, dev local Herd/Laragon.
-
-**SSH é flaky** — sempre **warm-up + retry**:
-```bash
-# 1) Warm-up (5 hits curl)
-for i in 1 2 3 4 5; do curl -s -o /dev/null --max-time 15 https://oimpresso.com/login; done
-# 2) SSH robusto (auto-mem reference_hostinger_analise.md)
-ssh -4 -o ConnectTimeout=900 -o ServerAliveInterval=3 \
-    -o ServerAliveCountMax=200 -o ConnectionAttempts=5 \
-    -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 'CMD'
-```
-Sem isso, primeiro try quase sempre dá `Connection timed out`.
-
----
-
-## 8. Padrão de UI/UX em React
-
-Ver [`DESIGN.md`](DESIGN.md) — hub visual + padrão técnico Chat Cockpit (AppShellV2, tokens, atalhos J/K/E/A, TaskProvider, checklist de PR). Toda tela nova passa por lá antes de codar.
-
----
-
-## 9. Contato e referências externas
-
-**Cliente PontoWr2:** WR2 Sistemas — Eliana(WR2) — eliana@wr2.com.br
-**Cliente principal Copiloto:** ROTA LIVRE — Larissa (`business_id=4`)
-**Repositório local:** `D:\oimpresso.com`
-**Outros documentos do projeto** (fora desta pasta): `projeto_ponto_eletronico_wr2.md`, `especificacao_tecnica_laravel_wr2.md`, `ultimatepos6_hrm_especificacao_e_adaptacao.md`, `design_projeto_ponto_wr2.md` — pasta de outputs temporários do Cowork.
-
----
-
-## 10. Equipe interna e atribuição de tasks
-
-**Time atual (5 pessoas):** Wagner [W] líder · Maíra [M] suporte+dev · Felipe [F] dev+suporte · Luiz [L] iniciante+dev IA-pair · Eliana [E] financeiro+dev IA (esposa Wagner)
-
-**Antes de atribuir / pegar uma task:** ler [`TEAM.md`](TEAM.md) — perfis, **WIP máximo por pessoa** (W/M/F=2, L/E=1), e **matriz "quem pode pegar qual tipo de task"** com 4 níveis (✅ owner / 🟢 pode / 🟡 com supervisão / ❌ não-pegar).
-
-**Regras duras:**
-- Luiz [L] não mergeia PR sozinho (Felipe ou Wagner aprova).
-- Eliana [E] não mexe em Copiloto sprints LGPD.
-- Maíra [M] não faz deploy produção sozinha.
-- Wagner [W] deve evitar virar bottleneck — delegar code review pra Felipe quando puder.
-- PIIs reais (CPF/CNPJ de cliente) NUNCA aparecem em PR ou commit. Logs com `[REDACTED]`.
-
-**2 Elianas no projeto:** `Eliana[E]` (esposa, time interno) ≠ `Eliana(WR2)` (cliente externa, PontoWr2). Sempre desambiguar em commits/notas.
-
-**Convenção em commits:** `[W]`, `[M]`, `[F]`, `[L]`, `[E]`, `[L+C]` (Luiz pareado Claude), etc. Ex.: `feat(copiloto): PII redactor BR [F]`.
-
-**Ciclo de trabalho:** Cycle de 2 semanas como entidade `mcp_cycles` — criado via `cycles-create` com goal outcome-oriented; goals trackados via `cycle-goals-track`; WIP+backlog via `tasks-list cycle:current`. Daily async 09h cada um atualiza status das próprias US via **tool MCP** `tasks-update` (ADR 0070). Sex final do cycle: `cycles-close --rollover` move incompletas pro próximo cycle e fecha o atual com retro em `mcp_cycles.retro` JSON.
-
----
-
-> **Última atualização:** 2026-05-06 — Sprint 1 da Constituição V2 entregue ([ADR 0091](memory/decisions/0091-daily-brief.md)): camada L7 Daily Brief no ar (Module Brief + migration MySQL + cron 6x/dia + skill `brief-first` Tier A). Toda sessão de Claude Code agora começa com `brief-fetch` (~3k tokens) em vez de 5-8 tool calls exploratórias (~30k tokens). Aviso sobre `gh` corrigido — está autenticado.
->
-> **Anteriores:** 2026-05-04 §2 §3 §6 §10 Jira-style ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)): CURRENT.md/TASKS.md REMOVIDOS; estado vivo via tools `cycles-active`/`my-work`/`tasks-list`/`triage`/`my-inbox` + tabelas `mcp_projects/epics/cycles/tasks`. Hierarquia: Project → Epic → Cycle → Story → Subtask.
+**Última atualização:** 2026-05-06 — Constituição v2 ([ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)) aceita. CLAUDE.md reescrito de 289 → ~85 linhas (Anthropic 2026 best-practice).
