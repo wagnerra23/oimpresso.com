@@ -65,8 +65,13 @@ class DanfeNotaFiscalMail extends Mailable
         ];
 
         return new Content(
+            view: 'nfebrasil::mail.danfe-html',
             text: 'nfebrasil::mail.danfe-text',
-            with: ['linhas' => $linhas],
+            with: [
+                'linhas'         => $linhas,
+                'emissao'        => $this->emissao,
+                'razaoEmissora'  => $this->razaoEmissora,
+            ],
         );
     }
 
