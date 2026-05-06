@@ -271,11 +271,25 @@ Plataforma:    Uni5 (https://api.uni5.net/) — fabricante por trás da KingHost
 
 ---
 
-## 6.2. CT 100 Proxmox empresa — estado 2026-04-30
+## 6.2. CT 100 Proxmox empresa — estado 2026-05-06
 
-**Acesso via Tailscale** (SSH 22 não exposto público):
-- `ct100-mcp` IP Tailscale: `100.99.207.66` (Linux 6.17 Debian 12 LXC)
-- `ssh root@100.99.207.66` direto, ACL via Tailscale console
+**Receita prática "como executar comando" → [`RUNBOOK-acesso-ct100.md`](memory/requisitos/Infra/RUNBOOK-acesso-ct100.md)**
+
+**Acesso preferido via Tailscale SSH** (modo `check`, ACL Tailscale console):
+```bash
+tailscale ssh root@ct100-mcp 'CMD'
+# Hostname Tailscale: ct100-mcp (magic DNS) ou IP 100.99.207.66
+# User: root (NÃO dev — dev é receita pra adicionar usuário per-dev)
+# Auth: chave SSH + Tailscale ACL automático
+```
+
+⚠️ **Primeiro comando da sessão pede auth via URL** — Tailscale SSH server emite mensagem com link `https://login.tailscale.com/a/...`. Wagner abre, aprova, próximos comandos da mesma sessão (~12h) passam direto. **Ação manual** — Claude Code não automatiza.
+
+**Fallback sem Tailscale:** `ssh root@100.99.207.66` direto (LAN ou Tailscale net) — funciona se chave SSH instalada manualmente. Validado em hardening 2026-04-30.
+
+**Outras máquinas Tailscale do tailnet:**
+- `pve-empresa` → `100.116.24.69` (Proxmox host empresa)
+- `claude-code-wagner-pc` → `100.92.78.86` (Wagner laptop)
 
 ### Containers ativos (docker-host_default network)
 
