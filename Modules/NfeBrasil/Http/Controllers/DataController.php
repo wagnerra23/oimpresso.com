@@ -87,6 +87,11 @@ class DataController extends Controller
                 'label'   => 'NF-e Brasil: configurar certificado A1',
                 'default' => false,
             ],
+            [
+                'value'   => 'nfe.tributacao.manage',
+                'label'   => 'NF-e Brasil: gerenciar tributação (regras NCM + default)',
+                'default' => false,
+            ],
         ];
     }
 
@@ -118,7 +123,8 @@ class DataController extends Controller
             || auth()->user()->can('nfebrasil.access')
             || auth()->user()->can('nfebrasil.emit.manage')
             || auth()->user()->can('nfebrasil.consult.view')
-            || auth()->user()->can('nfe.configuracao.manage');
+            || auth()->user()->can('nfe.configuracao.manage')
+            || auth()->user()->can('nfe.tributacao.manage');
 
         if (! $usuario_pode_ver) {
             return;
@@ -196,6 +202,17 @@ class DataController extends Controller
                                 [
                                     'icon'   => 'fa fas fa-key',
                                     'active' => request()->is('nfe-brasil/configuracao/certificado*'),
+                                ]
+                            );
+                        }
+
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfe.tributacao.manage')) {
+                            $sub->url(
+                                url('/nfe-brasil/tributacao'),
+                                'Tributação',
+                                [
+                                    'icon'   => 'fa fas fa-percent',
+                                    'active' => request()->is('nfe-brasil/tributacao*'),
                                 ]
                             );
                         }
