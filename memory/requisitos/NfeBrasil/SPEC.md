@@ -214,13 +214,14 @@
 **Quero** definir tributação por NCM/UF: ICMS, ICMS-ST (com MVA), IPI, PIS, COFINS, CBS, IBS
 **Para** automatizar cálculo na emissão sem digitar imposto a imposto
 
-**Implementado em:** [`Modules/NfeBrasil/Services/MotorTributarioService.php`](../../../Modules/NfeBrasil/Services/MotorTributarioService.php) (motor cascade) · [`Modules/NfeBrasil/Models/NfeFiscalRule.php`](../../../Modules/NfeBrasil/Models/NfeFiscalRule.php) · [`Modules/NfeBrasil/Models/NfeBusinessConfig.php`](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php) · _[TODO UI — `resources/js/Pages/NfeBrasil/Tributacao/Regras/Index.tsx`, `.../Form.tsx`]_
+**Implementado em:** [`Modules/NfeBrasil/Services/MotorTributarioService.php`](../../../Modules/NfeBrasil/Services/MotorTributarioService.php) (motor cascade) · [`Modules/NfeBrasil/Models/NfeFiscalRule.php`](../../../Modules/NfeBrasil/Models/NfeFiscalRule.php) · [`Modules/NfeBrasil/Models/NfeBusinessConfig.php`](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php) · [`Modules/NfeBrasil/Http/Controllers/TributacaoController.php`](../../../Modules/NfeBrasil/Http/Controllers/TributacaoController.php) · [`Modules/NfeBrasil/Http/Controllers/ConfigDefaultController.php`](../../../Modules/NfeBrasil/Http/Controllers/ConfigDefaultController.php) · [`resources/js/Pages/NfeBrasil/Tributacao/Index.tsx`](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx) · [`.../RegraForm.tsx`](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx) · [`.../ConfigDefault.tsx`](../../../resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx)
 
 **Definition of Done:**
 - [x] Tabela `nfe_fiscal_rules` com index `(business_id, ncm, uf_origem, uf_destino)` (ARQ-0004 schema; idempotência via service `firstOrCreate`)
-- [ ] FormRequest valida: `ncm` 8 dígitos, `uf_origem` em FEBRABAN UFs, `uf_destino` opcional (NULL = todas), CSOSN OU CST exclusive
+- [x] FormRequest valida: `ncm` 8 dígitos, `uf_origem` em FEBRABAN UFs, `uf_destino` opcional (NULL = todas), CSOSN OU CST exclusive (`UpsertRegraTributariaRequest` + `UpsertConfigDefaultRequest`)
 - [x] Schema flexível: coluna `metadata` JSON pra CBS/IBS futuros (ARQ-0004)
 - [x] **Cascade fallback respeitado** (ARQ-0006): `MotorTributarioService::calcular` itera Nível 1→4 com cache em memória; testes Pest cobrem 10 cenários (níveis 1-4 + edge cases + multi-tenant)
+- [x] **UI fase 2 (CRUD básico)** — Index lista regras + config default; RegraForm create/edit; ConfigDefault Nível 4 com regime + alíquotas; permissão `nfe.tributacao.manage`; sidebar entry "Tributação"; tests Pest controller (7 cenários)
 - [ ] **Bridge automática** (ARQ-0005): listener `SyncFiscalRuleToTaxRate` upsert linha em `tax_rates` core (compat Connector)
 - [ ] **Importação CSV** em massa: upload datasets Receita Federal (NCM 8d) ou CONFAZ (CEST 7d):
   - Preview antes de aplicar (10 primeiras linhas + totais)

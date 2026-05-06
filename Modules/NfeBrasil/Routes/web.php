@@ -2,8 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\NfeBrasil\Http\Controllers\CertificadoController;
+use Modules\NfeBrasil\Http\Controllers\ConfigDefaultController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
+use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,4 +39,27 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->name('nfe-brasil.certificado.status');
         Route::post('certificado', [CertificadoController::class, 'upload'])
             ->name('nfe-brasil.certificado.upload');
+    });
+
+// US-NFE-010 fase 2 — UI tributação (regras NCM + config default).
+// Permissão `nfe.tributacao.manage` validada no FormRequest.
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('nfe-brasil/tributacao')
+    ->name('nfe-brasil.tributacao.')
+    ->group(function () {
+        Route::get('/', [TributacaoController::class, 'index'])->name('index');
+
+        // Config default (Nível 4 cascade)
+        Route::get('config-default', [ConfigDefaultController::class, 'show'])->name('config.show');
+        Route::post('config-default', [ConfigDefaultController::class, 'upsert'])->name('config.upsert');
+
+        // CRUD regras
+        Route::get('regras/create', [TributacaoController::class, 'create'])->name('regras.create');
+        Route::post('regras', [TributacaoController::class, 'store'])->name('regras.store');
+        Route::get('regras/{id}/edit', [TributacaoController::class, 'edit'])
+            ->whereNumber('id')->name('regras.edit');
+        Route::put('regras/{id}', [TributacaoController::class, 'update'])
+            ->whereNumber('id')->name('regras.update');
+        Route::delete('regras/{id}', [TributacaoController::class, 'destroy'])
+            ->whereNumber('id')->name('regras.destroy');
     });
