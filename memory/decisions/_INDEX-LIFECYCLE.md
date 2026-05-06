@@ -102,7 +102,7 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 | ID | Estado | Substituída por | Nota |
 |---|---|---|---|
 | 0031 | S | 0036 | MemoriaContrato + Mem0 default → Meilisearch first |
-| 0032 | S | 0048 | Vizra ADK + Prism — REJEITADA |
+| 0032 | S | 0048 | Vizra ADK + Prism — REJEITADA (Vizra descontinuada; Wagner confirmou 2026-05-06: substituída por laravel/ai SDK nativo, "muito melhor") |
 | 0033 | S | 0036 | Vector store debate → Meilisearch |
 | 0034 | AH | — | Survey Laravel AI ecosystem |
 | 0035 | A | — | Stack-alvo IA canônica — VIGENTE |
