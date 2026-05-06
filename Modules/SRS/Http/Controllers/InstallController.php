@@ -6,20 +6,21 @@ use App\Http\Controllers\BaseModuleInstallController;
 use App\System;
 
 /**
- * MemCofre foi renomeado de DocVault em 2026-04-24. Tabelas docs_* permanecem
- * com prefixo legado. Este controller migra `docvault_version` (legacy) →
- * `memcofre_version` (atual) automaticamente em postMigrationSteps().
+ * Histórico de renames: DocVault (2026-04-24) → MemCofre → SRS (2026-05-06).
+ * Tabelas docs_* permanecem com prefixo legado. Este controller migra
+ * `docvault_version` + `memcofre_version` (legacy) → `srs_version` (atual)
+ * automaticamente em postMigrationSteps().
  */
 class InstallController extends BaseModuleInstallController
 {
     protected function moduleName(): string
     {
-        return 'MemCofre';
+        return 'SRS';
     }
 
     protected function moduleSystemKey(): string
     {
-        return 'memcofre';
+        return 'srs';
     }
 
     protected function moduleVersion(): string
@@ -32,10 +33,13 @@ class InstallController extends BaseModuleInstallController
         if (! empty(System::getProperty('docvault_version'))) {
             System::removeProperty('docvault_version');
         }
+        if (! empty(System::getProperty('memcofre_version'))) {
+            System::removeProperty('memcofre_version');
+        }
     }
 
     protected function successMessage(): string
     {
-        return 'MemCofre instalado. Tabelas docs_* já migradas via module:migrate.';
+        return 'SRS instalado. Tabelas docs_* já migradas via module:migrate.';
     }
 }
