@@ -10,10 +10,11 @@ class BoletoCredential extends Model
 
     protected $fillable = [
         'business_id',
+        'conta_bancaria_id',
         'banco',       // inter | c6 | asaas
         'ambiente',    // production | sandbox
         'ativo',
-        'config_json', // JSON criptografado (client_id, client_secret, caminhos cert, etc.)
+        'config_json', // campos sensíveis criptografados via Crypt::encryptString
         'nome_display',
     ];
 
