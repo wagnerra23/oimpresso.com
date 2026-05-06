@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Copiloto\Http\Controllers\Mcp;
+namespace Modules\TeamMcp\Http\Controllers\Mcp;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;

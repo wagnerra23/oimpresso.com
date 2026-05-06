@@ -51,26 +51,11 @@ db_tables_owned:
   - copiloto_custos_llm
   - copiloto_alertas
 drift_alerts:
-  - controller: "MemoriaController"
-    pertence_a: "Modules/KB"
-    motivo: "Browse/admin de mcp_memory_documents é função do KB, não do chat"
-    eta_migracao: "Fase 3.7"
-  - controller: "FontesController"
-    pertence_a: "Modules/KB"
-    motivo: "Knowledge sources são parte do KB"
-    eta_migracao: "Fase 3.7"
-  - controller: "Mcp/CcIngestController"
-    pertence_a: "Modules/TeamMcp"
-    motivo: "Ingest de Claude Code sessions é admin do MCP server"
-    eta_migracao: "Fase 3.7"
-  - controller: "Mcp/HealthController"
-    pertence_a: "Modules/TeamMcp"
-    motivo: "Health check do MCP server pertence ao admin do MCP"
-    eta_migracao: "Fase 3.7"
-  - controller: "Mcp/SyncMemoryWebhookController"
-    pertence_a: "Modules/TeamMcp"
-    motivo: "Webhook sync git→DB é função do MCP server admin"
-    eta_migracao: "Fase 3.7"
+  # Fase 3.7 PR-1 (2026-05-06): 5 drift controllers movidos pros donos corretos.
+  # MemoriaController + FontesController → Modules/KB
+  # Mcp/CcIngest + Mcp/Health + Mcp/SyncMemoryWebhook → Modules/TeamMcp
+  # URLs mantidas (/copiloto/memoria, /copiloto/metas/{id}/fonte, /api/mcp/*, /api/cc/*)
+  # via tuple [Class::class, 'method'] e namespace prefix dos route groups.
   - controller: "Admin/GovernancaController"
     pertence_a: "Modules/Governance (NOVO)"
     motivo: "Governança consolidada vai pra módulo dedicado"
@@ -110,10 +95,13 @@ Renomeação **Copiloto → Jana** prevista pra Fase 3.7 do ADR 0079. Trust L2 P
 
 ## Drift atual e plano
 
-5 controllers a migrar (ver `drift_alerts[]`). Migração ocorre em Fase 3.7 simultânea ao rename Copiloto→Jana — single PR, 301 redirects das URLs antigas, namespace muda atomically.
+1 controller a migrar (Admin/GovernancaController vai pra Modules/Governance em Fase 5). Os 5 drift controllers anteriores (MemoriaController, FontesController, Mcp/CcIngest, Mcp/Health, Mcp/SyncMemoryWebhook) foram **resolvidos em Fase 3.7 PR-1** (2026-05-06).
+
+Rename Copiloto→Jana fica pra PR-2 separado.
 
 ---
 
 ## Histórico
 
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. Drift atual documentado. Rename Jana mapeado pra Fase 3.7.
+- **v1.1.0** (2026-05-06) — Fase 3.7 PR-1: 5 drift controllers movidos pros donos corretos (KB/TeamMcp). URLs mantidas pra zero break.

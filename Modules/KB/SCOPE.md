@@ -3,9 +3,9 @@ module: KB
 purpose: "Knowledge Base — biblioteca compartilhada de ADRs, sessions, runbooks, specs, comparativos. Browse/search/graph sobre `mcp_memory_documents`. Split do Copiloto pra desacoplar chat IA de browsing canônico."
 contains:
   - "KbController — listagem e detalhe"
-  - "MemoriaController (a migrar de Copiloto Fase 3.7) — admin de mcp_memory_documents (filtros type/module/PII, soft-delete LGPD double-confirm, history)"
-  - "FontesController (a migrar de Copiloto Fase 3.7) — knowledge sources"
-  - "GraphController (a migrar de ADS Fase 3.7) — knowledge graph (relationships entre ADRs/sessions/skills)"
+  - "MemoriaController — tela LGPD 'O Copiloto lembra de você' (US-COPI-MEM-012); URL /copiloto/memoria mantida"
+  - "FontesController — config de data source da meta (driver sql/php/http); URL /copiloto/metas/{id}/fonte mantida"
+  - "Admin/GraphController — knowledge graph (relationships entre ADRs/sessions/skills); URL /ads/admin/graph mantida"
   - "DataController + InstallController (boilerplate)"
 not_contains:
   - "Chat IA (Jana) → Modules/Copiloto"
@@ -27,19 +27,10 @@ url_prefixes:
 db_tables_owned:
   - mcp_memory_documents (sync git → DB via webhook)
   - mcp_memory_documents_history
-drift_alerts:
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/Copiloto/Http/Controllers/MemoriaController.php"
-    motivo: "MemoriaController hoje vive em Copiloto mas conceitualmente é KB"
-    eta_migracao: "Fase 3.7"
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/Copiloto/Http/Controllers/FontesController.php"
-    motivo: "FontesController também é KB"
-    eta_migracao: "Fase 3.7"
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/ADS/Http/Controllers/Admin/GraphController.php"
-    motivo: "Knowledge graph pertence ao KB"
-    eta_migracao: "Fase 3.7"
+drift_alerts: []
+  # Fase 3.7 PR-1 (2026-05-06): 3 controllers absorvidos do Copiloto/ADS.
+  # MemoriaController + FontesController vieram do Copiloto.
+  # Admin/GraphController veio do ADS.
 ---
 
 # Modules/KB — Knowledge Base
@@ -64,10 +55,11 @@ Browser canônico de **conhecimento estruturado** do oimpresso: ADRs, sessions, 
 - ❌ Editar regra imutável de programação → Modules/MemCofre (SRS)
 - ❌ Browse de tarefas → Modules/ProjectMgmt
 
-## Drift atual
+## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
 
-3 controllers que **deveriam** estar aqui mas estão em Copiloto/ADS. Migração em Fase 3.7.
+Os 3 controllers absorvidos: MemoriaController + FontesController (do Copiloto), Admin/GraphController (do ADS). URLs mantidas — só namespace mudou.
 
 ---
 
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. 3 controllers pendentes de migração.
+- **v1.1.0** (2026-05-06) — Fase 3.7 PR-1: 3 controllers absorvidos. drift_alerts vazio.

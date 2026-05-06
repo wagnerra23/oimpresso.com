@@ -12,8 +12,8 @@ contains:
   - "BurndownController — burndown chart por cycle"
   - "ActivityController — atividade recente"
   - "DataController + InstallController (boilerplate)"
-  # A migrar de Modules/ADS Fase 3.7:
-  - "ProjectsController — gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc)"
+  # Absorvido em Fase 3.7 PR-1 (2026-05-06):
+  - "Admin/ProjectsController — gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc); URL /ads/admin/projects mantida"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"
@@ -47,11 +47,9 @@ db_tables_owned:
   - mcp_views
   - mcp_inbox_notifications
   - mcp_issue_templates
-drift_alerts:
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/ADS/Http/Controllers/Admin/ProjectsController.php"
-    motivo: "ProjectsController gerencia mcp_jira_projects (Jira-style), pertence ao ProjectMgmt"
-    eta_migracao: "Fase 3.7"
+drift_alerts: []
+  # Fase 3.7 PR-1 (2026-05-06): Admin/ProjectsController absorvido do ADS.
+  # URL /ads/admin/projects mantida — só namespace mudou.
 ---
 
 # Modules/ProjectMgmt — Jira-style task management (futuro: Project)
@@ -78,9 +76,9 @@ Renomeação ProjectMgmt → Project prevista pra Fase 3.9 do ADR 0079, **após*
 - ❌ Skills governance → Modules/ADS
 - ❌ Tokens / scopes / audit → Modules/TeamMcp
 
-## Drift atual
+## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
 
-1 controller a migrar (ProjectsController de ADS). Ver `drift_alerts[]`.
+Admin/ProjectsController absorvido do ADS. URL `/ads/admin/projects` mantida.
 
 ## Renomeação Project pendente (Fase 3.9)
 
@@ -92,3 +90,4 @@ Bloqueada por Fase 3.8 (delete Project legado). Sequência:
 ---
 
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. 1 controller pendente de migração + rename Project pendente Fase 3.8/3.9.
+- **v1.1.0** (2026-05-06) — Fase 3.7 PR-1: Admin/ProjectsController absorvido. drift_alerts vazio. Rename Project pendente Fase 3.8/3.9.
