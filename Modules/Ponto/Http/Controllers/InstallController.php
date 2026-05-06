@@ -8,12 +8,12 @@ class InstallController extends BaseModuleInstallController
 {
     protected function moduleName(): string
     {
-        return 'PontoWr2';
+        return 'Ponto';
     }
 
     protected function moduleSystemKey(): string
     {
-        return 'pontowr2';
+        return 'ponto';
     }
 
     protected function moduleVersion(): string

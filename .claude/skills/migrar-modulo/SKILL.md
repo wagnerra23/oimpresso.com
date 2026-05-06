@@ -106,12 +106,65 @@ foreach ($file in $files) {
 # - composer.json name + providers FQCN + autoload psr-4
 # - SCOPE.md campo module: + texto + histórico v1.x
 # - Plano canonical bump + erratum
+# - InstallController.moduleName() + moduleSystemKey() ⚠️ CRÍTICO (ver §Pegadinha install)
+# - modules_statuses.json + bootstrap/cache (ver §Pegadinha cache)
+# - DB system table backfill (ver §Pegadinha system version)
 
 # 4. Validar
 php bin/check-scope.php   # 0 drift / 29 módulos esperado
 
 # 5. Commit + push + PR
 ```
+
+## §Pegadinha cache nWidart — bootstrap/cache + modules_statuses.json
+
+Após rename de pasta `Modules/X` → `Modules/Y`:
+
+1. **`modules_statuses.json` (raiz do repo)**: tem entrada `"X": true`. Precisa virar `"Y": true`. Sem isso, `Module::all()` continua listando `X` (módulo fantasma).
+
+2. **`bootstrap/cache/x_module.php`** (snake_case do nome). Cache do nWidart com FQCN do ServiceProvider antigo. **`php artisan optimize:clear` NÃO LIMPA esses arquivos.** Sintoma: `php artisan module:list` mostra X mesmo sem pasta. Fix:
+   ```bash
+   mv bootstrap/cache/x_module.php bootstrap/cache.bak/  # ou rm
+   ```
+   Esses caches são auto-regenerados na próxima boot — só pra módulos COM pasta. Legacy não regenera.
+
+## §Pegadinha install — InstallController.moduleName() não atualiza com rename
+
+`Modules/X/Http/Controllers/InstallController.php` extends `BaseModuleInstallController` e tem:
+
+```php
+protected function moduleName(): string { return 'X'; }       // ← hardcoded!
+protected function moduleSystemKey(): string { return 'x'; }  // ← hardcoded!
+```
+
+PowerShell bulk replace **NÃO TROCA** esses (string `'X'` é genérica, não casa com `Modules\X\`). Permanece com nome legacy.
+
+**Sintoma**: Wagner clica "Instalar Y" no `/manage-modules` → URL `/y/install` → `InstallController@index` → `Module::findOrFail($this->moduleName())` → busca `X` → null → throw `Module [X] does not exist!` toast vermelho.
+
+**Fix**: editar manualmente nos 3+ arquivos InstallController, trocar string retornada pra nome novo.
+
+## §Pegadinha system version — DB tabela `system` precisa backfill
+
+`isModuleInstalled('Y')` em `ModuleUtil` faz:
+```php
+System::getProperty(strtolower('Y') . '_version')  // → busca y_version
+```
+
+Mas tabela `system` ainda tem `x_version` legacy. UI mostra "Instalar" pra Y mesmo já instalado. Click → re-roda migrations → pode crashear se tabela já existe.
+
+**Fix backfill DB** (pré-deploy ou postMigrationSteps):
+```php
+foreach ([['y_version', 'x_version']] as [$new, $old]) {
+    if (System::getProperty($new) === null) {
+        $val = System::getProperty($old);
+        if ($val !== null) {
+            DB::table('system')->insert(['key' => $new, 'value' => $val]);
+        }
+    }
+}
+```
+
+Ou registrar via `postMigrationSteps()` do InstallController novo, que detecta `<old>_version` e copia/remove.
 
 ## Erros frequentes (lições da Fase 3.7)
 
@@ -126,6 +179,12 @@ php bin/check-scope.php   # 0 drift / 29 módulos esperado
 ⚠️ **Cross-module dep é OK em transição.** Após Pattern A, Modules/X/Http/routes.php referencia `Modules\Y\Http\Controllers\Z`. Aparenta esquisito, mas é EXATAMENTE o que `app/routes/web.php` faz. URL pertence a quem expôs primeiro; controller pertence a quem é dono semanticamente. Comment inline + ADR linka.
 
 ⚠️ **`composer dump-autoload` pós-deploy é OBRIGATÓRIO.** Esquecer = autoloading PSR-4 quebra após pasta renomeada. Incluir no checklist do PR description.
+
+⚠️ **`InstallController.moduleName()` é hardcoded.** PowerShell bulk replace passa direto. Editar manualmente os 3+ arquivos. Ver §Pegadinha install — bug capturou sessão Fase 3.7 PR-2 quando Wagner clicou "Instalar SRS" e recebeu toast `Module [MemCofre] does not exist!`.
+
+⚠️ **DB tabela `system` precisa backfill `<new>_version`.** Sem isso UI mostra "Instalar" pra módulo já instalado. Click re-roda migrations → crash potencial. Ver §Pegadinha system version.
+
+⚠️ **`bootstrap/cache/<modulo>_module.php` legacy não some com `optimize:clear`.** Tem que mover/deletar manualmente. nWidart auto-regenera só pra pastas existentes. Ver §Pegadinha cache.
 
 ## Cascade Review §10.4 — checklist obrigatório
 
@@ -150,9 +209,13 @@ Antes de fechar PR, audit cada camada:
 - [ ] SCOPE.md dos destinos com controllers em `contains[]`
 - [ ] Plano canônico v.X.Y bumped com erratum
 - [ ] Composer autoload PSR-4 atualizado nos composer.json (Pattern B)
+- [ ] **`modules_statuses.json` atualizado com nome novo** (sem keys legacy)
+- [ ] **3 caches `bootstrap/cache/<modulo>_module.php` legacy movidos** (Pattern B)
+- [ ] **`InstallController.moduleName()` + `moduleSystemKey()` editados pra nome novo** (Pattern B)
+- [ ] **DB `system` table backfill `<new>_version`** (Pattern B — migration ou hot-fix SSH)
 - [ ] ADR sub-decisão criada se desviou do plano
 - [ ] `php bin/check-scope.php`: 0 drift / 29 módulos
-- [ ] PR description tem checklist pós-merge: `composer dump-autoload` + smoke URLs
+- [ ] PR description tem checklist pós-merge: `composer dump-autoload` + smoke URLs + smoke /manage-modules (nenhum botão Instalar pra módulo renomeado já instalado)
 
 ## Substitui
 
