@@ -66,7 +66,24 @@ function fakeDanfeFactory(string $pdfBytes = 'PDF-BYTES-FAKE-12345'): Closure
 {
     return function (string $xml) use ($pdfBytes) {
         $mock = \Mockery::mock(Danfe::class);
-        $mock->shouldReceive('render')->andReturn($pdfBytes);
+        // Mock aceita qualquer valor de $logo (string vazia ou path absoluto)
+        $mock->shouldReceive('render')->withAnyArgs()->andReturn($pdfBytes);
+        return $mock;
+    };
+}
+
+/**
+ * Factory que captura o `$logo` recebido em render() pra asserts em teste de logo.
+ * @param array $captured array passado por referência onde o logo capturado é salvo.
+ */
+function fakeDanfeFactoryCapturaLogo(array &$captured, string $pdfBytes = 'PDF-WITH-LOGO'): Closure
+{
+    return function (string $xml) use (&$captured, $pdfBytes) {
+        $mock = \Mockery::mock(Danfe::class);
+        $mock->shouldReceive('render')->withAnyArgs()->andReturnUsing(function ($logo = '') use (&$captured, $pdfBytes) {
+            $captured[] = $logo;
+            return $pdfBytes;
+        });
         return $mock;
     };
 }
@@ -184,4 +201,117 @@ it('multi-tenant: DANFE de business 4 fica em path separado de business 5', func
     expect($emissao4->fresh()->danfe_path)->toContain('nfe-brasil/4/danfe/');
     expect($emissao5->fresh()->danfe_path)->toContain('nfe-brasil/5/danfe/');
     expect($emissao4->fresh()->danfe_path)->not()->toBe($emissao5->fresh()->danfe_path);
+});
+
+// ── logo tests (US-NFE-044 polish) ────────────────────────────────────────
+
+it('renderizar() passa string vazia pro Danfe::render quando business sem logo', function () {
+    // Sem table business — resolverLogoPath retorna null defensivo
+    $emissao = emissaoFake();
+    Storage::put($emissao->xml_path, '<nfeProc>fake-xml</nfeProc>');
+
+    $captured = [];
+    $svc = new DanfeService(fakeDanfeFactoryCapturaLogo($captured));
+
+    $svc->renderizar($emissao);
+
+    expect($captured)->toBe(['']); // logo vazio (sem business table = sem logo)
+});
+
+it('renderizar() passa string vazia quando business existe mas logo é null', function () {
+    Schema::dropIfExists('business');
+    Schema::create('business', function ($t) {
+        $t->id();
+        $t->string('logo')->nullable();
+    });
+    \DB::table('business')->insert(['id' => 4, 'logo' => null]);
+
+    $emissao = emissaoFake();
+    Storage::put($emissao->xml_path, '<xml>fake</xml>');
+
+    $captured = [];
+    $svc = new DanfeService(fakeDanfeFactoryCapturaLogo($captured));
+    $svc->renderizar($emissao);
+
+    expect($captured)->toBe(['']);
+
+    Schema::dropIfExists('business');
+});
+
+it('renderizar() passa string vazia quando logo cadastrado mas arquivo ausente em storage', function () {
+    Schema::dropIfExists('business');
+    Schema::create('business', function ($t) {
+        $t->id();
+        $t->string('logo')->nullable();
+    });
+    \DB::table('business')->insert(['id' => 4, 'logo' => 'logo-inexistente.png']);
+
+    $emissao = emissaoFake();
+    Storage::put($emissao->xml_path, '<xml>fake</xml>');
+    // NÃO cria storage/business_logos/logo-inexistente.png
+
+    $captured = [];
+    $svc = new DanfeService(fakeDanfeFactoryCapturaLogo($captured));
+    $svc->renderizar($emissao);
+
+    expect($captured)->toBe(['']); // fallback graceful sem logo
+
+    Schema::dropIfExists('business');
+});
+
+it('renderizar() passa path absoluto quando logo existe em storage/app/business_logos/', function () {
+    Schema::dropIfExists('business');
+    Schema::create('business', function ($t) {
+        $t->id();
+        $t->string('logo')->nullable();
+    });
+    \DB::table('business')->insert(['id' => 4, 'logo' => '1700000000_logo-rota-livre.png']);
+
+    // Cria o arquivo logo no storage fake
+    Storage::put('business_logos/1700000000_logo-rota-livre.png', 'fake-png-bytes');
+
+    $emissao = emissaoFake();
+    Storage::put($emissao->xml_path, '<xml>fake</xml>');
+
+    $captured = [];
+    $svc = new DanfeService(fakeDanfeFactoryCapturaLogo($captured));
+    $svc->renderizar($emissao);
+
+    expect($captured)->toHaveCount(1);
+    expect($captured[0])->toBeString()->toContain('business_logos')->toContain('1700000000_logo-rota-livre.png');
+    expect(is_file($captured[0]))->toBeTrue();
+
+    Schema::dropIfExists('business');
+});
+
+it('multi-tenant: logo do business 4 não vaza pra business 5', function () {
+    Schema::dropIfExists('business');
+    Schema::create('business', function ($t) {
+        $t->id();
+        $t->string('logo')->nullable();
+    });
+    \DB::table('business')->insert([
+        ['id' => 4, 'logo' => 'biz4-logo.png'],
+        ['id' => 5, 'logo' => 'biz5-logo.png'],
+    ]);
+    Storage::put('business_logos/biz4-logo.png', 'biz4-bytes');
+    Storage::put('business_logos/biz5-logo.png', 'biz5-bytes');
+
+    $emissao4 = emissaoFake(['business_id' => 4, 'xml_path' => 'nfe-brasil/4/notas/1-1.xml']);
+    $emissao5 = emissaoFake(['business_id' => 5, 'xml_path' => 'nfe-brasil/5/notas/1-1.xml',
+        'chave_44' => '35210000000000000000550010000000999000000019']);
+    Storage::put($emissao4->xml_path, '<xml>biz4</xml>');
+    Storage::put($emissao5->xml_path, '<xml>biz5</xml>');
+
+    $captured = [];
+    $svc = new DanfeService(fakeDanfeFactoryCapturaLogo($captured));
+    $svc->renderizar($emissao4);
+    $svc->renderizar($emissao5);
+
+    expect($captured)->toHaveCount(2);
+    expect($captured[0])->toContain('biz4-logo.png');
+    expect($captured[1])->toContain('biz5-logo.png');
+    expect($captured[0])->not()->toContain('biz5-logo.png');
+
+    Schema::dropIfExists('business');
 });
