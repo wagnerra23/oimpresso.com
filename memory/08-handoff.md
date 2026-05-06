@@ -37,6 +37,8 @@
 
 **Próxima sessão:** revisar/mergear #97 → PR-3+ pode mover URL/permissions/Pages item a item se Wagner decidir.
 
+**ADRs novas:** [0087 — Drift resolution sem mover URL](decisions/0087-drift-resolution-sem-mover-url.md) + [0088 — Module rename PHP-only](decisions/0088-module-rename-php-only.md). **Skill nova:** [.claude/skills/migrar-modulo/SKILL.md](../.claude/skills/migrar-modulo/SKILL.md) — auto-load em refactor de módulo/controller, carrega os 2 patterns + matriz blast radius + receita técnica.
+
 Session log: [memory/sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md](sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md)
 
 ---
