@@ -27,10 +27,11 @@ class DashboardController extends Controller
     public function index(Request $request): Response
     {
         // ADRs status=proposto pendentes de aprovação Wagner
+        // Schema mcp_memory_documents tem coluna `status` direta (não frontmatter_json)
         $pendingAdrs = DB::table('mcp_memory_documents')
             ->where('type', 'adr')
             ->whereNull('deleted_at')
-            ->where('frontmatter_json', 'LIKE', '%"status":"proposto"%')
+            ->where('status', 'proposto')
             ->select('slug', 'title', 'updated_at')
             ->orderByDesc('updated_at')
             ->limit(10)
@@ -46,15 +47,14 @@ class DashboardController extends Controller
             ->where('status', 'pending')
             ->count();
 
-        // Audit highlights — últimas 24h, ações L0/L1 ou erros
+        // Audit highlights — últimas 24h, status != ok (denied/error/quota_exceeded)
+        // Schema mcp_audit_log: endpoint é enum (tools/list, tools/call, etc.)
+        // ações kernel/governance ainda não têm tag separada — Fase 5+1
         $auditHighlights = DB::table('mcp_audit_log')
-            ->where('created_at', '>', now()->subHours(24))
-            ->where(function ($q) {
-                $q->where('status', '!=', 'ok')
-                  ->orWhereIn('endpoint', ['kernel_action', 'governance_change']);
-            })
-            ->select('user_id', 'endpoint', 'tool_or_resource', 'status', 'created_at')
-            ->orderByDesc('created_at')
+            ->where('ts', '>', now()->subHours(24))
+            ->where('status', '!=', 'ok')
+            ->select('user_id', 'endpoint', 'tool_or_resource', 'status', 'ts as created_at', 'duration_ms')
+            ->orderByDesc('ts')
             ->limit(20)
             ->get();
 

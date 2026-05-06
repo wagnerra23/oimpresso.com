@@ -89,17 +89,11 @@ class DriftAlertsController extends Controller
             }
         }
 
-        // Alertas persistidos em mcp_alertas (categoria module_drift)
+        // Alertas persistidos — drift detection cron job (Enforcement #5) ainda não roda;
+        // tabela mcp_alertas é pra outras categorias (cota_excedida, tool_destrutiva,
+        // ip_suspeito, taxa_errors, cliente_externo). Adicionar 'module_drift' ao enum
+        // exige migration + ADR — fica pra Fase 5+1.
         $persistedAlerts = [];
-        if (\Illuminate\Support\Facades\Schema::hasTable('mcp_alertas')) {
-            $persistedAlerts = DB::table('mcp_alertas')
-                ->where('category', 'module_drift')
-                ->where('created_at', '>', now()->subDays(30))
-                ->orderByDesc('created_at')
-                ->limit(50)
-                ->get()
-                ->all();
-        }
 
         return Inertia::render('governance/DriftAlerts', [
             'kpis' => [

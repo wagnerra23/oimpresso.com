@@ -40,8 +40,10 @@ class AuditController extends Controller
             default => now()->subDay(),
         };
 
+        // Schema mcp_audit_log: usa `ts` (auto current_timestamp) ou `created_at`.
+        // Ambos existem; usar `ts` que é o canonical da tabela.
         $q = DB::table('mcp_audit_log')
-            ->where('created_at', '>', $cutoff);
+            ->where('ts', '>', $cutoff);
 
         if ($actor) {
             // mcp_audit_log usa user_id; lookup actor_slug via mcp_actors join se necessário
@@ -61,8 +63,9 @@ class AuditController extends Controller
         if ($endpoint) $q->where('endpoint', $endpoint);
         if ($status)   $q->where('status', $status);
 
-        $entries = $q->orderByDesc('created_at')
+        $entries = $q->orderByDesc('ts')
             ->limit(200)
+            ->select('id', 'user_id', 'business_id', 'endpoint', 'tool_or_resource', 'status', 'duration_ms', 'ts as created_at')
             ->get();
 
         // KPIs do período
@@ -72,9 +75,9 @@ class AuditController extends Controller
             'unique_users' => $entries->pluck('user_id')->unique()->count(),
         ];
 
-        // Distinct values pra filtros
+        // Distinct values pra filtros (endpoint é enum — 7 valores fixos)
         $availableEndpoints = DB::table('mcp_audit_log')
-            ->where('created_at', '>', now()->subDays(30))
+            ->where('ts', '>', now()->subDays(30))
             ->select('endpoint')
             ->distinct()
             ->orderBy('endpoint')
