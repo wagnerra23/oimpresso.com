@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\NfeBrasil\Http\Controllers\CertificadoController;
+use Modules\NfeBrasil\Http\Controllers\ConfiguracaoController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
 
@@ -26,8 +27,8 @@ Route::group([], function () {
     Route::resource('nfebrasil', NfeBrasilController::class)->names('nfebrasil');
 });
 
-// US-NFE-041 — gerenciamento do certificado A1 (upload + status)
-// Permissão `nfe.configuracao.manage` validada no FormRequest.
+// US-NFE-041 — JSON API do certificado A1 (para uso programático)
+// Permissão validada no FormRequest (nfebrasil.settings.manage | superadmin).
 Route::middleware(['web', 'auth', 'SetSessionData'])
     ->prefix('nfe-brasil/configuracao')
     ->group(function () {
@@ -35,4 +36,13 @@ Route::middleware(['web', 'auth', 'SetSessionData'])
             ->name('nfe-brasil.certificado.status');
         Route::post('certificado', [CertificadoController::class, 'upload'])
             ->name('nfe-brasil.certificado.upload');
+    });
+
+// US-NFE-041 fase 2 — página Inertia de configuração do certificado A1.
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->group(function () {
+        Route::get('nfe-brasil/configuracao', [ConfiguracaoController::class, 'index'])
+            ->name('nfe-brasil.configuracao.index');
+        Route::post('nfe-brasil/configuracao', [ConfiguracaoController::class, 'store'])
+            ->name('nfe-brasil.configuracao.certificado.store');
     });

@@ -174,11 +174,11 @@ class DataController extends Controller
 
                         if (auth()->user()->can('superadmin') || auth()->user()->can('nfebrasil.settings.manage')) {
                             $sub->url(
-                                url('/nfebrasil/settings'),
-                                'Configurações Fiscais',
+                                url('/nfe-brasil/configuracao'),
+                                'Certificado A1',
                                 [
-                                    'icon'   => 'fa fas fa-cog',
-                                    'active' => request()->segment(2) == 'settings',
+                                    'icon'   => 'fa fas fa-certificate',
+                                    'active' => request()->is('nfe-brasil/configuracao*'),
                                 ]
                             );
                         }

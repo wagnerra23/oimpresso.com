@@ -10,7 +10,11 @@ class UploadCertificadoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('nfe.configuracao.manage') ?? false;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+        return $user->can('superadmin') || $user->can('nfebrasil.settings.manage');
     }
 
     public function rules(): array
