@@ -11,7 +11,7 @@ use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * US-NFE-041 fase 2 — ConfiguracaoController (página Inertia).
