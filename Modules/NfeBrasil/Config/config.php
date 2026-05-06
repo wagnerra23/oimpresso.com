@@ -17,4 +17,14 @@ return [
      * estar implementado e validado.
      */
     'auto_emission_on_invoice_paid' => env('NFEBRASIL_AUTO_EMISSION', false),
+
+    /**
+     * US-NFE-044 fase 2 — listener EnviarDanfePorEmail.
+     *
+     * Quando true, ao receber NFeAutorizada event o listener envia DANFE PDF
+     * + XML autorizado por e-mail pro destinatário (resolve via Invoice→Contact).
+     * Default true: emissões automáticas (recorrência) sempre notificam o cliente.
+     * Pode desligar via env quando emissão manual UI quiser controle do envio.
+     */
+    'email_danfe_on_autorizada' => env('NFEBRASIL_EMAIL_DANFE', true),
 ];

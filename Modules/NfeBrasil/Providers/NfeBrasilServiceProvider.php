@@ -5,7 +5,9 @@ namespace Modules\NfeBrasil\Providers;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Listeners\EmitirNFeAoReceberPagamento;
+use Modules\NfeBrasil\Listeners\EnviarDanfePorEmail;
 use Modules\RecurringBilling\Events\InvoicePaid;
 
 class NfeBrasilServiceProvider extends ServiceProvider
@@ -26,9 +28,13 @@ class NfeBrasilServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
 
-        // US-RB-044: listener registra ponto de integração com cobrança recorrente.
-        // Emissão real desabilitada até NfeService existir (config flag default false).
+        // US-RB-044: cobrança recorrente paga → emite NFe modelo 55.
+        // Flag default false até business ter cert + ncm_default + contact configurados.
         Event::listen(InvoicePaid::class, EmitirNFeAoReceberPagamento::class);
+
+        // US-NFE-044: NFe autorizada → envia DANFE PDF + XML por e-mail ao destinatário.
+        // Flag default true (recorrência sempre notifica cliente).
+        Event::listen(NFeAutorizada::class, EnviarDanfePorEmail::class);
     }
 
     /**
