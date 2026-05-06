@@ -29,9 +29,9 @@ Em 1 parágrafo: estamos migrando o ERP Oimpresso de uma arquitetura "Claude Cod
 ┌────────────────────────────────────────────────────────────────────────┐
 │ L7 — DAILY BRIEF        ✅ PROD     (3k tokens, 6x/dia, brief-fetch)   │
 │ L6 — CHARTERS           🔲 PENDING  (page/feature/mission contracts)   │
-│ L5 — ADRs canon         ⚠️ 92 ATIVAS, ALVO ≤30 (precisa poda S6)       │
+│ L5 — ADRs canon         🟡 EM EXEC  (S3 ADR 0094+0095 aceitas; poda S7)│
 │ L4 — PLAYBOOKS          🔲 PENDING  (procedimentos executáveis)        │
-│ L3 — SKILLS             ⚠️ 19 ATUAIS — precisa auditoria + tier (S3)   │
+│ L3 — SKILLS             🟡 EM EXEC  (S3 — 5 Tier A definidas, executa) │
 │ L2 — ADS Universal      🔲 PENDING  (firewall: code/design/produto…)   │
 │ L1 — MCP CORE           ✅ PROD     (tools + memória + audit)          │
 └────────────────────────────────────────────────────────────────────────┘
@@ -73,13 +73,19 @@ Em 1 parágrafo: estamos migrando o ERP Oimpresso de uma arquitetura "Claude Cod
 |---|---|---|
 | S1 Daily Brief | `memory/sprints/s1-daily-brief/` | Mergeado, falta postmortem 48h |
 | S2 OS Listagem MWART | `memory/sprints/s2-os-listagem/` | Mergeado, falta soak 48h + replicação outras telas |
+| **S3 Constituição v2** | `memory/sprints/s3-constituicao/` | 🟡 **EM EXECUÇÃO** — ADRs 0094+0095 aceitas (PR pendente). Faltam: CLAUDE.md reescrita, 5 imports memory/, skills moves, hook SessionStart |
 
 ### 🔴 NÃO EXISTE (faltando)
 
 | Item | Onde deveria estar | Quando entra |
 |---|---|---|
-| Postmortem Sprint 1 | `memory/sprints/s1-daily-brief/99-postmortem.md` | imediato após soak 48h |
+| Postmortem Sprint 1 | `memory/sprints/s1-daily-brief/99-postmortem.md` | template criado, falta dados pós-soak |
+| Postmortem Sprint 2 | `memory/sprints/s2-os-listagem/99-postmortem.md` | template criado, falta dados pós-soak |
 | Skill `mwart-migrate` (spec existe, skill não) | `.claude/skills/mwart-migrate/SKILL.md` | criar antes de S2.5 (replicar 4 telas Repair) |
+| **CLAUDE.md reescrito** ≤100 linhas | raiz | S3 Fase 2 (em andamento) |
+| **5 arquivos memory/ importados** | `memory/{why,what,how,proibicoes,regras-time}.md` | S3 Fase 2 |
+| **3 skills novas Tier A** (`mcp-first`, `commit-discipline`, `charter-first`, `ads-route`) | `.claude/skills/` | S3 Fase 3 |
+| **Hook SessionStart** força brief-fetch | `.claude/settings.json` | S3 Fase 4 |
 | Dossier Sprint 3 (Constituição) | `memory/sprints/s3-constituicao/` | depende de S1 estável |
 | Dossier Sprint 4 (Page Charters) | `memory/sprints/s4-charters/` | depende de S3 |
 | Dossier Sprint 5 (ADS Universal) | `memory/sprints/s5-ads/` | depende de S4 |
@@ -246,7 +252,15 @@ Pesquisa rápida 6 temas, principais achados aplicáveis ao Oimpresso:
 
 ### Sprint 3 — Constituição v2 + skills Tier A + CLAUDE.md reescrito
 
-**Status:** 🔴 PENDING. Pré-requisito: S1 estável (postmortem aprovado).
+**Status:** 🟡 **EM EXECUÇÃO** desde 2026-05-06 — Wagner aprovou dossier completo (PR #132 `bf3a18ee`) e autorizou continuar.
+
+**Progresso:**
+- ✅ Dossier 4 ADRs preenchidas + aprovadas (PR #132 mergeado)
+- 🟡 **Fase 1** — ADRs canon 0094 (Constituição mãe) + 0095 (skills-tiers) — em PR
+- 🔲 **Fase 2** — CLAUDE.md reescrito ≤100 linhas + 5 imports memory/
+- 🔲 **Fase 3** — Skills moves (renames `oimpresso-mcp-first` → `mcp-first`, `copiloto-arch` → `jana-arch`, etc) + criar 3 Tier A novas
+- 🔲 **Fase 4** — Hook SessionStart força brief-fetch
+- 🔲 **Fase 5** — Smoke test em prod biz=1
 
 **O que entrega:** documento mãe da Constituição (ADR canônica), reescrita do CLAUDE.md (≤350 linhas), 5 skills Tier A finalizadas, auditoria das 19 skills atuais com decisões PROMOVER/MANTER/ARQUIVAR.
 
@@ -947,3 +961,4 @@ Rascunho da ADR (você aprova):
 | 1.3 | 2026-05-06 | Sonnet (deep-dives S3-S7) | §13 síntese 18 mudanças obrigatórias dos 5 deep-dives + estimativas revisadas (+20% overhead) + 7 blocos de aprovação Wagner. 5 arquivos detalhados em `research/sN-deep-dive.md` |
 | 1.4 | 2026-05-06 | Sonnet (4 decisões Wagner + custos evolução) | §8 4 decisões respondidas (Ollama pular / S2.5 fazer / Cockpit Wagner-only / ADR 0093 depois) + §5 cronograma com S2.5 paralelo (16 semanas) + §9 estimativa de custo de evolução do roteiro |
 | 1.5 | 2026-05-06 | Sonnet (aprovação global Wagner "ok aprovado comece") | §13 todos blocos A–G aprovados + ADR 0093 aceita (commit 4139437a) + _INDEX-LIFECYCLE 90 ADRs criado consolidando triagem (commit 4139437a) + 12 ADRs superseded com superseded_by no frontmatter (próximo PR) |
+| 1.6 | 2026-05-06 | Sonnet (Wagner "esta aprovado pode fazer o merge") | S3 Constituição EM EXECUÇÃO. Dossier 4 ADRs aprovado (PR #132 bf3a18ee). Fase 1 em andamento: ADRs canon 0094 (Constituição v2 mãe) + 0095 (skills tiers) criadas em memory/decisions/. Estado L3+L5 mudou de PENDING → EM EXEC. |
