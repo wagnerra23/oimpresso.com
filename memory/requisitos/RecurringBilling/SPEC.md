@@ -551,3 +551,175 @@ Então NÃO cria revenue_event (sem take rate)
 - BCB Pix Automático docs (jornadas JRC)
 - Stripe smart retries (referência ML)
 - Auto-memória: `reference_ultimatepos_integracao.md`, `reference_db_schema.md`
+
+### US-RECURRINGBILLING-001 · Escopo 0 — PaymentGateway + adapter Asaas (pré-requisito cobrança)
+
+> owner: wagner · priority: p0 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+- Módulo PaymentGateway scaffold (tabelas `pg_credentials`, `pg_charge_attempts`, `pg_webhook_events`)
+- Adapter Asaas: credencial por tenant (api_key encrypted), cobrança avulsa, webhook `payment.confirmed` / `payment.overdue`
+- Idempotência por `(provider, event_id)` em `pg_webhook_events`
+- Resposta 200 imediata + processamento async via job (fila `rb_webhooks`)
+- Tela admin: cadastrar credencial Asaas por tenant
+- Test Feature: criar credencial + cobrança avulsa mock + webhook idempotência + isolamento multi-tenant
+- **Pré-requisito de todos os outros escopos**
+
+### US-RECURRINGBILLING-001 · Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
+
+> owner: wagner · priority: p0 · estimate: 32h · status: todo · type: story
+> blocked_by: —
+
+- Migrations: `rb_plans`, `rb_contracts`, `rb_invoices`
+- PlanController CRUD + ContractController (criar/cancelar) + InvoiceController (listar/charge manual)
+- `GenerateInvoicesJob` — diário 03:00, gera fatura pra contratos com `next_billing_date <= hoje+3d`, idempotência por `(contract_id, ciclo_competencia)`
+- `ChargeInvoicesJob` — 1h após geração, dispara evento `ChargeRequested` pro PaymentGateway
+- Listener `InvoiceGenerated` → cria título no Financeiro (`rb_invoices` linked)
+- Layout React: lista contratos (status badge), detalhe com timeline de ciclos (Recharts), ação manual "cobrar agora"
+- Test Feature: 100 contratos × 3 ciclos = 300 invoices sem dupla + isolamento
+- **Bloqueado por:** Escopo 0 (PaymentGateway)
+
+### US-RECURRINGBILLING-001 · Escopo 2 — Boleto impresso via Asaas
+
+> owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+- No `ChargeRequested` com forma=boleto: Asaas adapter gera boleto + retorna `boleto_pdf_url` + `boleto_barcode`
+- Persiste em `pg_charge_attempts.boleto_pdf_url`
+- Tela fatura (React): botão "Imprimir boleto" (abre PDF em nova aba) + linha digitável copiável
+- Envio por email automático com link PDF ao gerar (job `SendBoletoEmailJob`)
+- Test Feature: gerar boleto mock + verificar url salva + email disparado
+- **Bloqueado por:** Escopo 1
+
+### US-RECURRINGBILLING-001 · Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter)
+
+> owner: wagner · priority: p1 · estimate: 24h · status: todo · type: story
+> blocked_by: —
+
+- Sub-módulo NFSe scaffold isolado (tabelas `nfse_documents`, `nfse_credentials`)
+- Adapter Focus NFe (plugável, configurável por tenant): emitir NFSe + consultar status + cancelar
+- Listener em `InvoicePaid` → dispara `NFSeEmissionRequested` (fila `rb_nfse`, não trava billing)
+- Webhook do provider confirma emissão → salva PDF link + XML em `nfse_documents`
+- Tela: status da NF por fatura (pendente/emitida/erro), link PDF, botão reemitir
+- NFSe é assíncrona: provider pode levar minutos; UI mostra "aguardando prefeitura"
+- Test Feature: listener disparado ao pagar + mock provider + status assíncrono + isolamento
+- **Bloqueado por:** Escopo 1
+
+### US-RECURRINGBILLING-001 · Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas)
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+Origem: `/comparativo RecurringBilling` em 2026-05-06. Capacidade #1 da CAPTERRA-FICHA classificada 🟡 PARCIAL — drivers e UI existem, mas `Modules/RecurringBilling/Tests/` está vazia. Sem teste, qualquer mexida nova é bug em prod garantido.
+
+## Acceptance criteria
+- [ ] `Tests/Feature/InterDriverTest.php` — round-trip emitir + cancelar com sandbox response mockada (não chamar API real)
+- [ ] `Tests/Feature/C6DriverTest.php` — geração local CNAB + nossoNumero + linha digitável válidos
+- [ ] `Tests/Feature/AsaasDriverTest.php` — POST /payments mockado + parsing do response
+- [ ] `Tests/Feature/BoletoServiceTest.php` — resolve driver correto por banco da credencial; decryptConfig roundtrip
+- [ ] CI verde com os novos testes
+
+## Referências
+- ADR 0089 (Capterra-driven Module Evolution)
+- ADR tech/0007 (encryption pattern credenciais boleto)
+- CAPTERRA-INVENTARIO.md item #1
+
+### US-RECURRINGBILLING-001 · Test de retry idempotente do ProcessAsaasWebhookJob
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #2 🟡 — tabela `pg_webhook_events` UNIQUE(provider, event_id) existe, mas sem teste cobrindo retry/replay. Webhook duplicado pelo Asaas (que **acontece em produção**) sem cobertura de teste = cobrança duplicada esperando pra acontecer.
+
+## Acceptance criteria
+- [ ] `Tests/Feature/AsaasWebhookIdempotencyTest.php`
+- [ ] Cenário: 2 chamadas POST /api/webhooks/asaas/{biz} com mesmo event_id → segunda retorna 200 sem reprocessar
+- [ ] Cenário: PAYMENT_RECEIVED processado 2× não cria 2 account_transactions (insertOrIgnore funciona)
+- [ ] Cenário: BALANCE_UPDATED processado 2× não duplica saldo_cached
+- [ ] Cenário: job falha no meio → retry roda completo sem dups (atomicidade)
+
+## Referências
+- ADR tech/0001-idempotencia-charge-attempts-e-webhooks
+- ProcessAsaasWebhookJob.php
+- CAPTERRA-INVENTARIO.md item #2
+
+### US-RECURRINGBILLING-001 · Completar cancelar() C6/Asaas + UI Cancelar título + audit log
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #4 🟡 — `BoletoDriverContract::cancelar()` definido e implementado em InterDriver, mas C6 e Asaas precisam ser auditados/completados. UI inexistente. Cancelamento é exigência de lei (Procon/LGPD) — não pode depender de SQL.
+
+## Acceptance criteria
+- [ ] Auditar `C6Driver::cancelar()` — implementar via CNAB remessa de cancelamento se ausente
+- [ ] Auditar `AsaasDriver::cancelar()` — usar DELETE /payments/{id}
+- [ ] Botão "Cancelar título" em `resources/js/Pages/Financeiro/Boletos/` (ou similar) com confirmação
+- [ ] Endpoint `POST /financeiro/boletos/{id}/cancelar` chama BoletoService → driver
+- [ ] Spatie Activity Log registrando cancelamento (quem/quando/motivo)
+- [ ] Permissão `financeiro.boleto.cancelar` (default só admin do business)
+- [ ] Teste Pest cobrindo os 3 drivers (depende de #1)
+
+## Referências
+- BoletoDriverContract.php
+- InterDriver::cancelar() (referência)
+- CAPTERRA-INVENTARIO.md item #4
+
+### US-RECURRINGBILLING-001 · [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #4 ❌ AUSENTE — fundação do domínio recorrente. **Epic bloqueador** das capacidades #5 (cartão recorrente), #7 (régua dunning), #8 (matcher reconciliação), #9 (tela assinaturas), #11 (proration), #12 (split), #13 (métricas SaaS).
+
+## Acceptance criteria
+- [ ] Migration `rb_plans` — id, business_id, nome, valor, ciclo (monthly/yearly), trial_days, ativo
+- [ ] Migration `rb_subscriptions` — id, business_id, plan_id, contact_id (UPos contacts), status (active/paused/canceled/trial), próximo_vencimento, billing_anchor_date
+- [ ] Migration `rb_invoices` — id, subscription_id, valor, status (open/paid/overdue/canceled), vencimento, pago_em, gateway_ref, conta_bancaria_id
+- [ ] Migration `rb_charge_attempts` — id, invoice_id, gateway, attempt_n, response_json, status, created_at (idempotent retry log)
+- [ ] Models Eloquent com relacionamentos + global scope BusinessScope (multi-tenant)
+- [ ] Tipos: int unsigned para FKs em tabelas legadas UltimatePOS (ADR tech/0008)
+- [ ] Migrations idempotentes (Schema::hasColumn guard, ADR tech/0008)
+- [ ] Seeder de exemplo com 2 planos para ROTA LIVRE (biz=4)
+- [ ] Tests Pest cobrindo: criar subscription, gerar próxima fatura, transição de status
+
+## Bloqueia
+- Cartão recorrente, Régua dunning, Matcher reconciliação, Tela assinaturas, Proration, Split, Métricas SaaS
+
+## Referências
+- ADR tech/0008 (FK type-mismatch UltimatePOS)
+- multi-tenant-patterns skill
+- CAPTERRA-INVENTARIO.md item #4
+
+### US-RECURRINGBILLING-001 · Listener InvoicePaid em NfeBrasil — emissão automática de NFe55 + DANFE + e-mail
+
+> owner: — · priority: p1 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #6 ❌ AUSENTE — **diferencial vertical gráfica**. Gateway de boleto é commodity (5 concorrentes têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE) pediu isso há tempos.
+
+Event `InvoicePaid` JÁ existe em `Modules/RecurringBilling/Events/InvoicePaid.php` — falta listener em NfeBrasil consumindo.
+
+## Acceptance criteria
+- [ ] `Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php` registrado em EventServiceProvider
+- [ ] Listener resolve produto/serviço da fatura → mapeia pra item de NFe (CFOP, NCM, alíquotas)
+- [ ] Carrega certificado A1 do business via NfeCertificadoService
+- [ ] Chama nfephp-org/sped-nfe → autoriza SEFAZ
+- [ ] Renderiza DANFE (PDF)
+- [ ] Envia e-mail pro pagador com DANFE anexado
+- [ ] Log estruturado de cada passo (gen_ai.* OpenTelemetry pattern, ADR 0049)
+- [ ] Falha de SEFAZ não derruba pagamento — retry job separado
+- [ ] Teste Pest: dispara InvoicePaid → assert NFe criada com status=autorizada
+- [ ] Prod-evidence: ≥1 NFe modelo 55 autorizada via esse fluxo (ROTA LIVRE biz=4)
+
+## Diferencial competitivo
+Iugu/Asaas/Vindi/Pagar.me **não têm** isso. Para gráfica, é dor real (emissão manual de NFe é gargalo de Larissa).
+
+## Referências
+- Modules/RecurringBilling/Events/InvoicePaid.php
+- Modules/NfeBrasil (escopo já existente)
+- CAPTERRA-INVENTARIO.md item #6
