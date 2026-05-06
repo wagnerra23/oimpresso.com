@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\NfeBrasil\Http\Controllers\CertificadoController;
 use Modules\NfeBrasil\Http\Controllers\ConfigDefaultController;
+use Modules\NfeBrasil\Http\Controllers\ImportRegrasController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
@@ -62,4 +63,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->whereNumber('id')->name('regras.update');
         Route::delete('regras/{id}', [TributacaoController::class, 'destroy'])
             ->whereNumber('id')->name('regras.destroy');
+
+        // Import CSV em massa (US-NFE-010 fase 3)
+        Route::get('import', [ImportRegrasController::class, 'show'])->name('import.show');
+        Route::post('import/preview', [ImportRegrasController::class, 'preview'])->name('import.preview');
+        Route::post('import/aplicar', [ImportRegrasController::class, 'aplicar'])->name('import.aplicar');
     });

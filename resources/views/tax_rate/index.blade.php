@@ -12,6 +12,45 @@
 
 <!-- Main content -->
 <section class="content">
+    @php
+        // ADR ARQ-0005 — banner pra direcionar tenant que tem NfeBrasil ativo
+        // pra UI fiscal avançada (cascade NCM + alíquotas detalhadas).
+        // Defensivo: try/catch porque tabela pode não existir em ambientes
+        // sem o módulo NfeBrasil instalado.
+        $nfe_brasil_ativo = false;
+        try {
+            $nfe_brasil_ativo = \Illuminate\Support\Facades\Schema::hasTable('nfe_business_configs')
+                && \Illuminate\Support\Facades\DB::table('nfe_business_configs')
+                    ->where('business_id', session('user.business_id'))
+                    ->exists();
+        } catch (\Throwable $e) {
+            $nfe_brasil_ativo = false;
+        }
+    @endphp
+
+    @if ($nfe_brasil_ativo)
+        <div class="tw-mb-4 tw-rounded-lg tw-border tw-border-blue-200 tw-bg-gradient-to-r tw-from-blue-50 tw-to-indigo-50 tw-p-4 tw-shadow-sm dark:tw-border-blue-800 dark:tw-from-blue-900/20 dark:tw-to-indigo-900/20">
+            <div class="tw-flex tw-items-start tw-gap-3">
+                <div class="tw-flex-shrink-0">
+                    <span class="tw-text-2xl">🇧🇷</span>
+                </div>
+                <div class="tw-flex-1">
+                    <h4 class="tw-text-sm tw-font-semibold tw-text-blue-900 dark:tw-text-blue-200 tw-mb-1">
+                        Configuração Fiscal Avançada disponível
+                    </h4>
+                    <p class="tw-text-xs tw-text-blue-800 dark:tw-text-blue-300 tw-mb-2">
+                        Para NF-e/NFC-e brasileira, use o cascade tributário (NCM × UF × CSOSN/CST + alíquotas
+                        ICMS/PIS/COFINS/IPI) em vez de cadastrar taxas avulsas aqui.
+                    </p>
+                    <a href="{{ url('/nfe-brasil/tributacao') }}"
+                       class="tw-inline-flex tw-items-center tw-gap-1.5 tw-text-xs tw-font-medium tw-text-blue-700 hover:tw-text-blue-900 dark:tw-text-blue-300 dark:hover:tw-text-blue-100">
+                        Acessar Tributação NF-e Brasil →
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @component('components.widget', ['class' => 'box-primary', 'title' => __( 'tax_rate.all_your_tax_rates' )])
         @can('tax_rate.create')
             @slot('tool')
