@@ -9,8 +9,7 @@ use Modules\RecurringBilling\Services\Boleto\Drivers\AsaasDriver;
 use Modules\RecurringBilling\Services\Boleto\Drivers\C6Driver;
 use Modules\RecurringBilling\Services\Boleto\Drivers\InterDriver;
 
-uses(Tests\TestCase::class)->in(__DIR__);
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(Tests\TestCase::class, \Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 /**
  * US-RB-040 · Cobertura Pest dos 3 drivers (BoletoService).

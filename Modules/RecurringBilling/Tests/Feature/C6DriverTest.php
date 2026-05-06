@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Modules\RecurringBilling\Dto\BoletoResult;
 use Modules\RecurringBilling\Services\Boleto\Drivers\C6Driver;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * US-RB-040 · Cobertura Pest do C6Driver.

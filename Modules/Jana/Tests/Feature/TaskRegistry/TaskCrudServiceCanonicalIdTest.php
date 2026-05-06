@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\File;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * Trava o bug de mapping module→prefix descoberto em 2026-05-06 quando

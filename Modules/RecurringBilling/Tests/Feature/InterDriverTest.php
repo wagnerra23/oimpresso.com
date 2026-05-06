@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\RecurringBilling\Services\Boleto\Drivers\InterDriver;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * US-RB-040 · Cobertura Pest do InterDriver — smoke tests.
