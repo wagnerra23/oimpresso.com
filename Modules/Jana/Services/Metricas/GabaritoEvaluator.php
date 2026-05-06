@@ -94,7 +94,7 @@ class GabaritoEvaluator
             // MeilisearchDriver::buscar filtra por user_id estrito → gabarito
             // precisa resolver pra um user real do business pra recall funcionar.
             // Pega o user com mais facts persistidos no business.
-            $userParaBusca = (int) (DB::table('copiloto_memoria_facts')
+            $userParaBusca = (int) (DB::table('jana_memoria_facts')
                 ->where('business_id', $bizParaBusca)
                 ->whereNull('valid_until')
                 ->select('user_id', DB::raw('COUNT(*) as cnt'))

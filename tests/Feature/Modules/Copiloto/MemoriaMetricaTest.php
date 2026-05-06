@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\MemoriaMetrica;
 
 /**
- * MEM-MET-1 (ADRs 0050+0051) — schema da tabela `copiloto_memoria_metricas`,
+ * MEM-MET-1 (ADRs 0050+0051) — schema da tabela `jana_memoria_metricas`,
  * casts da Entity, scopes (doBusinessOuPlataforma + ultimosDias), e
  * helpers metricasObrigatorias() / metricasRagas().
  *
@@ -15,7 +15,7 @@ use Modules\Jana\Entities\MemoriaMetrica;
  */
 
 beforeEach(function () {
-    Schema::create('copiloto_memoria_metricas', function (Blueprint $t) {
+    Schema::create('jana_memoria_metricas', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->date('apurado_em');
         $t->unsignedInteger('business_id')->nullable();
@@ -39,7 +39,7 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('copiloto_memoria_metricas');
+    Schema::dropIfExists('jana_memoria_metricas');
 });
 
 it('Entity MemoriaMetrica grava e lê 1 linha com casts corretos', function () {

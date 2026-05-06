@@ -34,7 +34,7 @@ class MemoriaGabaritoSeeder extends Seeder
     {
         // Limpa entradas anteriores do seeder pra reseed (mantém edits manuais
         // do Wagner identificados por notas LIKE 'wagner-edit-%')
-        DB::table('copiloto_memoria_gabarito')
+        DB::table('jana_memoria_gabarito')
             ->where(function ($q) {
                 $q->whereNull('notas')->orWhere('notas', 'not like', 'wagner-edit-%');
             })
@@ -43,7 +43,7 @@ class MemoriaGabaritoSeeder extends Seeder
         $perguntas = $this->dataset();
 
         foreach ($perguntas as $row) {
-            DB::table('copiloto_memoria_gabarito')->insert(array_merge(
+            DB::table('jana_memoria_gabarito')->insert(array_merge(
                 $row,
                 [
                     'memoria_esperada_keys' => json_encode($row['memoria_esperada_keys'], JSON_UNESCAPED_UNICODE),

@@ -72,7 +72,7 @@ class SeedAdrsCommand extends Command
 
         // Reset: remove fatos seedados anteriormente (marker source_slug no metadata)
         if ($reset && ! $dryRun) {
-            $removed = DB::table('copiloto_memoria_facts')
+            $removed = DB::table('jana_memoria_facts')
                 ->where('business_id', $businessId)
                 ->where('user_id', $userId)
                 ->whereRaw("JSON_EXTRACT(metadata, '$.seeded_from_mcp') = true")
@@ -85,7 +85,7 @@ class SeedAdrsCommand extends Command
         // Carrega slugs existentes de uma só query (evita N+1 com JSON_EXTRACT por linha)
         $existingBySlug = [];
         if (! $dryRun) {
-            $existing = DB::table('copiloto_memoria_facts')
+            $existing = DB::table('jana_memoria_facts')
                 ->where('business_id', $businessId)
                 ->where('user_id', $userId)
                 ->whereRaw("JSON_EXTRACT(metadata, '$.seeded_from_mcp') = true")
@@ -137,7 +137,7 @@ class SeedAdrsCommand extends Command
 
             if (isset($existingBySlug[$doc->slug])) {
                 // Update individual (poucos — só quando re-seed)
-                DB::table('copiloto_memoria_facts')
+                DB::table('jana_memoria_facts')
                     ->where('id', $existingBySlug[$doc->slug]->id)
                     ->update([
                         'fato'        => $fato,
@@ -165,7 +165,7 @@ class SeedAdrsCommand extends Command
         // Batch insert em chunks de 50 (evita query muito longa)
         if (! empty($toInsert)) {
             foreach (array_chunk($toInsert, 50) as $chunk) {
-                DB::table('copiloto_memoria_facts')->insert($chunk);
+                DB::table('jana_memoria_facts')->insert($chunk);
             }
         }
 
@@ -180,7 +180,7 @@ class SeedAdrsCommand extends Command
             $total = $stats['inserted'] + $stats['updated'] + $stats['superseded'];
             $this->newLine();
             $this->info("Próximo passo: indexar no Meilisearch e medir recall:");
-            $this->line("  php artisan scout:import \"Modules\\\\Copiloto\\\\Entities\\\\CopilotoMemoriaFato\"");
+            $this->line("  php artisan scout:import \"Modules\\\\Copiloto\\\\Entities\\\\MemoriaFato\"");
             $this->line("  php artisan copiloto:eval --persist --business=$businessId");
         }
 

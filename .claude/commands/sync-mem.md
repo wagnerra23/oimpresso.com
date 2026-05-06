@@ -50,5 +50,5 @@ description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/
 - Usar `git add -A` ou `git add .` (pode pegar código não relacionado)
 - Usar `--no-verify` ou skipar hooks (gitleaks protege segredos)
 - Force push
-- Commitar `Modules/Copiloto/Entities/CopilotoMemoriaFato.php` ou outros arquivos código não-mem
+- Commitar `Modules/Copiloto/Entities/MemoriaFato.php` ou outros arquivos código não-mem
 - Recriar `CURRENT.md`/`TASKS.md` (foram removidos pelo ADR 0070)

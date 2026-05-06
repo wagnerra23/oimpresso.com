@@ -12,7 +12,7 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 |---|------|-----------|---------|
 | 1 | Captura | `MemoryAutomataAgent` extrai fato de turno de chat | `facts_extracted_per_turn` |
 | 2 | Classificação | Tipo (preferência/fato/contexto) + relevância 1-5 | `metadata.tipo`, `metadata.relevancia` |
-| 3 | Persistência | `lembrar()` em `copiloto_memoria_facts` | `total_fatos` |
+| 3 | Persistência | `lembrar()` em `jana_memoria_facts` | `total_fatos` |
 | 4 | Indexação | Scout → Meilisearch (full-text + embedder OpenAI) | `index_lag_seconds` |
 | 5 | Recall | `MeilisearchDriver::buscar()` (hybrid + HyDE + Reranker) | `Recall@3`, `Precision@3`, `MRR` |
 | 6 | Uso | `ChatCopilotoAgent` injeta no system prompt | `memoria_recall_chars`, `core_memory_used` |
@@ -35,8 +35,8 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 
 **Pré-requisitos (validar antes de implementar):**
 1. Coluna ou atributo Meilisearch `metadata_relevancia` deve estar **flat** (não dentro do JSON `metadata`).
-   - Hoje: `Modules/Jana/Entities/CopilotoMemoriaFato::toSearchableArray()` indexa `metadata_json` como string, **NÃO** expõe `metadata_relevancia` como filterable.
-   - **Ação preliminar:** alterar `toSearchableArray()` pra adicionar `'metadata_relevancia' => $this->metadata['relevancia'] ?? null` + adicionar em `config/scout.php` `index-settings.copiloto_memoria_facts.filterableAttributes` o campo novo + reindexar (`php artisan scout:flush "Modules\\Jana\\Entities\\CopilotoMemoriaFato" && php artisan scout:import "Modules\\Jana\\Entities\\CopilotoMemoriaFato"`).
+   - Hoje: `Modules/Jana/Entities/MemoriaFato::toSearchableArray()` indexa `metadata_json` como string, **NÃO** expõe `metadata_relevancia` como filterable.
+   - **Ação preliminar:** alterar `toSearchableArray()` pra adicionar `'metadata_relevancia' => $this->metadata['relevancia'] ?? null` + adicionar em `config/scout.php` `index-settings.jana_memoria_facts.filterableAttributes` o campo novo + reindexar (`php artisan scout:flush "Modules\\Jana\\Entities\\MemoriaFato" && php artisan scout:import "Modules\\Jana\\Entities\\MemoriaFato"`).
 2. `MemoryAutomataAgent` precisa estar populando `metadata.relevancia` (1-5). Se não popula, P1-A vira no-op.
 3. Baseline `Recall@3` medido no gabarito antes do filtro (se filtrar muitos facts borderline, pode regredir).
 
@@ -61,9 +61,9 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 **Pré-requisitos:**
 1. Auto-promote logic implementado (Phase 4 ADR 0054 — fact com hits ≥ 5 vira core).
 2. `HitTrackerService` (Modules/Jana/Services/Memoria/HitTrackerService.php) precisa estar conectado no fluxo de resposta.
-3. `Modules/Jana/Entities/CopilotoMemoriaFato.php` precisa ter `hits_count`/`core_memory`/`ultimo_hit_em` em `$casts` (HOJE NÃO TEM — bug detectado 2026-05-04, ver pendências).
+3. `Modules/Jana/Entities/MemoriaFato.php` precisa ter `hits_count`/`core_memory`/`ultimo_hit_em` em `$casts` (HOJE NÃO TEM — bug detectado 2026-05-04, ver pendências).
 
-**Implementação:** `Modules/Jana/Agents/ChatCopilotoAgent.php` (ou agente equivalente), adicionar query `CopilotoMemoriaFato::doUser($biz, $user)->where('core_memory', true)->get()` antes do recall e prepend ao system prompt.
+**Implementação:** `Modules/Jana/Agents/ChatCopilotoAgent.php` (ou agente equivalente), adicionar query `MemoriaFato::doUser($biz, $user)->where('core_memory', true)->get()` antes do recall e prepend ao system prompt.
 
 **Esperado:** -10-15% tokens em prompts repetidos + Recall efetivo dos top facts garantido (sem depender de scoring).
 
@@ -81,7 +81,7 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 
 **O quê:** parâmetro do hybrid search Meilisearch (1.0 = 100% semantic, 0.0 = 100% full-text).
 
-**Pré-requisitos:** gabarito de 50 perguntas registrado em `copiloto_memoria_gabarito` + comando `copiloto:eval` funcional.
+**Pré-requisitos:** gabarito de 50 perguntas registrado em `jana_memoria_gabarito` + comando `copiloto:eval` funcional.
 
 **Procedimento:**
 - Hoje: `COPILOTO_MEMORIA_SEMANTIC_RATIO=0.7` (default no driver).
@@ -116,7 +116,7 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 
 | Data | Melhoria | Recall@3 antes | Recall@3 depois | hit_rate antes | hit_rate depois | Decisão | Notas |
 |------|----------|----------------|-----------------|----------------|-----------------|---------|-------|
-| 2026-05-04 | _(setup da rotina — nenhuma melhoria aplicada)_ | — | — | — | — | ⚙️ infra | 1ª execução: SKILL apontava pra `Modules/Copiloto/` (renomeado pra `Modules/Jana/`) + `CURRENT.md` removido (ADR 0070) + ADR 0062 ≠ 8 fases. Setup do RUNBOOK + SKILL atualizada + permissões pré-aprovadas. Bug detectado: `CopilotoMemoriaFato.$casts` em Jana não tem `hits_count`/`core_memory`/`ultimo_hit_em` (migration aplicou colunas mas entity não cast). |
+| 2026-05-04 | _(setup da rotina — nenhuma melhoria aplicada)_ | — | — | — | — | ⚙️ infra | 1ª execução: SKILL apontava pra `Modules/Copiloto/` (renomeado pra `Modules/Jana/`) + `CURRENT.md` removido (ADR 0070) + ADR 0062 ≠ 8 fases. Setup do RUNBOOK + SKILL atualizada + permissões pré-aprovadas. Bug detectado: `MemoriaFato.$casts` em Jana não tem `hits_count`/`core_memory`/`ultimo_hit_em` (migration aplicou colunas mas entity não cast). |
 
 ---
 
@@ -136,12 +136,12 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 ### Medir baseline (sem `copiloto:eval`)
 ```powershell
 $env:DB_CONNECTION='mysql'; $env:DB_DATABASE='oimpresso'; php artisan tinker --execute="
-`$total = DB::table('copiloto_memoria_facts')->where('business_id',1)->whereNull('deleted_at')->count();
-`$comHits = DB::table('copiloto_memoria_facts')->where('business_id',1)->whereNull('deleted_at')->where('hits_count','>',0)->count();
+`$total = DB::table('jana_memoria_facts')->where('business_id',1)->whereNull('deleted_at')->count();
+`$comHits = DB::table('jana_memoria_facts')->where('business_id',1)->whereNull('deleted_at')->where('hits_count','>',0)->count();
 `$hitRate = `$total > 0 ? round(`$comHits/`$total, 2) : 0;
-`$semHits = DB::table('copiloto_memoria_facts')->where('business_id',1)->whereNull('deleted_at')->where('hits_count',0)->count();
+`$semHits = DB::table('jana_memoria_facts')->where('business_id',1)->whereNull('deleted_at')->where('hits_count',0)->count();
 `$bloatRatio = `$total > 0 ? round(`$semHits/`$total, 2) : 0;
-echo \"total=`$total | hit_rate=`$hitRate | bloat_ratio=`$bloatRatio | core_memory=\".DB::table('copiloto_memoria_facts')->where('business_id',1)->where('core_memory',true)->count();
+echo \"total=`$total | hit_rate=`$hitRate | bloat_ratio=`$bloatRatio | core_memory=\".DB::table('jana_memoria_facts')->where('business_id',1)->where('core_memory',true)->count();
 "
 ```
 
@@ -157,8 +157,8 @@ $env:DB_CONNECTION='mysql'; $env:DB_DATABASE='oimpresso'; php artisan test tests
 
 ### Reindexar Meilisearch (após mudar `toSearchableArray`)
 ```powershell
-php artisan scout:flush "Modules\\Jana\\Entities\\CopilotoMemoriaFato"
-php artisan scout:import "Modules\\Jana\\Entities\\CopilotoMemoriaFato"
+php artisan scout:flush "Modules\\Jana\\Entities\\MemoriaFato"
+php artisan scout:import "Modules\\Jana\\Entities\\MemoriaFato"
 ```
 
 ---
@@ -166,7 +166,7 @@ php artisan scout:import "Modules\\Jana\\Entities\\CopilotoMemoriaFato"
 ## 5. Referências
 
 - ADR 0049 — Camadas de memória do agente, fase por fase, medir antes de evoluir
-- ADR 0050 — 8 métricas obrigatórias + tabela `copiloto_memoria_metricas`
+- ADR 0050 — 8 métricas obrigatórias + tabela `jana_memoria_metricas`
 - ADR 0051 — Schema próprio + adapter + OTel GenAI
 - ADR 0054 — Pacote enterprise busca memória + evolução
 - ADR 0072 — Maturação memória vs OpenClaw/Mem0/Letta/Zep/A-Mem (mai/2026)
@@ -178,9 +178,9 @@ php artisan scout:import "Modules\\Jana\\Entities\\CopilotoMemoriaFato"
 
 | # | Item | Prioridade | Ação |
 |---|------|-----------|------|
-| 1 | `CopilotoMemoriaFato.$casts` (Modules/Jana) sem `hits_count`/`core_memory`/`ultimo_hit_em` | 🔴 P1 | Adicionar 3 entradas no `$casts` (ver entity Modules/Copiloto antiga como referência — supersede pelo Jana) |
-| 2 | Comentário em `CopilotoMemoriaFato.php` ainda referencia `Modules/Copiloto/Database/seeders/MeilisearchIndexSetup.php` (path antigo) | 🟡 P3 | Atualizar pra `Modules/Jana/...` ou remover seeder se obsoleto |
-| 3 | `config/scout.php` `index-settings.copiloto_memoria_facts` está vazio — filterableAttributes setados manualmente no servidor (drift de governança) | 🟠 P2 | Declarar no `config/scout.php` os filterableAttributes (`business_id`, `user_id`, `valid_until`, `metadata_relevancia` futuro) — Scout aplica no startup |
+| 1 | `MemoriaFato.$casts` (Modules/Jana) sem `hits_count`/`core_memory`/`ultimo_hit_em` | 🔴 P1 | Adicionar 3 entradas no `$casts` (ver entity Modules/Copiloto antiga como referência — supersede pelo Jana) |
+| 2 | Comentário em `MemoriaFato.php` ainda referencia `Modules/Copiloto/Database/seeders/MeilisearchIndexSetup.php` (path antigo) | 🟡 P3 | Atualizar pra `Modules/Jana/...` ou remover seeder se obsoleto |
+| 3 | `config/scout.php` `index-settings.jana_memoria_facts` está vazio — filterableAttributes setados manualmente no servidor (drift de governança) | 🟠 P2 | Declarar no `config/scout.php` os filterableAttributes (`business_id`, `user_id`, `valid_until`, `metadata_relevancia` futuro) — Scout aplica no startup |
 | 4 | ADR canônica do roadmap 8 fases é a **0049**, não 0062 (que é separação runtime) — SKILL apontava pro número errado | ✅ corrigido 2026-05-04 | — |
 
 ---

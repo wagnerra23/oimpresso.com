@@ -117,8 +117,8 @@ class MetricasApurador
      */
     public function tokensMedioInteracao(?int $businessId, CarbonImmutable $data): ?int
     {
-        $q = DB::table('copiloto_mensagens as m')
-            ->join('copiloto_conversas as c', 'c.id', '=', 'm.conversa_id')
+        $q = DB::table('jana_mensagens as m')
+            ->join('jana_conversas as c', 'c.id', '=', 'm.conversa_id')
             ->where('m.role', 'assistant')
             ->whereDate('m.created_at', $data->toDateString())
             ->whereNotNull('m.tokens_in')
@@ -138,8 +138,8 @@ class MetricasApurador
      */
     public function totalInteracoesDia(?int $businessId, CarbonImmutable $data): int
     {
-        $q = DB::table('copiloto_mensagens as m')
-            ->join('copiloto_conversas as c', 'c.id', '=', 'm.conversa_id')
+        $q = DB::table('jana_mensagens as m')
+            ->join('jana_conversas as c', 'c.id', '=', 'm.conversa_id')
             ->where('m.role', 'user')
             ->whereDate('m.created_at', $data->toDateString());
 
@@ -155,7 +155,7 @@ class MetricasApurador
      */
     public function totalMemoriasAtivas(?int $businessId, CarbonImmutable $data): int
     {
-        $q = DB::table('copiloto_memoria_facts')
+        $q = DB::table('jana_memoria_facts')
             ->whereNull('valid_until')
             ->whereNull('deleted_at')
             ->whereDate('valid_from', '<=', $data->endOfDay()->toDateTimeString());
@@ -177,7 +177,7 @@ class MetricasApurador
      */
     public function memoryBloatRatio(?int $businessId, CarbonImmutable $data): ?float
     {
-        $base = DB::table('copiloto_memoria_facts')
+        $base = DB::table('jana_memoria_facts')
             ->whereNull('valid_until')
             ->whereNull('deleted_at');
 
@@ -208,7 +208,7 @@ class MetricasApurador
      */
     public function taxaContradicoesPct(?int $businessId, CarbonImmutable $data): ?float
     {
-        $base = DB::table('copiloto_memoria_facts')
+        $base = DB::table('jana_memoria_facts')
             ->whereNull('valid_until')
             ->whereNull('deleted_at')
             ->whereDate('valid_from', '<=', $data->endOfDay()->toDateTimeString());

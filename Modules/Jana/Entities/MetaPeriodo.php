@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MetaPeriodo extends Model
 {
-    protected $table = 'copiloto_meta_periodos';
+    protected $table = 'jana_meta_periodos';
 
     protected $fillable = [
         'meta_id', 'tipo_periodo', 'data_ini', 'data_fim', 'valor_alvo', 'trajetoria',

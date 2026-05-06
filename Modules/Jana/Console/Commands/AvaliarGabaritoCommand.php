@@ -126,7 +126,7 @@ class AvaliarGabaritoCommand extends Command
         if (! isset($r['agregado'])) return;
         $a = $r['agregado'];
 
-        DB::table('copiloto_memoria_metricas')->updateOrInsert(
+        DB::table('jana_memoria_metricas')->updateOrInsert(
             [
                 'apurado_em' => now()->toDateString(),
                 'business_id' => $r['business_id'],
@@ -159,7 +159,7 @@ class AvaliarGabaritoCommand extends Command
 
         if ($opt === 'all') {
             // Pega businesses que têm pelo menos 1 pergunta no gabarito
-            $bizComGab = DB::table('copiloto_memoria_gabarito')
+            $bizComGab = DB::table('jana_memoria_gabarito')
                 ->whereNotNull('business_id')
                 ->distinct()
                 ->pluck('business_id')

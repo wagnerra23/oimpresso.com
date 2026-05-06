@@ -15,7 +15,7 @@ use Modules\Jana\Services\Metricas\MetricasApurador;
 
 beforeEach(function () {
     // copiloto_memoria_metricas
-    Schema::create('copiloto_memoria_metricas', function (Blueprint $t) {
+    Schema::create('jana_memoria_metricas', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->date('apurado_em');
         $t->unsignedInteger('business_id')->nullable();
@@ -38,7 +38,7 @@ beforeEach(function () {
     });
 
     // copiloto_conversas (mínimo)
-    Schema::create('copiloto_conversas', function (Blueprint $t) {
+    Schema::create('jana_conversas', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->unsignedInteger('business_id')->nullable();
         $t->unsignedInteger('user_id');
@@ -49,7 +49,7 @@ beforeEach(function () {
     });
 
     // copiloto_mensagens (mínimo, com tokens)
-    Schema::create('copiloto_mensagens', function (Blueprint $t) {
+    Schema::create('jana_mensagens', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->unsignedBigInteger('conversa_id');
         $t->string('role');
@@ -60,7 +60,7 @@ beforeEach(function () {
     });
 
     // copiloto_memoria_facts (mínimo)
-    Schema::create('copiloto_memoria_facts', function (Blueprint $t) {
+    Schema::create('jana_memoria_facts', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->unsignedBigInteger('business_id');
         $t->unsignedBigInteger('user_id');
@@ -74,16 +74,16 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('copiloto_memoria_metricas');
-    Schema::dropIfExists('copiloto_conversas');
-    Schema::dropIfExists('copiloto_mensagens');
-    Schema::dropIfExists('copiloto_memoria_facts');
+    Schema::dropIfExists('jana_memoria_metricas');
+    Schema::dropIfExists('jana_conversas');
+    Schema::dropIfExists('jana_mensagens');
+    Schema::dropIfExists('jana_memoria_facts');
 });
 
 it('totalInteracoesDia conta apenas role=user no dia certo do business', function () {
     $hoje = CarbonImmutable::parse('2026-04-29');
 
-    \DB::table('copiloto_conversas')->insert([
+    \DB::table('jana_conversas')->insert([
         ['id' => 1, 'business_id' => 4, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
         ['id' => 2, 'business_id' => 8, 'user_id' => 5, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
     ]);
@@ -96,11 +96,11 @@ it('totalInteracoesDia conta apenas role=user no dia certo do business', functio
         ], $extra);
     };
 
-    \DB::table('copiloto_mensagens')->insert($msg(['content' => 'a']));
-    \DB::table('copiloto_mensagens')->insert($msg(['content' => 'b']));
-    \DB::table('copiloto_mensagens')->insert($msg(['content' => 'c', 'role' => 'assistant']));
-    \DB::table('copiloto_mensagens')->insert($msg(['conversa_id' => 2, 'content' => 'd']));
-    \DB::table('copiloto_mensagens')->insert($msg(['content' => 'velha', 'created_at' => '2026-04-28 10:00:00', 'updated_at' => '2026-04-28 10:00:00']));
+    \DB::table('jana_mensagens')->insert($msg(['content' => 'a']));
+    \DB::table('jana_mensagens')->insert($msg(['content' => 'b']));
+    \DB::table('jana_mensagens')->insert($msg(['content' => 'c', 'role' => 'assistant']));
+    \DB::table('jana_mensagens')->insert($msg(['conversa_id' => 2, 'content' => 'd']));
+    \DB::table('jana_mensagens')->insert($msg(['content' => 'velha', 'created_at' => '2026-04-28 10:00:00', 'updated_at' => '2026-04-28 10:00:00']));
 
     $apurador = new MetricasApurador();
 
@@ -112,17 +112,17 @@ it('totalInteracoesDia conta apenas role=user no dia certo do business', functio
 it('tokensMedioInteracao calcula média de assistant (in+out) com filtro de business', function () {
     $hoje = CarbonImmutable::parse('2026-04-29');
 
-    \DB::table('copiloto_conversas')->insert([
+    \DB::table('jana_conversas')->insert([
         ['id' => 1, 'business_id' => 4, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
     ]);
 
-    \DB::table('copiloto_mensagens')->insert([
+    \DB::table('jana_mensagens')->insert([
         'conversa_id' => 1, 'role' => 'assistant', 'content' => 'r1', 'tokens_in' => 100, 'tokens_out' => 50, 'created_at' => $hoje, 'updated_at' => $hoje,
     ]);
-    \DB::table('copiloto_mensagens')->insert([
+    \DB::table('jana_mensagens')->insert([
         'conversa_id' => 1, 'role' => 'assistant', 'content' => 'r2', 'tokens_in' => 200, 'tokens_out' => 100, 'created_at' => $hoje, 'updated_at' => $hoje,
     ]);
-    \DB::table('copiloto_mensagens')->insert([
+    \DB::table('jana_mensagens')->insert([
         'conversa_id' => 1, 'role' => 'user', 'content' => 'q', 'tokens_in' => null, 'tokens_out' => null, 'created_at' => $hoje, 'updated_at' => $hoje,
     ]);
 
@@ -142,11 +142,11 @@ it('totalMemoriasAtivas conta valid_until=null e exclui soft-deleted', function 
         ], $extra);
     };
 
-    \DB::table('copiloto_memoria_facts')->insert($fato(['fato' => 'ativo 1']));
-    \DB::table('copiloto_memoria_facts')->insert($fato(['fato' => 'ativo 2']));
-    \DB::table('copiloto_memoria_facts')->insert($fato(['fato' => 'superseded', 'valid_until' => $hoje]));
-    \DB::table('copiloto_memoria_facts')->insert($fato(['fato' => 'esquecido', 'deleted_at' => $hoje]));
-    \DB::table('copiloto_memoria_facts')->insert($fato(['business_id' => 8, 'user_id' => 5, 'fato' => 'outro biz']));
+    \DB::table('jana_memoria_facts')->insert($fato(['fato' => 'ativo 1']));
+    \DB::table('jana_memoria_facts')->insert($fato(['fato' => 'ativo 2']));
+    \DB::table('jana_memoria_facts')->insert($fato(['fato' => 'superseded', 'valid_until' => $hoje]));
+    \DB::table('jana_memoria_facts')->insert($fato(['fato' => 'esquecido', 'deleted_at' => $hoje]));
+    \DB::table('jana_memoria_facts')->insert($fato(['business_id' => 8, 'user_id' => 5, 'fato' => 'outro biz']));
 
     $apurador = new MetricasApurador();
 
@@ -161,7 +161,7 @@ it('memoryBloatRatio = % fatos com valid_from <= 30d / total ativos', function (
     $recente = $hoje->subDays(10);
 
     $insertFato = function (string $fato, $vf) {
-        \DB::table('copiloto_memoria_facts')->insert([
+        \DB::table('jana_memoria_facts')->insert([
             'business_id' => 4, 'user_id' => 9, 'fato' => $fato,
             'valid_from' => $vf, 'valid_until' => null, 'deleted_at' => null,
             'created_at' => $vf, 'updated_at' => $vf,
@@ -229,18 +229,18 @@ it('latenciaP95Ms parseia log otel-gen-ai e calcula p95 filtrado por business_id
 it('apurar grava 1 linha em copiloto_memoria_metricas e é idempotente (upsert)', function () {
     $hoje = CarbonImmutable::parse('2026-04-29');
 
-    \DB::table('copiloto_conversas')->insert([
+    \DB::table('jana_conversas')->insert([
         ['id' => 1, 'business_id' => 4, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
     ]);
 
-    \DB::table('copiloto_mensagens')->insert([
+    \DB::table('jana_mensagens')->insert([
         'conversa_id' => 1, 'role' => 'user', 'content' => 'q', 'tokens_in' => null, 'tokens_out' => null, 'created_at' => $hoje, 'updated_at' => $hoje,
     ]);
-    \DB::table('copiloto_mensagens')->insert([
+    \DB::table('jana_mensagens')->insert([
         'conversa_id' => 1, 'role' => 'assistant', 'content' => 'r', 'tokens_in' => 100, 'tokens_out' => 50, 'created_at' => $hoje, 'updated_at' => $hoje,
     ]);
 
-    \DB::table('copiloto_memoria_facts')->insert([
+    \DB::table('jana_memoria_facts')->insert([
         'business_id' => 4, 'user_id' => 9, 'fato' => 'meta R$80k/mês',
         'valid_from' => $hoje, 'valid_until' => null, 'deleted_at' => null,
         'created_at' => $hoje, 'updated_at' => $hoje,
@@ -267,15 +267,15 @@ it('apurar grava 1 linha em copiloto_memoria_metricas e é idempotente (upsert)'
 it('apurar para plataforma (business_id=null) agrega tudo', function () {
     $hoje = CarbonImmutable::parse('2026-04-29');
 
-    \DB::table('copiloto_conversas')->insert([
+    \DB::table('jana_conversas')->insert([
         ['id' => 1, 'business_id' => 4, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
         ['id' => 2, 'business_id' => 8, 'user_id' => 5, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
     ]);
 
-    \DB::table('copiloto_mensagens')->insert([
+    \DB::table('jana_mensagens')->insert([
         'conversa_id' => 1, 'role' => 'user', 'content' => 'a', 'tokens_in' => null, 'tokens_out' => null, 'created_at' => $hoje, 'updated_at' => $hoje,
     ]);
-    \DB::table('copiloto_mensagens')->insert([
+    \DB::table('jana_mensagens')->insert([
         'conversa_id' => 2, 'role' => 'user', 'content' => 'b', 'tokens_in' => null, 'tokens_out' => null, 'created_at' => $hoje, 'updated_at' => $hoje,
     ]);
 

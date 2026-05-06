@@ -19,7 +19,7 @@ charter_adr: 0080
 | C Cold | `MeilisearchDriver` hybrid (`semanticRatio: 0.7`) | ✅ MEM-HOT-1 |
 | Working | `ContextoNegocio` 3 ângulos (bruto/líquido/caixa) | ✅ MEM-FAT-1 |
 | Embedder | OpenAI text-embedding-3-small | ✅ |
-| Métricas | `copiloto_memoria_metricas` 14 colunas (8 obrigatórias + 3 RAGAS) | ✅ MEM-MET-1+2 |
+| Métricas | `jana_memoria_metricas` 14 colunas (8 obrigatórias + 3 RAGAS) | ✅ MEM-MET-1+2 |
 | Telemetria | log channel `otel-gen-ai` 12 atributos `gen_ai.*` | ✅ MEM-OTEL-1 |
 | Scheduler | cron 23:55 `copiloto:metrics:apurar --business=all` | ✅ MEM-MET-3 |
 | **MCP server** | `mcp.oimpresso.com` (CT 100 Proxmox) | 🚧 em construção MEM-MCP-1 |
@@ -33,7 +33,7 @@ charter_adr: 0080
 - **ADR 0047** — Wagner solo + sprint memória priorizado
 - **ADR 0048** — `laravel/ai` consolidado; **Vizra ADK rejeitada** (quebrou L13)
 - **ADR 0049** — 6 camadas memória (Working/ConvHist/Episodic/Semantic/Procedural/Reflective) + gate Recall@3>0.80
-- **ADR 0050** — 8 métricas obrigatórias + tabela `copiloto_memoria_metricas`
+- **ADR 0050** — 8 métricas obrigatórias + tabela `jana_memoria_metricas`
 - **ADR 0051** — Schema próprio + adapter + OTel GenAI (`gen_ai.*` semantic conventions)
 - **ADR 0052** — `ContextoNegocio` expor múltiplos ângulos (não 1 número)
 - **ADR 0053** — MCP server da empresa: governança como produto (em construção)
@@ -55,7 +55,7 @@ Modules/Copiloto/
 ├── Entities/
 │   ├── Conversa.php · Mensagem.php · Sugestao.php
 │   ├── Meta.php · MetaPeriodo.php · MetaApuracao.php · MetaFonte.php
-│   ├── CopilotoMemoriaFato.php (Searchable + SoftDeletes)
+│   ├── MemoriaFato.php (Searchable + SoftDeletes)
 │   ├── MemoriaMetrica.php (8 obrigatórias + 3 RAGAS)
 │   └── Mcp/                             # 9 entidades governança MCP
 └── Console/Commands/
@@ -71,15 +71,15 @@ Modules/Copiloto/
 - Recall Meilisearch filtra `business_id = X AND user_id = Y`
 
 ### LGPD
-- `CopilotoMemoriaFato` usa SoftDeletes — `esquecer()` é opt-out
+- `MemoriaFato` usa SoftDeletes — `esquecer()` é opt-out
 - Sanitizar CPF/CNPJ via `LaravelAiSdkDriver::mascararDocumentos()` antes da LLM
 - Audit log `mcp_audit_log` retenção mínima 1 ano (ADR 0053)
 - PII redactor automático no sync git→DB (`IndexarMemoryGitParaDb`)
 
 ### Append-only (memória + métricas)
-- `copiloto_memoria_facts.valid_until` setado = superseded (não DELETE)
+- `jana_memoria_facts.valid_until` setado = superseded (não DELETE)
 - `mcp_audit_log` é IMUTÁVEL — só INSERT
-- `copiloto_memoria_metricas` upsert idempotente via unique (apurado_em, business_id)
+- `jana_memoria_metricas` upsert idempotente via unique (apurado_em, business_id)
 
 ### Test pattern (skill `pest-test-pattern`)
 - **NÃO usar `RefreshDatabase`** — migrations core UltimatePOS quebram em SQLite
@@ -93,7 +93,7 @@ Modules/Copiloto/
 | Suite Copiloto | 81 passed, 3 skipped |
 | `memoria_recall_chars` (era 0) | 190 chars em chat real Larissa |
 | Token economy ContextoNegocio | 270 tokens (3 ângulos faturamento) |
-| Baseline `copiloto_memoria_metricas` | 3 linhas em prod (plataforma + biz=1 + biz=4) |
+| Baseline `jana_memoria_metricas` | 3 linhas em prod (plataforma + biz=1 + biz=4) |
 | OTel GenAI events | 12 atributos `gen_ai.*` por chamada |
 
 ## Trabalho atual (CURRENT)

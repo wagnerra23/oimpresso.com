@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\MemoriaContrato;
 use Modules\Jana\Contracts\MemoriaPersistida;
-use Modules\Jana\Entities\CopilotoMemoriaFato;
+use Modules\Jana\Entities\MemoriaFato;
 
 /**
  * MeilisearchDriver — driver default da MemoriaContrato (verdade canônica ADR 0036).
@@ -40,7 +40,7 @@ class MeilisearchDriver implements MemoriaContrato
 {
     public function lembrar(int $businessId, int $userId, string $fato, array $metadata = []): MemoriaPersistida
     {
-        $fato_record = CopilotoMemoriaFato::create([
+        $fato_record = MemoriaFato::create([
             'business_id' => $businessId,
             'user_id' => $userId,
             'fato' => $fato,
@@ -104,10 +104,10 @@ class MeilisearchDriver implements MemoriaContrato
                 return $index->search($q, $params);
             };
 
-            $hits = CopilotoMemoriaFato::search($searchQuery, $callback)
+            $hits = MemoriaFato::search($searchQuery, $callback)
                 ->take($fetchK)
                 ->get()
-                ->filter(fn (CopilotoMemoriaFato $f) => $f->valid_until === null);
+                ->filter(fn (MemoriaFato $f) => $f->valid_until === null);
 
             $resultSets[] = $hits;
         }
@@ -134,7 +134,7 @@ class MeilisearchDriver implements MemoriaContrato
         // 4. LLM Reranker — reordena candidatos por relevância à query original
         /** @var LlmReranker $reranker */
         $reranker   = app(LlmReranker::class);
-        $candidatos = $merged->map(fn (CopilotoMemoriaFato $f) => [
+        $candidatos = $merged->map(fn (MemoriaFato $f) => [
             'id'      => $f->id,
             'snippet' => mb_substr($f->fato, 0, 300),
             'score'   => 1.0,
@@ -161,7 +161,7 @@ class MeilisearchDriver implements MemoriaContrato
             'hits'           => $final->count(),
         ]);
 
-        return $final->map(fn (CopilotoMemoriaFato $f) => $this->toPersistida($f))->all();
+        return $final->map(fn (MemoriaFato $f) => $this->toPersistida($f))->all();
     }
 
     /**
@@ -195,7 +195,7 @@ class MeilisearchDriver implements MemoriaContrato
 
     public function atualizar(int $memoriaId, string $novoFato, array $metadata = []): void
     {
-        $antigo = CopilotoMemoriaFato::find($memoriaId);
+        $antigo = MemoriaFato::find($memoriaId);
         if ($antigo === null) {
             return;
         }
@@ -203,7 +203,7 @@ class MeilisearchDriver implements MemoriaContrato
         // Supersedes: marca antigo com valid_until + cria novo (append-only)
         $antigo->update(['valid_until' => now()]);
 
-        CopilotoMemoriaFato::create([
+        MemoriaFato::create([
             'business_id' => $antigo->business_id,
             'user_id' => $antigo->user_id,
             'fato' => $novoFato,
@@ -219,7 +219,7 @@ class MeilisearchDriver implements MemoriaContrato
 
     public function esquecer(int $memoriaId): void
     {
-        $fato = CopilotoMemoriaFato::find($memoriaId);
+        $fato = MemoriaFato::find($memoriaId);
         if ($fato === null) {
             return;
         }
@@ -235,15 +235,15 @@ class MeilisearchDriver implements MemoriaContrato
 
     public function listar(int $businessId, int $userId): array
     {
-        return CopilotoMemoriaFato::doUser($businessId, $userId)
+        return MemoriaFato::doUser($businessId, $userId)
             ->ativos()
             ->orderByDesc('valid_from')
             ->get()
-            ->map(fn (CopilotoMemoriaFato $f) => $this->toPersistida($f))
+            ->map(fn (MemoriaFato $f) => $this->toPersistida($f))
             ->all();
     }
 
-    private function toPersistida(CopilotoMemoriaFato $f): MemoriaPersistida
+    private function toPersistida(MemoriaFato $f): MemoriaPersistida
     {
         return new MemoriaPersistida(
             id: $f->id,

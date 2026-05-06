@@ -36,7 +36,7 @@ class HitTrackerService
             $now = now();
 
             // Incrementa hits e atualiza timestamp
-            DB::table('copiloto_memoria_facts')
+            DB::table('jana_memoria_facts')
                 ->whereIn('id', $fatoIds)
                 ->whereNull('deleted_at')
                 ->update([
@@ -46,7 +46,7 @@ class HitTrackerService
                 ]);
 
             // Promove a core_memory quem atingiu o threshold
-            $promovidos = DB::table('copiloto_memoria_facts')
+            $promovidos = DB::table('jana_memoria_facts')
                 ->whereIn('id', $fatoIds)
                 ->where('hits_count', '>=', $threshold)
                 ->where('core_memory', false)
@@ -54,7 +54,7 @@ class HitTrackerService
                 ->pluck('id');
 
             if ($promovidos->isNotEmpty()) {
-                DB::table('copiloto_memoria_facts')
+                DB::table('jana_memoria_facts')
                     ->whereIn('id', $promovidos)
                     ->update(['core_memory' => true, 'updated_at' => $now]);
 

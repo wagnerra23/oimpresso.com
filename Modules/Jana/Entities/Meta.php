@@ -15,7 +15,7 @@ use Modules\Jana\Scopes\ScopeByBusiness;
  */
 class Meta extends Model
 {
-    protected $table = 'copiloto_metas';
+    protected $table = 'jana_metas';
 
     protected $fillable = [
         'business_id',

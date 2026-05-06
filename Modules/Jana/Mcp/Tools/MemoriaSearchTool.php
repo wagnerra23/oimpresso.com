@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Tool;
 
 /**
  * MEM-MEM-MCP-1 (ADR 0056) — Tool MCP que busca fatos persistentes da memória
- * do Copiloto (`copiloto_memoria_facts`), filtrados por business + user.
+ * do Copiloto (`jana_memoria_facts`), filtrados por business + user.
  *
  * Uso:
  *   - Copiloto chat web (Laravel app) chama via McpMemoriaDriver no recall
@@ -89,7 +89,7 @@ class MemoriaSearchTool extends Tool
         // Busca via FULLTEXT em copiloto_memoria_facts
         // (não usa Meilisearch direto pra ter controle de filter biz/user/valid_until aqui;
         //  Meilisearch fica como cache/index secundário — pode ser refinement futuro)
-        $rows = DB::table('copiloto_memoria_facts')
+        $rows = DB::table('jana_memoria_facts')
             ->where('business_id', $bizParaBusca)
             ->whereNull('valid_until')   // só fatos atuais
             ->whereNull('deleted_at')

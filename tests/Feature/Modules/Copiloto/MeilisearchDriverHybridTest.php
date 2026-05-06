@@ -3,7 +3,7 @@
 use Laravel\Scout\Builder;
 use Laravel\Scout\EngineManager;
 use Laravel\Scout\Engines\Engine;
-use Modules\Jana\Entities\CopilotoMemoriaFato;
+use Modules\Jana\Entities\MemoriaFato;
 use Modules\Jana\Services\Memoria\MeilisearchDriver;
 
 /**
