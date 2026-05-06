@@ -73,9 +73,11 @@ class ProfileDistiller
             );
             $profileText = (string) $response;
 
-            // Persiste em cache + DB
-            Cache::tags(['copiloto:profile'])->put(
-                "profile:{$businessId}",
+            // Persiste em cache + DB.
+            // COPI-26 fix: Cache::tags() falha em drivers file/database (Hostinger usa file).
+            // Solução: usar key prefixada manualmente. Invalidação por chave (TTL 1 dia).
+            Cache::put(
+                "copiloto:profile:{$businessId}",
                 $profileText,
                 now()->addDay()
             );
@@ -128,7 +130,7 @@ class ProfileDistiller
      */
     public function obter(int $businessId): ?string
     {
-        return Cache::tags(['copiloto:profile'])->get("profile:{$businessId}")
+        return Cache::get("copiloto:profile:{$businessId}")
             ?: DB::table('jana_business_profile')
                 ->where('business_id', $businessId)
                 ->value('profile_text');

@@ -45,12 +45,16 @@ class McpSystemTokenCommand extends Command
             return self::FAILURE;
         }
 
-        // Gera raw + hash
+        // Gera raw + hash.
+        // Fix 2026-05-06: schema real exige `sha256_token` (NOT NULL) + `name` (NOT NULL),
+        // não `token_hash` + `note` (campos antigos do design v1). Auditoria via tinker
+        // em prod confirmou colunas: id, user_id, actor_id, name, sha256_token, scopes_cache,
+        // user_agent, last_used_ip, last_used_at, expires_at, revoked_at, revoked_by, timestamps.
         $raw = 'mcp_' . bin2hex(random_bytes(32));
         $token = McpToken::create([
             'user_id' => $user->id,
-            'token_hash' => hash('sha256', $raw),
-            'note' => "SYSTEM TOKEN Copiloto chat (ADR 0056) — gerado " . now()->toDateString(),
+            'name' => 'system-copiloto-' . now()->format('Ymd-His'),
+            'sha256_token' => hash('sha256', $raw),
             'expires_at' => null,
             'created_at' => now(),
             'updated_at' => now(),
