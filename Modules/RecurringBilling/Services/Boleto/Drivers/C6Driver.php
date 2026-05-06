@@ -52,7 +52,10 @@ class C6Driver implements BoletoDriverContract
             'agencia'         => $this->config['agencia'],
             'conta'           => $this->config['conta_corrente'],
             'codigoCliente'   => $this->config['codigo_cliente'],
-            'carteira'        => $this->config['carteira'] ?? '25',
+            // Lib eduardokum aceita: ['10', '20', '30', '40', '60']. Default '10'
+            // (antes era '25', que disparava ValidationException — bug latente
+            // descoberto em US-RB-040 com a 1ª cobertura Pest do driver)
+            'carteira'        => $this->config['carteira'] ?? '10',
             'valor'           => $params['valor'],
             'vencimento'      => Carbon::parse($params['data_vencimento']),
             'numero'          => $params['numero_documento'],

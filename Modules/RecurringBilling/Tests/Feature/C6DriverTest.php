@@ -21,7 +21,7 @@ beforeEach(function () {
         'agencia'           => '0001',
         'conta_corrente'    => '12345678',
         'codigo_cliente'    => '999',
-        'carteira'          => '25',
+        'carteira'          => '10',
         'cnpj_beneficiario' => '12.345.678/0001-99',
         'nome_beneficiario' => 'Empresa Teste LTDA',
         'cep'               => '01310-100',
