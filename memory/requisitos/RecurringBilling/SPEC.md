@@ -451,6 +451,93 @@ Então NÃO cria revenue_event (sem take rate)
 - NFe pode ser rejeitada pela SEFAZ: UI mostra código de erro + descrição amigável + ação "corrigir e reemitir"
 - Test Feature: mock SEFAZ + listener disparado ao pagar + chave retornada + isolamento multi-tenant
 
+## 7-bis. Backlog vindo do Capterra-Inventário (range 040+)
+
+> Tasks geradas pela skill `comparativo-do-modulo` em **2026-05-06**. Range 040-049 reservado pra essa origem.
+> Detalhes em [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md). Doutrina: [ADR 0089](../../decisions/0089-capterra-driven-module-evolution.md).
+
+### US-RB-040 · Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas)
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #1
+> blocked_by: —
+
+**Contexto.** CAPTERRA-INVENTARIO #1 classificou como 🟡 PARCIAL: drivers + UI existem, mas `Modules/RecurringBilling/Tests/` está vazia. Sem teste, qualquer mexida nova é bug em prod garantido.
+
+**Acceptance criteria:**
+- [ ] `Tests/Feature/InterDriverTest.php` — round-trip emitir + cancelar com sandbox response mockada (não chamar API real)
+- [ ] `Tests/Feature/C6DriverTest.php` — geração local CNAB + nossoNumero + linha digitável válidos
+- [ ] `Tests/Feature/AsaasDriverTest.php` — POST /payments mockado + parsing do response
+- [ ] `Tests/Feature/BoletoServiceTest.php` — resolve driver correto por banco da credencial; `decryptConfig` roundtrip (ADR tech/0007)
+- [ ] CI verde com os novos testes
+
+### US-RB-041 · Test de retry idempotente do ProcessAsaasWebhookJob
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #2
+> blocked_by: —
+
+**Contexto.** CAPTERRA-INVENTARIO #2 classificou 🟡 PARCIAL — tabela `pg_webhook_events` UNIQUE existe, mas sem teste cobrindo retry/replay. Webhook duplicado pelo Asaas (acontece em produção) sem cobertura de teste = cobrança duplicada esperando pra acontecer.
+
+**Acceptance criteria:**
+- [ ] `Tests/Feature/AsaasWebhookIdempotencyTest.php`
+- [ ] 2 chamadas POST `/api/webhooks/asaas/{biz}` com mesmo `event_id` → segunda retorna 200 sem reprocessar
+- [ ] `PAYMENT_RECEIVED` processado 2× não cria 2 `account_transactions` (insertOrIgnore funciona)
+- [ ] `BALANCE_UPDATED` processado 2× não duplica `saldo_cached`
+- [ ] Job falha no meio → retry roda completo sem dups (atomicidade)
+
+### US-RB-042 · Completar cancelar() C6/Asaas + UI Cancelar título + audit log
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #4
+> blocked_by: US-RB-040
+
+**Contexto.** CAPTERRA-INVENTARIO #4 🟡 — `BoletoDriverContract::cancelar()` definido e implementado em InterDriver, mas C6/Asaas precisam ser auditados/completados. UI inexistente. Cancelamento é exigência de lei (Procon/LGPD) — não pode depender de SQL.
+
+**Acceptance criteria:**
+- [ ] Auditar `C6Driver::cancelar()` — implementar via CNAB remessa de cancelamento se ausente
+- [ ] Auditar `AsaasDriver::cancelar()` — usar `DELETE /payments/{id}`
+- [ ] Botão "Cancelar título" em `resources/js/Pages/Financeiro/Boletos/` (ou similar) com confirmação
+- [ ] Endpoint `POST /financeiro/boletos/{id}/cancelar` chama `BoletoService` → driver
+- [ ] Spatie Activity Log registrando cancelamento (quem/quando/motivo)
+- [ ] Permissão `financeiro.boleto.cancelar` (default só admin do business)
+- [ ] Teste Pest cobrindo os 3 drivers (depende de US-RB-040)
+
+### US-RB-043 · [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: epic · origin: capterra-inventario-2026-05-06 · capacidade: #4-domínio
+> blocked_by: —
+> bloqueia: US-RB-001, US-RB-002, US-RB-003, US-RB-004, US-RB-005, US-RB-006, US-RB-011, US-RB-013
+
+**Contexto.** CAPTERRA-INVENTARIO classificou ❌ AUSENTE — fundação do domínio recorrente. Epic bloqueador das US-RB-001..013 que dependem de modelos. Hoje o módulo tem boleto avulso funcionando, mas **não tem cobrança recorrente** porque não há modelo de Subscription/Plan/Invoice.
+
+**Acceptance criteria:**
+- [ ] Migration `rb_plans` — id, business_id, nome, valor, ciclo (monthly/yearly), trial_days, ativo
+- [ ] Migration `rb_subscriptions` — id, business_id, plan_id, contact_id (UPos contacts), status (active/paused/canceled/trial), próximo_vencimento, billing_anchor_date
+- [ ] Migration `rb_invoices` — id, subscription_id, valor, status (open/paid/overdue/canceled), vencimento, pago_em, gateway_ref, conta_bancaria_id
+- [ ] Migration `rb_charge_attempts` — id, invoice_id, gateway, attempt_n, response_json, status, created_at (idempotent retry log)
+- [ ] Models Eloquent com relacionamentos + `BusinessScope` global (multi-tenant)
+- [ ] Tipos: `int unsigned` para FKs em tabelas legadas UltimatePOS (ADR tech/0008)
+- [ ] Migrations idempotentes (`Schema::hasColumn` guard, ADR tech/0008)
+- [ ] Seeder de exemplo com 2 planos para ROTA LIVRE (biz=4)
+- [ ] Tests Pest: criar subscription, gerar próxima fatura, transição de status
+
+### US-RB-044 · Listener InvoicePaid em NfeBrasil — emissão automática NFe55 + DANFE + e-mail
+
+> owner: — · priority: p1 · estimate: 12h · status: todo · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #6 (diferencial vertical)
+> blocked_by: US-RB-ESC3
+
+**Contexto.** CAPTERRA-INVENTARIO #6 ❌ AUSENTE — **diferencial vertical gráfica**. Gateway de boleto é commodity (Iugu/Asaas/Vindi/Pagar.me têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE) pediu há tempos. Event `InvoicePaid` JÁ existe em `Modules/RecurringBilling/Events/InvoicePaid.php` — falta o listener em NfeBrasil consumindo.
+
+**Acceptance criteria:**
+- [ ] `Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php` registrado em `EventServiceProvider`
+- [ ] Listener resolve produto/serviço da fatura → mapeia pra item de NFe (CFOP, NCM, alíquotas)
+- [ ] Carrega certificado A1 do business via `NfeCertificadoService`
+- [ ] Chama `nfephp-org/sped-nfe` → autoriza SEFAZ
+- [ ] Renderiza DANFE (PDF)
+- [ ] Envia e-mail pro pagador com DANFE anexado
+- [ ] Log estruturado de cada passo (gen_ai.* OpenTelemetry pattern, ADR 0049)
+- [ ] Falha de SEFAZ não derruba pagamento — retry job separado em fila `nfe_retry`
+- [ ] Teste Pest: dispara `InvoicePaid` → assert NFe criada com status=autorizada
+- [ ] **Prod-evidence:** ≥1 NFe modelo 55 autorizada via esse fluxo (ROTA LIVRE biz=4)
+
 ## 8. Referências
 
 - `_Ideias/CobrancaRecorrente/evidencias/conversa-claude-2026-04-mobile.md`
