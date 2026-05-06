@@ -1,6 +1,10 @@
 ---
 name: copiloto-arch
 description: Use ao trabalhar em Modules/Copiloto/ ou ao tocar memória/IA do projeto. Carrega arquitetura canônica do Copiloto (ADRs 0035-0053): laravel/ai SDK, MeilisearchDriver hybrid, ContextoNegocio com 3 ângulos faturamento, OTel GenAI, MCP server governança, tabela copiloto_memoria_metricas. Substitui leitura repetida de 18+ ADRs.
+trust_level: L1
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Arquitetura Copiloto (ADRs 0035-0053)

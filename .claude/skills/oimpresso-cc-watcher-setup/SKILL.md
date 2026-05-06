@@ -2,6 +2,10 @@
 name: oimpresso-cc-watcher-setup
 description: Configura o watcher local do Claude Code que sincroniza ~/.claude/projects/*.jsonl com o MCP server do oimpresso (cc-search cross-dev). Ativa quando user pede "ativar watcher", "sincronizar minhas sessões", "compartilhar Claude Code com o time", "backfill MEM-CC-1", "setup ingestão Claude Code". Cria o script Node local (gitignored), instala deps, faz backfill 1×, configura como serviço em background. Cada dev roda 1× e fica ativo permanente.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, mcp__oimpresso__*
+trust_level: L2
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Skill — Setup CC Watcher (MEM-CC-1)

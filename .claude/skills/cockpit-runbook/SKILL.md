@@ -1,6 +1,10 @@
 ---
 name: cockpit-runbook
 description: Generates a detailed RUNBOOK.md or audits a screen against the Chat Cockpit pattern (ADR 0039) for the oimpresso ERP. Activates when the user asks for "runbook", "playbook" or "receita" of a React/Inertia screen or module (e.g. "runbook da tela X", "playbook do módulo Y", "documenta a Inbox de Tarefas"), OR asks to "auditar/comparar tela contra Cockpit". Outputs `memory/requisitos/<Mod>/RUNBOOK-<tela>.md` with 11 mandatory sections, executable PT-BR snippets, clickable links, canonical CSS tokens. Calibrated against the 13 existing RUNBOOKs (reference: `Infra/RUNBOOK-criar-modulo.md`) and the `design:design-handoff` Anthropic spec. Skip for ADRs, SPECs, audits or session logs.
+trust_level: L2
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Skill — Gerador de RUNBOOK de tela/módulo do Cockpit

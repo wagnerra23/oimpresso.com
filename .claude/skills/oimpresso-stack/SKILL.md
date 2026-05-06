@@ -1,6 +1,10 @@
 ---
 name: oimpresso-stack
 description: Use ao iniciar trabalho no oimpresso ou ao entrar num módulo novo. Carrega o primer da stack canônica (Laravel 13.6, PHP 8.4, Inertia v3, multi-tenant, padrão modular UltimatePOS). Substitui leitura repetida de §1-§5 do CLAUDE.md.
+trust_level: L2
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Stack canônica oimpresso (primer)

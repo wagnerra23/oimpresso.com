@@ -1,6 +1,10 @@
 ---
 name: memoria-recall-flow
 description: Use ao tocar Modules/Copiloto/Services/Memoria/, ContextSnapshotService, recall hybrid (Meilisearch + HyDE + reranker), MCP memory sync (git→DB→Scout), ou tabela copiloto_memoria_facts/memoria_metricas. Carrega contrato MemoriaContrato + 3 ângulos faturamento (ADR 0052) + os 14 gotchas catalogados em RETRIEVAL-GOTCHAS.md (Sprint 9). Skill mais específica que copiloto-arch — ativa só em retrieval/recall, não em IA-em-geral.
+trust_level: L1
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Memória do Copiloto — fluxo de recall canônico

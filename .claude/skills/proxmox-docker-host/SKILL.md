@@ -1,6 +1,10 @@
 ---
 name: proxmox-docker-host
 description: Use ao mexer com infra Proxmox/CT 100/containers Docker do oimpresso. Carrega receitas: subir novo subdomínio Traefik, criar container compose-managed, autossh tunnel pro Hostinger MySQL, troubleshoot Portainer vs compose CLI. Substitui leitura de INFRA.md §6 + ADRs 0042-0045.
+trust_level: L1
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Proxmox + Docker Host — receitas operacionais

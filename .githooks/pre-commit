@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# GUARDA Anti-Drift pre-commit hook
+# Constituição Art. 7 — Module Charter
+#
+# Instalação (once-only):
+#   git config core.hooksPath .githooks
+#
+# Funcionalidade:
+#   - Detecta novos controllers staged em Modules/<X>/Http/Controllers/
+#   - Verifica se filename está declarado em Modules/<X>/SCOPE.md.contains[]
+#   - Se não está, AVISA (não bloqueia em modo dev)
+#
+# Pra modo strict (bloqueia commit):
+#   export OIMPRESSO_GUARDA_STRICT=1
+
+set -e
+
+# Procura PHP executável (prioriza Herd no Windows)
+PHP_BIN=""
+if command -v php >/dev/null 2>&1; then
+    PHP_BIN="php"
+elif [ -x "/c/Users/$USER/.config/herd/bin/php.bat" ]; then
+    PHP_BIN="/c/Users/$USER/.config/herd/bin/php.bat"
+elif [ -x "$HOME/.config/herd/bin/php.bat" ]; then
+    PHP_BIN="$HOME/.config/herd/bin/php.bat"
+fi
+
+if [ -z "$PHP_BIN" ]; then
+    echo "GUARDA: php não encontrado, pulando check-scope (instale Herd ou adicione PHP ao PATH)"
+    exit 0
+fi
+
+# Roda check-scope no modo --staged
+STRICT_FLAG=""
+if [ "${OIMPRESSO_GUARDA_STRICT:-0}" = "1" ]; then
+    STRICT_FLAG="--strict"
+fi
+
+"$PHP_BIN" bin/check-scope.php --staged $STRICT_FLAG
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    if [ "${OIMPRESSO_GUARDA_STRICT:-0}" = "1" ]; then
+        echo ""
+        echo "GUARDA: drift detectado em modo strict — commit BLOQUEADO."
+        echo "Pra forçar (último caso): git commit --no-verify"
+        exit 1
+    fi
+fi
+
+exit 0

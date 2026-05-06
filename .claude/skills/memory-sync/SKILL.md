@@ -1,6 +1,10 @@
 ---
 name: memory-sync
 description: ATIVAR após criar/editar arquivo em memory/, atualizar SPEC.md/TEAM.md, salvar ADR/session log, ou usar trigger "salve no cofre"/"guarde"/"grave na memória". Lembra Claude que conhecimento canônico precisa ir pro MCP server via git push antes de encerrar — o webhook GitHub→MCP só sincroniza após push, então team (Eliana/Felipe) só enxerga via tools MCP depois disso. Tasks → tools MCP `tasks-*` (ADR 0070), nunca markdown.
+trust_level: L1
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # memory-sync — propagar memória pro team via MCP
