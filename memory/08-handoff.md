@@ -11,7 +11,41 @@
 
 **Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-05 (COPI-40 cache semântico fechado — PR [#94](https://github.com/wagnerra23/oimpresso.com/pull/94) mergeado)
 
-### 🆕 Estado pós-2026-05-06 madrugada (Constituição v1.1.0 + Governance MVP)
+### 🆕 Estado pós-2026-05-06 (Governance UI completa em prod + 6 lições documentadas)
+
+**Continuação maratona 2026-05-05/06** — totalizam **17 commits** (`b26781d9` → `5da2fc02`):
+
+**Sessão 2026-05-06 (UI Governance + bugfix marathon):**
+
+- ✅ `https://oimpresso.com/governance` **FUNCIONA em prod** — KPIs grid (6 métricas), ADRs pending (4 atualmente), audit highlights, links docs canônicos
+- ✅ 4 Pages React criadas: `Dashboard.tsx`, `Policies.tsx`, `Audit.tsx`, `DriftAlerts.tsx`
+- ✅ 4 Controllers: Dashboard + Policies (toggle inline) + Audit (filtros) + DriftAlerts (runtime scan)
+- ✅ Sidebar com novo grupo **GOVERNANÇA** visível
+- ✅ Lang `pt/` + `en/` (canonical UltimatePOS pattern)
+- ✅ topnav i18n (governance::governance.menu.*)
+- ✅ Bundles Inertia em `public/build-inertia/manifest.json` (12 entries governance)
+
+**10 bugs encontrados + corrigidos** (sequência intensa de bugfix Wagner→commit):
+1. Rotas Install URL `install/install` + action `install` (correto: `install` + `index`)
+2. Query `frontmatter_json LIKE` (correto: coluna `status` direto)
+3. AuditController `created_at` (canonical: `ts`)
+4. DriftAlerts `mcp_alertas.category` (schema: `kind`)
+5. DataController `superadmin_package` formato (key string → array com `name` field)
+6. Middleware sem `'authh'` + `'SetSessionData'`
+7. `mcp_skill_approvals.status` não existe (correto: `mcp_skill_versions.status='review'`)
+8. Lang só em `pt-BR/` (canonical: `pt/` + `en/`)
+9. Bundles Inertia faltando no manifest (build local)
+10. Compliance score 8% bug aritmético (correto: 80%)
+
+**Skill `criar-modulo` atualizada** com 4 seções novas pra próximas sessões não repetirem:
+- ⚠️ Erros frequentes em DataController (formato exato)
+- ⚠️ Schemas DB que controllers acessam — VERIFICAR antes de query
+- ⚠️ Translations: pasta `pt/` (não `pt-BR/`)
+- ⚠️ Lição registrada: PRIMEIRO comando ao iniciar criação de módulo = invocar skill `criar-modulo`
+
+---
+
+### Estado anterior — pós-2026-05-06 madrugada (Constituição v1.1.0 + Governance MVP)
 
 **14 commits da maratona 2026-05-05/06** (`b26781d9` → `d8785dbb`):
 
