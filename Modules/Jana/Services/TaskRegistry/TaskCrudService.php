@@ -391,14 +391,50 @@ class TaskCrudService
         ];
     }
 
+    /**
+     * Detecta o prefixo curto do módulo lendo o SPEC.md ('### US-XX-NNN').
+     *
+     * Convenção do projeto: módulos usam abreviação (ex: RecurringBilling → RB,
+     * NfeBrasil → NFE). Sem isso, geraríamos 'US-RECURRINGBILLING-NNN' que não
+     * bate com o que o SPEC já tem, e o counter ficaria preso em 001.
+     *
+     * Fallback: strtoupper($module) — preserva comportamento antigo em módulos
+     * sem prefixo curto declarado.
+     */
+    protected function detectarPrefixoSpec(string $module): string
+    {
+        $specPath = base_path("memory/requisitos/{$module}/SPEC.md");
+        if (is_file($specPath)) {
+            $content = (string) @file_get_contents($specPath);
+            if (preg_match('/^###\s+US-([A-Z]+)-\d+/m', $content, $m)) {
+                return $m[1]; // ex: "RB", "NFE", "COPI"
+            }
+        }
+        return strtoupper($module);
+    }
+
     protected function gerarProximoIdCanonical(string $module): string
     {
-        $prefixo = 'US-' . strtoupper($module) . '-';
-        $ultimo = McpTask::where('task_id', 'LIKE', $prefixo . '%')
+        $prefix = $this->detectarPrefixoSpec($module);
+        $prefixo = "US-{$prefix}-";
+
+        $ultimoDb = McpTask::where('task_id', 'LIKE', $prefixo . '%')
             ->orderByRaw('CAST(SUBSTRING(task_id, ' . (strlen($prefixo) + 1) . ') AS UNSIGNED) DESC')
             ->value('task_id');
+        $nDb = $ultimoDb ? (int) substr($ultimoDb, strlen($prefixo)) : 0;
 
-        $n = $ultimo ? ((int) substr($ultimo, strlen($prefixo)) + 1) : 1;
+        // Cobre o caso DB out-of-sync: webhook ainda não rodou pro último push
+        // OU o operador escreveu US-RB-NNN à mão no SPEC. Pegamos max(DB, SPEC).
+        $nSpec = 0;
+        $specPath = base_path("memory/requisitos/{$module}/SPEC.md");
+        if (is_file($specPath)) {
+            $content = (string) @file_get_contents($specPath);
+            if (preg_match_all('/^###\s+' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
+                $nSpec = max(array_map('intval', $matches[1]));
+            }
+        }
+
+        $n = max($nDb, $nSpec) + 1;
         return $prefixo . str_pad((string) $n, 3, '0', STR_PAD_LEFT);
     }
 
