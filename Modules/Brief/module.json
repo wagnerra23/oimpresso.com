@@ -1,0 +1,14 @@
+{
+    "name": "Brief",
+    "alias": "brief",
+    "description": "Daily Brief (camada L7) — gerador 6x/dia + tool MCP brief-fetch. Sprint 1 da Constituicao V2 (ADR 0091). Reduz onboarding de sessao Claude de 30k para 3k tokens.",
+    "keywords": ["brief", "daily-brief", "mcp", "context-engineering", "constituicao-v2", "l7"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Brief\\Providers\\BriefServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
