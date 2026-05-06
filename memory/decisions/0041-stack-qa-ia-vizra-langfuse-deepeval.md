@@ -121,7 +121,7 @@ pii: false
 **Entregáveis:**
 1. `Modules/Copiloto/Jobs/ApurarQualidadeJob` (Horizon background, sample 5% conversas/dia). Chama LLM-judge sobre rubrica (faithfulness + relevancy + safety), grava `copiloto_qualidade_scores` tabela `{conversa_id, business_id, faithfulness, answer_relevancy, judge_model, judge_reasoning, created_at}`.
 2. Migração `2026_05_NN_create_copiloto_qualidade_scores_table.php` com `business_id` indexado + scope `ScopeByBusiness` (skill `multi-tenant-patterns` ativa aqui).
-3. Eval-driven alerting: faithfulness rolling-7d <0.7 → trigger `\Modules\Copiloto\Notifications\QualidadeDegradadaNotification` → email Wagner + log critical.
+3. Eval-driven alerting: faithfulness rolling-7d <0.7 → trigger `\Modules\Jana\Notifications\QualidadeDegradadaNotification` → email Wagner + log critical.
 4. `/copiloto/admin/qualidade` Inertia page (HITL):
    - Lista 20 conversas/semana (paginated)
    - Wagner/Larissa anotam: ⭐⭐⭐⭐⭐ + comentário

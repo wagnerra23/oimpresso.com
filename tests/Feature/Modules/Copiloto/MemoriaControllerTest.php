@@ -1,8 +1,8 @@
 <?php
 
-use Modules\Copiloto\Contracts\MemoriaContrato;
-use Modules\Copiloto\Http\Controllers\MemoriaController;
-use Modules\Copiloto\Services\Memoria\NullMemoriaDriver;
+use Modules\Jana\Contracts\MemoriaContrato;
+use Modules\KB\Http\Controllers\MemoriaController;
+use Modules\Jana\Services\Memoria\NullMemoriaDriver;
 
 /**
  * Sprint 6 — MemoriaController (US-COPI-MEM-012, LGPD).

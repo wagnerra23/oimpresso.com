@@ -9,9 +9,41 @@
 
 ## 🚀 Começo Rápido — leia isso primeiro
 
-**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-05 (COPI-40 cache semântico fechado — PR [#94](https://github.com/wagnerra23/oimpresso.com/pull/94) mergeado)
+**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-06 tarde+noite (Fase 3.7 PR-1 + PR-2 — [#97](https://github.com/wagnerra23/oimpresso.com/pull/97) aguarda review)
 
-### 🆕 Estado pós-2026-05-06 (Governance UI completa em prod + 6 lições documentadas)
+### 🆕 Estado pós-2026-05-06 tarde+noite (Fase 3.7 PR-1 + PR-2 entregues)
+
+**3 commits na branch `claude/wonderful-herschel-cccef6` → [PR #97](https://github.com/wagnerra23/oimpresso.com/pull/97).**
+
+**PR-1 (commit `850ac349`)** — 9 drift controllers movidos pros donos corretos (Copiloto/ADS → KB/TeamMcp/ProjectMgmt). URLs **mantidas inalteradas**. SCOPE.md zerou drift_alerts em 5 módulos. Plano v1.0→1.1 com **erratum §1** (Memoria/FontesController não eram o que o plano descrevia — Wagner confirmou destino KB mesmo assim como decisão L1).
+
+**PR-2 (commit `8f7a5138`)** — 3 renames de módulo PHP-only:
+- `Modules/Copiloto/` → `Modules/Jana/` (chat IA enxuto após PR-1 extrair drift)
+- `Modules/PontoWr2/` → `Modules/Ponto/`
+- `Modules/MemCofre/` → `Modules/SRS/` (System Rules Spec)
+
+**Mantidos legacy** (rename PHP-only): URLs `/copiloto/*` etc, permissions `copiloto.*` etc, config keys + env vars `COPILOTO_*`, log channels `copiloto-ai`, Pages React `Pages/Copiloto/`, lang `copiloto::`, tabelas DB (`copiloto_*`, `ponto_*`, `docs_*`). Plano v1.1→1.2 com **erratum §4** (rename PHP-only em vez de rename completo com 301 — razão: blast radius alto demais com 5993 clientes ROTA LIVRE + watchers + webhook + 30 Inertia::render).
+
+**Stats:**
+- 9 + 369 git mv (96-99% similarity preservada)
+- 314 arquivos com namespace bulk-replaced (320 substituições)
+- 3 SCOPE.md + 3 module.json + 3 composer.json + 3 ServiceProvider class names atualizados
+- GUARDA `bin/check-scope.php`: **0 drift / 29 módulos** (Jana/Ponto/SRS reconhecidos)
+
+**⚠️ Pós-merge na main:**
+- `composer dump-autoload` no Hostinger + CT 100 (autoload PSR-4 muda)
+- Smoke prod: `/copiloto/chat`, `/copiloto/memoria`, `/pontowr2/`, `/memcofre/`, `/api/mcp/health`, `/ads/admin/tools` retornam 200
+- Webhook GitHub e watchers Claude Code continuam OK (URLs não mudaram)
+
+**Próxima sessão:** revisar/mergear #97 → PR-3+ pode mover URL/permissions/Pages item a item se Wagner decidir.
+
+**ADRs novas:** [0087 — Drift resolution sem mover URL](decisions/0087-drift-resolution-sem-mover-url.md) + [0088 — Module rename PHP-only](decisions/0088-module-rename-php-only.md). **Skill nova:** [.claude/skills/migrar-modulo/SKILL.md](../.claude/skills/migrar-modulo/SKILL.md) — auto-load em refactor de módulo/controller, carrega os 2 patterns + matriz blast radius + receita técnica.
+
+Session log: [memory/sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md](sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md)
+
+---
+
+### Estado anterior — pós-2026-05-06 manhã (Governance UI completa em prod + 6 lições documentadas)
 
 **Continuação maratona 2026-05-05/06** — totalizam **17 commits** (`b26781d9` → `5da2fc02`):
 

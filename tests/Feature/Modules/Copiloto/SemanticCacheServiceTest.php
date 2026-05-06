@@ -2,9 +2,9 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\CacheSemantico;
-use Modules\Copiloto\Entities\Conversa;
-use Modules\Copiloto\Services\Cache\SemanticCacheService;
+use Modules\Jana\Entities\CacheSemantico;
+use Modules\Jana\Entities\Conversa;
+use Modules\Jana\Services\Cache\SemanticCacheService;
 
 /**
  * COPI-40 / MEM-CACHE-1 (ADR 0037 Sprint 8) — cache semântico de respostas LLM.

@@ -3,8 +3,8 @@
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\MemoriaMetrica;
-use Modules\Copiloto\Services\Metricas\MetricasApurador;
+use Modules\Jana\Entities\MemoriaMetrica;
+use Modules\Jana\Services\Metricas\MetricasApurador;
 
 /**
  * MEM-MET-2 (ADRs 0050+0051) — Testa cada apurador isolado + integração `apurar()`.

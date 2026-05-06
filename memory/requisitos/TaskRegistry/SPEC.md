@@ -240,10 +240,10 @@ git pull
 php artisan migrate
 
 # 3. Atualizar permissions (4 novas: tasks.write, cycles.manage, projects.manage, inbox.read)
-php artisan db:seed --class=Modules\\Copiloto\\Database\\Seeders\\McpScopesSeeder
+php artisan db:seed --class=Modules\\Jana\\Database\\Seeders\\McpScopesSeeder
 
 # 4. Criar 18 projects canônicos + workflow default global
-php artisan db:seed --class=Modules\\Copiloto\\Database\\Seeders\\McpDefaultsSeeder
+php artisan db:seed --class=Modules\\Jana\\Database\\Seeders\\McpDefaultsSeeder
 
 # 5. Backfill 1× — Cycle 01 + 3 goals + ~70 tasks (Cycle 01 done/active + on-deck Cycle 02 + backlog por módulo)
 php artisan mcp:tasks:backfill-from-markdown
@@ -262,7 +262,7 @@ php artisan tinker
 
 # 8. Validar via tools MCP
 php artisan tinker
-> app(\Modules\Copiloto\Mcp\Tools\CyclesActiveTool::class)->handle(...)
+> app(\Modules\Jana\Mcp\Tools\CyclesActiveTool::class)->handle(...)
 ```
 
 ### Validação pós-migração

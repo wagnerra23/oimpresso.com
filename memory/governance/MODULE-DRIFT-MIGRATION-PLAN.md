@@ -4,9 +4,9 @@ title: "Plano consolidado de migração de drift entre módulos"
 type: governance-spec
 authority: canonical
 lifecycle: ativo
-version: 1.0.0
+version: 1.2.0
 maintained_by: wagner
-last_updated: 2026-05-05
+last_updated: 2026-05-06
 charter_adr: 0080
 related:
   - 0079-constituicao-oimpresso-7-camadas-governanca
@@ -171,3 +171,5 @@ Critérios de "Fase 3.7 concluída":
 ## Histórico
 
 - **v1.0.0** (2026-05-05) — Plano inicial. 10 drift controllers mapeados. Renomeações + depreciações sequenciadas. GUARDA implementação iniciada.
+- **v1.1.0** (2026-05-06) — **Fase 3.7 PR-1 executada.** 9 dos 10 drift controllers movidos pros donos corretos (#1..#5 + #7..#10 da tabela §1). URLs **mantidas** (zero break) via `use` imports atualizadas em Routes/web.php do Copiloto/ADS — namespace prefix dos route groups + tuple `[Class::class, 'method']` apontam pros novos namespaces. SCOPE.md dos 5 módulos afetados (Copiloto/ADS/KB/TeamMcp/ProjectMgmt) com `drift_alerts[]` zerado. **Erratum §1**: o plano original confundiu MemoriaController (Copiloto) com browse de mcp_memory_documents — na verdade é tela LGPD pessoal US-COPI-MEM-012 sobre `copiloto_memoria_facts`. FontesController também é data source de meta de faturamento, não knowledge sources. Wagner confirmou destino KB pra ambos mesmo assim (decisão arquitetural L1, registrada nesta versão). PR-1 NÃO inclui renames Copiloto→Jana / PontoWr2→Ponto / MemCofre→SRS — esses ficam pra **PR-2** separado (URLs mudam aí). **Pendente §1 #6**: GovernancaController fica em Fase 5 (Modules/Governance já existe, mas absorção do controller é decisão separada).
+- **v1.2.0** (2026-05-06) — **Fase 3.7 PR-2 executada.** 3 renames de módulo aplicados: `Modules/Copiloto`→`Modules/Jana`, `Modules/PontoWr2`→`Modules/Ponto`, `Modules/MemCofre`→`Modules/SRS`. **Erratum §4**: o plano §4 original previa URLs novas com 301 redirect (`/copiloto/*`→`/jana/*` etc), mas a execução escolheu **rename PHP-only** — apenas pasta + namespace + ServiceProvider class + module.json + composer.json mudaram. Mantidos legacy: URLs (`/copiloto/*`, `/pontowr2/*`, `/memcofre/*`), permissions Spatie (`copiloto.*` etc), config keys + env vars (`COPILOTO_*` etc), log channels (`copiloto-ai`), Pages React dirs (`Pages/Copiloto/`), lang namespaces (`copiloto::` etc), tabelas DB (`copiloto_*`, `ponto_*`, `docs_*`). **Razão**: blast radius de mudar tudo de uma vez é alto demais (5993 clientes ROTA LIVRE + watchers Claude Code + webhook GitHub + 30 `Inertia::render('Copiloto/...')`). PR posteriores podem mover URLs/permissions/Pages com 301 + backfill DB se Wagner decidir. Tamanho real do PR-2: ~370 arquivos PHP, 314 modificados pelo bulk replace (320 substituições distintas). Validação: `bin/check-scope.php` passou; Pest pulado (worktree sem vendor; CI valida).

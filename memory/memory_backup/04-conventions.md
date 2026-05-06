@@ -16,18 +16,18 @@
 - Junção: `ponto_escala_turnos` (entidade dependente)
 
 ### Models (Entities)
-- PascalCase, singular, em `Modules\PontoWr2\Entities\`
+- PascalCase, singular, em `Modules\Ponto\Entities\`
 - Domínio PT: `Marcacao`, `Intercorrencia`, `ApuracaoDia`, `BancoHorasSaldo`
 - Constantes de enum como `const` de classe: `Marcacao::TIPO_ENTRADA`
 
 ### Controllers
-- PascalCase + `Controller`, em `Modules\PontoWr2\Http\Controllers\`
+- PascalCase + `Controller`, em `Modules\Ponto\Http\Controllers\`
 - Agrupamento por seção do menu: `DashboardController`, `EspelhoController`, `AprovacaoController`, etc.
 - Métodos padrão REST: `index`, `create`, `store`, `show`, `edit`, `update`, `destroy`
 - Métodos customizados em snake por ação: `aprovar`, `rejeitar`, `submeter`, `cancelar`
 
 ### Services
-- PascalCase + `Service`, em `Modules\PontoWr2\Services\`
+- PascalCase + `Service`, em `Modules\Ponto\Services\`
 - Um service por domínio: `ApuracaoService`, `BancoHorasService`
 
 ### Rotas
