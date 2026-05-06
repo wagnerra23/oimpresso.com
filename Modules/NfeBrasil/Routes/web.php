@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\NfeBrasil\Http\Controllers\CertificadoController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
 
@@ -24,3 +25,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 Route::group([], function () {
     Route::resource('nfebrasil', NfeBrasilController::class)->names('nfebrasil');
 });
+
+// US-NFE-041 — gerenciamento do certificado A1 (upload + status)
+// Permissão `nfe.configuracao.manage` validada no FormRequest.
+Route::middleware(['web', 'auth', 'SetSessionData'])
+    ->prefix('nfe-brasil/configuracao')
+    ->group(function () {
+        Route::get('certificado', [CertificadoController::class, 'status'])
+            ->name('nfe-brasil.certificado.status');
+        Route::post('certificado', [CertificadoController::class, 'upload'])
+            ->name('nfe-brasil.certificado.upload');
+    });
