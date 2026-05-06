@@ -396,6 +396,61 @@ Então NÃO cria revenue_event (sem take rate)
 - [ ] Boleto direto CNAB: vale o esforço ou só via gateway?
 - [ ] Reajuste IPCA via API BCB ou cache local atualizado mensal?
 
+## 9. Escopos de implementação — 2026-05-06
+
+### US-RB-ESC0 · Escopo 0 — PaymentGateway + adapter Asaas (pré-requisito cobrança)
+
+> owner: wagner · priority: p0 · estimate: 16h · status: todo · type: story
+
+- Módulo PaymentGateway scaffold (tabelas `pg_credentials`, `pg_charge_attempts`, `pg_webhook_events`)
+- Adapter Asaas: credencial por tenant (api_key encrypted), cobrança avulsa, webhook `payment.confirmed` / `payment.overdue`
+- Idempotência por `(provider, event_id)` em `pg_webhook_events`
+- Resposta 200 imediata + processamento async via job (fila `rb_webhooks`)
+- Tela admin: cadastrar credencial Asaas por tenant
+- Test Feature: criar credencial + cobrança avulsa mock + webhook idempotência + isolamento multi-tenant
+- **Pré-requisito de todos os outros escopos**
+
+### US-RB-ESC1 · Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
+
+> owner: wagner · priority: p0 · estimate: 32h · status: todo · type: story
+> blocked_by: US-RB-ESC0
+
+- Migrations: `rb_plans`, `rb_contracts`, `rb_invoices`
+- PlanController CRUD + ContractController (criar/cancelar) + InvoiceController (listar/charge manual)
+- `GenerateInvoicesJob` — diário 03:00, gera fatura pra contratos com `next_billing_date <= hoje+3d`, idempotência por `(contract_id, ciclo_competencia)`
+- `ChargeInvoicesJob` — 1h após geração, dispara evento `ChargeRequested` pro PaymentGateway
+- Listener `InvoiceGenerated` → cria título no Financeiro (`rb_invoices` linked)
+- Layout React: lista contratos (status badge), detalhe com timeline de ciclos (Recharts), ação manual "cobrar agora"
+- Test Feature: 100 contratos × 3 ciclos = 300 invoices sem dupla + isolamento
+
+### US-RB-ESC2 · Escopo 2 — Boleto impresso via eduardokum/laravel-boleto
+
+> owner: wagner · priority: p0 · estimate: 10h · status: todo · type: story
+> blocked_by: US-RB-ESC1
+
+- `composer require eduardokum/laravel-boleto` — geração direta (sem gateway externo)
+- Suporta múltiplos bancos (Bradesco, Itaú, BB, Santander, Sicoob, etc.) — configurável por tenant
+- No `ChargeRequested` com forma=boleto: `BoletoService::gerar()` retorna PDF + linha digitável + código de barras
+- Persiste em `pg_charge_attempts.boleto_pdf_url` (storage local ou S3)
+- Tela fatura (React): botão "Imprimir boleto" (abre PDF em nova aba) + linha digitável copiável + QR Code Pix (se banco suportar)
+- Envio por email automático com PDF anexo ao gerar (job `SendBoletoEmailJob`)
+- Registrar banco preferido por tenant em `pg_credentials` (tipo `boleto_banco`)
+- Test Feature: gerar boleto real no banco configurado + verificar PDF salvo + email disparado + isolamento
+
+### US-RB-ESC3 · Escopo 3 — NFe via módulo NfeBrasil (nfephp-org/sped-nfe)
+
+> owner: wagner · priority: p1 · estimate: 24h · status: todo · type: story
+> blocked_by: US-RB-ESC1
+
+- Usa o módulo `Modules/NfeBrasil` já existente no projeto (não criar sub-módulo novo)
+- Integração via evento: listener em `InvoicePaid` → dispara `NFeEmissionRequested` (fila `rb_nfe`, não trava billing)
+- `NfeBrasilService::emitir()` gera XML NFe + assina com certificado A1 por tenant + transmite SEFAZ
+- Retorno: chave de acesso + PDF DANFE + XML autorizado salvos em `nfse_documents` (reuso tabela)
+- Tela fatura (React): status da NF (pendente/autorizada/rejeitada/cancelada), link DANFE PDF, botão reemitir
+- Certificado A1 (.pfx) por tenant — armazenado encrypted, configurável na tela admin
+- NFe pode ser rejeitada pela SEFAZ: UI mostra código de erro + descrição amigável + ação "corrigir e reemitir"
+- Test Feature: mock SEFAZ + listener disparado ao pagar + chave retornada + isolamento multi-tenant
+
 ## 8. Referências
 
 - `_Ideias/CobrancaRecorrente/evidencias/conversa-claude-2026-04-mobile.md`
