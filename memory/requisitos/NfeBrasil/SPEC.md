@@ -214,13 +214,13 @@
 **Quero** definir tributação por NCM/UF: ICMS, ICMS-ST (com MVA), IPI, PIS, COFINS, CBS, IBS
 **Para** automatizar cálculo na emissão sem digitar imposto a imposto
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Tributacao/Regras/Index.tsx`, `.../Form.tsx`]_
+**Implementado em:** [`Modules/NfeBrasil/Services/MotorTributarioService.php`](../../../Modules/NfeBrasil/Services/MotorTributarioService.php) (motor cascade) · [`Modules/NfeBrasil/Models/NfeFiscalRule.php`](../../../Modules/NfeBrasil/Models/NfeFiscalRule.php) · [`Modules/NfeBrasil/Models/NfeBusinessConfig.php`](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php) · _[TODO UI — `resources/js/Pages/NfeBrasil/Tributacao/Regras/Index.tsx`, `.../Form.tsx`]_
 
 **Definition of Done:**
-- [ ] Tabela `nfe_fiscal_rules` com `UNIQUE (business_id, ncm, uf_origem, uf_destino)` composta (ARQ-0004 schema)
+- [x] Tabela `nfe_fiscal_rules` com index `(business_id, ncm, uf_origem, uf_destino)` (ARQ-0004 schema; idempotência via service `firstOrCreate`)
 - [ ] FormRequest valida: `ncm` 8 dígitos, `uf_origem` em FEBRABAN UFs, `uf_destino` opcional (NULL = todas), CSOSN OU CST exclusive
-- [ ] Schema flexível: campos `cbs_*` e `ibs_*` nullables (Reforma Tributária 2026-2033, ARQ-0004)
-- [ ] **Cascade fallback respeitado** (ARQ-0006): regra criada participa do cascade Nível 2 ou 3 dependendo de `uf_destino` ser NULL
+- [x] Schema flexível: coluna `metadata` JSON pra CBS/IBS futuros (ARQ-0004)
+- [x] **Cascade fallback respeitado** (ARQ-0006): `MotorTributarioService::calcular` itera Nível 1→4 com cache em memória; testes Pest cobrem 10 cenários (níveis 1-4 + edge cases + multi-tenant)
 - [ ] **Bridge automática** (ARQ-0005): listener `SyncFiscalRuleToTaxRate` upsert linha em `tax_rates` core (compat Connector)
 - [ ] **Importação CSV** em massa: upload datasets Receita Federal (NCM 8d) ou CONFAZ (CEST 7d):
   - Preview antes de aplicar (10 primeiras linhas + totais)
