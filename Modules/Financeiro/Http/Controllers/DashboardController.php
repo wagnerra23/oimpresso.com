@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
 
@@ -48,10 +49,31 @@ class DashboardController extends Controller
 
         $titulos->getCollection()->transform(fn ($t) => $this->shapeTitulo($t));
 
+        $contas = ContaBancaria::where('business_id', $businessId)
+            ->with('account')
+            ->orderByRaw('saldo_cached IS NULL, saldo_cached DESC')
+            ->get()
+            ->map(fn ($c) => [
+                'id'               => $c->id,
+                'nome'             => $c->nome,
+                'banco_nome'       => $c->banco_nome,
+                'banco_codigo'     => $c->banco_codigo,
+                'tipo_conta'       => $c->tipo_conta ?? 'corrente',
+                'ativo_para_boleto'=> $c->ativo_para_boleto,
+                'saldo_cached'     => $c->saldo_cached,
+                'saldo_formatado'  => $c->saldo_formatado,
+                'saldo_atualizado_em' => $c->saldo_atualizado_em?->diffForHumans(),
+                'numero_conta'     => $c->numero_conta,
+            ]);
+
+        $saldo_total = $contas->whereNotNull('saldo_cached')->sum('saldo_cached');
+
         return Inertia::render('Financeiro/Dashboard/Index', [
-            'kpis' => $kpis,
-            'titulos' => $titulos,
-            'filters' => $filters,
+            'kpis'        => $kpis,
+            'titulos'     => $titulos,
+            'filters'     => $filters,
+            'contas'      => $contas,
+            'saldo_total' => $saldo_total,
         ]);
     }
 
