@@ -71,8 +71,8 @@ Reuso concreto:
 // Em Modules/LaravelAI/Services/AgentService.php
 class AgentService {
     public function __construct(
-        private \Modules\MemCofre\Services\MemoryReader $memoryReader,
-        private \Modules\MemCofre\Services\ChatAssistant $fallbackChat,
+        private \Modules\SRS\Services\MemoryReader $memoryReader,
+        private \Modules\SRS\Services\ChatAssistant $fallbackChat,
         private GraphService $graph,
         private VectorStoreService $vectorStore,
         private LLMProvider $llm,

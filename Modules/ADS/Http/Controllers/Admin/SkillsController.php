@@ -8,15 +8,15 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ADS\Services\SkillsService;
-use Modules\Copiloto\Entities\Conversa;
-use Modules\Copiloto\Entities\Mcp\McpSkill;
-use Modules\Copiloto\Entities\Mcp\McpSkillApproval;
-use Modules\Copiloto\Entities\Mcp\McpSkillLabel;
-use Modules\Copiloto\Entities\Mcp\McpSkillTestRun;
-use Modules\Copiloto\Entities\Mcp\McpSkillVersion;
-use Modules\Copiloto\Entities\Mensagem;
-use Modules\Copiloto\Services\Skills\PublicarSkillNoGitService;
-use Modules\Copiloto\Services\Skills\SkillTestRunnerService;
+use Modules\Jana\Entities\Conversa;
+use Modules\Jana\Entities\Mcp\McpSkill;
+use Modules\Jana\Entities\Mcp\McpSkillApproval;
+use Modules\Jana\Entities\Mcp\McpSkillLabel;
+use Modules\Jana\Entities\Mcp\McpSkillTestRun;
+use Modules\Jana\Entities\Mcp\McpSkillVersion;
+use Modules\Jana\Entities\Mensagem;
+use Modules\Jana\Services\Skills\PublicarSkillNoGitService;
+use Modules\Jana\Services\Skills\SkillTestRunnerService;
 use Symfony\Component\Yaml\Yaml;
 
 /**

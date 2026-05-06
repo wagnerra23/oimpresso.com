@@ -7,10 +7,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Copiloto\Entities\Mcp\McpCycle;
-use Modules\Copiloto\Entities\Mcp\McpProject;
-use Modules\Copiloto\Entities\Mcp\McpTask;
-use Modules\Copiloto\Entities\Mcp\McpTaskEvent;
+use Modules\Jana\Entities\Mcp\McpCycle;
+use Modules\Jana\Entities\Mcp\McpProject;
+use Modules\Jana\Entities\Mcp\McpTask;
+use Modules\Jana\Entities\Mcp\McpTaskEvent;
 
 /**
  * BurndownController — /project-mgmt/burndown (US-TR-206).

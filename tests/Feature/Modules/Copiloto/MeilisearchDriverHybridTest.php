@@ -3,8 +3,8 @@
 use Laravel\Scout\Builder;
 use Laravel\Scout\EngineManager;
 use Laravel\Scout\Engines\Engine;
-use Modules\Copiloto\Entities\CopilotoMemoriaFato;
-use Modules\Copiloto\Services\Memoria\MeilisearchDriver;
+use Modules\Jana\Entities\CopilotoMemoriaFato;
+use Modules\Jana\Services\Memoria\MeilisearchDriver;
 
 /**
  * Regressão MEM-HOT-1 (ADR 0047) — MeilisearchDriver::buscar passa

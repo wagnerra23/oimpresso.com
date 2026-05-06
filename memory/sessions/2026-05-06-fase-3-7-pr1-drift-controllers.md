@@ -47,7 +47,7 @@ PR-1 entregue. PR-2 (renames Copiloto→Jana / PontoWr2→Ponto / MemCofre→SRS
 Plano §3-4 sugere mover URLs com 301 redirect. Optei por **manter URLs inalteradas** nesta PR-1 pra zero break em Pages React, bookmarks, watchers Claude Code, webhook GitHub. Implementação:
 
 - `/copiloto/memoria*`, `/copiloto/metas/{id}/fonte` → tuple `[\Modules\KB\Http\Controllers\…::class, 'method']` no Copiloto/Http/routes.php
-- `/api/mcp/*`, `/api/cc/*` → trocou só o `'namespace'` prefix do route group de `Modules\Copiloto\Http\Controllers\Mcp` pra `Modules\TeamMcp\Http\Controllers\Mcp`
+- `/api/mcp/*`, `/api/cc/*` → trocou só o `'namespace'` prefix do route group de `Modules\Jana\Http\Controllers\Mcp` pra `Modules\TeamMcp\Http\Controllers\Mcp`
 - `/ads/admin/{tools,team-scopes,graph,projects}` → swap de `use` imports no topo do ADS/Routes/web.php
 
 Riscos alto/médio do plano §2 (webhook GitHub, watchers locais) **não materializaram** porque URLs públicas não mudaram.

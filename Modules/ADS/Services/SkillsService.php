@@ -3,7 +3,7 @@
 namespace Modules\ADS\Services;
 
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\Mcp\McpSkill;
+use Modules\Jana\Entities\Mcp\McpSkill;
 use Symfony\Component\Yaml\Yaml;
 
 /**

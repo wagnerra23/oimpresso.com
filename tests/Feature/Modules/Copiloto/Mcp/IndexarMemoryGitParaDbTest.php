@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
-use Modules\Copiloto\Services\Mcp\IndexarMemoryGitParaDb;
+use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Service que sincroniza memory/ git → DB.

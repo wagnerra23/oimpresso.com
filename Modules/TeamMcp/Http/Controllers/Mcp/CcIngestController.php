@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Copiloto\Entities\Mcp\McpCcBlob;
-use Modules\Copiloto\Entities\Mcp\McpCcMessage;
-use Modules\Copiloto\Entities\Mcp\McpCcSession;
+use Modules\Jana\Entities\Mcp\McpCcBlob;
+use Modules\Jana\Entities\Mcp\McpCcMessage;
+use Modules\Jana\Entities\Mcp\McpCcSession;
 
 /**
  * MEM-CC-1 — Endpoint POST /api/cc/ingest pra watcher local de cada dev

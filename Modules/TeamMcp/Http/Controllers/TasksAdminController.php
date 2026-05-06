@@ -7,8 +7,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Copiloto\Entities\Mcp\McpTask;
-use Modules\Copiloto\Services\TaskRegistry\TaskCrudService;
+use Modules\Jana\Entities\Mcp\McpTask;
+use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
  * TaskRegistry Fase 2 (US-TR-007) — Page /team-mcp/tasks.

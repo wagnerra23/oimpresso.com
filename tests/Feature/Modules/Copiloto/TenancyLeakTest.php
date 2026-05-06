@@ -3,8 +3,8 @@
 use App\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\Meta;
-use Modules\Copiloto\Scopes\ScopeByBusiness;
+use Modules\Jana\Entities\Meta;
+use Modules\Jana\Scopes\ScopeByBusiness;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
