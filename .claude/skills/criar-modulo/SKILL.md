@@ -34,9 +34,10 @@ Módulo aparecer em `/manage-modules` com botão Install funcional + opcionalmen
 | 7 | `Http/Controllers/InstallController.php` | extends BaseModuleInstallController |
 | 8 | `Routes/web.php` | rotas do módulo + **3 rotas admin Install (§críticas)** |
 
-E mais 2 fora da pasta do módulo:
+E mais 3 fora da pasta do módulo:
 - `modules_statuses.json` (raiz) — entrada `"<Nome>": true`
 - (Se rotas públicas) link condicional via `Route::has()` em [home_header.blade.php](../../resources/views/layouts/partials/home_header.blade.php) + [auth2.blade.php](../../resources/views/layouts/auth2.blade.php) + [HandleInertiaRequests.php](../../app/Http/Middleware/HandleInertiaRequests.php) `publicRoutes` + `SiteHeader.tsx`
+- ⚠️ **`phpunit.xml`** — quando criar a primeira `Tests/Feature/*Test.php` do módulo, adicionar `<directory>./Modules/<Nome>/Tests/Feature</directory>` (e Unit se houver) dentro da `<testsuite name="Feature">`. **Esquecer = testes no repo mas CI nunca roda → falsa sensação de cobertura**. Erro recorrente; ver [`memory/requisitos/Infra/RUNBOOK-pest-suite.md`](../../memory/requisitos/Infra/RUNBOOK-pest-suite.md).
 
 ## §Críticas — 3 rotas admin Install OBRIGATÓRIAS
 
