@@ -55,8 +55,10 @@ class BoletoService
     {
         $config = $credential->config_json ?? [];
 
-        // Descriptografa campos sensíveis
-        foreach (['client_secret', 'api_key', 'certificado_senha'] as $field) {
+        // Descriptografa campos sensíveis. Note: certificado_key_b64 é
+        // criptografado pra proteger a chave privada — após decifrar, ainda
+        // é base64; o driver faz o base64_decode antes de usar o PEM.
+        foreach (['client_secret', 'api_key', 'certificado_senha', 'certificado_key_b64'] as $field) {
             if (isset($config[$field])) {
                 $config[$field] = Crypt::decryptString($config[$field]);
             }
