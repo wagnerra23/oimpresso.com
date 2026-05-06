@@ -22,6 +22,11 @@ class OimpressoMcpServer extends Server
     protected string $instructions = <<<'MARKDOWN'
         Servidor MCP da empresa oimpresso (ERP gráfico com IA).
 
+        ⚡ CHAME `brief-fetch` PRIMEIRO em toda sessão (skill brief-first Tier A).
+        Devolve estado consolidado em ~3k tokens (cycle ativo, HITL, decisões 24h,
+        skills 7d, flags). Substitui exploração via cycles-active + sessions-recent
+        + tasks-active + decisions-search. ADR 0091.
+
         Hierarquia Jira-style (ADR 0070): Project → Epic → Cycle → Story → Subtask.
         CURRENT.md/TASKS.md REMOVIDOS — tudo via tools MCP.
 
@@ -52,6 +57,10 @@ class OimpressoMcpServer extends Server
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Tool>> */
     protected array $tools = [
+        // ADR 0091 — Daily Brief (camada L7 da Constituição V2). PRIMEIRA tool
+        // em toda sessão (skill brief-first Tier A always-on). Substitui 5-8
+        // chamadas exploratórias por 1 brief de ~3k tokens.
+        \Modules\Brief\Mcp\Tools\BriefFetchTool::class,
         // ADR 0070 — Jira-style task management (CURRENT.md/TASKS.md removidos).
         // ⚠️ ListTools (laravel/mcp) PAGINA em 15 itens. 15 primeiras = essenciais.
         // Tools de leitura cycle/work/inbox:
