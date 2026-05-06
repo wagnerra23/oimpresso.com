@@ -93,9 +93,29 @@ class MyWorkTool extends Tool
 
     protected function resolveCurrentOwner(): string
     {
+        // ADR 0081 Identity Mesh: token.actor_id → mcp_actors.slug
+        // IA-pareada (ai_agent com parent_actor) usa slug do humano que representa.
+        $token = request()->attributes->get('mcp_token');
+        if ($token && !empty($token->actor_id)) {
+            $actor = \DB::table('mcp_actors')
+                ->where('id', $token->actor_id)
+                ->whereNull('revoked_at')
+                ->first();
+            if ($actor) {
+                if ($actor->type === 'ai_agent' && $actor->parent_actor_id) {
+                    $parent = \DB::table('mcp_actors')
+                        ->where('id', $actor->parent_actor_id)
+                        ->whereNull('revoked_at')
+                        ->first();
+                    if ($parent) return $parent->slug;
+                }
+                return $actor->slug;
+            }
+        }
+
+        // Fallback legacy (pré-Identity Mesh)
         $user = Auth::user();
         if (! $user) return '';
-        // Tenta username, first_name, email local-part
         $u = strtolower($user->username ?? $user->first_name ?? '');
         if ($u !== '') return $u;
         if (! empty($user->email)) {
