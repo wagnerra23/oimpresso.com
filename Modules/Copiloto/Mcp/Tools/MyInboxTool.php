@@ -33,16 +33,39 @@ class MyInboxTool extends Tool
 
     public function handle(Request $request): Response
     {
-        $user = Auth::user();
-        if (! $user) {
-            return Response::text("Sem user autenticado — token MCP precisa ser bound a um user.");
+        // ADR 0081 Identity Mesh: pega user_id do token diretamente (Auth::user()
+        // pode ser null em alguns contextos do Laravel-MCP — token é fonte canônica)
+        $token = request()->attributes->get('mcp_token');
+        $userId = $token?->user_id ?? Auth::user()?->id;
+        $displayName = Auth::user()?->first_name ?? 'você';
+
+        // Para IA-pareada (ai_agent com parent_actor humano), usa user_id do parent
+        if ($token && !empty($token->actor_id)) {
+            $actor = \DB::table('mcp_actors')
+                ->where('id', $token->actor_id)
+                ->whereNull('revoked_at')
+                ->first();
+            if ($actor && $actor->type === 'ai_agent' && $actor->parent_actor_id) {
+                $parent = \DB::table('mcp_actors')
+                    ->where('id', $actor->parent_actor_id)
+                    ->whereNull('revoked_at')
+                    ->first();
+                if ($parent && $parent->user_id) {
+                    $userId = (int) $parent->user_id;
+                    $displayName = explode(' ', $parent->display_name)[0] ?? $parent->slug;
+                }
+            }
+        }
+
+        if (! $userId) {
+            return Response::text("Sem user autenticado — token MCP precisa ser bound a um user (ou actor com parent humano).");
         }
 
         $includeRead = (bool) $request->get('include_read', false);
         $limit = min((int) $request->get('limit', 50), 200);
         $markRead = (bool) $request->get('mark_read', false);
 
-        $q = McpInboxNotification::forUser((int) $user->id)
+        $q = McpInboxNotification::forUser($userId)
             ->where('created_at', '>', now()->subDays(30))
             ->orderByDesc('created_at');
 
@@ -57,7 +80,7 @@ class MyInboxTool extends Tool
         }
 
         $byType = $items->groupBy('type');
-        $md = "# Inbox — {$user->first_name}\n\n";
+        $md = "# Inbox — {$displayName}\n\n";
         $md .= "Total: **" . $items->count() . "** (" . $items->where('read_at', null)->count() . " unread)\n\n";
 
         foreach ($byType as $type => $list) {
@@ -82,7 +105,7 @@ class MyInboxTool extends Tool
         }
 
         if ($markRead) {
-            $count = McpInboxNotification::forUser((int) $user->id)
+            $count = McpInboxNotification::forUser($userId)
                 ->whereIn('id', $items->pluck('id')->all())
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
