@@ -22,7 +22,7 @@ class DecisionsSearchTool extends Tool
 
     protected string $title = 'Buscar ADRs do projeto';
 
-    protected string $description = 'Busca full-text nos 53 ADRs (decisões arquiteturais) do oimpresso. Retorna top 5 matches com slug, título e trecho relevante. Use slug retornado em decisions-fetch pra ler ADR completa.';
+    protected string $description = 'Busca full-text nas 90+ ADRs (decisões arquiteturais) do oimpresso. Retorna top 5 matches com slug, título e trecho relevante. Por padrão filtra ADRs ativas (aceito/accepted/accepted-historical) — use include_archived=true pra ver superseded/deprecated. Triagem 2026-05-06 ([_INDEX-LIFECYCLE](memory/decisions/_INDEX-LIFECYCLE.md)).';
 
     public function schema(JsonSchema $schema): array
     {
@@ -35,6 +35,9 @@ class DecisionsSearchTool extends Tool
                 ->max(20)
                 ->default(5)
                 ->description('Quantos resultados retornar (default 5, max 20)'),
+            'include_archived' => $schema->boolean()
+                ->default(false)
+                ->description('Se true, inclui ADRs superseded/deprecated/sunsetting na busca. Default false (só accepted + accepted-historical).'),
         ];
     }
 
@@ -43,6 +46,7 @@ class DecisionsSearchTool extends Tool
         $query = (string) $request->get('query', '');
         $limit = (int) $request->get('limit', 5);
         $limit = max(1, min(20, $limit));
+        $includeArchived = (bool) $request->get('include_archived', false);
 
         if (trim($query) === '') {
             return Response::error('Parâmetro "query" obrigatório.');
@@ -51,9 +55,10 @@ class DecisionsSearchTool extends Tool
         $user = $request->user();
         $businessId = (int) data_get($user, 'business_id', 0);
 
-        // Filtra por empresa (multi-tenant MEM-MULTI-1) + permissão Spatie
+        // Filtra por empresa (multi-tenant MEM-MULTI-1) + permissão Spatie + status lifecycle
         $q = McpMemoryDocument::doTipo('adr')
             ->acessiveisPara($user)
+            ->porStatusAtivo($includeArchived)
             ->buscarTexto($query);
 
         if ($businessId > 0) {
@@ -63,10 +68,17 @@ class DecisionsSearchTool extends Tool
         $rows = $q->limit($limit)->get(['slug', 'title', 'content_md', 'metadata']);
 
         if ($rows->isEmpty()) {
-            return Response::text("Nenhum ADR encontrado pra query: \"$query\".");
+            $hint = $includeArchived
+                ? ''
+                : "\n\n💡 Dica: tente `include_archived: true` se procura ADR superseded/deprecated.";
+            return Response::text("Nenhum ADR encontrado pra query: \"$query\".$hint");
         }
 
-        $output = "Encontrados " . $rows->count() . " ADR(s) pra \"$query\":\n\n";
+        $scopeNote = $includeArchived
+            ? '(incluindo superseded/deprecated)'
+            : '(só ativas — aceito/accepted/accepted-historical)';
+
+        $output = "Encontrados " . $rows->count() . " ADR(s) pra \"$query\" $scopeNote:\n\n";
         foreach ($rows as $doc) {
             $snippet = $this->extrairSnippet($doc->content_md, $query, 200);
             $output .= "## " . $doc->slug . "\n";

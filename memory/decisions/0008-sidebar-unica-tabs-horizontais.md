@@ -3,20 +3,19 @@ slug: 0008-sidebar-unica-tabs-horizontais
 number: 8
 title: !!binary gJQgU2lkZWJhciBjb20gMSBpdGVtICsgbWVudSBob3Jpem9udGFsIGVtIGFiYXMgZGVudHJvIGRvIG3Ds2R1bG8=
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by:
   - W
 decided_at: '2026-04-18'
 quarter: 2026-Q2
 tags: {  }
-supersedes:
+supersedes: []
+superseded_by:
   - '0039'
   - 0039-ui-chat-cockpit-padrao
-  - '0008'
-  - 0008-cockpit-layout-mae-do-erp
-  - '2026-04-27'
+triage_2026_05_06_note: Frontmatter corrigido — campo supersedes estava errado (continha 0039, mas 0039 é quem supersede 0008). Triagem cruzada com _INDEX-LIFECYCLE.md.
 related:
   - '0039'
 pii: false
