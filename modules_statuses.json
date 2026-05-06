@@ -12,6 +12,7 @@
     "Essentials": true,
     "FieldForce": true,
     "Financeiro": true,
+    "Governance": false,
     "Grow": false,
     "Hms": true,
     "IProduction": false,
@@ -31,6 +32,5 @@
     "Spreadsheet": true,
     "Superadmin": true,
     "TeamMcp": true,
-    "Woocommerce": true,
-    "Writebot": false
+    "Woocommerce": true
 }
