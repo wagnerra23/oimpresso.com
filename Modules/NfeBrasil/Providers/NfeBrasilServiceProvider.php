@@ -3,7 +3,10 @@
 namespace Modules\NfeBrasil\Providers;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\NfeBrasil\Listeners\EmitirNFeAoReceberPagamento;
+use Modules\RecurringBilling\Events\InvoicePaid;
 
 class NfeBrasilServiceProvider extends ServiceProvider
 {
@@ -22,6 +25,10 @@ class NfeBrasilServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        // US-RB-044: listener registra ponto de integração com cobrança recorrente.
+        // Emissão real desabilitada até NfeService existir (config flag default false).
+        Event::listen(InvoicePaid::class, EmitirNFeAoReceberPagamento::class);
     }
 
     /**
