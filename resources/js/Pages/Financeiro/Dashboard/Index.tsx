@@ -75,16 +75,31 @@ interface Filters {
   busca: string;
 }
 
+interface ContaBancaria {
+  id: number;
+  nome: string;
+  banco_nome: string;
+  banco_codigo: string;
+  tipo_conta: 'corrente' | 'poupanca' | 'virtual_pj';
+  ativo_para_boleto: boolean;
+  saldo_cached: number | null;
+  saldo_formatado: string | null;
+  saldo_atualizado_em: string | null;
+  numero_conta: string | null;
+}
+
 interface Props {
   kpis: Kpis;
   titulos: PaginatedTitulos;
   filters: Filters;
+  contas: ContaBancaria[];
+  saldo_total: number;
 }
 
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v ?? 0);
 
-function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
+function FinanceiroDashboard({ kpis, titulos, filters, contas, saldo_total }: Props) {
   const [busca, setBusca] = useState(filters.busca ?? '');
 
   // Inertia paginator pode vir achatado (current_page direto) ou em meta
@@ -180,6 +195,65 @@ function FinanceiroDashboard({ kpis, titulos, filters }: Props) {
           selected={filters.tipo === 'pagar' && filters.status === 'quitado'}
         />
       </KpiGrid>
+
+      {/* Saldo em bancos */}
+      {contas.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Saldo em bancos
+            </h2>
+            {saldo_total > 0 && (
+              <span className="text-sm font-medium text-foreground">
+                Total: {brl(saldo_total)}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {contas.map((c) => (
+              <Card key={c.id} className="relative overflow-hidden">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-muted-foreground truncate">{c.banco_nome}</p>
+                      <p className="text-sm font-semibold truncate mt-0.5">{c.nome}</p>
+                      {c.numero_conta && (
+                        <p className="text-xs text-muted-foreground mt-0.5">Conta {c.numero_conta}</p>
+                      )}
+                    </div>
+                    <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                      c.tipo_conta === 'virtual_pj'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                    }`}>
+                      {c.tipo_conta === 'virtual_pj' ? 'Virtual PJ' : 'Corrente'}
+                    </span>
+                  </div>
+                  <div className="mt-3">
+                    {c.saldo_formatado ? (
+                      <p className="text-xl font-bold text-foreground">{c.saldo_formatado}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">Saldo não sincronizado</p>
+                    )}
+                    {c.saldo_atualizado_em && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        Atualizado {c.saldo_atualizado_em}
+                      </p>
+                    )}
+                  </div>
+                  {c.ativo_para_boleto && (
+                    <div className="absolute top-2 right-2">
+                      <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-1 py-0.5 rounded font-medium">
+                        Boleto ativo
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filtros */}
       <Card className="mt-6 mb-4">
