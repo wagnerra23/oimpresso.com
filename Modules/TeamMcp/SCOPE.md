@@ -6,13 +6,12 @@ contains:
   - "CcSessionsController — Claude Code sessions ingest"
   - "TasksAdminController — admin Jira-style (mcp_tasks, mcp_cycles, mcp_jira_projects)"
   - "DataController + InstallController (boilerplate)"
-  # A migrar de Modules/Copiloto Fase 3.7:
-  - "Mcp/CcIngestController — ingest Claude Code sessions"
-  - "Mcp/HealthController — health check do MCP server"
-  - "Mcp/SyncMemoryWebhookController — webhook git → mcp_memory_documents"
-  # A migrar de Modules/ADS Fase 3.7:
-  - "ToolsController — MCP tools registry UI"
-  - "TeamScopesController — RBAC scopes per actor"
+  # Absorvidos em Fase 3.7 PR-1 (2026-05-06):
+  - "Mcp/CcIngestController — ingest Claude Code sessions; URL /api/cc/ingest mantida"
+  - "Mcp/HealthController — health check do MCP server; URL /api/mcp/health mantida"
+  - "Mcp/SyncMemoryWebhookController — webhook git → mcp_memory_documents; URL /api/mcp/sync-memory mantida"
+  - "Admin/ToolsController — MCP tools registry UI; URL /ads/admin/tools mantida"
+  - "Admin/TeamScopesController — RBAC scopes per actor; URL /ads/admin/team-scopes mantida"
   # Fase 4 (NOVA, ADR 0081):
   - "ActorsController (NOVO) — Identity Mesh: CRUD de mcp_actors com manifest YAML"
 not_contains:
@@ -49,27 +48,10 @@ db_tables_owned:
   - mcp_components / mcp_views
   - mcp_quotas
   - mcp_workflows
-drift_alerts:
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/Copiloto/Http/Controllers/Mcp/CcIngestController.php"
-    motivo: "Ingest de Claude Code sessions é admin do MCP server"
-    eta_migracao: "Fase 3.7"
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/Copiloto/Http/Controllers/Mcp/HealthController.php"
-    motivo: "Health check do MCP server pertence ao admin do MCP"
-    eta_migracao: "Fase 3.7"
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/Copiloto/Http/Controllers/Mcp/SyncMemoryWebhookController.php"
-    motivo: "Webhook sync git→DB é função do MCP server admin"
-    eta_migracao: "Fase 3.7"
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/ADS/Http/Controllers/Admin/ToolsController.php"
-    motivo: "MCP tools registry pertence ao TeamMcp"
-    eta_migracao: "Fase 3.7"
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/ADS/Http/Controllers/Admin/TeamScopesController.php"
-    motivo: "RBAC scopes do MCP server pertence ao TeamMcp"
-    eta_migracao: "Fase 3.7"
+drift_alerts: []
+  # Fase 3.7 PR-1 (2026-05-06): 5 controllers absorvidos do Copiloto/ADS.
+  # 3 do Copiloto/Mcp/* + 2 do ADS/Admin/.
+  # URLs mantidas — só namespace mudou.
 ---
 
 # Modules/TeamMcp — Admin do MCP server
@@ -104,10 +86,11 @@ Inclui:
 - ❌ Browse de ADRs/sessions → Modules/KB
 - ❌ Policies runtime → Modules/Governance (Fase 5)
 
-## Drift atual
+## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
 
-5 controllers a migrar (3 de Copiloto, 2 de ADS). Ver `drift_alerts[]`.
+5 controllers absorvidos: 3 de Copiloto (Mcp/CcIngest, Mcp/Health, Mcp/SyncMemoryWebhook) + 2 de ADS (Admin/Tools, Admin/TeamScopes).
 
 ---
 
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. 5 controllers pendentes de migração + ActorsController planejado pra Fase 4.
+- **v1.1.0** (2026-05-06) — Fase 3.7 PR-1: 5 controllers absorvidos. drift_alerts vazio.
