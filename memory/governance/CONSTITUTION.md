@@ -4,12 +4,18 @@ title: "Constituição do Oimpresso ERP"
 type: constitution
 authority: supreme
 lifecycle: ativo
-version: 1.0.0
+version: 1.1.0
 ratified_by: [W]
 ratified_at: 2026-05-05
 charter_adr: 0079
-last_amendment: null
-amendments: []
+last_amendment: 2026-05-05
+amendments:
+  - version: 1.1.0
+    at: 2026-05-05
+    by: [W]
+    type: minor
+    description: "Adicionada §10.4 — Cascade Review obrigatória. Toda mudança em camada superior exige auditoria documentada das camadas abaixo."
+    adr: 0079
 related:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0061-conhecimento-canonico-git-mcp-zero-automem
@@ -311,6 +317,39 @@ revoked_at: null | <timestamp>
 
 **Quem viola = como.** Editar Constituição inline sem ADR. Bypass do version bump. Mudança que altera comportamento sem aviso.
 
+### §10.4 — Cascade Review (Auditoria em cascata) — adicionada em v1.1.0
+
+**Princípio adicional.** Quando uma camada N é modificada, **todas as camadas abaixo (N+1, N+2, ..., L7) devem ser auditadas e potencialmente atualizadas** para garantir que ainda satisfazem a nova versão da camada superior.
+
+**Mapa de cascata:**
+
+| Mudança em | Cascata obrigatória |
+|---|---|
+| **L1 Constitution** | audit em L2 SRS + L3 Trust Tiers + L4 Identity Mesh + L5 Module Charter + L6 Policies + L7 Audit |
+| **L2 SRS** (entry append-only) | audit em L3-L7 + Skills que referenciam o slug SRS |
+| **L3 Trust Tiers** | audit em L4 (manifests precisam mapear pros novos tiers) + L5 (SCOPE.md `trust_required` revisado) + L6 |
+| **L4 Identity Mesh** | audit em actors existentes (manifests ainda válidos?) + L6 (policies referenciando actors) |
+| **L5 Module Charter** | audit em controllers do módulo (ainda dentro do scope?) + L6 |
+| **L6 Policy Gating** | audit em policies ativas (ainda satisfazem a regra modificada?) |
+| **L7 Audit** | sem cascata abaixo (é o nível folha) |
+
+**Implementação obrigatória.**
+- Toda ADR que modifique camada N deve incluir seção **"Cascade Review"** documentando:
+  - Quais camadas abaixo foram auditadas
+  - Quais artefatos precisaram de update (e onde foi feito)
+  - Quais artefatos passaram intactos (e por quê)
+  - Quais ADRs derivadas são necessárias para fechar gaps
+- Audit report fica em `memory/governance/audit-YYYY-MM-DD-vX.Y.md` referenciado da ADR de mudança.
+- Sem audit report documentado, o amendment **não é considerado ratificado** — fica em status `proposto-pendente-audit` até completar.
+
+**Verificação.**
+- Pre-merge gate (CI): PR mexendo em `memory/governance/CONSTITUTION.md` ou `memory/governance/srs/*` requer arquivo `memory/governance/audit-*.md` no mesmo PR.
+- Quarterly review constitucional checa se cascade reviews foram completos.
+
+**Por que.** Sem cascata explícita, mudanças em camadas altas viram "letra morta" — a regra muda mas a prática nas camadas abaixo continua refletindo a regra antiga. Defesa em profundidade só funciona se camadas estão alinhadas. Cascade review é o mecanismo de alinhamento.
+
+**Quem viola = como.** Amendment em Constituição sem audit report. SRS atualizado sem revisar Skills que referenciam o slug. Trust Tier mudado sem auditar manifests existentes.
+
 ---
 
 ## Aplicação prática — fluxo de uma ação genérica
@@ -365,6 +404,7 @@ Ação executada (ou bloqueada com motivo registrado)
 
 ## Histórico de versões
 
+- **v1.1.0** (2026-05-05) — Adicionada §10.4 Cascade Review. Wagner ratificou; audit cascata aplicada e documentada em `memory/governance/audit-2026-05-05-v1.1.md`.
 - **v1.0.0** (2026-05-05) — Ratificação inicial. 10 artigos. Wagner ratificou via ADR 0079.
 
 ---
