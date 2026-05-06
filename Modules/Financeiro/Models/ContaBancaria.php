@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
+use Modules\RecurringBilling\Models\BoletoCredential;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -36,11 +37,14 @@ class ContaBancaria extends Model
         'beneficiario_cidade', 'beneficiario_uf', 'beneficiario_cep',
         'certificado_path', 'certificado_password_encrypted',
         'ativo_para_boleto', 'metadata',
+        'rb_gateway_credential_id', 'saldo_cached', 'saldo_atualizado_em', 'tipo_conta',
     ];
 
     protected $casts = [
-        'ativo_para_boleto' => 'boolean',
-        'metadata' => 'array',
+        'ativo_para_boleto'   => 'boolean',
+        'metadata'            => 'array',
+        'saldo_cached'        => 'float',
+        'saldo_atualizado_em' => 'datetime',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -68,6 +72,34 @@ class ContaBancaria extends Model
     public function boletoRemessas(): HasMany
     {
         return $this->hasMany(BoletoRemessa::class, 'conta_bancaria_id');
+    }
+
+    public function gatewayCredential(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(BoletoCredential::class, 'rb_gateway_credential_id');
+    }
+
+    public function getBancoNomeAttribute(): string
+    {
+        return match ($this->banco_codigo) {
+            '077'  => 'Banco Inter',
+            '336'  => 'C6 Bank',
+            '274'  => 'Asaas',
+            '001'  => 'Banco do Brasil',
+            '033'  => 'Santander',
+            '104'  => 'Caixa Econômica',
+            '341'  => 'Itaú',
+            '237'  => 'Bradesco',
+            default => 'Banco ' . $this->banco_codigo,
+        };
+    }
+
+    public function getSaldoFormatadoAttribute(): ?string
+    {
+        if ($this->saldo_cached === null) {
+            return null;
+        }
+        return 'R$ ' . number_format($this->saldo_cached, 2, ',', '.');
     }
 
     /**

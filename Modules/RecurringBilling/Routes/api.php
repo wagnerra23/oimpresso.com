@@ -17,3 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum'])->prefix('v1')->name('api.')->group(function () {
     Route::get('recurringbilling', fn (Request $request) => $request->user())->name('recurringbilling');
 });
+
+// Webhook Asaas — sem auth (chamado pelo Asaas externamente)
+Route::post(
+    'webhooks/asaas/{businessId}',
+    [\Modules\RecurringBilling\Http\Controllers\AsaasWebhookController::class, 'handle']
+)->name('webhooks.asaas');
