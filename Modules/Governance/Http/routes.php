@@ -41,9 +41,9 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'C
         Route::get('/drift', [DriftAlertsController::class, 'index'])
             ->name('drift.index');
 
-        // Install hooks (ADR 0024)
-        Route::get('install/install',   [InstallController::class, 'install'])
-            ->name('install.install');
+        // Install hooks (ADR 0024 — pattern padronizado BaseModuleInstallController)
+        Route::get('install',           [InstallController::class, 'index'])
+            ->name('install.index');
         Route::get('install/uninstall', [InstallController::class, 'uninstall'])
             ->name('install.uninstall');
         Route::get('install/update',    [InstallController::class, 'update'])
