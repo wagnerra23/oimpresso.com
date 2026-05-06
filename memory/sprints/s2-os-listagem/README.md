@@ -47,7 +47,7 @@ Esta é a **prova do padrão MWART** (Module Web App React Transition). Se funci
 ## Dependências
 
 - ✅ Sprint 1 mergeada (commit `dd1d8a4e`, dossier em `memory/sprints/s1-daily-brief/`)
-- ⚠️ Tool MCP `brief-fetch` — referenciada no checklist; **verificar se foi de fato implementada** (Sprint 1 entregou só o dossier; o tool em si precisa ser checado em `mcp.oimpresso.com`)
+- ✅ Tool MCP `brief-fetch` deployed em `mcp.oimpresso.com` (commit `c4fc2680`, PR #109) + skill `brief-first` Tier A always-on ([ADR 0091](../../decisions/0091-daily-brief.md))
 - ✅ `AppShellV2.tsx` em `resources/js/Layouts/` (canônico, ver DESIGN.md)
 - ✅ Sidebar via `DataController.modifyAdminMenu` + `SIDEBAR_GROUPS` (skill `sidebar-menu-arch`)
 - ✅ Inertia v3 + React 19 + Tailwind 4
