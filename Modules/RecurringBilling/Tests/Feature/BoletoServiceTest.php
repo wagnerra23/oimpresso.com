@@ -11,6 +11,15 @@ use Modules\RecurringBilling\Services\Boleto\Drivers\InterDriver;
 
 uses(Tests\TestCase::class, \Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+beforeEach(function () {
+    // Migrations legadas UltimatePOS usam sintaxe MySQL-only
+    // (ALTER TABLE ... MODIFY COLUMN ENUM(...)) que SQLite rejeita.
+    // Esses testes precisam DB real — pular em CI/sandbox SQLite.
+    if (\Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('Requer MySQL — migrations UltimatePOS não SQLite-compatíveis. Rodar local com APP_ENV=testing-mysql.');
+    }
+});
+
 /**
  * US-RB-040 · Cobertura Pest dos 3 drivers (BoletoService).
  *

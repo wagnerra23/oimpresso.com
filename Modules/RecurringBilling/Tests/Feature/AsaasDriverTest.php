@@ -23,27 +23,30 @@ beforeEach(function () {
     $this->driver = new AsaasDriver($this->config);
 });
 
-it('usa baseUrl sandbox quando ambiente=sandbox', function () {
-    Http::fake([
-        'sandbox.asaas.com/*' => Http::response(['data' => []], 200),
-    ]);
-
-    Http::fake([
-        'sandbox.asaas.com/api/v3/customers' => Http::sequence()
-            ->push(['data' => []], 200)                       // GET busca
-            ->push(['id' => 'cus_123'], 200),                  // POST cria
-        'sandbox.asaas.com/api/v3/payments' => Http::response([
-            'id'             => 'pay_abc',
-            'bankSlipUrl'    => 'https://sandbox.asaas.com/b/pdf/abc',
-        ], 200),
-        'sandbox.asaas.com/api/v3/payments/pay_abc/identificationField' => Http::response([
-            'identificationField' => '23793.39001 60000.000005 90000.000004 1 99800001234567',
-            'barCode'             => '23791998000012345670003900060000909000000400',
-        ], 200),
-        'sandbox.asaas.com/api/v3/payments/pay_abc/pixQrCode' => Http::response([
-            'payload' => '00020126580014BR.GOV.BCB.PIX...',
-        ], 200),
-    ]);
+it('usa baseUrl sandbox e emite boleto com customer novo', function () {
+    Http::fake(function (\Illuminate\Http\Client\Request $request) {
+        $url = $request->url();
+        $method = $request->method();
+        return match (true) {
+            str_contains($url, '/customers') && $method === 'GET'
+                => Http::response(['data' => []], 200), // não acha
+            str_contains($url, '/customers') && $method === 'POST'
+                => Http::response(['id' => 'cus_123', 'name' => 'João Silva'], 200),
+            str_ends_with($url, '/payments') && $method === 'POST'
+                => Http::response([
+                    'id'          => 'pay_abc',
+                    'bankSlipUrl' => 'https://sandbox.asaas.com/b/pdf/abc',
+                ], 200),
+            str_ends_with($url, '/payments/pay_abc/identificationField')
+                => Http::response([
+                    'identificationField' => '23793.39001 60000.000005 90000.000004 1 99800001234567',
+                    'barCode'             => '23791998000012345670003900060000909000000400',
+                ], 200),
+            str_ends_with($url, '/payments/pay_abc/pixQrCode')
+                => Http::response(['payload' => '00020126580014BR.GOV.BCB.PIX...'], 200),
+            default => Http::response([], 404),
+        };
+    });
 
     $result = $this->driver->emitir([
         'valor'             => 150.00,
