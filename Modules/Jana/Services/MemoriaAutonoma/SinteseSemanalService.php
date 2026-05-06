@@ -206,11 +206,11 @@ class SinteseSemanalService
 
     protected function registrarMetrica(string $semana, int $duracaoMs, int $inputChars, int $outputChars): void
     {
-        if (! \Schema::hasTable('copiloto_memoria_metricas')) {
+        if (! \Schema::hasTable('jana_memoria_metricas')) {
             return; // skip se tabela não existe (ex.: testes sem migration)
         }
         try {
-            DB::table('copiloto_memoria_metricas')->insert([
+            DB::table('jana_memoria_metricas')->insert([
                 'business_id' => 0, // sintese é cross-business (escopo plataforma)
                 'metric_date' => now()->toDateString(),
                 'metric_name' => 'sintese_semanal_total',

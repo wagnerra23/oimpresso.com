@@ -52,7 +52,7 @@ class CacheStatsCommand extends Command
 
         // Top reutilizadas
         $topN = (int) $this->option('top');
-        $q = DB::table('copiloto_cache_semantico')->where('hits', '>', 0);
+        $q = DB::table('jana_cache_semantico')->where('hits', '>', 0);
         if ($bizId !== null) $q->where('business_id', $bizId);
         $top = $q->orderByDesc('hits')
             ->limit($topN)
@@ -80,11 +80,11 @@ class CacheStatsCommand extends Command
         $this->table(['ID', 'Biz', 'Query', 'Hits', 'Tokens orig.', 'R$ economizado'], $rows);
 
         // Distribuição por TTL
-        $expiraEm1h = (int) DB::table('copiloto_cache_semantico')
+        $expiraEm1h = (int) DB::table('jana_cache_semantico')
             ->where('expira_em', '<', now()->addHour())->count();
-        $valid = (int) DB::table('copiloto_cache_semantico')
+        $valid = (int) DB::table('jana_cache_semantico')
             ->where('expira_em', '>=', now())->count();
-        $expirado = (int) DB::table('copiloto_cache_semantico')
+        $expirado = (int) DB::table('jana_cache_semantico')
             ->where('expira_em', '<', now())->count();
 
         $this->info('=== Estado do TTL ===');

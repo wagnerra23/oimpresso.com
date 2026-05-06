@@ -9,7 +9,7 @@ use Modules\Jana\Jobs\ExtrairFatosDaConversaJob;
 
 /**
  * MEM-EVAL-2 — Backfill de fatos: re-roda ExtrairFatosDaConversaJob em
- * conversas históricas pra popular `copiloto_memoria_facts` agora que o
+ * conversas históricas pra popular `jana_memoria_facts` agora que o
  * threshold foi relaxado (5 → 3).
  *
  * Uso:
@@ -48,7 +48,7 @@ class BackfillFatosCommand extends Command
             $sync ? 'sync' : 'queue',
         ));
 
-        $factsAntes = (int) DB::table('copiloto_memoria_facts')->count();
+        $factsAntes = (int) DB::table('jana_memoria_facts')->count();
 
         $disparados = 0;
         foreach ($conversas as $conv) {
@@ -76,7 +76,7 @@ class BackfillFatosCommand extends Command
         $this->info("Backfill: {$disparados} jobs " . ($sync ? 'executados' : 'dispatchados'));
 
         if ($sync) {
-            $factsDepois = (int) DB::table('copiloto_memoria_facts')->count();
+            $factsDepois = (int) DB::table('jana_memoria_facts')->count();
             $this->info("Facts: {$factsAntes} → {$factsDepois} (+{$this->getDiff($factsAntes, $factsDepois)})");
         }
 

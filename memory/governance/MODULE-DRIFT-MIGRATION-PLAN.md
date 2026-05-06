@@ -4,7 +4,7 @@ title: "Plano consolidado de migração de drift entre módulos"
 type: governance-spec
 authority: canonical
 lifecycle: ativo
-version: 1.2.0
+version: 1.3.0
 maintained_by: wagner
 last_updated: 2026-05-06
 charter_adr: 0080
@@ -99,7 +99,9 @@ Após drift resolvido, mesmo PR (ou PR seguinte) faz renames:
 | `Modules/PontoWr2/` | `Modules/Ponto/` | `/ponto-wr2/*` → `/ponto/*` (301) |
 | `Modules/MemCofre/` | `Modules/SRS/` | `/memcofre/*` → `/srs/*` (301) |
 
-Tabelas DB **mantém prefixo legacy** (copiloto_*, ponto_*, docs_*). Rename só de namespace + URLs + permission slugs.
+**Erratum §4 v1.2 (2026-05-06):** Renames executados em PR-2 do PR #97 foram **PHP-only** (pasta + namespace + ServiceProvider class + module.json + composer.json). URLs, permissions, config keys, env vars, log channel, Pages React, lang namespace e route names **mantidos legacy `copiloto.*`/`pontowr2.*`/`memcofre.*`** por blast radius alto (5993 clientes ROTA LIVRE + watchers + webhook + 30 Inertia::render). Cada dimensão da fachada vira PR-3..8 isolado quando Wagner decidir mover. Ver [ADR 0088](../decisions/0088-module-rename-php-only.md).
+
+**Erratum §4 v1.3 (2026-05-06) — PR-9 executado:** Tabelas DB Jana **renomeadas** `copiloto_*` → `jana_*` (13 tabelas) com views legacy 30d. Classe Eloquent `CopilotoMemoriaFato` → `MemoriaFato`. Tabelas Ponto/SRS continuam legacy (não estavam no escopo). Ver [ADR 0090](../decisions/0090-tabela-rename-copiloto-para-jana.md). Restam PR-3..8 (URLs/permissions/Pages/config/log/lang) — opt-in evolution.
 
 ---
 

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MetaApuracao extends Model
 {
-    protected $table = 'copiloto_meta_apuracoes';
+    protected $table = 'jana_meta_apuracoes';
 
     protected $fillable = [
         'meta_id', 'data_ref', 'valor_realizado', 'calculado_em', 'fonte_query_hash',

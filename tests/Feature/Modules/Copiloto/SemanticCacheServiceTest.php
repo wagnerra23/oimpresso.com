@@ -25,7 +25,7 @@ use Modules\Jana\Services\Cache\SemanticCacheService;
  */
 
 beforeEach(function () {
-    Schema::create('copiloto_cache_semantico', function (Blueprint $t) {
+    Schema::create('jana_cache_semantico', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->char('cache_key', 64)->unique();
         $t->unsignedInteger('business_id')->nullable();
@@ -46,7 +46,7 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('copiloto_cache_semantico');
+    Schema::dropIfExists('jana_cache_semantico');
 });
 
 function semCacheConv(int $bizId = 4, int $userId = 12): Conversa

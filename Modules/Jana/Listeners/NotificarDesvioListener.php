@@ -14,7 +14,7 @@ class NotificarDesvioListener implements ShouldQueue
 {
     public function handle(CopilotoDesvioDetectado $event): void
     {
-        $row = DB::table('copiloto_metas')
+        $row = DB::table('jana_metas')
             ->where('id', $event->meta_id)
             ->select('criada_por_user_id', 'business_id')
             ->first();

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MemoriaGabarito extends Model
 {
-    protected $table = 'copiloto_memoria_gabarito';
+    protected $table = 'jana_memoria_gabarito';
 
     protected $fillable = [
         'business_id', 'categoria', 'subcategoria',

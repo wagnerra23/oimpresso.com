@@ -113,21 +113,21 @@ it('Interface MemoriaContrato exige 5 métodos canônicos', function () {
     expect($methods)->toContain('lembrar', 'buscar', 'atualizar', 'esquecer', 'listar');
 });
 
-it('CopilotoMemoriaFato model usa Searchable e SoftDeletes', function () {
-    $model = new \Modules\Jana\Entities\CopilotoMemoriaFato();
+it('MemoriaFato model usa Searchable e SoftDeletes', function () {
+    $model = new \Modules\Jana\Entities\MemoriaFato();
     $traits = class_uses_recursive($model);
 
     expect($traits)->toContain(\Laravel\Scout\Searchable::class);
     expect($traits)->toContain(\Illuminate\Database\Eloquent\SoftDeletes::class);
 });
 
-it('CopilotoMemoriaFato shouldBeSearchable só pra ativos não deletados', function () {
-    $ativo = new \Modules\Jana\Entities\CopilotoMemoriaFato([
+it('MemoriaFato shouldBeSearchable só pra ativos não deletados', function () {
+    $ativo = new \Modules\Jana\Entities\MemoriaFato([
         'business_id' => 4, 'user_id' => 12, 'fato' => 'x',
     ]);
     expect($ativo->shouldBeSearchable())->toBeTrue();
 
-    $superseded = new \Modules\Jana\Entities\CopilotoMemoriaFato([
+    $superseded = new \Modules\Jana\Entities\MemoriaFato([
         'business_id' => 4, 'user_id' => 12, 'fato' => 'x',
     ]);
     $superseded->valid_until = now();
