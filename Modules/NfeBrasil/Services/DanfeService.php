@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Services;
 
 use Closure;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use NFePHP\DA\NFe\Danfe;
@@ -39,6 +41,11 @@ class DanfeService
     /**
      * Renderiza DANFE a partir do XML autorizado e retorna bytes do PDF.
      *
+     * Logo do business (`business.logo`) é resolvido automaticamente quando
+     * o arquivo existe em `storage/app/business_logos/{filename}` (convenção
+     * UPos via `BusinessUtil::uploadFile`). Se ausente ou ilegível, fallback
+     * silencioso pra DANFE sem logo (default sped-da).
+     *
      * @throws RuntimeException Se XML ausente em storage ou render falhar
      */
     public function renderizar(NfeEmissao $emissao): string
@@ -61,7 +68,54 @@ class DanfeService
             ? ($this->danfeFactory)($xml)
             : new Danfe($xml);
 
-        return $danfe->render();
+        $logo = $this->resolverLogoPath((int) $emissao->business_id);
+
+        return $danfe->render($logo ?? '');
+    }
+
+    /**
+     * Resolve caminho absoluto do logo do business pra passar pro Danfe::render.
+     *
+     * Convenção UPos: `business.logo` armazena só o filename; arquivo físico
+     * em `storage/app/business_logos/{filename}` (Storage default disk via
+     * `BusinessUtil::uploadFile($request, 'business_logo', 'business_logos', 'image')`).
+     *
+     * Defensivo:
+     *   - tabela `business` ausente em testes isolados → null
+     *   - business sem coluna logo / null / vazio → null
+     *   - filename setado mas arquivo físico ausente → null + log warning
+     *
+     * Retorna path absoluto OK, ou null pra fallback no caller.
+     */
+    private function resolverLogoPath(int $businessId): ?string
+    {
+        if (! Schema::hasTable('business')) {
+            return null;
+        }
+
+        try {
+            $logoFilename = DB::table('business')->where('id', $businessId)->value('logo');
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (empty($logoFilename)) {
+            return null;
+        }
+
+        // Storage::path('business_logos/{file}') retorna caminho absoluto
+        $absPath = Storage::disk(config('filesystems.default'))->path('business_logos/' . $logoFilename);
+
+        if (! is_file($absPath)) {
+            Log::info('DanfeService: business tem logo cadastrado mas arquivo não existe — DANFE sem logo', [
+                'business_id'   => $businessId,
+                'logo_filename' => $logoFilename,
+                'expected_path' => $absPath,
+            ]);
+            return null;
+        }
+
+        return $absPath;
     }
 
     /**
