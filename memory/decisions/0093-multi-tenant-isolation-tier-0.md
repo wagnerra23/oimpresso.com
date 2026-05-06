@@ -1,23 +1,32 @@
 ---
-adr_id: 0093
+slug: 0093-multi-tenant-isolation-tier-0
+number: 93
 title: Multi-tenant isolation by default — Tier 0, IRREVOGÁVEL
-status: draft  # → accepted após Wagner revisar dentro do S3
+type: adr
+status: aceito
+authority: [Wagner]
+lifecycle: active
+quarter: Q2-2026
+decided_at: 2026-05-06
+decided_by: [Wagner, Claude]
 tier: CANON
 trust_level: tier-0-irrevogavel
 last_reviewed: 2026-05-06
 review_due: 2027-05-06
-related_adrs: [0053, 0057, 0059, 0066, 0070, 0072, 0073, 0074, 0076, 0078, 0084, 0089]
+related_adrs: [0006, 0053, 0057, 0059, 0066, 0070, 0072, 0073, 0074, 0076, 0078, 0084, 0089]
 parent_charter: mission.constituicao-v2  # criada em S3
 supersedes: []
 referenced_by: []
 authors: [wagner, sonnet]
 draft_origin: ROTEIRO-MESTRE.md §12 (rascunho 2026-05-06)
+accepted_at: 2026-05-06
+accepted_by: wagner
 ---
 
 # ADR 0093 — Multi-tenant isolation by default (Tier 0, IRREVOGÁVEL)
 
-> **Status:** 📝 RASCUNHO — Sonnet escreveu pré-S3 a pedido do Wagner. Wagner revisa
-> e marca `status: accepted` quando aprovado. **Não está vigente até accepted.**
+> **Status:** ✅ ACEITO em 2026-05-06 por Wagner ("ok aprovado comece").
+> Vigente. Toda nova ADR que toca dados de negócio deve referenciar esta.
 
 ---
 
