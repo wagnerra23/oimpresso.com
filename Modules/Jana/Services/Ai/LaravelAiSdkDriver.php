@@ -146,10 +146,13 @@ class LaravelAiSdkDriver implements AiAdapter
         $tokensOut = 0;
         $textoCompleto = '';
 
+        // COPI-43 (LGPD): redacta PII BR antes de enviar pro LLM externo (vide responderChat).
+        $mensagemPraLlm = $this->mascararDocumentos($mensagem);
+
         try {
             // laravel/ai Agent::stream() — retorna StreamableAgentResponse iterável.
             // Cada $event é um StreamEvent: TextDelta (delta), StreamEnd (usage), etc.
-            $stream = $agent->stream($mensagem);
+            $stream = $agent->stream($mensagemPraLlm);
 
             foreach ($stream as $event) {
                 if ($event instanceof \Laravel\Ai\Streaming\Events\TextDelta) {
@@ -265,8 +268,14 @@ class LaravelAiSdkDriver implements AiAdapter
         // MEM-OTEL-1 (ADR 0051) — clock pra medir gen_ai.response.duration_ms
         $startedAt = microtime(true);
 
+        // COPI-43 (LGPD): redacta PII BR antes de enviar pro LLM externo.
+        // Mensagem original já persistida em jana_mensagens pelo controller — NÃO afeta
+        // visualização do user no chat (que vê dado real). Recall memória usa $mensagem
+        // original (busca interna, não sai pra rede). Aqui apenas o que vai pra OpenAI.
+        $mensagemPraLlm = $this->mascararDocumentos($mensagem);
+
         try {
-            $response = $agent->prompt($mensagem);
+            $response = $agent->prompt($mensagemPraLlm);
             $texto = (string) $response;
 
             $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
