@@ -1,19 +1,22 @@
 ---
 slug: 0078-constituicao-uma-frase-skill-unidade-evolucao
 number: 0078
-title: "A constituição do oimpresso é uma frase. Skill é a unidade atômica de evolução."
+title: "Meta-skill ROI ERP autônomo — skill+missão como unidade operacional (parcialmente superseded por ADR 0079)"
 type: adr
-status: aceito
+status: superseded_partially
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-05
 module: ads
 quarter: 2026-Q2
-tags: [governance, constitution, skills, p0, foundation]
+tags: [governance, skills, meta-skill, p0]
 supersedes: []
 supersedes_partially: []
-superseded_by: []
+superseded_by:
+  - 0079-constituicao-oimpresso-7-camadas-governanca
+superseded_partially_by:
+  - 0079-constituicao-oimpresso-7-camadas-governanca
 related:
   - 0040-policy-publicacao-claude-supervisiona
   - 0061-conhecimento-canonico-git-mcp-zero-automem
@@ -27,7 +30,23 @@ review_triggers:
   - "Time crescer pra >10 pessoas → talvez SCOPE.md + ActionGate vire necessário"
 ---
 
-# ADR 0078 — A constituição do oimpresso é uma frase. Skill é a unidade atômica de evolução.
+# ADR 0078 — Meta-skill ROI ERP autônomo (parcialmente superseded por ADR 0079)
+
+> ⚠️ **NOTA DE REVISÃO 2026-05-05 (mesma sessão):** Esta ADR foi parcialmente superseded por [ADR 0079](0079-constituicao-oimpresso-7-camadas-governanca.md). A aposta de "constituição = 1 frase + skill recursiva como unidade" foi reavaliada por Wagner como insegura pra um sistema que precisa de compliance LGPD/Portaria/Fiscal + escalabilidade pra time + IAs externas. Constituição em 10 artigos sobre 7 camadas substituiu o framework conceitual.
+>
+> **O que sobrevive desta ADR:**
+> - Meta-skill `meta-skill-roi-erp-autonomo` continua válida e operacional como **L2 OPERATOR ferramenta** (scaffolder de skills).
+> - Comando `php artisan skill:scaffold` continua funcionando.
+> - A fórmula `Planejar→Executar→Analisar→Organizar` continua válida como template do ciclo de vida de qualquer unit.
+>
+> **O que NÃO sobrevive:**
+> - "Constituição é 1 frase" — agora a Constituição tem 10 artigos formais. A frase desta ADR vira **missão da meta-skill**, não constituição do sistema.
+> - "Governança emerge da unidade (skill+missão)" — agora governança desce em 7 camadas formalizadas.
+> - "Cada skill é mini-módulo carregando sua governança" — parte verdadeiro (skill carrega rules no contexto), parte insuficiente (precisa também ActionGate, Identity Mesh, SCOPE.md por módulo).
+
+---
+
+# ADR 0078 — Meta-skill ROI ERP autônomo (texto original abaixo)
 
 ## Contexto
 
