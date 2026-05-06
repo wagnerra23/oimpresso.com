@@ -186,6 +186,10 @@ Ou registrar via `postMigrationSteps()` do InstallController novo, que detecta `
 
 ⚠️ **`bootstrap/cache/<modulo>_module.php` legacy não some com `optimize:clear`.** Tem que mover/deletar manualmente. nWidart auto-regenera só pra pastas existentes. Ver §Pegadinha cache.
 
+⚠️ **`DataController::modifyAdminMenu()` chama `isModuleInstalled('NomeAntigo')` hardcoded.** Sintoma silencioso: menu do módulo SUMIU da sidebar pra superadmin (sem error visível). `Module::has('NomeAntigo')` retorna false após rename de pasta. Editar manualmente — skill `criar-modulo` agora avisa. Bug capturou Fase 3.7 PR-2 — Jana e Ponto sumiram da sidebar até audit.
+
+⚠️ **URLs hardcoded em `Menu::modify()` calls.** SRS tinha `$sub->url('/docs', ...)` apontando pra rota DocVault (3 renames atrás). `Module::find` ignora mas usuário clica e pega 404. Verificar todas string URLs em `modifyAdminMenu` após rename.
+
 ## Cascade Review §10.4 — checklist obrigatório
 
 Antes de fechar PR, audit cada camada:
@@ -213,6 +217,8 @@ Antes de fechar PR, audit cada camada:
 - [ ] **3 caches `bootstrap/cache/<modulo>_module.php` legacy movidos** (Pattern B)
 - [ ] **`InstallController.moduleName()` + `moduleSystemKey()` editados pra nome novo** (Pattern B)
 - [ ] **DB `system` table backfill `<new>_version`** (Pattern B — migration ou hot-fix SSH)
+- [ ] **`DataController::modifyAdminMenu()` `isModuleInstalled('NomeAntigo')` editado pra novo** (sidebar quebra silenciosa)
+- [ ] **URLs hardcoded em `Menu::modify` / `$sub->url(...)` revisadas** (não pode apontar pra rota legacy/inexistente)
 - [ ] ADR sub-decisão criada se desviou do plano
 - [ ] `php bin/check-scope.php`: 0 drift / 29 módulos
 - [ ] PR description tem checklist pós-merge: `composer dump-autoload` + smoke URLs + smoke /manage-modules (nenhum botão Instalar pra módulo renomeado já instalado)
