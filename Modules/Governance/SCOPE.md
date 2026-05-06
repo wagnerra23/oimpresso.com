@@ -3,12 +3,12 @@ module: Governance
 purpose: "Governança consolidada — ActionGate runtime, audit dashboard, ADRs pending approvals, policies CRUD, drift alerts. Constituição Art. 8 + Art. 9 operacional."
 contains:
   - "DashboardController — UI /governance painel consolidado (KPIs ADR pending + policies + audit + drift + actors + compliance score)"
+  - "PoliciesController — CRUD inline mcp_governance_rules (toggle enabled MVP; edit JSON futuro)"
+  - "AuditController — drill-down mcp_audit_log filtrável (período/actor/endpoint/status)"
+  - "DriftAlertsController — runtime scan SCOPE.md vs filesystem real + persisted alerts cron"
   - "InstallController — install/uninstall hooks (ADR 0024)"
   - "DataController — sidebar/permissions hooks (UltimatePOS pattern)"
   - "ActionGate middleware — runtime gate (modo warn|strict por config)"
-  - "(futuro) PoliciesController — CRUD inline mcp_governance_rules"
-  - "(futuro) AuditController — drill-down mcp_audit_log filtrável"
-  - "(futuro) DriftAlertsController — SCOPE.md drift detection UI"
 not_contains:
   - "Decision flow (Risk/Confidence/Policy Engine) → Modules/ADS"
   - "Skills governance → Modules/ADS"
