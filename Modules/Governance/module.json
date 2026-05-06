@@ -1,0 +1,16 @@
+{
+    "name": "Governance",
+    "alias": "governance",
+    "description": "Governança consolidada — ActionGate runtime, audit dashboard, ADRs pending approvals, policies CRUD, drift alerts. Constituição Art. 8 + Art. 9 operacional. Trust L1 (Wagner + ADR aprovado).",
+    "keywords": ["governance", "constitution", "actiongate", "policies", "audit", "trust-tiers", "compliance"],
+    "active": 0,
+    "order": 0,
+    "providers": [
+        "Modules\\Governance\\Providers\\GovernanceServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}
