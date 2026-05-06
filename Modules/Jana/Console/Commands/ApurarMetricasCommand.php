@@ -9,7 +9,7 @@ use Modules\Jana\Services\Metricas\MetricasApurador;
 /**
  * MEM-MET-2 (ADR 0050+0051) — Apura as 8 métricas obrigatórias + contadores
  * para 1 dia / 1 business (ou todos), gravando 1 linha em
- * `copiloto_memoria_metricas` via upsert idempotente.
+ * `jana_memoria_metricas` via upsert idempotente.
  *
  * Métricas RAGAS (Recall@3/Precision@3/MRR/faithfulness/answer_relevancy/
  * context_precision) ficam NULL até o golden set MEM-P2-1 existir e o
@@ -93,7 +93,7 @@ class ApurarMetricasCommand extends Command
 
         if ($opt === 'all') {
             // Plataforma + todos os businesses que têm pelo menos 1 mensagem
-            $bizComAtividade = DB::table('copiloto_conversas')
+            $bizComAtividade = DB::table('jana_conversas')
                 ->whereNotNull('business_id')
                 ->distinct()
                 ->pluck('business_id')

@@ -7,23 +7,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
 
 /**
- * CopilotoMemoriaFato — fato persistente sobre user/business pro Copiloto lembrar.
+ * MemoriaFato — fato persistente sobre user/business pra Jana lembrar.
  *
- * Tabela: copiloto_memoria_facts
+ * Tabela: jana_memoria_facts (rename ADR 0090; legado copiloto_memoria_facts via VIEW 30d)
  * Multi-tenant: business_id + user_id (US-COPI-MEM-005)
  * Temporal: valid_from / valid_until (futuro: US-COPI-MEM-009 — Mem0/Zep upgrade)
  * LGPD: SoftDeletes — esquecer() = soft delete
  *
  * Indexa em Meilisearch via Scout. toSearchableArray controla o que vai pro index.
  *
- * Ver ADRs 0031/0033/0036.
+ * Ver ADRs 0031/0033/0036/0090.
  */
-class CopilotoMemoriaFato extends Model
+class MemoriaFato extends Model
 {
     use Searchable;
     use SoftDeletes;
 
-    protected $table = 'copiloto_memoria_facts';
+    protected $table = 'jana_memoria_facts';
 
     protected $fillable = [
         'business_id',
@@ -42,14 +42,14 @@ class CopilotoMemoriaFato extends Model
 
     public function searchableAs(): string
     {
-        return 'copiloto_memoria_facts';
+        return 'jana_memoria_facts';
     }
 
     /**
      * Campos indexados em Meilisearch.
      * Embeddings são gerados pelo Meilisearch via embedder configurado no index
      * (provider: openAi, model: text-embedding-3-small) — ver config/scout.php
-     * + Modules/Copiloto/Database/seeders/MeilisearchIndexSetup.php (opcional).
+     * + Modules/Jana/Database/seeders/MeilisearchIndexSetup.php (opcional).
      */
     public function toSearchableArray(): array
     {

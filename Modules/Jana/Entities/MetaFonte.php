@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MetaFonte extends Model
 {
-    protected $table = 'copiloto_meta_fontes';
+    protected $table = 'jana_meta_fontes';
 
     protected $fillable = [
         'meta_id', 'driver', 'config_json', 'cadencia',

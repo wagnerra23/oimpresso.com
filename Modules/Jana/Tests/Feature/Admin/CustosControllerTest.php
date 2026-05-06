@@ -75,15 +75,15 @@ function copiCustosRevokeAdminPerm(User $user): void
 
 afterEach(function () {
     try {
-        DB::table('copiloto_mensagens')
+        DB::table('jana_mensagens')
             ->whereIn('conversa_id', function ($q) {
                 $q->select('id')
-                  ->from('copiloto_conversas')
+                  ->from('jana_conversas')
                   ->where('titulo', 'like', '__test_us_copi_070__%');
             })
             ->delete();
 
-        DB::table('copiloto_conversas')
+        DB::table('jana_conversas')
             ->where('titulo', 'like', '__test_us_copi_070__%')
             ->delete();
     } catch (\Throwable $e) {
@@ -166,7 +166,7 @@ it('isola consumo por business_id (scope multi-tenant)', function () {
     // Snapshot ANTES do insert no outro business
     $antesBusiness = $svc->painel($business->id, $inicio, $fim);
 
-    $convOutroId = DB::table('copiloto_conversas')->insertGetId([
+    $convOutroId = DB::table('jana_conversas')->insertGetId([
         'business_id' => $outroBusiness->id,
         'user_id'     => $user->id,
         'titulo'      => '__test_us_copi_070__outro_business',
@@ -176,7 +176,7 @@ it('isola consumo por business_id (scope multi-tenant)', function () {
         'updated_at'  => now(),
     ]);
 
-    DB::table('copiloto_mensagens')->insert([
+    DB::table('jana_mensagens')->insert([
         'conversa_id' => $convOutroId,
         'role'        => 'user',
         'content'     => 'mensagem do outro business — não deve vazar',
