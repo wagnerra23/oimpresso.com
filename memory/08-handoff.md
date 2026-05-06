@@ -7,6 +7,111 @@
 
 ---
 
+## 🆕 Estado pós-2026-05-06 noite — Capterra-driven Module Evolution + 7 US no backlog + foundation NfeBrasil
+
+> Sessão maratona Opus 4.7 (1M context). **24 commits** em main entre `01f69869` e `0b73514f`. Densidade altíssima. Use `/continuar` na próxima sessão pra retomar.
+
+### Entrega principal: pattern canônico de evolução de módulo
+
+**[ADR 0089](decisions/0089-capterra-driven-module-evolution.md)** — Capterra-driven Module Evolution. Trio canônico por módulo:
+
+```
+memory/requisitos/{Modulo}/SPEC.md             ← O QUE QUEREMOS
+memory/requisitos/{Modulo}/CAPTERRA-FICHA.md    ← BENCHMARK (concorrentes + score P0-P3)
+memory/requisitos/{Modulo}/CAPTERRA-INVENTARIO.md ← DIAGNÓSTICO ✅🟡❌ (gerado pela skill)
+```
+
+**Skill:** `.claude/skills/comparativo-do-modulo/` + slash `/comparativo {Modulo}`. Cruza ficha + SPEC + código → 3 buckets → propõe tasks priorizadas → Wagner aprova → tasks-create no MCP + apenda US ao SPEC.
+
+**Diferencial competitivo:** mercado não combina análise SOA automática + inventário interno×externo + backlog priorizado com aprovação humana. Productboard/Aha! são manuais; Klue/Crayon não vincula a backlog; Cursor/Devin não fazem roadmap.
+
+### 2 módulos auditados nesta sessão
+
+| Módulo | Resultado | US criadas |
+|---|---|---|
+| **RecurringBilling** | 1✅ 4🟡 9❌ | RB-040..044 (5 US) |
+| **NfeBrasil** | 0✅ 1🟡 15❌ (módulo era scaffold) | NFE-040, NFE-041 (Onda 1 aprovada) |
+
+### Implementações entregues (90+ testes verdes em produção)
+
+**RecurringBilling** — 51 testes verdes:
+- ✅ **US-RB-040** Cobertura Pest 3 drivers (22 tests). **Bug latente descoberto:** `C6Driver::carteira` default `'25'` lançaria ValidationException — corrigido pra `'10'`.
+- ✅ **US-RB-041** Idempotência webhook Asaas (7 tests).
+- ✅ **US-RB-042 backend** InvoiceController + endpoint cancel + audit log + permissão `recurringbilling.invoice.cancel` + C6 fail-loud (era no-op enganoso). UI Inertia separada.
+- ✅ **US-RB-043 foundation** 4 migrations + 4 models (`Plan`/`Subscription`/`Invoice`/`ChargeAttempt`) + 8 tests. Seeder + jobs separados.
+- ✅ **US-RB-044 stub** Listener `EmitirNFeAoReceberPagamento` registrado em NfeBrasil + 6 tests + flag desabilitada (LogicException quando habilitada sem NfeService real).
+
+**NfeBrasil** — 39 testes verdes:
+- ✅ **US-NFE-040 foundation** 4 migrations (`nfe_certificados`/`nfe_emissoes`/`nfe_eventos`/`nfe_inutilizacoes`) + 4 models + 14 tests. Sequência fiscal UNIQUE(biz, modelo, serie, numero) + idempotência reemissão UNIQUE(biz, transaction_id).
+- ✅ **US-NFE-041 backend** `CertificadoService` + endpoint upload + UploadCertificadoRequest + 13 tests. Bug LGPD documentado: senha hoje em `business.senha_certificado` é só `base64`, não encrypted.
+
+### ADRs novas (3)
+
+- **[0089](decisions/0089-capterra-driven-module-evolution.md)** — Capterra-driven Module Evolution (governance pattern)
+- **[0090](decisions/0090-nfe-replace-gradual-app-services.md)** — NFe replace gradual `app/Services/NFeService.php` → `Modules/NfeBrasil/` em 4 fases. Coexistência transparente via fallback no `CertificadoService::carregarParaSefaz()` + comando idempotente `nfe:migrate-cert-business`.
+- **[RecurringBilling tech/0007](requisitos/RecurringBilling/adr/tech/0007-encryption-pattern-credenciais-boleto.md)** — encryption pattern `client_secret`/`api_key`/`certificado_key_b64`
+- **[RecurringBilling tech/0008](requisitos/RecurringBilling/adr/tech/0008-fk-type-mismatch-ultimatepos-legado.md)** — FK type-mismatch `int unsigned` (UPos legado) vs `bigint unsigned` (Laravel moderno) + idempotência `Schema::hasColumn` em migrations
+
+### Bug MCP fixado
+
+`TaskCrudService::gerarProximoIdCanonical` usava `strtoupper($module)` → `US-RECURRINGBILLING-001` ≠ SPEC.md `US-RB-NNN`. Counter ficava preso em 001. **Fix:** `detectarPrefixoSpec` lê primeiro `### US-XX-NNN` do SPEC + `max(últimoDB, últimoSPEC) + 1`. Test trava.
+
+### Governance phpunit.xml — 4 fontes contra erro recorrente
+
+Wagner: "esse erro é constante guarde na memória para não ter mais isso". Adicionado em:
+1. `phpunit.xml` (Jana + RecurringBilling + NfeBrasil registrados)
+2. `CLAUDE.md` §4 NÃO fazer
+3. `.claude/skills/criar-modulo/SKILL.md` checklist
+4. **NOVO** [`memory/requisitos/Infra/RUNBOOK-pest-suite.md`](requisitos/Infra/RUNBOOK-pest-suite.md)
+
+### 🚨 DESCOBERTA crítica de cenário (mudou plano de NfeBrasil)
+
+Investigação revelou:
+- **Nenhum business tem `ultimo_numero_nfe > 0`** — sistema **nunca** emitiu NFe oficial em produção
+- **11 businesses têm cert legado em `business.certificado`** mas **senha = "1234"** (placeholder de teste)
+- **`ambiente = 2`** = SEFAZ homologação em todos
+- Wagner confirmou: **não há cert real**, vai recadastrar todos depois (tem cópias dos clientes)
+
+**Impacto:** comando `nfe:migrate-cert-business` deixa de ser urgente — pula migração legado. Caminho mais limpo: começar fresh com upload via UI nova quando NfeBrasil tiver tela. Fase 4 da ADR 0090 (remoção do `app/Services/NFeService.php`) pode ser muito mais cedo — o legado nunca emitiu produção, apenas testes.
+
+### Pendências P0 próxima sessão (em ordem de prioridade)
+
+1. **US-NFE-041 fase 2** (UI Inertia) — `Pages/NfeBrasil/Configuracao/Certificado.tsx` com upload .pfx + senha + status (CNPJ titular, dias até vencer, badge ≤30d). Endpoint backend já pronto (`POST /nfe-brasil/configuracao/certificado`). Tela permite Wagner subir o cert real. ~6h.
+2. **`composer require nfephp-org/sped-nfe nfephp-org/sped-da`** — Wagner roda local pra validar conflitos com Laravel 13.6 antes de Hostinger. Pré-requisito de US-NFE-042. ~30min.
+3. **US-NFE-042** — `NfeService::emitir()` real (modelo 55) usando sped-nfe + cert do CertificadoService (com fallback legado da ADR 0090) + grava em `nfe_emissoes` (rastro fiscal completo) + atualiza `business.ultimo_numero_nfe` (1 fonte da verdade fiscal). Atualiza listener US-RB-044 pra usar service real (remove LogicException). ~12h.
+4. **US-NFE-043** — `MotorTributarioService` — calcula CFOP/NCM/CST/CSOSN a partir de produto+regime. Cobertura Pest ≥5 cenários reais. ~8h.
+5. **US-NFE-044** — DANFE PDF render via sped-da + storage por chave. ~4h.
+6. **US-RB-042 fase 2** (UI Inertia botão Cancelar) — após NFe básica em pé.
+
+### Pendências menores
+
+- Race condition em `tasks-create` paralelo (5 chamadas viram mesmo ID) — adicionar `lockForUpdate` no `gerarProximoIdCanonical`. Não-crítico.
+- US-RB-043 fase 2 (seeder + GenerateInvoicesJob + ChargeAttemptJob)
+- US-RB-044 fase 2 (`Modules/NfeBrasil/Services/NfeService` real → habilitar flag `nfebrasil.auto_emission_on_invoice_paid`)
+
+### Arquivos canônicos criados
+
+- `.claude/skills/comparativo-do-modulo/SKILL.md`
+- `.claude/commands/comparativo.md`
+- `memory/requisitos/_TEMPLATE_capterra_ficha.md`
+- `memory/requisitos/RecurringBilling/CAPTERRA-FICHA.md` + `CAPTERRA-INVENTARIO.md`
+- `memory/requisitos/NfeBrasil/CAPTERRA-FICHA.md` + `CAPTERRA-INVENTARIO.md`
+- `memory/requisitos/Infra/RUNBOOK-pest-suite.md`
+- `Modules/RecurringBilling/Services/Boleto/Drivers/{Inter,C6,Asaas}Driver.php` (já existiam) + `BoletoService.php` aprimorado com decrypt de `certificado_key_b64`
+- `Modules/RecurringBilling/Models/{Plan,Subscription,Invoice,ChargeAttempt}.php`
+- `Modules/RecurringBilling/Http/Controllers/InvoiceController.php`
+- `Modules/NfeBrasil/Models/{NfeCertificado,NfeEmissao,NfeEvento,NfeInutilizacao}.php`
+- `Modules/NfeBrasil/Services/CertificadoService.php`
+- `Modules/NfeBrasil/Http/Controllers/CertificadoController.php` + `Http/Requests/UploadCertificadoRequest.php`
+- `Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php`
+- `Modules/NfeBrasil/Console/Commands/MigrateCertFromBusiness.php`
+- 8 arquivos de testes Pest novos
+- 4 migrations RB + 4 migrations NFe (todas idempotentes via `Schema::hasTable` guard)
+
+**Última atualização:** 2026-05-06 noite — pattern Capterra-driven + 7 US backlog + 90 testes verdes em prod. Wagner confirmou cenário B (sem migração — começa fresh com cert real via UI nova).
+
+---
+
 ## 🚀 Começo Rápido — leia isso primeiro
 
 **Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-06 tarde+noite (Fase 3.7 PR-1 + PR-2 — [#97](https://github.com/wagnerra23/oimpresso.com/pull/97) aguarda review)
