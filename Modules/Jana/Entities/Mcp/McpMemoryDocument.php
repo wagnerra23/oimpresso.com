@@ -110,6 +110,35 @@ class McpMemoryDocument extends Model
         );
     }
 
+    /**
+     * Filtra documentos por status no metadata (triagem 2026-05-06).
+     *
+     * Status canônicos:
+     * - 'aceito' / 'accepted' / 'accepted-historical' → ativo (default)
+     * - 'superseded' / 'substituido' / 'deprecated' / 'sunsetting' → arquivado
+     *
+     * Sem filtro: retorna ambos (use com cuidado em listagens públicas).
+     *
+     * @param  bool  $includeArchived  Se true, ignora filtro e retorna tudo.
+     */
+    public function scopePorStatusAtivo($query, bool $includeArchived = false)
+    {
+        if ($includeArchived) {
+            return $query;
+        }
+        // metadata é JSON; usa JSON_EXTRACT pra ler $.status
+        // Tolera ausência de metadata (status NULL = legado pré-triagem, considera ativo)
+        return $query->where(function ($q) {
+            $q->whereNull('metadata')
+              ->orWhereRaw("JSON_EXTRACT(metadata, '$.status') IS NULL")
+              ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.status')) IN (?, ?, ?)", [
+                  'aceito',
+                  'accepted',
+                  'accepted-historical',
+              ]);
+        });
+    }
+
     // -------------------------------------------------------------------------
     // Scout / Meilisearch hybrid (Sprint 9 — ADR 0068)
     // Embedder: Ollama nomic-embed-text (local, custo zero).

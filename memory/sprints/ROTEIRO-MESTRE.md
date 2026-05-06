@@ -922,15 +922,18 @@ Rascunho da ADR (você aprova):
 
 ### Decisões Wagner — bloco "aprovação dos achados"
 
-> Pra cada bloco abaixo, Wagner responde APROVADO / RECUSADO / PARCIAL (especificar).
+> Wagner respondeu "ok aprovado comece" em 2026-05-06 — **interpretado como aprovação global de todos blocos A–G**.
+> Se houver dúvida em algum item específico, Wagner pode retornar e marcar PARCIAL/RECUSADO no item.
 
-- [ ] Bloco A: itens #1, #2 (princípios duros 7+8) → **aprova adicionar?**
-- [ ] Bloco B: itens #3 a #6 (S3 Constituição) → **aprova mudanças?**
-- [ ] Bloco C: itens #7 a #10 (S4 Charters) → **aprova mudanças?**
-- [ ] Bloco D: itens #11 a #13 (S5 ADS) → **aprova mudanças?**
-- [ ] Bloco E: itens #14, #15 (S6 Playbooks) → **aprova mudanças?**
-- [ ] Bloco F: itens #16, #17, #18 (S7 Cockpit) → **aprova mudanças?**
-- [ ] Bloco G: cronograma 14–16 semanas em vez de 13 → **aceita overhead?**
+- [x] Bloco A: itens #1, #2 (princípios duros 7+8 — Transparência + Confiabilidade) → ✅ **APROVADO global 2026-05-06**
+- [x] Bloco B: itens #3 a #6 (S3 Constituição) → ✅ **APROVADO global 2026-05-06** (Wagner dirige execução)
+- [x] Bloco C: itens #7 a #10 (S4 Charters) → ✅ **APROVADO global 2026-05-06**
+- [x] Bloco D: itens #11 a #13 (S5 ADS) → ✅ **APROVADO global 2026-05-06**
+- [x] Bloco E: itens #14, #15 (S6 Playbooks) → ✅ **APROVADO global 2026-05-06**
+- [x] Bloco F: itens #16, #17, #18 (S7 Cockpit) → ✅ **APROVADO global 2026-05-06**
+- [x] Bloco G: cronograma 14–16 semanas em vez de 13 → ✅ **ACEITO 2026-05-06**
+
+**Estado pós-aprovação:** todas as 18 mudanças incorporadas no plano. ADR 0093 (multi-tenant Tier 0) já aceita. `_INDEX-LIFECYCLE.md` criado consolidando triagem 90 ADRs. Próximo passo: Wagner inicia execução S3 quando quiser; postmortems S1+S2 ficam em standby até soak 48h fechar.
 
 ---
 
@@ -943,3 +946,4 @@ Rascunho da ADR (você aprova):
 | 1.2 | 2026-05-06 | Sonnet (resposta Wagner business_id) | §12 multi-tenant isolation como princípio Tier 0 + mapa garantia por camada + defense in depth técnico + proposta ADR 0093 antecipada. Princípio duro #6 adicionado em §1. |
 | 1.3 | 2026-05-06 | Sonnet (deep-dives S3-S7) | §13 síntese 18 mudanças obrigatórias dos 5 deep-dives + estimativas revisadas (+20% overhead) + 7 blocos de aprovação Wagner. 5 arquivos detalhados em `research/sN-deep-dive.md` |
 | 1.4 | 2026-05-06 | Sonnet (4 decisões Wagner + custos evolução) | §8 4 decisões respondidas (Ollama pular / S2.5 fazer / Cockpit Wagner-only / ADR 0093 depois) + §5 cronograma com S2.5 paralelo (16 semanas) + §9 estimativa de custo de evolução do roteiro |
+| 1.5 | 2026-05-06 | Sonnet (aprovação global Wagner "ok aprovado comece") | §13 todos blocos A–G aprovados + ADR 0093 aceita (commit 4139437a) + _INDEX-LIFECYCLE 90 ADRs criado consolidando triagem (commit 4139437a) + 12 ADRs superseded com superseded_by no frontmatter (próximo PR) |
