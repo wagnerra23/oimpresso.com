@@ -1,19 +1,20 @@
 ---
 slug: 0077-mcp-resolver-owner-via-mcp-handle
 number: 0077
-title: "MCP server resolver de owner via users.mcp_handle, não users.username"
+title: "MCP resolver via users.mcp_handle (SUPERSEDED por ADR 0081 — Identity Mesh)"
 type: adr
-status: proposto
+status: superseded
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-05
 module: copiloto
 quarter: 2026-Q2
-tags: [mcp, governance, identity, p1]
+tags: [mcp, governance, identity, p1, superseded]
 supersedes: []
 supersedes_partially: []
-superseded_by: []
+superseded_by:
+  - 0081-identity-mesh-mcp-actors
 related:
   - 0053-mcp-server-governanca-como-produto
   - 0070-jira-style-task-management-current-md-removed
@@ -23,7 +24,17 @@ review_triggers:
   - "Anthropic publicar pattern oficial pra binding de identity em servers MCP"
 ---
 
-# ADR 0077 — MCP server: resolver de owner via `users.mcp_handle`, não `users.username`
+# ADR 0077 — SUPERSEDED por ADR 0081 (Identity Mesh)
+
+> ⚠️ **NOTA 2026-05-05 (mesma sessão):** Esta ADR foi superseded por [ADR 0081 — Identity Mesh](0081-identity-mesh-mcp-actors.md). A solução proposta aqui (`users.mcp_handle` como string) cobria apenas o slug. ADR 0081 implementa solução completa: tabela `mcp_actors` com manifest YAML (trust_level, modules_write, skills_required, etc.).
+>
+> **Diagnóstico desta ADR continua válido** (token user_id=1 vira username=WR23 que não bate com tasks.owner=wagner). A decisão arquitetural foi superada por uma melhor.
+>
+> **Não implementar esta ADR.** A solução está em ADR 0081.
+
+---
+
+# ADR 0077 — MCP server: resolver de owner via `users.mcp_handle`, não `users.username` (texto original abaixo)
 
 ## Contexto
 
