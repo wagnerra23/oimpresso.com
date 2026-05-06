@@ -87,6 +87,98 @@ Se o módulo expõe rota pública (ex: `/consulta-os`, `/repair-status`) que dev
 - ❌ NÃO rodar `npm run build` (config errado) — sempre `npm run build:inertia` pra gerar Pages no manifest.
 - ❌ NÃO esquecer de rodar `composer install` no Hostinger pós-deploy se mexeu em `composer.json/lock` — sintoma: tela branca Inertia (`null.component`).
 
+## ⚠️ Erros frequentes em DataController (pattern UltimatePOS exige formato exato)
+
+**`superadmin_package`** — DEVE retornar **array de arrays com `name` field**, NÃO array com keys string:
+
+```php
+// ❌ ERRADO — quebra com "Undefined array key 0" em get_module_names()
+public function superadmin_package() {
+    return [
+        'meu_modulo' => [
+            'label'   => '...',
+            'default' => false,
+        ],
+    ];
+}
+
+// ✅ CERTO
+public function superadmin_package() {
+    return [
+        [
+            'name'    => 'meu_modulo',
+            'label'   => '...',
+            'default' => false,
+        ],
+    ];
+}
+```
+
+Por quê: [`Modules/Accounting/Helpers/general_helper.php:303`](../../Modules/Accounting/Helpers/general_helper.php) faz `$permission[0]['name']` — se você passou key string, `$permission` não tem índice 0.
+
+**Middleware stack das rotas admin** — pattern canônico tem `'authh'` (com duplo h) + `'SetSessionData'`:
+
+```php
+// ✅ CERTO (skill criar-modulo §Críticas)
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('meu-modulo')
+    ->group(function () { ... });
+```
+
+**Rotas Install** usam `index` (não `install`) e URL `install` (não `install/install`):
+
+```php
+// ✅ CERTO
+Route::get('install',           [InstallController::class, 'index']);
+Route::get('install/uninstall', [InstallController::class, 'uninstall']);
+Route::get('install/update',    [InstallController::class, 'update']);
+```
+
+## ⚠️ Schemas DB que controllers acessam — VERIFICAR antes de escrever query
+
+Erros comuns (não chute schema):
+
+- `mcp_memory_documents` — tem coluna `status` direta (varchar20), não `frontmatter_json LIKE '%"status"%'`
+- `mcp_audit_log` — usa `ts` como timestamp canonical (não só `created_at`); endpoint é ENUM(7 valores: tools/list, tools/call, resources/list, resources/read, prompts/list, prompts/get, initialize)
+- `mcp_skill_approvals` — registra `decision` (approve/reject/request_changes), não `status`. "Pending" semanticamente = `mcp_skill_versions.status='review'`
+- `mcp_alertas` — tem `kind` (enum 5 valores: cota_excedida/tool_destrutiva/ip_suspeito/taxa_errors/cliente_externo), NÃO `category`/`severity`/`module`/`detail`
+- `mcp_governance_rules.category` — enum (promotion/archival/escalation/retry/budget/review)
+
+**Sempre rodar `DESCRIBE <tabela>` antes de escrever query nova:**
+
+```bash
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
+  'cd ~/domains/oimpresso.com/public_html && PASS=$(grep "^DB_PASSWORD=" .env | cut -d= -f2- | tr -d "\"") && \
+   mysql -u u906587222_oimpresso -p"$PASS" u906587222_oimpresso -e "DESCRIBE <tabela>;"'
+```
+
+## ⚠️ Translations: pasta `pt/` (não `pt-BR/`) é o pattern UltimatePOS
+
+```
+Modules/<Nome>/Resources/lang/
+├── pt/
+│   └── <alias>.php
+└── en/
+    └── <alias>.php
+```
+
+KB tem ambos `pt/` e `pt-BR/` por histórico, mas TeamMcp/ADS/NFSe canonical é só `pt/` + `en/`.
+
+ServiceProvider.registerTranslations() carrega `__DIR__ . '/../Resources/lang'` — Laravel resolve por locale automático.
+
+## ⚠️ Lição de aprendizado registrada
+
+**Erro real cometido em 2026-05-06 ao criar Modules/Governance:**
+
+1. ❌ Não invoquei skill `criar-modulo` antes de criar — perdi 4 round-trips de bugfix
+2. ❌ `superadmin_package` formato errado (key string em vez de `name` field) — Wagner viu 'Undefined array key 0'
+3. ❌ Middleware sem `authh` + `SetSessionData`
+4. ❌ Rotas Install com `install/install` em vez de só `install`, action `install` em vez de `index`
+5. ❌ Queries DB com colunas inventadas (`frontmatter_json`, `mcp_alertas.category`, `mcp_skill_approvals.status`)
+6. ❌ Translations só em `pt-BR/` — pattern canonical é `pt/` + `en/`
+
+**Antídoto:** **PRIMEIRO comando ao iniciar criação de módulo: invocar skill `criar-modulo` via tool `Skill`.** Antes de escrever 1 linha de código novo em `Modules/<Nome>/`.
+
 ## Validação local antes de comitar
 
 ```bash
