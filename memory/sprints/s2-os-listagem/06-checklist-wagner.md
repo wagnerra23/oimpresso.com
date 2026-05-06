@@ -7,7 +7,7 @@
 - [ ] Sprint 1 mergeada na `main` (commit `dd1d8a4e`) — ✅ confirmado em `git log`
 - [ ] `main` atualizada localmente (`git pull origin main`)
 - [ ] AppShellV2 sem regressões abertas no Sentry (validar 30s no painel)
-- [ ] **Verificar tool MCP `brief-fetch`** — Sprint 1 entregou só o dossier. O tool em si pode não estar deployed ainda no `mcp.oimpresso.com`. Se não estiver, não é bloqueador pra Sprint 2 (Opus pode ler `memory/sprints/s2-os-listagem/*` direto via filesystem ou tool `decisions-search`)
+- [x] Tool MCP `brief-fetch` deployed (`c4fc2680`, PR #109) + skill `brief-first` Tier A ([ADR 0091](../../decisions/0091-daily-brief.md)) — toda sessão deve começar chamando `brief-fetch` (~3k tokens) em vez de 5-8 tool calls exploratórias
 
 ## PR2 — dossier (este conteúdo)
 
@@ -24,34 +24,35 @@ git commit -m "feat(memory): Sprint 2 — OS listagem MWART dossier (Repair)"
 git push -u origin feat/sprint-2-os-listagem-mwart-dossier
 ```
 
-### Abrir PR no GitHub (manual — `gh` não autenticado nesta máquina)
+### Abrir PR via `gh` (autenticado nesta máquina pós-Sprint 1)
 
-- **Base:** `main`
-- **Compare:** `feat/sprint-2-os-listagem-mwart-dossier`
-- **Title:** `feat(memory): Sprint 2 — OS listagem MWART dossier`
-- **Labels:** `memory`, `sprint-2`, `mwart`, `repair`
-- **Description:**
-
-```markdown
+```bash
+gh pr create \
+  --base main \
+  --title "feat(memory): Sprint 2 — OS listagem MWART dossier" \
+  --label memory,sprint-2,mwart,repair \
+  --body "$(cat <<'BODY'
 Refs: SPRINT-2
 
 Dossier completo Sprint 2 (Listagem de OS — piloto MWART) seguindo padrão Sprint 1.
 
-Conteúdo (`memory/sprints/s2-os-listagem/`):
+Conteúdo (\`memory/sprints/s2-os-listagem/\`):
 
 - README sprint
 - 01 — ADR MWART-0001 (controller dual-mode + flag por business_id)
-- 02 — Schema SQL (índices em `transactions` filtrados por `sub_type='repair'`)
-- 03 — Spec `RepairController@index` Inertia
-- 04 — Spec `Pages/Repair/Index.tsx` (Persistent Layout AppShellV2)
-- 05 — Skill `mwart-migrate` (reusável)
+- 02 — Schema SQL (índices em \`transactions\` filtrados por \`sub_type='repair'\`)
+- 03 — Spec \`RepairController@index\` Inertia
+- 04 — Spec \`Pages/Repair/Index.tsx\` (Persistent Layout AppShellV2)
+- 05 — Skill \`mwart-migrate\` (reusável)
 - 06 — Checklist Wagner (este arquivo)
 - 07 — Plano de rollback
 
-Targeting `Modules/Repair/` (não Officeimpresso — corrigido vs draft inicial).
+Targeting \`Modules/Repair/\` (não Officeimpresso — corrigido vs draft inicial).
 
 Próximo passo após merge:
 PR3 = código (Controller, Resource, Page.tsx, testes, migration índices, config/mwart.php).
+BODY
+)"
 ```
 
 ## PR3 — código
