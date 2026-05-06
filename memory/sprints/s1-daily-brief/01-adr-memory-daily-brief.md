@@ -7,9 +7,9 @@
 - **Data:** 2026-05-06
 - **Autor:** Wagner + Claude (designer)
 - **Tier:** CANON
-- **Charter pai:** mission.constituicao-v2 (ADR irmã, Sprint 2)
+- **Charter pai:** mission.constituicao-v2 (ADR irmã, Sprint 3 — renumerado 2026-05-06)
 - **Supersedes:** —
-- **Referenciada por:** (Sprint 2 ADR Constituição v2 inteira)
+- **Referenciada por:** (Sprint 3 ADR Constituição v2 inteira)
 
 ---
 
