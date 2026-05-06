@@ -1,6 +1,10 @@
 ---
 name: runtime-rules-hostinger-ct100
 description: Use ANTES de SSH no Hostinger, composer install/update em servidor, criar git worktree em servidor, ou qualquer comando que envolva laravel/mcp, laravel/octane, laravel/reverb, Centrifugo ou Horizon em ambiente remoto. Carrega a regra de separação de runtime (Hostinger ≠ CT 100 Proxmox) pra evitar contaminar shared hosting com pacotes/daemons que só pertencem ao CT 100.
+trust_level: L1
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Runtime rules — Hostinger ≠ CT 100 Proxmox

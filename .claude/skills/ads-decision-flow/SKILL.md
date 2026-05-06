@@ -1,6 +1,10 @@
 ---
 name: ads-decision-flow
 description: Use ao trabalhar em Modules/ADS/ ou tocar fluxo de decisão automatizada (Risk → Confidence → Policy → Router → Brain A/B → HITL). Carrega o contrato Dual-Brain canônico, 4 outcomes do PolicyEngine (ALLOW_BRAIN_A / REQUIRE_BRAIN_B / REQUIRE_HUMAN_REVIEW / BLOCK_ALWAYS), 4 níveis HITL, 4 Agents (BrainB/Planner/ProjectDecomposer/Reviewer), 7 Tools internos, e onde cada peça vive (Hostinger app vs CT 100 daemon). Substitui leitura repetida de ARQ-0001..0011.
+trust_level: L1
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Adaptive Decision System — fluxo canônico

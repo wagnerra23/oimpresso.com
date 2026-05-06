@@ -1,6 +1,10 @@
 ---
 name: publication-policy
 description: Use ANTES de qualquer git push, abertura/merge de PR, deploy em produção, mudança em .env de produção, ou postagem externa (blog, rede social, email cliente). Decide se Claude executa direto ou escala pra Wagner. Substitui o reflexo de "perguntar pro Wagner toda vez" — a regra está escrita; só escala o que a matriz diz pra escalar.
+trust_level: L1
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Publication policy — Claude supervisiona, Wagner escala

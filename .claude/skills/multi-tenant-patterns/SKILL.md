@@ -1,6 +1,10 @@
 ---
 name: multi-tenant-patterns
 description: Use ao criar ou alterar Eloquent Model, Controller, Service, Job, Command ou Migration que toca dados de negócio (qualquer entidade com `business_id`). Garante que queries usam global scope, jobs em fila não perdem o tenant, e código de CLI/superadmin trata o caso cross-business explicitamente. UltimatePOS é multi-tenant por `business_id` — vazar dados entre tenants é o pior bug possível neste projeto.
+trust_level: L1
+owner: wagner
+parent_mission: meta-skill-roi-erp-autonomo
+charter_adr: 0080
 ---
 
 # Multi-tenant patterns no Oimpresso ERP

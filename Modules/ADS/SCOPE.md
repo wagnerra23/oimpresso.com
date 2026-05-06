@@ -2,10 +2,25 @@
 module: ADS
 purpose: "Adaptive Decision System — meta-orquestrador de decisões automatizadas (Risk → Confidence → Policy → Router → Brain A/B → HITL) + governança de Skills"
 contains:
-  # Decision flow (canônico ADR 0001-0011 do ADS)
+  # Decision flow controllers (canônico ADR 0001-0011 do ADS)
+  - "Admin/ConfidenceController — Wilson lower bound, padrões aprendidos"
+  - "Admin/ConflictsController — conflitos entre policies"
+  - "Admin/DecisoesController — decisões registradas"
+  - "Admin/LearningController — pattern learning loops"
+  - "Admin/MetricasController — métricas de decisão"
+  - "Admin/PatternsController — padrões aprendidos"
+  - "Admin/PolicyController — Policy Engine (4 outcomes ALLOW/REQUIRE_REVIEW/BLOCK/REQUIRE_BRAIN_B)"
+  # Skills governance (Fase 1-4 do 0076)
+  - "Admin/SkillsController — UI /ads/admin/skills (lista/detalhe/edit/test/review/approve/publish)"
+  - "Admin/MetaSkillsController — governance rules em mcp_governance_rules (promote/archive/escalate)"
+  # API endpoints (públicos pra IA propor decisão)
+  - "Api/ContextController — context lookup pra decisão"
+  - "Api/DecisionController — propor decisão (entry point Risk→Confidence→Policy)"
+  - "Api/RecentEventsController — eventos recentes pra ContextSnapshot"
+  - "Api/ScopeController — scope lookup
+  # Services (não-controllers mas parte do scope)
   - "Risk Engine — classifica risco da decisão"
   - "Confidence Engine — Wilson lower bound, padrões aprendidos"
-  - "Policy Engine — 4 outcomes ALLOW/REQUIRE_REVIEW/BLOCK/REQUIRE_BRAIN_B"
   - "Decision Router — roteia entre Brain A/B/HITL"
   - "Brain B Service — modelo lento + estruturado"
   - "Reviewer Service — HITL queue"
@@ -14,12 +29,8 @@ contains:
   - "Planner Service / Project Decomposer Service"
   - "Tool Registry — MCP tools internos"
   - "Decision Links Service / User Scope Service / Context for Task Service"
-  # Skills governance (Fase 1-4 do 0076)
-  - "SkillsController — UI /ads/admin/skills (lista/detalhe/edit/test)"
-  - "SkillsApprovalController — review queue + publish-to-git"
   - "ScaffoldSkillFromMissionService — scaffolder via meta-skill"
   - "SkillScaffoldCommand — artisan skill:scaffold"
-  - "MetaSkills (governance rules em mcp_governance_rules) — Wagner edita rules promotion/archival/escalation"
 not_contains:
   - "Tasks/Cycles/Projects Jira-style → Modules/Project (ex-ProjectMgmt)"
   - "MCP tools registry (canônico) → Modules/TeamMcp"
