@@ -427,3 +427,65 @@ Então `nfe_consultas.cache_key` UNIQUE bloqueia a 2ª de processar de novo
 - **Origem:** `_Ideias/NfeBrasil/evidencias/conversa-claude-2026-04-mobile.md`
 - **Design:** `_DesignSystem/adr/ui/0006-padrao-tela-operacional.md`
 - **Módulos relacionados:** [Financeiro](../Financeiro/), [RecurringBilling](../RecurringBilling/)
+
+---
+
+## 6. Backlog vindo do Capterra-Inventário (range 040+)
+
+> Tasks geradas pela skill `comparativo-do-modulo` em **2026-05-06**. Range 040-049 reservado pra essa origem.
+> Detalhes em [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md). Doutrina: [ADR 0089](../../decisions/0089-capterra-driven-module-evolution.md).
+> **Onda 1 — tasks aprovadas por Wagner em 2026-05-06**: #1 (US-NFE-040) e #2 (US-NFE-041) abaixo. Demais Onda 1 (NfeService base, MotorTributario, DANFE) ficam em próximo lote após validação destas.
+
+### US-NFE-040 · [Epic] Foundation domínio NFe — migrations + models + composer
+
+> owner: — · priority: p0 · estimate: 16h · status: todo · type: epic · origin: capterra-inventario-2026-05-06 · capacidade: #7-multi-tenant
+> blocked_by: —
+> bloqueia: US-NFE-041, US-NFE-001..011 (todas as US existentes do módulo dependem desta foundation)
+
+**Contexto.** CAPTERRA-INVENTARIO classificou ❌ AUSENTE — módulo é scaffold puro sem domínio. Epic bloqueador absoluto: nada emite, cancela, inutiliza ou consulta sem essas tabelas + libs.
+
+**Acceptance criteria:**
+- [ ] `composer require nfephp-org/sped-nfe nfephp-org/sped-da` registrados em `composer.json` + lock
+- [ ] Migration `nfe_certificados` — id, business_id (int unsigned, ADR tech/0008), uuid (path), cnpj_titular, valido_ate, encrypted_password, ativo, timestamps. UNIQUE parcial (só 1 ativo por business)
+- [ ] Migration `nfe_emissoes` — id, business_id, transaction_id (UPos transactions, int unsigned FK), modelo enum(55,65,67), serie, numero, chave_44, status enum(pendente, autorizada, rejeitada, cancelada, denegada), cstat, motivo, xml_path, danfe_path, valor_total, emitido_em, timestamps. UNIQUE(business_id, modelo, serie, numero); UNIQUE(business_id, transaction_id) — idempotência reemissão
+- [ ] Migration `nfe_eventos` — id, business_id, emissao_id (FK nfe_emissoes), tipo (110110 CCe, 110111 cancelamento, 210200 confirmação), justificativa, status, cstat_evento, payload_json, created_at (append-only)
+- [ ] Migration `nfe_inutilizacoes` — id, business_id, modelo, serie, numero_de, numero_ate, justificativa, cstat, autorizada_em, timestamps
+- [ ] Models Eloquent: `NfeCertificado`, `NfeEmissao`, `NfeEvento`, `NfeInutilizacao` com relacionamentos + `BusinessScope` global (multi-tenant — skill multi-tenant-patterns)
+- [ ] Tipos: business_id `unsignedInteger` (ADR tech/0008 — UltimatePOS legado é int unsigned)
+- [ ] Migrations idempotentes (`Schema::hasTable` guard, ADR tech/0008)
+- [ ] Tests Pest mínimos: criar emissão, transição de status, evento append-only, isolamento multi-tenant
+- [ ] phpunit.xml registra `Modules/NfeBrasil/Tests/Feature` (já feito 2026-05-06) + `Tests/Unit` se houver
+
+**Bloqueia:** US-NFE-001..011 + US-NFE-041 + Onda 2 inteira do CAPTERRA-INVENTARIO.
+
+**Referências:**
+- ADR tech/0008 (FK type-mismatch UltimatePOS legado)
+- Skill `multi-tenant-patterns`
+- CAPTERRA-INVENTARIO #1, #7
+
+### US-NFE-041 · CertificadoService + storage encrypted + UI admin
+
+> owner: — · priority: p0 · estimate: 12h · status: todo · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #1
+> blocked_by: US-NFE-040
+
+**Contexto.** CAPTERRA-INVENTARIO #1 ❌ AUSENTE — sem certificado válido, **nada** funciona (NFe/NFC-e/CCe/cancelamento todos exigem assinatura A1). Cert A1 (.pfx) é arquivo binário com senha; vazamento = catástrofe legal (terceiro pode emitir notas em nome do tenant). Storage **deve** ser encrypted-at-rest e a senha **nunca** em texto. Substitui parte da SPEC US-NFE-001 — implementação real desta capacidade.
+
+**Acceptance criteria:**
+- [ ] `Modules/NfeBrasil/Services/CertificadoService.php` com:
+  - `validar(string $pfxBase64, string $senha): array` — `openssl_pkcs12_read`, extrai CN (CNPJ), valida `not_after > now()`
+  - `salvar(int $businessId, string $pfxBase64, string $senha): NfeCertificado` — encrypt-at-rest do .pfx + `Crypt::encryptString` da senha + desativa cert anterior
+  - `carregarParaSefaz(int $businessId): array` — descriptografa pra lib sped-nfe (in-memory)
+  - `verificarVencimento(int $businessId): ?int` — dias restantes; null se sem cert
+- [ ] Storage path: `storage/app/nfe-brasil/{business_id}/cert/{uuid}.pfx.enc` — encrypt via `Crypt::encrypt(file_get_contents($pfx))`
+- [ ] Senha encrypted em coluna `nfe_certificados.encrypted_password` via `Crypt::encryptString` — **nunca loga em audit log**
+- [ ] FormRequest `UploadCertificadoRequest` aceita `.pfx` ≤ 100KB + `senha` (required|string|max:80)
+- [ ] Endpoint `POST /nfe-brasil/configuracao/certificado` chama `CertificadoController@upload` com permissão `nfe.configuracao.manage`
+- [ ] Spatie Activity Log registra upload (sem incluir senha nem path do arquivo)
+- [ ] Tela Inertia `resources/js/Pages/NfeBrasil/Configuracao/Certificado.tsx` com upload + status (CNPJ titular, vence em X dias) + badge sidebar amarelo ≤30d / vermelho se vencido
+- [ ] Tests Pest: upload válido + cert expirado rejeitado + CNPJ ≠ business rejeitado + senha errada rejeita + isolamento multi-tenant + vencimento próximo
+
+**Diferencial vs concorrentes:** TecnoSpeed/PlugNotas/FocusNFE armazenam cert no servidor deles (risco de vazamento centralizado). oimpresso armazena por business com chave Laravel rotacionável.
+
+**Referências:**
+- CAPTERRA-INVENTARIO #1
+- SPEC US-NFE-001 (substituída — depende de US-NFE-040 pra `nfe_certificados` table)
