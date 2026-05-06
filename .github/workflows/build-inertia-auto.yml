@@ -74,16 +74,20 @@ jobs:
 
       - name: Commit + push
         if: steps.diff.outputs.changed == 'true'
+        # Trigger msg vai por env var (não interpolada no shell) pra evitar
+        # shell injection quando commit message contém backticks ou $(...).
+        # Bug em 2026-05-06 quando US-NFE-041 fase 2 trouxe `nfe.configuracao.manage`
+        # no body do commit e o backtick foi interpretado como command substitution.
+        env:
+          TRIGGER_MSG: ${{ github.event.head_commit.message }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/build-inertia/
-          git commit -m "build(inertia): auto-rebuild após push tocar resources/
-
-          Trigger: ${{ github.event.head_commit.message }}
-          Run: ${{ github.run_id }}
-
-          [skip-build-auto]"
+          # printf %s preserva caracteres especiais sem reinterpretação shell
+          MSG=$(printf 'build(inertia): auto-rebuild após push tocar resources/\n\nTrigger: %s\nRun: %s\n\n[skip-build-auto]' "$TRIGGER_MSG" "$RUN_ID")
+          git commit -m "$MSG"
           # Retry simples se push falhar por race (alguém pushou enquanto buildava)
           for i in 1 2 3; do
             if git push origin HEAD:main; then
