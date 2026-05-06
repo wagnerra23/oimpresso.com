@@ -1,5 +1,5 @@
 ---
-title: Tabela rename copiloto_* → jana_* (PR-9 da Fase 3.7)
+title: Tabela rename copiloto_* → jana_* (PR-9 da Fase 3.7 — renumerada de 0090 pra 0092 por conflito monotônico ADR 0028)
 status: accepted
 date: 2026-05-06
 supersedes: ["0088#db"]
@@ -7,7 +7,7 @@ related: ["0084", "0087", "0088"]
 authors: [wagner, claude]
 ---
 
-# ADR 0090 — Tabela rename `copiloto_*` → `jana_*` (PR-9 da Fase 3.7)
+# ADR 0092 — Tabela rename `copiloto_*` → `jana_*` (PR-9 da Fase 3.7 — renumerada de 0090 pra 0092 por conflito monotônico ADR 0028)
 
 ## Contexto
 
