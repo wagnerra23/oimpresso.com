@@ -28,15 +28,17 @@
 **Quero** subir certificado A1 (.pfx) com senha e o sistema validar + armazenar criptografado
 **Para** começar a emitir NFe sem expor cert na rede
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Configuracao/Certificado.tsx`]_
+**Implementado em:** [`resources/js/Pages/NfeBrasil/Configuracao/Certificado.tsx`](../../../resources/js/Pages/NfeBrasil/Configuracao/Certificado.tsx) · [`Modules/NfeBrasil/Http/Controllers/CertificadoController.php`](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php) · [`Modules/NfeBrasil/Services/CertificadoService.php`](../../../Modules/NfeBrasil/Services/CertificadoService.php)
 
 **Definition of Done:**
-- [ ] FormRequest aceita `.pfx` ≤ 100KB + `senha` (não loga em audit log!)
-- [ ] `CertificadoService::validar()` lê o pfx via OpenSSL, extrai CN (CNPJ), valida `not_after > now()`
-- [ ] Storage criptografado: `storage/app/nfe-brasil/{business_id}/cert/{uuid}.pfx.enc` (encrypt at rest com chave do business)
-- [ ] Senha nunca persiste em texto: armazenada via `encrypt()` Laravel
-- [ ] Certificado próximo do vencimento (≤30d) gera badge no sidebar
-- [ ] Test Feature: upload válido + cert expirado rejeitado + CNPJ ≠ business CNPJ rejeitado + isolamento
+- [x] FormRequest aceita `.pfx` ≤ 100KB + `senha` (não loga em audit log!)
+- [x] `CertificadoService::validar()` lê o pfx via OpenSSL, extrai CN (CNPJ), valida `not_after > now()`
+- [x] Storage criptografado: `storage/app/nfe-brasil/{business_id}/cert/{uuid}.pfx.enc` (encrypt at rest com chave do business)
+- [x] Senha nunca persiste em texto: armazenada via `encrypt()` Laravel
+- [x] UI Inertia com 3 estados (sem cert / OK / próximo vencimento ≤30d / vencido) — `Pages/NfeBrasil/Configuracao/Certificado.tsx`
+- [x] Sidebar entry "Certificado A1" + permissão `nfe.configuracao.manage` (DataController)
+- [x] Test Feature: upload válido + cert expirado rejeitado + CNPJ ≠ business CNPJ rejeitado + isolamento (`CertificadoServiceTest.php` 13 tests + `CertificadoControllerTest.php` 3 tests)
+- [ ] Badge no sidebar global quando cert ≤30d (placeholder — depende de carregar status do cert no shared props do Inertia)
 
 ### US-NFE-002 · Emitir NFC-e a partir de venda finalizada
 
