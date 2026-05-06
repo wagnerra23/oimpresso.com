@@ -75,6 +75,20 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Health-check Jana + Constituição v2 — 5 checks SQL diários.
+        // Multi-tenant Tier 0 + Brief uptime + Custo Brain B + PII leak + Profile drift.
+        // 06:00 BRT (após brief regenerar a primeira vez do dia).
+        $schedule->command('jana:health-check --notify')
+            ->dailyAt('06:00')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule jana:health-check FALHOU — investigar ' .
+                    'storage/logs/laravel.log pra ALERT entries'
+                );
+            });
+
         // ADS Reviewer (T11 G-Eval) — review automático cada 15min de decisions sem score.
         $schedule->command('ads:review-decisions --limit=10')
             ->everyFifteenMinutes()
