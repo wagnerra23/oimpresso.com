@@ -2,15 +2,15 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
-use Modules\Copiloto\Mcp\OimpressoMcpServer;
-use Modules\Copiloto\Mcp\Prompts\BriefingOimpressoPrompt;
-use Modules\Copiloto\Mcp\Resources\CurrentResource;
-use Modules\Copiloto\Mcp\Resources\HandoffResource;
-use Modules\Copiloto\Mcp\Tools\DecisionsFetchTool;
-use Modules\Copiloto\Mcp\Tools\DecisionsSearchTool;
-use Modules\Copiloto\Mcp\Tools\SessionsRecentTool;
-use Modules\Copiloto\Mcp\Tools\TasksCurrentTool;
+use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Mcp\OimpressoMcpServer;
+use Modules\Jana\Mcp\Prompts\BriefingOimpressoPrompt;
+use Modules\Jana\Mcp\Resources\CurrentResource;
+use Modules\Jana\Mcp\Resources\HandoffResource;
+use Modules\Jana\Mcp\Tools\DecisionsFetchTool;
+use Modules\Jana\Mcp\Tools\DecisionsSearchTool;
+use Modules\Jana\Mcp\Tools\SessionsRecentTool;
+use Modules\Jana\Mcp\Tools\TasksCurrentTool;
 
 /**
  * MEM-MCP-1.c (ADR 0053) — Stack MCP completa: 5 tools + 2 resources + 1 prompt.

@@ -24,7 +24,7 @@ Rebrand completo de identidade, mantendo schema de dados intocado:
 | Camada | De | Para |
 |---|---|---|
 | Pasta módulo | `Modules/DocVault/` | `Modules/MemCofre/` |
-| Namespace PHP | `Modules\DocVault\*` | `Modules\MemCofre\*` |
+| Namespace PHP | `Modules\DocVault\*` | `Modules\SRS\*` |
 | Service Provider | `DocVaultServiceProvider` | `MemCofreServiceProvider` |
 | Pages React | `resources/js/Pages/DocVault/` | `resources/js/Pages/MemCofre/` |
 | Memory docs | `memory/requisitos/DocVault/` | `memory/requisitos/MemCofre/` |
@@ -77,7 +77,7 @@ Ambos vivem no lang file `Modules/MemCofre/Resources/lang/pt/memcofre.php`.
 - Acessar `/memcofre` → Dashboard renderiza com header "Cofre de Memórias"
 - Topnav: "Cofre de Memórias / Dashboard / Ingest / Inbox / Memória / Chat"
 - Tab title: "Cofre de Memórias — Dashboard · OI Impresso"
-- `Modules\MemCofre\` namespace resolve em PSR-4 (composer dump-autoload OK)
+- `Modules\SRS\` namespace resolve em PSR-4 (composer dump-autoload OK)
 
 ## Pós-rename
 

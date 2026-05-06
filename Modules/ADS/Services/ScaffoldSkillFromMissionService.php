@@ -4,8 +4,8 @@ namespace Modules\ADS\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Copiloto\Entities\Mcp\McpSkill;
-use Modules\Copiloto\Entities\Mcp\McpSkillVersion;
+use Modules\Jana\Entities\Mcp\McpSkill;
+use Modules\Jana\Entities\Mcp\McpSkillVersion;
 use Symfony\Component\Yaml\Yaml;
 
 /**

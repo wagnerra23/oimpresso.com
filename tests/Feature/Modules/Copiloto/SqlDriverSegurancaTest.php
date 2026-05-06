@@ -1,11 +1,11 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Copiloto\Drivers\Sql\SqlDriver;
-use Modules\Copiloto\Entities\Meta;
-use Modules\Copiloto\Entities\MetaFonte;
-use Modules\Copiloto\Scopes\ScopeByBusiness;
-use Modules\Copiloto\Services\Ai\OpenAiDirectDriver;
+use Modules\Jana\Drivers\Sql\SqlDriver;
+use Modules\Jana\Entities\Meta;
+use Modules\Jana\Entities\MetaFonte;
+use Modules\Jana\Scopes\ScopeByBusiness;
+use Modules\Jana\Services\Ai\OpenAiDirectDriver;
 
 /**
  * Testa regras de segurança do SqlDriver (adr/tech/0001).

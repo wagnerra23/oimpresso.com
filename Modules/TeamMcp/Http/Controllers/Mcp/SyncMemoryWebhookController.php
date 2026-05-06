@@ -7,9 +7,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
-use Modules\Copiloto\Services\Mcp\IndexarMemoryGitParaDb;
-use Modules\Copiloto\Services\TaskRegistry\GitTaskLinkerService;
-use Modules\Copiloto\Services\TaskRegistry\TaskParserService;
+use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
+use Modules\Jana\Services\TaskRegistry\GitTaskLinkerService;
+use Modules\Jana\Services\TaskRegistry\TaskParserService;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Webhook GitHub que sincroniza memory/ → DB.

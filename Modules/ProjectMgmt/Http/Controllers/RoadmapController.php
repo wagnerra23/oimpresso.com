@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Copiloto\Entities\Mcp\McpEpic;
-use Modules\Copiloto\Entities\Mcp\McpProject;
-use Modules\Copiloto\Entities\Mcp\McpTask;
+use Modules\Jana\Entities\Mcp\McpEpic;
+use Modules\Jana\Entities\Mcp\McpProject;
+use Modules\Jana\Entities\Mcp\McpTask;
 
 /**
  * RoadmapController — /project-mgmt/roadmap (US-TR-203).

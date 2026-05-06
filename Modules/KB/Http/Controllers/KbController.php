@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 
 /**
  * KbController — Knowledge Base browser dos documentos servidos via MCP server.
@@ -17,7 +17,7 @@ use Modules\Copiloto\Entities\Mcp\McpMemoryDocument;
  * git → POST /api/mcp/sync-memory).
  *
  * Histórico (Etapa 2 modularização — 2026-05-03):
- *   - Antes: Modules\Copiloto\Http\Controllers\Admin\MemoriaKbController @ /copiloto/admin/memoria
+ *   - Antes: Modules\Jana\Http\Controllers\Admin\MemoriaKbController @ /copiloto/admin/memoria
  *   - Agora: Modules\KB\Http\Controllers\KbController @ /kb
  *
  * Diferente de:

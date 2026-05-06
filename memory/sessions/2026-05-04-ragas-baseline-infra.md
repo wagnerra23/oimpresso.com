@@ -337,7 +337,7 @@ documenta decisão, comparativo, e pendências pra completar em prod.
 
 ```bash
 # SSH Hostinger
-php artisan scout:import "Modules\Copiloto\Entities\Mcp\McpMemoryDocument"
+php artisan scout:import "Modules\Jana\Entities\Mcp\McpMemoryDocument"
 
 # Configurar embedder OpenAI no índice Meilisearch
 curl -X PATCH https://meilisearch.oimpresso.com/indexes/mcp_memory_documents/settings/embedders \

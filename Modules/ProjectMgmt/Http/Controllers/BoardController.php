@@ -7,11 +7,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Copiloto\Entities\Mcp\McpCycle;
-use Modules\Copiloto\Entities\Mcp\McpEpic;
-use Modules\Copiloto\Entities\Mcp\McpProject;
-use Modules\Copiloto\Entities\Mcp\McpTask;
-use Modules\Copiloto\Services\TaskRegistry\TaskCrudService;
+use Modules\Jana\Entities\Mcp\McpCycle;
+use Modules\Jana\Entities\Mcp\McpEpic;
+use Modules\Jana\Entities\Mcp\McpProject;
+use Modules\Jana\Entities\Mcp\McpTask;
+use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
  * BoardController — Kanban /project-mgmt/board (US-TR-201).

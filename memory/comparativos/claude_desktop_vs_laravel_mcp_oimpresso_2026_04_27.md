@@ -242,9 +242,9 @@ MCP_TOKEN=<gerar via php artisan tinker: bin2hex(random_bytes(32))>
 ### Passo 2 — Criar Tool em `Modules/Copiloto/Mcp/Tools/SnapshotBusinessTool.php`
 
 ```php
-namespace Modules\Copiloto\Mcp\Tools;
+namespace Modules\Jana\Mcp\Tools;
 
-use Modules\Copiloto\Services\ContextSnapshotService;
+use Modules\Jana\Services\ContextSnapshotService;
 use Laravel\Mcp\Tool;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 
@@ -274,7 +274,7 @@ class SnapshotBusinessTool extends Tool
 
 ```php
 use Laravel\Mcp\Facades\Mcp;
-use Modules\Copiloto\Mcp\Tools\SnapshotBusinessTool;
+use Modules\Jana\Mcp\Tools\SnapshotBusinessTool;
 
 Mcp::tool('snapshot_business', SnapshotBusinessTool::class);
 Mcp::tool('listar_metas', ListarMetasTool::class);

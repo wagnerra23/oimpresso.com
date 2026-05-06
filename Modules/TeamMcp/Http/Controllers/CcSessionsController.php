@@ -10,8 +10,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Copiloto\Entities\Mcp\McpCcMessage;
-use Modules\Copiloto\Entities\Mcp\McpCcSession;
+use Modules\Jana\Entities\Mcp\McpCcMessage;
+use Modules\Jana\Entities\Mcp\McpCcSession;
 
 /**
  * MEM-CC-UI-1 (SPEC memory/requisitos/Copiloto/SPEC-cc-sessions.md) —

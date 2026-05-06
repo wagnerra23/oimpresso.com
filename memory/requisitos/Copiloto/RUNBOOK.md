@@ -28,8 +28,8 @@ $schedule->job(new AvaliarAlertasJob)->everyFifteenMinutes();
 
 Via tinker:
 ```php
-$meta = Modules\Copiloto\Entities\Meta::find(1);
-dispatch_sync(new Modules\Copiloto\Jobs\ApurarMetaJob($meta, now()));
+$meta = Modules\Jana\Entities\Meta::find(1);
+dispatch_sync(new Modules\Jana\Jobs\ApurarMetaJob($meta, now()));
 ```
 
 Via rota (se permitido):
@@ -41,9 +41,9 @@ POST /copiloto/metas/1/reapurar
 
 ### Verificar qual adapter está ativo
 ```php
-app(Modules\Copiloto\Contracts\AiAdapter::class)::class
-// → Modules\Copiloto\Services\Ai\LaravelAiDriver (se módulo LaravelAI ativo)
-// → Modules\Copiloto\Services\Ai\OpenAiDirectDriver (fallback)
+app(Modules\Jana\Contracts\AiAdapter::class)::class
+// → Modules\Jana\Services\Ai\LaravelAiDriver (se módulo LaravelAI ativo)
+// → Modules\Jana\Services\Ai\OpenAiDirectDriver (fallback)
 ```
 
 ### Logs
@@ -89,7 +89,7 @@ Binds `:business_id`, `:data_ini`, `:data_fim` são injetados pelo `SqlDriver` �
 ### Driver `php`
 ```json
 {
-  "callable": "Modules\\Copiloto\\Drivers\\Php\\ChurnMensal@handle"
+  "callable": "Modules\\Jana\\Drivers\\Php\\ChurnMensal@handle"
 }
 ```
 Classe precisa implementar `CalculaMeta` e estar registrada no `CopilotoServiceProvider`.

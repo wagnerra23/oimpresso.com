@@ -144,7 +144,7 @@ Ganho de score pós-embedder esperado na Sprint 9 via melhoria do `documentTempl
 
 ```bash
 # Importar todos os docs pro índice Meilisearch
-php artisan scout:import "Modules\Copiloto\Entities\Mcp\McpMemoryDocument"
+php artisan scout:import "Modules\Jana\Entities\Mcp\McpMemoryDocument"
 
 # Configurar embedder OpenAI no índice mcp_memory_documents
 curl -X PATCH https://meilisearch.oimpresso.com/indexes/mcp_memory_documents/settings/embedders \
