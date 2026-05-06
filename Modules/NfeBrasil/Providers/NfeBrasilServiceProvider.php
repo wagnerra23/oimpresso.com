@@ -44,7 +44,9 @@ class NfeBrasilServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\NfeBrasil\Console\Commands\MigrateCertFromBusiness::class,
+        ]);
     }
 
     /**
