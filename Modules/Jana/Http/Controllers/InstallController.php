@@ -8,12 +8,12 @@ class InstallController extends BaseModuleInstallController
 {
     protected function moduleName(): string
     {
-        return 'Copiloto';
+        return 'Jana';
     }
 
     protected function moduleSystemKey(): string
     {
-        return 'copiloto';
+        return 'jana';
     }
 
     protected function moduleVersion(): string
