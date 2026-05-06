@@ -9,26 +9,35 @@
 
 ## 🚀 Começo Rápido — leia isso primeiro
 
-**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-06 tarde (Fase 3.7 PR-1 — 9 drift controllers movidos, [#97](https://github.com/wagnerra23/oimpresso.com/pull/97) aberto, aguarda review)
+**Repo:** `D:\oimpresso.com` · **Branch ativa:** `main` · **Última sessão:** 2026-05-06 tarde+noite (Fase 3.7 PR-1 + PR-2 — [#97](https://github.com/wagnerra23/oimpresso.com/pull/97) aguarda review)
 
-### 🆕 Estado pós-2026-05-06 tarde (Fase 3.7 PR-1 — drift controllers)
+### 🆕 Estado pós-2026-05-06 tarde+noite (Fase 3.7 PR-1 + PR-2 entregues)
 
-**Commit `850ac349` na branch `claude/wonderful-herschel-cccef6` → [PR #97](https://github.com/wagnerra23/oimpresso.com/pull/97).**
+**3 commits na branch `claude/wonderful-herschel-cccef6` → [PR #97](https://github.com/wagnerra23/oimpresso.com/pull/97).**
 
-- ✅ 9 drift controllers movidos pros donos corretos (Copiloto/ADS → KB/TeamMcp/ProjectMgmt) preservando history (`git mv` 96-99% similarity)
-- ✅ URLs **mantidas inalteradas** (zero break) — só `use` imports + namespace prefix dos route groups + tuple `[Class::class, 'method']`
-- ✅ 5 SCOPE.md atualizados (`drift_alerts: []` nas origens; `contains[]` absorveu controllers nos destinos)
-- ✅ `MODULE-DRIFT-MIGRATION-PLAN` v1.0.0 → v1.1.0 com **erratum §1** (MemoriaController/FontesController não são browse/knowledge-sources como descritos no plano original — Wagner confirmou destino KB mesmo assim como decisão L1)
-- ✅ GUARDA `bin/check-scope.php`: **0 drift detectado em 29 módulos**
-- ⏭️ Pest pulado (worktree sem vendor; CI valida)
+**PR-1 (commit `850ac349`)** — 9 drift controllers movidos pros donos corretos (Copiloto/ADS → KB/TeamMcp/ProjectMgmt). URLs **mantidas inalteradas**. SCOPE.md zerou drift_alerts em 5 módulos. Plano v1.0→1.1 com **erratum §1** (Memoria/FontesController não eram o que o plano descrevia — Wagner confirmou destino KB mesmo assim como decisão L1).
 
-**PR-2 (renames Copiloto→Jana, PontoWr2→Ponto, MemCofre→SRS) DEFERRED:**
+**PR-2 (commit `8f7a5138`)** — 3 renames de módulo PHP-only:
+- `Modules/Copiloto/` → `Modules/Jana/` (chat IA enxuto após PR-1 extrair drift)
+- `Modules/PontoWr2/` → `Modules/Ponto/`
+- `Modules/MemCofre/` → `Modules/SRS/` (System Rules Spec)
 
-Tamanho real medido: ~370 arquivos PHP. 7 decisões satélites pendentes (Pages React dir, URLs, permissions Spatie, log channels, config keys, env vars, lang dir) que precisam de sessão dedicada com plan claro. Risco de PR único gigantesco misturando drift+rename foi descartado — Wagner concordou em pausar.
+**Mantidos legacy** (rename PHP-only): URLs `/copiloto/*` etc, permissions `copiloto.*` etc, config keys + env vars `COPILOTO_*`, log channels `copiloto-ai`, Pages React `Pages/Copiloto/`, lang `copiloto::`, tabelas DB (`copiloto_*`, `ponto_*`, `docs_*`). Plano v1.1→1.2 com **erratum §4** (rename PHP-only em vez de rename completo com 301 — razão: blast radius alto demais com 5993 clientes ROTA LIVRE + watchers + webhook + 30 Inertia::render).
 
-**Próxima sessão:** revisar/mergear #97 → planejar PR-2 com matriz de decisão pras 7 satélites antes de tocar arquivo.
+**Stats:**
+- 9 + 369 git mv (96-99% similarity preservada)
+- 314 arquivos com namespace bulk-replaced (320 substituições)
+- 3 SCOPE.md + 3 module.json + 3 composer.json + 3 ServiceProvider class names atualizados
+- GUARDA `bin/check-scope.php`: **0 drift / 29 módulos** (Jana/Ponto/SRS reconhecidos)
 
-Session log completo: [memory/sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md](sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md)
+**⚠️ Pós-merge na main:**
+- `composer dump-autoload` no Hostinger + CT 100 (autoload PSR-4 muda)
+- Smoke prod: `/copiloto/chat`, `/copiloto/memoria`, `/pontowr2/`, `/memcofre/`, `/api/mcp/health`, `/ads/admin/tools` retornam 200
+- Webhook GitHub e watchers Claude Code continuam OK (URLs não mudaram)
+
+**Próxima sessão:** revisar/mergear #97 → PR-3+ pode mover URL/permissions/Pages item a item se Wagner decidir.
+
+Session log: [memory/sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md](sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md)
 
 ---
 
