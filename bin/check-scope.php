@@ -91,11 +91,12 @@ function getStagedControllers(): array {
     return array_filter($out, fn($f) => preg_match('#^Modules/[^/]+/Http/Controllers/.+Controller\.php$#', $f));
 }
 
-// Boilerplate ignorado (todo módulo tem)
+// Boilerplate ignorado (todo módulo tem ou pode ter — base classes/scaffolding)
 $boilerplate = [
     'Http/Controllers/DataController.php',
     'Http/Controllers/InstallController.php',
     'Http/Controllers/SuperadminController.php',
+    'Http/Controllers/Controller.php',  // base class
 ];
 
 // Pega módulos a verificar
