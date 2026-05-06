@@ -130,7 +130,21 @@ it('rejeita senha errada (propaga InvalidArgumentException do reader)', function
 });
 
 it('rejeita cert expirado', function () {
-    $svc = fakeService('12345678000199', '-2 days');
+    // openssl_csr_sign nativo não aceita validade negativa (gera cert válido
+    // por 1 dia mesmo com -2 days). Override parseCert pra simular cert
+    // que SEFAZ rejeitaria. Usa anonymous class subclassing CertificadoService.
+    $svc = new class extends CertificadoService {
+        public function __construct() { parent::__construct(function ($content, $senha) {
+            return ['cert' => '-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----'];
+        }); }
+        protected function parseCert(string $certPem): array
+        {
+            return [
+                'subject' => ['CN' => 'EMPRESA TESTE:12345678000199'],
+                'validTo_time_t' => (new DateTimeImmutable('-2 days'))->getTimestamp(),
+            ];
+        }
+    };
 
     expect(fn () => $svc->validar(base64_encode('any'), 'ok'))
         ->toThrow(\InvalidArgumentException::class, 'expirado');
