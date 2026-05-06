@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('fin_contas_bancarias', 'rb_gateway_credential_id')) {
+            return;
+        }
+
         Schema::table('fin_contas_bancarias', function (Blueprint $table) {
             $table->unsignedBigInteger('rb_gateway_credential_id')
                 ->nullable()
