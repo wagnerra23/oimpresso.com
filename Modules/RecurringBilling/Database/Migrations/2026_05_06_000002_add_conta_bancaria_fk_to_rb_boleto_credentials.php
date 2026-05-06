@@ -8,8 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Idempotente: pular se já rodou parcialmente em deploy anterior
+        if (Schema::hasColumn('rb_boleto_credentials', 'conta_bancaria_id')) {
+            return;
+        }
+
         Schema::table('rb_boleto_credentials', function (Blueprint $table) {
-            $table->unsignedBigInteger('conta_bancaria_id')
+            // Tipo deve casar com fin_contas_bancarias.id (int unsigned no schema
+            // legado UltimatePOS). Usar unsignedBigInteger quebra a FK.
+            $table->unsignedInteger('conta_bancaria_id')
                 ->nullable()
                 ->after('business_id')
                 ->comment('FK para fin_contas_bancarias — null quando for gateway puro (Asaas)');
