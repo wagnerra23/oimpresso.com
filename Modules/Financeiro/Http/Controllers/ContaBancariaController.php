@@ -160,10 +160,13 @@ class ContaBancariaController extends Controller
                 $config['client_secret'] = Crypt::encryptString($v);
             }
             if ($v = $request->input('gateway_certificado_crt')) {
+                // Cert público — base64 puro (não-sensível)
                 $config['certificado_crt_b64'] = base64_encode($v);
             }
             if ($v = $request->input('gateway_certificado_key')) {
-                $config['certificado_key_b64'] = base64_encode(Crypt::encryptString($v));
+                // Chave privada — criptografa o base64 (BoletoService::decryptConfig
+                // descriptografa antes de o driver fazer base64_decode)
+                $config['certificado_key_b64'] = Crypt::encryptString(base64_encode($v));
             }
         }
 
