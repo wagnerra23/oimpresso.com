@@ -37,7 +37,26 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
         Route::post('/chat/ask', [\Modules\SRS\Http\Controllers\ChatController::class, 'ask'])->name('memcofre.chat.ask');
         Route::post('/chat/new', [\Modules\SRS\Http\Controllers\ChatController::class, 'newSession'])->name('memcofre.chat.new');
 
-        // Install (padrão UltimatePOS)
-        Route::get('/install', [\Modules\SRS\Http\Controllers\InstallController::class, 'index'])->name('memcofre.install');
     });
 });
+
+// ===========================================================================
+// Install (padrão UltimatePOS) — prefixo /srs/install (canônico após rename)
+// ===========================================================================
+// Fix da regressão do PR #97 (Fase 3.7 PR-2): tinha só 1 rota Install no
+// prefixo /memcofre — botão em /manage-modules ficava com action() apontando
+// pra nome antigo. Agora 4 rotas no prefixo novo /srs/install + 301 das
+// URLs antigas pra compat de bookmarks.
+Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->group(function () {
+    Route::prefix('srs/install')->group(function () {
+        Route::get('/',           [\Modules\SRS\Http\Controllers\InstallController::class, 'index'])->name('srs.install.index');
+        Route::post('/',          [\Modules\SRS\Http\Controllers\InstallController::class, 'install'])->name('srs.install.run');
+        Route::get('/uninstall',  [\Modules\SRS\Http\Controllers\InstallController::class, 'uninstall'])->name('srs.install.uninstall');
+        Route::get('/update',     [\Modules\SRS\Http\Controllers\InstallController::class, 'update'])->name('srs.install.update');
+    });
+});
+
+// 301 das URLs antigas /memcofre/install/* → /srs/install/* (compat bookmarks)
+Route::redirect('/memcofre/install',           '/srs/install',           301);
+Route::redirect('/memcofre/install/uninstall', '/srs/install/uninstall', 301);
+Route::redirect('/memcofre/install/update',    '/srs/install/update',    301);
