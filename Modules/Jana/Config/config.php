@@ -88,7 +88,7 @@ return [
         'recall_enabled' => env('COPILOTO_MEMORIA_RECALL', true),
         'write_enabled'  => env('COPILOTO_MEMORIA_WRITE', true),
         'meilisearch' => [
-            'index'          => env('COPILOTO_MEMORIA_INDEX', 'copiloto_memoria_facts'),
+            'index'          => env('COPILOTO_MEMORIA_INDEX', 'jana_memoria_facts'),
             'top_k_default'  => 5,
             // Sprint 9b (US-COPI-083, 2026-05-04) — qwen3-embedding:0.6b + stopwords PT-BR
             // + ratio=0.6 venceu eval matrix:

@@ -5,7 +5,7 @@ namespace Modules\Jana\Contracts;
 /**
  * MemoriaPersistida — DTO de retorno dos métodos da MemoriaContrato.
  *
- * Não é Eloquent — driver-agnostic. MeilisearchDriver hidrata de CopilotoMemoriaFato,
+ * Não é Eloquent — driver-agnostic. MeilisearchDriver hidrata de MemoriaFato,
  * Mem0RestDriver hidrataria de payload da API, NullMemoriaDriver de fixtures.
  */
 final class MemoriaPersistida

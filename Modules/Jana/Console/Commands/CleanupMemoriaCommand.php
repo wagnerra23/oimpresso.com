@@ -61,7 +61,7 @@ class CleanupMemoriaCommand extends Command
         $stats = ['bloat' => 0, 'expirados' => 0, 'orfaos' => 0];
 
         // ── 1. BLOAT — nunca usados, velhos ──────────────────────────────────
-        $bloatQuery = DB::table('copiloto_memoria_facts')
+        $bloatQuery = DB::table('jana_memoria_facts')
             ->whereNull('deleted_at')
             ->where('hits_count', 0)
             ->where('core_memory', false)
@@ -81,7 +81,7 @@ class CleanupMemoriaCommand extends Command
         }
 
         // ── 2. EXPIRADOS — valid_until preenchido há muito tempo ─────────────
-        $expiredQuery = DB::table('copiloto_memoria_facts')
+        $expiredQuery = DB::table('jana_memoria_facts')
             ->whereNull('deleted_at')
             ->whereNotNull('valid_until')
             ->where('valid_until', '<', now()->subDays($expiredDays));
@@ -100,7 +100,7 @@ class CleanupMemoriaCommand extends Command
         }
 
         // ── 3. ÓRFÃOS — fatos seedados cujo doc MCP foi deletado ─────────────
-        $orfaosQuery = DB::table('copiloto_memoria_facts as f')
+        $orfaosQuery = DB::table('jana_memoria_facts as f')
             ->whereNull('f.deleted_at')
             ->whereRaw("JSON_EXTRACT(f.metadata, '$.seeded_from_mcp') = true")
             ->whereNotExists(function ($sub) {
@@ -119,7 +119,7 @@ class CleanupMemoriaCommand extends Command
 
         if (! $dryRun && $stats['orfaos'] > 0) {
             // Órfãos sempre soft-delete (nunca hard — preserva histórico de ADR)
-            DB::table('copiloto_memoria_facts as f')
+            DB::table('jana_memoria_facts as f')
                 ->whereNull('f.deleted_at')
                 ->whereRaw("JSON_EXTRACT(f.metadata, '$.seeded_from_mcp') = true")
                 ->whereNotExists(function ($sub) {
@@ -144,7 +144,7 @@ class CleanupMemoriaCommand extends Command
 
         if ($total > 0 && ! $dryRun) {
             // Calcula bloat_ratio para log de métrica (ADR 0050)
-            $totalAtivos = DB::table('copiloto_memoria_facts')
+            $totalAtivos = DB::table('jana_memoria_facts')
                 ->whereNull('deleted_at')
                 ->when($businessId !== null, fn ($q) => $q->where('business_id', $businessId))
                 ->count();

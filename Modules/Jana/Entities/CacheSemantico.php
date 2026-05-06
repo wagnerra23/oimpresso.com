@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CacheSemantico extends Model
 {
-    protected $table = 'copiloto_cache_semantico';
+    protected $table = 'jana_cache_semantico';
 
     protected $fillable = [
         'cache_key', 'business_id', 'user_id',

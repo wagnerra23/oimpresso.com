@@ -16,7 +16,7 @@ use Modules\Jana\Scopes\ScopeByBusiness;
  */
 
 beforeEach(function () {
-    Schema::create('copiloto_meta_apuracoes', function (Blueprint $table) {
+    Schema::create('jana_meta_apuracoes', function (Blueprint $table) {
         $table->bigIncrements('id');
         $table->unsignedBigInteger('meta_id');
         $table->date('data_ref');
@@ -25,12 +25,12 @@ beforeEach(function () {
         $table->string('fonte_query_hash', 64);
         $table->timestamps();
 
-        $table->unique(['meta_id', 'data_ref', 'fonte_query_hash'], 'copiloto_apur_unico');
+        $table->unique(['meta_id', 'data_ref', 'fonte_query_hash'], 'jana_apur_unico');
     });
 });
 
 afterEach(function () {
-    Schema::dropIfExists('copiloto_meta_apuracoes');
+    Schema::dropIfExists('jana_meta_apuracoes');
 });
 
 // ─── Testes ──────────────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ it('dois ApurarMetaJob na mesma data produzem 1 linha (idempotência)', function
     );
 
     expect(
-        DB::table('copiloto_meta_apuracoes')->where('meta_id', $metaId)->count()
+        DB::table('jana_meta_apuracoes')->where('meta_id', $metaId)->count()
     )->toBe(1);
 
     // Segunda apuração com mesma chave — deve atualizar, não duplicar
@@ -57,10 +57,10 @@ it('dois ApurarMetaJob na mesma data produzem 1 linha (idempotência)', function
     );
 
     expect(
-        DB::table('copiloto_meta_apuracoes')->where('meta_id', $metaId)->count()
+        DB::table('jana_meta_apuracoes')->where('meta_id', $metaId)->count()
     )->toBe(1, 'Deve ter apenas 1 linha mesmo após 2 apurações na mesma data');
 
-    $apuracao = DB::table('copiloto_meta_apuracoes')->where('meta_id', $metaId)->first();
+    $apuracao = DB::table('jana_meta_apuracoes')->where('meta_id', $metaId)->first();
     expect((float) $apuracao->valor_realizado)->toBe(2000.0, 'O valor deve ter sido atualizado');
 });
 

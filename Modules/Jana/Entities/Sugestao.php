@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Sugestao extends Model
 {
-    protected $table = 'copiloto_sugestoes';
+    protected $table = 'jana_sugestoes';
 
     protected $fillable = [
         'conversa_id', 'meta_id', 'payload_json', 'escolhida_em', 'rejeitada_em',

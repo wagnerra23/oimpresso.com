@@ -55,7 +55,7 @@ O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePO
                                                     ▼
                               ┌──────────────────────────────────────┐
                               │  Eloquent + MySQL                    │
-                              │  copiloto_memoria_facts              │
+                              │  jana_memoria_facts              │
                               │  (multi-tenant business_id+user_id   │
                               │   + valid_from/until + soft_deletes) │
                               │     ↕  Scout Searchable observers   │
@@ -117,7 +117,7 @@ O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePO
 2. Carrega Conversa.mensagens últimas 10 (~5ms)
 3. ExtrairFatosAgent.prompt() → laravel/ai com schema JSON (~2-5s)
 4. Filtra fatos com relevancia >= 5 (PHP)
-5. Pra cada fato: MemoriaContrato.lembrar() → grava em copiloto_memoria_facts → Scout indexa em Meilisearch automatic via observer
+5. Pra cada fato: MemoriaContrato.lembrar() → grava em jana_memoria_facts → Scout indexa em Meilisearch automatic via observer
 6. Log estruturado canal `copiloto-ai` (sucesso/erro)
 ```
 
@@ -132,7 +132,7 @@ O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePO
 ```
 1. MemoriaController@destroy
 2. MemoriaContrato.esquecer(id) → MeilisearchDriver
-3. CopilotoMemoriaFato::find(id)->delete() (soft delete, mantém row pra audit)
+3. MemoriaFato::find(id)->delete() (soft delete, mantém row pra audit)
 4. Observer Scout dispara unsearchable() → Meilisearch DELETE no índice (~100-500ms async)
 5. Log estruturado + flash success
 ```
@@ -150,13 +150,13 @@ O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePO
 ```
 1. MemoriaController@update valida fato (string max:1000)
 2. MemoriaContrato.atualizar() → MeilisearchDriver
-3. Antigo: UPDATE copiloto_memoria_facts SET valid_until=NOW()
-4. Novo: INSERT copiloto_memoria_facts com valid_from=NOW()
+3. Antigo: UPDATE jana_memoria_facts SET valid_until=NOW()
+4. Novo: INSERT jana_memoria_facts com valid_from=NOW()
 5. Observer Scout: shouldBeSearchable() = false pro antigo, true pro novo
 6. Meilisearch reflete: antigo sai do índice, novo entra
 ```
 
-**Auditoria:** histórico completo navegável via `CopilotoMemoriaFato::where('valid_until', '<', now())` — útil pra "qual era a meta da Larissa em janeiro?"
+**Auditoria:** histórico completo navegável via `MemoriaFato::where('valid_until', '<', now())` — útil pra "qual era a meta da Larissa em janeiro?"
 
 ### Fluxo 5 — Onboarding novo cliente (futuro — não implementado)
 
@@ -190,7 +190,7 @@ O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePO
          │ 1     N
          │
 ┌────────▼─────────────────────────────────┐
-│  copiloto_memoria_facts                   │  ← Sprint 4 (PR #25)
+│  jana_memoria_facts                   │  ← Sprint 4 (PR #25)
 │  id, business_id, user_id, fato (text),   │
 │  metadata (json: categoria, relevancia,   │
 │   origem, conversa_id, extraido_em),      │
@@ -204,7 +204,7 @@ O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePO
                  ▼
 ┌─────────────────────────────────────────┐
 │  Meilisearch (self-hosted, R$ [redacted Tier 0]/mês)     │
-│  index: copiloto_memoria_facts           │
+│  index: jana_memoria_facts           │
 │  embedder: openai-text-embedding-3-small│
 │  hybrid: full-text + semantic (ratio=0.5)│
 └─────────────────────────────────────────┘
@@ -291,7 +291,7 @@ php artisan horizon:status                                              # runnin
 | `copiloto_memoria_recall_latency_p95_ms` | < 200 | Meilisearch sob pressão |
 | `copiloto_extraction_job_failure_rate` | < 5% | Schema LLM quebrando |
 | `copiloto_tokens_per_user_month_brl` | < R$ [redacted Tier 0] | User abusivo OU caching off |
-| `copiloto_memoria_facts_per_user` | 50-500 | <50 = bridge não está extraindo; >500 = falta cleanup |
+| `jana_memoria_facts_per_user` | 50-500 | <50 = bridge não está extraindo; >500 = falta cleanup |
 
 ### Backups
 

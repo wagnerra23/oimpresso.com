@@ -8,7 +8,7 @@ use Modules\Jana\Scopes\ScopeByBusiness;
 
 class Conversa extends Model
 {
-    protected $table = 'copiloto_conversas';
+    protected $table = 'jana_conversas';
 
     protected $fillable = [
         'business_id', 'user_id', 'titulo', 'status', 'iniciada_em',

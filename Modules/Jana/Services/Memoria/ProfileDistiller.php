@@ -80,7 +80,7 @@ class ProfileDistiller
                 now()->addDay()
             );
 
-            DB::table('copiloto_business_profile')->updateOrInsert(
+            DB::table('jana_business_profile')->updateOrInsert(
                 ['business_id' => $businessId],
                 [
                     'profile_text' => $profileText,
@@ -129,7 +129,7 @@ class ProfileDistiller
     public function obter(int $businessId): ?string
     {
         return Cache::tags(['copiloto:profile'])->get("profile:{$businessId}")
-            ?: DB::table('copiloto_business_profile')
+            ?: DB::table('jana_business_profile')
                 ->where('business_id', $businessId)
                 ->value('profile_text');
     }

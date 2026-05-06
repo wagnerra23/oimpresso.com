@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
  * MemoriaMetrica — 1 linha/dia/business_id com as 8 métricas obrigatórias
  * (ADR 0050) + 3 RAGAS-aligned (ADR 0051) + contadores acessórios.
  *
- * Tabela: copiloto_memoria_metricas
+ * Tabela: jana_memoria_metricas (rename ADR 0090)
  * Multi-tenant: business_id nullable (NULL = plataforma agregada)
  * Idempotente: unique (apurado_em, business_id) → upsert seguro
  *
@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MemoriaMetrica extends Model
 {
-    protected $table = 'copiloto_memoria_metricas';
+    protected $table = 'jana_memoria_metricas';
 
     protected $fillable = [
         'apurado_em',

@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Serviço de agregação de custos de IA do Copiloto (US-COPI-070).
  *
- * Lê tokens das mensagens (`copiloto_mensagens.tokens_in/tokens_out`) via join
- * com `copiloto_conversas` (pra scope por business) e calcula:
+ * Lê tokens das mensagens (`jana_mensagens.tokens_in/tokens_out`) via join
+ * com `jana_conversas` (pra scope por business) e calcula:
  *  - KPIs do período (R$, mensagens, tokens, usuários ativos)
  *  - Breakdown por usuário (tabela)
  *  - Série diária (gráfico de área)
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
  *
  * Pricing e câmbio vêm de `config/copiloto.php`. Modelo default é
  * `config('copiloto.ai.pricing_default_model')` enquanto não persistirmos
- * `modelo` em `copiloto_mensagens`.
+ * `modelo` em `jana_mensagens`.
  */
 class CustosService
 {
@@ -40,8 +40,8 @@ class CustosService
         $iniSql = $inicio->copy()->startOfDay()->toDateTimeString();
         $fimSql = $fim->copy()->endOfDay()->toDateTimeString();
 
-        $base = DB::table('copiloto_mensagens as m')
-            ->join('copiloto_conversas as c', 'c.id', '=', 'm.conversa_id')
+        $base = DB::table('jana_mensagens as m')
+            ->join('jana_conversas as c', 'c.id', '=', 'm.conversa_id')
             ->where('c.business_id', $businessId)
             ->whereBetween('m.created_at', [$iniSql, $fimSql]);
 

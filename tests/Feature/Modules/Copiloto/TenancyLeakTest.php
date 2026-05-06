@@ -66,7 +66,7 @@ beforeEach(function () {
         $table->primary(['permission_id', 'role_id']);
     });
 
-    Schema::create('copiloto_metas', function (Blueprint $table) {
+    Schema::create('jana_metas', function (Blueprint $table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id')->nullable();
         $table->string('slug', 80);
@@ -85,7 +85,7 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('copiloto_metas');
+    Schema::dropIfExists('jana_metas');
     Schema::dropIfExists('role_has_permissions');
     Schema::dropIfExists('model_has_roles');
     Schema::dropIfExists('model_has_permissions');

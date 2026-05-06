@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Mensagem extends Model
 {
-    protected $table = 'copiloto_mensagens';
+    protected $table = 'jana_mensagens';
 
     protected $fillable = [
         'conversa_id', 'role', 'content', 'tokens_in', 'tokens_out',

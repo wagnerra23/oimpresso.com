@@ -145,16 +145,16 @@ class ContextSnapshotService
 
         try {
             // Joins mínimos: meta + período corrente + última apuração desse período
-            $rows = DB::table('copiloto_metas as m')
+            $rows = DB::table('jana_metas as m')
                 ->where('m.ativo', true)
                 ->where('m.business_id', $businessId)
-                ->leftJoin('copiloto_meta_periodos as p', function ($join) {
+                ->leftJoin('jana_meta_periodos as p', function ($join) {
                     $join->on('p.meta_id', '=', 'm.id')
                          ->where('p.data_inicio', '<=', now())
                          ->where('p.data_fim', '>=', now());
                 })
                 ->leftJoinSub(
-                    DB::table('copiloto_meta_apuracoes')
+                    DB::table('jana_meta_apuracoes')
                         ->select('meta_periodo_id', DB::raw('MAX(valor) as realizado'))
                         ->groupBy('meta_periodo_id'),
                     'a',

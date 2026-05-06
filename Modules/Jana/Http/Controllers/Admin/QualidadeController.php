@@ -125,8 +125,8 @@ class QualidadeController extends Controller
             'kpis'           => array_values($kpis),
             'gates'          => $gates,
             'filtros'        => ['dias' => $dias, 'business_id' => $businessId],
-            'gabarito_total' => DB::table('copiloto_memoria_gabarito')->where('ativo', true)->count(),
-            'gabarito_por_categoria' => DB::table('copiloto_memoria_gabarito')
+            'gabarito_total' => DB::table('jana_memoria_gabarito')->where('ativo', true)->count(),
+            'gabarito_por_categoria' => DB::table('jana_memoria_gabarito')
                 ->where('ativo', true)
                 ->select('categoria', DB::raw('COUNT(*) as c'))
                 ->groupBy('categoria')
