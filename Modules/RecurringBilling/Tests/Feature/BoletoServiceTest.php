@@ -9,15 +9,30 @@ use Modules\RecurringBilling\Services\Boleto\Drivers\AsaasDriver;
 use Modules\RecurringBilling\Services\Boleto\Drivers\C6Driver;
 use Modules\RecurringBilling\Services\Boleto\Drivers\InterDriver;
 
-uses(Tests\TestCase::class, \Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(Tests\TestCase::class);
 
+/**
+ * Sem RefreshDatabase: migrations legadas UltimatePOS usam
+ * ALTER TABLE ... MODIFY COLUMN ENUM (sintaxe MySQL-only) e quebram
+ * em SQLite. Criamos só a tabela rb_boleto_credentials manualmente.
+ */
 beforeEach(function () {
-    // Migrations legadas UltimatePOS usam sintaxe MySQL-only
-    // (ALTER TABLE ... MODIFY COLUMN ENUM(...)) que SQLite rejeita.
-    // Esses testes precisam DB real — pular em CI/sandbox SQLite.
-    if (\Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('Requer MySQL — migrations UltimatePOS não SQLite-compatíveis. Rodar local com APP_ENV=testing-mysql.');
-    }
+    \Illuminate\Support\Facades\Schema::dropIfExists('rb_boleto_credentials');
+    \Illuminate\Support\Facades\Schema::create('rb_boleto_credentials', function ($table) {
+        $table->id();
+        $table->unsignedInteger('business_id')->index();
+        $table->unsignedInteger('conta_bancaria_id')->nullable();
+        $table->string('banco', 30);
+        $table->string('ambiente', 20)->default('production');
+        $table->boolean('ativo')->default(true);
+        $table->string('nome_display')->nullable();
+        $table->json('config_json');
+        $table->timestamps();
+    });
+});
+
+afterEach(function () {
+    \Illuminate\Support\Facades\Schema::dropIfExists('rb_boleto_credentials');
 });
 
 /**
