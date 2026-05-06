@@ -3,16 +3,23 @@ slug: 0010-sistema-memoria-projeto
 number: 10
 title: !!binary gJQgU2lzdGVtYSBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvIChDTEFVREUubWQgKyAvbWVtb3J5Lyk=
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by:
   - W
 decided_at: '2026-04-18'
 quarter: 2026-Q2
 tags: {  }
+supersedes: []
+superseded_by:
+  - '0027'
+  - 0027-gestao-memoria-roles-claros
+  - '0053'
+  - 0053-mcp-server-governanca-como-produto
 related:
   - '0005'
+triage_2026_05_06_note: Sistema de memória v1 (CLAUDE.md + /memory/) substituído pela governança formalizada em 0027 (papéis) + 0053 (MCP server como produto).
 pii: false
 ---
 # ADR 0010 — Sistema de memória do projeto (CLAUDE.md + /memory/)

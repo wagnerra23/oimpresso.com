@@ -12,10 +12,11 @@ decided_at: '2026-04-26'
 module: copiloto
 quarter: 2026-Q2
 tags: {  }
-supersedes:
-  - '2026-04-30'
+supersedes: []
+superseded_by:
   - '0048'
   - 0048-vizra-rejeitada-laravel-ai-consolidado
+triage_2026_05_06_note: Frontmatter corrigido — campo supersedes estava errado (continha 0048, mas 0048 é quem rejeitou Vizra/supersede 0032). Vizra ADK rejeitada oficialmente.
 related:
   - '0026'
   - 0026-posicionamento-erp-grafico-com-ia

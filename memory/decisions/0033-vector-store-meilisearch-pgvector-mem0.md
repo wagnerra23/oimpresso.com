@@ -3,14 +3,19 @@ slug: 0033-vector-store-meilisearch-pgvector-mem0
 number: 33
 title: !!binary gJQgVmVjdG9yIHN0b3JlIC8gc2VhcmNoIGJhY2tlbmQgZG8gb2ltcHJlc3NvOiBwZ3ZlY3RvciB2cyBNZWlsaXNlYXJjaCtTY291dCB2cyBNZW0w
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by:
   - W
 decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
+supersedes: []
+superseded_by:
+  - '0036'
+  - 0036-replanejamento-meilisearch-first
+triage_2026_05_06_note: Debate vector store (pgvector vs Meilisearch+Scout vs Mem0) resolvido em 0036 (Meilisearch first canônico).
 related:
   - '0026'
   - 0026-posicionamento-erp-grafico-com-ia
