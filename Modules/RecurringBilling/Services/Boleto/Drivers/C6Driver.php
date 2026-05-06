@@ -79,8 +79,15 @@ class C6Driver implements BoletoDriverContract
 
     public function cancelar(string $nossoNumero, string $motivo = 'ACERTOS'): bool
     {
-        // C6 sem API — cancelamento via CNAB remessa ou manual no portal
-        return true;
+        // C6 não tem API de cancelamento — requer CNAB remessa de cancelamento
+        // (ocorrência 02 - "Pedido de baixa") ou ação manual no portal C6.
+        // Lançar exceção é mais seguro que fingir sucesso (US-RB-042).
+        throw new \BadMethodCallException(
+            "C6Driver::cancelar() não suportado via API. Cancele '{$nossoNumero}' " .
+            "manualmente no portal C6 (Empresarial → Cobrança → Boletos) OU " .
+            "implementar geração CNAB de remessa de cancelamento (ocorrência 02). " .
+            "Motivo registrado: {$motivo}"
+        );
     }
 
     public function pdf(string $nossoNumero): string
