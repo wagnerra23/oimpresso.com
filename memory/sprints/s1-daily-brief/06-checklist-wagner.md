@@ -219,14 +219,18 @@ GROUP BY agent_id ORDER BY calls DESC;
 - [ ] Custo total ≤ $3.50 (semana, ~$0.50/dia)
 - [ ] Zero falhas de geração persistente (>2h sem brief válido)
 
-Se falhar qualquer critério → me chama, ajustamos antes de seguir Sprint 2.
+Se falhar qualquer critério → me chama, ajustamos antes de seguir Sprint 3.
 
 ---
 
 ## Fim do Sprint 1
 
-Após semana 1 OK, posso começar **Sprint 2 — Constituição v2 + 5 skills
-Tier A finalizadas + audit das skills atuais (~18 válidas) + reescrita do
-CLAUDE.md**.
+> ⚠️ **Renumeração 2026-05-06:** o "Sprint 2" mencionado abaixo virou **Sprint 3**
+> após o Sprint 2 ter sido reaproveitado pra MWART OS Listagem. Ver
+> [ROTEIRO-MESTRE](../ROTEIRO-MESTRE.md) §2.
 
-Avise quando estiver pronto pra Sprint 2.
+Após semana 1 OK, posso começar **Sprint 3 — Constituição v2 + 5 skills
+Tier A finalizadas + audit das 19 skills atuais + reescrita do CLAUDE.md**.
+
+Avise quando estiver pronto pra Sprint 3 — Wagner dirige pessoalmente
+(decisão 2026-05-06).
