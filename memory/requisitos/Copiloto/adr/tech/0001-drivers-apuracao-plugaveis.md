@@ -55,7 +55,7 @@ Resolver recebe `Meta`, lê `meta_fonte.driver`, resolve a implementação, invo
 
 ### Driver `php`
 - `config_json.callable` resolvido via container — não aceita `eval`, não aceita closure serializada.
-- Classe **precisa estar em `Modules\Copiloto\Drivers\Php\`** (namespace fixo) e implementar `CalculaMeta`.
+- Classe **precisa estar em `Modules\Jana\Drivers\Php\`** (namespace fixo) e implementar `CalculaMeta`.
 - Registro explícito no `CopilotoServiceProvider::$phpDrivers` — array allowlist.
 - Sem acesso ao filesystem ou rede a partir do callable (pode chamar queries — isso passa por permissões do DB).
 

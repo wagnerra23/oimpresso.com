@@ -6,7 +6,7 @@
 - **Versão:** ?
 - **Path:** `D:\oimpresso.com\Modules/PontoWr2`
 - **Status:** 🟢 ativo
-- **Providers:** Modules\PontoWr2\Providers\PontoWr2ServiceProvider
+- **Providers:** Modules\Ponto\Providers\PontoWr2ServiceProvider
 - **Requires (módulo.json):** nenhum
 
 ## Sinais detectados

@@ -204,7 +204,7 @@ SPRINT 11 → trigger condicional (Mem0/Zep):
 | P6 | `postcss.config.cjs` commitado no git | Wagner [W] | Baixa | ⏳ |
 | P7 | Sprint 7 RAGAS golden set (50 perguntas) | Wagner [W] | Média | ⏳ (depende Larissa + P1) |
 | P8 | Validar Larissa (A1) | Wagner [W] | Alta | ⏳ |
-| P9 | Após DNS resolver: `php artisan scout:import "Modules\\Copiloto\\Entities\\CopilotoMemoriaFato"` no Hostinger (classe está em Entities, não Models) | Auto | Auto | ⏳ (depende P1) |
+| P9 | Após DNS resolver: `php artisan scout:import "Modules\\Jana\\Entities\\CopilotoMemoriaFato"` no Hostinger (classe está em Entities, não Models) | Auto | Auto | ⏳ (depende P1) |
 
 ---
 

@@ -46,10 +46,10 @@ Painel read-only de leitura rápida do estado das **metas ativas** que o cliente
 
 ```php
 // Modules/Copiloto/Http/Controllers/DashboardController.php
-namespace Modules\Copiloto\Http\Controllers;
+namespace Modules\Jana\Http\Controllers;
 
 use Inertia\Inertia;
-use Modules\Copiloto\Entities\Meta;
+use Modules\Jana\Entities\Meta;
 
 class DashboardController extends Controller
 {

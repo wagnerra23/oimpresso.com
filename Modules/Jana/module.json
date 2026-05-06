@@ -1,0 +1,16 @@
+{
+    "name": "Jana",
+    "alias": "jana",
+    "description": "Jana — chat IA conversacional do business (ex-Copiloto, renomeado Fase 3.7 PR-2). Conversa, sugere metas, monitora execução. Tenancy híbrida (business_id nullable). URL/permissions/config keys mantêm prefixo legacy `copiloto.*` por compatibilidade.",
+    "keywords": ["jana", "copiloto", "metas", "kpi", "ia", "chat", "scorecard", "business-intelligence"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Jana\\Providers\\JanaServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

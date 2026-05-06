@@ -181,7 +181,7 @@ curl -X PATCH "$MEILI/indexes/mcp_memory_documents/settings/embedders" \
     }
   }'
 # Re-importar (Ollama gera novos embeddings)
-php artisan scout:import "Modules\Copiloto\Entities\Mcp\McpMemoryDocument"
+php artisan scout:import "Modules\Jana\Entities\Mcp\McpMemoryDocument"
 # Atualizar EvalRagasBaselineCommand pra usar 'qwen3_local' como embedder
 ```
 

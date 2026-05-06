@@ -1,8 +1,8 @@
 <?php
 
-use Modules\Copiloto\Contracts\AiAdapter;
-use Modules\Copiloto\Services\Ai\LaravelAiSdkDriver;
-use Modules\Copiloto\Services\Ai\OpenAiDirectDriver;
+use Modules\Jana\Contracts\AiAdapter;
+use Modules\Jana\Services\Ai\LaravelAiSdkDriver;
+use Modules\Jana\Services\Ai\OpenAiDirectDriver;
 
 /**
  * Testa o resolver do adapter de IA (adr/tech/0002).
@@ -70,7 +70,7 @@ it('dry_run retorna fixture sem chamar API', function () {
     config(['copiloto.dry_run' => true]);
 
     $driver = new OpenAiDirectDriver();
-    $ctx    = new \Modules\Copiloto\Support\ContextoNegocio(
+    $ctx    = new \Modules\Jana\Support\ContextoNegocio(
         businessId:    1,
         businessName:  'ROTA LIVRE',
         faturamento90d: [['mes' => '2026-01', 'valor' => 10000]],

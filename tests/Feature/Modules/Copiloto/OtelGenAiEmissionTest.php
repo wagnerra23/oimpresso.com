@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Log;
-use Modules\Copiloto\Entities\Conversa;
-use Modules\Copiloto\Services\Ai\LaravelAiSdkDriver;
+use Modules\Jana\Entities\Conversa;
+use Modules\Jana\Services\Ai\LaravelAiSdkDriver;
 
 /**
  * MEM-OTEL-1 (ADR 0051) — emissão OpenTelemetry GenAI semantic conventions

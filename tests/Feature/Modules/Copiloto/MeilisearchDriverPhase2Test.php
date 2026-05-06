@@ -4,11 +4,11 @@ use Illuminate\Support\Facades\Cache;
 use Laravel\Scout\Builder;
 use Laravel\Scout\EngineManager;
 use Laravel\Scout\Engines\Engine;
-use Modules\Copiloto\Entities\CopilotoMemoriaFato;
-use Modules\Copiloto\Services\Memoria\HydeQueryExpander;
-use Modules\Copiloto\Services\Memoria\LlmReranker;
-use Modules\Copiloto\Services\Memoria\MeilisearchDriver;
-use Modules\Copiloto\Services\Memoria\NegativeCacheService;
+use Modules\Jana\Entities\CopilotoMemoriaFato;
+use Modules\Jana\Services\Memoria\HydeQueryExpander;
+use Modules\Jana\Services\Memoria\LlmReranker;
+use Modules\Jana\Services\Memoria\MeilisearchDriver;
+use Modules\Jana\Services\Memoria\NegativeCacheService;
 
 /**
  * MEM-MEM-WIRE Phase 2 — testes do pipeline HyDE + Reranker + NegativeCache

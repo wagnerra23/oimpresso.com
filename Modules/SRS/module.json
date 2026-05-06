@@ -1,0 +1,16 @@
+{
+    "name": "SRS",
+    "alias": "srs",
+    "description": "SRS — System Requirements Spec (ex-MemCofre, renomeado Fase 3.7 PR-2). Cofre de documentação viva — ingestão de evidências (screenshots, chat logs, erros) → IA classifica → vira requisitos estruturados em memory/requisitos/. URL/permissions/config keys mantêm prefixo legacy `memcofre.*` por compatibilidade.",
+    "keywords": ["srs", "memcofre", "documentation", "requirements", "knowledge-management", "evidence", "user-stories"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\SRS\\Providers\\SrsServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

@@ -59,24 +59,12 @@ db_tables_owned:
   - mcp_confidence_scores
   - mcp_skills / mcp_skill_versions / mcp_skill_approvals / mcp_skill_test_runs / mcp_skill_labels
   - mcp_governance_rules (compartilhada com Modules/Governance — Fase 5)
-drift_alerts:
-  # Controllers que estão em ADS mas pertencem a outro módulo (audit 2026-05-05):
-  - controller: "Admin/ProjectsController"
-    pertence_a: "Modules/Project (ex-ProjectMgmt)"
-    motivo: "gerencia mcp_jira_projects/cycles/tasks (Jira-style), não decision flow"
-    eta_migracao: "Fase 3.7 (após renames)"
-  - controller: "Admin/ToolsController"
-    pertence_a: "Modules/TeamMcp"
-    motivo: "MCP tools registry pertence a TeamMcp (governance MCP server)"
-    eta_migracao: "Fase 3.7"
-  - controller: "Admin/TeamScopesController"
-    pertence_a: "Modules/TeamMcp"
-    motivo: "RBAC scopes do MCP server pertencem a TeamMcp"
-    eta_migracao: "Fase 3.7"
-  - controller: "Admin/GraphController"
-    pertence_a: "Modules/KB"
-    motivo: "Knowledge graph pertence a KB"
-    eta_migracao: "Fase 3.7"
+drift_alerts: []
+  # Fase 3.7 PR-1 (2026-05-06): 4 drift controllers movidos pros donos corretos.
+  # Admin/ProjectsController → Modules/ProjectMgmt
+  # Admin/ToolsController + Admin/TeamScopesController → Modules/TeamMcp
+  # Admin/GraphController → Modules/KB
+  # URLs mantidas em /ads/admin/* via use imports atualizadas em Routes/web.php.
 ---
 
 # Modules/ADS — Adaptive Decision System
@@ -171,9 +159,9 @@ Action proposta por IA
 - `/ads/admin/meta-skills` (governance rules editor)
 - `/api/ads/decision` (endpoint público pra IA propor decisão)
 
-## Drift detectado (audit 2026-05-05)
+## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
 
-4 controllers em ADS pertencem a outros módulos. **NÃO são ADS** — migrar em Fase 3.7. Listados em `drift_alerts` no frontmatter.
+Os 4 controllers detectados no audit 2026-05-05 (ProjectsController, ToolsController, TeamScopesController, GraphController) foram movidos pros módulos donos corretos. URLs `/ads/admin/*` mantidas inalteradas — só `use` imports apontam pros novos namespaces.
 
 ## Como esta SCOPE.md evolui
 
@@ -189,3 +177,4 @@ Mudança em `drift_alerts[]` (resolução do drift) é livre — vira nota de pr
 ## Histórico
 
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. Seed pattern pros outros 29 módulos. Drift atual documentado.
+- **v1.1.0** (2026-05-06) — Fase 3.7 PR-1: 4 drift controllers movidos. drift_alerts vazio.
