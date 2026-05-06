@@ -9,7 +9,7 @@ use Laravel\Scout\Searchable;
 /**
  * MemoriaFato — fato persistente sobre user/business pra Jana lembrar.
  *
- * Tabela: jana_memoria_facts (rename ADR 0090; legado copiloto_memoria_facts via VIEW 30d)
+ * Tabela: jana_memoria_facts (rename ADR 0092; legado copiloto_memoria_facts via VIEW 30d)
  * Multi-tenant: business_id + user_id (US-COPI-MEM-005)
  * Temporal: valid_from / valid_until (futuro: US-COPI-MEM-009 — Mem0/Zep upgrade)
  * LGPD: SoftDeletes — esquecer() = soft delete

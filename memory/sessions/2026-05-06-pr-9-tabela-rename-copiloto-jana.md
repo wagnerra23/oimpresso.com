@@ -13,8 +13,8 @@ Sessão de continuação após `/continuar`. Wagner respondeu "2" (executar PR-9
 
 ### Documentação canônica
 
-- ✅ Criada [ADR 0090](../decisions/0090-tabela-rename-copiloto-para-jana.md) — supersede §DB do ADR 0088
-- ✅ ADR 0088 frontmatter: `superseded_by_section.db: "0090-tabela-rename-copiloto-para-jana"`
+- ✅ Criada [ADR 0092](../decisions/0092-tabela-rename-copiloto-para-jana.md) — supersede §DB do ADR 0088
+- ✅ ADR 0088 frontmatter: `superseded_by_section.db: "0092-tabela-rename-copiloto-para-jana"`
 - ✅ MODULE-DRIFT-MIGRATION-PLAN bumped v1.2 → 1.3 com erratum §4
 - ✅ SCOPE.md Jana bumped v1.2.0 → 1.3.0 (`db_tables_owned` + `db_tables_legacy_views`)
 - ✅ RUNBOOK-MEMORIA-SEMANAL atualizado
@@ -110,7 +110,7 @@ Planejado **2026-06-05** (30 dias). ADR sub-decisão futura ou comando `php arti
 
 ## Arquivos tocados (resumo `git status`)
 
-- 47 modificados + 2 novos (ADR 0090 + migration)
+- 47 modificados + 2 novos (ADR 0092 + migration)
 - 1 rename git (CopilotoMemoriaFato → MemoriaFato)
 
 ## Estatísticas bulk-replace (PowerShell)

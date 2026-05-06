@@ -5,7 +5,7 @@ title: "Module rename PHP-only — fachada legacy mantida durante transição"
 type: adr
 status: aceito
 superseded_by_section:
-  db: "0090-tabela-rename-copiloto-para-jana"
+  db: "0092-tabela-rename-copiloto-para-jana"
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
