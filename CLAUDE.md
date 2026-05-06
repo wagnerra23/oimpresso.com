@@ -5,8 +5,8 @@
 
 > ⚠️ **CONTEXTO DE EXECUÇÃO — leia antes de qualquer ação:**
 > Claude aqui roda como **agente desktop (GUI)**, **NÃO como CLI interativo**.
-> - `gh auth login`, `gh pr create` e similares **não funcionam** — `gh` não está autenticado nesta máquina. Para PRs/issues no GitHub, forneça o link do push e oriente o usuário a abrir manualmente em `github.com`.
-> - Comandos interativos (`ssh` com senha, `git rebase -i`, prompts de stdin) também não funcionam — use alternativas não-interativas ou oriente o usuário.
+> - `gh` **está autenticado** na máquina do Wagner (token `keyring`, validado 2026-05-06). `gh pr create`/`gh pr merge`/`gh pr view` funcionam. Confirme com `gh auth status` antes de assumir o contrário.
+> - Comandos interativos com prompt de stdin (`ssh` com senha digitada, `git rebase -i`, `gh auth login`) **não funcionam** — use alternativas não-interativas (chave SSH, `--no-edit`, flags explícitas) ou oriente o usuário.
 > - Browser Chrome está disponível via `mcp__Claude_in_Chrome__*` (quando a extensão estiver conectada) ou `mcp__computer-use__*` em tier **read** (screenshot only, sem click/type).
 > - Para abrir URLs no browser, use as tools MCP de browser — **nunca tente contornar via shell** (`start`, `xdg-open`, etc.).
 
@@ -18,7 +18,7 @@ ERP gráfico brasileiro para o setor de **comunicação visual** (gráficas ráp
 
 **Originalmente nasceu** como módulo Ponto WR2 (controle de ponto eletrônico Portaria MTP 671/2021) e evoluiu pra plataforma vertical completa.
 
-> ⚠️ **Estado do trabalho atual:** chame `cycles-active` + `my-work` via tools MCP. CURRENT.md/TASKS.md foram removidos em 2026-05-04 ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)).
+> ⚠️ **Estado do trabalho atual:** chame **`brief-fetch` PRIMEIRO** (skill `brief-first` Tier A always-on, ADR 0091). O brief é um markdown ≤3.5k tokens com cycle ativo + HITL pending + decisões 24h + skills uso 7d, gerado 6x/dia. Se brief estiver indisponível (503), faça fallback pra `cycles-active` + `my-work`. CURRENT.md/TASKS.md foram removidos em 2026-05-04 ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)).
 
 **Stack REAL:** Laravel **13.6** + PHP 8.4 (Herd) · MySQL Laragon · DB `oimpresso` · Inertia **v3** + React 19 + Tailwind 4 · Pest v4 · nWidart/laravel-modules ^10 · `spatie/laravel-html` ^3.13 com shim `App\View\Helpers\Form`.
 
@@ -50,7 +50,8 @@ Se você tem o MCP server `oimpresso` conectado (`.claude/settings.local.json` c
 
 | Pergunta | Tool MCP |
 |---|---|
-| "O que estou fazendo hoje?" | `my-work` |
+| **"Estado consolidado do projeto" (CHAME PRIMEIRO)** | **`brief-fetch`** (ADR 0091, skill `brief-first`) |
+| "O que estou fazendo hoje?" | `my-work` (redundante após brief-fetch — só se brief indisponível) |
 | "Tem algo na minha caixa de entrada?" | `my-inbox` |
 | "Estado do cycle ativo" | `cycles-active` |
 | "Goals do cycle batendo?" | `cycle-goals-track cycle:current` |
@@ -90,6 +91,7 @@ Pra qualquer coisa visual/UX, comece em [`DESIGN.md`](DESIGN.md). Pra acesso/dep
 - Use **`/continuar`** pra retomar sessão sem re-explorar o repo do zero (chama `cycles-active` + `my-work` via tools MCP + handoff + último session log + abre só os arquivos do próximo passo).
 
 **Skills auto-ativáveis:** arquivos em `.claude/skills/<nome>/SKILL.md` ativam automaticamente quando o `description:` do frontmatter casa com a tarefa em andamento. Use pra encapsular padrões recorrentes:
+- **`brief-first` (Tier A always-on)** — força `brief-fetch` como PRIMEIRA tool em toda sessão (ADR 0091, Sprint 1). Substitui 5-8 chamadas exploratórias (`cycles-active`/`sessions-recent`/`tasks-active`/`decisions-search`) por 1 brief de ~3k tokens. Economia média: ~27k tokens/sessão.
 - `multi-tenant-patterns` — ativa ao criar Entity/Controller/Service/Job que toca dados de negócio (`business_id`).
 - `publication-policy` — ativa antes de git push, abertura/merge de PR, deploy em produção, ou postagem externa. Decide se Claude executa direto ou escala pro Wagner. Wagner explicitamente delegou supervisão; Claude não pergunta antes de ação rotineira reversível. Ver [ADR 0040](memory/decisions/0040-policy-publicacao-claude-supervisiona.md).
 
@@ -282,4 +284,6 @@ Ver [`DESIGN.md`](DESIGN.md) — hub visual + padrão técnico Chat Cockpit (App
 
 ---
 
-> **Última atualização:** 2026-05-04 — §2 §3 §6 §10 reescritos pra Jira-style task management ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)): CURRENT.md/TASKS.md REMOVIDOS; estado vivo via tools `cycles-active`/`my-work`/`tasks-list`/`triage`/`my-inbox` + tabelas `mcp_projects/epics/cycles/tasks`. Hierarquia profissional: Project → Epic → Cycle → Story → Subtask + Components cross-cut + Custom fields + Saved views + Inbox + Bidirectional git sync + Memory-linked tasks (D1) + AI-native (D2).
+> **Última atualização:** 2026-05-06 — Sprint 1 da Constituição V2 entregue ([ADR 0091](memory/decisions/0091-daily-brief.md)): camada L7 Daily Brief no ar (Module Brief + migration MySQL + cron 6x/dia + skill `brief-first` Tier A). Toda sessão de Claude Code agora começa com `brief-fetch` (~3k tokens) em vez de 5-8 tool calls exploratórias (~30k tokens). Aviso sobre `gh` corrigido — está autenticado.
+>
+> **Anteriores:** 2026-05-04 §2 §3 §6 §10 Jira-style ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md)): CURRENT.md/TASKS.md REMOVIDOS; estado vivo via tools `cycles-active`/`my-work`/`tasks-list`/`triage`/`my-inbox` + tabelas `mcp_projects/epics/cycles/tasks`. Hierarquia: Project → Epic → Cycle → Story → Subtask.
