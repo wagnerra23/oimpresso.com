@@ -19,7 +19,7 @@ use Modules\Governance\Http\Controllers\DriftAlertsController;
 |
 */
 
-Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('governance')
     ->name('governance.')
     ->group(function () {
