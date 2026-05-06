@@ -1,6 +1,28 @@
 # MISSION BRIEF — Claude Opus 4.7 Executor
 ## Implementação completa da Constituição Oimpresso v2
 
+> ⚠️ **ATENÇÃO — RENUMERAÇÃO DE SPRINTS (2026-05-06):** este briefing foi
+> escrito antes do Sprint 2 (MWART OS Listagem) ter sido executado, então
+> chamava "Sprint 2 = Constituição". Na prática: **S2 virou MWART OS
+> Listagem (já mergeada)** e **a Constituição agora é S3**. Cada referência
+> abaixo a "Sprint N" precisa ser lida como "Sprint N+1" para N ≥ 2.
+> Mapeamento canônico em [`memory/sprints/ROTEIRO-MESTRE.md`](sprints/ROTEIRO-MESTRE.md) §2.
+>
+> | Aqui no brief | Numeração canônica |
+> |---|---|
+> | "Sprint 2 — Constituição" (§4) | **Sprint 3** |
+> | "Sprint 3 — Page Charters" (§5) | **Sprint 4** |
+> | "Sprint 4 — ADS Universal" (§6) | **Sprint 5** |
+> | "Sprint 5 — Playbooks + Strangler" (§7) | **Sprint 6** |
+> | "Sprint 6 — ADR poda + Cockpit" (§8) | **Sprint 7** |
+> | path `memory/sprints/s2-onwards/` | `memory/sprints/s3-onwards/` |
+> | path `memory/sprints/s2-constituicao/` | `memory/sprints/s3-constituicao/` |
+> | path `memory/sprints/s6-cockpit/` | `memory/sprints/s7-cockpit/` |
+>
+> **Wagner dirige S3 pessoalmente** (decisão 2026-05-06) — Opus aguarda
+> instrução explícita antes de tocar Constituição. Outros sprints permanecem
+> sob Opus conforme texto original.
+
 > **Para:** Claude Opus 4.7 com acesso e permissão pra executar/controlar
 > todos os dispositivos do Wagner (laptop, servidor `mcp.oimpresso.com`,
 > repositório `wagnerra23/oimpresso.com`, infra MySQL, cron, MCP, MCP
