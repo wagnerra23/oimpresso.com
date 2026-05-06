@@ -6,42 +6,60 @@ namespace Modules\NfeBrasil\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
+use Modules\NfeBrasil\Events\NFeAutorizada;
+use Modules\NfeBrasil\Services\NfeService;
 use Modules\RecurringBilling\Events\InvoicePaid;
+use Modules\RecurringBilling\Models\Invoice;
+use Throwable;
 
 /**
- * US-RB-044 · Listener InvoicePaid → emissão NFe modelo 55 automática.
+ * US-RB-044 fase 2 · Listener InvoicePaid → emissão NF-e modelo 55 automática.
  *
  * **DIFERENCIAL VERTICAL gráfica** — Iugu/Asaas/Vindi/Pagar.me não têm.
  * Larissa (ROTA LIVRE) pediu há tempos: "boleto pago → NFe emitida sozinha
  * sem clique humano".
  *
- * Estado atual: STUB registrado. SEFAZ real depende de NfeService completo
- * em Modules/NfeBrasil/ (módulo hoje é só scaffold). Quando NfeService for
- * implementado, este listener orquestra:
- *   1. Resolve produto/serviço da fatura → mapeia pra item NFe (CFOP/NCM/CST)
- *   2. Carrega certificado A1 do business (NfeCertificadoService)
- *   3. nfephp-org/sped-nfe → autoriza SEFAZ
- *   4. Renderiza DANFE PDF
- *   5. Envia e-mail pro pagador com DANFE anexado
+ * Fluxo:
+ *   1. Resolve Invoice via (business_id + numero_documento)
+ *   2. Chama NfeService::emitirParaInvoice() — usa MotorTributarioService
+ *      (US-NFE-043) pra cascade tributário e CertificadoService pro cert A1
+ *   3. Idempotência: NfeEmissao com transaction_id = invoice.id é UNIQUE,
+ *      segunda chamada retorna a emissão existente (sem duplicar fiscal)
+ *   4. Se cStat 100/150 (autorizada) → dispara NFeAutorizada
+ *   5. Se rejeitada → emissão fica salva com status='rejeitada' + cstat + motivo
+ *      (sem retry automático — ajuste manual do business via UI)
  *
- * Falha de SEFAZ NÃO derruba o pagamento — retry job em fila `nfe_retry`.
+ * Falha de SEFAZ (timeout, cert vencido, etc.) NÃO derruba o pagamento —
+ * Throwable é logado e re-throwado pra queue retry (3 tentativas, backoff 60s).
  *
- * Flag de ativação: config('nfebrasil.auto_emission_on_invoice_paid') (default
- * false). Quando true e NfeService implementado, dispara fluxo real.
+ * Flag de ativação: `nfebrasil.auto_emission_on_invoice_paid` (default `false`).
+ * Quando `false`: listener é no-op log only.
  *
  * Fila: 'nfe' (separada de rb_webhooks pra não competir).
  *
+ * Pré-requisitos no business:
+ *   - Cert A1 ativo (UI `/nfe-brasil/configuracao/certificado`)
+ *   - `nfe_business_configs.tributacao_default.ncm_default` configurado
+ *   - Cliente (Contact) com `tax_number` (CPF/CNPJ)
+ *
+ * Sem qualquer um desses → RuntimeException no service, queue retenta,
+ * 3ª falha invoca `failed()` que loga.
+ *
  * Referências:
- *   - ADR 0089 (Capterra-driven Module Evolution) — diferencial vertical
- *   - CAPTERRA-INVENTARIO RecurringBilling capacidade #6
- *   - SPEC.md US-RB-044
- *   - Event: Modules/RecurringBilling/Events/InvoicePaid.php
+ *   - ADR ARQ-0006 (cascade tributário)
+ *   - SPEC.md US-RB-044 + US-NFE-001
+ *   - Event upstream: Modules/RecurringBilling/Events/InvoicePaid
+ *   - Event downstream: Modules/NfeBrasil/Events/NFeAutorizada
  */
 class EmitirNFeAoReceberPagamento implements ShouldQueue
 {
     public string $queue = 'nfe';
     public int $tries = 3;
     public int $backoff = 60;
+
+    public function __construct(
+        private readonly ?NfeService $service = null,
+    ) {}
 
     public function handle(InvoicePaid $event): void
     {
@@ -54,31 +72,52 @@ class EmitirNFeAoReceberPagamento implements ShouldQueue
         ]);
 
         if (! config('nfebrasil.auto_emission_on_invoice_paid', false)) {
-            Log::info('NFe auto-emission DISABLED — listener registered but no-op', [
+            Log::info('NFe auto-emission DISABLED — listener no-op', [
                 'invoice_ref' => $event->invoiceRef,
-                'todo'        => 'Implementar Modules/NfeBrasil/Services/NfeService antes de habilitar flag',
             ]);
             return;
         }
 
-        // TODO US-RB-044 fase 2: emissão real via NfeService.
-        // Manter stub até a foundation do NfeBrasil existir.
-        // Pseudocódigo do que vai aqui:
-        //
-        // $nfeService = app(\Modules\NfeBrasil\Services\NfeService::class);
-        // $invoice    = \Modules\RecurringBilling\Models\Invoice::where('business_id', $event->businessId)
-        //                   ->where('numero_documento', $event->invoiceRef)
-        //                   ->firstOrFail();
-        // $nfe = $nfeService->emitirParaInvoice($invoice);
-        // event(new \Modules\NfeBrasil\Events\NFeAutorizada($nfe));
+        $invoice = Invoice::where('business_id', $event->businessId)
+            ->where('numero_documento', $event->invoiceRef)
+            ->first();
 
-        throw new \LogicException(
-            'NfeService não implementado. Habilitar auto_emission_on_invoice_paid ' .
-            'requer Modules/NfeBrasil com NfeService + NfeCertificadoService funcionais.'
-        );
+        if (! $invoice) {
+            Log::warning('NFe auto-emission: Invoice não encontrada — pulando', [
+                'business_id' => $event->businessId,
+                'invoice_ref' => $event->invoiceRef,
+            ]);
+            return;
+        }
+
+        $service = $this->service ?? app(NfeService::class);
+
+        try {
+            $emissao = $service->emitirParaInvoice($invoice);
+        } catch (Throwable $e) {
+            Log::error('NFe auto-emission falhou', [
+                'business_id' => $event->businessId,
+                'invoice_ref' => $event->invoiceRef,
+                'error'       => $e->getMessage(),
+            ]);
+            throw $e; // queue retenta (3 tries, backoff 60s)
+        }
+
+        if ($emissao->status === 'autorizada') {
+            event(new NFeAutorizada($emissao));
+        }
+
+        Log::info('NFe auto-emission processada', [
+            'business_id'  => $event->businessId,
+            'invoice_ref'  => $event->invoiceRef,
+            'emissao_id'   => $emissao->id,
+            'status'       => $emissao->status,
+            'cstat'        => $emissao->cstat,
+            'chave_44'     => $emissao->chave_44,
+        ]);
     }
 
-    public function failed(InvoicePaid $event, \Throwable $e): void
+    public function failed(InvoicePaid $event, Throwable $e): void
     {
         Log::error('NFe emission failed após retries', [
             'invoice_ref' => $event->invoiceRef,

@@ -521,22 +521,27 @@ Então NÃO cria revenue_event (sem take rate)
 
 ### US-RB-044 · Listener InvoicePaid em NfeBrasil — emissão automática NFe55 + DANFE + e-mail
 
-> owner: — · priority: p1 · estimate: 12h · status: todo · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #6 (diferencial vertical)
-> blocked_by: US-RB-ESC3
+> owner: wagner · priority: p1 · estimate: 12h · status: review · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #6 (diferencial vertical)
 
-**Contexto.** CAPTERRA-INVENTARIO #6 ❌ AUSENTE — **diferencial vertical gráfica**. Gateway de boleto é commodity (Iugu/Asaas/Vindi/Pagar.me têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE) pediu há tempos. Event `InvoicePaid` JÁ existe em `Modules/RecurringBilling/Events/InvoicePaid.php` — falta o listener em NfeBrasil consumindo.
+**Implementado em:** [`Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php`](../../../Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php) · [`Modules/NfeBrasil/Services/NfeService::emitirParaInvoice`](../../../Modules/NfeBrasil/Services/NfeService.php) · [`Modules/NfeBrasil/Events/NFeAutorizada`](../../../Modules/NfeBrasil/Events/NFeAutorizada.php)
+
+**Contexto.** CAPTERRA-INVENTARIO #6 ❌ AUSENTE — **diferencial vertical gráfica**. Gateway de boleto é commodity (Iugu/Asaas/Vindi/Pagar.me têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE) pediu há tempos. Event `InvoicePaid` JÁ existe em `Modules/RecurringBilling/Events/InvoicePaid.php`.
 
 **Acceptance criteria:**
-- [ ] `Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php` registrado em `EventServiceProvider`
-- [ ] Listener resolve produto/serviço da fatura → mapeia pra item de NFe (CFOP, NCM, alíquotas)
-- [ ] Carrega certificado A1 do business via `NfeCertificadoService`
-- [ ] Chama `nfephp-org/sped-nfe` → autoriza SEFAZ
-- [ ] Renderiza DANFE (PDF)
-- [ ] Envia e-mail pro pagador com DANFE anexado
-- [ ] Log estruturado de cada passo (gen_ai.* OpenTelemetry pattern, ADR 0049)
-- [ ] Falha de SEFAZ não derruba pagamento — retry job separado em fila `nfe_retry`
-- [ ] Teste Pest: dispara `InvoicePaid` → assert NFe criada com status=autorizada
-- [ ] **Prod-evidence:** ≥1 NFe modelo 55 autorizada via esse fluxo (ROTA LIVRE biz=4)
+- [x] `Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php` registrado em `NfeBrasilServiceProvider` (consome `InvoicePaid`)
+- [x] Listener resolve Invoice por (business_id + numero_documento) e chama `NfeService::emitirParaInvoice`
+- [x] `NfeService::emitirParaInvoice` usa `MotorTributarioService` (US-NFE-043 cascade ARQ-0006) pra resolver CFOP/CSOSN/CST/alíquotas
+- [x] Carrega certificado A1 do business via `CertificadoService::carregarParaSefaz` (fallback legado ADR 0090)
+- [x] Chama `nfephp-org/sped-nfe` (Make + Tools) → autoriza SEFAZ via `NfeService::emitir`
+- [x] Idempotência por `transaction_id = invoice.id` — segunda chamada retorna emissão existente
+- [x] Flag `nfebrasil.auto_emission_on_invoice_paid` (default `false`) controla ativação por env
+- [x] Log estruturado em cada passo (start, disabled, invoice ausente, falha, sucesso)
+- [x] Falha SEFAZ não derruba pagamento — Throwable é re-throwado pra queue retry (3 tries, backoff 60s)
+- [x] Status autorizada → dispara `Modules\NfeBrasil\Events\NFeAutorizada`
+- [x] Tests Pest (10 cenários): listener registrado, flag off no-op, invoice ausente, autorizada→event, rejeitada→sem event, throwable→retry, queue config, failed log
+- [ ] DANFE PDF render (US-NFE-044 — sped-da já instalado)
+- [ ] Envia e-mail pro pagador com DANFE anexado (depende US-NFE-044)
+- [ ] **Prod-evidence:** ≥1 NFe modelo 55 autorizada via esse fluxo (ROTA LIVRE biz=4) — depende do business ter cert A1 + `ncm_default` configurado em `nfe_business_configs`
 
 ## 8. Referências
 
