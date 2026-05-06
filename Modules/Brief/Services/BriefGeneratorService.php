@@ -7,23 +7,27 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * Gera o Daily Brief via Brain B (claude-sonnet-4-6).
+ * Gera o Daily Brief via Brain B (OpenAI gpt-4o-mini).
  *
  * Pipeline (ver ADR 0091):
  * 1. CALL refresh_brief_inputs_cache()
  * 2. Lê linha singleton de mcp_brief_inputs_cache
- * 3. Manda pro Anthropic API com prompt fixo
+ * 3. Manda pro OpenAI API com prompt fixo (Chat Completions)
  * 4. Captura tokens consumidos pra cálculo de custo
  *
  * Não valida output — quem valida é BriefValidator (separação de
  * concerns: este service só GERA, validador VALIDA).
  *
- * Anthropic API direta via HTTP (laravel/ai está em composer mas não
- * instalado — ver composer.json). Sem SDK específico.
+ * Decisão de stack: Wagner pediu OpenAI (chave OPENAI_API_KEY já em prod
+ * pro hybrid embedder Meilisearch — ADR 0036). gpt-4o-mini é 30× mais
+ * barato que claude-sonnet-4-6 e qualidade suficiente pra brief estruturado
+ * de 7 seções fixas. Trocar pra Anthropic vira ADR de superseding.
+ *
+ * Custo estimado: ~$0.005/run × 6/dia = $0.03/dia (vs $0.30/dia Sonnet).
  */
 final class BriefGeneratorService
 {
-    private const MODEL = 'claude-sonnet-4-6';
+    private const MODEL = 'gpt-4o-mini';
 
     private const TEMPERATURE = 0.2;
 
@@ -31,10 +35,10 @@ final class BriefGeneratorService
 
     private const STOP_SEQUENCE = "\n---END---";
 
-    /** Custo em USD por 1k tokens — sonnet-4.6 oct/2025 pricing. */
-    private const PRICE_INPUT_PER_1K = 0.003;
+    /** Custo em USD por 1k tokens — gpt-4o-mini 2025 pricing. */
+    private const PRICE_INPUT_PER_1K = 0.00015;
 
-    private const PRICE_OUTPUT_PER_1K = 0.015;
+    private const PRICE_OUTPUT_PER_1K = 0.0006;
 
     private float $lastCallCost = 0.0;
 
@@ -71,38 +75,37 @@ final class BriefGeneratorService
         $systemPrompt = $this->buildSystemPrompt();
         $userPrompt = $this->buildUserPrompt($payload);
 
-        $apiKey = config('services.anthropic.api_key', env('ANTHROPIC_API_KEY'));
+        $apiKey = config('services.openai.api_key', env('OPENAI_API_KEY'));
         if (! $apiKey) {
             throw new RuntimeException(
-                'ANTHROPIC_API_KEY ausente — configure em .env ou config/services.php'
+                'OPENAI_API_KEY ausente — configure em .env ou config/services.php'
             );
         }
 
         $response = Http::withHeaders([
-            'x-api-key' => $apiKey,
-            'anthropic-version' => '2023-06-01',
-            'content-type' => 'application/json',
+            'Authorization' => 'Bearer '.$apiKey,
+            'Content-Type' => 'application/json',
         ])
             ->timeout(60)
-            ->post('https://api.anthropic.com/v1/messages', [
+            ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => self::MODEL,
                 'max_tokens' => self::MAX_TOKENS,
                 'temperature' => self::TEMPERATURE,
-                'stop_sequences' => [self::STOP_SEQUENCE],
-                'system' => $systemPrompt,
+                'stop' => [self::STOP_SEQUENCE],
                 'messages' => [
+                    ['role' => 'system', 'content' => $systemPrompt],
                     ['role' => 'user', 'content' => $userPrompt],
                 ],
             ]);
 
         if ($response->failed()) {
             throw new RuntimeException(
-                'Anthropic API erro: HTTP '.$response->status().' '.$response->body()
+                'OpenAI API erro: HTTP '.$response->status().' '.$response->body()
             );
         }
 
         $body = $response->json();
-        $content = $body['content'][0]['text'] ?? '';
+        $content = $body['choices'][0]['message']['content'] ?? '';
 
         if (! str_ends_with(trim($content), '---END---')) {
             // Stop sequence cortou — re-anexa pra validador aceitar
@@ -110,8 +113,8 @@ final class BriefGeneratorService
         }
 
         $this->lastCallCost = $this->computeCost(
-            (int) ($body['usage']['input_tokens'] ?? 0),
-            (int) ($body['usage']['output_tokens'] ?? 0),
+            (int) ($body['usage']['prompt_tokens'] ?? 0),
+            (int) ($body['usage']['completion_tokens'] ?? 0),
         );
 
         return $content;
