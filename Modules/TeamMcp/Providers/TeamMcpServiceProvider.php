@@ -21,6 +21,7 @@ class TeamMcpServiceProvider extends ServiceProvider
     {
         $this->registerTranslations();
         $this->registerConfig();
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 
     public function register(): void
