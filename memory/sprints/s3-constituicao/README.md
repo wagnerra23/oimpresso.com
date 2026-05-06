@@ -1,8 +1,8 @@
 # Sprint 3 — Constituição v2 + Skills Tier A + CLAUDE.md reescrito
 
-> **Status:** 🔴 PENDING — esqueleto criado em 2026-05-06, dossier ainda sem decisões.
+> **Status:** 📝 RASCUNHO COMPLETO — Sonnet preencheu 4 arquivos substantivos a pedido do Wagner ("Crie voce a constituição para eu aprovar"). Aguarda revisão + aprovação por bloco.
 >
-> **Driver:** Wagner pessoalmente (não Sonnet/Opus). Sonnet rascunha; Wagner aprova bloco a bloco.
+> **Driver:** Wagner aprova; Sonnet executa após aprovação.
 >
 > **Pré-requisito:** Sprint 1 + Sprint 2 com postmortem aprovado.
 
@@ -22,14 +22,14 @@ Baseia-se nos achados do deep-dive [s3-constituicao-deep-dive.md](../research/s3
 
 ## Conteúdo deste pacote (esqueleto)
 
-| Arquivo | Tipo | Quem implementa | Status |
+| Arquivo | Tipo | Status | O que tem |
 |---|---|---|---|
-| `01-adr-constituicao-v2.md` | ADR mãe canon | Wagner aprova rascunho Sonnet | 🔴 vazio |
-| `02-adr-skills-tiers.md` | ADR skills tier A/B/C | Wagner aprova rascunho Sonnet | 🔴 vazio |
-| `03-skills-audit.md` | Tabela auditoria 19 skills | Sonnet pré-classifica → Wagner aprova | 🔴 vazio |
-| `04-claude-md-novo.md` | Novo CLAUDE.md ≤100 linhas + imports | Sonnet rascunha → Wagner aprova | 🔴 vazio |
-| `05-checklist-wagner.md` | Passo-a-passo de rollout | Wagner segue | 🔴 vazio |
-| `06-rollback-plan.md` | Plano de reversão se falhar | Sonnet escreve | 🔴 vazio |
+| `01-adr-constituicao-v2.md` | ADR mãe canon | 📝 RASCUNHO COMPLETO | 7 camadas + 8 princípios duros + métricas |
+| `02-adr-skills-tiers.md` | ADR skills tier A/B/C | 📝 RASCUNHO COMPLETO | Convenção interna + mecanismo enforcement |
+| `03-skills-audit.md` | Tabela auditoria 19 skills | 📝 RASCUNHO COMPLETO | 5 blocos (A-E) com decisão por skill |
+| `04-claude-md-novo.md` | Novo CLAUDE.md ~95 linhas | 📝 RASCUNHO COMPLETO | Template + 5 arquivos importados propostos |
+| `05-checklist-wagner.md` | Passo-a-passo de rollout | 📝 ESQUELETO | A revisar após aprovação 01-04 |
+| `06-rollback-plan.md` | Plano de reversão | 📝 ESQUELETO | A revisar após aprovação 01-04 |
 
 ---
 
