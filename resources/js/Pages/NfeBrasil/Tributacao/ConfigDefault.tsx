@@ -4,13 +4,32 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';
-import { ArrowLeft, Save, Settings } from 'lucide-react';
+import { ArrowLeft, Save, Settings, Wand2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { toast } from 'sonner';
+
+/**
+ * Defaults pré-populados por regime — alinhados com hints visíveis no select.
+ * Aplicados via botão "Aplicar pelo regime" (wizard de onboarding).
+ *
+ * Valores conservadores que cobrem o caso típico — tenant pode ajustar
+ * antes de salvar. ICMS de Lucro Presumido/Real é 18% (alíquota interna SP);
+ * outros estados mudam por regra estadual (configurar em regras NCM Nível 2/3).
+ */
+const REGIME_DEFAULTS: Record<string, {
+  csosn: string; cst: string;
+  icms: number; pis: number; cofins: number; ipi: number;
+  toggle: 'csosn' | 'cst';
+}> = {
+  mei:             { csosn: '102', cst: '',    icms: 0,    pis: 0,      cofins: 0,    ipi: 0, toggle: 'csosn' },
+  simples:         { csosn: '102', cst: '',    icms: 0,    pis: 0,      cofins: 0,    ipi: 0, toggle: 'csosn' },
+  lucro_presumido: { csosn: '',    cst: '000', icms: 0.18, pis: 0.0065, cofins: 0.03, ipi: 0, toggle: 'cst'   },
+  lucro_real:      { csosn: '',    cst: '000', icms: 0.18, pis: 0.0165, cofins: 0.076, ipi: 0, toggle: 'cst'   },
+};
 
 interface Config {
   regime: string;
@@ -58,6 +77,28 @@ function ConfigDefault({ config }: Props) {
     });
   };
 
+  /**
+   * Wizard inline: aplica defaults baseados no regime selecionado.
+   * Não envia ao servidor — só preenche os campos. Tenant revê e clica "Salvar".
+   * Preserva ncm_default e cfop_default (são escolha do business, não do regime).
+   */
+  const aplicarDefaultsRegime = () => {
+    const defaults = REGIME_DEFAULTS[form.data.regime];
+    if (!defaults) return;
+
+    setTipoCodigoTributario(defaults.toggle);
+    form.setData((data) => ({
+      ...data,
+      csosn:           defaults.csosn,
+      cst:             defaults.cst,
+      aliquota_icms:   defaults.icms,
+      aliquota_pis:    defaults.pis,
+      aliquota_cofins: defaults.cofins,
+      aliquota_ipi:    defaults.ipi,
+    }));
+    toast.success(`Defaults aplicados: ${REGIMES.find((r) => r.value === form.data.regime)?.label}.`);
+  };
+
   const regimeAtual = REGIMES.find((r) => r.value === form.data.regime);
 
   return (
@@ -102,6 +143,15 @@ function ConfigDefault({ config }: Props) {
                 {regimeAtual && (
                   <p className="text-xs text-muted-foreground">{regimeAtual.hint}</p>
                 )}
+              </div>
+              <div className="flex items-center justify-between gap-3 pt-2 border-t">
+                <p className="text-xs text-muted-foreground">
+                  Pré-popula CSOSN/CST + alíquotas conforme regime escolhido. Você pode ajustar antes de salvar.
+                </p>
+                <Button type="button" variant="outline" size="sm" onClick={aplicarDefaultsRegime}>
+                  <Wand2 className="h-3.5 w-3.5 mr-1.5" />
+                  Aplicar pelo regime
+                </Button>
               </div>
             </CardContent>
           </Card>
