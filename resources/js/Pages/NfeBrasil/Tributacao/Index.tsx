@@ -4,7 +4,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, FilePlus2, Pencil, Percent, Settings, Trash2 } from 'lucide-react';
+import { CheckCircle2, FilePlus2, FileSpreadsheet, Pencil, Percent, Settings, Trash2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { toast } from 'sonner';
@@ -144,12 +144,20 @@ function Index({ regras, config }: Props) {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center justify-between">
               <span>Regras NCM ({regras.length})</span>
-              <Button asChild size="sm">
-                <Link href="/nfe-brasil/tributacao/regras/create">
-                  <FilePlus2 className="h-4 w-4 mr-1.5" />
-                  Nova regra
-                </Link>
-              </Button>
+              <div className="flex gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/nfe-brasil/tributacao/import">
+                    <FileSpreadsheet className="h-4 w-4 mr-1.5" />
+                    Import CSV
+                  </Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/nfe-brasil/tributacao/regras/create">
+                    <FilePlus2 className="h-4 w-4 mr-1.5" />
+                    Nova regra
+                  </Link>
+                </Button>
+              </div>
             </CardTitle>
             <p className="text-xs text-muted-foreground">
               UF destino vazio = "todas as UFs" (Nível 3). UF destino específica = Nível 2.
