@@ -210,7 +210,7 @@ class BoletoPago { public BoletoRemessa $remessa; }  // via webhook
 | `App\Events\TransactionPaymentCreated` (interno UPos) | Core | `SincronizaBaixaTitulo` (se `transaction.id` aponta título) |
 | `Modules\NfeBrasil\Events\NfeAutorizada` | NfeBrasil | `AnexarChaveNfeAoTitulo` |
 | `Modules\RecurringBilling\Events\RecurringInvoiceGenerated` | RecurringBilling | `CriaTituloAReceber` |
-| `Modules\PontoWr2\Events\FolhaFechada` | PontoWr2 | `CriaTitulosAPagarFolha` (1 por colaborador) |
+| `Modules\Ponto\Events\FolhaFechada` | PontoWr2 | `CriaTitulosAPagarFolha` (1 por colaborador) |
 
 ### 5.5 Serviços externos
 

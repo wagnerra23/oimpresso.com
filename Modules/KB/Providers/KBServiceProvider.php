@@ -38,7 +38,7 @@ class KBServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Sem bindings por enquanto — controller usa Eloquent direto contra
-        // McpMemoryDocument (Modules\Copiloto\Entities\Mcp\McpMemoryDocument).
+        // McpMemoryDocument (Modules\Jana\Entities\Mcp\McpMemoryDocument).
     }
 
     /**

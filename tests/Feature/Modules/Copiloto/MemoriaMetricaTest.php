@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Entities\MemoriaMetrica;
+use Modules\Jana\Entities\MemoriaMetrica;
 
 /**
  * MEM-MET-1 (ADRs 0050+0051) — schema da tabela `copiloto_memoria_metricas`,

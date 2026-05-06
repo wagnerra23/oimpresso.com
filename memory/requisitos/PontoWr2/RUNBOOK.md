@@ -66,7 +66,7 @@ php artisan ponto:afd-inspecionar --arquivo=/caminho/arquivo.txt --business=1
 ```bash
 # Veja configuração atual:
 php artisan tinker
->>> \Modules\PontoWr2\Entities\Configuracao::where('business_id', 1)->first()
+>>> \Modules\Ponto\Entities\Configuracao::where('business_id', 1)->first()
 # Ajustar tolerancia_entrada / tolerancia_saida pra 5 (min cada)
 
 # Ou via UI: /ponto/configuracoes

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\BaseModuleInstallController;
 use Illuminate\Support\Facades\Route;
-use Modules\Copiloto\Http\Controllers\InstallController;
+use Modules\Jana\Http\Controllers\InstallController;
 
 /**
  * Garante que o módulo Copiloto integra com o /manage-modules:

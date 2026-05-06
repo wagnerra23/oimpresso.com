@@ -6,15 +6,17 @@ use Modules\ADS\Http\Controllers\Admin\PolicyController;
 use Modules\ADS\Http\Controllers\Admin\ConfidenceController;
 use Modules\ADS\Http\Controllers\Admin\MetricasController;
 use Modules\ADS\Http\Controllers\Admin\PatternsController;
-use Modules\ADS\Http\Controllers\Admin\ToolsController;
 use Modules\ADS\Http\Controllers\Admin\LearningController;
 use Modules\ADS\Http\Controllers\Admin\MetaSkillsController;
 use Modules\ADS\Http\Controllers\Admin\SkillsController;
-use Modules\ADS\Http\Controllers\Admin\GraphController;
 use Modules\ADS\Http\Controllers\Admin\ConflictsController;
-use Modules\ADS\Http\Controllers\Admin\ProjectsController;
-use Modules\ADS\Http\Controllers\Admin\TeamScopesController;
 use Modules\ADS\Http\Controllers\InstallController;
+// Drift resolvido em Fase 3.7 (PR-1): 4 controllers movidos pros módulos donos.
+// URLs mantêm /ads/admin/* (PR-2 fará rename de URL se aplicável).
+use Modules\KB\Http\Controllers\Admin\GraphController;
+use Modules\ProjectMgmt\Http\Controllers\Admin\ProjectsController;
+use Modules\TeamMcp\Http\Controllers\Admin\ToolsController;
+use Modules\TeamMcp\Http\Controllers\Admin\TeamScopesController;
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
 // Pattern: ADR 0024 / feedback_pattern_install_modulos

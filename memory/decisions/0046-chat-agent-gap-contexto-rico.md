@@ -48,7 +48,7 @@ Wagner: *"meio burrinho mas funcionou"*
 
 **Diagnóstico:** o `ChatCopilotoAgent` tem `instructions()` enxuto (system prompt genérico de Copiloto) e o histórico de `Conversa::mensagens()`. **Não recebe**:
 
-1. **`ContextoNegocio`** (faturamento_90d, clientes_ativos, módulos_ativos, metas_ativas) — ele existe em `Modules\Copiloto\Support\ContextoNegocio` e é usado pelo `BriefingAgent` (mensagem inicial fixture), mas o `ChatCopilotoAgent` ignora.
+1. **`ContextoNegocio`** (faturamento_90d, clientes_ativos, módulos_ativos, metas_ativas) — ele existe em `Modules\Jana\Support\ContextoNegocio` e é usado pelo `BriefingAgent` (mensagem inicial fixture), mas o `ChatCopilotoAgent` ignora.
 2. **Tools/function-calling** — não pode consultar `transactions`, `metas`, `customers` em runtime. Por isso pede pra Larissa "informar período exato" — porque ele LITERALMENTE não tem como saber.
 3. **Memória recall** já funciona (sprint 5 entregue), mas só recupera o que foi extraído de conversas passadas — ainda não cobre dados estruturados do ERP.
 

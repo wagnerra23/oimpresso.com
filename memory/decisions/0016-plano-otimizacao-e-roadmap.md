@@ -39,7 +39,7 @@ Após sessões 01–10, o projeto tem: módulo PontoWR2 estruturado (desativado 
 
 | # | Tarefa | Comando/Ação | Estimativa |
 |---|--------|--------------|------------|
-| 1.1 | Fazer deploy dos arquivos PontoWR2 corrigidos | `pscp` dos arquivos de `D:\oimpresso.com\Modules\PontoWr2\` | 30 min |
+| 1.1 | Fazer deploy dos arquivos PontoWR2 corrigidos | `pscp` dos arquivos de `D:\oimpresso.com\Modules\Ponto\` | 30 min |
 | 1.2 | Ativar módulo no servidor | `php artisan module:enable PontoWr2` via SSH | 5 min |
 | 1.3 | Executar migrations do PontoWR2 | `php artisan module:migrate PontoWr2` | 10 min |
 | 1.4 | Limpar cache | `php artisan cache:clear && view:clear` | 2 min |

@@ -4,9 +4,9 @@ use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Copiloto\Drivers\Sql\SqlDriver;
-use Modules\Copiloto\Entities\MetaApuracao;
-use Modules\Copiloto\Scopes\ScopeByBusiness;
+use Modules\Jana\Drivers\Sql\SqlDriver;
+use Modules\Jana\Entities\MetaApuracao;
+use Modules\Jana\Scopes\ScopeByBusiness;
 
 /**
  * Testa idempotência da apuração (adr/tech/0001).
