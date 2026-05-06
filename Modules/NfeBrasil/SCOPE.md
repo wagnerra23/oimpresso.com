@@ -6,6 +6,8 @@ contains:
   - "InstallController"
   - "NfeBrasilController"
   - "CertificadoController"
+  - "TributacaoController — CRUD regras NCM (US-NFE-010 fase 2)"
+  - "ConfigDefaultController — Nível 4 cascade (defaults business)"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/ProjectMgmt"

@@ -1,0 +1,232 @@
+// @memcofre tela=/nfe-brasil/tributacao module=NfeBrasil
+//   us: US-NFE-010 fase 2 (UI tributação — regras NCM + config default)
+//   adrs: NfeBrasil/adr/arq/0006-cascade-defaults-ncm-produto, ADR 0029 (Inertia + UPos)
+
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { CheckCircle2, FilePlus2, Pencil, Percent, Settings, Trash2 } from 'lucide-react';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { toast } from 'sonner';
+
+interface Regra {
+  id: number;
+  ncm: string;
+  uf_origem: string;
+  uf_destino: string | null;
+  cfop: string;
+  csosn: string | null;
+  cst: string | null;
+  aliquota_icms: number;
+  aliquota_pis: number;
+  aliquota_cofins: number;
+  aliquota_ipi: number;
+  mva: number | null;
+  fcp: number | null;
+}
+
+interface ConfigDefault {
+  regime: string;
+  tributacao_default: Record<string, unknown>;
+}
+
+interface Props {
+  regras: Regra[];
+  config: ConfigDefault | null;
+}
+
+interface FlashProps {
+  flash?: { success?: string };
+}
+
+const REGIME_LABEL: Record<string, string> = {
+  mei: 'MEI',
+  simples: 'Simples Nacional',
+  lucro_presumido: 'Lucro Presumido',
+  lucro_real: 'Lucro Real',
+};
+
+function pct(decimal: number): string {
+  return `${(decimal * 100).toFixed(2).replace('.', ',')}%`;
+}
+
+function formatNcm(ncm: string): string {
+  if (!ncm || ncm.length !== 8) return ncm;
+  return `${ncm.slice(0, 4)}.${ncm.slice(4, 6)}.${ncm.slice(6)}`;
+}
+
+function Index({ regras, config }: Props) {
+  const { props } = usePage<FlashProps>();
+  const success = props.flash?.success;
+
+  const remover = (regra: Regra) => {
+    if (!confirm(`Remover regra NCM ${formatNcm(regra.ncm)} ${regra.uf_origem}→${regra.uf_destino ?? 'todas'}?`)) {
+      return;
+    }
+    router.delete(`/nfe-brasil/tributacao/regras/${regra.id}`, {
+      preserveScroll: true,
+      onSuccess: () => toast.success('Regra removida.'),
+      onError: () => toast.error('Falha ao remover.'),
+    });
+  };
+
+  return (
+    <>
+      <Head title="Tributação · NF-e Brasil" />
+
+      <div className="p-6 max-w-6xl mx-auto space-y-6">
+        <header>
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Percent className="h-6 w-6" />
+            Tributação
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Cascade em 4 níveis (ADR ARQ-0006): override produto → regra exata → regra NCM padrão → defaults business.
+            Sem default configurado, emissão automática de NFe falha — comece pela <strong>configuração padrão</strong>.
+          </p>
+        </header>
+
+        {success && (
+          <div className="flex items-start gap-2 px-4 py-3 rounded-md bg-emerald-50 text-emerald-900 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-800">
+            <CheckCircle2 className="h-5 w-5 mt-0.5 shrink-0" />
+            <p className="text-sm">{success}</p>
+          </div>
+        )}
+
+        {/* Config default (Nível 4) */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Configuração padrão (cascade Nível 4)
+              </span>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/nfe-brasil/tributacao/config-default">
+                  {config ? 'Editar' : 'Configurar'}
+                </Link>
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!config ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhuma configuração padrão. Clique em <strong>Configurar</strong> para começar — sem isso a
+                emissão automática de cobrança recorrente falha em "TributacaoNaoConfigurada".
+              </p>
+            ) : (
+              <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <dt className="text-xs text-muted-foreground uppercase tracking-wide">Regime</dt>
+                  <dd className="mt-0.5 font-medium">{REGIME_LABEL[config.regime] ?? config.regime}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground uppercase tracking-wide">NCM padrão</dt>
+                  <dd className="mt-0.5 font-mono">{formatNcm(String(config.tributacao_default.ncm_default ?? '—'))}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground uppercase tracking-wide">CFOP</dt>
+                  <dd className="mt-0.5 font-mono">{String(config.tributacao_default.cfop_default ?? config.tributacao_default.cfop ?? '—')}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground uppercase tracking-wide">CSOSN/CST</dt>
+                  <dd className="mt-0.5 font-mono">
+                    {String(config.tributacao_default.csosn ?? config.tributacao_default.cst ?? '—')}
+                  </dd>
+                </div>
+              </dl>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Regras NCM (Níveis 2 e 3) */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">
+              <span>Regras NCM ({regras.length})</span>
+              <Button asChild size="sm">
+                <Link href="/nfe-brasil/tributacao/regras/create">
+                  <FilePlus2 className="h-4 w-4 mr-1.5" />
+                  Nova regra
+                </Link>
+              </Button>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              UF destino vazio = "todas as UFs" (Nível 3). UF destino específica = Nível 2.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {regras.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                Nenhuma regra cadastrada. Os defaults da configuração padrão atendem todos NCMs até você adicionar
+                regras específicas.
+              </p>
+            ) : (
+              <div className="overflow-x-auto -mx-6">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 text-left">
+                    <tr>
+                      <th className="px-6 py-2 font-medium">NCM</th>
+                      <th className="px-3 py-2 font-medium">UF Orig</th>
+                      <th className="px-3 py-2 font-medium">UF Dest</th>
+                      <th className="px-3 py-2 font-medium">CFOP</th>
+                      <th className="px-3 py-2 font-medium">CSOSN/CST</th>
+                      <th className="px-3 py-2 font-medium text-right">ICMS</th>
+                      <th className="px-3 py-2 font-medium text-right">PIS</th>
+                      <th className="px-3 py-2 font-medium text-right">COFINS</th>
+                      <th className="px-6 py-2 font-medium text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {regras.map((r) => (
+                      <tr key={r.id} className="border-t hover:bg-muted/30">
+                        <td className="px-6 py-2 font-mono">{formatNcm(r.ncm)}</td>
+                        <td className="px-3 py-2 font-mono">{r.uf_origem}</td>
+                        <td className="px-3 py-2 font-mono">
+                          {r.uf_destino ?? <span className="text-muted-foreground italic">todas</span>}
+                        </td>
+                        <td className="px-3 py-2 font-mono">{r.cfop}</td>
+                        <td className="px-3 py-2 font-mono">{r.csosn ?? r.cst}</td>
+                        <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_icms)}</td>
+                        <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_pis)}</td>
+                        <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_cofins)}</td>
+                        <td className="px-6 py-2 text-right whitespace-nowrap">
+                          <Button asChild size="sm" variant="ghost">
+                            <Link href={`/nfe-brasil/tributacao/regras/${r.id}/edit`}>
+                              <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
+                            </Link>
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => remover(r)}>
+                            <Trash2 className="h-3.5 w-3.5 mr-1 text-destructive" />
+                            Remover
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <p className="text-xs text-muted-foreground">
+          Cascade: <strong>Nível 1</strong> override por produto · <strong>Nível 2</strong> regra exata
+          (NCM + UF origem + UF destino) · <strong>Nível 3</strong> regra padrão NCM (UF destino vazia)
+          · <strong>Nível 4</strong> defaults business.
+        </p>
+      </div>
+    </>
+  );
+}
+
+Index.layout = (page: React.ReactNode) => (
+  <AppShellV2
+    title="Tributação · NF-e Brasil"
+    breadcrumbItems={[{ label: 'NF-e Brasil' }, { label: 'Tributação' }]}
+  >
+    {page}
+  </AppShellV2>
+);
+
+export default Index;
