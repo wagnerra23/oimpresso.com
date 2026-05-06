@@ -678,6 +678,10 @@ class NfeService
                 'chave_44'    => $chNFe,
                 'nProt'       => $nProt,
             ]);
+
+            // US-NFE-044 — gera DANFE PDF (defensivo: falha não derruba a emissão)
+            app(DanfeService::class)->salvar($emissao->refresh());
+
             return;
         }
 

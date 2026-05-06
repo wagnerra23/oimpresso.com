@@ -539,9 +539,9 @@ Então NÃO cria revenue_event (sem take rate)
 - [x] Falha SEFAZ não derruba pagamento — Throwable é re-throwado pra queue retry (3 tries, backoff 60s)
 - [x] Status autorizada → dispara `Modules\NfeBrasil\Events\NFeAutorizada`
 - [x] Tests Pest (10 cenários): listener registrado, flag off no-op, invoice ausente, autorizada→event, rejeitada→sem event, throwable→retry, queue config, failed log
-- [ ] DANFE PDF render (US-NFE-044 — sped-da já instalado)
-- [ ] Envia e-mail pro pagador com DANFE anexado (depende US-NFE-044)
-- [ ] **Prod-evidence:** ≥1 NFe modelo 55 autorizada via esse fluxo (ROTA LIVRE biz=4) — depende do business ter cert A1 + `ncm_default` configurado em `nfe_business_configs`
+- [x] DANFE PDF render (`Modules/NfeBrasil/Services/DanfeService` — gerado lazy via `NfeService::processarRetorno` autorizada)
+- [x] Envia e-mail pro pagador com DANFE + XML anexados (`Modules/NfeBrasil/Listeners/EnviarDanfePorEmail` consumindo `NFeAutorizada` event; resolve email via Invoice→Contact)
+- [ ] **Prod-evidence:** ≥1 NFe modelo 55 autorizada + email enviado via esse fluxo (ROTA LIVRE biz=4) — depende do business ter cert A1 + `ncm_default` configurado em `nfe_business_configs` + Contact com email válido
 
 ## 8. Referências
 
