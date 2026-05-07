@@ -19,6 +19,17 @@ return [
     'auto_emission_on_invoice_paid' => env('NFEBRASIL_AUTO_EMISSION', false),
 
     /**
+     * US-NFE-002 fase 1 — listener EmitirNfceAoFinalizarVenda.
+     *
+     * Quando true, listener escuta `App\Events\SellCreatedOrModified` e
+     * dispara `EmitirNfceJob` pra vendas finalizadas (type='sell' + status='final'
+     * + payment_status in paid|partial). Default false até business ter cert A1
+     * + ncm_default + (opcional) cliente com tax_number configurados. Fase 2
+     * implementa submissão SEFAZ real; fase 1 é wire elétrico + idempotência.
+     */
+    'auto_emission_on_sell_completed' => env('NFEBRASIL_AUTO_EMISSION_NFCE', false),
+
+    /**
      * US-NFE-044 fase 2 — listener EnviarDanfePorEmail.
      *
      * Quando true, ao receber NFeAutorizada event o listener envia DANFE PDF
