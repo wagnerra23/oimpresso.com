@@ -1012,3 +1012,33 @@ Wagner (id=1, `WR23`) tem todas 6: `read/edit/test/approve/publish/config`. Veri
 **60 ADRs total. 4 telas MWART em prod (funcionalmente OK, visualmente abaixo do canon Cockpit). Skill `mwart-quality` v3 deployed (Tier B).**
 
 **Última atualização:** 2026-05-07 madrugada — MWART S2.5 hotfix marathon + skill mwart-quality v3 + feedback Cockpit canônico
+
+---
+
+## Sessão 2026-05-07 manhã — BRIEF audit + GUARD-02 + Hostinger git recovery
+
+**PR #162 mergeada** (GUARD-02 Pest ModuleScaffolding + BRIEF-A1 fix aggregator).
+
+### Quick wins
+- **L7 Daily Brief funcional em prod** — antes 217 tokens com placeholders ("ADRs: —", "Commits: 0"), agora 235 tokens com dados reais (5 ADRs listadas, in_flight populado, mcp_activity_24h=122)
+- **Hostinger git recovered** — estava em `claude/nervous-greider-335083` mid-rebase de `feat/sprint-2-memcofre-cockpit`, agora em `main` HEAD `844e1bfa`
+- **GUARD-02 deployado** — Pest test garante todo módulo novo nasce com InstallController/DataController/ServiceProvider (5/5 verdes em 30 módulos)
+
+### Wagner regra canônica nova (2026-05-07)
+> "MCP é só no CT 100. Hostinger não funciona e fica lento mcp. Se for preciso temos que dividir o projeto"
+
+Salvo em auto-mem `feedback_mcp_so_ct100.md`. Implicação: tool MCP exposed só em `mcp.oimpresso.com` (CT 100). Spawnado US-COPI-094 pra remover `brief-fetch` do Hostinger.
+
+### Tasks queued próxima sessão (ordem)
+1. **US-COPI-094** P1 — remover `brief-fetch` do Hostinger MCP (regra Wagner)
+2. **US-COPI-092 GUARD-01** P1 — schema snapshot Pest + `procedure_drift` em jana:health-check
+3. **US-COPI-090 BRIEF-A3** P2 — ADR 0096 model real gpt-4o-mini (1h, fácil)
+4. **US-COPI-091 BRIEF-A4** P2 — investigar baixa adoção brief-first (depende 094)
+
+### CYCLE-02 status (0% decorrido, 19 dias restantes)
+- Goal #6 Constituição V2 health-check 7d limpo: progressão começou (brief funcional + GUARD-02 deployado)
+- Goal #4 MWART Repair (4 telas): 0/4
+- Goal #5 NfeBrasil emite NFe55: 0/done
+- Goal #7 Skills V0.5 UI: 0/done
+
+**Última atualização:** 2026-05-07 ~12:00 BRT — sessão BRIEF-audit + Hostinger recovery
