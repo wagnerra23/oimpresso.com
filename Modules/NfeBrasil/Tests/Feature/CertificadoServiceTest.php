@@ -153,10 +153,10 @@ it('rejeita cert expirado', function () {
 it('salvar() persiste cert encrypted + senha encrypted + cria row em nfe_certificados', function () {
     $svc = fakeService('12345678000199', '+30 days');
 
-    $cert = $svc->salvar(4, base64_encode('binary-pfx'), 'minha-senha');
+    $cert = $svc->salvar(1, base64_encode('binary-pfx'), 'minha-senha');
 
     expect($cert)->toBeInstanceOf(NfeCertificado::class)
-        ->and($cert->business_id)->toBe(4)
+        ->and($cert->business_id)->toBe(1)
         ->and($cert->cnpj_titular)->toBe('12345678000199')
         ->and($cert->ativo)->toBeTrue()
         ->and($cert->uuid)->toBeString();
@@ -165,7 +165,7 @@ it('salvar() persiste cert encrypted + senha encrypted + cria row em nfe_certifi
     expect(Crypt::decryptString($cert->encrypted_password))->toBe('minha-senha');
 
     // Arquivo encrypted no storage
-    $path = "nfe-brasil/4/cert/{$cert->uuid}.pfx.enc";
+    $path = "nfe-brasil/1/cert/{$cert->uuid}.pfx.enc";
     expect(Storage::disk('local')->exists($path))->toBeTrue();
 
     // Conteúdo do storage NÃO é o binary plain — é encrypted
@@ -178,7 +178,7 @@ it('salvar() rejeita cert com CNPJ ≠ CNPJ do business', function () {
     $svc = fakeService('11111111000111', '+1 year');
 
     expect(fn () => $svc->salvar(
-        4,
+        1,
         base64_encode('any'),
         'senha',
         ['cnpj_titular' => '99999999000199'], // business CNPJ diferente
@@ -188,30 +188,30 @@ it('salvar() rejeita cert com CNPJ ≠ CNPJ do business', function () {
 it('salvar() desativa cert anterior do mesmo business (rotação)', function () {
     $svc = fakeService('12345678000199', '+1 year');
 
-    $cert1 = $svc->salvar(4, base64_encode('first'), 'pass1');
+    $cert1 = $svc->salvar(1, base64_encode('first'), 'pass1');
     expect($cert1->ativo)->toBeTrue();
 
-    $cert2 = $svc->salvar(4, base64_encode('second'), 'pass2');
+    $cert2 = $svc->salvar(1, base64_encode('second'), 'pass2');
 
     expect($cert2->ativo)->toBeTrue()
         ->and($cert1->fresh()->ativo)->toBeFalse()
-        ->and(NfeCertificado::where('business_id', 4)->where('ativo', true)->count())->toBe(1);
+        ->and(NfeCertificado::where('business_id', 1)->where('ativo', true)->count())->toBe(1);
 });
 
 it('multi-tenant: cert do business A não vaza pro business B', function () {
     $svc = fakeService('11111111000111', '+1 year');
 
-    $svc->salvar(4, base64_encode('biz-4-pfx'), 'pass-4');
+    $svc->salvar(1, base64_encode('biz-1-pfx'), 'pass-1');
     $svcB = fakeService('22222222000199', '+1 year');
-    $svcB->salvar(5, base64_encode('biz-5-pfx'), 'pass-5');
+    $svcB->salvar(99, base64_encode('biz-99-pfx'), 'pass-99');
 
-    $loaded4 = $svc->carregarParaSefaz(4);
-    $loaded5 = $svcB->carregarParaSefaz(5);
+    $loadedA = $svc->carregarParaSefaz(1);
+    $loadedB = $svcB->carregarParaSefaz(99);
 
-    expect($loaded4['pfx_binary'])->toBe('biz-4-pfx')
-        ->and($loaded4['senha'])->toBe('pass-4')
-        ->and($loaded5['pfx_binary'])->toBe('biz-5-pfx')
-        ->and($loaded5['senha'])->toBe('pass-5');
+    expect($loadedA['pfx_binary'])->toBe('biz-1-pfx')
+        ->and($loadedA['senha'])->toBe('pass-1')
+        ->and($loadedB['pfx_binary'])->toBe('biz-99-pfx')
+        ->and($loadedB['senha'])->toBe('pass-99');
 });
 
 it('carregarParaSefaz() lança RuntimeException se business sem cert ativo', function () {
@@ -228,9 +228,9 @@ it('verificarVencimento() retorna null quando sem cert', function () {
 
 it('verificarVencimento() retorna dias positivos quando válido', function () {
     $svc = fakeService('12345678000199', '+45 days');
-    $svc->salvar(4, base64_encode('x'), 'p');
+    $svc->salvar(1, base64_encode('x'), 'p');
 
-    $dias = $svc->verificarVencimento(4);
+    $dias = $svc->verificarVencimento(1);
 
     expect($dias)->toBeInt()
         ->and($dias)->toBeGreaterThanOrEqual(44)
@@ -239,14 +239,14 @@ it('verificarVencimento() retorna dias positivos quando válido', function () {
 
 it('verificarVencimento() retorna ≤30 quando próximo de vencer', function () {
     $svc = fakeService('12345678000199', '+15 days');
-    $svc->salvar(4, base64_encode('x'), 'p');
+    $svc->salvar(1, base64_encode('x'), 'p');
 
-    expect($svc->verificarVencimento(4))->toBeLessThanOrEqual(30);
+    expect($svc->verificarVencimento(1))->toBeLessThanOrEqual(30);
 });
 
 it('senha NUNCA aparece em toArray() do model (defesa em profundidade)', function () {
     $svc = fakeService('12345678000199', '+1 year');
-    $cert = $svc->salvar(4, base64_encode('x'), 'super-secret-password');
+    $cert = $svc->salvar(1, base64_encode('x'), 'super-secret-password');
 
     $serialized = $cert->toArray();
     expect($serialized)->not()->toHaveKey('encrypted_password');

@@ -164,15 +164,15 @@ it('aplicar() cria regras novas (idempotente count=criadas)', function () {
     $svc = new ImportRegrasCsvService();
     $r = $svc->parse($csv);
 
-    $resumo = $svc->aplicar(4, $r['linhas']);
+    $resumo = $svc->aplicar(1, $r['linhas']);
 
     expect($resumo)->toBe(['criadas' => 2, 'atualizadas' => 0, 'falhas' => 0]);
-    expect(NfeFiscalRule::where('business_id', 4)->count())->toBe(2);
+    expect(NfeFiscalRule::where('business_id', 1)->count())->toBe(2);
 });
 
 it('aplicar() atualiza existentes pela chave (NCM + UF origem + UF destino)', function () {
     NfeFiscalRule::create([
-        'business_id'     => 4,
+        'business_id'     => 1,
         'ncm'             => '49019900',
         'uf_origem'       => 'SP',
         'uf_destino'      => null,
@@ -188,22 +188,22 @@ it('aplicar() atualiza existentes pela chave (NCM + UF origem + UF destino)', fu
     $svc = new ImportRegrasCsvService();
     $r = $svc->parse($csv);
 
-    $resumo = $svc->aplicar(4, $r['linhas']);
+    $resumo = $svc->aplicar(1, $r['linhas']);
 
     expect($resumo)->toBe(['criadas' => 0, 'atualizadas' => 1, 'falhas' => 0]);
-    expect(NfeFiscalRule::where('business_id', 4)->count())->toBe(1);
-    expect((float) NfeFiscalRule::where('business_id', 4)->first()->aliquota_icms)->toBe(0.18);
+    expect(NfeFiscalRule::where('business_id', 1)->count())->toBe(1);
+    expect((float) NfeFiscalRule::where('business_id', 1)->first()->aliquota_icms)->toBe(0.18);
 });
 
-it('aplicar() multi-tenant: import biz=4 não afeta biz=5', function () {
+it('aplicar() multi-tenant: import biz=1 não afeta biz=99', function () {
     NfeFiscalRule::create([
-        'business_id'     => 5,
+        'business_id'     => 99,
         'ncm'             => '49019900',
         'uf_origem'       => 'SP',
         'uf_destino'      => null,
         'cfop'            => '5102',
         'csosn'           => '102',
-        'aliquota_icms'   => 0.99, // valor "secreto" do biz 5
+        'aliquota_icms'   => 0.99, // valor "secreto" do biz 99
         'aliquota_pis'    => 0,
         'aliquota_cofins' => 0,
         'aliquota_ipi'    => 0,
@@ -211,9 +211,9 @@ it('aplicar() multi-tenant: import biz=4 não afeta biz=5', function () {
 
     $csv = csv('49019900,SP,,5102,102,,0.18,0,0,0');
     $svc = new ImportRegrasCsvService();
-    $resumo = $svc->aplicar(4, $svc->parse($csv)['linhas']);
+    $resumo = $svc->aplicar(1, $svc->parse($csv)['linhas']);
 
     expect($resumo)->toBe(['criadas' => 1, 'atualizadas' => 0, 'falhas' => 0]);
-    // biz 5 preservado
-    expect((float) NfeFiscalRule::where('business_id', 5)->first()->aliquota_icms)->toBe(0.99);
+    // biz 99 preservado
+    expect((float) NfeFiscalRule::where('business_id', 99)->first()->aliquota_icms)->toBe(0.99);
 });

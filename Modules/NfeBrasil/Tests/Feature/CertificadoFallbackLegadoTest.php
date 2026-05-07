@@ -48,24 +48,24 @@ afterEach(function () {
 
 it('lerCertLegado retorna null quando business sem cert', function () {
     DB::table('business')->insert([
-        'id' => 4, 'name' => 'Sem Cert', 'created_at' => now(), 'updated_at' => now(),
+        'id' => 1, 'name' => 'Sem Cert', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
     $svc = new CertificadoService();
 
-    expect($svc->lerCertLegado(4))->toBeNull();
+    expect($svc->lerCertLegado(1))->toBeNull();
 });
 
 it('lerCertLegado decodifica senha base64 do legado', function () {
     DB::table('business')->insert([
-        'id' => 4, 'name' => 'Com Cert',
+        'id' => 1, 'name' => 'Com Cert',
         'certificado' => 'BINARY-PFX-CONTENT',
         'senha_certificado' => base64_encode('senha-real-123'),
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
     $svc = new CertificadoService();
-    $result = $svc->lerCertLegado(4);
+    $result = $svc->lerCertLegado(1);
 
     expect($result)->not()->toBeNull()
         ->and($result['pfx_binary'])->toBe('BINARY-PFX-CONTENT')
@@ -75,7 +75,7 @@ it('lerCertLegado decodifica senha base64 do legado', function () {
 
 it('lerCertLegado tolera senha sem base64 (string direta)', function () {
     DB::table('business')->insert([
-        'id' => 4, 'name' => 'Cert Plain Pass',
+        'id' => 1, 'name' => 'Cert Plain Pass',
         'certificado' => 'BINARY',
         // Senha NÃO em base64 — caso de configurações antigas mistas
         'senha_certificado' => 'abc123-plain',
@@ -83,7 +83,7 @@ it('lerCertLegado tolera senha sem base64 (string direta)', function () {
     ]);
 
     $svc = new CertificadoService();
-    $result = $svc->lerCertLegado(4);
+    $result = $svc->lerCertLegado(1);
 
     // base64_decode('abc123-plain') retorna lixo binário, não false.
     // Decisão: aceitar o que veio (base64_decode silencioso) — em prod,
@@ -94,14 +94,14 @@ it('lerCertLegado tolera senha sem base64 (string direta)', function () {
 
 it('carregarParaSefaz cai no fallback quando nfe_certificados vazia', function () {
     DB::table('business')->insert([
-        'id' => 4, 'name' => 'X',
+        'id' => 1, 'name' => 'X',
         'certificado' => 'PFX-LEGADO',
         'senha_certificado' => base64_encode('senha-legado'),
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
     $svc = new CertificadoService();
-    $result = $svc->carregarParaSefaz(4);
+    $result = $svc->carregarParaSefaz(1);
 
     expect($result['source'])->toBe('business_legado')
         ->and($result['pfx_binary'])->toBe('PFX-LEGADO')
@@ -115,22 +115,22 @@ it('carregarParaSefaz lança RuntimeException quando legado E novo ambos vazios'
 
     $svc = new CertificadoService();
 
-    expect(fn () => $svc->carregarParaSefaz(4))
+    expect(fn () => $svc->carregarParaSefaz(1))
         ->toThrow(\RuntimeException::class, 'não tem certificado A1 ativo');
 });
 
 it('isolamento multi-tenant: fallback do biz A não vaza pra biz B', function () {
     DB::table('business')->insert([
-        ['id' => 4, 'name' => 'A', 'certificado' => 'PFX-A',
+        ['id' => 1, 'name' => 'A', 'certificado' => 'PFX-A',
          'senha_certificado' => base64_encode('senha-A'),
          'created_at' => now(), 'updated_at' => now()],
-        ['id' => 5, 'name' => 'B', 'certificado' => 'PFX-B',
+        ['id' => 99, 'name' => 'B', 'certificado' => 'PFX-B',
          'senha_certificado' => base64_encode('senha-B'),
          'created_at' => now(), 'updated_at' => now()],
     ]);
 
     $svc = new CertificadoService();
 
-    expect($svc->carregarParaSefaz(4)['pfx_binary'])->toBe('PFX-A')
-        ->and($svc->carregarParaSefaz(5)['pfx_binary'])->toBe('PFX-B');
+    expect($svc->carregarParaSefaz(1)['pfx_binary'])->toBe('PFX-A')
+        ->and($svc->carregarParaSefaz(99)['pfx_binary'])->toBe('PFX-B');
 });

@@ -81,7 +81,7 @@ function inertiaComponentTributacao(\Inertia\Response $r): string
 
 it('index() renderiza Inertia component com regras vazias e config null', function () {
     $controller = new TributacaoController();
-    $response = $controller->index(makeIndexRequest(4));
+    $response = $controller->index(makeIndexRequest(1));
 
     expect(inertiaComponentTributacao($response))->toBe('NfeBrasil/Tributacao/Index');
 
@@ -92,7 +92,7 @@ it('index() renderiza Inertia component com regras vazias e config null', functi
 
 it('index() lista regras do business + config quando existem', function () {
     NfeFiscalRule::create([
-        'business_id' => 4,
+        'business_id' => 1,
         'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => null,
         'cfop' => '5102', 'csosn' => '102',
         'aliquota_icms' => 0.18, 'aliquota_pis' => 0.0065,
@@ -100,12 +100,12 @@ it('index() lista regras do business + config quando existem', function () {
     ]);
 
     NfeBusinessConfig::create([
-        'business_id' => 4,
+        'business_id' => 1,
         'regime' => 'simples',
         'tributacao_default' => ['ncm_default' => '49019900', 'cfop' => '5102', 'csosn' => '102'],
     ]);
 
-    $response = (new TributacaoController())->index(makeIndexRequest(4));
+    $response = (new TributacaoController())->index(makeIndexRequest(1));
     $props = inertiaPropsTributacao($response);
 
     expect($props['regras'])->toHaveCount(1)
@@ -114,16 +114,16 @@ it('index() lista regras do business + config quando existem', function () {
         ->and($props['config']['regime'])->toBe('simples');
 });
 
-it('index() multi-tenant: regras do business 4 não vazam pro business 5', function () {
+it('index() multi-tenant: regras do business 1 não vazam pro business 99', function () {
     NfeFiscalRule::create([
-        'business_id' => 4,
+        'business_id' => 1,
         'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => null,
         'cfop' => '5102', 'csosn' => '102',
         'aliquota_icms' => 0.18, 'aliquota_pis' => 0,
         'aliquota_cofins' => 0, 'aliquota_ipi' => 0,
     ]);
 
-    $response = (new TributacaoController())->index(makeIndexRequest(5));
+    $response = (new TributacaoController())->index(makeIndexRequest(99));
     $props = inertiaPropsTributacao($response);
 
     expect($props['regras'])->toBe([]);
@@ -138,7 +138,7 @@ it('create() renderiza form vazio (regra null)', function () {
 
 it('edit() renderiza form com regra carregada', function () {
     $regra = NfeFiscalRule::create([
-        'business_id' => 4,
+        'business_id' => 1,
         'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => 'RJ',
         'cfop' => '6102', 'csosn' => '102',
         'aliquota_icms' => 0.18, 'aliquota_pis' => 0,
@@ -147,7 +147,7 @@ it('edit() renderiza form com regra carregada', function () {
 
     $request = Request::create('/nfe-brasil/tributacao/regras/' . $regra->id . '/edit', 'GET');
     $request->setLaravelSession(app('session.store'));
-    $request->session()->put('business.id', 4);
+    $request->session()->put('business.id', 1);
 
     $response = (new TributacaoController())->edit($request, $regra->id);
     $props = inertiaPropsTributacao($response);
@@ -169,7 +169,7 @@ it('edit() de regra de outro business retorna 404 (multi-tenant)', function () {
 
     $request = Request::create('/nfe-brasil/tributacao/regras/' . $regra->id . '/edit', 'GET');
     $request->setLaravelSession(app('session.store'));
-    $request->session()->put('business.id', 4); // tentando acessar como biz 4
+    $request->session()->put('business.id', 1); // tentando acessar como biz 1 (Wagner)
 
     expect(fn () => (new TributacaoController())->edit($request, $regra->id))
         ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
@@ -177,22 +177,22 @@ it('edit() de regra de outro business retorna 404 (multi-tenant)', function () {
 
 it('regras retornam ordenadas por NCM, UF origem, UF destino (NULL primeiro)', function () {
     NfeFiscalRule::create([
-        'business_id' => 4, 'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => 'RJ',
+        'business_id' => 1, 'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => 'RJ',
         'cfop' => '6102', 'csosn' => '102',
         'aliquota_icms' => 0, 'aliquota_pis' => 0, 'aliquota_cofins' => 0, 'aliquota_ipi' => 0,
     ]);
     NfeFiscalRule::create([
-        'business_id' => 4, 'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => null,
+        'business_id' => 1, 'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => null,
         'cfop' => '5102', 'csosn' => '102',
         'aliquota_icms' => 0, 'aliquota_pis' => 0, 'aliquota_cofins' => 0, 'aliquota_ipi' => 0,
     ]);
     NfeFiscalRule::create([
-        'business_id' => 4, 'ncm' => '22021000', 'uf_origem' => 'SP', 'uf_destino' => null,
+        'business_id' => 1, 'ncm' => '22021000', 'uf_origem' => 'SP', 'uf_destino' => null,
         'cfop' => '5102', 'csosn' => '102',
         'aliquota_icms' => 0, 'aliquota_pis' => 0, 'aliquota_cofins' => 0, 'aliquota_ipi' => 0,
     ]);
 
-    $response = (new TributacaoController())->index(makeIndexRequest(4));
+    $response = (new TributacaoController())->index(makeIndexRequest(1));
     $props = inertiaPropsTributacao($response);
 
     expect($props['regras'][0]['ncm'])->toBe('22021000')

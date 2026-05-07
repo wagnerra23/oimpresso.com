@@ -44,7 +44,7 @@ it('cross-tenant guard: tx.business_id != job.businessId → skip silencioso', f
     $service->shouldNotReceive('emitirParaTransaction');
 
     // Transaction inexistente (find retorna null) — Job loga warning + return
-    (new EmitirNfceJob(4, 9999999))->handle($service);
+    (new EmitirNfceJob(1, 9999999))->handle($service);
 
     expect(NfeEmissao::where('transaction_id', 9999999)->count())->toBe(0);
 });
@@ -53,7 +53,7 @@ it('transaction inexistente: skip sem chamar service', function () {
     $service = Mockery::mock(NfeService::class);
     $service->shouldNotReceive('emitirParaTransaction');
 
-    (new EmitirNfceJob(4, 8888888))->handle($service);
+    (new EmitirNfceJob(1, 8888888))->handle($service);
 
     expect(NfeEmissao::where('transaction_id', 8888888)->count())->toBe(0);
 });
@@ -62,7 +62,7 @@ it('idempotência ao chamar duas vezes: service é chamado mas retorna mesma emi
     // O Job não faz mais idempotência local — delega ao service.
     // Service retorna a emissão existente quando UNIQUE bate.
     $existingEmissao = NfeEmissao::create([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => 12345,
         'modelo'         => 65,
         'serie'          => '1',
@@ -75,7 +75,7 @@ it('idempotência ao chamar duas vezes: service é chamado mas retorna mesma emi
     $service->shouldReceive('emitirParaTransaction')
         ->never(); // tx não existe no DB; Job aborta antes do service
 
-    (new EmitirNfceJob(4, 12345))->handle($service);
+    (new EmitirNfceJob(1, 12345))->handle($service);
 
     // Verifica que NÃO criou emissão duplicada
     expect(NfeEmissao::where('transaction_id', 12345)->count())->toBe(1);
@@ -110,10 +110,10 @@ function nfceJobMakeTransaction(int $businessId): int
 it('status=autorizada → dispatch event NFCeAutorizada (com listener fake)', function () {
     Event::fake([NFCeAutorizada::class]);
 
-    $txId = nfceJobMakeTransaction(4);
+    $txId = nfceJobMakeTransaction(1);
 
     $emissao = new NfeEmissao([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => $txId,
         'modelo'         => 65,
         'serie'          => '1',
@@ -128,7 +128,7 @@ it('status=autorizada → dispatch event NFCeAutorizada (com listener fake)', fu
     $service = Mockery::mock(NfeService::class);
     $service->shouldReceive('emitirParaTransaction')->once()->andReturn($emissao);
 
-    (new EmitirNfceJob(4, $txId))->handle($service);
+    (new EmitirNfceJob(1, $txId))->handle($service);
 
     Event::assertDispatched(NFCeAutorizada::class, function ($e) use ($emissao) {
         return $e->emissao->id === $emissao->id
@@ -141,10 +141,10 @@ it('status=autorizada → dispatch event NFCeAutorizada (com listener fake)', fu
 it('status=rejeitada → NÃO dispatch event', function () {
     Event::fake([NFCeAutorizada::class]);
 
-    $txId = nfceJobMakeTransaction(4);
+    $txId = nfceJobMakeTransaction(1);
 
     $emissao = new NfeEmissao([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => $txId,
         'modelo'         => 65,
         'status'         => 'rejeitada',
@@ -155,7 +155,7 @@ it('status=rejeitada → NÃO dispatch event', function () {
     $service = Mockery::mock(NfeService::class);
     $service->shouldReceive('emitirParaTransaction')->once()->andReturn($emissao);
 
-    (new EmitirNfceJob(4, $txId))->handle($service);
+    (new EmitirNfceJob(1, $txId))->handle($service);
 
     Event::assertNotDispatched(NFCeAutorizada::class);
 
@@ -165,10 +165,10 @@ it('status=rejeitada → NÃO dispatch event', function () {
 it('status=denegada → NÃO dispatch event', function () {
     Event::fake([NFCeAutorizada::class]);
 
-    $txId = nfceJobMakeTransaction(4);
+    $txId = nfceJobMakeTransaction(1);
 
     $emissao = new NfeEmissao([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => $txId,
         'modelo'         => 65,
         'status'         => 'denegada',
@@ -179,7 +179,7 @@ it('status=denegada → NÃO dispatch event', function () {
     $service = Mockery::mock(NfeService::class);
     $service->shouldReceive('emitirParaTransaction')->once()->andReturn($emissao);
 
-    (new EmitirNfceJob(4, $txId))->handle($service);
+    (new EmitirNfceJob(1, $txId))->handle($service);
 
     Event::assertNotDispatched(NFCeAutorizada::class);
 
@@ -189,10 +189,10 @@ it('status=denegada → NÃO dispatch event', function () {
 it('status=pendente (timeout SEFAZ) → NÃO dispatch event', function () {
     Event::fake([NFCeAutorizada::class]);
 
-    $txId = nfceJobMakeTransaction(4);
+    $txId = nfceJobMakeTransaction(1);
 
     $emissao = new NfeEmissao([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => $txId,
         'modelo'         => 65,
         'status'         => 'pendente',
@@ -203,7 +203,7 @@ it('status=pendente (timeout SEFAZ) → NÃO dispatch event', function () {
     $service = Mockery::mock(NfeService::class);
     $service->shouldReceive('emitirParaTransaction')->once()->andReturn($emissao);
 
-    (new EmitirNfceJob(4, $txId))->handle($service);
+    (new EmitirNfceJob(1, $txId))->handle($service);
 
     Event::assertNotDispatched(NFCeAutorizada::class);
 

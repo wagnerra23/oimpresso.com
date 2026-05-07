@@ -5,8 +5,8 @@ declare(strict_types=1);
 /**
  * Template tributário · Comércio varejo · Simples Nacional · SP
  *
- * Cliente típico: gráfica rápida POS (Larissa ROTA LIVRE), papelaria de
- * bairro, fotocópia. Vende serviço/produto pra consumidor final no balcão.
+ * Cliente típico: gráfica rápida POS, papelaria de bairro, fotocópia.
+ * Vende serviço/produto pra consumidor final no balcão.
  *
  * Modelo NFe: 65 (NFC-e) — varejo presencial
  * CFOP: 5.102 (venda de mercadoria adquirida ou recebida de terceiros)

@@ -30,7 +30,7 @@ beforeEach(function () {
 /**
  * Helper: chama endpoint simulando session com business.id.
  */
-function callNfeStatus(int $txId, ?int $businessId = 4)
+function callNfeStatus(int $txId, ?int $businessId = 1)
 {
     $session = $businessId ? ['business.id' => $businessId] : [];
     return test()->withSession($session)->getJson("/nfe-brasil/api/transactions/{$txId}/nfe-status");
@@ -66,7 +66,7 @@ it('cross-tenant: emissão em outro business → tratada como inexistente', func
         'valor_total'    => 100.00,
     ]);
 
-    $response = callNfeStatus(7000001, businessId: 4); // ← business 4 logado
+    $response = callNfeStatus(7000001, businessId: 1); // ← business 1 logado (Wagner)
 
     $response->assertOk()
         ->assertJson([
@@ -77,7 +77,7 @@ it('cross-tenant: emissão em outro business → tratada como inexistente', func
 
 it('modelo 55 (NFe) é ignorado pelo endpoint NFC-e', function () {
     NfeEmissao::create([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => 7000002,
         'modelo'         => 55, // ← NFe normal, não NFC-e
         'serie'          => '1',
@@ -95,7 +95,7 @@ it('modelo 55 (NFe) é ignorado pelo endpoint NFC-e', function () {
 
 it('status pendente → is_terminal=false', function () {
     NfeEmissao::create([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => 7000003,
         'modelo'         => 65,
         'serie'          => '1',
@@ -116,7 +116,7 @@ it('status pendente → is_terminal=false', function () {
 
 it('status autorizada → payload completo + is_terminal=true', function () {
     $emissao = NfeEmissao::create([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => 7000004,
         'modelo'         => 65,
         'serie'          => '1',
@@ -147,7 +147,7 @@ it('status autorizada → payload completo + is_terminal=true', function () {
 
 it('status rejeitada → is_terminal=true', function () {
     NfeEmissao::create([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => 7000005,
         'modelo'         => 65,
         'serie'          => '1',
@@ -172,7 +172,7 @@ it('status rejeitada → is_terminal=true', function () {
 it('múltiplas emissões pra mesma tx → retorna a mais recente', function () {
     // Cenário: primeira emissão rejeitada, segunda re-tentou e autorizou.
     NfeEmissao::create([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => 7000006,
         'modelo'         => 65,
         'serie'          => '1',
@@ -183,7 +183,7 @@ it('múltiplas emissões pra mesma tx → retorna a mais recente', function () {
     ]);
 
     $segunda = NfeEmissao::create([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => 7000006,
         'modelo'         => 65,
         'serie'          => '1',

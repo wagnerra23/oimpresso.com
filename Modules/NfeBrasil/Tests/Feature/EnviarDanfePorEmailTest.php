@@ -46,7 +46,7 @@ afterEach(function () {
 
 // ── helpers ──────────────────────────────────────────────────────────────
 
-function makeEmissaoAutorizada(?int $transactionId = null, int $businessId = 4): NfeEmissao
+function makeEmissaoAutorizada(?int $transactionId = null, int $businessId = 1): NfeEmissao
 {
     return NfeEmissao::create([
         'business_id'    => $businessId,
@@ -153,7 +153,7 @@ it('Invoice sem contact email → skip silencioso (não envia)', function () {
         ['id' => 9991],
         [
             'name' => 'Sem Email',
-            'business_id' => 4,
+            'business_id' => 1,
             'email' => null,
             'type' => 'customer',
             'created_at' => now(),
@@ -162,7 +162,7 @@ it('Invoice sem contact email → skip silencioso (não envia)', function () {
     );
 
     $invoice = Invoice::create([
-        'business_id'      => 4,
+        'business_id'      => 1,
         'contact_id'       => 9991,
         'numero_documento' => 'INV-NO-EMAIL-' . uniqid(),
         'valor'            => 50,
@@ -188,7 +188,7 @@ it('happy path: Invoice + Contact com email → envia DanfeNotaFiscalMail com PD
     Mail::fake();
 
     $contactId = 9990;
-    $invoice = makeInvoiceComEmail(4, $contactId, 'cliente@example.com');
+    $invoice = makeInvoiceComEmail(1, $contactId, 'cliente@example.com');
     $emissao = makeEmissaoAutorizada(transactionId: $invoice->id);
 
     Storage::put($emissao->xml_path, '<nfeProc>fake-xml</nfeProc>');
@@ -207,7 +207,7 @@ it('happy path: Invoice + Contact com email → envia DanfeNotaFiscalMail com PD
 it('DanfeService falha → re-throw pra queue retry', function () {
     Mail::fake();
 
-    $invoice = makeInvoiceComEmail(4, 9989, 'retry@example.com');
+    $invoice = makeInvoiceComEmail(1, 9989, 'retry@example.com');
     $emissao = makeEmissaoAutorizada(transactionId: $invoice->id);
 
     $danfe = \Mockery::mock(DanfeService::class);

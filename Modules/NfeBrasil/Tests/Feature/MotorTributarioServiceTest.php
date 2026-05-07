@@ -71,7 +71,7 @@ function ctx(?string $ncm = '22021000', float $valor = 100.0, ?int $overrideId =
 function regra(array $props): NfeFiscalRule
 {
     return NfeFiscalRule::create(array_merge([
-        'business_id'     => 4,
+        'business_id'     => 1,
         'ncm'             => '22021000',
         'uf_origem'       => 'SP',
         'uf_destino'      => null,
@@ -117,7 +117,7 @@ it('Nível 1: override por produto vence sobre tudo', function () {
 
     $tributo = (new MotorTributarioService)->calcular(
         ctx('22021000', 100.0, overrideId: $override->id),
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'RJ',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
     );
 
     expect($tributo->nivel_usado)->toBe(1)
@@ -134,7 +134,7 @@ it('Nível 2: regra exata (uf_destino especifico) vence sobre Nível 3', functio
 
     $tributo = (new MotorTributarioService)->calcular(
         ctx('22021000', 100.0),
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'RJ',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
     );
 
     expect($tributo->nivel_usado)->toBe(2)
@@ -149,7 +149,7 @@ it('Nível 3: regra padrão NCM aplica quando não há regra exata', function ()
 
     $tributo = (new MotorTributarioService)->calcular(
         ctx('22021000', 250.0),
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'BA',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'BA',
     );
 
     expect($tributo->nivel_usado)->toBe(3)
@@ -169,7 +169,7 @@ it('Nível 4: defaults business aplicam quando NCM não tem regra', function () 
 
     $tributo = (new MotorTributarioService)->calcular(
         ctx('99999999', 1000.0),
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'SP',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
     );
 
     expect($tributo->nivel_usado)->toBe(4)
@@ -188,7 +188,7 @@ it('NcmObrigatorioException quando produto sem NCM e sem override', function () 
 
     expect(fn () => (new MotorTributarioService)->calcular(
         ctx(null, 100.0),
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'SP',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
     ))->toThrow(NcmObrigatorioException::class, 'sem NCM cadastrado');
 });
 
@@ -196,12 +196,12 @@ it('TributacaoNaoConfiguradaException quando business sem default e NCM sem regr
     // Sem configBusiness — Nível 4 falha
     expect(fn () => (new MotorTributarioService)->calcular(
         ctx('22021000', 100.0),
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'SP',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
     ))->toThrow(TributacaoNaoConfiguradaException::class, 'sem default tributário');
 });
 
 it('Multi-tenant: regra do business 4 não vaza pro business 5', function () {
-    regra(['business_id' => 4, 'aliquota_icms' => 0.18]);
+    regra(['business_id' => 1, 'aliquota_icms' => 0.18]);
     configBusiness(5, ['aliquota_icms' => 0.05]); // Business 5 só tem default
 
     $tributo = (new MotorTributarioService)->calcular(
@@ -219,7 +219,7 @@ it('Override invalido (id que nao existe) cai no cascade normal', function () {
 
     $tributo = (new MotorTributarioService)->calcular(
         ctx('22021000', 100.0, overrideId: 99999), // não existe
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'SP',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
     );
 
     expect($tributo->nivel_usado)->toBe(3)
@@ -228,12 +228,12 @@ it('Override invalido (id que nao existe) cai no cascade normal', function () {
 
 it('Override de outro business é ignorado (multi-tenant)', function () {
     $overrideOutroBiz = regra(['business_id' => 999, 'aliquota_icms' => 0.99]);
-    regra(['business_id' => 4, 'uf_destino' => null, 'aliquota_icms' => 0.10]);
+    regra(['business_id' => 1, 'uf_destino' => null, 'aliquota_icms' => 0.10]);
     configBusiness(4);
 
     $tributo = (new MotorTributarioService)->calcular(
         ctx('22021000', 100.0, overrideId: $overrideOutroBiz->id),
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'SP',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
     );
 
     expect($tributo->nivel_usado)->toBe(3) // Não pegou override do biz 999
@@ -246,9 +246,9 @@ it('Cache em memoria: mesma chave é consultada 1x por instância', function () 
     $svc = new MotorTributarioService;
 
     // Primeira chamada — query
-    $t1 = $svc->calcular(ctx('22021000', 100.0), 4, 'SP', 'SP');
+    $t1 = $svc->calcular(ctx('22021000', 100.0), 1, 'SP', 'SP');
     // Segunda — deve vir do cache (mesma chave)
-    $t2 = $svc->calcular(ctx('22021000', 200.0), 4, 'SP', 'SP');
+    $t2 = $svc->calcular(ctx('22021000', 200.0), 1, 'SP', 'SP');
 
     expect($t1->aliquota_icms)->toBe(0.10)
         ->and($t2->aliquota_icms)->toBe(0.10)
@@ -267,7 +267,7 @@ it('CST aplicado quando regra é Regime Normal (sem CSOSN)', function () {
 
     $tributo = (new MotorTributarioService)->calcular(
         ctx('22021000', 100.0),
-        businessId: 4, ufOrigem: 'SP', ufDestino: 'SP',
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
     );
 
     expect($tributo->cst)->toBe('000')
