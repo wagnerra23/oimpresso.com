@@ -1,12 +1,15 @@
 ---
 slug: 0067-sprint8-mcp-memory-document-searchable-retrieval
+number: 67
 title: "Sprint 8 — McpMemoryDocument Searchable + retrieval hybrid na pipeline RAGAS"
+type: adr
 status: aceito
-authority: [Wagner]
-lifecycle: active
+authority: canonical
+lifecycle: ativo
 quarter: Q2-2026
 decided_at: 2026-05-04
-decided_by: [Wagner, Claude]
+decided_by: [W]
+module: copiloto
 supersedes: []
 superseded_by: []
 related: [0037, 0036, 0053, 0063]
