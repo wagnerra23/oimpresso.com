@@ -39,6 +39,10 @@ Route::group(
             ->where('taskId', '[A-Z0-9\-]+')
             ->name('project-mgmt.board.update-status');
 
+        // ---- Cmd+K Search Global — PMG-002 (ADR 0100) ----------------------
+        Route::get('/search', 'SearchController@index')
+            ->name('project-mgmt.search');
+
         // ---- My Work + Inbox — US-TR-204 -----------------------------------
         Route::get('/my-work', 'MyWorkController@index')
             ->name('project-mgmt.my-work.index');
