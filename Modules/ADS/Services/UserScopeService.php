@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\DB;
 /**
  * Resolve permissões granulares de (usuário × módulo).
  *
- * Caso Maíra:
+ * Caso Maiara:
  *   canWriteToPath(maira, 'Modules/Compras/Models/X.php') → true
  *   canWriteToPath(maira, 'Modules/NFSe/Services/Y.php')  → false
  *   canWriteToPath(maira, 'Modules/ADS/Tools/Z.php')      → false
  *
  * REGRA DO SERVIDOR > REGRA LOCAL:
- *   WriteFileTool consulta isso ANTES de escrever — Maíra clonando repo
+ *   WriteFileTool consulta isso ANTES de escrever — Maiara clonando repo
  *   localmente pode editar files no editor dela, mas commit/push pra branch
  *   protegida só passa pelo ADS que enforça aqui.
  */

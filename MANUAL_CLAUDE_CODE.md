@@ -1,6 +1,6 @@
 # Manual de Uso — Oimpresso Design System no Claude Code
 
-> **Para:** Wagner, Maíra, Felipe, Luiz, Eliana  
+> **Para:** Wagner, Maiara, Felipe, Luiz, Eliana  
 > **Quando usar:** sempre que for criar ou alterar tela React no ERP  
 > **Última atualização:** 2026-04-30
 

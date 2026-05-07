@@ -82,7 +82,7 @@ Status for the jail: sshd
 |  |- Journal matches: _SYSTEMD_UNIT=sshd.service + _COMM=sshd
 ```
 
-## Adicionar dev novo (Felipe/Maíra/Luiz/Eliana)
+## Adicionar dev novo (Felipe/Maiara/Luiz/Eliana)
 
 ### Opção A — chave em root (simples, mas todos viram root)
 

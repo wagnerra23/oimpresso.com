@@ -45,7 +45,7 @@ php artisan migrate --seed
 # acesse http://oimpresso.test
 ```
 
-**Time externo (Felipe/Maíra/Eliana/Luiz):**
+**Time externo (Felipe/Maiara/Eliana/Luiz):**
 1. Setup MCP server da empresa via skill `oimpresso-team-onboarding`
 2. Ler [`CLAUDE.md`](CLAUDE.md) — primer Claude Code
 3. Brief inicial: tool MCP `brief-fetch` (camada L7)

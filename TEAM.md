@@ -18,7 +18,7 @@
 - **Hora ativa:** alta agilidade — pode fechar tasks técnicas em <1 dia
 - **Decisão final em:** ADRs, política de eval, posicionamento, cobrança, deploy produção
 
-### Maíra [M] — Suporte + Desenvolvimento
+### Maiara [M] — Suporte + Desenvolvimento
 - **Responsabilidade primária:** suporte direto a clientes ativos (ROTA LIVRE / Larissa em primeira linha) + dev de complexidade média
 - **Pode mexer em:** Cms, Financeiro (módulo, tela, view), UI Inertia, suporte triage
 - **Não deve fazer:** decisões de arquitetura, ADRs, sprints de Copiloto LGPD-críticos
@@ -32,7 +32,7 @@
 - **Não deve fazer:** decisão final de ADR (propõe e Wagner aprova), suporte cliente direto exceto urgência
 - **WIP máximo:** **2 tasks ativas** (1 sprint + 1 paralelo)
 - **Hora ativa:** alta — pode fechar tasks complexas em 2-5 dias
-- **Decisão final em:** implementação técnica dentro de ADR já aprovado, code review de Maíra/Luiz
+- **Decisão final em:** implementação técnica dentro de ADR já aprovado, code review de Maiara/Luiz
 
 ### Luiz [L] — Suporte iniciante + Dev com IA pair
 - **Responsabilidade primária:** triagem de suporte tier 1 + tasks dev **SIMPLES emparelhado com Claude/IA**
@@ -66,7 +66,7 @@
 |---|---|---|---|
 | Wagner [W] | 2 | 4-6 (2 estratégicas + 4 técnicas curtas) | 4-6h/dia |
 | Felipe [F] | 2 | 5-8 (2 grandes + 3-6 médias) | 6-8h/dia |
-| Maíra [M] | 2 | 4-6 (suporte contínuo + 2-3 dev) | 6-8h/dia |
+| Maiara [M] | 2 | 4-6 (suporte contínuo + 2-3 dev) | 6-8h/dia |
 | Luiz [L] | 1 | 2-3 (com pair Claude) | 4-6h/dia |
 | Eliana [E] | 1 | 1-2 (foco financeiro + opcional IA) | 2-4h/dia |
 | **TOTAL** | **8** | **16-25 tasks/cycle** | — |
@@ -110,7 +110,7 @@
 
 1. **Luiz NÃO mergeia PR sozinho.** Sempre Felipe ou Wagner aprovam.
 2. **Eliana[E] NÃO mexe em Copiloto sprints LGPD.** Risco regulatório.
-3. **Maíra NÃO faz deploy produção sozinha.** Sempre supervisão Wagner ou Felipe.
+3. **Maiara NÃO faz deploy produção sozinha.** Sempre supervisão Wagner ou Felipe.
 4. **Wagner deve evitar virar bottleneck** — delegar code review pra Felipe quando puder.
 5. **PIIs reais (CPF/CNPJ de clientes) NUNCA aparecem em PR ou commit.** Logs de teste com `[REDACTED]` mesmo em dev.
 
@@ -122,7 +122,7 @@ Use **iniciais entre colchetes** sempre que mencionar dono:
 
 ```
 [W]   Wagner
-[M]   Maíra
+[M]   Maiara
 [F]   Felipe
 [L]   Luiz
 [E]   Eliana (esposa, time interno)
@@ -153,7 +153,7 @@ Quando alguém vai pegar uma US (via `my-work` ou `tasks-list owner:NOME`):
 2. Olhe seu WIP atual — está abaixo do máximo (§1)?
 3. **Bloqueio?** Se task depende de algo de outro dono, marque ⛔ e mova pra On-deck até desbloquear
 4. **Compreensão?** Se a task tem palavra que você não entende (ex.: "faithfulness", "shadow deployment"), pergunta antes de começar — NUNCA googla por 30 min sem checar com Wagner/Felipe
-5. **Pair com Claude/Cursor?** Default sim pra Luiz e Eliana. Felipe/Maíra/Wagner usam quando quiser acelerar
+5. **Pair com Claude/Cursor?** Default sim pra Luiz e Eliana. Felipe/Maiara/Wagner usam quando quiser acelerar
 6. **Definition of Done explícito?** Cada US no SPEC.md tem campo `Acceptance:` em 1 frase. Se a US que você puxou não tem, peça pro owner adicionar via `tasks-comment` antes de começar
 
 ---

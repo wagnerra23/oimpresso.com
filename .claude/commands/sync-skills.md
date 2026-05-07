@@ -51,7 +51,7 @@ Resultado: dev faz `git pull`, recebe skill nova, mas o Claude do dev não "sabe
 
 ## Multi-tenant / time
 
-Cada dev (Wagner/Felipe/Maíra/Luiz/Eliana) tem seu próprio `.claude/.last-skills-sync` local — gitignored. Não polui git. Cada um vê só o diff desde o **seu** último sync.
+Cada dev (Wagner/Felipe/Maiara/Luiz/Eliana) tem seu próprio `.claude/.last-skills-sync` local — gitignored. Não polui git. Cada um vê só o diff desde o **seu** último sync.
 
 ## Diferença pra ADR 0073 (Team MCP P0)
 
