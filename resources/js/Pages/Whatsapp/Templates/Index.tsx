@@ -8,9 +8,11 @@
 
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
+import EmptyState from '@/Components/shared/EmptyState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -81,15 +83,24 @@ export default function TemplatesIndex({ templates, filters }: Props) {
   return (
     <div className="space-y-4">
       <PageHeader
+        icon="file-text"
         title="Templates Whatsapp"
-        subtitle="HSM Meta + locais Z-API/Baileys (LOCAL = sempre disponível)"
-        actions={
+        description="HSM Meta + locais Z-API/Baileys (LOCAL = sempre disponível)"
+        action={
           <div className="flex gap-2">
-            <Button onClick={() => setShowCreateForm((s) => !s)} variant="outline">
-              {showCreateForm ? 'Cancelar' : '+ Novo template LOCAL'}
+            <Button onClick={() => setShowCreateForm((s) => !s)} variant="outline" className="gap-1.5">
+              {showCreateForm ? (
+                'Cancelar'
+              ) : (
+                <>
+                  <Plus size={14} aria-hidden />
+                  Novo template LOCAL
+                </>
+              )}
             </Button>
-            <Button onClick={syncMeta} disabled={syncing} variant="outline">
-              {syncing ? 'Sincronizando Meta...' : 'Sincronizar Meta HSM'}
+            <Button onClick={syncMeta} disabled={syncing} variant="outline" className="gap-1.5">
+              <RefreshCw size={14} aria-hidden className={syncing ? 'animate-spin' : ''} />
+              {syncing ? 'Sincronizando Meta…' : 'Sincronizar Meta HSM'}
             </Button>
           </div>
         }
@@ -161,10 +172,13 @@ export default function TemplatesIndex({ templates, filters }: Props) {
       )}
 
       {orphanCount > 0 && (
-        <Card className="p-3 border-amber-300 bg-amber-50">
-          <div className="text-sm text-amber-900">
-            ⚠️ {orphanCount} template{orphanCount > 1 ? 's' : ''} Z-API/Baileys sem contraparte Meta aprovada. Em
-            caso de ban Z-API, fallback Meta Cloud não vai conseguir enviar essas mensagens.
+        <Card className="p-3 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
+          <div className="text-sm text-amber-900 dark:text-amber-200 flex items-start gap-2">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden />
+            <span>
+              {orphanCount} template{orphanCount > 1 ? 's' : ''} Z-API/Baileys sem contraparte Meta aprovada.
+              Em caso de ban Z-API, fallback Meta Cloud não vai conseguir enviar essas mensagens.
+            </span>
           </div>
         </Card>
       )}
@@ -202,9 +216,24 @@ export default function TemplatesIndex({ templates, filters }: Props) {
 
       {/* Lista */}
       {templates.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">
-          Nenhum template cadastrado. Cadastre HSM na Meta Business Manager e clique "Sincronizar Meta HSM",
-          ou crie templates locais Z-API/Baileys diretamente no DB (UI de criação local em Lote 2f).
+        <Card>
+          <EmptyState
+            icon="file-text"
+            title="Nenhum template cadastrado"
+            description="Cadastre HSM na Meta Business Manager e sincronize aqui, ou crie templates LOCAL Z-API/Baileys direto no botão acima."
+            action={
+              <div className="flex gap-2">
+                <Button onClick={() => setShowCreateForm(true)} variant="default" className="gap-1.5">
+                  <Plus size={14} aria-hidden />
+                  Novo template LOCAL
+                </Button>
+                <Button onClick={syncMeta} disabled={syncing} variant="outline" className="gap-1.5">
+                  <RefreshCw size={14} aria-hidden className={syncing ? 'animate-spin' : ''} />
+                  Sincronizar Meta
+                </Button>
+              </div>
+            }
+          />
         </Card>
       ) : (
         <div className="space-y-2">
@@ -218,19 +247,25 @@ export default function TemplatesIndex({ templates, filters }: Props) {
                     <CategoryBadge category={t.category} />
                     <StatusBadge status={t.status} provider={t.provider} />
                     <ProviderBadge provider={t.provider} />
-                    {t.is_ready && <Badge variant="outline" className="border-green-500 text-green-700">pronto</Badge>}
+                    {t.is_ready && (
+                      <Badge variant="outline" className="border-emerald-500 text-emerald-700 dark:text-emerald-400 dark:border-emerald-700 gap-0.5">
+                        <CheckCircle2 size={11} aria-hidden />
+                        pronto
+                      </Badge>
+                    )}
                   </div>
                   <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
                     {t.body_preview || <em>(sem corpo)</em>}
                   </div>
                   {t.rejection_reason && (
-                    <div className="mt-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">
+                    <div className="mt-2 text-xs text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded px-2 py-1">
                       Rejeitado: {t.rejection_reason}
                     </div>
                   )}
                   {t.provider !== 'meta_cloud' && !t.has_meta_counterpart && (
-                    <div className="mt-2 text-xs text-amber-700">
-                      ⚠️ Sem contraparte Meta aprovada — fallback automático não vai mandar essa mensagem
+                    <div className="mt-2 text-xs text-amber-700 dark:text-amber-400 inline-flex items-start gap-1">
+                      <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden />
+                      <span>Sem contraparte Meta aprovada — fallback automático não vai mandar essa mensagem</span>
                     </div>
                   )}
                 </div>
@@ -251,34 +286,38 @@ export default function TemplatesIndex({ templates, filters }: Props) {
 TemplatesIndex.layout = (page: any) => <AppShellV2>{page}</AppShellV2>;
 
 function ProviderBadge({ provider }: { provider: string }) {
+  // Cores fixas semânticas por provider (R-DS-002 exceção: identificação de origem).
   const map: Record<string, { label: string; className: string }> = {
-    meta_cloud: { label: 'Meta', className: 'border-blue-500 text-blue-700' },
-    zapi: { label: 'Z-API', className: 'border-purple-500 text-purple-700' },
-    baileys: { label: 'Baileys', className: 'border-orange-500 text-orange-700' },
+    meta_cloud: { label: 'Meta',    className: 'border-blue-500 text-blue-700 dark:text-blue-400 dark:border-blue-700' },
+    zapi:       { label: 'Z-API',   className: 'border-purple-500 text-purple-700 dark:text-purple-400 dark:border-purple-700' },
+    baileys:    { label: 'Baileys', className: 'border-orange-500 text-orange-700 dark:text-orange-400 dark:border-orange-700' },
   };
   const conf = map[provider] ?? { label: provider, className: '' };
   return <Badge variant="outline" className={conf.className}>{conf.label}</Badge>;
 }
 
 function CategoryBadge({ category }: { category: string }) {
+  // Cores fixas semânticas por categoria HSM (R-DS-002 exceção).
   const map: Record<string, string> = {
-    UTILITY: 'border-emerald-500 text-emerald-700',
-    MARKETING: 'border-pink-500 text-pink-700',
-    AUTHENTICATION: 'border-slate-500 text-slate-700',
+    UTILITY:        'border-emerald-500 text-emerald-700 dark:text-emerald-400 dark:border-emerald-700',
+    MARKETING:      'border-pink-500 text-pink-700 dark:text-pink-400 dark:border-pink-700',
+    AUTHENTICATION: 'border-slate-500 text-slate-700 dark:text-slate-400 dark:border-slate-700',
   };
   return <Badge variant="outline" className={map[category] ?? ''}>{category}</Badge>;
 }
 
 function StatusBadge({ status, provider }: { status: string; provider: string }) {
+  void provider;
   if (status === 'LOCAL') {
-    return <Badge variant="outline" className="border-emerald-500 text-emerald-700">LOCAL</Badge>;
+    return <Badge variant="outline" className="border-emerald-500 text-emerald-700 dark:text-emerald-400 dark:border-emerald-700">LOCAL</Badge>;
   }
+  // Cores fixas semânticas por status HSM (R-DS-002 exceção).
   const map: Record<string, string> = {
-    APPROVED: 'border-green-500 text-green-700',
-    PENDING: 'border-amber-500 text-amber-700',
-    REJECTED: 'border-red-500 text-red-700',
-    PAUSED: 'border-slate-500 text-slate-700',
-    DISABLED: 'border-slate-400 text-slate-600',
+    APPROVED: 'border-emerald-500 text-emerald-700 dark:text-emerald-400 dark:border-emerald-700',
+    PENDING:  'border-amber-500 text-amber-700 dark:text-amber-400 dark:border-amber-700',
+    REJECTED: 'border-red-500 text-red-700 dark:text-red-400 dark:border-red-700',
+    PAUSED:   'border-slate-500 text-slate-700 dark:text-slate-400 dark:border-slate-700',
+    DISABLED: 'border-slate-400 text-slate-600 dark:text-slate-400 dark:border-slate-600',
   };
   return <Badge variant="outline" className={map[status] ?? ''}>{status}</Badge>;
 }

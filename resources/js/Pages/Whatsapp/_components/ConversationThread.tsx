@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
+import {
+  ArrowLeft,
+  ArrowDown,
+  Bot,
+  Check,
+  CheckCheck,
+  Hourglass,
+  AlertTriangle,
+  MessageCircle,
+} from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
@@ -102,7 +112,9 @@ export default function ConversationThread({
         <div className="flex items-center gap-2.5 min-w-0">
           {backHref && (
             <a href={backHref} className="shrink-0">
-              <Button variant="ghost" size="sm" className="px-2">←</Button>
+              <Button variant="ghost" size="sm" className="px-2 h-8" aria-label="Voltar para a inbox">
+                <ArrowLeft size={16} aria-hidden />
+              </Button>
             </a>
           )}
           <Avatar name={conversation.contact_name} size="sm" />
@@ -111,27 +123,41 @@ export default function ConversationThread({
               <h2 className="font-semibold truncate text-sm">{conversation.contact_name}</h2>
               <StatusDot status={conversation.status} />
             </div>
-            <div className="text-[11px] text-muted-foreground truncate">
-              {conversation.customer_phone}
+            <div className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
+              <span>{conversation.customer_phone}</span>
               {centrifugoConfig && (
-                <span className="ml-2">
+                <>
+                  <span className="text-border">·</span>
                   {liveConnected ? (
-                    <span className="text-emerald-600">● live</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden />
+                      live
+                    </span>
                   ) : (
-                    <span className="text-slate-400">○ conectando…</span>
+                    <span className="text-muted-foreground inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" aria-hidden />
+                      conectando…
+                    </span>
                   )}
-                </span>
+                </>
               )}
             </div>
           </div>
         </div>
         <div className="shrink-0">
           {conversation.within_24h_window ? (
-            <Badge variant="outline" className="border-emerald-500 text-emerald-700 bg-emerald-50 text-[10px]">
+            <Badge
+              variant="outline"
+              className="border-emerald-500 text-emerald-700 dark:text-emerald-400 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 text-[10px]"
+            >
               24h aberta
             </Badge>
           ) : (
-            <Badge variant="outline" className="border-amber-500 text-amber-700 bg-amber-50 text-[10px]">
+            <Badge
+              variant="outline"
+              className="border-amber-500 text-amber-700 dark:text-amber-400 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 text-[10px] inline-flex items-center gap-0.5"
+            >
+              <AlertTriangle size={10} aria-hidden />
               24h fechada
             </Badge>
           )}
@@ -145,12 +171,13 @@ export default function ConversationThread({
           onScroll={handleScroll}
           className="absolute inset-0 overflow-y-auto p-4 space-y-2"
           style={{
-            background: 'linear-gradient(180deg, rgba(229,221,213,0.35) 0%, rgba(229,221,213,0.20) 100%)',
+            background:
+              'linear-gradient(180deg, var(--thread-bg-from, transparent) 0%, var(--thread-bg-to, transparent) 100%)',
           }}
         >
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-1">
-              <div className="text-5xl opacity-30 mb-2">💬</div>
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-2">
+              <MessageCircle size={48} className="opacity-30" aria-hidden />
               <div className="text-sm font-medium">Sem mensagens ainda</div>
               <div className="text-xs">Mande a primeira ou aguarde o cliente.</div>
             </div>
@@ -176,22 +203,25 @@ export default function ConversationThread({
 
         {/* Botão scroll bottom */}
         {showScrollBottom && (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             onClick={scrollToBottom}
-            className="absolute bottom-3 right-3 bg-card border shadow-md rounded-full w-9 h-9 flex items-center justify-center hover:bg-accent transition"
+            className="absolute bottom-3 right-3 shadow-md rounded-full h-9 w-9"
             aria-label="Rolar pra última mensagem"
           >
-            ↓
-          </button>
+            <ArrowDown size={16} aria-hidden />
+          </Button>
         )}
       </div>
 
       {/* Composer */}
       <div className="border-t bg-card p-2.5 space-y-2 shrink-0">
         {!canSendFreeform && (
-          <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2.5 py-1.5">
-            ⚠️ Janela 24h Meta fechada. Z-API/Baileys mandam freeform; Meta Cloud exige template HSM.
+          <div className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 rounded px-2.5 py-1.5 flex items-start gap-1.5">
+            <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden />
+            <span>Janela 24h Meta fechada. Z-API/Baileys mandam freeform; Meta Cloud exige template HSM.</span>
           </div>
         )}
         <Textarea
@@ -206,13 +236,14 @@ export default function ConversationThread({
               handleSend();
             }
           }}
+          aria-label="Compositor de mensagem"
         />
         <div className="flex justify-between items-center gap-2">
-          <span className="text-[10px] text-muted-foreground tabular-nums">
+          <span className="text-xs text-muted-foreground tabular-nums">
             {composerText.length} {composerText.length === 1 ? 'caractere' : 'caracteres'}
           </span>
           <div className="flex gap-1.5">
-            <Button variant="outline" size="sm" disabled className="h-8">
+            <Button variant="outline" size="sm" disabled className="h-8" title="Templates HSM em Sprint 3">
               Template
             </Button>
             <Button size="sm" onClick={handleSend} disabled={!composerText.trim() || sending} className="h-8">
@@ -233,31 +264,31 @@ function MessageBubble({ message, showTail }: { message: Message; showTail: bool
     ? showTail ? 'rounded-2xl rounded-br-md' : 'rounded-2xl rounded-r-md'
     : showTail ? 'rounded-2xl rounded-bl-md' : 'rounded-2xl rounded-l-md';
 
+  // Bubble out usa --bubble-me (consume Tweaks accentHue do AppShellV2 — ADR 0039 §5).
+  // Bubble in usa --bubble-them (segue dark mode do shell).
+  const bubbleStyle = isOut
+    ? { background: 'var(--bubble-me)', color: 'var(--bubble-me-fg)' }
+    : { background: 'var(--bubble-them)', color: 'var(--bubble-them-fg)' };
+
   return (
     <div className={`flex ${isOut ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-[75%] px-3 py-1.5 shadow-sm ${corner} ${
-          isOut ? 'bg-emerald-600 text-white' : 'bg-white text-foreground border'
-        }`}
-      >
+      <div className={`max-w-[75%] px-3 py-1.5 shadow-sm border border-transparent ${corner}`} style={bubbleStyle}>
         {message.sender_kind === 'bot' && (
-          <div className={`text-[10px] font-semibold mb-0.5 uppercase tracking-wide ${
-            isOut ? 'text-emerald-100' : 'text-purple-700'
-          }`}>
-            🤖 Bot
+          <div className="text-[10px] font-semibold mb-0.5 uppercase tracking-wide opacity-80 inline-flex items-center gap-1">
+            <Bot size={10} aria-hidden />
+            Bot
           </div>
         )}
         <div className="whitespace-pre-wrap break-words text-sm leading-snug">
           {message.body ?? <em className="opacity-70">[mídia]</em>}
         </div>
-        <div className={`text-[10px] mt-0.5 flex items-center justify-end gap-1 ${
-          isOut ? 'text-emerald-100' : 'text-muted-foreground'
-        }`}>
+        <div className="text-[10px] mt-0.5 flex items-center justify-end gap-1 opacity-80">
           <span>{time}</span>
           {isOut && <StatusIcon status={message.status} />}
           {message.status === 'failed' && message.failed_reason && (
-            <span className={isOut ? 'text-red-200' : 'text-red-600'} title={message.failed_reason}>
-              · falha
+            <span title={message.failed_reason} className="inline-flex items-center gap-0.5">
+              <AlertTriangle size={10} aria-hidden />
+              falha
             </span>
           )}
         </div>
@@ -267,24 +298,28 @@ function MessageBubble({ message, showTail }: { message: Message; showTail: bool
 }
 
 function StatusIcon({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    queued: '⏳',
-    sent: '✓',
-    delivered: '✓✓',
-    read: '✓✓',
-    failed: '⚠',
-    received: '←',
-  };
-  const isRead = status === 'read';
-  return <span className={isRead ? 'text-sky-200 font-bold' : ''}>{map[status] ?? status}</span>;
+  switch (status) {
+    case 'queued':    return <Hourglass size={11} aria-label="enfileirada" />;
+    case 'sent':      return <Check size={11} aria-label="enviada" />;
+    case 'delivered': return <CheckCheck size={11} aria-label="entregue" />;
+    case 'read':      return <CheckCheck size={11} className="text-sky-300 dark:text-sky-200" aria-label="lida" />;
+    case 'failed':    return <AlertTriangle size={11} aria-label="falhou" />;
+    default:          return <span className="text-[9px]">{status}</span>;
+  }
 }
 
 function StatusDot({ status }: { status: string }) {
+  // Cores fixas semânticas (R-DS-002 exceção).
   const color: Record<string, string> = {
     open: 'bg-blue-500',
     awaiting_human: 'bg-amber-500',
     resolved: 'bg-emerald-500',
     archived: 'bg-slate-400',
   };
-  return <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${color[status] ?? color.open}`} aria-label={status} />;
+  return (
+    <span
+      className={`inline-block w-2 h-2 rounded-full shrink-0 ${color[status] ?? color.open}`}
+      aria-label={status}
+    />
+  );
 }
