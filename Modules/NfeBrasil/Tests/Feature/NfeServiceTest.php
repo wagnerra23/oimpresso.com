@@ -285,6 +285,103 @@ it('proximoNumeroLocked auto-incrementa e não repete por série', function () {
     expect($n2)->toBeGreaterThan(0);
 })->group('nfe');
 
+// ── consultarStatusSefaz (US-NFE-041 fase 2 — botão "Testar conexão SEFAZ") ──
+
+function fakeSefazStatusFactory(string $responseXml): \Closure
+{
+    return function (string $configJson, array $certData) use ($responseXml): Tools {
+        $mock = \Mockery::mock(Tools::class);
+        $mock->shouldReceive('model')->andReturnNull();
+        $mock->shouldReceive('sefazStatus')->andReturn($responseXml);
+        return $mock;
+    };
+}
+
+function statusServicoXml(string $cstat = '107', string $motivo = 'Servico em Operacao', string $verAplic = 'SVRS_202604'): string
+{
+    return <<<XML
+    <retConsStatServ xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+      <tpAmb>2</tpAmb>
+      <verAplic>{$verAplic}</verAplic>
+      <cStat>{$cstat}</cStat>
+      <xMotivo>{$motivo}</xMotivo>
+      <cUF>42</cUF>
+      <dhRecbto>2026-05-07T20:00:00-03:00</dhRecbto>
+    </retConsStatServ>
+    XML;
+}
+
+it('consultarStatusSefaz retorna ok=true quando SEFAZ responde cstat 107', function () {
+    [$business] = nfeSvcBootstrap();
+
+    $certSvc = makeCertificadoService();
+    $tools   = fakeSefazStatusFactory(statusServicoXml('107', 'Servico em Operacao'));
+    $service = new NfeService($certSvc, $tools);
+
+    $result = $service->consultarStatusSefaz($business->id);
+
+    expect($result['ok'])->toBeTrue()
+        ->and($result['cstat'])->toBe('107')
+        ->and($result['xMotivo'])->toBe('Servico em Operacao')
+        ->and($result['versao'])->toBe('SVRS_202604')
+        ->and($result['ambiente'])->toBeIn([1, 2])
+        ->and($result['uf'])->toBeString()
+        ->and($result['tempoResposta'])->toBeNumeric();
+})->group('nfe');
+
+it('consultarStatusSefaz retorna ok=false quando SEFAZ paralisado (cstat 108)', function () {
+    [$business] = nfeSvcBootstrap();
+
+    $certSvc = makeCertificadoService();
+    $tools   = fakeSefazStatusFactory(statusServicoXml('108', 'Servico Paralisado Momentaneamente'));
+    $service = new NfeService($certSvc, $tools);
+
+    $result = $service->consultarStatusSefaz($business->id);
+
+    expect($result['ok'])->toBeFalse()
+        ->and($result['cstat'])->toBe('108')
+        ->and($result['xMotivo'])->toContain('Paralisado');
+})->group('nfe');
+
+it('consultarStatusSefaz retorna ok=false quando cert vencido (cstat 280)', function () {
+    [$business] = nfeSvcBootstrap();
+
+    $certSvc = makeCertificadoService();
+    $tools   = fakeSefazStatusFactory(statusServicoXml('280', 'Rejeicao: Certificado Transmissor Expirado'));
+    $service = new NfeService($certSvc, $tools);
+
+    $result = $service->consultarStatusSefaz($business->id);
+
+    expect($result['ok'])->toBeFalse()
+        ->and($result['cstat'])->toBe('280');
+})->group('nfe');
+
+it('consultarStatusSefaz lança RuntimeException quando Tools::sefazStatus falha', function () {
+    [$business] = nfeSvcBootstrap();
+
+    $certSvc = makeCertificadoService();
+    $factory = function (string $configJson, array $certData): Tools {
+        $mock = \Mockery::mock(Tools::class);
+        $mock->shouldReceive('model')->andReturnNull();
+        $mock->shouldReceive('sefazStatus')->andThrow(new \RuntimeException('cURL connection timeout'));
+        return $mock;
+    };
+    $service = new NfeService($certSvc, $factory);
+
+    expect(fn () => $service->consultarStatusSefaz($business->id))
+        ->toThrow(\RuntimeException::class, 'Falha ao consultar SEFAZ');
+})->group('nfe');
+
+it('consultarStatusSefaz lança RuntimeException quando business inexistente', function () {
+    nfeSvcBootstrap(); // garante que tabelas existem
+
+    $certSvc = makeCertificadoService();
+    $service = new NfeService($certSvc);
+
+    expect(fn () => $service->consultarStatusSefaz(9999999))
+        ->toThrow(\RuntimeException::class, 'não encontrado');
+})->group('nfe');
+
 it('emitir incrementa business.ultimo_numero_nfe na autorização', function () {
     [$business] = nfeSvcBootstrap();
 
