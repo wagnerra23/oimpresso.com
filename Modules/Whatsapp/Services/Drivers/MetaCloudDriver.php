@@ -1,0 +1,233 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Whatsapp\Services\Drivers;
+
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
+use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+
+/**
+ * MetaCloudDriver — fallback obrigatório Sprint 1 (driver oficial Meta).
+ *
+ * Fala direto com `graph.facebook.com/v21.0/{phone_number_id}/messages`.
+ * Sem markup BSP. Free tier Meta cobre 1k conversas/mês BR.
+ *
+ * Risco ban: NENHUM (provedor oficial Meta).
+ *
+ * Onboarding: Meta Business Manager + verificação número (1-3 dias) +
+ * HSM templates pendentes aprovação Meta (1-3 dias cada).
+ *
+ * Uso: cadastrado obrigatoriamente como fallback quando driver=zapi/baileys
+ * (gating duro FormRequest). Pode também ser default pra businesses
+ * enterprise compliance (flipa driver=meta_cloud na UI Settings).
+ *
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002
+ * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3.1 (outbound flow)
+ * @see https://developers.facebook.com/docs/whatsapp/cloud-api
+ */
+class MetaCloudDriver implements DriverInterface
+{
+    public function sendTemplate(
+        WhatsappBusinessConfig $config,
+        string $to,
+        string $templateName,
+        array $params,
+        string $locale = 'pt_BR',
+    ): WhatsappSendResult {
+        $components = empty($params) ? [] : [
+            [
+                'type' => 'body',
+                'parameters' => array_values(array_map(
+                    fn ($value) => ['type' => 'text', 'text' => (string) $value],
+                    $params,
+                )),
+            ],
+        ];
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $this->normalizePhone($to),
+            'type' => 'template',
+            'template' => [
+                'name' => $templateName,
+                'language' => ['code' => $locale],
+                'components' => $components,
+            ],
+        ];
+
+        $response = $this->client($config)
+            ->post("/{$config->meta_phone_number_id}/messages", $payload);
+
+        return $this->mapSendResponse($response);
+    }
+
+    public function sendFreeform(
+        WhatsappBusinessConfig $config,
+        string $to,
+        string $body,
+    ): WhatsappSendResult {
+        // Meta Cloud só permite freeform dentro janela 24h. Validação real
+        // (consultar WhatsappConversation->isWithinMeta24hWindow) acontece
+        // no SendWhatsappMessageJob — aqui o driver tenta e Meta rejeita
+        // se fora da janela.
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $this->normalizePhone($to),
+            'type' => 'text',
+            'text' => ['body' => $body],
+        ];
+
+        $response = $this->client($config)
+            ->post("/{$config->meta_phone_number_id}/messages", $payload);
+
+        return $this->mapSendResponse($response);
+    }
+
+    public function sendMedia(
+        WhatsappBusinessConfig $config,
+        string $to,
+        string $mediaUrl,
+        string $type,
+        ?string $caption = null,
+    ): WhatsappSendResult {
+        $mediaType = match ($type) {
+            'image' => 'image',
+            'document', 'pdf' => 'document',
+            'audio' => 'audio',
+            'video' => 'video',
+            default => null,
+        };
+
+        if ($mediaType === null) {
+            return WhatsappSendResult::failed(
+                errorCode: 'meta_unsupported_media_type',
+                errorMessage: "Tipo '{$type}' não suportado pelo MetaCloudDriver.",
+            );
+        }
+
+        $mediaPayload = ['link' => $mediaUrl];
+        if ($caption !== null && in_array($mediaType, ['image', 'document', 'video'], true)) {
+            $mediaPayload['caption'] = $caption;
+        }
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $this->normalizePhone($to),
+            'type' => $mediaType,
+            $mediaType => $mediaPayload,
+        ];
+
+        $response = $this->client($config)
+            ->post("/{$config->meta_phone_number_id}/messages", $payload);
+
+        return $this->mapSendResponse($response);
+    }
+
+    public function fetchMessageStatus(
+        WhatsappBusinessConfig $config,
+        string $providerMessageId,
+    ): MessageStatus {
+        // Meta Cloud não tem endpoint REST pra consultar status de mensagem
+        // específica — status chega via webhook (statuses event).
+        // Aqui retornamos 'queued' como placeholder; status real é
+        // atualizado pelo ProcessIncomingWebhookJob (Lote 2c).
+        return new MessageStatus(status: 'queued');
+    }
+
+    public function ping(WhatsappBusinessConfig $config): DriverHealthStatus
+    {
+        // Meta Cloud não tem endpoint /ping; usamos GET no phone_number_id
+        // pra validar token + número.
+        $response = $this->client($config)
+            ->get("/{$config->meta_phone_number_id}");
+
+        if (! $response->successful()) {
+            return DriverHealthStatus::unhealthy(
+                errorMessage: "Meta Cloud ping falhou: HTTP {$response->status()} — {$response->body()}",
+                sessionState: 'disconnected',
+                banDetected: false, // Meta oficial não bane
+            );
+        }
+
+        $data = $response->json();
+
+        return DriverHealthStatus::healthy(
+            displayPhone: $data['display_phone_number'] ?? null,
+            sessionState: 'connected',
+        );
+    }
+
+    /**
+     * Cliente HTTP configurado pra Meta Cloud API.
+     *
+     * Bearer token = meta_access_token (cifrado em DB, decifrado no Model getter).
+     */
+    private function client(WhatsappBusinessConfig $config): PendingRequest
+    {
+        $apiVersion = config('whatsapp.meta.api_version', 'v21.0');
+        $baseUrl = config('whatsapp.meta.base_url', 'https://graph.facebook.com');
+
+        return Http::baseUrl("{$baseUrl}/{$apiVersion}")
+            ->timeout(config('whatsapp.meta.request_timeout', 10))
+            ->withToken($config->meta_access_token)
+            ->acceptJson()
+            ->asJson();
+    }
+
+    /**
+     * Mapeia response Meta Cloud pra WhatsappSendResult padronizado.
+     *
+     * Estrutura sucesso Meta:
+     *   { "messaging_product": "whatsapp",
+     *     "messages": [{ "id": "wamid.HBgL..." }] }
+     *
+     * Estrutura erro Meta:
+     *   { "error": { "code": 131056, "message": "...", ... } }
+     */
+    private function mapSendResponse(Response $response): WhatsappSendResult
+    {
+        if ($response->successful()) {
+            $messageId = $response->json('messages.0.id');
+
+            if ($messageId === null) {
+                return WhatsappSendResult::failed(
+                    errorCode: 'meta_unexpected_response',
+                    errorMessage: 'Meta retornou 2xx mas sem messages[0].id: ' . $response->body(),
+                );
+            }
+
+            return WhatsappSendResult::ok((string) $messageId);
+        }
+
+        $errorCode = $response->json('error.code') ?? 'unknown';
+        $errorMessage = $response->json('error.message') ?? $response->body();
+
+        return WhatsappSendResult::failed(
+            errorCode: "meta_{$errorCode}",
+            errorMessage: is_string($errorMessage) ? $errorMessage : json_encode($errorMessage),
+            sessionLost: false, // Meta oficial não tem sessão Whatsapp Web
+            banDetected: false, // Meta oficial não bane
+        );
+    }
+
+    /**
+     * Normaliza telefone pra formato Meta: dígitos puros sem '+', com DDI.
+     */
+    private function normalizePhone(string $to): string
+    {
+        $digits = preg_replace('/\D/', '', $to);
+
+        if ($digits === null || $digits === '') {
+            return $to;
+        }
+
+        if (strlen($digits) <= 11) {
+            $digits = '55' . $digits;
+        }
+
+        return $digits;
+    }
+}
