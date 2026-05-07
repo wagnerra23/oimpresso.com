@@ -3,11 +3,12 @@
 //   stories: US-WA-012 (chat painel + real-time Centrifugo)
 //   adrs: 0096, 0058 (Centrifugo CT 100)
 //   spec: memory/requisitos/Whatsapp/SPEC.md
-//   status: implementada Lote 2e (Centrifugo wiring esqueleto; integração JS client em PR posterior)
+//   status: implementada Lote 2h.A (Centrifugo JS client wired)
 //   permissao: whatsapp.access
 
 import { useEffect, useRef, useState } from 'react';
 import { router, Link } from '@inertiajs/react';
+import { Centrifuge } from 'centrifuge';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -37,16 +38,27 @@ interface Conversation {
   last_inbound_at: string | null;
 }
 
+interface CentrifugoConfig {
+  wsUrl: string;
+  token: string;
+  channel: string;
+}
+
 interface Props {
   conversation: Conversation;
   messages: Message[];
   centrifugoChannel: string;
+  centrifugoConfig: CentrifugoConfig | null;
 }
 
-export default function ConversationShow({ conversation, messages: initialMessages, centrifugoChannel }: Props) {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+export default function ConversationShow({
+  conversation,
+  messages,
+  centrifugoConfig,
+}: Props) {
   const [composerText, setComposerText] = useState('');
   const [sending, setSending] = useState(false);
+  const [liveConnected, setLiveConnected] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll quando nova mensagem chega
@@ -56,33 +68,47 @@ export default function ConversationShow({ conversation, messages: initialMessag
     }
   }, [messages.length]);
 
-  // Centrifugo real-time UI (ADR 0058) — backend Lote 2g já publica no canal.
-  // Frontend JS client requer dep `@centrifugal/centrifuge` (a instalar via npm).
+  // Centrifugo real-time UI (ADR 0058) — subscribe channel `whatsapp:business:{id}`,
+  // recarrega messages quando backend publica `message_received` ou `message_sent`.
+  // Backend publica via PublishMessage{Received,Sent}ToCentrifugo listeners.
   //
-  // Quando dep estiver disponível:
-  //   import { Centrifuge } from 'centrifuge';
-  //   const c = new Centrifuge((window as any).CENTRIFUGO_URL, {
-  //     token: (window as any).CENTRIFUGO_TOKEN,
-  //   });
-  //   const sub = c.newSubscription(centrifugoChannel);
-  //   sub.on('publication', (ctx) => {
-  //     // ctx.data.event = 'message_received' | 'message_sent'
-  //     // ctx.data.message_id, ctx.data.preview, ctx.data.status
-  //     if (ctx.data.event === 'message_received') {
-  //       router.reload({ only: ['messages'] }); // ou append optimistic
-  //     }
-  //   });
-  //   sub.subscribe();
-  //   c.connect();
-  //   return () => { sub.unsubscribe(); c.disconnect(); };
-  //
-  // Backend já publica corretamente via PublishMessage{Received,Sent}ToCentrifugo
-  // listeners (registrados em WhatsappServiceProvider::boot).
+  // Graceful degradation: se centrifugoConfig=null (token_hmac_secret não configurado
+  // OU CT 100 inacessível), UI fica funcional via reload manual (router.reload).
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.info('[whatsapp.conversation] Centrifugo channel ativo:', centrifugoChannel);
+    if (!centrifugoConfig) {
+      console.info('[whatsapp.conversation] Centrifugo desabilitado — fallback reload manual');
+      return;
     }
-  }, [centrifugoChannel]);
+
+    const c = new Centrifuge(centrifugoConfig.wsUrl, {
+      token: centrifugoConfig.token,
+    });
+
+    c.on('connected', () => setLiveConnected(true));
+    c.on('disconnected', () => setLiveConnected(false));
+
+    const sub = c.newSubscription(centrifugoConfig.channel);
+    sub.on('publication', (ctx: { data: Record<string, unknown> }) => {
+      const event = ctx.data?.event as string | undefined;
+      if (event === 'message_received' || event === 'message_sent') {
+        // Recarrega messages do backend (eventually consistent — payload do
+        // publish é só hint; source of truth fica no DB).
+        router.reload({ only: ['messages'] });
+      }
+    });
+
+    sub.subscribe();
+    c.connect();
+
+    return () => {
+      try {
+        sub.unsubscribe();
+      } catch (e) {
+        /* ignore */
+      }
+      c.disconnect();
+    };
+  }, [centrifugoConfig?.token, centrifugoConfig?.channel, centrifugoConfig?.wsUrl]);
 
   function handleSend() {
     if (!composerText.trim() || sending) return;
@@ -118,6 +144,16 @@ export default function ConversationShow({ conversation, messages: initialMessag
           <>
             {conversation.customer_phone}
             {' · '}
+            {centrifugoConfig && (
+              <>
+                {liveConnected ? (
+                  <Badge variant="outline" className="border-emerald-500 text-emerald-700">● live</Badge>
+                ) : (
+                  <Badge variant="outline" className="border-slate-400 text-slate-600">conectando…</Badge>
+                )}
+                {' · '}
+              </>
+            )}
             {conversation.within_24h_window ? (
               <Badge variant="outline" className="border-green-500 text-green-700">Janela 24h aberta</Badge>
             ) : (

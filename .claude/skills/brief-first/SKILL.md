@@ -1,10 +1,13 @@
 ---
 name: brief-first
 description: |
-  Antes de qualquer ação no projeto Oimpresso, chame mcp__oimpresso__brief-fetch
-  para carregar o Daily Brief — estado consolidado do projeto em ~3k tokens.
+  BLOQUEADOR — antes de qualquer outra tool MCP, Read, Glob, Grep ou ação no
+  projeto Oimpresso, invoque a tool brief-fetch do servidor MCP oimpresso (nome
+  exato varia por dev: mcp__Oimpresso_MCP___Wagner__brief-fetch / __Felipe__ /
+  __Maira__ etc). Carrega Daily Brief — estado consolidado em ~3k tokens.
   Substitui 5-8 chamadas exploratórias (cycles-active, sessions-recent,
-  tasks-active, decisions-search) que cada sessão fazia antes.
+  tasks-active, decisions-search). Custo trivial (cache 5min), economia ~27k
+  tokens por sessão.
 trust_level: 1
 tier: A
 parent_mission: mission.constituicao-v2
@@ -26,8 +29,15 @@ agente automatizado) deve seguir este protocolo no início.
 ## Protocolo obrigatório
 
 ```
-PASSO 1 — SEMPRE chame primeiro:
-   mcp__oimpresso__brief-fetch {}
+PASSO 1 — SEMPRE chame primeiro a tool MCP brief-fetch:
+   mcp__Oimpresso_MCP___<SEU_NOME>__brief-fetch {}
+
+   Onde <SEU_NOME> = Wagner / Felipe / Maira / Luiz / Eliana
+   (depende de qual token MCP está configurado em .claude/settings.local.json).
+
+   Se você não souber o prefixo, use ToolSearch:
+   ToolSearch query: "select:mcp__Oimpresso_MCP___Wagner__brief-fetch"
+   (ou substitua pelo seu nome).
 
 PASSO 2 — Leia o markdown retornado completamente.
    Ele tem 7 seções fixas: ESTADO MACRO, EM VOO AGORA,
@@ -39,7 +49,7 @@ PASSO 3 — Use o brief como base de contexto. NÃO refaça as queries
    ads_decisions, skill_telemetry). Elas são REDUNDANTES após o brief.
 
 PASSO 4 — Se vai editar arquivo com .charter.md ao lado:
-   mcp__oimpresso__charter-fetch <path>
+   charter-fetch <path>
    (skill charter-first cuida desse passo automaticamente — Sprint 3)
 
 PASSO 5 — Demais tools, contexto-específico.
@@ -54,7 +64,7 @@ PASSO 5 — Demais tools, contexto-específico.
 ## Quando força refresh
 
 ```
-mcp__oimpresso__brief-fetch { "force_refresh": true }
+mcp__Oimpresso_MCP___<SEU_NOME>__brief-fetch { "force_refresh": true }
 ```
 
 Apenas em duas situações:
