@@ -7,7 +7,50 @@
 
 ---
 
-## 🆕 Estado pós-2026-05-06 fim-tarde — PR #111 (PR-9: rename DB tabelas Jana)
+## 🆕 Estado pós-2026-05-07 manhã — Revisão CYCLE-01 órfão + abertura CYCLE-02
+
+> Sessão de governança. Wagner pediu "revise e descubra o que aconteceu, e aprenda" sobre o CYCLE-01. Diagnóstico revelou cycle órfão por 5 dias (pivot Constituição V2 sem fechar cycle anterior). Executado: 5 tasks reclassificadas, CYCLE-02 criado via SQL, CYCLE-01 fechado com retro real, skill commit-discipline patcheada.
+
+### Entregue
+
+| Item | Status |
+|---|---|
+| Triagem 5 tasks COPI vs PRs (DB-only) | ✅ COPI-21, 24, 38, 42 → done/cancelled. COPI-23 mantida blocked (Sprint 9c). |
+| CYCLE-02 criado via SQL CT 100 (id=3, project_id=1, 4 goals) | ✅ ativa 2026-05-13 → 2026-05-26 |
+| CYCLE-01 fechado via `cycles-close rollover_to=CYCLE-02` | ✅ retro 15 sucessos + 5 falhas + 1 lição mestre |
+| Patch skill `commit-discipline` regra auto-update post-merge | ✅ +35 linhas seção "Auto-update tasks-update após commit/merge" |
+| Decisão: NÃO renomear module COPI → JANA no MCP | ✅ IDs históricos preservam rastro PRs |
+
+### Goals CYCLE-02 (4 abertos)
+
+1. Repair MWART expansão (4+ telas com cockpit pattern + topnav)
+2. NfeBrasil emite NFe55 a partir de boleto pago em prod ROTA LIVRE (US-RB-044 done)
+3. Constituição V2 health-check 0 alertas críticos por 7 dias consecutivos
+4. Skills V0.5 UI em prod `/ads/admin/skills` 200 + ≥16 skills indexadas
+
+### Pendências de tooling MCP (registrar no backlog)
+
+1. Tool `cycles-create` — atualmente só SQL direto CT 100
+2. Tool `tasks-update` aceitar `module` — pra renomear projects sem SQL
+3. Hook PostToolUse `gh pr merge` extrair `Refs: <TASK>` e auto-`tasks-update status=done`
+4. brief-fetch alerta "eixo do PR mergeado ≠ eixo do cycle ativo" (cycle drift detector)
+
+### Lição mestre
+
+**Pivot estratégico exige `cycles-close --rollover` no MESMO dia.** CYCLE-01 ficou órfão 5 dias entre o pivot Constituição V2 (5-mai noite) e o fechamento (7-mai). Próxima vez NÃO acontece — skill `commit-discipline` agora documenta auto-update; `brief-fetch` precisa do alerta de drift.
+
+### Próximo passo CYCLE-02 (P0)
+
+1. **US-RB-044** (review desde 06-mai) → confirmar merge ou deploy ROTA LIVRE
+2. **MWART scaling** — próximas telas Repair / Project / Crm com cockpit pattern
+3. **Skills V0.5 Sprint A** backend — `memory/cycles/CYCLE-02-proposta.md` rev2
+4. **Whatsapp foundation** — ADR 0096 já mergeado → SPEC + 1 capacidade entregue
+
+Session log: [memory/sessions/2026-05-07-revisao-cycle-01-rollover-cycle-02.md](sessions/2026-05-07-revisao-cycle-01-rollover-cycle-02.md)
+
+---
+
+## Estado pós-2026-05-06 fim-tarde — PR #111 (PR-9: rename DB tabelas Jana)
 
 > Sessão Claude focada exclusivamente em PR-9 do ADR 0088 (rename tabelas DB). Mergeou após o burst Capterra-driven (estado anterior abaixo).
 

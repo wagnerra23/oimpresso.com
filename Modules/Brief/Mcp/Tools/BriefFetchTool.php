@@ -83,8 +83,70 @@ class BriefFetchTool extends Tool
         $this->logSkillTelemetry($agentId);
 
         $meta = $this->renderMetaFooter($brief);
+        $drift = $this->renderCycleDriftAlert();
 
-        return Response::text($brief['content']."\n\n".$meta);
+        return Response::text($brief['content'].$drift."\n\n".$meta);
+    }
+
+    /**
+     * Cycle drift detector — aprendizado retro CYCLE-01 (sessão 2026-05-07).
+     *
+     * CYCLE-01 ficou órfão por 5 dias depois do pivot Constituição V2 porque
+     * trabalho real (S3/Capterra/MWART/NfeBrasil) não casava com o cycle planejado
+     * (memória Copiloto). Falta de alerta = ninguém percebeu.
+     *
+     * Heurística simples: cruza últimos 7 dias de mcp_git_links com tasks do
+     * cycle ativo. Se >50% dos links recentes não tocam tasks do cycle → drift.
+     */
+    private function renderCycleDriftAlert(): string
+    {
+        try {
+            $row = DB::selectOne(<<<'SQL'
+                SELECT c.id AS cycle_id, c.key AS cycle_key, c.name AS cycle_name
+                FROM mcp_cycles c
+                INNER JOIN mcp_projects p ON p.id = c.project_id
+                WHERE c.status = 'active' AND p.key = 'COPI'
+                LIMIT 1
+            SQL);
+
+            if (! $row) {
+                return '';
+            }
+
+            $stats = DB::selectOne(<<<'SQL'
+                SELECT
+                  SUM(CASE WHEN t.cycle_id = ? THEN 1 ELSE 0 END) AS in_cycle,
+                  COUNT(*) AS total
+                FROM mcp_git_links gl
+                LEFT JOIN mcp_tasks t ON t.task_id = gl.task_id
+                WHERE gl.occurred_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            SQL, [$row->cycle_id]);
+
+            $total = (int) ($stats->total ?? 0);
+            if ($total === 0) {
+                return '';
+            }
+
+            $inCycle = (int) ($stats->in_cycle ?? 0);
+            $aligned = $total > 0 ? (int) round($inCycle / $total * 100) : 0;
+            $offCycle = $total - $inCycle;
+
+            if ($offCycle === 0 || $aligned >= 50) {
+                return '';
+            }
+
+            return sprintf(
+                "\n\n⚠️ **Cycle drift detectado:** %d/%d commits/PRs (7d) NÃO tocam tasks do cycle ativo `%s` (%d%% alinhados). ".
+                "Pivot estratégico em curso? Considere `cycles-close --rollover` + `cycles-create` novo. ".
+                "_Aprendizado retro CYCLE-01 (sessão 2026-05-07)._",
+                $offCycle,
+                $total,
+                $row->cycle_key,
+                $aligned,
+            );
+        } catch (Throwable) {
+            return '';
+        }
     }
 
     private function fetchCurrent(): ?array

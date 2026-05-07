@@ -70,6 +70,7 @@ class OimpressoMcpServer extends Server
         Tools\TriageTool::class,
         Tools\CycleGoalsTrackTool::class,
         Tools\CyclesCloseTool::class,
+        Tools\CyclesCreateTool::class,
         // TaskRegistry CRUD (ADR 0070) — ESSENCIAIS pra agentes IA criarem/atualizarem:
         Tools\TasksListTool::class,
         Tools\TasksDetailTool::class,
