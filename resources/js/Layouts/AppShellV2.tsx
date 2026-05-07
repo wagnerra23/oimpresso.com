@@ -367,6 +367,8 @@ export default function AppShellV2({
             iniciais={user.iniciais}
             superadminItems={superadminItems}
             userMenuItems={userMenuItems}
+            vibe={vibe}
+            onVibe={setVibe}
           />
         </aside>
 
