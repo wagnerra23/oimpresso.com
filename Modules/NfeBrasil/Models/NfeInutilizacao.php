@@ -2,6 +2,7 @@
 
 namespace Modules\NfeBrasil\Models;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class NfeInutilizacao extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'nfe_inutilizacoes';
 
     protected $fillable = [

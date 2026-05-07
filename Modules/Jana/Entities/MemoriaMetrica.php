@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MemoriaMetrica extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'jana_memoria_metricas';
 
     protected $fillable = [

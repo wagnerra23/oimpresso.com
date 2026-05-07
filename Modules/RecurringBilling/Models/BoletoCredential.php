@@ -2,10 +2,13 @@
 
 namespace Modules\RecurringBilling\Models;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 class BoletoCredential extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'rb_boleto_credentials';
 
     protected $fillable = [
