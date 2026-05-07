@@ -111,10 +111,10 @@ class CertificadoService
         }
 
         $uuid = (string) Str::uuid();
-        $diskPath = sprintf('nfe-brasil/%d/cert/%s.pfx.enc', $businessId, $uuid);
+        $diskPath = sprintf('%d/cert/%s.pfx.enc', $businessId, $uuid);
 
         $binary = base64_decode($pfxBase64, true);
-        Storage::put($diskPath, Crypt::encrypt($binary));
+        Storage::disk('nfe_certs')->put($diskPath, Crypt::encrypt($binary));
 
         // Desativa anterior — só 1 cert ativo por business
         NfeCertificado::where('business_id', $businessId)
@@ -147,13 +147,13 @@ class CertificadoService
             ->first();
 
         if ($cert) {
-            $diskPath = sprintf('nfe-brasil/%d/cert/%s.pfx.enc', $businessId, $cert->uuid);
-            if (! Storage::exists($diskPath)) {
+            $diskPath = sprintf('%d/cert/%s.pfx.enc', $businessId, $cert->uuid);
+            if (! Storage::disk('nfe_certs')->exists($diskPath)) {
                 throw new RuntimeException("Arquivo do certificado ausente em disco: {$diskPath}");
             }
 
             return [
-                'pfx_binary' => Crypt::decrypt(Storage::get($diskPath)),
+                'pfx_binary' => Crypt::decrypt(Storage::disk('nfe_certs')->get($diskPath)),
                 'senha'      => Crypt::decryptString($cert->encrypted_password),
                 'valido_ate' => $cert->valido_ate,
                 'source'     => 'nfe_brasil',
