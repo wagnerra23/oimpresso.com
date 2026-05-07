@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\RecurringBilling\Services\Banking\InterBankingClient;
 
 /**
  * Sincroniza saldo de todos os bancos com API (Asaas, Inter).
@@ -70,7 +71,7 @@ class SyncBankBalancesJob implements ShouldQueue
 
         return match ($credential->banco) {
             'asaas' => $this->fetchAsaasSaldo($config),
-            'inter' => null, // Inter saldo via API — implementar quando Inter estiver em uso real
+            'inter' => $this->fetchInterSaldo($conta, $config),
             default => null,
         };
     }
@@ -86,5 +87,12 @@ class SyncBankBalancesJob implements ShouldQueue
         ])->get("{$baseUrl}/finance/balance")->throw()->json();
 
         return (float) ($response['balance'] ?? 0);
+    }
+
+    private function fetchInterSaldo(ContaBancaria $conta, array $config): float
+    {
+        $client = new InterBankingClient($config, $conta->business_id);
+
+        return $client->getSaldo()['disponivel'];
     }
 }
