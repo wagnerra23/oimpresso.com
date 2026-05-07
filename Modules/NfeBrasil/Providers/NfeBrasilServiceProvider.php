@@ -8,9 +8,11 @@ use Illuminate\Support\ServiceProvider;
 use Modules\NfeBrasil\Events\FiscalRuleCreated;
 use Modules\NfeBrasil\Events\FiscalRuleDeleted;
 use Modules\NfeBrasil\Events\FiscalRuleUpdated;
+use Modules\NfeBrasil\Events\NFCeAutorizada;
 use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Listeners\EmitirNFeAoReceberPagamento;
 use Modules\NfeBrasil\Listeners\EmitirNfceAoFinalizarVenda;
+use Modules\NfeBrasil\Listeners\EnviarDanfeNFCePorEmail;
 use Modules\NfeBrasil\Listeners\EnviarDanfePorEmail;
 use Modules\NfeBrasil\Listeners\SyncFiscalRuleToTaxRate;
 use Modules\RecurringBilling\Events\InvoicePaid;
@@ -45,6 +47,12 @@ class NfeBrasilServiceProvider extends ServiceProvider
         // US-NFE-044: NFe autorizada → envia DANFE PDF + XML por e-mail ao destinatário.
         // Flag default true (recorrência sempre notifica cliente).
         Event::listen(NFeAutorizada::class, EnviarDanfePorEmail::class);
+
+        // US-NFE-002 fase 2B: NFC-e autorizada → envia DANFE NFC-e por e-mail ao consumidor.
+        // Flag default false (NFC-e B2C frequentemente é "consumidor anônimo" sem email;
+        // cliente liga via UI quando quer envio automático). Resolve email via
+        // Transaction.contact (venda POS) — diferente de NFe55 que usa Invoice.contact.
+        Event::listen(NFCeAutorizada::class, EnviarDanfeNFCePorEmail::class);
 
         // ADR ARQ-0005: bridge nfe_fiscal_rules → tax_rates (core UPos compat).
         // 1 listener handles 3 events via método explícito (não confiável p/ Laravel
