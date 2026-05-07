@@ -81,7 +81,7 @@ afterEach(function () {
 function ruleFresh(array $overrides = []): NfeFiscalRule
 {
     return NfeFiscalRule::create(array_merge([
-        'business_id'     => 4,
+        'business_id'     => 1,
         'ncm'             => '22021000',
         'uf_origem'       => 'SP',
         'uf_destino'      => null,
@@ -101,7 +101,7 @@ it('FiscalRuleCreated event cria TaxRate auto + insere link bridge', function ()
 
     (new SyncFiscalRuleToTaxRate())->handleCreated(new FiscalRuleCreated($rule));
 
-    $tax = TaxRate::where('business_id', 4)->first();
+    $tax = TaxRate::where('business_id', 1)->first();
     expect($tax)->not()->toBeNull()
         ->and($tax->name)->toBe('[NfeBrasil] NCM 22021000 SP->all')
         ->and(round($tax->amount, 4))->toBe(round(0.18 + 0.0065 + 0.03, 4))
@@ -112,7 +112,7 @@ it('FiscalRuleCreated event cria TaxRate auto + insere link bridge', function ()
         ->first();
     expect($link)->not()->toBeNull()
         ->and((int) $link->tax_rate_id)->toBe((int) $tax->id)
-        ->and((int) $link->business_id)->toBe(4);
+        ->and((int) $link->business_id)->toBe(1);
 });
 
 it('FiscalRuleUpdated atualiza TaxRate vinculada (amount + name)', function () {
@@ -123,12 +123,12 @@ it('FiscalRuleUpdated atualiza TaxRate vinculada (amount + name)', function () {
     $rule->update(['aliquota_icms' => 0.22, 'uf_destino' => 'RJ']);
     (new SyncFiscalRuleToTaxRate())->handleUpdated(new FiscalRuleUpdated($rule->fresh()));
 
-    $tax = TaxRate::where('business_id', 4)->first();
+    $tax = TaxRate::where('business_id', 1)->first();
     expect($tax->name)->toBe('[NfeBrasil] NCM 22021000 SP->RJ')
         ->and(round($tax->amount, 4))->toBe(round(0.22 + 0.0065 + 0.03, 4));
 
     // Apenas 1 TaxRate (não duplicou)
-    expect(TaxRate::where('business_id', 4)->count())->toBe(1);
+    expect(TaxRate::where('business_id', 1)->count())->toBe(1);
 });
 
 it('FiscalRuleDeleted remove TaxRate vinculada', function () {
@@ -139,7 +139,7 @@ it('FiscalRuleDeleted remove TaxRate vinculada', function () {
         ->where('fiscal_rule_id', $rule->id)
         ->value('tax_rate_id');
 
-    (new SyncFiscalRuleToTaxRate())->handleDeleted(new FiscalRuleDeleted($rule->id, 4));
+    (new SyncFiscalRuleToTaxRate())->handleDeleted(new FiscalRuleDeleted($rule->id, 1));
 
     expect(TaxRate::where('id', $taxRateId)->whereNull('deleted_at')->count())->toBe(0);
 });
@@ -147,7 +147,7 @@ it('FiscalRuleDeleted remove TaxRate vinculada', function () {
 it('TaxRate manual (sem link bridge) não é afetada por FiscalRuleDeleted', function () {
     // Cria TaxRate manual avulsa
     $taxManual = TaxRate::create([
-        'business_id' => 4,
+        'business_id' => 1,
         'name'        => 'ICMS Manual',
         'amount'      => 0.18,
         'is_tax_group' => false,
@@ -159,34 +159,34 @@ it('TaxRate manual (sem link bridge) não é afetada por FiscalRuleDeleted', fun
     (new SyncFiscalRuleToTaxRate())->handleCreated(new FiscalRuleCreated($rule));
 
     // Deleta a fiscal_rule
-    (new SyncFiscalRuleToTaxRate())->handleDeleted(new FiscalRuleDeleted($rule->id, 4));
+    (new SyncFiscalRuleToTaxRate())->handleDeleted(new FiscalRuleDeleted($rule->id, 1));
 
     // Manual sobrevive
     expect(TaxRate::where('id', $taxManual->id)->whereNull('deleted_at')->count())->toBe(1);
 });
 
-it('multi-tenant: TaxRate de business 4 não vaza pra business 5', function () {
-    $rule4 = ruleFresh(['business_id' => 4]);
-    $rule5 = ruleFresh(['business_id' => 5, 'ncm' => '49019900']);
+it('multi-tenant: TaxRate de business 1 não vaza pra business 99', function () {
+    $ruleA = ruleFresh(['business_id' => 1]);
+    $ruleB = ruleFresh(['business_id' => 99, 'ncm' => '49019900']);
 
-    (new SyncFiscalRuleToTaxRate())->handleCreated(new FiscalRuleCreated($rule4));
-    (new SyncFiscalRuleToTaxRate())->handleCreated(new FiscalRuleCreated($rule5));
+    (new SyncFiscalRuleToTaxRate())->handleCreated(new FiscalRuleCreated($ruleA));
+    (new SyncFiscalRuleToTaxRate())->handleCreated(new FiscalRuleCreated($ruleB));
 
-    expect(TaxRate::where('business_id', 4)->count())->toBe(1);
-    expect(TaxRate::where('business_id', 5)->count())->toBe(1);
+    expect(TaxRate::where('business_id', 1)->count())->toBe(1);
+    expect(TaxRate::where('business_id', 99)->count())->toBe(1);
 
-    // Delete rule do biz 5 não afeta tax_rate de biz 4
-    (new SyncFiscalRuleToTaxRate())->handleDeleted(new FiscalRuleDeleted($rule5->id, 5));
+    // Delete rule do biz 99 não afeta tax_rate de biz 1
+    (new SyncFiscalRuleToTaxRate())->handleDeleted(new FiscalRuleDeleted($ruleB->id, 99));
 
-    expect(TaxRate::where('business_id', 4)->count())->toBe(1);
-    expect(TaxRate::where('business_id', 5)->whereNull('deleted_at')->count())->toBe(0);
+    expect(TaxRate::where('business_id', 1)->count())->toBe(1);
+    expect(TaxRate::where('business_id', 99)->whereNull('deleted_at')->count())->toBe(0);
 });
 
 it('listener segura defensivo: deleted sem link prévio é no-op (não explode)', function () {
     // Sem criar fiscal_rule nem link — direto delete
     $listener = new SyncFiscalRuleToTaxRate();
 
-    expect(fn () => $listener->handleDeleted(new FiscalRuleDeleted(99999, 4)))
+    expect(fn () => $listener->handleDeleted(new FiscalRuleDeleted(99999, 1)))
         ->not()->toThrow(\Throwable::class);
 
     expect(TaxRate::count())->toBe(0);
@@ -202,7 +202,7 @@ it('cargaEfetiva soma ICMS + PIS + COFINS + IPI corretamente em decimal', functi
 
     (new SyncFiscalRuleToTaxRate())->handleCreated(new FiscalRuleCreated($rule));
 
-    $tax = TaxRate::where('business_id', 4)->first();
+    $tax = TaxRate::where('business_id', 1)->first();
     expect(round($tax->amount, 4))->toBe(round(0.18 + 0.0165 + 0.076 + 0.05, 4));
 });
 
@@ -215,5 +215,5 @@ it('integração via Eloquent observer: criar NfeFiscalRule dispara event + list
 
     ruleFresh();
 
-    expect(TaxRate::where('business_id', 4)->count())->toBe(1);
+    expect(TaxRate::where('business_id', 1)->count())->toBe(1);
 });
