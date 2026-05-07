@@ -9,9 +9,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use InvalidArgumentException;
 use Modules\NfeBrasil\Http\Requests\UpsertRegraTributariaRequest;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
+use Modules\NfeBrasil\Services\Tributacao\TributacaoTemplateService;
 
 /**
  * US-NFE-010 fase 2 · UI tributação (configuração default + regras NCM).
@@ -63,12 +65,39 @@ class TributacaoController extends Controller
         $config = NfeBusinessConfig::where('business_id', $businessId)->first();
 
         return Inertia::render('NfeBrasil/Tributacao/Index', [
-            'regras'  => $regras,
-            'config'  => $config ? [
+            'regras'    => $regras,
+            'config'    => $config ? [
                 'regime'             => $config->regime,
                 'tributacao_default' => $config->tributacao_default,
             ] : null,
+            'templates' => app(TributacaoTemplateService::class)->listar(),
         ]);
+    }
+
+    /**
+     * POST /nfe-brasil/tributacao/templates/{slug}/aplicar
+     *
+     * Aplica template tributário pré-configurado no business — cria/atualiza
+     * `nfe_business_configs` (regime + tributacao_default). Não toca em
+     * regras NCM existentes (`nfe_fiscal_rules`).
+     */
+    public function aplicarTemplate(Request $request, string $slug): RedirectResponse
+    {
+        $businessId = (int) $request->session()->get('business.id');
+
+        try {
+            $resultado = app(TributacaoTemplateService::class)->aplicar($businessId, $slug);
+        } catch (InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $msg = $resultado['criou']
+            ? 'Template aplicado — configuração tributária criada.'
+            : ($resultado['mudou']
+                ? 'Template aplicado — configuração tributária atualizada.'
+                : 'Template já estava aplicado — nada a fazer.');
+
+        return redirect()->route('nfe-brasil.tributacao.index')->with('success', $msg);
     }
 
     /** GET /nfe-brasil/tributacao/regras/create */

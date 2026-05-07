@@ -4,9 +4,13 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, FilePlus2, FileSpreadsheet, Pencil, Percent, Settings, Trash2 } from 'lucide-react';
+import {
+  CheckCircle2, FilePlus2, FileSpreadsheet, Package, Pencil, Percent, Printer,
+  Settings, ShoppingBag, Sparkles, Trash2,
+} from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Badge } from '@/Components/ui/badge';
 import { toast } from 'sonner';
 
 interface Regra {
@@ -30,14 +34,35 @@ interface ConfigDefault {
   tributacao_default: Record<string, unknown>;
 }
 
+interface Template {
+  slug: string;
+  titulo: string;
+  descricao: string;
+  icon: string;
+  setor: string;
+  regime: string;
+  uf: string;
+  modelo_nfe: string;
+  recomendado_para: string;
+  tributacao_default: Record<string, unknown>;
+  observacoes: string[];
+}
+
 interface Props {
   regras: Regra[];
   config: ConfigDefault | null;
+  templates: Template[];
 }
 
 interface FlashProps {
-  flash?: { success?: string };
+  flash?: { success?: string; error?: string };
 }
+
+const TEMPLATE_ICON_MAP: Record<string, typeof Package> = {
+  'shopping-bag': ShoppingBag,
+  package: Package,
+  printer: Printer,
+};
 
 const REGIME_LABEL: Record<string, string> = {
   mei: 'MEI',
@@ -55,9 +80,22 @@ function formatNcm(ncm: string): string {
   return `${ncm.slice(0, 4)}.${ncm.slice(4, 6)}.${ncm.slice(6)}`;
 }
 
-function Index({ regras, config }: Props) {
+function Index({ regras, config, templates }: Props) {
   const { props } = usePage<FlashProps>();
   const success = props.flash?.success;
+  const error = props.flash?.error;
+
+  const aplicarTemplate = (tpl: Template) => {
+    const aviso = config
+      ? `Aplicar template "${tpl.titulo}"?\n\nIsso vai SUBSTITUIR a configuração atual (regime + tributação default).\nRegras NCM existentes ${regras.length > 0 ? `(${regras.length})` : ''} permanecem inalteradas.`
+      : `Aplicar template "${tpl.titulo}"?\n\nIsso vai criar a configuração tributária inicial do business.`;
+
+    if (!confirm(aviso)) return;
+    router.post(`/nfe-brasil/tributacao/templates/${tpl.slug}/aplicar`, {}, {
+      preserveScroll: true,
+      onError: () => toast.error('Falha ao aplicar template.'),
+    });
+  };
 
   const remover = (regra: Regra) => {
     if (!confirm(`Remover regra NCM ${formatNcm(regra.ncm)} ${regra.uf_origem}→${regra.uf_destino ?? 'todas'}?`)) {
@@ -91,6 +129,66 @@ function Index({ regras, config }: Props) {
             <CheckCircle2 className="h-5 w-5 mt-0.5 shrink-0" />
             <p className="text-sm">{success}</p>
           </div>
+        )}
+
+        {error && (
+          <div className="flex items-start gap-2 px-4 py-3 rounded-md bg-destructive/10 text-destructive border border-destructive/30">
+            <Trash2 className="h-5 w-5 mt-0.5 shrink-0" />
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Templates L1 — atalho de configuração rápida (US-NFE-TPL-001) */}
+        {templates && templates.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Configuração rápida por setor
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                {config
+                  ? 'Já tem configuração — aplicar template substitui o regime e a tributação default. Regras NCM existentes ficam intactas.'
+                  : 'Comece aqui se for novo: 1 clique aplica regime + tributação default pra seu setor.'}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {templates.map((tpl) => {
+                  const Icon = TEMPLATE_ICON_MAP[tpl.icon] ?? Package;
+                  return (
+                    <div
+                      key={tpl.slug}
+                      className="rounded-md border border-border p-4 flex flex-col gap-2 hover:border-primary/50 transition-colors"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-md bg-primary/10 text-primary p-2 shrink-0">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-sm leading-tight">{tpl.titulo}</div>
+                          <div className="flex flex-wrap items-center gap-1 mt-1">
+                            <Badge variant="outline" className="text-[10px] py-0 h-4">{REGIME_LABEL[tpl.regime] ?? tpl.regime}</Badge>
+                            <Badge variant="outline" className="text-[10px] py-0 h-4">{tpl.uf}</Badge>
+                            <Badge variant="outline" className="text-[10px] py-0 h-4">NFe {tpl.modelo_nfe}</Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{tpl.descricao}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => aplicarTemplate(tpl)}
+                        className="mt-1 w-full"
+                      >
+                        Aplicar template
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Config default (Nível 4) */}
