@@ -11,13 +11,14 @@ import {
   ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
   FileSearch, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
-  MessageSquare, Monitor, Moon, Package, PackageCheck, Plug, Receipt, Rocket,
-  Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
+  MessageSquare, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
+  Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
   type LucideIcon,
 } from 'lucide-react';
 
 import { useTheme } from '@/Hooks/useTheme';
+import { VIBES, type Vibe } from './shared';
 
 // Mapa estático de ícones por label do shell.menu (LegacyMenuAdapter entrega
 // items flat sem campo `icon`; resolvemos via lookup case-insensitive).
@@ -430,6 +431,8 @@ function SidebarUserMenu({
   iniciais,
   superadminItems,
   userMenuItems,
+  vibe,
+  onVibe,
 }: {
   open: boolean;
   onClose: () => void;
@@ -438,6 +441,8 @@ function SidebarUserMenu({
   iniciais: string;
   superadminItems: ShellMenuItem[];
   userMenuItems: ShellMenuItem[];
+  vibe?: Vibe;
+  onVibe?: (v: Vibe) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -463,7 +468,7 @@ function SidebarUserMenu({
   }, [superExpanded]);
 
   // Estado da cascata: qual sub-menu está ativo (null = só painel principal)
-  const [activeSub, setActiveSub] = useState<'superadmin' | 'disponivel' | 'aparencia' | null>(null);
+  const [activeSub, setActiveSub] = useState<'superadmin' | 'disponivel' | 'aparencia' | 'vibes' | null>(null);
 
   // Reset cascade quando fechar o menu
   useEffect(() => {
@@ -545,6 +550,20 @@ function SidebarUserMenu({
           <ChevronRight size={12} className="um-cascade-arrow" />
         </button>
 
+        {/* Modo de trabalho (Vibes) — promovido do TweaksPanel pra user dropdown.
+            ADR UI-0008 §5: workspace/daylight/focus reescreve atmosfera do shell. */}
+        {vibe !== undefined && onVibe && (
+          <button
+            type="button"
+            className={`um-item um-cascade-trigger ${activeSub === 'vibes' ? 'active' : ''}`}
+            onClick={() => setActiveSub((s) => (s === 'vibes' ? null : 'vibes'))}
+          >
+            <Palette size={14} className="ic" />
+            <span className="label">Modo de trabalho</span>
+            <ChevronRight size={12} className="um-cascade-arrow" />
+          </button>
+        )}
+
         <div className="um-sep" />
         <a href="/business/settings#pos" className="um-item" title="Configuração de atalhos: aba POS em Settings">
           <Keyboard size={14} className="ic" />
@@ -606,8 +625,87 @@ function SidebarUserMenu({
       )}
 
       {activeSub === 'aparencia' && <ThemeSubpanel />}
+
+      {activeSub === 'vibes' && vibe !== undefined && onVibe && (
+        <VibesSubpanel vibe={vibe} onVibe={onVibe} />
+      )}
     </div>
   );
+}
+
+// ── VibesSubpanel — Modo de trabalho (workspace/daylight/focus) ─────────
+//
+// Promove os 3 vibes do TweaksPanel pro user dropdown (recomendação P2 #7
+// auditoria 2026-05-07). Mesma state vive no AppShellV2 — passada via prop.
+
+function VibesSubpanel({
+  vibe,
+  onVibe,
+}: {
+  vibe: Vibe;
+  onVibe: (v: Vibe) => void;
+}) {
+  const descriptions: Record<Vibe, string> = {
+    workspace: 'Denso e formal — padrão',
+    daylight:  'Tons quentes, mais ar',
+    focus:     'Alto contraste, monocromático',
+  };
+
+  return (
+    <div className="user-menu-sub">
+      <div className="um-sub-h">
+        <Palette size={14} className="ic" />
+        <span>Modo de trabalho</span>
+      </div>
+      {VIBES.map((v) => {
+        const active = vibe === v.id;
+        return (
+          <button
+            key={v.id}
+            type="button"
+            className={`um-item um-cascade-trigger ${active ? 'active' : ''}`}
+            onClick={() => onVibe(v.id)}
+            aria-pressed={active}
+            title={descriptions[v.id]}
+          >
+            <span
+              className="ic"
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                background: vibeAccent(v.id),
+                display: 'inline-block',
+              }}
+              aria-hidden
+            />
+            <span className="label">
+              {v.label}
+              <span style={{
+                display: 'block',
+                fontSize: '10.5px',
+                color: 'var(--text-mute)',
+                marginTop: 2,
+                lineHeight: 1.2,
+              }}>
+                {descriptions[v.id]}
+              </span>
+            </span>
+            {active && <Check size={14} className="um-cascade-arrow" style={{ opacity: 1, color: 'var(--accent)' }} />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Cor visual do dot por vibe — usa oklch idêntico ao cockpit.css */
+function vibeAccent(vibe: Vibe): string {
+  switch (vibe) {
+    case 'workspace': return 'oklch(0.58 0.09 220)'; // accent default azul
+    case 'daylight':  return 'oklch(0.72 0.13 60)';  // âmbar quente
+    case 'focus':     return 'oklch(0.45 0.02 240)'; // cinza-azul dessaturado
+  }
 }
 
 // ── ThemeSubpanel — plug do useTheme no subpainel Aparência (UI-0011) ─
@@ -661,6 +759,8 @@ export function SidebarFooter({
   iniciais,
   superadminItems,
   userMenuItems = [],
+  vibe,
+  onVibe,
 }: {
   nome: string;
   nomeCurto: string;
@@ -669,12 +769,17 @@ export function SidebarFooter({
   iniciais: string;
   superadminItems: ShellMenuItem[];
   userMenuItems?: ShellMenuItem[];
+  /** Vibes — quando ambos passados, exibe entrada "Modo de trabalho" no menu user. */
+  vibe?: Vibe;
+  onVibe?: (v: Vibe) => void;
 }) {
   const [openUser, setOpenUser] = useState(false);
 
   // Sprint 0 (2026-04-27): items superadmin migraram pro user dropdown
   // (logo abaixo de "Meu perfil") — antes ficavam separados num accordion
   // standalone acima do user button, agora consolidados pra rodapé limpo.
+  // 2026-05-07: Vibes (Modo de trabalho) também migrou pro user dropdown
+  // (recomendação P2 #7 auditoria) — antes só ficava no Tweaks FAB.
   return (
     <div className="sb-user-wrap">
       {/* User dropdown — agora inclui Superadmin entre Meu perfil e Disponível */}
@@ -687,6 +792,8 @@ export function SidebarFooter({
           iniciais={iniciais}
           superadminItems={superadminItems}
           userMenuItems={userMenuItems}
+          vibe={vibe}
+          onVibe={onVibe}
         />
         <button
           className="sb-user-btn"
