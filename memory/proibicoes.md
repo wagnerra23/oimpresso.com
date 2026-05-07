@@ -3,6 +3,7 @@
 ## Ambiente
 
 - ⛔ **Nunca instalar `laravel/mcp` ou `laravel/octane` no Hostinger** (nem em worktree, nem em `/tmp`). Esses pacotes só vivem em CT 100 Proxmox e local. Hostinger é shared hosting; daemons lá violam contrato ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
+- ⛔ **Nunca expor rota `Mcp::web()` (laravel/mcp) sem condicional `if (config('mcp.tools_exposed'))`.** MCP server tools são exposed APENAS no CT 100 Proxmox (`mcp.oimpresso.com`); Hostinger NÃO suporta MCP (lento + crasheia — Wagner regra 2026-05-07). Schema + service backend (cron `brief:generate` etc) podem ficar em Hostinger, mas tool MCP exposed nunca. Default `MCP_TOOLS_EXPOSED=false`. CT 100 .env tem `MCP_TOOLS_EXPOSED=true`
 - ⛔ **Nunca rodar Pest da suite Jana/MCP no Hostinger** — usar CT 100 (via Tailscale) ou local
 - ⛔ **Nunca rodar `composer update` (sem `--lock`) em servidor de produção** sem PR aprovado
 - ⛔ **Nunca alterar branch ativa em produção pra "testar"** (Hostinger ou CT 100) — usar worktree e limpar depois
