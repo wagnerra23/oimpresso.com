@@ -5,7 +5,9 @@ namespace Modules\Repair\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Utils\RepairUtil;
 
 class DashboardController extends Controller
@@ -41,16 +43,48 @@ class DashboardController extends Controller
 
         // MWART-0002 (Sprint 2.5) — branch Inertia/React quando flag ativa.
         if ($this->mwartEnabled('repair_dashboard_index', (int) $business_id)) {
+            // Util methods retornam CommonChart (objeto Highcharts) — incompatível com TSX que espera arrays.
+            // Re-query inline pra entregar shape limpo {label,count}.
+            $statusRows = collect($job_sheets_by_status)->map(fn ($r) => [
+                'status' => $r->status_name ?? '—',
+                'count' => (int) $r->total_job_sheets,
+            ])->values()->all();
+
+            $staffRows = collect($job_sheets_by_service_staff)->map(fn ($r) => [
+                'staff' => trim($r->service_staff ?? '—') ?: '—',
+                'count' => (int) $r->total_job_sheets,
+            ])->values()->all();
+
+            $trendingBrands = JobSheet::leftJoin('brands', 'repair_job_sheets.brand_id', '=', 'brands.id')
+                ->where('repair_job_sheets.business_id', $business_id)
+                ->whereNotNull('repair_job_sheets.brand_id')
+                ->select('brands.name as brand', DB::raw('COUNT(repair_job_sheets.id) as count'))
+                ->groupBy('brands.id')
+                ->orderBy('count', 'desc')
+                ->limit(10)
+                ->get()
+                ->toArray();
+
+            $trendingModels = JobSheet::leftJoin('repair_device_models as RDM', 'repair_job_sheets.device_model_id', '=', 'RDM.id')
+                ->where('repair_job_sheets.business_id', $business_id)
+                ->whereNotNull('repair_job_sheets.device_model_id')
+                ->select('RDM.name as model', DB::raw('COUNT(repair_job_sheets.id) as count'))
+                ->groupBy('RDM.id')
+                ->orderBy('count', 'desc')
+                ->limit(10)
+                ->get()
+                ->toArray();
+
             return Inertia::render('Repair/Dashboard/Index', [
                 'kpis' => [
                     'total_repairs' => is_countable($job_sheets_by_status) ? count($job_sheets_by_status) : 0,
                     'service_staff_count' => is_countable($job_sheets_by_service_staff) ? count($job_sheets_by_service_staff) : 0,
                 ],
-                'job_sheets_by_status' => $job_sheets_by_status,
-                'job_sheets_by_service_staff' => $job_sheets_by_service_staff,
-                'trending_brand_chart' => $trending_brand_chart,
-                'trending_devices_chart' => $trending_devices_chart,
-                'trending_dm_chart' => $trending_dm_chart,
+                'job_sheets_by_status' => $statusRows,
+                'job_sheets_by_service_staff' => $staffRows,
+                'trending_brand_chart' => $trendingBrands,
+                'trending_devices_chart' => [],
+                'trending_dm_chart' => $trendingModels,
             ]);
         }
 
