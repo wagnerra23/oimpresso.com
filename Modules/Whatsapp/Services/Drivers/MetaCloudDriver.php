@@ -161,6 +161,68 @@ class MetaCloudDriver implements DriverInterface
     }
 
     /**
+     * Busca templates HSM aprovados na Meta Business Manager.
+     *
+     * Endpoint: GET /{whatsapp_business_account_id}/message_templates
+     *
+     * Como `meta_phone_number_id` aponta pro PHONE NUMBER (não pro WABA),
+     * primeiro buscamos `whatsapp_business_account` via GET phone_number_id;
+     * depois buscamos templates do WABA.
+     *
+     * @return array<int, array<string, mixed>> Lista de templates normalizada:
+     *   [
+     *     ['name' => 'repair_status_ready', 'language' => 'pt_BR',
+     *      'category' => 'UTILITY', 'status' => 'APPROVED', 'components' => [...]],
+     *     ...
+     *   ]
+     */
+    public function fetchTemplates(WhatsappBusinessConfig $config): array
+    {
+        // Step 1: pega WABA id a partir do phone_number_id
+        $wabaResponse = $this->client($config)
+            ->get("/{$config->meta_phone_number_id}", [
+                'fields' => 'id,whatsapp_business_account',
+            ]);
+
+        if (! $wabaResponse->successful()) {
+            return [];
+        }
+
+        $wabaId = $wabaResponse->json('whatsapp_business_account.id');
+        if (empty($wabaId)) {
+            return [];
+        }
+
+        // Step 2: lista templates do WABA (paginação simples — limit 100)
+        $templatesResponse = $this->client($config)
+            ->get("/{$wabaId}/message_templates", [
+                'limit' => 100,
+                'fields' => 'name,language,category,status,components,rejected_reason,id',
+            ]);
+
+        if (! $templatesResponse->successful()) {
+            return [];
+        }
+
+        $items = $templatesResponse->json('data') ?? [];
+        if (! is_array($items)) {
+            return [];
+        }
+
+        return array_map(function ($t) {
+            return [
+                'meta_template_id' => $t['id'] ?? null,
+                'name' => (string) ($t['name'] ?? ''),
+                'language' => (string) ($t['language'] ?? 'pt_BR'),
+                'category' => strtoupper((string) ($t['category'] ?? 'UTILITY')),
+                'status' => strtoupper((string) ($t['status'] ?? 'PENDING')),
+                'components' => $t['components'] ?? [],
+                'rejection_reason' => $t['rejected_reason'] ?? null,
+            ];
+        }, $items);
+    }
+
+    /**
      * Cliente HTTP configurado pra Meta Cloud API.
      *
      * Bearer token = meta_access_token (cifrado em DB, decifrado no Model getter).

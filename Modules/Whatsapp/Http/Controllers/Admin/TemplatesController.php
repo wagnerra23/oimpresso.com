@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Http\Controllers\Admin;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Scopes\ScopeByBusiness;
+use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappTemplate;
+use Modules\Whatsapp\Services\Drivers\DriverFactory;
+use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 
 /**
  * Gerenciador de templates HSM Meta + locais Z-API/Baileys.
@@ -75,10 +81,104 @@ class TemplatesController extends Controller
     }
 
     /**
-     * Sync HSM Meta (Sprint 2 — pra Lote 2f). Stub aqui.
+     * Sync HSM Meta — chama MetaCloudDriver::fetchTemplates() e upserta em DB.
+     *
+     * Idempotente: UNIQUE (business_id, provider, name, language) faz upsert.
+     * Apenas templates Meta sincronizam aqui (locais Z-API/Baileys são criados
+     * via store() ou seeder).
      */
-    public function syncMeta(Request $request)
+    public function syncMeta(Request $request): RedirectResponse
     {
-        return back()->with('status', 'Sync Meta HSM ainda não implementado (Lote 2f Sprint 2).');
+        $businessId = (int) $request->session()->get('user.business_id');
+
+        $config = WhatsappBusinessConfig::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->first();
+
+        if ($config === null) {
+            return back()->with('error', 'Configuração Whatsapp não cadastrada. Cadastre Meta Cloud em /whatsapp/settings primeiro.');
+        }
+
+        if (! $config->hasMetaCloudConfigured()) {
+            return back()->with('error', 'Meta Cloud não cadastrado pra este business — sync impossível.');
+        }
+
+        /** @var MetaCloudDriver $driver */
+        $driver = app(MetaCloudDriver::class);
+
+        try {
+            $items = $driver->fetchTemplates($config);
+        } catch (\Throwable $e) {
+            \Log::error('[whatsapp.sync_meta_templates] falha', [
+                'business_id' => $businessId,
+                'error' => $e->getMessage(),
+            ]);
+            return back()->with('error', "Sync falhou: {$e->getMessage()}");
+        }
+
+        $upsertedCount = 0;
+        foreach ($items as $item) {
+            if (empty($item['name']) || empty($item['language'])) {
+                continue;
+            }
+
+            WhatsappTemplate::updateOrCreate(
+                [
+                    'business_id' => $businessId,
+                    'provider' => 'meta_cloud',
+                    'name' => $item['name'],
+                    'language' => $item['language'],
+                ],
+                [
+                    'meta_template_id' => $item['meta_template_id'] ?? null,
+                    'category' => $item['category'] ?? 'UTILITY',
+                    'status' => $item['status'] ?? 'PENDING',
+                    'components' => $item['components'] ?? [],
+                    'rejection_reason' => $item['rejection_reason'] ?? null,
+                    'last_synced_at' => now(),
+                ]
+            );
+            $upsertedCount++;
+        }
+
+        return back()->with('status', "Sync Meta HSM completo — {$upsertedCount} template(s) atualizado(s).");
+    }
+
+    /**
+     * Cria template LOCAL Z-API/Baileys (sem aprovação Meta).
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id');
+
+        $validated = $request->validate([
+            'provider' => ['required', Rule::in(['zapi', 'baileys'])],
+            'name' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9_]+$/'],
+            'language' => ['required', 'string', 'max:10'],
+            'category' => ['required', Rule::in(['UTILITY', 'MARKETING', 'AUTHENTICATION'])],
+            'body' => ['required', 'string', 'max:4096'],
+        ], [
+            'name.regex' => 'Nome deve ser snake_case (ex: repair_status_ready) — sem espaços ou maiúsculas.',
+        ]);
+
+        WhatsappTemplate::updateOrCreate(
+            [
+                'business_id' => $businessId,
+                'provider' => $validated['provider'],
+                'name' => $validated['name'],
+                'language' => $validated['language'],
+            ],
+            [
+                'category' => $validated['category'],
+                'status' => 'LOCAL',
+                'components' => [
+                    ['type' => 'BODY', 'text' => $validated['body']],
+                ],
+                'last_synced_at' => now(),
+            ]
+        );
+
+        return back()->with('status', 'Template LOCAL criado/atualizado.');
     }
 }
