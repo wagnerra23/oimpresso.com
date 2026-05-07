@@ -14,7 +14,6 @@ import type { ReactNode } from 'react';
 interface ModelRow {
   id: number;
   name: string;
-  description: string | null;
   device_name: string | null;
   brand_name: string | null;
   has_checklist: boolean;
@@ -64,9 +63,6 @@ export default function DeviceModelsIndex({ models }: PageProps) {
                 <tr key={m.id} className="border-t hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <div className="font-medium">{m.name}</div>
-                    {m.description && (
-                      <div className="text-xs text-slate-500 truncate max-w-md">{m.description}</div>
-                    )}
                   </td>
                   <td className="px-4 py-3">{m.brand_name ?? '—'}</td>
                   <td className="px-4 py-3">{m.device_name ?? '—'}</td>
