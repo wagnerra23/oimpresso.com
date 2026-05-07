@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-07
-module: NfeBrasil
+module: nfebrasil
 quarter: 2026-Q2
 tags: [nfe, events, listeners, broadcasting, modelo-55, modelo-65, sped-nfe]
 supersedes: []
