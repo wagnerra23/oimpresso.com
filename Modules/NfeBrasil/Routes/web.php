@@ -54,6 +54,11 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('config-default', [ConfigDefaultController::class, 'show'])->name('config.show');
         Route::post('config-default', [ConfigDefaultController::class, 'upsert'])->name('config.upsert');
 
+        // Templates tributários L1 (US-NFE-TPL-001)
+        Route::post('templates/{slug}/aplicar', [TributacaoController::class, 'aplicarTemplate'])
+            ->where('slug', '[a-z0-9\-]+')
+            ->name('templates.aplicar');
+
         // CRUD regras
         Route::get('regras/create', [TributacaoController::class, 'create'])->name('regras.create');
         Route::post('regras', [TributacaoController::class, 'store'])->name('regras.store');
