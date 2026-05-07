@@ -8,6 +8,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Http\Requests\BusinessSettingsRequest;
 
@@ -29,18 +31,46 @@ use Modules\Whatsapp\Http\Requests\BusinessSettingsRequest;
  */
 class SettingsController extends Controller
 {
-    public function show()
+    public function show(): Response
     {
         $businessId = (int) session('user.business_id');
         $config = WhatsappBusinessConfig::where('business_id', $businessId)->first();
 
-        return view('whatsapp::placeholder', [
-            'titulo' => 'Configurações Whatsapp',
-            'mensagem' => $config === null
-                ? 'Nenhuma config Whatsapp cadastrada — wizard Inertia/React em Lote 2e.'
-                : "Driver atual: {$config->driver}. Health: {$config->driver_health}.",
-            'webhook_meta' => $config ? URL::to('/api/whatsapp/webhook/meta/' . $config->business_uuid) : null,
-            'webhook_zapi' => $config ? URL::to('/api/whatsapp/webhook/zapi/' . $config->business_uuid) : null,
+        // Tokens nunca vão pro frontend (only metadata + booleans pra UI saber estado)
+        $configForUi = $config === null ? null : [
+            'driver' => $config->driver,
+            'fallback_driver' => $config->fallback_driver,
+            'display_phone' => $config->display_phone,
+            'driver_health' => $config->driver_health,
+            'driver_health_consecutive_failures' => $config->driver_health_consecutive_failures,
+            'last_health_check_at' => optional($config->last_health_check_at)->toIso8601String(),
+            'last_health_message' => $config->last_health_message,
+            'lgpd_acknowledged_at' => optional($config->lgpd_acknowledged_at)->toIso8601String(),
+            'has_meta_credentials' => $config->hasMetaCloudConfigured(),
+            'has_zapi_credentials' => ! empty($config->zapi_instance_id) && ! empty($config->zapi_instance_token),
+            'has_baileys_credentials' => ! empty($config->baileys_instance_id) && ! empty($config->baileys_api_key),
+            'meta_phone_number_id' => $config->meta_phone_number_id, // não-secreto (só ID)
+            'meta_webhook_verify_token' => $config->meta_webhook_verify_token, // não-secreto (só pra mostrar na UI)
+            'zapi_instance_id' => $config->zapi_instance_id,
+            'baileys_instance_id' => $config->baileys_instance_id,
+            'baileys_daemon_url' => $config->baileys_daemon_url,
+            'bot_enabled' => (bool) $config->bot_enabled,
+            'template_repair_ready_name' => $config->template_repair_ready_name,
+            'template_repair_waiting_parts_name' => $config->template_repair_waiting_parts_name,
+            'template_billing_due_name' => $config->template_billing_due_name,
+            'template_billing_paid_name' => $config->template_billing_paid_name,
+        ];
+
+        $webhookUrls = $config !== null ? [
+            'meta' => URL::to('/api/whatsapp/webhook/meta/' . $config->business_uuid),
+            'zapi' => URL::to('/api/whatsapp/webhook/zapi/' . $config->business_uuid),
+        ] : null;
+
+        return Inertia::render('Whatsapp/Settings', [
+            'config' => $configForUi,
+            'webhookUrls' => $webhookUrls,
+            'forbiddenDrivers' => config('whatsapp.forbidden_drivers', ['evolution', 'whatsapp_web_js']),
+            'mandatoryFallbackFor' => config('whatsapp.fallback.mandatory_for_drivers', ['zapi', 'baileys']),
         ]);
     }
 
