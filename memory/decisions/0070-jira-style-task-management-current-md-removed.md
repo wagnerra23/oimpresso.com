@@ -1,12 +1,15 @@
 ---
 slug: 0070-jira-style-task-management-current-md-removed
+number: 70
 title: "Jira-style task management no MCP — CURRENT.md/TASKS.md removidos"
+type: adr
 status: aceito
-authority: [Wagner]
-lifecycle: active
+authority: canonical
+lifecycle: ativo
 quarter: Q2-2026
 decided_at: 2026-05-04
-decided_by: [Wagner, Claude]
+decided_by: [W]
+module: governance
 supersedes: [0069]
 superseded_by: []
 related: [0027, 0053, 0055, 0064, 0069]

@@ -1,12 +1,15 @@
 ---
 slug: 0091-daily-brief
+number: 91
 title: "Daily Brief: contrato de contexto consolidado L7"
+type: adr
 status: aceito
-authority: [Wagner]
-lifecycle: active
+authority: canonical
+lifecycle: ativo
 quarter: Q2-2026
 decided_at: 2026-05-06
-decided_by: [Wagner, Claude]
+decided_by: [W]
+module: governance
 supersedes: []
 superseded_by: []
 related: [0035, 0040, 0048, 0053, 0061, 0070]

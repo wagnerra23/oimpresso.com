@@ -4,11 +4,12 @@ number: 94
 title: "Constituição v2 Oimpresso — 7 camadas + 8 princípios duros"
 type: adr
 status: aceito
-authority: [Wagner]
-lifecycle: active
+authority: canonical
+lifecycle: ativo
 quarter: Q2-2026
 decided_at: 2026-05-06
-decided_by: [Wagner, Claude]
+decided_by: [W]
+module: governance
 tier: CANON
 trust_level: tier-0-irrevogavel
 related_adrs: [0035, 0040, 0053, 0061, 0062, 0070, 0079, 0091, 0093, 0095]

@@ -31,7 +31,7 @@ const DECIDED_BY_VALIDO = ['W', 'F', 'M', 'L', 'E'];
 const MODULE_VALIDOS    = [
     'copiloto', 'financeiro', 'pontowr2', 'memcofre',
     'cms', 'officeimpresso', 'connector', 'grow', 'core', 'infra',
-    'whatsapp',
+    'whatsapp', 'ads', 'governance',
 ];
 
 const CAMPOS_OBRIGATORIOS = [
