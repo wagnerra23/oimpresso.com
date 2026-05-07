@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Services\Banking;
 
+use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -66,6 +67,55 @@ class InterBankingClient
             ),
             'limite'     => (float) ($data['limite'] ?? 0),
         ];
+    }
+
+    /**
+     * Extrato detalhado entre `$from` e `$to`. Faz paginação (100/pg, cap 10pg).
+     * Endpoint: `GET /banking/v2/extrato/completo`. Retorna todas as
+     * transações concatenadas no shape bruto do Inter — `InterStatementDriver`
+     * traduz pra `StatementLineDto[]`.
+     *
+     * @return array<int, array> Lista de transações Inter v2.
+     */
+    public function getExtrato(Carbon $from, Carbon $to): array
+    {
+        $token = $this->oauthToken('extrato.read');
+
+        $transacoes = [];
+        $pagina = 0;
+        $maxPaginas = 10;
+
+        while ($pagina < $maxPaginas) {
+            $response = $this->httpWithMtls()
+                ->withToken($token)
+                ->withHeaders(['x-conta-corrente' => $this->config['conta_corrente']])
+                ->get(self::BASE_URL.'/banking/v2/extrato/completo', [
+                    'dataInicio'    => $from->toDateString(),
+                    'dataFim'       => $to->toDateString(),
+                    'paginacao'     => $pagina,
+                    'itensPorPagina' => 100,
+                ]);
+
+            if ($response->failed()) {
+                Log::warning('InterBankingClient.extrato failed', [
+                    'business_id' => $this->businessId,
+                    'pagina'      => $pagina,
+                    'status'      => $response->status(),
+                    'body'        => '[REDACTED]',
+                ]);
+                $response->throw();
+            }
+
+            $data = $response->json();
+            $transacoes = array_merge($transacoes, $data['transacoes'] ?? []);
+
+            if (($data['ultimaPagina'] ?? true) === true) {
+                break;
+            }
+            $pagina++;
+        }
+
+        return $transacoes;
     }
 
     /**
