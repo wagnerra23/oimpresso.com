@@ -36,7 +36,7 @@ test('--json output tem shape canonico', function () {
         ->toHaveKey('checked_at')
         ->toHaveKey('checks');
 
-    expect($json['checks'])->toBeArray()->toHaveCount(5);
+    expect($json['checks'])->toBeArray()->toHaveCount(6);
 });
 
 test('cada check tem campos canonicos', function () {
@@ -50,6 +50,7 @@ test('cada check tem campos canonicos', function () {
         'custo_brain_b_24h',
         'pii_leak_in_assistant_responses',
         'profile_distiller_drift',
+        'procedure_drift',
     ];
 
     $namesReais = array_column($json['checks'], 'name');
