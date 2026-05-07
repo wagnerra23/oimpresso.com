@@ -2,7 +2,9 @@
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Modules\NFSe\Adapters\SnNfseAdapter;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
@@ -67,11 +69,10 @@ function seedCert(int $businessId = 1, bool $expirado = false): NfseCertificado
 {
     return NfseCertificado::withoutGlobalScopes()->create([
         'business_id'        => $businessId,
-        'cert_pfx_encrypted' => encrypt('pfx_simulado'),
-        'senha_encrypted'    => encrypt('senha123'),
+        'uuid'               => (string) \Illuminate\Support\Str::uuid(),
+        'cnpj_titular'       => '11222333000100',
         'valido_ate'         => $expirado ? now()->subDay() : now()->addYear(),
-        'titular_cnpj'       => '11.222.333/0001-00',
-        'titular_nome'       => 'OIMPRESSO COMUNICACAO LTDA',
+        'encrypted_password' => \Illuminate\Support\Facades\Crypt::encryptString('senha123'),
         'ativo'              => true,
     ]);
 }

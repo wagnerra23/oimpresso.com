@@ -152,13 +152,9 @@ class CertificadoService
                 throw new RuntimeException("Arquivo do certificado ausente em disco: {$diskPath}");
             }
 
-            $encrypted = Storage::get($diskPath);
-            $binary = Crypt::decrypt($encrypted);
-            $senha = Crypt::decryptString($cert->encrypted_password);
-
             return [
-                'pfx_binary' => $binary,
-                'senha'      => $senha,
+                'pfx_binary' => Crypt::decrypt(Storage::get($diskPath)),
+                'senha'      => Crypt::decryptString($cert->encrypted_password),
                 'valido_ate' => $cert->valido_ate,
                 'source'     => 'nfe_brasil',
             ];
