@@ -5,10 +5,10 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link } from '@inertiajs/react';
-import { Plus, ClipboardList, FileText } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Icon } from '@/Components/Icon';
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 
@@ -57,17 +57,16 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
   return (
     <div className="container mx-auto p-4">
       <PageHeader
+        icon="clipboard-list"
         title="Ordens de Serviço (Job Sheet)"
-        subtitle="Gestão de OS por status, cliente, equipe e local"
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href={route('job-sheet.create')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Nova OS
-              </Link>
-            </Button>
-          </div>
+        description="Gestão de OS por status, cliente, equipe e local"
+        action={
+          <Button variant="outline" asChild>
+            <Link href={route('job-sheet.create')}>
+              <Icon name="file-text" className="mr-2 h-4 w-4" />
+              Nova OS
+            </Link>
+          </Button>
         }
       />
 
@@ -75,7 +74,7 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <ClipboardList className="h-4 w-4" />
+              <Icon name="clipboard-list" className="h-4 w-4" />
               Filtros disponíveis
             </CardTitle>
           </CardHeader>
