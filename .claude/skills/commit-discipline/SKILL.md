@@ -63,6 +63,42 @@ Scope típico oimpresso: `jana`, `repair`, `nfe-brasil`, `recurring-billing`, `g
 3. Procura secrets (sk-*, api_key, password=)
 4. Se detecta, pede confirmação antes de continuar (não bloqueia hard)
 
+## Auto-update tasks-update após commit/merge (regra MCP)
+
+> **Aprendizado CYCLE-01 retro:** tasks ficaram stale 1-3 dias entre PR mergear e status mudar no MCP. Próxima vez NÃO acontece.
+
+Quando o commit message ou PR title contém `Refs: <TASK-ID>` ou `<TASK-ID>` no body (ex: `COPI-21`, `US-NFE-044`, `JANA-12`):
+
+1. **Após `git push` bem-sucedido** que avança trabalho da task → `tasks-comment task_id=<ID>` com link do commit/PR
+2. **Após `gh pr merge` bem-sucedido** → `tasks-update task_id=<ID> status=done` (ou `review` se ainda não finalizado)
+3. **Bloqueio descoberto** → `tasks-update task_id=<ID> status=blocked` + `tasks-comment` explicando
+
+Regex pra extrair: `(?:Refs:\s*)?\b(?:US-)?(?:COPI|JANA|NFE|RB|REPAIR|FIN|CRM|GOV|ADS|MWART)-\d+\b`
+
+**Exemplo prático:**
+
+```
+git commit -m "feat(jana): MEM-S8-2 ConversationSummarizer
+
+Refs: COPI-41
+- Trigger >15 turns em ConversationContext
+- Resumo <200 tokens via LaravelAiSdkDriver
+- Tests Pest 8/8 passed
+"
+
+# após push:
+gh pr create ...
+# após merge:
+# Claude DEVE chamar:
+# mcp tasks-update task_id=COPI-41 status=done
+# mcp tasks-comment task_id=COPI-41 comment="Mergeado em PR #NNN commit <SHA>"
+```
+
+**Quando NÃO auto-update:**
+- PR rascunho/exploratório (ainda em iteração)
+- Múltiplas tasks no mesmo commit (mover só as confirmadas done)
+- Task tem dependência que ainda não fechou (manter `doing` ou `review`)
+
 ## Exceções autorizadas (não viram commit-discipline alert)
 
 - **Rebuild de assets** (`public/build-inertia/`) — auto-gerado, ignorar diff size
