@@ -122,8 +122,27 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics, cycles, owne
   // ── Drag-drop optimistic
   const dragId = useRef<string | null>(null);
   const [optimistic, setOptimistic] = useState<Record<string, Status>>({});
+  // PMG-001 (ADR 0100) — banner inline pra 409 conflict / 403 / outros erros
+  const [conflictMessage, setConflictMessage] = useState<string | null>(null);
+
+  // Auto-dismiss conflictMessage após 5s
+  useEffect(() => {
+    if (!conflictMessage) return;
+    const tid = setTimeout(() => setConflictMessage(null), 5000);
+    return () => clearTimeout(tid);
+  }, [conflictMessage]);
 
   function patchStatus(taskId: string, status: Status) {
+    // Encontra updated_at atual da task (pra optimistic-lock)
+    let expectedUpdatedAt: number | undefined;
+    for (const list of Object.values(kanban)) {
+      const t = list.find((x) => x.task_id === taskId);
+      if (t && typeof t.updated_at === 'number') {
+        expectedUpdatedAt = t.updated_at;
+        break;
+      }
+    }
+
     setOptimistic((prev) => ({ ...prev, [taskId]: status }));
 
     const csrfToken =
@@ -132,19 +151,44 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics, cycles, owne
     fetch(`/project-mgmt/board/${taskId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({
+        status,
+        ...(expectedUpdatedAt !== undefined ? { expected_updated_at: expectedUpdatedAt } : {}),
+      }),
     })
-      .then((r) => {
-        if (!r.ok) {
-          setOptimistic((prev) => {
-            const n = { ...prev };
-            delete n[taskId];
-            return n;
-          });
-        } else {
+      .then(async (r) => {
+        if (r.ok) {
           // Sucesso: pede reload parcial pra reconciliar com servidor
           router.reload({ only: ['kanban', 'kpis'], preserveScroll: true });
+          return;
         }
+
+        // Reverte otimismo
+        setOptimistic((prev) => {
+          const n = { ...prev };
+          delete n[taskId];
+          return n;
+        });
+
+        // R-PMG-005 — 409 Conflict: refetch silencioso + toast informativo
+        if (r.status === 409) {
+          try {
+            const data = await r.json();
+            const cur = data?.current?.status ? ` (agora: ${data.current.status})` : '';
+            setConflictMessage(`Task atualizada por outro usuário${cur}. Board sincronizado.`);
+          } catch {
+            setConflictMessage('Task atualizada por outro usuário. Board sincronizado.');
+          }
+          router.reload({ only: ['kanban', 'kpis'], preserveScroll: true });
+          return;
+        }
+
+        if (r.status === 403) {
+          setConflictMessage('Sem permissão para mover tasks.');
+          return;
+        }
+
+        setConflictMessage('Erro ao atualizar task. Tenta novamente.');
       })
       .catch(() => {
         setOptimistic((prev) => {
@@ -152,6 +196,7 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics, cycles, owne
           delete n[taskId];
           return n;
         });
+        setConflictMessage('Erro de rede. Tenta novamente.');
       });
   }
 
@@ -310,6 +355,22 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics, cycles, owne
           </div>
         }
       />
+
+      {conflictMessage && (
+        <div
+          role="alert"
+          className="mt-4 flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          <span>{conflictMessage}</span>
+          <button
+            type="button"
+            onClick={() => setConflictMessage(null)}
+            className="text-xs font-medium underline-offset-2 hover:underline"
+          >
+            ok
+          </button>
+        </div>
+      )}
 
       {cycle?.goal && (
         <Card className="mt-4 border-l-4 border-l-blue-500">

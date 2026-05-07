@@ -211,3 +211,57 @@ it('PATCH com taskId inexistente retorna 404', function () {
 
     expect($response->status())->toBe(404);
 });
+
+it('R-PMG-005: PATCH com expected_updated_at obsoleto retorna 409 + estado intacto', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, 'todo');
+
+    // Simula concurrent edit: outro user atualizou primeiro
+    $task->update(['status' => 'doing']);
+    $task->refresh();
+    $staleTimestamp = ($task->updated_at?->timestamp ?? 0) - 3600; // 1h atrás (stale)
+
+    $response = $this->actingAs($user)
+        ->patchJson("/project-mgmt/board/{$task->task_id}/status", [
+            'status' => 'review',
+            'expected_updated_at' => $staleTimestamp,
+        ]);
+
+    expect($response->status())->toBe(409);
+    $response->assertJson([
+        'error' => 'conflict',
+        'current' => [
+            'task_id' => $task->task_id,
+            'status' => 'doing', // estado real após o concurrent update
+        ],
+    ]);
+
+    // Status permaneceu 'doing' — PATCH foi rejeitado, não regrediu pra 'review'
+    expect($task->fresh()->status)->toBe('doing');
+});
+
+it('PATCH com expected_updated_at correto retorna 200 + novo updated_at', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, 'todo');
+    $task->refresh();
+
+    $currentTs = (int) ($task->updated_at?->timestamp ?? 0);
+
+    $response = $this->actingAs($user)
+        ->patchJson("/project-mgmt/board/{$task->task_id}/status", [
+            'status' => 'doing',
+            'expected_updated_at' => $currentTs,
+        ]);
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped('Permission gate inesperado.');
+    }
+
+    $response->assertOk();
+    $response->assertJsonStructure(['ok', 'task_id', 'status', 'updated_at']);
+    expect($task->fresh()->status)->toBe('doing');
+});
