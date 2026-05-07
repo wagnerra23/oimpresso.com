@@ -53,6 +53,11 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('whatsapp.conversations.send');
 
+    Route::patch('/conversations/{id}', [ConversationsController::class, 'updateStatus'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('whatsapp.conversations.update_status');
+
     Route::get('/templates', [TemplatesController::class, 'index'])
         ->middleware('can:whatsapp.templates.manage')
         ->name('whatsapp.templates.index');

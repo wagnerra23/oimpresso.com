@@ -1,30 +1,31 @@
 // @memcofre
-//   tela: /whatsapp/conversations
-//   stories: US-WA-012 (Inbox Cockpit pattern)
-//   adrs: 0096, 0039 (Chat Cockpit pattern)
+//   tela: /whatsapp/conversations[?thread=ID]
+//   stories: US-WA-012 (Cockpit 3-painéis: lista | thread | sidebar)
+//   adrs: 0096, 0039 (Chat Cockpit pattern), 0058 (Centrifugo CT 100)
 //   spec: memory/requisitos/Whatsapp/SPEC.md
-//   status: implementada Lote 2e (lista; chat detalhe em Show.tsx)
+//   status: implementada — Lote UI estado-da-arte
 //   permissao: whatsapp.access
+//
+// Comportamento canon (ADR 0039 Chat Cockpit):
+//   - Esquerda: lista persistente com search + tabs (não recarrega ao abrir thread)
+//   - Centro: thread atualiza inline via partial reload (router.get only:[thread,messages])
+//   - Direita: sidebar de contexto + ações
+//   - Sem ?thread=X: empty state convidativo no centro/direita
 
-import { router, Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
 import { Card } from '@/Components/ui/card';
-import { Badge } from '@/Components/ui/badge';
-import { Button } from '@/Components/ui/button';
 
-interface Conversation {
-  id: number;
-  customer_phone: string;
-  contact_name: string;
-  status: 'open' | 'awaiting_human' | 'resolved' | 'archived';
-  unread_count: number;
-  bot_handling: boolean;
-  last_message_at: string | null;
-  last_inbound_at: string | null;
-  within_24h_window: boolean;
-}
+import ConversationList from '../_components/ConversationList';
+import ConversationThread from '../_components/ConversationThread';
+import ConversationSidebar from '../_components/ConversationSidebar';
+import type {
+  CentrifugoConfig,
+  ListConversation,
+  Message,
+  ThreadConversation,
+} from '../_components/helpers';
 
 interface Paginated<T> {
   data: T[];
@@ -34,143 +35,98 @@ interface Paginated<T> {
 }
 
 interface Props {
-  conversations: Paginated<Conversation>;
+  conversations: Paginated<ListConversation>;
   tab: 'all' | 'unread' | 'assigned' | 'bot' | 'resolved';
+  q: string;
   stats: { unread: number; assigned: number; bot: number };
   businessId: number;
+  thread: ThreadConversation | null;
+  messages: Message[] | null;
+  centrifugoConfig: CentrifugoConfig | null;
+  centrifugoChannel: string | null;
 }
 
-export default function ConversationsIndex({ conversations, tab, stats, businessId }: Props) {
-  function setTab(newTab: string) {
-    router.get(route('whatsapp.conversations.index'), { tab: newTab }, {
-      preserveScroll: true,
-      preserveState: true,
-      only: ['conversations', 'tab', 'stats'],
-    });
+export default function ConversationsIndex({
+  conversations, tab, q, stats, businessId,
+  thread, messages, centrifugoConfig,
+}: Props) {
+  function selectThread(id: number) {
+    router.get(
+      route('whatsapp.conversations.index'),
+      { tab, q, thread: id },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['thread', 'messages', 'centrifugoConfig', 'centrifugoChannel', 'conversations'],
+      },
+    );
   }
 
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Conversas Whatsapp"
-        subtitle={`Inbox real-time · Centrifugo channel: whatsapp:business:${businessId}`}
-        actions={
-          <Button variant="outline" onClick={() => router.reload({ only: ['conversations', 'stats'] })}>
-            Atualizar
-          </Button>
-        }
-      />
-
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2 border-b pb-2">
-        <TabButton active={tab === 'all'} onClick={() => setTab('all')} label="Todas" count={null} />
-        <TabButton active={tab === 'unread'} onClick={() => setTab('unread')} label="Não lidas" count={stats.unread} />
-        <TabButton active={tab === 'assigned'} onClick={() => setTab('assigned')} label="Atribuídas a mim" count={stats.assigned} />
-        <TabButton active={tab === 'bot'} onClick={() => setTab('bot')} label="Bot" count={stats.bot} />
-        <TabButton active={tab === 'resolved'} onClick={() => setTab('resolved')} label="Resolvidas" count={null} />
+    <div className="flex flex-col h-[calc(100vh-7rem)] gap-2">
+      {/* Header compacto */}
+      <div className="flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg shrink-0">
+            💬
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-semibold text-base leading-tight truncate">Conversas WhatsApp</h1>
+            <div className="text-[11px] text-muted-foreground truncate">
+              Inbox real-time · canal Centrifugo whatsapp:business:{businessId}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Lista */}
-      {conversations.data.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">
-          Nenhuma conversa ainda. Webhooks Meta/Z-API entregam aqui em real-time quando ativos.
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {conversations.data.map((conv) => (
-            <Link
-              key={conv.id}
-              href={route('whatsapp.conversations.show', conv.id)}
-              className="block rounded-lg border bg-card hover:bg-accent transition p-3"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium truncate">{conv.contact_name}</span>
-                    {conv.unread_count > 0 && (
-                      <Badge variant="default" className="bg-blue-600">{conv.unread_count}</Badge>
-                    )}
-                    {conv.bot_handling && (
-                      <Badge variant="outline" className="border-purple-500 text-purple-700">bot</Badge>
-                    )}
-                    <StatusBadge status={conv.status} />
-                  </div>
-                  <div className="text-sm text-muted-foreground truncate">
-                    {conv.customer_phone}
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground text-right shrink-0">
-                  {conv.last_message_at && (
-                    <div>{new Date(conv.last_message_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</div>
-                  )}
-                  {conv.within_24h_window ? (
-                    <Badge variant="outline" className="border-green-500 text-green-700 mt-1">Janela 24h aberta</Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-amber-500 text-amber-700 mt-1">Janela 24h fechada</Badge>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
+      {/* Cockpit 3-painéis */}
+      <div className="flex-1 flex flex-col lg:flex-row gap-2 min-h-0">
+        {/* Painel ESQUERDO — lista */}
+        <div className="lg:w-80 xl:w-96 shrink-0 min-h-0">
+          <ConversationList
+            conversations={conversations}
+            tab={tab}
+            q={q}
+            stats={stats}
+            selectedId={thread?.id ?? null}
+            onSelect={selectThread}
+            permalinkRouteName="whatsapp.conversations.show"
+            routeName="whatsapp.conversations.index"
+          />
         </div>
-      )}
 
-      {/* Paginação simples */}
-      {conversations.last_page > 1 && (
-        <div className="flex justify-center gap-2 pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={conversations.current_page === 1}
-            onClick={() => router.get(route('whatsapp.conversations.index'), { tab, page: conversations.current_page - 1 })}
-          >
-            ← Anterior
-          </Button>
-          <span className="text-sm text-muted-foreground self-center">
-            Página {conversations.current_page} de {conversations.last_page}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={conversations.current_page === conversations.last_page}
-            onClick={() => router.get(route('whatsapp.conversations.index'), { tab, page: conversations.current_page + 1 })}
-          >
-            Próxima →
-          </Button>
+        {/* Painel CENTRO — thread ou empty */}
+        <div className="flex-1 min-w-0 min-h-0">
+          {thread && messages !== null ? (
+            <ConversationThread
+              conversation={thread}
+              messages={messages}
+              centrifugoConfig={centrifugoConfig}
+              reloadOnly={['thread', 'messages']}
+            />
+          ) : (
+            <Card className="h-full flex flex-col items-center justify-center text-center p-8 bg-muted/20">
+              <div className="text-7xl opacity-20 mb-4">💬</div>
+              <div className="font-medium mb-1">Selecione uma conversa</div>
+              <div className="text-sm text-muted-foreground max-w-xs">
+                Escolha uma conversa na lista pra ver o histórico, responder e gerenciar status.
+              </div>
+            </Card>
+          )}
         </div>
-      )}
+
+        {/* Painel DIREITO — sidebar contexto/ações (só quando thread aberta) */}
+        {thread && (
+          <div className="hidden lg:block min-h-0">
+            <ConversationSidebar
+              conversation={thread}
+              reloadOnly={['thread']}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 ConversationsIndex.layout = (page: any) => <AppShellV2>{page}</AppShellV2>;
-
-function TabButton({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: number | null }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-3 py-1.5 text-sm rounded-md transition ${
-        active ? 'bg-primary text-primary-foreground' : 'hover:bg-accent text-foreground'
-      }`}
-    >
-      {label}
-      {count !== null && count > 0 && (
-        <span className={`ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs rounded-full ${
-          active ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
-        }`}>{count}</span>
-      )}
-    </button>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; className: string }> = {
-    open: { label: 'aberta', className: 'border-blue-400 text-blue-700' },
-    awaiting_human: { label: 'aguardando humano', className: 'border-amber-500 text-amber-700' },
-    resolved: { label: 'resolvida', className: 'border-green-500 text-green-700' },
-    archived: { label: 'arquivada', className: 'border-slate-400 text-slate-600' },
-  };
-  const conf = map[status] ?? map.open;
-  return <Badge variant="outline" className={conf.className}>{conf.label}</Badge>;
-}
