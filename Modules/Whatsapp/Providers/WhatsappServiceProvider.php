@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Providers;
 
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Whatsapp\Entities\WhatsappMessage;
+use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
+use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
+use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
 use Modules\Whatsapp\Observers\WhatsappMessageObserver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
@@ -31,10 +37,24 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'whatsapp');
+        $this->registerMiddleware();
 
         // Append-only enforcement em WhatsappMessage (Tier 0 — ADR 0093 + ADR 0096)
         // Bloqueia UPDATE em IMMUTABLE_COLUMNS + DELETE direto
         WhatsappMessage::observe(WhatsappMessageObserver::class);
+
+        // Plug Repair: dispara Whatsapp em mudança de status (cumpre ADR Repair tech/0001)
+        // Evento Modules\Repair\Events\RepairStatusChanged é declarado em Modules/Repair/Events/
+        // — dispatch real depende de PR coordenado com Felipe/Maíra modificando JobSheetController.
+        Event::listen(RepairStatusChanged::class, [NotifyRepairCustomer::class, 'handleEvent']);
+    }
+
+    protected function registerMiddleware(): void
+    {
+        /** @var Router $router */
+        $router = $this->app['router'];
+        $router->aliasMiddleware('whatsapp.meta.signature', VerifyMetaSignature::class);
+        $router->aliasMiddleware('whatsapp.zapi.signature', VerifyZapiSignature::class);
     }
 
     public function register(): void

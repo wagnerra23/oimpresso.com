@@ -34,6 +34,17 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
 class NotifyRepairCustomer
 {
     /**
+     * Wrapper para Laravel Event listener (recebe instância do RepairStatusChanged).
+     *
+     * Conexão com `Modules\Repair\Events\RepairStatusChanged` registrada em
+     * `WhatsappServiceProvider::boot()` via `Event::listen()`.
+     */
+    public function handleEvent(\Modules\Repair\Events\RepairStatusChanged $event): void
+    {
+        $this->handle($event->repair, $event->newStatus);
+    }
+
+    /**
      * @param  object  $repair  Esperado: ->business_id, ->contact_id, ->id
      * @param  string  $newStatus  Esperado: 'ready'|'waiting_parts'|outros (ignora)
      */
