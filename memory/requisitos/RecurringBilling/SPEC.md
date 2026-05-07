@@ -543,6 +543,98 @@ Então NÃO cria revenue_event (sem take rate)
 - [x] Envia e-mail pro pagador com DANFE + XML anexados (`Modules/NfeBrasil/Listeners/EnviarDanfePorEmail` consumindo `NFeAutorizada` event; resolve email via Invoice→Contact)
 - [ ] **Prod-evidence:** ≥1 NFe modelo 55 autorizada + email enviado via esse fluxo (ROTA LIVRE biz=4) — depende do business ter cert A1 + `ncm_default` configurado em `nfe_business_configs` + Contact com email válido
 
+### US-RB-045 · Inter PJ — saldo via Banking API v2 (Fase 1 OF direto)
+
+> owner: wagner · priority: p1 · estimate: 2h · status: doing · type: story · origin: sessao-2026-05-07-of-direto
+> blocked_by: —
+
+**Contexto.** Wagner aprovou plano em 3 fases pra ter "extrato + boleto + PIX direto" do Inter (sem agregador OF tipo Pluggy). Esta é a **Fase 1 — Quick win** que valida cert mTLS + OAuth ponta-a-ponta antes de gastar com extrato/PIX. Hoje [`SyncBankBalancesJob.php:73`](../../../Modules/RecurringBilling/Jobs/SyncBankBalancesJob.php#L73) tem `'inter' => null` (TODO).
+
+**Escopo:**
+- Novo service `Modules/RecurringBilling/Services/Banking/InterBankingClient` (separado de `InterDriver` — SoC ADR 0094 §5: banking ≠ boleto)
+- Métodos: `oauthToken(scope)` cacheado 50min por `(business_id, scope)`; `getSaldo()` retorna `{disponivel, bloqueado, limite}`
+- Reusa `certificado_crt_b64` + `certificado_key_b64` do `BoletoCredential.config_json` (mesmo cert mTLS cobre Banking API)
+- Wire `SyncBankBalancesJob::fetchInterSaldo()` rotando `'inter' => $this->fetchInterSaldo($conta, $config)`
+
+**Acceptance criteria:**
+- [ ] `InterBankingClient` cria com config + retorna `disponivel` como float
+- [ ] OAuth token cacheado por `(business_id, scope)` com TTL 3000s
+- [ ] `SyncBankBalancesJob` atualiza `fin_contas_bancarias.saldo_cached` da conta Inter
+- [ ] Pest `InterBankingClientTest` com `Http::fake()`: token request → saldo request → cache hit
+- [ ] Pest passa multi-tenant: 2 businesses com Inter cada, sync isola cache de token
+- [ ] Erro 401 (cert inválido) loga `[REDACTED]` e propaga RequestException
+- [ ] PR ≤300 linhas, conventional commits `feat(rb): inter banking client + saldo sync`
+- [ ] Sem `withoutGlobalScopes` (Tier 0 multi-tenant)
+
+**Pré-requisito (Wagner):** liberar escopo `extrato.read` no portal Inter pra conta de teste.
+
+**Out of scope:** pagamento PIX/boleto saída (`/banking/v2/pagamento`); outros bancos (depois Fase 2 com `BankStatementDriverContract`).
+
+**Refs:** ADR 0094 §5 SoC brutal · `eduardokum/laravel-boleto` cobre apenas boleto+PIX charging, não Banking API.
+
+### US-RB-046 · Inter PJ — extrato sync diário + tela /financeiro/extrato (Fase 2)
+
+> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story · origin: sessao-2026-05-07-of-direto
+> blocked_by: US-RB-045
+
+**Contexto.** Fase 2 do plano "Inter direto". Lê extrato D-7 do Inter e mostra lançamentos em tela. Reaproveita `InterBankingClient` (Fase 1 mergeada).
+
+**Escopo:**
+- Endpoint Inter: `GET /banking/v2/extrato/completo?dataInicio=...&dataFim=...`
+- Tabela nova `fin_extrato_lancamentos` (vive em Modules/Financeiro): id, business_id (indexed), conta_bancaria_id (FK), data, valor (decimal 15,2), tipo (enum C|D), descricao, contraparte_documento, contraparte_nome, idempotency_key, raw_payload (JSON), timestamps. UNIQUE `(conta_bancaria_id, idempotency_key)` — re-sync seguro. Index `(business_id, data)`.
+- Contract novo `Modules/RecurringBilling/Contracts/BankStatementDriverContract` (separado de `BoletoDriverContract` — SoC ADR 0094 §5): `fetchStatement(Carbon $from, Carbon $to): Collection<StatementLineDto>`
+- `InterStatementDriver` em `Modules/RecurringBilling/Services/Banking/Drivers/`
+- DTO `StatementLineDto` (data, valor, tipo, descricao, contraparte, idempotency_key, raw)
+- Job `SyncBankStatementsJob` agendado em `app/Console/Kernel.php` daily 07:00 BRT, puxa últimos 7d por conta
+- Tela Inertia/React `Modules/Financeiro/resources/js/Pages/Extrato/Index.tsx` em `/financeiro/extrato/{conta_bancaria_id}` — DataTable lançamentos paginada, filtro período (default 30d), saldo do dia. Skill `mwart-quality` Tier B ativa antes de codar.
+
+**Acceptance criteria:**
+- [ ] Migration cria `fin_extrato_lancamentos` com UNIQUE idempotency
+- [ ] `BankStatementDriverContract` em `Contracts/`
+- [ ] `InterStatementDriver` parsa response Inter v2 → `StatementLineDto[]`
+- [ ] Job grava lançamentos com upsert idempotente — re-sync 2x não duplica
+- [ ] Tela renderiza extrato com `business_id` global scope
+- [ ] Pest cobre: parse · idempotência · isolamento entre 2 businesses · scope global aplicado
+- [ ] DataController de Financeiro adiciona link "Extrato bancário" no topnav
+- [ ] PR ≤300 linhas (provável split: backend + frontend)
+
+**Out of scope:** conciliação automática (matchear extrato com `fin_titulos`) — futura US separada; outros bancos.
+
+**Refs:** ADR 0094 §5 SoC brutal · skill `mwart-quality` Tier B · skill `multi-tenant-patterns` Tier A.
+
+### US-RB-047 · Inter PJ — PIX cob imediata + webhook receiver (Fase 3)
+
+> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story · origin: sessao-2026-05-07-of-direto
+> blocked_by: US-RB-045, US-RB-046
+
+**Contexto.** Fase 3 do plano "Inter direto". Gera QR Code PIX dinâmico (cob imediato) e recebe notificação `pix.recebido` em tempo real via webhook. Reaproveita OAuth + cliente HTTP mTLS de `InterBankingClient` (Fases 1+2 mergeadas).
+
+**Escopo:**
+- Endpoint Inter: `PUT /cobranca/v3/cob/{txid}` (cob imediata)
+- Driver `InterPixCobDriver` (separado do `InterDriver` de boleto): `criarCobImediata(valor, devedor, infoAdicionais): PixCobResult` (qrcode_base64 + copia_e_cola)
+- Endpoint público `POST /webhooks/inter/pix/{business_id}` (rota web group)
+  - **CRÍTICO Tier 0:** valida assinatura HMAC com `secret_webhook` por `business_id` (BoletoCredential.config_json) ANTES de processar
+  - Idempotência via tabela `pg_webhook_events` (já existe pro Asaas — reusar com `gateway: inter`)
+  - Job `ProcessInterWebhookJob` parsa payload e dispara `Modules\RecurringBilling\Events\InvoicePaid` se `status == CONCLUIDA`
+- Botão "Gerar PIX" em telas de cobrança — modal com QR Code + copia-e-cola
+- Configurar webhook URL no Inter via API: `PUT /webhooks/{tipoWebhook}` durante onboarding da credencial
+
+**Acceptance criteria:**
+- [ ] `InterPixCobDriver::criarCobImediata` retorna `PixCobResult` com txid, qrcode_base64, copia_e_cola, expiracao
+- [ ] Endpoint webhook valida HMAC; assinatura inválida → 401 com log `[REDACTED]`
+- [ ] Idempotência: webhook 2× com mesmo `endToEndId` grava 1×
+- [ ] `business_id` no path bate com `business_id` da `cob` original — mismatch → 403
+- [ ] Pest cobre: criar cob · webhook válido dispara `InvoicePaid` · webhook duplicado ignorado · HMAC inválido 401 · cross-tenant 403
+- [ ] Botão "Gerar PIX" funcional em UI Financeiro
+- [ ] Listener `BaixarTituloOnInvoicePaidListener` (já existe pro Asaas) trata também Inter via mesmo Event
+- [ ] PR ≤300 linhas (provável split: driver+webhook backend → UI)
+
+**Risco.** Alto porque é endpoint público + dinheiro real. Mitigação: HMAC assinatura obrigatória · `business_id` no path validado contra cob · idempotência forte · Pest com cenários adversariais.
+
+**Out of scope:** PIX automático recorrente (BCB nova fase) — futuro; PIX saída (`/banking/v2/pagamento`) — futuro.
+
+**Refs:** ADR 0094 §6 Multi-tenant Tier 0 IRREVOGÁVEL · pattern webhook `Modules/RecurringBilling/Http/Controllers/AsaasWebhookController.php` · tabela idempotência `pg_webhook_events`.
+
 ## 8. Referências
 
 - `_Ideias/CobrancaRecorrente/evidencias/conversa-claude-2026-04-mobile.md`
