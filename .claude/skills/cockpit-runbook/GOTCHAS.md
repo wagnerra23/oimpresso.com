@@ -52,8 +52,20 @@
 - ❌ **Remover shim `App\View\Helpers\Form`** sem migrar ~6.433 chamadas `Form::` em ~460 Blade views (CLAUDE.md §4).
 - ✅ **Form shim normaliza bool attrs** (auto-mem `feedback_form_shim_bool_attrs`) — `disabled/readonly/etc` com `false/null` são omitidos automaticamente. Bug crítico corrigido 2026-04-24 que travava `/sells/create`.
 
+## Cockpit pattern duplicado (2026-05-07)
+
+- ❌ **Sidebar custom em vez de `LinkedAppsPanel`** — quando uma tela tem entidade em foco com contexto multi-módulo (conversa Whatsapp = cliente CRM + OS Repair + Boletos FIN), criar sidebar próprio reinventa ADR 0039 §3 + R-DS-010. Sintoma: usuário precisa abrir outra tela pra ver dados vinculados ao cliente da conversa. Fix: passar `conversaFoco` pro `<AppShellV2>` e usar `LinkedAppsPanel`. Exceção: se a tela tem 0 contexto cross-módulo, custom sidebar OK + ADR per-tela explicando. Descoberto no audit Whatsapp/Conversations 2026-05-07.
+
+- ❌ **Tweaks vars (`--bubble-me`, `--accent`, `--row-h`, `--card-pad`) hardcoded** — `bg-emerald-600` no bubble outbound em vez de `var(--bubble-me)`. AppShellV2 já calcula essas vars dinamicamente baseadas em `vibe`/`density`/`accentHue` (ADR 0039 §5). Hardcode ignora os Tweaks — usuário muda hue no panel e bubble continua verde. Sintoma: dissonância visual quando Wagner muda paleta. Fix: usar `style={{ background: 'var(--bubble-me)' }}` no bubble out + `padding: 'var(--card-pad)'` em cards relevantes. Descoberto no audit Whatsapp/Conversations 2026-05-07.
+
+- ❌ **Avatar duplicado em components/_components da página em vez de shared** — Whatsapp criou `_components/Avatar.tsx` com paleta hash de 10 cores, divergente das 5 origin colors do `cockpit.css` (OS amber, CRM blue, FIN green, PNT violet, MFG orange). Sintoma: cliente "Larissa" no inbox aparece com cor X, nas Apps Vinculados aparece com cor Y. Fix: consolidar em `Components/cockpit/Avatar.tsx` + diferenciar avatar de **pessoa** (hash) vs avatar de **módulo** (origin color via `--origin-{OS|CRM|FIN|PNT|MFG}-{bg|fg}`). Descoberto no audit Whatsapp/Conversations 2026-05-07.
+
+- ❌ **Empty state inline em vez de `<EmptyState/>` shared** — `<div className="text-7xl opacity-20">💬</div>` reinventa o que `Components/shared/EmptyState` já faz com tokens semânticos + props `icon/title/description/primaryAction`. Sintoma: UX inconsistente entre módulos (Whatsapp empty é 💬 emoji, Repair empty é `<EmptyState/>`). Fix: importar `EmptyState` shared. Falta `primaryAction` é finding UX-WARN (Q5 do CHECKLIST §F) — empty deve convidar ação, não só informar. Descoberto no audit Whatsapp/Conversations 2026-05-07.
+
+- ⚠️ **Ziggy `route()` global pre-existente em todo o projeto** — todas as Pages React do oimpresso usam `route('xxx.yyy')` mesmo a doc oficial dizendo "não". Funciona em runtime via algum mecanismo não-óbvio (provavelmente injetado em `window` por bootstrap legado). 161 erros TS `Cannot find name 'route'` aparecem em typecheck mas runtime ok. **NÃO é regressão de PR específico** — herdado. Fix correto seria adicionar `declare global { function route(...): string }` em `app.d.ts` + import explícito de Ziggy, mas é refactor cross-projeto. Auditoria deve listar como `[INFO]` quando vê em PR novo, não como `[CRITICAL]` per-tela.
+
 ---
 
 **Quando apender:** após qualquer audit de tela ou session log que descubra novo modo de falha. Marcar data + módulo + 1 linha de contexto.
 
-**Última atualização:** 2026-05-05 (criação inicial baseada em 13 RUNBOOKs + 30+ auto-mems históricas).
+**Última atualização:** 2026-05-07 (audit Whatsapp/Conversations Cockpit pattern duplicado + Tweaks vars hardcoded + avatar duplicado + empty inline + Ziggy global pre-existente).
