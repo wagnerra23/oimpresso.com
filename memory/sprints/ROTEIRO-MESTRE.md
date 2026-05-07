@@ -29,9 +29,9 @@ Em 1 parágrafo: estamos migrando o ERP Oimpresso de uma arquitetura "Claude Cod
 ┌────────────────────────────────────────────────────────────────────────┐
 │ L7 — DAILY BRIEF        ✅ PROD     (3k tokens, 6x/dia, brief-fetch)   │
 │ L6 — CHARTERS           🔲 PENDING  (page/feature/mission contracts)   │
-│ L5 — ADRs canon         🟡 EM EXEC  (S3 ADR 0094+0095 aceitas; poda S7)│
+│ L5 — ADRs canon         ✅ PROD     (ADR 0094 mãe + 0095 tiers ativos) │
 │ L4 — PLAYBOOKS          🔲 PENDING  (procedimentos executáveis)        │
-│ L3 — SKILLS             🟡 EM EXEC  (S3 — 5 Tier A definidas, executa) │
+│ L3 — SKILLS             ✅ PROD     (22 skills tieradas A/B/C, hooks)  │
 │ L2 — ADS Universal      🔲 PENDING  (firewall: code/design/produto…)   │
 │ L1 — MCP CORE           ✅ PROD     (tools + memória + audit)          │
 └────────────────────────────────────────────────────────────────────────┘
@@ -252,15 +252,23 @@ Pesquisa rápida 6 temas, principais achados aplicáveis ao Oimpresso:
 
 ### Sprint 3 — Constituição v2 + skills Tier A + CLAUDE.md reescrito
 
-**Status:** 🟡 **EM EXECUÇÃO** desde 2026-05-06 — Wagner aprovou dossier completo (PR #132 `bf3a18ee`) e autorizou continuar.
+**Status:** ✅ **ENTREGUE EM PROD** 2026-05-06.
 
 **Progresso:**
-- ✅ Dossier 4 ADRs preenchidas + aprovadas (PR #132 mergeado)
-- 🟡 **Fase 1** — ADRs canon 0094 (Constituição mãe) + 0095 (skills-tiers) — em PR
-- 🔲 **Fase 2** — CLAUDE.md reescrito ≤100 linhas + 5 imports memory/
-- 🔲 **Fase 3** — Skills moves (renames `oimpresso-mcp-first` → `mcp-first`, `copiloto-arch` → `jana-arch`, etc) + criar 3 Tier A novas
-- 🔲 **Fase 4** — Hook SessionStart força brief-fetch
-- 🔲 **Fase 5** — Smoke test em prod biz=1
+- ✅ Dossier 4 ADRs aprovadas (PR #132 `bf3a18ee`)
+- ✅ Fase 1 — ADRs canon 0094 (Constituição mãe) + 0095 (skills-tiers) — PR #133 (`9d5354fb`)
+- ✅ Fase 2 — CLAUDE.md reescrito **88 linhas** (de 289) + 5 imports `memory/{why,what,how,proibicoes,regras-time}.md` — PR #134 (`1e5eb084`)
+- ✅ Fase 3 — Skills moves (3 renames + 3 Tier A novas) + tier frontmatter em 22 skills — PR #135 (`d116b811`)
+- ✅ Fase 4 — Hook SessionStart `tier-a-banner` + PreToolUse Bash `commit-discipline-check` — PR #136 (`66ddf45e`)
+- ✅ Fase 5 — Smoke test prod: 5/5 health checks PASSED, CLAUDE.md 88 linhas confirmado, todos imports + skills em prod
+
+**Métricas pós-S3:**
+- CLAUDE.md ≤100 linhas: ✅ (88)
+- 6 skills Tier A definidas (4 ativas + 2 dormentes S4/S5): ✅
+- 22 skills com tier frontmatter: ✅
+- 2 ADRs canon Constituição: ✅ aceitas (0094 mãe, 0095 tiers)
+- 8 princípios duros (3 NOVOS): Multi-tenant Tier 0 + Transparência + Confiabilidade ✅
+- jana:health-check daily 06:00 BRT: ✅ schedule ativo
 
 **O que entrega:** documento mãe da Constituição (ADR canônica), reescrita do CLAUDE.md (≤350 linhas), 5 skills Tier A finalizadas, auditoria das 19 skills atuais com decisões PROMOVER/MANTER/ARQUIVAR.
 
@@ -962,3 +970,4 @@ Rascunho da ADR (você aprova):
 | 1.4 | 2026-05-06 | Sonnet (4 decisões Wagner + custos evolução) | §8 4 decisões respondidas (Ollama pular / S2.5 fazer / Cockpit Wagner-only / ADR 0093 depois) + §5 cronograma com S2.5 paralelo (16 semanas) + §9 estimativa de custo de evolução do roteiro |
 | 1.5 | 2026-05-06 | Sonnet (aprovação global Wagner "ok aprovado comece") | §13 todos blocos A–G aprovados + ADR 0093 aceita (commit 4139437a) + _INDEX-LIFECYCLE 90 ADRs criado consolidando triagem (commit 4139437a) + 12 ADRs superseded com superseded_by no frontmatter (próximo PR) |
 | 1.6 | 2026-05-06 | Sonnet (Wagner "esta aprovado pode fazer o merge") | S3 Constituição EM EXECUÇÃO. Dossier 4 ADRs aprovado (PR #132 bf3a18ee). Fase 1 em andamento: ADRs canon 0094 (Constituição v2 mãe) + 0095 (skills tiers) criadas em memory/decisions/. Estado L3+L5 mudou de PENDING → EM EXEC. |
+| 1.7 | 2026-05-06 | Sonnet (S3 entregue end-to-end) | **S3 ENTREGUE EM PROD.** 5 fases mergeadas (PRs #133, #134, #135, #136). CLAUDE.md 289→88 linhas + 5 imports memory/. 22 skills com tier (6 A + 10 B + 6 C). Hooks tier-a-banner + commit-discipline-check ativos. Smoke prod: 5/5 health checks PASSED. L3 SKILLS + L5 ADRs canon mudaram de EM EXEC → ✅ PROD. |
