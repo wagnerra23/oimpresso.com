@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Whatsapp\Entities\WhatsappMessage;
+use Modules\Whatsapp\Observers\WhatsappMessageObserver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -29,6 +31,10 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'whatsapp');
+
+        // Append-only enforcement em WhatsappMessage (Tier 0 — ADR 0093 + ADR 0096)
+        // Bloqueia UPDATE em IMMUTABLE_COLUMNS + DELETE direto
+        WhatsappMessage::observe(WhatsappMessageObserver::class);
     }
 
     public function register(): void
