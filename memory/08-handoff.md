@@ -7,7 +7,72 @@
 
 ---
 
-## 🆕 Estado pós-2026-05-07 noite-2 — US-NFE-002 fechada ponta-a-ponta (5 PRs em sequência)
+## 🆕 Estado pós-2026-05-07 noite-3 — fix biz=1 + template SC + memória consolidada (3 PRs adicionais)
+
+**Sessão Opus 2026-05-07 noite-3** — extensão da sessão noite-2. Wagner sinalizou erro grave (testes usavam biz=4 cliente), consertamos e configuramos biz=1 (Wagner WR2 SC) pra primeiro smoke real fiscal.
+
+### PRs adicionais mergeados nesta sub-sessão
+
+| PR | Conteúdo |
+|---|---|
+| [#208](https://github.com/wagnerra23/oimpresso.com/pull/208) | **fix(nfe-tests):** default `business_id` 4 (RotaLivre cliente) → 1 (Wagner) em 14 arquivos de test + 2 PII leves removidas |
+| [#212](https://github.com/wagnerra23/oimpresso.com/pull/212) | **feat(nfe):** template tributário Simples Nacional SC (sem FCP) — 11º L1 |
+
+### Setup biz=1 (Wagner WR2 Sistemas, Tubarão/SC) pra smoke fiscal
+
+- ✅ Cert A1 ativo (válido 06/08/2026, 91 dias)
+- ✅ CNPJ presente, NCM padrão `49111000`, série NFe 1
+- ✅ Ambiente SEFAZ = **2 (homologação)**
+- ✅ Template SC aplicado via UI `/nfe-brasil/tributacao` — `nfe_business_configs` row criada (regime=simples, cfop=5102, csosn=102)
+- ⚠️ Flag `NFEBRASIL_AUTO_EMISSION_NFCE` não habilitada no .env (default false — opt-in Wagner)
+
+**Smoke real está a 1 toggle de flag** — runbook em `runbook_smoke_sefaz_biz1.md` (auto-mem) cobre o passo-a-passo + diagnóstico de erros + rollback.
+
+### Memória consolidada (revisão completa MEMORY.md)
+
+8 entradas obsoletas removidas:
+- `reference_project_memory.md` (redundante com CLAUDE.md)
+- `project_roadmap_milestones.md` (M3-M10 antigos)
+- `project_roadmap_a_plus.md`, `project_roadmap_fiscal.md` (desatualizados)
+- `project_modulo_copiloto.md`, `project_modulos_promovidos_2026_04_24.md` (supersedidas)
+- `reference_quick_sync_quebrada.md` (resolvido — secrets configurados)
+- `project_estado_2026_04_27.md` (supersedido por 04-29)
+
+2 entradas consolidadas novas:
+- `project_nfebrasil_estado_2026_05_07.md` — estado completo NfeBrasil (pipeline + 11 templates + biz=1 ready)
+- `runbook_smoke_sefaz_biz1.md` — passo-a-passo smoke fiscal SEFAZ-SC homologação
+
+### Aprendizado meta crítico desta sessão
+
+🚨 **Tests/fixtures/smokes SEMPRE biz_id=1 (Wagner), NUNCA 4 (cliente RotaLivre).** Cross-tenant adversário = biz_id 99. Auto-mem `feedback_test_business_id_1_nunca_4.md`. Salvo em MEMORY.md como entry topo (🚨).
+
+Detectar antes de PR: `grep -rn 'business_id.*=>\\s*4' Modules/<X>/Tests/` — qualquer hit sem justificativa cross-tenant explícita = revisar.
+
+### Pipeline NFC-e ponta-a-ponta agora (server-side completo)
+
+```
+Venda finalizada → SellCreatedOrModified
+  → EmitirNfceAoFinalizarVenda (#193)
+  → EmitirNfceJob (#193+#198+#201)
+     → NfeService::emitirParaTransaction (#198) → SEFAZ → cstat 100
+     → event(NFCeAutorizada) (#201)
+        → EnviarDanfeNFCePorEmail (#200) [opt-in]
+UI Page /nfe-brasil/transactions/{tx}/status (#203)
+  → useNfceStatus polla 2s × 30 → NfceStatusBadge atualiza
+```
+
+### Próximos passos (ordem ROI)
+
+1. **Smoke real homologação SEFAZ** — usar `runbook_smoke_sefaz_biz1.md`. Habilitar flag, criar venda fictícia biz=1, verificar cstat 100. ~15min ato real.
+2. **Templates GO + PA** (FCP 2%) — fechar cobertura 5/5 estados FCP. ~30min fixture pura.
+3. **Integração Blade POS** legacy → Inertia + plugar `<NfceStatusBadge />` no recibo. ~4-8h refactor grande.
+4. **Mergear PRs abertos do time** ([#184](https://github.com/wagnerra23/oimpresso.com/pull/184), [#191](https://github.com/wagnerra23/oimpresso.com/pull/191)) — review rápido.
+5. **Listener retry rejeitadas** + event `NFCeRejeitada` — UI re-emissão.
+6. **ADR broadcast Centrifugo** HTTP bridge — desbloquear fase 2C real-time futura.
+
+---
+
+## Estado pós-2026-05-07 noite-2 — US-NFE-002 fechada ponta-a-ponta (5 PRs em sequência)
 
 **Sessão Opus 2026-05-07 noite (segunda metade)** — fechou US-NFE-002 (Emitir NFC-e a partir de venda finalizada) com 5 PRs encadeados em ~3h. Pipeline server-side completo, UI demo Inertia funcionando.
 
