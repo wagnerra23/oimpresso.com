@@ -261,7 +261,7 @@ it('POST testar com cert mas SEFAZ paralisado → 200 + ok=false', function () {
     ]);
 });
 
-it('POST testar com NfeService lançando RuntimeException → 502', function () {
+it('POST testar com NfeService lançando RuntimeException → 502 com UF + ambiente preenchidos', function () {
     insertCertRow(1, '12345678000199', (new DateTimeImmutable('+60 days'))->format('Y-m-d'));
 
     $controller = new CertificadoController(new CertificadoService());
@@ -273,8 +273,36 @@ it('POST testar com NfeService lançando RuntimeException → 502', function () 
     $response = $controller->testar(makeTestarRequest(1), $nfeServiceMock);
 
     expect($response->getStatusCode())->toBe(502);
-    expect($response->getData(true))->toMatchArray([
+
+    $payload = $response->getData(true);
+    expect($payload)->toMatchArray([
         'ok'    => false,
         'error' => 'sefaz_failure',
     ]);
+    // Garante que payload de erro tem chaves esperadas pelo front (mesmo sem SEFAZ resposta)
+    expect($payload)->toHaveKeys(['cstat', 'xMotivo', 'tempoResposta', 'ambiente', 'uf', 'versao']);
+    expect($payload['cstat'])->toBe('—');
+    expect($payload['versao'])->toBeNull();
+});
+
+it('POST testar com Throwable inesperado (TypeError) → 500 com payload completo', function () {
+    insertCertRow(1, '12345678000199', (new DateTimeImmutable('+60 days'))->format('Y-m-d'));
+
+    $controller = new CertificadoController(new CertificadoService());
+
+    $nfeServiceMock = Mockery::mock(NfeService::class);
+    $nfeServiceMock->shouldReceive('consultarStatusSefaz')
+        ->andThrow(new \TypeError('Argument #1 must be int, string given'));
+
+    $response = $controller->testar(makeTestarRequest(1), $nfeServiceMock);
+
+    expect($response->getStatusCode())->toBe(500);
+
+    $payload = $response->getData(true);
+    expect($payload)->toMatchArray([
+        'ok'    => false,
+        'error' => 'unexpected',
+    ]);
+    expect($payload)->toHaveKeys(['cstat', 'xMotivo', 'tempoResposta', 'ambiente', 'uf', 'versao']);
+    expect($payload['xMotivo'])->toContain('Erro inesperado');
 });
