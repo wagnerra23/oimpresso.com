@@ -599,6 +599,8 @@ class JobSheetController extends Controller
             $job_sheet = JobSheet::where('business_id', $business_id)
                             ->findOrFail($id);
 
+            $oldStatusId = $job_sheet->status_id;
+
             $job_sheet->update($input);
 
             //upload media
@@ -630,6 +632,22 @@ class JobSheetController extends Controller
             }
 
             DB::commit();
+
+            // Plug Whatsapp (US-WA-004 / ADR Repair tech/0001) — quando status muda,
+            // dispara RepairStatusChanged event que NotifyRepairCustomer Listener
+            // (Modules/Whatsapp) traduz pra SendWhatsappMessageJob com template
+            // configurado em whatsapp_business_configs.template_repair_*.
+            // Listener faz no-op silencioso se business sem WhatsappBusinessConfig.
+            if ((int) $oldStatusId !== (int) $job_sheet->status_id) {
+                $newStatusEntity = RepairStatus::where('business_id', $business_id)
+                    ->find($job_sheet->status_id);
+                if ($newStatusEntity !== null) {
+                    event(new \Modules\Repair\Events\RepairStatusChanged(
+                        $job_sheet,
+                        (string) $newStatusEntity->name,
+                    ));
+                }
+            }
 
             if (! empty($request->input('submit_type')) && $request->input('submit_type') == 'save_and_add_parts') {
                 return redirect()
