@@ -12,6 +12,48 @@ parent_adr: 0095
 
 > Wagner alertou em 2026-05-07: *"tem que aumentar a qualidade desses modelos, e ficar melhor antes de fazer as outras páginas vai gerar retrabalho."* Esta skill codifica os 5 padrões de bug que apareceram nas 4 telas Repair S2.5 (PRs #138-#141) e custaram 3 PRs corretivos (#143, #144, #145) — todos detectados só após Wagner abrir a tela em prod e ver branco/erro.
 
+> **Estilo canônico** desta skill segue o pattern de [`cockpit-runbook`](../cockpit-runbook/SKILL.md): workflow obrigatório + fontes canônicas (Read paralelo) + Modo Audit + anti-padrões + canon visual concreto. Wagner reforçou em 2026-05-07: *"o design desenvolveu técnicas apuradas... ele criou um manual de como fazer uma skill com runbook de precisão seguindo o tutorial"* — manual = [DESIGN.md](../../DESIGN.md).
+
+## Quando ativa (3 modos)
+
+| Modo | Gatilho típico | Output |
+|---|---|---|
+| **A. Pre-flight** | "migrar tela X pra MWART", "Sprint 2.6 nova tela", "port Blade pra Inertia" | Aplica 10 checks ANTES do código + smoke test pós-merge |
+| **B. Audit** | "audita tela MWART X", "essa tela MWART tá certa?", PR review | Relatório `file:line — check N violado — fix` |
+| **C. Refactor** | "essa tela está feia", "perdeu elementos", feedback Wagner sobre tela MWART | Comparar contra canon visual + propor fix incremental |
+
+## Fontes canônicas (Read em 1 rodada paralela ANTES de codar)
+
+Carregar TODAS antes de criar/auditar tela MWART — economiza round-trips e evita retrabalho:
+
+1. [DESIGN.md](../../DESIGN.md) — hub visual + §6-§15 padrão técnico React + hierarquia de decisões UI (8 níveis)
+2. [_DesignSystem ui_kits/cowork-2026-04-27/os-page.jsx](../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/os-page.jsx) — **CANON VISUAL** list+detail (Wagner mostrou screenshot 07-mai dessa estrutura como "padrão bonito")
+3. [_DesignSystem ui_kits/cowork-2026-04-27/](../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/) — outros canons: `tasks.jsx` (inbox), `chat.jsx` (conversação), `viewers.jsx` (master/detail)
+4. [_DS UI-0010](../../memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md) — formaliza zip Cowork como canon visual
+5. [ADR 0039](../../memory/decisions/0039-ui-chat-cockpit-padrao.md) — Cockpit layout-mãe 3-colunas
+6. [_DS UI-0008](../../memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md) — Cockpit como mãe ERP
+7. [_DS UI-0009](../../memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) — sidebar light padrão
+8. [_DesignSystem/SPEC.md](../../memory/requisitos/_DesignSystem/SPEC.md) — regras R-DS-001..N (tokens, shadcn, lucide, dark mode)
+9. [Skill cockpit-runbook](../cockpit-runbook/SKILL.md) — para gerar/auditar runbook detalhado por tela
+10. **A própria tela alvo** — `Modules/<X>/Http/Controllers/*Controller.php` + `resources/js/Pages/<Module>/<Tela>.tsx`
+
+## Workflow obrigatório (Modo A — pre-flight)
+
+Copiar este checklist no thinking e marcar conforme avança:
+
+```
+- [ ] 1. Receber tela alvo + módulo (Modules/<X>/, Pages/<Module>/<Tela>.tsx)
+- [ ] 2. Read em paralelo das 10 fontes canônicas (ver §Fontes)
+- [ ] 3. Identificar TIPO de tela (list+detail / inbox / chat / CRUD clássico)
+- [ ] 4. Abrir o canon .jsx correspondente em ui_kits/cowork-2026-04-27/ e LER os 200-400 linhas
+- [ ] 5. Aplicar Checks 1-9 (técnicos) + Check 10 (paridade visual com canon)
+- [ ] 6. Implementar tela imitando estrutura do canon (nomes de cells, badges, avatars, filtros, localStorage keys)
+- [ ] 7. Commit + push + merge PR
+- [ ] 8. Aguardar GH Action build-inertia-auto.yml completar (~30-45s)
+- [ ] 9. Smoke test browser MCP — screenshot + console clean
+- [ ] 10. Comparar lado-a-lado com canon: tela MWART vs `os-page.jsx` renderizado em `Oimpresso ERP - Chat.html` (abrir local)
+```
+
 ## Quando ativa
 
 - Edit em `Modules/<X>/Http/Controllers/*Controller.php` que chama `Inertia::render('<Modulo>/<Tela>/Index', [...])`
@@ -209,6 +251,51 @@ mcp__Claude_in_Chrome__browser_batch:
 
 Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi exatamente o ciclo que custou os PRs #143/#144/#145.**
 
+## ⛔ Check 10 (HARD GATE) · Paridade visual com o Cockpit canônico (Claude design)
+
+**Visual canon decidido em 2026-05-07 (madrugada):**
+- ✅ **Cockpit (AppShellV2 visual)** — pretty, modern, clean. Mockup canônico em `https://claude.ai/design/p/019dcfd3-6ef2-7ee6-8512-b1b0e5544e58` (file: "Oimpresso ERP - Chat.html").
+- ❌ **AdminLTE Blade legacy** — *"feio"* (palavra do Wagner). NÃO usar como referência visual.
+
+**Mas existe um GAP funcional crítico:** o Cockpit atual NÃO tem **topnav horizontal do módulo** (a barra com itens tipo "Reparar / Folhas de trabalho / Adicionar fatura / Marcas / Configurações"). Wagner disse explícito: *"sem navtop... tem que ter"*.
+
+**Trajetória do feedback (registrar pra não interpretar errado):**
+1. Wagner: *"o padrão do cockpit era muito superior"* — eu interpretei como "Blade > Cockpit" (errado).
+2. Wagner: *"cokpit achei mais bonito"* — corrigiu: Cockpit é mais bonito.
+3. Wagner: *"mais tbm sem navtop... tem que ter"* — gap exato é topnav horizontal ausente.
+4. Wagner: *"blade feio o padrão bonito é [Claude design link]"* — Blade legacy é feio, não voltar.
+
+### Tabela comparativa (visão correta após feedback)
+
+| Elemento | Blade legacy | Cockpit MWART atual | Cockpit canônico (mockup) | Gap a fechar |
+|---|---|---|---|---|
+| Visual geral | ❌ feio | ✅ moderno e limpo | ✅ moderno e limpo | nenhum |
+| Sidebar | ✅ funcional | ✅ Cockpit V2 | ✅ canônico | nenhum |
+| **Topnav HORIZONTAL módulo** | ✅ tem (Reparar / Folhas / etc) | ❌ ausente | ❌ tampouco no mockup | **adicionar — FALTA EM TUDO** |
+| Breadcrumb | ✅ "Reparar > Board" | ⚠️ genérico se sem `topnav.php` | ✅ "Oimpresso Matriz / OFFICEIMPRESSO > OS" | adicionar `topnav.php` por módulo |
+| KPI cards | ❌ ausente | ⚠️ KpiCard simples | ✅ 4 cards ricos (Abertas, Atrasadas, Valor, Total) | enriquecer telas listagem |
+| Tabs filtro | ❌ ausente | ❌ ausente | ✅ Abertas / Atrasadas / Todas / Orçado / etc | adicionar quando relevante |
+| Tabela rica | ❌ DataTable Bootstrap | ⚠️ tabela básica | ✅ tabela polida com avatars, badges, datas relativas | usar TanStack Table + DS |
+
+### REGRA HARD — antes de promover flag MWART em prod
+
+**P0 BLOQUEADOR**: implementar **topnav horizontal do módulo** no `AppShellV2` antes de continuar criando telas MWART novas. Sem topnav horizontal, qualquer tela MWART vai gerar a reclamação *"sem navtop... tem que ter"* repetida.
+
+**Onde implementar:**
+- `resources/js/Layouts/AppShellV2.tsx` — adicionar `<nav className="topnav-module">` abaixo do `<header className="topbar">` (linha 337), populado com `useAutoModuleNav().items`
+- Render só se `moduleItems.length > 0` (graceful degradation pra módulos sem `topnav.php`)
+- Estilo segue o Claude design canônico (link acima)
+
+**P1 — visual rico nas telas listagem:**
+- KPI cards (4 metrics no topo, não 2 simples como Repair Dashboard)
+- Tabs de filtro (status / período)
+- Tabela TanStack com avatars, badges colorform, datas relativas ("hoje 14:00")
+
+**O que NÃO fazer (errado mesmo se intuitivo):**
+- ❌ Rollback `MWART_*=false` no .env achando que Blade é melhor — Blade é FEIO segundo Wagner (madrugada 07-mai)
+- ❌ Implementar topnav só pra Repair (`topnav.php` ajuda no breadcrumb dropdown mas NÃO renderiza navbar horizontal — esse é um gap em AppShellV2 mesmo)
+- ❌ Continuar criando telas MWART novas antes do topnav horizontal entrar no AppShellV2 — vai gerar mesma reclamação
+
 ## Receita pré-PR (cole no checklist mental)
 
 ```
@@ -221,6 +308,7 @@ Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi
 [ ] Check 7 — todos icons via <Icon name="..."/>, zero import lucide-react direto
 [ ] Check 8 — zero route() Ziggy; URLs hardcoded com prefix do módulo
 [ ] Check 9 — após merge, smoke test browser MCP + console clean
+[ ] Check 10 (HARD GATE) — paridade visual com Blade legacy: top navbar + topnav horizontal módulo + breadcrumb correto + action bar (sem isso NÃO promover flag MWART em prod)
 ```
 
 ## ROI / por que esta skill existe
@@ -233,6 +321,78 @@ Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi
 | S2.5 PR #141 (JobSheet) | #143, #144 | Checks 5,6,7,8 | ✅ |
 
 **4 PRs novos × 3 PRs corretivos = 12 round-trips.** Esta skill, se ativa antes do PR original, reduz pra 4 PRs limpos (1× cada tela).
+
+## Próximo passo P0 (BLOQUEADOR DE NOVAS TELAS MWART)
+
+**Sprint AppShellV2-paridade**: trazer pro Cockpit os 4 elementos críticos perdidos (top app navbar, topnav horizontal módulo, breadcrumb correto, action bar). Sem isso, qualquer tela nova MWART vai gerar a mesma reação *"perdeu elementos / era muito superior"*.
+
+Estimativa: 2-4 dias de trabalho de plataforma (não tela). Executar **ANTES** de prometer S2.6/S2.7 ou outras telas Repair/módulos.
+
+## Modo B — Audit de tela MWART existente
+
+Quando o gatilho é "audita tela X MWART" ou "essa tela está certa?", **NÃO refatorar direto**. Em vez disso:
+
+1. Read da tela `resources/js/Pages/<Module>/<Tela>.tsx` + Controller
+2. Aplicar Checks 1-10 sequencialmente
+3. Output em formato `file:line — check N violado — fix sugerido`:
+
+```
+Modules/Repair/Http/Controllers/DeviceModelController.php:119 — Check 3 violado (SELECT 'description' coluna inexistente em repair_device_models) — remover do select OU criar migration
+resources/js/Pages/Repair/Dashboard/Index.tsx:118 — Check 4 violado (items.slice() sem Array.isArray guard) — adicionar `const list = Array.isArray(items) ? items : []`
+resources/js/Pages/Repair/JobSheet/Index.tsx:65 — Check 8 violado (route('job-sheet.create') sem Ziggy) — usar URL hardcoded "/repair/job-sheet/create"
+resources/js/Pages/Repair/Dashboard/Index.tsx:38 — Check 10 violado (sem topnav horizontal módulo, sem KPI cards rich, tabela ausente) — comparar com os-page.jsx canon
+```
+
+Esse modo NÃO altera código — entrega no chat. Wagner decide se ajusta a tela ou registra exceção.
+
+## Modo C — Refactor de tela MWART feia
+
+Quando o gatilho é "essa tela está feia" / "perdeu elementos" / *"o padrão do cockpit era muito superior"*:
+
+1. Read do canon visual `os-page.jsx` em `_DesignSystem/ui_kits/cowork-2026-04-27/`
+2. Comparar elemento por elemento com a tela MWART atual
+3. Propor fix incremental (não refazer do zero):
+   - Adicionar KPI cards no topo se faltam
+   - Adicionar tabs filtro se faltam
+   - Substituir tabela básica por tabela rica com avatars/badges/datas relativas
+   - Adicionar topnav horizontal módulo (P0 — falta no AppShellV2 hoje)
+4. Escrever PR ≤300 linhas (commit-discipline) com 1 melhoria por vez
+
+## Anti-padrões (NUNCA fazer)
+
+- ❌ Criar tela MWART sem ler `os-page.jsx` canon visual primeiro — gera reclamação Wagner garantida
+- ❌ Promover flag `MWART_*=true` em prod sem smoke test browser MCP — bug branco vai aparecer só pro Wagner
+- ❌ Passar Eloquent Collection raw pro Inertia sem `->values()->all()` — shape imprevisível
+- ❌ SELECT colunas sem checar migration (`Schema::hasColumn` ou grep) — SQL error em prod
+- ❌ Importar `lucide-react` direto em Page Inertia — usar `<Icon name="kebab-case"/>` do `@/Components/Icon`
+- ❌ Usar `route()` Ziggy global — projeto não tem; usar URL hardcoded com prefix do módulo
+- ❌ Rollback `MWART_*=false` achando que Blade é melhor — Wagner: *"blade feio o padrão bonito é [Cockpit]"* (07-mai)
+- ❌ Continuar criando telas MWART ANTES de topnav horizontal entrar no AppShellV2 — Check 10 Hard Gate
+- ❌ Passar objeto `CommonChart`/Highcharts pro Inertia onde TSX espera array — TypeError `.slice`
+- ❌ Pular smoke test browser MCP achando "código está certo" — só prod confirma render
+
+## Estrutura da skill (progressive disclosure — TODO P1)
+
+Hoje: SKILL.md monolítico ~280 linhas. Próxima iteração quebrar em:
+
+```
+.claude/skills/mwart-quality/
+├── SKILL.md      (este arquivo — overview ~150 linhas)
+├── CHECKS.md     (10 checks expandidos com exemplos ✅/❌ completos)
+├── EXAMPLES.md   (1 input + 1 output end-to-end + dicas de profundidade)
+├── CHECKLIST.md  (DoD detalhado pra Modo A pre-flight)
+└── GOTCHAS.md    (pegadinhas curadas append-only — começar com 5 do PR #143/#144/#145)
+```
+
+Pattern segue [`cockpit-runbook`](../cockpit-runbook/SKILL.md) que já provou ROI.
+
+## Skills irmãs
+
+- [`cockpit-runbook`](../cockpit-runbook/SKILL.md) — pra gerar RUNBOOK.md detalhado da tela MWART (11 seções, frontmatter YAML)
+- [`criar-modulo`](../criar-modulo/SKILL.md) — pra módulo Laravel inteiro novo (não tela individual)
+- [`commit-discipline`](../commit-discipline/SKILL.md) — Tier A always-on, garante 1 PR = 1 intent ≤300 linhas
+- [`memory-sync`](../memory-sync/SKILL.md) — propaga session log gerado pro MCP via git push
+- [`multi-tenant-patterns`](../multi-tenant-patterns/SKILL.md) — Tier A, qualquer query toca `business_id`
 
 ## Próximo passo (P1, fora desta skill)
 
