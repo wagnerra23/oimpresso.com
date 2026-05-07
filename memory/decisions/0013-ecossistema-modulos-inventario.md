@@ -1,4 +1,17 @@
 ---
+slug: 0013-ecossistema-modulos-inventario
+number: 13
+title: "Ecossistema de Módulos: Inventário, Categorias e Padrões"
+type: adr
+status: aceito
+authority: reference
+lifecycle: arquivado
+decided_at: 2026-04-21
+decided_by: [E]
+module: core
+quarter: 2026-Q2
+---
+
 # ADR 0013 — Ecossistema de Módulos: Inventário, Categorias e Padrões
 
 **Data:** 2026-04-21

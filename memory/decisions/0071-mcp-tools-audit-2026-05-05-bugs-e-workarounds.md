@@ -3,10 +3,10 @@ slug: 0071-mcp-tools-audit-2026-05-05-bugs-e-workarounds
 number: 0071
 title: "Auditoria tools MCP 2026-05-05 — bugs descobertos + workarounds"
 type: adr
-status: aceita
+status: aceito
 authority: canonical
 lifecycle: ativo
-decided_by: [W, Claude]
+decided_by: [W]
 decided_at: 2026-05-05
 module: core
 quarter: 2026-Q2

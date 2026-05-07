@@ -4,11 +4,12 @@ number: 95
 title: "Skills Tier A/B/C — convenção interna pra controle de always-on"
 type: adr
 status: aceito
-authority: [Wagner]
-lifecycle: active
+authority: canonical
+lifecycle: ativo
 quarter: Q2-2026
 decided_at: 2026-05-06
-decided_by: [Wagner, Claude]
+decided_by: [W]
+module: governance
 tier: CANON
 related_adrs: [0094, 0091, 0093]
 parent_charter: mission.constituicao-v2

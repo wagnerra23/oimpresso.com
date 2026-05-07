@@ -4,11 +4,12 @@ number: 93
 title: Multi-tenant isolation by default — Tier 0, IRREVOGÁVEL
 type: adr
 status: aceito
-authority: [Wagner]
-lifecycle: active
+authority: canonical
+lifecycle: ativo
 quarter: Q2-2026
 decided_at: 2026-05-06
-decided_by: [Wagner, Claude]
+decided_by: [W]
+module: governance
 tier: CANON
 trust_level: tier-0-irrevogavel
 last_reviewed: 2026-05-06
