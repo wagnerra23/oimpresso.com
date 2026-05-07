@@ -11,7 +11,6 @@ use Modules\NFSe\DTO\NfseEmissaoPayload;
 use Modules\NFSe\Exceptions\NfseException;
 use Modules\NFSe\Jobs\EmitirNfseJob;
 use Modules\NFSe\Models\NfseEmissao;
-use Modules\NFSe\Models\NfseCertificado;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NFSe\Services\NfseEmissaoService;
 
