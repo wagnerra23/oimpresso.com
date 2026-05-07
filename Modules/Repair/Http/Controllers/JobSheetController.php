@@ -18,6 +18,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Repair\Entities\DeviceModel;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
@@ -300,8 +301,40 @@ class JobSheetController extends Controller
 
         $repair_settings = $this->repairUtil->getRepairSettings($business_id);
 
+        // MWART-0002 (Sprint 2.5) — branch Inertia/React quando flag ativa.
+        if ($this->mwartEnabled('repair_job_sheet_index', (int) $business_id)) {
+            return Inertia::render('Repair/JobSheet/Index', [
+                'filters' => [
+                    'business_locations' => $business_locations,
+                    'customers' => $customers,
+                    'status_dropdown' => $status_dropdown,
+                    'service_staffs' => $service_staffs,
+                ],
+                'flags' => [
+                    'is_user_service_staff' => $is_user_service_staff,
+                    'show_serial_no' => ! empty($repair_settings['show_serial_no_in_job_sheet_list']),
+                    'enable_brand_in_job_sheet' => ! empty($repair_settings['enable_brand_in_job_sheet']),
+                ],
+                // Pipeline DataTables AJAX continua servindo blade legacy
+                // até flag estabilizar — caminho idêntico ao MWART-0001 (PR #100).
+                'datatable_url' => route('job-sheet.index'),
+            ]);
+        }
+
         return view('repair::job_sheet.index')
             ->with(compact('business_locations', 'customers', 'status_dropdown', 'service_staffs', 'is_user_service_staff', 'repair_settings'));
+    }
+
+    /**
+     * MWART-0002 — verifica se flag MWART está habilitada pro business.
+     */
+    private function mwartEnabled(string $key, int $business_id): bool
+    {
+        if (! config("mwart.{$key}.enabled")) {
+            return false;
+        }
+        $beta = (array) config("mwart.{$key}.business_ids", []);
+        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**
