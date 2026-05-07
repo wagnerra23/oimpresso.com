@@ -45,7 +45,7 @@ afterEach(function () {
 it('Entity MemoriaMetrica grava e lê 1 linha com casts corretos', function () {
     $m = MemoriaMetrica::create([
         'apurado_em'              => '2026-04-29',
-        'business_id'             => 4,
+        'business_id'             => 1,
         'recall_at_3'             => 0.85,
         'precision_at_3'          => 0.65,
         'mrr'                     => 0.78,
@@ -76,19 +76,19 @@ it('Entity MemoriaMetrica grava e lê 1 linha com casts corretos', function () {
 it('unique (apurado_em, business_id) impede duplicata no mesmo dia/tenant', function () {
     MemoriaMetrica::create([
         'apurado_em'  => '2026-04-29',
-        'business_id' => 4,
+        'business_id' => 1,
         'recall_at_3' => 0.80,
     ]);
 
     expect(fn () => MemoriaMetrica::create([
         'apurado_em'  => '2026-04-29',
-        'business_id' => 4,
+        'business_id' => 1,
         'recall_at_3' => 0.99,
     ]))->toThrow(\Illuminate\Database\QueryException::class);
 });
 
 it('mesmo apurado_em mas business_id diferente coexiste', function () {
-    MemoriaMetrica::create(['apurado_em' => '2026-04-29', 'business_id' => 4, 'recall_at_3' => 0.80]);
+    MemoriaMetrica::create(['apurado_em' => '2026-04-29', 'business_id' => 1, 'recall_at_3' => 0.80]);
     MemoriaMetrica::create(['apurado_em' => '2026-04-29', 'business_id' => 8, 'recall_at_3' => 0.70]);
     MemoriaMetrica::create(['apurado_em' => '2026-04-29', 'business_id' => null, 'recall_at_3' => 0.75]); // plataforma
 
@@ -96,7 +96,7 @@ it('mesmo apurado_em mas business_id diferente coexiste', function () {
 });
 
 it('scope doBusinessOuPlataforma filtra por tenant ou null', function () {
-    MemoriaMetrica::create(['apurado_em' => '2026-04-29', 'business_id' => 4, 'recall_at_3' => 0.80]);
+    MemoriaMetrica::create(['apurado_em' => '2026-04-29', 'business_id' => 1, 'recall_at_3' => 0.80]);
     MemoriaMetrica::create(['apurado_em' => '2026-04-29', 'business_id' => 8, 'recall_at_3' => 0.70]);
     MemoriaMetrica::create(['apurado_em' => '2026-04-29', 'business_id' => null, 'recall_at_3' => 0.75]);
 
@@ -106,10 +106,10 @@ it('scope doBusinessOuPlataforma filtra por tenant ou null', function () {
 });
 
 it('scope ultimosDias retorna janela ordenada do mais recente pro mais antigo', function () {
-    MemoriaMetrica::create(['apurado_em' => now()->subDays(45)->toDateString(), 'business_id' => 4, 'recall_at_3' => 0.50]);
-    MemoriaMetrica::create(['apurado_em' => now()->subDays(10)->toDateString(), 'business_id' => 4, 'recall_at_3' => 0.70]);
-    MemoriaMetrica::create(['apurado_em' => now()->subDays(2)->toDateString(),  'business_id' => 4, 'recall_at_3' => 0.85]);
-    MemoriaMetrica::create(['apurado_em' => now()->toDateString(),               'business_id' => 4, 'recall_at_3' => 0.90]);
+    MemoriaMetrica::create(['apurado_em' => now()->subDays(45)->toDateString(), 'business_id' => 1, 'recall_at_3' => 0.50]);
+    MemoriaMetrica::create(['apurado_em' => now()->subDays(10)->toDateString(), 'business_id' => 1, 'recall_at_3' => 0.70]);
+    MemoriaMetrica::create(['apurado_em' => now()->subDays(2)->toDateString(),  'business_id' => 1, 'recall_at_3' => 0.85]);
+    MemoriaMetrica::create(['apurado_em' => now()->toDateString(),               'business_id' => 1, 'recall_at_3' => 0.90]);
 
     $rows = MemoriaMetrica::doBusinessOuPlataforma(4)->ultimosDias(30)->get();
 

@@ -56,7 +56,7 @@ it('busca saldo via OAuth + Banking API v2', function () {
         ]),
     ]);
 
-    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 4);
+    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 1);
     $saldo  = $client->getSaldo();
 
     expect($saldo['disponivel'])->toBe(1234.56)
@@ -76,7 +76,7 @@ it('cacheia OAuth token por 50min — segunda chamada não bate em /token', func
         '*/banking/v2/saldo' => Http::response(['disponivel' => 100]),
     ]);
 
-    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 4);
+    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 1);
     $client->getSaldo();
     $client->getSaldo();
 
@@ -106,7 +106,7 @@ it('cache de token isolado por scope', function () {
         '*/banking/v2/saldo' => Http::response(['disponivel' => 100]),
     ]);
 
-    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 4);
+    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 1);
 
     // Mesmo business, dois scopes diferentes via reflection — cada um pega token novo.
     $reflect = (new ReflectionClass($client))->getMethod('oauthToken');
@@ -125,7 +125,7 @@ it('erro 401 em /saldo propaga RequestException sem expor body em log', function
         '*/banking/v2/saldo' => Http::response(['error' => 'cert inválido', 'detalhe' => 'PII'], 401),
     ]);
 
-    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 4);
+    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 1);
 
     expect(fn () => $client->getSaldo())
         ->toThrow(\Illuminate\Http\Client\RequestException::class);
@@ -136,7 +136,7 @@ it('erro 401 em /token propaga RequestException', function () {
         '*/oauth/v2/token' => Http::response(['error' => 'invalid_client'], 401),
     ]);
 
-    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 4);
+    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 1);
 
     expect(fn () => $client->getSaldo())
         ->toThrow(\Illuminate\Http\Client\RequestException::class);
@@ -148,7 +148,7 @@ it('grava cert em /tmp com permissão 0600 (POSIX) e idempotente por md5', funct
         '*/banking/v2/saldo' => Http::response(['disponivel' => 1]),
     ]);
 
-    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 4);
+    $client = new InterBankingClient(interBankingDummyConfig(), businessId: 1);
     $client->getSaldo();
 
     $crts = glob(sys_get_temp_dir().'/inter_crt_*.pem');

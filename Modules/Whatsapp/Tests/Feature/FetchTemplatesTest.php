@@ -51,7 +51,7 @@ it('faz 2-step lookup phone_number_id → WABA → templates e normaliza payload
     ]);
 
     $config = new WhatsappBusinessConfig([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => 'test-uuid',
         'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
@@ -79,7 +79,7 @@ it('retorna [] se phone_number_id retorna 404', function () {
     ]);
 
     $config = new WhatsappBusinessConfig([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => 'test-uuid',
         'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
@@ -100,7 +100,7 @@ it('retorna [] se WABA não tem whatsapp_business_account no response', function
     ]);
 
     $config = new WhatsappBusinessConfig([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => 'test-uuid',
         'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
@@ -122,7 +122,7 @@ it('retorna [] se WABA/message_templates falha', function () {
     ]);
 
     $config = new WhatsappBusinessConfig([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => 'test-uuid',
         'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',

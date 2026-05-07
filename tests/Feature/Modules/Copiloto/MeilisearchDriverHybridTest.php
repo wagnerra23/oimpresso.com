@@ -77,7 +77,7 @@ it('buscar passa hybrid:{embedder,semanticRatio} + filter business_id/user_id ao
     app(EngineManager::class)->extend('fake-meili', fn () => $fakeEngine);
 
     $driver = new MeilisearchDriver();
-    $driver->buscar(businessId: 4, userId: 12, query: 'meta de faturamento', topK: 7);
+    $driver->buscar(businessId: 1, userId: 12, query: 'meta de faturamento', topK: 7);
 
     expect($fakeEngine->query)->toBe('meta de faturamento');
     expect($fakeEngine->params)->toHaveKey('hybrid');

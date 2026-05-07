@@ -105,51 +105,51 @@ beforeEach(function () {
 it('isola WhatsappBusinessConfig cross-business via global scope', function () {
     // Cria 2 configs em businesses diferentes (escapando scope pra setup)
     $configA = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
     ]);
 
     $configB = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 7,
+        'business_id' => 99,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
     ]);
 
-    // User do business 4: só deve ver config A
+    // User do business 1 (Wagner): só deve ver config A
     auth()->logout();
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
 
     $found = WhatsappBusinessConfig::all();
     expect($found)->toHaveCount(1)
         ->and($found->first()->id)->toBe($configA->id)
-        ->and($found->first()->business_id)->toBe(4);
+        ->and($found->first()->business_id)->toBe(1);
 
-    // Switch pra business 7: só deve ver config B
-    session(['user.business_id' => 7]);
+    // Switch pra business 99 (adversário cross-tenant): só deve ver config B
+    session(['user.business_id' => 99]);
     $foundOther = WhatsappBusinessConfig::all();
     expect($foundOther)->toHaveCount(1)
         ->and($foundOther->first()->id)->toBe($configB->id)
-        ->and($foundOther->first()->business_id)->toBe(7);
+        ->and($foundOther->first()->business_id)->toBe(99);
 });
 
 it('isola WhatsappConversation cross-business via global scope', function () {
     WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'customer_phone' => '+5511987654321',
     ]);
     WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 7,
+        'business_id' => 99,
         'customer_phone' => '+5511987654321',
     ]);
 
     auth()->logout();
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
     expect(WhatsappConversation::count())->toBe(1);
 
-    session(['user.business_id' => 7]);
+    session(['user.business_id' => 99]);
     expect(WhatsappConversation::count())->toBe(1);
 
     // Sanity: as 2 conversations realmente existem em DB (escape do scope confirma)
@@ -159,40 +159,40 @@ it('isola WhatsappConversation cross-business via global scope', function () {
 
 it('isola WhatsappMessage cross-business via global scope', function () {
     $convA = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'customer_phone' => '+5511987654321',
     ]);
     $convB = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 7,
+        'business_id' => 99,
         'customer_phone' => '+5511987654321',
     ]);
 
     WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'conversation_id' => $convA->id,
         'direction' => 'outbound',
         'provider' => 'zapi',
         'provider_message_id' => 'wamid.A',
-        'body' => 'Mensagem business 4 (CONFIDENCIAL — não pode vazar)',
+        'body' => 'Mensagem business 1 (CONFIDENCIAL — não pode vazar)',
         'status' => 'sent',
     ]);
 
     WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 7,
+        'business_id' => 99,
         'conversation_id' => $convB->id,
         'direction' => 'outbound',
         'provider' => 'zapi',
         'provider_message_id' => 'wamid.B',
-        'body' => 'Mensagem business 7 (CONFIDENCIAL — não pode vazar)',
+        'body' => 'Mensagem business 99 (CONFIDENCIAL — não pode vazar)',
         'status' => 'sent',
     ]);
 
     auth()->logout();
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
     $msgs = WhatsappMessage::all();
     expect($msgs)->toHaveCount(1);
-    expect($msgs->first()->body)->toContain('business 4');
-    expect($msgs->first()->body)->not->toContain('business 7');
+    expect($msgs->first()->body)->toContain('business 1');
+    expect($msgs->first()->body)->not->toContain('business 99');
 });
 
 it('cifra access_token e tokens sensíveis em DB (encrypted cast)', function () {
@@ -200,7 +200,7 @@ it('cifra access_token e tokens sensíveis em DB (encrypted cast)', function () 
     $zapiToken = 'zapi-instance-secret-XYZ-789';
 
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
@@ -226,7 +226,7 @@ it('cifra access_token e tokens sensíveis em DB (encrypted cast)', function () 
 
 it('effectiveDriver retorna fallback quando driver_health degraded', function () {
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',

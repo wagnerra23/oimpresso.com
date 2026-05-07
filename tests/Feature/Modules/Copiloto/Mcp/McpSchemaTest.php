@@ -209,11 +209,11 @@ it('McpUserScope ativos + doUser + isAtivo funcionam', function () {
     $scope = McpScope::create(['slug' => 's1', 'nome' => 'S1']);
 
     $ativo = McpUserScope::create([
-        'user_id' => 1, 'scope_id' => $scope->id, 'business_id' => 4,
+        'user_id' => 1, 'scope_id' => $scope->id, 'business_id' => 1,
         'granted_at' => now(),
     ]);
     $revogado = McpUserScope::create([
-        'user_id' => 1, 'scope_id' => $scope->id, 'business_id' => 4,
+        'user_id' => 1, 'scope_id' => $scope->id, 'business_id' => 1,
         'granted_at' => now()->subDay(), 'revoked_at' => now(),
     ]);
 
@@ -287,7 +287,7 @@ it('McpAuditLog::registrar exige campos obrigatórios + UUID + casts', function 
 
     $log = McpAuditLog::registrar([
         'user_id'          => 1,
-        'business_id'      => 4,
+        'business_id'      => 1,
         'endpoint'         => 'tools/call',
         'tool_or_resource' => 'tasks.current',
         'status'           => 'ok',
