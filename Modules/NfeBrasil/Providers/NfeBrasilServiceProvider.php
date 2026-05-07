@@ -10,6 +10,7 @@ use Modules\NfeBrasil\Events\FiscalRuleDeleted;
 use Modules\NfeBrasil\Events\FiscalRuleUpdated;
 use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Listeners\EmitirNFeAoReceberPagamento;
+use Modules\NfeBrasil\Listeners\EmitirNfceAoFinalizarVenda;
 use Modules\NfeBrasil\Listeners\EnviarDanfePorEmail;
 use Modules\NfeBrasil\Listeners\SyncFiscalRuleToTaxRate;
 use Modules\RecurringBilling\Events\InvoicePaid;
@@ -35,6 +36,11 @@ class NfeBrasilServiceProvider extends ServiceProvider
         // US-RB-044: cobrança recorrente paga → emite NFe modelo 55.
         // Flag default false até business ter cert + ncm_default + contact configurados.
         Event::listen(InvoicePaid::class, EmitirNFeAoReceberPagamento::class);
+
+        // US-NFE-002 fase 1: venda finalizada no POS → emite NFC-e modelo 65.
+        // Flag default false (rollout gradual). Filtra type='sell' + status='final' +
+        // payment_status in (paid|partial) — vendas due/draft não emitem.
+        Event::listen(\App\Events\SellCreatedOrModified::class, EmitirNfceAoFinalizarVenda::class);
 
         // US-NFE-044: NFe autorizada → envia DANFE PDF + XML por e-mail ao destinatário.
         // Flag default true (recorrência sempre notifica cliente).
