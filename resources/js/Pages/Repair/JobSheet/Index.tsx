@@ -39,12 +39,20 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
   useEffect(() => {
     if (!tableContainerRef.current) return;
     const msg = document.createElement('div');
-    msg.className = 'p-8 text-center text-slate-500 text-sm';
-    msg.innerHTML = `
-      <p class="mb-2">Listagem ainda usa DataTables AJAX legacy via <code>${datatable_url}</code>.</p>
-      <p class="text-xs">Próxima iteração migra pra TanStack Table com fetch direto. Por ora, paridade visual mantida pelo Blade.</p>
-    `;
-    tableContainerRef.current.appendChild(msg);
+    msg.className = 'p-8 text-center text-muted-foreground text-sm';
+    // textContent + DOM API — evita XSS com datatable_url (R-OWASP).
+    const p1 = document.createElement('p');
+    p1.className = 'mb-2';
+    p1.append('Listagem ainda usa DataTables AJAX legacy via ');
+    const code = document.createElement('code');
+    code.textContent = datatable_url;
+    p1.append(code);
+    p1.append('.');
+    const p2 = document.createElement('p');
+    p2.className = 'text-xs';
+    p2.textContent = 'Próxima iteração migra pra TanStack Table com fetch direto. Por ora, paridade visual mantida pelo Blade.';
+    msg.append(p1, p2);
+    tableContainerRef.current.replaceChildren(msg);
   }, [datatable_url]);
 
   const filterCount = (
@@ -92,9 +100,9 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
           </CardHeader>
           <CardContent className="text-sm">
             {flags.is_user_service_staff ? (
-              <p className="text-amber-700">Service staff — vê só OS atribuídas a você.</p>
+              <p className="text-amber-700 dark:text-amber-400">Service staff — vê só OS atribuídas a você.</p>
             ) : (
-              <p className="text-slate-600">Acesso total — vê todas OS do business.</p>
+              <p className="text-muted-foreground">Acesso total — vê todas OS do business.</p>
             )}
           </CardContent>
         </Card>
@@ -102,9 +110,9 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
           <CardHeader>
             <CardTitle className="text-sm font-medium">Settings</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm space-y-1">
-            <p>Serial no: {flags.show_serial_no ? '✓ visível' : '— oculto'}</p>
-            <p>Brand: {flags.enable_brand_in_job_sheet ? '✓ habilitado' : '— desabilitado'}</p>
+          <CardContent className="text-sm space-y-1.5">
+            <FlagRow label="Serial no" enabled={flags.show_serial_no} />
+            <FlagRow label="Brand" enabled={flags.enable_brand_in_job_sheet} />
           </CardContent>
         </Card>
       </div>
@@ -122,3 +130,16 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
 }
 
 JobSheetIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
+
+function FlagRow({ label, enabled }: { label: string; enabled: boolean }) {
+  return (
+    <p className="flex items-center gap-2">
+      {enabled ? (
+        <Icon name="check-circle-2" className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+      ) : (
+        <Icon name="circle-minus" className="h-3.5 w-3.5 text-muted-foreground" />
+      )}
+      <span>{label}: <span className={enabled ? 'text-foreground' : 'text-muted-foreground'}>{enabled ? 'visível' : 'oculto'}</span></span>
+    </p>
+  );
+}
