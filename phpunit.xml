@@ -22,6 +22,7 @@
             <directory>./Modules/Copiloto/Tests/Feature</directory>
             <directory>./Modules/Jana/Tests/Feature</directory>
             <directory>./Modules/RecurringBilling/Tests/Feature</directory>
+            <directory>./Modules/Financeiro/Tests/Feature</directory>
             <directory>./Modules/NfeBrasil/Tests/Feature</directory>
             <directory>./Modules/Repair/Tests/Feature</directory>
             <directory>./Modules/ProjectMgmt/Tests/Feature</directory>
