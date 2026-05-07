@@ -175,6 +175,19 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-WA-014 (ADR 0096) — Whatsapp driver health check pra detectar
+        // ban Z-API/Baileys e ativar fallback automático Meta Cloud.
+        // Roda a cada 6h. Pula Meta Cloud (oficial não bane).
+        $schedule->command('whatsapp:health-check-all')
+            ->cron('0 */6 * * *')
+            ->withoutOverlapping()
+            ->environments(['local', 'live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::warning(
+                    'Schedule whatsapp:health-check-all FALHOU — drivers Z-API/Baileys podem estar sem fallback ativo'
+                );
+            });
+
         if ($env === 'demo') {
             //IMPORTANT NOTE: This command will delete all business details and create dummy business, run only in demo server.
             $schedule->command('pos:dummyBusiness')
