@@ -7,7 +7,70 @@
 
 ---
 
-## 🆕 Estado pós-2026-05-07 tarde — BRIEF cleanup completo + 6/6 tasks done CYCLE-02 W20
+## 🆕 Estado pós-2026-05-07 noite-2 — US-NFE-002 fechada ponta-a-ponta (5 PRs em sequência)
+
+**Sessão Opus 2026-05-07 noite (segunda metade)** — fechou US-NFE-002 (Emitir NFC-e a partir de venda finalizada) com 5 PRs encadeados em ~3h. Pipeline server-side completo, UI demo Inertia funcionando.
+
+| PR | Fase | Conteúdo |
+|---|---|---|
+| [#198](https://github.com/wagnerra23/oimpresso.com/pull/198) | 2A | `NfeService::emitirParaTransaction` real (XML + assinar A1 + SEFAZ) |
+| [#199](https://github.com/wagnerra23/oimpresso.com/pull/199) | TPL-001 | +3 templates: MEI-SP, Simples MG, Simples RS (FCP 2%) — biblioteca 7→10 |
+| [#200](https://github.com/wagnerra23/oimpresso.com/pull/200) | 2B parc | Event `NFCeAutorizada` + Listener `EnviarDanfeNFCePorEmail` (flag opt-in default off) |
+| [#201](https://github.com/wagnerra23/oimpresso.com/pull/201) | 2B compl | `EmitirNfceJob` dispatch event quando `status='autorizada'` (1 linha + 4 tests) |
+| [#203](https://github.com/wagnerra23/oimpresso.com/pull/203) | 2C | UI status via polling: endpoint JSON + hook `useNfceStatus` + `<NfceStatusBadge />` + Page Inertia demo |
+
+**Pipeline NFC-e ponta-a-ponta agora:**
+```
+Venda finalizada → SellCreatedOrModified
+  → EmitirNfceAoFinalizarVenda (PR #193)
+  → EmitirNfceJob (PRs #193+#198+#201)
+     → NfeService::emitirParaTransaction → SEFAZ → cstat 100
+     → event(NFCeAutorizada) → EnviarDanfeNFCePorEmail (opt-in)
+UI Page /nfe-brasil/transactions/{tx}/status (PR #203)
+  → useNfceStatus polla 2s × 30 → NfceStatusBadge atualiza visual
+```
+
+### Decisão arquitetural fase 2C: polling > broadcast (este sprint)
+
+Investigamos broadcast tempo real e descobrimos:
+- `BROADCAST_DRIVER=null` no .env atual (broadcasting desligado)
+- `config/broadcasting.php` só tem reverb/ably/redis/log/null — **sem driver Centrifugo registrado**
+- ADR 0058+0062: Hostinger NÃO roda daemons; Centrifugo vive só CT 100
+
+**3 opções avaliadas, escolhida (C):**
+- ❌ A — Reverb no Hostinger: viola ADR 0062
+- ❌ B — Centrifugo CT 100 + bridge HTTP: precisa ADR arquitetural separada (decisão Wagner)
+- ✅ **C — Polling 2s no front**: respeita ADRs, hook abstrai transport, troca pra broadcast no futuro sem refazer componentes
+
+**Hook+componente prontos para reutilização** em qualquer Page Inertia. POS legacy (Blade `sale_pos/create.blade.php`) **NÃO** foi tocado — refatoração pra Inertia é PR separado/grande.
+
+### Pendências NFe pós-sessão
+
+- ⏸ **Integração Blade POS** — refatorar `sale_pos/create.blade.php` pra Inertia + plugar `<NfceStatusBadge />` (PR grande, decisão de escopo)
+- ⏸ **Broadcast Centrifugo CT 100** — precisa ADR arquitetural (HTTP bridge Hostinger→CT 100 ou outra estratégia)
+- ⏸ **Smoke real homologação SEFAZ** — emitir NFC-e teste em ambiente RotaLivre + verificar email recebido + Page status atualizar
+- ⏸ **Listener para retry/correção rejeitadas** — UI de retry + event `NFCeRejeitada` (caso cstat ≠ 100)
+
+### Tabela de templates tributários L1 (pós-#199)
+
+| Slug | Setor | Regime | UF | Notas |
+|---|---|---|---|---|
+| comercio-varejo-simples-sp | comércio | simples | SP | base |
+| comercio-atacado-simples-sp | comércio | simples | SP | atacado |
+| industria-grafica-simples-sp | indústria | simples | SP | gráfica |
+| comercio-varejo-presumido-sp | comércio | presumido | SP | presumido |
+| industria-grafica-presumido-sp | indústria | presumido | SP | presumido |
+| comercio-varejo-real-sp | comércio | real | SP | lucro real |
+| comercio-varejo-simples-rj | comércio | simples | RJ | FCP 2% |
+| **mei-varejo-sp** ✨ | comércio | mei | SP | DAS-MEI fixo |
+| **comercio-varejo-simples-mg** ✨ | comércio | simples | MG | FCP 2% |
+| **comercio-varejo-simples-rs** ✨ | comércio | simples | RS | FCP 2% |
+
+10 templates auto-descobertos por `TributacaoTemplateService::listar()`. Cobertura UF com FCP: 3/5 dos estados FCP-2% (RJ + MG + RS); faltam GO e PA.
+
+---
+
+## Estado pós-2026-05-07 tarde — BRIEF cleanup completo + 6/6 tasks done CYCLE-02 W20
 
 **Sessão Opus 2026-05-07 manhã/tarde** — entregou 6 US-COPI relacionadas ao L7 Daily Brief + governança:
 
