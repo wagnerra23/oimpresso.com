@@ -4,11 +4,11 @@
 // (mantém compat com edit/create existentes — 1:1 paridade visual).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link, router } from '@inertiajs/react';
-import { Plus, CheckCircle2 } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
+import { Icon } from '@/Components/Icon';
 import type { ReactNode } from 'react';
 
 interface StatusRow {
@@ -27,12 +27,13 @@ export default function StatusIndex({ statuses }: PageProps) {
   return (
     <div className="container mx-auto p-4">
       <PageHeader
+        icon="flag"
         title="Status de OS (Repair)"
-        subtitle="Configure os status que ordens de serviço podem assumir"
-        actions={
+        description="Configure os status que ordens de serviço podem assumir"
+        action={
           <Button asChild>
             <Link href={route('status.create')}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icon name="plus" className="mr-2 h-4 w-4" />
               Novo status
             </Link>
           </Button>
@@ -41,6 +42,7 @@ export default function StatusIndex({ statuses }: PageProps) {
 
       {statuses.length === 0 ? (
         <EmptyState
+          icon="flag"
           title="Nenhum status configurado"
           description="Crie pelo menos 1 status pra usar no fluxo de OS."
         />
@@ -70,7 +72,7 @@ export default function StatusIndex({ statuses }: PageProps) {
                   <td className="px-4 py-3 text-center">{s.sort_order}</td>
                   <td className="px-4 py-3 text-center">
                     {s.is_completed_status === 1 && (
-                      <CheckCircle2 className="inline h-4 w-4 text-green-600" />
+                      <Icon name="circle-check" className="inline h-4 w-4 text-green-600" />
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
