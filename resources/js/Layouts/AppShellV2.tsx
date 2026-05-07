@@ -84,6 +84,7 @@ import {
   SidebarMenu,
 } from '@/Components/cockpit/Sidebar';
 import { LinkedAppsPanel } from '@/Components/cockpit/LinkedApps';
+import { NfeCertBadge } from '@/Components/cockpit/NfeCertBadge';
 import { TweaksPanel } from '@/Components/cockpit/TweaksPanel';
 import {
   CockpitShellProps,
@@ -356,6 +357,10 @@ export default function AppShellV2({
           <div className="sb-top">
             <CompanyPicker businesses={business.opcoes} fallbackNome={business.nome} />
           </div>
+          {/* Alerta cert NFe vencendo/vencido (US-NFE-001 último item) — só renderiza
+              em estados críticos via shared prop shell.nfe_cert_status. Silencioso
+              quando OK ou business não emite NFe. */}
+          <NfeCertBadge />
           <div className="sb-body">
             <SidebarMenu items={shellMenu} />
           </div>
