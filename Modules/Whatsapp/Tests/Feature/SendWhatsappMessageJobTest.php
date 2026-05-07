@@ -104,7 +104,7 @@ beforeEach(function () {
 
     // Cria config ZAPI pra business=4 (driver=null não estoura rede em Pest)
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
@@ -123,7 +123,7 @@ it('cria WhatsappMessage queued + dispatch Queued event antes de chamar driver',
     ]);
 
     $job = new SendWhatsappMessageJob(
-        businessId: 4,
+        businessId: 1,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'Olá Cliente — sua OS está pronta!'],
@@ -153,7 +153,7 @@ it('em falha permanente: status=failed + Failed event + re-throw pra retry expon
     ]);
 
     $job = new SendWhatsappMessageJob(
-        businessId: 4,
+        businessId: 1,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'msg falha'],
@@ -177,7 +177,7 @@ it('detecta ban Z-API (HTTP 403) e marca banDetected no Failed event', function 
     ]);
 
     $job = new SendWhatsappMessageJob(
-        businessId: 4,
+        businessId: 1,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'msg ban'],
@@ -196,7 +196,7 @@ it('atualiza WhatsappConversation last_outbound_at em sucesso', function () {
     ]);
 
     $job = new SendWhatsappMessageJob(
-        businessId: 4,
+        businessId: 1,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'olá'],
@@ -221,7 +221,7 @@ it('Tier 0 — businessId no constructor isola do session()', function () {
     session(['user.business_id' => 999]);
 
     $job = new SendWhatsappMessageJob(
-        businessId: 4, // explícito no constructor
+        businessId: 1, // explícito no constructor
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'tier 0 test'],

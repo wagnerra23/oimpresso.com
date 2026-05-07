@@ -111,7 +111,7 @@ afterEach(function () {
 
 it('cria Plan com fillable + casts corretos', function () {
     $plan = Plan::create([
-        'business_id' => 4,
+        'business_id' => 1,
         'name'        => 'Mensalidade Pro',
         'slug'        => 'mensalidade-pro',
         'valor'       => 199.90,
@@ -129,38 +129,38 @@ it('cria Plan com fillable + casts corretos', function () {
 });
 
 it('Plan::scopeAtivos() filtra inativos', function () {
-    Plan::create(['business_id' => 4, 'name' => 'A', 'slug' => 'a', 'valor' => 10, 'ciclo' => 'monthly', 'ativo' => true]);
-    Plan::create(['business_id' => 4, 'name' => 'B', 'slug' => 'b', 'valor' => 20, 'ciclo' => 'monthly', 'ativo' => false]);
+    Plan::create(['business_id' => 1, 'name' => 'A', 'slug' => 'a', 'valor' => 10, 'ciclo' => 'monthly', 'ativo' => true]);
+    Plan::create(['business_id' => 1, 'name' => 'B', 'slug' => 'b', 'valor' => 20, 'ciclo' => 'monthly', 'ativo' => false]);
 
     expect(Plan::ativos()->count())->toBe(1);
 });
 
 it('UNIQUE(business_id, slug) impede duplicação no mesmo tenant', function () {
-    Plan::create(['business_id' => 4, 'name' => 'Plano', 'slug' => 'plano', 'valor' => 10, 'ciclo' => 'monthly']);
+    Plan::create(['business_id' => 1, 'name' => 'Plano', 'slug' => 'plano', 'valor' => 10, 'ciclo' => 'monthly']);
 
     expect(fn () => Plan::create([
-        'business_id' => 4, 'name' => 'Outro nome', 'slug' => 'plano',
+        'business_id' => 1, 'name' => 'Outro nome', 'slug' => 'plano',
         'valor' => 10, 'ciclo' => 'monthly',
     ]))->toThrow(\Illuminate\Database\QueryException::class);
 });
 
 it('mesmo slug em business diferente é OK (multi-tenant)', function () {
-    Plan::create(['business_id' => 4, 'name' => 'Plano', 'slug' => 'plano', 'valor' => 10, 'ciclo' => 'monthly']);
+    Plan::create(['business_id' => 1, 'name' => 'Plano', 'slug' => 'plano', 'valor' => 10, 'ciclo' => 'monthly']);
     Plan::create(['business_id' => 5, 'name' => 'Plano', 'slug' => 'plano', 'valor' => 10, 'ciclo' => 'monthly']);
 
     expect(Plan::count())->toBe(2);
 });
 
 it('cria Subscription vinculada a Plan + Contact com relacionamentos', function () {
-    \DB::table('contacts')->insert(['id' => 1, 'business_id' => 4, 'name' => 'Cliente A', 'created_at' => now(), 'updated_at' => now()]);
+    \DB::table('contacts')->insert(['id' => 1, 'business_id' => 1, 'name' => 'Cliente A', 'created_at' => now(), 'updated_at' => now()]);
 
     $plan = Plan::create([
-        'business_id' => 4, 'name' => 'Pro', 'slug' => 'pro',
+        'business_id' => 1, 'name' => 'Pro', 'slug' => 'pro',
         'valor' => 199.90, 'ciclo' => 'monthly',
     ]);
 
     $sub = Subscription::create([
-        'business_id'         => 4,
+        'business_id'         => 1,
         'plan_id'             => $plan->id,
         'contact_id'          => 1,
         'status'              => 'active',
@@ -174,52 +174,52 @@ it('cria Subscription vinculada a Plan + Contact com relacionamentos', function 
 });
 
 it('Invoice rastreia ChargeAttempts com unique (invoice_id, attempt_n)', function () {
-    \DB::table('contacts')->insert(['id' => 1, 'business_id' => 4, 'name' => 'X', 'created_at' => now(), 'updated_at' => now()]);
-    $plan = Plan::create(['business_id' => 4, 'name' => 'P', 'slug' => 'p', 'valor' => 100, 'ciclo' => 'monthly']);
+    \DB::table('contacts')->insert(['id' => 1, 'business_id' => 1, 'name' => 'X', 'created_at' => now(), 'updated_at' => now()]);
+    $plan = Plan::create(['business_id' => 1, 'name' => 'P', 'slug' => 'p', 'valor' => 100, 'ciclo' => 'monthly']);
     $sub  = Subscription::create([
-        'business_id' => 4, 'plan_id' => $plan->id, 'contact_id' => 1,
+        'business_id' => 1, 'plan_id' => $plan->id, 'contact_id' => 1,
         'status' => 'active', 'start_date' => '2026-05-06',
         'next_due_date' => '2026-06-06', 'billing_anchor_date' => '2026-05-06',
     ]);
     $inv = Invoice::create([
-        'business_id' => 4, 'subscription_id' => $sub->id, 'contact_id' => 1,
+        'business_id' => 1, 'subscription_id' => $sub->id, 'contact_id' => 1,
         'numero_documento' => 'INV-001', 'valor' => 100, 'status' => 'open',
         'vencimento' => '2026-06-06',
     ]);
 
     ChargeAttempt::create([
-        'business_id' => 4, 'invoice_id' => $inv->id, 'gateway' => 'asaas',
+        'business_id' => 1, 'invoice_id' => $inv->id, 'gateway' => 'asaas',
         'attempt_n' => 1, 'status' => 'sent',
     ]);
     ChargeAttempt::create([
-        'business_id' => 4, 'invoice_id' => $inv->id, 'gateway' => 'asaas',
+        'business_id' => 1, 'invoice_id' => $inv->id, 'gateway' => 'asaas',
         'attempt_n' => 2, 'status' => 'succeeded', 'response_json' => ['id' => 'pay_x'],
     ]);
 
     expect($inv->chargeAttempts)->toHaveCount(2);
 
     expect(fn () => ChargeAttempt::create([
-        'business_id' => 4, 'invoice_id' => $inv->id, 'gateway' => 'asaas',
+        'business_id' => 1, 'invoice_id' => $inv->id, 'gateway' => 'asaas',
         'attempt_n' => 1, 'status' => 'failed',
     ]))->toThrow(\Illuminate\Database\QueryException::class);
 });
 
 it('Invoice::scopeVencidas() pega open com vencimento passado', function () {
-    \DB::table('contacts')->insert(['id' => 1, 'business_id' => 4, 'name' => 'X', 'created_at' => now(), 'updated_at' => now()]);
-    $plan = Plan::create(['business_id' => 4, 'name' => 'P', 'slug' => 'p', 'valor' => 100, 'ciclo' => 'monthly']);
+    \DB::table('contacts')->insert(['id' => 1, 'business_id' => 1, 'name' => 'X', 'created_at' => now(), 'updated_at' => now()]);
+    $plan = Plan::create(['business_id' => 1, 'name' => 'P', 'slug' => 'p', 'valor' => 100, 'ciclo' => 'monthly']);
 
     Invoice::create([
-        'business_id' => 4, 'subscription_id' => null, 'contact_id' => 1,
+        'business_id' => 1, 'subscription_id' => null, 'contact_id' => 1,
         'numero_documento' => 'INV-OK', 'valor' => 100, 'status' => 'open',
         'vencimento' => now()->addDays(5)->toDateString(),
     ]);
     Invoice::create([
-        'business_id' => 4, 'subscription_id' => null, 'contact_id' => 1,
+        'business_id' => 1, 'subscription_id' => null, 'contact_id' => 1,
         'numero_documento' => 'INV-VENCIDA', 'valor' => 100, 'status' => 'open',
         'vencimento' => now()->subDays(3)->toDateString(),
     ]);
     Invoice::create([
-        'business_id' => 4, 'subscription_id' => null, 'contact_id' => 1,
+        'business_id' => 1, 'subscription_id' => null, 'contact_id' => 1,
         'numero_documento' => 'INV-PAGA', 'valor' => 100, 'status' => 'paid',
         'vencimento' => now()->subDays(10)->toDateString(),
     ]);
@@ -229,16 +229,16 @@ it('Invoice::scopeVencidas() pega open com vencimento passado', function () {
 });
 
 it('ChargeAttempt é append-only (sem updated_at)', function () {
-    \DB::table('contacts')->insert(['id' => 1, 'business_id' => 4, 'name' => 'X', 'created_at' => now(), 'updated_at' => now()]);
-    $plan = Plan::create(['business_id' => 4, 'name' => 'P', 'slug' => 'p', 'valor' => 100, 'ciclo' => 'monthly']);
+    \DB::table('contacts')->insert(['id' => 1, 'business_id' => 1, 'name' => 'X', 'created_at' => now(), 'updated_at' => now()]);
+    $plan = Plan::create(['business_id' => 1, 'name' => 'P', 'slug' => 'p', 'valor' => 100, 'ciclo' => 'monthly']);
     $inv = Invoice::create([
-        'business_id' => 4, 'subscription_id' => null, 'contact_id' => 1,
+        'business_id' => 1, 'subscription_id' => null, 'contact_id' => 1,
         'numero_documento' => 'X', 'valor' => 100, 'status' => 'open',
         'vencimento' => '2026-06-06',
     ]);
 
     $attempt = ChargeAttempt::create([
-        'business_id' => 4, 'invoice_id' => $inv->id, 'gateway' => 'inter',
+        'business_id' => 1, 'invoice_id' => $inv->id, 'gateway' => 'inter',
         'attempt_n' => 1, 'status' => 'pending',
     ]);
 

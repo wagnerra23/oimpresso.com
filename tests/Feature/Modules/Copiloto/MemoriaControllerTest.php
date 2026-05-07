@@ -15,8 +15,8 @@ it('MemoriaController index lista memorias do user via NullMemoriaDriver', funct
     $driver = app(MemoriaContrato::class);
     expect($driver)->toBeInstanceOf(NullMemoriaDriver::class);
 
-    $driver->lembrar(businessId: 4, userId: 12, fato: 'Larissa quer meta R$80k');
-    $driver->lembrar(businessId: 4, userId: 12, fato: 'Monitor 1280px');
+    $driver->lembrar(businessId: 1, userId: 12, fato: 'Larissa quer meta R$80k');
+    $driver->lembrar(businessId: 1, userId: 12, fato: 'Monitor 1280px');
     $driver->lembrar(businessId: 8, userId: 99, fato: 'fato isolado de outro biz');
 
     $todasDoBiz4 = $driver->listar(4, 12);

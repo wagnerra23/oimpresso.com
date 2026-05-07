@@ -112,14 +112,14 @@ it('UNIQUE constraint pg_webhook_events(provider, event_id) é enforced no DB', 
     DB::table('pg_webhook_events')->insert([
         'provider' => 'asaas', 'event_id' => 'evt_unique',
         'event_type' => 'PAYMENT_RECEIVED', 'payload' => '{}',
-        'business_id' => 4, 'processed' => false,
+        'business_id' => 1, 'processed' => false,
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
     expect(fn () => DB::table('pg_webhook_events')->insert([
         'provider' => 'asaas', 'event_id' => 'evt_unique',
         'event_type' => 'PAYMENT_RECEIVED', 'payload' => '{}',
-        'business_id' => 4, 'processed' => false,
+        'business_id' => 1, 'processed' => false,
         'created_at' => now(), 'updated_at' => now(),
     ]))->toThrow(\Illuminate\Database\QueryException::class);
 });
@@ -128,7 +128,7 @@ it('eventos de providers diferentes podem ter mesmo event_id (cross-provider OK)
     DB::table('pg_webhook_events')->insert([
         'provider' => 'asaas', 'event_id' => 'shared_id',
         'event_type' => 'X', 'payload' => '{}',
-        'business_id' => 4, 'processed' => false,
+        'business_id' => 1, 'processed' => false,
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
@@ -136,7 +136,7 @@ it('eventos de providers diferentes podem ter mesmo event_id (cross-provider OK)
     DB::table('pg_webhook_events')->insert([
         'provider' => 'inter', 'event_id' => 'shared_id',
         'event_type' => 'Y', 'payload' => '{}',
-        'business_id' => 4, 'processed' => false,
+        'business_id' => 1, 'processed' => false,
         'created_at' => now(), 'updated_at' => now(),
     ]);
 

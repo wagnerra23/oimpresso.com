@@ -130,19 +130,19 @@ it('aceita kind=freeform com body válido (sem conversation = sem check janela 2
 
 it('rejeita kind=freeform com driver=meta_cloud E janela 24h fechada', function () {
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'meta_cloud',
         'driver_health' => 'healthy',
     ]);
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'customer_phone' => '+5511987654321',
         'last_inbound_at' => null, // janela 24h fechada (nunca houve inbound)
     ]);
 
     auth()->logout();
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
 
     $v = runSendRequest(['kind' => 'freeform', 'body' => 'mensagem'], $conv);
 
@@ -152,19 +152,19 @@ it('rejeita kind=freeform com driver=meta_cloud E janela 24h fechada', function 
 
 it('aceita kind=freeform com driver=zapi mesmo com janela 24h fechada', function () {
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi', // ignora janela 24h
         'driver_health' => 'healthy',
     ]);
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'customer_phone' => '+5511987654321',
         'last_inbound_at' => null,
     ]);
 
     auth()->logout();
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
 
     $v = runSendRequest(['kind' => 'freeform', 'body' => 'mensagem'], $conv);
 
@@ -173,19 +173,19 @@ it('aceita kind=freeform com driver=zapi mesmo com janela 24h fechada', function
 
 it('aceita kind=freeform com driver=meta_cloud E janela 24h aberta (last_inbound_at recente)', function () {
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'meta_cloud',
         'driver_health' => 'healthy',
     ]);
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'customer_phone' => '+5511987654321',
         'last_inbound_at' => now()->subHours(2), // dentro da janela 24h
     ]);
 
     auth()->logout();
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
 
     $v = runSendRequest(['kind' => 'freeform', 'body' => 'mensagem'], $conv);
 
