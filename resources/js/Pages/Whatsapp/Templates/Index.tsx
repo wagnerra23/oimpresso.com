@@ -11,9 +11,12 @@ import { useState } from 'react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
-import { Card } from '@/Components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 interface Template {
@@ -37,6 +40,15 @@ interface Props {
 
 export default function TemplatesIndex({ templates, filters }: Props) {
   const [syncing, setSyncing] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [newTpl, setNewTpl] = useState({
+    provider: 'zapi',
+    name: '',
+    language: 'pt_BR',
+    category: 'UTILITY',
+    body: '',
+  });
 
   function applyFilter(key: string, value: string) {
     router.get(route('whatsapp.templates.index'), { ...filters, [key]: value }, { preserveScroll: true });
@@ -51,6 +63,19 @@ export default function TemplatesIndex({ templates, filters }: Props) {
     });
   }
 
+  function createLocalTemplate() {
+    if (createSubmitting) return;
+    setCreateSubmitting(true);
+    router.post(route('whatsapp.templates.store'), newTpl, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setShowCreateForm(false);
+        setNewTpl({ provider: 'zapi', name: '', language: 'pt_BR', category: 'UTILITY', body: '' });
+      },
+      onFinish: () => setCreateSubmitting(false),
+    });
+  }
+
   const orphanCount = templates.filter((t) => !t.has_meta_counterpart && t.provider !== 'meta_cloud').length;
 
   return (
@@ -59,11 +84,81 @@ export default function TemplatesIndex({ templates, filters }: Props) {
         title="Templates Whatsapp"
         subtitle="HSM Meta + locais Z-API/Baileys (LOCAL = sempre disponível)"
         actions={
-          <Button onClick={syncMeta} disabled={syncing} variant="outline">
-            {syncing ? 'Sincronizando Meta...' : 'Sincronizar Meta HSM'}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowCreateForm((s) => !s)} variant="outline">
+              {showCreateForm ? 'Cancelar' : '+ Novo template LOCAL'}
+            </Button>
+            <Button onClick={syncMeta} disabled={syncing} variant="outline">
+              {syncing ? 'Sincronizando Meta...' : 'Sincronizar Meta HSM'}
+            </Button>
+          </div>
         }
       />
+
+      {/* Form criar template LOCAL Z-API/Baileys */}
+      {showCreateForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Novo template LOCAL</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label>Provider</Label>
+                <Select value={newTpl.provider} onValueChange={(v) => setNewTpl({ ...newTpl, provider: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="zapi">Z-API</SelectItem>
+                    <SelectItem value="baileys">Baileys (Sprint 3)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Nome (snake_case)</Label>
+                <Input
+                  value={newTpl.name}
+                  onChange={(e) => setNewTpl({ ...newTpl, name: e.target.value.toLowerCase() })}
+                  placeholder="repair_status_ready"
+                />
+              </div>
+              <div>
+                <Label>Idioma</Label>
+                <Input value={newTpl.language} onChange={(e) => setNewTpl({ ...newTpl, language: e.target.value })} />
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Select value={newTpl.category} onValueChange={(v) => setNewTpl({ ...newTpl, category: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="UTILITY">UTILITY</SelectItem>
+                    <SelectItem value="MARKETING">MARKETING</SelectItem>
+                    <SelectItem value="AUTHENTICATION">AUTHENTICATION</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Body (use {'{{1}}, {{2}}'} pra placeholders)</Label>
+              <Textarea
+                value={newTpl.body}
+                onChange={(e) => setNewTpl({ ...newTpl, body: e.target.value })}
+                rows={4}
+                placeholder="Olá {{1}}, sua OS #{{2}} está pronta para retirada!"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateForm(false)}>Cancelar</Button>
+              <Button onClick={createLocalTemplate} disabled={createSubmitting || !newTpl.name || !newTpl.body}>
+                {createSubmitting ? 'Salvando...' : 'Salvar template LOCAL'}
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground border-t pt-2">
+              ⚠️ Recomendamos criar template HSM correspondente na Meta Business Manager + sincronizar
+              (botão acima) pra fallback Meta Cloud funcionar em caso de ban.
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {orphanCount > 0 && (
         <Card className="p-3 border-amber-300 bg-amber-50">
