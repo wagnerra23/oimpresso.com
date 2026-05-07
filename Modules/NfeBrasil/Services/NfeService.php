@@ -109,11 +109,14 @@ class NfeService
         }
 
         $config = NfeBusinessConfig::where('business_id', $businessId)->first();
-        $ncmDefault = (string) ($config?->tributacao_default['ncm_default'] ?? '');
+        // Fallback: nfe_business_configs.tributacao_default.ncm_default → business.ncm_padrao
+        $ncmDefault = (string) ($config?->tributacao_default['ncm_default']
+            ?? $business->ncm_padrao
+            ?? '');
         if (strlen($ncmDefault) !== 8) {
             throw new RuntimeException(
-                "Business {$businessId} sem `ncm_default` configurado em nfe_business_configs.tributacao_default — " .
-                "configure NCM padrão pra emissão automática de cobrança recorrente."
+                "Business {$businessId} sem NCM padrão configurado. " .
+                "Configure `ncm_padrao` no cadastro do business ou `nfe_business_configs.tributacao_default.ncm_default`."
             );
         }
 
@@ -387,9 +390,13 @@ class NfeService
         $nfe->taginfNFe($std);
 
         // ── ide ─────────────────────────────────────────────────────────────
-        $ufCode = \NFePHP\Common\UFList::getCodeByUF(
-            $emitOverride['uf'] ?? $this->resolverUF($business)
-        );
+        $ufEmit = $emitOverride['uf'] ?? $this->resolverUF($business);
+        $ufCode = \NFePHP\Common\UFList::getCodeByUF($ufEmit);
+
+        // Carrega IBGE do emitente via cidades.officeimpresso_codigo (business.cidade_id FK)
+        $cidadeEmit   = DB::table('cidades')->where('id', $business->cidade_id ?? 0)->first();
+        $codMunEmit   = (string) ($emitOverride['cod_municipio'] ?? $cidadeEmit?->officeimpresso_codigo ?? '9999999');
+        $xMunEmit     = strtoupper((string) ($emitOverride['municipio'] ?? $cidadeEmit?->descricao ?? ''));
 
         $stdIde            = new \stdClass();
         $stdIde->cUF       = $ufCode;
@@ -402,7 +409,7 @@ class NfeService
         $stdIde->dhSaiEnt  = now()->format('Y-m-d\TH:i:sP');
         $stdIde->tpNF      = 1;
         $stdIde->idDest    = $this->resolverIdDest($emitOverride, $dadosNfe['dest'] ?? [], $business);
-        $stdIde->cMunFG    = (string) ($emitOverride['cod_municipio'] ?? $business->cod_municipio ?? '9999999');
+        $stdIde->cMunFG    = $codMunEmit;
         $stdIde->tpImp     = 1;
         $stdIde->tpEmis    = 1;
         $stdIde->cDV       = 0;
@@ -428,8 +435,8 @@ class NfeService
         $stdEnderEmit->xLgr   = $emitOverride['logradouro'] ?? $business->rua ?? '';
         $stdEnderEmit->nro    = $emitOverride['numero_end'] ?? $business->numero ?? 'SN';
         $stdEnderEmit->xBairro = $emitOverride['bairro'] ?? $business->bairro ?? '';
-        $stdEnderEmit->cMun   = (string) ($emitOverride['cod_municipio'] ?? $business->cod_municipio ?? '9999999');
-        $stdEnderEmit->xMun   = $emitOverride['municipio'] ?? $business->municipio ?? '';
+        $stdEnderEmit->cMun   = $codMunEmit;
+        $stdEnderEmit->xMun   = $xMunEmit;
         $stdEnderEmit->UF     = $emitOverride['uf'] ?? $this->resolverUF($business);
         $stdEnderEmit->CEP    = preg_replace('/\D/', '', (string) ($emitOverride['cep'] ?? $business->cep ?? ''));
         $stdEnderEmit->cPais  = '1058';
@@ -455,11 +462,22 @@ class NfeService
         }
         $nfe->tagdest($stdDest);
 
+        // cod_municipio destinatário: tenta lookup cidades por UF+nome, fallback emitente
+        $codMunDest = (string) ($dest['cod_municipio'] ?? null);
+        if ($codMunDest === '' || $codMunDest === '9999999' || $codMunDest === null) {
+            $xMunDestRaw = strtoupper(substr((string) ($dest['municipio'] ?? ''), 0, 40));
+            $codMunDest  = (string) (DB::table('cidades')
+                ->where('uf', strtoupper($dest['uf'] ?? $ufEmit))
+                ->where('descricao', 'like', $xMunDestRaw . '%')
+                ->whereNull('deleted_at')
+                ->value('officeimpresso_codigo') ?? $codMunEmit);
+        }
+
         $stdEnderDest          = new \stdClass();
         $stdEnderDest->xLgr   = $dest['logradouro'] ?? '';
         $stdEnderDest->nro    = $dest['numero'] ?? 'SN';
         $stdEnderDest->xBairro = $dest['bairro'] ?? '';
-        $stdEnderDest->cMun   = (string) ($dest['cod_municipio'] ?? '9999999');
+        $stdEnderDest->cMun   = $codMunDest;
         $stdEnderDest->xMun   = strtoupper((string) ($dest['municipio'] ?? ''));
         $stdEnderDest->UF     = $dest['uf'] ?? 'SP';
         $stdEnderDest->CEP    = preg_replace('/\D/', '', (string) ($dest['cep'] ?? ''));
