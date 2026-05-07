@@ -209,6 +209,51 @@ mcp__Claude_in_Chrome__browser_batch:
 
 Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi exatamente o ciclo que custou os PRs #143/#144/#145.**
 
+## ⛔ Check 10 (HARD GATE) · Paridade visual com o Cockpit canônico (Claude design)
+
+**Visual canon decidido em 2026-05-07 (madrugada):**
+- ✅ **Cockpit (AppShellV2 visual)** — pretty, modern, clean. Mockup canônico em `https://claude.ai/design/p/019dcfd3-6ef2-7ee6-8512-b1b0e5544e58` (file: "Oimpresso ERP - Chat.html").
+- ❌ **AdminLTE Blade legacy** — *"feio"* (palavra do Wagner). NÃO usar como referência visual.
+
+**Mas existe um GAP funcional crítico:** o Cockpit atual NÃO tem **topnav horizontal do módulo** (a barra com itens tipo "Reparar / Folhas de trabalho / Adicionar fatura / Marcas / Configurações"). Wagner disse explícito: *"sem navtop... tem que ter"*.
+
+**Trajetória do feedback (registrar pra não interpretar errado):**
+1. Wagner: *"o padrão do cockpit era muito superior"* — eu interpretei como "Blade > Cockpit" (errado).
+2. Wagner: *"cokpit achei mais bonito"* — corrigiu: Cockpit é mais bonito.
+3. Wagner: *"mais tbm sem navtop... tem que ter"* — gap exato é topnav horizontal ausente.
+4. Wagner: *"blade feio o padrão bonito é [Claude design link]"* — Blade legacy é feio, não voltar.
+
+### Tabela comparativa (visão correta após feedback)
+
+| Elemento | Blade legacy | Cockpit MWART atual | Cockpit canônico (mockup) | Gap a fechar |
+|---|---|---|---|---|
+| Visual geral | ❌ feio | ✅ moderno e limpo | ✅ moderno e limpo | nenhum |
+| Sidebar | ✅ funcional | ✅ Cockpit V2 | ✅ canônico | nenhum |
+| **Topnav HORIZONTAL módulo** | ✅ tem (Reparar / Folhas / etc) | ❌ ausente | ❌ tampouco no mockup | **adicionar — FALTA EM TUDO** |
+| Breadcrumb | ✅ "Reparar > Board" | ⚠️ genérico se sem `topnav.php` | ✅ "Oimpresso Matriz / OFFICEIMPRESSO > OS" | adicionar `topnav.php` por módulo |
+| KPI cards | ❌ ausente | ⚠️ KpiCard simples | ✅ 4 cards ricos (Abertas, Atrasadas, Valor, Total) | enriquecer telas listagem |
+| Tabs filtro | ❌ ausente | ❌ ausente | ✅ Abertas / Atrasadas / Todas / Orçado / etc | adicionar quando relevante |
+| Tabela rica | ❌ DataTable Bootstrap | ⚠️ tabela básica | ✅ tabela polida com avatars, badges, datas relativas | usar TanStack Table + DS |
+
+### REGRA HARD — antes de promover flag MWART em prod
+
+**P0 BLOQUEADOR**: implementar **topnav horizontal do módulo** no `AppShellV2` antes de continuar criando telas MWART novas. Sem topnav horizontal, qualquer tela MWART vai gerar a reclamação *"sem navtop... tem que ter"* repetida.
+
+**Onde implementar:**
+- `resources/js/Layouts/AppShellV2.tsx` — adicionar `<nav className="topnav-module">` abaixo do `<header className="topbar">` (linha 337), populado com `useAutoModuleNav().items`
+- Render só se `moduleItems.length > 0` (graceful degradation pra módulos sem `topnav.php`)
+- Estilo segue o Claude design canônico (link acima)
+
+**P1 — visual rico nas telas listagem:**
+- KPI cards (4 metrics no topo, não 2 simples como Repair Dashboard)
+- Tabs de filtro (status / período)
+- Tabela TanStack com avatars, badges colorform, datas relativas ("hoje 14:00")
+
+**O que NÃO fazer (errado mesmo se intuitivo):**
+- ❌ Rollback `MWART_*=false` no .env achando que Blade é melhor — Blade é FEIO segundo Wagner (madrugada 07-mai)
+- ❌ Implementar topnav só pra Repair (`topnav.php` ajuda no breadcrumb dropdown mas NÃO renderiza navbar horizontal — esse é um gap em AppShellV2 mesmo)
+- ❌ Continuar criando telas MWART novas antes do topnav horizontal entrar no AppShellV2 — vai gerar mesma reclamação
+
 ## Receita pré-PR (cole no checklist mental)
 
 ```
@@ -221,6 +266,7 @@ Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi
 [ ] Check 7 — todos icons via <Icon name="..."/>, zero import lucide-react direto
 [ ] Check 8 — zero route() Ziggy; URLs hardcoded com prefix do módulo
 [ ] Check 9 — após merge, smoke test browser MCP + console clean
+[ ] Check 10 (HARD GATE) — paridade visual com Blade legacy: top navbar + topnav horizontal módulo + breadcrumb correto + action bar (sem isso NÃO promover flag MWART em prod)
 ```
 
 ## ROI / por que esta skill existe
@@ -233,6 +279,12 @@ Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi
 | S2.5 PR #141 (JobSheet) | #143, #144 | Checks 5,6,7,8 | ✅ |
 
 **4 PRs novos × 3 PRs corretivos = 12 round-trips.** Esta skill, se ativa antes do PR original, reduz pra 4 PRs limpos (1× cada tela).
+
+## Próximo passo P0 (BLOQUEADOR DE NOVAS TELAS MWART)
+
+**Sprint AppShellV2-paridade**: trazer pro Cockpit os 4 elementos críticos perdidos (top app navbar, topnav horizontal módulo, breadcrumb correto, action bar). Sem isso, qualquer tela nova MWART vai gerar a mesma reação *"perdeu elementos / era muito superior"*.
+
+Estimativa: 2-4 dias de trabalho de plataforma (não tela). Executar **ANTES** de prometer S2.6/S2.7 ou outras telas Repair/módulos.
 
 ## Próximo passo (P1, fora desta skill)
 
