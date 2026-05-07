@@ -16,7 +16,7 @@ use Menu;
  * Ver como referência:
  *  - Modules/Jana/Http/Controllers/DataController.php      (dropdown)
  *  - Modules/Repair/Http/Controllers/DataController.php    (item simples)
- *  - Modules/Project/Http/Controllers/DataController.php   (item simples)
+ *  - Modules/ProjectMgmt/Http/Controllers/DataController.php (item simples)
  */
 class DataController extends Controller
 {
