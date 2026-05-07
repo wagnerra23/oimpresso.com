@@ -5,6 +5,7 @@ namespace Modules\Repair\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Repair\Utils\RepairUtil;
 
 class DashboardController extends Controller
@@ -38,8 +39,35 @@ class DashboardController extends Controller
         $trending_devices_chart = $this->repairUtil->getTrendingDevices($business_id);
         $trending_dm_chart = $this->repairUtil->getTrendingDeviceModels($business_id);
 
+        // MWART-0002 (Sprint 2.5) — branch Inertia/React quando flag ativa.
+        if ($this->mwartEnabled('repair_dashboard_index', (int) $business_id)) {
+            return Inertia::render('Repair/Dashboard/Index', [
+                'kpis' => [
+                    'total_repairs' => is_countable($job_sheets_by_status) ? count($job_sheets_by_status) : 0,
+                    'service_staff_count' => is_countable($job_sheets_by_service_staff) ? count($job_sheets_by_service_staff) : 0,
+                ],
+                'job_sheets_by_status' => $job_sheets_by_status,
+                'job_sheets_by_service_staff' => $job_sheets_by_service_staff,
+                'trending_brand_chart' => $trending_brand_chart,
+                'trending_devices_chart' => $trending_devices_chart,
+                'trending_dm_chart' => $trending_dm_chart,
+            ]);
+        }
+
         return view('repair::dashboard.index')
             ->with(compact('job_sheets_by_status', 'job_sheets_by_service_staff', 'trending_devices_chart', 'trending_dm_chart', 'trending_brand_chart'));
+    }
+
+    /**
+     * MWART-0002 — verifica se flag MWART está habilitada pro business.
+     */
+    private function mwartEnabled(string $key, int $business_id): bool
+    {
+        if (! config("mwart.{$key}.enabled")) {
+            return false;
+        }
+        $beta = (array) config("mwart.{$key}.business_ids", []);
+        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**
