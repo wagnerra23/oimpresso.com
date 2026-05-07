@@ -7,7 +7,7 @@ migration_priority: alta
 risk: medio
 problem: "5 módulos do oimpresso (Repair, RecurringBilling, Financeiro, ConsultaOs, Jana) precisam falar Whatsapp transacional. Hoje só temos legacy `whatsapp_text` UltimatePOS que monta link wa.me manual. Cliente esquece OS, boleto vence sem aviso, dunning depende de SMS caro. Sem API real."
 persona: "Larissa-financeiro (cobrança+suporte) + técnico-Repair (status OS) + cliente-final (recebe transacional + responde) + bot-Jana (HITL handoff)"
-positioning: "Whatsapp transacional dentro do ERP, no canal que o cliente lê. Z-API ativa em 5 min hoje (driver default); Meta Cloud aprovado em paralelo (1-3 dias) como rede de segurança obrigatória pra ban Meta. Evolution API PROIBIDO (self-host concentra risco no oimpresso)."
+positioning: "Whatsapp transacional dentro do ERP, no canal que o cliente lê. Z-API ativa em 5 min (driver default Sprint 1); Meta Cloud aprovado em paralelo (1-3 dias) como rede de segurança obrigatória pra ban Meta. Sprint 3: BaileysDriver custom oimpresso (daemon Node CT 100 próprio) pra resolver dor de observabilidade do Evolution. Evolution PROIBIDO permanente."
 estimated_effort: "6-8 semanas dev sênior (3 sprints)"
 revenue_tier: 2
 revenue_pricing:
@@ -76,14 +76,15 @@ Whatsapp não tem take rate direto. **Valor é destravar take rate dos outros m�
 ## Sub-módulos
 
 1. **Core** — Driver abstraction (`ZapiDriver` default + `MetaCloudDriver` fallback obrigatório + `NullDriver` dev), models, jobs, eventos, factory com fallback runtime
-2. **Driver Health Check** — job 6h em 6h pinga Z-API; fallback automático Z-API → Meta Cloud (Sprint 2)
+2. **Driver Health Check** — job 6h em 6h pinga driver não-oficial; fallback automático → Meta Cloud (Sprint 2)
 3. **Inbox** — UI Cockpit conversas + chat real-time Centrifugo (driver-agnóstico)
-4. **Templates** — templates locais Z-API + HSM Meta Cloud (com contraparte obrigatória pra fallback funcionar)
-5. **Settings** — wizard 2 passos (Z-API hoje + Meta Cloud em paralelo), gating duro FormRequest
-6. **Webhook** — 2 receivers (`/webhook/zapi/{uuid}`, `/webhook/meta/{uuid}`) com auth específica
+4. **Templates** — templates locais Z-API/Baileys + HSM Meta Cloud (com contraparte obrigatória pra fallback funcionar)
+5. **Settings** — wizard 2 passos (Z-API hoje + Meta Cloud em paralelo), gating duro FormRequest. Sprint 3: 3ª opção `BaileysDriver` (avançado, exige termo LGPD adicional).
+6. **Webhook** — 2 receivers Sprint 1 (`/webhook/zapi/{uuid}`, `/webhook/meta/{uuid}`) + 1 Sprint 3 (`/webhook/baileys/{uuid}`)
 7. **Bot Jana** — listener `DispatchToJanaBot` + handoff PolicyEngine `REQUIRE_HUMAN_REVIEW`
-8. **Métricas** — `whatsapp_conversation_metricas` (custo, tempo resposta, deflection) + `whatsapp.driver.health` OTel
-9. **❌ Evolution API** — **PROIBIDO Tier 0** (não vai ser implementado)
+8. **Métricas** — `whatsapp_conversation_metricas` + `whatsapp.driver.*` OTel
+9. **BaileysDriver custom (Sprint 3)** — daemon Node próprio CT 100 + container Docker compose-managed `whatsapp-baileys` + observabilidade rica (OTel + Prometheus + Grafana). Detalhes em `ARCHITECTURE.md §16`. Autorizado emenda 4 ADR 0096 — Wagner ciente do código extra; justifica pela dor de observabilidade Evolution.
+10. **❌ Evolution API** — **PROIBIDO permanente** (bans Wagner + schema + observabilidade — emendas 3-4 ADR 0096)
 
 ## Dependências
 
@@ -122,6 +123,26 @@ Whatsapp não tem take rate direto. **Valor é destravar take rate dos outros m�
 - `Pages/Whatsapp/Templates/Index.tsx` — sync HSM Meta + templates locais Z-API (validação contraparte)
 - Runbook `runbooks/migrar-emergencia.md` (Z-API → Meta Cloud manual em caso de catastrophic ban)
 - Integração RecurringBilling US-RB-044 (boleto+NFe ao receber pagamento)
+
+### Sprint 3 — BaileysDriver custom + Bot Jana + estrutura customizada de atendimento
+
+> **Autorizado emenda 4 ADR 0096** — Wagner ciente do código extra; justifica pela dor de observabilidade do Evolution.
+
+- **Componente Node** (novo container Docker `whatsapp-baileys` em CT 100):
+  - Wrapper HTTP REST minimal sobre `@whiskeysockets/baileys` (Fastify/Hono)
+  - Persistência auth state Whatsapp Web em volume mapeado `/srv/docker/whatsapp-baileys/sessions/`
+  - OTel SDK Node + métricas Prometheus
+  - Webhook outbound pro Hostinger PHP
+  - Container compose-managed (skill `proxmox-docker-host`)
+  - IP whitelist Traefik (só Hostinger fala com daemon)
+- **Componente PHP** `BaileysDriver` (chama daemon via `Http::baseUrl(...)`)
+- **Migration** + colunas `baileys_*` em `whatsapp_business_configs`
+- `BaileysWebhookController` + middleware `VerifyBaileysSignature`
+- Settings UI ganha 3ª opção "Baileys custom (avançado)" no wizard
+- Bot Jana: listener `DispatchToJanaBot` + handoff PolicyEngine ADS
+- 3 runbooks Sprint 3: `baileys-daemon-deploy-ct100.md`, `baileys-troubleshoot-ban.md`, `baileys-upgrade-lib.md`
+- Dashboard Grafana dedicado `whatsapp-baileys-daemon`
+- **Plano detalhado:** [ARCHITECTURE.md §16](ARCHITECTURE.md#16-sprint-3--baileysdriver-custom-estrutura-customizada-de-atendimento)
 
 ### Sprint 3 — Bot Jana + HITL + Métricas
 

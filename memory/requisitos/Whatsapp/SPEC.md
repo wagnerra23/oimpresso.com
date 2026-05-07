@@ -14,12 +14,13 @@
 - **HITL** — Human In The Loop (handoff bot→humano quando PolicyEngine retorna `REQUIRE_HUMAN_REVIEW`)
 - **Deflection** — % de conversas resolvidas sem intervenção humana
 - **Conversation** — janela 24h Meta (cobrada uma vez); várias mensagens dentro = 1 conversa
-- **Driver** — abstração `ZapiDriver` (default) / `MetaCloudDriver` (fallback obrigatório) / `NullDriver` (padrão canon ADR 0050)
-- **Z-API (default)** — SaaS BR (`api.z-api.io`) baseado em Whatsapp Web/Baileys. Onboarding 5 min (scan QR). **Risco ban Meta MUITO ALTO** (mitigado por fallback obrigatório + termo LGPD)
-- **Meta Cloud (fallback obrigatório)** — oficial Meta. Free 1k conv/mês BR. Sem risco ban. Cadastro paralelo gating duro do Z-API.
-- **Evolution API** — **PROIBIDO Tier 0** ([ADR 0096 emenda 3](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)). Não vai ser implementado.
-- **Driver Health Check** — job 6h em 6h envia ping pra detectar ban Z-API (Sprint 2)
-- **Fallback automático** — quando Z-API `driver_health` ≥ degraded, sistema troca pra Meta Cloud sem intervenção
+- **Driver** — abstração `ZapiDriver` (default Sprint 1) / `MetaCloudDriver` (fallback obrigatório Sprint 1) / `BaileysDriver` (custom oimpresso Sprint 3) / `NullDriver`
+- **Z-API (default Sprint 1)** — SaaS BR (`api.z-api.io`) baseado em Whatsapp Web/Baileys. Onboarding 5 min (scan QR). **Risco ban Meta MUITO ALTO** (mitigado por fallback obrigatório + termo LGPD)
+- **Meta Cloud (fallback obrigatório Sprint 1)** — oficial Meta. Free 1k conv/mês BR. Sem risco ban. Cadastro paralelo gating duro do Z-API.
+- **BaileysDriver custom (Sprint 3)** — daemon Node CT 100 próprio rodando lib `@whiskeysockets/baileys` direto. Schema, logs OTel, métricas e health check sob nosso controle total. Justificativa: dor de observabilidade no Evolution. Container Docker compose-managed `whatsapp-baileys` no CT 100 (ADR 0058 + skill `proxmox-docker-host`). Detalhes em ARCHITECTURE.md §16.
+- **Evolution API** — **PROIBIDO permanente** ([ADR 0096 emenda 4](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)). Razões concretas: bans recorrentes em produção Wagner + schema não atende + falta de observabilidade.
+- **Driver Health Check** — job 6h em 6h envia ping pra detectar ban Z-API (Sprint 2). Estende pra BaileysDriver no Sprint 3.
+- **Fallback automático** — quando driver não-oficial (`zapi`, `baileys`) `driver_health` ≥ degraded, sistema troca pra Meta Cloud sem intervenção
 
 ## 2. User Stories — Sub-módulo Core (Sprint 1)
 
@@ -108,9 +109,70 @@
 - [ ] Pest: `ZapiDriverTest` com `Http::fake()` cobrindo (a) send-text sucesso, (b) send-text 401 dispara session lost event, (c) ping conectado/desconectado, (d) sendMedia base64 ou URL
 - [ ] **Risco aceito documentado** no class-level docblock: "Driver não-oficial. Risco ban Meta. Use com fallback Meta Cloud configurado. Ver ADR 0096 §Risco aceito conscientemente."
 
-### ❌ US-WA-002c · EvolutionDriver — REMOVIDA (Evolution PROIBIDO Tier 0)
+### ❌ US-WA-002c · EvolutionDriver — REMOVIDA (Evolution PROIBIDO permanente)
 
-Anteriormente proposta como driver self-host CT 100. **Removida em 2026-05-07 (emenda 3 ADR 0096):** oimpresso/Wagner não assume responsabilidade direta por container Docker rodando Whatsapp Web. Sem terceiro pra responsabilizar pelo ban. Ganho marginal não compensa stakes operacionais. Reabrir só via nova ADR explícita.
+Anteriormente proposta como driver self-host CT 100. **Removida em 2026-05-07 (emenda 3 ADR 0096; reforçada em emenda 4 com razões concretas Wagner):**
+
+1. Evolution está banindo números reais em produção do Wagner
+2. Schema de banco do Evolution não atende a estrutura customizada de atendimento
+3. Falta de observabilidade — Wagner sentiu na pele a opacidade quando bans aconteceram
+
+Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; não esperar).
+
+### US-WA-002d · BaileysDriver custom (Sprint 3 — autorizado emenda 4)
+
+> **Área:** Core Sprint 3
+> **Service:** `Modules\Whatsapp\Services\Drivers\BaileysDriver`
+> **Permissão Spatie:** `whatsapp.send`
+> **Componente Node:** novo container Docker `whatsapp-baileys` no CT 100
+
+**Como** Sistema (estrutura customizada de atendimento)
+**Quero** enviar/receber via daemon Node próprio rodando Baileys lib direto
+**Para** ter controle total do schema, logs OTel, métricas e health check (resolver dor de observabilidade do Evolution)
+
+**Decisão arquitetural mãe:** [ADR 0096 emenda 4](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md). Wagner explicitamente reconhece "vai ter código extra por essa decisão" e justifica pela "dor de observabilidade".
+
+**DoD (Sprint 3):**
+
+#### Componente Node (daemon CT 100)
+- [ ] Novo container Docker compose-managed `whatsapp-baileys` em CT 100 (skill `proxmox-docker-host` + ADR 0058)
+- [ ] Lib `@whiskeysockets/baileys` versão pinned (não `latest` — ADR 0096 review_trigger registra "Mudança Meta TOS quebra biblioteca")
+- [ ] Wrapper HTTP REST minimal (Fastify ou Hono) expondo endpoints:
+  - `POST /instances/{instance_id}/text` (sendText)
+  - `POST /instances/{instance_id}/media` (sendMedia)
+  - `GET /instances/{instance_id}/status` (ping)
+  - `GET /instances/{instance_id}/qr` (QR Code pra setup)
+- [ ] Auth state (sessão Whatsapp Web) persistido em volume `/srv/docker/whatsapp-baileys/sessions/{instance_id}` (volume mapeado)
+- [ ] Header `Authorization: Bearer {api_key}` + IP whitelist (só Hostinger PHP fala com daemon — daemon nunca exposto pra internet)
+- [ ] Webhook outbound pro oimpresso PHP em `https://oimpresso.com/api/whatsapp/webhook/baileys/{business_uuid}` quando mensagem chega
+- [ ] OTel traces nativos exportando pra Loki CT 100 + métricas Prometheus
+- [ ] Health endpoint `/health` retornando lista de instances + estado conexão de cada
+- [ ] Repositório separado: `oimpresso/whatsapp-baileys-daemon` (Node) ou submódulo `Modules/Whatsapp/daemon-node/`
+
+#### Componente PHP (BaileysDriver)
+- [ ] Implementa `DriverInterface` integralmente
+- [ ] `Http::baseUrl(config('whatsapp.baileys.daemon_url'))->withToken(...)` — fala com daemon CT 100
+- [ ] Mapeia respostas daemon pra `WhatsappSendResult` / `MessageStatus` / `DriverHealthStatus`
+- [ ] Detecção ban: erro `Connection Closed (statusCode: 401)` Baileys = `banDetected=true` no `WhatsappSendResult`
+- [ ] Pest: `BaileysDriverTest` com `Http::fake()` cobrindo (a) sendText sucesso, (b) ban detection, (c) ping ativo/QR pendente, (d) connection closed dispara `WhatsappDriverSessionLost`
+- [ ] Class-level docblock: "Driver custom Whatsapp Web (Baileys) — daemon Node CT 100 próprio. Risco ban Meta aceito (ADR 0096 emenda 4); fallback Meta Cloud obrigatório."
+
+#### Settings UI (Sprint 3)
+- [ ] Wizard ganha 3ª opção "Baileys custom (avançado)" além de Z-API e Meta Cloud
+- [ ] Form pede `baileys_instance_id`, `baileys_daemon_url` (default `https://whatsapp-baileys.oimpresso.local`), `baileys_api_key`
+- [ ] Mantém gating fallback Meta Cloud obrigatório
+- [ ] Termo LGPD igual ao Z-API mas com adendo: "estou ciente que oimpresso assume responsabilidade direta pelo daemon Node + sessão Whatsapp Web"
+
+#### Observabilidade (a "dor" que justifica)
+- [ ] OTel traces ponta-a-ponta: oimpresso PHP → daemon Node → Baileys → Whatsapp Web
+- [ ] Métricas Prometheus: `whatsapp.baileys.session_state{business_id}`, `whatsapp.baileys.message_lag_ms` (quanto a sessão demora pra processar)
+- [ ] Dashboard Grafana dedicado `whatsapp-baileys-daemon`
+- [ ] Alarmes específicos: sessão caída > 5min, lag > 2s, container restart > 1×/h
+
+#### Runbooks (Sprint 3)
+- [ ] `memory/requisitos/Whatsapp/runbooks/baileys-daemon-deploy-ct100.md` — deploy inicial
+- [ ] `memory/requisitos/Whatsapp/runbooks/baileys-troubleshoot-ban.md` — passo-a-passo quando ban acontecer (recuperar número, pivotar pra Meta Cloud temporário, etc)
+- [ ] `memory/requisitos/Whatsapp/runbooks/baileys-upgrade-lib.md` — atualizar versão Baileys com cuidado (Meta TOS muda, lib quebra)
 
 ### US-WA-003 · Enviar mensagem template (Job assíncrono)
 
