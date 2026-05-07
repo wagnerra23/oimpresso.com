@@ -89,6 +89,14 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-RB-046 — sync extrato bancário Inter D-7 (Banking API v2).
+        // Roda 07:00 BRT pra ter dia anterior fechado. Idempotente via UNIQUE
+        // (conta_bancaria_id, idempotency_key) em fin_extrato_lancamentos.
+        $schedule->job(new \Modules\RecurringBilling\Jobs\SyncBankStatementsJob())
+            ->dailyAt('07:00')
+            ->withoutOverlapping()
+            ->environments(['live']);
+
         // ADS Reviewer (T11 G-Eval) — review automático cada 15min de decisions sem score.
         $schedule->command('ads:review-decisions --limit=10')
             ->everyFifteenMinutes()
