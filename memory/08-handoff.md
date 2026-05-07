@@ -7,7 +7,50 @@
 
 ---
 
-## 🆕 Estado pós-2026-05-07 manhã — Revisão CYCLE-01 órfão + abertura CYCLE-02
+## 🆕 Estado pós-2026-05-07 tarde — BRIEF cleanup completo + 6/6 tasks done CYCLE-02 W20
+
+**Sessão Opus 2026-05-07 manhã/tarde** — entregou 6 US-COPI relacionadas ao L7 Daily Brief + governança:
+
+| ID | Item | Status | Commit/PR |
+|---|---|---|---|
+| US-COPI-088 | BRIEF-A1 fix aggregator (3 bugs: in_flight + decided_at DATE bug + activity) | done | PR #162 |
+| US-COPI-089 | BRIEF-A2 brief-fetch tool MCP exposed (auto-resolvido) | done | (cache refresh) |
+| US-COPI-090 | BRIEF-A3 ADR 0097 gpt-4o-mini supersede parcial 0091 | done | PR #168 |
+| US-COPI-091 | BRIEF-A4 SKILL.md description imperativa + namespace correto | review | a0b53b8a |
+| US-COPI-092 | GUARD-01 Pest snapshot test + procedure_drift health-check | done | PR #169 (outro agent) |
+| US-COPI-093 | GUARD-02 Pest ModuleScaffolding (4 peças obrigatórias) | done | PR #162 |
+| US-COPI-094 | Rota MCP condicional via MCP_TOOLS_EXPOSED env (Wagner regra "MCP só CT 100") | done | commit 7e1141e5 |
+
+**Quick wins mensuráveis**:
+- L7 Daily Brief 217→235 tokens com dados reais (5 ADRs listadas, in_flight populado, mcp_activity_24h=122)
+- Hostinger `/api/mcp` agora HTTP 404 (MCP só no CT 100 — regra Wagner)
+- CT 100 mcp.oimpresso.com healthy + `MCP_TOOLS_EXPOSED=true` no .env adicionado
+- Custo brief real medido: $0.024/dia (-92% vs ADR 0091 projetado $0.30-0.50)
+
+**Wagner regra canônica nova (2026-05-07)** registrada em auto-mem `feedback_mcp_so_ct100.md` + `memory/proibicoes.md`:
+> "MCP é só CT 100. Hostinger não funciona e fica lento mcp. Se for preciso temos que dividir o projeto."
+
+**Followups P2 BRIEF-A4 (não corrigidos nesta sessão)**:
+1. `agent_id=unknown` na telemetria — header X-MCP-Agent-Id não chega
+2. Único user real Wagner (user_id=3) — Felipe/Maíra/Luiz/Eliana não usam
+3. Tier A `auto_trigger: session_start` no frontmatter NÃO é mecânico — pra force auto-invoke precisa SessionStart hook que faz curl POST brief-fetch
+
+**Lições da sessão**:
+- **Drift entre SQL spec e procedure deployed** existe — GUARD-01 criou snapshot test pra prevenir
+- **Múltiplos agents em paralelo no mesmo checkout** = commits podem misturar concerns (commit a0b53b8a misturou whatsapp + skill fix). Próxima vez: usar worktrees separados.
+- **Hostinger pode estar em branch errado** (rebase abort necessário em 2026-05-07 manhã — checkout main + reset). Sempre verificar branch antes de pull.
+
+**CYCLE-02 status (0% decorrido, 19 dias restantes)**:
+- Goal #6 Constituição V2 health-check 7d limpo: **progresso significativo** — brief funcional com dados reais, GUARD-01+02 deployados, MCP só CT 100
+- Goal #4 MWART Repair (4 telas): 0/4
+- Goal #5 NfeBrasil emite NFe55: 0/done (Wagner+outro agent trabalhando em paralelo via PRs #169/170 — cod_municipio IBGE + cert A1 fora webroot)
+- Goal #7 Skills V0.5 UI: 0/done
+
+**Última atualização:** 2026-05-07 ~14:30 BRT — Opus session BRIEF cleanup + governança
+
+---
+
+## Estado pós-2026-05-07 manhã — Revisão CYCLE-01 órfão + abertura CYCLE-02
 
 > Sessão de governança. Wagner pediu "revise e descubra o que aconteceu, e aprenda" sobre o CYCLE-01. Diagnóstico revelou cycle órfão por 5 dias (pivot Constituição V2 sem fechar cycle anterior). Executado: 5 tasks reclassificadas, CYCLE-02 criado via SQL, CYCLE-01 fechado com retro real, skill commit-discipline patcheada.
 
