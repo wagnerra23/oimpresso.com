@@ -11,6 +11,7 @@ contains:
   - "MyWorkController — tasks do owner logado"
   - "BurndownController — burndown chart por cycle"
   - "ActivityController — atividade recente"
+  - "SearchController — busca cross-task fulltext"
   - "DataController + InstallController (boilerplate)"
   # Absorvido em Fase 3.7 PR-1 (2026-05-06):
   - "Admin/ProjectsController — gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc); URL /ads/admin/projects mantida"
