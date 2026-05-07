@@ -4,11 +4,11 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link } from '@inertiajs/react';
-import { Plus, Smartphone, ListChecks } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
+import { Icon } from '@/Components/Icon';
 import type { ReactNode } from 'react';
 
 interface ModelRow {
@@ -28,12 +28,13 @@ export default function DeviceModelsIndex({ models }: PageProps) {
   return (
     <div className="container mx-auto p-4">
       <PageHeader
+        icon="smartphone"
         title="Modelos de Dispositivo (Repair)"
-        subtitle="Cadastre modelos de aparelhos atendidos com checklists de reparo"
-        actions={
+        description="Cadastre modelos de aparelhos atendidos com checklists de reparo"
+        action={
           <Button asChild>
             <Link href={route('device-models.create')}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icon name="plus" className="mr-2 h-4 w-4" />
               Novo modelo
             </Link>
           </Button>
@@ -42,9 +43,9 @@ export default function DeviceModelsIndex({ models }: PageProps) {
 
       {models.length === 0 ? (
         <EmptyState
+          icon="smartphone"
           title="Nenhum modelo cadastrado"
           description="Cadastre os modelos de dispositivos que sua oficina atende."
-          icon={<Smartphone className="h-12 w-12 text-slate-400" />}
         />
       ) : (
         <div className="rounded-lg border bg-white">
@@ -72,7 +73,7 @@ export default function DeviceModelsIndex({ models }: PageProps) {
                   <td className="px-4 py-3 text-center">
                     {m.has_checklist ? (
                       <Badge variant="secondary">
-                        <ListChecks className="mr-1 h-3 w-3" />
+                        <Icon name="list-checks" className="mr-1 h-3 w-3" />
                         Sim
                       </Badge>
                     ) : (
