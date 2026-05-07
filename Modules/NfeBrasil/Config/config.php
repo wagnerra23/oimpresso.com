@@ -38,4 +38,17 @@ return [
      * Pode desligar via env quando emissão manual UI quiser controle do envio.
      */
     'email_danfe_on_autorizada' => env('NFEBRASIL_EMAIL_DANFE', true),
+
+    /**
+     * US-NFE-002 fase 2B: enviar DANFE NFC-e (modelo 65) por e-mail quando NFCeAutorizada.
+     *
+     * Default false: NFC-e venda balcão B2C frequentemente é "consumidor anônimo"
+     * sem email cadastrado — silencioso quando não há email é o comportamento
+     * desejado, mas habilitar cega o caso comum só pra notificar minoria.
+     * Cliente liga via UI quando quer envio automático (ex: e-commerce que
+     * captura email no checkout e quer DANFE como recibo).
+     *
+     * Resolve email via `transactions.contact_id` → `Contact.email`.
+     */
+    'email_danfe_nfce_on_autorizada' => env('NFEBRASIL_EMAIL_DANFE_NFCE', false),
 ];
