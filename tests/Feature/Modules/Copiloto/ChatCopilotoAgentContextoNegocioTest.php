@@ -23,7 +23,7 @@ function fakeConversa(): Conversa
     // genérico não bate em DB (não usamos ->mensagens()).
     $c = new Conversa();
     $c->id = 1;
-    $c->business_id = 4;
+    $c->business_id = 1;
     $c->user_id = 9;
     return $c;
 }
@@ -31,7 +31,7 @@ function fakeConversa(): Conversa
 function ctxLarissa(): ContextoNegocio
 {
     return new ContextoNegocio(
-        businessId: 4,
+        businessId: 1,
         businessName: 'ROTA LIVRE',
         // MEM-FAT-1 — 3 ângulos por mês (bruto / líquido / caixa)
         faturamento90d: [
@@ -80,7 +80,7 @@ it('com ctx Larissa, instructions inclui empresa + faturamento (3 ângulos) + cl
 
 it('MEM-FAT-1 — quando bruto≠líquido, o LLM vê 3 números distintos (não confunde)', function () {
     $ctx = new ContextoNegocio(
-        businessId: 4,
+        businessId: 1,
         businessName: 'TESTE',
         faturamento90d: [
             ['mes' => '2026-03', 'valor' => 38215.07, 'bruto' => 38215.07, 'liquido' => 37518.47, 'caixa' => 35440.25],
@@ -105,7 +105,7 @@ it('MEM-FAT-1 — quando bruto≠líquido, o LLM vê 3 números distintos (não 
 
 it('MEM-FAT-1 BC-compat — registro antigo só com `valor` ainda funciona (fallback bruto)', function () {
     $ctx = new ContextoNegocio(
-        businessId: 4,
+        businessId: 1,
         businessName: 'LEGADO',
         // Shape antigo (sem bruto/liquido/caixa) — não deveria existir mais em prod,
         // mas garante que cache stale ou fixture velho não quebra
@@ -158,7 +158,7 @@ it('ctx com businessId null (plataforma) NÃO mostra "(id ...)"', function () {
 
 it('ctx com seções vazias pula linhas (token economy)', function () {
     $ctx = new ContextoNegocio(
-        businessId: 4,
+        businessId: 1,
         businessName: 'TESTE',
         faturamento90d: [],
         clientesAtivos: 0, // pula
@@ -178,7 +178,7 @@ it('ctx com seções vazias pula linhas (token economy)', function () {
 
 it('ctx com observacoes inclui campo no prompt', function () {
     $ctx = new ContextoNegocio(
-        businessId: 4,
+        businessId: 1,
         businessName: 'ROTA LIVRE',
         faturamento90d: [],
         clientesAtivos: 0,

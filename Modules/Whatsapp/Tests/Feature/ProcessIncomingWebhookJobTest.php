@@ -100,7 +100,7 @@ beforeEach(function () {
     });
 
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',

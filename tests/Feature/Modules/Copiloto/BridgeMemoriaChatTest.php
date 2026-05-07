@@ -14,7 +14,7 @@ use Modules\Jana\Services\Memoria\NullMemoriaDriver;
  */
 
 it('ChatCopilotoAgent injeta memoriaContexto no system prompt quando preenchido', function () {
-    $conversa = new Conversa(['business_id' => 4, 'user_id' => 12, 'titulo' => 't']);
+    $conversa = new Conversa(['business_id' => 1, 'user_id' => 12, 'titulo' => 't']);
     $contexto = "Você lembra dos seguintes fatos sobre este usuário/business:\n- Larissa quer meta R$80k/mês";
 
     $agent = new ChatCopilotoAgent($conversa, $contexto);
@@ -25,7 +25,7 @@ it('ChatCopilotoAgent injeta memoriaContexto no system prompt quando preenchido'
 });
 
 it('ChatCopilotoAgent sem memoriaContexto mantém prompt base limpo', function () {
-    $conversa = new Conversa(['business_id' => 4, 'user_id' => 12, 'titulo' => 't']);
+    $conversa = new Conversa(['business_id' => 1, 'user_id' => 12, 'titulo' => 't']);
 
     $agent = new ChatCopilotoAgent($conversa);
     $instructions = (string) $agent->instructions();
@@ -49,7 +49,7 @@ it('ExtrairFatosAgent define schema com 5 categorias e relevancia 1-10', functio
 });
 
 it('ExtrairFatosDaConversaJob é dispatchable e tem queue copiloto-memoria', function () {
-    $job = new ExtrairFatosDaConversaJob(conversaId: 1, businessId: 4, userId: 12);
+    $job = new ExtrairFatosDaConversaJob(conversaId: 1, businessId: 1, userId: 12);
 
     expect($job->queue)->toBe('copiloto-memoria');
     expect($job->tries)->toBe(2);
@@ -61,7 +61,7 @@ it('ExtrairFatosDaConversaJob handle pula em dry_run', function () {
     Queue::fake();
 
     $driver = new NullMemoriaDriver();
-    $job = new ExtrairFatosDaConversaJob(conversaId: 999999, businessId: 4, userId: 12);
+    $job = new ExtrairFatosDaConversaJob(conversaId: 999999, businessId: 1, userId: 12);
 
     $job->handle($driver);
 
@@ -72,7 +72,7 @@ it('ExtrairFatosDaConversaJob não falha pra conversa inexistente', function () 
     config(['copiloto.dry_run' => false]);
 
     $driver = new NullMemoriaDriver();
-    $job = new ExtrairFatosDaConversaJob(conversaId: 999999, businessId: 4, userId: 12);
+    $job = new ExtrairFatosDaConversaJob(conversaId: 999999, businessId: 1, userId: 12);
 
     $job->handle($driver);
 

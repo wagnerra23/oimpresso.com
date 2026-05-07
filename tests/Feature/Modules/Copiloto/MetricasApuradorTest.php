@@ -84,7 +84,7 @@ it('totalInteracoesDia conta apenas role=user no dia certo do business', functio
     $hoje = CarbonImmutable::parse('2026-04-29');
 
     \DB::table('jana_conversas')->insert([
-        ['id' => 1, 'business_id' => 4, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
+        ['id' => 1, 'business_id' => 1, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
         ['id' => 2, 'business_id' => 8, 'user_id' => 5, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
     ]);
 
@@ -113,7 +113,7 @@ it('tokensMedioInteracao calcula média de assistant (in+out) com filtro de busi
     $hoje = CarbonImmutable::parse('2026-04-29');
 
     \DB::table('jana_conversas')->insert([
-        ['id' => 1, 'business_id' => 4, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
+        ['id' => 1, 'business_id' => 1, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
     ]);
 
     \DB::table('jana_mensagens')->insert([
@@ -136,7 +136,7 @@ it('totalMemoriasAtivas conta valid_until=null e exclui soft-deleted', function 
     $hoje = CarbonImmutable::parse('2026-04-29');
     $fato = function (array $extra) use ($hoje) {
         return array_merge([
-            'business_id' => 4, 'user_id' => 9, 'fato' => 'x',
+            'business_id' => 1, 'user_id' => 9, 'fato' => 'x',
             'valid_from' => $hoje, 'valid_until' => null, 'deleted_at' => null,
             'created_at' => $hoje, 'updated_at' => $hoje,
         ], $extra);
@@ -162,7 +162,7 @@ it('memoryBloatRatio = % fatos com valid_from <= 30d / total ativos', function (
 
     $insertFato = function (string $fato, $vf) {
         \DB::table('jana_memoria_facts')->insert([
-            'business_id' => 4, 'user_id' => 9, 'fato' => $fato,
+            'business_id' => 1, 'user_id' => 9, 'fato' => $fato,
             'valid_from' => $vf, 'valid_until' => null, 'deleted_at' => null,
             'created_at' => $vf, 'updated_at' => $vf,
         ]);
@@ -230,7 +230,7 @@ it('apurar grava 1 linha em copiloto_memoria_metricas e é idempotente (upsert)'
     $hoje = CarbonImmutable::parse('2026-04-29');
 
     \DB::table('jana_conversas')->insert([
-        ['id' => 1, 'business_id' => 4, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
+        ['id' => 1, 'business_id' => 1, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
     ]);
 
     \DB::table('jana_mensagens')->insert([
@@ -241,7 +241,7 @@ it('apurar grava 1 linha em copiloto_memoria_metricas e é idempotente (upsert)'
     ]);
 
     \DB::table('jana_memoria_facts')->insert([
-        'business_id' => 4, 'user_id' => 9, 'fato' => 'meta R$80k/mês',
+        'business_id' => 1, 'user_id' => 9, 'fato' => 'meta R$80k/mês',
         'valid_from' => $hoje, 'valid_until' => null, 'deleted_at' => null,
         'created_at' => $hoje, 'updated_at' => $hoje,
     ]);
@@ -268,7 +268,7 @@ it('apurar para plataforma (business_id=null) agrega tudo', function () {
     $hoje = CarbonImmutable::parse('2026-04-29');
 
     \DB::table('jana_conversas')->insert([
-        ['id' => 1, 'business_id' => 4, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
+        ['id' => 1, 'business_id' => 1, 'user_id' => 9, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
         ['id' => 2, 'business_id' => 8, 'user_id' => 5, 'created_at' => $hoje, 'updated_at' => $hoje, 'iniciada_em' => $hoje],
     ]);
 

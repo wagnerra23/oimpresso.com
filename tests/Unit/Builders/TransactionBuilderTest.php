@@ -59,7 +59,7 @@ it('devolucao() retorna type=sell_return', function () {
 
 it('fluent API permite override de business + id + ufs', function () {
     $tx = TransactionBuilder::venda()
-        ->business(4)
+        ->business(1)
         ->id(12345)
         ->ufOrigem('SP')
         ->ufDestino('RJ')

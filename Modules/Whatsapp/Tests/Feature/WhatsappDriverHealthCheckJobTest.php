@@ -66,7 +66,7 @@ beforeEach(function () {
 
 it('ping bem-sucedido marca driver_health=healthy + reset failures', function () {
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
@@ -92,7 +92,7 @@ it('ping bem-sucedido marca driver_health=healthy + reset failures', function ()
 
 it('5 falhas consecutivas marca driver_health=degraded (fallback ativo)', function () {
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
@@ -118,7 +118,7 @@ it('5 falhas consecutivas marca driver_health=degraded (fallback ativo)', functi
 
 it('ban detectado (HTTP 403) marca driver_health=banned imediato', function () {
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
@@ -142,7 +142,7 @@ it('ban detectado (HTTP 403) marca driver_health=banned imediato', function () {
 
 it('driver=meta_cloud é PULADO (não checa, Meta oficial não bane)', function () {
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',

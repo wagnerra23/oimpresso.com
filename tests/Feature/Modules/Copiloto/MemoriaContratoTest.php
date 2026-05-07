@@ -50,7 +50,7 @@ it('NullMemoriaDriver lembra e busca fato no scope do user', function () {
     $driver = new NullMemoriaDriver();
 
     $persistida = $driver->lembrar(
-        businessId: 4,
+        businessId: 1,
         userId: 12,
         fato: 'Larissa quer meta de R$80k/mês',
         metadata: ['categoria' => 'meta_faturamento']
@@ -72,7 +72,7 @@ it('NullMemoriaDriver lembra e busca fato no scope do user', function () {
 it('NullMemoriaDriver isola por business_id (multi-tenant US-COPI-MEM-005)', function () {
     $driver = new NullMemoriaDriver();
 
-    $driver->lembrar(businessId: 4, userId: 12, fato: 'fato do biz 4');
+    $driver->lembrar(businessId: 1, userId: 12, fato: 'fato do biz 4');
     $driver->lembrar(businessId: 8, userId: 12, fato: 'fato do biz 8');
 
     $resultadosBiz4 = $driver->buscar(4, 12, 'fato');
@@ -123,12 +123,12 @@ it('MemoriaFato model usa Searchable e SoftDeletes', function () {
 
 it('MemoriaFato shouldBeSearchable só pra ativos não deletados', function () {
     $ativo = new \Modules\Jana\Entities\MemoriaFato([
-        'business_id' => 4, 'user_id' => 12, 'fato' => 'x',
+        'business_id' => 1, 'user_id' => 12, 'fato' => 'x',
     ]);
     expect($ativo->shouldBeSearchable())->toBeTrue();
 
     $superseded = new \Modules\Jana\Entities\MemoriaFato([
-        'business_id' => 4, 'user_id' => 12, 'fato' => 'x',
+        'business_id' => 1, 'user_id' => 12, 'fato' => 'x',
     ]);
     $superseded->valid_until = now();
     expect($superseded->shouldBeSearchable())->toBeFalse();

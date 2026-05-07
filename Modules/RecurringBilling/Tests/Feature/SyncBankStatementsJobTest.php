@@ -125,7 +125,7 @@ function fakeInterExtrato(array $transacoes): void
 }
 
 it('sincroniza lançamentos novos pra conta Inter', function () {
-    $contaId = fakeInterCredential(businessId: 4);
+    $contaId = fakeInterCredential(businessId: 1);
     fakeInterExtrato([
         ['idTransacao' => 'tx-001', 'dataInclusao' => '2026-05-07', 'tipoOperacao' => 'C', 'valor' => '100.00', 'titulo' => 'PIX', 'descricao' => 'in'],
         ['idTransacao' => 'tx-002', 'dataInclusao' => '2026-05-07', 'tipoOperacao' => 'D', 'valor' => '50.00',  'titulo' => 'BOLETO', 'descricao' => 'out'],
@@ -137,7 +137,7 @@ it('sincroniza lançamentos novos pra conta Inter', function () {
 });
 
 it('idempotência: rodar 2× com mesmas transações grava 2 registros (não 4)', function () {
-    $contaId = fakeInterCredential(businessId: 4);
+    $contaId = fakeInterCredential(businessId: 1);
     fakeInterExtrato([
         ['idTransacao' => 'tx-001', 'dataInclusao' => '2026-05-07', 'tipoOperacao' => 'C', 'valor' => '100.00', 'titulo' => 'PIX', 'descricao' => 'in'],
         ['idTransacao' => 'tx-002', 'dataInclusao' => '2026-05-07', 'tipoOperacao' => 'D', 'valor' => '50.00',  'titulo' => 'BOLETO', 'descricao' => 'out'],
@@ -177,7 +177,7 @@ it('skip conta sem credencial Inter (e.g. asaas, c6)', function () {
     DB::table('business')->insert(['id' => 4, 'name' => 'Biz']);
 
     $credId = DB::table('rb_boleto_credentials')->insertGetId([
-        'business_id' => 4,
+        'business_id' => 1,
         'banco'       => 'asaas',
         'ativo'       => true,
         'config_json' => json_encode(['api_key' => 'k']),
@@ -186,7 +186,7 @@ it('skip conta sem credencial Inter (e.g. asaas, c6)', function () {
     ]);
 
     DB::table('fin_contas_bancarias')->insert([
-        'business_id'              => 4,
+        'business_id'              => 1,
         'banco_codigo'             => '274',
         'rb_gateway_credential_id' => $credId,
         'created_at'               => now(),

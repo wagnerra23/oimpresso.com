@@ -208,7 +208,7 @@ it('stats com filtro de businessId só conta aquele business', function () {
     $svc->gravar($convB, 'q', 'r', tokensIn: 100, tokensOut: 100);
     $svc->buscar($convA, 'q');
 
-    $stats = $svc->stats(businessId: 4);
+    $stats = $svc->stats(businessId: 1);
     expect($stats['entradas_cache'])->toBe(1);
     expect($stats['total_hits'])->toBe(1);
 });
