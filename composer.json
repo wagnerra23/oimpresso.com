@@ -50,6 +50,7 @@
         "spatie/laravel-signal-aware-command": "^2.1",
         "srmklive/paypal": "^3.0",
         "stripe/stripe-php": "^7.122",
+        "tightenco/ziggy": "^2.5",
         "yajra/laravel-datatables-oracle": "^13.0"
     },
     "require-dev": {
