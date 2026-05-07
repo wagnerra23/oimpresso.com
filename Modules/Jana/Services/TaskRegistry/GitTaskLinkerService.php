@@ -32,8 +32,10 @@ use Modules\Jana\Entities\Mcp\McpTaskEvent;
  */
 class GitTaskLinkerService
 {
-    /** Pattern: (refs|fixes|closes|resolves)\s+([A-Z]+)-(\d+) */
-    public const REF_PATTERN = '/(refs|fixes|closes|resolves|fix|close|resolve)\s+([A-Z]{2,8})-(\d+)/i';
+    /** Pattern: (refs|fixes|closes|resolves)[:]?\s+([A-Z]+)-(\d+)
+     *  Aceita "Closes COPI-1", "Refs: COPI-2", "fixes COPI-42", "resolves: INFRA-7".
+     *  Colon opcional é convenção GitHub padrão (Closes:, Fixes:, Refs:). */
+    public const REF_PATTERN = '/(refs|fixes|closes|resolves|fix|close|resolve):?\s+([A-Z]{2,8})-(\d+)/i';
 
     /** Pattern em branch name: <KEY>-<N>-anything */
     public const BRANCH_PATTERN = '/^([A-Z]{2,8})-(\d+)/i';

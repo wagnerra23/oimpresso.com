@@ -67,13 +67,23 @@ Scope típico oimpresso: `jana`, `repair`, `nfe-brasil`, `recurring-billing`, `g
 
 > **Aprendizado CYCLE-01 retro:** tasks ficaram stale 1-3 dias entre PR mergear e status mudar no MCP. Próxima vez NÃO acontece.
 
-Quando o commit message ou PR title contém `Refs: <TASK-ID>` ou `<TASK-ID>` no body (ex: `COPI-21`, `US-NFE-044`, `JANA-12`):
+Quando o commit message ou PR title contém `Refs: <TASK-ID>`, `Closes: <TASK-ID>` ou `Fixes: <TASK-ID>` (ex: `COPI-21`, `US-NFE-044`, `JANA-12`):
 
 1. **Após `git push` bem-sucedido** que avança trabalho da task → `tasks-comment task_id=<ID>` com link do commit/PR
 2. **Após `gh pr merge` bem-sucedido** → `tasks-update task_id=<ID> status=done` (ou `review` se ainda não finalizado)
 3. **Bloqueio descoberto** → `tasks-update task_id=<ID> status=blocked` + `tasks-comment` explicando
 
-Regex pra extrair: `(?:Refs:\s*)?\b(?:US-)?(?:COPI|JANA|NFE|RB|REPAIR|FIN|CRM|GOV|ADS|MWART)-\d+\b`
+Regex usado pelo `GitTaskLinkerService` (case-insensitive):
+```
+/(refs|fixes|closes|resolves|fix|close|resolve):?\s+([A-Z]{2,8})-(\d+)/i
+```
+
+Aceita: `Refs: COPI-21`, `Closes COPI-1`, `Fixes: NFSE-99`, `resolves: INFRA-7`. Padrão GitHub.
+
+⚠️ **Sintaxe que NÃO funciona:**
+- `feat(jana): COPI-43` (ID standalone, sem verb prefix → não detecta)
+- `(#150)` (PR number GitHub, regex precisa task key COPI-NN não #NN)
+- `closes #150` (mesma razão)
 
 **Exemplo prático:**
 
