@@ -117,7 +117,12 @@
 .cockpit[data-linked="off"] { grid-template-columns: 260px 1fr 0; }
 @media (max-width: 1280px) { .cockpit { grid-template-columns: 260px 1fr 0; } }.cockpit .main {
   display: grid;
-  grid-template-rows: 44px 1fr;
+  /* 3 rows: topbar (44px) + topnav-module opcional (auto, ~40px quando presente) + main-body (1fr).
+     Antes era `44px 1fr` — quando o topnav-module foi adicionado (Wagner 2026-05-07
+     "tem que ter"), virou 3rd child sem track próprio: o `1fr` foi parar na topnav (40px
+     de conteúdo expandindo pra 400px+), main-body caiu pra row implícita auto. Resultado:
+     gap vertical de ~360px entre topnav e conteúdo da página em TODAS telas com topnav. */
+  grid-template-rows: 44px auto 1fr;
   min-height: 0;
   min-width: 0;
 }.cockpit .main-body {
