@@ -1,0 +1,11 @@
+{
+    "name": "Whatsapp",
+    "alias": "whatsapp",
+    "description": "Whatsapp transacional via Z-API (driver default) + Meta Cloud (fallback obrigatório). Status OS, boleto/NFe, lembrete, dunning, bot Jana com HITL.",
+    "keywords": ["whatsapp", "zapi", "baileys", "meta-cloud", "transacional", "bot"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Whatsapp\\Providers\\WhatsappServiceProvider"
+    ],
+    "files": []
+}
