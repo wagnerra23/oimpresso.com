@@ -54,9 +54,10 @@
 
 **Princípios estruturais:**
 - **Hostinger** — UI + webhook receiver + DB primary (HTTP-only, sem daemons — ADR 0062)
-- **CT 100** — Horizon worker + Centrifugo + (opcional) Evolution API container (daemon-land, ADR 0058)
-- **Driver pattern (3 oficiais + Null)** — `MetaCloudDriver` (oficial Meta) + `ZapiDriver` (oficial Z-API SaaS) + `EvolutionDriver` (oficial self-host CT 100, Sprint 2) + `NullDriver` (dev/CI) — ADR 0096
-- **Fallback automático** — `whatsapp_business_configs.fallback_driver` permite trocar driver se primário fica `degraded` (ban detection)
+- **CT 100** — Horizon worker + Centrifugo (daemon-land, ADR 0058). **NÃO roda Evolution API ou wrapper Whatsapp Web próprio** (ADR 0096 emenda 3 — Evolution PROIBIDO).
+- **Driver pattern (2 oficiais + Null)** — `ZapiDriver` (default, Z-API SaaS BR) + `MetaCloudDriver` (fallback obrigatório, oficial Meta) + `NullDriver` (dev/CI) — ADR 0096
+- **Fallback obrigatório (gating duro)** — `whatsapp_business_configs` exige `meta_*` campos preenchidos quando `driver=zapi` (FormRequest cross-field validation)
+- **Fallback automático** — quando `driver_health` ≥ degraded, `DriverFactory` resolve `MetaCloudDriver` em runtime, sem intervenção
 - **Multi-tenant Tier 0** — `business_id` global scope + webhook URL com slug + tokens cifrados (ADR 0093)
 
 ## 2. Schema de banco
@@ -70,8 +71,8 @@ CREATE TABLE whatsapp_business_configs (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   business_id INT UNSIGNED NOT NULL,
   business_uuid CHAR(36) NOT NULL UNIQUE COMMENT 'usado no webhook URL',
-  driver VARCHAR(20) NOT NULL DEFAULT 'meta_cloud' COMMENT 'meta_cloud|zapi|evolution|null',
-  fallback_driver VARCHAR(20) NULL COMMENT 'driver pra usar se primário ficar degraded',
+  driver VARCHAR(20) NOT NULL DEFAULT 'zapi' COMMENT 'zapi|meta_cloud|null — evolution PROIBIDO',
+  fallback_driver VARCHAR(20) NOT NULL DEFAULT 'meta_cloud' COMMENT 'OBRIGATÓRIO quando driver=zapi (gating FormRequest)',
   display_phone VARCHAR(20) NULL COMMENT '+5511987654321 (preenchido após primeiro ping bem-sucedido)',
 
   -- Meta Cloud API
@@ -80,15 +81,14 @@ CREATE TABLE whatsapp_business_configs (
   meta_app_secret TEXT NULL COMMENT 'cifrado — usado pra HMAC webhook',
   meta_webhook_verify_token VARCHAR(64) NULL COMMENT 'random 32 bytes',
 
-  -- Z-API
+  -- Z-API (driver default)
   zapi_instance_id VARCHAR(64) NULL,
   zapi_instance_token TEXT NULL COMMENT 'cifrado',
   zapi_client_token TEXT NULL COMMENT 'cifrado — header Client-Token + valida webhook',
 
-  -- Evolution API (self-host CT 100)
-  evolution_base_url VARCHAR(255) NULL COMMENT 'ex: https://evolution.oimpresso.local',
-  evolution_instance_name VARCHAR(64) NULL,
-  evolution_api_key TEXT NULL COMMENT 'cifrado — header apikey',
+  -- LGPD acknowledgment (obrigatório quando driver=zapi)
+  lgpd_acknowledged_at TIMESTAMP NULL,
+  lgpd_acknowledged_by_user_id INT UNSIGNED NULL,
 
   -- Bot e templates (cross-driver)
   bot_enabled TINYINT(1) NOT NULL DEFAULT 0,
@@ -111,11 +111,11 @@ CREATE TABLE whatsapp_business_configs (
 );
 ```
 
-**Validações de FormRequest (cross-field):**
-- `driver=meta_cloud` → exige `meta_phone_number_id, meta_access_token, meta_app_secret, meta_webhook_verify_token`
-- `driver=zapi` → exige `zapi_instance_id, zapi_instance_token, zapi_client_token`
-- `driver=evolution` → exige `evolution_base_url, evolution_instance_name, evolution_api_key`
-- `fallback_driver != null` → exige campos do fallback driver também preenchidos
+**Validações de FormRequest (cross-field, gating duro):**
+- `driver=zapi` (default) → exige `zapi_*` preenchidos **E** `meta_*` preenchidos como fallback (ban Z-API joga pra Meta) **E** `lgpd_acknowledged_at` not null
+- `driver=meta_cloud` → exige `meta_*` preenchidos. Z-API é opcional (pode ficar dormente)
+- `driver=evolution` → **422 ValidationException** ("Driver Evolution proibido por ADR 0096 emenda 3")
+- `fallback_driver=evolution` → **422 ValidationException** (mesmo motivo)
 
 ### 2.2 `whatsapp_conversations`
 
@@ -156,7 +156,7 @@ CREATE TABLE whatsapp_messages (
   conversation_id BIGINT UNSIGNED NOT NULL,
   direction ENUM('inbound','outbound') NOT NULL,
   provider_message_id VARCHAR(128) NULL COMMENT 'wamid.XYZ (Meta) ou messageId (Z-API/Evolution) — UNIQUE quando preenchido',
-  provider VARCHAR(20) NOT NULL COMMENT 'meta_cloud|zapi|evolution|null — driver que enviou/recebeu',
+  provider VARCHAR(20) NOT NULL COMMENT 'zapi|meta_cloud|null — driver que enviou/recebeu (evolution PROIBIDO)',
   type ENUM('text','template','image','document','audio','interactive','location','contacts') NOT NULL DEFAULT 'text',
   template_name VARCHAR(64) NULL,
   body TEXT NULL,
@@ -187,7 +187,7 @@ Espelho local dos templates. Para Meta Cloud, são HSM aprovados na Meta Busines
 CREATE TABLE whatsapp_templates (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   business_id INT UNSIGNED NOT NULL,
-  provider VARCHAR(20) NOT NULL DEFAULT 'meta_cloud' COMMENT 'meta_cloud|local — locais p/ z-api/evolution',
+  provider VARCHAR(20) NOT NULL DEFAULT 'zapi' COMMENT 'zapi (local templates) | meta_cloud (HSM)',
   meta_template_id VARCHAR(64) NULL COMMENT 'só pra provider=meta_cloud',
   name VARCHAR(64) NOT NULL,
   language VARCHAR(10) NOT NULL DEFAULT 'pt_BR',
@@ -205,8 +205,9 @@ CREATE TABLE whatsapp_templates (
 ```
 
 **Comportamento por driver:**
-- **Meta Cloud:** templates sincronizados via `MetaCloudDriver::fetchTemplates()`; status reflete aprovação Meta. Outbound fora janela 24h **exige** template aprovado.
-- **Z-API / Evolution:** templates são `LOCAL` (sempre `status=LOCAL`); driver expande placeholders e manda como freeform. Sem janela 24h restritiva.
+- **Z-API (default):** templates são `LOCAL` (sempre `status=LOCAL`); driver expande placeholders e manda como freeform. Sem janela 24h restritiva.
+- **Meta Cloud (fallback):** templates sincronizados via `MetaCloudDriver::fetchTemplates()`; status reflete aprovação Meta. Outbound fora janela 24h **exige** template aprovado.
+- **Cross-driver:** template criado como `LOCAL` (Z-API) deve ter contraparte HSM aprovada na Meta (mesmo nome, mesmas variáveis) pra fallback funcionar — UI alerta se houver template Z-API sem contraparte Meta.
 
 ### 2.5 `whatsapp_conversation_metricas`
 
@@ -292,9 +293,9 @@ CREATE TABLE whatsapp_conversation_metricas (
 | `SyncMessageStatusJob` | Webhook status update | linear | 3 | 10, 30, 90 |
 | `SyncTemplatesJob` | UI button + diário 06:00 (só driver=meta_cloud) | linear | 3 | 60, 180, 600 |
 | `AggregateMetricasJob` | Scheduler 04:00 | none | 1 | — |
-| `WhatsappDriverHealthCheckJob` | Scheduler a cada 6h (drivers != meta_cloud, != null) | linear | 1 | — |
+| `WhatsappDriverHealthCheckJob` | Scheduler a cada 6h (só `driver=zapi`; meta_cloud é oficial e null não precisa) | linear | 1 | — |
 
-Todos com `$businessId` no constructor (regra Tier 0 multi-tenant). `SendWhatsappMessageJob` resolve driver via `DriverFactory::make($business)` em runtime — se fallback ativou entre dispatch e handle, usa o fallback automaticamente.
+Todos com `$businessId` no constructor (regra Tier 0 multi-tenant). `SendWhatsappMessageJob` resolve driver via `DriverFactory::make($business)` em runtime — se Z-API ficou degraded entre dispatch e handle, usa Meta Cloud automaticamente.
 
 ## 5. Eventos
 
@@ -306,15 +307,14 @@ Todos com `$businessId` no constructor (regra Tier 0 multi-tenant). `SendWhatsap
 | `WhatsappMessageReceived` | `ProcessIncomingWebhookJob` | `DispatchToJanaBot`, `LogConversation`, OTel |
 | `WhatsappStatusUpdated` | Webhook status (delivered/read) | `LogConversation` |
 | `WhatsappConversationAssigned` | UI atribuição manual | OTel + Centrifugo |
-| `WhatsappDriverSessionLost` | ZapiDriver/EvolutionDriver auth fail (401 sessão) | `WhatsappDriverHealthCheck` (forçar check imediato) |
-| `WhatsappDriverFallbackActivated` | `WhatsappDriverHealthCheckJob` troca driver | `NotifyAdminBusiness`, `LogConversation`, OTel `whatsapp.driver.fallback` |
-| `WhatsappDriverBanDetected` | Health check detecta ban permanente | `NotifyAdminBusiness`, `NotifyOimpressoOps` (Wagner), OTel |
+| `WhatsappDriverSessionLost` | `ZapiDriver` auth fail (401 sessão Whatsapp Web caiu) | `WhatsappDriverHealthCheck` (forçar check imediato) |
+| `WhatsappDriverFallbackActivated` | `WhatsappDriverHealthCheckJob` troca Z-API → Meta Cloud | `NotifyAdminBusiness`, `LogConversation`, OTel `whatsapp.driver.fallback` |
+| `WhatsappDriverBanDetected` | Health check detecta ban Z-API permanente | `NotifyAdminBusiness`, `NotifyOimpressoOps` (Wagner), OTel |
 
 ## 6. Middlewares
 
-- **`VerifyMetaSignature`** — HMAC SHA-256 + `app_secret` business (rota `/api/whatsapp/webhook/meta/{uuid}`); 401 se falha
 - **`VerifyZapiSignature`** — header `Client-Token` timing-safe compare (rota `/api/whatsapp/webhook/zapi/{uuid}`); 401 se falha
-- **`VerifyEvolutionSignature`** — header `apikey` timing-safe compare (rota `/api/whatsapp/webhook/evolution/{uuid}`); 401 se falha
+- **`VerifyMetaSignature`** — HMAC SHA-256 + `app_secret` business (rota `/api/whatsapp/webhook/meta/{uuid}`); 401 se falha
 - **`SetWhatsappBusinessConfig`** (UI rotas) — resolve config do `auth()->user()->business_id`; 404 se não existe
 - Stack admin padrão UltimatePOS: `['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin']`
 
@@ -354,23 +354,19 @@ whatsapp.metricas.view         → Dashboard métricas
 
 ```php
 return [
-    'default_driver' => env('WHATSAPP_DEFAULT_DRIVER', 'meta_cloud'),
-    // valores: meta_cloud|zapi|evolution|null
-
-    'meta' => [
-        'api_version' => env('WHATSAPP_META_API_VERSION', 'v21.0'),
-        'base_url' => env('WHATSAPP_META_BASE_URL', 'https://graph.facebook.com'),
-        'request_timeout' => env('WHATSAPP_META_TIMEOUT', 10),
-    ],
+    'default_driver' => env('WHATSAPP_DEFAULT_DRIVER', 'zapi'),
+    // valores válidos: zapi|meta_cloud|null
+    // 'evolution' NÃO é valor válido (PROIBIDO Tier 0 — ADR 0096 emenda 3)
 
     'zapi' => [
         'base_url' => env('WHATSAPP_ZAPI_BASE_URL', 'https://api.z-api.io'),
         'request_timeout' => env('WHATSAPP_ZAPI_TIMEOUT', 15),
     ],
 
-    'evolution' => [
-        // base_url é per-business; só timeout default global
-        'request_timeout' => env('WHATSAPP_EVOLUTION_TIMEOUT', 15),
+    'meta' => [
+        'api_version' => env('WHATSAPP_META_API_VERSION', 'v21.0'),
+        'base_url' => env('WHATSAPP_META_BASE_URL', 'https://graph.facebook.com'),
+        'request_timeout' => env('WHATSAPP_META_TIMEOUT', 10),
     ],
 
     'health_check' => [
@@ -383,7 +379,11 @@ return [
     'fallback' => [
         'enabled' => env('WHATSAPP_FALLBACK_ENABLED', true),
         'auto_switch_after_status' => 'degraded', // healthy|degraded|disconnected|banned
+        'mandatory_for_drivers' => ['zapi'], // drivers que EXIGEM fallback configurado
     ],
+
+    'forbidden_drivers' => ['evolution', 'baileys', 'whatsapp_web_js'],
+    // FormRequest rejeita 422 se tentar salvar driver dessa lista
 
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
@@ -396,18 +396,16 @@ return [
 ## 11. Segurança / LGPD
 
 - **Tokens cifrados em DB** (Laravel `encrypted` cast — `APP_KEY`):
-  - `meta_access_token`, `meta_app_secret`
   - `zapi_instance_token`, `zapi_client_token`
-  - `evolution_api_key`
+  - `meta_access_token`, `meta_app_secret`
 - Telefone cliente em logs: redacted via `App\Support\PiiRedactor` (skill `commit-discipline`)
 - Webhook URL com `business_uuid` (não business_id sequencial — evita enumeração)
 - Validação webhook por driver (rejeita 401 se falha):
-  - Meta: HMAC SHA-256 com `meta_app_secret`
   - Z-API: header `Client-Token` timing-safe compare com `zapi_client_token`
-  - Evolution: header `apikey` timing-safe compare com `evolution_api_key`
+  - Meta: HMAC SHA-256 com `meta_app_secret`
 - Mensagens (`payload` JSON) podem conter PII: retenção 90 dias; após, anonimização (`body=null, payload=null` mas mantém `id, business_id, direction, status, created_at` pra compliance fiscal)
 - LGPD direito ao esquecimento: cliente pede → script `php artisan whatsapp:forget-contact {phone}` anonimiza histórico
-- **LGPD com drivers não-oficiais**: business assina termo "ciente que provedor não-oficial pode ter compliance LGPD parcial; recomenda-se Meta Cloud pra casos enterprise". Termo registrado em `whatsapp_business_configs.lgpd_acknowledged_at` quando driver=zapi/evolution selecionado.
+- **LGPD com Z-API (default)**: business assina termo "ciente que Z-API é provedor não-oficial baseado em Whatsapp Web e que existe risco de bloqueio Meta. Configurei Meta Cloud como fallback pra mitigar interrupção." → registrado em `whatsapp_business_configs.lgpd_acknowledged_at` + `lgpd_acknowledged_by_user_id`. Sem termo aceito = não pode salvar `driver=zapi`.
 
 ## 12. Observabilidade
 
@@ -439,18 +437,33 @@ return [
 | `MetricasAggregationTest` | Feature | rollup diário |
 | `PiiRedactionTest` | Unit | PiiRedactor com telefones |
 
-## 14. Onboarding business novo (3 fluxos por driver)
+## 14. Onboarding business novo (wizard 2 passos obrigatórios)
 
-### 14.1 Driver `meta_cloud` (oficial Meta — 1-3 dias)
+UI Settings apresenta wizard sequencial: Z-API hoje + Meta Cloud em paralelo. Não dá pra salvar Z-API ativo sem Meta cadastrado (gating duro FormRequest).
 
-Operação humana (não-automatizada — Meta Business Manager exige):
+### 14.1 Passo 1 — Z-API (5 minutos)
+
+1. Admin business cria conta em `app.z-api.io` (cartão de crédito; R$ 99-299/mês)
+2. Cria Instance → Z-API gera `instance_id`, `instance_token`, `client_token`
+3. Cola na UI `/whatsapp/settings` Passo 1
+4. UI mostra webhook URL `https://oimpresso.com/api/whatsapp/webhook/zapi/{biz_uuid}`
+5. Cola no painel Z-API → Webhooks → URL único + Client-Token = mesmo `client_token` cadastrado
+6. UI "Testar conexão" → ZapiDriver::ping retorna "Aguardando QR Code"
+7. UI mostra QR Code (vem do `GET /instances/{id}/token/{token}/qr-code/image`)
+8. Admin escaneia com Whatsapp do business
+9. UI atualiza "Conectado, número +5511..." → ✅
+10. **Wizard NÃO conclui ainda** — exige Passo 2 Meta Cloud cadastrado
+
+### 14.2 Passo 2 — Meta Cloud (1-3 dias paralelo)
+
+Pode rodar em paralelo ao Passo 1. Bloqueia salvar config completa.
 
 1. Admin business entra em `business.facebook.com`
 2. Cria/conecta Whatsapp Business Account
 3. Verifica número (recebe SMS Meta)
 4. Cria System User → gera access_token eternal (recomendado vs token 60d)
 5. Pega `phone_number_id`, `access_token`, `app_secret` (em Meta Apps)
-6. Cola na UI `/whatsapp/settings` do oimpresso (driver=meta_cloud)
+6. Cola na UI `/whatsapp/settings` Passo 2
 7. UI mostra webhook URL `https://oimpresso.com/api/whatsapp/webhook/meta/{biz_uuid}`
 8. Cola na Meta App → Webhooks → Whatsapp → URL + verify_token
 9. Meta faz challenge GET → oimpresso retorna `hub.challenge` → ✅
@@ -458,43 +471,19 @@ Operação humana (não-automatizada — Meta Business Manager exige):
 11. UI "Testar conexão" → MetaCloudDriver::ping → ✅
 12. Cadastra HSM templates na Meta Business Manager (1-3 dias aprovação cada)
 
-### 14.2 Driver `zapi` (Z-API SaaS — 5 minutos)
+### 14.3 Passo final — Aceite LGPD
 
-1. Admin business cria conta em `app.z-api.io` (cartão de crédito; R$ 99-299/mês)
-2. Cria Instance → Z-API gera `instance_id`, `instance_token`, `client_token`
-3. Cola na UI `/whatsapp/settings` do oimpresso (driver=zapi)
-4. UI mostra webhook URL `https://oimpresso.com/api/whatsapp/webhook/zapi/{biz_uuid}`
-5. Cola no painel Z-API → Webhooks → URL único + Client-Token = mesmo `client_token` cadastrado
-6. UI "Testar conexão" → ZapiDriver::ping retorna "Aguardando QR Code"
-7. UI mostra QR Code (vem do `GET /instances/{id}/token/{token}/qr-code/image`)
-8. Admin escaneia com Whatsapp do business
-9. UI atualiza "Conectado, número +5511..." → ✅
-10. Aceita termo LGPD "ciente que provedor não-oficial..." → registra `lgpd_acknowledged_at`
-11. **CTA recomendado:** "Cadastre Meta Cloud como fallback" → guia passo-a-passo
+Modal aparece ao salvar config completa com Z-API ativo:
 
-### 14.3 Driver `evolution` (self-host CT 100 — 30 minutos, Sprint 2)
+> "Estou ciente que **Z-API é provedor não-oficial** baseado em Whatsapp Web
+> e que **existe risco de bloqueio Meta**. Configurei Meta Cloud como fallback
+> pra mitigar interrupção do meu serviço."
 
-1. Wagner (oimpresso ops) sobe container Docker compose-managed em CT 100:
-   ```yaml
-   evolution:
-     image: atendai/evolution-api:latest
-     volumes:
-       - /srv/docker/evolution/data:/evolution/data
-     labels:
-       - "traefik.http.routers.evolution.rule=Host(`evolution.oimpresso.local`)"
-       - "traefik.http.routers.evolution.tls=true"
-     environment:
-       - AUTHENTICATION_API_KEY=<gerado-aleatório>
-   ```
-2. Cria instance via Evolution API: `POST /instance/create {instanceName: "<biz_uuid>"}`
-3. Cola na UI `/whatsapp/settings` do oimpresso (driver=evolution): `evolution_base_url`, `evolution_instance_name`, `evolution_api_key`
-4. UI mostra webhook URL `https://oimpresso.com/api/whatsapp/webhook/evolution/{biz_uuid}`
-5. Configura webhook na Evolution: `POST /webhook/set/{instance} {url, events}`
-6. UI "Testar conexão" → EvolutionDriver::ping retorna "Aguardando QR Code"
-7. UI mostra QR Code (vem do Evolution `GET /instance/connect/{instance}`)
-8. Admin escaneia com Whatsapp do business
-9. UI atualiza "Conectado" → ✅
-10. Aceita termo LGPD → registra `lgpd_acknowledged_at`
+Aceite registra `lgpd_acknowledged_at` + `lgpd_acknowledged_by_user_id`. Sem aceite = não salva.
+
+### 14.4 Driver Evolution — REMOVIDO (PROIBIDO Tier 0)
+
+Anteriormente proposto como Sprint 2 self-host CT 100. **Removido em 2026-05-07 (emenda 3 ADR 0096).** Reabrir só via nova ADR explícita.
 
 ## 15. Referências externas
 
@@ -514,16 +503,9 @@ Operação humana (não-automatizada — Meta Business Manager exige):
   - `GET /instances/{id}/token/{token}/qr-code/image`
   - Webhooks: `on-message`, `on-message-status`, `on-presence-status`, `on-disconnected`
 
-### Evolution API
-- GitHub: `github.com/EvolutionAPI/evolution-api`
-- Docker image: `atendai/evolution-api`
-- Docs: `doc.evolution-api.com`
-- Endpoints chave:
-  - `POST /message/sendText/{instance}`
-  - `POST /instance/create`
-  - `GET /instance/connect/{instance}` (QR Code)
-  - `GET /instance/connectionState/{instance}`
-  - `POST /webhook/set/{instance}`
+### Evolution API — PROIBIDO (não usar)
+
+Driver removido por emenda 3 ADR 0096 (2026-05-07). Não há referência operacional.
 
 ### Infraestrutura
 - Centrifugo channels: `centrifugal.dev/docs/server/channels`

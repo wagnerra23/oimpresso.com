@@ -1,7 +1,7 @@
 ---
 slug: 0096-modulo-whatsapp-meta-cloud-api-direto
 number: 96
-title: "Módulo Whatsapp — Meta Cloud API + Z-API/Baileys (2 drivers oficiais)"
+title: "Módulo Whatsapp — Z-API/Baileys default + Meta Cloud fallback (Evolution PROIBIDO)"
 type: adr
 status: aceito
 authority: canonical
@@ -13,7 +13,7 @@ accepted_by: wagner
 module: Whatsapp
 quarter: 2026-Q2
 tier: CANON
-tags: [whatsapp, integracao, meta, zapi, baileys, multi-tenant, modulo-novo]
+tags: [whatsapp, integracao, meta, zapi, baileys, multi-tenant, modulo-novo, evolution-proibido]
 related_adrs: [0011, 0024, 0035, 0048, 0058, 0062, 0093, 0094]
 parent_charter: null
 parent_adr: 0094
@@ -32,14 +32,36 @@ review_triggers:
   - Mudança Meta TOS afetar tooling Whatsapp Web (Baileys deprecado)
 ---
 
-# ADR 0096 — Módulo Whatsapp: 2 drivers (Meta Cloud API + Z-API/Baileys)
+# ADR 0096 — Módulo Whatsapp: Z-API/Baileys default + Meta Cloud fallback (Evolution PROIBIDO)
 
-> **Emenda 2026-05-07 (mesmo dia da proposta):** Wagner aceitou ADR original
-> com emenda explícita: **Z-API / Baileys também são drivers válidos do módulo**
-> (não Tier 0 PROIBIDO como na versão proposta). Razão: cobrir mercado BR PME
-> que já tem número no Z-API e quer trazer pro oimpresso sem trocar provedor +
-> oferecer alternativa orçamento (Z-API ~R$ 99/mês vs Meta token+verificação).
-> Risco de ban Meta documentado no bloco "Risco aceito conscientemente" abaixo.
+> **Histórico de emendas (mesmo dia da proposta — 2026-05-07):**
+>
+> - **Emenda 1 (manhã):** Wagner aceitou ADR original com emenda: **Z-API e
+>   Evolution API também são drivers válidos** (originalmente eram Tier 0
+>   PROIBIDO). Razão: mercado BR PME usa massivamente; onboarding 5 min.
+>
+> - **Emenda 2 (tarde):** Wagner reavaliou risco e endureceu:
+>   - **Evolution API → PROIBIDO Tier 0** (volta à proposta original)
+>   - **Z-API → ATIVO com risco muito alto** (mais salvaguardas)
+>
+> - **Emenda 3 (final do dia — versão atual):** Wagner inverte a hierarquia
+>   de drivers e autoriza Lote 2:
+>   - **Z-API/Baileys (família) → DRIVER PADRÃO do módulo** (`default_driver=zapi`).
+>     Onboarding 5 min, freeform sem janela 24h, mercado BR PME real.
+>   - **Meta Cloud → driver oficial alternativo / fallback obrigatório.**
+>     Cadastrado pra eventual ban Z-API ou caso enterprise compliance pedir.
+>   - **Evolution API → continua PROIBIDO Tier 0.**
+>
+>   **Razão da inversão:** o usuário-cliente real do oimpresso é PME
+>   brasileira que decide na hora — onboarding 1-3 dias do Meta Cloud é
+>   gargalo comercial. Padrão tem que ser o que destrava demanda hoje.
+>   Meta Cloud fica como rede de segurança operacional, não como entrada.
+>
+>   **Razão Evolution permanecer proibido:** Z-API SaaS terceiriza o risco
+>   (empresa terceira responde pelo ban). Evolution self-host CT 100 =
+>   oimpresso/Wagner direto na linha de fogo — quando ban vem, é número
+>   de cliente perdido sob responsabilidade direta, sem terceiro pra
+>   reclamar. Ganho marginal (R$ 99/mês) não compensa stakes operacionais.
 
 ## Contexto
 
@@ -68,41 +90,48 @@ ROTA LIVRE (`business_id=4`, ~99% do volume) projetada em ~50-200 conversas/mês
 
 ## Decisão
 
-**Criar `Modules/Whatsapp/` com 2 drivers oficiais paralelos** + Driver pattern (ADR 0050 Copiloto), `business_id` escolhe qual usar via coluna `whatsapp_business_configs.driver`:
+**Criar `Modules/Whatsapp/` com `ZapiDriver` como default + `MetaCloudDriver` como fallback obrigatório** + Driver pattern (ADR 0050 Copiloto). `business_id` pode mudar via `whatsapp_business_configs.driver` quando enterprise compliance pedir Meta Cloud puro. **Evolution API permanece PROIBIDO Tier 0**.
 
 ### Drivers suportados
 
 - `Services/Drivers/DriverInterface.php` — contrato comum (sendTemplate, sendFreeform, sendMedia, fetchStatus, ping)
-- `Services/Drivers/MetaCloudDriver.php` — **default**, oficial Meta. Fala com `graph.facebook.com/v21.0/{phone_number_id}/messages`. HSM templates obrigatórios fora janela 24h. Custo Meta direto (free 1k conv/mês).
-- `Services/Drivers/ZapiDriver.php` — **alternativa orçamento PME**, SaaS BR Z-API (`api.z-api.io`). Mensagens freeform sem janela 24h restritiva. R$ 99-299/mês fixo. **Risco ban Meta** (não-oficial, baseado em Whatsapp Web).
-- `Services/Drivers/EvolutionDriver.php` — **self-host CT 100** (Evolution API Docker). Zero custo SaaS, controle total. **Risco ban Meta** (mesmo motivo Z-API). Sprint 2 (futuro).
+- `Services/Drivers/ZapiDriver.php` — **DEFAULT**, SaaS BR Z-API (`api.z-api.io`), Whatsapp Web via Baileys. Onboarding 5 min (scan QR). Freeform sem janela 24h. R$ 99-299/mês fixo. **Risco ban MUITO ALTO**, mitigado por fallback Meta Cloud obrigatório.
+- `Services/Drivers/MetaCloudDriver.php` — **fallback oficial obrigatório** (e default pra businesses enterprise compliance). Fala com `graph.facebook.com/v21.0/{phone_number_id}/messages`. HSM obrigatórios fora janela 24h. Free 1k conv/mês Meta. **Risco ban Meta: nenhum.**
 - `Services/Drivers/NullDriver.php` — dev/CI Pest, não estoura rede.
-- (backlog) `TwilioDriver` / `BlipDriver` — só se algum business enterprise pedir.
+- (backlog enterprise) `TwilioDriver` / `BlipDriver` — só se enterprise pedir.
 
-### Onboarding por driver
+### ❌ Drivers PROIBIDOS Tier 0 (não vão ser implementados)
 
-| Driver | Onboarding | Custo perfil 150 conv/mês | Quem cuida |
-|---|---|---|---|
-| `meta_cloud` | Meta Business Manager + verificação número (1-3 dias) + HSM templates pendentes (1-3 dias cada) | R$ 0 (free tier) | tenant + Wagner ajuda |
-| `zapi` | Cadastro Z-API + scan QR Code Whatsapp (~5 min) | R$ 99/mês fixo | tenant sozinho |
-| `evolution` | Subir container Docker CT 100 + scan QR | R$ 0 (CT 100 dele) | Wagner |
+- **`EvolutionDriver` (Evolution API self-host CT 100)** — PROIBIDO. Razão: oimpresso/Wagner seria diretamente responsável pelo container Docker, sessão Whatsapp Web e pelo ban Meta. Sem terceiro intermediário pra responder. Stakes operacionais altos demais pro ganho marginal (R$ 99/mês economizado vs Z-API).
+- **`BaileysDriver` (lib JS pura)** — PROIBIDO. Mesma razão (self-host) + lib JS exige daemon Node próprio (não temos appetite por mais um runtime).
+- **`WhatsappWebJsDriver`** — PROIBIDO. Idem.
+- **Qualquer wrapper sobre Whatsapp Web rodando em servidor oimpresso** — PROIBIDO Tier 0. Reabrir só via nova ADR explícita Wagner-aceita.
+
+### Onboarding por driver (ordem prática real do oimpresso)
+
+| Ordem | Driver | Quando usar | Onboarding | Custo perfil 150 conv/mês | Risco ban |
+|---|---|---|---|---|---|
+| **1º (default)** | `zapi` | Maioria dos businesses PME | Cadastro Z-API + scan QR Code (~5 min) | R$ 99/mês | **muito alto** (mitigado por fallback) |
+| **2º (obrigatório)** | `meta_cloud` | Cadastrar como fallback OU usar como default em enterprise | Meta Business Manager + verificação (1-3 dias) + HSM (1-3 dias cada) | R$ 0 (free tier) | **nenhum** |
 
 ### Infraestrutura comum
 
-**Webhook receiver no Hostinger** (HTTP-only, não precisa daemon — ADR 0062). Cada driver tem rota webhook própria:
+**Webhook receiver no Hostinger** (HTTP-only, não precisa daemon — ADR 0062). 2 rotas webhook:
 - `POST /api/whatsapp/webhook/meta/{business_uuid}` — Meta Cloud (HMAC SHA-256 com `app_secret`)
-- `POST /api/whatsapp/webhook/zapi/{business_uuid}` — Z-API (token compartilhado `client_token` Z-API)
-- `POST /api/whatsapp/webhook/evolution/{business_uuid}` — Evolution (apikey Evolution)
+- `POST /api/whatsapp/webhook/zapi/{business_uuid}` — Z-API (header `Client-Token` timing-safe compare)
 
 **Job consumer no CT 100 Horizon** (ADR 0062 — Hostinger ≠ CT 100). **Real-time UI via Centrifugo** (ADR 0058) — mesmo channel `whatsapp:business:{id}` independente de driver.
 
-### Fallback automático (Tier 1)
+### Fallback automático Z-API → Meta Cloud (OBRIGATÓRIO)
 
-Se driver não-oficial (Z-API/Evolution) falhar 5× consecutivas com erro auth/ban, sistema:
+**Z-API só pode ser ativado se Meta Cloud estiver cadastrado como `fallback_driver`** — gating no FormRequest. Sem fallback configurado = não deixa salvar `driver=zapi`.
+
+Se Z-API falhar 5× consecutivas com erro auth/ban, sistema:
 1. Marca `whatsapp_business_configs.driver_health = 'degraded'`
 2. Notifica admin business via UI (badge vermelho + email)
-3. Se `fallback_driver` configurado (ex: meta_cloud), troca automaticamente
+3. Troca automaticamente pra `fallback_driver=meta_cloud`
 4. Retém histórico de mensagens (não perde inbox)
+5. Notifica Wagner ops (cross-tenant alarme se ≥3 businesses caírem em 24h)
 
 Implementação: `WhatsappDriverHealthCheck` job + Sentinel pattern (Sprint 2).
 
@@ -116,22 +145,39 @@ Implementação: `WhatsappDriverHealthCheck` job + Sentinel pattern (Sprint 2).
 
 ## Justificativa
 
-**Por que Meta Cloud direto como default:**
+**Por que Z-API/Baileys como default (emenda 3, 2026-05-07):**
 
-1. **Custo 30× menor** que BSP no perfil real (50-200 conv/mês ROTA LIVRE). Take Blip R$ 1.500/mês fixo justifica em ~5k conv/mês ou compliance enterprise — não é nosso caso hoje.
-2. **Zero markup intermediário** — cada R$ 0,07 que economizamos é margem.
-3. **Multi-tenant nativo** — cada business cadastra seu próprio número Meta (Business Manager dele). Sem intermediário compartilhado, melhor pra LGPD.
-4. **Sem risco ban** — provedor oficial Meta. Princípio duro #8 da Constituição (ADR 0094) "Confiabilidade com fallback" plenamente atendido.
+1. **Onboarding 5 min vs 1-3 dias Meta** — fundamental pro fluxo comercial PME. Cliente decide na hora; padrão tem que estar pronto na hora.
+2. **Mercado BR PME real já está nesse mundo** — empresas que chegam ao oimpresso muitas vezes têm número no Z-API há anos. Forçar Meta como default = atritar onboarding.
+3. **Sem janela 24h restritiva** — Z-API manda freeform a qualquer hora. Pra dunning/cobrança/lembrete sem ter que pré-aprovar HSM destrava 80% do caso de uso.
+4. **Risco terceirizado** — Z-API SaaS responde pelo ban. Recriar instance é problema deles, não nosso.
+5. **R$ 99/mês cabível** — entra no plano Pro do oimpresso (R$ 99/mês) sem comer margem.
 
-**Por que Z-API / Baileys (Evolution) também (emenda Wagner 2026-05-07):**
+**Por que Meta Cloud como fallback obrigatório (não default):**
 
-1. **Mercado BR PME real usa massivamente** — empresas que chegam ao oimpresso muitas vezes já têm número no Z-API ou Evolution há anos. Forçar Meta Cloud = forçar trocar de provedor + perder histórico de conversas.
+1. **Sem risco ban** — provedor oficial Meta. Princípio duro #8 Constituição (ADR 0094) "Confiabilidade com fallback" atendido via redundância.
+2. **Free tier 1k conv/mês BR** — fallback ativo não custa nada se Z-API estiver saudável.
+3. **Multi-tenant nativo** — cada business cadastra seu próprio número Meta (Business Manager dele). Melhor pra LGPD em caso de uso prolongado do fallback.
+4. **Driver pattern preserva opcionalidade** — businesses enterprise compliance podem flipar `default_driver=meta_cloud` em qualquer momento via UI Settings.
+
+**Por que Z-API entra (com salvaguardas reforçadas):**
+
+1. **Mercado BR PME real usa massivamente** — empresas que chegam ao oimpresso muitas vezes já têm número no Z-API há anos. Forçar Meta Cloud = forçar trocar de provedor + perder histórico de conversas.
 2. **Onboarding 100× mais rápido** — Z-API: scan QR code, 5 minutos. Meta Cloud: Business Manager + verificação número (1-3 dias) + HSM aprovação (1-3 dias por template).
-3. **Sem janela 24h restritiva** — Z-API/Evolution mandam freeform a qualquer hora, sem template HSM. Pra dunning/cobrança simples isso destrava muito caso de uso.
-4. **Custo previsível por business** — R$ 99/mês Z-API ou R$ 0 Evolution self-host CT 100 (Wagner já tem CT 100).
-5. **Driver pattern preserva opcionalidade** — se ban Meta acontecer no Z-API/Evolution, fallback automático pro Meta Cloud (com aviso ao business pra completar onboarding).
+3. **Sem janela 24h restritiva** — Z-API manda freeform a qualquer hora, sem template HSM. Pra dunning/cobrança simples isso destrava caso de uso.
+4. **Custo previsível** — R$ 99/mês Z-API enquanto Meta Cloud é aprovado.
+5. **Risco terceirizado** — Z-API SaaS responde pelo ban (instance pode ser recriada). oimpresso continua operando com fallback Meta Cloud.
+6. **Driver pattern preserva opcionalidade** — se ban Meta acontecer no Z-API, fallback automático pro Meta Cloud (gating obrigatório).
 
-**Risco aceito conscientemente** — ver bloco abaixo.
+**Por que Evolution API NÃO entra (proibido):**
+
+1. **Self-host CT 100 = oimpresso direto na linha de fogo.** Container Docker é nosso, sessão Whatsapp Web é nossa, ban é nosso problema.
+2. **Sem terceiro pra responsabilizar.** Z-API tem chat, contrato, suporte BR. Evolution só comunidade open-source — quando lib quebra, a gente fica em silêncio até patch chegar.
+3. **Risco LGPD eleva.** Evolution self-host = dado do cliente final do tenant transita pelo nosso CT 100. Cadeia de responsabilidade direta.
+4. **Mudança Meta TOS quebra Baileys com mais frequência** — comunidade demora dias a semanas pra patch. Z-API tem time pago pra isso.
+5. **Ganho marginal não compensa stakes.** R$ 99/mês Z-API economizados não justificam o aumento de superfície operacional pro oimpresso.
+
+**Risco aceito conscientemente (Z-API)** — ver bloco abaixo.
 
 **Por que Driver pattern e não Service direto:**
 
@@ -144,23 +190,25 @@ Implementação: `WhatsappDriverHealthCheck` job + Sentinel pattern (Sprint 2).
 
 Z-API e Evolution API são baseados em **Whatsapp Web reverse-engineered (Baileys)**. Trade-offs:
 
-### Riscos
+### Riscos (Z-API como driver default)
 
-1. **Ban Meta arbitrário** — Meta tem detection de automação não-oficial. Quando detecta: número desconectado sem aviso. Recuperação leva 1-30 dias (depende do critério Meta).
-2. **Compliance LGPD** — sem CONTRATO formal Meta, business não consegue alegar conformidade total se cliente final acionar (mitigação: contrato Z-API/Evolution prevê isso parcialmente).
-3. **Sessão Whatsapp Web cai** — qrcode re-scan necessário se sessão expira (ex: cliente troca celular). Z-API mostra notificação; Evolution self-host depende de monitor próprio.
-4. **Suporte limitado** — Z-API tem chat (BR, em português). Evolution só comunidade open-source.
-5. **Mudança Meta TOS quebra biblioteca** — Baileys já teve 3 quebras grandes em 2024-2025. Tempo de patch da comunidade: dias a semanas.
+1. **Ban Meta arbitrário** — Meta tem detection de automação não-oficial. Quando detecta: número desconectado sem aviso. Recuperação leva 1-30 dias.
+2. **Compliance LGPD parcial** — sem contrato formal com Meta, business não consegue alegar conformidade total. Z-API tem contrato BR (cobre parte). Para enterprise: flipar `driver=meta_cloud` na UI Settings.
+3. **Sessão Whatsapp Web cai** — qrcode re-scan necessário se sessão expira. Z-API notifica via webhook `on-disconnected` + UI alerta; fallback Meta Cloud entra em ação.
+4. **Suporte limitado** — Z-API tem chat em português, BR. Quando lib Baileys quebra, depende do time deles patchear (vs comunidade pura no Evolution — razão extra do Evolution PROIBIDO).
+5. **Mudança Meta TOS quebra biblioteca** — Baileys já teve 3 quebras em 2024-2025. Tempo de patch Z-API: 1-3 dias (chat suporte).
 
-### Mitigações implementadas (Sprint 1-2)
+### Mitigações implementadas (Sprint 1-2 — gating duro)
 
-1. **`WhatsappDriverHealthCheck` job** (Sprint 2) — tenta enviar mensagem-piloto a cada 6h; se falhar 5× consecutivas, marca `driver_health=degraded` e alerta admin business (badge UI + email).
-2. **Fallback automático** — se `fallback_driver` configurado (recomendação: cadastrar Meta Cloud antes; ele fica dormente até precisar), sistema troca automaticamente. Histórico mensagens preservado (DB independente).
-3. **UI mostra status driver** — badge verde/amarelo/vermelho na Inbox + Settings com last_health_check.
-4. **Documento "Como migrar Z-API → Meta Cloud em emergência"** — runbook humano em `memory/requisitos/Whatsapp/runbooks/migrar-emergencia.md` (Sprint 2).
-5. **Pricing Pro R$ 99/mês inclui suporte Wagner-mediado** se ban acontecer (ele ajuda re-onboarding).
-6. **OTel metric `whatsapp.driver.bans` por business + driver** — alarme cross-tenant se 3+ businesses banidos no mesmo dia (sinal mudança Meta detection — força planejar migração geral pra Meta Cloud).
-7. **CTA na UI Settings de drivers não-oficiais**: "⚠️ Provedor não-oficial. Recomendamos cadastrar Meta Cloud como fallback agora pra evitar interrupção em caso de ban."
+1. **Fallback Meta Cloud OBRIGATÓRIO** — FormRequest de Settings rejeita salvar `driver=zapi` se `meta_*` campos não estiverem todos preenchidos. Não é opcional. Sem fallback Meta cadastrado = não ativa Z-API. Gating físico, não convencional.
+2. **`WhatsappDriverHealthCheck` job** (Sprint 2) — ping a cada 6h; 5 falhas = `degraded`, 10 = `disconnected`, auth permanent = `banned`.
+3. **Fallback automático** — quando `driver_health` ≥ degraded, sistema troca pra Meta Cloud sem intervenção. Histórico mensagens preservado (DB independente).
+4. **UI mostra status driver** — badge verde/amarelo/vermelho na Inbox + Settings com `last_health_check_at` e contador de falhas consecutivas.
+5. **Runbook "Como migrar Z-API → Meta Cloud em emergência"** — `memory/requisitos/Whatsapp/runbooks/migrar-emergencia.md` (Sprint 2).
+6. **Pricing Pro R$ 99/mês inclui suporte Wagner-mediado** se ban acontecer (ele ajuda re-onboarding).
+7. **OTel `whatsapp.driver.bans` por business+driver** — alarme cross-tenant se 3+ businesses banidos no mesmo dia (sinal mudança Meta detection — força planejar migração geral).
+8. **CTA permanente na UI Settings com `driver=zapi`**: badge vermelho "⚠️ Provedor não-oficial — risco ban Meta. Fallback Meta Cloud ativo."
+9. **Termo LGPD obrigatório** quando `driver=zapi`, registrado em `whatsapp_business_configs.lgpd_acknowledged_at`.
 
 ### Quando esse risco vira bloqueador (review_trigger)
 
@@ -171,41 +219,43 @@ Z-API e Evolution API são baseados em **Whatsapp Web reverse-engineered (Bailey
 
 **Positivas:**
 
-- Repair finalmente cumpre ADR tech/0001 sem custo de SMS (R$ 0,07 Meta / freeform Z-API vs R$ 0,30+ SMS).
+- **Onboarding 5 min** (Z-API default) destrava demo comercial PME — não precisa esperar Meta Business Manager aprovar.
+- **Mercado BR PME entra direto** — número Z-API existente continua funcionando sem migrar provedor.
+- Repair finalmente cumpre ADR tech/0001 (status `ready` dispara Whatsapp).
 - RecurringBilling US-RB-044 destrava (boleto+NFe via Whatsapp ao receber pagamento).
 - Jana ganha canal de entrada novo (handoff HITL via PolicyEngine — `REQUIRE_HUMAN_REVIEW` vira ticket pra atendente).
-- Free tier Meta cobre piloto inteiro (ROTA LIVRE ~3-6 meses sem custo).
-- **Z-API permite onboarding em 5 minutos** (scan QR Code) vs 1-3 dias Meta — fundamental pra demo comercial.
-- **Mercado BR PME pode trazer número Z-API existente** sem trocar provedor — entrada mais larga.
+- **Fallback Meta Cloud obrigatório protege operação** — se ban Z-API, sistema troca sem intervenção. Free tier Meta cobre fallback sem custo extra.
 - Padrão Driver permite trocar pra BSP enterprise em 1 PR se algum cliente pedir SLA.
 - Pest com `NullDriver` não estoura rede em CI (suite continua rápida).
-- Fallback automático Z-API→Meta protege contra ban (mitigação documentada).
+- Businesses enterprise compliance podem flipar `driver=meta_cloud` na UI sem refactor.
 
 **Negativas / Trade-offs:**
 
 - **2 drivers paralelos = ~30% mais código** (interface + 2 implementações + 2 webhook handlers + 2 onboarding flows). Mitigado por interface comum + factory.
-- Aprovação número Meta toma 1-3 dias (gargalo Meta Cloud) — Z-API é alternativa rápida.
-- HSM templates (Meta Cloud) precisam aprovação Meta (1-3 dias) — UI mostra status `pending/approved/rejected`. Z-API não precisa HSM (manda freeform).
+- **Cadastro Meta Cloud é gating duro** — business não consegue ativar Z-API sem Meta cadastrado. Onboarding "completo" leva ~1-3 dias mesmo com Z-API ativo no dia 1 (Meta Business Manager precisa rodar em paralelo). Mitigação: UI mostra wizard "Whatsapp em 2 passos: 1) ativa Z-API hoje, 2) Meta Cloud aprova em 1-3 dias e fica de prontidão".
+- HSM templates (Meta Cloud fallback) precisam aprovação Meta (1-3 dias) — UI mostra status `pending/approved/rejected`. Z-API não precisa HSM.
 - Pricing Meta pode mudar (eles já mudaram 2× em 2024-2025) — `review_triggers` registra.
-- Webhook em produção precisa 99.9% UP — falha silenciosa = cliente respondeu e ninguém viu. Mitigação: alarme se webhook não recebe nada em 24h.
-- **Risco ban Meta nos drivers Z-API/Evolution** (ver bloco "Risco aceito conscientemente").
-- Documentação dual aumenta — guia onboarding Meta + guia Z-API + guia Evolution.
+- Webhook em produção precisa 99.9% UP — alarme se não recebe nada em 24h.
+- **Risco ban Meta no driver Z-API default** — bloco "Risco aceito conscientemente" + mitigações duras.
+- Documentação dual aumenta — guia onboarding Meta + guia Z-API + runbook emergência.
 
 **Riscos mitigados:**
 
-- **Ban Meta no driver oficial**: zero.
-- **Ban Meta nos drivers Z-API/Evolution**: monitorado via `WhatsappDriverHealthCheck` + fallback configurável (Sprint 2).
+- **Ban Meta no driver Z-API**: monitorado via `WhatsappDriverHealthCheck` + fallback OBRIGATÓRIO Meta Cloud (gating no FormRequest) + termo LGPD assinado (Sprint 2).
+- **Ban Meta no driver Meta Cloud**: zero (oficial).
 - **PII vazamento**: telefone cliente redacted em logs; tokens cifrados em DB; webhook valida assinatura antes de processar.
 - **Cross-tenant leak**: webhook URL tem `business_uuid` no path; global scope `business_id` em todas Models; teste `MultiTenantIsolationTest` obrigatório.
-- **Vendor lock-in**: Driver pattern + 3 implementações desde dia 1 (Meta + Z-API + Null em Sprint 1; Evolution Sprint 2).
+- **Vendor lock-in**: Driver pattern + 2 implementações desde dia 1 (Z-API default + Meta Cloud fallback + Null em Sprint 1).
+- **Self-host risk (Evolution)**: eliminado — driver PROIBIDO Tier 0.
 
 ## Alternativas consideradas
 
 - **BSP brasileiro (Take Blip / Zenvia)** — descartado por custo 30× pra perfil atual; reabrir se algum business passar 5k conv/mês ou pedir compliance enterprise.
 - **Twilio** — descartado por cobrança USD volátil + markup 30%.
-- **Apenas Meta Cloud (proibir não-oficial)** — descartado por emenda Wagner 2026-05-07: mercado BR PME real usa Z-API/Evolution e exige onboarding 5min, não 1-3 dias. Restringir = perder demanda real.
-- **Apenas Z-API (sem Meta Cloud)** — descartado: businesses enterprise futuros vão exigir oficial; ban risk é real e fallback precisa existir desde dia 1.
-- **Esperar laravel/whatsapp oficial** — não existe; pacotes Composer pra Meta Cloud API são todos community + abandonados. Implementação direta com `Http::post()` (Laravel HTTP client) é trivial e nos deixa donos do código.
+- **Meta Cloud como default + Z-API opcional** — descartado por emenda 3 (final do dia 2026-05-07): mercado BR PME real exige onboarding 5 min, não 1-3 dias. Padrão tem que ser o caminho rápido; Meta vira rede de segurança.
+- **Apenas Z-API (sem Meta Cloud cadastrado)** — descartado: businesses enterprise vão exigir oficial; ban risk é real; fallback precisa existir desde dia 1 com gating duro.
+- **Evolution API self-host CT 100** — descartado e marcado PROIBIDO Tier 0: oimpresso assume responsabilidade direta pelo container, sessão Whatsapp Web e ban; sem terceiro pra responsabilizar; ganho marginal (R$ 99/mês) não compensa stakes.
+- **Esperar laravel/whatsapp oficial** — não existe; implementação direta com `Http::post()` é trivial.
 
 ## Referências
 

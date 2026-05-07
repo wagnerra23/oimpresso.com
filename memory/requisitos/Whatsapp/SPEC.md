@@ -1,7 +1,7 @@
 # Especificação funcional — Whatsapp
 
 > Convenção do ID: `US-WA-NNN` para user stories, `R-WA-NNN` para regras Gherkin.
-> Decisão arquitetural mãe: [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) — **2 drivers oficiais (Meta Cloud + Z-API/Baileys) com fallback automático**.
+> Decisão arquitetural mãe: [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) — **Z-API/Baileys driver default + Meta Cloud fallback obrigatório (Evolution PROIBIDO Tier 0)**.
 
 ## 1. Glossário rápido
 
@@ -14,15 +14,16 @@
 - **HITL** — Human In The Loop (handoff bot→humano quando PolicyEngine retorna `REQUIRE_HUMAN_REVIEW`)
 - **Deflection** — % de conversas resolvidas sem intervenção humana
 - **Conversation** — janela 24h Meta (cobrada uma vez); várias mensagens dentro = 1 conversa
-- **Driver** — abstração `MetaCloudDriver` / `ZapiDriver` / `EvolutionDriver` / `NullDriver` (padrão canon ADR 0050)
-- **Z-API** — SaaS BR (`api.z-api.io`) baseado em Whatsapp Web. Onboarding 5 min (scan QR). Risco ban Meta aceito (mitigado por fallback)
-- **Evolution API** — open-source self-host CT 100 (Docker). Mesmo modelo Whatsapp Web. Sprint 2.
-- **Driver Health Check** — job 6h em 6h envia mensagem-piloto pra detectar ban (Sprint 2)
-- **Fallback driver** — `whatsapp_business_configs.fallback_driver`; troca automaticamente se driver primário ficar `degraded`
+- **Driver** — abstração `ZapiDriver` (default) / `MetaCloudDriver` (fallback obrigatório) / `NullDriver` (padrão canon ADR 0050)
+- **Z-API (default)** — SaaS BR (`api.z-api.io`) baseado em Whatsapp Web/Baileys. Onboarding 5 min (scan QR). **Risco ban Meta MUITO ALTO** (mitigado por fallback obrigatório + termo LGPD)
+- **Meta Cloud (fallback obrigatório)** — oficial Meta. Free 1k conv/mês BR. Sem risco ban. Cadastro paralelo gating duro do Z-API.
+- **Evolution API** — **PROIBIDO Tier 0** ([ADR 0096 emenda 3](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)). Não vai ser implementado.
+- **Driver Health Check** — job 6h em 6h envia ping pra detectar ban Z-API (Sprint 2)
+- **Fallback automático** — quando Z-API `driver_health` ≥ degraded, sistema troca pra Meta Cloud sem intervenção
 
 ## 2. User Stories — Sub-módulo Core (Sprint 1)
 
-### US-WA-001 · Cadastrar configuração Whatsapp do business (escolher driver)
+### US-WA-001 · Wizard 2 passos — Z-API hoje + Meta Cloud em paralelo
 
 > **Área:** Settings
 > **Rota:** `GET/PUT /whatsapp/settings`
@@ -30,38 +31,40 @@
 > **Permissão Spatie:** `whatsapp.settings.manage`
 
 **Como** Wagner (admin business)
-**Quero** escolher o driver (`meta_cloud`, `zapi`, `evolution`) e cadastrar credenciais correspondentes + opcional `fallback_driver`
-**Para** o módulo conseguir enviar/receber mensagens; ter onboarding rápido (Z-API) ou produção formal (Meta Cloud)
+**Quero** ativar Z-API em 5 min hoje + iniciar processo Meta Cloud em paralelo (que aprova em 1-3 dias)
+**Para** ter Whatsapp funcionando hoje + rede de segurança operacional ativa quando Meta aprovar
 
 **DoD:**
-- [ ] Seletor radio com 3 opções de driver na UI Settings, com card explicativo de cada (custo, onboarding, risco ban)
-- [ ] Form dinâmico — campos visíveis variam por driver:
-  - `meta_cloud`: `phone_number_id`, `access_token`, `app_secret`, `webhook_verify_token`
-  - `zapi`: `zapi_instance_id`, `zapi_instance_token`, `zapi_client_token`
-  - `evolution`: `evolution_base_url` (CT 100 hostname), `evolution_instance_name`, `evolution_api_key`
+- [ ] UI mostra wizard 2 passos: **Passo 1 — Liga Z-API hoje** + **Passo 2 — Cadastra Meta Cloud (1-3 dias)**
+- [ ] Passo 1 obrigatório (não pode pular pra Passo 2 e ficar sem Whatsapp ativo)
+- [ ] Passo 2 obrigatório como gating (não deixa salvar `driver=zapi` sem `meta_*` campos preenchidos — princípio Tier 0 fallback)
+- [ ] Form Passo 1 (Z-API):
+  - `zapi_instance_id`, `zapi_instance_token`, `zapi_client_token` (todos cifrados em DB)
+  - Botão "Testar conexão" → `ZapiDriver::ping()` → mostra QR Code se aguardando, ou "Conectado, número +5511..."
+- [ ] Form Passo 2 (Meta Cloud):
+  - `meta_phone_number_id`, `meta_access_token`, `meta_app_secret`, `meta_webhook_verify_token` (todos cifrados)
+  - Onboarding guide com link `business.facebook.com` + screenshots
+  - Status: "aguardando você completar Meta Business Manager"
 - [ ] Tokens (todos) cifrados em DB via `encrypted` cast Laravel
-- [ ] FormRequest valida campos obrigatórios por driver
-- [ ] Webhook URL exibida na UI conforme driver:
-  - `meta_cloud`: `https://oimpresso.com/api/whatsapp/webhook/meta/{business_uuid}` + `webhook_verify_token`
-  - `zapi`: `https://oimpresso.com/api/whatsapp/webhook/zapi/{business_uuid}` (Z-API painel)
-  - `evolution`: `https://oimpresso.com/api/whatsapp/webhook/evolution/{business_uuid}` (Evolution config)
-- [ ] Botão "Testar conexão" — chama `Driver::ping()` → exibe status (nome do número, sessão ativa, etc)
-- [ ] Onboarding guide por driver (link Meta Business Manager / Z-API painel / Evolution Docker compose-managed)
-- [ ] Campo `fallback_driver` (opcional) — se primário falhar 5×, troca automaticamente
-- [ ] Badge UI status driver: ✅ saudável / ⚠️ degradado (warnings) / 🔴 banido/desconectado
-- [ ] CTA visível pra drivers não-oficiais: "⚠️ Provedor não-oficial. Recomendamos cadastrar Meta Cloud como fallback agora pra evitar interrupção em caso de ban."
-- [ ] Pest: `BusinessSettingsTest` cobrindo (a) cada driver salva credenciais corretas, (b) tokens cifrados em DB, (c) isolamento multi-tenant, (d) fallback config preserva
+- [ ] FormRequest cross-field: `driver=zapi` (default) → exige `meta_*` cadastrados como fallback
+- [ ] Webhook URLs exibidas em cada passo:
+  - Passo 1 Z-API: `https://oimpresso.com/api/whatsapp/webhook/zapi/{business_uuid}` (cola no painel Z-API → Webhooks)
+  - Passo 2 Meta: `https://oimpresso.com/api/whatsapp/webhook/meta/{business_uuid}` + `webhook_verify_token` (cola na Meta App → Webhooks)
+- [ ] Badge UI permanente quando `driver=zapi`: 🔴 "Provedor não-oficial — risco ban Meta. Fallback Meta Cloud ativo." (vermelho, sempre visível)
+- [ ] Termo LGPD obrigatório (modal) quando salva `driver=zapi`: "Estou ciente que Z-API é provedor não-oficial baseado em Whatsapp Web e que existe risco de bloqueio Meta. Configurei Meta Cloud como fallback pra mitigar interrupção." → registra `lgpd_acknowledged_at`
+- [ ] Toggle "Forçar Meta Cloud como driver primário" (pra businesses enterprise compliance) — flipa `driver=meta_cloud`, deixa Z-API dormente
+- [ ] Pest: `BusinessSettingsTest` cobrindo (a) cada driver salva credenciais corretas, (b) tokens cifrados em DB, (c) isolamento multi-tenant, (d) **gating: salvar driver=zapi sem meta_* preenchido = 422 ValidationException**, (e) termo LGPD obrigatório, (f) flipar pra meta_cloud preserva Z-API config
 
-### US-WA-002 · Driver Interface + MetaCloudDriver + NullDriver
+### US-WA-002 · Driver Interface + ZapiDriver + MetaCloudDriver + NullDriver
 
 > **Área:** Core
 > **Service:** `Modules\Whatsapp\Services\Drivers\DriverInterface`
-> **Implementações Sprint 1:** `MetaCloudDriver` (oficial Meta), `ZapiDriver` (oficial Z-API), `NullDriver` (dev/CI)
-> **Implementações Sprint 2:** `EvolutionDriver` (self-host CT 100)
+> **Implementações Sprint 1:** `ZapiDriver` (default), `MetaCloudDriver` (fallback obrigatório), `NullDriver` (dev/CI)
+> **EvolutionDriver: PROIBIDO Tier 0** — não vai ser implementado.
 
 **Como** Sistema
-**Quero** abstração trocável de provedor (Meta Cloud, Z-API, Evolution, futuros)
-**Para** business escolher driver via Settings sem refactor cross-module + permitir fallback
+**Quero** abstração trocável Z-API ↔ Meta Cloud
+**Para** business usar Z-API hoje (5 min) + cair pra Meta Cloud automaticamente em caso de ban
 
 **DoD:**
 - [ ] Interface `DriverInterface`:
@@ -72,16 +75,18 @@
   - `ping(WhatsappBusinessConfig $config): DriverHealthStatus` — retorna nome número, sessão ativa, last_seen
 - [ ] `MetaCloudDriver` usa `Http::withToken()` Laravel HTTP client; sem dependência Composer extra
 - [ ] `NullDriver` retorna sucesso fake; gera `provider_message_id` UUID; usa `Event::dispatch` pra simular delivery
-- [ ] Factory `DriverFactory::make($business)` resolve via `whatsapp_business_configs.driver`:
+- [ ] Factory `DriverFactory::make($business)` resolve via `whatsapp_business_configs.driver` (efetivo, considerando driver_health):
   ```php
-  return match($config->driver) {
-      'meta_cloud' => app(MetaCloudDriver::class),
+  // Se driver primário está degraded/banned, usa fallback automaticamente
+  $driver = $config->driver_health === 'healthy' ? $config->driver : $config->fallback_driver;
+  return match($driver) {
       'zapi' => app(ZapiDriver::class),
-      'evolution' => app(EvolutionDriver::class),
+      'meta_cloud' => app(MetaCloudDriver::class),
       'null' => app(NullDriver::class),
+      // 'evolution' => PROIBIDO Tier 0 — não tem case aqui
   };
   ```
-- [ ] Pest: `MetaCloudDriverTest` com `Http::fake()` cobrindo sucesso/4xx/5xx; `NullDriverTest`; `DriverFactoryTest` resolve correto por config
+- [ ] Pest: `MetaCloudDriverTest` com `Http::fake()` cobrindo sucesso/4xx/5xx; `ZapiDriverTest`; `NullDriverTest`; `DriverFactoryTest` resolve correto por config + cobre fallback automático em driver_health=degraded
 
 ### US-WA-002b · ZapiDriver (driver não-oficial Sprint 1)
 
@@ -103,26 +108,9 @@
 - [ ] Pest: `ZapiDriverTest` com `Http::fake()` cobrindo (a) send-text sucesso, (b) send-text 401 dispara session lost event, (c) ping conectado/desconectado, (d) sendMedia base64 ou URL
 - [ ] **Risco aceito documentado** no class-level docblock: "Driver não-oficial. Risco ban Meta. Use com fallback Meta Cloud configurado. Ver ADR 0096 §Risco aceito conscientemente."
 
-### US-WA-002c · EvolutionDriver (driver self-host Sprint 2)
+### ❌ US-WA-002c · EvolutionDriver — REMOVIDA (Evolution PROIBIDO Tier 0)
 
-> **Área:** Core
-> **Service:** `Modules\Whatsapp\Services\Drivers\EvolutionDriver`
-> **Permissão Spatie:** `whatsapp.send`
-
-**Como** Sistema
-**Quero** enviar/receber via Evolution API self-host CT 100 (Docker)
-**Para** business com volume alto evitar custo Z-API SaaS, controle total
-
-**DoD:**
-- [ ] Implementa `DriverInterface` integralmente — Send: `POST {base_url}/message/sendText/{instance}` (Evolution REST docs)
-- [ ] Header `apikey: {api_key}`
-- [ ] `ping()` chama `GET {base_url}/instance/connectionState/{instance}`
-- [ ] Container Docker compose-managed em CT 100 com Traefik label (padrão `proxmox-docker-host`):
-  - `traefik.http.routers.evolution.rule=Host(`evolution.oimpresso.local`)`
-  - Persistência dados em `/srv/docker/evolution/data` (sessão Whatsapp Web)
-- [ ] Pest: `EvolutionDriverTest` com `Http::fake()`
-- [ ] Runbook: `memory/requisitos/Whatsapp/runbooks/evolution-deploy-ct100.md`
-- [ ] **Risco aceito documentado** no class-level docblock (mesma nota Z-API)
+Anteriormente proposta como driver self-host CT 100. **Removida em 2026-05-07 (emenda 3 ADR 0096):** oimpresso/Wagner não assume responsabilidade direta por container Docker rodando Whatsapp Web. Sem terceiro pra responsabilizar pelo ban. Ganho marginal não compensa stakes operacionais. Reabrir só via nova ADR explícita.
 
 ### US-WA-003 · Enviar mensagem template (Job assíncrono)
 
