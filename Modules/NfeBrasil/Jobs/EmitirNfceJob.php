@@ -11,24 +11,31 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Modules\NfeBrasil\Events\NFCeAutorizada;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\NfeService;
 use Throwable;
 
 /**
- * US-NFE-002 fase 1 · Job NFC-e (modelo 65) — emissão a partir de venda finalizada.
+ * US-NFE-002 · Job NFC-e (modelo 65) — emissão a partir de venda finalizada.
  *
- * **Fase 1 (este PR):** wire elétrico — idempotência + log estruturado + skeleton.
- * **Fase 2 (PR futuro):** chamada real `nfephp-org/sped-nfe` + DANFE PDF + broadcast Echo.
+ * **Fase 1** (PR #193): wire elétrico — listener venda → job + idempotência.
+ * **Fase 2A** (PR #198): NfeService.emitirParaTransaction real (XML + SEFAZ).
+ * **Fase 2B** (este PR): dispatch event `NFCeAutorizada` pós-cstat 100/150.
+ * **Fase 2C** (futuro): Listener Broadcast Centrifugo `business.{id}.nfe-status`.
  *
- * Fluxo (fase 1):
- *   1. Idempotência: NfeEmissao com (business_id, transaction_id, modelo=65) já existe?
- *      → return (sem duplicar fiscal). UNIQUE constraint em DB também garante.
- *   2. Carrega Transaction (UPos legado, schema int unsigned).
- *   3. Cria NfeEmissao com status='pendente' (placeholder).
- *   4. TODO Fase 2: NfeService::emitirParaTransaction($transaction, modelo=65)
- *      → monta XML via builder sped-nfe → assina com cert A1 → envia SEFAZ →
- *      atualiza emissao.status + cstat + chave_44.
+ * Fluxo:
+ *   1. Carrega Transaction; cross-tenant guard (tx.business_id == job.businessId).
+ *   2. NfeService::emitirParaTransaction($tx, '65')
+ *      → idempotência (UNIQUE constraint + check)
+ *      → monta XML via sped-nfe builder
+ *      → assina A1 via CertificadoService
+ *      → envia SEFAZ (autoriza4 indSinc=1)
+ *      → persiste cstat + chave_44 + status
+ *      → gera DANFE PDF via DanfeService::salvar
+ *   3. Se status='autorizada' → event(NFCeAutorizada) → listeners encadeados:
+ *      - EnviarDanfeNFCePorEmail (PR #200): email pro consumidor (opt-in)
+ *      - Fase 2C futura: BroadcastStatusNfce → tela POS atualiza tempo real.
  *
  * Falha de SEFAZ (timeout, cert vencido, etc.) NÃO derruba a venda — Throwable é
  * logado e re-throwado pra queue retry (3 tentativas, backoff 60s).
@@ -95,9 +102,18 @@ class EmitirNfceJob implements ShouldQueue
                 'chave_44'       => $emissao->chave_44,
             ]);
 
-            // TODO Fase 2B: dispatch event NFCeAutorizada se status='autorizada'
-            // — listener gera DANFE PDF + envia email + broadcast Reverb
-            //   `business.{id}.nfe-status` (US-NFE-002 AC #5)
+            // Fase 2B: dispatch event quando SEFAZ autorizou. Mesmo pattern do
+            // EmitirNFeAoReceberPagamento (NFe55). Listeners encadeados:
+            //   - EnviarDanfeNFCePorEmail (PR #200): manda DANFE pro consumidor
+            //     se Transaction.contact tem email (flag opt-in)
+            //   - Fase 2C futura: BroadcastStatusNfce → Centrifugo channel
+            //     `business.{id}.nfe-status` (US-NFE-002 AC #5)
+            //
+            // Status denegada/rejeitada NÃO dispara — ficam só no log + DB pra
+            // dashboard mostrar. Event futuro NFCeRejeitada cobrirá esse caso.
+            if ($emissao->status === 'autorizada') {
+                event(new NFCeAutorizada($emissao));
+            }
         } catch (Throwable $e) {
             Log::error('NFC-e emission falhou', [
                 'business_id'    => $this->businessId,
