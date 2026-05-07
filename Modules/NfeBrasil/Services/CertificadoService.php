@@ -137,53 +137,27 @@ class CertificadoService
      * IMPORTANTE: retorno NUNCA persiste em disco em texto. Caller usa o conteúdo
      * direto no construtor da lib (sped-nfe), que mantém em memória.
      *
-     * Suporta dois schemas de nfe_certificados:
-     *   - NOVO (NfeBrasil): uuid + encrypted_password + arquivo em disco
-     *   - LEGADO (NFSe): cert_pfx_encrypted inline + senha_encrypted (Crypt::encryptString)
-     *
      * @return array{pfx_binary: string, senha: string, valido_ate: \DateTimeInterface}
      * @throws RuntimeException Quando business sem cert ativo
      */
     public function carregarParaSefaz(int $businessId): array
     {
-        // Raw query: lê a linha real independente do schema (novo ou legado NFSe)
-        $row = DB::table('nfe_certificados')
-            ->where('business_id', $businessId)
+        $cert = NfeCertificado::where('business_id', $businessId)
             ->where('ativo', true)
-            ->whereNull('deleted_at')
             ->first();
 
-        if ($row) {
-            // Schema NOVO (NfeBrasil): tem coluna uuid → cert em arquivo no disco
-            if (! empty($row->uuid ?? null)) {
-                $diskPath = sprintf('nfe-brasil/%d/cert/%s.pfx.enc', $businessId, $row->uuid);
-                if (! Storage::exists($diskPath)) {
-                    throw new RuntimeException("Arquivo do certificado ausente em disco: {$diskPath}");
-                }
-                $binary = Crypt::decrypt(Storage::get($diskPath));
-                $senha  = Crypt::decryptString($row->encrypted_password);
-
-                return [
-                    'pfx_binary' => $binary,
-                    'senha'      => $senha,
-                    'valido_ate' => $row->valido_ate,
-                    'source'     => 'nfe_brasil',
-                ];
+        if ($cert) {
+            $diskPath = sprintf('nfe-brasil/%d/cert/%s.pfx.enc', $businessId, $cert->uuid);
+            if (! Storage::exists($diskPath)) {
+                throw new RuntimeException("Arquivo do certificado ausente em disco: {$diskPath}");
             }
 
-            // Schema LEGADO (NFSe): cert_pfx_encrypted = Crypt::encryptString(base64_encode(pfxBin))
-            if (! empty($row->cert_pfx_encrypted ?? null)) {
-                Log::info('CertificadoService: schema NFSe legado detectado', ['business_id' => $businessId]);
-                $binary = base64_decode(Crypt::decryptString($row->cert_pfx_encrypted));
-                $senha  = Crypt::decryptString($row->senha_encrypted);
-
-                return [
-                    'pfx_binary' => $binary,
-                    'senha'      => $senha,
-                    'valido_ate' => $row->valido_ate,
-                    'source'     => 'nfe_certificados_nfse_legado',
-                ];
-            }
+            return [
+                'pfx_binary' => Crypt::decrypt(Storage::get($diskPath)),
+                'senha'      => Crypt::decryptString($cert->encrypted_password),
+                'valido_ate' => $cert->valido_ate,
+                'source'     => 'nfe_brasil',
+            ];
         }
 
         // Fallback ADR 0090 — lê do legado business.certificado durante coexistência
