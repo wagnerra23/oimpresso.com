@@ -76,7 +76,7 @@ beforeEach(function () {
 it('Meta GET challenge com verify_token correto retorna hub.challenge', function () {
     $uuid = Str::uuid()->toString();
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'meta_cloud',
         'meta_webhook_verify_token' => 'meta-verify-secret-123',
@@ -91,7 +91,7 @@ it('Meta GET challenge com verify_token correto retorna hub.challenge', function
 it('Meta GET challenge com verify_token errado retorna 403', function () {
     $uuid = Str::uuid()->toString();
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'meta_cloud',
         'meta_webhook_verify_token' => 'right-token',
@@ -105,7 +105,7 @@ it('Meta GET challenge com verify_token errado retorna 403', function () {
 it('Meta POST sem assinatura retorna 401', function () {
     $uuid = Str::uuid()->toString();
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'meta_cloud',
         'meta_app_secret' => 'app-secret-xyz',
@@ -119,7 +119,7 @@ it('Meta POST sem assinatura retorna 401', function () {
 it('Meta POST com HMAC inválido retorna 401', function () {
     $uuid = Str::uuid()->toString();
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'meta_cloud',
         'meta_app_secret' => 'app-secret-xyz',
@@ -140,7 +140,7 @@ it('Meta POST com HMAC válido = 200 + Job dispatched', function () {
     $uuid = Str::uuid()->toString();
     $secret = 'app-secret-xyz';
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'meta_cloud',
         'meta_app_secret' => $secret,
@@ -165,7 +165,7 @@ it('Meta POST com HMAC válido = 200 + Job dispatched', function () {
 it('Z-API POST com Client-Token inválido retorna 401', function () {
     $uuid = Str::uuid()->toString();
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'zapi',
         'zapi_client_token' => 'right-client-token',
@@ -185,7 +185,7 @@ it('Z-API POST com Client-Token válido = 200 + Job dispatched', function () {
 
     $uuid = Str::uuid()->toString();
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'zapi',
         'zapi_client_token' => 'right-client-token',

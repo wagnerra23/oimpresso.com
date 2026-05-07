@@ -143,7 +143,7 @@ it('McpAuth: token registra last_used_ip + last_used_at após sucesso', function
     }
 
     // Mock instance que find retorna
-    $userMock = (object) ['id' => 1, 'first_name' => 'Test', 'business_id' => 4];
+    $userMock = (object) ['id' => 1, 'first_name' => 'Test', 'business_id' => 1];
     $this->app->instance($userClass, $userMock);
 
     $request = \Illuminate\Http\Request::create('/api/mcp/health/auth');

@@ -114,11 +114,11 @@ it('no-op quando bot.enabled global = false', function () {
     config()->set('whatsapp.bot.enabled', false);
 
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'customer_phone' => '+5511987654321',
     ]);
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'bot_enabled' => true, // mesmo true em business
@@ -135,11 +135,11 @@ it('no-op quando bot.enabled business = false (mesmo global true)', function () 
     config()->set('whatsapp.bot.enabled', true);
 
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'customer_phone' => '+5511987654321',
     ]);
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'bot_enabled' => false, // business desligou
@@ -156,12 +156,12 @@ it('marca conversation.bot_handling=true quando ambos enabled', function () {
     config()->set('whatsapp.bot.enabled', true);
 
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'customer_phone' => '+5511987654321',
         'bot_handling' => false,
     ]);
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'driver' => 'zapi',
         'bot_enabled' => true,

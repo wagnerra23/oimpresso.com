@@ -144,7 +144,7 @@ it('usuário de biz A não vê meta de biz B via scope', function () {
     $metaB = criarMeta(7, 'fat_b', 'Faturamento B');
 
     $user = criarUsuarioTenancy(4);
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
     $this->actingAs($user);
 
     $ids = Meta::all()->pluck('id');
@@ -172,7 +172,7 @@ it('usuário comum não vê meta da plataforma (business_id null)', function () 
     criarMeta(4, 'fat_a3', 'Faturamento A3');
 
     $user = criarUsuarioTenancy(4);
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
     $this->actingAs($user);
 
     $ids = Meta::all()->pluck('id');
@@ -199,7 +199,7 @@ it('escopo aplicado por default sem callWithoutGlobalScope', function () {
     criarMeta(8, 'fat_default_b', 'Fat B Default');
 
     $user = criarUsuarioTenancy(4);
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
     $this->actingAs($user);
 
     $todos = Meta::all();
