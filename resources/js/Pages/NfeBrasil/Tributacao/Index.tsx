@@ -5,7 +5,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
-  CheckCircle2, FilePlus2, FileSpreadsheet, Package, Pencil, Percent, Printer,
+  CheckCircle2, ChevronRight, FilePlus2, FileSpreadsheet, Package, Pencil, Percent, Printer,
   Settings, ShoppingBag, Sparkles, Trash2, Zap,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -131,8 +131,8 @@ function Index({ regras, config, templates }: Props) {
             Tributação
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Cascade em 4 níveis (ADR ARQ-0006): override produto → regra exata → regra NCM padrão → defaults business.
-            Sem default configurado, emissão automática de NFe falha — comece pela <strong>configuração padrão</strong>.
+            Configure a tributação padrão do seu negócio e, se precisar, regras específicas por NCM.
+            Comece pela <strong>configuração padrão</strong> — sem ela a NFe não pode ser emitida automaticamente.
           </p>
         </header>
 
@@ -204,16 +204,17 @@ function Index({ regras, config, templates }: Props) {
         )}
 
         {/* Config default (Nível 4) */}
-        <Card>
+        <Card className={!config ? 'border-destructive/50' : undefined}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center justify-between">
-              <span className="flex items-center gap-2">
+            <CardTitle className="text-base flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 flex-wrap">
                 <Settings className="h-4 w-4" />
-                Configuração padrão (cascade Nível 4)
+                Configuração padrão
+                {!config && <Badge variant="destructive">Pendente</Badge>}
               </span>
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant={config ? 'outline' : 'default'} size="sm">
                 <Link href="/nfe-brasil/tributacao/config-default">
-                  {config ? 'Editar' : 'Configurar'}
+                  {config ? 'Editar' : 'Configurar agora'}
                 </Link>
               </Button>
             </CardTitle>
@@ -221,8 +222,7 @@ function Index({ regras, config, templates }: Props) {
           <CardContent>
             {!config ? (
               <p className="text-sm text-muted-foreground">
-                Nenhuma configuração padrão. Clique em <strong>Configurar</strong> para começar — sem isso a
-                emissão automática de cobrança recorrente falha em "TributacaoNaoConfigurada".
+                Sem isso, a NFe não será emitida automaticamente nas cobranças recorrentes.
               </p>
             ) : (
               <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
@@ -278,8 +278,11 @@ function Index({ regras, config, templates }: Props) {
         {/* Regras NCM (Níveis 2 e 3) */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center justify-between">
-              <span>Regras NCM ({regras.length})</span>
+            <CardTitle className="text-base flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2">
+                Regras NCM
+                <Badge variant="secondary">{regras.length}</Badge>
+              </span>
               <div className="flex gap-2">
                 <Button asChild size="sm" variant="outline">
                   <Link href="/nfe-brasil/tributacao/import">
@@ -287,7 +290,7 @@ function Index({ regras, config, templates }: Props) {
                     Import CSV
                   </Link>
                 </Button>
-                <Button asChild size="sm">
+                <Button asChild size="sm" variant="outline">
                   <Link href="/nfe-brasil/tributacao/regras/create">
                     <FilePlus2 className="h-4 w-4 mr-1.5" />
                     Nova regra
@@ -296,7 +299,7 @@ function Index({ regras, config, templates }: Props) {
               </div>
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              UF destino vazio = "todas as UFs" (Nível 3). UF destino específica = Nível 2.
+              Deixe a UF destino em branco para a regra valer para todas as UFs.
             </p>
           </CardHeader>
           <CardContent>
@@ -354,11 +357,16 @@ function Index({ regras, config, templates }: Props) {
           </CardContent>
         </Card>
 
-        <p className="text-xs text-muted-foreground">
-          Cascade: <strong>Nível 1</strong> override por produto · <strong>Nível 2</strong> regra exata
-          (NCM + UF origem + UF destino) · <strong>Nível 3</strong> regra padrão NCM (UF destino vazia)
-          · <strong>Nível 4</strong> defaults business.
-        </p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+          <span className="font-medium">Ordem de prioridade:</span>
+          <Badge variant="secondary">1 · Produto</Badge>
+          <ChevronRight className="h-3 w-3 shrink-0" />
+          <Badge variant="secondary">2 · NCM + UF origem + destino</Badge>
+          <ChevronRight className="h-3 w-3 shrink-0" />
+          <Badge variant="secondary">3 · NCM (qualquer UF destino)</Badge>
+          <ChevronRight className="h-3 w-3 shrink-0" />
+          <Badge variant="secondary">4 · Padrão</Badge>
+        </div>
       </div>
     </>
   );
