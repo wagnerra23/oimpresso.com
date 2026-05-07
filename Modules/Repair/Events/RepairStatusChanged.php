@@ -14,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
  * dispara mensagem Whatsapp ao cliente quando status vai pra `ready`/`waiting_parts`
  * (cumpre [ADR Repair tech/0001](../../../requisitos/Repair/adr/tech/0001-auto-sms-em-mudanca-de-status-critico.md)).
  *
- * **Como disparar (a fazer em PR coordenado com Felipe/Maíra):**
+ * **Como disparar (a fazer em PR coordenado com Felipe/Maiara):**
  *
  * No `JobSheetController::update` (linha ~724 onde `status_id` é atualizado):
  *

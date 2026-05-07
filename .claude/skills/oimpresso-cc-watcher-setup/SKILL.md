@@ -464,7 +464,7 @@ Próximo: trabalhe normalmente. O watcher tail no fundo, batch a cada 5s.
 
 Se Wagner está pedindo "configure pra todo time", a skill pode:
 
-1. Listar emails Felipe/Maíra/Luiz/Eliana
+1. Listar emails Felipe/Maiara/Luiz/Eliana
 2. Pra cada um, gerar token via `php artisan copiloto:mcp:gerar-token --user-email=X`
 3. Coletar tokens num arquivo seguro (Vaultwarden export)
 4. Mandar email/Slack pra cada dev com link MEMORY_TEAM_ONBOARDING.md + token + instrução pra rodar essa skill local

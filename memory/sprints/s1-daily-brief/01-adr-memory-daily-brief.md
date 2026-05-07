@@ -146,5 +146,5 @@ Sucesso = `tokens_in_avg` cai ≥40% E `brief_first_rate` ≥0.9.
 - [ ] Cron rodando 6x/dia sem falha por 48h
 - [ ] Tool MCP registrada e auditada
 - [ ] Skill commitada em `.claude/skills/brief-first/`
-- [ ] Time avisado (Felipe/Maíra/Luiz/Eliana)
+- [ ] Time avisado (Felipe/Maiara/Luiz/Eliana)
 - [ ] Métricas semana 1 coletadas → review

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * MEM-CC-1 (ADR 0054 a criar) — Sessions Claude Code do time, agregadas no servidor.
  *
- * Cada dev (Wagner, Felipe, Maíra, Luiz, Eliana) ingere via watcher local
+ * Cada dev (Wagner, Felipe, Maiara, Luiz, Eliana) ingere via watcher local
  * `~/.claude/projects/*.jsonl` → POST /api/cc/ingest. 1 linha aqui por session
  * (UUID gerado pelo Claude Code). Idempotente via `session_uuid UNIQUE`.
  *

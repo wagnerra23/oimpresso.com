@@ -162,7 +162,7 @@ class McpScopesSeeder extends Seeder
         [
             'slug'              => 'copiloto.cc.read.team',
             'nome'              => 'Ver sessões Claude Code do time',
-            'descricao'         => 'Cross-dev search e read em /copiloto/admin/cc-sessions. Felipe[F], Maíra[M], devs sêniores.',
+            'descricao'         => 'Cross-dev search e read em /copiloto/admin/cc-sessions. Felipe[F], Maiara[M], devs sêniores.',
             'resources_pattern' => null,
             'tools_pattern'     => 'cc-search',
             'is_destructive'    => false,

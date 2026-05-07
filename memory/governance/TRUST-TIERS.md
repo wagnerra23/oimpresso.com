@@ -74,7 +74,7 @@ Este documento operacionaliza o Artigo 5 da Constituição. Define os 5 tiers, c
 
 ### L2 — OPERATOR (Product devs com IA pareada)
 
-**Quem ocupa.** Wagner, Felipe, Maíra (humano dev) + Claude Code instances pareadas (IA). IA L2 carrega Skills obrigatórias antes de qualquer ação.
+**Quem ocupa.** Wagner, Felipe, Maiara (humano dev) + Claude Code instances pareadas (IA). IA L2 carrega Skills obrigatórias antes de qualquer ação.
 
 **Capabilities.**
 

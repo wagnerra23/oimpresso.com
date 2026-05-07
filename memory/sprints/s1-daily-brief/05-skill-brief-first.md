@@ -37,7 +37,7 @@ applies_to:
 ## Quando ativa
 
 **Sempre.** Esta skill é Tier A — carrega em todo system prompt do Oimpresso.
-Toda sessão de Claude Code (Wagner, Felipe, Maíra, Luiz, Eliana, ou qualquer
+Toda sessão de Claude Code (Wagner, Felipe, Maiara, Luiz, Eliana, ou qualquer
 agente automatizado) deve seguir este protocolo no início.
 
 ## Protocolo obrigatório

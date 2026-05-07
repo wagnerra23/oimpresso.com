@@ -32,7 +32,7 @@ Módulo pra **gerenciar Software Requirements Specifications** dentro do oimpres
 |---|---|
 | Wagner (superadmin) | CRUD completo + aprovar |
 | Gestor business (cliente) | Ler + comentar specs do próprio business (se hipótese B) |
-| Dev (Felipe/Maíra/Luiz) | Ler specs aprovadas + criar drafts |
+| Dev (Felipe/Maiara/Luiz) | Ler specs aprovadas + criar drafts |
 
 ## User stories (placeholder — preencher após decidir hipótese)
 

@@ -134,6 +134,6 @@ Visível só com permission `ads.admin.skills.read` ou `ads.admin.policies.read`
 
 1. **Aceitar proposta + pode iniciar Sprint A do CYCLE-02** assim que CYCLE-01 fechar (12/05).
 2. **Ajustar escopo** (incluir/excluir capacidades, mudar layout, mudar prioridade).
-3. **Pausar pra discutir UI design** com Maíra/Felipe antes de Sprint B.
+3. **Pausar pra discutir UI design** com Maiara/Felipe antes de Sprint B.
 
 Recomendado: **(1)** — proposta enxuta, V1 leitura, sem promessa de capacidades V2 que talvez não sejam necessárias.

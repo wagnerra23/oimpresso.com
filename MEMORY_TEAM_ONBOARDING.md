@@ -1,6 +1,6 @@
 # Onboarding Claude — Time oimpresso
 
-> **Pra quem:** dev novo (Felipe / Maíra / Luiz / Eliana) ou Wagner adicionando alguém.
+> **Pra quem:** dev novo (Felipe / Maiara / Luiz / Eliana) ou Wagner adicionando alguém.
 >
 > **Pra quê:** conectar Claude ao MCP server do time — acesso a ADRs, session logs, memória semântica, estado do cycle, custo per-user.
 >
@@ -72,7 +72,7 @@ node scripts/generate-dxt.js --all
 
 ### Via UI (recomendado)
 1. Acessa `https://oimpresso.com/copiloto/admin/team`
-2. Encontra o nome do dev na tabela (Felipe/Maíra/Luiz/Eliana)
+2. Encontra o nome do dev na tabela (Felipe/Maiara/Luiz/Eliana)
 3. Clica `+ Token`
 4. Modal mostra `mcp_xxxx...` (apenas 1 vez!)
 5. Copia

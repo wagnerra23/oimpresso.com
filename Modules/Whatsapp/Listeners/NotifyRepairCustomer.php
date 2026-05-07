@@ -19,7 +19,7 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
  * Lote 2c (este) entrega o listener. Plug do Repair (criar evento próprio
  * `Modules\Repair\Events\RepairStatusChanged` + dispatch dele em
  * `RepairStatusController` quando OS muda) fica pra Lote 2d (depende de
- * coordenação com Felipe/Maíra que mantêm o Repair).
+ * coordenação com Felipe/Maiara que mantêm o Repair).
  *
  * Enquanto isso, este listener pode ser invocado manualmente via:
  *   `app(NotifyRepairCustomer::class)->handle($repair, $newStatus);`

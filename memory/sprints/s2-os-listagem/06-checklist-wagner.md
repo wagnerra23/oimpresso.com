@@ -136,7 +136,7 @@ Manualmente:
 3 usuários internos:
 
 - Wagner [W]
-- Maíra [M]
+- Maiara [M]
 - Felipe [F]
 
 Cada um usa por 48h. Critérios:
@@ -216,7 +216,7 @@ Ver [`07-rollback-plan.md`](07-rollback-plan.md). TL;DR: `MWART_REPAIR_INDEX=fal
 Wagner ficou sem créditos por ~3 dias após criar este dossier (commit do dia, ver session log). Sprint fica em **estado planejado, não implementado**:
 
 - ✅ Dossier completo (este PR2, se mergeado)
-- ⏳ Código (PR3) pendente — quando créditos voltarem ou Felipe/Maíra pegarem
+- ⏳ Código (PR3) pendente — quando créditos voltarem ou Felipe/Maiara pegarem
 - ⏳ Soak staging — depois do PR3
 - ⏳ Beta prod — depois do soak
 
