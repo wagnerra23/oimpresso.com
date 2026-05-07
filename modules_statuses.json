@@ -33,6 +33,6 @@
     "Spreadsheet": true,
     "Superadmin": true,
     "TeamMcp": true,
-    "Whatsapp": false,
+    "Whatsapp": true,
     "Woocommerce": true
 }
