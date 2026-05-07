@@ -6,6 +6,7 @@ use Modules\NfeBrasil\Http\Controllers\ConfigDefaultController;
 use Modules\NfeBrasil\Http\Controllers\ImportRegrasController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
+use Modules\NfeBrasil\Http\Controllers\NfeStatusController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 
 /*
@@ -73,4 +74,29 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('import', [ImportRegrasController::class, 'show'])->name('import.show');
         Route::post('import/preview', [ImportRegrasController::class, 'preview'])->name('import.preview');
         Route::post('import/aplicar', [ImportRegrasController::class, 'aplicar'])->name('import.aplicar');
+    });
+
+// US-NFE-002 fase 2C — endpoint JSON polling-friendly pra status NFC-e pós-venda.
+// UI cockpit POS chama a cada 2s após dispatch do Job, até receber status terminal
+// (autorizada/rejeitada/denegada). Não exige broadcast daemon — funciona em runtime
+// Hostinger sem violar ADR 0058/0062.
+Route::middleware(['web', 'auth', 'SetSessionData'])
+    ->prefix('nfe-brasil/api')
+    ->name('nfe-brasil.api.')
+    ->group(function () {
+        Route::get('transactions/{tx}/nfe-status', [NfeStatusController::class, 'show'])
+            ->whereNumber('tx')
+            ->name('transactions.nfe-status');
+    });
+
+// Page Inertia demo da fase 2C — badge reativo via useNfceStatus.
+// Acesso: /nfe-brasil/transactions/{tx}/status. Usuário consulta status de
+// uma venda já finalizada; serve também de dogfooding antes integração POS.
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('nfe-brasil/transactions')
+    ->name('nfe-brasil.transactions.')
+    ->group(function () {
+        Route::get('{tx}/status', [NfeStatusController::class, 'showPage'])
+            ->whereNumber('tx')
+            ->name('status');
     });
