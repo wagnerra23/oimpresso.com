@@ -4,18 +4,17 @@ namespace Modules\NFSe\Console\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Modules\NFSe\Models\NfseCertificado;
+use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NFSe\Models\NfseProviderConfig;
 
 /**
  * Importa certificado A1 (.pfx) para o cofre criptografado em nfe_certificados.
  *
+ * Delegado ao CertificadoService (NfeBrasil) — schema unificado após
+ * migration 2026_05_07_210000.
+ *
  * Uso:
  *   php artisan nfse:importar-cert --pfx=/caminho/cert.pfx --senha=SUA_SENHA --business=1
- *
- * O arquivo PFX nunca sai do servidor — é lido localmente, criptografado (AES-256)
- * e salvo no banco. A senha de transporte e o cert em disco devem ser apagados após
- * a importação bem-sucedida.
  */
 class ImportarCertificadoCommand extends Command
 {
@@ -26,10 +25,10 @@ class ImportarCertificadoCommand extends Command
 
     protected $description = 'Importa certificado A1 (.pfx) para o banco de dados criptografado';
 
-    public function handle(): int
+    public function handle(CertificadoService $service): int
     {
-        $pfxPath   = $this->option('pfx');
-        $senha     = $this->option('senha');
+        $pfxPath    = $this->option('pfx');
+        $senha      = $this->option('senha');
         $businessId = (int) $this->option('business');
 
         if (! $pfxPath || ! $senha) {
@@ -42,44 +41,25 @@ class ImportarCertificadoCommand extends Command
             return self::FAILURE;
         }
 
-        $pfxContent = file_get_contents($pfxPath);
+        try {
+            $pfxBase64 = base64_encode(file_get_contents($pfxPath));
+            $cert      = $service->salvar($businessId, $pfxBase64, $senha);
 
-        // Valida senha + extrai dados do cert
-        $certs = [];
-        if (! openssl_pkcs12_read($pfxContent, $certs, $senha)) {
-            $this->error('Senha incorreta ou arquivo PFX inválido.');
+            // Vincula à config do provider NFSe se existir
+            NfseProviderConfig::where('business_id', $businessId)
+                ->update(['cert_id' => $cert->id, 'updated_at' => now()]);
+
+            $this->info("Certificado importado com sucesso. ID: {$cert->id}");
+            $this->info("CNPJ: {$cert->cnpj_titular} | Válido até: {$cert->valido_ate->format('d/m/Y')}");
+            $this->warn('Recomendado: apague o .pfx do disco após confirmar emissão em homologação.');
+
+            return self::SUCCESS;
+        } catch (\InvalidArgumentException $e) {
+            $this->error('Certificado inválido: ' . $e->getMessage());
+            return self::FAILURE;
+        } catch (\Throwable $e) {
+            $this->error('Erro ao salvar certificado: ' . $e->getMessage());
             return self::FAILURE;
         }
-
-        $parsed     = openssl_x509_parse($certs['cert']);
-        $validoAte  = Carbon::createFromTimestamp($parsed['validTo_time_t']);
-        $cn         = $parsed['subject']['CN'] ?? '';
-
-        // Extrai CNPJ do CN (formato "NOME:CNPJ")
-        $titularCnpj = null;
-        $titularNome = $cn;
-        if (str_contains($cn, ':')) {
-            [$titularNome, $titularCnpj] = explode(':', $cn, 2);
-        }
-
-        $this->info("Certificado: {$cn}");
-        $this->info("Válido até: {$validoAte->format('d/m/Y')}");
-
-        if ($validoAte->isPast()) {
-            $this->error('Certificado EXPIRADO. Importe um cert válido.');
-            return self::FAILURE;
-        }
-
-        $certReg = NfseCertificado::uploadCert($businessId, base64_encode($pfxContent), $senha);
-
-        // Vincula à config do provider
-        NfseProviderConfig::where('business_id', $businessId)
-            ->update(['cert_id' => $certReg->id, 'updated_at' => now()]);
-
-        $this->info("Certificado importado com sucesso. ID: {$certReg->id}");
-        $this->info("CNPJ: {$titularCnpj} | Nome: {$titularNome}");
-        $this->warn('Recomendado: apague o .pfx do disco após confirmar emissão em homologação.');
-
-        return self::SUCCESS;
     }
 }

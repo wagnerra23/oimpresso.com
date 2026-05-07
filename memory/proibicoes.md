@@ -8,6 +8,7 @@
 - ⛔ **Nunca rodar `composer update` (sem `--lock`) em servidor de produção** sem PR aprovado
 - ⛔ **Nunca alterar branch ativa em produção pra "testar"** (Hostinger ou CT 100) — usar worktree e limpar depois
 - ⛔ **Nunca editar arquivo direto via SSH** sem commit no git — drift mata governança
+- ⛔ **DDL direto em prod** (`ALTER TABLE`, `CREATE/REPLACE PROCEDURE` via SQL prompt ou phpMyAdmin) sem migration — o check `procedure_drift` em `jana:health-check` detecta e alerta; o `ProcedureDriftSnapshotTest` quebra em CI (US-COPI-092, ADR 0094 §5 SoC brutal)
 - ⛔ **Nunca rodar daemons no Hostinger** (Reverb, Centrifugo, Horizon, autossh, Meilisearch). Pra daemons → CT 100
 
 ## Código
