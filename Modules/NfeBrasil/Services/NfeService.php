@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services;
 
+use App\Transaction;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -212,6 +213,150 @@ class NfeService
     }
 
     /**
+     * US-NFE-002 fase 2A · Emite NFC-e (modelo 65) a partir de uma Transaction
+     * de venda finalizada no POS.
+     *
+     * **Diferença vs `emitirParaInvoice`:**
+     *   - Modelo 65 (NFC-e) em vez de 55 (NFe B2B)
+     *   - Gatilho: venda balcão (Listener `SellCreatedOrModified`)
+     *   - Destinatário: pode ser anônimo (consumidor final) — CPF/CNPJ opcional
+     *     no NFC-e, diferente de NFe55 que exige doc válido
+     *   - `ind_pres` = 1 (presencial — venda física no balcão)
+     *   - `ind_final` = 1 (consumidor final B2C)
+     *
+     * **Idempotência:** `transaction_id = $tx->id` UNIQUE em `nfe_emissoes`.
+     * Re-chamada com mesma transaction = retorna emissão existente.
+     *
+     * **Pré-requisitos:**
+     *   1. `nfe_certificados` ativo (CertificadoService)
+     *   2. `nfe_business_configs.tributacao_default.ncm_default` configurado
+     *   3. Transaction `final_total > 0`
+     *
+     * **Limitações fase 2A** (refinar em fase 2B):
+     *   - Item da nota é **placeholder único** (nome="Venda PDV #X") — pra MVP
+     *     não enumeramos `transaction_sell_lines` ainda. Cada linha vira 1 row
+     *     do XML quando enumeração for adicionada (fase 2B).
+     *   - CPF do consumidor não capturado da Transaction — fica anônimo (CNPJ
+     *     '99999999999999' fictício; SEFAZ aceita NFC-e sem doc destinatário
+     *     se valor < R$ [redacted Tier 0]).
+     *   - Pagamento `tpag='99'` (outros) — fase 2B detecta forma real via
+     *     `transaction_payments`.
+     *
+     * @throws RuntimeException Quando `final_total <= 0`, ncm_default ausente, ou business não encontrado.
+     */
+    public function emitirParaTransaction(Transaction $tx, string $modelo = '65'): NfeEmissao
+    {
+        $businessId = (int) $tx->business_id;
+
+        if ((float) $tx->final_total <= 0) {
+            throw new RuntimeException(
+                "Transaction {$tx->id} sem valor positivo (final_total={$tx->final_total}) — não emite NFC-e."
+            );
+        }
+
+        $config = NfeBusinessConfig::where('business_id', $businessId)->first();
+        $business = DB::table('business')->where('id', $businessId)->first();
+        if (! $business) {
+            throw new RuntimeException("Business {$businessId} não encontrado.");
+        }
+
+        $ncmDefault = (string) ($config?->tributacao_default['ncm_default']
+            ?? $business->ncm_padrao
+            ?? '');
+        if (strlen($ncmDefault) !== 8) {
+            throw new RuntimeException(
+                "Business {$businessId} sem NCM padrão configurado. " .
+                "Aplique um template em /nfe-brasil/tributacao OU configure `tributacao_default.ncm_default`."
+            );
+        }
+
+        $ufOrigem = $this->resolverUF($business);
+
+        // MotorTributarioService cascade — ADR ARQ-0006
+        $motor = $this->motor ?? app(MotorTributarioService::class);
+        $tributo = $motor->calcular(
+            new ProdutoFiscalContext(
+                ncm:         $ncmDefault,
+                valor:       (float) $tx->final_total,
+                description: "Venda PDV #{$tx->id}",
+            ),
+            businessId: $businessId,
+            ufOrigem:   $ufOrigem,
+            ufDestino:  $ufOrigem, // NFC-e é sempre intra-estadual (varejo balcão)
+        );
+
+        $valorTotal = (float) $tx->final_total;
+
+        $dadosNfe = [
+            'transaction_id' => $tx->id,
+            'modelo'         => $modelo,
+            'nat_op'         => 'VENDA AO CONSUMIDOR',
+            'dest' => [
+                // NFC-e B2C anônimo: doc é opcional. Se Transaction tiver contact_id
+                // com CPF, fase 2B preenche. Por ora, default anônimo.
+                'nome'         => 'CONSUMIDOR FINAL',
+                'ind_ie_dest'  => '9', // 9 = não contribuinte (B2C balcão)
+                'logradouro'   => 'NAO INFORMADO',
+                'numero'       => 'SN',
+                'bairro'       => 'CENTRO',
+                'municipio'    => 'NAO INFORMADO',
+                'cod_municipio' => '9999999', // placeholder; fase 2B usa cidade do business
+                'uf'           => $ufOrigem,
+                'cep'          => '00000000',
+            ],
+            'dets' => [[
+                'cprod'   => 'PDV-' . $tx->id,
+                'xprod'   => substr("Venda PDV #{$tx->id}", 0, 120),
+                'ncm'     => $ncmDefault,
+                'cfop'    => $tributo->cfop,
+                'ucm'     => 'UN',
+                'qcom'    => 1.0,
+                'vuncom'  => $valorTotal,
+                'vprod'   => $valorTotal,
+                'utrib'   => 'UN',
+                'qtrib'   => 1.0,
+                'vuntrib' => $valorTotal,
+                'ind_tot' => 1,
+                'icms'    => [
+                    'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
+                    'orig'      => 0,
+                    'vbc'       => 0,
+                    'picms'     => $tributo->aliquota_icms,
+                    'vicms'     => $tributo->valor_icms,
+                ],
+                'pis'     => [
+                    'cst'   => '07', // 07 = isenta — Simples Nacional default
+                    'vbc'   => 0,
+                    'ppis'  => $tributo->aliquota_pis,
+                    'vpis'  => $tributo->valor_pis,
+                ],
+                'cofins'  => [
+                    'cst'      => '07',
+                    'vbc'      => 0,
+                    'pcofins'  => $tributo->aliquota_cofins,
+                    'vcofins'  => $tributo->valor_cofins,
+                ],
+            ]],
+            'total' => [
+                'v_prod'    => $valorTotal,
+                'v_bc_icms' => 0,
+                'v_icms'    => $tributo->valor_icms,
+                'v_pis'     => $tributo->valor_pis,
+                'v_cofins'  => $tributo->valor_cofins,
+                'v_nf'      => $valorTotal,
+                'v_desc'    => 0,
+                'v_frete'   => 0,
+            ],
+            // tpag='01' = dinheiro (default conservador). Fase 2B detecta via transaction_payments.
+            'pag'         => [['tpag' => '01', 'vpag' => $valorTotal]],
+            'valor_total' => $valorTotal,
+            'inf_cpl'     => "Venda PDV #{$tx->id}.",
+        ];
+
+        return $this->emitir($businessId, $dadosNfe);
+    }
+
+    /**
      * Emite NF-e via SEFAZ e persiste resultado em nfe_emissoes.
      *
      * @throws RuntimeException Se cert ausente, business não encontrado, ou falha de infra
@@ -272,7 +417,7 @@ class NfeService
 
             try {
                 $xml       = $this->buildXml($business, $emissao, $dadosNfe, $emitOverride);
-                $tools     = $this->criarTools($business, $certData, $emitOverride);
+                $tools     = $this->criarTools($business, $certData, $emitOverride, (string) $modelo);
                 $xmlSigned = $tools->signNFe($xml);
 
                 $idLote  = str_pad((string) $emissao->id, 15, '0', STR_PAD_LEFT);
@@ -327,7 +472,7 @@ class NfeService
     // Privados
     // ────────────────────────────────────────────────────────────────────────
 
-    private function criarTools(object $business, array $certData, array $emitOverride): Tools
+    private function criarTools(object $business, array $certData, array $emitOverride, string $modelo = '55'): Tools
     {
         $configJson = $this->montarConfigSefaz($business, $emitOverride);
 
@@ -338,7 +483,9 @@ class NfeService
 
         $cert  = Certificate::readPfx($certData['pfx_binary'], $certData['senha']);
         $tools = new Tools($configJson, $cert);
-        $tools->model('55');
+        // Modelo dinâmico: '55' (NFe B2B) | '65' (NFC-e B2C/POS) | '67' (CT-e — futuro)
+        // Default '55' preserva backwards compat com `emitirParaInvoice` (US-RB-044).
+        $tools->model($modelo);
         return $tools;
     }
 

@@ -12,6 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Services\NfeService;
 use Throwable;
 
 /**
@@ -55,29 +56,20 @@ class EmitirNfceJob implements ShouldQueue
         public readonly int $transactionId,
     ) {}
 
-    public function handle(): void
+    /**
+     * Fase 2A: chama `NfeService::emitirParaTransaction()` que monta XML +
+     * assina A1 + envia SEFAZ + persiste em nfe_emissoes com cstat real.
+     *
+     * Idempotência ainda no service (UNIQUE constraint + check explícito).
+     * Fase 1 do Job era só placeholder — agora chama service de verdade.
+     */
+    public function handle(NfeService $service): void
     {
         Log::info('NFC-e emission requested', [
             'business_id'    => $this->businessId,
             'transaction_id' => $this->transactionId,
             'modelo'         => 65,
         ]);
-
-        // Idempotência: re-dispatch da mesma venda = no-op silencioso.
-        $existing = NfeEmissao::where('business_id', $this->businessId)
-            ->where('transaction_id', $this->transactionId)
-            ->where('modelo', 65)
-            ->first();
-
-        if ($existing !== null) {
-            Log::info('NFC-e emissão já existe — idempotente, no-op', [
-                'business_id'    => $this->businessId,
-                'transaction_id' => $this->transactionId,
-                'emissao_id'     => $existing->id,
-                'status'         => $existing->status,
-            ]);
-            return;
-        }
 
         $transaction = Transaction::find($this->transactionId);
         if (! $transaction || (int) $transaction->business_id !== $this->businessId) {
@@ -89,33 +81,23 @@ class EmitirNfceJob implements ShouldQueue
         }
 
         try {
-            // Placeholder enquanto Fase 2 não implementa NfeService::emitirParaTransaction.
-            // Cria emissão `pendente` pra dashboard refletir intenção; Fase 2 atualiza
-            // o mesmo registro com cstat/status real após SEFAZ retornar.
-            $emissao = NfeEmissao::create([
-                'business_id'    => $this->businessId,
-                'transaction_id' => $this->transactionId,
-                'modelo'         => 65,
-                'serie'          => '1',
-                'numero'         => 0, // Fase 2 popula via NfeService::proximoNumeroLocked
-                'status'         => 'pendente',
-                'valor_total'    => $transaction->final_total ?? 0,
-                'metadata'       => ['fase' => '1-skeleton'],
-            ]);
+            // Fase 2A: chamada real ao NfeService.
+            // Service cuida de: idempotência (UNIQUE), próximo número locked,
+            // build XML, assinatura A1, envio SEFAZ, persistência cstat/chave_44.
+            $emissao = $service->emitirParaTransaction($transaction, '65');
 
-            Log::info('NFC-e emissão skeleton criada (Fase 1) — aguardando submissão SEFAZ Fase 2', [
+            Log::info('NFC-e emissão processada via NfeService', [
                 'business_id'    => $this->businessId,
                 'transaction_id' => $this->transactionId,
                 'emissao_id'     => $emissao->id,
+                'status'         => $emissao->status,
+                'cstat'          => $emissao->cstat,
+                'chave_44'       => $emissao->chave_44,
             ]);
 
-            // TODO Fase 2: chamar NfeService::emitirParaTransaction($transaction, 65, $emissao);
-            //  — monta XML via sped-nfe builder
-            //  — assina com cert A1 via CertificadoService
-            //  — envia SEFAZ → atualiza $emissao->cstat + status + chave_44
-            //  — gera DANFE PDF via sped-da
-            //  — dispara event NFCeAutorizada se cstat 100
-            //  — broadcast `business.{id}.nfe-status` via Reverb (US-NFE-002 AC #5)
+            // TODO Fase 2B: dispatch event NFCeAutorizada se status='autorizada'
+            // — listener gera DANFE PDF + envia email + broadcast Reverb
+            //   `business.{id}.nfe-status` (US-NFE-002 AC #5)
         } catch (Throwable $e) {
             Log::error('NFC-e emission falhou', [
                 'business_id'    => $this->businessId,
