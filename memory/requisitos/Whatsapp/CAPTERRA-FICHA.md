@@ -18,18 +18,20 @@
 | 8 | **Wati** | Oficial BSP | Hong Kong | `wati.io` | SaaS pronto pra PME, no-code |
 | 9 | **Sinch** | Oficial BSP | Suécia | `sinch.com` | Telco-grade global |
 | 10 | **Infobip** | Oficial BSP | Croácia | `infobip.com` | Enterprise telco |
-| 11 | **Z-API** | Não-oficial (Baileys-based) | Brasil | `z-api.io` | **DRIVER DEFAULT** — ZapiDriver Sprint 1 (mercado BR PME, ban risk MUITO ALTO mitigado por fallback obrigatório) |
-| ❌ | ~~Evolution API~~ | Não-oficial (Baileys-based) | Brasil (community open-source) | `evolution-api.com` | **PROIBIDO Tier 0** — self-host CT 100 = oimpresso direto na linha de fogo, sem terceiro pra responsabilizar |
-| ❌ | ~~whatsapp-web.js~~ | Não-oficial (lib JS pura) | community | `wwebjs.dev` | **PROIBIDO Tier 0** (mesmo motivo Evolution + lib JS exige daemon Node próprio) |
-| ❌ | ~~Baileys (puro)~~ | Não-oficial (lib JS pura) | community | `github.com/WhiskeySockets/Baileys` | **PROIBIDO Tier 0** (raiz de Evolution/Z-API; lib JS, requereria daemon Node próprio) |
+| 11 | **Z-API** | Não-oficial (Baileys-based) | Brasil | `z-api.io` | **DRIVER DEFAULT Sprint 1** — onboarding 5 min, ban risk MUITO ALTO mitigado por fallback obrigatório |
+| 12 | **Baileys (lib raiz)** | Não-oficial (lib JS pura) | community | `github.com/WhiskeySockets/Baileys` | **DRIVER CUSTOM Sprint 3** — daemon Node próprio CT 100 (`BaileysDriver`); estrutura customizada de atendimento autorizada por Wagner emenda 4 (razões concretas: Evolution baniu, schema ruim, falta observabilidade) |
+| ❌ | ~~Evolution API~~ | Não-oficial (Baileys-based) | Brasil (community open-source) | `evolution-api.com` | **PROIBIDO permanente** — Wagner viu números banidos em produção + schema não atende + falta observabilidade |
+| ❌ | ~~whatsapp-web.js~~ | Não-oficial (lib JS pura) | community | `wwebjs.dev` | **PROIBIDO** (sobreposição funcional com BaileysDriver custom; sem suporte comercial; lib mais antiga) |
 
-> **Decisão final ADR 0096 (emenda 3, 2026-05-07):**
+> **Decisão final ADR 0096 (após emendas 1-4 de 2026-05-07):**
 >
-> - **Z-API = DRIVER DEFAULT** — mercado BR PME real, onboarding 5 min, freeform sem janela 24h. Risco ban MUITO ALTO mitigado por: fallback Meta Cloud OBRIGATÓRIO (gating FormRequest) + termo LGPD assinado + `WhatsappDriverHealthCheck` (6h em 6h) + fallback automático Z-API → Meta Cloud.
-> - **Meta Cloud = fallback obrigatório** (e default opcional pra enterprise compliance). Free 1k conv/mês. Sem risco ban.
-> - **Evolution / wwebjs / Baileys puro = PROIBIDOS Tier 0** — self-host = oimpresso responsável direto. Sem terceiro responsabilizável. Stakes operacionais altos demais pro ganho marginal.
+> - **Z-API = DRIVER DEFAULT Sprint 1** — mercado BR PME real, onboarding 5 min. Risco ban MUITO ALTO mitigado por: fallback Meta Cloud OBRIGATÓRIO + termo LGPD + `WhatsappDriverHealthCheck` + fallback automático.
+> - **Meta Cloud = fallback obrigatório Sprint 1** (e default opcional pra enterprise compliance). Free 1k conv/mês.
+> - **`BaileysDriver` custom = Sprint 3** — daemon Node CT 100 próprio rodando lib `@whiskeysockets/baileys`. Schema/logs/métricas/health check sob nosso controle. Justificativa: Wagner sentiu na pele bans + schema ruim + falta de observabilidade do Evolution; quer construir estrutura customizada de atendimento.
+> - **Evolution = PROIBIDO permanente** — bans em produção, schema não atende, observabilidade ruim.
+> - **whatsapp-web.js = PROIBIDO** — sobreposição funcional com BaileysDriver custom.
 >
-> Razão da assimetria Z-API permitido / Evolution proibido: **terceirização do risco**. Z-API SaaS responde pelo ban; Evolution self-host CT 100 = oimpresso/Wagner responde direto. Reabrir Evolution só via nova ADR explícita.
+> Razão da assimetria Baileys puro autorizado / Evolution proibido: nenhuma assimetria filosófica — Wagner já tentou Evolution e não funcionou pra ele (3 razões concretas). Construir BaileysDriver custom resolve as 3 dores (schema próprio, logs próprios, métricas próprias).
 
 ## 2. Capacidades baseline do mercado (P0/P1/P2/P3)
 
@@ -108,7 +110,7 @@
 - **Compliance vencedor:** Meta Cloud (oficial Meta).
 - **Estratégia oimpresso:** **Z-API ativa hoje (5 min) + Meta Cloud aprovando em paralelo (1-3 dias) como rede de segurança** — wizard 2 passos obrigatórios na UI Settings. Em caso de ban Z-API, sistema troca pra Meta Cloud automaticamente sem intervenção humana.
 
-## 4. Z-API como driver default — risco aceito conscientemente (emenda 3 ADR 0096)
+## 4. Z-API default Sprint 1 + BaileysDriver custom Sprint 3 — risco aceito conscientemente (emendas 3 e 4 ADR 0096)
 
 A "verdade prática" do mercado brasileiro de PME é Whatsapp via lib não-oficial. Wagner aceitou em 2026-05-07 (emenda 3) **promover Z-API a driver default**, com Meta Cloud como rede de segurança obrigatória.
 
@@ -127,30 +129,34 @@ A "verdade prática" do mercado brasileiro de PME é Whatsapp via lib não-ofici
 3. **Sem janela 24h restritiva** — manda freeform a qualquer hora, sem HSM. Pra dunning/cobrança simples destrava 80% do caso de uso.
 4. **Custo cabível no Pro R$ [redacted Tier 0]/mês** — entra direto no plano sem comer margem.
 
-### Por que Evolution NÃO pode ser default (PROIBIDO)
+### Por que Evolution PROIBIDO permanente (não Tier 0 abstrato — razões concretas Wagner)
 
-| Critério | Z-API SaaS | Evolution self-host CT 100 |
+| Critério | Evolution real (experiência Wagner) | BaileysDriver custom Sprint 3 |
 |---|---|---|
-| Quem assume risco do ban | Empresa terceira (Z-API) | **oimpresso/Wagner direto** |
-| Quem responde por LGPD na cadeia | Contrato Z-API (BR) | **oimpresso direto** |
-| Quem patch quando Meta TOS muda | Time pago Z-API (~1-3d) | Comunidade open-source (~dias-semanas) |
-| Recuperação após ban | Recriar instance Z-API | **Recuperar número pessoal** |
-| Stakes operacionais | Limitados (R$ [redacted Tier 0]/mês perdidos) | **Reputação oimpresso direta com cliente final do tenant** |
+| **Bans Meta** | **Acontecendo em produção** (motivo principal) | Mesmo risco, mas com observabilidade nossa pra detectar/agir rápido |
+| **Schema de banco** | **Não atende** estrutura customizada de atendimento Wagner | Schema é nosso (`whatsapp_messages` append-only, `whatsapp_conversations`, etc) — desenhado pra nossa necessidade |
+| **Observabilidade** | **Opaca** — Wagner sentiu na pele quando bans aconteceram | OTel traces ponta-a-ponta + métricas Prometheus + dashboard Grafana dedicado |
+| **Suporte quando Baileys lib quebra** | Comunidade Evolution (~dias-semanas) | Mesmo problema (lib raiz é mesma); mas patch pode vir mais rápido se time interno fizer fork |
+| **Quem mantém Wagner debugando 02h** | Wagner debugando código alheio (Evolution) | Wagner debugando código próprio (mais barato cognitivamente) |
 
-Z-API SaaS terceiriza o risco. Evolution self-host concentra. Ganho marginal (R$ [redacted Tier 0]/mês economizados) não compensa.
+Construir BaileysDriver custom resolve as 3 dores principais (schema, logs, métricas). Os riscos restantes (ban, manutenção lib) são iguais — mas com nossa estrutura debaixo.
 
-### Política Tier 0 oimpresso (versão final 2026-05-07 emenda 3)
+**Decisão registrada como reversível:** se manutenção do daemon Node consumir > 4h/mês de Wagner OU bans cross-tenant ≥ 5/mês, reabrir ADR pra reavaliar (ARCHITECTURE.md §16.11).
+
+### Política Tier 0 oimpresso (versão final 2026-05-07 emenda 4)
 
 | Provedor | Status |
 |---|---|
-| **Z-API** | ✅ DRIVER DEFAULT (com fallback Meta Cloud obrigatório) |
-| **Meta Cloud API** | ✅ Fallback obrigatório / driver alternativo enterprise |
-| Evolution API | ❌ PROIBIDO Tier 0 |
-| whatsapp-web.js | ❌ PROIBIDO Tier 0 |
-| Baileys puro (lib JS) | ❌ PROIBIDO Tier 0 |
-| Qualquer wrapper Whatsapp Web rodando em servidor oimpresso | ❌ PROIBIDO Tier 0 |
+| **Z-API** | ✅ DRIVER DEFAULT Sprint 1 (com fallback Meta Cloud obrigatório) |
+| **Meta Cloud API** | ✅ Fallback obrigatório / driver alternativo enterprise Sprint 1 |
+| **Baileys (lib raiz, daemon Node próprio)** | ✅ DRIVER CUSTOM Sprint 3 — `BaileysDriver` |
+| Evolution API | ❌ PROIBIDO permanente (bans Wagner + schema + observabilidade) |
+| whatsapp-web.js | ❌ PROIBIDO (sobreposição com BaileysDriver custom) |
+| Qualquer wrapper Whatsapp Web de terceiro rodando em servidor oimpresso | ❌ PROIBIDO (já que vamos construir BaileysDriver custom, não há razão pra rodar wrapper de terceiro) |
 
-**O que continua proibido (compatível com ADR 0062):** subir Whatsapp via container ou daemon no Hostinger. Hostinger ≠ CT 100. Reabrir Evolution só via nova ADR explícita Wagner-aceita.
+**O que continua proibido (compatível com ADR 0062):** subir Whatsapp via container ou daemon no **Hostinger**. Hostinger ≠ CT 100. Reabrir Evolution só via nova ADR explícita Wagner-aceita.
+
+**Nota Sprint 3:** `BaileysDriver` custom roda **exclusivamente no CT 100** (container Docker compose-managed). Hostinger continua HTTP-only (PHP webhook receiver + UI Inertia + DB primary).
 
 ## 5. Capacidades baseline → Score atual oimpresso
 

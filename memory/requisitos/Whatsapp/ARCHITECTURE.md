@@ -54,10 +54,11 @@
 
 **Princípios estruturais:**
 - **Hostinger** — UI + webhook receiver + DB primary (HTTP-only, sem daemons — ADR 0062)
-- **CT 100** — Horizon worker + Centrifugo (daemon-land, ADR 0058). **NÃO roda Evolution API ou wrapper Whatsapp Web próprio** (ADR 0096 emenda 3 — Evolution PROIBIDO).
-- **Driver pattern (2 oficiais + Null)** — `ZapiDriver` (default, Z-API SaaS BR) + `MetaCloudDriver` (fallback obrigatório, oficial Meta) + `NullDriver` (dev/CI) — ADR 0096
-- **Fallback obrigatório (gating duro)** — `whatsapp_business_configs` exige `meta_*` campos preenchidos quando `driver=zapi` (FormRequest cross-field validation)
-- **Fallback automático** — quando `driver_health` ≥ degraded, `DriverFactory` resolve `MetaCloudDriver` em runtime, sem intervenção
+- **CT 100** — Horizon worker + Centrifugo (daemon-land, ADR 0058). **Sprint 3:** ganha container `whatsapp-baileys` (daemon Node próprio rodando lib Baileys — ADR 0096 emenda 4, autorizado pra resolver dor de observabilidade do Evolution).
+- **NÃO** roda Evolution API (PROIBIDO permanente — emenda 4: bans recorrentes em produção Wagner + schema não atende + falta de observabilidade).
+- **Driver pattern (Sprint 1: 2 oficiais + Null; Sprint 3: + custom Baileys)** — `ZapiDriver` + `MetaCloudDriver` + `NullDriver` desde Sprint 1; `BaileysDriver` custom Sprint 3 — ADR 0096
+- **Fallback obrigatório (gating duro)** — `whatsapp_business_configs` exige `meta_*` campos preenchidos quando `driver` ∈ {`zapi`, `baileys`} (FormRequest cross-field validation)
+- **Fallback automático** — quando `driver_health` ≥ degraded em driver não-oficial, `DriverFactory` resolve `MetaCloudDriver` em runtime, sem intervenção
 - **Multi-tenant Tier 0** — `business_id` global scope + webhook URL com slug + tokens cifrados (ADR 0093)
 
 ## 2. Schema de banco
@@ -71,8 +72,8 @@ CREATE TABLE whatsapp_business_configs (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   business_id INT UNSIGNED NOT NULL,
   business_uuid CHAR(36) NOT NULL UNIQUE COMMENT 'usado no webhook URL',
-  driver VARCHAR(20) NOT NULL DEFAULT 'zapi' COMMENT 'zapi|meta_cloud|null — evolution PROIBIDO',
-  fallback_driver VARCHAR(20) NOT NULL DEFAULT 'meta_cloud' COMMENT 'OBRIGATÓRIO quando driver=zapi (gating FormRequest)',
+  driver VARCHAR(20) NOT NULL DEFAULT 'zapi' COMMENT 'zapi|meta_cloud|baileys|null — evolution PROIBIDO permanente',
+  fallback_driver VARCHAR(20) NOT NULL DEFAULT 'meta_cloud' COMMENT 'OBRIGATÓRIO quando driver IN (zapi, baileys) — gating FormRequest',
   display_phone VARCHAR(20) NULL COMMENT '+5511987654321 (preenchido após primeiro ping bem-sucedido)',
 
   -- Meta Cloud API
@@ -81,12 +82,17 @@ CREATE TABLE whatsapp_business_configs (
   meta_app_secret TEXT NULL COMMENT 'cifrado — usado pra HMAC webhook',
   meta_webhook_verify_token VARCHAR(64) NULL COMMENT 'random 32 bytes',
 
-  -- Z-API (driver default)
+  -- Z-API (driver default Sprint 1)
   zapi_instance_id VARCHAR(64) NULL,
   zapi_instance_token TEXT NULL COMMENT 'cifrado',
   zapi_client_token TEXT NULL COMMENT 'cifrado — header Client-Token + valida webhook',
 
-  -- LGPD acknowledgment (obrigatório quando driver=zapi)
+  -- BaileysDriver custom (Sprint 3 — ADR 0096 emenda 4)
+  baileys_instance_id VARCHAR(64) NULL COMMENT 'identificador da instance no daemon Node CT 100',
+  baileys_daemon_url VARCHAR(255) NULL COMMENT 'default config: https://whatsapp-baileys.oimpresso.local',
+  baileys_api_key TEXT NULL COMMENT 'cifrado — Bearer token pro daemon Node',
+
+  -- LGPD acknowledgment (obrigatório quando driver IN (zapi, baileys))
   lgpd_acknowledged_at TIMESTAMP NULL,
   lgpd_acknowledged_by_user_id INT UNSIGNED NULL,
 
@@ -113,8 +119,9 @@ CREATE TABLE whatsapp_business_configs (
 
 **Validações de FormRequest (cross-field, gating duro):**
 - `driver=zapi` (default) → exige `zapi_*` preenchidos **E** `meta_*` preenchidos como fallback (ban Z-API joga pra Meta) **E** `lgpd_acknowledged_at` not null
-- `driver=meta_cloud` → exige `meta_*` preenchidos. Z-API é opcional (pode ficar dormente)
-- `driver=evolution` → **422 ValidationException** ("Driver Evolution proibido por ADR 0096 emenda 3")
+- `driver=meta_cloud` → exige `meta_*` preenchidos. Z-API/Baileys opcionais (podem ficar dormentes)
+- `driver=baileys` (Sprint 3) → exige `baileys_*` preenchidos **E** `meta_*` preenchidos como fallback **E** `lgpd_acknowledged_at` not null
+- `driver=evolution` → **422 ValidationException** ("Driver Evolution proibido por ADR 0096 emenda 4 — bans em produção, schema não atende, falta observabilidade")
 - `fallback_driver=evolution` → **422 ValidationException** (mesmo motivo)
 
 ### 2.2 `whatsapp_conversations`
@@ -156,7 +163,7 @@ CREATE TABLE whatsapp_messages (
   conversation_id BIGINT UNSIGNED NOT NULL,
   direction ENUM('inbound','outbound') NOT NULL,
   provider_message_id VARCHAR(128) NULL COMMENT 'wamid.XYZ (Meta) ou messageId (Z-API/Evolution) — UNIQUE quando preenchido',
-  provider VARCHAR(20) NOT NULL COMMENT 'zapi|meta_cloud|null — driver que enviou/recebeu (evolution PROIBIDO)',
+  provider VARCHAR(20) NOT NULL COMMENT 'zapi|meta_cloud|baileys|null — driver que enviou/recebeu (evolution PROIBIDO)',
   type ENUM('text','template','image','document','audio','interactive','location','contacts') NOT NULL DEFAULT 'text',
   template_name VARCHAR(64) NULL,
   body TEXT NULL,
@@ -355,8 +362,9 @@ whatsapp.metricas.view         → Dashboard métricas
 ```php
 return [
     'default_driver' => env('WHATSAPP_DEFAULT_DRIVER', 'zapi'),
-    // valores válidos: zapi|meta_cloud|null
-    // 'evolution' NÃO é valor válido (PROIBIDO Tier 0 — ADR 0096 emenda 3)
+    // valores válidos Sprint 1: zapi|meta_cloud|null
+    // valores válidos Sprint 3: + baileys (driver custom oimpresso — ADR 0096 emenda 4)
+    // 'evolution' NÃO é valor válido (PROIBIDO permanente — ADR 0096 emenda 4)
 
     'zapi' => [
         'base_url' => env('WHATSAPP_ZAPI_BASE_URL', 'https://api.z-api.io'),
@@ -369,6 +377,12 @@ return [
         'request_timeout' => env('WHATSAPP_META_TIMEOUT', 10),
     ],
 
+    'baileys' => [
+        // Sprint 3 — daemon Node próprio CT 100 (ADR 0096 emenda 4)
+        'daemon_url_default' => env('WHATSAPP_BAILEYS_DAEMON_URL', 'https://whatsapp-baileys.oimpresso.local'),
+        'request_timeout' => env('WHATSAPP_BAILEYS_TIMEOUT', 15),
+    ],
+
     'health_check' => [
         'interval_seconds' => env('WHATSAPP_HEALTH_INTERVAL', 21600), // 6h
         'consecutive_failures_to_degrade' => 5,
@@ -379,11 +393,12 @@ return [
     'fallback' => [
         'enabled' => env('WHATSAPP_FALLBACK_ENABLED', true),
         'auto_switch_after_status' => 'degraded', // healthy|degraded|disconnected|banned
-        'mandatory_for_drivers' => ['zapi'], // drivers que EXIGEM fallback configurado
+        'mandatory_for_drivers' => ['zapi', 'baileys'], // drivers que EXIGEM fallback configurado
     ],
 
-    'forbidden_drivers' => ['evolution', 'baileys', 'whatsapp_web_js'],
+    'forbidden_drivers' => ['evolution', 'whatsapp_web_js'],
     // FormRequest rejeita 422 se tentar salvar driver dessa lista
+    // 'baileys' SAIU dessa lista (autorizado Sprint 3 — ADR 0096 emenda 4)
 
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
@@ -503,11 +518,247 @@ Anteriormente proposto como Sprint 2 self-host CT 100. **Removido em 2026-05-07 
   - `GET /instances/{id}/token/{token}/qr-code/image`
   - Webhooks: `on-message`, `on-message-status`, `on-presence-status`, `on-disconnected`
 
-### Evolution API — PROIBIDO (não usar)
+### Evolution API — PROIBIDO permanente (não usar)
 
-Driver removido por emenda 3 ADR 0096 (2026-05-07). Não há referência operacional.
+Driver removido por emendas 3 e 4 ADR 0096 (2026-05-07). Não há referência operacional.
+
+### Baileys (lib raiz) — Sprint 3
+
+- GitHub: `github.com/WhiskeySockets/Baileys`
+- Pacote NPM: `@whiskeysockets/baileys`
+- Endpoints conceituais (wrapper HTTP REST nosso, não Baileys nativo):
+  - `POST /instances/{id}/text`
+  - `POST /instances/{id}/media`
+  - `GET /instances/{id}/status`
+  - `GET /instances/{id}/qr`
+- Plano detalhado em §16 abaixo.
 
 ### Infraestrutura
 - Centrifugo channels: `centrifugal.dev/docs/server/channels`
 - Traefik labels: `doc.traefik.io/traefik/routing/providers/docker/`
 - Padrão CT 100 Docker compose-managed: `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` + skill `proxmox-docker-host`
+
+## 16. Sprint 3 — BaileysDriver custom (estrutura customizada de atendimento)
+
+> Autorizado em 2026-05-07 por Wagner ([ADR 0096 emenda 4](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)).
+> Esta seção é o **plano de referência** pra implementar quando Sprint 3
+> começar — não é tarefa Sprint 1.
+
+### 16.1 Por que existir (recap razões Wagner)
+
+1. **Evolution está banindo números reais** em produção do Wagner — experiência, não especulação
+2. **Schema de banco do Evolution não atende** a estrutura customizada de atendimento que Wagner quer construir
+3. **Falta de observabilidade** — Wagner sentiu na pele a opacidade quando bans aconteceram no Evolution
+4. **Wagner ciente do custo** — "vai ter código extra por essa decisão"
+
+### 16.2 Topologia
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ HOSTINGER (oimpresso.com)                                 │
+│  PHP BaileysDriver                                        │
+│   ↓ Http::baseUrl + Bearer token + IP whitelist           │
+└──────────────────┬───────────────────────────────────────┘
+                   │ HTTPS (Traefik internal)
+                   ▼
+┌──────────────────────────────────────────────────────────┐
+│ CT 100 PROXMOX                                            │
+│  Container Docker `whatsapp-baileys` (compose-managed)    │
+│  ┌────────────────────────────────────────────────────┐   │
+│  │  Node.js daemon (Fastify ou Hono)                  │   │
+│  │  - lib @whiskeysockets/baileys (versão pinned)     │   │
+│  │  - 1 socket Whatsapp Web por instance              │   │
+│  │  - persistência auth state em volume               │   │
+│  │  - OTel SDK Node → Loki/Grafana CT 100             │   │
+│  │  - webhook outbound pro Hostinger                  │   │
+│  └────────────────────────────────────────────────────┘   │
+│  Volume: /srv/docker/whatsapp-baileys/sessions/{instance} │
+│  Traefik: whatsapp-baileys.oimpresso.local                │
+└──────────────────────────────────────────────────────────┘
+```
+
+### 16.3 Componente Node (daemon)
+
+**Repositório:** `Modules/Whatsapp/daemon-node/` (mesmo repo, separação por dir) OU
+repo separado `oimpresso/whatsapp-baileys-daemon` (decidir Sprint 3).
+
+**Stack:**
+- Node 20 LTS
+- `@whiskeysockets/baileys` versão pinned (não `latest` — Meta TOS muda, lib quebra)
+- Fastify ou Hono (HTTP framework — leve)
+- `@opentelemetry/sdk-node` pra traces + métricas
+- TypeScript estrito
+
+**Endpoints REST** (consumidos só pelo PHP BaileysDriver, IP whitelisted):
+
+```
+GET  /health
+  → { instances: [{ id, state, last_seen, lag_ms }] }
+
+POST /instances/{instance_id}/connect
+  → { qr: "data:image/png;base64,..." } se ainda não pareado
+  → { connected: true, display_phone: "+55..." } se pareado
+
+POST /instances/{instance_id}/text
+  body: { to, text }
+  → { message_id, status: "sent" | "queued" | "failed" }
+
+POST /instances/{instance_id}/media
+  body: { to, media_url, type, caption? }
+  → { message_id, status }
+
+GET  /instances/{instance_id}/status
+  → { state: "connected"|"qr_required"|"disconnected"|"banned",
+      display_phone, last_seen, session_age_seconds }
+
+POST /instances/{instance_id}/disconnect
+  → { ok: true }
+```
+
+**Webhook outbound (daemon → oimpresso PHP):**
+
+```
+POST https://oimpresso.com/api/whatsapp/webhook/baileys/{business_uuid}
+  Header: Authorization: Bearer {api_key}
+  Body: {
+    instance_id,
+    event: "message" | "message_status" | "session_lost" | "ban_detected",
+    data: { ... payload Baileys ... }
+  }
+```
+
+### 16.4 Componente PHP (`BaileysDriver`)
+
+```php
+// Modules/Whatsapp/Services/Drivers/BaileysDriver.php
+class BaileysDriver implements DriverInterface {
+    public function __construct(
+        private readonly HttpClient $http // pré-configurado com baseUrl + Bearer
+    ) {}
+
+    public function sendFreeform(array $config, string $to, string $body): WhatsappSendResult {
+        $response = $this->http
+            ->withToken($config['baileys_api_key']) // decifrado pelo cast
+            ->post("/instances/{$config['baileys_instance_id']}/text", [
+                'to' => $to,
+                'text' => $body,
+            ]);
+
+        return match (true) {
+            $response->successful() => WhatsappSendResult::ok($response->json('message_id')),
+            $response->status() === 401 => WhatsappSendResult::failed(
+                'baileys_unauthorized',
+                $response->body(),
+                sessionLost: true
+            ),
+            $response->json('reason') === 'ban_detected' => WhatsappSendResult::failed(
+                'baileys_banned',
+                'Baileys detectou ban Meta',
+                banDetected: true,
+            ),
+            default => WhatsappSendResult::failed("baileys_{$response->status()}", $response->body()),
+        };
+    }
+    // ... outros métodos
+}
+```
+
+### 16.5 Webhook handler PHP
+
+`POST /api/whatsapp/webhook/baileys/{business_uuid}`:
+
+- Middleware `VerifyBaileysSignature` valida Bearer token vindo do daemon Node
+  contra `whatsapp_business_configs.baileys_api_key` (decifrado pelo cast)
+- Despacha `ProcessIncomingWebhookJob` com `provider='baileys'`
+- Mesmo flow que webhook Z-API/Meta — PII redacted, idempotência via
+  `provider_message_id`, evento `WhatsappMessageReceived`
+
+### 16.6 Container Docker (CT 100)
+
+```yaml
+# /etc/docker-compose/services/whatsapp-baileys/docker-compose.yml
+services:
+  whatsapp-baileys:
+    build: ./daemon-node
+    container_name: whatsapp-baileys
+    restart: unless-stopped
+    volumes:
+      - /srv/docker/whatsapp-baileys/sessions:/app/sessions
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://loki-otel:4318
+      - WEBHOOK_BASE_URL=https://oimpresso.com/api/whatsapp/webhook/baileys
+      - API_KEY_FILE=/run/secrets/whatsapp_baileys_api_key
+    secrets:
+      - whatsapp_baileys_api_key
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.baileys.rule=Host(`whatsapp-baileys.oimpresso.local`)"
+      - "traefik.http.routers.baileys.tls=true"
+      - "traefik.http.middlewares.baileys-ip.ipwhitelist.sourcerange=148.135.133.115"
+      - "traefik.http.routers.baileys.middlewares=baileys-ip"
+
+secrets:
+  whatsapp_baileys_api_key:
+    external: true
+```
+
+### 16.7 Observabilidade (a "dor" que justifica o código extra)
+
+**OTel traces ponta-a-ponta:**
+- Span 1: `oimpresso.php.SendWhatsappMessageJob.handle` (Hostinger)
+- Span 2: `oimpresso.php.BaileysDriver.sendFreeform` (Hostinger)
+- Span 3: `whatsapp-baileys.daemon.send` (CT 100 Node)
+- Span 4: `whatsapp-baileys.baileys.sendMessage` (CT 100 Node, dentro Baileys)
+
+**Métricas Prometheus exportadas pelo daemon:**
+
+| Métrica | Tipo | Tags | Significado |
+|---|---|---|---|
+| `whatsapp_baileys_session_state` | gauge | `business_id`, `state` | 1 = conectado, 0 = caído |
+| `whatsapp_baileys_message_lag_ms` | histogram | `business_id` | tempo daemon → Whatsapp Web → ack |
+| `whatsapp_baileys_send_total` | counter | `business_id`, `status` | sent / failed / banned |
+| `whatsapp_baileys_recv_total` | counter | `business_id` | mensagens inbound recebidas |
+| `whatsapp_baileys_ban_detected_total` | counter | `business_id` | acumulado bans (alarme cross-tenant) |
+| `whatsapp_baileys_session_age_seconds` | gauge | `business_id` | idade da sessão Whatsapp Web atual |
+
+**Dashboard Grafana dedicado** `whatsapp-baileys-daemon`:
+- Estado de sessão de todas instances
+- P50/P95 message lag
+- Taxa de envio/recebimento
+- Bans nas últimas 24h por business
+- Restarts container nas últimas 24h
+- Idade média da sessão
+
+**Alarmes:**
+- Sessão caída > 5 min em business ativo → email + Centrifugo UI
+- Lag p95 > 2s sustained 5min → alerta perf
+- Container restart > 1×/h → alerta infra
+- Ban detectado em 3+ businesses em 24h → alarme cross-tenant Wagner
+
+### 16.8 Fallback automático para Meta Cloud
+
+Mesmo flow do Z-API:
+- `WhatsappDriverHealthCheckJob` chama `BaileysDriver::ping()` (que chama `GET /instances/{id}/status` no daemon)
+- 5 falhas consecutivas → `driver_health = degraded` → `DriverFactory` resolve `MetaCloudDriver` em runtime
+- Histórico mensagens preservado (DB Hostinger é independente)
+
+### 16.9 Runbooks Sprint 3
+
+- `runbooks/baileys-daemon-deploy-ct100.md` — deploy inicial do container
+- `runbooks/baileys-troubleshoot-ban.md` — passo-a-passo recuperação
+- `runbooks/baileys-upgrade-lib.md` — atualizar versão Baileys com cuidado
+- `runbooks/baileys-add-instance.md` — onboarding novo business no daemon
+
+### 16.10 Riscos específicos do BaileysDriver custom
+
+1. **Mudança Meta TOS quebra Baileys** — patch comunidade demora dias-semanas. Mitigação: versão pinned + dashboard alerta + fallback Meta Cloud automático.
+2. **Wagner se torna mantenedor de daemon Node** — bug crítico = Wagner em 02h da manhã debugando lib JS. Mitigação: testes integração CI + canary deploy + rollback rápido via tag Docker.
+3. **Memória cresce com muitas instances** — cada instance Whatsapp Web = ~80MB RAM. CT 100 com 4 GB suporta ~30-40 instances. Acima disso: scale horizontal (mais containers).
+4. **Ban detectado em 1 business pode propagar pra outros** — se o IP do CT 100 ficar marcado pela Meta, todas instances novas falham. Mitigação: alarme cross-tenant + plano B "rotacionar IP CT 100".
+
+### 16.11 Decisão futura — quando reconsiderar
+
+- Se `whatsapp_baileys_ban_detected_total` cross-tenant ≥ 5/mês sustained → reabrir ADR pra avaliar SaaS BSP enterprise (Take Blip / Twilio).
+- Se manutenção do daemon Node consumir > 4h/mês de Wagner → reabrir ADR pra avaliar deprecar BaileysDriver e voltar pra só Z-API + Meta Cloud.

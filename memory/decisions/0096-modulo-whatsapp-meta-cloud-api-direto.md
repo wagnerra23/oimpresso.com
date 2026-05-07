@@ -1,7 +1,7 @@
 ---
 slug: 0096-modulo-whatsapp-meta-cloud-api-direto
 number: 96
-title: "Módulo Whatsapp — Z-API/Baileys default + Meta Cloud fallback (Evolution PROIBIDO)"
+title: "Módulo Whatsapp — Z-API default + Meta Cloud fallback + BaileysDriver custom (Sprint 3); Evolution PROIBIDO permanente"
 type: adr
 status: aceito
 authority: canonical
@@ -13,7 +13,7 @@ accepted_by: wagner
 module: Whatsapp
 quarter: 2026-Q2
 tier: CANON
-tags: [whatsapp, integracao, meta, zapi, baileys, multi-tenant, modulo-novo, evolution-proibido]
+tags: [whatsapp, integracao, meta, zapi, baileys, multi-tenant, modulo-novo, evolution-proibido, custom-driver-sprint-3]
 related_adrs: [0011, 0024, 0035, 0048, 0058, 0062, 0093, 0094]
 parent_charter: null
 parent_adr: 0094
@@ -44,24 +44,41 @@ review_triggers:
 >   - **Evolution API → PROIBIDO Tier 0** (volta à proposta original)
 >   - **Z-API → ATIVO com risco muito alto** (mais salvaguardas)
 >
-> - **Emenda 3 (final do dia — versão atual):** Wagner inverte a hierarquia
->   de drivers e autoriza Lote 2:
->   - **Z-API/Baileys (família) → DRIVER PADRÃO do módulo** (`default_driver=zapi`).
->     Onboarding 5 min, freeform sem janela 24h, mercado BR PME real.
->   - **Meta Cloud → driver oficial alternativo / fallback obrigatório.**
->     Cadastrado pra eventual ban Z-API ou caso enterprise compliance pedir.
->   - **Evolution API → continua PROIBIDO Tier 0.**
+> - **Emenda 3 (final do dia):** Wagner inverte a hierarquia de drivers e
+>   autoriza Lote 2:
+>   - **Z-API → DRIVER PADRÃO** (`default_driver=zapi`). Onboarding 5 min.
+>   - **Meta Cloud → fallback obrigatório.**
+>   - **Evolution API → PROIBIDO Tier 0.**
 >
->   **Razão da inversão:** o usuário-cliente real do oimpresso é PME
->   brasileira que decide na hora — onboarding 1-3 dias do Meta Cloud é
->   gargalo comercial. Padrão tem que ser o que destrava demanda hoje.
->   Meta Cloud fica como rede de segurança operacional, não como entrada.
+> - **Emenda 4 (encerramento — versão atual):** Wagner detalha experiência
+>   real e autoriza driver custom Sprint 3:
+>   - **`BaileysDriver` (custom oimpresso) → AUTORIZADO Sprint 3** como
+>     "estrutura customizada de atendimento". Daemon Node próprio em CT 100
+>     com schema/observabilidade próprios.
+>   - **Evolution API → continua PROIBIDO permanente.**
 >
->   **Razão Evolution permanecer proibido:** Z-API SaaS terceiriza o risco
->   (empresa terceira responde pelo ban). Evolution self-host CT 100 =
->   oimpresso/Wagner direto na linha de fogo — quando ban vem, é número
->   de cliente perdido sob responsabilidade direta, sem terceiro pra
->   reclamar. Ganho marginal (R$ [redacted Tier 0]/mês) não compensa stakes operacionais.
+>   **Razões concretas Wagner pra essa assimetria (Baileys puro autorizado /
+>   Evolution proibido):**
+>
+>   1. **Evolution está banindo seus números** — experiência real, não
+>      especulação. Razão suficiente pra abandonar.
+>   2. **Schema de banco do Evolution não atendeu** — Wagner tentou usar
+>      e o modelo de dados não batia com a estrutura customizada de
+>      atendimento que ele quer construir.
+>   3. **Observabilidade** — Wagner sentiu falta de controle quando
+>      bans/desconexões aconteceram no Evolution. BaileysDriver custom =
+>      nosso schema, nossos logs OTel, nossas métricas, nosso health
+>      check. Dor de observabilidade é o que justifica o código extra
+>      do daemon Node.
+>   4. **Ciência do custo** — Wagner explicitamente reconhece "vai ter
+>      código extra por essa decisão" (daemon Node CT 100, container
+>      Docker, wrapper HTTP, persistência sessão Whatsapp Web).
+>
+>   **Recomendação Claude (aceita pelo Wagner):** começar simples Sprint 1
+>   com Z-API + Meta Cloud, validar em produção, **deixar Baileys puro
+>   anotado pra Sprint 3** quando estrutura customizada de atendimento
+>   for construída. Não construir daemon Node sem antes ter operação
+>   básica funcionando.
 
 ## Contexto
 
@@ -95,24 +112,38 @@ ROTA LIVRE (`business_id=4`, ~99% do volume) projetada em ~50-200 conversas/mês
 ### Drivers suportados
 
 - `Services/Drivers/DriverInterface.php` — contrato comum (sendTemplate, sendFreeform, sendMedia, fetchStatus, ping)
+
+**Sprint 1 (entrega rápida — validar oficiais):**
 - `Services/Drivers/ZapiDriver.php` — **DEFAULT**, SaaS BR Z-API (`api.z-api.io`), Whatsapp Web via Baileys. Onboarding 5 min (scan QR). Freeform sem janela 24h. R$ [redacted Tier 0]-299/mês fixo. **Risco ban MUITO ALTO**, mitigado por fallback Meta Cloud obrigatório.
 - `Services/Drivers/MetaCloudDriver.php` — **fallback oficial obrigatório** (e default pra businesses enterprise compliance). Fala com `graph.facebook.com/v21.0/{phone_number_id}/messages`. HSM obrigatórios fora janela 24h. Free 1k conv/mês Meta. **Risco ban Meta: nenhum.**
 - `Services/Drivers/NullDriver.php` — dev/CI Pest, não estoura rede.
-- (backlog enterprise) `TwilioDriver` / `BlipDriver` — só se enterprise pedir.
 
-### ❌ Drivers PROIBIDOS Tier 0 (não vão ser implementados)
+**Sprint 3 (estrutura customizada de atendimento — autorizado emenda 4):**
+- `Services/Drivers/BaileysDriver.php` — **driver custom oimpresso**, fala com nosso próprio daemon Node CT 100 que roda Baileys diretamente. Schema, logs OTel, métricas e health check sob nosso controle total. **Dor de observabilidade do Evolution justifica o código extra.**
+  - Componente Node: novo container Docker compose-managed `whatsapp-baileys` em CT 100 (ADR 0058) — wrapper HTTP REST minimal sobre Baileys lib (`@whiskeysockets/baileys`), persistência de auth state em volume mapeado.
+  - Componente PHP: `BaileysDriver` fala com daemon via `Http::baseUrl(config('whatsapp.baileys.daemon_url'))` — daemon nunca exposto fora do CT 100.
+  - Roadmap detalhado em `ARCHITECTURE.md §16`.
 
-- **`EvolutionDriver` (Evolution API self-host CT 100)** — PROIBIDO. Razão: oimpresso/Wagner seria diretamente responsável pelo container Docker, sessão Whatsapp Web e pelo ban Meta. Sem terceiro intermediário pra responder. Stakes operacionais altos demais pro ganho marginal (R$ [redacted Tier 0]/mês economizado vs Z-API).
-- **`BaileysDriver` (lib JS pura)** — PROIBIDO. Mesma razão (self-host) + lib JS exige daemon Node próprio (não temos appetite por mais um runtime).
-- **`WhatsappWebJsDriver`** — PROIBIDO. Idem.
-- **Qualquer wrapper sobre Whatsapp Web rodando em servidor oimpresso** — PROIBIDO Tier 0. Reabrir só via nova ADR explícita Wagner-aceita.
+**Backlog enterprise:**
+- `TwilioDriver` / `BlipDriver` — só se enterprise pedir.
+
+### ❌ Drivers PROIBIDOS permanentes
+
+- **`EvolutionDriver` (Evolution API)** — **PROIBIDO permanente** (não Tier 0 abstrato; razão concreta documentada por Wagner em 2026-05-07):
+  - Está **banindo números reais** dos businesses do Wagner em produção
+  - **Schema de banco** Evolution não atende a estrutura customizada de atendimento que vamos construir
+  - **Falta de observabilidade** — Wagner sentiu na pele a opacidade quando bans aconteceram
+  - Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; não esperar)
+- **`WhatsappWebJsDriver`** — PROIBIDO. Sobreposição funcional com BaileysDriver custom + sem suporte comercial.
+- **Qualquer wrapper Whatsapp Web de terceiros rodando em servidor oimpresso** — PROIBIDO. Já que vamos construir BaileysDriver custom, não há razão pra rodar wrapper de terceiro nosso.
 
 ### Onboarding por driver (ordem prática real do oimpresso)
 
 | Ordem | Driver | Quando usar | Onboarding | Custo perfil 150 conv/mês | Risco ban |
 |---|---|---|---|---|---|
-| **1º (default)** | `zapi` | Maioria dos businesses PME | Cadastro Z-API + scan QR Code (~5 min) | R$ [redacted Tier 0]/mês | **muito alto** (mitigado por fallback) |
-| **2º (obrigatório)** | `meta_cloud` | Cadastrar como fallback OU usar como default em enterprise | Meta Business Manager + verificação (1-3 dias) + HSM (1-3 dias cada) | R$ [redacted Tier 0] (free tier) | **nenhum** |
+| **1º (default Sprint 1)** | `zapi` | Maioria dos businesses PME | Cadastro Z-API + scan QR Code (~5 min) | R$ [redacted Tier 0]/mês | **muito alto** (mitigado por fallback) |
+| **2º (obrigatório Sprint 1)** | `meta_cloud` | Cadastrar como fallback OU usar como default em enterprise | Meta Business Manager + verificação (1-3 dias) + HSM (1-3 dias cada) | R$ [redacted Tier 0] (free tier) | **nenhum** |
+| **3º (Sprint 3 — custom)** | `baileys` | Quando estrutura customizada de atendimento estiver pronta + business quiser controle total / observabilidade rica | Subir container `whatsapp-baileys` no CT 100 + cadastrar instance via Settings + scan QR Code | R$ [redacted Tier 0] (CT 100 do Wagner) | **muito alto** (mitigado por fallback Meta Cloud + nosso health check) |
 
 ### Infraestrutura comum
 
@@ -252,9 +283,11 @@ Z-API e Evolution API são baseados em **Whatsapp Web reverse-engineered (Bailey
 
 - **BSP brasileiro (Take Blip / Zenvia)** — descartado por custo 30× pra perfil atual; reabrir se algum business passar 5k conv/mês ou pedir compliance enterprise.
 - **Twilio** — descartado por cobrança USD volátil + markup 30%.
-- **Meta Cloud como default + Z-API opcional** — descartado por emenda 3 (final do dia 2026-05-07): mercado BR PME real exige onboarding 5 min, não 1-3 dias. Padrão tem que ser o caminho rápido; Meta vira rede de segurança.
+- **Meta Cloud como default + Z-API opcional** — descartado por emenda 3: mercado BR PME real exige onboarding 5 min, não 1-3 dias. Meta vira rede de segurança.
 - **Apenas Z-API (sem Meta Cloud cadastrado)** — descartado: businesses enterprise vão exigir oficial; ban risk é real; fallback precisa existir desde dia 1 com gating duro.
-- **Evolution API self-host CT 100** — descartado e marcado PROIBIDO Tier 0: oimpresso assume responsabilidade direta pelo container, sessão Whatsapp Web e ban; sem terceiro pra responsabilizar; ganho marginal (R$ [redacted Tier 0]/mês) não compensa stakes.
+- **Evolution API self-host CT 100** — descartado por experiência real Wagner (emenda 4): bans recorrentes em produção + schema não atende + falta de observabilidade. PROIBIDO permanente.
+- **Implementar BaileysDriver custom já no Sprint 1** — descartado por recomendação Claude (aceita Wagner): primeiro validar drivers oficiais (Z-API + Meta Cloud) em produção, aprender com bugs, e só então construir daemon Node próprio. Sprint 3 fica anotado como evolução natural.
+- **whatsapp-web.js (lib JS pura alternativa a Baileys)** — descartado: sobreposição funcional com BaileysDriver custom; lib mais antiga; sem razão técnica pra preferir sobre Baileys.
 - **Esperar laravel/whatsapp oficial** — não existe; implementação direta com `Http::post()` é trivial.
 
 ## Referências
