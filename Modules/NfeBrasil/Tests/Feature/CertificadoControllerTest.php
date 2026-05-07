@@ -97,7 +97,7 @@ function inertiaComponent(\Inertia\Response $r): string
 it('GET sem cert ativo: renderiza Inertia component com tem_certificado=false', function () {
     $controller = new CertificadoController(new CertificadoService());
 
-    $response = $controller->status(makeStatusRequest(4, '12345678000199'));
+    $response = $controller->status(makeStatusRequest(1,'12345678000199'));
 
     expect($response)->toBeInstanceOf(\Inertia\Response::class);
     expect(inertiaComponent($response))->toBe('NfeBrasil/Configuracao/Certificado');
@@ -110,10 +110,10 @@ it('GET sem cert ativo: renderiza Inertia component com tem_certificado=false', 
 
 it('GET com cert ativo OK (>30d): tem_certificado=true + alerta=ok', function () {
     $validoAte = (new DateTimeImmutable('+90 days'))->format('Y-m-d');
-    insertCertRow(4, '12345678000199', $validoAte);
+    insertCertRow(1, '12345678000199', $validoAte);
 
     $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(4, '12345678000199'));
+    $response = $controller->status(makeStatusRequest(1,'12345678000199'));
 
     $props = inertiaProps($response);
     expect($props['tem_certificado'])->toBeTrue()
@@ -125,10 +125,10 @@ it('GET com cert ativo OK (>30d): tem_certificado=true + alerta=ok', function ()
 
 it('GET com cert próximo do vencimento (≤30d): alerta=proximo_vencimento', function () {
     $validoAte = (new DateTimeImmutable('+15 days'))->format('Y-m-d');
-    insertCertRow(4, '12345678000199', $validoAte);
+    insertCertRow(1, '12345678000199', $validoAte);
 
     $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(4, '12345678000199'));
+    $response = $controller->status(makeStatusRequest(1,'12345678000199'));
 
     $props = inertiaProps($response);
     expect($props['tem_certificado'])->toBeTrue()
@@ -139,10 +139,10 @@ it('GET com cert próximo do vencimento (≤30d): alerta=proximo_vencimento', fu
 
 it('GET com cert vencido: alerta=vencido + dias negativos', function () {
     $validoAte = (new DateTimeImmutable('-5 days'))->format('Y-m-d');
-    insertCertRow(4, '12345678000199', $validoAte);
+    insertCertRow(1, '12345678000199', $validoAte);
 
     $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(4, '12345678000199'));
+    $response = $controller->status(makeStatusRequest(1,'12345678000199'));
 
     $props = inertiaProps($response);
     expect($props['tem_certificado'])->toBeTrue()
@@ -150,12 +150,131 @@ it('GET com cert vencido: alerta=vencido + dias negativos', function () {
         ->and($props['dias_ate_vencimento'])->toBeLessThan(0);
 });
 
-it('multi-tenant: cert do business 4 não vaza pra business 5', function () {
-    insertCertRow(4, '11111111000111', (new DateTimeImmutable('+90 days'))->format('Y-m-d'));
+it('multi-tenant: cert do business 1 não vaza pra business 99', function () {
+    insertCertRow(1, '11111111000111', (new DateTimeImmutable('+90 days'))->format('Y-m-d'));
 
     $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(5, '99999999000199'));
+    $response = $controller->status(makeStatusRequest(99, '99999999000199'));
 
     $props = inertiaProps($response);
     expect($props['tem_certificado'])->toBeFalse();
+});
+
+// ── testar() endpoint — botão "Testar conexão SEFAZ" (US-NFE-041 fase 2) ──
+
+use Modules\NfeBrasil\Services\NfeService;
+
+function makeTestarRequest(int $businessId): Request
+{
+    $request = Request::create('/nfe-brasil/configuracao/certificado/testar', 'POST');
+    $request->setLaravelSession(app('session.store'));
+    $request->session()->put('business.id', $businessId);
+    return $request;
+}
+
+it('POST testar sem business.id na session → 400', function () {
+    $controller = new CertificadoController(new CertificadoService());
+
+    $request = Request::create('/nfe-brasil/configuracao/certificado/testar', 'POST');
+    $request->setLaravelSession(app('session.store'));
+    // session SEM business.id
+
+    $nfeServiceMock = Mockery::mock(NfeService::class);
+    $nfeServiceMock->shouldNotReceive('consultarStatusSefaz');
+
+    $response = $controller->testar($request, $nfeServiceMock);
+
+    expect($response->getStatusCode())->toBe(400);
+    expect($response->getData(true))->toMatchArray([
+        'ok'    => false,
+        'error' => 'no_business_context',
+    ]);
+});
+
+it('POST testar sem cert ativo → 422 sem chamar NfeService', function () {
+    $controller = new CertificadoController(new CertificadoService());
+
+    $nfeServiceMock = Mockery::mock(NfeService::class);
+    $nfeServiceMock->shouldNotReceive('consultarStatusSefaz');
+
+    $response = $controller->testar(makeTestarRequest(1), $nfeServiceMock);
+
+    expect($response->getStatusCode())->toBe(422);
+    expect($response->getData(true))->toMatchArray([
+        'ok'    => false,
+        'error' => 'sem_certificado',
+    ]);
+});
+
+it('POST testar com cert + SEFAZ ok → 200 + payload completo', function () {
+    insertCertRow(1, '12345678000199', (new DateTimeImmutable('+60 days'))->format('Y-m-d'));
+
+    $controller = new CertificadoController(new CertificadoService());
+
+    $nfeServiceMock = Mockery::mock(NfeService::class);
+    $nfeServiceMock->shouldReceive('consultarStatusSefaz')->once()->with(1)->andReturn([
+        'ok'            => true,
+        'cstat'         => '107',
+        'xMotivo'       => 'Servico em Operacao',
+        'tempoResposta' => 0.42,
+        'ambiente'      => 2,
+        'uf'            => 'SC',
+        'versao'        => 'SVRS_202604',
+    ]);
+
+    $response = $controller->testar(makeTestarRequest(1), $nfeServiceMock);
+
+    expect($response->getStatusCode())->toBe(200);
+    expect($response->getData(true))->toMatchArray([
+        'ok'      => true,
+        'cstat'   => '107',
+        'xMotivo' => 'Servico em Operacao',
+        'uf'      => 'SC',
+    ]);
+});
+
+it('POST testar com cert mas SEFAZ paralisado → 200 + ok=false', function () {
+    insertCertRow(1, '12345678000199', (new DateTimeImmutable('+60 days'))->format('Y-m-d'));
+
+    $controller = new CertificadoController(new CertificadoService());
+
+    $nfeServiceMock = Mockery::mock(NfeService::class);
+    $nfeServiceMock->shouldReceive('consultarStatusSefaz')->once()->andReturn([
+        'ok'            => false,
+        'cstat'         => '108',
+        'xMotivo'       => 'Servico Paralisado Momentaneamente',
+        'tempoResposta' => 0.30,
+        'ambiente'      => 2,
+        'uf'            => 'SC',
+        'versao'        => null,
+    ]);
+
+    $response = $controller->testar(makeTestarRequest(1), $nfeServiceMock);
+
+    // 200 porque SEFAZ respondeu — só que ok=false. Status HTTP de erro só pra
+    // exception (502/500). Frontend usa `payload.ok` pra renderizar visual.
+    expect($response->getStatusCode())->toBe(200);
+    expect($response->getData(true))->toMatchArray([
+        'ok'      => false,
+        'cstat'   => '108',
+        'xMotivo' => 'Servico Paralisado Momentaneamente',
+    ]);
+});
+
+it('POST testar com NfeService lançando RuntimeException → 502', function () {
+    insertCertRow(1, '12345678000199', (new DateTimeImmutable('+60 days'))->format('Y-m-d'));
+
+    $controller = new CertificadoController(new CertificadoService());
+
+    $nfeServiceMock = Mockery::mock(NfeService::class);
+    $nfeServiceMock->shouldReceive('consultarStatusSefaz')
+        ->andThrow(new \RuntimeException('cURL connection timeout'));
+
+    $response = $controller->testar(makeTestarRequest(1), $nfeServiceMock);
+
+    expect($response->getStatusCode())->toBe(502);
+    expect($response->getData(true))->toMatchArray([
+        'ok'    => false,
+        'error' => 'sefaz_failure',
+    ]);
 });

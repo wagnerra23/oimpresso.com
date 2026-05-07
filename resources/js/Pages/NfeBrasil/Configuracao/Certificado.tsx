@@ -4,13 +4,24 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { type FormEvent, useRef } from 'react';
-import { AlertTriangle, CheckCircle2, KeyRound, ShieldAlert, ShieldCheck, Upload } from 'lucide-react';
+import { type FormEvent, useRef, useState } from 'react';
+import { AlertTriangle, CheckCircle2, KeyRound, Loader2, PlugZap, ShieldAlert, ShieldCheck, Upload, XCircle } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { toast } from 'sonner';
+
+type SefazTesteResultado = {
+  ok: boolean;
+  cstat: string;
+  xMotivo: string;
+  tempoResposta: number;
+  ambiente: number;
+  uf: string;
+  versao?: string | null;
+  error?: string;
+};
 
 type Alerta = 'ok' | 'proximo_vencimento' | 'vencido';
 
@@ -71,6 +82,49 @@ function Certificado(props: PageProps) {
     certificado: null,
     senha: '',
   });
+
+  // Teste SEFAZ — local state (não Inertia, evita reload da Page)
+  const [testando, setTestando] = useState(false);
+  const [resultadoTeste, setResultadoTeste] = useState<SefazTesteResultado | null>(null);
+
+  const testarSefaz = async () => {
+    setTestando(true);
+    setResultadoTeste(null);
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+      const res = await fetch('/nfe-brasil/configuracao/certificado/testar', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      const payload: SefazTesteResultado = await res.json();
+      setResultadoTeste(payload);
+      if (payload.ok) {
+        toast.success(`SEFAZ-${payload.uf} online (cstat ${payload.cstat})`);
+      } else {
+        toast.error(`SEFAZ retornou cstat ${payload.cstat}: ${payload.xMotivo}`);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro desconhecido';
+      setResultadoTeste({
+        ok: false,
+        cstat: '—',
+        xMotivo: `Falha de rede: ${msg}`,
+        tempoResposta: 0,
+        ambiente: 0,
+        uf: '—',
+        error: 'network',
+      });
+      toast.error('Falha de rede ao chamar endpoint.');
+    } finally {
+      setTestando(false);
+    }
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -150,6 +204,97 @@ function Certificado(props: PageProps) {
             )}
           </CardContent>
         </Card>
+
+        {/* Teste SEFAZ — só faz sentido se houver cert ativo */}
+        {props.tem_certificado && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <PlugZap className="h-4 w-4" />
+                Testar conexão SEFAZ
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Consulta <code>NFeStatusServico</code> usando o certificado ativo. Não emite NF-e —
+                só pinga o web service da SEFAZ. <code>cstat=107</code> = OK.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-muted-foreground">
+                  Use antes de configurar emissão automática ou ao diagnosticar emissões travadas.
+                </p>
+                <Button onClick={testarSefaz} disabled={testando} variant="outline">
+                  {testando ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Testando…
+                    </>
+                  ) : (
+                    <>
+                      <PlugZap className="h-4 w-4 mr-2" />
+                      Testar agora
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {resultadoTeste && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className={`rounded-md p-3 border text-sm ${
+                    resultadoTeste.ok
+                      ? 'bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-800'
+                      : 'bg-red-50 text-red-900 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    {resultadoTeste.ok ? (
+                      <CheckCircle2 className="h-5 w-5 mt-0.5 shrink-0" />
+                    ) : (
+                      <XCircle className="h-5 w-5 mt-0.5 shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="font-medium">
+                        {resultadoTeste.ok
+                          ? `SEFAZ-${resultadoTeste.uf} online`
+                          : `SEFAZ retornou erro`}
+                        {' · '}
+                        <span className="font-mono text-xs">cstat {resultadoTeste.cstat}</span>
+                      </div>
+                      <div className="text-xs opacity-90">{resultadoTeste.xMotivo}</div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-75 pt-1">
+                        {resultadoTeste.uf !== '—' && (
+                          <span>
+                            UF: <span className="font-mono">{resultadoTeste.uf}</span>
+                          </span>
+                        )}
+                        {resultadoTeste.ambiente > 0 && (
+                          <span>
+                            Ambiente:{' '}
+                            <span className="font-mono">
+                              {resultadoTeste.ambiente === 1 ? 'produção' : 'homologação'}
+                            </span>
+                          </span>
+                        )}
+                        {resultadoTeste.tempoResposta > 0 && (
+                          <span>
+                            Tempo: <span className="font-mono">{resultadoTeste.tempoResposta}s</span>
+                          </span>
+                        )}
+                        {resultadoTeste.versao && (
+                          <span>
+                            verAplic: <span className="font-mono">{resultadoTeste.versao}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Upload */}
         <Card>
