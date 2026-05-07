@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
  *   3. Custo Brain B 24h — alvo ≤ R$ [redacted Tier 0]/dia
  *   4. PII leak detection (COPI-43) — mensagens user com regex CPF/email
  *   5. ProfileDistiller drift (COPI-26) — profiles >7d sem regenerar
+ *   6. Procedure drift (US-COPI-092) — hash deployed vs migration canônica
  *
  * Uso:
  *   php artisan jana:health-check
@@ -33,7 +34,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (5 checks SQL)';
+    protected $description = 'Health check diário Jana + Constituição v2 (6 checks SQL)';
 
     public function handle(): int
     {
@@ -43,6 +44,7 @@ class HealthCheckCommand extends Command
             $this->checkCustoBrainB(),
             $this->checkPiiLeak(),
             $this->checkProfileDrift(),
+            $this->checkProcedureDrift(),
         ];
 
         $allOk = collect($checks)->every(fn ($c) => $c['ok']);
@@ -254,6 +256,64 @@ class HealthCheckCommand extends Command
         }
     }
 
+    /**
+     * Check 6 — Procedure drift (US-COPI-092).
+     * Compara hash do procedure deployed vs migration canônica.
+     * Falha se alguém rodou DDL direto em prod sem migration (ADR 0094 §5 SoC brutal).
+     * Skipped em drivers não-MySQL (SQLite CI).
+     */
+    protected function checkProcedureDrift(): array
+    {
+        if (DB::getDriverName() !== 'mysql') {
+            return [
+                'name' => 'procedure_drift',
+                'ok' => true,
+                'value' => 'n/a',
+                'threshold' => 'mysql only',
+                'message' => 'Skipped (driver não-MySQL)',
+            ];
+        }
+
+        try {
+            $migrationFile = base_path(
+                'database/migrations/2026_05_07_120000_fix_brief_aggregator_in_flight_adrs_activity.php'
+            );
+
+            $content = file_get_contents($migrationFile);
+            preg_match("/<<<'SQL'\n(.+?)SQL\)/s", $content, $m);
+            $canonicalSql = $m[1] ?? '';
+
+            $rows = DB::select('SHOW CREATE PROCEDURE refresh_brief_inputs_cache');
+            $deployedSql = $rows[0]->{'Create Procedure'} ?? '';
+
+            $normalize = static fn (string $sql): string => preg_replace(
+                '/\s+/',
+                ' ',
+                strtolower(preg_replace('/DEFINER\s*=\s*`[^`]*`@`[^`]*`\s*/i', '', trim($sql)))
+            );
+
+            $drifted = md5($normalize($canonicalSql)) !== md5($normalize($deployedSql));
+
+            return [
+                'name' => 'procedure_drift',
+                'ok' => ! $drifted,
+                'value' => $drifted ? 'DRIFT' : 'OK',
+                'threshold' => 'match',
+                'message' => $drifted
+                    ? 'ALERTA: refresh_brief_inputs_cache divergiu da migration — crie migration pra sincronizar'
+                    : 'refresh_brief_inputs_cache bate com migration canônica',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => 'procedure_drift',
+                'ok' => false,
+                'value' => null,
+                'threshold' => 'match',
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
     protected function renderTable(array $checks, bool $allOk): void
     {
         $this->newLine();
@@ -274,7 +334,7 @@ class HealthCheckCommand extends Command
 
         $this->newLine();
         if ($allOk) {
-            $this->info('✓ Todos os 5 checks passaram. Sistema saudável.');
+            $this->info('✓ Todos os 6 checks passaram. Sistema saudável.');
         } else {
             $failed = collect($checks)->where('ok', false)->count();
             $this->error("✗ {$failed} check(s) falharam — investigar acima.");
