@@ -9,6 +9,7 @@ contains:
   - "ContaReceberController"
   - "DashboardController"
   - "DataController"
+  - "ExtratoController"
   - "FinanceiroController"
   - "InstallController"
   - "RelatoriosController"
