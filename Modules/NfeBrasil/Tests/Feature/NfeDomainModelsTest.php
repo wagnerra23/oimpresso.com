@@ -93,7 +93,7 @@ afterEach(function () {
 
 it('NfeCertificado esconde encrypted_password em toArray()', function () {
     $cert = NfeCertificado::create([
-        'business_id'        => 4,
+        'business_id'        => 1,
         'uuid'               => '550e8400-e29b-41d4-a716-446655440000',
         'cnpj_titular'       => '12345678000199',
         'valido_ate'         => now()->addYear()->toDateString(),
@@ -110,7 +110,7 @@ it('NfeCertificado esconde encrypted_password em toArray()', function () {
 
 it('NfeCertificado::diasAteVencimento() calcula corretamente', function () {
     $cert = NfeCertificado::create([
-        'business_id' => 4, 'uuid' => 'a',
+        'business_id' => 1, 'uuid' => 'a',
         'cnpj_titular' => '11', 'valido_ate' => now()->addDays(30)->toDateString(),
         'encrypted_password' => 'x', 'ativo' => true,
     ]);
@@ -121,7 +121,7 @@ it('NfeCertificado::diasAteVencimento() calcula corretamente', function () {
 
 it('NfeCertificado::isVencido() true quando passou', function () {
     $cert = NfeCertificado::create([
-        'business_id' => 4, 'uuid' => 'b',
+        'business_id' => 1, 'uuid' => 'b',
         'cnpj_titular' => '11', 'valido_ate' => now()->subDays(1)->toDateString(),
         'encrypted_password' => 'x', 'ativo' => false,
     ]);
@@ -131,13 +131,13 @@ it('NfeCertificado::isVencido() true quando passou', function () {
 
 it('NfeEmissao UNIQUE(business_id, transaction_id) garante idempotência', function () {
     NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 100,
+        'business_id' => 1, 'transaction_id' => 100,
         'modelo' => '65', 'serie' => '001', 'numero' => 1,
         'valor_total' => 50, 'status' => 'pendente',
     ]);
 
     expect(fn () => NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 100,
+        'business_id' => 1, 'transaction_id' => 100,
         'modelo' => '65', 'serie' => '001', 'numero' => 2,
         'valor_total' => 50, 'status' => 'pendente',
     ]))->toThrow(\Illuminate\Database\QueryException::class);
@@ -145,13 +145,13 @@ it('NfeEmissao UNIQUE(business_id, transaction_id) garante idempotência', funct
 
 it('NfeEmissao UNIQUE(biz, modelo, serie, numero) impede duplicar sequência', function () {
     NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 1,
+        'business_id' => 1, 'transaction_id' => 1,
         'modelo' => '65', 'serie' => '001', 'numero' => 100,
         'valor_total' => 10, 'status' => 'autorizada',
     ]);
 
     expect(fn () => NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 2,
+        'business_id' => 1, 'transaction_id' => 2,
         'modelo' => '65', 'serie' => '001', 'numero' => 100,
         'valor_total' => 20, 'status' => 'pendente',
     ]))->toThrow(\Illuminate\Database\QueryException::class);
@@ -159,7 +159,7 @@ it('NfeEmissao UNIQUE(biz, modelo, serie, numero) impede duplicar sequência', f
 
 it('NfeEmissao mesma serie+numero em business diferente é OK (multi-tenant)', function () {
     NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 1,
+        'business_id' => 1, 'transaction_id' => 1,
         'modelo' => '65', 'serie' => '001', 'numero' => 100,
         'valor_total' => 10, 'status' => 'autorizada',
     ]);
@@ -174,7 +174,7 @@ it('NfeEmissao mesma serie+numero em business diferente é OK (multi-tenant)', f
 
 it('NfeEmissao::isCancelavel — NFC-e dentro de 24h', function () {
     $emi = NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 10,
+        'business_id' => 1, 'transaction_id' => 10,
         'modelo' => '65', 'serie' => '001', 'numero' => 1,
         'valor_total' => 10, 'status' => 'autorizada',
         'emitido_em' => now()->subHours(20),
@@ -185,7 +185,7 @@ it('NfeEmissao::isCancelavel — NFC-e dentro de 24h', function () {
 
 it('NfeEmissao::isCancelavel — NFC-e após 24h não é cancelável', function () {
     $emi = NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 11,
+        'business_id' => 1, 'transaction_id' => 11,
         'modelo' => '65', 'serie' => '001', 'numero' => 2,
         'valor_total' => 10, 'status' => 'autorizada',
         'emitido_em' => now()->subHours(25),
@@ -196,7 +196,7 @@ it('NfeEmissao::isCancelavel — NFC-e após 24h não é cancelável', function 
 
 it('NfeEmissao::isCancelavel — NFe modelo 55 tem 168h (7 dias)', function () {
     $emi = NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 12,
+        'business_id' => 1, 'transaction_id' => 12,
         'modelo' => '55', 'serie' => '001', 'numero' => 3,
         'valor_total' => 100, 'status' => 'autorizada',
         'emitido_em' => now()->subHours(100),
@@ -208,7 +208,7 @@ it('NfeEmissao::isCancelavel — NFe modelo 55 tem 168h (7 dias)', function () {
 it('NfeEmissao::isCancelavel — apenas autorizada (rejeitada/cancelada não)', function () {
     foreach (['pendente', 'rejeitada', 'cancelada', 'denegada'] as $st) {
         $emi = NfeEmissao::create([
-            'business_id' => 4, 'transaction_id' => 100 + array_search($st, ['pendente','rejeitada','cancelada','denegada']),
+            'business_id' => 1, 'transaction_id' => 100 + array_search($st, ['pendente','rejeitada','cancelada','denegada']),
             'modelo' => '55', 'serie' => '001', 'numero' => 200 + array_search($st, ['pendente','rejeitada','cancelada','denegada']),
             'valor_total' => 10, 'status' => $st,
             'emitido_em' => now()->subHour(),
@@ -219,13 +219,13 @@ it('NfeEmissao::isCancelavel — apenas autorizada (rejeitada/cancelada não)', 
 
 it('NfeEvento é append-only (sem UPDATED_AT)', function () {
     $emi = NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 1,
+        'business_id' => 1, 'transaction_id' => 1,
         'modelo' => '55', 'serie' => '001', 'numero' => 1,
         'valor_total' => 100, 'status' => 'autorizada',
     ]);
 
     NfeEvento::create([
-        'business_id' => 4, 'emissao_id' => $emi->id,
+        'business_id' => 1, 'emissao_id' => $emi->id,
         'tipo' => '110111', 'status' => 'autorizado',
         'justificativa' => 'Erro na descrição do produto, exige correção',
         'cstat_evento' => '135',
@@ -238,7 +238,7 @@ it('NfeEvento é append-only (sem UPDATED_AT)', function () {
 
 it('NfeEvento.payload_json roundtrip via array cast', function () {
     $emi = NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 1,
+        'business_id' => 1, 'transaction_id' => 1,
         'modelo' => '55', 'serie' => '001', 'numero' => 1,
         'valor_total' => 100, 'status' => 'autorizada',
     ]);
@@ -246,7 +246,7 @@ it('NfeEvento.payload_json roundtrip via array cast', function () {
     $payload = ['request' => ['xml' => '<x/>'], 'response' => ['cstat' => '135']];
 
     $ev = NfeEvento::create([
-        'business_id' => 4, 'emissao_id' => $emi->id,
+        'business_id' => 1, 'emissao_id' => $emi->id,
         'tipo' => '110111', 'status' => 'autorizado',
         'payload_json' => $payload,
     ]);
@@ -256,7 +256,7 @@ it('NfeEvento.payload_json roundtrip via array cast', function () {
 
 it('NfeInutilizacao::quantidadeNumeros calcula corretamente', function () {
     $inut = NfeInutilizacao::create([
-        'business_id' => 4, 'modelo' => '65', 'serie' => '001',
+        'business_id' => 1, 'modelo' => '65', 'serie' => '001',
         'numero_de' => 100, 'numero_ate' => 105,
         'justificativa' => 'Erro de impressão consecutivo',
         'status' => 'autorizado',
@@ -267,16 +267,16 @@ it('NfeInutilizacao::quantidadeNumeros calcula corretamente', function () {
 
 it('cascade delete: deletar NfeEmissao apaga NfeEvento dependentes', function () {
     $emi = NfeEmissao::create([
-        'business_id' => 4, 'transaction_id' => 50,
+        'business_id' => 1, 'transaction_id' => 50,
         'modelo' => '55', 'serie' => '001', 'numero' => 50,
         'valor_total' => 100, 'status' => 'autorizada',
     ]);
     NfeEvento::create([
-        'business_id' => 4, 'emissao_id' => $emi->id,
+        'business_id' => 1, 'emissao_id' => $emi->id,
         'tipo' => '110110', 'status' => 'autorizado',
     ]);
     NfeEvento::create([
-        'business_id' => 4, 'emissao_id' => $emi->id,
+        'business_id' => 1, 'emissao_id' => $emi->id,
         'tipo' => '210200', 'status' => 'autorizado',
     ]);
 

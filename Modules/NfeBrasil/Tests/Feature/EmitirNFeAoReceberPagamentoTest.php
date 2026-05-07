@@ -52,7 +52,7 @@ function fakeNfeEmissaoStub(string $status = 'autorizada', string $cstat = '100'
 {
     $emissao = new NfeEmissao;
     $emissao->id = 1;
-    $emissao->business_id = 4;
+    $emissao->business_id = 1;
     $emissao->status = $status;
     $emissao->cstat = $cstat;
     $emissao->chave_44 = $status === 'autorizada' ? '35210112345678000199550010000000011000000019' : null;
@@ -81,7 +81,7 @@ it('com flag desabilitada (default), apenas loga e retorna sem tocar service', f
 
     $listener = new EmitirNFeAoReceberPagamento($svc);
     $listener->handle(new InvoicePaid(
-        businessId: 4, invoiceRef: 'INV-2026-0001', valor: 199.90, paidAt: '2026-05-06',
+        businessId: 1, invoiceRef: 'INV-2026-0001', valor: 199.90, paidAt: '2026-05-06',
     ));
 
     Log::shouldHaveReceived('info')->withArgs(function ($msg, $ctx) {
@@ -98,7 +98,7 @@ it('com flag habilitada e invoice ausente: log warning + no-op (não toca servic
 
     $listener = new EmitirNFeAoReceberPagamento($svc);
     $listener->handle(new InvoicePaid(
-        businessId: 4, invoiceRef: 'INV-INEXISTENTE-9999', valor: 100, paidAt: '2026-05-06',
+        businessId: 1, invoiceRef: 'INV-INEXISTENTE-9999', valor: 100, paidAt: '2026-05-06',
     ));
 
     Log::shouldHaveReceived('warning')->withArgs(function ($msg, $ctx) {
@@ -111,7 +111,7 @@ it('com flag habilitada + invoice presente: chama service.emitirParaInvoice + di
     config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
 
     $invoice = Invoice::create([
-        'business_id'      => 4,
+        'business_id'      => 1,
         'numero_documento' => 'INV-LISTENER-' . uniqid(),
         'valor'            => 199.90,
         'status'           => 'paid',
@@ -128,7 +128,7 @@ it('com flag habilitada + invoice presente: chama service.emitirParaInvoice + di
 
     $listener = new EmitirNFeAoReceberPagamento($svc);
     $listener->handle(new InvoicePaid(
-        businessId: 4, invoiceRef: $invoice->numero_documento, valor: 199.90, paidAt: '2026-05-06',
+        businessId: 1, invoiceRef: $invoice->numero_documento, valor: 199.90, paidAt: '2026-05-06',
     ));
 
     Event::assertDispatched(NFeAutorizada::class, fn ($e) => $e->emissao->status === 'autorizada');
@@ -140,7 +140,7 @@ it('rejeitada: service grava status=rejeitada mas listener NÃO dispara NFeAutor
     config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
 
     $invoice = Invoice::create([
-        'business_id'      => 4,
+        'business_id'      => 1,
         'numero_documento' => 'INV-REJ-' . uniqid(),
         'valor'            => 100,
         'status'           => 'paid',
@@ -156,7 +156,7 @@ it('rejeitada: service grava status=rejeitada mas listener NÃO dispara NFeAutor
 
     $listener = new EmitirNFeAoReceberPagamento($svc);
     $listener->handle(new InvoicePaid(
-        businessId: 4, invoiceRef: $invoice->numero_documento, valor: 100, paidAt: '2026-05-06',
+        businessId: 1, invoiceRef: $invoice->numero_documento, valor: 100, paidAt: '2026-05-06',
     ));
 
     Event::assertNotDispatched(NFeAutorizada::class);
@@ -168,7 +168,7 @@ it('Throwable do service é re-throwado pra queue retry (3 tries)', function () 
     config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
 
     $invoice = Invoice::create([
-        'business_id'      => 4,
+        'business_id'      => 1,
         'numero_documento' => 'INV-ERR-' . uniqid(),
         'valor'            => 100,
         'status'           => 'paid',
@@ -184,7 +184,7 @@ it('Throwable do service é re-throwado pra queue retry (3 tries)', function () 
     $listener = new EmitirNFeAoReceberPagamento($svc);
 
     expect(fn () => $listener->handle(new InvoicePaid(
-        businessId: 4, invoiceRef: $invoice->numero_documento, valor: 100, paidAt: '2026-05-06',
+        businessId: 1, invoiceRef: $invoice->numero_documento, valor: 100, paidAt: '2026-05-06',
     )))->toThrow(\RuntimeException::class, 'SEFAZ timeout');
 
     Log::shouldHaveReceived('error')->withArgs(function ($msg, $ctx) {
@@ -209,7 +209,7 @@ it('event InvoicePaid dispatcha listener via queue (não síncrono)', function (
     config(['nfebrasil.auto_emission_on_invoice_paid' => false]);
 
     event(new InvoicePaid(
-        businessId: 4, invoiceRef: 'INV-Q', valor: 50, paidAt: '2026-05-06',
+        businessId: 1, invoiceRef: 'INV-Q', valor: 50, paidAt: '2026-05-06',
     ));
 
     Queue::assertPushed(\Illuminate\Events\CallQueuedListener::class, function ($job) {
