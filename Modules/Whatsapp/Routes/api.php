@@ -1,24 +1,43 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Whatsapp\Http\Controllers\Api\MetaWebhookController;
+use Modules\Whatsapp\Http\Controllers\Api\ZapiWebhookController;
 
 /*
 |--------------------------------------------------------------------------
 | Whatsapp — rotas API (webhooks Z-API e Meta Cloud)
 |--------------------------------------------------------------------------
 |
-| Lote 2a: rotas declaradas mas controllers ainda não implementados.
-| Lote 2c implementa MetaWebhookController + ZapiWebhookController + middlewares
-| VerifyMetaSignature (HMAC SHA-256) + VerifyZapiSignature (Client-Token timing-safe).
+| Decisão arquitetural mãe: ADR 0096
+|   - 2 receivers: /webhook/meta/{uuid} + /webhook/zapi/{uuid}
+|   - Sprint 3: + /webhook/baileys/{uuid} (BaileysDriver custom)
 |
-| @see memory/requisitos/Whatsapp/SPEC.md US-WA-010, US-WA-010b
+| Webhooks SÃO PÚBLICOS (sem auth Sanctum) — autenticação é feita pelo
+| middleware de verificação de assinatura (HMAC SHA-256 / Client-Token /
+| api_key). Resposta sempre 200 (Meta retenta agressivo se ≠200).
+|
+| @see memory/requisitos/Whatsapp/SPEC.md US-WA-010 / US-WA-010b
 | @see memory/requisitos/Whatsapp/ARCHITECTURE.md §6 Middlewares
 */
 
-// Webhooks ficarão aqui em Lote 2c:
-// Route::post('/whatsapp/webhook/zapi/{business_uuid}', [ZapiWebhookController::class, 'handle'])
-//     ->middleware('whatsapp.zapi.signature');
-//
-// Route::post('/whatsapp/webhook/meta/{business_uuid}', [MetaWebhookController::class, 'handle'])
-//     ->middleware('whatsapp.meta.signature');
-// Route::get('/whatsapp/webhook/meta/{business_uuid}', [MetaWebhookController::class, 'verify']);
+Route::group(['prefix' => 'whatsapp/webhook'], function () {
+    // Meta Cloud — GET é challenge (verify_token); POST é evento real
+    Route::get('/meta/{business_uuid}', [MetaWebhookController::class, 'verify'])
+        ->middleware('whatsapp.meta.signature')
+        ->name('whatsapp.webhook.meta.verify');
+
+    Route::post('/meta/{business_uuid}', [MetaWebhookController::class, 'handle'])
+        ->middleware('whatsapp.meta.signature')
+        ->name('whatsapp.webhook.meta.handle');
+
+    // Z-API — só POST (sem GET challenge; auth via Client-Token header)
+    Route::post('/zapi/{business_uuid}', [ZapiWebhookController::class, 'handle'])
+        ->middleware('whatsapp.zapi.signature')
+        ->name('whatsapp.webhook.zapi.handle');
+
+    // Sprint 3: + Baileys daemon Node próprio
+    // Route::post('/baileys/{business_uuid}', [BaileysWebhookController::class, 'handle'])
+    //     ->middleware('whatsapp.baileys.signature')
+    //     ->name('whatsapp.webhook.baileys.handle');
+});
