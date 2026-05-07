@@ -1085,3 +1085,43 @@ Salvo em auto-mem `feedback_mcp_so_ct100.md`. Implicação: tool MCP exposed só
 - Goal #7 Skills V0.5 UI: 0/done
 
 **Última atualização:** 2026-05-07 ~12:00 BRT — sessão BRIEF-audit + Hostinger recovery
+
+---
+
+## Sessão 2026-05-07 tarde — Whatsapp UI cockpit + build na Hostinger
+
+**PR #173 mergeado** (UI Whatsapp cockpit 3-painéis estado-da-arte) — lista | thread | sidebar com partial reload, search server-side, avatar inicial colorida, mensagens agrupadas por dia, status icons, scroll-bottom button, ações sidebar. Componentes shared em `resources/js/Pages/Whatsapp/_components/` (Avatar, ConversationList, ConversationThread, ConversationSidebar, helpers).
+
+**PR #174 mergeado** (build:inertia migrado pra Hostinger) — `public/build-inertia/` no .gitignore, `git rm --cached` 230 arquivos, `quick-sync.yml` agora roda `npm ci` condicional + `npm run build:inertia` na Hostinger. `build-inertia-auto.yml` deletado. **ADR 0098** documentando tudo.
+
+### Quick wins
+
+- **Hostinger TEM Node 24.15 + npm 11** via nvm — testado, builda em 52s sem crashes, 138GB memória disponível. Era reflexo herdado "shared hosting = sem Node".
+- **Repo enxuto** — -16574 linhas em 230 arquivos binários removidos do tracking
+- **Eliminada race condition** — antes 2 workflows em paralelo causavam Hostinger servir source+bundles dessincados por ~30s → 409 mismatch → full reload em deploy
+- **Single source of truth** — build sempre determinístico do source que está em prod
+
+### Incidentes da sessão
+
+- **HTTP 500 em prod por ~5min** após merge do #174: `npm ci` nunca tinha rodado na Hostinger, `centrifuge ^5.5.3` declarado no package.json mas ausente em node_modules. Build falhou sem manifest → 500. Resolvido rodando `npm ci` (448 packages, 41s) + `npm run build:inertia` + clear caches via SSH. Prod HTTP 200 (280ms) restaurada.
+- **quick-sync.yml falhando há tempos no Setup SSH** — secrets `SSH_PORT`, `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY` no GitHub estão vazios. Workflow nunca rodou de verdade. Bug documentado em auto-mem `reference_quick_sync_quebrada.md` e na ADR 0098.
+
+### Aprendizados meta
+
+- **Olhar antes de assumir** — `which node` na Hostinger custou 30s e teria poupado 1h investigando GH Actions/CT 100 builders.
+- **Cleanup pós-migração `git rm --cached`** — `git reset --hard` no servidor NÃO apaga untracked. Se não rodar `git clean -fd` uma vez, fica lixo. Cuidado em qualquer migration similar.
+- **`npm ci` quando lockfile muda** — não confiar que dependência declarada no package.json existe em node_modules. Sempre rodar npm ci pós lockfile diff.
+- **Race condition de workflows paralelos** — `concurrency.group` não basta quando workflows DIFERENTES fazem trabalho dependente. Encadear via `workflow_run` ou unificar em 1 workflow.
+
+### Pendência crítica P0
+
+**Configurar GitHub Secrets pro quick-sync.yml**: sem `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_PORT`, `SSH_USER`, todo deploy continua manual via SSH. Quick-sync vai falhar em todo push — antes build-inertia-auto compensava (commitando assets), mas agora sem ele, é o único caminho.
+
+### CYCLE-02 status (~30% decorrido, ~14 dias restantes)
+
+- Goal #6 Constituição V2 health-check 7d limpo: progressão (brief funcional + GUARD-02 + ADR 0098 deployados)
+- Goal #4 MWART Repair (4 telas): 0/4 (Whatsapp cockpit foi bonus, fora do escopo do goal)
+- Goal #5 NfeBrasil emite NFe55: 0/done
+- Goal #7 Skills V0.5 UI: 0/done
+
+**Última atualização:** 2026-05-07 ~16h BRT — Whatsapp Cockpit + build Hostinger (PRs #173 + #174 mergeados, ADR 0098, prod restaurada após incident HTTP 500)
