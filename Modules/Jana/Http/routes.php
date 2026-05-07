@@ -208,6 +208,12 @@ Route::group(
 // Auth via mcp.auth middleware (mesmo Bearer mcp_* do health/auth).
 // Endpoint POST /api/mcp protocolo JSON-RPC 2.0 — clientes Claude Code/Desktop
 // usam configurando .claude/settings.local.json com URL + Bearer.
-\Laravel\Mcp\Facades\Mcp::web('/api/mcp', \Modules\Jana\Mcp\OimpressoMcpServer::class)
-    ->middleware(['api', 'mcp.auth'])
-    ->name('copiloto.mcp.server');
+//
+// US-COPI-094 (2026-05-07): rota condicionada a MCP_TOOLS_EXPOSED env. CT 100
+// Proxmox tem true no .env; Hostinger fica sem (default false), retorna 404.
+// Wagner regra canônica: "MCP é só CT 100 — Hostinger não funciona e fica lento".
+if (config('mcp.tools_exposed')) {
+    \Laravel\Mcp\Facades\Mcp::web('/api/mcp', \Modules\Jana\Mcp\OimpressoMcpServer::class)
+        ->middleware(['api', 'mcp.auth'])
+        ->name('copiloto.mcp.server');
+}
