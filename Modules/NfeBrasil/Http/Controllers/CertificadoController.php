@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +14,9 @@ use InvalidArgumentException;
 use Modules\NfeBrasil\Http\Requests\UploadCertificadoRequest;
 use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\NfeBrasil\Services\CertificadoService;
+use Modules\NfeBrasil\Services\NfeService;
+use RuntimeException;
+use Throwable;
 
 /**
  * US-NFE-041 — gerenciamento do certificado A1 do business.
@@ -100,5 +104,64 @@ class CertificadoController extends Controller
         return redirect()
             ->route('nfe-brasil.certificado.status')
             ->with('success', "Certificado A1 cadastrado. CNPJ {$cert->cnpj_titular} válido até {$cert->valido_ate->format('d/m/Y')}.");
+    }
+
+    /**
+     * POST /nfe-brasil/configuracao/certificado/testar
+     *
+     * Testa cert + conexão SEFAZ via NFeStatusServico (cstat=107 esperado).
+     * Não emite NF-e nenhuma — só ping de status. Idempotente, seguro pra
+     * chamar sob demanda (botão UI).
+     *
+     * Resposta JSON pra polling/feedback rápido — Inertia partial reload
+     * (`only:[]`) preserva o resto da página.
+     */
+    public function testar(Request $request, NfeService $nfeService): JsonResponse
+    {
+        $businessId = (int) $request->session()->get('business.id', 0);
+        if ($businessId === 0) {
+            return response()->json(['ok' => false, 'error' => 'no_business_context'], 400);
+        }
+
+        // Cert obrigatório — sem ele, sequer chama o service
+        $cert = NfeCertificado::where('business_id', $businessId)
+            ->where('ativo', true)
+            ->first();
+        if (! $cert) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'sem_certificado',
+                'xMotivo' => 'Cadastre um certificado A1 antes de testar a conexão.',
+            ], 422);
+        }
+
+        try {
+            $resultado = $nfeService->consultarStatusSefaz($businessId);
+        } catch (RuntimeException $e) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'sefaz_failure',
+                'xMotivo' => $e->getMessage(),
+            ], 502);
+        } catch (Throwable $e) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'unexpected',
+                'xMotivo' => 'Erro inesperado: ' . $e->getMessage(),
+            ], 500);
+        }
+
+        // Audit log (sem dados sensíveis)
+        activity('nfe.certificado')
+            ->causedBy($request->user())
+            ->withProperties([
+                'business_id' => $businessId,
+                'cstat'       => $resultado['cstat'],
+                'ok'          => $resultado['ok'],
+                'tempo'       => $resultado['tempoResposta'],
+            ])
+            ->log('certificado.status_sefaz_consultado');
+
+        return response()->json($resultado);
     }
 }

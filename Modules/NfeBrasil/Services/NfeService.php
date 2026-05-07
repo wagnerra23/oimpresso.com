@@ -468,6 +468,93 @@ class NfeService
         return max((int) $ultimo, $legado) + 1;
     }
 
+    /**
+     * Consulta NFeStatusServico — verifica se a SEFAZ-{UF} está respondendo
+     * com o cert A1 do business.
+     *
+     * Útil pra:
+     *   - Smoke check pré-emissão (cert válido + SEFAZ online)
+     *   - Botão "Testar conexão SEFAZ" na tela do certificado (US-NFE-041)
+     *   - Diagnóstico em caso de emissão travada (SEFAZ x cert x rede)
+     *
+     * **cstat esperado em sucesso:**
+     *   - `107` — "Servico em Operacao" (homologação ou produção)
+     *
+     * **cstat de erro comum:**
+     *   - `108` — "Servico Paralisado Momentaneamente"
+     *   - `109` — "Servico Paralisado sem Previsao"
+     *   - `280` / `281` — Certificado vencido / inválido
+     *   - `283` — "Assinatura difere do cadastro"
+     *
+     * Não emite NFe nenhuma — só ping de status. Idempotente, seguro pra
+     * chamar sob demanda (botão UI) sem efeito colateral.
+     *
+     * @return array{
+     *   ok: bool,                  status==107 = ok
+     *   cstat: string,             código de retorno SEFAZ
+     *   xMotivo: string,           mensagem human-readable
+     *   tempoResposta: float,      duração em segundos (medida client-side)
+     *   ambiente: int,             1=produção, 2=homologação
+     *   uf: string,                UF do emitente
+     *   versao: ?string            versão do app SEFAZ (quando disponível)
+     * }
+     *
+     * @throws RuntimeException Quando cert ausente ou business não encontrado
+     */
+    public function consultarStatusSefaz(int $businessId): array
+    {
+        $business = DB::table('business')->where('id', $businessId)->first();
+        if (! $business) {
+            throw new RuntimeException("Business {$businessId} não encontrado.");
+        }
+
+        $certData = $this->certificadoService->carregarParaSefaz($businessId);
+        $tools    = $this->criarTools($business, $certData, [], '55');
+
+        $start = microtime(true);
+
+        try {
+            $responseXml = $tools->sefazStatus();
+        } catch (\Throwable $e) {
+            Log::error('NfeService: consultarStatusSefaz falhou', [
+                'business_id' => $businessId,
+                'error'       => $e->getMessage(),
+            ]);
+            throw new RuntimeException(
+                'Falha ao consultar SEFAZ: ' . $e->getMessage(),
+                0,
+                $e,
+            );
+        }
+
+        $tempoResposta = round(microtime(true) - $start, 3);
+
+        $std     = (new Standardize($responseXml))->toStd();
+        $cstat   = (string) ($std->cStat ?? '999');
+        $xMotivo = (string) ($std->xMotivo ?? 'Resposta SEFAZ sem xMotivo');
+        $versao  = isset($std->verAplic) ? (string) $std->verAplic : null;
+
+        $ok = $cstat === '107';
+
+        Log::info('NfeService: status SEFAZ consultado', [
+            'business_id'    => $businessId,
+            'cstat'          => $cstat,
+            'xMotivo'        => $xMotivo,
+            'ok'             => $ok,
+            'tempo_resposta' => $tempoResposta,
+        ]);
+
+        return [
+            'ok'            => $ok,
+            'cstat'         => $cstat,
+            'xMotivo'       => $xMotivo,
+            'tempoResposta' => $tempoResposta,
+            'ambiente'      => (int) ($business->ambiente ?? 2),
+            'uf'            => $this->resolverUF($business),
+            'versao'        => $versao,
+        ];
+    }
+
     // ────────────────────────────────────────────────────────────────────────
     // Privados
     // ────────────────────────────────────────────────────────────────────────
