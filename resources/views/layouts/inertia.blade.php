@@ -44,6 +44,12 @@
     @viteReactRefresh
     @vite(['resources/css/inertia.css', 'resources/js/app.tsx'], 'build-inertia')
 
+    {{-- Ziggy: gera função `route()` global no JS a partir das rotas Laravel.
+         Sem isso, todas Pages React que chamam `route('xxx.yyy')` viram
+         ReferenceError silencioso (links com href=undefined). Pacote
+         `tightenco/ziggy` precisa estar instalado (composer.json). --}}
+    @routes
+
     @inertiaHead
 </head>
 <body class="bg-background text-foreground antialiased">
