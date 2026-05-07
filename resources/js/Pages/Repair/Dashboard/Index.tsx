@@ -3,10 +3,10 @@
 // 5 painéis: KPIs + status breakdown + service staff + trending brands/devices/models.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Wrench, Users, TrendingUp } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Icon } from '@/Components/Icon';
 import type { ReactNode } from 'react';
 
 interface ChartDataPoint {
@@ -38,20 +38,21 @@ export default function DashboardIndex(props: PageProps) {
   return (
     <div className="container mx-auto p-4">
       <PageHeader
+        icon="wrench"
         title="Dashboard Repair"
-        subtitle="Visão geral de OS, status, equipe e tendências (Repair)"
+        description="Visão geral de OS, status, equipe e tendências (Repair)"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard
           label="Status únicos"
-          value={kpis.total_repairs.toString()}
-          icon={<Wrench className="h-5 w-5" />}
+          value={kpis.total_repairs}
+          icon="wrench"
         />
         <KpiCard
           label="Service staff"
-          value={kpis.service_staff_count.toString()}
-          icon={<Users className="h-5 w-5" />}
+          value={kpis.service_staff_count}
+          icon="users"
         />
       </div>
 
@@ -76,7 +77,7 @@ export default function DashboardIndex(props: PageProps) {
           labelKey="brand"
           valueKey="count"
           emptyMsg="Sem dados de marcas"
-          icon={<TrendingUp className="h-4 w-4" />}
+          iconName="trending-up"
         />
         <SimpleListCard
           title="Top modelos (trending)"
@@ -84,7 +85,7 @@ export default function DashboardIndex(props: PageProps) {
           labelKey="model"
           valueKey="count"
           emptyMsg="Sem dados de modelos"
-          icon={<TrendingUp className="h-4 w-4" />}
+          iconName="trending-up"
         />
       </div>
     </div>
@@ -97,15 +98,15 @@ interface SimpleListCardProps {
   labelKey: string;
   valueKey: string;
   emptyMsg: string;
-  icon?: ReactNode;
+  iconName?: string;
 }
 
-function SimpleListCard({ title, items, labelKey, valueKey, emptyMsg, icon }: SimpleListCardProps) {
+function SimpleListCard({ title, items, labelKey, valueKey, emptyMsg, iconName }: SimpleListCardProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          {icon}
+          {iconName && <Icon name={iconName} className="h-4 w-4" />}
           {title}
         </CardTitle>
       </CardHeader>
