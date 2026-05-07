@@ -1,4 +1,17 @@
 ---
+slug: 0016-plano-otimizacao-e-roadmap
+number: 16
+title: "Plano de Otimização e Roadmap PontoWR2"
+type: adr
+status: aceito
+authority: reference
+lifecycle: arquivado
+decided_at: 2026-04-21
+decided_by: [E]
+module: pontowr2
+quarter: 2026-Q2
+---
+
 # ADR 0016 — Plano de Otimização e Roadmap PontoWR2
 
 **Data:** 2026-04-21

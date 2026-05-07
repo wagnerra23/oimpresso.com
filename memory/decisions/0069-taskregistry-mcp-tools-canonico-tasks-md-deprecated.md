@@ -1,12 +1,15 @@
 ---
 slug: 0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated
+number: 69
 title: "Governança de tasks: TaskRegistry MCP tools canônico, TASKS.md ASCII deprecated"
-status: aceito
-authority: [Wagner]
-lifecycle: active
+type: adr
+status: superseded
+authority: canonical
+lifecycle: substituido
 quarter: Q2-2026
 decided_at: 2026-05-04
-decided_by: [Wagner, Claude]
+decided_by: [W]
+module: governance
 supersedes: []
 superseded_by: [0070]
 related: [0027, 0053, 0064, 0070]
