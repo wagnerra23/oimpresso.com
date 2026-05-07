@@ -7,6 +7,7 @@ use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DashboardController;
+use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 
@@ -58,6 +59,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/contas-bancarias/{accountId}', [ContaBancariaController::class, 'upsert'])
             ->whereNumber('accountId')
             ->name('contas-bancarias.upsert');
+
+        // Extrato bancário — leitura via Banking API (US-RB-046)
+        Route::get('/extrato/{contaBancariaId}', [ExtratoController::class, 'index'])
+            ->whereNumber('contaBancariaId')
+            ->name('extrato.index');
 
         // Relatórios (DRE / Fluxo / Resumo) — US-FIN-014
         Route::get('/relatorios', [RelatoriosController::class, 'index'])->name('relatorios.index');
