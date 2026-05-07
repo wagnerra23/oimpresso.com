@@ -10,8 +10,8 @@ use Modules\Brief\Console\Commands\GenerateBriefCommand;
  *
  * Sprint 1 — Daily Brief (camada L7 da Constituição V2). Ver ADR 0091.
  *
- * Boot mínimo: rotas API + comandos artisan. Não tem UI, não tem
- * permissões, não aparece no menu — é infraestrutura backend pura.
+ * Boot: rotas API (brief-fetch HTTP) + rotas web (3 rotas Install ADR 0024)
+ * + comandos artisan. UI admin futura virá em US-COPI-090/091.
  */
 class BriefServiceProvider extends ServiceProvider
 {
@@ -23,6 +23,7 @@ class BriefServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadRoutesFrom(__DIR__ . '/../Routes/api.php');
+        $this->loadRoutesFrom(__DIR__ . '/../Routes/web.php');
 
         if ($this->app->runningInConsole()) {
             $this->commands([
