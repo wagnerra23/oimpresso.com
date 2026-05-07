@@ -39,6 +39,8 @@ class TasksUpdateTool extends Tool
                 ->description('Novo sprint (ex: B, 2026-W20). Use "—" pra remover.'),
             'priority' => $schema->string()
                 ->description('Nova prioridade: p0|p1|p2|p3'),
+            'module' => $schema->string()
+                ->description('Mover task pra outro módulo (ex: COPI→JANA pós-rename ADR 0088). Use uppercase.'),
             'author' => $schema->string()
                 ->description('Quem está fazendo a mudança (para audit log). Default: wagner.'),
         ];
@@ -54,16 +56,19 @@ class TasksUpdateTool extends Tool
         $author = trim((string) $request->get('author', 'wagner')) ?: 'wagner';
 
         $campos = [];
-        foreach (['status', 'owner', 'sprint', 'priority'] as $field) {
+        foreach (['status', 'owner', 'sprint', 'priority', 'module'] as $field) {
             $val = $request->get($field);
             if ($val !== null) {
                 $v = trim((string) $val);
+                if ($field === 'module') {
+                    $v = strtoupper($v);
+                }
                 $campos[$field] = ($v === '' || $v === '—' || $v === '-') ? null : $v;
             }
         }
 
         if (empty($campos)) {
-            return Response::text('❌ Nenhum campo para atualizar. Informe ao menos um: status, owner, sprint, priority.');
+            return Response::text('❌ Nenhum campo para atualizar. Informe ao menos um: status, owner, sprint, priority, module.');
         }
 
         // Valida status se fornecido

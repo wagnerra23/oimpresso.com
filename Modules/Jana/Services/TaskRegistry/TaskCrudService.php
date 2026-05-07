@@ -42,7 +42,7 @@ class TaskCrudService
             'epic_id', 'cycle_id', 'component_id', 'parent_task_id',
             'type', 'story_points', 'estimate_unit', 'estimate_value',
             'estimate_h', 'due_date', 'labels', 'custom_fields',
-            'title', 'description',
+            'title', 'description', 'module',
         ];
         $events = [];
 
