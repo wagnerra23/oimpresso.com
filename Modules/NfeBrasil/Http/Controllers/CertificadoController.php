@@ -135,19 +135,35 @@ class CertificadoController extends Controller
             ], 422);
         }
 
+        // Carrega contexto do business pra payload de erro ter UF/ambiente
+        // mesmo quando o service explode antes de chegar a SEFAZ.
+        $businessRow = \DB::table('business')->where('id', $businessId)->first();
+        $ufFallback  = $this->resolveUfBusinessLocation($businessId);
+        $ambiente    = (int) ($businessRow->ambiente ?? 2);
+
         try {
             $resultado = $nfeService->consultarStatusSefaz($businessId);
         } catch (RuntimeException $e) {
             return response()->json([
-                'ok'      => false,
-                'error'   => 'sefaz_failure',
-                'xMotivo' => $e->getMessage(),
+                'ok'            => false,
+                'error'         => 'sefaz_failure',
+                'cstat'         => '—',
+                'xMotivo'       => $e->getMessage(),
+                'tempoResposta' => 0,
+                'ambiente'      => $ambiente,
+                'uf'            => $ufFallback,
+                'versao'        => null,
             ], 502);
         } catch (Throwable $e) {
             return response()->json([
-                'ok'      => false,
-                'error'   => 'unexpected',
-                'xMotivo' => 'Erro inesperado: ' . $e->getMessage(),
+                'ok'            => false,
+                'error'         => 'unexpected',
+                'cstat'         => '—',
+                'xMotivo'       => 'Erro inesperado: ' . $e->getMessage(),
+                'tempoResposta' => 0,
+                'ambiente'      => $ambiente,
+                'uf'            => $ufFallback,
+                'versao'        => null,
             ], 500);
         }
 
@@ -163,5 +179,21 @@ class CertificadoController extends Controller
             ->log('certificado.status_sefaz_consultado');
 
         return response()->json($resultado);
+    }
+
+    /**
+     * Resolve UF do business via business_locations (mesmo critério do
+     * NfeService). Garante payload de erro contextualizado mesmo quando
+     * o service explode antes de chegar a SEFAZ. Fallback 'SP'.
+     */
+    private function resolveUfBusinessLocation(int $businessId): string
+    {
+        $loc = \DB::table('business_locations')
+            ->where('business_id', $businessId)
+            ->orderBy('id')
+            ->first();
+
+        $state = $loc?->state ?? '';
+        return preg_match('/^[A-Z]{2}$/', $state) ? $state : 'SP';
     }
 }

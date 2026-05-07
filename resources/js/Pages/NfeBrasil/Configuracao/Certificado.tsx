@@ -258,9 +258,15 @@ function Certificado(props: PageProps) {
                       <div className="font-medium">
                         {resultadoTeste.ok
                           ? `SEFAZ-${resultadoTeste.uf} online`
-                          : `SEFAZ retornou erro`}
-                        {' · '}
-                        <span className="font-mono text-xs">cstat {resultadoTeste.cstat}</span>
+                          : resultadoTeste.uf && resultadoTeste.uf !== '—'
+                            ? `Erro consultando SEFAZ-${resultadoTeste.uf}`
+                            : `Erro consultando SEFAZ`}
+                        {resultadoTeste.cstat && resultadoTeste.cstat !== '—' && (
+                          <>
+                            {' · '}
+                            <span className="font-mono text-xs">cstat {resultadoTeste.cstat}</span>
+                          </>
+                        )}
                       </div>
                       <div className="text-xs opacity-90">{resultadoTeste.xMotivo}</div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-75 pt-1">
