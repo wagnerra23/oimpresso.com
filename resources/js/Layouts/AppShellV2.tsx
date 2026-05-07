@@ -8,34 +8,70 @@
 import { Head, usePage } from '@inertiajs/react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import {
+  Activity,
+  AlertTriangle,
   Bell,
   BookOpen,
+  Brain,
   Building2,
+  CalendarRange,
+  CheckSquare,
   ChevronDown,
+  ClipboardList,
   Compass,
+  Flag,
+  FolderKanban,
+  GitBranch,
+  Inbox,
+  KanbanSquare,
   LayoutDashboard,
+  List,
   type LucideIcon,
   MessageSquare,
+  Search,
+  Settings,
   ShieldCheck,
+  Smartphone,
   Target,
+  TrendingDown,
   TrendingUp,
   Users,
+  Wrench,
+  Zap,
 } from 'lucide-react';
 
 // Mapa estático dos ícones usados em topnav.php — evita `import * as Lucide`
 // que quebraria tree-shake e adicionaria ~330 KB ao bundle.
 // Pra adicionar ícone novo: importar acima + adicionar entry aqui.
 const TOPNAV_ICON_MAP: Record<string, LucideIcon> = {
+  Activity,
+  AlertTriangle,
   Bell,
   BookOpen,
+  Brain,
   Building2,
+  CalendarRange,
+  CheckSquare,
+  ClipboardList,
   Compass,
+  Flag,
+  FolderKanban,
+  GitBranch,
+  Inbox,
+  KanbanSquare,
   LayoutDashboard,
+  List,
   MessageSquare,
+  Search,
+  Settings,
   ShieldCheck,
+  Smartphone,
   Target,
+  TrendingDown,
   TrendingUp,
   Users,
+  Wrench,
+  Zap,
 };
 
 import { useAutoModuleNav } from '@/Hooks/usePageProps';
@@ -268,6 +304,8 @@ export default function AppShellV2({
   const moduleNav = useAutoModuleNav();
   const moduleSlug = moduleNav?.moduleLabel ?? 'Chat';
   const moduleItems = moduleNav?.items ?? [];
+  // Path atual normalizado pra match de active state no topnav horizontal
+  const currentPath = (page.url.split('?')[0]?.split('#')[0] ?? page.url) as string;
 
   // ── Breadcrumb computado
   let crumb: ReactNode[];
@@ -362,6 +400,31 @@ export default function AppShellV2({
               </button>
             </div>
           </header>
+
+          {/* TopNav horizontal do módulo (Wagner 2026-05-07: "tem que ter").
+              Auto-detect via useAutoModuleNav() lendo shell.topnavs[Module]
+              alimentado por Modules/<Mod>/Resources/menus/topnav.php.
+              Renderiza só se módulo tem topnav configurado. */}
+          {moduleItems.length > 0 && (
+            <nav className="topnav-module" aria-label="Navegação do módulo">
+              {moduleItems.map((item, i) => {
+                const href = item.href ?? '#';
+                const itemRoot = '/' + (href.split('/').slice(1, 3).join('/'));
+                const isActive = currentPath.startsWith(itemRoot) && itemRoot !== '/';
+                const Icon = item.icon ? TOPNAV_ICON_MAP[item.icon] : undefined;
+                return (
+                  <a
+                    key={i}
+                    href={href}
+                    className={`topnav-module-i${isActive ? ' active' : ''}`}
+                  >
+                    {Icon && <Icon size={14} />}
+                    <span>{item.label}</span>
+                  </a>
+                );
+              })}
+            </nav>
+          )}
           <div className="main-body">
             {children}
           </div>
