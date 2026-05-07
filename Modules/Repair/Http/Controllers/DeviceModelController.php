@@ -116,13 +116,12 @@ class DeviceModelController extends Controller
             $models = DeviceModel::with('Device', 'Brand')
                 ->where('business_id', $business_id)
                 ->orderBy('id', 'desc')
-                ->get(['id', 'name', 'description', 'device_id', 'brand_id', 'repair_checklist']);
+                ->get(['id', 'name', 'device_id', 'brand_id', 'repair_checklist']);
 
             return Inertia::render('Repair/DeviceModels/Index', [
                 'models' => $models->map(fn ($m) => [
                     'id' => $m->id,
                     'name' => $m->name,
-                    'description' => $m->description,
                     'device_name' => $m->Device?->name,
                     'brand_name' => $m->Brand?->name,
                     'has_checklist' => ! empty($m->repair_checklist),

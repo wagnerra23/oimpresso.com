@@ -102,6 +102,7 @@ interface SimpleListCardProps {
 }
 
 function SimpleListCard({ title, items, labelKey, valueKey, emptyMsg, iconName }: SimpleListCardProps) {
+  const list = Array.isArray(items) ? items : [];
   return (
     <Card>
       <CardHeader>
@@ -111,11 +112,11 @@ function SimpleListCard({ title, items, labelKey, valueKey, emptyMsg, iconName }
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {items.length === 0 ? (
+        {list.length === 0 ? (
           <p className="text-sm text-slate-500">{emptyMsg}</p>
         ) : (
           <ul className="space-y-1 text-sm">
-            {items.slice(0, 10).map((item, i) => (
+            {list.slice(0, 10).map((item, i) => (
               <li key={i} className="flex justify-between border-b last:border-0 py-1">
                 <span>{String(item[labelKey] ?? Object.values(item)[0] ?? '—')}</span>
                 <span className="font-medium tabular-nums">
