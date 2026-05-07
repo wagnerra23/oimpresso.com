@@ -3,6 +3,7 @@
 namespace Modules\RecurringBilling\Models;
 
 use App\Contact;
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,8 @@ use Modules\Financeiro\Models\ContaBancaria;
  */
 class Subscription extends Model
 {
+    use HasBusinessScope;
+
     use SoftDeletes;
 
     protected $table = 'rb_subscriptions';

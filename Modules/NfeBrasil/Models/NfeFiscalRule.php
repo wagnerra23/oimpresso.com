@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Models;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,6 +23,8 @@ use Modules\NfeBrasil\Events\FiscalRuleUpdated;
  */
 class NfeFiscalRule extends Model
 {
+    use HasBusinessScope;
+
     use SoftDeletes;
 
     protected $table = 'nfe_fiscal_rules';

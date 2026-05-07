@@ -2,10 +2,10 @@
 
 namespace Modules\Jana\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Modules\Jana\Scopes\ScopeByBusiness;
 
 /**
  * Meta — um KPI com alvo.
@@ -15,6 +15,8 @@ use Modules\Jana\Scopes\ScopeByBusiness;
  */
 class Meta extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'jana_metas';
 
     protected $fillable = [
@@ -31,11 +33,6 @@ class Meta extends Model
     protected $casts = [
         'ativo' => 'boolean',
     ];
-
-    protected static function booted(): void
-    {
-        static::addGlobalScope(new ScopeByBusiness);
-    }
 
     public function periodos(): HasMany
     {

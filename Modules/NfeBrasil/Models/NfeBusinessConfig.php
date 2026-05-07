@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Models;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -26,6 +27,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class NfeBusinessConfig extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'nfe_business_configs';
 
     protected $fillable = [
