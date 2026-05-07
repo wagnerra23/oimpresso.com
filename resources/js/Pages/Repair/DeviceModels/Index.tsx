@@ -47,33 +47,36 @@ export default function DeviceModelsIndex({ models }: PageProps) {
           description="Cadastre os modelos de dispositivos que sua oficina atende."
         />
       ) : (
-        <div className="rounded-lg border bg-white">
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
           <table className="w-full">
-            <thead className="bg-slate-50 text-left text-sm">
+            <thead className="bg-muted/50 text-left text-sm">
               <tr>
-                <th className="px-4 py-3 font-medium">Modelo</th>
-                <th className="px-4 py-3 font-medium">Marca</th>
-                <th className="px-4 py-3 font-medium">Categoria</th>
-                <th className="px-4 py-3 font-medium text-center">Checklist</th>
+                <th className="px-4 py-3 font-medium text-foreground">Modelo</th>
+                <th className="px-4 py-3 font-medium text-foreground">Marca</th>
+                <th className="px-4 py-3 font-medium text-foreground">Categoria</th>
+                <th className="px-4 py-3 font-medium text-center text-foreground">Checklist</th>
                 <th className="px-4 py-3 font-medium w-24"></th>
               </tr>
             </thead>
             <tbody className="text-sm">
               {models.map((m) => (
-                <tr key={m.id} className="border-t hover:bg-slate-50">
+                <tr
+                  key={m.id}
+                  className="border-t border-border hover:bg-accent/50 transition-colors focus-within:bg-accent/50"
+                >
                   <td className="px-4 py-3">
-                    <div className="font-medium">{m.name}</div>
+                    <div className="font-medium text-foreground">{m.name}</div>
                   </td>
-                  <td className="px-4 py-3">{m.brand_name ?? '—'}</td>
-                  <td className="px-4 py-3">{m.device_name ?? '—'}</td>
+                  <td className="px-4 py-3 text-foreground">{m.brand_name ?? <span className="text-muted-foreground">—</span>}</td>
+                  <td className="px-4 py-3 text-foreground">{m.device_name ?? <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-4 py-3 text-center">
                     {m.has_checklist ? (
-                      <Badge variant="secondary">
-                        <Icon name="list-checks" className="mr-1 h-3 w-3" />
+                      <Badge variant="secondary" className="gap-1">
+                        <Icon name="list-checks" className="h-3 w-3" />
                         Sim
                       </Badge>
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-muted-foreground" aria-label="Sem checklist">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
