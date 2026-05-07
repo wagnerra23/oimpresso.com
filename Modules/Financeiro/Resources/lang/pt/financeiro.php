@@ -17,6 +17,7 @@ return [
     'permissao_conciliacao_manage' => 'Financeiro: conciliação bancária',
     'permissao_relatorios_view' => 'Financeiro: ver relatórios',
     'permissao_relatorios_share' => 'Financeiro: compartilhar relatórios (link público)',
+    'permissao_extrato_view' => 'Financeiro: ver extrato bancário sincronizado da API',
 
     // Menu
     'menu' => [
