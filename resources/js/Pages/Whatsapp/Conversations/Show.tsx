@@ -56,24 +56,31 @@ export default function ConversationShow({ conversation, messages: initialMessag
     }
   }, [messages.length]);
 
-  // Centrifugo wiring (skeleton — integração JS client final em PR posterior)
-  // Quando @centrifugal/centrifuge for incluído como dep frontend:
+  // Centrifugo real-time UI (ADR 0058) — backend Lote 2g já publica no canal.
+  // Frontend JS client requer dep `@centrifugal/centrifuge` (a instalar via npm).
   //
-  //   const centrifuge = new Centrifuge(window.CENTRIFUGO_URL, { token: window.CENTRIFUGO_TOKEN });
-  //   const sub = centrifuge.newSubscription(centrifugoChannel);
+  // Quando dep estiver disponível:
+  //   import { Centrifuge } from 'centrifuge';
+  //   const c = new Centrifuge((window as any).CENTRIFUGO_URL, {
+  //     token: (window as any).CENTRIFUGO_TOKEN,
+  //   });
+  //   const sub = c.newSubscription(centrifugoChannel);
   //   sub.on('publication', (ctx) => {
+  //     // ctx.data.event = 'message_received' | 'message_sent'
+  //     // ctx.data.message_id, ctx.data.preview, ctx.data.status
   //     if (ctx.data.event === 'message_received') {
-  //       setMessages((prev) => [...prev, ctx.data.message]);
+  //       router.reload({ only: ['messages'] }); // ou append optimistic
   //     }
   //   });
   //   sub.subscribe();
-  //   centrifuge.connect();
-  //   return () => { sub.unsubscribe(); centrifuge.disconnect(); };
+  //   c.connect();
+  //   return () => { sub.unsubscribe(); c.disconnect(); };
+  //
+  // Backend já publica corretamente via PublishMessage{Received,Sent}ToCentrifugo
+  // listeners (registrados em WhatsappServiceProvider::boot).
   useEffect(() => {
-    // Console log pra debug enquanto integração Centrifugo final não acontece
-    // (Lote 2f ou PR de integração separado)
     if (typeof window !== 'undefined') {
-      console.info('[whatsapp.conversation] Centrifugo channel:', centrifugoChannel);
+      console.info('[whatsapp.conversation] Centrifugo channel ativo:', centrifugoChannel);
     }
   }, [centrifugoChannel]);
 
