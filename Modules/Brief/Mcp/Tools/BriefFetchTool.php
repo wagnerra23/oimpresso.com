@@ -102,14 +102,26 @@ class BriefFetchTool extends Tool
     {
         try {
             $row = DB::selectOne(<<<'SQL'
-                SELECT c.id AS cycle_id, c.key AS cycle_key, c.name AS cycle_name
+                SELECT
+                  c.id AS cycle_id,
+                  c.`key` AS cycle_key,
+                  c.name AS cycle_name,
+                  c.start_date,
+                  c.end_date,
+                  GREATEST(0, LEAST(100, (DATEDIFF(CURRENT_DATE, c.start_date) / NULLIF(DATEDIFF(c.end_date, c.start_date), 0)) * 100)) AS progress_pct
                 FROM mcp_cycles c
-                INNER JOIN mcp_projects p ON p.id = c.project_id
-                WHERE c.status = 'active' AND p.key = 'COPI'
+                INNER JOIN mcp_jira_projects p ON p.id = c.project_id
+                WHERE c.status = 'active' AND p.`key` = 'COPI'
                 LIMIT 1
             SQL);
 
             if (! $row) {
+                return '';
+            }
+
+            // Cycle recém-ativado (<20% decorrido) ainda não tem trabalho
+            // suficiente registrado pra avaliar drift confiavelmente.
+            if ((float) $row->progress_pct < 20.0) {
                 return '';
             }
 
