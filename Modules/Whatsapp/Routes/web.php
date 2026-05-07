@@ -48,6 +48,11 @@ Route::group([
         ->middleware('can:whatsapp.access')
         ->name('whatsapp.conversations.show');
 
+    Route::post('/conversations/{id}/send', [ConversationsController::class, 'send'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('whatsapp.conversations.send');
+
     Route::get('/templates', [TemplatesController::class, 'index'])
         ->middleware('can:whatsapp.templates.manage')
         ->name('whatsapp.templates.index');
@@ -55,6 +60,10 @@ Route::group([
     Route::post('/templates/sync-meta', [TemplatesController::class, 'syncMeta'])
         ->middleware('can:whatsapp.templates.manage')
         ->name('whatsapp.templates.sync_meta');
+
+    Route::post('/templates', [TemplatesController::class, 'store'])
+        ->middleware('can:whatsapp.templates.manage')
+        ->name('whatsapp.templates.store');
 
     Route::get('/settings', [SettingsController::class, 'show'])
         ->middleware('can:whatsapp.settings.manage')
