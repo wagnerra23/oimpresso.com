@@ -5,7 +5,7 @@ title: "MCP resolver via users.mcp_handle (SUPERSEDED por ADR 0081 — Identity 
 type: adr
 status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: 2026-05-05
 module: copiloto

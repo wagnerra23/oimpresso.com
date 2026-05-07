@@ -1,4 +1,17 @@
 ---
+slug: 0015-connector-api-gateway
+number: 15
+title: "Connector: API Gateway para Integrações Externas"
+type: adr
+status: aceito
+authority: reference
+lifecycle: arquivado
+decided_at: 2026-04-21
+decided_by: [E]
+module: connector
+quarter: 2026-Q2
+---
+
 # ADR 0015 — Connector: API Gateway para Integrações Externas
 
 **Data:** 2026-04-21
