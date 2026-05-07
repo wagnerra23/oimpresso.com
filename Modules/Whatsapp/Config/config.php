@@ -73,4 +73,19 @@ return [
     'webhook' => [
         'rate_limit_per_minute' => 600,
     ],
+
+    'centrifugo' => [
+        // ADR 0058 — Centrifugo CT 100 substituiu Reverb (Hostinger HTTP-only não roda daemons).
+        // API HTTP: POST {url}/api com header X-API-Key + body {"method":"publish",...}
+        'url' => env('WHATSAPP_CENTRIFUGO_URL', 'https://centrifugo.oimpresso.local'),
+        'api_key' => env('WHATSAPP_CENTRIFUGO_API_KEY', null),
+        'request_timeout' => env('WHATSAPP_CENTRIFUGO_TIMEOUT', 5),
+        'enabled' => env('WHATSAPP_CENTRIFUGO_ENABLED', true),
+    ],
+
+    'bot' => [
+        // Sprint 3 — DispatchToJanaBot listener encaminha pro PolicyEngine ADS via decide().
+        // Disabled até Sprint 3 ativar ADS Universal (ADR 0096 emenda 4 + ads-route skill).
+        'enabled' => env('WHATSAPP_BOT_ENABLED', false),
+    ],
 ];
