@@ -47,32 +47,42 @@ export default function StatusIndex({ statuses }: PageProps) {
           description="Crie pelo menos 1 status pra usar no fluxo de OS."
         />
       ) : (
-        <div className="rounded-lg border bg-white">
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
           <table className="w-full">
-            <thead className="bg-slate-50 text-left text-sm">
+            <thead className="bg-muted/50 text-left text-sm">
               <tr>
-                <th className="px-4 py-3 font-medium">Nome</th>
-                <th className="px-4 py-3 font-medium">Cor</th>
-                <th className="px-4 py-3 font-medium text-center">Ordem</th>
-                <th className="px-4 py-3 font-medium text-center">Concluído?</th>
+                <th className="px-4 py-3 font-medium text-foreground">Nome</th>
+                <th className="px-4 py-3 font-medium text-foreground">Cor</th>
+                <th className="px-4 py-3 font-medium text-center text-foreground">Ordem</th>
+                <th className="px-4 py-3 font-medium text-center text-foreground">Concluído?</th>
                 <th className="px-4 py-3 font-medium w-24"></th>
               </tr>
             </thead>
             <tbody className="text-sm">
               {statuses.map((s) => (
-                <tr key={s.id} className="border-t hover:bg-slate-50">
-                  <td className="px-4 py-3">{s.name}</td>
+                <tr
+                  key={s.id}
+                  className="border-t border-border hover:bg-accent/50 transition-colors focus-within:bg-accent/50"
+                >
+                  <td className="px-4 py-3 text-foreground">{s.name}</td>
                   <td className="px-4 py-3">
                     <span
-                      className="inline-block h-4 w-4 rounded-full mr-2 align-middle"
+                      className="inline-block h-4 w-4 rounded-full mr-2 align-middle border border-border/60"
                       style={{ backgroundColor: s.color }}
+                      aria-label={`Cor ${s.color}`}
                     />
-                    <span className="font-mono text-xs text-slate-600">{s.color}</span>
+                    <span className="font-mono text-xs text-muted-foreground">{s.color}</span>
                   </td>
-                  <td className="px-4 py-3 text-center">{s.sort_order}</td>
+                  <td className="px-4 py-3 text-center text-foreground tabular-nums">{s.sort_order}</td>
                   <td className="px-4 py-3 text-center">
-                    {s.is_completed_status === 1 && (
-                      <Icon name="circle-check" className="inline h-4 w-4 text-green-600" />
+                    {s.is_completed_status === 1 ? (
+                      <Icon
+                        name="circle-check"
+                        className="inline h-4 w-4 text-emerald-600 dark:text-emerald-400"
+                        aria-label="Status de conclusão"
+                      />
+                    ) : (
+                      <span className="text-muted-foreground" aria-label="Status intermediário">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
