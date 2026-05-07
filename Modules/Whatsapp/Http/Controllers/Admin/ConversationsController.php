@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Http\Controllers\Admin;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Entities\WhatsappMessage;
+use Modules\Whatsapp\Http\Requests\SendMessageRequest;
+use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
 
 /**
  * Inbox conversas — Cockpit pattern (lista esquerda + chat painel direita).
@@ -101,5 +104,44 @@ class ConversationsController extends Controller
             'messages' => $messages,
             'centrifugoChannel' => "whatsapp:business:{$conversation->business_id}",
         ]);
+    }
+
+    /**
+     * POST /whatsapp/conversations/{id}/send
+     *
+     * Envio manual via UI Composer. FormRequest valida regras (janela 24h
+     * pra meta_cloud freeform, kind=template/media específicos).
+     *
+     * Dispatch SendWhatsappMessageJob que aplica fallback runtime + retry exponencial.
+     *
+     * @see memory/requisitos/Whatsapp/SPEC.md US-WA-003
+     */
+    public function send(SendMessageRequest $request, int $id): RedirectResponse
+    {
+        $conversation = WhatsappConversation::findOrFail($id);
+        $kind = $request->validated()['kind'];
+
+        $payload = match ($kind) {
+            'freeform' => ['body' => $request->validated()['body']],
+            'template' => [
+                'name' => $request->validated()['template_name'],
+                'params' => $request->validated()['template_params'] ?? [],
+                'locale' => $request->validated()['template_locale'] ?? 'pt_BR',
+            ],
+            'media' => [
+                'url' => $request->validated()['media_url'],
+                'type' => $request->validated()['media_type'],
+                'caption' => $request->validated()['media_caption'] ?? null,
+            ],
+        };
+
+        SendWhatsappMessageJob::dispatch(
+            $conversation->business_id,
+            $conversation->customer_phone,
+            $kind,
+            $payload,
+        );
+
+        return back()->with('status', 'Mensagem enfileirada — entregue em segundos.');
     }
 }
