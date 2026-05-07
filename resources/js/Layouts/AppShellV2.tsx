@@ -75,6 +75,7 @@ const TOPNAV_ICON_MAP: Record<string, LucideIcon> = {
 };
 
 import { useAutoModuleNav } from '@/Hooks/usePageProps';
+import CommandPalette from '@/Components/CommandPalette';
 
 import '../../css/cockpit.css';
 
@@ -248,6 +249,21 @@ export default function AppShellV2({
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(LS.LINKED) === '1';
   });
+
+  // ── Command Palette global (PMG-002, ADR 0100) — atalho Cmd/Ctrl+K
+  const [paletteOpen, setPaletteOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      // Cmd+K (Mac) ou Ctrl+K (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Activeconv-id fallback se a página não fornecer (controlado externamente)
   const [internalActiveConv, setInternalActiveConv] = useState<string>(() => {
@@ -439,6 +455,9 @@ export default function AppShellV2({
 
         {/* APPS VINCULADOS (opcional, só aparece se tem conversaFoco) */}
         {!linkedCollapsed && conversaFoco && <LinkedAppsPanel conv={conversaFoco} />}
+
+        {/* COMMAND PALETTE (Cmd+K global — PMG-002, ADR 0100) */}
+        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 
         {/* TWEAKS PANEL (flutuante, fora do grid) */}
         <TweaksPanel
