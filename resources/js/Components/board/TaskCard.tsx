@@ -30,6 +30,8 @@ export interface BoardTask {
   blocked_by: string[];
   is_blocked: boolean;
   is_overdue: boolean;
+  /** Timestamp Unix (segundos) — usado pra optimistic-lock 409 conflict (PMG-001, ADR 0100). */
+  updated_at?: number;
 }
 
 interface TaskCardProps {
