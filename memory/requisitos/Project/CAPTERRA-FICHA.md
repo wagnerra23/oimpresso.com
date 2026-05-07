@@ -1,8 +1,13 @@
-# CAPTERRA-FICHA — Project
+# CAPTERRA-FICHA — Project (legacy UltimatePOS)
 
-> **Ficha canônica de benchmark do módulo Project** — fonte de verdade para a skill `comparativo-do-modulo`.
-> ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md).
-> ADR de migração: [0099](../../decisions/0099-project-mwart-migration.md).
+> ⚠️ **PIVOTADA 2026-05-07.** Esta ficha mira `Modules/Project/` Blade legacy UltimatePOS (gestão de projetos de **cliente** — TimeLogs, Invoices). Wagner pediu redesign do `Modules/ProjectMgmt` (Jira-style time interno, em prod desde PRs #91/#92), módulo diferente.
+>
+> Este artefato fica preservado como **insumo da Fase 3.8** ([SCOPE.md ProjectMgmt](../../../Modules/ProjectMgmt/SCOPE.md): "Fase 3.8 — DELETE Project legado UltimatePOS"). Antes do `git rm -rf Modules/Project/`, este inventário ajuda decidir o que extrair (Invoice from TimeLogs → Financeiro? ClientProjects → ProjectMgmt? timesheet → outro lugar?).
+>
+> **Não usar como roadmap de implementação.** Migração Blade→MWART desta ficha foi **cancelada**. Discovery NOVO mira ProjectMgmt em `memory/requisitos/ProjectMgmt/CAPTERRA-FICHA.md` (próxima sessão).
+>
+> ADR governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md).
+> ADR pivot: [0099](../../decisions/0099-project-mwart-migration.md).
 
 ---
 

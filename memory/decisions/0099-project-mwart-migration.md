@@ -1,27 +1,44 @@
 ---
-slug: 0099-project-mwart-migration
+slug: 0099-project-legacy-discovery-pre-deletion
 number: 99
-title: "Project MWART Migration — Blade legacy → Inertia/React em 4 fases capterra-driven"
+title: "Modules/Project (legacy UltimatePOS) — Discovery pré-deletion (Fase 3.8)"
 type: adr
-status: aceito
+status: pivotado
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-07
 module: Project
 quarter: 2026-Q2
-tags: [mwart, migration, project, capterra-driven, jira-like]
+tags: [mwart, legacy, project, discovery, pre-deletion, queue-for-delete]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0011, 0089, 0093, 0094]
+related: [0011, 0070, 0079, 0080, 0086, 0087, 0088, 0089, 0093, 0094]
 pii: false
-review_triggers: ["Após Fase 1 mergeada (MVP Kanban) reavaliar escopo Fase 2", "Se ROTA LIVRE não adotar /board em 30d, reconsiderar prioridade vs outros módulos"]
+review_triggers: ["Quando Fase 3.8 começar — usar este discovery pra decidir o que extrair antes de git rm", "Se ProjectMgmt absorver alguma capacidade do legacy (ex: TimeLogs, Invoice from work)"]
 ---
 
-# ADR 0099 — Project MWART Migration: Blade legacy → Inertia/React em 4 fases capterra-driven
+# ADR 0099 — Modules/Project (legacy UltimatePOS) — Discovery pré-deletion (Fase 3.8)
 
-## Contexto
+## ⚠️ Pivot 2026-05-07 (mesmo dia)
+
+Esta ADR foi originalmente escrita como "Project MWART Migration: Blade legacy → Inertia/React em 4 fases capterra-driven" mirando uma migração completa de `Modules/Project/` (Blade UltimatePOS, gestão de projetos de cliente) para Inertia/React.
+
+**Erro de direção descoberto na mesma sessão:** Wagner pediu redesign de "ProjectMgmt", referindo-se a [`Modules/ProjectMgmt/`](../../Modules/ProjectMgmt/) (módulo Jira-style do TIME interno, em prod desde 2026-05-04 PRs #91/#92). Essa Fase 0 mirou no módulo errado.
+
+**Decisão pós-pivot:** manter os 5 artefatos (CAPTERRA-FICHA, CHARTER-board, SPEC.md preenchido, session log, esta ADR) **mas re-enquadrados** como "discovery do legacy `Modules/Project` queue-for-delete". Razão:
+
+- `Modules/Project` será **deletado em Fase 3.8** ([SCOPE.md ProjectMgmt](../../Modules/ProjectMgmt/SCOPE.md) explicita: "Fase 3.8 — DELETE Project legado UltimatePOS")
+- Este discovery (24 capacidades inventariadas + 15 US documentadas + Charter da tela board) **vira insumo pra Fase 3.8**: ajuda decidir o que extrair antes do `git rm -rf Modules/Project/` (Invoice from TimeLogs, ClientProjects, timesheet) e onde recolocar (Modules/Financeiro? virar feature do ProjectMgmt?).
+- **NÃO se executa nenhuma das "4 Fases" originalmente propostas.** Migração Blade→MWART do legacy foi cancelada.
+- **Substituído por:** ADR 0100 (a criar) — "ProjectMgmt UI Redesign — Capterra-driven Jira-like" mirando o módulo certo.
+
+A próxima sessão cria o discovery NOVO em `memory/requisitos/ProjectMgmt/{CAPTERRA-FICHA,CHARTER-board,SPEC,...}.md` espelhando o pattern, mas sobre as 6 telas que **já existem** em `resources/js/Pages/ProjectMgmt/`.
+
+---
+
+## Contexto (original — preserva pra Fase 3.8 deletion)
 
 O módulo `Modules/Project` é **100% Blade legacy** (migrations 2019-2020, último alinhamento UI em 2020). Wagner solicitou em 2026-05-07: "refazer a UI do Project baseado no Jira" (ver session log da data).
 

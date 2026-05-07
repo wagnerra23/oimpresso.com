@@ -1,9 +1,12 @@
-# Charter — `/project/{id}/board` (Kanban Jira-like)
+# Charter — `/project/{id}/board` (legacy UltimatePOS) — ⚠️ PIVOTADO
 
-> **Charter > Spec** ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3).
-> Contrato vivo da página. **Quando o `.tsx` for criado em `resources/js/Pages/Project/Board.tsx`, este arquivo migra como `Board.charter.md` ao lado** (skill `charter-first` Tier A dormente — S4).
-> ADR mãe: [0099 — Project MWART Migration](../../decisions/0099-project-mwart-migration.md).
-> Capacidades cobertas: ver [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — itens P0 #1, #2, #3, #5, #7.
+> ⚠️ **PIVOTADO 2026-05-07.** Wagner pediu redesign do `Modules/ProjectMgmt` (Jira-style time interno, em prod desde PRs #91/#92), não do `Modules/Project` legacy UltimatePOS — que será deletado em Fase 3.8.
+>
+> **Não usar como contrato de implementação.** Charter NOVO mira `Modules/ProjectMgmt` em `memory/requisitos/ProjectMgmt/CHARTER-board.md` (próxima sessão) — tela já existe em `resources/js/Pages/ProjectMgmt/Board/Index.tsx` (441 LoC); redesign é incremental.
+>
+> Este artefato fica preservado **como referência de critérios UX**: anatomia 4 regiões / 6 fluxos críticos / 8 estados / regras canônicas / anti-padrões. Pode ser reaproveitado parcialmente no Charter novo.
+>
+> Charter > Spec ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3). ADR pivot: [0099](../../decisions/0099-project-mwart-migration.md).
 
 ---
 

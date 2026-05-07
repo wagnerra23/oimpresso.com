@@ -1,9 +1,14 @@
-# Especificação funcional — Project
+# Especificação funcional — Project (legacy UltimatePOS) — ⚠️ PIVOTADO
 
-> **Convenção do ID**: `US-PROJ-NNN`
-> **Campo `implementado_em`**: linka com a Page React que atende a story.
-> **Charter**: ver [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (capacidades) e [CHARTER-board.md](CHARTER-board.md) (anatomia da tela `/board`).
-> **ADR mãe migração**: [0099](../../decisions/0099-project-mwart-migration.md).
+> ⚠️ **PIVOTADO 2026-05-07.** As 15 US-PROJ-001..015 abaixo miram `Modules/Project/` Blade legacy UltimatePOS. Wagner pediu redesign do `Modules/ProjectMgmt` (Jira-style time interno) — módulo diferente em prod desde PRs #91/#92.
+>
+> **Não criar tasks dessas US no MCP.** Migração desta SPEC foi **cancelada**. SPEC NOVO mira ProjectMgmt em `memory/requisitos/ProjectMgmt/SPEC.md` com IDs `US-PMG-NNN` ou aprenda no `memory/requisitos/TaskRegistry/SPEC.md` legado (US-TR-NNN).
+>
+> Este artefato fica preservado como **insumo da Fase 3.8** ([SCOPE.md ProjectMgmt](../../../Modules/ProjectMgmt/SCOPE.md)) — antes de `git rm -rf Modules/Project/`, validar quais US têm dado real em prod (TimeLogs / Invoices) que precisa ser extraído.
+>
+> **Convenção do ID**: `US-PROJ-NNN` (legacy)
+> **Charter**: ver [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (24 capacidades) e [CHARTER-board.md](CHARTER-board.md) (anatomia).
+> **ADR pivot**: [0099](../../decisions/0099-project-mwart-migration.md).
 
 ---
 

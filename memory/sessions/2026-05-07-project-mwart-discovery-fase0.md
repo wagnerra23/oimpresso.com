@@ -1,7 +1,14 @@
-# Sessão 2026-05-07 — Project MWART Discovery (Fase 0)
+# Sessão 2026-05-07 — Project MWART Discovery (Fase 0) ⚠️ PIVOTADA mesmo dia
 
-**Owner**: [W] · **Modelo**: claude-opus-4-7 · **Worktree**: `wonderful-bassi-52ebf8`
-**Cycle**: CYCLE-02 (~6d restantes) · **Mission focus tocada**: Repair MWART scaling pattern aplicado ao Project
+> ⚠️ **CORREÇÃO 2026-05-07 (mesmo dia).** Esta sessão produziu artefatos da Fase 0 mirando `Modules/Project` Blade legacy UltimatePOS. Wagner pediu redesign de "projectMgmt" — eu interpretei como o legacy, mas o que ele queria era `Modules/ProjectMgmt` (módulo Jira-style do TIME INTERNO, em prod desde PRs #91/#92, com 6 telas Inertia/React totalizando 1935 LoC).
+>
+> **Status final dos 5 artefatos:** todos preservados com disclaimer no topo, viraram insumo da Fase 3.8 (delete legacy). Nenhuma US-PROJ-NNN será criada como task no MCP. ADR 0099 mudou status `aceito` → `pivotado` e título pra "Modules/Project (legacy UltimatePOS) — Discovery pré-deletion (Fase 3.8)".
+>
+> **Próximo passo:** Discovery NOVO mirando `Modules/ProjectMgmt` em sessão paralela. Agent Explore lançado em background pra inventariar 6 telas + 8 controllers + tabelas mcp_*. CAPTERRA-FICHA + CHARTER + SPEC novos vão em `memory/requisitos/ProjectMgmt/` quando o relatório voltar. ADR 0100 "ProjectMgmt UI Redesign" será escrita aí.
+>
+> **Lição meta-aprendizado:** sempre `Glob` por nome amplo (`**/Project*`) antes de assumir qual módulo. Sempre `git log --grep` por keyword domain antes de criar Charter/ADR. Faltou rigor de discovery inicial — perdi 3h na direção errada.
+
+---
 
 ## Pedido do Wagner
 
