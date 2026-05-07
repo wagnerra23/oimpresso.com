@@ -11,13 +11,14 @@ parent_adr: 0095
 
 # Skill — Gerador de RUNBOOK de tela/módulo do Cockpit
 
-## Quando ativa (3 modos)
+## Quando ativa (4 modos)
 
 | Modo | Gatilho típico | Output |
 |---|---|---|
 | **A. Generate** | "runbook da tela X", "playbook do módulo Y", "documenta a Inbox" | `memory/requisitos/<Mod>/RUNBOOK-<tela>.md` novo |
-| **B. Audit** | "audita a tela X contra Cockpit", "compara essa tela com ADR 0039" | Relatório `file:line` com violações + fix sugerido |
-| **C. Refresh** | "atualiza o RUNBOOK da tela X", "esse runbook tá desatualizado" | Re-gera mantendo seções não-stale + bumpa `Última atualização` |
+| **B. Audit** | "audita a tela X contra Cockpit", "auditar tela contra Cockpit" | Relatório `file:line` com violações + **score 0-100** (CHECKLIST.md §G) |
+| **C. Compare** | "compara tela X com tela Y", "diferença entre X e Y", "estado da arte vs atual" | Tabela cross-page por dimensão + score lado-a-lado + recomendação de refactor |
+| **D. Refresh** | "atualiza o RUNBOOK da tela X", "esse runbook tá desatualizado" | Re-gera mantendo seções não-stale + bumpa `Última atualização` |
 
 **NÃO ativar:** ADR (decisão arquitetural), SPEC funcional (US-XXX-NNN), session log, ou skills `design-critique`/`accessibility-review` que cobrem outro escopo.
 
@@ -62,14 +63,15 @@ Carregar TODAS antes de gerar — economiza round-trips:
 
 ```
 .claude/skills/cockpit-runbook/
-├── SKILL.md         (este arquivo — overview ~140 linhas)
+├── SKILL.md         (este arquivo — overview ~180 linhas)
 ├── TEMPLATE.md      (template completo copy-paste com 11 seções + placeholders)
 ├── EXAMPLES.md      (1 input + 1 output end-to-end + dicas de profundidade)
-├── CHECKLIST.md     (DoD detalhado + audit rules pra modo B)
+├── CHECKLIST.md     (DoD + audit rules + UX heurísticas + score 0-100)
+├── BENCHMARKS.md    (catálogo de SaaS de referência por categoria de tela — Modo B/C)
 └── GOTCHAS.md       (pegadinhas curadas append-only)
 ```
 
-**Por que dividido:** Anthropic recomenda Pattern 2 (domain-specific organization) — `TEMPLATE.md` só carrega quando vai gerar, `GOTCHAS.md` só quando há suspeita de pegadinha, etc. Reduz tokens iniciais.
+**Por que dividido:** Anthropic recomenda Pattern 2 (domain-specific organization) — `TEMPLATE.md` só carrega quando vai gerar, `BENCHMARKS.md` só em Modo B/C quando precisar comparar, `GOTCHAS.md` só quando há suspeita de pegadinha. Reduz tokens iniciais.
 
 ## Output esperado
 
@@ -115,16 +117,83 @@ Seções marcadas ⭐ são o salto de qualidade vs. v1 (gap fechado com `design:
 Quando o gatilho é "audita tela X contra Cockpit", **NÃO gerar RUNBOOK**. Em vez disso:
 
 1. Read da tela `resources/js/Pages/<Mod>/<Tela>.tsx`
-2. Aplicar audit rules de [CHECKLIST.md](CHECKLIST.md) — cada regra checa contra ADR 0039 + R-DS-001..N
-3. Output em formato `file:line — regra violada — fix sugerido`:
+2. Aplicar audit rules de [CHECKLIST.md](CHECKLIST.md) — cada regra checa contra ADR 0039 + R-DS-001..N + **§F (UX heurísticas Nielsen)**
+3. **Calcular Score 0-100** ([CHECKLIST.md §G](CHECKLIST.md)) — pondera DS (40%) + ADR (30%) + UX (30%)
+4. (Opcional) Comparar contra benchmark da categoria de tela em [BENCHMARKS.md](BENCHMARKS.md)
+5. Output em formato `file:line — regra violada — fix sugerido` + bloco final `## Score`:
 
 ```
-resources/js/Pages/copiloto/Dashboard.tsx:42 — R-DS-002 violado (cor crua bg-blue-500) — usar bg-primary
-resources/js/Pages/copiloto/Dashboard.tsx:88 — R-DS-001 violado (<button> HTML cru) — importar <Button> de @/Components/ui/button
-resources/js/Pages/copiloto/Dashboard.tsx:120 — ADR 0039 §3 violado (coluna direita ausente apesar de contexto vinculado) — entregar <LinkedClient/> ou justificar em ADR
+[CRITICAL] resources/js/Pages/<Mod>/Dashboard.tsx:42 — R-DS-002 (bg-blue-500) — fix: bg-primary
+[CRITICAL] resources/js/Pages/<Mod>/Dashboard.tsx:88 — R-DS-001 (<button>) — fix: importar <Button>
+[WARN]     resources/js/Pages/<Mod>/Dashboard.tsx:120 — ADR 0039 §3 — coluna direita ausente apesar de contexto vinculado
+[UX-WARN]  resources/js/Pages/<Mod>/Dashboard.tsx:45 — H8 (minimalist) — header com 5 elementos competindo
+[UX-CRITICAL] resources/js/Pages/<Mod>/Dashboard.tsx:88 — Q5 — empty state sem CTA
+
+## Score
+| Categoria | Score | Detalhe                                                  |
+|-----------|-------|----------------------------------------------------------|
+| DS (40)   | 22/40 | 3 CRITICAL, 5 WARN, 2 INFO                               |
+| ADR (30)  | 15/30 | 3 violations (§3 LinkedApps, §2 J/K, §4 localStorage)    |
+| UX (30)   | 22/30 | 1 CRITICAL (Q5), 2 WARN (H8, H5)                         |
+| **TOTAL** | **59/100** | 🟠 Precisa refactor — corrigir 3 CRITICAL antes de mergear |
 ```
 
 Esse modo NÃO salva arquivo — entrega no chat. Wagner decide se ajusta a tela ou registra exceção.
+
+## Modo C — Compare 2 telas
+
+Quando o gatilho é "compara tela X com tela Y" ou "diferença entre X e Y" ou "antes vs depois refactor", **comparar 2 implementações** ao invés de auditar uma só.
+
+**Quando faz sentido:**
+- Quando 2 telas implementam pattern similar (Whatsapp/Conversations/Index vs Copiloto/Cockpit — ambas Chat Cockpit) → detectar duplicação e divergência
+- "Antes vs depois" do mesmo refactor (`git show HEAD:path` vs `path`) — quantificar o salto
+- Validar candidato a "estado da arte" — comparar tela proposta como referência vs outras do mesmo módulo
+
+**Workflow:**
+
+1. Read de ambas as Pages + componentes shared importados (em paralelo)
+2. Internamente, rodar Modo B (audit + score) em cada uma
+3. Identificar **dimensões cross-page** (8 canônicas):
+
+| Dimensão | O que comparar |
+|---|---|
+| Tokens semânticos | Qual usa mais cores cruas? Quem consome `var(--bubble-me)`? |
+| Iconografia | lucide-react vs emoji |
+| Atalhos teclado | J/K/E/A registrados? `/` foca search? |
+| Persistência | localStorage com prefixo `oimpresso.`? sessionStorage? URL only? |
+| Componentes shared | `EmptyState`, `PageHeader`, `Badge` reusados ou duplicados? |
+| Real-time | Centrifugo wired? Presence visível? |
+| Acessibilidade | Focus visible (R-DS-006)? aria-label? Tab order? |
+| Responsivo | Mobile usa? Drawer ou stack vertical? |
+
+4. Output: tabela diferenças + score lado-a-lado + **recomendação de direção de refactor**:
+
+```
+## Compare: <Tela A> vs <Tela B>
+
+| Dimensão | <A> | <B> |
+|---|---|---|
+| Score total | 67/100 🟡 | 82/100 🟡 |
+| Tokens semânticos | 12 cores cruas | 3 cores cruas |
+| Iconografia | 8 emojis | 100% lucide |
+| Atalhos teclado | nenhum | J/K/E/A + ⌘K |
+| Persistência | URL only | localStorage `oimpresso.<mod>.*` |
+| EmptyState shared | custom inline | usa `<EmptyState/>` |
+| Real-time | mock typing | Centrifugo wired |
+| Focus visible | ausente em TabPill | ring shadcn em todos |
+| Responsivo mobile | sidebar oculta <lg | drawer + stack |
+
+## Recomendação
+**Refator de A → B:** A tem 5 dimensões abaixo do estado de B. Priorizar:
+1. Migrar emojis pra lucide (1h)
+2. Adicionar atalhos J/K/E/A (2h)
+3. Persistir tab+search em localStorage (30min)
+
+**Anti-refactor (manter divergência):**
+- A tem fluxo X específico — sidebar custom em vez de LinkedAppsPanel é intencional → registrar em ADR per-tela
+```
+
+Esse modo também NÃO salva arquivo — entrega no chat.
 
 ## Princípios estilísticos (calibrados pelos 13 RUNBOOKs)
 
