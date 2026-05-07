@@ -170,6 +170,10 @@ class BoardController extends Controller
     /**
      * PATCH /project-mgmt/board/{taskId}/status
      * Atualiza status via drag-drop no Kanban.
+     *
+     * Optimistic-lock opcional via `expected_updated_at` (timestamp unix
+     * em segundos): se fornecido e diferente do atual, retorna 409 Conflict
+     * com `current` state pra frontend reconciliar (PMG-001, ADR 0100).
      */
     public function updateStatus(Request $request, string $taskId): JsonResponse
     {
@@ -177,6 +181,31 @@ class BoardController extends Controller
 
         if (! in_array($status, McpTask::STATUSES, true)) {
             return response()->json(['error' => "Status '{$status}' inválido."], 422);
+        }
+
+        // R-PMG-005 — optimistic-lock pra detectar concurrent edit
+        $expectedUpdatedAt = $request->input('expected_updated_at');
+        if ($expectedUpdatedAt !== null) {
+            $task = McpTask::where('task_id', strtoupper($taskId))->first()
+                ?? McpTask::where('task_id', $taskId)->first()
+                ?? McpTask::where('identifier', strtoupper($taskId))->first();
+
+            if (! $task) {
+                return response()->json(['error' => "Task '{$taskId}' não encontrada."], 404);
+            }
+
+            $currentTs = (int) ($task->updated_at?->timestamp ?? 0);
+            if ((int) $expectedUpdatedAt !== $currentTs) {
+                return response()->json([
+                    'error'   => 'conflict',
+                    'message' => 'Task atualizada por outro usuário. Recarregue.',
+                    'current' => [
+                        'task_id'    => $task->task_id,
+                        'status'     => $task->status,
+                        'updated_at' => $currentTs,
+                    ],
+                ], 409);
+            }
         }
 
         $author = $this->resolveAuthor($request);
@@ -192,6 +221,7 @@ class BoardController extends Controller
             'task_id'    => $result['task']->task_id,
             'identifier' => $result['task']->identifier,
             'status'     => $status,
+            'updated_at' => (int) ($result['task']->updated_at?->timestamp ?? 0),
         ]);
     }
 
@@ -241,6 +271,8 @@ class BoardController extends Controller
             'blocked_by'   => $t->blocked_by ?? [],
             'is_blocked'   => $t->status === 'blocked',
             'is_overdue'   => $t->due_date && $t->due_date->isPast() && ! in_array($t->status, ['done', 'cancelled'], true),
+            // PMG-001 (ADR 0100) — timestamp pra optimistic-lock 409 conflict
+            'updated_at'   => (int) ($t->updated_at?->timestamp ?? 0),
         ];
     }
 }
