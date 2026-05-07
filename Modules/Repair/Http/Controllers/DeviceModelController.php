@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\View;
+use Inertia\Inertia;
 use Modules\Repair\Entities\DeviceModel;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Utils\RepairUtil;
@@ -109,6 +110,39 @@ class DeviceModelController extends Controller
                 ->rawColumns(['action', 'repair_checklist', 'device_id', 'brand_id'])
                 ->make(true);
         }
+
+        // MWART-0002 (Sprint 2.5) — branch Inertia/React quando flag ativa.
+        if ($this->mwartEnabled('repair_device_models_index', (int) $business_id)) {
+            $models = DeviceModel::with('Device', 'Brand')
+                ->where('business_id', $business_id)
+                ->orderBy('id', 'desc')
+                ->get(['id', 'name', 'description', 'device_id', 'brand_id', 'repair_checklist']);
+
+            return Inertia::render('Repair/DeviceModels/Index', [
+                'models' => $models->map(fn ($m) => [
+                    'id' => $m->id,
+                    'name' => $m->name,
+                    'description' => $m->description,
+                    'device_name' => $m->Device?->name,
+                    'brand_name' => $m->Brand?->name,
+                    'has_checklist' => ! empty($m->repair_checklist),
+                ]),
+                'devices' => \App\Category::forDropdown($business_id, 'service'),
+                'brands' => \App\Brands::forDropdown($business_id, false),
+            ]);
+        }
+    }
+
+    /**
+     * MWART-0002 — verifica se flag MWART está habilitada pro business.
+     */
+    private function mwartEnabled(string $key, int $business_id): bool
+    {
+        if (! config("mwart.{$key}.enabled")) {
+            return false;
+        }
+        $beta = (array) config("mwart.{$key}.business_ids", []);
+        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**
