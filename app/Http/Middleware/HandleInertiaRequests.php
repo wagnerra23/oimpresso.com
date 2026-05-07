@@ -96,6 +96,11 @@ class HandleInertiaRequests extends Middleware
                 // só computa quando a página tem layout Cockpit, não impacta páginas
                 // que ainda usam AppShell legado.
                 'cockpit' => fn () => $user ? $this->cockpitShellProps($request, $user, $businessId) : null,
+                // NFe certificado A1 status — alerta visual no Sidebar quando ≤30d ou
+                // vencido (US-NFE-001 último item). Lazy: só computa quando a página
+                // pede `shell.nfe_cert_status`. Silencioso se módulo NfeBrasil não
+                // instalado (try/catch — não trava render).
+                'nfe_cert_status' => fn () => $user && $businessId ? $this->nfeCertStatus((int) $businessId) : null,
             ],
             'locale'     => app()->getLocale(),
             'csrf_token' => fn () => csrf_token(),
@@ -183,6 +188,43 @@ class HandleInertiaRequests extends Middleware
             'usuarioCargo'     => $cargo,
             'usuarioIniciais'  => $this->iniciais($userNome),
         ];
+    }
+
+    /**
+     * NFe certificado A1 — status compacto pro Sidebar.
+     *
+     * @return array{status: 'sem_cert'|'ok'|'vencendo'|'vencido', dias_restantes: ?int}|null
+     *   `null` quando módulo NfeBrasil não está instalado/disponível.
+     *
+     * Threshold "vencendo" = ≤30d (alinhado com US-NFE-001 DoD).
+     * Try/catch envolve tudo: o render do shell NUNCA pode falhar por causa
+     * de cert NFe (mesmo se a tabela `nfe_certificados` não existir, ou se
+     * a service class não foi resolvida).
+     */
+    protected function nfeCertStatus(int $businessId): ?array
+    {
+        try {
+            if (! class_exists(\Modules\NfeBrasil\Services\CertificadoService::class)) {
+                return null;
+            }
+            $service = app(\Modules\NfeBrasil\Services\CertificadoService::class);
+            $dias = $service->verificarVencimento($businessId);
+
+            if ($dias === null) {
+                return ['status' => 'sem_cert', 'dias_restantes' => null];
+            }
+            if ($dias < 0) {
+                return ['status' => 'vencido', 'dias_restantes' => $dias];
+            }
+            if ($dias <= 30) {
+                return ['status' => 'vencendo', 'dias_restantes' => $dias];
+            }
+            return ['status' => 'ok', 'dias_restantes' => $dias];
+        } catch (\Throwable $e) {
+            // Módulo desinstalado / migration ausente / cert corrompido — render
+            // do shell continua sem badge.
+            return null;
+        }
     }
 
     /**
