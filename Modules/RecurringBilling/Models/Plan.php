@@ -2,6 +2,7 @@
 
 namespace Modules\RecurringBilling\Models;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Plan extends Model
 {
+    use HasBusinessScope;
+
     use SoftDeletes;
 
     protected $table = 'rb_plans';

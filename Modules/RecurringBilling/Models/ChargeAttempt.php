@@ -2,6 +2,7 @@
 
 namespace Modules\RecurringBilling\Models;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -24,6 +25,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ChargeAttempt extends Model
 {
+    use HasBusinessScope;
+
     public const UPDATED_AT = null; // append-only
 
     protected $table = 'rb_charge_attempts';

@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MemoriaGabarito extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'jana_memoria_gabarito';
 
     protected $fillable = [
