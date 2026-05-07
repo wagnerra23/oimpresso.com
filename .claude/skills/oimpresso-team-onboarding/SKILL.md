@@ -6,6 +6,8 @@ trust_level: L2
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
 charter_adr: 0080
+tier: C
+parent_adr: 0095
 ---
 
 # Skill — Onboarding Claude Code do time oimpresso

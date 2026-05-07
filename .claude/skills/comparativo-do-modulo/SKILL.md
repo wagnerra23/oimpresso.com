@@ -38,6 +38,8 @@ artefatos_governados:
   - "memory/requisitos/{Modulo}/CAPTERRA-INVENTARIO.md (output gerado)"
   - "memory/requisitos/{Modulo}/SPEC.md (apêndice de US aprovadas)"
   - "mcp_tasks via tasks-create (backlog priorizado)"
+tier: B
+parent_adr: 0095
 ---
 
 # comparativo-modulo-arte
