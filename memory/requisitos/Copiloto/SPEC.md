@@ -436,3 +436,71 @@ Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top
 **Acceptance:** Score RAGAS médio ≥ 0.85 · latência reranker documentada · ADR criada · serviço testado · feature flag `COPILOTO_RERANKER_ENABLED` (default false até validar).
 
 **Pré-requisito:** US-COPI-083 entregue (qwen3 base funcionando).
+
+### US-COPI-088 · BRIEF-A1 — Fix aggregator (in_flight + ADR DATE bug + activity_24h)
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: done · done_at: 2026-05-07
+> blocked_by: —
+
+**Contexto:** Auditoria 2026-05-07 do L7 Daily Brief revelou 3 bugs no `refresh_brief_inputs_cache` causando brief com 217 tokens (vs alvo 3k):
+
+1. `recent_24h.adrs_approved` sempre NULL — query usava `decided_at > NOW() - INTERVAL 24 HOUR`. Coluna é DATE, comparação trunca à meia-noite, ADRs de ontem somem.
+2. `recent_24h.commits_count` sempre 0 — `mcp_audit_log` é log MCP API, não recebe webhook GitHub. Substituído por `mcp_activity_24h` + distinct_tools + distinct_users.
+3. `in_flight` sempre NULL hardcoded — pivot pra `mcp_tasks WHERE status IN ('doing','review')`.
+
+**Validação prod 2026-05-07 11:47:** brief #5 mostra ADRs 0087-0091, in_flight wagner@RecurringBilling, mcp_activity_24h=122. Tokens 217→235 (+8% mas conteúdo agora informativo).
+
+**Refs:** PR #162, ADR 0091, sessão BRIEF-A1.
+
+### US-COPI-089 · BRIEF-A2 — Validar brief-fetch exposto + remover do Hostinger
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 2h · status: done · done_at: 2026-05-07
+> blocked_by: —
+
+**Contexto:** Skill `brief-first` Tier A não dispara se tool MCP `brief-fetch` não está exposto. Auditoria 2026-05-07 via `curl POST tools/list`: ✅ brief-fetch é a 1ª tool listada em ambos endpoints (mcp.oimpresso.com CT 100 + oimpresso.com Hostinger).
+
+**Gap residual:** Wagner regra canônica reforçada hoje — MCP roda APENAS no CT 100 (Hostinger lento + crasheia). Spawnado follow-up US-COPI-094.
+
+**Refs:** ADR 0053, ADR 0062, [auto-mem feedback_mcp_so_ct100](memory MCP só CT100).
+
+### US-COPI-090 · BRIEF-A3 — ADR 0096 superseding parcial 0091 (model real gpt-4o-mini)
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: todo
+> blocked_by: —
+
+ADR 0091 diz `claude-sonnet-4-6` (custo projetado $0.30/dia). Realidade: usa `gpt-4o-mini` (custo real $0.0004/brief = $0.024/dia, 30× mais barato). Decisão documentada no docblock do BriefGeneratorService mas não em ADR canônica. Atualizar checklist de adoção (5/7 itens já feitos).
+
+### US-COPI-091 · BRIEF-A4 — Investigar baixa adoção brief-first (2 triggers em 7d)
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 2h · status: todo
+> blocked_by: US-COPI-094
+
+Skill `brief-first` Tier A registrou apenas 2 triggers em 7d (alvo ≥90% sessões). Hipóteses: SKILL.md não distribuído pra cada dev, description ambígua, ou cache client Claude Code (tools listadas no startup faltam brief-fetch mesmo com servidor expondo). Soak 48h após US-COPI-094 mergear.
+
+### US-COPI-092 · GUARD-01 — Schema snapshot Pest test + procedure_drift health-check
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: todo
+> blocked_by: US-COPI-088
+
+Auditoria 2026-05-07 BRIEF-A1 revelou que `02-schema-aggregator.sql` no repo divergiu do procedure deployado em prod. Migration `2026_05_06_172445` capturou estado mas spec doc ficou stale. Solução: Pest snapshot test que faz `SHOW CREATE PROCEDURE` + compara hash congelado. CI quebra se diverge → força migration. Adicionar `procedure_drift` ao `jana:health-check`. Política dura `memory/proibicoes.md`: ⛔ DDL só via migration.
+
+**Refs:** ADR 0094 §princípio #5 SoC brutal.
+
+### US-COPI-093 · GUARD-02 — Pest audit ModuleScaffolding
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 5h · status: done · done_at: 2026-05-07 · tests_passing: 5/5
+> blocked_by: —
+
+Pest test em `tests/Feature/Audit/ModuleScaffoldingTest.php` que itera Modules/*/ e falha CI se módulo novo nasce sem InstallController, DataController, ServiceProvider ou module.json válido. 30 módulos auditados, allowlist API_ONLY=['Brief']. Padrão recorrente: ConsultaOs 2026-05-04 (botão Install vai pra `#`). MVP enxuto entregue PR #162. Iteração 2 (override `module:make`) fica pra Sprint 21+.
+
+**Refs:** PR #162, RUNBOOK-criar-modulo, ADR 0024.
+
+### US-COPI-094 · BRIEF-A2 follow-up — Remover brief-fetch do Hostinger MCP server
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 2h · status: todo
+> blocked_by: —
+
+Wagner regra 2026-05-07: MCP roda APENAS no CT 100 (Hostinger lento + crasheia). Atualmente `brief-fetch` está exposto em ambos endpoints. Investigar onde `Mcp::web('/api/mcp', OimpressoMcpServer::class)` registra rota no Hostinger (`Modules/Jana/Http/routes.php:211`). Mover registro pra provider que SÓ boota no CT 100, ou condicionar via `env('MCP_TOOLS_EXPOSED', false)` true em CT 100 false em Hostinger. Schema `mcp_briefs` + service `BriefGeneratorService` continuam em Hostinger (cron + DB local). Tool MCP exposed só em CT 100 (acessa MySQL via SSH tunnel autossh per ADR 0053).
+
+**Refs:** [auto-mem feedback_mcp_so_ct100](memory), ADR 0053, ADR 0062.
+
