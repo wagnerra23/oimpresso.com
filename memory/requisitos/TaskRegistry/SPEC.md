@@ -228,6 +228,36 @@ Pest: `GitTaskLinkerServiceTest` cobre 9 cenários (parsing regex, idempotência
 
 Tools `tasks-summarize-comments` (resume thread > 10 comments), `tasks-suggest-priority` (analisa due/deps/labels), `tasks-suggest-memory` (varre mcp_memory_documents por similaridade). Usa LaravelAiSdkDriver com gpt-4o-mini.
 
+### US-TR-303 · Fase 3.8 — Deletar Modules/Project legacy (UltimatePOS Project queue-for-delete)
+
+> owner: wagner · priority: p1 · estimate: 3h · status: todo · type: chore
+> labels: cleanup,legacy,blocker-3.9
+> blocked_by: —
+> blocks: rename `Modules/ProjectMgmt → Modules/Project` (Fase 3.9 do ADR 0079)
+
+Wagner 2026-05-07: "acho que não tem nada no project muito simples acho que só o cliente mesmo" — confirmado que provavelmente não há dado de valor pra extrair antes do delete (UltimatePOS Project legacy gerencia projetos de cliente; ROTA LIVRE provavelmente nem usa).
+
+**Acceptance criteria:**
+
+- [ ] Auditoria rápida em prod: query `SELECT count(*) FROM pjt_projects WHERE business_id=4` (ROTA LIVRE) — confirma uso real
+- [ ] Se >0 projetos com dado real: extrair (TimeLogs/Invoices/ClientProjects) — decidir destino (Financeiro Receivable? notas?)
+- [ ] Se =0 ou só dummy: pular extração
+- [ ] Migration nova `drop_pjt_tables.php` com `down()` que recria estrutura (rollback safety)
+- [ ] `git rm -rf Modules/Project/`
+- [ ] Remover registro em `modules_statuses.json` + qualquer reference em `phpunit.xml`
+- [ ] Remover routes/topnav reference se houver
+- [ ] PR com 1 commit `chore(project): delete legacy UltimatePOS Project module (Fase 3.8)`
+- [ ] Validar prod: rota `/project/*` retorna 404 (esperado)
+
+**Insumo preservado** (ver PR #197 — discovery pré-deletion preservado com disclaimer):
+
+- `memory/requisitos/Project/CAPTERRA-FICHA.md` — 24 capacidades inventariadas
+- `memory/requisitos/Project/CHARTER-board.md` — referência UX
+- `memory/requisitos/Project/SPEC.md` — 15 US documentadas
+- `memory/decisions/0099-project-mwart-migration.md` (status `pivotado`) — discovery pré-deletion
+
+**Refs:** ADR 0079 Fase 3.8 · ADR 0099 (legacy discovery) · [`Modules/ProjectMgmt/SCOPE.md`](../../../Modules/ProjectMgmt/SCOPE.md) · [PR #197](https://github.com/wagnerra23/oimpresso.com/pull/197)
+
 ## Migração e fluxos críticos
 
 ### Como rodar pela 1ª vez (Wagner)
