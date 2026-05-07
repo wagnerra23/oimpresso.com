@@ -10,10 +10,16 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Entities\WhatsappMessage;
+use Modules\Whatsapp\Events\WhatsappMessageReceived;
+use Modules\Whatsapp\Events\WhatsappMessageSent;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
+use Modules\Whatsapp\Listeners\DispatchToJanaBot;
 use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
+use Modules\Whatsapp\Listeners\PublishMessageReceivedToCentrifugo;
+use Modules\Whatsapp\Listeners\PublishMessageSentToCentrifugo;
 use Modules\Whatsapp\Observers\WhatsappMessageObserver;
+use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -54,6 +60,13 @@ class WhatsappServiceProvider extends ServiceProvider
         // Evento Modules\Repair\Events\RepairStatusChanged é declarado em Modules/Repair/Events/
         // — dispatch real depende de PR coordenado com Felipe/Maíra modificando JobSheetController.
         Event::listen(RepairStatusChanged::class, [NotifyRepairCustomer::class, 'handleEvent']);
+
+        // Centrifugo real-time UI (ADR 0058) — publica em whatsapp:business:{id} channel
+        Event::listen(WhatsappMessageReceived::class, PublishMessageReceivedToCentrifugo::class);
+        Event::listen(WhatsappMessageSent::class, PublishMessageSentToCentrifugo::class);
+
+        // Bot Jana — Sprint 3 prep (default disabled via config('whatsapp.bot.enabled'))
+        Event::listen(WhatsappMessageReceived::class, DispatchToJanaBot::class);
     }
 
     protected function registerMiddleware(): void
@@ -73,6 +86,9 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->app->singleton(ZapiDriver::class);
         $this->app->singleton(MetaCloudDriver::class);
         $this->app->singleton(NullDriver::class);
+
+        // Centrifugo publisher singleton (stateless HTTP wrapper)
+        $this->app->singleton(CentrifugoPublisher::class);
 
         // Bind default da interface — usado quando algum service injeta
         // DriverInterface diretamente (sem passar business). Aponta pro
