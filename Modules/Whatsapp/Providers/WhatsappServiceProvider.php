@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
+use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
@@ -38,6 +39,12 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'whatsapp');
         $this->registerMiddleware();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                DriverHealthCheckAllCommand::class,
+            ]);
+        }
 
         // Append-only enforcement em WhatsappMessage (Tier 0 — ADR 0093 + ADR 0096)
         // Bloqueia UPDATE em IMMUTABLE_COLUMNS + DELETE direto
