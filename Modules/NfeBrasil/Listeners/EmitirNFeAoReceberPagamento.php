@@ -16,8 +16,8 @@ use Throwable;
  * US-RB-044 fase 2 · Listener InvoicePaid → emissão NF-e modelo 55 automática.
  *
  * **DIFERENCIAL VERTICAL gráfica** — Iugu/Asaas/Vindi/Pagar.me não têm.
- * Larissa (ROTA LIVRE) pediu há tempos: "boleto pago → NFe emitida sozinha
- * sem clique humano".
+ * Pedido recorrente de clientes do segmento gráfico: "boleto pago → NFe
+ * emitida sozinha sem clique humano".
  *
  * Fluxo:
  *   1. Resolve Invoice via (business_id + numero_documento)

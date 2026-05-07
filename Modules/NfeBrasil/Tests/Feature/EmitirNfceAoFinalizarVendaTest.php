@@ -96,14 +96,14 @@ it('flag ON + venda elegível paid → Job dispatched com (biz_id, tx_id)', func
         'type' => 'sell',
         'status' => 'final',
         'payment_status' => 'paid',
-        'business_id' => 4,
+        'business_id' => 1,
         'id' => 12345,
     ]);
 
     (new EmitirNfceAoFinalizarVenda)->handle(new SellCreatedOrModified($tx));
 
     Queue::assertPushed(EmitirNfceJob::class, function (EmitirNfceJob $job) {
-        return $job->businessId === 4 && $job->transactionId === 12345;
+        return $job->businessId === 1 && $job->transactionId === 12345;
     });
 });
 

@@ -49,7 +49,7 @@ afterEach(function () {
 
 // ── helpers ──────────────────────────────────────────────────────────────
 
-function makeNfceEmissaoAutorizada(?int $transactionId = null, int $businessId = 4): NfeEmissao
+function makeNfceEmissaoAutorizada(?int $transactionId = null, int $businessId = 1): NfeEmissao
 {
     return NfeEmissao::create([
         'business_id'    => $businessId,
@@ -140,7 +140,7 @@ it('modelo != 65 → skip (não processa NFe 55 por engano)', function () {
 
     // Cria emissão modelo 55 (NFe normal) — listener deve recusar.
     $emissao = NfeEmissao::create([
-        'business_id'    => 4,
+        'business_id'    => 1,
         'transaction_id' => null,
         'modelo'         => '55',
         'serie'          => '1',
@@ -189,8 +189,8 @@ it('Transaction.contact sem email (consumidor anônimo) → skip silencioso', fu
     Mail::fake();
 
     $contactId = 79991;
-    nfceMakeContact($contactId, 4, email: null); // ← sem email
-    $txId = nfceMakeTransaction(4, $contactId);
+    nfceMakeContact($contactId, 1, email: null); // ← sem email
+    $txId = nfceMakeTransaction(1, $contactId);
     $emissao = makeNfceEmissaoAutorizada(transactionId: $txId);
 
     $danfe = \Mockery::mock(DanfeService::class);
@@ -209,8 +209,8 @@ it('cross-tenant: tx.business_id != emissao.business_id → skip', function () {
 
     $contactId = 79992;
     nfceMakeContact($contactId, 99, 'fraud@evil.com');
-    $txId = nfceMakeTransaction(99, $contactId); // ← business 99
-    $emissao = makeNfceEmissaoAutorizada(transactionId: $txId, businessId: 4); // ← business 4
+    $txId = nfceMakeTransaction(99, $contactId); // ← business 99 (adversário)
+    $emissao = makeNfceEmissaoAutorizada(transactionId: $txId, businessId: 1); // ← business 1 (Wagner)
 
     $danfe = \Mockery::mock(DanfeService::class);
     $danfe->shouldNotReceive('lerOuGerar');
@@ -227,8 +227,8 @@ it('happy path: Transaction.contact com email → envia DanfeNotaFiscalMail com 
     Mail::fake();
 
     $contactId = 79990;
-    nfceMakeContact($contactId, 4, 'consumidor@example.com');
-    $txId = nfceMakeTransaction(4, $contactId);
+    nfceMakeContact($contactId, 1, 'consumidor@example.com');
+    $txId = nfceMakeTransaction(1, $contactId);
     $emissao = makeNfceEmissaoAutorizada(transactionId: $txId);
 
     Storage::put($emissao->xml_path, '<nfeProc>fake-nfce-xml</nfeProc>');
@@ -248,8 +248,8 @@ it('DanfeService falha → re-throw pra queue retry', function () {
     Mail::fake();
 
     $contactId = 79989;
-    nfceMakeContact($contactId, 4, 'retry@example.com');
-    $txId = nfceMakeTransaction(4, $contactId);
+    nfceMakeContact($contactId, 1, 'retry@example.com');
+    $txId = nfceMakeTransaction(1, $contactId);
     $emissao = makeNfceEmissaoAutorizada(transactionId: $txId);
 
     $danfe = \Mockery::mock(DanfeService::class);
