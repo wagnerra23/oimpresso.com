@@ -81,6 +81,13 @@ return [
         'api_key' => env('WHATSAPP_CENTRIFUGO_API_KEY', null),
         'request_timeout' => env('WHATSAPP_CENTRIFUGO_TIMEOUT', 5),
         'enabled' => env('WHATSAPP_CENTRIFUGO_ENABLED', true),
+        // WebSocket URL pro frontend connect (default = mesmo host com /connection/websocket).
+        // Centrifugo aceita ws:// em dev, wss:// em prod via Traefik.
+        'ws_url' => env('WHATSAPP_CENTRIFUGO_WS_URL', 'wss://centrifugo.oimpresso.local/connection/websocket'),
+        // HMAC secret pra emitir JWT HS256 de subscribe (CentrifugoTokenIssuer).
+        // No Centrifugo, configurar `token_hmac_secret_key` igual a este valor.
+        'token_hmac_secret' => env('WHATSAPP_CENTRIFUGO_TOKEN_HMAC_SECRET', null),
+        'token_ttl_seconds' => (int) env('WHATSAPP_CENTRIFUGO_TOKEN_TTL', 3600),
     ],
 
     'bot' => [
