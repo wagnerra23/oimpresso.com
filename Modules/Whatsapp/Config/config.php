@@ -13,8 +13,11 @@ return [
     /*
      * Driver default global (pode ser sobrescrito per-business via whatsapp_business_configs.driver).
      *
-     * Valores válidos: 'zapi' | 'meta_cloud' | 'null'
-     * Valor 'evolution' é PROIBIDO Tier 0 (FormRequest rejeita 422).
+     * Valores válidos Sprint 1: 'zapi' | 'meta_cloud' | 'null'
+     * Valores válidos Sprint 3: + 'baileys' (driver custom oimpresso — daemon Node CT 100,
+     *   ADR 0096 emenda 4: estrutura customizada de atendimento, dor de observabilidade)
+     * Valor 'evolution' é PROIBIDO permanente (FormRequest rejeita 422 — bans Wagner +
+     *   schema não atende + falta observabilidade).
      */
     'default_driver' => env('WHATSAPP_DEFAULT_DRIVER', 'zapi'),
 
@@ -29,6 +32,14 @@ return [
         'request_timeout' => env('WHATSAPP_META_TIMEOUT', 10),
     ],
 
+    'baileys' => [
+        // Sprint 3 — daemon Node próprio CT 100 (ADR 0096 emenda 4)
+        // base_url é per-business (whatsapp_business_configs.baileys_daemon_url);
+        // este default só aparece na UI Settings ao cadastrar instance nova.
+        'daemon_url_default' => env('WHATSAPP_BAILEYS_DAEMON_URL', 'https://whatsapp-baileys.oimpresso.local'),
+        'request_timeout' => env('WHATSAPP_BAILEYS_TIMEOUT', 15),
+    ],
+
     'health_check' => [
         'interval_seconds' => env('WHATSAPP_HEALTH_INTERVAL', 21600), // 6h
         'consecutive_failures_to_degrade' => 5,
@@ -39,14 +50,23 @@ return [
     'fallback' => [
         'enabled' => env('WHATSAPP_FALLBACK_ENABLED', true),
         'auto_switch_after_status' => 'degraded', // healthy|degraded|disconnected|banned
-        'mandatory_for_drivers' => ['zapi'], // drivers que EXIGEM fallback configurado
+        // drivers que EXIGEM fallback Meta Cloud configurado (gating duro FormRequest).
+        // Sprint 3: 'baileys' entra nessa lista junto com 'zapi'.
+        'mandatory_for_drivers' => ['zapi', 'baileys'],
     ],
 
     /*
      * Drivers proibidos (FormRequest rejeita 422 se tentar salvar).
      * Reabrir só via nova ADR explícita Wagner-aceita.
+     *
+     * Histórico:
+     * - 'evolution' — PROIBIDO permanente (ADR 0096 emenda 4): bans em produção Wagner +
+     *   schema de banco não atende estrutura customizada + falta de observabilidade
+     * - 'whatsapp_web_js' — sobreposição funcional com BaileysDriver custom Sprint 3
+     * - 'baileys' SAIU dessa lista em ADR 0096 emenda 4 — autorizado como BaileysDriver
+     *   custom Sprint 3 com daemon Node próprio CT 100 (resolve as 3 dores do Evolution)
      */
-    'forbidden_drivers' => ['evolution', 'baileys', 'whatsapp_web_js'],
+    'forbidden_drivers' => ['evolution', 'whatsapp_web_js'],
 
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
