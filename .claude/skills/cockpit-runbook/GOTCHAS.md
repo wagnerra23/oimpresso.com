@@ -5,7 +5,7 @@
 
 ## Inertia / React
 
-- ❌ **Ziggy não está disponível** — não usar `route('xxx.yyy')` em Pages React. Sintoma: `route is not defined` no console em prod (dev às vezes passa). Fix: template literal `` href={`/<prefix>/admin/${id}`} `` (auto-mem `reference_modules_cms_landing` + `feedback_topnav_i18n_pattern`).
+- ✅ **Ziggy disponível** desde [PR #180](https://github.com/wagnerra23/oimpresso.com/pull/180) (2026-05-07). Usar `route('xxx.yyy', params)` normalmente em Pages React. Tipos globais declarados em `resources/js/global.d.ts`; pacote `tightenco/ziggy` no composer; `@routes` injetado em `inertia.blade.php`. Antes de #180, era ReferenceError silencioso runtime — bug latente em todos os PRs de Pages React anteriores. Auditoria de PRs antes dessa data deve assumir `route()` não funcional no runtime.
 - ❌ **Persistent Layouts** (auto-mem `preference_persistent_layouts`) — não envolver Page em `<AppShell>` inline. Usar `<Tela>.layout = (page) => <AppShellV2>{page}</AppShellV2>`. Sintoma: shell duplicado, scroll quebrado, breadcrumb sumindo entre navegações.
 - ❌ **Cache/estado preservado** (auto-mem `preference_cache_estado_preservado`) — telas não podem fazer reload total entre cliques. Usar `useForm({...}, { forceFormData: false })`, `<Link preserveScroll preserveState />`, `router.get(url, {}, { only: [...] })`. Nunca `window.location.reload()`. Wagner exigiu 2026-04-26 após regressão.
 - ❌ **`sessionStorage` pra estado UI** — perde na nova aba. Sempre `localStorage` com prefixo `oimpresso.` (DESIGN.md §12).
@@ -14,6 +14,8 @@
 
 - ❌ **`npm run build` errado** — config padrão gera só Tailwind, não bundles Inertia. Sempre `npm run build:inertia`. Sintoma: tela 404, bundle não aparece em `public/build-inertia/manifest.json`.
 - ❌ **`composer install` esquecido pós-deploy** (auto-mem `reference_composer_install_obrigatorio_pos_deploy`) — após push em main com mudança em composer.json/lock, rodar SSH + composer install. Quick-Sync GitHub Action NÃO faz isso. Sintoma: tela branca Inertia (`null.component`). Descoberto 2026-04-25 com upgrade Inertia v2→v3.
+- ❌ **`composer install --no-dev` quebra Faker em prod** — `nfephp-org/sped-da` (e outros) referenciam `Faker\Generator` em service provider que carrega em prod, mesmo Faker sendo `require-dev`. Sintoma: `Target class [Faker\Generator] does not exist` em qualquer comando artisan pós-install. Fix: rodar `composer install` sem `--no-dev` na Hostinger. Descoberto 2026-05-07 ao instalar Ziggy ([PR #180](https://github.com/wagnerra23/oimpresso.com/pull/180)) — auto-mem `reference_composer_install_obrigatorio_pos_deploy` já alertava.
+- ❌ **`composer-lock-sync.yml` workflow contra `base_branch != main` + força push em rebase = perde commit do lock.** Sintoma: PR principal mergeado, Hostinger `composer install` falha com "package X not present in lock file". Causa: workflow disparado contra branch da feature cria PR de lock que mergeia naquela branch; ao fazer `git fetch origin main && git rebase origin/main`, se você não pulou primeiro `origin/<feature-branch>` (que tem o squash do lock-PR), `force-with-lease` sobrescreve o commit do lock. Fix: SEMPRE disparar `composer-lock-sync.yml` com `base_branch=main` quando possível; se obrigatório usar feature branch, rodar `git pull --rebase origin <feature-branch>` ANTES do rebase em main. Descoberto na sequência [PRs #178/#179/#180/#181](https://github.com/wagnerra23/oimpresso.com/pull/180) em 2026-05-07 (rebase de #180 destruiu #179, salvou disparando workflow de novo contra main → PR #181).
 
 ## Tokens / Design System
 
@@ -62,10 +64,10 @@
 
 - ❌ **Empty state inline em vez de `<EmptyState/>` shared** — `<div className="text-7xl opacity-20">💬</div>` reinventa o que `Components/shared/EmptyState` já faz com tokens semânticos + props `icon/title/description/primaryAction`. Sintoma: UX inconsistente entre módulos (Whatsapp empty é 💬 emoji, Repair empty é `<EmptyState/>`). Fix: importar `EmptyState` shared. Falta `primaryAction` é finding UX-WARN (Q5 do CHECKLIST §F) — empty deve convidar ação, não só informar. Descoberto no audit Whatsapp/Conversations 2026-05-07.
 
-- ⚠️ **Ziggy `route()` global pre-existente em todo o projeto** — todas as Pages React do oimpresso usam `route('xxx.yyy')` mesmo a doc oficial dizendo "não". Funciona em runtime via algum mecanismo não-óbvio (provavelmente injetado em `window` por bootstrap legado). 161 erros TS `Cannot find name 'route'` aparecem em typecheck mas runtime ok. **NÃO é regressão de PR específico** — herdado. Fix correto seria adicionar `declare global { function route(...): string }` em `app.d.ts` + import explícito de Ziggy, mas é refactor cross-projeto. Auditoria deve listar como `[INFO]` quando vê em PR novo, não como `[CRITICAL]` per-tela.
+- ✅ **Ziggy `route()` global instalado em [PR #180](https://github.com/wagnerra23/oimpresso.com/pull/180)** (2026-05-07). Antes do #180 era bug latente: todas as Pages React do oimpresso chamavam `route('xxx.yyy')` mas Ziggy nunca havia sido instalado nem `@routes` injetado no Blade — runtime quebrava silenciosamente (links com `href=undefined`, `router.get(undefined)`). 161 erros TS `Cannot find name 'route'` apontavam pra esse bug, não eram pre-existência tolerada. Fix de 3 linhas: adicionar `tightenco/ziggy` no composer + `@routes` no `inertia.blade.php` + `resources/js/global.d.ts` com declaração global. Lição: erros TS sistêmicos costumam apontar pra bug runtime real, não tolerância tribal.
 
 ---
 
 **Quando apender:** após qualquer audit de tela ou session log que descubra novo modo de falha. Marcar data + módulo + 1 linha de contexto.
 
-**Última atualização:** 2026-05-07 (audit Whatsapp/Conversations Cockpit pattern duplicado + Tweaks vars hardcoded + avatar duplicado + empty inline + Ziggy global pre-existente).
+**Última atualização:** 2026-05-07 tarde — Ziggy instalado de verdade (PR #180), 2 pegadinhas de deploy adicionadas (`--no-dev` quebra Faker; `composer-lock-sync` + force-push perde lock).
