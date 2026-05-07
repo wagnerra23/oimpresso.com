@@ -169,6 +169,48 @@
 .cockpit .bc-mod-dd-i:hover { background: var(--accent-soft); color: var(--accent); }
 .cockpit[data-theme="dark"] .bc-mod-dd-i:hover { color: var(--accent-2); }
 
+/* ────────────────── TopNav horizontal do módulo ──────────────────
+   Wagner 2026-05-07: "tem que ter navtop". Renderizado no AppShellV2
+   abaixo do topbar quando módulo tem topnav.php configurado. */
+.cockpit .topnav-module {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.cockpit .topnav-module::-webkit-scrollbar { height: 4px; }
+.cockpit .topnav-module::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+.cockpit .topnav-module-i {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+.cockpit .topnav-module-i:hover {
+  background: var(--bg-2);
+  color: var(--text);
+}
+.cockpit .topnav-module-i.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.cockpit[data-theme="dark"] .topnav-module-i.active {
+  color: var(--accent-2);
+}
+
 /* ────────────────── Sidebar — DARK FIXO (Wagner 2026-05-05) ──────────────────
    Sobrescreve tokens --sb-* DENTRO da .sb com paleta dark, independente do
    data-theme. Reverte UI-0009 (que tinha tornado sidebar adaptativa).
