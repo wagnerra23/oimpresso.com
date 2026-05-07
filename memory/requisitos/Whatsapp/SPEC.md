@@ -1,7 +1,7 @@
 # Especificação funcional — Whatsapp
 
 > Convenção do ID: `US-WA-NNN` para user stories, `R-WA-NNN` para regras Gherkin.
-> Decisão arquitetural mãe: [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md).
+> Decisão arquitetural mãe: [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) — **2 drivers oficiais (Meta Cloud + Z-API/Baileys) com fallback automático**.
 
 ## 1. Glossário rápido
 
@@ -14,11 +14,15 @@
 - **HITL** — Human In The Loop (handoff bot→humano quando PolicyEngine retorna `REQUIRE_HUMAN_REVIEW`)
 - **Deflection** — % de conversas resolvidas sem intervenção humana
 - **Conversation** — janela 24h Meta (cobrada uma vez); várias mensagens dentro = 1 conversa
-- **Driver** — abstração `MetaCloudDriver` / `NullDriver` (padrão canon ADR 0050)
+- **Driver** — abstração `MetaCloudDriver` / `ZapiDriver` / `EvolutionDriver` / `NullDriver` (padrão canon ADR 0050)
+- **Z-API** — SaaS BR (`api.z-api.io`) baseado em Whatsapp Web. Onboarding 5 min (scan QR). Risco ban Meta aceito (mitigado por fallback)
+- **Evolution API** — open-source self-host CT 100 (Docker). Mesmo modelo Whatsapp Web. Sprint 2.
+- **Driver Health Check** — job 6h em 6h envia mensagem-piloto pra detectar ban (Sprint 2)
+- **Fallback driver** — `whatsapp_business_configs.fallback_driver`; troca automaticamente se driver primário ficar `degraded`
 
 ## 2. User Stories — Sub-módulo Core (Sprint 1)
 
-### US-WA-001 · Cadastrar configuração Whatsapp do business
+### US-WA-001 · Cadastrar configuração Whatsapp do business (escolher driver)
 
 > **Área:** Settings
 > **Rota:** `GET/PUT /whatsapp/settings`
@@ -26,37 +30,99 @@
 > **Permissão Spatie:** `whatsapp.settings.manage`
 
 **Como** Wagner (admin business)
-**Quero** cadastrar `phone_number_id`, `access_token`, `app_secret`, `webhook_verify_token` do meu Whatsapp Business
-**Para** o módulo conseguir enviar e receber mensagens em nome do meu business
+**Quero** escolher o driver (`meta_cloud`, `zapi`, `evolution`) e cadastrar credenciais correspondentes + opcional `fallback_driver`
+**Para** o módulo conseguir enviar/receber mensagens; ter onboarding rápido (Z-API) ou produção formal (Meta Cloud)
 
 **DoD:**
-- [ ] FormRequest valida `phone_number_id` numeric, `access_token` min:50 chars
-- [ ] `access_token` cifrado em DB via `encrypted` cast Laravel
-- [ ] `app_secret` cifrado em DB
-- [ ] Webhook URL exibida na UI: `https://oimpresso.com/api/whatsapp/webhook/{business_uuid}` (clipboard copy)
-- [ ] Botão "Testar conexão" — chama `MetaCloudDriver::ping()` → exibe nome do número Meta
-- [ ] Onboarding guide (link Meta Business Manager + screenshots passo-a-passo)
-- [ ] Pest: `BusinessSettingsTest` validando isolamento multi-tenant + criptografia
+- [ ] Seletor radio com 3 opções de driver na UI Settings, com card explicativo de cada (custo, onboarding, risco ban)
+- [ ] Form dinâmico — campos visíveis variam por driver:
+  - `meta_cloud`: `phone_number_id`, `access_token`, `app_secret`, `webhook_verify_token`
+  - `zapi`: `zapi_instance_id`, `zapi_instance_token`, `zapi_client_token`
+  - `evolution`: `evolution_base_url` (CT 100 hostname), `evolution_instance_name`, `evolution_api_key`
+- [ ] Tokens (todos) cifrados em DB via `encrypted` cast Laravel
+- [ ] FormRequest valida campos obrigatórios por driver
+- [ ] Webhook URL exibida na UI conforme driver:
+  - `meta_cloud`: `https://oimpresso.com/api/whatsapp/webhook/meta/{business_uuid}` + `webhook_verify_token`
+  - `zapi`: `https://oimpresso.com/api/whatsapp/webhook/zapi/{business_uuid}` (Z-API painel)
+  - `evolution`: `https://oimpresso.com/api/whatsapp/webhook/evolution/{business_uuid}` (Evolution config)
+- [ ] Botão "Testar conexão" — chama `Driver::ping()` → exibe status (nome do número, sessão ativa, etc)
+- [ ] Onboarding guide por driver (link Meta Business Manager / Z-API painel / Evolution Docker compose-managed)
+- [ ] Campo `fallback_driver` (opcional) — se primário falhar 5×, troca automaticamente
+- [ ] Badge UI status driver: ✅ saudável / ⚠️ degradado (warnings) / 🔴 banido/desconectado
+- [ ] CTA visível pra drivers não-oficiais: "⚠️ Provedor não-oficial. Recomendamos cadastrar Meta Cloud como fallback agora pra evitar interrupção em caso de ban."
+- [ ] Pest: `BusinessSettingsTest` cobrindo (a) cada driver salva credenciais corretas, (b) tokens cifrados em DB, (c) isolamento multi-tenant, (d) fallback config preserva
 
-### US-WA-002 · Driver Interface + MetaCloudDriver
+### US-WA-002 · Driver Interface + MetaCloudDriver + NullDriver
 
 > **Área:** Core
 > **Service:** `Modules\Whatsapp\Services\Drivers\DriverInterface`
-> **Implementações:** `MetaCloudDriver` (default), `NullDriver` (dev/CI)
+> **Implementações Sprint 1:** `MetaCloudDriver` (oficial Meta), `ZapiDriver` (oficial Z-API), `NullDriver` (dev/CI)
+> **Implementações Sprint 2:** `EvolutionDriver` (self-host CT 100)
 
 **Como** Sistema
-**Quero** abstração trocável de provedor (Meta, Twilio futuro, Blip futuro)
-**Para** trocar provedor em 1 PR sem refactor cross-module
+**Quero** abstração trocável de provedor (Meta Cloud, Z-API, Evolution, futuros)
+**Para** business escolher driver via Settings sem refactor cross-module + permitir fallback
 
 **DoD:**
 - [ ] Interface `DriverInterface`:
-  - `sendTemplate(WhatsappBusinessConfig $config, string $to, string $templateName, array $params, string $locale='pt_BR'): WhatsappSendResult`
-  - `sendFreeform(WhatsappBusinessConfig $config, string $to, string $body): WhatsappSendResult` (só dentro janela 24h)
-  - `fetchMessageStatus(WhatsappBusinessConfig $config, string $metaMessageId): MessageStatus`
+  - `sendTemplate(WhatsappBusinessConfig $config, string $to, string $templateName, array $params, string $locale='pt_BR'): WhatsappSendResult` — Meta usa HSM; Z-API/Evolution mandam como freeform
+  - `sendFreeform(WhatsappBusinessConfig $config, string $to, string $body): WhatsappSendResult`
+  - `sendMedia(WhatsappBusinessConfig $config, string $to, string $mediaUrl, string $type, ?string $caption): WhatsappSendResult`
+  - `fetchMessageStatus(WhatsappBusinessConfig $config, string $providerMessageId): MessageStatus`
+  - `ping(WhatsappBusinessConfig $config): DriverHealthStatus` — retorna nome número, sessão ativa, last_seen
 - [ ] `MetaCloudDriver` usa `Http::withToken()` Laravel HTTP client; sem dependência Composer extra
-- [ ] `NullDriver` retorna sucesso fake; gera `meta_message_id` UUID; usa `Event::dispatch` pra simular delivery
-- [ ] Binding em `WhatsappServiceProvider`: `app()->bind(DriverInterface::class, fn() => config('whatsapp.driver') === 'null' ? new NullDriver : new MetaCloudDriver)`
-- [ ] Pest: `MetaCloudDriverTest` com `Http::fake()` cobrindo sucesso/4xx/5xx; `NullDriverTest`
+- [ ] `NullDriver` retorna sucesso fake; gera `provider_message_id` UUID; usa `Event::dispatch` pra simular delivery
+- [ ] Factory `DriverFactory::make($business)` resolve via `whatsapp_business_configs.driver`:
+  ```php
+  return match($config->driver) {
+      'meta_cloud' => app(MetaCloudDriver::class),
+      'zapi' => app(ZapiDriver::class),
+      'evolution' => app(EvolutionDriver::class),
+      'null' => app(NullDriver::class),
+  };
+  ```
+- [ ] Pest: `MetaCloudDriverTest` com `Http::fake()` cobrindo sucesso/4xx/5xx; `NullDriverTest`; `DriverFactoryTest` resolve correto por config
+
+### US-WA-002b · ZapiDriver (driver não-oficial Sprint 1)
+
+> **Área:** Core
+> **Service:** `Modules\Whatsapp\Services\Drivers\ZapiDriver`
+> **Permissão Spatie:** `whatsapp.send`
+
+**Como** Sistema
+**Quero** enviar/receber via Z-API (`api.z-api.io`) com mesma interface DriverInterface
+**Para** business com onboarding rápido (5 min scan QR) usar Whatsapp sem aprovação Meta
+
+**DoD:**
+- [ ] Implementa `DriverInterface` integralmente — Send: `POST /instances/{id}/token/{token}/send-text` (Z-API REST docs); Media: `/send-image`, `/send-document`
+- [ ] Header `Client-Token: {client_token}` (segurança Z-API)
+- [ ] `sendTemplate()` em ZapiDriver simplesmente expande template localmente e manda freeform (Z-API não usa HSM)
+- [ ] `ping()` chama `GET /instances/{id}/token/{token}/status` retornando `{connected, smartphoneConnected, session, ...}`
+- [ ] `fetchMessageStatus()` chama Z-API status endpoint
+- [ ] Tratamento erros: 401/403 = sessão caiu (gera evento `WhatsappDriverSessionLost`); 5xx = retry transitório
+- [ ] Pest: `ZapiDriverTest` com `Http::fake()` cobrindo (a) send-text sucesso, (b) send-text 401 dispara session lost event, (c) ping conectado/desconectado, (d) sendMedia base64 ou URL
+- [ ] **Risco aceito documentado** no class-level docblock: "Driver não-oficial. Risco ban Meta. Use com fallback Meta Cloud configurado. Ver ADR 0096 §Risco aceito conscientemente."
+
+### US-WA-002c · EvolutionDriver (driver self-host Sprint 2)
+
+> **Área:** Core
+> **Service:** `Modules\Whatsapp\Services\Drivers\EvolutionDriver`
+> **Permissão Spatie:** `whatsapp.send`
+
+**Como** Sistema
+**Quero** enviar/receber via Evolution API self-host CT 100 (Docker)
+**Para** business com volume alto evitar custo Z-API SaaS, controle total
+
+**DoD:**
+- [ ] Implementa `DriverInterface` integralmente — Send: `POST {base_url}/message/sendText/{instance}` (Evolution REST docs)
+- [ ] Header `apikey: {api_key}`
+- [ ] `ping()` chama `GET {base_url}/instance/connectionState/{instance}`
+- [ ] Container Docker compose-managed em CT 100 com Traefik label (padrão `proxmox-docker-host`):
+  - `traefik.http.routers.evolution.rule=Host(`evolution.oimpresso.local`)`
+  - Persistência dados em `/srv/docker/evolution/data` (sessão Whatsapp Web)
+- [ ] Pest: `EvolutionDriverTest` com `Http::fake()`
+- [ ] Runbook: `memory/requisitos/Whatsapp/runbooks/evolution-deploy-ct100.md`
+- [ ] **Risco aceito documentado** no class-level docblock (mesma nota Z-API)
 
 ### US-WA-003 · Enviar mensagem template (Job assíncrono)
 
@@ -100,8 +166,8 @@
 ### US-WA-010 · Receber webhook Meta + assinatura HMAC
 
 > **Área:** Webhook
-> **Rota:** `POST /api/whatsapp/webhook/{business_uuid}` (público, autenticado por HMAC)
-> **Controller/ação:** `WebhookController@handle`
+> **Rota:** `POST /api/whatsapp/webhook/meta/{business_uuid}` (público, autenticado por HMAC)
+> **Controller/ação:** `MetaWebhookController@handle`
 
 **Como** Meta Cloud API
 **Quero** entregar evento `messages` ou `statuses` ao webhook do business
@@ -113,7 +179,25 @@
 - [ ] POST handler enfileira `ProcessIncomingWebhookJob` — não processa síncrono (resposta < 200ms pra Meta não retentar)
 - [ ] Resposta sempre 200 (Meta retenta agressivo se ≠200) — só rejeita 401 em assinatura inválida
 - [ ] Log estruturado (Loki/CT100) com `business_id`, `event_type`, `meta_message_id` — telefone redacted
-- [ ] Pest: `WebhookSignatureTest` cobrindo (a) HMAC válido = 200, (b) HMAC inválido = 401, (c) verify challenge = retorna challenge string
+- [ ] Pest: `MetaWebhookSignatureTest` cobrindo (a) HMAC válido = 200, (b) HMAC inválido = 401, (c) verify challenge = retorna challenge string
+
+### US-WA-010b · Receber webhook Z-API
+
+> **Área:** Webhook
+> **Rota:** `POST /api/whatsapp/webhook/zapi/{business_uuid}` (público, autenticado por client_token compartilhado)
+> **Controller/ação:** `ZapiWebhookController@handle`
+
+**Como** Z-API
+**Quero** entregar eventos (`on-message`, `on-message-status`, `on-presence-status`, `on-disconnected`) ao webhook do business
+**Para** o oimpresso processar mensagens + detectar sessão caída
+
+**DoD:**
+- [ ] Middleware `VerifyZapiSignature`: lê header `Client-Token`, compara com `business->whatsapp_business_config->zapi_client_token` (timing-safe), rejeita 401 se mismatch
+- [ ] POST handler enfileira `ProcessIncomingWebhookJob` com `provider='zapi'` no payload
+- [ ] Trata evento `on-disconnected`: marca `driver_health=disconnected` + dispara fallback se configurado
+- [ ] Resposta 200 mesmo em duplicata (idempotência via `provider_message_id`)
+- [ ] Log estruturado com PII redacted
+- [ ] Pest: `ZapiWebhookTest` cobrindo (a) Client-Token válido = 200, (b) inválido = 401, (c) on-message dispara job, (d) on-disconnected marca degraded
 
 ### US-WA-011 · Processar mensagem recebida (Job)
 
@@ -169,6 +253,26 @@
 - [ ] Disabled state com tooltip "Cadastre template na Meta Business Manager primeiro" se vazio (link MBM)
 - [ ] Pest + browser MCP smoke
 
+### US-WA-014 · Driver Health Check + fallback automático
+
+> **Área:** Core
+> **Job:** `WhatsappDriverHealthCheckJob`
+> **Scheduler:** a cada 6h por business com driver não-oficial ativo
+
+**Como** Sistema
+**Quero** detectar sessão caída/ban antes do business descobrir do cliente
+**Para** trocar pra fallback driver automaticamente e manter operação
+
+**DoD:**
+- [ ] Job chama `Driver::ping()` por cada `WhatsappBusinessConfig` com driver != `meta_cloud` e != `null`
+- [ ] Estado em `whatsapp_business_configs.driver_health`: `healthy|degraded|disconnected|banned`
+- [ ] Estado em `whatsapp_business_configs.last_health_check_at`
+- [ ] Falha consecutiva: 1 = warning interno, 5 = `degraded`, 10 = `disconnected`, ban-detected (auth permanent error) = `banned`
+- [ ] Quando `degraded` ou pior + `fallback_driver` configurado: troca driver ativo (preserva histórico mensagens), notifica admin business via Centrifugo + email (`mail` queue)
+- [ ] OTel metric `whatsapp.driver.health` (gauge per business+driver) e `whatsapp.driver.bans` (counter)
+- [ ] Alarme cross-tenant: se ≥3 businesses ficaram `banned` em 24h, notificar Wagner por email/Slack (sinal mudança Meta detection)
+- [ ] Pest: `WhatsappDriverHealthCheckJobTest` cobrindo (a) ping ok mantém healthy, (b) 5 falhas = degraded, (c) fallback troca driver, (d) cross-tenant alarme dispara
+
 ## 4. User Stories — Sub-módulo Bot Jana + HITL + Métricas (Sprint 3)
 
 ### US-WA-020 · Listener DispatchToJanaBot
@@ -222,14 +326,34 @@ E   chama Meta API com access_token de business=4
 E   NUNCA business=7 vê essa mensagem em sua Inbox
 ```
 
-### R-WA-002 · Webhook rejeita HMAC inválido
+### R-WA-002 · Webhook rejeita HMAC inválido (Meta) ou Client-Token inválido (Z-API)
 
 ```gherkin
-Dado business=4 com WhatsappBusinessConfig.app_secret="abc123"
-Quando POST /api/whatsapp/webhook/{business_uuid_4} com header "X-Hub-Signature-256: sha256=WRONG"
+Dado business=4 com driver=meta_cloud, app_secret="abc123"
+Quando POST /api/whatsapp/webhook/meta/{business_uuid_4} com header "X-Hub-Signature-256: sha256=WRONG"
 Então resposta é 401 Unauthorized
 E   nenhum WhatsappMessage é criado
-E   log estruturado registra "webhook_signature_invalid" com business_id=4
+E   log estruturado registra "webhook_signature_invalid" com business_id=4 e provider=meta
+
+Dado business=7 com driver=zapi, zapi_client_token="xyz789"
+Quando POST /api/whatsapp/webhook/zapi/{business_uuid_7} com header "Client-Token: WRONG"
+Então resposta é 401 Unauthorized
+E   nenhum WhatsappMessage é criado
+E   log estruturado registra "webhook_signature_invalid" com business_id=7 e provider=zapi
+```
+
+### R-WA-002b · Driver health check + fallback automático
+
+```gherkin
+Dado business=4 com driver=zapi, fallback_driver=meta_cloud, MetaCloudConfig já cadastrado
+E   Z-API API retorna 401 Unauthorized 5 vezes consecutivas
+Quando WhatsappDriverHealthCheckJob roda
+Então whatsapp_business_configs.driver_health = "degraded"
+E   driver ativo é trocado de "zapi" pra "meta_cloud"
+E   Centrifugo publish "whatsapp:business:4" com payload {event: "driver_fallback", from: "zapi", to: "meta_cloud"}
+E   email enviado pra admin business com assunto "[oimpresso] Whatsapp do seu negócio caiu — fallback ativado"
+E   histórico mensagens (whatsapp_messages) preservado intacto
+E   próximo SendWhatsappMessageJob usa MetaCloudDriver
 ```
 
 ### R-WA-003 · Idempotência incoming webhook

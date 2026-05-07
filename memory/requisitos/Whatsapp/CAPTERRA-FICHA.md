@@ -18,10 +18,18 @@
 | 8 | **Wati** | Oficial BSP | Hong Kong | `wati.io` | SaaS pronto pra PME, no-code |
 | 9 | **Sinch** | Oficial BSP | Suécia | `sinch.com` | Telco-grade global |
 | 10 | **Infobip** | Oficial BSP | Croácia | `infobip.com` | Enterprise telco |
-| ❌ | ~~Evolution API~~ | **NÃO-OFICIAL** | Brasil (community) | `evolution-api.com` | **PROIBIDO Tier 0** (viola Meta TOS) |
-| ❌ | ~~Z-API~~ | **NÃO-OFICIAL** | Brasil | `z-api.io` | **PROIBIDO Tier 0** (Whatsapp Web reverse) |
-| ❌ | ~~whatsapp-web.js~~ | **NÃO-OFICIAL** | community | `wwebjs.dev` | **PROIBIDO Tier 0** (reverse-engineered) |
-| ❌ | ~~Baileys~~ | **NÃO-OFICIAL** | community | `github.com/WhiskeySockets/Baileys` | **PROIBIDO Tier 0** (raiz de Evolution/Z-API) |
+| 11 | **Z-API** | Não-oficial (Baileys-based) | Brasil | `z-api.io` | **DRIVER ATIVO** — ZapiDriver Sprint 1 (orçamento PME, ban risk monitorado) |
+| 12 | **Evolution API** | Não-oficial (Baileys-based) | Brasil (community open-source) | `evolution-api.com` | **DRIVER ATIVO** — EvolutionDriver Sprint 2 (self-host CT 100, ban risk monitorado) |
+| ⚠️ | whatsapp-web.js | Não-oficial (lib JS pura) | community | `wwebjs.dev` | Não implementado (sobreposição com Evolution; sem suporte comercial) |
+| ⚠️ | Baileys (puro) | Não-oficial (lib JS pura) | community | `github.com/WhiskeySockets/Baileys` | Não implementado direto (raiz de Evolution/Z-API; lib JS, requereria daemon Node próprio) |
+
+> **Observação importante (emenda ADR 0096 de 2026-05-07):** Z-API e Evolution
+> são tratados como drivers oficiais do módulo (não Tier 0 PROIBIDO).
+> Justificativa: mercado BR PME real usa massivamente; onboarding 5 min vs
+> 1-3 dias Meta. Risco ban Meta documentado e mitigado via
+> `WhatsappDriverHealthCheck` + fallback automático pro `MetaCloudDriver`
+> (Sprint 2). Princípio duro #8 da Constituição (Confiabilidade com fallback)
+> atendido via redundância de drivers, não evitando o risco.
 
 ## 2. Capacidades baseline do mercado (P0/P1/P2/P3)
 
@@ -79,35 +87,59 @@
 
 ## 3. Pricing comparativo (BR, ROTA LIVRE perfil ~150 conv/mês)
 
-| Provedor | Custo fixo/mês | Custo conversa | Total ROTA LIVRE | Vs Meta direto |
-|---|---|---|---|---|
-| **Meta Cloud API direto** | R$ 0 | Free 1k/mês utility; após R$ 0,07 utility / R$ 0,30 marketing | **R$ 0** | baseline |
-| Twilio | $0 (pay-go) | $0,005/msg + Meta fee + ~30% markup | ~R$ 50 | 50× mais caro |
-| Take Blip | R$ 1.500 | + R$ 0,12/msg utility | **R$ 1.518** | 1.518× mais caro |
-| Zenvia | R$ 500 | + R$ 0,10/msg utility | R$ 515 | 515× mais caro |
-| 360dialog | EUR 49 (~R$ 270) | + Meta fee bruto | R$ 280 | 280× mais caro |
-| Wati | $39 (~R$ 200) | + Meta fee bruto | R$ 210 | 210× mais caro |
-| Gupshup | $20 (~R$ 110) | + Meta fee bruto | R$ 120 | 120× mais caro |
+| Provedor | Custo fixo/mês | Custo conversa | Total ROTA LIVRE | Onboarding | Risco ban Meta |
+|---|---|---|---|---|---|
+| **Meta Cloud API direto** ✅ | R$ 0 | Free 1k/mês utility; após R$ 0,07 utility / R$ 0,30 marketing | **R$ 0** | 1-3 dias (verificação Meta) | nenhum |
+| **Z-API** ✅ | R$ 99-299 | freeform incluído | **R$ 99** | 5 min (scan QR) | médio (mitigado fallback) |
+| **Evolution API self-host** ✅ | R$ 0 (CT 100 Wagner) | freeform incluído | **R$ 0** | 30 min (Docker compose CT 100 + scan QR) | médio (mitigado fallback) |
+| Twilio | $0 (pay-go) | $0,005/msg + Meta fee + ~30% markup | ~R$ 50 | 1-3 dias | nenhum |
+| Take Blip | R$ 1.500 | + R$ 0,12/msg utility | R$ 1.518 | 1-3 dias | nenhum |
+| Zenvia | R$ 500 | + R$ 0,10/msg utility | R$ 515 | 1-3 dias | nenhum |
+| 360dialog | EUR 49 (~R$ 270) | + Meta fee bruto | R$ 280 | 1-3 dias | nenhum |
+| Wati | $39 (~R$ 200) | + Meta fee bruto | R$ 210 | 1-3 dias | nenhum |
+| Gupshup | $20 (~R$ 110) | + Meta fee bruto | R$ 120 | 1-3 dias | nenhum |
 
-**Conclusão pricing:** Meta direto é absurdamente mais barato no nosso perfil. BSP só compensaria se entregassem capacidade que não temos como replicar (UI Inbox + métricas + bot). **Como temos Cockpit pattern + Jana + Centrifugo já no stack, replicamos a UI a custo de dev e ficamos com Meta direto.**
+**Conclusão pricing:**
 
-## 4. Por que NÃO o BR padrão de mercado de fato (Z-API / Evolution API)
+- **Custo absoluto vencedor:** Meta Cloud direto (R$ 0) ou Evolution self-host (R$ 0).
+- **Onboarding rápido vencedor:** Z-API (5 min) — Meta Cloud em 1-3 dias é gargalo de demo.
+- **Compliance vencedor:** Meta Cloud (oficial Meta).
+- **Estratégia oimpresso:** oferecer **Z-API como "demo rápida" + Meta Cloud como "produção formal"**. Business escolhe — pode usar Z-API enquanto Meta Cloud é aprovado, depois migrar (ou ficar no Z-API se não pediu compliance enterprise).
 
-A "verdade prática" do mercado brasileiro de PME é Whatsapp via lib não-oficial:
+## 4. Z-API e Evolution API — drivers ativos com risco aceito (emenda ADR 0096)
 
-- **Z-API** (~R$ 99/mês) — wrapper Whatsapp Web, marketing como "API simples"
-- **Evolution API** (~R$ 0 self-host) — open-source Brazilian (BR fork de Baileys), popular em integradores
-- **Chatpro / API-Whatsapp / 50+ outros** — todos rodam em cima de Baileys
+A "verdade prática" do mercado brasileiro de PME é Whatsapp via lib não-oficial. Wagner aceitou em 2026-05-07 implementar drivers pra esse mundo, com risco documentado:
 
-**Por que estão proibidos no oimpresso (Tier 0):**
+- **Z-API** (~R$ 99-299/mês) — wrapper Whatsapp Web, SaaS BR com chat suporte em português
+- **Evolution API** (~R$ 0 self-host CT 100) — open-source Brazilian (fork de Baileys), Docker compose-managed
+- Chatpro / API-Whatsapp / 50+ outros — não implementados (sobreposição funcional + sem critério forte de adoção; abrir nova ADR se algum cliente trouxer caso de uso)
+
+### Riscos reais (não eliminados, mitigados)
 
 1. **Violam Meta TOS** — Whatsapp Web não foi concebido pra automação de business. Meta tem detection ativa.
-2. **Ban arbitrário** — número some sem aviso. Já vi 3 empresas perdendo número de cobrança principal.
-3. **Compliance LGPD/MEI** — sem CONTRATO formal com Meta, business não consegue alegar conformidade.
-4. **Não escala** — sessão Whatsapp Web cai em horário de pico (qrcode re-scan).
-5. **Sem suporte** — quando quebra, comunidade open-source ou ban.
+2. **Ban arbitrário** — número some sem aviso. Mitigação: `WhatsappDriverHealthCheck` + fallback Meta Cloud automático.
+3. **Compliance LGPD parcial** — Z-API tem contrato BR (cobre parte); Evolution open-source é responsabilidade do business. Mitigação: business assina termo ciente.
+4. **Sessão Whatsapp Web cai** — Z-API notifica via webhook + UI. Evolution depende de monitor próprio CT 100.
+5. **Suporte limitado** — Z-API tem chat (em português, BR). Evolution só comunidade. Sem SLA enterprise.
 
-**Decisão:** ADR 0096 marca não-oficiais como **Tier 0 PROIBIDO** alongado com proibição de `octane` no Hostinger. Princípio duro 8 da Constituição (ADR 0094): "Confiabilidade com fallback" — não-oficial não tem fallback.
+### Razões pra incluir mesmo assim (emenda Wagner)
+
+1. **Onboarding 100× mais rápido** (5 min vs 1-3 dias Meta) — fundamental pra demo comercial e PME que decide na hora.
+2. **Mercado BR PME já está nesse mundo** — empresas que migrarem pro oimpresso muitas vezes têm número Z-API há 2+ anos. Forçar Meta = perder demanda.
+3. **Sem janela 24h restritiva** — manda freeform a qualquer hora, sem HSM. Pra dunning/cobrança simples destrava uso.
+4. **Custo previsível** — R$ 99/mês Z-API ou zero (Evolution self-host). Meta tem custo variável que assusta PME.
+
+### Política Tier 0 oimpresso (atualizada)
+
+| Provedor | Status anterior (proposta ADR 0096) | Status atual (emenda 2026-05-07) |
+|---|---|---|
+| Meta Cloud API | ✅ ATIVO default | ✅ ATIVO default |
+| Z-API | ❌ Tier 0 PROIBIDO | ✅ ATIVO (driver alternativo, risco aceito monitorado) |
+| Evolution API | ❌ Tier 0 PROIBIDO | ✅ ATIVO Sprint 2 (self-host CT 100, risco aceito) |
+| whatsapp-web.js | ❌ Tier 0 PROIBIDO | ⚠️ Não implementado (sobreposição com Evolution) |
+| Baileys puro | ❌ Tier 0 PROIBIDO | ⚠️ Não implementado direto (lib JS, requereria daemon Node) |
+
+**O que continua proibido:** subir Whatsapp via container ou daemon **no Hostinger** (continua valendo ADR 0062 — Hostinger ≠ CT 100). Evolution API só roda no CT 100. Z-API é SaaS, sem daemon nosso.
 
 ## 5. Capacidades baseline → Score atual oimpresso
 
