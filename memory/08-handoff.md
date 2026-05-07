@@ -1125,3 +1125,75 @@ Salvo em auto-mem `feedback_mcp_so_ct100.md`. Implicação: tool MCP exposed só
 - Goal #7 Skills V0.5 UI: 0/done
 
 **Última atualização:** 2026-05-07 ~16h BRT — Whatsapp Cockpit + build Hostinger (PRs #173 + #174 mergeados, ADR 0098, prod restaurada após incident HTTP 500)
+
+---
+
+## Sessão 2026-05-07 noite — Audit Claude Desktop + NFe + Goal #7 fechado
+
+**Maratona de 12 PRs** (#173-#190, com #179 sobrescrito acidentalmente e refeito em #181). Cycle 02 fecha com **2 dos 4 goals concluídos**:
+
+- 🟢 Goal #4 MWART Repair (4 telas + topnav) — DONE marcado
+- 🟢 Goal #7 Skills V0.5 UI (16 skills indexadas em prod) — DONE marcado
+- 🟡 Goal #5 NfeBrasil — Listener InvoicePaid em review aguardando smoke empresa 1
+- 🟡 Goal #6 Constituição V2 — em progresso (depende de tempo)
+
+### PRs entregues (12 mergeados + 5 abertos no fim da sessão)
+
+**Mergeados:**
+- #173 UI cockpit Whatsapp 3-painéis (estado-da-arte)
+- #174 Build Inertia migrado pra Hostinger (deletei build-inertia-auto.yml + .gitignore + quick-sync npm ci+build)
+- #175 ADR 0098 + session log + handoff
+- #176 Skill cockpit-runbook v2 (UX heurísticas Nielsen + Score 0-100 + Modo Compare + BENCHMARKS.md)
+- #177 Whatsapp DS padronização completa (8 arquivos + atalhos J/K/E/A + localStorage)
+- #178 Repair MWART 4 telas DS padronização (tokens semânticos + dark mode + a11y)
+- #180 Ziggy install (composer + @routes Blade + global.d.ts) — corrige bug latente em 161 callers `route()`
+- #181 composer.lock sync (refeito após force-push acidental)
+- #182 GOTCHAS update pós-Ziggy
+- #183 fix grid-template-rows cockpit (gap 364px) + #185 fix Icon kebab/Pascal + #186 hotfix non-string
+
+**Abertos no fim da sessão:**
+- #184 fix UI tributacao NFe — outro autor, CLEAN, aguardando aprovação
+- #187 DesignSystemAuditTest Pest ratchet baseline (audit P0 #3)
+- #188 Icon registry com nomes do domínio (audit P2 #8)
+- #189 Vibes promovido pro user dropdown (audit P2 #7)
+- #190 NfeCertBadge sidebar — fecha US-NFE-001 100%
+
+### Issues / regressões resolvidas
+
+- **HTTP 500 prod por ~5min após #174** — `centrifuge` declarado mas ausente em node_modules; resolvido com `npm ci` + rebuild via SSH
+- **PR #185 → tela em branco /ads/admin/skills** — `toPascalCase(name)` crashou com name não-string; hotfix #186 com guard `typeof === 'string'`
+- **Force-push acidental destruiu PR #179 composer.lock** — refeito disparando workflow contra `main` em PR #181
+- **Bug grid 364px gap em todas telas com topnav** — `grid-template-rows: 44px 1fr` virou `44px auto 1fr` (PR #183)
+- **Ziggy NUNCA estava instalado** — `route()` em React = ReferenceError silencioso, links `href=undefined` há tempos. PR #180 instala formal + `@routes` Blade + tipos globais
+- **GitHub Actions secrets SSH (SSH_PORT, SSH_USER) vazios** — quick-sync.yml falhava há tempos no Setup SSH; configurei via `gh secret set` mid-sessão; depois disso 4 deploys automáticos funcionaram
+
+### Aprendizados meta importantes (gravar pra próximas sessões)
+
+- **Erros TS sistêmicos costumam apontar pra bug runtime real, não tolerância tribal.** 161 erros `Cannot find name 'route'` foram tratados como "pre-existente herdado" antes de eu descobrir que Ziggy nem estava instalado — Pages React clicáveis há meses não navegavam de verdade. **Nunca aceitar erro TS sistemático sem entender a causa.**
+- **`composer-lock-sync.yml` com `base_branch != main` + force-push em rebase = perde commit do lock.** Sintoma: composer install na Hostinger falha "package X not in lock file". Fix: workflow contra main, OU `git pull` antes do rebase.
+- **`composer install --no-dev` quebra Faker em prod** (auto-mem confirmava): `nfephp-org/sped-da` carrega `Faker\Generator` em service provider mesmo sendo require-dev. Sintoma: artisan commands falham. **Sempre rodar `composer install` sem --no-dev.**
+- **`git rm --cached` + `git reset --hard` no servidor não apaga arquivos untracked.** Migração `public/build-inertia/` pro .gitignore deixou 230 arquivos lixo na Hostinger até rodar `git clean -fd` manual. Cuidado em qualquer migration similar.
+- **Hostinger TEM Node 24.15 + npm 11 via nvm** — reflexo "shared hosting = sem Node" custou tempo. `which node` antes de assumir.
+- **Race condition de workflows paralelos** (`concurrency.group` não basta quando workflows DIFERENTES fazem trabalho dependente). Build-inertia-auto + quick-sync rodando paralelo causava ~30s de mismatch manifest → 409 + full reload. Encadear via `workflow_run` ou unificar.
+- **Skill cockpit-runbook v2 evoluiu pra incluir UX heurísticas Nielsen + Score 0-100 + Modo C (Compare 2 telas) + BENCHMARKS.md** com 6 categorias (inbox, master-detail, dashboard, form, settings, listagem).
+- **Ratchet baseline pattern** em test (`DesignSystemAuditTest`) aceita dívida atual mas previne regressão — alta usabilidade.
+
+### Pendência crítica P0 RESOLVIDA
+
+**GitHub Secrets quick-sync.yml configurados** mid-sessão. 4 deploys automáticos funcionaram após. Não é mais P0.
+
+### Próximos passos sugeridos próxima sessão
+
+1. **Mergear os 5 PRs abertos** (#184, #187, #188, #189, #190) — todos CLEAN
+2. **Continuar US-NFE-002** (Emitir NFC-e a partir de venda finalizada) — Listener `TransactionCompleted` + Job `EmitirNfceJob` + UI sucesso. ~12-16h, escopo médio. Foundation pronta.
+3. **#1 SIDEBAR_GROUPS backend** (audit P0 #1) — alto valor, 3-4h. Toca LegacyMenuAdapter + cada `menu.php`.
+4. **Smoke test empresa 1** do Listener InvoicePaid pra fechar Goal #5 NfeBrasil
+
+### CYCLE-02 status (~30% decorrido, ~14 dias restantes)
+
+- 🟢 Goal #4 MWART Repair: **DONE** (4 telas + topnav em prod)
+- 🟡 Goal #5 NfeBrasil emite NFe55: review aguardando smoke empresa 1
+- 🟡 Goal #6 Constituição V2 health-check 7d: progressão (brief + GUARD-02 + ADR 0098)
+- 🟢 Goal #7 Skills V0.5 UI: **DONE** (16 skills indexadas em prod)
+
+**Última atualização:** 2026-05-07 ~21h BRT — sessão noite com 12 PRs (#173-#190); 2 goals fechados; aprendizados meta gravados.
