@@ -1,3 +1,17 @@
+---
+slug: 0090-nfe-replace-gradual-app-services
+number: 90
+title: "NFe replace gradual: app/Services → Modules/NfeBrasil"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_at: 2026-05-06
+decided_by: [W]
+module: core
+quarter: 2026-Q2
+---
+
 # 0090 — NFe replace gradual: app/Services → Modules/NfeBrasil
 
 - **Status**: accepted

@@ -1,4 +1,17 @@
 ---
+slug: 0014-essentials-pontowr2-integracao
+number: 14
+title: "Integração PontoWR2 × Essentials (HRM)"
+type: adr
+status: aceito
+authority: reference
+lifecycle: arquivado
+decided_at: 2026-04-21
+decided_by: [E]
+module: pontowr2
+quarter: 2026-Q2
+---
+
 # ADR 0014 — Integração PontoWR2 × Essentials (HRM)
 
 **Data:** 2026-04-21

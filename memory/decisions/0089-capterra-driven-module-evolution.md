@@ -1,3 +1,17 @@
+---
+slug: 0089-capterra-driven-module-evolution
+number: 89
+title: "Capterra-driven Module Evolution (skill + 3 artefatos)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_at: 2026-05-06
+decided_by: [W]
+module: governance
+quarter: 2026-Q2
+---
+
 # 0089 — Capterra-driven Module Evolution (skill + 3 artefatos)
 
 - **Status**: accepted

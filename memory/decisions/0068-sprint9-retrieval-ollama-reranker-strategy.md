@@ -1,12 +1,15 @@
 ---
 slug: 0068-sprint9-retrieval-ollama-reranker-strategy
+number: 68
 title: "Sprint 9 — Estratégia retrieval: Ollama embedder + reranking + documentTemplate fix"
+type: adr
 status: rascunho
-authority: [Wagner]
-lifecycle: active
+authority: canonical
+lifecycle: ativo
 quarter: Q2-2026
 decided_at: 2026-05-04
-decided_by: [Wagner, Claude]
+decided_by: [W]
+module: copiloto
 supersedes: []
 superseded_by: []
 related: [0067, 0037, 0053, 0036]
