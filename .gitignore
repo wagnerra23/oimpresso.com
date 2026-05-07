@@ -22,6 +22,11 @@ npm-debug.log
 /public/images/
 /public/modules/
 /public/mix-manifest.json
+# Bundle Inertia gerado por `npm run build:inertia`. Build acontece na
+# Hostinger pós git-pull (quick-sync.yml). Repo source-only — não comitar
+# binários. Se precisar testar local, rode `npm run build:inertia` (saída
+# vai pra public/build-inertia/ ignorado).
+/public/build-inertia/
 .scribe
 /public/docs
 /public/js/skins/

@@ -1,8 +1,25 @@
 name: Quick Sync (auto on push)
 
-# Deploy leve pra fixes pequenos (views, configs, assets estaticos).
-# Dispara automatico em push pra main, E manual via workflow_dispatch.
-# Pra mudancas pesadas (composer, migrations), usar deploy.yml.
+# Deploy pra Hostinger pós push em main. Pipeline:
+#   1. SSH na Hostinger
+#   2. git fetch + reset --hard origin/main
+#   3. (condicional) npm ci se package-lock.json mudou
+#   4. (condicional) npm run build:inertia se source frontend mudou
+#   5. clear caches Laravel
+#   6. smoke test HTTP
+#
+# Por que build na Hostinger e não no GitHub Actions:
+#   - Hostinger TEM Node 24 + npm 11 via nvm (~/.nvm/versions/node/v24.15.0/)
+#   - Memória abundante (host shared sem isolamento — 138GB available)
+#   - Build leva ~52s — aceitável pra deploy one-shot
+#   - Source-only repo (public/build-inertia/ no .gitignore) — sem race
+#     condition entre 2 workflows, sem commits gigantes auto-rebuild,
+#     sem 600+ arquivos renomeados a cada deploy
+#   - Single source of truth: build sempre determinístico do source que
+#     está no servidor de prod
+#
+# Pra mudancas pesadas (composer, migrations), continuar usando deploy.yml.
+
 on:
   push:
     branches:
@@ -14,6 +31,11 @@ on:
       - 'routes/**'
       - 'lang/**'
       - 'app/**'
+      - 'Modules/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.inertia.config.mjs'
+      - 'vite.config.js'
       - '!app/Console/Commands/**'
   workflow_dispatch:
 
@@ -25,7 +47,7 @@ jobs:
   quick-sync:
     name: Quick sync to Hostinger
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Setup SSH
         run: |
@@ -53,6 +75,36 @@ jobs:
             git fetch origin &&
             git reset --hard origin/main &&
             git log --oneline -3
+          "
+
+      - name: npm ci (se package-lock mudou)
+        # Compara fingerprint do package-lock.json com o último ci feito.
+        # Hash salvo em ~/.last-npm-ci-hash (fora do git, state local da Hostinger).
+        # Se diff: roda npm ci (~30s). Se igual: skip — assume node_modules OK.
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            CURRENT_HASH=\$(sha256sum package-lock.json | cut -d' ' -f1) &&
+            LAST_HASH=\$(cat .last-npm-ci-hash 2>/dev/null || echo '') &&
+            if [ \"\$CURRENT_HASH\" != \"\$LAST_HASH\" ]; then
+              echo '→ package-lock.json mudou, rodando npm ci...' &&
+              npm ci --no-audit --no-fund &&
+              echo \"\$CURRENT_HASH\" > .last-npm-ci-hash
+            else
+              echo '→ package-lock.json sem mudanças, pulando npm ci'
+            fi
+          "
+
+      - name: Build Inertia bundles
+        # Build sempre roda — 52s aceitável e garante manifest.json determinístico.
+        # Saída em public/build-inertia/ (gitignored). Vite gera hashes novos a
+        # cada build, mas o manifest.json mapeia consistente com source atual.
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            npm run build:inertia 2>&1 | tail -10
           "
 
       - name: Clear view + config + route caches
