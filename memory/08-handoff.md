@@ -907,3 +907,65 @@ Wagner (id=1, `WR23`) tem todas 6: `read/edit/test/approve/publish/config`. Veri
 **24 commits** em main: `c04eaa53` → `62be2152`. **57 ADRs total.** **6 fases UI.** **5 telas em prod HTTP 200.**
 
 **Última atualização:** 2026-05-05 noite — UI Skills end-to-end deployed (Wagner testa amanhã)
+
+---
+
+## 🌅 Sessão madrugada 2026-05-07 — MWART hotfix marathon + skill mwart-quality + feedback Cockpit
+
+**Contexto:** `/continuar` retomada. Wagner reportou tela branca `/repair/job-sheet`, deixou sessão autônoma pra dormir, depois acordou várias vezes pra dar feedback canônico sobre padrão visual.
+
+### 3 PRs mergeados em sequência
+
+| PR | Tipo | Descrição |
+|---|---|---|
+| **#144** | hotfix | S2.5 telas brancas — substitui `route()` Ziggy por URL hardcoded (3 telas: JobSheet, Status, DeviceModels) |
+| **#145** | hotfix + skill | Dashboard `TypeError i.slice` (CommonChart vs array) + DeviceModels SQL `Column 'description' not found` + nova skill `mwart-quality` v1 com 9 checks |
+| **#146** | docs | mwart-quality v3 segue tutorial cockpit-runbook (3 modos + workflow + anti-padrões + canon visual) + session log madrugada |
+
+### 5 bugs encontrados nas 4 telas Repair S2.5
+
+1. `ReferenceError: route is not defined` × 3 telas (JobSheet, Status, DeviceModels) — `tightenco/ziggy` não instalado
+2. `TypeError: i.slice is not a function` (Dashboard) — CommonChart objeto vs array esperado
+3. `SQLSTATE[42S22] Column 'description' not found` (DeviceModels) — SELECT coluna inexistente
+
+**Estado em prod**: 4/4 telas funcionalmente OK (validado Chrome MCP screenshot + console clean).
+
+### Feedback canônico Wagner registrado
+
+1. *"perdeu elementos na criação, em especial navbar top"* — telas MWART perderam navbar
+2. *"o padrão do cockpit era muito superior"* — eu interpretei mal primeiro
+3. *"cokpit achei mais bonito"* — Wagner corrigiu: Cockpit é mais bonito
+4. *"mais tbm sem navtop... tem que ter"* — gap exato é topnav horizontal
+5. *"blade feio o padrão bonito é [Claude design link]"* — Blade legacy é feio
+6. *"o design desenvolveu técnicas apuradas... ele criou um manual de como fazer uma skill com runbook de precisão seguindo o tutorial"* — manual = DESIGN.md + skill `cockpit-runbook`
+
+### Skill mwart-quality v3 (Tier B)
+
+10 checks (9 técnicos + Check 10 Hard Gate visual) + 3 modos (Pre-flight / Audit / Refactor) + 10 fontes canônicas (Read paralelo) + 10 anti-padrões + workflow obrigatório 10 passos. Estrutura segue `cockpit-runbook` template.
+
+### Decisões arquiteturais registradas
+
+- ✅ **Visual canon**: Cockpit AppShellV2 (per `https://claude.ai/design/p/019dcfd3-6ef2-7ee6-8512-b1b0e5544e58`)
+- ❌ **NÃO canon**: Blade legacy (Wagner: *"feio"*)
+- ⛔ **GAP funcional crítico**: AppShellV2 não tem topnav horizontal módulo
+- ⛔ **REGRA HARD**: P0 implementar topnav horizontal antes de criar telas MWART novas
+- ✅ **NÃO rollback flags MWART** — Cockpit visual > Blade
+
+### Pendências P0 próxima sessão (BLOQUEADORAS de novas telas MWART)
+
+1. **Topnav horizontal no AppShellV2** — adicionar `<nav className="topnav-module">` populado com `useAutoModuleNav().items`. Estilo per Cockpit canônico.
+2. **`topnav.php` para Repair** — sem o arquivo, breadcrumb dropdown também não funciona.
+3. **Re-design das telas listagem MWART** com KPI cards ricos + tabs filtro + TanStack Table per `os-page.jsx` canon.
+4. **Fix Repair Dashboard `trending_devices_chart`** — atualmente `[]` porque RepairUtil.getTrendingDevices retorna CommonChart; refactor pra retornar array.
+5. **Quebrar mwart-quality em progressive disclosure** — SKILL.md + CHECKS.md + EXAMPLES.md + CHECKLIST.md + GOTCHAS.md (segue cockpit-runbook).
+
+### Aprendizados meta
+
+- **Smoke test browser MCP é gate inegociável** — sem ele, bugs só aparecem quando Wagner abre.
+- **Eloquent Collection raw → Inertia silenciosamente errado** — sempre `->values()->all()` antes de mandar.
+- **Interpretação errada de feedback custa tempo** — quando Wagner deu pista visual ambígua, levei 3 mensagens pra entender o que ele queria. Pedir esclarecimento antes de agir.
+- **Componentes shared têm contrato rígido** — passar `subtitle` em vez de `description` não pega no TS strict, mas falha render.
+
+**60 ADRs total. 4 telas MWART em prod (funcionalmente OK, visualmente abaixo do canon Cockpit). Skill `mwart-quality` v3 deployed (Tier B).**
+
+**Última atualização:** 2026-05-07 madrugada — MWART S2.5 hotfix marathon + skill mwart-quality v3 + feedback Cockpit canônico
