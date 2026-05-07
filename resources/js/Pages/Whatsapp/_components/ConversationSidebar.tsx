@@ -1,4 +1,14 @@
+import { useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import {
+  UserCheck,
+  Bot,
+  Check,
+  RotateCcw,
+  Hourglass,
+  Clock,
+  AlertTriangle,
+} from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
@@ -12,9 +22,11 @@ interface Props {
   conversation: ThreadConversation;
   /** Reload partial: indica quais props recarregar após PATCH. */
   reloadOnly: string[];
+  /** Quando true, registra atalhos E (resolver) e A (aguardar humano) globais. */
+  enableShortcuts?: boolean;
 }
 
-export default function ConversationSidebar({ conversation, reloadOnly }: Props) {
+export default function ConversationSidebar({ conversation, reloadOnly, enableShortcuts = false }: Props) {
   const sharedAuth = (usePage().props as any)?.auth?.user as { id?: number } | undefined;
   const currentUserId = sharedAuth?.id ?? null;
   const isMineAssigned = !!(conversation.assigned_user && currentUserId && conversation.assigned_user.id === currentUserId);
@@ -27,8 +39,34 @@ export default function ConversationSidebar({ conversation, reloadOnly }: Props)
     });
   }
 
+  // Atalhos teclado E (resolver) e A (aguardar humano) — ADR 0039 §2.
+  useEffect(() => {
+    if (!enableShortcuts) return;
+    function handler(e: KeyboardEvent) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable)
+      ) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === 'e' || e.key === 'E') {
+        if (conversation.status === 'resolved') return;
+        e.preventDefault();
+        patchConversation({ status: 'resolved' });
+      }
+      if (e.key === 'a' || e.key === 'A') {
+        if (conversation.status === 'awaiting_human' || conversation.status === 'resolved') return;
+        e.preventDefault();
+        patchConversation({ status: 'awaiting_human' });
+      }
+    }
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [enableShortcuts, conversation.id, conversation.status]);
+
   return (
-    <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-3 overflow-y-auto">
+    <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-3 overflow-y-auto" aria-label="Contexto da conversa">
       <Card className="p-4">
         <div className="flex flex-col items-center text-center gap-2">
           <Avatar name={conversation.contact_name} size="lg" />
@@ -43,47 +81,59 @@ export default function ConversationSidebar({ conversation, reloadOnly }: Props)
         <Button
           variant={isMineAssigned ? 'default' : 'outline'}
           size="sm"
-          className="w-full justify-start"
+          className="w-full justify-start gap-2"
           onClick={() => patchConversation({ assigned_to_me: !isMineAssigned })}
+          title={isMineAssigned ? 'Clique pra liberar a conversa' : 'Atribuir esta conversa a mim'}
         >
-          {isMineAssigned ? '✓ Atribuída a mim' : 'Atribuir a mim'}
+          <UserCheck size={14} aria-hidden />
+          {isMineAssigned ? 'Atribuída a mim' : 'Atribuir a mim'}
         </Button>
         <Button
           variant={conversation.bot_handling ? 'default' : 'outline'}
           size="sm"
-          className="w-full justify-start"
+          className="w-full justify-start gap-2"
           onClick={() => patchConversation({ bot_handling: !conversation.bot_handling })}
+          title={conversation.bot_handling ? 'Desligar bot Jana' : 'Ligar bot Jana (HITL)'}
         >
-          {conversation.bot_handling ? '🤖 Bot ligado' : '🤖 Ativar bot'}
+          <Bot size={14} aria-hidden />
+          {conversation.bot_handling ? 'Bot ligado' : 'Ativar bot'}
         </Button>
         <Separator className="my-2" />
         {conversation.status !== 'resolved' ? (
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start border-emerald-500 text-emerald-700 hover:bg-emerald-50"
+            className="w-full justify-start gap-2 border-emerald-500 text-emerald-700 dark:text-emerald-400 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
             onClick={() => patchConversation({ status: 'resolved' })}
+            title={enableShortcuts ? 'Atalho: E' : 'Marcar conversa como resolvida'}
           >
-            ✓ Marcar resolvida
+            <Check size={14} aria-hidden />
+            Marcar resolvida
+            {enableShortcuts && <kbd className="ml-auto text-[10px] opacity-60">E</kbd>}
           </Button>
         ) : (
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start"
+            className="w-full justify-start gap-2"
             onClick={() => patchConversation({ status: 'open' })}
+            title="Reabrir conversa"
           >
-            ↺ Reabrir
+            <RotateCcw size={14} aria-hidden />
+            Reabrir
           </Button>
         )}
         {conversation.status !== 'awaiting_human' && conversation.status !== 'resolved' && (
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start border-amber-500 text-amber-700 hover:bg-amber-50"
+            className="w-full justify-start gap-2 border-amber-500 text-amber-700 dark:text-amber-400 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30"
             onClick={() => patchConversation({ status: 'awaiting_human' })}
+            title={enableShortcuts ? 'Atalho: A' : 'Marcar como aguardando atendimento humano'}
           >
-            ⏳ Aguardar humano
+            <Hourglass size={14} aria-hidden />
+            Aguardar humano
+            {enableShortcuts && <kbd className="ml-auto text-[10px] opacity-60">A</kbd>}
           </Button>
         )}
       </Card>
@@ -92,14 +142,23 @@ export default function ConversationSidebar({ conversation, reloadOnly }: Props)
         <SectionLabel>Janela 24h Meta</SectionLabel>
         <div className="text-xs text-muted-foreground mt-2 space-y-1">
           {conversation.within_24h_window ? (
-            <p className="text-emerald-700">✓ Aberta — freeform permitido em qualquer driver.</p>
+            <p className="text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
+              <Check size={12} aria-hidden />
+              Aberta — freeform permitido em qualquer driver.
+            </p>
           ) : (
-            <p className="text-amber-700">✕ Fechada — Meta Cloud exige template HSM aprovado. Z-API/Baileys ignoram.</p>
+            <p className="text-amber-700 dark:text-amber-400 inline-flex items-start gap-1">
+              <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden />
+              <span>Fechada — Meta Cloud exige template HSM aprovado. Z-API/Baileys ignoram.</span>
+            </p>
           )}
           {conversation.last_inbound_at && (
-            <p>
-              Última msg do cliente:{' '}
-              <span className="font-medium">{formatDateTime(conversation.last_inbound_at)}</span>
+            <p className="inline-flex items-center gap-1">
+              <Clock size={12} aria-hidden />
+              <span>
+                Última msg do cliente:{' '}
+                <span className="font-medium">{formatDateTime(conversation.last_inbound_at)}</span>
+              </span>
             </p>
           )}
         </div>
@@ -127,10 +186,10 @@ export default function ConversationSidebar({ conversation, reloadOnly }: Props)
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; className: string }> = {
-    open: { label: 'aberta', className: 'border-blue-500 text-blue-700 bg-blue-50' },
-    awaiting_human: { label: 'aguardando humano', className: 'border-amber-500 text-amber-700 bg-amber-50' },
-    resolved: { label: 'resolvida', className: 'border-emerald-500 text-emerald-700 bg-emerald-50' },
-    archived: { label: 'arquivada', className: 'border-slate-400 text-slate-600 bg-slate-50' },
+    open: { label: 'aberta', className: 'border-blue-500 text-blue-700 dark:text-blue-400 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/30' },
+    awaiting_human: { label: 'aguardando humano', className: 'border-amber-500 text-amber-700 dark:text-amber-400 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30' },
+    resolved: { label: 'resolvida', className: 'border-emerald-500 text-emerald-700 dark:text-emerald-400 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/30' },
+    archived: { label: 'arquivada', className: 'border-slate-400 text-slate-600 dark:text-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/30' },
   };
   const conf = map[status] ?? map.open!;
   return <Badge variant="outline" className={conf.className}>{conf.label}</Badge>;
@@ -138,7 +197,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
       {children}
     </div>
   );

@@ -8,6 +8,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { router } from '@inertiajs/react';
+import { AlertTriangle, Copy } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -54,7 +55,9 @@ interface Props {
 
 export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers, mandatoryFallbackFor }: Props) {
   const [driver, setDriver] = useState<Driver>(config?.driver ?? 'zapi');
-  const [fallbackDriver, setFallbackDriver] = useState<Driver>(config?.fallback_driver ?? 'meta_cloud');
+  // Fallback driver é fixo "meta_cloud" no MVP (ADR 0096 §3 fallback obrigatório).
+  // Setter mantido pra Sprint 3 quando tela de wizard avançado expor escolha.
+  const [fallbackDriver] = useState<Driver>(config?.fallback_driver ?? 'meta_cloud');
   const [lgpdAccepted, setLgpdAccepted] = useState<boolean>(config?.lgpd_acknowledged_at !== null);
 
   const [metaPhone, setMetaPhone] = useState(config?.meta_phone_number_id ?? '');
@@ -123,8 +126,9 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
   return (
     <div className="space-y-6">
       <PageHeader
+        icon="settings"
         title="Configurações Whatsapp"
-        subtitle="Wizard 2 passos: Z-API hoje (5 min) + Meta Cloud em paralelo (1-3 dias) como fallback obrigatório"
+        description="Wizard 2 passos: Z-API hoje (5 min) + Meta Cloud em paralelo (1-3 dias) como fallback obrigatório"
       />
 
       {/* Status atual */}
@@ -135,7 +139,7 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
               Status do driver
               <DriverHealthBadge health={config.driver_health} />
               {config.driver_health !== 'healthy' && config.driver_health !== 'never_checked' && (
-                <Badge variant="outline" className="border-amber-500 text-amber-700">
+                <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
                   Fallback {config.fallback_driver} ativo
                 </Badge>
               )}
@@ -169,7 +173,8 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
       {/* Aviso risco Z-API/Baileys */}
       {requiresFallback && (
         <Alert variant="destructive">
-          <AlertTitle>⚠️ Provedor não-oficial — risco ban Meta</AlertTitle>
+          <AlertTriangle className="h-4 w-4" aria-hidden />
+          <AlertTitle>Provedor não-oficial — risco ban Meta</AlertTitle>
           <AlertDescription>
             Driver <strong>{driver}</strong> é baseado em Whatsapp Web (não-oficial). Existe risco de bloqueio
             arbitrário pela Meta. Por isso, Meta Cloud cadastrado como fallback é <strong>obrigatório</strong>{' '}
@@ -238,7 +243,10 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
                   <Label>Webhook URL Z-API (cole no painel Z-API)</Label>
                   <div className="flex gap-2">
                     <Input readOnly value={webhookUrls.zapi} />
-                    <Button type="button" variant="outline" onClick={() => copyToClipboard(webhookUrls.zapi)}>Copiar</Button>
+                    <Button type="button" variant="outline" onClick={() => copyToClipboard(webhookUrls.zapi)} className="gap-1.5">
+                      <Copy size={14} aria-hidden />
+                      Copiar
+                    </Button>
                   </div>
                 </div>
               )}
@@ -377,7 +385,9 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
 WhatsappSettings.layout = (page: any) => <AppShellV2>{page}</AppShellV2>;
 
 function DriverCard({
-  value,
+  // value é só pra documentar qual Driver enum a card representa — usado nos
+  // testes e/ou pra futuro expand do wizard (ADR 0096 Sprint 3).
+  value: _value,
   title,
   description,
   selected,
@@ -410,13 +420,14 @@ function DriverCard({
 }
 
 function DriverHealthBadge({ health }: { health: string }) {
+  // Cores fixas semânticas (R-DS-002 exceção: status badges health constantes).
   const map: Record<string, { label: string; className: string }> = {
-    healthy: { label: 'Conectado', className: 'bg-green-100 text-green-800 border-green-300' },
-    degraded: { label: 'Degradado', className: 'bg-amber-100 text-amber-800 border-amber-300' },
-    disconnected: { label: 'Desconectado', className: 'bg-red-100 text-red-800 border-red-300' },
-    banned: { label: 'Banido pela Meta', className: 'bg-red-100 text-red-900 border-red-500' },
-    never_checked: { label: 'Aguardando teste', className: 'bg-slate-100 text-slate-700 border-slate-300' },
+    healthy:       { label: 'Conectado',       className: 'bg-green-100 text-green-800 border-green-300 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800' },
+    degraded:      { label: 'Degradado',       className: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800' },
+    disconnected:  { label: 'Desconectado',    className: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800' },
+    banned:        { label: 'Banido pela Meta', className: 'bg-red-100 text-red-900 border-red-500 dark:bg-red-950/60 dark:text-red-200 dark:border-red-700' },
+    never_checked: { label: 'Aguardando teste', className: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-700' },
   };
-  const conf = map[health] ?? map.never_checked;
+  const conf = map[health] ?? map.never_checked!;
   return <Badge variant="outline" className={conf.className}>{conf.label}</Badge>;
 }

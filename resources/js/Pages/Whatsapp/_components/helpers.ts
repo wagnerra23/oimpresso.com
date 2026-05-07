@@ -1,6 +1,27 @@
 // Helpers compartilhados pelas páginas Whatsapp/Conversations (Index/Show).
 // ADR 0039 (Chat Cockpit pattern), ADR 0096 (Whatsapp module).
 
+/**
+ * localStorage com prefixo `oimpresso.whatsapp.*` (ADR 0039 §4 + R-DS-012).
+ * SSR-safe (typeof window check).
+ */
+export const LS = {
+  TAB: 'oimpresso.whatsapp.tab',
+  Q: 'oimpresso.whatsapp.q',
+  THREAD: 'oimpresso.whatsapp.thread',
+} as const;
+
+export function lsGet(key: string, fallback = ''): string {
+  if (typeof window === 'undefined') return fallback;
+  return localStorage.getItem(key) ?? fallback;
+}
+
+export function lsSet(key: string, value: string | null): void {
+  if (typeof window === 'undefined') return;
+  if (value === null || value === '') localStorage.removeItem(key);
+  else localStorage.setItem(key, value);
+}
+
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';
