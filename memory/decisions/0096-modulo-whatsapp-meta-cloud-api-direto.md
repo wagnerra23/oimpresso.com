@@ -10,7 +10,7 @@ decided_by: [W]
 decided_at: 2026-05-07
 accepted_at: 2026-05-07
 accepted_by: wagner
-module: Whatsapp
+module: whatsapp
 quarter: 2026-Q2
 tier: CANON
 tags: [whatsapp, integracao, meta, zapi, baileys, multi-tenant, modulo-novo, evolution-proibido, custom-driver-sprint-3]
