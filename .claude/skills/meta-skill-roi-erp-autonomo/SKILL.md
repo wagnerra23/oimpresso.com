@@ -31,6 +31,8 @@ metrics:
   scaffolds_created: 0
   scaffolds_rejected: 0
   rejection_reasons: []
+tier: C
+parent_adr: 0095
 ---
 
 # meta-skill-roi-erp-autonomo
