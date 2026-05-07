@@ -23,11 +23,16 @@ interface IconProps extends React.SVGAttributes<SVGSVGElement> {
  */
 export function Icon({ name, size = 16, className, ...rest }: IconProps) {
   const map = Icons as unknown as Record<string, LucideIcon>;
-  const Component = map[name] ?? map[toPascalCase(name)] ?? Icons.Circle;
+  const Component = (typeof name === 'string' && name.length > 0)
+    ? (map[name] ?? map[toPascalCase(name)] ?? Icons.Circle)
+    : Icons.Circle;
   return <Component size={size} className={className} {...rest} />;
 }
 
 function toPascalCase(s: string): string {
+  // Guard defensivo: callers que passam undefined/number/null caíam em
+  // crash `split is not a function` antes do hotfix PR #186.
+  if (typeof s !== 'string' || s.length === 0) return '';
   return s
     .split(/[-_\s]+/)
     .filter(Boolean)
