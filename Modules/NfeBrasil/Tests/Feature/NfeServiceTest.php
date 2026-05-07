@@ -356,6 +356,66 @@ it('consultarStatusSefaz retorna ok=false quando cert vencido (cstat 280)', func
         ->and($result['cstat'])->toBe('280');
 })->group('nfe');
 
+it('consultarStatusSefaz: criarTools chama Tools::model() com INT (não string)', function () {
+    // Regressão real prod 2026-05-07: Tools::model() declara `?int $model` (sped-nfe v5+).
+    // Antes era passado string '55'/'65' → TypeError em runtime mas tests Pest mockavam
+    // Tools sem assertion em tipo. Esse test garante o cast (int) explícito.
+    [$business] = nfeSvcBootstrap();
+
+    $modelRecebido = null;
+    $factory = function (string $configJson, array $certData) use (&$modelRecebido): Tools {
+        $mock = \Mockery::mock(Tools::class);
+        $mock->shouldReceive('model')->andReturnUsing(function ($arg) use (&$modelRecebido) {
+            $modelRecebido = $arg;
+            return null;
+        });
+        $mock->shouldReceive('sefazStatus')->andReturn(statusServicoXml('107'));
+        return $mock;
+    };
+
+    $service = new NfeService(makeCertificadoService(), $factory);
+    $service->consultarStatusSefaz($business->id);
+
+    expect($modelRecebido)->toBeInt('Tools::model deve receber INT — string causa TypeError em runtime real');
+})->group('nfe');
+
+it('consultarStatusSefaz: emitir() também chama model() com INT', function () {
+    [$business] = nfeSvcBootstrap();
+
+    $modelRecebido = null;
+    $factory = function (string $configJson, array $certData) use (&$modelRecebido): Tools {
+        $mock = \Mockery::mock(Tools::class);
+        $mock->shouldReceive('model')->andReturnUsing(function ($arg) use (&$modelRecebido) {
+            $modelRecebido = $arg;
+            return null;
+        });
+        $mock->shouldReceive('signNFe')->andReturnArg(0);
+        $mock->shouldReceive('sefazEnviaLote')->andReturn(sefazAutorizadoXml());
+        return $mock;
+    };
+
+    $service = new NfeService(makeCertificadoService(), $factory);
+    $service->emitir($business->id, dadosNfeMinimos(100.00));
+
+    expect($modelRecebido)->toBeInt();
+})->group('nfe');
+
+it('consultarStatusSefaz envolve TypeError do criarTools em RuntimeException', function () {
+    // Garante que qualquer erro de prep (TypeError, InvalidArgument, etc) não escapa
+    // como Throwable cru — vira RuntimeException pra controller poder devolver
+    // payload com UF/ambiente preenchidos.
+    [$business] = nfeSvcBootstrap();
+
+    $factory = function (string $configJson, array $certData): Tools {
+        throw new \TypeError('simulated TypeError ::model() argument');
+    };
+
+    $service = new NfeService(makeCertificadoService(), $factory);
+
+    expect(fn () => $service->consultarStatusSefaz($business->id))
+        ->toThrow(\RuntimeException::class, 'Falha ao consultar SEFAZ');
+})->group('nfe');
+
 it('consultarStatusSefaz lança RuntimeException quando Tools::sefazStatus falha', function () {
     [$business] = nfeSvcBootstrap();
 

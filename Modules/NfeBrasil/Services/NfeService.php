@@ -508,17 +508,20 @@ class NfeService
             throw new RuntimeException("Business {$businessId} não encontrado.");
         }
 
-        $certData = $this->certificadoService->carregarParaSefaz($businessId);
-        $tools    = $this->criarTools($business, $certData, [], '55');
-
         $start = microtime(true);
 
+        // Try/catch envolve TUDO — cert load, criarTools (TypeError, etc), sefazStatus
+        // (timeout cURL, etc). Qualquer falha vira RuntimeException padronizada
+        // pra controller poder retornar payload com UF/ambiente já populados.
         try {
+            $certData    = $this->certificadoService->carregarParaSefaz($businessId);
+            $tools       = $this->criarTools($business, $certData, [], '55');
             $responseXml = $tools->sefazStatus();
         } catch (\Throwable $e) {
             Log::error('NfeService: consultarStatusSefaz falhou', [
                 'business_id' => $businessId,
                 'error'       => $e->getMessage(),
+                'classe'      => $e::class,
             ]);
             throw new RuntimeException(
                 'Falha ao consultar SEFAZ: ' . $e->getMessage(),
@@ -572,7 +575,9 @@ class NfeService
         $tools = new Tools($configJson, $cert);
         // Modelo dinâmico: '55' (NFe B2B) | '65' (NFC-e B2C/POS) | '67' (CT-e — futuro)
         // Default '55' preserva backwards compat com `emitirParaInvoice` (US-RB-044).
-        $tools->model($modelo);
+        // Tools::model() espera ?int (sped-nfe v5+) — cast obrigatório, string causa
+        // TypeError em runtime real (não pego pelos tests Pest que mockam Tools).
+        $tools->model((int) $modelo);
         return $tools;
     }
 
