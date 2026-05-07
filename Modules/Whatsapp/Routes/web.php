@@ -43,9 +43,18 @@ Route::group([
         ->middleware('can:whatsapp.access')
         ->name('whatsapp.conversations.index');
 
+    Route::get('/conversations/{id}', [ConversationsController::class, 'show'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.access')
+        ->name('whatsapp.conversations.show');
+
     Route::get('/templates', [TemplatesController::class, 'index'])
         ->middleware('can:whatsapp.templates.manage')
         ->name('whatsapp.templates.index');
+
+    Route::post('/templates/sync-meta', [TemplatesController::class, 'syncMeta'])
+        ->middleware('can:whatsapp.templates.manage')
+        ->name('whatsapp.templates.sync_meta');
 
     Route::get('/settings', [SettingsController::class, 'show'])
         ->middleware('can:whatsapp.settings.manage')
