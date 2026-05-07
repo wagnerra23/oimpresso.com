@@ -3,12 +3,12 @@ slug: 0099-project-legacy-discovery-pre-deletion
 number: 99
 title: "Modules/Project (legacy UltimatePOS) — Discovery pré-deletion (Fase 3.8)"
 type: adr
-status: pivotado
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-07
-module: Project
+module: governance
 quarter: 2026-Q2
 tags: [mwart, legacy, project, discovery, pre-deletion, queue-for-delete]
 supersedes: []
