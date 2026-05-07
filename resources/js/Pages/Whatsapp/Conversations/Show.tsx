@@ -81,10 +81,24 @@ export default function ConversationShow({ conversation, messages: initialMessag
     if (!composerText.trim() || sending) return;
     setSending(true);
 
-    // Lote 2f: POST /whatsapp/conversations/{id}/send → enfileira SendWhatsappMessageJob
-    // Por enquanto avisa que a feature precisa do controller send (Sprint 2)
-    alert('Envio manual será habilitado no Lote 2f (controller send + Centrifugo). Por enquanto mensagens chegam só via webhooks inbound + auto-listeners (Repair etc).');
-    setSending(false);
+    router.post(
+      route('whatsapp.conversations.send', conversation.id),
+      {
+        kind: 'freeform',
+        body: composerText,
+      },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+          setComposerText('');
+          // Recarrega messages depois do dispatch (job enfileirado, status fica queued
+          // até driver retornar; UI fica eventually consistent via Centrifugo no futuro)
+          router.reload({ only: ['messages'] });
+        },
+        onFinish: () => setSending(false),
+      },
+    );
   }
 
   const canSendFreeform = conversation.within_24h_window;
