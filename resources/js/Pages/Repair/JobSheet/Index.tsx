@@ -62,7 +62,7 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
         description="Gestão de OS por status, cliente, equipe e local"
         action={
           <Button variant="outline" asChild>
-            <Link href={route('job-sheet.create')}>
+            <Link href="/repair/job-sheet/create">
               <Icon name="file-text" className="mr-2 h-4 w-4" />
               Nova OS
             </Link>
