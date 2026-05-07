@@ -31,9 +31,10 @@ export default function DashboardIndex(props: PageProps) {
     job_sheets_by_status,
     job_sheets_by_service_staff,
     trending_brand_chart,
-    trending_devices_chart,
+    trending_devices_chart: _trending_devices_chart, // FIXME US-REPAIR-DASH-1: incluir em painel próprio
     trending_dm_chart,
   } = props;
+  void _trending_devices_chart;
 
   return (
     <div className="container mx-auto p-4">
@@ -113,13 +114,13 @@ function SimpleListCard({ title, items, labelKey, valueKey, emptyMsg, iconName }
       </CardHeader>
       <CardContent>
         {list.length === 0 ? (
-          <p className="text-sm text-slate-500">{emptyMsg}</p>
+          <p className="text-sm text-muted-foreground">{emptyMsg}</p>
         ) : (
           <ul className="space-y-1 text-sm">
             {list.slice(0, 10).map((item, i) => (
-              <li key={i} className="flex justify-between border-b last:border-0 py-1">
-                <span>{String(item[labelKey] ?? Object.values(item)[0] ?? '—')}</span>
-                <span className="font-medium tabular-nums">
+              <li key={i} className="flex justify-between border-b border-border last:border-0 py-1">
+                <span className="text-foreground">{String(item[labelKey] ?? Object.values(item)[0] ?? '—')}</span>
+                <span className="font-medium tabular-nums text-foreground">
                   {String(item[valueKey] ?? Object.values(item)[1] ?? 0)}
                 </span>
               </li>
