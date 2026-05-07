@@ -33,7 +33,7 @@ export default function DeviceModelsIndex({ models }: PageProps) {
         description="Cadastre modelos de aparelhos atendidos com checklists de reparo"
         action={
           <Button asChild>
-            <Link href={route('device-models.create')}>
+            <Link href="/repair/device-models/create">
               <Icon name="plus" className="mr-2 h-4 w-4" />
               Novo modelo
             </Link>
@@ -82,7 +82,7 @@ export default function DeviceModelsIndex({ models }: PageProps) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={route('device-models.edit', m.id)}>Editar</Link>
+                      <Link href={`/repair/device-models/${m.id}/edit`}>Editar</Link>
                     </Button>
                   </td>
                 </tr>

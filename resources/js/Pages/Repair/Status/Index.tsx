@@ -32,7 +32,7 @@ export default function StatusIndex({ statuses }: PageProps) {
         description="Configure os status que ordens de serviço podem assumir"
         action={
           <Button asChild>
-            <Link href={route('status.create')}>
+            <Link href="/repair/status/create">
               <Icon name="plus" className="mr-2 h-4 w-4" />
               Novo status
             </Link>
@@ -77,7 +77,7 @@ export default function StatusIndex({ statuses }: PageProps) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={route('status.edit', s.id)}>Editar</Link>
+                      <Link href={`/repair/status/${s.id}/edit`}>Editar</Link>
                     </Button>
                   </td>
                 </tr>
