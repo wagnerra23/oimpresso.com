@@ -2,12 +2,14 @@
 
 namespace Modules\Jana\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\Jana\Scopes\ScopeByBusiness;
 
 class Conversa extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'jana_conversas';
 
     protected $fillable = [
@@ -17,11 +19,6 @@ class Conversa extends Model
     protected $casts = [
         'iniciada_em' => 'datetime',
     ];
-
-    protected static function booted(): void
-    {
-        static::addGlobalScope(new ScopeByBusiness);
-    }
 
     public function mensagens(): HasMany
     {

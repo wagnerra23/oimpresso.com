@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
@@ -20,6 +21,8 @@ use Laravel\Scout\Searchable;
  */
 class MemoriaFato extends Model
 {
+    use HasBusinessScope;
+
     use Searchable;
     use SoftDeletes;
 
