@@ -1,3 +1,28 @@
+---
+module: Whatsapp
+purpose: "Whatsapp transacional unificado (Z-API default + Meta Cloud fallback obrigatório; BaileysDriver custom autorizado Sprint 3; Evolution PROIBIDO permanente) — status OS Repair, boleto/NFe RecurringBilling, lembrete Financeiro, ConsultaOs acompanhamento, bot Jana HITL"
+contains:
+  # Install (ADR 0024)
+  - "InstallController — extends BaseModuleInstallController (rotas install/uninstall/update)"
+  - "DataController — 3 hooks UltimatePOS (user_permissions/modifyAdminMenu/superadmin_package)"
+  # Admin Inertia (US-WA-001/012/013)
+  - "Admin/SettingsController — wizard 2 passos Z-API+Meta + gating LGPD (BusinessSettingsRequest)"
+  - "Admin/ConversationsController — Inbox Cockpit + send manual + Centrifugo subscribe"
+  - "Admin/TemplatesController — sync HSM Meta + criar template LOCAL Z-API/Baileys"
+  # API webhooks (US-WA-010/010b)
+  - "Api/MetaWebhookController — recebe events Meta Cloud (HMAC SHA-256 verify)"
+  - "Api/ZapiWebhookController — recebe events Z-API (Client-Token timing-safe)"
+  # Services / Drivers
+  - "Services/Drivers/{ZapiDriver, MetaCloudDriver, NullDriver, DriverFactory} — abstração + fallback runtime"
+  - "Services/Centrifugo/{CentrifugoPublisher, CentrifugoTokenIssuer} — real-time UI ADR 0058"
+  # Jobs / Listeners / Observers
+  - "Jobs/{SendWhatsappMessageJob, ProcessIncomingWebhookJob, WhatsappDriverHealthCheckJob}"
+  - "Listeners/{NotifyRepairCustomer, PublishMessage{Received,Sent}ToCentrifugo, DispatchToJanaBot}"
+  - "Observers/WhatsappMessageObserver — append-only enforcement Tier 0"
+  # Console
+  - "Console/Commands/DriverHealthCheckAllCommand — schedule cron 6h"
+---
+
 # SCOPE — Modules/Whatsapp/
 
 Resumo executivo do escopo deste módulo. Documento curto pra dev novo entender em 2 minutos.
