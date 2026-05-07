@@ -36,6 +36,13 @@ return [
             'throw' => false,
         ],
 
+        // Certificados A1 NFe/NFSe — fora do webroot (US-NFE-041 security)
+        'nfe_certs' => [
+            'driver' => 'local',
+            'root' => storage_path('app/nfe-certs'),
+            'throw' => true,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
