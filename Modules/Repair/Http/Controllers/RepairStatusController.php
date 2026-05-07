@@ -6,6 +6,7 @@ use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Repair\Entities\RepairStatus;
 use Modules\Repair\Utils\RepairUtil;
 use Yajra\DataTables\Facades\DataTables;
@@ -65,6 +66,32 @@ class RepairStatusController extends Controller
                 ->rawColumns([0, 1, 3])
                 ->make(false);
         }
+
+        // MWART-0002 (Sprint 2.5) — branch Inertia/React quando flag ativa.
+        // Caminho Blade legacy continua intacto (Settings page inclui status/index.blade.php).
+        if ($this->mwartEnabled('repair_status_index', (int) $business_id)) {
+            return Inertia::render('Repair/Status/Index', [
+                'statuses' => RepairStatus::where('business_id', $business_id)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'color', 'sort_order', 'is_completed_status']),
+            ]);
+        }
+
+        // Default: caminho null — view é renderizada por settings (includeIf).
+    }
+
+    /**
+     * MWART-0002 — verifica se flag MWART está habilitada pro business atual.
+     * Mesmo padrão do RepairController::mwartEnabled.
+     */
+    private function mwartEnabled(string $key, int $business_id): bool
+    {
+        if (! config("mwart.{$key}.enabled")) {
+            return false;
+        }
+        $beta = (array) config("mwart.{$key}.business_ids", []);
+        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**
