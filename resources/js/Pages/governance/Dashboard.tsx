@@ -180,7 +180,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                   const isError = entry.status !== 'ok'
                   return (
                     <li key={idx} className="flex items-start gap-2 text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2 last:border-0">
-                      <Badge variant="outline" className={isError ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}>
+                      <Badge variant="outline" className={isError ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}>
                         {entry.status}
                       </Badge>
                       <div className="flex-1">

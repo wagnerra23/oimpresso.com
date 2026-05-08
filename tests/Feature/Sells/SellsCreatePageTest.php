@@ -74,9 +74,11 @@ it('Page NÃO usa sessionStorage (auto-mem GOTCHAS — usar localStorage com pre
     expect($source)->not->toContain('sessionStorage');
 });
 
-it('Page NÃO usa cor crua Tailwind (R-DS-002 — usar tokens shadcn)', function () {
+it('Page NÃO usa cor crua não-semântica (canon ADR 0110: rose/emerald/amber/blue OK; gray/indigo/purple/pink/yellow/red/green ❌)', function () {
     $source = readPage();
-    expect($source)->not->toMatch('/bg-(blue|red|green|yellow|gray|indigo|purple|pink)-[0-9]+/');
+    // ADR 0110 §Cores semânticas: rose=danger, emerald=success, amber=warning, blue=info — TODAS canon.
+    // Cores cruas sem semântica continuam proibidas.
+    expect($source)->not->toMatch('/bg-(gray|indigo|purple|pink|yellow|red|green)-[0-9]+/');
 });
 
 it('Page registrada no manifest do build:inertia (smoke build)', function () {
@@ -234,10 +236,15 @@ it('Page calcula totalPago + indicador saldo (falta/troco/exato)', function () {
     expect($source)->toContain("'exato'");
 });
 
-it('PaymentRow usa Object.entries(paymentTypes) e accounts (Record, não array)', function () {
+it('PaymentRow itera paymentTypes + accounts via helper dropdownEntries (Record, não array)', function () {
     $source = file_get_contents(base_path('resources/js/Pages/Sells/_components/PaymentRow.tsx'));
-    expect($source)->toContain('Object.entries(paymentTypes)');
-    expect($source)->toContain('Object.entries(accounts)');
+    // dropdownEntries() é helper que filtra Record vindos de UltimatePOS forDropdowns
+    // (gap em prepend_none — gerava SelectItem value="" quebrando Radix). Ref auto-mem.
+    expect($source)->toContain('dropdownEntries(paymentTypes)');
+    expect($source)->toContain('dropdownEntries(accounts)');
+    // Tipos confirmam Record (não array)
+    expect($source)->toContain('paymentTypes: Record<string, string>');
+    expect($source)->toContain('accounts: Record<number, string>');
 });
 
 it('Page permite remover linha de pagamento se houver mais de 1 (split)', function () {
