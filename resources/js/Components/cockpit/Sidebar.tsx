@@ -11,7 +11,7 @@ import {
   ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
   FileSearch, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
-  MessageSquare, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
+  MessageCircle, MessageSquare, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
   type LucideIcon,
@@ -289,14 +289,18 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
   );
 }
 
-// ── SidebarShortcuts — Tarefas + Chat no topo (UI-0011) ─────────────────
+// ── SidebarShortcuts — Tarefas + Chat + Whatsapp no topo (UI-0011) ──────
+// Wagner 2026-05-08: "o whatszap precisa ir abaixo do chat" — entrypoint
+// rápido pra Inbox WhatsApp ao lado do chat com a Jana.
 
 function SidebarShortcuts({
   tarefasCount,
   chatCount,
+  whatsappCount,
 }: {
   tarefasCount?: number;
   chatCount?: number;
+  whatsappCount?: number;
 }) {
   return (
     <div className="sb-shortcuts">
@@ -309,6 +313,11 @@ function SidebarShortcuts({
         <MessageSquare size={13} />
         <span className="label">Chat</span>
         {!!chatCount && <span className="badge">{chatCount}</span>}
+      </a>
+      <a href="/whatsapp/conversations" className="sb-shortcut">
+        <MessageCircle size={13} />
+        <span className="label">WhatsApp</span>
+        {!!whatsappCount && <span className="badge">{whatsappCount}</span>}
       </a>
     </div>
   );
@@ -404,7 +413,7 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
 
   return (
     <div className="sb-menu-grouped">
-      <SidebarShortcuts tarefasCount={6} chatCount={3} />
+      <SidebarShortcuts tarefasCount={6} chatCount={3} whatsappCount={2} />
       {groupsToRender.map((g) => (
         <SidebarGroup
           key={g.key}
