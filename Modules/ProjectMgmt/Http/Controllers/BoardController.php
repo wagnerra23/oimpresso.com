@@ -15,6 +15,7 @@ use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskComment;
 use Modules\Jana\Entities\Mcp\McpTaskDependency;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
+use Modules\Jana\Entities\Mcp\McpTaskWatcher;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
@@ -322,6 +323,21 @@ class BoardController extends Controller
             'target' => $targetMap[$d->depends_on_task_id] ?? null,
         ])->all();
 
+        // PMG-006 (ADR 0100) — watchers
+        $watcherRows = McpTaskWatcher::with('user:id,username,first_name,last_name')
+            ->where('task_id', $task->task_id)
+            ->orderBy('created_at')
+            ->get();
+        $watchers = $watcherRows->map(fn (McpTaskWatcher $w) => [
+            'user_id' => (int) $w->user_id,
+            'username' => optional($w->user)->username,
+            'name' => $w->user
+                ? trim((string) $w->user->first_name . ' ' . (string) $w->user->last_name) ?: $w->user->username
+                : '—',
+        ])->all();
+        $currentUserId = (int) ($request->user()?->id ?? 0);
+        $isWatching = $watcherRows->contains(fn ($w) => (int) $w->user_id === $currentUserId);
+
         $taskPayload = $this->serializeTask($task);
         $taskPayload['description'] = $task->description;
         $taskPayload['parent_task_id'] = $task->parent_task_id;
@@ -334,6 +350,8 @@ class BoardController extends Controller
             'events' => $events,
             'subtasks' => $subtasks,
             'dependencies' => $dependencies,
+            'watchers' => $watchers,
+            'is_watching' => $isWatching,
         ]);
     }
 
@@ -409,6 +427,70 @@ class BoardController extends Controller
             ->all();
 
         return response()->json(['users' => $users]);
+    }
+
+    /**
+     * POST /project-mgmt/board/{taskId}/watch — PMG-006 (ADR 0100).
+     *
+     * Idempotente: firstOrCreate. Retorna o watcher ou o existente +
+     * lista atualizada de watchers.
+     */
+    public function watch(Request $request, string $taskId): JsonResponse
+    {
+        $userId = (int) ($request->user()?->id ?? 0);
+        if ($userId === 0) {
+            return response()->json(['error' => 'Não autenticado.'], 401);
+        }
+
+        $task = McpTask::where('task_id', strtoupper($taskId))->first()
+            ?? McpTask::where('task_id', $taskId)->first()
+            ?? McpTask::where('identifier', strtoupper($taskId))->first();
+
+        if (! $task) {
+            return response()->json(['error' => "Task '{$taskId}' não encontrada."], 404);
+        }
+
+        McpTaskWatcher::firstOrCreate([
+            'task_id' => $task->task_id,
+            'user_id' => $userId,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'is_watching' => true,
+            'watchers_count' => McpTaskWatcher::where('task_id', $task->task_id)->count(),
+        ]);
+    }
+
+    /**
+     * DELETE /project-mgmt/board/{taskId}/watch — PMG-006 (ADR 0100).
+     *
+     * Idempotente: delete não-existente é no-op.
+     */
+    public function unwatch(Request $request, string $taskId): JsonResponse
+    {
+        $userId = (int) ($request->user()?->id ?? 0);
+        if ($userId === 0) {
+            return response()->json(['error' => 'Não autenticado.'], 401);
+        }
+
+        $task = McpTask::where('task_id', strtoupper($taskId))->first()
+            ?? McpTask::where('task_id', $taskId)->first()
+            ?? McpTask::where('identifier', strtoupper($taskId))->first();
+
+        if (! $task) {
+            return response()->json(['error' => "Task '{$taskId}' não encontrada."], 404);
+        }
+
+        McpTaskWatcher::where('task_id', $task->task_id)
+            ->where('user_id', $userId)
+            ->delete();
+
+        return response()->json([
+            'ok' => true,
+            'is_watching' => false,
+            'watchers_count' => McpTaskWatcher::where('task_id', $task->task_id)->count(),
+        ]);
     }
 
     // ---------- helpers ----------
