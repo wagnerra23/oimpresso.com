@@ -19,14 +19,22 @@ import {
   ChevronsRight,
   Clock,
   CreditCard,
+  Edit,
   Eye,
   FileText,
   Layers,
   Loader2,
+  MoreVertical,
   Plus,
+  Printer,
   Receipt,
+  Search,
   Send,
+  Trash2,
+  Undo2,
+  X,
 } from 'lucide-react';
+import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import {
   DropdownMenu,
@@ -119,6 +127,14 @@ export default function SellsIndex(props: SellsIndexPageProps) {
   const [loading, setLoading] = useState(true);
   const [openSaleId, setOpenSaleId] = useState<number | null>(null);
 
+  // Busca livre (cliente / nº fatura) — debounce 300ms.
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
   // Paginação + ordenação.
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
@@ -126,10 +142,10 @@ export default function SellsIndex(props: SellsIndexPageProps) {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [meta, setMeta] = useState<ListMeta | null>(null);
 
-  // Reseta pra página 1 quando muda filtro/ordem/per-page.
+  // Reseta pra página 1 quando muda filtro/busca/ordem/per-page.
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, sortKey, sortDir, perPage]);
+  }, [statusFilter, search, sortKey, sortDir, perPage]);
 
   // Fetch quando qualquer parâmetro muda.
   useEffect(() => {
@@ -137,6 +153,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     setLoading(true);
     const params = new URLSearchParams();
     if (statusFilter) params.set('payment_status', statusFilter);
+    if (search) params.set('q', search);
     params.set('per_page', String(perPage));
     params.set('page', String(page));
     params.set('sort', sortKey);
@@ -162,7 +179,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [statusFilter, page, perPage, sortKey, sortDir]);
+  }, [statusFilter, search, page, perPage, sortKey, sortDir]);
 
   const handleSort = (key: SortKey) => {
     if (key === sortKey) {
@@ -176,6 +193,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
   const refetch = () => {
     const params = new URLSearchParams();
     if (statusFilter) params.set('payment_status', statusFilter);
+    if (search) params.set('q', search);
     params.set('per_page', String(perPage));
     params.set('page', String(page));
     params.set('sort', sortKey);
@@ -283,6 +301,34 @@ export default function SellsIndex(props: SellsIndexPageProps) {
 
       {/* Tabela — clean, sem widget wrapper, header bg cinza muito claro */}
       <div className="container mx-auto px-8 py-6 max-w-7xl">
+        {/* Busca livre — cliente ou nº fatura */}
+        <div className="mb-4 flex items-center gap-2">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="search"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Buscar por cliente ou nº fatura…"
+              className="pl-9 pr-9 h-9"
+              aria-label="Buscar venda"
+            />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => setSearchInput('')}
+                aria-label="Limpar busca"
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {loading && search && (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          )}
+        </div>
+
         <div className="rounded-lg border border-border bg-background overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -354,8 +400,12 @@ export default function SellsIndex(props: SellsIndexPageProps) {
                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                           <FiscalCell row={row} onEmitted={refetch} />
                         </td>
-                        <td className="px-2 py-3 text-right pr-4">
-                          <Eye size={14} className="text-muted-foreground inline-block" />
+                        <td className="px-2 py-3 text-right pr-4" onClick={(e) => e.stopPropagation()}>
+                          <ActionsMenu
+                            row={row}
+                            onView={() => setOpenSaleId(row.id)}
+                            onChange={refetch}
+                          />
                         </td>
                       </tr>
                     );
@@ -571,6 +621,96 @@ function PageBtn({
     >
       {children}
     </button>
+  );
+}
+
+// Dropdown "Ações" por linha — porta o menu legado do Blade pra React.
+function ActionsMenu({
+  row,
+  onView,
+  onChange,
+}: {
+  row: SaleRow;
+  onView: () => void;
+  onChange: () => void;
+}) {
+  const isPaid = row.payment_status === 'paid';
+
+  const handleDelete = async () => {
+    if (!confirm(`Excluir a venda ${row.invoice_no}? Essa ação não pode ser desfeita.`)) return;
+    try {
+      const meta = document.querySelector('meta[name="csrf-token"]');
+      const csrf = meta?.getAttribute('content') ?? '';
+      const res = await fetch(`/sells/${row.id}`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        credentials: 'same-origin',
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        alert(json?.msg ?? 'Falha ao excluir venda.');
+        return;
+      }
+      onChange();
+    } catch (e) {
+      alert('Erro ao excluir: ' + String((e as Error)?.message || e));
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex h-8 w-8 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+          aria-label="Ações da venda"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreVertical size={16} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem onClick={onView}>
+          <Eye size={14} className="mr-2" />
+          Ver detalhes
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href={`/sells/${row.id}/edit`} target="_blank" rel="noopener noreferrer">
+            <Edit size={14} className="mr-2" />
+            Editar
+          </a>
+        </DropdownMenuItem>
+        {!isPaid && (
+          <DropdownMenuItem onClick={onView}>
+            <CreditCard size={14} className="mr-2" />
+            Adicionar pagamento
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem asChild>
+          <a href={`/sells/${row.id}/print`} target="_blank" rel="noopener noreferrer">
+            <Printer size={14} className="mr-2" />
+            Imprimir nota
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href={`/sell-return/add/${row.id}`}>
+            <Undo2 size={14} className="mr-2" />
+            Devolução
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleDelete}
+          className="text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:text-rose-400 dark:focus:bg-rose-950/40"
+        >
+          <Trash2 size={14} className="mr-2" />
+          Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
