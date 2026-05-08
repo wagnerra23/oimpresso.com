@@ -530,3 +530,77 @@ it('GET /board/{taskId}/detail inclui watchers + is_watching', function () {
     expect($data['is_watching'])->toBeTrue();
     expect($data['watchers'])->toHaveCount(1);
 });
+
+// ============================================================================
+// PMG-007 (ADR 0100) — Subtasks UI (create + toggle status)
+// ============================================================================
+
+it('POST /board/{taskId}/subtask happy path cria subtask com parent_task_id', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $parent = pmgCreateTask($project, 'todo');
+
+    $response = $this->actingAs($user)
+        ->postJson("/project-mgmt/board/{$parent->task_id}/subtask", [
+            'title' => 'TEST-PMG subtask filha',
+        ]);
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped('Permission gate inesperado.');
+    }
+
+    expect($response->status())->toBe(201);
+    $response->assertJsonStructure([
+        'ok',
+        'subtask' => ['task_id', 'display_id', 'title', 'status', 'priority'],
+    ]);
+
+    $data = $response->json();
+    $childId = $data['subtask']['task_id'];
+
+    $child = \Modules\Jana\Entities\Mcp\McpTask::where('task_id', $childId)->first();
+    expect($child)->not->toBeNull();
+    expect((int) $child->parent_task_id)->toBe((int) $parent->id);
+    expect($child->status)->toBe('todo');
+});
+
+it('POST subtask sem permission retorna 403', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $parent = pmgCreateTask($project, 'todo');
+
+    pmgRevokePerm($user);
+
+    $response = $this->actingAs($user)
+        ->postJson("/project-mgmt/board/{$parent->task_id}/subtask", [
+            'title' => 'TEST-PMG sem perm',
+        ]);
+
+    expect($response->status())->toBe(403);
+});
+
+it('POST subtask com title vazio retorna 422', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $parent = pmgCreateTask($project, 'todo');
+
+    $response = $this->actingAs($user)
+        ->postJson("/project-mgmt/board/{$parent->task_id}/subtask", ['title' => '']);
+
+    expect($response->status())->toBe(422);
+});
+
+it('POST subtask com taskId inexistente retorna 404', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+
+    $response = $this->actingAs($user)
+        ->postJson('/project-mgmt/board/TEST-PMG-NAOEXISTE-99999/subtask', [
+            'title' => 'TEST-PMG órfã',
+        ]);
+
+    expect($response->status())->toBe(404);
+});

@@ -193,6 +193,12 @@ export default function DetailSheet({ taskId, onClose }: Props) {
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
 
+  // PMG-007 (ADR 0100) — formulário subtask + toggle status
+  const [subtaskDraft, setSubtaskDraft] = useState<string>('');
+  const [addingSubtask, setAddingSubtask] = useState(false);
+  const [subtaskError, setSubtaskError] = useState<string | null>(null);
+  const [togglingSubtaskId, setTogglingSubtaskId] = useState<string | null>(null);
+
   // Fetch quando abre
   useEffect(() => {
     if (!taskId) return;
@@ -229,7 +235,88 @@ export default function DetailSheet({ taskId, onClose }: Props) {
   useEffect(() => {
     setCommentDraft('');
     setPostError(null);
+    setSubtaskDraft('');
+    setSubtaskError(null);
   }, [taskId]);
+
+  // PMG-007 — adicionar subtask
+  async function handleAddSubtask() {
+    if (!taskId || !subtaskDraft.trim() || addingSubtask) return;
+    setAddingSubtask(true);
+    setSubtaskError(null);
+
+    const csrfToken =
+      (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+
+    try {
+      const r = await fetch(`/project-mgmt/board/${taskId}/subtask`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ title: subtaskDraft.trim() }),
+      });
+
+      if (r.status === 403) throw new Error('Sem permissão para criar subtask.');
+      if (r.status === 422) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j?.error ?? 'Subtask inválida.');
+      }
+      if (!r.ok) throw new Error(`Erro ${r.status}`);
+
+      const json = await r.json();
+      setData((prev) =>
+        prev ? { ...prev, subtasks: [...prev.subtasks, json.subtask] } : prev
+      );
+      setSubtaskDraft('');
+    } catch (err) {
+      setSubtaskError(err instanceof Error ? err.message : 'Erro ao criar.');
+    } finally {
+      setAddingSubtask(false);
+    }
+  }
+
+  // PMG-007 — toggle status subtask (todo ↔ done) reusando endpoint PMG-001
+  async function handleToggleSubtaskStatus(subtask: Subtask) {
+    if (togglingSubtaskId) return;
+    setTogglingSubtaskId(subtask.task_id);
+
+    const newStatus: Status = subtask.status === 'done' ? 'todo' : 'done';
+    const csrfToken =
+      (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+
+    try {
+      const r = await fetch(`/project-mgmt/board/${subtask.task_id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!r.ok) throw new Error(`Erro ${r.status}`);
+
+      // Otimista: atualiza state local
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              subtasks: prev.subtasks.map((s) =>
+                s.task_id === subtask.task_id ? { ...s, status: newStatus } : s
+              ),
+            }
+          : prev
+      );
+    } catch {
+      // silencioso
+    } finally {
+      setTogglingSubtaskId(null);
+    }
+  }
 
   // PMG-005 — submeter comment + refetch
   async function handlePostComment() {
@@ -546,31 +633,83 @@ export default function DetailSheet({ taskId, onClose }: Props) {
               )}
 
               {tab === 'subtasks' && (
-                <div className="py-4">
+                <div className="py-4 space-y-4">
+                  {/* PMG-007 (ADR 0100) — Lista com checkboxes clicáveis */}
                   {data.subtasks.length === 0 ? (
                     <p className="text-sm text-muted-foreground italic">Sem subtasks.</p>
                   ) : (
-                    <ul className="space-y-1.5">
-                      {data.subtasks.map((s) => (
-                        <li key={s.task_id} className="flex items-center gap-2 text-xs">
-                          <span className={`shrink-0 inline-block h-2 w-2 rounded-full ${
-                            s.priority === 'p0' ? 'bg-red-500' :
-                            s.priority === 'p1' ? 'bg-orange-500' :
-                            s.priority === 'p2' ? 'bg-yellow-500' :
-                            'bg-blue-500'
-                          }`} />
-                          <span className="font-mono text-muted-foreground">{s.display_id}</span>
-                          <span className="truncate flex-1">{s.title}</span>
-                          <span className={`shrink-0 inline-flex rounded-full px-1.5 py-0.5 text-[10px] ${STATUS_BADGE[s.status] ?? STATUS_BADGE.todo}`}>
-                            {s.status}
-                          </span>
-                        </li>
-                      ))}
+                    <ul className="space-y-1">
+                      {data.subtasks.map((s) => {
+                        const isDone = s.status === 'done' || s.status === 'cancelled';
+                        const isToggling = togglingSubtaskId === s.task_id;
+                        return (
+                          <li
+                            key={s.task_id}
+                            className={`flex items-center gap-2 rounded px-2 py-1 text-xs transition-colors ${isDone ? 'opacity-60' : ''} hover:bg-muted/50`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSubtaskStatus(s)}
+                              disabled={isToggling}
+                              aria-label={isDone ? 'Marcar como pendente' : 'Marcar como concluída'}
+                              className={`shrink-0 flex h-4 w-4 items-center justify-center rounded border ${isDone ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-input bg-background hover:border-primary'}`}
+                            >
+                              {isToggling ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : isDone ? (
+                                <span className="text-[10px] leading-none">✓</span>
+                              ) : null}
+                            </button>
+                            <span className={`shrink-0 inline-block h-2 w-2 rounded-full ${
+                              s.priority === 'p0' ? 'bg-red-500' :
+                              s.priority === 'p1' ? 'bg-orange-500' :
+                              s.priority === 'p2' ? 'bg-yellow-500' :
+                              'bg-blue-500'
+                            }`} />
+                            <span className="font-mono text-muted-foreground">{s.display_id}</span>
+                            <span className={`truncate flex-1 ${isDone ? 'line-through' : ''}`}>{s.title}</span>
+                            <span className={`shrink-0 inline-flex rounded-full px-1.5 py-0.5 text-[10px] ${STATUS_BADGE[s.status] ?? STATUS_BADGE.todo}`}>
+                              {s.status}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
-                  <p className="mt-4 text-[11px] text-muted-foreground">
-                    UI completa de subtasks (criar / completar / arrastar) entra em PMG-007.
-                  </p>
+
+                  {/* Form add inline */}
+                  <div className="border-t pt-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={subtaskDraft}
+                        onChange={(e) => setSubtaskDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleAddSubtask();
+                          }
+                        }}
+                        placeholder="Adicionar subtask… (Enter envia)"
+                        disabled={addingSubtask}
+                        className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleAddSubtask}
+                        disabled={addingSubtask || !subtaskDraft.trim()}
+                      >
+                        {addingSubtask ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Plus className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                    {subtaskError && (
+                      <p className="mt-2 text-xs text-red-600 dark:text-red-400">{subtaskError}</p>
+                    )}
+                  </div>
                 </div>
               )}
 
