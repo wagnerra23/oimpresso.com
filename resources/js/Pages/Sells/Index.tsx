@@ -8,8 +8,15 @@ import { Link, router } from '@inertiajs/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Clock,
   CreditCard,
   Eye,
@@ -63,6 +70,21 @@ export interface SellsIndexPageProps {
 }
 
 type StatusFilter = '' | 'paid' | 'due' | 'partial' | 'overdue';
+type SortKey = 'transaction_date' | 'invoice_no' | 'customer_name' | 'final_total' | 'payment_status';
+type SortDir = 'asc' | 'desc';
+
+interface ListMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+  sort: SortKey;
+  dir: SortDir;
+}
+
+const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -97,13 +119,28 @@ export default function SellsIndex(props: SellsIndexPageProps) {
   const [loading, setLoading] = useState(true);
   const [openSaleId, setOpenSaleId] = useState<number | null>(null);
 
-  // Fetch lista quando filtro muda.
+  // Paginação + ordenação.
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(25);
+  const [sortKey, setSortKey] = useState<SortKey>('transaction_date');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [meta, setMeta] = useState<ListMeta | null>(null);
+
+  // Reseta pra página 1 quando muda filtro/ordem/per-page.
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, sortKey, sortDir, perPage]);
+
+  // Fetch quando qualquer parâmetro muda.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     const params = new URLSearchParams();
     if (statusFilter) params.set('payment_status', statusFilter);
-    params.set('limit', '50');
+    params.set('per_page', String(perPage));
+    params.set('page', String(page));
+    params.set('sort', sortKey);
+    params.set('dir', sortDir);
     fetch(`/sells-list-json?${params.toString()}`, {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin',
@@ -112,10 +149,12 @@ export default function SellsIndex(props: SellsIndexPageProps) {
       .then((json) => {
         if (cancelled) return;
         setRows(Array.isArray(json.data) ? json.data : []);
+        setMeta(json.meta ?? null);
       })
       .catch(() => {
         if (cancelled) return;
         setRows([]);
+        setMeta(null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -123,7 +162,34 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [statusFilter]);
+  }, [statusFilter, page, perPage, sortKey, sortDir]);
+
+  const handleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'transaction_date' || key === 'final_total' ? 'desc' : 'asc');
+    }
+  };
+
+  const refetch = () => {
+    const params = new URLSearchParams();
+    if (statusFilter) params.set('payment_status', statusFilter);
+    params.set('per_page', String(perPage));
+    params.set('page', String(page));
+    params.set('sort', sortKey);
+    params.set('dir', sortDir);
+    fetch(`/sells-list-json?${params.toString()}`, {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        setRows(Array.isArray(json.data) ? json.data : []);
+        setMeta(json.meta ?? null);
+      });
+  };
 
   // KPIs cards (3 principais — Abertas, Atrasadas com destaque rose, Total).
   const kpis = props.sellKpis;
@@ -222,12 +288,12 @@ export default function SellsIndex(props: SellsIndexPageProps) {
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr className="border-b border-border">
-                  <Th className="w-32">Data</Th>
-                  <Th>Nº fatura</Th>
-                  <Th>Cliente</Th>
-                  <Th className="text-right w-28">Total</Th>
+                  <SortableTh sortKey="transaction_date" current={sortKey} dir={sortDir} onSort={handleSort} className="w-32">Data</SortableTh>
+                  <SortableTh sortKey="invoice_no" current={sortKey} dir={sortDir} onSort={handleSort}>Nº fatura</SortableTh>
+                  <SortableTh sortKey="customer_name" current={sortKey} dir={sortDir} onSort={handleSort}>Cliente</SortableTh>
+                  <SortableTh sortKey="final_total" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-28">Total</SortableTh>
                   <Th className="text-right w-28">Pago</Th>
-                  <Th className="w-32">Status</Th>
+                  <SortableTh sortKey="payment_status" current={sortKey} dir={sortDir} onSort={handleSort} className="w-32">Status</SortableTh>
                   <Th className="w-32">Fiscal</Th>
                   <Th className="w-12 text-right pr-4">&nbsp;</Th>
                 </tr>
@@ -286,18 +352,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
                           <PaymentStatusBadge status={row.payment_status} overdue={row.is_overdue} />
                         </td>
                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          <FiscalCell row={row} onEmitted={() => {
-                            // Refetch lista após emissão pra atualizar badge.
-                            const params = new URLSearchParams();
-                            if (statusFilter) params.set('payment_status', statusFilter);
-                            params.set('limit', '50');
-                            fetch(`/sells-list-json?${params.toString()}`, {
-                              headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                              credentials: 'same-origin',
-                            })
-                              .then((r) => r.json())
-                              .then((json) => setRows(Array.isArray(json.data) ? json.data : []));
-                          }} />
+                          <FiscalCell row={row} onEmitted={refetch} />
                         </td>
                         <td className="px-2 py-3 text-right pr-4">
                           <Eye size={14} className="text-muted-foreground inline-block" />
@@ -311,10 +366,13 @@ export default function SellsIndex(props: SellsIndexPageProps) {
           </div>
         </div>
 
-        {!loading && rows.length === 50 && (
-          <p className="text-xs text-muted-foreground mt-3 text-center">
-            Mostrando últimas 50 vendas. Filtros adicionais (data, cliente, local) virão em US-SELL-009.
-          </p>
+        {meta && meta.total > 0 && (
+          <Pagination
+            meta={meta}
+            perPage={perPage}
+            onPageChange={setPage}
+            onPerPageChange={setPerPage}
+          />
         )}
       </div>
 
@@ -391,6 +449,127 @@ function Th({ children, className = '' }: { children: ReactNode; className?: str
     >
       {children}
     </th>
+  );
+}
+
+function SortableTh({
+  children,
+  sortKey,
+  current,
+  dir,
+  onSort,
+  className = '',
+  align = 'left',
+}: {
+  children: ReactNode;
+  sortKey: SortKey;
+  current: SortKey;
+  dir: SortDir;
+  onSort: (k: SortKey) => void;
+  className?: string;
+  align?: 'left' | 'right';
+}) {
+  const active = current === sortKey;
+  const Icon = !active ? ArrowUpDown : dir === 'asc' ? ArrowUp : ArrowDown;
+  return (
+    <th
+      className={
+        (align === 'right' ? 'text-right ' : 'text-left ') +
+        'px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ' +
+        className
+      }
+    >
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className={
+          'inline-flex items-center gap-1 transition-colors hover:text-foreground ' +
+          (active ? 'text-foreground' : '')
+        }
+        aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+      >
+        {children}
+        <Icon size={12} className={active ? '' : 'opacity-40'} />
+      </button>
+    </th>
+  );
+}
+
+function Pagination({
+  meta,
+  perPage,
+  onPageChange,
+  onPerPageChange,
+}: {
+  meta: ListMeta;
+  perPage: number;
+  onPageChange: (p: number) => void;
+  onPerPageChange: (n: number) => void;
+}) {
+  const { current_page, last_page, total, from, to } = meta;
+  const canPrev = current_page > 1;
+  const canNext = current_page < last_page;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-3 px-1">
+      <div className="text-xs text-muted-foreground">
+        {total === 0
+          ? 'Nenhuma venda'
+          : `Mostrando ${from ?? 0}–${to ?? 0} de ${total.toLocaleString('pt-BR')}`}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Por página</span>
+          <select
+            value={perPage}
+            onChange={(e) => onPerPageChange(Number(e.target.value))}
+            className="h-7 rounded border border-border bg-background px-2 text-xs text-foreground"
+            aria-label="Itens por página"
+          >
+            {PER_PAGE_OPTIONS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-1">
+          <PageBtn onClick={() => onPageChange(1)} disabled={!canPrev} aria-label="Primeira página">
+            <ChevronsLeft size={14} />
+          </PageBtn>
+          <PageBtn onClick={() => onPageChange(current_page - 1)} disabled={!canPrev} aria-label="Página anterior">
+            <ChevronLeft size={14} />
+          </PageBtn>
+          <span className="px-2 text-xs tabular-nums text-foreground">
+            {current_page} <span className="text-muted-foreground">/ {last_page}</span>
+          </span>
+          <PageBtn onClick={() => onPageChange(current_page + 1)} disabled={!canNext} aria-label="Próxima página">
+            <ChevronRight size={14} />
+          </PageBtn>
+          <PageBtn onClick={() => onPageChange(last_page)} disabled={!canNext} aria-label="Última página">
+            <ChevronsRight size={14} />
+          </PageBtn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PageBtn({
+  children,
+  onClick,
+  disabled,
+  ...rest
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      {...rest}
+      className="inline-flex h-7 w-7 items-center justify-center rounded border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-background"
+    >
+      {children}
+    </button>
   );
 }
 
