@@ -167,3 +167,35 @@ capacidades:
 ## Histórico de revisão da ficha
 
 - `2026-05-06` — Wagner — criação via skill /comparativo, baseada em COMPARATIVO_CONCORRENCIA.md de 2026-04-25
+
+---
+
+## UX heuristics (Capterra v2 — eixo Usabilidade)
+
+> Capterra v2 ([ADR 0101](../../decisions/0101-sistema-charter-capterra-governanca-escopo.md) §3 eixos): além de medir features, mede **como** o concorrente entrega — cliques, tempo, recuperação de erro.
+> ⚠️ **TODO Wagner pesquisar/curate** — placeholder vazio até inventariar 3-5 heurísticas P0 do módulo.
+
+```yaml
+ux_heuristics: []
+  # - id: example-clicks
+  #   nome: "Cliques pra ação X"
+  #   score: P0
+  #   benchmark: "Concorrente A: 1 clique. Concorrente B: 5."
+  #   target: "<= 2 cliques"
+  #   metrica: "navegacao_steps_X"
+```
+
+## Automation targets (Capterra v2 — eixo Automação)
+
+> O que mercado faz **sem humano**? Listener? Cron? Job? Webhook?
+> ⚠️ **TODO Wagner pesquisar/curate** — placeholder vazio até inventariar 3-5 automações P0 do módulo.
+
+```yaml
+automation_targets: []
+  # - id: example-auto-action
+  #   nome: "Auto-disparar X quando Y"
+  #   score: P0
+  #   benchmark: "Concorrente A SIM, B SIM, C PARCIAL"
+  #   target: "Listener event Y → JobDoX, p95 < 30s"
+  #   metrica: "auto_X_p95_seconds"
+```
