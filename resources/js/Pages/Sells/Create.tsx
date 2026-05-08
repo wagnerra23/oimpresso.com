@@ -13,9 +13,10 @@
 //   - US-SELL-007: atalhos / Esc Cmd+Enter + auto-save draft localStorage
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { Loader2, Search } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -159,13 +160,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       <PageHeader
         icon="shopping-cart"
         title="Adicionar venda"
-        description="Cliente, produtos, pagamento. Mais opções colapsáveis no fim."
         action={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => (window.location.href = '/sells')}>
+            <Button variant="outline" onClick={() => router.visit('/sells')}>
               Cancelar
             </Button>
-            <Button disabled={processing}>Salvar venda</Button>
+            <Button disabled={processing}>
+              {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {processing ? 'Salvando…' : 'Salvar venda'}
+            </Button>
           </div>
         }
       />
@@ -178,15 +181,20 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="contact_id">Cliente</Label>
-            <Input
-              id="contact_id"
-              value={props.walkInCustomer.name}
-              readOnly
-              placeholder="Buscar cliente…"
-              className="text-muted-foreground"
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                id="contact_id"
+                value={props.walkInCustomer.name}
+                readOnly
+                disabled
+                placeholder="Buscar cliente por nome ou CPF/CNPJ…"
+                className="pl-9"
+                aria-label="Cliente da venda"
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
-              Autocomplete chega em US-SELL-005
+              Autocomplete em breve. Hoje só cliente padrão.
             </p>
           </div>
 
