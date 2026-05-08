@@ -17,9 +17,15 @@ use Modules\Whatsapp\Entities\WhatsappMessage;
  * Updates permitidos só em: status, failed_reason, updated_at, cost_centavos
  * (status delivery flow: queued → sent → delivered → read).
  *
+ * **Exceção one-time set:** `provider_message_id` é preenchido pelo
+ * `SendWhatsappMessageJob` APÓS o driver responder (Z-API/Meta retornam o ID
+ * só na resposta). Permitido transição `null|''` → valor real UMA VEZ;
+ * subsequente UPDATE pra outro valor é bloqueado (preserva append-only).
+ *
  * Padrão Ponto Marcacoes (memory/proibicoes.md — append-only por força de lei).
  *
  * @see Modules/Whatsapp/Entities/WhatsappMessage::IMMUTABLE_COLUMNS
+ * @see Modules/Whatsapp/Jobs/SendWhatsappMessageJob — preenche provider_message_id
  */
 class WhatsappMessageObserver
 {
@@ -28,6 +34,9 @@ class WhatsappMessageObserver
      *
      * Lança DomainException se alguma coluna IMMUTABLE_COLUMNS está em
      * `getDirty()` E é diferente do valor original (`getOriginal()`).
+     *
+     * Exceção: `provider_message_id` aceita transição `null|''` → valor real
+     * (one-time set após driver responder).
      */
     public function saving(WhatsappMessage $message): void
     {
@@ -44,6 +53,15 @@ class WhatsappMessageObserver
                 continue;
             }
             $original = $message->getOriginal($col);
+
+            // One-time set permitido em provider_message_id: null|'' → valor real
+            // (driver responde com ID só após enviar — fluxo SendWhatsappMessageJob)
+            if ($col === 'provider_message_id'
+                && in_array($original, [null, ''], true)
+                && ! in_array($dirty[$col], [null, ''], true)) {
+                continue;
+            }
+
             if ($dirty[$col] !== $original) {
                 $violations[] = "{$col}: '{$original}' → '{$dirty[$col]}'";
             }
