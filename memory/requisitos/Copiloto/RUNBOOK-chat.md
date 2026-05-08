@@ -4,7 +4,7 @@ title: "Copiloto — Runbook da tela Chat (/copiloto)"
 type: runbook
 module: Copiloto
 status: active
-date: 2026-05-05
+date: 2026-05-08
 ---
 
 # RUNBOOK — Chat do Copiloto (`/copiloto`)
@@ -299,6 +299,16 @@ interface Proposta {
 
 ## 10. Pegadinhas
 
+- ❌ **`resize-none` hardcoded no `<ComposerPrimitive.Input>`** ([AssistantUiChat.tsx:166](../../../resources/js/Components/copiloto/AssistantUiChat.tsx:166)) — usuário não consegue redimensionar textarea. Sintoma: desconforto quando prompt é multi-parágrafo. Fix: `resize-y` (vertical apenas; horizontal quebraria flex layout). **Aplicado 2026-05-08** audit cockpit-runbook.
+
+- ❌ **`max-h-40` no textarea (160px fixo)** — cresce 6 linhas e para. Sintoma: textarea congela com scroll interno minúsculo. Fix: `max-h-[40vh]` (40% viewport, escala com monitor). **Aplicado 2026-05-08**.
+
+- ❌ **`mx-auto max-w-3xl` no `<ComposerPrimitive.Root>`** ([AssistantUiChat.tsx:161](../../../resources/js/Components/copiloto/AssistantUiChat.tsx:161)) — "ChatGPT-style" centralizado fica desalinhado com bubbles `max-w-[80%]`. Em monitor 1280px com chat-convs 280px + sb shell 260px, thread útil ~740px; composer com `max-w-3xl=768px` flutua mal centralizado. Fix: remover `mx-auto max-w-3xl`, deixar composer ocupar largura útil do parent. **Aplicado 2026-05-08**.
+
+- ❌ **`.copiloto-chat-layout { height: 100% }` em flex-col parent** ([cockpit.css:1476](../../../resources/css/cockpit.css)) — dentro de `.main-body { display: flex; flex-direction: column; overflow-y: auto }`, `height: 100%` resolve mal e deixa ~400px de espaço vazio "morto" no fim da tela. Fix: `flex: 1; min-height: 0` no children direto de flex-col garante stretch correto. **Aplicado 2026-05-08**.
+
+- ❌ **`<a className="sb-action">` em ConvSidePanel.tsx:309-323** em vez de `<Link>` Inertia — hard nav perde `preserveScroll/preserveState` (auto-mem `preference_cache_estado_preservado`). Sintoma: clicar em "Tarefas"/"Despachos" recarrega tela inteira. Fix: `import { Link } from '@inertiajs/react'`. **Pendente** — listada pra próximo Sprint.
+
 - ❌ **Lib externa `assistant-ui`** controla rendering de Thread + Composer — overrides de tema/cor exigem props específicos da lib (não Tailwind direto). Pra customizar bolhas: configurar `theme={theme}` na `AssistantRuntimeProvider` ou substituir lib (esforço alto).
 - ❌ **Não usar `Chat.layout = ...` Persistent Layout aqui** — `conversaFoco` muda quando user troca de conversa, precisa re-renderizar AppShellV2. Demais telas (Dashboard) podem usar Persistent.
 - ❌ **`adaptarMensagem` recalcula 'Hoje' vs data** com `new Date()` — risco de timezone implícito (auto-mem `feedback_format_now_local_e_default_datetime`). Ainda OK porque `created_at` Eloquent vem em UTC ISO; mas se backend mudar formato, quebra.
@@ -336,6 +346,20 @@ Após Wagner reclamar "tela tá feia" em screenshot da prod:
 
 Itens postergados pra Sprint B/C: Apps Vinculados específico Copiloto, ThreadHeader rico, sidebar accordion, IBM Plex Sans verificação.
 
+## Audit cockpit-runbook 2026-05-08 — score 64/100 → fixes aplicados
+
+Wagner reportou em sessão tarde: "barra lateral cortada no fim · não redimensiono a caixa de escrita ficou meio desalinhada · layout do fim da página contado". Audit Modo B confirmou visualmente + estaticamente:
+
+| Finding | Severidade | Fix | Arquivo |
+|---|---|---|---|
+| Composer `resize-none` hardcoded | UX-CRITICAL | `resize-y max-h-[40vh]` | [AssistantUiChat.tsx:166](../../../resources/js/Components/copiloto/AssistantUiChat.tsx:166) |
+| Composer `mx-auto max-w-3xl` desalinha com bubbles | UX-CRITICAL | remover, deixar largura útil | [AssistantUiChat.tsx:161](../../../resources/js/Components/copiloto/AssistantUiChat.tsx:161) |
+| `.copiloto-chat-layout { height: 100% }` em flex-col | CRITICAL | `flex: 1; min-height: 0` | [cockpit.css:1476](../../../resources/css/cockpit.css) |
+| ConvSidePanel `<a>` cru em vez de `<Link>` | INFO | postergado pra Sprint próximo | [Chat.tsx:309-323](../../../resources/js/Pages/Copiloto/Chat.tsx:309) |
+| LinkedAppsPanel renderiza vazio | UX-WARN | popular cards via shell.linkedApps OU colapsar default | [AppShellV2.tsx:487](../../../resources/js/Layouts/AppShellV2.tsx:487) |
+
+Score 64/100 → esperado ≥80/100 após smoke do PR de fixes.
+
 ---
 
-**Última atualização:** 2026-05-05 (criação + Sprint A visual)
+**Última atualização:** 2026-05-08 — audit cockpit-runbook Modo B + 3 fixes CRITICAL aplicados (composer resize+alignment, layout flex). Sprint A 2026-05-05 (dropdown breadcrumb visual).
