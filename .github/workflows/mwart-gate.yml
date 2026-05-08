@@ -110,6 +110,49 @@ jobs:
               fi
             fi
 
+            # ADR 0107 — visual-comparison.md obrigatório (gate F3)
+            mod_lower=$(echo "$modulo" | tr '[:upper:]' '[:lower:]')
+            visual_comp="memory/requisitos/${modulo}/${mod_lower}-${tela_kebab}-visual-comparison.md"
+            visual_alt="memory/requisitos/${modulo}/${tela_kebab}-visual-comparison.md"
+
+            if [ -f "$visual_comp" ]; then
+              vc_path="$visual_comp"
+            elif [ -f "$visual_alt" ]; then
+              vc_path="$visual_alt"
+            else
+              vc_path=""
+            fi
+
+            if [ -z "$vc_path" ]; then
+              echo "❌ visual-comparison.md ausente"
+              report="${report}- ❌ \`$page\` — \`<tela>-visual-comparison.md\` ausente em \`memory/requisitos/${modulo}/\` (ADR 0107 §F1.5 obrigatório)\n"
+              fail=1
+            else
+              # Verifica frontmatter status: approved
+              if ! grep -qE '^status:\s*approved' "$vc_path"; then
+                echo "⚠ visual-comparison ainda em draft"
+                report="${report}- ⚠ \`$page\` — \`$vc_path\` com \`status: draft\` (Wagner ainda não aprovou — ADR 0107)\n"
+                fail=1
+              else
+                echo "✅ visual-comparison approved: $vc_path"
+              fi
+
+              # Verifica ≥6 dimensões preenchidas (8 totais — Layout, Hierarquia, Densidade, Iconografia, Estados, Atalhos, Persistência, Componentes)
+              dim_count=$(grep -cE '^### [0-9]+\.' "$vc_path" || echo 0)
+              if [ "$dim_count" -lt 6 ]; then
+                echo "❌ <6 dimensões preenchidas (atual: $dim_count)"
+                report="${report}- ❌ \`$page\` — \`$vc_path\` tem só $dim_count/8 dimensões preenchidas (mínimo 6)\n"
+                fail=1
+              fi
+
+              # Verifica que coluna "Decisão MWART" não tem TODO/???
+              if grep -qE 'TODO|\?\?\?' "$vc_path"; then
+                echo "❌ visual-comparison contém TODO ou ???"
+                report="${report}- ❌ \`$page\` — \`$vc_path\` contém TODO ou ??? (decisões pendentes)\n"
+                fail=1
+              fi
+            fi
+
             echo "::endgroup::"
           done <<< "${{ steps.detect.outputs.list }}"
 
