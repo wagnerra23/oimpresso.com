@@ -28,6 +28,7 @@ import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
+import { dropdownEntries } from './_components/dropdownEntries';
 import {
   Select,
   SelectContent,
@@ -93,22 +94,7 @@ export interface SellsCreatePageProps {
 
 const ADVANCED_OPEN_KEY = 'oimpresso.sells.create.advanced.open';
 
-/**
- * Filtra entries com key vazia ('') ou null.
- *
- * UltimatePOS forDropdowns (TaxRate, Account, InvoiceScheme, etc) frequentemente
- * fazem `prepend_none` adicionando key '' = "Nenhum" pro Select2 jQuery legacy.
- * Radix UI <Select.Item value="" /> dá erro: "must have a value prop that is not
- * an empty string". A escolha vazia já é representada pelo SelectValue placeholder.
- */
-function dropdownEntries(
-  record: Record<string | number, unknown> | null | undefined,
-): Array<[string, string]> {
-  if (!record) return [];
-  return Object.entries(record)
-    .filter(([id]) => id !== '' && id !== 'null' && id != null)
-    .map(([id, value]) => [id, String(value ?? '')] as [string, string]);
-}
+// dropdownEntries movido pra _components/dropdownEntries.ts (utility shared local).
 
 export default function SellsCreate(props: SellsCreatePageProps) {
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=format_now_local

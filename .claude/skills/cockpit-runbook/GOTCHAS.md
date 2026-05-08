@@ -66,8 +66,29 @@
 
 - ✅ **Ziggy `route()` global instalado em [PR #180](https://github.com/wagnerra23/oimpresso.com/pull/180)** (2026-05-07). Antes do #180 era bug latente: todas as Pages React do oimpresso chamavam `route('xxx.yyy')` mas Ziggy nunca havia sido instalado nem `@routes` injetado no Blade — runtime quebrava silenciosamente (links com `href=undefined`, `router.get(undefined)`). 161 erros TS `Cannot find name 'route'` apontavam pra esse bug, não eram pre-existência tolerada. Fix de 3 linhas: adicionar `tightenco/ziggy` no composer + `@routes` no `inertia.blade.php` + `resources/js/global.d.ts` com declaração global. Lição: erros TS sistêmicos costumam apontar pra bug runtime real, não tolerância tribal.
 
+## UltimatePOS forDropdowns — shape changes + prepend_none (2026-05-08)
+
+3 hotfixes em sequência ao migrar /sells/create (PRs #245, #247, #248) — todos preveníveis com smoke visual ANTES do merge:
+
+- ❌ **Declarar tipo TS sem ver shape JSON real.** PR #244 declarou `taxes: Tax[]` baseado no nome do método; mas `TaxRate::forBusinessDropdown` retorna `pluck('name', 'id')` Collection que vira object `{id: name}` no JSON, não array. Sintoma: tela branca + `TypeError: a.taxes.map is not a function`. Fix: SEMPRE rodar `php artisan tinker` + `var_export(Model::forDropdown(...))` ANTES de declarar tipo TS na Page Inertia.
+
+- ❌ **Funções com flags shape-changing.** `TaxRate::forBusinessDropdown(biz, prepend_none=true, include_attributes=true)` muda completamente o retorno: vira `['tax_rates' => Collection, 'attributes' => array]` em vez do pluck direto. Object.entries iterou keys 'tax_rates' e 'attributes' renderizando os Collections como children → React #31 com keys numéricos {1,2,3}. Fix: SEMPRE ler implementação COMPLETA da função PHP (não só assinatura). Outras com mesmo padrão: `BusinessLocation::forDropdown(receipt_printer_type_attribute=true)`, `User::forDropdown(prepend_none=true, include_assigned_to=true)`. Em PR #247 corrigi extraindo `$taxes['tax_rates']` no controller antes de passar pro Inertia.
+
+- ❌ **`<SelectItem value="" />` quebra Radix.** UltimatePOS prepend_none adiciona key '' = "Nenhum" pro Select2 jQuery legacy. Radix UI recusa value vazio: *"A <Select.Item /> must have a value prop that is not an empty string"*. A escolha vazia já é representada pelo `<SelectValue placeholder>`. Fix: helper `dropdownEntries()` em `Pages/Sells/_components/dropdownEntries.ts` filtra entries com key '' ou null antes do `.map(([id, name]) => <SelectItem.../>)`. **Sempre usar esse helper** ao mapear Records de forDropdowns.
+
+  ```tsx
+  // ❌ quebra Radix se houver key '' (prepend_none legacy)
+  {Object.entries(props.taxes).map(([id, name]) => <SelectItem value={id}>{name}</SelectItem>)}
+
+  // ✅ filtrado
+  import { dropdownEntries } from './_components/dropdownEntries';
+  {dropdownEntries(props.taxes).map(([id, name]) => <SelectItem value={id}>{name}</SelectItem>)}
+  ```
+
+**Lição meta:** PRs #244 + #245 + #247 + #248 foram custo de não validar runtime real ANTES de mergear. Smoke visual em biz=1 em <5min teria pego o primeiro bug e evitado os outros 3. Considerar `tsc --noEmit` no `mwart-gate.yml` (CI) — não pega tudo (shape JSON é runtime), mas pega tipos inconsistentes em compile-time.
+
 ---
 
 **Quando apender:** após qualquer audit de tela ou session log que descubra novo modo de falha. Marcar data + módulo + 1 linha de contexto.
 
-**Última atualização:** 2026-05-07 tarde — Ziggy instalado de verdade (PR #180), 2 pegadinhas de deploy adicionadas (`--no-dev` quebra Faker; `composer-lock-sync` + force-push perde lock).
+**Última atualização:** 2026-05-08 — 3 lições de migração MWART /sells/create (forDropdowns nested shape, prepend_none key '', helper dropdownEntries).

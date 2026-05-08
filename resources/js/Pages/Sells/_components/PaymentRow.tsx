@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import { dropdownEntries } from './dropdownEntries';
 
 export interface Payment {
   amount: number;
@@ -73,7 +74,7 @@ export default function PaymentRow({
               <SelectValue placeholder="Escolher" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(paymentTypes).map(([key, label]) => (
+              {dropdownEntries(paymentTypes).map(([key, label]) => (
                 <SelectItem key={key} value={key}>
                   {label}
                 </SelectItem>
@@ -104,7 +105,7 @@ export default function PaymentRow({
                 <SelectValue placeholder="Sem conta" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(accounts).map(([id, name]) => (
+                {dropdownEntries(accounts).map(([id, name]) => (
                   <SelectItem key={id} value={id}>
                     {name}
                   </SelectItem>
