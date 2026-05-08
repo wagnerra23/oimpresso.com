@@ -236,6 +236,18 @@ it('BUG FIX: NfeService NFC-e consumidor anônimo (sem CPF) NÃO seta CPF=\'\' (
     expect($source)->not->toMatch('/}\\s*else\\s*\\{\\s*\\$stdDest->CPF\\s*=\\s*\\$doc;\\s*\\}/');
 });
 
+it('BUG FIX: idempotência só retém emissão se status positivo (autorizada/pendente) — terminal negativo = force delete', function () {
+    $source = file_get_contents(base_path('Modules/NfeBrasil/Services/NfeService.php'));
+    // Antes: idempotência retornava QUALQUER status (rejeitada incluída) → bloqueava retry.
+    // Depois: só autorizada/pendente bloqueia retry. Negativo (rejeitada/denegada/cancelada)
+    // hard delete pra permitir nova tentativa.
+    expect($source)->toContain("in_array(\$existente->status, ['autorizada', 'pendente'], true)");
+    expect($source)->toContain('forceDelete()');
+    expect($source)->toContain('terminal negativa');
+    // Pattern antigo proibido (return existente sem checar status).
+    expect($source)->not->toMatch("/if\\s*\\(\\s*\\\$existente\\s*\\)\\s*\\{\\s*Log::info\\([^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+return\\s+\\\$existente;\\s*\\}/s");
+});
+
 it('BUG FIX: tpImp=4 pra NFC-e (modelo 65) — rejeição SEFAZ "DANFE invalido" se hardcoded 1', function () {
     $source = file_get_contents(base_path('Modules/NfeBrasil/Services/NfeService.php'));
     // tpImp não pode ser hardcoded 1 (default NFe Retrato) — rejeita NFC-e.
