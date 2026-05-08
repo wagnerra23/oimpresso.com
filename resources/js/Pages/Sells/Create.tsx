@@ -331,9 +331,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             </div>
           </div>
 
-          {/* Abas seção — pattern Cockpit canon (text-xs + ícone + ativo border-primary, ref Board DetailSheet) */}
+          {/* Filter pills — pattern Cockpit canon (rounded-full + counter, ref exemplo OS Officeimpresso) */}
           <nav
-            className="flex items-center gap-1 mt-4 -mb-3"
+            className="flex items-center gap-2 mt-4 flex-wrap"
             aria-label="Seções do cadastro"
           >
             {[
@@ -351,17 +351,22 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   type="button"
                   onClick={() => scrollToSection(tab.id)}
                   className={
-                    'relative px-3 py-2 text-xs font-medium transition-colors flex items-center gap-1.5 ' +
+                    'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ' +
                     (isActive
-                      ? 'text-foreground border-b-2 border-primary -mb-px'
-                      : 'text-muted-foreground hover:text-foreground border-b-2 border-transparent')
+                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
+                      : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground')
                   }
                   aria-current={isActive ? 'true' : undefined}
                 >
                   <Icon size={13} />
                   {tab.label}
                   {tab.count !== undefined && tab.count > 0 && (
-                    <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px]">
+                    <span
+                      className={
+                        'ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] tabular-nums ' +
+                        (isActive ? 'bg-blue-100 dark:bg-blue-900/60' : 'bg-background')
+                      }
+                    >
                       {tab.count}
                     </span>
                   )}
