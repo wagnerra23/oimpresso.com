@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Entities\WhatsappMessage;
+use Modules\Whatsapp\Entities\WhatsappTemplate;
 use Modules\Whatsapp\Http\Requests\SendMessageRequest;
 use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
@@ -110,6 +111,7 @@ class ConversationsController extends Controller
             'messages' => $threadPayload['messages'] ?? null,
             'centrifugoConfig' => $threadPayload['centrifugoConfig'] ?? null,
             'centrifugoChannel' => $threadPayload['channel'] ?? null,
+            'templates' => $threadPayload['templates'] ?? null,
         ]);
     }
 
@@ -122,6 +124,7 @@ class ConversationsController extends Controller
             'messages' => $payload['messages'],
             'centrifugoChannel' => $payload['channel'],
             'centrifugoConfig' => $payload['centrifugoConfig'],
+            'templates' => $payload['templates'],
         ]);
     }
 
@@ -132,7 +135,7 @@ class ConversationsController extends Controller
      * Marca conversa como lida (zera unread_count) — efeito colateral intencional:
      * abrir thread no cockpit equivale a "ler".
      *
-     * @return array{conversation: array<string,mixed>, messages: \Illuminate\Support\Collection<int,array<string,mixed>>, channel: string, centrifugoConfig: ?array{wsUrl: ?string, token: string, channel: string}}
+     * @return array{conversation: array<string,mixed>, messages: \Illuminate\Support\Collection<int,array<string,mixed>>, channel: string, centrifugoConfig: ?array{wsUrl: ?string, token: string, channel: string}, templates: \Illuminate\Support\Collection<int,array<string,mixed>>}
      */
     protected function loadThreadPayload(int $id, CentrifugoTokenIssuer $tokenIssuer): array
     {
@@ -177,6 +180,23 @@ class ConversationsController extends Controller
             'channel' => $channel,
         ] : null;
 
+        // Templates ready (LOCAL ou Meta APPROVED) pra picker do composer.
+        // Janela 24h fechada + driver=meta_cloud só permite envio via template (US-WA-013 plug composer).
+        $templates = WhatsappTemplate::query()
+            ->where('business_id', $conversation->business_id)
+            ->whereIn('status', ['LOCAL', 'APPROVED'])
+            ->orderBy('name')
+            ->get()
+            ->map(fn (WhatsappTemplate $t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'language' => $t->language,
+                'category' => $t->category,
+                'provider' => $t->provider,
+                'status' => $t->status,
+                'body' => $t->expandBody([]), // body cru com {{1}}, {{2}}
+            ]);
+
         return [
             'conversation' => [
                 'id' => $conversation->id,
@@ -194,6 +214,7 @@ class ConversationsController extends Controller
             'messages' => $messages,
             'channel' => $channel,
             'centrifugoConfig' => $centrifugoConfig,
+            'templates' => $templates,
         ];
     }
 
