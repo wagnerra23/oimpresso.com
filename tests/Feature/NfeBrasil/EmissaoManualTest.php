@@ -1,0 +1,221 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Pest test estrutural — US-NFE-MANUAL endpoints + UI fiscal.
+ *
+ * Cobre:
+ *   1. NfeEmissaoController existe + 4 métodos (emitir, reenviar, danfePdf, listar)
+ *   2. Rotas registradas em Modules/NfeBrasil/Routes/web.php
+ *   3. SellController.inertiaList retorna fiscal_status + fiscal_modelo
+ *   4. Hook useEmissoesPorTransaction tipa Emissao corretamente
+ *   5. FiscalSection.tsx pattern Cockpit V2 (cores semânticas, text-[10px] uppercase)
+ *   6. Sells/Index.tsx tem coluna Fiscal + FiscalCell component
+ */
+
+const NFE_CONTROLLER_PATH = 'Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php';
+const NFE_ROUTES_PATH = 'Modules/NfeBrasil/Routes/web.php';
+const FISCAL_SECTION_PATH = 'resources/js/Pages/Sells/_components/FiscalSection.tsx';
+const FISCAL_HOOK_PATH = 'resources/js/Hooks/useEmissoesPorTransaction.ts';
+
+// ─── Backend NfeEmissaoController ────────────────────────────────────────────
+
+it('NfeEmissaoController existe', function () {
+    expect(file_exists(base_path(NFE_CONTROLLER_PATH)))->toBeTrue();
+});
+
+it('NfeEmissaoController tem 4 métodos canônicos (emitir/reenviarEmail/danfePdf/listar)', function () {
+    $source = file_get_contents(base_path(NFE_CONTROLLER_PATH));
+    expect($source)->toMatch('/public function emitir\\(/');
+    expect($source)->toMatch('/public function reenviarEmail\\(/');
+    expect($source)->toMatch('/public function danfePdf\\(/');
+    expect($source)->toMatch('/public function listar\\(/');
+});
+
+it('NfeEmissaoController emitir aceita modelo 55 OR 65 via body', function () {
+    $source = file_get_contents(base_path(NFE_CONTROLLER_PATH));
+    expect($source)->toContain("input('modelo'");
+    expect($source)->toContain("['55', '65']");
+    expect($source)->toContain('modelo_invalido');
+});
+
+it('NfeEmissaoController emitir tem multi-tenant scope (business_id) — Tier 0 ADR 0093', function () {
+    $source = file_get_contents(base_path(NFE_CONTROLLER_PATH));
+    // Multiple where('business_id', ...) — pelo menos 3 (emitir + listar + reenviar + danfePdf).
+    $matches = preg_match_all("/where\\(['\"]business_id['\"],\\s*\\\$businessId/", $source);
+    expect($matches)->toBeGreaterThanOrEqual(3);
+    expect($source)->toContain("session()->get('business.id'");
+});
+
+it('NfeEmissaoController emitir tem idempotência (já autorizada → retorna a existente)', function () {
+    $source = file_get_contents(base_path(NFE_CONTROLLER_PATH));
+    expect($source)->toContain('Idempotência respeitada');
+});
+
+it('NfeEmissaoController reenviarEmail valida status=autorizada antes de dispatch', function () {
+    $source = file_get_contents(base_path(NFE_CONTROLLER_PATH));
+    expect($source)->toContain('emissao_nao_autorizada');
+});
+
+it('NfeEmissaoController reenviarEmail dispatcha listener correto por modelo (NFCe vs NFe)', function () {
+    $source = file_get_contents(base_path(NFE_CONTROLLER_PATH));
+    expect($source)->toContain('EnviarDanfeNFCePorEmail');
+    expect($source)->toContain('EnviarDanfePorEmail');
+    expect($source)->toContain('NFCeAutorizada');
+    expect($source)->toContain('NFeAutorizada');
+});
+
+it('NfeEmissaoController danfePdf usa lazy generation (DanfeService::lerOuGerar)', function () {
+    $source = file_get_contents(base_path(NFE_CONTROLLER_PATH));
+    expect($source)->toContain('lerOuGerar');
+    expect($source)->toContain('Content-Type');
+    expect($source)->toContain('application/pdf');
+});
+
+it('NfeEmissaoController listar retorna NFC-e + NFe ordenados por modelo', function () {
+    $source = file_get_contents(base_path(NFE_CONTROLLER_PATH));
+    expect($source)->toMatch('/orderBy\\([\'"]modelo[\'"]/');
+    expect($source)->toContain('emissoes');
+});
+
+// ─── Rotas registradas ───────────────────────────────────────────────────────
+
+it('Rota POST /nfe-brasil/transactions/{tx}/emitir registrada', function () {
+    $routes = file_get_contents(base_path(NFE_ROUTES_PATH));
+    expect($routes)->toMatch("/Route::post\\([\\s\\S]*?transactions\\/\\{tx\\}\\/emitir[\\s\\S]*?NfeEmissaoController/");
+});
+
+it('Rota POST /nfe-brasil/emissoes/{id}/reenviar-email registrada', function () {
+    $routes = file_get_contents(base_path(NFE_ROUTES_PATH));
+    expect($routes)->toContain('reenviar-email');
+    expect($routes)->toContain("'reenviarEmail'");
+});
+
+it('Rota GET /nfe-brasil/emissoes/{id}/danfe-pdf registrada', function () {
+    $routes = file_get_contents(base_path(NFE_ROUTES_PATH));
+    expect($routes)->toContain('danfe-pdf');
+    expect($routes)->toContain("'danfePdf'");
+});
+
+it('Rota GET /nfe-brasil/api/transactions/{tx}/emissoes registrada (lista)', function () {
+    $routes = file_get_contents(base_path(NFE_ROUTES_PATH));
+    expect($routes)->toContain('transactions/{tx}/emissoes');
+});
+
+// ─── SellController.inertiaList retorna fiscal status ───────────────────────
+
+it('SellController.inertiaList retorna fiscal_status + fiscal_modelo na linha', function () {
+    $source = file_get_contents(base_path('app/Http/Controllers/SellController.php'));
+    expect($source)->toContain("'fiscal_status'");
+    expect($source)->toContain("'fiscal_modelo'");
+});
+
+it('SellController.inertiaList faz lookup NfeEmissao agrupado por transaction_id', function () {
+    $source = file_get_contents(base_path('app/Http/Controllers/SellController.php'));
+    expect($source)->toContain('Modules\\NfeBrasil\\Models\\NfeEmissao');
+    expect($source)->toContain('whereIn(\'transaction_id\', $txIds)');
+    expect($source)->toContain('groupBy(\'transaction_id\')');
+});
+
+// ─── Hook useEmissoesPorTransaction ──────────────────────────────────────────
+
+it('Hook useEmissoesPorTransaction existe + tipa Emissao + EmissaoStatus', function () {
+    $source = file_get_contents(base_path(FISCAL_HOOK_PATH));
+    expect($source)->toContain('export type EmissaoStatus');
+    expect($source)->toContain('export interface Emissao');
+    expect($source)->toContain("modelo: '55' | '65'");
+    expect($source)->toContain("modelo_label: 'NFC-e' | 'NFe'");
+});
+
+it('Hook useEmissoesPorTransaction faz polling enquanto há pendente', function () {
+    $source = file_get_contents(base_path(FISCAL_HOOK_PATH));
+    expect($source)->toContain('hasPending');
+    expect($source)->toContain('intervalMs');
+    expect($source)->toContain('maxPolls');
+});
+
+it('Hook fetcha endpoint canon /nfe-brasil/api/transactions/{tx}/emissoes', function () {
+    $source = file_get_contents(base_path(FISCAL_HOOK_PATH));
+    expect($source)->toMatch('/`\\/nfe-brasil\\/api\\/transactions\\/\\$\\{transactionId\\}\\/emissoes`/');
+});
+
+// ─── FiscalSection.tsx (drawer SaleSheet) ────────────────────────────────────
+
+it('FiscalSection existe + usa cores semânticas Cockpit V2 (rose/emerald/amber)', function () {
+    $source = file_get_contents(base_path(FISCAL_SECTION_PATH));
+    expect($source)->toMatch('/bg-emerald-50[^\'"]*text-emerald-700/');
+    expect($source)->toMatch('/bg-amber-50[^\'"]*text-amber-700/');
+    expect($source)->toMatch('/bg-rose-50[^\'"]*text-rose-700/');
+});
+
+it('FiscalSection tem botões NFC-e + NFe (manual emission)', function () {
+    $source = file_get_contents(base_path(FISCAL_SECTION_PATH));
+    expect($source)->toContain("emitir('65')");
+    expect($source)->toContain("emitir('55')");
+    expect($source)->toContain('Emitir NFC-e');
+    expect($source)->toContain('Emitir NFe');
+});
+
+it('FiscalSection tem ações DANFE PDF + Reenviar email + Detalhes', function () {
+    $source = file_get_contents(base_path(FISCAL_SECTION_PATH));
+    expect($source)->toContain('DANFE PDF');
+    expect($source)->toContain('Reenviar email');
+    expect($source)->toContain('danfe-pdf');
+    expect($source)->toContain('reenviar-email');
+});
+
+it('FiscalSection idempotência UI: botão Emitir somente se !hasNfce/!hasNfe', function () {
+    $source = file_get_contents(base_path(FISCAL_SECTION_PATH));
+    expect($source)->toContain('hasNfce');
+    expect($source)->toContain('hasNfe');
+    expect($source)->toMatch('/!hasNfce/');
+    expect($source)->toMatch('/!hasNfe/');
+});
+
+it('FiscalSection segue Cockpit canon: text-[10px] uppercase tracking-widest pra heading', function () {
+    $source = file_get_contents(base_path(FISCAL_SECTION_PATH));
+    expect($source)->toContain('text-[10px]');
+    expect($source)->toContain('uppercase');
+    expect($source)->toContain('tracking-widest');
+});
+
+// ─── Sells/Index.tsx — coluna Fiscal + FiscalCell ────────────────────────────
+
+it('Sells/Index.tsx tem coluna Fiscal + FiscalCell component', function () {
+    $source = file_get_contents(base_path('resources/js/Pages/Sells/Index.tsx'));
+    expect($source)->toContain('<Th className="w-32">Fiscal</Th>');
+    expect($source)->toContain('<FiscalCell');
+    expect($source)->toContain('function FiscalCell');
+});
+
+it('Sells/Index.tsx FiscalCell usa DropdownMenu shadcn com NFC-e + NFe', function () {
+    $source = file_get_contents(base_path('resources/js/Pages/Sells/Index.tsx'));
+    expect($source)->toContain('DropdownMenu');
+    expect($source)->toContain("emitir('65')");
+    expect($source)->toContain("emitir('55')");
+    expect($source)->toContain('NFC-e (modelo 65)');
+    expect($source)->toContain('NFe (modelo 55)');
+});
+
+it('Sells/Index.tsx FiscalCell badges canon (emerald=autorizada, amber=pendente, rose=erro)', function () {
+    $source = file_get_contents(base_path('resources/js/Pages/Sells/Index.tsx'));
+    // Autorizada → emerald
+    expect($source)->toMatch('/border-emerald-200[^\'"]*bg-emerald-50/');
+    // Pendente → amber
+    expect($source)->toMatch('/border-amber-200[^\'"]*bg-amber-50/');
+});
+
+it('Sells/Index.tsx interface SaleRow inclui fiscal_status + fiscal_modelo', function () {
+    $source = file_get_contents(base_path('resources/js/Pages/Sells/Index.tsx'));
+    expect($source)->toContain('fiscal_status');
+    expect($source)->toContain('fiscal_modelo');
+});
+
+// ─── SaleSheet drawer integração ─────────────────────────────────────────────
+
+it('SaleSheet drawer importa + renderiza FiscalSection', function () {
+    $source = file_get_contents(base_path('resources/js/Pages/Sells/_components/SaleSheet.tsx'));
+    expect($source)->toContain("import FiscalSection from './FiscalSection'");
+    expect($source)->toContain('<FiscalSection saleId={data.id}');
+});
