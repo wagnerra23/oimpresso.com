@@ -367,19 +367,34 @@ class NfeService
         $transactionId = isset($dadosNfe['transaction_id']) ? (int) $dadosNfe['transaction_id'] : null;
 
         // ── 1. Idempotência ─────────────────────────────────────────────────
+        // Regra: só retorna existente se status é positivo (autorizada/pendente).
+        // Status terminal negativo (rejeitada/denegada/cancelada) → hard delete pra
+        // permitir retry. UNIQUE(business_id, transaction_id) impede 2 registros.
+        // Soft delete não bypass UNIQUE em MySQL — forceDelete obrigatório.
         if ($transactionId !== null) {
             $existente = NfeEmissao::where('business_id', $businessId)
                 ->where('transaction_id', $transactionId)
                 ->first();
 
             if ($existente) {
-                Log::info('NfeService: idempotência — emissão existente', [
-                    'business_id'    => $businessId,
-                    'transaction_id' => $transactionId,
-                    'emissao_id'     => $existente->id,
-                    'status'         => $existente->status,
+                if (in_array($existente->status, ['autorizada', 'pendente'], true)) {
+                    Log::info('NfeService: idempotência — emissão existente positiva', [
+                        'business_id'    => $businessId,
+                        'transaction_id' => $transactionId,
+                        'emissao_id'     => $existente->id,
+                        'status'         => $existente->status,
+                    ]);
+                    return $existente;
+                }
+                // Status terminal negativo: log + force delete pra permitir retry.
+                Log::info('NfeService: emissão terminal negativa — force delete pra permitir retry', [
+                    'business_id'      => $businessId,
+                    'transaction_id'   => $transactionId,
+                    'emissao_id'       => $existente->id,
+                    'status_anterior'  => $existente->status,
+                    'motivo_anterior'  => $existente->motivo,
                 ]);
-                return $existente;
+                $existente->forceDelete();
             }
         }
 
