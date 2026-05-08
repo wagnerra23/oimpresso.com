@@ -63,6 +63,8 @@ use Stripe\Charge;
 use Stripe\Stripe;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\SellCreatedOrModified;
+use App\Services\FeatureFlagService;
+use Inertia\Inertia;
 
 class SellPosController extends Controller
 {
@@ -261,6 +263,44 @@ class SellPosController extends Controller
 
         //Added check because $users is of no use if enable_contact_assign if false
         $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
+
+        // US-SELL-002 — dual response: Inertia/React (MWART) se feature flag on, senão Blade legacy.
+        // Flag `useV2SellsCreate` é gerenciada no GrowthBook self-hosted (US-INFRA-001).
+        // Default OFF; Rule canary `business_id == 1` ativa pra Wagner WR2 SC validar antes de ROTA LIVRE.
+        // Refs: ADR 0104 (MWART canônico §F2 backend baseline), ADR 0105 (3 graus regulação).
+        $ffs = app(FeatureFlagService::class);
+        if ($ffs->isOn('useV2SellsCreate', ['business_id' => $business_id])) {
+            return Inertia::render('Sells/Create', [
+                'businessLocations'    => $business_locations,
+                'blAttributes'         => $bl_attributes,
+                'defaultLocation'      => $default_location,
+                'walkInCustomer'       => $walk_in_customer,
+                'paymentTypes'         => $payment_types,
+                'invoiceSchemes'       => $invoice_schemes,
+                'defaultInvoiceScheme' => $default_invoice_schemes,
+                'invoiceLayouts'       => $invoice_layouts,
+                'taxes'                => $taxes,
+                'priceGroups'          => $price_groups,
+                'defaultPriceGroupId'  => $default_price_group_id,
+                'shippingStatuses'     => $shipping_statuses,
+                'defaultDatetime'      => $default_datetime,
+                'commissionAgents'     => $commission_agent,
+                'customerGroups'       => $customer_groups,
+                'accounts'             => $accounts,
+                'typesOfService'       => $types_of_service,
+                'categories'           => $categories,
+                'brands'               => $brands,
+                'shortcuts'            => $shortcuts,
+                'featuredProducts'     => $featured_products,
+                'users'                => $users,
+                'permissions'          => [
+                    'editDiscount' => $edit_discount,
+                    'editPrice'    => $edit_price,
+                ],
+                'posSettings'          => $pos_settings,
+                'subType'              => $sub_type,
+            ]);
+        }
 
         return view('sale_pos.create')
             ->with(compact(
