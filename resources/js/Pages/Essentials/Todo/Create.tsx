@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /essentials/todo/create
 //   module: Essentials
 //   status: implementada
@@ -75,7 +75,7 @@ export default function TodoCreate({ users, statuses, priorities, can }: Props) 
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <ClipboardList size={22} /> Nova tarefa
             </h1>
             <p className="text-sm text-muted-foreground mt-1">

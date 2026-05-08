@@ -1,4 +1,4 @@
-// @memcofre
+﻿// @memcofre
 //   tela: /modulos
 //   module: Superadmin
 //   status: implementada
@@ -128,7 +128,7 @@ export default function ModulesIndex({ modules }: Props) {
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-6">
         <header>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <Settings2 size={22} /> Gerenciador de Módulos
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -340,7 +340,7 @@ function StatCard({
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="text-xs text-muted-foreground">{label}</p>
-            <p className="text-2xl font-bold mt-0.5">{value}</p>
+            <p className="text-2xl font-semibold mt-0.5">{value}</p>
           </div>
           <div className={cn('flex size-10 items-center justify-center rounded-lg', toneClasses[tone])}>
             <Icon name={icon} size={18} />

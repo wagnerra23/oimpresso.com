@@ -1,4 +1,4 @@
-// @memcofre
+﻿// @memcofre
 //   tela: /copiloto/memoria
 //   stories: US-COPI-MEM-005, US-COPI-MEM-008, US-COPI-MEM-012
 //   rules: R-COPI-MEM-LGPD-001, R-COPI-MEM-MULTITENANT-001
@@ -147,7 +147,7 @@ function Memoria({ memorias }: Props) {
         <div className="flex items-center gap-3">
           <Brain className="size-7 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold">O Copiloto lembra de você</h1>
+            <h1 className="text-2xl font-semibold">O Copiloto lembra de você</h1>
             <p className="text-sm text-muted-foreground">
               Estes são os fatos que o Copiloto guarda sobre seu negócio. Você pode editar ou esquecer
               qualquer um a qualquer momento (LGPD).

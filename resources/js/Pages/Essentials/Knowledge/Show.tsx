@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /essentials/knowledge-base/show
 //   module: Essentials
 //   status: implementada
@@ -116,7 +116,7 @@ export default function KnowledgeShow({ item, book, sectionId, articleId }: Prop
         <div className="space-y-4 min-w-0">
           <header className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
                 {typeIcon(item.kb_type)}
                 <span className="truncate">{item.title}</span>
                 <Badge variant="secondary" className="text-[10px]">{typeLabel(item.kb_type)}</Badge>

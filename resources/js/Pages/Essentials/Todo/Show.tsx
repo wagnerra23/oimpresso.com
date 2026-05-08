@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /essentials/todo/show
 //   module: Essentials
 //   status: implementada
@@ -246,7 +246,7 @@ export default function TodoShow({
       <div className="mx-auto max-w-5xl p-6 space-y-4">
         <header className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2 flex-wrap">
               <ClipboardList size={22} />
               <span className="font-mono text-base text-muted-foreground">{todo.task_id}</span>
               <span className="truncate">{todo.task}</span>

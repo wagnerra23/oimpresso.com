@@ -1,4 +1,4 @@
-// @memcofre
+﻿// @memcofre
 //   tela: /docs/modulos/{module}
 //   module: Cofre de Memórias
 //   status: implementada
@@ -142,7 +142,7 @@ export default function MemCofreModulo({
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2 flex-wrap">
               <FileText size={22} />
               {module}
               {frontmatter.status && (
