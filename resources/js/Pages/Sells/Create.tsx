@@ -92,6 +92,23 @@ export interface SellsCreatePageProps {
 
 const ADVANCED_OPEN_KEY = 'oimpresso.sells.create.advanced.open';
 
+/**
+ * Filtra entries com key vazia ('') ou null.
+ *
+ * UltimatePOS forDropdowns (TaxRate, Account, InvoiceScheme, etc) frequentemente
+ * fazem `prepend_none` adicionando key '' = "Nenhum" pro Select2 jQuery legacy.
+ * Radix UI <Select.Item value="" /> dá erro: "must have a value prop that is not
+ * an empty string". A escolha vazia já é representada pelo SelectValue placeholder.
+ */
+function dropdownEntries(
+  record: Record<string | number, unknown> | null | undefined,
+): Array<[string, string]> {
+  if (!record) return [];
+  return Object.entries(record)
+    .filter(([id]) => id !== '' && id !== 'null' && id != null)
+    .map(([id, value]) => [id, String(value ?? '')] as [string, string]);
+}
+
 export default function SellsCreate(props: SellsCreatePageProps) {
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=format_now_local
   const { data, setData, processing } = useForm({
@@ -304,7 +321,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 <SelectValue placeholder="Selecionar local" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(props.businessLocations).map(([id, name]) => (
+                {dropdownEntries(props.businessLocations).map(([id, name]) => (
                   <SelectItem key={id} value={id}>
                     {name}
                   </SelectItem>
@@ -562,7 +579,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   <SelectValue placeholder="Padrão" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(props.invoiceSchemes).map(([id, name]) => (
+                  {dropdownEntries(props.invoiceSchemes).map(([id, name]) => (
                     <SelectItem key={id} value={id}>
                       {name}
                     </SelectItem>
@@ -591,7 +608,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   <SelectValue placeholder="Sem imposto" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(props.taxes).map(([id, name]) => (
+                  {dropdownEntries(props.taxes).map(([id, name]) => (
                     <SelectItem key={id} value={id}>
                       {name}
                     </SelectItem>
@@ -644,7 +661,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                     <SelectValue placeholder="Nenhum" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(props.commissionAgents).map(([id, name]) => (
+                    {dropdownEntries(props.commissionAgents).map(([id, name]) => (
                       <SelectItem key={id} value={id}>
                         {name}
                       </SelectItem>
@@ -665,7 +682,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                     <SelectValue placeholder="Padrão" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(props.priceGroups).map(([id, name]) => (
+                    {dropdownEntries(props.priceGroups).map(([id, name]) => (
                       <SelectItem key={id} value={id}>
                         {name}
                       </SelectItem>
@@ -723,7 +740,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                     <SelectValue placeholder="Selecionar" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(props.shippingStatuses).map(([k, label]) => (
+                    {dropdownEntries(props.shippingStatuses).map(([k, label]) => (
                       <SelectItem key={k} value={k}>
                         {label}
                       </SelectItem>
