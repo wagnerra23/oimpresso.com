@@ -51,4 +51,20 @@ return [
      * Resolve email via `transactions.contact_id` → `Contact.email`.
      */
     'email_danfe_nfce_on_autorizada' => env('NFEBRASIL_EMAIL_DANFE_NFCE', false),
+
+    /**
+     * Responsável técnico (cstat 972 — obrigatório no XML NF-e/NFC-e 4.00).
+     *
+     * Convenção oimpresso: WR2 Sistemas (Wagner) é o desenvolvedor do sistema.
+     * Pode ser sobrescrito via env NFEBRASIL_RESPTEC_* pra cada deploy/cliente.
+     *
+     * Se cnpj vazio, tag <infRespTec> NÃO é incluída — útil pra dev/test sem
+     * resp tec configurado, mas SEFAZ rejeita (cstat 972) na maioria dos casos.
+     */
+    'resp_tec' => [
+        'cnpj'    => env('NFEBRASIL_RESPTEC_CNPJ', ''),
+        'contato' => env('NFEBRASIL_RESPTEC_CONTATO', 'WR2 Sistemas'),
+        'email'   => env('NFEBRASIL_RESPTEC_EMAIL', ''),
+        'fone'    => env('NFEBRASIL_RESPTEC_FONE', ''),
+    ],
 ];
