@@ -7,6 +7,48 @@
 
 ---
 
+## 🆕 Estado pós-2026-05-08 madrugada — Inter direto (4 PRs Open Finance: extrato + boleto + PIX)
+
+**Sessão Opus 2026-05-08 madrugada** — Wagner pediu "ter acesso a extrato, boleto, PIX direto" (sem agregador OF tipo Pluggy). Plano em 3 fases aprovado e entregue 100% em ~4h. Worktree isolado pra contornar conflito com Cursor (sessão paralela ProjectMgmt fazia `git checkout` no repo origem descartando trabalho não-commitado).
+
+### PRs mergeados (4 PRs · todos `done` no MCP)
+
+| PR | Fase | Conteúdo |
+|---|---|---|
+| [#206](https://github.com/wagnerra23/oimpresso.com/pull/206) | 1 — saldo | `InterBankingClient` (OAuth+mTLS+cache token 50min) + `getSaldo()` Banking API v2 + Pest 7 cenários |
+| [#210](https://github.com/wagnerra23/oimpresso.com/pull/210) | 2 backend extrato | `BankStatementDriverContract` + `InterStatementDriver` + tabela `fin_extrato_lancamentos` + `SyncBankStatementsJob` daily 07:00 BRT + Pest |
+| [#213](https://github.com/wagnerra23/oimpresso.com/pull/213) | 2 frontend extrato | `ExtratoController` + tela `/financeiro/extrato/{conta}` + permissão + Pest. **Bonus**: phpunit.xml fix (registra `Modules/Financeiro/Tests/Feature` que estava como falsa cobertura) |
+| [#221](https://github.com/wagnerra23/oimpresso.com/pull/221) | 3 PIX cob+webhook | `InterPixCobDriver` + `InterWebhookController` (shared secret `X-Inter-Webhook-Secret`) + `ProcessInterWebhookJob` + Pest 9 cenários adversariais |
+
+US-RB-045/046/047 todas → `done` no MCP. SPEC.md de RecurringBilling registra as 3 com blocked_by encadeado.
+
+### Pré-requisitos Wagner pra ativar em prod
+
+1. **Liberar 4 escopos no portal Inter**: `extrato.read` · `cob.read` · `cob.write` · `webhooks.write`
+2. **Onboarding cred Inter**: gerar `webhook_secret` aleatório e salvar em `BoletoCredential.config_json` (mesmo registro do boleto, novo campo)
+3. **Configurar webhook no Inter** via `PUT /webhooks/pix-recebidos`:
+   - URL: `https://oimpresso.com/webhooks/inter/pix/{businessId}`
+   - Header custom: `X-Inter-Webhook-Secret: <mesmo do passo 2>`
+4. **Smoke**: tinker `InterPixCobDriver::criarCobImediata` → mandar PIX da conta pessoal pro QR Code → confirmar `InvoicePaid` dispara e NfeBrasil emite NFe55 (US-RB-044 Listener)
+
+### Aprendizados meta
+
+- **Cursor sessão paralela = conflito de checkout**: Wagner usando Cursor numa branch ProjectMgmt fez `git checkout` 3× no repo origem entre meus saves → working tree clean, trabalho perdido. **Solução**: `git worktree add .claude/worktrees/<task>` isola checkout. Padrão a adotar quando Cursor visivelmente trabalhando em paralelo.
+- **`eduardokum/laravel-boleto` cobre só boleto+PIX charging, NÃO Banking API**: separar `InterBankingClient` (Http nativo, mTLS via Guzzle) do `InterDriver` (boleto, lib eduardokum) é SoC obrigatório (ADR 0094 §5).
+- **Inter v2 webhook NÃO usa HMAC**: aceitam apenas mTLS receiving (Hostinger não suporta) ou shared secret no header customizável. Resolvido com `X-Inter-Webhook-Secret` validado via `hash_equals` (timing-safe) + idempotência por `endToEndId` em `pg_webhook_events`.
+- **scope-guard CI bloqueia merge** se controller novo não está em `Modules/<X>/SCOPE.md.contains[]`. Fix de drift pré-existente (ProjectMgmt SearchController) absorvido em hotfix separado durante PR #213.
+- **CI atual roda apenas `tests/Feature/Form`** (gargalo conhecido em ci.yml: "Setup MySQL+migrate full em CI fica pra PR separado"). Pest do `Modules/RecurringBilling/Tests/Feature` passa CI mas **não executa de fato** — falsa cobertura herdada. Quando ci.yml for fixado, todos os 16 cenários Inter (saldo+extrato+PIX webhook) começam a rodar.
+- **Quota Anthropic crash** descartou trabalho mid-flight (Fase 3 implementação inicial perdida). Recovery: re-aplicar tudo via worktree dedicado, commit early/often.
+
+### Próximos passos sugeridos
+
+1. **Ativar Inter direto em prod** (pré-reqs Wagner acima) — desbloqueia smoke real
+2. **Botão "Gerar PIX" na tela `/financeiro/contas-receber`** → abre modal com QR Code + copia-e-cola (polish secundário, US separada se quiser)
+3. **CnabDirectStrategy SinkCobranca** pra outros 16 bancos (Sicoob/BB/etc) — pattern `BankStatementDriverContract` já permite plug, ~3h cada banco
+4. **Fix ci.yml pra rodar Pest de Modules** (gargalo conhecido) — desbloqueia testes reais em CI
+
+---
+
 ## 🆕 Estado pós-2026-05-08 madrugada — 8 PRs noite-3, painel fiscal + guard CI + 3 ADRs canon
 
 **Sessão Opus 2026-05-07 → 2026-05-08 (continuação noite-2)** — 8 PRs adicionais mergeados em ~6h consolidando NfeBrasil + governança biz_id.

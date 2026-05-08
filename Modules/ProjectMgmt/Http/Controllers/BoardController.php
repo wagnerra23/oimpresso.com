@@ -493,6 +493,71 @@ class BoardController extends Controller
         ]);
     }
 
+    /**
+     * POST /project-mgmt/board/{taskId}/subtask — PMG-007 (ADR 0100).
+     *
+     * Cria subtask com parent_task_id setado. Reusa TaskCrudService::create()
+     * que já lida com identifier Linear-style + project resolution.
+     */
+    public function addSubtask(Request $request, string $taskId): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|min:1|max:255',
+        ]);
+
+        $parent = McpTask::with('project:id,key')
+            ->where('task_id', strtoupper($taskId))
+            ->first()
+            ?? McpTask::with('project:id,key')
+                ->where('task_id', $taskId)
+                ->first()
+            ?? McpTask::with('project:id,key')
+                ->where('identifier', strtoupper($taskId))
+                ->first();
+
+        if (! $parent) {
+            return response()->json(['error' => "Task '{$taskId}' não encontrada."], 404);
+        }
+
+        if (! $parent->project) {
+            return response()->json(['error' => 'Parent task sem project; subtask requer project.'], 422);
+        }
+
+        try {
+            $result = app(TaskCrudService::class)->create([
+                'title' => $validated['title'],
+                'project' => $parent->project->key,
+                'parent_task_id' => $parent->id,
+                'status' => 'todo',
+                'priority' => $parent->priority ?? 'p2',
+                'type' => 'task',
+                'module' => $parent->module,
+                'cycle_id' => $parent->cycle_id,
+                'epic_id' => $parent->epic_id,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        $newTaskId = $result['task_id'] ?? null;
+        $subtask = $newTaskId ? McpTask::where('task_id', $newTaskId)->first() : null;
+
+        if (! $subtask) {
+            return response()->json(['error' => 'Falha ao recuperar subtask criada.'], 500);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'subtask' => [
+                'task_id' => $subtask->task_id,
+                'display_id' => $subtask->getDisplayIdAttribute(),
+                'title' => $subtask->title,
+                'status' => $subtask->status,
+                'priority' => $subtask->priority ?? 'p2',
+            ],
+        ], 201);
+    }
+
     // ---------- helpers ----------
 
     protected function resolveProject(Request $request): ?McpProject
