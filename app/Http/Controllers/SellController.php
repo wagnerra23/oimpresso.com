@@ -755,6 +755,41 @@ class SellController extends Controller
 
         $change_return = $this->dummyPaymentLine;
 
+        // US-SELL-002 — dual response: Inertia/React (MWART) se feature flag on, senão Blade legacy.
+        // Rota /sells/create mapeia pra SellController (este). Pos POS rápido em /pos/create
+        // mapeia pra SellPosController (que tem branch idêntico).
+        // Refs: ADR 0104 (MWART canônico §F2 backend baseline), ADR 0105 (3 graus regulação).
+        $ffs = app(\App\Services\FeatureFlagService::class);
+        if ($ffs->isOn('useV2SellsCreate', ['business_id' => $business_id])) {
+            return \Inertia\Inertia::render('Sells/Create', [
+                'businessLocations'    => $business_locations,
+                'blAttributes'         => $bl_attributes,
+                'defaultLocation'      => $default_location,
+                'walkInCustomer'       => $walk_in_customer,
+                'paymentTypes'         => $payment_types,
+                'invoiceSchemes'       => $invoice_schemes,
+                'defaultInvoiceScheme' => $default_invoice_schemes,
+                'taxes'                => $taxes,
+                'priceGroups'          => $price_groups,
+                'defaultPriceGroupId'  => $default_price_group_id,
+                'shippingStatuses'     => $shipping_statuses,
+                'defaultDatetime'      => $default_datetime,
+                'commissionAgents'     => $commission_agent,
+                'customerGroups'       => $customer_groups,
+                'accounts'             => $accounts,
+                'typesOfService'       => $types_of_service,
+                'users'                => $users,
+                'permissions'          => [
+                    'editDiscount' => true,  // SellController não tem flag separado (pos screen é só SellPosController)
+                    'editPrice'    => true,
+                ],
+                'posSettings'          => $pos_settings,
+                'subType'              => $sale_type ?: null,
+                'statuses'             => $statuses,
+                'isOrderRequestEnabled' => $is_order_request_enabled,
+            ]);
+        }
+
         return view('sell.create')
             ->with(compact(
                 'business_details',
