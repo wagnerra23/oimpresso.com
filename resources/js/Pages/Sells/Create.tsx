@@ -276,63 +276,97 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   const itensCount = data.products.reduce((acc, p) => acc + (Number(p.quantity) || 0), 0);
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-7xl">
-      <PageHeader icon="shopping-cart" title="Adicionar venda" />
+    <div className="container mx-auto py-6 space-y-5 max-w-7xl">
+      {/* Header rico — h1 + descrição + ações primárias right (canon os-page.jsx) */}
+      <div className="flex items-start gap-4 px-6 pb-4 border-b border-border">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <ShoppingCart className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Adicionar venda
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Cliente, produtos, pagamento. Larissa — ROTA LIVRE · {props.defaultLocation?.name ?? 'sem local'}
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" onClick={() => router.visit('/sells')}>
+            Cancelar
+          </Button>
+          <Button disabled={processing}>
+            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {processing ? 'Salvando…' : 'Salvar venda'}
+          </Button>
+        </div>
+      </div>
 
-      {/* Action bar sticky com KPIs + ações primárias.
-          Adaptação do canon os-page.jsx (os-stats) pra tela de criação.
-          Refs: sells-create-visual-comparison.md §1 Layout, §8 Componentes */}
-      <div className="sticky top-0 z-30 -mx-6 px-6 py-3 bg-background/95 backdrop-blur border-b border-border">
-        <div className="flex items-center gap-4 justify-between flex-wrap">
-          <div className="flex items-center gap-6 text-sm">
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Itens</span>
-              <span className="font-semibold tabular-nums text-foreground">{itensCount}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Total venda</span>
-              <span className="font-semibold tabular-nums text-foreground">
-                {formatBRL(totalGeral)}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">
-                Pago{' '}
-                {totalGeral > 0 && (
-                  <span
-                    className={
-                      pagamentoStatus === 'falta'
-                        ? 'text-amber-600 dark:text-amber-400'
-                        : pagamentoStatus === 'troco'
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-emerald-600 dark:text-emerald-400'
-                    }
-                  >
-                    ·{' '}
-                    {pagamentoStatus === 'falta'
-                      ? `falta ${formatBRL(Math.abs(saldoPagamento))}`
-                      : pagamentoStatus === 'troco'
-                        ? `troco ${formatBRL(saldoPagamento)}`
-                        : 'OK'}
-                  </span>
-                )}
-              </span>
-              <span className="font-semibold tabular-nums text-foreground">
-                {formatBRL(totalPago)}
-              </span>
-            </div>
+      {/* KPI cards — grid de 4, estilo canon os-stats: label uppercase + value 22px tabular */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-6">
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Itens
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => router.visit('/sells')}>
-              Cancelar
-            </Button>
-            <Button size="sm" disabled={processing}>
-              {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {processing ? 'Salvando…' : 'Salvar venda'}
-            </Button>
+          <div className="text-[22px] font-semibold tabular-nums text-foreground mt-1">
+            {itensCount}
+          </div>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Total venda
+          </div>
+          <div className="text-[22px] font-semibold tabular-nums text-foreground mt-1">
+            {formatBRL(totalGeral)}
+          </div>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Pago
+          </div>
+          <div className="text-[22px] font-semibold tabular-nums text-foreground mt-1">
+            {formatBRL(totalPago)}
+          </div>
+        </div>
+        <div
+          className={
+            'rounded-lg border p-4 ' +
+            (totalGeral === 0
+              ? 'border-border bg-muted/30'
+              : pagamentoStatus === 'falta'
+                ? 'border-amber-500/40 bg-amber-500/10'
+                : pagamentoStatus === 'troco'
+                  ? 'border-blue-500/40 bg-blue-500/10'
+                  : 'border-emerald-500/40 bg-emerald-500/10')
+          }
+        >
+          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Status pgto
+          </div>
+          <div
+            className={
+              'text-[18px] font-semibold tabular-nums mt-1 ' +
+              (totalGeral === 0
+                ? 'text-muted-foreground'
+                : pagamentoStatus === 'falta'
+                  ? 'text-amber-700 dark:text-amber-300'
+                  : pagamentoStatus === 'troco'
+                    ? 'text-blue-700 dark:text-blue-300'
+                    : 'text-emerald-700 dark:text-emerald-300')
+            }
+          >
+            {totalGeral === 0
+              ? '—'
+              : pagamentoStatus === 'falta'
+                ? `Falta ${formatBRL(Math.abs(saldoPagamento))}`
+                : pagamentoStatus === 'troco'
+                  ? `Troco ${formatBRL(saldoPagamento)}`
+                  : 'Confere'}
           </div>
         </div>
       </div>
+
+      {/* Conteúdo das seções — wrapper com mesmo padding horizontal */}
+      <div className="px-6 space-y-5">
 
       {/* Linha 1: Cliente + Data + Status + Local — 4 campos sempre visíveis */}
       <Card>
@@ -923,6 +957,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           </div>
         </div>
       </details>
+      </div>
     </div>
   );
 }
