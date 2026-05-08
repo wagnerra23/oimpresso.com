@@ -32,6 +32,7 @@
 - **mcp-first** — usar tools MCP antes de Read/Glob/Grep filesystem
 - **multi-tenant-patterns** — Tier 0 isolation (`business_id` global scope) — [ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 - **commit-discipline** — 1 PR = 1 intent, ≤300 linhas, conventional commits
+- **mwart-process** — único caminho de migração Blade→Inertia (5 fases obrigatórias) — [ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - (dormente — S4) **charter-first**
 - (dormente — S5) **ads-route**
 
