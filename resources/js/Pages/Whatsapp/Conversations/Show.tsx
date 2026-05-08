@@ -17,6 +17,7 @@ import ConversationSidebar from '../_components/ConversationSidebar';
 import type {
   CentrifugoConfig,
   Message,
+  ReadyTemplate,
   ThreadConversation,
 } from '../_components/helpers';
 
@@ -25,10 +26,11 @@ interface Props {
   messages: Message[];
   centrifugoChannel: string;
   centrifugoConfig: CentrifugoConfig | null;
+  templates: ReadyTemplate[];
 }
 
 export default function ConversationShow({
-  conversation, messages, centrifugoConfig,
+  conversation, messages, centrifugoConfig, templates,
 }: Props) {
   return (
     <div className="flex flex-col lg:flex-row gap-2 h-[calc(100vh-7rem)]">
@@ -37,7 +39,8 @@ export default function ConversationShow({
           conversation={conversation}
           messages={messages}
           centrifugoConfig={centrifugoConfig}
-          reloadOnly={['messages', 'conversation']}
+          templates={templates}
+          reloadOnly={['messages', 'conversation', 'templates']}
           backHref={route('whatsapp.conversations.index')}
         />
       </div>

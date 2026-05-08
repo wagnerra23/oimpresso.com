@@ -128,6 +128,24 @@ it('aceita kind=freeform com body válido (sem conversation = sem check janela 2
     expect($v->fails())->toBeFalse();
 });
 
+it('aceita kind=template com template_name + locale + params válidos (US-WA-013 plug composer)', function () {
+    $v = runSendRequest([
+        'kind' => 'template',
+        'template_name' => 'repair_status_ready',
+        'template_locale' => 'pt_BR',
+        'template_params' => ['João Silva', '#OS-123'],
+    ]);
+    expect($v->fails())->toBeFalse();
+});
+
+it('aceita kind=template sem locale (default pt_BR no controller)', function () {
+    $v = runSendRequest([
+        'kind' => 'template',
+        'template_name' => 'billing_due',
+    ]);
+    expect($v->fails())->toBeFalse();
+});
+
 it('rejeita kind=freeform com driver=meta_cloud E janela 24h fechada', function () {
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1,
