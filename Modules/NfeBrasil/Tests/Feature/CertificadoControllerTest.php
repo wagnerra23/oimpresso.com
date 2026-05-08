@@ -285,6 +285,108 @@ it('POST testar com NfeService lançando RuntimeException → 502 com UF + ambie
     expect($payload['versao'])->toBeNull();
 });
 
+// ── updateAmbiente() — selector ambiente SEFAZ (US-NFE-041 fase 3) ──
+
+it('POST ambiente atualiza business.ambiente quando muda valor', function () {
+    if (! Schema::hasTable('business')) {
+        test()->markTestSkipped('business table indisponível');
+    }
+
+    $controller = new CertificadoController(new CertificadoService());
+
+    $startAmbiente = (int) (\DB::table('business')->where('id', 1)->value('ambiente') ?? 2);
+
+    $request = Request::create('/nfe-brasil/configuracao/certificado/ambiente', 'POST');
+    $request->setLaravelSession(app('session.store'));
+    $request->session()->put('business.id', 1);
+    $request->merge(['ambiente' => $startAmbiente === 1 ? 2 : 1]);
+
+    $response = $controller->updateAmbiente($request);
+
+    expect($response)->toBeInstanceOf(\Illuminate\Http\RedirectResponse::class);
+
+    $novoAmbiente = (int) \DB::table('business')->where('id', 1)->value('ambiente');
+    expect($novoAmbiente)->not->toBe($startAmbiente);
+
+    // Restaura
+    \DB::table('business')->where('id', 1)->update(['ambiente' => $startAmbiente]);
+});
+
+it('POST ambiente sem business.id → erro de validação back', function () {
+    $controller = new CertificadoController(new CertificadoService());
+
+    $request = Request::create('/nfe-brasil/configuracao/certificado/ambiente', 'POST');
+    $request->setLaravelSession(app('session.store'));
+    $request->merge(['ambiente' => 2]);
+
+    $response = $controller->updateAmbiente($request);
+
+    expect($response)->toBeInstanceOf(\Illuminate\Http\RedirectResponse::class);
+});
+
+it('POST ambiente com valor inválido (3) → ValidationException', function () {
+    if (! Schema::hasTable('business')) {
+        test()->markTestSkipped('business table indisponível');
+    }
+
+    $controller = new CertificadoController(new CertificadoService());
+
+    $request = Request::create('/nfe-brasil/configuracao/certificado/ambiente', 'POST');
+    $request->setLaravelSession(app('session.store'));
+    $request->session()->put('business.id', 1);
+    $request->merge(['ambiente' => 3]); // inválido
+
+    expect(fn () => $controller->updateAmbiente($request))
+        ->toThrow(\Illuminate\Validation\ValidationException::class);
+});
+
+it('GET status retorna painel fiscal completo (regime, ncm, cfop, csosn, ambiente, etc)', function () {
+    if (! Schema::hasTable('business')) {
+        test()->markTestSkipped('business table indisponível');
+    }
+    insertCertRow(1, '12345678000199', (new DateTimeImmutable('+90 days'))->format('Y-m-d'));
+
+    $controller = new CertificadoController(new CertificadoService());
+    $response = $controller->status(makeStatusRequest(1, '12345678000199'));
+
+    $props = inertiaProps($response);
+
+    // Cert info
+    expect($props['tem_certificado'])->toBeTrue();
+    // Painel fiscal — chaves novas (US-NFE-041 fase 3)
+    expect($props)->toHaveKeys([
+        'cnpj_business', 'razao_social', 'regime',
+        'ncm_padrao', 'serie_nfe', 'ultimo_numero', 'proximo_numero',
+        'cfop_default', 'csosn_default', 'uf', 'cidade', 'ambiente',
+    ]);
+    expect($props['ambiente'])->toBeIn([1, 2]);
+    expect($props['serie_nfe'])->toBeString();
+    expect($props['proximo_numero'])->toBe(($props['ultimo_numero'] ?? 0) + 1);
+});
+
+it('GET status com cnpj_titular vazio no cert → expõe cnpj_titular_fallback', function () {
+    if (! Schema::hasTable('business')) {
+        test()->markTestSkipped('business table indisponível');
+    }
+    // Insere cert SEM cnpj_titular (simula bug legacy do salvar antigo)
+    NfeCertificado::create([
+        'business_id'        => 1,
+        'uuid'               => (string) \Illuminate\Support\Str::uuid(),
+        'cnpj_titular'       => '', // ← vazio (bug legacy)
+        'valido_ate'         => (new DateTimeImmutable('+90 days'))->format('Y-m-d'),
+        'encrypted_password' => Crypt::encryptString('pass'),
+        'ativo'              => true,
+    ]);
+
+    $controller = new CertificadoController(new CertificadoService());
+    $response = $controller->status(makeStatusRequest(1, '12345678000199'));
+
+    $props = inertiaProps($response);
+
+    expect($props['cnpj_titular'])->toBeNull(); // vazio → null no payload
+    expect($props['cnpj_titular_fallback'])->toBe('12345678000199'); // usa business.cnpj
+});
+
 it('POST testar com Throwable inesperado (TypeError) → 500 com payload completo', function () {
     insertCertRow(1, '12345678000199', (new DateTimeImmutable('+60 days'))->format('Y-m-d'));
 

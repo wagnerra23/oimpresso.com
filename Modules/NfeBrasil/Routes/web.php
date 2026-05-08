@@ -43,6 +43,8 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->name('nfe-brasil.certificado.upload');
         Route::post('certificado/testar', [CertificadoController::class, 'testar'])
             ->name('nfe-brasil.certificado.testar');
+        Route::post('certificado/ambiente', [CertificadoController::class, 'updateAmbiente'])
+            ->name('nfe-brasil.certificado.ambiente');
     });
 
 // US-NFE-010 fase 2 — UI tributação (regras NCM + config default).
