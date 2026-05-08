@@ -220,6 +220,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // US-SELL-008 — Sells/Index.tsx Inertia endpoints (lista JSON + drawer detail).
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
+    Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
     Route::resource('sells', 'SellController')->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 
