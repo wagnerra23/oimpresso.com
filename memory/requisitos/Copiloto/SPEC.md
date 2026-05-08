@@ -292,23 +292,23 @@ Etapa 2.5 do plano modular (adiada do PR feat/split-kb). KB hoje é schema gené
 
 **Acceptance**: migration aplicada · 3 types validados (ADR/Session/Runbook) · webhook rejeita doc inválido · 5 testes Pest.
 
-### US-COPI-079 · Demo Maíra real — Claude Code + /team-mcp + tela 360°
+### US-COPI-079 · Demo Maiara real — Claude Code + /team-mcp + tela 360°
 
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: todo
 
-Validação de produto end-to-end com user real (Maíra, dev junior). Sessão presencial Wagner+Maíra:
+Validação de produto end-to-end com user real (Maiara, dev junior). Sessão presencial Wagner+Maiara:
 
-1. Maíra abre Claude Code dela apontando pro `mcp.oimpresso.com` com token MCP
+1. Maiara abre Claude Code dela apontando pro `mcp.oimpresso.com` com token MCP
 2. Tenta tocar arquivo NFSe → bloqueio Permission Registry / scopes ADS
 3. Wagner abre `/superadmin/usuarios/{maira_id}/360` e mostra tudo dela num lugar
 4. Wagner concede acesso a Compras via `/ads/admin/team-scopes`
-5. Maíra repete e funciona
-6. Wagner trança usuário (botão Trancar) → Maíra perde acesso em <30s
+5. Maiara repete e funciona
+6. Wagner trança usuário (botão Trancar) → Maiara perde acesso em <30s
 7. Wagner destranca
 
 **Acceptance**: 6 passos rodam sem manual fix · gravação curta · session log com lessons learned.
 
-### US-COPI-080 · Buffer fix — corrigir o que demo Maíra encontrar
+### US-COPI-080 · Buffer fix — corrigir o que demo Maiara encontrar
 
 > owner: wagner · sprint: 2026-W19 · priority: p2 · estimate: 4h · status: todo · blocked_by: US-COPI-079
 

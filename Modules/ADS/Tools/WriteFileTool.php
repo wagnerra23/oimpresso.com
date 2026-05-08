@@ -84,7 +84,7 @@ class WriteFileTool implements Tool
         $content = $input['content'] ?? '';
         $mode = $input['mode'] ?? 'create';
 
-        // Validação 0: per-user scope (camada NOVA — caso Maíra)
+        // Validação 0: per-user scope (camada NOVA — caso Maiara)
         $userId = $input['_user_id'] ?? auth()->id();
         if ($userId !== null) {
             $scope = app(\Modules\ADS\Services\UserScopeService::class);

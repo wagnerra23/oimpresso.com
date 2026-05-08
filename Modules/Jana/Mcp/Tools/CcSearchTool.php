@@ -39,7 +39,7 @@ class CcSearchTool extends Tool
             'tool_filter' => $schema->string()
                 ->description('Filtrar por tool específica (Bash, Edit, Read, Grep, Agent...). Omite pra todos.'),
             'user_filter' => $schema->string()
-                ->description('Email do dev (Wagner/Felipe/Maíra/Luiz/Eliana). Omite pra todos visíveis.'),
+                ->description('Email do dev (Wagner/Felipe/Maiara/Luiz/Eliana). Omite pra todos visíveis.'),
             'days_ago' => $schema->integer()
                 ->min(1)
                 ->max(365)

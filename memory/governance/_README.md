@@ -156,7 +156,7 @@ Atravessam todas as camadas (cross-cutting):
 
 ---
 
-## Para times que entrarem (Felipe, Maíra, Luiz, Eliana, IAs externas)
+## Para times que entrarem (Felipe, Maiara, Luiz, Eliana, IAs externas)
 
 1. **Leia `CONSTITUTION.md` antes de qualquer coisa.** É o nível mais alto.
 2. **Confirme seu trust_level** com Wagner. Define o que pode tocar.

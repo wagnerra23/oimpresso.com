@@ -18,7 +18,7 @@ A rota está em `Modules/Brief/Routes/api.php`:
 POST /api/mcp/tools/brief-fetch
 ```
 
-Pra Claude Code dos devs (Wagner/Felipe/Maíra/Luiz/Eliana) chamarem essa
+Pra Claude Code dos devs (Wagner/Felipe/Maiara/Luiz/Eliana) chamarem essa
 tool via `mcp__oimpresso__brief-fetch`, ela precisa estar **registrada no
 servidor MCP** que vive no CT 100 (`mcp.oimpresso.com`, FrankenPHP, ADR 0053).
 

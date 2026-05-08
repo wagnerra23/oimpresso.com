@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Controle granular de acesso por (usuário × módulo Laravel).
  *
- * Caso Maíra: pode escrever em Modules/Compras + Modules/Crm,
+ * Caso Maiara: pode escrever em Modules/Compras + Modules/Crm,
  *             pode LER NFSe e Financeiro mas NÃO escrever,
  *             não pode tocar Modules/ADS, Copiloto, NfeBrasil.
  *

@@ -1,7 +1,7 @@
 # CODEOWNERS — oimpresso ERP
 # Mapeia módulos/pastas para reviewers obrigatórios no GitHub.
 # Sintaxe: path @github-user1 @github-user2
-# Substitua @FELIPE e @MAIRA pelo handle GitHub real de cada um.
+# Substitua @FELIPE e @MAIARA pelo handle GitHub real de cada um.
 # Referência: TEAM.md §3 — matriz de quem-pode-fazer-o-quê
 
 # ──────────────────────────────────────────────
@@ -49,16 +49,16 @@ CLAUDE.md                       @wagnerra23
 TEAM.md                         @wagnerra23
 
 # ──────────────────────────────────────────────
-# CMS / LANDING — Maíra owner, Wagner fallback
+# CMS / LANDING — Maiara owner, Wagner fallback
 # ──────────────────────────────────────────────
-Modules/Cms/                    @MAIRA @wagnerra23
+Modules/Cms/                    @MAIARA @wagnerra23
 
 # ──────────────────────────────────────────────
-# MEMCOFRE — Maíra + Felipe, Wagner fallback
+# MEMCOFRE — Maiara + Felipe, Wagner fallback
 # ──────────────────────────────────────────────
-Modules/MemCofre/               @MAIRA @FELIPE @wagnerra23
+Modules/MemCofre/               @MAIARA @FELIPE @wagnerra23
 
 # ──────────────────────────────────────────────
-# FRONTEND COMPARTILHADO — Maíra + Felipe
+# FRONTEND COMPARTILHADO — Maiara + Felipe
 # ──────────────────────────────────────────────
-resources/js/                   @MAIRA @FELIPE @wagnerra23
+resources/js/                   @MAIARA @FELIPE @wagnerra23

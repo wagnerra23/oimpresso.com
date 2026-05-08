@@ -3,7 +3,7 @@
 | Pessoa | Sigla | Papel | WIP máx |
 |---|---|---|---|
 | **Wagner** | [W] | líder, dono, aprovação final | 2 |
-| **Maíra** | [M] | suporte+dev | 2 |
+| **Maiara** | [M] | suporte+dev | 2 |
 | **Felipe** | [F] | dev+suporte | 2 |
 | **Luiz** | [L] | iniciante+dev IA-pair | 1 |
 | **Eliana** (esposa) | [E] | financeiro+dev IA | 1 |

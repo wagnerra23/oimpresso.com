@@ -151,7 +151,7 @@ Resumo da distribuição proposta:
 ## Consequências
 
 ### Positivas
-- Tier explícito = expectativa clara pra dev novo (Felipe, Maíra)
+- Tier explícito = expectativa clara pra dev novo (Felipe, Maiara)
 - Hook `SessionStart` enforce Tier A mecanicamente (não confia em "lembrar")
 - Telemetria permite decisão baseada em dado, não opinião
 - Auditável trimestralmente — skill que não dispara é candidata a archive

@@ -154,7 +154,7 @@ git push
 
 ## ☐ Passo 7 — Anúncio time (10 min)
 
-Mensagem para o time (Felipe/Maíra/Luiz/Eliana) via canal habitual
+Mensagem para o time (Felipe/Maiara/Luiz/Eliana) via canal habitual
 (WhatsApp do time, e-mail interno, ou MCP inbox channel `team` se já
 estiver acessível a humanos):
 
