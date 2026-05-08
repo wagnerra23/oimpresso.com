@@ -119,6 +119,59 @@ class InterBankingClient
     }
 
     /**
+     * Cria cobrança PIX imediata via `PUT /cobranca/v3/cob/{txid}`.
+     *
+     * Inter PIX v3:
+     *   - txid 26-35 alfanuméricos
+     *   - body: calendario.expiracao + devedor + valor.original + chave + solicitacaoPagador
+     *   - response: status (ATIVA), pixCopiaECola, loc.id (pra GET qrcode)
+     *
+     * @param  array  $body  Inter v3 cob payload (calendario/valor/chave/devedor/solicitacaoPagador).
+     * @return array  Response bruto Inter v3.
+     */
+    public function criarCobImediata(string $txid, array $body): array
+    {
+        $token = $this->oauthToken('cob.write');
+
+        $response = $this->httpWithMtls()
+            ->withToken($token)
+            ->withHeaders(['x-conta-corrente' => $this->config['conta_corrente']])
+            ->put(self::BASE_URL."/cobranca/v3/cob/{$txid}", $body);
+
+        if ($response->failed()) {
+            Log::warning('InterBankingClient.criarCobImediata failed', [
+                'business_id' => $this->businessId,
+                'txid'        => $txid,
+                'status'      => $response->status(),
+                'body'        => '[REDACTED]',
+            ]);
+            $response->throw();
+        }
+
+        return $response->json();
+    }
+
+    /**
+     * Busca QR Code PNG base64 via `GET /cobranca/v3/cob/{txid}/qrcode`.
+     * Usado depois de `criarCobImediata` pra renderizar imagem no UI.
+     */
+    public function getQrCodeBase64(string $txid): ?string
+    {
+        $token = $this->oauthToken('cob.read');
+
+        $response = $this->httpWithMtls()
+            ->withToken($token)
+            ->withHeaders(['x-conta-corrente' => $this->config['conta_corrente']])
+            ->get(self::BASE_URL."/cobranca/v3/cob/{$txid}/qrcode");
+
+        if ($response->failed()) {
+            return null;
+        }
+
+        return $response->json('imagemQrcode');
+    }
+
+    /**
      * OAuth client_credentials com mTLS, cacheado 50min por (business, scope).
      * Múltiplos escopos podem ser passados como string com espaço.
      */

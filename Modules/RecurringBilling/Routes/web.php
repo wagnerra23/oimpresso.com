@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\RecurringBilling\Http\Controllers\InstallController;
+use Modules\RecurringBilling\Http\Controllers\InterWebhookController;
 use Modules\RecurringBilling\Http\Controllers\InvoiceController;
 use Modules\RecurringBilling\Http\Controllers\RecurringBillingController;
 
@@ -32,3 +33,10 @@ Route::middleware(['web', 'auth', 'SetSessionData'])
         Route::post('rb-invoices/{invoice}/cancelar', [InvoiceController::class, 'cancel'])
             ->name('rb-invoices.cancel');
     });
+
+// US-RB-047 — webhook PIX Inter (público, validação shared secret no header).
+// Wagner configura URL no Inter via PUT /webhooks/pix-recebidos. CSRF excluído
+// no VerifyCsrfToken via /webhook/* (já existente pra Asaas).
+Route::post('/webhooks/inter/pix/{businessId}', [InterWebhookController::class, 'handle'])
+    ->where('businessId', '[0-9]+')
+    ->name('webhooks.inter.pix');
