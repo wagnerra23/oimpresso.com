@@ -275,37 +275,61 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // Itens count pra KPI card
   const itensCount = data.products.reduce((acc, p) => acc + (Number(p.quantity) || 0), 0);
 
+  // Smooth scroll pra seção quando user clica numa aba.
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
-      <div className="container mx-auto py-8 px-8 space-y-8 max-w-7xl">
-      {/* Header — título grande + subtitle descritivo + ações right (estética estado da arte) */}
-      <div className="flex items-start gap-4">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            Adicionar venda
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-            Registre uma venda completa — cliente, produtos, pagamento e frete.{' '}
-            {props.defaultLocation?.name && (
-              <span>
-                Local atual:{' '}
-                <span className="font-medium text-foreground">
-                  {props.defaultLocation.name}
-                </span>
-              </span>
-            )}
-          </p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          <Button variant="outline" onClick={() => router.visit('/sells')}>
-            Cancelar
-          </Button>
-          <Button disabled={processing}>
-            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {processing ? 'Salvando…' : 'Salvar venda'}
-          </Button>
+    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)] flex flex-col">
+      {/* Header sticky no topo + abas seção (pattern Office/OS canon) */}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
+        <div className="container mx-auto px-8 pt-6 pb-3 max-w-7xl">
+          <div className="flex items-start gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                Adicionar venda
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                Registre uma venda completa — cliente, produtos, pagamento e frete.{' '}
+                {props.defaultLocation?.name && (
+                  <span>
+                    Local:{' '}
+                    <span className="font-medium text-foreground">
+                      {props.defaultLocation.name}
+                    </span>
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Abas seção — atalho de navegação dentro do form longo */}
+          <nav
+            className="flex items-center gap-1 mt-3 -mb-px"
+            aria-label="Seções do cadastro"
+          >
+            {[
+              { id: 'sec-dados', label: 'Dados' },
+              { id: 'sec-produtos', label: `Produtos${itensCount > 0 ? ` (${itensCount})` : ''}` },
+              { id: 'sec-pagamento', label: 'Pagamento' },
+              { id: 'sec-resumo', label: 'Resumo' },
+              { id: 'sec-mais-opcoes', label: 'Mais opções' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => scrollToSection(tab.id)}
+                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent hover:border-border"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
+
+      <div className="container mx-auto py-6 px-8 space-y-6 max-w-7xl flex-1">
 
       {/* KPI cards — 4 cards GIGANTES, value text-3xl, label uppercase tracking-widest. Estado da arte. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -375,7 +399,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       <div className="space-y-6">
 
       {/* Linha 1: Cliente + Data + Status + Local — 4 campos sempre visíveis */}
-      <Card className="shadow-sm bg-background border-border">
+      <Card id="sec-dados" className="shadow-sm bg-background border-border scroll-mt-32">
         <CardHeader>
           <CardTitle className="text-base">Dados da venda</CardTitle>
         </CardHeader>
@@ -450,7 +474,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       </Card>
 
       {/* Bloco produtos — busca + tabela editável (US-SELL-005) */}
-      <Card className="shadow-sm bg-background border-border">
+      <Card id="sec-produtos" className="shadow-sm bg-background border-border scroll-mt-32">
         <CardHeader>
           <CardTitle className="text-base">Produtos</CardTitle>
         </CardHeader>
@@ -581,7 +605,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       </Card>
 
       {/* Bloco pagamentos — split de pagamento + indicador saldo (US-SELL-006) */}
-      <Card className="shadow-sm bg-background border-border">
+      <Card id="sec-pagamento" className="shadow-sm bg-background border-border scroll-mt-32">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Pagamento</CardTitle>
@@ -641,7 +665,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       </Card>
 
       {/* Desconto inline + Notas — sempre visíveis (8 campos visíveis: 4 acima + 1 desconto + 1 nota + produtos + pagamentos) */}
-      <Card className="shadow-sm bg-background border-border">
+      <Card id="sec-resumo" className="shadow-sm bg-background border-border scroll-mt-32">
         <CardHeader>
           <CardTitle className="text-base">Resumo</CardTitle>
         </CardHeader>
@@ -722,9 +746,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
       {/* Mais opções — 10 campos colapsáveis em <details> com persistência localStorage */}
       <details
+        id="sec-mais-opcoes"
         open={advancedOpen}
         onToggle={handleAdvancedToggle}
-        className="rounded-lg border border-border bg-card"
+        className="rounded-lg border border-border bg-card scroll-mt-32"
       >
         <summary className="cursor-pointer px-6 py-4 font-medium text-foreground hover:bg-muted/50 select-none">
           Mais opções (frete, fatura, comissão, prazo, imposto)
@@ -964,6 +989,19 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         </div>
       </details>
       </div>
+      </div>
+
+      {/* Footer sticky — pattern Office/OS: ações principais sempre acessíveis no fim do form longo */}
+      <div className="sticky bottom-0 z-30 bg-background/95 backdrop-blur border-t border-border shadow-[0_-1px_3px_rgba(0,0,0,0.04)]">
+        <div className="container mx-auto px-8 py-3 max-w-7xl flex items-center justify-end gap-2">
+          <Button variant="outline" onClick={() => router.visit('/sells')}>
+            Cancelar
+          </Button>
+          <Button disabled={processing}>
+            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {processing ? 'Salvando…' : 'Salvar venda'}
+          </Button>
+        </div>
       </div>
     </div>
   );
