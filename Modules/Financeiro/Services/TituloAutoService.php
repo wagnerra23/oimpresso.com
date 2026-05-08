@@ -210,6 +210,17 @@ class TituloAutoService
             }
 
             $contaBancaria = $this->resolverContaBancaria($tx->business_id, $tp->account_id);
+            if (! $contaBancaria) {
+                // Business ainda não cadastrou conta no Financeiro. No-op gracioso
+                // pra não bloquear o save do pagamento no core UltimatePOS. O lançamento
+                // financeiro pode ser reconciliado depois via comando manual.
+                \Log::info('TituloAutoService.registrarPagamento: skip — biz sem fin_contas_bancarias', [
+                    'business_id' => $tx->business_id,
+                    'tp_id' => $tp->id,
+                    'tx_id' => $tx->id,
+                ]);
+                return null;
+            }
             $valor = (float) $tp->amount;
 
             $baixa = TituloBaixa::query()
@@ -419,8 +430,16 @@ class TituloAutoService
      *  - Se TransactionPayment.account_id mapeia 1-1 a fin_contas_bancarias.account_id, usa.
      *  - Senão, fallback: primeira conta ativa para boleto do business.
      *  - Senão (último recurso), primeira conta bancária do business.
+     *
+     * Retorna null se o business ainda não cadastrou nenhuma conta no Financeiro.
+     * Caller decide como degradar (registrarPagamento faz no-op gracioso).
+     *
+     * fix BUG-2 (2026-05-08): antes lançava DomainException, o que bloqueava o
+     * save do TransactionPayment no UltimatePOS core (ROTA LIVRE biz=4 sem
+     * fin_contas_bancarias). Financeiro é módulo opcional — não pode quebrar
+     * fluxo core de Sells/Purchases.
      */
-    private function resolverContaBancaria(int $businessId, ?int $accountId): ContaBancaria
+    private function resolverContaBancaria(int $businessId, ?int $accountId): ?ContaBancaria
     {
         if ($accountId) {
             $conta = ContaBancaria::query()
@@ -445,20 +464,11 @@ class TituloAutoService
             return $conta;
         }
 
-        $conta = ContaBancaria::query()
+        return ContaBancaria::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $businessId)
             ->orderBy('id')
             ->first();
-
-        if (! $conta) {
-            throw new \DomainException(
-                "Business {$businessId} nao tem nenhuma conta bancaria cadastrada. " .
-                'Cadastre uma em /financeiro/contas-bancarias antes de registrar pagamento.'
-            );
-        }
-
-        return $conta;
     }
 
     /**
