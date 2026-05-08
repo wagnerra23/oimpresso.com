@@ -699,8 +699,8 @@ class NfeService
 
         if ($isNfce && !$hasDoc) {
             Log::info('NfeService: NFC-e consumidor anônimo (sem CPF/CNPJ) — omitindo <dest>', [
-                'business_id'    => $businessId,
-                'transaction_id' => $transactionId ?? null,
+                'business_id'    => $emissao->business_id,
+                'transaction_id' => $emissao->transaction_id,
                 'emissao_id'     => $emissao->id,
             ]);
         } else {
