@@ -884,7 +884,22 @@ class SellController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
         $payment_status = $request->input('payment_status'); // '', paid, due, partial, overdue
-        $limit = min((int) $request->input('limit', 50), 200);
+        $perPage = min(max((int) $request->input('per_page', 25), 5), 100);
+        $page = max((int) $request->input('page', 1), 1);
+
+        // Whitelist de colunas ordenáveis — alias frontend → expressão SQL.
+        $sortMap = [
+            'transaction_date' => 'transactions.transaction_date',
+            'invoice_no'       => 'transactions.invoice_no',
+            'customer_name'    => 'contacts.name',
+            'final_total'      => 'transactions.final_total',
+            'payment_status'   => 'transactions.payment_status',
+        ];
+        $sortKey = $request->input('sort', 'transaction_date');
+        if (! array_key_exists($sortKey, $sortMap)) {
+            $sortKey = 'transaction_date';
+        }
+        $sortDir = strtolower($request->input('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $q = \App\Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
             ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
@@ -917,9 +932,10 @@ class SellController extends Controller
 
         // total_paid via subquery — coluna não existe em transactions (UltimatePOS pattern).
         // Ref: TransactionUtil.php:2400 e :2983.
-        $rows = $q->orderBy('transactions.transaction_date', 'desc')
-            ->limit($limit)
-            ->get([
+        $paginator = $q->orderBy($sortMap[$sortKey], $sortDir)
+            // Ordem secundária estável pra empate (id desc evita resultados embaralhados).
+            ->orderBy('transactions.id', 'desc')
+            ->paginate($perPage, [
                 'transactions.id',
                 'transactions.transaction_date',
                 'transactions.invoice_no',
@@ -932,7 +948,8 @@ class SellController extends Controller
                 'contacts.name as customer_name',
                 'contacts.supplier_business_name as customer_business',
                 'bl.name as location_name',
-            ]);
+            ], 'page', $page);
+        $rows = $paginator->getCollection();
 
         // US-NFE-MANUAL — lookup fiscal_status pra mostrar badge na lista (1 query extra).
         // Pega emissão mais recente por TX (autorizada > pendente > rejeitada).
@@ -976,7 +993,19 @@ class SellController extends Controller
                 ];
             });
 
-        return response()->json(['data' => $rows]);
+        return response()->json([
+            'data' => $rows,
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page'    => $paginator->lastPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total(),
+                'from'         => $paginator->firstItem(),
+                'to'           => $paginator->lastItem(),
+                'sort'         => $sortKey,
+                'dir'          => $sortDir,
+            ],
+        ]);
     }
 
     /**
