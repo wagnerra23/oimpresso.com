@@ -25,6 +25,7 @@ class GovernanceServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\Governance\Console\Commands\CharterAuditCommand::class,
                 \Modules\Governance\Console\Commands\CharterHealthCommand::class,
+                \Modules\Governance\Console\Commands\CharterMetricsCommand::class,
             ]);
         }
     }
