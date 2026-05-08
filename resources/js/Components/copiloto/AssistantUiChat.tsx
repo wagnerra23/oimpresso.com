@@ -158,12 +158,12 @@ function ScrollToBottomBtn() {
 
 function Composer() {
   return (
-    <ComposerPrimitive.Root className="relative mx-auto flex w-full max-w-3xl items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 focus-within:ring-offset-background">
+    <ComposerPrimitive.Root className="relative flex w-full items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 focus-within:ring-offset-background">
       <ComposerPrimitive.Input
         autoFocus
         rows={1}
         placeholder="Pergunte algo ao Copiloto…"
-        className="min-h-[40px] max-h-40 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
+        className="min-h-[40px] max-h-[40vh] flex-1 resize-y bg-transparent px-2 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
       />
       <ThreadPrimitive.If running={false}>
         <ComposerPrimitive.Send asChild>
