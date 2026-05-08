@@ -40,7 +40,6 @@ class BusinessSettingsRequest extends FormRequest
 
     public function rules(): array
     {
-        $businessId = (int) $this->session()->get('user.business_id');
         $forbidden = config('whatsapp.forbidden_drivers', ['evolution', 'whatsapp_web_js']);
 
         return [
@@ -95,12 +94,18 @@ class BusinessSettingsRequest extends FormRequest
         $validator->after(function (Validator $v) {
             $driver = $this->input('driver');
             $mandatoryForFallback = config('whatsapp.fallback.mandatory_for_drivers', ['zapi', 'baileys']);
+            $businessId = $this->hasSession() ? (int) $this->session()->get('user.business_id') : 0;
+            $bypassBusinessIds = config('whatsapp.fallback.bypass_business_ids', []);
+            $bypassMetaFallback = $businessId > 0 && in_array($businessId, $bypassBusinessIds, true);
 
             // Regra 1 — driver não-oficial exige Meta Cloud cadastrado como fallback
+            // ADR 0111 (emenda 5 ao 0096): per-business bypass via lista env
+            // (LGPD continua exigido; drivers proibidos continuam proibidos)
             if (in_array($driver, $mandatoryForFallback, true)) {
-                if (empty($this->input('meta_phone_number_id'))
-                    || empty($this->input('meta_access_token'))
-                    || empty($this->input('meta_app_secret'))) {
+                if (! $bypassMetaFallback
+                    && (empty($this->input('meta_phone_number_id'))
+                        || empty($this->input('meta_access_token'))
+                        || empty($this->input('meta_app_secret')))) {
                     $v->errors()->add(
                         'meta_phone_number_id',
                         "Driver '{$driver}' exige fallback Meta Cloud cadastrado (gating Tier 0 — ADR 0096). "
@@ -108,7 +113,7 @@ class BusinessSettingsRequest extends FormRequest
                     );
                 }
 
-                // Regra 2 — termo LGPD obrigatório
+                // Regra 2 — termo LGPD obrigatório (independe de bypass)
                 if (! $this->boolean('lgpd_acknowledged')) {
                     $v->errors()->add(
                         'lgpd_acknowledged',
