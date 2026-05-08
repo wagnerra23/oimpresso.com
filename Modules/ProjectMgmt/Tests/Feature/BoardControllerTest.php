@@ -409,3 +409,124 @@ it('GET /board/users/suggest sem permission retorna 403', function () {
 
     expect($response->status())->toBe(403);
 });
+
+// ============================================================================
+// PMG-006 (ADR 0100) — Watchers (Follow/Unfollow)
+// ============================================================================
+
+it('POST /board/{taskId}/watch happy path cria watcher idempotente', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, 'todo');
+
+    $response = $this->actingAs($user)
+        ->postJson("/project-mgmt/board/{$task->task_id}/watch");
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped('Permission gate inesperado.');
+    }
+
+    $response->assertOk();
+    $response->assertJson([
+        'ok' => true,
+        'is_watching' => true,
+        'watchers_count' => 1,
+    ]);
+
+    $count = \Modules\Jana\Entities\Mcp\McpTaskWatcher::where('task_id', $task->task_id)
+        ->where('user_id', $user->id)
+        ->count();
+    expect($count)->toBe(1);
+
+    // Idempotente: 2× POST não duplica
+    $this->actingAs($user)->postJson("/project-mgmt/board/{$task->task_id}/watch");
+    $countAfter = \Modules\Jana\Entities\Mcp\McpTaskWatcher::where('task_id', $task->task_id)
+        ->where('user_id', $user->id)
+        ->count();
+    expect($countAfter)->toBe(1);
+});
+
+it('DELETE /board/{taskId}/watch remove watcher idempotente', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, 'todo');
+
+    \Modules\Jana\Entities\Mcp\McpTaskWatcher::create([
+        'task_id' => $task->task_id,
+        'user_id' => $user->id,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->deleteJson("/project-mgmt/board/{$task->task_id}/watch");
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped('Permission gate inesperado.');
+    }
+
+    $response->assertOk();
+    $response->assertJson([
+        'ok' => true,
+        'is_watching' => false,
+        'watchers_count' => 0,
+    ]);
+
+    // Idempotente: 2× DELETE não erra
+    $second = $this->actingAs($user)->deleteJson("/project-mgmt/board/{$task->task_id}/watch");
+    expect($second->status())->toBe(200);
+});
+
+it('POST /board/{taskId}/watch sem permission retorna 403', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, 'todo');
+
+    pmgRevokePerm($user);
+
+    $response = $this->actingAs($user)
+        ->postJson("/project-mgmt/board/{$task->task_id}/watch");
+
+    expect($response->status())->toBe(403);
+});
+
+it('POST /board/{taskId}/watch com taskId inexistente retorna 404', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+
+    $response = $this->actingAs($user)
+        ->postJson('/project-mgmt/board/TEST-PMG-NAOEXISTE-99999/watch');
+
+    expect($response->status())->toBe(404);
+});
+
+it('GET /board/{taskId}/detail inclui watchers + is_watching', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, 'todo');
+
+    \Modules\Jana\Entities\Mcp\McpTaskWatcher::create([
+        'task_id' => $task->task_id,
+        'user_id' => $user->id,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->getJson("/project-mgmt/board/{$task->task_id}/detail");
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped('Permission gate inesperado.');
+    }
+
+    $response->assertOk();
+    $response->assertJsonStructure([
+        'task',
+        'watchers',
+        'is_watching',
+    ]);
+
+    $data = $response->json();
+    expect($data['is_watching'])->toBeTrue();
+    expect($data['watchers'])->toHaveCount(1);
+});

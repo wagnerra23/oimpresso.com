@@ -52,6 +52,15 @@ Route::group(
         Route::get('/board/users/suggest', 'BoardController@suggestUsers')
             ->name('project-mgmt.board.users.suggest');
 
+        // ---- Watchers — PMG-006 (ADR 0100) ---------------------------------
+        Route::post('/board/{taskId}/watch', 'BoardController@watch')
+            ->where('taskId', '[A-Z0-9\-]+')
+            ->name('project-mgmt.board.watch');
+
+        Route::delete('/board/{taskId}/watch', 'BoardController@unwatch')
+            ->where('taskId', '[A-Z0-9\-]+')
+            ->name('project-mgmt.board.unwatch');
+
         // ---- Cmd+K Search Global — PMG-002 (ADR 0100) ----------------------
         Route::get('/search', 'SearchController@index')
             ->name('project-mgmt.search');
