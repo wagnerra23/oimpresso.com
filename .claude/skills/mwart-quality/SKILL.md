@@ -10,6 +10,8 @@ parent_adr: 0095
 
 # MWART Quality — pré-flight checks pra evitar retrabalho
 
+> **Esta skill cobre F2 BACKEND BASELINE + F3 FRONTEND INCREMENTAL** do processo MWART canônico definido em [ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md). Skill irmã [`mwart-process`](../mwart-process/SKILL.md) (Tier A) carrega o processo completo em 5 fases. **Não use esta skill sem a F1 PLAN completa** — hook `block-mwart-violation.ps1` bloqueia Edit em `Pages/<Mod>/<Tela>.tsx` se RUNBOOK ausente.
+
 > Wagner alertou em 2026-05-07: *"tem que aumentar a qualidade desses modelos, e ficar melhor antes de fazer as outras páginas vai gerar retrabalho."* Esta skill codifica os 5 padrões de bug que apareceram nas 4 telas Repair S2.5 (PRs #138-#141) e custaram 3 PRs corretivos (#143, #144, #145) — todos detectados só após Wagner abrir a tela em prod e ver branco/erro.
 
 > **Estilo canônico** desta skill segue o pattern de [`cockpit-runbook`](../cockpit-runbook/SKILL.md): workflow obrigatório + fontes canônicas (Read paralelo) + Modo Audit + anti-padrões + canon visual concreto. Wagner reforçou em 2026-05-07: *"o design desenvolveu técnicas apuradas... ele criou um manual de como fazer uma skill com runbook de precisão seguindo o tutorial"* — manual = [DESIGN.md](../../DESIGN.md).
