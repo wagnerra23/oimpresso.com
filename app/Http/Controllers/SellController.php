@@ -1090,6 +1090,104 @@ class SellController extends Controller
     }
 
     /**
+     * US-SELL-PAY-DRAWER — POST JSON pra criar TransactionPayment a partir do
+     * drawer SaleSheet. Versão enxuta de TransactionPaymentController@store
+     * (sem cartão/cheque/denominations) que retorna JSON em vez de redirect.
+     *
+     * Payload: { amount, method, paid_on?, note?, account_id? }
+     * Retorna: { success, msg, payment_status, total_paid }
+     */
+    public function quickPayment(\Illuminate\Http\Request $request, $id)
+    {
+        if (! auth()->user()->can('sell.payments')) {
+            abort(403);
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+
+        $sale = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->whereNull('sub_type')
+            ->find($id);
+
+        if (! $sale) {
+            return response()->json(['success' => false, 'msg' => 'Venda não encontrada.'], 404);
+        }
+
+        if ($sale->payment_status === 'paid') {
+            return response()->json(['success' => false, 'msg' => 'Venda já está totalmente paga.'], 422);
+        }
+
+        $data = $request->validate([
+            'amount'     => ['required', 'numeric', 'min:0.01'],
+            'method'     => ['required', 'string', 'max:30'],
+            'paid_on'    => ['nullable', 'date'],
+            'note'       => ['nullable', 'string', 'max:500'],
+            'account_id' => ['nullable', 'integer'],
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            $ref_count = $this->transactionUtil->setAndGetReferenceCount('sell_payment');
+
+            $payment = \App\TransactionPayment::create([
+                'business_id'    => $business_id,
+                'transaction_id' => $sale->id,
+                'amount'         => $data['amount'],
+                'method'         => $data['method'],
+                'paid_on'        => ! empty($data['paid_on'])
+                    ? \Carbon\Carbon::parse($data['paid_on'])->toDateTimeString()
+                    : now()->toDateTimeString(),
+                'note'           => $data['note'] ?? null,
+                'account_id'     => $data['account_id'] ?? null,
+                'created_by'     => auth()->user()->id,
+                'payment_for'    => $sale->contact_id,
+                'payment_ref_no' => $this->transactionUtil->generateReferenceNumber('sell_payment', $ref_count),
+            ]);
+
+            event(new \App\Events\TransactionPaymentAdded($payment, [
+                'transaction_type' => $sale->type,
+                'amount'           => $data['amount'],
+                'method'           => $data['method'],
+            ]));
+
+            $payment_status = $this->transactionUtil->updatePaymentStatus($sale->id, $sale->final_total);
+
+            \DB::commit();
+
+            // Recalcula total_paid pra retornar atualizado.
+            $totalPaid = (float) \DB::table('transaction_payments')
+                ->where('transaction_id', $sale->id)
+                ->sum(\DB::raw('IF(is_return = 0, amount, amount * -1)'));
+
+            return response()->json([
+                'success'        => true,
+                'msg'            => 'Pagamento registrado.',
+                'payment_status' => $payment_status,
+                'total_paid'     => $totalPaid,
+                'payment'        => [
+                    'id'      => $payment->id,
+                    'amount'  => (float) $payment->amount,
+                    'method'  => $payment->method,
+                    'paid_on' => $payment->paid_on,
+                    'note'    => $payment->note,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            \Log::error('SellController.quickPayment failed', [
+                'sale_id' => $id,
+                'error'   => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'msg'     => 'Falha ao registrar pagamento: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param  int  $id
