@@ -88,3 +88,52 @@ it('Page registrada no manifest do build:inertia (smoke build)', function () {
     $manifest = json_decode(file_get_contents($manifestPath), true);
     expect($manifest)->toHaveKey('resources/js/Pages/Sells/Create.tsx');
 });
+
+// US-SELL-004 — triagem visibilidade campos
+
+it('Page tem os 8 campos sempre visíveis (location, contact, date, status, products, payments, discount, notes)', function () {
+    $source = readPage();
+    expect($source)->toContain('id="contact_id"');
+    expect($source)->toContain('id="transaction_date"');
+    expect($source)->toContain('id="status"');
+    expect($source)->toContain('id="location_id"');
+    expect($source)->toContain('id="discount_type"');
+    expect($source)->toContain('id="discount_amount"');
+    expect($source)->toContain('id="notes"');
+});
+
+it('Page tem <details> "Mais opções" colapsável (10 campos restantes)', function () {
+    $source = readPage();
+    expect($source)->toContain('Mais opções');
+    expect($source)->toMatch('/<details[^>]*open=\\{advancedOpen\\}/');
+});
+
+it('Page persiste estado <details> open em localStorage com prefixo oimpresso.', function () {
+    $source = readPage();
+    expect($source)->toContain("'oimpresso.sells.create.advanced.open'");
+    expect($source)->toContain('localStorage.getItem');
+    expect($source)->toContain('localStorage.setItem');
+});
+
+it('Page renderiza price_group e commission_agent CONDICIONAL (só se aplicável pra business)', function () {
+    $source = readPage();
+    expect($source)->toContain('hasMultiplePriceGroups');
+    expect($source)->toContain('hasCommissionAgent');
+});
+
+it('Page tem bloco frete colapsável dentro de "Mais opções" (5 campos juntos)', function () {
+    $source = readPage();
+    expect($source)->toContain('id="shipping_details"');
+    expect($source)->toContain('id="shipping_address"');
+    expect($source)->toContain('id="shipping_cost"');
+    expect($source)->toContain('id="shipping_status"');
+    expect($source)->toContain('id="shipping_deliver_to"');
+});
+
+it('Page importa shadcn primitives (R-DS-001 reutilização)', function () {
+    $source = readPage();
+    expect($source)->toContain('@/Components/ui/input');
+    expect($source)->toContain('@/Components/ui/select');
+    expect($source)->toContain('@/Components/ui/textarea');
+    expect($source)->toContain('@/Components/ui/card');
+});
