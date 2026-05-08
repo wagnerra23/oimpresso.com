@@ -248,6 +248,14 @@ it('BUG FIX: idempotência só retém emissão se status positivo (autorizada/pe
     expect($source)->not->toMatch("/if\\s*\\(\\s*\\\$existente\\s*\\)\\s*\\{\\s*Log::info\\([^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+return\\s+\\\$existente;\\s*\\}/s");
 });
 
+it('BUG FIX: indFinal=1 sempre em NFC-e (modelo 65) — rejeição "operacao nao destinada a consumidor final"', function () {
+    $source = file_get_contents(base_path('Modules/NfeBrasil/Services/NfeService.php'));
+    // NFC-e é SEMPRE consumidor final independente de CPF.
+    expect($source)->toContain("(int) \$emissao->modelo === 65 ? 1 : (isset(\$dadosNfe['dest']['cpf']) ? 1 : 0)");
+    // Pattern antigo proibido: indFinal só checava CPF (errado pra NFC-e).
+    expect($source)->not->toMatch("/\\\$stdIde->indFinal\\s*=\\s*isset\\(\\\$dadosNfe\\['dest'\\]\\['cpf'\\]\\)\\s*\\?\\s*1\\s*:\\s*0;/");
+});
+
 it('BUG FIX: tpImp=4 pra NFC-e (modelo 65) — rejeição SEFAZ "DANFE invalido" se hardcoded 1', function () {
     $source = file_get_contents(base_path('Modules/NfeBrasil/Services/NfeService.php'));
     // tpImp não pode ser hardcoded 1 (default NFe Retrato) — rejeita NFC-e.
