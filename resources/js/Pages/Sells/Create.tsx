@@ -27,6 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
+import CustomerSearchAutocomplete from './_components/CustomerSearchAutocomplete';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
 import { dropdownEntries } from './_components/dropdownEntries';
 import {
@@ -454,20 +455,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="contact_id">Cliente</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                id="contact_id"
-                value={props.walkInCustomer.name}
-                readOnly
-                disabled
-                placeholder="Buscar cliente por nome ou CPF/CNPJ…"
-                className="pl-9"
-                aria-label="Cliente da venda"
-              />
-            </div>
+            <CustomerSearchAutocomplete
+              defaultName={props.walkInCustomer.name}
+              onSelect={(c) => setData('contact_id', c.id)}
+              onClear={() => setData('contact_id', props.walkInCustomer.id)}
+            />
             <p className="text-xs text-muted-foreground">
-              Autocomplete em breve. Hoje só cliente padrão.
+              Digite ≥2 caracteres pra buscar. Limpe pra voltar ao cliente padrão.
             </p>
           </div>
 
