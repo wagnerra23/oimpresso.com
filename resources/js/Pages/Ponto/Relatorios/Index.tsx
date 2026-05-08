@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /ponto/relatorios
 //   module: PontoWr2
 //   status: implementada
@@ -72,7 +72,7 @@ export default function RelatoriosIndex({ relatorios }: Props) {
     <>
       <div className="mx-auto max-w-7xl p-6">
         <header className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Relatórios</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Relatórios</h1>
           <p className="text-sm text-muted-foreground">
             Geração de relatórios do módulo de ponto. Clique em <strong>Gerar</strong> para emitir.
           </p>

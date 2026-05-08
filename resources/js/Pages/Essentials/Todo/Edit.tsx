@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /essentials/todo/edit
 //   module: Essentials
 //   status: implementada
@@ -96,7 +96,7 @@ export default function TodoEdit({ todo, users, statuses, priorities, can }: Pro
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <ClipboardList size={22} /> Editar tarefa
               <span className="text-muted-foreground font-mono text-sm">{todo.task_id}</span>
             </h1>

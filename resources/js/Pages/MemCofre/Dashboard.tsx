@@ -1,4 +1,4 @@
-// @memcofre
+﻿// @memcofre
 //   tela: /docs
 //   module: Cofre de Memórias
 //   status: implementada
@@ -96,7 +96,7 @@ export default function MemCofreDashboard({ stats, modules, recent_sources, cove
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <FolderOpen size={22} /> Cofre de Memórias
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -372,7 +372,7 @@ function Kpi({
         <div className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
           {icon} {label}
         </div>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-semibold">{value}</div>
         {hint && <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div>}
       </CardContent>
     </Card>
@@ -421,7 +421,7 @@ function StatusBox({
   return (
     <div className="border border-border rounded p-3">
       <div className="text-xs text-muted-foreground mb-1">{label}</div>
-      <div className={`text-2xl font-bold ${toneCls}`}>{value}</div>
+      <div className={`text-2xl font-semibold ${toneCls}`}>{value}</div>
     </div>
   );
 }

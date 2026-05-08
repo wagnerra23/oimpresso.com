@@ -186,7 +186,7 @@ export default function TodoIndex({
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <ClipboardList size={22} /> Tarefas (To-Do)
             </h1>
             <p className="text-sm text-muted-foreground mt-1">

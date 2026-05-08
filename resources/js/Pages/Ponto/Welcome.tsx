@@ -1,4 +1,4 @@
-// @memcofre
+﻿// @memcofre
 //   tela: /ponto/welcome
 //   module: PontoWr2
 //   status: implementada
@@ -18,7 +18,7 @@ export default function PontoWelcome() {
     <>
       <div className="mx-auto max-w-5xl p-6">
         <header className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Ponto WR2 — nova interface</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Ponto WR2 — nova interface</h1>
           <p className="text-sm text-muted-foreground">
             Página piloto renderizada via Inertia + React 19 + shadcn/ui + Tailwind 4.
           </p>

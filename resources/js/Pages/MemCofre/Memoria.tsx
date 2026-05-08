@@ -1,4 +1,4 @@
-// @memcofre
+﻿// @memcofre
 //   tela: /docs/memoria
 //   module: Cofre de Memórias
 //   status: implementada
@@ -129,7 +129,7 @@ export default function Memoria({ roots, stats, selected: initialSelected, paths
       <div className="mx-auto max-w-7xl p-6">
         <header className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <Sparkles size={22} /> Memória unificada
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -163,7 +163,7 @@ export default function Memoria({ roots, stats, selected: initialSelected, paths
                 <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wide">
                   {rootIcon[r]} {rootLabel[r]}
                 </div>
-                <div className="text-2xl font-bold mt-1">
+                <div className="text-2xl font-semibold mt-1">
                   {stats[r]}
                   <span className="text-xs font-normal text-muted-foreground ml-1">arquivos</span>
                 </div>

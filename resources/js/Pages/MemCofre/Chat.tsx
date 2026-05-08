@@ -1,4 +1,4 @@
-// @memcofre
+﻿// @memcofre
 //   tela: /docs/chat
 //   module: Cofre de Memórias
 //   status: implementada
@@ -139,7 +139,7 @@ export default function MemCofreChat({ session_id, history, recent, modules, ai_
       <div className="mx-auto max-w-7xl p-6">
         <header className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <Sparkles size={22} /> Chat
               <Badge variant={ai_enabled ? 'default' : 'outline'} className="text-[10px]">
                 {ai_enabled ? 'IA ativa' : 'modo offline'}

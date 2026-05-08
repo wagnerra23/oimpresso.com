@@ -46,11 +46,13 @@ export default function PageHeader({ title, description, icon, action, className
           </div>
         )}
         <div className="min-w-0">
-          <h1 className="text-xl md:text-2xl font-semibold text-foreground leading-tight truncate">
+          {/* ADR 0110 §Tipografia canon: h1 = text-2xl font-semibold tracking-tight (mobile escala pra text-xl). */}
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground leading-tight truncate">
             {title}
           </h1>
           {description && (
-            <p className="mt-1 text-sm text-muted-foreground max-w-2xl">{description}</p>
+            // ADR 0110 §Tipografia canon: subtitle = text-sm text-muted-foreground leading-relaxed.
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed max-w-2xl">{description}</p>
           )}
         </div>
       </div>

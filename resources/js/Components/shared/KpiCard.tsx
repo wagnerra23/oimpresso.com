@@ -101,17 +101,20 @@ export default function KpiCard({
   selected,
 }: Props) {
   const iconSize = size === 'compact' ? 14 : size === 'large' ? 22 : 18;
+  // ADR 0110 §Tipografia canon: KPI value = font-semibold (NÃO font-bold).
+  // size=large 36px (text-4xl), size=default 24px (text-2xl), size=compact 20px (text-xl).
   const valueClass =
     size === 'compact'
       ? 'text-xl font-semibold'
       : size === 'large'
-        ? 'text-4xl font-bold'
-        : 'text-2xl font-bold';
+        ? 'text-4xl font-semibold'
+        : 'text-2xl font-semibold';
 
   const content = (
     <>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
+        {/* ADR 0110 §Tipografia canon: KPI label = text-[11px] font-semibold uppercase tracking-widest */}
+        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest truncate">
           {label}
         </span>
         {icon && (

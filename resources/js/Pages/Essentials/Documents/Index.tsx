@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /essentials/document
 //   module: Essentials
 //   status: implementada
@@ -241,7 +241,7 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               {tab === 'memos' ? <Mail size={22} /> : <FileText size={22} />}
               {tab === 'memos' ? 'Memos' : 'Documentos'}
             </h1>

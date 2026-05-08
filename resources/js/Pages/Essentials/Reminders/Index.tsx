@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /essentials/reminder
 //   module: Essentials
 //   status: implementada
@@ -131,7 +131,7 @@ export default function RemindersIndex({ reminders, repeats }: Props) {
       <div className="mx-auto max-w-4xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <Bell size={22} /> Lembretes
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
