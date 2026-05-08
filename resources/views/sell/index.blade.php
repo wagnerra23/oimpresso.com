@@ -3,10 +3,48 @@
 
 @section('content')
 
-    <!-- Content Header (Page header) -->
-    <section class="content-header no-print">
-        <h1  class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('sale.sells')
-        </h1>
+    {{-- Header Cockpit canon — pattern uniforme com /sells/create (Inertia, ADR 0107/0109) --}}
+    <section class="content-header no-print" style="background: #fff; border-bottom: 1px solid #e5e7eb; padding: 16px 20px 0;">
+        <div style="display: flex; align-items: flex-start; gap: 16px; max-width: 1280px; margin: 0 auto;">
+            <div style="flex: 1; min-width: 0;">
+                <h1 style="font-size: 22px; font-weight: 600; color: #111827; margin: 0;">@lang('sale.sells')</h1>
+                <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0; line-height: 1.5;">
+                    Lista de vendas com filtros e ações por linha. Clique em <strong style="color: #111827;">Nova venda</strong> para abrir o cadastro Inertia.
+                </p>
+            </div>
+            @can('direct_sell.access')
+                <div style="flex-shrink: 0;">
+                    <a href="{{ action([\App\Http\Controllers\SellController::class, 'create']) }}"
+                       style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #3b82f6; color: #fff; border-radius: 6px; font-size: 13px; font-weight: 500; text-decoration: none;"
+                       onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5l0 14" /><path d="M5 12l14 0" />
+                        </svg>
+                        @lang('messages.add')
+                    </a>
+                </div>
+            @endcan
+        </div>
+
+        {{-- Abas filter Cockpit canon (text-xs + ícone + border-primary ativo) — sincronizadas com select#sell_list_filter_payment_status --}}
+        <nav id="sells_status_tabs" aria-label="Filtro de status de pagamento"
+             style="display: flex; align-items: center; gap: 4px; max-width: 1280px; margin: 16px auto 0; padding-bottom: 0;">
+            @foreach([
+                ['key' => '',         'label' => __('lang_v1.all'),     'icon' => 'M4 6h16M4 12h16M4 18h16'],
+                ['key' => 'paid',     'label' => __('lang_v1.paid'),    'icon' => 'M5 13l4 4L19 7'],
+                ['key' => 'due',      'label' => __('lang_v1.due'),     'icon' => 'M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'],
+                ['key' => 'partial',  'label' => __('lang_v1.partial'), 'icon' => 'M12 6v6l4 2'],
+                ['key' => 'overdue',  'label' => __('lang_v1.overdue'), 'icon' => 'M12 9v2m0 4h.01M4.9 19h14.2c1.5 0 2.4-1.6 1.7-2.9L12.7 4.7c-.7-1.3-2.7-1.3-3.4 0L3.2 16.1c-.7 1.3.2 2.9 1.7 2.9z'],
+            ] as $tab)
+                <button type="button"
+                        data-status="{{ $tab['key'] }}"
+                        class="sells-status-tab"
+                        style="position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: transparent; border: 0; border-bottom: 2px solid transparent; color: #6b7280; font-size: 12px; font-weight: 500; cursor: pointer; margin-bottom: -1px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $tab['icon'] }}"/></svg>
+                    {{ $tab['label'] }}
+                </button>
+            @endforeach
+        </nav>
     </section>
 
     <!-- Main content -->
@@ -376,6 +414,45 @@
             $('#only_subscriptions').on('ifChanged', function(event) {
                 sell_table.ajax.reload();
             });
+
+            // === Abas filter Cockpit canon — sincroniza com select#sell_list_filter_payment_status ===
+            // Pattern uniforme com /sells/create (Inertia) — text-xs + ícone + border-primary ativo.
+            (function syncStatusTabs() {
+                var $tabs = $('.sells-status-tab');
+                var $select = $('#sell_list_filter_payment_status');
+                if (!$tabs.length) return;
+
+                function applyActiveStyle($btn) {
+                    $tabs.css({ color: '#6b7280', 'border-bottom-color': 'transparent' });
+                    $btn.css({ color: '#111827', 'border-bottom-color': '#3b82f6' });
+                }
+
+                // Marca aba inicial conforme select (caso já tenha valor pré-selecionado).
+                var initial = ($select.val() || '');
+                var $initialBtn = $tabs.filter('[data-status="' + initial + '"]');
+                applyActiveStyle($initialBtn.length ? $initialBtn : $tabs.filter('[data-status=""]'));
+
+                $tabs.on('click', function() {
+                    var $btn = $(this);
+                    var status = $btn.attr('data-status') || '';
+                    applyActiveStyle($btn);
+                    // val('') limpa, depois trigger change pra select2 + DataTable reload.
+                    $select.val(status === '' ? null : status).trigger('change');
+                });
+
+                // Hover state pra abas inativas (cor escurece).
+                $tabs.on('mouseenter', function() {
+                    if ($(this).css('border-bottom-color') === 'rgba(0, 0, 0, 0)' ||
+                        $(this).css('border-bottom-color') === 'transparent') {
+                        $(this).css('color', '#111827');
+                    }
+                }).on('mouseleave', function() {
+                    if ($(this).css('border-bottom-color') === 'rgba(0, 0, 0, 0)' ||
+                        $(this).css('border-bottom-color') === 'transparent') {
+                        $(this).css('color', '#6b7280');
+                    }
+                });
+            })();
         });
     </script>
     <script src="{{ asset('js/payment.js?v=' . $asset_v) }}"></script>
