@@ -81,6 +81,54 @@ function fin_makeSellForBaixa(int $businessId, int $locationId, int $contactId, 
     ]);
 }
 
+it('biz sem fin_contas_bancarias permite TransactionPayment::create sem lançar (no-op gracioso) — fix BUG-2', function () {
+    // ROTA LIVRE biz=4 reportou venda+compra sem aceitar pagamento porque o
+    // Observer lançava DomainException quando não havia conta no Financeiro.
+    // Garantir: salvar TransactionPayment NUNCA pode ser bloqueado pelo módulo
+    // opcional Financeiro.
+    $bizId = (int) DB::table('business')->insertGetId([
+        'name' => 'BIZ_FIN_NULL_TEST_' . uniqid(),
+        'currency_id' => 1,
+        'start_date' => Carbon::now()->toDateString(),
+        'owner_id' => $this->user->id,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    $locId = (int) DB::table('business_locations')->insertGetId([
+        'business_id' => $bizId,
+        'name' => 'L1',
+        'location_id' => 'L0001',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect(ContaBancaria::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('business_id', $bizId)
+        ->count())->toBe(0);
+
+    $tx = fin_makeSellForBaixa($bizId, $locId, $this->contact->id, $this->user->id, 100.00);
+
+    // Antes do fix: isso lançava DomainException e abortava o save.
+    $tp = TransactionPayment::create([
+        'transaction_id' => $tx->id,
+        'business_id' => $tx->business_id,
+        'amount' => 30.00,
+        'method' => 'pix',
+        'paid_on' => Carbon::now()->toDateTimeString(),
+        'created_by' => $this->user->id,
+        'payment_for' => $tx->contact_id,
+    ]);
+
+    expect($tp->id)->toBeGreaterThan(0);
+    expect(TransactionPayment::find($tp->id))->not->toBeNull();
+    // Sem conta no Financeiro: nenhuma TituloBaixa criada (no-op).
+    expect(TituloBaixa::query()
+        ->withoutGlobalScope(BusinessScopeImpl::class)
+        ->where('transaction_payment_id', $tp->id)
+        ->count())->toBe(0);
+});
+
 it('created cria TituloBaixa + atualiza Titulo + cria CaixaMovimento', function () {
     $tx = fin_makeSellForBaixa($this->business->id, $this->location->id, $this->contact->id, $this->user->id, 100.00);
 
