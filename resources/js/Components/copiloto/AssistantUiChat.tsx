@@ -86,34 +86,36 @@ const SUGESTOES_DEFAULT = [
   'Criar uma meta de faturamento mensal',
 ];
 
-function ThreadEmpty({ sugestoes }: { sugestoes: string[] }) {
+/**
+ * Sugestões de pergunta — entry-point de descoberta pro user novo.
+ * Mostradas SEMPRE que o user ainda não enviou nenhuma mensagem (mesmo que
+ * o backend já tenha inserido um saudação inicial do CP). Antes ficavam só
+ * em <ThreadPrimitive.Empty>, mas como o ChatController cria a conversa
+ * com mensagem inicial automática, Empty nunca disparava em prod.
+ *
+ * Renderizadas inline DEPOIS das mensagens (Below thread, Above composer)
+ * pra ficarem sempre visíveis enquanto user explora.
+ */
+function QuickPrompts({ sugestoes }: { sugestoes: string[] }) {
   return (
-    <ThreadPrimitive.Empty>
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-12 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <span className="text-2xl font-semibold">CP</span>
-        </div>
-        <div>
-          <p className="text-lg font-semibold">Como posso ajudar?</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Pergunte sobre faturamento, clientes, despesas, metas — ou inicie com uma sugestão.
-          </p>
-        </div>
-        <div className="grid w-full max-w-xl grid-cols-1 gap-2 sm:grid-cols-2">
-          {sugestoes.map((s) => (
-            <ThreadPrimitive.Suggestion
-              key={s}
-              prompt={s}
-              method="replace"
-              autoSend
-              className="rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {s}
-            </ThreadPrimitive.Suggestion>
-          ))}
-        </div>
+    <div className="px-4 pb-3 pt-1">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
+        Pergunte sobre
+      </p>
+      <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {sugestoes.map((s) => (
+          <ThreadPrimitive.Suggestion
+            key={s}
+            prompt={s}
+            method="replace"
+            autoSend
+            className="rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {s}
+          </ThreadPrimitive.Suggestion>
+        ))}
       </div>
-    </ThreadPrimitive.Empty>
+    </div>
   );
 }
 
@@ -319,6 +321,10 @@ export function CopilotoAssistantUiChat({
 
   const sugestoes = sugestoesIniciais ?? SUGESTOES_DEFAULT;
 
+  // Mostra sugestões enquanto user ainda não enviou nada — onboarding fica visível
+  // mesmo após mensagem automática do CP (backend cria conversa com saudação).
+  const hasUserMessage = messages.some((m) => m.role === 'user');
+
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       {/* `flex-1 min-h-0` é crítico: ancestor .main-body é flex-col com min-height:0
@@ -326,7 +332,6 @@ export function CopilotoAssistantUiChat({
           conteúdo (todas as mensagens) e empurra o composer pra fora da tela. */}
       <ThreadPrimitive.Root className="relative flex flex-1 flex-col bg-background min-h-0 overflow-hidden">
         <ThreadPrimitive.Viewport className="flex-1 min-h-0 overflow-y-auto">
-          <ThreadEmpty sugestoes={sugestoes} />
           <ThreadPrimitive.Messages
             components={{
               UserMessage,
@@ -337,6 +342,8 @@ export function CopilotoAssistantUiChat({
         </ThreadPrimitive.Viewport>
 
         <ScrollToBottomBtn />
+
+        {!hasUserMessage && <QuickPrompts sugestoes={sugestoes} />}
 
         {belowThread}
 
