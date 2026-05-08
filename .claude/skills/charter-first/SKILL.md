@@ -4,14 +4,15 @@ description: Use ANTES de editar qualquer .tsx que tenha .charter.md ao lado (ex
 tier: A
 tier_enforce: hook-pre-tool-use-edit
 parent_adr: 0095
-related_adrs: [0094]
-enabled: false
-ativacao: S4 (jun/2026 — após tool MCP charter-fetch deployed)
+related_adrs: [0094, 0101]
+enabled: true
+ativacao: 2026-05-08 (S6 F1+F2 partial — charters em prod + artisan charter:audit)
+ativacao_notas: charter-fetch tool MCP fica em F2 deploy CT 100 (pendente Wagner). Skill já ativa pq charters existem em prod e Pest GUARD valida estrutura.
 ---
 
-# charter-first — Tier A DORMENTE (ativa em S4)
+# charter-first — Tier A ATIVA
 
-> ⚠️ **DORMENTE até S4** — `enabled: false` no frontmatter. Quando S4 entregar `charter-fetch` MCP tool + `php artisan charter:sync`, esta skill vira `enabled: true`.
+> ✅ **ATIVA desde 2026-05-08** — `enabled: true`. 5 charters Tier A em prod, workflow `charter-gate.yml` valida estrutura em PR (modo soft). Tool MCP `charter-fetch` ainda pendente deploy CT 100; até lá, skill carrega charter via Read direto do filesystem.
 
 ## Quando ativar (futuro pós-S4)
 
