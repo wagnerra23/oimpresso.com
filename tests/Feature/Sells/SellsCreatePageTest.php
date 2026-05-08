@@ -137,3 +137,67 @@ it('Page importa shadcn primitives (R-DS-001 reutilização)', function () {
     expect($source)->toContain('@/Components/ui/textarea');
     expect($source)->toContain('@/Components/ui/card');
 });
+
+// US-SELL-005 — produtos: autocomplete + tabela + cálculos
+
+it('ProductSearchAutocomplete componente local existe', function () {
+    expect(file_exists(base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx')))
+        ->toBeTrue();
+});
+
+it('Page importa ProductSearchAutocomplete', function () {
+    $source = readPage();
+    expect($source)->toContain('./_components/ProductSearchAutocomplete');
+});
+
+it('ProductSearchAutocomplete usa endpoint legado /products/list (reuso)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    expect($componentSource)->toContain('/products/list');
+    expect($componentSource)->toContain("X-Requested-With");
+});
+
+it('ProductSearchAutocomplete tem debounce + min query length (não dispara request a cada tecla)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    expect($componentSource)->toMatch('/DEBOUNCE_MS\s*=\s*\d+/');
+    expect($componentSource)->toMatch('/MIN_QUERY_LENGTH\s*=\s*\d+/');
+});
+
+it('Page tem tabela editável de produtos com 5 colunas (Produto, Qtd, Preço, Desconto, Subtotal)', function () {
+    $source = readPage();
+    expect($source)->toContain('Produto');
+    expect($source)->toContain('Qtd.');
+    expect($source)->toContain('Preço unit.');
+    expect($source)->toContain('Desconto');
+    expect($source)->toContain('Subtotal');
+});
+
+it('Page calcula subtotal por linha + total geral (pure function useMemo)', function () {
+    $source = readPage();
+    expect($source)->toContain('subtotalProdutos');
+    expect($source)->toContain('totalGeral');
+    expect($source)->toContain('useMemo');
+    expect($source)->toContain('descontoPedido');
+});
+
+it('Page formata moeda em BRL (PT-BR)', function () {
+    $source = readPage();
+    expect($source)->toContain('toLocaleString');
+    expect($source)->toContain("'pt-BR'");
+    expect($source)->toContain("currency: 'BRL'");
+});
+
+it('Page respeita permissions.editPrice e editDiscount (readonly se sem permissão)', function () {
+    $source = readPage();
+    expect($source)->toContain('disabled={!props.permissions.editPrice}');
+    expect($source)->toContain('disabled={!props.permissions.editDiscount}');
+});
+
+it('Page tem CTA "Buscar produto" focando autocomplete (Q5 empty state com ação)', function () {
+    $source = readPage();
+    expect($source)->toContain('focusProductSearch');
+    expect($source)->toContain('Buscar produto');
+});

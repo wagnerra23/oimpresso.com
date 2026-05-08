@@ -14,9 +14,9 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -24,6 +24,9 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import ProductSearchAutocomplete, {
+  type ProductSearchResult,
+} from './_components/ProductSearchAutocomplete';
 import {
   Select,
   SelectContent,
@@ -109,6 +112,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     tax_rate_id: null as number | null,
     products: [] as Array<{
       product_id: number;
+      variation_id: number | null;
+      name: string;
+      sku: string;
       quantity: number;
       unit_price: number;
       discount: number;
@@ -154,6 +160,71 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   const hasMultiplePriceGroups = Object.keys(props.priceGroups).length > 1;
   const hasCommissionAgent = Object.keys(props.commissionAgents).length > 0;
   const hasTypesOfService = Object.keys(props.typesOfService).length > 0;
+
+  // Cálculos de produtos
+  const productSearchRef = useRef<HTMLDivElement>(null);
+  const subtotalProdutos = useMemo(
+    () =>
+      data.products.reduce((acc, p) => {
+        const lineSubtotal = p.quantity * p.unit_price - p.discount;
+        return acc + Math.max(lineSubtotal, 0);
+      }, 0),
+    [data.products],
+  );
+
+  const descontoPedido = useMemo(() => {
+    if (data.discount_type === 'percentage') {
+      return (subtotalProdutos * data.discount_amount) / 100;
+    }
+    return data.discount_amount;
+  }, [subtotalProdutos, data.discount_amount, data.discount_type]);
+
+  const totalGeral = useMemo(
+    () => Math.max(subtotalProdutos - descontoPedido + data.shipping.cost, 0),
+    [subtotalProdutos, descontoPedido, data.shipping.cost],
+  );
+
+  const formatBRL = (value: number) =>
+    value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const handleAddProduct = (p: ProductSearchResult) => {
+    setData('products', [
+      ...data.products,
+      {
+        product_id: p.product_id,
+        variation_id: p.variation_id ?? null,
+        name: p.name,
+        sku: p.sku,
+        quantity: 1,
+        unit_price: Number(p.selling_price ?? 0),
+        discount: 0,
+      },
+    ]);
+  };
+
+  const handleProductChange = (
+    idx: number,
+    field: 'quantity' | 'unit_price' | 'discount',
+    value: number,
+  ) => {
+    const next = [...data.products];
+    next[idx] = { ...next[idx], [field]: value };
+    setData('products', next);
+  };
+
+  const handleRemoveProduct = (idx: number) => {
+    setData(
+      'products',
+      data.products.filter((_, i) => i !== idx),
+    );
+  };
+
+  const focusProductSearch = () => {
+    const input = productSearchRef.current?.querySelector<HTMLInputElement>(
+      'input[type="search"]',
+    );
+    input?.focus();
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-7xl">
@@ -248,17 +319,134 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         </CardContent>
       </Card>
 
-      {/* Bloco produtos — placeholder até US-SELL-005 */}
+      {/* Bloco produtos — busca + tabela editável (US-SELL-005) */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Produtos</CardTitle>
         </CardHeader>
-        <CardContent>
-          <EmptyState
-            icon="package"
-            title="Nenhum produto ainda"
-            description="Busca + tabela editável chegam em US-SELL-005."
-          />
+        <CardContent className="space-y-4">
+          <div ref={productSearchRef}>
+            <ProductSearchAutocomplete
+              locationId={data.location_id}
+              onSelect={handleAddProduct}
+            />
+          </div>
+
+          {data.products.length === 0 ? (
+            <EmptyState
+              icon="package"
+              title="Nenhum produto adicionado"
+              description="Use a busca acima ou aperte / pra focar (em breve)."
+              action={
+                <Button variant="outline" size="sm" onClick={focusProductSearch}>
+                  Buscar produto
+                </Button>
+              }
+            />
+          ) : (
+            <div className="overflow-x-auto rounded-md border border-border">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr className="text-left text-xs font-medium text-muted-foreground">
+                    <th className="px-3 py-2">Produto</th>
+                    <th className="px-3 py-2 w-24">Qtd.</th>
+                    <th className="px-3 py-2 w-32">Preço unit.</th>
+                    <th className="px-3 py-2 w-32">Desconto</th>
+                    <th className="px-3 py-2 w-32 text-right">Subtotal</th>
+                    <th className="px-3 py-2 w-12"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {data.products.map((p, idx) => {
+                    const lineSubtotal = Math.max(
+                      p.quantity * p.unit_price - p.discount,
+                      0,
+                    );
+                    return (
+                      <tr key={`${p.product_id}-${p.variation_id}-${idx}`}>
+                        <td className="px-3 py-2 align-top">
+                          <div className="font-medium text-foreground">{p.name}</div>
+                          <div className="text-xs text-muted-foreground">SKU {p.sku}</div>
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            step="1"
+                            value={p.quantity}
+                            onChange={(e) =>
+                              handleProductChange(idx, 'quantity', Number(e.target.value))
+                            }
+                            aria-label={`Quantidade de ${p.name}`}
+                            className="h-8"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            step="0.01"
+                            value={p.unit_price}
+                            onChange={(e) =>
+                              handleProductChange(
+                                idx,
+                                'unit_price',
+                                Number(e.target.value),
+                              )
+                            }
+                            disabled={!props.permissions.editPrice}
+                            aria-label={`Preço unitário de ${p.name}`}
+                            className="h-8 tabular-nums"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            step="0.01"
+                            value={p.discount}
+                            onChange={(e) =>
+                              handleProductChange(idx, 'discount', Number(e.target.value))
+                            }
+                            disabled={!props.permissions.editDiscount}
+                            aria-label={`Desconto em ${p.name}`}
+                            className="h-8 tabular-nums"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums font-medium text-foreground align-middle">
+                          {formatBRL(lineSubtotal)}
+                        </td>
+                        <td className="px-3 py-2 text-right align-middle">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveProduct(idx)}
+                            aria-label={`Remover ${p.name}`}
+                            className="text-muted-foreground hover:text-destructive p-1"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot className="bg-muted/30 border-t border-border">
+                  <tr className="text-sm">
+                    <td colSpan={4} className="px-3 py-2 text-right font-medium text-foreground">
+                      Subtotal
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums font-semibold text-foreground">
+                      {formatBRL(subtotalProdutos)}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -323,6 +511,35 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               placeholder="Observações sobre a venda…"
               rows={3}
             />
+          </div>
+
+          {/* Total consolidado */}
+          <div className="rounded-md border border-border bg-muted/30 p-4 space-y-1.5 text-sm">
+            <div className="flex justify-between text-muted-foreground">
+              <span>Subtotal produtos</span>
+              <span className="tabular-nums">{formatBRL(subtotalProdutos)}</span>
+            </div>
+            {descontoPedido > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>
+                  Desconto do pedido
+                  {data.discount_type === 'percentage' && data.discount_amount > 0 && (
+                    <span className="text-xs"> ({data.discount_amount}%)</span>
+                  )}
+                </span>
+                <span className="tabular-nums">- {formatBRL(descontoPedido)}</span>
+              </div>
+            )}
+            {data.shipping.cost > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>Frete</span>
+                <span className="tabular-nums">+ {formatBRL(data.shipping.cost)}</span>
+              </div>
+            )}
+            <div className="flex justify-between border-t border-border pt-2 text-base font-semibold text-foreground">
+              <span>Total geral</span>
+              <span className="tabular-nums">{formatBRL(totalGeral)}</span>
+            </div>
           </div>
         </CardContent>
       </Card>
