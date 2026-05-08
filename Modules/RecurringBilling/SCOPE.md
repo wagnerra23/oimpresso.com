@@ -6,6 +6,7 @@ contains:
   - "InstallController"
   - "RecurringBillingController"
   - "AsaasWebhookController"
+  - "InterWebhookController"
   - "InvoiceController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
