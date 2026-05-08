@@ -7,7 +7,7 @@
  *   node scripts/generate-dxt.js --all --tokens-file=./scripts/tokens.json --out=./dxt
  *
  * Flags:
- *   --name        Nome do membro (ex: Wagner, Felipe, Maira, Luiz, Eliana)
+ *   --name        Nome do membro (ex: Wagner, Felipe, Maiara, Luiz, Eliana)
  *   --token       Token MCP pessoal (mcp_...)
  *   --out         Pasta de saída (default: ./dxt)
  *   --all         Gera pra todos usando --tokens-file
@@ -294,7 +294,7 @@ Uso:
   node scripts/generate-dxt.js --all --tokens-file=./scripts/tokens.json
 
 Flags:
-  --name        Nome do membro (Wagner / Felipe / Maira / Luiz / Eliana)
+  --name        Nome do membro (Wagner / Felipe / Maiara / Luiz / Eliana)
   --token       Token MCP pessoal (começa com mcp_)
   --out         Pasta de saída (default: ./dxt)
   --all         Gera pra todos via --tokens-file

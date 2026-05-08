@@ -386,7 +386,7 @@ Pesquisa rápida 6 temas, principais achados aplicáveis ao Oimpresso:
 - 0 PRs editando arquivo com charter sem charter-fetch (medir via `mcp_audit_log`)
 
 **Riscos:**
-- 🔴 Cunhar uma metodologia nova ("charter") sem precedente de mercado — **MITIGAÇÃO:** template inspirado em PMI/Asana, treinar Maíra/Felipe antes de exigir
+- 🔴 Cunhar uma metodologia nova ("charter") sem precedente de mercado — **MITIGAÇÃO:** template inspirado em PMI/Asana, treinar Maiara/Felipe antes de exigir
 - 🟡 Hook pre-edit pode falhar e travar workflow — flag de bypass `CHARTER_ENFORCE=false`
 - 🟢 10 charters de uma vez é otimista — começar com 3 (Repair listagem + Repair detalhe + Tarefas inbox) e aumentar
 
@@ -592,7 +592,7 @@ Cada tela: 2 dias média × 4 = 8 dias. Pode ser sequencial ou paralelo (Felipe 
 | Charters viram doc morto que ninguém atualiza | 🔴 Alto | Alto | `last_verified` em alerta, charter-first hook bloqueia edição |
 | Migration MWART regride quando muitas telas estão dual-mode | 🟡 Médio | Alto | Skill `mwart-migrate` + state machine + canary 14d |
 | ADR poda mata referência viva | 🟡 Médio | Alto | Aprovação bloco a bloco + grep de refs antes de archive |
-| Time externo (Felipe/Maíra) não adota workflow novo | 🔴 Alto | Médio | Onboarding playbook + treinamento 1h + métricas individuais |
+| Time externo (Felipe/Maiara) não adota workflow novo | 🔴 Alto | Médio | Onboarding playbook + treinamento 1h + métricas individuais |
 | Discrepância L7 brief vs realidade do banco | 🟡 Médio | Alto | Drift check semanal Wagner; brief uptime SLO 99% |
 
 ---
@@ -633,14 +633,14 @@ Cada tela: 2 dias média × 4 = 8 dias. Pode ser sequencial ou paralelo (Felipe 
 
 **Bloqueios potenciais:**
 - ⚠️ Se métricas S1/S2 não baterem, **NÃO seguir pra S3** — investigar e ajustar primeiro
-- ⚠️ Se time externo (Felipe/Maíra/Luiz/Eliana) não conseguir adotar brief-first em 7 dias, **dossier S3 precisa cobrir treinamento explícito** antes de promover mais skills Tier A
+- ⚠️ Se time externo (Felipe/Maiara/Luiz/Eliana) não conseguir adotar brief-first em 7 dias, **dossier S3 precisa cobrir treinamento explícito** antes de promover mais skills Tier A
 
 **Decisões Wagner (respondidas 2026-05-06):**
 - [x] Numeração S3 = Constituição: ✅ **APROVADO** (com revisão de conflitos — feita)
 - [x] Replicar MWART pras outras 4 telas Repair: ✅ **APROVADO — fazer (S2.5 ativo em paralelo a S3)**
 - [x] Brain A em Ollama local: ❌ **PULAR benchmark — manter OpenAI gpt-4o-mini canônico** (CT 100 sem GPU, 120b inviável; 20b não vale o esforço)
 - [x] Quem dirige S3: 👤 **WAGNER PESSOALMENTE**
-- [x] Cockpit S7: 🔒 **APENAS Wagner** (Felipe/Maíra/Luiz/Eliana sem acesso por enquanto)
+- [x] Cockpit S7: 🔒 **APENAS Wagner** (Felipe/Maiara/Luiz/Eliana sem acesso por enquanto)
 - [x] CYCLE-02: ⏸️ **NÃO ABRIR AINDA**
 - [x] ADR 0093 multi-tenant Tier 0: ⏰ **DEPOIS** (criar dentro do S3, não antes)
 
@@ -649,7 +649,7 @@ Cada tela: 2 dias média × 4 = 8 dias. Pode ser sequencial ou paralelo (Felipe 
 | Sprint | Driver primário | Backup | Aprovação final |
 |---|---|---|---|
 | S1 postmortem | Sonnet (este chat) | Wagner | Wagner |
-| S2 soak + replicação 4 telas | Wagner ou Felipe | Maíra | Wagner |
+| S2 soak + replicação 4 telas | Wagner ou Felipe | Maiara | Wagner |
 | S3 Constituição | Opus (via brief) ou Sonnet | Wagner | Wagner |
 | S4 Page Charters | Opus | Sonnet | Wagner |
 | S5 ADS Universal | Opus + Felipe (PHP backend) | Wagner | Wagner |

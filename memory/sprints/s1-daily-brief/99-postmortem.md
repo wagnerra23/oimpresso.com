@@ -85,7 +85,7 @@ WHERE tool_name = 'brief-fetch'
   AND called_at > NOW() - INTERVAL 7 DAY;
 ```
 
-**Alvo:** ≥6 agents distintos (Wagner + Felipe + Maíra + Luiz + Eliana + Opus pelo menos).
+**Alvo:** ≥6 agents distintos (Wagner + Felipe + Maiara + Luiz + Eliana + Opus pelo menos).
 
 ### 1.5. Token médio onboarding (delta vs baseline pré-S1)
 
@@ -155,7 +155,7 @@ Veredicto global: ⏳ pendente
 - [ ] Sprint 1 oficialmente fechado (tag `s1-completed-YYYY-MM-DD`)
 - [ ] Métricas pós-S1 viram baseline pra S3 medir delta
 - [ ] Atualizar `ROTEIRO-MESTRE.md §2` (S1 vira ✅ DONE)
-- [ ] Avisar Wagner/Felipe/Maíra/Luiz/Eliana de fechamento
+- [ ] Avisar Wagner/Felipe/Maiara/Luiz/Eliana de fechamento
 
 ---
 

@@ -58,7 +58,7 @@ class WhatsappServiceProvider extends ServiceProvider
 
         // Plug Repair: dispara Whatsapp em mudança de status (cumpre ADR Repair tech/0001)
         // Evento Modules\Repair\Events\RepairStatusChanged é declarado em Modules/Repair/Events/
-        // — dispatch real depende de PR coordenado com Felipe/Maíra modificando JobSheetController.
+        // — dispatch real depende de PR coordenado com Felipe/Maiara modificando JobSheetController.
         Event::listen(RepairStatusChanged::class, [NotifyRepairCustomer::class, 'handleEvent']);
 
         // Centrifugo real-time UI (ADR 0058) — publica em whatsapp:business:{id} channel

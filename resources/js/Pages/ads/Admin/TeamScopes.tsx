@@ -1,6 +1,6 @@
 // @ads
 //   tela: /ads/admin/team-scopes
-//   adrs: governance per-user × module (caso Maíra)
+//   adrs: governance per-user × module (caso Maiara)
 
 import React, { useState, type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'

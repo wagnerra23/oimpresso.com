@@ -82,7 +82,7 @@ D:\oimpresso.com\
 
 ## Time + propriedade
 
-**Modo solo Wagner (ADR 0047)** — todas as tasks owner [W]. Outros membros (Felipe/Maíra/Luiz/Eliana) referenciados em ADRs antigas mas atualmente inativos.
+**Modo solo Wagner (ADR 0047)** — todas as tasks owner [W]. Outros membros (Felipe/Maiara/Luiz/Eliana) referenciados em ADRs antigas mas atualmente inativos.
 
 **Cliente Copiloto:** Larissa Fernandes (ROTA LIVRE biz=4)
 **Cliente PontoWr2:** Eliana(WR2) — eliana@wr2.com.br (≠ Eliana[E] esposa Wagner)

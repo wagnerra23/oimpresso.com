@@ -17,7 +17,7 @@
 
 ## Categorias prioritárias (alta urgência migração)
 
-### 🔴 P1 — Receitas técnicas reproduzíveis (Felipe/Maíra precisam)
+### 🔴 P1 — Receitas técnicas reproduzíveis (Felipe/Maiara precisam)
 
 | Auto-mem atual | Migra pra |
 |---|---|

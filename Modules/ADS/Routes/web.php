@@ -108,7 +108,7 @@ Route::group([
     Route::redirect('/admin/kb/{slug}', '/kb/{slug}/show', 301)
         ->where('slug', '[A-Za-z0-9\-_\.]+');
 
-    // Team Scopes (caso Maíra: governance per-user × module)
+    // Team Scopes (caso Maiara: governance per-user × module)
     Route::get('/admin/team-scopes',          [TeamScopesController::class, 'index'])->name('ads.admin.teamscopes.index');
     Route::post('/admin/team-scopes/grant',   [TeamScopesController::class, 'grant'])->name('ads.admin.teamscopes.grant');
     Route::post('/admin/team-scopes/revoke',  [TeamScopesController::class, 'revoke'])->name('ads.admin.teamscopes.revoke');

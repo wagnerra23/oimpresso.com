@@ -35,7 +35,7 @@ docker compose up -d vaultwarden
    - `docker compose up -d vaultwarden` — recria com cadastro fechado
 6. **Remover porta 8200 temp do compose** quando DNS funcionar
 
-## Pra equipe (Felipe, Maíra, Luiz, Eliana)
+## Pra equipe (Felipe, Maiara, Luiz, Eliana)
 
 Após Wagner ter conta:
 - Wagner acessa painel `/admin` com ADMIN_TOKEN

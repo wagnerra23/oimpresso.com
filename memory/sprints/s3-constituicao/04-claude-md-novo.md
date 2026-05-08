@@ -230,7 +230,7 @@ Conteúdo: §10 atual (equipe interna, perfis, WIP, matriz quem-pode-pegar-qual-
 # Time interno (5 pessoas)
 
 - **Wagner [W]** — líder, dono. Aprovação final.
-- **Maíra [M]** — suporte+dev.
+- **Maiara [M]** — suporte+dev.
 - **Felipe [F]** — dev+suporte.
 - **Luiz [L]** — iniciante+dev IA-pair.
 - **Eliana [E]** — financeiro+dev IA (esposa Wagner).

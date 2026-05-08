@@ -113,7 +113,7 @@ Status for the jail: sshd
    |- Currently banned: 0
 ```
 
-### 4. Adicionar dev novo (Felipe/Maíra/Luiz/Eliana)
+### 4. Adicionar dev novo (Felipe/Maiara/Luiz/Eliana)
 
 #### Opção A — chave em root (simples, mas todos viram root)
 

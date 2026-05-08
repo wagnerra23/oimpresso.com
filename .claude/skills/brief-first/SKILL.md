@@ -4,7 +4,7 @@ description: |
   BLOQUEADOR — antes de qualquer outra tool MCP, Read, Glob, Grep ou ação no
   projeto Oimpresso, invoque a tool brief-fetch do servidor MCP oimpresso (nome
   exato varia por dev: mcp__Oimpresso_MCP___Wagner__brief-fetch / __Felipe__ /
-  __Maira__ etc). Carrega Daily Brief — estado consolidado em ~3k tokens.
+  __Maiara__ etc). Carrega Daily Brief — estado consolidado em ~3k tokens.
   Substitui 5-8 chamadas exploratórias (cycles-active, sessions-recent,
   tasks-active, decisions-search). Custo trivial (cache 5min), economia ~27k
   tokens por sessão.
@@ -23,7 +23,7 @@ applies_to:
 ## Quando ativa
 
 **Sempre.** Esta skill é Tier A — carrega em todo system prompt do Oimpresso.
-Toda sessão de Claude Code (Wagner, Felipe, Maíra, Luiz, Eliana, ou qualquer
+Toda sessão de Claude Code (Wagner, Felipe, Maiara, Luiz, Eliana, ou qualquer
 agente automatizado) deve seguir este protocolo no início.
 
 ## Protocolo obrigatório
@@ -32,7 +32,7 @@ agente automatizado) deve seguir este protocolo no início.
 PASSO 1 — SEMPRE chame primeiro a tool MCP brief-fetch:
    mcp__Oimpresso_MCP___<SEU_NOME>__brief-fetch {}
 
-   Onde <SEU_NOME> = Wagner / Felipe / Maira / Luiz / Eliana
+   Onde <SEU_NOME> = Wagner / Felipe / Maiara / Luiz / Eliana
    (depende de qual token MCP está configurado em .claude/settings.local.json).
 
    Se você não souber o prefixo, use ToolSearch:

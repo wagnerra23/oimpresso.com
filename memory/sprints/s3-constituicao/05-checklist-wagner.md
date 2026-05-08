@@ -119,7 +119,7 @@ Commit 4: `feat(hooks): SessionStart força brief-fetch`
 ## Passo 9 — Soak 7 dias + postmortem
 
 - [ ] Wagner usa Claude Code normalmente por 7 dias
-- [ ] Felipe e Maíra testam (se acessíveis)
+- [ ] Felipe e Maiara testam (se acessíveis)
 - [ ] Medir tokens médios/sessão antes vs depois (query SQL `mcp_audit_log`)
 - [ ] Postmortem em `99-postmortem.md`
 

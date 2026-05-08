@@ -31,7 +31,7 @@
 4. Implementar handler MCP brief-fetch                    ~1h
 5. Commitar skill .claude/skills/brief-first/             ~10min
 6. Testar end-to-end: claude code → mcp brief-fetch       ~30min
-7. Anunciar no time (Felipe/Maíra/Luiz/Eliana)            ~10min
+7. Anunciar no time (Felipe/Maiara/Luiz/Eliana)            ~10min
 8. Monitorar 48h: skill_telemetry + ads_decisions          (passivo)
 ```
 

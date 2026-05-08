@@ -32,7 +32,7 @@ CYCLE-01 fecha em 2026-05-12 com 2/3 goals batidos (Larissa OK, recall_chars OK,
 | 1 | Skills indexadas em `mcp_skills` | ≥ 16 (todas `.claude/skills/*/SKILL.md`) | `SELECT COUNT(*) FROM mcp_skills WHERE deleted_at IS NULL` |
 | 2 | Versions registradas em `mcp_skill_versions` | ≥ 16 (1 por skill na sync inicial) | `SELECT COUNT(*) FROM mcp_skill_versions` |
 | 3 | UI `/ads/admin/skills` (lista + detalhe + editor) em prod | merged + smoke OK | PR fechado + `curl -I https://oimpresso.com/ads/admin/skills` 200 |
-| 4 | Felipe/Maíra usaram `skills-search` tool MCP em 7 dias | ≥ 1 chamada cada | `mcp_audit_log` filter por user + tool |
+| 4 | Felipe/Maiara usaram `skills-search` tool MCP em 7 dias | ≥ 1 chamada cada | `mcp_audit_log` filter por user + tool |
 | 5 | Wagner editou ≥ 1 skill via UI durante o cycle | ≥ 1 entrada em `mcp_skill_versions` com `created_at > cycle.start` | query simples |
 
 **Removidos:** goal de policies (saiu de escopo P0 após ADR 0075 supersede 0073) + goal de bi-temporal (escorrega pra CYCLE-04). Goals 1-5 redefinidos pra UI Skills V0.5.
@@ -103,7 +103,7 @@ Dia útil 25/05 (segunda) — buffer + smoke integrado + retro CYCLE-02.
 - [ ] Smoke ADRs (`tests/Feature/Skills/smoke-adr-frontmatter.php`) passa
 - [ ] Sem regressão em CYCLE-01 (suite Copiloto continua 81 passed)
 - [ ] Wagner valida UI manualmente em prod
-- [ ] Felipe/Maíra confirmam que `skills-search` retorna resultado em 1 query
+- [ ] Felipe/Maiara confirmam que `skills-search` retorna resultado em 1 query
 
 ## Não-decisões deliberadas (fora deste cycle)
 
