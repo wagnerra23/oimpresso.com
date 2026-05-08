@@ -40,28 +40,80 @@ class CertificadoController extends Controller
         $businessId = (int) $request->session()->get('business.id');
         $cnpjBusiness = (string) $request->session()->get('business.tax_number_1', '');
 
+        $painel = $this->montarPainelFiscal($businessId, $cnpjBusiness);
+
         $cert = NfeCertificado::where('business_id', $businessId)
             ->where('ativo', true)
             ->first();
 
         if (! $cert) {
-            return Inertia::render('NfeBrasil/Configuracao/Certificado', [
-                'tem_certificado' => false,
-                'cnpj_business'   => $cnpjBusiness ?: null,
-            ]);
+            return Inertia::render('NfeBrasil/Configuracao/Certificado', array_merge(
+                ['tem_certificado' => false],
+                $painel,
+            ));
         }
 
         $dias = $cert->diasAteVencimento();
         $alerta = $dias < 0 ? 'vencido' : ($dias <= 30 ? 'proximo_vencimento' : 'ok');
 
-        return Inertia::render('NfeBrasil/Configuracao/Certificado', [
-            'tem_certificado'     => true,
-            'cnpj_business'       => $cnpjBusiness ?: null,
-            'cnpj_titular'        => $cert->cnpj_titular,
-            'valido_ate'          => $cert->valido_ate->format('Y-m-d'),
-            'dias_ate_vencimento' => $dias,
-            'alerta'              => $alerta,
-        ]);
+        // Fallback CNPJ titular: se cert foi gravado antes do fix de salvar(),
+        // cnpj_titular pode estar vazio. Usa business.cnpj como contexto.
+        $cnpjTitularRaw = $cert->cnpj_titular ?: '';
+        $cnpjTitularFallback = $cnpjTitularRaw === '' ? $painel['cnpj_business'] : null;
+
+        return Inertia::render('NfeBrasil/Configuracao/Certificado', array_merge([
+            'tem_certificado'              => true,
+            'cnpj_titular'                 => $cnpjTitularRaw ?: null,
+            'cnpj_titular_fallback'        => $cnpjTitularFallback,
+            'valido_ate'                   => $cert->valido_ate->format('Y-m-d'),
+            'dias_ate_vencimento'          => $dias,
+            'alerta'                       => $alerta,
+        ], $painel));
+    }
+
+    /**
+     * Coleta dados consolidados pra painel fiscal da tela do certificado:
+     *   - Identificação (CNPJ, razão, regime)
+     *   - Numeração NF-e (série, último/próximo número)
+     *   - Tributação default (NCM, CFOP, CSOSN)
+     *   - Localização (UF/cidade)
+     *   - Ambiente SEFAZ atual (1=produção, 2=homologação)
+     *
+     * Tudo defensivo — colunas opcionais não quebram se ausentes.
+     *
+     * @return array<string, mixed>
+     */
+    private function montarPainelFiscal(int $businessId, string $cnpjBusinessSession): array
+    {
+        $business = \DB::table('business')->where('id', $businessId)->first();
+        $config   = \DB::table('nfe_business_configs')->where('business_id', $businessId)->first();
+        $location = \DB::table('business_locations')
+            ->where('business_id', $businessId)
+            ->orderBy('id')
+            ->first();
+
+        $tributacao = $config?->tributacao_default
+            ? json_decode($config->tributacao_default, true)
+            : null;
+
+        $serie  = (string) ($business->numero_serie_nfe ?? '1');
+        $ultimo = (int) ($business->ultimo_numero_nfe ?? 0);
+
+        return [
+            'cnpj_business'   => $cnpjBusinessSession ?: ($business->cnpj ?? null),
+            'razao_social'    => $business->name ?? null,
+            'regime'          => $config?->regime,
+            'ncm_padrao'      => $business->ncm_padrao ?? null,
+            'serie_nfe'       => $serie,
+            'ultimo_numero'   => $ultimo,
+            'proximo_numero'  => $ultimo + 1,
+            'cfop_default'    => $tributacao['cfop'] ?? null,
+            'csosn_default'   => $tributacao['csosn'] ?? null,
+            'cst_default'     => $tributacao['cst'] ?? null,
+            'uf'              => $location?->state ?? null,
+            'cidade'          => $location?->city ?? null,
+            'ambiente'        => (int) ($business->ambiente ?? 2),
+        ];
     }
 
     /**
@@ -179,6 +231,55 @@ class CertificadoController extends Controller
             ->log('certificado.status_sefaz_consultado');
 
         return response()->json($resultado);
+    }
+
+    /**
+     * POST /nfe-brasil/configuracao/certificado/ambiente
+     *
+     * Atualiza `business.ambiente` (1=produção, 2=homologação). Inertia redirect
+     * de volta pra status() com flash success — preserva contexto da página
+     * sem reload total.
+     *
+     * Audit log captura mudança (sem dados fiscais sensíveis).
+     */
+    public function updateAmbiente(Request $request): RedirectResponse
+    {
+        $businessId = (int) $request->session()->get('business.id', 0);
+        if ($businessId === 0) {
+            return back()->withErrors(['ambiente' => 'Sessão sem business.']);
+        }
+
+        $validated = $request->validate([
+            'ambiente' => 'required|integer|in:1,2',
+        ]);
+
+        $ambienteAntes = (int) (\DB::table('business')
+            ->where('id', $businessId)
+            ->value('ambiente') ?? 2);
+        $ambienteNovo = (int) $validated['ambiente'];
+
+        if ($ambienteAntes === $ambienteNovo) {
+            return back()->with('success', 'Ambiente já estava configurado nesse valor.');
+        }
+
+        \DB::table('business')
+            ->where('id', $businessId)
+            ->update(['ambiente' => $ambienteNovo]);
+
+        activity('nfe.certificado')
+            ->causedBy($request->user())
+            ->withProperties([
+                'business_id'   => $businessId,
+                'ambiente_de'   => $ambienteAntes,
+                'ambiente_para' => $ambienteNovo,
+            ])
+            ->log('certificado.ambiente_alterado');
+
+        $label = $ambienteNovo === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO';
+
+        return redirect()
+            ->route('nfe-brasil.certificado.status')
+            ->with('success', "Ambiente SEFAZ alterado para {$label}.");
     }
 
     /**

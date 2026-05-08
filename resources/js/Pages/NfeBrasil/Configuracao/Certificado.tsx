@@ -24,14 +24,30 @@ type SefazTesteResultado = {
 };
 
 type Alerta = 'ok' | 'proximo_vencimento' | 'vencido';
+type Ambiente = 1 | 2;
 
 interface PageProps {
   tem_certificado: boolean;
-  cnpj_business: string | null;
-  cnpj_titular?: string;
+  // Cert info (quando tem_certificado=true)
+  cnpj_titular?: string | null;
+  cnpj_titular_fallback?: string | null;
   valido_ate?: string;          // YYYY-MM-DD
   dias_ate_vencimento?: number;
   alerta?: Alerta;
+  // Painel fiscal — sempre presente
+  cnpj_business: string | null;
+  razao_social?: string | null;
+  regime?: 'mei' | 'simples' | 'lucro_presumido' | 'lucro_real' | null;
+  ncm_padrao?: string | null;
+  serie_nfe?: string;
+  ultimo_numero?: number;
+  proximo_numero?: number;
+  cfop_default?: string | null;
+  csosn_default?: string | null;
+  cst_default?: string | null;
+  uf?: string | null;
+  cidade?: string | null;
+  ambiente?: Ambiente;
 }
 
 interface FlashProps {
@@ -86,6 +102,25 @@ function Certificado(props: PageProps) {
   // Teste SEFAZ — local state (não Inertia, evita reload da Page)
   const [testando, setTestando] = useState(false);
   const [resultadoTeste, setResultadoTeste] = useState<SefazTesteResultado | null>(null);
+
+  // Form pra trocar ambiente SEFAZ — Inertia preserveScroll
+  const ambienteForm = useForm<{ ambiente: Ambiente }>({
+    ambiente: (props.ambiente ?? 2) as Ambiente,
+  });
+
+  const submitAmbiente = (e: FormEvent) => {
+    e.preventDefault();
+    if (ambienteForm.data.ambiente === props.ambiente) return; // sem mudança
+    ambienteForm.post('/nfe-brasil/configuracao/certificado/ambiente', {
+      preserveScroll: true,
+      onSuccess: () => {
+        toast.success(
+          `Ambiente alterado para ${ambienteForm.data.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}.`,
+        );
+      },
+      onError: () => toast.error('Falha ao salvar ambiente.'),
+    });
+  };
 
   const testarSefaz = async () => {
     setTestando(true);
@@ -184,7 +219,18 @@ function Certificado(props: PageProps) {
               <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 <div>
                   <dt className="text-xs text-muted-foreground uppercase tracking-wide">CNPJ titular</dt>
-                  <dd className="font-mono mt-0.5">{props.cnpj_titular ? formatCnpj(props.cnpj_titular) : '—'}</dd>
+                  <dd className="font-mono mt-0.5">
+                    {props.cnpj_titular
+                      ? formatCnpj(props.cnpj_titular)
+                      : props.cnpj_titular_fallback
+                        ? (
+                            <span title="cnpj_titular vazio no cert — usando business.cnpj como referência">
+                              {formatCnpj(props.cnpj_titular_fallback)}{' '}
+                              <span className="text-xs opacity-60">(business)</span>
+                            </span>
+                          )
+                        : '—'}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-xs text-muted-foreground uppercase tracking-wide">Válido até</dt>
@@ -196,12 +242,143 @@ function Certificado(props: PageProps) {
                 </div>
               </dl>
             )}
-            {cnpjBusinessFmt && (
-              <p className="text-xs text-muted-foreground mt-3 pt-3 border-t">
-                CNPJ do business cadastrado: <span className="font-mono">{cnpjBusinessFmt}</span> — o
-                certificado precisa pertencer a este CNPJ.
-              </p>
-            )}
+          </CardContent>
+        </Card>
+
+        {/* Identificação fiscal */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Identificação fiscal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">CNPJ business</dt>
+                <dd className="font-mono mt-0.5">{cnpjBusinessFmt ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">Razão social</dt>
+                <dd className="mt-0.5">{props.razao_social ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">Regime tributário</dt>
+                <dd className="mt-0.5 capitalize">
+                  {props.regime
+                    ? props.regime.replace('_', ' ')
+                    : (
+                        <span className="text-amber-600 dark:text-amber-400">
+                          não configurado — aplique um template em /nfe-brasil/tributacao
+                        </span>
+                      )}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">Localização</dt>
+                <dd className="mt-0.5">
+                  {props.cidade && props.uf
+                    ? `${props.cidade} / ${props.uf}`
+                    : props.uf || '—'}
+                </dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Numeração e tributação default */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Numeração e tributação default</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Cascade Nível 4 — usado quando não há regra NCM específica nem override por produto.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">NCM padrão</dt>
+                <dd className="font-mono mt-0.5">{props.ncm_padrao ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">CFOP</dt>
+                <dd className="font-mono mt-0.5">{props.cfop_default ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">CSOSN/CST</dt>
+                <dd className="font-mono mt-0.5">
+                  {props.csosn_default || props.cst_default || '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">Série NFe</dt>
+                <dd className="font-mono mt-0.5">{props.serie_nfe ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">Último número</dt>
+                <dd className="font-mono mt-0.5">{props.ultimo_numero ?? 0}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground uppercase tracking-wide">Próximo número</dt>
+                <dd className="font-mono mt-0.5">{props.proximo_numero ?? 1}</dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Ambiente SEFAZ — selector */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Ambiente SEFAZ</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              <strong>Homologação</strong> = teste, NF-e gerada não tem valor fiscal.{' '}
+              <strong>Produção</strong> = valor fiscal real, vai pra contabilidade.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={submitAmbiente} className="space-y-3">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="radio"
+                    name="ambiente"
+                    value={2}
+                    checked={ambienteForm.data.ambiente === 2}
+                    onChange={() => ambienteForm.setData('ambiente', 2)}
+                  />
+                  <span className="font-medium">Homologação</span>
+                  <span className="text-xs text-muted-foreground">(teste)</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="radio"
+                    name="ambiente"
+                    value={1}
+                    checked={ambienteForm.data.ambiente === 1}
+                    onChange={() => ambienteForm.setData('ambiente', 1)}
+                  />
+                  <span className="font-medium">Produção</span>
+                  <span className="text-xs text-amber-600 dark:text-amber-400">(valor fiscal real)</span>
+                </label>
+              </div>
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <p className="text-xs text-muted-foreground">
+                  Atual:{' '}
+                  <span className="font-mono">
+                    {props.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}
+                  </span>
+                </p>
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  disabled={ambienteForm.processing || ambienteForm.data.ambiente === props.ambiente}
+                >
+                  {ambienteForm.processing ? 'Salvando…' : 'Salvar ambiente'}
+                </Button>
+              </div>
+              {ambienteForm.errors.ambiente && (
+                <p className="text-xs text-destructive">{ambienteForm.errors.ambiente}</p>
+              )}
+            </form>
           </CardContent>
         </Card>
 
