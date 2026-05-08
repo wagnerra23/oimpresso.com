@@ -1,0 +1,184 @@
+name: MWART Gate (soft)
+
+# Camada 3 do enforcement do processo MWART canônico (ADR 0104).
+# Verifica que PRs tocando Pages/<Mod>/<Tela>.tsx têm RUNBOOK + SPEC correspondentes.
+# Override: comentar '/mwart-override <razão>' no PR — registra exceção em ADR per-tela.
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/Pages/**/*.tsx'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  mwart-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect Pages alteradas
+        id: detect
+        run: |
+          set -euo pipefail
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          mapfile -t pages < <(
+            git diff --name-only --diff-filter=AM "$base_sha"...HEAD \
+              | grep -E '^resources/js/Pages/[^/_][^/]+/' \
+              | grep -E '\.tsx$' \
+              | grep -vE '/_[A-Za-z]' \
+              | grep -vE '/_components/' \
+              | sort -u
+          ) || true
+          echo "count=${#pages[@]}" >> "$GITHUB_OUTPUT"
+          {
+            echo "list<<EOF"
+            printf '%s\n' "${pages[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "Detected ${#pages[@]} Pages alteradas (excluindo _internals)."
+
+      - name: Check override
+        id: override
+        run: |
+          set -euo pipefail
+          # Busca último comentário '/mwart-override' no PR
+          pr_comments=$(gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments --jq '.[].body' 2>/dev/null || echo "")
+          if echo "$pr_comments" | grep -qE '^/mwart-override\s+'; then
+            echo "Override detected — relaxing gate."
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify RUNBOOK + SPEC presence
+        id: gate
+        if: steps.detect.outputs.count != '0' && steps.override.outputs.active != 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          fail=0
+          report=""
+
+          while IFS= read -r page; do
+            [[ -z "$page" ]] && continue
+
+            # Extrair módulo (1ª pasta após Pages/) e tela (basename .tsx)
+            modulo=$(echo "$page" | sed -E 's|resources/js/Pages/([^/]+)/.*|\1|')
+            tela_pascal=$(basename "$page" .tsx)
+
+            # Pular helpers internos (já filtrado no detect, defensivo)
+            if [[ "$tela_pascal" =~ ^_ ]]; then continue; fi
+            if [[ "$tela_pascal" == "App" ]] || [[ "$tela_pascal" == "Layout" ]]; then continue; fi
+
+            # PascalCase → kebab-case
+            tela_kebab=$(echo "$tela_pascal" | sed -E 's/([a-z0-9])([A-Z])/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+
+            runbook="memory/requisitos/${modulo}/RUNBOOK-${tela_kebab}.md"
+            spec="memory/requisitos/${modulo}/SPEC.md"
+
+            echo "::group::Page: $page (módulo=$modulo, tela=$tela_kebab)"
+
+            if [ ! -f "$runbook" ]; then
+              echo "❌ RUNBOOK ausente: $runbook"
+              report="${report}- ❌ \`$page\` — RUNBOOK ausente em \`$runbook\` (ADR 0104 §F1 PLAN)\n"
+              fail=1
+            else
+              echo "✅ RUNBOOK presente: $runbook"
+            fi
+
+            if [ ! -f "$spec" ]; then
+              echo "❌ SPEC ausente: $spec"
+              report="${report}- ❌ \`$page\` — SPEC.md ausente em \`memory/requisitos/${modulo}/\` (ADR 0104 §F1 PLAN exige epic + subtasks)\n"
+              fail=1
+            else
+              # Verifica se tem ao menos 1 US no SPEC
+              if ! grep -qE "^### US-[A-Z]+-[0-9]+" "$spec"; then
+                echo "⚠ SPEC.md existe mas não tem US-* declaradas"
+                report="${report}- ⚠ \`$page\` — \`$spec\` sem nenhuma US declarada\n"
+                fail=1
+              else
+                echo "✅ SPEC presente com USs"
+              fi
+            fi
+
+            echo "::endgroup::"
+          done <<< "${{ steps.detect.outputs.list }}"
+
+          echo "fail=$fail" >> "$GITHUB_OUTPUT"
+          {
+            echo "report<<EOF"
+            echo -e "$report"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comment results on PR
+        if: always() && steps.detect.outputs.count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const count = '${{ steps.detect.outputs.count }}';
+            const overrideActive = '${{ steps.override.outputs.active }}' === 'true';
+            const gateFail = '${{ steps.gate.outputs.fail }}' === '1';
+            const report = `${{ steps.gate.outputs.report }}`;
+
+            let status, body;
+            if (overrideActive) {
+              status = '⚠️ Override ativo';
+              body = [
+                `## 🛡️ MWART Gate — soft mode (override ativo)`,
+                ``,
+                `**Pages alteradas:** ${count}`,
+                `**Status:** ${status}`,
+                ``,
+                `> Override detectado via comentário \`/mwart-override\`. Gate não bloqueia, mas exceção deveria virar ADR per-tela em \`memory/decisions/<NNNN>-mwart-excecao-*.md\`.`,
+                ``,
+                `_Ver [ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)._`
+              ].join('\n');
+            } else if (gateFail) {
+              status = '❌ Violações detectadas';
+              body = [
+                `## 🛡️ MWART Gate — soft mode`,
+                ``,
+                `**Pages alteradas:** ${count}`,
+                `**Status:** ${status}`,
+                ``,
+                `### Violações`,
+                report || '_(ver workflow logs)_',
+                ``,
+                `### Como resolver`,
+                `- Rodar \`/cockpit-runbook /<rota_da_tela>\` no Claude Code pra gerar RUNBOOK + SPEC ausentes`,
+                `- OU comentar \`/mwart-override <razão>\` neste PR pra registrar exceção (vira ADR per-tela)`,
+                ``,
+                `> **Soft mode** — não bloqueia merge ainda. Em fase 2 (após backfill US-MWART-002), vira hard.`,
+                ``,
+                `_Ver [ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md), [skill mwart-process](../../.claude/skills/mwart-process/SKILL.md)._`
+              ].join('\n');
+            } else {
+              status = '✅ All clear';
+              body = [
+                `## 🛡️ MWART Gate — soft mode`,
+                ``,
+                `**Pages alteradas:** ${count}`,
+                `**Status:** ${status}`,
+                ``,
+                `> Todos os Pages alterados têm RUNBOOK + SPEC correspondentes (ADR 0104 §F1 PLAN OK).`,
+                ``,
+                `_Ver [ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)._`
+              ].join('\n');
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
