@@ -26,6 +26,7 @@ import {
   SheetDescription,
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
+import FiscalSection from './FiscalSection';
 
 interface Customer {
   id: number;
@@ -340,6 +341,9 @@ export default function SaleSheet({ saleId, open, onOpenChange }: Props) {
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{data.additional_notes}</p>
                 </Section>
               )}
+
+              {/* Fiscal — emissões NFC-e/NFe + ações (US-NFE-MANUAL) */}
+              <FiscalSection saleId={data.id} enabled={open} />
             </div>
 
             {/* Footer ações sticky */}
