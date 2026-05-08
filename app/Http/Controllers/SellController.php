@@ -884,6 +884,7 @@ class SellController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
         $payment_status = $request->input('payment_status'); // '', paid, due, partial, overdue
+        $search = trim((string) $request->input('q', ''));
         $perPage = min(max((int) $request->input('per_page', 25), 5), 100);
         $page = max((int) $request->input('page', 1), 1);
 
@@ -917,6 +918,16 @@ class SellController extends Controller
                 if (auth()->user()->hasAnyPermission(['view_commission_agent_sell', 'access_commission_agent_shipping'])) {
                     $qq->orWhere('transactions.commission_agent', request()->session()->get('user.id'));
                 }
+            });
+        }
+
+        // Busca livre por cliente (name / supplier_business_name) ou número de fatura.
+        if ($search !== '') {
+            $q->where(function ($qq) use ($search) {
+                $like = '%' . $search . '%';
+                $qq->where('contacts.name', 'like', $like)
+                    ->orWhere('contacts.supplier_business_name', 'like', $like)
+                    ->orWhere('transactions.invoice_no', 'like', $like);
             });
         }
 
