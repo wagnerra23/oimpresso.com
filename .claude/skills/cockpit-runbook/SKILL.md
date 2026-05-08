@@ -222,6 +222,8 @@ Curadas em [GOTCHAS.md](GOTCHAS.md). Append-only — cada incidente vira pegadin
 
 ## Skills irmãs
 
+- [`mwart-process`](../mwart-process/SKILL.md) — **Tier A always-on**, processo MWART canônico ([ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)) em 5 fases. Esta skill (`cockpit-runbook`) executa **F1 PLAN** (Modo Generate) e **F3/F4 Audit** (Modo B/C).
+- [`mwart-quality`](../mwart-quality/SKILL.md) — pré-flight checks na F3 FRONTEND (auto-ativa quando começa a codar Page Inertia)
 - [`criar-modulo`](../criar-modulo/SKILL.md) — pra runbook de **módulo novo** (estrutura modular nWidart, não tela)
 - [`memory-sync`](../memory-sync/SKILL.md) — pra propagar RUNBOOK gerado pro MCP via git push
 - [`copiloto-arch`](../copiloto-arch/SKILL.md) — se a tela é do Copiloto, ativar antes
