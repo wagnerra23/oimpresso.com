@@ -16,7 +16,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Loader2, Search, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Search, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -27,6 +27,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
+import PaymentRow, { type Payment } from './_components/PaymentRow';
+import { dropdownEntries } from './_components/dropdownEntries';
 import {
   Select,
   SelectContent,
@@ -92,22 +94,7 @@ export interface SellsCreatePageProps {
 
 const ADVANCED_OPEN_KEY = 'oimpresso.sells.create.advanced.open';
 
-/**
- * Filtra entries com key vazia ('') ou null.
- *
- * UltimatePOS forDropdowns (TaxRate, Account, InvoiceScheme, etc) frequentemente
- * fazem `prepend_none` adicionando key '' = "Nenhum" pro Select2 jQuery legacy.
- * Radix UI <Select.Item value="" /> dá erro: "must have a value prop that is not
- * an empty string". A escolha vazia já é representada pelo SelectValue placeholder.
- */
-function dropdownEntries(
-  record: Record<string | number, unknown> | null | undefined,
-): Array<[string, string]> {
-  if (!record) return [];
-  return Object.entries(record)
-    .filter(([id]) => id !== '' && id !== 'null' && id != null)
-    .map(([id, value]) => [id, String(value ?? '')] as [string, string]);
-}
+// dropdownEntries movido pra _components/dropdownEntries.ts (utility shared local).
 
 export default function SellsCreate(props: SellsCreatePageProps) {
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=format_now_local
@@ -132,12 +119,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       unit_price: number;
       discount: number;
     }>,
-    payments: [] as Array<{
-      amount: number;
-      method: string;
-      paid_on: string;
-      account_id: number | null;
-    }>,
+    payments: [
+      {
+        amount: 0,
+        method: 'cash',
+        paid_on: '',
+        account_id: null as number | null,
+        note: '',
+      },
+    ] as Payment[],
     discount_type: 'percentage' as 'percentage' | 'fixed',
     discount_amount: 0,
     notes: '',
@@ -229,6 +219,49 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     setData(
       'products',
       data.products.filter((_, i) => i !== idx),
+    );
+  };
+
+  // Pagamentos
+  const totalPago = useMemo(
+    () => data.payments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0),
+    [data.payments],
+  );
+  const saldoPagamento = totalPago - totalGeral;
+  const pagamentoStatus =
+    Math.abs(saldoPagamento) < 0.01
+      ? 'exato'
+      : saldoPagamento < 0
+        ? 'falta'
+        : 'troco';
+
+  const handlePaymentChange = (
+    idx: number,
+    field: keyof Payment,
+    value: string | number | null,
+  ) => {
+    const next = [...data.payments];
+    next[idx] = { ...next[idx], [field]: value } as Payment;
+    setData('payments', next);
+  };
+
+  const handleAddPayment = () => {
+    setData('payments', [
+      ...data.payments,
+      {
+        amount: Math.max(-saldoPagamento, 0),
+        method: 'cash',
+        paid_on: '',
+        account_id: null,
+        note: '',
+      },
+    ]);
+  };
+
+  const handleRemovePayment = (idx: number) => {
+    setData(
+      'payments',
+      data.payments.filter((_, i) => i !== idx),
     );
   };
 
@@ -463,17 +496,63 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         </CardContent>
       </Card>
 
-      {/* Bloco pagamentos — placeholder até US-SELL-006 */}
+      {/* Bloco pagamentos — split de pagamento + indicador saldo (US-SELL-006) */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Pagamento</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Pagamento</CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddPayment}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Adicionar pagamento
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
-          <EmptyState
-            icon="wallet"
-            title="Nenhum pagamento adicionado"
-            description="PaymentRow + cálculos chegam em US-SELL-006."
-          />
+        <CardContent className="space-y-3">
+          {data.payments.map((p, idx) => (
+            <PaymentRow
+              key={idx}
+              payment={p}
+              index={idx}
+              paymentTypes={props.paymentTypes}
+              accounts={props.accounts}
+              defaultDatetime={props.defaultDatetime}
+              onChange={handlePaymentChange}
+              onRemove={handleRemovePayment}
+              removable={data.payments.length > 1}
+            />
+          ))}
+
+          {/* Indicador saldo de pagamento */}
+          {totalGeral > 0 && (
+            <div
+              className={
+                'rounded-md border p-3 text-sm flex items-center justify-between ' +
+                (pagamentoStatus === 'falta'
+                  ? 'border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                  : pagamentoStatus === 'troco'
+                    ? 'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300'
+                    : 'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300')
+              }
+            >
+              <div>
+                <div className="font-medium">
+                  {pagamentoStatus === 'exato' && 'Total pago confere com a venda'}
+                  {pagamentoStatus === 'falta' &&
+                    `Falta ${formatBRL(Math.abs(saldoPagamento))} pra fechar`}
+                  {pagamentoStatus === 'troco' &&
+                    `Troco de ${formatBRL(saldoPagamento)}`}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Pago {formatBRL(totalPago)} · Total venda {formatBRL(totalGeral)}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
