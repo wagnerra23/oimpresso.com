@@ -61,6 +61,11 @@ Route::group(
             ->where('taskId', '[A-Z0-9\-]+')
             ->name('project-mgmt.board.unwatch');
 
+        // ---- Subtasks UI — PMG-007 (ADR 0100) ------------------------------
+        Route::post('/board/{taskId}/subtask', 'BoardController@addSubtask')
+            ->where('taskId', '[A-Z0-9\-]+')
+            ->name('project-mgmt.board.add-subtask');
+
         // ---- Cmd+K Search Global — PMG-002 (ADR 0100) ----------------------
         Route::get('/search', 'SearchController@index')
             ->name('project-mgmt.search');
