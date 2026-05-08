@@ -89,6 +89,20 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // S6 F2 charter:health — drift detector daily de Page Charters.
+        // Roda 06:30 BRT (após jana:health-check). Métrica M6 (anti-hallucination
+        // ratchet) lê daqui pro dashboard /copiloto/admin/qualidade em F4.
+        // Spec em memory/sprints/s6-charter-capterra/03-charter-pest-runner.md.
+        $schedule->command('charter:health --notify')
+            ->dailyAt('06:30')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule charter:health FALHOU — investigar drift de Page Charters'
+                );
+            });
+
         // US-RB-046 — sync extrato bancário Inter D-7 (Banking API v2).
         // Roda 07:00 BRT pra ter dia anterior fechado. Idempotente via UNIQUE
         // (conta_bancaria_id, idempotency_key) em fin_extrato_lancamentos.
