@@ -7,7 +7,76 @@
 
 ---
 
-## 🆕 Estado pós-2026-05-07 noite-3 — fix biz=1 + template SC + memória consolidada (3 PRs adicionais)
+## 🆕 Estado pós-2026-05-08 madrugada — 8 PRs noite-3, painel fiscal + guard CI + 3 ADRs canon
+
+**Sessão Opus 2026-05-07 → 2026-05-08 (continuação noite-2)** — 8 PRs adicionais mergeados em ~6h consolidando NfeBrasil + governança biz_id.
+
+### PRs mergeados nesta extensão (8 PRs)
+
+| PR | Tipo | Conteúdo |
+|---|---|---|
+| [#208](https://github.com/wagnerra23/oimpresso.com/pull/208) | fix | NfeBrasil tests biz_id=4→1 (14 arquivos + 2 PII removidas) |
+| [#212](https://github.com/wagnerra23/oimpresso.com/pull/212) | feat | Template Simples Nacional SC (11º L1, sem FCP) |
+| [#215](https://github.com/wagnerra23/oimpresso.com/pull/215) | feat | Botão "Testar conexão SEFAZ" + endpoint NFeStatusServico |
+| [#216](https://github.com/wagnerra23/oimpresso.com/pull/216) | chore | Guard CI BusinessIdGuardTest + sweep 25 arquivos (Whatsapp/RB/Copiloto/Builders) |
+| [#217](https://github.com/wagnerra23/oimpresso.com/pull/217) | fix | Tools::model(int) bug runtime + payload erro com UF/ambiente |
+| [#218](https://github.com/wagnerra23/oimpresso.com/pull/218) | docs | +3 ADRs canon (0101 biz_id=1, 0102 polling NFCe, 0103 events por modelo) |
+| [#219](https://github.com/wagnerra23/oimpresso.com/pull/219) | feat | Painel fiscal completo cert (5 cards + selector ambiente + fallback CNPJ) |
+| #220 | feat | (outra sessão) PMG-004 Detail Sheet ProjectMgmt fase 2 |
+
+### Estado biz=1 (Wagner WR2 Sistemas, Tubarão/SC) — pronta pra smoke real
+
+| Pré-requisito | Status |
+|---|---|
+| Cert A1 ativo | ✅ válido até 2026-08-06 |
+| CNPJ + NCM padrão `49111000` | ✅ |
+| Ambiente SEFAZ | ✅ 2 (homologação) |
+| Template Simples SC aplicado | ✅ via UI |
+| `nfe_business_configs` row | ✅ regime=simples, cfop=5102, csosn=102 |
+| Painel fiscal UI | ✅ 5 cards + botão "Testar agora" + selector ambiente |
+| Botão "Testar agora" funcional | ✅ fix #217 (cast int) em prod |
+| Flag `NFEBRASIL_AUTO_EMISSION_NFCE` | ❌ não setada (default false — opt-in Wagner) |
+
+**Smoke real está a 1 toggle de flag** + criação de venda fictícia.
+
+### Regra dura nova consolidada (3 PRs + guard CI)
+
+🚨 **Tests SEMPRE biz_id=1 (Wagner), NUNCA 4 (cliente RotaLivre).** Cross-tenant adversário = 99.
+
+- Auto-mem: `feedback_test_business_id_1_nunca_4.md` (top entry MEMORY.md)
+- ADR canon: [0101](decisions/0101-tests-business-id-1-nunca-cliente.md)
+- Guard CI: `tests/Unit/BusinessIdGuardTest.php` — varre 7 patterns regex em 148 arquivos, falha CI em regressão
+- Cobertura: 47 arquivos sweep (NfeBrasil 22 + Whatsapp 8 + RB 4 + Copiloto 12 + Builders 1)
+- Audit final: 0 violações / 50 arquivos com 237 ocorrências `business_id=1`
+
+### Bug runtime grave consertado (PR #217)
+
+`Tools::model()` em sped-nfe v5+ exige `?int`, eu passava `string '55'/'65'` → TypeError em runtime real ao Wagner clicar "Testar agora". Tests Pest mockavam Tools sem assertion de tipo → bug invisível em CI.
+
+Fix: `(int) $modelo` cast + try/catch envolvendo TUDO em `consultarStatusSefaz` + payload de erro com UF/ambiente preenchidos.
+
+4 tests anti-regressão garantem `Tools::model()` recebe INT em runtime real.
+
+### PRs Maiara não mergeáveis (branches obsoletas)
+
+| PR | Problema |
+|---|---|
+| [#191](https://github.com/wagnerra23/oimpresso.com/pull/191) Maíra→Maiara | Branch ~25 PRs atrás de main |
+| [#184](https://github.com/wagnerra23/oimpresso.com/pull/184) Tributação CTA | Branch apagaria 11 templates L1 (PRs #194/195/199/212) |
+
+**Comentei nos 2 sugerindo refazer a partir de main fresh.** Wagner ou Maiara fecham/refazem.
+
+### Próximos passos (ordem ROI)
+
+1. **Smoke real homologação SEFAZ biz=1** — Wagner loga `oimpresso.com`, eu clico "Testar agora" → cstat 107 valida cert+SEFAZ+UF; depois habilita flag + cria venda
+2. **Templates GO + PA** (FCP 2%) — fechar 5/5 estados FCP
+3. **Integração Blade POS** legacy → Inertia + plugar `<NfceStatusBadge />` (PR grande ~4-8h)
+4. **Listener retry rejeitadas** + event `NFCeRejeitada`
+5. **ADR broadcast Centrifugo HTTP bridge** — desbloquear fase 2C real-time
+
+---
+
+## Estado pós-2026-05-07 noite-3 — fix biz=1 + template SC + memória consolidada (3 PRs adicionais)
 
 **Sessão Opus 2026-05-07 noite-3** — extensão da sessão noite-2. Wagner sinalizou erro grave (testes usavam biz=4 cliente), consertamos e configuramos biz=1 (Wagner WR2 SC) pra primeiro smoke real fiscal.
 
