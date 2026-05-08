@@ -272,23 +272,67 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     input?.focus();
   };
 
+  // Itens count pra KPI card
+  const itensCount = data.products.reduce((acc, p) => acc + (Number(p.quantity) || 0), 0);
+
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-7xl">
-      <PageHeader
-        icon="shopping-cart"
-        title="Adicionar venda"
-        action={
+      <PageHeader icon="shopping-cart" title="Adicionar venda" />
+
+      {/* Action bar sticky com KPIs + ações primárias.
+          Adaptação do canon os-page.jsx (os-stats) pra tela de criação.
+          Refs: sells-create-visual-comparison.md §1 Layout, §8 Componentes */}
+      <div className="sticky top-0 z-30 -mx-6 px-6 py-3 bg-background/95 backdrop-blur border-b border-border">
+        <div className="flex items-center gap-4 justify-between flex-wrap">
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Itens</span>
+              <span className="font-semibold tabular-nums text-foreground">{itensCount}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Total venda</span>
+              <span className="font-semibold tabular-nums text-foreground">
+                {formatBRL(totalGeral)}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">
+                Pago{' '}
+                {totalGeral > 0 && (
+                  <span
+                    className={
+                      pagamentoStatus === 'falta'
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : pagamentoStatus === 'troco'
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-emerald-600 dark:text-emerald-400'
+                    }
+                  >
+                    ·{' '}
+                    {pagamentoStatus === 'falta'
+                      ? `falta ${formatBRL(Math.abs(saldoPagamento))}`
+                      : pagamentoStatus === 'troco'
+                        ? `troco ${formatBRL(saldoPagamento)}`
+                        : 'OK'}
+                  </span>
+                )}
+              </span>
+              <span className="font-semibold tabular-nums text-foreground">
+                {formatBRL(totalPago)}
+              </span>
+            </div>
+          </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => router.visit('/sells')}>
+            <Button variant="outline" size="sm" onClick={() => router.visit('/sells')}>
               Cancelar
             </Button>
-            <Button disabled={processing}>
+            <Button size="sm" disabled={processing}>
               {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {processing ? 'Salvando…' : 'Salvar venda'}
             </Button>
           </div>
-        }
-      />
+        </div>
+      </div>
 
       {/* Linha 1: Cliente + Data + Status + Local — 4 campos sempre visíveis */}
       <Card>
