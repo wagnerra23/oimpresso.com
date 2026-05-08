@@ -915,6 +915,8 @@ class SellController extends Controller
             $q->where('transactions.payment_status', $payment_status);
         }
 
+        // total_paid via subquery — coluna não existe em transactions (UltimatePOS pattern).
+        // Ref: TransactionUtil.php:2400 e :2983.
         $rows = $q->orderBy('transactions.transaction_date', 'desc')
             ->limit($limit)
             ->get([
@@ -922,7 +924,7 @@ class SellController extends Controller
                 'transactions.transaction_date',
                 'transactions.invoice_no',
                 'transactions.final_total',
-                'transactions.total_paid',
+                \DB::raw('(SELECT COALESCE(SUM(IF(tp.is_return = 0, tp.amount, tp.amount * -1)), 0) FROM transaction_payments as tp WHERE tp.transaction_id = transactions.id) as total_paid'),
                 'transactions.payment_status',
                 'transactions.shipping_status',
                 'transactions.pay_term_number',
@@ -976,7 +978,7 @@ class SellController extends Controller
             'contact:id,name,supplier_business_name,mobile,email',
             'sell_lines:id,transaction_id,product_id,quantity,unit_price_inc_tax,line_discount_amount',
             'sell_lines.product:id,name,sku',
-            'payment_lines:id,transaction_id,amount,method,paid_on,note',
+            'payment_lines:id,transaction_id,amount,method,paid_on,note,is_return',
             'location:id,name',
         ])
             ->where('business_id', $business_id)
@@ -988,12 +990,17 @@ class SellController extends Controller
             abort(404);
         }
 
+        // total_paid não existe em transactions — soma via payment_lines (já eager loaded).
+        $totalPaid = $sale->payment_lines->reduce(function ($carry, $p) {
+            return $carry + ((bool) ($p->is_return ?? false) ? -1 : 1) * (float) $p->amount;
+        }, 0.0);
+
         return response()->json([
             'id' => $sale->id,
             'invoice_no' => $sale->invoice_no,
             'transaction_date' => $sale->transaction_date,
             'final_total' => (float) $sale->final_total,
-            'total_paid' => (float) $sale->total_paid,
+            'total_paid' => $totalPaid,
             'tax_amount' => (float) $sale->tax_amount,
             'discount_amount' => (float) $sale->discount_amount,
             'discount_type' => $sale->discount_type,
