@@ -201,3 +201,47 @@ it('Page tem CTA "Buscar produto" focando autocomplete (Q5 empty state com açã
     expect($source)->toContain('focusProductSearch');
     expect($source)->toContain('Buscar produto');
 });
+
+// US-SELL-006 — pagamentos + frete
+
+it('PaymentRow componente local existe', function () {
+    expect(file_exists(base_path('resources/js/Pages/Sells/_components/PaymentRow.tsx')))
+        ->toBeTrue();
+});
+
+it('Page importa PaymentRow', function () {
+    $source = readPage();
+    expect($source)->toContain('./_components/PaymentRow');
+});
+
+it('Page inicia com 1 payment vazio (não vazio array)', function () {
+    $source = readPage();
+    expect($source)->toMatch('/payments:\s*\[\s*\{[^}]*method:\s*[\'"]cash[\'"]/s');
+});
+
+it('Page tem botão "Adicionar pagamento" pra split', function () {
+    $source = readPage();
+    expect($source)->toContain('handleAddPayment');
+    expect($source)->toContain('Adicionar pagamento');
+});
+
+it('Page calcula totalPago + indicador saldo (falta/troco/exato)', function () {
+    $source = readPage();
+    expect($source)->toContain('totalPago');
+    expect($source)->toContain('saldoPagamento');
+    expect($source)->toContain("'falta'");
+    expect($source)->toContain("'troco'");
+    expect($source)->toContain("'exato'");
+});
+
+it('PaymentRow usa Object.entries(paymentTypes) e accounts (Record, não array)', function () {
+    $source = file_get_contents(base_path('resources/js/Pages/Sells/_components/PaymentRow.tsx'));
+    expect($source)->toContain('Object.entries(paymentTypes)');
+    expect($source)->toContain('Object.entries(accounts)');
+});
+
+it('Page permite remover linha de pagamento se houver mais de 1 (split)', function () {
+    $source = readPage();
+    expect($source)->toContain('removable={data.payments.length > 1}');
+    expect($source)->toContain('handleRemovePayment');
+});
