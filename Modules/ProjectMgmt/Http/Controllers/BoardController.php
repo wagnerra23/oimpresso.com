@@ -11,6 +11,9 @@ use Modules\Jana\Entities\Mcp\McpCycle;
 use Modules\Jana\Entities\Mcp\McpEpic;
 use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
+use Modules\Jana\Entities\Mcp\McpTaskComment;
+use Modules\Jana\Entities\Mcp\McpTaskDependency;
+use Modules\Jana\Entities\Mcp\McpTaskEvent;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
@@ -222,6 +225,114 @@ class BoardController extends Controller
             'identifier' => $result['task']->identifier,
             'status'     => $status,
             'updated_at' => (int) ($result['task']->updated_at?->timestamp ?? 0),
+        ]);
+    }
+
+    /**
+     * GET /project-mgmt/board/{taskId}/detail
+     *
+     * Retorna payload completo do DetailSheet (PMG-004, ADR 0100):
+     *   - task: serializeTask + description + parent_task_id
+     *   - comments: lista ASC (até 100)
+     *   - events: lista DESC (até 50, audit trail)
+     *   - subtasks: lista filhos (parent_task_id = $task->id)
+     *   - dependencies: lista raw (com target task_id; target detail é separate query)
+     *   - dependency_targets: map {task_id => {display_id, title, status}} pra render
+     *
+     * Permission: copiloto.mcp.usage.all (middleware controller).
+     */
+    public function show(Request $request, string $taskId): JsonResponse
+    {
+        $task = McpTask::with('project:id,key,name')
+            ->where('task_id', strtoupper($taskId))
+            ->first()
+            ?? McpTask::with('project:id,key,name')
+                ->where('task_id', $taskId)
+                ->first()
+            ?? McpTask::with('project:id,key,name')
+                ->where('identifier', strtoupper($taskId))
+                ->first();
+
+        if (! $task) {
+            return response()->json(['error' => "Task '{$taskId}' não encontrada."], 404);
+        }
+
+        $comments = McpTaskComment::where('task_id', $task->task_id)
+            ->orderBy('created_at')
+            ->limit(100)
+            ->get()
+            ->map(fn (McpTaskComment $c) => [
+                'id' => (int) $c->id,
+                'author' => $c->author,
+                'body' => $c->body,
+                'created_at' => optional($c->created_at)->toIso8601String(),
+            ])
+            ->all();
+
+        $events = McpTaskEvent::where('task_id', $task->task_id)
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get()
+            ->map(fn (McpTaskEvent $e) => [
+                'id' => (int) $e->id,
+                'event_type' => $e->event_type,
+                'from_value' => $e->from_value,
+                'to_value' => $e->to_value,
+                'author' => $e->author,
+                'note' => $e->note,
+                'occurred_at' => optional($e->occurred_at ?? $e->created_at)->toIso8601String(),
+            ])
+            ->all();
+
+        $subtasks = McpTask::where('parent_task_id', $task->id)
+            ->select('id', 'task_id', 'identifier', 'title', 'status', 'priority')
+            ->orderBy('priority')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (McpTask $s) => [
+                'task_id' => $s->task_id,
+                'display_id' => $s->getDisplayIdAttribute(),
+                'title' => $s->title,
+                'status' => $s->status,
+                'priority' => $s->priority ?? 'p2',
+            ])
+            ->all();
+
+        $deps = McpTaskDependency::where('task_id', $task->task_id)->get();
+        $targetIds = $deps->pluck('depends_on_task_id')->filter()->unique()->all();
+        $targetMap = [];
+        if (! empty($targetIds)) {
+            $targets = McpTask::whereIn('task_id', $targetIds)
+                ->select('id', 'task_id', 'identifier', 'title', 'status')
+                ->get();
+            foreach ($targets as $t) {
+                $targetMap[$t->task_id] = [
+                    'display_id' => $t->getDisplayIdAttribute(),
+                    'title' => $t->title,
+                    'status' => $t->status,
+                ];
+            }
+        }
+
+        $dependencies = $deps->map(fn (McpTaskDependency $d) => [
+            'id' => (int) $d->id,
+            'depends_on_task_id' => $d->depends_on_task_id,
+            'type' => $d->type ?? 'blocks',
+            'target' => $targetMap[$d->depends_on_task_id] ?? null,
+        ])->all();
+
+        $taskPayload = $this->serializeTask($task);
+        $taskPayload['description'] = $task->description;
+        $taskPayload['parent_task_id'] = $task->parent_task_id;
+        $taskPayload['project_key'] = optional($task->project)->key;
+        $taskPayload['project_name'] = optional($task->project)->name;
+
+        return response()->json([
+            'task' => $taskPayload,
+            'comments' => $comments,
+            'events' => $events,
+            'subtasks' => $subtasks,
+            'dependencies' => $dependencies,
         ]);
     }
 
