@@ -383,6 +383,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
         onOpenChange={(open) => {
           if (!open) setOpenSaleId(null);
         }}
+        onSaleChanged={refetch}
       />
     </div>
   );
