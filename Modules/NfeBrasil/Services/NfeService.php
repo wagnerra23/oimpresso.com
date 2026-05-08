@@ -672,7 +672,11 @@ class NfeService
         $stdIde->cDV       = 0;
         $stdIde->tpAmb     = (int) ($emitOverride['ambiente'] ?? $business->ambiente ?? 2);
         $stdIde->finNFe    = 1;
-        $stdIde->indFinal  = isset($dadosNfe['dest']['cpf']) ? 1 : 0;
+        // indFinal: NFC-e é SEMPRE consumidor final (independente de ter CPF).
+        // Pra NFe (modelo 55), depende do tipo de operação.
+        // Rejeição SEFAZ típica se hardcoded errado: "NFC-e em operacao nao
+        // destinada a consumidor final".
+        $stdIde->indFinal  = (int) $emissao->modelo === 65 ? 1 : (isset($dadosNfe['dest']['cpf']) ? 1 : 0);
         $stdIde->indPres   = 1;
         $stdIde->procEmi   = '0';
         $stdIde->verProc   = '1.0';
