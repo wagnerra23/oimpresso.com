@@ -53,6 +53,16 @@ return [
         // drivers que EXIGEM fallback Meta Cloud configurado (gating duro FormRequest).
         // Sprint 3: 'baileys' entra nessa lista junto com 'zapi'.
         'mandatory_for_drivers' => ['zapi', 'baileys'],
+
+        // Lista de business_id que escapam do gate Meta-fallback (ADR 0111 — emenda 5 ao 0096).
+        // Per-tenant bypass cirúrgico — preserva Tier 0 multi-tenant em todos outros businesses.
+        // LGPD continua exigido; drivers proibidos continuam proibidos.
+        // Formato env: lista CSV de IDs inteiros, ex: WHATSAPP_BYPASS_META_FALLBACK_BUSINESS_IDS=1,7
+        // Default vazio = gate Tier 0 ativo em todos.
+        'bypass_business_ids' => array_values(array_filter(
+            array_map('intval', explode(',', (string) env('WHATSAPP_BYPASS_META_FALLBACK_BUSINESS_IDS', ''))),
+            fn ($id) => $id > 0,
+        )),
     ],
 
     /*

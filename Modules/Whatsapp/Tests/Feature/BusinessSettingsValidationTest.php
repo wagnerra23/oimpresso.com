@@ -9,6 +9,12 @@ use Modules\Whatsapp\Http\Requests\BusinessSettingsRequest;
 
 uses(Tests\TestCase::class);
 
+beforeEach(function () {
+    // Reset bypass list — testes Tier 0 dependem de default vazio (gate ativo).
+    // Testes de bypass setam [1] explicitamente.
+    config()->set('whatsapp.fallback.bypass_business_ids', []);
+});
+
 /**
  * R-WA-001 + R-WA-002 · BusinessSettingsRequest gating duro Tier 0 (ADR 0096).
  *
@@ -22,22 +28,26 @@ uses(Tests\TestCase::class);
  * Padrão: instancia FormRequest direto sem rota — valida regras isoladas.
  */
 
-function runRequest(array $input): \Illuminate\Validation\Validator
+function runRequest(array $input, int $businessId = 1): \Illuminate\Validation\Validator
 {
-    $request = BusinessSettingsRequest::create('/whatsapp/settings', 'PUT', $input);
-    $request->setContainer(app())->setRedirector(app(\Illuminate\Routing\Redirector::class));
+    // Session driver com user.business_id seedado — withValidator() lê
+    // session('user.business_id') pra checar bypass list (ADR 0111).
+    $sessionDriver = app('session.store');
+    $sessionDriver->put('user.business_id', $businessId);
 
-    return Validator::make(
-        $request->all(),
-        (new BusinessSettingsRequest())->rules(),
-        (new BusinessSettingsRequest())->messages(),
-    )->after(function ($v) use ($request, $input) {
-        // Replay do withValidator (cross-field) — instancia request com input pra closures lerem
-        $req = new BusinessSettingsRequest();
-        $req->merge($input);
-        $req->setContainer(app());
-        $req->withValidator($v);
-    });
+    $req = new BusinessSettingsRequest();
+    $req->merge($input);
+    $req->setContainer(app());
+    $req->setLaravelSession($sessionDriver);
+
+    $v = Validator::make($input, $req->rules(), $req->messages());
+
+    // withValidator() registra closures via $v->after() — chamar ANTES de
+    // $v->fails() pra que rodem na 1ª execução (chamar dentro de outra
+    // ->after() não dispara, pois iteration já rodou).
+    $req->withValidator($v);
+
+    return $v;
 }
 
 it('aceita driver=meta_cloud com meta_* preenchido', function () {
@@ -118,6 +128,52 @@ it('rejeita driver=whatsapp_web_js (PROIBIDO permanente — sobreposição com B
     ]);
 
     expect($v->fails())->toBeTrue();
+});
+
+it('aceita driver=zapi sem meta_* quando business_id está em bypass list (ADR 0111 emenda 5)', function () {
+    config()->set('whatsapp.fallback.bypass_business_ids', [1]);
+
+    $v = runRequest([
+        'driver' => 'zapi',
+        'zapi_instance_id' => 'inst-bypass',
+        'zapi_instance_token' => 'tok-bypass',
+        'zapi_client_token' => 'client-bypass',
+        'lgpd_acknowledged' => true,
+        // meta_* AUSENTE de propósito
+    ], businessId: 1);
+
+    expect($v->fails())->toBeFalse();
+});
+
+it('rejeita driver=zapi sem meta_* quando business_id NÃO está em bypass list (Tier 0 IRREVOGÁVEL outros businesses)', function () {
+    config()->set('whatsapp.fallback.bypass_business_ids', [1]);
+
+    // biz=4 (RotaLivre) NÃO está na bypass list — Tier 0 mantido
+    $v = runRequest([
+        'driver' => 'zapi',
+        'zapi_instance_id' => 'inst-1',
+        'zapi_instance_token' => 'tok-1',
+        'zapi_client_token' => 'client-1',
+        'lgpd_acknowledged' => true,
+    ], businessId: 4);
+
+    expect($v->fails())->toBeTrue();
+    expect($v->errors()->first('meta_phone_number_id'))->toContain('fallback Meta Cloud');
+});
+
+it('rejeita driver=zapi sem lgpd_acknowledged mesmo com bypass (LGPD imune ao bypass)', function () {
+    config()->set('whatsapp.fallback.bypass_business_ids', [1]);
+
+    $v = runRequest([
+        'driver' => 'zapi',
+        'zapi_instance_id' => 'inst-1',
+        'zapi_instance_token' => 'tok-1',
+        'zapi_client_token' => 'client-1',
+        // lgpd_acknowledged AUSENTE de propósito
+    ], businessId: 1);
+
+    expect($v->fails())->toBeTrue();
+    expect($v->errors()->first('lgpd_acknowledged'))->toContain('LGPD');
 });
 
 it('aceita driver=baileys (Sprint 3) com baileys_* + meta fallback + lgpd', function () {
