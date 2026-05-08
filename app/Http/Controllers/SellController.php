@@ -627,9 +627,41 @@ class SellController extends Controller
 
         $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
 
+        // Inertia render — US-SELL-008 pattern Cockpit canon (PR único).
+        // DataTables AJAX legacy continua funcionando via request()->ajax() acima.
+        // KPIs counters — mesmas regras de tenant scope que getListSells (defesa em profundidade).
+        $kpiBase = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final')
+            ->whereNull('sub_type');
 
-        return view('sell.index')
-        ->with(compact('business_locations', 'customers', 'is_woocommerce', 'sales_representative', 'is_cmsn_agent_enabled', 'commission_agents', 'service_staffs', 'is_tables_enabled', 'is_service_staff_enabled', 'is_types_service_enabled', 'shipping_statuses', 'sources', 'payment_types'));
+        $sellKpis = [
+            'total' => (clone $kpiBase)->count(),
+            'paid' => (clone $kpiBase)->where('payment_status', 'paid')->count(),
+            'due' => (clone $kpiBase)->where('payment_status', 'due')->count(),
+            'partial' => (clone $kpiBase)->where('payment_status', 'partial')->count(),
+            'overdue' => (clone $kpiBase)
+                ->whereIn('payment_status', ['due', 'partial'])
+                ->whereNotNull('pay_term_number')
+                ->whereNotNull('pay_term_type')
+                ->whereRaw("IF(pay_term_type='days', DATE_ADD(transaction_date, INTERVAL pay_term_number DAY) < CURDATE(), DATE_ADD(transaction_date, INTERVAL pay_term_number MONTH) < CURDATE())")
+                ->count(),
+        ];
+
+        return \Inertia\Inertia::render('Sells/Index', [
+            'sellKpis' => $sellKpis,
+            'businessLocations' => $business_locations,
+            'paymentTypes' => $payment_types,
+            'shippingStatuses' => $shipping_statuses,
+            'sources' => $sources,
+            'permissions' => [
+                'create' => auth()->user()->can('direct_sell.access'),
+                'view' => auth()->user()->can('direct_sell.view') ||
+                          auth()->user()->can('view_own_sell_only') ||
+                          auth()->user()->can('view_commission_agent_sell'),
+            ],
+            'datatableUrl' => '/sells',
+        ]);
     }
 
     /**
@@ -835,6 +867,171 @@ class SellController extends Controller
     public function store(Request $request)
     {
         //
+    }
+
+    /**
+     * US-SELL-008 — Lista JSON minimalista pra Sells/Index.tsx (Inertia React).
+     * Retorna últimas N vendas filtradas por payment_status (pill ativa).
+     * Simpler do que getListSells — 8 campos por linha.
+     */
+    public function inertiaList(Request $request)
+    {
+        if (!auth()->user()->can('direct_sell.view') &&
+            !auth()->user()->can('view_own_sell_only') &&
+            !auth()->user()->can('view_commission_agent_sell')) {
+            abort(403);
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+        $payment_status = $request->input('payment_status'); // '', paid, due, partial, overdue
+        $limit = min((int) $request->input('limit', 50), 200);
+
+        $q = \App\Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+            ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'final')
+            ->whereNull('transactions.sub_type');
+
+        // Permission scope (mesmo padrão do index() AJAX).
+        if (!auth()->user()->can('direct_sell.view')) {
+            $q->where(function ($qq) {
+                if (auth()->user()->hasAnyPermission(['view_own_sell_only', 'access_own_shipping'])) {
+                    $qq->where('transactions.created_by', request()->session()->get('user.id'));
+                }
+                if (auth()->user()->hasAnyPermission(['view_commission_agent_sell', 'access_commission_agent_shipping'])) {
+                    $qq->orWhere('transactions.commission_agent', request()->session()->get('user.id'));
+                }
+            });
+        }
+
+        // Pill filter.
+        if ($payment_status === 'overdue') {
+            $q->whereIn('transactions.payment_status', ['due', 'partial'])
+                ->whereNotNull('transactions.pay_term_number')
+                ->whereNotNull('transactions.pay_term_type')
+                ->whereRaw("IF(transactions.pay_term_type='days', DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY) < CURDATE(), DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH) < CURDATE())");
+        } elseif (in_array($payment_status, ['paid', 'due', 'partial'], true)) {
+            $q->where('transactions.payment_status', $payment_status);
+        }
+
+        $rows = $q->orderBy('transactions.transaction_date', 'desc')
+            ->limit($limit)
+            ->get([
+                'transactions.id',
+                'transactions.transaction_date',
+                'transactions.invoice_no',
+                'transactions.final_total',
+                'transactions.total_paid',
+                'transactions.payment_status',
+                'transactions.shipping_status',
+                'transactions.pay_term_number',
+                'transactions.pay_term_type',
+                'contacts.name as customer_name',
+                'contacts.supplier_business_name as customer_business',
+                'bl.name as location_name',
+            ])
+            ->map(function ($r) {
+                // Calcula overdue inline (boolean derivado, evita re-query).
+                $overdue = false;
+                if (in_array($r->payment_status, ['due', 'partial'], true) && $r->pay_term_number && $r->pay_term_type) {
+                    $dueDate = $r->pay_term_type === 'days'
+                        ? \Carbon\Carbon::parse($r->transaction_date)->addDays((int) $r->pay_term_number)
+                        : \Carbon\Carbon::parse($r->transaction_date)->addMonths((int) $r->pay_term_number);
+                    $overdue = $dueDate->isPast();
+                }
+                return [
+                    'id' => $r->id,
+                    'transaction_date' => $r->transaction_date,
+                    'invoice_no' => $r->invoice_no,
+                    'final_total' => (float) $r->final_total,
+                    'total_paid' => (float) $r->total_paid,
+                    'payment_status' => $r->payment_status,
+                    'shipping_status' => $r->shipping_status,
+                    'customer_name' => $r->customer_business ?: $r->customer_name,
+                    'customer_secondary' => $r->customer_business && $r->customer_name !== $r->customer_business ? $r->customer_name : null,
+                    'location_name' => $r->location_name,
+                    'is_overdue' => $overdue,
+                ];
+            });
+
+        return response()->json(['data' => $rows]);
+    }
+
+    /**
+     * US-SELL-008 — Detalhes JSON pra drawer SaleSheet.tsx (lateral direito).
+     * Reusa show() lógica mas serializa minimal pra React renderizar.
+     */
+    public function sheetData($id)
+    {
+        if (!auth()->user()->can('direct_sell.view') &&
+            !auth()->user()->can('view_own_sell_only') &&
+            !auth()->user()->can('view_commission_agent_sell')) {
+            abort(403);
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        $sale = \App\Transaction::with([
+            'contact:id,name,supplier_business_name,mobile,email',
+            'sell_lines:id,transaction_id,product_id,quantity,unit_price_inc_tax,line_discount_amount',
+            'sell_lines.product:id,name,sku',
+            'payment_lines:id,transaction_id,amount,method,paid_on,note',
+            'location:id,name',
+        ])
+            ->where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->whereNull('sub_type')
+            ->find($id);
+
+        if (!$sale) {
+            abort(404);
+        }
+
+        return response()->json([
+            'id' => $sale->id,
+            'invoice_no' => $sale->invoice_no,
+            'transaction_date' => $sale->transaction_date,
+            'final_total' => (float) $sale->final_total,
+            'total_paid' => (float) $sale->total_paid,
+            'tax_amount' => (float) $sale->tax_amount,
+            'discount_amount' => (float) $sale->discount_amount,
+            'discount_type' => $sale->discount_type,
+            'shipping_charges' => (float) $sale->shipping_charges,
+            'payment_status' => $sale->payment_status,
+            'shipping_status' => $sale->shipping_status,
+            'status' => $sale->status,
+            'additional_notes' => $sale->additional_notes,
+            'customer' => $sale->contact ? [
+                'id' => $sale->contact->id,
+                'name' => $sale->contact->supplier_business_name ?: $sale->contact->name,
+                'secondary' => $sale->contact->supplier_business_name && $sale->contact->name !== $sale->contact->supplier_business_name
+                    ? $sale->contact->name : null,
+                'mobile' => $sale->contact->mobile,
+                'email' => $sale->contact->email,
+            ] : null,
+            'location' => $sale->location ? ['id' => $sale->location->id, 'name' => $sale->location->name] : null,
+            'lines' => $sale->sell_lines->map(fn($l) => [
+                'id' => $l->id,
+                'product_name' => $l->product?->name,
+                'product_sku' => $l->product?->sku,
+                'quantity' => (float) $l->quantity,
+                'unit_price' => (float) $l->unit_price_inc_tax,
+                'discount' => (float) $l->line_discount_amount,
+                'subtotal' => (float) $l->quantity * (float) $l->unit_price_inc_tax - (float) $l->line_discount_amount,
+            ])->values(),
+            'payments' => $sale->payment_lines->map(fn($p) => [
+                'id' => $p->id,
+                'amount' => (float) $p->amount,
+                'method' => $p->method,
+                'paid_on' => $p->paid_on,
+                'note' => $p->note,
+            ])->values(),
+            'urls' => [
+                'edit' => '/sells/' . $sale->id . '/edit',
+                'print' => '/sells/' . $sale->id . '/print',
+            ],
+        ]);
     }
 
     /**
