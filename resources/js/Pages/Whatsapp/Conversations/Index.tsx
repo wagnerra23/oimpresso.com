@@ -30,6 +30,7 @@ import type {
   CentrifugoConfig,
   ListConversation,
   Message,
+  ReadyTemplate,
   ThreadConversation,
 } from '../_components/helpers';
 
@@ -50,11 +51,12 @@ interface Props {
   messages: Message[] | null;
   centrifugoConfig: CentrifugoConfig | null;
   centrifugoChannel: string | null;
+  templates: ReadyTemplate[] | null;
 }
 
 export default function ConversationsIndex({
   conversations, tab, q, stats, businessId,
-  thread, messages, centrifugoConfig,
+  thread, messages, centrifugoConfig, templates,
 }: Props) {
   // Hidrata URL com state persistido em localStorage no primeiro mount.
   // Wagner exigiu (auto-mem preference_cache_estado_preservado) — F5 não pode
@@ -154,7 +156,8 @@ export default function ConversationsIndex({
               conversation={thread}
               messages={messages}
               centrifugoConfig={centrifugoConfig}
-              reloadOnly={['thread', 'messages']}
+              templates={templates ?? []}
+              reloadOnly={['thread', 'messages', 'templates']}
             />
           ) : (
             <Card className="h-full flex items-center justify-center bg-muted/20">

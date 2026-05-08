@@ -102,6 +102,44 @@ export interface CentrifugoConfig {
   channel: string;
 }
 
+export interface ReadyTemplate {
+  id: number;
+  name: string;
+  language: string;
+  category: 'UTILITY' | 'MARKETING' | 'AUTHENTICATION';
+  provider: 'meta_cloud' | 'zapi' | 'baileys';
+  status: 'LOCAL' | 'APPROVED';
+  body: string; // Body cru com placeholders {{1}}, {{2}}
+}
+
+/**
+ * Extrai placeholders únicos {{N}} ou {{nome}} do body do template,
+ * preservando ordem de primeira ocorrência.
+ *
+ * Ex: "Olá {{1}}, OS #{{2}} pronta. Att, {{1}}" → ['1', '2']
+ */
+export function extractPlaceholders(body: string): string[] {
+  const regex = /\{\{([^{}]+)\}\}/g;
+  const seen: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(body)) !== null) {
+    const key = match[1]!.trim();
+    if (!seen.includes(key)) seen.push(key);
+  }
+  return seen;
+}
+
+/**
+ * Substitui placeholders pelos valores em params (suporta {{1}} e {{nome}}).
+ */
+export function expandTemplateBody(body: string, params: Record<string, string>): string {
+  let out = body;
+  for (const [key, value] of Object.entries(params)) {
+    out = out.replaceAll(`{{${key}}}`, value);
+  }
+  return out;
+}
+
 export interface ListConversation {
   id: number;
   customer_phone: string;

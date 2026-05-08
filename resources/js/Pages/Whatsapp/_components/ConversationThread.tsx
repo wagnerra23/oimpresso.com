@@ -18,12 +18,21 @@ import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
 
 import Avatar from './Avatar';
-import { groupByDay, type CentrifugoConfig, type Message, type ThreadConversation } from './helpers';
+import TemplatePicker from './TemplatePicker';
+import {
+  groupByDay,
+  type CentrifugoConfig,
+  type Message,
+  type ReadyTemplate,
+  type ThreadConversation,
+} from './helpers';
 
 interface Props {
   conversation: ThreadConversation;
   messages: Message[];
   centrifugoConfig: CentrifugoConfig | null;
+  /** Templates ready (LOCAL ou Meta APPROVED) pra picker do composer. */
+  templates: ReadyTemplate[];
   /** Reload partial: indica quais props recarregar quando vem mensagem nova. */
   reloadOnly: string[];
   /** Botão "← inbox" só aparece em rota permalink (Show). */
@@ -31,12 +40,13 @@ interface Props {
 }
 
 export default function ConversationThread({
-  conversation, messages, centrifugoConfig, reloadOnly, backHref,
+  conversation, messages, centrifugoConfig, templates, reloadOnly, backHref,
 }: Props) {
   const [composerText, setComposerText] = useState('');
   const [sending, setSending] = useState(false);
   const [liveConnected, setLiveConnected] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll quando nova mensagem chega (ou usuário entra na thread).
@@ -95,6 +105,28 @@ export default function ConversationThread({
         preserveState: true,
         onSuccess: () => {
           setComposerText('');
+          router.reload({ only: reloadOnly });
+        },
+        onFinish: () => setSending(false),
+      },
+    );
+  }
+
+  function handleSendTemplate(payload: {
+    template_name: string;
+    template_locale: string;
+    template_params: string[];
+  }) {
+    if (sending) return;
+    setSending(true);
+    router.post(
+      route('whatsapp.conversations.send', conversation.id),
+      { kind: 'template', ...payload },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+          setTemplatePickerOpen(false);
           router.reload({ only: reloadOnly });
         },
         onFinish: () => setSending(false),
@@ -256,7 +288,16 @@ export default function ConversationThread({
             {composerText.length} {composerText.length === 1 ? 'caractere' : 'caracteres'}
           </span>
           <div className="flex gap-1.5">
-            <Button variant="outline" size="sm" disabled className="h-8" title="Templates HSM em Sprint 3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTemplatePickerOpen(true)}
+              disabled={sending || templates.length === 0}
+              className="h-8"
+              title={templates.length === 0
+                ? 'Nenhum template ready — cadastre em /whatsapp/templates'
+                : 'Enviar template HSM/LOCAL (única opção quando janela 24h Meta fechada)'}
+            >
               Template
             </Button>
             <Button size="sm" onClick={handleSend} disabled={!composerText.trim() || sending} className="h-8">
@@ -265,6 +306,14 @@ export default function ConversationThread({
           </div>
         </div>
       </div>
+
+      <TemplatePicker
+        open={templatePickerOpen}
+        onOpenChange={setTemplatePickerOpen}
+        templates={templates}
+        onSend={handleSendTemplate}
+        sending={sending}
+      />
     </Card>
   );
 }
