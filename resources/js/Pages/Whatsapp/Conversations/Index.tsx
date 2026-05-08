@@ -82,6 +82,22 @@ export default function ConversationsIndex({
     lsSet(LS.THREAD, thread?.id ? String(thread.id) : null);
   }, [thread?.id]);
 
+  // Polling fallback 5s — Centrifugo CT 100 não exposto publicamente.
+  // Mesmo padrão NfeBrasil (US-NFE-002). Hook abstrai a fonte; quando
+  // Centrifugo for exposto via Traefik público + secrets em .env, basta
+  // remover este polling e o real-time Centrifugo já implementado em
+  // ConversationThread.tsx assume sozinho (preserva contrato).
+  // Recarrega só conversations (lista lateral) — thread/messages têm seu
+  // próprio polling em ConversationThread.tsx quando Centrifugo offline.
+  useEffect(() => {
+    if (centrifugoConfig) return; // futuro: Centrifugo conectado = sem polling
+    const interval = setInterval(() => {
+      if (document.visibilityState !== 'visible') return; // pausa em aba inativa
+      router.reload({ only: ['conversations', 'stats'] });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [centrifugoConfig]);
+
   function selectThread(id: number) {
     lsSet(LS.THREAD, String(id));
     router.get(
