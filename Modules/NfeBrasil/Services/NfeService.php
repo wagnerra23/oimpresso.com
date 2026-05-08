@@ -649,7 +649,10 @@ class NfeService
         $stdIde->tpNF      = 1;
         $stdIde->idDest    = $this->resolverIdDest($emitOverride, $dadosNfe['dest'] ?? [], $business);
         $stdIde->cMunFG    = $codMunEmit;
-        $stdIde->tpImp     = 1;
+        // tpImp depende do modelo (rejeição "DANFE invalido" comum quando NFC-e usa tpImp=1):
+        //   modelo 55 NFe: 1=Retrato, 2=Paisagem
+        //   modelo 65 NFC-e: 4=DANFE NFC-e (bobina), 5=DANFE NFC-e em mensagem eletrônica
+        $stdIde->tpImp     = (int) $emissao->modelo === 65 ? 4 : 1;
         $stdIde->tpEmis    = 1;
         $stdIde->cDV       = 0;
         $stdIde->tpAmb     = (int) ($emitOverride['ambiente'] ?? $business->ambiente ?? 2);
