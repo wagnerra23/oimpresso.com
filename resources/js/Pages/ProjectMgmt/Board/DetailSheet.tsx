@@ -19,6 +19,8 @@ import {
   AlertCircle,
   Calendar,
   ChevronsRight,
+  Eye,
+  EyeOff,
   ExternalLink,
   FileText,
   GitBranch,
@@ -89,6 +91,12 @@ interface Subtask {
   priority: Priority;
 }
 
+interface Watcher {
+  user_id: number;
+  username: string | null;
+  name: string;
+}
+
 interface DependencyTarget {
   display_id: string;
   title: string;
@@ -108,6 +116,8 @@ interface DetailPayload {
   events: ActivityEvent[];
   subtasks: Subtask[];
   dependencies: Dependency[];
+  watchers: Watcher[];
+  is_watching: boolean;
 }
 
 interface Props {
@@ -115,7 +125,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Tab = 'description' | 'comments' | 'activity' | 'subtasks';
+type Tab = 'description' | 'comments' | 'activity' | 'subtasks' | 'watchers';
 
 const EVENT_LABEL: Record<string, string> = {
   created: 'criou',
@@ -269,7 +279,37 @@ export default function DetailSheet({ taskId, onClose }: Props) {
     { key: 'comments', label: 'Comentários', icon: MessageSquare, count: data?.comments.length },
     { key: 'activity', label: 'Atividade', icon: ActivityIcon, count: data?.events.length },
     { key: 'subtasks', label: 'Subtasks', icon: ListChecks, count: data?.subtasks.length },
+    { key: 'watchers', label: 'Watchers', icon: Eye, count: data?.watchers.length },
   ];
+
+  // PMG-006 (ADR 0100) — toggle watch
+  async function handleToggleWatch() {
+    if (!taskId || !data) return;
+    const csrfToken =
+      (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+    const method = data.is_watching ? 'DELETE' : 'POST';
+    try {
+      const r = await fetch(`/project-mgmt/board/${taskId}/watch`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+      });
+      if (!r.ok) throw new Error(`Erro ${r.status}`);
+      // Refetch detail pra reconciliar watchers + is_watching
+      const detail = await fetch(`/project-mgmt/board/${taskId}/detail`, {
+        headers: { Accept: 'application/json' },
+      });
+      if (detail.ok) {
+        const fresh: DetailPayload = await detail.json();
+        setData(fresh);
+      }
+    } catch {
+      // silencioso — reverte na próxima abertura
+    }
+  }
 
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
@@ -530,6 +570,71 @@ export default function DetailSheet({ taskId, onClose }: Props) {
                   )}
                   <p className="mt-4 text-[11px] text-muted-foreground">
                     UI completa de subtasks (criar / completar / arrastar) entra em PMG-007.
+                  </p>
+                </div>
+              )}
+
+              {tab === 'watchers' && (
+                <div className="py-4 space-y-4">
+                  {/* Toggle Follow/Unfollow do user atual */}
+                  <div className="flex items-center justify-between rounded-md border bg-card px-3 py-2">
+                    <div className="flex items-center gap-2 text-xs">
+                      {data.is_watching ? (
+                        <>
+                          <Eye className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span>Você está seguindo esta task.</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span>Você não segue esta task.</span>
+                        </>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={data.is_watching ? 'outline' : 'default'}
+                      onClick={handleToggleWatch}
+                    >
+                      {data.is_watching ? (
+                        <>
+                          <EyeOff className="mr-1 h-3 w-3" />
+                          Parar de seguir
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-1 h-3 w-3" />
+                          Seguir
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Lista de watchers */}
+                  {data.watchers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic">Ninguém segue esta task ainda.</p>
+                  ) : (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Seguidores ({data.watchers.length})
+                      </h4>
+                      <ul className="space-y-1">
+                        {data.watchers.map((w) => (
+                          <li key={w.user_id} className="flex items-center gap-2 text-xs">
+                            <UserPlus className="h-3 w-3 text-muted-foreground" />
+                            <span className="font-mono text-muted-foreground">@{w.username ?? '—'}</span>
+                            {w.name && w.name !== w.username && (
+                              <span className="text-muted-foreground">{w.name}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <p className="text-[11px] text-muted-foreground">
+                    Watchers recebem notificação em <code className="font-mono">mcp_inbox_notifications</code>{' '}
+                    quando a task muda. Visível em <code className="font-mono">/project-mgmt/my-work</code>.
                   </p>
                 </div>
               )}
