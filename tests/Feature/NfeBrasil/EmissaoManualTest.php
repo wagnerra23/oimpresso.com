@@ -236,6 +236,15 @@ it('BUG FIX: NfeService NFC-e consumidor anônimo (sem CPF) NÃO seta CPF=\'\' (
     expect($source)->not->toMatch('/}\\s*else\\s*\\{\\s*\\$stdDest->CPF\\s*=\\s*\\$doc;\\s*\\}/');
 });
 
+it('BUG FIX: tpImp=4 pra NFC-e (modelo 65) — rejeição SEFAZ "DANFE invalido" se hardcoded 1', function () {
+    $source = file_get_contents(base_path('Modules/NfeBrasil/Services/NfeService.php'));
+    // tpImp não pode ser hardcoded 1 (default NFe Retrato) — rejeita NFC-e.
+    // NFC-e (modelo 65) deve ser tpImp=4 (DANFE NFC-e bobina) ou 5 (msg eletrônica).
+    expect($source)->toContain('(int) $emissao->modelo === 65 ? 4');
+    // Garante que não existe pattern antigo `$stdIde->tpImp = 1;` standalone.
+    expect($source)->not->toMatch('/\\$stdIde->tpImp\\s*=\\s*1;\\s*\\n/');
+});
+
 it('BUG FIX: NfeService XSD ordem — CPF/CNPJ ANTES de xNome (canon SEFAZ)', function () {
     $source = file_get_contents(base_path('Modules/NfeBrasil/Services/NfeService.php'));
     // Comentário documenta a regra (defesa em profundidade vs futura regressão).
