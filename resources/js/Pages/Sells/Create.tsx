@@ -276,18 +276,23 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   const itensCount = data.products.reduce((acc, p) => acc + (Number(p.quantity) || 0), 0);
 
   return (
-    <div className="container mx-auto py-6 space-y-5 max-w-7xl">
-      {/* Header rico — h1 + descrição + ações primárias right (canon os-page.jsx) */}
-      <div className="flex items-start gap-4 px-6 pb-4 border-b border-border">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <ShoppingCart className="h-5 w-5" />
-        </div>
+    <div className="container mx-auto py-8 px-8 space-y-8 max-w-7xl">
+      {/* Header — título grande + subtitle descritivo + ações right (estética estado da arte) */}
+      <div className="flex items-start gap-4">
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             Adicionar venda
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Cliente, produtos, pagamento. Larissa — ROTA LIVRE · {props.defaultLocation?.name ?? 'sem local'}
+          <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+            Registre uma venda completa — cliente, produtos, pagamento e frete.{' '}
+            {props.defaultLocation?.name && (
+              <span>
+                Local atual:{' '}
+                <span className="font-medium text-foreground">
+                  {props.defaultLocation.name}
+                </span>
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -301,50 +306,50 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         </div>
       </div>
 
-      {/* KPI cards — grid de 4, estilo canon os-stats: label uppercase + value 22px tabular */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-6">
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+      {/* KPI cards — 4 cards GIGANTES, value text-3xl, label uppercase tracking-widest. Estado da arte. */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Itens
           </div>
-          <div className="text-[22px] font-semibold tabular-nums text-foreground mt-1">
+          <div className="text-4xl font-semibold tabular-nums text-foreground mt-3">
             {itensCount}
           </div>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Total venda
           </div>
-          <div className="text-[22px] font-semibold tabular-nums text-foreground mt-1">
+          <div className="text-3xl font-semibold tabular-nums text-foreground mt-3">
             {formatBRL(totalGeral)}
           </div>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Pago
           </div>
-          <div className="text-[22px] font-semibold tabular-nums text-foreground mt-1">
+          <div className="text-3xl font-semibold tabular-nums text-foreground mt-3">
             {formatBRL(totalPago)}
           </div>
         </div>
         <div
           className={
-            'rounded-lg border p-4 ' +
+            'rounded-xl border p-6 ' +
             (totalGeral === 0
-              ? 'border-border bg-muted/30'
+              ? 'border-border bg-card'
               : pagamentoStatus === 'falta'
-                ? 'border-amber-500/40 bg-amber-500/10'
+                ? 'border-amber-500/40 bg-amber-50 dark:bg-amber-950/30'
                 : pagamentoStatus === 'troco'
-                  ? 'border-blue-500/40 bg-blue-500/10'
-                  : 'border-emerald-500/40 bg-emerald-500/10')
+                  ? 'border-blue-500/40 bg-blue-50 dark:bg-blue-950/30'
+                  : 'border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/30')
           }
         >
-          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Status pgto
           </div>
           <div
             className={
-              'text-[18px] font-semibold tabular-nums mt-1 ' +
+              'text-2xl font-semibold tabular-nums mt-3 ' +
               (totalGeral === 0
                 ? 'text-muted-foreground'
                 : pagamentoStatus === 'falta'
@@ -355,18 +360,18 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             }
           >
             {totalGeral === 0
-              ? '—'
+              ? 'Aguardando'
               : pagamentoStatus === 'falta'
                 ? `Falta ${formatBRL(Math.abs(saldoPagamento))}`
                 : pagamentoStatus === 'troco'
                   ? `Troco ${formatBRL(saldoPagamento)}`
-                  : 'Confere'}
+                  : 'Confere ✓'}
           </div>
         </div>
       </div>
 
-      {/* Conteúdo das seções — wrapper com mesmo padding horizontal */}
-      <div className="px-6 space-y-5">
+      {/* Conteúdo das seções — espaçamento generoso */}
+      <div className="space-y-6">
 
       {/* Linha 1: Cliente + Data + Status + Local — 4 campos sempre visíveis */}
       <Card>
