@@ -71,6 +71,19 @@ export default function ConversationThread({
     };
   }, [centrifugoConfig?.token, centrifugoConfig?.channel, centrifugoConfig?.wsUrl, reloadOnly.join(',')]);
 
+  // Polling fallback 5s quando Centrifugo offline ou não conectado.
+  // Mesmo padrão NfeBrasil — Hostinger HTTP-only (ADR 0058+0062). Quando
+  // Centrifugo CT 100 for exposto via Traefik público, liveConnected vira
+  // true e este polling para automaticamente.
+  useEffect(() => {
+    if (liveConnected) return;
+    const interval = setInterval(() => {
+      if (document.visibilityState !== 'visible') return; // pausa em aba inativa
+      router.reload({ only: reloadOnly });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [liveConnected, conversation.id, reloadOnly.join(',')]);
+
   function handleSend() {
     if (!composerText.trim() || sending) return;
     setSending(true);
