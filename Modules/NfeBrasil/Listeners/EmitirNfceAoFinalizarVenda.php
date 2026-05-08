@@ -8,6 +8,7 @@ use App\Events\SellCreatedOrModified;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Jobs\EmitirNfceJob;
+use Modules\NfeBrasil\Models\NfeBusinessConfig;
 
 /**
  * US-NFE-002 fase 1 · Listener `SellCreatedOrModified` → dispatch `EmitirNfceJob`.
@@ -59,9 +60,23 @@ class EmitirNfceAoFinalizarVenda implements ShouldQueue
         if (! in_array($tx->payment_status ?? null, ['paid', 'partial'], true)) return;
 
         if (! config('nfebrasil.auto_emission_on_sell_completed', false)) {
-            Log::info('NFC-e auto-emission DISABLED — listener no-op', [
+            Log::info('NFC-e auto-emission DISABLED — listener no-op (global flag)', [
                 'business_id'    => $businessId,
                 'transaction_id' => $transactionId,
+            ]);
+            return;
+        }
+
+        // Per-business gate (ADR 0093 multi-tenant Tier 0). Tenant precisa
+        // ter opt-in explícito via nfe_business_configs.auto_emission_enabled=true.
+        // Default false — protege biz=4 (ROTA LIVRE Larissa) etc. quando flag
+        // global foi ligada pra smoke biz=1.
+        $bizConfig = NfeBusinessConfig::where('business_id', $businessId)->first();
+        if (! $bizConfig || ! $bizConfig->auto_emission_enabled) {
+            Log::info('NFC-e auto-emission DISABLED — listener no-op (per-business gate)', [
+                'business_id'    => $businessId,
+                'transaction_id' => $transactionId,
+                'has_config'     => (bool) $bizConfig,
             ]);
             return;
         }

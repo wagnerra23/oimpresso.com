@@ -32,10 +32,11 @@ class NfeBusinessConfig extends Model
     protected $table = 'nfe_business_configs';
 
     protected $fillable = [
-        'business_id', 'regime', 'tributacao_default',
+        'business_id', 'regime', 'auto_emission_enabled', 'tributacao_default',
     ];
 
     protected $casts = [
+        'auto_emission_enabled' => 'boolean',
         'tributacao_default' => 'array',
     ];
 
