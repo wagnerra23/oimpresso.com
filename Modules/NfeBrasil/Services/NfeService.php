@@ -827,6 +827,20 @@ class NfeService
             $nfe->taginfAdic($stdInfo);
         }
 
+        // ── infRespTec ───────────────────────────────────────────────────────
+        // SEFAZ exige (cstat 972) tag <infRespTec> com dados do desenvolvedor do sistema.
+        // Convenção oimpresso: WR2 Sistemas (Wagner) é o responsável técnico.
+        // Configurável via config('nfebrasil.resp_tec.*') ou env NFEBRASIL_RESPTEC_*.
+        $respTecCnpj = (string) config('nfebrasil.resp_tec.cnpj', env('NFEBRASIL_RESPTEC_CNPJ', ''));
+        if ($respTecCnpj !== '') {
+            $stdRespTec           = new \stdClass();
+            $stdRespTec->CNPJ     = preg_replace('/\D/', '', $respTecCnpj);
+            $stdRespTec->xContato = (string) config('nfebrasil.resp_tec.contato', env('NFEBRASIL_RESPTEC_CONTATO', 'WR2 Sistemas'));
+            $stdRespTec->email    = (string) config('nfebrasil.resp_tec.email', env('NFEBRASIL_RESPTEC_EMAIL', ''));
+            $stdRespTec->fone     = preg_replace('/\D/', '', (string) config('nfebrasil.resp_tec.fone', env('NFEBRASIL_RESPTEC_FONE', '')));
+            $nfe->taginfRespTec($stdRespTec);
+        }
+
         $nfe->montaNFe();
         $errors = $nfe->getErrors();
         if (! empty($errors)) {
