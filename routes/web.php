@@ -217,6 +217,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells/convert-to-proforma/{id}', 'SellPosController@convertToProforma');
     Route::get('/sells/quotations', 'SellController@getQuotations');
     Route::get('/sells/draft-dt', 'SellController@getDraftDatables');
+    // US-SELL-008 — Sells/Index.tsx Inertia endpoints (lista JSON + drawer detail).
+    Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
+    Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
     Route::resource('sells', 'SellController')->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 
