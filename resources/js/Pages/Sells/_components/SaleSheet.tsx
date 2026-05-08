@@ -2,7 +2,7 @@
 // Refs: exemplo Officeimpresso/OS Anthropic claude.ai/design (gold-standard Wagner aprovou),
 //        Pages/ProjectMgmt/Board/DetailSheet.tsx (pattern fonte interno).
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -14,10 +14,15 @@ import {
   MapPin,
   Package,
   Phone,
+  Plus,
   Printer,
   Receipt,
   User,
+  X,
 } from 'lucide-react';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Textarea } from '@/Components/ui/textarea';
 import {
   Sheet,
   SheetContent,
@@ -81,6 +86,24 @@ interface Props {
   saleId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSaleChanged?: () => void;
+}
+
+const PAYMENT_METHODS_OPTIONS = [
+  { value: 'cash', label: 'Dinheiro' },
+  { value: 'custom_pay_1', label: 'PIX' },
+  { value: 'card', label: 'Cartão' },
+  { value: 'bank_transfer', label: 'Transferência' },
+  { value: 'custom_pay_2', label: 'Boleto' },
+  { value: 'cheque', label: 'Cheque' },
+  { value: 'other', label: 'Outros' },
+];
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+function getCsrfToken(): string {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta?.getAttribute('content') ?? '';
 }
 
 const formatBRL = (value: number) =>
@@ -121,41 +144,93 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
   partial: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
 };
 
-export default function SaleSheet({ saleId, open, onOpenChange }: Props) {
+export default function SaleSheet({ saleId, open, onOpenChange, onSaleChanged }: Props) {
   const [data, setData] = useState<SaleDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // State pra "Adicionar pagamento" inline.
+  const [showAddPayment, setShowAddPayment] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentDraft, setPaymentDraft] = useState({
+    amount: '',
+    method: 'custom_pay_1',
+    paid_on: todayISO(),
+    note: '',
+  });
+
+  const fetchData = useCallback(async () => {
+    if (!saleId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await fetch(`/sells/${saleId}/sheet-data`, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const json = await r.json();
+      setData(json);
+    } catch (e) {
+      setError(String((e as Error)?.message || e));
+    } finally {
+      setLoading(false);
+    }
+  }, [saleId]);
 
   useEffect(() => {
     if (!saleId || !open) {
       setData(null);
       setError(null);
+      setShowAddPayment(false);
+      setPaymentError(null);
       return;
     }
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetch(`/sells/${saleId}/sheet-data`, {
-      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      credentials: 'same-origin',
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then((json) => {
-        if (!cancelled) setData(json);
-      })
-      .catch((e) => {
-        if (!cancelled) setError(String(e?.message || e));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+    fetchData();
+  }, [saleId, open, fetchData]);
+
+  const handleSubmitPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!saleId) return;
+    setSubmitting(true);
+    setPaymentError(null);
+    try {
+      const res = await fetch(`/sells/${saleId}/quick-payment`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': getCsrfToken(),
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          amount: Number(paymentDraft.amount.replace(',', '.')),
+          method: paymentDraft.method,
+          paid_on: paymentDraft.paid_on,
+          note: paymentDraft.note || null,
+        }),
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [saleId, open]);
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        const validation = json.errors
+          ? Object.values(json.errors).flat().join(' · ')
+          : json.msg || 'Falha ao registrar pagamento.';
+        setPaymentError(validation);
+        return;
+      }
+      // Sucesso — fecha form, reseta draft, refetcha sheet, notifica Index.
+      setShowAddPayment(false);
+      setPaymentDraft({ amount: '', method: 'custom_pay_1', paid_on: todayISO(), note: '' });
+      await fetchData();
+      onSaleChanged?.();
+    } catch (err) {
+      setPaymentError(String((err as Error)?.message || err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const saldoDevedor = data ? data.final_total - data.total_paid : 0;
 
@@ -308,8 +383,122 @@ export default function SaleSheet({ saleId, open, onOpenChange }: Props) {
                 )}
               </Section>
 
-              {/* Histórico de pagamentos */}
-              <Section title={`Pagamentos (${data.payments.length})`} icon={CreditCard}>
+              {/* Histórico de pagamentos + ação rápida */}
+              <section>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <CreditCard size={11} />
+                    Pagamentos ({data.payments.length})
+                  </h3>
+                  {data.payment_status !== 'paid' && !showAddPayment && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setShowAddPayment(true);
+                        setPaymentDraft((prev) => ({
+                          ...prev,
+                          amount: saldoDevedor > 0 ? saldoDevedor.toFixed(2) : '',
+                        }));
+                      }}
+                      className="h-7 px-2 text-xs"
+                    >
+                      <Plus size={12} className="mr-1" />
+                      Adicionar
+                    </Button>
+                  )}
+                </div>
+
+                {showAddPayment && (
+                  <form
+                    onSubmit={handleSubmitPayment}
+                    className="rounded-md border border-border bg-muted/20 p-3 mb-3 space-y-3"
+                  >
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="qp-amount" className="text-xs">Valor</Label>
+                        <Input
+                          id="qp-amount"
+                          type="text"
+                          inputMode="decimal"
+                          value={paymentDraft.amount}
+                          onChange={(e) => setPaymentDraft({ ...paymentDraft, amount: e.target.value })}
+                          placeholder="0,00"
+                          required
+                          autoFocus
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="qp-method" className="text-xs">Forma</Label>
+                        <select
+                          id="qp-method"
+                          value={paymentDraft.method}
+                          onChange={(e) => setPaymentDraft({ ...paymentDraft, method: e.target.value })}
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        >
+                          {PAYMENT_METHODS_OPTIONS.map((m) => (
+                            <option key={m.value} value={m.value}>{m.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="qp-date" className="text-xs">Data</Label>
+                        <Input
+                          id="qp-date"
+                          type="date"
+                          value={paymentDraft.paid_on}
+                          onChange={(e) => setPaymentDraft({ ...paymentDraft, paid_on: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1.5 flex items-end text-xs text-muted-foreground tabular-nums">
+                        Saldo: <span className="ml-1 font-medium text-foreground">{formatBRL(saldoDevedor)}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="qp-note" className="text-xs">Observação (opcional)</Label>
+                      <Textarea
+                        id="qp-note"
+                        value={paymentDraft.note}
+                        onChange={(e) => setPaymentDraft({ ...paymentDraft, note: e.target.value })}
+                        rows={2}
+                        className="text-sm"
+                      />
+                    </div>
+                    {paymentError && (
+                      <div className="rounded-md bg-rose-50 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900/40 px-2.5 py-2 text-xs text-rose-700 dark:text-rose-300">
+                        {paymentError}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowAddPayment(false);
+                          setPaymentError(null);
+                        }}
+                        disabled={submitting}
+                      >
+                        <X size={14} className="mr-1" />
+                        Cancelar
+                      </Button>
+                      <Button type="submit" size="sm" disabled={submitting || !paymentDraft.amount}>
+                        {submitting ? (
+                          <Loader2 size={14} className="mr-1 animate-spin" />
+                        ) : (
+                          <CheckCircle2 size={14} className="mr-1" />
+                        )}
+                        Registrar
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
                 {data.payments.length === 0 ? (
                   <p className="text-xs text-muted-foreground">Nenhum pagamento registrado.</p>
                 ) : (
@@ -333,7 +522,7 @@ export default function SaleSheet({ saleId, open, onOpenChange }: Props) {
                     ))}
                   </ul>
                 )}
-              </Section>
+              </section>
 
               {/* Notas */}
               {data.additional_notes && (
