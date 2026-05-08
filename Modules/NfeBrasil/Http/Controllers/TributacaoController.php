@@ -67,11 +67,55 @@ class TributacaoController extends Controller
         return Inertia::render('NfeBrasil/Tributacao/Index', [
             'regras'    => $regras,
             'config'    => $config ? [
-                'regime'             => $config->regime,
-                'tributacao_default' => $config->tributacao_default,
+                'regime'                 => $config->regime,
+                'tributacao_default'     => $config->tributacao_default,
+                'auto_emission_enabled'  => (bool) $config->auto_emission_enabled,
             ] : null,
             'templates' => app(TributacaoTemplateService::class)->listar(),
         ]);
+    }
+
+    /**
+     * POST /nfe-brasil/tributacao/auto-emission/toggle
+     *
+     * Per-business gate pra emissão automática (ADR 0093 multi-tenant Tier 0).
+     * Tenant opt-in explícito antes de listeners dispatcharem Job.
+     *
+     * Validation inline: `enabled` é boolean obrigatório. Sem FormRequest
+     * separado pra escopo enxuto (1 campo).
+     *
+     * Falha graciosamente se NfeBusinessConfig não existir — instrui Wagner
+     * a aplicar template tributário primeiro (cria a row).
+     */
+    public function toggleAutoEmission(Request $request): RedirectResponse
+    {
+        $businessId = (int) $request->session()->get('business.id');
+        $enabled = (bool) $request->boolean('enabled');
+
+        $config = NfeBusinessConfig::where('business_id', $businessId)->first();
+
+        if (! $config) {
+            return redirect()
+                ->route('nfe-brasil.tributacao.index')
+                ->with('error', 'Configure a tributação primeiro (aplique um template) antes de habilitar emissão automática.');
+        }
+
+        $config->update(['auto_emission_enabled' => $enabled]);
+
+        activity('nfe.tributacao')
+            ->causedBy($request->user())
+            ->performedOn($config)
+            ->withProperties([
+                'business_id' => $businessId,
+                'enabled'     => $enabled,
+            ])
+            ->log('auto_emission.toggled');
+
+        return redirect()
+            ->route('nfe-brasil.tributacao.index')
+            ->with('success', $enabled
+                ? 'Emissão automática habilitada neste tenant.'
+                : 'Emissão automática desabilitada neste tenant.');
     }
 
     /**

@@ -7,6 +7,7 @@ namespace Modules\NfeBrasil\Listeners;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Events\NFeAutorizada;
+use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Services\NfeService;
 use Modules\RecurringBilling\Events\InvoicePaid;
 use Modules\RecurringBilling\Models\Invoice;
@@ -72,8 +73,20 @@ class EmitirNFeAoReceberPagamento implements ShouldQueue
         ]);
 
         if (! config('nfebrasil.auto_emission_on_invoice_paid', false)) {
-            Log::info('NFe auto-emission DISABLED — listener no-op', [
+            Log::info('NFe auto-emission DISABLED — listener no-op (global flag)', [
                 'invoice_ref' => $event->invoiceRef,
+            ]);
+            return;
+        }
+
+        // Per-business gate (ADR 0093 multi-tenant Tier 0). Tenant precisa
+        // ter opt-in explícito via nfe_business_configs.auto_emission_enabled=true.
+        $bizConfig = NfeBusinessConfig::where('business_id', $event->businessId)->first();
+        if (! $bizConfig || ! $bizConfig->auto_emission_enabled) {
+            Log::info('NFe auto-emission DISABLED — listener no-op (per-business gate)', [
+                'business_id' => $event->businessId,
+                'invoice_ref' => $event->invoiceRef,
+                'has_config'  => (bool) $bizConfig,
             ]);
             return;
         }

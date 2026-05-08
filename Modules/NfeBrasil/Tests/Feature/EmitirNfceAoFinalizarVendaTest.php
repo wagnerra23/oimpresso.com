@@ -40,6 +40,83 @@ it('flag OFF → Job NÃO dispatched mesmo com venda elegível', function () {
     Queue::assertNotPushed(EmitirNfceJob::class);
 });
 
+/**
+ * Per-business gate (ADR 0093 multi-tenant Tier 0).
+ *
+ * Mesmo com flag global ON, tenant precisa ter opt-in explícito via
+ * nfe_business_configs.auto_emission_enabled=true. Default false protege
+ * biz=4 (ROTA LIVRE Larissa) etc. quando smoke biz=1 está armed.
+ */
+it('per-business gate: business sem config → Job NÃO dispatched', function () {
+    config(['nfebrasil.auto_emission_on_sell_completed' => true]);
+    Queue::fake();
+
+    \Modules\NfeBrasil\Models\NfeBusinessConfig::query()
+        ->where('business_id', 1)
+        ->delete();
+
+    $tx = nfceTest_makeFakeTransaction([
+        'business_id' => 1,
+        'type' => 'sell',
+        'status' => 'final',
+        'payment_status' => 'paid',
+    ]);
+
+    (new EmitirNfceAoFinalizarVenda)->handle(new SellCreatedOrModified($tx));
+
+    Queue::assertNotPushed(EmitirNfceJob::class);
+});
+
+it('per-business gate: auto_emission_enabled=false → Job NÃO dispatched', function () {
+    config(['nfebrasil.auto_emission_on_sell_completed' => true]);
+    Queue::fake();
+
+    \Modules\NfeBrasil\Models\NfeBusinessConfig::updateOrCreate(
+        ['business_id' => 1],
+        [
+            'regime' => 'simples',
+            'auto_emission_enabled' => false,
+            'tributacao_default' => ['cfop' => '5102'],
+        ]
+    );
+
+    $tx = nfceTest_makeFakeTransaction([
+        'business_id' => 1,
+        'type' => 'sell',
+        'status' => 'final',
+        'payment_status' => 'paid',
+    ]);
+
+    (new EmitirNfceAoFinalizarVenda)->handle(new SellCreatedOrModified($tx));
+
+    Queue::assertNotPushed(EmitirNfceJob::class);
+});
+
+it('per-business gate: auto_emission_enabled=true → Job dispatched', function () {
+    config(['nfebrasil.auto_emission_on_sell_completed' => true]);
+    Queue::fake();
+
+    \Modules\NfeBrasil\Models\NfeBusinessConfig::updateOrCreate(
+        ['business_id' => 1],
+        [
+            'regime' => 'simples',
+            'auto_emission_enabled' => true,
+            'tributacao_default' => ['cfop' => '5102'],
+        ]
+    );
+
+    $tx = nfceTest_makeFakeTransaction([
+        'business_id' => 1,
+        'type' => 'sell',
+        'status' => 'final',
+        'payment_status' => 'paid',
+    ]);
+
+    (new EmitirNfceAoFinalizarVenda)->handle(new SellCreatedOrModified($tx));
+
+    Queue::assertPushed(EmitirNfceJob::class);
+});
+
 it('filtra type !== sell (purchase/transfer não emite NFC-e)', function () {
     config(['nfebrasil.auto_emission_on_sell_completed' => true]);
     Queue::fake();

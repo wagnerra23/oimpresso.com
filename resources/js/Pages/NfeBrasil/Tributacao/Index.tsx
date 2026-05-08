@@ -6,11 +6,12 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
   CheckCircle2, FilePlus2, FileSpreadsheet, Package, Pencil, Percent, Printer,
-  Settings, ShoppingBag, Sparkles, Trash2,
+  Settings, ShoppingBag, Sparkles, Trash2, Zap,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
+import { Switch } from '@/Components/ui/switch';
 import { toast } from 'sonner';
 
 interface Regra {
@@ -32,6 +33,7 @@ interface Regra {
 interface ConfigDefault {
   regime: string;
   tributacao_default: Record<string, unknown>;
+  auto_emission_enabled?: boolean;
 }
 
 interface Template {
@@ -95,6 +97,16 @@ function Index({ regras, config, templates }: Props) {
       preserveScroll: true,
       onError: () => toast.error('Falha ao aplicar template.'),
     });
+  };
+
+  const toggleAutoEmission = (checked: boolean) => {
+    router.post('/nfe-brasil/tributacao/auto-emission/toggle',
+      { enabled: checked },
+      {
+        preserveScroll: true,
+        onError: () => toast.error('Falha ao atualizar emissão automática.'),
+      }
+    );
   };
 
   const remover = (regra: Regra) => {
@@ -236,6 +248,32 @@ function Index({ regras, config, templates }: Props) {
             )}
           </CardContent>
         </Card>
+
+        {/* Per-business auto-emission gate (ADR 0093 multi-tenant Tier 0) */}
+        {config && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  Emissão automática
+                </span>
+                <Switch
+                  checked={config.auto_emission_enabled ?? false}
+                  onCheckedChange={toggleAutoEmission}
+                  aria-label="Habilitar emissão automática"
+                />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                {config.auto_emission_enabled
+                  ? 'Habilitado: vendas finalizadas pagas neste tenant emitem NFC-e/NFe automaticamente.'
+                  : 'Desabilitado: vendas finalizadas NÃO disparam emissão automática neste tenant. Habilite só após validar o smoke fiscal em homologação.'}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Regras NCM (Níveis 2 e 3) */}
         <Card>
