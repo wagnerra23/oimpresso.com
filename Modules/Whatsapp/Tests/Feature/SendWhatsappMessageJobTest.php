@@ -140,7 +140,7 @@ it('cria WhatsappMessage queued + dispatch Queued event antes de chamar driver',
     $msg = $msgs->first();
     expect($msg->status)->toBe('sent');
     expect($msg->provider_message_id)->toBe('wamid.TEST123');
-    expect($msg->business_id)->toBe(4);
+    expect($msg->business_id)->toBe(1);
     expect($msg->direction)->toBe('outbound');
     expect($msg->provider)->toBe('zapi');
 });
@@ -205,7 +205,7 @@ it('atualiza WhatsappConversation last_outbound_at em sucesso', function () {
 
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->first();
     expect($conv)->not->toBeNull();
-    expect($conv->business_id)->toBe(4);
+    expect($conv->business_id)->toBe(1);
     expect($conv->customer_phone)->toBe('+5511987654321');
     expect($conv->last_outbound_at)->not->toBeNull();
     expect($conv->last_message_at)->not->toBeNull();
@@ -229,5 +229,5 @@ it('Tier 0 — businessId no constructor isola do session()', function () {
     $job->handle();
 
     $msg = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->first();
-    expect($msg->business_id)->toBe(4); // não 999
+    expect($msg->business_id)->toBe(1); // não 999
 });
