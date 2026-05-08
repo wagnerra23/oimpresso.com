@@ -219,3 +219,40 @@ it('SaleSheet drawer importa + renderiza FiscalSection', function () {
     expect($source)->toContain("import FiscalSection from './FiscalSection'");
     expect($source)->toContain('<FiscalSection saleId={data.id}');
 });
+
+// ─── BUG FIX 2026-05-08: XSD ordem CPF/CNPJ antes de xNome + anônimo NFC-e ───
+
+it('BUG FIX: NfeService NFC-e consumidor anônimo (sem CPF) NÃO seta CPF=\'\' (omite <dest>)', function () {
+    $source = file_get_contents(base_path('Modules/NfeBrasil/Services/NfeService.php'));
+    // Regression do bug Wagner reportou 2026-05-08:
+    //   "Element xNome: This element is not expected. Expected is one of (CNPJ, CPF, idEstrangeiro)"
+    // Causa antiga: $stdDest->CPF = '' quando doc vazio + xNome setado antes.
+    // Fix: NFC-e (modelo 65) + sem doc válido → pula tagdest() inteiro.
+    expect($source)->toContain('NFC-e consumidor anônimo');
+    expect($source)->toContain('omitindo <dest>');
+    expect($source)->toContain('$isNfce && !$hasDoc');
+    // Garante que NÃO existe pattern antigo do bug:
+    // else { $stdDest->CPF = $doc; }  ← seria regression (cai aqui se doc vazio).
+    expect($source)->not->toMatch('/}\\s*else\\s*\\{\\s*\\$stdDest->CPF\\s*=\\s*\\$doc;\\s*\\}/');
+});
+
+it('BUG FIX: NfeService XSD ordem — CPF/CNPJ ANTES de xNome (canon SEFAZ)', function () {
+    $source = file_get_contents(base_path('Modules/NfeBrasil/Services/NfeService.php'));
+    // Comentário documenta a regra (defesa em profundidade vs futura regressão).
+    expect($source)->toContain('XSD SEFAZ ORDEM');
+    expect($source)->toContain('ANTES de xNome');
+    // Verificação estrutural: no bloco else (com_doc), CNPJ/CPF aparecem ANTES de xNome.
+    // Pega o trecho do else { ... tagdest($stdDest); }.
+    if (preg_match('/\\$stdDest = new \\\\stdClass\\(\\);(.*?)tagdest\\(\\$stdDest\\)/s', $source, $m)) {
+        $bloco = $m[1];
+        $cnpjPos = strpos($bloco, '$stdDest->CNPJ');
+        $cpfPos  = strpos($bloco, '$stdDest->CPF');
+        $xNomePos = strpos($bloco, '$stdDest->xNome');
+        // CNPJ ou CPF deve existir e vir ANTES de xNome.
+        expect($cnpjPos !== false || $cpfPos !== false)->toBeTrue('Bloco dest sem CNPJ ou CPF');
+        $docPos = $cnpjPos !== false ? $cnpjPos : $cpfPos;
+        expect($xNomePos)->toBeGreaterThan($docPos);
+    } else {
+        $this->fail('Bloco $stdDest = new \\stdClass até tagdest() não encontrado');
+    }
+});
