@@ -404,6 +404,60 @@ export default function AppShellV2({
                 </span>
               ))}
             </div>
+
+            {/* TopNav horizontal do módulo INLINE com breadcrumb (Wagner 2026-05-08:
+                "fica mais fluidico").
+                Auto-detect via useAutoModuleNav() lendo shell.topnavs[Module]
+                alimentado por Modules/<Mod>/Resources/menus/topnav.php
+                e config/core_topnavs.php (ADR 0107 §gap topnav). */}
+            {moduleItems.length > 0 && (
+              <>
+                <span className="bc-sep" style={{ margin: '0 4px' }}>|</span>
+                <nav
+                  className="topnav-module-inline"
+                  aria-label="Navegação do módulo"
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}
+                >
+                  {moduleItems.map((item, i) => {
+                    const href = item.href ?? '#';
+                    const itemRoot = '/' + (href.split('/').slice(1, 3).join('/'));
+                    const isActive = currentPath.startsWith(itemRoot) && itemRoot !== '/';
+                    const Icon = item.icon ? TOPNAV_ICON_MAP[item.icon] : undefined;
+                    return (
+                      <a
+                        key={i}
+                        href={href}
+                        className={`topnav-chip${isActive ? ' active' : ''}`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          padding: '4px 10px',
+                          borderRadius: 6,
+                          fontSize: 12.5,
+                          fontWeight: isActive ? 600 : 500,
+                          color: isActive ? 'var(--text)' : 'var(--text-dim)',
+                          background: isActive ? 'var(--surface-2)' : 'transparent',
+                          textDecoration: 'none',
+                          transition: 'background 120ms, color 120ms',
+                          whiteSpace: 'nowrap',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) e.currentTarget.style.background = 'var(--surface-2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        {Icon && <Icon size={13} />}
+                        <span>{item.label}</span>
+                      </a>
+                    );
+                  })}
+                </nav>
+              </>
+            )}
+
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
               <button
                 className="icon-btn"
@@ -424,30 +478,6 @@ export default function AppShellV2({
             </div>
           </header>
 
-          {/* TopNav horizontal do módulo (Wagner 2026-05-07: "tem que ter").
-              Auto-detect via useAutoModuleNav() lendo shell.topnavs[Module]
-              alimentado por Modules/<Mod>/Resources/menus/topnav.php.
-              Renderiza só se módulo tem topnav configurado. */}
-          {moduleItems.length > 0 && (
-            <nav className="topnav-module" aria-label="Navegação do módulo">
-              {moduleItems.map((item, i) => {
-                const href = item.href ?? '#';
-                const itemRoot = '/' + (href.split('/').slice(1, 3).join('/'));
-                const isActive = currentPath.startsWith(itemRoot) && itemRoot !== '/';
-                const Icon = item.icon ? TOPNAV_ICON_MAP[item.icon] : undefined;
-                return (
-                  <a
-                    key={i}
-                    href={href}
-                    className={`topnav-module-i${isActive ? ' active' : ''}`}
-                  >
-                    {Icon && <Icon size={14} />}
-                    <span>{item.label}</span>
-                  </a>
-                );
-              })}
-            </nav>
-          )}
           <div className="main-body">
             {children}
           </div>
