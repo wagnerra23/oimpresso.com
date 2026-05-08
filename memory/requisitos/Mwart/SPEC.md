@@ -3,6 +3,7 @@
 > **Convenção do ID:** `US-MWART-NNN` para user stories de meta-processo.
 > **Origem:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — Wagner 2026-05-08 pediu único caminho de migração com enforcement, falhas inaceitáveis.
 > **Skill mãe:** [mwart-process](../../../.claude/skills/mwart-process/SKILL.md) (Tier A always-on).
+> **Estimates recalibradas:** [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) — fator 10x em codáveis + margem 2x. Total 28h → 5.5h reais.
 
 ## 1. Glossário
 
@@ -15,7 +16,7 @@
 
 ### US-MWART-001 · Camada 2+3 enforcement — Hook + CI workflow
 
-> owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story · origin: adr-0104
+> owner: wagner · priority: p0 · estimate: 1.5h · status: todo · type: story · origin: adr-0104
 > blocked_by: —
 
 **Contexto.** ADR 0104 define 3 camadas de enforcement. A camada 1 (skill Tier A `mwart-process`) já está ativa. Faltam 2 e 3 — sem elas, o processo depende exclusivamente do agent lembrar (pode falhar em sessão longa, dev humano sem Claude Code, ou agent novo). Esta US implementa as travas em runtime e merge.
@@ -46,7 +47,7 @@
 
 ### US-MWART-002 · Backfill — audit das 78 telas Inertia já existentes
 
-> owner: wagner · priority: p1 · estimate: 16h · status: todo · type: story · origin: adr-0104
+> owner: wagner · priority: p1 · estimate: 3h · status: todo · type: story · origin: adr-0104
 > blocked_by: US-MWART-001
 
 **Contexto.** O ADR 0104 estabelece processo canônico, mas as ~78 telas Inertia existentes foram migradas antes do processo formalizar. Backfill garante: cada tela tem RUNBOOK retroativo + score audit registrado + SPEC com US `done` (status histórico).
@@ -70,7 +71,7 @@
 
 ### US-MWART-003 · Métricas de adoção do processo
 
-> owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story · origin: adr-0104
+> owner: wagner · priority: p2 · estimate: 1h · status: todo · type: story · origin: adr-0104
 > blocked_by: US-MWART-002
 
 **Contexto.** "Não pode falhar" exige observabilidade. Métricas chave que respondem se o processo está sendo seguido:

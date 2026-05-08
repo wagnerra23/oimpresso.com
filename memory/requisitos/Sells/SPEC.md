@@ -3,6 +3,7 @@
 > **Convenção do ID:** `US-SELL-NNN` para user stories.
 > **Origem:** sessão 2026-05-08 — Wagner pediu RUNBOOK como tarefa em produção, com subtarefas selecionáveis e revisão detalhada antes de iniciar (processo crítico, ROTA LIVRE biz=4 faz 99% do volume).
 > **Plano:** [RUNBOOK-create.md](RUNBOOK-create.md) — 11 seções com tokens, estados, atalhos, contract, DoD, pegadinhas, ADRs.
+> **Estimates recalibradas:** [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) — fator 10x em codáveis + margem 2x; humanos mantém relógio (canary 7d, monitor 30d). Total epic recalibrado: 60h → ~28h reais (16h codáveis + 12h relógio humano).
 
 ## 1. Glossário
 
@@ -17,7 +18,7 @@
 
 ### US-SELL-001 · Epic — Migrar /sells/create pra MWART
 
-> owner: wagner · priority: p1 · estimate: 60h · status: todo · type: epic · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 28h · status: todo · type: epic · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: —
 
 **Contexto.** Tela `/sells/create` hoje é Blade legacy (`sale_pos.create` 996 LOC + 60+ partials + jQuery 3.178 LOC). Larissa (ROTA LIVRE) tem fricção real: scroll vertical 3 telas, 18 campos visíveis (10 raramente usados), lag de Select2/DataTables. Goal: migrar pra Inertia/React (MWART) com **defaults inteligentes pra ROTA LIVRE**, **8 campos visíveis + 10 colapsáveis**, **draft auto-save**, **atalhos `/` e `⌘+Enter`**, e **smoke fiscal seguro em biz=1 antes de cutover**.
@@ -35,7 +36,7 @@
 
 ### US-SELL-002 · Backend dual Inertia/Blade + feature flag + Pest
 
-> owner: wagner · priority: p1 · estimate: 8h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 1.5h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: —
 
 **Contexto.** O `SellPosController@create` hoje retorna `view('sale_pos.create')` com 27 props. Adicionar resposta dual: se header `X-Inertia` E feature flag `useV2SellsCreate=true` no `pos_settings` da empresa, retorna `Inertia::render('Sells/Create', ...)`. Senão, comportamento atual (zero risco).
@@ -56,7 +57,7 @@
 
 ### US-SELL-003 · Frontend skeleton + AppShellV2 + props contract
 
-> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-002
 
 **Contexto.** Criar `resources/js/Pages/Sells/Create.tsx` com estrutura mínima rodando — só PageHeader, container vazio, Persistent Layout (AppShellV2). Foco em fechar o pipeline build → bundle → render antes de adicionar lógica.
@@ -74,7 +75,7 @@
 
 ### US-SELL-004 · Triagem visibilidade campos (18 → 8 visíveis + 10 colapsáveis)
 
-> owner: wagner · priority: p1 · estimate: 4h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 0.75h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-003
 
 **Contexto.** Mapa do RUNBOOK §3.3 — 18 campos legacy, ROTA LIVRE só usa 8 com frequência. Esconder 10 em `<details>` colapsáveis. Manter dados serializados no form (não reduzir contract — é só visibilidade).
@@ -91,7 +92,7 @@
 
 ### US-SELL-005 · Produtos — busca + tabela + cálculos
 
-> owner: wagner · priority: p1 · estimate: 12h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 2.5h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-004
 
 **Contexto.** Coração da tela. Hoje é Select2 + AJAX + DataTables jQuery. Migrar pra `<ProductSearchAutocomplete/>` (debounce 250ms) + tabela editável com cálculo reativo de subtotal/desconto/total.
@@ -113,7 +114,7 @@
 
 ### US-SELL-006 · Pagamento + frete + descontos colapsáveis
 
-> owner: wagner · priority: p1 · estimate: 8h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 1.5h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-005
 
 **Contexto.** Bloco pagamento sempre visível (default 1 linha `payments[0]`). Frete em `<details>`. Desconto pedido + imposto pedido em `<details>` separado.
@@ -133,7 +134,7 @@
 
 ### US-SELL-007 · Atalhos + auto-save draft + estados visuais
 
-> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-006
 
 **Contexto.** Larissa atende telefone no meio. Não pode perder rascunho. Auto-save em `localStorage.oimpresso.sells.create.draft.{biz}.{user}` debounced 500ms. Recuperação ao reabrir.
@@ -155,7 +156,7 @@
 
 ### US-SELL-008 · QA: audit + smoke biz=1 + canary Wagner 7d + rollback plan
 
-> owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p0 · estimate: 8h (1h codável + 7d canary humano) · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-007
 
 **Contexto.** Travas finais antes de tocar ROTA LIVRE. Crítico — Wagner 99% do volume é Larissa.
@@ -179,7 +180,7 @@
 
 ### US-SELL-009 · Cutover ROTA LIVRE + remover Blade após 30d
 
-> owner: wagner · priority: p0 · estimate: 4h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p0 · estimate: 4h (0.5h codável + 30d monitor humano) · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-008
 
 **Contexto.** Habilitar V2 pra Larissa. 30 dias monitorando. Se zero incidente → remover Blade legacy + 60 partials + parte do `pos.js`.
