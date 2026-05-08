@@ -39,6 +39,11 @@ Route::group(
             ->where('taskId', '[A-Z0-9\-]+')
             ->name('project-mgmt.board.update-status');
 
+        // ---- Detail Sheet — PMG-004 (ADR 0100) -----------------------------
+        Route::get('/board/{taskId}/detail', 'BoardController@show')
+            ->where('taskId', '[A-Z0-9\-]+')
+            ->name('project-mgmt.board.show');
+
         // ---- Cmd+K Search Global — PMG-002 (ADR 0100) ----------------------
         Route::get('/search', 'SearchController@index')
             ->name('project-mgmt.search');

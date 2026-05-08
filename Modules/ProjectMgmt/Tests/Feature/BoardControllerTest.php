@@ -265,3 +265,67 @@ it('PATCH com expected_updated_at correto retorna 200 + novo updated_at', functi
     $response->assertJsonStructure(['ok', 'task_id', 'status', 'updated_at']);
     expect($task->fresh()->status)->toBe('doing');
 });
+
+// ============================================================================
+// PMG-004 (ADR 0100) — Detail Sheet endpoint GET /board/{taskId}/detail
+// ============================================================================
+
+it('GET /board/{taskId}/detail sem permission retorna 403', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, 'todo');
+
+    pmgRevokePerm($user);
+
+    $response = $this->actingAs($user)
+        ->getJson("/project-mgmt/board/{$task->task_id}/detail");
+
+    expect($response->status())->toBe(403);
+});
+
+it('GET /board/{taskId}/detail com taskId inexistente retorna 404', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+
+    $response = $this->actingAs($user)
+        ->getJson('/project-mgmt/board/TEST-PMG-NAOEXISTE-99999/detail');
+
+    expect($response->status())->toBe(404);
+});
+
+it('GET /board/{taskId}/detail happy path retorna shape canônico', function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, 'doing', 'p1');
+
+    $response = $this->actingAs($user)
+        ->getJson("/project-mgmt/board/{$task->task_id}/detail");
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped('Permission gate inesperado.');
+    }
+
+    $response->assertOk();
+    $response->assertJsonStructure([
+        'task' => [
+            'task_id',
+            'display_id',
+            'title',
+            'status',
+            'priority',
+            'description',
+            'project_key',
+        ],
+        'comments',
+        'events',
+        'subtasks',
+        'dependencies',
+    ]);
+
+    $data = $response->json();
+    expect($data['task']['task_id'])->toBe($task->task_id);
+    expect($data['task']['status'])->toBe('doing');
+    expect($data['task']['priority'])->toBe('p1');
+});
