@@ -1,4 +1,4 @@
-// @memcofre
+﻿// @memcofre
 //   tela: /copiloto/dashboard
 //   stories: US-COPI-010, US-COPI-011, US-COPI-012
 //   rules: R-COPI-002, R-COPI-FAROL-001
@@ -144,7 +144,7 @@ function MetaCard({ meta }: { meta: Meta }) {
 
       <CardContent className="pl-5 space-y-3">
         {realizado !== null ? (
-          <div className="text-2xl font-bold tabular-nums">
+          <div className="text-2xl font-semibold tabular-nums">
             {formatValue(realizado, meta.unidade)}
           </div>
         ) : (
@@ -181,7 +181,7 @@ export default function Dashboard({ metas }: Props) {
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Dashboard de Metas</h1>
+            <h1 className="text-2xl font-semibold">Dashboard de Metas</h1>
             <p className="text-sm text-muted-foreground">
               {metas.length} {metas.length === 1 ? 'meta ativa' : 'metas ativas'}
             </p>

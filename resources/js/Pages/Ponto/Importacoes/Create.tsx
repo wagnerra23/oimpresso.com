@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /ponto/importacoes/create
 //   module: PontoWr2
 //   status: implementada
@@ -49,7 +49,7 @@ export default function ImportacoesCreate() {
       <div className="mx-auto max-w-2xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <FileUp size={22} /> Nova importação
             </h1>
           </div>

@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /essentials/knowledge-base/create
 //   module: Essentials
 //   status: implementada
@@ -95,7 +95,7 @@ export default function KnowledgeCreate({ parent, users }: Props) {
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               {iconFor(kbType)} Novo {labelFor(kbType).toLowerCase()}
             </h1>
             {parent && (

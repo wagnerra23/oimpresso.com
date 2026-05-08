@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /hrm/settings
 //   module: Essentials
 //   status: implementada
@@ -50,7 +50,7 @@ export default function SettingsIndex({ settings }: Props) {
     <>
       <div className="mx-auto max-w-3xl p-6 space-y-4">
         <header>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <SettingsIcon size={22} /> Configurações
           </h1>
           <p className="text-sm text-muted-foreground mt-1">

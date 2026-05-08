@@ -1,4 +1,4 @@
-// @docvault
+﻿// @docvault
 //   tela: /ponto/espelho
 //   module: PontoWr2
 //   status: implementada
@@ -45,7 +45,7 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         <header>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <ClipboardList size={22} /> Espelho de Ponto
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
