@@ -201,5 +201,136 @@ Padrão muda por ADR, nunca por commit solto.
 
 ---
 
-> **Última atualização:** 2026-05-05 — §1 + §6 + §7 atualizados pra apontar pro UI Kit Cowork canônico ([_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)). `os-page.jsx` agora é padrão canônico de tela list+detail.
-> **Próxima revisão sugerida:** quando 1ª tela for portada usando `os-page.jsx` como referência (provável piloto: Pages/Officeimpresso/OS).
+## 16. Cockpit Pattern V2 — list+detail consolidado (ADR 0110)
+
+> **Pra páginas tipo "lista de entidades transacionais"** (vendas, compras, OSes, despesas, contas, clientes, produtos). Espelha `os-page.jsx` da §6 + adiciona spec concreto de tipografia, cores semânticas e endpoints REST.
+> Fonte da verdade: [ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md). Pages canon vivos: [Sells/Index.tsx](resources/js/Pages/Sells/Index.tsx), [Sells/Create.tsx](resources/js/Pages/Sells/Create.tsx), [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx), [governance/Dashboard.tsx](resources/js/Pages/governance/Dashboard.tsx), [ProjectMgmt/Board/Index.tsx](resources/js/Pages/ProjectMgmt/Board/Index.tsx).
+
+### 16.1. Anatomia (5 partes obrigatórias)
+
+```
+┌─ AppShellV2 ────────────────────────────────────┐
+│ Header                                          │
+│   PageHeader shared (h1 + subtitle + 1 botão)   │
+│   3 KPIs cards (Abertas / Atrasadas / Total)    │
+│   5 filter pills rounded-full + counter         │
+├─ Tabela limpa ───────────────────┬─ Drawer Sheet │
+│  data│nº│cliente 2L│$│$│badge   │ side="right"  │
+│  [select row → bg-blue-50]      │ w-xl          │
+├─────────────────────────────────────────────────┤
+│ Footer sticky (form pages — opcional)           │
+└─────────────────────────────────────────────────┘
+```
+
+### 16.2. Cores semânticas Cockpit V2 (proibido cor crua)
+
+| Tom | Light | Dark | Uso |
+|---|---|---|---|
+| **Rose** (danger) | `bg-rose-50 text-rose-700 border-rose-200` | `bg-rose-950/40 text-rose-300` | Atrasos, urgentes, KPI Atrasadas |
+| **Emerald** (success) | `bg-emerald-50 text-emerald-700 border-emerald-200` | `bg-emerald-950/40 text-emerald-300` | Pago, ✓ pagamentos, OK |
+| **Amber** (warning) | `bg-amber-50 text-amber-700 border-amber-200` | `bg-amber-950/40 text-amber-300` | Saldo devedor, frete pendente |
+| **Blue** (info/active) | `bg-blue-50 text-blue-700 border-blue-200` | `bg-blue-950/50 text-blue-300` | Pill ativo, parcial, linha selecionada |
+
+**Proibido:** `bg-(gray|indigo|purple|pink|yellow|red|green)-[0-9]+` (cores cruas sem semântica). Test [`CockpitPatternConformanceTest`](tests/Feature/Design/CockpitPatternConformanceTest.php) varre 117 Pages.
+
+Red dot bullet pra urgência: `<span className="h-2 w-2 rounded-full bg-rose-500" />`.
+
+### 16.3. Tipografia Cockpit V2 (specs concretos)
+
+| Elemento | Classe | Px |
+|---|---|---|
+| h1 página | `text-2xl font-semibold tracking-tight` | 24 |
+| Subtitle | `text-sm text-muted-foreground leading-relaxed` | 14 |
+| KPI label | `text-[11px] font-semibold uppercase tracking-widest text-muted-foreground` | 11 |
+| KPI value | `text-4xl font-semibold tabular-nums` | 36 |
+| Filter pill | `text-xs font-medium` | 12 |
+| Pill counter | `text-[10px] tabular-nums` | 10 |
+| Tabela th | `text-[11px] font-semibold uppercase tracking-wider` | 11 |
+| Tabela td | `text-sm` | 14 |
+| Badge | `text-[11px] font-medium` | 11 |
+| Drawer mini-KPI label | `text-[10px] font-semibold uppercase tracking-wider` | 10 |
+| Drawer section title | `text-[10px] font-semibold uppercase tracking-widest` | 10 |
+
+**Proibido:** `font-bold/extrabold/black` em h1-h3 (canon = `font-semibold`).
+
+### 16.4. Filter pills canônicas (NÃO tabs border-bottom)
+
+```tsx
+<button className={
+  'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ' +
+  (isActive
+    ? danger ? 'bg-rose-100 text-rose-800' : 'bg-blue-50 text-blue-700'
+    : danger ? 'bg-rose-50/60 text-rose-700 hover:bg-rose-100'
+            : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground')
+}>
+  <Icon size={13} />
+  {label}
+  {count > 0 && (
+    <span className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] tabular-nums bg-background">
+      {count}
+    </span>
+  )}
+</button>
+```
+
+### 16.5. Drawer Sheet pattern (lista+detail)
+
+Lista clicável → drawer lateral direito com SheetContent:
+
+```tsx
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+
+<Sheet open={open} onOpenChange={onOpenChange}>
+  <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col p-0 overflow-hidden">
+    <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
+      <SheetTitle>{title}</SheetTitle>
+    </SheetHeader>
+    {/* 4 mini-KPIs grid grid-cols-4 + sections + footer ações sticky */}
+  </SheetContent>
+</Sheet>
+```
+
+Ref vivo: [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx).
+
+### 16.6. Endpoints REST canônicos (2 por entidade)
+
+```php
+// Lista JSON minimalista — alimenta tabela Inertia
+Route::get('/{entity}-list-json', [EntityController::class, 'inertiaList']);
+// Returns 8 fields/linha + booleanos derivados (is_overdue)
+
+// Detalhe JSON — alimenta drawer
+Route::get('/{entity}/{id}/sheet-data', [EntityController::class, 'sheetData']);
+```
+
+**Permission scope explícito** + `business_id` where (defesa em profundidade ADR 0093). **UltimatePOS gotcha:** `total_paid` não é coluna em `transactions` — sempre subquery `transaction_payments` com `is_return`. Ref [TransactionUtil:2400](app/Utils/TransactionUtil.php).
+
+### 16.7. Componentes shared canônicos (REUSE primeiro)
+
+- `@/Components/shared/PageHeader` — h1+subtitle+action canônicos
+- `@/Components/shared/KpiCard` — KPI com tone (default/success/warning/danger/info) + size (compact/default/large)
+- `@/Components/shared/EmptyState` — placeholder lista vazia
+- `@/Components/ui/sheet` — drawer shadcn
+
+Antes de criar componente custom, **buscar** em `resources/js/Components/`. Pattern: KpiCard custom inline foi banido em 2026-05-08 (33 Pages migradas).
+
+### 16.8. Anti-padrões V2 (testes Pest CI varre)
+
+- ❌ `<AppShell>` sem V2 ([auto-mem](memory/feedback_persistent_layouts.md))
+- ❌ `sessionStorage` (use `localStorage` com prefixo `oimpresso.`)
+- ❌ `bg-(gray|indigo|purple|pink|yellow|red|green)-[0-9]+`
+- ❌ `font-bold/extrabold/black` em h1-h3
+- ❌ Tabs `border-b-2 border-primary` em filter (use pills)
+- ❌ Modal/Dialog pra detalhe de lista (use Sheet lateral)
+- ❌ `Object.entries(record)` direto em props UltimatePOS forDropdowns (use helper `dropdownEntries()`)
+- ❌ Patch em Blade legacy tentando paridade visual com Inertia (sempre dissona — migrar página inteira)
+
+Tests automatizados:
+- [CockpitPatternConformanceTest](tests/Feature/Design/CockpitPatternConformanceTest.php) — 16 testes / 117 Pages
+- [CockpitTypographyConformanceTest](tests/Feature/Design/CockpitTypographyConformanceTest.php) — 7 testes tipografia
+- [SellsIndexPageTest](tests/Feature/Sells/SellsIndexPageTest.php) — pattern Sells canon vivo
+
+---
+
+> **Última atualização:** 2026-05-08 — §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, ProjectMgmt/Board/Index.
+> **Próxima revisão sugerida:** quando próximo módulo (Compras, Repair JobSheet, Despesas) migrar pra V2.
