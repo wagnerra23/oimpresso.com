@@ -1,17 +1,24 @@
 ---
 name: mwart-comparative
-description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier A always-on que gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` — tabela 3 colunas (Blade legacy / Canon Cockpit / Decisão MWART) cobrindo 8 dimensões visuais. Skill PARA após gerar draft e aguarda Wagner aprovar (~5min síncrono) ANTES de qualquer Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx`. Restaura o loop "design supervisionado" que existia em Repair S2.5 (PRs #138-145) e foi diluído na Constituição V2. Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
+description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier A always-on V3 que ORQUESTRA o Claude Design plugin Anthropic (design:design-critique + design:design-handoff + design:design-system + design:ux-copy + design:accessibility-review + design:research-synthesis) pra produzir resultado estado-da-arte. Gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` com 15 dimensões + framework Anthropic completo. Skill PARA após gerar draft e aguarda Wagner aprovar SCREENSHOT (não tabela) ~10min síncrono ANTES de qualquer Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx`. Restaura o loop "design supervisionado" da era Repair S2.5 com qualidade estado-da-arte. Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
 tier: A
 status: active
-version: 1.0
+version: 3.0
 authority: canonical
-parent_adr: 0107
+parent_adr: 0109
 ---
 
-# Skill: mwart-comparative — Loop design supervisionado em F1.5 (Tier A always-on)
+# Skill: mwart-comparative V3 — Loop design supervisionado estado-da-arte (Tier A always-on)
 
-> **Documento mãe:** [ADR 0107](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) (emenda ADR 0104). Esta skill implementa o gate visual obrigatório de F3 FRONTEND INCREMENTAL.
-> **Skills irmãs:** [`mwart-process`](../mwart-process/SKILL.md) (Tier A canon), [`cockpit-runbook`](../cockpit-runbook/SKILL.md) (F1 PLAN + F3/F4 audit), [`mwart-quality`](../mwart-quality/SKILL.md) (F2/F3 pré-flight).
+> **Documentos mãe:** [ADR 0107](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) (gate F1.5) + [ADR 0109](../../memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md) (orquestração Claude Design plugin Anthropic).
+> **Skills irmãs (oimpresso):** [`mwart-process`](../mwart-process/SKILL.md) (Tier A canon), [`cockpit-runbook`](../cockpit-runbook/SKILL.md) (F1+audit), [`mwart-quality`](../mwart-quality/SKILL.md) (F2+F3 técnico).
+> **Sub-skills Anthropic orquestradas (Claude Design plugin):**
+>   - `design:design-critique` ⭐ — crítica estruturada 5 categorias + comparação benchmarks
+>   - `design:design-system` — audit consistência tokens/components
+>   - `design:design-handoff` — specs exatas pré-impl (layout, props, estados, responsividade)
+>   - `design:ux-copy` — review microcopy (labels, placeholders, CTAs, errors)
+>   - `design:accessibility-review` — WCAG 2.1 AA audit
+>   - `design:research-synthesis` — análise persona + padrões uso
 
 ## Por que esta skill existe
 
@@ -33,41 +40,103 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 
 **Regra de ouro:** F1 (RUNBOOK) → F1.5 (visual-comparison) → F2 (BACKEND BASELINE) → F3 (FRONTEND). NÃO pular F1.5.
 
-## Workflow obrigatório
+## Workflow V3 obrigatório (orquestra Claude Design plugin)
 
 ```
+═══ F1.5 PRE-IMPL ═══════════════════════════════════════════════════════
 1. Receber: tela alvo + módulo + URL Blade legacy
-2. EXIGIR REFERÊNCIA VISUAL APROVADA (gap-fix Wagner 2026-05-08):
+2. EXIGIR REFERÊNCIA VISUAL APROVADA:
    - Wagner cola screenshot/URL de tela que considera "estado da arte"
-     (ex: Officeimpresso/OS, Stripe Dashboard, Linear)
    - SE referência ausente: PARAR e pedir antes de prosseguir
-   - Ler benchmarks externos do tipo de tela em §F.5 BENCHMARKS
+
 3. Read paralelo (1 round):
-   - Blade legacy view: resources/views/<modulo>/<tela>.blade.php
-   - Controller: app/Http/Controllers/<X>Controller.php (ação @<tela>)
-   - Canon Cockpit relevante: ui_kits/cowork-2026-04-27/<padrão>.jsx
-     · list+detail → os-page.jsx
-     · inbox/triage → tasks.jsx
-     · chat/threads → chat.jsx
-     · master-detail → viewers.jsx
-   - DESIGN.md §6-§15 (padrões técnicos)
-   - RUNBOOK existente: memory/requisitos/<Mod>/RUNBOOK-<tela>.md
-4. Identificar TIPO de tela (form / list / master-detail / inbox / chat / dashboard)
-5. Gerar tabela 8 dimensões + 7 dimensões "estado da arte" (vide §15 dimensões)
-6. Capturar NÚMEROS CONCRETOS (não abstrato):
-   - font-size em px (KPI value 22px≠40px, label 11px≠13px)
-   - padding em Tailwind (p-4≠p-6≠p-8)
-   - gap entre cards (gap-3≠gap-6)
-7. Salvar em memory/requisitos/<Mod>/<tela-kebab>-visual-comparison.md
-   com frontmatter status: draft
-8. CAPTURAR SCREENSHOT proposta (mockup textual ou Chrome MCP de tela similar)
-   e anexar no arquivo
-9. PARAR. Apresentar tabela + screenshots ao Wagner em chat.
-10. Aguardar Wagner aprovar / ajustar SCREENSHOT (~10min síncrono)
-11. Atualizar arquivo com frontmatter status: approved
-12. SOMENTE ENTÃO desbloquear F2/F3 (skill irmã `mwart-quality` ativa)
-13. APÓS implementar, screenshot REAL via Chrome MCP comparado lado-a-lado
-    com referência aprovada (Pest browser snapshot é Tier 2)
+   - Blade legacy view + Controller
+   - Canon Cockpit (os-page.jsx / tasks.jsx / chat.jsx / viewers.jsx)
+   - DESIGN.md §6-§15
+   - RUNBOOK existente
+
+4. Invocar `design:research-synthesis` se persona/padrão de uso for novo
+   (ex: 1ª tela do módulo) — economiza re-análise depois
+
+5. Invocar `design:design-system` pra audit consistência:
+   - Tokens shadcn vs canon Cockpit (var --bubble-me, --row-h, etc)
+   - Componentes shared vs custom inline
+   - Padrões de cor warm vs neutral
+
+6. Invocar `design:design-handoff` pra clarificar specs:
+   - Layout exato (header, sidebar, topnav, body)
+   - Props contract TypeScript
+   - Estados (default/hover/focus/active/disabled/loading/empty/error)
+   - Responsividade breakpoints
+   - Animações + microinterações
+
+7. Invocar `design:ux-copy` pra review microcopy:
+   - Labels ("Cliente" vs "Comprador")
+   - Placeholders ("Buscar produto…" vs "Digite SKU")
+   - Empty states (CTA convite vs informa só)
+   - Error messages
+   - Botões CTA
+
+8. Identificar TIPO de tela (form / list / master-detail / inbox / chat / dashboard)
+   e benchmark externo correspondente (Stripe Checkout / Linear / Notion / Vercel)
+
+9. Gerar tabela 15 dimensões com NÚMEROS CONCRETOS (vide §dimensões)
+
+10. Capturar SCREENSHOT proposta:
+    - Se tela similar existe: Chrome MCP screenshot dela como referência
+    - Se não: mockup textual estruturado com px concretos
+
+11. Salvar em memory/requisitos/<Mod>/<tela-kebab>-visual-comparison.md
+    com frontmatter status: draft + sub-skills outputs anexados
+
+12. PARAR. Apresentar visual-comparison COMPLETO ao Wagner em chat
+    (incluindo screenshots).
+
+13. Aguardar Wagner aprovar SCREENSHOT (~10-15min síncrono).
+    Wagner pode pedir 2ª iteração — repetir passos 6-12.
+
+14. Atualizar frontmatter status: approved + assinar approved_by/approved_at.
+
+═══ F2-F3 IMPL ══════════════════════════════════════════════════════════
+15. Desbloquear `mwart-quality` Tier B + começar implementação.
+
+═══ F3 PÓS-IMPL ═════════════════════════════════════════════════════════
+16. Screenshot REAL via Chrome MCP da tela implementada em prod (biz=1).
+
+17. Invocar `design:design-critique` ⭐ sobre screenshot real:
+    - First impression (2 segundos)
+    - Usability (severity table)
+    - Visual hierarchy (reading flow)
+    - Consistency (design system audit)
+    - Accessibility (WCAG)
+    - What works well
+    - Priority recommendations (3 ações)
+    - **Comparação benchmark externo:** "essa tela parece feita pela equipe
+      de Linear / Vercel / Stripe?"
+
+18. Anexar critique no visual-comparison.md (seção B).
+
+19. Se score critique ≥80 → mergear PR.
+    Se score 70-79 → 1 round refator + re-critique.
+    Se score <70 → discussão Wagner (rebuild ou aceita exceção).
+
+═══ F3.5 ACCESSIBILITY ══════════════════════════════════════════════════
+20. Invocar `design:accessibility-review` (WCAG 2.1 AA):
+    - Color contrast (todos os pares de cor)
+    - Touch targets (≥44×44px)
+    - Keyboard navigation (Tab order, Esc, focus-visible)
+    - ARIA labels + roles
+    - Screen reader test
+
+21. Anexar accessibility report no visual-comparison.md (seção F).
+
+22. Se WCAG falha CRITICAL → bloqueia merge até fix.
+
+═══ F4 QA + TIER 2 ══════════════════════════════════════════════════════
+23. Pest 4 Browser snapshot baseline (ADR 0108) — locked.
+
+24. Próximas PRs que mexerem nesta tela: gate visual diff + design-critique
+    automático em mudanças >threshold.
 ```
 
 ## 15 dimensões obrigatórias do `<tela>-visual-comparison.md`

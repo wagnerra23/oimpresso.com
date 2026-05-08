@@ -276,7 +276,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   const itensCount = data.products.reduce((acc, p) => acc + (Number(p.quantity) || 0), 0);
 
   return (
-    <div className="container mx-auto py-8 px-8 space-y-8 max-w-7xl">
+    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
+      <div className="container mx-auto py-8 px-8 space-y-8 max-w-7xl">
       {/* Header — título grande + subtitle descritivo + ações right (estética estado da arte) */}
       <div className="flex items-start gap-4">
         <div className="flex-1 min-w-0">
@@ -308,7 +309,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
       {/* KPI cards — 4 cards GIGANTES, value text-3xl, label uppercase tracking-widest. Estado da arte. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Itens
           </div>
@@ -316,7 +317,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {itensCount}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Total venda
           </div>
@@ -324,7 +325,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {formatBRL(totalGeral)}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Pago
           </div>
@@ -334,9 +335,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         </div>
         <div
           className={
-            'rounded-xl border p-6 ' +
+            'rounded-xl border p-6 shadow-sm ' +
             (totalGeral === 0
-              ? 'border-border bg-card'
+              ? 'border-border bg-background'
               : pagamentoStatus === 'falta'
                 ? 'border-amber-500/40 bg-amber-50 dark:bg-amber-950/30'
                 : pagamentoStatus === 'troco'
@@ -351,7 +352,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             className={
               'text-2xl font-semibold tabular-nums mt-3 ' +
               (totalGeral === 0
-                ? 'text-muted-foreground'
+                ? 'text-foreground/70'
                 : pagamentoStatus === 'falta'
                   ? 'text-amber-700 dark:text-amber-300'
                   : pagamentoStatus === 'troco'
@@ -374,7 +375,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       <div className="space-y-6">
 
       {/* Linha 1: Cliente + Data + Status + Local — 4 campos sempre visíveis */}
-      <Card>
+      <Card className="shadow-sm bg-background border-border">
         <CardHeader>
           <CardTitle className="text-base">Dados da venda</CardTitle>
         </CardHeader>
@@ -449,7 +450,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       </Card>
 
       {/* Bloco produtos — busca + tabela editável (US-SELL-005) */}
-      <Card>
+      <Card className="shadow-sm bg-background border-border">
         <CardHeader>
           <CardTitle className="text-base">Produtos</CardTitle>
         </CardHeader>
@@ -580,7 +581,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       </Card>
 
       {/* Bloco pagamentos — split de pagamento + indicador saldo (US-SELL-006) */}
-      <Card>
+      <Card className="shadow-sm bg-background border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Pagamento</CardTitle>
@@ -640,7 +641,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       </Card>
 
       {/* Desconto inline + Notas — sempre visíveis (8 campos visíveis: 4 acima + 1 desconto + 1 nota + produtos + pagamentos) */}
-      <Card>
+      <Card className="shadow-sm bg-background border-border">
         <CardHeader>
           <CardTitle className="text-base">Resumo</CardTitle>
         </CardHeader>
@@ -962,6 +963,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           </div>
         </div>
       </details>
+      </div>
       </div>
     </div>
   );
