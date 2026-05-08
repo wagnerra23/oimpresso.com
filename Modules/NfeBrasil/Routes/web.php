@@ -88,6 +88,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 // UI cockpit POS chama a cada 2s após dispatch do Job, até receber status terminal
 // (autorizada/rejeitada/denegada). Não exige broadcast daemon — funciona em runtime
 // Hostinger sem violar ADR 0058/0062.
+//
+// US-NFE-MANUAL — endpoints emissão manual (POST emitir + reenviar email + GET DANFE PDF).
+// Reusa NfeService.emitirParaTransaction com modelo configurável (55 NFe / 65 NFC-e).
 Route::middleware(['web', 'auth', 'SetSessionData'])
     ->prefix('nfe-brasil/api')
     ->name('nfe-brasil.api.')
@@ -95,6 +98,27 @@ Route::middleware(['web', 'auth', 'SetSessionData'])
         Route::get('transactions/{tx}/nfe-status', [NfeStatusController::class, 'show'])
             ->whereNumber('tx')
             ->name('transactions.nfe-status');
+        // Lista todas emissões da TX (NFC-e 65 + NFe 55) — alimenta SaleSheet section Fiscal.
+        Route::get('transactions/{tx}/emissoes', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'listar'])
+            ->whereNumber('tx')
+            ->name('transactions.emissoes');
+    });
+
+// US-NFE-MANUAL — POST endpoints de ação fiscal + GET DANFE PDF.
+// Web stack normal pra session+CSRF; mesmo middleware do API acima.
+Route::middleware(['web', 'auth', 'SetSessionData'])
+    ->prefix('nfe-brasil')
+    ->name('nfe-brasil.')
+    ->group(function () {
+        Route::post('transactions/{tx}/emitir', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'emitir'])
+            ->whereNumber('tx')
+            ->name('transactions.emitir');
+        Route::post('emissoes/{id}/reenviar-email', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'reenviarEmail'])
+            ->whereNumber('id')
+            ->name('emissoes.reenviar-email');
+        Route::get('emissoes/{id}/danfe-pdf', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'danfePdf'])
+            ->whereNumber('id')
+            ->name('emissoes.danfe-pdf');
     });
 
 // Page Inertia demo da fase 2C — badge reativo via useNfceStatus.

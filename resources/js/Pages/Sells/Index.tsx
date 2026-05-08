@@ -9,14 +9,24 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
   Clock,
   CreditCard,
   Eye,
+  FileText,
   Layers,
+  Loader2,
   Plus,
   Receipt,
+  Send,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import SaleSheet from './_components/SaleSheet';
 
 interface SellKpis {
@@ -39,6 +49,9 @@ interface SaleRow {
   customer_secondary: string | null;
   location_name: string | null;
   is_overdue: boolean;
+  // US-NFE-MANUAL — fiscal status badge na lista.
+  fiscal_status: 'pendente' | 'autorizada' | 'rejeitada' | 'denegada' | 'cancelada' | null;
+  fiscal_modelo: '55' | '65' | null;
 }
 
 export interface SellsIndexPageProps {
@@ -215,19 +228,20 @@ export default function SellsIndex(props: SellsIndexPageProps) {
                   <Th className="text-right w-28">Total</Th>
                   <Th className="text-right w-28">Pago</Th>
                   <Th className="w-32">Status</Th>
+                  <Th className="w-32">Fiscal</Th>
                   <Th className="w-12 text-right pr-4">&nbsp;</Th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-muted-foreground text-xs">
+                    <td colSpan={8} className="text-center py-12 text-muted-foreground text-xs">
                       Carregando…
                     </td>
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-muted-foreground text-xs">
+                    <td colSpan={8} className="text-center py-12 text-muted-foreground text-xs">
                       Nenhuma venda encontrada nesse filtro.
                     </td>
                   </tr>
@@ -270,6 +284,20 @@ export default function SellsIndex(props: SellsIndexPageProps) {
                         <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatBRL(row.total_paid)}</td>
                         <td className="px-4 py-3">
                           <PaymentStatusBadge status={row.payment_status} overdue={row.is_overdue} />
+                        </td>
+                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                          <FiscalCell row={row} onEmitted={() => {
+                            // Refetch lista após emissão pra atualizar badge.
+                            const params = new URLSearchParams();
+                            if (statusFilter) params.set('payment_status', statusFilter);
+                            params.set('limit', '50');
+                            fetch(`/sells-list-json?${params.toString()}`, {
+                              headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                              credentials: 'same-origin',
+                            })
+                              .then((r) => r.json())
+                              .then((json) => setRows(Array.isArray(json.data) ? json.data : []));
+                          }} />
                         </td>
                         <td className="px-2 py-3 text-right pr-4">
                           <Eye size={14} className="text-muted-foreground inline-block" />
@@ -381,5 +409,97 @@ function PaymentStatusBadge({ status, overdue }: { status: string; overdue: bool
     <span className={'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ' + cls}>
       {label}
     </span>
+  );
+}
+
+// US-NFE-MANUAL — célula Fiscal: badge se já emitida; dropdown "Emitir" se não.
+function FiscalCell({ row, onEmitted }: { row: SaleRow; onEmitted: () => void }) {
+  const [emitting, setEmitting] = useState<'55' | '65' | null>(null);
+
+  // Já tem emissão — mostra badge.
+  if (row.fiscal_status === 'autorizada') {
+    const label = row.fiscal_modelo === '65' ? 'NFC-e' : 'NFe';
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/40">
+        <CheckCircle2 size={11} />
+        {label}
+      </span>
+    );
+  }
+  if (row.fiscal_status === 'pendente') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/40">
+        <Loader2 size={11} className="animate-spin" />
+        Processando
+      </span>
+    );
+  }
+  if (row.fiscal_status === 'rejeitada' || row.fiscal_status === 'denegada') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/40">
+        <AlertTriangle size={11} />
+        {row.fiscal_status === 'rejeitada' ? 'Rejeitada' : 'Denegada'}
+      </span>
+    );
+  }
+
+  // Sem emissão → dropdown "Emitir ▾".
+  async function emitir(modelo: '55' | '65') {
+    setEmitting(modelo);
+    try {
+      const res = await fetch(`/nfe-brasil/transactions/${row.id}/emitir`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ modelo }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        alert(json?.message || 'Falha ao emitir');
+      }
+    } finally {
+      setEmitting(null);
+      onEmitted();
+    }
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          disabled={emitting !== null}
+        >
+          {emitting !== null ? (
+            <>
+              <Loader2 size={11} className="animate-spin" />
+              Emitindo…
+            </>
+          ) : (
+            <>
+              <Send size={11} />
+              Emitir
+              <ChevronDown size={10} />
+            </>
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem onSelect={() => emitir('65')}>
+          <FileText className="mr-2 h-4 w-4" />
+          NFC-e (modelo 65)
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => emitir('55')}>
+          <Send className="mr-2 h-4 w-4" />
+          NFe (modelo 55)
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

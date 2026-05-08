@@ -932,8 +932,23 @@ class SellController extends Controller
                 'contacts.name as customer_name',
                 'contacts.supplier_business_name as customer_business',
                 'bl.name as location_name',
-            ])
-            ->map(function ($r) {
+            ]);
+
+        // US-NFE-MANUAL — lookup fiscal_status pra mostrar badge na lista (1 query extra).
+        // Pega emissão mais recente por TX (autorizada > pendente > rejeitada).
+        $txIds = $rows->pluck('id')->toArray();
+        $fiscalByTx = collect();
+        if (!empty($txIds) && class_exists(\Modules\NfeBrasil\Models\NfeEmissao::class)) {
+            $fiscalByTx = \Modules\NfeBrasil\Models\NfeEmissao::where('business_id', $business_id)
+                ->whereIn('transaction_id', $txIds)
+                ->orderByDesc('id')
+                ->get(['transaction_id', 'modelo', 'status'])
+                ->groupBy('transaction_id')
+                ->map(fn($group) => $group->first());
+        }
+
+        $rows = $rows
+            ->map(function ($r) use ($fiscalByTx) {
                 // Calcula overdue inline (boolean derivado, evita re-query).
                 $overdue = false;
                 if (in_array($r->payment_status, ['due', 'partial'], true) && $r->pay_term_number && $r->pay_term_type) {
@@ -942,6 +957,7 @@ class SellController extends Controller
                         : \Carbon\Carbon::parse($r->transaction_date)->addMonths((int) $r->pay_term_number);
                     $overdue = $dueDate->isPast();
                 }
+                $fiscal = $fiscalByTx->get($r->id);
                 return [
                     'id' => $r->id,
                     'transaction_date' => $r->transaction_date,
@@ -954,6 +970,9 @@ class SellController extends Controller
                     'customer_secondary' => $r->customer_business && $r->customer_name !== $r->customer_business ? $r->customer_name : null,
                     'location_name' => $r->location_name,
                     'is_overdue' => $overdue,
+                    // US-NFE-MANUAL — fiscal_status pra badge na lista.
+                    'fiscal_status' => $fiscal?->status,
+                    'fiscal_modelo' => $fiscal ? (string) $fiscal->modelo : null,
                 ];
             });
 
