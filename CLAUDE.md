@@ -32,8 +32,13 @@
 - **mcp-first** — usar tools MCP antes de Read/Glob/Grep filesystem
 - **multi-tenant-patterns** — Tier 0 isolation (`business_id` global scope) — [ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 - **commit-discipline** — 1 PR = 1 intent, ≤300 linhas, conventional commits
+- **mwart-process** — único caminho de migração Blade→Inertia (5 fases obrigatórias) — [ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - (dormente — S4) **charter-first**
-- (dormente — S5) **ads-route**
+- (S5 antecipado pra ~30/maio/2026 — [ADR 0106](memory/decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) **ads-route**
+
+> **Estimates 2026-05-08+:** todos novos SPECs nascem recalibrados ([ADR 0106](memory/decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) — fator 10x em tarefas codáveis com IA-pair + margem 2x; tarefas humano-limitadas (canary 7d, monitor 30d, smoke real) mantém relógio do mundo real.
+
+> **Cliente como sinal qualificado** ([ADR 0105](memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)): backlog só recebe item se cliente paga + reporta OU métrica detecta drift. Hipótese sem sinal vira ADR de feature wish, não US ativa.
 
 Tier de cada skill em [memory/sprints/s3-constituicao/03-skills-audit.md](memory/sprints/s3-constituicao/03-skills-audit.md). Convenção interna formalizada em [ADR 0095](memory/decisions/0095-skills-tiers-convencao-interna.md).
 
