@@ -33,6 +33,7 @@ import KpiCard from '@/Components/shared/KpiCard';
 import BoardColumn from '@/Components/board/BoardColumn';
 import { type BoardTask } from '@/Components/board/TaskCard';
 import { nextStatus, prevStatus, type Status } from '@/Components/board/badges';
+import DetailSheet from './DetailSheet';
 
 interface CycleHeader {
   id: number;
@@ -124,6 +125,28 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics, cycles, owne
   const [optimistic, setOptimistic] = useState<Record<string, Status>>({});
   // PMG-001 (ADR 0100) — banner inline pra 409 conflict / 403 / outros erros
   const [conflictMessage, setConflictMessage] = useState<string | null>(null);
+
+  // ── Detail Sheet (PMG-004, ADR 0100) — open task via URL ?task=ID
+  const [openTaskId, setOpenTaskId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('task');
+  });
+
+  function openDetail(taskId: string) {
+    setOpenTaskId(taskId);
+    // Atualiza URL preservando outros params; sem reload do board (preserveState).
+    const url = new URL(window.location.href);
+    url.searchParams.set('task', taskId);
+    window.history.replaceState({}, '', url.toString());
+  }
+
+  function closeDetail() {
+    setOpenTaskId(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('task');
+    window.history.replaceState({}, '', url.toString());
+  }
 
   // Auto-dismiss conflictMessage após 5s
   useEffect(() => {
@@ -476,16 +499,18 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics, cycles, owne
               if (!id) return;
               patchStatus(id, target);
             }}
-            onCardClick={(t) => setSelectedId(t.task_id)}
+            onCardClick={(t) => { setSelectedId(t.task_id); openDetail(t.task_id); }}
           />
         ))}
       </div>
 
       <p className="mt-4 text-xs text-muted-foreground">
         Drag-drop atualiza status e registra evento em <code className="font-mono">mcp_task_events</code>.
-        Editar campos detalhados: <code className="font-mono">tasks-update</code> via MCP ou edite o SPEC e rode{' '}
-        <code className="font-mono">php artisan mcp:tasks:sync</code>.
+        Click no card abre Detail Sheet (PMG-004). Edição inline de campos: PMG-005+.
       </p>
+
+      {/* PMG-004 — Detail Sheet abre via URL ?task=ID */}
+      <DetailSheet taskId={openTaskId} onClose={closeDetail} />
     </>
   );
 }
