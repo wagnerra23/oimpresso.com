@@ -170,6 +170,38 @@ class LegacyMenuAdapter
             }
         }
 
+        // Core topnavs (módulos UltimatePOS legado em app/Http/Controllers/, não em Modules/).
+        // Lidos de config/core_topnavs.php — ADR 0107 §gap topnav.
+        foreach (config('core_topnavs', []) as $moduleName => $config) {
+            try {
+                if (!is_array($config) || empty($config['items'])) continue;
+
+                $filteredItems = [];
+                foreach ($config['items'] as $item) {
+                    if (!empty($item['can']) && !auth()->user()?->can($item['can'])) {
+                        continue;
+                    }
+                    $filteredItems[] = [
+                        'label'   => $this->resolveLabel($item['label'] ?? ''),
+                        'icon'    => $item['icon'] ?? 'Circle',
+                        'href'    => $item['href'] ?? '#',
+                        'inertia' => $this->isInertiaRoute($item['href'] ?? null),
+                        'badge'   => $item['badge'] ?? null,
+                    ];
+                }
+
+                if (empty($filteredItems)) continue;
+
+                $out[$moduleName] = [
+                    'label' => $this->resolveLabel($config['label'] ?? $moduleName),
+                    'icon'  => $config['icon'] ?? 'Circle',
+                    'items' => $filteredItems,
+                ];
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
         return $out;
     }
 
