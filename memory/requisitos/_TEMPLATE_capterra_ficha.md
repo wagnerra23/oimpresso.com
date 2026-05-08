@@ -80,11 +80,41 @@ capacidades:
 **Métricas de prod relevantes** (se houver):
 - {métrica X} — meta {valor} — query: `SELECT ... FROM ...`
 
+## UX heuristics (Capterra v2 — eixo Usabilidade)
+
+> Capterra v2 ([ADR 0101](../../decisions/0101-sistema-charter-capterra-governanca-escopo.md) §3 eixos): além de medir features, mede **como** o concorrente entrega — cliques, tempo, recuperação de erro.
+
+```yaml
+ux_heuristics:
+  - id: example-clicks
+    nome: "Cliques pra ação X"
+    score: P0
+    benchmark: "Concorrente A: 1 clique. Concorrente B: 5."
+    target: "<= 2 cliques"
+    metrica: "navegacao_steps_X"
+```
+
+## Automation targets (Capterra v2 — eixo Automação)
+
+> O que mercado faz **sem humano**? Listener? Cron? Job? Webhook?
+
+```yaml
+automation_targets:
+  - id: example-auto-action
+    nome: "Auto-disparar X quando Y"
+    score: P0
+    benchmark: "Concorrente A SIM, B SIM, C PARCIAL"
+    target: "Listener event Y → JobDoX, p95 < 30s"
+    metrica: "auto_X_p95_seconds"
+```
+
 ## Métricas de adoção
 
 - **Última auditoria**: `{YYYY-MM-DD}` (ou "nunca")
 - **Capacidades P0 cobertas**: `{N}/{Total}`
 - **Gap P0+P1 atual**: `{N}` capacidades faltantes ou parciais
+- **UX heuristics curadas**: `{N}` (alvo: ≥3 P0)
+- **Automation targets curadas**: `{N}` (alvo: ≥3 P0)
 - **Próxima reauditoria sugerida**: `{YYYY-MM-DD}` (trimestral por padrão)
 
 ## Histórico de revisão da ficha

@@ -166,3 +166,75 @@ capacidades:
 - Pagar.me API: https://docs.pagar.me/
 - Mercado Pago Recurring: https://www.mercadopago.com.br/developers/pt/docs/subscriptions/landing
 - Banco Central — PIX Recorrência: https://www.bcb.gov.br/estabilidadefinanceira/pixrecorrencia
+
+---
+
+## UX heuristics (Capterra v2 — eixo Usabilidade)
+
+> Capterra v2 ([ADR 0101](../../decisions/0101-sistema-charter-capterra-governanca-escopo.md) §3 eixos): além de features, mede ergonomia.
+
+```yaml
+ux_heuristics:
+  - id: emit-nfe-clicks
+    nome: "Cliques pra emitir NFe a partir de boleto pago"
+    score: P0
+    benchmark: "Asaas: 1 (auto). Iugu: 5 manual. Vindi: 3 manual."
+    target: "<= 1 (deve ser auto)"
+    metrica: "navegacao_steps_emit_nfe_pos_boleto_pago"
+
+  - id: dashboard-time-to-saldo
+    nome: "Tempo até ver saldo atualizado no dashboard"
+    score: P1
+    benchmark: "Asaas: <2s realtime. Iugu: F5 manual. Vindi: F5 manual."
+    target: "<= 3s primeira pintura"
+    metrica: "first_paint_dashboard_extrato_p95_ms"
+
+  - id: cancelar-titulo-clicks
+    nome: "Cliques pra cancelar título não pago"
+    score: P0
+    benchmark: "Asaas: 2 (lista → botão). Iugu: 2. Vindi: 4 (motivo obrigatório)."
+    target: "<= 2"
+    metrica: "navegacao_steps_cancelar_titulo"
+```
+
+## Automation targets (Capterra v2 — eixo Automação)
+
+> O que mercado faz sem humano? Listener? Cron? Job? Webhook?
+
+```yaml
+automation_targets:
+  - id: nfe-on-boleto-paid
+    nome: "Auto-emitir NFe55 quando boleto recorrente é pago"
+    score: P0
+    benchmark: "Asaas SIM (default). Iugu SIM (config). Vindi PARCIAL."
+    target: "Listener invoice.paid → EmitirNfeJob, p95 < 30s, idempotente"
+    metrica: "auto_nfe_p95_seconds + auto_nfe_success_rate"
+
+  - id: saldo-extrato-sync-daily
+    nome: "Sync extrato + saldo da conta bancária diário sem ação humana"
+    score: P0
+    benchmark: "Asaas SIM (real-time). Iugu SIM (D-1). Inter API SIM (D-7)."
+    target: "Cron diário 07:00 BRT roda InterExtratoJob, idempotency_key UNIQUE"
+    metrica: "saldo_drift_dias + sync_extrato_idempotency_violations"
+
+  - id: dunning-regua-d1-d3-d7
+    nome: "Disparo automático de mensagens a D+1/D+3/D+7 do vencimento"
+    score: P1
+    benchmark: "Iugu SIM (configurável). Asaas SIM. Vindi SIM."
+    target: "DunningSchedulerJob + SendDunningMessageJob, idempotente (invoice_id, dia)"
+    metrica: "dunning_dispatched_total + dunning_idempotency_violations"
+
+  - id: webhook-replay-protection
+    nome: "Webhook de pagamento idempotente (replay 2x não duplica crédito)"
+    score: P0
+    benchmark: "Todos têm. Padrão: UNIQUE(provider, event_id)."
+    target: "pg_webhook_events UNIQUE + ProcessAsaasWebhookJob skip se já processado"
+    metrica: "webhook_replay_skipped + webhook_double_credit_24h (alvo 0)"
+
+  - id: charge-retry-cartao
+    nome: "Retry exponencial em cartão recusado (smart retry)"
+    score: P1
+    benchmark: "Iugu SIM (3 tentativas). Vindi SIM. Asaas SIM."
+    target: "ChargeAttemptJob retry com backoff 1d/3d/7d; retry_count em ChargeAttempt"
+    metrica: "charge_retry_success_rate + charge_recovered_after_retry"
+```
