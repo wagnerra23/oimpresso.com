@@ -208,6 +208,13 @@ Restore: `mongorestore --uri=... --drop /backup/<data>/`
 
 ## 6. Pegadinhas
 
+> **Aprendizados deploy real 2026-05-08** — todos descobertos na 1ª execução do RUNBOOK em prod CT 100. Quem fizer próxima migração já pega de bandeja.
+
+- ⚠ **UI hPanel Hostinger MENTE sobre DNS.** A tela `https://hpanel.hostinger.com/domain/oimpresso.com/dns` mostra mensagem *"Os registros DNS do seu domínio estão sendo gerenciados em outro lugar"* mesmo quando a Hostinger DNS API funciona normalmente. Causa: nameservers do `oimpresso.com` são `app.oimpresso.com` + `ns1.dns-parking.com` + `ns2.dns-parking.com`, mas a zona Hostinger continua autoritativa via API. **Sempre usar a API direta** (`PUT /api/dns/v1/zones/{domain}` com `overwrite:false`) em vez de tentar pelo painel UI.
+- ⚠ **Token Hostinger no `.env` é `HOSTINGER_API`** (não `HOSTINGER_API_TOKEN` como muitos guides sugerem). Usar `Bearer $token` no header Authorization.
+- ⚠ **Faltou `entrypoints=websecure` = Let's Encrypt não dispara.** Sem `traefik.http.routers.X.entrypoints: "websecure"` nos labels, Traefik não sabe que router responde em HTTPS, daí ACME nunca é chamado e cert fica "TRAEFIK DEFAULT CERT" auto-signed. **Cada router HTTPS precisa explicitamente declarar `entrypoints=websecure`** + router HTTP separado pra redirect (vide modelo `oimpresso-mcp`).
+- ⚠ **GrowthBook recusa `ENCRYPTION_KEY=dev` em prod.** Sem env-secrets populado, GrowthBook usa default `dev` e crasha com `Error: Cannot use ENCRYPTION_KEY=dev in production`. Sempre criar `.env-secrets` com `JWT_SECRET=` e `ENCRYPTION_KEY=` populados ANTES do `docker compose up`. `chmod 600`.
+- ⚠ **Heredoc shell escape em PowerShell vs bash difere.** Tentei usar `python3 -c` com regex pra editar compose — quebra fácil em string escape. Mais simples: reescrever `docker-compose.yml` inteiro via `cat > file <<EOF` e cuidar do escape de backticks Traefik manual.
 - ❌ NÃO usar SDK key no JS browser direto — chave fica exposta. Pra flags client-side, criar SDK Connection separada com client-side key (criptografada).
 - ❌ NÃO confiar no cache 60s pra rollback de emergência — em emergência, restart do PHP-FPM derruba cache; flag toggle é instantâneo na UI mas precisa esperar TTL ou clear cache manual.
 - ❌ NÃO esquecer de fechar registrations após primeiro signup. Senão qualquer um cria conta.
@@ -226,4 +233,9 @@ Restore: `mongorestore --uri=... --drop /backup/<data>/`
 
 ---
 
-**Última atualização:** 2026-05-08
+**Status:** ✅ deployado em prod 2026-05-08
+- `https://growthbook.oimpresso.com` — UI HTTPS 200 com cert Let's Encrypt R12 (válido até 2026-08-06)
+- `https://growthbook-api.oimpresso.com/healthz` — HTTP 401 (esperado, requer auth)
+- Wagner cria org admin manual no UI (próximo passo) + SDK Connection PHP
+
+**Última atualização:** 2026-05-08 (após deploy real — pegadinhas atualizadas com aprendizados de prod)
