@@ -50,12 +50,6 @@ interface Contact {
   name: string;
 }
 
-interface Tax {
-  id: number;
-  name: string;
-  amount: number;
-}
-
 interface InvoiceScheme {
   id: number;
   name: string;
@@ -70,7 +64,9 @@ export interface SellsCreatePageProps {
   invoiceSchemes: OptionMap;
   defaultInvoiceScheme: InvoiceScheme | null;
   invoiceLayouts?: OptionMap;
-  taxes: Tax[];
+  // taxes vem como Record<id, name> do TaxRate::forBusinessDropdown (pluck('name', 'id')).
+  // Não é array — usar Object.entries.
+  taxes: Record<number, string>;
   priceGroups: OptionMap;
   defaultPriceGroupId: number | null;
   shippingStatuses: Record<string, string>;
@@ -595,9 +591,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   <SelectValue placeholder="Sem imposto" />
                 </SelectTrigger>
                 <SelectContent>
-                  {props.taxes.map((tax) => (
-                    <SelectItem key={tax.id} value={String(tax.id)}>
-                      {tax.name} ({tax.amount}%)
+                  {Object.entries(props.taxes).map(([id, name]) => (
+                    <SelectItem key={id} value={id}>
+                      {name}
                     </SelectItem>
                   ))}
                 </SelectContent>
