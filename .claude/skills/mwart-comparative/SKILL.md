@@ -37,7 +37,12 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 
 ```
 1. Receber: tela alvo + módulo + URL Blade legacy
-2. Read paralelo (1 round):
+2. EXIGIR REFERÊNCIA VISUAL APROVADA (gap-fix Wagner 2026-05-08):
+   - Wagner cola screenshot/URL de tela que considera "estado da arte"
+     (ex: Officeimpresso/OS, Stripe Dashboard, Linear)
+   - SE referência ausente: PARAR e pedir antes de prosseguir
+   - Ler benchmarks externos do tipo de tela em §F.5 BENCHMARKS
+3. Read paralelo (1 round):
    - Blade legacy view: resources/views/<modulo>/<tela>.blade.php
    - Controller: app/Http/Controllers/<X>Controller.php (ação @<tela>)
    - Canon Cockpit relevante: ui_kits/cowork-2026-04-27/<padrão>.jsx
@@ -47,20 +52,31 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
      · master-detail → viewers.jsx
    - DESIGN.md §6-§15 (padrões técnicos)
    - RUNBOOK existente: memory/requisitos/<Mod>/RUNBOOK-<tela>.md
-3. Identificar TIPO de tela (form / list / master-detail / inbox / chat / dashboard)
-4. Gerar tabela 8 dimensões via TEMPLATE.md
-5. Salvar em memory/requisitos/<Mod>/<tela-kebab>-visual-comparison.md com frontmatter status: draft
-6. PARAR. Apresentar tabela ao Wagner em chat.
-7. Aguardar Wagner aprovar / ajustar (~5min síncrono)
-8. Atualizar arquivo com frontmatter status: approved
-9. SOMENTE ENTÃO desbloquear F2/F3 (skill irmã `mwart-quality` ativa)
+4. Identificar TIPO de tela (form / list / master-detail / inbox / chat / dashboard)
+5. Gerar tabela 8 dimensões + 7 dimensões "estado da arte" (vide §15 dimensões)
+6. Capturar NÚMEROS CONCRETOS (não abstrato):
+   - font-size em px (KPI value 22px≠40px, label 11px≠13px)
+   - padding em Tailwind (p-4≠p-6≠p-8)
+   - gap entre cards (gap-3≠gap-6)
+7. Salvar em memory/requisitos/<Mod>/<tela-kebab>-visual-comparison.md
+   com frontmatter status: draft
+8. CAPTURAR SCREENSHOT proposta (mockup textual ou Chrome MCP de tela similar)
+   e anexar no arquivo
+9. PARAR. Apresentar tabela + screenshots ao Wagner em chat.
+10. Aguardar Wagner aprovar / ajustar SCREENSHOT (~10min síncrono)
+11. Atualizar arquivo com frontmatter status: approved
+12. SOMENTE ENTÃO desbloquear F2/F3 (skill irmã `mwart-quality` ativa)
+13. APÓS implementar, screenshot REAL via Chrome MCP comparado lado-a-lado
+    com referência aprovada (Pest browser snapshot é Tier 2)
 ```
 
-## 8 dimensões obrigatórias do `<tela>-visual-comparison.md`
+## 15 dimensões obrigatórias do `<tela>-visual-comparison.md`
+
+### A. Estrutura (8 dimensões originais — V1)
 
 | # | Dimensão | Pergunta-chave |
 |---|---|---|
-| 1 | **Layout** | Header? Sidebar? Topnav módulo? Footer sticky? Grid breakpoints? |
+| 1 | **Layout** | Header? Sidebar? Topnav módulo (inline com breadcrumb? linha separada?)? Footer sticky? Grid breakpoints? |
 | 2 | **Hierarquia visual** | 1 ação primária? 2 secundárias? Hierarquia tipográfica (h1 > h2 > body)? |
 | 3 | **Densidade** | Espaçamento (Tailwind `space-y-X`)? Line-height? Card-pad? |
 | 4 | **Iconografia** | lucide-react? Emoji? SVG? Ausente? Coerente entre seções? |
@@ -68,6 +84,25 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 | 6 | **Atalhos teclado** | J/K/E/A (master/detail)? `/` busca? Esc fecha? ⌘+Enter submit? |
 | 7 | **Persistência** | localStorage prefixo `oimpresso.<mod>.<tela>.*`? URL only? sessionStorage (proibido)? |
 | 8 | **Componentes shared** | PageHeader, EmptyState, KpiCard, DataTable, StatusBadge — quais reusar |
+
+### B. Estado da arte (7 dimensões V2 — gap-fix Wagner 2026-05-08)
+
+> Wagner observou que skill V1 cobria estrutura mas não capturava "feio vs bonito". Estas 7 dimensões fecham o gap.
+
+| # | Dimensão | Pergunta-chave |
+|---|---|---|
+| 9 | **Tipografia numérica** | KPI value px exatos (22px≠40px muda percepção)? Label tracking-widest? Pesos variando (regular/semibold/bold)? Line-height generoso? |
+| 10 | **Espaçamento numérico** | Padding (p-4≠p-6≠p-8)? Gap entre cards (gap-3≠gap-6)? Margem vertical (space-y-4≠space-y-8)? |
+| 11 | **Cores semânticas warm** | bg-amber-50 vs bg-amber-500/10 (warm > /opacity)? text-emerald-700 vs text-emerald-600? Cor de destaque sutil em status? |
+| 12 | **Microinterações** | hover transition? backdrop-blur? Sombras sutis (shadow-sm vs shadow-none)? Animação de focus ring? |
+| 13 | **Referência visual aprovada** | Wagner colou screenshot/URL de tela "estado da arte"? Salvo em arquivo? |
+| 14 | **Benchmarks externos** | Quais 1-2 SaaS estado-da-arte do tipo de tela? (form: Stripe Checkout · list: Linear · dashboard: Vercel · inbox: Notion) |
+| 15 | **Persona priorização** | Pra Larissa 1280px ROTA LIVRE: KPIs gigantes > sidebar elegante. Decisões mudam por persona — listar top 3. |
+
+**Cada dimensão tem 3 colunas:**
+- **Blade legacy** — como está hoje (px concretos quando possível)
+- **Canon Cockpit / Referência aprovada** — números do canon ou screenshot Wagner
+- **Decisão MWART** — paridade / melhoria / exceção justificada (com px concretos)
 
 **Cada dimensão tem 3 colunas:**
 - **Blade legacy** — como está hoje
