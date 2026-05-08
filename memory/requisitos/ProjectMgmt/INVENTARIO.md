@@ -1,8 +1,8 @@
 # CAPTERRA-INVENTÁRIO — ProjectMgmt
 
-> Gerado **manual** em 2026-05-07 (1ª execução pós-pivot do PR #197).
+> **Atualizado 2026-05-08** — Fase 1 + Fase 2 entregues em 7 PRs (#207 #209 #211 #220 #222 #224 #226). Status detalhado por PMG-NNN em [SPEC.md](SPEC.md).
 > Próximas atualizações via skill `comparativo-do-modulo` (executar `/comparativo ProjectMgmt`).
-> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (24 capacidades) + `Modules/ProjectMgmt/` + `resources/js/Pages/ProjectMgmt/` + relatório do Agent Explore (sessão 2026-05-07).
+> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (24 capacidades) + `Modules/ProjectMgmt/` + `resources/js/Pages/ProjectMgmt/`.
 > ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md).
 > ADR mãe redesign: [0100](../../decisions/0100-projectmgmt-ui-redesign.md).
 
@@ -10,12 +10,12 @@
 
 ## Resumo
 
-| Bucket | Quantidade | % |
-|---|---|---|
-| ✅ APROVADO | 6 | 25% |
-| 🟡 PARCIAL | 5 | 21% |
-| ❌ AUSENTE | 13 | 54% |
-| **Total** | 24 | 100% |
+| Bucket | Quantidade | % | Δ vs 2026-05-07 |
+|---|---|---|---|
+| ✅ APROVADO | 13 | 54% | **+7** (Fase 1+2 fecharam drag-drop, Cmd+K, Tests, Detail, mentions, watchers, subtasks) |
+| 🟡 PARCIAL | 0 | 0% | -5 (todas P0/P1 da Fase 2 viraram ✅) |
+| ❌ AUSENTE | 11 | 46% | -2 |
+| **Total** | 24 | 100% | — |
 
 **Por score:**
 
