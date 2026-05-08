@@ -55,6 +55,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     ->group(function () {
         Route::get('/', [TributacaoController::class, 'index'])->name('index');
 
+        // Per-business auto-emission gate (ADR 0093 multi-tenant Tier 0).
+        Route::post('auto-emission/toggle', [TributacaoController::class, 'toggleAutoEmission'])
+            ->name('auto-emission.toggle');
+
         // Config default (Nível 4 cascade)
         Route::get('config-default', [ConfigDefaultController::class, 'show'])->name('config.show');
         Route::post('config-default', [ConfigDefaultController::class, 'upsert'])->name('config.upsert');
