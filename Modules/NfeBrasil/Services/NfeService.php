@@ -683,46 +683,70 @@ class NfeService
         $nfe->tagenderEmit($stdEnderEmit);
 
         // ── dest ─────────────────────────────────────────────────────────────
+        // BUG FIX 2026-05-08: 2 problemas antigos resolvidos:
+        //   1. xNome era setado ANTES de CPF/CNPJ → XSD SEFAZ exige
+        //      CNPJ|CPF|idEstrangeiro PRIMEIRO. Reordenado.
+        //   2. Quando doc vazio (consumidor NFC-e anônimo) caía no else
+        //      e setava CPF='' (string vazia inválida XSD).
+        // Solução:
+        //   - NFC-e (modelo 65) sem CPF/CNPJ → omite <dest> inteiro
+        //     (consumidor não identificado é válido pra venda <R$ [redacted Tier 0]k).
+        //   - NFe (modelo 55) sem doc → erro fica claro upstream (NFe exige).
         $dest    = $dadosNfe['dest'];
-        $stdDest = new \stdClass();
-        $stdDest->xNome = $dest['nome'];
-        $doc = preg_replace('/\D/', '', (string) ($dest['cnpj'] ?? $dest['cpf'] ?? ''));
-        if (strlen($doc) === 14) {
-            $stdDest->CNPJ = $doc;
+        $doc     = preg_replace('/\D/', '', (string) ($dest['cnpj'] ?? $dest['cpf'] ?? ''));
+        $isNfce  = (int) $emissao->modelo === 65;
+        $hasDoc  = strlen($doc) === 11 || strlen($doc) === 14;
+
+        if ($isNfce && !$hasDoc) {
+            Log::info('NfeService: NFC-e consumidor anônimo (sem CPF/CNPJ) — omitindo <dest>', [
+                'business_id'    => $businessId,
+                'transaction_id' => $transactionId ?? null,
+                'emissao_id'     => $emissao->id,
+            ]);
         } else {
-            $stdDest->CPF = $doc;
-        }
-        $stdDest->indIEDest = $dest['ind_ie_dest'] ?? '9';
-        if (! empty($dest['ie'])) {
-            $stdDest->IE = preg_replace('/\D/', '', (string) $dest['ie']);
-        }
-        if (! empty($dest['email'])) {
-            $stdDest->email = $dest['email'];
-        }
-        $nfe->tagdest($stdDest);
+            $stdDest = new \stdClass();
+            // XSD SEFAZ ORDEM: CNPJ|CPF|idEstrangeiro ANTES de xNome.
+            if (strlen($doc) === 14) {
+                $stdDest->CNPJ = $doc;
+            } elseif (strlen($doc) === 11) {
+                $stdDest->CPF = $doc;
+            } elseif (!empty($dest['id_estrangeiro'])) {
+                $stdDest->idEstrangeiro = (string) $dest['id_estrangeiro'];
+            }
+            // xNome depois do documento (canon XSD).
+            $stdDest->xNome = $dest['nome'] ?? 'CONSUMIDOR FINAL';
+            $stdDest->indIEDest = $dest['ind_ie_dest'] ?? '9';
+            if (! empty($dest['ie'])) {
+                $stdDest->IE = preg_replace('/\D/', '', (string) $dest['ie']);
+            }
+            if (! empty($dest['email'])) {
+                $stdDest->email = $dest['email'];
+            }
+            $nfe->tagdest($stdDest);
 
-        // cod_municipio destinatário: tenta lookup cidades por UF+nome, fallback emitente
-        $codMunDest = (string) ($dest['cod_municipio'] ?? null);
-        if ($codMunDest === '' || $codMunDest === '9999999' || $codMunDest === null) {
-            $xMunDestRaw = strtoupper(substr((string) ($dest['municipio'] ?? ''), 0, 40));
-            $codMunDest  = (string) (DB::table('cidades')
-                ->where('uf', strtoupper($dest['uf'] ?? $ufEmit))
-                ->where('descricao', 'like', $xMunDestRaw . '%')
-                ->whereNull('deleted_at')
-                ->value('officeimpresso_codigo') ?? $codMunEmit);
-        }
+            // cod_municipio destinatário: tenta lookup cidades por UF+nome, fallback emitente
+            $codMunDest = (string) ($dest['cod_municipio'] ?? null);
+            if ($codMunDest === '' || $codMunDest === '9999999' || $codMunDest === null) {
+                $xMunDestRaw = strtoupper(substr((string) ($dest['municipio'] ?? ''), 0, 40));
+                $codMunDest  = (string) (DB::table('cidades')
+                    ->where('uf', strtoupper($dest['uf'] ?? $ufEmit))
+                    ->where('descricao', 'like', $xMunDestRaw . '%')
+                    ->whereNull('deleted_at')
+                    ->value('officeimpresso_codigo') ?? $codMunEmit);
+            }
 
-        $stdEnderDest          = new \stdClass();
-        $stdEnderDest->xLgr   = $dest['logradouro'] ?? '';
-        $stdEnderDest->nro    = $dest['numero'] ?? 'SN';
-        $stdEnderDest->xBairro = $dest['bairro'] ?? '';
-        $stdEnderDest->cMun   = $codMunDest;
-        $stdEnderDest->xMun   = strtoupper((string) ($dest['municipio'] ?? ''));
-        $stdEnderDest->UF     = $dest['uf'] ?? 'SP';
-        $stdEnderDest->CEP    = preg_replace('/\D/', '', (string) ($dest['cep'] ?? ''));
-        $stdEnderDest->cPais  = '1058';
-        $stdEnderDest->xPais  = 'BRASIL';
-        $nfe->tagenderDest($stdEnderDest);
+            $stdEnderDest          = new \stdClass();
+            $stdEnderDest->xLgr   = $dest['logradouro'] ?? '';
+            $stdEnderDest->nro    = $dest['numero'] ?? 'SN';
+            $stdEnderDest->xBairro = $dest['bairro'] ?? '';
+            $stdEnderDest->cMun   = $codMunDest;
+            $stdEnderDest->xMun   = strtoupper((string) ($dest['municipio'] ?? ''));
+            $stdEnderDest->UF     = $dest['uf'] ?? 'SP';
+            $stdEnderDest->CEP    = preg_replace('/\D/', '', (string) ($dest['cep'] ?? ''));
+            $stdEnderDest->cPais  = '1058';
+            $stdEnderDest->xPais  = 'BRASIL';
+            $nfe->tagenderDest($stdEnderDest);
+        }
 
         // ── dets (itens) ─────────────────────────────────────────────────────
         foreach ($dadosNfe['dets'] as $idx => $det) {
