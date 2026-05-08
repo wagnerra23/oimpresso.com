@@ -3,12 +3,14 @@ slug: 0101-sistema-charter-capterra-governanca-escopo
 number: 101
 title: "Sistema Charter-Capterra — governança de escopo em 2 níveis × 3 eixos"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: 2026-Q2
 decided_at: 2026-05-07
 decided_by: [W]
+accepted_at: 2026-05-07
+accepted_by: wagner
 module: governance
 tier: CANON
 related_adrs: [0089, 0094, 0095]
@@ -18,7 +20,7 @@ authors: [wagner, opus]
 
 # ADR 0101 — Sistema Charter-Capterra (governança de escopo em 2 níveis × 3 eixos)
 
-> **Status:** proposto. Aguarda aprovação Wagner.
+> **Status:** ✅ ACEITA em 2026-05-07 por Wagner ("adr 0101 aprovado onda b liberada ficou otimo").
 >
 > Operacionaliza o **princípio #3 da Constituição V2** ([ADR 0094](0094-constituicao-v2-7-camadas-8-principios.md): "Charter > Spec") combinando-o com o **padrão Capterra-driven** ([ADR 0089](0089-capterra-driven-module-evolution.md)) já em uso. Skill `charter-first` (Tier A dormente) acorda quando a primeira ferramenta `charter-fetch` for entregue.
 
@@ -43,7 +45,7 @@ Mercado em 2026 convergiu em algumas práticas:
 - **Cursor Rules** — contratos `.cursor/rules/*.mdc` por feature/diretório
 - **Cognition agent constitutions** — Goals + Anti-Goals em frontmatter de cada agente
 - **OpenAI model spec** — "Behavior contracts" com What it does / What it does NOT do explícitos
-- **Pesquisa NeurIPS 2025 (Negative Space Specification):** listar Non-Goals reduz drift de agentes em 30–40%
+- **Convergência distribuída** entre [Goal Drift research arXiv 2505.02709](https://arxiv.org/html/2505.02709v1) (jul/2025), Cursor `does_not_trigger_on`, OpenAI Spec, e Anthropic Skills SDK: listar Non-Goals reduz drift mensuravelmente. Magnitude exata **não consolidada em paper canônico** — virou alvo de medição própria via M4 (Goal Drift Rate) no Sprint S6 F4
 
 Convergência forte. Oimpresso já tem 1/3 do caminho (Capterra). Falta operacionalizar Charter no nível tela, integrado com Capterra no nível módulo, e estender ambos pra **3 eixos** (Features + UX + Automação).
 
@@ -184,7 +186,7 @@ automation_targets:               # ← NOVO em v2
 - Automação é onde ERP vira valor real (R$ 5mi/ano só com auto-emissão fiscal pós-pagamento — meta [ADR 0022](0022-meta-5mi-ano-financeira.md))
 
 ### Por que Non-Goals como contrato (não opcional)
-- Pesquisa NeurIPS 2025 (Negative Space Specification): **listar Non-Goals reduz drift de agente em 30–40%**
+- **Convergência distribuída** entre Goal Drift research, Cursor `does_not_trigger_on`, OpenAI Spec e Anthropic Skills SDK indica que listar Non-Goals reduz drift mensuravelmente. Magnitude exata não consolidada em paper canônico — alvo de medição própria via M4 (Goal Drift Rate) em F4
 - Intuição de Wagner é correta: agente LLM tende a "estender escopo pra ser útil"; Non-Goals dá permissão pra parar
 - Quando vira Pest test, fica enforced — não só sugestivo
 
@@ -254,7 +256,7 @@ automation_targets:               # ← NOVO em v2
 
 ---
 
-## Implementação (Sprint S6 — 3 fases × 1 semana)
+## Implementação (Sprint S6 — 4 fases × ~1 semana cada)
 
 Plano detalhado em [memory/sprints/s6-charter-capterra/README.md](../sprints/s6-charter-capterra/README.md).
 
@@ -279,7 +281,14 @@ F3 (sem 3) — Capterra v2               ~11h
   · Skill comparativo v2 (3 eixos)
   · 5 fichas convertidas (RB+Fin+NfeBrasil+Repair+Project)
   · 1 inventário v2 gerado (RecurringBilling)
-  · Postmortem com métricas
+
+F4 (sem 4) — Performance Testing       ~6h
+  · 6 métricas (M1 token economy, M2 GUARD pass rate,
+    M3 charter coverage, M4 goal drift rate,
+    M5 detector latency, M6 anti-hallucination ratchet)
+  · 3 níveis automação (L1 detect / L2 propose / L3 self-improve)
+  · Pest agregadores + dashboard /copiloto/admin/qualidade
+  · Postmortem com baseline + alvos
 ```
 
 ---
@@ -291,7 +300,7 @@ F3 (sem 3) — Capterra v2               ~11h
 - [ADR 0095](0095-skills-tiers-convencao-interna.md) — Skills Tier A/B/C
 - Skill `charter-first` (Tier A dormente) — acorda em F1
 - Skill `comparativo-do-modulo` v1.0 → v2.0 em F3
-- NeurIPS 2025 — Negative Space Specification (papers a citar no postmortem)
+- [arXiv 2505.02709](https://arxiv.org/html/2505.02709v1) — Goal Drift in Language Model Agents (Anthropic, jul/2025) — base teórica pra M4 Goal Drift Rate
 - Anthropic Skills SDK — `triggers_on`/`does_not_trigger_on` como inspiração de Non-Goals operacionais
 - Sessão de diagnóstico 2026-05-07 (Wagner ↔ Opus) — origem desta ADR
 
@@ -302,3 +311,4 @@ F3 (sem 3) — Capterra v2               ~11h
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-07 | Wagner + Opus | ADR draft em sessão de diagnóstico (Onda C+ do plano de organização) |
+| 2026-05-07 | Wagner | ✅ ACEITA. Correções aplicadas: trecho NeurIPS substituído por "convergência distribuída" (sem paper canônico — virou M4 alvo de medição). F4 Performance Testing adicionada ao Sprint S6 (~6h, 6 métricas + 3 níveis de automação) na mesma sessão. |
