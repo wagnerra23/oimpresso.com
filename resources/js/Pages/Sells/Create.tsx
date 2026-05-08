@@ -16,7 +16,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Loader2, Plus, Search, Trash2 } from 'lucide-react';
+import { CreditCard, FileText, Loader2, Package, Plus, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -280,6 +280,33 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // Scroll-spy: detecta qual aba está visível e marca como ativa (pattern Cockpit canon).
+  // Ref: Pages/ProjectMgmt/Board/DetailSheet.tsx — abas com border-b-2 border-primary -mb-px no estado ativo.
+  const sectionIds = ['sec-dados', 'sec-produtos', 'sec-pagamento', 'sec-resumo', 'sec-mais-opcoes'];
+  const [activeSection, setActiveSection] = useState<string>('sec-dados');
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pega entries visíveis ordenadas por position no DOM. Top entry vence.
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .map((e) => e.target.id);
+        if (visible.length > 0) {
+          // Mantém a primeira seção (mais ao topo) como "ativa".
+          const first = sectionIds.find((id) => visible.includes(id));
+          if (first) setActiveSection(first);
+        }
+      },
+      { rootMargin: '-128px 0px -50% 0px', threshold: 0 },
+    );
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)] flex flex-col">
       {/* Header sticky no topo + abas seção (pattern Office/OS canon) */}
@@ -304,27 +331,43 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             </div>
           </div>
 
-          {/* Abas seção — atalho de navegação dentro do form longo */}
+          {/* Abas seção — pattern Cockpit canon (text-xs + ícone + ativo border-primary, ref Board DetailSheet) */}
           <nav
-            className="flex items-center gap-1 mt-3 -mb-px"
+            className="flex items-center gap-1 mt-4 -mb-3"
             aria-label="Seções do cadastro"
           >
             {[
-              { id: 'sec-dados', label: 'Dados' },
-              { id: 'sec-produtos', label: `Produtos${itensCount > 0 ? ` (${itensCount})` : ''}` },
-              { id: 'sec-pagamento', label: 'Pagamento' },
-              { id: 'sec-resumo', label: 'Resumo' },
-              { id: 'sec-mais-opcoes', label: 'Mais opções' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => scrollToSection(tab.id)}
-                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent hover:border-border"
-              >
-                {tab.label}
-              </button>
-            ))}
+              { id: 'sec-dados', label: 'Dados', icon: FileText, count: undefined as number | undefined },
+              { id: 'sec-produtos', label: 'Produtos', icon: Package, count: itensCount > 0 ? itensCount : undefined },
+              { id: 'sec-pagamento', label: 'Pagamento', icon: CreditCard, count: undefined },
+              { id: 'sec-resumo', label: 'Resumo', icon: Receipt, count: undefined },
+              { id: 'sec-mais-opcoes', label: 'Mais opções', icon: Settings2, count: undefined },
+            ].map((tab) => {
+              const isActive = activeSection === tab.id;
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => scrollToSection(tab.id)}
+                  className={
+                    'relative px-3 py-2 text-xs font-medium transition-colors flex items-center gap-1.5 ' +
+                    (isActive
+                      ? 'text-foreground border-b-2 border-primary -mb-px'
+                      : 'text-muted-foreground hover:text-foreground border-b-2 border-transparent')
+                  }
+                  aria-current={isActive ? 'true' : undefined}
+                >
+                  <Icon size={13} />
+                  {tab.label}
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px]">
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </div>
       </div>
