@@ -44,6 +44,14 @@ Route::group(
             ->where('taskId', '[A-Z0-9\-]+')
             ->name('project-mgmt.board.show');
 
+        // ---- Comments + @mentions — PMG-005 (ADR 0100) ---------------------
+        Route::post('/board/{taskId}/comment', 'BoardController@addComment')
+            ->where('taskId', '[A-Z0-9\-]+')
+            ->name('project-mgmt.board.add-comment');
+
+        Route::get('/board/users/suggest', 'BoardController@suggestUsers')
+            ->name('project-mgmt.board.users.suggest');
+
         // ---- Cmd+K Search Global — PMG-002 (ADR 0100) ----------------------
         Route::get('/search', 'SearchController@index')
             ->name('project-mgmt.search');

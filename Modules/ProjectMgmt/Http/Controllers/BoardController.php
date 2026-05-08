@@ -3,6 +3,7 @@
 namespace Modules\ProjectMgmt\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -334,6 +335,80 @@ class BoardController extends Controller
             'subtasks' => $subtasks,
             'dependencies' => $dependencies,
         ]);
+    }
+
+    /**
+     * POST /project-mgmt/board/{taskId}/comment — PMG-005 (ADR 0100).
+     *
+     * Reusa TaskCrudService::comment() que já parseia @mentions
+     * (regex /@([a-z][a-z0-9_-]+)/i) + dispara mcp_inbox_notifications
+     * pra cada user mencionado via McpInboxNotification::notify().
+     */
+    public function addComment(Request $request, string $taskId): JsonResponse
+    {
+        $validated = $request->validate([
+            'body' => 'required|string|min:1|max:5000',
+        ]);
+
+        $body = (string) $validated['body'];
+        $author = $this->resolveAuthor($request);
+
+        try {
+            $comment = app(TaskCrudService::class)->comment($taskId, $body, $author);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'comment' => [
+                'id' => (int) $comment->id,
+                'task_id' => $comment->task_id,
+                'author' => $comment->author,
+                'body' => $comment->body,
+                'created_at' => optional($comment->created_at)->toIso8601String(),
+            ],
+        ], 201);
+    }
+
+    /**
+     * GET /project-mgmt/board/users/suggest?q= — PMG-005 (ADR 0100).
+     *
+     * Autocomplete users pra MentionInput. Filtra por permission
+     * `copiloto.mcp.usage.all` + LIKE em username/first_name/last_name.
+     * Min 1 char, limit 10.
+     */
+    public function suggestUsers(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->get('q', ''));
+
+        if ($q === '') {
+            return response()->json(['users' => []]);
+        }
+
+        $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $q) . '%';
+
+        $users = User::query()
+            ->where(function ($qb) use ($like) {
+                $qb->where('username', 'like', $like)
+                    ->orWhere('first_name', 'like', $like)
+                    ->orWhere('last_name', 'like', $like);
+            })
+            ->whereHas('roles.permissions', function ($qb) {
+                $qb->where('name', 'copiloto.mcp.usage.all');
+            })
+            ->orderBy('username')
+            ->limit(10)
+            ->get(['id', 'username', 'first_name', 'last_name'])
+            ->map(fn (User $u) => [
+                'id' => (int) $u->id,
+                'username' => $u->username,
+                'name' => trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')) ?: $u->username,
+            ])
+            ->values()
+            ->all();
+
+        return response()->json(['users' => $users]);
     }
 
     // ---------- helpers ----------
