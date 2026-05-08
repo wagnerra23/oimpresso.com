@@ -16,6 +16,17 @@ class GovernanceServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerMiddleware();
+        $this->registerCommands();
+    }
+
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Governance\Console\Commands\CharterAuditCommand::class,
+                \Modules\Governance\Console\Commands\CharterHealthCommand::class,
+            ]);
+        }
     }
 
     public function register(): void
