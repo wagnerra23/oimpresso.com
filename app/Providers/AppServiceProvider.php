@@ -263,6 +263,9 @@ class AppServiceProvider extends ServiceProvider
         // Forcar o path canonico Laravel 9+ resolve definitivamente (sem precisar
         // deletar `resources/lang/` no servidor — fica como fallback historico).
         $this->app->useLangPath($this->app->basePath('lang'));
+
+        // FeatureFlagService singleton — US-INFRA-001 (GrowthBook self-hosted).
+        $this->app->singleton(\App\Services\FeatureFlagService::class);
     }
 
     /**
