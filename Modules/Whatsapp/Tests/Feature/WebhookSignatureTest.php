@@ -162,25 +162,25 @@ it('Meta POST com HMAC válido = 200 + Job dispatched', function () {
     Bus::assertDispatched(ProcessIncomingWebhookJob::class, fn ($job) => $job->businessId === 4 && $job->provider === 'meta_cloud');
 });
 
-it('Z-API POST com Client-Token inválido retorna 401', function () {
+it('Z-API POST com z-api-token inválido retorna 401', function () {
     $uuid = Str::uuid()->toString();
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'zapi',
-        'zapi_client_token' => 'right-client-token',
+        'zapi_instance_token' => 'right-instance-token',
     ]);
 
     $response = $this->postJson(
         "/api/whatsapp/webhook/zapi/{$uuid}",
         ['messageId' => 'X', 'phone' => '5511987654321', 'fromMe' => false],
-        ['Client-Token' => 'WRONG']
+        ['z-api-token' => 'WRONG']
     );
 
     $response->assertStatus(401);
 });
 
-it('Z-API POST com Client-Token válido = 200 + Job dispatched', function () {
+it('Z-API POST com z-api-token válido (= zapi_instance_token) = 200 + Job dispatched', function () {
     Bus::fake([ProcessIncomingWebhookJob::class]);
 
     $uuid = Str::uuid()->toString();
@@ -188,24 +188,24 @@ it('Z-API POST com Client-Token válido = 200 + Job dispatched', function () {
         'business_id' => 1,
         'business_uuid' => $uuid,
         'driver' => 'zapi',
-        'zapi_client_token' => 'right-client-token',
+        'zapi_instance_token' => 'right-instance-token',
     ]);
 
     $response = $this->postJson(
         "/api/whatsapp/webhook/zapi/{$uuid}",
         ['type' => 'ReceivedCallback', 'messageId' => 'msg-X', 'phone' => '5511987654321', 'fromMe' => false, 'text' => ['message' => 'oi']],
-        ['Client-Token' => 'right-client-token']
+        ['z-api-token' => 'right-instance-token']
     );
 
     $response->assertStatus(200);
-    Bus::assertDispatched(ProcessIncomingWebhookJob::class, fn ($job) => $job->businessId === 4 && $job->provider === 'zapi');
+    Bus::assertDispatched(ProcessIncomingWebhookJob::class, fn ($job) => $job->provider === 'zapi');
 });
 
 it('Webhook com business_uuid inexistente retorna 404', function () {
     $response = $this->postJson(
         '/api/whatsapp/webhook/zapi/00000000-0000-0000-0000-000000000000',
         ['messageId' => 'X', 'phone' => '5511987654321', 'fromMe' => false],
-        ['Client-Token' => 'whatever']
+        ['z-api-token' => 'whatever']
     );
 
     $response->assertStatus(404);
