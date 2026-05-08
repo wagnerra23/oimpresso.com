@@ -4,11 +4,13 @@ mission: "Substituir auditoria manual de gap módulo × estado da arte por inven
 description: ATIVAR quando user pedir "comparar módulo X com mercado", "auditar escopo do módulo Y", "o que falta no módulo Z vs estado da arte", "inventário aprovado/reprovado de {módulo}", "/comparativo {módulo}". Cruza CAPTERRA-FICHA.md (concorrentes + capacidades baseline + score P0-P3) + SPEC.md (US-XXX-NNN) + código real em Modules/{X}/ → produz CAPTERRA-INVENTARIO.md em 3 buckets (✅ APROVADO / 🟡 PARCIAL / ❌ AUSENTE) → propõe batch de tasks-create no MCP pros gaps priorizados → Wagner aprova → cria tasks + apenda US ao SPEC. NÃO cria tasks sem confirmação humana (publication-policy).
 type: process-skill
 status: active
-version: 1.0.0
+version: 2.0.0
 trust_level: L2
 owner: wagner
 created_at: 2026-05-06
+updated_at: 2026-05-08
 charter_adr: 0089
+extends_adr: 0101  # v2.0 adiciona 3 eixos (features + UX + automação)
 parent_mission: "Toda skill substitui trabalho humano repetitivo com ROI provado, rumo ao ERP autônomo de R$ 10M em 24 meses."
 triggers_on:
   - "/comparativo"
@@ -42,9 +44,23 @@ tier: B
 parent_adr: 0095
 ---
 
-# comparativo-modulo-arte
+# comparativo-modulo-arte (v2.0 — 3 eixos)
 
-Skill genérica para auditar qualquer módulo do oimpresso contra estado da arte do mercado. Pattern canônico: [ADR 0089](../../../memory/decisions/0089-capterra-driven-module-evolution.md).
+Skill genérica para auditar qualquer módulo do oimpresso contra estado da arte do mercado em **3 eixos** (features + UX + automação). Pattern canônico: [ADR 0089](../../../memory/decisions/0089-capterra-driven-module-evolution.md) + extensão v2 em [ADR 0101](../../../memory/decisions/0101-sistema-charter-capterra-governanca-escopo.md).
+
+## v2.0 vs v1.0 — o que mudou
+
+v1 mediu só **features** (`capacidades:`). v2 mede 3 eixos com mesma escala ✅🟡❌:
+
+| Eixo | YAML key na FICHA | Pergunta |
+|---|---|---|
+| **Features** (v1) | `capacidades:` | O concorrente faz X? |
+| **Usabilidade** (v2) | `ux_heuristics:` | Como faz? Cliques, tempo, erro recuperável? |
+| **Automação** (v2) | `automation_targets:` | Faz sem humano? Listener? Cron? Webhook? |
+
+Inventário v2 (`CAPTERRA-INVENTARIO.md`) tem 3 tabelas (1 por eixo) em vez de 1. Skill regenera tudo.
+
+Fichas existentes apendam `ux_heuristics:` + `automation_targets:` vazios (TODO Wagner curate). Skill **não falha** com placeholder — só pula o eixo no inventário com nota "TODO".
 
 ## Quando ativar
 
