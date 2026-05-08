@@ -769,7 +769,12 @@ class SellController extends Controller
                 'paymentTypes'         => $payment_types,
                 'invoiceSchemes'       => $invoice_schemes,
                 'defaultInvoiceScheme' => $default_invoice_schemes,
-                'taxes'                => $taxes,
+                // TaxRate::forBusinessDropdown(business_id, true, true) retorna
+                // ['tax_rates' => Collection<id,name>, 'attributes' => array<id, attrs>].
+                // Frontend espera Record<id, name> simples.
+                'taxes'                => is_array($taxes) && isset($taxes['tax_rates'])
+                    ? $taxes['tax_rates']
+                    : $taxes,
                 'priceGroups'          => $price_groups,
                 'defaultPriceGroupId'  => $default_price_group_id,
                 'shippingStatuses'     => $shipping_statuses,
