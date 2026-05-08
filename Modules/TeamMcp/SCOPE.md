@@ -75,7 +75,7 @@ Inclui:
 |---|---|---|
 | Wagner gera token MCP | L1 | INSERT em `mcp_tokens` (com actor_slug Fase 4) |
 | Wagner audita ações da IA | L1 | filtra `mcp_audit_log` |
-| Maíra/Felipe/Eliana onboarding | dev | gera token bind a actor |
+| Maiara/Felipe/Eliana onboarding | dev | gera token bind a actor |
 | Push em `memory/*` | webhook | sync `mcp_memory_documents` |
 | IA externa pede conexão | L1 (Wagner aprova) | cria actor + token bind |
 

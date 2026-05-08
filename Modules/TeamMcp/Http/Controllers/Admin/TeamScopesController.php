@@ -12,8 +12,8 @@ use Modules\ADS\Services\UserScopeService;
 /**
  * UI para Wagner gerenciar quem pode tocar quais módulos.
  *
- * Caso Maíra:
- *   Wagner abre tela, vê lista de devs do business, clica "Maíra",
+ * Caso Maiara:
+ *   Wagner abre tela, vê lista de devs do business, clica "Maiara",
  *   marca switches: ✓ Compras (read+write+exec) ✗ NFSe (só read) etc.
  */
 class TeamScopesController extends Controller

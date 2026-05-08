@@ -11,7 +11,7 @@
 
 ## 1. Contexto
 
-Wagner gasta R$ [redacted Tier 0]k/dia em Claude Code (smoke 29-abr). Felipe/Maíra/Luiz/Eliana entrarão em breve — projeção R$ [redacted Tier 0]k/dia no time completo. Cada sessão Claude Code dura horas, gera centenas de mensagens, consome tools (Bash/Edit/Read/Grep/...), descobre soluções, comete erros, aprende padrões.
+Wagner gasta R$ [redacted Tier 0]k/dia em Claude Code (smoke 29-abr). Felipe/Maiara/Luiz/Eliana entrarão em breve — projeção R$ [redacted Tier 0]k/dia no time completo. Cada sessão Claude Code dura horas, gera centenas de mensagens, consome tools (Bash/Edit/Read/Grep/...), descobre soluções, comete erros, aprende padrões.
 
 Hoje todo esse aprendizado fica isolado em `~/.claude/projects/*.jsonl` na máquina de cada dev. **Quando Felipe enfrentar bug que Wagner já resolveu, ele re-explora do zero.** R$ pago pelos mesmos tokens de descoberta.
 
@@ -32,7 +32,7 @@ Schema `mcp_cc_*` já existe (3 tabelas, migrations rodadas em prod 29-abr). Too
 | Persona | Acesso | Caso de uso |
 |---|---|---|
 | **Wagner** (owner/governança) | `copiloto.cc.read.all` + admin | Audita time, calcula custo per-dev, descobre quem tá produzindo o quê |
-| **Felipe / Maíra** (devs sêniores) | `copiloto.cc.read.team` | Busca cross-dev: "como Wagner fez X mês passado" |
+| **Felipe / Maiara** (devs sêniores) | `copiloto.cc.read.team` | Busca cross-dev: "como Wagner fez X mês passado" |
 | **Luiz** (junior) | `copiloto.cc.read.self` + `cc.read.team` | Aprende com sessões dos outros antes de pedir ajuda |
 | **Eliana** (financeiro) | `copiloto.cc.read.self` | Vê próprio uso, sem cross-dev |
 
@@ -190,7 +190,7 @@ Permission `copiloto.cc.read.all` = ver todas; `cc.read.team` = ver team mas nã
 
 ```php
 'copiloto.cc.read.self'   // ver SUAS sessões (default todos com copiloto.mcp.use)
-'copiloto.cc.read.team'   // ver sessões do time (Felipe, Maíra)
+'copiloto.cc.read.team'   // ver sessões do time (Felipe, Maiara)
 'copiloto.cc.read.all'    // tudo (Wagner, superadmin)
 'copiloto.cc.curate'      // marcar useful/noise/duplicate (Wagner only)
 ```
@@ -217,7 +217,7 @@ Adiciona em `McpScopesSeeder` (já existe pattern).
 ## 8. Métricas de sucesso (revisar 30d/60d)
 
 - **30d:** 5 devs ingerindo via watcher, ≥80% das sessões locais subindo automático
-- **60d:** Felipe/Maíra/Luiz fizeram ≥3 buscas `cc-search` que pouparam re-trabalho (medir via "found previous solution" flag)
+- **60d:** Felipe/Maiara/Luiz fizeram ≥3 buscas `cc-search` que pouparam re-trabalho (medir via "found previous solution" flag)
 - **90d:** Anomaly detection pegou ≥1 outlier real (uso dev fora do padrão)
 
 Se algum falhar → ADR follow-up + ajuste.

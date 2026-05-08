@@ -11,7 +11,7 @@ use Modules\ADS\Services\UserScopeService;
  * Endpoint que Claude Code (de qualquer dev junior) consulta ANTES
  * de propor uma mudança. Resposta clara: "pode" ou "não pode + motivo".
  *
- * Usage exemplo (Claude da Maíra):
+ * Usage exemplo (Claude da Maiara):
  *   GET /api/ads/scope/check?user_id=3&path=Modules/Compras/Models/Compra.php
  *   → { "can_write": true, "module": "Compras" }
  *

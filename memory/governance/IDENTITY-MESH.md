@@ -196,7 +196,7 @@ skills_required: []
 actions_blocked: ["drop_table", "schema_destructive", "push_main_no_pr", "deploy_prod_solo"]
 audit_required: true
 user_id: 74
-display_name: "Maíra (suporte+dev)"
+display_name: "Maiara (suporte+dev)"
 ```
 
 ### `luiz` (humano, L3)

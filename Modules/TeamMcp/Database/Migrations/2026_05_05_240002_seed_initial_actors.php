@@ -165,7 +165,7 @@ return new class extends Migration
             ->where('id', 10)
             ->update(['actor_id' => $claudeCodeActorId]);
 
-        // Token user_id=74 (Maíra) → maira
+        // Token user_id=74 (Maiara) → maira
         DB::table('mcp_tokens')
             ->where('user_id', 74)
             ->whereNull('actor_id')

@@ -271,7 +271,7 @@ Investigamos broadcast tempo real e descobrimos:
 
 **Followups P2 BRIEF-A4 (não corrigidos nesta sessão)**:
 1. `agent_id=unknown` na telemetria — header X-MCP-Agent-Id não chega
-2. Único user real Wagner (user_id=3) — Felipe/Maíra/Luiz/Eliana não usam
+2. Único user real Wagner (user_id=3) — Felipe/Maiara/Luiz/Eliana não usam
 3. Tier A `auto_trigger: session_start` no frontmatter NÃO é mecânico — pra force auto-invoke precisa SessionStart hook que faz curl POST brief-fetch
 
 **Lições da sessão**:
@@ -606,7 +606,7 @@ Session log: [memory/sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md](sess
 - ✅ **8 ADRs novas** (0078..0086) + ADR 0077 superseded por 0081
 
 **Identity Mesh operacional:**
-- ✅ Tabela `mcp_actors` + 6 actors seed (Wagner L0, Felipe/Maíra L2, Luiz/Eliana L3, claude-code-wagner-laptop ai_agent L2)
+- ✅ Tabela `mcp_actors` + 6 actors seed (Wagner L0, Felipe/Maiara L2, Luiz/Eliana L3, claude-code-wagner-laptop ai_agent L2)
 - ✅ 12 mcp_tokens com `actor_id` correto (backfill aplicado)
 - ✅ McpActor Eloquent + ActorResolver service em Modules/TeamMcp/
 - ✅ MyWorkTool + MyInboxTool resolver atualizado (CT 100 deployed)
