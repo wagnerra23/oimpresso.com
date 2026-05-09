@@ -8,6 +8,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 
 /**
  * MetaCloudDriver — fallback obrigatório Sprint 1 (driver oficial Meta).
@@ -31,7 +32,7 @@ use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 class MetaCloudDriver implements DriverInterface
 {
     public function sendTemplate(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $templateName,
         array $params,
@@ -65,7 +66,7 @@ class MetaCloudDriver implements DriverInterface
     }
 
     public function sendFreeform(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $body,
     ): WhatsappSendResult {
@@ -87,7 +88,7 @@ class MetaCloudDriver implements DriverInterface
     }
 
     public function sendMedia(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $mediaUrl,
         string $type,
@@ -127,7 +128,7 @@ class MetaCloudDriver implements DriverInterface
     }
 
     public function fetchMessageStatus(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,
     ): MessageStatus {
         // Meta Cloud não tem endpoint REST pra consultar status de mensagem
@@ -137,7 +138,7 @@ class MetaCloudDriver implements DriverInterface
         return new MessageStatus(status: 'queued');
     }
 
-    public function ping(WhatsappBusinessConfig $config): DriverHealthStatus
+    public function ping(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverHealthStatus
     {
         // Meta Cloud não tem endpoint /ping; usamos GET no phone_number_id
         // pra validar token + número.
@@ -176,7 +177,7 @@ class MetaCloudDriver implements DriverInterface
      *     ...
      *   ]
      */
-    public function fetchTemplates(WhatsappBusinessConfig $config): array
+    public function fetchTemplates(WhatsappBusinessConfig|WhatsappBusinessPhone $config): array
     {
         // Step 1: pega WABA id a partir do phone_number_id
         $wabaResponse = $this->client($config)
@@ -227,7 +228,7 @@ class MetaCloudDriver implements DriverInterface
      *
      * Bearer token = meta_access_token (cifrado em DB, decifrado no Model getter).
      */
-    private function client(WhatsappBusinessConfig $config): PendingRequest
+    private function client(WhatsappBusinessConfig|WhatsappBusinessPhone $config): PendingRequest
     {
         $apiVersion = config('whatsapp.meta.api_version', 'v21.0');
         $baseUrl = config('whatsapp.meta.base_url', 'https://graph.facebook.com');
