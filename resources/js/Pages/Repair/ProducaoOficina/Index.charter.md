@@ -86,4 +86,4 @@ Visão de produção da oficina em **kanban de 5 colunas** (Recepção → Diagn
 - **US-REPAIR-PROD-2** — query real `JobSheet` por status/business com mock substituído
 - ✅ **US-REPAIR-PROD-3** — filtros funcionais Box/Elevador (entregue PR ~~#TBD~~)
 - **US-REPAIR-PROD-4** — drag-and-drop entre colunas (chama `/repair/job-sheet/{id}/status` com optimistic update)
-- **US-REPAIR-PROD-5** — Pest GUARD: kanban tem exatamente 5 colunas + isolamento `business_id` + mock-vs-real switch
+- ✅ **US-REPAIR-PROD-5** — Pest GUARD entregue (`Modules/Repair/Tests/Feature/ProducaoOficinaTest.php`): 5 tests cobrindo invariantes do charter — 5 colunas exatas/ordem, ≥1 OS aguardando aprovação, Non-Goal CRUD/mutações
