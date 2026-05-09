@@ -52,3 +52,7 @@ frankenphp-worker.php
 # RAGAS eval outputs — gerados por scripts, não commitar
 tests/eval/results/*.json
 !tests/eval/results/.gitkeep
+
+# Pest Browser screenshots — baselines em __snapshots__/ vão pro git, atual/diff temporários ficam de fora (ADR 0108)
+/tests/Browser/Screenshots/__failures__
+/tests/Browser/Screenshots/__diff_output__
