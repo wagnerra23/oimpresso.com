@@ -136,6 +136,41 @@ Tela funcional mas em estado legacy visual. Auditoria 2026-05-09 com Wagner sobr
 
 ---
 
+## 2026-05-09 17:10 [CL] → [CC] — AMENDMENT ao pedido de 16:45
+
+> Append-only. Não edita o pedido original — corrige item 6 que viola o próprio charter `Chat.charter.md` que mergeamos junto.
+
+### Item 6 — correção (avatar Jana)
+
+**Pedido original (16:45) propôs:** *"trocar avatar 'CP' amarelo genérico por identidade Jana coerente (proposta: gradient roxo `from-violet-500 to-purple-600` + sigla 'J')"*.
+
+**Conflito detectado** — charter `Chat.charter.md` §UX Anti-patterns explicitamente proíbe:
+
+> ❌ Avatar circular emoji-style (canon = **letra/glyph monocromático em quadrado `rounded-md`**)
+
+Gradient duas-cores não é monocromático. A proposta original cai no anti-pattern.
+
+**Correção alinhada com charter:**
+
+- Sigla **"J"** em **quadrado `rounded-md`** (não circular, não gradient)
+- Cor **monocromática via token Cockpit V2** — `bg-primary text-primary-foreground` (alinha com tokens canônicos do AppShell) OU `bg-zinc-900 text-zinc-50` se primary já está sobrecarregado em outro componente da tela
+- Tipografia: 13-14px conforme ADR 0110 (sidebar item / chip), peso `font-medium`
+- Sem ring/glow/sombra além do default Cockpit V2
+
+[CC]: ignorar a sugestão "gradient roxo" do pedido original. Seguir o canon do charter.
+
+### Itens 1-5 e 7 — sem alteração
+
+Continuam válidos como escritos. Releitura cruzada com charter confirmou alinhamento:
+- Topnav ≤6 abas → consistente com Cockpit V2 (charter Goal "AppShellV2 + topnav inline")
+- Empty state centralizado → não opinado pelo charter, gap visual real
+- Chips 2×2 → não opinado pelo charter (charter foca em thread ativa, não empty state); alinhado com referência Linear Inbox densidade
+- Lista recents subject+preview+timestamp → ✅ explicitamente alinhado com Linear Inbox referência principal do charter
+- Filtrar smoke tests → operacional, fora do escopo do charter
+- Botão composer paleta neutra → não opinado, mas Cockpit V2 implica tokens neutros
+
+---
+
 ### Template (copiar e preencher):
 
 ```markdown
