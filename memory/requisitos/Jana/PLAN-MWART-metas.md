@@ -18,7 +18,7 @@ gate_visual: F1.5-pendente
 
 ## 0. TL;DR
 
-Migrar 4 telas Blade legacy + 1 superadmin pra Inertia/React seguindo padrão Cockpit V2 ([ADR 0110](../../decisions/0110-cockpit-pattern-v2.md)) e [RUNBOOK-dashboard.md](RUNBOOK-dashboard.md) como referência. **Bloqueador descoberto na vistoria:** controller atual viola multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — qualquer query expõe metas de todos os tenants.
+Migrar 4 telas Blade legacy + 1 superadmin pra Inertia/React seguindo padrão Cockpit V2 ([ADR 0110](../../decisions/0110-cockpit-pattern-v2.md)) e [RUNBOOK-dashboard.md](RUNBOOK-dashboard.md) como referência. **Correção honesta 2026-05-09:** primeira versão deste PLAN levantou ALERT Tier 0 falso — Meta JÁ tem `HasBusinessScope` aplicado. Issue real é P1 (cross-tenant pollution via `store()` aceitando `business_id` do client), não P0 vazamento. PLAN aguarda aprovação Wagner ANTES de qualquer mexida em código tenancy ([feedback memory](~/.claude/projects/D--oimpresso-com/memory/feedback_tenancy_changes_require_pest_local.md): mudanças tenancy exigem Pest verde local).
 
 ## 1. Inventário do estado atual
 
@@ -47,39 +47,43 @@ Migrar 4 telas Blade legacy + 1 superadmin pra Inertia/React seguindo padrão Co
 
 ### Domain models
 
-- `Modules\Jana\Entities\Meta` — `business_id` fillable, **SEM global scope** (tenancy híbrida intencional: null = plataforma)
-- `Modules\Jana\Entities\MetaApuracao` — apurações por meta
+- [`Modules\Jana\Entities\Meta`](../../../Modules/Jana/Entities/Meta.php) — `business_id` fillable, **com `use HasBusinessScope`** (linha 18) — global scope `ScopeByBusiness` aplica filtro automático por `session('user.business_id')`. Tenancy híbrida intencional: null = plataforma (visível só a superadmin)
+- [`Modules\Jana\Entities\MetaApuracao`](../../../Modules/Jana/Entities/MetaApuracao.php) — apurações por meta. **Não tem coluna `business_id`** (verificado em [migration](../../../Modules/Jana/Database/Migrations/2026_04_24_000004_create_copiloto_meta_apuracoes_table.php)) — scope indireto via Meta (queries reais sempre passam por `Meta::find()->apuracoes`); adicionar `HasBusinessScope` quebraria SQL
 
 ### US cobertas (já existem em SPEC)
 
 US-COPI-010, US-COPI-011, US-COPI-012 (mesmas que cobrem [Dashboard](RUNBOOK-dashboard.md))
 
-## 2. 🚨 ALERTA TIER 0 descoberto (P0 bloqueador)
+## 2. ⚠️ Re-análise honesta — Tier 0 NÃO é violado (correção 2026-05-09)
 
-**Multi-tenant isolation violado** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)):
+**Versão anterior deste PLAN afirmou erradamente** que `MetasController` vazava entre tenants. **Falso.** Ao verificar:
 
-```php
-// MetasController.php:18 — VAZAMENTO
-$metas = Meta::orderByDesc('ativo')->orderBy('nome')->get();
+- [`Meta`](../../../Modules/Jana/Entities/Meta.php) usa `HasBusinessScope` (linha 18) — aplica `ScopeByBusiness` automaticamente
+- [`HasBusinessScope`](../../../app/Concerns/HasBusinessScope.php) chama `bootHasBusinessScope()` que adiciona o global scope no boot do Model
+- [`ScopeByBusiness`](../../../Modules/Jana/Scopes/ScopeByBusiness.php) filtra por `session('user.business_id')` automaticamente; superadmin vê próprio + NULL (plataforma)
 
-// MetasController.php:48 — VAZAMENTO
-$meta = Meta::findOrFail($id);
+Logo `Meta::orderByDesc('ativo')->get()`, `Meta::findOrFail($id)` etc são **seguros** — global scope cobre. Não há vazamento.
 
-// MetasController.php:64 — VAZAMENTO
-$meta = Meta::findOrFail($id);
-```
+`MetaApuracao` não tem `business_id` column (só `meta_id`). Scope indireto: queries reais sempre passam por `Meta::find($id)->apuracoes` ou `MetaApuracao::where('meta_id', $metaId)` após Meta::find — Meta scopada já garante isolamento. Adicionar `HasBusinessScope` em MetaApuracao quebraria SQL.
 
-Sem `where('business_id', session('user.business_id'))` nem global scope no Model, qualquer user logado pode listar/visualizar/editar/deletar metas de outros tenants via mudança de `id` na URL.
+### Issues reais (P1, não P0) — descobertas ficam aqui mas não viram código sem aprovação Wagner + Pest local
 
-**Decisão de PLAN:** F2 BACKEND BASELINE precisa **primeiro** corrigir o vazamento (com Pest fixture validando isolamento) ANTES de qualquer trabalho de UI. Fix proposto:
-1. Adicionar `BusinessIdScope` no Model `Meta` (com exceção explícita pra `business_id IS NULL` = plataforma, só visível pra superadmin)
-2. Adicionar `BusinessIdScope` no Model `MetaApuracao` (cascata via `meta_id` → meta.business_id)
-3. Migration ratchet: `business_id NOT NULL` em metas com origem `manual` (origem `plataforma` mantém NULL)
-4. Pest test em `tests/Feature/Modules/Jana/MetasMultiTenantTest.php` cobrindo:
-   - User biz=4 NÃO vê meta biz=1
-   - User biz=4 NÃO consegue editar meta biz=1 via URL injection
-   - User biz=4 NÃO consegue listar metas plataforma (origem `plataforma`)
-   - Superadmin consegue ver metas plataforma + todos businesses
+1. **`store()` aceita `business_id` do client** — [MetasController.php:34](../../../Modules/Jana/Http/Controllers/MetasController.php) tem `'business_id' => 'nullable|integer'` na validação. User biz=4 pode POST `business_id=1` e poluir dados de biz=1. Não é vazamento (depois fica invisível pro autor) mas é cross-tenant pollution.
+   - **Fix proposto:** remover `business_id` da validação; injetar `session('user.business_id')` em `Meta::create()`.
+   - **Status:** NÃO aplicado. Wagner pediu zero-risk em mudanças tenancy 2026-05-09. Re-abrir só com Pest verde local.
+
+2. **`reapurar()` é stub** — `dispatch(new ApurarMetaJob)` comentado. Botão na UI não faz nada útil.
+   - **Fora de escopo MWART** — abrir US separada US-COPI-METAS-REAPURAR.
+
+3. **`update()` accept-only narrow** — [MetasController.php:65](../../../Modules/Jana/Http/Controllers/MetasController.php): `$request->only(['nome', 'unidade', 'tipo_agregacao'])`. Inclui apenas 3 campos; `business_id`/`slug`/`ativo` ignorados (bom — evita pollution via update). OK.
+
+### Pré-requisitos pra reabrir F2 (gate de Wagner)
+
+- [ ] Wagner roda `composer install` na main repo `D:\oimpresso.com` OU autoriza operar a partir dela
+- [ ] Pest test escrito + Wagner roda local (não worktree headless)
+- [ ] `php artisan test --filter=MetasControllerBaseline` verde reportado por Wagner
+- [ ] Smoke biz=1 manual confirmando que UI/CRUD continua funcionando depois do change
+- [ ] PR isolada (nunca bundle com docs/cleanup)
 
 ## 3. Pré-flight (skill `mwart-quality` — 9 checks)
 
@@ -87,8 +91,8 @@ Sem `where('business_id', session('user.business_id'))` nem global scope no Mode
 |---|---|---|
 | 1. Controller usa `Inertia::render` | ❌ todas 5 telas usam `view()` | F3 |
 | 2. Page Inertia em `resources/js/Pages/Jana/Metas/` existe | ❌ pasta não existe | F3 |
-| 3. Controller filtra por `business_id` | 🚨 **NÃO** — Tier 0 violation | F2 prioridade absoluta |
-| 4. Pest fixture do `store()` antes de mexer | ❌ não existe | F2 obrigatório ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) |
+| 3. Controller filtra por `business_id` | ✅ via `HasBusinessScope` no Model Meta — global scope automático | n/a |
+| 4. Pest fixture do `store()` antes de mexer | ❌ não existe | F2 obrigatório ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) — reabrir só com Wagner aprovando + Pest verde local |
 | 5. Página vive dentro de `AppShellV2` | n/a (criar) | F3 |
 | 6. Tokens shadcn semânticos | n/a (criar) | F3 |
 | 7. PT-BR em todos labels | n/a (criar) | F3 |
@@ -99,23 +103,24 @@ Sem `where('business_id', session('user.business_id'))` nem global scope no Mode
 
 ### F1 — PLAN ✅ (este documento)
 
-### F2 — BACKEND BASELINE (com Tier 0 fix embutido)
+### F2 — BACKEND BASELINE (PAUSADO — gated em aprovação Wagner)
 
-**Não tocar Page Inertia ainda.** Trabalho 100% PHP/migration/test.
+> **Status:** F2 não inicia até Wagner liberar. Sessão 2026-05-09 tentou primeiro corte e Wagner pediu reverter porque "vazar dados é o erro maior". Mesmo o change sendo defensivo (remove input do client, injeta session), Wagner exigiu Pest verde local antes de PR ([feedback memory](~/.claude/projects/D--oimpresso-com/memory/feedback_tenancy_changes_require_pest_local.md)).
 
-1. **Pest fixture baseline** — `tests/Feature/Modules/Jana/MetasControllerBaselineTest.php`:
-   - `it('lista metas do business em foco')` — fixture biz=1 com 2 metas, biz=4 com 3 metas, login biz=4, GET `/copiloto/metas` retorna 3
-   - `it('cria meta com business_id auto-derivado da session')`
-   - `it('redirect store→show com id correto')`
-   - `it('soft-delete via destroy seta ativo=false')`
-   - `it('show 404 quando meta de outro tenant')` ← red, vai virar verde após fix
-2. **`BusinessIdScope` no Meta + MetaApuracao** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-3. **Migration** — backfill `business_id` em metas existentes baseado em `criada_por_user_id`→`users.business_id`. Metas órfãs (sem user) → flag `origem=plataforma`, `business_id=null`
-4. **Refactor Controller** — todas queries scopadas; `store()` injeta `business_id = session('user.business_id')` automaticamente; `destroy/update/show/edit` confiam no scope
-5. **`reapurar()` stub permanece stub** (fora de escopo MWART; abrir US separada US-COPI-METAS-REAPURAR)
-6. **Verde Pest** — todos casos passam
+Quando F2 abrir, escopo proposto:
 
-**DoD F2:** `php artisan test --filter=MetasControllerBaseline` verde + `jana:health-check` reporta `multi_tenant_isolation: OK` pra metas.
+1. **Pest fixture baseline** — `tests/Feature/Modules/Jana/MetasControllerBaselineTest.php` (5 casos):
+   - `index()` lista apenas metas do business em foco (global scope ativo)
+   - `store()` injeta business_id da session, ignora business_id do client
+   - `show($id)` ModelNotFoundException cross-tenant
+   - `update($id)` ModelNotFoundException cross-tenant
+   - `destroy($id)` soft-delete via `ativo=false`
+2. **Refactor `store()`** — remover `'business_id' => 'nullable|integer'` da validação; injetar `session('user.business_id')` em `Meta::create()` (cross-tenant pollution prevention)
+3. **`reapurar()` stub permanece stub** (fora de escopo MWART; abrir US separada US-COPI-METAS-REAPURAR)
+
+**DoD F2:** `php artisan test --filter=MetasControllerBaseline` verde **rodado por Wagner local** + smoke biz=1 manual confirmando UI/CRUD intactos.
+
+**Não fazer em F2:** migration backfill (dados já corretos), `HasBusinessScope` em MetaApuracao (column inexistente), mexer em Meta model (já tem trait).
 
 ### F1.5 — VISUAL GATE ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)) — **BLOQUEADOR DE F3**
 
@@ -170,19 +175,19 @@ Tarefas codáveis com IA-pair (fator 10x + margem 2x):
 
 | Fase | Trabalho | Estimativa (calendário, com margem) |
 |---|---|---|
-| F2 | Tier 0 fix + Pest baseline + migration | 1 dia útil |
+| F2 | Pest baseline + store hardening | 0.5 dia útil — **gated em aprovação Wagner + Pest local** |
 | F1.5 | Screenshots + comparativos 15 dimensões | 0.5 dia (Wagner síncrono ~10min/tela × 5) |
 | F3 | 5 telas Inertia (1 por PR) | 2-3 dias úteis |
 | F4 | Smoke biz=1 + cross-tenant manual | 0.5 dia |
 | F5 | Canary 7 dias + cleanup | **7 dias relógio mundo real** (não-codável, [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) |
 
-**Total:** ~4-5 dias úteis de trabalho codável + 7 dias relógio canary = ~2 semanas calendário.
+**Total:** ~3.5-4.5 dias úteis de trabalho codável + 7 dias relógio canary = ~2 semanas calendário.
 
 ## 6. Riscos
 
 | Risco | Probabilidade | Impacto | Mitigação |
 |---|---|---|---|
-| Backfill `business_id` falha em metas órfãs | Média | Alto (drop tenant data) | Migration com `--dry-run` em produção snapshot antes; backup `metas` + `meta_apuracoes` |
+| Mudança em `store()` quebra fluxo legítimo (ex: superadmin criando meta plataforma) | Baixa | Médio | Pest local com cenário superadmin antes do PR; smoke manual pós-merge |
 | Wagner rejeita screenshots F1.5 | Média | Bloqueia F3 | Iterar — F1.5 pode ter 2-3 rounds |
 | `metas/show` cross-link `jana.fontes.show` quebra | Baixa | Médio | KB module mantém Blade legacy — link continua funcionando |
 | Apuração via `reapurar()` quebra durante MWART | Baixa | Baixo | É stub hoje, fora do escopo |
@@ -229,4 +234,4 @@ Se uso é zero, PLAN vira ADR `feature wish` e deslincra. Se uso ≥1×/semana, 
 
 ---
 
-**Última atualização:** 2026-05-09 — PLAN F1 draft, aguardando aprovação Wagner.
+**Última atualização:** 2026-05-09 — PLAN F1 v2: ALERT Tier 0 era falso (Meta já tinha `HasBusinessScope`); F2 reduzido + gated em aprovação Wagner com Pest local; sessão 2026-05-09 tentou primeiro corte e Wagner pediu reverter ([feedback memory](~/.claude/projects/D--oimpresso-com/memory/feedback_tenancy_changes_require_pest_local.md)).
