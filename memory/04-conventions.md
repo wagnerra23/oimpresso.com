@@ -63,6 +63,7 @@
 - Localização: `Modules/PontoWr2/Tests/{Unit,Feature}/`
 - Nome: `ApurarDiaTest.php`, métodos `test_apura_dia_sem_marcacoes_retorna_falta_integral`
 - Cobertura mínima obrigatória: regras CLT em `ApuracaoService`
+- **Toda função/endpoint/migration nova sai com teste Pest cobrindo o contrato** (URL, response shape, chave única, nome de coluna). Foco nos **pontos de contrato**, não 100% cobertura. Exemplo: `tests/Feature/Connector/DelphiOImpressoContractTest.php` blinda contrato Delphi via reflection sobre source — sem setup pesado de fixtures.
 
 ## Git / Commit
 
@@ -125,6 +126,17 @@ Template mínimo:
 - Horas em **minutos (integer)** internamente — evita float
 - Apresentação: `+HH:MM` / `-HH:MM` via helper `formatarMinutos($min)`
 
+## Inertia / SPA
+
+- **Pages NÃO recarregam total entre cliques.** Use `<Link preserveScroll preserveState>`, `router.get(url, params, { preserveState: true, preserveScroll: true, only: [...] })`. NUNCA `window.location.reload()` ou `router.reload()` sem `only:[]`. Sentinela code review: PR adicionando reload sem `only` é regressão UX crítica.
+- **Persistent Layout obrigatório.** Pages usam `Component.layout = (page) => <AppShell>{page}</AppShell>` — NUNCA envolver o return em `<AppShell>...</AppShell>` direto (sidebar pisca, perde estado accordion). `AppShell` detecta topnav via `useAutoModuleNav()` lendo `shell.topnavs` compartilhado — não passar `moduleNav` prop.
+- **useForm sem opções extras** = correto pra Inertia v3 (default já é `forceFormData: false` quando não há upload). Após submit que redireciona, usar `onFinish: () => form.reset('field1', ...)` por campo, não reset total.
+
+## Integração Delphi (Officeimpresso)
+
+- **Contrato request/response IMUTÁVEL** — Delphi cliente em produção não recompila. Mudanças aditivas (campo opcional novo, endpoint novo) OK; renomear/trocar tipo/remover campo = quebra cliente real. Detalhe completo em [ADR 0021](decisions/0021-officeimpresso-contrato-api-delphi.md).
+- **Delphi corrompe UTF-8** em ShowMessage/MessageBox/clipboard. Em payloads críticos pra Delphi, manter strings (status code, version `2026.1.0.5`, tokens) em **ASCII puro**. Ao diagnosticar erro vindo do Delphi, confiar só em tokens ASCII (paths, HTTP status, JSON keys); acentos podem virar mojibake no transporte.
+
 ---
 
-**Última atualização:** 2026-04-18
+**Última atualização:** 2026-05-09
