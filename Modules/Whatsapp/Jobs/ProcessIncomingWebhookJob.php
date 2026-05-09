@@ -11,6 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\WhatsappMessageReceived;
@@ -23,13 +24,20 @@ use Modules\Whatsapp\Events\WhatsappMessageReceived;
  * `business_id` + `provider`. Aqui só normalizamos o payload de cada
  * provider pra estrutura comum.
  *
+ * **Multi-números (ADR 0115 — US-WA-040):**
+ * Aceita `?int $whatsappBusinessPhoneId` opcional. Quando set, escreve
+ * `whatsapp_business_phone_id` em `WhatsappConversation` e `WhatsappMessage`
+ * inbound — UI Inbox filtra conversas por phone do user. Quando NULL
+ * (legacy/coexistência), comportamento original sem phone_id (data migration
+ * PR 1 já preencheu phone_id em conversations existentes).
+ *
  * **Idempotência:** UNIQUE em `provider_message_id` impede duplicata.
  * Se webhook chegar 2× com mesmo wamid/messageId, segunda vez é no-op.
  *
  * **Tier 0 (ADR 0093):** `$businessId` no constructor; queries com
  * `withoutGlobalScope` + filtro explícito.
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-011
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-011, US-WA-040
  * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3.2
  */
 class ProcessIncomingWebhookJob implements ShouldQueue
@@ -46,6 +54,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         public readonly int $businessId,
         public readonly string $provider, // meta_cloud|zapi|baileys
         public readonly array $payload,
+        public readonly ?int $whatsappBusinessPhoneId = null,
     ) {
         $this->onQueue(config('whatsapp.queue', 'whatsapp'));
     }
@@ -57,28 +66,38 @@ class ProcessIncomingWebhookJob implements ShouldQueue
 
     public function handle(): void
     {
-        $config = WhatsappBusinessConfig::query()
-            ->withoutGlobalScope(ScopeByBusiness::class)
-            ->where('business_id', $this->businessId)
-            ->firstOrFail();
+        // Resolve phone se fornecido (defensive Tier 0); senão fallback config legacy
+        $phone = null;
+        if ($this->whatsappBusinessPhoneId !== null) {
+            $phone = WhatsappBusinessPhone::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $this->businessId)
+                ->where('id', $this->whatsappBusinessPhoneId)
+                ->first();
+        }
+
+        if ($phone === null) {
+            // Fallback config legacy (durante coexistência PR 1 → PR 5)
+            $config = WhatsappBusinessConfig::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $this->businessId)
+                ->firstOrFail();
+            $resolvedPhoneId = null;
+        } else {
+            $resolvedPhoneId = $phone->id;
+        }
 
         $extracted = $this->extractMessages();
         if (empty($extracted)) {
-            return; // payload sem mensagens — pode ser status update ou evento outro
+            return;
         }
 
         foreach ($extracted as $msg) {
-            $this->upsertMessage($config, $msg);
+            $this->upsertMessage($this->businessId, $resolvedPhoneId, $msg);
         }
     }
 
     /**
-     * Extrai mensagens do payload do provider em formato comum:
-     *   [
-     *     ['provider_message_id' => 'wamid.X', 'from' => '+5511...', 'body' => 'texto', 'type' => 'text'],
-     *     ...
-     *   ]
-     *
      * @return array<int, array<string, mixed>>
      */
     private function extractMessages(): array
@@ -91,10 +110,6 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         };
     }
 
-    /**
-     * Meta Cloud payload (estrutura oficial):
-     * { "entry": [{ "changes": [{ "value": { "messages": [{ "id": "wamid.X", "from": "5511...", "type": "text", "text": {"body": "..."} }] } }] }] }
-     */
     private function extractFromMeta(array $payload): array
     {
         $out = [];
@@ -123,13 +138,8 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         return $out;
     }
 
-    /**
-     * Z-API payload (on-message event):
-     * { "messageId": "...", "phone": "5511...", "fromMe": false, "text": {"message": "..."}, "type": "ReceivedCallback" }
-     */
     private function extractFromZapi(array $payload): array
     {
-        // Ignora mensagens enviadas pelo próprio business (evita echo)
         if ($payload['fromMe'] ?? false) {
             return [];
         }
@@ -146,10 +156,6 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         ]];
     }
 
-    /**
-     * BaileysDriver custom (Sprint 3) — normalizado pelo daemon Node próprio
-     * pra estrutura comum mais simples.
-     */
     private function extractFromBaileys(array $payload): array
     {
         if (($payload['event'] ?? '') !== 'message') {
@@ -165,14 +171,13 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         ]];
     }
 
-    private function upsertMessage(WhatsappBusinessConfig $config, array $msg): void
+    private function upsertMessage(int $businessId, ?int $phoneId, array $msg): void
     {
         $providerMessageId = (string) ($msg['provider_message_id'] ?? '');
         if ($providerMessageId === '') {
             return;
         }
 
-        // Idempotência: se já existe, no-op (Tier 0 — UNIQUE provider_message_id)
         $existing = WhatsappMessage::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('provider_message_id', $providerMessageId)
@@ -185,14 +190,21 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         $conversation = WhatsappConversation::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->firstOrCreate(
-                ['business_id' => $config->business_id, 'customer_phone' => $msg['from']],
-                ['status' => 'open'],
+                ['business_id' => $businessId, 'customer_phone' => $msg['from']],
+                ['status' => 'open', 'whatsapp_business_phone_id' => $phoneId],
             );
+
+        // Se conversa existente está sem phone_id (legacy) e agora resolvemos,
+        // atualiza pra cravar o phone correto.
+        if ($phoneId !== null && $conversation->whatsapp_business_phone_id === null) {
+            $conversation->update(['whatsapp_business_phone_id' => $phoneId]);
+        }
 
         $message = WhatsappMessage::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->create([
-                'business_id' => $config->business_id,
+                'business_id' => $businessId,
+                'whatsapp_business_phone_id' => $phoneId ?? $conversation->whatsapp_business_phone_id,
                 'conversation_id' => $conversation->id,
                 'direction' => 'inbound',
                 'provider' => $this->provider,
@@ -217,6 +229,10 @@ class ProcessIncomingWebhookJob implements ShouldQueue
      */
     public function tags(): array
     {
-        return ["business:{$this->businessId}", "whatsapp:webhook:{$this->provider}"];
+        $tags = ["business:{$this->businessId}", "whatsapp:webhook:{$this->provider}"];
+        if ($this->whatsappBusinessPhoneId !== null) {
+            $tags[] = "phone:{$this->whatsappBusinessPhoneId}";
+        }
+        return $tags;
     }
 }

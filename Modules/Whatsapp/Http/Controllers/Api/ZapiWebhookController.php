@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Jobs\ProcessIncomingWebhookJob;
 
 /**
@@ -34,6 +35,8 @@ class ZapiWebhookController extends Controller
     {
         /** @var WhatsappBusinessConfig $config */
         $config = $request->attributes->get('whatsapp.config');
+        /** @var WhatsappBusinessPhone|null $phone */
+        $phone = $request->attributes->get('whatsapp.phone');
 
         $payload = $request->all();
         $eventType = strtolower((string) ($payload['type'] ?? ''));
@@ -43,10 +46,10 @@ class ZapiWebhookController extends Controller
         if (str_contains($eventType, 'disconnected')) {
             \Log::warning('[whatsapp.webhook.zapi.disconnected] sessão Whatsapp Web caiu', [
                 'business_id' => $config->business_id,
+                'phone_id' => $phone?->id,
+                'phone_label' => $phone?->label,
             ]);
-            // HealthCheckJob (Sprint 2 — Lote 2d) detecta isso no próximo ciclo de 6h.
-            // Aqui só registramos. Se quiser triggerar imediato:
-            //   dispatch(new WhatsappDriverHealthCheckJob($config->business_id))->onQueue('default');
+            // HealthCheckJob (Sprint 2) detecta isso no próximo ciclo de 6h.
             return response()->json(['ok' => true, 'note' => 'session_lost_logged'], 200);
         }
 
@@ -54,6 +57,7 @@ class ZapiWebhookController extends Controller
             $config->business_id,
             'zapi',
             $payload,
+            $phone?->id,
         );
 
         return response()->json(['ok' => true], 200);
