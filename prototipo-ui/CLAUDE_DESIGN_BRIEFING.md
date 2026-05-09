@@ -64,6 +64,23 @@ Por que existe: [memory/why-oimpresso.md](../memory/why-oimpresso.md).
 - `shadow-md` em drawers / dialogs
 - Evitar `shadow-lg`+ — fica "tutorial-shadcn"
 
+### Radius
+- `rounded-md` (6px) — cards, buttons, inputs (default)
+- `rounded-lg` (8px) — drawers, dialogs, popovers
+- `rounded-full` — badges, avatars, status dots
+- Evitar `rounded-xl+` — fica "tutorial-shadcn"
+
+### Animação
+- `transition-colors duration-150` em hovers
+- `transition-transform duration-200 ease-out` em drawers
+- `animate-pulse` apenas skeleton loading
+- Sem animação > 300ms (exceto loading)
+
+### Foco (obrigatório — Larissa usa teclado pesado)
+- `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+- Em todo interativo (button, input, link, custom)
+- Não usar `outline-none` sem substituir
+
 ## 5. Padrão Cockpit V2 ([ADR 0110](../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md))
 
 ```

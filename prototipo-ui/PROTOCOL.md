@@ -71,6 +71,9 @@ Wagner pode pular gates via comentário em `COWORK_NOTES.md`:
 | `/screenshot-override <razão>` | F2 aprovação | Wagner já viu protótipo Cowork direto |
 | `/a11y-override <razão>` | F3.5 a11y | Protótipo interno superadmin (não-cliente-facing) |
 
+**Formato canônico:** `/X-override <razão curta> --tela=<nome-kebab>`
+**Exemplo:** `/screenshot-override Wagner aprovou no Cowork --tela=sells-create`
+
 Cada override gera ADR per-tela `lifecycle: historical` em `memory/decisions/<NNNN>-design-excecao-<tela>.md`.
 
 Sem override, gates não cedem. Mesmo loop pra todos: `[W]`, `[F]`, `[M]`, `[L]`, `[E]`.

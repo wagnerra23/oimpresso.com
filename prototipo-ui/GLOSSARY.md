@@ -1,141 +1,94 @@
-# GLOSSARY.md — termos design ↔ Inertia/shadcn no oimpresso
+# GLOSSARY.md — termos do loop Cowork ↔ Code
 
-> Mapa pra Claude Code traduzir protótipo Cowork (genérico) → Inertia/React real sem reinventar.
+> Termos curtos referenciados em `PROTOCOL.md`, `COWORK_NOTES.md`, ADRs.
 
-## Componentes (Cowork → shadcn no oimpresso)
+## Pessoas / sistemas
 
-| Cowork (genérico) | oimpresso (shadcn + canon) | Notas |
+| Sigla | Significado |
+|---|---|
+| **[W]** | Wagner Junio Andrade da Silva — dono oimpresso, decide |
+| **[CC]** | Claude Cowork — Anthropic Cowork web app, gera protótipo visual |
+| **[CD]** | Claude Design — plugin local OU Cowork rodando design skills |
+| **[CL]** | Claude Code — instância no terminal local rodando no repo Laravel |
+| **[CA]** | Claude Accessibility — Claude Code rodando `design:accessibility-review` |
+| **[W2]** | Wagner aprovador síncrono — quando Wagner precisa olhar screenshot real |
+| **[F]** | Felipe — colaborador (presente na sigla histórica MWART, não-ativo no loop UI atual) |
+| **[M]** | Manus — IA externa de alta capacidade, usada raramente |
+| **[L]** | Iniciante / Estagiário — persona pra quem código tem que se explicar sozinho |
+| **[E]** | Eliana — financeiro |
+
+## Fases do loop
+
+| Sigla | Significado |
+|---|---|
+| **F0 BRIEF** | Wagner escreve pedido em `COWORK_NOTES.md` |
+| **F1 DESIGN** | [CC] gera protótipo Cowork → exporta zip → [CL] unzipa em `prototipos/<tela>/` |
+| **F1.5 CRITIQUE** | [CD] roda `design-critique` → `critique-score.json` (score 0-100) |
+| **F2 SCREENSHOT** | [W2] aprova screenshot real (não tabela) |
+| **F3 CODE** | [CL] traduz protótipo aprovado pra Inertia/React real |
+| **F3.5 A11Y** | [CA] roda `accessibility-review` → `a11y-report.md` (WCAG 2.1 AA) |
+| **F4 MERGE** | [W2] mergeia PR (após F3.5 passou) |
+
+## Conceitos
+
+### Design Critique Score
+Número 0-100 produzido por `design:design-critique`:
+- **80-100:** ok, segue pra F2
+- **70-79:** 1 round refator obrigatório
+- **<70:** discussão obrigatória, possível redirect
+
+Limites recalibram após 10 telas (p50/p90 reais).
+
+### Critique Override
+Wagner autoriza pular F1.5 com `/design-override <razão>` em `COWORK_NOTES.md`. Gera ADR `lifecycle: historical` per-tela.
+
+### Screenshot Override
+Wagner autoriza pular F2 com `/screenshot-override <razão>` quando já aprovou no Cowork direto.
+
+### A11y Override
+Wagner autoriza pular F3.5 com `/a11y-override <razão>` em telas internas superadmin não-cliente-facing.
+
+### Backpressure
+Limite de 2 telas simultâneas em F3 (`[CL]` perde foco se >2 PRs abertos no mesmo módulo).
+
+### Cockpit V2
+Padrão visual canônico ([ADR 0110](../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)) — sidebar + header sticky + body cards + footer sticky + drawer lateral pra detalhe.
+
+### MWART Process
+Processo canônico ([ADR 0104](../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)) — F1 a F4. Loop UI atual é refinamento dele.
+
+### Cowork Export
+Zip que [CC] gera com `prototipo-ui/` — [CL] consome via PR `label: cowork-export` (sem build, sem testes).
+
+### Charter
+`<Tela>.charter.md` — documento de design: contexto + decisões + 15 dimensões. Vive ao lado do `.tsx` em `resources/js/Pages/`.
+
+### 15 Dimensões
+Skill `mwart-comparative` V4 — checklist de qualidade visual:
+- A. Estrutura: layout, hierarquia, densidade, iconografia, estados, atalhos, persistência, componentes shared
+- B. Estado da arte: tipografia numérica, espaçamento numérico, cores semânticas, microinterações, ref Wagner, benchmark externo, persona priorização
+
+## Comparáveis canônicos (benchmark visual)
+
+Referências válidas em `COMPARISON.md > dimensão 14`:
+
+| Comparável | Tipo de tela | Por que |
 |---|---|---|
-| `<button>` raw | `<Button variant="default \| outline \| ghost \| destructive">` | Tamanho `sm \| default \| lg` |
-| `<input type="text">` | `<Input>` | Sempre dentro de `<Label>` |
-| `<select>` | `<Select>` (Radix) | Cuidado: `value=""` quebra Radix — usar sentinel |
-| `<textarea>` | `<Textarea>` | |
-| `<table>` | `<DataTable>` (Components/shared) | Locale pt-BR `language: { url: asset(...) }` |
-| `<dialog>` modal | `<Sheet>` (drawer lateral) | Modal full-screen é proibido (regra dura Cockpit V2) |
-| Card simples | `<Card><CardHeader><CardContent>` | `bg-background shadow-sm` (não `bg-card flat`) |
-| Tabs raw | `<Tabs><TabsList><TabsTrigger>` | `text-xs` em TabsTrigger (canon) |
-| Toast/notification | `<Toaster>` + `toast()` (sonner) | |
-| Dropdown menu | `<DropdownMenu>` (Radix) | |
-| Popover | `<Popover>` | |
-| Tooltip | `<Tooltip>` | |
-| Combobox/autocomplete | `<Command>` (cmdk) | Ver `Sells/_components/CustomerSearchAutocomplete.tsx` |
-| Date picker | `<DatePicker>` ou `<Calendar>` | Cuidado: shift +3h ROTA LIVRE |
-| Avatar/initials | `<Avatar><AvatarImage><AvatarFallback>` | |
-| Badge | `<Badge variant="default \| secondary \| outline \| destructive">` | |
-| Skeleton loading | `<Skeleton>` | |
-| Empty state | `<EmptyState>` (Components/shared) | CTA convite, não só mensagem |
+| **Linear** | list+detail (Issues) | densidade alta, atalhos teclado, tipografia numérica |
+| **Stripe** | dashboards, forms (Checkout) | hierarquia limpa, KPIs grandes, microinterações sutis |
+| **Vercel** | dashboards, deploy logs | dark mode forte, cards `shadow-sm`, espaçamento numérico |
+| **Mercury** | financial (transactions, balance) | warm palette, KPI gigante, densidade ROTA LIVRE-friendly |
+| **Front** | inbox / conversation list | 3-col layout, threading, density labels — direto pra Tasks/Repair-inbox |
+| **Pylon** | B2B support | tickets+SLA+queue — direto pra Repair (chão de fábrica → técnico operativo) |
+| **Attio** | CRM list+detail | enxuto, custom views, filtros sync URL — direto pra Cliente/Index |
+| **Cron** | densidade temporal | calendar/scheduling com hierarquia hora — direto pra Ponto/Marcacoes |
 
-## Layout (Cowork → Cockpit V2)
+**Excluir** `Notion` pra telas Larissa (densidade insuficiente). Notion serve só pra docs/wiki interno.
 
-| Cowork | oimpresso |
-|---|---|
-| Single page sem header | `<AppShellV2>` wrapper (header sticky + sidebar) |
-| Header simples | `<PageHeader>` (Components/shared) — título + breadcrumb + ações |
-| Footer simples | Footer sticky com action bar (`fixed bottom-0`) |
-| Sidebar inventada | Sidebar do `AppShellV2` (DataController por módulo) |
-| Topnav inventada | `topnav.php` declarativo do módulo |
+## Onde NÃO buscar comparável
 
-## Cores (Cowork → tokens semânticos)
-
-| Cowork hex inline | Token semântico oimpresso |
-|---|---|
-| `#3b82f6` (azul primário) | `bg-primary` `text-primary-foreground` |
-| `#fff` (branco) | `bg-background` |
-| `#000` / `#111827` | `text-foreground` |
-| `#6b7280` (cinza médio) | `text-muted-foreground` |
-| `#f9fafb` (cinza fundo) | `bg-muted` ou `bg-muted/30` |
-| `#10b981` (verde sucesso) | `bg-emerald-50 text-emerald-700` |
-| `#f59e0b` (amarelo warn) | `bg-amber-50 text-amber-700` |
-| `#ef4444` (vermelho erro) | `bg-rose-50 text-rose-700` |
-| `#3b82f6` (azul info) | `bg-sky-50 text-sky-700` |
-
-**NÃO traduzir** opacity tricks (`bg-amber-500/10`) — preferimos escala warm semântica.
-
-## Texto (inglês → PT-BR obrigatório)
-
-| Inglês comum no Cowork | PT-BR oimpresso |
-|---|---|
-| "Sales" | "Vendas" |
-| "Customer" / "Client" | "Cliente" |
-| "Product" | "Produto" |
-| "Save" | "Salvar" |
-| "Cancel" | "Cancelar" |
-| "Delete" | "Excluir" |
-| "Search…" | "Buscar…" |
-| "Filter" | "Filtrar" / "Filtros" |
-| "Total" | "Total" (igual) |
-| "Status" | "Situação" ou "Status" (contexto) |
-| "Add new" | "Novo" / "Adicionar" |
-| "Loading…" | "Carregando…" |
-| "No results" | "Nenhum resultado" |
-| "Settings" | "Configurações" / "Ajustes" |
-| "Sign in" | "Entrar" |
-| "Welcome back" | "Bem-vindo de volta" |
-| "Required field" | "Campo obrigatório" |
-| "Invoice" | "Nota fiscal" / "NFe" / "NFC-e" (contexto) |
-| "Payment" | "Pagamento" |
-| "Due date" | "Vencimento" |
-| "Paid" | "Pago" |
-| "Pending" | "Pendente" |
-| "Overdue" | "Atrasado" / "Vencido" |
-| "Draft" | "Rascunho" |
-
-## Domínio negócio (manter PT-BR mesmo se Cowork mudou)
-
-| Termo | Tradução fiel |
-|---|---|
-| "Sale" / "Sell" | "Venda" |
-| "Repair order" | "Ordem de Serviço" / "OS" |
-| "Time tracking" | "Ponto" |
-| "Employee" | "Colaborador" |
-| "Tenant" | "Empresa" / "Negócio" (`business`) |
-| "Tax" | "Tributo" / "ICMS/PIS/COFINS" (contexto) |
-| "Brand" | "Marca" |
-| "Stock" | "Estoque" |
-| "Variation" | "Variação" |
-
-## Routes (hardcoded → Ziggy)
-
-| Cowork | Inertia oimpresso |
-|---|---|
-| `href="/sells"` | `href={route('sells.index')}` |
-| `fetch('/api/sells')` | `router.post(route('sells.store'), data)` |
-| `<Link to="/sells/123">` | `<Link href={route('sells.show', 123)}>` |
-
-## Form handling (mock → Inertia)
-
-| Cowork (mock) | Inertia oimpresso |
-|---|---|
-| `useState({})` + manual handlers | `useForm({})` (Inertia) |
-| `fetch().then()` | `form.post(route('...'), { onSuccess, onError })` |
-| `<input value={x}>` | `<input value={data.x} onChange={e => setData('x', e.target.value)}>` |
-| Validation client-only | Validation server-side em FormRequest, erros via `errors.x` |
-
-## Money + Date (mock → format BR)
-
-| Cowork | Inertia oimpresso |
-|---|---|
-| `$1,000.00` | `R$ 1.000,00` via `Intl.NumberFormat('pt-BR', {style:'currency',currency:'BRL'})` |
-| `01/15/2026` | `15/01/2026` via `format_date()` server-side (preserva shift +3h ROTA LIVRE) |
-| `1234567890` (CPF) | `123.456.789-00` via mask |
-| `12345678000123` (CNPJ) | `12.345.678/0001-23` via mask |
-
-## Atalhos (canon Cockpit V2)
-
-| Atalho | Função |
-|---|---|
-| `J` / `K` | navegar lista (down/up) |
-| `E` | editar item selecionado |
-| `A` | aprovar (master-detail) |
-| `/` | abrir busca |
-| `Esc` | fechar drawer/modal |
-| `⌘+Enter` / `Ctrl+Enter` | submeter form |
-| `?` | abrir cheatsheet |
-
-## Pegadinhas conhecidas
-
-- ❌ **`SelectItem value=""` em Radix** — quebra. Usar sentinel string (`"all"`, `"none"`).
-- ❌ **DataTable sem locale pt-BR** — `language: { url: asset('locale/datatables/pt-BR.json') }`.
-- ❌ **`route()` antes de Ziggy carregar** — ReferenceError silencioso. Sempre import Ziggy ou usar `useRoute()`.
-- ❌ **`format_date()` client-side** — quebra shift +3h. Server-side sempre.
-- ❌ **`session('business.x')`** — Eloquent não responde dot-notation. Usar `session('business_timezone')`.
+- ❌ Bootstrap/Material default — too generic
+- ❌ Tutorial shadcn (rounded-xl+, gradient-pink) — too "demo"
+- ❌ ERPs concorrentes brasileiros (Bling/Tiny) — too crowded, sem hierarquia
+- ❌ Iugu/Asaas/Vindi (financial competitors) — Wagner explicitamente NÃO quer espelhar
+- ❌ Notion — densidade incompatível com Larissa
