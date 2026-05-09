@@ -45,13 +45,13 @@ Route::group(
 
         // ---- Metas CRUD ----------------------------------------------------
         Route::resource('/metas',                          'MetasController', ['names' => [
-            'index'   => 'copiloto.metas.index',
-            'create'  => 'copiloto.metas.create',
-            'store'   => 'copiloto.metas.store',
-            'show'    => 'copiloto.metas.show',
-            'edit'    => 'copiloto.metas.edit',
-            'update'  => 'copiloto.metas.update',
-            'destroy' => 'copiloto.metas.destroy',
+            'index'   => 'jana.metas.index',
+            'create'  => 'jana.metas.create',
+            'store'   => 'jana.metas.store',
+            'show'    => 'jana.metas.show',
+            'edit'    => 'jana.metas.edit',
+            'update'  => 'jana.metas.update',
+            'destroy' => 'jana.metas.destroy',
         ]]);
         Route::post('/metas/{id}/reapurar',                'MetasController@reapurar')->name('jana.metas.reapurar');
 
