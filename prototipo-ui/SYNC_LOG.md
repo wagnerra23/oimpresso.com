@@ -26,3 +26,7 @@
 | Wagner mergeia PR | [W2] | `[W2] merged PR #NNN <tela>` |
 | Override registrado | [W] | `[W] /design-override <tela> reason="..."` |
 | Loop quebrado (>7d em fase) | [CL] | `[CL] ALERT design_loop_stuck <tela> stuck_in=F3 days=N` |
+2026-05-09 16:30 [CL] gerou RUNBOOK-manifestacao.md (cockpit-runbook skill, 12 seções)
+2026-05-09 16:35 [CL] gerou manifestacao-visual-comparison.md (mwart-comparative V4, 15 dimensões)
+2026-05-09 16:40 [W]  approved manifestacao-visual-comparison (greenfield via canon Cockpit, sem screenshot externo)
+2026-05-09 16:50 [CL] criou Pages/NfeBrasil/Manifestacao/Index.tsx + 3 LinkedApps + ManifestacaoController US-NFE-052
