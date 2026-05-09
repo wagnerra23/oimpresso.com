@@ -24,7 +24,7 @@ use Modules\Whatsapp\Services\Drivers\DriverFactory;
  * **Multi-tenant Tier 0 (ADR 0093):**
  * `$businessId` no constructor — NUNCA usar `session()` em job (fila não tem session).
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * `$whatsappBusinessPhoneId` no constructor — identifica qual número Whatsapp
  * do business envia a mensagem (Comercial, Financeiro, etc). Job resolve
  * `WhatsappBusinessPhone::where('business_id', $bizId)->where('id', $phoneId)
@@ -42,7 +42,7 @@ use Modules\Whatsapp\Services\Drivers\DriverFactory;
  *
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-003, US-WA-040
  * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3.1, §4
- * @see memory/decisions/0115-multiplos-numeros-whatsapp-por-business.md
+ * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
  */
 class SendWhatsappMessageJob implements ShouldQueue
 {

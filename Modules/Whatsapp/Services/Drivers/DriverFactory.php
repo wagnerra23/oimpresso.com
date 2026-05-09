@@ -10,7 +10,7 @@ use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 /**
  * DriverFactory — resolve driver por business com fallback runtime.
  *
- * Decisão mãe: ADR 0096 + ADR 0115 (multi-números).
+ * Decisão mãe: ADR 0096 + ADR 0117 (multi-números).
  *
  * Aceita `WhatsappBusinessConfig` (legacy 1:1) ou `WhatsappBusinessPhone`
  * (1:N business→números). Os 2 models implementam o mesmo contrato implícito
@@ -26,7 +26,7 @@ use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
  * profundidade contra entrada malformada que passou pelo FormRequest).
  *
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002, US-WA-040
- * @see memory/decisions/0115-multiplos-numeros-whatsapp-por-business.md
+ * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
  */
 class DriverFactory
 {

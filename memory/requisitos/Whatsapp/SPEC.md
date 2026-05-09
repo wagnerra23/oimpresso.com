@@ -484,7 +484,7 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 ### US-WA-040 · Múltiplos números por business — driver + escopo de atendimento per-phone (Sprint 4)
 
 > **Área:** Settings + Core + Inbox
-> **Decisão arquitetural mãe:** [ADR 0115](../../decisions/0115-multiplos-numeros-whatsapp-por-business.md)
+> **Decisão arquitetural mãe:** [ADR 0117](../../decisions/0117-multiplos-numeros-whatsapp-por-business.md)
 > **Charter mãe:** [`Settings.charter.md`](../../../resources/js/Pages/Whatsapp/Settings.charter.md) — vai pra `charter_version: 2` (Non-Goal "1 número/business" removido)
 > **Cliente sinal qualificado:** WR2 Sistemas (`business_id=1`) — Comercial + Financeiro com escopos separados
 > **Status:** proposto 2026-05-09; aguardando aprovação Wagner
@@ -538,7 +538,7 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 
 **Pré-requisitos / blockers:**
 
-- ADR 0115 aprovada por Wagner (status `aceito`, `accepted_at` preenchido)
+- ADR 0117 aprovada por Wagner (status `aceito`, `accepted_at` preenchido)
 - Charter `Settings.charter.md` v2 aprovado (Non-Goal removido — Wagner aprova explicitamente Non-Goals + Anti-hooks per skill `charter-write`)
 
 **Out of scope (vai em US separadas se acontecer):**

@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
 
 /**
  * US-WA-004 + US-WA-040 · NotifyRepairCustomer — Listener Repair → WhatsApp
- * com roteamento por phone (ADR 0115).
+ * com roteamento por phone (ADR 0117).
  *
  * Cobre:
  * (a) phone com handles_repair_status=true + cliente + template → Job dispatched
