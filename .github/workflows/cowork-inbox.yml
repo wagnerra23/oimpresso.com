@@ -18,7 +18,7 @@ jobs:
   process:
     runs-on: ubuntu-latest
     # Loop guard: skip the commit this very workflow produces.
-    if: ${{ !contains(github.event.head_commit.message, 'chore(cowork): inbox processed') }}
+    if: "${{ !contains(github.event.head_commit.message, 'chore(cowork): inbox processed') }}"
     steps:
       - uses: actions/checkout@v4
         with:
