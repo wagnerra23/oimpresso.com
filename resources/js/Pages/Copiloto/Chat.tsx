@@ -128,7 +128,7 @@ function adaptarMensagem(m: MensagemBackend): CockpitMensagem {
     hora,
     dia,
     whoAvatar: COPILOTO_AVATAR,
-    whoNome: 'Copiloto',
+    whoNome: 'Jana',
   };
 }
 
@@ -240,7 +240,7 @@ export default function Chat({
 
   return (
     <AppShellV2
-      title="Copiloto · Chat"
+      title="Jana · Chat"
       business={{ nome: businessNome, opcoes: businesses }}
       user={{
         nome: usuarioNome,
@@ -254,7 +254,7 @@ export default function Chat({
       activeConvId={String(conversa.id)}
       onSelectConv={selectConv}
     >
-      <Head title="Copiloto · Chat" />
+      <Head title="Jana · Chat" />
 
       {/* Master/detail interno — UI-0011 (sidebar single-pane) migrou conv
           switcher pra dentro da própria Page. 320px lista + 1fr thread. */}
