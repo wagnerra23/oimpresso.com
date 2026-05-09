@@ -1,6 +1,6 @@
 ---
 name: Estado do projeto Jana em 2026-04-27 (consolidação pra retomar amanhã)
-description: Sumário consolidado das sessões 14-19 do Jana. 5 PRs mergeados, 11 ADRs canônicos, 6 comparativos Capterra. Tier 5-6 LongMemEval estimado. Pendente validar Larissa.
+description: Sumário consolidado das sessões 14-19 da Jana. 5 PRs mergeados, 11 ADRs canônicos, 6 comparativos Capterra. Tier 5-6 LongMemEval estimado. Pendente validar Larissa.
 type: project
 originSessionId: dazzling-lichterman-e59b61
 ---
@@ -79,7 +79,7 @@ Estado em 2026-04-27 fim de noite (sessão 19 da thread `dazzling-lichterman-e59
 
 ## Como aplicar
 
-- Quando Wagner perguntar "estado do Jana" → este arquivo
+- Quando Wagner perguntar "estado da Jana" → este arquivo
 - Quando ele perguntar "o que falta" → seção "Pendente pra retomar"
 - Quando ele perguntar "quais decisões já estão tomadas" → 11 ADRs canônicos
 - Sempre verificar `git log origin/6.7-bootstrap -10` antes de afirmar deploy aconteceu (Hostinger pode ter dropado)

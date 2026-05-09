@@ -67,7 +67,7 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 | 0008 | S | 0039 | Substituída por padrão AppShellV2 + SIDEBAR_GROUPS |
 | 0009 | D | — | Protótipos HTML+Tailwind+Chart.js — não usado mais |
 | 0010 | S | 0027, 0053 | Sistema de memória v1 — substituído |
-| 0011 | A | — | Padrão Jana — referência canônica |
+| 0011 | A | — | Padrãa Jana — referência canônica |
 
 ### Bloco 2 — Inventário e Officeimpresso (0013–0022)
 

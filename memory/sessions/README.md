@@ -46,7 +46,7 @@ Deixar claro para quem vier depois.
 ## Sessões
 
 - [2026-04-18 — Sessão 01](./2026-04-18-session-01.md) — scaffolding inicial
-- [2026-04-18 — Sessão 02](./2026-04-18-session-02.md) — crash em produção + refactor para padrão Jana
+- [2026-04-18 — Sessão 02](./2026-04-18-session-02.md) — crash em produção + refactor para padrãa Jana
 
 ---
 

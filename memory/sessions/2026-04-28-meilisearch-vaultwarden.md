@@ -208,7 +208,7 @@ SPRINT 11 → trigger condicional (Mem0/Zep):
 
 ---
 
-## Validação Jana IA real em produção (2026-04-28 17:30)
+## Validaçãa Jana IA real em produção (2026-04-28 17:30)
 
 Wagner testou /copiloto/chat e levou 2 bugs:
 - "Estou sem conexão com IA no momento" mesmo com key válida

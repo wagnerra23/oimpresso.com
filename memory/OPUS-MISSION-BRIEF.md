@@ -486,7 +486,7 @@ Conte com `ls memory/decisions/*.md | wc -l` no commit-base do Sprint 6
 |---|---|---|---|---|
 | 0001 | Estender UltimatePOS | 18m | 12 | KEEP CANON |
 | 0007 | Banco horas ledger | 6m | 0 | ARCHIVE |
-| 0011 | Alinhamento padrão Jana | 12m | 3 | KEEP CANON |
+| 0011 | Alinhamento padrãa Jana | 12m | 3 | KEEP CANON |
 | ... | | | | |
 
 Decisões: **KEEP CANON · MERGE INTO X · ARCHIVE · DELETE**.

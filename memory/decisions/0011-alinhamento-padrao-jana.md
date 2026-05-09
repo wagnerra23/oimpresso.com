@@ -20,7 +20,7 @@ related:
   - '0002'
 pii: false
 ---
-# ADR 0011 — Alinhamento com o padrão Jana (UltimatePOS)
+# ADR 0011 — Alinhamento com o padrãa Jana (UltimatePOS)
 
 **Status:** ✅ Aceita
 **Data:** 2026-04-18 (sessão 02)
@@ -53,7 +53,7 @@ Abrindo o módulo vizinho **Jana** (`Modules/Jana/`), em produção e funcionand
 
 ## Decisão
 
-**Adotar o padrão Jana como referência canônica** para o `Modules/PontoWr2/`. Especificamente:
+**Adotar o padrãa Jana como referência canônica** para o `Modules/PontoWr2/`. Especificamente:
 
 1. Remover `Providers/RouteServiceProvider.php` (arquivo neutralizado, aguardando remoção física)
 2. Remover pasta `Routes/` (removida)
@@ -71,7 +71,7 @@ Abrindo o módulo vizinho **Jana** (`Modules/Jana/`), em produção e funcionand
 ### Positivas
 
 - Módulo para de quebrar o boot do Laravel
-- Desenvolvedores que já conhecem o Jana/Essentials/Connector/Superadmin entendem a nossa estrutura instantaneamente
+- Desenvolvedores que já conhecem a Jana/Essentials/Connector/Superadmin entendem a nossa estrutura instantaneamente
 - Menos código (1 ServiceProvider em vez de 2, sem abstrações `module_path` complexas)
 - Middleware stack igual ao resto do sistema significa que o UltimatePOS aplica os mesmos tratamentos (sessão, sidebar, timezone, check de login)
 
@@ -93,7 +93,7 @@ Abrindo o módulo vizinho **Jana** (`Modules/Jana/`), em produção e funcionand
 
 ## Atualização — 2026-04-18 (pós-sessão 02)
 
-Eliana adicionou mais dois módulos UltimatePOS ao repositório para triangulação do padrão: `Modules/Repair/` e `Modules/Project/`. Comparação confirmou que o padrão Jana está correto:
+Eliana adicionou mais dois módulos UltimatePOS ao repositório para triangulação do padrão: `Modules/Repair/` e `Modules/Project/`. Comparação confirmou que o padrãa Jana está correto:
 
 - `module.json`, `start.php`, estilo de `Route::group` — idênticos aos 3 módulos
 - `Http/routes.php` com `/install`, `/install/uninstall`, `/install/update` apontando para `InstallController` — **padrão em todos os 3**, confirma que criar o InstallController do PontoWr2 foi correto
@@ -105,4 +105,4 @@ Eliana adicionou mais dois módulos UltimatePOS ao repositório para triangulaç
 - **Variação observada** em ServiceProvider — Repair e Project têm provider enxuto (sem array `$middleware` nem `registerMiddleware`) porque não registram middleware próprio. Jana e PontoWr2 têm o padrão completo com aliasing, porque têm middleware customizado. **Ambas as variantes são corretas — use conforme necessidade real do módulo.**
 - **Pastas extras permitidas:** Repair e Project têm `Notifications/` e `Utils/`; Jana tem `Transformers/`. Cada módulo pode ter diretórios próprios além do core.
 
-**Conclusão:** padrão Jana confirmado. Com 3 módulos UltimatePOS como referência viva, futuras sessões podem usar qualquer um como gabarito (preferir o mais próximo em complexidade ao que estiver sendo construído).
+**Conclusão:** padrãa Jana confirmado. Com 3 módulos UltimatePOS como referência viva, futuras sessões podem usar qualquer um como gabarito (preferir o mais próximo em complexidade ao que estiver sendo construído).

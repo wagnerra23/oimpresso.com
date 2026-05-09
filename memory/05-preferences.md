@@ -81,7 +81,7 @@ Capturado ao longo das conversas com a Eliana (WR2 Sistemas). Estas preferência
 7. **Multi-tenancy lógica via `business_id`** (não physical por ora)
 8. **Sidebar 1-item + tabs horizontais** para navegação interna
 9. **Blade/AdminLTE** em produção, **HTML/Tailwind/Chart.js** em protótipos
-10. **Padrão Jana** — `start.php` + `Http/routes.php` + 1 ServiceProvider (ADR 0011)
+10. **Padrãa Jana** — `start.php` + `Http/routes.php` + 1 ServiceProvider (ADR 0011)
 11. **API com `auth:api` (Passport)**, não Sanctum — padrão UltimatePOS
 12. **Lang folder com código curto** (`pt/`, não `pt-BR/`)
 
