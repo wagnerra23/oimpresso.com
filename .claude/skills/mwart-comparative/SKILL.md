@@ -1,16 +1,20 @@
 ---
 name: mwart-comparative
-description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier A always-on V3 que ORQUESTRA o Claude Design plugin Anthropic (design:design-critique + design:design-handoff + design:design-system + design:ux-copy + design:accessibility-review + design:research-synthesis) pra produzir resultado estado-da-arte. Gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` com 15 dimensões + framework Anthropic completo. Skill PARA após gerar draft e aguarda Wagner aprovar SCREENSHOT (não tabela) ~10min síncrono ANTES de qualquer Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx`. Restaura o loop "design supervisionado" da era Repair S2.5 com qualidade estado-da-arte. Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
+description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier A always-on V4 que ORQUESTRA o Claude Design plugin Anthropic (design:design-critique + design:design-handoff + design:design-system + design:ux-copy + design:accessibility-review + design:research-synthesis) **e** o loop Cowork ↔ Claude Code formalizado em `prototipo-ui/` (ADR 0114). Gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` com 15 dimensões + framework Anthropic completo + sincroniza com `prototipo-ui/SYNC_LOG.md`. Skill PARA após gerar draft e aguarda Wagner aprovar SCREENSHOT (não tabela) ~10min síncrono ANTES de qualquer Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx`. Restaura o loop "design supervisionado" da era Repair S2.5 com qualidade estado-da-arte. Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
 tier: A
 status: active
-version: 3.0
+version: 4.0
 authority: canonical
-parent_adr: 0109
+parent_adr: 0114
+related_adrs: [0107, 0109, 0114]
 ---
 
-# Skill: mwart-comparative V3 — Loop design supervisionado estado-da-arte (Tier A always-on)
+# Skill: mwart-comparative V4 — Loop design supervisionado + Cowork integrado (Tier A always-on)
 
-> **Documentos mãe:** [ADR 0107](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) (gate F1.5) + [ADR 0109](../../memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md) (orquestração Claude Design plugin Anthropic).
+> **Documentos mãe:**
+> - [ADR 0114](../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) (loop Cowork ↔ Claude Code formalizado) — **mãe direta**
+> - [ADR 0109](../../memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md) (orquestração Claude Design plugin Anthropic) — emendada por 0114
+> - [ADR 0107](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) (gate F1.5)
 > **Skills irmãs (oimpresso):** [`mwart-process`](../mwart-process/SKILL.md) (Tier A canon), [`cockpit-runbook`](../cockpit-runbook/SKILL.md) (F1+audit), [`mwart-quality`](../mwart-quality/SKILL.md) (F2+F3 técnico).
 > **Sub-skills Anthropic orquestradas (Claude Design plugin):**
 >   - `design:design-critique` ⭐ — crítica estruturada 5 categorias + comparação benchmarks
@@ -40,13 +44,20 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 
 **Regra de ouro:** F1 (RUNBOOK) → F1.5 (visual-comparison) → F2 (BACKEND BASELINE) → F3 (FRONTEND). NÃO pular F1.5.
 
-## Workflow V3 obrigatório (orquestra Claude Design plugin)
+## Workflow V4 obrigatório (orquestra Claude Design plugin + loop `prototipo-ui/`)
 
 ```
+═══ F0 SINCRONIZAR LOOP ═════════════════════════════════════════════════
+0. Ler prototipo-ui/HANDOFF.md → identificar tela em qual fase
+   - Se já há protótipo Cowork em prototipos/<tela>/page.tsx, consumir como
+     fonte de verdade visual no passo 5
+   - Se não há protótipo, este é fluxo MWART direto (sem Cowork)
+
 ═══ F1.5 PRE-IMPL ═══════════════════════════════════════════════════════
 1. Receber: tela alvo + módulo + URL Blade legacy
 2. EXIGIR REFERÊNCIA VISUAL APROVADA:
    - Wagner cola screenshot/URL de tela que considera "estado da arte"
+   - OU: prototipos/<tela>/page.tsx do Cowork (já é referência aprovada)
    - SE referência ausente: PARAR e pedir antes de prosseguir
 
 3. Read paralelo (1 round):
@@ -91,6 +102,11 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 
 12. PARAR. Apresentar visual-comparison COMPLETO ao Wagner em chat
     (incluindo screenshots).
+
+12.5. Se há protótipo Cowork em prototipos/<tela>/, gravar critique score
+      em prototipos/<tela>/critique-score.json com formato:
+      { "score": NN, "first_impression": "...", "strengths": [...],
+        "weaknesses_priority": [...], "benchmark_comparable": "..." }
 
 13. Aguardar Wagner aprovar SCREENSHOT (~10-15min síncrono).
     Wagner pode pedir 2ª iteração — repetir passos 6-12.
@@ -137,6 +153,15 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 
 24. Próximas PRs que mexerem nesta tela: gate visual diff + design-critique
     automático em mudanças >threshold.
+
+═══ F5 SYNC LOOP ════════════════════════════════════════════════════════
+25. Append em prototipo-ui/SYNC_LOG.md uma linha registrando o evento:
+    `YYYY-MM-DD HH:MM [CL] PR #NNN merged <tela> score=NN`
+    (Necessário pra métrica `design_loop_stuck` em jana:health-check.)
+
+26. Atualizar prototipo-ui/HANDOFF.md (sobrescrever):
+    - Remover tela da seção "Em voo agora"
+    - Mover próxima tela da TELAS_REVIEW_QUEUE.md pra "Em voo agora"
 ```
 
 ## 15 dimensões obrigatórias do `<tela>-visual-comparison.md`
@@ -218,8 +243,13 @@ Sem `/mwart-override`, gates não cedem. Iniciante (`[L]`), esposa (`[E]`), Maí
 
 ## Refs
 
-- [ADR 0107 — Emendation 0104 visual gate F3](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — documento mãe
+- [ADR 0114 — Loop Cowork ↔ Claude Code formalizado](../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — **mãe direta** (V4)
+- [ADR 0109 — Claude Design plugin integrado](../../memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md) — emendada por 0114
+- [ADR 0107 — Emendation 0104 visual gate F3](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — documento mãe original
 - [ADR 0104 — Processo MWART canônico](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — emendado
+- [prototipo-ui/PROTOCOL.md](../../prototipo-ui/PROTOCOL.md) — protocolo formal do loop (V4)
+- [prototipo-ui/HANDOFF.md](../../prototipo-ui/HANDOFF.md) — estado vivo (Passo 0 lê este)
+- [prototipo-ui/SYNC_LOG.md](../../prototipo-ui/SYNC_LOG.md) — timeline (Passo 25 escreve aqui)
 - [TEMPLATE.md](TEMPLATE.md) — template completo `<tela>-visual-comparison.md`
 - [Canon `os-page.jsx`](../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/os-page.jsx) — referência list+detail
 - [Skill `cockpit-runbook`](../cockpit-runbook/SKILL.md) — F1 RUNBOOK + F3 audit
@@ -228,4 +258,4 @@ Sem `/mwart-override`, gates não cedem. Iniciante (`[L]`), esposa (`[E]`), Maí
 
 ---
 
-**Última atualização:** 2026-05-08
+**Última atualização:** 2026-05-09 — V3 → V4 (ADR 0114 loop Cowork formalizado)
