@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Whatsapp\Http\Controllers\Api\BaileysWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\MetaWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\ZapiWebhookController;
 
@@ -36,8 +37,8 @@ Route::group(['prefix' => 'whatsapp/webhook'], function () {
         ->middleware('whatsapp.zapi.signature')
         ->name('whatsapp.webhook.zapi.handle');
 
-    // Sprint 3: + Baileys daemon Node próprio
-    // Route::post('/baileys/{business_uuid}', [BaileysWebhookController::class, 'handle'])
-    //     ->middleware('whatsapp.baileys.signature')
-    //     ->name('whatsapp.webhook.baileys.handle');
+    // Baileys daemon Node próprio (Sprint 3 — ADR 0096 emenda 4)
+    Route::post('/baileys/{business_uuid}', [BaileysWebhookController::class, 'handle'])
+        ->middleware('whatsapp.baileys.signature')
+        ->name('whatsapp.webhook.baileys.handle');
 });
