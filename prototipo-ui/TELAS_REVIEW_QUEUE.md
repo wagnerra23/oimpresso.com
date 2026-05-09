@@ -28,6 +28,11 @@
 | `[ ]` | [`Repair/Status`](../resources/js/Pages/Repair/Status/Index.tsx) | Técnico mobile, transição clara | [existe](../resources/js/Pages/Repair/Status/Index.charter.md) |
 | `[ ]` | [`Financeiro/ContasBancarias`](../resources/js/Pages/Financeiro/ContasBancarias/Index.tsx) | Eliana — número grande saldo Mercury-like | [existe](../resources/js/Pages/Financeiro/ContasBancarias/Index.charter.md) |
 | `[ ]` | [`Financeiro/Extrato`](../resources/js/Pages/Financeiro/Extrato/Index.tsx) | Eliana — entrada/saída sem depender só de cor | [existe](../resources/js/Pages/Financeiro/Extrato/Index.charter.md) |
+| `[~]` | `Financeiro/Fluxo` (não criada) | Eliana — projeção 35d, chart, eventos lado-a-lado | F1 pino [aqui](prototipos/financeiro-fluxo/) — **sugestão 1ª a atacar** (sem tabela nova) |
+| `[!]` | `Financeiro/PlanoContas` (não criada) | Eliana — árvore 2 níveis | F1 pino [aqui](prototipos/financeiro-plano-contas/) — bloqueada por ADR `arq/0008` + migration `chart_of_accounts` |
+| `[!]` | `Financeiro/DRE` (não criada) | Wagner — DRE hierárquico vs anterior | F1 pino [aqui](prototipos/financeiro-dre/) — bloqueada por PlanoContas + ADR `arq/0007` |
+| `[!]` | `Financeiro/Conciliacao` (não criada) | Eliana — extrato OFX × sistema, fuzzy match | F1 pino [aqui](prototipos/financeiro-conciliacao/) — bloqueada por ADR `arq/0006` + tabela `bank_statement_lines` |
+| `[x]` | [`Financeiro/Unificado`](../resources/js/Pages/Financeiro/Unificado/Index.tsx) (em prod) | Eliana — densidade + drawer + ⌘K | tela já em prod com fixes #355/#358 — pino [aqui](prototipos/financeiro-unificado/) é referência visual histórica, **não sobrescrever** |
 | `[ ]` | [`ProjectMgmt/Board`](../resources/js/Pages/ProjectMgmt/Board/Index.tsx) | Wagner+Time — Kanban Linear-like | [existe](../resources/js/Pages/ProjectMgmt/Board/Index.charter.md) |
 | `[ ]` | [`governance/Dashboard`](../resources/js/Pages/governance/Dashboard.charter.md) | Wagner — KPIs saúde sem virar Christmas tree | [existe](../resources/js/Pages/governance/Dashboard.charter.md) |
 
