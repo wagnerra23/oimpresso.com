@@ -120,7 +120,7 @@ class QualidadeController extends Controller
             ->distinct()
             ->pluck('module');
 
-        return Inertia::render('Copiloto/Admin/Qualidade/Index', [
+        return Inertia::render('Jana/Admin/Qualidade/Index', [
             'series'         => array_values($series),
             'kpis'           => array_values($kpis),
             'gates'          => $gates,

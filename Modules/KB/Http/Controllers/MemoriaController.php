@@ -31,7 +31,7 @@ class MemoriaController extends Controller
 
         $memorias = $this->memoria->listar($businessId, $userId);
 
-        return Inertia::render('Copiloto/Memoria', [
+        return Inertia::render('Jana/Memoria', [
             'memorias' => collect($memorias)->map(fn ($m) => $m->toArray())->values()->all(),
             'businessId' => $businessId,
             'userId' => $userId,

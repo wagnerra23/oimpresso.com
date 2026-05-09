@@ -14,7 +14,7 @@ import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Brain, Trash2, Pencil, Save, X } from 'lucide-react'
-import FabCopiloto from './components/FabCopiloto'
+import FabJana from './components/FabJana'
 
 interface MemoriaFato {
   id: number
@@ -189,7 +189,7 @@ function Memoria({ memorias }: Props) {
           </>
         )}
 
-        <FabCopiloto />
+        <FabJana />
       </div>
     </>
   )
