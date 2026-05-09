@@ -39,6 +39,7 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
 
         // Visão Unificada — Cockpit V2 (US-FIN-013/020) — protótipo Cowork 2026-05-09
         Route::get('/unificado', [UnificadoController::class, 'index'])->name('unificado.index');
+        Route::get('/unificado/novo', [UnificadoController::class, 'novo'])->name('unificado.novo');
         Route::post('/unificado/{id}/baixar', [UnificadoController::class, 'baixar'])
             ->whereNumber('id')
             ->name('unificado.baixar');
