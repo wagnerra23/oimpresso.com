@@ -481,7 +481,74 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 - **Webhook uptime**: ≥ 99.9% (alarme se zero eventos em 24h pra business ativo)
 - **Multi-tenant violations**: 0 (teste `MultiTenantIsolationTest` no CI bloqueia merge)
 
-## 7. Backlog futuro (não-Sprint 1-3)
+### US-WA-040 · Múltiplos números por business — driver + escopo de atendimento per-phone (Sprint 4)
+
+> **Área:** Settings + Core + Inbox
+> **Decisão arquitetural mãe:** [ADR 0115](../../decisions/0115-multiplos-numeros-whatsapp-por-business.md)
+> **Charter mãe:** [`Settings.charter.md`](../../../resources/js/Pages/Whatsapp/Settings.charter.md) — vai pra `charter_version: 2` (Non-Goal "1 número/business" removido)
+> **Cliente sinal qualificado:** WR2 Sistemas (`business_id=1`) — Comercial + Financeiro com escopos separados
+> **Status:** proposto 2026-05-09; aguardando aprovação Wagner
+
+**Como** admin business (Wagner em WR2)
+**Quero** cadastrar N números Whatsapp no mesmo business, cada um com driver + LGPD + atendentes + roteamento de eventos automáticos próprios
+**Para** separar atendimento Comercial (vendas/leads) do Financeiro (cobrança/recibo) sem cross-talk de Inbox
+
+**DoD (PR 1 — schema + models):**
+
+- [ ] Migration cria `whatsapp_business_phones` (1 row por número) com colunas: `business_id`, `phone_uuid`, `label` (texto livre VARCHAR(80)), `driver`, `fallback_driver`, `display_phone`, `meta_*`, `zapi_*`, `baileys_*` (todas credenciais migradas de `whatsapp_business_configs`), `lgpd_acknowledged_at` + `_by_user_id`, `handles_repair_status`, `handles_billing`, `handles_jana_bot`, `handles_outbound_default`, `template_*`, `driver_health` + helpers
+- [ ] `UNIQUE (business_id, baileys_phone_e164)` mantido (anti-duplicate por número Baileys)
+- [ ] Migration cria `whatsapp_phone_user_access` — ACL atendente↔número (Q1 + Q5)
+- [ ] Migration adiciona `whatsapp_business_phone_id` em `whatsapp_conversations` + `whatsapp_messages` (FK + index)
+- [ ] Migration de dados: cada row em `whatsapp_business_configs` vira 1 row em `whatsapp_business_phones` com `label='Comercial'` + `handles_outbound_default=true`. Conversations/messages existentes apontam pro novo phone_id (Q6)
+- [ ] Tabela `whatsapp_business_configs` marcada `@deprecated` em docblock; **drop só em PR 5** depois de canary 30d
+- [ ] Models: `WhatsappBusinessPhone` (com `HasBusinessScope` trait — Tier 0), `WhatsappPhoneUserAccess`
+- [ ] Pest: `MultiTenantIsolationTest` adaptado — phone de biz=4 não aparece em query de biz=7
+- [ ] Pest: `MigrationDataTest` — fixture com 3 businesses (cada com 1 config legacy + N conversations) → após `php artisan migrate`, todas conversations apontam pro novo phone com `label='Comercial'`
+
+**DoD (PR 2 — driver factory + send job + listeners):**
+
+- [ ] `DriverFactory::make(WhatsappBusinessPhone $phone)` (era `make(WhatsappBusinessConfig $config)`) — resolve driver via `$phone->driver` + health check
+- [ ] `SendWhatsappMessageJob` constructor ganha `int $whatsappBusinessPhoneId` obrigatório (depois de `$businessId`); resolve `WhatsappBusinessPhone::where('business_id', $businessId)->where('id', $phoneId)->firstOrFail()` — defensive multi-tenant
+- [ ] `NotifyRepairCustomer` (US-WA-004) resolve phone via `where('handles_repair_status', true)` com fallback `handles_outbound_default`. Falha silenciosa + log info se 0 phones; warning estruturado se >1
+- [ ] Listener Billing idem (`handles_billing`)
+- [ ] `DispatchToJanaBot` (US-WA-020) idem (`handles_jana_bot`)
+- [ ] Pest: `EventRoutingTest` cobrindo (a) `handles_repair_status=true` em phone único = job dispara nele, (b) flag false em todos = log + no-op, (c) flag true em 2 = primeiro id ASC + warning, (d) só `handles_outbound_default` = fallback
+- [ ] Pest: `SendWhatsappMessageJobTest` adaptado — assertion que `$job->phoneId` corresponde ao `business_id` correto (Tier 0)
+
+**DoD (PR 3 — Settings UI v2 + Charter v2):**
+
+- [ ] `Charter v2` — Non-Goal "Múltiplas instances Baileys por business — 1 número = 1 sessão" REMOVIDO. Mission atualizada: "conectar N números, 1 driver per número, escopo de atendimento próprio"
+- [ ] `resources/js/Pages/Whatsapp/Settings/Index.tsx` (NOVO) — lista de números cadastrados com coluna Label + Driver + Status + Atendentes count + Eventos (badges Repair/Billing/Jana). Botão `+ Adicionar número`
+- [ ] `resources/js/Pages/Whatsapp/Settings/Edit.tsx` (NOVO) — form per-phone: input label texto livre + radio driver (Z-API/Meta Cloud/Baileys) + credenciais (mesmo wizard atual) + checkboxes `handles_*` + multi-select atendentes (Spatie users com `whatsapp.send` permission filtrados por business)
+- [ ] Estado reativo Centrifugo per-phone: channel `whatsapp:business:{biz}:phone:{phone_uuid}` (granular)
+- [ ] Sub-componente `<EventRoutingSection>` com warning UI inline: "⚠️ Repair também está marcado em Financeiro — só este número vai disparar (id menor)"
+- [ ] Permissão Spatie nova: `whatsapp.phones.manage` (cadastra/edita/desativa números) — separada de `whatsapp.send` (atendente que só envia mensagens)
+- [ ] `WhatsappSettingsCharterTest` invariantes adicionadas: `it_lists_only_phones_of_current_business()`, `it_persists_handles_flags()`, `it_warns_on_overlap_repair_routing()`, `it_acl_filters_attendant_dropdown()`
+- [ ] `mwart-comparative` visual artifact gerado em `memory/requisitos/Whatsapp/Settings-Index-visual-comparison.md` + `Settings-Edit-visual-comparison.md` (skill Tier A)
+
+**DoD (PR 4 — Inbox UI ACL + filtro):**
+
+- [ ] `ConversationsController@index` aplica filtro automático: `whereIn('whatsapp_business_phone_id', $userAccessPhoneIds)` exceto se user tem Gate `whatsapp.view-all-phones` (default só `Admin#{biz}`)
+- [ ] `Conversations/Index.tsx` ganha tab/dropdown "Número: [Comercial ▾]" (filtro UI explícito) — só mostra opções dos números que o user tem acesso
+- [ ] Cada `<ConversationCard>` mostra badge pequeno do label do número (canto superior direito) — ajuda contexto se atendente tem acesso a múltiplos
+- [ ] Real-time Centrifugo: subscribe filtrado por `phone_uuid` (não recebe push de número que não tem acesso)
+- [ ] Empty state quando user sem `whatsapp_phone_user_access`: "Você não tem acesso a nenhum número Whatsapp neste business. Peça pro admin." + link `/whatsapp/settings`
+- [ ] Pest `InboxAclTest`: (a) atendente com acesso só Comercial não vê msg do Financeiro, (b) admin vê todos, (c) atendente sem acesso vê empty state, (d) tentar GET conversation_id de outro phone retorna 404 (defensive)
+- [ ] Browser MCP smoke test obrigatório (`mwart-process` F4)
+
+**Pré-requisitos / blockers:**
+
+- ADR 0115 aprovada por Wagner (status `aceito`, `accepted_at` preenchido)
+- Charter `Settings.charter.md` v2 aprovado (Non-Goal removido — Wagner aprova explicitamente Non-Goals + Anti-hooks per skill `charter-write`)
+
+**Out of scope (vai em US separadas se acontecer):**
+
+- US-WA-041 — "Mover conversa pra outro número" (admin reclassifica conversa antiga)
+- US-WA-042 — Importar números em massa via CSV (50+ businesses migrando manualmente é ruim)
+- US-WA-043 — Compartilhar número entre businesses (NÃO permitir; abrir nova ADR se algum cliente pedir)
+- US-WA-044 — Spatie permissions parametrizadas per-phone (alternativa Q5-i, ainda rejeitada — reabrir só se Spatie ganhar suporte nativo a scope dinâmico)
+
+## 8. Backlog futuro (não-Sprint 1-4)
 
 - US-WA-030 — Botões interativos (`button` template) — HSM com CTAs
 - US-WA-031 — List messages (cardápio gráfica: orçar, acompanhar OS, segunda via)
