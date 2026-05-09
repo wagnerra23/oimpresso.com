@@ -504,3 +504,121 @@ Wagner regra 2026-05-07: MCP roda APENAS no CT 100 (Hostinger lento + crasheia).
 
 **Refs:** [auto-mem feedback_mcp_so_ct100](memory), ADR 0053, ADR 0062.
 
+### US-COPI-095 · Sprint 9d — Schedule semanal eval:ragas-baseline + alerta drift
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: todo
+> blocked_by: —
+
+Hoje `eval:ragas-baseline` só roda manual. Agendar semanal + alertar se score cair >10% vs janela anterior.
+
+**Steps:**
+1. Adicionar `$schedule->command('eval:ragas-baseline --pipeline=adr')->weekly()->mondays()->at('07:00')` em `app/Console/Kernel.php`.
+2. Persistir resumo (avg_faithfulness, avg_relevancy, avg_ctx_precision) em `copiloto_memoria_metricas` (`tipo='ragas_weekly'`) ou nova tabela `rag_eval_runs`.
+3. Comparar com run anterior; se queda > 10% → log ALERT + email Wagner via canal do `jana:health-check`.
+4. README curto em `tests/eval/README.md` documentando cadência.
+
+**Acceptance:**
+- Run automática toda segunda 07:00 BRT.
+- Histórico persistido (≥4 semanas).
+- Drift > 10% emite alerta visível em log + email.
+- Custo previsto ≤ US$3/mês (~5 runs Sonnet).
+
+**Sinal (ADR 0105):** baseline 2026-05-04 = 0.248; sem schedule não detectamos regressão entre Sprints 9b/9c → métrica detecta drift.
+
+**Refs:** ADR 0037, ADR 0050, ADR 0105.
+
+### US-COPI-096 · GUARD-03 — CI workflow reprovando PR com Recall@3 < 0.80
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 4h · status: todo
+> blocked_by: —
+
+Não há gate automatizado bloqueando PR que degrade retrieval. ADR 0050 fixa Recall@3 ≥ 0.80, Precision@3 ≥ 0.60, MRR ≥ 0.70 mas só validamos manual.
+
+**Steps:**
+1. Criar `.github/workflows/rag-gate.yml` rodando em PRs que tocam `Modules/Jana/Services/Memoria/**`, `app/Console/Commands/EvalRagasBaselineCommand.php`, `Modules/Jana/Services/Retrieval/**`, `tests/eval/**`.
+2. Workflow roda `php artisan copiloto:eval --recall-only` (modo grátis, ~2.5s).
+3. Parse JSON output → falha se Recall@3 < 0.80 OU MRR < 0.70.
+4. Override label `rag-gate-override` aceita PR mesmo com falha (justificativa em PR body obrigatória).
+
+**Acceptance:**
+- Workflow ativo em main + branches `claude/*`.
+- PR de teste com retrieval quebrado é REPROVADO.
+- PR com label override merge mesmo abaixo do gate.
+- ADR 0050 atualizada referenciando o workflow.
+
+**Sinal (ADR 0105):** ADR 0050 §gate exige; Sprint 9b ajustou semantic_ratio sem gate — risco de regressão silenciosa = drift previsível.
+
+**Refs:** ADR 0050, ADR 0094 (princípio #4 loop fechado por métrica).
+
+### US-COPI-097 · Sprint 8 — Semantic caching middleware (Mem0-style query cache)
+
+> owner: wagner · sprint: — · priority: p3 · estimate: 8h · status: todo
+> blocked_by: —
+
+Sprint 8 do roadmap ADR 0037 previu semantic cache (embedding da query → resposta cacheada se similaridade > 0.95).
+
+**⚠️ Aguardando sinal (ADR 0105):** SEM sinal hoje — perguntas Larissa-style são variadas e não há reclamação de latência. Só promover a `doing` se (a) métrica detectar repetição alta de queries OU (b) cliente reportar latência percebida. Backlog frio.
+
+**Steps (quando promover):**
+1. `SemanticCacheMiddleware` em `Modules/Jana/Services/Memoria/`.
+2. Cache Redis: chave = embedding query (truncado 256 dim), valor = resposta + ctx_ids.
+3. TTL configurável `COPILOTO_SEM_CACHE_TTL` (default 1h).
+4. Métrica: hit_rate em `copiloto_memoria_metricas` (nova coluna).
+5. ADR documentando trade-off (resposta stale vs latência −400ms).
+
+**Acceptance:** hit_rate > 15% em prod 14 dias OU kill-feature por baixo retorno.
+
+**Sinal:** NENHUM. Esta task documenta a feature wish; promover só com evidência.
+
+**Refs:** ADR 0037 (Sprint 8), ADR 0105.
+
+### US-COPI-098 · Dashboard /copiloto/admin/rag-metrics — série temporal copiloto_memoria_metricas
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 5h · status: todo
+> blocked_by: —
+
+Tabela `copiloto_memoria_metricas` grava 11 métricas diárias por business (8 ADR 0050 + 3 RAGAS) mas não há UI. Sem dashboard ninguém da equipe não-técnica (Maiara, Eliana) vê tendência.
+
+**Steps:**
+1. Rota `Route::get('/copiloto/admin/rag-metrics', [RagMetricsController::class, 'index'])` em `Modules/Jana/Routes/web.php` (middleware Superadmin).
+2. Page Inertia `Modules/Jana/Resources/views/Pages/Admin/RagMetrics.tsx` (Cockpit Pattern V2 — ADR 0110).
+3. 4 cards topo: Recall@3, Precision@3, MRR, RAGAS médio (valor atual + delta 7d + sparkline 30d).
+4. Tabela detalhe: 11 métricas × últimos 30 dias × filtro de business.
+5. Charter `RagMetrics.charter.md` ao lado do `.tsx` (S4 antecipado).
+
+**Acceptance:**
+- Acessível só Superadmin.
+- Filtro por business (default: todos).
+- Carga < 1s.
+- Charter aprovado por Wagner antes do merge (ADR 0114 / mwart-comparative V4).
+
+**Sinal (ADR 0105):** baseline 2026-05-04 = 0.248 ficou só no terminal CLI — sem UI, regressão futura passa despercebida pela equipe não-dev. Drift atual é sinal qualificado.
+
+**Refs:** ADR 0050, ADR 0110, ADR 0114.
+
+### US-COPI-099 · Pest RagEvalTest — regressão automática Recall@3 + MRR + isolamento multi-tenant
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 3h · status: todo
+> blocked_by: —
+
+Hoje `copiloto:eval` é command CLI; CI roda como step manual. Falta classe Pest que falhe build se Recall@3 < gate ou cross-tenant violation aparecer.
+
+**Steps:**
+1. Criar `Modules/Jana/Tests/Feature/RagEvalTest.php`.
+2. Test cases:
+   - `it('mantem recall_at_3 acima de 0.80 no gabarito Larissa')` — chama `MemoriaContrato::recall()` em loop sobre 50 perguntas (`copiloto_memoria_gabarito`), asserta `>= 0.80`.
+   - `it('mantem mrr acima de 0.70')` — mesmo loop, asserta MRR.
+   - `it('isola business_id em recall (multi-tenant Tier 0)')` — biz=1 não vê dados biz=4 — ADR 0093.
+3. Registrar suite em `phpunit.xml` (sem registro = falsa cobertura — `memory/proibicoes.md`).
+4. Roda em GitHub Actions sem custo LLM (modo recall-only).
+
+**Acceptance:**
+- 3 tests verdes em main.
+- Fixture `tests/eval/golden-questions.yaml` versionada.
+- Suite roda < 30s em CI.
+- Test multi-tenant cobre cross-tenant violation (ADR 0093).
+
+**Sinal (ADR 0105):** ADR 0050 + ADR 0093 (multi-tenant Tier 0) exigem regressão automática; sem Pest depende de disciplina manual = risco previsível.
+
+**Refs:** ADR 0050, ADR 0093, `memory/proibicoes.md`.
+
