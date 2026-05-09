@@ -562,5 +562,33 @@ Hoje `laravel/horizon ^5.46` está no `composer.json` mas nunca foi publicado: s
 
 **Refs:** ADR 0062 (Hostinger ≠ CT 100), ADR 0094 §5 SoC brutal, US-COPI-094 (mesmo padrão flag CT-only do MCP), composer.json:laravel/horizon.
 
+#### US-COPI-097 · HealthSnapshotService — agregador 4 fontes em 1 JSON estável
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: doing
+> blocked_by: —
+
+Backend service que alimenta a Page Inertia do cockpit (US-COPI-098) e o Brain A narrador (US-COPI-099). Independente de Horizon estar ativo — lê tabelas DB direto.
+
+**Shape contractual:**
+
+```json
+{
+  "generated_at": "2026-05-09T...",
+  "health": { /* output de jana:health-check --json (6 checks) */ },
+  "queues": { "available": true, "failed_24h": N, "failed_total": N },
+  "mcp": { "available": true, "requests_24h": N, "errors_24h": N, "taxa_erro": 0.xxxx, "custo_brl_24h": N.NNNN },
+  "brain_b": { "available": true, "tokens_in_24h": N, "tokens_out_24h": N, "custo_brl_24h": N.NNNN }
+}
+```
+
+**DoD:**
+- `Modules/Jana/Services/HealthSnapshotService.php` final class com 1 método público `snapshot(): array`
+- Cada fonte degrada graciosamente (`available: false`) quando tabela ausente — shape sempre estável
+- Pricing Brain B canônico (gpt-4o-mini: $0.15/1M in + $0.60/1M out * R$ 5/USD), igual `HealthCheckCommand`
+- Pest test em `Modules/Jana/Tests/Feature/HealthSnapshotServiceTest.php` cobre 5 cenários (shape, queueStats 24h, mcpStats agregação, brain_b pricing, degradação graceful)
+- Não toca tenancy — superadmin-only por design (cockpit agrega plataforma toda)
+
+**Refs:** US-COPI-095 (epic), `Modules/Jana/Console/Commands/HealthCheckCommand.php` (já produz `--json`), `Modules/Jana/Entities/Mcp/McpAuditLog.php` (schema mcp_audit_log).
+
 
 
