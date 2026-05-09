@@ -13,7 +13,7 @@ date: 2026-05-05
 > **Refs:** [ADR 0026](../../decisions/0026-posicionamento-erp-grafico-com-ia.md), [ADR 0031](../../decisions/0031-memoriacontrato-mem0-default.md), [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0036](../../decisions/0036-replanejamento-meilisearch-first.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [_DS UI-0008](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](../_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)
 > **Validado:** tela em produção `https://oimpresso.com/copiloto/dashboard`
 
-Tela read-only que lista as metas ativas do business em foco como cards com **farol** (verde/amarelo/vermelho/cinza) calculado client-side. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre de manhã pra ver "como tô indo nas metas que conversei com o Jana". Vive dentro do `AppShellV2` (Cockpit) — sem coluna direita, sem master/detail. Acesso ao detalhe da meta é via `Link` pra `/copiloto/metas/{id}` (outra rota). FAB inferior direito conduz ao chat do Jana com contexto preservado.
+Tela read-only que lista as metas ativas do business em foco como cards com **farol** (verde/amarelo/vermelho/cinza) calculado client-side. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre de manhã pra ver "como tô indo nas metas que conversei com a Jana". Vive dentro do `AppShellV2` (Cockpit) — sem coluna direita, sem master/detail. Acesso ao detalhe da meta é via `Link` pra `/copiloto/metas/{id}` (outra rota). FAB inferior direito conduz ao chat da Jana com contexto preservado.
 
 ## Estado final esperado
 
@@ -28,7 +28,7 @@ Tela read-only que lista as metas ativas do business em foco como cards com **fa
 
 ## 1. Objetivo
 
-Painel read-only de leitura rápida do estado das **metas ativas** que o cliente operacional configurou via chat com o Jana IA (US-COPI-010, 011, 012). Renderiza N cards (1/2/3 colunas conforme breakpoint) com farol semafórico calculado on-the-fly em client-side via `calcularFarol()`, valor realizado vs alvo, sparkline das últimas apurações e link pra detalhe da meta. Não há master/detail interno — cada card é independente. FAB no canto inferior direito permite voltar ao chat preservando contexto via query string `?context=/copiloto/dashboard`. Cliente é o dono operador (persona Larissa, business=4); dev/superadmin também usa pra debugar metas seedadas.
+Painel read-only de leitura rápida do estado das **metas ativas** que o cliente operacional configurou via chat com a Jana IA (US-COPI-010, 011, 012). Renderiza N cards (1/2/3 colunas conforme breakpoint) com farol semafórico calculado on-the-fly em client-side via `calcularFarol()`, valor realizado vs alvo, sparkline das últimas apurações e link pra detalhe da meta. Não há master/detail interno — cada card é independente. FAB no canto inferior direito permite voltar ao chat preservando contexto via query string `?context=/copiloto/dashboard`. Cliente é o dono operador (persona Larissa, business=4); dev/superadmin também usa pra debugar metas seedadas.
 
 ## 2. Pré-condições
 
@@ -36,7 +36,7 @@ Painel read-only de leitura rápida do estado das **metas ativas** que o cliente
 - [ ] Permissão `copiloto.access` atribuída ao role do usuário
 - [ ] Rotas registradas em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Routes/web.php) — pelo menos `/copiloto/dashboard` apontando pro Controller que renderiza `Jana/Dashboard`
 - [ ] Page Inertia em [`resources/js/Pages/Jana/Dashboard.tsx`](../../../resources/js/Pages/Jana/Dashboard.tsx) — módulo em **PascalCase** (`Jana`, não `copiloto`)
-- [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos do Jana
+- [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos da Jana
 - [ ] Skill irmã `multi-tenant-patterns` se Controller filtrar por `business_id`
 - [ ] Seed: `php artisan module:seed Jana` popula 5 metas template + meta raiz Wagner ROI
 
@@ -195,7 +195,7 @@ function MetaCard({ meta }: { meta: Meta }) {
   <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
     <MessageSquare className="h-12 w-12 text-muted-foreground/50" />
     <p className="text-muted-foreground">
-      Nenhuma meta ativa. Converse com o Jana para criar a primeira.
+      Nenhuma meta ativa. Converse com a Jana para criar a primeira.
     </p>
     <Link href="/copiloto"><Button>Iniciar conversa</Button></Link>
   </div>
@@ -219,7 +219,7 @@ return (
 )
 ```
 
-`FabJana` gera `Link` pra `/copiloto?context=%2Fcopiloto%2Fdashboard`. O chat do Jana lê a query string e injeta `Tela: /copiloto/dashboard` no `ContextoNegocio` enviado ao LLM.
+`FabJana` gera `Link` pra `/copiloto?context=%2Fcopiloto%2Fdashboard`. O chat da Jana lê a query string e injeta `Tela: /copiloto/dashboard` no `ContextoNegocio` enviado ao LLM.
 
 ### 8. Build local + smoke
 

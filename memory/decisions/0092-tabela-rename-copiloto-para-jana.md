@@ -91,7 +91,7 @@ Triggers reais existem em `mcp_audit_log`, `ponto_marcacoes`, `licenca_log` — 
 
 **Positivas:**
 
-- **Backend semanticamente coerente** — `Modules\Jana\Entities\MemoriaFato` opera em `jana_memoria_facts`. IDE search por "Copiloto" não retorna mais false-positives no Jana.
+- **Backend semanticamente coerente** — `Modules\Jana\Entities\MemoriaFato` opera em `jana_memoria_facts`. IDE search por "Copiloto" não retorna mais false-positives na Jana.
 - **View legacy 30d permite rollback simples** — qualquer código terceiro (script SQL, BI ad-hoc) que assuma `copiloto_*` continua lendo até 2026-06-05.
 - **Padrão reusável pra próximas migrations** — quando Wagner decidir mover URLs (`/copiloto/*` → `/jana/*`) ou permissions, mesma estratégia "código novo + view/redirect legacy 30d" aplicável.
 

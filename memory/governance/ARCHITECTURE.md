@@ -78,8 +78,8 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 | **MemCofre** | active=1, 8 controllers, evidências | Governance | L1 GOVERNANCE | **Repurpose → `SRS` (System Rules Spec)** |
 | **Writebot** | active=1, 2 controllers (boilerplate) | IA | — | **DELETE (vazio)** |
 | **ADS** | active=0, 19 controllers | IA | L1 GOVERNANCE | Mantém. Receber drift de Jana |
-| **KB** | active=1, 3 controllers (boilerplate) | Knowledge | L2 PRODUCT | Mantém. Receber MemoriaController + FontesController do Jana |
-| **TeamMcp** | active=1, 5 controllers | Governance | L1 GOVERNANCE | Mantém. Receber tokens/scopes/audit/webhook do Jana + ProjectsController do ADS |
+| **KB** | active=1, 3 controllers (boilerplate) | Knowledge | L2 PRODUCT | Mantém. Receber MemoriaController + FontesController da Jana |
+| **TeamMcp** | active=1, 5 controllers | Governance | L1 GOVERNANCE | Mantém. Receber tokens/scopes/audit/webhook da Jana + ProjectsController do ADS |
 | **Connector** | active=1, 30 controllers, POS APIs | UltimatePOS | L0 KERNEL | Mantém — só Wagner toca |
 | **Superadmin** | active=1, 14 controllers | UltimatePOS | L0 KERNEL | Mantém — só Wagner toca |
 | **Crm** | active=1, 21 controllers | UltimatePOS | L3 VERTICAL | Mantém |

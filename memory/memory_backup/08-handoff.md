@@ -353,7 +353,7 @@ Eliana executou o reset total (opção B) — todas as tabelas `ponto_*` e entra
 - Layout Blade `Resources/views/layouts/module.blade.php` usa nomes de rota `ponto.*` que batem com `Http/routes.php`
 - Middlewares do UltimatePOS: `web, SetSessionData, auth, language, timezone, AdminSidebarMenu, CheckUserLogin, ponto.access`
 - API com `auth:api` (Passport) — compatível com UltimatePOS
-- `ponto.access` middleware aliasado via array `$middleware` no provider, mesmo padrão Jana
+- `ponto.access` middleware aliasado via array `$middleware` no provider, mesmo padrãa Jana
 
 ### O que AINDA NÃO funciona / stub (inalterado desde sessão 01)
 

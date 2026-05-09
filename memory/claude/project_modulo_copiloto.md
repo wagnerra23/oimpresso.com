@@ -8,7 +8,7 @@ originSessionId: 3ea423cc-141d-477e-b072-2e0171a6fdd7
 
 **Posicionamento:**
 - Jana de IA do negócio — conversa, sugere metas em cenários (fácil/realista/ambicioso), usuário escolhe, sistema monitora com apuração + alertas.
-- Pitch: *"Você não precisa ser analista de dados. Seu Jana entende os números, conversa com você e te avisa quando algo sai da rota."*
+- Pitch: *"Você não precisa ser analista de dados. Sua Jana entende os números, conversa com você e te avisa quando algo sai da rota."*
 - Nome escolhido sobre `BI`, `MetasNegocio`, `Farol`, `Compass`: alinhado com conceito IA-first + surfa trend Copilot (GitHub/MS) + escalável como guarda-chuva (v1 metas → v2 comercial → v3+ operacional/financeiro).
 
 **Arquitetura-chave:**
