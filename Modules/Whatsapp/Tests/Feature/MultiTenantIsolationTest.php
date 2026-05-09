@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Entities\WhatsappMessage;
+use Modules\Whatsapp\Entities\WhatsappPhoneUserAccess;
 
 uses(Tests\TestCase::class);
 
@@ -30,7 +32,14 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
-    foreach (['whatsapp_messages', 'whatsapp_conversations', 'whatsapp_templates', 'whatsapp_business_configs'] as $t) {
+    foreach ([
+        'whatsapp_phone_user_access',
+        'whatsapp_messages',
+        'whatsapp_conversations',
+        'whatsapp_templates',
+        'whatsapp_business_phones',
+        'whatsapp_business_configs',
+    ] as $t) {
         Schema::dropIfExists($t);
     }
 
@@ -65,9 +74,57 @@ beforeEach(function () {
         $table->timestamps();
     });
 
+    Schema::create('whatsapp_business_phones', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->uuid('phone_uuid')->unique();
+        $table->string('label', 80);
+        $table->string('driver', 20)->default('zapi');
+        $table->string('fallback_driver', 20)->default('meta_cloud');
+        $table->string('display_phone', 20)->nullable();
+        $table->string('meta_phone_number_id', 64)->nullable();
+        $table->text('meta_access_token')->nullable();
+        $table->text('meta_app_secret')->nullable();
+        $table->string('meta_webhook_verify_token', 64)->nullable();
+        $table->string('zapi_instance_id', 64)->nullable();
+        $table->text('zapi_instance_token')->nullable();
+        $table->text('zapi_client_token')->nullable();
+        $table->string('baileys_instance_id', 64)->nullable();
+        $table->string('baileys_phone_e164', 20)->nullable();
+        $table->string('baileys_verified_name', 100)->nullable();
+        $table->string('baileys_profile_pic_url', 255)->nullable();
+        $table->timestamp('lgpd_acknowledged_at')->nullable();
+        $table->unsignedInteger('lgpd_acknowledged_by_user_id')->nullable();
+        $table->boolean('handles_repair_status')->default(false);
+        $table->boolean('handles_billing')->default(false);
+        $table->boolean('handles_jana_bot')->default(true);
+        $table->boolean('handles_outbound_default')->default(false);
+        $table->boolean('bot_enabled')->default(false);
+        $table->string('template_repair_ready_name', 64)->nullable();
+        $table->string('template_repair_waiting_parts_name', 64)->nullable();
+        $table->string('template_billing_due_name', 64)->nullable();
+        $table->string('template_billing_paid_name', 64)->nullable();
+        $table->string('driver_health', 20)->default('never_checked');
+        $table->unsignedInteger('driver_health_consecutive_failures')->default(0);
+        $table->timestamp('last_health_check_at')->nullable();
+        $table->text('last_health_message')->nullable();
+        $table->timestamps();
+        $table->unique(['business_id', 'baileys_phone_e164'], 'wbp_biz_phone_unq');
+    });
+
+    Schema::create('whatsapp_phone_user_access', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('whatsapp_business_phone_id');
+        $table->unsignedInteger('user_id');
+        $table->timestamps();
+        $table->unique(['whatsapp_business_phone_id', 'user_id'], 'wpua_phone_user_unq');
+    });
+
     Schema::create('whatsapp_conversations', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('whatsapp_business_phone_id')->nullable();
         $table->unsignedInteger('contact_id')->nullable();
         $table->string('customer_phone', 20);
         $table->string('status', 20)->default('open');
@@ -84,6 +141,7 @@ beforeEach(function () {
     Schema::create('whatsapp_messages', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('whatsapp_business_phone_id')->nullable();
         $table->unsignedBigInteger('conversation_id');
         $table->string('direction', 10);
         $table->string('provider', 20);
@@ -275,4 +333,262 @@ it('hasMetaCloudConfigured detecta Meta cadastrado pra gating fallback', functio
         'meta_app_secret' => 'app-secret-xyz',
     ]);
     expect($configComMeta->hasMetaCloudConfigured())->toBeTrue();
+});
+
+// ============================================================
+// ADR 0115 — N números/business via WhatsappBusinessPhone
+// ============================================================
+
+it('isola WhatsappBusinessPhone cross-business via global scope', function () {
+    $phoneA = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+    ]);
+
+    $phoneB = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 99,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Financeiro',
+        'driver' => 'meta_cloud',
+        'fallback_driver' => 'meta_cloud',
+    ]);
+
+    auth()->logout();
+    session(['user.business_id' => 1]);
+    $found = WhatsappBusinessPhone::all();
+    expect($found)->toHaveCount(1)
+        ->and($found->first()->id)->toBe($phoneA->id)
+        ->and($found->first()->label)->toBe('Comercial');
+
+    session(['user.business_id' => 99]);
+    $foundOther = WhatsappBusinessPhone::all();
+    expect($foundOther)->toHaveCount(1)
+        ->and($foundOther->first()->id)->toBe($phoneB->id)
+        ->and($foundOther->first()->label)->toBe('Financeiro');
+});
+
+it('cifra access_token e tokens sensíveis em WhatsappBusinessPhone (encrypted cast)', function () {
+    $tokenPlano = 'EAAB-meta-bearer-secret-PHONE-12345';
+    $zapiToken = 'zapi-instance-secret-PHONE-XYZ-789';
+
+    $phone = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
+        'driver' => 'zapi',
+        'fallback_driver' => 'meta_cloud',
+        'meta_access_token' => $tokenPlano,
+        'zapi_instance_token' => $zapiToken,
+    ]);
+
+    $reloaded = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->find($phone->id);
+    expect($reloaded->meta_access_token)->toBe($tokenPlano);
+    expect($reloaded->zapi_instance_token)->toBe($zapiToken);
+
+    $raw = DB::table('whatsapp_business_phones')->where('id', $phone->id)->first();
+    expect($raw->meta_access_token)->not->toBe($tokenPlano);
+    expect($raw->zapi_instance_token)->not->toBe($zapiToken);
+    expect($raw->meta_access_token)->not->toContain('EAAB');
+
+    expect(Crypt::decryptString($raw->meta_access_token))->toBe($tokenPlano);
+});
+
+it('UNIQUE (business_id, baileys_phone_e164) bloqueia mesmo número 2x no mesmo business', function () {
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+        'baileys_phone_e164' => '+5511987654321',
+    ]);
+
+    expect(fn () => WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Suporte 2',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+        'baileys_phone_e164' => '+5511987654321',
+    ]))->toThrow(\Illuminate\Database\QueryException::class);
+});
+
+it('mesmo número Baileys pode existir em businesses diferentes', function () {
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+        'baileys_phone_e164' => '+5511987654321',
+    ]);
+
+    $phoneB = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 99,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+        'baileys_phone_e164' => '+5511987654321',
+    ]);
+
+    expect($phoneB->id)->toBeGreaterThan(0);
+});
+
+it('resolveForEvent retorna phone com handle específico ligado', function () {
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => true,
+        'handles_billing' => false,
+    ]);
+
+    $financeiro = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Financeiro',
+        'driver' => 'meta_cloud',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => false,
+        'handles_billing' => true,
+    ]);
+
+    $resolvedRepair = WhatsappBusinessPhone::resolveForEvent(1, 'repair_status');
+    expect($resolvedRepair)->not->toBeNull()
+        ->and($resolvedRepair->label)->toBe('Comercial');
+
+    $resolvedBilling = WhatsappBusinessPhone::resolveForEvent(1, 'billing');
+    expect($resolvedBilling)->not->toBeNull()
+        ->and($resolvedBilling->id)->toBe($financeiro->id);
+});
+
+it('resolveForEvent cai no handles_outbound_default quando nenhum específico bate', function () {
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Único',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => false,
+        'handles_billing' => false,
+        'handles_jana_bot' => false,
+        'handles_outbound_default' => true,
+    ]);
+
+    $resolved = WhatsappBusinessPhone::resolveForEvent(1, 'repair_status');
+    expect($resolved)->not->toBeNull()
+        ->and($resolved->label)->toBe('Único');
+});
+
+it('resolveForEvent retorna null quando nenhum phone tem flag nem default', function () {
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Sem rotear nada',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => false,
+        'handles_billing' => false,
+        'handles_jana_bot' => false,
+        'handles_outbound_default' => false,
+    ]);
+
+    $resolved = WhatsappBusinessPhone::resolveForEvent(1, 'billing');
+    expect($resolved)->toBeNull();
+});
+
+it('isola WhatsappPhoneUserAccess cross-business via global scope', function () {
+    $phoneA = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial A',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+    ]);
+    $phoneB = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 99,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial B',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+    ]);
+
+    WhatsappPhoneUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'whatsapp_business_phone_id' => $phoneA->id,
+        'user_id' => 10,
+    ]);
+    WhatsappPhoneUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 99,
+        'whatsapp_business_phone_id' => $phoneB->id,
+        'user_id' => 20,
+    ]);
+
+    auth()->logout();
+    session(['user.business_id' => 1]);
+    $found = WhatsappPhoneUserAccess::all();
+    expect($found)->toHaveCount(1)
+        ->and($found->first()->user_id)->toBe(10);
+
+    session(['user.business_id' => 99]);
+    $foundOther = WhatsappPhoneUserAccess::all();
+    expect($foundOther)->toHaveCount(1)
+        ->and($foundOther->first()->user_id)->toBe(20);
+});
+
+it('scope accessibleBy filtra phones que user tem ACL', function () {
+    $phoneVisivel = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Visível',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+    ]);
+
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Sem ACL',
+        'driver' => 'baileys',
+        'fallback_driver' => 'meta_cloud',
+    ]);
+
+    WhatsappPhoneUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'whatsapp_business_phone_id' => $phoneVisivel->id,
+        'user_id' => 42,
+    ]);
+
+    session(['user.business_id' => 1]);
+    $accessible = WhatsappBusinessPhone::query()->accessibleBy(42)->get();
+    expect($accessible)->toHaveCount(1)
+        ->and($accessible->first()->label)->toBe('Visível');
+});
+
+it('effectiveDriver em WhatsappBusinessPhone tem mesma semântica do legacy config', function () {
+    $phone = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
+        'driver' => 'zapi',
+        'fallback_driver' => 'meta_cloud',
+        'driver_health' => 'healthy',
+    ]);
+
+    expect($phone->effectiveDriver())->toBe('zapi');
+
+    $phone->driver_health = 'degraded';
+    expect($phone->effectiveDriver())->toBe('meta_cloud');
+
+    $phone->driver_health = 'banned';
+    expect($phone->effectiveDriver())->toBe('meta_cloud');
+
+    $phone->driver_health = 'never_checked';
+    expect($phone->effectiveDriver())->toBe('zapi');
 });
