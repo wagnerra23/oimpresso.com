@@ -195,7 +195,7 @@ function Composer() {
 
 // ---- Runtime Provider --------------------------------------------------
 
-export function CopilotoAssistantUiChat({
+export function JanaAssistantUiChat({
   conversaId,
   mensagensIniciais,
   sugestoesIniciais,

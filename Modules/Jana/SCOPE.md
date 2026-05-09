@@ -88,7 +88,7 @@ drift_alerts:
 
 Jana é o **chat IA conversacional** que conhece o business do cliente. Acessa memória (Meilisearch hybrid), gera respostas contextualizadas, sugere metas, monitora execução. Multi-tenant via `business_id` (nullable pra superadmin).
 
-Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-only — fachada user-visible (URLs `/copiloto/*`, permissions `copiloto.*`, config keys, log channel `copiloto-ai`, Pages React `Pages/Copiloto/`, lang `copiloto::`) **mantida** por compatibilidade. Trust L2 PRODUCT.
+Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-only — fachada user-visible (URLs `/copiloto/*`, permissions `copiloto.*`, config keys, log channel `copiloto-ai`, Pages React `Pages/Jana/`, lang `copiloto::`) **mantida** por compatibilidade. Trust L2 PRODUCT.
 
 ## Quando este módulo é tocado
 
