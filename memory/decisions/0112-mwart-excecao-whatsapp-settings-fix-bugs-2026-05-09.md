@@ -3,9 +3,9 @@ slug: 0112-mwart-excecao-whatsapp-settings-fix-bugs-2026-05-09
 number: 112
 title: "MWART exceção — fix bugs UI Settings.tsx Whatsapp (sem migração nova)"
 type: adr
-status: accepted
-authority: per-tela
-lifecycle: historical
+status: aceito
+authority: reference
+lifecycle: arquivado
 decided_by:
   - W
 decided_at: '2026-05-09'
@@ -19,7 +19,7 @@ pii: false
 
 # ADR 0112 — MWART exceção — fix bugs UI `Whatsapp/Settings.tsx` 2026-05-09
 
-**Status:** ✅ Aceita (exceção registrada, `lifecycle: historical`)
+**Status:** ✅ Aceita (exceção registrada, `lifecycle: arquivado` — vocab controlado interno equivalente a "historical")
 **Data:** 2026-05-09
 **Decisão por:** Wagner Rocha (auto-detectada via `/mwart-override` em PR)
 **Tela:** `resources/js/Pages/Whatsapp/Settings.tsx`
@@ -59,7 +59,7 @@ PR #282 mergeado em `main` em 2026-05-09 09:40Z após CI re-rodar com override a
 
 - Settings.tsx pode ser editado livremente para fix de bugs sem RUNBOOK extra.
 - **Não cria precedente para mudança estrutural** — qualquer alteração que adicione função, tela, ou wizard novo na Settings exige RUNBOOK/SPEC/visual-comparison normalmente.
-- Esta exceção é per-tela, per-incidente, `historical`. Não-replicável sem nova ADR.
+- Esta exceção é per-tela, per-incidente, `lifecycle: arquivado` (equivalente a `historical` no vocab informal). Não-replicável sem nova ADR.
 
 ## Bug observado no workflow durante este PR
 
