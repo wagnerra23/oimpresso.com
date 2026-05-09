@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
  * pra `whatsapp_business_phones` (1:N) e vincula conversations/messages
  * existentes ao novo phone_id correspondente.
  *
- * ADR 0115 §Q6 — conversas antigas em prod migram pro 1º número
+ * ADR 0117 §Q6 — conversas antigas em prod migram pro 1º número
  * cadastrado com `label='Comercial'` (default seguro). Admin reclassifica
  * manualmente depois (US-WA-041 backlog).
  *

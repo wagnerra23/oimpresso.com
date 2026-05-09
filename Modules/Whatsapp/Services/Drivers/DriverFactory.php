@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Drivers;
 
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 
 /**
  * DriverFactory — resolve driver por business com fallback runtime.
  *
- * Decisão mãe: ADR 0096.
+ * Decisão mãe: ADR 0096 + ADR 0117 (multi-números).
+ *
+ * Aceita `WhatsappBusinessConfig` (legacy 1:1) ou `WhatsappBusinessPhone`
+ * (1:N business→números). Os 2 models implementam o mesmo contrato implícito
+ * de campos `driver`, `fallback_driver`, `effectiveDriver()`.
  *
  * Lógica de resolução (em runtime, em cada chamada):
  * 1. Se `driver_health` é healthy ou never_checked → usa driver primário
@@ -20,8 +25,8 @@ use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
  * Driver desconhecido ou proibido → InvalidArgumentException (defesa em
  * profundidade contra entrada malformada que passou pelo FormRequest).
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002
- * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3 Fluxos críticos
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002, US-WA-040
+ * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
  */
 class DriverFactory
 {
@@ -31,7 +36,7 @@ class DriverFactory
      * Aplica fallback automático em runtime se driver primário está degraded
      * — é exatamente isso que protege a operação quando Z-API/Baileys cai.
      */
-    public static function make(WhatsappBusinessConfig $config): DriverInterface
+    public static function make(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverInterface
     {
         $effectiveDriver = $config->effectiveDriver();
 
@@ -62,7 +67,7 @@ class DriverFactory
      * o driver primário diretamente, mesmo que esteja marcado degraded —
      * pra ver se voltou.
      */
-    public static function makePrimary(WhatsappBusinessConfig $config): DriverInterface
+    public static function makePrimary(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverInterface
     {
         $forbidden = config('whatsapp.forbidden_drivers', []);
         if (in_array($config->driver, $forbidden, true)) {

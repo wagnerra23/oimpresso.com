@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * WhatsappPhoneUserAccess — ACL atendente↔número Whatsapp.
  *
- * Q1 + Q5 do ADR 0115 — atendente fixado num número via ACL própria
+ * Q1 + Q5 do ADR 0117 — atendente fixado num número via ACL própria
  * (não polui Spatie permissions com N permissões/número/business).
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093) — global scope `business_id`

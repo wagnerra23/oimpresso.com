@@ -10,7 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Modules\Jana\Scopes\ScopeByBusiness;
-use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\WhatsappMessageFailed;
@@ -24,8 +24,14 @@ use Modules\Whatsapp\Services\Drivers\DriverFactory;
  * **Multi-tenant Tier 0 (ADR 0093):**
  * `$businessId` no constructor — NUNCA usar `session()` em job (fila não tem session).
  *
+ * **Multi-números (ADR 0117 — US-WA-040):**
+ * `$whatsappBusinessPhoneId` no constructor — identifica qual número Whatsapp
+ * do business envia a mensagem (Comercial, Financeiro, etc). Job resolve
+ * `WhatsappBusinessPhone::where('business_id', $bizId)->where('id', $phoneId)
+ * ->firstOrFail()` defensivo (Tier 0 — phone de outro business jamais é aceito).
+ *
  * **Driver fallback runtime:**
- * `DriverFactory::make($config)` é chamado no `handle()` (não no constructor) — se
+ * `DriverFactory::make($phone)` é chamado no `handle()` (não no constructor) — se
  * driver primário ficou degraded entre dispatch e handle, fallback automático
  * pra Meta Cloud entra em ação sem intervenção (ADR 0096).
  *
@@ -34,8 +40,9 @@ use Modules\Whatsapp\Services\Drivers\DriverFactory;
  * apenas `status` + `failed_reason` + `provider_message_id` (campos NÃO
  * imutáveis — ver `WhatsappMessage::IMMUTABLE_COLUMNS`).
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-003
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-003, US-WA-040
  * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3.1, §4
+ * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
  */
 class SendWhatsappMessageJob implements ShouldQueue
 {
@@ -60,6 +67,7 @@ class SendWhatsappMessageJob implements ShouldQueue
      */
     public function __construct(
         public readonly int $businessId,
+        public readonly int $whatsappBusinessPhoneId,
         public readonly string $to,
         public readonly string $kind,
         public readonly array $payload,
@@ -69,24 +77,28 @@ class SendWhatsappMessageJob implements ShouldQueue
 
     public function handle(): void
     {
-        // Resolve config do business escapando global scope (job sem session())
-        $config = WhatsappBusinessConfig::query()
+        // Resolve phone do business escapando global scope (job sem session())
+        // Defensive multi-tenant: where('business_id', ...) garante phone pertence
+        // ao business correto — phone de outro business jamais é aceito (Tier 0).
+        $phone = WhatsappBusinessPhone::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $this->businessId)
+            ->where('id', $this->whatsappBusinessPhoneId)
             ->firstOrFail();
 
-        $driver = DriverFactory::make($config);
+        $driver = DriverFactory::make($phone);
 
         // Cria WhatsappMessage em status=queued (append-only)
-        $conversation = $this->resolveConversation($this->businessId, $this->to);
+        $conversation = $this->resolveConversation($this->businessId, $this->whatsappBusinessPhoneId, $this->to);
 
         $message = WhatsappMessage::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->create([
                 'business_id' => $this->businessId,
+                'whatsapp_business_phone_id' => $this->whatsappBusinessPhoneId,
                 'conversation_id' => $conversation->id,
                 'direction' => 'outbound',
-                'provider' => $config->effectiveDriver(),
+                'provider' => $phone->effectiveDriver(),
                 'type' => $this->kind === 'media' ? ($this->payload['type'] ?? 'document') : ($this->kind === 'template' ? 'template' : 'text'),
                 'template_name' => $this->kind === 'template' ? ($this->payload['name'] ?? null) : null,
                 'body' => $this->extractBody(),
@@ -99,15 +111,15 @@ class SendWhatsappMessageJob implements ShouldQueue
         // Chama driver
         $result = match ($this->kind) {
             'template' => $driver->sendTemplate(
-                $config,
+                $phone,
                 $this->to,
                 $this->payload['name'],
                 $this->payload['params'] ?? [],
                 $this->payload['locale'] ?? 'pt_BR',
             ),
-            'freeform' => $driver->sendFreeform($config, $this->to, $this->payload['body']),
+            'freeform' => $driver->sendFreeform($phone, $this->to, $this->payload['body']),
             'media' => $driver->sendMedia(
-                $config,
+                $phone,
                 $this->to,
                 $this->payload['url'],
                 $this->payload['type'] ?? 'document',
@@ -147,21 +159,25 @@ class SendWhatsappMessageJob implements ShouldQueue
 
         // Re-throw pra Laravel queue dispatchar retry exponencial
         throw new \RuntimeException(
-            "Whatsapp send failed (business={$this->businessId}, code={$result->errorCode}): {$result->errorMessage}"
+            "Whatsapp send failed (business={$this->businessId}, phone={$this->whatsappBusinessPhoneId}, code={$result->errorCode}): {$result->errorMessage}"
         );
     }
 
     /**
-     * Tags pro Horizon (debug por business).
+     * Tags pro Horizon (debug por business + phone).
      *
      * @return array<int, string>
      */
     public function tags(): array
     {
-        return ["business:{$this->businessId}", "whatsapp:{$this->kind}"];
+        return [
+            "business:{$this->businessId}",
+            "phone:{$this->whatsappBusinessPhoneId}",
+            "whatsapp:{$this->kind}",
+        ];
     }
 
-    private function resolveConversation(int $businessId, string $to): WhatsappConversation
+    private function resolveConversation(int $businessId, int $phoneId, string $to): WhatsappConversation
     {
         $normalized = preg_replace('/\D/', '', $to) ?? $to;
         if (strlen($normalized) <= 11) {
@@ -173,7 +189,7 @@ class SendWhatsappMessageJob implements ShouldQueue
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->firstOrCreate(
                 ['business_id' => $businessId, 'customer_phone' => $normalized],
-                ['status' => 'open'],
+                ['status' => 'open', 'whatsapp_business_phone_id' => $phoneId],
             );
     }
 

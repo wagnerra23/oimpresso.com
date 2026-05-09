@@ -77,6 +77,7 @@ class NfeBrasilServiceProvider extends ServiceProvider
     {
         $this->commands([
             \Modules\NfeBrasil\Console\Commands\MigrateCertFromBusiness::class,
+            \Modules\NfeBrasil\Console\Commands\PuxarDfesRecebidosCommand::class,
         ]);
     }
 

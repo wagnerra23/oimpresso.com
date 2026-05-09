@@ -92,6 +92,16 @@ class DataController extends Controller
                 'label'   => 'NF-e Brasil: gerenciar tributação (regras NCM + default)',
                 'default' => false,
             ],
+            [
+                'value'   => 'nfe.manifestacao.view',
+                'label'   => 'NF-e Brasil: ver NF-e recebidas (manifestação)',
+                'default' => false,
+            ],
+            [
+                'value'   => 'nfe.manifestacao.manage',
+                'label'   => 'NF-e Brasil: manifestar NF-e recebidas (Confirmação/Ciência/Desconhecimento/Não Realizada)',
+                'default' => false,
+            ],
         ];
     }
 
@@ -124,7 +134,9 @@ class DataController extends Controller
             || auth()->user()->can('nfebrasil.emit.manage')
             || auth()->user()->can('nfebrasil.consult.view')
             || auth()->user()->can('nfe.configuracao.manage')
-            || auth()->user()->can('nfe.tributacao.manage');
+            || auth()->user()->can('nfe.tributacao.manage')
+            || auth()->user()->can('nfe.manifestacao.view')
+            || auth()->user()->can('nfe.manifestacao.manage');
 
         if (! $usuario_pode_ver) {
             return;
@@ -213,6 +225,22 @@ class DataController extends Controller
                                 [
                                     'icon'   => 'fa fas fa-percent',
                                     'active' => request()->is('nfe-brasil/tributacao*'),
+                                ]
+                            );
+                        }
+
+                        // US-NFE-052 (ADR 0116) — manifestação destinatário
+                        if (
+                            auth()->user()->can('superadmin')
+                            || auth()->user()->can('nfe.manifestacao.view')
+                            || auth()->user()->can('nfe.manifestacao.manage')
+                        ) {
+                            $sub->url(
+                                url('/nfe-brasil/manifestacao'),
+                                'Notas recebidas',
+                                [
+                                    'icon'   => 'fa fas fa-inbox',
+                                    'active' => request()->is('nfe-brasil/manifestacao*'),
                                 ]
                             );
                         }

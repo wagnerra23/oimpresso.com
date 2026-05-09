@@ -22,6 +22,7 @@
 
 | Status | Tela | Prioridade visual | Charter |
 |---|---|---|---|
+| `[x]` | [`Repair/ProducaoOficina`](../resources/js/Pages/Repair/ProducaoOficina/Index.tsx) | Larissa 1280px — kanban 5 colunas, drawer com banner aprovação | [existe](../resources/js/Pages/Repair/ProducaoOficina/Index.charter.md) — F1→F3 em 1 dia (PR #326→#330, 2026-05-09) |
 | `[ ]` | [`Repair/Dashboard`](../resources/js/Pages/Repair/Dashboard/Index.tsx) | Técnico mobile-first | [existe](../resources/js/Pages/Repair/Dashboard/Index.charter.md) |
 | `[ ]` | [`Repair/JobSheet`](../resources/js/Pages/Repair/JobSheet/Index.tsx) | Técnico mobile, status visíveis a 2m | [existe](../resources/js/Pages/Repair/JobSheet/Index.charter.md) |
 | `[ ]` | [`Repair/Status`](../resources/js/Pages/Repair/Status/Index.tsx) | Técnico mobile, transição clara | [existe](../resources/js/Pages/Repair/Status/Index.charter.md) |
@@ -34,7 +35,7 @@
 
 | Status | Tela | Prioridade visual | Charter |
 |---|---|---|---|
-| `[ ]` | [`Jana/Chat`](../resources/js/Pages/Jana/Chat.tsx) | Wagner+Larissa+Eliana — IA conversacional | criar |
+| `[ ]` | [`Jana/Chat`](../resources/js/Pages/Jana/Chat.tsx) | Wagner+Larissa+Eliana — IA conversacional | [existe](../resources/js/Pages/Jana/Chat.charter.md) |
 | `[ ]` | [`NfeBrasil/Tributacao/Index`](../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx) | Eliana — tela densa CFOP/CSOSN | criar |
 | `[ ]` | [`NfeBrasil/Transactions/NfceStatus`](../resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx) | Larissa — polling status fiscal real-time | criar |
 | `[ ]` | [`Whatsapp/Conversations/Index`](../resources/js/Pages/Whatsapp/Conversations/Index.tsx) | Atendente — inbox 3-col Front/Intercom-like | criar |

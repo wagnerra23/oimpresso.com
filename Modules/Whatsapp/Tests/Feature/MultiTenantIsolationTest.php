@@ -336,7 +336,7 @@ it('hasMetaCloudConfigured detecta Meta cadastrado pra gating fallback', functio
 });
 
 // ============================================================
-// ADR 0115 — N números/business via WhatsappBusinessPhone
+// ADR 0117 — N números/business via WhatsappBusinessPhone
 // ============================================================
 
 it('isola WhatsappBusinessPhone cross-business via global scope', function () {

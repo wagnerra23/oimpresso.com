@@ -210,6 +210,20 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-NFE-051 (ADR 0116 caso Gold) — Distribuição DFe pra businesses com cert
+        // ativo. Puxa NF-e emitidas contra meu CNPJ via NSU SEFAZ ambiente nacional.
+        // 06:15 BRT (após jana:health-check 06:00). Cooldown 5min protege se cron
+        // disparar duplicado.
+        $schedule->command('nfebrasil:dist-dfe-puxar')
+            ->dailyAt('06:15')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule nfebrasil:dist-dfe-puxar FALHOU — manifestação pode atrasar prazo SEFAZ 180d'
+                );
+            });
+
         if ($env === 'demo') {
             //IMPORTANT NOTE: This command will delete all business details and create dummy business, run only in demo server.
             $schedule->command('pos:dummyBusiness')

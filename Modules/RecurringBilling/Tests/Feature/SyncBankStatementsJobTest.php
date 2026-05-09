@@ -50,6 +50,7 @@ beforeEach(function () {
         $t->decimal('saldo_cached', 15, 2)->nullable();
         $t->timestamp('saldo_atualizado_em')->nullable();
         $t->timestamps();
+        $t->softDeletes();
     });
 
     Schema::create('fin_extrato_lancamentos', function ($t) {
@@ -89,7 +90,7 @@ function fakeInterCredential(int $businessId): int
         'client_id'           => 'cid',
         'client_secret'       => Crypt::encryptString('csec'),
         'certificado_crt_b64' => base64_encode("-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----\n"),
-        'certificado_key_b64' => base64_encode("-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----\n"),
+        'certificado_key_b64' => Crypt::encryptString(base64_encode("-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----\n")),
         'conta_corrente'      => '12345678',
     ];
 

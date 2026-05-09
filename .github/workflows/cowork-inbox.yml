@@ -1,0 +1,62 @@
+name: cowork-inbox
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cowork-inbox/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: cowork-inbox
+  cancel-in-progress: false
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    # Loop guard: skip the commit this very workflow produces.
+    if: "${{ !contains(github.event.head_commit.message, 'chore(cowork): inbox processed') }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Configure git
+        run: |
+          git config user.name "cowork-inbox[bot]"
+          git config user.email "cowork-inbox@users.noreply.github.com"
+
+      - name: Process inbox
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          BRANCH="cowork/inbox-${GITHUB_SHA::7}"
+          git checkout -b "$BRANCH"
+
+          python3 .github/scripts/cowork-inbox.py
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes after processing inbox; exiting."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "chore(cowork): inbox processed"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "chore(cowork): inbox processed" \
+            --body "Auto-processed by \`.github/workflows/cowork-inbox.yml\` from push ${GITHUB_SHA::7}." \
+            --base main \
+            --head "$BRANCH"
+
+          gh pr merge "$BRANCH" --squash --delete-branch
