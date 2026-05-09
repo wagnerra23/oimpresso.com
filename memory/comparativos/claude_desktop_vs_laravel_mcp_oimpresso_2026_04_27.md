@@ -4,7 +4,7 @@
 > **Data:** 2026-04-27
 > **Autor:** Claude (sessão `dazzling-lichterman-e59b61`) sob direção do Wagner — *"tem plugins, extensões, configurações... compare com o claude desktop"*
 > **Concorrentes incluídos:** 7 MCP servers populares (GitHub, Brave Search, Slack, Postgres, Filesystem, Linear, Notion) + nossa stack Laravel MCP nativa
-> **Decisão que vai sair daqui:** se vale a pena expor o Jana/oimpresso como MCP server pro Claude Desktop OU se priorizamos Sprint 7 (RAGAS) primeiro
+> **Decisão que vai sair daqui:** se vale a pena expor a Jana/oimpresso como MCP server pro Claude Desktop OU se priorizamos Sprint 7 (RAGAS) primeiro
 > **Companion docs:** [ENTERPRISE.md](../requisitos/Jana/ENTERPRISE.md) · [revisao_caminho_2026_04_27_capterra.md](revisao_caminho_2026_04_27_capterra.md)
 > **Template usado:** [_TEMPLATE_capterra_oimpresso.md](_TEMPLATE_capterra_oimpresso.md) v1.0
 

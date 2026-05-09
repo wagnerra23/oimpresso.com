@@ -45,7 +45,7 @@ Com PHP 8.3 + Laravel 9, **todo o seguinte está liberado:**
 
 ## nWidart/laravel-modules
 
-- **Versão antiga (pre-upgrade):** 5.1.0 — padrão Jana (`start.php`, `Http/routes.php`, sem RouteServiceProvider)
+- **Versão antiga (pre-upgrade):** 5.1.0 — padrãa Jana (`start.php`, `Http/routes.php`, sem RouteServiceProvider)
 - **Versão nova (Laravel 9):** provavelmente v9.x ou v10.x — verificar no `composer.json` do servidor
 - ⚠️ **A API de carregamento de rotas mudou** — provavelmente usa `Routes/` separado com `RouteServiceProvider` agora
 - Verificar padrão atual inspecionando módulos existentes (`Jana`, `Repair`, `Project`) no servidor atualizado

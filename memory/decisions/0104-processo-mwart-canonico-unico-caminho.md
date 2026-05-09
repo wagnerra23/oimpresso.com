@@ -190,7 +190,7 @@ Decisão final: **3 camadas combinadas.** Skill (lembra) + hook (trava no ato) +
 
 ## Refs
 
-- [ADR 0011 — Padrão Jana](0011-alinhamento-padrao-jana.md) — base estrutural
+- [ADR 0011 — Padrãa Jana](0011-alinhamento-padrao-jana.md) — base estrutural
 - [ADR 0023 — Inertia v3](0023-inertia-v3-upgrade.md) — base técnica
 - [ADR 0039 — Chat Cockpit](0039-ui-chat-cockpit-padrao.md) — layout-mãe
 - [ADR 0093 — Multi-tenant Tier 0](0093-multi-tenant-isolation-tier-0.md) — isolation IRREVOGÁVEL

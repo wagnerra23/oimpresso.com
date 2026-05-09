@@ -46,7 +46,7 @@ PR-1 entregue. PR-2 (renames Jana→Jana / PontoWr2→Ponto / MemCofre→SRS) de
 
 Plano §3-4 sugere mover URLs com 301 redirect. Optei por **manter URLs inalteradas** nesta PR-1 pra zero break em Pages React, bookmarks, watchers Claude Code, webhook GitHub. Implementação:
 
-- `/copiloto/memoria*`, `/copiloto/metas/{id}/fonte` → tuple `[\Modules\KB\Http\Controllers\…::class, 'method']` no Jana/Http/routes.php
+- `/copiloto/memoria*`, `/copiloto/metas/{id}/fonte` → tuple `[\Modules\KB\Http\Controllers\…::class, 'method']` na Jana/Http/routes.php
 - `/api/mcp/*`, `/api/cc/*` → trocou só o `'namespace'` prefix do route group de `Modules\Jana\Http\Controllers\Mcp` pra `Modules\TeamMcp\Http\Controllers\Mcp`
 - `/ads/admin/{tools,team-scopes,graph,projects}` → swap de `use` imports no topo do ADS/Routes/web.php
 
@@ -98,4 +98,4 @@ Skills `feedback_decida_nao_pergunte` e `publication-policy` foram bem aplicadas
 
 1. Wagner revisa [oimpresso.com#97](https://github.com/wagnerra23/oimpresso.com/pull/97).
 2. Após merge, sessão dedicada PR-2 com plan claro pras 7 decisões satélites.
-3. Pendente cycle CYCLE-01 (vence 12/05): COPI-22 (driver MCP no Jana, due hoje) e COPI-21 (frontmatter YAML SPECs, due 09/05).
+3. Pendente cycle CYCLE-01 (vence 12/05): COPI-22 (driver MCP na Jana, due hoje) e COPI-21 (frontmatter YAML SPECs, due 09/05).

@@ -70,7 +70,7 @@ Total ADRs Jana consolidados: **0026, 0027, 0030, 0031, 0032, 0033, 0034, 0035, 
 - ✅ `php artisan migrate` rodou (`copiloto_memoria_facts` criada — 70ms)
 - ✅ `php artisan optimize:clear` rodou
 - ✅ **Meilisearch v1.10.3 daemon RODANDO no Hostinger** PID 632084, `/health: available`
-- ✅ `php artisan memcofre:sync-pages` rodou — **14 pages sincronizadas em `docs_pages`** (3 do Jana)
+- ✅ `php artisan memcofre:sync-pages` rodou — **14 pages sincronizadas em `docs_pages`** (3 da Jana)
 - 🟡 **Embedder Meilisearch** ainda NÃO configurado — recall funciona em full-text mas não em hybrid semantic
 - 🟡 **`.env` ainda não tem** `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` setados — Jana está em `dry_run` (devolve fixtures)
 - 🟡 **`COPILOTO_AI_DRY_RUN=false`** ainda não foi setado

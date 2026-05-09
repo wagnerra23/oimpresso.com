@@ -154,7 +154,7 @@ Em ambiente de protótipo (e em prod via flag dev), o painel Tweaks expõe três
 
 - Protocolo MWART (`LegacyMenuAdapter` + `menu.php` por módulo) — flag `inertia: true/false`, ver session log 2026-04-25.
 - ADR 0008 — sidebar 1-item (continua válido pro Ponto isolado fora do ERP completo).
-- ADR 0011 — Padrão Jana (UltimatePOS-like) — base estrutural.
+- ADR 0011 — Padrãa Jana (UltimatePOS-like) — base estrutural.
 - ADR 0023 — Inertia v3 (base técnica).
 - Protótipo de referência — `Oimpresso ERP - Chat.html` no projeto Cowork "Oimpresso ERP Comunicação Visual" (arquivos `.jsx` + `styles.css` extraídos do projeto, fora do repo).
 

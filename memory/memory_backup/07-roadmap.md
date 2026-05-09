@@ -15,7 +15,7 @@ Produzida fora deste repositório (pasta de outputs temporários do Cowork), mas
 
 ## Fase 1 — Scaffolding do módulo 🟡 QUASE COMPLETA (aguarda validação em runtime)
 
-Iniciada em 2026-04-18, sessão 01. Refatorada para padrão Jana em 2026-04-18, sessão 02 (ADR 0011).
+Iniciada em 2026-04-18, sessão 01. Refatorada para padrãa Jana em 2026-04-18, sessão 02 (ADR 0011).
 
 ### Completo ✅
 - [x] Estrutura de pastas do módulo **alinhada com Modules/Jana** (padrão UltimatePOS)
@@ -143,4 +143,4 @@ Iniciada em 2026-04-18, sessão 01. Refatorada para padrão Jana em 2026-04-18, 
 
 ---
 
-**Última atualização:** 2026-04-18 (sessão 02 — scaffold refatorado para padrão Jana após crash em produção)
+**Última atualização:** 2026-04-18 (sessão 02 — scaffold refatorado para padrãa Jana após crash em produção)
