@@ -21,35 +21,35 @@ return [
     'permissions' => [
         // ── Acesso base ─────────────────────────────────────────────────
         [
-            'key'      => 'copiloto.access',
+            'key'      => 'jana.access',
             'label'    => 'Copiloto: acessar módulo',
             'risk'     => 'low',
             'requires' => [],
         ],
         [
-            'key'      => 'copiloto.chat',
+            'key'      => 'jana.chat',
             'label'    => 'Copiloto: usar chat IA',
             'risk'     => 'low',
-            'requires' => ['copiloto.access'],
+            'requires' => ['jana.access'],
         ],
 
         // ── Metas / fontes / alertas ────────────────────────────────────
         [
-            'key'      => 'copiloto.metas.manage',
+            'key'      => 'jana.metas.manage',
             'label'    => 'Copiloto: gerenciar metas e fontes',
             'risk'     => 'medium',
-            'requires' => ['copiloto.access'],
+            'requires' => ['jana.access'],
         ],
 
         // ── Plataforma (Wagner / superadmin) ────────────────────────────
         [
-            'key'      => 'copiloto.superadmin',
+            'key'      => 'jana.superadmin',
             'label'    => 'Copiloto: superadmin de plataforma',
             'risk'     => 'critical',
             'requires' => [],
         ],
         [
-            'key'      => 'copiloto.admin.custos.view',
+            'key'      => 'jana.admin.custos.view',
             'label'    => 'Copiloto: ver custos administrativos',
             'risk'     => 'high',
             'requires' => [],
@@ -57,55 +57,55 @@ return [
 
         // ── MCP server (scopes via mcp_scopes / mcp_user_scopes) ────────
         [
-            'key'      => 'copiloto.mcp.use',
+            'key'      => 'jana.mcp.use',
             'label'    => 'MCP: usar servidor MCP (token Claude Code/Desktop)',
             'risk'     => 'medium',
-            'requires' => ['copiloto.access'],
+            'requires' => ['jana.access'],
         ],
         [
-            'key'      => 'copiloto.mcp.tasks.read',
+            'key'      => 'jana.mcp.tasks.read',
             'label'    => 'MCP: ler task board',
             'risk'     => 'low',
-            'requires' => ['copiloto.mcp.use'],
+            'requires' => ['jana.mcp.use'],
         ],
         [
-            'key'      => 'copiloto.mcp.decisions.read',
+            'key'      => 'jana.mcp.decisions.read',
             'label'    => 'MCP: ler ADRs (decisions)',
             'risk'     => 'low',
-            'requires' => ['copiloto.mcp.use'],
+            'requires' => ['jana.mcp.use'],
         ],
         [
-            'key'      => 'copiloto.mcp.sessions.read',
+            'key'      => 'jana.mcp.sessions.read',
             'label'    => 'MCP: ler sessions logs',
             'risk'     => 'low',
-            'requires' => ['copiloto.mcp.use'],
+            'requires' => ['jana.mcp.use'],
         ],
         [
-            'key'      => 'copiloto.mcp.usage.self',
+            'key'      => 'jana.mcp.usage.self',
             'label'    => 'MCP: ver uso/custo próprio',
             'risk'     => 'low',
-            'requires' => ['copiloto.mcp.use'],
+            'requires' => ['jana.mcp.use'],
         ],
         [
-            'key'      => 'copiloto.mcp.usage.all',
+            'key'      => 'jana.mcp.usage.all',
             'label'    => 'MCP: ver uso/custo de todo o time',
             'risk'     => 'high',
             'requires' => [],
         ],
         [
-            'key'      => 'copiloto.mcp.governanca.financeiro',
+            'key'      => 'jana.mcp.governanca.financeiro',
             'label'    => 'MCP: governança visão financeiro',
             'risk'     => 'high',
             'requires' => [],
         ],
         [
-            'key'      => 'copiloto.mcp.governanca.tecnico',
+            'key'      => 'jana.mcp.governanca.tecnico',
             'label'    => 'MCP: governança visão técnico',
             'risk'     => 'high',
             'requires' => [],
         ],
         [
-            'key'      => 'copiloto.mcp.memory.manage',
+            'key'      => 'jana.mcp.memory.manage',
             'label'    => 'MCP: gerenciar memória/KB (soft-delete LGPD)',
             'risk'     => 'critical',
             'requires' => [],
@@ -113,31 +113,31 @@ return [
 
         // ── Claude Code sessions (cc.read.*) ────────────────────────────
         [
-            'key'      => 'copiloto.cc.read.self',
+            'key'      => 'jana.cc.read.self',
             'label'    => 'CC: ler sessões Claude Code próprias',
             'risk'     => 'low',
             'requires' => [],
         ],
         [
-            'key'      => 'copiloto.cc.read.team',
+            'key'      => 'jana.cc.read.team',
             'label'    => 'CC: ler sessões Claude Code do time',
             'risk'     => 'medium',
             'requires' => [],
         ],
         [
-            'key'      => 'copiloto.cc.read.all',
+            'key'      => 'jana.cc.read.all',
             'label'    => 'CC: ler todas as sessões Claude Code',
             'risk'     => 'high',
             'requires' => [],
         ],
         [
-            'key'      => 'copiloto.cc.curate',
+            'key'      => 'jana.cc.curate',
             'label'    => 'CC: curar/promover sessões pra base de conhecimento',
             'risk'     => 'high',
-            'requires' => ['copiloto.cc.read.team'],
+            'requires' => ['jana.cc.read.team'],
         ],
         [
-            'key'      => 'copiloto.cc.ingest.self',
+            'key'      => 'jana.cc.ingest.self',
             'label'    => 'CC: ingerir sessões locais via watcher',
             'risk'     => 'medium',
             'requires' => [],
