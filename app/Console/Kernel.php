@@ -89,6 +89,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-COPI-100 — Brain A narrador horário do Cockpit Saúde do Ecossistema.
+        // Lê snapshot via HealthSnapshotService + invoca HealthNarratorService
+        // (gpt-4o-mini canônico ADR 0035) → persiste em jana_health_narratives.
+        // Severity=critical escala via Log::single ALERT (mesmo padrão health-check).
+        // Custo: ~R$ 0.30/dia (24 chamadas × R$ 0.013) — protegido por
+        // `jana:health-check` check custo_brain_b_24h alvo ≤ R$ 5/dia.
+        // Roda hourlyAt(30) pra evitar conflito com brief:generate (00 cada 3h)
+        // e mcp:sync-memory (every 5min — múltiplos de 0).
+        $schedule->job(new \Modules\Jana\Jobs\NarrarSaudeEcosistemaJob)
+            ->hourlyAt(30)
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule NarrarSaudeEcosistemaJob FALHOU — narrativa horária pulada'
+                );
+            });
+
         // S6 F2 charter:health — drift detector daily de Page Charters.
         // Roda 06:30 BRT (após jana:health-check). Métrica M6 (anti-hallucination
         // ratchet) lê daqui pro dashboard /copiloto/admin/qualidade em F4.
