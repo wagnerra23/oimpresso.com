@@ -1,8 +1,8 @@
 ---
 slug: copiloto-runbook-governanca-mcp
-title: "Copiloto — Runbook da tela Governança MCP"
+title: "Jana — Runbook da tela Governança MCP"
 type: runbook
-module: Copiloto
+module: Jana
 status: active
 date: 2026-05-05
 ---
@@ -33,10 +33,10 @@ Dashboard de governança para Wagner acompanhar consumo do MCP server em tempo r
 
 ## 2. Pré-condições
 
-- [ ] Módulo `Copiloto` instalado em `/manage-modules`
+- [ ] Módulo `Jana` instalado em `/manage-modules`
 - [ ] Permissão `copiloto.mcp.usage.all` atribuída ao role do usuário (somente Wagner/superadmin)
-- [ ] Rota registrada em [`Modules/Copiloto/Routes/web.php`](../../../Modules/Copiloto/Routes/web.php) como `GET /copiloto/admin/governanca`
-- [ ] Page Inertia em [`resources/js/Pages/Copiloto/Admin/Governanca/Index.tsx`](../../../resources/js/Pages/Copiloto/Admin/Governanca/Index.tsx)
+- [ ] Rota registrada em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Routes/web.php) como `GET /copiloto/admin/governanca`
+- [ ] Page Inertia em [`resources/js/Pages/Jana/Admin/Governanca/Index.tsx`](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx)
 - [ ] Tabela `mcp_audit_log` existindo e com dados (ADR 0053)
 - [ ] Skill irmã `copiloto-arch` carregada se for mexer na lógica de métricas
 
@@ -45,7 +45,7 @@ Dashboard de governança para Wagner acompanhar consumo do MCP server em tempo r
 ### 1. Confirmar rota e controller
 
 ```php
-// Modules/Copiloto/Routes/web.php
+// Modules/Jana/Routes/web.php
 Route::prefix('copiloto/admin')
     ->middleware(['web', 'auth', 'copiloto.mcp.usage.all'])
     ->group(function () {
@@ -59,13 +59,13 @@ Route::prefix('copiloto/admin')
 ### 2. Controller — query + Inertia render
 
 ```php
-// Modules/Copiloto/Http/Controllers/Admin/GovernancaController.php
+// Modules/Jana/Http/Controllers/Admin/GovernancaController.php
 public function index(Request $request): Response
 {
     $preset  = $request->input('preset', '7d');
     $periodo = $this->calcularPeriodo($preset, $request->input('de'), $request->input('ate'));
 
-    return Inertia::render('Copiloto/Admin/Governanca/Index', [
+    return Inertia::render('Jana/Admin/Governanca/Index', [
         'kpis'              => $this->kpis($periodo),
         'por_status'        => $this->porStatus($periodo),
         'latency'           => $this->latency($periodo),
@@ -79,17 +79,17 @@ public function index(Request $request): Response
 }
 ```
 
-**Validação:** `curl -s https://oimpresso.com/copiloto/admin/governanca` com cookie de autenticação → retorna JSON Inertia com `component: "Copiloto/Admin/Governanca/Index"`.
+**Validação:** `curl -s https://oimpresso.com/copiloto/admin/governanca` com cookie de autenticação → retorna JSON Inertia com `component: "Jana/Admin/Governanca/Index"`.
 
 ### 3. Page Inertia — Persistent Layout
 
 ```tsx
-// resources/js/Pages/Copiloto/Admin/Governanca/Index.tsx
+// resources/js/Pages/Jana/Admin/Governanca/Index.tsx
 
 GovernancaIndex.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Copiloto — Governança MCP"
-    breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Governança MCP' }]}
+    title="Jana — Governança MCP"
+    breadcrumbItems={[{ label: 'Jana' }, { label: 'Governança MCP' }]}
   >
     {page}
   </AppShellV2>
@@ -279,7 +279,7 @@ useEffect(() => {
 
 ## 8. Component contract
 
-Props que a Page recebe via `Inertia::render('Copiloto/Admin/Governanca/Index', [...])`:
+Props que a Page recebe via `Inertia::render('Jana/Admin/Governanca/Index', [...])`:
 
 ```tsx
 interface Props {
@@ -327,7 +327,7 @@ interface Props {
 - [x] PT-BR em todo label/copy/comentário
 - [ ] Dark mode validado manualmente (contraste ≥ 4.5:1)
 - [ ] Responsividade: 375px, 768px, 1280px conferidos no navegador
-- [ ] Bundle Inertia builda: `npm run build:inertia` + manifest confirma `Copiloto/Admin/Governanca/Index`
+- [ ] Bundle Inertia builda: `npm run build:inertia` + manifest confirma `Jana/Admin/Governanca/Index`
 - [ ] Teste Pest `GovernancaControllerTest` passando
 
 ## 10. Pegadinhas

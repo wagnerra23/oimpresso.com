@@ -62,7 +62,7 @@ Cada metric vira 1 chamada Sonnet com prompt específico extraindo score 0-1. RA
 # Modo ADR (eval barato — valida qualidade da KB com retrieval grep)
 php artisan eval:ragas-baseline --pipeline=adr
 
-# Modo Copiloto (eval end-to-end — chama produto real)
+# Modo Jana (eval end-to-end — chama produto real)
 php artisan eval:ragas-baseline --pipeline=copiloto
 # requer COPILOTO_EVAL_ENDPOINT no .env
 ```
@@ -159,7 +159,7 @@ php artisan eval:ragas-baseline --question=format-date-shift
 
 - ✅ Golden set 30 perguntas (objetivo era 50; 30 é MVP)
 - ✅ Pipeline RAGAS 3 metrics implementado
-- ✅ Comando configurável (modo ADR ou Copiloto)
+- ✅ Comando configurável (modo ADR ou Jana)
 - ✅ Output JSON estruturado pra histórico
 - ✅ **Suporte multi-provider** (OpenAI gpt-4o-mini auto-detect via OPENAI_API_KEY)
 - ✅ **Baseline real executado em prod** (Cycle 01 gate atingido)
@@ -354,7 +354,7 @@ php artisan eval:ragas-baseline --pipeline=adr
 
 - ADR 0037 — Tier 7-9 RAG roadmap (RAGAS é Sprint 7)
 - ADR 0064/0065/0066 — alvos das golden questions categoria ADR
-- US-COPI-081 (memory/requisitos/Copiloto/SPEC.md) — registro da task
+- US-COPI-081 (memory/requisitos/Jana/SPEC.md) — registro da task
 - `tests/eval/golden-questions.yaml` — golden set
 - `app/Console/Commands/EvalRagasBaselineCommand.php` — pipeline + metrics
 - `tests/eval/results/` — histórico de runs (gitignored? confirmar)

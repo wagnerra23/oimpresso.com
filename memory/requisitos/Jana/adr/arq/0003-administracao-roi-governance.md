@@ -176,5 +176,5 @@ Isso destrava o caso do dono que tem ROTA LIVRE (matriz) + outras lojas (filiais
 
 1. **Wagner valida priorização** das 3 ondas (pode reordenar P0/P1/P2 conforme necessidade comercial)
 2. **Estimar esforço** com base em complexidade real (essa ADR estima 5 sprints total — pode estar otimista)
-3. **Spec de cada onda** vira issue/sprint individual em `memory/requisitos/Copiloto/SPEC.md` (adicionar US-COPI-NNN)
+3. **Spec de cada onda** vira issue/sprint individual em `memory/requisitos/Jana/SPEC.md` (adicionar US-COPI-NNN)
 4. **Implementar Onda 1** primeiro — é a que destrava narrativa comercial ("você vê o que gasta + audita o que sua equipe pergunta") e é o que aparece em case study/screencast

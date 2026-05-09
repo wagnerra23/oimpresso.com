@@ -58,7 +58,7 @@ REVERB_HOST=reverb.oimpresso.com
 REVERB_PORT=443
 REVERB_SCHEME=https
 ```
-✅ Smoke test `reverb:ping` passou (sessão anterior). Streaming Copiloto funcional.
+✅ Smoke test `reverb:ping` passou (sessão anterior). Streaming Jana funcional.
 
 ### 4. Inventário completo infra + memória AI (detalhe abaixo)
 
@@ -94,7 +94,7 @@ REVERB_SCHEME=https
 | COPILOTO_AI_ADAPTER | ❌ falta |
 | COPILOTO_MEMORIA_DRIVER | ❌ falta |
 
-### Copiloto — stack de memória IA (estado atual)
+### Jana — stack de memória IA (estado atual)
 | Camada | Componente | Código | Prod |
 |--------|-----------|--------|------|
 | A | `laravel/ai ^0.6.3` | ✅ instalado | ⚠️ NullDriver sem key |
@@ -111,7 +111,7 @@ REVERB_SCHEME=https
 | 0001-0010 | Fundação (UPos, módulos, memória) | 10 |
 | 0011-0020 | Officeimpresso + Delphi + organização | 10 |
 | 0021-0030 | CMS, IA stack, posicionamento, credenciais | 10 |
-| 0031-0037 | Copiloto stack canônica + roadmap memória | 7 |
+| 0031-0037 | Jana stack canônica + roadmap memória | 7 |
 | 0038-0041 | Promoção main + UI + policy + QA IA | 4 |
 | **0042-0044** | **Reverb + Docker+Traefik + Vaultwarden** | **3 (novos 2026-04-28)** |
 
@@ -186,10 +186,10 @@ SPRINT 11 → trigger condicional (Mem0/Zep):
 4. config/ai.php commitado (não estava em git) — laravel/ai não cai mais no fallback gpt-5.4
 5. Log channel `copiloto-ai` adicionado em config/logging.php
 6. Meilisearch index `copiloto_memoria_facts`: vectorStore experimental ON, filterable=`[business_id,user_id,valid_from,valid_until]`, embedder OpenAI text-embedding-3-small com `documentTemplate={{doc.fato}}`
-7. **Copiloto IA real respondendo em produção** — gpt-4o-mini via OpenAI ✅
+7. **Jana IA real respondendo em produção** — gpt-4o-mini via OpenAI ✅
 
 🟡 **GAPs descobertos (próximo Cycle):**
-- **ChatCopilotoAgent não tem contexto rico** — sabe responder em PT-BR mas não conhece faturamento/clientes/metas (ADR 0046)
+- **ChatJanaAgent não tem contexto rico** — sabe responder em PT-BR mas não conhece faturamento/clientes/metas (ADR 0046)
 - **MeilisearchDriver::buscar usa Scout default** = só full-text, sem hybrid embedder. Recall em prod retorna 0 hits mesmo com fatos indexados. Curl direto com `hybrid:{embedder,semanticRatio}` retorna semanticHitCount=2. **Fix necessário:** override do `search()` Scout pra passar params hybrid via callback. (sprint 7+ ou hotfix)
 
 ## Pendências pós-sessão
@@ -204,11 +204,11 @@ SPRINT 11 → trigger condicional (Mem0/Zep):
 | P6 | `postcss.config.cjs` commitado no git | Wagner [W] | Baixa | ⏳ |
 | P7 | Sprint 7 RAGAS golden set (50 perguntas) | Wagner [W] | Média | ⏳ (depende Larissa + P1) |
 | P8 | Validar Larissa (A1) | Wagner [W] | Alta | ⏳ |
-| P9 | Após DNS resolver: `php artisan scout:import "Modules\\Jana\\Entities\\CopilotoMemoriaFato"` no Hostinger (classe está em Entities, não Models) | Auto | Auto | ⏳ (depende P1) |
+| P9 | Após DNS resolver: `php artisan scout:import "Modules\\Jana\\Entities\\JanaMemoriaFato"` no Hostinger (classe está em Entities, não Models) | Auto | Auto | ⏳ (depende P1) |
 
 ---
 
-## Validação Copiloto IA real em produção (2026-04-28 17:30)
+## Validação Jana IA real em produção (2026-04-28 17:30)
 
 Wagner testou /copiloto/chat e levou 2 bugs:
 - "Estou sem conexão com IA no momento" mesmo com key válida

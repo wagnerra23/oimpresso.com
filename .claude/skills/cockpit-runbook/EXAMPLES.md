@@ -32,12 +32,12 @@ Examples pattern recomendado pela Anthropic ([best-practices §Examples pattern]
    - Loading/error state ausentes
    - Cards inteiros não-clicáveis (só Link interno)
    - `new Date(periodo.data_ini)` parsing implícito timezone
-9. **Path final:** `memory/requisitos/Copiloto/RUNBOOK-dashboard.md`
+9. **Path final:** `memory/requisitos/Jana/RUNBOOK-dashboard.md`
 10. **Antes de salvar:** gerar `.PLAN.md`, validar contra [CHECKLIST.md](CHECKLIST.md), corrigir, salvar final, apagar PLAN
 
 **Output gerado (concreto, não inventado):**
 
-➡️ Ver arquivo real em [`memory/requisitos/Copiloto/RUNBOOK-dashboard.md`](../../../memory/requisitos/Copiloto/RUNBOOK-dashboard.md)
+➡️ Ver arquivo real em [`memory/requisitos/Jana/RUNBOOK-dashboard.md`](../../../memory/requisitos/Jana/RUNBOOK-dashboard.md)
 
 Esse runbook foi produzido por esta skill em 2026-05-05 lendo a tela real. Use como referência de profundidade quando gerar novos.
 

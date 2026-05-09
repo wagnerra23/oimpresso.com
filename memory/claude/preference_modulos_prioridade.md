@@ -19,13 +19,13 @@ Decisões explícitas do Wagner (2026-04-22):
 
 ## LaravelAI ❌ removido (2026-04-27)
 - Spec original (2026-04-24): "agente que responde sobre o ERP" — placeholder scaffold-only
-- Wagner: "pode remover LaravelA" — Copiloto absorveu a visão e foi muito além
-- **Status:** PR #30 (2026-04-27) deletou `Modules/LaravelAI/` do git. Copiloto continua tendo `LaravelAiSdkDriver` (que usa o **package** `laravel/ai`, não o módulo) — adapter resolver cai pro `OpenAiDirectDriver` quando o package não está disponível.
+- Wagner: "pode remover LaravelA" — Jana absorveu a visão e foi muito além
+- **Status:** PR #30 (2026-04-27) deletou `Modules/LaravelAI/` do git. Jana continua tendo `LaravelAiSdkDriver` (que usa o **package** `laravel/ai`, não o módulo) — adapter resolver cai pro `OpenAiDirectDriver` quando o package não está disponível.
 
 ## Estratégia IA (2026-04-27)
-- **Copiloto** (Modules/Copiloto) = motor de IA atual: drivers `OpenAi*Driver`/`LaravelAiSdkDriver`/`MeilisearchDriver`/`NullDriver` em `Modules/Copiloto/Services/Ai/`
+- **Jana** (Modules/Jana) = motor de IA atual: drivers `OpenAi*Driver`/`LaravelAiSdkDriver`/`MeilisearchDriver`/`NullDriver` em `Modules/Jana/Services/Ai/`
 - **EvolutionAgent** (meta-tool de evolução do projeto, não SaaS) = plano usa Vizra ADK + Prism PHP
-- Hoje nem `laravel/ai` (package) nem Vizra estão em `composer.lock` — Copiloto roda em `dry_run`
+- Hoje nem `laravel/ai` (package) nem Vizra estão em `composer.lock` — Jana roda em `dry_run`
 
 ## Módulos perdidos na migração 3.7 → 6.7 (decisão pendente)
 Descobertos em 2026-04-22 via `git diff` entre branches `6.7-bootstrap` e `3.7-com-nfe`:
@@ -34,7 +34,7 @@ Descobertos em 2026-04-22 via `git diff` entre branches `6.7-bootstrap` e `3.7-c
 |--------|----------------|----------------------------|---------|
 | **Fiscal** (NFe) | ✅ | ✅ | Restaurar via pacote padrão `nfephp-org/sped-nfe` (Fase 15) |
 | **Boleto** | ✅ | ✅ | Wagner: apagar e usar `eduardokum/laravel-boleto` (Fase 15) |
-| **Chat** (WhatsApp/Telegram/Email) | ✅ | ✅ | ❌ removido do Hostinger 2026-04-27 (Copiloto substitui) |
+| **Chat** (WhatsApp/Telegram/Email) | ✅ | ✅ | ❌ removido do Hostinger 2026-04-27 (Jana substitui) |
 | **Jana** (IA assistente antigo) | ✅ | ✅ | 📦 movido pra `~/backups/Jana_2026-04-27` no Hostinger (Wagner usaria Dify) |
 | **BI** (Business Intelligence) | ✅ | ✅ | Avaliar uso real antes |
 | **Dashboard** | ✅ | ✅ | Overlap com `CustomDashboard` (existe em 6.7) — comparar |

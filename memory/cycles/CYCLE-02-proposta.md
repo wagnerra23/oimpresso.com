@@ -41,8 +41,8 @@ CYCLE-01 fecha em 2026-05-12 com 2/3 goals batidos (Larissa OK, recall_chars OK,
 
 | Dia | Task ID sugerida | Entrega | Files tocados |
 |---|---|---|---|
-| **A1** seg 13/05 | `COPI-A1` SKILLS-DB-1 | Migrations 6 tabelas (`mcp_skills` com `git_sync_mode`+`origin`+`auto_publish_to_git`, `mcp_skill_versions` com `origin`+`status` enum drift_pending, `mcp_skill_labels`, `mcp_skill_approvals`, `mcp_skill_test_runs`, `mcp_skill_drift_alerts`) + FKs + indexes | 6 migrations em `Modules/Copiloto/Database/Migrations/` |
-| **A2** ter 14/05 | `COPI-A2` SKILLS-DB-2 | Entities Eloquent (6) + relationships + ScopeByBusiness onde aplicável | 6 entities em `Modules/Copiloto/Entities/Mcp/` |
+| **A1** seg 13/05 | `COPI-A1` SKILLS-DB-1 | Migrations 6 tabelas (`mcp_skills` com `git_sync_mode`+`origin`+`auto_publish_to_git`, `mcp_skill_versions` com `origin`+`status` enum drift_pending, `mcp_skill_labels`, `mcp_skill_approvals`, `mcp_skill_test_runs`, `mcp_skill_drift_alerts`) + FKs + indexes | 6 migrations em `Modules/Jana/Database/Migrations/` |
+| **A2** ter 14/05 | `COPI-A2` SKILLS-DB-2 | Entities Eloquent (6) + relationships + ScopeByBusiness onde aplicável | 6 entities em `Modules/Jana/Entities/Mcp/` |
 | **A3** qua 15/05 | `COPI-A3` SKILLS-IMPORT | `ImportarSkillsDoGitService` (one-time seed: lê `glob('.claude/skills/*/SKILL.md')`, INSERT `origin=imported`, `git_sync_mode=manual` default, version v1 `origin=git_seed`) + command `mcp:skills:import-from-git --once` | 1 service + 1 command |
 | **A4** qui 16/05 | `COPI-A4` SKILLS-DRIFT | `DetectarDriftSkillsService` (webhook handler — roteia por `git_sync_mode`: auto/manual/pinned) + `ResolverDriftAlertService` (accept/reject) + integração no webhook handler existente | 2 services + 1 controller alterado |
 | **A5** sex 17/05 | `COPI-A5` SKILLS-MCP+PEST | 4 Tools MCP atualizadas (filtra `status=published` por default) + Pest tests: ImportSeedTest + DriftDetectionTest (auto/manual/pinned) + LabelMoveTest + RationaleRequiredTest + RBAC seeder com `skills.publish` + `skills.config` | 4 tools + 5 tests + 1 seeder |
@@ -98,10 +98,10 @@ Dia útil 25/05 (segunda) — buffer + smoke integrado + retro CYCLE-02.
 ## Definition of Done (cycle inteiro)
 
 - [ ] 5 goals trackados batidos
-- [ ] Suite Pest verde (`vendor/bin/pest Modules/Copiloto/Tests/ Modules/ADS/Tests/`)
+- [ ] Suite Pest verde (`vendor/bin/pest Modules/Jana/Tests/ Modules/ADS/Tests/`)
 - [ ] Smoke skills (`tests/Feature/Skills/smoke-skill-references.php`) passa
 - [ ] Smoke ADRs (`tests/Feature/Skills/smoke-adr-frontmatter.php`) passa
-- [ ] Sem regressão em CYCLE-01 (suite Copiloto continua 81 passed)
+- [ ] Sem regressão em CYCLE-01 (suite Jana continua 81 passed)
 - [ ] Wagner valida UI manualmente em prod
 - [ ] Felipe/Maiara confirmam que `skills-search` retorna resultado em 1 query
 
@@ -141,7 +141,7 @@ VALUES ('COPI', 'CYCLE-02', 'Cycle 02 — Team MCP UI + bi-temporal',
 -- Tasks (13 linhas em mcp_tasks com cycle_id apontando pro novo cycle)
 ```
 
-**Opção 3 — comando MCP direto** se Wagner expor tool `cycles-create` no servidor MCP via PR rápida no `Modules/Copiloto/Mcp/Tools/CyclesCreateTool.php` (5 linhas + 1 registro).
+**Opção 3 — comando MCP direto** se Wagner expor tool `cycles-create` no servidor MCP via PR rápida no `Modules/Jana/Mcp/Tools/CyclesCreateTool.php` (5 linhas + 1 registro).
 
 Recomendado: **Opção 3** — vira tool reutilizável. Pode ser parte do Sprint A1 deste próprio cycle, ironicamente.
 
@@ -165,5 +165,5 @@ Tasks blocked (COPI-23, COPI-24) rolam pra CYCLE-02 automaticamente.
 - [ADR 0070 — Jira-style task management (CURRENT.md/TASKS.md removidos)](../decisions/0070-jira-style-task-management-current-md-removed.md)
 - [ADR 0072](../decisions/0072-maturacao-memoria-team-mcp-openclaw-soa-2026.md), [ADR 0073](../decisions/0073-team-mcp-skills-policies-entidades-governadas.md), [ADR 0074](../decisions/0074-temporal-validity-bi-temporal-time-travel.md)
 - [Padrão UI ADS `/ads/admin/decisoes`](../../Modules/ADS/Http/Controllers/Admin/) (ler antes de Sprint B)
-- [Padrão tools MCP](../../Modules/Copiloto/Mcp/Tools/) (ler antes de Sprint A4)
+- [Padrão tools MCP](../../Modules/Jana/Mcp/Tools/) (ler antes de Sprint A4)
 - [Cycle ativo CYCLE-01](../decisions/0070-jira-style-task-management-current-md-removed.md) — fecha 2026-05-12

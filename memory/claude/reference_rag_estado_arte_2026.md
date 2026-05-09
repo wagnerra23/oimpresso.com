@@ -5,7 +5,7 @@ type: reference
 originSessionId: dazzling-lichterman-e59b61
 ---
 
-Pesquisa profunda em 2026-04-26 sessão 18 sobre estado-da-arte de RAG / agent memory. Aplica ao Copiloto do oimpresso.
+Pesquisa profunda em 2026-04-26 sessão 18 sobre estado-da-arte de RAG / agent memory. Aplica ao Jana do oimpresso.
 
 ## Padrão dual-layer Hot/Cold (2026)
 
@@ -62,7 +62,7 @@ RAGAS não exige gold answers manuais — usa LLM-as-judge.
 
 ## Como aplicar
 
-- Quando Wagner perguntar "como evoluir" / "próximo sprint" do Copiloto → abrir ADR 0037
+- Quando Wagner perguntar "como evoluir" / "próximo sprint" do Jana → abrir ADR 0037
 - Quando ele pedir Mem0 → checar 5 triggers do ADR 0036; sem trigger, fica em Meilisearch
 - Quando rodar RAGAS em sprint 7, baseline numérica decide se sprint 8/9/10 valem
 - Pesquisas externas: 9 sources documentadas no rodapé do ADR 0037

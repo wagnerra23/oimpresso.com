@@ -10,7 +10,7 @@ Wagner declarou em 2026-04-28: existe na empresa uma máquina física com **128 
 
 **Casos de uso já mapeados:**
 1. **Reverb** (WebSocket broadcaster) — ADR 0042, [PR #64](https://github.com/wagnerra23/oimpresso.com/pull/64)
-2. **Meilisearch** (memória semântica Copiloto) — A4 Felipe + ADR 0036
+2. **Meilisearch** (memória semântica Jana) — A4 Felipe + ADR 0036
 3. **Horizon + Vizra ADK workers** — ADR 0035 (Larissa, FaithCheck, etc.)
 4. **VM staging** — réplica pré-produção (mitiga histórico de crashes diretos em prod)
 

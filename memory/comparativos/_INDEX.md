@@ -21,9 +21,9 @@
 | Data | Arquivo | Assunto | Decisão informada |
 |---|---|---|---|
 | 2026-04-25 | [site_marketing_concorrentes_comunicacao_visual_2026_04_25.md](site_marketing_concorrentes_comunicacao_visual_2026_04_25.md) | Copy/visual concorrentes vertical CV | Reescrita do site (Hero PT-BR "orça/imprime/monta/entrega") |
-| 2026-04-25 | [oimpresso_vs_concorrentes_capterra_2026_04_25.md](oimpresso_vs_concorrentes_capterra_2026_04_25.md) | oimpresso vs Mubisys/Zênite/Calcgraf/Calcme/Visua/Bling/Omie | ADR 0026 (posicionamento "ERP gráfico com IA"); 3 features 6m: PricingFpv + Copiloto v1 + CT-e/MDF-e |
+| 2026-04-25 | [oimpresso_vs_concorrentes_capterra_2026_04_25.md](oimpresso_vs_concorrentes_capterra_2026_04_25.md) | oimpresso vs Mubisys/Zênite/Calcgraf/Calcme/Visua/Bling/Omie | ADR 0026 (posicionamento "ERP gráfico com IA"); 3 features 6m: PricingFpv + Jana v1 + CT-e/MDF-e |
 | 2026-04-26 | [sistemas_memoria_oimpresso_capterra_2026_04_26.md](sistemas_memoria_oimpresso_capterra_2026_04_26.md) | **Camada A** — 9 sistemas de memória de DEV (CLAUDE.md vs decisions/ vs auto-mem vs MemCofre vs Git/PRs etc) | ADRs 0027/0028/0030; 3 ações 30d (CLAUDE.md aponta cofre, rename 0024 dup, AGENTS.md vira tombstone) |
-| 2026-04-26 | [copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md](copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md) | **Camada C apenas** — Copiloto runtime memory vs Mem0/LangGraph/Letta/Zep/OMEGA (foco em memória especializada) | Caminho B: REST adapter pra Mem0 (5 sprints, Tier 1→6-7); 14 US-COPI-MEM-NNN |
+| 2026-04-26 | [copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md](copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md) | **Camada C apenas** — Jana runtime memory vs Mem0/LangGraph/Letta/Zep/OMEGA (foco em memória especializada) | Caminho B: REST adapter pra Mem0 (5 sprints, Tier 1→6-7); 14 US-COPI-MEM-NNN |
 | 2026-04-26 | [stack_agente_php_vizra_prism_mem0_capterra_2026_04_26.md](stack_agente_php_vizra_prism_mem0_capterra_2026_04_26.md) | **Stack completa A+B+C** — 7 players: Prism PHP, Vizra ADK, Mem0, LangGraph, Letta, Zep, OMEGA | ADR 0031 (MemoriaContrato + Mem0 default) + ADR 0032 (Vizra ADK + Prism PHP); roadmap 7 sprints |
 | 2026-04-27 | [revisao_caminho_2026_04_27_capterra.md](revisao_caminho_2026_04_27_capterra.md) | **Revisão de caminho** — auditoria pós-sprint 6 com 5 caminhos avaliados (atual ADR 0037 / pivot comercial / Typesense / Mem0 cedo / validar Larissa) | Recomenda validar com Larissa ANTES de sprint 7; gatilho de pivot mensurável 30/90d |
 | 2026-04-27 | [claude_desktop_vs_laravel_mcp_oimpresso_2026_04_27.md](claude_desktop_vs_laravel_mcp_oimpresso_2026_04_27.md) | **Claude Desktop ecosystem vs nossa stack Laravel MCP** — 7 MCP servers populares (GitHub/Brave/Slack/Postgres/Filesystem/Linear/Notion) vs potencial do oimpresso | Vácuo absoluto no vertical brasileiro de gráfica; recomenda MCP server como sprint 7 alternativo se foco for receita; setup técnico completo passo-a-passo |
@@ -33,5 +33,5 @@
 ## Próximos sugeridos (não criar sem motivo)
 
 - `pontowr2_vs_concorrentes_capterra_*.md` — antes de virar Tier A do Ponto (Dashboard vivo)
-- `copiloto_vs_concorrentes_capterra_*.md` — quando Copiloto sair do dry_run e tiver pricing
+- `copiloto_vs_concorrentes_capterra_*.md` — quando Jana sair do dry_run e tiver pricing
 - `financeiro_vs_concorrentes_capterra_*.md` — antes de cobrar take rate de boleto

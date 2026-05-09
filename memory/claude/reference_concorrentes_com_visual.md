@@ -36,6 +36,6 @@ originSessionId: 78bc6849-f503-4b7f-93a1-4c2a439cc019
 - Adicionar métrica m² na subhead
 - Substituir banda placeholder por logos cliente reais (ROTA LIVRE como case principal)
 - Adicionar 1 número honesto acima do fold ("X mil NF emitidas")
-- Implementar quiz qualificador (encaixa com módulo Copiloto do roadmap)
+- Implementar quiz qualificador (encaixa com módulo Jana do roadmap)
 
 **Relatório completo:** `memory/comparativos/site_marketing_concorrentes_comunicacao_visual_2026_04_25.md` no worktree `cms-redesign`.

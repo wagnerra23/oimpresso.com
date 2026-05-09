@@ -21,7 +21,7 @@ O centro do módulo é o **fluxo conversacional**; todas as outras áreas (metas
      - clientes ativos
      - tendências
 3. Gestor descreve cenário OU pede "sugira metas"
-4. Copiloto chama SuggestionEngine:
+4. Jana chama SuggestionEngine:
      - coleta contexto (PHP)
      - monta prompt com estrutura JSON
      - chama AI (LaravelAI adapter ou openai direto)
@@ -182,7 +182,7 @@ Propostas de meta geradas pela IA (histórico).
 ### 6.3 Outros módulos (leitura eventual)
 - **Grow** — dados de campanhas / leads (se existir meta de conversão).
 - **PontoWr2** — nº colaboradores ativos (se tiver meta tipo "receita por colaborador").
-- **MemCofre** — Copiloto pode citar decisões (ADRs) ao sugerir metas ("essa meta colide com ADR 0022").
+- **MemCofre** — Jana pode citar decisões (ADRs) ao sugerir metas ("essa meta colide com ADR 0022").
 
 ### 6.4 Observabilidade
 - **`spatie/activitylog`** — registra eventos críticos: meta criada, escolhida, editada, fonte alterada, job de apuração executado.
@@ -208,11 +208,11 @@ Padrão `{nome}#{business_id}` quando aplicável (ver auto-memória `reference_d
 - **Alertas via WhatsApp** — custo API Meta; fica pra v2.
 - **Multi-idioma na conversa** — v1 é PT-BR only; configurar modelo a respeitar.
 - **Cache de contexto** — `ContextSnapshotService` pode ser caro (queries pesadas). Avaliar cache de 10min.
-- **Guardrails IA** — Copiloto não pode sugerir meta que implique ação ilegal/tributária inapropriada. Prompt precisa deixar isso claro.
+- **Guardrails IA** — Jana não pode sugerir meta que implique ação ilegal/tributária inapropriada. Prompt precisa deixar isso claro.
 
 ## 9. Fora de escopo (v1)
 
-- Análise multivariada (causa-raiz de desvios) — Copiloto v1 só detecta desvio, não explica.
+- Análise multivariada (causa-raiz de desvios) — Jana v1 só detecta desvio, não explica.
 - Integrações externas (contabilidade, bancos) — v2+.
 - Comparação entre businesses (benchmarking) — v2+ e requer consentimento.
 - Geração automática de relatórios em PDF/XLSX — v2+.

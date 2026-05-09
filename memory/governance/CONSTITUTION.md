@@ -213,7 +213,7 @@ revoked_at: null | <timestamp>
 
 **Princípio.** Todo módulo em `Modules/<X>/` tem `SCOPE.md` declarando: o que contém, o que NÃO contém, qual `trust_required`, quem é owner. Controller fora de scope é drift bloqueado em pre-commit.
 
-**Por quê.** 30 módulos já existem. Drift entre módulos é fato observado (controllers em Copiloto que pertenciam a KB/TeamMcp). Sem fronteira documentada e enforced, novos conceitos caem em qualquer pasta.
+**Por quê.** 30 módulos já existem. Drift entre módulos é fato observado (controllers em Jana que pertenciam a KB/TeamMcp). Sem fronteira documentada e enforced, novos conceitos caem em qualquer pasta.
 
 **Implementação obrigatória.**
 - `Modules/<X>/SCOPE.md` com frontmatter:

@@ -1,4 +1,4 @@
-# RUNBOOK — Melhoria semanal da memória do Copiloto/Jana
+# RUNBOOK — Melhoria semanal da memória do Jana/Jana
 
 > **Status:** ativo · **Owner:** Wagner · **Cadência:** 1×/semana (agendado em `~/.claude/scheduled-tasks/copiloto-memoria-semanal/`) · **Criado:** 2026-05-04 (1ª execução)
 
@@ -15,7 +15,7 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 | 3 | Persistência | `lembrar()` em `jana_memoria_facts` | `total_fatos` |
 | 4 | Indexação | Scout → Meilisearch (full-text + embedder OpenAI) | `index_lag_seconds` |
 | 5 | Recall | `MeilisearchDriver::buscar()` (hybrid + HyDE + Reranker) | `Recall@3`, `Precision@3`, `MRR` |
-| 6 | Uso | `ChatCopilotoAgent` injeta no system prompt | `memoria_recall_chars`, `core_memory_used` |
+| 6 | Uso | `ChatJanaAgent` injeta no system prompt | `memoria_recall_chars`, `core_memory_used` |
 | 7 | Evolução | `hits_count++` quando fato é usado em resposta | `hit_rate` |
 | 8 | Esquecimento | Soft-delete LGPD + bloat reducer (hits=0 idade>30d) | `bloat_ratio` |
 
@@ -63,7 +63,7 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 2. `HitTrackerService` (Modules/Jana/Services/Memoria/HitTrackerService.php) precisa estar conectado no fluxo de resposta.
 3. `Modules/Jana/Entities/MemoriaFato.php` precisa ter `hits_count`/`core_memory`/`ultimo_hit_em` em `$casts` (HOJE NÃO TEM — bug detectado 2026-05-04, ver pendências).
 
-**Implementação:** `Modules/Jana/Agents/ChatCopilotoAgent.php` (ou agente equivalente), adicionar query `MemoriaFato::doUser($biz, $user)->where('core_memory', true)->get()` antes do recall e prepend ao system prompt.
+**Implementação:** `Modules/Jana/Agents/ChatJanaAgent.php` (ou agente equivalente), adicionar query `MemoriaFato::doUser($biz, $user)->where('core_memory', true)->get()` antes do recall e prepend ao system prompt.
 
 **Esperado:** -10-15% tokens em prompts repetidos + Recall efetivo dos top facts garantido (sem depender de scoring).
 
@@ -116,7 +116,7 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 
 | Data | Melhoria | Recall@3 antes | Recall@3 depois | hit_rate antes | hit_rate depois | Decisão | Notas |
 |------|----------|----------------|-----------------|----------------|-----------------|---------|-------|
-| 2026-05-04 | _(setup da rotina — nenhuma melhoria aplicada)_ | — | — | — | — | ⚙️ infra | 1ª execução: SKILL apontava pra `Modules/Copiloto/` (renomeado pra `Modules/Jana/`) + `CURRENT.md` removido (ADR 0070) + ADR 0062 ≠ 8 fases. Setup do RUNBOOK + SKILL atualizada + permissões pré-aprovadas. Bug detectado: `MemoriaFato.$casts` em Jana não tem `hits_count`/`core_memory`/`ultimo_hit_em` (migration aplicou colunas mas entity não cast). |
+| 2026-05-04 | _(setup da rotina — nenhuma melhoria aplicada)_ | — | — | — | — | ⚙️ infra | 1ª execução: SKILL apontava pra `Modules/Jana/` (renomeado pra `Modules/Jana/`) + `CURRENT.md` removido (ADR 0070) + ADR 0062 ≠ 8 fases. Setup do RUNBOOK + SKILL atualizada + permissões pré-aprovadas. Bug detectado: `MemoriaFato.$casts` em Jana não tem `hits_count`/`core_memory`/`ultimo_hit_em` (migration aplicou colunas mas entity não cast). |
 
 ---
 
@@ -178,8 +178,8 @@ php artisan scout:import "Modules\\Jana\\Entities\\MemoriaFato"
 
 | # | Item | Prioridade | Ação |
 |---|------|-----------|------|
-| 1 | `MemoriaFato.$casts` (Modules/Jana) sem `hits_count`/`core_memory`/`ultimo_hit_em` | 🔴 P1 | Adicionar 3 entradas no `$casts` (ver entity Modules/Copiloto antiga como referência — supersede pelo Jana) |
-| 2 | Comentário em `MemoriaFato.php` ainda referencia `Modules/Copiloto/Database/seeders/MeilisearchIndexSetup.php` (path antigo) | 🟡 P3 | Atualizar pra `Modules/Jana/...` ou remover seeder se obsoleto |
+| 1 | `MemoriaFato.$casts` (Modules/Jana) sem `hits_count`/`core_memory`/`ultimo_hit_em` | 🔴 P1 | Adicionar 3 entradas no `$casts` (ver entity Modules/Jana antiga como referência — supersede pelo Jana) |
+| 2 | Comentário em `MemoriaFato.php` ainda referencia `Modules/Jana/Database/seeders/MeilisearchIndexSetup.php` (path antigo) | 🟡 P3 | Atualizar pra `Modules/Jana/...` ou remover seeder se obsoleto |
 | 3 | `config/scout.php` `index-settings.jana_memoria_facts` está vazio — filterableAttributes setados manualmente no servidor (drift de governança) | 🟠 P2 | Declarar no `config/scout.php` os filterableAttributes (`business_id`, `user_id`, `valid_until`, `metadata_relevancia` futuro) — Scout aplica no startup |
 | 4 | ADR canônica do roadmap 8 fases é a **0049**, não 0062 (que é separação runtime) — SKILL apontava pro número errado | ✅ corrigido 2026-05-04 | — |
 
