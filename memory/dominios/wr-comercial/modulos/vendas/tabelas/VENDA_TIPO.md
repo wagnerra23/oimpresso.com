@@ -5,6 +5,10 @@ created_at_version: 188
 last_modified_version: 1382
 target_version: 1468
 columns_count: 16
+foreign_keys_count: 2
+foreign_keys:
+  CODNF_NATUREZA_OPERACAO_PADRAO: NF_NATUREZA_OPERACAO
+  CODPRODUTO_TABELA: PRODUTO_TABELA
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,26 +24,35 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1382;
 - **Total colunas (versão 1468):** 16
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODNF_NATUREZA_OPERACAO_PADRAO` | [`NF_NATUREZA_OPERACAO`](../../nfe/tabelas/NF_NATUREZA_OPERACAO.md) |
+| `CODPRODUTO_TABELA` | [`PRODUTO_TABELA`](../../estoque/tabelas/PRODUTO_TABELA.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `TIPO_PADRAO` | `char` | NULL | v260 | v260 |
-| 2 | `II_DADOSADICIONAIS_NFE` | `VARCHAR(1)` | NULL | v381 | v381 |
-| 3 | `NF_FINALIDADE` | `varchar (1)` | NULL | v318 | v318 |
-| 4 | `PODE_SER_FATURADO` | `VARCHAR(1)` | NULL | v347 | v347 |
-| 5 | `MODELO` | `varchar (20)` | NULL | v381 | v381 |
-| 6 | `NF_FRETE_POR_CONTA` | `VARCHAR(1)` | NULL | v403 | v403 |
-| 7 | `PODE_SER_PRODUZIDO` | `VARCHAR(1)` | NULL | v461 | v461 |
-| 8 | `PREVISAO` | `CHAR(1)` | NULL | v574 | v574 |
-| 9 | `CODNF_NATUREZA_OPERACAO_PADRAO` | `INTEGER` | NULL | v662 | v662 |
-| 10 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v728 | v728 |
-| 11 | `PODE_EMITIR_NOTAFISCAL` | `VARCHAR(1)` | NULL | v796 | v796 |
-| 12 | `PRODUTO_ESTOQUE_LOCAL` | `VARCHAR(15)` | NULL | v758 | v808 |
-| 13 | `CODPRODUTO_TABELA` | `INTEGER` | NULL | v811 | v811 |
-| 14 | `OPERACAO` | `VARCHAR(50)` | NULL | v944 | v944 |
-| 15 | `SUBNIVEL` | `VARCHAR(50)` | NULL | v1047 | v1047 |
-| 16 | `PODE_IMPRIMIR` | `VARCHAR(1)` | NULL | v1382 | v1382 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `TIPO_PADRAO` | `char` | NULL |  | v260 | v260 |
+| 2 | `II_DADOSADICIONAIS_NFE` | `VARCHAR(1)` | NULL |  | v381 | v381 |
+| 3 | `NF_FINALIDADE` | `varchar (1)` | NULL |  | v318 | v318 |
+| 4 | `PODE_SER_FATURADO` | `VARCHAR(1)` | NULL |  | v347 | v347 |
+| 5 | `MODELO` | `varchar (20)` | NULL |  | v381 | v381 |
+| 6 | `NF_FRETE_POR_CONTA` | `VARCHAR(1)` | NULL |  | v403 | v403 |
+| 7 | `PODE_SER_PRODUZIDO` | `VARCHAR(1)` | NULL |  | v461 | v461 |
+| 8 | `PREVISAO` | `CHAR(1)` | NULL |  | v574 | v574 |
+| 9 | `CODNF_NATUREZA_OPERACAO_PADRAO` | `INTEGER` | NULL | → `NF_NATUREZA_OPERACAO` | v662 | v662 |
+| 10 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v728 | v728 |
+| 11 | `PODE_EMITIR_NOTAFISCAL` | `VARCHAR(1)` | NULL |  | v796 | v796 |
+| 12 | `PRODUTO_ESTOQUE_LOCAL` | `VARCHAR(15)` | NULL |  | v758 | v808 |
+| 13 | `CODPRODUTO_TABELA` | `INTEGER` | NULL | → `PRODUTO_TABELA` | v811 | v811 |
+| 14 | `OPERACAO` | `VARCHAR(50)` | NULL |  | v944 | v944 |
+| 15 | `SUBNIVEL` | `VARCHAR(50)` | NULL |  | v1047 | v1047 |
+| 16 | `PODE_IMPRIMIR` | `VARCHAR(1)` | NULL |  | v1382 | v1382 |
 
 ## Evolução
 

@@ -5,6 +5,10 @@ created_at_version: 728
 last_modified_version: 728
 target_version: 1468
 columns_count: 3
+foreign_keys_count: 2
+foreign_keys:
+  CODDICA: DICA
+  CODUSUARIO: USUARIO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,13 +24,22 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 728;
 - **Total colunas (versão 1468):** 3
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODDICA` | [`DICA`](../../ui_metadata/tabelas/DICA.md) |
+| `CODUSUARIO` | [`USUARIO`](../../cadastros/tabelas/USUARIO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODDICA` | `INTEGER` | NOT NULL | v728 | v728 |
-| 2 | `CODUSUARIO` | `INTEGER` | NOT NULL | v728 | v728 |
-| 3 | `DT_CONSUMIDO` | `TIMESTAMP` | NULL | v728 | v728 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODDICA` | `INTEGER` | NOT NULL | → `DICA` | v728 | v728 |
+| 2 | `CODUSUARIO` | `INTEGER` | NOT NULL | → `USUARIO` | v728 | v728 |
+| 3 | `DT_CONSUMIDO` | `TIMESTAMP` | NULL |  | v728 | v728 |
 
 ## Evolução
 

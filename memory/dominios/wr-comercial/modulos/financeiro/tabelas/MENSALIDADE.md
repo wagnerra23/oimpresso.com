@@ -5,6 +5,11 @@ created_at_version: 489
 last_modified_version: 1465
 target_version: 1468
 columns_count: 10
+foreign_keys_count: 3
+foreign_keys:
+  CODCONTA: CONTAS
+  CODEMAIL_MODELO: EMAIL_MODELO
+  CODPLANOCONTAS: PLANOCONTAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,20 +25,30 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1465;
 - **Total colunas (versão 1468):** 10
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCONTA` | [`CONTAS`](../../financeiro/tabelas/CONTAS.md) |
+| `CODEMAIL_MODELO` | [`EMAIL_MODELO`](../../agenda/tabelas/EMAIL_MODELO.md) |
+| `CODPLANOCONTAS` | [`PLANOCONTAS`](../../financeiro/tabelas/PLANOCONTAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v489 | v489 |
-| 2 | `DESCRICAO` | `VARCHAR(100)` | NULL | v489 | v489 |
-| 3 | `MES` | `DATE` | NULL | v489 | v489 |
-| 4 | `CODCONTA` | `INTEGER` | NULL | v489 | v489 |
-| 5 | `DT_GERADO` | `TIMESTAMP` | NULL | v489 | v489 |
-| 6 | `DT_FINANCEIRO` | `TIMESTAMP` | NULL | v489 | v489 |
-| 7 | `CODPLANOCONTAS` | `VARCHAR(30) CHARACTER SET WIN1252` | NULL | v489 | v499 |
-| 8 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v489 | v489 |
-| 9 | `ATIVO` | `VARCHAR(1)` | NULL | v734 | v734 |
-| 10 | `CODEMAIL_MODELO` | `INTEGER` | NULL | v1465 | v1465 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v489 | v489 |
+| 2 | `DESCRICAO` | `VARCHAR(100)` | NULL |  | v489 | v489 |
+| 3 | `MES` | `DATE` | NULL |  | v489 | v489 |
+| 4 | `CODCONTA` | `INTEGER` | NULL | → `CONTAS` | v489 | v489 |
+| 5 | `DT_GERADO` | `TIMESTAMP` | NULL |  | v489 | v489 |
+| 6 | `DT_FINANCEIRO` | `TIMESTAMP` | NULL |  | v489 | v489 |
+| 7 | `CODPLANOCONTAS` | `VARCHAR(30) CHARACTER SET WIN1252` | NULL | → `PLANOCONTAS` | v489 | v499 |
+| 8 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v489 | v489 |
+| 9 | `ATIVO` | `VARCHAR(1)` | NULL |  | v734 | v734 |
+| 10 | `CODEMAIL_MODELO` | `INTEGER` | NULL | → `EMAIL_MODELO` | v1465 | v1465 |
 
 ## Evolução
 

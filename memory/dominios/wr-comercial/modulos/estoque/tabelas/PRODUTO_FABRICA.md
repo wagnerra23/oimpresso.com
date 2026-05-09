@@ -5,6 +5,10 @@ created_at_version: 10
 last_modified_version: 239
 target_version: 1468
 columns_count: 3
+foreign_keys_count: 2
+foreign_keys:
+  CODFORNECEDOR: FORNECEDOR
+  CODPRODUTO: PRODUTO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,13 +24,22 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 239;
 - **Total colunas (versão 1468):** 3
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODFORNECEDOR` | [`FORNECEDOR`](../../cadastros/tabelas/FORNECEDOR.md) |
+| `CODPRODUTO` | [`PRODUTO`](../../estoque/tabelas/PRODUTO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODFABRICA` | `varchar(60)` | NOT NULL | v10 | v239 |
-| 2 | `CODFORNECEDOR` | `VARCHAR(10)` | NOT NULL | v10 | v10 |
-| 3 | `CODPRODUTO` | `VARCHAR(15)` | NOT NULL | v10 | v18 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODFABRICA` | `varchar(60)` | NOT NULL |  | v10 | v239 |
+| 2 | `CODFORNECEDOR` | `VARCHAR(10)` | NOT NULL | → `FORNECEDOR` | v10 | v10 |
+| 3 | `CODPRODUTO` | `VARCHAR(15)` | NOT NULL | → `PRODUTO` | v10 | v18 |
 
 ## Evolução
 

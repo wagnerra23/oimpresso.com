@@ -5,6 +5,10 @@ created_at_version: 124
 last_modified_version: 953
 target_version: 1468
 columns_count: 31
+foreign_keys_count: 2
+foreign_keys:
+  CODFORMULA_PERFIL: FORMULA_PERFIL
+  CODPRODUTO: PRODUTO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,41 +24,50 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 953;
 - **Total colunas (versão 1468):** 31
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODFORMULA_PERFIL` | [`FORMULA_PERFIL`](../../estoque/tabelas/FORMULA_PERFIL.md) |
+| `CODPRODUTO` | [`PRODUTO`](../../estoque/tabelas/PRODUTO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `PARENT` | `VARCHAR(15)` | NULL | v124 | v953 |
-| 2 | `COMP` | `double precision` | NULL | v183 | v183 |
-| 3 | `LARG` | `double precision` | NULL | v183 | v183 |
-| 4 | `ESPESSURA` | `double precision` | NULL | v183 | v183 |
-| 5 | `QTDADEPECA` | `double precision` | NULL | v185 | v185 |
-| 6 | `DESCRICAO` | `varchar(300)` | NULL | v328 | v328 |
-| 7 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v375 | v375 |
-| 8 | `PESO` | `DOUBLE PRECISION` | NULL | v724 | v724 |
-| 9 | `CODFORMULA_PERFIL` | `INTEGER` | NULL | v653 | v653 |
-| 10 | `COMP_COMPOSICAO` | `DOUBLE PRECISION` | NULL | v721 | v721 |
-| 11 | `COMP_FORMULA` | `VARCHAR(500)` | NULL | v721 | v721 |
-| 12 | `ESPESSURA_COMPOSICAO` | `DOUBLE PRECISION` | NULL | v721 | v721 |
-| 13 | `ESPESSURA_FORMULA` | `VARCHAR(500)` | NULL | v721 | v721 |
-| 14 | `LARG_COMPOSICAO` | `DOUBLE PRECISION` | NULL | v721 | v721 |
-| 15 | `LARG_FORMULA` | `VARCHAR(500)` | NULL | v721 | v721 |
-| 16 | `QTDADEPECA_COMPOSICAO` | `DOUBLE PRECISION` | NULL | v721 | v721 |
-| 17 | `QTDADEPECA_FORMULA` | `VARCHAR(500)` | NULL | v721 | v721 |
-| 18 | `CODPRODUTO` | `VARCHAR(15)` | NULL | v826 | v826 |
-| 19 | `ORDEM` | `INTEGER` | NULL | v834 | v834 |
-| 20 | `ORDEM_ARVORE` | `VARCHAR(100)` | NULL | v826 | v826 |
-| 21 | `TIPO` | `VARCHAR(20)` | NULL | v826 | v826 |
-| 22 | `QUANT_FORMULA` | `VARCHAR(500)` | NULL | v826 | v826 |
-| 23 | `CALC_QPESO_BRUTO_TOTAL` | `DOUBLE PRECISION, ADD CALC_QPESO_LIQUIDO_TOTAL DOUBLE PRECISION` | NULL | v850 | v850 |
-| 24 | `VALOR` | `DOUBLE PRECISION` | NULL | v874 | v874 |
-| 25 | `TOTAL` | `DOUBLE PRECISION` | NULL | v874 | v874 |
-| 26 | `CUSTO` | `DOUBLE PRECISION` | NULL | v878 | v878 |
-| 27 | `DESPERDICIO` | `DOUBLE PRECISION` | NULL | v884 | v884 |
-| 28 | `TEMPO_ESTIMADO` | `DOUBLE PRECISION` | NULL | v903 | v903 |
-| 29 | `FORMULA` | `VARCHAR(50)` | NULL | v912 | v912 |
-| 30 | `ESPESSURA_AVANCO1` | `DOUBLE PRECISION, ADD ESPESSURA_AVANCO2 DOUBLE PRECISION, ADD LARG_AVANCO1 DOUBLE PRECISION, ADD LARG_AVANCO2 DOUBLE PRECISION, ADD COMP_AVANCO1 DOUBLE PRECISION, ADD COMP_AVANCO2 DOUBLE PRECISION` | NULL | v925 | v925 |
-| 31 | `QTDADEPECA_AVANCO1` | `DOUBLE PRECISION, ADD QTDADEPECA_AVANCO2 DOUBLE PRECISION` | NULL | v925 | v925 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `PARENT` | `VARCHAR(15)` | NULL |  | v124 | v953 |
+| 2 | `COMP` | `double precision` | NULL |  | v183 | v183 |
+| 3 | `LARG` | `double precision` | NULL |  | v183 | v183 |
+| 4 | `ESPESSURA` | `double precision` | NULL |  | v183 | v183 |
+| 5 | `QTDADEPECA` | `double precision` | NULL |  | v185 | v185 |
+| 6 | `DESCRICAO` | `varchar(300)` | NULL |  | v328 | v328 |
+| 7 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v375 | v375 |
+| 8 | `PESO` | `DOUBLE PRECISION` | NULL |  | v724 | v724 |
+| 9 | `CODFORMULA_PERFIL` | `INTEGER` | NULL | → `FORMULA_PERFIL` | v653 | v653 |
+| 10 | `COMP_COMPOSICAO` | `DOUBLE PRECISION` | NULL |  | v721 | v721 |
+| 11 | `COMP_FORMULA` | `VARCHAR(500)` | NULL |  | v721 | v721 |
+| 12 | `ESPESSURA_COMPOSICAO` | `DOUBLE PRECISION` | NULL |  | v721 | v721 |
+| 13 | `ESPESSURA_FORMULA` | `VARCHAR(500)` | NULL |  | v721 | v721 |
+| 14 | `LARG_COMPOSICAO` | `DOUBLE PRECISION` | NULL |  | v721 | v721 |
+| 15 | `LARG_FORMULA` | `VARCHAR(500)` | NULL |  | v721 | v721 |
+| 16 | `QTDADEPECA_COMPOSICAO` | `DOUBLE PRECISION` | NULL |  | v721 | v721 |
+| 17 | `QTDADEPECA_FORMULA` | `VARCHAR(500)` | NULL |  | v721 | v721 |
+| 18 | `CODPRODUTO` | `VARCHAR(15)` | NULL | → `PRODUTO` | v826 | v826 |
+| 19 | `ORDEM` | `INTEGER` | NULL |  | v834 | v834 |
+| 20 | `ORDEM_ARVORE` | `VARCHAR(100)` | NULL |  | v826 | v826 |
+| 21 | `TIPO` | `VARCHAR(20)` | NULL |  | v826 | v826 |
+| 22 | `QUANT_FORMULA` | `VARCHAR(500)` | NULL |  | v826 | v826 |
+| 23 | `CALC_QPESO_BRUTO_TOTAL` | `DOUBLE PRECISION, ADD CALC_QPESO_LIQUIDO_TOTAL DOUBLE PRECISION` | NULL |  | v850 | v850 |
+| 24 | `VALOR` | `DOUBLE PRECISION` | NULL |  | v874 | v874 |
+| 25 | `TOTAL` | `DOUBLE PRECISION` | NULL |  | v874 | v874 |
+| 26 | `CUSTO` | `DOUBLE PRECISION` | NULL |  | v878 | v878 |
+| 27 | `DESPERDICIO` | `DOUBLE PRECISION` | NULL |  | v884 | v884 |
+| 28 | `TEMPO_ESTIMADO` | `DOUBLE PRECISION` | NULL |  | v903 | v903 |
+| 29 | `FORMULA` | `VARCHAR(50)` | NULL |  | v912 | v912 |
+| 30 | `ESPESSURA_AVANCO1` | `DOUBLE PRECISION, ADD ESPESSURA_AVANCO2 DOUBLE PRECISION, ADD LARG_AVANCO1 DOUBLE PRECISION, ADD LARG_AVANCO2 DOUBLE PRECISION, ADD COMP_AVANCO1 DOUBLE PRECISION, ADD COMP_AVANCO2 DOUBLE PRECISION` | NULL |  | v925 | v925 |
+| 31 | `QTDADEPECA_AVANCO1` | `DOUBLE PRECISION, ADD QTDADEPECA_AVANCO2 DOUBLE PRECISION` | NULL |  | v925 | v925 |
 
 ## Evolução
 

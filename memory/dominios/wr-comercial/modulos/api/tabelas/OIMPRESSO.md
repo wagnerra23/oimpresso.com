@@ -5,6 +5,7 @@ created_at_version: 1192
 last_modified_version: 1230
 target_version: 1468
 columns_count: 7
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,15 +23,15 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v1192 | v1192 |
-| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL | v1192 | v1192 |
-| 3 | `ATIVO` | `VARCHAR(1)` | NULL | v1192 | v1192 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1192 | v1192 |
-| 5 | `TABELA` | `VARCHAR(255), ADD OBSERVACAO BLOB SUB_TYPE 1 SEGMENT SIZE 80, ADD CODUSUARIO INTEGER` | NULL | v1219 | v1219 |
-| 6 | `DATA` | `TIMESTAMP` | NULL | v1204 | v1219 |
-| 7 | `ARQUIVO` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80;CREATE TABLE PRODUTO_BAIXA_AUTOMATICA ( CODIGO INTEGER , DT_ALTERACAO TIMESTAMP, ATIVO VARCHAR(1), CODPRODUTO VARCHAR(15), CODPRODUTO_ETAPA INTEGER, CODPRODUTO_COMPOSICAO INTEGER )` | NOT NULL | v1230 | v1230 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v1192 | v1192 |
+| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL |  | v1192 | v1192 |
+| 3 | `ATIVO` | `VARCHAR(1)` | NULL |  | v1192 | v1192 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1192 | v1192 |
+| 5 | `TABELA` | `VARCHAR(255), ADD OBSERVACAO BLOB SUB_TYPE 1 SEGMENT SIZE 80, ADD CODUSUARIO INTEGER` | NULL |  | v1219 | v1219 |
+| 6 | `DATA` | `TIMESTAMP` | NULL |  | v1204 | v1219 |
+| 7 | `ARQUIVO` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80;CREATE TABLE PRODUTO_BAIXA_AUTOMATICA ( CODIGO INTEGER , DT_ALTERACAO TIMESTAMP, ATIVO VARCHAR(1), CODPRODUTO VARCHAR(15), CODPRODUTO_ETAPA INTEGER, CODPRODUTO_COMPOSICAO INTEGER )` | NOT NULL |  | v1230 | v1230 |
 
 ## Evolução
 

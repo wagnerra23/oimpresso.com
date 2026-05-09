@@ -5,6 +5,7 @@ created_at_version: 758
 last_modified_version: 758
 target_version: 1468
 columns_count: 0
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py

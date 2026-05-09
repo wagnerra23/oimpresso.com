@@ -5,6 +5,10 @@ created_at_version: 369
 last_modified_version: 386
 target_version: 1468
 columns_count: 9
+foreign_keys_count: 2
+foreign_keys:
+  CODEMAIL: EMAIL
+  CODEMAIL_CRM_DATABASE: EMAIL
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,19 +24,28 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 386;
 - **Total colunas (versão 1468):** 9
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODEMAIL` | [`EMAIL`](../../agenda/tabelas/EMAIL.md) |
+| `CODEMAIL_CRM_DATABASE` | [`EMAIL`](../../agenda/tabelas/EMAIL.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v369 | v369 |
-| 2 | `CODCRM_DATABASE` | `INTEGER` | NOT NULL | v369 | v369 |
-| 3 | `CODEMAIL` | `INTEGER` | NULL | v369 | v369 |
-| 4 | `CODEMAIL_CRM_DATABASE` | `INTEGER` | NULL | v369 | v369 |
-| 5 | `DESCRICAO` | `VARCHAR(1000)` | NULL | v369 | v386 |
-| 6 | `CONTEUDO` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL | v369 | v369 |
-| 7 | `CAMINHO` | `VARCHAR(1000)` | NULL | v369 | v386 |
-| 8 | `TIPO_PART` | `VARCHAR(255)` | NULL | v369 | v369 |
-| 9 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v369 | v369 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v369 | v369 |
+| 2 | `CODCRM_DATABASE` | `INTEGER` | NOT NULL |  | v369 | v369 |
+| 3 | `CODEMAIL` | `INTEGER` | NULL | → `EMAIL` | v369 | v369 |
+| 4 | `CODEMAIL_CRM_DATABASE` | `INTEGER` | NULL | → `EMAIL` | v369 | v369 |
+| 5 | `DESCRICAO` | `VARCHAR(1000)` | NULL |  | v369 | v386 |
+| 6 | `CONTEUDO` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL |  | v369 | v369 |
+| 7 | `CAMINHO` | `VARCHAR(1000)` | NULL |  | v369 | v386 |
+| 8 | `TIPO_PART` | `VARCHAR(255)` | NULL |  | v369 | v369 |
+| 9 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v369 | v369 |
 
 ## Evolução
 

@@ -5,6 +5,7 @@ created_at_version: 560
 last_modified_version: 746
 target_version: 1468
 columns_count: 5
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,13 +23,13 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `FORM` | `VARCHAR(40)` | NULL | v560 | v560 |
-| 2 | `PADRAO` | `DOM_BOOLEAN` | NULL | v570 | v570 |
-| 3 | `ASSUNTO` | `VARCHAR(150)` | NULL | v572 | v572 |
-| 4 | `ATIVO` | `VARCHAR(1)` | NULL | v746 | v746 |
-| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v746 | v746 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `FORM` | `VARCHAR(40)` | NULL |  | v560 | v560 |
+| 2 | `PADRAO` | `DOM_BOOLEAN` | NULL |  | v570 | v570 |
+| 3 | `ASSUNTO` | `VARCHAR(150)` | NULL |  | v572 | v572 |
+| 4 | `ATIVO` | `VARCHAR(1)` | NULL |  | v746 | v746 |
+| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v746 | v746 |
 
 ## Evolução
 

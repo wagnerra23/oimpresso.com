@@ -39,6 +39,7 @@ from lib.ddl_parser import (  # noqa: E402
     Table,
     UPDATE_HEADER_RE as DDL_UPDATE_HEADER_RE,  # não usar — temos próprio abaixo
 )
+from lib.fk_resolver import infer_fks_for_table  # noqa: E402
 from lib.module_classifier import classify_all, classify_table  # noqa: E402
 
 
@@ -79,9 +80,12 @@ def slugify(s: str) -> str:
     return re.sub(r"[^A-Za-z0-9_-]+", "-", s).strip("-").lower()
 
 
-def render_table_md(t: Table, module: str, target_v: int) -> str:
-    """Renderiza 1 doc markdown por tabela."""
+def render_table_md(t: Table, module: str, target_v: int, all_tables: set[str]) -> str:
+    """Renderiza 1 doc markdown por tabela (com FKs inferidas)."""
     lines: list[str] = []
+
+    # Detecta FKs por convenção COD<TABELA> — ver dominios/wr-comercial/CONVENCOES.md
+    fks = infer_fks_for_table(list(t.columns.keys()), all_tables)
 
     # Frontmatter
     lines.append("---")
@@ -91,6 +95,11 @@ def render_table_md(t: Table, module: str, target_v: int) -> str:
     lines.append(f"last_modified_version: {t.last_modified_v}")
     lines.append(f"target_version: {target_v}")
     lines.append(f"columns_count: {len(t.columns)}")
+    lines.append(f"foreign_keys_count: {len(fks)}")
+    if fks:
+        lines.append("foreign_keys:")
+        for col, target in sorted(fks.items()):
+            lines.append(f"  {col}: {target}")
     if t.dropped_at_v:
         lines.append(f"dropped_at_version: {t.dropped_at_v}")
     lines.append(f"auto_generated: true")
@@ -119,16 +128,34 @@ def render_table_md(t: Table, module: str, target_v: int) -> str:
     lines.append(f"- **Total colunas (versão {target_v}):** {len(t.columns)}")
     lines.append("")
 
+    # Foreign keys (detectadas por convenção COD<TABELA>)
+    if fks:
+        lines.append("## Foreign Keys (inferidas)")
+        lines.append("")
+        lines.append(
+            "> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): "
+            "colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. "
+            "Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`."
+        )
+        lines.append("")
+        lines.append("| Coluna | → Tabela alvo |")
+        lines.append("|---|---|")
+        for col, target in sorted(fks.items()):
+            lines.append(f"| `{col}` | [`{target}`](../../{classify_table(target)}/tabelas/{target}.md) |")
+        lines.append("")
+
     # Colunas
     if t.columns:
         lines.append(f"## Colunas (versão {target_v})")
         lines.append("")
-        lines.append("| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |")
-        lines.append("|---|---|---|---|---|---|")
+        lines.append("| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |")
+        lines.append("|---|---|---|---|---|---|---|")
         for i, (_, col) in enumerate(t.columns.items(), 1):
             nullable = "NOT NULL" if not col.nullable else "NULL"
+            col_upper = col.name.upper()
+            fk_marker = f"→ `{fks[col_upper]}`" if col_upper in fks else ""
             lines.append(
-                f"| {i} | `{col.name}` | `{col.type}` | {nullable} | "
+                f"| {i} | `{col.name}` | `{col.type}` | {nullable} | {fk_marker} | "
                 f"v{col.added_at_v} | v{col.last_modified_v} |"
             )
         lines.append("")
@@ -321,13 +348,17 @@ def main() -> int:
 
     files_written = 0
 
-    # 1 doc por tabela viva
+    # 1 doc por tabela viva (FK resolver precisa do set completo)
+    all_table_names = set(alive.keys())
     for table_name, t in alive.items():
         module = classify_table(table_name)
         module_dir = out_dir / module / "tabelas"
         module_dir.mkdir(parents=True, exist_ok=True)
         target_path = module_dir / f"{table_name}.md"
-        target_path.write_text(render_table_md(t, module, target_v), encoding="utf-8")
+        target_path.write_text(
+            render_table_md(t, module, target_v, all_table_names),
+            encoding="utf-8",
+        )
         files_written += 1
 
     # _index.md por módulo

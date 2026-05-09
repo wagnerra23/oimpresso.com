@@ -5,6 +5,11 @@ created_at_version: 588
 last_modified_version: 588
 target_version: 1468
 columns_count: 4
+foreign_keys_count: 3
+foreign_keys:
+  CODEQUIPAMENTO: EQUIPAMENTO
+  CODEQUIPAMENTO_SEMIREBOQUE: EQUIPAMENTO_SEMIREBOQUE
+  CODUSUARIO: USUARIO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,14 +25,24 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 588;
 - **Total colunas (versão 1468):** 4
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODEQUIPAMENTO` | [`EQUIPAMENTO`](../../equipamento/tabelas/EQUIPAMENTO.md) |
+| `CODEQUIPAMENTO_SEMIREBOQUE` | [`EQUIPAMENTO_SEMIREBOQUE`](../../equipamento/tabelas/EQUIPAMENTO_SEMIREBOQUE.md) |
+| `CODUSUARIO` | [`USUARIO`](../../cadastros/tabelas/USUARIO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODEQUIPAMENTO` | `INTEGER` | NOT NULL | v588 | v588 |
-| 2 | `CODEQUIPAMENTO_SEMIREBOQUE` | `INTEGER` | NOT NULL | v588 | v588 |
-| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v588 | v588 |
-| 4 | `CODUSUARIO` | `INTEGER` | NOT NULL | v588 | v588 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODEQUIPAMENTO` | `INTEGER` | NOT NULL | → `EQUIPAMENTO` | v588 | v588 |
+| 2 | `CODEQUIPAMENTO_SEMIREBOQUE` | `INTEGER` | NOT NULL | → `EQUIPAMENTO_SEMIREBOQUE` | v588 | v588 |
+| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v588 | v588 |
+| 4 | `CODUSUARIO` | `INTEGER` | NOT NULL | → `USUARIO` | v588 | v588 |
 
 ## Evolução
 

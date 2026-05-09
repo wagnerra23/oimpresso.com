@@ -5,6 +5,7 @@ created_at_version: 1242
 last_modified_version: 1256
 target_version: 1468
 columns_count: 10
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,18 +23,18 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `COMPETENCIA` | `VARCHAR(7)` | NULL | v1242 | v1242 |
-| 2 | `TEXT1` | `VARCHAR(255)` | NULL | v1242 | v1242 |
-| 3 | `TEXT2` | `VARCHAR(255)` | NULL | v1242 | v1242 |
-| 4 | `TEXT3` | `VARCHAR(255)` | NULL | v1242 | v1242 |
-| 5 | `TEXT4` | `VARCHAR(255)` | NULL | v1242 | v1242 |
-| 6 | `TAG_ESTILO` | `INTEGER` | NULL | v1243 | v1243 |
-| 7 | `GROUPINDEX` | `INTEGER` | NULL | v1243 | v1243 |
-| 8 | `INDEXINGROUP` | `INTEGER` | NULL | v1243 | v1243 |
-| 9 | `TAG` | `INTEGER` | NULL | v1252 | v1252 |
-| 10 | `FAVORITO` | `VARCHAR(1)` | NULL | v1256 | v1256 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `COMPETENCIA` | `VARCHAR(7)` | NULL |  | v1242 | v1242 |
+| 2 | `TEXT1` | `VARCHAR(255)` | NULL |  | v1242 | v1242 |
+| 3 | `TEXT2` | `VARCHAR(255)` | NULL |  | v1242 | v1242 |
+| 4 | `TEXT3` | `VARCHAR(255)` | NULL |  | v1242 | v1242 |
+| 5 | `TEXT4` | `VARCHAR(255)` | NULL |  | v1242 | v1242 |
+| 6 | `TAG_ESTILO` | `INTEGER` | NULL |  | v1243 | v1243 |
+| 7 | `GROUPINDEX` | `INTEGER` | NULL |  | v1243 | v1243 |
+| 8 | `INDEXINGROUP` | `INTEGER` | NULL |  | v1243 | v1243 |
+| 9 | `TAG` | `INTEGER` | NULL |  | v1252 | v1252 |
+| 10 | `FAVORITO` | `VARCHAR(1)` | NULL |  | v1256 | v1256 |
 
 ## Evolução
 
