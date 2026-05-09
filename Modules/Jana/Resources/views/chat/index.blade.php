@@ -15,7 +15,7 @@
             <div class="alert alert-warning">
                 <strong>STUB spec-ready.</strong> Módulo Copiloto scaffoldado em 2026-04-24.
                 Esta view Blade é placeholder — será substituída pela Page React
-                <code>Pages/Copiloto/Chat.tsx</code> quando o ui/0001 for implementado.
+                <code>Pages/Jana/Chat.tsx</code> quando o ui/0001 for implementado.
             </div>
 
             <h4>Conversa atual: {{ $conversa->titulo ?? 'Nova conversa' }}</h4>
