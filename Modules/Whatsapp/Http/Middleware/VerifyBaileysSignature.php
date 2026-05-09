@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
  * mesma chave do Docker secret CT 100 (env var `WHATSAPP_BAILEYS_API_KEY`).
  * Não é mais per-tenant. Multi-tenancy é via `business_uuid` no path.
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * Após validar Bearer global, tenta resolver `WhatsappBusinessPhone` específico
  * via `instance_id` no body. Se acha, injeta como `whatsapp.phone`. Daemon
  * Node manda `instance_id` em todo webhook (auto-gerado per-phone).

@@ -18,7 +18,7 @@ uses(Tests\TestCase::class);
 /**
  * PR 2a US-WA-040 · Driver Layer aceita Config legacy E Phone novo via union type.
  *
- * ADR 0115 emite contrato: drivers acessam apenas campos comuns aos 2 models
+ * ADR 0117 emite contrato: drivers acessam apenas campos comuns aos 2 models
  * (driver, fallback_driver, meta_*, zapi_*, baileys_*, business_id), então
  * ambos types funcionam transparente. Este test valida o contrato em runtime
  * exercitando DriverFactory + NullDriver com instâncias dos 2 models.
