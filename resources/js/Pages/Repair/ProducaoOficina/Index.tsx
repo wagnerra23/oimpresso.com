@@ -4,7 +4,7 @@
 // Mock data inline no Controller até US-REPAIR-PROD-2.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type Tone = 'slate' | 'blue' | 'amber' | 'violet' | 'emerald';
 
@@ -67,6 +67,33 @@ export default function ProducaoOficinaIndex({ columns, totals }: PageProps) {
   const [elevadorFilter, setElevadorFilter] = useState<string>('all');
   const [activeCard, setActiveCard] = useState<Card | null>(null);
 
+  const filtersActive = boxFilter !== 'all' || elevadorFilter !== 'all';
+
+  const filteredColumns = useMemo(() => {
+    if (!filtersActive) return columns;
+    return columns.map((col) => ({
+      ...col,
+      cards: col.cards.filter((card) => {
+        const matchBox = boxFilter === 'all' || card.box === boxFilter;
+        const matchElev = elevadorFilter === 'all' || card.box === elevadorFilter;
+        return matchBox && matchElev;
+      }),
+    }));
+  }, [columns, boxFilter, elevadorFilter, filtersActive]);
+
+  const filteredCounts = useMemo(() => {
+    const all = filteredColumns.flatMap((c) => c.cards);
+    return {
+      os: all.length,
+      aguardando: all.filter((c) => c.aprovacao_pendente).length,
+    };
+  }, [filteredColumns]);
+
+  const clearFilters = () => {
+    setBoxFilter('all');
+    setElevadorFilter('all');
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-50 text-slate-900">
       {/* Filter bar */}
@@ -84,16 +111,35 @@ export default function ProducaoOficinaIndex({ columns, totals }: PageProps) {
           value={elevadorFilter}
           onChange={setElevadorFilter}
         />
+        {filtersActive && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-xs text-slate-500 hover:text-slate-900 underline underline-offset-2"
+          >
+            Limpar filtros
+          </button>
+        )}
         <div className="ml-auto text-sm text-slate-500">
-          <span className="font-medium text-slate-900">{totals.os}</span> OS ·{' '}
-          <span className="font-medium text-slate-900">{totals.aguardando_aprovacao}</span> aguardando aprovação
+          {filtersActive ? (
+            <>
+              <span className="font-medium text-slate-900">{filteredCounts.os}</span> de {totals.os} OS ·{' '}
+              <span className="font-medium text-slate-900">{filteredCounts.aguardando}</span> de{' '}
+              {totals.aguardando_aprovacao} aguardando aprovação
+            </>
+          ) : (
+            <>
+              <span className="font-medium text-slate-900">{totals.os}</span> OS ·{' '}
+              <span className="font-medium text-slate-900">{totals.aguardando_aprovacao}</span> aguardando aprovação
+            </>
+          )}
         </div>
       </div>
 
       {/* Kanban */}
       <main className="flex-1 p-6 overflow-hidden">
         <div className="grid grid-cols-5 gap-4 h-full">
-          {columns.map((col) => (
+          {filteredColumns.map((col) => (
             <KanbanColumn key={col.id} column={col} onCardClick={setActiveCard} />
           ))}
         </div>
