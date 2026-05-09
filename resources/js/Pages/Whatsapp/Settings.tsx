@@ -1,14 +1,15 @@
 // @memcofre
 //   tela: /whatsapp/settings
-//   stories: US-WA-001 (wizard 2 passos Z-API + Meta Cloud)
-//   adrs: 0096 (Z-API default + Meta Cloud fallback obrigatório)
+//   stories: US-WA-001 (wizard) + US-WA-022 (UX simplificada Baileys)
+//   adrs: 0058 (Centrifugo) + 0093 (multi-tenant) + 0096 (Z-API/Meta/Baileys) + 0107 (visual gate) + 0112 (mwart-exceção)
+//   charter: resources/js/Pages/Whatsapp/Settings.charter.md
 //   spec: memory/requisitos/Whatsapp/SPEC.md
-//   status: implementada Lote 2e
 //   permissao: whatsapp.settings.manage
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { router } from '@inertiajs/react';
-import { AlertTriangle, Copy } from 'lucide-react';
+import { Centrifuge } from 'centrifuge';
+import { AlertTriangle, Copy, Loader2, QrCode, Smartphone, Wifi, WifiOff } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -21,12 +22,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Switch } from '@/Components/ui/switch';
 
 type Driver = 'zapi' | 'meta_cloud' | 'baileys' | 'null';
+type DriverHealth = 'healthy' | 'degraded' | 'disconnected' | 'banned' | 'never_checked';
+type LiveState = 'idle' | 'connecting' | 'qr_required' | 'connected' | 'degraded' | 'disconnected' | 'banned';
 
 interface ConfigForUi {
   driver: Driver;
   fallback_driver: Driver;
   display_phone: string | null;
-  driver_health: 'healthy' | 'degraded' | 'disconnected' | 'banned' | 'never_checked';
+  driver_health: DriverHealth;
   driver_health_consecutive_failures: number;
   last_health_check_at: string | null;
   last_health_message: string | null;
@@ -38,7 +41,9 @@ interface ConfigForUi {
   meta_webhook_verify_token: string | null;
   zapi_instance_id: string | null;
   baileys_instance_id: string | null;
-  baileys_daemon_url: string | null;
+  baileys_phone_e164: string | null;
+  baileys_verified_name: string | null;
+  baileys_profile_pic_url: string | null;
   bot_enabled: boolean;
   template_repair_ready_name: string | null;
   template_repair_waiting_parts_name: string | null;
@@ -46,22 +51,29 @@ interface ConfigForUi {
   template_billing_paid_name: string | null;
 }
 
+interface CentrifugoConfig {
+  wsUrl: string;
+  token: string;
+  channel: string;
+}
+
 interface Props {
   config: ConfigForUi | null;
   webhookUrls: { meta: string; zapi: string; baileys: string } | null;
   forbiddenDrivers: string[];
   mandatoryFallbackFor: string[];
+  centrifugoConfig: CentrifugoConfig | null;
 }
 
-export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers, mandatoryFallbackFor }: Props) {
+export default function WhatsappSettings({
+  config, webhookUrls, forbiddenDrivers, mandatoryFallbackFor, centrifugoConfig,
+}: Props) {
   const [driver, setDriver] = useState<Driver>(config?.driver ?? 'zapi');
-  // Fallback driver é fixo "meta_cloud" no MVP (ADR 0096 §3 fallback obrigatório).
-  // Setter mantido pra Sprint 3 quando tela de wizard avançado expor escolha.
   const [fallbackDriver] = useState<Driver>(config?.fallback_driver ?? 'meta_cloud');
   const [lgpdAccepted, setLgpdAccepted] = useState<boolean>(config?.lgpd_acknowledged_at !== null);
 
   const [metaPhone, setMetaPhone] = useState(config?.meta_phone_number_id ?? '');
-  const [metaToken, setMetaToken] = useState(''); // sempre vazio (não vem do server por segurança)
+  const [metaToken, setMetaToken] = useState('');
   const [metaSecret, setMetaSecret] = useState('');
   const [metaVerify, setMetaVerify] = useState(config?.meta_webhook_verify_token ?? '');
 
@@ -69,9 +81,8 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
   const [zapiToken, setZapiToken] = useState('');
   const [zapiClient, setZapiClient] = useState('');
 
-  const [baileysInstance, setBaileysInstance] = useState(config?.baileys_instance_id ?? '');
-  const [baileysUrl, setBaileysUrl] = useState(config?.baileys_daemon_url ?? '');
-  const [baileysKey, setBaileysKey] = useState('');
+  // US-WA-022: Baileys agora é só telefone E.164.
+  const [baileysPhone, setBaileysPhone] = useState(config?.baileys_phone_e164 ?? '');
 
   const [botEnabled, setBotEnabled] = useState(config?.bot_enabled ?? false);
   const [tplReady, setTplReady] = useState(config?.template_repair_ready_name ?? '');
@@ -81,8 +92,74 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
 
   const [submitting, setSubmitting] = useState(false);
 
+  // US-WA-022 estado reativo Baileys via Centrifugo
+  const [liveState, setLiveState] = useState<LiveState>(deriveInitialLiveState(config));
+  const [liveQr, setLiveQr] = useState<string | null>(null);
+  const [liveQrExpiresIn, setLiveQrExpiresIn] = useState<number>(0);
+  const [liveDisplayPhone, setLiveDisplayPhone] = useState<string | null>(config?.display_phone ?? null);
+  const [liveVerifiedName, setLiveVerifiedName] = useState<string | null>(config?.baileys_verified_name ?? null);
+  const [liveProfilePicUrl, setLiveProfilePicUrl] = useState<string | null>(config?.baileys_profile_pic_url ?? null);
+  const [liveBanReason, setLiveBanReason] = useState<string | null>(null);
+  const [centrifugoConnected, setCentrifugoConnected] = useState(false);
+
   const requiresFallback = mandatoryFallbackFor.includes(driver);
   const isForbidden = forbiddenDrivers.includes(driver);
+
+  // ------- Centrifugo subscribe (driver=baileys) -------
+  useEffect(() => {
+    if (!centrifugoConfig || driver !== 'baileys') return;
+
+    const c = new Centrifuge(centrifugoConfig.wsUrl, { token: centrifugoConfig.token });
+    c.on('connected', () => setCentrifugoConnected(true));
+    c.on('disconnected', () => setCentrifugoConnected(false));
+
+    const sub = c.newSubscription(centrifugoConfig.channel);
+    sub.on('publication', (ctx: { data: Record<string, unknown> }) => {
+      const event = (ctx.data?.event as string | undefined) ?? '';
+      if (!event.startsWith('baileys.')) return;
+      const state = ctx.data?.state as LiveState | undefined;
+      if (state) setLiveState(state);
+
+      switch (event) {
+        case 'baileys.qr_updated':
+          setLiveQr((ctx.data?.qr as string | null) ?? null);
+          setLiveQrExpiresIn((ctx.data?.expires_in_seconds as number | undefined) ?? 60);
+          break;
+        case 'baileys.connected':
+          setLiveQr(null);
+          setLiveQrExpiresIn(0);
+          setLiveDisplayPhone((ctx.data?.display_phone as string | null) ?? null);
+          setLiveVerifiedName((ctx.data?.verified_name as string | null) ?? null);
+          setLiveProfilePicUrl((ctx.data?.profile_pic_url as string | null) ?? null);
+          setLiveBanReason(null);
+          break;
+        case 'baileys.ban_detected':
+          setLiveBanReason((ctx.data?.reason as string | null) ?? 'unknown');
+          setLiveQr(null);
+          break;
+        case 'baileys.session_lost':
+        case 'baileys.disconnected':
+          setLiveQr(null);
+          break;
+      }
+    });
+    sub.subscribe();
+    c.connect();
+
+    return () => {
+      try { sub.unsubscribe(); } catch { /* ignore */ }
+      c.disconnect();
+    };
+  }, [centrifugoConfig?.token, centrifugoConfig?.channel, centrifugoConfig?.wsUrl, driver]);
+
+  // Countdown QR
+  useEffect(() => {
+    if (liveState !== 'qr_required' || liveQrExpiresIn <= 0) return;
+    const interval = setInterval(() => {
+      setLiveQrExpiresIn((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [liveState, liveQr]);
 
   function copyToClipboard(text: string) {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -93,6 +170,10 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+
+    if (driver === 'baileys') {
+      setLiveState('connecting');
+    }
 
     router.put(
       route('whatsapp.settings.update'),
@@ -106,9 +187,7 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
         zapi_instance_id: zapiInstance || null,
         zapi_instance_token: zapiToken || null,
         zapi_client_token: zapiClient || null,
-        baileys_instance_id: baileysInstance || null,
-        baileys_daemon_url: baileysUrl || null,
-        baileys_api_key: baileysKey || null,
+        baileys_phone_e164: baileysPhone || null,
         lgpd_acknowledged: lgpdAccepted,
         bot_enabled: botEnabled,
         template_repair_ready_name: tplReady || null,
@@ -128,7 +207,7 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
       <PageHeader
         icon="settings"
         title="Configurações Whatsapp"
-        description="Wizard 2 passos: Z-API hoje (5 min) + Meta Cloud em paralelo (1-3 dias) como fallback obrigatório"
+        description="Wizard provedores: Z-API · Meta Cloud · Baileys custom (todos com fallback obrigatório quando aplicável)"
       />
 
       {/* Status atual */}
@@ -143,6 +222,12 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
                   Fallback {config.fallback_driver} ativo
                 </Badge>
               )}
+              {driver === 'baileys' && centrifugoConfig && (
+                <Badge variant="outline" className={centrifugoConnected ? 'border-green-500 text-green-700' : 'border-slate-400 text-slate-600'}>
+                  {centrifugoConnected ? <Wifi size={12} className="inline mr-1" /> : <WifiOff size={12} className="inline mr-1" />}
+                  {centrifugoConnected ? 'real-time' : 'sem real-time'}
+                </Badge>
+              )}
             </CardTitle>
             <CardDescription>
               Driver atual: <strong>{config.driver}</strong>
@@ -152,9 +237,7 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
           </CardHeader>
           {config.last_health_message && (
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Última mensagem: {config.last_health_message}
-              </p>
+              <p className="text-sm text-muted-foreground">Última mensagem: {config.last_health_message}</p>
             </CardContent>
           )}
         </Card>
@@ -166,13 +249,12 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
           <AlertTriangle className="h-4 w-4" aria-hidden />
           <AlertTitle>Driver proibido</AlertTitle>
           <AlertDescription>
-            Driver &quot;{driver}&quot; é PROIBIDO permanente (ADR 0096 emenda 4). Reabrir só via nova ADR explícita
-            Wagner-aceita.
+            Driver &quot;{driver}&quot; é PROIBIDO permanente (ADR 0096 emenda 4). Reabrir só via nova ADR explícita Wagner-aceita.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Aviso risco Z-API/Baileys — só mostra antes de aceitar termo LGPD */}
+      {/* Aviso risco — só antes de aceitar LGPD */}
       {requiresFallback && !lgpdAccepted && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" aria-hidden />
@@ -190,13 +272,13 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
         <Card>
           <CardHeader>
             <CardTitle>Passo 1 — Driver primário</CardTitle>
-            <CardDescription>Recomendação: Z-API (5 min de onboarding) com Meta Cloud como fallback.</CardDescription>
+            <CardDescription>Escolha o provedor Whatsapp pra este negócio.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <DriverCard
                 value="zapi"
-                title="Z-API (recomendado)"
+                title="Z-API"
                 description="SaaS BR. 5 min scan QR. R$ 99/mês. Risco ban Meta."
                 selected={driver === 'zapi'}
                 onClick={() => setDriver('zapi')}
@@ -211,7 +293,7 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
               <DriverCard
                 value="baileys"
                 title="Baileys custom"
-                description="Daemon Node CT 100 próprio. Estrutura customizada (schema/logs/métricas). Risco ban."
+                description="Daemon Node próprio oimpresso. Estrutura customizada. Risco ban."
                 selected={driver === 'baileys'}
                 onClick={() => setDriver('baileys')}
               />
@@ -219,11 +301,11 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
           </CardContent>
         </Card>
 
-        {/* Z-API form (driver=zapi) */}
+        {/* Z-API form */}
         {driver === 'zapi' && (
           <Card>
             <CardHeader>
-              <CardTitle>Z-API Credenciais</CardTitle>
+              <CardTitle>Z-API — credenciais</CardTitle>
               <CardDescription>Cadastre conta em app.z-api.io e cole as credenciais aqui.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -255,62 +337,50 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
           </Card>
         )}
 
-        {/* Baileys form */}
+        {/* Baileys — UX simplificada US-WA-022 */}
         {driver === 'baileys' && (
           <Card>
             <CardHeader>
-              <CardTitle>Baileys custom — credenciais</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                Baileys — telefone WhatsApp Business
+                <BaileysLiveStateBadge state={liveState} />
+              </CardTitle>
               <CardDescription>
-                Daemon Node CT 100 próprio. Cadastro deve ser feito após deploy do daemon (ver runbook
-                <code className="mx-1 px-1 bg-muted rounded">baileys-daemon-deploy-ct100.md</code>).
+                Cadastre o telefone no formato E.164 (ex: <code>+5511987654321</code>). O sistema cuida do resto:
+                provisiona instance, gera QR Code, sincroniza perfil. Você só precisa escanear.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="baileys_instance_id">Instance ID</Label>
+                <Label htmlFor="baileys_phone_e164">Telefone (E.164)</Label>
                 <Input
-                  id="baileys_instance_id"
-                  value={baileysInstance}
-                  onChange={(e) => setBaileysInstance(e.target.value)}
-                  placeholder={`biz${config?.driver ? '<id>' : ''}-main`}
+                  id="baileys_phone_e164"
+                  type="tel"
+                  inputMode="tel"
+                  value={baileysPhone}
+                  onChange={(e) => setBaileysPhone(e.target.value)}
+                  placeholder="+5511987654321"
+                  pattern="^\+[1-9][0-9]{8,14}$"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Use chip dedicado pra business — nunca número pessoal. Risco ban Meta.
+                </p>
               </div>
-              <div>
-                <Label htmlFor="baileys_daemon_url">Daemon URL (CT 100)</Label>
-                <Input
-                  id="baileys_daemon_url"
-                  value={baileysUrl}
-                  onChange={(e) => setBaileysUrl(e.target.value)}
-                  placeholder="https://whatsapp-baileys.oimpresso.local"
-                />
-              </div>
-              <div>
-                <Label htmlFor="baileys_api_key">API Key (Bearer — cifrado em DB)</Label>
-                <Input
-                  id="baileys_api_key"
-                  type="password"
-                  value={baileysKey}
-                  onChange={(e) => setBaileysKey(e.target.value)}
-                  placeholder={config?.has_baileys_credentials ? '•••••• (já cadastrado)' : 'Bearer key'}
-                />
-              </div>
-              {webhookUrls && (
-                <div>
-                  <Label>Webhook URL Baileys (configurado no daemon — só pra referência)</Label>
-                  <div className="flex gap-2">
-                    <Input readOnly value={webhookUrls.baileys} />
-                    <Button type="button" variant="outline" onClick={() => copyToClipboard(webhookUrls.baileys)} className="gap-1.5">
-                      <Copy size={14} aria-hidden />
-                      Copiar
-                    </Button>
-                  </div>
-                </div>
-              )}
+
+              <BaileysLiveStatusPanel
+                state={liveState}
+                qr={liveQr}
+                qrExpiresIn={liveQrExpiresIn}
+                displayPhone={liveDisplayPhone}
+                verifiedName={liveVerifiedName}
+                profilePicUrl={liveProfilePicUrl}
+                banReason={liveBanReason}
+              />
             </CardContent>
           </Card>
         )}
 
-        {/* Meta Cloud form (sempre visível — primário ou fallback obrigatório) */}
+        {/* Meta Cloud — primário ou fallback obrigatório */}
         <Card>
           <CardHeader>
             <CardTitle>
@@ -349,7 +419,7 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
           </CardContent>
         </Card>
 
-        {/* Termo LGPD (obrigatório quando driver=zapi/baileys) */}
+        {/* Termo LGPD */}
         {requiresFallback && (
           <Card>
             <CardHeader>
@@ -383,7 +453,7 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
           </Card>
         )}
 
-        {/* Templates names + Bot */}
+        {/* Templates + Bot */}
         <Card>
           <CardHeader>
             <CardTitle>Templates + Bot</CardTitle>
@@ -415,9 +485,9 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <Button type="submit" disabled={submitting || isForbidden}>
-            {submitting ? 'Salvando...' : 'Salvar configuração'}
+            {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Salvando...</> : driver === 'baileys' ? 'Salvar e Conectar' : 'Salvar configuração'}
           </Button>
         </div>
       </form>
@@ -427,9 +497,22 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
 
 WhatsappSettings.layout = (page: any) => <AppShellV2>{page}</AppShellV2>;
 
+// ============================================================================
+// Helpers
+// ============================================================================
+
+function deriveInitialLiveState(config: ConfigForUi | null): LiveState {
+  if (!config || config.driver !== 'baileys') return 'idle';
+  switch (config.driver_health) {
+    case 'healthy': return 'connected';
+    case 'banned': return 'banned';
+    case 'degraded': return 'degraded';
+    case 'disconnected': return 'disconnected';
+    default: return 'idle';
+  }
+}
+
 function DriverCard({
-  // value é só pra documentar qual Driver enum a card representa — usado nos
-  // testes e/ou pra futuro expand do wizard (ADR 0096 Sprint 3).
   value: _value,
   title,
   description,
@@ -457,13 +540,11 @@ function DriverCard({
     >
       <div className="font-semibold">{title}</div>
       <div className="text-sm text-muted-foreground mt-1">{description}</div>
-      {disabled && <Badge variant="outline" className="mt-2">Sprint 3</Badge>}
     </button>
   );
 }
 
 function DriverHealthBadge({ health }: { health: string }) {
-  // Cores fixas semânticas (R-DS-002 exceção: status badges health constantes).
   const map: Record<string, { label: string; className: string }> = {
     healthy:       { label: 'Conectado',       className: 'bg-green-100 text-green-800 border-green-300 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800' },
     degraded:      { label: 'Degradado',       className: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800' },
@@ -473,4 +554,138 @@ function DriverHealthBadge({ health }: { health: string }) {
   };
   const conf = map[health] ?? map.never_checked!;
   return <Badge variant="outline" className={conf.className}>{conf.label}</Badge>;
+}
+
+function BaileysLiveStateBadge({ state }: { state: LiveState }) {
+  const map: Record<LiveState, { label: string; cls: string }> = {
+    idle:          { label: 'aguardando',     cls: 'border-slate-300 text-slate-700' },
+    connecting:    { label: 'conectando…',    cls: 'border-amber-500 text-amber-700' },
+    qr_required:   { label: 'aguarda QR',     cls: 'border-amber-500 text-amber-700' },
+    connected:     { label: '✓ conectado',    cls: 'border-green-500 text-green-700' },
+    degraded:      { label: 'degradado',      cls: 'border-amber-500 text-amber-700' },
+    disconnected:  { label: 'desconectado',   cls: 'border-red-500 text-red-700' },
+    banned:        { label: 'banido pela Meta', cls: 'border-red-600 text-red-800 bg-red-50' },
+  };
+  const conf = map[state];
+  return <Badge variant="outline" className={conf.cls}>{conf.label}</Badge>;
+}
+
+function BaileysLiveStatusPanel({
+  state, qr, qrExpiresIn, displayPhone, verifiedName, profilePicUrl, banReason,
+}: {
+  state: LiveState;
+  qr: string | null;
+  qrExpiresIn: number;
+  displayPhone: string | null;
+  verifiedName: string | null;
+  profilePicUrl: string | null;
+  banReason: string | null;
+}) {
+  if (state === 'idle') {
+    return (
+      <div className="text-sm text-muted-foreground border rounded-lg p-4 bg-muted/40">
+        <Smartphone className="inline mr-1 h-4 w-4 align-text-bottom" />
+        Salve a configuração e o sistema vai gerar o QR Code automaticamente.
+      </div>
+    );
+  }
+
+  if (state === 'connecting') {
+    return (
+      <div className="text-sm border rounded-lg p-4 bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700">
+        <Loader2 className="inline mr-2 h-4 w-4 animate-spin align-text-bottom" />
+        Provisionando instance no daemon… aguarde alguns segundos.
+      </div>
+    );
+  }
+
+  if (state === 'qr_required') {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border rounded-lg p-4 bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700">
+        <div className="flex items-center justify-center">
+          {qr ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={qr} alt="QR Code Whatsapp" className="w-56 h-56 border rounded" />
+          ) : (
+            <div className="w-56 h-56 flex items-center justify-center border rounded bg-white">
+              <QrCode className="h-12 w-12 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        <div className="text-sm space-y-2">
+          <p className="font-semibold">Escaneie com WhatsApp Business:</p>
+          <ol className="list-decimal pl-5 space-y-0.5">
+            <li>Abra o app no celular</li>
+            <li>Toque em <strong>⋮ → Aparelhos conectados</strong></li>
+            <li>Toque em <strong>Conectar aparelho</strong></li>
+            <li>Aponte a câmera pro QR ↑</li>
+          </ol>
+          <p className="text-xs text-muted-foreground pt-1">
+            ⏱ Expira em {qrExpiresIn}s · novo QR gerado automaticamente
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (state === 'connected') {
+    return (
+      <div className="flex items-center gap-3 border rounded-lg p-4 bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700">
+        {profilePicUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={profilePicUrl} alt="" className="w-12 h-12 rounded-full border" />
+        ) : (
+          <Smartphone className="h-12 w-12 text-green-700" />
+        )}
+        <div className="flex-1">
+          <p className="font-semibold">✓ Conectado</p>
+          {displayPhone && <p className="text-sm">{formatPhone(displayPhone)}</p>}
+          {verifiedName && <p className="text-xs text-muted-foreground">{verifiedName}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  if (state === 'banned') {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" aria-hidden />
+        <AlertTitle>Número banido pela Meta</AlertTitle>
+        <AlertDescription>
+          Motivo: <strong>{banReason ?? 'desconhecido'}</strong>. Use chip novo dedicado e configure novo telefone E.164.
+          Veja{' '}
+          <a
+            className="underline"
+            href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Whatsapp/runbooks/baileys-troubleshoot-ban.md"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            runbook troubleshoot-ban
+          </a>{' '}
+          pra recuperação.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // degraded / disconnected
+  return (
+    <Alert variant="destructive">
+      <AlertTriangle className="h-4 w-4" aria-hidden />
+      <AlertTitle>{state === 'degraded' ? 'Sessão degradada' : 'Desconectado'}</AlertTitle>
+      <AlertDescription>
+        Sistema vai tentar reconectar automaticamente. Se persistir, salve novamente esta configuração pra forçar
+        reconexão.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function formatPhone(e164: string): string {
+  // +5511987654321 → +55 11 9 8765-4321
+  const digits = e164.replace(/\D+/g, '');
+  if (digits.length === 13 && digits.startsWith('55')) {
+    return `+${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4, 5)} ${digits.slice(5, 9)}-${digits.slice(9)}`;
+  }
+  return e164;
 }

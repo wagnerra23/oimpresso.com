@@ -129,9 +129,15 @@ class BaileysDriver implements DriverInterface
 
     public function ping(WhatsappBusinessConfig $config): DriverHealthStatus
     {
-        if (empty($config->baileys_instance_id) || empty($config->baileys_daemon_url)) {
+        if (empty($config->baileys_instance_id)) {
             return DriverHealthStatus::unhealthy(
-                errorMessage: 'Baileys não configurado: baileys_instance_id ou baileys_daemon_url ausente',
+                errorMessage: 'Baileys não configurado: baileys_instance_id ausente (rodar BaileysConnectJob)',
+                sessionState: 'disconnected',
+            );
+        }
+        if (empty(config('whatsapp.baileys.api_key'))) {
+            return DriverHealthStatus::unhealthy(
+                errorMessage: 'Baileys não configurado: WHATSAPP_BAILEYS_API_KEY ausente no .env (server-side)',
                 sessionState: 'disconnected',
             );
         }
@@ -183,17 +189,25 @@ class BaileysDriver implements DriverInterface
     /**
      * Cliente HTTP pra falar com o daemon Node CT 100.
      *
-     * Bearer token = `baileys_api_key` (decifrado pelo `encrypted` cast).
+     * US-WA-022: daemon_url + api_key são server secrets globais
+     * (env vars `.env` Hostinger), nunca per-tenant. Multi-tenancy é
+     * via `baileys_instance_id` auto-gerado per-business + path param.
+     *
+     * Bearer = `WHATSAPP_BAILEYS_API_KEY` (mesma chave do Docker secret CT 100).
      * Em prod, IP whitelist Traefik garante que só Hostinger fala com daemon.
+     *
+     * @param  WhatsappBusinessConfig  $config  apenas pra contexto OTel; URL/token são globais
      */
     private function client(WhatsappBusinessConfig $config): PendingRequest
     {
-        $baseUrl = $config->baileys_daemon_url
-            ?: config('whatsapp.baileys.daemon_url_default', 'https://whatsapp-baileys.oimpresso.local');
+        unset($config); // explicit: tenant não dita URL/token (US-WA-022 invariante)
+
+        $baseUrl = (string) config('whatsapp.baileys.daemon_url', 'https://whatsapp-baileys.oimpresso.local');
+        $apiKey = (string) config('whatsapp.baileys.api_key', '');
 
         return Http::baseUrl(rtrim($baseUrl, '/'))
             ->timeout((int) config('whatsapp.baileys.request_timeout', 15))
-            ->withToken((string) $config->baileys_api_key)
+            ->withToken($apiKey)
             ->acceptJson()
             ->asJson();
     }
