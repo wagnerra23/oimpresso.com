@@ -29,6 +29,9 @@ Route::group(
         //      pra validacao visual sem substituir a /copiloto atual). ----------
         Route::get('/cockpit',                             'ChatController@cockpit')->name('copiloto.cockpit');
         Route::post('/conversas',                          'ChatController@criarConversa')->name('copiloto.conversas.store');
+        // Atalho GET — link "Nova conversa" da sidebar (UX Wagner 2026-05-08).
+        // Cria conversa e redireciona pro /conversas/{id}. Antes era 404.
+        Route::get('/conversas/nova',                      'ChatController@novaConversa')->name('copiloto.conversas.nova');
         Route::get('/conversas/{id}',                      'ChatController@show')->name('copiloto.conversas.show');
         Route::post('/conversas/{id}/mensagens',           'ChatController@send')->name('copiloto.conversas.mensagens.store');
         // Streaming SSE — UX token-por-token (versão preferencial pelo frontend)

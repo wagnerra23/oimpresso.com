@@ -183,6 +183,26 @@ class ChatController extends Controller
         return redirect()->route('copiloto.conversas.show', $conversa->id);
     }
 
+    /**
+     * GET /copiloto/conversas/nova — atalho UX da sidebar.
+     *
+     * Wagner 2026-05-08: link "Nova conversa" na sidebar do chat era `<a href="/conversas/nova">`
+     * (GET) mas só existia POST `criarConversa` — resultava em 404. Esta rota cria conversa
+     * limpa e redireciona pra /conversas/{id}.
+     */
+    public function novaConversa(Request $request)
+    {
+        $conversa = Conversa::create([
+            'business_id' => $request->session()->get('user.business_id'),
+            'user_id'     => auth()->id(),
+            'titulo'      => 'Nova conversa',
+            'status'      => 'ativa',
+            'iniciada_em' => now(),
+        ]);
+
+        return redirect()->route('copiloto.conversas.show', $conversa->id);
+    }
+
     public function updateConversa(Request $request, $id)
     {
         $conversa = Conversa::findOrFail($id);
