@@ -17,10 +17,10 @@ superseded_by: []
 related: [0061, 0070, 0093, 0094, 0106, 0113, 0118]
 pii: false
 review_triggers:
-  - terceira fonte de migração entrar em produção (atual: WR Comercial; previstas: Bling, Tiny, Sankhya, concorrentes nicho gráfico)
-  - mais de 5 clientes simultaneamente em estado "migração em andamento" (justifica UI dedicada)
-  - revenue de Migration as a Service ultrapassar 10% do MRR (vira pilar comercial, exige SLA formal)
-  - cliente migrar de legacy mas voltar pro velho em <30 dias (sinal de qualidade insuficiente — revisar receita)
+  - "terceira fonte de migração entrar em produção (atual: WR Comercial; previstas: Bling, Tiny, Sankhya, concorrentes nicho gráfico)"
+  - "mais de 5 clientes simultaneamente em estado migração em andamento (justifica UI dedicada)"
+  - "revenue de Migration as a Service ultrapassar 10% do MRR (vira pilar comercial, exige SLA formal)"
+  - "cliente migrar de legacy mas voltar pro velho em <30 dias (sinal de qualidade insuficiente — revisar receita)"
 ---
 
 # ADR 0119 — Migration Factory — capacidade institucional do oimpresso
