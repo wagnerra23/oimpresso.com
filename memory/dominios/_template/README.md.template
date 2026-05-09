@@ -1,0 +1,47 @@
+# Domínio externo — <SISTEMA>
+
+Conhecimento canônico do legacy **<SISTEMA>** que oimpresso precisa entender pra migrar dados de clientes que vêm dele. Pasta criada por [ADR 0118](../../decisions/0118-segregacao-dominios-externos-clientes-legacy.md) — Bounded Context (Eric Evans, *DDD* 2003).
+
+> ⚠️ **Vocabulário <SISTEMA>** preservado dentro desta pasta. **Vocabulário Laravel oimpresso fica em `memory/requisitos/<Mod>/`** e nunca vaza pra cá. Único arquivo bilíngue é `MAPPING.md` em cada módulo — Anticorruption Layer documentada.
+
+## Identidade do sistema
+
+- **Nome interno:** <preencher>
+- **Stack:** <linguagem, framework, versão>
+- **Banco:** <Firebird/MySQL/PostgreSQL/REST API/CSV>
+- **Distribuição:** <desktop binário / SaaS multi-tenant / on-premise / etc>
+- **Origem:** <repo SVN/Git/inacessível, link se possível>
+- **Status:** <legado em produção / SaaS ativo / descomissionado>
+
+## Arquivos nesta pasta
+
+| Arquivo | Conteúdo |
+|---|---|
+| [`ARQUITETURA.md`](ARQUITETURA.md) | Stack interno, fluxo crítico, como inspecionar |
+| [`CONVENCOES.md`](CONVENCOES.md) | Convenções de schema/código específicas |
+| `modulos/<dom>/` | Estrutura por módulo. Criada incrementalmente conforme migração avança |
+
+## Módulos conhecidos (parcial — completar conforme avançamos)
+
+<preencher inferindo da estrutura interna do sistema. Exemplos típicos>:
+
+- **financeiro** — contas bancárias, boletos, conciliação
+- **vendas** — vendas, orçamentos, NFs
+- **estoque** — produtos, lotes, movimentos
+- **cadastros** — clientes, fornecedores, funcionários
+- **fiscal** — NFe, SPED
+- ...
+
+> Módulos NÃO batem 1:1 com `Modules/` Laravel oimpresso. Mapeamento N:M, declarado em cada `MAPPING.md`.
+
+## Como ler / consultar
+
+- **Schema** ao vivo: <comando específico — ex: `python scripts/legacy-migration/poc2-firebird-connect.py`>
+- **Histórico de schema:** <se aplicável>
+- **Código:** <path local OU URL repo>
+- **Estado por cliente:** [`memory/clientes-legacy/<alias>.md`](../../clientes-legacy/)
+
+## Onde isso encaixa
+
+- **Migração one-shot** (extrair dados do <SISTEMA> → MySQL oimpresso): scripts em [`scripts/legacy-migration/`](../../../scripts/legacy-migration/) (Python local) ou `Modules/MigrationFactory/` (Laravel, futuro)
+- **Integração runtime** (cliente <SISTEMA> ainda ativo chamando oimpresso via API): [ADR 0113](../../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md) — separado e complementar
