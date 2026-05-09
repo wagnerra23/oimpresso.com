@@ -107,12 +107,20 @@ class UnificadoController extends Controller
             ->orderBy('nome')
             ->get(['id', 'nome']);
 
+        // Header: período em PT-BR (ex "Maio 2026") + nome do business logado.
+        // Antes era hardcoded "Maio 2026 · ROTA LIVRE" no .tsx — bug crítico
+        // ao logar com biz != ROTA LIVRE (ex: WR2 Sistemas via Wagner).
+        $periodLabel = ucfirst($start->locale('pt_BR')->isoFormat('MMMM YYYY'));
+        $businessName = (string) session('business.name', '');
+
         return Inertia::render('Financeiro/Unificado/Index', [
             'kpis' => $kpis,
             'lancamentos' => $rows,
             'filters' => $filters,
             'contas' => $contas,
             'categorias' => $categorias,
+            'periodLabel' => $periodLabel,
+            'businessName' => $businessName,
         ]);
     }
 
