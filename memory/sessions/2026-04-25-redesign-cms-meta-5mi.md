@@ -68,7 +68,7 @@ Feature-by-feature: oimpresso vs 8 concorrentes em 6 categorias (Nicho gráfico,
 
 3 features prioritárias pra próximos 6 meses:
 1. **PricingFpv** (cálculo m² + FPV gráfica) — 3-4 sprints
-2. **Copiloto v1 production-ready** — 2-3 sprints
+2. **Jana v1 production-ready** — 2-3 sprints
 3. **CT-e + MDF-e + conciliação OFX** — 3 sprints
 
 ### 1.9 — Template Capterra próprio
@@ -117,9 +117,9 @@ Padrão reutilizável pra próximos comparativos: 10 seções (TL;DR, concorrent
 | Redesign Cms migra de Blade pra Inertia/React (mesmo stack do app) | ADR 0025 |
 | `/` e `/pricing` rodam Inertia agora; Blade legado em `/old` e `/pricing/old` | ADR 0025 |
 | Posicionamento "ERP de comunicação visual com IA" (Caminho B) | ADR 0026 |
-| 3 features prioritárias 6m: PricingFpv, Copiloto v1, CT-e/MDF-e/conciliação | ADR 0026 |
+| 3 features prioritárias 6m: PricingFpv, Jana v1, CT-e/MDF-e/conciliação | ADR 0026 |
 | Padrão de comparativos competitivos = template `_TEMPLATE_capterra_oimpresso.md` | template no repo |
-| Métrica de fé 90d: PricingFpv + Copiloto v1 em prod + 5 indicações ROTA LIVRE | ADR 0026 |
+| Métrica de fé 90d: PricingFpv + Jana v1 em prod + 5 indicações ROTA LIVRE | ADR 0026 |
 | WP `/ajuda/` patch é fragil (update via wp-admin reverte) | reference_wp_ajuda_fix.md |
 
 ---

@@ -11,7 +11,7 @@ Originalmente nasceu como módulo Ponto WR2 (controle eletrônico Portaria MTP 6
 ## Posicionamento
 Capterra-inventoried em todos módulos críticos. Diferencial vs concorrentes (Iugu/Asaas/Vindi):
 - **NFe automática a partir de boleto pago** (US-RB-044 entregue)
-- **Copiloto IA Jana** com memória persistente + recall hybrid Meilisearch
+- **Jana IA Jana** com memória persistente + recall hybrid Meilisearch
 - **Governança formal** (Constituição v2 — ADR 0094) — 36% das enterprises não têm
 
 ## Meta financeira
@@ -20,5 +20,5 @@ Capterra-inventoried em todos módulos críticos. Diferencial vs concorrentes (I
 ## Cliente externo separado
 `Eliana(WR2)` (cliente externa, eliana@wr2.com.br) ≠ `Eliana[E]` (esposa Wagner, time interno). Sempre desambiguar em commits/notas.
 
-## Cliente principal Copiloto
+## Cliente principal Jana
 **ROTA LIVRE** — Larissa pergunta sobre faturamento/metas e recebe resposta correta usando dados reais (CYCLE-01 goal validado em prod).

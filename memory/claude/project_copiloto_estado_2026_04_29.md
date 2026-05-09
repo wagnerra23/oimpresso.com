@@ -1,5 +1,5 @@
 ---
-name: Estado do Copiloto IA em produção (2026-04-29 fim do dia)
+name: Estado do Jana IA em produção (2026-04-29 fim do dia)
 description: Snapshot consolidado pós-sprint memória — 8 entregas em 1 dia, baseline gravado, estratégia formalizada
 type: project
 supersedes: project_copiloto_estado_2026_04_28.md
@@ -7,7 +7,7 @@ originSessionId: 32066199-13c2-4cc8-922b-d65034040e23
 ---
 ## 🎯 TL;DR
 
-Sprint memória solo do Wagner em 1 dia (29-abr-2026): **8 entregas em produção**, suite Copiloto **50 → 77 passed (+27)**, **5 ADRs novos** (0047-0051), **baseline `copiloto_memoria_metricas` gravado em prod**, estratégia formalizada (schema próprio + adapter + OTel GenAI).
+Sprint memória solo do Wagner em 1 dia (29-abr-2026): **8 entregas em produção**, suite Jana **50 → 77 passed (+27)**, **5 ADRs novos** (0047-0051), **baseline `copiloto_memoria_metricas` gravado em prod**, estratégia formalizada (schema próprio + adapter + OTel GenAI).
 
 ## ✅ Camadas em produção (validadas 2026-04-29)
 
@@ -17,7 +17,7 @@ Sprint memória solo do Wagner em 1 dia (29-abr-2026): **8 entregas em produçã
 | B | `LaravelAiSdkDriver` + 4 Agents | ✅ Vizra rejeitada (ADR 0048) |
 | C Hot | `SqlDriver` (conversas DB) | ✅ |
 | C Cold | `MeilisearchDriver` hybrid (`semanticRatio: 0.7`) | ✅ MEM-HOT-1 — recall 0→190 |
-| Working | `ContextoNegocio` no ChatCopilotoAgent (3 ângulos faturamento) | ✅ MEM-HOT-2 + MEM-FAT-1 — 270 tokens (bruto/líquido/caixa) |
+| Working | `ContextoNegocio` no ChatJanaAgent (3 ângulos faturamento) | ✅ MEM-HOT-2 + MEM-FAT-1 — 270 tokens (bruto/líquido/caixa) |
 | Embedder | OpenAI text-embedding-3-small | ✅ funcional |
 | Métricas | tabela `copiloto_memoria_metricas` (14 colunas) + comando | ✅ MEM-MET-1+2 — baseline gravado |
 | Telemetria | log channel `otel-gen-ai` (12 atributos `gen_ai.*`) | ✅ MEM-OTEL-1 |

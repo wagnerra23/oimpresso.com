@@ -7,10 +7,10 @@ originSessionId: ec442035-2633-415e-acb3-07670d407de2
 ---
 **Padrão canônico de layout do ERP em React, vigente desde 2026-04-27.**
 
-## Quando usar Cockpit (`AppShellV2` em `Pages/Copiloto/Cockpit.tsx`)
+## Quando usar Cockpit (`AppShellV2` em `Pages/Jana/Cockpit.tsx`)
 - Toda tela de chat / conversação
 - Inbox de tarefas (cross-módulo)
-- Dashboard de módulo (Copiloto, Financeiro, Ponto, OS — re-fazer)
+- Dashboard de módulo (Jana, Financeiro, Ponto, OS — re-fazer)
 - Listagem operacional CRUD (envelope é Cockpit, **conteúdo** segue UI-0006: PageHeader+KpiGrid+PageFilters+Table)
 
 ## Quando usar AppShell legado (mantido só pra)
@@ -42,6 +42,6 @@ OS amber · CRM blue · FIN green · PNT violet · MFG orange. Tokens em `--orig
 ## Antes de criar/alterar qualquer tela React
 1. Ler ADR UI-0008 (canônico) + ADR raiz 0039 (decisão original)
 2. Ler CLAUDE.md §10 (instruções operacionais pro agente)
-3. Olhar `Pages/Copiloto/Cockpit.tsx` como referência viva
+3. Olhar `Pages/Jana/Cockpit.tsx` como referência viva
 4. Persistir em localStorage com prefixo correto
 5. Se for listagem CRUD: conteúdo segue UI-0006 dentro do envelope Cockpit

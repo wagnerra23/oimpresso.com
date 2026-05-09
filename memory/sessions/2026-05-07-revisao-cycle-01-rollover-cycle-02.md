@@ -11,15 +11,15 @@ tags: [governance, mcp, cycle-close, retro, commit-discipline, post-rename-jana]
 
 ## Trajetória
 
-Wagner abriu sessão com `my-work` e disse "não existe mais Copiloto, revise e descubra o que aconteceu, e aprenda". Diagnóstico → relatório → autorização ("ok faça obrigado") → execução completa.
+Wagner abriu sessão com `my-work` e disse "não existe mais Jana, revise e descubra o que aconteceu, e aprenda". Diagnóstico → relatório → autorização ("ok faça obrigado") → execução completa.
 
 ## Diagnóstico (cronologia real recuperada via filesystem + git, NÃO MCP)
 
-CYCLE-01 (29-abr → 12-mai, "Copiloto memória + MCP") ficou **órfão por 5 dias** após o pivot Constituição V2 (5-mai noite). MCP `cycles-active` mostrava cycle vivo com tasks zombie, mas o trabalho real estava em outros eixos:
+CYCLE-01 (29-abr → 12-mai, "Jana memória + MCP") ficou **órfão por 5 dias** após o pivot Constituição V2 (5-mai noite). MCP `cycles-active` mostrava cycle vivo com tasks zombie, mas o trabalho real estava em outros eixos:
 
 | Janela | Eixo real | PRs |
 |---|---|---|
-| 29-abr → 02-mai | Memória Copiloto (no plano) | Sprint memória + Vizra rejeitada |
+| 29-abr → 02-mai | Memória Jana (no plano) | Sprint memória + Vizra rejeitada |
 | 04-mai | Sprint 9b/9c retrieval + RAGAS + ADR 0069 | #93-100 |
 | 05-mai noite | **PIVOT: Constituição V2 nasce** | Roteiro 7 camadas + 8 princípios |
 | 06-mai dia | S3 Constituição V2 + Capterra + rename DB Jana | #111, #117, #119, #131-137 |
@@ -32,7 +32,7 @@ Goals 1+2 do CYCLE-01 ✅ batendo desde 29-abr. Goal 3 (dashboard custos) virou 
 
 1. **Cycle de 2 semanas com janela fixa não cabe num burst de 80h em 5 dias.** Pivot estratégico → cycle anterior vira morto-vivo.
 2. **MCP cycles/tasks é write-once-then-stale.** PR mergeia mas ninguém roda `tasks-update`. → patch skill `commit-discipline` (esta sessão) com regra explícita de auto-update post-merge.
-3. **Rename Copiloto→Jana foi PHP-only completo (ADR 0088) + DB completo (ADR 0092)** mas o module key MCP ficou COPI. Decisão: **NÃO renomear** — IDs históricos `COPI-NN` preservam rastro nos PRs.
+3. **Rename Jana→Jana foi PHP-only completo (ADR 0088) + DB completo (ADR 0092)** mas o module key MCP ficou COPI. Decisão: **NÃO renomear** — IDs históricos `COPI-NN` preservam rastro nos PRs.
 4. **Pivots estratégicos sem fechar cycle anterior viram dark matter.** Falta regra: pivot → `cycles-close --rollover` no mesmo dia + `cycles-create` novo.
 5. **brief-fetch + cycles-active deram dado errado.** Falta no brief: alerta "trabalho real vs cycle planejado" — se eixo do PR mergeado ≠ eixo do cycle ativo, alerta.
 

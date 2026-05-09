@@ -1,10 +1,10 @@
-# Matriz Comparativa estilo Capterra/G2 — Copiloto runtime memory vs Mem0/LangGraph/Letta/Zep/OMEGA (2026-04-26)
+# Matriz Comparativa estilo Capterra/G2 — Jana runtime memory vs Mem0/LangGraph/Letta/Zep/OMEGA (2026-04-26)
 
-> **Assunto:** memória de **runtime** do agente Copiloto vs estado-da-arte de memória pra agentes IA (frameworks open-source + comerciais).
+> **Assunto:** memória de **runtime** do agente Jana vs estado-da-arte de memória pra agentes IA (frameworks open-source + comerciais).
 > **Data:** 2026-04-26
 > **Autor:** Claude (sessão `dazzling-lichterman-e59b61`) sob direção do Wagner ("compare com Mem0 e outras memórias LangGraph...")
 > **Concorrentes incluídos:** Mem0, LangGraph+LangMem, Letta (ex-MemGPT), Zep (Graphiti), OMEGA (líder benchmark) — 5
-> **Decisão que vai sair daqui:** decidir se Copiloto **constrói memória runtime do zero**, **integra Mem0/LangMem como dependência**, ou **fica em chat-flat**.
+> **Decisão que vai sair daqui:** decidir se Jana **constrói memória runtime do zero**, **integra Mem0/LangMem como dependência**, ou **fica em chat-flat**.
 > **Companion docs:** [sistemas_memoria_oimpresso_capterra_2026_04_26.md](sistemas_memoria_oimpresso_capterra_2026_04_26.md) (memória de DEV, não de runtime — evitar confusão)
 > **Template usado:** [_TEMPLATE_capterra_oimpresso.md](_TEMPLATE_capterra_oimpresso.md) v1.0
 
@@ -17,21 +17,21 @@
 | Camada | O que é | Onde mora | Para quem |
 |---|---|---|---|
 | **A — Memória de DEV** | Notas pra agentes (Cursor, Claude) construírem o oimpresso | `memory/`, CLAUDE.md, ADRs, sessions, auto-memória | Wagner + IA assistente |
-| **B — Memória RUNTIME** | O app produto (Copiloto) lembra do usuário entre sessões | DB do app + vector store + graph | **Cliente final do oimpresso** (Larissa do ROTA LIVRE) |
+| **B — Memória RUNTIME** | O app produto (Jana) lembra do usuário entre sessões | DB do app + vector store + graph | **Cliente final do oimpresso** (Larissa do ROTA LIVRE) |
 
 **Mem0/LangGraph/Letta/Zep/OMEGA jogam EXCLUSIVAMENTE na camada B.**
 **Nosso comparativo anterior (`sistemas_memoria_oimpresso_capterra_2026_04_26.md`) era exclusivamente sobre camada A.**
 
-Este comparativo é sobre **camada B — runtime do Copiloto**.
+Este comparativo é sobre **camada B — runtime do Jana**.
 
 ---
 
 ## 1. TL;DR (5 frases)
 
-1. **Copiloto runtime memory hoje é Tier 1 de ~10** — só `Conversa` + `Mensagem` + 1 snapshot estático em `ContextSnapshotService.paraBusiness()` (cache 10min). Zero embeddings, zero vector store, zero graph, zero summary, zero forget, zero memória cross-session por user.
-2. **Estado-da-arte (OMEGA 95.4%, Mastra 94.87%, Hindsight 91.4%, Letta 83.2%, Zep 71.2%) usa hybrid (vector+graph+key-value), 3+ tiers (core/archival/recall) e temporal validity** — features que **nenhuma** estão no Copiloto, e que pra construir do zero levam ≥6 meses.
+1. **Jana runtime memory hoje é Tier 1 de ~10** — só `Conversa` + `Mensagem` + 1 snapshot estático em `ContextSnapshotService.paraBusiness()` (cache 10min). Zero embeddings, zero vector store, zero graph, zero summary, zero forget, zero memória cross-session por user.
+2. **Estado-da-arte (OMEGA 95.4%, Mastra 94.87%, Hindsight 91.4%, Letta 83.2%, Zep 71.2%) usa hybrid (vector+graph+key-value), 3+ tiers (core/archival/recall) e temporal validity** — features que **nenhuma** estão no Jana, e que pra construir do zero levam ≥6 meses.
 3. **Mem0 (drop-in) integra com 21 frameworks via Python/TypeScript SDK** mas **não tem SDK PHP oficial** — precisa via REST API. Letta+Zep+LangGraph idem (Python-first). Único caminho viável pra PHP: REST.
-4. **Nosso diferencial real é negativo aqui:** somos PHP/Laravel num mercado dominado por Python; vetores+grafos exigem infra que ainda não temos (Pinecone/Neo4j/Qdrant). Copiloto compete sem armas.
+4. **Nosso diferencial real é negativo aqui:** somos PHP/Laravel num mercado dominado por Python; vetores+grafos exigem infra que ainda não temos (Pinecone/Neo4j/Qdrant). Jana compete sem armas.
 5. **O dilema:** integrar Mem0/Zep como dependência externa via REST (3-5 sprints, deps adicional, custo $$ recorrente) vs construir layer mínimo PHP nativo (8-12 sprints, sem dep, mas só Tier 3-4) vs aceitar ficar em Tier 1 enquanto não tiver tração comercial. **Recomendado: REST adapter pro Mem0** (caminho B na seção 7).
 
 ---
@@ -60,7 +60,7 @@ Este comparativo é sobre **camada B — runtime do Copiloto**.
 
 ### Categoria 1 — Tipos cognitivos de memória
 
-| Feature | oimpresso (Copiloto) | Mem0 | LangGraph+LangMem | Letta | Zep | OMEGA |
+| Feature | oimpresso (Jana) | Mem0 | LangGraph+LangMem | Letta | Zep | OMEGA |
 |---|---|---|---|---|---|---|
 | Semantic memory (fatos sobre user/world) | ❌ | ✅ | ✅ | ✅ (core block) | ✅ (graph nodes) | ✅ |
 | Episodic memory (experiências passadas) | 🟡 (só `Mensagem` flat) | ✅ | ✅ (few-shot prompting) | ✅ (recall mem) | ✅ (event nodes) | ✅ |
@@ -125,7 +125,7 @@ Este comparativo é sobre **camada B — runtime do Copiloto**.
 
 ## 4. Notas estimadas (escala G2/Capterra 1-5)
 
-| Critério | oimpresso (Copiloto) | Mem0 | LangGraph | Letta | Zep | OMEGA |
+| Critério | oimpresso (Jana) | Mem0 | LangGraph | Letta | Zep | OMEGA |
 |---|---|---|---|---|---|---|
 | **Ease of Use** (drop-in?) | 5 (porque é só MySQL) | 5 (drop-in) | 3 (graph orquestração) | 3 (LLM-mgmt) | 4 | 4 |
 | **Customer Service / docs** | N/A | 4 | 5 (LangChain ecosys) | 4 | 4 | 3 (menos público) |
@@ -140,23 +140,23 @@ Este comparativo é sobre **camada B — runtime do Copiloto**.
 
 ---
 
-## 5. Top 3 GAPS críticos (Copiloto runtime vs estado-da-arte)
+## 5. Top 3 GAPS críticos (Jana runtime vs estado-da-arte)
 
 ### GAP 1 — Zero memória semântica (fatos sobre o user persistentes)
 
-**O que falta:** todo conhecimento sobre Larissa do ROTA LIVRE (que ela usa monitor 1280px, que digita `tx_date` retroativo, que decorou shift +3h do Carbon) **mora hoje na auto-memória do Claude no laptop do Wagner** — não no Copiloto. Quando o Copiloto for vendido pro 2º cliente, **Larissa vai precisar contar tudo de novo**. Mem0/Zep/Letta resolvem isso com vector store + graph + dedup automático.
+**O que falta:** todo conhecimento sobre Larissa do ROTA LIVRE (que ela usa monitor 1280px, que digita `tx_date` retroativo, que decorou shift +3h do Carbon) **mora hoje na auto-memória do Claude no laptop do Wagner** — não no Jana. Quando o Jana for vendido pro 2º cliente, **Larissa vai precisar contar tudo de novo**. Mem0/Zep/Letta resolvem isso com vector store + graph + dedup automático.
 **Esforço estimado:** Médio-Alto (4-6 sprints) — adicionar tabela `copiloto_memory_facts` com vector embedding (pgvector ou Pinecone REST) + extração via LLM no `responderChat()` + retrieve top-k antes de cada call IA + dedup.
-**Impacto se não fechar:** Copiloto fica genérico. Vira "ChatGPT com prompt sobre business" — sem retenção, sem personalização real, sem LTV. Direto ataca a tese de "ERP gráfico com IA" do ADR 0026.
+**Impacto se não fechar:** Jana fica genérico. Vira "ChatGPT com prompt sobre business" — sem retenção, sem personalização real, sem LTV. Direto ataca a tese de "ERP gráfico com IA" do ADR 0026.
 
 ### GAP 2 — Sem summarization / resumo automático de conversa longa
 
-**O que falta:** `responderChat()` em [OpenAiDirectDriver.php:160](Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php#L160) limita histórico a **últimas 20 mensagens** brutalmente truncadas. Conversas que passam disso **perdem contexto silenciosamente** — Larissa diz na mensagem 5 "minha meta é R$ [redacted Tier 0]k/mês" e na mensagem 25 o Copiloto não sabe mais. Mem0 e Letta resolvem com summarization rolling: agrupa 20 msgs antigas em "facts" sumarizados.
+**O que falta:** `responderChat()` em [OpenAiDirectDriver.php:160](Modules/Jana/Services/Ai/OpenAiDirectDriver.php#L160) limita histórico a **últimas 20 mensagens** brutalmente truncadas. Conversas que passam disso **perdem contexto silenciosamente** — Larissa diz na mensagem 5 "minha meta é R$ [redacted Tier 0]k/mês" e na mensagem 25 o Jana não sabe mais. Mem0 e Letta resolvem com summarization rolling: agrupa 20 msgs antigas em "facts" sumarizados.
 **Esforço estimado:** Médio (2-4 sprints) — job `SummarizeConversaJob` que roda quando `count(mensagens) > 20`, gera resumo via LLM, salva em `copiloto_conversa_summary` (nova tabela), e `responderChat()` injeta resumo + últimas 10 msgs em vez de últimas 20.
-**Impacto se não fechar:** Conversas perdem qualidade após 20 turnos. Impede uso real "diário" do Copiloto. Larissa abandona depois da 1ª semana.
+**Impacto se não fechar:** Conversas perdem qualidade após 20 turnos. Impede uso real "diário" do Jana. Larissa abandona depois da 1ª semana.
 
 ### GAP 3 — Sem temporal validity (fatos que mudam ao longo do tempo)
 
-**O que falta:** se Larissa em janeiro disse "minha meta é R$ [redacted Tier 0]k", em abril disse "meta nova é R$ [redacted Tier 0]k", **o Copiloto memoriza ambos sem saber qual é o atual**. Zep/Graphiti resolvem com graph onde cada fato tem `start_date` + `end_date` opcional ("válido a partir de X, superseded em Y"). Métricas de negócio mudam direto — sem isso o Copiloto vai dar respostas erradas com confiança.
+**O que falta:** se Larissa em janeiro disse "minha meta é R$ [redacted Tier 0]k", em abril disse "meta nova é R$ [redacted Tier 0]k", **o Jana memoriza ambos sem saber qual é o atual**. Zep/Graphiti resolvem com graph onde cada fato tem `start_date` + `end_date` opcional ("válido a partir de X, superseded em Y"). Métricas de negócio mudam direto — sem isso o Jana vai dar respostas erradas com confiança.
 **Esforço estimado:** Alto (>6 sprints) — exige knowledge graph ou tabela com `valid_from/valid_until`, query temporal, conflict detection ("nova meta supersedes antiga"), UX pra revisão. Difícil em PHP nativo. Caminho realista: **integrar Zep/Graphiti via REST**.
 **Impacto se não fechar:** Confiança quebra na 1ª resposta com fato desatualizado ("seu meta é R$ [redacted Tier 0]k" quando o cliente já mudou pra R$ [redacted Tier 0]k). Em ERP, isso é regressão de produto, não bug — perde cliente.
 
@@ -173,12 +173,12 @@ Este comparativo é sobre **camada B — runtime do Copiloto**.
 ### V2 — Multi-tenant nativo (business_id) embutido no schema
 
 **Por que é vantagem:** UltimatePOS já é multi-tenant via `business_id`. Mem0/Zep tratam multi-tenancy via `user_id` custom — quem tem 100 businesses cada com 5 users precisa montar `user_id="biz4_user12"` na mão. Nosso schema tem `business_id` em toda tabela; quando adicionarmos `copiloto_memory_facts`, ela vai ter `business_id` + `user_id` + `agent_id` por design.
-**Como capitalizar:** vender Copiloto como "memória multi-tenant nativa pra ERP brasileiro" — caso em que Mem0/Zep precisam de wrapper.
+**Como capitalizar:** vender Jana como "memória multi-tenant nativa pra ERP brasileiro" — caso em que Mem0/Zep precisam de wrapper.
 **Risco de erodir:** médio — Mem0 vai melhorar multi-tenancy nativo em 12-18m.
 
 ### V3 — Auto-memória do Claude (camada A) **alimentando** memória runtime (camada B)
 
-**Por que é vantagem:** Nenhum competidor tem essa ponte. Wagner já documentou em auto-memória que "Larissa decorou shift +3h" e "monitor 1280px"; podemos **importar essas notas pra memória runtime do Copiloto** quando Larissa logar — Copiloto já chega sabendo dela. Concorrentes começam do zero.
+**Por que é vantagem:** Nenhum competidor tem essa ponte. Wagner já documentou em auto-memória que "Larissa decorou shift +3h" e "monitor 1280px"; podemos **importar essas notas pra memória runtime do Jana** quando Larissa logar — Jana já chega sabendo dela. Concorrentes começam do zero.
 **Como capitalizar:** script `php artisan copiloto:seed-memory-from-auto-mem` que lê `cliente_*.md` da auto-mem e insere em `copiloto_memory_facts` no onboarding de cada cliente novo.
 **Risco de erodir:** alto — depende do Wagner manter auto-mem viva. Pode escalar mal com 50 clientes.
 
@@ -200,13 +200,13 @@ Este comparativo é sobre **camada B — runtime do Copiloto**.
 - Não compromete arquitetura — Mem0 fica atrás de uma `MemoriaContrato` interface; trocável por Zep ou Letta depois.
 
 **Frase de posicionamento:**
-> *"Copiloto = ContextSnapshot fresco do ERP + Mem0 pra fatos persistentes do user — um diferencial real ('memória multi-tenant integrada ao schema'), não slide de pitch."*
+> *"Jana = ContextSnapshot fresco do ERP + Mem0 pra fatos persistentes do user — um diferencial real ('memória multi-tenant integrada ao schema'), não slide de pitch."*
 
 ---
 
 ## 8. Math do custo de implementar (caminho B)
 
-> **Adaptação:** template original conecta com R$ [redacted Tier 0]mi/ano (ADR 0022). Aqui, math do **custo de cada caminho** vs valor de Copiloto comercializável.
+> **Adaptação:** template original conecta com R$ [redacted Tier 0]mi/ano (ADR 0022). Aqui, math do **custo de cada caminho** vs valor de Jana comercializável.
 
 Pressupostos:
 - Mem0 managed: ~$25/mês plano starter (até 10k memórias) — **fontes não confirmadas**, validar antes
@@ -217,7 +217,7 @@ Pressupostos:
 - 1 sprint: schema + interface `MemoriaContrato` + driver REST Mem0 + testes Pest
 - 1 sprint: integração no `responderChat()` (search antes / write depois) + idempotência
 - 1 sprint: extração de fatos via LLM (passar Mensagem por extrator) + dedup
-- 1 sprint: UX de transparência ("o Copiloto lembra: ...") + opt-out por user
+- 1 sprint: UX de transparência ("o Jana lembra: ...") + opt-out por user
 - 1 sprint: stress test com 1.000 mensagens / business + latência <300ms p95
 - **Total: 5 sprints (5-7 semanas no ritmo Wagner)**
 - **Custo recorrente: $25-300/mês** dependendo de volume + escala
@@ -229,8 +229,8 @@ Pressupostos:
 - 0 sprints. Aposta em context window. Risco: GPT-5/Claude 5 podem acabar com necessidade de mem persistente — em ~24m? Talvez.
 
 **ROI estimado de B:**
-- Tese: Copiloto com memória runtime = +30-50% retenção em SaaS. Sem números reais — sem cliente pagante hoje (ROTA LIVRE não paga pelo Copiloto).
-- Pra a meta R$ [redacted Tier 0]mi/ano (ADR 0022), Copiloto precisa converter em ticket — sem mem runtime, é commodity.
+- Tese: Jana com memória runtime = +30-50% retenção em SaaS. Sem números reais — sem cliente pagante hoje (ROTA LIVRE não paga pelo Jana).
+- Pra a meta R$ [redacted Tier 0]mi/ano (ADR 0022), Jana precisa converter em ticket — sem mem runtime, é commodity.
 - **Assunção não validada:** "memory persistente aumenta retenção 30%" — não tem dado real ainda. Larissa não foi entrevistada.
 
 ---
@@ -240,7 +240,7 @@ Pressupostos:
 ### 3 ações prioritárias pra próximos 6 meses (em ordem)
 
 1. **Definir interface `MemoriaContrato` PHP** + driver `Mem0RestDriver` (caminho B, sprint 1) — abstrai pra trocar por Zep/Letta sem reescrita. **1 sprint.**
-2. **Wireframe da feature "Copiloto lembra de você"** com Larissa antes de codar — validar se ela percebe valor antes de gastar 5 sprints. **0.5 sprint** (entrevista + figma estático).
+2. **Wireframe da feature "Jana lembra de você"** com Larissa antes de codar — validar se ela percebe valor antes de gastar 5 sprints. **0.5 sprint** (entrevista + figma estático).
 3. **Integrar Mem0 só em 1 fluxo (briefing inicial)** — quando Larissa abre `/copiloto`, mostrar "lembro que tua meta era X" + permitir corrigir. Loop fechado, mensurável. **1 sprint.**
 
 Máximo 3. Restantes (extração via LLM, temporal validity, escala) ficam pra fases 2-3.
@@ -254,7 +254,7 @@ Máximo 3. Restantes (extração via LLM, temporal validity, escala) ficam pra f
 
 ### Métrica de fé (90 dias)
 
-> *"Se em 90 dias (até 2026-07-25) Mem0 estiver integrado em 1 fluxo do Copiloto **E** Larissa do ROTA LIVRE conseguir validar que percebe diferença ('o sistema lembrou da minha meta'), **confirma a tese B**. Se ela achar redundante OU integração custar >7 sprints, **pivota pra D (aceitar Tier 1)** e foca em PricingFpv/CT-e do ADR 0026."*
+> *"Se em 90 dias (até 2026-07-25) Mem0 estiver integrado em 1 fluxo do Jana **E** Larissa do ROTA LIVRE conseguir validar que percebe diferença ('o sistema lembrou da minha meta'), **confirma a tese B**. Se ela achar redundante OU integração custar >7 sprints, **pivota pra D (aceitar Tier 1)** e foca em PricingFpv/CT-e do ADR 0026."*
 
 Gatilho de pivot mensurável: 1 cliente fala explicitamente "preciso que ele lembre de X" durante teste = confirma; 0 menções em 90d = sinal de que não é prioridade.
 
@@ -277,8 +277,8 @@ Gatilho de pivot mensurável: 1 cliente fala explicitamente "preciso que ele lem
   - [_TEMPLATE_capterra_oimpresso.md v1.0](_TEMPLATE_capterra_oimpresso.md)
   - [sistemas_memoria_oimpresso_capterra_2026_04_26.md](sistemas_memoria_oimpresso_capterra_2026_04_26.md) (camada A — dev memory)
   - [memory/decisions/0026-posicionamento-erp-grafico-com-ia.md](../decisions/0026-posicionamento-erp-grafico-com-ia.md)
-  - [Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php](../../Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php)
-  - [Modules/Copiloto/Services/ContextSnapshotService.php](../../Modules/Copiloto/Services/ContextSnapshotService.php)
+  - [Modules/Jana/Services/Ai/OpenAiDirectDriver.php](../../Modules/Jana/Services/Ai/OpenAiDirectDriver.php)
+  - [Modules/Jana/Services/ContextSnapshotService.php](../../Modules/Jana/Services/ContextSnapshotService.php)
 
 ---
 
@@ -291,7 +291,7 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 ### Tier 2 — Fundação (sprint 1-2)
 
 **US-COPI-MEM-001** — Interface `MemoriaContrato` PHP
-> **Como** desenvolvedor do Copiloto
+> **Como** desenvolvedor do Jana
 > **Quero** uma interface PHP que abstraia a memória runtime
 > **Para** poder trocar Mem0 por Zep/Letta sem reescrever código
 >
@@ -303,19 +303,19 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 > **Métodos:** `lembrar(userId, businessId, fato): void`, `buscar(userId, businessId, query, topK=5): array`, `esquecer(memoriaId): void`, `atualizar(memoriaId, novoFato): void`
 
 **US-COPI-MEM-002** — Driver `Mem0RestDriver`
-> **Como** Copiloto
+> **Como** Jana
 > **Quero** acessar Mem0 via REST API
 > **Para** ter memória semântica sem precisar SDK PHP
 
 **US-COPI-MEM-003** — Driver fallback `NullMemoriaDriver`
-> **Como** Copiloto rodando em dev/dry_run
+> **Como** Jana rodando em dev/dry_run
 > **Quero** um driver que devolve fixtures
 > **Para** testar sem rede e sem custo
 
 ### Tier 3 — Escrita ativa (sprint 3-4)
 
 **US-COPI-MEM-004** — Extração de fatos via LLM ao final de cada resposta
-> **Como** Copiloto após responder ao user
+> **Como** Jana após responder ao user
 > **Quero** extrair fatos novos da conversa via LLM
 > **Para** persistir só o que importa (não a transcrição inteira)
 >
@@ -323,19 +323,19 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 > **Job:** `ExtrairFatosDaConversaJob` (assíncrono, hot path opcional)
 
 **US-COPI-MEM-005** — Multi-tenant scope obrigatório
-> **Cenário:** Larissa do ROTA LIVRE (biz=4) e Pedro do ROTA NOVA (biz=8) usam Copiloto
+> **Cenário:** Larissa do ROTA LIVRE (biz=4) e Pedro do ROTA NOVA (biz=8) usam Jana
 > Quando Larissa salvar fato "minha meta é R$ [redacted Tier 0]k"
 > Então `Pedro` jamais consulta esse fato (scope `business_id=4` + `user_id=Larissa.id`)
 
 **US-COPI-MEM-006** — Dedup automático de fatos repetidos
 > **Cenário:** "minha meta é R$ [redacted Tier 0]k" dito 3x em 3 conversas
-> Quando o Copiloto extrai fato pela 3ª vez
+> Quando o Jana extrai fato pela 3ª vez
 > Então identifica como duplicata (similarity ≥ 0.9) e atualiza timestamp em vez de criar novo
 
 ### Tier 4 — Leitura inteligente (sprint 5)
 
 **US-COPI-MEM-007** — Recall top-k antes de cada resposta IA
-> **Como** Copiloto antes de gerar resposta
+> **Como** Jana antes de gerar resposta
 > **Quero** buscar top-5 fatos relevantes pra mensagem atual
 > **Para** o LLM responder com contexto certo
 >
@@ -350,7 +350,7 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 
 **US-COPI-MEM-009** — Temporal validity (fatos com `valid_from`/`valid_until`)
 > **Cenário:** Larissa em jan disse meta=R$ [redacted Tier 0]k; em abr disse meta=R$ [redacted Tier 0]k
-> Quando o Copiloto recall "qual a meta atual?"
+> Quando o Jana recall "qual a meta atual?"
 > Então retorna **só** o fato com `valid_until=NULL` (mais recente). Fato antigo é archived com `valid_until=2026-04-15`
 
 **US-COPI-MEM-010** — Conflict detection ao escrever fato
@@ -359,13 +359,13 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 > Então atualiza o antigo com `valid_until=now()` e cria novo `valid_from=now()`. Loga em `copiloto_memory_audit`.
 
 **US-COPI-MEM-011** — Bridge auto-memória → memória runtime no onboarding
-> **Cenário:** novo cliente subscreve Copiloto
+> **Cenário:** novo cliente subscreve Jana
 > Quando rodar `php artisan copiloto:seed-memory --business=4 --user=larissa@rotalivre.com`
 > Então fatos de `cliente_rotalivre.md` da auto-mem são importados como `copiloto_memory_facts`
 
-**US-COPI-MEM-012** — Tela "O Copiloto lembra de você"
+**US-COPI-MEM-012** — Tela "O Jana lembra de você"
 > **Como** Larissa
-> **Quero** ver o que o Copiloto sabe sobre mim
+> **Quero** ver o que o Jana sabe sobre mim
 > **Para** corrigir ou apagar fatos errados (LGPD compliant)
 >
 > Rota: `/copiloto/memoria` — lista fatos por categoria, com botões "esquecer" e "corrigir"

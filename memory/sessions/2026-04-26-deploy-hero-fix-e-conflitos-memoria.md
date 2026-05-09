@@ -25,7 +25,7 @@ Edits em `~/.claude/projects/D--oimpresso-com/memory/`:
 - Stack IA reconciliada (4 fontes contradiziam; agora alinha com código atual: dry_run-only, plano = Vizra ADK + Prism PHP).
 - Inertia v2 → v3 corrigido em CLAUDE.md e handoff (composer.lock confirma v3.0.6).
 - SSH porta 65002: nota "não funciona" corrigida com receita de deploy manual validada.
-- Status Copiloto: `spec-ready` → `implementado` (PR #13 mergeado, 24 testes Pest).
+- Status Jana: `spec-ready` → `implementado` (PR #13 mergeado, 24 testes Pest).
 - Status 4 módulos promovidos: Financeiro=implementado, LaravelAI=scaffold, Nfe/Recurring=spec-ready.
 - EvolutionAgent destravado (bloqueio "merge L13" não existe mais).
 - CMS hidratação `cms_pages`: tentado e revertido em `039a810d`; Hero é hardcoded.
@@ -49,7 +49,7 @@ Edits em `~/.claude/projects/D--oimpresso-com/memory/`:
 
 ### 6. AGENTS.md desestaleado
 - "Laravel 10" → "Laravel 13.6 + PHP 8.4 + Inertia v3 + React + Tailwind 4".
-- Adicionado lista de módulos (Copiloto/Financeiro/Cms/MemCofre/Officeimpresso).
+- Adicionado lista de módulos (Jana/Financeiro/Cms/MemCofre/Officeimpresso).
 - Aponta pro ADR 0027 como meta-guia das memórias.
 
 ---

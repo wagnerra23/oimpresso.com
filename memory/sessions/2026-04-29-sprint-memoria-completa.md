@@ -1,7 +1,7 @@
 # Sessão 2026-04-29 — Sprint memória completa (8 entregas em 1 dia)
 
 **Branch:** `main` · **Cycle:** 01 (29-abr → 12-mai) · **Modo:** Wagner solo (ADR 0047)
-**Continuação de:** `2026-04-28-meilisearch-vaultwarden.md` (Copiloto IA real entrou em prod fim de tarde)
+**Continuação de:** `2026-04-28-meilisearch-vaultwarden.md` (Jana IA real entrou em prod fim de tarde)
 **Implementador:** Wagner [W] + Claude (1M context)
 
 ---
@@ -12,9 +12,9 @@ Wagner pediu (cedo da manhã): *"gere as próximas tarefas/sprint comita e merge
 
 Estado de entrada:
 - ✅ IA real respondendo Larissa em prod desde 28-abr (gpt-4o-mini)
-- ⚠️ Gap 1: ChatCopilotoAgent "burrinho" — sem ContextoNegocio (ADR 0046)
+- ⚠️ Gap 1: ChatJanaAgent "burrinho" — sem ContextoNegocio (ADR 0046)
 - ⚠️ Gap 2: MeilisearchDriver::buscar usa Scout default — full-text only, recall=0 mesmo com fato indexado
-- 50 testes Pest passando, suite Copiloto inteira
+- 50 testes Pest passando, suite Jana inteira
 
 ---
 
@@ -42,9 +42,9 @@ Config defaults atualizados pra bater com prod (`embedder='openai'`, `semantic_r
 
 **Validação prod:** smoke `buscar(4, 9, 'qual a meta de faturamento')` retornou **2 hits** (era 0). Log conversa real Larissa: `memoria_recall_chars: 190` (era sempre 0).
 
-### 3. MEM-HOT-2 — ContextoNegocio no ChatCopilotoAgent (`2be9930c`)
+### 3. MEM-HOT-2 — ContextoNegocio no ChatJanaAgent (`2be9930c`)
 
-`ChatCopilotoAgent($conv, $memoria, ?ContextoNegocio $ctx)` — ctx opcional, BC-compat. `instructions()` formata bloco compacto (~150-250 tokens):
+`ChatJanaAgent($conv, $memoria, ?ContextoNegocio $ctx)` — ctx opcional, BC-compat. `instructions()` formata bloco compacto (~150-250 tokens):
 
 ```
 CONTEXTO DO NEGÓCIO (dados reais — use estes números, não invente):
@@ -168,12 +168,12 @@ Comando: `php artisan copiloto:metrics:apurar [--date=YYYY-MM-DD] [--business={I
 
 | Métrica | Antes (28-abr) | Depois (29-abr) |
 |---|---|---|
-| Suite Copiloto | 50 passed | **77 passed (+27)** |
+| Suite Jana | 50 passed | **77 passed (+27)** |
 | Testes skipped | 3 | 3 (mesmos) |
 | Regressões | — | **0** |
 | ADRs no repo | 47 (0001-0047) | **51 (0001-0051)** |
-| Tabelas Copiloto | 8 | 9 (`copiloto_memoria_metricas` nova) |
-| Comandos artisan | 0 do Copiloto | 1 (`copiloto:metrics:apurar`) |
+| Tabelas Jana | 8 | 9 (`copiloto_memoria_metricas` nova) |
+| Comandos artisan | 0 do Jana | 1 (`copiloto:metrics:apurar`) |
 | Log channels | 1 (`copiloto-ai`) | 2 (+ `otel-gen-ai`) |
 | `memoria_recall_chars` em prod | 0 | **190** ✅ |
 | Tokens injetados system prompt | 0 (genérico) | **164** com dados reais ROTA LIVRE |

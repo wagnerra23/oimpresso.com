@@ -6,7 +6,7 @@ originSessionId: 866e50c8-744a-42e4-8e79-7470bb472801
 ---
 `.github/workflows/quick-sync.yml` está **falhando há 24+ horas** em TODOS os pushes pra `6.7-bootstrap`. Sintoma: action completa em 5-8s com `Process completed with exit code 1` no step "Setup SSH". Significa Hostinger NÃO recebe deploys automáticos via essa action.
 
-**Why:** Provável rotação/expiração da `SSH_PRIVATE_KEY` (ou `SSH_HOST`/`SSH_PORT`/`SSH_USER` mudaram) sem atualizar os GH secrets. Erro silencioso — ninguém percebeu até 2026-04-26 quando Wagner reportou que módulo Copiloto não aparecia no menu (na verdade o código nem chegou lá).
+**Why:** Provável rotação/expiração da `SSH_PRIVATE_KEY` (ou `SSH_HOST`/`SSH_PORT`/`SSH_USER` mudaram) sem atualizar os GH secrets. Erro silencioso — ninguém percebeu até 2026-04-26 quando Wagner reportou que módulo Jana não aparecia no menu (na verdade o código nem chegou lá).
 
 **How to apply:**
 - Quando Wagner perguntar "tá no Hostinger?" sempre verificar PRIMEIRO `gh run list --workflow=quick-sync.yml --limit=5` antes de assumir deploy aconteceu.

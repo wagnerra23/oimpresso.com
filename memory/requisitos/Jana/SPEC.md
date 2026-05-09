@@ -1,4 +1,4 @@
-# Especificação funcional — Copiloto
+# Especificação funcional — Jana
 
 ## 1. Personas
 
@@ -16,13 +16,13 @@
 
 ### Área Chat
 
-#### US-COPI-001 · Iniciar conversa com o Copiloto
+#### US-COPI-001 · Iniciar conversa com o Jana
 - **Rota:** `GET /copiloto`
 - **Controller:** `ChatController@index`
-- **Como** gestor **quero** abrir o Copiloto **para** ver snapshot atual e iniciar conversa.
+- **Como** gestor **quero** abrir o Jana **para** ver snapshot atual e iniciar conversa.
 - **DoD extra:** página carrega com briefing auto-gerado (faturamento 90d, tendência, nº clientes ativos) sem clique adicional.
 
-#### US-COPI-002 · Enviar mensagem ao Copiloto
+#### US-COPI-002 · Enviar mensagem ao Jana
 - **Rota:** `POST /copiloto/conversas/{id}/mensagens`
 - **Controller:** `ChatController@send`
 - **Como** gestor **quero** descrever cenário ou pedir sugestão **para** obter propostas.
@@ -152,24 +152,24 @@
 
 ## 3. Regras de negócio (Gherkin)
 
-### Feature: Proposta de metas pelo Copiloto
+### Feature: Proposta de metas pelo Jana
 
 ```gherkin
-Cenário: Copiloto precisa de contexto mínimo antes de propor
+Cenário: Jana precisa de contexto mínimo antes de propor
   Dado que o business não tem NENHUMA transação registrada
   Quando o gestor pede "sugira metas"
-  Então o Copiloto NÃO propõe metas numéricas
+  Então o Jana NÃO propõe metas numéricas
   E responde pedindo dados básicos (setor, expectativa, histórico fora do sistema)
 
 Cenário: Propostas vêm em cenários contrastantes
   Dado que o business tem histórico de 90+ dias de transações
   Quando o gestor pede "sugira metas de faturamento pra 2026"
-  Então o Copiloto retorna 3-5 propostas
+  Então o Jana retorna 3-5 propostas
   E cada proposta tem dificuldade classificada em (fácil | realista | ambiciosa)
   E pelo menos uma proposta é da categoria "realista"
 
 Cenário: Escolher proposta cria meta ativa imediatamente
-  Dado que o Copiloto entregou 3 propostas
+  Dado que o Jana entregou 3 propostas
   Quando o gestor escolhe a proposta #2
   Então uma nova Meta é criada com origem=chat_ia
   E um MetaPeriodo é criado com o valor_alvo da proposta
@@ -233,11 +233,11 @@ Cenário: Desvio acima do threshold dispara alerta
 
 | Evento | Payload | Ouvintes |
 |---|---|---|
-| `CopilotoMetaCriada` | `meta_id, origem, conversa_id?` | ActivityLog, agenda ApurarMetaJob |
-| `CopilotoMetaEscolhida` | `sugestao_id, meta_id` | activitylog, feedback prompt |
-| `CopilotoMetaApurada` | `meta_id, data_ref, valor` | AlertaService |
-| `CopilotoDesvioDetectado` | `meta_id, desvio_pct, severidade` | NotificationBus |
-| `CopilotoConversaIniciada` | `conversa_id, user_id` | telemetria |
+| `JanaMetaCriada` | `meta_id, origem, conversa_id?` | ActivityLog, agenda ApurarMetaJob |
+| `JanaMetaEscolhida` | `sugestao_id, meta_id` | activitylog, feedback prompt |
+| `JanaMetaApurada` | `meta_id, data_ref, valor` | AlertaService |
+| `JanaDesvioDetectado` | `meta_id, desvio_pct, severidade` | NotificationBus |
+| `JanaConversaIniciada` | `conversa_id, user_id` | telemetria |
 
 ## 5. Decisões em aberto (que viram US futuras)
 
@@ -427,7 +427,7 @@ Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top
 
 **Steps:**
 1. CT 100: `ollama pull dengcao/Qwen3-Reranker-0.6B` (community Ollama) OU `docker run TEI bge-reranker-v2-m3`
-2. Implementar `RerankerService` em `Modules/Copiloto/Services/Retrieval/`
+2. Implementar `RerankerService` em `Modules/Jana/Services/Retrieval/`
 3. Modificar `EvalRagasBaselineCommand::retrieveKbContext()` pra fetch top-50 → reranker → top-3
 4. Eval com e sem reranker, comparar score + latência
 5. ADR documentando trade-off (latência +100-200ms vs ganho de score)

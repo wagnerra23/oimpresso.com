@@ -80,7 +80,7 @@ Sidebar grupo GOVERNANÇA visível com Governança, ADS, Team MCP.
 
 ## P0 amanhã (deferred com transparência)
 
-1. **Fase 3.7 renames** — Copiloto→Jana, PontoWr2→Ponto, MemCofre→SRS, ProjectMgmt→Project + 9 drift controllers (`MODULE-DRIFT-MIGRATION-PLAN.md`). 4-6h sessão dedicada.
+1. **Fase 3.7 renames** — Jana→Jana, PontoWr2→Ponto, MemCofre→SRS, ProjectMgmt→Project + 9 drift controllers (`MODULE-DRIFT-MIGRATION-PLAN.md`). 4-6h sessão dedicada.
 2. **ActionGate gradual rollout** em rotas L1+ (modo warn calibração 4 semanas)
 3. **PiiRedactor wire-in** nos LLM calls externos (Art. 4 LGPD compliance pleno)
 4. **Backfill `mcp_audit_log.actor_slug`** retroativo (script SQL)

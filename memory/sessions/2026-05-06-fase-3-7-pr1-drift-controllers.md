@@ -13,9 +13,9 @@ tags: [governance, refactor, drift-resolution, module-charter, pr-97]
 
 Wagner retomou via `/continuar`, escolheu "os nomes" (renames) do P0 do handoff. Ao ler o `MODULE-DRIFT-MIGRATION-PLAN` v1.0.0, optei por dividir em 2 PRs (drift vs renames) — Wagner aprovou ("pode fazer voce").
 
-Durante leitura dos 9 controllers a mover, descobri **erratum no plano §1**: `MemoriaController` e `FontesController` (Copiloto) NÃO são "browse de mcp_memory_documents" e "knowledge sources" como descritos. São, respectivamente, tela LGPD pessoal sobre `copiloto_memoria_facts` e data source da meta (`MetaFonte`). Wagner confirmou destino KB mesmo assim ("kb é o correto") — decisão arquitetural L1, registrada como erratum no plano v1.1.0.
+Durante leitura dos 9 controllers a mover, descobri **erratum no plano §1**: `MemoriaController` e `FontesController` (Jana) NÃO são "browse de mcp_memory_documents" e "knowledge sources" como descritos. São, respectivamente, tela LGPD pessoal sobre `copiloto_memoria_facts` e data source da meta (`MetaFonte`). Wagner confirmou destino KB mesmo assim ("kb é o correto") — decisão arquitetural L1, registrada como erratum no plano v1.1.0.
 
-PR-1 entregue. PR-2 (renames Copiloto→Jana / PontoWr2→Ponto / MemCofre→SRS) deferred pra sessão dedicada após auditoria de tamanho (~370 arquivos PHP) + 7 decisões satélites pendentes (Pages React dir, URLs, permissions Spatie, log channel, config keys, env vars, lang dir).
+PR-1 entregue. PR-2 (renames Jana→Jana / PontoWr2→Ponto / MemCofre→SRS) deferred pra sessão dedicada após auditoria de tamanho (~370 arquivos PHP) + 7 decisões satélites pendentes (Pages React dir, URLs, permissions Spatie, log channel, config keys, env vars, lang dir).
 
 ## Entregas (commit `850ac349`)
 
@@ -24,8 +24,8 @@ PR-1 entregue. PR-2 (renames Copiloto→Jana / PontoWr2→Ponto / MemCofre→SRS
 | Item | Status |
 |---|---|
 | 9 git mv preservando history (96-99% similarity) | ✅ |
-| 9 namespace updates (`Modules\Copiloto/ADS\…` → `\KB/TeamMcp/ProjectMgmt`) | ✅ |
-| Routes em Copiloto/Http/routes.php + ADS/Routes/web.php (use imports + ns prefix) | ✅ |
+| 9 namespace updates (`Modules\Jana/ADS\…` → `\KB/TeamMcp/ProjectMgmt`) | ✅ |
+| Routes em Jana/Http/routes.php + ADS/Routes/web.php (use imports + ns prefix) | ✅ |
 | 2 tests com use atualizado | ✅ |
 | 5 SCOPE.md (`drift_alerts: []`, `contains[]` redistribuído) | ✅ |
 | Plano canônico v1.0.0 → v1.1.0 com erratum §1 | ✅ |
@@ -36,8 +36,8 @@ PR-1 entregue. PR-2 (renames Copiloto→Jana / PontoWr2→Ponto / MemCofre→SRS
 
 | De → Pra | Controllers |
 |---|---|
-| Copiloto → KB | `MemoriaController`, `FontesController` |
-| Copiloto/Mcp → TeamMcp/Mcp | `CcIngestController`, `HealthController`, `SyncMemoryWebhookController` |
+| Jana → KB | `MemoriaController`, `FontesController` |
+| Jana/Mcp → TeamMcp/Mcp | `CcIngestController`, `HealthController`, `SyncMemoryWebhookController` |
 | ADS/Admin → KB/Admin | `GraphController` |
 | ADS/Admin → TeamMcp/Admin | `ToolsController`, `TeamScopesController` |
 | ADS/Admin → ProjectMgmt/Admin | `ProjectsController` |
@@ -46,7 +46,7 @@ PR-1 entregue. PR-2 (renames Copiloto→Jana / PontoWr2→Ponto / MemCofre→SRS
 
 Plano §3-4 sugere mover URLs com 301 redirect. Optei por **manter URLs inalteradas** nesta PR-1 pra zero break em Pages React, bookmarks, watchers Claude Code, webhook GitHub. Implementação:
 
-- `/copiloto/memoria*`, `/copiloto/metas/{id}/fonte` → tuple `[\Modules\KB\Http\Controllers\…::class, 'method']` no Copiloto/Http/routes.php
+- `/copiloto/memoria*`, `/copiloto/metas/{id}/fonte` → tuple `[\Modules\KB\Http\Controllers\…::class, 'method']` no Jana/Http/routes.php
 - `/api/mcp/*`, `/api/cc/*` → trocou só o `'namespace'` prefix do route group de `Modules\Jana\Http\Controllers\Mcp` pra `Modules\TeamMcp\Http\Controllers\Mcp`
 - `/ads/admin/{tools,team-scopes,graph,projects}` → swap de `use` imports no topo do ADS/Routes/web.php
 
@@ -55,15 +55,15 @@ Riscos alto/médio do plano §2 (webhook GitHub, watchers locais) **não materia
 ## Erratum §1 do plano (registrado em v1.1.0)
 
 Plano original confundiu nomes:
-- `MemoriaController` (Copiloto) — descrito como "browse de mcp_memory_documents". Realidade: tela LGPD pessoal US-COPI-MEM-012 sobre `copiloto_memoria_facts`. Browse de mcp_memory_documents virou `KbController` em 2026-05-03.
-- `FontesController` (Copiloto) — descrito como "knowledge sources". Realidade: data source da meta de faturamento (driver sql/php/http) sobre `MetaFonte`.
+- `MemoriaController` (Jana) — descrito como "browse de mcp_memory_documents". Realidade: tela LGPD pessoal US-COPI-MEM-012 sobre `copiloto_memoria_facts`. Browse de mcp_memory_documents virou `KbController` em 2026-05-03.
+- `FontesController` (Jana) — descrito como "knowledge sources". Realidade: data source da meta de faturamento (driver sql/php/http) sobre `MetaFonte`.
 
 Wagner confirmou destino KB pra ambos como decisão arquitetural L1 — KB engloba todo "conhecimento gerenciado", incluindo memória LGPD pessoal e configuração de fontes de dados. Registrado no plano v1.1.0 como erratum, não retificação retroativa.
 
 ## PR-2 deferred (sessão dedicada)
 
 Tamanho real medido:
-- Copiloto: 217 PHP / 220 total
+- Jana: 217 PHP / 220 total
 - PontoWr2: 97 PHP / 104 total
 - MemCofre: 41 PHP / 45 total
 - **~370 arquivos**
@@ -72,8 +72,8 @@ Tamanho real medido:
 
 | Item | Renomeia? | Risco |
 |---|---|---|
-| Namespace PHP `\Copiloto` → `\Jana` | óbvio sim | composer dump-autoload em prod |
-| Pages React dir `Pages/Copiloto/` | indeciso | ~30 `Inertia::render('Copiloto/…')` |
+| Namespace PHP `\Jana` → `\Jana` | óbvio sim | composer dump-autoload em prod |
+| Pages React dir `Pages/Jana/` | indeciso | ~30 `Inertia::render('Jana/…')` |
 | URLs `/copiloto/*` → `/jana/*` | plano §4 sim com 301 | bookmarks, watchers, links externos |
 | Permissions Spatie `copiloto.*` → `jana.*` | indeciso | usuários perdem acesso até backfill |
 | Log channel `copiloto-ai` | indeciso | grep em logs históricos |
@@ -98,4 +98,4 @@ Skills `feedback_decida_nao_pergunte` e `publication-policy` foram bem aplicadas
 
 1. Wagner revisa [oimpresso.com#97](https://github.com/wagnerra23/oimpresso.com/pull/97).
 2. Após merge, sessão dedicada PR-2 com plan claro pras 7 decisões satélites.
-3. Pendente cycle CYCLE-01 (vence 12/05): COPI-22 (driver MCP no Copiloto, due hoje) e COPI-21 (frontmatter YAML SPECs, due 09/05).
+3. Pendente cycle CYCLE-01 (vence 12/05): COPI-22 (driver MCP no Jana, due hoje) e COPI-21 (frontmatter YAML SPECs, due 09/05).
