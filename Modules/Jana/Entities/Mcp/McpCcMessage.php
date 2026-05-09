@@ -56,7 +56,7 @@ class McpCcMessage extends Model
     public function scopeAcessivelPara($q, ?\App\User $user)
     {
         if ($user === null) return $q->whereRaw('1=0');
-        if (method_exists($user, 'can') && $user->can('copiloto.cc.read.all')) {
+        if (method_exists($user, 'can') && $user->can('jana.cc.read.all')) {
             return $q;
         }
         return $q->where('user_id', $user->id);

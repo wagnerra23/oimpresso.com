@@ -58,8 +58,8 @@ class CcIngestController extends Controller
         }
 
         // RBAC — gate `copiloto.cc.ingest.self` (concedido por padrão a todos com mcp.use)
-        if (method_exists($user, 'can') && ! $user->can('copiloto.cc.ingest.self')
-            && ! $user->can('copiloto.mcp.use')) {
+        if (method_exists($user, 'can') && ! $user->can('jana.cc.ingest.self')
+            && ! $user->can('jana.mcp.use')) {
             return response()->json([
                 'error' => 'Forbidden',
                 'message' => 'User não tem permission copiloto.cc.ingest.self',

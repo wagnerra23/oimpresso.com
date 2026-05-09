@@ -21,7 +21,7 @@ class AlertasController extends Controller
     public function updateConfig(Request $request)
     {
         // TODO: persistir config em business.essentials_settings ou tabela dedicada.
-        return redirect()->route('copiloto.alertas.config')
+        return redirect()->route('jana.alertas.config')
             ->with('status', 'Configuração salva.');
     }
 }

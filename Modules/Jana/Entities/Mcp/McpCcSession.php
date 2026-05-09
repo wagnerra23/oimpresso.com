@@ -48,7 +48,7 @@ class McpCcSession extends Model
         if ($user === null) return $q->whereRaw('1=0');
 
         // copiloto.cc.read.all → vê de todo time
-        if (method_exists($user, 'can') && $user->can('copiloto.cc.read.all')) {
+        if (method_exists($user, 'can') && $user->can('jana.cc.read.all')) {
             return $q;
         }
         // copiloto.cc.read.self → vê só as próprias

@@ -49,7 +49,7 @@ class MemoriaController extends Controller
             return back()->with('flash.success', 'Memória esquecida.');
         }
 
-        return redirect()->route('copiloto.memoria.index')
+        return redirect()->route('jana.memoria.index')
             ->with('flash.success', 'Memória esquecida.');
     }
 
