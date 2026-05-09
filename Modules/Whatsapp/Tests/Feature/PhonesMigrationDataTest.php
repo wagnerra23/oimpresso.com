@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 uses(Tests\TestCase::class);
 
 /**
- * ADR 0115 §Q6 — data migration 1→N copia legacy `whatsapp_business_configs`
+ * ADR 0117 §Q6 — data migration 1→N copia legacy `whatsapp_business_configs`
  * pra `whatsapp_business_phones` com `label='Comercial'` (default seguro)
  * + UPDATE conversations/messages apontando pro phone novo.
  *
@@ -136,7 +136,7 @@ beforeEach(function () {
 
 /**
  * Replica a lógica essencial da migration de dados (espelho fiel pro
- * comportamento documentado em ADR 0115 §Q6 + runbook).
+ * comportamento documentado em ADR 0117 §Q6 + runbook).
  */
 function runDataMigration(): void
 {

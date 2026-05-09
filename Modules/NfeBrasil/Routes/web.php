@@ -132,3 +132,35 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->whereNumber('tx')
             ->name('status');
     });
+
+// US-NFE-052 (ADR 0116 caso Gold) — UI Manifestação do Destinatário.
+// Permissão `nfe.manifestacao.view` (index + JSON) + `nfe.manifestacao.manage` (mutations).
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('nfe-brasil/manifestacao')
+    ->name('nfe-brasil.manifestacao.')
+    ->group(function () {
+        Route::get('/', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'index'])
+            ->name('index');
+
+        // Eventos individuais
+        Route::post('{id}/cienciar', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'cienciar'])
+            ->whereNumber('id')->name('cienciar');
+        Route::post('{id}/confirmar', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'confirmar'])
+            ->whereNumber('id')->name('confirmar');
+        Route::post('{id}/desconhecer', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'desconhecer'])
+            ->whereNumber('id')->name('desconhecer');
+        Route::post('{id}/nao-realizada', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'naoRealizada'])
+            ->whereNumber('id')->name('nao-realizada');
+
+        // Bulk + sync
+        Route::post('bulk/confirmar', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'bulkConfirmar'])
+            ->name('bulk.confirmar');
+        Route::post('sync-now', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'syncNow'])
+            ->name('sync-now');
+
+        // JSON pra LinkedApps fetch lazy
+        Route::get('{id}/itens', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'listarItens'])
+            ->whereNumber('id')->name('itens');
+        Route::get('{id}/eventos', [\Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class, 'listarEventos'])
+            ->whereNumber('id')->name('eventos');
+    });

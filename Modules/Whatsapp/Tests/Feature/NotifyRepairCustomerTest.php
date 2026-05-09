@@ -6,25 +6,30 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Repair\Events\RepairStatusChanged;
-use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
 use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
 
 uses(Tests\TestCase::class);
 
 /**
- * US-WA-004 · NotifyRepairCustomer — Listener Repair → dispara WhatsApp.
+ * US-WA-004 + US-WA-040 · NotifyRepairCustomer — Listener Repair → WhatsApp
+ * com roteamento por phone (ADR 0117).
  *
  * Cobre:
- * (a) com config + cliente válido = SendWhatsappMessageJob dispatched
- * (b) sem WhatsappBusinessConfig = no-op (log info, zero jobs)
- * (c) sem mobile (contact_id=null) = log info + no-op (zero jobs)
+ * (a) phone com handles_repair_status=true + cliente + template → Job dispatched
+ *     com phone_id correto
+ * (b) sem phone configurado → no-op silencioso
+ * (c) phone sem flag handles_repair_status nem outbound_default → no-op
+ * (d) phone com handles_outbound_default=true (sem específico) → Job dispatched
+ *     (fallback default)
+ * (e) cliente sem mobile → no-op
  *
  * Padrão SQLite friendly.
  */
 
 beforeEach(function () {
-    foreach (['contacts', 'whatsapp_business_configs'] as $t) {
+    foreach (['contacts', 'whatsapp_business_phones'] as $t) {
         Schema::dropIfExists($t);
     }
 
@@ -35,10 +40,11 @@ beforeEach(function () {
         $table->string('mobile', 60)->nullable();
     });
 
-    Schema::create('whatsapp_business_configs', function ($table) {
+    Schema::create('whatsapp_business_phones', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
-        $table->uuid('business_uuid')->unique();
+        $table->uuid('phone_uuid')->unique();
+        $table->string('label', 80);
         $table->string('driver', 20)->default('zapi');
         $table->string('fallback_driver', 20)->default('meta_cloud');
         $table->string('display_phone', 20)->nullable();
@@ -50,10 +56,15 @@ beforeEach(function () {
         $table->text('zapi_instance_token')->nullable();
         $table->text('zapi_client_token')->nullable();
         $table->string('baileys_instance_id', 64)->nullable();
-        $table->string('baileys_daemon_url', 255)->nullable();
-        $table->text('baileys_api_key')->nullable();
+        $table->string('baileys_phone_e164', 20)->nullable();
+        $table->string('baileys_verified_name', 100)->nullable();
+        $table->string('baileys_profile_pic_url', 255)->nullable();
         $table->timestamp('lgpd_acknowledged_at')->nullable();
         $table->unsignedInteger('lgpd_acknowledged_by_user_id')->nullable();
+        $table->boolean('handles_repair_status')->default(false);
+        $table->boolean('handles_billing')->default(false);
+        $table->boolean('handles_jana_bot')->default(true);
+        $table->boolean('handles_outbound_default')->default(false);
         $table->boolean('bot_enabled')->default(false);
         $table->string('template_repair_ready_name', 64)->nullable();
         $table->string('template_repair_waiting_parts_name', 64)->nullable();
@@ -67,7 +78,7 @@ beforeEach(function () {
     });
 });
 
-it('(a) com config + cliente válido + template configurado → dispatcha SendWhatsappMessageJob', function () {
+it('(a) phone com handles_repair_status + cliente + template → Job dispatched com phone_id correto', function () {
     Bus::fake();
 
     $contact = \DB::table('contacts')->insertGetId([
@@ -76,27 +87,26 @@ it('(a) com config + cliente válido + template configurado → dispatcha SendWh
         'mobile' => '+5511987654321',
     ]);
 
-    WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
+    $phone = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1,
-        'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
         'zapi_instance_id' => 'inst-test',
         'zapi_instance_token' => 'tok-test',
+        'handles_repair_status' => true,
         'template_repair_ready_name' => 'repair_status_ready',
     ]);
 
-    $repair = (object) [
-        'id' => 42,
-        'business_id' => 1,
-        'contact_id' => $contact,
-    ];
+    $repair = (object) ['id' => 42, 'business_id' => 1, 'contact_id' => $contact];
 
     $listener = new NotifyRepairCustomer;
     $listener->handle($repair, 'ready');
 
-    Bus::assertDispatched(SendWhatsappMessageJob::class, function ($job) use ($repair) {
+    Bus::assertDispatched(SendWhatsappMessageJob::class, function ($job) use ($repair, $phone) {
         return $job->businessId === 1
+            && $job->whatsappBusinessPhoneId === $phone->id
             && $job->to === '+5511987654321'
             && $job->kind === 'template'
             && $job->payload['name'] === 'repair_status_ready'
@@ -105,16 +115,10 @@ it('(a) com config + cliente válido + template configurado → dispatcha SendWh
     });
 });
 
-it('(b) sem WhatsappBusinessConfig → no-op silencioso (zero jobs)', function () {
+it('(b) sem phone configurado → no-op silencioso (zero jobs)', function () {
     Bus::fake();
 
-    // Nenhuma config criada — WhatsappBusinessConfig::first() retorna null
-
-    $repair = (object) [
-        'id' => 7,
-        'business_id' => 1,
-        'contact_id' => 99,
-    ];
+    $repair = (object) ['id' => 7, 'business_id' => 1, 'contact_id' => 99];
 
     $listener = new NotifyRepairCustomer;
     $listener->handle($repair, 'ready');
@@ -122,21 +126,106 @@ it('(b) sem WhatsappBusinessConfig → no-op silencioso (zero jobs)', function (
     Bus::assertNothingDispatched();
 });
 
-it('(c) sem mobile (contact_id=null) → no-op silencioso (zero jobs)', function () {
+it('(c) phone sem flag handles_repair_status nem handles_outbound_default → no-op', function () {
     Bus::fake();
 
-    WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
+    $contact = \DB::table('contacts')->insertGetId([
         'business_id' => 1,
-        'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'name' => 'Z',
+        'mobile' => '+5511900000000',
+    ]);
+
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Sem rotear nada',
         'driver' => 'zapi',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => false,
+        'handles_outbound_default' => false,
         'template_repair_ready_name' => 'repair_status_ready',
     ]);
 
-    $repair = (object) [
-        'id' => 8,
+    $repair = (object) ['id' => 11, 'business_id' => 1, 'contact_id' => $contact];
+
+    $listener = new NotifyRepairCustomer;
+    $listener->handle($repair, 'ready');
+
+    Bus::assertNothingDispatched();
+});
+
+it('(d) phone só com handles_outbound_default=true → Job dispatched (fallback default)', function () {
+    Bus::fake();
+
+    $contact = \DB::table('contacts')->insertGetId([
         'business_id' => 1,
-        'contact_id' => null, // sem contato = sem mobile
-    ];
+        'name' => 'Default',
+        'mobile' => '+5511911111111',
+    ]);
+
+    $phone = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Único',
+        'driver' => 'zapi',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => false,
+        'handles_outbound_default' => true,
+        'template_repair_ready_name' => 'repair_default_ready',
+    ]);
+
+    $repair = (object) ['id' => 12, 'business_id' => 1, 'contact_id' => $contact];
+
+    $listener = new NotifyRepairCustomer;
+    $listener->handle($repair, 'ready');
+
+    Bus::assertDispatched(SendWhatsappMessageJob::class, fn ($job) =>
+        $job->whatsappBusinessPhoneId === $phone->id
+        && $job->payload['name'] === 'repair_default_ready'
+    );
+});
+
+it('(e) cliente sem mobile (contact_id=null) → no-op silencioso (zero jobs)', function () {
+    Bus::fake();
+
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
+        'driver' => 'zapi',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => true,
+        'template_repair_ready_name' => 'repair_status_ready',
+    ]);
+
+    $repair = (object) ['id' => 8, 'business_id' => 1, 'contact_id' => null];
+
+    $listener = new NotifyRepairCustomer;
+    $listener->handle($repair, 'ready');
+
+    Bus::assertNothingDispatched();
+});
+
+it('phone tem flag mas template não cadastrado → no-op silencioso', function () {
+    Bus::fake();
+
+    $contact = \DB::table('contacts')->insertGetId([
+        'business_id' => 1,
+        'name' => 'A',
+        'mobile' => '+5511922222222',
+    ]);
+
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial sem template',
+        'driver' => 'zapi',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => true,
+        'template_repair_ready_name' => null,
+    ]);
+
+    $repair = (object) ['id' => 13, 'business_id' => 1, 'contact_id' => $contact];
 
     $listener = new NotifyRepairCustomer;
     $listener->handle($repair, 'ready');
@@ -164,10 +253,13 @@ it('handleEvent desempacota RepairStatusChanged e delega para handle()', functio
         'mobile' => '+5548999990000',
     ]);
 
-    WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
+    $phone = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1,
-        'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
         'driver' => 'zapi',
+        'fallback_driver' => 'meta_cloud',
+        'handles_repair_status' => true,
         'template_repair_waiting_parts_name' => 'repair_waiting_parts',
     ]);
 
@@ -178,7 +270,8 @@ it('handleEvent desempacota RepairStatusChanged e delega para handle()', functio
     $listener->handleEvent($event);
 
     Bus::assertDispatched(SendWhatsappMessageJob::class, fn ($job) =>
-        $job->payload['name'] === 'repair_waiting_parts'
+        $job->whatsappBusinessPhoneId === $phone->id
+        && $job->payload['name'] === 'repair_waiting_parts'
         && $job->to === '+5548999990000'
     );
 });

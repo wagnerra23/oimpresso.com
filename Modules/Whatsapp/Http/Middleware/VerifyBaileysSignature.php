@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -17,14 +18,18 @@ use Symfony\Component\HttpFoundation\Response;
  * mesma chave do Docker secret CT 100 (env var `WHATSAPP_BAILEYS_API_KEY`).
  * Não é mais per-tenant. Multi-tenancy é via `business_uuid` no path.
  *
- * Comparação timing-safe via hash_equals.
+ * **Multi-números (ADR 0117 — US-WA-040):**
+ * Após validar Bearer global, tenta resolver `WhatsappBusinessPhone` específico
+ * via `instance_id` no body. Se acha, injeta como `whatsapp.phone`. Daemon
+ * Node manda `instance_id` em todo webhook (auto-gerado per-phone).
  *
  * Camadas de defesa:
  *  1. IP whitelist Traefik (CT 100 só responde pra Hostinger 148.135.133.115)
  *  2. Bearer token global (este middleware)
  *  3. business_uuid no path → resolve config tenant (multi-tenant Tier 0)
+ *  4. instance_id no body → resolve phone específico (multi-números)
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002d, US-WA-022
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002d, US-WA-022, US-WA-040
  * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §16.5
  * @see resources/js/Pages/Whatsapp/Settings.charter.md
  */
@@ -60,7 +65,19 @@ class VerifyBaileysSignature
             return response()->json(['error' => 'invalid_signature'], 401);
         }
 
+        // Resolve phone específico via instance_id no body (multi-números)
+        $instanceId = (string) ($request->input('instance_id') ?? '');
+        $phone = null;
+        if ($instanceId !== '') {
+            $phone = WhatsappBusinessPhone::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $config->business_id)
+                ->where('baileys_instance_id', $instanceId)
+                ->first();
+        }
+
         $request->attributes->set('whatsapp.config', $config);
+        $request->attributes->set('whatsapp.phone', $phone);
 
         return $next($request);
     }

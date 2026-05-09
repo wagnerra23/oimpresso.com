@@ -19,6 +19,7 @@ return [
     'icon'  => 'Wrench',
     'items' => [
         ['label' => 'Dashboard',        'href' => '/repair/dashboard',     'icon' => 'LayoutDashboard'],
+        ['label' => 'Produção · Oficina', 'href' => '/repair/producao-oficina', 'icon' => 'KanbanSquare'],
         ['label' => 'Folhas de OS',     'href' => '/repair/job-sheet',     'icon' => 'ClipboardList'],
         ['label' => 'Status',           'href' => '/repair/status',        'icon' => 'Flag'],
         ['label' => 'Modelos',          'href' => '/repair/device-models', 'icon' => 'Smartphone'],

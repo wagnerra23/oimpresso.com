@@ -8,6 +8,8 @@ return [
     'permissao_consult_view'     => 'NF-e: Consultar notas',
     'permissao_sped_view'        => 'NF-e: Ver SPED Fiscal',
     'permissao_settings_manage'  => 'NF-e: Configurações',
+    'permissao_manifestacao_view' => 'NF-e: Ver NF-e recebidas',
+    'permissao_manifestacao_manage' => 'NF-e: Manifestar NF-e recebidas',
 
     'menu' => [
         'dashboard'  => 'Painel',

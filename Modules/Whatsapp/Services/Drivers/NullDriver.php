@@ -6,6 +6,7 @@ namespace Modules\Whatsapp\Services\Drivers;
 
 use Illuminate\Support\Str;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 
 /**
  * NullDriver — implementação no-op para dev local + Pest CI.
@@ -19,7 +20,7 @@ use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 class NullDriver implements DriverInterface
 {
     public function sendTemplate(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $templateName,
         array $params,
@@ -29,7 +30,7 @@ class NullDriver implements DriverInterface
     }
 
     public function sendFreeform(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $body,
     ): WhatsappSendResult {
@@ -37,7 +38,7 @@ class NullDriver implements DriverInterface
     }
 
     public function sendMedia(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $mediaUrl,
         string $type,
@@ -47,13 +48,13 @@ class NullDriver implements DriverInterface
     }
 
     public function fetchMessageStatus(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,
     ): MessageStatus {
         return new MessageStatus(status: 'delivered', deliveredAt: new \DateTimeImmutable());
     }
 
-    public function ping(WhatsappBusinessConfig $config): DriverHealthStatus
+    public function ping(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverHealthStatus
     {
         return DriverHealthStatus::healthy(displayPhone: '+5500000000000', sessionState: 'connected');
     }
