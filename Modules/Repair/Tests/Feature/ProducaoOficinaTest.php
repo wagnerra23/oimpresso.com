@@ -94,7 +94,7 @@ it('passa exatamente 5 colunas na ordem correta do charter', function () {
     );
 });
 
-it('inclui pelo menos 1 OS aguardando aprovação (UI banner)', function () {
+it('totals.aguardando_aprovacao é inteiro >= 0', function () {
     $user = producaoOficinaBootstrap();
     $response = $this->actingAs($user)->get('/repair/producao-oficina');
 
@@ -102,9 +102,31 @@ it('inclui pelo menos 1 OS aguardando aprovação (UI banner)', function () {
         test()->markTestSkipped('Module gate bloqueia.');
     }
 
+    // PROD-2: data_source pode ser 'live' (biz com repair_statuses + jobSheets)
+    // ou 'mock' (fallback). Ambos são válidos. Apenas garantir que prop existe.
     $response->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('totals.aguardando_aprovacao', fn ($v) => $v >= 1)
+        ->where('totals.os', fn ($v) => is_int($v) && $v >= 0)
+        ->where('totals.aguardando_aprovacao', fn ($v) => is_int($v) && $v >= 0)
+        ->where('data_source', fn ($v) => in_array($v, ['live', 'mock'], true))
     );
+});
+
+it('mock fallback gera exatamente 17 OS e 3 aguardando aprovação', function () {
+    $user = producaoOficinaBootstrap();
+    $response = $this->actingAs($user)->get('/repair/producao-oficina');
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped('Module gate bloqueia.');
+    }
+
+    // Só vale assertir contagem mock se for mesmo mock (biz sem repair_statuses).
+    $page = $response->original->getProps();
+    if (($page['data_source'] ?? null) !== 'mock') {
+        test()->markTestSkipped('Biz tem dados live — assertion mock não aplica.');
+    }
+
+    expect($page['totals']['os'])->toBe(17);
+    expect($page['totals']['aguardando_aprovacao'])->toBe(3);
 });
 
 it('Non-Goal: tela é read-only — sem rota de mutação POST/PUT/DELETE', function () {

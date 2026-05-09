@@ -13,7 +13,7 @@ tier: A
 # Page Charter — /repair/producao-oficina
 
 > **Status:** F3 implementação inicial baseada em [F1 aprovado por Wagner em 2026-05-09](../../../../prototipo-ui/prototipos/producao-oficina/F1.html). Greenfield — sem tela Blade legacy.
-> Mock data inline no Controller até US-REPAIR-PROD-2 entregar query real.
+> Query real `JobSheet` (US-REPAIR-PROD-2) com fallback gracioso pra mock data se biz não tem `repair_statuses` configurado.
 
 ---
 
@@ -41,7 +41,6 @@ Visão de produção da oficina em **kanban de 5 colunas** (Recepção → Diagn
 
 - ❌ Drag-and-drop entre colunas (mover status = ir pra `/repair/job-sheet/{id}/status`)
 - ❌ CRUD de OS (vai pra `/repair/job-sheet`)
-- ❌ Query real backend (Controller usa mock data até US-REPAIR-PROD-2)
 - ❌ Notificações push de mudança de status
 - ❌ Atribuição de mecânico via UI (vai pra JobSheet)
 - ❌ Aprovação cliente *via* esta tela (botão "Reenviar" no drawer só dispara WhatsApp template — sem UI de aprovar/recusar aqui)
@@ -83,7 +82,7 @@ Visão de produção da oficina em **kanban de 5 colunas** (Recepção → Diagn
 
 ## Backlog (US futuras)
 
-- **US-REPAIR-PROD-2** — query real `JobSheet` por status/business com mock substituído
+- ✅ **US-REPAIR-PROD-2** — query real `JobSheet` com fallback gracioso pra mock se biz não tem `repair_statuses` ou `job_sheets` configurado. Heurística sort_order quartil pra mapear status arbitrários do business pras 5 colunas fixas. Prop `data_source: 'live' | 'mock'` indica origem.
 - ✅ **US-REPAIR-PROD-3** — filtros funcionais Box/Elevador (entregue PR ~~#TBD~~)
 - **US-REPAIR-PROD-4** — drag-and-drop entre colunas (chama `/repair/job-sheet/{id}/status` com optimistic update)
 - ✅ **US-REPAIR-PROD-5** — Pest GUARD entregue (`Modules/Repair/Tests/Feature/ProducaoOficinaTest.php`): 5 tests cobrindo invariantes do charter — 5 colunas exatas/ordem, ≥1 OS aguardando aprovação, Non-Goal CRUD/mutações

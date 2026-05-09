@@ -39,6 +39,7 @@ interface PageProps {
     os: number;
     aguardando_aprovacao: number;
   };
+  data_source?: 'live' | 'mock';
 }
 
 const TONE_DOT: Record<Tone, string> = {
@@ -62,7 +63,7 @@ const ELEVADORES = ['E1', 'E2'] as const;
 
 const formatKm = (km: number) => `KM ${km.toLocaleString('pt-BR')}`;
 
-export default function ProducaoOficinaIndex({ columns, totals }: PageProps) {
+export default function ProducaoOficinaIndex({ columns, totals, data_source }: PageProps) {
   const [boxFilter, setBoxFilter] = useState<string>('all');
   const [elevadorFilter, setElevadorFilter] = useState<string>('all');
   const [activeCard, setActiveCard] = useState<Card | null>(null);
@@ -119,6 +120,14 @@ export default function ProducaoOficinaIndex({ columns, totals }: PageProps) {
           >
             Limpar filtros
           </button>
+        )}
+        {data_source === 'mock' && (
+          <span
+            title="Business sem repair_statuses ou job_sheets — mostrando dados de exemplo. Configure status em /repair/status pra ver dados reais."
+            className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded font-medium"
+          >
+            mock
+          </span>
         )}
         <div className="ml-auto text-sm text-slate-500">
           {filtersActive ? (
