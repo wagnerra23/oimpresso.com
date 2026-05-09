@@ -110,9 +110,18 @@ class MysqlWriter:
         legacy_id: str,
         legacy_metadata: dict | None = None,
         is_closed: bool = False,
-        account_type: str = "saving_current",
+        account_type_id: int | None = None,
+        created_by: int = 1,
     ) -> int | None:
         """UPSERT em accounts (core) + accounts_legacy_map (bridge).
+
+        Schema real `accounts` (UltimatePOS):
+          id, business_id, name, account_number, account_details,
+          account_type_id (FK→account_types), note, created_by, is_closed,
+          deleted_at, created_at, updated_at
+
+        account_type_id: null por default (Wagner classifica via UI). Pode
+        passar id explícito (ex: 1=Banco, 2=Caixa) se conhecer.
 
         Retorna account_id (real após commit, ou placeholder em dry-run).
         """
@@ -120,16 +129,17 @@ class MysqlWriter:
         existing_id = self._find_account_id_by_legacy(business_id, legacy_source, legacy_id)
 
         if existing_id is None:
-            # INSERT em accounts
+            # INSERT em accounts (schema real UltimatePOS)
             sql_account = """
-                INSERT INTO accounts (business_id, name, account_number, account_type, is_closed, created_at, updated_at)
-                VALUES (%(business_id)s, %(name)s, %(account_number)s, %(account_type)s, %(is_closed)s, NOW(), NOW())
+                INSERT INTO accounts (business_id, name, account_number, account_type_id, created_by, is_closed, created_at, updated_at)
+                VALUES (%(business_id)s, %(name)s, %(account_number)s, %(account_type_id)s, %(created_by)s, %(is_closed)s, NOW(), NOW())
             """
             params = {
                 "business_id": business_id,
                 "name": name,
                 "account_number": account_number,
-                "account_type": account_type,
+                "account_type_id": account_type_id,
+                "created_by": created_by,
                 "is_closed": 1 if is_closed else 0,
             }
             account_id = self._execute(sql_account, params, returning_id=True)

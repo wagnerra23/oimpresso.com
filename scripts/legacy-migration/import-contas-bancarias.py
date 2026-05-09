@@ -130,7 +130,9 @@ def map_conta_to_oimpresso(
             delphi.get("CODIGO_CEDENTE") or delphi.get("CONTA") or delphi["CODIGO"]
         )[:64],
         "is_closed": delphi.get("ATIVO", "S") != "S",
-        "account_type": "saving_current",
+        # account_type_id null — Wagner classifica como Banco (1) ou Caixa (2)
+        # via UI após import (FK pra account_types tabela).
+        "account_type_id": None,
     }
 
     # fin_contas_bancarias (módulo Financeiro)
@@ -250,6 +252,8 @@ def main() -> int:
     parser.add_argument("--codempresa", type=int, default=None,
                         help="Filtrar CONTAS por CODEMPRESA Delphi (default: todas)")
     parser.add_argument("--limit", type=int, default=None, help="Limitar N primeiras (debug)")
+    parser.add_argument("--created-by", type=int, default=int(os.environ.get("CREATED_BY", "1")),
+                        help="users.id pra preencher accounts.created_by (default 1=admin)")
     parser.add_argument("--confirm", action="store_true",
                         help="OBRIGATÓRIO em --target prod. Sem isso, prod aborta.")
     parser.add_argument("--output-dir", default="output")
@@ -325,7 +329,8 @@ def main() -> int:
                         name=account_data["name"],
                         account_number=account_data["account_number"],
                         is_closed=account_data["is_closed"],
-                        account_type=account_data["account_type"],
+                        account_type_id=account_data["account_type_id"],
+                        created_by=args.created_by,
                         legacy_source=LEGACY_SOURCE,
                         legacy_id=legacy_id,
                         legacy_metadata=metadata,
