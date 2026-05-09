@@ -60,4 +60,4 @@ Arquivos no projeto Cowork:
 
 ## Próximo passo sugerido
 
-Quando Wagner aprovar o protótipo v3 visualmente, abrir branch `feat/app-shell-v2` e portar o `AppShellV2.tsx` + `Pages/Tarefas/Index.tsx` pro repo, seguindo o padrão Jana e o ADR 0029.
+Quando Wagner aprovar o protótipo v3 visualmente, abrir branch `feat/app-shell-v2` e portar o `AppShellV2.tsx` + `Pages/Tarefas/Index.tsx` pro repo, seguindo o padrãa Jana e o ADR 0029.

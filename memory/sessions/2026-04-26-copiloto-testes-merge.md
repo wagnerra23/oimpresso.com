@@ -1,6 +1,6 @@
 # Session Log — 2026-04-26 (Sessão 14)
 
-**Resumo:** Testes do Jana corrigidos para SQLite in-memory + 3 PRs mergeados em `6.7-bootstrap`.
+**Resumo:** Testes da Jana corrigidos para SQLite in-memory + 3 PRs mergeados em `6.7-bootstrap`.
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### Parte 1 — Testes Jana (retomada de sessão anterior)
 
-Contexto: o Jana foi implementado em sessão anterior mas os testes falhavam por depender de MySQL.
+Contexto: a Jana foi implementado em sessão anterior mas os testes falhavam por depender de MySQL.
 
 **Problema raiz:** `RefreshDatabase` executa 100+ migrations MySQL-específicas que quebram no SQLite in-memory do sandbox.
 

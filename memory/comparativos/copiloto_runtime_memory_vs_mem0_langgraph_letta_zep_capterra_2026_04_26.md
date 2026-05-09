@@ -22,14 +22,14 @@
 **Mem0/LangGraph/Letta/Zep/OMEGA jogam EXCLUSIVAMENTE na camada B.**
 **Nosso comparativo anterior (`sistemas_memoria_oimpresso_capterra_2026_04_26.md`) era exclusivamente sobre camada A.**
 
-Este comparativo é sobre **camada B — runtime do Jana**.
+Este comparativo é sobre **camada B — runtime da Jana**.
 
 ---
 
 ## 1. TL;DR (5 frases)
 
 1. **Jana runtime memory hoje é Tier 1 de ~10** — só `Conversa` + `Mensagem` + 1 snapshot estático em `ContextSnapshotService.paraBusiness()` (cache 10min). Zero embeddings, zero vector store, zero graph, zero summary, zero forget, zero memória cross-session por user.
-2. **Estado-da-arte (OMEGA 95.4%, Mastra 94.87%, Hindsight 91.4%, Letta 83.2%, Zep 71.2%) usa hybrid (vector+graph+key-value), 3+ tiers (core/archival/recall) e temporal validity** — features que **nenhuma** estão no Jana, e que pra construir do zero levam ≥6 meses.
+2. **Estado-da-arte (OMEGA 95.4%, Mastra 94.87%, Hindsight 91.4%, Letta 83.2%, Zep 71.2%) usa hybrid (vector+graph+key-value), 3+ tiers (core/archival/recall) e temporal validity** — features que **nenhuma** estão na Jana, e que pra construir do zero levam ≥6 meses.
 3. **Mem0 (drop-in) integra com 21 frameworks via Python/TypeScript SDK** mas **não tem SDK PHP oficial** — precisa via REST API. Letta+Zep+LangGraph idem (Python-first). Único caminho viável pra PHP: REST.
 4. **Nosso diferencial real é negativo aqui:** somos PHP/Laravel num mercado dominado por Python; vetores+grafos exigem infra que ainda não temos (Pinecone/Neo4j/Qdrant). Jana compete sem armas.
 5. **O dilema:** integrar Mem0/Zep como dependência externa via REST (3-5 sprints, deps adicional, custo $$ recorrente) vs construir layer mínimo PHP nativo (8-12 sprints, sem dep, mas só Tier 3-4) vs aceitar ficar em Tier 1 enquanto não tiver tração comercial. **Recomendado: REST adapter pro Mem0** (caminho B na seção 7).
@@ -144,19 +144,19 @@ Este comparativo é sobre **camada B — runtime do Jana**.
 
 ### GAP 1 — Zero memória semântica (fatos sobre o user persistentes)
 
-**O que falta:** todo conhecimento sobre Larissa do ROTA LIVRE (que ela usa monitor 1280px, que digita `tx_date` retroativo, que decorou shift +3h do Carbon) **mora hoje na auto-memória do Claude no laptop do Wagner** — não no Jana. Quando o Jana for vendido pro 2º cliente, **Larissa vai precisar contar tudo de novo**. Mem0/Zep/Letta resolvem isso com vector store + graph + dedup automático.
+**O que falta:** todo conhecimento sobre Larissa do ROTA LIVRE (que ela usa monitor 1280px, que digita `tx_date` retroativo, que decorou shift +3h do Carbon) **mora hoje na auto-memória do Claude no laptop do Wagner** — não na Jana. Quando a Jana for vendido pro 2º cliente, **Larissa vai precisar contar tudo de novo**. Mem0/Zep/Letta resolvem isso com vector store + graph + dedup automático.
 **Esforço estimado:** Médio-Alto (4-6 sprints) — adicionar tabela `copiloto_memory_facts` com vector embedding (pgvector ou Pinecone REST) + extração via LLM no `responderChat()` + retrieve top-k antes de cada call IA + dedup.
 **Impacto se não fechar:** Jana fica genérico. Vira "ChatGPT com prompt sobre business" — sem retenção, sem personalização real, sem LTV. Direto ataca a tese de "ERP gráfico com IA" do ADR 0026.
 
 ### GAP 2 — Sem summarization / resumo automático de conversa longa
 
-**O que falta:** `responderChat()` em [OpenAiDirectDriver.php:160](Modules/Jana/Services/Ai/OpenAiDirectDriver.php#L160) limita histórico a **últimas 20 mensagens** brutalmente truncadas. Conversas que passam disso **perdem contexto silenciosamente** — Larissa diz na mensagem 5 "minha meta é R$ [redacted Tier 0]k/mês" e na mensagem 25 o Jana não sabe mais. Mem0 e Letta resolvem com summarization rolling: agrupa 20 msgs antigas em "facts" sumarizados.
+**O que falta:** `responderChat()` em [OpenAiDirectDriver.php:160](Modules/Jana/Services/Ai/OpenAiDirectDriver.php#L160) limita histórico a **últimas 20 mensagens** brutalmente truncadas. Conversas que passam disso **perdem contexto silenciosamente** — Larissa diz na mensagem 5 "minha meta é R$ [redacted Tier 0]k/mês" e na mensagem 25 a Jana não sabe mais. Mem0 e Letta resolvem com summarization rolling: agrupa 20 msgs antigas em "facts" sumarizados.
 **Esforço estimado:** Médio (2-4 sprints) — job `SummarizeConversaJob` que roda quando `count(mensagens) > 20`, gera resumo via LLM, salva em `copiloto_conversa_summary` (nova tabela), e `responderChat()` injeta resumo + últimas 10 msgs em vez de últimas 20.
-**Impacto se não fechar:** Conversas perdem qualidade após 20 turnos. Impede uso real "diário" do Jana. Larissa abandona depois da 1ª semana.
+**Impacto se não fechar:** Conversas perdem qualidade após 20 turnos. Impede uso real "diário" da Jana. Larissa abandona depois da 1ª semana.
 
 ### GAP 3 — Sem temporal validity (fatos que mudam ao longo do tempo)
 
-**O que falta:** se Larissa em janeiro disse "minha meta é R$ [redacted Tier 0]k", em abril disse "meta nova é R$ [redacted Tier 0]k", **o Jana memoriza ambos sem saber qual é o atual**. Zep/Graphiti resolvem com graph onde cada fato tem `start_date` + `end_date` opcional ("válido a partir de X, superseded em Y"). Métricas de negócio mudam direto — sem isso o Jana vai dar respostas erradas com confiança.
+**O que falta:** se Larissa em janeiro disse "minha meta é R$ [redacted Tier 0]k", em abril disse "meta nova é R$ [redacted Tier 0]k", **a Jana memoriza ambos sem saber qual é o atual**. Zep/Graphiti resolvem com graph onde cada fato tem `start_date` + `end_date` opcional ("válido a partir de X, superseded em Y"). Métricas de negócio mudam direto — sem isso a Jana vai dar respostas erradas com confiança.
 **Esforço estimado:** Alto (>6 sprints) — exige knowledge graph ou tabela com `valid_from/valid_until`, query temporal, conflict detection ("nova meta supersedes antiga"), UX pra revisão. Difícil em PHP nativo. Caminho realista: **integrar Zep/Graphiti via REST**.
 **Impacto se não fechar:** Confiança quebra na 1ª resposta com fato desatualizado ("seu meta é R$ [redacted Tier 0]k" quando o cliente já mudou pra R$ [redacted Tier 0]k). Em ERP, isso é regressão de produto, não bug — perde cliente.
 
@@ -178,7 +178,7 @@ Este comparativo é sobre **camada B — runtime do Jana**.
 
 ### V3 — Auto-memória do Claude (camada A) **alimentando** memória runtime (camada B)
 
-**Por que é vantagem:** Nenhum competidor tem essa ponte. Wagner já documentou em auto-memória que "Larissa decorou shift +3h" e "monitor 1280px"; podemos **importar essas notas pra memória runtime do Jana** quando Larissa logar — Jana já chega sabendo dela. Concorrentes começam do zero.
+**Por que é vantagem:** Nenhum competidor tem essa ponte. Wagner já documentou em auto-memória que "Larissa decorou shift +3h" e "monitor 1280px"; podemos **importar essas notas pra memória runtime da Jana** quando Larissa logar — Jana já chega sabendo dela. Concorrentes começam do zero.
 **Como capitalizar:** script `php artisan copiloto:seed-memory-from-auto-mem` que lê `cliente_*.md` da auto-mem e insere em `copiloto_memory_facts` no onboarding de cada cliente novo.
 **Risco de erodir:** alto — depende do Wagner manter auto-mem viva. Pode escalar mal com 50 clientes.
 
@@ -217,7 +217,7 @@ Pressupostos:
 - 1 sprint: schema + interface `MemoriaContrato` + driver REST Mem0 + testes Pest
 - 1 sprint: integração no `responderChat()` (search antes / write depois) + idempotência
 - 1 sprint: extração de fatos via LLM (passar Mensagem por extrator) + dedup
-- 1 sprint: UX de transparência ("o Jana lembra: ...") + opt-out por user
+- 1 sprint: UX de transparência ("a Jana lembra: ...") + opt-out por user
 - 1 sprint: stress test com 1.000 mensagens / business + latência <300ms p95
 - **Total: 5 sprints (5-7 semanas no ritmo Wagner)**
 - **Custo recorrente: $25-300/mês** dependendo de volume + escala
@@ -229,7 +229,7 @@ Pressupostos:
 - 0 sprints. Aposta em context window. Risco: GPT-5/Claude 5 podem acabar com necessidade de mem persistente — em ~24m? Talvez.
 
 **ROI estimado de B:**
-- Tese: Jana com memória runtime = +30-50% retenção em SaaS. Sem números reais — sem cliente pagante hoje (ROTA LIVRE não paga pelo Jana).
+- Tese: Jana com memória runtime = +30-50% retenção em SaaS. Sem números reais — sem cliente pagante hoje (ROTA LIVRE não paga pela Jana).
 - Pra a meta R$ [redacted Tier 0]mi/ano (ADR 0022), Jana precisa converter em ticket — sem mem runtime, é commodity.
 - **Assunção não validada:** "memory persistente aumenta retenção 30%" — não tem dado real ainda. Larissa não foi entrevistada.
 
@@ -254,7 +254,7 @@ Máximo 3. Restantes (extração via LLM, temporal validity, escala) ficam pra f
 
 ### Métrica de fé (90 dias)
 
-> *"Se em 90 dias (até 2026-07-25) Mem0 estiver integrado em 1 fluxo do Jana **E** Larissa do ROTA LIVRE conseguir validar que percebe diferença ('o sistema lembrou da minha meta'), **confirma a tese B**. Se ela achar redundante OU integração custar >7 sprints, **pivota pra D (aceitar Tier 1)** e foca em PricingFpv/CT-e do ADR 0026."*
+> *"Se em 90 dias (até 2026-07-25) Mem0 estiver integrado em 1 fluxo da Jana **E** Larissa do ROTA LIVRE conseguir validar que percebe diferença ('o sistema lembrou da minha meta'), **confirma a tese B**. Se ela achar redundante OU integração custar >7 sprints, **pivota pra D (aceitar Tier 1)** e foca em PricingFpv/CT-e do ADR 0026."*
 
 Gatilho de pivot mensurável: 1 cliente fala explicitamente "preciso que ele lembre de X" durante teste = confirma; 0 menções em 90d = sinal de que não é prioridade.
 
@@ -291,7 +291,7 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 ### Tier 2 — Fundação (sprint 1-2)
 
 **US-COPI-MEM-001** — Interface `MemoriaContrato` PHP
-> **Como** desenvolvedor do Jana
+> **Como** desenvolvedor da Jana
 > **Quero** uma interface PHP que abstraia a memória runtime
 > **Para** poder trocar Mem0 por Zep/Letta sem reescrever código
 >
@@ -329,7 +329,7 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 
 **US-COPI-MEM-006** — Dedup automático de fatos repetidos
 > **Cenário:** "minha meta é R$ [redacted Tier 0]k" dito 3x em 3 conversas
-> Quando o Jana extrai fato pela 3ª vez
+> Quando a Jana extrai fato pela 3ª vez
 > Então identifica como duplicata (similarity ≥ 0.9) e atualiza timestamp em vez de criar novo
 
 ### Tier 4 — Leitura inteligente (sprint 5)
@@ -350,7 +350,7 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 
 **US-COPI-MEM-009** — Temporal validity (fatos com `valid_from`/`valid_until`)
 > **Cenário:** Larissa em jan disse meta=R$ [redacted Tier 0]k; em abr disse meta=R$ [redacted Tier 0]k
-> Quando o Jana recall "qual a meta atual?"
+> Quando a Jana recall "qual a meta atual?"
 > Então retorna **só** o fato com `valid_until=NULL` (mais recente). Fato antigo é archived com `valid_until=2026-04-15`
 
 **US-COPI-MEM-010** — Conflict detection ao escrever fato
@@ -363,9 +363,9 @@ Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para v
 > Quando rodar `php artisan copiloto:seed-memory --business=4 --user=larissa@rotalivre.com`
 > Então fatos de `cliente_rotalivre.md` da auto-mem são importados como `copiloto_memory_facts`
 
-**US-COPI-MEM-012** — Tela "O Jana lembra de você"
+**US-COPI-MEM-012** — Tela "A Jana lembra de você"
 > **Como** Larissa
-> **Quero** ver o que o Jana sabe sobre mim
+> **Quero** ver o que a Jana sabe sobre mim
 > **Para** corrigir ou apagar fatos errados (LGPD compliant)
 >
 > Rota: `/copiloto/memoria` — lista fatos por categoria, com botões "esquecer" e "corrigir"

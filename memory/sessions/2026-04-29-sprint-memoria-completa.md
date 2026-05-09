@@ -173,7 +173,7 @@ Comando: `php artisan copiloto:metrics:apurar [--date=YYYY-MM-DD] [--business={I
 | Regressões | — | **0** |
 | ADRs no repo | 47 (0001-0047) | **51 (0001-0051)** |
 | Tabelas Jana | 8 | 9 (`copiloto_memoria_metricas` nova) |
-| Comandos artisan | 0 do Jana | 1 (`copiloto:metrics:apurar`) |
+| Comandos artisan | 0 da Jana | 1 (`copiloto:metrics:apurar`) |
 | Log channels | 1 (`copiloto-ai`) | 2 (+ `otel-gen-ai`) |
 | `memoria_recall_chars` em prod | 0 | **190** ✅ |
 | Tokens injetados system prompt | 0 (genérico) | **164** com dados reais ROTA LIVRE |

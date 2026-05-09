@@ -1,5 +1,5 @@
 ---
-name: Estado do Jana IA em produção (2026-04-28 fim do dia)
+name: Estado da Jana IA em produção (2026-04-28 fim do dia)
 description: Snapshot consolidado do que está rodando, o que falta, gaps de produto descobertos
 type: project
 originSessionId: 32066199-13c2-4cc8-922b-d65034040e23
