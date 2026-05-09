@@ -44,7 +44,7 @@ class GovernancaController extends Controller
 
         $painel = $service->painel($range['inicio'], $range['fim']);
 
-        return Inertia::render('Copiloto/Admin/Governanca/Index', [
+        return Inertia::render('Jana/Admin/Governanca/Index', [
             'kpis'              => $painel['kpis'],
             'por_status'        => $painel['por_status'],
             'latency'           => $painel['latency'],

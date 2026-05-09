@@ -57,7 +57,7 @@ class DashboardController extends Controller
             ])->values(),
         ]);
 
-        return Inertia::render('Copiloto/Dashboard', [
+        return Inertia::render('Jana/Dashboard', [
             'metas' => $metasTransformadas,
         ]);
     }
