@@ -48,7 +48,7 @@ interface ConfigForUi {
 
 interface Props {
   config: ConfigForUi | null;
-  webhookUrls: { meta: string; zapi: string } | null;
+  webhookUrls: { meta: string; zapi: string; baileys: string } | null;
   forbiddenDrivers: string[];
   mandatoryFallbackFor: string[];
 }
@@ -163,22 +163,24 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
       {/* Aviso forbidden */}
       {isForbidden && (
         <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" aria-hidden />
           <AlertTitle>Driver proibido</AlertTitle>
           <AlertDescription>
-            Driver "{driver}" é PROIBIDO permanente (ADR 0096 emenda 4). Reabrir só via nova ADR explícita Wagner-aceita.
+            Driver &quot;{driver}&quot; é PROIBIDO permanente (ADR 0096 emenda 4). Reabrir só via nova ADR explícita
+            Wagner-aceita.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Aviso risco Z-API/Baileys */}
-      {requiresFallback && (
+      {/* Aviso risco Z-API/Baileys — só mostra antes de aceitar termo LGPD */}
+      {requiresFallback && !lgpdAccepted && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" aria-hidden />
           <AlertTitle>Provedor não-oficial — risco ban Meta</AlertTitle>
           <AlertDescription>
             Driver <strong>{driver}</strong> é baseado em Whatsapp Web (não-oficial). Existe risco de bloqueio
-            arbitrário pela Meta. Por isso, Meta Cloud cadastrado como fallback é <strong>obrigatório</strong>{' '}
-            e termo LGPD precisa ser aceito.
+            arbitrário pela Meta. Meta Cloud cadastrado como fallback é <strong>obrigatório</strong> e o termo LGPD
+            precisa ser aceito.
           </AlertDescription>
         </Alert>
       )}
@@ -208,11 +210,10 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
               />
               <DriverCard
                 value="baileys"
-                title="Baileys custom (Sprint 3)"
-                description="Daemon Node CT 100. Estrutura customizada. Risco ban."
+                title="Baileys custom"
+                description="Daemon Node CT 100 próprio. Estrutura customizada (schema/logs/métricas). Risco ban."
                 selected={driver === 'baileys'}
                 onClick={() => setDriver('baileys')}
-                disabled
               />
             </div>
           </CardContent>
@@ -254,26 +255,57 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
           </Card>
         )}
 
-        {/* Baileys form (Sprint 3) */}
+        {/* Baileys form */}
         {driver === 'baileys' && (
           <Card>
             <CardHeader>
-              <CardTitle>Baileys custom — Sprint 3</CardTitle>
-              <CardDescription>Daemon Node CT 100 próprio (estrutura customizada).</CardDescription>
+              <CardTitle>Baileys custom — credenciais</CardTitle>
+              <CardDescription>
+                Daemon Node CT 100 próprio. Cadastro deve ser feito após deploy do daemon (ver runbook
+                <code className="mx-1 px-1 bg-muted rounded">baileys-daemon-deploy-ct100.md</code>).
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
                 <Label htmlFor="baileys_instance_id">Instance ID</Label>
-                <Input id="baileys_instance_id" value={baileysInstance} onChange={(e) => setBaileysInstance(e.target.value)} />
+                <Input
+                  id="baileys_instance_id"
+                  value={baileysInstance}
+                  onChange={(e) => setBaileysInstance(e.target.value)}
+                  placeholder={`biz${config?.driver ? '<id>' : ''}-main`}
+                />
               </div>
               <div>
                 <Label htmlFor="baileys_daemon_url">Daemon URL (CT 100)</Label>
-                <Input id="baileys_daemon_url" value={baileysUrl} onChange={(e) => setBaileysUrl(e.target.value)} placeholder="https://whatsapp-baileys.oimpresso.local" />
+                <Input
+                  id="baileys_daemon_url"
+                  value={baileysUrl}
+                  onChange={(e) => setBaileysUrl(e.target.value)}
+                  placeholder="https://whatsapp-baileys.oimpresso.local"
+                />
               </div>
               <div>
-                <Label htmlFor="baileys_api_key">API Key (cifrado)</Label>
-                <Input id="baileys_api_key" type="password" value={baileysKey} onChange={(e) => setBaileysKey(e.target.value)} placeholder={config?.has_baileys_credentials ? '•••••• (já cadastrado)' : 'Bearer key'} />
+                <Label htmlFor="baileys_api_key">API Key (Bearer — cifrado em DB)</Label>
+                <Input
+                  id="baileys_api_key"
+                  type="password"
+                  value={baileysKey}
+                  onChange={(e) => setBaileysKey(e.target.value)}
+                  placeholder={config?.has_baileys_credentials ? '•••••• (já cadastrado)' : 'Bearer key'}
+                />
               </div>
+              {webhookUrls && (
+                <div>
+                  <Label>Webhook URL Baileys (configurado no daemon — só pra referência)</Label>
+                  <div className="flex gap-2">
+                    <Input readOnly value={webhookUrls.baileys} />
+                    <Button type="button" variant="outline" onClick={() => copyToClipboard(webhookUrls.baileys)} className="gap-1.5">
+                      <Copy size={14} aria-hidden />
+                      Copiar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -321,7 +353,18 @@ export default function WhatsappSettings({ config, webhookUrls, forbiddenDrivers
         {requiresFallback && (
           <Card>
             <CardHeader>
-              <CardTitle>Termo LGPD (obrigatório)</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                Termo LGPD
+                {lgpdAccepted && config?.lgpd_acknowledged_at ? (
+                  <Badge variant="outline" className="border-green-500 text-green-700 dark:text-green-400 dark:border-green-700 bg-green-50 dark:bg-green-950/30">
+                    ✓ aceito em {new Date(config.lgpd_acknowledged_at).toLocaleDateString('pt-BR')}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
+                    obrigatório
+                  </Badge>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <label className="flex items-start gap-3 cursor-pointer">
