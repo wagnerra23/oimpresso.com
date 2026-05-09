@@ -1,12 +1,14 @@
 ---
-title: Index de Lifecycle das ADRs — pós-triagem 2026-05-06
-description: Single source of truth pra status de lifecycle das 93 ADRs canon. Aprovado por Wagner em 2026-05-06. Tool MCP `decisions-search` filtra por este index.
+title: Index de Lifecycle das ADRs — pós-triagem 2026-05-06 (refresh 2026-05-09)
+description: Single source of truth pra status de lifecycle das 119 ADRs canon (116 únicas + 3 colisões 0101/0102/0119). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09. Tool MCP `decisions-search` filtra por este index.
 type: index
 status: aceito
 authority: [Wagner]
-last_reviewed: 2026-05-06
-next_review: 2026-08-06  # trimestral
-total_adrs: 93
+last_reviewed: 2026-05-09
+next_review: 2026-08-09  # trimestral
+total_adrs: 119
+unique_numbers: 116
+numbering_collisions: [0101, 0102, 0119]  # ADR 0028 não cumprido em 3 casos — pendente housekeeping (ADR 0120)
 governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete uso, não validade histórica
 ---
 
@@ -158,7 +160,7 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 | 0075 | A | — | Team MCP P0 v2 UI gestão skills |
 | 0076 | A | — | Skills V2 DB primary, git destino |
 
-### Bloco 7 — Identity Mesh + final (0077–0093)
+### Bloco 7 — Identity Mesh + final S2 (0077–0093)
 
 | ID | Estado | Substituída por | Nota |
 |---|---|---|---|
@@ -177,6 +179,47 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 | 0091 | A | — | Daily Brief L7 — em prod |
 | 0092 | AH | — | Tabela rename copiloto_* → jana_* (PR-9) |
 | 0093 | A | — | Multi-tenant Tier 0 IRREVOGÁVEL — VIGENTE |
+
+### Bloco 8 — Constituição v2 e além (0094–0119) — apendado 2026-05-09
+
+> Apendado em 2026-05-09 após audit pós-Constituição (skill `audit-constituicao`). Estados inferidos do frontmatter; revisão trimestral em 2026-08-09 confirma.
+
+| ID | Estado | Substituída por | Nota |
+|---|---|---|---|
+| 0094 | A | — | **Constituição v2 — 7 camadas + 8 princípios duros (MÃE)** · supersedes: 0078, 0079 |
+| 0095 | A | — | Skills tiers convenção interna (A/B/C lifecycle) |
+| 0096 | A | (parcial 0111) | Módulo Whatsapp Meta Cloud API direto |
+| 0097 | A | — | Brief model gpt4o-mini · supersede parcial 0091 |
+| 0098 | A | — | Build Inertia Hostinger pós-pull |
+| 0099 | A | — | Project legacy discovery pre-deletion · drift resolvido em 2026-05-09 (Project/ deletado) |
+| 0100 | A | — | ProjectMgmt UI redesign |
+| 0101a | A | — | Sistema Charter-Capterra governança escopo · ⚠️ **colisão numérica com 0101b** |
+| 0101b | A | — | Tests business_id=1 nunca cliente · ⚠️ **colisão numérica com 0101a** |
+| 0102a | A | — | NFCe status polling vs broadcast · ⚠️ **colisão numérica com 0102b** |
+| 0102b | A | — | Sprint S6 Charter-Capterra postmortem + S7 backlog · ⚠️ **colisão numérica com 0102a** |
+| 0103 | A | — | Eventos fiscais separados por modelo |
+| 0104 | A | — | **Processo MWART canônico — único caminho (Tier A skill)** |
+| 0105 | A | — | Cliente como sinal qualificado — guiar sem mandar |
+| 0106 | A | — | Recalibração velocidade fator 10x IA-pair |
+| 0107 | A | — | Emenda 0104 — visual-comparison gate F3 |
+| 0108 | A | — | Regressão visual Pest browser Tier 2 |
+| 0109 | A | (emends 0114) | Claude Design plugin integrado processo MWART |
+| 0110 | A | — | Cockpit Pattern V2 canon list-detail |
+| 0111 | A | — | Emenda 0096 — bypass meta fallback per business |
+| 0112 | A | — | MWART exceção Whatsapp Settings fix bugs |
+| 0113 | A | — | Integração Delphi-Laravel ADS 3 caminhos |
+| 0114 | A | — | **Loop Cowork ↔ Claude Code formalizado · prototipo-ui/** (Tier A skill mwart-comparative V4) |
+| 0115 | A | (amends 0116) | Recuperação cliente Gold via bundle oimpresso + NFe55 |
+| 0116 | A | — | Pivot Gold — Manifestação Destinatário substitui escopo NFe55 (emenda 0115) |
+| 0117 | A | — | Múltiplos números WhatsApp por business |
+| 0118 | A | — | Segregação domínios externos clientes legacy |
+| 0119a | A | — | Migration factory capacidade institucional · ⚠️ **colisão numérica com 0119b** |
+| 0119b | A | — | Paralelismo sessões whats-active Tier 1 · ⚠️ **colisão numérica com 0119a** |
+
+> **Pendências de housekeeping** apuradas pela skill `audit-constituicao` em 2026-05-09:
+> - 3 colisões numéricas (0101/0102/0119) — ADR 0028 violada · resolução requer ADR amendment
+> - 9 ADRs `substituido` sem `superseded_by:` no frontmatter (0008, 0010, 0031, 0032, 0033, 0042, 0073, 0075, 0077) — pendente ADR 0120 housekeeping
+> - 0079 ainda `lifecycle: ativo` apesar de 0094 declarar `supersedes: [0079]` — pendente ADR 0120
 
 ---
 
