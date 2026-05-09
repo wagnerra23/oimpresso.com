@@ -38,6 +38,9 @@ class ContaBancaria extends Model
         'certificado_path', 'certificado_password_encrypted',
         'ativo_para_boleto', 'metadata',
         'rb_gateway_credential_id', 'saldo_cached', 'saldo_atualizado_em', 'tipo_conta',
+        // Legacy migration (ADR 0118) — preenchidos pelo importer Python /
+        // Modules/MigrationFactory futuro. Null em contas cadastradas nativas.
+        'legacy_source', 'legacy_id', 'legacy_imported_at',
     ];
 
     protected $casts = [
@@ -45,6 +48,7 @@ class ContaBancaria extends Model
         'metadata'            => 'array',
         'saldo_cached'        => 'float',
         'saldo_atualizado_em' => 'datetime',
+        'legacy_imported_at'  => 'datetime',
     ];
 
     public function getActivitylogOptions(): LogOptions
