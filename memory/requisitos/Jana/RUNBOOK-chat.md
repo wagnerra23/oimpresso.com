@@ -31,7 +31,7 @@ Tela principal da Jana — chat conversacional com a assistente IA que cria/edit
 
 ## 1. Objetivo
 
-Centralizar a interação conversacional com o Jana IA — assistente que opera sobre o contexto de negócio do business em foco (faturamento bruto/líquido/caixa, metas ativas, clientes, OS recentes via `ContextoNegocio` ADR 0052) e propõe ações via cards inline (`PropostaCard`). Persona principal: dono operador, **não-técnico**, que conversa em linguagem natural ("quanto vendi?", "criar meta de faturamento mensal de R$ 50k"). Layout-mãe Cockpit 3 colunas. Persistência da conversa: tabela `copiloto_conversas` + `copiloto_mensagens` (multi-tenant por `business_id`). Thread+composer renderizados pela lib externa `assistant-ui` (suporta Markdown, code highlight, edit/regenerate). Custo: tokens reportados em `copiloto_mensagens.tokens_in/tokens_out` + telemetria OTel GenAI (ADR 0050).
+Centralizar a interação conversacional com a Jana IA — assistente que opera sobre o contexto de negócio do business em foco (faturamento bruto/líquido/caixa, metas ativas, clientes, OS recentes via `ContextoNegocio` ADR 0052) e propõe ações via cards inline (`PropostaCard`). Persona principal: dono operador, **não-técnico**, que conversa em linguagem natural ("quanto vendi?", "criar meta de faturamento mensal de R$ 50k"). Layout-mãe Cockpit 3 colunas. Persistência da conversa: tabela `copiloto_conversas` + `copiloto_mensagens` (multi-tenant por `business_id`). Thread+composer renderizados pela lib externa `assistant-ui` (suporta Markdown, code highlight, edit/regenerate). Custo: tokens reportados em `copiloto_mensagens.tokens_in/tokens_out` + telemetria OTel GenAI (ADR 0050).
 
 ## 2. Pré-condições
 
@@ -39,7 +39,7 @@ Centralizar a interação conversacional com o Jana IA — assistente que opera 
 - [ ] Permissão `copiloto.chat` atribuída ao role do usuário (≠ `copiloto.access` que cobre só leitura)
 - [ ] Rotas registradas em [`Modules/Jana/Routes/`](../../../Modules/Jana/Routes/) — `/copiloto` (index), `/copiloto/conversas/{id}` (show), `/copiloto/conversas/{id}/mensagens` (send), `/copiloto/sugestoes/{id}/escolher` + `/rejeitar`
 - [ ] Page Inertia em [`resources/js/Pages/Jana/Chat.tsx`](../../../resources/js/Pages/Jana/Chat.tsx) — módulo em **PascalCase**
-- [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos do Jana
+- [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos da Jana
 - [ ] Skill irmã `multi-tenant-patterns` ativa — Controller filtra `business_id` em `Conversa::where(...)`
 - [ ] AI driver ativo: `LaravelAiDriver` (ADR 0035) ou fallback `OpenAiDirectDriver`. Em dev: `COPILOTO_AI_DRY_RUN=true` retorna fixtures
 - [ ] Meilisearch rodando (CT 100 ou local) pra retrieval de memória (`MemoriaContrato` ADR 0036)
@@ -169,7 +169,7 @@ grep -i "Pages/Jana/Chat" public/build-inertia/manifest.json
 | `--bg`, `--surface` | Fundo viewport / Cards | Shell tokens (UI-0008) |
 | `--accent`, `--accent-soft` | Hover dropdown breadcrumb, links, Badge | Shell tokens (Tweaks accent-hue runtime) |
 | `--bubble-me` | Bolha do usuário (lib `assistant-ui` deve respeitar) | Shell tokens |
-| `--bubble-them`, `--bubble-them-fg` | Bolha do Jana | Shell tokens |
+| `--bubble-them`, `--bubble-them-fg` | Bolha da Jana | Shell tokens |
 | `--text`, `--text-mute`, `--text-dim` | Texto primário/secundário/dim | Shell tokens |
 | `--shadow-pop` | Dropdown breadcrumb sombra | Shell tokens (Sprint A 2026-05-05) |
 | `bg-emerald-100`, `bg-amber-100`, `bg-rose-100` (+ dark variants) | Badge dificuldade Fácil/Realista/Ambicioso | **Exceção R-DS-002** — status fixos |
@@ -240,7 +240,7 @@ interface Props {
     rotinas: Rotina[]
     recentes: ConversaResumo[]
   }
-  // Específicos do Jana Chat
+  // Específicos da Jana Chat
   conversa: ConversaBackend
   mensagens: MensagemBackend[]
   sugestoesPendentes?: Sugestao[]

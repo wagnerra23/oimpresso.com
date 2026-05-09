@@ -17,7 +17,7 @@ Vocabulário canônico. Sempre usar estes termos em código, UI e conversas com 
 | **Trajetória** | Curva esperada entre início e fim do período. `linear` (default), `sazonal`, `exponencial`, `manual`. |
 | **Farol** | Indicador verde/amarelo/vermelho baseado em `realizado vs projetado na data`. |
 | **Desvio** | `(realizado_no_periodo − projetado_no_periodo) / projetado_no_periodo`. Quando negativo além do threshold → alerta. |
-| **Briefing** | Snapshot automático do estado do negócio que o Jana apresenta ao iniciar conversa. |
+| **Briefing** | Snapshot automático do estado do negócio que a Jana apresenta ao iniciar conversa. |
 | **Contexto** | Conjunto de dados que o `ContextSnapshotService` coleta pra alimentar a IA (transactions 90d, clientes ativos, módulos, etc.). |
 | **Adapter de IA** | Interface `AiAdapter` com implementações `LaravelAiDriver` (se módulo existir) ou `OpenAiDirectDriver` (fallback). |
 | **Threshold** | Limite % de desvio aceitável antes de disparar alerta. Configurável por meta ou globalmente. |
@@ -25,13 +25,13 @@ Vocabulário canônico. Sempre usar estes termos em código, UI e conversas com 
 | **Meta da plataforma** | Meta com `business_id = null`. Representa objetivos da oimpresso como SaaS (ex.: R$ 5mi/ano). Só superadmin acessa. |
 | **Origem** | Como a meta foi criada: `chat_ia` (via Jana), `manual` (wizard), `seed` (importada do `memory/11-metas-negocio.md`). |
 
-## Termos que NÃO são do Jana
+## Termos que NÃO são da Jana
 
 Pra evitar confusão — se aparecerem em conversa com cliente:
 
 | Termo a evitar | Por quê | Usar em vez disso |
 |---|---|---|
-| **Dashboard** (como produto) | Dashboard é tela, não é o produto | "Jana" ou "o painel do Jana" |
+| **Dashboard** (como produto) | Dashboard é tela, não é o produto | "Jana" ou "o painel da Jana" |
 | **BI** | Reserva a palavra pra módulo futuro se tivermos um de verdade | "Jana conversacional" ou "Jana de Metas" |
 | **OKR** | Jana v1 não implementa hierarquia OKR (key results ligados a objetivos) | "Meta" + "Período". OKR é v2+ se pedirem. |
 | **Quota** / **Cota de vendedor** | Domínio diferente (comissões, comercial), pode virar módulo separado | "Meta por colaborador" se for isso |

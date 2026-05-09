@@ -4,7 +4,7 @@
 > **Data:** 2026-04-26
 > **Autor:** Claude (sessão `dazzling-lichterman-e59b61`) sob direção do Wagner ("compare vizra até mem0")
 > **Concorrentes incluídos:** Prism PHP, Vizra ADK, Mem0, LangGraph+LangMem, Letta, Zep, OMEGA — **7 players**
-> **Decisão que vai sair daqui:** definir stack completa do Jana: qual wrapper de LLM, qual framework de agente, qual memória especializada. Resultado materializado em **ADR 0031 (MemoriaContrato + Mem0 default)** e **ADR 0032 (Vizra ADK + Prism PHP)**.
+> **Decisão que vai sair daqui:** definir stack completa da Jana: qual wrapper de LLM, qual framework de agente, qual memória especializada. Resultado materializado em **ADR 0031 (MemoriaContrato + Mem0 default)** e **ADR 0032 (Vizra ADK + Prism PHP)**.
 > **Companion docs:**
 > - [copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md](copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md) (foco em **Camada C apenas — memória**)
 > - [sistemas_memoria_oimpresso_capterra_2026_04_26.md](sistemas_memoria_oimpresso_capterra_2026_04_26.md) (Camada A — dev memory, fora deste escopo)
@@ -24,7 +24,7 @@ Frameworks de agente IA não são todos iguais — operam em camadas diferentes:
 
 **Stack típica madura:** A + B + C (3 dependências distintas, cada uma boa no que faz).
 
-**Estado do Jana hoje:**
+**Estado da Jana hoje:**
 - A: tenta usar `OpenAI\Laravel\Facades\OpenAI` mas pacote **NÃO está em composer.lock** → quebra fora de dry_run
 - B: lógica caseira em `ChatController` + `OpenAiDirectDriver` — sem traces, sem assertions, sem registry de tools
 - C: zero (Tier 1 de 10 — ver companion comparativo de Camada C)
@@ -35,7 +35,7 @@ Frameworks de agente IA não são todos iguais — operam em camadas diferentes:
 
 1. **PHP/Laravel ganhou em 2025-2026 dois frameworks AI fortes: Prism PHP (wrapper LLM low-level, 3+ providers, tools, structured output) e Vizra ADK (framework de agente em cima do Prism, com Eloquent sessions/messages/traces, OpenAI-compatible API e dashboard).** Ambos OSS MIT, mantidos ativamente.
 2. **Vizra ADK não compete com Mem0/Zep** — é grupo B (orquestração), enquanto Mem0/Zep são grupo C (memória especializada). Stack completa = Prism (A) + Vizra ADK (B) + Mem0 (C).
-3. **Vizra ADK ainda não tem benchmark público de memória** (LongMemEval) e a memória nativa dele é **chat history flat em Eloquent** — equivalente Tier 1 do Jana atual. Pra Tier 6+ continua precisando integrar Mem0/Zep externamente.
+3. **Vizra ADK ainda não tem benchmark público de memória** (LongMemEval) e a memória nativa dele é **chat history flat em Eloquent** — equivalente Tier 1 da Jana atual. Pra Tier 6+ continua precisando integrar Mem0/Zep externamente.
 4. **Prism PHP resolve o problema imediato** do `OpenAi\Laravel\Facades\OpenAI` quebrado: providers múltiplos com 1 interface, fácil trocar de OpenAI pra Claude/Gemini sem reescrever, **2-3 sprints** pra migrar driver atual.
 5. **O dilema:** ir all-in Vizra ADK (substitui ChatController+OpenAiDirectDriver+OpenAiLaravelFacade num movimento, custo médio 4-6 sprints, ganha dashboard/traces/eval) vs ficar com código caseiro + só adotar Prism+Mem0 (custo baixo 2-3 sprints, mas perde infra de dashboard/eval que vai precisar mais cedo ou mais tarde).
 
@@ -164,9 +164,9 @@ Frameworks de agente IA não são todos iguais — operam em camadas diferentes:
 
 ### GAP 2 — Sem registry de tools nem agent loop estruturado
 
-**O que falta:** O Jana deveria expor `getBusinessSnapshot()`, `criarMeta(...)`, `consultarApuracao(...)` como **tools** invocáveis pelo LLM. Hoje [ChatController@send](Modules/Jana/Http/Controllers/ChatController.php) chama `responderChat()` direto sem agent loop. Vizra ADK trata isso como first-class (registry de tools, agent loop think→act→observe, traces visuais).
+**O que falta:** A Jana deveria expor `getBusinessSnapshot()`, `criarMeta(...)`, `consultarApuracao(...)` como **tools** invocáveis pelo LLM. Hoje [ChatController@send](Modules/Jana/Http/Controllers/ChatController.php) chama `responderChat()` direto sem agent loop. Vizra ADK trata isso como first-class (registry de tools, agent loop think→act→observe, traces visuais).
 **Esforço:** Médio (3-5 sprints) — adotar Vizra ADK como base do `ChatController` + reescrever fluxo como Vizra Agent + registrar 5-10 tools iniciais. Vizra trabalha **em cima** do Prism, então Prism (GAP 1) precede.
-**Impacto se não fechar:** Cada nova capacidade do Jana exige código procedural feio. Não escala pra 10 tools, vira spaghetti. Sem traces, debugar é por logging.
+**Impacto se não fechar:** Cada nova capacidade da Jana exige código procedural feio. Não escala pra 10 tools, vira spaghetti. Sem traces, debugar é por logging.
 
 ### GAP 3 — Memória runtime Tier 1 (mesmo problema do comparativo Camada C)
 
@@ -271,9 +271,9 @@ Máximo 3.
 
 ### Métrica de fé (90 dias)
 
-> *"Se em 90 dias (até 2026-07-25) Prism estiver em produção rodando o Jana sem `dry_run` E (idealmente) Vizra ADK estiver alimentando ChatController E Mem0 REST estiver lembrando de pelo menos 1 fato por user, **confirma caminho A**. Se Prism sozinho (caminho B) for suficiente — Larissa não perceber falta de memória —, **fica em B**. Se nada disso destravar uso real, **pivota pra D** (aceitar Tier 1 e focar comercial)."*
+> *"Se em 90 dias (até 2026-07-25) Prism estiver em produção rodando a Jana sem `dry_run` E (idealmente) Vizra ADK estiver alimentando ChatController E Mem0 REST estiver lembrando de pelo menos 1 fato por user, **confirma caminho A**. Se Prism sozinho (caminho B) for suficiente — Larissa não perceber falta de memória —, **fica em B**. Se nada disso destravar uso real, **pivota pra D** (aceitar Tier 1 e focar comercial)."*
 
-Gatilho de pivot mensurável: número de turnos de conversa do Jana em produção em 90d. <50 = D (Jana não tem demanda); 50-500 = B (suficiente); >500 = A (justifica investimento full).
+Gatilho de pivot mensurável: número de turnos de conversa da Jana em produção em 90d. <50 = D (Jana não tem demanda); 50-500 = B (suficiente); >500 = A (justifica investimento full).
 
 ---
 

@@ -1,6 +1,6 @@
 # Matriz Comparativa estilo Capterra/G2 — QA / Eval de IA, ciclo de vida completo (2026-04-28)
 
-> **Assunto:** estado-da-arte de **garantia de qualidade de IA** — frameworks, plataformas, métricas e processo, do **dataset golden até drift detection em produção**. Cruzado com nossa stack canônica (ADR 0035: laravel/ai + Vizra ADK + Mem0/Meilisearch) pra responder: **como tirar o Jana de fixtures e botar em produção sem queimar a Larissa do ROTA LIVRE**.
+> **Assunto:** estado-da-arte de **garantia de qualidade de IA** — frameworks, plataformas, métricas e processo, do **dataset golden até drift detection em produção**. Cruzado com nossa stack canônica (ADR 0035: laravel/ai + Vizra ADK + Mem0/Meilisearch) pra responder: **como tirar a Jana de fixtures e botar em produção sem queimar a Larissa do ROTA LIVRE**.
 > **Data:** 2026-04-28
 > **Autor:** Claude (sessão `loving-black-f3caa3`) sob direção do Wagner ("como fazer benchmark pra garantir a qualidade da IA? Estado-da-arte do ciclo de vida completo. Pesquise e crie os prints. Seja agressivo.")
 > **Concorrentes incluídos:** 8 plataformas/frameworks — Vizra ADK eval (NOSSO baseline), Braintrust, LangSmith, Langfuse, Arize Phoenix, DeepEval/Confident AI, Promptfoo, Anthropic Claude Skills built-in evals
@@ -162,7 +162,7 @@ Categorizados em **3 grupos** — full-lifecycle SaaS, framework CI/CD focused, 
 │ 6.5 Spot-check 5-10% das verdicts do LLM-judge contra SME (pega bias drift)            │
 │                                                                                          │
 │ Tools: Braintrust HITL UI, Comet session-level, Label Studio, Argilla, custom Inertia │
-│        page no Jana                                                                  │
+│        page na Jana                                                                  │
 └────────────────────────────────────────────────────────────────────────────────────────┘
                                             │
                                             ▼
@@ -382,7 +382,7 @@ Categorizados em **3 grupos** — full-lifecycle SaaS, framework CI/CD focused, 
 
 **Frase de posicionamento que sai dessa decisão (pra site/marketing — quando estiver feito):**
 
-> *"Único ERP gráfico brasileiro com IA monitorada em tempo real. Dashboard público de qualidade do Jana: faithfulness 0.9+, hallucination <2%, latência P95 <3s. Você pode auditar."*
+> *"Único ERP gráfico brasileiro com IA monitorada em tempo real. Dashboard público de qualidade da Jana: faithfulness 0.9+, hallucination <2%, latência P95 <3s. Você pode auditar."*
 
 ---
 

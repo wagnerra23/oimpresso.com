@@ -211,7 +211,7 @@ Ordem sugerida:
 
 ## Referências
 
-- [ADR 0011](0011-alinhamento-padrao-jana.md) — alinhamento padrão Jana/Repair como template
+- [ADR 0011](0011-alinhamento-padrao-jana.md) — alinhamento padrãa Jana/Repair como template
 - [ADR 0089](0089-capterra-driven-module-evolution.md) — capterra-driven module evolution (3 artefatos)
 - [ADR 0093](0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0 irrevogável
 - [ADR 0094](0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (Charter > Spec, SoC brutal)

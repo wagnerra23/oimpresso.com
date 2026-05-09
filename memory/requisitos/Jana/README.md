@@ -9,7 +9,7 @@ tenancy: hibrida (business_id nullable — null = Jana da plataforma/oimpresso)
 ai_dependency: soft (adapter usa LaravelAI quando existir, fallback openai-php direto)
 areas: [Chat, Metas, Períodos, Apuração, Fontes, Dashboard, Alertas]
 marca_comercial: "Jana"
-pitch: "O Jana de IA do seu negócio — ele olha seus números, sugere metas e te avisa quando algo desvia."
+pitch: "A Jana de IA do seu negócio — ele olha seus números, sugere metas e te avisa quando algo desvia."
 last_generated: 2026-04-24 (módulo novo, escrito a mão)
 revenue_pricing:
   tier: "3 (multiplier add-on)"
@@ -27,13 +27,13 @@ scale:
 
 # Jana
 
-**Jana de IA do negócio.** Conversa com o gestor, entende o estado atual, sugere metas em cenários (fácil / realista / ambicioso), o gestor escolhe, e o Jana passa a monitorar a execução com alertas quando desvia da rota.
+**Jana de IA do negócio.** Conversa com o gestor, entende o estado atual, sugere metas em cenários (fácil / realista / ambicioso), o gestor escolhe, e a Jana passa a monitorar a execução com alertas quando desvia da rota.
 
 Módulo nascido da meta **R$ 5mi/ano** da oimpresso (ADR 0022 + `memory/11-metas-negocio.md`). A visão é que cada business do UltimatePOS — e a plataforma oimpresso como um todo — tenha seu próprio Jana.
 
 ## Pitch de venda
 
-> *"Você não precisa ser analista de dados. Seu Jana entende os números, conversa com você e te avisa quando algo sai da rota."*
+> *"Você não precisa ser analista de dados. Sua Jana entende os números, conversa com você e te avisa quando algo sai da rota."*
 
 **Diferenciadores:**
 - **IA-first** — entrada principal é conversa, não dashboard estático.
@@ -43,7 +43,7 @@ Módulo nascido da meta **R$ 5mi/ano** da oimpresso (ADR 0022 + `memory/11-metas
 
 ## Propósito em uma frase
 
-Wagner (ou qualquer gestor) conversa com uma IA que **lê o estado atual do negócio**, **propõe 3–5 metas** em cenários contrastantes, **o usuário escolhe**, e o Jana **monitora automaticamente** com apuração recorrente + alertas.
+Wagner (ou qualquer gestor) conversa com uma IA que **lê o estado atual do negócio**, **propõe 3–5 metas** em cenários contrastantes, **o usuário escolhe**, e a Jana **monitora automaticamente** com apuração recorrente + alertas.
 
 ## Áreas funcionais
 
@@ -85,10 +85,10 @@ Ver [`adr/arq/0001-tenancy-hibrida.md`](adr/arq/0001-tenancy-hibrida.md).
 
 ## Relação com outros artefatos
 
-- [`memory/decisions/0022-meta-5mi-ano-financeira.md`](../../decisions/0022-meta-5mi-ano-financeira.md) — ADR raiz do _porquê_ existir o Jana.
+- [`memory/decisions/0022-meta-5mi-ano-financeira.md`](../../decisions/0022-meta-5mi-ano-financeira.md) — ADR raiz do _porquê_ existir a Jana.
 - [`memory/11-metas-negocio.md`](../../11-metas-negocio.md) — seed inicial das metas e cenários (migra pro banco do módulo no scaffold).
 - Auto-memória `ideia_chat_ia_contextual.md` — Jana é a primeira materialização do chat contextual previsto.
-- Auto-memória `reference_revenue_thesis_modulos.md` — pricing/take rate do Jana deve entrar na mesma tese.
+- Auto-memória `reference_revenue_thesis_modulos.md` — pricing/take rate da Jana deve entrar na mesma tese.
 
 ## Revenue / pricing
 
