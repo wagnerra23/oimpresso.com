@@ -562,5 +562,86 @@ Hoje `laravel/horizon ^5.46` está no `composer.json` mas nunca foi publicado: s
 
 **Refs:** ADR 0062 (Hostinger ≠ CT 100), ADR 0094 §5 SoC brutal, US-COPI-094 (mesmo padrão flag CT-only do MCP), composer.json:laravel/horizon.
 
+#### US-COPI-097 · HealthSnapshotService — agregador 4 fontes em 1 JSON estável
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: done · done_at: 2026-05-09 · tests_passing: 5/5
+> blocked_by: —
+
+Backend service que alimenta a Page Inertia do cockpit (US-COPI-098) e o Brain A narrador (US-COPI-099). Independente de Horizon estar ativo — lê tabelas DB direto.
+
+**Shape contractual:**
+
+```json
+{
+  "generated_at": "2026-05-09T...",
+  "health": { /* output de jana:health-check --json (6 checks) */ },
+  "queues": { "available": true, "failed_24h": N, "failed_total": N },
+  "mcp": { "available": true, "requests_24h": N, "errors_24h": N, "taxa_erro": 0.xxxx, "custo_brl_24h": N.NNNN },
+  "brain_b": { "available": true, "tokens_in_24h": N, "tokens_out_24h": N, "custo_brl_24h": N.NNNN }
+}
+```
+
+**DoD:**
+- `Modules/Jana/Services/HealthSnapshotService.php` final class com 1 método público `snapshot(): array`
+- Cada fonte degrada graciosamente (`available: false`) quando tabela ausente — shape sempre estável
+- Pricing Brain B canônico (gpt-4o-mini: $0.15/1M in + $0.60/1M out * R$ 5/USD), igual `HealthCheckCommand`
+- Pest test em `Modules/Jana/Tests/Feature/HealthSnapshotServiceTest.php` cobre 5 cenários (shape, queueStats 24h, mcpStats agregação, brain_b pricing, degradação graceful)
+- Não toca tenancy — superadmin-only por design (cockpit agrega plataforma toda)
+
+**Refs:** US-COPI-095 (epic), `Modules/Jana/Console/Commands/HealthCheckCommand.php` (já produz `--json`), `Modules/Jana/Entities/Mcp/McpAuditLog.php` (schema mcp_audit_log), PR #333.
+
+#### US-COPI-098 · /governance Dashboard ganha "Saúde do Ecossistema" (pivot)
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 2h · status: done · done_at: 2026-05-09 · tests_passing: 8/8
+> blocked_by: —
+
+Pivot da decisão original: ao invés de criar `/copiloto/admin/health` separada, estendemos `/governance` Dashboard que já é o cockpit de saúde gold-standard (charter `live`, Cockpit Pattern V2 ADR 0110). Princípio Constituição V2 §5 SoC brutal + ADR 0105 (cliente como sinal — sem cliente pedindo separação, default é unificar).
+
+3 fontes adicionadas via DashboardController graceful (Schema::hasTable):
+- **failed_jobs Horizon** — KPI 24h count + tone (warning>0, danger>100)
+- **jana_mensagens 24h** — KPI custo IA Brain B (pricing gpt-4o-mini canônico)
+- **jana_health_narratives top 5** — KPI última severity + section "Narrativas Brain A 24h"
+
+Page agora tem 2 fileiras KpiGrid separadas por h2 de seção (Constituição cols=6 + Saúde cols=3) + grid lateral 2 → 3 col. Charter v1 → v2.
+
+**Refs:** PR #342, ADR 0110 Cockpit V2, ADR 0114 mwart-comparative V4, charter [`Dashboard.charter.md`](../../../resources/js/Pages/governance/Dashboard.charter.md), visual-comparison [`governance-dashboard-extension-visual-comparison.md`](governance-dashboard-extension-visual-comparison.md).
+
+#### US-COPI-099 · HealthNarratorService — Brain A horário do Cockpit Saúde
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: done · done_at: 2026-05-09 · tests_passing: 5/5
+> blocked_by: —
+
+Brain A (gpt-4o-mini canônico ADR 0035) recebe snapshot agregado por HealthSnapshotService (US-COPI-097) e gera narrativa curta com severity (info/warning/critical) — alimenta UI cockpit + escala HITL Wagner via log channel `single` quando severity high.
+
+**Pipeline:**
+1. Migration `jana_health_narratives` (sem business_id — superadmin/plataforma)
+2. Entity `HealthNarrative` + `Agent HealthNarratorAgent` (laravel/ai pattern canon — Promptable trait)
+3. Service `HealthNarratorService::narrate(array $snapshot): HealthNarrative`
+4. Output JSON estruturado validado: `{severity: "info|warning|critical", message: "..."}`
+5. Falha graciosamente em parse error / dry_run / exception → fixture severity baseado em health.ok
+6. Hash determinístico (sha256) pra idempotência
+7. payload_summary reduzido (4 campos chave)
+
+**Refs:** PR #339, ADR 0035 (laravel/ai canon), US-COPI-097 (consome snapshot).
+
+#### US-COPI-100 · NarrarSaudeEcosistemaJob — Job hourly + schedule + escalation HITL
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 30min · status: doing
+> blocked_by: —
+
+Job que orquestra `HealthSnapshotService::snapshot()` → `HealthNarratorService::narrate()` → persist em `jana_health_narratives`. Schedule hourly em `app/Console/Kernel.php` (live only) no minuto 30 pra evitar conflito com brief/cron pesados.
+
+**Pipeline:**
+1. `Modules/Jana/Jobs/NarrarSaudeEcosistemaJob.php` (ShouldQueue, sem business_id)
+2. handle() injeta HealthSnapshotService + HealthNarratorService via container
+3. Escalation HITL Wagner: severity=critical → `Log::channel('single')->error("BRAIN_A_ALERT [critical] ...")` (mesmo padrão `jana:health-check --notify`, Wagner faz tail/grep)
+4. Schedule via `$schedule->job(new NarrarSaudeEcosistemaJob)->hourlyAt(30)->environments(['live'])`
+
+**DoD:**
+- Pest test cobre: persist, info-no-alert, critical-dispara-ALERT, tags
+- Custo gpt-4o-mini ~R$ 0.30/dia (24x × R$ 0.013) — protegido por `jana:health-check` check `custo_brain_b_24h <= R$ 5/dia`
+- Não toca tenancy — superadmin-only
+
+**Refs:** US-COPI-095 (epic), US-COPI-097 (HealthSnapshotService), US-COPI-099 (HealthNarratorService), `app/Console/Kernel.php`.
 
 
