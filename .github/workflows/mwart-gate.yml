@@ -110,6 +110,31 @@ jobs:
               fi
             fi
 
+            # Charter ao lado do .tsx (convenção firm — Repair/Sells/NfeBrasil todos têm).
+            # Pode ser <Tela>.charter.md (1 arquivo por Page) ou Index.charter.md (Page que é Pages/<Mod>/<Tela>/Index.tsx).
+            charter_at="${page%.tsx}.charter.md"
+            if [ ! -f "$charter_at" ]; then
+              echo "❌ Charter ausente: $charter_at"
+              report="${report}- ❌ \`$page\` — \`<Tela>.charter.md\` ausente ao lado do .tsx (convenção firm de Charter Pages — ver Repair/Dashboard, Sells/Create, NfeBrasil/Manifestacao)\n"
+              fail=1
+            else
+              echo "✅ Charter presente: $charter_at"
+            fi
+
+            # Pest test correspondente — se há Controller no módulo (criado/alterado neste PR
+            # OU já existente em main), exige <Tela>ControllerTest.php em Modules/<Mod>/Tests/Feature/.
+            controller_path="Modules/${modulo}/Http/Controllers/${tela_pascal}Controller.php"
+            test_path="Modules/${modulo}/Tests/Feature/${tela_pascal}ControllerTest.php"
+            if [ -f "$controller_path" ]; then
+              if [ ! -f "$test_path" ]; then
+                echo "❌ Pest test ausente: $test_path"
+                report="${report}- ❌ \`$page\` — Pest test \`$test_path\` ausente (Controller \`$controller_path\` existe sem GUARD test — ADR 0093 multi-tenant Tier 0 sem cobertura automatizada)\n"
+                fail=1
+              else
+                echo "✅ Pest test presente: $test_path"
+              fi
+            fi
+
             # ADR 0107 — visual-comparison.md obrigatório (gate F3)
             mod_lower=$(echo "$modulo" | tr '[:upper:]' '[:lower:]')
             visual_comp="memory/requisitos/${modulo}/${mod_lower}-${tela_kebab}-visual-comparison.md"
@@ -207,8 +232,13 @@ jobs:
                 report || '_(ver workflow logs)_',
                 ``,
                 `### Como resolver`,
-                `- Rodar \`/cockpit-runbook /<rota_da_tela>\` no Claude Code pra gerar RUNBOOK + SPEC ausentes`,
+                `- **Charter ausente**: criar \`<Tela>.charter.md\` ao lado do \`.tsx\` (frontmatter + 8 seções — ver [Repair/Dashboard.charter.md](resources/js/Pages/Repair/Dashboard/Index.charter.md))`,
+                `- **Pest test ausente**: criar \`Modules/<Mod>/Tests/Feature/<Tela>ControllerTest.php\` com ≥3 tests (Inertia component + KPIs shape + Tier 0 isolation ADR 0093)`,
+                `- **RUNBOOK/SPEC ausentes**: rodar \`/cockpit-runbook /<rota_da_tela>\` no Claude Code`,
+                `- **visual-comparison ausente**: rodar \`/mwart-comparative <tela>\` ou criar manual (ADR 0107)`,
                 `- OU comentar \`/mwart-override <razão>\` neste PR pra registrar exceção (vira ADR per-tela)`,
+                ``,
+                `Ver checklist completo em [MWART-CHECKLIST.md](memory/requisitos/_processo/MWART-CHECKLIST.md).`,
                 ``,
                 `> **Soft mode** — não bloqueia merge ainda. Em fase 2 (após backfill US-MWART-002), vira hard.`,
                 ``,
