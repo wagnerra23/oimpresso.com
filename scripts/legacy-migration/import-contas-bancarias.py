@@ -72,30 +72,55 @@ def query_contas_delphi(con, codempresa: int | None = None) -> list[dict]:
     return query(con, sql, params)
 
 
-def query_banco_codigo_febraban(con, codbanco: int) -> str | None:
-    """Resolve CODBANCO Delphi → código FEBRABAN (3 dígitos).
+def query_empresa_delphi(con, codempresa: int) -> dict | None:
+    """Lookup EMPRESA(CODIGO) — retorna {CNPJCPF, RAZAOSOCIAL, ...} ou None.
 
-    Heurística: tabela BANCOS Delphi parece não ter código FEBRABAN explícito
-    (vimos só 5 colunas no schema reconstruído). Tenta lookup em outra tabela
-    se existir; senão retorna None (Wagner valida cliente-a-cliente).
+    Convenção FK ([CONVENCOES.md §1]): CODEMPRESA → EMPRESA(CODIGO).
     """
-    # TODO: validar com Wagner qual tabela tem FEBRABAN code
-    # Por ora retorna None — importer marca como "?" e Wagner ajusta dry-run
-    return None
+    rows = query(
+        con,
+        "SELECT FIRST 1 CODIGO, CNPJCPF, RAZAOSOCIAL FROM EMPRESA WHERE CODIGO = ?",
+        (codempresa,),
+    )
+    return rows[0] if rows else None
+
+
+def normalize_banco_codigo(codbanco: int | str | None) -> str:
+    """CODBANCO Delphi É o código FEBRABAN (validado: 104=Caixa, 341=Itaú).
+
+    Convenção FK ([CONVENCOES.md §1]): CODBANCO → BANCOS(CODIGO).
+    BANCOS.CODIGO é PK = código FEBRABAN.
+
+    Formata pra 3 dígitos com leading zeros pra match com fin_contas_bancarias.banco_codigo.
+    """
+    if codbanco is None:
+        return "000"
+    try:
+        return f"{int(codbanco):03d}"
+    except (ValueError, TypeError):
+        return "000"
 
 
 def map_conta_to_oimpresso(
-    delphi: dict, business_id: int
-) -> tuple[dict, dict, str, str]:
-    """Aplica mapping CONTAS Delphi → (account_data, fin_cb_data, legacy_metadata).
+    delphi: dict, business_id: int, empresa_cache: dict[int, dict] | None = None,
+) -> tuple[dict, dict, str, dict]:
+    """Aplica mapping CONTAS Delphi → (account_data, fin_cb_data, legacy_id, metadata).
 
-    Veja MAPPING.md memory/dominios/wr-comercial/modulos/financeiro/MAPPING.md
+    Veja MAPPING.md memory/dominios/wr-comercial/modulos/financeiro/MAPPING.md.
+    Usa convenção CONVENCOES.md §1 — COD<TABELA> = FK (CODBANCO→BANCOS,
+    CODEMPRESA→EMPRESA).
     """
     legacy_id = str(delphi["CODIGO"])
+
+    # Lookup EMPRESA via CODEMPRESA FK (cache pra evitar N+1)
+    empresa: dict | None = None
+    if delphi.get("CODEMPRESA") and empresa_cache is not None:
+        empresa = empresa_cache.get(int(delphi["CODEMPRESA"]))
 
     # accounts (core UltimatePOS)
     nome_conta = (
         delphi.get("NOME_CEDENTE")
+        or (empresa and empresa.get("RAZAOSOCIAL"))
         or f"Conta legacy {delphi.get('CODIGO_CEDENTE') or delphi['CODIGO']}"
     )
     account_data = {
@@ -109,7 +134,15 @@ def map_conta_to_oimpresso(
     }
 
     # fin_contas_bancarias (módulo Financeiro)
-    banco_codigo = "000"  # Placeholder — Wagner valida lookup CODBANCO→FEBRABAN
+    # CODBANCO Delphi É FEBRABAN — convenção FK + validado em ServidorWR2 (104=Caixa, 341=Itaú)
+    banco_codigo = normalize_banco_codigo(delphi.get("CODBANCO"))
+    beneficiario_doc = (empresa and empresa.get("CNPJCPF")) or ""
+    beneficiario_razao = (
+        delphi.get("NOME_CEDENTE")
+        or (empresa and empresa.get("RAZAOSOCIAL"))
+        or ""
+    )
+
     fin_cb_data = {
         "business_id": business_id,
         "banco_codigo": banco_codigo,
@@ -122,8 +155,8 @@ def map_conta_to_oimpresso(
         "carteira": str(delphi.get("CARTEIRA") or "")[:10],
         "convenio": (str(delphi.get("TIPO_CONVENIO") or "")[:30] or None),
         "codigo_cedente": (str(delphi.get("CODIGO_CEDENTE") or "")[:30] or None),
-        "beneficiario_documento": "",  # Resolvido via lookup EMPRESA.CNPJCPF
-        "beneficiario_razao_social": str(delphi.get("NOME_CEDENTE") or "")[:150],
+        "beneficiario_documento": str(beneficiario_doc)[:18],
+        "beneficiario_razao_social": str(beneficiario_razao)[:150],
         "ativo_para_boleto": delphi.get("ATIVO", "S") == "S",
     }
 
@@ -252,6 +285,18 @@ def main() -> int:
             print("⚠️  Nada a importar")
             return 0
 
+        # 2.5) Pré-cache EMPRESA pra resolver CODEMPRESA → CNPJ + razão social
+        # (convenção FK CONVENCOES.md §1)
+        empresa_codigos = {c["CODEMPRESA"] for c in contas if c.get("CODEMPRESA")}
+        empresa_cache: dict[int, dict] = {}
+        if empresa_codigos:
+            print(f"\n🔍 Carregando {len(empresa_codigos)} EMPRESA(s) (lookup FK CODEMPRESA)...")
+            for codempresa in empresa_codigos:
+                empresa = query_empresa_delphi(fb_con, codempresa)
+                if empresa:
+                    empresa_cache[int(codempresa)] = empresa
+                    print(f"   EMPRESA {codempresa}: {empresa.get('RAZAOSOCIAL')!r} CNPJ={empresa.get('CNPJCPF')!r}")
+
         # 3) Abre writer MySQL (ou dry-run)
         print(f"\n💾 Abrindo writer ({args.target})...")
         writer = MysqlWriter(
@@ -270,7 +315,7 @@ def main() -> int:
             for i, delphi in enumerate(contas, 1):
                 try:
                     account_data, fin_cb_data, legacy_id, metadata = map_conta_to_oimpresso(
-                        delphi, args.target_business
+                        delphi, args.target_business, empresa_cache=empresa_cache
                     )
 
                     print(f"\n[{i}/{len(contas)}] CODIGO={delphi['CODIGO']} → {account_data['name']}")

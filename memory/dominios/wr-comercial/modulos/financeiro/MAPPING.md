@@ -20,6 +20,8 @@ Migração one-shot de **contas bancárias do Delphi WR Comercial** (Firebird, s
 
 Primeiro caso da Migration Factory. Padrões aprendidos viram `_patterns/` reutilizáveis pra próximas entidades + concorrentes ([visão expandida discutida em sessão 2026-05-09](../../../sessions/)).
 
+> ⭐ **Convenção crítica** ([`CONVENCOES.md` §1](../../CONVENCOES.md)): colunas `COD<TABELA>` no Delphi são chaves estrangeiras pra `<TABELA>(CODIGO)`. Auto-detectado em `lib/fk_resolver.py` + visível no frontmatter `foreign_keys` de cada doc de tabela. Importer usa diretamente — **`CODBANCO` Delphi É código FEBRABAN** (104=Caixa, 341=Itaú validados em ServidorWR2); `CODEMPRESA` resolve via lookup `EMPRESA(CODIGO)` → `CNPJCPF` + `RAZAOSOCIAL`.
+
 ## Tabelas no perímetro
 
 ### Lado Delphi (origem)
@@ -297,7 +299,7 @@ Detalhes campo-a-campo dependem de inspecionar `BOLETOS.md` completo (não fizem
 
 | # | Lacuna | Ação |
 |---|---|---|
-| 1 | `BANCOS` Delphi não tem tabela canon de FEBRABAN visível | Validar via `RDB$RELATIONS` no banco vivo + usar lista hardcoded como fallback |
+| 1 | ~~`BANCOS` Delphi não tem tabela canon de FEBRABAN visível~~ | ✅ **RESOLVIDA 2026-05-09**: convenção FK COD<TABELA> mostra que `CODBANCO` aponta pra `BANCOS(CODIGO)` — onde `BANCOS.CODIGO` É o próprio código FEBRABAN. Importer usa direto via `normalize_banco_codigo()` (zfill 3). Validado em ServidorWR2 (104=Caixa, 341=Itaú). |
 | 2 | `CONTAS` colunas v1140 (CLIENTID etc) coladas pelo parser regex | Bug menor — corrigir parser pra aceitar multi-ADD num único statement; ou ler do schema vivo via POC 2 |
 | 3 | Decisão sobre `fin_titulo_eventos` | Wagner escolhe opção 1/2/3 antes de Fase 5 |
 | 4 | Decisão sobre `fin_regras_conciliacao` | Wagner escolhe opção 1/2 antes de Fase 5 |
