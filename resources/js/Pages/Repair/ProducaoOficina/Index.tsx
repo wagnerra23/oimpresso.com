@@ -1,14 +1,16 @@
 // @memcofre tela=/repair/producao-oficina module=Repair
 // F3 baseada em prototipo-ui/prototipos/producao-oficina/F1.html — kanban
 // 5 colunas Recepção→Diagnóstico→Aguardando peças→Em execução→Pronto.
-// Mock data inline no Controller até US-REPAIR-PROD-2.
+// US-REPAIR-PROD-4 (2026-05-09): drag-and-drop entre colunas via HTML5 nativo.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { useMemo, useState } from 'react';
+import { router } from '@inertiajs/react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Tone = 'slate' | 'blue' | 'amber' | 'violet' | 'emerald';
 
 interface Card {
+  id?: number;                    // presente em live data; ausente em mock (drag-drop só local)
   plate: string;
   vehicle: string;
   brand: string;
@@ -68,11 +70,55 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source }: P
   const [elevadorFilter, setElevadorFilter] = useState<string>('all');
   const [activeCard, setActiveCard] = useState<Card | null>(null);
 
+  // US-REPAIR-PROD-4 — drag-and-drop state.
+  // - localColumns: cópia editável (optimistic update visualiza drop antes do POST).
+  // - dragging: card sendo arrastado (cardId+srcCol).
+  // - hoverCol: coluna alvo destacada durante hover.
+  const [localColumns, setLocalColumns] = useState<Column[]>(columns);
+  const [dragging, setDragging] = useState<{ card: Card; srcColId: string } | null>(null);
+  const [hoverCol, setHoverCol] = useState<string | null>(null);
+
+  // Sincroniza state local quando props mudam (Inertia re-render após POST sucesso).
+  useEffect(() => setLocalColumns(columns), [columns]);
+
+  // Move card no state local (otimistic update). Para mock (card.id ausente)
+  // só atualiza visualmente; pra live data dispara POST que persiste no backend.
+  const handleDrop = (targetColId: string, card: Card, srcColId: string) => {
+    setHoverCol(null);
+    setDragging(null);
+
+    if (targetColId === srcColId) return;
+
+    // Move local (optimistic)
+    setLocalColumns((prev) =>
+      prev.map((c) => {
+        if (c.id === srcColId) return { ...c, cards: c.cards.filter((x) => x !== card) };
+        if (c.id === targetColId) return { ...c, cards: [card, ...c.cards] };
+        return c;
+      }),
+    );
+
+    // Live data → POST endpoint pra persistir.
+    if (card.id && data_source === 'live') {
+      router.post(
+        `/repair/producao-oficina/${card.id}/move`,
+        { column: targetColId },
+        {
+          preserveScroll: true,
+          onError: () => {
+            // Reverte optimistic update — re-sync com props originais.
+            setLocalColumns(columns);
+          },
+        },
+      );
+    }
+  };
+
   const filtersActive = boxFilter !== 'all' || elevadorFilter !== 'all';
 
   const filteredColumns = useMemo(() => {
-    if (!filtersActive) return columns;
-    return columns.map((col) => ({
+    if (!filtersActive) return localColumns;
+    return localColumns.map((col) => ({
       ...col,
       cards: col.cards.filter((card) => {
         const matchBox = boxFilter === 'all' || card.box === boxFilter;
@@ -80,7 +126,7 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source }: P
         return matchBox && matchElev;
       }),
     }));
-  }, [columns, boxFilter, elevadorFilter, filtersActive]);
+  }, [localColumns, boxFilter, elevadorFilter, filtersActive]);
 
   const filteredCounts = useMemo(() => {
     const all = filteredColumns.flatMap((c) => c.cards);
@@ -149,7 +195,25 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source }: P
       <main className="flex-1 p-6 overflow-hidden">
         <div className="grid grid-cols-5 gap-4 h-full">
           {filteredColumns.map((col) => (
-            <KanbanColumn key={col.id} column={col} onCardClick={setActiveCard} />
+            <KanbanColumn
+              key={col.id}
+              column={col}
+              isHover={hoverCol === col.id}
+              isDraggingFrom={dragging?.srcColId === col.id}
+              onCardClick={setActiveCard}
+              onCardDragStart={(card) => setDragging({ card, srcColId: col.id })}
+              onCardDragEnd={() => { setDragging(null); setHoverCol(null); }}
+              onDragOver={(e) => {
+                if (dragging) { e.preventDefault(); setHoverCol(col.id); }
+              }}
+              onDragLeave={() => {
+                if (hoverCol === col.id) setHoverCol(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragging) handleDrop(col.id, dragging.card, dragging.srcColId);
+              }}
+            />
           ))}
         </div>
       </main>
@@ -205,13 +269,38 @@ function FilterChips({
 
 function KanbanColumn({
   column,
+  isHover,
+  isDraggingFrom,
   onCardClick,
+  onCardDragStart,
+  onCardDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: {
   column: Column;
+  isHover: boolean;
+  isDraggingFrom: boolean;
   onCardClick: (c: Card) => void;
+  onCardDragStart: (card: Card) => void;
+  onCardDragEnd: () => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent) => void;
 }) {
+  const ringClass = isHover
+    ? 'ring-2 ring-slate-900 ring-offset-2 ring-offset-slate-50 border-slate-400'
+    : isDraggingFrom
+      ? 'border-dashed border-slate-300 opacity-70'
+      : 'border-slate-200';
+
   return (
-    <section className="bg-white rounded-lg border border-slate-200 flex flex-col min-h-0">
+    <section
+      className={`bg-white rounded-lg border flex flex-col min-h-0 transition-shadow ${ringClass}`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <header className="px-3 py-2.5 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${TONE_DOT[column.tone]}`} />
@@ -223,7 +312,9 @@ function KanbanColumn({
       </header>
       <div className="p-2 space-y-2 flex-1 overflow-y-auto">
         {column.cards.length === 0 ? (
-          <div className="text-xs text-slate-400 text-center py-8">Nenhuma OS</div>
+          <div className="text-xs text-slate-400 text-center py-8">
+            {isHover ? 'Soltar aqui' : 'Nenhuma OS'}
+          </div>
         ) : (
           column.cards.map((card) => (
             <JobCard
@@ -231,6 +322,8 @@ function KanbanColumn({
               card={card}
               tone={column.tone}
               onClick={() => onCardClick(card)}
+              onDragStart={() => onCardDragStart(card)}
+              onDragEnd={onCardDragEnd}
             />
           ))
         )}
@@ -239,7 +332,19 @@ function KanbanColumn({
   );
 }
 
-function JobCard({ card, tone, onClick }: { card: Card; tone: Tone; onClick: () => void }) {
+function JobCard({
+  card,
+  tone,
+  onClick,
+  onDragStart,
+  onDragEnd,
+}: {
+  card: Card;
+  tone: Tone;
+  onClick: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+}) {
   const isPending = card.aprovacao_pendente;
   const isDone = card.aprovado;
 
@@ -249,7 +354,15 @@ function JobCard({ card, tone, onClick }: { card: Card; tone: Tone; onClick: () 
 
   return (
     <article
-      className={`rounded p-3 cursor-pointer transition ${wrapperClass} ${isDone ? 'opacity-90' : ''}`}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        // Sentinel pra Firefox aceitar drag (sem isso onDragStart não dispara em alguns engines).
+        e.dataTransfer.setData('text/plain', card.plate);
+        onDragStart();
+      }}
+      onDragEnd={onDragEnd}
+      className={`rounded p-3 cursor-grab active:cursor-grabbing transition ${wrapperClass} ${isDone ? 'opacity-90' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-2">

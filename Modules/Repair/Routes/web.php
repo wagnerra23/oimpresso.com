@@ -37,4 +37,5 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::get('job-sheet/print-label/{id}', [Modules\Repair\Http\Controllers\JobSheetController::class, 'printLabel']);
 
     Route::get('producao-oficina', [Modules\Repair\Http\Controllers\ProducaoOficinaController::class, 'index'])->name('repair.producao-oficina');
+    Route::post('producao-oficina/{id}/move', [Modules\Repair\Http\Controllers\ProducaoOficinaController::class, 'move'])->whereNumber('id')->name('repair.producao-oficina.move');
 });

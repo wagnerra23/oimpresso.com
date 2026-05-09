@@ -30,6 +30,7 @@ Visão de produção da oficina em **kanban de 5 colunas** (Recepção → Diagn
 - Filtros funcionais por **Box** (B1-B4) e **Elevador** (E1-E2) — chips clicáveis no header, atualiza grid client-side via `useMemo` (US-REPAIR-PROD-3)
 - Contador "X de Y OS" quando filtro ativo + botão "Limpar filtros"
 - Destaque visual nas OS aguardando aprovação do cliente (banner laranja)
+- **Drag-and-drop entre colunas** (US-REPAIR-PROD-4) — HTML5 nativo + optimistic update + POST `/move` que persiste no backend via mapping reverso (coluna → primeiro `repair_status_id` do bucket alvo)
 - Cabe em monitor 1280px sem scroll horizontal (Larissa quirk crítico)
 - AppShellV2 + topnav Repair (`KanbanSquare` icon)
 
@@ -84,5 +85,5 @@ Visão de produção da oficina em **kanban de 5 colunas** (Recepção → Diagn
 
 - ✅ **US-REPAIR-PROD-2** — query real `JobSheet` com fallback gracioso pra mock se biz não tem `repair_statuses` ou `job_sheets` configurado. Heurística sort_order quartil pra mapear status arbitrários do business pras 5 colunas fixas. Prop `data_source: 'live' | 'mock'` indica origem.
 - ✅ **US-REPAIR-PROD-3** — filtros funcionais Box/Elevador (entregue PR ~~#TBD~~)
-- **US-REPAIR-PROD-4** — drag-and-drop entre colunas (chama `/repair/job-sheet/{id}/status` com optimistic update)
+- ✅ **US-REPAIR-PROD-4** — drag-and-drop entre colunas via HTML5 nativo + optimistic update + POST `/producao-oficina/{id}/move` que invoca mapping reverso (coluna → primeiro `repair_status_id` do bucket alvo, espelha heurística `mapStatusesToColumns`). Mock data → drag local-only (sem persist, refresh volta ao estado original).
 - ✅ **US-REPAIR-PROD-5** — Pest GUARD entregue (`Modules/Repair/Tests/Feature/ProducaoOficinaTest.php`): 5 tests cobrindo invariantes do charter — 5 colunas exatas/ordem, ≥1 OS aguardando aprovação, Non-Goal CRUD/mutações

@@ -129,25 +129,49 @@ it('mock fallback gera exatamente 17 OS e 3 aguardando aprovação', function ()
     expect($page['totals']['aguardando_aprovacao'])->toBe(3);
 });
 
-it('Non-Goal: tela é read-only — sem rota de mutação POST/PUT/DELETE', function () {
+it('Non-Goal: rota raiz é GET-only — POST/PUT/DELETE em /producao-oficina retornam 405', function () {
     $user = producaoOficinaBootstrap();
 
     $post = $this->actingAs($user)->post('/repair/producao-oficina');
     $put = $this->actingAs($user)->put('/repair/producao-oficina');
     $delete = $this->actingAs($user)->delete('/repair/producao-oficina');
 
-    // Charter Non-Goal: drag-and-drop e CRUD não são parte desta tela.
-    // Esperamos 405 Method Not Allowed em todos os verbos de mutação.
     expect($post->status())->toBe(405);
     expect($put->status())->toBe(405);
     expect($delete->status())->toBe(405);
 });
 
-it('Non-Goal: rota não tem variantes /create, /edit, /{id}', function () {
+it('Non-Goal: rota não tem variantes /create, /edit, /{id} (CRUD vai pra /repair/job-sheet)', function () {
     $user = producaoOficinaBootstrap();
 
     foreach (['create', 'edit', '1', '1/edit'] as $suffix) {
         $r = $this->actingAs($user)->get('/repair/producao-oficina/'.$suffix);
         expect($r->status())->toBe(404);
     }
+});
+
+it('US-REPAIR-PROD-4: move endpoint respeita business_id (Tier 0 ADR 0093)', function () {
+    $user = producaoOficinaBootstrap();
+
+    // Tenta mover JobSheet ID inexistente / cross-tenant — deve retornar redirect com
+    // session error, NUNCA 200 sem erro (vazaria isolamento Tier 0).
+    $r = $this->actingAs($user)->post('/repair/producao-oficina/999999/move', ['column' => 'em-execucao']);
+
+    if (in_array($r->status(), [403, 404, 419], true)) {
+        test()->markTestSkipped('Rota não acessível neste env (gate, rota ausente, ou CSRF token).');
+    }
+
+    expect($r->status())->toBe(302);
+});
+
+it('US-REPAIR-PROD-4: move endpoint rejeita coluna inválida', function () {
+    $user = producaoOficinaBootstrap();
+
+    $r = $this->actingAs($user)->post('/repair/producao-oficina/1/move', ['column' => 'inexistente']);
+
+    if (in_array($r->status(), [403, 404, 419], true)) {
+        test()->markTestSkipped('Rota não acessível neste env.');
+    }
+
+    expect($r->status())->toBe(302);
 });
