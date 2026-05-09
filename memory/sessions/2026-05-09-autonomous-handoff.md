@@ -168,4 +168,154 @@ Em `memory/sales/2026-05/`:
 
 ---
 
-**Branch:** `claude/auto-2026-05-09-mercado` (sem push). Faça `git log -1` pra ver o commit, `git diff main` pra revisar tudo de uma vez.
+# 🔁 Rodada 2 — execução autônoma adicional (mesma sessão)
+
+> Wagner aprovou rodada 2 logo em seguida. Mais 6 agents paralelos. ~15min wallclock total. **12 novos artefatos**.
+
+## 🚨 Achados críticos que apareceram
+
+### Bug #4 (audit CI) — Tests órfãos violando proibição CLAUDE.md
+- **Onde:** `Modules/Ponto/Tests` (11 tests) e `Modules/ADS/Tests` (7 tests) NÃO estão registrados em `phpunit.xml`
+- **Impacto:** 18 tests produzem falsa cobertura — nunca rodam em CI
+- **Fix:** registrar em `phpunit.xml` (5min). Proibição explícita do CLAUDE.md.
+
+### Bug #5 (audit CI) — `adr-lint.yml` não é required-check
+- **Impacto:** PR #357 mergeou com adr-lint falhando, falha persiste em main. **ADRs com frontmatter inválido chegam silenciosamente.**
+- **Fix:** adicionar como required em branch protection (5min).
+
+### Bug #6 (audit CI) — `mwart-gate.yml` soft permitiu regressão massiva
+- **Onde:** PR #349 mergeou com gate comentando "❌ Violações detectadas"
+- **Custo já pago:** 5 PRs follow-up (#355, #358, #359, #361)
+- **Cobertura artefatos atual:** visual-comparison **4/127 Pages (3%)** · charter **13/127 (10%)** · RUNBOOK **22/127 (17%)**
+- **Decisão pendente:** declarar HARD ou manter SOFT com SLA de backfill. ADR nova.
+
+### Bug #7 (audit CI) — `visual-regression.yml` é placeholder não-funcional
+- **Onde:** `.github/workflows/visual-regression.yml`
+- **Impacto:** 3 steps com `continue-on-error: true` — sempre retorna "success" sem rodar test real
+
+### Gap #1 (playbook migração) — DAM nativo bloqueia contratos Mubisys
+- **Sinal qualificado** ([ADR 0105](../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)): Mubisys tem MubiDrive 150+ TB. Cliente Mubisys com >100GB de arte arquivada **não migra sem isso**.
+- **Estimativa:** ~80h dev pra MVP S3-wrap
+
+### Gap #2 (playbook migração) — API docs públicas
+- **Sinal qualificado:** literal RA Mubisys fev/2023 "engessado sem integração" — selling point #1 contra Mubisys
+- **Estimativa:** 16-24h Felipe [F]. Pré-requisito do 1º contrato Mubisys.
+
+## 📊 Inteligência de mercado expandida (RS + PR)
+
+**41 gráficas adicionais mapeadas** (RS: 19 · PR: 22) → universo total: **83 prospects mapeados** entre SP+RS+PR.
+
+### Padrões regionais distintos
+- **RS** — RMPA dominante (Canoas+POA), longevidade alta (Centeno 1970, Ideograf 1986, VSO 1950) → **base legada pesada, dor real de modernização**. Clientes enterprise concentrados (Petrobras/Braskem/Sicredi/Zaffari/Panvel).
+- **PR** — diferença chave: 3 capitais regionais ativas (Curitiba + Londrina + Maringá) + cluster Cascavel oeste. Maquinário mais explícito (Fava: MIG+CNC+router 5×2m+500m²/dia) → **dor produção complexa coordenada**.
+- **vs SP** — SP tem mais ecommerce próprio + B2B portal; RS tem mais legado offset; PR tem mais multi-cidade real.
+
+### Top 6 alvos cold approach RS+PR
+- **RS**: Centeno (Canoas) · Difachini (POA — portal próprio substituível) · Cia do Letreiro (Caxias)
+- **PR**: Fava (Curitiba — produção multi-tech) · VSO (Londrina/Maringá — multi-loja 75 anos) · Crealle (SJP — marketing maduro vs gap backoffice)
+
+**Bonus**: Sul10 (matriz RS, filial Curitiba) = ponte de venda cruzada possível.
+
+## ✉️ 10 cold emails personalizados individualmente (Tier 1 SP)
+
+Em `memory/sales/2026-05/personalizados/`:
+
+| # | Empresa | Ângulo | Probabilidade resposta |
+|---|---------|--------|------------------------|
+| 09 | New Signs Campinas | Multi-etapa (literal-confessada) | ⭐⭐⭐⭐⭐ |
+| 04 | SP Sign | Multi-etapa (gmail.com = TI simples) | ⭐⭐⭐⭐⭐ |
+| 01 | Sandice | Backend pro portal existente | ⭐⭐⭐⭐ |
+| 02-08, 10 | demais Tier 1 | Mix NFe / Jana / multi-etapa | ⭐⭐⭐ |
+
+**Ângulo dominante**: multi-etapa (4) > NFe (3) > Jana (2) > backend (1).
+**INDEX CRM-leve**: `00-INDEX.md` na pasta — status, ângulo, último contato.
+
+## 📊 Deck empresa 15 slides
+
+`memory/sales/2026-05/08-deck-empresa.md`. Multipropósito (prospect/canal/investidor) com ordens de slides recomendadas por audiência no rodapé.
+
+- 🏆 **Slide mais forte**: #7 Mapa competitivo (resiste a "vocês são só mais um")
+- ⚠️ **Slide mais fraco**: #11 TAM/SAM/SOM (todos placeholders) — bloquear até Singrafs/Sebrae OU trocar por slide qualitativo
+- Slides 4, 8, 11 precisam validação numérica antes de uso comercial
+
+## 🎬 Roteiro vídeo demo 3min
+
+`memory/sales/2026-05/11-roteiro-video-demo.md`. 5 cenas timeline-stamped, biz=99 obrigatório.
+
+**Catch defensivo do agent**: substituiu wow #3 (bulk update Jana) por **Repair Kanban drag-drop** — bulk update Jana **não está confirmado em prod**, Kanban entregue 2026-05-09 (PR #363).
+
+- 1º vídeo: ~25min (10min setup + 30s personalização + 4min take + 6min retakes + 3min edição + 2min upload)
+- Lote de 5 num dia: ~1h45min total
+- **Recomendação**: gravar versão A primeiro (NFe), B/C reaproveitam 80%
+
+## 🔄 Playbooks migração Calcme + Mubisys
+
+`memory/sales/2026-05/09-playbook-migracao-calcme.md` + `10-playbook-migracao-mubisys.md`.
+
+| Playbook | Tier | Setup | Mensal | Cutover | Garantia |
+|---------|------|-------|--------|---------|----------|
+| **Calcme** | Pro | R$ [redacted Tier 0] | R$ [redacted Tier 0] | 1 sábado + paralelo 7d | 60d |
+| **Mubisys** | Enterprise | R$ [redacted Tier 0]+ | R$ [redacted Tier 0] | Faseado 4-6 sem | 90d |
+
+**🎯 Recomendação clara: ATACAR CALCME PRIMEIRO**. Razões:
+1. Cliente menor migra rápido
+2. NFCe + Asaas + Visão Unificada já cobrem 90% do escopo Calcme
+3. 4 RA literais "não cumpre" = dor pública explícita
+4. ROTA LIVRE/Larissa = case real comparável em porte
+5. **Sem dependência de DAM/NFSe/MDFe não-entregues** (gaps #1, #3, #5 só aparecem com Mubisys)
+
+Mubisys exige 3-4 gaps construídos antes do 1º contrato pra entregar com honestidade.
+
+## 🔬 Audit CI dos PRs últimos 30 dias
+
+`memory/audits/2026-05-pre-sales/04-ci-pr-audit-30d.md`.
+
+### Métricas de CI
+- **p50: ~2m30s | p95: ~3m30s** por PR
+- Gargalo: `ci.yml/php` step (~1m55s — vendor install + boot + Pest Form shim)
+- ~90s envelope sobrando — sub-utilizado
+- **CI rápido NÃO é o problema; cobertura real é**
+
+### Workflows quebrados/flaky
+- `visual-regression.yml` — placeholder
+- `quick-sync.yml` — ~13% fail rate
+- `cowork-inbox.yml` — 3 falhas seguidas em janela
+- **Zero `--no-verify` detectado** — disciplina manual OK; gap é **institucional** (gates soft + checks não-required)
+
+### Zero-cobertura em controllers críticos
+- Grow (142 controllers / 0 tests)
+- Connector (30/0)
+- Crm (21/0)
+- Superadmin (14/0)
+- Accounting (12/0)
+- Officeimpresso (7/0)
+- **Total >200 controllers sem nenhum Pest**
+
+## 📋 Top 10 ações pós-Rodada-2 (re-priorizadas)
+
+| # | Ação | Tempo | ROI |
+|---|------|-------|-----|
+| 1 | Fechar bug #1 (wipe DB público) + #2 (octane/mcp em require) — Rodada 1 | 15min | ⭐⭐⭐⭐⭐ |
+| 2 | Registrar tests órfãos Ponto+ADS em phpunit.xml + adr-lint required | 10min | ⭐⭐⭐⭐⭐ |
+| 3 | Setar NCM default + smoke SEFAZ biz=1 | 15-30min | ⭐⭐⭐⭐⭐ |
+| 4 | Validar pricing tiers (Starter/Pro/Enterprise) | 30min | ⭐⭐⭐⭐⭐ |
+| 5 | Disparar 3 cold emails personalizados (New Signs Campinas, SP Sign, Sandice) | 30min | ⭐⭐⭐⭐⭐ |
+| 6 | Construir API docs públicas (Swagger) — Felipe [F] | 16-24h | ⭐⭐⭐⭐⭐ pré-Mubisys |
+| 7 | Decidir mwart-gate HARD vs SOFT+SLA backfill (ADR nova) | 1d ADR | ⭐⭐⭐⭐ |
+| 8 | Buscar números TAM/SAM/SOM Singrafs/Sebrae OU trocar slide 11 do deck | 2-4h | ⭐⭐⭐⭐ |
+| 9 | Estender Pest CI step pra Modules/*/Tests/Feature | 2-3h | ⭐⭐⭐ |
+| 10 | Decidir DAM (construir 80h vs adiar Mubisys até pedido) | 30min decisão | ⭐⭐⭐ |
+
+## 📈 Stats consolidados Rodada 1+2
+
+- **Wallclock total**: ~85min wall (12 agents · ~14h trabalho equiv sequencial — eficiência ~10x)
+- **Artefatos**: 31 arquivos (19 Rodada 1 + 12 Rodada 2)
+- **Universo prospects mapeados**: 83 gráficas (SP 42 + RS 19 + PR 22)
+- **Cold emails prontos**: 3 templates + 10 personalizados = 13 emails copy-paste
+- **Tokens consumidos**: ~1.1M sub-agents
+- **Cota Claude Design**: continua preservada (auditoria WCAG manual)
+- **Commits**: 1 commit em `claude/auto-2026-05-09-mercado` (Rodada 1) + 1 a fazer agora
+
+---
+
+**Branch:** `claude/auto-2026-05-09-mercado` (sem push). Faça `git log -2` pra ver os 2 commits, `git diff main` pra revisar tudo de uma vez.
