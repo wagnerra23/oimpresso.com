@@ -166,12 +166,21 @@ jobs:
       - name: Comment results on PR
         if: always() && steps.detect.outputs.count != '0'
         uses: actions/github-script@v7
+        env:
+          # Passar via env evita SyntaxError quando outputs contêm backticks
+          # markdown ou aspas — `${{ ... }}` é interpolado como string literal
+          # antes do JS parsear, e qualquer ` no conteúdo fecha a template string.
+          # Ver: https://github.com/actions/github-script#use-env-as-input
+          REPORT: ${{ steps.gate.outputs.report }}
+          COUNT: ${{ steps.detect.outputs.count }}
+          OVERRIDE_ACTIVE: ${{ steps.override.outputs.active }}
+          GATE_FAIL: ${{ steps.gate.outputs.fail }}
         with:
           script: |
-            const count = '${{ steps.detect.outputs.count }}';
-            const overrideActive = '${{ steps.override.outputs.active }}' === 'true';
-            const gateFail = '${{ steps.gate.outputs.fail }}' === '1';
-            const report = `${{ steps.gate.outputs.report }}`;
+            const count = process.env.COUNT || '0';
+            const overrideActive = process.env.OVERRIDE_ACTIVE === 'true';
+            const gateFail = process.env.GATE_FAIL === '1';
+            const report = process.env.REPORT || '';
 
             let status, body;
             if (overrideActive) {
