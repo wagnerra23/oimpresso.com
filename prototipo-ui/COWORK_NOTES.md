@@ -89,7 +89,52 @@ Razão: ADR 0109 introduziu plugin Claude Design (capability). ADR 0114 formaliz
 
 ## Pedidos pendentes pra protótipo
 
-*[Wagner adiciona aqui após perguntas respondidas]*
+## 2026-05-09 16:45 [W] → [CC]
+
+### Tela: Jana/Chat
+### Prioridade: P2
+### URL atual: https://oimpresso.com/jana
+### Charter existente: [resources/js/Pages/Jana/Chat.charter.md](../resources/js/Pages/Jana/Chat.charter.md)
+### Persona principal: Wagner + Larissa + Eliana (multi-persona — todo mundo conversa com Jana)
+
+### Contexto (estado F0 hoje):
+Tela funcional mas em estado legacy visual. Auditoria 2026-05-09 com Wagner sobre screenshot real de prod identificou 7 problemas concretos. Tela passa por F1.5 visual gate agora pra alcançar gold-standard (Sells/Index nível). Comparáveis canônicos do charter: **Linear Inbox** (lista de conversas com hierarquia + grouping) + **Front** (3-col com avatar+subject+preview+tempo). **Excluir Notion AI e Intercom** — Notion tem densidade insuficiente pra Larissa, Intercom é support, não copilot interno.
+
+### Pedidos (7 problemas detectados):
+
+- [ ] **Topnav estourou em 2 linhas + "Apps Vinculados" cortado.** Hoje tem 9-10 itens (Conversar / Dashboard / Metas / Alertas / Governança MCP / KB / Qualidade IA / Team MCP / Plataforma / Apps Vinculados). Charter pede ≤6 abas. Mover "Governança MCP", "Team MCP", "Qualidade IA", "Plataforma" pra menu **"⚙️ Avançado"** ou pra área `/copiloto/admin/*`. Manter primary: **Conversar / Dashboard / Metas / Alertas / KB / Apps Vinculados**.
+
+- [ ] **Empty state empurrado pra ~⅔ da tela.** Header "Nova conversa | Assistente IA · Jana" colado no topo com ~400px de branco vertical antes do "PERGUNTE SOBRE". Centralizar empty state verticalmente OU reduzir gap header→suggestions pra ~80px max.
+
+- [ ] **4 chips de sugestão estreitos forçam quebra feia** ("Qual o\nfaturamento de\nhoje?"). Trocar pra **2×2 grid** com cards mais largos (cada card respira em 1 linha de copy + 1 linha de preview do que vai responder). Alternativa: linha única scrollável horizontal com chevron.
+
+- [ ] **Lista de recentes sem hierarquia.** Hoje 3× "Nova conversa" idênticas, sem timestamp/preview/avatar. Adicionar por linha: **subject auto-gerado da 1ª pergunta** (ex: "Faturamento hoje" em vez de "Nova conversa") + **preview da última msg da Jana** (1 linha truncada) + **timestamp relativo** ("2h atrás", "ontem"). Linear Inbox e Front são referência.
+
+- [ ] **"Smoke PII redact 2026-05-06" e "Smoke test 2026-05-06" vazaram pra UI de prod.** Filtrar por label `internal:test` OU criar regra "conversas iniciadas via Pest/dev session não aparecem em RECENTES default" (toggle "mostrar testes" pra Wagner debug).
+
+- [ ] **Header com ícones `(i)` e `(...)` soltos** sem affordance. Adicionar tooltips PT-BR ("Detalhes da conversa" / "Mais ações") + **trocar avatar "CP" amarelo genérico** por identidade Jana coerente (proposta: gradient roxo `from-violet-500 to-purple-600` + sigla "J" — alinhado com brand IA do projeto).
+
+- [ ] **Botão enviar azul redondo destoa da paleta neutra Tailwind.** Trocar pra `bg-primary` token (ou `bg-zinc-900` consistente com resto do AppShell). Manter shape (redondo é ok no padrão de chat IA — ChatGPT/Claude.ai/Gemini todos usam).
+
+### Inspirações (links):
+- <https://linear.app/inbox> — grouping + preview + tempo relativo
+- <https://front.com/product> — 3-col com avatar+subject+preview
+- <https://claude.ai> — empty state minimal centralizado, suggestions chips em 2×2
+
+### Restrições:
+- **multi-tenant:** business_id scopado em toda query de conversas/mensagens (Tier 0 obrigatório, ADR 0093)
+- **PII sanitization:** suggestions chips e previews NUNCA mostram CPF/CNPJ raw — passar por `PiiRedactor` (memória cliente "Smoke PII redact" indica esse cuidado já existe)
+- **mobile:** desktop-first (Wagner+Eliana usam desktop pesado), mas não pode quebrar em `sm:` (Larissa às vezes consulta no celular do balcão)
+- **monitor 1280px Larissa:** crítico — testar protótipo em viewport 1280×800
+
+### Não-fazer:
+- ❌ Não usar `rounded-xl+` em cards (vira "tutorial-shadcn", briefing §4)
+- ❌ Não adicionar animações >300ms (briefing §4)
+- ❌ Não copiar Notion AI (densidade insuficiente Larissa) nem Intercom (é support, não copilot)
+- ❌ Não criar mais 1 sidebar interna na tela — já tem AppShell + lista conversas, terceira coluna seria 4-col total = Larissa 1280px quebra
+- ❌ Não inventar feature nova (busca avançada, exports, sharing) — escopo é F1 visual fix dos 7 pontos, não growth scope
+
+---
 
 ### Template (copiar e preencher):
 
