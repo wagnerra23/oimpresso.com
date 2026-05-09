@@ -45,7 +45,7 @@ class CustosController extends Controller
 
         $painel = $service->painel($businessId, $range['inicio'], $range['fim']);
 
-        return Inertia::render('Copiloto/Admin/Custos/Index', [
+        return Inertia::render('Jana/Admin/Custos/Index', [
             'kpis'         => $painel['kpis'],
             'por_usuario'  => $painel['por_usuario'],
             'serie_diaria' => $painel['serie_diaria'],

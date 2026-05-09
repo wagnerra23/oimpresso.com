@@ -11,7 +11,7 @@
 <section class="content">
     <div class="box">
         <div class="box-body">
-            <div class="alert alert-warning">STUB spec-ready — Pages/Copiloto/Dashboard.tsx substitui esta view.</div>
+            <div class="alert alert-warning">STUB spec-ready — Pages/Jana/Dashboard.tsx substitui esta view.</div>
 
             <table class="table table-striped">
                 <thead>

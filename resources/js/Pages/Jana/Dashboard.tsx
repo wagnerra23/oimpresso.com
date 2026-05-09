@@ -14,7 +14,7 @@ import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink } from 'lucide-react'
-import FabCopiloto from './components/FabCopiloto'
+import FabJana from './components/FabJana'
 
 interface Apuracao {
   data_ref: string
@@ -212,7 +212,7 @@ export default function Dashboard({ metas }: Props) {
         )}
       </div>
 
-      <FabCopiloto contextRoute="/copiloto/dashboard" />
+      <FabJana contextRoute="/copiloto/dashboard" />
     </>
   )
 }

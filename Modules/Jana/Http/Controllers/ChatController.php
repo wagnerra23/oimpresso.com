@@ -97,7 +97,7 @@ class ChatController extends Controller
         // Sprint 1 (2026-04-27): Chat.tsx agora usa AppShellV2 (Cockpit) como
         // layout-mae, então precisa dos shell props (business, user, conversas
         // formatadas pra fixadas/rotinas/recentes).
-        return Inertia::render('Copiloto/Chat', array_merge(
+        return Inertia::render('Jana/Chat', array_merge(
             $this->shellPropsFor($businessId, $conversas, $conversa),
             [
                 'conversa'           => $conversa,
@@ -489,7 +489,7 @@ class ChatController extends Controller
 
         $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
 
-        return Inertia::render('Copiloto/Cockpit', [
+        return Inertia::render('Jana/Cockpit', [
             'businessNome'  => session('business.name', 'Oimpresso Matriz'),
             'businesses'    => $businesses,
             'usuarioNome'        => $userNome,
