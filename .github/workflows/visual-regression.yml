@@ -53,7 +53,7 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Install NPM dependencies
         run: npm ci
