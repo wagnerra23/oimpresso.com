@@ -363,6 +363,34 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 - [ ] OpenTelemetry `whatsapp.*` metrics paralelo (padrão ADR 0051)
 - [ ] Pest: `MetricasAggregationTest` cobrindo (a) 0 conversas dia = row 0, (b) 10 conversas com 4 deflected = 40% deflection
 
+### US-WA-022 · UX simplificada onboarding Baileys (1 telefone → QR → conectado)
+
+> **Área:** Settings UX
+> **Charter:** [`resources/js/Pages/Whatsapp/Settings.charter.md`](../../../resources/js/Pages/Whatsapp/Settings.charter.md)
+> **Decisão mãe:** ADR 0096 emenda 4 + ADR 0058 (Centrifugo)
+> **Status:** ✅ entregue em PR #298 (mergeado 2026-05-09 14:18Z) · `review` aguardando smoke fim-a-fim em prod
+
+**Como** admin business
+**Quero** conectar Whatsapp via Baileys cadastrando apenas o telefone
+**Para** não precisar entender infra (instance_id, daemon URL, API key)
+
+Estado-da-arte SaaS (Z-API, Twilio, Wati pattern): tenant só vê dados de negócio; infra fica server-side.
+
+**DoD:**
+- [x] Page Charter `Settings.charter.md` documenta invariantes UX (criado nesta US)
+- [x] Migration: `whatsapp_business_configs` remove `baileys_daemon_url` + `baileys_api_key` (vão pra `config/whatsapp.php` global), adiciona `baileys_phone_e164` + `baileys_verified_name` + `baileys_profile_pic_url`
+- [x] Índice UNIQUE(business_id, baileys_phone_e164) — anti-duplicate
+- [x] `BaileysDriver` lê daemon_url + api_key de config app, instance_id do model
+- [x] Novo Job `BaileysConnectJob` provisiona daemon + cria instance com retry exponencial
+- [x] `SettingsController@update` quando driver=baileys + phone preenchido + lgpd ok → dispara connect
+- [x] `BaileysWebhookController` publica eventos qr_updated/connected/banned/session_lost/disconnected em Centrifugo channel `whatsapp:business:{id}`
+- [x] `Settings.tsx` reescrito: 1 input telefone E.164 + estado reativo (connecting → qr_required → connected → banned) com QR display + countdown
+- [x] Pest tests: `BaileysDriverTest` adaptado para schema nova + `WhatsappSettingsCharterTest` com 7 invariantes
+- [x] Rate limit 3 connect/business/dia (anti-abuse) via Cache facade
+- [ ] Smoke fim-a-fim em prod (Wagner) — após deploy daemon CT 100 + setar `WHATSAPP_BAILEYS_API_KEY` em `.env` Hostinger
+
+**Refs:** US-WA-002 (predecessor merged), ADR 0096 emenda 4, ADR 0058 Centrifugo, ADR 0093 multi-tenant Tier 0, ADR 0107 visual-comparison (skipped via mwart-override per ADR 0112 padrão)
+
 ## 5. Regras Gherkin (DoD detalhado)
 
 ### R-WA-001 · Mensagem outbound nunca cross-tenant
