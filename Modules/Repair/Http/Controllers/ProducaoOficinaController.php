@@ -2,21 +2,167 @@
 
 namespace Modules\Repair\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
+use Modules\Repair\Entities\JobSheet;
+use Modules\Repair\Entities\RepairStatus;
 
 /**
  * Produção · Oficina — kanban da oficina (read-mostly).
  *
- * F3 inicial usa mock data. US-REPAIR-PROD-2 substitui por query real
- * em JobSheet scopada por business_id.
+ * US-REPAIR-PROD-2 (2026-05-09): query real \`JobSheet\` por business_id, com
+ * heurística \`sort_order\` quartil pra mapear cada status pra uma das 5 colunas
+ * fixas. Fallback pra mock data se biz não tem \`repair_statuses\` ou \`job_sheets\`
+ * configurado.
  *
  * Charter: resources/js/Pages/Repair/ProducaoOficina/Index.charter.md
- * Protótipo F1: prototipo-ui/prototipos/producao-oficina/F1.html
  */
 class ProducaoOficinaController extends Controller
 {
+    private const COLUMN_TEMPLATES = [
+        ['id' => 'recepcao', 'label' => 'Recepção', 'tone' => 'slate'],
+        ['id' => 'diagnostico', 'label' => 'Diagnóstico', 'tone' => 'blue'],
+        ['id' => 'aguardando-pecas', 'label' => 'Aguardando peças', 'tone' => 'amber'],
+        ['id' => 'em-execucao', 'label' => 'Em execução', 'tone' => 'violet'],
+        ['id' => 'pronto', 'label' => 'Pronto', 'tone' => 'emerald'],
+    ];
+
     public function index()
+    {
+        $business_id = (int) request()->session()->get('user.business_id');
+
+        $statuses = RepairStatus::where('business_id', $business_id)
+            ->orderBy('sort_order', 'asc')
+            ->get();
+
+        if ($statuses->isEmpty()) {
+            return $this->renderMock();
+        }
+
+        $jobSheets = JobSheet::with(['status', 'technician', 'Brand', 'deviceModel'])
+            ->where('business_id', $business_id)
+            ->whereIn('status_id', $statuses->pluck('id'))
+            ->orderBy('created_at', 'desc')
+            ->limit(200)
+            ->get();
+
+        if ($jobSheets->isEmpty()) {
+            return $this->renderMock();
+        }
+
+        $statusToColumn = $this->mapStatusesToColumns($statuses);
+        $columns = $this->buildColumns($jobSheets, $statusToColumn);
+
+        return Inertia::render('Repair/ProducaoOficina/Index', [
+            'columns' => $columns,
+            'totals' => [
+                'os' => $jobSheets->count(),
+                'aguardando_aprovacao' => collect($columns)
+                    ->flatMap(fn ($c) => $c['cards'])
+                    ->filter(fn ($card) => $card['aprovacao_pendente'] ?? false)
+                    ->count(),
+            ],
+            'data_source' => 'live',
+        ]);
+    }
+
+    /**
+     * Mapeia cada \`repair_status.id\` pro id da coluna kanban.
+     * Heurística:
+     *   - is_completed_status = true  → 'pronto'
+     *   - resto, dividido em 4 buckets por posição em sort_order
+     */
+    private function mapStatusesToColumns(Collection $statuses): array
+    {
+        $completed = $statuses->where('is_completed_status', true);
+        $active = $statuses->where('is_completed_status', false)->values();
+
+        $map = [];
+        foreach ($completed as $s) {
+            $map[$s->id] = 'pronto';
+        }
+
+        $count = $active->count();
+        if ($count === 0) {
+            return $map;
+        }
+
+        $bucketSize = max(1, (int) ceil($count / 4));
+        $columnOrder = ['recepcao', 'diagnostico', 'aguardando-pecas', 'em-execucao'];
+
+        foreach ($active as $i => $status) {
+            $bucketIdx = min(3, intdiv($i, $bucketSize));
+            $map[$status->id] = $columnOrder[$bucketIdx];
+        }
+
+        return $map;
+    }
+
+    private function buildColumns(Collection $jobSheets, array $statusToColumn): array
+    {
+        $columns = [];
+        foreach (self::COLUMN_TEMPLATES as $tpl) {
+            $columns[$tpl['id']] = $tpl + ['cards' => []];
+        }
+
+        foreach ($jobSheets as $js) {
+            $columnId = $statusToColumn[$js->status_id] ?? null;
+            if ($columnId === null || ! isset($columns[$columnId])) {
+                continue;
+            }
+            $columns[$columnId]['cards'][] = $this->jobSheetToCard($js);
+        }
+
+        return array_values($columns);
+    }
+
+    private function jobSheetToCard(JobSheet $js): array
+    {
+        $tech = $js->technician;
+        $brand = $js->Brand;
+        $deviceModel = $js->deviceModel ?? null;
+
+        $mecanicoName = $tech ? trim(($tech->first_name ?? '').' '.($tech->last_name ?? '')) : null;
+        if ($mecanicoName === '') {
+            $mecanicoName = $tech?->username;
+        }
+
+        $estimated = $js->estimated_cost !== null ? (int) round((float) $js->estimated_cost) : null;
+        $isCompleted = $js->status?->is_completed_status ?? false;
+
+        return [
+            'plate' => $js->serial_no ?: $js->job_sheet_no,
+            'vehicle' => $deviceModel?->name ?? '—',
+            'brand' => $brand?->name ?? '—',
+            'km' => 0,
+            'mecanico' => $mecanicoName,
+            'mecanico_initials' => $this->initials($mecanicoName),
+            'wait' => $js->created_at ? Carbon::parse($js->created_at)->diffForHumans(['short' => true]) : null,
+            'box' => null,
+            'aprovacao_pendente' => false,
+            'aprovado' => $isCompleted,
+            'status_label' => $isCompleted ? 'Aguardando retirada' : null,
+            'orcamento_total' => $estimated,
+        ];
+    }
+
+    private function initials(?string $name): ?string
+    {
+        if (! $name) {
+            return null;
+        }
+        $parts = preg_split('/\s+/', trim($name));
+        if (! $parts) {
+            return null;
+        }
+        $first = mb_substr($parts[0] ?? '', 0, 1);
+        $last = count($parts) > 1 ? mb_substr($parts[count($parts) - 1] ?? '', 0, 1) : '';
+        return mb_strtoupper($first.$last);
+    }
+
+    private function renderMock()
     {
         return Inertia::render('Repair/ProducaoOficina/Index', [
             'columns' => $this->mockColumns(),
@@ -24,6 +170,7 @@ class ProducaoOficinaController extends Controller
                 'os' => 17,
                 'aguardando_aprovacao' => 3,
             ],
+            'data_source' => 'mock',
         ]);
     }
 
