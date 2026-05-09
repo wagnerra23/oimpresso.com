@@ -24,17 +24,17 @@ ADRs 0031/0032/0033/0034: header atualizado pra "VERDADE CANÔNICA (consolidada 
 - `+laravel/boost ^2.4 --dev` (Cursor/Claude AI guidelines)
 
 **Código novo:**
-- `Modules/Copiloto/Services/Ai/LaravelAiSdkDriver.php` — `AiAdapter` orquestrando 3 agents com fallback automático pra fixtures
-- `Modules/Copiloto/Ai/Agents/BriefingAgent.php` — gera briefing inicial
-- `Modules/Copiloto/Ai/Agents/SugestoesMetasAgent.php` — `HasStructuredOutput` JsonSchema com enum `facil/realista/ambicioso`
-- `Modules/Copiloto/Ai/Agents/ChatCopilotoAgent.php` — `messages()` lê histórico de `Conversa.mensagens`
+- `Modules/Jana/Services/Ai/LaravelAiSdkDriver.php` — `AiAdapter` orquestrando 3 agents com fallback automático pra fixtures
+- `Modules/Jana/Ai/Agents/BriefingAgent.php` — gera briefing inicial
+- `Modules/Jana/Ai/Agents/SugestoesMetasAgent.php` — `HasStructuredOutput` JsonSchema com enum `facil/realista/ambicioso`
+- `Modules/Jana/Ai/Agents/ChatJanaAgent.php` — `messages()` lê histórico de `Conversa.mensagens`
 
 **Removido:**
-- `Modules/Copiloto/Services/Ai/LaravelAiDriver.php` (stub do módulo interno LaravelAI)
+- `Modules/Jana/Services/Ai/LaravelAiDriver.php` (stub do módulo interno LaravelAI)
 
 **Config:**
-- `CopilotoServiceProvider`: bind do `AiAdapter` prefere `LaravelAiSdkDriver` quando `class_exists(\Laravel\Ai\AiManager::class)`
-- `Modules/Copiloto/Config/config.php`: comments atualizados pra modos `auto` / `laravel_ai_sdk` / `openai_direct` (legado)
+- `JanaServiceProvider`: bind do `AiAdapter` prefere `LaravelAiSdkDriver` quando `class_exists(\Laravel\Ai\AiManager::class)`
+- `Modules/Jana/Config/config.php`: comments atualizados pra modos `auto` / `laravel_ai_sdk` / `openai_direct` (legado)
 
 **Testes:**
 - `AdapterResolverTest`: substituiu teste do stub deletado por testes do driver canônico
@@ -110,8 +110,8 @@ Após pendências 1+3, abrir `https://oimpresso.com/copiloto`, mandar 1 mensagem
 
 | Sprint | Entrega | Risco |
 |---|---|---|
-| **2** | `composer require vizra/vizra-adk` + `CopilotoAgent extends Vizra\Agent` substitui `LaravelAiSdkDriver` direto; migrar `copiloto_conversas` → `vizra_sessions` | Médio (migração de dados) |
-| **3** | 5-10 tools registradas em `CopilotoAgent` (snapshot, criar meta, consultar apuracao) + Tenant Scope | Baixo |
+| **2** | `composer require vizra/vizra-adk` + `JanaAgent extends Vizra\Agent` substitui `LaravelAiSdkDriver` direto; migrar `copiloto_conversas` → `vizra_sessions` | Médio (migração de dados) |
+| **3** | 5-10 tools registradas em `JanaAgent` (snapshot, criar meta, consultar apuracao) + Tenant Scope | Baixo |
 | **4** | `MemoriaContrato` interface + `Mem0RestDriver` + `NullMemoriaDriver` | Médio |
 | **5** | `ChatController@send` busca antes / escreve depois (job assíncrono `ExtrairFatosDaConversaJob`) | Médio |
 | **6 (opt)** | Avaliar Vizra Cloud OU dashboard caseiro pra traces remotos | Baixo |
@@ -130,12 +130,12 @@ Após pendências 1+3, abrir `https://oimpresso.com/copiloto`, mandar 1 mensagem
 - `memory/08-handoff.md`
 - **Sprint 1 (via PR #24):**
   - `composer.json`, `composer.lock`
-  - `Modules/Copiloto/Ai/Agents/{Briefing,Sugestoes,Chat}*.php`
-  - `Modules/Copiloto/Services/Ai/LaravelAiSdkDriver.php`
-  - `Modules/Copiloto/Providers/CopilotoServiceProvider.php`
-  - `Modules/Copiloto/Config/config.php`
-  - `tests/Feature/Modules/Copiloto/AdapterResolverTest.php`
-  - DELETADO: `Modules/Copiloto/Services/Ai/LaravelAiDriver.php`
+  - `Modules/Jana/Ai/Agents/{Briefing,Sugestoes,Chat}*.php`
+  - `Modules/Jana/Services/Ai/LaravelAiSdkDriver.php`
+  - `Modules/Jana/Providers/JanaServiceProvider.php`
+  - `Modules/Jana/Config/config.php`
+  - `tests/Feature/Modules/Jana/AdapterResolverTest.php`
+  - DELETADO: `Modules/Jana/Services/Ai/LaravelAiDriver.php`
 
 **Auto-memória `~/.claude/projects/D--oimpresso-com/memory/` (não vai pro git):**
 - `MEMORY.md` (índice)

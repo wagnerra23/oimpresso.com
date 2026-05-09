@@ -182,7 +182,7 @@ Permission `copiloto.cc.read.all` = ver todas; `cc.read.team` = ver team mas nã
 | PATCH | `/copiloto/admin/cc-sessions/{uuid}/curate` | `Admin\CcSessionsController@curate` | `cc.read.all` |
 | POST | `/api/cc/ingest` | `Mcp\CcIngestController@ingest` | Bearer mcp_* |
 
-`/api/cc/ingest` já existe no projeto (ver `Modules/Copiloto/Http/Controllers/Mcp/CcIngestController.php`).
+`/api/cc/ingest` já existe no projeto (ver `Modules/Jana/Http/Controllers/Mcp/CcIngestController.php`).
 
 ---
 
@@ -240,9 +240,9 @@ Se algum falhar → ADR follow-up + ajuste.
 
 - ADR 0053 — MCP server governança como produto
 - ADR 0055 — Self-host Team plan equivalente Anthropic
-- ADR 0056 — MCP fonte única memória Copiloto Claude Code
-- `Modules/Copiloto/Http/Controllers/Mcp/CcIngestController.php` — endpoint ingest existente
-- `Modules/Copiloto/Database/Migrations/2026_04_29_300001..3_*` — schema 3 tabelas
+- ADR 0056 — MCP fonte única memória Jana Claude Code
+- `Modules/Jana/Http/Controllers/Mcp/CcIngestController.php` — endpoint ingest existente
+- `Modules/Jana/Database/Migrations/2026_04_29_300001..3_*` — schema 3 tabelas
 - `MEMORY_TEAM_ONBOARDING.md` — Sprint B watcher mencionado
 
 ---

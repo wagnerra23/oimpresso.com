@@ -12,7 +12,7 @@ Consolidar US-NFE-002 com painel fiscal completo na tela do certificado, blindar
 
 ### Cleanup biz_id=4 → 1 (Wagner regra "não testar empresa 4")
 
-PR #208 corrigiu 14 arquivos NfeBrasil; PR #215 pegou 8 escapados; PR #216 sweep total Whatsapp+RB+Copiloto+Builders + guard CI permanente. **Total: 47 arquivos / 0 violações finais**.
+PR #208 corrigiu 14 arquivos NfeBrasil; PR #215 pegou 8 escapados; PR #216 sweep total Whatsapp+RB+Jana+Builders + guard CI permanente. **Total: 47 arquivos / 0 violações finais**.
 
 Padronização:
 - Default test = `business_id => 1` (Wagner)

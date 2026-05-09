@@ -60,7 +60,7 @@ US-RB-045/046/047 todas → `done` no MCP. SPEC.md de RecurringBilling registra 
 | [#208](https://github.com/wagnerra23/oimpresso.com/pull/208) | fix | NfeBrasil tests biz_id=4→1 (14 arquivos + 2 PII removidas) |
 | [#212](https://github.com/wagnerra23/oimpresso.com/pull/212) | feat | Template Simples Nacional SC (11º L1, sem FCP) |
 | [#215](https://github.com/wagnerra23/oimpresso.com/pull/215) | feat | Botão "Testar conexão SEFAZ" + endpoint NFeStatusServico |
-| [#216](https://github.com/wagnerra23/oimpresso.com/pull/216) | chore | Guard CI BusinessIdGuardTest + sweep 25 arquivos (Whatsapp/RB/Copiloto/Builders) |
+| [#216](https://github.com/wagnerra23/oimpresso.com/pull/216) | chore | Guard CI BusinessIdGuardTest + sweep 25 arquivos (Whatsapp/RB/Jana/Builders) |
 | [#217](https://github.com/wagnerra23/oimpresso.com/pull/217) | fix | Tools::model(int) bug runtime + payload erro com UF/ambiente |
 | [#218](https://github.com/wagnerra23/oimpresso.com/pull/218) | docs | +3 ADRs canon (0101 biz_id=1, 0102 polling NFCe, 0103 events por modelo) |
 | [#219](https://github.com/wagnerra23/oimpresso.com/pull/219) | feat | Painel fiscal completo cert (5 cards + selector ambiente + fallback CNPJ) |
@@ -88,7 +88,7 @@ US-RB-045/046/047 todas → `done` no MCP. SPEC.md de RecurringBilling registra 
 - Auto-mem: `feedback_test_business_id_1_nunca_4.md` (top entry MEMORY.md)
 - ADR canon: [0101](decisions/0101-tests-business-id-1-nunca-cliente.md)
 - Guard CI: `tests/Unit/BusinessIdGuardTest.php` — varre 7 patterns regex em 148 arquivos, falha CI em regressão
-- Cobertura: 47 arquivos sweep (NfeBrasil 22 + Whatsapp 8 + RB 4 + Copiloto 12 + Builders 1)
+- Cobertura: 47 arquivos sweep (NfeBrasil 22 + Whatsapp 8 + RB 4 + Jana 12 + Builders 1)
 - Audit final: 0 violações / 50 arquivos com 237 ocorrências `business_id=1`
 
 ### Bug runtime grave consertado (PR #217)
@@ -338,7 +338,7 @@ Session log: [memory/sessions/2026-05-07-revisao-cycle-01-rollover-cycle-02.md](
 
 ### Entregue
 
-**[PR #111](https://github.com/wagnerra23/oimpresso.com/pull/111) — squash merge `196865cf`** — 13 tabelas Jana renomeadas `copiloto_*` → `jana_*` + 13 views legacy 30d (drop planejado **2026-06-05**) + 1 classe Eloquent renomeada (`CopilotoMemoriaFato` → `MemoriaFato`).
+**[PR #111](https://github.com/wagnerra23/oimpresso.com/pull/111) — squash merge `196865cf`** — 13 tabelas Jana renomeadas `copiloto_*` → `jana_*` + 13 views legacy 30d (drop planejado **2026-06-05**) + 1 classe Eloquent renomeada (`JanaMemoriaFato` → `MemoriaFato`).
 
 | Item | Status |
 |---|---|
@@ -356,7 +356,7 @@ Session log: [memory/sessions/2026-05-07-revisao-cycle-01-rollover-cycle-02.md](
 
 ### Mantidos legacy (NÃO mexido — fachada ADR 0088)
 
-- URLs `/copiloto/*`, permissions `copiloto.*`, config keys/env vars `COPILOTO_*`, log channel `copiloto-ai`, Pages React `Pages/Copiloto/`, lang `copiloto::`, route names
+- URLs `/copiloto/*`, permissions `copiloto.*`, config keys/env vars `COPILOTO_*`, log channel `copiloto-ai`, Pages React `Pages/Jana/`, lang `copiloto::`, route names
 - `DataController.copiloto_module` (chave de menu)
 - Migrations originais `2026_04_*` (append-only — criam `copiloto_*` antes do RENAME na ordem cronológica)
 
@@ -391,11 +391,11 @@ git worktree prune
 
 ### Próxima sessão (P0)
 
-1. **Validação local** (~5min): `php bin/check-scope.php` + `./vendor/bin/pest tests/Feature/Modules/Copiloto/ --no-coverage`
+1. **Validação local** (~5min): `php bin/check-scope.php` + `./vendor/bin/pest tests/Feature/Modules/Jana/ --no-coverage`
 2. **Deploy Hostinger** PR-9 (cmds acima)
 3. **Cleanup worktree** `vigilant-joliot-eb50cd` no terminal real
 4. Voltar pro CYCLE-01 (vence 12-mai, 6 dias):
-   - **COPI-22** P0 (driver MCP Copiloto, vencia 06-mai)
+   - **COPI-22** P0 (driver MCP Jana, vencia 06-mai)
    - **Goal #3** Dashboard `/copiloto/admin/custos`
 5. **2026-06-05** — drop views legacy `copiloto_*` (ADR sub-decisão futura ou comando `php artisan jana:drop-legacy-views`)
 
@@ -534,14 +534,14 @@ Investigação revelou:
 
 **3 commits na branch `claude/wonderful-herschel-cccef6` → [PR #97](https://github.com/wagnerra23/oimpresso.com/pull/97).**
 
-**PR-1 (commit `850ac349`)** — 9 drift controllers movidos pros donos corretos (Copiloto/ADS → KB/TeamMcp/ProjectMgmt). URLs **mantidas inalteradas**. SCOPE.md zerou drift_alerts em 5 módulos. Plano v1.0→1.1 com **erratum §1** (Memoria/FontesController não eram o que o plano descrevia — Wagner confirmou destino KB mesmo assim como decisão L1).
+**PR-1 (commit `850ac349`)** — 9 drift controllers movidos pros donos corretos (Jana/ADS → KB/TeamMcp/ProjectMgmt). URLs **mantidas inalteradas**. SCOPE.md zerou drift_alerts em 5 módulos. Plano v1.0→1.1 com **erratum §1** (Memoria/FontesController não eram o que o plano descrevia — Wagner confirmou destino KB mesmo assim como decisão L1).
 
 **PR-2 (commit `8f7a5138`)** — 3 renames de módulo PHP-only:
-- `Modules/Copiloto/` → `Modules/Jana/` (chat IA enxuto após PR-1 extrair drift)
+- `Modules/Jana/` → `Modules/Jana/` (chat IA enxuto após PR-1 extrair drift)
 - `Modules/PontoWr2/` → `Modules/Ponto/`
 - `Modules/MemCofre/` → `Modules/SRS/` (System Rules Spec)
 
-**Mantidos legacy** (rename PHP-only): URLs `/copiloto/*` etc, permissions `copiloto.*` etc, config keys + env vars `COPILOTO_*`, log channels `copiloto-ai`, Pages React `Pages/Copiloto/`, lang `copiloto::`, tabelas DB (`copiloto_*`, `ponto_*`, `docs_*`). Plano v1.1→1.2 com **erratum §4** (rename PHP-only em vez de rename completo com 301 — razão: blast radius alto demais com 5993 clientes ROTA LIVRE + watchers + webhook + 30 Inertia::render).
+**Mantidos legacy** (rename PHP-only): URLs `/copiloto/*` etc, permissions `copiloto.*` etc, config keys + env vars `COPILOTO_*`, log channels `copiloto-ai`, Pages React `Pages/Jana/`, lang `copiloto::`, tabelas DB (`copiloto_*`, `ponto_*`, `docs_*`). Plano v1.1→1.2 com **erratum §4** (rename PHP-only em vez de rename completo com 301 — razão: blast radius alto demais com 5993 clientes ROTA LIVRE + watchers + webhook + 30 Inertia::render).
 
 **Stats:**
 - 9 + 369 git mv (96-99% similarity preservada)
@@ -649,7 +649,7 @@ Session log: [memory/sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md](sess
 
 **P0 próxima sessão (deferred com transparência):**
 
-1. **Fase 3.7 renames** — Copiloto→Jana, PontoWr2→Ponto, MemCofre→SRS, ProjectMgmt→Project + 9 drift controllers (`memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md`). 4-6h sessão dedicada com Pest + 301 redirects + webhook validation.
+1. **Fase 3.7 renames** — Jana→Jana, PontoWr2→Ponto, MemCofre→SRS, ProjectMgmt→Project + 9 drift controllers (`memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md`). 4-6h sessão dedicada com Pest + 301 redirects + webhook validation.
 2. **ActionGate gradual rollout** em rotas L1+ existentes
 3. **Mode warn → strict** após 4 semanas calibração
 4. **Wagner valida visualmente** `/governance` (UI Inertia em prod após Action build-inertia-auto.yml rodar)
@@ -676,8 +676,8 @@ Session log: [memory/sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md](sess
 **P0 pra próxima sessão (cycle 01 vence 12-mai, 7 dias):**
 - **COPI-43** PII redactor BR (LGPD-blocker) p0
 - **A4 rodada 2** Larissa — repetir 3 perguntas (vendi/líquido/caixa) → 3 respostas distintas em prod
-- **COPI-22** driver MCP no Copiloto (já doing, due 06-mai amanhã)
-- **10 testes pré-existentes falhando** em `tests/Feature/Modules/Copiloto/Mcp/` — não tocados nesta sessão; investigar quando der
+- **COPI-22** driver MCP no Jana (já doing, due 06-mai amanhã)
+- **10 testes pré-existentes falhando** em `tests/Feature/Modules/Jana/Mcp/` — não tocados nesta sessão; investigar quando der
 
 **Atenção crítica:** **NÃO RODAR `php artisan mcp:tasks:sync`** até PROJECT-3 (frontmatter YAML SPECs, escalar pra p2) fechar. Parser sobrescreve triagem 05-mai. Ver ADR 0071 §B3.
 
@@ -739,7 +739,7 @@ cd D:\oimpresso.com
 
 ### 🟡 Gaps de produto (próximo Cycle 02)
 
-1. **`ChatCopilotoAgent` "burrinho"** ([ADR 0046](decisions/0046-chat-agent-gap-contexto-rico.md)) — não tem contexto sobre faturamento/clientes/metas. Larissa pergunta "qual o faturamento desse mês?" e o agent pede pra ela informar período. Resolver com **tools/function-calling** (laravel/ai suporta) OU injetando `ContextoNegocio` no system prompt.
+1. **`ChatJanaAgent` "burrinho"** ([ADR 0046](decisions/0046-chat-agent-gap-contexto-rico.md)) — não tem contexto sobre faturamento/clientes/metas. Larissa pergunta "qual o faturamento desse mês?" e o agent pede pra ela informar período. Resolver com **tools/function-calling** (laravel/ai suporta) OU injetando `ContextoNegocio` no system prompt.
 
 2. **`MeilisearchDriver::buscar` usa Scout default** — só full-text, sem hybrid embedder. Recall não traz semantic matches em prod. Fix: override Scout `search()` callback pra passar `hybrid:{embedder,semanticRatio}`. Curl direto na API Meilisearch funciona perfeito (semanticHitCount=2).
 
@@ -828,14 +828,14 @@ MEILISEARCH_KEY=TFLfQX3Diuz42MydPn68AYH9Km1JbaBI
 
 ## 📜 Documentos enterprise
 
-- [memory/requisitos/Copiloto/ENTERPRISE.md](requisitos/Copiloto/ENTERPRISE.md) — overview executivo + ops + compliance LGPD (12 seções, 420 linhas)
+- [memory/requisitos/Jana/ENTERPRISE.md](requisitos/Jana/ENTERPRISE.md) — overview executivo + ops + compliance LGPD (12 seções, 420 linhas)
 - [memory/CHANGELOG.md](CHANGELOG.md) — Keep-a-Changelog format, sessões 15-18
 
 ---
 
 ---
 
-## 🎯 Estado em 2026-04-26 (sessão 14 — Copiloto completo + merges financeiro)
+## 🎯 Estado em 2026-04-26 (sessão 14 — Jana completo + merges financeiro)
 
 ### ✅ Mergeado em `6.7-bootstrap` nesta sessão (3 PRs fechados)
 
@@ -843,23 +843,23 @@ MEILISEARCH_KEY=TFLfQX3Diuz42MydPn68AYH9Km1JbaBI
 |---|---|---|
 | `626c5696` | #10 | `fix(financeiro)`: contas-bancarias 500 — `account_type` → `account_type_id` + fix cache Inertia em `LegacyMenuAdapter` |
 | `8475603a` | #11 | `feat(financeiro)`: `/relatorios` MVP — DRE gerencial + fluxo de caixa + resumo, filtros, export CSV UTF-8, redirect `/financeiro/dashboard → /financeiro` |
-| `e9cf6dc1` | #13 | `feat(copiloto)`: implementação real — OpenAiDirectDriver, SqlDriver idempotente, ApurarMetaJob, AlertaService + eventos, Pages React Chat/Dashboard/FabCopiloto, 4 arquivos de testes Pest |
+| `e9cf6dc1` | #13 | `feat(copiloto)`: implementação real — OpenAiDirectDriver, SqlDriver idempotente, ApurarMetaJob, AlertaService + eventos, Pages React Chat/Dashboard/FabJana, 4 arquivos de testes Pest |
 
 > **Nota de merge:** conflitos eram todos em `public/build-inertia/` (assets compilados com hashes diferentes por branch). Estratégia: cherry-pick dos arquivos-fonte apenas; assets precisam de rebuild local (`npm run build:inertia`) após `git pull`.
 
-### ✅ Módulo Copiloto — o que está pronto
+### ✅ Módulo Jana — o que está pronto
 
 | Peça | Arquivo(s) | Status |
 |---|---|---|
-| OpenAI driver | `Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php` | ✅ |
-| SqlDriver + hash idempotente | `Modules/Copiloto/Drivers/Sql/SqlDriver.php` | ✅ |
-| ApurarMetaJob | `Modules/Copiloto/Jobs/ApurarMetaJob.php` | ✅ |
-| ApuracaoService | `Modules/Copiloto/Services/ApuracaoService.php` | ✅ |
+| OpenAI driver | `Modules/Jana/Services/Ai/OpenAiDirectDriver.php` | ✅ |
+| SqlDriver + hash idempotente | `Modules/Jana/Drivers/Sql/SqlDriver.php` | ✅ |
+| ApurarMetaJob | `Modules/Jana/Jobs/ApurarMetaJob.php` | ✅ |
+| ApuracaoService | `Modules/Jana/Services/ApuracaoService.php` | ✅ |
 | AlertaService + evento + notificação | `Services/AlertaService.php`, `Events/`, `Notifications/`, `Listeners/` | ✅ |
-| Pages React: Chat, Dashboard, FabCopiloto | `resources/js/Pages/Copiloto/` | ✅ |
-| Testes Pest (SQLite in-memory) | `tests/Feature/Modules/Copiloto/` — 24 passed, 1 skipped | ✅ |
+| Pages React: Chat, Dashboard, FabJana | `resources/js/Pages/Jana/` | ✅ |
+| Testes Pest (SQLite in-memory) | `tests/Feature/Modules/Jana/` — 24 passed, 1 skipped | ✅ |
 
-### ⚠️ O que ficou pendente no Copiloto
+### ⚠️ O que ficou pendente no Jana
 
 - `ApurarMetasAtivasJob` (scheduler que descobre todas as metas ativas) — não criado
 - Drivers `php` e `http` — apenas `SqlDriver` implementado
@@ -885,7 +885,7 @@ Recomendação: fechar #2 e #3 manualmente se não houver intenção de mergear 
 
 1. **Deploy em staging:** `git pull origin 6.7-bootstrap && npm run build:inertia && php artisan optimize:clear`
 2. **Smoke test financeiro:** `/financeiro/contas-bancarias` (era 500 → deve ser 200); `/financeiro/relatorios` (nova tela)
-3. **Ativar Copiloto:** configurar `OPENAI_API_KEY` e `COPILOTO_DRY_RUN=false` no `.env`
+3. **Ativar Jana:** configurar `OPENAI_API_KEY` e `COPILOTO_DRY_RUN=false` no `.env`
 4. **Criar `ApurarMetasAtivasJob`** + registrar no scheduler para apuração automática diária
 5. **Rebuild assets:** `npm run build:inertia` (assets compilados não foram mergeados — só fonte)
 
@@ -906,7 +906,7 @@ cd D:\oimpresso.com
 git pull origin main
 npm run build:inertia                # NECESSÁRIO após pull (assets não mergeados)
 php artisan optimize:clear
-./vendor/bin/pest tests/Feature/Modules/Copiloto/ --no-coverage  # 24 passed, 1 skipped
+./vendor/bin/pest tests/Feature/Modules/Jana/ --no-coverage  # 24 passed, 1 skipped
 ```
 
 ---
@@ -993,10 +993,10 @@ Session log completo: `memory/sessions/2026-04-28-meilisearch-vaultwarden.md`
 - ✅ **PR #25 mergeado** em `6.7-bootstrap` (`e1d4c9de`): Sprint 4 do roadmap canônico (ADR 0036).
   - **MemoriaContrato + MeilisearchDriver + NullMemoriaDriver** implementados
   - Tabela `copiloto_memoria_facts` com schema temporal (`valid_from/until`) + LGPD soft delete
-  - **Eloquent `CopilotoMemoriaFato`** com `Searchable` + `SoftDeletes`
+  - **Eloquent `JanaMemoriaFato`** com `Searchable` + `SoftDeletes`
   - **37/38 Pest passing** (11 testes novos cobrem multi-tenant, append-only temporal, LGPD opt-out)
 - ✅ **Pacotes Laravel IA instalados:** `laravel/horizon` + `laravel/telescope` + `laravel/pail`
-  - `Vizra ADK` ❌ adiado (exige `^11|^12`, projeto é `^13.0`); `LaravelAiSdkDriver` (PR #24) sustenta Copiloto sozinho
+  - `Vizra ADK` ❌ adiado (exige `^11|^12`, projeto é `^13.0`); `LaravelAiSdkDriver` (PR #24) sustenta Jana sozinho
   - `Reverb` ❌ adiado (conflita com `pusher 5.0` lockado; `BROADCAST_DRIVER=null` em uso real, upgrade pusher 5→7 pode fazer em PR separado)
   - `spatie/laravel-data` ❌ adiado (conflito `phpdocumentor/reflection 6.0`)
 - 🟡 **Deploy SSH em curso** (background) — verificar `composer install` + `php artisan migrate` no Hostinger
@@ -1025,7 +1025,7 @@ Session log completo: `memory/sessions/2026-04-28-meilisearch-vaultwarden.md`
 
 - ✅ **PR #24 mergeado** em `6.7-bootstrap` (`3d64e5bb`): Sprint 1 do roadmap canônico ADR 0035.
   - `composer require laravel/ai ^0.6.3 + laravel/boost ^2.4 --dev`
-  - 4 arquivos novos: `LaravelAiSdkDriver` + 3 Agents (`BriefingAgent` / `SugestoesMetasAgent` / `ChatCopilotoAgent`)
+  - 4 arquivos novos: `LaravelAiSdkDriver` + 3 Agents (`BriefingAgent` / `SugestoesMetasAgent` / `ChatJanaAgent`)
   - Stub legado `LaravelAiDriver.php` removido
   - **26/27 testes Pest passing** (1 skipped intencional)
 - ✅ **ADR 0035 — verdade canônica** declarada por Wagner ("melhor ROI"). Stack-alvo: `laravel/ai` (camada A) + Vizra ADK (camada B, sprints 2-3) + `MemoriaContrato`/Mem0/Meilisearch (camada C, sprints 4-5/8-10) + Boost (DEV).
@@ -1044,7 +1044,7 @@ Session log completo: `memory/sessions/2026-04-28-meilisearch-vaultwarden.md`
 2. **Iniciar daemon Meilisearch no Hostinger** com nohup (comando completo em [memory/sessions/2026-04-26-sprint1-stack-canonica.md](sessions/2026-04-26-sprint1-stack-canonica.md))
 3. Setar `OPENAI_API_KEY` (ou `ANTHROPIC_API_KEY`) no `.env` de produção
 4. Setar `COPILOTO_AI_DRY_RUN=false`
-5. Smoke manual em `/copiloto` — **resultado:** Copiloto sai de fixtures EM PRODUÇÃO
+5. Smoke manual em `/copiloto` — **resultado:** Jana sai de fixtures EM PRODUÇÃO
 
 📋 **Sprints 3-7** seguem ADR 0036:
 - Sprint 3: Vizra ADK + tools registry
@@ -1071,7 +1071,7 @@ Session log completo: `memory/sessions/2026-04-28-meilisearch-vaultwarden.md`
 ---
 
 **Última atualização:** 2026-05-05 noite (triagem + roadmap + auditoria MCP — 135 tasks, 17 epics, ADR 0071, **71 ADRs total**)
-**Estado geral:** 🟢 Copiloto IA real ativo prod desde 28-abr; 🟢 backlog 100% triado (0 sem owner, 0 backlog); 🟢 roadmap mapeado em 3 quarters; 🟡 5 tools MCP com auth-degradação (workarounds OK); 🟡 cache semântico COPI-40 ainda não-iniciado (handoff próxima sessão)
+**Estado geral:** 🟢 Jana IA real ativo prod desde 28-abr; 🟢 backlog 100% triado (0 sem owner, 0 backlog); 🟢 roadmap mapeado em 3 quarters; 🟡 5 tools MCP com auth-degradação (workarounds OK); 🟡 cache semântico COPI-40 ainda não-iniciado (handoff próxima sessão)
 
 ---
 
@@ -1083,8 +1083,8 @@ Session log completo: `memory/sessions/2026-04-28-meilisearch-vaultwarden.md`
 - ✅ Cert Let's Encrypt R12 emitido pra reverb/portainer/traefik/vault/meilisearch.oimpresso.com
 - ✅ OPENAI_API_KEY no Hostinger .env + SCOUT_DRIVER=meilisearch + embedder OpenAI text-embedding-3-small no índice
 - ✅ `config/ai.php` commitado (era untracked → laravel/ai caía no fallback `gpt-5.4`); log channel `copiloto-ai` adicionado
-- ✅ **Copiloto IA real respondendo Larissa em prod** (gpt-4o-mini)
-- 🟡 Gap descoberto: ChatCopilotoAgent "burrinho" — sem ContextoNegocio (ADR 0046)
+- ✅ **Jana IA real respondendo Larissa em prod** (gpt-4o-mini)
+- 🟡 Gap descoberto: ChatJanaAgent "burrinho" — sem ContextoNegocio (ADR 0046)
 - 🟡 Gap descoberto: MeilisearchDriver::buscar usa Scout default (full-text) — `memoria_recall_chars: 0` mesmo com fato indexado
 - 📝 Detalhe completo em [memory/sessions/2026-04-28-meilisearch-vaultwarden.md](sessions/2026-04-28-meilisearch-vaultwarden.md) + [memory/sessions/2026-04-28-reverb-docker-host.md](sessions/2026-04-28-reverb-docker-host.md)
 - ✅ ADRs criados: 0042 (Reverb) · 0043 (Docker+Traefik) · 0044 (Vaultwarden) · 0045 (Hostinger DNS API) · 0046 (Gap ChatAgent)
@@ -1099,7 +1099,7 @@ Wagner pediu modo solo + foco em token economy + assertividade. Time delegated �
 
 1. **ADR 0047** Wagner solo + sprint memória priorizado (`da6ce166`)
 2. **MEM-HOT-1** Hybrid embedder MeilisearchDriver (`c631042c`) — recall **0 → 190 chars** em log conversa Larissa real
-3. **MEM-HOT-2** ContextoNegocio injetado no ChatCopilotoAgent (`2be9930c`) — system prompt biz=4 ROTA LIVRE com 4 meses faturamento + 5993 clientes em **164 tokens**
+3. **MEM-HOT-2** ContextoNegocio injetado no ChatJanaAgent (`2be9930c`) — system prompt biz=4 ROTA LIVRE com 4 meses faturamento + 5993 clientes em **164 tokens**
 4. **ADRs 0048-0050 + 0036 estendida** consolidam pesquisa Wagner (ZIP `files.zip`):
    - 0048 — Vizra ADK rejeitada oficialmente (quebrou L13); **COP-015 cancelada**
    - 0049 — 6 camadas memória + gate Recall@3>0.80
@@ -1118,7 +1118,7 @@ Wagner pediu modo solo + foco em token economy + assertividade. Time delegated �
    | 2026-04-29 |           4 |   1234 |    307 |     6 |   2 | 1.000 |  0.00 |
    ```
 
-**Suite Copiloto:** 50 → **77 passed (+27 testes)**, 3 skipped, **zero regressão**.
+**Suite Jana:** 50 → **77 passed (+27 testes)**, 3 skipped, **zero regressão**.
 
 **Estratégia formalizada (ADR 0051):** 4 pilares — schema próprio + adapter sobre `Laravel\Ai\Contracts\ConversationStore` + métricas RAGAS-aligned + emissão OTel GenAI. Triggers trimestrais pra reavaliar (laravel/ai 1.0 saiu 17-mar-2026 sem eval framework nem multi-tenancy).
 
@@ -1148,7 +1148,7 @@ Larissa testou as 3 perguntas em prod (Quanto vendi? / Faturamento líquido? / Q
 
 **Aprendizado meta**: smoke técnico passou em MEM-HOT-2 (`2be9930c`) com bug semântico latente. Validação real do usuário foi o único filtro que detectou. A4 (validar Larissa) **NÃO é formalidade** — é gate de produto.
 
-**Suite Copiloto**: 79 passed (era 77, +2), 3 skipped, zero regressão.
+**Suite Jana**: 79 passed (era 77, +2), 3 skipped, zero regressão.
 **52 ADRs total.**
 
 **Última atualização:** 2026-04-29 noite — MEM-FAT-1 deployed + ADR 0052

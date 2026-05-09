@@ -16,10 +16,10 @@ MemCofre            🟡 62/100    GDrive 83       -21     em uso
 Grow                🟡 50/100    HubSpot 87      -37     legado/incerto
 LaravelAI (técnico) 🔴 14/100    Prism 76        -62     adotar lib FOSS
 Chat                ⚫ 0/100     Crisp 82        -82     perdido — integrar
-BI                  ⚫ 0/100     Looker 84       -84     descartar→Copiloto
+BI                  ⚫ 0/100     Looker 84       -84     descartar→Jana
 NfeBrasil           ⚫ 0/100     FocusNFE 83     -83     spec-ready
 RecurringBilling    ⚫ 0/100     Pagar.me 85     -85     spec-ready
-Copiloto            ⚫ 0/100     ChatGPT 50      aposta  spec-ready (diferencial)
+Jana            ⚫ 0/100     ChatGPT 50      aposta  spec-ready (diferencial)
 
 Legenda: 🟢 ≥70  🟡 30-69  🔴 1-29  ⚫ 0 (n/a)
 ```
@@ -32,14 +32,14 @@ Legenda: 🟢 ≥70  🟡 30-69  🔴 1-29  ⚫ 0 (n/a)
 |---|---|---|---|---|---|---|---|
 | 1 | **Financeiro** | 🟢 75 | Conta Azul 85 | -10 | produção (5 telas) | imitar OCR + dif. tela única | [📄](Financeiro/COMPARATIVO_CONCORRENCIA.md) |
 | 2 | **PontoWr2** | 🟡 52 | Pontomais 84 | -32 | dev avançado | imitar mobile + dif. dashboard live | [📄](PontoWr2/COMPARATIVO_CONCORRENCIA.md) |
-| 3 | **MemCofre** | 🟡 62 | GDrive 83 | -21 | em uso (basic) | bundled + integração IA Copiloto | [📄](MemCofre/COMPARATIVO_CONCORRENCIA.md) |
+| 3 | **MemCofre** | 🟡 62 | GDrive 83 | -21 | em uso (basic) | bundled + integração IA Jana | [📄](MemCofre/COMPARATIVO_CONCORRENCIA.md) |
 | 4 | **Grow** | 🟡 50 | HubSpot 87 | -37 | legado, status incerto | revisar — talvez integrar HubSpot | [📄](Grow/COMPARATIVO_CONCORRENCIA.md) |
 | 5 | **LaravelAI** | 🔴 14 | Prism PHP 76 | -62 | spec | **NÃO BUILD** — adotar Prism + wrapper | [📄](LaravelAI/COMPARATIVO_CONCORRENCIA.md) |
 | 6 | **Chat** | ⚫ 0 | Crisp 82 | -82 | perdido | **NÃO BUILD** — integrar Crisp/Jivo | [📄](Chat/COMPARATIVO_CONCORRENCIA.md) |
-| 7 | **BI** | ⚫ 0 | Looker 84 | -84 | perdido | **DESCARTAR** — investir em Copiloto | [📄](BI/COMPARATIVO_CONCORRENCIA.md) |
+| 7 | **BI** | ⚫ 0 | Looker 84 | -84 | perdido | **DESCARTAR** — investir em Jana | [📄](BI/COMPARATIVO_CONCORRENCIA.md) |
 | 8 | **NfeBrasil** | ⚫ 0 | FocusNFE 83 | -83 | spec-ready | imitar core + dif. emissão na venda | [📄](NfeBrasil/COMPARATIVO_CONCORRENCIA.md) |
 | 9 | **RecurringBilling** | ⚫ 0 | Pagar.me 85 | -85 | spec-ready | imitar cobrança + dif. integrado UPos | [📄](RecurringBilling/COMPARATIVO_CONCORRENCIA.md) |
-| 10 | **Copiloto** | ⚫ 0 | ChatGPT 50 (s/ contexto BR) | **aposta** | spec-ready | **DIFERENCIAR** — chat IA com contexto ERP | [📄](Copiloto/COMPARATIVO_CONCORRENCIA.md) |
+| 10 | **Jana** | ⚫ 0 | ChatGPT 50 (s/ contexto BR) | **aposta** | spec-ready | **DIFERENCIAR** — chat IA com contexto ERP | [📄](Jana/COMPARATIVO_CONCORRENCIA.md) |
 
 ---
 
@@ -50,15 +50,15 @@ Legenda: 🟢 ≥70  🟡 30-69  🔴 1-29  ⚫ 0 (n/a)
 - **PontoWr2** — diferenciação clara (dashboard live + bundle UPos)
 - **NfeBrasil** — diferenciação clara (emissão na tela de venda)
 - **RecurringBilling** — diferenciação clara (integrado Financeiro)
-- **Copiloto** — diferenciação ÚNICA (contexto ERP + LGPD masking BR)
-- **MemCofre** — diferenciação por bundle + alimenta Copiloto
+- **Jana** — diferenciação ÚNICA (contexto ERP + LGPD masking BR)
+- **MemCofre** — diferenciação por bundle + alimenta Jana
 
 ### ⚠ Não-build, integrar ou adotar
 - **LaravelAI** — adotar Prism PHP ou Spatie ecosystem (não reinventar)
 - **Chat** — integrar Crisp ou JivoChat via webhook (1 sprint)
 
 ### ❌ Descartar
-- **BI** standalone — Copiloto conversacional cobre o caso de uso PME
+- **BI** standalone — Jana conversacional cobre o caso de uso PME
 
 ### 🔍 Revisar prioridade
 - **Grow** — pode ser melhor integrar HubSpot Free + capturar lead no UPos. Investigar.
@@ -75,7 +75,7 @@ Legenda: 🟢 ≥70  🟡 30-69  🔴 1-29  ⚫ 0 (n/a)
 ### Módulos a entregar MVP
 - **NfeBrasil:** emissão NF-e/NFC-e + cancelar (3-4 sprints) → meta **70/100**
 - **RecurringBilling:** plano + cobrança + dunning (4-6 sprints) → meta **75/100**
-- **Copiloto:** chat + contexto + masking (3 sprints) → meta **65/100** (aposta)
+- **Jana:** chat + contexto + masking (3 sprints) → meta **65/100** (aposta)
 
 ### Módulos a integrar (não build)
 - **LaravelAI:** POC Prism + wrapper LGPD (1 sprint)
@@ -88,7 +88,7 @@ Legenda: 🟢 ≥70  🟡 30-69  🔴 1-29  ⚫ 0 (n/a)
 Todos os comparativos revelam o mesmo **moat estratégico do oimpresso**:
 
 1. **Integração POS UPos nativa** — concorrentes BR não têm
-2. **Dados unificados** entre módulos (Financeiro lê venda, Ponto lê funcionário, Copiloto lê tudo)
+2. **Dados unificados** entre módulos (Financeiro lê venda, Ponto lê funcionário, Jana lê tudo)
 3. **Sem double-entry** — diferenciador estrutural
 4. **Bundle de preço** — economia 30-50% vs comprar SaaS separados
 5. **Architecture limpa** — Strategy Pattern + ADRs documentadas (sustentável)

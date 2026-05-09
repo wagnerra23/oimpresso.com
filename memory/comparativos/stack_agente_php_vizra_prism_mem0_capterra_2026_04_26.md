@@ -1,10 +1,10 @@
 # Matriz Comparativa estilo Capterra/G2 — Stack completa de agente PHP/Laravel: Vizra ADK + Prism PHP + Mem0 + LangGraph + Letta + Zep + OMEGA (2026-04-26)
 
-> **Assunto:** stack completa pra construir Copiloto comercializável. Cobre os **3 grupos** de pacote: (A) wrapper de LLM, (B) framework de agente/orquestração, (C) memória especializada. 7 players cobrindo do PHP-nativo (Vizra/Prism) até líder benchmark (OMEGA).
+> **Assunto:** stack completa pra construir Jana comercializável. Cobre os **3 grupos** de pacote: (A) wrapper de LLM, (B) framework de agente/orquestração, (C) memória especializada. 7 players cobrindo do PHP-nativo (Vizra/Prism) até líder benchmark (OMEGA).
 > **Data:** 2026-04-26
 > **Autor:** Claude (sessão `dazzling-lichterman-e59b61`) sob direção do Wagner ("compare vizra até mem0")
 > **Concorrentes incluídos:** Prism PHP, Vizra ADK, Mem0, LangGraph+LangMem, Letta, Zep, OMEGA — **7 players**
-> **Decisão que vai sair daqui:** definir stack completa do Copiloto: qual wrapper de LLM, qual framework de agente, qual memória especializada. Resultado materializado em **ADR 0031 (MemoriaContrato + Mem0 default)** e **ADR 0032 (Vizra ADK + Prism PHP)**.
+> **Decisão que vai sair daqui:** definir stack completa do Jana: qual wrapper de LLM, qual framework de agente, qual memória especializada. Resultado materializado em **ADR 0031 (MemoriaContrato + Mem0 default)** e **ADR 0032 (Vizra ADK + Prism PHP)**.
 > **Companion docs:**
 > - [copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md](copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md) (foco em **Camada C apenas — memória**)
 > - [sistemas_memoria_oimpresso_capterra_2026_04_26.md](sistemas_memoria_oimpresso_capterra_2026_04_26.md) (Camada A — dev memory, fora deste escopo)
@@ -24,7 +24,7 @@ Frameworks de agente IA não são todos iguais — operam em camadas diferentes:
 
 **Stack típica madura:** A + B + C (3 dependências distintas, cada uma boa no que faz).
 
-**Estado do Copiloto hoje:**
+**Estado do Jana hoje:**
 - A: tenta usar `OpenAI\Laravel\Facades\OpenAI` mas pacote **NÃO está em composer.lock** → quebra fora de dry_run
 - B: lógica caseira em `ChatController` + `OpenAiDirectDriver` — sem traces, sem assertions, sem registry de tools
 - C: zero (Tier 1 de 10 — ver companion comparativo de Camada C)
@@ -35,7 +35,7 @@ Frameworks de agente IA não são todos iguais — operam em camadas diferentes:
 
 1. **PHP/Laravel ganhou em 2025-2026 dois frameworks AI fortes: Prism PHP (wrapper LLM low-level, 3+ providers, tools, structured output) e Vizra ADK (framework de agente em cima do Prism, com Eloquent sessions/messages/traces, OpenAI-compatible API e dashboard).** Ambos OSS MIT, mantidos ativamente.
 2. **Vizra ADK não compete com Mem0/Zep** — é grupo B (orquestração), enquanto Mem0/Zep são grupo C (memória especializada). Stack completa = Prism (A) + Vizra ADK (B) + Mem0 (C).
-3. **Vizra ADK ainda não tem benchmark público de memória** (LongMemEval) e a memória nativa dele é **chat history flat em Eloquent** — equivalente Tier 1 do Copiloto atual. Pra Tier 6+ continua precisando integrar Mem0/Zep externamente.
+3. **Vizra ADK ainda não tem benchmark público de memória** (LongMemEval) e a memória nativa dele é **chat history flat em Eloquent** — equivalente Tier 1 do Jana atual. Pra Tier 6+ continua precisando integrar Mem0/Zep externamente.
 4. **Prism PHP resolve o problema imediato** do `OpenAi\Laravel\Facades\OpenAI` quebrado: providers múltiplos com 1 interface, fácil trocar de OpenAI pra Claude/Gemini sem reescrever, **2-3 sprints** pra migrar driver atual.
 5. **O dilema:** ir all-in Vizra ADK (substitui ChatController+OpenAiDirectDriver+OpenAiLaravelFacade num movimento, custo médio 4-6 sprints, ganha dashboard/traces/eval) vs ficar com código caseiro + só adotar Prism+Mem0 (custo baixo 2-3 sprints, mas perde infra de dashboard/eval que vai precisar mais cedo ou mais tarde).
 
@@ -154,25 +154,25 @@ Frameworks de agente IA não são todos iguais — operam em camadas diferentes:
 
 ---
 
-## 5. Top 3 GAPS críticos (Copiloto vs stack ideal Vizra+Prism+Mem0)
+## 5. Top 3 GAPS críticos (Jana vs stack ideal Vizra+Prism+Mem0)
 
 ### GAP 1 — `OpenAi\Laravel\Facades\OpenAI` quebrado, sem fallback
 
-**O que falta:** O driver atual [OpenAiDirectDriver.php](Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php) usa `OpenAI\Laravel\Facades\OpenAI` mas o pacote **não está no `composer.lock`** — Copiloto **só roda em `dry_run`**. Mudar pra Prism PHP resolve com 1 swap (Prism é multi-provider, fluent interface).
+**O que falta:** O driver atual [OpenAiDirectDriver.php](Modules/Jana/Services/Ai/OpenAiDirectDriver.php) usa `OpenAI\Laravel\Facades\OpenAI` mas o pacote **não está no `composer.lock`** — Jana **só roda em `dry_run`**. Mudar pra Prism PHP resolve com 1 swap (Prism é multi-provider, fluent interface).
 **Esforço:** Baixo (1-2 sprints) — `composer require prism-php/prism` + reescrever `OpenAiDirectDriver` como `PrismDriver` (já que Prism abstrai OpenAI/Anthropic/Gemini/Ollama).
-**Impacto se não fechar:** Copiloto fica em fixtures pra sempre. Bloqueio direto pra US-COPI-* virar produto vendável.
+**Impacto se não fechar:** Jana fica em fixtures pra sempre. Bloqueio direto pra US-COPI-* virar produto vendável.
 
 ### GAP 2 — Sem registry de tools nem agent loop estruturado
 
-**O que falta:** O Copiloto deveria expor `getBusinessSnapshot()`, `criarMeta(...)`, `consultarApuracao(...)` como **tools** invocáveis pelo LLM. Hoje [ChatController@send](Modules/Copiloto/Http/Controllers/ChatController.php) chama `responderChat()` direto sem agent loop. Vizra ADK trata isso como first-class (registry de tools, agent loop think→act→observe, traces visuais).
+**O que falta:** O Jana deveria expor `getBusinessSnapshot()`, `criarMeta(...)`, `consultarApuracao(...)` como **tools** invocáveis pelo LLM. Hoje [ChatController@send](Modules/Jana/Http/Controllers/ChatController.php) chama `responderChat()` direto sem agent loop. Vizra ADK trata isso como first-class (registry de tools, agent loop think→act→observe, traces visuais).
 **Esforço:** Médio (3-5 sprints) — adotar Vizra ADK como base do `ChatController` + reescrever fluxo como Vizra Agent + registrar 5-10 tools iniciais. Vizra trabalha **em cima** do Prism, então Prism (GAP 1) precede.
-**Impacto se não fechar:** Cada nova capacidade do Copiloto exige código procedural feio. Não escala pra 10 tools, vira spaghetti. Sem traces, debugar é por logging.
+**Impacto se não fechar:** Cada nova capacidade do Jana exige código procedural feio. Não escala pra 10 tools, vira spaghetti. Sem traces, debugar é por logging.
 
 ### GAP 3 — Memória runtime Tier 1 (mesmo problema do comparativo Camada C)
 
 **O que falta:** já documentado em [companion comparativo](copiloto_runtime_memory_vs_mem0_langgraph_letta_zep_capterra_2026_04_26.md). Vizra ADK **não resolve** sozinho — só dá chat history flat. Pra Tier 6+, **Mem0 REST adapter** continua sendo a recomendação.
 **Esforço:** Médio (3-4 sprints, depois de GAPs 1 e 2). Mesmo ranking de US-COPI-MEM-001 a 008 do Anexo A do companion.
-**Impacto se não fechar:** Copiloto não personaliza, perde Larissa após 1 semana de uso. Inviabiliza tese de "ERP gráfico com IA" (ADR 0026).
+**Impacto se não fechar:** Jana não personaliza, perde Larissa após 1 semana de uso. Inviabiliza tese de "ERP gráfico com IA" (ADR 0026).
 
 ---
 
@@ -246,7 +246,7 @@ Pressupostos:
 **ROI de A vs B:**
 - A custa **+5 sprints** mas entrega Tier 6-7 + dashboard/traces.
 - B é minimum viable que destrava produto mas mantém GAPs 2 e 3 abertos.
-- **Decisão sugerida:** ir pra A em fases. **Sprint 1-2 = caminho B materializado** (entrega imediata: Copiloto sai de fixtures). Depois decidir A vs ficar em B baseado em feedback de Larissa.
+- **Decisão sugerida:** ir pra A em fases. **Sprint 1-2 = caminho B materializado** (entrega imediata: Jana sai de fixtures). Depois decidir A vs ficar em B baseado em feedback de Larissa.
 
 **Assunção não validada:** "Vizra ADK aguenta 100+ businesses no `vizra_sessions`" — sem benchmark real. Validar antes de sprint 4.
 
@@ -256,7 +256,7 @@ Pressupostos:
 
 ### 3 ações prioritárias pra próximos 6 meses (em ordem)
 
-1. **Materializar caminho B — Prism PHP swap (sprints 1-2).** Resolve GAP 1, destrava Copiloto pra deixar `dry_run`. **Materializado em ADR 0032.**
+1. **Materializar caminho B — Prism PHP swap (sprints 1-2).** Resolve GAP 1, destrava Jana pra deixar `dry_run`. **Materializado em ADR 0032.**
 2. **Definir interface `MemoriaContrato`** + driver `Mem0RestDriver` (sprint 3-4). Permite trocar driver de memória depois sem reescrever app. **Materializado em ADR 0031.**
 3. **Adotar Vizra ADK como camada de orquestração** (sprints 5-7). Substitui ChatController custom + ganha registry de tools + traces + eval/assertions. Decisão final do caminho A.
 
@@ -271,9 +271,9 @@ Máximo 3.
 
 ### Métrica de fé (90 dias)
 
-> *"Se em 90 dias (até 2026-07-25) Prism estiver em produção rodando o Copiloto sem `dry_run` E (idealmente) Vizra ADK estiver alimentando ChatController E Mem0 REST estiver lembrando de pelo menos 1 fato por user, **confirma caminho A**. Se Prism sozinho (caminho B) for suficiente — Larissa não perceber falta de memória —, **fica em B**. Se nada disso destravar uso real, **pivota pra D** (aceitar Tier 1 e focar comercial)."*
+> *"Se em 90 dias (até 2026-07-25) Prism estiver em produção rodando o Jana sem `dry_run` E (idealmente) Vizra ADK estiver alimentando ChatController E Mem0 REST estiver lembrando de pelo menos 1 fato por user, **confirma caminho A**. Se Prism sozinho (caminho B) for suficiente — Larissa não perceber falta de memória —, **fica em B**. Se nada disso destravar uso real, **pivota pra D** (aceitar Tier 1 e focar comercial)."*
 
-Gatilho de pivot mensurável: número de turnos de conversa do Copiloto em produção em 90d. <50 = D (Copiloto não tem demanda); 50-500 = B (suficiente); >500 = A (justifica investimento full).
+Gatilho de pivot mensurável: número de turnos de conversa do Jana em produção em 90d. <50 = D (Jana não tem demanda); 50-500 = B (suficiente); >500 = A (justifica investimento full).
 
 ---
 
@@ -303,7 +303,7 @@ Gatilho de pivot mensurável: número de turnos de conversa do Copiloto em produ
 - [memory/decisions/0026-posicionamento-erp-grafico-com-ia.md](../decisions/0026-posicionamento-erp-grafico-com-ia.md)
 - [memory/decisions/0031-memoriacontrato-mem0-default.md](../decisions/0031-memoriacontrato-mem0-default.md) (criado nesta sessão)
 - [memory/decisions/0032-vizra-adk-prism-php-orquestracao.md](../decisions/0032-vizra-adk-prism-php-orquestracao.md) (criado nesta sessão)
-- [Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php](../../Modules/Copiloto/Services/Ai/OpenAiDirectDriver.php)
+- [Modules/Jana/Services/Ai/OpenAiDirectDriver.php](../../Modules/Jana/Services/Ai/OpenAiDirectDriver.php)
 
 ---
 

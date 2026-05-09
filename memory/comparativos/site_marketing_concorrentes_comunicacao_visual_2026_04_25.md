@@ -69,7 +69,7 @@ O nicho de ERP pra gráfica/comunicação visual no Brasil é dominado por playe
 4. **Adicionar prova social numérica acima do fold**. Mesmo no início, qualquer número honesto (X transações processadas, Y NF emitidas, Z clientes ativos) é melhor que "75 businesses registered" estilo template. Modelo Calcgraf ("2 milhões de orçamentos/mês") e Omie ("R$ [redacted Tier 0]Bi") são padrão-ouro.
 
 5. **Implementar 1 distintivo barato + 1 caro**:
-   - **Barato (1 sprint):** quiz "Qual ERP é pra você?" tipo Zênite. Qualifica lead e gera engajamento. Combina com a tese do módulo Copiloto (chat IA contextual já no roadmap).
+   - **Barato (1 sprint):** quiz "Qual ERP é pra você?" tipo Zênite. Qualifica lead e gera engajamento. Combina com a tese do módulo Jana (chat IA contextual já no roadmap).
    - **Caro (próximo trimestre):** vídeo de 60s mostrando UM fluxo real (orçamento de banner → OP → entrega). Modelo Calcgraf — todos os concorrentes fortes têm vídeo ou tour.
 
 **Bônus / o que evitar:**

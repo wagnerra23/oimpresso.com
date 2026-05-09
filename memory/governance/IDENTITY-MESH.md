@@ -225,13 +225,13 @@ trust_level: L3
 parent_actor: null
 modules_write: ["Financeiro", "Notas"]
 modules_read: ["*"]
-modules_blocked: ["Connector", "Superadmin", "TeamMcp", "Copiloto", "ADS"]
+modules_blocked: ["Connector", "Superadmin", "TeamMcp", "Jana", "ADS"]
 skills_required: []
 actions_blocked: ["deploy_prod_solo", "drop_table"]
 audit_required: true
 user_id: 3
 display_name: "Eliana (financeiro + IA-pair, esposa Wagner)"
-notes: "Não mexe em Copiloto sprints LGPD (TEAM.md)"
+notes: "Não mexe em Jana sprints LGPD (TEAM.md)"
 ```
 
 ### `claude-code-wagner-laptop` (ai_agent, L2)

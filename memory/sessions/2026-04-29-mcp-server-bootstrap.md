@@ -40,7 +40,7 @@ ADR 0053 formaliza decisão. Stack Docker pronto + Dia 1 (schema 9 tabelas + 9 E
 | 16 | `273bd94e` | **MEM-MCP-1.b** stack Docker pronto (Dia 2.b) |
 | 17 | `0a55e441` | bootstrap-ct100-v2.sh sem scp manual |
 
-**Suite Copiloto:** 50 → **104 passed (+54 testes hoje)**, 3 skipped, **zero regressão**.
+**Suite Jana:** 50 → **104 passed (+54 testes hoje)**, 3 skipped, **zero regressão**.
 
 ---
 
@@ -257,20 +257,20 @@ docker/oimpresso-mcp/
     ├── bootstrap-ct100.sh    ← v1 (precisa scp)
     └── bootstrap-ct100-v2.sh ← v2 (gera SSH key dentro do CT)
 
-Modules/Copiloto/Console/Commands/
+Modules/Jana/Console/Commands/
 ├── McpSyncMemoryCommand.php
 └── McpTokenGerarCommand.php
 
-Modules/Copiloto/Http/
+Modules/Jana/Http/
 ├── Controllers/Mcp/HealthController.php
 ├── Controllers/Mcp/SyncMemoryWebhookController.php
 └── Middleware/McpAuthMiddleware.php
 
-Modules/Copiloto/Services/Mcp/
+Modules/Jana/Services/Mcp/
 └── IndexarMemoryGitParaDb.php
 
-Modules/Copiloto/Entities/Mcp/  (9 arquivos)
-Modules/Copiloto/Database/Migrations/  (9 mcp_*)
+Modules/Jana/Entities/Mcp/  (9 arquivos)
+Modules/Jana/Database/Migrations/  (9 mcp_*)
 
 memory/decisions/
 ├── 0053-mcp-server-governanca-como-produto.md  ← ADR estratégica

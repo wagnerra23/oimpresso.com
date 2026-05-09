@@ -1,14 +1,14 @@
 # Session Log — 2026-04-26 (Sessão 14)
 
-**Resumo:** Testes do Copiloto corrigidos para SQLite in-memory + 3 PRs mergeados em `6.7-bootstrap`.
+**Resumo:** Testes do Jana corrigidos para SQLite in-memory + 3 PRs mergeados em `6.7-bootstrap`.
 
 ---
 
 ## O que foi feito
 
-### Parte 1 — Testes Copiloto (retomada de sessão anterior)
+### Parte 1 — Testes Jana (retomada de sessão anterior)
 
-Contexto: o Copiloto foi implementado em sessão anterior mas os testes falhavam por depender de MySQL.
+Contexto: o Jana foi implementado em sessão anterior mas os testes falhavam por depender de MySQL.
 
 **Problema raiz:** `RefreshDatabase` executa 100+ migrations MySQL-específicas que quebram no SQLite in-memory do sandbox.
 
@@ -47,7 +47,7 @@ PRs abertos (todos draft → convertidos para ready → fechados via cherry-pick
 ## Decisões técnicas
 
 - **Assets compilados não são mergeados via git** — padrão adotado: cada PR que toca JS/TS deve ser reconstruído localmente após merge. Isso evita conflitos de hash de conteúdo entre branches divergentes.
-- **SQLite in-memory para CI** — todos os novos testes Copiloto usam `beforeEach`/`afterEach` com `Schema::create()` inline, sem `RefreshDatabase`. Padrão a seguir em novos testes do módulo.
+- **SQLite in-memory para CI** — todos os novos testes Jana usam `beforeEach`/`afterEach` com `Schema::create()` inline, sem `RefreshDatabase`. Padrão a seguir em novos testes do módulo.
 - **`App\User` (não `App\Models\User`)** — namespace correto do User model neste projeto.
 
 ---
@@ -65,10 +65,10 @@ PRs abertos (todos draft → convertidos para ready → fechados via cherry-pick
 
 ```
 phpunit.xml
-tests/Feature/Modules/Copiloto/TenancyLeakTest.php
-tests/Feature/Modules/Copiloto/ApuracaoIdempotenciaTest.php
-Modules/Copiloto/Drivers/Sql/SqlDriver.php
-Modules/Copiloto/Services/ApuracaoService.php
+tests/Feature/Modules/Jana/TenancyLeakTest.php
+tests/Feature/Modules/Jana/ApuracaoIdempotenciaTest.php
+Modules/Jana/Drivers/Sql/SqlDriver.php
+Modules/Jana/Services/ApuracaoService.php
 memory/08-handoff.md
 memory/sessions/2026-04-26-copiloto-testes-merge.md  ← este arquivo
 ```
