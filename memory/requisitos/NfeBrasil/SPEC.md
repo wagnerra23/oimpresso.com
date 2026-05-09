@@ -708,3 +708,45 @@ Smoke real em ambiente homologação SEFAZ-SP usando cert + CNPJ Gold. Análogo 
 
 **Refs:** ADR 0116 · runbook biz=1 SEFAZ-SC análogo (auto-mem `runbook_smoke_sefaz_biz1.md`)
 
+### US-NFE-054 · Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03)
+
+> owner: wagner · priority: p1 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª NFC-e real cstat 100"). Pipeline US-NFE-002 server-side já fechado em main; biz=1 (WR2 Sistemas, Tubarão/SC) já está armada — confirmado via SSH 2026-05-09:
+
+**Estado pré-validado (não tocar):**
+- `business.cnpj`=36.613.150/0001-18, `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0
+- `nfe_certificados.ativo`=1, `valido_ate`=2026-08-06
+- `nfe_business_configs`: `regime`=simples, `cfop`=5102, `csosn`=102, `auto_emission_enabled`=1
+- `.env` Hostinger: `NFEBRASIL_AUTO_EMISSION_NFCE=true`
+- ⚠️ `nfe_certificados.cnpj_titular` vazio mas NÃO bloqueante (NfeService:601/693 lê do `business->cnpj`)
+
+**Passos (Wagner faz):**
+1. Login `oimpresso.com` em **biz=1 (WR2 Sistemas)** — NÃO ROTA LIVRE biz=4
+2. `/sells/create` (POS) → 1 produto qualquer R$ [redacted Tier 0]
+3. Cliente: "Consumidor final" (sem CPF, NFC-e B2C aceita anônimo)
+4. Pagamento: dinheiro
+5. Finalizar (status=final, payment_status=paid)
+6. Anotar `transaction_id` (recibo ou listagem `/sells`)
+7. Passar `transaction_id` pro Claude OU navegar `/nfe-brasil/transactions/{tx}/status` (Page Inertia polla 2s × 30)
+
+**DoD:**
+- [ ] 1 row em `nfe_emissoes WHERE business_id=1 AND modelo=65` com:
+  - `cstat=100` ("Autorizado o uso da NF-e")
+  - `status='autorizada'`
+  - `chave_44` preenchida (44 dígitos)
+  - `numero=1` (primeira da série)
+- [ ] `business.ultimo_numero_nfce` virou 1
+- [ ] XML autorizado em `storage/app/nfe-brasil/1/notas/{serie}-1.xml`
+- [ ] DANFE PDF em `storage/app/nfe-brasil/1/danfe/{chave_44}.pdf`
+- [ ] Sem erros em `storage/logs/laravel.log` (filtrar `NFC-e` ou `NfeService`)
+- [ ] Goal #1 CYCLE-03 marcado como atingido via `cycle-goals-track`
+
+**Rollback se der ruim:** `sed -i "s/NFEBRASIL_AUTO_EMISSION_NFCE=true/=false/" .env` + `php artisan config:clear`. NFC-e cstat 100 emitida NUNCA deletar (fiscal append-only).
+
+**Refs:**
+- Runbook: [memory/requisitos/NfeBrasil/RUNBOOK-smoke-sefaz-biz1.md](../RUNBOOK-smoke-sefaz-biz1.md)
+- ADR 0101 (biz=1 nunca cliente)
+- Auto-mem: `project_nfebrasil_estado_2026_05_07.md`
+
