@@ -10,7 +10,7 @@ Wagner mandou ZIP `files.zip` com 6 ADRs (001-006) + README cobrindo o módulo I
 | 002 — 6 camadas memória | **0049** | Conceito + gate Recall@3>0.80 antes de evoluir camada |
 | 003 — MySQL+Meilisearch (sem pgvector/Mem0) | **0036 estendida** | Benchmark BM25+vetor=95.2% LongMemEval (supera Mem0 93.4%, Zep 71.2%) + 5 triggers concretos |
 | 004 — 8 métricas + memory_metrics | **0050** | 100% — tabela + comando `copiloto:metrics:apurar` + 5 tasks MEM-MET-1..5 |
-| 005 — Assistente WR2 (3 camadas) | NÃO importado | Produto separado (WhatsApp+browser); fora do escopo Copiloto oimpresso |
+| 005 — Assistente WR2 (3 camadas) | NÃO importado | Produto separado (WhatsApp+browser); fora do escopo Jana oimpresso |
 | 006 — MCP server (em aberto) | Backlog P3 | Decisão Wagner sobre WR2; `laravel/mcp` é caminho potencial futuro |
 
 ## 8 métricas obrigatórias (ADR 0050)
@@ -23,6 +23,6 @@ Latência p99>200ms sustentado · vol>50M vetores · curadoria de prompt >1d/sem
 
 ## O que NÃO importei e por quê
 
-- **ADR-005 Wagner** — específico WR2 (chat WhatsApp+Playwright+computer use). Copiloto oimpresso é chat interno do ERP — escopo diferente.
-- **ADR-006 Wagner** — MCP server depende de decisão dele para o WR2. Pra oimpresso vira P3 futuro (Copiloto expor tools p/ Claude Desktop).
+- **ADR-005 Wagner** — específico WR2 (chat WhatsApp+Playwright+computer use). Jana oimpresso é chat interno do ERP — escopo diferente.
+- **ADR-006 Wagner** — MCP server depende de decisão dele para o WR2. Pra oimpresso vira P3 futuro (Jana expor tools p/ Claude Desktop).
 - **manual-copiloto.md** — plano migração AppShell→Cockpit. Já contemplado em UI-001 do TASKS.md (Cycle 02+).

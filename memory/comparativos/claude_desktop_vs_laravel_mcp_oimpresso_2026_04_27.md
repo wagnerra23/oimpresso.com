@@ -4,8 +4,8 @@
 > **Data:** 2026-04-27
 > **Autor:** Claude (sessão `dazzling-lichterman-e59b61`) sob direção do Wagner — *"tem plugins, extensões, configurações... compare com o claude desktop"*
 > **Concorrentes incluídos:** 7 MCP servers populares (GitHub, Brave Search, Slack, Postgres, Filesystem, Linear, Notion) + nossa stack Laravel MCP nativa
-> **Decisão que vai sair daqui:** se vale a pena expor o Copiloto/oimpresso como MCP server pro Claude Desktop OU se priorizamos Sprint 7 (RAGAS) primeiro
-> **Companion docs:** [ENTERPRISE.md](../requisitos/Copiloto/ENTERPRISE.md) · [revisao_caminho_2026_04_27_capterra.md](revisao_caminho_2026_04_27_capterra.md)
+> **Decisão que vai sair daqui:** se vale a pena expor o Jana/oimpresso como MCP server pro Claude Desktop OU se priorizamos Sprint 7 (RAGAS) primeiro
+> **Companion docs:** [ENTERPRISE.md](../requisitos/Jana/ENTERPRISE.md) · [revisao_caminho_2026_04_27_capterra.md](revisao_caminho_2026_04_27_capterra.md)
 > **Template usado:** [_TEMPLATE_capterra_oimpresso.md](_TEMPLATE_capterra_oimpresso.md) v1.0
 
 ---
@@ -13,7 +13,7 @@
 ## 1. TL;DR (5 frases)
 
 1. **Claude Desktop tem 50+ MCP servers da comunidade em 2026** + diretório oficial via Settings > Extensions com instalação 1-click via formato `.mcpb` (sucessor do `.dxt`).
-2. **`laravel/mcp` JÁ está instalado** no oimpresso (composer.lock confirma) — falta só configurar Tools/Resources/Prompts pra Copiloto virar 1 desses 50 servers.
+2. **`laravel/mcp` JÁ está instalado** no oimpresso (composer.lock confirma) — falta só configurar Tools/Resources/Prompts pra Jana virar 1 desses 50 servers.
 3. **Oportunidade comercial real:** *"Controle seu ERP de gráfica pelo Claude Desktop"* — diferencial competitivo zero entre Mubisys/Zênite/Calcgraf etc; **nenhum** vertical brasileiro é MCP-native.
 4. **Custo de implementação baixo (~1 sprint)** — `Mcp::tool()` fluent API + Artisan command que registra; reusa `MemoriaContrato` + Eloquent existentes.
 5. **O dilema:** investir 1 sprint num MCP server agora ganha **apresentação de produto matadora** (Wagner abre Claude Desktop em call e o cliente "vê o ERP conversando") OU continua sequência ADR 0037 (RAGAS gate) primeiro.
@@ -94,8 +94,8 @@ Players selecionados de [50+ Best MCP Servers for Claude Code 2026](https://clau
 | Feature | Built-in cobertura | oimpresso pode oferecer |
 |---|---|---|
 | `gerar_orcamento_grafico` (cálculo m² + acabamento) | ❌ | ✅ killer feature vertical |
-| `consultar_meta_business` (snapshot Copiloto) | ❌ | ✅ via Meilisearch + ContextSnapshotService |
-| `criar_meta_negocio` (sugerir metas via Copiloto) | ❌ | ✅ via SugestoesMetasAgent existente |
+| `consultar_meta_business` (snapshot Jana) | ❌ | ✅ via Meilisearch + ContextSnapshotService |
+| `criar_meta_negocio` (sugerir metas via Jana) | ❌ | ✅ via SugestoesMetasAgent existente |
 | `lembrar_fato_user` (escrever em MemoriaContrato) | ❌ | ✅ via MemoriaContrato.lembrar |
 | `buscar_fatos_user` (recall semântico LGPD-compliant) | ❌ | ✅ via MemoriaContrato.buscar |
 | `listar_clientes_inativos` (CRM) | ❌ | ✅ via Eloquent + scopes |
@@ -151,7 +151,7 @@ Players selecionados de [50+ Best MCP Servers for Claude Code 2026](https://clau
 **Como capitalizar:** Wagner faz video curto demonstrando: "*Claude, gere um orçamento de banner 3x2m em lona front-light com ilhós nos cantos*" → Claude chama `gerar_orcamento_grafico` MCP do oimpresso → retorna PDF formatado. **Vai pra LinkedIn / IG** = lead magnet vertical.
 **Risco:** outro vertical (Mubisys?) percebe e replica em 6m. Janela de vantagem ~9-12m.
 
-### V2 — `laravel/mcp` JÁ instalado + `MemoriaContrato` + Copiloto pronto
+### V2 — `laravel/mcp` JÁ instalado + `MemoriaContrato` + Jana pronto
 
 **Por que é vantagem:** stack 70% completa. Sprint 4-6 (PRs #25/26/27) já entregaram `MemoriaContrato`/`MeilisearchDriver`/`LaravelAiSdkDriver` — Tools MCP só envolvem "wrapper fluent" sobre essas peças.
 **Como capitalizar:** sprint 7 alternativo: ao invés de RAGAS direto, fazer **MCP server primeiro** pra validar valor com Larissa antes de gastar em eval interna.
@@ -239,7 +239,7 @@ MCP_ENABLED=true
 MCP_TOKEN=<gerar via php artisan tinker: bin2hex(random_bytes(32))>
 ```
 
-### Passo 2 — Criar Tool em `Modules/Copiloto/Mcp/Tools/SnapshotBusinessTool.php`
+### Passo 2 — Criar Tool em `Modules/Jana/Mcp/Tools/SnapshotBusinessTool.php`
 
 ```php
 namespace Modules\Jana\Mcp\Tools;
@@ -334,7 +334,7 @@ Mcp::tool('buscar_fato', BuscarFatoTool::class);
 ### Internas
 - [_TEMPLATE_capterra_oimpresso.md](_TEMPLATE_capterra_oimpresso.md) v1.0
 - [revisao_caminho_2026_04_27_capterra.md](revisao_caminho_2026_04_27_capterra.md)
-- [memory/requisitos/Jana/ENTERPRISE.md](../requisitos/Copiloto/ENTERPRISE.md)
+- [memory/requisitos/Jana/ENTERPRISE.md](../requisitos/Jana/ENTERPRISE.md)
 - ADRs 0026 (posicionamento), 0034 (Laravel AI ecosystem inclui MCP), 0035 (verdade canônica)
 
 ---

@@ -5,7 +5,7 @@
 ## Decisão
 
 - ADR [0023-inertia-v3-upgrade](../decisions/0023-inertia-v3-upgrade.md) — **Aceita**.
-- Upgrade **faseado**: aplicar breakings em todas as páginas, adotar APIs novas (`useHttp`, optimistic, `useLayoutProps`) **só em código novo** (Copiloto, Chat IA, Grow).
+- Upgrade **faseado**: aplicar breakings em todas as páginas, adotar APIs novas (`useHttp`, optimistic, `useLayoutProps`) **só em código novo** (Jana, Chat IA, Grow).
 - **Não** adotar Vite plugin oficial do Inertia agora (temos `vite.inertia.config.mjs` custom).
 
 ## Pré-flight já confirmado (2026-04-24)

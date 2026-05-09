@@ -10,7 +10,7 @@ at vendor/spatie/laravel-backup/src/Exceptions/InvalidConfig.php:11
 chamado de vendor/spatie/laravel-backup/src/Config/NotificationMailConfig.php:27
 ```
 
-Descoberto enquanto rodava smoke local do Copiloto (worktree `claude/eager-lichterman-683ca0`),
+Descoberto enquanto rodava smoke local do Jana (worktree `claude/eager-lichterman-683ca0`),
 ao tentar `php artisan config:clear` após editar `.env` local pra fix de `OPENAI_API_KEY`.
 
 Versão real do pacote: `spatie/laravel-backup ^10.0` (não `^9` como sugerido inicialmente — mas validação fail-fast é a mesma).

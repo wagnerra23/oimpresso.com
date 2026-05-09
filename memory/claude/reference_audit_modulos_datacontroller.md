@@ -1,17 +1,17 @@
 ---
 name: Audit DataController/Install em todos os 32 módulos (2026-04-26)
-description: 9 módulos críticos sem DataController + 8 sem user_permissions descobertos quando Copiloto não aparecia no menu; tabela completa de status por módulo
+description: 9 módulos críticos sem DataController + 8 sem user_permissions descobertos quando Jana não aparecia no menu; tabela completa de status por módulo
 type: reference
 originSessionId: 866e50c8-744a-42e4-8e79-7470bb472801
 ---
-Auditoria completa em 2026-04-26 quando Wagner reportou que Copiloto não aparecia no menu pós-install. Achado: o problema era arquitetural — vários módulos têm InstallController (ADR 0023) mas **não têm DataController**, então invisíveis pra UltimatePOS core (middleware `AdminSidebarMenu` que invoca `Modules\<Nome>\Http\Controllers\DataController@modifyAdminMenu`).
+Auditoria completa em 2026-04-26 quando Wagner reportou que Jana não aparecia no menu pós-install. Achado: o problema era arquitetural — vários módulos têm InstallController (ADR 0023) mas **não têm DataController**, então invisíveis pra UltimatePOS core (middleware `AdminSidebarMenu` que invoca `Modules\<Nome>\Http\Controllers\DataController@modifyAdminMenu`).
 
 ## Estado por módulo (2026-04-26 13:00 BRT)
 
 **✅ OK (15 módulos — DataController + user_permissions + modifyAdminMenu)**:
 Accounting · AiAssistance · AssetManagement · Crm · Essentials · Financeiro · Grow · Manufacturing · MemCofre · PontoWr2 · Project · Repair · Spreadsheet · Superadmin · Woocommerce
 
-**🔴 Críticos sem DataController (9 módulos)**: Copiloto · Boleto · Dashboard · Fiscal · IProduction · LaravelAI · NfeBrasil · RecurringBilling · Writebot
+**🔴 Críticos sem DataController (9 módulos)**: Jana · Boleto · Dashboard · Fiscal · IProduction · LaravelAI · NfeBrasil · RecurringBilling · Writebot
 
 **🟡 Parciais sem user_permissions (8 módulos — têm menu mas Spatie não filtra)**: BI · Chat · Cms · Connector · Help · Jana · Officeimpresso · ProductCatalogue
 

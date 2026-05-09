@@ -1,4 +1,4 @@
-# Copiloto — Enterprise Architecture & Operations Overview
+# Jana — Enterprise Architecture & Operations Overview
 
 > **Audiência:** decisor técnico (CIO/CTO/Arquiteto), comprador de ERP enterprise, auditor de compliance (LGPD/ISO 27001), próximo Wagner numa empresa que herde o projeto.
 > **Versão:** 1.0 — 2026-04-27
@@ -10,7 +10,7 @@
 
 ## 1. Executive summary (60 segundos)
 
-O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePOS v6.7 fork). Permite que gestores de PMEs brasileiras (target: gráficas e empresas de comunicação visual) **conversem com seu ERP em português**, recebam sugestões de metas baseadas em dados reais, e tenham um sistema que **aprende e lembra** de cada cliente entre sessões.
+O **Jana** é o assistente de IA conversacional do oimpresso.com (UltimatePOS v6.7 fork). Permite que gestores de PMEs brasileiras (target: gráficas e empresas de comunicação visual) **conversem com seu ERP em português**, recebam sugestões de metas baseadas em dados reais, e tenham um sistema que **aprende e lembra** de cada cliente entre sessões.
 
 **Diferenciais competitivos vs concorrentes verticais brasileiros (Mubisys, Zênite, Calcgraf, Calcme, Visua):**
 - ✅ Único com chat IA-first integrado ao schema do ERP (sem ETL)
@@ -95,7 +95,7 @@ O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePO
 2. Persiste Mensagem(role=user) (~3ms)
 3. LaravelAiSdkDriver::responderChat:
    3a. recallMemoria() → MemoriaContrato.buscar(top-K=5) → Scout/Meilisearch (~50-200ms)
-   3b. ChatCopilotoAgent.prompt() → laravel/ai → OpenAI/Anthropic API (~1-4s)
+   3b. ChatJanaAgent.prompt() → laravel/ai → OpenAI/Anthropic API (~1-4s)
    3c. Persiste Mensagem(role=assistant) com tokens_in/out (~3ms)
    3d. ExtrairFatosDaConversaJob.dispatch() → queue copiloto-memoria (~5ms, async)
 4. Resposta retorna pra UI (~10ms)
@@ -164,7 +164,7 @@ O **Copiloto** é o assistente de IA conversacional do oimpresso.com (UltimatePO
 1. Cliente assina Tier 1A (R$ [redacted Tier 0]-599/mês — ADR 0026)
 2. Wagner roda `php artisan copiloto:seed-memory --business=N --user=email`
 3. Importa fatos da auto-memória do agente (`cliente_*.md`) → MeilisearchDriver
-4. Larissa abre /copiloto pela 1ª vez — Copiloto já chega "sabendo" do business
+4. Larissa abre /copiloto pela 1ª vez — Jana já chega "sabendo" do business
 ```
 
 **Status:** comando ainda não implementado. Tracked como US-COPI-MEM-011 (sprint futuro).

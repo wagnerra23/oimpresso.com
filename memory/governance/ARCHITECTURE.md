@@ -50,7 +50,7 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 
   KERNEL L0          GOVERNANCE L1         PRODUCT L2        VERTICAL L3
   ─────────────      ─────────────         ─────────────     ─────────────
-  Connector          ADS (decisions)        Jana ←Copiloto    Financeiro
+  Connector          ADS (decisions)        Jana ←Jana    Financeiro
   Superadmin         TeamMcp                Notas ←Essentials NfeBrasil
   schema raiz        Governance(NEW)        KB                NFSe
                      SRS ←MemCofre          Project ←ProjMgmt RecurringBilling
@@ -70,16 +70,16 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 
 | Módulo | Estado | Categoria | Trust-alvo | Decisão |
 |---|---|---|---|---|
-| **Copiloto** | active=1, 16 controllers, drift | IA | L2 PRODUCT | **Renomear → `Jana`** |
+| **Jana** | active=1, 16 controllers, drift | IA | L2 PRODUCT | **Renomear → `Jana`** |
 | **Essentials** | active=1, 19 controllers, herdado UltimatePOS HRM | UltimatePOS | L3 VERTICAL | **Manter Essentials L3** + criar **`Notas` (novo, L2)** com extração gradual |
 | **PontoWr2** | active=1, 12 controllers, ponto eletrônico | Vertical BR | L3 VERTICAL | **Renomear → `Ponto`** |
 | **ProjectMgmt** | active=1, 8 controllers Jira-style | Governance | L2 PRODUCT | **Renomear → `Project`** (após delete legado) |
 | **Project** | active=1, 9 controllers, UltimatePOS legado | UltimatePOS | — | **Extrair info útil → DELETE** |
 | **MemCofre** | active=1, 8 controllers, evidências | Governance | L1 GOVERNANCE | **Repurpose → `SRS` (System Rules Spec)** |
 | **Writebot** | active=1, 2 controllers (boilerplate) | IA | — | **DELETE (vazio)** |
-| **ADS** | active=0, 19 controllers | IA | L1 GOVERNANCE | Mantém. Receber drift de Copiloto |
-| **KB** | active=1, 3 controllers (boilerplate) | Knowledge | L2 PRODUCT | Mantém. Receber MemoriaController + FontesController do Copiloto |
-| **TeamMcp** | active=1, 5 controllers | Governance | L1 GOVERNANCE | Mantém. Receber tokens/scopes/audit/webhook do Copiloto + ProjectsController do ADS |
+| **ADS** | active=0, 19 controllers | IA | L1 GOVERNANCE | Mantém. Receber drift de Jana |
+| **KB** | active=1, 3 controllers (boilerplate) | Knowledge | L2 PRODUCT | Mantém. Receber MemoriaController + FontesController do Jana |
+| **TeamMcp** | active=1, 5 controllers | Governance | L1 GOVERNANCE | Mantém. Receber tokens/scopes/audit/webhook do Jana + ProjectsController do ADS |
 | **Connector** | active=1, 30 controllers, POS APIs | UltimatePOS | L0 KERNEL | Mantém — só Wagner toca |
 | **Superadmin** | active=1, 14 controllers | UltimatePOS | L0 KERNEL | Mantém — só Wagner toca |
 | **Crm** | active=1, 21 controllers | UltimatePOS | L3 VERTICAL | Mantém |
@@ -100,7 +100,7 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 | **Spreadsheet** | active=1, 3 controllers | UltimatePOS | L4 CONTENT | Mantém — uso interno |
 | **Woocommerce** | active=1, 4 controllers | Integration | L3 VERTICAL | Mantém |
 | **ConsultaOs** | active=0, 3 controllers, portal público | Public | L4 CONTENT | Ativar quando pronto |
-| **Jana (NEW)** | a criar via rename de Copiloto | IA | L2 PRODUCT | Fase 3 |
+| **Jana (NEW)** | a criar via rename de Jana | IA | L2 PRODUCT | Fase 3 |
 | **Notas (NEW)** | a criar | Personal | L2 PRODUCT | Fase 3 — extração gradual de Essentials |
 | **Governance (NEW)** | a criar | Governance | L1 GOVERNANCE | Fase 5 — ActionGate + UI |
 
@@ -112,7 +112,7 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 
 | De | Pra | Tipo | Por quê | Cuidados |
 |---|---|---|---|---|
-| `Modules/Copiloto` | `Modules/Jana` | rename | Nome canônico da IA do business | namespace, URLs `/copiloto/*`→`/jana/*` (com 301 redirects), permissões `copiloto.*`→`jana.*`, tabelas `copiloto_*` mantém prefixo legacy ou rename via migration cuidadosa |
+| `Modules/Jana` | `Modules/Jana` | rename | Nome canônico da IA do business | namespace, URLs `/copiloto/*`→`/jana/*` (com 301 redirects), permissões `copiloto.*`→`jana.*`, tabelas `copiloto_*` mantém prefixo legacy ou rename via migration cuidadosa |
 | `Modules/Essentials` (parte) | `Modules/Notas` (novo) | extração | Notas pessoais + arquivo cliente + KB pessoal **fora** do HRM herdado | Essentials L3 mantém código UltimatePOS HRM; Notas L2 absorve gradualmente: Notes, Personal Tasks, Cliente Archive |
 | `Modules/PontoWr2` | `Modules/Ponto` | rename | Tirar `WR2` (cliente externo) do nome do módulo | rename + URLs + namespace + tabelas `ponto_*` mantém prefixo |
 | `Modules/ProjectMgmt` | `Modules/Project` | rename | Único `Project` (após delete legado) | DEPENDE: extrair Project legado primeiro |
@@ -172,7 +172,7 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 
 | Módulo | Por quê |
 |---|---|
-| `Modules/Jana (ex-Copiloto)` | Chat IA do business — feature visível, dev frequente |
+| `Modules/Jana (ex-Jana)` | Chat IA do business — feature visível, dev frequente |
 | `Modules/Notas (NEW)` | Notas/tarefas/arquivo pessoal Wagner — alta freq de mudança |
 | `Modules/KB` | Knowledge browser — leitura ampla, edit moderada |
 | `Modules/Project (ex-ProjectMgmt)` | Tasks/cycles Jira-style — operacional do time |
@@ -206,7 +206,7 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 3. **Trust level antes de feature.** Decidir trust_required antes de codar evita reescrever permissões depois.
 4. **Renomear preservando 301 redirects.** Bookmarks de cliente + integrações não podem quebrar.
 5. **DELETE de módulo legado é cerimônia.** Audit dados, extrair, marcar tabelas `_archived_`, deletar código.
-6. **Rename de tabela DB é última opção.** Prefixos legacy (`copiloto_*` mantém após Copiloto→Jana) custam memória, mas zero risk.
+6. **Rename de tabela DB é última opção.** Prefixos legacy (`copiloto_*` mantém após Jana→Jana) custam memória, mas zero risk.
 7. **Active flag em module.json não é trust level.** Active=0 = não monta routes; trust = quem pode editar código. São ortogonais.
 
 ---
@@ -217,11 +217,11 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 |---|---|---|---|
 | **3.1** | DELETE Writebot | 30min | nenhum |
 | **3.2** | TRUST-TIERS.md (operacional, este sprint) | 1h | nenhum |
-| **3.3** | SCOPE.md em 6 críticos: Jana(Copiloto), ADS, KB, SRS(MemCofre), TeamMcp, Project(ProjMgmt) | 4h | nenhum (faz com nomes atuais; rename na 3.7) |
+| **3.3** | SCOPE.md em 6 críticos: Jana(Jana), ADS, KB, SRS(MemCofre), TeamMcp, Project(ProjMgmt) | 4h | nenhum (faz com nomes atuais; rename na 3.7) |
 | **3.4** | SCOPE.md no resto (24 módulos) | 8h | delegável a outros agentes/devs |
 | **3.5** | mcp_modules table + tool MCP `modules-fetch` | 2h | depende 3.3 |
 | **3.6** | Pre-commit hook drift detection (warn-only) | 1h | depende 3.5 |
-| **3.7** | Renames: Copiloto→Jana, PontoWr2→Ponto, MemCofre→SRS | 6h | depende 3.3 (SCOPE.md já escrito) |
+| **3.7** | Renames: Jana→Jana, PontoWr2→Ponto, MemCofre→SRS | 6h | depende 3.3 (SCOPE.md já escrito) |
 | **3.8** | Project legado: audit dados + extrair + DELETE | 4h | bloqueia 3.9 |
 | **3.9** | Rename: ProjectMgmt → Project | 1h | depende 3.8 |
 | **3.10** | Notas (NEW): scaffold módulo + extração gradual de Essentials | 6h | depende 3.7 (Jana feita pra reuso de pattern) |
