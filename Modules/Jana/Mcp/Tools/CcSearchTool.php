@@ -83,7 +83,7 @@ class CcSearchTool extends Tool
             ->leftJoin('users as u', 'u.id', '=', 'm.user_id');
 
         // RBAC: copiloto.cc.read.all → cross-dev; senão só próprias
-        $canReadAll = method_exists($user, 'can') && $user->can('copiloto.cc.read.all');
+        $canReadAll = method_exists($user, 'can') && $user->can('jana.cc.read.all');
         if (! $canReadAll) {
             $base->where('m.user_id', $user->id);
         }

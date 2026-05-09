@@ -117,8 +117,8 @@ class DataController extends Controller
 
         // Superadmin sempre vê; usuário comum precisa ao menos de copiloto.access.
         $usuario_pode_ver = auth()->user()->can('superadmin')
-            || auth()->user()->can('copiloto.access')
-            || auth()->user()->can('copiloto.chat');
+            || auth()->user()->can('jana.access')
+            || auth()->user()->can('jana.chat');
 
         if (! $usuario_pode_ver) {
             return;
@@ -134,9 +134,9 @@ class DataController extends Controller
                     __('copiloto::copiloto.module_label'),
                     function ($sub) {
                         // Conversar — entry-point do módulo (chat IA)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.chat')) {
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.chat')) {
                             $sub->url(
-                                route('copiloto.chat.index'),
+                                route('jana.chat.index'),
                                 __('copiloto::copiloto.menu.conversar'),
                                 [
                                     'icon'   => 'fa fas fa-comments',
@@ -148,7 +148,7 @@ class DataController extends Controller
 
                         // Dashboard
                         $sub->url(
-                            route('copiloto.dashboard.index'),
+                            route('jana.dashboard.index'),
                             __('copiloto::copiloto.menu.dashboard'),
                             [
                                 'icon'   => 'fa fas fa-tachometer-alt',
@@ -157,9 +157,9 @@ class DataController extends Controller
                         );
 
                         // Metas
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.metas.manage')) {
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.metas.manage')) {
                             $sub->url(
-                                route('copiloto.metas.index'),
+                                route('jana.metas.index'),
                                 __('copiloto::copiloto.menu.metas'),
                                 [
                                     'icon'   => 'fa fas fa-bullseye',
@@ -170,7 +170,7 @@ class DataController extends Controller
 
                         // Alertas
                         $sub->url(
-                            route('copiloto.alertas.index'),
+                            route('jana.alertas.index'),
                             __('copiloto::copiloto.menu.alertas'),
                             [
                                 'icon'   => 'fa fas fa-bell',
@@ -179,9 +179,9 @@ class DataController extends Controller
                         );
 
                         // Custos de IA (admin do business — US-COPI-070)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.admin.custos.view')) {
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.admin.custos.view')) {
                             $sub->url(
-                                route('copiloto.admin.custos.index'),
+                                route('jana.admin.custos.index'),
                                 __('copiloto::copiloto.menu.custos'),
                                 [
                                     'icon'   => 'fa fas fa-coins',
@@ -192,9 +192,9 @@ class DataController extends Controller
                         }
 
                         // Plataforma (superadmin-only)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.superadmin')) {
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.superadmin')) {
                             $sub->url(
-                                route('copiloto.superadmin.metas'),
+                                route('jana.superadmin.metas'),
                                 __('copiloto::copiloto.menu.plataforma'),
                                 [
                                     'icon'   => 'fa fas fa-building',

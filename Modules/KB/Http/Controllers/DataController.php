@@ -89,7 +89,7 @@ class DataController extends Controller
 
         // Visibilidade: superadmin OU permission Spatie atual `copiloto.mcp.memory.manage`.
         $usuario_pode_ver = auth()->user()->can('superadmin')
-            || auth()->user()->can('copiloto.mcp.memory.manage');
+            || auth()->user()->can('jana.mcp.memory.manage');
 
         if (! $usuario_pode_ver) {
             return;

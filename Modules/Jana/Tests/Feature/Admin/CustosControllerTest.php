@@ -114,7 +114,7 @@ it('calcula R$ corretamente a partir de tokens × pricing × câmbio', function 
 it('responde 403 para usuário sem a permissão copiloto.admin.custos.view', function () {
     [, $user] = copiCustosBootstrapBusinessUser();
 
-    if ($user->can('superadmin') || $user->can('copiloto.admin.custos.view')) {
+    if ($user->can('superadmin') || $user->can('jana.admin.custos.view')) {
         // garante user "comum" pra esse caso
         copiCustosRevokeAdminPerm($user);
     }

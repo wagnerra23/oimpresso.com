@@ -5,7 +5,7 @@
 <section class="content">
     <div class="box"><div class="box-body">
         <div class="alert alert-warning">STUB spec-ready — ver SPEC US-COPI-060.</div>
-        <a href="{{ route('copiloto.alertas.config') }}" class="btn btn-default">Configurar</a>
+        <a href="{{ route('jana.alertas.config') }}" class="btn btn-default">Configurar</a>
     </div></div>
 </section>
 @stop

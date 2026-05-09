@@ -34,6 +34,6 @@ class FontesController extends Controller
 
         MetaFonte::updateOrCreate(['meta_id' => $metaId], $data);
 
-        return redirect()->route('copiloto.metas.show', $metaId);
+        return redirect()->route('jana.metas.show', $metaId);
     }
 }

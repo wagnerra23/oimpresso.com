@@ -14,7 +14,7 @@ class SuperadminController extends Controller
 {
     public function metas()
     {
-        abort_unless(auth()->user()?->can('copiloto.superadmin'), 403);
+        abort_unless(auth()->user()?->can('jana.superadmin'), 403);
 
         $metasPlataforma = Meta::withoutGlobalScope(ScopeByBusiness::class)
             ->whereNull('business_id')
