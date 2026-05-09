@@ -34,8 +34,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?string $zapi_instance_token
  * @property ?string $zapi_client_token
  * @property ?string $baileys_instance_id
- * @property ?string $baileys_daemon_url
- * @property ?string $baileys_api_key
+ * @property ?string $baileys_phone_e164
+ * @property ?string $baileys_verified_name
+ * @property ?string $baileys_profile_pic_url
  * @property ?\Carbon\CarbonImmutable $lgpd_acknowledged_at
  * @property ?int $lgpd_acknowledged_by_user_id
  * @property bool $bot_enabled
@@ -61,7 +62,7 @@ class WhatsappBusinessConfig extends Model
         'meta_app_secret' => 'encrypted',
         'zapi_instance_token' => 'encrypted',
         'zapi_client_token' => 'encrypted',
-        'baileys_api_key' => 'encrypted',
+        // baileys_api_key removido em US-WA-022 — passou pra config global.
         'lgpd_acknowledged_at' => 'immutable_datetime',
         'last_health_check_at' => 'immutable_datetime',
         'bot_enabled' => 'boolean',
@@ -98,6 +99,34 @@ class WhatsappBusinessConfig extends Model
         return ! empty($this->meta_phone_number_id)
             && ! empty($this->meta_access_token)
             && ! empty($this->meta_app_secret);
+    }
+
+    /**
+     * Baileys está cadastrado? (US-WA-022 — somente phone E.164 cadastrado pelo tenant).
+     *
+     * Daemon URL + API key vêm de config global (server secrets);
+     * `baileys_instance_id` é auto-gerado pelo backend ao salvar.
+     */
+    public function hasBaileysConfigured(): bool
+    {
+        return ! empty($this->baileys_phone_e164)
+            && ! empty($this->baileys_instance_id);
+    }
+
+    /**
+     * Gera instance_id determinístico pra este business.
+     * Formato: "biz{business_id}-{random6}". Idempotent — se já existe,
+     * preserva o valor atual.
+     */
+    public function ensureBaileysInstanceId(): string
+    {
+        if (! empty($this->baileys_instance_id)) {
+            return $this->baileys_instance_id;
+        }
+        $prefix = (string) config('whatsapp.baileys.instance_id_prefix', 'biz');
+        $this->baileys_instance_id = $prefix . $this->business_id . '-' . \Illuminate\Support\Str::random(6);
+
+        return $this->baileys_instance_id;
     }
 
     public function business(): BelongsTo
