@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Listeners;
 
 use Modules\Jana\Scopes\ScopeByBusiness;
-use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Events\WhatsappMessageReceived;
 
 /**
- * Bot Jana — encaminha mensagens inbound pro PolicyEngine ADS quando
- * `bot_enabled=true` no business config (US-WA-020 Sprint 3).
+ * Bot Jana — encaminha mensagens inbound pro PolicyEngine ADS quando o
+ * número Whatsapp tem `handles_jana_bot=true` (US-WA-020 + US-WA-040).
  *
  * **Sprint 3 prep — placeholder funcional Sprint 2:**
  *
- * Hoje: detecta config + intent básico, marca `whatsapp_conversations.bot_handling=true`,
- * loga; NÃO dispara resposta automática ainda.
+ * Hoje: detecta phone configurado + intent básico, marca
+ * `whatsapp_conversations.bot_handling=true`, loga; NÃO dispara resposta
+ * automática ainda.
  *
  * Sprint 3 (quando ADS Universal ativar): substituir bloco `// SPRINT 3:`
  * abaixo por chamada real `decide('whatsapp', 'reply', $payload)` (skill
@@ -26,11 +27,18 @@ use Modules\Whatsapp\Events\WhatsappMessageReceived;
  *   - REQUIRE_HUMAN_REVIEW → marca `status=awaiting_human` + Centrifugo notify
  *   - BLOCK_ALWAYS → log + no-op
  *
+ * **Multi-números (ADR 0117 — US-WA-040):**
+ * Recupera phone da conversa via `whatsapp_business_phone_id` (preenchido
+ * pelo ProcessIncomingWebhookJob ao processar inbound). Só processa se
+ * `phone->handles_jana_bot=true` — admin pode desativar bot por número
+ * (ex: deixar Comercial com bot, Financeiro só com humano).
+ *
  * **Multi-tenant Tier 0:** business_id resolvido pelo evento (não session).
  * **PII redacted** em logs via PiiRedactor (skill commit-discipline).
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-020
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-020, US-WA-040
  * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3.2 (fluxo bot HITL)
+ * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
  */
 class DispatchToJanaBot
 {
@@ -42,21 +50,34 @@ class DispatchToJanaBot
 
         $message = $event->message;
 
-        $config = WhatsappBusinessConfig::query()
-            ->withoutGlobalScope(ScopeByBusiness::class)
-            ->where('business_id', $message->business_id)
-            ->first();
-
-        if ($config === null || ! (bool) $config->bot_enabled) {
-            return; // business desativou bot
-        }
-
         $conversation = WhatsappConversation::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->find($message->conversation_id);
 
         if ($conversation === null) {
             return;
+        }
+
+        // Resolve phone via conversa OU fallback resolveForEvent('jana_bot')
+        // (conversation.whatsapp_business_phone_id pode ser NULL em conversas
+        // legacy migradas via PR 1 sem phone vinculado preciso)
+        $phone = null;
+        if ($conversation->whatsapp_business_phone_id !== null) {
+            $phone = WhatsappBusinessPhone::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $message->business_id)
+                ->where('id', $conversation->whatsapp_business_phone_id)
+                ->first();
+        }
+
+        $phone ??= WhatsappBusinessPhone::resolveForEvent($message->business_id, 'jana_bot');
+
+        if ($phone === null) {
+            return; // business sem phone configurado — silencioso
+        }
+
+        if (! $phone->handles_jana_bot || ! $phone->bot_enabled) {
+            return; // admin desativou bot pra este phone — silencioso
         }
 
         // Marca conversa como bot_handling — UI mostra badge "🤖 bot"
@@ -71,6 +92,7 @@ class DispatchToJanaBot
         //       intent: 'reply',
         //       payload: [
         //           'business_id' => $message->business_id,
+        //           'phone_id' => $phone->id,
         //           'conversation_id' => $conversation->id,
         //           'inbound_text' => $message->body,
         //           'history_summary' => /* últimas N msgs da thread */,
@@ -78,12 +100,14 @@ class DispatchToJanaBot
         //   );
         //
         //   match ($outcome->action) {
-        //       'ALLOW_BRAIN_A', 'REQUIRE_BRAIN_B' => $this->dispatchBotReply($conversation, $outcome),
+        //       'ALLOW_BRAIN_A', 'REQUIRE_BRAIN_B' => $this->dispatchBotReply($conversation, $phone, $outcome),
         //       'REQUIRE_HUMAN_REVIEW' => $conversation->update(['status' => 'awaiting_human']),
         //       'BLOCK_ALWAYS' => /* log + no-op */,
         //   };
         \Log::info('[whatsapp.dispatch_to_jana_bot] mensagem recebida (Sprint 3 prep — sem resposta automática ainda)', [
             'business_id' => $message->business_id,
+            'phone_id' => $phone->id,
+            'phone_label' => $phone->label,
             'conversation_id' => $conversation->id,
             'inbound_preview' => mb_substr((string) $message->body, 0, 80),
         ]);

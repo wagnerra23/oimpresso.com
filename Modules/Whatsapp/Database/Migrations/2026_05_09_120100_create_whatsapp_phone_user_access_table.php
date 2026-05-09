@@ -5,11 +5,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * ACL atendente↔número Whatsapp — Q1 + Q5 do ADR 0115.
+ * ACL atendente↔número Whatsapp — Q1 + Q5 do ADR 0117.
  *
  * Atendente fixado num número via ACL própria (não polui Spatie permissions
  * com N permissões/número/business — ver alternativa Q5-i rejeitada em
- * ADR 0115).
+ * ADR 0117).
  *
  * Permissão Spatie `whatsapp.send` continua valendo (gating de quem pode
  * usar Whatsapp do business). Filtro per-phone vem desta tabela:

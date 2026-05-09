@@ -67,7 +67,7 @@ class WhatsappConversation extends Model
     }
 
     /**
-     * Número Whatsapp deste business que dono desta conversa (ADR 0115).
+     * Número Whatsapp deste business que dono desta conversa (ADR 0117).
      * Nullable até data migration rodar; após PR 5 vira NOT NULL.
      */
     public function whatsappBusinessPhone(): BelongsTo

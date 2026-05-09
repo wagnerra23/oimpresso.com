@@ -290,8 +290,24 @@ class ConversationsController extends Controller
             ],
         };
 
+        // Multi-números (ADR 0117): conversa carrega phone_id; se NULL (legacy
+        // pré-PR 1), fallback resolveForEvent outbound_default. Sem phone
+        // resolvido = erro 422 (admin precisa cadastrar pelo menos 1 número).
+        $phoneId = $conversation->whatsapp_business_phone_id;
+        if ($phoneId === null) {
+            $defaultPhone = \Modules\Whatsapp\Entities\WhatsappBusinessPhone::resolveForEvent(
+                $conversation->business_id,
+                'jana_bot'
+            );
+            if ($defaultPhone === null) {
+                abort(422, 'Nenhum número Whatsapp cadastrado pra este business — cadastre em Settings antes de enviar mensagem.');
+            }
+            $phoneId = $defaultPhone->id;
+        }
+
         SendWhatsappMessageJob::dispatch(
             $conversation->business_id,
+            $phoneId,
             $conversation->customer_phone,
             $kind,
             $payload,

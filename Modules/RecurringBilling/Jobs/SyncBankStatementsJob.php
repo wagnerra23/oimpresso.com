@@ -100,7 +100,7 @@ class SyncBankStatementsJob implements ShouldQueue
 
     private function decryptConfig(array $config): array
     {
-        foreach (['client_secret', 'certificado_senha'] as $field) {
+        foreach (['client_secret', 'api_key', 'certificado_senha', 'certificado_key_b64'] as $field) {
             if (isset($config[$field])) {
                 $config[$field] = Crypt::decryptString($config[$field]);
             }

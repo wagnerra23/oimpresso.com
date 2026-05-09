@@ -85,7 +85,7 @@ class WhatsappMessage extends Model
     }
 
     /**
-     * Número Whatsapp que enviou/recebeu esta mensagem (ADR 0115).
+     * Número Whatsapp que enviou/recebeu esta mensagem (ADR 0117).
      * Nullable até data migration rodar; após PR 5 vira NOT NULL.
      */
     public function whatsappBusinessPhone(): BelongsTo

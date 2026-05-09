@@ -36,7 +36,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     Route::get('businessall', [LicencaComputadorController::class, 'businessall'])->name('licenca_computador.businessall');
     Route::get('computadores', [LicencaComputadorController::class, 'computadores'])->name('computadores');
     Route::get('/licenca_computador/{id}/toggle-block', [LicencaComputadorController::class, 'toggleBlock'])->name('licenca_computador.toggleBlock');
-    Route::post('/licenca_computador/businessupdate/{id}', [LicencaComputadorController::class, 'businessupdate'])->name('business.update');
+    // ->name('business.update') removido: colidia com Route::resource('business') do UltimatePOS
+    // (BusinessController::update), quebrava `php artisan route:cache`. View Blade usa action()
+    // direta no LicencaComputadorController@businessupdate, sem dependência do name().
+    Route::post('/licenca_computador/businessupdate/{id}', [LicencaComputadorController::class, 'businessupdate']);
     Route::get('/licenca_computador/businessbloqueado/{id}', [LicencaComputadorController::class, 'businessbloqueado'])->name('business.bloqueado');
     Route::get('/licenca_computado/licencas/{id}', [LicencaComputadorController::class, 'viewLicencas'])->name('empresa.licencas');
 
