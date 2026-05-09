@@ -492,3 +492,215 @@ Então `nfe_consultas.cache_key` UNIQUE bloqueia a 2ª de processar de novo
 **Referências:**
 - CAPTERRA-INVENTARIO #1
 - SPEC US-NFE-001 (substituída — depende de US-NFE-040 pra `nfe_certificados` table)
+
+---
+
+## 7. Caso Gold Comunicação Visual (sprint `Gold-Reativacao`)
+
+> Origem: sessão 2026-05-09 — recuperação cliente Gold antes da migração pra Mubsys.
+> Decisões: [ADR 0115](../../decisions/0115-recuperacao-cliente-gold-via-bundle-oimpresso.md) (estratégia comercial) + [ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md) (pivot escopo técnico).
+>
+> **Status do bundle 2026-05-09:** discovery (042) + manifestação (049-053) ATIVOS. Pacote emissão (043-048) **dormente** aguardando US-NFE-042 confirmar se Gold também emite NF-e 55 (orientação Wagner: "guarde inativo").
+
+### US-NFE-042 · Discovery técnico instalação Gold Comunicação Visual
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Audit técnico da instalação on-prem do cliente Gold pra identificar delta com `main` antes do upgrade. Cliente está migrando pra Mubsys; janela curta. **Determina se Gold é só destinatária (manifestação) ou também emite NF-e 55** — define ativação ou não das US-NFE-043..048 dormentes.
+
+**Acceptance criteria:**
+- Documento `memory/clientes/gold/discovery-2026-MM-DD.md` (gitignored — PII)
+- Versão atual oimpresso identificada
+- Banco MySQL/MariaDB versão + tamanho dump + tabelas core listadas
+- Cert A1 .pfx local? Storage path?
+- IE habilitada SEFAZ + regime tributário identificado
+- Conectividade SEFAZ outbound testada (firewall não bloqueia)
+- **Decisão dual:** Gold é só destinatária OU também emite NF-e 55 (vendas B2B)?
+- Volume estimado NF-e RECEBIDAS / EMITIDAS por mês
+- Decisão GO/NO-GO pro upgrade (Fase 3) + se reativa US-NFE-043..048
+
+**Refs:** ADR 0115 + ADR 0116 · Runbook `memory/requisitos/Officeimpresso/RUNBOOK-recuperacao-on-prem.md` Fase 1
+
+### US-NFE-043 · Proposta comercial Gold — diferenciais vs Mubsys + pricing on-prem · 🔒 DORMENTE
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 3h · status: blocked · type: story
+> blocked_by: US-NFE-042
+
+⚠️ **Status `blocked` por orientação Wagner 2026-05-09 ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Escopo focado em emissão NF-e 55. Reativa apenas se discovery (US-NFE-042) confirmar que Gold também emite. A proposta da fase manifestação é tratada nas US-049..053 + apêndice no template `PROPOSTA-COMERCIAL-vs-mubsys.md`.
+
+Construir proposta comercial pra Gold ancorada nos diferenciais oimpresso vs Mubsys ([comparativo Capterra 2026-04-25](../../comparativos/oimpresso_vs_concorrentes_capterra_2026_04_25.md)).
+
+**Acceptance criteria:** ver bloco original em comentário do MCP (pricing on-prem TBD por Wagner; cláusula cert A1; SLA suporte; 1 página executiva + anexo técnico).
+
+**Refs:** ADR 0115 · ADR 0026 (posicionamento) · README NfeBrasil pricing
+
+### US-NFE-044 · Upgrade plataforma on-prem Gold pra versão atual com NfeBrasil · 🔒 DORMENTE
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 6h · status: blocked · type: story
+> blocked_by: US-NFE-043
+
+⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Parte do upgrade é reaproveitada pela manifestação (US-NFE-049..053 dependem de upgrade base também). Mantida dormente — pode ser parcialmente reativada quando manifestação exigir.
+
+Trazer instalação Gold da versão atual dela pra `main` do oimpresso, incluindo `Modules/NfeBrasil` e `Modules/Officeimpresso`. Risco ALTO — produção do cliente.
+
+**Acceptance criteria:** backup completo, janela combinada, `composer install` sem `--no-dev`, `php artisan migrate`, `npm ci && npm run build`, triggers MySQL imutabilidade preservados, smoke pós-upgrade. Detalhe original em comentário MCP.
+
+**Refs:** ADR 0115 · Runbook Fase 3 · auto-mem `reference_diff_3_7_vs_6_7_officeimpresso.md`
+
+### US-NFE-045 · Configuração fiscal NfeBrasil Gold (cert + IE + regime + template SP) · 🔒 DORMENTE
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 3h · status: blocked · type: story
+> blocked_by: US-NFE-044
+
+⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Cert A1 + IE também são pré-requisitos de manifestação (assinatura de evento). Parte reaproveitada por US-NFE-049..053.
+
+Configurar emissão fiscal NfeBrasil pra business Gold após upgrade. Detalhe em comentário MCP.
+
+**Refs:** ADR 0115 · Runbook Fase 4 · `Modules/NfeBrasil/Resources/templates/industria-grafica-presumido-sp.php`
+
+### US-NFE-046 · Smoke fiscal homologação SEFAZ-SP biz=Gold (1ª NF-e 55 cstat 100) · 🔒 DORMENTE
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 2h · status: blocked · type: story
+> blocked_by: US-NFE-045
+
+⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Smoke específico de emissão NF-e 55. Smoke equivalente da manifestação fica em US-NFE-053 (eventos 210/220).
+
+Emitir 1ª NF-e modelo 55 em homologação SEFAZ-SP usando cert + IE da Gold. Detalhe em comentário MCP.
+
+**Refs:** ADR 0115 · Runbook Fase 5 · auto-mem `runbook_smoke_sefaz_biz1.md`
+
+### US-NFE-047 · Treinamento operadora Gold + cutover NF-e produção + canary 7d · 🔒 DORMENTE
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 3h · status: blocked · type: story
+> blocked_by: US-NFE-046
+
+⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Treinamento e cutover da fase manifestação ficam em US-NFE-052/053.
+
+Treinar operadora Gold + cutover NF-e prod + canary 7d. Detalhe em comentário MCP.
+
+**Refs:** ADR 0115 · Runbook Fases 5-6
+
+### US-NFE-048 · Refinar runbook on-prem reutilizável pós-Gold (Trilha 1 dormentes) · 🔒 DORMENTE
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p2 · estimate: 2h · status: blocked · type: story
+> blocked_by: US-NFE-047
+
+⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Mantida dormente até concluir caminho real (manifestação 049..053). Refinamento pós-Gold inclui aprendizados das duas faces (emissão se reativada + manifestação).
+
+Após o caso Gold concluir, refinar runbook on-prem com aprendizados reais. Detalhe em comentário MCP.
+
+**Refs:** ADR 0115 · Runbook stub · `_Roadmap_Faturamento.md` Trilha 1
+
+---
+
+### US-NFE-049 · Migrar models/service legados Manifesto/ItemDfe/DFeService pra `Modules/NfeBrasil/`
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: US-NFE-042
+
+Resgatar arquivos legados UltimatePOS órfãos e migrar pro padrão `Modules/NfeBrasil/`:
+- `app/Manifesto.php` → `Modules/NfeBrasil/Models/NfeDfeRecebido.php`
+- `app/ItemDfe.php` → `Modules/NfeBrasil/Models/NfeDfeItem.php`
+- `app/ManifestoLimite.php` → review (pode ser deletado se não fizer sentido no novo modelo)
+- `app/Services/DFeService.php` → `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeServiceLegacy.php` (referência)
+- `app/Http/Controllers/ManifestoController.php` → review pra reaproveitar lógica
+
+**Acceptance criteria:**
+- Models novos com `BusinessScope` global multi-tenant ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+- Migration `nfe_dfe_recebidos` (id, business_id, chave_44, cnpj_emitente, valor_total, data_emissao, nsu, xml_path, status_manifestacao, manifestado_em, prazo_confirmacao_em, timestamps) — UNIQUE(business_id, chave_44)
+- Migration `nfe_dfe_itens` (id, business_id, dfe_recebido_id, produto_id_match nullable, ncm, descricao, quantidade, valor)
+- Models antigos `App\Manifesto`/`App\ItemDfe`/`App\ManifestoLimite` removidos do `app/` (com referência em CHANGELOG)
+- ManifestoController legado `app/Http/Controllers/ManifestoController.php` removido
+- Tests Pest: criar dfe_recebido + isolamento multi-tenant + UNIQUE chave por business
+
+**Refs:** ADR 0116 · models legados em [`app/Manifesto.php`](../../../app/Manifesto.php) etc
+
+### US-NFE-050 · ManifestacaoService — eventos 210/220/230/240 via sped-nfe
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: US-NFE-049
+
+Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` envolvendo `eduardokum/sped-nfe::Tools::sefazManifesta($chave, $tpEvento, $xJust='')`.
+
+**Acceptance criteria:**
+- Métodos: `cienciar(NfeDfeRecebido $dfe)`, `confirmar(NfeDfeRecebido $dfe)`, `desconhecer(NfeDfeRecebido $dfe)`, `naoRealizada(NfeDfeRecebido $dfe, string $justificativa)`
+- 4 eventos: tpEvento 210210 (Ciência), 210200 (Confirmação), 210220 (Desconhecimento), 210240 (Não Realizada)
+- Cada manifestação cria registro em `nfe_eventos` (já existe — `NfeEvento.php` Module/NfeBrasil/Models)
+- Atualiza `nfe_dfe_recebidos.status_manifestacao` + `manifestado_em`
+- Audit log Spatie Activity (causer + chave + tpEvento + cstat)
+- Idempotência: 2ª chamada do mesmo tpEvento na mesma chave → no-op com warning log
+- Justificativa obrigatória pra Não Realizada (≥15 chars NT 2014.002)
+- Carrega cert via `Modules/NfeBrasil/Services/CertificadoService.php` (já existente)
+- Tests Pest: 4 eventos + idempotência + justificativa obrigatória + isolamento multi-tenant
+
+**Refs:** ADR 0116 · `Modules/NfeBrasil/Services/CertificadoService.php` · `eduardokum/sped-nfe::Tools` Make.php
+
+### US-NFE-051 · DistribuicaoDfeService + Job agendado puxa XMLs por NSU
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 5h · status: todo · type: story
+> blocked_by: US-NFE-049
+
+Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` envolvendo `Tools::sefazDistDFe($lastNSU)` + Job agendado.
+
+**Acceptance criteria:**
+- Tabela `nfe_dfe_nsu_state` (business_id, last_nsu unsignedBigInteger, ultimo_check_em) — guarda cursor por business
+- Service `puxarLote(int $businessId)`:
+  - Lê last_nsu
+  - Chama `Tools::sefazDistDFe($lastNSU)` com cert do business
+  - Parseia retorno XML (lote pode ter até 50 docs)
+  - Pra cada NF-e nova, persiste `nfe_dfe_recebidos` + items + storage XML
+  - Atualiza last_nsu
+  - Throttle: 1 chamada SEFAZ a cada 5min por business (cooldown SEFAZ NT)
+- Job `BuscarDfesRecebidosJob` em `Modules/NfeBrasil/Jobs/`:
+  - Roda diário 06:00 BRT em `app/Console/Kernel.php` (igual `jana:health-check`)
+  - Itera businesses ativos com cert válido
+  - Dispara `puxarLote` em queue retry exponencial
+- Audit log: NSUs processados + count XMLs novos
+- Tests Pest: lote vazio (no-op), lote com 3 docs, throttle respeitado, cert ausente skipa, isolamento multi-tenant
+
+**Refs:** ADR 0116 · `eduardokum/sped-nfe::Tools::sefazDistDFe`
+
+### US-NFE-052 · UI listar XMLs recebidos + 4 botões manifestar + alerta prazo 180d
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: US-NFE-050, US-NFE-051
+
+Página Inertia `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` listando NFes recebidas com ações de manifestação.
+
+**Acceptance criteria:**
+- Tabela com colunas: data emissão, CNPJ emitente, valor, NSU, status manifestação, **prazo confirmação** (countdown 180d), ações
+- Filtros: status (todos / pendente Ciência / pendente Confirmação / manifestados / próximo do prazo)
+- Linhas com badge:
+  - Verde: manifestado
+  - Amarelo: ≤ 30 dias do prazo
+  - Vermelho: ≤ 7 dias do prazo OU já vencido
+- 4 botões por linha conforme estado: [Ciência] [Confirmação] [Desconhecer] [Não Realizada]
+- Modal "Não Realizada" exige justificativa (textarea ≥15 chars)
+- Botão "Baixar XML" + "Visualizar DANFE PDF" (gera via `eduardokum/sped-da`)
+- Permissão `nfe.manifestacao.view` + `nfe.manifestacao.manage`
+- Bulk action: "Confirmar selecionadas" (pra operadora bater 50 notas em 1 clique)
+- Tests Pest Browser: listagem renderiza, click confirma, prazo countdown correto
+
+**Refs:** ADR 0116 · padrão Cockpit V2 [ADR 0110](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md) · skill `ui-component-creator`
+
+### US-NFE-053 · Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold
+
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: US-NFE-052
+
+Smoke real em ambiente homologação SEFAZ-SP usando cert + CNPJ Gold. Análogo a US-NFE-046 mas pra eventos de manifestação.
+
+**Acceptance criteria:**
+- `NFE_AMBIENTE=2` (homologação)
+- Job `BuscarDfesRecebidosJob` rodado manualmente → puxa lote NSU SEFAZ
+- Pelo menos 1 NF-e teste do ambiente nacional homol aparece na UI
+- Manifestar Ciência (210) → cstat 135 retornado
+- Manifestar Confirmação (220) → cstat 135 retornado
+- Eventos persistidos em `nfe_eventos` com payload completo
+- XMLs de evento salvos em storage
+- Sem erros em `storage/logs/laravel.log`
+- Tempo de manifestação registrado (baseline)
+
+**Refs:** ADR 0116 · runbook biz=1 SEFAZ-SC análogo (auto-mem `runbook_smoke_sefaz_biz1.md`)
+
