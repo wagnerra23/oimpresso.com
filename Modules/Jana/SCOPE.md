@@ -30,7 +30,7 @@ not_contains:
   - "Decision flow → Modules/ADS"
 trust_required: L2
 owner: wagner
-permission_prefix: copiloto.*
+permission_prefix: jana.*
 charter_adr: 0080
 related_adrs:
   - 0035-laravel-ai-canonical-no-vizra
@@ -39,7 +39,7 @@ related_adrs:
   - 0052-contexto-negocio-3-angulos
   - 0053-mcp-server-governanca-como-produto
 url_prefixes:
-  - /copiloto/* (legacy preservada na Fase 3.7 PR-2 — rename PHP-only)
+  - /jana/* (canônico Fase 2b 2026-05-09 — /copiloto/* mantido via 301 redirect generic)
 db_tables_owned:
   - jana_memoria_facts
   - jana_memoria_metricas
@@ -74,7 +74,7 @@ drift_alerts:
   # Fase 3.7 PR-1 (2026-05-06): 5 drift controllers movidos pros donos corretos.
   # MemoriaController + FontesController → Modules/KB
   # Mcp/CcIngest + Mcp/Health + Mcp/SyncMemoryWebhook → Modules/TeamMcp
-  # URLs mantidas (/copiloto/memoria, /copiloto/metas/{id}/fonte, /api/mcp/*, /api/cc/*)
+  # URLs mantidas (/jana/memoria, /jana/metas/{id}/fonte, /api/mcp/*, /api/cc/*)
   # via tuple [Class::class, 'method'] e namespace prefix dos route groups.
   - controller: "Admin/GovernancaController"
     pertence_a: "Modules/Governance (NOVO)"
@@ -94,7 +94,7 @@ Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-onl
 
 | Trigger | Quem | Ação |
 |---|---|---|
-| Cliente abre `/copiloto/chat` | Larissa, etc. | conversar com Jana |
+| Cliente abre `/jana/chat` | Larissa, etc. | conversar com Jana |
 | Wagner abre `/copiloto/admin/custos` | L1 | dashboard custos LLM |
 | Wagner abre `/copiloto/admin/qualidade` | L1 | qualidade memória/RAGAS |
 | Cron `apurar:metas` | sistema | apura metas do business |

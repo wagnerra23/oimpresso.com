@@ -28,7 +28,7 @@
                 @endforelse
             </div>
 
-            <form method="POST" action="{{ route('copiloto.conversas.mensagens.store', $conversa->id) }}">
+            <form method="POST" action="{{ route('jana.conversas.mensagens.store', $conversa->id) }}">
                 @csrf
                 <div class="form-group">
                     <textarea name="content" class="form-control" rows="3" placeholder="Converse com o Copiloto..."></textarea>
@@ -37,8 +37,8 @@
             </form>
 
             <hr>
-            <a href="{{ route('copiloto.dashboard.index') }}" class="btn btn-default">Ir pro Dashboard</a>
-            <a href="{{ route('copiloto.metas.index') }}" class="btn btn-default">Ver Metas</a>
+            <a href="{{ route('jana.dashboard.index') }}" class="btn btn-default">Ir pro Dashboard</a>
+            <a href="{{ route('jana.metas.index') }}" class="btn btn-default">Ver Metas</a>
         </div>
     </div>
 </section>

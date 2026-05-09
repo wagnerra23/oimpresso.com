@@ -21,19 +21,19 @@ class PeriodosController extends Controller
 
         MetaPeriodo::create(array_merge($data, ['meta_id' => $metaId]));
 
-        return redirect()->route('copiloto.metas.show', $metaId);
+        return redirect()->route('jana.metas.show', $metaId);
     }
 
     public function update(Request $request, $metaId, $id)
     {
         $periodo = MetaPeriodo::where('meta_id', $metaId)->findOrFail($id);
         $periodo->update($request->only(['tipo_periodo', 'data_ini', 'data_fim', 'valor_alvo', 'trajetoria']));
-        return redirect()->route('copiloto.metas.show', $metaId);
+        return redirect()->route('jana.metas.show', $metaId);
     }
 
     public function destroy($metaId, $id)
     {
         MetaPeriodo::where('meta_id', $metaId)->findOrFail($id)->delete();
-        return redirect()->route('copiloto.metas.show', $metaId);
+        return redirect()->route('jana.metas.show', $metaId);
     }
 }

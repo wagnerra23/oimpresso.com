@@ -71,8 +71,8 @@ class DataController extends Controller
         }
 
         $usuario_pode_ver = auth()->user()->can('superadmin')
-            || auth()->user()->can('copiloto.mcp.usage.all')
-            || auth()->user()->can('copiloto.cc.read.team');
+            || auth()->user()->can('jana.mcp.usage.all')
+            || auth()->user()->can('jana.cc.read.team');
 
         if (! $usuario_pode_ver) {
             return;
@@ -90,7 +90,7 @@ class DataController extends Controller
                 $menu->dropdown(
                     __('teammcp::teammcp.module_label'),
                     function ($sub) {
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.mcp.usage.all')) {
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.mcp.usage.all')) {
                             $sub->url(
                                 route('team-mcp.team.index'),
                                 __('teammcp::teammcp.menu.team'),
@@ -101,7 +101,7 @@ class DataController extends Controller
                             );
                         }
 
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.mcp.usage.all')) {
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.mcp.usage.all')) {
                             $sub->url(
                                 route('team-mcp.tasks.index'),
                                 __('teammcp::teammcp.menu.tasks'),
@@ -112,7 +112,7 @@ class DataController extends Controller
                             );
                         }
 
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('copiloto.cc.read.team')) {
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.cc.read.team')) {
                             $sub->url(
                                 route('team-mcp.cc.index'),
                                 __('teammcp::teammcp.menu.cc_sessions'),
