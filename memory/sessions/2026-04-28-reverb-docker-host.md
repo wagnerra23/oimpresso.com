@@ -120,7 +120,7 @@ VITE_REVERB_SCHEME=https
 
 | # | Item | Quem | Urgência |
 |---|---|---|---|
-| P1 | Ativar Reverb no Hostinger — Wagner pega KEY/SECRET do CT e atualiza `.env` + rebuild | Wagner [W] | Alta — Cycle 01 streaming Copiloto |
+| P1 | Ativar Reverb no Hostinger — Wagner pega KEY/SECRET do CT e atualiza `.env` + rebuild | Wagner [W] | Alta — Cycle 01 streaming Jana |
 | P2 | Migrar credenciais geradas nesta sessão pra Vaultwarden (app Reverb, Traefik auth, Vaultwarden admin) | Wagner [W] | Média |
 | P3 | Merge PR #64 após validação visual | Wagner [W] | Alta |
 | P4 | Sync repo automatizado (hoje é tar pipe manual; futuro: GH Actions → ghcr.io) | Felipe [F] | Baixa |

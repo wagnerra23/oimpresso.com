@@ -56,7 +56,7 @@ Aprovadas pelo Wagner em sessões anteriores, agora documentadas em ARCHITECTURE
 
 | Tipo | De | Pra | Fase |
 |---|---|---|---|
-| rename | Copiloto | Jana | 3.7 |
+| rename | Jana | Jana | 3.7 |
 | extração | Essentials (parte) | Notas (novo) | 3.10 |
 | rename | PontoWr2 | Ponto | 3.7 |
 | rename | ProjectMgmt | Project | 3.9 (depende 3.8) |

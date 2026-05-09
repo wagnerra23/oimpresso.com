@@ -9,12 +9,12 @@
 | Commit | O quê | Arquivo-chave |
 |--------|-------|---------------|
 | `e3ea5b92` | ADR 0054 — pacote enterprise busca memória + 5-fase com gates Recall@3 | `memory/decisions/0054-pacote-enterprise-busca-memoria-evolucao.md` |
-| `c4706bef` | MEM-TEAM-1 Self-host equiv Anthropic Team plan + ADR 0055 | `Modules/Copiloto/Http/Controllers/Admin/TeamController.php`, `resources/js/Pages/Copiloto/Admin/Team/Index.tsx`, `Modules/Copiloto/Entities/Mcp/*.php` |
-| `c2339ba1` | QuotaEnforcer 3 kinds (brl/calls/tokens) + alertas idempotentes 50/80/100% | `Modules/Copiloto/Services/Mcp/QuotaEnforcer.php`, migration `mcp_alertas_eventos` |
-| `8c8b7ccb` | Middleware popular `custo_brl` + tokens automaticamente | `Modules/Copiloto/Http/Middleware/McpAuthMiddleware.php` |
-| `a58e7f34` | MEM-MEM-MCP-1 MCP-as-memory-source + ADR 0056 + McpMemoriaDriver com fallback | `Modules/Copiloto/Services/Memoria/McpMemoriaDriver.php`, `Modules/Copiloto/Mcp/Tools/MemoriaSearchTool.php`, `Modules/Copiloto/Console/Commands/McpSystemTokenCommand.php` |
-| `4fa97dd8` | Sprint A+B onboarding skills + cc-search tool + 3 migrations mcp_cc_* | `.mcp.json`, `.claude/settings.local.json.example`, `.claude/skills/oimpresso-team-onboarding/SKILL.md`, `.claude/skills/oimpresso-cc-watcher-setup/SKILL.md`, `Modules/Copiloto/Mcp/Tools/CcSearchTool.php`, `MEMORY_TEAM_ONBOARDING.md` |
-| `c807d5db` | Fix migration `mcp_cc_blobs` — `binary()` em vez de `mediumBlob()` (não existe L13) | `Modules/Copiloto/Database/Migrations/2026_04_29_300003_create_mcp_cc_blobs_table.php` |
+| `c4706bef` | MEM-TEAM-1 Self-host equiv Anthropic Team plan + ADR 0055 | `Modules/Jana/Http/Controllers/Admin/TeamController.php`, `resources/js/Pages/Jana/Admin/Team/Index.tsx`, `Modules/Jana/Entities/Mcp/*.php` |
+| `c2339ba1` | QuotaEnforcer 3 kinds (brl/calls/tokens) + alertas idempotentes 50/80/100% | `Modules/Jana/Services/Mcp/QuotaEnforcer.php`, migration `mcp_alertas_eventos` |
+| `8c8b7ccb` | Middleware popular `custo_brl` + tokens automaticamente | `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` |
+| `a58e7f34` | MEM-MEM-MCP-1 MCP-as-memory-source + ADR 0056 + McpMemoriaDriver com fallback | `Modules/Jana/Services/Memoria/McpMemoriaDriver.php`, `Modules/Jana/Mcp/Tools/MemoriaSearchTool.php`, `Modules/Jana/Console/Commands/McpSystemTokenCommand.php` |
+| `4fa97dd8` | Sprint A+B onboarding skills + cc-search tool + 3 migrations mcp_cc_* | `.mcp.json`, `.claude/settings.local.json.example`, `.claude/skills/oimpresso-team-onboarding/SKILL.md`, `.claude/skills/oimpresso-cc-watcher-setup/SKILL.md`, `Modules/Jana/Mcp/Tools/CcSearchTool.php`, `MEMORY_TEAM_ONBOARDING.md` |
+| `c807d5db` | Fix migration `mcp_cc_blobs` — `binary()` em vez de `mediumBlob()` (não existe L13) | `Modules/Jana/Database/Migrations/2026_04_29_300003_create_mcp_cc_blobs_table.php` |
 
 **Validações em produção:**
 - Hostinger: 3 tabelas `mcp_cc_*` migradas (`Ran` em `migrate:status`)
@@ -35,10 +35,10 @@
    - Comparativo: governança, memória, ingestão de docs, configuração MCP + 11 dimensões adicionais
    - 4 gaps salvos (MEM-GAP-1 a 4) pra evolução futura
 
-3. **0056 — MCP fonte única de memória Copiloto + Claude Code**
+3. **0056 — MCP fonte única de memória Jana + Claude Code**
    - Servidor MCP é a única camada de memória pra **todos** os clientes IA
    - Migração backward-compat via `COPILOTO_MEMORIA_DRIVER=mcp` env
-   - Fluxo: Claude Code/Copiloto chat → MCP server → DB (vez de cada um ter driver próprio)
+   - Fluxo: Claude Code/Jana chat → MCP server → DB (vez de cada um ter driver próprio)
 
 ---
 
@@ -53,7 +53,7 @@
 
 | # | Pendência | Bloqueia | Como rodar |
 |---|-----------|----------|------------|
-| 1 | Gerar system token Copiloto chat | Liga MCP no fluxo chat | `php artisan copiloto:mcp:system-token --user-email=wagner@…` |
+| 1 | Gerar system token Jana chat | Liga MCP no fluxo chat | `php artisan copiloto:mcp:system-token --user-email=wagner@…` |
 | 2 | Add `COPILOTO_MEMORIA_DRIVER=mcp` + `COPILOTO_MCP_SYSTEM_TOKEN=mcp_xxx` em `.env` Hostinger | Mesmo | `ssh hostinger && nano .env` |
 | 3 | Smoke chat real → recall via MCP | Validação ponta-a-ponta | Chat real Hostinger; `tail -f storage/logs/copiloto.log` |
 | 4 | Wagner roda `oimpresso-cc-watcher-setup` skill 1× local | Sprint B operacional (cc-search retorna hits) | Abrir Claude Code em `D:\oimpresso.com`, pedir "configura watcher" |

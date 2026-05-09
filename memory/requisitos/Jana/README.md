@@ -1,15 +1,15 @@
 ---
-module: Copiloto
+module: Jana
 alias: copiloto
 status: spec-ready
 migration_target: react
 migration_priority: alta
 risk: medio
-tenancy: hibrida (business_id nullable — null = Copiloto da plataforma/oimpresso)
+tenancy: hibrida (business_id nullable — null = Jana da plataforma/oimpresso)
 ai_dependency: soft (adapter usa LaravelAI quando existir, fallback openai-php direto)
 areas: [Chat, Metas, Períodos, Apuração, Fontes, Dashboard, Alertas]
-marca_comercial: "Copiloto"
-pitch: "O Copiloto de IA do seu negócio — ele olha seus números, sugere metas e te avisa quando algo desvia."
+marca_comercial: "Jana"
+pitch: "O Jana de IA do seu negócio — ele olha seus números, sugere metas e te avisa quando algo desvia."
 last_generated: 2026-04-24 (módulo novo, escrito a mão)
 revenue_pricing:
   tier: "3 (multiplier add-on)"
@@ -17,7 +17,7 @@ revenue_pricing:
   pro: "R$ 299/mês"
   enterprise: "R$ 799/mês"
   take_rate: "n/a (subscription puro)"
-  posicionamento_vs_laravelai: "Copiloto = front de decisão (chat + metas + alertas); LaravelAI = engine (RAG + agent). Vendem juntos ou separados. Copiloto roda sem LaravelAI via fallback OpenAI."
+  posicionamento_vs_laravelai: "Jana = front de decisão (chat + metas + alertas); LaravelAI = engine (RAG + agent). Vendem juntos ou separados. Jana roda sem LaravelAI via fallback OpenAI."
 scale:
   routes: 21 (scaffold)
   controllers: 7 (scaffold)
@@ -25,15 +25,15 @@ scale:
   permissions: 6 (design)
 ---
 
-# Copiloto
+# Jana
 
-**Copiloto de IA do negócio.** Conversa com o gestor, entende o estado atual, sugere metas em cenários (fácil / realista / ambicioso), o gestor escolhe, e o Copiloto passa a monitorar a execução com alertas quando desvia da rota.
+**Jana de IA do negócio.** Conversa com o gestor, entende o estado atual, sugere metas em cenários (fácil / realista / ambicioso), o gestor escolhe, e o Jana passa a monitorar a execução com alertas quando desvia da rota.
 
-Módulo nascido da meta **R$ 5mi/ano** da oimpresso (ADR 0022 + `memory/11-metas-negocio.md`). A visão é que cada business do UltimatePOS — e a plataforma oimpresso como um todo — tenha seu próprio Copiloto.
+Módulo nascido da meta **R$ 5mi/ano** da oimpresso (ADR 0022 + `memory/11-metas-negocio.md`). A visão é que cada business do UltimatePOS — e a plataforma oimpresso como um todo — tenha seu próprio Jana.
 
 ## Pitch de venda
 
-> *"Você não precisa ser analista de dados. Seu Copiloto entende os números, conversa com você e te avisa quando algo sai da rota."*
+> *"Você não precisa ser analista de dados. Seu Jana entende os números, conversa com você e te avisa quando algo sai da rota."*
 
 **Diferenciadores:**
 - **IA-first** — entrada principal é conversa, não dashboard estático.
@@ -43,7 +43,7 @@ Módulo nascido da meta **R$ 5mi/ano** da oimpresso (ADR 0022 + `memory/11-metas
 
 ## Propósito em uma frase
 
-Wagner (ou qualquer gestor) conversa com uma IA que **lê o estado atual do negócio**, **propõe 3–5 metas** em cenários contrastantes, **o usuário escolhe**, e o Copiloto **monitora automaticamente** com apuração recorrente + alertas.
+Wagner (ou qualquer gestor) conversa com uma IA que **lê o estado atual do negócio**, **propõe 3–5 metas** em cenários contrastantes, **o usuário escolhe**, e o Jana **monitora automaticamente** com apuração recorrente + alertas.
 
 ## Áreas funcionais
 
@@ -85,10 +85,10 @@ Ver [`adr/arq/0001-tenancy-hibrida.md`](adr/arq/0001-tenancy-hibrida.md).
 
 ## Relação com outros artefatos
 
-- [`memory/decisions/0022-meta-5mi-ano-financeira.md`](../../decisions/0022-meta-5mi-ano-financeira.md) — ADR raiz do _porquê_ existir o Copiloto.
+- [`memory/decisions/0022-meta-5mi-ano-financeira.md`](../../decisions/0022-meta-5mi-ano-financeira.md) — ADR raiz do _porquê_ existir o Jana.
 - [`memory/11-metas-negocio.md`](../../11-metas-negocio.md) — seed inicial das metas e cenários (migra pro banco do módulo no scaffold).
-- Auto-memória `ideia_chat_ia_contextual.md` — Copiloto é a primeira materialização do chat contextual previsto.
-- Auto-memória `reference_revenue_thesis_modulos.md` — pricing/take rate do Copiloto deve entrar na mesma tese.
+- Auto-memória `ideia_chat_ia_contextual.md` — Jana é a primeira materialização do chat contextual previsto.
+- Auto-memória `reference_revenue_thesis_modulos.md` — pricing/take rate do Jana deve entrar na mesma tese.
 
 ## Revenue / pricing
 
@@ -103,7 +103,7 @@ Take rate: **n/a** (subscription puro). Ver `reference_revenue_thesis_modulos.md
 ## Status (2026-04-24)
 
 - **Spec:** ✅ completa (README + ARCHITECTURE + SPEC + GLOSSARY + RUNBOOK + CHANGELOG + 5 ADRs)
-- **Scaffold Laravel:** ✅ mínimo em `Modules/Copiloto/` (module.json active:0 — Wagner ativa quando quiser)
+- **Scaffold Laravel:** ✅ mínimo em `Modules/Jana/` (module.json active:0 — Wagner ativa quando quiser)
 - **Lógica real:** ⏳ TODOs marcados nos controllers/services (chamada IA, driver SQL com binds, job de apuração, views React)
 
 ---

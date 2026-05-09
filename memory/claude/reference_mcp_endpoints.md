@@ -45,7 +45,7 @@ originSessionId: d0c86329-6176-4940-860b-8f1d166e2ad7
 
 Sem token: 401 + `WWW-Authenticate: Bearer realm="mcp", error="invalid_token"`
 
-## Tools disponíveis no server (`Modules/Copiloto/Mcp/Tools/`)
+## Tools disponíveis no server (`Modules/Jana/Mcp/Tools/`)
 
 - `CcSearchTool`
 - `MemoriaSearchTool`

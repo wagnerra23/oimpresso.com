@@ -1,4 +1,4 @@
-# Copiloto — Comparativo Concorrência (estilo Capterra)
+# Jana — Comparativo Concorrência (estilo Capterra)
 
 **Última atualização:** 2026-04-25 | **Próx. revisão:** 2026-07-25
 
@@ -14,7 +14,7 @@
 
 ## Cards comparados
 
-### 🟢 Copiloto (oimpresso)
+### 🟢 Jana (oimpresso)
 - ⭐ **Score:** 0/100 (não implementado)
 - 💰 **Preço planejado:** Free 50 msgs/mês / R$ 79 Pro / R$ 199 Enterprise
 - 🎯 **Best for:** PME que já usa UPos + quer insights tipo conversational
@@ -102,6 +102,6 @@
 
 ## Refs
 
-- ADR ARQ-0001 a 0002 + TECH-0001 a 0002 + UI-0001 (Copiloto)
+- ADR ARQ-0001 a 0002 + TECH-0001 a 0002 + UI-0001 (Jana)
 - memory/requisitos/Jana/SPEC.md + ARCHITECTURE.md + RUNBOOK.md
 - ChatGPT, MS Copilot for Business — sites oficiais

@@ -18,7 +18,7 @@ score caiu de 0.66 → 0.158 e recuperar.
 
 ### Bug 1 — Scout observer bypassa checksum (crítico para eficiência)
 
-**Arquivo:** `Modules/Copiloto/Services/Mcp/IndexarMemoryGitParaDb.php` linha ~325
+**Arquivo:** `Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php` linha ~325
 
 **Problema:** No branch "sem mudança" (git_sha idêntico), o código fazia:
 ```php

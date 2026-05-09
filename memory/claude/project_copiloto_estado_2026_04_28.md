@@ -1,5 +1,5 @@
 ---
-name: Estado do Copiloto IA em produção (2026-04-28 fim do dia)
+name: Estado do Jana IA em produção (2026-04-28 fim do dia)
 description: Snapshot consolidado do que está rodando, o que falta, gaps de produto descobertos
 type: project
 originSessionId: 32066199-13c2-4cc8-922b-d65034040e23
@@ -10,15 +10,15 @@ originSessionId: 32066199-13c2-4cc8-922b-d65034040e23
 | Camada | Componente | Estado |
 |---|---|---|
 | A | `laravel/ai ^0.6.3` + `config/ai.php` | ✅ ativo. OpenAI gpt-4o-mini default |
-| B | `LaravelAiSdkDriver` (Modules/Copiloto/Services/Ai/) | ✅ respondendo conversas reais (Wagner testou na conta Larissa biz=4) |
+| B | `LaravelAiSdkDriver` (Modules/Jana/Services/Ai/) | ✅ respondendo conversas reais (Wagner testou na conta Larissa biz=4) |
 | C Hot | SqlDriver — conversas em DB | ✅ |
 | C Cold | MeilisearchDriver + index `copiloto_memoria_facts` | ✅ hybrid embedder ativo (29-abr commit `c631042c`) |
 | Embedder | OpenAI text-embedding-3-small no Meilisearch | ✅ funcional (validado curl direto: semanticHitCount=2) |
 
 ## 🟡 Gaps de produto descobertos na 1ª conversa real
 
-### Gap 1: ~~ChatCopilotoAgent "burrinho"~~ — RESOLVIDO 2026-04-29 (Caminho A)
-- ✅ commit `2be9930c` (MEM-HOT-2, ADR 0047): `ChatCopilotoAgent` recebe `?ContextoNegocio` opcional
+### Gap 1: ~~ChatJanaAgent "burrinho"~~ — RESOLVIDO 2026-04-29 (Caminho A)
+- ✅ commit `2be9930c` (MEM-HOT-2, ADR 0047): `ChatJanaAgent` recebe `?ContextoNegocio` opcional
 - ✅ `LaravelAiSdkDriver::responderChat` chama `ContextSnapshotService::paraBusiness($conv->business_id)` + degradação silenciosa
 - ✅ Smoke prod biz=4 ROTA LIVRE: prompt de 657 chars / **164 tokens** com:
   - EMPRESA: ROTA LIVRE (id 4)
@@ -26,7 +26,7 @@ originSessionId: 32066199-13c2-4cc8-922b-d65034040e23
   - 4 meses faturamento real (jan→abr 2026: R$4k → R$26k → R$38k → R$31k)
 - ✅ ContextSnapshotService::metasAtivas TODO virou query real (top 5 meta+período+apuração)
 - ✅ 6 testes Pest novos cobrem BC-compat + formato + token economy + obs + biz null
-- BC-compat: `ChatCopilotoAgent($conv)` sem ctx mantém comportamento exato anterior
+- BC-compat: `ChatJanaAgent($conv)` sem ctx mantém comportamento exato anterior
 - Pendente: validação real Larissa via /copiloto/chat (A4 do Cycle 01)
 
 ### Gap 2: ~~MeilisearchDriver::buscar usa Scout default~~ — RESOLVIDO 2026-04-29
@@ -43,7 +43,7 @@ Ainda não rodamos LongMemEval / RAGAS / DeepEval na nova stack — Sprint 7 (ga
 ## 🛣️ Próximos passos por prioridade (atualizado 2026-04-29)
 
 1. ✅ ~~Hotfix MeilisearchDriver hybrid~~ — feito 29-abr (`c631042c`)
-2. **A2 ativa: MEM-HOT-2 ContextoNegocio → ChatCopilotoAgent** (ADR 0046 Caminho A) — fix Gap 1
+2. **A2 ativa: MEM-HOT-2 ContextoNegocio → ChatJanaAgent** (ADR 0046 Caminho A) — fix Gap 1
 3. **MEM-S8-1 SemanticCacheMiddleware** (-68.8% tokens) — ADR 0047 Sprint 8
 4. **MEM-S8-2 ConversationSummarizer** (>15 turnos)
 5. **MEM-S8-3 ProfileDistiller** (perfil negócio compacto pro system prompt)

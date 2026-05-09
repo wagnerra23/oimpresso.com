@@ -1,4 +1,4 @@
-# Changelog — Copiloto
+# Changelog — Jana
 
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
@@ -12,7 +12,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
   - Estima 5 sprints total. Recomendações de usabilidade incluídas (10 itens, ex.: "transparência cria confiança", "wizard de orçamento no setup").
 
 ### Decision — 2026-04-24
-- **Nome comercial + técnico = "Copiloto"** (escolhido em conversa Wagner ↔ Claude, 2026-04-24).
+- **Nome comercial + técnico = "Jana"** (escolhido em conversa Wagner ↔ Claude, 2026-04-24).
   - Alternativas consideradas e rejeitadas: `MetasNegocio` (descritivo, sem punch), `BI` (seguro mas genérico, compete com gigantes), `Farol` (forte PT-BR, 2ª opção), `Compass`/`Pulse`/`Norte` (nomes-marca abstratos).
   - Justificativa: conceito literal = copiloto (conversa, sugere, monitora junto); surfa trend de mercado (GitHub/MS Copilot já educaram percepção); escalável como guarda-chuva (v1 metas → v2 comercial → v3 operacional → v4 financeiro).
 

@@ -4,7 +4,7 @@
 > **Data:** 2026-04-26
 > **Autor:** Claude (sessão `dazzling-lichterman-e59b61`) sob direção do Wagner
 > **Concorrentes incluídos:** CLAUDE.md, AGENTS.md, memory/00-09, memory/decisions/, memory/sessions/, memory/requisitos/, auto-memória Claude, Modules/MemCofre/, Git history+PRs (9)
-> **Decisão que vai sair daqui:** Formalizar papel canônico de cada sistema, parar de duplicar info e prevenir conflitos como os 10 detectados em 2026-04-26 (Inertia v2/v3, stack IA, status Copiloto, etc).
+> **Decisão que vai sair daqui:** Formalizar papel canônico de cada sistema, parar de duplicar info e prevenir conflitos como os 10 detectados em 2026-04-26 (Inertia v2/v3, stack IA, status Jana, etc).
 > **Companion docs:** [oimpresso_vs_concorrentes_capterra_2026_04_25.md](oimpresso_vs_concorrentes_capterra_2026_04_25.md), [memory/decisions/0027-gestao-memoria-roles-claros.md](../decisions/0027-gestao-memoria-roles-claros.md)
 > **Template usado:** [_TEMPLATE_capterra_oimpresso.md](_TEMPLATE_capterra_oimpresso.md) v1.0
 > **Referência externa:** [Capterra Software Comparison Template](https://www.capterra.com/resources/software-comparison-chart/) — 4 critérios de rating: Ease of Use, Customer Service, Features, Value for Money
@@ -13,7 +13,7 @@
 
 ## 1. TL;DR (5 frases)
 
-1. **Hoje há 9 sistemas de memória convivendo sem regras de quem-faz-o-quê** — auditoria em 2026-04-26 detectou 10 conflitos de fato (Inertia v2 contra v3, "Copiloto spec-ready" contra Copiloto-mergeado, "openai-php removido" contra driver usando facade OpenAI, etc).
+1. **Hoje há 9 sistemas de memória convivendo sem regras de quem-faz-o-quê** — auditoria em 2026-04-26 detectou 10 conflitos de fato (Inertia v2 contra v3, "Jana spec-ready" contra Jana-mergeado, "openai-php removido" contra driver usando facade OpenAI, etc).
 2. **Vencedor único por função:** CLAUDE.md em onboarding, `memory/decisions/` em ADRs, auto-memória em cross-conversation, MemCofre em evidências, Git em auditoria — sem dois reis pro mesmo trono.
 3. **MemCofre é o único feature do projeto sem equivalente nos concorrentes** (Mubisys/Zênite/Calcgraf/etc não têm cofre de memórias) — vale tirar dali um diferencial comercial, não só interno.
 4. **AGENTS.md está stale** ("Laravel 10" em vez de 13.6) e **ADRs têm dois 0024 + zero 0012** — saneamento de governance básica adiado por meses.

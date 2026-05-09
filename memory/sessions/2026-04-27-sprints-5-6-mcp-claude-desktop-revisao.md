@@ -2,7 +2,7 @@
 
 **Branch trabalho:** `claude/dazzling-lichterman-e59b61` (worktree)
 **Branch alvo:** `6.7-bootstrap` (todos PRs mergeados)
-**Origem:** Wagner pediu sequência: continuar Sprint 5 (bridge) → Sprint 6 (LGPD) → "aumente score Copiloto no MemCofre" → "profissionalize... descreva nível enterprise" → "compare com Claude Desktop... detalhe e compare" → "consolide tudo na memória pra iniciar amanhã".
+**Origem:** Wagner pediu sequência: continuar Sprint 5 (bridge) → Sprint 6 (LGPD) → "aumente score Jana no MemCofre" → "profissionalize... descreva nível enterprise" → "compare com Claude Desktop... detalhe e compare" → "consolide tudo na memória pra iniciar amanhã".
 
 ---
 
@@ -11,8 +11,8 @@
 | PR | Sprint | Conteúdo principal | Tests Pest |
 |---|---|---|---|
 | [#26](https://github.com/wagnerra23/oimpresso.com/pull/26) | 5 | Bridge memória↔chat (`recallMemoria()` + `ExtrairFatosDaConversaJob` + `ExtrairFatosAgent`) | 43 passed (3 skipped) |
-| [#27](https://github.com/wagnerra23/oimpresso.com/pull/27) | 6 | Tela `/copiloto/memoria` LGPD US-COPI-MEM-012 (`MemoriaController` + `Pages/Copiloto/Memoria.tsx`) | 48 passed (3 skipped) |
-| [#28](https://github.com/wagnerra23/oimpresso.com/pull/28) | — | MemCofre score: 3 telas Copiloto com `@memcofre` block sincronizadas em `docs_pages` | — |
+| [#27](https://github.com/wagnerra23/oimpresso.com/pull/27) | 6 | Tela `/copiloto/memoria` LGPD US-COPI-MEM-012 (`MemoriaController` + `Pages/Jana/Memoria.tsx`) | 48 passed (3 skipped) |
+| [#28](https://github.com/wagnerra23/oimpresso.com/pull/28) | — | MemCofre score: 3 telas Jana com `@memcofre` block sincronizadas em `docs_pages` | — |
 | [#29](https://github.com/wagnerra23/oimpresso.com/pull/29) | — | `memory/requisitos/Jana/ENTERPRISE.md` (12 seções enterprise) | — |
 | direto branch | — | Comparativo Capterra `claude_desktop_vs_laravel_mcp_oimpresso` + `revisao_caminho_2026_04_27_capterra` + ADR 0037 | — |
 
@@ -28,7 +28,7 @@ Todos mergeados em `6.7-bootstrap`. **Deploy SSH parcial confirmado:** PR #25 + 
 | 0036 | ✅ canônica | **Replanejamento Meilisearch first, Mem0 último** — economiza R$1.500-18.000/ano até validar tese |
 | 0037 | ✅ aceita | Roadmap evolução Tier 5-6 → Tier 7-9 LongMemEval (5 sprints sequenciais 7-11 com gates RAGAS) |
 
-Total ADRs Copiloto consolidados: **0026, 0027, 0030, 0031, 0032, 0033, 0034, 0035, 0036, 0037** — formato Nygard, todos com revisão cruzada.
+Total ADRs Jana consolidados: **0026, 0027, 0030, 0031, 0032, 0033, 0034, 0035, 0036, 0037** — formato Nygard, todos com revisão cruzada.
 
 ---
 
@@ -70,9 +70,9 @@ Total ADRs Copiloto consolidados: **0026, 0027, 0030, 0031, 0032, 0033, 0034, 00
 - ✅ `php artisan migrate` rodou (`copiloto_memoria_facts` criada — 70ms)
 - ✅ `php artisan optimize:clear` rodou
 - ✅ **Meilisearch v1.10.3 daemon RODANDO no Hostinger** PID 632084, `/health: available`
-- ✅ `php artisan memcofre:sync-pages` rodou — **14 pages sincronizadas em `docs_pages`** (3 do Copiloto)
+- ✅ `php artisan memcofre:sync-pages` rodou — **14 pages sincronizadas em `docs_pages`** (3 do Jana)
 - 🟡 **Embedder Meilisearch** ainda NÃO configurado — recall funciona em full-text mas não em hybrid semantic
-- 🟡 **`.env` ainda não tem** `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` setados — Copiloto está em `dry_run` (devolve fixtures)
+- 🟡 **`.env` ainda não tem** `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` setados — Jana está em `dry_run` (devolve fixtures)
 - 🟡 **`COPILOTO_AI_DRY_RUN=false`** ainda não foi setado
 - 🟡 **PRs #26/#27/#29 não foram deployados** ainda (`composer install` + migrate ainda OK; faltam clear caches + verificar)
 
@@ -144,14 +144,14 @@ Total ADRs Copiloto consolidados: **0026, 0027, 0030, 0031, 0032, 0033, 0034, 00
 
 ### Repo (mergeado em `6.7-bootstrap`)
 **Sprints 5/6/etc:**
-- `Modules/Copiloto/Ai/Agents/{ChatCopilotoAgent,ExtrairFatosAgent}.php`
-- `Modules/Copiloto/Jobs/ExtrairFatosDaConversaJob.php`
-- `Modules/Copiloto/Services/Ai/LaravelAiSdkDriver.php` (recallMemoria + dispatch)
-- `Modules/Copiloto/Http/Controllers/MemoriaController.php`
-- `Modules/Copiloto/Http/routes.php` (3 rotas LGPD)
-- `Modules/Copiloto/Config/config.php` (memoria.recall_enabled/write_enabled)
-- `resources/js/Pages/Copiloto/{Chat,Dashboard,Memoria}.tsx` (+ blocos `@memcofre`)
-- `tests/Feature/Modules/Copiloto/{BridgeMemoriaChatTest,MemoriaControllerTest}.php`
+- `Modules/Jana/Ai/Agents/{ChatJanaAgent,ExtrairFatosAgent}.php`
+- `Modules/Jana/Jobs/ExtrairFatosDaConversaJob.php`
+- `Modules/Jana/Services/Ai/LaravelAiSdkDriver.php` (recallMemoria + dispatch)
+- `Modules/Jana/Http/Controllers/MemoriaController.php`
+- `Modules/Jana/Http/routes.php` (3 rotas LGPD)
+- `Modules/Jana/Config/config.php` (memoria.recall_enabled/write_enabled)
+- `resources/js/Pages/Jana/{Chat,Dashboard,Memoria}.tsx` (+ blocos `@memcofre`)
+- `tests/Feature/Modules/Jana/{BridgeMemoriaChatTest,MemoriaControllerTest}.php`
 
 **Documentação:**
 - `memory/decisions/0037-roadmap-evolucao-tier-7-plus.md` (NOVO)

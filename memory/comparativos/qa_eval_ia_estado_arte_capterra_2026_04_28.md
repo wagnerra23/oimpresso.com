@@ -1,6 +1,6 @@
 # Matriz Comparativa estilo Capterra/G2 — QA / Eval de IA, ciclo de vida completo (2026-04-28)
 
-> **Assunto:** estado-da-arte de **garantia de qualidade de IA** — frameworks, plataformas, métricas e processo, do **dataset golden até drift detection em produção**. Cruzado com nossa stack canônica (ADR 0035: laravel/ai + Vizra ADK + Mem0/Meilisearch) pra responder: **como tirar o Copiloto de fixtures e botar em produção sem queimar a Larissa do ROTA LIVRE**.
+> **Assunto:** estado-da-arte de **garantia de qualidade de IA** — frameworks, plataformas, métricas e processo, do **dataset golden até drift detection em produção**. Cruzado com nossa stack canônica (ADR 0035: laravel/ai + Vizra ADK + Mem0/Meilisearch) pra responder: **como tirar o Jana de fixtures e botar em produção sem queimar a Larissa do ROTA LIVRE**.
 > **Data:** 2026-04-28
 > **Autor:** Claude (sessão `loving-black-f3caa3`) sob direção do Wagner ("como fazer benchmark pra garantir a qualidade da IA? Estado-da-arte do ciclo de vida completo. Pesquise e crie os prints. Seja agressivo.")
 > **Concorrentes incluídos:** 8 plataformas/frameworks — Vizra ADK eval (NOSSO baseline), Braintrust, LangSmith, Langfuse, Arize Phoenix, DeepEval/Confident AI, Promptfoo, Anthropic Claude Skills built-in evals
@@ -29,7 +29,7 @@ Este comparativo cobre as **3 camadas** e mapeia **ciclo de vida completo** de Q
 
 ## 1. TL;DR (5 frases)
 
-1. **Hoje Oimpresso = ZERO eval de IA em produção.** Copiloto roda em `COPILOTO_AI_DRY_RUN=true` (fixtures), nenhum golden set commitado, nenhum LLM-judge online, nenhuma detecção de drift. **Risco:** primeira conversa real da Larissa que devolve hallucination = perda de confiança permanente.
+1. **Hoje Oimpresso = ZERO eval de IA em produção.** Jana roda em `COPILOTO_AI_DRY_RUN=true` (fixtures), nenhum golden set commitado, nenhum LLM-judge online, nenhuma detecção de drift. **Risco:** primeira conversa real da Larissa que devolve hallucination = perda de confiança permanente.
 2. **Diferencial real defensável:** Vizra ADK (camada B do ADR 0035) já vem com `php artisan vizra:make:eval` + 20+ assertions + LLM-as-Judge built-in PHP-nativo — vantagem brutal sobre concorrentes BR (Mubisys/Zênite/Calcgraf zero) e até globais Python-first (Braintrust/LangSmith não falam Laravel idiomático). **Mas Vizra adia L13** (sprint 3+) — temos GAP de stack até lá.
 3. **Onde perdemos pra players globais (Braintrust/LangSmith/Langfuse):** sem dashboard de drift visual, sem CI/CD gating com regression baselines, sem online judge sampling 5%, sem HITL annotation UI pra Larissa anotar "essa resposta tá errada".
 4. **Onde perdemos pra players verticais (RAGAS/DeepEval):** sem RAG metrics canônicos (faithfulness, context precision/recall) — quando Sprint 5 (MeilisearchDriver) entrar, vamos retornar contexto do índice e **não temos como medir se o índice tá retornando lixo**.
@@ -162,7 +162,7 @@ Categorizados em **3 grupos** — full-lifecycle SaaS, framework CI/CD focused, 
 │ 6.5 Spot-check 5-10% das verdicts do LLM-judge contra SME (pega bias drift)            │
 │                                                                                          │
 │ Tools: Braintrust HITL UI, Comet session-level, Label Studio, Argilla, custom Inertia │
-│        page no Copiloto                                                                  │
+│        page no Jana                                                                  │
 └────────────────────────────────────────────────────────────────────────────────────────┘
                                             │
                                             ▼
@@ -308,11 +308,11 @@ Categorizados em **3 grupos** — full-lifecycle SaaS, framework CI/CD focused, 
 
 ## 6. Top 3 GAPS críticos (oimpresso vs estado-da-arte)
 
-### GAP 1 — Zero golden set commitado pra Copiloto
+### GAP 1 — Zero golden set commitado pra Jana
 
 **O que falta:** nenhum CSV/JSON de "perguntas reais da Larissa + respostas esperadas + métricas alvo" no repo. Quando trocarmos `laravel/ai` 0.6.3 → 0.7 ou OpenAI key → Anthropic, **não temos como saber se quebrou**. DeepEval Synthesizer faz isso em 1 dia (7 evolutions de seed); Braintrust dataset versionado idem; Promptfoo YAML idem. Nós: começa do zero.
 
-**Esforço:** **Baixo (3-5 dias)** — coletar 20 conversas reais da Larissa (extrair do Hostinger DB), Wagner anota "boa/ruim/comentário" em planilha, Claude expande pra 50-80 com synthetic, salva em `Modules/Copiloto/Tests/Datasets/golden_v1.csv`, commit.
+**Esforço:** **Baixo (3-5 dias)** — coletar 20 conversas reais da Larissa (extrair do Hostinger DB), Wagner anota "boa/ruim/comentário" em planilha, Claude expande pra 50-80 com synthetic, salva em `Modules/Jana/Tests/Datasets/golden_v1.csv`, commit.
 
 **Impacto se não fechar:** **CRÍTICO**. ADR 0037 sprint 7 = "RAGAS evaluation" depende disso. Sem golden set, RAGAS retorna número solto sem baseline. Pior: quando produção quebrar (vai quebrar), não há regression test que pegue antes do user.
 
@@ -330,7 +330,7 @@ Categorizados em **3 grupos** — full-lifecycle SaaS, framework CI/CD focused, 
 
 ### GAP 3 — Zero PII redaction PRÉ-envio pra LLM (LGPD!)
 
-**O que falta:** hoje quando Copiloto chamar OpenAI/Anthropic real, **CPF/CNPJ/email/telefone do cliente final do ROTA LIVRE vão direto pro vendor americano**. LGPD Art. 7º exige base legal + minimização. Estado-da-arte: regex BR PII (CPF/CNPJ patterns) + NER fallback (Patronus Lynx ou NeMo) ANTES do `->chat()`, replace por `[CPF_REDACTED]`, restore depois se contexto exigir.
+**O que falta:** hoje quando Jana chamar OpenAI/Anthropic real, **CPF/CNPJ/email/telefone do cliente final do ROTA LIVRE vão direto pro vendor americano**. LGPD Art. 7º exige base legal + minimização. Estado-da-arte: regex BR PII (CPF/CNPJ patterns) + NER fallback (Patronus Lynx ou NeMo) ANTES do `->chat()`, replace por `[CPF_REDACTED]`, restore depois se contexto exigir.
 
 **Esforço:** **Baixo-Médio (1 sprint)** — `PiiRedactorService.php` com regex CPF (`\d{3}\.\d{3}\.\d{3}-\d{2}`), CNPJ (`\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}`), email/telefone básico. Aplicar em `OpenAiDirectDriver::chat()` antes de enviar payload. Logar (sem PII!) que houve redação.
 
@@ -356,7 +356,7 @@ Categorizados em **3 grupos** — full-lifecycle SaaS, framework CI/CD focused, 
 
 **Como capitalizar:** Sprint 7 = **Wagner+Claude fazem 50 exemplos golden set em 1 semana** (validar com Larissa em 1h). RAGAS roda contra isso, faithfulness de baseline sai. Cada cliente novo só adiciona <20 exemplos. Compounding curve mais favorável que players genéricos.
 
-**Risco de erodir:** **Alto em 12m se sucesso comercial real**. Quando entrarem cliente 5, 10, 20 — cada um tem domínio próprio (gráfica de banner ≠ flyer ≠ adesivo). Golden set explode. Mitigação: estrutura `Modules/Copiloto/Tests/Datasets/{cliente_id}/golden_v{n}.csv` com versionamento por tenant + base comum + dataset comum mensurado contra baseline da plataforma.
+**Risco de erodir:** **Alto em 12m se sucesso comercial real**. Quando entrarem cliente 5, 10, 20 — cada um tem domínio próprio (gráfica de banner ≠ flyer ≠ adesivo). Golden set explode. Mitigação: estrutura `Modules/Jana/Tests/Datasets/{cliente_id}/golden_v{n}.csv` com versionamento por tenant + base comum + dataset comum mensurado contra baseline da plataforma.
 
 ---
 
@@ -376,13 +376,13 @@ Categorizados em **3 grupos** — full-lifecycle SaaS, framework CI/CD focused, 
 |---|---|---|
 | **A — "Eval Enterprise SaaS"** | Adota Braintrust + LangSmith pago, fica enterprise-grade desde dia 1. R$2-5k/mês USD recorrente em ERP que cobra R$497/cliente. | ❌ **Viola ADR 0036** (R$0/mês recorrente filosofia) e **ADR 0030** (sem dep estrangeira pra core). Lock-in cloud cria fragilidade quando concorrente com mesma stack chega. **OK só se cliente enterprise (>R$10k/mês ticket) bater na porta**. |
 | **B — "Self-host pragmático"** | Vizra ADK eval (offline, quando L13 ok) + Langfuse self-host Hostinger (online) + DeepEval CLI gates (CI) + golden set manual. R$0 recorrente, 3 sprints de build. | ✅ **Recomendado.** Alinha com ADR 0036 (Meilisearch-first, R$0). Aproveita Pail/Telescope/Horizon. PHP-native quando Vizra L13 vier. **Faltará annotation UI HITL** (resolver com Inertia page custom no `/copiloto/admin/qualidade` — 1 sprint extra). |
-| **C — "Defer eval"** | Só fazer eval quando primeiro incidente real explodir. Fica em `pest tests/Modules/Copiloto/` simples. | ❌ Já estamos em **risco LGPD ativo** sem PII redaction (GAP 3) — defer = jogar Larissa de cobaia. Industry data: 6 meses sem eval = error 35% jump. **Veto técnico.** |
+| **C — "Defer eval"** | Só fazer eval quando primeiro incidente real explodir. Fica em `pest tests/Modules/Jana/` simples. | ❌ Já estamos em **risco LGPD ativo** sem PII redaction (GAP 3) — defer = jogar Larissa de cobaia. Industry data: 6 meses sem eval = error 35% jump. **Veto técnico.** |
 
 **Recomendado: Caminho B.**
 
 **Frase de posicionamento que sai dessa decisão (pra site/marketing — quando estiver feito):**
 
-> *"Único ERP gráfico brasileiro com IA monitorada em tempo real. Dashboard público de qualidade do Copiloto: faithfulness 0.9+, hallucination <2%, latência P95 <3s. Você pode auditar."*
+> *"Único ERP gráfico brasileiro com IA monitorada em tempo real. Dashboard público de qualidade do Jana: faithfulness 0.9+, hallucination <2%, latência P95 <3s. Você pode auditar."*
 
 ---
 
@@ -418,10 +418,10 @@ Como esse comparativo conecta com **ADR 0022 (R$5mi/ano)**:
 #### **Sprint 7 — Golden set + DeepEval CLI offline (1 sprint, 5-7 dias)**
 
 **Entregáveis:**
-1. `Modules/Copiloto/Tests/Datasets/golden_v1.csv` — 50 perguntas-resposta-rubrica de Larissa real (extraídas do Hostinger DB sessão 5+ + 10 sintéticas DeepEval Synthesizer + 5 adversariais red team)
-2. `composer require deepeval-php/sdk` (se existir; senão wrapper REST custom em `Modules/Copiloto/Services/Eval/DeepEvalDriver.php`)
-3. `Modules/Copiloto/Tests/Feature/CopilotoEvalTest.php` — Pest test que roda `faithfulness + answer_relevancy + context_precision` contra golden set, threshold 0.75 mínimo
-4. GitHub Actions workflow `eval.yml` — roda em todo PR que toca `Modules/Copiloto/`, falha CI se score cai >5% absoluto vs `main` baseline
+1. `Modules/Jana/Tests/Datasets/golden_v1.csv` — 50 perguntas-resposta-rubrica de Larissa real (extraídas do Hostinger DB sessão 5+ + 10 sintéticas DeepEval Synthesizer + 5 adversariais red team)
+2. `composer require deepeval-php/sdk` (se existir; senão wrapper REST custom em `Modules/Jana/Services/Eval/DeepEvalDriver.php`)
+3. `Modules/Jana/Tests/Feature/JanaEvalTest.php` — Pest test que roda `faithfulness + answer_relevancy + context_precision` contra golden set, threshold 0.75 mínimo
+4. GitHub Actions workflow `eval.yml` — roda em todo PR que toca `Modules/Jana/`, falha CI se score cai >5% absoluto vs `main` baseline
 
 **Por que #1:** sem golden set, todo resto (online judge, drift, HITL) é número solto sem baseline. RAGAS sprint 7 do ADR 0036 depende disso. Tira "fixture-only" de risco binário pra "fixture-then-real-with-safety-net".
 
@@ -432,7 +432,7 @@ Como esse comparativo conecta com **ADR 0022 (R$5mi/ano)**:
 #### **Sprint 8 — PII redactor + Langfuse self-host Hostinger (1 sprint, 5-7 dias)**
 
 **Entregáveis:**
-1. `Modules/Copiloto/Services/Privacy/PiiRedactorService.php` com regex BR (CPF/CNPJ/email/telefone-BR) + tests Pest
+1. `Modules/Jana/Services/Privacy/PiiRedactorService.php` com regex BR (CPF/CNPJ/email/telefone-BR) + tests Pest
 2. Plug `PiiRedactorService` em `OpenAiDirectDriver::chat()` ANTES de payload outbound
 3. Docker compose do Langfuse self-host no Hostinger (`~/services/langfuse/` com PostgreSQL+Clickhouse) — coordenar com Meilisearch já running
 4. Instrumentação OTEL no `LaravelAiSdkDriver` (1ª class do `laravel/ai` ^0.6.3) → Langfuse endpoint
@@ -481,7 +481,7 @@ Como esse comparativo conecta com **ADR 0022 (R$5mi/ano)**:
 > **→ Tese B (self-host pragmático) confirma. Avança pra red team formal sprint 10+.**
 >
 > **Senão (qualquer um falha):**
-> - Faithfulness <0.85 → golden set tá raso OU prompt do `ChatCopilotoAgent` precisa retrain (volta sprint 7).
+> - Faithfulness <0.85 → golden set tá raso OU prompt do `ChatJanaAgent` precisa retrain (volta sprint 7).
 > - PII leak detectado → escalonar pra Patronus Lynx sprint 10 imediato (Caminho B+).
 > - Golden set não saiu → **pivot pra Caminho A** (Braintrust 30-day trial + decisão MRR-gated).
 > - Larissa não conversou 30+ vezes → não é problema de eval, é problema de **adoption** — pivot pra ADR 0026 PricingFpv/CT-e (recomendação revisão 2026-04-27 do Capterra).

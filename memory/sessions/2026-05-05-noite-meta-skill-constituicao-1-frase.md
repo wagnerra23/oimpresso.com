@@ -11,7 +11,7 @@ tags: [governance, constitution, skills, foundation, meta-skill, adr-0078]
 
 ## Trajetória da sessão
 
-Sessão começou como audit de drift entre módulos (Copiloto/ADS dumping ground) e proposta de framework de 7 camadas (Constitution + SRS + Trust Tiers + Identity Mesh + Module Charter + Policy Gating + Audit). Wagner recusou a complexidade — "1 única aposta. Skill e uma missão. só isso" — e cunhou a fórmula recursiva **Planejar → Executar → Analisar → Organizar → estado da arte**.
+Sessão começou como audit de drift entre módulos (Jana/ADS dumping ground) e proposta de framework de 7 camadas (Constitution + SRS + Trust Tiers + Identity Mesh + Module Charter + Policy Gating + Audit). Wagner recusou a complexidade — "1 única aposta. Skill e uma missão. só isso" — e cunhou a fórmula recursiva **Planejar → Executar → Analisar → Organizar → estado da arte**.
 
 Pivot completo da abordagem: governança não desce em camadas, **emerge da unidade**. Cada skill é mini-módulo independente carregando sua própria constituição (mission), fronteira (triggers), regras (body), versões, testes, métricas. Auto-load por description = governance via contexto, não middleware.
 
@@ -66,7 +66,7 @@ Insight central: **a constituição entra no contexto da IA antes da ação, nã
 1. Audit das 4 tools MCP (cycles-active/my-work/my-inbox/triage) — `my-work` quebrado por resolver buscar `users.username='WR23'` enquanto tasks usam `owner='wagner'`.
 2. Bootstrap retroativo do MCP DB: ADS jira project (id=23) + CYCLE-02 (id=2, planning) + 6 tasks ADS-1..ADS-6 done com source_git_sha.
 3. ADR 0077 propondo `users.mcp_handle` pra resolver bug do `my-work`. Status=proposto.
-4. Audit dos 30 módulos: drift detectado em Copiloto (5 controllers errados) e ADS (4 controllers errados).
+4. Audit dos 30 módulos: drift detectado em Jana (5 controllers errados) e ADS (4 controllers errados).
 5. Wagner rejeitou framework de 7 camadas → pivot pra 1 frase + meta-skill (esta sessão).
 
 ## Próximas P0 amanhã

@@ -1,11 +1,11 @@
-# Runbook — Copiloto
+# Runbook — Jana
 
-Operação e debug. Assume módulo scaffoldado em `Modules/Copiloto/` e Horizon rodando.
+Operação e debug. Assume módulo scaffoldado em `Modules/Jana/` e Horizon rodando.
 
 ## 1. Seed inicial
 
 ```bash
-php artisan module:seed Copiloto
+php artisan module:seed Jana
 ```
 
 Seed popula:
@@ -92,7 +92,7 @@ Binds `:business_id`, `:data_ini`, `:data_fim` são injetados pelo `SqlDriver` �
   "callable": "Modules\\Jana\\Drivers\\Php\\ChurnMensal@handle"
 }
 ```
-Classe precisa implementar `CalculaMeta` e estar registrada no `CopilotoServiceProvider`.
+Classe precisa implementar `CalculaMeta` e estar registrada no `JanaServiceProvider`.
 
 ### Driver `http`
 ```json
@@ -113,7 +113,7 @@ Classe precisa implementar `CalculaMeta` e estar registrada no `CopilotoServiceP
 | Meta duplicada no dashboard | Apuração rodou 2x em paralelo | Checar `fonte_query_hash` na apuração — deve haver unique `(meta_id, data_ref, fonte_query_hash)` |
 | Superadmin não vê meta da plataforma | Permissão `copiloto.superadmin` não atribuída | `php artisan permission:assign {user_id} copiloto.superadmin` |
 | SQL da fonte lê dados de outro business | Esqueceu `:business_id` no bind | Fixar SQL — PHPUnit test cobre isso |
-| Alerta não dispara | `AvaliarAlertasJob` não está no schedule | `php artisan schedule:list \| grep Copiloto` |
+| Alerta não dispara | `AvaliarAlertasJob` não está no schedule | `php artisan schedule:list \| grep Jana` |
 
 ## 8. Remoção / limpeza
 

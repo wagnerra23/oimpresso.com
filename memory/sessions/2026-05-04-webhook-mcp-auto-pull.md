@@ -88,6 +88,6 @@ Próximo push (este mesmo session log) deve aparecer no MCP em <60s **sem nenhum
 
 ## Arquivos tocados
 
-- `Modules/Copiloto/Http/Controllers/Mcp/SyncMemoryWebhookController.php` — pull-safe + paths perigosos
-- `Modules/Copiloto/Tests/Feature/TaskRegistry/SyncMemoryWebhookTasksTest.php` — 4 testes novos
+- `Modules/Jana/Http/Controllers/Mcp/SyncMemoryWebhookController.php` — pull-safe + paths perigosos
+- `Modules/Jana/Tests/Feature/TaskRegistry/SyncMemoryWebhookTasksTest.php` — 4 testes novos
 - `app/Console/Kernel.php` — schedule mcp:sync-memory 5min

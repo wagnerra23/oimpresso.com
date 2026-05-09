@@ -201,7 +201,7 @@ Anthropic Team plan quando 4+ devs ativos (R$ 685/mês).
 4. **5 fases com gates objetivos** evita "feature creep": só ativa próxima
    otimização quando métrica destrava. Sem isso, acumula complexity sem ROI.
 
-5. **Cycle 01 goal está EM CURSO**: "Copiloto assertivo e econômico... cache
+5. **Cycle 01 goal está EM CURSO**: "Jana assertivo e econômico... cache
    semântico ≥50%" — SemanticCache implementado e funcional; falta acumular
    queries similares pra hit rate dar resultado mensurável.
 
@@ -214,7 +214,7 @@ Candidatos pra goal Cycle 02:
 1. **"Time conectado ao MCP server"** — Felipe/Maíra/Luiz/Eliana com tokens, MCP-CC-1
    ativo, watcher rodando, cc-search tool funcional
 2. **"PontoWr2 Tier A"** — outro produto, validação Eliana(WR2)
-3. **"Copiloto pago"** — pricing + 1ª venda Tier 1A pra Larissa ou outro
+3. **"Jana pago"** — pricing + 1ª venda Tier 1A pra Larissa ou outro
 
 A decisão fica pra final do Cycle 01 (12-mai) com retro de 5 linhas.
 

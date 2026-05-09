@@ -15,7 +15,7 @@ date: 2026-05-08
 
 > **🪶 Naming:** o assistente IA chama-se **Jana** (Wagner 2026-05-08, auto-mem `feedback_jana_naming_canonico`). Backend PHP já é Jana (`Modules/Jana/`); frontend e URLs `/copiloto/*` mantidos como dívida estrutural até PR de rename completo (commit `8f7a5138` Fase 3.7 PR-2 documenta a decisão pragmática). **Em texto novo (UI/docs/ADR/PR/commit) sempre Jana**.
 
-Tela principal da Jana — chat conversacional com a assistente IA que cria/edita metas e responde perguntas de negócio em linguagem natural. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre `/copiloto` de manhã, conversa com a Jana sobre faturamento/metas/clientes, recebe propostas de metas em cards inline e escolhe/rejeita. Vive dentro do `AppShellV2` (Cockpit 3 colunas: sidebar 260 / main 1fr / Apps Vinculados 320). Renderização do thread+composer delegada à lib `assistant-ui` ([CopilotoAssistantUiChat](../../../resources/js/Components/copiloto/AssistantUiChat.tsx) — nome do component é dívida legacy, conteúdo já é Jana).
+Tela principal da Jana — chat conversacional com a assistente IA que cria/edita metas e responde perguntas de negócio em linguagem natural. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre `/copiloto` de manhã, conversa com a Jana sobre faturamento/metas/clientes, recebe propostas de metas em cards inline e escolhe/rejeita. Vive dentro do `AppShellV2` (Cockpit 3 colunas: sidebar 260 / main 1fr / Apps Vinculados 320). Renderização do thread+composer delegada à lib `assistant-ui` ([JanaAssistantUiChat](../../../resources/js/Components/copiloto/AssistantUiChat.tsx) — nome do component é dívida legacy, conteúdo já é Jana).
 
 ## Estado final esperado
 
@@ -23,35 +23,35 @@ Tela principal da Jana — chat conversacional com a assistente IA que cria/edit
 |---|---|
 | Tela renderiza em `/copiloto` | Login com `copiloto.chat` → URL → ThreadHeader + thread + composer visíveis |
 | AppShellV2 envolvendo | Inspetor: `<div class="cockpit">` ao redor; sidebar (light em `data-theme="light"`) + breadcrumb com módulo dropdown |
-| Breadcrumb dropdown abre lista de telas Copiloto | Clicar em "Copiloto" no breadcrumb → dropdown 9 itens (Conversar/Dashboard/Metas/Alertas/Governança MCP/KB→/Qualidade IA/Team MCP→/Plataforma) |
-| ThreadHeader com avatar+dot+actions | "Copiloto" como nome + sub "Assistente IA · Copiloto" + ícones Phone/Info/More à direita |
-| Composer envia mensagem | Digite + ⏎ → mensagem persistida via [POST /copiloto/conversas/{id}/mensagens](../../../Modules/Copiloto/Http/Controllers/ChatController.php:185) |
+| Breadcrumb dropdown abre lista de telas Jana | Clicar em "Jana" no breadcrumb → dropdown 9 itens (Conversar/Dashboard/Metas/Alertas/Governança MCP/KB→/Qualidade IA/Team MCP→/Plataforma) |
+| ThreadHeader com avatar+dot+actions | "Jana" como nome + sub "Assistente IA · Jana" + ícones Phone/Info/More à direita |
+| Composer envia mensagem | Digite + ⏎ → mensagem persistida via [POST /copiloto/conversas/{id}/mensagens](../../../Modules/Jana/Http/Controllers/ChatController.php:185) |
 | PropostaCard inline quando há sugestões | `sugestoesPendentes.length > 0` → grid 1/2/3 colunas com Badge dificuldade (Fácil/Realista/Ambicioso) + CTA Escolher/Rejeitar |
-| Apps Vinculados (coluna direita) | LinkedAppsPanel renderiza vazio (Copiloto não vincula OS/cliente externamente — comportamento atual). Toggle no topbar colapsa pra 0px |
+| Apps Vinculados (coluna direita) | LinkedAppsPanel renderiza vazio (Jana não vincula OS/cliente externamente — comportamento atual). Toggle no topbar colapsa pra 0px |
 
 ## 1. Objetivo
 
-Centralizar a interação conversacional com o Copiloto IA — assistente que opera sobre o contexto de negócio do business em foco (faturamento bruto/líquido/caixa, metas ativas, clientes, OS recentes via `ContextoNegocio` ADR 0052) e propõe ações via cards inline (`PropostaCard`). Persona principal: dono operador, **não-técnico**, que conversa em linguagem natural ("quanto vendi?", "criar meta de faturamento mensal de R$ 50k"). Layout-mãe Cockpit 3 colunas. Persistência da conversa: tabela `copiloto_conversas` + `copiloto_mensagens` (multi-tenant por `business_id`). Thread+composer renderizados pela lib externa `assistant-ui` (suporta Markdown, code highlight, edit/regenerate). Custo: tokens reportados em `copiloto_mensagens.tokens_in/tokens_out` + telemetria OTel GenAI (ADR 0050).
+Centralizar a interação conversacional com o Jana IA — assistente que opera sobre o contexto de negócio do business em foco (faturamento bruto/líquido/caixa, metas ativas, clientes, OS recentes via `ContextoNegocio` ADR 0052) e propõe ações via cards inline (`PropostaCard`). Persona principal: dono operador, **não-técnico**, que conversa em linguagem natural ("quanto vendi?", "criar meta de faturamento mensal de R$ 50k"). Layout-mãe Cockpit 3 colunas. Persistência da conversa: tabela `copiloto_conversas` + `copiloto_mensagens` (multi-tenant por `business_id`). Thread+composer renderizados pela lib externa `assistant-ui` (suporta Markdown, code highlight, edit/regenerate). Custo: tokens reportados em `copiloto_mensagens.tokens_in/tokens_out` + telemetria OTel GenAI (ADR 0050).
 
 ## 2. Pré-condições
 
-- [ ] Módulo `Copiloto` instalado em `/manage-modules`
+- [ ] Módulo `Jana` instalado em `/manage-modules`
 - [ ] Permissão `copiloto.chat` atribuída ao role do usuário (≠ `copiloto.access` que cobre só leitura)
-- [ ] Rotas registradas em [`Modules/Copiloto/Routes/`](../../../Modules/Copiloto/Routes/) — `/copiloto` (index), `/copiloto/conversas/{id}` (show), `/copiloto/conversas/{id}/mensagens` (send), `/copiloto/sugestoes/{id}/escolher` + `/rejeitar`
-- [ ] Page Inertia em [`resources/js/Pages/Copiloto/Chat.tsx`](../../../resources/js/Pages/Copiloto/Chat.tsx) — módulo em **PascalCase**
-- [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos do Copiloto
+- [ ] Rotas registradas em [`Modules/Jana/Routes/`](../../../Modules/Jana/Routes/) — `/copiloto` (index), `/copiloto/conversas/{id}` (show), `/copiloto/conversas/{id}/mensagens` (send), `/copiloto/sugestoes/{id}/escolher` + `/rejeitar`
+- [ ] Page Inertia em [`resources/js/Pages/Jana/Chat.tsx`](../../../resources/js/Pages/Jana/Chat.tsx) — módulo em **PascalCase**
+- [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos do Jana
 - [ ] Skill irmã `multi-tenant-patterns` ativa — Controller filtra `business_id` em `Conversa::where(...)`
 - [ ] AI driver ativo: `LaravelAiDriver` (ADR 0035) ou fallback `OpenAiDirectDriver`. Em dev: `COPILOTO_AI_DRY_RUN=true` retorna fixtures
 - [ ] Meilisearch rodando (CT 100 ou local) pra retrieval de memória (`MemoriaContrato` ADR 0036)
-- [ ] Seed: `php artisan module:seed Copiloto` popula 5 metas template + meta raiz
+- [ ] Seed: `php artisan module:seed Jana` popula 5 metas template + meta raiz
 
 ## 3. Passo-a-passo
 
 ### 1. Controller renderiza Inertia com shell + props específicos do Chat
 
 ```php
-// Modules/Copiloto/Http/Controllers/ChatController.php:100
-return Inertia::render('Copiloto/Chat', array_merge(
+// Modules/Jana/Http/Controllers/ChatController.php:100
+return Inertia::render('Jana/Chat', array_merge(
     $this->shellPropsFor($businessId, $conversas, $conversa),
     [
         'conversa'           => $conversa,
@@ -61,14 +61,14 @@ return Inertia::render('Copiloto/Chat', array_merge(
 ));
 ```
 
-`shellPropsFor()` ([ChatController.php:115](../../../Modules/Copiloto/Http/Controllers/ChatController.php:115)) monta business+user+conversas pro AppShellV2 — mesma estrutura usada por `@index`, `@show`, `@cockpit`.
+`shellPropsFor()` ([ChatController.php:115](../../../Modules/Jana/Http/Controllers/ChatController.php:115)) monta business+user+conversas pro AppShellV2 — mesma estrutura usada por `@index`, `@show`, `@cockpit`.
 
 **Validação:** `php artisan route:list --path=copiloto` retorna ≥4 linhas (index, conversas show, send, sugestoes).
 
 ### 2. Page Inertia recebe Props tipados
 
 ```tsx
-// resources/js/Pages/Copiloto/Chat.tsx:63
+// resources/js/Pages/Jana/Chat.tsx:63
 interface Props {
   businessNome: string
   businesses: BusinessOpt[]
@@ -85,7 +85,7 @@ interface Props {
 ```tsx
 return (
   <AppShellV2
-    title="Copiloto · Chat"
+    title="Jana · Chat"
     business={{ nome: businessNome, opcoes: businesses }}
     user={{ nome, nomeCurto, email, cargo, iniciais }}
     conversas={conversas}
@@ -93,9 +93,9 @@ return (
     activeConvId={String(conversa.id)} // highlight na sidebar Chat
     onSelectConv={selectConv}          // router.get pra trocar de conversa
   >
-    <Head title="Copiloto · Chat" />
+    <Head title="Jana · Chat" />
     <ThreadHeader conv={conversaFoco} />
-    <CopilotoAssistantUiChat /* ... */ />
+    <JanaAssistantUiChat /* ... */ />
   </AppShellV2>
 )
 ```
@@ -104,7 +104,7 @@ return (
 
 ### 4. Adaptar mensagens backend → Cockpit Mensagem
 
-Backend usa `role: user|assistant|system` + `content`. Cockpit usa `autor: me|them` + `texto` + `whoAvatar`. Adaptador em [Chat.tsx:99](../../../resources/js/Pages/Copiloto/Chat.tsx:99):
+Backend usa `role: user|assistant|system` + `content`. Cockpit usa `autor: me|them` + `texto` + `whoAvatar`. Adaptador em [Chat.tsx:99](../../../resources/js/Pages/Jana/Chat.tsx:99):
 
 ```tsx
 function adaptarMensagem(m: MensagemBackend): CockpitMensagem {
@@ -158,7 +158,7 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
 
 ```bash
 npm run build:inertia
-grep -i "Pages/Copiloto/Chat" public/build-inertia/manifest.json
+grep -i "Pages/Jana/Chat" public/build-inertia/manifest.json
 # Esperado: 1 linha com hash do bundle
 ```
 
@@ -169,14 +169,14 @@ grep -i "Pages/Copiloto/Chat" public/build-inertia/manifest.json
 | `--bg`, `--surface` | Fundo viewport / Cards | Shell tokens (UI-0008) |
 | `--accent`, `--accent-soft` | Hover dropdown breadcrumb, links, Badge | Shell tokens (Tweaks accent-hue runtime) |
 | `--bubble-me` | Bolha do usuário (lib `assistant-ui` deve respeitar) | Shell tokens |
-| `--bubble-them`, `--bubble-them-fg` | Bolha do Copiloto | Shell tokens |
+| `--bubble-them`, `--bubble-them-fg` | Bolha do Jana | Shell tokens |
 | `--text`, `--text-mute`, `--text-dim` | Texto primário/secundário/dim | Shell tokens |
 | `--shadow-pop` | Dropdown breadcrumb sombra | Shell tokens (Sprint A 2026-05-05) |
 | `bg-emerald-100`, `bg-amber-100`, `bg-rose-100` (+ dark variants) | Badge dificuldade Fácil/Realista/Ambicioso | **Exceção R-DS-002** — status fixos |
 | `bg-card` (shadcn) | Card da PropostaCard | Mapeia pra `var(--card)` semântico — reage a dark/light |
 | `text-muted-foreground` | Texto secundário shadcn | Reage a tema |
 
-**Coluna direita (Apps Vinculados):** renderizada pelo `AppShellV2` mas vazia neste contexto (Copiloto não vincula OS/cliente externamente). Toggle no topbar colapsa pra 0px (`data-linked="off"`).
+**Coluna direita (Apps Vinculados):** renderizada pelo `AppShellV2` mas vazia neste contexto (Jana não vincula OS/cliente externamente). Toggle no topbar colapsa pra 0px (`data-linked="off"`).
 
 ## 5. Estados visuais
 
@@ -187,9 +187,9 @@ grep -i "Pages/Copiloto/Chat" public/build-inertia/manifest.json
 | `focus` | tab/click | shadcn Button focus-visible ring | OK |
 | `loading` | mensagem sendo enviada | `assistant-ui` mostra typing indicator | Lib externa |
 | `empty` | sem mensagens em conversa nova | `assistant-ui` mostra placeholder próprio | OK |
-| `error` | falha no `responderChat` | Backend captura via try/catch e injeta msg "Estou com dificuldades técnicas no momento" como assistant role | [ChatController.php:200](../../../Modules/Copiloto/Http/Controllers/ChatController.php:200) |
+| `error` | falha no `responderChat` | Backend captura via try/catch e injeta msg "Estou com dificuldades técnicas no momento" como assistant role | [ChatController.php:200](../../../Modules/Jana/Http/Controllers/ChatController.php:200) |
 | `sugestao pendente` | `sugestoesPendentes.length > 0` | grid de PropostaCards entre thread e composer | OK |
-| `dropdown breadcrumb aberto` | clicar em "Copiloto" no breadcrumb | dropdown 220px com 9 items + ícones Lucide + animação `bcModDdIn` 0.16s | Refinado Sprint A |
+| `dropdown breadcrumb aberto` | clicar em "Jana" no breadcrumb | dropdown 220px com 9 items + ícones Lucide + animação `bcModDdIn` 0.16s | Refinado Sprint A |
 
 ## 6. Responsividade
 
@@ -240,7 +240,7 @@ interface Props {
     rotinas: Rotina[]
     recentes: ConversaResumo[]
   }
-  // Específicos do Copiloto Chat
+  // Específicos do Jana Chat
   conversa: ConversaBackend
   mensagens: MensagemBackend[]
   sugestoesPendentes?: Sugestao[]
@@ -282,7 +282,7 @@ interface Proposta {
 
 ### Ícones (lucide-react — R-DS-003)
 
-`Check`, `CheckCheck`, `Hash`, `Info`, `MoreHorizontal`, `Paperclip`, `Phone`, `Search`, `Send`, `Smile` (no `Thread.tsx`); `MessageSquare` (FabCopiloto).
+`Check`, `CheckCheck`, `Hash`, `Info`, `MoreHorizontal`, `Paperclip`, `Phone`, `Search`, `Send`, `Smile` (no `Thread.tsx`); `MessageSquare` (FabJana).
 
 ## 9. DoD checklist
 
@@ -296,7 +296,7 @@ interface Proposta {
 - [x] Dark mode validado — `--bubble-them` em dark é `oklch(0.28 0.008 240)`; status fixos (emerald/amber/rose) iguais nos dois temas
 - [x] Responsividade 320/640/768/1280/1536 — PropostaCards adaptam, LinkedApps colapsa
 - [x] Estados cobertos: default + hover + loading (assistant-ui) + empty (lib) + error (try/catch backend) + sugestao pendente
-- [x] Bundle Inertia: `npm run build:inertia` + `Pages/Copiloto/Chat` no manifest
+- [x] Bundle Inertia: `npm run build:inertia` + `Pages/Jana/Chat` no manifest
 - [x] Multi-tenant: Controller filtra por `session('user.business_id')` em `Conversa::where(...)` e `Sugestao::where('conversa_id', ...)`
 
 ## 10. Pegadinhas
@@ -314,7 +314,7 @@ interface Proposta {
 - ❌ **Lib externa `assistant-ui`** controla rendering de Thread + Composer — overrides de tema/cor exigem props específicos da lib (não Tailwind direto). Pra customizar bolhas: configurar `theme={theme}` na `AssistantRuntimeProvider` ou substituir lib (esforço alto).
 - ❌ **Não usar `Chat.layout = ...` Persistent Layout aqui** — `conversaFoco` muda quando user troca de conversa, precisa re-renderizar AppShellV2. Demais telas (Dashboard) podem usar Persistent.
 - ❌ **`adaptarMensagem` recalcula 'Hoje' vs data** com `new Date()` — risco de timezone implícito (auto-mem `feedback_format_now_local_e_default_datetime`). Ainda OK porque `created_at` Eloquent vem em UTC ISO; mas se backend mudar formato, quebra.
-- ❌ **`sugestoesPendentes` não filtrado por `business_id`** no front (Page assume Controller já filtrou — confirmar em [ChatController.php:92](../../../Modules/Copiloto/Http/Controllers/ChatController.php:92)). NUNCA mostrar sugestões cross-tenant.
+- ❌ **`sugestoesPendentes` não filtrado por `business_id`** no front (Page assume Controller já filtrou — confirmar em [ChatController.php:92](../../../Modules/Jana/Http/Controllers/ChatController.php:92)). NUNCA mostrar sugestões cross-tenant.
 - ❌ **`router.post` em `escolher`/`rejeitar`** com `preserveScroll + preserveState` — sem `only:[]` Inertia recarrega TODA a página. Considerar `only:['sugestoesPendentes']` pra economizar.
 - ❌ **Dropdown breadcrumb pré-Sprint A** (cockpit.css:149-164) tinha `min-width:180px`, padding pequeno, shadow fraca, sem ícones, sem animação. Wagner 2026-05-05 reclamou "tá feia" → fix aplicado.
 - ✅ **Tema light** (UI-0009) — Sprint A não força tema; aplicado via `users.ui_theme = 'light'` no DB ou ThemeToggle do shell. Tela respeita ambos os temas após Sprint A.
@@ -323,7 +323,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 
 ## 11. ADR de origem
 
-- [ADR 0026 — Posicionamento ERP Gráfico com IA](../../decisions/0026-posicionamento-erp-grafico-com-ia.md) — por que existe Copiloto IA no ERP
+- [ADR 0026 — Posicionamento ERP Gráfico com IA](../../decisions/0026-posicionamento-erp-grafico-com-ia.md) — por que existe Jana IA no ERP
 - [ADR 0031 — MemoriaContrato + Mem0 default](../../decisions/0031-memoriacontrato-mem0-default.md) — base da memória que alimenta respostas
 - [ADR 0035 — Stack AI canônica](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md) — laravel/ai SDK (substitui adapters anteriores)
 - [ADR 0036 — Replanejamento Meilisearch-first](../../decisions/0036-replanejamento-meilisearch-first.md) — driver de retrieval (afeta latência das respostas)
@@ -333,8 +333,8 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 - [_DS UI-0010 — Zip Cowork canon visual](../_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md) — referência canônica `chat.jsx`
 
 **Stories cobertas:** US-COPI-001, US-COPI-002, US-COPI-003, US-COPI-MEM-007 ([SPEC.md](SPEC.md))
-**Rules:** R-COPI-001 (Copiloto sempre responde em PT-BR contextualizado), R-COPI-MEM-005 (memória cross-conversa do business)
-**Tests:** [AdapterResolverTest](../../../tests/Feature/Modules/Copiloto/AdapterResolverTest.php), [BridgeMemoriaChatTest](../../../tests/Feature/Modules/Copiloto/BridgeMemoriaChatTest.php)
+**Rules:** R-COPI-001 (Jana sempre responde em PT-BR contextualizado), R-COPI-MEM-005 (memória cross-conversa do business)
+**Tests:** [AdapterResolverTest](../../../tests/Feature/Modules/Jana/AdapterResolverTest.php), [BridgeMemoriaChatTest](../../../tests/Feature/Modules/Jana/BridgeMemoriaChatTest.php)
 
 ## Sprint A — fix visual aplicado 2026-05-05
 
@@ -346,7 +346,7 @@ Após Wagner reclamar "tela tá feia" em screenshot da prod:
 | Dropdown sem ícones | Adicionado ícone Lucide (via `it.icon` do `topnav.php`) ao lado de cada label | [AppShellV2.tsx:61-117](../../../resources/js/Layouts/AppShellV2.tsx) |
 | Tema dark (UI-0009 manda light) | NÃO mudado em código — passa por `users.ui_theme = 'light'` no DB ou ThemeToggle. Aplicar em sessão futura. | — |
 
-Itens postergados pra Sprint B/C: Apps Vinculados específico Copiloto, ThreadHeader rico, sidebar accordion, IBM Plex Sans verificação.
+Itens postergados pra Sprint B/C: Apps Vinculados específico Jana, ThreadHeader rico, sidebar accordion, IBM Plex Sans verificação.
 
 ## Audit cockpit-runbook 2026-05-08 — score 64/100 → fixes aplicados
 
@@ -357,7 +357,7 @@ Wagner reportou em sessão tarde: "barra lateral cortada no fim · não redimens
 | Composer `resize-none` hardcoded | UX-CRITICAL | `resize-y max-h-[40vh]` | [AssistantUiChat.tsx:166](../../../resources/js/Components/copiloto/AssistantUiChat.tsx:166) |
 | Composer `mx-auto max-w-3xl` desalinha com bubbles | UX-CRITICAL | remover, deixar largura útil | [AssistantUiChat.tsx:161](../../../resources/js/Components/copiloto/AssistantUiChat.tsx:161) |
 | `.copiloto-chat-layout { height: 100% }` em flex-col | CRITICAL | `flex: 1; min-height: 0` | [cockpit.css:1476](../../../resources/css/cockpit.css) |
-| ConvSidePanel `<a>` cru em vez de `<Link>` | INFO | postergado pra Sprint próximo | [Chat.tsx:309-323](../../../resources/js/Pages/Copiloto/Chat.tsx:309) |
+| ConvSidePanel `<a>` cru em vez de `<Link>` | INFO | postergado pra Sprint próximo | [Chat.tsx:309-323](../../../resources/js/Pages/Jana/Chat.tsx:309) |
 | LinkedAppsPanel renderiza vazio | UX-WARN | popular cards via shell.linkedApps OU colapsar default | [AppShellV2.tsx:487](../../../resources/js/Layouts/AppShellV2.tsx:487) |
 
 Score 64/100 → esperado ≥80/100 após smoke do PR de fixes.

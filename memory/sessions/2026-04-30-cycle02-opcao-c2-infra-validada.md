@@ -129,9 +129,9 @@ Senha root em `/opt/oimpresso-mysql/.mysql_root_password` no CT (também no Vaul
 
 ### Causa
 `MeilisearchDriver::buscar()` está sendo chamado **sozinho**, sem os 3 enhancers:
-- HyDE expander (existe em `Modules/Copiloto/Services/Memoria/HydeQueryExpander.php`)
-- LlmReranker (existe em `Modules/Copiloto/Services/Memoria/LlmReranker.php`)
-- NegativeCache (existe em `Modules/Copiloto/Services/Memoria/NegativeCacheService.php`)
+- HyDE expander (existe em `Modules/Jana/Services/Memoria/HydeQueryExpander.php`)
+- LlmReranker (existe em `Modules/Jana/Services/Memoria/LlmReranker.php`)
+- NegativeCache (existe em `Modules/Jana/Services/Memoria/NegativeCacheService.php`)
 
 Services foram criados (commit `3d060fec`) mas nunca wireados no fluxo real de busca.
 
