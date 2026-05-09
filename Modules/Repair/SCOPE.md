@@ -8,6 +8,7 @@ contains:
   - "DeviceModelController"
   - "InstallController"
   - "JobSheetController"
+  - "ProducaoOficinaController"
   - "RepairController"
   - "RepairSettingsController"
   - "RepairStatusController"
