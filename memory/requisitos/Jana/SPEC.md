@@ -504,3 +504,63 @@ Wagner regra 2026-05-07: MCP roda APENAS no CT 100 (Hostinger lento + crasheia).
 
 **Refs:** [auto-mem feedback_mcp_so_ct100](memory), ADR 0053, ADR 0062.
 
+### Área Cockpit Saúde do Ecossistema
+
+> Origem: pedido Wagner 2026-05-09 — "tela grandiona com IA cuidando da saúde do ecossistema".
+> Aproveita `php artisan jana:health-check` (6 checks SQL já existentes em `Modules/Jana/Console/Commands/HealthCheckCommand.php` com flag `--json` machine-readable) + Horizon (a publicar) + Centrifugo metrics + `mcp_audit_log` + `failed_jobs`.
+
+#### US-COPI-095 · EPIC — Cockpit Saúde do Ecossistema
+
+> owner: wagner · sprint: 2026-W21 · priority: p2 · estimate: 12h · status: todo
+> blocked_by: US-COPI-096
+
+**Como** superadmin oimpresso (Wagner) **quero** uma tela única `/copiloto/admin/health` que mostre saúde do ecossistema todo **para** detectar incidentes antes do cliente reportar.
+
+Agrega num lugar só:
+- Horizon — filas/throughput/failed jobs/workers
+- `jana:health-check` — 6 checks (multi-tenant, brief uptime, custo Brain B, PII leak, profile drift, procedure drift) + histórico 7d
+- Centrifugo — clientes conectados + eventos/min
+- MCP server — uptime + custo Brain B 24h
+- Jobs SEFAZ — emissões/falhas últimas 24h
+- **Brain A narrador horário** — lê `mcp_audit_log` + `failed_jobs` + último `health-check.json` e gera 1 narrativa curta ("3 jobs SEFAZ falharam empresa X — investigar cert vencido"); escala HITL Wagner se severity high
+
+**Sub-stories** (a destrinchar quando sair de planning):
+- HealthSnapshotService — agrega 4 fontes em 1 JSON
+- Page Inertia `Pages/Copiloto/Admin/Health.tsx` (MWART F1-F4 com visual-comparison)
+- Brain A narrador horário (job + prompt + persistência em `health_narratives`)
+
+**Não-goals:**
+- Substituir Grafana/Datadog (não competimos com observability tool)
+- Multi-tenant (cockpit é superadmin-only, agrega plataforma toda)
+- Auto-resolução (só observa + narra, ação é HITL Wagner por publication-policy)
+
+**Dependências:**
+- US-COPI-096 (Horizon publicado) bloqueia
+- ADR 0104 MWART process F1 PLAN antes de codar Page
+- Quando S4 entregar `charter-fetch`, adicionar `Health.charter.md` ao lado do `.tsx`
+
+**Refs:** ADR 0094 (Constituição V2 — health-check é o sentinel), ADR 0106 (estimate recalibrado IA-pair), `jana:health-check` (6 checks já existentes).
+
+#### US-COPI-096 · Setup Horizon — provider + auth gate superadmin + flag CT-only
+
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: doing
+> blocked_by: —
+
+Hoje `laravel/horizon ^5.46` está no `composer.json` mas nunca foi publicado: sem `config/horizon.php`, sem `HorizonServiceProvider`, sem rota `/horizon`. Pacote dormente.
+
+**Como** superadmin oimpresso **quero** acessar `/horizon` no CT 100 **para** ver filas, jobs, throughput e failed jobs em UI nativa Laravel.
+
+**DoD:**
+- `php artisan horizon:install` rodado + arquivos commitados
+- `app/Providers/HorizonServiceProvider.php` com gate `Horizon::auth(fn ($req) => auth()->check() && auth()->user()->can('superadmin'))`
+- Flag `HORIZON_TOOLS_EXPOSED=false` por default; rota `/horizon` SÓ registra se flag true (análogo a `MCP_TOOLS_EXPOSED` per ADR 0062)
+- `.env.example` documenta flag
+- CT 100 `.env` recebe `HORIZON_TOOLS_EXPOSED=true` (via SSH separado, fora desta US)
+- Worker daemon (`horizon:work`) NÃO sobe nesta US — fica pro deploy CT 100 com supervisord/systemd
+- Pest local validando: rota retorna 404 quando flag false; rota retorna 403 pra user não-superadmin
+- ADR 0062 não violada — Hostinger nunca expõe Horizon UI
+
+**Refs:** ADR 0062 (Hostinger ≠ CT 100), ADR 0094 §5 SoC brutal, US-COPI-094 (mesmo padrão flag CT-only do MCP), composer.json:laravel/horizon.
+
+
+
