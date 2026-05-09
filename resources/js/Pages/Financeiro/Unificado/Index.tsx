@@ -123,7 +123,8 @@ function StatusPill({ s }: { s: LancamentoStatus }) {
   );
 }
 
-function KpiBar({ kpis }: { kpis: Kpi }) {
+function KpiBar({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabId) => void }) {
+  // Drill-down por click — ADR ui/0002 §"Princípios de UX": click no KPI filtra tabela.
   return (
     <div className="mt-4 grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
       <KpiCard
@@ -132,6 +133,7 @@ function KpiBar({ kpis }: { kpis: Kpi }) {
         label="Saldo previsto"
         value={brl(kpis.saldo_previsto)}
         description="Final do período"
+        onClick={() => onTabClick('open')}
       />
       <KpiCard
         icon="arrow-down-circle"
@@ -139,6 +141,7 @@ function KpiBar({ kpis }: { kpis: Kpi }) {
         label="Recebido"
         value={brl(kpis.recebido.valor)}
         description={`${kpis.recebido.qtd} baixas`}
+        onClick={() => onTabClick('received')}
       />
       <KpiCard
         icon="clock"
@@ -146,6 +149,7 @@ function KpiBar({ kpis }: { kpis: Kpi }) {
         label="A receber"
         value={brl(kpis.a_receber.valor)}
         description={`${kpis.a_receber.qtd} títulos`}
+        onClick={() => onTabClick('rec')}
       />
       <KpiCard
         icon="check-circle-2"
@@ -153,6 +157,7 @@ function KpiBar({ kpis }: { kpis: Kpi }) {
         label="Pago"
         value={brl(kpis.pago.valor)}
         description={`${kpis.pago.qtd} baixas`}
+        onClick={() => onTabClick('paid')}
       />
       <KpiCard
         icon="arrow-up-circle"
@@ -160,6 +165,7 @@ function KpiBar({ kpis }: { kpis: Kpi }) {
         label="A pagar"
         value={brl(kpis.a_pagar.valor)}
         description={`${kpis.a_pagar.qtd} títulos`}
+        onClick={() => onTabClick('pay')}
       />
     </div>
   );
@@ -261,7 +267,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         }
       />
 
-      <KpiBar kpis={kpis} />
+      <KpiBar kpis={kpis} onTabClick={(tab) => aplicar({ tab })} />
 
       {/* Tabs + filtros sticky */}
       <Card className="mt-6 sticky top-14 z-10">
