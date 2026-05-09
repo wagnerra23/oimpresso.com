@@ -1,19 +1,21 @@
 ---
-slug: copiloto-runbook-chat
-title: "Copiloto — Runbook da tela Chat (/copiloto)"
+slug: jana-runbook-chat
+title: "Jana — Runbook da tela Chat (/copiloto)"
 type: runbook
-module: Copiloto
+module: Jana
 status: active
 date: 2026-05-08
 ---
 
-# RUNBOOK — Chat do Copiloto (`/copiloto`)
+# RUNBOOK — Chat da Jana (`/copiloto`)
 
 > **Tipo:** runbook reproduzível
 > **Refs:** [ADR 0026](../../decisions/0026-posicionamento-erp-grafico-com-ia.md), [ADR 0031](../../decisions/0031-memoriacontrato-mem0-default.md), [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0036](../../decisions/0036-replanejamento-meilisearch-first.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [_DS UI-0008](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md), [_DS UI-0010](../_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)
 > **Validado:** tela em produção `https://oimpresso.com/copiloto`. Sprint A (visual fix) aplicada 2026-05-05.
 
-Tela principal do Copiloto IA — chat conversacional com o assistente que cria/edita metas e responde perguntas de negócio em linguagem natural. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre `/copiloto` de manhã, conversa com o Copiloto sobre faturamento/metas/clientes, recebe propostas de metas em cards inline e escolhe/rejeita. Vive dentro do `AppShellV2` (Cockpit 3 colunas: sidebar 260 / main 1fr / Apps Vinculados 320). Renderização do thread+composer delegada à lib `assistant-ui` ([CopilotoAssistantUiChat](../../../resources/js/Components/copiloto/AssistantUiChat.tsx)).
+> **🪶 Naming:** o assistente IA chama-se **Jana** (Wagner 2026-05-08, auto-mem `feedback_jana_naming_canonico`). Backend PHP já é Jana (`Modules/Jana/`); frontend e URLs `/copiloto/*` mantidos como dívida estrutural até PR de rename completo (commit `8f7a5138` Fase 3.7 PR-2 documenta a decisão pragmática). **Em texto novo (UI/docs/ADR/PR/commit) sempre Jana**.
+
+Tela principal da Jana — chat conversacional com a assistente IA que cria/edita metas e responde perguntas de negócio em linguagem natural. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre `/copiloto` de manhã, conversa com a Jana sobre faturamento/metas/clientes, recebe propostas de metas em cards inline e escolhe/rejeita. Vive dentro do `AppShellV2` (Cockpit 3 colunas: sidebar 260 / main 1fr / Apps Vinculados 320). Renderização do thread+composer delegada à lib `assistant-ui` ([CopilotoAssistantUiChat](../../../resources/js/Components/copiloto/AssistantUiChat.tsx) — nome do component é dívida legacy, conteúdo já é Jana).
 
 ## Estado final esperado
 

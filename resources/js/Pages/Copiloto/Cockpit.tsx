@@ -110,7 +110,7 @@ export default function Cockpit({
 
   return (
     <AppShellV2
-      title="Copiloto · Cockpit"
+      title="Jana · Cockpit"
       business={{ nome: businessNome, opcoes: businesses }}
       user={{
         nome: usuarioNome,
