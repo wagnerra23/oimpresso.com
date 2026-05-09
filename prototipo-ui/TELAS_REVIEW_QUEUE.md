@@ -2,64 +2,84 @@
 
 > Lista priorizada de telas pra passar pelo loop Claude Design.
 > Wagner pode reordenar. Status atualizado a cada movimento de fase.
+>
+> **Última reconciliação:** 2026-05-09 — auditoria charters live no repo + 4 novas P2 com drafts (Cliente, Produto/Unificado, Produto/Index, Orcamento). 11 telas reposicionadas de `[ ]` pra `[x]` (todas com charter `status: live` no frontmatter).
 
 **Legenda:**
 - `[ ]` pending — não começou
-- `[~]` in-flight — em alguma fase F0-F3.5
-- `[x]` done — mergeada
+- `[~]` in-flight — em alguma fase F0-F3.5 (charter draft conta como `[~]`)
+- `[x]` done — mergeada / charter live
 - `[!]` blocked — bloqueada (Wagner explica em SYNC_LOG)
 
 ---
 
-## P0 — Coração da venda
+## ✅ P0 — Coração da venda (todas live)
 
-| Status | Tela | Prioridade visual | Charter |
+| Status | Tela | Refs |
+|---|---|---|
+| `[x]` | [`Sells/Create`](../resources/js/Pages/Sells/Create.tsx) | charter live, last_validated 2026-05-08, US-SELL-001..008 (PRs #257-261) |
+| `[x]` | [`Sells/Index`](../resources/js/Pages/Sells/Index.tsx) | charter live, last_validated 2026-05-08, PR #261 |
+
+## ✅ P1 — Fluxos com charter existente (live exceto bloqueios backend)
+
+| Status | Tela | Refs |
+|---|---|---|
+| `[x]` | [`Repair/ProducaoOficina`](../resources/js/Pages/Repair/ProducaoOficina/Index.tsx) | charter live, F1→F3 em 1 dia (PR #326→#330, 2026-05-09) |
+| `[x]` | [`Repair/Dashboard`](../resources/js/Pages/Repair/Dashboard/Index.tsx) | charter live (rascunho exemplo ADR 0101), last_validated 2026-05-07 |
+| `[x]` | [`Repair/JobSheet`](../resources/js/Pages/Repair/JobSheet/Index.tsx) | charter live, last_validated 2026-05-07 (sprint 2.5/MWART-0002) |
+| `[x]` | [`Repair/Status`](../resources/js/Pages/Repair/Status/Index.tsx) | charter stub F1 live, last_validated 2026-05-07 |
+| `[x]` | [`Financeiro/Unificado`](../resources/js/Pages/Financeiro/Unificado/Index.tsx) | em prod com fixes #355/#358 |
+| `[x]` | [`Financeiro/ContasBancarias`](../resources/js/Pages/Financeiro/ContasBancarias/Index.tsx) | charter stub F1 live, last_validated 2026-05-07 |
+| `[x]` | [`Financeiro/Extrato`](../resources/js/Pages/Financeiro/Extrato/Index.tsx) | charter live, last_validated 2026-05-07, US-RB-046 |
+| `[x]` | [`ProjectMgmt/Board`](../resources/js/Pages/ProjectMgmt/Board/Index.tsx) | charter live, last_validated 2026-05-08, ADR 0070 PMG |
+| `[x]` | [`governance/Dashboard`](../resources/js/Pages/governance/Dashboard.charter.md) | charter live |
+| `[~]` | `Financeiro/Fluxo` (não criada) | F1 pino [aqui](prototipos/financeiro-fluxo/) — sem backend service ainda |
+| `[!]` | `Financeiro/PlanoContas` (não criada) | F1 pino [aqui](prototipos/financeiro-plano-contas/) — bloqueada por ADR `arq/0008` + migration `chart_of_accounts` |
+| `[!]` | `Financeiro/DRE` (não criada) | F1 pino [aqui](prototipos/financeiro-dre/) — bloqueada por PlanoContas + ADR `arq/0007` |
+| `[!]` | `Financeiro/Conciliacao` (não criada) | F1 pino [aqui](prototipos/financeiro-conciliacao/) — bloqueada por ADR `arq/0006` + tabela `bank_statement_lines` |
+
+## 🟡 P2 — Charters novos draft (aguardando aprovação Wagner)
+
+> Charters criados em batch 2026-05-09 a partir do canon visual `cowork-2026-05-09`. Cada um tem decisões pendentes pra Wagner aprovar antes de virar `status: live`.
+
+| Status | Tela | Material canon | Charter draft |
 |---|---|---|---|
-| `[ ]` | [`Sells/Create`](../resources/js/Pages/Sells/Create.tsx) | Larissa 1280px — KPIs gigantes, action bar sticky, split pagamento | [existe](../resources/js/Pages/Sells/Create.charter.md) |
-| `[ ]` | [`Sells/Index`](../resources/js/Pages/Sells/Index.tsx) | Larissa — densidade tabela, drawer SaleSheet, abas filter sync | [existe](../resources/js/Pages/Sells/Index.charter.md) |
+| `[~]` | `Cliente/Index` (a criar) | [`clientes-page.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/clientes-page.jsx) (10 KB) | [draft](../resources/js/Pages/Cliente/Index.charter.md) — Wagner aprova Non-Goals + Anti-hooks |
+| `[~]` | `Produto/Unificado/Index` (a criar) | [`produto-app.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/produto-app.jsx) (60 KB) + [screenshot-06](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/screenshot-06-produto.png) | [draft](../resources/js/Pages/Produto/Unificado/Index.charter.md) — decisões pendentes (multiplier schema, MfgRecipe namespace, cache strategy) |
+| `[~]` | `Produto/Index` (a criar) | [`prod-page.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/prod-page.jsx) (6.5 KB) | [draft](../resources/js/Pages/Produto/Index.charter.md) — decisão pendente: simples vs unificado coexistem? |
+| `[~]` | `Orcamento/Index` (a criar) | [`orc-page.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/orc-page.jsx) (6.3 KB) | [draft](../resources/js/Pages/Orcamento/Index.charter.md) — decisão pendente: Model `App\Transaction` (`type: quotation`) vs dedicado |
 
-## P1 — Fluxos com charter existente
+## ✅ P2 — Outras telas com charter live
 
-| Status | Tela | Prioridade visual | Charter |
-|---|---|---|---|
-| `[x]` | [`Repair/ProducaoOficina`](../resources/js/Pages/Repair/ProducaoOficina/Index.tsx) | Larissa 1280px — kanban 5 colunas, drawer com banner aprovação | [existe](../resources/js/Pages/Repair/ProducaoOficina/Index.charter.md) — F1→F3 em 1 dia (PR #326→#330, 2026-05-09) |
-| `[ ]` | [`Repair/Dashboard`](../resources/js/Pages/Repair/Dashboard/Index.tsx) | Técnico mobile-first | [existe](../resources/js/Pages/Repair/Dashboard/Index.charter.md) |
-| `[ ]` | [`Repair/JobSheet`](../resources/js/Pages/Repair/JobSheet/Index.tsx) | Técnico mobile, status visíveis a 2m | [existe](../resources/js/Pages/Repair/JobSheet/Index.charter.md) |
-| `[ ]` | [`Repair/Status`](../resources/js/Pages/Repair/Status/Index.tsx) | Técnico mobile, transição clara | [existe](../resources/js/Pages/Repair/Status/Index.charter.md) |
-| `[ ]` | [`Financeiro/ContasBancarias`](../resources/js/Pages/Financeiro/ContasBancarias/Index.tsx) | Eliana — número grande saldo Mercury-like | [existe](../resources/js/Pages/Financeiro/ContasBancarias/Index.charter.md) |
-| `[ ]` | [`Financeiro/Extrato`](../resources/js/Pages/Financeiro/Extrato/Index.tsx) | Eliana — entrada/saída sem depender só de cor | [existe](../resources/js/Pages/Financeiro/Extrato/Index.charter.md) |
-| `[~]` | `Financeiro/Fluxo` (não criada) | Eliana — projeção 35d, chart, eventos lado-a-lado | F1 pino [aqui](prototipos/financeiro-fluxo/) — **sugestão 1ª a atacar** (sem tabela nova) |
-| `[!]` | `Financeiro/PlanoContas` (não criada) | Eliana — árvore 2 níveis | F1 pino [aqui](prototipos/financeiro-plano-contas/) — bloqueada por ADR `arq/0008` + migration `chart_of_accounts` |
-| `[!]` | `Financeiro/DRE` (não criada) | Wagner — DRE hierárquico vs anterior | F1 pino [aqui](prototipos/financeiro-dre/) — bloqueada por PlanoContas + ADR `arq/0007` |
-| `[!]` | `Financeiro/Conciliacao` (não criada) | Eliana — extrato OFX × sistema, fuzzy match | F1 pino [aqui](prototipos/financeiro-conciliacao/) — bloqueada por ADR `arq/0006` + tabela `bank_statement_lines` |
-| `[x]` | [`Financeiro/Unificado`](../resources/js/Pages/Financeiro/Unificado/Index.tsx) (em prod) | Eliana — densidade + drawer + ⌘K | tela já em prod com fixes #355/#358 — pino [aqui](prototipos/financeiro-unificado/) é referência visual histórica, **não sobrescrever** |
-| `[ ]` | [`ProjectMgmt/Board`](../resources/js/Pages/ProjectMgmt/Board/Index.tsx) | Wagner+Time — Kanban Linear-like | [existe](../resources/js/Pages/ProjectMgmt/Board/Index.charter.md) |
-| `[ ]` | [`governance/Dashboard`](../resources/js/Pages/governance/Dashboard.charter.md) | Wagner — KPIs saúde sem virar Christmas tree | [existe](../resources/js/Pages/governance/Dashboard.charter.md) |
+| Status | Tela | Refs |
+|---|---|---|
+| `[x]` | [`Jana/Chat`](../resources/js/Pages/Jana/Chat.tsx) | charter live, last_validated 2026-05-09 — refinamento visual em F0 aberto em [COWORK_NOTES.md](COWORK_NOTES.md) (7 problemas detectados em prod) |
+| `[x]` | [`Whatsapp/Settings`](../resources/js/Pages/Whatsapp/Settings.charter.md) | charter live |
 
-## P2 — Telas quentes sem charter (gerar charter junto)
+## ⏳ P2 — Sem charter (charter-write antes de F0)
 
-| Status | Tela | Prioridade visual | Charter |
-|---|---|---|---|
-| `[ ]` | [`Jana/Chat`](../resources/js/Pages/Jana/Chat.tsx) | Wagner+Larissa+Eliana — IA conversacional | [existe](../resources/js/Pages/Jana/Chat.charter.md) |
-| `[ ]` | [`NfeBrasil/Tributacao/Index`](../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx) | Eliana — tela densa CFOP/CSOSN | criar |
-| `[ ]` | [`NfeBrasil/Transactions/NfceStatus`](../resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx) | Larissa — polling status fiscal real-time | criar |
-| `[ ]` | [`Whatsapp/Conversations/Index`](../resources/js/Pages/Whatsapp/Conversations/Index.tsx) | Atendente — inbox 3-col Front/Intercom-like | criar |
+| Status | Tela | Bloqueador |
+|---|---|---|
+| `[ ]` | `NfeBrasil/Tributacao/Index` | charter ausente; sem material canon |
+| `[ ]` | `NfeBrasil/Transactions/NfceStatus` | charter ausente; sem material canon |
+| `[ ]` | `Whatsapp/Conversations/Index` | charter ausente; sem material canon |
+| `[ ]` | `Inventario/Index` | HTML do canon 2026-05-09 é meta-doc de migração, não protótipo de tela operacional. Pino F1 [aqui](prototipos/inventario-migracao/) é placeholder. Charter precisa nascer com escopo claro (lista vs entradas/saídas vs ajuste). |
 
 ## P3 — Site público (vitrine de vendas)
 
-| Status | Tela | Prioridade visual | Charter |
-|---|---|---|---|
-| `[ ]` | [`Site/Home`](../resources/js/Pages/Site/Home.tsx) | Visitante — copy verbo-de-ação Com. Visual | criar |
-| `[ ]` | [`Site/Pricing`](../resources/js/Pages/Site/Pricing.tsx) | Lead — tier visual SaaS | criar |
-| `[ ]` | [`Site/Login`](../resources/js/Pages/Site/Login.tsx) | Lead/Cliente — formal + SaaS-friendly | criar |
+| Status | Tela | Refs |
+|---|---|---|
+| `[ ]` | `Site/Home` | charter + material ausentes |
+| `[ ]` | `Site/Pricing` | charter + material ausentes |
+| `[ ]` | `Site/Login` | charter + material ausentes |
 
 ---
 
 ## Critérios pra mover de coluna
 
-- `[ ] → [~]`: Wagner adicionou em [COWORK_NOTES.md](COWORK_NOTES.md) com pedido completo
-- `[~] → [x]`: PR de F3 mergeada + a11y-report sem critical
-- `[~] → [!]`: bloqueador explicado em [SYNC_LOG.md](SYNC_LOG.md)
+- `[ ] → [~]`: charter draft criado OU Wagner adicionou em [COWORK_NOTES.md](COWORK_NOTES.md) com pedido completo
+- `[~] → [x]`: PR de F3 mergeada + a11y-report sem critical, OU charter `status: live` aprovado por Wagner
+- `[~] → [!]`: bloqueador (backend, schema, ADR) explicado em [SYNC_LOG.md](SYNC_LOG.md)
 
 ## Reordenação
 
