@@ -70,6 +70,8 @@ interface Props {
   filters: Filters;
   contas: { id: number; nome: string }[];
   categorias: { id: number; nome: string }[];
+  periodLabel: string;
+  businessName: string;
 }
 
 // ---------- Helpers ----------
@@ -197,7 +199,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar }: {
 
 // ---------- Página principal ----------
 
-function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias }: Props) {
+function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, periodLabel, businessName }: Props) {
   const [busca, setBusca] = useState(filters.busca ?? '');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -246,7 +248,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias }:
       <PageHeader
         icon="coins"
         title="Financeiro · Visão unificada"
-        description={`Maio 2026 · ROTA LIVRE`}
+        description={businessName ? `${periodLabel} · ${businessName}` : periodLabel}
         action={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => router.visit('/financeiro/extrato')}>
@@ -344,8 +346,19 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias }:
                 );
               })}
               {grupos.length === 0 && (
-                <tr><td colSpan={7} className="py-12 text-center text-sm text-stone-500">
-                  Nenhum lançamento com os filtros atuais.
+                <tr><td colSpan={7} className="py-16">
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <div className="text-sm text-stone-600">
+                      {filters.tab === 'all' && !filters.busca && filters.conta === '' && filters.categoria === ''
+                        ? `Nenhum lançamento em ${periodLabel}.`
+                        : 'Nenhum lançamento com os filtros atuais.'}
+                    </div>
+                    {filters.tab === 'all' && !filters.busca && filters.conta === '' && filters.categoria === '' && (
+                      <Button size="sm" onClick={() => router.visit('/financeiro/unificado/novo')}>
+                        + Adicionar primeiro lançamento
+                      </Button>
+                    )}
+                  </div>
                 </td></tr>
               )}
             </tbody>
