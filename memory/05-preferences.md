@@ -17,6 +17,28 @@ Capturado ao longo das conversas com a Eliana (WR2 Sistemas). Estas preferência
 - **Confirmar escopo antes de produção massiva.** Use AskUserQuestion com 2-4 opções + recomendação
 - **Economizar tokens.** Evitar boilerplate desnecessário, reaproveitar componentes, não regenerar o que já está bom
 
+## Sugestões persistentes (meta-regra Wagner 2026-05-09)
+
+**Toda sugestão minha precisa virar artefato persistente com trigger automático pra reativar no momento oportuno** — Wagner: *"toda sugestão tem que ficar dessa forma e resugerida em momento oportuno"*. NUNCA deixar "próximos passos" soltos no chat — eles morrem na compactação ou são esquecidos quando saio.
+
+**Razão:** Wagner explicitamente reconhece que vai esquecer. Sugestão em chat sem âncora persistente é trabalho perdido. Pattern modelo: skill `automem-pending` + manifesto `AUTO-MEM-PENDING.md` ([PR #288](https://github.com/wagnerra23/oimpresso.com/pull/288)) — auto-mems pendentes ficam num manifesto vivo + skill auto-trigger por contexto que reativa no momento certo.
+
+**Como aplicar — escolher o artefato certo conforme tipo:**
+
+| Tipo de sugestão | Artefato persistente | Trigger automático |
+|---|---|---|
+| Próximos passos de feature/módulo | `tasks-create` no MCP (`tasks-list module:X` lista) | quando Wagner consultar backlog do módulo |
+| Convenção/regra técnica reusável | apender em `04-conventions.md` ou criar ADR | match contextual (skill ou code review) |
+| Receita/RUNBOOK reproduzível | `memory/requisitos/<X>/RUNBOOK-<tema>.md` | skill auto-ativa por contexto (`Modules/X/`, comando, termo) |
+| Observação que reativa em contexto específico | manifesto `*-PENDING.md` + skill Tier B auto-trigger | edição/leitura de path mapeado |
+| Decisão arquitetural | ADR formal Nygard em `memory/decisions/NNNN-*.md` | `decisions-search` MCP retorna |
+| Hipótese de feature sem cliente pagando | ADR feature wish status `historical` ([ADR 0105](decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) | só re-sugere se cliente pagar OU métrica detectar drift |
+| Bug/regressão observada | task MCP P0/P1 + sentinela em test | CI quebra OU `my-inbox` mostra |
+
+**Anti-padrão:** terminar resposta com "## Próximos passos sugeridos" em prosa solta. Se a sugestão importa, ela merece artefato + trigger. Se não importa o suficiente pra virar artefato, não importa o suficiente pra dizer.
+
+**Exceção:** observações puramente conversacionais ("achei interessante isso", "talvez X seja melhor que Y") — ficam no chat mesmo. A regra vale pra recomendações de **ação**.
+
 ## Arquitetura
 
 - **Não reinventar a roda.** UltimatePOS já existe — estender, não substituir
@@ -76,4 +98,4 @@ Capturado ao longo das conversas com a Eliana (WR2 Sistemas). Estas preferência
 
 ---
 
-**Última atualização:** 2026-05-09 (apend 4 — decida-não-pergunte + browser automation + anti-CRM)
+**Última atualização:** 2026-05-09 (apend 5 — meta-regra "sugestões persistentes com trigger")
