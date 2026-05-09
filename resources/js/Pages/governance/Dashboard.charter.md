@@ -3,22 +3,23 @@ page: /governance
 component: resources/js/Pages/governance/Dashboard.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-08
+last_validated: 2026-05-09
 parent_module: Governance
-related_adrs: [0110, 0079, 0094]
+related_adrs: [0110, 0079, 0094, 0114]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /governance
 
 > **Status:** live. Página de referência viva do **Cockpit Pattern V2** com `<PageHeader>` + `<KpiCard>` shared (gold-standard de reuso de componentes).
+> **v2 (2026-05-09):** estendida com seção "Saúde do ecossistema" — fechou a maior parte do escopo da US-COPI-098 do epic Cockpit Saúde sem precisar de tela nova.
 
 ---
 
 ## Mission
 
-Dashboard executivo de governança: visão consolidada de saúde dos checks (multi-tenant isolation, brief uptime, custo brain B, PII leak, profile distiller drift) + audit highlights pra Wagner enquanto operador sênior decidir intervenções.
+Dashboard executivo de governança E saúde do ecossistema: visão consolidada de checks Constituição (multi-tenant isolation, brief uptime, custo brain B, PII leak, profile distiller drift) + audit highlights + saúde do ecossistema (failed jobs Horizon, custo IA 24h, narrativas hourly Brain A) pra Wagner enquanto operador sênior decidir intervenções.
 
 ---
 
@@ -26,9 +27,12 @@ Dashboard executivo de governança: visão consolidada de saúde dos checks (mul
 
 - AppShellV2 + topnav
 - `<PageHeader>` shared canônico (h1 + subtitle + ações)
+- 2 fileiras de KpiGrid separadas por h2 de seção (`Constituição` cols=6 + `Saúde do ecossistema` cols=3)
 - `<KpiCard>` shared (NÃO inline custom) com tones semânticos (default/success/warning/danger/info)
 - Audit highlights list com badges status semântico (rose pra erro, emerald pra ok)
+- Narrativas Brain A 24h (top 5) com badges severity (info=blue, warning=amber, critical=rose) — top 5 últimas 24h
 - Multi-tenant Tier 0: dados scopados business_id (default biz=1 — Wagner)
+- Degradação graciosa: failed_jobs / jana_mensagens / jana_health_narratives ausentes → KPI mostra "—" + description explicativa, ao invés de erro
 
 ---
 
