@@ -9,11 +9,12 @@ contains:
   - "Admin/SettingsController — wizard 2 passos Z-API+Meta + gating LGPD (BusinessSettingsRequest)"
   - "Admin/ConversationsController — Inbox Cockpit + send manual + Centrifugo subscribe"
   - "Admin/TemplatesController — sync HSM Meta + criar template LOCAL Z-API/Baileys"
-  # API webhooks (US-WA-010/010b)
+  # API webhooks (US-WA-010/010b/002d)
   - "Api/MetaWebhookController — recebe events Meta Cloud (HMAC SHA-256 verify)"
   - "Api/ZapiWebhookController — recebe events Z-API (Client-Token timing-safe)"
+  - "Api/BaileysWebhookController — recebe events daemon Node CT 100 (Bearer timing-safe)"
   # Services / Drivers
-  - "Services/Drivers/{ZapiDriver, MetaCloudDriver, NullDriver, DriverFactory} — abstração + fallback runtime"
+  - "Services/Drivers/{ZapiDriver, MetaCloudDriver, BaileysDriver, NullDriver, DriverFactory} — abstração + fallback runtime"
   - "Services/Centrifugo/{CentrifugoPublisher, CentrifugoTokenIssuer} — real-time UI ADR 0058"
   # Jobs / Listeners / Observers
   - "Jobs/{SendWhatsappMessageJob, ProcessIncomingWebhookJob, WhatsappDriverHealthCheckJob}"

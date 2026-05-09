@@ -12,6 +12,7 @@ use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\WhatsappMessageReceived;
 use Modules\Whatsapp\Events\WhatsappMessageSent;
+use Modules\Whatsapp\Http\Middleware\VerifyBaileysSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
 use Modules\Whatsapp\Listeners\DispatchToJanaBot;
@@ -20,6 +21,7 @@ use Modules\Whatsapp\Listeners\PublishMessageReceivedToCentrifugo;
 use Modules\Whatsapp\Listeners\PublishMessageSentToCentrifugo;
 use Modules\Whatsapp\Observers\WhatsappMessageObserver;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
+use Modules\Whatsapp\Services\Drivers\BaileysDriver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -75,6 +77,7 @@ class WhatsappServiceProvider extends ServiceProvider
         $router = $this->app['router'];
         $router->aliasMiddleware('whatsapp.meta.signature', VerifyMetaSignature::class);
         $router->aliasMiddleware('whatsapp.zapi.signature', VerifyZapiSignature::class);
+        $router->aliasMiddleware('whatsapp.baileys.signature', VerifyBaileysSignature::class);
     }
 
     public function register(): void
@@ -86,6 +89,7 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->app->singleton(ZapiDriver::class);
         $this->app->singleton(MetaCloudDriver::class);
         $this->app->singleton(NullDriver::class);
+        $this->app->singleton(BaileysDriver::class);
 
         // Centrifugo publisher singleton (stateless HTTP wrapper)
         $this->app->singleton(CentrifugoPublisher::class);
@@ -99,6 +103,7 @@ class WhatsappServiceProvider extends ServiceProvider
             return match (config('whatsapp.default_driver', 'zapi')) {
                 'zapi' => $this->app->make(ZapiDriver::class),
                 'meta_cloud' => $this->app->make(MetaCloudDriver::class),
+                'baileys' => $this->app->make(BaileysDriver::class),
                 'null' => $this->app->make(NullDriver::class),
                 default => $this->app->make(NullDriver::class),
             };

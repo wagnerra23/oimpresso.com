@@ -46,13 +46,11 @@ class DriverFactory
         return match ($effectiveDriver) {
             'zapi' => app(ZapiDriver::class),
             'meta_cloud' => app(MetaCloudDriver::class),
+            'baileys' => app(BaileysDriver::class),
             'null' => app(NullDriver::class),
-            // 'baileys' será adicionado em Sprint 3 (ADR 0096 emenda 4)
-            // — quando implementado, descomentar:
-            // 'baileys' => app(BaileysDriver::class),
             default => throw new \InvalidArgumentException(
-                "Driver '{$effectiveDriver}' desconhecido. Valores válidos Sprint 1: "
-                . "'zapi', 'meta_cloud', 'null'."
+                "Driver '{$effectiveDriver}' desconhecido. Valores válidos: "
+                . "'zapi', 'meta_cloud', 'baileys', 'null'."
             ),
         };
     }
@@ -76,6 +74,7 @@ class DriverFactory
         return match ($config->driver) {
             'zapi' => app(ZapiDriver::class),
             'meta_cloud' => app(MetaCloudDriver::class),
+            'baileys' => app(BaileysDriver::class),
             'null' => app(NullDriver::class),
             default => throw new \InvalidArgumentException(
                 "Driver primário '{$config->driver}' desconhecido."
