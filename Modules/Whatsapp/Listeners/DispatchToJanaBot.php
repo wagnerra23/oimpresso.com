@@ -27,7 +27,7 @@ use Modules\Whatsapp\Events\WhatsappMessageReceived;
  *   - REQUIRE_HUMAN_REVIEW → marca `status=awaiting_human` + Centrifugo notify
  *   - BLOCK_ALWAYS → log + no-op
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * Recupera phone da conversa via `whatsapp_business_phone_id` (preenchido
  * pelo ProcessIncomingWebhookJob ao processar inbound). Só processa se
  * `phone->handles_jana_bot=true` — admin pode desativar bot por número
@@ -38,7 +38,7 @@ use Modules\Whatsapp\Events\WhatsappMessageReceived;
  *
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-020, US-WA-040
  * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3.2 (fluxo bot HITL)
- * @see memory/decisions/0115-multiplos-numeros-whatsapp-por-business.md
+ * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
  */
 class DispatchToJanaBot
 {

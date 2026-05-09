@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Whatsapp business phones — N rows por business (1 por número Whatsapp).
  *
- * Substitui `whatsapp_business_configs` (1:1 business→config) — ver ADR 0115.
- * Schema espelha SPEC.md US-WA-040 + ADR 0115 §Schema mãe.
+ * Substitui `whatsapp_business_configs` (1:1 business→config) — ver ADR 0117.
+ * Schema espelha SPEC.md US-WA-040 + ADR 0117 §Schema mãe.
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093) — global scope `business_id` no
  * Model via trait `HasBusinessScope`.
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Schema;
  * Laravel no Model `WhatsappBusinessPhone`.
  *
  * Roteamento de eventos automáticos via flags `handles_*` (decisão Q2 do
- * Wagner em ADR 0115 — cada número escolhe quais eventos dispara).
+ * Wagner em ADR 0117 — cada número escolhe quais eventos dispara).
  */
 return new class extends Migration
 {
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->uuid('phone_uuid')->unique()
                 ->comment('usado em webhook URL e Centrifugo channel granular');
             $table->string('label', 80)
-                ->comment('apelido livre Comercial/Financeiro/etc — Q4 ADR 0115');
+                ->comment('apelido livre Comercial/Financeiro/etc — Q4 ADR 0117');
 
             // Driver per-phone (era per-business em whatsapp_business_configs)
             $table->string('driver', 20)->default('zapi')
@@ -63,7 +63,7 @@ return new class extends Migration
             $table->timestamp('lgpd_acknowledged_at')->nullable();
             $table->unsignedInteger('lgpd_acknowledged_by_user_id')->nullable();
 
-            // Roteamento de eventos automáticos (Q2 ADR 0115 — decisão B)
+            // Roteamento de eventos automáticos (Q2 ADR 0117 — decisão B)
             $table->boolean('handles_repair_status')->default(false)
                 ->comment('listener NotifyRepairCustomer dispara por este número?');
             $table->boolean('handles_billing')->default(false)

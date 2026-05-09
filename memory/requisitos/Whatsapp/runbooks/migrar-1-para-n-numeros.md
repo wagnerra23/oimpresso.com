@@ -1,10 +1,10 @@
 # Runbook — Migração Whatsapp 1→N números por business
 
-> **Decisão mãe:** [ADR 0115](../../../decisions/0115-multiplos-numeros-whatsapp-por-business.md)
+> **Decisão mãe:** [ADR 0117](../../../decisions/0117-multiplos-numeros-whatsapp-por-business.md)
 > **US mãe:** US-WA-040 em [SPEC.md](../SPEC.md)
 > **Charter mãe:** [`Settings.charter.md`](../../../../resources/js/Pages/Whatsapp/Settings.charter.md) — vai pra v2
 > **Cliente piloto:** WR2 Sistemas (`business_id=1`) — Comercial + Financeiro
-> **Estado:** rascunho 2026-05-09, aguardando ADR 0115 aprovada antes de qualquer Edit em código
+> **Estado:** rascunho 2026-05-09, aguardando ADR 0117 aprovada antes de qualquer Edit em código
 
 ## Objetivo
 
@@ -12,7 +12,7 @@ Migrar schema Whatsapp de 1 config/business pra N números/business **sem downti
 
 ## Pré-requisitos
 
-- [ ] ADR 0115 com `status: aceito` + `accepted_at` preenchido
+- [ ] ADR 0117 com `status: aceito` + `accepted_at` preenchido
 - [ ] Charter `Settings.charter.md` v2 aprovado por Wagner (Non-Goal removido)
 - [ ] Backup MySQL Hostinger fresco (≤24h) — `mysqldump oimpresso > pre-migracao-115.sql`
 - [ ] Daemon CT 100 rodando estável (sem regressão recente em `whatsapp-baileys`)
@@ -212,4 +212,4 @@ Restore do `pre-migracao-115.sql` no Hostinger MySQL → revert merge → deploy
 
 | Data | Autor | Mudança |
 |---|---|---|
-| 2026-05-09 | Wagner + Opus 4.7 | Rascunho inicial. Aguardando ADR 0115 aprovada antes de qualquer Edit em código. |
+| 2026-05-09 | Wagner + Opus 4.7 | Rascunho inicial. Aguardando ADR 0117 aprovada antes de qualquer Edit em código. |

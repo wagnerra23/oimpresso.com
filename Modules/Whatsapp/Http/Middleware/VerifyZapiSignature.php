@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
  * - `zapi_client_token` (Account Security Token) — usado por NÓS quando
  *   chamamos a API outbound. Header `Client-Token`.
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * Cada `WhatsappBusinessPhone` tem seu próprio `zapi_instance_token` (cada
  * instância Z-API é um número Whatsapp diferente). O middleware tenta
  * resolver o phone via header `z-api-token`. Se acha, valida e injeta;

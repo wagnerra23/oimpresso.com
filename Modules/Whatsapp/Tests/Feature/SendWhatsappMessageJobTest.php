@@ -18,7 +18,7 @@ uses(Tests\TestCase::class);
 
 /**
  * US-WA-003 + US-WA-040 · SendWhatsappMessageJob — fluxo end-to-end
- * + multi-tenant Tier 0 + multi-números (ADR 0115).
+ * + multi-tenant Tier 0 + multi-números (ADR 0117).
  *
  * Cobre:
  * - Job aceita $businessId + $whatsappBusinessPhoneId no constructor

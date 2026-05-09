@@ -21,7 +21,7 @@ use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
  * EvolutionDriver é PROIBIDO permanente (ADR 0096 emenda 4):
  * bans em produção Wagner + schema não atende + falta observabilidade.
  *
- * Multi-números (ADR 0115 — US-WA-040): todos os métodos aceitam
+ * Multi-números (ADR 0117 — US-WA-040): todos os métodos aceitam
  * `WhatsappBusinessConfig` (legacy 1:1 business→config) ou
  * `WhatsappBusinessPhone` (1:N business→números) via union type.
  * Drivers acessam apenas campos comuns aos 2 models (driver, fallback,
@@ -29,7 +29,7 @@ use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
  * durante a fase de coexistência (PR 2 → PR 5).
  *
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002, US-WA-040
- * @see memory/decisions/0115-multiplos-numeros-whatsapp-por-business.md
+ * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
  */
 interface DriverInterface
 {
