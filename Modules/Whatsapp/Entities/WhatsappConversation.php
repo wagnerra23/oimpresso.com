@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int $id
  * @property int $business_id
+ * @property ?int $whatsapp_business_phone_id
  * @property ?int $contact_id
  * @property string $customer_phone
  * @property string $status
@@ -63,6 +64,15 @@ class WhatsappConversation extends Model
     public function business(): BelongsTo
     {
         return $this->belongsTo(\App\Business::class, 'business_id');
+    }
+
+    /**
+     * Número Whatsapp deste business que dono desta conversa (ADR 0115).
+     * Nullable até data migration rodar; após PR 5 vira NOT NULL.
+     */
+    public function whatsappBusinessPhone(): BelongsTo
+    {
+        return $this->belongsTo(WhatsappBusinessPhone::class, 'whatsapp_business_phone_id');
     }
 
     public function contact(): BelongsTo

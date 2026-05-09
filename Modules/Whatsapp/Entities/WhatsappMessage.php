@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property int $id
  * @property int $business_id
+ * @property ?int $whatsapp_business_phone_id
  * @property int $conversation_id
  * @property string $direction
  * @property string $provider
@@ -81,6 +82,15 @@ class WhatsappMessage extends Model
     public function business(): BelongsTo
     {
         return $this->belongsTo(\App\Business::class, 'business_id');
+    }
+
+    /**
+     * Número Whatsapp que enviou/recebeu esta mensagem (ADR 0115).
+     * Nullable até data migration rodar; após PR 5 vira NOT NULL.
+     */
+    public function whatsappBusinessPhone(): BelongsTo
+    {
+        return $this->belongsTo(WhatsappBusinessPhone::class, 'whatsapp_business_phone_id');
     }
 
     public function senderUser(): BelongsTo
