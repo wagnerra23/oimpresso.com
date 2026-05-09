@@ -77,6 +77,7 @@ Detalhes em `memory/proibicoes.md`. Resumo:
 - Hostinger ≠ CT 100 separação ([ADR 0062](memory/decisions/0062-separacao-runtime-hostinger-ct100.md))
 - ZERO auto-mem privada ([ADR 0061](memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md))
 - `laravel/octane` no Hostinger
+- **F3 (Cowork → Inertia/React):** ler [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) antes de Edit/Write em `Modules/<Mod>/Http/Controllers/*.php` ou `resources/js/Pages/<Mod>/<Tela>.tsx` — 6 meta-anti-padrões + 15 técnicos catalogados (sessão 2026-05-09 batch Financeiro rejeitado)
 
 ## Métricas de saúde
 
