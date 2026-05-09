@@ -33,3 +33,6 @@
 2026-05-09 19:00 [CL] cowork-inbox pipeline E2E live — drop em cowork-inbox/ → header parsed → arquivo movido pra path whitelist → PR auto-mergeado em ~24s (PRs #321 → #325)
 2026-05-09 19:08 [CL] dropped prototipos/producao-oficina/F1.html via inbox (PR #326 → #327, run 25609417046, 24s, kanban 5 colunas DNA Cockpit V2 conservador)
 2026-05-09 19:30 [W2] approved producao-oficina F1 — pronto pra F3 quando Wagner pedir
+2026-05-09 21:15 [CL] dropped prototipos/financeiro-{unificado,fluxo,conciliacao,dre,plano-contas}/page.tsx — 5 batch F1 pinos (WAITING_FOR_BACKEND)
+2026-05-09 21:15 [CL] análise pré-merge rejeitou batch original do PROMPT_PARA_CLAUDE_CODE — controllers Cowork eram NO-OP sem tenant scope (Tier 0 violation, ADR 0093) + UnificadoController regrediria fixes #355/#358 em prod
+2026-05-09 21:15 [CL] sequência sugerida pra F3: fluxo (sem tabela nova) → plano-contas (fundação) → dre (consome plano) — conciliacao escopo separado (exige bank_statement_lines + ADR arq/0006)
