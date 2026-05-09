@@ -13,7 +13,7 @@
 | [#26](https://github.com/wagnerra23/oimpresso.com/pull/26) | 5 | Bridge memória↔chat (`recallMemoria()` + `ExtrairFatosDaConversaJob` + `ExtrairFatosAgent`) | 43 passed (3 skipped) |
 | [#27](https://github.com/wagnerra23/oimpresso.com/pull/27) | 6 | Tela `/copiloto/memoria` LGPD US-COPI-MEM-012 (`MemoriaController` + `Pages/Copiloto/Memoria.tsx`) | 48 passed (3 skipped) |
 | [#28](https://github.com/wagnerra23/oimpresso.com/pull/28) | — | MemCofre score: 3 telas Copiloto com `@memcofre` block sincronizadas em `docs_pages` | — |
-| [#29](https://github.com/wagnerra23/oimpresso.com/pull/29) | — | `memory/requisitos/Copiloto/ENTERPRISE.md` (12 seções enterprise) | — |
+| [#29](https://github.com/wagnerra23/oimpresso.com/pull/29) | — | `memory/requisitos/Jana/ENTERPRISE.md` (12 seções enterprise) | — |
 | direto branch | — | Comparativo Capterra `claude_desktop_vs_laravel_mcp_oimpresso` + `revisao_caminho_2026_04_27_capterra` + ADR 0037 | — |
 
 Todos mergeados em `6.7-bootstrap`. **Deploy SSH parcial confirmado:** PR #25 + PR #28 deployados (`memcofre:sync-pages` rodou e populou `docs_pages` com as 14 telas que têm bloco). PRs #26/#27/#29 ainda precisam de deploy SSH (`composer install` + `php artisan migrate` + `optimize:clear`).
@@ -158,7 +158,7 @@ Total ADRs Copiloto consolidados: **0026, 0027, 0030, 0031, 0032, 0033, 0034, 00
 - `memory/comparativos/revisao_caminho_2026_04_27_capterra.md` (NOVO)
 - `memory/comparativos/claude_desktop_vs_laravel_mcp_oimpresso_2026_04_27.md` (NOVO)
 - `memory/comparativos/_INDEX.md` (atualizado)
-- `memory/requisitos/Copiloto/ENTERPRISE.md` (NOVO — 420 linhas)
+- `memory/requisitos/Jana/ENTERPRISE.md` (NOVO — 420 linhas)
 - `memory/CHANGELOG.md` (sessões 15-18)
 - `memory/08-handoff.md` (sessão 17)
 

@@ -63,7 +63,7 @@ Documentar e tratar como débito técnico conhecido. Não bloquear roadmap até 
 2. Com `project: PROJECT` (key oficial em `mcp_jira_projects`): retorna *"❌ module é obrigatório"* — ignora `project`.
 3. Com `module: Copiloto`: retorna ✅ *"US-COPILOTO-001 criada e adicionada em SPEC.md"* — mas:
    - **Identifier gerado é `US-COPILOTO-NNN`** (uppercase do nome do módulo), divergente do padrão Linear `COPI-NN` ou legacy `US-COPI-NNN` (com key, não nome)
-   - `git diff memory/requisitos/Copiloto/SPEC.md` retorna **vazio** — SPEC.md não foi modificado de fato
+   - `git diff memory/requisitos/Jana/SPEC.md` retorna **vazio** — SPEC.md não foi modificado de fato
    - `tasks-detail US-COPILOTO-001` retorna *"Task não encontrada"* — também não persistiu no DB
 
 **Hipótese:** tool roda no MCP server (CT 100), mas tenta escrever filesystem que está só no Hostinger. Sem rede compartilhada, write falha mas não propaga erro pro return.

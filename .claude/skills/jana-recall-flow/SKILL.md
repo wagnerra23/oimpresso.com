@@ -58,7 +58,7 @@ query → NegativeCache.miss? → HyDE.expandir → Meilisearch hybrid (semantic
 
 ## §Crítico — 14 gotchas catalogados
 
-Fonte: [`memory/requisitos/Copiloto/RETRIEVAL-GOTCHAS.md`](memory/requisitos/Copiloto/RETRIEVAL-GOTCHAS.md). Cada um já queimou ≥30min. Top dos perigosos:
+Fonte: [`memory/requisitos/Jana/RETRIEVAL-GOTCHAS.md`](memory/requisitos/Jana/RETRIEVAL-GOTCHAS.md). Cada um já queimou ≥30min. Top dos perigosos:
 
 | # | Gotcha | Sintoma | Mitigação |
 |---|---|---|---|
@@ -145,9 +145,9 @@ php artisan tinker --execute="..." # ver RETRIEVAL-GOTCHAS.md §1
 
 ## Documentos-fonte canônicos
 
-- [`memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md`](memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md) — pesquisa mai/2026 (versionar por data ao atualizar)
-- [`memory/requisitos/Copiloto/RETRIEVAL-GOTCHAS.md`](memory/requisitos/Copiloto/RETRIEVAL-GOTCHAS.md) — 14 armadilhas (apenda; não remova sem ADR)
-- [`memory/requisitos/Copiloto/MEILISEARCH-EVOLUCAO.md`](memory/requisitos/Copiloto/MEILISEARCH-EVOLUCAO.md) — sprint 7→9 timeline (não reescrever passado)
+- [`memory/requisitos/Jana/RETRIEVAL-ESTADO-ARTE-2026-05.md`](memory/requisitos/Jana/RETRIEVAL-ESTADO-ARTE-2026-05.md) — pesquisa mai/2026 (versionar por data ao atualizar)
+- [`memory/requisitos/Jana/RETRIEVAL-GOTCHAS.md`](memory/requisitos/Jana/RETRIEVAL-GOTCHAS.md) — 14 armadilhas (apenda; não remova sem ADR)
+- [`memory/requisitos/Jana/MEILISEARCH-EVOLUCAO.md`](memory/requisitos/Jana/MEILISEARCH-EVOLUCAO.md) — sprint 7→9 timeline (não reescrever passado)
 
 ## ADRs canônicos (alta densidade)
 

@@ -89,4 +89,4 @@ Estado em 2026-04-27 fim de noite (sessão 19 da thread `dazzling-lichterman-e59
 - `memory/08-handoff.md` (resumo "começa aqui" do projeto)
 - `memory/sessions/2026-04-27-sprints-5-6-mcp-claude-desktop-revisao.md` (session log completo)
 - `memory/CHANGELOG.md` (Keep-a-Changelog format)
-- `memory/requisitos/Copiloto/ENTERPRISE.md` (overview enterprise)
+- `memory/requisitos/Jana/ENTERPRISE.md` (overview enterprise)

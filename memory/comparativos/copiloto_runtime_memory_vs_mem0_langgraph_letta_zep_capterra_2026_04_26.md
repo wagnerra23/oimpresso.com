@@ -284,9 +284,9 @@ Gatilho de pivot mensurável: 1 cliente fala explicitamente "preciso que ele lem
 
 ## Anexo A — Funções necessárias estilo "necessidades" / user stories
 
-> Wagner pediu "descreva as função necessária e descreva estilo necisidades" — formato US-Gherkin alinhado com `memory/requisitos/Copiloto/SPEC.md`.
+> Wagner pediu "descreva as função necessária e descreva estilo necisidades" — formato US-Gherkin alinhado com `memory/requisitos/Jana/SPEC.md`.
 
-Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para virar SPEC formal em `memory/requisitos/Copiloto/SPEC.md` quando o caminho B (Mem0) for aprovado.
+Numeração reservada: **US-COPI-MEM-001 a US-COPI-MEM-014** — material para virar SPEC formal em `memory/requisitos/Jana/SPEC.md` quando o caminho B (Mem0) for aprovado.
 
 ### Tier 2 — Fundação (sprint 1-2)
 

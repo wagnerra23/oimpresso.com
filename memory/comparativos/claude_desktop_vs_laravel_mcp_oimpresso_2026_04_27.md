@@ -334,7 +334,7 @@ Mcp::tool('buscar_fato', BuscarFatoTool::class);
 ### Internas
 - [_TEMPLATE_capterra_oimpresso.md](_TEMPLATE_capterra_oimpresso.md) v1.0
 - [revisao_caminho_2026_04_27_capterra.md](revisao_caminho_2026_04_27_capterra.md)
-- [memory/requisitos/Copiloto/ENTERPRISE.md](../requisitos/Copiloto/ENTERPRISE.md)
+- [memory/requisitos/Jana/ENTERPRISE.md](../requisitos/Copiloto/ENTERPRISE.md)
 - ADRs 0026 (posicionamento), 0034 (Laravel AI ecosystem inclui MCP), 0035 (verdade canônica)
 
 ---

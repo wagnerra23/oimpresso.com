@@ -828,7 +828,7 @@ MEILISEARCH_KEY=TFLfQX3Diuz42MydPn68AYH9Km1JbaBI
 
 ## 📜 Documentos enterprise
 
-- [memory/requisitos/Copiloto/ENTERPRISE.md](requisitos/Copiloto/ENTERPRISE.md) — overview executivo + ops + compliance LGPD (12 seções, 420 linhas)
+- [memory/requisitos/Jana/ENTERPRISE.md](requisitos/Copiloto/ENTERPRISE.md) — overview executivo + ops + compliance LGPD (12 seções, 420 linhas)
 - [memory/CHANGELOG.md](CHANGELOG.md) — Keep-a-Changelog format, sessões 15-18
 
 ---

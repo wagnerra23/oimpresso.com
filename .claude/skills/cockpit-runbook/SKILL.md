@@ -76,7 +76,7 @@ Carregar TODAS antes de gerar — economiza round-trips:
 ## Output esperado
 
 **Caminho:** `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab-case>.md`
-Exemplos: `memory/requisitos/Copiloto/RUNBOOK-chat-cockpit.md`, `memory/requisitos/Project/RUNBOOK-inbox-tarefas.md`.
+Exemplos: `memory/requisitos/Jana/RUNBOOK-chat-cockpit.md`, `memory/requisitos/Project/RUNBOOK-inbox-tarefas.md`.
 
 **Frontmatter YAML obrigatório** (espelha padrão `ADS/RUNBOOK-deploy-producao.md`):
 

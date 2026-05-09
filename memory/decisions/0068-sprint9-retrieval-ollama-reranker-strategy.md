@@ -101,7 +101,7 @@ CT 100 é CPU-only, então 4b foi descartado (proibitivo). Validado 0.6b:
 ### Próximo passo — Sprint 9c (Cycle 02, US-COPI-087)
 
 Pesquisa estado da arte mai/2026 (documentada em
-[`memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md`](../requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md))
+[`memory/requisitos/Jana/RETRIEVAL-ESTADO-ARTE-2026-05.md`](../requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md))
 identifica `qwen3-embedding` (Alibaba) como #1 MTEB multilingual Jun/2025,
 com 100+ idiomas e PT-BR explícito documentado.
 

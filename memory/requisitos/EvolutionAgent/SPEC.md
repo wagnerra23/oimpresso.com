@@ -63,7 +63,7 @@ Cada decisão tem ROI estimado. Detalhe nos ADRs.
 │   ├─ FinanceiroAgent     ← memory/requisitos/Financeiro/ + ADRs arq/* │
 │   ├─ PontoAgent          ← memory/requisitos/PontoWr2/                │
 │   ├─ CmsAgent            ← memory/requisitos/Cms/ + comparativos/     │
-│   └─ CopilotoAgent       ← memory/requisitos/Copiloto/                │
+│   └─ CopilotoAgent       ← memory/requisitos/Jana/                │
 │                                                       │
 │  Tools (compartilhadas):                              │
 │   • ListAdrs(escopo)        • RankByRoi(opts[])       │

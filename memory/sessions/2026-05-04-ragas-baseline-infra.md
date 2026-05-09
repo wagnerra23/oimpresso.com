@@ -354,7 +354,7 @@ php artisan eval:ragas-baseline --pipeline=adr
 
 - ADR 0037 — Tier 7-9 RAG roadmap (RAGAS é Sprint 7)
 - ADR 0064/0065/0066 — alvos das golden questions categoria ADR
-- US-COPI-081 (memory/requisitos/Copiloto/SPEC.md) — registro da task
+- US-COPI-081 (memory/requisitos/Jana/SPEC.md) — registro da task
 - `tests/eval/golden-questions.yaml` — golden set
 - `app/Console/Commands/EvalRagasBaselineCommand.php` — pipeline + metrics
 - `tests/eval/results/` — histórico de runs (gitignored? confirmar)

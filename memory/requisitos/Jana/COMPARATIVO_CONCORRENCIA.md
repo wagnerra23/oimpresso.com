@@ -103,5 +103,5 @@
 ## Refs
 
 - ADR ARQ-0001 a 0002 + TECH-0001 a 0002 + UI-0001 (Copiloto)
-- memory/requisitos/Copiloto/SPEC.md + ARCHITECTURE.md + RUNBOOK.md
+- memory/requisitos/Jana/SPEC.md + ARCHITECTURE.md + RUNBOOK.md
 - ChatGPT, MS Copilot for Business — sites oficiais
