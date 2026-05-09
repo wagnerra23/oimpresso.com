@@ -10,6 +10,7 @@ use Modules\Financeiro\Http\Controllers\DashboardController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
+use Modules\Financeiro\Http\Controllers\UnificadoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
     ->group(function () {
         // Dashboard unificado (US-FIN-013)
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Visão Unificada — Cockpit V2 (US-FIN-013/020) — protótipo Cowork 2026-05-09
+        Route::get('/unificado', [UnificadoController::class, 'index'])->name('unificado.index');
+        Route::post('/unificado/{id}/baixar', [UnificadoController::class, 'baixar'])
+            ->whereNumber('id')
+            ->name('unificado.baixar');
 
         // Contas a receber (lista + emitir boleto)
         Route::get('/contas-receber', [ContaReceberController::class, 'index'])->name('contas-receber.index');

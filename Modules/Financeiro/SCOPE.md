@@ -13,6 +13,7 @@ contains:
   - "FinanceiroController"
   - "InstallController"
   - "RelatoriosController"
+  - "UnificadoController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/ProjectMgmt"
