@@ -18,30 +18,30 @@ use Illuminate\Support\Facades\Route;
 Route::group(
     [
         'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
-        'prefix'     => 'copiloto',
+        'prefix'     => 'jana',
         'namespace'  => 'Modules\Jana\Http\Controllers',
     ],
     function () {
         // ---- Chat (entry-point, ver adr/arq/0002) --------------------------
-        Route::get('/',                                    'ChatController@index')->name('copiloto.chat.index');
+        Route::get('/',                                    'ChatController@index')->name('jana.chat.index');
 
         // ---- Cockpit MVP (padrao "Chat Cockpit", ADR 0039 - rota paralela
         //      pra validacao visual sem substituir a /copiloto atual). ----------
-        Route::get('/cockpit',                             'ChatController@cockpit')->name('copiloto.cockpit');
-        Route::post('/conversas',                          'ChatController@criarConversa')->name('copiloto.conversas.store');
+        Route::get('/cockpit',                             'ChatController@cockpit')->name('jana.cockpit');
+        Route::post('/conversas',                          'ChatController@criarConversa')->name('jana.conversas.store');
         // Atalho GET — link "Nova conversa" da sidebar (UX Wagner 2026-05-08).
         // Cria conversa e redireciona pro /conversas/{id}. Antes era 404.
-        Route::get('/conversas/nova',                      'ChatController@novaConversa')->name('copiloto.conversas.nova');
-        Route::get('/conversas/{id}',                      'ChatController@show')->name('copiloto.conversas.show');
-        Route::post('/conversas/{id}/mensagens',           'ChatController@send')->name('copiloto.conversas.mensagens.store');
+        Route::get('/conversas/nova',                      'ChatController@novaConversa')->name('jana.conversas.nova');
+        Route::get('/conversas/{id}',                      'ChatController@show')->name('jana.conversas.show');
+        Route::post('/conversas/{id}/mensagens',           'ChatController@send')->name('jana.conversas.mensagens.store');
         // Streaming SSE — UX token-por-token (versão preferencial pelo frontend)
-        Route::post('/conversas/{id}/mensagens/stream',    'ChatController@sendStream')->name('copiloto.conversas.mensagens.stream');
-        Route::patch('/conversas/{id}',                    'ChatController@updateConversa')->name('copiloto.conversas.update');
-        Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')->name('copiloto.sugestoes.escolher');
-        Route::post('/sugestoes/{id}/rejeitar',            'ChatController@rejeitar')->name('copiloto.sugestoes.rejeitar');
+        Route::post('/conversas/{id}/mensagens/stream',    'ChatController@sendStream')->name('jana.conversas.mensagens.stream');
+        Route::patch('/conversas/{id}',                    'ChatController@updateConversa')->name('jana.conversas.update');
+        Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')->name('jana.sugestoes.escolher');
+        Route::post('/sugestoes/{id}/rejeitar',            'ChatController@rejeitar')->name('jana.sugestoes.rejeitar');
 
         // ---- Dashboard -----------------------------------------------------
-        Route::get('/dashboard',                           'DashboardController@index')->name('copiloto.dashboard.index');
+        Route::get('/dashboard',                           'DashboardController@index')->name('jana.dashboard.index');
 
         // ---- Metas CRUD ----------------------------------------------------
         Route::resource('/metas',                          'MetasController', ['names' => [
@@ -53,7 +53,7 @@ Route::group(
             'update'  => 'copiloto.metas.update',
             'destroy' => 'copiloto.metas.destroy',
         ]]);
-        Route::post('/metas/{id}/reapurar',                'MetasController@reapurar')->name('copiloto.metas.reapurar');
+        Route::post('/metas/{id}/reapurar',                'MetasController@reapurar')->name('jana.metas.reapurar');
 
         // ---- Períodos (aninhado em meta) -----------------------------------
         Route::resource('/metas.periodos',                 'PeriodosController', ['only' => ['store', 'update', 'destroy']]);
@@ -61,34 +61,34 @@ Route::group(
         // ---- Fontes (aninhado em meta, permissão restrita) -----------------
         // FontesController migrado pra Modules/KB em Fase 3.7 (drift resolution).
         // URL mantém /copiloto/metas/{id}/fonte.
-        Route::get('/metas/{id}/fonte',                    [\Modules\KB\Http\Controllers\FontesController::class, 'show'])->name('copiloto.fontes.show');
-        Route::patch('/metas/{id}/fonte',                  [\Modules\KB\Http\Controllers\FontesController::class, 'update'])->name('copiloto.fontes.update');
+        Route::get('/metas/{id}/fonte',                    [\Modules\KB\Http\Controllers\FontesController::class, 'show'])->name('jana.fontes.show');
+        Route::patch('/metas/{id}/fonte',                  [\Modules\KB\Http\Controllers\FontesController::class, 'update'])->name('jana.fontes.update');
 
         // ---- Alertas -------------------------------------------------------
-        Route::get('/alertas',                             'AlertasController@index')->name('copiloto.alertas.index');
-        Route::get('/alertas/config',                      'AlertasController@config')->name('copiloto.alertas.config');
-        Route::patch('/alertas/config',                    'AlertasController@updateConfig')->name('copiloto.alertas.config.update');
+        Route::get('/alertas',                             'AlertasController@index')->name('jana.alertas.index');
+        Route::get('/alertas/config',                      'AlertasController@config')->name('jana.alertas.config');
+        Route::patch('/alertas/config',                    'AlertasController@updateConfig')->name('jana.alertas.config.update');
 
         // ---- Memória (tela "O Copiloto lembra de você", LGPD US-COPI-MEM-012) -
         // MemoriaController migrado pra Modules/KB em Fase 3.7 (drift resolution).
         // URL mantém /copiloto/memoria.
-        Route::get('/memoria',                             [\Modules\KB\Http\Controllers\MemoriaController::class, 'index'])->name('copiloto.memoria.index');
-        Route::patch('/memoria/{id}',                      [\Modules\KB\Http\Controllers\MemoriaController::class, 'update'])->name('copiloto.memoria.update');
-        Route::delete('/memoria/{id}',                     [\Modules\KB\Http\Controllers\MemoriaController::class, 'destroy'])->name('copiloto.memoria.destroy');
+        Route::get('/memoria',                             [\Modules\KB\Http\Controllers\MemoriaController::class, 'index'])->name('jana.memoria.index');
+        Route::patch('/memoria/{id}',                      [\Modules\KB\Http\Controllers\MemoriaController::class, 'update'])->name('jana.memoria.update');
+        Route::delete('/memoria/{id}',                     [\Modules\KB\Http\Controllers\MemoriaController::class, 'destroy'])->name('jana.memoria.destroy');
 
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
-        Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('copiloto.superadmin.metas');
+        Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('jana.superadmin.metas');
 
         // ---- Administração — Onda 1 (ROI direto, ver adr/arq/0003) ----------
         // US-COPI-070: dashboard de custo de IA por business
         Route::get('/admin/custos',                        'Admin\CustosController@index')
-            ->name('copiloto.admin.custos.index');
+            ->name('jana.admin.custos.index');
 
         // ---- Administração — Governança MCP (MEM-MCP-1.e, ADR 0053) --------
         // Visão cross-team do consumo do MCP server.
         // Permission: copiloto.mcp.usage.all (Wagner/superadmin).
         Route::get('/admin/governanca',                    'Admin\GovernancaController@index')
-            ->name('copiloto.admin.governanca.index');
+            ->name('jana.admin.governanca.index');
 
         // ---- Team admin / Tasks / CC sessions MOVIDOS pra Modules/TeamMcp/ ----
         // URLs antigas redirecionam via Route::redirect 301 (ver fim deste arquivo).
@@ -104,7 +104,7 @@ Route::group(
 
         // ---- MEM-MET-4 (ADR 0050) — Page /copiloto/admin/qualidade
         Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
-            ->name('copiloto.admin.qualidade.index');
+            ->name('jana.admin.qualidade.index');
 
         // (TaskRegistry F2 e MEM-CC-UI-1 movidos pra Modules/TeamMcp/ — ver
         //  Modules/TeamMcp/Http/routes.php; redirects 301 no rodapé deste arquivo)
@@ -180,14 +180,14 @@ Route::group(
     function () {
         // Públicos
         Route::post('/sync-memory', 'SyncMemoryWebhookController@handle')
-            ->name('copiloto.mcp.sync-memory');
+            ->name('jana.mcp.sync-memory');
         Route::get('/health', 'HealthController@publico')
-            ->name('copiloto.mcp.health');
+            ->name('jana.mcp.health');
 
         // Autenticados via McpAuth
         Route::group(['middleware' => 'mcp.auth'], function () {
             Route::get('/health/auth', 'HealthController@autenticado')
-                ->name('copiloto.mcp.health.auth');
+                ->name('jana.mcp.health.auth');
         });
     }
 );
@@ -203,7 +203,7 @@ Route::group(
     ],
     function () {
         Route::post('/ingest', 'CcIngestController@ingest')
-            ->name('copiloto.cc.ingest');
+            ->name('jana.cc.ingest');
     }
 );
 
@@ -218,5 +218,18 @@ Route::group(
 if (config('mcp.tools_exposed')) {
     \Laravel\Mcp\Facades\Mcp::web('/api/mcp', \Modules\Jana\Mcp\OimpressoMcpServer::class)
         ->middleware(['api', 'mcp.auth'])
-        ->name('copiloto.mcp.server');
+        ->name('jana.mcp.server');
 }
+
+// ===========================================================================
+// 1.c) Redirects 301 — /copiloto/* → /jana/* (Fase 2b Jana naming alignment)
+// ===========================================================================
+// Wagner 2026-05-09: rename URLs /copiloto → /jana com 301 pra preservar
+// bookmarks de users + zero-break em integrações externas.
+//
+// IMPORTANTE: este redirect generic vem APÓS os específicos do bloco 1.b
+// (TeamMcp, KB) — Laravel matching é first-wins; manter ordem.
+//
+// `where('any', '.*')` permite path com qualquer profundidade incluindo barras.
+Route::redirect('/copiloto/{any?}', '/jana/{any?}', 301)
+    ->where('any', '.*');

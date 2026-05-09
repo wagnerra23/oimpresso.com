@@ -52,7 +52,7 @@ class McpAuthMiddleware
         // `copiloto.mcp.use` mesmo com token válido. Sem isso → 403 + audit.
         // Granularidade fina (decisions.read, governanca.financeiro, etc.)
         // fica nos Tools individuais (cada Tool checa o scope via $user->can).
-        if (method_exists($user, 'can') && ! $user->can('copiloto.mcp.use')) {
+        if (method_exists($user, 'can') && ! $user->can('jana.mcp.use')) {
             return $this->denied(
                 $request,
                 $startedAt,

@@ -22,12 +22,12 @@
             </tbody>
         </table>
 
-        <form method="POST" action="{{ route('copiloto.metas.reapurar', $meta->id) }}" style="display:inline;">
+        <form method="POST" action="{{ route('jana.metas.reapurar', $meta->id) }}" style="display:inline;">
             @csrf
             <button class="btn btn-default">Forçar reapuração</button>
         </form>
-        <a href="{{ route('copiloto.metas.edit', $meta->id) }}" class="btn btn-default">Editar</a>
-        <a href="{{ route('copiloto.fontes.show', $meta->id) }}" class="btn btn-default">Fonte</a>
+        <a href="{{ route('jana.metas.edit', $meta->id) }}" class="btn btn-default">Editar</a>
+        <a href="{{ route('jana.fontes.show', $meta->id) }}" class="btn btn-default">Fonte</a>
     </div></div>
 </section>
 @stop

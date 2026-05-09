@@ -180,7 +180,7 @@ class ChatController extends Controller
             'iniciada_em' => now(),
         ]);
 
-        return redirect()->route('copiloto.conversas.show', $conversa->id);
+        return redirect()->route('jana.conversas.show', $conversa->id);
     }
 
     /**
@@ -200,7 +200,7 @@ class ChatController extends Controller
             'iniciada_em' => now(),
         ]);
 
-        return redirect()->route('copiloto.conversas.show', $conversa->id);
+        return redirect()->route('jana.conversas.show', $conversa->id);
     }
 
     public function updateConversa(Request $request, $id)
@@ -378,7 +378,7 @@ class ChatController extends Controller
         // Agenda apuração imediata
         ApurarMetaJob::dispatch($meta, now());
 
-        return redirect()->route('copiloto.metas.show', $meta->id);
+        return redirect()->route('jana.metas.show', $meta->id);
     }
 
     public function rejeitar(Request $request, $id)

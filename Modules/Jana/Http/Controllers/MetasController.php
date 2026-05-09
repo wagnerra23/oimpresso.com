@@ -40,7 +40,7 @@ class MetasController extends Controller
             'origem'             => 'manual',
         ]));
 
-        return redirect()->route('copiloto.metas.show', $meta->id);
+        return redirect()->route('jana.metas.show', $meta->id);
     }
 
     public function show($id)
@@ -63,13 +63,13 @@ class MetasController extends Controller
     {
         $meta = Meta::findOrFail($id);
         $meta->update($request->only(['nome', 'unidade', 'tipo_agregacao']));
-        return redirect()->route('copiloto.metas.show', $meta->id);
+        return redirect()->route('jana.metas.show', $meta->id);
     }
 
     public function destroy($id)
     {
         Meta::findOrFail($id)->update(['ativo' => false]);
-        return redirect()->route('copiloto.metas.index');
+        return redirect()->route('jana.metas.index');
     }
 
     /**
@@ -79,7 +79,7 @@ class MetasController extends Controller
     public function reapurar(Request $request, $id)
     {
         // TODO: dispatch(new ApurarMetaJob(Meta::find($id), now()));
-        return redirect()->route('copiloto.metas.show', $id)
+        return redirect()->route('jana.metas.show', $id)
             ->with('status', 'Reapuração agendada.');
     }
 }

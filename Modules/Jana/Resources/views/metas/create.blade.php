@@ -4,7 +4,7 @@
 <section class="content-header"><h1>Nova meta</h1></section>
 <section class="content">
     <div class="box"><div class="box-body">
-        <form method="POST" action="{{ route('copiloto.metas.store') }}">
+        <form method="POST" action="{{ route('jana.metas.store') }}">
             @csrf
             <div class="form-group"><label>Nome</label><input name="nome" class="form-control" required></div>
             <div class="form-group"><label>Slug</label><input name="slug" class="form-control" required pattern="[a-z0-9_]+"></div>

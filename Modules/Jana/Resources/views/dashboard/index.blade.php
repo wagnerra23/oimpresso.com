@@ -5,7 +5,7 @@
 @section('content')
 <section class="content-header">
     <h1>Copiloto — Dashboard <small>metas ativas</small></h1>
-    <a href="{{ route('copiloto.chat.index') }}" class="btn btn-primary">Conversar com Copiloto</a>
+    <a href="{{ route('jana.chat.index') }}" class="btn btn-primary">Conversar com Copiloto</a>
 </section>
 
 <section class="content">
@@ -20,7 +20,7 @@
                 <tbody>
                     @forelse($metas as $m)
                         <tr>
-                            <td><a href="{{ route('copiloto.metas.show', $m->id) }}">{{ $m->nome }}</a></td>
+                            <td><a href="{{ route('jana.metas.show', $m->id) }}">{{ $m->nome }}</a></td>
                             <td>{{ $m->unidade }}</td>
                             <td>{{ $m->tipo_agregacao }}</td>
                             <td>{{ $m->ativo ? 'sim' : 'não' }}</td>
