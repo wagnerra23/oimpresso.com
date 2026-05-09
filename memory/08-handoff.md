@@ -1436,3 +1436,65 @@ Salvo em auto-mem `feedback_mcp_so_ct100.md`. Implicação: tool MCP exposed só
 - 🟢 Goal #7 Skills V0.5 UI: **DONE** (16 skills indexadas em prod)
 
 **Última atualização:** 2026-05-07 ~21h BRT — sessão noite com 12 PRs (#173-#190); 2 goals fechados; aprendizados meta gravados.
+
+---
+
+## Sessão 2026-05-09 ~14h-22h BRT — 23 PRs, 2 telas em prod, processo MWART enforced
+
+### Telas em prod
+
+1. **`/repair/producao-oficina`** (kanban Repair) — F1→F4 em 1 dia (PRs #326→#363):
+   - F1 protótipo HTML aprovado por Wagner
+   - F2/F3 implementação — kanban 5 colunas + filtros Box/Elevador funcionais + drawer + 5 KPIs + badge mock + drill-down KPI clicável
+   - F4 Pest GUARD (PROD-5) — 7 tests cobrindo invariantes + Tier 0 isolation + Non-Goals + move endpoint
+   - **Drag-and-drop nativo HTML5** (PROD-4) — optimistic update + POST `/move` com mapping reverso heurístico (espelha sort_order quartil forward); mock data drag local-only (refresh volta), live data persiste em JobSheet.status_id
+   - Charter live ([Index.charter.md](resources/js/Pages/Repair/ProducaoOficina/Index.charter.md))
+
+2. **`/financeiro/unificado`** (Cockpit Financeiro Visão Unificada) — auditoria + 4 PRs de fix retroativos #355-#361:
+   - Bug 1: hardcode "ROTA LIVRE"/"Maio 2026" → dinâmico via session/Carbon (#355)
+   - Bug 2: rota `/unificado/novo` 404 → Page stub picker Receber/Pagar (#358)
+   - Bug 3: sidebar Financeiro sem entrada "Visão unificada" → DataController menu adicionado (#358)
+   - Bug 4: KPI cards sem onClick → drill-down filter (gap vs ADR ui/0002 §UX) (#358)
+   - Charter retroativo + 5 Pest tests + visual-comparison (#359 + #361)
+   - ADR ui/0003 amends ui/0002 formalizando 5 KPIs vs 4, sem aging buckets, desktop only, etc (#361)
+
+### Infra/governança
+
+- **Pipeline `cowork-inbox`** criado e validado E2E — header `<!-- cowork: target/append-to: <path> -->` em arquivo dropped em `cowork-inbox/` dispara Action que move pro destino + auto-merge (PRs #321-#329)
+- **`mwart-gate.yml` robustecido** — agora exige charter ao lado do .tsx + Pest test correspondente além de RUNBOOK + SPEC + visual-comparison (#360)
+- **`memory/requisitos/_processo/MWART-CHECKLIST.md`** novo — documenta ponta-a-ponta o processo MWART canônico (5 fases + 9 artefatos obrigatórios + 8 anti-padrões com sintoma+fix) (#360)
+
+### Débitos pre-existentes resolvidos
+
+- npm audit: 6 vulnerabilidades (1m+4h) → 0 (#335)
+- Route `business.update` colisão Officeimpresso vs UltimatePOS resource — quebrava `php artisan route:cache` há tempos (#336)
+- `Components/ui/checkbox` faltando — quebrava `npm run build:inertia` em main inteiro desde #317 (#330)
+
+### Issues / regressões resolvidas
+
+- **PR #349 mergeado sem 4 dos artefatos MWART obrigatórios** — Page completa mas sem charter, sem Pest, sem visual-comparison, com botão "+ Novo" dando 404, sidebar sem entrada, KPIs não-clicáveis (gap vs ADR ui/0002). Audit retroativo na sessão fechou todos.
+- **Quick Sync flake transient SSH** — recorrente, mas quando re-disparado manual via `workflow_dispatch` passa. Secrets OK; problema é Hostinger SSH rejeitando rate-limit eventual.
+- **GraphQL rate limit** durante sessão extensa (5000/h). Workaround: usar REST `gh api` direto pra criar/mergear PRs (`gh api -X POST .../pulls` e `gh api -X PUT .../merge`).
+
+### Aprendizados meta (gravar)
+
+- **Erro de "translação" do protótipo Cowork pro código:** sessão paralela traduziu ~30% do design aprovado. Sintoma: tela em prod ficou MUITO diferente da expectativa visual do Wagner. **Anti-padrão**: aprovar protótipo HTML e sair codificando direto sem visual-comparison rigorosa.
+- **Charter retroativo é lossy mas ainda vale.** Wagner aprovou divergências do plano original (ui/0002) implícitamente ao aprovar protótipo Cowork. Formalizar via ADR amendment + charter retroativo evita drift silencioso entre canon e código.
+- **Soft mode CI gate > hard mode pra greenfield.** PR #349 passou com 4 artefatos MWART faltando porque mwart-gate só comentava no PR, não bloqueava merge. Hard mode bloquearia mas teria parado outras PRs também. Soft + comment educativo + checklist humano = balance certo nesta fase.
+- **HTML5 native DnD funciona em React 19 sem libs.** Sem @dnd-kit/react-dnd, ~50 linhas de state + handlers + DataTransfer. Só limitação: sem touch suporte. Pra desktop Larissa/Eliana é suficiente.
+- **Reverse mapping heurístico é "good enough" pra greenfield.** Drag-drop entre colunas precisa decidir qual `repair_status_id` usar quando user dropa numa coluna. Heurística "primeiro status do bucket sort_order" espelha forward mapping. Não-perfeito mas funcional sem migrations/UI extra.
+- **Validação visual no Chrome captura bugs que auditoria de código não vê.** O bug do `+ Novo` dando 404 só apareceu quando cliquei no Chrome. Auditoria viu a referência mas não que era 404 sem stub controller.
+- **`gh pr merge` falha local cleanup quando branch tá em outro worktree paralelo** — server-side merge funciona mesmo assim (state=MERGED), só falha tentativa de delete local da branch. Erro cosmético, não bloqueia.
+
+### Pendências sugeridas pra próxima sessão
+
+1. **Smoke biz=1 NFC-e SEFAZ** (CYCLE-02 goal #5) — ainda pendente da sessão 2026-05-07. Cert ativo, template SC aplicado.
+2. **US-FIN-021..028** — backlog Visão Unificada (form unificado inline, aging buckets, delta_pct, combobox, mobile responsive, pagination, Pest fase 2, visual-comparison). **Todos sem sinal qualificado** ([ADR 0105](memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) — só ativar quando cliente reporta OU métrica detecta drift.
+
+### CYCLE-02 status
+
+- 🟡 Goal #5 NfeBrasil emite NFe55: pendente smoke biz=1 (mesmo desde 2026-05-07)
+- 🟡 Goal #6 Constituição V2 health-check 7d: progressão
+- 🟢 Goal NOVO implícito: **Processo MWART enforced** ([ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) + ADR ui/0114) — fechado nesta sessão via mwart-gate.yml + MWART-CHECKLIST.md
+
+**Última atualização:** 2026-05-09 ~22h BRT — sessão maratona com 23 PRs (#321-#363); 2 telas em prod (Producao Oficina + Visao Unificada); processo MWART enforced via gate + doc; auditoria visual Chrome detectou e fechou 4 bugs do PR #349.
