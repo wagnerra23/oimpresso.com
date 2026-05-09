@@ -26,6 +26,8 @@
 
 ### US-WA-001 · Wizard 2 passos — Z-API hoje + Meta Cloud em paralelo
 
+> owner: wagner · sprint: 1 · priority: p2 · status: review
+
 > **Área:** Settings
 > **Rota:** `GET/PUT /whatsapp/settings`
 > **Controller/ação:** `BusinessSettingsController@show` / `update`
@@ -57,6 +59,8 @@
 - [ ] Pest: `BusinessSettingsTest` cobrindo (a) cada driver salva credenciais corretas, (b) tokens cifrados em DB, (c) isolamento multi-tenant, (d) **gating: salvar driver=zapi sem meta_* preenchido = 422 ValidationException**, (e) termo LGPD obrigatório, (f) flipar pra meta_cloud preserva Z-API config
 
 ### US-WA-002 · Driver Interface + ZapiDriver + MetaCloudDriver + NullDriver
+
+> owner: wagner · sprint: 1 · priority: p2 · status: review
 
 > **Área:** Core
 > **Service:** `Modules\Whatsapp\Services\Drivers\DriverInterface`
@@ -176,6 +180,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-003 · Enviar mensagem template (Job assíncrono)
 
+> owner: wagner · sprint: 1 · priority: p2 · status: review
+
 > **Área:** Core
 > **Job:** `SendWhatsappMessageJob`
 > **Permissão Spatie:** `whatsapp.send`
@@ -196,6 +202,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-004 · Listener Repair: status `ready` dispara WhatsApp
 
+> owner: wagner · sprint: 1 · priority: p2 · status: review
+
 > **Área:** Core (cross-module)
 > **Listener:** `Modules\Whatsapp\Listeners\NotifyRepairCustomer`
 > **Event:** `Modules\Repair\Events\RepairStatusChanged`
@@ -214,6 +222,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 ## 3. User Stories — Sub-módulo Inbox + Webhook (Sprint 2)
 
 ### US-WA-010 · Receber webhook Meta + assinatura HMAC
+
+> owner: wagner · sprint: 2 · priority: p2 · status: review
 
 > **Área:** Webhook
 > **Rota:** `POST /api/whatsapp/webhook/meta/{business_uuid}` (público, autenticado por HMAC)
@@ -251,6 +261,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-011 · Processar mensagem recebida (Job)
 
+> owner: wagner · sprint: 2 · priority: p2 · status: review
+
 > **Área:** Webhook
 > **Job:** `ProcessIncomingWebhookJob` (CT 100 Horizon)
 
@@ -267,6 +279,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 - [ ] Pest: `ProcessIncomingWebhookJobTest` cobrindo (a) primeira mensagem cria conversation, (b) segunda atualiza last_message_at, (c) duplicata = no-op
 
 ### US-WA-012 · Inbox UI (Cockpit pattern)
+
+> owner: wagner · sprint: 2 · priority: p2 · status: review
 
 > **Área:** Inbox
 > **Rota:** `GET /whatsapp/conversations`
@@ -288,6 +302,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-013 · Templates UI (sync Meta Business Manager)
 
+> owner: wagner · sprint: 2 · priority: p2 · status: review
+
 > **Área:** Templates
 > **Rota:** `GET /whatsapp/templates`
 > **Page:** `resources/js/Pages/Whatsapp/Templates/Index.tsx`
@@ -304,6 +320,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 - [ ] Pest + browser MCP smoke
 
 ### US-WA-014 · Driver Health Check + fallback automático
+
+> owner: wagner · sprint: 2 · priority: p2 · status: review
 
 > **Área:** Core
 > **Job:** `WhatsappDriverHealthCheckJob`
@@ -327,6 +345,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-020 · Listener DispatchToJanaBot
 
+> owner: wagner · sprint: 3 · priority: p2 · status: review
+
 > **Área:** Bot
 > **Listener:** `Modules\Whatsapp\Listeners\DispatchToJanaBot`
 > **Event:** `WhatsappMessageReceived`
@@ -347,6 +367,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-021 · Métricas conversation (custo, deflection, tempo resposta)
 
+> owner: wagner · sprint: 3 · priority: p2 · status: todo
+
 > **Área:** Métricas
 > **Tabela:** `whatsapp_conversation_metricas`
 > **Service:** `WhatsappMetricasService::aggregate()`
@@ -364,6 +386,8 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 - [ ] Pest: `MetricasAggregationTest` cobrindo (a) 0 conversas dia = row 0, (b) 10 conversas com 4 deflected = 40% deflection
 
 ### US-WA-022 · UX simplificada onboarding Baileys (1 telefone → QR → conectado)
+
+> owner: wagner · sprint: 3 · priority: p2 · status: review
 
 > **Área:** Settings UX
 > **Charter:** [`resources/js/Pages/Whatsapp/Settings.charter.md`](../../../resources/js/Pages/Whatsapp/Settings.charter.md)
@@ -482,6 +506,8 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 - **Multi-tenant violations**: 0 (teste `MultiTenantIsolationTest` no CI bloqueia merge)
 
 ### US-WA-040 · Múltiplos números por business — driver + escopo de atendimento per-phone (Sprint 4)
+
+> owner: wagner · sprint: 4 · priority: p2 · status: doing
 
 > **Área:** Settings + Core + Inbox
 > **Decisão arquitetural mãe:** [ADR 0117](../../decisions/0117-multiplos-numeros-whatsapp-por-business.md)
