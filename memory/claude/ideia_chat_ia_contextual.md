@@ -37,7 +37,7 @@ Sem o usuário precisar repetir o contexto — o chat já sabe.
 | Invocação | Tela própria | Botão/atalho flutuante em TODA tela |
 | Contexto | Módulo selecionado no sidebar | URL + props Inertia + seleção do user |
 | Stream | Offline (keyword) / AI stub | AI-first (streaming real) |
-| Persona | "Manual vivo" | "Copiloto da operação" |
+| Persona | "Manual vivo" | "Jana da operação" |
 
 ## Esboço técnico (não desenhado, só pensamento)
 

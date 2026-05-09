@@ -30,4 +30,4 @@ O repo `D:\oimpresso.com` (site oimpresso.com, UltimatePOS v6.7 + módulo Ponto 
 - 0023 ✅ — Inertia v3 upgrade (mergeado em 6.7-bootstrap em 2026-04-25)
 - 0024 — Pattern install módulos 1-click (`BaseModuleInstallController`)
 - 0025 — CMS redesign Inertia/React (Site/Home + Site/Pricing)
-- 0026 — Posicionamento "ERP gráfico com IA" (Caminho B; 3 features 6m: PricingFpv + Copiloto v1 + CT-e/MDF-e)
+- 0026 — Posicionamento "ERP gráfico com IA" (Caminho B; 3 features 6m: PricingFpv + Jana v1 + CT-e/MDF-e)

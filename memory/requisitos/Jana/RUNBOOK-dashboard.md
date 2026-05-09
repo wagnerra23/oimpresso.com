@@ -1,51 +1,51 @@
 ---
 slug: copiloto-runbook-dashboard
-title: "Copiloto — Runbook da tela Dashboard de Metas"
+title: "Jana — Runbook da tela Dashboard de Metas"
 type: runbook
-module: Copiloto
+module: Jana
 status: active
 date: 2026-05-05
 ---
 
-# RUNBOOK — Dashboard de Metas (Copiloto)
+# RUNBOOK — Dashboard de Metas (Jana)
 
 > **Tipo:** runbook reproduzível
 > **Refs:** [ADR 0026](../../decisions/0026-posicionamento-erp-grafico-com-ia.md), [ADR 0031](../../decisions/0031-memoriacontrato-mem0-default.md), [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0036](../../decisions/0036-replanejamento-meilisearch-first.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [_DS UI-0008](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](../_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)
 > **Validado:** tela em produção `https://oimpresso.com/copiloto/dashboard`
 
-Tela read-only que lista as metas ativas do business em foco como cards com **farol** (verde/amarelo/vermelho/cinza) calculado client-side. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre de manhã pra ver "como tô indo nas metas que conversei com o Copiloto". Vive dentro do `AppShellV2` (Cockpit) — sem coluna direita, sem master/detail. Acesso ao detalhe da meta é via `Link` pra `/copiloto/metas/{id}` (outra rota). FAB inferior direito conduz ao chat do Copiloto com contexto preservado.
+Tela read-only que lista as metas ativas do business em foco como cards com **farol** (verde/amarelo/vermelho/cinza) calculado client-side. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre de manhã pra ver "como tô indo nas metas que conversei com o Jana". Vive dentro do `AppShellV2` (Cockpit) — sem coluna direita, sem master/detail. Acesso ao detalhe da meta é via `Link` pra `/copiloto/metas/{id}` (outra rota). FAB inferior direito conduz ao chat do Jana com contexto preservado.
 
 ## Estado final esperado
 
 | Verificação | Como conferir |
 |---|---|
 | Tela renderiza em `/copiloto/dashboard` | Login com `copiloto.access` → URL → header "Dashboard de Metas" + N cards |
-| AppShellV2 envolvendo | Inspetor: `<div class="cockpit">` ao redor; sidebar light + breadcrumb "Copiloto / Dashboard" |
+| AppShellV2 envolvendo | Inspetor: `<div class="cockpit">` ao redor; sidebar light + breadcrumb "Jana / Dashboard" |
 | Farol lateral colorido em cada card | Faixa de 1px à esquerda do card: emerald/amber/rose/muted-foreground/30 |
 | Sparkline renderiza com ≥ 2 apurações | SVG inline 120×32 + ícone TrendingUp/Down/Minus |
 | Empty state quando `metas.length === 0` | Icon MessageSquare + "Nenhuma meta ativa" + Button "Iniciar conversa" → `/copiloto` |
-| FAB Copiloto fixo bottom-right | Link circular 56px com MessageSquare → `/copiloto?context=/copiloto/dashboard` |
+| FAB Jana fixo bottom-right | Link circular 56px com MessageSquare → `/copiloto?context=/copiloto/dashboard` |
 
 ## 1. Objetivo
 
-Painel read-only de leitura rápida do estado das **metas ativas** que o cliente operacional configurou via chat com o Copiloto IA (US-COPI-010, 011, 012). Renderiza N cards (1/2/3 colunas conforme breakpoint) com farol semafórico calculado on-the-fly em client-side via `calcularFarol()`, valor realizado vs alvo, sparkline das últimas apurações e link pra detalhe da meta. Não há master/detail interno — cada card é independente. FAB no canto inferior direito permite voltar ao chat preservando contexto via query string `?context=/copiloto/dashboard`. Cliente é o dono operador (persona Larissa, business=4); dev/superadmin também usa pra debugar metas seedadas.
+Painel read-only de leitura rápida do estado das **metas ativas** que o cliente operacional configurou via chat com o Jana IA (US-COPI-010, 011, 012). Renderiza N cards (1/2/3 colunas conforme breakpoint) com farol semafórico calculado on-the-fly em client-side via `calcularFarol()`, valor realizado vs alvo, sparkline das últimas apurações e link pra detalhe da meta. Não há master/detail interno — cada card é independente. FAB no canto inferior direito permite voltar ao chat preservando contexto via query string `?context=/copiloto/dashboard`. Cliente é o dono operador (persona Larissa, business=4); dev/superadmin também usa pra debugar metas seedadas.
 
 ## 2. Pré-condições
 
-- [ ] Módulo `Copiloto` instalado em `/manage-modules` (ADR 0024 — botão Install funcional)
+- [ ] Módulo `Jana` instalado em `/manage-modules` (ADR 0024 — botão Install funcional)
 - [ ] Permissão `copiloto.access` atribuída ao role do usuário
-- [ ] Rotas registradas em [`Modules/Copiloto/Routes/web.php`](../../../Modules/Copiloto/Routes/web.php) — pelo menos `/copiloto/dashboard` apontando pro Controller que renderiza `Copiloto/Dashboard`
-- [ ] Page Inertia em [`resources/js/Pages/Copiloto/Dashboard.tsx`](../../../resources/js/Pages/Copiloto/Dashboard.tsx) — módulo em **PascalCase** (`Copiloto`, não `copiloto`)
-- [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos do Copiloto
+- [ ] Rotas registradas em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Routes/web.php) — pelo menos `/copiloto/dashboard` apontando pro Controller que renderiza `Jana/Dashboard`
+- [ ] Page Inertia em [`resources/js/Pages/Jana/Dashboard.tsx`](../../../resources/js/Pages/Jana/Dashboard.tsx) — módulo em **PascalCase** (`Jana`, não `copiloto`)
+- [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos do Jana
 - [ ] Skill irmã `multi-tenant-patterns` se Controller filtrar por `business_id`
-- [ ] Seed: `php artisan module:seed Copiloto` popula 5 metas template + meta raiz Wagner ROI
+- [ ] Seed: `php artisan module:seed Jana` popula 5 metas template + meta raiz Wagner ROI
 
 ## 3. Passo-a-passo
 
 ### 1. Controller renderiza Inertia com array tipado de metas
 
 ```php
-// Modules/Copiloto/Http/Controllers/DashboardController.php
+// Modules/Jana/Http/Controllers/DashboardController.php
 namespace Modules\Jana\Http\Controllers;
 
 use Inertia\Inertia;
@@ -72,7 +72,7 @@ class DashboardController extends Controller
                 'apuracoes_recentes'  => $m->apuracoesRecentes->map->only(['data_ref', 'valor_realizado'])->values(),
             ]);
 
-        return Inertia::render('Copiloto/Dashboard', [
+        return Inertia::render('Jana/Dashboard', [
             'metas' => $metas,
         ]);
     }
@@ -84,7 +84,7 @@ class DashboardController extends Controller
 ### 2. Page Inertia recebe Props tipados
 
 ```tsx
-// resources/js/Pages/Copiloto/Dashboard.tsx
+// resources/js/Pages/Jana/Dashboard.tsx
 interface Apuracao { data_ref: string; valor_realizado: number }
 interface Periodo  { data_ini: string; data_fim: string; valor_alvo: number; trajetoria: string }
 interface Meta {
@@ -109,15 +109,15 @@ import AppShellV2 from '@/Layouts/AppShellV2'
 
 Dashboard.layout = (page: React.ReactNode) => (
   <AppShellV2
-    title="Copiloto — Dashboard"
-    breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Dashboard' }]}
+    title="Jana — Dashboard"
+    breadcrumbItems={[{ label: 'Jana' }, { label: 'Dashboard' }]}
   >
     {page}
   </AppShellV2>
 )
 ```
 
-**Validação:** abrir `/copiloto/dashboard`; topbar mostra `Copiloto / Dashboard`; aba do navegador `Copiloto — Dashboard`.
+**Validação:** abrir `/copiloto/dashboard`; topbar mostra `Jana / Dashboard`; aba do navegador `Jana — Dashboard`.
 
 ### 4. Função `calcularFarol()` — regra R-COPI-FAROL-001
 
@@ -195,7 +195,7 @@ function MetaCard({ meta }: { meta: Meta }) {
   <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
     <MessageSquare className="h-12 w-12 text-muted-foreground/50" />
     <p className="text-muted-foreground">
-      Nenhuma meta ativa. Converse com o Copiloto para criar a primeira.
+      Nenhuma meta ativa. Converse com o Jana para criar a primeira.
     </p>
     <Link href="/copiloto"><Button>Iniciar conversa</Button></Link>
   </div>
@@ -206,26 +206,26 @@ function MetaCard({ meta }: { meta: Meta }) {
 )}
 ```
 
-### 7. FabCopiloto preservando contexto
+### 7. FabJana preservando contexto
 
 ```tsx
-import FabCopiloto from './components/FabCopiloto'
+import FabJana from './components/FabJana'
 
 return (
   <>
     <div className="space-y-6 p-6">{/* header + grid de cards */}</div>
-    <FabCopiloto contextRoute="/copiloto/dashboard" />
+    <FabJana contextRoute="/copiloto/dashboard" />
   </>
 )
 ```
 
-`FabCopiloto` gera `Link` pra `/copiloto?context=%2Fcopiloto%2Fdashboard`. O chat do Copiloto lê a query string e injeta `Tela: /copiloto/dashboard` no `ContextoNegocio` enviado ao LLM.
+`FabJana` gera `Link` pra `/copiloto?context=%2Fcopiloto%2Fdashboard`. O chat do Jana lê a query string e injeta `Tela: /copiloto/dashboard` no `ContextoNegocio` enviado ao LLM.
 
 ### 8. Build local + smoke
 
 ```bash
 npm run build:inertia
-grep -i "Pages/Copiloto/Dashboard" public/build-inertia/manifest.json
+grep -i "Pages/Jana/Dashboard" public/build-inertia/manifest.json
 # Esperado: 1 linha com hash do bundle
 ```
 
@@ -337,7 +337,7 @@ interface Apuracao {
 - [`@/Components/ui/button`](../../../resources/js/Components/ui/button.tsx) — shadcn Button (R-DS-001)
 - [`@/Components/ui/card`](../../../resources/js/Components/ui/card.tsx) — shadcn Card primitives
 - [`@/Components/ui/badge`](../../../resources/js/Components/ui/badge.tsx) — shadcn Badge
-- [`./components/FabCopiloto`](../../../resources/js/Pages/Copiloto/components/FabCopiloto.tsx) — FAB local do módulo
+- [`./components/FabJana`](../../../resources/js/Pages/Jana/components/FabJana.tsx) — FAB local do módulo
 
 ### Ícones (lucide-react — R-DS-003)
 
@@ -355,7 +355,7 @@ interface Apuracao {
 - [x] Dark mode validado — usa só tokens shadcn semânticos + status fixos (que são iguais em dark/light)
 - [x] Responsividade `sm:grid-cols-2 xl:grid-cols-3`
 - [x] Estados cobertos: default + empty + aguardando (loading/error pendentes — ver §10)
-- [x] Bundle Inertia: `npm run build:inertia` + `Pages/Copiloto/Dashboard` no manifest
+- [x] Bundle Inertia: `npm run build:inertia` + `Pages/Jana/Dashboard` no manifest
 - [x] Multi-tenant: Controller filtra por `session('user.business_id')`
 
 ## 10. Pegadinhas
@@ -372,7 +372,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 
 ## 11. ADR de origem
 
-- [ADR 0026 — Posicionamento ERP Gráfico com IA](../../decisions/0026-posicionamento-erp-grafico-com-ia.md) — por que existe Copiloto IA no ERP (motivação de produto)
+- [ADR 0026 — Posicionamento ERP Gráfico com IA](../../decisions/0026-posicionamento-erp-grafico-com-ia.md) — por que existe Jana IA no ERP (motivação de produto)
 - [ADR 0031 — MemoriaContrato + Mem0 default](../../decisions/0031-memoriacontrato-mem0-default.md) — base da memória que alimenta a apuração das metas
 - [ADR 0035 — Stack AI canônica](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md) — laravel/ai SDK (substitui adapters anteriores)
 - [ADR 0036 — Replanejamento Meilisearch-first](../../decisions/0036-replanejamento-meilisearch-first.md) — driver de retrieval atual (afeta latência das apurações)
@@ -382,7 +382,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 
 **Stories cobertas:** US-COPI-010, US-COPI-011, US-COPI-012 ([SPEC.md](SPEC.md))
 **Rules:** R-COPI-002 (semáforo de metas), R-COPI-FAROL-001 (cálculo de desvio % vs trajetória) — formalmente em [SPEC.md](SPEC.md)
-**Tests:** [tests/Feature/Modules/Copiloto/MemoriaContratoTest](../../../tests/Feature/Modules/Copiloto/MemoriaContratoTest.php)
+**Tests:** [tests/Feature/Modules/Jana/MemoriaContratoTest](../../../tests/Feature/Modules/Jana/MemoriaContratoTest.php)
 
 ---
 

@@ -42,7 +42,7 @@ Arquivos no projeto Cowork:
 ### 3. Decisões registradas
 
 - Padrão de UI do ERP em React = "Chat Cockpit" (3 colunas), formalizado em ADR 0039.
-- Wagner autorizou refazer telas React livremente — ainda não usadas em produção pelos clientes finais (Copiloto, MemCofre, Financeiro, Site, parcial em Essentials/Ponto).
+- Wagner autorizou refazer telas React livremente — ainda não usadas em produção pelos clientes finais (Jana, MemCofre, Financeiro, Site, parcial em Essentials/Ponto).
 - Designer canônico das telas em React = **Claude**. Qualquer agente futuro que for criar/alterar tela consulta CLAUDE.md §10 + ADR 0039 antes.
 
 ## Trabalho residual

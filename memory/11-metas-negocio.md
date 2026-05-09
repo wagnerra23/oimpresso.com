@@ -2,7 +2,7 @@
 
 > **Meta-âncora:** R$ 5 milhões/ano de faturamento (ADR 0022)
 > **Status do prazo:** ⚠️ pendente — Wagner precisa fixar horizonte (12/24/36 meses)
-> **Módulo responsável:** [`Copiloto`](requisitos/Copiloto/README.md) — esta doc vira **seed inicial** das metas + conversas quando o scaffold entrar.
+> **Módulo responsável:** [`Jana`](requisitos/Jana/README.md) — esta doc vira **seed inicial** das metas + conversas quando o scaffold entrar.
 > **Última atualização:** 2026-04-24
 
 ---

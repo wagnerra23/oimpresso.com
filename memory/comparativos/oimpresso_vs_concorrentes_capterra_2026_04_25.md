@@ -7,7 +7,7 @@
 ## TL;DR (5 frases)
 
 1. **oimpresso é hoje um ERP genérico (UltimatePOS-fork) com 25 módulos**, fortíssimo em fiscal BR, financeiro/CNAB e PDV — mas NÃO é um ERP vertical de gráfica/comunicação visual no sentido em que **Mubisys, Zênite, Visua, Calcgraf e Calcme** são (FPV, cálculo por m², PCP de impressão, OP com etapas).
-2. Diferencial real está na **stack moderna** (Laravel 13.6 + Inertia v3 + React + Tailwind v4) e em **dois módulos que nenhum concorrente vertical entrega**: **Copiloto** (chat IA contextual) e **MemCofre** (cofre de memórias) — porém Copiloto está em construção e ainda não é vendável.
+2. Diferencial real está na **stack moderna** (Laravel 13.6 + Inertia v3 + React + Tailwind v4) e em **dois módulos que nenhum concorrente vertical entrega**: **Jana** (chat IA contextual) e **MemCofre** (cofre de memórias) — porém Jana está em construção e ainda não é vendável.
 3. Contra os **genéricos (Bling, Omie)** o oimpresso perde em **escala/marca/integrações marketplace** — Bling tem 250+ integrações nativas + app mobile, Omie tem IA fiscal e antecipação de recebíveis em produção.
 4. Contra os **verticais gráficos**, faltam: **cálculo por m², FPV, apontamento de máquina, PCP gráfico** — só tem POS adaptado, insuficiente pra escalar ROTA LIVRE e prospectar novas gráficas.
 5. Estado atual: **comercialmente um ERP genérico bonito sem cliente** (56 cadastros / 7 ativos / 99% volume num cliente só). Pra R$5mi/ano em 24 meses, precisa **escolher entre virar vertical de comunicação visual OU virar plataforma IA-first sobre UltimatePOS**.
@@ -69,7 +69,7 @@ Legenda: ✅ Tem completo · 🟡 Tem básico/limitado · ❌ Não tem · ❓ N�
 | App mobile próprio (não responsive) | ❌ | ✅ (iOS+Android) | 🟡 | ❌ | 🟡 | 🟡 | ✅ | ✅ | ✅ |
 | API/integrações nativas | 🟡 (Connector) | ❓ | 🟡 | ❌ | ❌ | 🟡 (G-Link) | 🟡 | ✅ (250+) | ✅ (Omie.Hub) |
 | BI/Dashboards customizáveis | 🟡 (FusionCharts+Spreadsheet) | ❓ | ✅ | ❌ | 🟡 | ✅ | ✅ | ✅ | ✅ |
-| **IA / chat assistente** | 🟡 (**Copiloto + LaravelAI em construção**) | ❌ | ❌ | ❌ | ❌ | ❌ | 🟡 (Chatme=WhatsApp, não IA) | 🟡 (extensões) | ✅ (IA fiscal nativa) |
+| **IA / chat assistente** | 🟡 (**Jana + LaravelAI em construção**) | ❌ | ❌ | ❌ | ❌ | ❌ | 🟡 (Chatme=WhatsApp, não IA) | 🟡 (extensões) | ✅ (IA fiscal nativa) |
 | Marketplace/E-commerce nativo | 🟡 (Woocommerce sync) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (250+) | ✅ (Omie.Hub) |
 | Importação de outros sistemas | 🟡 (UltimatePOS importer) | ❓ | ❓ | ❓ | ❓ | ❓ | ❓ | ✅ | ✅ |
 | Assinatura digital contrato | ❌ | ❓ | ❓ | ❌ | ❌ | ❌ | ✅ (Assiname) | ❌ | 🟡 |
@@ -122,8 +122,8 @@ Legenda: ✅ Tem completo · 🟡 Tem básico/limitado · ❌ Não tem · ❓ N�
 ### V1 — Stack moderna real
 Laravel 13.6 + PHP 8.4 + Inertia v3 + React + Tailwind v4 + Pest + GH Actions. Concorrentes verticais são todos legacy (PHP/Delphi/Java antigos, jQuery/Bootstrap 3-4). Velocidade de iteração permite lançar features em semanas.
 
-### V2 — Copiloto (chat IA contextual) + MemCofre — únicos no mercado vertical
-Nenhum vertical tem IA real. Omie tem "IA fiscal" (limitado a classificação tributária). Chatme do Calcme é só WhatsApp, não IA. Copiloto bem entregue (sabe tela atual, dados do user, sugere meta) é diferencial **defensável por 12-18 meses**. MemCofre como knowledge base por business é único.
+### V2 — Jana (chat IA contextual) + MemCofre — únicos no mercado vertical
+Nenhum vertical tem IA real. Omie tem "IA fiscal" (limitado a classificação tributária). Chatme do Calcme é só WhatsApp, não IA. Jana bem entregue (sabe tela atual, dados do user, sugere meta) é diferencial **defensável por 12-18 meses**. MemCofre como knowledge base por business é único.
 
 ### V3 — Multi-tenant + extensibilidade UltimatePOS
 25 módulos plugáveis (BaseModuleInstallController + ModuleUtil) permitem **vender o core e ativar verticais por business_id**. Bling/Omie monolíticos. Mubisys/Zênite vendem pacote fechado. oimpresso pode ser "ERP modular" — vende só Ponto + Financeiro pra gráfica pequena, full pra grande.
@@ -163,7 +163,7 @@ Pra ticket médio R$497/mês (entre Mubisys e Bling premium): **838 clientes ati
 ### #1 — PricingFpv (cálculo por m² + FPV gráfica)
 Mata GAP 1. Desbloqueia prospect de qualquer gráfica/CV. Sem isso o resto não importa. **3-4 sprints.**
 
-### #2 — Copiloto v1 production-ready
+### #2 — Jana v1 production-ready
 Sair de "em construção" pra vendável. Foco em 3 use-cases:
 - "qual foi o orçamento dessa cliente ano passado"
 - "qual minha margem média em ACM esse mês"
@@ -175,12 +175,12 @@ Sair de "em construção" pra vendável. Foco em 3 use-cases:
 Mata GAP 3 fiscal+financeiro de uma vez. Sem isso, gráfica que entrega não compra. **3 sprints (sped-nfe já planejado em ADR fiscal).**
 
 ### O que NÃO fazer agora
-- App mobile nativo (deal-breaker mas adiável 12 meses se Copiloto compensar)
+- App mobile nativo (deal-breaker mas adiável 12 meses se Jana compensar)
 - Marketplace nativo (nunca vai ganhar do Bling)
 - SPED contábil completo (deixa pra quem migrar de Mubisys)
 
 ### Métrica de fé
-Se em 90 dias do PricingFpv + Copiloto v1 estiverem em produção e a ROTA LIVRE virar case com vídeo + 5 prospects qualificados convertidos via indicação, **confirma a tese**. Senão, pivota pra Caminho A ou C.
+Se em 90 dias do PricingFpv + Jana v1 estiverem em produção e a ROTA LIVRE virar case com vídeo + 5 prospects qualificados convertidos via indicação, **confirma a tese**. Senão, pivota pra Caminho A ou C.
 
 ---
 

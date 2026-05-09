@@ -1,4 +1,4 @@
-# Revisão de caminho do Copiloto — auditoria Capterra (2026-04-27)
+# Revisão de caminho do Jana — auditoria Capterra (2026-04-27)
 
 > **Assunto:** o caminho percorrido até sprint 6 está certo? Existe alternativa de melhor custo-benefício pra reescrever decisões antes de avançar?
 > **Data:** 2026-04-27
@@ -16,11 +16,11 @@
 
 ## 1. TL;DR (5 frases)
 
-1. **6 sprints feitos em 2 dias (2026-04-26/27): Copiloto saiu de fixtures pra stack-alvo canônica funcional** — `laravel/ai` (PR #24) + `MemoriaContrato`+`MeilisearchDriver` (PR #25) + bridge Hot/Cold (PR #26) + tela LGPD (PR #27). 48/51 Pest passing.
+1. **6 sprints feitos em 2 dias (2026-04-26/27): Jana saiu de fixtures pra stack-alvo canônica funcional** — `laravel/ai` (PR #24) + `MemoriaContrato`+`MeilisearchDriver` (PR #25) + bridge Hot/Cold (PR #26) + tela LGPD (PR #27). 48/51 Pest passing.
 2. **Custo recorrente atual: R$0/mês** (Meilisearch self-hosted + Boost/Telescope/Pail/Horizon todos gratuitos) — fiel ao ROI prometido pelo ADR 0036.
-3. **Já estamos alinhados com padrão estado-da-arte 2026** (dual-layer Hot/Cold) — concorrentes verticais brasileiros (Mubisys/Zênite/Calcgraf) NÃO têm Copiloto IA-first.
+3. **Já estamos alinhados com padrão estado-da-arte 2026** (dual-layer Hot/Cold) — concorrentes verticais brasileiros (Mubisys/Zênite/Calcgraf) NÃO têm Jana IA-first.
 4. **Pendência crítica: SEM baseline mensurável** (RAGAS) — sprints 7-10 do ADR 0037 ficam em "fé" sem isso. Sprint 7 é gate.
-5. **O dilema agora:** continuar sequência ADR 0037 (sprint 7 RAGAS → 8 caching → 9 RRF → 10 HyDE) OU pivotar pra trabalho comercial (ADR 0026: PricingFpv / CT-e / Copiloto v1 commercial-ready) já que stack técnica está pronta.
+5. **O dilema agora:** continuar sequência ADR 0037 (sprint 7 RAGAS → 8 caching → 9 RRF → 10 HyDE) OU pivotar pra trabalho comercial (ADR 0026: PricingFpv / CT-e / Jana v1 commercial-ready) já que stack técnica está pronta.
 
 ---
 
@@ -29,7 +29,7 @@
 | Caminho | Tese curta | Tier de mercado |
 |---|---|---|
 | **A — ATUAL: ADR 0037 sequencial (RAGAS→cache→RRF→HyDE→Mem0)** | Maximizar Tier LongMemEval antes de comercial | Engenharia first |
-| **B — Pivot pra ADR 0026 commercial-ready** (PricingFpv + CT-e + Copiloto v1 vendável) | Stack técnica suficiente; foco em receita | Comercial first |
+| **B — Pivot pra ADR 0026 commercial-ready** (PricingFpv + CT-e + Jana v1 vendável) | Stack técnica suficiente; foco em receita | Comercial first |
 | **C — Stack rebuild: trocar Meilisearch por Typesense agora** | Latência <50ms p99 + auto-embedding builtin | Otimização infra |
 | **D — Consolidar Mem0 cedo (cancelar ADR 0036, voltar pra ADR 0035 original)** | Tier 6-7 imediato, $25/mês aceitável | "Pague pra acelerar" |
 | **E — Pausa estratégica: validar Larissa antes de codar mais** | Único cliente real, perguntar se ela percebe valor | Validação first |
@@ -43,7 +43,7 @@ Legenda: ✅ atende · 🟡 atende parcial · ❌ não atende · ⏳ depende de 
 | Critério | A (ADR 0037) | B (Comercial) | C (Typesense) | D (Mem0 cedo) | E (Validar Larissa) |
 |---|---|---|---|---|---|
 | **Atinge Tier 7+ LongMemEval em 8 sem** | ✅ | ❌ | 🟡 | ✅ | ❌ |
-| **Gera primeira receita do Copiloto** | ❌ | ✅ | ❌ | ❌ | 🟡 |
+| **Gera primeira receita do Jana** | ❌ | ✅ | ❌ | ❌ | 🟡 |
 | **Custo recorrente até primeiro cliente** | R$0 | R$0 | R$0 | R$1.500/ano | R$0 |
 | **Sprints até resultado visível** | 1 (RAGAS) | 4-6 | 1 | 2 | 0.5 |
 | **Risco de "engenharia sem demanda"** | 🟡 médio | ✅ baixo | 🟡 médio | 🔴 alto | ✅ baixíssimo |
@@ -52,7 +52,7 @@ Legenda: ✅ atende · 🟡 atende parcial · ❌ não atende · ⏳ depende de 
 | **Reaproveita 6 sprints feitos** | ✅ | ✅ (stack pronta sustenta) | 🟡 (refaz indexer) | ✅ | ✅ |
 | **Bloqueia learning de produto** | 🟡 | ❌ | ❌ | ❌ | ❌ |
 | **Alinhado com ADR 0026 (posicionamento)** | 🟡 (suporte) | ✅ (execução direta) | ❌ | 🟡 | ✅ |
-| **Custo de pivot futuro se errar** | baixo (interface trocável) | médio (Copiloto v1 com bugs) | alto (refaz schema) | alto (Mem0 lock-in) | baixo |
+| **Custo de pivot futuro se errar** | baixo (interface trocável) | médio (Jana v1 com bugs) | alto (refaz schema) | alto (Mem0 lock-in) | baixo |
 | **Dificuldade técnica** | média | média-alta | baixa | baixa | baixa |
 | **Validação científica** (RAGAS) | ✅ sprint 1 | ❌ | ❌ | ❌ | ❌ |
 | **Insights direto do mercado** | ❌ | ✅ (cliente novo) | ❌ | ❌ | ✅✅ |
@@ -77,9 +77,9 @@ Legenda: ✅ atende · 🟡 atende parcial · ❌ não atende · ⏳ depende de 
 
 ## 5. Top 3 GAPs do caminho atual
 
-### GAP 1 — Zero validação de demanda do Copiloto
+### GAP 1 — Zero validação de demanda do Jana
 
-**O que falta:** 6 sprints feitos, 0 minutos de Larissa testando o Copiloto. Estamos otimizando UX/recall sem evidência que ela percebe valor. ADR 0036 já definiu métrica de fé 90d (*"se Larissa explicitamente falar 'lembrou da minha meta'"*) mas ninguém pediu pra ela.
+**O que falta:** 6 sprints feitos, 0 minutos de Larissa testando o Jana. Estamos otimizando UX/recall sem evidência que ela percebe valor. ADR 0036 já definiu métrica de fé 90d (*"se Larissa explicitamente falar 'lembrou da minha meta'"*) mas ninguém pediu pra ela.
 **Esforço pra fechar:** Baixíssimo (1-2h) — Wagner manda um WhatsApp pra Larissa, pede 15min de tela compartilhada testando `/copiloto`.
 **Impacto se não fechar:** sprints 7-10 entregam Tier 7+ pra um produto que ninguém pediu — engenharia em vácuo.
 
@@ -108,7 +108,7 @@ Legenda: ✅ atende · 🟡 atende parcial · ❌ não atende · ⏳ depende de 
 ### V2 — R$0/mês recorrente sustentado
 
 **Por que é vantagem:** competidores que adotam Mem0/Letta managed pagam $25-300/mês desde dia 1. Meilisearch self-hosted nos dá Tier 5-6 grátis. ADR 0036 protege essa decisão com triggers mensuráveis.
-**Como capitalizar:** vira fala de pricing — "Copiloto sem custo de IA escondido pro cliente final" (concorrentes que pagam Mem0 repassam custo).
+**Como capitalizar:** vira fala de pricing — "Jana sem custo de IA escondido pro cliente final" (concorrentes que pagam Mem0 repassam custo).
 **Risco de erodir:** médio (em 12-18m Mem0 pode lançar pricing agressivo).
 
 ### V3 — Bridge Hot/Cold dual-layer já alinhado com 2026 state-of-the-art
@@ -124,7 +124,7 @@ Legenda: ✅ atende · 🟡 atende parcial · ❌ não atende · ⏳ depende de 
 | Caminho | Veredito |
 |---|---|
 | A — ADR 0037 sequencial (RAGAS first) | 🟡 OK, mas só **DEPOIS** de E |
-| **B — Pivot comercial (PricingFpv/CT-e/Copiloto v1 vendável)** | ✅ tem mérito mas só **depois** de E confirmar valor |
+| **B — Pivot comercial (PricingFpv/CT-e/Jana v1 vendável)** | ✅ tem mérito mas só **depois** de E confirmar valor |
 | C — Trocar Meilisearch por Typesense | ❌ otimização prematura |
 | D — Mem0 cedo | ❌ contradiz ADR 0036 que era explícito |
 | **E — Validar com Larissa primeiro** | ✅ **RECOMENDADO** — feedback antes de mais código |
@@ -158,13 +158,13 @@ Pressupostos:
 
 | Caminho | Sprints até "lança feature comercial" | Meses até primeiro cliente | Receita Y1 estimada |
 |---|---|---|---|
-| **A → atual** | 5 (sprints 7-11) | ~6 | R$0-2k (sem ainda Copiloto comercial) |
+| **A → atual** | 5 (sprints 7-11) | ~6 | R$0-2k (sem ainda Jana comercial) |
 | **B → pivot comercial** | 4 (PricingFpv + CT-e/MDF-e) | ~3-4 | R$10-50k |
 | **E → validar primeiro** | 0.5 + N | ~2-3 | depende do feedback |
 
 **Sem cliente pagando, sprints técnicos não geram receita por definição.** Caminho E preserva opcionalidade de B sem sacrificar A.
 
-**Assunção crítica não validada:** "Larissa quer memória do Copiloto." Se SIM, A; se NÃO, B. Sem perguntar, é fé.
+**Assunção crítica não validada:** "Larissa quer memória do Jana." Se SIM, A; se NÃO, B. Sem perguntar, é fé.
 
 ---
 
@@ -185,7 +185,7 @@ Pressupostos:
 
 ### Métrica de fé (90 dias)
 
-> *"Se em 90 dias (até 2026-07-25) Larissa do ROTA LIVRE explicitamente disser 'o Copiloto lembrou da minha meta' OU 'queria que ele lembrasse de X' (qualquer feedback de memória), **confirma caminho A (ADR 0037)**. Se ela falar 'preciso é PricingFpv' OU 'preciso CT-e' OU silêncio (não usou), **pivota pra B (ADR 0026)**. Sem feedback dela em 30 dias = WAGNER PERGUNTA."*
+> *"Se em 90 dias (até 2026-07-25) Larissa do ROTA LIVRE explicitamente disser 'o Jana lembrou da minha meta' OU 'queria que ele lembrasse de X' (qualquer feedback de memória), **confirma caminho A (ADR 0037)**. Se ela falar 'preciso é PricingFpv' OU 'preciso CT-e' OU silêncio (não usou), **pivota pra B (ADR 0026)**. Sem feedback dela em 30 dias = WAGNER PERGUNTA."*
 
 Gatilho de pivot mensurável: 1 sessão de uso real de Larissa em 7 dias = sprint 7 inicia sequencial. 0 sessões em 30 dias = caminho B vira default.
 

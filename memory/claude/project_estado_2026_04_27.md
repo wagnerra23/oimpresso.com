@@ -1,6 +1,6 @@
 ---
-name: Estado do projeto Copiloto em 2026-04-27 (consolidação pra retomar amanhã)
-description: Sumário consolidado das sessões 14-19 do Copiloto. 5 PRs mergeados, 11 ADRs canônicos, 6 comparativos Capterra. Tier 5-6 LongMemEval estimado. Pendente validar Larissa.
+name: Estado do projeto Jana em 2026-04-27 (consolidação pra retomar amanhã)
+description: Sumário consolidado das sessões 14-19 do Jana. 5 PRs mergeados, 11 ADRs canônicos, 6 comparativos Capterra. Tier 5-6 LongMemEval estimado. Pendente validar Larissa.
 type: project
 originSessionId: dazzling-lichterman-e59b61
 ---
@@ -12,8 +12,8 @@ Estado em 2026-04-27 fim de noite (sessão 19 da thread `dazzling-lichterman-e59
 - **PR #24** — sprint 1: `laravel/ai` SDK oficial + 3 Agents + `LaravelAiSdkDriver`. Stub `LaravelAiDriver.php` deletado.
 - **PR #25** — sprint 4: `MemoriaContrato` + `MeilisearchDriver` + `NullDriver` + horizon/telescope/pail.
 - **PR #26** — sprint 5: bridge memória↔chat dual-layer (recall síncrono + extração async via Horizon queue `copiloto-memoria`).
-- **PR #27** — sprint 6: tela `/copiloto/memoria` LGPD US-COPI-MEM-012 (`MemoriaController` + `Pages/Copiloto/Memoria.tsx`).
-- **PR #28** — MemCofre score boost: 3 pages Copiloto com `@memcofre` block → 14 pages total em `docs_pages`.
+- **PR #27** — sprint 6: tela `/copiloto/memoria` LGPD US-COPI-MEM-012 (`MemoriaController` + `Pages/Jana/Memoria.tsx`).
+- **PR #28** — MemCofre score boost: 3 pages Jana com `@memcofre` block → 14 pages total em `docs_pages`.
 - **PR #29** — ENTERPRISE.md (12 seções).
 
 ## 11 ADRs canônicos (memory/decisions/)
@@ -55,7 +55,7 @@ Estado em 2026-04-27 fim de noite (sessão 19 da thread `dazzling-lichterman-e59
 - ✅ `memcofre:sync-pages` rodou (14 pages em `docs_pages`)
 - 🟡 PRs #26/#27/#29 código mergeado mas deploy SSH pendente
 - 🟡 Embedder Meilisearch NÃO configurado (recall sem semantic ainda)
-- 🟡 `OPENAI_API_KEY` NÃO setada no `.env` (Copiloto em dry_run)
+- 🟡 `OPENAI_API_KEY` NÃO setada no `.env` (Jana em dry_run)
 
 ## Pendente pra retomar amanhã
 
@@ -79,7 +79,7 @@ Estado em 2026-04-27 fim de noite (sessão 19 da thread `dazzling-lichterman-e59
 
 ## Como aplicar
 
-- Quando Wagner perguntar "estado do Copiloto" → este arquivo
+- Quando Wagner perguntar "estado do Jana" → este arquivo
 - Quando ele perguntar "o que falta" → seção "Pendente pra retomar"
 - Quando ele perguntar "quais decisões já estão tomadas" → 11 ADRs canônicos
 - Sempre verificar `git log origin/6.7-bootstrap -10` antes de afirmar deploy aconteceu (Hostinger pode ter dropado)
@@ -89,4 +89,4 @@ Estado em 2026-04-27 fim de noite (sessão 19 da thread `dazzling-lichterman-e59
 - `memory/08-handoff.md` (resumo "começa aqui" do projeto)
 - `memory/sessions/2026-04-27-sprints-5-6-mcp-claude-desktop-revisao.md` (session log completo)
 - `memory/CHANGELOG.md` (Keep-a-Changelog format)
-- `memory/requisitos/Copiloto/ENTERPRISE.md` (overview enterprise)
+- `memory/requisitos/Jana/ENTERPRISE.md` (overview enterprise)

@@ -102,7 +102,7 @@ DEPOIS (2026-04-27 em diante)
 
 1. **Mergear PR da branch `feat/copiloto-cockpit-piloto`** no `main` (review humano + smoke test) → cockpit estabilizado
 2. **ADR UI-0008 fica oficial após merge** (hoje está aprovada mas o código piloto está em branch)
-3. **Fase 3 do plano de migração**: plugar chat real do Copiloto (sai do mock, composer envia pra `POST /copiloto/conversas/{id}/mensagens`)
+3. **Fase 3 do plano de migração**: plugar chat real do Jana (sai do mock, composer envia pra `POST /copiloto/conversas/{id}/mensagens`)
 4. **Fase 4**: implementar `TaskProvider` interface + `TaskRegistry` service no backend, primeiro provider piloto em Officeimpresso (`OsAprovarArteTask`)
 5. **Fase 5**: switch real de empresa quando "grupo econômico" for modelado (User belongsTo Business 1:1 hoje, precisa M:N pra suportar múltiplos)
 6. **Fase 6**: `useV2Shell` flag vira default → AppShell legado fica só pra Showcase/Modulos/standalone
