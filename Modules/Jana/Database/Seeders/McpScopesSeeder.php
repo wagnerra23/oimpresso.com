@@ -11,7 +11,7 @@ use Spatie\Permission\Models\Permission;
  *
  * Cria entradas em:
  *   - mcp_scopes — catálogo legível com descrições e patterns de tools/resources
- *   - permissions (Spatie) — gates `copiloto.mcp.*` que o middleware/tools checam
+ *   - permissions (Spatie) — gates `jana.mcp.*` que o middleware/tools checam
  *
  * Idempotente: pode rodar quantas vezes precisar — usa firstOrCreate.
  *
@@ -30,7 +30,7 @@ class McpScopesSeeder extends Seeder
      */
     protected array $catalogo = [
         [
-            'slug'              => 'copiloto.mcp.use',
+            'slug'              => 'jana.mcp.use',
             'nome'              => 'Acessar MCP server',
             'descricao'         => 'Gate básico: precisa pra fazer qualquer chamada MCP autenticada. Sem isso o middleware retorna 403.',
             'resources_pattern' => null,
@@ -40,7 +40,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.tasks.read',
+            'slug'              => 'jana.mcp.tasks.read',
             'nome'              => 'Ler tarefas e cycle ativo',
             'descricao'         => 'Permite tools de leitura: tasks-list, tasks-detail, cycles-active, my-work, my-inbox, triage, cycle-goals-track (read), handoff. Padrão pra todos os devs (ADR 0070).',
             'resources_pattern' => 'oimpresso://memory/handoff',
@@ -50,7 +50,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.tasks.write',
+            'slug'              => 'jana.mcp.tasks.write',
             'nome'              => 'Criar/atualizar/comentar tarefas',
             'descricao'         => 'Permite tasks-create, tasks-update, tasks-comment, tasks-bulk-update. Default pra dev sênior; Luiz/Eliana com supervisão (ver TEAM.md). ADR 0070.',
             'resources_pattern' => null,
@@ -60,7 +60,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.cycles.manage',
+            'slug'              => 'jana.mcp.cycles.manage',
             'nome'              => 'Gerenciar cycles + goals',
             'descricao'         => 'Criar cycle, fechar cycle (com rollover), atualizar achieved_value de goals. Wagner + leads de projeto. ADR 0070.',
             'resources_pattern' => null,
@@ -70,7 +70,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.projects.manage',
+            'slug'              => 'jana.mcp.projects.manage',
             'nome'              => 'Gerenciar projetos + epics + componentes',
             'descricao'         => 'Criar/atualizar projects, epics, components, workflows, issue templates, saved views. Wagner + admin. ADR 0070.',
             'resources_pattern' => null,
@@ -80,7 +80,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => true,
         ],
         [
-            'slug'              => 'copiloto.mcp.decisions.read',
+            'slug'              => 'jana.mcp.decisions.read',
             'nome'              => 'Ler ADRs (decisões arquiteturais)',
             'descricao'         => 'Permite buscar e ler ADRs em memory/decisions/. Padrão pra todos os devs (decisões são públicas no time).',
             'resources_pattern' => 'oimpresso://memory/decisions/.*',
@@ -90,7 +90,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.sessions.read',
+            'slug'              => 'jana.mcp.sessions.read',
             'nome'              => 'Ler session logs',
             'descricao'         => 'Permite listar/ler logs de sessões anteriores. Padrão pra todos os devs.',
             'resources_pattern' => 'oimpresso://memory/sessions/.*',
@@ -100,9 +100,9 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.usage.self',
+            'slug'              => 'jana.mcp.usage.self',
             'nome'              => 'Ver próprio uso/custo do Claude Code',
-            'descricao'         => 'Permite consultar resumo de uso pessoal (tokens, R$, top tools). Sempre concedido a quem tem `copiloto.mcp.use`.',
+            'descricao'         => 'Permite consultar resumo de uso pessoal (tokens, R$, top tools). Sempre concedido a quem tem `jana.mcp.use`.',
             'resources_pattern' => null,
             'tools_pattern'     => 'claude-code-usage-self',
             'is_destructive'    => false,
@@ -110,7 +110,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.usage.all',
+            'slug'              => 'jana.mcp.usage.all',
             'nome'              => 'Ver uso/custo de TODOS os devs',
             'descricao'         => 'Dashboards consolidados de governança: spend total, top users, top tools cross-team. Apenas Wagner/admin.',
             'resources_pattern' => null,
@@ -120,7 +120,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => true,
         ],
         [
-            'slug'              => 'copiloto.mcp.governanca.financeiro',
+            'slug'              => 'jana.mcp.governanca.financeiro',
             'nome'              => 'Acessar contexto financeiro via MCP',
             'descricao'         => 'Acesso a tools/resources financeiros (faturamento, ticket médio, contas a pagar/receber). Wagner + Eliana[E].',
             'resources_pattern' => 'oimpresso://financeiro/.*',
@@ -130,7 +130,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.governanca.tecnico',
+            'slug'              => 'jana.mcp.governanca.tecnico',
             'nome'              => 'Acessar contexto técnico via MCP',
             'descricao'         => 'Acesso a tools/resources de qualidade IA (faithfulness, latência, recall, alertas). Felipe[F] + Wagner.',
             'resources_pattern' => 'oimpresso://qualidade/.*',
@@ -140,9 +140,9 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.mcp.memory.manage',
+            'slug'              => 'jana.mcp.memory.manage',
             'nome'              => 'Gerenciar KB MCP (mcp_memory_documents)',
-            'descricao'         => 'Acesso à tela /copiloto/admin/memoria — listar, ler, soft-delete LGPD e ver history dos docs sincronizados. Wagner/superadmin v1.',
+            'descricao'         => 'Acesso à tela /jana/admin/memoria — listar, ler, soft-delete LGPD e ver history dos docs sincronizados. Wagner/superadmin v1.',
             'resources_pattern' => 'oimpresso://memory/.*',
             'tools_pattern'     => null,
             'is_destructive'    => true,
@@ -150,9 +150,9 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => true,
         ],
         [
-            'slug'              => 'copiloto.cc.read.self',
+            'slug'              => 'jana.cc.read.self',
             'nome'              => 'Ver minhas sessões Claude Code',
-            'descricao'         => 'Ver sessões CC do próprio user em /copiloto/admin/cc-sessions. Default pra todos com copiloto.mcp.use.',
+            'descricao'         => 'Ver sessões CC do próprio user em /jana/admin/cc-sessions. Default pra todos com jana.mcp.use.',
             'resources_pattern' => null,
             'tools_pattern'     => 'cc-search',
             'is_destructive'    => false,
@@ -160,9 +160,9 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.cc.read.team',
+            'slug'              => 'jana.cc.read.team',
             'nome'              => 'Ver sessões Claude Code do time',
-            'descricao'         => 'Cross-dev search e read em /copiloto/admin/cc-sessions. Felipe[F], Maiara[M], devs sêniores.',
+            'descricao'         => 'Cross-dev search e read em /jana/admin/cc-sessions. Felipe[F], Maiara[M], devs sêniores.',
             'resources_pattern' => null,
             'tools_pattern'     => 'cc-search',
             'is_destructive'    => false,
@@ -170,9 +170,9 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => false,
         ],
         [
-            'slug'              => 'copiloto.cc.read.all',
+            'slug'              => 'jana.cc.read.all',
             'nome'              => 'Ver todas sessões CC + governança',
-            'descricao'         => 'Acesso total à tela /copiloto/admin/cc-sessions, drill-down per-dev, KPIs cross-team. Wagner/superadmin.',
+            'descricao'         => 'Acesso total à tela /jana/admin/cc-sessions, drill-down per-dev, KPIs cross-team. Wagner/superadmin.',
             'resources_pattern' => null,
             'tools_pattern'     => 'cc-search',
             'is_destructive'    => false,
@@ -180,7 +180,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => true,
         ],
         [
-            'slug'              => 'copiloto.cc.curate',
+            'slug'              => 'jana.cc.curate',
             'nome'              => 'Curar sessões Claude Code',
             'descricao'         => 'Marcar sessions como useful/noise/duplicate/wip — influencia ranking de cc-search. Wagner only.',
             'resources_pattern' => null,
@@ -190,7 +190,7 @@ class McpScopesSeeder extends Seeder
             'admin_only'        => true,
         ],
         [
-            'slug'              => 'copiloto.cc.ingest.self',
+            'slug'              => 'jana.cc.ingest.self',
             'nome'              => 'Ingerir minhas sessões CC',
             'descricao'         => 'Permite POST /api/cc/ingest pra watcher Node empurrar JSONL local. Default todos com mcp.use.',
             'resources_pattern' => null,
@@ -247,6 +247,6 @@ class McpScopesSeeder extends Seeder
         ));
 
         $this->command?->line('Próximo: atribua aos roles existentes (ex: Admin#1) via php artisan tinker:');
-        $this->command?->line('  Role::findByName("Admin#1")->givePermissionTo("copiloto.mcp.use", ...);');
+        $this->command?->line('  Role::findByName("Admin#1")->givePermissionTo("jana.mcp.use", ...);');
     }
 }

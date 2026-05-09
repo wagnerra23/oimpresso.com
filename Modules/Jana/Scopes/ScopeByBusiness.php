@@ -35,7 +35,7 @@ class ScopeByBusiness implements Scope
 
         $user = auth()->user();
 
-        if ($user && method_exists($user, 'can') && $user->can('copiloto.superadmin')) {
+        if ($user && method_exists($user, 'can') && $user->can('jana.superadmin')) {
             $builder->where(function (Builder $q) use ($businessId) {
                 $q->where("{$q->getModel()->getTable()}.business_id", $businessId)
                   ->orWhereNull("{$q->getModel()->getTable()}.business_id");

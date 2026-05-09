@@ -106,7 +106,7 @@ afterEach(function () {
 it('responde 403 para usuário sem copiloto.mcp.usage.all', function () {
     [, $user] = govBootstrapUser();
 
-    if ($user->can('superadmin') || $user->can('copiloto.mcp.usage.all')) {
+    if ($user->can('superadmin') || $user->can('jana.mcp.usage.all')) {
         govRevokePerm($user);
     }
 
