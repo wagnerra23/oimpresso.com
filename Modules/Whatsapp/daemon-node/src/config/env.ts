@@ -1,0 +1,81 @@
+import { readFileSync } from 'node:fs';
+import { z } from 'zod';
+
+const numberFromString = (def: number) =>
+  z
+    .string()
+    .optional()
+    .transform((v) => (v === undefined || v === '' ? def : Number(v)))
+    .pipe(z.number().int().positive());
+
+const boolFromString = (def: boolean) =>
+  z
+    .string()
+    .optional()
+    .transform((v) => {
+      if (v === undefined || v === '') return def;
+      return ['1', 'true', 'yes', 'on'].includes(v.toLowerCase());
+    });
+
+const schema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
+
+  HTTP_HOST: z.string().default('0.0.0.0'),
+  HTTP_PORT: numberFromString(3000),
+  HTTP_BODY_LIMIT_BYTES: numberFromString(2 * 1024 * 1024),
+
+  API_KEY: z.string().min(16, 'API_KEY deve ter ao menos 16 caracteres').optional(),
+  API_KEY_FILE: z.string().optional(),
+
+  WEBHOOK_BASE_URL: z.string().url(),
+  WEBHOOK_TIMEOUT_MS: numberFromString(10_000),
+  WEBHOOK_MAX_RETRIES: numberFromString(5),
+  WEBHOOK_BACKOFF_BASE_MS: numberFromString(1_000),
+
+  SESSIONS_DIR: z.string().default('./var/sessions'),
+
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  LOG_PRETTY: boolFromString(false),
+
+  OTEL_ENABLED: boolFromString(true),
+  OTEL_SERVICE_NAME: z.string().default('whatsapp-baileys-daemon'),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  OTEL_EXPORTER_OTLP_PROTOCOL: z.enum(['http/protobuf', 'http/json', 'grpc']).default('http/protobuf'),
+
+  METRICS_ENABLED: boolFromString(true),
+  METRICS_ROUTE: z.string().default('/metrics'),
+
+  MAX_INSTANCES: numberFromString(30),
+  INSTANCE_CONNECT_TIMEOUT_MS: numberFromString(60_000),
+  QR_TIMEOUT_MS: numberFromString(120_000),
+});
+
+export type Env = z.infer<typeof schema> & { API_KEY: string };
+
+function resolveApiKey(parsed: z.infer<typeof schema>): string {
+  if (parsed.API_KEY && parsed.API_KEY.length >= 16) return parsed.API_KEY;
+  if (parsed.API_KEY_FILE) {
+    const content = readFileSync(parsed.API_KEY_FILE, 'utf8').trim();
+    if (content.length < 16) {
+      throw new Error(`API_KEY_FILE conteúdo curto (<16 chars): ${parsed.API_KEY_FILE}`);
+    }
+    return content;
+  }
+  throw new Error('Nenhum API_KEY ou API_KEY_FILE configurado');
+}
+
+let cached: Env | undefined;
+
+export function loadEnv(): Env {
+  if (cached) return cached;
+  const result = schema.safeParse(process.env);
+  if (!result.success) {
+    const flat = result.error.flatten().fieldErrors;
+    const msg = Object.entries(flat)
+      .map(([k, v]) => `${k}: ${(v ?? []).join(', ')}`)
+      .join('; ');
+    throw new Error(`Configuração inválida — ${msg}`);
+  }
+  cached = { ...result.data, API_KEY: resolveApiKey(result.data) };
+  return cached;
+}
