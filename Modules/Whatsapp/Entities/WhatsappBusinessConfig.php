@@ -12,6 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * WhatsappBusinessConfig — 1 row por business com Whatsapp ativo.
  *
+ * @deprecated 2026-05-09 (ADR 0115) — substituído por `WhatsappBusinessPhone`
+ * que suporta N números por business com driver/LGPD/escopo per-phone.
+ * Mantido como fallback rollback fase 1 (runbook migrar-1-para-n-numeros.md);
+ * será dropado em PR 5 após canary 30d. NÃO usar em código novo.
+ *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093) — global scope `business_id`
  * via trait HasBusinessScope.
  *
