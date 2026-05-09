@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Listeners;
 
-use Modules\Jana\Scopes\ScopeByBusiness;
-use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
 
 /**
@@ -15,8 +14,13 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
  * que decidiu auto-notificar cliente, mas SMS é caro. Whatsapp template
  * = R$ [redacted Tier 0] (Meta Cloud) ou freeform Z-API incluído (driver default).
  *
+ * **Multi-números (ADR 0115 — US-WA-040):**
+ * Resolve número via `WhatsappBusinessPhone::resolveForEvent($bizId, 'repair_status')`.
+ * Se nenhum phone tem `handles_repair_status=true`, fallback pra phone com
+ * `handles_outbound_default=true`. Se nenhum atende, falha silenciosa (log info).
+ *
  * **Plugagem no Repair:**
- * Lote 2c (este) entrega o listener. Plug do Repair (criar evento próprio
+ * Lote 2c entregou o listener. Plug do Repair (criar evento próprio
  * `Modules\Repair\Events\RepairStatusChanged` + dispatch dele em
  * `RepairStatusController` quando OS muda) fica pra Lote 2d (depende de
  * coordenação com Felipe/Maiara que mantêm o Repair).
@@ -26,10 +30,12 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
  * (ex: pra teste manual ou comando artisan).
  *
  * **Falha silenciosa:**
- * Se WhatsappBusinessConfig não existe pra business OU cliente não tem
- * mobile cadastrado, log info e retorna sem disparar Job.
+ * Se nenhum WhatsappBusinessPhone resolve pra `repair_status` OU template
+ * não cadastrado OU cliente não tem mobile, log info e retorna sem
+ * disparar Job.
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-004
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-004, US-WA-040
+ * @see memory/decisions/0115-multiplos-numeros-whatsapp-por-business.md
  */
 class NotifyRepairCustomer
 {
@@ -59,13 +65,11 @@ class NotifyRepairCustomer
             return;
         }
 
-        $config = WhatsappBusinessConfig::query()
-            ->withoutGlobalScope(ScopeByBusiness::class)
-            ->where('business_id', $businessId)
-            ->first();
+        // Resolve qual número Whatsapp atende repair_status (ADR 0115 §Q2)
+        $phone = WhatsappBusinessPhone::resolveForEvent($businessId, 'repair_status');
 
-        if ($config === null) {
-            \Log::info('[whatsapp.notify_repair] business sem config Whatsapp — skip', [
+        if ($phone === null) {
+            \Log::info('[whatsapp.notify_repair] business sem phone configurado pra repair_status — skip', [
                 'business_id' => $businessId,
                 'repair_id' => $repair->id ?? null,
             ]);
@@ -73,12 +77,14 @@ class NotifyRepairCustomer
         }
 
         $templateName = $newStatus === 'ready'
-            ? $config->template_repair_ready_name
-            : $config->template_repair_waiting_parts_name;
+            ? $phone->template_repair_ready_name
+            : $phone->template_repair_waiting_parts_name;
 
         if (empty($templateName)) {
-            \Log::info('[whatsapp.notify_repair] template não cadastrado — skip', [
+            \Log::info('[whatsapp.notify_repair] template não cadastrado no phone — skip', [
                 'business_id' => $businessId,
+                'phone_id' => $phone->id,
+                'phone_label' => $phone->label,
                 'status' => $newStatus,
             ]);
             return;
@@ -88,6 +94,7 @@ class NotifyRepairCustomer
         if ($contact === null || empty($contact->mobile)) {
             \Log::info('[whatsapp.notify_repair] cliente sem mobile — skip', [
                 'business_id' => $businessId,
+                'phone_id' => $phone->id,
                 'repair_id' => $repair->id ?? null,
             ]);
             return;
@@ -95,6 +102,7 @@ class NotifyRepairCustomer
 
         SendWhatsappMessageJob::dispatch(
             $businessId,
+            $phone->id,
             $contact->mobile,
             'template',
             [
