@@ -86,16 +86,19 @@ return [
 
     'centrifugo' => [
         // ADR 0058 — Centrifugo CT 100 substituiu Reverb (Hostinger HTTP-only não roda daemons).
+        // Subdomain canônico ADR 0058 = `realtime.oimpresso.com` (NÃO `centrifugo.*` que é só
+        // o nome do binary). Deploy step-by-step em
+        // `memory/requisitos/Infra/RUNBOOK-deploy-centrifugo.md`.
         // API HTTP: POST {url}/api com header X-API-Key + body {"method":"publish",...}
-        'url' => env('WHATSAPP_CENTRIFUGO_URL', 'https://centrifugo.oimpresso.local'),
+        'url' => env('WHATSAPP_CENTRIFUGO_URL', 'https://realtime.oimpresso.com'),
         'api_key' => env('WHATSAPP_CENTRIFUGO_API_KEY', null),
         'request_timeout' => env('WHATSAPP_CENTRIFUGO_TIMEOUT', 5),
         'enabled' => env('WHATSAPP_CENTRIFUGO_ENABLED', true),
         // WebSocket URL pro frontend connect (default = mesmo host com /connection/websocket).
         // Centrifugo aceita ws:// em dev, wss:// em prod via Traefik.
-        'ws_url' => env('WHATSAPP_CENTRIFUGO_WS_URL', 'wss://centrifugo.oimpresso.local/connection/websocket'),
+        'ws_url' => env('WHATSAPP_CENTRIFUGO_WS_URL', 'wss://realtime.oimpresso.com/connection/websocket'),
         // HMAC secret pra emitir JWT HS256 de subscribe (CentrifugoTokenIssuer).
-        // No Centrifugo, configurar `token_hmac_secret_key` igual a este valor.
+        // No Centrifugo CT 100 config.json, configurar `client.token.hmac_secret_key` igual a este valor.
         'token_hmac_secret' => env('WHATSAPP_CENTRIFUGO_TOKEN_HMAC_SECRET', null),
         'token_ttl_seconds' => (int) env('WHATSAPP_CENTRIFUGO_TOKEN_TTL', 3600),
     ],
