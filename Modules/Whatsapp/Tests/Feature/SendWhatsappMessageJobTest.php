@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
-use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\WhatsappMessageFailed;
@@ -17,28 +17,36 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
 uses(Tests\TestCase::class);
 
 /**
- * US-WA-003 · SendWhatsappMessageJob — fluxo end-to-end + multi-tenant Tier 0.
+ * US-WA-003 + US-WA-040 · SendWhatsappMessageJob — fluxo end-to-end
+ * + multi-tenant Tier 0 + multi-números (ADR 0115).
  *
  * Cobre:
- * - Job aceita $businessId no constructor (Tier 0 — não usa session())
- * - Cria WhatsappMessage status=queued antes do driver
+ * - Job aceita $businessId + $whatsappBusinessPhoneId no constructor
+ *   (Tier 0 + multi-números — não usa session())
+ * - Resolve WhatsappBusinessPhone defensivo (where('business_id'=$bizId,
+ *   'id'=$phoneId)) — phone de outro business jamais é aceito
+ * - Cria WhatsappMessage status=queued antes do driver com phone_id setado
  * - Em sucesso: status=sent + provider_message_id, dispara Sent event
- * - Em falha permanente (4xx): status=failed, dispara Failed event,
- *   re-throw pra Laravel agendar retry exponencial
- * - WhatsappConversation criada/atualizada (last_outbound_at)
+ * - Em falha permanente (4xx): status=failed, dispara Failed event, re-throw
+ * - WhatsappConversation criada/atualizada com phone_id correto
  *
- * Padrão SQLite friendly (cria tabelas em beforeEach — RecurringBilling pattern).
+ * Padrão SQLite friendly (cria tabelas em beforeEach).
  */
 
 beforeEach(function () {
-    foreach (['whatsapp_messages', 'whatsapp_conversations', 'whatsapp_business_configs'] as $t) {
+    foreach ([
+        'whatsapp_messages',
+        'whatsapp_conversations',
+        'whatsapp_business_phones',
+    ] as $t) {
         Schema::dropIfExists($t);
     }
 
-    Schema::create('whatsapp_business_configs', function ($table) {
+    Schema::create('whatsapp_business_phones', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
-        $table->uuid('business_uuid')->unique();
+        $table->uuid('phone_uuid')->unique();
+        $table->string('label', 80);
         $table->string('driver', 20)->default('zapi');
         $table->string('fallback_driver', 20)->default('meta_cloud');
         $table->string('display_phone', 20)->nullable();
@@ -50,10 +58,15 @@ beforeEach(function () {
         $table->text('zapi_instance_token')->nullable();
         $table->text('zapi_client_token')->nullable();
         $table->string('baileys_instance_id', 64)->nullable();
-        $table->string('baileys_daemon_url', 255)->nullable();
-        $table->text('baileys_api_key')->nullable();
+        $table->string('baileys_phone_e164', 20)->nullable();
+        $table->string('baileys_verified_name', 100)->nullable();
+        $table->string('baileys_profile_pic_url', 255)->nullable();
         $table->timestamp('lgpd_acknowledged_at')->nullable();
         $table->unsignedInteger('lgpd_acknowledged_by_user_id')->nullable();
+        $table->boolean('handles_repair_status')->default(false);
+        $table->boolean('handles_billing')->default(false);
+        $table->boolean('handles_jana_bot')->default(true);
+        $table->boolean('handles_outbound_default')->default(false);
         $table->boolean('bot_enabled')->default(false);
         $table->string('template_repair_ready_name', 64)->nullable();
         $table->string('template_repair_waiting_parts_name', 64)->nullable();
@@ -69,6 +82,7 @@ beforeEach(function () {
     Schema::create('whatsapp_conversations', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('whatsapp_business_phone_id')->nullable();
         $table->unsignedInteger('contact_id')->nullable();
         $table->string('customer_phone', 20);
         $table->string('status', 20)->default('open');
@@ -85,6 +99,7 @@ beforeEach(function () {
     Schema::create('whatsapp_messages', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('whatsapp_business_phone_id')->nullable();
         $table->unsignedBigInteger('conversation_id');
         $table->string('direction', 10);
         $table->string('provider', 20);
@@ -102,16 +117,19 @@ beforeEach(function () {
         $table->timestamp('updated_at')->nullable();
     });
 
-    // Cria config ZAPI pra business=4 (driver=null não estoura rede em Pest)
-    WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
+    // Cria phone ZAPI pra business=1
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'id' => 10,
         'business_id' => 1,
-        'business_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Comercial',
         'driver' => 'zapi',
         'fallback_driver' => 'meta_cloud',
         'driver_health' => 'healthy',
         'zapi_instance_id' => 'test-instance-123',
         'zapi_instance_token' => 'token-xyz',
         'zapi_client_token' => 'client-abc',
+        'handles_outbound_default' => true,
     ]);
 });
 
@@ -124,6 +142,7 @@ it('cria WhatsappMessage queued + dispatch Queued event antes de chamar driver',
 
     $job = new SendWhatsappMessageJob(
         businessId: 1,
+        whatsappBusinessPhoneId: 10,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'Olá Cliente — sua OS está pronta!'],
@@ -134,13 +153,13 @@ it('cria WhatsappMessage queued + dispatch Queued event antes de chamar driver',
     Event::assertDispatched(WhatsappMessageQueued::class);
     Event::assertDispatched(WhatsappMessageSent::class);
 
-    // Mensagem persistida com status=sent + provider_message_id
     $msgs = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->get();
     expect($msgs)->toHaveCount(1);
     $msg = $msgs->first();
     expect($msg->status)->toBe('sent');
     expect($msg->provider_message_id)->toBe('wamid.TEST123');
     expect($msg->business_id)->toBe(1);
+    expect($msg->whatsapp_business_phone_id)->toBe(10);
     expect($msg->direction)->toBe('outbound');
     expect($msg->provider)->toBe('zapi');
 });
@@ -154,6 +173,7 @@ it('em falha permanente: status=failed + Failed event + re-throw pra retry expon
 
     $job = new SendWhatsappMessageJob(
         businessId: 1,
+        whatsappBusinessPhoneId: 10,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'msg falha'],
@@ -178,6 +198,7 @@ it('detecta ban Z-API (HTTP 403) e marca banDetected no Failed event', function 
 
     $job = new SendWhatsappMessageJob(
         businessId: 1,
+        whatsappBusinessPhoneId: 10,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'msg ban'],
@@ -190,13 +211,14 @@ it('detecta ban Z-API (HTTP 403) e marca banDetected no Failed event', function 
     });
 });
 
-it('atualiza WhatsappConversation last_outbound_at em sucesso', function () {
+it('atualiza WhatsappConversation last_outbound_at em sucesso + vincula phone_id', function () {
     Http::fake([
         'api.z-api.io/*' => Http::response(['messageId' => 'wamid.OK'], 200),
     ]);
 
     $job = new SendWhatsappMessageJob(
         businessId: 1,
+        whatsappBusinessPhoneId: 10,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'olá'],
@@ -206,12 +228,13 @@ it('atualiza WhatsappConversation last_outbound_at em sucesso', function () {
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->first();
     expect($conv)->not->toBeNull();
     expect($conv->business_id)->toBe(1);
+    expect($conv->whatsapp_business_phone_id)->toBe(10);
     expect($conv->customer_phone)->toBe('+5511987654321');
     expect($conv->last_outbound_at)->not->toBeNull();
     expect($conv->last_message_at)->not->toBeNull();
 });
 
-it('Tier 0 — businessId no constructor isola do session()', function () {
+it('Tier 0 — businessId + phoneId no constructor isolam do session()', function () {
     Http::fake([
         'api.z-api.io/*' => Http::response(['messageId' => 'wamid.ISOLATED'], 200),
     ]);
@@ -221,7 +244,8 @@ it('Tier 0 — businessId no constructor isola do session()', function () {
     session(['user.business_id' => 999]);
 
     $job = new SendWhatsappMessageJob(
-        businessId: 1, // explícito no constructor
+        businessId: 1,
+        whatsappBusinessPhoneId: 10,
         to: '+5511987654321',
         kind: 'freeform',
         payload: ['body' => 'tier 0 test'],
@@ -229,5 +253,49 @@ it('Tier 0 — businessId no constructor isola do session()', function () {
     $job->handle();
 
     $msg = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->first();
-    expect($msg->business_id)->toBe(1); // não 999
+    expect($msg->business_id)->toBe(1);
+    expect($msg->whatsapp_business_phone_id)->toBe(10);
+});
+
+it('Tier 0 defensive — phone de outro business é rejeitado com firstOrFail', function () {
+    // Cria phone em outro business
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'id' => 99,
+        'business_id' => 999,
+        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+        'label' => 'Outro biz',
+        'driver' => 'null',
+        'fallback_driver' => 'null',
+        'driver_health' => 'healthy',
+    ]);
+
+    // Tenta usar phone_id=99 (business 999) com businessId=1 — Tier 0 bloqueia
+    $job = new SendWhatsappMessageJob(
+        businessId: 1,
+        whatsappBusinessPhoneId: 99, // de outro business!
+        to: '+5511987654321',
+        kind: 'freeform',
+        payload: ['body' => 'cross-tenant attempt'],
+    );
+
+    expect(fn () => $job->handle())
+        ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+
+    // Nenhuma mensagem foi criada
+    expect(WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->count())->toBe(0);
+});
+
+it('tags do Job incluem business + phone + kind', function () {
+    $job = new SendWhatsappMessageJob(
+        businessId: 1,
+        whatsappBusinessPhoneId: 10,
+        to: '+5511987654321',
+        kind: 'freeform',
+        payload: ['body' => 'tag test'],
+    );
+
+    $tags = $job->tags();
+    expect($tags)->toContain('business:1');
+    expect($tags)->toContain('phone:10');
+    expect($tags)->toContain('whatsapp:freeform');
 });
