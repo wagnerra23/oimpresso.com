@@ -12,7 +12,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 
 /**
- * ADR 0118 (Tier 1) — "Quem está mexendo em quê AGORA?"
+ * ADR 0119 (Tier 1) — "Quem está mexendo em quê AGORA?"
  *
  * Agrega sinais existentes (mcp_cc_sessions + mcp_cc_messages do watcher cc-search,
  * MEM-CC-1) pra responder coordenação Claude-A vs Claude-B. Zero estado novo: só
@@ -30,7 +30,7 @@ class WhatsActiveTool extends Tool
 
     protected string $title = 'Sessões Claude ativas + paths tocados';
 
-    protected string $description = 'Lista sessões Claude Code do time recentemente ativas + paths tocados nas últimas N horas. Use no início de sessão pra detectar se outro dev está mexendo no escopo que você vai pegar (alerta passivo, não bloqueia). ADR 0118 Tier 1.';
+    protected string $description = 'Lista sessões Claude Code do time recentemente ativas + paths tocados nas últimas N horas. Use no início de sessão pra detectar se outro dev está mexendo no escopo que você vai pegar (alerta passivo, não bloqueia). ADR 0119 Tier 1.';
 
     public function schema(JsonSchema $schema): array
     {
@@ -174,7 +174,7 @@ class WhatsActiveTool extends Tool
 
         $output .= "---\n";
         $output .= '_Use `whats-active hours:N` pra ampliar/reduzir a janela. ' .
-            'Esta tool é alerta passivo — não bloqueia ninguém. ADR 0118._';
+            'Esta tool é alerta passivo — não bloqueia ninguém. ADR 0119._';
 
         return Response::text($output);
     }

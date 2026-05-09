@@ -5,11 +5,11 @@ description: |
   pra detectar se outra sessão Claude do time tocou paths overlapping nas
   últimas 2h — alerta passivo (não bloqueia). Cobre o único cenário de
   conflito não mitigado por worktree isolada + tasks-update doing: Claude-A
-  vs Claude-B mexendo no mesmo arquivo simultaneamente. ADR 0118 Tier 1.
+  vs Claude-B mexendo no mesmo arquivo simultaneamente. ADR 0119 Tier 1.
 trust_level: 1
 tier: A
 parent_mission: mission.constituicao-v2
-charter_adr: 0118-paralelismo-sessoes-whats-active-tier-1
+charter_adr: 0119-paralelismo-sessoes-whats-active-tier-1
 auto_trigger: session_start
 applies_to:
   - any session in oimpresso project
@@ -23,7 +23,7 @@ applies_to:
 **Sempre, depois do `brief-first`.** Tier A — carrega em todo system prompt
 do oimpresso.
 
-Ofensores reais de paralelismo (catalogados em [ADR 0118](../../../memory/decisions/0118-paralelismo-sessoes-whats-active-tier-1.md))
+Ofensores reais de paralelismo (catalogados em [ADR 0119](../../../memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
 são Cursor (4×) e workflows GitHub Actions (3×) — ambos NÃO consultam MCP.
 Esta skill cobre só o caso Claude-A vs Claude-B (Wagner vs Felipe simultâneos
 no mesmo arquivo). Cursor segue convenção humana, não MCP.
@@ -108,13 +108,13 @@ Você: "⚠️ Felipe está mexendo em NfeService.php há 30min (branch
 Se em 30 dias houver **2× incidentes** de Claude-A vs Claude-B no mesmo
 arquivo que `whats-active` deixou passar (alertou mas Claude ignorou,
 ou não alertou por bug), promove pra Tier 2 = lease formal com TTL
-(ADR 0118 §Tier 2 dormente).
+(ADR 0119 §Tier 2 dormente).
 
 Sinal qualificado antes de feature ([ADR 0105](../../../memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)).
 
 ## Referências
 
-- [ADR 0118](../../../memory/decisions/0118-paralelismo-sessoes-whats-active-tier-1.md) — decisão Tier 1 aceito, Tier 2 dormente
+- [ADR 0119](../../../memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md) — decisão Tier 1 aceito, Tier 2 dormente
 - [ADR 0105](../../../memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — princípio sinal qualificado
 - [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (transparência §3)
 - US-INFRA-006 (`whats-active` tool, dependência) + US-INFRA-007 (esta skill)

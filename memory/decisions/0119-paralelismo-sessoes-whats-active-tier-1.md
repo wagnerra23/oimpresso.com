@@ -1,6 +1,6 @@
 ---
-slug: 0118-paralelismo-sessoes-whats-active-tier-1
-number: 118
+slug: 0119-paralelismo-sessoes-whats-active-tier-1
+number: 119
 title: "Paralelismo de sessões — Tier 1 `whats-active` aceito, Tier 2 lease formal dormente"
 type: adr
 status: aceito
@@ -18,7 +18,7 @@ related:
 pii: false
 ---
 
-# ADR 0118 — Paralelismo de sessões — Tier 1 `whats-active` aceito, Tier 2 lease formal dormente
+# ADR 0119 — Paralelismo de sessões — Tier 1 `whats-active` aceito, Tier 2 lease formal dormente
 
 **Status:** ✅ Aceita
 **Data:** 2026-05-09

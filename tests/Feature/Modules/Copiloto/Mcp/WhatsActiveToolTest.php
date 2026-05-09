@@ -7,7 +7,7 @@ use Modules\Jana\Mcp\OimpressoMcpServer;
 use Modules\Jana\Mcp\Tools\WhatsActiveTool;
 
 /**
- * ADR 0118 (Tier 1) — WhatsActiveTool.
+ * ADR 0119 (Tier 1) — WhatsActiveTool.
  *
  * Coordenação Claude-A vs Claude-B: agrega mcp_cc_sessions + mcp_cc_messages
  * pra responder "quem está mexendo em quê AGORA" como alerta passivo.
