@@ -14,7 +14,7 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
  * que decidiu auto-notificar cliente, mas SMS é caro. Whatsapp template
  * = R$ [redacted Tier 0] (Meta Cloud) ou freeform Z-API incluído (driver default).
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * Resolve número via `WhatsappBusinessPhone::resolveForEvent($bizId, 'repair_status')`.
  * Se nenhum phone tem `handles_repair_status=true`, fallback pra phone com
  * `handles_outbound_default=true`. Se nenhum atende, falha silenciosa (log info).
@@ -35,7 +35,7 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
  * disparar Job.
  *
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-004, US-WA-040
- * @see memory/decisions/0115-multiplos-numeros-whatsapp-por-business.md
+ * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
  */
 class NotifyRepairCustomer
 {
@@ -65,7 +65,7 @@ class NotifyRepairCustomer
             return;
         }
 
-        // Resolve qual número Whatsapp atende repair_status (ADR 0115 §Q2)
+        // Resolve qual número Whatsapp atende repair_status (ADR 0117 §Q2)
         $phone = WhatsappBusinessPhone::resolveForEvent($businessId, 'repair_status');
 
         if ($phone === null) {

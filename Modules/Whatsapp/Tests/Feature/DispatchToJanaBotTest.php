@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
 
 /**
  * US-WA-020 (Sprint 3 prep) + US-WA-040 · DispatchToJanaBot listener com
- * roteamento por phone (ADR 0115).
+ * roteamento por phone (ADR 0117).
  *
  * Cobre:
  * - bot.enabled global=false → no-op (bot_handling intacto)
