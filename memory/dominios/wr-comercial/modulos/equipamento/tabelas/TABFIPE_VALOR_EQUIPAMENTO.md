@@ -5,6 +5,7 @@ created_at_version: 1456
 last_modified_version: 1457
 target_version: 1468
 columns_count: 3
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,11 +23,11 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `VALOR_CONTRIBUICAO_ASSOCIADO` | `DOUBLE PRECISION` | NULL | v1456 | v1456 |
-| 2 | `VALOR_BASE_EQUIPAMENTO` | `DOUBLE PRECISION` | NULL | v1457 | v1457 |
-| 3 | `OBSERVACAO` | `VARCHAR(500)` | NULL | v1457 | v1457 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `VALOR_CONTRIBUICAO_ASSOCIADO` | `DOUBLE PRECISION` | NULL |  | v1456 | v1456 |
+| 2 | `VALOR_BASE_EQUIPAMENTO` | `DOUBLE PRECISION` | NULL |  | v1457 | v1457 |
+| 3 | `OBSERVACAO` | `VARCHAR(500)` | NULL |  | v1457 | v1457 |
 
 ## Evolução
 

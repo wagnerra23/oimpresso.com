@@ -5,6 +5,13 @@ created_at_version: 489
 last_modified_version: 1468
 target_version: 1468
 columns_count: 29
+foreign_keys_count: 5
+foreign_keys:
+  CODCONDICAOPAGTO: CONDICAOPAGTO
+  CODCONTA: CONTAS
+  CODEQUIPAMENTO: EQUIPAMENTO
+  CODMENSALIDADE: MENSALIDADE
+  CODPLANOCONTAS: PLANOCONTAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,39 +27,51 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1468;
 - **Total colunas (versão 1468):** 29
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCONDICAOPAGTO` | [`CONDICAOPAGTO`](../../financeiro/tabelas/CONDICAOPAGTO.md) |
+| `CODCONTA` | [`CONTAS`](../../financeiro/tabelas/CONTAS.md) |
+| `CODEQUIPAMENTO` | [`EQUIPAMENTO`](../../equipamento/tabelas/EQUIPAMENTO.md) |
+| `CODMENSALIDADE` | [`MENSALIDADE`](../../financeiro/tabelas/MENSALIDADE.md) |
+| `CODPLANOCONTAS` | [`PLANOCONTAS`](../../financeiro/tabelas/PLANOCONTAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `DESCONTO_ACRESCIMO` | `DOUBLE PRECISION` | NULL | v489 | v489 |
-| 2 | `CODIGO` | `INTEGER` | NOT NULL | v489 | v489 |
-| 3 | `CODMENSALIDADE` | `INTEGER` | NOT NULL | v489 | v489 |
-| 4 | `VALOR` | `DOUBLE PRECISION` | NULL | v489 | v489 |
-| 5 | `DOCUMENTO` | `VARCHAR(20)` | NULL | v489 | v489 |
-| 6 | `DT_VENCTO` | `TIMESTAMP` | NULL | v489 | v489 |
-| 7 | `STATUS` | `VARCHAR(20)` | NULL | v489 | v489 |
-| 8 | `TIPO` | `VARCHAR(10)` | NULL | v489 | v489 |
-| 9 | `RAZAOSOCIAL` | `VARCHAR(150)` | NULL | v489 | v489 |
-| 10 | `HISTORICO` | `VARCHAR(100)` | NULL | v489 | v489 |
-| 11 | `DT_EMISSAO` | `TIMESTAMP` | NULL | v489 | v489 |
-| 12 | `TIPOPAGTO` | `VARCHAR(30)` | NULL | v489 | v489 |
-| 13 | `CODCONDICAOPAGTO` | `INTEGER` | NULL | v489 | v489 |
-| 14 | `CONDICAOPAGTO` | `VARCHAR(30)` | NULL | v489 | v489 |
-| 15 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v489 | v489 |
-| 16 | `CODCONTA` | `INTEGER` | NULL | v489 | v489 |
-| 17 | `CODPLANOCONTAS` | `VARCHAR(30) CHARACTER SET WIN1252` | NULL | v489 | v499 |
-| 18 | `PESSOA_RESPONSAVEL_CODIGO` | `VARCHAR(10)` | NULL | v489 | v489 |
-| 19 | `PESSOA_RESPONSAVEL_TIPO` | `VARCHAR(3)` | NULL | v489 | v489 |
-| 20 | `PESSOA_RESPONSAVEL_SEQUENCIA` | `INTEGER` | NULL | v489 | v489 |
-| 21 | `CODPEDIDO` | `VARCHAR(50)` | NULL | v1459 | v1459 |
-| 22 | `VALOR_CONTRIBUICAO_ASSOCIADO` | `DOUBLE PRECISION` | NULL | v1461 | v1461 |
-| 23 | `VALOR_OUTRAS_CONTRIBUICOES` | `DOUBLE PRECISION` | NULL | v1461 | v1461 |
-| 24 | `CODEQUIPAMENTO` | `INTEGER` | NULL | v1461 | v1461 |
-| 25 | `PLACA` | `VARCHAR(10)` | NULL | v1461 | v1461 |
-| 26 | `MARCAMODELO` | `VARCHAR(50)` | NULL | v1461 | v1461 |
-| 27 | `MODELO` | `VARCHAR(50)` | NULL | v1461 | v1461 |
-| 28 | `ANO` | `VARCHAR(10)` | NULL | v1461 | v1461 |
-| 29 | `EMAIL` | `VARCHAR(500) CHARACTER SET NONE` | NULL | v1465 | v1468 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `DESCONTO_ACRESCIMO` | `DOUBLE PRECISION` | NULL |  | v489 | v489 |
+| 2 | `CODIGO` | `INTEGER` | NOT NULL |  | v489 | v489 |
+| 3 | `CODMENSALIDADE` | `INTEGER` | NOT NULL | → `MENSALIDADE` | v489 | v489 |
+| 4 | `VALOR` | `DOUBLE PRECISION` | NULL |  | v489 | v489 |
+| 5 | `DOCUMENTO` | `VARCHAR(20)` | NULL |  | v489 | v489 |
+| 6 | `DT_VENCTO` | `TIMESTAMP` | NULL |  | v489 | v489 |
+| 7 | `STATUS` | `VARCHAR(20)` | NULL |  | v489 | v489 |
+| 8 | `TIPO` | `VARCHAR(10)` | NULL |  | v489 | v489 |
+| 9 | `RAZAOSOCIAL` | `VARCHAR(150)` | NULL |  | v489 | v489 |
+| 10 | `HISTORICO` | `VARCHAR(100)` | NULL |  | v489 | v489 |
+| 11 | `DT_EMISSAO` | `TIMESTAMP` | NULL |  | v489 | v489 |
+| 12 | `TIPOPAGTO` | `VARCHAR(30)` | NULL |  | v489 | v489 |
+| 13 | `CODCONDICAOPAGTO` | `INTEGER` | NULL | → `CONDICAOPAGTO` | v489 | v489 |
+| 14 | `CONDICAOPAGTO` | `VARCHAR(30)` | NULL |  | v489 | v489 |
+| 15 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v489 | v489 |
+| 16 | `CODCONTA` | `INTEGER` | NULL | → `CONTAS` | v489 | v489 |
+| 17 | `CODPLANOCONTAS` | `VARCHAR(30) CHARACTER SET WIN1252` | NULL | → `PLANOCONTAS` | v489 | v499 |
+| 18 | `PESSOA_RESPONSAVEL_CODIGO` | `VARCHAR(10)` | NULL |  | v489 | v489 |
+| 19 | `PESSOA_RESPONSAVEL_TIPO` | `VARCHAR(3)` | NULL |  | v489 | v489 |
+| 20 | `PESSOA_RESPONSAVEL_SEQUENCIA` | `INTEGER` | NULL |  | v489 | v489 |
+| 21 | `CODPEDIDO` | `VARCHAR(50)` | NULL |  | v1459 | v1459 |
+| 22 | `VALOR_CONTRIBUICAO_ASSOCIADO` | `DOUBLE PRECISION` | NULL |  | v1461 | v1461 |
+| 23 | `VALOR_OUTRAS_CONTRIBUICOES` | `DOUBLE PRECISION` | NULL |  | v1461 | v1461 |
+| 24 | `CODEQUIPAMENTO` | `INTEGER` | NULL | → `EQUIPAMENTO` | v1461 | v1461 |
+| 25 | `PLACA` | `VARCHAR(10)` | NULL |  | v1461 | v1461 |
+| 26 | `MARCAMODELO` | `VARCHAR(50)` | NULL |  | v1461 | v1461 |
+| 27 | `MODELO` | `VARCHAR(50)` | NULL |  | v1461 | v1461 |
+| 28 | `ANO` | `VARCHAR(10)` | NULL |  | v1461 | v1461 |
+| 29 | `EMAIL` | `VARCHAR(500) CHARACTER SET NONE` | NULL |  | v1465 | v1468 |
 
 ## Evolução
 

@@ -5,6 +5,7 @@ created_at_version: 659
 last_modified_version: 975
 target_version: 1468
 columns_count: 2
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,10 +23,10 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `TODOS_ATIVOS` | `VARCHAR(1)` | NULL | v659 | v659 |
-| 2 | `TEM_RESSARCIMENTO` | `VARCHAR(1)` | NULL | v975 | v975 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `TODOS_ATIVOS` | `VARCHAR(1)` | NULL |  | v659 | v659 |
+| 2 | `TEM_RESSARCIMENTO` | `VARCHAR(1)` | NULL |  | v975 | v975 |
 
 ## Evolução
 

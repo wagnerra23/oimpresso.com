@@ -5,6 +5,7 @@ created_at_version: 1219
 last_modified_version: 1248
 target_version: 1468
 columns_count: 14
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,22 +23,22 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v1219 | v1219 |
-| 2 | `LOGIN` | `VARCHAR(500)` | NULL | v1219 | v1219 |
-| 3 | `SENHA` | `VARCHAR(255)` | NULL | v1219 | v1219 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1219 | v1219 |
-| 5 | `PRIORIDADE_SINCRONIZACAO` | `VARCHAR(20)` | NULL | v1219 | v1219 |
-| 6 | `CLIENT_ID` | `VARCHAR(100)` | NULL | v1219 | v1219 |
-| 7 | `CLIENT_SECRET` | `VARCHAR(100)` | NULL | v1219 | v1219 |
-| 8 | `ATIVO` | `VARCHAR(1)` | NULL | v1225 | v1225 |
-| 9 | `DESCRICAO` | `VARCHAR(50)` | NULL | v1225 | v1225 |
-| 10 | `TOKEN_DT_EXPIRACAO` | `TIMESTAMP` | NULL | v1225 | v1225 |
-| 11 | `TOKEN_WEB_SERVICE` | `VARCHAR(5000) CHARACTER SET WIN1252` | NULL | v1225 | v1248 |
-| 12 | `PESSOA_CLIENTE_TIPO` | `VARCHAR(3)` | NULL | v1248 | v1248 |
-| 13 | `PESSOA_FORNECEDOR_TIPO` | `VARCHAR(3)` | NULL | v1248 | v1248 |
-| 14 | `PESSOA_TRANSPORTADORA_TIPO` | `VARCHAR(3)` | NULL | v1248 | v1248 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v1219 | v1219 |
+| 2 | `LOGIN` | `VARCHAR(500)` | NULL |  | v1219 | v1219 |
+| 3 | `SENHA` | `VARCHAR(255)` | NULL |  | v1219 | v1219 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1219 | v1219 |
+| 5 | `PRIORIDADE_SINCRONIZACAO` | `VARCHAR(20)` | NULL |  | v1219 | v1219 |
+| 6 | `CLIENT_ID` | `VARCHAR(100)` | NULL |  | v1219 | v1219 |
+| 7 | `CLIENT_SECRET` | `VARCHAR(100)` | NULL |  | v1219 | v1219 |
+| 8 | `ATIVO` | `VARCHAR(1)` | NULL |  | v1225 | v1225 |
+| 9 | `DESCRICAO` | `VARCHAR(50)` | NULL |  | v1225 | v1225 |
+| 10 | `TOKEN_DT_EXPIRACAO` | `TIMESTAMP` | NULL |  | v1225 | v1225 |
+| 11 | `TOKEN_WEB_SERVICE` | `VARCHAR(5000) CHARACTER SET WIN1252` | NULL |  | v1225 | v1248 |
+| 12 | `PESSOA_CLIENTE_TIPO` | `VARCHAR(3)` | NULL |  | v1248 | v1248 |
+| 13 | `PESSOA_FORNECEDOR_TIPO` | `VARCHAR(3)` | NULL |  | v1248 | v1248 |
+| 14 | `PESSOA_TRANSPORTADORA_TIPO` | `VARCHAR(3)` | NULL |  | v1248 | v1248 |
 
 ## Evolução
 

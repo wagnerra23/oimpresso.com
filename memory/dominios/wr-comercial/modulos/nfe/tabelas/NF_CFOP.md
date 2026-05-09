@@ -5,6 +5,7 @@ created_at_version: 511
 last_modified_version: 940
 target_version: 1468
 columns_count: 12
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,20 +23,20 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `ENTRADA_SAIDA` | `VARCHAR(10)` | NULL | v511 | v511 |
-| 2 | `DEVOLUCAO` | `DOM_BOOLEAN` | NULL | v704 | v704 |
-| 3 | `ATIVO` | `VARCHAR(1)` | NULL | v728 | v728 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v728 | v728 |
-| 5 | `PODE_NFE` | `VARCHAR(1)` | NULL | v940 | v940 |
-| 6 | `PODE_NFCE` | `VARCHAR(1)` | NULL | v940 | v940 |
-| 7 | `PODE_DEVOLUCAO` | `VARCHAR(1)` | NULL | v940 | v940 |
-| 8 | `PODE_TRANSPORTE` | `VARCHAR(1)` | NULL | v940 | v940 |
-| 9 | `PODE_COMUNICACAO` | `VARCHAR(1)` | NULL | v940 | v940 |
-| 10 | `OPERACAO` | `VARCHAR(20)` | NULL | v940 | v940 |
-| 11 | `SUBISTITUICAO_TRIBUTARIA` | `VARCHAR(50)` | NULL | v940 | v940 |
-| 12 | `TIPO` | `VARCHAR(50)` | NULL | v940 | v940 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `ENTRADA_SAIDA` | `VARCHAR(10)` | NULL |  | v511 | v511 |
+| 2 | `DEVOLUCAO` | `DOM_BOOLEAN` | NULL |  | v704 | v704 |
+| 3 | `ATIVO` | `VARCHAR(1)` | NULL |  | v728 | v728 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v728 | v728 |
+| 5 | `PODE_NFE` | `VARCHAR(1)` | NULL |  | v940 | v940 |
+| 6 | `PODE_NFCE` | `VARCHAR(1)` | NULL |  | v940 | v940 |
+| 7 | `PODE_DEVOLUCAO` | `VARCHAR(1)` | NULL |  | v940 | v940 |
+| 8 | `PODE_TRANSPORTE` | `VARCHAR(1)` | NULL |  | v940 | v940 |
+| 9 | `PODE_COMUNICACAO` | `VARCHAR(1)` | NULL |  | v940 | v940 |
+| 10 | `OPERACAO` | `VARCHAR(20)` | NULL |  | v940 | v940 |
+| 11 | `SUBISTITUICAO_TRIBUTARIA` | `VARCHAR(50)` | NULL |  | v940 | v940 |
+| 12 | `TIPO` | `VARCHAR(50)` | NULL |  | v940 | v940 |
 
 ## Evolução
 

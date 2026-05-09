@@ -5,6 +5,7 @@ created_at_version: 1337
 last_modified_version: 1435
 target_version: 1468
 columns_count: 9
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,17 +23,17 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v1337 | v1337 |
-| 2 | `DESCRICAO` | `VARCHAR(255)` | NULL | v1337 | v1337 |
-| 3 | `ATIVO` | `VARCHAR(1)` | NULL | v1337 | v1337 |
-| 4 | `CONFIGURACAO` | `VARCHAR(255)` | NULL | v1337 | v1337 |
-| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1337 | v1337 |
-| 6 | `OBSERVACAO` | `VARCHAR(1000)` | NULL | v1340 | v1340 |
-| 7 | `REFERENCIA` | `VARCHAR(50)` | NULL | v1340 | v1340 |
-| 8 | `NUVEM_TAGS` | `VARCHAR(1000)` | NULL | v1340 | v1430 |
-| 9 | `PATH_APP` | `VARCHAR(255)` | NULL | v1435 | v1435 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v1337 | v1337 |
+| 2 | `DESCRICAO` | `VARCHAR(255)` | NULL |  | v1337 | v1337 |
+| 3 | `ATIVO` | `VARCHAR(1)` | NULL |  | v1337 | v1337 |
+| 4 | `CONFIGURACAO` | `VARCHAR(255)` | NULL |  | v1337 | v1337 |
+| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1337 | v1337 |
+| 6 | `OBSERVACAO` | `VARCHAR(1000)` | NULL |  | v1340 | v1340 |
+| 7 | `REFERENCIA` | `VARCHAR(50)` | NULL |  | v1340 | v1340 |
+| 8 | `NUVEM_TAGS` | `VARCHAR(1000)` | NULL |  | v1340 | v1430 |
+| 9 | `PATH_APP` | `VARCHAR(255)` | NULL |  | v1435 | v1435 |
 
 ## Evolução
 

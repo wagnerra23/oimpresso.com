@@ -5,6 +5,7 @@ created_at_version: 579
 last_modified_version: 1348
 target_version: 1468
 columns_count: 13
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,21 +23,21 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v579 | v579 |
-| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL | v579 | v579 |
-| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v579 | v579 |
-| 4 | `ATIVO` | `VARCHAR(1)` | NULL | v1348 | v1348 |
-| 5 | `CODTABELA` | `VARCHAR(50)` | NULL | v1322 | v1322 |
-| 6 | `ADD` | `DT_ALTERACAO TIMESTAMP` | NULL | v1348 | v1348 |
-| 7 | `NIVEL1` | `INTEGER` | NULL | v1348 | v1348 |
-| 8 | `NIVEL2` | `INTEGER` | NULL | v1348 | v1348 |
-| 9 | `NIVEL3` | `INTEGER` | NULL | v1348 | v1348 |
-| 10 | `NIVEL4` | `INTEGER` | NULL | v1348 | v1348 |
-| 11 | `NIVEL5` | `INTEGER` | NULL | v1348 | v1348 |
-| 12 | `NIVEL6` | `INTEGER` | NULL | v1348 | v1348 |
-| 13 | `TABELA` | `INTEGER` | NULL | v1348 | v1348 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v579 | v579 |
+| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v579 | v579 |
+| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v579 | v579 |
+| 4 | `ATIVO` | `VARCHAR(1)` | NULL |  | v1348 | v1348 |
+| 5 | `CODTABELA` | `VARCHAR(50)` | NULL |  | v1322 | v1322 |
+| 6 | `ADD` | `DT_ALTERACAO TIMESTAMP` | NULL |  | v1348 | v1348 |
+| 7 | `NIVEL1` | `INTEGER` | NULL |  | v1348 | v1348 |
+| 8 | `NIVEL2` | `INTEGER` | NULL |  | v1348 | v1348 |
+| 9 | `NIVEL3` | `INTEGER` | NULL |  | v1348 | v1348 |
+| 10 | `NIVEL4` | `INTEGER` | NULL |  | v1348 | v1348 |
+| 11 | `NIVEL5` | `INTEGER` | NULL |  | v1348 | v1348 |
+| 12 | `NIVEL6` | `INTEGER` | NULL |  | v1348 | v1348 |
+| 13 | `TABELA` | `INTEGER` | NULL |  | v1348 | v1348 |
 
 ## Evolução
 

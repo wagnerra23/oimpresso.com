@@ -5,6 +5,11 @@ created_at_version: 1451
 last_modified_version: 1464
 target_version: 1468
 columns_count: 19
+foreign_keys_count: 3
+foreign_keys:
+  CODNF_CEST: NF_CEST
+  CODNF_CFOP: NF_CFOP
+  CODNF_NCM: NF_NCM
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,29 +25,39 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1464;
 - **Total colunas (versão 1468):** 19
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODNF_CEST` | [`NF_CEST`](../../nfe/tabelas/NF_CEST.md) |
+| `CODNF_CFOP` | [`NF_CFOP`](../../nfe/tabelas/NF_CFOP.md) |
+| `CODNF_NCM` | [`NF_NCM`](../../nfe/tabelas/NF_NCM.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v1451 | v1451 |
-| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL | v1451 | v1451 |
-| 3 | `REGIME_EMPRESA` | `VARCHAR(20)` | NULL | v1451 | v1451 |
-| 4 | `UF_ORIGEM` | `CHAR(2)` | NULL | v1451 | v1451 |
-| 5 | `UF_DESTINO` | `CHAR(2)` | NULL | v1451 | v1451 |
-| 6 | `CONSUMIDOR_FINAL` | `CHAR(1)` | NULL | v1451 | v1451 |
-| 7 | `TIPO_CONTRIBUINTE` | `INTEGER` | NULL | v1451 | v1451 |
-| 8 | `TIPO_OPERACAO` | `CHAR(1)` | NULL | v1451 | v1451 |
-| 9 | `ATIVO` | `CHAR(1) DEFAULT 'S'` | NULL | v1451 | v1451 |
-| 10 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1451 | v1451 |
-| 11 | `CSOSN` | `VARCHAR(3)` | NULL | v1455 | v1455 |
-| 12 | `CST` | `VARCHAR(3)` | NULL | v1455 | v1455 |
-| 13 | `PRIORIDADE` | `INTEGER DEFAULT 0` | NULL | v1455 | v1455 |
-| 14 | `TIPO_PRODUTO` | `VARCHAR(10)` | NULL | v1462 | v1462 |
-| 15 | `FINALIDADE` | `SMALLINT` | NULL | v1462 | v1462 |
-| 16 | `DESTINO` | `VARCHAR(20)` | NULL | v1462 | v1462 |
-| 17 | `CODNF_CFOP` | `VARCHAR(4)` | NULL | v1455 | v1463 |
-| 18 | `CODNF_CEST` | `VARCHAR(7)` | NULL | v1463 | v1463 |
-| 19 | `CODNF_NCM` | `VARCHAR(10)` | NULL | v1464 | v1464 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v1451 | v1451 |
+| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v1451 | v1451 |
+| 3 | `REGIME_EMPRESA` | `VARCHAR(20)` | NULL |  | v1451 | v1451 |
+| 4 | `UF_ORIGEM` | `CHAR(2)` | NULL |  | v1451 | v1451 |
+| 5 | `UF_DESTINO` | `CHAR(2)` | NULL |  | v1451 | v1451 |
+| 6 | `CONSUMIDOR_FINAL` | `CHAR(1)` | NULL |  | v1451 | v1451 |
+| 7 | `TIPO_CONTRIBUINTE` | `INTEGER` | NULL |  | v1451 | v1451 |
+| 8 | `TIPO_OPERACAO` | `CHAR(1)` | NULL |  | v1451 | v1451 |
+| 9 | `ATIVO` | `CHAR(1) DEFAULT 'S'` | NULL |  | v1451 | v1451 |
+| 10 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1451 | v1451 |
+| 11 | `CSOSN` | `VARCHAR(3)` | NULL |  | v1455 | v1455 |
+| 12 | `CST` | `VARCHAR(3)` | NULL |  | v1455 | v1455 |
+| 13 | `PRIORIDADE` | `INTEGER DEFAULT 0` | NULL |  | v1455 | v1455 |
+| 14 | `TIPO_PRODUTO` | `VARCHAR(10)` | NULL |  | v1462 | v1462 |
+| 15 | `FINALIDADE` | `SMALLINT` | NULL |  | v1462 | v1462 |
+| 16 | `DESTINO` | `VARCHAR(20)` | NULL |  | v1462 | v1462 |
+| 17 | `CODNF_CFOP` | `VARCHAR(4)` | NULL | → `NF_CFOP` | v1455 | v1463 |
+| 18 | `CODNF_CEST` | `VARCHAR(7)` | NULL | → `NF_CEST` | v1463 | v1463 |
+| 19 | `CODNF_NCM` | `VARCHAR(10)` | NULL | → `NF_NCM` | v1464 | v1464 |
 
 ## Evolução
 

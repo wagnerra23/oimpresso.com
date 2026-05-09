@@ -5,6 +5,7 @@ created_at_version: 1442
 last_modified_version: 1442
 target_version: 1468
 columns_count: 15
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,23 +23,23 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `BIGINT PRIMARY KEY` | NULL | v1442 | v1442 |
-| 2 | `CHAVE` | `VARCHAR(200) UNIQUE` | NOT NULL | v1442 | v1442 |
-| 3 | `DESCRICAO` | `VARCHAR(500)` | NULL | v1442 | v1442 |
-| 4 | `TIPO` | `VARCHAR(20)` | NOT NULL | v1442 | v1442 |
-| 5 | `ESCOPO` | `VARCHAR(20)` | NOT NULL | v1442 | v1442 |
-| 6 | `DOMINIO` | `VARCHAR(100)` | NULL | v1442 | v1442 |
-| 7 | `GRUPO` | `VARCHAR(100)` | NULL | v1442 | v1442 |
-| 8 | `VALOR_PADRAO` | `VARCHAR(4000)` | NULL | v1442 | v1442 |
-| 9 | `VALIDACAO` | `VARCHAR(4000)` | NULL | v1442 | v1442 |
-| 10 | `OPCOES_JSON` | `VARCHAR(4000)` | NULL | v1442 | v1442 |
-| 11 | `ORDEM` | `INTEGER DEFAULT 0` | NULL | v1442 | v1442 |
-| 12 | `ATIVO` | `VARCHAR(1) DEFAULT 'S'` | NULL | v1442 | v1442 |
-| 13 | `DT_CRIACAO` | `TIMESTAMP DEFAULT CURRENT_TIMESTAMP` | NULL | v1442 | v1442 |
-| 14 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1442 | v1442 |
-| 15 | `VERSAO` | `INTEGER` | NULL | v1442 | v1442 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `BIGINT PRIMARY KEY` | NULL |  | v1442 | v1442 |
+| 2 | `CHAVE` | `VARCHAR(200) UNIQUE` | NOT NULL |  | v1442 | v1442 |
+| 3 | `DESCRICAO` | `VARCHAR(500)` | NULL |  | v1442 | v1442 |
+| 4 | `TIPO` | `VARCHAR(20)` | NOT NULL |  | v1442 | v1442 |
+| 5 | `ESCOPO` | `VARCHAR(20)` | NOT NULL |  | v1442 | v1442 |
+| 6 | `DOMINIO` | `VARCHAR(100)` | NULL |  | v1442 | v1442 |
+| 7 | `GRUPO` | `VARCHAR(100)` | NULL |  | v1442 | v1442 |
+| 8 | `VALOR_PADRAO` | `VARCHAR(4000)` | NULL |  | v1442 | v1442 |
+| 9 | `VALIDACAO` | `VARCHAR(4000)` | NULL |  | v1442 | v1442 |
+| 10 | `OPCOES_JSON` | `VARCHAR(4000)` | NULL |  | v1442 | v1442 |
+| 11 | `ORDEM` | `INTEGER DEFAULT 0` | NULL |  | v1442 | v1442 |
+| 12 | `ATIVO` | `VARCHAR(1) DEFAULT 'S'` | NULL |  | v1442 | v1442 |
+| 13 | `DT_CRIACAO` | `TIMESTAMP DEFAULT CURRENT_TIMESTAMP` | NULL |  | v1442 | v1442 |
+| 14 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1442 | v1442 |
+| 15 | `VERSAO` | `INTEGER` | NULL |  | v1442 | v1442 |
 
 ## Evolução
 

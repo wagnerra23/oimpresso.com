@@ -5,6 +5,9 @@ created_at_version: 217
 last_modified_version: 1430
 target_version: 1468
 columns_count: 8
+foreign_keys_count: 1
+foreign_keys:
+  CODMENSAGEM_ASSUNTO: MENSAGEM_ASSUNTO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,18 +23,26 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1430;
 - **Total colunas (versão 1468):** 8
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODMENSAGEM_ASSUNTO` | [`MENSAGEM_ASSUNTO`](../../agenda/tabelas/MENSAGEM_ASSUNTO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CHAVE_PK` | `varchar(250)` | NULL | v217 | v217 |
-| 2 | `CHAVE_PK1` | `INTEGER` | NULL | v728 | v728 |
-| 3 | `CHAVE_PK2` | `VARCHAR(40)` | NULL | v728 | v728 |
-| 4 | `CHAVE_PK3` | `VARCHAR(15)` | NULL | v728 | v728 |
-| 5 | `MENSAGEM` | `VARCHAR(5000)` | NULL | v728 | v728 |
-| 6 | `ATIVO` | `VARCHAR(1)` | NULL | v728 | v728 |
-| 7 | `DT_FECHAMENTO` | `TIMESTAMP` | NULL | v1026 | v1026 |
-| 8 | `CODMENSAGEM_ASSUNTO` | `INTEGER` | NULL | v1430 | v1430 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CHAVE_PK` | `varchar(250)` | NULL |  | v217 | v217 |
+| 2 | `CHAVE_PK1` | `INTEGER` | NULL |  | v728 | v728 |
+| 3 | `CHAVE_PK2` | `VARCHAR(40)` | NULL |  | v728 | v728 |
+| 4 | `CHAVE_PK3` | `VARCHAR(15)` | NULL |  | v728 | v728 |
+| 5 | `MENSAGEM` | `VARCHAR(5000)` | NULL |  | v728 | v728 |
+| 6 | `ATIVO` | `VARCHAR(1)` | NULL |  | v728 | v728 |
+| 7 | `DT_FECHAMENTO` | `TIMESTAMP` | NULL |  | v1026 | v1026 |
+| 8 | `CODMENSAGEM_ASSUNTO` | `INTEGER` | NULL | → `MENSAGEM_ASSUNTO` | v1430 | v1430 |
 
 ## Evolução
 

@@ -5,6 +5,7 @@ created_at_version: 552
 last_modified_version: 1137
 target_version: 1468
 columns_count: 8
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,16 +23,16 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v552 | v552 |
-| 2 | `DESCRICAO` | `VARCHAR(200)` | NULL | v552 | v662 |
-| 3 | `TIPO_NF` | `VARCHAR(10)` | NULL | v661 | v737 |
-| 4 | `NFSE_CODIGO` | `INTEGER` | NULL | v661 | v661 |
-| 5 | `ATIVO` | `DOM_ATIVO` | NULL | v662 | v662 |
-| 6 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v728 | v728 |
-| 7 | `CONSUMIDOR_FINAL` | `VARCHAR(1), ADD ENTRADA_SAIDA VARCHAR(1), ADD OPERACAO VARCHAR(50)` | NULL | v944 | v944 |
-| 8 | `TEM_TRIBUTACAO_PADRAO` | `VARCHAR(1)` | NULL | v1137 | v1137 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v552 | v552 |
+| 2 | `DESCRICAO` | `VARCHAR(200)` | NULL |  | v552 | v662 |
+| 3 | `TIPO_NF` | `VARCHAR(10)` | NULL |  | v661 | v737 |
+| 4 | `NFSE_CODIGO` | `INTEGER` | NULL |  | v661 | v661 |
+| 5 | `ATIVO` | `DOM_ATIVO` | NULL |  | v662 | v662 |
+| 6 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v728 | v728 |
+| 7 | `CONSUMIDOR_FINAL` | `VARCHAR(1), ADD ENTRADA_SAIDA VARCHAR(1), ADD OPERACAO VARCHAR(50)` | NULL |  | v944 | v944 |
+| 8 | `TEM_TRIBUTACAO_PADRAO` | `VARCHAR(1)` | NULL |  | v1137 | v1137 |
 
 ## Evolução
 

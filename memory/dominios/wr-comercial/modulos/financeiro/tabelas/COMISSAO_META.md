@@ -5,6 +5,7 @@ created_at_version: 564
 last_modified_version: 564
 target_version: 1468
 columns_count: 5
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,13 +23,13 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v564 | v564 |
-| 2 | `TIPO` | `VARCHAR(11) CHARACTER SET NONE` | NULL | v564 | v564 |
-| 3 | `PORCENTAGEM` | `DOUBLE PRECISION` | NULL | v564 | v564 |
-| 4 | `VALOR` | `DOUBLE PRECISION` | NULL | v564 | v564 |
-| 5 | `DE` | `DOUBLE PRECISION` | NULL | v564 | v564 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v564 | v564 |
+| 2 | `TIPO` | `VARCHAR(11) CHARACTER SET NONE` | NULL |  | v564 | v564 |
+| 3 | `PORCENTAGEM` | `DOUBLE PRECISION` | NULL |  | v564 | v564 |
+| 4 | `VALOR` | `DOUBLE PRECISION` | NULL |  | v564 | v564 |
+| 5 | `DE` | `DOUBLE PRECISION` | NULL |  | v564 | v564 |
 
 ## Evolução
 

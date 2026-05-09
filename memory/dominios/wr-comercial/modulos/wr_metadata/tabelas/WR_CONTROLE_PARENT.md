@@ -5,6 +5,9 @@ created_at_version: 1339
 last_modified_version: 1430
 target_version: 1468
 columns_count: 5
+foreign_keys_count: 1
+foreign_keys:
+  CODWR_CONTROLE: WR_CONTROLE
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,15 +23,23 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1430;
 - **Total colunas (versão 1468):** 5
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODWR_CONTROLE` | [`WR_CONTROLE`](../../wr_metadata/tabelas/WR_CONTROLE.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODORIGEM` | `INTEGER` | NULL | v1339 | v1339 |
-| 2 | `CODWR_CONTROLE` | `INTEGER` | NULL | v1339 | v1339 |
-| 3 | `TIPO` | `VARCHAR(50)` | NULL | v1340 | v1340 |
-| 4 | `TEM_NA_CONSULTA` | `VARCHAR(1)` | NULL | v1348 | v1348 |
-| 5 | `ATIVO` | `VARCHAR(1)` | NULL | v1430 | v1430 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODORIGEM` | `INTEGER` | NULL |  | v1339 | v1339 |
+| 2 | `CODWR_CONTROLE` | `INTEGER` | NULL | → `WR_CONTROLE` | v1339 | v1339 |
+| 3 | `TIPO` | `VARCHAR(50)` | NULL |  | v1340 | v1340 |
+| 4 | `TEM_NA_CONSULTA` | `VARCHAR(1)` | NULL |  | v1348 | v1348 |
+| 5 | `ATIVO` | `VARCHAR(1)` | NULL |  | v1430 | v1430 |
 
 ## Evolução
 

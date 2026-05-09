@@ -5,6 +5,7 @@ created_at_version: 834
 last_modified_version: 883
 target_version: 1468
 columns_count: 7
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,15 +23,15 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v834 | v834 |
-| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL | v834 | v834 |
-| 3 | `SPREADSHEET` | `VARCHAR(100)` | NULL | v834 | v834 |
-| 4 | `REFERENCIA` | `VARCHAR(255)` | NULL | v834 | v834 |
-| 5 | `ATIVO` | `VARCHAR(1)` | NULL | v834 | v834 |
-| 6 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v834 | v834 |
-| 7 | `TEM_FORMULA` | `VARCHAR(1)` | NULL | v883 | v883 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v834 | v834 |
+| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v834 | v834 |
+| 3 | `SPREADSHEET` | `VARCHAR(100)` | NULL |  | v834 | v834 |
+| 4 | `REFERENCIA` | `VARCHAR(255)` | NULL |  | v834 | v834 |
+| 5 | `ATIVO` | `VARCHAR(1)` | NULL |  | v834 | v834 |
+| 6 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v834 | v834 |
+| 7 | `TEM_FORMULA` | `VARCHAR(1)` | NULL |  | v883 | v883 |
 
 ## Evolução
 

@@ -5,6 +5,10 @@ created_at_version: 125
 last_modified_version: 1184
 target_version: 1468
 columns_count: 10
+foreign_keys_count: 2
+foreign_keys:
+  CODPRODUTO: PRODUTO
+  CODPRODUTO_VINCULADO: PRODUTO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,20 +24,29 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1184;
 - **Total colunas (versão 1468):** 10
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODPRODUTO` | [`PRODUTO`](../../estoque/tabelas/PRODUTO.md) |
+| `CODPRODUTO_VINCULADO` | [`PRODUTO`](../../estoque/tabelas/PRODUTO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v125 | v125 |
-| 2 | `CODPRODUTO` | `VARCHAR(15)` | NOT NULL | v125 | v125 |
-| 3 | `QUANT` | `DOUBLE PRECISION` | NULL | v125 | v125 |
-| 4 | `TIPO` | `VARCHAR(11)` | NULL | v125 | v513 |
-| 5 | `PORCENTAGEM` | `DOUBLE PRECISION` | NULL | v125 | v125 |
-| 6 | `DE` | `DOUBLE PRECISION` | NULL | v513 | v513 |
-| 7 | `CODPRODUTO_VINCULADO` | `VARCHAR(15)` | NULL | v1184 | v1184 |
-| 8 | `DESCRICAO` | `VARCHAR(200)` | NULL | v1184 | v1184 |
-| 9 | `REFERENCIA` | `VARCHAR(100)` | NULL | v1184 | v1184 |
-| 10 | `SKU` | `VARCHAR(50)` | NULL | v1184 | v1184 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v125 | v125 |
+| 2 | `CODPRODUTO` | `VARCHAR(15)` | NOT NULL | → `PRODUTO` | v125 | v125 |
+| 3 | `QUANT` | `DOUBLE PRECISION` | NULL |  | v125 | v125 |
+| 4 | `TIPO` | `VARCHAR(11)` | NULL |  | v125 | v513 |
+| 5 | `PORCENTAGEM` | `DOUBLE PRECISION` | NULL |  | v125 | v125 |
+| 6 | `DE` | `DOUBLE PRECISION` | NULL |  | v513 | v513 |
+| 7 | `CODPRODUTO_VINCULADO` | `VARCHAR(15)` | NULL | → `PRODUTO` | v1184 | v1184 |
+| 8 | `DESCRICAO` | `VARCHAR(200)` | NULL |  | v1184 | v1184 |
+| 9 | `REFERENCIA` | `VARCHAR(100)` | NULL |  | v1184 | v1184 |
+| 10 | `SKU` | `VARCHAR(50)` | NULL |  | v1184 | v1184 |
 
 ## Evolução
 

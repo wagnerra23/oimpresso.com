@@ -5,6 +5,7 @@ created_at_version: 942
 last_modified_version: 1436
 target_version: 1468
 columns_count: 8
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,16 +23,16 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `CHAR(9)` | NOT NULL | v942 | v942 |
-| 2 | `SECAO` | `CHAR(1)` | NULL | v942 | v942 |
-| 3 | `DIVISAO` | `CHAR(2)` | NULL | v942 | v942 |
-| 4 | `GRUPO` | `CHAR(4)` | NULL | v942 | v942 |
-| 5 | `CLASSE` | `CHAR(7)` | NULL | v942 | v942 |
-| 6 | `DESCRICAO` | `VARCHAR(200)` | NULL | v942 | v942 |
-| 7 | `ATIVO` | `VARCHAR(15)` | NULL | v1025 | v1436 |
-| 8 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1025 | v1025 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `CHAR(9)` | NOT NULL |  | v942 | v942 |
+| 2 | `SECAO` | `CHAR(1)` | NULL |  | v942 | v942 |
+| 3 | `DIVISAO` | `CHAR(2)` | NULL |  | v942 | v942 |
+| 4 | `GRUPO` | `CHAR(4)` | NULL |  | v942 | v942 |
+| 5 | `CLASSE` | `CHAR(7)` | NULL |  | v942 | v942 |
+| 6 | `DESCRICAO` | `VARCHAR(200)` | NULL |  | v942 | v942 |
+| 7 | `ATIVO` | `VARCHAR(15)` | NULL |  | v1025 | v1436 |
+| 8 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1025 | v1025 |
 
 ## Evolução
 

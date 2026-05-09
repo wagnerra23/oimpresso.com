@@ -5,6 +5,13 @@ created_at_version: 305
 last_modified_version: 1370
 target_version: 1468
 columns_count: 22
+foreign_keys_count: 5
+foreign_keys:
+  CODCENTRO_CUSTO: CENTRO_CUSTO
+  CODDRE_CLASSIFICACAO: DRE_CLASSIFICACAO
+  CODMARCADOR: MARCADOR
+  CODMARCADOR_LISTA: MARCADOR_LISTA
+  CODPLANOCONTAS: PLANOCONTAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,32 +27,44 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1370;
 - **Total colunas (versão 1468):** 22
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCENTRO_CUSTO` | [`CENTRO_CUSTO`](../../producao/tabelas/CENTRO_CUSTO.md) |
+| `CODDRE_CLASSIFICACAO` | [`DRE_CLASSIFICACAO`](../../financeiro/tabelas/DRE_CLASSIFICACAO.md) |
+| `CODMARCADOR` | [`MARCADOR`](../../producao/tabelas/MARCADOR.md) |
+| `CODMARCADOR_LISTA` | [`MARCADOR_LISTA`](../../producao/tabelas/MARCADOR_LISTA.md) |
+| `CODPLANOCONTAS` | [`PLANOCONTAS`](../../financeiro/tabelas/PLANOCONTAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `TIPO_CUSTO` | `varchar (15)` | NULL | v305 | v305 |
-| 2 | `ICONE` | `blob sub_type 0 segment size 80` | NULL | v344 | v344 |
-| 3 | `DT_ALTERACAO` | `timestamp` | NULL | v344 | v344 |
-| 4 | `PERIODICIDADE` | `VARCHAR(20)` | NULL | v420 | v420 |
-| 5 | `TABELA` | `varchar (255)` | NULL | v364 | v364 |
-| 6 | `CODTABELA` | `varchar (40)` | NULL | v364 | v364 |
-| 7 | `AGRUPAREMOCULTO` | `varchar (1)` | NULL | v364 | v364 |
-| 8 | `TOTAL_RECEBIMENTOS` | `double precision` | NULL | v364 | v364 |
-| 9 | `TOTAL_PAGAMENTOS` | `double precision` | NULL | v364 | v364 |
-| 10 | `TOTAL_QUANT_FINANCEIRO` | `integer` | NULL | v364 | v364 |
-| 11 | `CODMARCADOR` | `INTEGER` | NULL | v390 | v390 |
-| 12 | `CODMARCADOR_LISTA` | `INTEGER` | NULL | v390 | v390 |
-| 13 | `INDICE5` | `INTEGER` | NULL | v499 | v499 |
-| 14 | `INDICE6` | `INTEGER` | NULL | v499 | v499 |
-| 15 | `CODDRE_CLASSIFICACAO` | `INTEGER` | NULL | v499 | v499 |
-| 16 | `TIPO_CLASSIFICACAO` | `VARCHAR(50)` | NULL | v955 | v955 |
-| 17 | `TEM_RATEIO_AUTOMATICO` | `VARCHAR(1)` | NULL | v961 | v961 |
-| 18 | `RATEIO_DIRETO` | `DOUBLE PRECISION` | NULL | v966 | v966 |
-| 19 | `RATEIO_INDIRETO` | `DOUBLE PRECISION` | NULL | v966 | v966 |
-| 20 | `RATEIO_AUTOMATICO` | `VARCHAR(1)` | NULL | v966 | v966 |
-| 21 | `CODPLANOCONTAS` | `VARCHAR(30)` | NULL | v1257 | v1257 |
-| 22 | `CODCENTRO_CUSTO` | `INTEGER` | NULL | v1370 | v1370 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `TIPO_CUSTO` | `varchar (15)` | NULL |  | v305 | v305 |
+| 2 | `ICONE` | `blob sub_type 0 segment size 80` | NULL |  | v344 | v344 |
+| 3 | `DT_ALTERACAO` | `timestamp` | NULL |  | v344 | v344 |
+| 4 | `PERIODICIDADE` | `VARCHAR(20)` | NULL |  | v420 | v420 |
+| 5 | `TABELA` | `varchar (255)` | NULL |  | v364 | v364 |
+| 6 | `CODTABELA` | `varchar (40)` | NULL |  | v364 | v364 |
+| 7 | `AGRUPAREMOCULTO` | `varchar (1)` | NULL |  | v364 | v364 |
+| 8 | `TOTAL_RECEBIMENTOS` | `double precision` | NULL |  | v364 | v364 |
+| 9 | `TOTAL_PAGAMENTOS` | `double precision` | NULL |  | v364 | v364 |
+| 10 | `TOTAL_QUANT_FINANCEIRO` | `integer` | NULL |  | v364 | v364 |
+| 11 | `CODMARCADOR` | `INTEGER` | NULL | → `MARCADOR` | v390 | v390 |
+| 12 | `CODMARCADOR_LISTA` | `INTEGER` | NULL | → `MARCADOR_LISTA` | v390 | v390 |
+| 13 | `INDICE5` | `INTEGER` | NULL |  | v499 | v499 |
+| 14 | `INDICE6` | `INTEGER` | NULL |  | v499 | v499 |
+| 15 | `CODDRE_CLASSIFICACAO` | `INTEGER` | NULL | → `DRE_CLASSIFICACAO` | v499 | v499 |
+| 16 | `TIPO_CLASSIFICACAO` | `VARCHAR(50)` | NULL |  | v955 | v955 |
+| 17 | `TEM_RATEIO_AUTOMATICO` | `VARCHAR(1)` | NULL |  | v961 | v961 |
+| 18 | `RATEIO_DIRETO` | `DOUBLE PRECISION` | NULL |  | v966 | v966 |
+| 19 | `RATEIO_INDIRETO` | `DOUBLE PRECISION` | NULL |  | v966 | v966 |
+| 20 | `RATEIO_AUTOMATICO` | `VARCHAR(1)` | NULL |  | v966 | v966 |
+| 21 | `CODPLANOCONTAS` | `VARCHAR(30)` | NULL | → `PLANOCONTAS` | v1257 | v1257 |
+| 22 | `CODCENTRO_CUSTO` | `INTEGER` | NULL | → `CENTRO_CUSTO` | v1370 | v1370 |
 
 ## Evolução
 

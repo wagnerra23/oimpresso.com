@@ -5,6 +5,10 @@ created_at_version: 962
 last_modified_version: 962
 target_version: 1468
 columns_count: 3
+foreign_keys_count: 2
+foreign_keys:
+  CODCENTRO_TRABALHO: CENTRO_TRABALHO
+  CODPLANOCONTAS: PLANOCONTAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,13 +24,22 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 962;
 - **Total colunas (versão 1468):** 3
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCENTRO_TRABALHO` | [`CENTRO_TRABALHO`](../../producao/tabelas/CENTRO_TRABALHO.md) |
+| `CODPLANOCONTAS` | [`PLANOCONTAS`](../../financeiro/tabelas/PLANOCONTAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v962 | v962 |
-| 2 | `CODPLANOCONTAS` | `VARCHAR(15)` | NULL | v962 | v962 |
-| 3 | `CODCENTRO_TRABALHO` | `INTEGER` | NULL | v962 | v962 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v962 | v962 |
+| 2 | `CODPLANOCONTAS` | `VARCHAR(15)` | NULL | → `PLANOCONTAS` | v962 | v962 |
+| 3 | `CODCENTRO_TRABALHO` | `INTEGER` | NULL | → `CENTRO_TRABALHO` | v962 | v962 |
 
 ## Evolução
 

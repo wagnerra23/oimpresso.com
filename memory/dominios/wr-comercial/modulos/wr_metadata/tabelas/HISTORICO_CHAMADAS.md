@@ -5,6 +5,7 @@ created_at_version: 354
 last_modified_version: 354
 target_version: 1468
 columns_count: 7
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,15 +23,15 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `RAMAL` | `INTEGER` | NOT NULL | v354 | v354 |
-| 2 | `TIPO` | `SMALLINT` | NOT NULL | v354 | v354 |
-| 3 | `TELEFONE` | `VARCHAR(20)` | NOT NULL | v354 | v354 |
-| 4 | `DATAHORA` | `TIMESTAMP` | NOT NULL | v354 | v354 |
-| 5 | `TEMPO` | `INTEGER` | NULL | v354 | v354 |
-| 6 | `GRAVADA` | `VARCHAR(1)` | NULL | v354 | v354 |
-| 7 | `DESVIADA` | `VARCHAR(1)` | NULL | v354 | v354 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `RAMAL` | `INTEGER` | NOT NULL |  | v354 | v354 |
+| 2 | `TIPO` | `SMALLINT` | NOT NULL |  | v354 | v354 |
+| 3 | `TELEFONE` | `VARCHAR(20)` | NOT NULL |  | v354 | v354 |
+| 4 | `DATAHORA` | `TIMESTAMP` | NOT NULL |  | v354 | v354 |
+| 5 | `TEMPO` | `INTEGER` | NULL |  | v354 | v354 |
+| 6 | `GRAVADA` | `VARCHAR(1)` | NULL |  | v354 | v354 |
+| 7 | `DESVIADA` | `VARCHAR(1)` | NULL |  | v354 | v354 |
 
 ## Evolução
 

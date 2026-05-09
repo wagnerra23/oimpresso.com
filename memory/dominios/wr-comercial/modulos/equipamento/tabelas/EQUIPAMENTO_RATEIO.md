@@ -5,6 +5,12 @@ created_at_version: 1100
 last_modified_version: 1119
 target_version: 1468
 columns_count: 15
+foreign_keys_count: 4
+foreign_keys:
+  CODCONDICAOPAGTO: CONDICAOPAGTO
+  CODCONTA: CONTAS
+  CODEQUIPAMENTO: EQUIPAMENTO
+  CODPLANOCONTAS: PLANOCONTAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,25 +26,36 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1119;
 - **Total colunas (versão 1468):** 15
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCONDICAOPAGTO` | [`CONDICAOPAGTO`](../../financeiro/tabelas/CONDICAOPAGTO.md) |
+| `CODCONTA` | [`CONTAS`](../../financeiro/tabelas/CONTAS.md) |
+| `CODEQUIPAMENTO` | [`EQUIPAMENTO`](../../equipamento/tabelas/EQUIPAMENTO.md) |
+| `CODPLANOCONTAS` | [`PLANOCONTAS`](../../financeiro/tabelas/PLANOCONTAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v1100 | v1100 |
-| 2 | `CODEQUIPAMENTO` | `INTEGER` | NULL | v1100 | v1100 |
-| 3 | `DESCRICAO` | `VARCHAR(50)` | NULL | v1100 | v1100 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1100 | v1100 |
-| 5 | `ATIVO` | `VARCHAR(1)` | NULL | v1100 | v1100 |
-| 6 | `TIPO` | `VARCHAR(50)` | NULL | v1100 | v1100 |
-| 7 | `TOTAL` | `DOUBLE PRECISION` | NULL | v1100 | v1100 |
-| 8 | `CODCONDICAOPAGTO` | `INTEGER` | NULL | v1119 | v1119 |
-| 9 | `CONDICAOPAGTO` | `VARCHAR(100)` | NULL | v1119 | v1119 |
-| 10 | `INTERVALO_MENSAL` | `VARCHAR(1)` | NULL | v1119 | v1119 |
-| 11 | `QUANTIDADE_PARCELAS` | `INTEGER` | NULL | v1119 | v1119 |
-| 12 | `CODPLANOCONTAS` | `VARCHAR(30)` | NULL | v1119 | v1119 |
-| 13 | `CODCONTA` | `INTEGER` | NULL | v1119 | v1119 |
-| 14 | `DIA_INTERVALO` | `INTEGER` | NULL | v1119 | v1119 |
-| 15 | `DATA_INICIAL` | `TIMESTAMP` | NULL | v1119 | v1119 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v1100 | v1100 |
+| 2 | `CODEQUIPAMENTO` | `INTEGER` | NULL | → `EQUIPAMENTO` | v1100 | v1100 |
+| 3 | `DESCRICAO` | `VARCHAR(50)` | NULL |  | v1100 | v1100 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1100 | v1100 |
+| 5 | `ATIVO` | `VARCHAR(1)` | NULL |  | v1100 | v1100 |
+| 6 | `TIPO` | `VARCHAR(50)` | NULL |  | v1100 | v1100 |
+| 7 | `TOTAL` | `DOUBLE PRECISION` | NULL |  | v1100 | v1100 |
+| 8 | `CODCONDICAOPAGTO` | `INTEGER` | NULL | → `CONDICAOPAGTO` | v1119 | v1119 |
+| 9 | `CONDICAOPAGTO` | `VARCHAR(100)` | NULL |  | v1119 | v1119 |
+| 10 | `INTERVALO_MENSAL` | `VARCHAR(1)` | NULL |  | v1119 | v1119 |
+| 11 | `QUANTIDADE_PARCELAS` | `INTEGER` | NULL |  | v1119 | v1119 |
+| 12 | `CODPLANOCONTAS` | `VARCHAR(30)` | NULL | → `PLANOCONTAS` | v1119 | v1119 |
+| 13 | `CODCONTA` | `INTEGER` | NULL | → `CONTAS` | v1119 | v1119 |
+| 14 | `DIA_INTERVALO` | `INTEGER` | NULL |  | v1119 | v1119 |
+| 15 | `DATA_INICIAL` | `TIMESTAMP` | NULL |  | v1119 | v1119 |
 
 ## Evolução
 

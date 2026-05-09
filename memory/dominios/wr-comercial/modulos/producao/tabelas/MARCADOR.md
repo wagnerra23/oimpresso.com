@@ -5,6 +5,7 @@ created_at_version: 390
 last_modified_version: 390
 target_version: 1468
 columns_count: 13
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,21 +23,21 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `ARQUIVO_FR3` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL | v390 | v390 |
-| 2 | `SPREADSHEET` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL | v390 | v390 |
-| 3 | `META_DO_ALERTA` | `INTEGER` | NULL | v390 | v390 |
-| 4 | `EMAIL_DO_ALERTA` | `VARCHAR(100)` | NULL | v390 | v390 |
-| 5 | `QUANDO_ENVIAR_EMAIL_ALERTA` | `VARCHAR(20)` | NULL | v390 | v390 |
-| 6 | `EVENTO_DO_ALERTA` | `VARCHAR(20)` | NULL | v390 | v390 |
-| 7 | `ACAO_DO_ALERTA` | `VARCHAR(20)` | NULL | v390 | v390 |
-| 8 | `MENSAGEM_DO_ALERTA` | `VARCHAR(32000)` | NULL | v390 | v390 |
-| 9 | `METADOALERTA` | `INTEGER` | NULL | v390 | v390 |
-| 10 | `EMAILDOALERTA` | `VARCHAR(100)` | NULL | v390 | v390 |
-| 11 | `DT_ULTIMA_EXECUCAO` | `TIMESTAMP` | NULL | v390 | v390 |
-| 12 | `ITERACAO_COM_PESSOAS` | `VARCHAR(1)` | NULL | v390 | v390 |
-| 13 | `CELULA_ITERACAO_COM_PESSOAS` | `VARCHAR(10)` | NULL | v390 | v390 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `ARQUIVO_FR3` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL |  | v390 | v390 |
+| 2 | `SPREADSHEET` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL |  | v390 | v390 |
+| 3 | `META_DO_ALERTA` | `INTEGER` | NULL |  | v390 | v390 |
+| 4 | `EMAIL_DO_ALERTA` | `VARCHAR(100)` | NULL |  | v390 | v390 |
+| 5 | `QUANDO_ENVIAR_EMAIL_ALERTA` | `VARCHAR(20)` | NULL |  | v390 | v390 |
+| 6 | `EVENTO_DO_ALERTA` | `VARCHAR(20)` | NULL |  | v390 | v390 |
+| 7 | `ACAO_DO_ALERTA` | `VARCHAR(20)` | NULL |  | v390 | v390 |
+| 8 | `MENSAGEM_DO_ALERTA` | `VARCHAR(32000)` | NULL |  | v390 | v390 |
+| 9 | `METADOALERTA` | `INTEGER` | NULL |  | v390 | v390 |
+| 10 | `EMAILDOALERTA` | `VARCHAR(100)` | NULL |  | v390 | v390 |
+| 11 | `DT_ULTIMA_EXECUCAO` | `TIMESTAMP` | NULL |  | v390 | v390 |
+| 12 | `ITERACAO_COM_PESSOAS` | `VARCHAR(1)` | NULL |  | v390 | v390 |
+| 13 | `CELULA_ITERACAO_COM_PESSOAS` | `VARCHAR(10)` | NULL |  | v390 | v390 |
 
 ## Evolução
 
