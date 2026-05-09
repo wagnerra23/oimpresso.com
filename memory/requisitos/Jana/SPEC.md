@@ -355,7 +355,7 @@ Sprint 9 fase 2 — investigar regressão score RAGAS 0.66 → 0.158 após troca
 
 **Próximo passo (Sprint 9b — futura US):** `ollama pull qwen3-embedding:4b` no CT 100 (top MTEB multilingual Jun/2025, PT-BR explícito) → reconfigurar embedder Meilisearch → re-importar 383 docs → meta superar 0.72 com semantic real PT-BR.
 
-**Acceptance**: score RAGAS recuperado pra ≥0.66 (atingido 0.700) · 3 fixes commitados em prod · 3 docs canônicos de governança em `memory/requisitos/Copiloto/` · ADR 0068 + 0069 aceitas · session log gravado.
+**Acceptance**: score RAGAS recuperado pra ≥0.66 (atingido 0.700) · 3 fixes commitados em prod · 3 docs canônicos de governança em `memory/requisitos/Jana/` · ADR 0068 + 0069 aceitas · session log gravado.
 
 ### US-COPI-083 · Sprint 9b — qwen3-embedding:0.6b + stopwords PT-BR (em par com baseline)
 
@@ -375,7 +375,7 @@ Substituir nomic-embed-text (EN-only, gera cosine ~0.97 uniforme em PT-BR) por q
 1. CT 100: `ollama pull qwen3-embedding:4b` (~3.5GB VRAM)
 2. Smoke test cosine similarity: 2 docs PT-BR diferentes devem dar cosine 0.3-0.8 (não mais ~0.97 uniforme)
 3. PATCH embedder Meilisearch `mcp_memory_documents` (model: `qwen3-embedding:4b`, dimensions: 1024)
-4. PUT stopwords PT-BR (lista canônica em `memory/requisitos/Copiloto/RETRIEVAL-ESTADO-ARTE-2026-05.md` §2)
+4. PUT stopwords PT-BR (lista canônica em `memory/requisitos/Jana/RETRIEVAL-ESTADO-ARTE-2026-05.md` §2)
 5. PUT localizedAttributes `[{"locales": ["por"], "attributePatterns": ["*"]}]`
 6. `php artisan scout:import McpMemoryDocument` (re-embeda 383 docs)
 7. Eval matrix: `eval:ragas-baseline --semantic-ratio=0.0|0.4|0.6|0.8` → escolher melhor

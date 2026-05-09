@@ -20,7 +20,7 @@ Carregar tudo no contexto = ~50k tokens. Carregar só fatia relevante = ~5-7k.
 | `FinanceiroAgent` | `memory/requisitos/Financeiro/` + ADRs arq/* relevantes | Wave 1 + 2 mergeados; Onda crítica pra meta R$ [redacted Tier 0]mi |
 | `PontoAgent` | `memory/requisitos/PontoWr2/` | Tier A roadmap; produto âncora 2026 |
 | `CmsAgent` | `memory/requisitos/Cms/` + `memory/comparativos/` | Em redesign Inertia; conversão = entrada novo cliente |
-| `CopilotoAgent` | `memory/requisitos/Copiloto/` | Spec novo; chat IA do cliente final |
+| `CopilotoAgent` | `memory/requisitos/Jana/` | Spec novo; chat IA do cliente final |
 
 Os outros ~14 módulos: triageados pelo agente router, sem sub-agent dedicado. Se virarem prioritários, promover.
 

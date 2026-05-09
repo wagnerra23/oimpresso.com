@@ -421,7 +421,7 @@ php artisan test tests/Unit/Evolution
     - "multi-tenant"
     - "business_id"
   citacoes_esperadas:
-    - "memory/requisitos/Copiloto/"
+    - "memory/requisitos/Jana/"
 
 - id: GOLD-005
   escopo: geral

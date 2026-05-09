@@ -23,17 +23,17 @@ originSessionId: 3ea423cc-141d-477e-b072-2e0171a6fdd7
 **Entidades (7):** `copiloto_metas`, `copiloto_meta_periodos`, `copiloto_meta_apuracoes`, `copiloto_meta_fontes`, `copiloto_conversas`, `copiloto_mensagens`, `copiloto_sugestoes`.
 
 **Artefatos no cofre** (branch alvo `6.7-bootstrap`, atualmente worktree `lucid-dirac-00f1c6` aguardando commit/PR):
-- `memory/requisitos/Copiloto/README.md` — pitch + frontmatter
-- `memory/requisitos/Copiloto/ARCHITECTURE.md` — 7 áreas, 7 entidades, 4 camadas
-- `memory/requisitos/Copiloto/SPEC.md` — 4 personas, US-COPI-001 a US-COPI-061, Gherkin
-- `memory/requisitos/Copiloto/GLOSSARY.md` — vocabulário canônico
-- `memory/requisitos/Copiloto/RUNBOOK.md` — seed, job, debug, problemas comuns
-- `memory/requisitos/Copiloto/CHANGELOG.md`
-- `memory/requisitos/Copiloto/adr/arq/0001-tenancy-hibrida.md`
-- `memory/requisitos/Copiloto/adr/arq/0002-conversa-como-entry-point.md`
-- `memory/requisitos/Copiloto/adr/tech/0001-drivers-apuracao-plugaveis.md`
-- `memory/requisitos/Copiloto/adr/tech/0002-adapter-ia-laravelai-ou-openai.md`
-- `memory/requisitos/Copiloto/adr/ui/0001-chat-inline-no-dashboard.md`
+- `memory/requisitos/Jana/README.md` — pitch + frontmatter
+- `memory/requisitos/Jana/ARCHITECTURE.md` — 7 áreas, 7 entidades, 4 camadas
+- `memory/requisitos/Jana/SPEC.md` — 4 personas, US-COPI-001 a US-COPI-061, Gherkin
+- `memory/requisitos/Jana/GLOSSARY.md` — vocabulário canônico
+- `memory/requisitos/Jana/RUNBOOK.md` — seed, job, debug, problemas comuns
+- `memory/requisitos/Jana/CHANGELOG.md`
+- `memory/requisitos/Jana/adr/arq/0001-tenancy-hibrida.md`
+- `memory/requisitos/Jana/adr/arq/0002-conversa-como-entry-point.md`
+- `memory/requisitos/Jana/adr/tech/0001-drivers-apuracao-plugaveis.md`
+- `memory/requisitos/Jana/adr/tech/0002-adapter-ia-laravelai-ou-openai.md`
+- `memory/requisitos/Jana/adr/ui/0001-chat-inline-no-dashboard.md`
 
 **Status:** `implementado` — mergeado em `6.7-bootstrap` na sessão 14 (2026-04-26, commit `e9cf6dc1`, PR #13). Em `Modules/Copiloto/`: 10 controllers (`Chat`, `Dashboard`, `Metas`, `Periodos`, `Fontes`, `Alertas`, `Superadmin`, `Install`, `Data`), 7 entidades, drivers `OpenAiDirectDriver` + `LaravelAiDriver` (stub legado) + `SqlDriver`, jobs `ApurarMetaJob`, services `Apuracao`/`Alerta`/`Suggestion`/`ContextSnapshot`, 24 testes Pest passando.
 
