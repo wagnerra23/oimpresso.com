@@ -26,6 +26,18 @@ interface AuditEntry {
   created_at: string
 }
 
+interface Narrative {
+  severity: 'info' | 'warning' | 'critical'
+  narrative: string
+  generated_at: string
+}
+
+interface HealthKpis {
+  failed_jobs_24h: number | null
+  custo_ia_brl_24h: number | null
+  last_narrative: { severity: 'info' | 'warning' | 'critical'; message: string; generated_at: string } | null
+}
+
 interface Props {
   kpis: {
     pending_adrs: number
@@ -39,6 +51,8 @@ interface Props {
   audit_highlights: AuditEntry[]
   actiongate_mode: 'off' | 'warn' | 'strict'
   next_review_at: string
+  health_kpis: HealthKpis
+  narratives: Narrative[]
 }
 
 function complianceColor(pct: number): string {
@@ -56,12 +70,47 @@ function modeBadge(mode: 'off' | 'warn' | 'strict'): { label: string; color: str
   }[mode] ?? { label: mode, color: '' }
 }
 
+function failedJobsTone(n: number | null): 'default' | 'success' | 'warning' | 'danger' {
+  if (n === null) return 'default'
+  if (n === 0) return 'success'
+  if (n > 100) return 'danger'
+  return 'warning'
+}
+
+function custoIaTone(n: number | null): 'default' | 'success' | 'warning' | 'info' {
+  if (n === null) return 'default'
+  if (n > 5) return 'warning'
+  if (n > 0) return 'info'
+  return 'success'
+}
+
+function severityTone(s: 'info' | 'warning' | 'critical' | undefined): 'default' | 'warning' | 'danger' | 'info' {
+  if (s === 'critical') return 'danger'
+  if (s === 'warning') return 'warning'
+  if (s === 'info') return 'info'
+  return 'default'
+}
+
+function severityBadgeClass(s: 'info' | 'warning' | 'critical'): string {
+  return {
+    critical: 'bg-rose-50 text-rose-700 border-rose-200',
+    warning: 'bg-amber-50 text-amber-700 border-amber-200',
+    info: 'bg-blue-50 text-blue-700 border-blue-200',
+  }[s]
+}
+
+function truncate(text: string, max: number): string {
+  return text.length > max ? text.slice(0, max - 1) + '…' : text
+}
+
 const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
   kpis,
   pending_adrs,
   audit_highlights,
   actiongate_mode,
   next_review_at,
+  health_kpis,
+  narratives,
 }) => {
   const mode = modeBadge(actiongate_mode)
 
@@ -76,6 +125,10 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           ActionGate: {mode.label}
         </Badge>
       </PageHeader>
+
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-2">
+        Constituição
+      </h2>
 
       <KpiGrid cols={6}>
         <KpiCard
@@ -124,7 +177,43 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         />
       </KpiGrid>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-4">
+        Saúde do ecossistema
+      </h2>
+
+      <KpiGrid cols={3}>
+        <KpiCard
+          icon="activity"
+          tone={failedJobsTone(health_kpis.failed_jobs_24h)}
+          label="Failed jobs 24h"
+          value={health_kpis.failed_jobs_24h === null ? '—' : health_kpis.failed_jobs_24h.toString()}
+          description={health_kpis.failed_jobs_24h === null ? 'failed_jobs ausente' : 'queue Horizon'}
+        />
+        <KpiCard
+          icon="dollar-sign"
+          tone={custoIaTone(health_kpis.custo_ia_brl_24h)}
+          label="Custo IA 24h"
+          value={
+            health_kpis.custo_ia_brl_24h === null
+              ? '—'
+              : `R$ ${health_kpis.custo_ia_brl_24h.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          }
+          description={health_kpis.custo_ia_brl_24h === null ? 'jana_mensagens ausente' : 'tokens × pricing canônico'}
+        />
+        <KpiCard
+          icon="message-circle-warning"
+          tone={severityTone(health_kpis.last_narrative?.severity)}
+          label="Última narrativa"
+          value={health_kpis.last_narrative ? health_kpis.last_narrative.severity : '—'}
+          description={
+            health_kpis.last_narrative
+              ? truncate(health_kpis.last_narrative.message, 60)
+              : 'Brain A narrador inativo'
+          }
+        />
+      </KpiGrid>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ADRs pendentes */}
         <Card>
           <CardContent className="p-4">
@@ -195,6 +284,39 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                     </li>
                   )
                 })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Narrativas Brain A 24h */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <span className="text-zinc-700 dark:text-zinc-300">🤖</span>
+                Narrativas Brain A 24h ({narratives.length})
+              </h3>
+              <Link href="/copiloto/admin/memoria?type=narrative" className="text-sm text-blue-600 hover:underline">
+                histórico →
+              </Link>
+            </div>
+
+            {narratives.length === 0 ? (
+              <EmptyState icon="message-circle" title="Sem narrativas" description="Brain A ainda não rodou nas últimas 24h." />
+            ) : (
+              <ul className="space-y-2">
+                {narratives.map((n, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2 last:border-0">
+                    <Badge variant="outline" className={severityBadgeClass(n.severity)}>
+                      {n.severity}
+                    </Badge>
+                    <div className="flex-1">{truncate(n.narrative, 80)}</div>
+                    <span className="text-xs text-zinc-500 shrink-0">
+                      {new Date(n.generated_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </li>
+                ))}
               </ul>
             )}
           </CardContent>
