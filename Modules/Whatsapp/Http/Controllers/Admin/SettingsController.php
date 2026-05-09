@@ -64,6 +64,7 @@ class SettingsController extends Controller
         $webhookUrls = $config !== null ? [
             'meta' => URL::to('/api/whatsapp/webhook/meta/' . $config->business_uuid),
             'zapi' => URL::to('/api/whatsapp/webhook/zapi/' . $config->business_uuid),
+            'baileys' => URL::to('/api/whatsapp/webhook/baileys/' . $config->business_uuid),
         ] : null;
 
         return Inertia::render('Whatsapp/Settings', [
