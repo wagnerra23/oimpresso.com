@@ -72,6 +72,13 @@ jobs:
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
+            # Lock cleanup defensivo — quick-sync cancelado anterior (race CI ou
+            # timeout) deixa .git/*.lock órfão e bloqueia próximos pulls com
+            # 'fatal: Unable to create .git/index.lock: File exists'.
+            # rm -f é idempotente: no-op se não existe; remove se existe.
+            # Bug reproduzível: PR #279 (2026-05-09 09:26) deixou lock órfão
+            # que bloqueou deploys dos PRs #285 e #286 por ~3h.
+            rm -f .git/index.lock .git/HEAD.lock .git/refs/heads/main.lock 2>/dev/null || true &&
             git fetch origin &&
             git reset --hard origin/main &&
             git log --oneline -3
