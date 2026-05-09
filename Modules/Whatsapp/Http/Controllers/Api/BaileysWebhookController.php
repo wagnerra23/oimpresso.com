@@ -27,7 +27,7 @@ use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
  *   - `ban_detected`    — daemon detectou ban Meta (não-recuperável sem novo número)
  *   - `disconnected`    — disconnect manual
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * State updates (connected/qr_updated/session_lost/ban_detected/disconnected)
  * preferem atualizar o `WhatsappBusinessPhone` específico se resolvido pelo
  * middleware. Fallback config legacy se phone não cadastrado (durante

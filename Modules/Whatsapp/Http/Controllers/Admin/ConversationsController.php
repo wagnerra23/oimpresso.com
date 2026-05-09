@@ -290,7 +290,7 @@ class ConversationsController extends Controller
             ],
         };
 
-        // Multi-números (ADR 0115): conversa carrega phone_id; se NULL (legacy
+        // Multi-números (ADR 0117): conversa carrega phone_id; se NULL (legacy
         // pré-PR 1), fallback resolveForEvent outbound_default. Sem phone
         // resolvido = erro 422 (admin precisa cadastrar pelo menos 1 número).
         $phoneId = $conversation->whatsapp_business_phone_id;

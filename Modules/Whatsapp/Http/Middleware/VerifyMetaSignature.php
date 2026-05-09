@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
  * o `app_secret` do business. Calculamos localmente com o mesmo segredo
  * e comparamos timing-safe.
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * Após validar HMAC com `config->meta_app_secret` (legacy), tenta resolver
  * o `WhatsappBusinessPhone` específico via `phone_number_id` extraído do
  * payload (`entry[].changes[].value.metadata.phone_number_id`). Inject
