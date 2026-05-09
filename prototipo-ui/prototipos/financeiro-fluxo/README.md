@@ -4,6 +4,8 @@
 **Aprovado por:** [W] 2026-05-09 (Cowork)
 **Stories:** US-FIN-014 (fluxo-caixa-projetado)
 
+> ⚠️ **Antes de começar F3:** ler [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight checklist obrigatório (T-AP-1 a T-AP-15) + 6 meta-anti-padrões + convenções pt-BR. Sem ele, mesmo erro do batch original repete.
+
 ## Por que está bloqueado
 
 `FluxoController.php` do Cowork era stub 100% mock (`rand(0, 1500)`) **sem tenant scope nem middleware**. Mergear violaria Tier 0 multi-tenant ([ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).

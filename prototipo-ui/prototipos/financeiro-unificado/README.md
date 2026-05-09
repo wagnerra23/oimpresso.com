@@ -4,6 +4,8 @@
 **Aprovado por:** [W] 2026-05-09 (Cowork)
 **Stories:** US-FIN-013, US-FIN-020 (visao-unificada-cockpit-v2)
 
+> ⚠️ **Pino histórico — não usar como base de F3 sem ler antes:** [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../LICOES_F3_FINANCEIRO_REJEITADO.md). Tela em prod tem fixes #355/#358 que o protótipo NÃO tem (T-AP-4).
+
 ## Por que está parado
 
 A tela `/financeiro/unificado` **JÁ ESTÁ EM PROD** com 3 bugs corrigidos pós-protótipo (PRs [#355](https://github.com/wagnerra23/oimpresso.com/pull/355), [#358](https://github.com/wagnerra23/oimpresso.com/pull/358)):

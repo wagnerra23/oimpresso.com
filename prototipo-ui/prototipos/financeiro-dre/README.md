@@ -4,6 +4,8 @@
 **Aprovado por:** [W] 2026-05-09 (Cowork)
 **Stories:** US-FIN-016 (dre-mensal), US-FIN-017 (dre-comparativo)
 
+> ⚠️ **Antes de começar F3:** ler [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight checklist obrigatório (T-AP-1 a T-AP-15) + 6 meta-anti-padrões + convenções pt-BR. Sem ele, mesmo erro do batch original repete.
+
 ## Por que está bloqueado
 
 `DREController.php` do Cowork tinha 18 linhas DRE hardcoded sem tenant scope. Export PDF/Excel = `abort(501)`.
