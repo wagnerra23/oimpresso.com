@@ -132,6 +132,7 @@ status: pending_wagner_approval
 | `oimpresso-stack` | TIER C | One-time onboarding ao entrar no oimpresso — não cada sessão |
 | `oimpresso-team-onboarding` | TIER C | One-time setup MCP per dev — não recorrente |
 | `proxmox-docker-host` | TIER C | Receita Proxmox específica — só quando trabalhar infra CT 100 |
+| `audit-constituicao` | TIER C | Adicionada pós-S3 (2026-05-09) — slash command `/audit-constituicao`; orquestra 6-dimensional governance audit em paralelo + diagnóstico 3-tiers; ~3h manual → ~30min |
 
 ---
 
@@ -154,6 +155,7 @@ Após ajuste: TIER B.
 | `ads-route` | A dormente | `.claude/skills/ads-route/SKILL.md` | criar com `enabled: false` |
 | `mcp-first` | A | `.claude/skills/mcp-first/SKILL.md` | renomear `oimpresso-mcp-first/` |
 | `mwart-migrate` | C | `.claude/skills/mwart-migrate/SKILL.md` | spec já existe em `s2-os-listagem/05-skill-mwart-migrate.md`; finalizar |
+| `audit-constituicao` | C | `.claude/skills/audit-constituicao/SKILL.md` | criada 2026-05-09 — orquestra 6-dimensional governance audit pós-Constituição; 6 prompts em `prompts/01..06-*.md`; sem ADR (Tier C não exige) |
 
 ---
 
