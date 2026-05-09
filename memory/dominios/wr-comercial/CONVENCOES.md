@@ -93,9 +93,69 @@ Pra audit, importer mapeia `DT_ALTERACAO Delphi → updated_at Laravel`.
 - Não confundir com `users.id` Laravel
 - Importer **não migra usuários Delphi** (decisão pendente Wagner) — usa Laravel users já cadastrados
 
+## Convenção 8 — `CODBANCO` Delphi É código FEBRABAN direto
+
+Validado no banco do Wagner (`servidor-crm:Banco`, biz=1) em smoke da Fase 6:
+
+| CONTAS.CODIGO | CODBANCO Delphi | Banco real | Confirmado por |
+|---|---|---|---|
+| 2 | `104` | Caixa Econômica | layout_arquivo `240` (CNAB Caixa) |
+| 3 | `341` | Itaú | carteira `109` (carteira Itaú típica) |
+
+⭐ **Não há tabela intermediária** — `BANCOS(CODIGO)` Delphi É o código FEBRABAN. Importer usa direto via `normalize_banco_codigo()` em `lib/mysql_writer.py` (zfill 3 → '104', '341', '000').
+
+Resolveu lacuna #1 do MAPPING.md original (banco_codigo='000' placeholder).
+
+## Convenção 9 — `EMPRESA(CODIGO)` tem CNPJCPF + RAZAOSOCIAL
+
+Tabela `EMPRESA` Delphi armazena dados do beneficiário (cliente Delphi = empresa que usa o WR Comercial). Lookup via FK `CODEMPRESA`:
+
+```sql
+SELECT FIRST 1 CODIGO, CNPJCPF, RAZAOSOCIAL FROM EMPRESA WHERE CODIGO = ?
+```
+
+Importer cacheia o resultado pré-loop pra evitar N+1. Validado:
+- `EMPRESA 1`: `WR COMERCIAL LTDA ME` / CNPJ `08.061.860/0001-47`
+
+Pra `fin_contas_bancarias`, esses valores preenchem:
+- `beneficiario_documento` = `EMPRESA.CNPJCPF`
+- `beneficiario_razao_social` = `EMPRESA.RAZAOSOCIAL` (fallback se `NOME_CEDENTE` em CONTAS for null)
+
+## Convenção 10 — Tabelas core criadas antes de UPDATE 6
+
+`UpdateSQL.txt` começa em `UPDATE 6;` (parser POC1 valida). Tabelas core como `CONTAS`, `BANCOS`, `EMPRESA`, `PESSOAS` foram criadas em `BancoLocal.sql` (resource separado do .exe) ANTES da v6 — estão fora do `UpdateSQL.txt`.
+
+**Implicação pro importer**: schema reconstruído via `generate-baseline.py` mostra apenas as colunas adicionadas via UPDATE blocks. **Schema vivo (RDB$RELATION_FIELDS) é a única fonte da verdade pra colunas de tabelas pré-v6**.
+
+Padrão recomendado em queries do importer:
+```python
+# ❌ Errado — assume colunas baseado em CONTAS.md auto-gerado
+sql = "SELECT CODIGO, CODBANCO, AGENCIA, VARIACAO_CARTEIRA FROM CONTAS"
+# Pode falhar com "Column unknown VARIACAO_CARTEIRA"
+
+# ✅ Certo — schema vivo manda; .get(col, default) tolera ausência
+sql = "SELECT * FROM CONTAS"
+banco_codigo = delphi.get("CODBANCO")  # None se não existe
+```
+
+## Convenção 11 — Senha SYSDBA/masterkey hardcoded em `Principal.pas {$IFDEF WR2}`
+
+Valor real: `SYSDBA` / `masterkey` (hardcoded em `app/Principal.pas` sob `{$IFDEF WR2}`).
+
+Senha no registry `HKCU\Software\Rocha\<App>\Banco\Caminhos\Senhas\<path>` é **placeholder de 1 caractere** — não é credencial real. Importer ignora valor do registry e usa `--firebird-password masterkey`.
+
+## Convenção 12 — Bug parser multi-ADD inline (não-bloqueante)
+
+`UPDATE 1140` faz `ALTER TABLE CONTAS ADD CLIENTID VARCHAR(255), ADD CLIENTSECRET VARCHAR(255), ADD KEYFILE BLOB..., ADD CERTFILE BLOB...` — múltiplas operations num único statement.
+
+Parser regex `lib/ddl_parser.py` pega só a primeira `ADD` e cola o resto no "type" — gera coluna falsa com type gigante. **Bug menor** — não afeta importer (que usa `SELECT *` schema vivo) mas faz docs auto-gerados de CONTAS.md mostrar coluna estranha.
+
+Fix futuro: split de ALTER por vírgulas top-level antes de aplicar regex. Tracked em MAPPING.md lacuna #2.
+
 ## Próximas convenções a documentar (preencher conforme aprendemos)
 
 - [ ] Padrão de blob — quando o Delphi usa `BLOB SUB_TYPE 1` (texto) vs `SUB_TYPE 0` (binário)
 - [ ] Convenção `XXX_TIPO` — campos enumerados (varchar com valores curtos: 'S'/'N', 'C'/'D', etc)
 - [ ] Convenção `IS_<nome>` — booleans (`IS_VENDA`, `IS_ORCAMENTO`, `IS_NOTAFISCAL`)
 - [ ] Padrão de chave composta — quando entidade tem PK (CODIGO + CODEMPRESA + ...)
+- [ ] FK polimórfica (PESSOA_RESPONSAVEL_TIPO + PESSOA_RESPONSAVEL_CODIGO em BANCOS_CONCILIACAO_BANCARIA)
