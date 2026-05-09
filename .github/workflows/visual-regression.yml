@@ -64,9 +64,12 @@ jobs:
 
       - name: Setup Laravel
         # .env.testing/.env.example não existem no repo — gera inline (mesmo
-        # padrão do ci.yml). package:discover roda APÓS env existir pra
-        # Blade::withoutDoubleEncoding() do AppServiceProvider:53 ter cache path.
+        # padrão do ci.yml). DB sqlite file path real (Pest Browser HTTP precisa).
+        # TELESCOPE_ENABLED=false: terminate hook tenta count() em telescope_entries
+        # que não existe em sqlite zero — quebra package:discover/migrate.
+        # Cria sqlite file ANTES de qualquer artisan command.
         run: |
+          touch database/database.sqlite
           cat > .env <<'EOF'
           APP_NAME=oimpresso-visreg
           APP_ENV=testing
@@ -80,10 +83,10 @@ jobs:
           SESSION_DRIVER=array
           MAIL_MAILER=array
           BCRYPT_ROUNDS=4
+          TELESCOPE_ENABLED=false
           EOF
           php artisan key:generate --force
           php artisan package:discover --ansi
-          touch database/database.sqlite
           php artisan migrate --force --database=sqlite
 
       - name: Build Inertia bundles
