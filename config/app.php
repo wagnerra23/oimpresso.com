@@ -198,6 +198,12 @@ return [
         ConsoleTVs\Charts\ChartsServiceProvider::class,
         App\Providers\MenuServiceProvider::class,
         App\Vendor\Pesapal\PesapalServiceProvider::class,
+
+        // Horizon UI: registrado SEMPRE, mas o boot/register interno faz early-return
+        // se HORIZON_TOOLS_EXPOSED=false (default). Pacote vendor está em dont-discover
+        // (composer.json) — vendor provider só sobe via App\Providers\HorizonServiceProvider
+        // quando flag true. Garante ADR 0062 (Hostinger nunca expõe Horizon).
+        App\Providers\HorizonServiceProvider::class,
     ],
 
     /*

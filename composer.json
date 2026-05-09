@@ -126,6 +126,13 @@
         "platform": {
         }
     },
+    "extra": {
+        "laravel": {
+            "dont-discover": [
+                "laravel/horizon"
+            ]
+        }
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "repositories": [
