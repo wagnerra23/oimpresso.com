@@ -67,10 +67,15 @@ class BusinessSettingsRequest extends FormRequest
             'zapi_instance_token' => ['nullable', 'string', 'max:255'],
             'zapi_client_token' => ['nullable', 'string', 'max:255'],
 
-            // Baileys (Sprint 3)
-            'baileys_instance_id' => ['nullable', 'string', 'max:64'],
-            'baileys_daemon_url' => ['nullable', 'url', 'max:255'],
-            'baileys_api_key' => ['nullable', 'string', 'max:255'],
+            // Baileys — US-WA-022: tenant só cadastra phone E.164.
+            // instance_id é auto-gerado pelo backend; daemon_url/api_key
+            // são server secrets globais em config/whatsapp.php.
+            'baileys_phone_e164' => [
+                'nullable',
+                'string',
+                'regex:/^\+[1-9][0-9]{8,14}$/', // E.164 — ex: +5511987654321
+                'max:20',
+            ],
 
             // LGPD acknowledgment
             'lgpd_acknowledged' => ['nullable', 'boolean'],
@@ -146,15 +151,33 @@ class BusinessSettingsRequest extends FormRequest
                 }
             }
 
-            // Regra 5 — driver=baileys exige baileys_* preenchidos (Sprint 3)
+            // Regra 5 — driver=baileys exige só baileys_phone_e164 (US-WA-022).
+            // instance_id auto-gerado pelo backend; daemon_url + api_key
+            // são server secrets globais (config/whatsapp.php).
             if ($driver === 'baileys') {
-                if (empty($this->input('baileys_instance_id'))
-                    || empty($this->input('baileys_daemon_url'))
-                    || empty($this->input('baileys_api_key'))) {
+                if (empty($this->input('baileys_phone_e164'))) {
                     $v->errors()->add(
-                        'baileys_instance_id',
-                        "Driver 'baileys' exige baileys_instance_id, baileys_daemon_url e baileys_api_key cadastrados."
+                        'baileys_phone_e164',
+                        "Driver 'baileys' exige telefone E.164 (formato +5511987654321) cadastrado."
                     );
+                }
+
+                // Anti-duplicate: phone+business UNIQUE
+                $businessId = $this->hasSession() ? (int) $this->session()->get('user.business_id') : 0;
+                $phone = (string) $this->input('baileys_phone_e164', '');
+                if ($businessId > 0 && $phone !== '') {
+                    $duplicate = \Modules\Whatsapp\Entities\WhatsappBusinessConfig::query()
+                        ->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                        ->where('business_id', $businessId)
+                        ->where('baileys_phone_e164', $phone)
+                        ->whereKeyNot($this->route('id'))
+                        ->exists();
+                    if ($duplicate) {
+                        $v->errors()->add(
+                            'baileys_phone_e164',
+                            "Telefone '{$phone}' já está cadastrado em outra configuração deste business."
+                        );
+                    }
                 }
             }
         });
