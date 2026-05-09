@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 /**
  * WhatsappBusinessPhone — N rows por business (1 por número Whatsapp).
  *
- * Substitui `WhatsappBusinessConfig` (1:1 business→config) — ver ADR 0115.
+ * Substitui `WhatsappBusinessConfig` (1:1 business→config) — ver ADR 0117.
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093) — global scope `business_id`
  * via trait HasBusinessScope.
@@ -22,7 +22,7 @@ use Illuminate\Support\Str;
  * Tokens (meta_*, zapi_*) cifrados em DB via `encrypted` cast Laravel.
  *
  * Roteamento de eventos automáticos via flags `handles_*` (decisão Q2 do
- * Wagner em ADR 0115 — cada número escolhe quais eventos dispara).
+ * Wagner em ADR 0117 — cada número escolhe quais eventos dispara).
  *
  * @property int $id
  * @property int $business_id

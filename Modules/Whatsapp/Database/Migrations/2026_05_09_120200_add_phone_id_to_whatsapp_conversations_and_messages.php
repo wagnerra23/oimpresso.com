@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Adiciona FK `whatsapp_business_phone_id` em conversations + messages.
  *
- * ADR 0115 §Schema mãe — toda conversa/mensagem aponta pra 1 número
+ * ADR 0117 §Schema mãe — toda conversa/mensagem aponta pra 1 número
  * específico do business (não só pro business).
  *
  * Coluna nasce nullable nesta migration; data migration seguinte

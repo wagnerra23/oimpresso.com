@@ -19,7 +19,7 @@ use Modules\Whatsapp\Services\Drivers\DriverFactory;
  *
  * Decisão mãe: ADR 0096 (mitigação ban Z-API/Baileys via fallback automático).
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * Aceita `?int $whatsappBusinessPhoneId` opcional. Quando set, ping per phone
  * (cada número tem driver_health próprio); quando NULL, fallback config legacy.
  *

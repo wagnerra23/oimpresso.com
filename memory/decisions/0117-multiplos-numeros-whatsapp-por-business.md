@@ -1,9 +1,12 @@
 ---
-slug: 0115-multiplos-numeros-whatsapp-por-business
-number: 115
+slug: 0117-multiplos-numeros-whatsapp-por-business
+number: 117
 title: "Múltiplos números Whatsapp por business — 1 driver + escopo de atendimento por número (WR2 piloto: Comercial + Financeiro)"
 type: adr
 status: aceito
+renumbered_from: 115
+renumbered_at: 2026-05-09
+renumbered_reason: "Conflito de numeração — PR #308 (ADRs 0115-Gold + 0116-Gold-pivot) mergeou em paralelo a este. Convenção interna exige número único por ADR canon. Esta ADR (Whatsapp) renumerada de 0115 → 0117 por ter cadeia menor de refs externas vs Gold (cadeia 0115 → 0116 emenda)."
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
@@ -29,7 +32,7 @@ review_triggers:
   - Spatie permission scope dinâmico ganhar suporte nativo (revisar ACL própria)
 ---
 
-# ADR 0115 — Múltiplos números Whatsapp por business
+# ADR 0117 — Múltiplos números Whatsapp por business
 
 ## Contexto
 

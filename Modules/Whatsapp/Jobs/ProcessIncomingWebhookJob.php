@@ -24,7 +24,7 @@ use Modules\Whatsapp\Events\WhatsappMessageReceived;
  * `business_id` + `provider`. Aqui só normalizamos o payload de cada
  * provider pra estrutura comum.
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * Aceita `?int $whatsappBusinessPhoneId` opcional. Quando set, escreve
  * `whatsapp_business_phone_id` em `WhatsappConversation` e `WhatsappMessage`
  * inbound — UI Inbox filtra conversas por phone do user. Quando NULL

@@ -22,7 +22,7 @@ use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
  * - SettingsController@update quando driver=baileys + phone novo + LGPD ok
  * - UI "Reconectar" no estado disconnected/banned (Sprint futuro)
  *
- * **Multi-números (ADR 0115 — US-WA-040):**
+ * **Multi-números (ADR 0117 — US-WA-040):**
  * Aceita `?int $whatsappBusinessPhoneId` opcional. Quando set, conecta phone
  * específico (cada phone tem seu próprio instance_id auto-gerado). Quando
  * NULL, fallback config legacy.
