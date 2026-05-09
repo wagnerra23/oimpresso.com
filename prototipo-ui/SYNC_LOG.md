@@ -36,3 +36,5 @@
 2026-05-09 21:15 [CL] dropped prototipos/financeiro-{unificado,fluxo,conciliacao,dre,plano-contas}/page.tsx — 5 batch F1 pinos (WAITING_FOR_BACKEND)
 2026-05-09 21:15 [CL] análise pré-merge rejeitou batch original do PROMPT_PARA_CLAUDE_CODE — controllers Cowork eram NO-OP sem tenant scope (Tier 0 violation, ADR 0093) + UnificadoController regrediria fixes #355/#358 em prod
 2026-05-09 21:15 [CL] sequência sugerida pra F3: fluxo (sem tabela nova) → plano-contas (fundação) → dre (consome plano) — conciliacao escopo separado (exige bank_statement_lines + ADR arq/0006)
+2026-05-09 23:55 [CL] dropped prototipos/produto-unificado/ — 4 pinos F1 visuais (.jsx + .html) extraídos do PR #352 bloqueado (anti-padrões T-AP-9, M-AP-1, M-AP-3, M-AP-4 catalogados em LICOES_F3_FINANCEIRO_REJEITADO.md)
+2026-05-09 23:55 [CL] PR #352 mantido aberto com comentário de bloqueio — código de produção (controller + routes + Page.tsx) bloqueado, só material visual aproveitado nesse PR menor
