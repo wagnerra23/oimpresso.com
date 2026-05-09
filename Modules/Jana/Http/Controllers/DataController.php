@@ -60,27 +60,27 @@ class DataController extends Controller
     {
         return [
             [
-                'value'   => 'copiloto.access',
+                'value'   => 'jana.access',
                 'label'   => __('copiloto::copiloto.permissao_acesso'),
                 'default' => false,
             ],
             [
-                'value'   => 'copiloto.chat',
+                'value'   => 'jana.chat',
                 'label'   => __('copiloto::copiloto.permissao_chat'),
                 'default' => false,
             ],
             [
-                'value'   => 'copiloto.metas.manage',
+                'value'   => 'jana.metas.manage',
                 'label'   => __('copiloto::copiloto.permissao_metas'),
                 'default' => false,
             ],
             [
-                'value'   => 'copiloto.superadmin',
+                'value'   => 'jana.superadmin',
                 'label'   => __('copiloto::copiloto.permissao_superadmin'),
                 'default' => false,
             ],
             [
-                'value'   => 'copiloto.admin.custos.view',
+                'value'   => 'jana.admin.custos.view',
                 'label'   => __('copiloto::copiloto.permissao_admin_custos'),
                 'default' => false,
             ],
@@ -125,7 +125,7 @@ class DataController extends Controller
         }
 
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
-        $segmento_ativo = request()->segment(1) == 'copiloto';
+        $segmento_ativo = request()->segment(1) == 'jana';
 
         Menu::modify(
             'admin-sidebar-menu',
@@ -140,7 +140,7 @@ class DataController extends Controller
                                 __('copiloto::copiloto.menu.conversar'),
                                 [
                                     'icon'   => 'fa fas fa-comments',
-                                    'active' => request()->segment(1) == 'copiloto'
+                                    'active' => request()->segment(1) == 'jana'
                                                 && ! request()->segment(2),
                                 ]
                             );
