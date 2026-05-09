@@ -7,6 +7,7 @@ namespace Modules\Governance\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,9 +17,18 @@ use Inertia\Response;
  * MVP: lê estado canônico do DB e exibe um painel agregado pra Wagner operar
  * 5min/dia. Versões futuras adicionam: edit policies inline, drill-down audit,
  * approval workflow, drift resolution, actor management.
+ *
+ * Extensão Cockpit Saúde (epic US-COPI-095, charter v2 2026-05-09):
+ * adiciona 3 fontes de saúde do ecossistema (failed_jobs Horizon, custo IA
+ * Brain B 24h, narrativas Brain A horárias). Cada fonte degrada graciosamente
+ * via Schema::hasTable — funciona com OR sem migrations dependentes mergeadas.
  */
 class DashboardController extends Controller
 {
+    private const PRICING_USD_PER_1M_TOKENS_IN = 0.15;
+    private const PRICING_USD_PER_1M_TOKENS_OUT = 0.60;
+    private const USD_TO_BRL = 5.0;
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -72,6 +82,8 @@ class DashboardController extends Controller
         // Total: 80/100 = 80%
         $compliancePct = (7 * 10) + (2 * 5) + 0; // = 80
 
+        $health = $this->saudeEcosistema();
+
         return Inertia::render('governance/Dashboard', [
             'kpis' => [
                 'pending_adrs'         => $pendingAdrs->count(),
@@ -85,6 +97,90 @@ class DashboardController extends Controller
             'audit_highlights'  => $auditHighlights,
             'actiongate_mode'   => config('governance.actiongate_mode', 'warn'),
             'next_review_at'    => config('governance.next_review_at'),
+            'health_kpis'       => $health['kpis'],
+            'narratives'        => $health['narratives'],
         ]);
+    }
+
+    /**
+     * 3 fontes de saúde do ecossistema 24h (US-COPI-095 epic).
+     * Cada fonte degrada graciosamente quando tabela ausente — array sempre
+     * com shape estável pro componente Inertia.
+     *
+     * @return array{kpis: array<string, mixed>, narratives: array<int, array<string, mixed>>}
+     */
+    private function saudeEcosistema(): array
+    {
+        return [
+            'kpis' => [
+                'failed_jobs_24h' => $this->failedJobs24h(),
+                'custo_ia_brl_24h' => $this->custoIa24h(),
+                'last_narrative' => $this->ultimaNarrativa(),
+            ],
+            'narratives' => $this->narrativasRecentes(),
+        ];
+    }
+
+    private function failedJobs24h(): ?int
+    {
+        if (! Schema::hasTable('failed_jobs')) {
+            return null;
+        }
+
+        return (int) DB::table('failed_jobs')
+            ->where('failed_at', '>', now()->subHours(24))
+            ->count();
+    }
+
+    private function custoIa24h(): ?float
+    {
+        if (! Schema::hasTable('jana_mensagens')) {
+            return null;
+        }
+
+        $base = DB::table('jana_mensagens')->where('created_at', '>', now()->subHours(24));
+        $tokensIn = (int) (clone $base)->sum('tokens_in');
+        $tokensOut = (int) (clone $base)->sum('tokens_out');
+
+        $usd = ($tokensIn * self::PRICING_USD_PER_1M_TOKENS_IN / 1_000_000)
+            + ($tokensOut * self::PRICING_USD_PER_1M_TOKENS_OUT / 1_000_000);
+
+        return round($usd * self::USD_TO_BRL, 2);
+    }
+
+    /**
+     * @return array{severity: string, message: string, generated_at: string}|null
+     */
+    private function ultimaNarrativa(): ?array
+    {
+        if (! Schema::hasTable('jana_health_narratives')) {
+            return null;
+        }
+
+        $row = DB::table('jana_health_narratives')
+            ->orderByDesc('generated_at')
+            ->select('severity', 'narrative as message', 'generated_at')
+            ->first();
+
+        return $row ? (array) $row : null;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function narrativasRecentes(): array
+    {
+        if (! Schema::hasTable('jana_health_narratives')) {
+            return [];
+        }
+
+        return DB::table('jana_health_narratives')
+            ->where('generated_at', '>', now()->subHours(24))
+            ->orderByDesc('generated_at')
+            ->limit(5)
+            ->select('severity', 'narrative', 'generated_at')
+            ->get()
+            ->map(fn ($r) => (array) $r)
+            ->all();
     }
 }
