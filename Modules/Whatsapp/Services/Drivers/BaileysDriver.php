@@ -9,6 +9,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappTemplate;
 
 /**
@@ -40,7 +41,7 @@ use Modules\Whatsapp\Entities\WhatsappTemplate;
 class BaileysDriver implements DriverInterface
 {
     public function sendTemplate(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $templateName,
         array $params,
@@ -66,7 +67,7 @@ class BaileysDriver implements DriverInterface
     }
 
     public function sendFreeform(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $body,
     ): WhatsappSendResult {
@@ -80,7 +81,7 @@ class BaileysDriver implements DriverInterface
     }
 
     public function sendMedia(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $mediaUrl,
         string $type,
@@ -118,7 +119,7 @@ class BaileysDriver implements DriverInterface
     }
 
     public function fetchMessageStatus(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,
     ): MessageStatus {
         // O daemon reporta status updates via webhook outbound (event=message_status),
@@ -127,7 +128,7 @@ class BaileysDriver implements DriverInterface
         return new MessageStatus(status: 'queued');
     }
 
-    public function ping(WhatsappBusinessConfig $config): DriverHealthStatus
+    public function ping(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverHealthStatus
     {
         if (empty($config->baileys_instance_id)) {
             return DriverHealthStatus::unhealthy(
@@ -198,7 +199,7 @@ class BaileysDriver implements DriverInterface
      *
      * @param  WhatsappBusinessConfig  $config  apenas pra contexto OTel; URL/token são globais
      */
-    private function client(WhatsappBusinessConfig $config): PendingRequest
+    private function client(WhatsappBusinessConfig|WhatsappBusinessPhone $config): PendingRequest
     {
         unset($config); // explicit: tenant não dita URL/token (US-WA-022 invariante)
 
