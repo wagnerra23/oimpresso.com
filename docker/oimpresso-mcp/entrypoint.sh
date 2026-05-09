@@ -6,10 +6,9 @@
 #   2. config:cache    — gera bootstrap/cache/config.php (~80% boot speedup)
 #   3. event:cache     — gera bootstrap/cache/events.php (subscribers cacheados)
 #   4. view:cache      — pré-compila Blade views
-#   5. NÃO route:cache — UltimatePOS tem 2 rotas com nome `business.update`
-#                        (Modules/Superadmin + main app). Resolver implicaria
-#                        tocar core. Aceito tradeoff: rotas re-parseadas a cada
-#                        request (~50ms a mais é tolerável vs risco de corrupção).
+#   5. route:cache deve voltar a funcionar (PR #336 removeu colisão de
+#                        `business.update` em Modules/Officeimpresso). Validar
+#                        no próximo deploy CT 100; se OK, habilitar abaixo.
 #
 # Após warm-up, supervisord assume e mantém php-fpm + nginx vivos.
 
@@ -61,9 +60,10 @@ php artisan config:cache 2>&1 | tail -2 || echo "[entrypoint] config:cache falho
 php artisan event:cache 2>&1 | tail -2 || echo "[entrypoint] event:cache falhou (não-fatal)"
 php artisan view:cache 2>&1 | tail -2 || echo "[entrypoint] view:cache falhou (não-fatal)"
 
-# NÃO route:cache: UltimatePOS tem 2 rotas com nome 'business.update'
-# (Modules/Superadmin + main app). Resolver implicaria tocar core. Aceito tradeoff:
-# rotas re-parseadas a cada request (~50ms a mais é tolerável vs risco de corrupção).
+# route:cache desabilitado historicamente por colisão de nome `business.update`.
+# PR #336 (2026-05-09) removeu o `->name('business.update')` em Modules/Officeimpresso
+# (era redundante — view usa action() direta). Habilitar route:cache aqui após
+# validação local + smoke no CT 100. Por enquanto mantido off pra não arriscar.
 
 echo "[entrypoint] Warm-up completo. Iniciando supervisord..."
 exec "$@"
