@@ -5,6 +5,9 @@ created_at_version: 945
 last_modified_version: 1046
 target_version: 1468
 columns_count: 11
+foreign_keys_count: 1
+foreign_keys:
+  CODCONFIGURACAO_FORM: CONFIGURACAO_FORM
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,21 +23,29 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1046;
 - **Total colunas (versão 1468):** 11
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCONFIGURACAO_FORM` | [`CONFIGURACAO_FORM`](../../configuracao/tabelas/CONFIGURACAO_FORM.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v945 | v945 |
-| 2 | `OBRIGATORIO` | `VARCHAR(1)` | NULL | v903 | v903 |
-| 3 | `DESCRICAO` | `VARCHAR(50)` | NULL | v945 | v945 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v945 | v945 |
-| 5 | `ATIVO` | `VARCHAR(1)` | NULL | v945 | v945 |
-| 6 | `TEM_PADRAO` | `VARCHAR(1)` | NULL | v945 | v945 |
-| 7 | `CONDICAO` | `VARCHAR(500)` | NULL | v903 | v946 |
-| 8 | `CODCONFIGURACAO_FORM` | `INTEGER, ADD DESCRICAO VARCHAR(50), ADD DT_ALTERACAO TIMESTAMP, ADD ATIVO VARCHAR(1)` | NULL | v946 | v946 |
-| 9 | `COR` | `INTEGER` | NULL | v950 | v950 |
-| 10 | `PODE_CONFIRMAR` | `VARCHAR(1)` | NULL | v952 | v952 |
-| 11 | `LEGENDA` | `VARCHAR(150)` | NULL | v1046 | v1046 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v945 | v945 |
+| 2 | `OBRIGATORIO` | `VARCHAR(1)` | NULL |  | v903 | v903 |
+| 3 | `DESCRICAO` | `VARCHAR(50)` | NULL |  | v945 | v945 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v945 | v945 |
+| 5 | `ATIVO` | `VARCHAR(1)` | NULL |  | v945 | v945 |
+| 6 | `TEM_PADRAO` | `VARCHAR(1)` | NULL |  | v945 | v945 |
+| 7 | `CONDICAO` | `VARCHAR(500)` | NULL |  | v903 | v946 |
+| 8 | `CODCONFIGURACAO_FORM` | `INTEGER, ADD DESCRICAO VARCHAR(50), ADD DT_ALTERACAO TIMESTAMP, ADD ATIVO VARCHAR(1)` | NULL | → `CONFIGURACAO_FORM` | v946 | v946 |
+| 9 | `COR` | `INTEGER` | NULL |  | v950 | v950 |
+| 10 | `PODE_CONFIRMAR` | `VARCHAR(1)` | NULL |  | v952 | v952 |
+| 11 | `LEGENDA` | `VARCHAR(150)` | NULL |  | v1046 | v1046 |
 
 ## Evolução
 

@@ -5,6 +5,9 @@ created_at_version: 810
 last_modified_version: 1098
 target_version: 1468
 columns_count: 11
+foreign_keys_count: 1
+foreign_keys:
+  CODPRODUCAO_ACAO: PRODUCAO_ACAO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,21 +23,29 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1098;
 - **Total colunas (versão 1468):** 11
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODPRODUCAO_ACAO` | [`PRODUCAO_ACAO`](../../producao/tabelas/PRODUCAO_ACAO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v810 | v810 |
-| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL | v810 | v810 |
-| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v810 | v810 |
-| 4 | `ATIVO` | `VARCHAR(1)` | NULL | v810 | v810 |
-| 5 | `COR` | `INTEGER` | NULL | v810 | v810 |
-| 6 | `TEM_OBSERVACAO` | `VARCHAR(1)` | NULL | v921 | v921 |
-| 7 | `CODPRODUCAO_ACAO` | `INTEGER` | NULL | v1039 | v1039 |
-| 8 | `TEM_PRODUCAO_MOTIVO` | `VARCHAR(1)` | NULL | v1051 | v1051 |
-| 9 | `ESTILO` | `VARCHAR(50)` | NULL | v1087 | v1087 |
-| 10 | `FILA` | `INTEGER` | NULL | v1098 | v1098 |
-| 11 | `ICO` | `INTEGER` | NULL | v1098 | v1098 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v810 | v810 |
+| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v810 | v810 |
+| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v810 | v810 |
+| 4 | `ATIVO` | `VARCHAR(1)` | NULL |  | v810 | v810 |
+| 5 | `COR` | `INTEGER` | NULL |  | v810 | v810 |
+| 6 | `TEM_OBSERVACAO` | `VARCHAR(1)` | NULL |  | v921 | v921 |
+| 7 | `CODPRODUCAO_ACAO` | `INTEGER` | NULL | → `PRODUCAO_ACAO` | v1039 | v1039 |
+| 8 | `TEM_PRODUCAO_MOTIVO` | `VARCHAR(1)` | NULL |  | v1051 | v1051 |
+| 9 | `ESTILO` | `VARCHAR(50)` | NULL |  | v1087 | v1087 |
+| 10 | `FILA` | `INTEGER` | NULL |  | v1098 | v1098 |
+| 11 | `ICO` | `INTEGER` | NULL |  | v1098 | v1098 |
 
 ## Evolução
 

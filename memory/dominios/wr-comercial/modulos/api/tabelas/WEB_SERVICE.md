@@ -5,6 +5,7 @@ created_at_version: 975
 last_modified_version: 988
 target_version: 1468
 columns_count: 8
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,16 +23,16 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v975 | v975 |
-| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL | v975 | v975 |
-| 3 | `LOGIN` | `VARCHAR(500)` | NULL | v975 | v975 |
-| 4 | `SENHA` | `VARCHAR(255)` | NULL | v975 | v975 |
-| 5 | `WEB_SERVICE` | `VARCHAR(1000)` | NULL | v975 | v975 |
-| 6 | `ATIVO` | `VARCHAR(1)` | NULL | v975 | v975 |
-| 7 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v975 | v975 |
-| 8 | `LINK` | `VARCHAR(1000)` | NULL | v988 | v988 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v975 | v975 |
+| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL |  | v975 | v975 |
+| 3 | `LOGIN` | `VARCHAR(500)` | NULL |  | v975 | v975 |
+| 4 | `SENHA` | `VARCHAR(255)` | NULL |  | v975 | v975 |
+| 5 | `WEB_SERVICE` | `VARCHAR(1000)` | NULL |  | v975 | v975 |
+| 6 | `ATIVO` | `VARCHAR(1)` | NULL |  | v975 | v975 |
+| 7 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v975 | v975 |
+| 8 | `LINK` | `VARCHAR(1000)` | NULL |  | v988 | v988 |
 
 ## Evolução
 

@@ -5,6 +5,10 @@ created_at_version: 310
 last_modified_version: 827
 target_version: 1468
 columns_count: 9
+foreign_keys_count: 2
+foreign_keys:
+  CODCONTA: CONTAS
+  CODPLANOCONTAS: PLANOCONTAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,19 +24,28 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 827;
 - **Total colunas (versão 1468):** 9
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCONTA` | [`CONTAS`](../../financeiro/tabelas/CONTAS.md) |
+| `CODPLANOCONTAS` | [`PLANOCONTAS`](../../financeiro/tabelas/PLANOCONTAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v310 | v310 |
-| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL | v310 | v310 |
-| 3 | `CODPLANOCONTAS` | `VARCHAR(30) CHARACTER SET WIN1252` | NULL | v310 | v499 |
-| 4 | `PESSOA_FORNECEDOR_CODIGO` | `VARCHAR(10)` | NULL | v310 | v310 |
-| 5 | `PESSOA_FORNECEDOR_TIPO` | `VARCHAR(3)` | NULL | v310 | v310 |
-| 6 | `PESSOA_FORNECEDOR_SEQUENCIA` | `INTEGER` | NULL | v310 | v310 |
-| 7 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v310 | v310 |
-| 8 | `CODCONTA` | `INTEGER` | NULL | v310 | v310 |
-| 9 | `ATIVO` | `VARCHAR(1)` | NULL | v827 | v827 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v310 | v310 |
+| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v310 | v310 |
+| 3 | `CODPLANOCONTAS` | `VARCHAR(30) CHARACTER SET WIN1252` | NULL | → `PLANOCONTAS` | v310 | v499 |
+| 4 | `PESSOA_FORNECEDOR_CODIGO` | `VARCHAR(10)` | NULL |  | v310 | v310 |
+| 5 | `PESSOA_FORNECEDOR_TIPO` | `VARCHAR(3)` | NULL |  | v310 | v310 |
+| 6 | `PESSOA_FORNECEDOR_SEQUENCIA` | `INTEGER` | NULL |  | v310 | v310 |
+| 7 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v310 | v310 |
+| 8 | `CODCONTA` | `INTEGER` | NULL | → `CONTAS` | v310 | v310 |
+| 9 | `ATIVO` | `VARCHAR(1)` | NULL |  | v827 | v827 |
 
 ## Evolução
 

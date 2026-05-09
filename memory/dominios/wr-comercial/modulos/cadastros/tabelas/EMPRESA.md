@@ -5,6 +5,9 @@ created_at_version: 16
 last_modified_version: 1467
 target_version: 1468
 columns_count: 88
+foreign_keys_count: 1
+foreign_keys:
+  CODPAIS: PAIS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,98 +23,106 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1467;
 - **Total colunas (versão 1468):** 88
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODPAIS` | [`PAIS`](../../cadastros/tabelas/PAIS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `TIPO` | `VARCHAR(1)` | NULL | v16 | v16 |
-| 2 | `PAGINA` | `VARCHAR(100)` | NULL | v16 | v16 |
-| 3 | `ATIVO` | `CHAR(1)` | NULL | v16 | v16 |
-| 4 | `CODIGO_MUNICIPIO` | `VARCHAR(10)` | NULL | v16 | v16 |
-| 5 | `IM` | `VARCHAR(20)` | NULL | v16 | v16 |
-| 6 | `SUFRAMA` | `VARCHAR(50)` | NULL | v16 | v16 |
-| 7 | `CPF_PROPRIETARIO` | `VARCHAR(14)` | NULL | v16 | v16 |
-| 8 | `CONTADOR_NOME` | `varchar(150)` | NULL | v16 | v183 |
-| 9 | `CONTADOR_CPF` | `VARCHAR(14)` | NULL | v16 | v16 |
-| 10 | `CONTADOR_CRC` | `VARCHAR(20)` | NULL | v16 | v16 |
-| 11 | `CONTADOR_CNPJ` | `VARCHAR(18)` | NULL | v16 | v16 |
-| 12 | `CONTADOR_CEP` | `VARCHAR(10)` | NULL | v16 | v16 |
-| 13 | `CONTADOR_ENDERECO` | `VARCHAR(100)` | NULL | v16 | v16 |
-| 14 | `CONTADOR_NUMERO` | `VARCHAR(10)` | NULL | v16 | v16 |
-| 15 | `CONTADOR_COMPLEMENTO` | `VARCHAR(100)` | NULL | v16 | v16 |
-| 16 | `CONTADOR_BAIRRO` | `VARCHAR(50)` | NULL | v16 | v16 |
-| 17 | `CONTADOR_FONE` | `VARCHAR(20)` | NULL | v16 | v16 |
-| 18 | `CONTADOR_FAX` | `VARCHAR(20)` | NULL | v16 | v16 |
-| 19 | `CONTADOR_EMAIL` | `VARCHAR(150)` | NULL | v16 | v16 |
-| 20 | `CONTADOR_CODIGO_MUNICIPIO` | `VARCHAR(10)` | NULL | v16 | v16 |
-| 21 | `CONTADOR_UF` | `VARCHAR(2)` | NULL | v16 | v16 |
-| 22 | `COMPLEMENTO` | `VARCHAR(100)` | NULL | v16 | v16 |
-| 23 | `TIPO_OS` | `VARCHAR(400)` | NULL | v16 | v16 |
-| 24 | `NUMERO` | `varchar(15)` | NULL | v16 | v216 |
-| 25 | `CRT` | `VARCHAR(50)` | NULL | v16 | v16 |
-| 26 | `PAIS` | `VARCHAR(50)` | NULL | v21 | v21 |
-| 27 | `CODPAIS` | `INTEGER` | NULL | v21 | v21 |
-| 28 | `APP_SENHA` | `VARCHAR(50)` | NULL | v37 | v37 |
-| 29 | `EMITE_NFE` | `VARCHAR(1)` | NULL | v45 | v45 |
-| 30 | `CONTADOR_IM` | `varchar(20)` | NULL | v183 | v183 |
-| 31 | `CMC` | `varchar (15)` | NULL | v303 | v303 |
-| 32 | `PESSOA_CONTADOR_CODIGO` | `VARCHAR(10)` | NULL | v476 | v476 |
-| 33 | `PESSOA_CONTADOR_TIPO` | `VARCHAR(3)` | NULL | v476 | v476 |
-| 34 | `PESSOA_CONTADOR_SEQUENCIA` | `INTEGER` | NULL | v476 | v476 |
-| 35 | `DT_CADASTRO` | `TIMESTAMP` | NULL | v476 | v476 |
-| 36 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v476 | v476 |
-| 37 | `REGIME` | `VARCHAR(20)` | NULL | v476 | v476 |
-| 38 | `CNPJ_AUTORIZACAO_NFE` | `VARCHAR(150)` | NULL | v505 | v505 |
-| 39 | `PCREDSN` | `DOUBLE PRECISION` | NULL | v570 | v570 |
-| 40 | `COR` | `VARCHAR(20)` | NULL | v1119 | v1119 |
-| 41 | `WEB_SERVICE` | `VARCHAR(500)` | NULL | v940 | v940 |
-| 42 | `WEB_SERVICE_LOGIN` | `VARCHAR(500)` | NULL | v940 | v940 |
-| 43 | `WEB_SERVICE_SENHA` | `VARCHAR(255)` | NULL | v940 | v940 |
-| 44 | `EMITE_NFCE` | `VARCHAR(1), ADD EMITE_NFSE VARCHAR(1), ADD EMITE_SAT VARCHAR(1)` | NULL | v944 | v944 |
-| 45 | `CERTIFICADO` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80` | NULL | v956 | v956 |
-| 46 | `TEM_CERTIFICADO` | `VARCHAR(1)` | NULL | v956 | v956 |
-| 47 | `CERTIFICADO_SENHA` | `VARCHAR(255)` | NULL | v956 | v956 |
-| 48 | `NF_EMAIL_Mensagem` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80` | NULL | v956 | v956 |
-| 49 | `NF_EMAIL_ASSUNTO` | `VARCHAR(500)` | NULL | v956 | v956 |
-| 50 | `TEM_NF_EMAIL_ENVIO` | `VARCHAR(1)` | NULL | v956 | v956 |
-| 51 | `NFSE_usuario` | `VARCHAR(500)` | NULL | v956 | v956 |
-| 52 | `NFSE_senha` | `VARCHAR(255)` | NULL | v956 | v956 |
-| 53 | `NFCE_PRODUCAO_ID` | `INTEGER` | NULL | v956 | v956 |
-| 54 | `NFCE_PRODUCAO_CSC` | `VARCHAR(50)` | NULL | v956 | v956 |
-| 55 | `NFCE_HOMOLOGACAO_ID` | `INTEGER` | NULL | v956 | v956 |
-| 56 | `NFCE_HOMOLOGACAO_CSC` | `VARCHAR(50)` | NULL | v956 | v956 |
-| 57 | `NF_EMAIL_backup` | `VARCHAR(500)` | NULL | v956 | v956 |
-| 58 | `FUSO_EMISSAO` | `VARCHAR(15)` | NULL | v956 | v956 |
-| 59 | `FUSO_EMISSAO_STR` | `VARCHAR(50)` | NULL | v956 | v956 |
-| 60 | `FUSO_CANCELAMENTO` | `VARCHAR(15)` | NULL | v956 | v956 |
-| 61 | `FUSO_CANCELAMENTO_STR` | `VARCHAR(50)` | NULL | v956 | v956 |
-| 62 | `FUSO_CCE` | `VARCHAR(15)` | NULL | v956 | v956 |
-| 63 | `FUSO_CCE_STR` | `VARCHAR(50)` | NULL | v956 | v956 |
-| 64 | `FUSO_INUTILIZACAO` | `VARCHAR(15)` | NULL | v956 | v956 |
-| 65 | `FUSO_INUTILIZACAO_STR` | `VARCHAR(50)` | NULL | v956 | v956 |
-| 66 | `PODE_NF_SALVAR_XML` | `VARCHAR(1), ADD NFE_DANFE VARCHAR(20), ADD NFE_PATH VARCHAR(600)` | NULL | v956 | v956 |
-| 67 | `PODE_NFE_CNPJ_DESENVOLVEDOR` | `VARCHAR(1)` | NULL | v956 | v956 |
-| 68 | `PODE_NFE_CNPJ_CONTADOR` | `VARCHAR(1)` | NULL | v956 | v956 |
-| 69 | `NFE_NUMSERIE` | `VARCHAR(100)` | NULL | v956 | v956 |
-| 70 | `NFE_DT_VALIDADE` | `TIMESTAMP` | NULL | v956 | v956 |
-| 71 | `TEM_NF_EMAIL_ENVIO_NFSE` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 72 | `NFSE_DANFE` | `VARCHAR(20)` | NULL | v965 | v965 |
-| 73 | `NFSE_WEBFRASESECR` | `VARCHAR(500)` | NULL | v965 | v965 |
-| 74 | `NFSE_ALIQ_ISS` | `DOUBLE PRECISION` | NULL | v966 | v966 |
-| 75 | `NFSE_SERIE` | `VARCHAR(20)` | NULL | v967 | v967 |
-| 76 | `TEM_NFSE_SERVICO_PADRAO` | `VARCHAR(1)` | NULL | v967 | v967 |
-| 77 | `NFSE_SERVICO_PADRAO` | `VARCHAR(500)` | NULL | v967 | v967 |
-| 78 | `TEM_NFSE_USO_MULTIPLOS_SERVICO` | `VARCHAR(1)` | NULL | v967 | v967 |
-| 79 | `NFSE_CODIGOTRIBUTACAOMUNICIPIO` | `VARCHAR(20)` | NULL | v968 | v968 |
-| 80 | `NFE_DADOS_SIMPLES_NACIONAL` | `VARCHAR(500)` | NULL | v979 | v979 |
-| 81 | `NFE_IMPRIMIR_QTDEPECA` | `VARCHAR(1)` | NULL | v998 | v998 |
-| 82 | `SLACK` | `VARCHAR(500)` | NULL | v1003 | v1003 |
-| 83 | `EMITE_TEF` | `VARCHAR(1)` | NULL | v1107 | v1107 |
-| 84 | `TEF_CODIGO_LOJA` | `CHAR(20)` | NULL | v1139 | v1139 |
-| 85 | `NF_SERIE` | `INTEGER` | NULL | v1160 | v1160 |
-| 86 | `NFSE_WSCHAVEAUTORIZ` | `VARCHAR(255)` | NULL | v1366 | v1366 |
-| 87 | `MENSALIDADE_EMAIL_MENSAGEM` | `BLOB SUB_TYPE 1 SEGMENT SIZE 8192` | NULL | v1467 | v1467 |
-| 88 | `MENSALIDADE_EMAIL_ASSUNTO` | `VARCHAR(300)` | NULL | v1467 | v1467 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `TIPO` | `VARCHAR(1)` | NULL |  | v16 | v16 |
+| 2 | `PAGINA` | `VARCHAR(100)` | NULL |  | v16 | v16 |
+| 3 | `ATIVO` | `CHAR(1)` | NULL |  | v16 | v16 |
+| 4 | `CODIGO_MUNICIPIO` | `VARCHAR(10)` | NULL |  | v16 | v16 |
+| 5 | `IM` | `VARCHAR(20)` | NULL |  | v16 | v16 |
+| 6 | `SUFRAMA` | `VARCHAR(50)` | NULL |  | v16 | v16 |
+| 7 | `CPF_PROPRIETARIO` | `VARCHAR(14)` | NULL |  | v16 | v16 |
+| 8 | `CONTADOR_NOME` | `varchar(150)` | NULL |  | v16 | v183 |
+| 9 | `CONTADOR_CPF` | `VARCHAR(14)` | NULL |  | v16 | v16 |
+| 10 | `CONTADOR_CRC` | `VARCHAR(20)` | NULL |  | v16 | v16 |
+| 11 | `CONTADOR_CNPJ` | `VARCHAR(18)` | NULL |  | v16 | v16 |
+| 12 | `CONTADOR_CEP` | `VARCHAR(10)` | NULL |  | v16 | v16 |
+| 13 | `CONTADOR_ENDERECO` | `VARCHAR(100)` | NULL |  | v16 | v16 |
+| 14 | `CONTADOR_NUMERO` | `VARCHAR(10)` | NULL |  | v16 | v16 |
+| 15 | `CONTADOR_COMPLEMENTO` | `VARCHAR(100)` | NULL |  | v16 | v16 |
+| 16 | `CONTADOR_BAIRRO` | `VARCHAR(50)` | NULL |  | v16 | v16 |
+| 17 | `CONTADOR_FONE` | `VARCHAR(20)` | NULL |  | v16 | v16 |
+| 18 | `CONTADOR_FAX` | `VARCHAR(20)` | NULL |  | v16 | v16 |
+| 19 | `CONTADOR_EMAIL` | `VARCHAR(150)` | NULL |  | v16 | v16 |
+| 20 | `CONTADOR_CODIGO_MUNICIPIO` | `VARCHAR(10)` | NULL |  | v16 | v16 |
+| 21 | `CONTADOR_UF` | `VARCHAR(2)` | NULL |  | v16 | v16 |
+| 22 | `COMPLEMENTO` | `VARCHAR(100)` | NULL |  | v16 | v16 |
+| 23 | `TIPO_OS` | `VARCHAR(400)` | NULL |  | v16 | v16 |
+| 24 | `NUMERO` | `varchar(15)` | NULL |  | v16 | v216 |
+| 25 | `CRT` | `VARCHAR(50)` | NULL |  | v16 | v16 |
+| 26 | `PAIS` | `VARCHAR(50)` | NULL |  | v21 | v21 |
+| 27 | `CODPAIS` | `INTEGER` | NULL | → `PAIS` | v21 | v21 |
+| 28 | `APP_SENHA` | `VARCHAR(50)` | NULL |  | v37 | v37 |
+| 29 | `EMITE_NFE` | `VARCHAR(1)` | NULL |  | v45 | v45 |
+| 30 | `CONTADOR_IM` | `varchar(20)` | NULL |  | v183 | v183 |
+| 31 | `CMC` | `varchar (15)` | NULL |  | v303 | v303 |
+| 32 | `PESSOA_CONTADOR_CODIGO` | `VARCHAR(10)` | NULL |  | v476 | v476 |
+| 33 | `PESSOA_CONTADOR_TIPO` | `VARCHAR(3)` | NULL |  | v476 | v476 |
+| 34 | `PESSOA_CONTADOR_SEQUENCIA` | `INTEGER` | NULL |  | v476 | v476 |
+| 35 | `DT_CADASTRO` | `TIMESTAMP` | NULL |  | v476 | v476 |
+| 36 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v476 | v476 |
+| 37 | `REGIME` | `VARCHAR(20)` | NULL |  | v476 | v476 |
+| 38 | `CNPJ_AUTORIZACAO_NFE` | `VARCHAR(150)` | NULL |  | v505 | v505 |
+| 39 | `PCREDSN` | `DOUBLE PRECISION` | NULL |  | v570 | v570 |
+| 40 | `COR` | `VARCHAR(20)` | NULL |  | v1119 | v1119 |
+| 41 | `WEB_SERVICE` | `VARCHAR(500)` | NULL |  | v940 | v940 |
+| 42 | `WEB_SERVICE_LOGIN` | `VARCHAR(500)` | NULL |  | v940 | v940 |
+| 43 | `WEB_SERVICE_SENHA` | `VARCHAR(255)` | NULL |  | v940 | v940 |
+| 44 | `EMITE_NFCE` | `VARCHAR(1), ADD EMITE_NFSE VARCHAR(1), ADD EMITE_SAT VARCHAR(1)` | NULL |  | v944 | v944 |
+| 45 | `CERTIFICADO` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80` | NULL |  | v956 | v956 |
+| 46 | `TEM_CERTIFICADO` | `VARCHAR(1)` | NULL |  | v956 | v956 |
+| 47 | `CERTIFICADO_SENHA` | `VARCHAR(255)` | NULL |  | v956 | v956 |
+| 48 | `NF_EMAIL_Mensagem` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80` | NULL |  | v956 | v956 |
+| 49 | `NF_EMAIL_ASSUNTO` | `VARCHAR(500)` | NULL |  | v956 | v956 |
+| 50 | `TEM_NF_EMAIL_ENVIO` | `VARCHAR(1)` | NULL |  | v956 | v956 |
+| 51 | `NFSE_usuario` | `VARCHAR(500)` | NULL |  | v956 | v956 |
+| 52 | `NFSE_senha` | `VARCHAR(255)` | NULL |  | v956 | v956 |
+| 53 | `NFCE_PRODUCAO_ID` | `INTEGER` | NULL |  | v956 | v956 |
+| 54 | `NFCE_PRODUCAO_CSC` | `VARCHAR(50)` | NULL |  | v956 | v956 |
+| 55 | `NFCE_HOMOLOGACAO_ID` | `INTEGER` | NULL |  | v956 | v956 |
+| 56 | `NFCE_HOMOLOGACAO_CSC` | `VARCHAR(50)` | NULL |  | v956 | v956 |
+| 57 | `NF_EMAIL_backup` | `VARCHAR(500)` | NULL |  | v956 | v956 |
+| 58 | `FUSO_EMISSAO` | `VARCHAR(15)` | NULL |  | v956 | v956 |
+| 59 | `FUSO_EMISSAO_STR` | `VARCHAR(50)` | NULL |  | v956 | v956 |
+| 60 | `FUSO_CANCELAMENTO` | `VARCHAR(15)` | NULL |  | v956 | v956 |
+| 61 | `FUSO_CANCELAMENTO_STR` | `VARCHAR(50)` | NULL |  | v956 | v956 |
+| 62 | `FUSO_CCE` | `VARCHAR(15)` | NULL |  | v956 | v956 |
+| 63 | `FUSO_CCE_STR` | `VARCHAR(50)` | NULL |  | v956 | v956 |
+| 64 | `FUSO_INUTILIZACAO` | `VARCHAR(15)` | NULL |  | v956 | v956 |
+| 65 | `FUSO_INUTILIZACAO_STR` | `VARCHAR(50)` | NULL |  | v956 | v956 |
+| 66 | `PODE_NF_SALVAR_XML` | `VARCHAR(1), ADD NFE_DANFE VARCHAR(20), ADD NFE_PATH VARCHAR(600)` | NULL |  | v956 | v956 |
+| 67 | `PODE_NFE_CNPJ_DESENVOLVEDOR` | `VARCHAR(1)` | NULL |  | v956 | v956 |
+| 68 | `PODE_NFE_CNPJ_CONTADOR` | `VARCHAR(1)` | NULL |  | v956 | v956 |
+| 69 | `NFE_NUMSERIE` | `VARCHAR(100)` | NULL |  | v956 | v956 |
+| 70 | `NFE_DT_VALIDADE` | `TIMESTAMP` | NULL |  | v956 | v956 |
+| 71 | `TEM_NF_EMAIL_ENVIO_NFSE` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 72 | `NFSE_DANFE` | `VARCHAR(20)` | NULL |  | v965 | v965 |
+| 73 | `NFSE_WEBFRASESECR` | `VARCHAR(500)` | NULL |  | v965 | v965 |
+| 74 | `NFSE_ALIQ_ISS` | `DOUBLE PRECISION` | NULL |  | v966 | v966 |
+| 75 | `NFSE_SERIE` | `VARCHAR(20)` | NULL |  | v967 | v967 |
+| 76 | `TEM_NFSE_SERVICO_PADRAO` | `VARCHAR(1)` | NULL |  | v967 | v967 |
+| 77 | `NFSE_SERVICO_PADRAO` | `VARCHAR(500)` | NULL |  | v967 | v967 |
+| 78 | `TEM_NFSE_USO_MULTIPLOS_SERVICO` | `VARCHAR(1)` | NULL |  | v967 | v967 |
+| 79 | `NFSE_CODIGOTRIBUTACAOMUNICIPIO` | `VARCHAR(20)` | NULL |  | v968 | v968 |
+| 80 | `NFE_DADOS_SIMPLES_NACIONAL` | `VARCHAR(500)` | NULL |  | v979 | v979 |
+| 81 | `NFE_IMPRIMIR_QTDEPECA` | `VARCHAR(1)` | NULL |  | v998 | v998 |
+| 82 | `SLACK` | `VARCHAR(500)` | NULL |  | v1003 | v1003 |
+| 83 | `EMITE_TEF` | `VARCHAR(1)` | NULL |  | v1107 | v1107 |
+| 84 | `TEF_CODIGO_LOJA` | `CHAR(20)` | NULL |  | v1139 | v1139 |
+| 85 | `NF_SERIE` | `INTEGER` | NULL |  | v1160 | v1160 |
+| 86 | `NFSE_WSCHAVEAUTORIZ` | `VARCHAR(255)` | NULL |  | v1366 | v1366 |
+| 87 | `MENSALIDADE_EMAIL_MENSAGEM` | `BLOB SUB_TYPE 1 SEGMENT SIZE 8192` | NULL |  | v1467 | v1467 |
+| 88 | `MENSALIDADE_EMAIL_ASSUNTO` | `VARCHAR(300)` | NULL |  | v1467 | v1467 |
 
 ## Evolução
 

@@ -5,6 +5,7 @@ created_at_version: 139
 last_modified_version: 1250
 target_version: 1468
 columns_count: 23
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,31 +23,31 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `UNIDADE` | `VARCHAR(6)` | NOT NULL | v139 | v139 |
-| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL | v139 | v139 |
-| 3 | `EXIBIR_COMPRIMENTO` | `SMALLINT` | NULL | v139 | v139 |
-| 4 | `EXIBIR_LARGURA` | `SMALLINT` | NULL | v139 | v139 |
-| 5 | `EXIBIR_ESPESSURA` | `SMALLINT` | NULL | v139 | v139 |
-| 6 | `CALC_COMPRIMENTO` | `smallint` | NULL | v162 | v162 |
-| 7 | `CALC_LARGURA` | `smallint` | NULL | v162 | v162 |
-| 8 | `CALC_ESPESSURA` | `smallint` | NULL | v162 | v162 |
-| 9 | `GERA_LOTE` | `smallint` | NULL | v232 | v232 |
-| 10 | `EXIBIR_QTDMETRICAUNITARIA` | `smallint` | NULL | v312 | v312 |
-| 11 | `ATIVO` | `VARCHAR(1)` | NULL | v728 | v728 |
-| 12 | `CODIGO` | `INTEGER` | NULL | v728 | v728 |
-| 13 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v728 | v728 |
-| 14 | `FORMULA` | `VARCHAR(20)` | NULL | v889 | v889 |
-| 15 | `SUBUNIDADE_QTDADE` | `DOUBLE PRECISION, ADD SUBUNIDADE_COMP DOUBLE PRECISION, ADD SUBUNIDADE_LARG DOUBLE PRECISION, ADD SUBUNIDADE_ESPESSURA DOUBLE PRECISION, ADD SUBUNIDADE_QUANT DOUBLE PRECISION` | NULL | v1152 | v1152 |
-| 16 | `TEM_DECIMAL` | `VARCHAR(1)` | NULL | v1152 | v1152 |
-| 17 | `TEM_SUBUNIDADE` | `VARCHAR(1)` | NULL | v1152 | v1152 |
-| 18 | `SUBUNIDADE` | `VARCHAR(6)` | NULL | v1152 | v1152 |
-| 19 | `IS_PESO` | `VARCHAR(1)` | NULL | v1166 | v1166 |
-| 20 | `OIMPRESSO_ATIVO` | `VARCHAR(1)` | NULL | v1250 | v1250 |
-| 21 | `OIMPRESSO_CODIGO` | `VARCHAR(15)` | NULL | v1250 | v1250 |
-| 22 | `OIMPRESSO_DT_ALTERACAO` | `TIMESTAMP` | NULL | v1250 | v1250 |
-| 23 | `OIMPRESSO_UPDATED_AT` | `TIMESTAMP` | NULL | v1250 | v1250 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `UNIDADE` | `VARCHAR(6)` | NOT NULL |  | v139 | v139 |
+| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v139 | v139 |
+| 3 | `EXIBIR_COMPRIMENTO` | `SMALLINT` | NULL |  | v139 | v139 |
+| 4 | `EXIBIR_LARGURA` | `SMALLINT` | NULL |  | v139 | v139 |
+| 5 | `EXIBIR_ESPESSURA` | `SMALLINT` | NULL |  | v139 | v139 |
+| 6 | `CALC_COMPRIMENTO` | `smallint` | NULL |  | v162 | v162 |
+| 7 | `CALC_LARGURA` | `smallint` | NULL |  | v162 | v162 |
+| 8 | `CALC_ESPESSURA` | `smallint` | NULL |  | v162 | v162 |
+| 9 | `GERA_LOTE` | `smallint` | NULL |  | v232 | v232 |
+| 10 | `EXIBIR_QTDMETRICAUNITARIA` | `smallint` | NULL |  | v312 | v312 |
+| 11 | `ATIVO` | `VARCHAR(1)` | NULL |  | v728 | v728 |
+| 12 | `CODIGO` | `INTEGER` | NULL |  | v728 | v728 |
+| 13 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v728 | v728 |
+| 14 | `FORMULA` | `VARCHAR(20)` | NULL |  | v889 | v889 |
+| 15 | `SUBUNIDADE_QTDADE` | `DOUBLE PRECISION, ADD SUBUNIDADE_COMP DOUBLE PRECISION, ADD SUBUNIDADE_LARG DOUBLE PRECISION, ADD SUBUNIDADE_ESPESSURA DOUBLE PRECISION, ADD SUBUNIDADE_QUANT DOUBLE PRECISION` | NULL |  | v1152 | v1152 |
+| 16 | `TEM_DECIMAL` | `VARCHAR(1)` | NULL |  | v1152 | v1152 |
+| 17 | `TEM_SUBUNIDADE` | `VARCHAR(1)` | NULL |  | v1152 | v1152 |
+| 18 | `SUBUNIDADE` | `VARCHAR(6)` | NULL |  | v1152 | v1152 |
+| 19 | `IS_PESO` | `VARCHAR(1)` | NULL |  | v1166 | v1166 |
+| 20 | `OIMPRESSO_ATIVO` | `VARCHAR(1)` | NULL |  | v1250 | v1250 |
+| 21 | `OIMPRESSO_CODIGO` | `VARCHAR(15)` | NULL |  | v1250 | v1250 |
+| 22 | `OIMPRESSO_DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1250 | v1250 |
+| 23 | `OIMPRESSO_UPDATED_AT` | `TIMESTAMP` | NULL |  | v1250 | v1250 |
 
 ## Evolução
 

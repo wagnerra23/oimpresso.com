@@ -5,6 +5,7 @@ created_at_version: 329
 last_modified_version: 1347
 target_version: 1468
 columns_count: 5
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,13 +23,13 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v329 | v329 |
-| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL | v329 | v329 |
-| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v329 | v329 |
-| 4 | `ATIVO` | `VARCHAR(1)` | NULL | v728 | v728 |
-| 5 | `TEM_FATURA` | `VARCHAR(1)` | NULL | v1347 | v1347 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v329 | v329 |
+| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v329 | v329 |
+| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v329 | v329 |
+| 4 | `ATIVO` | `VARCHAR(1)` | NULL |  | v728 | v728 |
+| 5 | `TEM_FATURA` | `VARCHAR(1)` | NULL |  | v1347 | v1347 |
 
 ## Evolução
 

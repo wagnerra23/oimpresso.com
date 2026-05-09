@@ -5,6 +5,9 @@ created_at_version: 1143
 last_modified_version: 1169
 target_version: 1468
 columns_count: 19
+foreign_keys_count: 1
+foreign_keys:
+  CODVENDA: VENDA
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,29 +23,37 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1169;
 - **Total colunas (versão 1468):** 19
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODVENDA` | [`VENDA`](../../vendas/tabelas/VENDA.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v1143 | v1143 |
-| 2 | `CODVENDA` | `VARCHAR(10)` | NOT NULL | v1143 | v1143 |
-| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1143 | v1143 |
-| 4 | `NSU` | `VARCHAR(100)` | NULL | v1153 | v1153 |
-| 5 | `TEF_STATUS` | `VARCHAR(20)` | NULL | v1153 | v1153 |
-| 6 | `REDE` | `VARCHAR(20)` | NULL | v1153 | v1153 |
-| 7 | `VALOR_TOTAL` | `DOUBLE PRECISION` | NULL | v1153 | v1153 |
-| 8 | `QTD_PARCELAS` | `INTEGER` | NULL | v1153 | v1153 |
-| 9 | `CNPJ_CREDENCIADORA` | `VARCHAR(20)` | NULL | v1153 | v1153 |
-| 10 | `ARQ_RESPOSTA` | `BLOB SUB_TYPE 1 SEGMENT SIZE 8192` | NULL | v1153 | v1153 |
-| 11 | `ARQ_IMPRESSAO` | `BLOB SUB_TYPE 1 SEGMENT SIZE 8192` | NULL | v1155 | v1155 |
-| 12 | `NSU_TRANSACAO_CANCELADA` | `VARCHAR(100)` | NULL | v1155 | v1155 |
-| 13 | `TIPO` | `VARCHAR(20)` | NULL | v1155 | v1155 |
-| 14 | `DATA_HORA_TRANSACAO_COMPROVANTE` | `TIMESTAMP` | NULL | v1155 | v1155 |
-| 15 | `DATA_HORA_TRANSACAO_CANCELADA` | `TIMESTAMP` | NULL | v1155 | v1155 |
-| 16 | `MODALIDADE_PAGTO_DESCRITA` | `VARCHAR(1000)` | NULL | v1155 | v1155 |
-| 17 | `MODALIDADE_PAGTO_EXTENSO` | `VARCHAR(1000)` | NULL | v1155 | v1155 |
-| 18 | `INSTITUICAO` | `VARCHAR(50)` | NULL | v1155 | v1155 |
-| 19 | `MOTIVO` | `VARCHAR(250)` | NULL | v1169 | v1169 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v1143 | v1143 |
+| 2 | `CODVENDA` | `VARCHAR(10)` | NOT NULL | → `VENDA` | v1143 | v1143 |
+| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1143 | v1143 |
+| 4 | `NSU` | `VARCHAR(100)` | NULL |  | v1153 | v1153 |
+| 5 | `TEF_STATUS` | `VARCHAR(20)` | NULL |  | v1153 | v1153 |
+| 6 | `REDE` | `VARCHAR(20)` | NULL |  | v1153 | v1153 |
+| 7 | `VALOR_TOTAL` | `DOUBLE PRECISION` | NULL |  | v1153 | v1153 |
+| 8 | `QTD_PARCELAS` | `INTEGER` | NULL |  | v1153 | v1153 |
+| 9 | `CNPJ_CREDENCIADORA` | `VARCHAR(20)` | NULL |  | v1153 | v1153 |
+| 10 | `ARQ_RESPOSTA` | `BLOB SUB_TYPE 1 SEGMENT SIZE 8192` | NULL |  | v1153 | v1153 |
+| 11 | `ARQ_IMPRESSAO` | `BLOB SUB_TYPE 1 SEGMENT SIZE 8192` | NULL |  | v1155 | v1155 |
+| 12 | `NSU_TRANSACAO_CANCELADA` | `VARCHAR(100)` | NULL |  | v1155 | v1155 |
+| 13 | `TIPO` | `VARCHAR(20)` | NULL |  | v1155 | v1155 |
+| 14 | `DATA_HORA_TRANSACAO_COMPROVANTE` | `TIMESTAMP` | NULL |  | v1155 | v1155 |
+| 15 | `DATA_HORA_TRANSACAO_CANCELADA` | `TIMESTAMP` | NULL |  | v1155 | v1155 |
+| 16 | `MODALIDADE_PAGTO_DESCRITA` | `VARCHAR(1000)` | NULL |  | v1155 | v1155 |
+| 17 | `MODALIDADE_PAGTO_EXTENSO` | `VARCHAR(1000)` | NULL |  | v1155 | v1155 |
+| 18 | `INSTITUICAO` | `VARCHAR(50)` | NULL |  | v1155 | v1155 |
+| 19 | `MOTIVO` | `VARCHAR(250)` | NULL |  | v1169 | v1169 |
 
 ## Evolução
 

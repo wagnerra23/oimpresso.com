@@ -5,6 +5,10 @@ created_at_version: 12
 last_modified_version: 1225
 target_version: 1468
 columns_count: 20
+foreign_keys_count: 2
+foreign_keys:
+  CODCOMISSAO_MIGRACAO: COMISSAO
+  CODFINANCEIRO_GERADO: FINANCEIRO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,30 +24,39 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1225;
 - **Total colunas (versão 1468):** 20
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCOMISSAO_MIGRACAO` | [`COMISSAO`](../../financeiro/tabelas/COMISSAO.md) |
+| `CODFINANCEIRO_GERADO` | [`FINANCEIRO`](../../financeiro/tabelas/FINANCEIRO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v12 | v12 |
-| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL | v12 | v12 |
-| 3 | `DATA` | `DATE` | NULL | v12 | v12 |
-| 4 | `DT_FINANCEIRO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 5 | `DT_COMISSAO_GERADA` | `TIMESTAMP` | NULL | v12 | v12 |
-| 6 | `TIPO_FINANCEIRO` | `VARCHAR(30)` | NULL | v484 | v484 |
-| 7 | `TIPO` | `VARCHAR(50)` | NULL | v1216 | v1216 |
-| 8 | `TIPO_DATA` | `VARCHAR(30)` | NULL | v485 | v485 |
-| 9 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v485 | v485 |
-| 10 | `ATIVO` | `VARCHAR(1)` | NULL | v1013 | v1013 |
-| 11 | `PESSOA_RESPONSAVEL_CODIGO` | `VARCHAR(10)` | NULL | v1216 | v1216 |
-| 12 | `PESSOA_RESPONSAVEL_TIPO` | `VARCHAR(3)` | NULL | v1216 | v1216 |
-| 13 | `PESSOA_RESPONSAVEL_SEQUENCIA` | `INTEGER` | NULL | v1216 | v1216 |
-| 14 | `VALOR_COMISSAO` | `DOUBLE PRECISION` | NULL | v1216 | v1216 |
-| 15 | `SOMA_FINANCEIRO_VENCIDA` | `DOUBLE PRECISION` | NULL | v1216 | v1216 |
-| 16 | `SOMA_FINANCEIRO_EMABERTO` | `DOUBLE PRECISION` | NULL | v1216 | v1216 |
-| 17 | `SOMA_FINANCEIRO_QUITADA` | `DOUBLE PRECISION` | NULL | v1216 | v1216 |
-| 18 | `CODCOMISSAO_MIGRACAO` | `INTEGER` | NULL | v1216 | v1216 |
-| 19 | `CODFINANCEIRO_GERADO` | `INTEGER` | NULL | v1225 | v1225 |
-| 20 | `OBSERVACAO` | `VARCHAR(1000)` | NULL | v1225 | v1225 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v12 | v12 |
+| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL |  | v12 | v12 |
+| 3 | `DATA` | `DATE` | NULL |  | v12 | v12 |
+| 4 | `DT_FINANCEIRO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 5 | `DT_COMISSAO_GERADA` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 6 | `TIPO_FINANCEIRO` | `VARCHAR(30)` | NULL |  | v484 | v484 |
+| 7 | `TIPO` | `VARCHAR(50)` | NULL |  | v1216 | v1216 |
+| 8 | `TIPO_DATA` | `VARCHAR(30)` | NULL |  | v485 | v485 |
+| 9 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v485 | v485 |
+| 10 | `ATIVO` | `VARCHAR(1)` | NULL |  | v1013 | v1013 |
+| 11 | `PESSOA_RESPONSAVEL_CODIGO` | `VARCHAR(10)` | NULL |  | v1216 | v1216 |
+| 12 | `PESSOA_RESPONSAVEL_TIPO` | `VARCHAR(3)` | NULL |  | v1216 | v1216 |
+| 13 | `PESSOA_RESPONSAVEL_SEQUENCIA` | `INTEGER` | NULL |  | v1216 | v1216 |
+| 14 | `VALOR_COMISSAO` | `DOUBLE PRECISION` | NULL |  | v1216 | v1216 |
+| 15 | `SOMA_FINANCEIRO_VENCIDA` | `DOUBLE PRECISION` | NULL |  | v1216 | v1216 |
+| 16 | `SOMA_FINANCEIRO_EMABERTO` | `DOUBLE PRECISION` | NULL |  | v1216 | v1216 |
+| 17 | `SOMA_FINANCEIRO_QUITADA` | `DOUBLE PRECISION` | NULL |  | v1216 | v1216 |
+| 18 | `CODCOMISSAO_MIGRACAO` | `INTEGER` | NULL | → `COMISSAO` | v1216 | v1216 |
+| 19 | `CODFINANCEIRO_GERADO` | `INTEGER` | NULL | → `FINANCEIRO` | v1225 | v1225 |
+| 20 | `OBSERVACAO` | `VARCHAR(1000)` | NULL |  | v1225 | v1225 |
 
 ## Evolução
 

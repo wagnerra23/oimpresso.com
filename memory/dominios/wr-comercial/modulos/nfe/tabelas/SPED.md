@@ -5,6 +5,7 @@ created_at_version: 882
 last_modified_version: 882
 target_version: 1468
 columns_count: 8
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,16 +23,16 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v882 | v882 |
-| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL | v882 | v882 |
-| 3 | `ATIVO` | `VARCHAR(1)` | NULL | v882 | v882 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v882 | v882 |
-| 5 | `DT_SPED_GERADO` | `TIMESTAMP` | NULL | v882 | v882 |
-| 6 | `DT_INICO` | `TIMESTAMP` | NULL | v882 | v882 |
-| 7 | `DT_FIM` | `TIMESTAMP` | NULL | v882 | v882 |
-| 8 | `PERFIL` | `VARCHAR(50)` | NULL | v882 | v882 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v882 | v882 |
+| 2 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v882 | v882 |
+| 3 | `ATIVO` | `VARCHAR(1)` | NULL |  | v882 | v882 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v882 | v882 |
+| 5 | `DT_SPED_GERADO` | `TIMESTAMP` | NULL |  | v882 | v882 |
+| 6 | `DT_INICO` | `TIMESTAMP` | NULL |  | v882 | v882 |
+| 7 | `DT_FIM` | `TIMESTAMP` | NULL |  | v882 | v882 |
+| 8 | `PERFIL` | `VARCHAR(50)` | NULL |  | v882 | v882 |
 
 ## Evolução
 

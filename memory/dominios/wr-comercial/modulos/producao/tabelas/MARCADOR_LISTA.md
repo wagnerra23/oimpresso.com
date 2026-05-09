@@ -5,6 +5,9 @@ created_at_version: 390
 last_modified_version: 390
 target_version: 1468
 columns_count: 4
+foreign_keys_count: 1
+foreign_keys:
+  CODPLANOCONTAS: PLANOCONTAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,14 +23,22 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 390;
 - **Total colunas (versão 1468):** 4
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODPLANOCONTAS` | [`PLANOCONTAS`](../../financeiro/tabelas/PLANOCONTAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `MODO_MARCA` | `VARCHAR(20)` | NULL | v390 | v390 |
-| 2 | `CODPLANOCONTAS` | `VARCHAR(15)` | NULL | v390 | v390 |
-| 3 | `FORCAR_EXIBICAO` | `VARCHAR(1)` | NULL | v390 | v390 |
-| 4 | `SQLDESPESAS` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80` | NULL | v390 | v390 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `MODO_MARCA` | `VARCHAR(20)` | NULL |  | v390 | v390 |
+| 2 | `CODPLANOCONTAS` | `VARCHAR(15)` | NULL | → `PLANOCONTAS` | v390 | v390 |
+| 3 | `FORCAR_EXIBICAO` | `VARCHAR(1)` | NULL |  | v390 | v390 |
+| 4 | `SQLDESPESAS` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80` | NULL |  | v390 | v390 |
 
 ## Evolução
 

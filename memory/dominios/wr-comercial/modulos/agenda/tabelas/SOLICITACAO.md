@@ -5,6 +5,7 @@ created_at_version: 475
 last_modified_version: 475
 target_version: 1468
 columns_count: 6
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,14 +23,14 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `SOLICITA` | `SMALLINT` | NULL | v475 | v475 |
-| 2 | `VERSAO_ATUAL` | `VARCHAR(20)` | NULL | v475 | v475 |
-| 3 | `VERIFICA_SERVIDOR` | `SMALLINT` | NULL | v475 | v475 |
-| 4 | `ERRO_CONEXAO` | `SMALLINT` | NULL | v475 | v475 |
-| 5 | `PROGRESSO_DOWNLOAD` | `INTEGER` | NULL | v475 | v475 |
-| 6 | `MESSAGE_ERRO` | `VARCHAR(350)` | NULL | v475 | v475 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `SOLICITA` | `SMALLINT` | NULL |  | v475 | v475 |
+| 2 | `VERSAO_ATUAL` | `VARCHAR(20)` | NULL |  | v475 | v475 |
+| 3 | `VERIFICA_SERVIDOR` | `SMALLINT` | NULL |  | v475 | v475 |
+| 4 | `ERRO_CONEXAO` | `SMALLINT` | NULL |  | v475 | v475 |
+| 5 | `PROGRESSO_DOWNLOAD` | `INTEGER` | NULL |  | v475 | v475 |
+| 6 | `MESSAGE_ERRO` | `VARCHAR(350)` | NULL |  | v475 | v475 |
 
 ## Evolução
 

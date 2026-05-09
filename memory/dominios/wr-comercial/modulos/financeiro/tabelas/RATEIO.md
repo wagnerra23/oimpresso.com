@@ -5,6 +5,7 @@ created_at_version: 588
 last_modified_version: 1119
 target_version: 1468
 columns_count: 3
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,11 +23,11 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `AGRUPAR_BOLETO_EQUIPAMENTO_SR` | `DOM_BOOLEAN` | NULL | v588 | v588 |
-| 2 | `BOLETO_EVENTUAL_DATA` | `TIMESTAMP` | NULL | v1119 | v1119 |
-| 3 | `BOLETO_EVENTUAL_TOTAL` | `DOUBLE PRECISION` | NULL | v1119 | v1119 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `AGRUPAR_BOLETO_EQUIPAMENTO_SR` | `DOM_BOOLEAN` | NULL |  | v588 | v588 |
+| 2 | `BOLETO_EVENTUAL_DATA` | `TIMESTAMP` | NULL |  | v1119 | v1119 |
+| 3 | `BOLETO_EVENTUAL_TOTAL` | `DOUBLE PRECISION` | NULL |  | v1119 | v1119 |
 
 ## Evolução
 

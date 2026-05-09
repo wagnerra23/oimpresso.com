@@ -5,6 +5,7 @@ created_at_version: 194
 last_modified_version: 1314
 target_version: 1468
 columns_count: 5
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,13 +23,13 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `TIPO` | `varchar(15)` | NULL | v194 | v194 |
-| 2 | `TIPOSMEDIDAS` | `VARCHAR(3)` | NULL | v353 | v353 |
-| 3 | `ATIVO` | `VARCHAR(1)` | NULL | v728 | v728 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v728 | v728 |
-| 5 | `MIGRADO` | `VARCHAR(1)` | NULL | v1314 | v1314 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `TIPO` | `varchar(15)` | NULL |  | v194 | v194 |
+| 2 | `TIPOSMEDIDAS` | `VARCHAR(3)` | NULL |  | v353 | v353 |
+| 3 | `ATIVO` | `VARCHAR(1)` | NULL |  | v728 | v728 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v728 | v728 |
+| 5 | `MIGRADO` | `VARCHAR(1)` | NULL |  | v1314 | v1314 |
 
 ## Evolução
 

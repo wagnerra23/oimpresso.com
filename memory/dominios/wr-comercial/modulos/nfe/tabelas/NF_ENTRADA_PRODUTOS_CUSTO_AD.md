@@ -5,6 +5,10 @@ created_at_version: 596
 last_modified_version: 854
 target_version: 1468
 columns_count: 8
+foreign_keys_count: 2
+foreign_keys:
+  CODNF_ENTRADA: NF_ENTRADA
+  CODNF_ENTRADA_PRODUTO: NF_ENTRADA_PRODUTOS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,18 +24,27 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 854;
 - **Total colunas (versão 1468):** 8
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODNF_ENTRADA` | [`NF_ENTRADA`](../../nfe/tabelas/NF_ENTRADA.md) |
+| `CODNF_ENTRADA_PRODUTO` | [`NF_ENTRADA_PRODUTOS`](../../nfe/tabelas/NF_ENTRADA_PRODUTOS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v596 | v596 |
-| 2 | `CODNF_ENTRADA_PRODUTO` | `INTEGER` | NULL | v596 | v596 |
-| 3 | `CODNF_ENTRADA` | `VARCHAR(10)` | NULL | v596 | v596 |
-| 4 | `VALOR` | `DOUBLE PRECISION` | NULL | v596 | v596 |
-| 5 | `DESCRICAO` | `VARCHAR(150)` | NULL | v596 | v596 |
-| 6 | `OBSERVACAO` | `VARCHAR(500)` | NULL | v709 | v709 |
-| 7 | `LANCADO_MANUALMENTE` | `DOM_BOOLEAN` | NULL | v709 | v709 |
-| 8 | `PERCVALOR` | `varchar(10)` | NULL | v736 | v736 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v596 | v596 |
+| 2 | `CODNF_ENTRADA_PRODUTO` | `INTEGER` | NULL | → `NF_ENTRADA_PRODUTOS` | v596 | v596 |
+| 3 | `CODNF_ENTRADA` | `VARCHAR(10)` | NULL | → `NF_ENTRADA` | v596 | v596 |
+| 4 | `VALOR` | `DOUBLE PRECISION` | NULL |  | v596 | v596 |
+| 5 | `DESCRICAO` | `VARCHAR(150)` | NULL |  | v596 | v596 |
+| 6 | `OBSERVACAO` | `VARCHAR(500)` | NULL |  | v709 | v709 |
+| 7 | `LANCADO_MANUALMENTE` | `DOM_BOOLEAN` | NULL |  | v709 | v709 |
+| 8 | `PERCVALOR` | `varchar(10)` | NULL |  | v736 | v736 |
 
 ## Evolução
 

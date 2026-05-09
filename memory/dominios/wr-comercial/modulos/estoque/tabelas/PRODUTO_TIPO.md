@@ -5,6 +5,7 @@ created_at_version: 14
 last_modified_version: 782
 target_version: 1468
 columns_count: 10
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,18 +23,18 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `TIPO_COMPOSICAO` | `INTEGER` | NULL | v72 | v72 |
-| 2 | `NIVEL_COMPOSICAO` | `INTEGER` | NULL | v72 | v72 |
-| 3 | `PRODUZIDO` | `SMALLINT` | NULL | v283 | v283 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v375 | v375 |
-| 5 | `BLOQUEIA_ESTOQUE_INSUFICIENTE` | `VARCHAR(1)` | NULL | v466 | v466 |
-| 6 | `CLASSIFICACAO` | `VARCHAR(50)` | NULL | v718 | v718 |
-| 7 | `PODE_SER_VENDIDO` | `DOM_BOOLEAN` | NULL | v717 | v717 |
-| 8 | `PODE_SER_COMPRADO` | `DOM_BOOLEAN` | NULL | v717 | v717 |
-| 9 | `ATIVO` | `VARCHAR(1)` | NULL | v728 | v728 |
-| 10 | `PODE_ALTERAR_ESTOQUE` | `VARCHAR(1)` | NULL | v249 | v782 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `TIPO_COMPOSICAO` | `INTEGER` | NULL |  | v72 | v72 |
+| 2 | `NIVEL_COMPOSICAO` | `INTEGER` | NULL |  | v72 | v72 |
+| 3 | `PRODUZIDO` | `SMALLINT` | NULL |  | v283 | v283 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v375 | v375 |
+| 5 | `BLOQUEIA_ESTOQUE_INSUFICIENTE` | `VARCHAR(1)` | NULL |  | v466 | v466 |
+| 6 | `CLASSIFICACAO` | `VARCHAR(50)` | NULL |  | v718 | v718 |
+| 7 | `PODE_SER_VENDIDO` | `DOM_BOOLEAN` | NULL |  | v717 | v717 |
+| 8 | `PODE_SER_COMPRADO` | `DOM_BOOLEAN` | NULL |  | v717 | v717 |
+| 9 | `ATIVO` | `VARCHAR(1)` | NULL |  | v728 | v728 |
+| 10 | `PODE_ALTERAR_ESTOQUE` | `VARCHAR(1)` | NULL |  | v249 | v782 |
 
 ## Evolução
 
