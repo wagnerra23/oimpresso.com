@@ -9,6 +9,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappTemplate;
 
 /**
@@ -34,7 +35,7 @@ use Modules\Whatsapp\Entities\WhatsappTemplate;
 class ZapiDriver implements DriverInterface
 {
     public function sendTemplate(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $templateName,
         array $params,
@@ -60,7 +61,7 @@ class ZapiDriver implements DriverInterface
     }
 
     public function sendFreeform(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $body,
     ): WhatsappSendResult {
@@ -74,7 +75,7 @@ class ZapiDriver implements DriverInterface
     }
 
     public function sendMedia(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $mediaUrl,
         string $type,
@@ -110,7 +111,7 @@ class ZapiDriver implements DriverInterface
     }
 
     public function fetchMessageStatus(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,
     ): MessageStatus {
         $response = $this->client($config)
@@ -137,7 +138,7 @@ class ZapiDriver implements DriverInterface
         );
     }
 
-    public function ping(WhatsappBusinessConfig $config): DriverHealthStatus
+    public function ping(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverHealthStatus
     {
         $response = $this->client($config)
             ->get("/instances/{$config->zapi_instance_id}/token/{$config->zapi_instance_token}/status");
@@ -176,7 +177,7 @@ class ZapiDriver implements DriverInterface
      * de pessoas que descobrem instance_id+token mas não têm o client_token
      * (rotacionável independente).
      */
-    private function client(WhatsappBusinessConfig $config): PendingRequest
+    private function client(WhatsappBusinessConfig|WhatsappBusinessPhone $config): PendingRequest
     {
         return Http::baseUrl(config('whatsapp.zapi.base_url', 'https://api.z-api.io'))
             ->timeout(config('whatsapp.zapi.request_timeout', 15))
