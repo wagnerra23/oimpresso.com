@@ -5,7 +5,7 @@ interface Props {
   contextRoute?: string
 }
 
-export default function FabCopiloto({ contextRoute }: Props) {
+export default function FabJana({ contextRoute }: Props) {
   const href = contextRoute
     ? `/copiloto?context=${encodeURIComponent(contextRoute)}`
     : '/copiloto'

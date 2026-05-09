@@ -22,7 +22,7 @@ import {
   Mensagem as CockpitMensagem,
   Rotina,
 } from '@/Components/cockpit/shared';
-import { CopilotoAssistantUiChat } from '@/Components/copiloto/AssistantUiChat';
+import { JanaAssistantUiChat } from '@/Components/jana/AssistantUiChat';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import {
@@ -267,7 +267,7 @@ export default function Chat({
         />
         <div className="copiloto-chat-thread">
           <ThreadHeader conv={conversaFoco} />
-          <CopilotoAssistantUiChat
+          <JanaAssistantUiChat
             conversaId={conversa.id}
             mensagensIniciais={mensagens}
             belowThread={
