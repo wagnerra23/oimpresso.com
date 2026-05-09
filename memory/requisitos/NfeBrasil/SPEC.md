@@ -666,8 +666,9 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php`
 
 ### US-NFE-052 · UI listar XMLs recebidos + 4 botões manifestar + alerta prazo 180d
 
-> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: todo · type: story
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: review · type: story
 > blocked_by: US-NFE-050, US-NFE-051
+> code-complete: 2026-05-09 (PR pendente) — RUNBOOK + visual-comparison approved + ManifestacaoController + Page Inertia + 3 LinkedApps + 7 testes Pest
 
 Página Inertia `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` listando NFes recebidas com ações de manifestação.
 
