@@ -27,7 +27,8 @@ Visão de produção da oficina em **kanban de 5 colunas** (Recepção → Diagn
 
 - Kanban 5 colunas com cards de OS (placa Mercosul + KM + mecânico + box/elevador)
 - Drawer lateral com detalhes da OS clicada (sintoma + fotos + peças + linha do tempo + banner aprovação cliente)
-- Filtros declarativos por **Box** (B1-B4) e **Elevador** (E1-E2) — chips clicáveis no header
+- Filtros funcionais por **Box** (B1-B4) e **Elevador** (E1-E2) — chips clicáveis no header, atualiza grid client-side via `useMemo` (US-REPAIR-PROD-3)
+- Contador "X de Y OS" quando filtro ativo + botão "Limpar filtros"
 - Destaque visual nas OS aguardando aprovação do cliente (banner laranja)
 - Cabe em monitor 1280px sem scroll horizontal (Larissa quirk crítico)
 - AppShellV2 + topnav Repair (`KanbanSquare` icon)
@@ -40,7 +41,6 @@ Visão de produção da oficina em **kanban de 5 colunas** (Recepção → Diagn
 
 - ❌ Drag-and-drop entre colunas (mover status = ir pra `/repair/job-sheet/{id}/status`)
 - ❌ CRUD de OS (vai pra `/repair/job-sheet`)
-- ❌ Filtros funcionais Box/Elevador no F3 inicial — chips renderizam mas só estilam, sem alterar grid (US-REPAIR-PROD-3)
 - ❌ Query real backend (Controller usa mock data até US-REPAIR-PROD-2)
 - ❌ Notificações push de mudança de status
 - ❌ Atribuição de mecânico via UI (vai pra JobSheet)
@@ -84,6 +84,6 @@ Visão de produção da oficina em **kanban de 5 colunas** (Recepção → Diagn
 ## Backlog (US futuras)
 
 - **US-REPAIR-PROD-2** — query real `JobSheet` por status/business com mock substituído
-- **US-REPAIR-PROD-3** — filtros funcionais Box/Elevador (atualiza grid client-side ou via Inertia partial reload)
+- ✅ **US-REPAIR-PROD-3** — filtros funcionais Box/Elevador (entregue PR ~~#TBD~~)
 - **US-REPAIR-PROD-4** — drag-and-drop entre colunas (chama `/repair/job-sheet/{id}/status` com optimistic update)
 - **US-REPAIR-PROD-5** — Pest GUARD: kanban tem exatamente 5 colunas + isolamento `business_id` + mock-vs-real switch
