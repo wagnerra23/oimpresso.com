@@ -13,19 +13,20 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Verifica autenticação do webhook do daemon Baileys (CT 100 → Hostinger).
  *
- * O daemon Node envia `Authorization: Bearer {api_key}` em todo POST.
- * O `api_key` é o mesmo `baileys_api_key` cadastrado em
- * `whatsapp_business_configs.baileys_api_key` (cifrado pelo `encrypted` cast).
+ * **US-WA-022:** o `api_key` é GLOBAL (config('whatsapp.baileys.api_key')) —
+ * mesma chave do Docker secret CT 100 (env var `WHATSAPP_BAILEYS_API_KEY`).
+ * Não é mais per-tenant. Multi-tenancy é via `business_uuid` no path.
  *
  * Comparação timing-safe via hash_equals.
  *
  * Camadas de defesa:
  *  1. IP whitelist Traefik (CT 100 só responde pra Hostinger 148.135.133.115)
- *  2. Bearer token (este middleware)
- *  3. business_uuid no path (daemon não pode confundir tenant)
+ *  2. Bearer token global (este middleware)
+ *  3. business_uuid no path → resolve config tenant (multi-tenant Tier 0)
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002d
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002d, US-WA-022
  * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §16.5
+ * @see resources/js/Pages/Whatsapp/Settings.charter.md
  */
 class VerifyBaileysSignature
 {
@@ -48,7 +49,7 @@ class VerifyBaileysSignature
             $providedToken = trim(substr($header, 7));
         }
 
-        $expectedToken = (string) $config->baileys_api_key;
+        $expectedToken = (string) config('whatsapp.baileys.api_key', '');
 
         if ($providedToken === '' || $expectedToken === '' || ! hash_equals($expectedToken, $providedToken)) {
             \Log::warning('[whatsapp.webhook.baileys] Bearer inválido', [

@@ -33,11 +33,17 @@ return [
     ],
 
     'baileys' => [
-        // Sprint 3 — daemon Node próprio CT 100 (ADR 0096 emenda 4)
-        // base_url é per-business (whatsapp_business_configs.baileys_daemon_url);
-        // este default só aparece na UI Settings ao cadastrar instance nova.
-        'daemon_url_default' => env('WHATSAPP_BAILEYS_DAEMON_URL', 'https://whatsapp-baileys.oimpresso.local'),
-        'request_timeout' => env('WHATSAPP_BAILEYS_TIMEOUT', 15),
+        // Daemon Node próprio CT 100 (ADR 0096 emenda 4).
+        // US-WA-022: daemon_url + api_key são GLOBAIS (server secrets), não
+        // per-tenant. Multi-tenancy é via business_uuid no path do webhook +
+        // baileys_instance_id auto-gerado (prefix "biz{business_id}-").
+        // Tenant só cadastra telefone E.164 na UI Settings.
+        'daemon_url' => env('WHATSAPP_BAILEYS_DAEMON_URL', 'https://whatsapp-baileys.oimpresso.local'),
+        'api_key' => env('WHATSAPP_BAILEYS_API_KEY'),
+        'request_timeout' => (int) env('WHATSAPP_BAILEYS_TIMEOUT', 15),
+        'instance_id_prefix' => env('WHATSAPP_BAILEYS_INSTANCE_PREFIX', 'biz'),
+        // Rate limit anti-abuse (US-WA-022 §Rate limit) — 3 connect/business/dia
+        'connect_rate_limit_per_day' => (int) env('WHATSAPP_BAILEYS_CONNECT_RATE_LIMIT', 3),
     ],
 
     'health_check' => [
