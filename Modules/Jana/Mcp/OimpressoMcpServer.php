@@ -87,6 +87,9 @@ class OimpressoMcpServer extends Server
         Tools\ClaudeCodeUsageSelfTool::class,
         Tools\MemoriaSearchTool::class,
         Tools\CcSearchTool::class,
+        // ADR 0119 Tier 1 — coordenação entre sessões Claude (alerta passivo,
+        // não lock). Agregação derivada de mcp_cc_sessions + mcp_cc_messages.
+        Tools\WhatsActiveTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
