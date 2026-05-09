@@ -136,6 +136,60 @@
 
 **Refs:** [skill ads-decision-flow](../../../.claude/skills/ads-decision-flow/SKILL.md), [ADR 0106 antecipação](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)
 
+### US-INFRA-006 · Tool MCP `whats-active` — agregar sessões doing + paths tocados (Tier 1 ADR 0118)
+
+> owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story · origin: adr-0118-paralelismo-sessoes
+
+**Contexto.** [ADR 0118](../../decisions/0118-paralelismo-sessoes-whats-active-tier-1.md) aceitou Tier 1 (`whats-active` read-only) após estudo de 13 incidentes de paralelismo. Padrão real: ofensores são Cursor (4×) e workflows GitHub Actions (3×) — ambos não consultam MCP. Caso "Claude-A vs Claude-B mesmo arquivo" não tem incidente catalogado, mas tool barata (sem estado novo) cobre a única classe não mitigada hoje.
+
+**Escopo:**
+- [ ] Endpoint MCP `whats-active` retorna JSON `[{owner, task_id, worktree_path, last_commit_at, paths_touched_24h:[...]}]`
+- [ ] Filtro: só sessões com last_event nas últimas 2h
+- [ ] Filtro: só tasks status:doing
+- [ ] Zero estado novo no DB — agregação derivada (query JOIN `mcp_session_logs` × `tasks`)
+- [ ] Pest test biz=1 cobre: 2 sessões diferentes, 1 com paths overlapping → resposta lista ambas
+- [ ] Token MCP autenticado — qualquer dev do time vê todas sessões (transparência ADR 0094)
+
+**Dependência:** watcher cc-search já em prod (auto-mem `MEM-CC-1`).
+
+**Não-objetivos:**
+- ❌ Lock formal (Tier 2 dormente — só promove se 2× incidentes Claude-A vs Claude-B no mesmo arquivo)
+- ❌ Bloquear sessão (alerta passivo — cultura, não enforcement)
+- ❌ Integração com Cursor (fora de escopo MCP — convenção humana)
+
+**Acceptance criteria:**
+- [ ] Tool retorna 200 com lista vazia quando ninguém ativo
+- [ ] Pest test 2 sessões overlapping passa
+- [ ] Doc adicionada nesta SPEC + skill `mcp-first` cita a tool
+
+**Refs:** [ADR 0118](../../decisions/0118-paralelismo-sessoes-whats-active-tier-1.md)
+
+### US-INFRA-007 · Skill Tier A `session-start-check` — alertar paths overlapping (ADR 0118)
+
+> owner: wagner · priority: p2 · estimate: 2h · status: todo · type: story · origin: adr-0118-paralelismo-sessoes
+> blocked_by: US-INFRA-006
+
+**Contexto.** Companion da US-INFRA-006. Skill Tier A always-on que roda no hook SessionStart depois do `brief-first`. Chama `whats-active` e alerta passivo se outra sessão Claude tocou os mesmos paths nas últimas 2h. Sem overlap → silencioso (não polui contexto).
+
+**Escopo:**
+- [ ] `.claude/skills/session-start-check/SKILL.md` criado com tier A frontmatter
+- [ ] Hook SessionStart chama `whats-active` após `brief-fetch`
+- [ ] Alerta passivo (não bloqueia): "⚠️ Felipe trabalhou em `Modules/NfeBrasil/Services/` há 1h — confirmar antes de começar"
+- [ ] Heurística overlap: paths_touched_24h da outra sessão ∩ tasks_em_curso minha (via `my-work`)
+- [ ] Doc em `memory/sprints/s3-constituicao/03-skills-audit.md` atualizada com nova Tier A
+- [ ] ADR 0118 referenciada no SKILL.md description
+
+**Acceptance criteria:**
+- [ ] 2 sessões com overlapping detectado → alerta gerado
+- [ ] 2 sessões sem overlap → contexto silencioso
+- [ ] Skill aparece no `tier-a` listing do `03-skills-audit.md`
+
+**Não-objetivos:**
+- ❌ Bloquear sessão (cultura, não enforcement)
+- ❌ Resolver merge conflict (apenas avisar)
+
+**Refs:** [ADR 0118](../../decisions/0118-paralelismo-sessoes-whats-active-tier-1.md), depende de US-INFRA-006
+
 ## 3. Sequência recomendada
 
 ```
@@ -158,9 +212,11 @@ Total: ~17h codáveis + canary 7d humano
 | US-INFRA-003 APM | SINAL — entrada automática (sintoma + causa) |
 | US-INFRA-004 Drift detection | DETECÇÃO DE DESVIO — automática |
 | US-INFRA-005 S5 ADS | TRIAGEM + RECÁLCULO — decisão automática com HITL |
+| US-INFRA-006 whats-active | COORDENAÇÃO — sinal "quem mexe em quê AGORA" entre sessões Claude (ADR 0118 Tier 1) |
+| US-INFRA-007 session-start-check | COORDENAÇÃO — alerta passivo no SessionStart se paths overlap (ADR 0118 Tier 1) |
 
-Quando os 5 fecharem, oimpresso opera com **loop de governança fechado autossustentável** — Wagner vira validador estratégico, não bottleneck operacional.
+Quando os 5 primeiros fecharem, oimpresso opera com **loop de governança fechado autossustentável** — Wagner vira validador estratégico, não bottleneck operacional. US-006/007 são complementares: cobrem coordenação entre sessões paralelas (Claude-A vs Claude-B).
 
 ---
 
-**Última atualização:** 2026-05-08
+**Última atualização:** 2026-05-09 — adicionadas US-INFRA-006/007 ([ADR 0118](../../decisions/0118-paralelismo-sessoes-whats-active-tier-1.md))
