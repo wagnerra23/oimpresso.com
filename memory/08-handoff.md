@@ -676,7 +676,7 @@ Session log: [memory/sessions/2026-05-06-fase-3-7-pr1-drift-controllers.md](sess
 **P0 pra próxima sessão (cycle 01 vence 12-mai, 7 dias):**
 - **COPI-43** PII redactor BR (LGPD-blocker) p0
 - **A4 rodada 2** Larissa — repetir 3 perguntas (vendi/líquido/caixa) → 3 respostas distintas em prod
-- **COPI-22** driver MCP no Jana (já doing, due 06-mai amanhã)
+- **COPI-22** driver MCP na Jana (já doing, due 06-mai amanhã)
 - **10 testes pré-existentes falhando** em `tests/Feature/Modules/Jana/Mcp/` — não tocados nesta sessão; investigar quando der
 
 **Atenção crítica:** **NÃO RODAR `php artisan mcp:tasks:sync`** até PROJECT-3 (frontmatter YAML SPECs, escalar pra p2) fechar. Parser sobrescreve triagem 05-mai. Ver ADR 0071 §B3.
@@ -859,7 +859,7 @@ MEILISEARCH_KEY=TFLfQX3Diuz42MydPn68AYH9Km1JbaBI
 | Pages React: Chat, Dashboard, FabJana | `resources/js/Pages/Jana/` | ✅ |
 | Testes Pest (SQLite in-memory) | `tests/Feature/Modules/Jana/` — 24 passed, 1 skipped | ✅ |
 
-### ⚠️ O que ficou pendente no Jana
+### ⚠️ O que ficou pendente na Jana
 
 - `ApurarMetasAtivasJob` (scheduler que descobre todas as metas ativas) — não criado
 - Drivers `php` e `http` — apenas `SqlDriver` implementado

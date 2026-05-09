@@ -1,4 +1,4 @@
-# RUNBOOK — Melhoria semanal da memória do Jana/Jana
+# RUNBOOK — Melhoria semanal da memória da Jana
 
 > **Status:** ativo · **Owner:** Wagner · **Cadência:** 1×/semana (agendado em `~/.claude/scheduled-tasks/copiloto-memoria-semanal/`) · **Criado:** 2026-05-04 (1ª execução)
 
@@ -178,7 +178,7 @@ php artisan scout:import "Modules\\Jana\\Entities\\MemoriaFato"
 
 | # | Item | Prioridade | Ação |
 |---|------|-----------|------|
-| 1 | `MemoriaFato.$casts` (Modules/Jana) sem `hits_count`/`core_memory`/`ultimo_hit_em` | 🔴 P1 | Adicionar 3 entradas no `$casts` (ver entity Modules/Jana antiga como referência — supersede pelo Jana) |
+| 1 | `MemoriaFato.$casts` (Modules/Jana) sem `hits_count`/`core_memory`/`ultimo_hit_em` | 🔴 P1 | Adicionar 3 entradas no `$casts` (ver entity Modules/Jana antiga como referência — supersede pela Jana) |
 | 2 | Comentário em `MemoriaFato.php` ainda referencia `Modules/Jana/Database/seeders/MeilisearchIndexSetup.php` (path antigo) | 🟡 P3 | Atualizar pra `Modules/Jana/...` ou remover seeder se obsoleto |
 | 3 | `config/scout.php` `index-settings.jana_memoria_facts` está vazio — filterableAttributes setados manualmente no servidor (drift de governança) | 🟠 P2 | Declarar no `config/scout.php` os filterableAttributes (`business_id`, `user_id`, `valid_until`, `metadata_relevancia` futuro) — Scout aplica no startup |
 | 4 | ADR canônica do roadmap 8 fases é a **0049**, não 0062 (que é separação runtime) — SKILL apontava pro número errado | ✅ corrigido 2026-05-04 | — |

@@ -9,7 +9,7 @@ originSessionId: c8fd0d09-0309-4bc2-a741-717921f4c8cf
 1. **Literal**: `'label' => 'Dashboard'` — passa direto (PontoWr2, MemCofre, Officeimpresso usam assim)
 2. **Chave i18n**: `'label' => 'copiloto::copiloto.menu.dashboard'` — `LegacyMenuAdapter::resolveLabel()` em `app/Services/LegacyMenuAdapter.php#180` chama `trans()` se a string contém `::`
 
-**Why:** Wagner pediu em 2026-04-27 que o Jana "integrasse" tradução — o `topnav.php` tinha labels literais ("Conversar", "Dashboard"…) enquanto a lang file `Modules/Jana/Resources/lang/pt-BR/copiloto.php` já tinha as chaves `menu.*` correspondentes vindo do sprint 1 mas não eram consumidas pelo menu superior. PR #31 corrigiu.
+**Why:** Wagner pediu em 2026-04-27 que a Jana "integrasse" tradução — o `topnav.php` tinha labels literais ("Conversar", "Dashboard"…) enquanto a lang file `Modules/Jana/Resources/lang/pt-BR/copiloto.php` já tinha as chaves `menu.*` correspondentes vindo do sprint 1 mas não eram consumidas pelo menu superior. PR #31 corrigiu.
 
 **How to apply:**
 - Pra módulos novos: já criar topnav.php usando chaves i18n — mantém uma fonte só de tradução (lang file)

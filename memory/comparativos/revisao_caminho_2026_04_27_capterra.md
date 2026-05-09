@@ -1,4 +1,4 @@
-# Revisão de caminho do Jana — auditoria Capterra (2026-04-27)
+# Revisão de caminho da Jana — auditoria Capterra (2026-04-27)
 
 > **Assunto:** o caminho percorrido até sprint 6 está certo? Existe alternativa de melhor custo-benefício pra reescrever decisões antes de avançar?
 > **Data:** 2026-04-27
@@ -43,7 +43,7 @@ Legenda: ✅ atende · 🟡 atende parcial · ❌ não atende · ⏳ depende de 
 | Critério | A (ADR 0037) | B (Comercial) | C (Typesense) | D (Mem0 cedo) | E (Validar Larissa) |
 |---|---|---|---|---|---|
 | **Atinge Tier 7+ LongMemEval em 8 sem** | ✅ | ❌ | 🟡 | ✅ | ❌ |
-| **Gera primeira receita do Jana** | ❌ | ✅ | ❌ | ❌ | 🟡 |
+| **Gera primeira receita da Jana** | ❌ | ✅ | ❌ | ❌ | 🟡 |
 | **Custo recorrente até primeiro cliente** | R$ [redacted Tier 0] | R$ [redacted Tier 0] | R$ [redacted Tier 0] | R$ [redacted Tier 0]/ano | R$ [redacted Tier 0] |
 | **Sprints até resultado visível** | 1 (RAGAS) | 4-6 | 1 | 2 | 0.5 |
 | **Risco de "engenharia sem demanda"** | 🟡 médio | ✅ baixo | 🟡 médio | 🔴 alto | ✅ baixíssimo |
@@ -77,9 +77,9 @@ Legenda: ✅ atende · 🟡 atende parcial · ❌ não atende · ⏳ depende de 
 
 ## 5. Top 3 GAPs do caminho atual
 
-### GAP 1 — Zero validação de demanda do Jana
+### GAP 1 — Zero validação de demanda da Jana
 
-**O que falta:** 6 sprints feitos, 0 minutos de Larissa testando o Jana. Estamos otimizando UX/recall sem evidência que ela percebe valor. ADR 0036 já definiu métrica de fé 90d (*"se Larissa explicitamente falar 'lembrou da minha meta'"*) mas ninguém pediu pra ela.
+**O que falta:** 6 sprints feitos, 0 minutos de Larissa testando a Jana. Estamos otimizando UX/recall sem evidência que ela percebe valor. ADR 0036 já definiu métrica de fé 90d (*"se Larissa explicitamente falar 'lembrou da minha meta'"*) mas ninguém pediu pra ela.
 **Esforço pra fechar:** Baixíssimo (1-2h) — Wagner manda um WhatsApp pra Larissa, pede 15min de tela compartilhada testando `/copiloto`.
 **Impacto se não fechar:** sprints 7-10 entregam Tier 7+ pra um produto que ninguém pediu — engenharia em vácuo.
 
@@ -164,7 +164,7 @@ Pressupostos:
 
 **Sem cliente pagando, sprints técnicos não geram receita por definição.** Caminho E preserva opcionalidade de B sem sacrificar A.
 
-**Assunção crítica não validada:** "Larissa quer memória do Jana." Se SIM, A; se NÃO, B. Sem perguntar, é fé.
+**Assunção crítica não validada:** "Larissa quer memória da Jana." Se SIM, A; se NÃO, B. Sem perguntar, é fé.
 
 ---
 
@@ -185,7 +185,7 @@ Pressupostos:
 
 ### Métrica de fé (90 dias)
 
-> *"Se em 90 dias (até 2026-07-25) Larissa do ROTA LIVRE explicitamente disser 'o Jana lembrou da minha meta' OU 'queria que ele lembrasse de X' (qualquer feedback de memória), **confirma caminho A (ADR 0037)**. Se ela falar 'preciso é PricingFpv' OU 'preciso CT-e' OU silêncio (não usou), **pivota pra B (ADR 0026)**. Sem feedback dela em 30 dias = WAGNER PERGUNTA."*
+> *"Se em 90 dias (até 2026-07-25) Larissa do ROTA LIVRE explicitamente disser 'a Jana lembrou da minha meta' OU 'queria que ele lembrasse de X' (qualquer feedback de memória), **confirma caminho A (ADR 0037)**. Se ela falar 'preciso é PricingFpv' OU 'preciso CT-e' OU silêncio (não usou), **pivota pra B (ADR 0026)**. Sem feedback dela em 30 dias = WAGNER PERGUNTA."*
 
 Gatilho de pivot mensurável: 1 sessão de uso real de Larissa em 7 dias = sprint 7 inicia sequencial. 0 sessões em 30 dias = caminho B vira default.
 

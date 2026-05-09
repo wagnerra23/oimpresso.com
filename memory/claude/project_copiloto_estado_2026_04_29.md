@@ -1,5 +1,5 @@
 ---
-name: Estado do Jana IA em produção (2026-04-29 fim do dia)
+name: Estado da Jana IA em produção (2026-04-29 fim do dia)
 description: Snapshot consolidado pós-sprint memória — 8 entregas em 1 dia, baseline gravado, estratégia formalizada
 type: project
 supersedes: project_copiloto_estado_2026_04_28.md

@@ -16,13 +16,13 @@
 
 ### Área Chat
 
-#### US-COPI-001 · Iniciar conversa com o Jana
+#### US-COPI-001 · Iniciar conversa com a Jana
 - **Rota:** `GET /copiloto`
 - **Controller:** `ChatController@index`
-- **Como** gestor **quero** abrir o Jana **para** ver snapshot atual e iniciar conversa.
+- **Como** gestor **quero** abrir a Jana **para** ver snapshot atual e iniciar conversa.
 - **DoD extra:** página carrega com briefing auto-gerado (faturamento 90d, tendência, nº clientes ativos) sem clique adicional.
 
-#### US-COPI-002 · Enviar mensagem ao Jana
+#### US-COPI-002 · Enviar mensagem à Jana
 - **Rota:** `POST /copiloto/conversas/{id}/mensagens`
 - **Controller:** `ChatController@send`
 - **Como** gestor **quero** descrever cenário ou pedir sugestão **para** obter propostas.
@@ -152,24 +152,24 @@
 
 ## 3. Regras de negócio (Gherkin)
 
-### Feature: Proposta de metas pelo Jana
+### Feature: Proposta de metas pela Jana
 
 ```gherkin
 Cenário: Jana precisa de contexto mínimo antes de propor
   Dado que o business não tem NENHUMA transação registrada
   Quando o gestor pede "sugira metas"
-  Então o Jana NÃO propõe metas numéricas
+  Então a Jana NÃO propõe metas numéricas
   E responde pedindo dados básicos (setor, expectativa, histórico fora do sistema)
 
 Cenário: Propostas vêm em cenários contrastantes
   Dado que o business tem histórico de 90+ dias de transações
   Quando o gestor pede "sugira metas de faturamento pra 2026"
-  Então o Jana retorna 3-5 propostas
+  Então a Jana retorna 3-5 propostas
   E cada proposta tem dificuldade classificada em (fácil | realista | ambiciosa)
   E pelo menos uma proposta é da categoria "realista"
 
 Cenário: Escolher proposta cria meta ativa imediatamente
-  Dado que o Jana entregou 3 propostas
+  Dado que a Jana entregou 3 propostas
   Quando o gestor escolhe a proposta #2
   Então uma nova Meta é criada com origem=chat_ia
   E um MetaPeriodo é criado com o valor_alvo da proposta

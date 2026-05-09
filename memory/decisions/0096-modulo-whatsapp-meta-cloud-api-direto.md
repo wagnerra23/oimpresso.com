@@ -292,7 +292,7 @@ Z-API e Evolution API são baseados em **Whatsapp Web reverse-engineered (Bailey
 
 ## Referências
 
-- ADR [0011](0011-alinhamento-padrao-jana.md) — alinhamento padrão Jana (módulo referência)
+- ADR [0011](0011-alinhamento-padrao-jana.md) — alinhamento padrãa Jana (módulo referência)
 - ADR [0024](0024-receita-criar-modulo.md) — receita criar módulo nWidart
 - ADR [0035](0035-stack-ai-canonica-wagner-2026-04-26.md) — stack IA canônica (padrão Driver)
 - ADR [0048](0048-framework-agentes-laravel-ai-vizra-rejeitada.md) — Vizra rejeitada (precedente "não-oficial = não")
