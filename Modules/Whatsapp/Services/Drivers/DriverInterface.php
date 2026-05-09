@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Drivers;
 
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 
 /**
  * Contrato comum dos drivers Whatsapp.
@@ -20,8 +21,15 @@ use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
  * EvolutionDriver é PROIBIDO permanente (ADR 0096 emenda 4):
  * bans em produção Wagner + schema não atende + falta observabilidade.
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002
- * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3 Fluxos críticos
+ * Multi-números (ADR 0115 — US-WA-040): todos os métodos aceitam
+ * `WhatsappBusinessConfig` (legacy 1:1 business→config) ou
+ * `WhatsappBusinessPhone` (1:N business→números) via union type.
+ * Drivers acessam apenas campos comuns aos 2 models (driver, fallback,
+ * meta_*, zapi_*, baileys_*, business_id), então operação é transparente
+ * durante a fase de coexistência (PR 2 → PR 5).
+ *
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002, US-WA-040
+ * @see memory/decisions/0115-multiplos-numeros-whatsapp-por-business.md
  */
 interface DriverInterface
 {
@@ -34,7 +42,7 @@ interface DriverInterface
      * @param  array<string, string>  $params  Variáveis do template (chaves nominais ou numéricas)
      */
     public function sendTemplate(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $templateName,
         array $params,
@@ -48,7 +56,7 @@ interface DriverInterface
      * Para Z-API/Baileys: sempre funciona (sem janela 24h).
      */
     public function sendFreeform(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $body,
     ): WhatsappSendResult;
@@ -57,7 +65,7 @@ interface DriverInterface
      * Envia mídia (imagem, PDF, áudio).
      */
     public function sendMedia(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $mediaUrl,
         string $type,
@@ -68,12 +76,12 @@ interface DriverInterface
      * Consulta status de uma mensagem já enviada.
      */
     public function fetchMessageStatus(
-        WhatsappBusinessConfig $config,
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,
     ): MessageStatus;
 
     /**
      * Health check do driver — usado pelo WhatsappDriverHealthCheckJob (6h em 6h).
      */
-    public function ping(WhatsappBusinessConfig $config): DriverHealthStatus;
+    public function ping(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverHealthStatus;
 }
