@@ -19,7 +19,7 @@ use Throwable;
  * Falha graciosamente: dry_run, parse error, exception → severity=info,
  * narrativa de fallback. Nunca quebra o caller (será chamado de Job hourly).
  */
-final class HealthNarratorService
+class HealthNarratorService
 {
     private const PRICING_USD_PER_1M_TOKENS_IN = 0.15;
     private const PRICING_USD_PER_1M_TOKENS_OUT = 0.60;
