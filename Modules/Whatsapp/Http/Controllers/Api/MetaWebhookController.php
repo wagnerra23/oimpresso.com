@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Jobs\ProcessIncomingWebhookJob;
 
 /**
@@ -45,11 +46,14 @@ class MetaWebhookController extends Controller
     {
         /** @var WhatsappBusinessConfig $config */
         $config = $request->attributes->get('whatsapp.config');
+        /** @var WhatsappBusinessPhone|null $phone */
+        $phone = $request->attributes->get('whatsapp.phone');
 
         ProcessIncomingWebhookJob::dispatch(
             $config->business_id,
             'meta_cloud',
             $request->all(),
+            $phone?->id,
         );
 
         // Sempre 200 (Meta retenta se ≠200)
