@@ -11,6 +11,7 @@ contains:
   - "ImportRegrasController — import CSV bulk (US-NFE-010 fase 3)"
   - "NfeStatusController — endpoint JSON polling + Page Inertia (US-NFE-002 fase 2C)"
   - "NfeEmissaoController — emissão fiscal manual + reenvio DANFE email + download PDF (US-NFE-MANUAL, PR #262)"
+  - "ManifestacaoController — Manifestação do Destinatário (US-NFE-052, PR #317)"
 db_tables_owned:
   - nfe_certificados
   - nfe_emissoes
