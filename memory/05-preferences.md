@@ -9,6 +9,7 @@ Capturado ao longo das conversas com a Eliana (WR2 Sistemas). Estas preferência
 - **Formato de resposta:** curto por padrão; expandir só quando pedido
 - **Ensino antes de execução:** quando envolve gasto de crédito significativo, ela prefere que eu *explique como funciona* antes de produzir
   - Exemplo literal: *"primeiro me ensine como funciona para eu não gastar credito"*
+- **Decida, não pergunte** quando a decisão é técnica/infra que Wagner não domina (composer strategy, runtime split, ext PHP, lock drift, ordem de PRs). Tabela de 3 opções pra ele = fricção. Escolher caminho conservador e tocar; só escala se for irreversível alto-risco. Combina com [ADR 0040](decisions/0040-policy-publicacao-claude-supervisiona.md) (Claude decide push/PR/commit em zona neutra).
 
 ## Escopo de trabalho
 
@@ -36,6 +37,10 @@ Capturado ao longo das conversas com a Eliana (WR2 Sistemas). Estas preferência
 
 - **Prefere HTML estático auto-contido** a projetos Node/React complexos para validação visual (aprendido na sessão 01: React+Babel via CDN falhou; HTML puro funcionou)
 - **Chart.js via CDN** é aceitável para gráficos em protótipos
+
+## Browser automation
+
+- **Claude dirige o browser direto** via `mcp__Claude_in_Chrome__*` (Chrome do Wagner, com cookies/sessões) ou `mcp__Claude_Preview__*` (browser isolado, dev server em `.claude/launch.json`). Não pedir pro Wagner copiar erros/screenshots — usar `read_console_messages` / `read_network_requests` / `computer` (screenshot). Só perguntar pro Wagner quando depende de julgamento dele ou credencial sem acesso.
 
 ## Documentação
 
@@ -67,7 +72,8 @@ Capturado ao longo das conversas com a Eliana (WR2 Sistemas). Estas preferência
 - Gastar crédito em preview de 9 telas de uma vez
 - Usar convenções Laravel "modernas" no módulo UltimatePOS (provoca crash em produção — aconteceu em 2026-04-18 17:12)
 - Código meu sobe pro servidor sem eu ter alertado antes sobre pré-requisitos/risco — se for para produção, **sempre** avisar primeiro
+- **Anotar nomes/personas de cliente** em CLAUDE.md como filtro de prioridade — primer técnico não é CRM. Citar `business_id` por número técnico OK; pendurar nome de cliente como "fora dos testes ativos" ❌
 
 ---
 
-**Última atualização:** 2026-04-18 (sessão 02 — regras Jana + auth:api + aviso de produção)
+**Última atualização:** 2026-05-09 (apend 4 — decida-não-pergunte + browser automation + anti-CRM)
