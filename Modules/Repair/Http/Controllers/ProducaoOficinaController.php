@@ -3,6 +3,8 @@
 namespace Modules\Repair\Http\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -66,6 +68,82 @@ class ProducaoOficinaController extends Controller
             ],
             'data_source' => 'live',
         ]);
+    }
+
+    /**
+     * POST /repair/producao-oficina/{id}/move
+     * US-REPAIR-PROD-4 — drag-and-drop entre colunas.
+     *
+     * Recebe \`column\` no body (recepcao|diagnostico|aguardando-pecas|em-execucao|pronto)
+     * e atualiza JobSheet.status_id pro primeiro status do bucket alvo (mapping reverso
+     * heurístico — espelha mapStatusesToColumns).
+     */
+    public function move(Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $targetColumn = (string) $request->input('column', '');
+
+        if (! in_array($targetColumn, array_column(self::COLUMN_TEMPLATES, 'id'), true)) {
+            return back()->with('error', "Coluna inválida: {$targetColumn}");
+        }
+
+        $jobSheet = JobSheet::where('business_id', $businessId)->find($id);
+        if (! $jobSheet) {
+            return back()->with('error', 'OS não encontrada ou pertence a outro tenant.');
+        }
+
+        $statuses = RepairStatus::where('business_id', $businessId)
+            ->orderBy('sort_order', 'asc')
+            ->get();
+
+        if ($statuses->isEmpty()) {
+            return back()->with('error', 'Nenhum status configurado para este business.');
+        }
+
+        $targetStatusId = $this->findStatusForColumn($statuses, $targetColumn);
+        if ($targetStatusId === null) {
+            return back()->with('error', "Não foi possível mapear coluna '{$targetColumn}' pra um status — confira se há status \`is_completed_status=true\` (Pronto) e ≥1 status ativo.");
+        }
+
+        if ($jobSheet->status_id === $targetStatusId) {
+            // Card já está na coluna alvo (drag pra mesma coluna). No-op.
+            return back();
+        }
+
+        $jobSheet->status_id = $targetStatusId;
+        $jobSheet->save();
+
+        return back()->with('success', 'OS movida.');
+    }
+
+    /**
+     * Mapping reverso: dado um column id, retorna o repair_status.id default
+     * pra usar quando user dropa um card lá. Espelha a heurística de
+     * mapStatusesToColumns():
+     *   - 'pronto' → primeiro status com is_completed_status=true
+     *   - resto → primeiro status do bucket equivalente (sort_order quartil)
+     */
+    private function findStatusForColumn(Collection $statuses, string $columnId): ?int
+    {
+        if ($columnId === 'pronto') {
+            return $statuses->where('is_completed_status', true)->first()?->id;
+        }
+
+        $active = $statuses->where('is_completed_status', false)->values();
+        if ($active->isEmpty()) {
+            return null;
+        }
+
+        $columnOrder = ['recepcao', 'diagnostico', 'aguardando-pecas', 'em-execucao'];
+        $bucketIdx = array_search($columnId, $columnOrder, true);
+        if ($bucketIdx === false) {
+            return null;
+        }
+
+        $bucketSize = max(1, (int) ceil($active->count() / 4));
+        $startIdx = $bucketIdx * $bucketSize;
+
+        return $active->get($startIdx)?->id ?? $active->first()?->id;
     }
 
     /**
@@ -133,6 +211,7 @@ class ProducaoOficinaController extends Controller
         $isCompleted = $js->status?->is_completed_status ?? false;
 
         return [
+            'id' => $js->id,
             'plate' => $js->serial_no ?: $js->job_sheet_no,
             'vehicle' => $deviceModel?->name ?? '—',
             'brand' => $brand?->name ?? '—',
