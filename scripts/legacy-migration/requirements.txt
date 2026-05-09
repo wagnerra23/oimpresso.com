@@ -1,2 +1,5 @@
 firebird-driver>=1.10.0
 python-dotenv>=1.0.0
+# Opcional — só pra import-contas-bancarias.py em modo --target local|prod
+# (não necessário pra POCs nem dry-run)
+pymysql>=1.1.0
