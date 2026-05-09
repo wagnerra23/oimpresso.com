@@ -104,6 +104,20 @@ class DataController extends Controller
                             ]
                         );
 
+                        // Visão Unificada (US-FIN-013/020) — kanban Pagar/Receber/Recebidas/Pagas
+                        // numa tela única (ADR ui/0002). Antes desta entrada o usuário precisava
+                        // digitar /financeiro/unificado na URL pra acessar.
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.dashboard.view')) {
+                            $sub->url(
+                                url('/financeiro/unificado'),
+                                'Visão unificada',
+                                [
+                                    'icon'   => 'fa fas fa-coins',
+                                    'active' => request()->segment(2) == 'unificado',
+                                ]
+                            );
+                        }
+
                         if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.contas_receber.view')) {
                             $sub->url(
                                 url('/financeiro/contas-receber'),
