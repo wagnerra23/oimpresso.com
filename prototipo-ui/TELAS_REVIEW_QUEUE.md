@@ -45,7 +45,7 @@
 | Status | Tela | Material canon | Charter draft |
 |---|---|---|---|
 | `[~]` | `Cliente/Index` (a criar) | [`clientes-page.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/clientes-page.jsx) (10 KB) | [draft](../resources/js/Pages/Cliente/Index.charter.md) — Wagner aprova Non-Goals + Anti-hooks |
-| `[~]` | `Produto/Unificado/Index` (a criar) | [`produto-app.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/produto-app.jsx) (60 KB) + [screenshot-06](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/screenshot-06-produto.png) | [draft](../resources/js/Pages/Produto/Unificado/Index.charter.md) — decisões pendentes (multiplier schema, MfgRecipe namespace, cache strategy) |
+| `[~]` | `Produto/Unificado/Index` (a criar) | [`produto-app.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/produto-app.jsx) (60 KB) + [screenshot-06](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/screenshot-06-produto.png) + [pino F1](prototipos/produto-unificado/) | [draft](../resources/js/Pages/Produto/Unificado/Index.charter.md) — decisões pendentes (multiplier schema → ADR `Produto/arq/0001`, MfgRecipe namespace, cache strategy) |
 | `[~]` | `Produto/Index` (a criar) | [`prod-page.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/prod-page.jsx) (6.5 KB) | [draft](../resources/js/Pages/Produto/Index.charter.md) — decisão pendente: simples vs unificado coexistem? |
 | `[~]` | `Orcamento/Index` (a criar) | [`orc-page.jsx`](../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/orc-page.jsx) (6.3 KB) | [draft](../resources/js/Pages/Orcamento/Index.charter.md) — decisão pendente: Model `App\Transaction` (`type: quotation`) vs dedicado |
 
