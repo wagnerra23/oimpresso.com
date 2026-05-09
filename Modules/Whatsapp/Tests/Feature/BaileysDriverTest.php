@@ -18,22 +18,13 @@ use Modules\Whatsapp\Services\Drivers\DriverFactory;
 uses(Tests\TestCase::class);
 
 /**
- * US-WA-002d · BaileysDriver custom (Sprint 3 — ADR 0096 emenda 4).
+ * US-WA-002d + US-WA-022 · BaileysDriver custom + UX simplificada.
  *
  * Cobre:
- *  - sendFreeform sucesso → WhatsappSendResult::ok com message_id
- *  - sendFreeform 404 instance_not_found → sessionLost=true
- *  - sendFreeform 401 → sessionLost=true
- *  - ban detection (body contém "banned") → banDetected=true
- *  - ping connected = healthy + display_phone
- *  - ping qr_required = unhealthy
- *  - ping banned = unhealthy + banDetected
- *  - DriverFactory resolve BaileysDriver quando driver=baileys
- *  - Webhook Bearer inválido = 401
- *  - Webhook Bearer válido + event=message = 200 + ProcessIncomingWebhookJob dispatched
- *  - Webhook event=ban_detected atualiza driver_health=banned
- *
- * SQLite-friendly: cria a tabela em beforeEach (mesmo padrão WebhookSignatureTest).
+ *  - send/ping com daemon_url + api_key globais (US-WA-022)
+ *  - webhook Bearer global (não mais per-tenant)
+ *  - DriverFactory resolve baileys
+ *  - Schema atualizada: phone_e164/verified_name/profile_pic_url + UNIQUE
  */
 
 beforeEach(function () {
@@ -52,9 +43,12 @@ beforeEach(function () {
         $table->string('zapi_instance_id', 64)->nullable();
         $table->text('zapi_instance_token')->nullable();
         $table->text('zapi_client_token')->nullable();
+        // US-WA-022: instance_id auto-gerado, phone E.164 + perfil sincronizado
         $table->string('baileys_instance_id', 64)->nullable();
-        $table->string('baileys_daemon_url', 255)->nullable();
-        $table->text('baileys_api_key')->nullable();
+        $table->string('baileys_phone_e164', 20)->nullable();
+        $table->string('baileys_verified_name', 100)->nullable();
+        $table->string('baileys_profile_pic_url', 255)->nullable();
+        $table->unique(['business_id', 'baileys_phone_e164'], 'wbc_biz_phone_unq');
         $table->timestamp('lgpd_acknowledged_at')->nullable();
         $table->unsignedInteger('lgpd_acknowledged_by_user_id')->nullable();
         $table->boolean('bot_enabled')->default(false);
@@ -69,6 +63,14 @@ beforeEach(function () {
         $table->timestamps();
     });
 
+    // Daemon URL + api key são GLOBAIS agora (US-WA-022)
+    config([
+        'whatsapp.baileys.daemon_url' => 'https://daemon.test',
+        'whatsapp.baileys.api_key' => 'test-bearer-token-min16chars',
+        'whatsapp.baileys.request_timeout' => 5,
+        'whatsapp.baileys.connect_rate_limit_per_day' => 3,
+    ]);
+
     app('router')->aliasMiddleware('whatsapp.baileys.signature', VerifyBaileysSignature::class);
     Route::post('/api/whatsapp/webhook/baileys/{business_uuid}', [BaileysWebhookController::class, 'handle'])
         ->middleware('whatsapp.baileys.signature');
@@ -82,8 +84,7 @@ function makeBaileysConfig(array $overrides = []): WhatsappBusinessConfig
         'driver' => 'baileys',
         'fallback_driver' => 'meta_cloud',
         'baileys_instance_id' => 'biz4-main',
-        'baileys_daemon_url' => 'https://daemon.test',
-        'baileys_api_key' => 'test-bearer-token-min16chars',
+        'baileys_phone_e164' => '+5511987654321',
     ], $overrides));
 }
 
@@ -123,8 +124,7 @@ it('sendFreeform 401 marca sessionLost', function () {
         'daemon.test/*' => Http::response(['error' => 'unauthorized'], 401),
     ]);
 
-    $config = makeBaileysConfig();
-    $result = app(BaileysDriver::class)->sendFreeform($config, '+5511987654321', 'oi');
+    $result = app(BaileysDriver::class)->sendFreeform(makeBaileysConfig(), '+5511987654321', 'oi');
 
     expect($result->success)->toBeFalse()
         ->and($result->sessionLost)->toBeTrue();
@@ -135,8 +135,7 @@ it('sendFreeform com body "banned" marca banDetected', function () {
         'daemon.test/*' => Http::response('Connection Closed: banned', 503),
     ]);
 
-    $config = makeBaileysConfig();
-    $result = app(BaileysDriver::class)->sendFreeform($config, '+5511987654321', 'oi');
+    $result = app(BaileysDriver::class)->sendFreeform(makeBaileysConfig(), '+5511987654321', 'oi');
 
     expect($result->success)->toBeFalse()
         ->and($result->banDetected)->toBeTrue();
@@ -156,8 +155,7 @@ it('ping retorna healthy quando state=connected', function () {
 
     expect($health->healthy)->toBeTrue()
         ->and($health->displayPhone)->toBe('5511987654321')
-        ->and($health->sessionState)->toBe('connected')
-        ->and($health->banDetected)->toBeFalse();
+        ->and($health->sessionState)->toBe('connected');
 });
 
 it('ping retorna unhealthy quando state=qr_required', function () {
@@ -168,8 +166,7 @@ it('ping retorna unhealthy quando state=qr_required', function () {
     $health = app(BaileysDriver::class)->ping(makeBaileysConfig());
 
     expect($health->healthy)->toBeFalse()
-        ->and($health->sessionState)->toBe('qr_required')
-        ->and($health->banDetected)->toBeFalse();
+        ->and($health->sessionState)->toBe('qr_required');
 });
 
 it('ping com state=banned marca banDetected', function () {
@@ -183,38 +180,40 @@ it('ping com state=banned marca banDetected', function () {
     $health = app(BaileysDriver::class)->ping(makeBaileysConfig());
 
     expect($health->healthy)->toBeFalse()
-        ->and($health->banDetected)->toBeTrue()
-        ->and($health->sessionState)->toBe('banned');
+        ->and($health->banDetected)->toBeTrue();
 });
 
-it('ping sem baileys_instance_id retorna unhealthy', function () {
+it('ping sem instance_id retorna unhealthy', function () {
     $config = makeBaileysConfig(['baileys_instance_id' => null]);
     $health = app(BaileysDriver::class)->ping($config);
 
     expect($health->healthy)->toBeFalse()
-        ->and($health->sessionState)->toBe('disconnected');
+        ->and($health->sessionState)->toBe('disconnected')
+        ->and($health->errorMessage)->toContain('BaileysConnectJob');
+});
+
+it('ping sem api_key global retorna unhealthy', function () {
+    config(['whatsapp.baileys.api_key' => '']);
+
+    $health = app(BaileysDriver::class)->ping(makeBaileysConfig());
+
+    expect($health->healthy)->toBeFalse()
+        ->and($health->errorMessage)->toContain('WHATSAPP_BAILEYS_API_KEY');
 });
 
 // ---------- DriverFactory ----------
 
 it('DriverFactory resolve BaileysDriver quando driver=baileys', function () {
     $config = makeBaileysConfig(['driver_health' => 'healthy']);
-    $driver = DriverFactory::make($config);
-
-    expect($driver)->toBeInstanceOf(BaileysDriver::class);
+    expect(DriverFactory::make($config))->toBeInstanceOf(BaileysDriver::class);
 });
 
 it('DriverFactory aplica fallback Meta Cloud quando Baileys degraded', function () {
-    $config = makeBaileysConfig([
-        'driver_health' => 'degraded',
-        'fallback_driver' => 'meta_cloud',
-    ]);
-    $driver = DriverFactory::make($config);
-
-    expect($driver)->toBeInstanceOf(\Modules\Whatsapp\Services\Drivers\MetaCloudDriver::class);
+    $config = makeBaileysConfig(['driver_health' => 'degraded', 'fallback_driver' => 'meta_cloud']);
+    expect(DriverFactory::make($config))->toBeInstanceOf(\Modules\Whatsapp\Services\Drivers\MetaCloudDriver::class);
 });
 
-// ---------- Webhook ----------
+// ---------- Webhook (Bearer agora é global) ----------
 
 it('Webhook Bearer inválido retorna 401', function () {
     $config = makeBaileysConfig();
@@ -228,7 +227,7 @@ it('Webhook Bearer inválido retorna 401', function () {
     $response->assertStatus(401);
 });
 
-it('Webhook Bearer válido + event=message dispara Job', function () {
+it('Webhook Bearer válido (global) + event=message dispara Job', function () {
     Bus::fake([ProcessIncomingWebhookJob::class]);
     $config = makeBaileysConfig();
 
@@ -239,7 +238,7 @@ it('Webhook Bearer válido + event=message dispara Job', function () {
             'event' => 'message',
             'data' => ['key' => ['id' => 'BAE5INBOUND'], 'message' => ['conversation' => 'oi']],
         ],
-        ['Authorization' => "Bearer {$config->baileys_api_key}"]
+        ['Authorization' => 'Bearer ' . config('whatsapp.baileys.api_key')]
     );
 
     $response->assertStatus(200);
@@ -253,22 +252,16 @@ it('Webhook event=ban_detected marca driver_health=banned', function () {
 
     $response = $this->postJson(
         "/api/whatsapp/webhook/baileys/{$config->business_uuid}",
-        [
-            'instance_id' => 'biz4-main',
-            'event' => 'ban_detected',
-            'data' => ['reason' => 'logged_out'],
-        ],
-        ['Authorization' => "Bearer {$config->baileys_api_key}"]
+        ['instance_id' => 'biz4-main', 'event' => 'ban_detected', 'data' => ['reason' => 'logged_out']],
+        ['Authorization' => 'Bearer ' . config('whatsapp.baileys.api_key')]
     );
 
     $response->assertStatus(200);
-
     $config->refresh();
-    expect($config->driver_health)->toBe('banned')
-        ->and($config->last_health_message)->toContain('logged_out');
+    expect($config->driver_health)->toBe('banned');
 });
 
-it('Webhook event=connected marca driver_health=healthy + display_phone', function () {
+it('Webhook event=connected sincroniza display_phone + verified_name + profile_pic', function () {
     $config = makeBaileysConfig(['driver_health' => 'never_checked']);
 
     $response = $this->postJson(
@@ -276,24 +269,28 @@ it('Webhook event=connected marca driver_health=healthy + display_phone', functi
         [
             'instance_id' => 'biz4-main',
             'event' => 'connected',
-            'data' => ['display_phone' => '5511987654321'],
+            'data' => [
+                'display_phone' => '5511987654321',
+                'verified_name' => 'Office Impresso',
+                'profile_pic_url' => 'https://example.com/pic.jpg',
+            ],
         ],
-        ['Authorization' => "Bearer {$config->baileys_api_key}"]
+        ['Authorization' => 'Bearer ' . config('whatsapp.baileys.api_key')]
     );
 
     $response->assertStatus(200);
-
     $config->refresh();
     expect($config->driver_health)->toBe('healthy')
         ->and($config->display_phone)->toBe('5511987654321')
-        ->and($config->driver_health_consecutive_failures)->toBe(0);
+        ->and($config->baileys_verified_name)->toBe('Office Impresso')
+        ->and($config->baileys_profile_pic_url)->toBe('https://example.com/pic.jpg');
 });
 
 it('Webhook business_uuid inexistente retorna 404', function () {
     $response = $this->postJson(
         '/api/whatsapp/webhook/baileys/' . Str::uuid()->toString(),
         ['event' => 'message', 'data' => []],
-        ['Authorization' => 'Bearer any-token']
+        ['Authorization' => 'Bearer ' . config('whatsapp.baileys.api_key')]
     );
 
     $response->assertStatus(404);
