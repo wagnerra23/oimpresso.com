@@ -1,6 +1,6 @@
 ---
 slug: 0118-segregacao-dominios-externos-clientes-legacy
-number: 0118
+number: 118
 title: "Segregação de domínios externos e clientes-legacy em pastas top-level no memory/"
 type: adr
 status: proposto
@@ -17,9 +17,9 @@ superseded_by: []
 related: [0061, 0070, 0093, 0094, 0113]
 pii: false
 review_triggers:
-  - terceira integração externa surgir (atualmente: Delphi WR Comercial; previstas: Bling/Tiny/Asaas APIs)
-  - estrutura `memory/dominios/<sistema>/modulos/` se mostrar inadequada após 3+ módulos documentados
-  - cliente Delphi for migrado integralmente pro oimpresso e `clientes-legacy/<alias>.md` deixar de ser cross-cutting (vira histórico)
+  - "terceira integração externa surgir (atualmente: Delphi WR Comercial; previstas: Bling/Tiny/Asaas APIs)"
+  - "estrutura `memory/dominios/<sistema>/modulos/` se mostrar inadequada após 3+ módulos documentados"
+  - "cliente Delphi for migrado integralmente pro oimpresso e `clientes-legacy/<alias>.md` deixar de ser cross-cutting (vira histórico)"
 ---
 
 # ADR 0118 — Segregação de domínios externos e clientes-legacy em pastas top-level no `memory/`
