@@ -31,7 +31,7 @@ class DashboardController extends Controller
 
         // Se não tem nenhuma meta, redireciona ao chat (ver adr/arq/0002)
         if ($metas->isEmpty()) {
-            return redirect()->route('copiloto.chat.index')
+            return redirect()->route('jana.chat.index')
                 ->with('status', 'Nenhuma meta ativa. Converse com o Copiloto pra criar a primeira.');
         }
 

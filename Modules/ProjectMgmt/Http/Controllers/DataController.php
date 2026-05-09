@@ -67,7 +67,7 @@ class DataController extends Controller
         }
 
         $usuario_pode_ver = auth()->user()->can('superadmin')
-            || auth()->user()->can('copiloto.mcp.usage.all');
+            || auth()->user()->can('jana.mcp.usage.all');
 
         if (! $usuario_pode_ver) {
             return;

@@ -51,14 +51,14 @@ function searchBootstrapUser(): User
 function searchGivePerm(User $user): void
 {
     Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
-    if (! $user->hasPermissionTo('copiloto.mcp.usage.all')) {
+    if (! $user->hasPermissionTo('jana.mcp.usage.all')) {
         $user->givePermissionTo('copiloto.mcp.usage.all');
     }
 }
 
 function searchRevokePerm(User $user): void
 {
-    if ($user->hasPermissionTo('copiloto.mcp.usage.all')) {
+    if ($user->hasPermissionTo('jana.mcp.usage.all')) {
         $user->revokePermissionTo('copiloto.mcp.usage.all');
     }
 }

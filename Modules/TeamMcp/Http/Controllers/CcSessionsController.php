@@ -86,7 +86,7 @@ class CcSessionsController extends Controller
 
         // KPIs globais (não filtrados pra dar visão total) — só pra users autorizados ver tudo
         $hoje = Carbon::today();
-        $kpiQuery = $user->can('copiloto.cc.read.all')
+        $kpiQuery = $user->can('jana.cc.read.all')
             ? McpCcSession::query()
             : McpCcSession::query()->where('user_id', $user->id);
 
@@ -100,7 +100,7 @@ class CcSessionsController extends Controller
         ];
 
         // Lista de devs no time (pro dropdown filtro)
-        $devs = $user->can('copiloto.cc.read.all')
+        $devs = $user->can('jana.cc.read.all')
             ? User::query()->whereIn('id', McpCcSession::query()->select('user_id')->distinct())->get(['id', 'first_name', 'last_name', 'email'])
             : collect([$user]);
 
@@ -124,8 +124,8 @@ class CcSessionsController extends Controller
             ])->values(),
             'projects' => $projects,
             'permissions' => [
-                'read_all' => $user->can('copiloto.cc.read.all'),
-                'curate'   => $user->can('copiloto.cc.curate'),
+                'read_all' => $user->can('jana.cc.read.all'),
+                'curate'   => $user->can('jana.cc.curate'),
             ],
         ]);
     }
@@ -221,7 +221,7 @@ class CcSessionsController extends Controller
             ->where('m.ts', '>=', now()->subDays($days));
 
         // RBAC: se não pode read.all, só vê próprias
-        if (!$user->can('copiloto.cc.read.all')) {
+        if (!$user->can('jana.cc.read.all')) {
             $query->where('s.user_id', $user->id);
         }
 
@@ -265,7 +265,7 @@ class CcSessionsController extends Controller
             ->whereDate('m.ts', $hoje)
             ->whereNotNull('m.tool_name');
 
-        if (!$user || !$user->can('copiloto.cc.read.all')) {
+        if (!$user || !$user->can('jana.cc.read.all')) {
             $q->where('s.user_id', optional($user)->id ?? -1);
         }
 
