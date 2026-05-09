@@ -25,7 +25,7 @@ Datas no formato `YYYY-MM-DD`. Categorias:
 - **PR #28 — MemCofre score boost:** 3 telas Copiloto (Chat/Dashboard/Memoria) ganharam bloco
   `@memcofre` no header → `php artisan memcofre:sync-pages` populou `docs_pages` em produção
   (14 telas total — 3 do Copiloto com 10 stories, 6 rules, 15 ADRs, 5 tests linkados)
-- **PR #29 — `memory/requisitos/Copiloto/ENTERPRISE.md`:** documento enterprise (12 seções, 420
+- **PR #29 — `memory/requisitos/Jana/ENTERPRISE.md`:** documento enterprise (12 seções, 420
   linhas) — executive summary, arquitetura 4 camadas com diagrama ASCII, 5 fluxos críticos
   com latência/custo/pontos de falha, modelo de dados ER, compliance LGPD por artigo
   (Art 7/9/16/18/37/46/48), riscos e mitigações, runbook ops, SLA/SLO targets, modelo de

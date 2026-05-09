@@ -78,7 +78,7 @@ Esses dados alimentam `memory/11-metas-negocio.md`.
 
 ## Módulo operacional: Copiloto
 
-A gestão desta meta (e de todas as metas de businesses) é instrumentada pelo **Módulo Copiloto** — ver [`memory/requisitos/Copiloto/README.md`](../requisitos/Copiloto/README.md). Este ADR é a **origem conceitual** do Copiloto: a meta R$ [redacted Tier 0]mi serve como primeiro registro seed do módulo (`business_id = null`, origem `seed`).
+A gestão desta meta (e de todas as metas de businesses) é instrumentada pelo **Módulo Copiloto** — ver [`memory/requisitos/Jana/README.md`](../requisitos/Copiloto/README.md). Este ADR é a **origem conceitual** do Copiloto: a meta R$ [redacted Tier 0]mi serve como primeiro registro seed do módulo (`business_id = null`, origem `seed`).
 
 ---
 

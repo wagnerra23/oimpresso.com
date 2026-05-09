@@ -42,12 +42,12 @@
 
 | Auto-mem | Migra pra |
 |---|---|
-| `project_modulo_copiloto.md` | `memory/requisitos/Copiloto/CHANGELOG.md` |
+| `project_modulo_copiloto.md` | `memory/requisitos/Jana/CHANGELOG.md` |
 | `project_estado_2026_04_27.md` | `memory/sessions/2026-04-27-estado.md` |
 | `project_copiloto_estado_2026_04_28.md` | `memory/sessions/2026-04-28-copiloto-estado.md` |
 | `project_copiloto_estado_2026_04_29.md` | `memory/sessions/2026-04-29-copiloto-estado.md` |
 | `project_meta_5mi_ano.md` | `memory/11-metas-negocio.md` (já existe — ADR 0022) |
-| `project_evolutionagent_spec.md` | `memory/requisitos/Copiloto/SPEC-evolutionagent.md` |
+| `project_evolutionagent_spec.md` | `memory/requisitos/Jana/SPEC-evolutionagent.md` |
 | `project_inertia_v3_upgrade.md` | já é ADR 0023 — auto-mem dup |
 | `project_financeiro_onda1.md` | `memory/requisitos/Financeiro/CHANGELOG.md` |
 | `project_modulos_promovidos_2026_04_24.md` | `memory/sessions/2026-04-24-modulos-promovidos.md` |
