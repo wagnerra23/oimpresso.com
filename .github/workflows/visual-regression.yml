@@ -63,9 +63,26 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Setup Laravel
+        # .env.testing/.env.example não existem no repo — gera inline (mesmo
+        # padrão do ci.yml). package:discover roda APÓS env existir pra
+        # Blade::withoutDoubleEncoding() do AppServiceProvider:53 ter cache path.
         run: |
-          cp .env.testing .env || cp .env.example .env
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-visreg
+          APP_ENV=testing
+          APP_DEBUG=true
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=database/database.sqlite
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          BCRYPT_ROUNDS=4
+          EOF
           php artisan key:generate --force
+          php artisan package:discover --ansi
           touch database/database.sqlite
           php artisan migrate --force --database=sqlite
 
