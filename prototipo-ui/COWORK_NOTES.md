@@ -4,6 +4,8 @@
 > **Append-only.** Não edita pedidos antigos — adiciona resposta abaixo.
 > Formato em [PROTOCOL.md §4](PROTOCOL.md).
 
+> ⚠️ **LEITURA OBRIGATÓRIA antes de qualquer F3:** [`LICOES_F3_FINANCEIRO_REJEITADO.md`](LICOES_F3_FINANCEIRO_REJEITADO.md) — 6 meta-anti-padrões + 15 técnicos + pré-flight checklist + tabela convenções pt-BR. Sessão 2026-05-09 batch Financeiro rejeitado pré-merge. Aplicar literalmente em Estoque/Vendas/RH/Suprimentos/Crédito.
+
 ---
 
 ## 2026-05-09 — Setup inicial: 3 perguntas pra Claude Design responder
