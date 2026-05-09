@@ -125,6 +125,23 @@ class UnificadoController extends Controller
     }
 
     /**
+     * GET /financeiro/unificado/novo
+     * Stub — formulário unificado de novo lançamento ainda não foi implementado.
+     * Por enquanto oferece picker entre receber/pagar e redireciona pra rotas
+     * existentes. Substituir por modal/sheet inline quando US-FIN-XXX entrar.
+     */
+    public function novo(): Response
+    {
+        return Inertia::render('Financeiro/Unificado/Novo', [
+            'breadcrumbs' => [
+                ['label' => 'Financeiro', 'href' => '/financeiro'],
+                ['label' => 'Visão unificada', 'href' => '/financeiro/unificado'],
+                ['label' => 'Novo lançamento', 'href' => null],
+            ],
+        ]);
+    }
+
+    /**
      * POST /financeiro/unificado/{id}/baixar
      * 1-clique: marca como recebido/pago com data=hoje, conta=primeira ativa do tenant.
      * Lógica inline (mesmo padrão de ContaPagarController::pagar).
