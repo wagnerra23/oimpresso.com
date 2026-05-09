@@ -5,6 +5,11 @@ created_at_version: 1302
 last_modified_version: 1307
 target_version: 1468
 columns_count: 13
+foreign_keys_count: 3
+foreign_keys:
+  CODCOMPETENCIA: COMPETENCIA
+  CODEMPRESA: EMPRESA
+  CODUSUARIO_FECHAMENTO: USUARIO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,23 +25,33 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1307;
 - **Total colunas (versão 1468):** 13
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCOMPETENCIA` | [`COMPETENCIA`](../../configuracao/tabelas/COMPETENCIA.md) |
+| `CODEMPRESA` | [`EMPRESA`](../../cadastros/tabelas/EMPRESA.md) |
+| `CODUSUARIO_FECHAMENTO` | [`USUARIO`](../../cadastros/tabelas/USUARIO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v1302 | v1302 |
-| 2 | `CODEMPRESA` | `INTEGER` | NOT NULL | v1302 | v1302 |
-| 3 | `CODCOMPETENCIA` | `INTEGER` | NOT NULL | v1302 | v1302 |
-| 4 | `DESCRICAO` | `VARCHAR(300)` | NULL | v1302 | v1302 |
-| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1302 | v1302 |
-| 6 | `ATIVO` | `VARCHAR(1)` | NULL | v1302 | v1302 |
-| 7 | `DT_FECHAMENTO` | `TIMESTAMP` | NULL | v1306 | v1306 |
-| 8 | `ATUALIZA_EQUIPE` | `VARCHAR(1)` | NULL | v1306 | v1306 |
-| 9 | `ATUALIZA_FUNCIONARIO` | `VARCHAR(1)` | NULL | v1306 | v1306 |
-| 10 | `TIPO_RATEIO` | `VARCHAR(20)` | NULL | v1306 | v1306 |
-| 11 | `CODUSUARIO_FECHAMENTO` | `INTEGER` | NULL | v1307 | v1307 |
-| 12 | `USUARIO_FECHAMENTO` | `VARCHAR(30)` | NULL | v1307 | v1307 |
-| 13 | `FECHOU_SEM_ATUALIZAR` | `VARCHAR(1)` | NULL | v1307 | v1307 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v1302 | v1302 |
+| 2 | `CODEMPRESA` | `INTEGER` | NOT NULL | → `EMPRESA` | v1302 | v1302 |
+| 3 | `CODCOMPETENCIA` | `INTEGER` | NOT NULL | → `COMPETENCIA` | v1302 | v1302 |
+| 4 | `DESCRICAO` | `VARCHAR(300)` | NULL |  | v1302 | v1302 |
+| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1302 | v1302 |
+| 6 | `ATIVO` | `VARCHAR(1)` | NULL |  | v1302 | v1302 |
+| 7 | `DT_FECHAMENTO` | `TIMESTAMP` | NULL |  | v1306 | v1306 |
+| 8 | `ATUALIZA_EQUIPE` | `VARCHAR(1)` | NULL |  | v1306 | v1306 |
+| 9 | `ATUALIZA_FUNCIONARIO` | `VARCHAR(1)` | NULL |  | v1306 | v1306 |
+| 10 | `TIPO_RATEIO` | `VARCHAR(20)` | NULL |  | v1306 | v1306 |
+| 11 | `CODUSUARIO_FECHAMENTO` | `INTEGER` | NULL | → `USUARIO` | v1307 | v1307 |
+| 12 | `USUARIO_FECHAMENTO` | `VARCHAR(30)` | NULL |  | v1307 | v1307 |
+| 13 | `FECHOU_SEM_ATUALIZAR` | `VARCHAR(1)` | NULL |  | v1307 | v1307 |
 
 ## Evolução
 

@@ -5,6 +5,7 @@ created_at_version: 909
 last_modified_version: 968
 target_version: 1468
 columns_count: 39
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,47 +23,47 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v909 | v909 |
-| 2 | `DESCRICAO` | `VARCHAR(500)` | NULL | v909 | v909 |
-| 3 | `ATIVO` | `VARCHAR(1)` | NULL | v909 | v909 |
-| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v909 | v909 |
-| 5 | `INI` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80` | NULL | v909 | v909 |
-| 6 | `LINK` | `VARCHAR(1200)` | NULL | v909 | v909 |
-| 7 | `TEM_RECSINCRONO` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 8 | `TEM_RECEPCIONAR` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 9 | `TEM_GERAR` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 10 | `TEM_CANCELAR` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 11 | `TEM_CONSNFSE` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 12 | `TEM_CONSNFSERPS` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 13 | `TEM_CONSLOTE` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 14 | `TEM_CONSSIT` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 15 | `TEM_CERTIFICADO_DIGITAL` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 16 | `TIPO_RPS` | `VARCHAR(50)` | NULL | v960 | v960 |
-| 17 | `METODO_ENVIO` | `VARCHAR(50)` | NULL | v960 | v960 |
-| 18 | `ALIQUOTA_NO_XML` | `VARCHAR(50)` | NULL | v960 | v960 |
-| 19 | `TEM_IMPRESSAO_XML_WR` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 20 | `TEM_IMPRESSAOBETAFLYNOTA` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 21 | `TEM_QUEBRADELINHARETORNO` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 22 | `TEM_CARACTERESPECIAL` | `VARCHAR(1)` | NULL | v960 | v960 |
-| 23 | `CNAE_OBRIGATORIO` | `VARCHAR(100)` | NULL | v964 | v964 |
-| 24 | `TEM_OBRIGATORIO_IM` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 25 | `TEM_OBRIGATORIO_CNPJ` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 26 | `TEM_OBRIGATORIO_SENHA` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 27 | `TEM_OBRIGATORIO_LOGIN` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 28 | `LC116_CODIGOTRIBUTAVELMUNICIPIO` | `VARCHAR(100)` | NULL | v964 | v964 |
-| 29 | `LC116_SERVICO` | `VARCHAR(100)` | NULL | v964 | v964 |
-| 30 | `TEM_SUBSTITUIR` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 31 | `QUEBRADELINHA` | `VARCHAR(30)` | NULL | v960 | v964 |
-| 32 | `TEM_ECOMERCIAL` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 33 | `TEM_TABULACAO` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 34 | `TEM_TAGQUEBRADELINHAUNICA` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 35 | `TEM_MULTIPLOS_SERVICOS` | `VARCHAR(1)` | NULL | v964 | v964 |
-| 36 | `COMPETENCIA` | `VARCHAR(20)` | NULL | v967 | v967 |
-| 37 | `TEM_CODPAIS` | `VARCHAR(1)` | NULL | v967 | v967 |
-| 38 | `PODE_PREECHER_IE_Mesmo_Mun` | `VARCHAR(1)` | NULL | v967 | v967 |
-| 39 | `TEM_CONSULTA_APOS_ENVIO` | `VARCHAR(1)` | NULL | v968 | v968 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v909 | v909 |
+| 2 | `DESCRICAO` | `VARCHAR(500)` | NULL |  | v909 | v909 |
+| 3 | `ATIVO` | `VARCHAR(1)` | NULL |  | v909 | v909 |
+| 4 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v909 | v909 |
+| 5 | `INI` | `BLOB SUB_TYPE 1 SEGMENT SIZE 80` | NULL |  | v909 | v909 |
+| 6 | `LINK` | `VARCHAR(1200)` | NULL |  | v909 | v909 |
+| 7 | `TEM_RECSINCRONO` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 8 | `TEM_RECEPCIONAR` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 9 | `TEM_GERAR` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 10 | `TEM_CANCELAR` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 11 | `TEM_CONSNFSE` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 12 | `TEM_CONSNFSERPS` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 13 | `TEM_CONSLOTE` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 14 | `TEM_CONSSIT` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 15 | `TEM_CERTIFICADO_DIGITAL` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 16 | `TIPO_RPS` | `VARCHAR(50)` | NULL |  | v960 | v960 |
+| 17 | `METODO_ENVIO` | `VARCHAR(50)` | NULL |  | v960 | v960 |
+| 18 | `ALIQUOTA_NO_XML` | `VARCHAR(50)` | NULL |  | v960 | v960 |
+| 19 | `TEM_IMPRESSAO_XML_WR` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 20 | `TEM_IMPRESSAOBETAFLYNOTA` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 21 | `TEM_QUEBRADELINHARETORNO` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 22 | `TEM_CARACTERESPECIAL` | `VARCHAR(1)` | NULL |  | v960 | v960 |
+| 23 | `CNAE_OBRIGATORIO` | `VARCHAR(100)` | NULL |  | v964 | v964 |
+| 24 | `TEM_OBRIGATORIO_IM` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 25 | `TEM_OBRIGATORIO_CNPJ` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 26 | `TEM_OBRIGATORIO_SENHA` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 27 | `TEM_OBRIGATORIO_LOGIN` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 28 | `LC116_CODIGOTRIBUTAVELMUNICIPIO` | `VARCHAR(100)` | NULL |  | v964 | v964 |
+| 29 | `LC116_SERVICO` | `VARCHAR(100)` | NULL |  | v964 | v964 |
+| 30 | `TEM_SUBSTITUIR` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 31 | `QUEBRADELINHA` | `VARCHAR(30)` | NULL |  | v960 | v964 |
+| 32 | `TEM_ECOMERCIAL` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 33 | `TEM_TABULACAO` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 34 | `TEM_TAGQUEBRADELINHAUNICA` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 35 | `TEM_MULTIPLOS_SERVICOS` | `VARCHAR(1)` | NULL |  | v964 | v964 |
+| 36 | `COMPETENCIA` | `VARCHAR(20)` | NULL |  | v967 | v967 |
+| 37 | `TEM_CODPAIS` | `VARCHAR(1)` | NULL |  | v967 | v967 |
+| 38 | `PODE_PREECHER_IE_Mesmo_Mun` | `VARCHAR(1)` | NULL |  | v967 | v967 |
+| 39 | `TEM_CONSULTA_APOS_ENVIO` | `VARCHAR(1)` | NULL |  | v968 | v968 |
 
 ## Evolução
 

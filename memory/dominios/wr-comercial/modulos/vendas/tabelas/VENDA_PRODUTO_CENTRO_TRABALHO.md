@@ -5,6 +5,12 @@ created_at_version: 502
 last_modified_version: 758
 target_version: 1468
 columns_count: 8
+foreign_keys_count: 4
+foreign_keys:
+  CODCENTRO_TRABALHO: CENTRO_TRABALHO
+  CODVENDA: VENDA
+  CODVENDA_PRODUTO: VENDA_PRODUTO
+  CODVENDA_PRODUTO_CT_PRE_REQ: VENDA_PRODUTO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,18 +26,29 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 758;
 - **Total colunas (versão 1468):** 8
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODCENTRO_TRABALHO` | [`CENTRO_TRABALHO`](../../producao/tabelas/CENTRO_TRABALHO.md) |
+| `CODVENDA` | [`VENDA`](../../vendas/tabelas/VENDA.md) |
+| `CODVENDA_PRODUTO` | [`VENDA_PRODUTO`](../../vendas/tabelas/VENDA_PRODUTO.md) |
+| `CODVENDA_PRODUTO_CT_PRE_REQ` | [`VENDA_PRODUTO`](../../vendas/tabelas/VENDA_PRODUTO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v502 | v502 |
-| 2 | `CODVENDA` | `VARCHAR(10)` | NOT NULL | v502 | v502 |
-| 3 | `CODVENDA_PRODUTO` | `INTEGER` | NOT NULL | v502 | v502 |
-| 4 | `CODCENTRO_TRABALHO` | `INTEGER` | NOT NULL | v502 | v502 |
-| 5 | `TEMPO` | `DOUBLE PRECISION` | NULL | v502 | v502 |
-| 6 | `PRE_REQUISITO_CENTRO_TRABALHO` | `INTEGER` | NULL | v531 | v531 |
-| 7 | `CODVENDA_PRODUTO_CT_PRE_REQ` | `INTEGER` | NULL | v580 | v580 |
-| 8 | `SEQUENCIA` | `INTEGER, ADD DESCRICAO VARCHAR(150)` | NULL | v580 | v580 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v502 | v502 |
+| 2 | `CODVENDA` | `VARCHAR(10)` | NOT NULL | → `VENDA` | v502 | v502 |
+| 3 | `CODVENDA_PRODUTO` | `INTEGER` | NOT NULL | → `VENDA_PRODUTO` | v502 | v502 |
+| 4 | `CODCENTRO_TRABALHO` | `INTEGER` | NOT NULL | → `CENTRO_TRABALHO` | v502 | v502 |
+| 5 | `TEMPO` | `DOUBLE PRECISION` | NULL |  | v502 | v502 |
+| 6 | `PRE_REQUISITO_CENTRO_TRABALHO` | `INTEGER` | NULL |  | v531 | v531 |
+| 7 | `CODVENDA_PRODUTO_CT_PRE_REQ` | `INTEGER` | NULL | → `VENDA_PRODUTO` | v580 | v580 |
+| 8 | `SEQUENCIA` | `INTEGER, ADD DESCRICAO VARCHAR(150)` | NULL |  | v580 | v580 |
 
 ## Evolução
 

@@ -5,6 +5,7 @@ created_at_version: 502
 last_modified_version: 784
 target_version: 1468
 columns_count: 9
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,17 +23,17 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v502 | v502 |
-| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL | v502 | v502 |
-| 3 | `PERC_CUSTO_FIXO` | `DOUBLE PRECISION` | NULL | v502 | v502 |
-| 4 | `PERC_CUSTO_FINANCEIRO` | `DOUBLE PRECISION` | NULL | v502 | v502 |
-| 5 | `PERC_LUCRO_DESEJADO` | `DOUBLE PRECISION` | NULL | v502 | v502 |
-| 6 | `PERC_CUSTO_VARIAVEL` | `DOUBLE PRECISION` | NULL | v502 | v502 |
-| 7 | `MARKUP` | `DOUBLE PRECISION` | NULL | v502 | v502 |
-| 8 | `ATIVO` | `VARCHAR(1)` | NULL | v783 | v783 |
-| 9 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v784 | v784 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v502 | v502 |
+| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL |  | v502 | v502 |
+| 3 | `PERC_CUSTO_FIXO` | `DOUBLE PRECISION` | NULL |  | v502 | v502 |
+| 4 | `PERC_CUSTO_FINANCEIRO` | `DOUBLE PRECISION` | NULL |  | v502 | v502 |
+| 5 | `PERC_LUCRO_DESEJADO` | `DOUBLE PRECISION` | NULL |  | v502 | v502 |
+| 6 | `PERC_CUSTO_VARIAVEL` | `DOUBLE PRECISION` | NULL |  | v502 | v502 |
+| 7 | `MARKUP` | `DOUBLE PRECISION` | NULL |  | v502 | v502 |
+| 8 | `ATIVO` | `VARCHAR(1)` | NULL |  | v783 | v783 |
+| 9 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v784 | v784 |
 
 ## Evolução
 

@@ -5,6 +5,7 @@ created_at_version: 47
 last_modified_version: 1459
 target_version: 1468
 columns_count: 6
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,14 +23,14 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1217 | v1217 |
-| 2 | `TODOS_ATIVOS` | `VARCHAR(1)` | NULL | v532 | v532 |
-| 3 | `DT_OCORRENCIA_INICIO` | `TIMESTAMP` | NULL | v1122 | v1122 |
-| 4 | `DT_OCORRENCIA_FIM` | `TIMESTAMP` | NULL | v1129 | v1129 |
-| 5 | `VALOR_CONTRIBUICAO_ASSOCIADO` | `DOUBLE PRECISION` | NULL | v1454 | v1454 |
-| 6 | `VALOR_OUTRAS_CONTRIBUICOES` | `DOUBLE PRECISION` | NULL | v1459 | v1459 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1217 | v1217 |
+| 2 | `TODOS_ATIVOS` | `VARCHAR(1)` | NULL |  | v532 | v532 |
+| 3 | `DT_OCORRENCIA_INICIO` | `TIMESTAMP` | NULL |  | v1122 | v1122 |
+| 4 | `DT_OCORRENCIA_FIM` | `TIMESTAMP` | NULL |  | v1129 | v1129 |
+| 5 | `VALOR_CONTRIBUICAO_ASSOCIADO` | `DOUBLE PRECISION` | NULL |  | v1454 | v1454 |
+| 6 | `VALOR_OUTRAS_CONTRIBUICOES` | `DOUBLE PRECISION` | NULL |  | v1459 | v1459 |
 
 ## Evolução
 

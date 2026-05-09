@@ -5,6 +5,7 @@ created_at_version: 11
 last_modified_version: 758
 target_version: 1468
 columns_count: 5
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,13 +23,13 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `PROXIMIDADE` | `VARCHAR(50)` | NULL | v11 | v11 |
-| 2 | `CRT` | `VARCHAR(50)` | NULL | v110 | v110 |
-| 3 | `LIMITE_DESCONTO` | `DOUBLE PRECISION` | NULL | v126 | v126 |
-| 4 | `DT_ALTERACAO` | `timestamp` | NULL | v174 | v174 |
-| 5 | `COMISSAO_POR_VENDA` | `varchar(1)` | NULL | v186 | v186 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `PROXIMIDADE` | `VARCHAR(50)` | NULL |  | v11 | v11 |
+| 2 | `CRT` | `VARCHAR(50)` | NULL |  | v110 | v110 |
+| 3 | `LIMITE_DESCONTO` | `DOUBLE PRECISION` | NULL |  | v126 | v126 |
+| 4 | `DT_ALTERACAO` | `timestamp` | NULL |  | v174 | v174 |
+| 5 | `COMISSAO_POR_VENDA` | `varchar(1)` | NULL |  | v186 | v186 |
 
 ## Evolução
 

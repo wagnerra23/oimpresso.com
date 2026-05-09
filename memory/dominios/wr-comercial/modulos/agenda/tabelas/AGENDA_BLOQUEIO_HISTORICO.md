@@ -5,6 +5,9 @@ created_at_version: 12
 last_modified_version: 12
 target_version: 1468
 columns_count: 7
+foreign_keys_count: 1
+foreign_keys:
+  CODUSUARIO: USUARIO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,17 +23,25 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 12;
 - **Total colunas (versão 1468):** 7
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODUSUARIO` | [`USUARIO`](../../cadastros/tabelas/USUARIO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v12 | v12 |
-| 2 | `CODUSUARIO` | `INTEGER` | NULL | v12 | v12 |
-| 3 | `DATABLOQUEIO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 4 | `STATUS` | `VARCHAR(15)` | NULL | v12 | v12 |
-| 5 | `DATA_ALTERACAO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 6 | `ALTERACAO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 7 | `MOTIVO` | `VARCHAR(255)` | NULL | v12 | v12 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v12 | v12 |
+| 2 | `CODUSUARIO` | `INTEGER` | NULL | → `USUARIO` | v12 | v12 |
+| 3 | `DATABLOQUEIO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 4 | `STATUS` | `VARCHAR(15)` | NULL |  | v12 | v12 |
+| 5 | `DATA_ALTERACAO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 6 | `ALTERACAO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 7 | `MOTIVO` | `VARCHAR(255)` | NULL |  | v12 | v12 |
 
 ## Evolução
 

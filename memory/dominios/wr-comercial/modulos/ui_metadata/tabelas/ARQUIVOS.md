@@ -5,6 +5,11 @@ created_at_version: 295
 last_modified_version: 690
 target_version: 1468
 columns_count: 10
+foreign_keys_count: 3
+foreign_keys:
+  CODARQUIVOS_RELATORIO: ARQUIVOS_RELATORIO
+  CODEMPRESA: EMPRESA
+  CODUSUARIO: USUARIO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,20 +25,30 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 690;
 - **Total colunas (versão 1468):** 10
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODARQUIVOS_RELATORIO` | [`ARQUIVOS_RELATORIO`](../../ui_metadata/tabelas/ARQUIVOS_RELATORIO.md) |
+| `CODEMPRESA` | [`EMPRESA`](../../cadastros/tabelas/EMPRESA.md) |
+| `CODUSUARIO` | [`USUARIO`](../../cadastros/tabelas/USUARIO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `DESCRICAO` | `VARCHAR(255)` | NOT NULL | v295 | v295 |
-| 2 | `TIPO` | `VARCHAR(30)` | NOT NULL | v295 | v295 |
-| 3 | `ARQUIVO` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL | v295 | v295 |
-| 4 | `FORM` | `VARCHAR(40)` | NULL | v295 | v304 |
-| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v295 | v295 |
-| 6 | `CODEMPRESA` | `integer` | NULL | v326 | v326 |
-| 7 | `CODUSUARIO` | `integer` | NULL | v329 | v329 |
-| 8 | `OBSERVACAO` | `VARCHAR(6000)` | NULL | v331 | v331 |
-| 9 | `CODARQUIVOS_RELATORIO` | `INTEGER` | NULL | v624 | v624 |
-| 10 | `MD5` | `VARCHAR(50)` | NULL | v690 | v690 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `DESCRICAO` | `VARCHAR(255)` | NOT NULL |  | v295 | v295 |
+| 2 | `TIPO` | `VARCHAR(30)` | NOT NULL |  | v295 | v295 |
+| 3 | `ARQUIVO` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL |  | v295 | v295 |
+| 4 | `FORM` | `VARCHAR(40)` | NULL |  | v295 | v304 |
+| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v295 | v295 |
+| 6 | `CODEMPRESA` | `integer` | NULL | → `EMPRESA` | v326 | v326 |
+| 7 | `CODUSUARIO` | `integer` | NULL | → `USUARIO` | v329 | v329 |
+| 8 | `OBSERVACAO` | `VARCHAR(6000)` | NULL |  | v331 | v331 |
+| 9 | `CODARQUIVOS_RELATORIO` | `INTEGER` | NULL | → `ARQUIVOS_RELATORIO` | v624 | v624 |
+| 10 | `MD5` | `VARCHAR(50)` | NULL |  | v690 | v690 |
 
 ## Evolução
 

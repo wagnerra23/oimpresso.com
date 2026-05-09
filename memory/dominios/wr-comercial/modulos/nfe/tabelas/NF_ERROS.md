@@ -5,6 +5,7 @@ created_at_version: 909
 last_modified_version: 944
 target_version: 1468
 columns_count: 12
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,20 +23,20 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v909 | v909 |
-| 2 | `ERRO` | `VARCHAR(30)` | NULL | v909 | v944 |
-| 3 | `TIPO_DOCUMENTO` | `VARCHAR(255)` | NULL | v909 | v909 |
-| 4 | `DESCRICAO` | `VARCHAR(500)` | NULL | v909 | v909 |
-| 5 | `TELA` | `VARCHAR(255)` | NULL | v909 | v909 |
-| 6 | `COMPONENTE` | `VARCHAR(255)` | NULL | v909 | v909 |
-| 7 | `LINK` | `VARCHAR(500)` | NULL | v909 | v909 |
-| 8 | `OBSERVACAO` | `VARCHAR(500)` | NULL | v909 | v909 |
-| 9 | `ATIVO` | `VARCHAR(1), ADD DT_ALTERACAO TIMESTAMP` | NULL | v909 | v909 |
-| 10 | `RETENTAR` | `VARCHAR(1)` | NULL | v909 | v909 |
-| 11 | `TAG` | `VARCHAR(1000)` | NULL | v944 | v944 |
-| 12 | `CAMPO` | `VARCHAR(255)` | NULL | v944 | v944 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v909 | v909 |
+| 2 | `ERRO` | `VARCHAR(30)` | NULL |  | v909 | v944 |
+| 3 | `TIPO_DOCUMENTO` | `VARCHAR(255)` | NULL |  | v909 | v909 |
+| 4 | `DESCRICAO` | `VARCHAR(500)` | NULL |  | v909 | v909 |
+| 5 | `TELA` | `VARCHAR(255)` | NULL |  | v909 | v909 |
+| 6 | `COMPONENTE` | `VARCHAR(255)` | NULL |  | v909 | v909 |
+| 7 | `LINK` | `VARCHAR(500)` | NULL |  | v909 | v909 |
+| 8 | `OBSERVACAO` | `VARCHAR(500)` | NULL |  | v909 | v909 |
+| 9 | `ATIVO` | `VARCHAR(1), ADD DT_ALTERACAO TIMESTAMP` | NULL |  | v909 | v909 |
+| 10 | `RETENTAR` | `VARCHAR(1)` | NULL |  | v909 | v909 |
+| 11 | `TAG` | `VARCHAR(1000)` | NULL |  | v944 | v944 |
+| 12 | `CAMPO` | `VARCHAR(255)` | NULL |  | v944 | v944 |
 
 ## Evolução
 

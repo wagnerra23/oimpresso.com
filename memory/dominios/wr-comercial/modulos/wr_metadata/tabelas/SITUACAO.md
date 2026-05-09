@@ -5,6 +5,7 @@ created_at_version: 871
 last_modified_version: 1336
 target_version: 1468
 columns_count: 3
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,11 +23,11 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CONTRIBUINTE` | `CHAR(1)` | NULL | v871 | v871 |
-| 2 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v1213 | v1213 |
-| 3 | `COTA` | `INTEGER` | NULL | v1336 | v1336 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CONTRIBUINTE` | `CHAR(1)` | NULL |  | v871 | v871 |
+| 2 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v1213 | v1213 |
+| 3 | `COTA` | `INTEGER` | NULL |  | v1336 | v1336 |
 
 ## Evolução
 

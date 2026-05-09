@@ -5,6 +5,9 @@ created_at_version: 343
 last_modified_version: 343
 target_version: 1468
 columns_count: 2
+foreign_keys_count: 1
+foreign_keys:
+  CODPESSOA: PESSOAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,12 +23,20 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 343;
 - **Total colunas (versão 1468):** 2
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODPESSOA` | [`PESSOAS`](../../cadastros/tabelas/PESSOAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `SKYPE_ID` | `VARCHAR(30)` | NOT NULL | v343 | v343 |
-| 2 | `CODPESSOA` | `VARCHAR(10)` | NOT NULL | v343 | v343 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `SKYPE_ID` | `VARCHAR(30)` | NOT NULL |  | v343 | v343 |
+| 2 | `CODPESSOA` | `VARCHAR(10)` | NOT NULL | → `PESSOAS` | v343 | v343 |
 
 ## Evolução
 

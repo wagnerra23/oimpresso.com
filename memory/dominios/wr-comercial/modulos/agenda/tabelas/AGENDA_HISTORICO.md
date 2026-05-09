@@ -5,6 +5,16 @@ created_at_version: 12
 last_modified_version: 758
 target_version: 1468
 columns_count: 42
+foreign_keys_count: 8
+foreign_keys:
+  CODAGENDA: AGENDA
+  CODAGENDA_TITULO: AGENDA_TITULO
+  CODCLIENTE: PESSOAS
+  CODEMPRESA: EMPRESA
+  CODFINANCEIRO: FINANCEIRO
+  CODFUNCIONARIO: FUNCIONARIO
+  CODUSUARIO: USUARIO
+  CODVENDA: VENDA
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,52 +30,67 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 758;
 - **Total colunas (versão 1468):** 42
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODAGENDA` | [`AGENDA`](../../agenda/tabelas/AGENDA.md) |
+| `CODAGENDA_TITULO` | [`AGENDA_TITULO`](../../agenda/tabelas/AGENDA_TITULO.md) |
+| `CODCLIENTE` | [`PESSOAS`](../../cadastros/tabelas/PESSOAS.md) |
+| `CODEMPRESA` | [`EMPRESA`](../../cadastros/tabelas/EMPRESA.md) |
+| `CODFINANCEIRO` | [`FINANCEIRO`](../../financeiro/tabelas/FINANCEIRO.md) |
+| `CODFUNCIONARIO` | [`FUNCIONARIO`](../../cadastros/tabelas/FUNCIONARIO.md) |
+| `CODUSUARIO` | [`USUARIO`](../../cadastros/tabelas/USUARIO.md) |
+| `CODVENDA` | [`VENDA`](../../vendas/tabelas/VENDA.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `VARCHAR(40)` | NOT NULL | v12 | v12 |
-| 2 | `CODAGENDA` | `INTEGER` | NOT NULL | v12 | v12 |
-| 3 | `PARENTID` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL | v12 | v12 |
-| 4 | `CODAGENDA_TITULO` | `INTEGER` | NULL | v12 | v12 |
-| 5 | `CAPTION` | `VARCHAR(255)` | NULL | v12 | v12 |
-| 6 | `DT_INICIO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 7 | `DT_FIM` | `TIMESTAMP` | NULL | v12 | v12 |
-| 8 | `H_MINIMO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 9 | `H_MAXIMO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 10 | `IMAGEMINDEX` | `INTEGER` | NULL | v12 | v12 |
-| 11 | `COLOR` | `INTEGER` | NULL | v12 | v12 |
-| 12 | `IMAGE` | `INTEGER` | NULL | v12 | v12 |
-| 13 | `TAREFA_COMPLETA` | `INTEGER` | NULL | v12 | v12 |
-| 14 | `TAREFA_INDEX` | `INTEGER` | NULL | v12 | v12 |
-| 15 | `STATUS` | `INTEGER` | NULL | v12 | v12 |
-| 16 | `EVENTO_TIPO` | `INTEGER` | NULL | v12 | v12 |
-| 17 | `RECURRENCE_INDEX` | `INTEGER` | NULL | v12 | v12 |
-| 18 | `REMINDER_DATE` | `TIMESTAMP` | NULL | v12 | v12 |
-| 19 | `REMINDER_MINUTES_BEFORE_START` | `DOUBLE PRECISION` | NULL | v12 | v12 |
-| 20 | `REMINDER_RESOURCES_DATA` | `TIMESTAMP` | NULL | v12 | v12 |
-| 21 | `OPTIONS` | `INTEGER` | NULL | v12 | v12 |
-| 22 | `MENSSAGE` | `VARCHAR(1000) CHARACTER SET NONE` | NULL | v12 | v12 |
-| 23 | `LOCATION` | `VARCHAR(255)` | NULL | v12 | v12 |
-| 24 | `RECURRENCE_INFO` | `BLOB SUB_TYPE 1 SEGMENT SIZE 500` | NULL | v12 | v12 |
-| 25 | `CODCLIENTE` | `VARCHAR(15)` | NULL | v12 | v12 |
-| 26 | `TELEFONE` | `VARCHAR(12)` | NULL | v12 | v12 |
-| 27 | `TAREFA_STATUS` | `INTEGER` | NULL | v12 | v12 |
-| 28 | `TAREFA_LINK` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL | v12 | v12 |
-| 29 | `VALOR` | `DOUBLE PRECISION` | NULL | v12 | v12 |
-| 30 | `CODFINANCEIRO` | `VARCHAR(10)` | NULL | v12 | v12 |
-| 31 | `CODEMPRESA` | `VARCHAR(10)` | NULL | v12 | v12 |
-| 32 | `CODUSUARIO` | `VARCHAR(10)` | NULL | v12 | v12 |
-| 33 | `DT_FATURAMENTO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 34 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v12 | v12 |
-| 35 | `CODFUNCIONARIO` | `VARCHAR(15)` | NULL | v12 | v12 |
-| 36 | `CODPERGUNTA` | `VARCHAR(15)` | NULL | v758 | v758 |
-| 37 | `PERGUNTA` | `VARCHAR(150)` | NULL | v758 | v758 |
-| 38 | `CODRESPOSTA` | `VARCHAR(15)` | NULL | v758 | v758 |
-| 39 | `RESPOSTA` | `VARCHAR(150)` | NULL | v758 | v758 |
-| 40 | `SOLICITANTE` | `VARCHAR(150)` | NULL | v12 | v12 |
-| 41 | `CODVENDA` | `VARCHAR(15)` | NULL | v12 | v12 |
-| 42 | `OCORRENCIA` | `VARCHAR(100)` | NULL | v12 | v12 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `VARCHAR(40)` | NOT NULL |  | v12 | v12 |
+| 2 | `CODAGENDA` | `INTEGER` | NOT NULL | → `AGENDA` | v12 | v12 |
+| 3 | `PARENTID` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL |  | v12 | v12 |
+| 4 | `CODAGENDA_TITULO` | `INTEGER` | NULL | → `AGENDA_TITULO` | v12 | v12 |
+| 5 | `CAPTION` | `VARCHAR(255)` | NULL |  | v12 | v12 |
+| 6 | `DT_INICIO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 7 | `DT_FIM` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 8 | `H_MINIMO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 9 | `H_MAXIMO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 10 | `IMAGEMINDEX` | `INTEGER` | NULL |  | v12 | v12 |
+| 11 | `COLOR` | `INTEGER` | NULL |  | v12 | v12 |
+| 12 | `IMAGE` | `INTEGER` | NULL |  | v12 | v12 |
+| 13 | `TAREFA_COMPLETA` | `INTEGER` | NULL |  | v12 | v12 |
+| 14 | `TAREFA_INDEX` | `INTEGER` | NULL |  | v12 | v12 |
+| 15 | `STATUS` | `INTEGER` | NULL |  | v12 | v12 |
+| 16 | `EVENTO_TIPO` | `INTEGER` | NULL |  | v12 | v12 |
+| 17 | `RECURRENCE_INDEX` | `INTEGER` | NULL |  | v12 | v12 |
+| 18 | `REMINDER_DATE` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 19 | `REMINDER_MINUTES_BEFORE_START` | `DOUBLE PRECISION` | NULL |  | v12 | v12 |
+| 20 | `REMINDER_RESOURCES_DATA` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 21 | `OPTIONS` | `INTEGER` | NULL |  | v12 | v12 |
+| 22 | `MENSSAGE` | `VARCHAR(1000) CHARACTER SET NONE` | NULL |  | v12 | v12 |
+| 23 | `LOCATION` | `VARCHAR(255)` | NULL |  | v12 | v12 |
+| 24 | `RECURRENCE_INFO` | `BLOB SUB_TYPE 1 SEGMENT SIZE 500` | NULL |  | v12 | v12 |
+| 25 | `CODCLIENTE` | `VARCHAR(15)` | NULL | → `PESSOAS` | v12 | v12 |
+| 26 | `TELEFONE` | `VARCHAR(12)` | NULL |  | v12 | v12 |
+| 27 | `TAREFA_STATUS` | `INTEGER` | NULL |  | v12 | v12 |
+| 28 | `TAREFA_LINK` | `BLOB SUB_TYPE 0 SEGMENT SIZE 80` | NULL |  | v12 | v12 |
+| 29 | `VALOR` | `DOUBLE PRECISION` | NULL |  | v12 | v12 |
+| 30 | `CODFINANCEIRO` | `VARCHAR(10)` | NULL | → `FINANCEIRO` | v12 | v12 |
+| 31 | `CODEMPRESA` | `VARCHAR(10)` | NULL | → `EMPRESA` | v12 | v12 |
+| 32 | `CODUSUARIO` | `VARCHAR(10)` | NULL | → `USUARIO` | v12 | v12 |
+| 33 | `DT_FATURAMENTO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 34 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v12 | v12 |
+| 35 | `CODFUNCIONARIO` | `VARCHAR(15)` | NULL | → `FUNCIONARIO` | v12 | v12 |
+| 36 | `CODPERGUNTA` | `VARCHAR(15)` | NULL |  | v758 | v758 |
+| 37 | `PERGUNTA` | `VARCHAR(150)` | NULL |  | v758 | v758 |
+| 38 | `CODRESPOSTA` | `VARCHAR(15)` | NULL |  | v758 | v758 |
+| 39 | `RESPOSTA` | `VARCHAR(150)` | NULL |  | v758 | v758 |
+| 40 | `SOLICITANTE` | `VARCHAR(150)` | NULL |  | v12 | v12 |
+| 41 | `CODVENDA` | `VARCHAR(15)` | NULL | → `VENDA` | v12 | v12 |
+| 42 | `OCORRENCIA` | `VARCHAR(100)` | NULL |  | v12 | v12 |
 
 ## Evolução
 

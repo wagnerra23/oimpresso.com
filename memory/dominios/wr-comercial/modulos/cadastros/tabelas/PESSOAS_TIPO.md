@@ -5,6 +5,7 @@ created_at_version: 206
 last_modified_version: 216
 target_version: 1468
 columns_count: 4
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,12 +23,12 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `CHAR(3)` | NOT NULL | v206 | v206 |
-| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL | v206 | v206 |
-| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v206 | v206 |
-| 4 | `ATIVO` | `varchar(1)` | NULL | v216 | v216 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `CHAR(3)` | NOT NULL |  | v206 | v206 |
+| 2 | `DESCRICAO` | `VARCHAR(50)` | NULL |  | v206 | v206 |
+| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v206 | v206 |
+| 4 | `ATIVO` | `varchar(1)` | NULL |  | v216 | v216 |
 
 ## Evolução
 

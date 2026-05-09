@@ -5,6 +5,9 @@ created_at_version: 949
 last_modified_version: 1262
 target_version: 1468
 columns_count: 4
+foreign_keys_count: 1
+foreign_keys:
+  CODPLANOCONTAS: PLANOCONTAS
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,14 +23,22 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1262;
 - **Total colunas (versão 1468):** 4
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODPLANOCONTAS` | [`PLANOCONTAS`](../../financeiro/tabelas/PLANOCONTAS.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v949 | v949 |
-| 2 | `PERCENTUAL` | `DOUBLE PRECISION` | NULL | v949 | v949 |
-| 3 | `CODPLANOCONTAS` | `VARCHAR(15)` | NOT NULL | v949 | v961 |
-| 4 | `CODCENTROCUSTO` | `INTEGER` | NULL | v1262 | v1262 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v949 | v949 |
+| 2 | `PERCENTUAL` | `DOUBLE PRECISION` | NULL |  | v949 | v949 |
+| 3 | `CODPLANOCONTAS` | `VARCHAR(15)` | NOT NULL | → `PLANOCONTAS` | v949 | v961 |
+| 4 | `CODCENTROCUSTO` | `INTEGER` | NULL |  | v1262 | v1262 |
 
 ## Evolução
 

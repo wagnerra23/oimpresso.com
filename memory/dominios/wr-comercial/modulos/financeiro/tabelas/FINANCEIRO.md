@@ -5,6 +5,9 @@ created_at_version: 9
 last_modified_version: 1367
 target_version: 1468
 columns_count: 21
+foreign_keys_count: 1
+foreign_keys:
+  CODUSUARIO_CONTA: USUARIO
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -20,31 +23,39 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 - **Última mudança:** UPDATE 1367;
 - **Total colunas (versão 1468):** 21
 
+## Foreign Keys (inferidas)
+
+> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+
+| Coluna | → Tabela alvo |
+|---|---|
+| `CODUSUARIO_CONTA` | [`USUARIO`](../../cadastros/tabelas/USUARIO.md) |
+
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `COMISSAO_PAGA` | `VARCHAR(1)` | NULL | v12 | v12 |
-| 2 | `RECIBO_IMPRESSO` | `INTEGER` | NULL | v36 | v36 |
-| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v102 | v102 |
-| 4 | `AGRUPADOR` | `integer` | NULL | v182 | v182 |
-| 5 | `CREDITO` | `double precision` | NULL | v246 | v246 |
-| 6 | `DT_EMISSAO_VENDA` | `TIMESTAMP` | NULL | v311 | v311 |
-| 7 | `PREVISAO` | `double precision` | NULL | v381 | v381 |
-| 8 | `DT_PREVISAO` | `timestamp` | NULL | v414 | v414 |
-| 9 | `LANCAMENTO_FUTURO` | `varchar(1)` | NULL | v417 | v417 |
-| 10 | `CHEQUE_COMPE` | `INTEGER` | NULL | v420 | v420 |
-| 11 | `DT_COMPETENCIA` | `DATE` | NULL | v478 | v478 |
-| 12 | `EM_EXTRATO` | `DOM_BOOLEAN` | NULL | v478 | v478 |
-| 13 | `CONCILIADO` | `DOM_BOOLEAN` | NULL | v478 | v478 |
-| 14 | `DT_CONCILIADO` | `timestamp` | NULL | v603 | v603 |
-| 15 | `CODUSUARIO_CONTA` | `INTEGER` | NULL | v607 | v607 |
-| 16 | `TEM_CREDITO` | `VARCHAR(1)` | NULL | v860 | v860 |
-| 17 | `ativo` | `VARCHAR(1)` | NULL | v1203 | v1203 |
-| 18 | `COMISSAO_STATUS` | `VARCHAR(20)` | NULL | v1118 | v1118 |
-| 19 | `IS_TRANSFERENCIA` | `VARCHAR(1)` | NULL | v1200 | v1200 |
-| 20 | `PODE_ENVIAR` | `VARCHAR(1)` | NULL | v1312 | v1312 |
-| 21 | `RETORNO` | `INTEGER` | NULL | v1367 | v1367 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `COMISSAO_PAGA` | `VARCHAR(1)` | NULL |  | v12 | v12 |
+| 2 | `RECIBO_IMPRESSO` | `INTEGER` | NULL |  | v36 | v36 |
+| 3 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v102 | v102 |
+| 4 | `AGRUPADOR` | `integer` | NULL |  | v182 | v182 |
+| 5 | `CREDITO` | `double precision` | NULL |  | v246 | v246 |
+| 6 | `DT_EMISSAO_VENDA` | `TIMESTAMP` | NULL |  | v311 | v311 |
+| 7 | `PREVISAO` | `double precision` | NULL |  | v381 | v381 |
+| 8 | `DT_PREVISAO` | `timestamp` | NULL |  | v414 | v414 |
+| 9 | `LANCAMENTO_FUTURO` | `varchar(1)` | NULL |  | v417 | v417 |
+| 10 | `CHEQUE_COMPE` | `INTEGER` | NULL |  | v420 | v420 |
+| 11 | `DT_COMPETENCIA` | `DATE` | NULL |  | v478 | v478 |
+| 12 | `EM_EXTRATO` | `DOM_BOOLEAN` | NULL |  | v478 | v478 |
+| 13 | `CONCILIADO` | `DOM_BOOLEAN` | NULL |  | v478 | v478 |
+| 14 | `DT_CONCILIADO` | `timestamp` | NULL |  | v603 | v603 |
+| 15 | `CODUSUARIO_CONTA` | `INTEGER` | NULL | → `USUARIO` | v607 | v607 |
+| 16 | `TEM_CREDITO` | `VARCHAR(1)` | NULL |  | v860 | v860 |
+| 17 | `ativo` | `VARCHAR(1)` | NULL |  | v1203 | v1203 |
+| 18 | `COMISSAO_STATUS` | `VARCHAR(20)` | NULL |  | v1118 | v1118 |
+| 19 | `IS_TRANSFERENCIA` | `VARCHAR(1)` | NULL |  | v1200 | v1200 |
+| 20 | `PODE_ENVIAR` | `VARCHAR(1)` | NULL |  | v1312 | v1312 |
+| 21 | `RETORNO` | `INTEGER` | NULL |  | v1367 | v1367 |
 
 ## Evolução
 

@@ -5,6 +5,7 @@ created_at_version: 903
 last_modified_version: 903
 target_version: 1468
 columns_count: 5
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,13 +23,13 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `CODIGO` | `INTEGER` | NOT NULL | v903 | v903 |
-| 2 | `DESCRICAO` | `VARCHAR(500)` | NULL | v903 | v903 |
-| 3 | `TABELA` | `VARCHAR(255)` | NULL | v903 | v903 |
-| 4 | `ATIVO` | `VARCHAR(1)` | NULL | v903 | v903 |
-| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v903 | v903 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `CODIGO` | `INTEGER` | NOT NULL |  | v903 | v903 |
+| 2 | `DESCRICAO` | `VARCHAR(500)` | NULL |  | v903 | v903 |
+| 3 | `TABELA` | `VARCHAR(255)` | NULL |  | v903 | v903 |
+| 4 | `ATIVO` | `VARCHAR(1)` | NULL |  | v903 | v903 |
+| 5 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v903 | v903 |
 
 ## Evolução
 

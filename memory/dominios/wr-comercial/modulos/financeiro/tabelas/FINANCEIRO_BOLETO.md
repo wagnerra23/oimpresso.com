@@ -5,6 +5,7 @@ created_at_version: 11
 last_modified_version: 1328
 target_version: 1468
 columns_count: 10
+foreign_keys_count: 0
 auto_generated: true
 generated_at: 2026-05-09
 generator: scripts/legacy-migration/generate-baseline.py
@@ -22,18 +23,18 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Colunas (versão 1468)
 
-| # | Coluna | Tipo | Nullable | Adicionada em | Última mudança |
-|---|---|---|---|---|---|
-| 1 | `DATA_ARQUIVO` | `TIMESTAMP` | NULL | v11 | v11 |
-| 2 | `DT_ALTERACAO` | `TIMESTAMP` | NULL | v102 | v102 |
-| 3 | `DT_GERACAO_ARQUIVO` | `TIMESTAMP` | NULL | v1312 | v1312 |
-| 4 | `CODIGO_DATA_ARQUIVO` | `VARCHAR(50)` | NULL | v1328 | v1328 |
-| 5 | `CHAVE` | `VARCHAR(100)` | NULL | v1328 | v1328 |
-| 6 | `RETORNO` | `INTEGER` | NULL | v1328 | v1328 |
-| 7 | `REMESSA` | `INTEGER` | NULL | v1328 | v1328 |
-| 8 | `TEM_MIGRADO` | `VARCHAR(1)` | NULL | v1328 | v1328 |
-| 9 | `CODIGO_MIGRADO` | `INTEGER` | NULL | v1328 | v1328 |
-| 10 | `CODIGO_BKP` | `INTEGER` | NULL | v1328 | v1328 |
+| # | Coluna | Tipo | Nullable | FK? | Adicionada em | Última mudança |
+|---|---|---|---|---|---|---|
+| 1 | `DATA_ARQUIVO` | `TIMESTAMP` | NULL |  | v11 | v11 |
+| 2 | `DT_ALTERACAO` | `TIMESTAMP` | NULL |  | v102 | v102 |
+| 3 | `DT_GERACAO_ARQUIVO` | `TIMESTAMP` | NULL |  | v1312 | v1312 |
+| 4 | `CODIGO_DATA_ARQUIVO` | `VARCHAR(50)` | NULL |  | v1328 | v1328 |
+| 5 | `CHAVE` | `VARCHAR(100)` | NULL |  | v1328 | v1328 |
+| 6 | `RETORNO` | `INTEGER` | NULL |  | v1328 | v1328 |
+| 7 | `REMESSA` | `INTEGER` | NULL |  | v1328 | v1328 |
+| 8 | `TEM_MIGRADO` | `VARCHAR(1)` | NULL |  | v1328 | v1328 |
+| 9 | `CODIGO_MIGRADO` | `INTEGER` | NULL |  | v1328 | v1328 |
+| 10 | `CODIGO_BKP` | `INTEGER` | NULL |  | v1328 | v1328 |
 
 ## Evolução
 
