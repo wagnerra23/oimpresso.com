@@ -34,7 +34,7 @@
 
 | Status | Tela | Prioridade visual | Charter |
 |---|---|---|---|
-| `[ ]` | [`Copiloto/Chat`](../resources/js/Pages/Copiloto/Chat.tsx) | Wagner+Larissa+Eliana — IA conversacional | criar |
+| `[ ]` | [`Jana/Chat`](../resources/js/Pages/Jana/Chat.tsx) | Wagner+Larissa+Eliana — IA conversacional | criar |
 | `[ ]` | [`NfeBrasil/Tributacao/Index`](../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx) | Eliana — tela densa CFOP/CSOSN | criar |
 | `[ ]` | [`NfeBrasil/Transactions/NfceStatus`](../resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx) | Larissa — polling status fiscal real-time | criar |
 | `[ ]` | [`Whatsapp/Conversations/Index`](../resources/js/Pages/Whatsapp/Conversations/Index.tsx) | Atendente — inbox 3-col Front/Intercom-like | criar |
