@@ -1,5 +1,3 @@
-<!-- cowork: target: docs/cowork-automation-validated.md -->
-
 # Cowork Inbox — automação validada
 
 Workflow `.github/workflows/cowork-inbox.yml` testado end-to-end em **2026-05-09**.
