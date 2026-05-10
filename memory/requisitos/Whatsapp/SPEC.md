@@ -26,7 +26,7 @@
 
 ### US-WA-001 · Wizard 2 passos — Z-API hoje + Meta Cloud em paralelo
 
-> owner: wagner · sprint: 1 · priority: p2 · status: review
+> owner: wagner · sprint: 1 · priority: p2 · status: done
 
 > **Área:** Settings
 > **Rota:** `GET/PUT /whatsapp/settings`
@@ -180,7 +180,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-003 · Enviar mensagem template (Job assíncrono)
 
-> owner: wagner · sprint: 1 · priority: p2 · status: review
+> owner: wagner · sprint: 1 · priority: p2 · status: done
 
 > **Área:** Core
 > **Job:** `SendWhatsappMessageJob`
@@ -202,7 +202,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-004 · Listener Repair: status `ready` dispara WhatsApp
 
-> owner: wagner · sprint: 1 · priority: p2 · status: review
+> owner: wagner · sprint: 1 · priority: p2 · status: done
 
 > **Área:** Core (cross-module)
 > **Listener:** `Modules\Whatsapp\Listeners\NotifyRepairCustomer`
@@ -261,7 +261,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-011 · Processar mensagem recebida (Job)
 
-> owner: wagner · sprint: 2 · priority: p2 · status: review
+> owner: wagner · sprint: 2 · priority: p2 · status: done
 
 > **Área:** Webhook
 > **Job:** `ProcessIncomingWebhookJob` (CT 100 Horizon)
@@ -280,7 +280,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-012 · Inbox UI (Cockpit pattern)
 
-> owner: wagner · sprint: 2 · priority: p2 · status: review
+> owner: wagner · sprint: 2 · priority: p2 · status: done
 
 > **Área:** Inbox
 > **Rota:** `GET /whatsapp/conversations`
@@ -302,7 +302,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-013 · Templates UI (sync Meta Business Manager)
 
-> owner: wagner · sprint: 2 · priority: p2 · status: review
+> owner: wagner · sprint: 2 · priority: p2 · status: done
 
 > **Área:** Templates
 > **Rota:** `GET /whatsapp/templates`
@@ -321,7 +321,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-014 · Driver Health Check + fallback automático
 
-> owner: wagner · sprint: 2 · priority: p2 · status: review
+> owner: wagner · sprint: 2 · priority: p2 · status: done
 
 > **Área:** Core
 > **Job:** `WhatsappDriverHealthCheckJob`
@@ -345,7 +345,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-020 · Listener DispatchToJanaBot
 
-> owner: wagner · sprint: 3 · priority: p2 · status: review
+> owner: wagner · sprint: 3 · priority: p2 · status: done
 
 > **Área:** Bot
 > **Listener:** `Modules\Whatsapp\Listeners\DispatchToJanaBot`
@@ -387,7 +387,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-022 · UX simplificada onboarding Baileys (1 telefone → QR → conectado)
 
-> owner: wagner · sprint: 3 · priority: p2 · status: review
+> owner: wagner · sprint: 3 · priority: p2 · status: done
 
 > **Área:** Settings UX
 > **Charter:** [`resources/js/Pages/Whatsapp/Settings.charter.md`](../../../resources/js/Pages/Whatsapp/Settings.charter.md)
