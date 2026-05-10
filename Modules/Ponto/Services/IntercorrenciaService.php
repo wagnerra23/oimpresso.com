@@ -41,8 +41,11 @@ class IntercorrenciaService
                 'aprovado_em' => now(),
             ]);
 
-            // Dispara reapuração do dia afetado
+            // Dispara reapuração do dia afetado.
+            // Multi-tenant Tier 0 (ADR 0093): job exige $businessId no constructor
+            // pra resolver tenant sem session no queue worker.
             \Modules\Ponto\Jobs\ReapurarDiaJob::dispatch(
+                $intercorrencia->business_id,
                 $intercorrencia->colaborador_config_id,
                 $intercorrencia->data
             );
