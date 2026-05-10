@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Arquivos\Services\VaultEncryptionService;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use NFePHP\DA\NFe\Danfe;
 use RuntimeException;
@@ -50,19 +51,7 @@ class DanfeService
      */
     public function renderizar(NfeEmissao $emissao): string
     {
-        if (! $emissao->xml_path) {
-            throw new RuntimeException(
-                "NfeEmissao {$emissao->id} sem xml_path — não há XML autorizado pra renderizar DANFE."
-            );
-        }
-
-        if (! Storage::exists($emissao->xml_path)) {
-            throw new RuntimeException(
-                "XML não encontrado em storage: {$emissao->xml_path}"
-            );
-        }
-
-        $xml = Storage::get($emissao->xml_path);
+        $xml = $this->obterXmlContents($emissao);
 
         $danfe = $this->danfeFactory !== null
             ? ($this->danfeFactory)($xml)
@@ -71,6 +60,50 @@ class DanfeService
         $logo = $this->resolverLogoPath((int) $emissao->business_id);
 
         return $danfe->render($logo ?? '');
+    }
+
+    /**
+     * Lê XML autorizado preferindo Modules/Arquivos backbone (ADR 0123),
+     * fallback pra coluna legacy `xml_path` se accessor `xml_arquivo` retorna null.
+     *
+     * Sprint 1 dia 4 US-ARQ-022. Após US-ARQ-021 remover coluna legacy,
+     * este método simplifica pra ler só de arquivos.
+     *
+     * Suporte transparente a disk=vault (encrypted-at-rest) via VaultEncryptionService.
+     */
+    private function obterXmlContents(NfeEmissao $emissao): string
+    {
+        // Caminho preferido: arquivos backbone (PR #404 double-write garante popularidade pra emissões novas;
+        // PR #398 backfill cobriu históricas).
+        $arquivo = $emissao->xml_arquivo;
+        if ($arquivo !== null) {
+            $diskName = $arquivo->disk ?: 'arquivos';
+            if ($arquivo->encrypted) {
+                $vault = app(VaultEncryptionService::class);
+                $contents = $vault->getDecrypted($diskName, $arquivo->storage_path);
+            } else {
+                $contents = Storage::disk($diskName)->exists($arquivo->storage_path)
+                    ? Storage::disk($diskName)->get($arquivo->storage_path)
+                    : null;
+            }
+            if (is_string($contents) && $contents !== '') {
+                return $contents;
+            }
+            // Cai no fallback legacy abaixo (xml_arquivo achou row, mas file físico ausente).
+        }
+
+        // Fallback legacy — coluna xml_path direto. Mantém durante Sprint estabilização (US-ARQ-021).
+        if (! $emissao->xml_path) {
+            throw new RuntimeException(
+                "NfeEmissao {$emissao->id} sem xml_path — nem arquivos backbone nem coluna legacy."
+            );
+        }
+        if (! Storage::exists($emissao->xml_path)) {
+            throw new RuntimeException(
+                "XML não encontrado em storage: {$emissao->xml_path}"
+            );
+        }
+        return Storage::get($emissao->xml_path);
     }
 
     /**
