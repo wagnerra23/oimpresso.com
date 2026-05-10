@@ -142,8 +142,11 @@ function controllerComMock(string $fakeUrl = 'https://oimpresso.com/arquivos/dow
 
 /**
  * Invoca serializeEmissao via Reflection (método privado).
+ *
+ * Nome NÃO pode ser `serialize()` — colide com built-in PHP e gera fatal
+ * "Cannot redeclare function serialize()" quando autoloader varre o arquivo.
  */
-function serialize(NfeEmissaoController $controller, NfeEmissao $emissao): array
+function invokeSerializeEmissao(NfeEmissaoController $controller, NfeEmissao $emissao): array
 {
     $method = (new ReflectionClass($controller))->getMethod('serializeEmissao');
     $method->setAccessible(true);
@@ -157,7 +160,7 @@ it('serializeEmissao retorna xml_url null quando sem arquivo xml no backbone', f
     // session vazia — global scope do Arquivo não filtrará nada relevante aqui;
     // o accessor retorna null pois nenhum arquivo está relacionado.
 
-    $result = serialize(controllerComMock(), $emissao);
+    $result = invokeSerializeEmissao(controllerComMock(), $emissao);
 
     expect($result)->toHaveKey('xml_url');
     expect($result['xml_url'])->toBeNull();
@@ -166,7 +169,7 @@ it('serializeEmissao retorna xml_url null quando sem arquivo xml no backbone', f
 it('serializeEmissao retorna danfe_url null quando sem arquivo danfe no backbone', function () {
     $emissao = emissaoSemArquivos(1);
 
-    $result = serialize(controllerComMock(), $emissao);
+    $result = invokeSerializeEmissao(controllerComMock(), $emissao);
 
     expect($result)->toHaveKey('danfe_url');
     expect($result['danfe_url'])->toBeNull();
@@ -180,7 +183,7 @@ it('serializeEmissao retorna xml_url string quando arquivo xml presente', functi
     anexarArquivo($emissao, 'nfe-xml', 1);
 
     $fakeUrl = 'https://oimpresso.com/arquivos/download/1?sig=fake-xml-token';
-    $result  = serialize(controllerComMock($fakeUrl), $emissao);
+    $result  = invokeSerializeEmissao(controllerComMock($fakeUrl), $emissao);
 
     expect($result['xml_url'])->toBeString()
         ->toBe($fakeUrl);
@@ -193,7 +196,7 @@ it('serializeEmissao retorna danfe_url string quando arquivo danfe presente', fu
     anexarArquivo($emissao, 'nfe-danfe', 1);
 
     $fakeUrl = 'https://oimpresso.com/arquivos/download/2?sig=fake-danfe-token';
-    $result  = serialize(controllerComMock($fakeUrl), $emissao);
+    $result  = invokeSerializeEmissao(controllerComMock($fakeUrl), $emissao);
 
     expect($result['danfe_url'])->toBeString()
         ->toBe($fakeUrl);
@@ -208,7 +211,7 @@ it('serializeEmissao xml_url null quando arquivo pertence a business 99 e sessio
     // Arquivo criado com business_id=99 — não deve vazar pra session biz 1
     anexarArquivo($emissao, 'nfe-xml', 99);
 
-    $result = serialize(controllerComMock(), $emissao);
+    $result = invokeSerializeEmissao(controllerComMock(), $emissao);
 
     expect($result['xml_url'])->toBeNull();
 });
@@ -219,7 +222,7 @@ it('serializeEmissao danfe_url null quando arquivo pertence a business 99 e sess
     $emissao = emissaoSemArquivos(1);
     anexarArquivo($emissao, 'nfe-danfe', 99);
 
-    $result = serialize(controllerComMock(), $emissao);
+    $result = invokeSerializeEmissao(controllerComMock(), $emissao);
 
     expect($result['danfe_url'])->toBeNull();
 });
@@ -227,7 +230,7 @@ it('serializeEmissao danfe_url null quando arquivo pertence a business 99 e sess
 it('serializeEmissao mantém todas as keys fiscais existentes após adição de xml_url/danfe_url', function () {
     $emissao = emissaoSemArquivos(1);
 
-    $result = serialize(controllerComMock(), $emissao);
+    $result = invokeSerializeEmissao(controllerComMock(), $emissao);
 
     $keysEsperadas = [
         'id', 'modelo', 'modelo_label', 'serie', 'numero', 'chave_44',
