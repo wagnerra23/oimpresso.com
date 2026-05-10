@@ -197,9 +197,25 @@ class DistribuicaoDfeService
         try {
             $xml = simplexml_load_string($doc['xml']);
         } catch (\Throwable $e) {
+            // BUG FIX P0 2026-05-10: NSU é IRREVERSÍVEL — descartar XML sem
+            // log mata diagnóstico. Mínimo: gravar evidência antes de pular.
+            Log::error('DfeService: XML inválido descartado', [
+                'business_id' => $businessId,
+                'exception'   => $e->getMessage(),
+                'classe'      => $e::class,
+                'nsu'         => $doc['nsu'] ?? null,
+                'schema'      => $doc['schema'] ?? null,
+                'xml_preview' => substr((string) ($doc['xml'] ?? ''), 0, 200),
+            ]);
             return false;
         }
         if (! $xml) {
+            Log::error('DfeService: XML inválido descartado (simplexml retornou false)', [
+                'business_id' => $businessId,
+                'nsu'         => $doc['nsu'] ?? null,
+                'schema'      => $doc['schema'] ?? null,
+                'xml_preview' => substr((string) ($doc['xml'] ?? ''), 0, 200),
+            ]);
             return false;
         }
 

@@ -109,6 +109,11 @@ class NfeService
             );
         }
 
+        $business = DB::table('business')->where('id', $businessId)->first();
+        if (! $business) {
+            throw new RuntimeException("Business {$businessId} não encontrado.");
+        }
+
         $config = NfeBusinessConfig::where('business_id', $businessId)->first();
         // Fallback: nfe_business_configs.tributacao_default.ncm_default → business.ncm_padrao
         $ncmDefault = (string) ($config?->tributacao_default['ncm_default']
@@ -119,11 +124,6 @@ class NfeService
                 "Business {$businessId} sem NCM padrão configurado. " .
                 "Configure `ncm_padrao` no cadastro do business ou `nfe_business_configs.tributacao_default.ncm_default`."
             );
-        }
-
-        $business = DB::table('business')->where('id', $businessId)->first();
-        if (! $business) {
-            throw new RuntimeException("Business {$businessId} não encontrado.");
         }
 
         $ufOrigem = $this->resolverUF($business);
@@ -410,51 +410,59 @@ class NfeService
         $serie  = $dadosNfe['serie'] ?? ((string) ($business->numero_serie_nfe ?? '1'));
         $numero = isset($dadosNfe['numero']) ? (int) $dadosNfe['numero'] : null;
 
-        // ── 3. Transação atômica ────────────────────────────────────────────
-        return DB::transaction(function () use (
-            $businessId, $transactionId, $modelo, $serie, $numero,
-            $dadosNfe, $certData, $business, $emitOverride
+        // ── 3. Reserva número + cria emissao em transaction CURTA ───────────
+        // BUG FIX P0 2026-05-10: SEFAZ HTTP call NUNCA pode rodar dentro de
+        // DB::transaction — request pode travar 30s+ e segura o lock no
+        // business inteiro, bloqueando outras emissões concorrentes. Refactor
+        // em 3 fases (reserva → SEFAZ fora → processa retorno).
+        /** @var NfeEmissao $emissao */
+        $emissao = DB::transaction(function () use (
+            $businessId, $transactionId, $modelo, $serie, &$numero, $dadosNfe
         ) {
-            // Próximo número dentro da transaction com lock
             if ($numero === null) {
                 $numero = $this->proximoNumeroLocked($businessId, $modelo, $serie);
             }
 
-            $emissao = NfeEmissao::create([
+            return NfeEmissao::create([
                 'business_id'    => $businessId,
                 'transaction_id' => $transactionId,
                 'modelo'         => $modelo,
                 'serie'          => $serie,
                 'numero'         => $numero,
-                'status'         => 'pendente',
+                'status'         => 'enviando',
                 'valor_total'    => (float) ($dadosNfe['valor_total'] ?? 0),
             ]);
-
-            try {
-                $xml       = $this->buildXml($business, $emissao, $dadosNfe, $emitOverride);
-                $tools     = $this->criarTools($business, $certData, $emitOverride, (string) $modelo);
-                $xmlSigned = $tools->signNFe($xml);
-
-                $idLote  = str_pad((string) $emissao->id, 15, '0', STR_PAD_LEFT);
-                $response = $tools->sefazEnviaLote([$xmlSigned], $idLote, 1);
-
-                $this->processarRetorno($emissao, $response, $xmlSigned, $businessId, $serie, $numero);
-
-            } catch (\Throwable $e) {
-                $emissao->update([
-                    'status' => 'rejeitada',
-                    'motivo' => 'Erro de transmissão: ' . $e->getMessage(),
-                ]);
-                Log::error('NfeService: falha na emissão', [
-                    'business_id' => $businessId,
-                    'emissao_id'  => $emissao->id,
-                    'error'       => $e->getMessage(),
-                ]);
-                throw $e;
-            }
-
-            return $emissao->refresh();
         });
+
+        // ── 4. SEFAZ HTTP call FORA da transaction ──────────────────────────
+        // Idempotência: se exception aqui, NfeEmissao fica `erro_envio` (não
+        // `enviando` órfão) — permite cron/job retry posterior identificar.
+        try {
+            $xml       = $this->buildXml($business, $emissao, $dadosNfe, $emitOverride);
+            $tools     = $this->criarTools($business, $certData, $emitOverride, (string) $modelo);
+            $xmlSigned = $tools->signNFe($xml);
+
+            $idLote  = str_pad((string) $emissao->id, 15, '0', STR_PAD_LEFT);
+            $response = $tools->sefazEnviaLote([$xmlSigned], $idLote, 1);
+        } catch (\Throwable $e) {
+            $emissao->update([
+                'status' => 'erro_envio',
+                'motivo' => 'Erro de transmissão SEFAZ: ' . substr($e->getMessage(), 0, 500),
+            ]);
+            Log::error('NfeService: falha na transmissão SEFAZ (FORA tx)', [
+                'business_id' => $businessId,
+                'emissao_id'  => $emissao->id,
+                'error'       => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+
+        // ── 5. Processa retorno em transaction CURTA 2 ──────────────────────
+        DB::transaction(function () use ($emissao, $response, $xmlSigned, $businessId, $serie, $numero) {
+            $this->processarRetorno($emissao, $response, $xmlSigned, $businessId, $serie, $numero);
+        });
+
+        return $emissao->refresh();
     }
 
     /**
@@ -988,16 +996,28 @@ class NfeService
             // Try/catch graceful — falha aqui NÃO bloqueia fluxo emit fiscal.
             $this->writeArquivoXml($emissao, $xmlPath, $xmlSigned);
 
-            // Atualiza contador fiscal no business (defensivo — coluna pode não existir em dev)
+            // Atualiza contador fiscal no business — CRÍTICO pra evitar duplicidade.
+            // BUG FIX P0 2026-05-10: catch silencioso (Log::warning) deixava contador
+            // stale → próxima emissão recebia mesmo número → SEFAZ rejeita por chave
+            // duplicada (ou pior: aceita 2 NFes com mesmo nNF). report() + throw
+            // garantem que o job retentar visivelmente.
             try {
                 DB::table('business')
                     ->where('id', $businessId)
                     ->update(['ultimo_numero_nfe' => $numero]);
             } catch (\Throwable $e) {
-                Log::warning('NfeService: não foi possível atualizar ultimo_numero_nfe', [
+                report($e);
+                Log::error('NfeService: FALHA ao atualizar ultimo_numero_nfe — abortando pra evitar duplicidade', [
                     'business_id' => $businessId,
+                    'emissao_id'  => $emissao->id,
+                    'numero'      => $numero,
                     'error'       => $e->getMessage(),
                 ]);
+                throw new RuntimeException(
+                    "Numero NFe não atualizado (business_id={$businessId}, numero={$numero}) — emissão ABORTADA pra evitar duplicidade",
+                    0,
+                    $e
+                );
             }
 
             Log::info('NfeService: NF-e autorizada', [
