@@ -120,16 +120,58 @@ Ver `memory/08-handoff.md` seção "Estado 2026-05-10 ~final do dia".
 
 | Métrica | Valor |
 |---------|-------|
-| PRs mergeados | 25 |
-| Linhas Code adicionadas | ~5000 |
-| Pest tests novos | ~80 |
-| ADRs proposed | 2 |
-| Commands artisan novos (Arquivos) | 6 |
-| Models Tier 0 novos (ComunicacaoVisual) | 5 |
+| PRs mergeados | **28** (25 + #481 export-zip + #482 fix audit-log + #478 SQLite skip) |
+| Linhas Code adicionadas | ~6000 |
+| Pest tests novos | ~95 |
+| ADRs proposed | 2 (0126 chunked, 0128 smoke E2E) |
+| Commands artisan novos (Arquivos) | **7** (recalcular-metadata, dedupe-stats, reencrypt-vault, audit-log, retention-cleanup, health-check, export-zip) |
+| Commands artisan novos (CV/Vestuario) | 2 (comvis:demo-seed, vestuario:settings) |
+| Models Tier 0 novos (ComunicacaoVisual) | 5 (Material, Orcamento, OrcamentoItem, Os, Apontamento) |
+| Migrations aplicadas em prod | 11 |
 | PRs revertidos | 0 |
-| Hotfixes pós-merge | 0 |
+| Hotfixes pós-validação | 1 (PR #482 — bug `u.name` UltimatePOS schema) |
 | Tempo Claude | 1 dia (com pausas Wagner) |
 
 ---
 
-**Próxima sessão:** ler `memory/08-handoff.md` (seção "final do dia") + confirmar `gh pr list --state merged --limit 30` pra ver o que chegou depois.
+## Validação prod browser+SSH 2026-05-10 (final do dia)
+
+Pós-sessão Wagner pediu "use o browser para conferir e testar" — Chrome MCP + SSH Hostinger validaram **end-to-end real** os entregáveis. Confirmações:
+
+- **`/manage-modules`** mostra Arquivos #4 + ComunicacaoVisual #8 + Vestuario #33 com botão "Instalar" + descrições completas do `module.json` renderizando
+- **11 migrations da sessão aplicadas em prod** (`php artisan migrate:status` confirma)
+- **9 commands artisan registrados** (`php artisan list arquivos: comvis: vestuario:` mostra todos)
+- **16 rotas Laravel registradas** em `/comunicacao-visual/*` + `/arquivos/*` (302 redirect-to-login = middleware auth funcionando correctly)
+- **`vestuario:settings list --business=1`** retorna msg PT-BR esperada
+- **`arquivos:health-check --business=1`** retorna 4 OK + 1 WARN (audit_log_lag — esperado com tabela vazia)
+
+### 🐛 Bug real detectado em prod via browser test
+
+**`arquivos:audit-log` falhava com `Column not found: 1054 Unknown column 'u.name'`** — UltimatePOS users table NÃO tem coluna `name`, tem `first_name + last_name + surname + username`. PR #420 original assumiu schema padrão Laravel.
+
+**Fix PR #482** — COALESCE em cascata:
+```sql
+COALESCE(
+  NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
+  u.username,
+  CAST(aal.user_id AS CHAR)
+) as usuario
+```
+
+### 🎯 Lições aprendidas (replicáveis pra próximas sessões)
+
+1. **Pattern validação pós-deploy 3 camadas:** (1) curl HTTP code → confirma rota responde, (2) SSH `php artisan list/route:list/migrate:status` → confirma binding Laravel, (3) browser MCP visual → confirma UX real. Pest unit não pega bugs de schema cross-cutting (UltimatePOS quirks).
+
+2. **`composer dump-autoload --optimize`** é mais leve que `composer install` pós-`git pull`. Suficiente quando composer.json não mudou. Sintoma 404 routes pós-deploy = autoload não regenerado (auto-mem `reference_composer_install_obrigatorio_pos_deploy.md`).
+
+3. **UltimatePOS users schema:** `first_name`, `last_name`, `surname`, `username`, `email`. NÃO tem `name`. Sempre usar `CONCAT_WS(' ', first_name, last_name)` em JOINs. Adicionar a `reference_db_schema.md` se ainda não estiver.
+
+4. **URL Modules Install:** rota é `/<modulo>/install`, NÃO `/admin/<modulo>/install`. Convenção UltimatePOS — middleware web já é raiz.
+
+5. **GraphQL rate limit `gh pr create`** vs **REST API `gh api -X POST repos/.../pulls`** — REST tem rate limit separado e mais permissivo. Padrão pra esta sessão (27/28 PRs criados via REST direto).
+
+6. **Worktrees paralelos via Agent tool com `isolation: worktree`** — escala pra 2-3 PRs simultâneos sem conflito (cada agent fork branch isolado de `origin/main`). Throughput 5-7 PRs/hora.
+
+---
+
+**Próxima sessão:** ler `memory/08-handoff.md` (seção "final do dia") + `memory/requisitos/Infra/RUNBOOK-validacao-pos-deploy.md` (criado nesta sessão) antes de qualquer mexida em commands/Controllers que tocam UltimatePOS schema.
