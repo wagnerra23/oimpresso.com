@@ -37,7 +37,11 @@ class RecurringBillingServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\RecurringBilling\Console\Commands\SyncBankBalancesCommand::class,
+            ]);
+        }
     }
 
     /**
