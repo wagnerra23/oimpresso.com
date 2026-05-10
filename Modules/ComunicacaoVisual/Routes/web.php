@@ -1,5 +1,6 @@
 <?php
 
+use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 
@@ -31,4 +32,21 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         // Consulta de orçamento por ID (multi-tenant: global scope filtra automaticamente)
         Route::get('orcamentos/{id}', [OrcamentoController::class, 'show'])
             ->name('comvis.api.orcamentos.show');
+
+        // Sprint 1 — US-COMVIS-004: Spool Plotter / Apontamento de Produção
+        // ATENÇÃO: em-andamento registrado antes de {apontamento} pra evitar conflito de rota
+        Route::get('apontamentos/em-andamento', [ApontamentoController::class, 'emAndamento'])
+            ->name('comvis.api.apontamentos.em_andamento');
+
+        Route::get('apontamentos', [ApontamentoController::class, 'index'])
+            ->name('comvis.api.apontamentos.index');
+
+        Route::post('apontamentos/iniciar', [ApontamentoController::class, 'iniciar'])
+            ->name('comvis.api.apontamentos.iniciar');
+
+        Route::post('apontamentos/{apontamento}/finalizar', [ApontamentoController::class, 'finalizar'])
+            ->name('comvis.api.apontamentos.finalizar');
+
+        Route::post('apontamentos/{apontamento}/cancelar', [ApontamentoController::class, 'cancelar'])
+            ->name('comvis.api.apontamentos.cancelar');
     });
