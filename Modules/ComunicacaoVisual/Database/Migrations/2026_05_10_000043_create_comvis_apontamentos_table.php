@@ -24,7 +24,8 @@ return new class extends Migration {
     {
         Schema::create('comvis_apontamentos', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('business_id');
+            // int(10) unsigned pra bater com business.id (UltimatePOS legacy schema — FK constraint)
+            $table->unsignedInteger('business_id');
             $table->unsignedBigInteger('os_id');                    // FK comvis_os
             $table->unsignedBigInteger('orcamento_item_id')->nullable(); // FK comvis_orcamento_itens — null = OS sem item específico
             $table->unsignedInteger('operador_id');                 // FK users.id — quem apontou
