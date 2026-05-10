@@ -19,6 +19,7 @@ import WidgetVaultwarden from './_components/WidgetVaultwarden';
 import WidgetSessions from './_components/WidgetSessions';
 import WidgetInfraStatus from './_components/WidgetInfraStatus';
 import WidgetBrainBCost from './_components/WidgetBrainBCost';
+import WidgetMutations from './_components/WidgetMutations';
 
 interface BriefData {
   available: boolean;
@@ -352,6 +353,20 @@ export default function AdminIndex({ widgets, meta }: PageProps) {
           </CardHeader>
           <CardContent>
             <WidgetAdrTier0 data={adr_alerts} />
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2 border-2 border-amber-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="zap" /> Ações
+              <span className="ml-auto text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                double-confirmation
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WidgetMutations />
           </CardContent>
         </Card>
       </div>
