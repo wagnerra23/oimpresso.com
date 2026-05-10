@@ -24,7 +24,7 @@ use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 
 // ─── Rotas Install 1-clique (ADR 0024) ──────────────────────────────────
 // Sem essas 3 rotas o botao Install no /manage-modules vira href="#".
-Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('comvis')
     ->group(function () {
         Route::get('install',           [InstallController::class, 'index']);
