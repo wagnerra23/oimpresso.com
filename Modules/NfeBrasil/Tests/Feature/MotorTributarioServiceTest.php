@@ -2,7 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
+use Modules\NfeBrasil\Events\FiscalRuleCreated;
+use Modules\NfeBrasil\Events\FiscalRuleDeleted;
+use Modules\NfeBrasil\Events\FiscalRuleUpdated;
 use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
 use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
@@ -15,46 +20,82 @@ uses(Tests\TestCase::class);
 /**
  * US-NFE-043 · MotorTributarioService cascade 4 níveis (ADR ARQ-0006).
  *
- * Pattern: cria as 2 tabelas in-memory pra rodar isolado em SQLite (mesma
- * abordagem do CertificadoServiceTest). Não precisa do schema UltimatePOS.
+ * Pattern dual-mode (PR #486 reference):
+ *   - SQLite (CI sanity): drop+create isolado em :memory:
+ *   - MySQL (Pest local — gate Wagner): preserva schema real;
+ *     limpa rows biz=1/99 com FK_CHECKS=0 (cascateia em links)
+ *
+ * Event::fake do bridge listener `SyncFiscalRuleToTaxRate` (ADR ARQ-0005)
+ * pra isolar do side effect no boot do model — listener tem cobertura
+ * própria em SyncFiscalRuleToTaxRateTest.
  */
 
 beforeEach(function () {
-    Schema::dropIfExists('nfe_fiscal_rules');
-    Schema::dropIfExists('nfe_business_configs');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_fiscal_rules');
+        Schema::dropIfExists('nfe_business_configs');
 
-    Schema::create('nfe_fiscal_rules', function ($t) {
-        $t->id();
-        $t->unsignedInteger('business_id')->index();
-        $t->char('ncm', 8);
-        $t->char('uf_origem', 2);
-        $t->char('uf_destino', 2)->nullable();
-        $t->char('cfop', 4);
-        $t->char('csosn', 3)->nullable();
-        $t->char('cst', 3)->nullable();
-        $t->decimal('aliquota_icms', 7, 4)->default(0);
-        $t->decimal('aliquota_pis', 7, 4)->default(0);
-        $t->decimal('aliquota_cofins', 7, 4)->default(0);
-        $t->decimal('aliquota_ipi', 7, 4)->default(0);
-        $t->decimal('mva', 7, 4)->nullable();
-        $t->decimal('fcp', 7, 4)->nullable();
-        $t->json('metadata')->nullable();
-        $t->timestamps();
-        $t->softDeletes();
-    });
+        Schema::create('nfe_fiscal_rules', function ($t) {
+            $t->id();
+            $t->unsignedInteger('business_id')->index();
+            $t->char('ncm', 8);
+            $t->char('uf_origem', 2);
+            $t->char('uf_destino', 2)->nullable();
+            $t->char('cfop', 4);
+            $t->char('csosn', 3)->nullable();
+            $t->char('cst', 3)->nullable();
+            $t->decimal('aliquota_icms', 7, 4)->default(0);
+            $t->decimal('aliquota_pis', 7, 4)->default(0);
+            $t->decimal('aliquota_cofins', 7, 4)->default(0);
+            $t->decimal('aliquota_ipi', 7, 4)->default(0);
+            $t->decimal('mva', 7, 4)->nullable();
+            $t->decimal('fcp', 7, 4)->nullable();
+            $t->json('metadata')->nullable();
+            $t->timestamps();
+            $t->softDeletes();
+        });
 
-    Schema::create('nfe_business_configs', function ($t) {
-        $t->id();
-        $t->unsignedInteger('business_id')->unique();
-        $t->enum('regime', ['mei', 'simples', 'lucro_presumido', 'lucro_real'])->default('simples');
-        $t->json('tributacao_default');
-        $t->timestamps();
-    });
+        Schema::create('nfe_business_configs', function ($t) {
+            $t->id();
+            $t->unsignedInteger('business_id')->unique();
+            $t->enum('regime', ['mei', 'simples', 'lucro_presumido', 'lucro_real'])->default('simples');
+            $t->json('tributacao_default');
+            $t->timestamps();
+        });
+    } else {
+        if (Schema::hasTable('nfe_fiscal_rules')) {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
+                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+            }
+            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
+        if (Schema::hasTable('nfe_business_configs')) {
+            DB::table('nfe_business_configs')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+        }
+    }
+
+    Event::fake([FiscalRuleCreated::class, FiscalRuleUpdated::class, FiscalRuleDeleted::class]);
 });
 
 afterEach(function () {
-    Schema::dropIfExists('nfe_fiscal_rules');
-    Schema::dropIfExists('nfe_business_configs');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_fiscal_rules');
+        Schema::dropIfExists('nfe_business_configs');
+    } else {
+        if (Schema::hasTable('nfe_fiscal_rules')) {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
+                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+            }
+            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
+        if (Schema::hasTable('nfe_business_configs')) {
+            DB::table('nfe_business_configs')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+        }
+    }
 });
 
 // ── helpers ────────────────────────────────────────────────────────────────
