@@ -3,6 +3,7 @@
 namespace Modules\ComunicacaoVisual\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\ComunicacaoVisual\Console\Commands\DemoSeedCommand;
 
 /**
  * ServiceProvider Modules/ComunicacaoVisual (ADR 0121 §P7).
@@ -29,6 +30,12 @@ class ComunicacaoVisualServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'comunicacao-visual');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                DemoSeedCommand::class,
+            ]);
+        }
     }
 
     public function register(): void
