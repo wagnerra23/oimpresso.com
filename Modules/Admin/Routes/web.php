@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\IndexController;
 use Modules\Admin\Http\Controllers\InstallController;
+use Modules\Admin\Http\Controllers\MutationsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,4 +36,14 @@ Route::middleware(['web', 'tailscale-only', 'auth', 'is-wagner'])
     ->prefix('admin')
     ->group(function () {
         Route::get('/', IndexController::class)->name('admin.index');
+
+        // Sprint 2 mutations — ações destrutivas com double-confirmation.
+        // Todas exigem body { reason >=5 chars, confirm: true } + auditadas
+        // em mcp_admin_audit_log.
+        Route::post('mutations/curador/apply',          [MutationsController::class, 'applyCurador'])
+            ->name('admin.mutations.curador.apply');
+        Route::post('mutations/mcp-token/regenerate',   [MutationsController::class, 'regenerateMcpToken'])
+            ->name('admin.mutations.mcp-token.regenerate');
+        Route::post('mutations/health-check/run-now',   [MutationsController::class, 'runHealthCheckNow'])
+            ->name('admin.mutations.health-check.run-now');
     });
