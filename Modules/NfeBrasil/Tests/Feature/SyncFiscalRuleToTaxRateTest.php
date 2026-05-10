@@ -16,14 +16,21 @@ uses(Tests\TestCase::class);
 /**
  * ADR ARQ-0005 · Bridge listener — sincroniza nfe_fiscal_rules com tax_rates.
  *
- * Pattern: cria as 3 tabelas in-memory pra rodar isolado em SQLite.
- * Não toca core schema real — todas as tabelas são recriadas com mínimo viável.
- *
- * Listener é chamado direto (sem queue) com método específico por event,
- * mesmo padrão registrado em NfeBrasilServiceProvider.
+ * Pattern dual-mode (PR #486 reference + skip-em-MySQL):
+ *   - SQLite (CI sanity): drop+create as 3 tabelas isolado em :memory:
+ *   - MySQL (Pest local — gate Wagner): SKIP — `tax_rates` é referenciada por ~8
+ *     FKs em produção (products.tax, transactions.tax_id, purchase_lines.tax_id,
+ *     transaction_sell_lines.tax_id, business.default_sales_tax, group_sub_taxes,
+ *     etc). Drop é catastrófico; cleanup parcial vazaria tax_rates do biz=1
+ *     real (Wagner WR2). Cobertura genuína do listener vem via integration
+ *     tests E2E (FiscalRuleCreated dispatch em prod path).
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('SyncFiscalRuleToTaxRateTest dropa `tax_rates` — catastrófico em MySQL UPos. Pest local SQLite é o canal de cobertura.');
+    }
+
     Schema::dropIfExists('nfe_fiscal_rule_tax_rate_links');
     Schema::dropIfExists('tax_rates');
     Schema::dropIfExists('nfe_fiscal_rules');
@@ -71,6 +78,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('nfe_fiscal_rule_tax_rate_links');
     Schema::dropIfExists('tax_rates');
     Schema::dropIfExists('nfe_fiscal_rules');
