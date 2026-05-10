@@ -108,7 +108,9 @@ class AuditLogCommand extends Command
                 'aal.id',
                 'aal.created_at',
                 'aal.business_id',
-                DB::raw("COALESCE(u.name, CAST(aal.user_id AS CHAR)) as usuario"),
+                // UltimatePOS users table não tem coluna `name` — usa CONCAT(first_name, last_name)
+                // com fallback pra username e por fim ID. Bug detectado em prod 2026-05-10.
+                DB::raw("COALESCE(NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''), u.username, CAST(aal.user_id AS CHAR)) as usuario"),
                 'aal.action',
                 'aal.arquivo_id',
                 DB::raw("COALESCE(a.original_name, '(arquivo removido)') as filename"),
