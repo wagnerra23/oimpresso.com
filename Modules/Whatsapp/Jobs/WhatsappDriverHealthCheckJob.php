@@ -92,6 +92,7 @@ class WhatsappDriverHealthCheckJob implements ShouldQueue
     private function resolveTarget()
     {
         if ($this->whatsappBusinessPhoneId !== null) {
+            // SUPERADMIN: scheduler job sem session — business_id do constructor + filtro Tier 0
             return WhatsappBusinessPhone::query()
                 ->withoutGlobalScope(ScopeByBusiness::class)
                 ->where('business_id', $this->businessId)
@@ -99,6 +100,7 @@ class WhatsappDriverHealthCheckJob implements ShouldQueue
                 ->first();
         }
 
+        // SUPERADMIN: scheduler job sem session — fallback config legacy (biz do constructor)
         return WhatsappBusinessConfig::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $this->businessId)
@@ -160,6 +162,7 @@ class WhatsappDriverHealthCheckJob implements ShouldQueue
         if ($banDetected) {
             $threshold = (int) ($cfg['cross_tenant_ban_alarm_threshold'] ?? 3);
 
+            // SUPERADMIN: alarme cross-tenant intencional — varre TODOS biz pra detectar mudança Meta TOS (3+ phones banidos em 24h)
             // Conta bans em phones (preferido) + configs (legacy) somados
             $bannedPhones24h = WhatsappBusinessPhone::query()
                 ->withoutGlobalScope(ScopeByBusiness::class)
@@ -167,6 +170,7 @@ class WhatsappDriverHealthCheckJob implements ShouldQueue
                 ->where('last_health_check_at', '>=', now()->subDay())
                 ->count();
 
+            // SUPERADMIN: idem cross-tenant alarm em config legacy durante coexistência PR 1→PR 5
             $bannedConfigs24h = WhatsappBusinessConfig::query()
                 ->withoutGlobalScope(ScopeByBusiness::class)
                 ->where('driver_health', 'banned')

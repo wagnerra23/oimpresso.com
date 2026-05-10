@@ -182,6 +182,7 @@ class BaileysConnectJob implements ShouldQueue
     private function resolveTarget()
     {
         if ($this->whatsappBusinessPhoneId !== null) {
+            // SUPERADMIN: job sem session — phone resolvido com filtro defensivo Tier 0 (business_id do constructor)
             return WhatsappBusinessPhone::query()
                 ->withoutGlobalScope(ScopeByBusiness::class)
                 ->where('business_id', $this->businessId)
@@ -189,6 +190,7 @@ class BaileysConnectJob implements ShouldQueue
                 ->first();
         }
 
+        // SUPERADMIN: job sem session — fallback config legacy (business_id do constructor)
         return WhatsappBusinessConfig::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $this->businessId)
@@ -202,6 +204,7 @@ class BaileysConnectJob implements ShouldQueue
      */
     private function resolveBusinessUuid(int $businessId): ?string
     {
+        // SUPERADMIN: job sem session — business_id explícito como param do método
         $config = WhatsappBusinessConfig::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $businessId)

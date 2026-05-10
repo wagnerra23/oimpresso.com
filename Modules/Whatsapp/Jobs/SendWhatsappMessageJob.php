@@ -77,6 +77,7 @@ class SendWhatsappMessageJob implements ShouldQueue
 
     public function handle(): void
     {
+        // SUPERADMIN: job sem session — business_id no constructor; filtro defensivo Tier 0 (phone de outro biz nunca aceito)
         // Resolve phone do business escapando global scope (job sem session())
         // Defensive multi-tenant: where('business_id', ...) garante phone pertence
         // ao business correto — phone de outro business jamais é aceito (Tier 0).
@@ -91,6 +92,7 @@ class SendWhatsappMessageJob implements ShouldQueue
         // Cria WhatsappMessage em status=queued (append-only)
         $conversation = $this->resolveConversation($this->businessId, $this->whatsappBusinessPhoneId, $this->to);
 
+        // SUPERADMIN: job sem session — INSERT explícito com business_id do constructor
         $message = WhatsappMessage::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->create([
@@ -185,6 +187,7 @@ class SendWhatsappMessageJob implements ShouldQueue
         }
         $normalized = '+' . $normalized;
 
+        // SUPERADMIN: job sem session — firstOrCreate com business_id explícito do param do método
         return WhatsappConversation::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->firstOrCreate(
