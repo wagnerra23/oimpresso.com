@@ -11,9 +11,13 @@ use Illuminate\Console\Scheduling\Schedule;
  *
  * Defasagem 30min do jana:health-check (06:00) pra não disputar DB.
  * Garante compliance LGPD ativo sem intervenção manual.
+ *
+ * Nota: NÃO declarar `uses(Tests\TestCase::class)` aqui — `tests/Pest.php:5`
+ * já registra TestCase pra toda pasta `tests/Feature/`. Redeclarar gera
+ * "The folder already uses the test case [Tests\TestCase]" e bloqueia
+ * `vendor/bin/pest --filter`. Catalogado em
+ * memory/decisions/proposals/drafts/_AGENT_A_AUDIT_FINDINGS.md:210-229.
  */
-
-uses(Tests\TestCase::class);
 
 it('agenda arquivos:health-check daily 06:30 BRT', function () {
     /** @var Schedule $schedule */
