@@ -259,15 +259,259 @@
 
 ---
 
-#### 13-15 (Marina&Gabriella, Inkieta, DLK Modas) — variações similares
+#### 13. Marina&Gabriella (Blumenau) {#marina-gabriella}
+**Sinal:** 14 anos (desde 2011), 1 loja física + ecommerce nacional via PostHaus. Mix feminino + infantil PP→G6 = **SKU explosion alta** (cor × tamanho × idade × estação).
 
-> Cada uma com sinal específico (SKU explosion, marca conceitual 30+ anos, 3k+ SKUs DLK). Seguir mesmo template Cold #1 acima trocando: sinal observado + diferencial oimpresso conexo + ROTA LIVRE como referência.
+**Cold #1 (LinkedIn dono):**
+> Pessoal d'A Marina&Gabriella, 14 anos rodando feminino + infantil PP→G6 + ecommerce nacional é mix com SKU explosion real — cada item vira N variantes (cor × tamanho × idade) e gerenciar isso em sistema horizontal vira planilha eterna.
+>
+> Construímos o oimpresso, ERP vertical loja de roupa com SKU multi-atributo nativo (cor/tamanho/grade) + estoque sincronizado entre loja física e ecommerce. Cliente piloto é a Larissa do ROTA LIVRE em Gravatal/SC, há 2 anos com 3 lojas — referência ao vivo se quiserem. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dono.
 
 ---
 
-### Fase 3 — Outras UFs (Cold #1 condensado)
+#### 14. Inkieta Moda Feminina (Criciúma) {#inkieta}
+**Sinal:** 30+ anos (desde anos 90), modelo loja+fábrica integrados em Criciúma, marca conceitual reconhecida.
 
-> Após calibrar mensagem com Fase 1+2, expandir pras outras UFs. Estilo igual ao ComunicacaoVisual outbound (`outbound-comvis-q2/00-PLAN.md`) mas com case ROTA LIVRE central. 15 prospects (#16-#30).
+**Cold #1 (LinkedIn dono):**
+> Pessoal d'A Inkieta, 30+ anos em Criciúma + modelo loja+fábrica integrados é veterano consolidado — sistema próprio antigo provavelmente, ninguém quer mexer.
+>
+> Não tô oferecendo migração big bang. Construímos o oimpresso pra coexistir: loja+fábrica integradas via ERP vertical com Strangler Fig 30 dias (rollback grátis, sistema antigo segue read-only). Cliente piloto há 2 anos em SC, conhece bem realidade catarinense. 15 minutos pra ver se faz sentido camada nova sem ruptura?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dono. Marca conceitual = decisão de migração é cuidadosa — abordagem soft.
+
+---
+
+#### 15. DLK Modas (Jaraguá do Sul) {#dlk-modas}
+**Sinal:** Capital da Moda Íntima, ecommerce robusto com **3.000+ SKUs** (fitness + lingerie + praia + calçados + masc/infantil). SKU intensity altíssima.
+
+**Cold #1 (Email site):**
+> Pessoal d'A DLK Modas, 3.000+ SKUs cobrindo fitness + lingerie + praia + calçados + masc/infantil é catálogo enterprise — gerenciar grade (cor × tamanho × variante) sem ERP que entenda atributos nativamente vira fila de SAC.
+>
+> Construímos o oimpresso, ERP vertical com SKU multi-atributo nativo + integração ecommerce + estoque real-time. Cliente piloto é a Larissa do ROTA LIVRE em Gravatal/SC, há 2 anos. Modelo dela é menor (3 lojas) mas o Tier 0 multi-tenant + atributos é o mesmo que sustentaria 3 mil SKUs. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** Email comercial site + LinkedIn dono.
+
+---
+
+### Fase 3 — Outras UFs (Cold #1 customizado)
+
+#### 16. Mamô (SP/Santos/Guarulhos/Mogi — 11 lojas) {#mamo}
+**Sinal:** **11 lojas** SP capital + cidades vizinhas. Caso multi-loja flagship em SP.
+
+**Cold #1 (LinkedIn DM diretor):**
+> Pessoal d'A Mamô, 11 lojas operando SP + Santos + Guarulhos + Mogi é multi-loja real flagship — esse perfil bate o limite do que sistema horizontal aguenta antes de virar caos de DRE consolidada, transferência inter-loja, NFe por filial.
+>
+> Construímos o oimpresso, ERP vertical loja de roupa com multi-tenant Tier 0 nativo. Cliente piloto é a Larissa do ROTA LIVRE em Gravatal/SC com 3 lojas há 2 anos — perfil menor que vocês mas o stack é mesmo, escala linear. 15 minutos pra apresentar?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM diretor.
+
+---
+
+#### 17. All Side Store (SP/Itaim+Pinheiros — 4 lojas) {#all-side}
+**Sinal:** Desde 2005, 4 lojas em bairros nobres SP. **Perfil quase-gêmeo do ROTA LIVRE** (multi-loja boutique regional).
+
+**Cold #1 (LinkedIn DM dono):**
+> Pessoal d'A All Side Store, 4 lojas em Itaim + Pinheiros há 20 anos é multi-loja boutique consolidada — perfil muito próximo do que faz a Larissa do ROTA LIVRE em Gravatal/SC.
+>
+> Larissa migrou pro oimpresso há 2 anos: 1 sistema cobre as 3 lojas dela com DRE consolidada, transferência estoque inter-loja, NFC-e ágil, IA Jana respondendo "qual produto bateu meta" no WhatsApp dela. Faturamento R$ 80k → R$ 130k em 18 meses (não tudo do sistema, mas destravou capacidade).
+>
+> Topam 15 minutos pra eu mostrar a operação dela ao vivo?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dono. Perfil mais próximo do piloto = pitch ROTA LIVRE direto.
+
+---
+
+#### 18. Tatuapé Conceito (SP — flagship 400m²) {#tatuape-conceito}
+**Sinal:** Flagship 400m² + 30+ funcionários. Operação enterprise SP em loja única grande.
+
+**Cold #1 (Email comercial):**
+> Pessoal d'O Tatuapé Conceito, 400m² flagship + 30+ funcionários é operação enterprise em loja única — staff alto exige controle de comissão por vendedora + ranking + meta + caixa segregado por turno.
+>
+> Construímos o oimpresso, ERP vertical loja de roupa com comissão multi-nível + meta por vendedor + IA pra ranking dinâmico. Cliente piloto é a Larissa do ROTA LIVRE em Gravatal/SC há 2 anos. 15 minutos pra apresentar?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** Email comercial.
+
+---
+
+#### 19. Mega São José (SP/Brás+25 março — 5 lojas) {#mega-sao-jose}
+**Sinal:** Desde 1978 (47 anos), 5 lojas no Brás + 25 de março. Polo varejo+atacado SP. Especialista lingerie/plus.
+
+**Cold #1 (Email + LinkedIn):**
+> Pessoal d'A Mega São José, 47 anos + 5 lojas no Brás/25 de março + lingerie/plus é veterano do polo varejo dual SP — sistema legado provável + dor de atacado/varejo + plus = SKU explosion + ticket diferente por canal.
+>
+> Construímos o oimpresso, ERP vertical com modelo dual atacado+varejo nativo + multi-canal + grade tamanho complexa. Stack moderna sem ruptura (Strangler Fig 30d). Cliente piloto há 2 anos em SC com 3 lojas. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** Email comercial + LinkedIn matriz.
+
+---
+
+#### 20. Pandora Rio (RJ/Tijuca+Méier+Caxias — 3 lojas plus) {#pandora-rio}
+**Sinal:** 3 lojas plus size em RJ/Caxias (perfil regional + nicho específico).
+
+**Cold #1 (LinkedIn DM):**
+> Pessoal d'A Pandora Rio, 3 lojas plus size em Tijuca/Méier/Caxias é multi-loja + nicho específico — grade tamanho extra (G a EG6+) explode o catálogo, e tabela tempária por curva de tamanho não tem em ERP horizontal.
+>
+> Construímos o oimpresso, ERP vertical com SKU multi-atributo nativo + grade flexível. Cliente piloto é a Larissa do ROTA LIVRE em SC, 3 lojas há 2 anos. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dona.
+
+---
+
+#### 21. Atitude Feminina (Volta Redonda/RJ — 3 lojas) {#atitude-feminina}
+**Sinal:** LTDA fundada 2014, 3 lojas em Volta Redonda. Multi-loja interior RJ.
+
+**Cold #1 (LinkedIn DM):**
+> Pessoal d'A Atitude Feminina, 3 lojas em Volta Redonda há 11 anos é multi-loja consolidada interior RJ — esse perfil sente a dor de DRE consolidada e gestão de estoque cross-filial.
+>
+> Construímos o oimpresso, ERP vertical loja de roupa com multi-tenant nativo. Cliente piloto é a Larissa do ROTA LIVRE em SC com 3 lojas há 2 anos — perfil parecido. 15 minutos pra papo?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dona.
+
+---
+
+#### 22. Roupa Mágica BH (MG/RM — 6 lojas infantil) {#roupa-magica}
+**Sinal:** 6 lojas em BH+RM, segmento infantil. Multi-loja regional MG + nicho infantil.
+
+**Cold #1 (LinkedIn matriz):**
+> Pessoal d'A Roupa Mágica BH, 6 lojas em BH+RM rodando infantil é multi-loja + nicho idade. Infantil tem rotação alta de SKU (criança cresce, troca tamanho rápido) + sazonalidade pesada (volta às aulas, festas).
+>
+> Construímos o oimpresso, ERP vertical com grade idade nativa + previsão sazonal + multi-tenant. Cliente piloto é a Larissa do ROTA LIVRE em SC com 3 lojas há 2 anos. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn matriz BH.
+
+---
+
+#### 23. Ousada Moda (Uberlândia/MG — 4 lojas) {#ousada-moda}
+**Sinal:** 4 lojas em Uberlândia. Multi-loja interior MG.
+
+**Cold #1 (LinkedIn + email):**
+> Pessoal d'A Ousada Moda, 4 lojas em Uberlândia é multi-loja consolidada interior MG. Triângulo Mineiro tem perfil regional próprio (cliente recorrente, sazonalidade safra agro).
+>
+> Construímos o oimpresso, ERP vertical loja de roupa com multi-tenant nativo + IA pra histórico cliente recorrente. Cliente piloto há 2 anos em SC. 15 minutos pra apresentar?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM + email site.
+
+---
+
+#### 24. Pole Modas (Caxias do Sul/RS — 4 lojas + ecommerce) {#pole-modas}
+**Sinal:** 4 lojas em Caxias do Sul + ecommerce próprio. Multi-loja regional Serra Gaúcha + canal digital.
+
+**Cold #1 (LinkedIn DM):**
+> Pessoal d'A Pole Modas, 4 lojas em Caxias + ecommerce próprio é caso multi-loja + multi-canal — estoque sincronizado entre 4 lojas físicas + ecommerce sem sistema integrado vira pesadelo de overselling e devolução.
+>
+> Construímos o oimpresso, ERP vertical loja de roupa com estoque real-time multi-canal + multi-tenant. Cliente piloto é a Larissa do ROTA LIVRE em SC com 3 lojas há 2 anos. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dono.
+
+---
+
+#### 25. Tauth (Pelotas/RS — multi-canal Mitienda + envio BR) {#tauth}
+**Sinal:** Multi-canal usando Mitienda Nube, envio nacional. Loja única + ecommerce BR.
+
+**Cold #1 (LinkedIn dono):**
+> Pessoal d'A Tauth, ecommerce próprio + envio BR todo a partir de Pelotas é operação digital madura — mas ecommerce em SaaS de prateleira não vem com ERP integrado, e gerenciar estoque + NF + cobrança fica em N planilhas.
+>
+> Construímos o oimpresso, ERP vertical loja de roupa que se integra ao ecommerce existente (não força migração) + cobre estoque sincronizado + NF automática + boleto-pra-NF. Cliente piloto há 2 anos em SC. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dono.
+
+---
+
+#### 26. Soul Dila (Salvador/BA — 10+ pontos) {#soul-dila}
+**Sinal:** 10+ pontos de venda em Salvador, ecommerce + offline. Caso multi-loja BA top.
+
+**Cold #1 (LinkedIn dono):**
+> Pessoal d'A Soul Dila, 10+ pontos em Salvador + ecommerce é multi-loja real do norte/nordeste — perfil escala significativa que sistema horizontal trava (DRE consolidada + transferência estoque + NF inter-loja).
+>
+> Construímos o oimpresso, ERP vertical loja de roupa multi-tenant Tier 0. Cliente piloto é menor (3 lojas SC há 2 anos) mas Tier 0 escala linear pra 10+. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dono.
+
+---
+
+#### 27. Kombikini (Costa do Descobrimento/BA — 6 lojas turismo) {#kombikini}
+**Sinal:** 6 lojas em Porto Seguro/Arraial/Trancoso (Costa do Descobrimento). **Sazonalidade turística idêntica à ROTA LIVRE** (Termas do Gravatal SC = turismo termal).
+
+**Cold #1 (DM IG + WhatsApp):**
+> Pessoal d'A Kombikini, 6 lojas em Porto Seguro/Arraial/Trancoso é operação multi-loja com sazonalidade turística pesada — pico 4 meses, baixa o resto, equipe variável, estoque rotativo.
+>
+> A Larissa do ROTA LIVRE em Termas do Gravatal/SC vive perfil idêntico (cliente piloto nosso há 2 anos, 3 lojas) — turismo termal de inverno. Migrou pro oimpresso e o sistema entende essa sazonalidade nativamente. Topam 15 minutos pra eu mostrar como ela faz no dia a dia? Sem deck, demo ao vivo.
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** DM IG + WhatsApp. Caso de sazonalidade casa muito com ROTA LIVRE — pitch direto.
+
+---
+
+#### 28. Morena Mel (Petrolina/PE — 226k IG, 5 categorias) {#morena-mel}
+**Sinal:** **226k seguidores no Instagram**. Hub regional PE+BA+PI+CE com 5 categorias (feminina+lingerie+fitness+praia+pijama).
+
+**Cold #1 (DM IG):**
+> Pessoal d'A Morena Mel, 226k IG + 5 categorias atendendo PE+BA+PI+CE é operação social-commerce-first em escala regional — IG é o balcão real, mas integrar com NF + estoque + cobrança costuma ser caos pós-meia-noite.
+>
+> Construímos o oimpresso, ERP vertical loja de roupa com integração WhatsApp/IG DM nativa + estoque real-time + NF automática. Cliente piloto é a Larissa do ROTA LIVRE em SC há 2 anos. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** DM IG (canal natural delas).
+
+---
+
+#### 29. BÚHO (Fortaleza/CE — 3 lojas + ecommerce, 14 anos jeans) {#buho}
+**Sinal:** 14 anos rodando 3 lojas + ecommerce em Fortaleza, foco jeans (CE polo nacional jeans).
+
+**Cold #1 (LinkedIn DM):**
+> Pessoal d'A BÚHO, 3 lojas + ecommerce há 14 anos especializadas em jeans é operação consolidada num polo nacional (CE jeans). Multi-loja física + ecommerce próprio + nicho lavagem/modelagem específica = catálogo complexo.
+>
+> Construímos o oimpresso, ERP vertical com SKU multi-atributo (lavagem/modelagem/tamanho) + multi-tenant + estoque real-time. Cliente piloto há 2 anos em SC. 15 minutos?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dono.
+
+---
+
+#### 30. Pó de Canella (Goiânia — 2 lojas, 22 anos) {#po-de-canella}
+**Sinal:** 22 anos em Goiânia, 2 lojas, "departamentalização" declarada (modelo dono mais consciente da operação).
+
+**Cold #1 (LinkedIn DM):**
+> Pessoal d'O Pó de Canella, 22 anos + 2 lojas + departamentalização declarada na comunicação é dono que pensa operação madura. Esse perfil sente a dor de gestão multi-loja e busca ferramentas que entendam o modelo.
+>
+> Construímos o oimpresso, ERP vertical loja de roupa com multi-tenant nativo + DRE por filial + IA conversacional. Cliente piloto é a Larissa do ROTA LIVRE em SC com 3 lojas há 2 anos — perfil próximo. 15 minutos pra papear?
+>
+> Wagner Rocha — Office Impresso · wagnerra@gmail.com · WhatsApp `<WAGNER_TEL>`
+
+**Próximo passo:** LinkedIn DM dono.
 
 ---
 
