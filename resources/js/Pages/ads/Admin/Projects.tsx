@@ -56,7 +56,8 @@ const Projects: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
     form.post('/ads/admin/projects', {
-      onSuccess: () => { form.reset(); setShowCreate(false) },
+      onSuccess: () => setShowCreate(false),
+      onFinish: () => form.reset(),
     })
   }
 

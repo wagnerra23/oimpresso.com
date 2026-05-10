@@ -174,9 +174,9 @@ function Usuario360Show(props: Props) {
       onSuccess: () => {
         toast.success('Usuário trancado.');
         setLockOpen(false);
-        lockForm.reset();
       },
       onError: () => toast.error('Erro ao trancar.'),
+      onFinish: () => lockForm.reset(),
     });
   }
 
