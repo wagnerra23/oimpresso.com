@@ -226,6 +226,92 @@ Como ter certeza que vai dar certo:
 
 Histórico de comentários por US fica navegável via `/copiloto/admin/qualidade` ou tool MCP `tasks-detail task_id:US-SELL-NNN`.
 
+## 5. User Stories — State Machine canônica (sessão 2026-05-10)
+
+> Cadeia criada após pivot conceitual com Wagner: **venda sem nota é caminho feliz, não falha**. US-RB-044 fechada com DoD prod-evidence removida. Padrão FSM (Finite State Machine + RBAC por transição) será reutilizado por Sells, Repair, Project e qualquer feature multi-etapa futura.
+
+### US-SELL-010 · Investigar State Machines existentes (Repair, Project, mcp_tasks) + propor ADR padrão FSM canônico
+
+> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** Wagner identificou que oimpresso precisa de padrão canônico de Workflow/State Machine pra modelar processos multi-etapa com RBAC por transição. Hoje há state machines simples espalhadas (Repair Kanban, mcp_tasks todo→done, talvez Project) sem padrão unificado. Sem isso, qualquer feature multi-etapa (gate emissão NFe por venda, fluxo aprovação OS, kanban PMG) reinventa roda diferente.
+
+**Decisão de design pendente:** adotar `spatie/laravel-model-states`, `symfony/workflow`, ou modelo customizado de 4 tabelas (`processes` + `process_stages` + `stage_actions` + `stage_action_roles`).
+
+**Acceptance criteria:**
+- [ ] Mapear o que existe: Modules/Repair status flow, Modules/Project tasks states, mcp_tasks state machine — quem implementa, onde, com qual padrão
+- [ ] Verificar pacotes disponíveis no `composer.json` (spatie/laravel-model-states, symfony/workflow)
+- [ ] Identificar se já existe RBAC por transição em algum módulo
+- [ ] ADR `proposed` em `memory/decisions/NNNN-state-machine-canonica-fsm-rbac.md` com: opções avaliadas (Spatie vs Symfony vs custom 4 tabelas), trade-offs (lock-in vs flexibilidade vs simplicidade), recomendação, plano de migração de Repair/Project pro padrão escolhido (se houver)
+- [ ] Wagner aprova ADR antes de qualquer código
+
+**Refs:** sessão 2026-05-10 (CYCLE-04 higiene + pivot conceitual venda sem nota). US-RB-044 fechada motivou esse trabalho.
+
+### US-SELL-011 · Modelar 4 tabelas FSM canônicas (processes + stages + actions + RBAC)
+
+> owner: wagner · priority: p1 · estimate: 12h · status: todo · type: story
+> blocked_by: US-SELL-010
+
+**Contexto:** após ADR aceitar State Machine canônica (US-SELL-010), implementar a infraestrutura base que será usada por Sells (gate emissão NFe), Repair (kanban OS), Project (tasks), e qualquer feature futura multi-etapa.
+
+**Schema proposto (sujeito a ADR US-SELL-010):**
+
+```sql
+sale_processes              -- catálogo: "Venda Padrão", "Venda Sem Nota", "Venda B2B"
+  id, business_id, key (unique per business), name, description, default_for_contact_type, active
+
+sale_process_stages         -- estados: rascunho → orcamento → faturada → paga → emitida → enviada
+  id, process_id, key, name, sort_order, is_initial, is_terminal, color
+
+sale_stage_actions          -- transições por etapa: "emitir NFe55", "marcar pago", "cancelar"
+  id, stage_id, key, label, target_stage_id (nullable se não muda stage), event_class (event a disparar), requires_confirmation
+
+sale_stage_action_roles     -- RBAC join: action × spatie_role/permission
+  id, action_id, role_name (FK spatie_roles)
+```
+
+**Acceptance criteria:**
+- [ ] Migrations das 4 tabelas com `business_id` global scope obrigatório (ADR 0093 multi-tenant Tier 0)
+- [ ] Models + relacionamentos
+- [ ] Service `ExecuteStageActionService::execute(Sale $sale, string $actionKey, User $user)` que: (1) resolve action válida pra stage atual; (2) checa RBAC; (3) dispara event; (4) atualiza `current_stage_id`; (5) loga em `sale_stage_history`
+- [ ] Tabela `sale_stage_history` (audit log: sale_id, from_stage, to_stage, action, user_id, timestamp)
+- [ ] Pest 8+ testes: transição válida, action inválida pra stage, RBAC OK, RBAC falha, multi-tenant isolation, terminal state bloqueia ação, history registrada, event disparado
+
+**Refs:** US-SELL-010 (ADR mãe). Modules/Repair + Modules/Project devem migrar pro padrão (US separadas a criar pós-ADR).
+
+### US-SELL-012 · Gate de emissão NFe por venda (aplicar FSM canônica em Sale)
+
+> owner: wagner · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: US-SELL-011
+
+**Contexto:** primeira aplicação real da State Machine canônica (US-SELL-011). Resolve premissa errada do US-RB-044 original — "venda sem nota é caminho feliz, não falha". Auto-emissão NFe55 deixa de ser flag global por business e passa a ser **opt-in por venda** via processo escolhido.
+
+**Mudanças no schema Sales:**
+- Adicionar `process_id` + `current_stage_id` em `transactions` (table de vendas UltimatePOS, com FK pras tabelas FSM)
+- Default na criação: usar `process_default_for_contact_type` (Contact PJ → "Venda Com Nota"; Contact CF → "Venda Sem Nota")
+- UI checkout permite override do processo
+
+**Processos seed (instalados via migration):**
+- `Venda Sem Nota`: stages [rascunho → faturada → paga] (sem stage `emitida`/`enviada`)
+- `Venda Com Nota Manual`: stages [rascunho → faturada → paga → emitida → enviada], action `emitir_nfe` em `paga` é manual (botão UI)
+- `Venda Com Nota Automática`: idem mas stage `paga` tem action `emitir_nfe` com `auto_trigger=true` (event `InvoicePaid` dispara)
+
+**Listener auto-emissão refatorado:**
+- `EmitirNFeAoReceberPagamento` (atual) consulta `sale.currentStage->actions` e só emite se existe action `emitir_nfe` com `auto_trigger=true`
+- Flag global `nfebrasil.auto_emission_on_invoice_paid` deprecada (vira no-op com warning log; remoção em US futura)
+
+**Acceptance criteria:**
+- [ ] Migration adiciona process_id + current_stage_id em transactions (com FK + index multi-tenant)
+- [ ] 3 processos seed instalados via SeederFSM (idempotente; cria só se não existe pra business)
+- [ ] Default process resolve por Contact type (CF/PF/PJ) — fallback "Venda Sem Nota" se Contact null
+- [ ] UI POS checkout mostra processo escolhido + permite trocar (dropdown)
+- [ ] Listener `EmitirNFeAoReceberPagamento` consulta FSM antes de emitir; sem action `emitir_nfe` no stage atual = no-op silencioso (não loga warning, é caminho feliz)
+- [ ] Pest: 6 testes — venda sem nota não dispara NFe, venda com nota auto dispara, venda com nota manual NÃO dispara automaticamente, multi-tenant isolation, default por Contact type, override UI persiste
+- [ ] Doc no SPEC Sells: matriz "Contact type → process default"
+
+**Refs:** US-SELL-011 (FSM base). US-RB-044 fechada com pivot conceitual. ROTA LIVRE biz=4 deve ficar com default "Venda Sem Nota" pra não quebrar fluxo atual.
+
 ---
 
-**Última atualização:** 2026-05-08
+**Última atualização:** 2026-05-10 — apêndice §5 (cadeia FSM) + nota pivot venda sem nota

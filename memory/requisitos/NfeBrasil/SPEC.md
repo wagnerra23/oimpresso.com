@@ -887,3 +887,26 @@ Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/My
 - [ ] 1 PR por agrupamento (≤300 linhas) — provável PR #491 (Emitir*) + PR #492 (NfeEmissao + DistribuicaoDfe)
 
 **Refs:** PRs #486-490 (pattern + 8 files já cobertos), ADR 0101, reference_tests_pest_canon.md §4 + §6 (FK map + dual-mode receita)
+
+### US-NFE-059 · Smoke prod end-to-end auto-emissão NFe55 com cliente real que opt-in
+
+> owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: US-SELL-012
+
+**Contexto:** prod-evidence que estava no DoD original do US-RB-044 mas foi removida por ser premissa errada (cliente sem nota é caminho feliz). Após US-SELL-012 entregar gate por venda, ativar fluxo end-to-end com 1 cliente real que opt-in pra "Venda Com Nota Automática".
+
+**Candidatos naturais:**
+1. **Gold** (Comunicação Visual) — pós Manifestação Destinatário entregue (US-NFE-049/050/051/052 já done). Gold é gráfica grande, emite 100%.
+2. **Vargas** (Autopecas) — sinal qualificado real (R$ [redacted Tier 0]M GMV), mas Modules/Autopecas ainda em construção.
+3. **Modules/ComunicacaoVisual cliente novo** — qualquer um das 5 cartas warming (Extreme/Zoom/Fixar/Mhundo/Produart) que adotar oimpresso pós outreach.
+
+**Acceptance criteria (smoke fim-a-fim):**
+- [ ] 1 cliente real configurado: cert A1 instalado + ncm_default + processo "Venda Com Nota Automática" como default
+- [ ] Criar venda real → faturar boleto → cliente paga → InvoicePaid event dispara → FSM consulta stage atual → action `emitir_nfe` auto_trigger=true → NfeService.emitir → SEFAZ-prod retorna cstat 100
+- [ ] DANFE PDF gerado + email enviado pro destinatário com XML+PDF anexados
+- [ ] Wagner valida visualmente: NFe na lista do cliente em /nfebrasil + email recebido + PDF abre
+- [ ] Session log da operação em `memory/sessions/YYYY-MM-DD-smoke-auto-emissao-{cliente}.md`
+
+**NÃO bloqueia release do gate (US-SELL-012)** — feature pode ir pra prod sem este smoke. Esta US apenas registra a evidência real quando primeiro cliente adotar.
+
+**Refs:** pivot conceitual sessão 2026-05-10 (US-RB-044 done sem prod-evidence). US-SELL-012 (gate por venda).
