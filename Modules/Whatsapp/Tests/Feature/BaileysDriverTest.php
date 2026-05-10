@@ -79,11 +79,11 @@ beforeEach(function () {
 function makeBaileysConfig(array $overrides = []): WhatsappBusinessConfig
 {
     return WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create(array_merge([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => Str::uuid()->toString(),
         'driver' => 'baileys',
         'fallback_driver' => 'meta_cloud',
-        'baileys_instance_id' => 'biz4-main',
+        'baileys_instance_id' => 'biz1-main',
         'baileys_phone_e164' => '+5511987654321',
     ], $overrides));
 }
@@ -92,7 +92,7 @@ function makeBaileysConfig(array $overrides = []): WhatsappBusinessConfig
 
 it('sendFreeform sucesso retorna message_id', function () {
     Http::fake([
-        'daemon.test/instances/biz4-main/text' => Http::response(['message_id' => 'BAE5XYZ', 'status' => 'sent'], 200),
+        'daemon.test/instances/biz1-main/text' => Http::response(['message_id' => 'BAE5XYZ', 'status' => 'sent'], 200),
     ]);
 
     $config = makeBaileysConfig();
@@ -145,7 +145,7 @@ it('sendFreeform com body "banned" marca banDetected', function () {
 
 it('ping retorna healthy quando state=connected', function () {
     Http::fake([
-        'daemon.test/instances/biz4-main/status' => Http::response([
+        'daemon.test/instances/biz1-main/status' => Http::response([
             'state' => 'connected',
             'display_phone' => '5511987654321',
         ], 200),
@@ -160,7 +160,7 @@ it('ping retorna healthy quando state=connected', function () {
 
 it('ping retorna unhealthy quando state=qr_required', function () {
     Http::fake([
-        'daemon.test/instances/biz4-main/status' => Http::response(['state' => 'qr_required'], 200),
+        'daemon.test/instances/biz1-main/status' => Http::response(['state' => 'qr_required'], 200),
     ]);
 
     $health = app(BaileysDriver::class)->ping(makeBaileysConfig());
@@ -171,7 +171,7 @@ it('ping retorna unhealthy quando state=qr_required', function () {
 
 it('ping com state=banned marca banDetected', function () {
     Http::fake([
-        'daemon.test/instances/biz4-main/status' => Http::response([
+        'daemon.test/instances/biz1-main/status' => Http::response([
             'state' => 'banned',
             'ban_reason' => 'logged_out',
         ], 200),
@@ -234,7 +234,7 @@ it('Webhook Bearer válido (global) + event=message dispara Job', function () {
     $response = $this->postJson(
         "/api/whatsapp/webhook/baileys/{$config->business_uuid}",
         [
-            'instance_id' => 'biz4-main',
+            'instance_id' => 'biz1-main',
             'event' => 'message',
             'data' => ['key' => ['id' => 'BAE5INBOUND'], 'message' => ['conversation' => 'oi']],
         ],
@@ -252,7 +252,7 @@ it('Webhook event=ban_detected marca driver_health=banned', function () {
 
     $response = $this->postJson(
         "/api/whatsapp/webhook/baileys/{$config->business_uuid}",
-        ['instance_id' => 'biz4-main', 'event' => 'ban_detected', 'data' => ['reason' => 'logged_out']],
+        ['instance_id' => 'biz1-main', 'event' => 'ban_detected', 'data' => ['reason' => 'logged_out']],
         ['Authorization' => 'Bearer ' . config('whatsapp.baileys.api_key')]
     );
 
@@ -267,7 +267,7 @@ it('Webhook event=connected sincroniza display_phone + verified_name + profile_p
     $response = $this->postJson(
         "/api/whatsapp/webhook/baileys/{$config->business_uuid}",
         [
-            'instance_id' => 'biz4-main',
+            'instance_id' => 'biz1-main',
             'event' => 'connected',
             'data' => [
                 'display_phone' => '5511987654321',

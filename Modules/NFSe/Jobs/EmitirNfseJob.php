@@ -30,6 +30,7 @@ class EmitirNfseJob implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
+        // SUPERADMIN: job failed handler sem session — business_id no payload do constructor
         // Marca nota como erro se o job esgotar todas as tentativas
         NfseEmissao::withoutGlobalScopes()
             ->where('idempotency_key', $this->payload->idempotencyKey())

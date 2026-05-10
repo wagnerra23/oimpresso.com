@@ -141,6 +141,9 @@ class WhatsappBusinessPhone extends Model
             throw new \InvalidArgumentException("Unknown event: {$event}");
         }
 
+        // SUPERADMIN: listener async (event handler) chama com $businessId explícito
+        // — session() não funciona em fila, scope global precisa bypass com where() explícito.
+        // ADR 0093 §Job assíncrono SEMPRE passa $businessId no constructor.
         $query = static::withoutGlobalScopes()
             ->where('business_id', $businessId);
 

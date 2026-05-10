@@ -69,6 +69,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         // Resolve phone se fornecido (defensive Tier 0); senão fallback config legacy
         $phone = null;
         if ($this->whatsappBusinessPhoneId !== null) {
+            // SUPERADMIN: job webhook sem session — business_id do constructor (validado pelo middleware HMAC)
             $phone = WhatsappBusinessPhone::query()
                 ->withoutGlobalScope(ScopeByBusiness::class)
                 ->where('business_id', $this->businessId)
@@ -77,6 +78,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         }
 
         if ($phone === null) {
+            // SUPERADMIN: fallback config legacy — job sem session, biz do constructor
             // Fallback config legacy (durante coexistência PR 1 → PR 5)
             $config = WhatsappBusinessConfig::query()
                 ->withoutGlobalScope(ScopeByBusiness::class)
@@ -178,6 +180,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             return;
         }
 
+        // SUPERADMIN: job webhook sem session — provider_message_id é UNIQUE global (idempotência cross-tenant via wamid/messageId único)
         $existing = WhatsappMessage::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('provider_message_id', $providerMessageId)
@@ -187,6 +190,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             return;
         }
 
+        // SUPERADMIN: job webhook sem session — firstOrCreate com business_id explícito (param)
         $conversation = WhatsappConversation::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->firstOrCreate(
@@ -200,6 +204,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             $conversation->update(['whatsapp_business_phone_id' => $phoneId]);
         }
 
+        // SUPERADMIN: job webhook sem session — INSERT inbound com business_id do param
         $message = WhatsappMessage::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->create([

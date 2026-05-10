@@ -50,6 +50,7 @@ class DispatchToJanaBot
 
         $message = $event->message;
 
+        // SUPERADMIN: listener fora de session HTTP — business_id deduzido do webhook payload via WhatsappMessageReceived event
         $conversation = WhatsappConversation::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->find($message->conversation_id);
@@ -63,6 +64,7 @@ class DispatchToJanaBot
         // legacy migradas via PR 1 sem phone vinculado preciso)
         $phone = null;
         if ($conversation->whatsapp_business_phone_id !== null) {
+            // SUPERADMIN: listener sem session — filtro defensivo where('business_id') garante Tier 0
             $phone = WhatsappBusinessPhone::query()
                 ->withoutGlobalScope(ScopeByBusiness::class)
                 ->where('business_id', $message->business_id)

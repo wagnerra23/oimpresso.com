@@ -81,8 +81,10 @@ class ImportacaoController extends Controller
             'usuario_id'     => $request->user()->id,
         ]);
 
-        // Dispara processamento assíncrono
-        \Modules\Ponto\Jobs\ProcessarImportacaoAfdJob::dispatch($importacao->id);
+        // Dispara processamento assíncrono.
+        // Multi-tenant Tier 0 (ADR 0093): job exige $businessId no constructor
+        // pra resolver tenant sem session no queue worker.
+        \Modules\Ponto\Jobs\ProcessarImportacaoAfdJob::dispatch($businessId, $importacao->id);
 
         return redirect()
             ->route('ponto.importacoes.show', $importacao->id)
