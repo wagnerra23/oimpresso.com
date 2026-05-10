@@ -1,0 +1,14 @@
+{
+    "name": "Admin",
+    "alias": "admin",
+    "description": "Centro de Operações Wagner-only @ CT 100 (Tailscale-only). Agrega Curador, Health Checks, Cycles+Tasks, ADRs Tier 0 violados. Read-mostly. Não substitui Officeimpresso superadmin nem /copiloto/admin/team — agrega visão deles. Ver ADR 0122.",
+    "keywords": ["admin", "centro-operacoes", "tailscale", "superadmin", "wagner-only", "ct100"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Admin\\Providers\\AdminServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

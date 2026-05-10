@@ -27,6 +27,7 @@
             <directory>./Modules/Repair/Tests/Feature</directory>
             <directory>./Modules/ProjectMgmt/Tests/Feature</directory>
             <directory>./Modules/Whatsapp/Tests/Feature</directory>
+            <directory>./Modules/Admin/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>
