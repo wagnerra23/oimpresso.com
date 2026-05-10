@@ -13,6 +13,8 @@ import WidgetBrief from './_components/WidgetBrief';
 import WidgetHealth from './_components/WidgetHealth';
 import WidgetCycles from './_components/WidgetCycles';
 import WidgetAdrTier0 from './_components/WidgetAdrTier0';
+import WidgetCurador from './_components/WidgetCurador';
+import WidgetMcpServer from './_components/WidgetMcpServer';
 
 interface BriefData {
   available: boolean;
@@ -74,12 +76,44 @@ interface AdrAlertsData {
   reason?: string;
 }
 
+interface CuradorData {
+  available: boolean;
+  total_active: number;
+  by_bucket: Record<string, number>;
+  sensitive_count: number;
+  audit_24h: Record<string, number>;
+  dedupe_rate_pct: number;
+  unique_md5?: number;
+  total_occurrences?: number;
+  reason?: string;
+  instructions?: string;
+}
+
+interface McpData {
+  available: boolean;
+  docs_count: number;
+  last_sync?: string | null;
+  tokens_total: number;
+  tokens_active: number;
+  last_token_use?: string | null;
+  ping: {
+    reachable: boolean;
+    status?: number;
+    latency_ms?: number | null;
+    error?: string;
+  };
+  reason?: string;
+  instructions?: string;
+}
+
 interface PageProps {
   widgets: {
     brief: BriefData;
     health: HealthData;
     cycles: CyclesData;
     adr_alerts: AdrAlertsData;
+    curador: CuradorData;
+    mcp: McpData;
   };
   meta: {
     subdomain: string;
@@ -90,7 +124,7 @@ interface PageProps {
 }
 
 export default function AdminIndex({ widgets, meta }: PageProps) {
-  const { brief, health, cycles, adr_alerts } = widgets;
+  const { brief, health, cycles, adr_alerts, curador, mcp } = widgets;
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -163,6 +197,42 @@ export default function AdminIndex({ widgets, meta }: PageProps) {
           </CardHeader>
           <CardContent>
             <WidgetCycles data={cycles} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="archive" /> Arquivos / Curador
+              {curador.available && curador.sensitive_count > 0 && (
+                <span className="ml-auto text-xs px-2 py-0.5 rounded bg-red-100 text-red-800">
+                  {curador.sensitive_count} sensitive
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WidgetCurador data={curador} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="server" /> MCP Server
+              <span
+                className={`ml-auto text-xs px-2 py-0.5 rounded ${
+                  mcp.available && mcp.ping.reachable
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}
+              >
+                {mcp.available && mcp.ping.reachable ? 'online' : 'offline'}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WidgetMcpServer data={mcp} />
           </CardContent>
         </Card>
 
