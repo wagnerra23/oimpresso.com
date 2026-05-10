@@ -121,6 +121,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Sprint 2 ADR 0123 — arquivos:health-check diário 06:30 BRT.
+        // 5 sinais compliance LGPD + integridade DMS: orphan_files, dedupe_inconsistent,
+        // audit_log_lag, retention_overdue, vault_encryption_ratio.
+        // Defasagem de 30min do jana:health-check (06:00) pra evitar disputa de DB.
+        // --alert ativa exit code 2=FAIL / 1=WARN pra integração com monitoring.
+        $schedule->command('arquivos:health-check --alert')
+            ->dailyAt('06:30')
+            ->timezone('America/Sao_Paulo')
+            ->name('arquivos-health-check-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule arquivos:health-check FALHOU — investigar storage/logs/laravel.log'
+                );
+            });
+
         // US-RB-046 — sync extrato bancário Inter D-7 (Banking API v2).
         // Roda 07:00 BRT pra ter dia anterior fechado. Idempotente via UNIQUE
         // (conta_bancaria_id, idempotency_key) em fin_extrato_lancamentos.
