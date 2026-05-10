@@ -191,6 +191,12 @@ Logs estruturados em `db/metrics.jsonl`. Checks pra rodar pós-batch:
 ## Plano de adoção
 
 > **2026-05-09 amendment (Wagner):** Curador é **princípio para construir o Centro de Operações Admin** ([ADR 0122](0122-admin-center-ct100.md)) que vai gerenciar toda a infra da empresa. Scripts Node locais ficam (precisam acessar `D:\`/`C:\Users\`); UI/governance vira **widget do Admin Center** em F2 (não módulo standalone).
+>
+> **2026-05-09 amendment 2 (Wagner — "todo arquivo anexado deve cair lá"):** Curador deixa de ser sistema standalone. Vira **engine de classificação compartilhada** dentro de [Modules/Arquivos](../requisitos/Arquivos/SPEC.md) (DMS backbone, [ADR 0123](0123-modules-arquivos-backbone.md)):
+> - `scripts/curador/lib/rules.mjs` permanece (filesystem-aware local, descobre D:\Conhecimento)
+> - Mesma lógica portada pra `Modules/Arquivos/Services/CuradorEngine.php` (server-side, classifica todo upload)
+> - ParityTest JS×PHP obrigatório (mesmo MD5+path → mesmo bucket)
+> - `apply.mjs` futuramente deixa de mexer filesystem direto — vira "submit pro Admin API" (US-ARQ-017)
 
 **Fase 1 — MVP (esta sessão 2026-05-09):**
 - ADR 0121 (este documento)

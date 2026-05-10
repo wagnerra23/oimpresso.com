@@ -125,12 +125,13 @@ Sprint 1 = MVP (~3-5 dias com IA-pair fator 10x [ADR 0106](0106-recalibracao-vel
 - US-ADM-009: Pest tests (auth gate, RBAC, Tailscale IP filter)
 - US-ADM-010: smoke walkthrough (Wagner abre `admin.oimpresso.com` via Tailscale, valida 4 widgets)
 
-**Sprint 2 — Curador integrado + extensões (~3-5 dias):**
-- US-ADM-011: migration `mcp_curador_*` (4 tabelas)
-- US-ADM-012: API `POST /admin/curador/api/upload-batch` recebe JSONL
-- US-ADM-013: Page `Pages/Curador/Batches/{Index,Review}.tsx`
-- US-ADM-014: Job `ApplyBatchJob` (Horizon)
-- US-ADM-015..020: Widgets W5-W10
+**Sprint 2 — Modules/Arquivos integrado + extensões (~3-5 dias):**
+
+> **Amendment 2026-05-09:** Sprint 2 do Admin reaproveita o backbone [Modules/Arquivos](../requisitos/Arquivos/SPEC.md) ([ADR 0123](0123-modules-arquivos-backbone.md)). Pages que iam ser `/admin/curador/*` viram `/admin/arquivos/*`. Tabelas `mcp_curador_*` substituídas por `arquivos`+`arquivos_audit_log`+`arquivos_dedupe`.
+
+- US-ADM-011: Pages `Modules/Admin/Pages/Arquivos/{Index,Review,Detail}.tsx` (referencia US-ARQ-013..015)
+- US-ADM-012: Widget W5 — Arquivos no painel principal (count por bucket, sensitive aguardando vault, métricas saúde)
+- US-ADM-013..017: Widgets W6-W10 (MCP server, Vaultwarden, Sessões, Infra, Custos B)
 
 **Sprint 3 (≥jul/2026, condicional):** observability avançada — Grafana dashboard CT 100 embedded, alerting rules, on-call rotation (mesmo sendo só Wagner — pode automatizar pra mensagem WhatsApp via Evolution se Tier 0 for violado).
 
