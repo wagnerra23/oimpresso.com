@@ -569,10 +569,12 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 
 **Out of scope (vai em US separadas se acontecer):**
 
-- US-WA-041 — "Mover conversa pra outro número" (admin reclassifica conversa antiga)
-- US-WA-042 — Importar números em massa via CSV (50+ businesses migrando manualmente é ruim)
-- US-WA-043 — Compartilhar número entre businesses (NÃO permitir; abrir nova ADR se algum cliente pedir)
-- US-WA-044 — Spatie permissions parametrizadas per-phone (alternativa Q5-i, ainda rejeitada — reabrir só se Spatie ganhar suporte nativo a scope dinâmico)
+- US-WA-053 — "Mover conversa pra outro número" (admin reclassifica conversa antiga)
+- US-WA-054 — Importar números em massa via CSV (50+ businesses migrando manualmente é ruim)
+- US-WA-055 — Compartilhar número entre businesses (NÃO permitir; abrir nova ADR se algum cliente pedir)
+- US-WA-056 — Spatie permissions parametrizadas per-phone (alternativa Q5-i, ainda rejeitada — reabrir só se Spatie ganhar suporte nativo a scope dinâmico)
+
+> _IDs renumerados de 041-044 → 053-056 em 2026-05-10 — IDs antigos foram alocados pelo `/comparativo` na seção 9._
 
 ## 8. Backlog futuro (não-Sprint 1-4)
 
@@ -585,3 +587,192 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 - US-WA-036 — Portal cliente self-service "minhas conversas Whatsapp"
 - US-WA-037 — Integração Crm (lead vindo de Whatsapp vira lead no Crm)
 - US-WA-038 — Pix Copia-e-Cola via Whatsapp (RecurringBilling US-RB-044 v2)
+
+## 9. Backlog vindo do /comparativo (2026-05-10)
+
+> Seção apendada em 2026-05-10 16:30 BRT pelo skill `comparativo-do-modulo` v2.0 ([ADR 0089](../../decisions/0089-capterra-driven-module-evolution.md)).
+> Inventário: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) — score 78% top mercado.
+> Aprovação Wagner: "aprovo todos" (2026-05-10).
+> 12 US criadas via tool MCP `tasks-create` (4 P1 ROI direto + 4 P2 diferenciais + 2 P3 futuro + 2 P0 governança).
+
+### US-WA-041 · Métricas conversation (custo/deflection/tempo) — acelerar US-WA-021
+
+> owner: wagner · priority: p1 · status: todo · type: story
+
+Acelerar US-WA-021 (atualmente [todo]). Gap detectado pelo /comparativo em 2026-05-10 — schema `whatsapp_conversation_metricas` declarado em SPEC §6 mas migration não criada; service `WhatsappMetricasService` não existe. ROI visibility pra Wagner justificar custo Whatsapp por business.
+
+**Evidência:** SPEC §6 + ausência de migration em `Modules/Whatsapp/Database/Migrations/` + ausência de service em `Modules/Whatsapp/Services/`.
+
+**DoD herdado de US-WA-021:**
+- Migration `whatsapp_conversation_metricas` (business_id, dia, total_conversas, custo_centavos, p50/p95 segundos, deflection_pct)
+- `WhatsappMetricasService::aggregate()` job 04:00 BRT
+- Dashboard tab UI ou módulo próprio
+- OTel `whatsapp.*` metrics paralelo (ADR 0051)
+- Pest `MetricasAggregationTest`
+
+### US-WA-042 · Mídia outbound — anexar imagem/PDF na conversa (UI upload)
+
+> owner: wagner · priority: p1 · status: todo · type: story
+
+Gap detectado pelo /comparativo em 2026-05-10 — `DriverInterface::sendMedia()` existe (`Modules/Whatsapp/Services/Drivers/DriverInterface.php`) mas UI sem upload em `Conversations/Show.tsx`. Bloqueador pra US-RB-044 v2 (boleto auto-anexo).
+
+**DoD:**
+- Botão clip 📎 no input freeform → file picker (image/pdf/audio, max 16MB Meta)
+- Upload pra storage Hostinger (S3 backend) → URL pública
+- Driver `sendMedia(config, to, mediaUrl, type, caption)` chamado
+- Preview no chat (thumbnail img / ícone PDF)
+- Pest `SendMediaJobTest` + smoke browser MCP
+
+**Evidência baseline:** capacidade C-103 P1 do CAPTERRA-INVENTARIO.md (PARCIAL).
+
+### US-WA-043 · Mídia inbound — processar foto/PDF/audio recebido do cliente
+
+> owner: wagner · priority: p1 · status: todo · type: story
+
+Gap detectado pelo /comparativo em 2026-05-10 — webhook recebe payload `image/document/audio/sticker` mas `ProcessIncomingWebhookJob.php` descarta hoje (só processa `text`). Backlog US-WA-033.
+
+**DoD:**
+- `ProcessIncomingWebhookJob` baixa media via `Driver::downloadMedia()` (novo método)
+- Salva em `whatsapp_messages.media_path` + `media_type` + `media_size_bytes`
+- Storage S3/Hostinger com path `whatsapp/business_{id}/inbound/{wamid}.{ext}`
+- UI `Conversations/Show.tsx` renderiza thumbnail/ícone clicável
+- Pest `ProcessIncomingMediaTest` cobrindo image/pdf/audio
+- Idempotência via `meta_message_id` UNIQUE (já existe)
+
+**Evidência baseline:** capacidade C-104 P1 do CAPTERRA-INVENTARIO.md (AUSENTE).
+
+### US-WA-044 · Permissions UI per-phone (multi-select atendentes em Settings/Edit)
+
+> owner: wagner · priority: p1 · status: todo · type: story
+
+Gap detectado por Wagner em prod 2026-05-10 ao olhar `/whatsapp/settings` em https://oimpresso.com — schema `whatsapp_phone_user_access` migrated PR1 (US-WA-040) mas SEM UI dedicada. Wagner não consegue dar acesso só ao "número Comercial" pra Felipe e só "número Financeiro" pra Eliana sem mexer no DB direto.
+
+**DoD:**
+- `Settings/Edit.tsx` (já planejada em US-WA-040 PR3) ganha multi-select atendentes (Spatie users com `whatsapp.send` filtrados por business)
+- Persistência em `whatsapp_phone_user_access` (insert/delete diff)
+- Inbox UI aplica filtro automático: atendente sem acesso a `phone_uuid` não vê conversa nem recebe push Centrifugo
+- Permissão Spatie nova: `whatsapp.phones.manage` (separada de `whatsapp.send`)
+- Pest `InboxAclTest` + `WhatsappSettingsCharterTest` invariante `it_acl_filters_attendant_dropdown`
+
+**Evidência baseline:** Gap G-1 do CAPTERRA-INVENTARIO.md (governança interna). Pode ser absorvida em US-WA-040 PR3+PR4 ou virar US separada — Wagner decide.
+
+### US-WA-045 · Botões interativos (HSM com CTAs)
+
+> owner: wagner · priority: p2 · status: todo · type: story
+
+Backlog SPEC §8 (era US-WA-030, agora ativada via /comparativo 2026-05-10).
+
+**DoD:**
+- Suporte a `interactive.button` no Meta Cloud API
+- Templates HSM com `components: [{ type: 'BUTTONS', buttons: [...] }]`
+- UI Templates picker mostra botões disponíveis
+- Webhook `messages.button.payload` cria `WhatsappMessage` com `button_payload`
+- Pest cobertura
+
+**Evidência baseline:** capacidade C-201 P2 do CAPTERRA-INVENTARIO.md (AUSENTE). Diferencial competitivo Take Blip / Wati.
+
+### US-WA-046 · List messages (cardápio: orçar / acompanhar OS / segunda via)
+
+> owner: wagner · priority: p2 · status: todo · type: story
+
+Backlog SPEC §8 (era US-WA-031, agora ativada via /comparativo 2026-05-10). Fit perfeito Modules/ComunicacaoVisual + Modules/Vestuario.
+
+**DoD:**
+- Suporte a `interactive.list` no Meta Cloud API + Z-API/Baileys (mapping pra freeform texto se driver não suporta nativo)
+- Listener Repair pode mandar list "🛠 Acompanhar OS / 📄 Segunda via NFe / 💬 Falar com humano"
+- Webhook `messages.list_reply.id` mapeia pra `WhatsappMessage`
+- Linkar list-reply a evento Repair/Billing (decide skill `ads-decision-flow`)
+
+**Evidência baseline:** capacidade C-202 P2 do CAPTERRA-INVENTARIO.md (AUSENTE).
+
+### US-WA-047 · Tags / labels em conversa (classificar por dept/etapa)
+
+> owner: wagner · priority: p2 · status: todo · type: story
+
+Gap detectado pelo /comparativo em 2026-05-10 — sem schema, sem UI, sem código.
+
+**DoD:**
+- Migration `whatsapp_conversation_tags` (id, business_id, name, color)
+- Pivot `whatsapp_conversation_tag_pivot` (conversation_id, tag_id)
+- UI `ConversationSidebar.tsx` ganha tags com chips coloridos + dropdown "Adicionar tag"
+- Filtro Inbox por tag
+- Pest cobertura multi-tenant (tag de biz=4 não aparece em biz=7)
+
+**Evidência baseline:** capacidade C-106 P1 do CAPTERRA-INVENTARIO.md (AUSENTE). Pattern Take Blip / Wati / Zenvia.
+
+### US-WA-048 · Quick replies / atalhos atendente (respostas pré-definidas)
+
+> owner: wagner · priority: p2 · status: todo · type: story
+
+Gap detectado pelo /comparativo em 2026-05-10 — atendente digita repetidamente "Olá! Em que posso ajudar?", "Ok, recebido!", etc. Pattern Take Blip/Wati: atalhos `/saudacao`, `/aguardar`.
+
+**DoD:**
+- Migration `whatsapp_quick_replies` (id, business_id, shortcut, body, created_by)
+- UI `Conversations/Show.tsx` autocomplete `/atalho` no textarea
+- Tab "Atalhos" em `/whatsapp/settings` pra cadastrar
+- Multi-tenant scope per-business
+- Pest cobertura
+
+**Evidência baseline:** capacidade C-108 P1 do CAPTERRA-INVENTARIO.md (AUSENTE).
+
+### US-WA-049 · A/B testing templates (variantes A/B com tracking deflection)
+
+> owner: wagner · priority: p3 · status: todo · type: story
+> blocked_by: US-WA-041
+
+Backlog SPEC §8 (US-WA-NEW-AB-TEMPLATE, ativada via /comparativo 2026-05-10).
+
+**DoD:**
+- Schema `whatsapp_template_variants` (template_id, label, body, weight)
+- Job `SendWhatsappMessageJob` random-weighted sorteia variante
+- Métricas em `whatsapp_conversation_metricas` quebradas por `variant_id`
+- Dashboard tab "A/B" com winner highlight
+
+**Evidência baseline:** capacidade C-209 P2 do CAPTERRA-INVENTARIO.md (AUSENTE). Diferencial enterprise Take Blip / Wati.
+
+### US-WA-050 · Voice transcription inbound (whisper.cpp local CT 100)
+
+> owner: wagner · priority: p3 · status: todo · type: story
+> blocked_by: US-WA-043
+
+Backlog SPEC §8 (US-WA-NEW-WHISPER, ativada via /comparativo 2026-05-10).
+
+**DoD:**
+- Container Docker compose-managed `whisper-stt` em CT 100 (skill `proxmox-docker-host` + ADR 0058)
+- whisper.cpp small/medium model BR Portuguese
+- `ProcessIncomingMediaJob` (US-WA-043) detecta `media_type=audio` → enfileira `TranscribeAudioJob` → grava em `whatsapp_messages.transcription`
+- UI `Conversations/Show.tsx` renderiza áudio + texto transcrito
+- Custo zero (local, sem API externa)
+- Pest cobertura mock + 1 smoke real CT 100
+
+**Evidência baseline:** capacidade C-304 P3 do CAPTERRA-INVENTARIO.md (AUSENTE). Diferencial vs BSPs (nenhum oferece nativo).
+
+### US-WA-051 · FICHA v2 — Wagner-curate ux_heuristics + automation_targets
+
+> owner: wagner · priority: p0 · status: todo · type: story
+
+Gap governança G-2 detectado pelo /comparativo em 2026-05-10. CAPTERRA-FICHA.md L196-221 tem `ux_heuristics: []` + `automation_targets: []` (TODO desde 2026-05-07 quando v2 da skill foi extendida — ADR 0101). Próximos `/comparativo Whatsapp` vão pular esses 2 eixos com nota "TODO" até curar.
+
+**DoD (~30min Wagner):**
+- Pesquisar 3-5 heurísticas P0 UX no mercado: ex "cliques pra responder ao primeiro inbound" (Take Blip benchmark? Wati?), "tempo médio pra renderizar Inbox com 100 conversas", "recuperação de erro quando QR expira"
+- Pesquisar 3-5 automações P0 no mercado: ex "auto-disparar template `repair_status_ready` quando OS muda" (já temos), "auto-fallback driver quando degraded" (já temos), "auto-tagging por keyword inbound" (não temos)
+- Apender em `memory/requisitos/Whatsapp/CAPTERRA-FICHA.md` seções v2 com formato YAML declarado nos comentários
+
+**Evidência baseline:** Gap G-2 do CAPTERRA-INVENTARIO.md (governança interna).
+
+### US-WA-052 · AUDIT-LOG.md shell + 1ª entrada audit 2026-05-10
+
+> owner: wagner · priority: p0 · status: todo · type: story
+
+Pré-requisito da skill `module-completeness-audit` Tier B (criada 2026-05-10). Gap governança G-4 detectado pelo /comparativo em 2026-05-10.
+
+**DoD (~5min):**
+- Criar `memory/requisitos/Whatsapp/AUDIT-LOG.md` shell com cabeçalho
+- Apender entrada `## 2026-05-10 16:00 — Whatsapp — full module audit (via /comparativo)`:
+  - Checks rodados: 14 ✅ / 2 🟡 / 8 ❌ in-scope
+  - Decisão Wagner: aprovou criar 12 tasks (4 P1 + 4 P2 + 2 P3 + 2 P0)
+  - Tasks criadas: US-WA-041..052
+  - Próxima ação: aguarda CYCLE-04 alocar P0+P1
+- Format declarado na SKILL.md `module-completeness-audit` §7
+
+**Evidência baseline:** Gap G-4 do CAPTERRA-INVENTARIO.md.
