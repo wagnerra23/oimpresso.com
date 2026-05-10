@@ -6,9 +6,11 @@
 | **Maiara** | [M] | suporte+dev | 2 |
 | **Felipe** | [F] | dev+suporte | 2 |
 | **Luiz** | [L] | iniciante+dev IA-pair | 1 |
-| **Eliana** (esposa) | [E] | financeiro+dev IA | 1 |
+| **Eliana** (esposa) | [E] | **advogada + financeiro + dev IA** | 1 |
 
 > ⚠️ **2 Elianas no projeto:** `Eliana[E]` (esposa, time interno) ≠ `Eliana(WR2)` (cliente externa, PontoWr2). Sempre desambiguar em commits/notas.
+
+> 🎯 **Eliana é advogada** (descoberto 2026-05-09) — perfil natural pra **DPO interno** se topar formalização + curso ABPDados (~R$ [redacted Tier 0]-5k). Reduz budget LGPD de R$ [redacted Tier 0]-110k/ano pra R$ [redacted Tier 0]-60k/ano. Cuidado: DPO em PJ familiar pode gerar questionamento ANPD — recomendado counsel externo como "consultor" mantém distância profissional. Decisão pendente: Wagner+Eliana avaliam se ela assume DPO (10-20h/mês carga real).
 
 ## Regras duras
 
