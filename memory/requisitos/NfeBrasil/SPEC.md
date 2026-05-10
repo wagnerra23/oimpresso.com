@@ -915,8 +915,9 @@ Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/My
 
 ### US-NFE-060 · EmitirNFSeJob modelo 56 nacional (NT 2024-001) — paralelo ao EmitirNfceJob
 
-> owner: wagner · priority: p1 · estimate: 12h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 12h · status: done · type: story
 > blocked_by: US-SELL-014
+> done: 2026-05-10 · PR: #509 · Pest: 5/5 ✅ · STUB (sem chamada API real — pacote sped-nfse pendente ADR)
 
 **Contexto:** caso prático OS Comunicação Visual exige emissão de NFSe (instalação fachada R$ [redacted Tier 0]) em paralelo à NFe55 (banner R$ [redacted Tier 0]). Hoje `Modules/NfeBrasil` só emite modelos 55/65 (NFe/NFC-e via `nfephp-org/sped-nfe`). Falta NFSe modelo 56 nacional — padrão único `nfse.gov.br/sefin` que substituiu emissores municipais Tinus/Issnet/Ginfes (obrigatório MEI desde 09/2023, demais regimes em fases 2025-2026).
 
