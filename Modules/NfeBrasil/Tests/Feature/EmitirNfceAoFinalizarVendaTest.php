@@ -4,11 +4,24 @@ declare(strict_types=1);
 
 use App\Events\SellCreatedOrModified;
 use App\Transaction;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Jobs\EmitirNfceJob;
 use Modules\NfeBrasil\Listeners\EmitirNfceAoFinalizarVenda;
 
 uses(Tests\TestCase::class);
+
+// Guard SQLite: alguns tests chamam NfeBusinessConfig::updateOrCreate() que requer
+// tabela nfe_business_configs (MySQL UltimatePOS schema).
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: NfeBusinessConfig requer schema MySQL UltimatePOS (Wagner Pest local segue mandatory — ADR 0101)');
+    }
+    if (! Schema::hasTable('nfe_business_configs')) {
+        $this->markTestSkipped('nfe_business_configs table missing — rode Modules/NfeBrasil migrate primeiro');
+    }
+});
 
 /**
  * US-NFE-002 fase 1 · Listener `SellCreatedOrModified` → `EmitirNfceJob`.
