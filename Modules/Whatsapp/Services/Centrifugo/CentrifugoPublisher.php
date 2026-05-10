@@ -66,7 +66,7 @@ class CentrifugoPublisher
         } catch (\Throwable $e) {
             \Log::warning('[whatsapp.centrifugo.publish] exception', [
                 'channel' => $channel,
-                'error' => $e->getMessage(),
+                'exception' => $e,
             ]);
             return false;
         }

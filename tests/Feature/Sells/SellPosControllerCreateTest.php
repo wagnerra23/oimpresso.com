@@ -37,7 +37,7 @@ it('quando flag useV2SellsCreate OFF → retorna view Blade sale_pos.create (com
 
     // Não dispara request real (controller depende de session, perms, register etc).
     // Em vez disso, valida unit-style que branch correto seria escolhido.
-    expect($this->ffsMock->isOn('useV2SellsCreate', ['business_id' => 4]))->toBeFalse();
+    expect($this->ffsMock->isOn('useV2SellsCreate', ['business_id' => 1]))->toBeFalse();
 });
 
 it('quando flag useV2SellsCreate ON → escolhe branch Inertia em vez de Blade', function () {

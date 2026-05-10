@@ -38,6 +38,7 @@ class VerifyZapiSignature
     {
         $businessUuid = (string) $request->route('business_uuid');
 
+        // SUPERADMIN: webhook público pré-auth — valida z-api-token HMAC-equivalente antes de identificar tenant via business_uuid no path
         $config = WhatsappBusinessConfig::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_uuid', $businessUuid)
@@ -56,6 +57,7 @@ class VerifyZapiSignature
             return response()->json(['error' => 'invalid_signature'], 401);
         }
 
+        // SUPERADMIN: middleware webhook público — resolve phone via instance_token antes de auth completa; filtro business_id do config já resolvido
         // Tenta resolver phone específico via instance_token (multi-números)
         $phone = WhatsappBusinessPhone::query()
             ->withoutGlobalScope(ScopeByBusiness::class)

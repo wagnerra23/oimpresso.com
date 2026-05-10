@@ -1,0 +1,108 @@
+name: Modules Pest
+
+# CI Pest pra 5 modulos tocados na sessao 2026-05-10 - Sprint 2 ADR 0123.
+# Roda jobs paralelos (matrix) em cada PR que toca Modules/<X>/.
+#
+# NOTA: Sem migrate manual - UltimatePOS tem migrations MySQL-only (MODIFY COLUMN,
+# ENUM syntax) incompativeis com SQLite. Tests que precisam de DB real usam
+# markTestSkipped defensivo (skip gracioso quando tabela ausente).
+# Tests pure-logic (service classes, value objects, command logic) rodam normalmente.
+# Para rodar suite completa com DB real: vendor/bin/pest localmente com MySQL.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Modules/Arquivos/**'
+      - 'Modules/ComunicacaoVisual/**'
+      - 'Modules/NfeBrasil/**'
+      - 'Modules/Repair/**'
+      - 'Modules/Vestuario/**'
+      - 'composer.lock'
+      - 'phpunit.xml'
+      - '.github/workflows/modules-pest.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Arquivos/**'
+      - 'Modules/ComunicacaoVisual/**'
+      - 'Modules/NfeBrasil/**'
+      - 'Modules/Repair/**'
+      - 'Modules/Vestuario/**'
+
+concurrency:
+  group: modules-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: Pest ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - Arquivos
+          - ComunicacaoVisual
+          - NfeBrasil
+          - Repair
+          - Vestuario
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, pdo_mysql, tokenizer, xml, zip, gd
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Prepare dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Create .env
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-ci' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=true' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Run Pest
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_DRIVER: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+        run: |
+          vendor/bin/pest Modules/${{ matrix.module }}/Tests \
+            --stop-on-failure \
+            --no-coverage \
+            --colors=always

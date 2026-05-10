@@ -175,8 +175,9 @@ class ContextSnapshotService
                 ->values()
                 ->all();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::channel('copiloto-ai')->debug(
-                'ContextSnapshotService::metasAtivas degradou: ' . $e->getMessage()
+            \Illuminate\Support\Facades\Log::channel('copiloto-ai')->warning(
+                'ContextSnapshotService::metasAtivas degradou',
+                ['exception' => $e]
             );
             return [];
         }
