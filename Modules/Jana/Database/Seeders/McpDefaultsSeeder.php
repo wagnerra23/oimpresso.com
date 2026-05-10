@@ -43,6 +43,9 @@ class McpDefaultsSeeder extends Seeder
         ['key' => 'GROW',     'name' => 'Grow',                 'color' => 'green',    'icon' => 'trending-up'],
         ['key' => 'EVO',      'name' => 'EvolutionAgent',       'color' => 'fuchsia',  'icon' => 'workflow'],
         ['key' => 'TR',       'name' => 'TaskRegistry (meta)',  'color' => 'gray',     'icon' => 'kanban'],
+        ['key' => 'COMVIS',   'name' => 'ComunicacaoVisual',    'color' => 'pink',     'icon' => 'palette'],
+        ['key' => 'VEST',     'name' => 'Vestuario',            'color' => 'rose',     'icon' => 'shirt'],
+        ['key' => 'AUTO',     'name' => 'OficinaAuto',          'color' => 'zinc',     'icon' => 'car'],
     ];
 
     /**
