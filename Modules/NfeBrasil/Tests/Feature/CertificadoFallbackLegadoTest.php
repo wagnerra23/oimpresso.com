@@ -12,9 +12,19 @@ uses(Tests\TestCase::class);
  * ADR 0090 · Fallback do CertificadoService::carregarParaSefaz pra `business.*`
  * legado durante coexistência. Tests garantem que emissão atual continua
  * funcionando enquanto Wagner não migra explicitamente cada business.
+ *
+ * Pattern dual-mode (PR #486 reference):
+ *   - SQLite (CI sanity): drop+create schemas sintéticos `business` + `nfe_certificados`
+ *   - MySQL (Pest local — gate Wagner): SKIP — o teste cria `business` minimalista
+ *     conflitando com schema UPos real (FKs em users, products, transactions etc).
+ *     Cobertura genuína do legado fallback ocorre via integration tests E2E.
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('CertificadoFallbackLegadoTest requer schema sintético — só roda em SQLite isolado');
+    }
+
     foreach (['business', 'nfe_certificados'] as $t) {
         Schema::dropIfExists($t);
     }
@@ -41,6 +51,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        return;
+    }
+
     foreach (['business', 'nfe_certificados'] as $t) {
         Schema::dropIfExists($t);
     }
