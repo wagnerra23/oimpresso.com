@@ -83,7 +83,7 @@
 - [03-pricing-erps-auto-br.md](03-pricing-erps-auto-br.md) — pricing comparativo
 - [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) — vertical especializado
 - [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — cliente sinal qualificado (esta pesquisa NÃO viola: é mapeamento, não US ativa)
-- [ADR 0125](../../decisions/0125-mcp-jira-projects-modulos-verticais.md) — habilita AUTO no canon MCP
+- [ADR 0126](../../decisions/0126-mcp-jira-projects-modulos-verticais.md) — habilita AUTO no canon MCP
 
 ## Próximos passos
 

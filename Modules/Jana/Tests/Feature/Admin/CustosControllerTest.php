@@ -9,7 +9,7 @@ use Modules\Jana\Services\CustosService;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * US-COPI-070 — Cobertura mínima do dashboard de custos de IA.

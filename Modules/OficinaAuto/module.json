@@ -1,0 +1,14 @@
+{
+    "name": "OficinaAuto",
+    "alias": "oficina-auto",
+    "description": "Modules/OficinaAuto — vertical oficinas automotivas BR (CNAE 4520-0/01). Estado feature-wish (aguarda sinal qualificado: candidato Martinho Caçambas a confirmar). Concorrentes: Mecânico, Auto Manager, Lokoz. Reusa default Modules/Repair (Box+Elevador). Ver memory/requisitos/OficinaAuto/SPEC.md.",
+    "keywords": ["oficina-auto", "automotivo", "mecanico", "vertical", "cnae-4520"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\OficinaAuto\\Providers\\OficinaAutoServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
