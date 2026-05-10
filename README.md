@@ -50,6 +50,22 @@ php artisan migrate --seed
 2. Ler [`CLAUDE.md`](CLAUDE.md) — primer Claude Code
 3. Brief inicial: tool MCP `brief-fetch` (camada L7)
 
+## Rodando testes
+
+```bash
+# Suite completa (SQLite :memory: — conforme phpunit.xml)
+vendor/bin/pest
+
+# Módulo específico (5 módulos com CI automatizado)
+vendor/bin/pest Modules/Arquivos/Tests
+vendor/bin/pest Modules/ComunicacaoVisual/Tests
+vendor/bin/pest Modules/NfeBrasil/Tests
+vendor/bin/pest Modules/Repair/Tests
+vendor/bin/pest Modules/Vestuario/Tests
+```
+
+CI roda automaticamente esses 5 módulos em paralelo (matrix) em PRs que tocam `Modules/<X>/` — ver `.github/workflows/modules-pest.yml`.
+
 ## Documentação canônica
 
 - [`CLAUDE.md`](CLAUDE.md) — primer técnico (≤100 linhas + imports)
