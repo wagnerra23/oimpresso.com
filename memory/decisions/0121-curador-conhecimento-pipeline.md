@@ -190,7 +190,7 @@ Logs estruturados em `db/metrics.jsonl`. Checks pra rodar pós-batch:
 
 ## Plano de adoção
 
-> **2026-05-09 amendment (Wagner):** Curador é **princípio para construir o Centro de Operações Admin** que vai gerenciar toda a infra da empresa. Scripts Node locais ficam (precisam acessar `D:\`/`C:\Users\`); UI/governance migra pro Laravel `Modules/Curador/` em F2 e converge em `Modules/Admin/` em F3.
+> **2026-05-09 amendment (Wagner):** Curador é **princípio para construir o Centro de Operações Admin** ([ADR 0122](0122-admin-center-ct100.md)) que vai gerenciar toda a infra da empresa. Scripts Node locais ficam (precisam acessar `D:\`/`C:\Users\`); UI/governance vira **widget do Admin Center** em F2 (não módulo standalone).
 
 **Fase 1 — MVP (esta sessão 2026-05-09):**
 - ADR 0121 (este documento)
@@ -200,41 +200,19 @@ Logs estruturados em `db/metrics.jsonl`. Checks pra rodar pós-batch:
 - README + config.example.json
 - ❌ NÃO scaneia nada ainda — Wagner roda manualmente quando quiser
 
-**Fase 2 — Laravel UI (`Modules/Curador/`, ~jun/2026):**
-- Migration `mcp_curador_batches`, `mcp_curador_files`, `mcp_curador_audit_log` (com `business_id` Tier 0 [ADR 0093](0093-multi-tenant-isolation-tier-0.md))
-- Controller `BatchesController` com Spatie role `curador-admin#1` (apenas Wagner inicial)
-- Page Inertia `Modules/Curador/Pages/Batches/Index.tsx` (lista batches, status, contagens)
-- Page `Modules/Curador/Pages/Batches/Review.tsx` (substitui marcação `[x]` markdown — UI web com checkbox por row)
-- API `POST /curador/api/upload-batch` recebe JSONL do script Node local (auth via Bearer token gerado em `/curador/admin/tokens`)
-- Apply server-side em queue Horizon job `ApplyBatchJob` (move arquivos, `git add` via Symfony Process)
-- Audit log integral: cada `applied_at`, `bucket`, `from`, `to`, `applied_by_user_id`
-- Detecção owner por Office metadata (`.docx`/`.xlsx` creator tag) + git author
-- Modo `--meilisearch` (indexa em vez de migrar git — Jana retorna recall on-demand sem inflar repo)
-- Consent log persistido em `mcp_curador_consent` em vez de JSONL
+**Fase 2 — UI dentro do Admin Center ([ADR 0122](0122-admin-center-ct100.md), ~jun/2026):**
 
-**Fase 3 — Centro de Operações Admin (`Modules/Admin/`, ~jul/2026):**
+Curador NÃO ganha módulo standalone. Vira **widget + página dedicada** dentro de `Modules/Admin/` no CT 100 (Tailscale-only, role `superadmin#1`).
+- Página `Pages/Curador/Batches.tsx` (substitui marcação `[x]` markdown)
+- API `POST /admin/curador/api/upload-batch` recebe JSONL do script Node local (auth via Bearer token gerado em `/admin/tokens`)
+- Apply server-side em queue Horizon job `ApplyBatchJob`
+- Audit log integral em `mcp_curador_audit_log`
+- Migration `mcp_curador_batches`, `mcp_curador_files`, `mcp_curador_audit_log`, `mcp_curador_consent`
+- Detecção owner por Office metadata + git author
+- Modo `--meilisearch` (indexa em vez de migrar git — Jana retorna recall on-demand)
 
-**Visão:** painel único que orquestra toda a infra/governance/time da empresa. Wagner é o único usuário inicial. Vive em rota protegida `/admin` (role `superadmin#1`).
-
-Widgets agregadores:
-- **Curador** — batches pendentes, sensitive flagged aguardando Vaultwarden, métricas saúde (`pct_auto_classified`, `dedupe_count`)
-- **Health checks** — output `jana:health-check` (5 SQL: multi_tenant_isolation, brief_uptime_24h, custo_brain_b_24h, pii_leak, profile_distiller_drift)
-- **Time** — cycles ativos (`cycles-active`), tasks por dev (`my-work` aggregate), WIP máx por pessoa
-- **Vaultwarden** — count de itens, last sync, rotation status (cert SEFAZ vencendo? SSH key antiga?)
-- **MCP server** — `mcp.oimpresso.com` health, docs sincronizados (gauge), tokens emitidos
-- **Infra** — Hostinger SSH last contact, CT 100 Tailscale latency, Centrifugo+FrankenPHP uptime, Meilisearch index size
-- **Brief diário** — preview do `brief-fetch` mais recente
-- **Memória/Sessões** — últimas 10 sessões Claude Code (cross-dev via cc-watcher), memory_metrics drift
-- **ADRs Tier 0** — alertas se algum violado (jana:health-check `multi_tenant_isolation`, etc)
-
-Não-goals da F3:
-- Não substitui `Modules/Officeimpresso` superadmin existente (mantido pra cliente-side)
-- Não vira "outro Copiloto" — Jana já é a interface conversacional
-- Não permite edição direta de PII de cliente (LGPD — só auditoria, não CRUD)
-
-**Fase 4 (≥2026-Q3, condicional):**
+**Fase 3 (condicional, ≥2026-Q3):**
 - Daemon background (Tailscale-aware) monitora pastas e roda discover incremental
-- Multi-tenant Curador: cliente paga vê próprio painel admin (com `business_id` scope)
 - Sync push pra MCP server CT 100 (knowledge propagation cross-dev em tempo real)
 
 ## Validação
