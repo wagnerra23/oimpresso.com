@@ -7,11 +7,15 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Admin\Services\AdrAlertReader;
+use Modules\Admin\Services\BrainBCostReader;
 use Modules\Admin\Services\BriefAdapter;
 use Modules\Admin\Services\CuradorStatsReader;
 use Modules\Admin\Services\CyclesAggregator;
 use Modules\Admin\Services\HealthSnapshotReader;
+use Modules\Admin\Services\InfraStatusReader;
 use Modules\Admin\Services\McpServerHealthReader;
+use Modules\Admin\Services\SessionsReader;
+use Modules\Admin\Services\VaultwardenReader;
 
 /**
  * IndexController — Admin Center painel principal (`GET /admin`).
@@ -37,18 +41,26 @@ class IndexController extends Controller
         protected AdrAlertReader $adrAlerts,
         protected CuradorStatsReader $curador,
         protected McpServerHealthReader $mcp,
+        protected VaultwardenReader $vaultwarden,
+        protected SessionsReader $sessions,
+        protected InfraStatusReader $infra,
+        protected BrainBCostReader $brainBCost,
     ) {}
 
     public function __invoke(Request $request): Response
     {
         return Inertia::render('Admin/Index', [
             'widgets' => [
-                'brief'      => $this->brief->fetch(),
-                'health'     => $this->health->fetch(),
-                'cycles'     => $this->cycles->fetch(),
-                'adr_alerts' => $this->adrAlerts->fetch(),
-                'curador'    => $this->curador->fetch(),
-                'mcp'        => $this->mcp->fetch(),
+                'brief'        => $this->brief->fetch(),
+                'health'       => $this->health->fetch(),
+                'cycles'       => $this->cycles->fetch(),
+                'adr_alerts'   => $this->adrAlerts->fetch(),
+                'curador'      => $this->curador->fetch(),
+                'mcp'          => $this->mcp->fetch(),
+                'vaultwarden'  => $this->vaultwarden->fetch(),
+                'sessions'     => $this->sessions->fetch(),
+                'infra'        => $this->infra->fetch(),
+                'brain_b_cost' => $this->brainBCost->fetch(),
             ],
             'meta' => [
                 'subdomain'    => config('admin.subdomain', 'admin.oimpresso.com'),
