@@ -1,0 +1,95 @@
+name: Repair shared vocabulary guard
+
+# US-REPA-002 § amendment 2026-05-10 — guard CI que falha se vocabulário
+# automotivo legacy (placa/vehicle/km/mecanico/elevador/box/aprovacao_pendente
+# /orcamento_*) voltar em Modules/Repair/** ou resources/js/Pages/Repair/**.
+#
+# Objetivo: preservar shared infrastructure habilitando reuso por verticais
+# (Vestuario/ComunicacaoVisual/OficinaAuto). ADR 0121 §P8.
+#
+# False-positive aceitável: 'km' como VALOR de usage_unit em mock automotivo
+# OK (não como key). Workflow filtra `card\.\(plate|vehicle|...\)` como ACCESSOR
+# OU `'plate' =>` PHP key — isso é o problema. Comentários, strings de label
+# em pt-BR ("Placa Mercosul" em mock), NÃO disparam.
+
+on:
+  push:
+    branches: [main, 6.7-react]
+    paths:
+      - 'Modules/Repair/**'
+      - 'resources/js/Pages/Repair/**'
+      - '.github/workflows/repair-shared-vocab.yml'
+  pull_request:
+    paths:
+      - 'Modules/Repair/**'
+      - 'resources/js/Pages/Repair/**'
+      - '.github/workflows/repair-shared-vocab.yml'
+
+concurrency:
+  group: repair-vocab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: Block automotive vocabulary regression
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Grep frontend Pages/Repair acessor regression
+        run: |
+          set -e
+          # card.plate / card.vehicle / card.km / card.mecanico / card.box / card.elevador / card.aprovacao_pendente / card.orcamento_*
+          # Aceita só se NÃO estiver em arquivo *.charter.md ou *.test.tsx (testes podem mencionar pra anti-regressão)
+          MATCHES=$(grep -rnE 'card\.(plate|vehicle|km|mecanico|mecanico_initials|aprovacao_pendente|orcamento_(total|pecas|status)|box|elevador)\b' \
+            --include='*.tsx' --include='*.ts' \
+            --exclude='*.charter.md' \
+            --exclude='*.test.tsx' \
+            --exclude='*.test.ts' \
+            resources/js/Pages/Repair/ || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::error::Vocabulário automotivo legacy detectado em frontend Repair (ADR 0121 §P8 viola)"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ Frontend Pages/Repair livre de vocabulário automotivo legacy"
+
+      - name: Grep backend Modules/Repair PHP key regression
+        run: |
+          set -e
+          # 'plate' => / 'vehicle' => / 'mecanico' => / 'aprovacao_pendente' => / 'orcamento_*' => / 'box' => / 'elevador' =>
+          # Aceita string em comentário Phpdoc (// 'plate' => antes), labels em lang files genéricos.
+          # Bloqueia: novos array entries com key automotiva.
+          MATCHES=$(grep -rnE "['\"](plate|vehicle|mecanico|mecanico_initials|aprovacao_pendente|orcamento_(total|pecas|status))['\"]\\s*=>" \
+            --include='*.php' \
+            --exclude='*Test.php' \
+            Modules/Repair/ || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::error::Vocabulário automotivo legacy detectado em backend Modules/Repair (ADR 0121 §P8 viola)"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ Backend Modules/Repair livre de PHP keys automotivas legacy"
+
+      - name: Grep cross-module Listeners/Jobs (defense in depth)
+        run: |
+          set -e
+          # Outros módulos lendo array shape antigo $card['plate'] etc — quebraria pós-refactor.
+          MATCHES=$(grep -rnE "\\\$\\w+\\['(plate|vehicle|km|mecanico|aprovacao_pendente)'\\]" \
+            --include='*.php' \
+            --exclude='*Test.php' \
+            --exclude-dir='Modules/Repair' \
+            Modules/ app/ 2>/dev/null || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::error::Cross-module ainda lendo shape automotivo legacy (refactor incompleto?)"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ Cross-module clean — refactor shared completo"
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ Repair shared vocabulary guard PASSOU" >> $GITHUB_STEP_SUMMARY
+          echo "Vocabulário shared genérico preservado (ADR 0121 §P8). Verticais Vestuario/ComVisual/OficinaAuto podem consumir Modules/Repair sem refactor adicional." >> $GITHUB_STEP_SUMMARY
