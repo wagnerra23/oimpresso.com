@@ -153,7 +153,7 @@
 
 ### Top 5 P1 (3-6 meses) — sinal médio
 
-1. **Loggi** (last-mile SP/RJ) — gráficas SP mandam motoboy diário, workaround manual hoje. ROI claro pra ROTA LIVRE.
+1. **Loggi** (last-mile SP/RJ) — gráficas SP mandam motoboy diário, workaround manual hoje. ROI claro pra Modules/ComunicacaoVisual (Vargas/Extreme/Gold-tipo). ROTA LIVRE (vestuário SC) provavelmente usa Correios/transportadora local — não Loggi.
 2. **Correios SIGEP/CWS API** — cotação SEDEX/PAC + etiqueta. Universal nacional.
 3. **Receita Federal CNPJ lookup (BrasilAPI)** — quick-win UX 4h, auto-fill cadastro cliente.
 4. **RD Station CRM** — sync de leads, popular BR.

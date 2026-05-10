@@ -150,7 +150,7 @@
 >
 > Vi que vocês estão com vaga aberta de **{cargo PCP/produção}** em {cidade}. Geralmente isso indica que a operação cresceu mais rápido que o sistema — a OS hoje passa por marcenaria, serralheria, digital, instalação, mas o controle vive no WhatsApp do encarregado e numa planilha solta.
 >
-> ROTA LIVRE (gráfica em SP, perfil bem parecido com {empresa}) tinha exatamente isso. Em 90 dias o oimpresso consolidou 5 frentes de produção numa tela só, com etapa + responsável + custo + prazo em tempo real.
+> Um cliente nosso (anonimizado, perfil similar com.visual) tinha exatamente isso. Em 90 dias o oimpresso consolidou 5 frentes de produção numa tela só, com etapa + responsável + custo + prazo em tempo real. *(Nota interna: substituir por case Modules/ComunicacaoVisual real quando 1 dos 6 saudáveis OfficeImpresso migrar e aceitar virar caso público — ROTA LIVRE é Modules/Vestuario, não exemplo válido pra prospect gráfica)*
 >
 > Faz sentido vocês conhecerem **antes** do PCP novo começar (fica mais fácil moldar o processo)?
 >

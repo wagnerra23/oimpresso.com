@@ -13,7 +13,7 @@ date: 2026-05-08
 > **Refs:** [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md), [ADR 0023](../../decisions/0023-inertia-v3-upgrade.md), [_DS ADR 0008](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)
 > **Estado origem:** Blade legacy renderiza `view('sale_pos.create')` via [SellPosController@create](../../../app/Http/Controllers/SellPosController.php#L158) — 996 LOC Blade + 60+ partials + `public/js/pos.js` (3.178 LOC jQuery)
 > **Estado alvo:** `Pages/Sells/Create.tsx` (Inertia v3 + React 19 + shadcn) — não existe ainda
-> **Persona alvo:** Larissa (ROTA LIVRE, biz=4) — gráfica de comunicação visual, monitor 1280px, faz orçamento → venda → produção → entrega → cobrança
+> **Persona alvo:** Larissa (ROTA LIVRE, biz=4) — loja de roupa em Gravatal/SC (vestuário, CNAE 4781-4/00), monitor 1280px, faz orçamento → venda → produção → entrega → cobrança. Persona estende-se a outros verticais: gráfica (Modules/ComunicacaoVisual), oficina (Modules/OficinaAuto) — ver [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md).
 
 ## Estado final esperado
 
