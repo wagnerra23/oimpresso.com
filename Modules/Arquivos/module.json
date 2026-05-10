@@ -1,0 +1,14 @@
+{
+    "name": "Arquivos",
+    "alias": "arquivos",
+    "description": "DMS backbone — todo arquivo anexado da empresa cai aqui (multi-tenant Tier 0). Polimorfismo Eloquent morph (arquivable_type/arquivable_id). Outros módulos adotam trait HasArquivos opt-in. Storage abstraído (disk local-ct100 + vault encrypted). Curador como engine de classificação. Soft-delete + audit log integral. Ver ADR 0123.",
+    "keywords": ["arquivos", "dms", "files", "storage", "anexos", "polimorfismo", "multi-tenant", "curador-engine"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Arquivos\\Providers\\ArquivosServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

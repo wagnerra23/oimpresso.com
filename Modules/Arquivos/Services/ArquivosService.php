@@ -1,0 +1,194 @@
+<?php
+
+namespace Modules\Arquivos\Services;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Modules\Arquivos\Entities\Arquivo;
+use Modules\Arquivos\Services\Curador\CuradorEngine;
+
+/**
+ * ArquivosService — API canônica do DMS backbone (ADR 0123 §API).
+ *
+ * Métodos:
+ * - attach(): upload + classify + dedupe + audit log
+ * - classify(): chama CuradorEngine
+ * - signedUrl(): URL temporária expiração 1h
+ * - softDelete() / restore()
+ * - dedupe(): lookup por MD5 dentro do mesmo business_id
+ *
+ * Sprint 1 MVP: implementação básica. Polimento (race conditions, atomicidade
+ * cross-tabela, rollback) fica em US-ARQ-008.
+ *
+ * @see memory/decisions/0123-modules-arquivos-backbone.md
+ */
+class ArquivosService
+{
+    public function __construct(
+        protected CuradorEngine $curador,
+    ) {}
+
+    /**
+     * Anexa arquivo a um Model (qualquer model com trait HasArquivos).
+     *
+     * @param Model        $owner Model que vai receber o arquivo
+     * @param UploadedFile $file  Arquivo upload
+     * @param array        $opts  ['context' => 'nfe-xml'|'ticket-anexo'|...] (futuro: MIME whitelist)
+     */
+    public function attach(Model $owner, UploadedFile $file, array $opts = []): Arquivo
+    {
+        $businessId = session('user.business_id') ?? session('business.id');
+        if (! $businessId) {
+            throw new \RuntimeException('attach: business_id ausente na sessão (multi-tenant Tier 0).');
+        }
+
+        $md5 = md5_file($file->getRealPath());
+
+        // Dedupe lookup por business — se já existe arquivo com mesmo MD5
+        // no mesmo business, retorna ele em vez de duplicar storage.
+        $dedupe = $this->dedupe($md5, (int) $businessId);
+        if ($dedupe !== null) {
+            $this->incrementDedupeCounter($md5);
+            return $dedupe;
+        }
+
+        // Pré-classifica via CuradorEngine pra decidir disk (sensitive → vault)
+        $stub = new Arquivo([
+            'original_name' => $file->getClientOriginalName(),
+            'mime_type'     => $file->getMimeType() ?? 'application/octet-stream',
+            'size_bytes'    => $file->getSize(),
+            'md5'           => $md5,
+        ]);
+        $classification = $this->curador->classify($stub);
+        $disk = ($classification['bucket'] ?? 'active') === 'sensitive'
+            ? config('arquivos.disk_vault', 'vault')
+            : config('arquivos.disk_default', 'arquivos');
+
+        // Path: biz-{id}/YYYY/MM/{md5_prefix}.{ext}
+        $year  = now()->format('Y');
+        $month = now()->format('m');
+        $ext   = $file->getClientOriginalExtension() ?: 'bin';
+        $rel   = "biz-{$businessId}/{$year}/{$month}/{$md5}.{$ext}";
+
+        $stored = Storage::disk($disk)->putFileAs(
+            "biz-{$businessId}/{$year}/{$month}",
+            $file,
+            "{$md5}.{$ext}",
+        );
+        if ($stored === false) {
+            throw new \RuntimeException("attach: falha ao escrever em disk={$disk}");
+        }
+
+        $arquivo = new Arquivo();
+        $arquivo->business_id         = (int) $businessId;
+        $arquivo->arquivable_type     = $owner::class;
+        $arquivo->arquivable_id       = $owner->getKey();
+        $arquivo->disk                = $disk;
+        $arquivo->storage_path        = $rel;
+        $arquivo->original_name       = $file->getClientOriginalName();
+        $arquivo->mime_type           = $stub->mime_type;
+        $arquivo->size_bytes          = $stub->size_bytes;
+        $arquivo->md5                 = $md5;
+        $arquivo->bucket              = $classification['bucket'] ?? 'active';
+        $arquivo->sub_destination     = $classification['sub_destination'] ?? null;
+        $arquivo->sensitive_flags     = $classification['sensitive_flags'] ?? null;
+        $arquivo->classified_by       = $classification['rule_matched'] ?? 'curador-engine';
+        $arquivo->classified_at       = now();
+        $arquivo->uploaded_by_user_id = auth()->id();
+        $arquivo->encrypted           = $disk === 'vault';
+        $arquivo->save();
+
+        $this->insertDedupe($md5);
+        $this->audit($arquivo, 'upload', ['size' => $arquivo->size_bytes]);
+
+        return $arquivo;
+    }
+
+    public function classify(Arquivo $arquivo): array
+    {
+        $result = $this->curador->classify($arquivo);
+        $arquivo->bucket          = $result['bucket'] ?? $arquivo->bucket;
+        $arquivo->sub_destination = $result['sub_destination'] ?? $arquivo->sub_destination;
+        $arquivo->sensitive_flags = $result['sensitive_flags'] ?? $arquivo->sensitive_flags;
+        $arquivo->classified_by   = $result['rule_matched'] ?? $arquivo->classified_by;
+        $arquivo->classified_at   = now();
+        $arquivo->save();
+        $this->audit($arquivo, 'reclassify', $result);
+        return $result;
+    }
+
+    public function signedUrl(Arquivo $arquivo, int $expiresMinutes = 60): string
+    {
+        $url = URL::temporarySignedRoute(
+            'arquivos.download',
+            now()->addMinutes($expiresMinutes),
+            ['arquivo' => $arquivo->id],
+        );
+        $this->audit($arquivo, 'signed_url_issued', ['expires_minutes' => $expiresMinutes]);
+        return $url;
+    }
+
+    public function softDelete(Arquivo $arquivo): void
+    {
+        $arquivo->delete();
+        $this->audit($arquivo, 'soft_delete', []);
+    }
+
+    public function restore(Arquivo $arquivo): void
+    {
+        $arquivo->restore();
+        $this->audit($arquivo, 'restore', []);
+    }
+
+    /**
+     * Dedupe lookup — retorna Arquivo existente com mesmo MD5 no mesmo business.
+     * Não vaza cross-business (Agent E security review §dedupe leak).
+     */
+    public function dedupe(string $md5, int $businessId): ?Arquivo
+    {
+        return Arquivo::where('md5', $md5)
+            ->where('business_id', $businessId)
+            ->first();
+    }
+
+    private function insertDedupe(string $md5): void
+    {
+        DB::statement(
+            'INSERT INTO arquivos_dedupe (md5, first_seen_at, occurrences) VALUES (?, NOW(), 1)
+             ON DUPLICATE KEY UPDATE occurrences = occurrences + 1',
+            [$md5],
+        );
+    }
+
+    private function incrementDedupeCounter(string $md5): void
+    {
+        DB::statement(
+            'UPDATE arquivos_dedupe SET occurrences = occurrences + 1 WHERE md5 = ?',
+            [$md5],
+        );
+    }
+
+    private function audit(Arquivo $arquivo, string $action, array $payload): void
+    {
+        try {
+            DB::table('arquivos_audit_log')->insert([
+                'arquivo_id'  => $arquivo->id,
+                'business_id' => $arquivo->business_id,
+                'user_id'     => auth()->id(),
+                'action'      => $action,
+                'payload'     => json_encode($payload),
+                'created_at'  => now(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('arquivos.audit_failed', [
+                'arquivo_id' => $arquivo->id ?? null,
+                'action'     => $action,
+                'error'      => $e->getMessage(),
+            ]);
+        }
+    }
+}
