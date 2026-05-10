@@ -3,6 +3,7 @@
 namespace Modules\Vestuario\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Vestuario\Console\Commands\VestuarioSettingsCommand;
 
 /**
  * ServiceProvider Modules/Vestuario (ADR 0121 §P7 — vertical em prod via ROTA LIVRE biz=4).
@@ -29,6 +30,12 @@ class VestuarioServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__ . '/../Routes/web.php');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                VestuarioSettingsCommand::class,
+            ]);
+        }
     }
 
     public function register(): void
