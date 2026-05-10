@@ -25,7 +25,8 @@ return new class extends Migration {
         // --- Tabela principal: cabeçalho do orçamento ---
         Schema::create('comvis_orcamentos', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('business_id');
+            // int(10) unsigned pra bater com business.id (UltimatePOS legacy schema — FK constraint)
+            $table->unsignedInteger('business_id');
             $table->string('numero', 20);                        // ORC-2026-00001 (gerado pelo Controller)
             $table->unsignedBigInteger('contato_id')->nullable(); // FK contacts.id — null = walk-in
             $table->unsignedInteger('vendedor_id')->nullable();   // FK users.id
@@ -57,7 +58,8 @@ return new class extends Migration {
         Schema::create('comvis_orcamento_itens', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('orcamento_id');
-            $table->unsignedBigInteger('business_id');            // redundante, obrigatório pro global scope
+            // int(10) unsigned pra bater com business.id (UltimatePOS legacy schema)
+            $table->unsignedInteger('business_id');                // redundante, obrigatório pro global scope
             $table->unsignedBigInteger('material_id')->nullable(); // FK comvis_materiais — null = item livre
             $table->string('descricao', 255);
             $table->decimal('largura_m', 8, 3)->nullable();
