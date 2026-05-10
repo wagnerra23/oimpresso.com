@@ -248,6 +248,45 @@ P3 outras UFs (15): SP (Mamô 11 lojas, All Side perfil quase-gêmeo ROTA LIVRE,
 ---
 
 ## 🆕 Estado 2026-05-10 noite — Smoke MG Tech Press investigado + Vestuario Q3 outbound + PR #414
+## 🆕 Estado 2026-05-10 ~13h BRT — Modules/Auditoria habilitado (ADR 0127 + seed AUDIT) + bloqueio tool MCP
+
+**Sessão Claude tarde-2** (5ª do dia). Wagner pediu mecanismo de `active_log` + **undo** de alterações indevidas (humano OU IA). Resultado: 2 PRs mergeados habilitando piloto Auditoria (~21h IA-pair planejado em 3 sub-sprints).
+
+### PR [#432](https://github.com/wagnerra23/oimpresso.com/pull/432) — ADR 0127 + SPEC US-AUDIT-001..010
+
+Só docs (374 linhas):
+- **[ADR 0127](decisions/0127-modules-auditoria-undo-activity-log.md)** Modules/Auditoria UI rica + undo sobre `activity_log` existente. 7 princípios duros (Tier 0 multi-tenant preservado, causer dual `user`/`agent`/`system`/`api`, whitelist UNREVERTIBLE de 5 categorias citando lei/regra). **Reusa `spatie/laravel-activitylog ^4.8` já instalado** (~30 lugares legacy + 7 Models modernos com trait `LogsActivity` em Financeiro/Essentials/Accounting). Sem duplicação de tabela — migrations só ADITIVAS.
+- **[SPEC](requisitos/Auditoria/SPEC.md)** US-AUDIT-001..010 em 3 sub-sprints sequenciais (~21h IA-pair total): F1 padronização Vestuario+Financeiro (6h), F2 causer dual + `agent_run_id` (3h), F3 scaffold módulo + UI Inertia + `RevertService` (12h).
+
+Mergeado com `--admin` bypass (Wagner autorizou explicitamente — review-required pra PR docs trivial).
+
+### PR [#441](https://github.com/wagnerra23/oimpresso.com/pull/441) — seed AUDIT em mcp_jira_projects
+
+Migration idempotente (67 linhas) + edit espelho `McpDefaultsSeeder`. Sem essa key, tool MCP `tasks-create module:Auditoria` retornava `Sem 'module' canônico`. **Migration aplicada via SSH Hostinger** (`5.07ms DONE`, `AUDIT id=25` confirmado em `mcp_jira_projects` via mysql query). Mergeado admin.
+
+### ⚠️ BLOQUEIO descoberto — tool MCP tasks-create schema desatualizado
+
+DB tem `AUDIT` mas tool continua retornando `Sem 'module' canônico, é obrigatório passar 'project'`. **Causa raiz:** backend MCP exige param `project` (renomeação ADR 0125 hoje) mas o schema JSON do tool ainda só aceita `module` com `additionalProperties: false`. Tentei `module:Auditoria` e `module:AUDIT` — ambos falham. **As 10 US-AUDIT NÃO foram criadas no MCP.**
+
+**Decisão Wagner 2026-05-10:** SPEC.md mergeado em main já é fonte canônica; tool MCP é cache/UI. Próxima Claude/dev com tool consertado popula o MCP DB. **Sprint F1 não está bloqueado por isso** — quem pegar pode codar lendo direto do SPEC.md.
+
+### Sprint F1 ~6h pronto pra começar (Vestuario + Financeiro piloto)
+
+US-AUDIT-001..004 padronização `LogsActivity` em Models críticos do piloto:
+1. **US-AUDIT-001** `App\Transaction` (sales) — 1.5h p0
+2. **US-AUDIT-002** `App\Product` + `App\VariationLocationDetails` (estoque) — 1.5h p1
+3. **US-AUDIT-003** `App\Contact` (PII LGPD — `tax_number_1` redacted) — 2h p0
+4. **US-AUDIT-004** opcional 4ª se sobrar (TransactionSellLine + TransactionPayment)
+
+Cada US tem acceptance criteria detalhada na [SPEC](requisitos/Auditoria/SPEC.md). Padrão canônico = [Modules/Financeiro/Models/Titulo.php:28-35](../Modules/Financeiro/Models/Titulo.php#L28).
+
+### Próximos passos imediatos (auditoria)
+
+1. **Quem pegar Sprint F1** — abre [SPEC](requisitos/Auditoria/SPEC.md) §US Sprint 1, segue padrão Financeiro/Titulo:28-35, roda Pest local com asserts (a) multi-tenant biz=1 vs biz=4 Tier 0, (b) PII redact regex CPF/CNPJ
+2. **Fix tool MCP tasks-create** — investigar onde tool é definido (provavelmente `Modules/Jana/Ai/Mcp/Tools/` ou em pacote `laravel/mcp`); adicionar shim `module → project` mapping OU atualizar schema pra aceitar `project` como param. Skill `commit-discipline` aplica
+3. **Após fix tool** — popular MCP DB com as 10 US-AUDIT (descrições já prontas em SPEC.md)
+
+---
 
 **Sessão Claude noite** (4ª sessão do dia, paralela às outras). Wagner pediu "continuar adiantar algo enquanto smoke biz=1 trava". Atacou 3 frentes documentação.
 
