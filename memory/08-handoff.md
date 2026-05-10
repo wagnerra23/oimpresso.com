@@ -7,6 +7,99 @@
 
 ---
 
+## 🆕 Estado 2026-05-10 ~final do dia — sessão massiva 25 PRs Modules/Arquivos+CV+Vestuario+CI
+
+**Sessão Claude autônoma** — Wagner deu autorização ampla ("faça", "todos", "continue") em modo iteração rápida. Sub-agents paralelos via worktrees isolados entregaram 25 PRs em 1 dia, fechando Sprint 1 backbone Modules/Arquivos + Sprint 1 técnico Modules/ComunicacaoVisual + saneamento CI.
+
+### PRs mergeados nesta sessão (25)
+
+#### Modules/Arquivos backbone (12 PRs)
+- [#406](https://github.com/wagnerra23/oimpresso.com/pull/406) VestuarioSettingsResolver
+- [#407](https://github.com/wagnerra23/oimpresso.com/pull/407) arquivos:recalcular-metadata
+- [#409](https://github.com/wagnerra23/oimpresso.com/pull/409) VaultEncryptionService Crypt::encrypt
+- [#410](https://github.com/wagnerra23/oimpresso.com/pull/410) DanfeService prefere xml_arquivo backbone
+- [#412](https://github.com/wagnerra23/oimpresso.com/pull/412) NfeEmissaoController serialize xml_url+danfe_url
+- [#413](https://github.com/wagnerra23/oimpresso.com/pull/413) arquivos:dedupe-stats
+- [#415](https://github.com/wagnerra23/oimpresso.com/pull/415) arquivos:reencrypt-vault
+- [#418](https://github.com/wagnerra23/oimpresso.com/pull/418) Repair consumer arquivo backbone
+- [#419](https://github.com/wagnerra23/oimpresso.com/pull/419) vestuario:settings CLI
+- [#420](https://github.com/wagnerra23/oimpresso.com/pull/420) arquivos:audit-log compliance LGPD
+- [#422](https://github.com/wagnerra23/oimpresso.com/pull/422) metadata_recalculated_at column tracking
+- [#425](https://github.com/wagnerra23/oimpresso.com/pull/425) Vault cap 50MB + ADR 0126
+
+#### Modules/ComunicacaoVisual Sprint 1 (6 PRs)
+- [#428](https://github.com/wagnerra23/oimpresso.com/pull/428) Scaffold 8 peças RUNBOOK
+- [#431](https://github.com/wagnerra23/oimpresso.com/pull/431) Migrations + 4 Models global scope Tier 0
+- [#433](https://github.com/wagnerra23/oimpresso.com/pull/433) OrcamentoCalculator US-COMVIS-001 cálculo m²
+- [#447](https://github.com/wagnerra23/oimpresso.com/pull/447) Spool plotter US-COMVIS-004 + ApontamentoTracker drift detection
+- [#455](https://github.com/wagnerra23/oimpresso.com/pull/455) MaterialSeeder 5 defaults
+- [#458](https://github.com/wagnerra23/oimpresso.com/pull/458) comvis:demo-seed end-to-end
+
+#### Modules/Arquivos compliance + ops (4 PRs)
+- [#429](https://github.com/wagnerra23/oimpresso.com/pull/429) arquivos:retention-cleanup LGPD hard-delete
+- [#450](https://github.com/wagnerra23/oimpresso.com/pull/450) arquivos:health-check 5 sinais
+- [#459](https://github.com/wagnerra23/oimpresso.com/pull/459) Schedule arquivos:health-check daily 06:30 BRT cron
+- [#478](https://github.com/wagnerra23/oimpresso.com/pull/478) markTestSkipped defensivo SQLite (~6 tests)
+
+#### CI + governança (3 PRs)
+- [#464](https://github.com/wagnerra23/oimpresso.com/pull/464) Workflow modules-pest.yml matrix MySQL 8
+- [#466](https://github.com/wagnerra23/oimpresso.com/pull/466) Fix YAML CI (em-dash, heredoc indent, ALTER TABLE ENUM)
+- [#472](https://github.com/wagnerra23/oimpresso.com/pull/472) ADR 0128 smoke testing E2E pós-cycle (proposed)
+
+### Estado consolidado pós-sessão
+
+#### Modules/Arquivos backbone — DMS completo + compliance ativo
+- 6 commands operacionais: `recalcular-metadata`, `dedupe-stats`, `reencrypt-vault`, `audit-log`, `retention-cleanup`, `health-check`
+- VaultEncryptionService + cap 50MB (ADR 0126 chunked Sprint 2 proposed)
+- Coluna `metadata_recalculated_at` tracking explícito
+- Schedule cron daily 06:30 BRT
+- 2 consumers migrados: NfeBrasil (DanfeService + NfeEmissaoController) + Repair (JobSheet anexos accessor)
+
+#### Modules/ComunicacaoVisual Sprint 1 — 3/3 gates cartas warming destravados
+- Scaffold completo + Install botão funcional `/manage-modules`
+- Schema 5 tabelas + Models Tier 0 (Material, Orcamento, OrcamentoItem, Os, Apontamento)
+- OrcamentoCalculator + ApontamentoTracker + 8 endpoints REST
+- MaterialSeeder + comvis:demo-seed
+- **Demo end-to-end pronta** — Wagner clica Install + roda demo-seed → orçamento + OS + apontamento criados em biz=ROTA LIVRE
+
+#### Modules/Vestuario backbone
+- VestuarioSettingsResolver DI singleton + cache 5min + dot notation
+- Command `vestuario:settings` CLI list/get/set + cast typed
+
+#### CI ativo
+- Workflow `modules-pest.yml` 5 jobs paralelos MySQL 8
+- ~30 tests guarded com markTestSkipped SQLite (regra Felipe Pest local segue válida — ADR 0101)
+
+#### Governança nova
+- ADR 0126 chunked encryption Sprint 2 (proposed)
+- ADR 0128 smoke testing E2E pós-cycle (proposed)
+- Autopecas charter + plano Vargas (PR #400 anterior)
+
+### Bloqueios humanos pendentes (próximos passos imediatos)
+
+| # | Item | Owner | Quando |
+|---|------|-------|--------|
+| 1 | Pest local MySQL nas 5 suítes alteradas (~80 tests novos) | Felipe | segunda 2026-05-12 |
+| 2 | Ativar Install CV biz=4 + `comvis:demo-seed --business=4` | Wagner | imediato |
+| 3 | Mandar 5 cartas warming (gates 3/3 destravados) | Wagner | semana |
+| 4 | Aprovar/rejeitar ADR 0126 (chunked) + ADR 0128 (smoke E2E) | Wagner | 30d |
+| 5 | Smoke fiscal SEFAZ biz=1 (`NFEBRASIL_AUTO_EMISSION_NFCE=true`) | Wagner | quando puder |
+| 6 | `officeimpresso-financial-snapshot` em cada Firebird quando 192.168.0.55 voltar (offline desde 2026-05-10) | Wagner | quando IP voltar |
+| 7 | US-INFRA-012 4 críticos audit findings (`_AGENT_A_AUDIT_FINDINGS.md`) | Felipe | segunda |
+| 8 | Decidir + implementar 4 user journeys E2E se ADR 0128 aceita | Próxima Claude | pós-aceite |
+
+### Próximas frentes codáveis (próxima sessão pode tocar)
+
+- UI Inertia OrcamentoForm CV — requer charter MWART + design loop Cowork (ADR 0114)
+- UI Inertia VestuarioSettings — mesma barreira charter MWART
+- UI Inertia ArquivosDashboard — visualizar 5 health checks
+- Smoke E2E impl Sprint 1 (4 user journeys da ADR 0128 se aceita)
+- Cypress/Playwright UI E2E — defer Sprint 2+ depois UI Inertia
+
+**Atualização:** 2026-05-10 ~final do dia BRT — 25 PRs mergeados, Modules/Arquivos backbone DMS completo, Modules/CV Sprint 1 entregue, CI ativo (com ressalvas SQLite), 2 ADRs proposed.
+
+---
+
 ## 🆕 Estado 2026-05-10 madrugada — useForm v3 redo + OficinaAuto Pioneer + Vestuario Q3 expandido (3 PRs)
 
 **Sessão Claude madrugada** (5ª+ sessão paralela do dia, várias re-aberturas via /resume). Wagner pediu "merge tudo + continuar o que conseguir adiantar com prazo de 4 horas". Mergeou 7 PRs de outras sessões (#400, #403, #408, #414, #416, #417, #352, mais alguns) e gerou 3 PRs próprios novos.
