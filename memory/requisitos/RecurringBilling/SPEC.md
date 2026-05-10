@@ -860,3 +860,48 @@ Exceções RB-1 (Dim 3 Charter) e RB-2 (Dim 8 Smoke MCP) **mantidas** — UI Pag
 
 Total de gaps RecurringBilling convertidos em US-fix: **2 de 4 detectados** (2 mantidos como exceção).
 
+
+### US-RB-048 · RUNBOOK operacional antes do Inter PJ Banking API ir pra prod
+
+> owner: wagner · sprint: cycle-04 · priority: p0 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 4 RUNBOOK — 🟡 PARCIAL escalado a P0).
+
+**Evidência:** Glob `memory/requisitos/RecurringBilling/RUNBOOK*.md` retornou vazio. Wagner em voo HOJE com Inter PJ Banking API v2 (saldo + extrato, ETA +3h). Sem RUNBOOK, suporte/operação não tem playbook quando algo falhar (token expira, webhook 401, sandbox vs prod confusion).
+
+**Fix sugerido:** rodar skill `cockpit-runbook` em `memory/requisitos/RecurringBilling/` → gera `RUNBOOK-inter-pj.md` com 11 seções obrigatórias (Pré-requisitos / Setup / Smoke / Debug / Erros comuns / Rollback / etc).
+
+**Acceptance criteria:**
+- [ ] `memory/requisitos/RecurringBilling/RUNBOOK-inter-pj.md` criado, status:live
+- [ ] 11 seções canônicas preenchidas (referência: `memory/requisitos/NfeBrasil/RUNBOOK-smoke-sefaz.md`)
+- [ ] Inclui: como obter token Inter, validar cert PJ, sandbox→prod, ler saldo, debug webhook 401, rollback se receber valor errado
+- [ ] Snippet PowerShell + cURL executáveis em PT-BR
+- [ ] Push antes de promover Inter PJ pra prod
+
+**Disparo:** Auditoria de completude 2026-05-10. Bloqueia go-live Inter PJ Banking API v2.
+**Tags:** completeness-gap, from-skill, audit-2026-05-10, inter-pj
+
+### US-RB-049 · Permissions UI: plans.manage, contracts.manage, webhooks.view (US-RB-001..005)
+
+> owner: — · sprint: cycle-04 · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: US-RB-046
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 2 Permissions middleware + UI — 🟡 PARCIAL).
+
+**Evidência:** `Modules/RecurringBilling/Http/Controllers/InvoiceController.php:33-38` tem `can:recurringbilling.invoice.cancel`. Mas `Routes/web.php:26` é placeholder Resource VAZIO. Faltam permissions canônicas pra plans, contracts, webhooks.
+
+**Fix sugerido:**
+1. Criar permissions Spatie via seeder: `recurringbilling.plans.manage`, `recurringbilling.contracts.manage`, `recurringbilling.webhooks.view`
+2. Aplicar middleware `can:recurringbilling.<scope>.<action>` nas rotas conforme controllers vierem (US-RB-001..005)
+3. Quando UI Pages/RecurringBilling/ for codada (US-RB-046 Inter PJ UI), adicionar `Pages/RecurringBilling/Admin/Permissions/Index.tsx` ou agrupar em /admin/roles
+
+**Acceptance criteria:**
+- [ ] Migration seeder cria 3 permissions Spatie
+- [ ] `Routes/web.php` aplica `can:*` em Plans/Contracts/Webhooks routes
+- [ ] Pest test verifica 403 quando user sem permission
+- [ ] Pest test cross-tenant biz=99 não vê permissions de biz=1
+
+**Disparo:** Auditoria de completude 2026-05-10.
+**Bloqueado por:** US-RB-046 (Inter PJ UI — pra ter onde mostrar gestão de permissões). Pode ser implementada parcialmente (só backend + middleware) antes da UI.
+**Tags:** completeness-gap, from-skill, audit-2026-05-10
