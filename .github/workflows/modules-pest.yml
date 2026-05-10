@@ -1,10 +1,10 @@
 name: Modules Pest
 
-# CI Pest pra 5 módulos tocados na sessão 2026-05-10 — Sprint 2 ADR 0123.
+# CI Pest pra 5 modulos tocados na sessao 2026-05-10 - Sprint 2 ADR 0123.
 # Roda jobs paralelos (matrix) em cada PR que toca Modules/<X>/.
-# SQLite :memory: — evita o problema de boot providers UPos que consultam
+# SQLite :memory: - evita o problema de boot providers UPos que consultam
 # system.crm_version antes de migrate criar a tabela (mesmo workaround do ci.yml).
-# markTestSkipped defensivo já implementado nos tests: se tabela ausente → skip gracioso.
+# markTestSkipped defensivo ja implementado nos tests: se tabela ausente = skip gracioso.
 
 on:
   pull_request:
@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   pest:
-    name: "Pest — Modules/${{ matrix.module }}"
+    name: Pest ${{ matrix.module }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -63,15 +63,15 @@ jobs:
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
-      - name: Prepare dirs de storage + bootstrap
+      - name: Prepare dirs
         run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
 
-      - name: Instalar dependências PHP (sem scripts até .env existir)
+      - name: Install PHP deps
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
-      - name: Criar .env (SQLite :memory: — sem boot DB-heavy)
+      - name: Create .env
         run: |
-          cat > .env <<'EOF'
+          cat > .env <<'ENVEOF'
           APP_NAME=oimpresso-ci
           APP_ENV=testing
           APP_DEBUG=true
@@ -87,22 +87,22 @@ jobs:
           TELESCOPE_ENABLED=false
           SCOUT_DRIVER=null
           MCP_TOOLS_EXPOSED=false
-          EOF
+          ENVEOF
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Migrate (SQLite :memory: — cria tabelas pra tests)
+      - name: Migrate
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+          DB_DATABASE: ":memory:"
           APP_ENV: testing
         run: php artisan migrate --force --no-interaction
 
-      - name: "Pest — Modules/${{ matrix.module }}/Tests"
+      - name: Run Pest
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+          DB_DATABASE: ":memory:"
           CACHE_DRIVER: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
