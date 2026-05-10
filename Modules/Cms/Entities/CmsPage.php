@@ -3,9 +3,13 @@
 namespace Modules\Cms\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Arquivos\Concerns\HasArquivos;
+use Modules\Arquivos\Entities\Arquivo;
 
 class CmsPage extends Model
 {
+    use HasArquivos; // ADR 0123 — adopcao Sprint 4 (feature_image via arquivos)
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -41,17 +45,42 @@ class CmsPage extends Model
     /**
      * Get the feature image.
      *
-     * @return string
+     * Sprint 4 US-ARQ-025+ (ADR 0123): preferir arquivos table SE existir,
+     * fallback pra coluna legacy `feature_image` (path em `/public/uploads/cms/`).
+     *
+     * @return string|null
      */
     public function getFeatureImageUrlAttribute()
     {
-        $image_url = null;
-
-        if (! empty($this->feature_image)) {
-            $image_url = asset('/uploads/cms/'.rawurlencode($this->feature_image));
+        // Preferir arquivos table (Sprint 4+)
+        $arquivo = $this->getFeatureImageArquivoAttribute();
+        if ($arquivo) {
+            // signedUrl gera URL temporário 60min; CMS precisa URL permanente —
+            // usa arquivos.download direto sem expiração curta. Sprint 5 vai ter
+            // helper publicUrl() pra contexto landing público.
+            return route('arquivos.download', ['arquivo' => $arquivo->id]);
         }
 
-        return $image_url;
+        // Fallback legacy (mantém site oimpresso.com landing funcionando)
+        if (! empty($this->feature_image)) {
+            return asset('/uploads/cms/'.rawurlencode($this->feature_image));
+        }
+
+        return null;
+    }
+
+    /**
+     * Accessor — Arquivo da feature_image via backbone Modules/Arquivos.
+     * sub_destination convencional: 'cms-featured'.
+     */
+    public function getFeatureImageArquivoAttribute(): ?Arquivo
+    {
+        if (! method_exists($this, 'arquivos')) return null;
+        return $this->arquivos()
+            ->where('sub_destination', 'cms-featured')
+            ->where('bucket', 'active')
+            ->latest('created_at')
+            ->first();
     }
 
     /**
