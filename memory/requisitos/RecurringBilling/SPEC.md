@@ -521,7 +521,7 @@ Então NÃO cria revenue_event (sem take rate)
 
 ### US-RB-044 · Listener InvoicePaid em NfeBrasil — emissão automática NFe55 + DANFE + e-mail
 
-> owner: wagner · priority: p1 · estimate: 12h · status: review · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #6 (diferencial vertical)
+> owner: wagner · priority: p1 · estimate: 12h · status: done · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #6 (diferencial vertical)
 
 **Implementado em:** [`Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php`](../../../Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php) · [`Modules/NfeBrasil/Services/NfeService::emitirParaInvoice`](../../../Modules/NfeBrasil/Services/NfeService.php) · [`Modules/NfeBrasil/Events/NFeAutorizada`](../../../Modules/NfeBrasil/Events/NFeAutorizada.php)
 
@@ -541,7 +541,7 @@ Então NÃO cria revenue_event (sem take rate)
 - [x] Tests Pest (10 cenários): listener registrado, flag off no-op, invoice ausente, autorizada→event, rejeitada→sem event, throwable→retry, queue config, failed log
 - [x] DANFE PDF render (`Modules/NfeBrasil/Services/DanfeService` — gerado lazy via `NfeService::processarRetorno` autorizada)
 - [x] Envia e-mail pro pagador com DANFE + XML anexados (`Modules/NfeBrasil/Listeners/EnviarDanfePorEmail` consumindo `NFeAutorizada` event; resolve email via Invoice→Contact)
-- [ ] **Prod-evidence:** ≥1 NFe modelo 55 autorizada + email enviado via esse fluxo (ROTA LIVRE biz=4) — depende do business ter cert A1 + `ncm_default` configurado em `nfe_business_configs` + Contact com email válido
+**Marcada `done` em 2026-05-10** — code-complete em main desde PR #118 (`33e061bf`). DoD original tinha `[ ] Prod-evidence: ≥1 NFe55 autorizada ROTA LIVRE biz=4` mas removido após pivot conceitual com Wagner: **venda sem nota é caminho feliz, não falha**. Pré-requisito mais profundo (gate de emissão **POR VENDA**, não por business) virou cadeia [US-SELL-010](../Sells/SPEC.md#us-sell-010) → [US-SELL-011](../Sells/SPEC.md#us-sell-011) → [US-SELL-012](../Sells/SPEC.md#us-sell-012) (FSM canônica + RBAC por transição). Smoke prod end-to-end real fica em [US-NFE-059](../NfeBrasil/SPEC.md#us-nfe-059) (bloqueada por US-SELL-012).
 
 ### US-RB-045 · Inter PJ — saldo via Banking API v2 (Fase 1 OF direto)
 
