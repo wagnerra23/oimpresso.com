@@ -7,16 +7,16 @@ author: Claude Opus 4.7 (sub-agent autônomo, 13 frentes paralelas)
 synthesizes: F9-F21 (catalog, DaaS, benchmark, API, newsletter, performance fee, gap schema, state-of-art, Jana habit, multi-vertical, Jana roadmap, pricing usage, network effect)
 ---
 
-> ⚠️ **REVISÃO 2026-05-10**: Wagner decidiu (4 respostas):
-> - ✅ **Produto v2 ACEITO** como linha de negócio formal
+> ⚠️ **REVISÃO v3 — 2026-05-10**: Wagner decidiu:
+> - ✅ **Produto ACEITO** como linha de negócio formal
 > - ✅ **Eliana cuida do jurídico** — sem counsel externo agora
 > - ✅ **Grandfather 12m** dos 41 clientes atuais
-> - ✅ **ROTA LIVRE caso público anonimizado OK**
+> - ✅ **ROTA LIVRE caso público anonimizado OK** (loja de roupa em Gravatal/SC)
 > - ❌ **Pilar 5 (DaaS externo) DESCARTADO** — *"não vou vender dados"*
 > - ⏸️ **DPO formal Eliana adiado** — estuda LGPD primeiro
-> - 🚨 **Correção factual ROTA LIVRE**: NÃO é gráfica em SP. É **loja de roupa em Gravatal/SC** (LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA, Termas do Gravatal/SC). Várias menções no Master Spec e outros docs assumiam "gráfica" — estavam ERRADAS.
-> - 🟡 **Pergunta estratégica aberta (Hipótese A vs B)**: oimpresso é (A) vertical com.visual com ROTA LIVRE como exceção histórica, OU (B) horizontal SaaS B2B PME multi-vertical com ROTA LIVRE como caso-piloto representativo? Decisão pendente — afeta posicionamento, concorrentes, ICP, marketing.
-> - ARR 24m revisado: ~R$ 1-1.6M (vs R$ 1,5-2,5M com Pilar 5).
+> - 🎯 **Hipótese D ESCOLHIDA — modular especializado por vertical** ([ADR 0121](../0121-oimpresso-modular-especializado-por-vertical.md)). Wagner: *"acho que vou fazer módulos especializados"*. Núcleo comum + `Modules/<Vertical>` profundos.
+> - **ROTA LIVRE = caso piloto Modules/Vestuario** (não exceção, não gráfica). Outros módulos (ComunicacaoVisual, OficinaAuto) em construção/aguardando sinal.
+> - ARR 24m: ~R$ 1-1.6M (sem Pilar 5).
 
 # 🎯 oimpresso Insights — Master Product Spec
 
@@ -72,7 +72,7 @@ oimpresso Insights é o **único SaaS B2B brasileiro vertical que combina ERP op
 |------|----:|--------:|--------:|------:|---------------:|------|
 | **Free** | 0 | 30 | 0 | — | — | acquisition (trial 90d) |
 | **Starter** | 99 | 200 | 0 | — | 1 | gráfica solo / oficina pequena |
-| **Pro** | 299 | 2.000 | 50 | — | 1 | PME média (ROTA LIVRE-tipo — vestuário Gravatal/SC) |
+| **Pro** | 299 | 2.000 | 50 | — | 1 | PME média + 1 módulo vertical (ex: ROTA LIVRE = núcleo + Modules/Vestuario) |
 | **Premium** | 599 | unlim. | 200 | ✅ | 2 | gráfica grande (Vargas/Extreme/Gold-tipo) |
 | **Enterprise** | 1.499 | unlim. | unlim. | ✅ | 5 | rede com.visual + SLA |
 | **Power** | 2.999 | unlim. + Opus | unlim. | ✅ | unlim. | parceiro/agência/white-label |

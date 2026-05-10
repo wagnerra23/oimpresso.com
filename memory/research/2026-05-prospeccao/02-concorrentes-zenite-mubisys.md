@@ -66,7 +66,7 @@
 **O que Zênite tem e oimpresso NÃO tem (perigo):**
 1. **Coleta automática de dados das máquinas (IoT/integração equipamentos)** — produção real-time vinda do equipamento. Oimpresso não tem isso destacado em SPEC. **Risco competitivo médio-alto** em prospects com parque de máquinas grandes.
 2. **Mapa RKW (custos por método alemão)** — metodologia de custeio sofisticada que clientes industriais conhecem. Oimpresso tem Financeiro mas não publiciza RKW.
-3. **Base instalada de 2.200 gráficas** — efeito rede / referenciabilidade. Oimpresso tem 7 clientes ativos (ROTA LIVRE 99% volume).
+3. **Base instalada de 2.200 gráficas** — efeito rede / referenciabilidade. Oimpresso tem 7 clientes ativos (ROTA LIVRE 99% volume — vestuário SC, Modules/Vestuario; outros 6 são pilotos OfficeImpresso legacy a migrar pra Modules/ComunicacaoVisual).
 4. **Multi-empresa nativo** publicizado — oimpresso tem multi-tenant Tier 0 mas o framing comercial é diferente (multi-tenant ≠ multi-empresa do mesmo dono no UI).
 5. **30 anos de mercado + endorsement Singrafs/Assingrafs** (associações setoriais) — credibilidade institucional.
 
@@ -176,7 +176,7 @@
 | Modelo | hybrid (web+desktop legacy) | SaaS cloud puro | SaaS cloud puro |
 | Pricing público | não | não | não |
 | Trial | não | 7 dias | — |
-| Base alegada | 2.200 gráficas | 1.800 empresas / 14k usuários | 7 ativos (foco ROTA LIVRE 99%) |
+| Base alegada | 2.200 gráficas | 1.800 empresas / 14k usuários | 7 ativos (ROTA LIVRE 99% — vestuário; 6 OfficeImpresso legacy gráficas) |
 | App mobile | não | iOS + Android | web responsivo |
 | API/integração externa | não publicada | **reclamação pública: ausente** | API + webhook (a publicizar) |
 | NFe automática (boleto pago) | não publicada | não publicada | **sim (US-RB-044)** |

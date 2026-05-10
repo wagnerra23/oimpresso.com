@@ -31,7 +31,7 @@
 - Ainda em Blade (~18 módulos): Officeimpresso (núcleo do ERP), CRM, Sells/POS, PontoWr2, Stock, Purchases, Reports, etc.
 - **Cockpit (layout-mãe novo) já em produção** em `/copiloto/cockpit` — sidebar dual Chat↔Menu + main contextual + Apps Vinculados (320px) + Tweaks panel.
 
-**Cliente principal real:** ROTA LIVRE (biz=4) — Larissa, monitor 1280px, gráfica de bairro, opera o ERP 8h/dia. Não pode reaprender o sistema. Outros 6 clientes ativos com volume menor.
+**Cliente principal real:** ROTA LIVRE (biz=4) — Larissa, monitor 1280px, **loja de roupa em Gravatal/SC** (Modules/Vestuario), opera o ERP 8h/dia. Não pode reaprender o sistema. Outros 6 clientes ativos com volume menor (mix vestuário/comunicação visual/outros — oimpresso é modular especializado por vertical, [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)).
 
 ---
 

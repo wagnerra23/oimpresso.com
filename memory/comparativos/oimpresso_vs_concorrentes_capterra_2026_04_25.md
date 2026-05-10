@@ -9,8 +9,8 @@
 1. **oimpresso é hoje um ERP genérico (UltimatePOS-fork) com 25 módulos**, fortíssimo em fiscal BR, financeiro/CNAB e PDV — mas NÃO é um ERP vertical de gráfica/comunicação visual no sentido em que **Mubisys, Zênite, Visua, Calcgraf e Calcme** são (FPV, cálculo por m², PCP de impressão, OP com etapas).
 2. Diferencial real está na **stack moderna** (Laravel 13.6 + Inertia v3 + React + Tailwind v4) e em **dois módulos que nenhum concorrente vertical entrega**: **Jana** (chat IA contextual) e **MemCofre** (cofre de memórias) — porém Jana está em construção e ainda não é vendável.
 3. Contra os **genéricos (Bling, Omie)** o oimpresso perde em **escala/marca/integrações marketplace** — Bling tem 250+ integrações nativas + app mobile, Omie tem IA fiscal e antecipação de recebíveis em produção.
-4. Contra os **verticais gráficos**, faltam: **cálculo por m², FPV, apontamento de máquina, PCP gráfico** — só tem POS adaptado, insuficiente pra escalar ROTA LIVRE e prospectar novas gráficas.
-5. Estado atual: **comercialmente um ERP genérico bonito sem cliente** (56 cadastros / 7 ativos / 99% volume num cliente só). Pra R$5mi/ano em 24 meses, precisa **escolher entre virar vertical de comunicação visual OU virar plataforma IA-first sobre UltimatePOS**.
+4. Contra os **verticais gráficos**, faltam: **cálculo por m², FPV, apontamento de máquina, PCP gráfico** — só tem POS adaptado, insuficiente pra prospectar gráficas. Esses gaps viram **Modules/ComunicacaoVisual** ([ADR 0121](../decisions/0121-oimpresso-modular-especializado-por-vertical.md)) — módulo vertical especializado a construir pros 6 saudáveis OfficeImpresso a migrar.
+5. Estado atual: **arquitetura modular especializada por vertical** (ADR 0121). ROTA LIVRE (biz=4) = piloto **Modules/Vestuario** (loja roupa Gravatal/SC) com 99% volume validado em prod. Próximos módulos a ativar: Modules/ComunicacaoVisual (em construção), Modules/OficinaAuto (aguardando sinal qualificado). Pra R$5mi/ano em 36-48 meses, precisa **diversificar via 3+ módulos verticais** — sem precisar escolher um vertical único.
 
 ---
 
