@@ -2,11 +2,11 @@
 
 > **Companion doc** de [`_AGENT_A_AUDIT_FINDINGS.md`](_AGENT_A_AUDIT_FINDINGS.md). Aqui está cada crítico pendente em formato decisão (A vs B, recomendação, esforço).
 >
-> 🔄 **STATUS 2026-05-10 tarde:** Wagner autorizou pre-aplicar D1+D2 nos drafts (Opção B em ambos). **D3+D4 pendentes Felipe.**
+> 🔄 **STATUS 2026-05-10 tarde tarde:** Wagner autorizou pre-aplicar **TODAS** as 4 decisões nos drafts. D1, D2, D3, D4 todas em ✅ APLICADO.
 >
-> Tempo estimado pra ler + decidir D3+D4: **5min**. Implementar D3+D4: **~30min**. Smoke + PR: ~1h.
+> **Felipe segunda só precisa:** ler este doc (~5min) → validar que concorda com as 4 escolhas → rodar `vendor\bin\pest tests/Feature/Insights` local → abrir PR US-INFRA-012 movendo drafts pra `database/migrations/` real.
 >
-> Ordem sugerida: validar D1+D2 já aplicados → D3 (SSH SHOW COLUMNS) → D4 (edit Command) → `vendor\bin\pest tests/Feature/Insights` local → PR US-INFRA-012.
+> Se discordar de alguma decisão, reverte naquele arquivo + abre ADR justificando.
 
 ---
 
@@ -75,7 +75,17 @@
 
 ---
 
-## D3 — Coluna CNPJ na tabela `business`: `tax_number` ou `tax_number_1`?
+## D3 — Coluna CNPJ na tabela `business`: `tax_number` ou `tax_number_1`? ✅ CONFIRMADO + APLICADO
+
+> **Confirmado via SSH 2026-05-10 tarde** (`SHOW COLUMNS FROM business LIKE 'tax_number%'`):
+> - `tax_number_1` ← Wagner WR2 usa este (CNPJ principal)
+> - `tax_number_2` (segundo CNPJ legado, raramente populado)
+>
+> **Aplicado:** `BackfillBusinessVerticalCommand.php:67` agora lê `$biz->tax_number_1 ?? ''`. Comentário inline cita confirmação 2026-05-10.
+>
+> **Felipe valida:** se concordar, segue. Se discordar (ex: quer fallback `tax_number_1 ?? tax_number_2`), edita inline.
+
+
 
 **Onde:** `migrations/BackfillBusinessVerticalCommand.php:67`.
 
@@ -106,7 +116,13 @@ mysql -h... -e 'SHOW COLUMNS FROM business LIKE "tax_number%"'
 
 ---
 
-## D4 — `BackfillBusinessVerticalCommand` precisa de `--force`?
+## D4 — `BackfillBusinessVerticalCommand` precisa de `--force`? ✅ APLICADO (Opção A)
+
+> **Aplicado:** Command signature ganhou `--force` (default false = safe whereNull idempotente). `handle()` ramifica entre filtrar por `whereNull('vertical_id')` (default) ou processar todos (com `--force`).
+>
+> **Felipe valida:** se concordar, segue. Se preferir Opção B (remove test), reverte ambos.
+
+
 
 **Onde:** `migrations/BackfillBusinessVerticalCommand.php:42-44` + `tests/.../BackfillBusinessVerticalCommandTest.php:137-155`.
 
@@ -141,17 +157,16 @@ public function handle()
 
 ---
 
-## Checklist Felipe segunda (5min validar + 30min D3+D4 + Pest + PR)
+## Checklist Felipe segunda (5min validar + Pest + PR)
 
 - [x] **D1** — Opção B pre-aplicada 2026-05-10 tarde (Wagner autorizou)
 - [x] **D2** — Opção B pre-aplicada 2026-05-10 tarde (Wagner autorizou)
-- [ ] Validar D1+D2 — concordo? (se não, reverter e abrir ADR)
-- [ ] **D3** — confirmei coluna `business.____` via SSH
-- [ ] **D4** — adoto Opção __ (A/B?)
-- [ ] Aplicar fixes restantes em Command (D3+D4)
-- [ ] `vendor\bin\pest tests/Feature/Insights` local — verde
+- [x] **D3** — coluna confirmada `tax_number_1` via SSH 2026-05-10 tarde, Command ajustado
+- [x] **D4** — Opção A aplicada (--force flag adicionado, default safe)
+- [ ] Validar todas as 4 decisões — concordo? (se não, reverter aquela específica + ADR)
 - [ ] Bug Pest Modules/Jana (`uses(...)->in(__DIR__)` duplicado em Admin/) — corrigir junto OU PR separado
-- [ ] PR US-INFRA-012 com referência a este doc + ADRs aceitas
+- [ ] `vendor\bin\pest tests/Feature/Insights` local — verde
+- [ ] PR US-INFRA-012 movendo drafts pra `database/migrations/` real + Module/Insights/Console/Commands/
 
 **Se discordar de qualquer recomendação acima, registra rationale no PR description** — cria precedente pra próximas decisões similares.
 
