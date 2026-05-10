@@ -2,7 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
+use Modules\NfeBrasil\Events\FiscalRuleCreated;
+use Modules\NfeBrasil\Events\FiscalRuleDeleted;
+use Modules\NfeBrasil\Events\FiscalRuleUpdated;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
 use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 
@@ -11,35 +16,64 @@ uses(Tests\TestCase::class);
 /**
  * US-NFE-010 fase 3 · Import CSV de regras tributárias.
  *
- * Pattern: cria nfe_fiscal_rules in-memory pra rodar isolated em SQLite.
- * Service recebe conteúdo string (não UploadedFile) na maioria dos tests.
+ * Pattern dual-mode (sessão 2026-05-10 — fix CI Modules Pest):
+ *   - SQLite (CI sanity): schema não existe; cria isolado in-memory
+ *   - MySQL (Pest local — gate Wagner): schema real; só limpa rows dos biz de teste
+ *
+ * Event::fake do bridge listener `SyncFiscalRuleToTaxRate` (ADR ARQ-0005)
+ * porque tests de aplicar() validam contagem criadas/atualizadas, não a tax_rates
+ * derivada — sem fake, listener tenta gravar em `nfe_fiscal_rule_tax_rate_links`
+ * (ausente em SQLite CI) e falha → contagem aplicar() vai pra `falhas`. Listener
+ * tem cobertura própria em SyncFiscalRuleToTaxRateTest.
  */
 
 beforeEach(function () {
-    Schema::dropIfExists('nfe_fiscal_rules');
-    Schema::create('nfe_fiscal_rules', function ($t) {
-        $t->id();
-        $t->unsignedInteger('business_id')->index();
-        $t->char('ncm', 8);
-        $t->char('uf_origem', 2);
-        $t->char('uf_destino', 2)->nullable();
-        $t->char('cfop', 4);
-        $t->char('csosn', 3)->nullable();
-        $t->char('cst', 3)->nullable();
-        $t->decimal('aliquota_icms', 7, 4)->default(0);
-        $t->decimal('aliquota_pis', 7, 4)->default(0);
-        $t->decimal('aliquota_cofins', 7, 4)->default(0);
-        $t->decimal('aliquota_ipi', 7, 4)->default(0);
-        $t->decimal('mva', 7, 4)->nullable();
-        $t->decimal('fcp', 7, 4)->nullable();
-        $t->json('metadata')->nullable();
-        $t->timestamps();
-        $t->softDeletes();
-    });
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_fiscal_rules');
+        Schema::create('nfe_fiscal_rules', function ($t) {
+            $t->id();
+            $t->unsignedInteger('business_id')->index();
+            $t->char('ncm', 8);
+            $t->char('uf_origem', 2);
+            $t->char('uf_destino', 2)->nullable();
+            $t->char('cfop', 4);
+            $t->char('csosn', 3)->nullable();
+            $t->char('cst', 3)->nullable();
+            $t->decimal('aliquota_icms', 7, 4)->default(0);
+            $t->decimal('aliquota_pis', 7, 4)->default(0);
+            $t->decimal('aliquota_cofins', 7, 4)->default(0);
+            $t->decimal('aliquota_ipi', 7, 4)->default(0);
+            $t->decimal('mva', 7, 4)->nullable();
+            $t->decimal('fcp', 7, 4)->nullable();
+            $t->json('metadata')->nullable();
+            $t->timestamps();
+            $t->softDeletes();
+        });
+    } elseif (Schema::hasTable('nfe_fiscal_rules')) {
+        // MySQL — schema real; limpa biz de teste (1 = Wagner WR2 ADR 0101, 99 = cross-tenant)
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
+            DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 99])->delete();
+        }
+        DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 99])->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
+    // Listener bridge não é o foco aqui — isola side effect no boot do model
+    Event::fake([FiscalRuleCreated::class, FiscalRuleUpdated::class, FiscalRuleDeleted::class]);
 });
 
 afterEach(function () {
-    Schema::dropIfExists('nfe_fiscal_rules');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_fiscal_rules');
+    } elseif (Schema::hasTable('nfe_fiscal_rules')) {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
+            DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 99])->delete();
+        }
+        DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 99])->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
 });
 
 // ── helpers ──────────────────────────────────────────────────────────────
