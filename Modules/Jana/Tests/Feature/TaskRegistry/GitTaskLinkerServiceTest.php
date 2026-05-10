@@ -7,7 +7,7 @@ use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Services\TaskRegistry\GitTaskLinkerService;
 
-uses(Tests\TestCase::class, RefreshDatabase::class)->in(__DIR__);
+uses(Tests\TestCase::class, RefreshDatabase::class);
 
 beforeEach(function () {
     $this->svc = new GitTaskLinkerService();

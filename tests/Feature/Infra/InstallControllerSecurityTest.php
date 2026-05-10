@@ -26,7 +26,7 @@ use Tests\TestCase;
  */
 class InstallControllerSecurityTest extends TestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function installAlternate_method_chama_isSystemAlreadyInstalled_guard(): void
     {
         $reflection = new ReflectionClass(InstallController::class);
@@ -50,7 +50,7 @@ class InstallControllerSecurityTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function isSystemAlreadyInstalled_metodo_existe_e_retorna_bool(): void
     {
         $reflection = new ReflectionClass(InstallController::class);
@@ -71,7 +71,7 @@ class InstallControllerSecurityTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function runArtisanCommands_roda_migrate_fresh_destrutivo(): void
     {
         // Garante que runArtisanCommands de fato é destrutivo — se alguém remover

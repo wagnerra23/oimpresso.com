@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Modules\ADS\Services\PolicyEngine;
 use Modules\ADS\Services\PolicyResult;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 // ARQ-0006 — PolicyEngine: firewall de decisões
 

@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 use Modules\Jana\Services\GovernancaService;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * MEM-MCP-1.e (ADR 0053) — Cobertura mínima do dashboard de governança MCP.
