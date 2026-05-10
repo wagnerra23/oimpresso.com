@@ -2,9 +2,12 @@ name: Modules Pest
 
 # CI Pest pra 5 modulos tocados na sessao 2026-05-10 - Sprint 2 ADR 0123.
 # Roda jobs paralelos (matrix) em cada PR que toca Modules/<X>/.
-# SQLite :memory: - evita o problema de boot providers UPos que consultam
-# system.crm_version antes de migrate criar a tabela (mesmo workaround do ci.yml).
-# markTestSkipped defensivo ja implementado nos tests: se tabela ausente = skip gracioso.
+#
+# NOTA: Sem migrate manual - UltimatePOS tem migrations MySQL-only (MODIFY COLUMN,
+# ENUM syntax) incompativeis com SQLite. Tests que precisam de DB real usam
+# markTestSkipped defensivo (skip gracioso quando tabela ausente).
+# Tests pure-logic (service classes, value objects, command logic) rodam normalmente.
+# Para rodar suite completa com DB real: vendor/bin/pest localmente com MySQL.
 
 on:
   pull_request:
@@ -71,32 +74,24 @@ jobs:
 
       - name: Create .env
         run: |
-          cat > .env <<'ENVEOF'
-          APP_NAME=oimpresso-ci
-          APP_ENV=testing
-          APP_DEBUG=true
-          APP_URL=http://localhost
-          LOG_CHANNEL=stderr
-          DB_CONNECTION=sqlite
-          DB_DATABASE=:memory:
-          CACHE_DRIVER=array
-          QUEUE_CONNECTION=sync
-          SESSION_DRIVER=array
-          MAIL_MAILER=array
-          BCRYPT_ROUNDS=4
-          TELESCOPE_ENABLED=false
-          SCOUT_DRIVER=null
-          MCP_TOOLS_EXPOSED=false
-          ENVEOF
+          printf '%s\n' \
+            'APP_NAME=oimpresso-ci' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=true' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' > .env
           php artisan key:generate
           php artisan package:discover --ansi
-
-      - name: Migrate
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
-          APP_ENV: testing
-        run: php artisan migrate --force --no-interaction
 
       - name: Run Pest
         env:
