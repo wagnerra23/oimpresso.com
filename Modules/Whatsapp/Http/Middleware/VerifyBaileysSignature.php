@@ -39,6 +39,7 @@ class VerifyBaileysSignature
     {
         $businessUuid = (string) $request->route('business_uuid');
 
+        // SUPERADMIN: webhook público pré-auth (CT 100 → Hostinger) — valida Bearer global antes de identificar tenant via business_uuid no path
         $config = WhatsappBusinessConfig::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_uuid', $businessUuid)
@@ -69,6 +70,7 @@ class VerifyBaileysSignature
         $instanceId = (string) ($request->input('instance_id') ?? '');
         $phone = null;
         if ($instanceId !== '') {
+            // SUPERADMIN: middleware webhook público — resolve phone via instance_id após Bearer validado; filtro business_id do config
             $phone = WhatsappBusinessPhone::query()
                 ->withoutGlobalScope(ScopeByBusiness::class)
                 ->where('business_id', $config->business_id)

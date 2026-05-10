@@ -38,6 +38,7 @@ class VerifyMetaSignature
     {
         $businessUuid = (string) $request->route('business_uuid');
 
+        // SUPERADMIN: webhook público Meta pré-auth — valida HMAC SHA-256 antes de identificar tenant via business_uuid no path
         $config = WhatsappBusinessConfig::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_uuid', $businessUuid)
@@ -111,6 +112,7 @@ class VerifyMetaSignature
             return null;
         }
 
+        // SUPERADMIN: middleware webhook público — resolve phone via phone_number_id após HMAC já validado; filtro business_id do config
         return WhatsappBusinessPhone::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $businessId)
