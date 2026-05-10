@@ -32,6 +32,7 @@
             <directory>./Modules/Ponto/Tests/Feature</directory>
             <directory>./Modules/ADS/Tests/Unit</directory>
             <directory>./Modules/Vestuario/Tests/Feature</directory>
+            <directory>./Modules/ComunicacaoVisual/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>
