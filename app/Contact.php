@@ -6,11 +6,40 @@ use DB;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Contact extends Authenticatable
 {
     use Notifiable;
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * Activity log config — auditoria de cliente/fornecedor com cuidado especial PII LGPD.
+     *
+     * CRITICO: tax_number_1 (CPF/CNPJ) NAO entra no logOnly. PII LGPD nao deve
+     * aparecer em activity_log.properties por design (ADR 0127 §F1, regras-time.md).
+     *
+     * Pest test PII redact em tests/Feature/Auditoria/ContactPiiLogsActivityTest
+     * faz assert regex de CPF/CNPJ contra dump JSON pra garantir.
+     *
+     * Refs: ADR 0127 (Modules/Auditoria UI + undo) US-AUDIT-003
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'name',
+                'email',
+                'mobile',
+                'contact_type',
+                'customer_group_id',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('crm.contact');
+    }
 
     /**
      * The attributes that aren't mass assignable.
