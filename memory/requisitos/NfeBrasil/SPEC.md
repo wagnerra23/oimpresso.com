@@ -910,3 +910,46 @@ Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/My
 **NÃO bloqueia release do gate (US-SELL-012)** — feature pode ir pra prod sem este smoke. Esta US apenas registra a evidência real quando primeiro cliente adotar.
 
 **Refs:** pivot conceitual sessão 2026-05-10 (US-RB-044 done sem prod-evidence). US-SELL-012 (gate por venda).
+
+**Caso prático referência:** [Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md](../Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md) — smoke real cobre 2 documentos atrelados à OS (NFe55 banner + NFSe56 nacional instalação). Depende US-NFE-060 (EmitirNFSeJob).
+
+### US-NFE-060 · EmitirNFSeJob modelo 56 nacional (NT 2024-001) — paralelo ao EmitirNfceJob
+
+> owner: wagner · priority: p1 · estimate: 12h · status: todo · type: story
+> blocked_by: US-SELL-014
+
+**Contexto:** caso prático OS Comunicação Visual exige emissão de NFSe (instalação fachada R$ 200) em paralelo à NFe55 (banner R$ 350). Hoje `Modules/NfeBrasil` só emite modelos 55/65 (NFe/NFC-e via `nfephp-org/sped-nfe`). Falta NFSe modelo 56 nacional — padrão único `nfse.gov.br/sefin` que substituiu emissores municipais Tinus/Issnet/Ginfes (obrigatório MEI desde 09/2023, demais regimes em fases 2025-2026).
+
+**Avaliar pacote PHP:**
+- `nfephp-org/sped-nfse` (mantido pelo mesmo time que sped-nfe — primeira escolha)
+- `gust-bzz/php-nfse-nacional` (alternativa)
+- `harlleynunes/nfsenacional-php` (nicho)
+
+**Job arquitetura (paralelo a `EmitirNfceJob` existente):**
+- `Modules/NfeBrasil/Jobs/EmitirNFSeJob` — recebe `transaction_id` + `value_servico` + `item_lc116` (ex: 17.06 publicidade)
+- Resolve config tributária via `MotorTributarioService::resolverParaNFSe(...)` (extender US-NFE-043 cascade)
+- Gera RPS local (Recibo Provisório de Serviços) → envia pra Sefin nacional → autoriza
+- Registra em `transaction_documents` (poly via US-SELL-014) com `doc_type=nfse56`
+- Eventos: `NFSeAutorizada`, `NFSeRejeitada`, `NFSeCancelada` (espelho do que existe pra NFe55)
+- PDF NFSe gerado via `Modules/NfeBrasil/Services/NfsePdfService` (adaptar `DanfeService`)
+- Listener `EnviarNFSePorEmail` — anexa PDF + XML pro tomador
+
+**Mudanças correlatas:**
+- Migration `nfse_emissoes` (espelho `nfe_emissoes`: id, business_id, item_lc116, valor_servico, valor_iss, aliquota_iss, municipio_prestacao_ibge, chave_acesso, xml_path, status, etc)
+- Model `NfseEmissao` em `Modules\NfeBrasil\Models`
+- UI tela cliente `/contacts/{id}` ganha aba "NFSe emitidas" (espelho NFe)
+- `nfe_business_configs` ganha `inscricao_municipal` + `regime_iss` (LC 116) per-business
+
+**Acceptance criteria:**
+- [ ] ADR `proposed` escolhendo pacote PHP (3 opções acima — comparativo)
+- [ ] Migration `nfse_emissoes` com `business_id` global scope
+- [ ] `EmitirNFSeJob` autoriza RPS na sandbox Sefin nacional → recebe número NFSe + chave acesso
+- [ ] Idempotência via `transaction_documents` (US-SELL-014)
+- [ ] PDF NFSe gerado (template ABRASF) + email enviado
+- [ ] Eventos disparados (`NFSeAutorizada` etc)
+- [ ] Pest 8+ testes (autorizar OK sandbox, rejeição RPS inválido, idempotência, isolation, item LC116 obrigatório, IM ausente bloqueia, alíquota ISS por município, PDF gerado)
+- [ ] RUNBOOK em `memory/requisitos/NfeBrasil/RUNBOOK-emitir-nfse-56.md` (homologação Sefin nacional + cert A1 + IM)
+
+**Caso prático referência:** [Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md](../Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md) — NFSe instalação R$ 200, ISS 5% Floripa/SC, item 17.06.
+
+**Refs:** US-SELL-014 (transaction_documents poly). Pré-requisito pra US-NFE-059 (smoke prod end-to-end).
