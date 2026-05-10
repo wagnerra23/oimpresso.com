@@ -33,6 +33,10 @@ class AdminServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        $this->mergeConfigFrom(
+            __DIR__ . '/../Config/config.php', 'admin'
+        );
+
         $router = $this->app['router'];
         $router->aliasMiddleware('tailscale-only', TailscaleOnly::class);
         $router->aliasMiddleware('is-wagner', IsWagner::class);
