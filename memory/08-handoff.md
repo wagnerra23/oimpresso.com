@@ -7,6 +7,56 @@
 
 ---
 
+## 🆕 Estado pós-2026-05-10 — Prospecção 3 verticais + plano outbound + canon MCP + smoke NFe estado
+
+**Sessão 2026-05-10** — Wagner pediu "todos" das 4 frentes possíveis. Resultado em paralelo via 24+20=44 agentes (3 batches gráficas/com.visual + 10 oficinas auto + 10 vestuário) + foreground próprio.
+
+### (1) Prospecção comunicação visual — Brasil 100% coberto
+
+24 UFs novas mapeadas (somando SP/RS/PR já existentes = 27/27). Total **~639 empresas** Tier 1+2+3.
+Índice: [memory/research/2026-05-prospeccao/00-INDEX-UFS.md](research/2026-05-prospeccao/00-INDEX-UFS.md). Top 30 cross-UF destilado, padrões catalogados (multi-loja raríssimo, WhatsApp universal, NFe-de-boleto-pago greenfield, IG > site no Norte).
+
+### (2) Plano outbound Q2 — 30 mensagens cold customizadas + Cold #2/#3
+
+[memory/sales/2026-05/outbound-comvis-q2/00-PLAN.md](sales/2026-05/outbound-comvis-q2/00-PLAN.md):
+- **Cold #1:** 30 mensagens individuais customizadas com sinal observado por prospect
+- **Cold #2:** template + 7 variações por arquétipo de dor (multi-loja, departamentos próprios, carteira enterprise, portal B2B, marketplace múltiplo, sistema legado, greenfield)
+- **Cold #3:** template "última chamada honesta" com case ROTA LIVRE detalhado (R$ 80k→130k/m em 18 meses)
+- Cadência W1-W5 + métricas (meta 30% resposta em 30 dias)
+- **Tracking via markdown** (não MCP) por escolha Wagner (feedback memory: outbound markdown > MCP tasks granulares)
+
+### (3) Prospecção 2 verticais novas — OficinaAuto + Vestuario (10 UFs cada)
+
+- **OficinaAuto:** 288 oficinas em 10 UFs (SP+RJ+MG+SC+PR+RS+BA+GO+DF+PE) — 97 Tier 1. Padrões: Bosch Car Service como selo, multi-loja 3x mais comum que gráfica, B2B frota+seguradora dor confessada, ABC=câmbio automático especialista, Goiás=diesel CONAMA. ⚠️ ADR 0105: backlog feature-wish — não ativar US sem piloto pagante. Índice: [research/2026-05-prospeccao-auto/00-INDEX-UFS.md](research/2026-05-prospeccao-auto/00-INDEX-UFS.md).
+- **Vestuario:** 274 lojas em 10 UFs (SP+SC+MG+RJ+RS+PR+CE+PE+BA+GO) — 92 Tier 1. Padrões: IG > site (oposto gráficas), multi-loja+ecommerce próprio é norma SMB Tier 1, Mitienda Nube domina ecommerce SMB sem ERP integrado, polos têxteis (Toritama/Brás-Norte/Brusque) excluídos, **8 prospects vizinhos do ROTA LIVRE em Tubarão/Gravatal/Laguna** = alavanca natural. Índice: [research/2026-05-prospeccao-vestuario/00-INDEX-UFS.md](research/2026-05-prospeccao-vestuario/00-INDEX-UFS.md).
+
+### (4) Habilitação canon MCP (PR pendente review Wagner)
+
+3 módulos verticais habilitados em `mcp_jira_projects` via:
+- **Migration:** `Modules/Jana/Database/Migrations/2026_05_10_120000_seed_modulos_verticais_mcp_jira_projects.php` (idempotente, com proteção rollback)
+- **Seeder atualizado:** `McpDefaultsSeeder.php` ganhou COMVIS/VEST/AUTO
+- **SPEC novo:** `memory/requisitos/OficinaAuto/SPEC.md` (mínimo, status backlog)
+- **ADR 0126:** [memory/decisions/0126-mcp-jira-projects-modulos-verticais.md](decisions/0126-mcp-jira-projects-modulos-verticais.md) — justifica governance change
+
+Após merge + `php artisan migrate` em prod, `tasks-create module:ComunicacaoVisual` (etc) funciona. AUTO no canon **não autoriza** US-AUTO-* — ADR 0105 ainda manda, é só remoção de fricção operacional.
+
+### (5) Smoke NFC-e SEFAZ biz=1 — investigado, ação pendente Wagner
+
+- ✅ flag `NFEBRASIL_AUTO_EMISSION_NFCE=true` **JÁ ESTÁ ON** no `.env` Hostinger (descoberto via SSH)
+- ✅ biz=1: CNPJ 36.613.150/0001-18, NCM 49111090, ambiente 2 (homo), cert válido até 2026-08-06
+- ⚠️ 40 vendas paid+final em biz=1 mas 0 emissões — Listener só pega evento NOVO
+- **Falta apenas:** criar 1 venda nova em biz=1 pra disparar pipeline (UI POS oimpresso.com/sells/create, R$1, dinheiro, consumidor final)
+- Runbook atualizado pra refletir estado: [memory/requisitos/NfeBrasil/RUNBOOK-smoke-sefaz-biz1.md](requisitos/NfeBrasil/RUNBOOK-smoke-sefaz-biz1.md)
+
+### Pendências sugeridas próxima sessão
+
+1. **Wagner cria 1 venda biz=1** → fecha smoke NFC-e (ou pede pra Claude criar via Browser MCP, mas é prod — confirmar)
+2. **PR habilitação canon MCP** → review + merge (5 arquivos: migration + seeder + SPEC + ADR + atualização da tabela seeder)
+3. **Sync memória/git push** → todos artefatos ficam acessíveis ao time via webhook GitHub→MCP
+4. **Outbound execution** → Wagner começa pelos 4 prospects vizinhos do ROTA LIVRE em SC (Tubarão/Gravatal) ou Top 30 cross-UF do plano com.visual
+
+---
+
 ## 🆕 Estado pós-2026-05-08 madrugada — Inter direto (4 PRs Open Finance: extrato + boleto + PIX)
 
 **Sessão Opus 2026-05-08 madrugada** — Wagner pediu "ter acesso a extrato, boleto, PIX direto" (sem agregador OF tipo Pluggy). Plano em 3 fases aprovado e entregue 100% em ~4h. Worktree isolado pra contornar conflito com Cursor (sessão paralela ProjectMgmt fazia `git checkout` no repo origem descartando trabalho não-commitado).
