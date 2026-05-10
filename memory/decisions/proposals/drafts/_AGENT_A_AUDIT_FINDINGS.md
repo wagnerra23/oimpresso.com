@@ -4,11 +4,11 @@
 >
 > Sub-agent Opus 4.7 auditou os drafts em `migrations/`, `tests/`, `repair-shared-refactor/` e `modules-comunicacao-visual-scaffold/` em 2026-05-10. Achou 6 críticos + 8 médios + 3 cosméticos.
 >
-> 4 críticos já foram pre-fixados nos arquivos draft (2 triviais 2026-05-10 manhã + 2 schema benchmark 2026-05-10 tarde aplicando recomendações Opção B do `_FELIPE_DECISIONS_PRE_SPRINT1.md`). Os 2 críticos restantes (#5 + #6) exigem **decisão Felipe** segunda — registra ADR ou comentário inline.
+> **Todos os 6 críticos pre-fixados nos drafts** (2 triviais 2026-05-10 manhã + 2 schema benchmark 2026-05-10 tarde + 2 BackfillCommand 2026-05-10 tarde tarde). Felipe segunda **só valida** que concorda com as escolhas, roda Pest local, e abre PR US-INFRA-012.
 
 ---
 
-## Pre-fixados nesta auditoria (4 críticos)
+## Pre-fixados nesta auditoria (6 críticos — TODOS)
 
 ### 1. ✅ Typo middleware `'authh'` em scaffold ComunicacaoVisual
 
@@ -98,7 +98,7 @@ $table->decimal('value_p50', 18, 2)->nullable()->comment('Mediana');
 $table->decimal('value_p90', 18, 2)->nullable()->comment('Top 10% cauda');
 ```
 
-### 5. ⚠️ `BackfillBusinessVerticalCommand` lê `tax_number` mas tabela `business` tem `tax_number_1`
+### 5. ⚠️ `BackfillBusinessVerticalCommand` lê `tax_number` mas tabela `business` tem `tax_number_1` — RESOLVIDO
 
 **Arquivos:**
 - `migrations/BackfillBusinessVerticalCommand.php:67`
@@ -115,7 +115,7 @@ $table->decimal('value_p90', 18, 2)->nullable()->comment('Top 10% cauda');
 
 E no test, factory já está correto (usa `tax_number_1`).
 
-### 6. ⚠️ Test usa `--force` flag, Command não tem signature `--force`
+### 6. ⚠️ Test usa `--force` flag, Command não tem signature `--force` — RESOLVIDO
 
 **Arquivos:**
 - `tests/Feature/Insights/BackfillBusinessVerticalCommandTest.php:137-155`
