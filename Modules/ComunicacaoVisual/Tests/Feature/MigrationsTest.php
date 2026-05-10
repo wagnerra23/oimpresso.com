@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 uses(Tests\TestCase::class);
@@ -15,6 +16,14 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  * @see Modules/ComunicacaoVisual/Database/Migrations/
  */
+
+// Guard SQLite: migrations comvis_* exigem MySQL (ENUM + ALTER TABLE).
+// Em SQLite as tabelas não existem — tests retornariam false silenciosamente.
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: migrations comvis_* requerem MySQL UltimatePOS schema (Wagner Pest local segue mandatory — ADR 0101)');
+    }
+});
 
 // ------------------------------------------------------------------
 // comvis_materiais

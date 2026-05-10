@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Modules\Repair\Entities\JobSheet;
 use Tests\TestCase;
 
@@ -25,11 +25,11 @@ uses(TestCase::class);
  * exigem Pest verde local antes do merge — esta sessão IA NÃO executa Pest.
  */
 
+// Guard SQLite: beforeEach usa App\User::where('business_id',1)->first() e todos os tests
+// fazem $this->get('/repair/producao-oficina') que requer schema MySQL UltimatePOS completo.
 beforeEach(function () {
-    // CI SQLite :memory: — pula gracioso se migrate não criou as tabelas core
-    // (UltimatePOS usa MODIFY COLUMN MySQL-only que falha em SQLite).
-    if (! Schema::hasTable('users') || ! Schema::hasTable('business')) {
-        $this->markTestSkipped('Tabelas users/business ausentes — rode migrate primeiro.');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: Repair/ProducaoOficina requer schema MySQL UltimatePOS (Wagner Pest local segue mandatory — ADR 0101)');
     }
 
     // ADR 0101 — biz=1 (Wagner WR2), NUNCA biz=4 (cliente ROTA LIVRE).

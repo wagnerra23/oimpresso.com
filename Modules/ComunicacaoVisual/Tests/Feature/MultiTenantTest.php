@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\ComunicacaoVisual\Entities\Material;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
@@ -21,6 +23,16 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
+
+// Guard SQLite: Models CV com BusinessScope + global scope requerem schema MySQL UltimatePOS.
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: Models ComunicacaoVisual com BusinessScope requerem schema MySQL UltimatePOS (Wagner Pest local segue mandatory — ADR 0101)');
+    }
+    if (! Schema::hasTable('comvis_materiais')) {
+        $this->markTestSkipped('comvis_materiais table missing — rode Modules/ComunicacaoVisual migrate primeiro');
+    }
+});
 
 // IDs usados nos testes — biz=1 (Wagner) e biz=99 (fictício isolamento)
 const BIZ_WAGNER = 1;

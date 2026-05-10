@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\ComunicacaoVisual\Database\Seeders\MaterialSeeder;
 use Modules\ComunicacaoVisual\Entities\Material;
 
@@ -22,6 +24,16 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-001
  */
+
+// Guard SQLite: tabela comvis_materiais requer migration MySQL do módulo.
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: comvis_materiais requer schema MySQL UltimatePOS (Wagner Pest local segue mandatory — ADR 0101)');
+    }
+    if (! Schema::hasTable('comvis_materiais')) {
+        $this->markTestSkipped('comvis_materiais table missing — rode Modules/ComunicacaoVisual migrate primeiro');
+    }
+});
 
 // Business IDs de teste — nunca biz=4 (ROTA LIVRE produção, ADR 0101)
 const SEEDER_BIZ_WAGNER  = 1;
