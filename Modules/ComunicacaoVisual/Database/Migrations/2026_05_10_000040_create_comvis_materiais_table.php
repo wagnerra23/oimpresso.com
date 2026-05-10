@@ -21,7 +21,8 @@ return new class extends Migration {
     {
         Schema::create('comvis_materiais', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('business_id');
+            // int(10) unsigned pra bater com business.id (UltimatePOS legacy schema — FK constraint)
+            $table->unsignedInteger('business_id');
             $table->string('nome', 150);
             $table->string('categoria', 50);  // lona, vinil_adesivo, acm, mdf, plotter_vinil, etc
             $table->enum('unidade', ['m2', 'unidade', 'metro_linear'])->default('m2');
