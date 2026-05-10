@@ -99,7 +99,7 @@ const ADVANCED_OPEN_KEY = 'oimpresso.sells.create.advanced.open';
 
 export default function SellsCreate(props: SellsCreatePageProps) {
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=format_now_local
-  const { data, setData, processing } = useForm({
+  const { data, setData, post, processing, errors } = useForm({
     location_id: props.defaultLocation?.id ?? null,
     contact_id: props.walkInCustomer.id,
     transaction_date: props.defaultDatetime,
@@ -275,6 +275,51 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   // Itens count pra KPI card
   const itensCount = data.products.reduce((acc, p) => acc + (Number(p.quantity) || 0), 0);
+
+  // Submit handler — POST /sells via Inertia. Backend SellController@store / SellPosController@store
+  // recebe o payload e cria Transaction + TransactionSellLine + payments.
+  // Refs: ADR 0104 (MWART F2 backend baseline), Inertia useForm docs.
+  const canSubmit =
+    !processing &&
+    data.products.length > 0 &&
+    data.location_id !== null &&
+    Math.abs(totalPago - totalGeral) < 0.01;
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    post('/sells', {
+      preserveScroll: true,
+      onError: (errs) => {
+        // Rola pro topo da primeira seção com erro pra Wagner ver feedback.
+        const firstErrorKey = Object.keys(errs)[0];
+        if (firstErrorKey) {
+          const sectionMap: Record<string, string> = {
+            location_id: 'sec-dados',
+            contact_id: 'sec-dados',
+            transaction_date: 'sec-dados',
+            products: 'sec-produtos',
+            payments: 'sec-pagamento',
+            invoice_no: 'sec-mais-opcoes',
+          };
+          const section = sectionMap[firstErrorKey] ?? 'sec-dados';
+          document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' });
+        }
+      },
+    });
+  };
+
+  // Cmd+Enter / Ctrl+Enter atalho pra submit (UX canon Cockpit).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && canSubmit) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSubmit]);
 
   // Smooth scroll pra seção quando user clica numa aba.
   const scrollToSection = (id: string) => {
@@ -1035,14 +1080,32 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
       {/* Footer sticky — pattern Office/OS: ações principais sempre acessíveis no fim do form longo */}
       <div className="sticky bottom-0 z-30 bg-background/95 backdrop-blur border-t border-border shadow-[0_-1px_3px_rgba(0,0,0,0.04)]">
-        <div className="container mx-auto px-8 py-3 max-w-7xl flex items-center justify-end gap-2">
-          <Button variant="outline" onClick={() => router.visit('/sells')}>
-            Cancelar
-          </Button>
-          <Button disabled={processing}>
-            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {processing ? 'Salvando…' : 'Salvar venda'}
-          </Button>
+        <div className="container mx-auto px-8 py-3 max-w-7xl flex items-center justify-between gap-3">
+          {/* Validação inline — diz por que botão tá desabilitado, sem precisar adivinhar */}
+          <div className="text-xs text-muted-foreground flex-1 min-w-0">
+            {Object.keys(errors).length > 0 ? (
+              <span className="text-destructive font-medium">
+                {Object.values(errors)[0] as string}
+              </span>
+            ) : !canSubmit && data.products.length === 0 ? (
+              <span>Adicione pelo menos 1 produto</span>
+            ) : !canSubmit && Math.abs(totalPago - totalGeral) >= 0.01 ? (
+              <span>Pagamento {pagamentoStatus === 'falta' ? 'falta fechar' : 'excede o total'}</span>
+            ) : !canSubmit && data.location_id === null ? (
+              <span>Selecione o local da venda</span>
+            ) : (
+              <span className="hidden md:inline">Atalho: Ctrl+Enter pra salvar</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" onClick={() => router.visit('/sells')}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit} disabled={!canSubmit}>
+              {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {processing ? 'Salvando…' : 'Salvar venda'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
