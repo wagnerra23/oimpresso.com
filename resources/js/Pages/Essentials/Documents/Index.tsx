@@ -85,14 +85,12 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
   const [shareLoading, setShareLoading] = useState(false);
 
   // Form: Upload (tipo document)
-  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const uploadForm = useForm<{ name: File | null; description: string }>({
     name: null,
     description: '',
   });
 
   // Form: Memo
-  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const memoForm = useForm<{ name: string; body: string }>({
     name: '',
     body: '',
@@ -116,11 +114,11 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
       forceFormData: true,
       onSuccess: () => {
         toast.success('Arquivo enviado.');
-        uploadForm.reset();
         const input = document.getElementById('document-file') as HTMLInputElement | null;
         if (input) input.value = '';
         setUploadOpen(false);
       },
+      onFinish: () => uploadForm.reset(),
       onError: () => toast.error('Falha no upload.'),
     });
   };
@@ -130,10 +128,10 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
     memoForm.post('/essentials/document', {
       onSuccess: () => {
         toast.success('Memo criado.');
-        memoForm.reset();
         setMemoOpen(false);
         setTab('memos');
       },
+      onFinish: () => memoForm.reset(),
       onError: () => toast.error('Verifique os campos.'),
     });
   };

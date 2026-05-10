@@ -150,13 +150,11 @@ export default function TodoShow({
   const [sharedLoading, setSharedLoading] = useState(false);
   const [sharedSheets, setSharedSheets] = useState<SharedSheet[]>([]);
 
-  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const commentForm = useForm<{ task_id: number; comment: string }>({
     task_id: todo.id,
     comment: '',
   });
 
-  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const uploadForm = useForm<{
     task_id: number;
     description: string;
@@ -190,10 +188,10 @@ export default function TodoShow({
       preserveScroll: true,
       onSuccess: () => {
         toast.success('Anexo(s) enviado(s).');
-        uploadForm.reset('documents', 'description');
         const input = document.getElementById('documents-input') as HTMLInputElement | null;
         if (input) input.value = '';
       },
+      onFinish: () => uploadForm.reset('documents', 'description'),
       onError: () => toast.error('Falha no upload.'),
     });
   };
