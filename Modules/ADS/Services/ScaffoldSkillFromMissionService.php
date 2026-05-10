@@ -268,6 +268,8 @@ MD;
         try {
             return \Illuminate\Support\Facades\Schema::hasTable('mcp_skills');
         } catch (\Throwable $e) {
+            report($e);
+            \Illuminate\Support\Facades\Log::warning('ADS ScaffoldSkillFromMissionService: hasSkillsSchema falhou', ['exception' => $e]);
             return false;
         }
     }

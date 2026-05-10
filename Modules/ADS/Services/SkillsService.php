@@ -77,6 +77,8 @@ class SkillsService
         try {
             return Schema::hasTable('mcp_skills');
         } catch (\Throwable $e) {
+            report($e);
+            \Log::warning('ADS SkillsService: canUseDb falhou — fallback filesystem', ['exception' => $e]);
             return false;
         }
     }
