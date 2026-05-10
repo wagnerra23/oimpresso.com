@@ -38,6 +38,7 @@ class ArquivosServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\Arquivos\Console\Commands\RecalcularMetadataCommand::class,
                 \Modules\Arquivos\Console\Commands\DedupeStatsCommand::class,
+                \Modules\Arquivos\Console\Commands\ReencryptVaultCommand::class,
             ]);
         }
     }
