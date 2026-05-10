@@ -33,6 +33,9 @@ class VestuarioServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        // Service container: nada especial — Sprint 2+ adiciona.
+        // Resolver canônico pra settings vertical Vestuario.
+        // Sprint 2 ADR 0121 §P7 — outros módulos consultam via DI ao invés de
+        // importar VestuarioSetting Model direto.
+        $this->app->singleton(\Modules\Vestuario\Services\VestuarioSettingsResolver::class);
     }
 }
