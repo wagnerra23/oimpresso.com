@@ -3,7 +3,7 @@
 > **Status:** PROPOSAL (rascunho técnico — não modifica nada, não commitar)
 > **Autor:** Claude (data-modeler senior agent)
 > **Data:** 2026-05-09
-> **Contexto:** SaaS multi-vertical (gráficas, oficinas, comércio, indústria) — cliente atual 99% comunicação visual (ROTA LIVRE biz=4)
+> **Contexto:** SaaS modular especializado por vertical ([ADR 0121](../0121-oimpresso-modular-especializado-por-vertical.md)) — núcleo + Modules/<Vertical>. Cliente piloto atual: ROTA LIVRE biz=4 = Modules/Vestuario (loja de roupa Gravatal/SC). Outros módulos: ComunicacaoVisual em construção, OficinaAuto aguardando sinal qualificado.
 > **Restrição Tier 0:** `business_id` global scope IRREVOGÁVEL ([ADR 0093](../0093-multi-tenant-isolation-tier-0.md))
 
 ---
