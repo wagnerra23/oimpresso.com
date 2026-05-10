@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Observers\ActivityCauserKindObserver;
 use App\System;
 use App\Utils\ModuleUtil;
 use Illuminate\Pagination\Paginator;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Activitylog\Models\Activity;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\Filesystem;
@@ -247,6 +249,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->registerCommands();
+
+        // US-AUDIT-006: resolve causer_kind + agent_run_id em activity_log
+        // automaticamente baseado no contexto (web user / agent IA / system / api).
+        // Ref: ADR 0127 §princípio 3 (causer dual)
+        Activity::observe(ActivityCauserKindObserver::class);
     }
 
     /**
