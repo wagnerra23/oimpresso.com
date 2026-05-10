@@ -30,6 +30,7 @@ class ArquivosService
 {
     public function __construct(
         protected CuradorEngine $curador,
+        protected VaultEncryptionService $vault,
     ) {}
 
     /**
@@ -74,11 +75,17 @@ class ArquivosService
         $ext   = $file->getClientOriginalExtension() ?: 'bin';
         $rel   = "biz-{$businessId}/{$year}/{$month}/{$md5}.{$ext}";
 
-        $stored = Storage::disk($disk)->putFileAs(
-            "biz-{$businessId}/{$year}/{$month}",
-            $file,
-            "{$md5}.{$ext}",
-        );
+        if ($disk === config('arquivos.disk_vault', 'vault')) {
+            // Encryption-at-rest mandatório pra bucket=sensitive (ADR 0123 §3).
+            // VaultEncryptionService usa Crypt::encryptString (APP_KEY AES-256-CBC).
+            $stored = $this->vault->putFileEncrypted($disk, $rel, $file);
+        } else {
+            $stored = Storage::disk($disk)->putFileAs(
+                "biz-{$businessId}/{$year}/{$month}",
+                $file,
+                "{$md5}.{$ext}",
+            );
+        }
         if ($stored === false) {
             throw new \RuntimeException("attach: falha ao escrever em disk={$disk}");
         }
