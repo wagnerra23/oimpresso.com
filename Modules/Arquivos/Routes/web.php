@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Arquivos\Http\Controllers\DownloadController;
 use Modules\Arquivos\Http\Controllers\InstallController;
 
 /*
@@ -26,8 +27,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('install/update',    [InstallController::class, 'update']);
     });
 
-// Placeholder rota download — implementar Sprint 1 dia 4 (US-ARQ-008 signed URL controller).
-// Por ora só registra o nome pra Service::signedUrl() não quebrar:
-Route::get('arquivos/download/{arquivo}', function ($arquivo) {
-    abort(501, 'Sprint 1 dia 4 pendente — US-ARQ-008.');
-})->name('arquivos.download');
+// Download via signed URL (Sprint 1 dia 4 — US-ARQ-008).
+// Middleware `signed` valida expiração + assinatura HMAC (Laravel built-in).
+// Auth obrigatório — multi-tenant Tier 0 aplica global scope no Arquivo::find.
+Route::middleware(['web', 'auth', 'signed'])
+    ->get('arquivos/download/{arquivo}', DownloadController::class)
+    ->name('arquivos.download');

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * US-TR-004 — Webhook dispara mcp:tasks:sync quando SPEC.md é tocada.

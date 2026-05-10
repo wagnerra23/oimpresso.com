@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Jana\Services\Privacy\PiiRedactor;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * COPI-43 — PII redactor BR (LGPD-blocker).

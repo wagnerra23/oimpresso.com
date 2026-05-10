@@ -22,7 +22,7 @@ use Tests\TestCase;
  */
 class RuntimeSeparationTest extends TestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function mcp_tools_exposed_config_existe_e_default_false(): void
     {
         $this->assertTrue(
@@ -45,7 +45,7 @@ class RuntimeSeparationTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function composer_json_documenta_runtime_packages(): void
     {
         $composer = json_decode(file_get_contents(base_path('composer.json')), true);
@@ -65,7 +65,7 @@ class RuntimeSeparationTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function adr_0062_existe_e_aceita(): void
     {
         $adrPath = base_path('memory/decisions/0062-separacao-runtime-hostinger-ct100.md');

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * Snapshot test — garante que o procedure `refresh_brief_inputs_cache`

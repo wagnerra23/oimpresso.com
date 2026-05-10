@@ -7,7 +7,7 @@ use App\User;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * US-FIN-027 — Pest GUARD da tela /financeiro/unificado.

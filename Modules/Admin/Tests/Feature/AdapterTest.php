@@ -10,7 +10,7 @@ use Modules\Admin\Services\CyclesAggregator;
 use Modules\Admin\Services\HealthSnapshotReader;
 use Modules\Admin\Services\McpServerHealthReader;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * Pest tests dos 6 adapters do Admin Center (Sprint 1 dia 3-5).
