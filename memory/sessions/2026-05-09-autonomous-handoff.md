@@ -603,3 +603,162 @@ Investimento ano 1: R$ 25-40k + 120-180h Wagner+dev. Risco: software gráfico le
 ---
 
 **Branch:** `claude/auto-2026-05-09-mercado` (sem push). 4 commits. `git log -4` + `git diff main`.
+
+---
+
+# 🔁🔁🔁🔁 Rodadas 5+6 — vertical auto + sinais qualificados reais + análise financeira interna
+
+> Wagner reportou sinais qualificados REAIS durante rodada: Martinho Mecânica trocando R$ 830/m + Gold Comunicação→Mubisys R$ 850/m + pediu análise direta no banco financeiro (Firebird ServidorWR2).
+>
+> Total Rodada 5+6: 10 agents adicionais + 1 análise direta no banco com Python. ~30min wallclock.
+
+## 🚨 Achado MAIS importante de toda execução autônoma
+
+### Análise financeira real (banco Firebird ServidorWR2 — Python firebird-driver)
+
+`memory/research/2026-05-receitas-officeimpresso/README.md` (relatórios completos gitignored — confidencial)
+
+**Números validados (3 meses consecutivos):**
+- **MRR**: ~R$ 40.500/mês (mar/abr/mai 2026) — 119-120 cobranças/mês
+- **ARR projetado**: ~R$ 487k/ano
+- **Receita 12m recebida**: R$ 457k–517k
+- **Histórico 11 anos acumulado**: ~R$ 7,15M
+- **Clientes pagantes 12m**: 144 · pagantes 24m: 188 (≈23% churn anual)
+
+**Concentração SAUDÁVEL** (oposto do que parecia):
+- Top 1 = 3.9% · Top 3 = 9.9% · Top 10 = 24.6% · Long tail = 75.4%
+- ROTA LIVRE 99% volume é APENAS no oimpresso.com novo. OfficeImpresso legacy é diversificado.
+
+**Distribuição ticket mensalidade:**
+- 30.6% pagam <R$ 200
+- **54.9% pagam R$ 200-499** ← sweet spot
+- 9.0% pagam R$ 500-799
+- 4.9% pagam R$ 800-1.499 (Pro Plus zona)
+- 0.7% pagam R$ 1.500+ (Enterprise zona)
+
+🚨 **Realidade vs meta R$ 5M/ano (ADR 0022):**
+- Receita atual = **~10% da meta** (não 89% — erro inicial corrigido)
+- Migração base atual NÃO chega na meta (mesmo migrando 100% × upsell, ARR ~R$ 700k)
+- **Crescimento exige aquisição agressiva**: ~10x em 24m = ~50 clientes novos/ano ticket alto OU 10 enterprise
+
+### Vertical auto histórico — 6 oficinas churnaram 2009-2013
+- XERO CAR · EDI AUTO MECÂNICA · MECÂNICA 2 RODAS · MECÂNICA XERO · MECÂNICA LIMA · Mecânica Janones
+- **Tentativa não-sustentou-se há 13+ anos.** Reforça MUITO recomendação STAY-FOCUSED.
+
+### Martinho identificado na base
+- **MARTINHO CAÇAMBAS LTDA** — ATIVO, 4 pgtos jan-abr/2026, ticket R$ 710/m (próximo dos R$ 830 mencionados — pode ser desconto)
+- (não-mecânica clássica — caçambas/entulho com mecânica de frota interna)
+- Reter = simbólico (1.7% do MRR), não move ponteiro estratégico
+
+### Pico 2021 não-explicado
+R39 detectou **R$ 1,07M em 2021 vs ~R$ 540k anos vizinhos**. Wagner deveria investigar — pode ser playbook replicável.
+
+## 📊 Rodada 5 — Vertical oficinas auto (6 agents)
+
+**Recomendação consolidada: STAY-FOCUSED (Cenário 4) — NÃO expandir**, com gatilho de retorno explícito.
+
+### R30 Mercado oficinas auto BR
+- Universo formal BR ~133-150k oficinas (Sindirepa) — **30x maior que gráfica (~5k)**
+- Top 5 dores **idênticas** às de gráfica → Modules/Repair cobre ~70% esqueleto
+- ICP refinado: 5-15 func, geração 2, R$ 50-200k/m, SP+interior
+
+### R31 Concorrentes ERPs auto BR
+- Top 5: **Ultracar** (BH/MG, 2.200+ clientes, RA reclama NFS-e travada 1+ ano), **Soften**, **Oficina Integrada** (Mundomidia, RA "boleto pago não libera dias"), **Oficina Inteligente** (premium novato), **WSoft** (R$ 29-79/m disruptor preço)
+- TAM: R$ 128bi/ano, 121k oficinas, 32% SP
+- 3 calcanhares pra atacar identificados
+- IS2 Automotive: licença vitalícia desktop sem suporte = base envelhecida quebra com SEFAZ
+
+### R32 Gap Repair vs ERP oficina
+- **Cobertura atual: 55-60%** ← Repair Kanban drag-drop entrega ponta-a-ponta
+- ⚠️ **Vocabulário automotivo já vazou pra produção**: `placa`, `vehicle`, `brand`, `km`, `box`, `mecanico` em código frontend
+- Gaps duros: entidade Veículo, CRLV, NFS-e, WhatsApp PIN, tabela tempária, OEM, garantia, comissão mecânico
+- MVP 12-essenciais: ~38h IA-pair × 2x margem = ~10 dias Felipe
+- ERP completo 20/20: ~70d Felipe + 30d wallclock humano-limitado (SEFAZ NFS-e + SerPro)
+
+### R33 Pricing ERPs auto BR
+- Pricing real: R$ 70-599/m, mediana **R$ 200-340/m**
+- Setup quase universalmente zero
+- Briefing original (R$ 199/399/999) estava **caro pro mercado**
+- Recalibração: **Auto Starter R$ 149/m · Auto Pro R$ 349/m + setup R$ 0 default · Auto Premium R$ 699/m + setup R$ 1.500**
+- Ticket auto **42% menor que gráfica** (R$ 349 vs R$ 599)
+- Universo 30x maior compensa volume mas exige escala — **não chega R$ 5M sozinho**
+
+### R34 Persona "João Mecânico"
+- 42 anos, Sorocaba/SP, 6-8 mecânicos, R$ 80-150k/m
+- Caderno + WhatsApp + Bling + planilha de domingo
+- WhatsApp >> telefone >> email; LinkedIn zero
+- Top 3 objeções difíceis: "já tomei no peito com sistema", "você nunca trabalhou em oficina", "mecânico não vai usar"
+
+### R35 Estratégia auto (decisão proposta)
+**Cenário 4 STAY-FOCUSED escolhido** — 3 razões:
+1. ADR 0105 violado por C1/C2/C3 — zero oficinas pagaram piloto = ADR feature-wish
+2. ROI 12m de C4 (R$ 100k+ via roadmap M1-M6) supera todos em 2-5x
+3. Capacidade time só comporta C4 (5 pessoas, Wagner WIP máx 2)
+
+**Gatilho pra mudar pra C3 Spin-off**: 1 dono ICP-refinado aceitar **piloto pago R$ 199-399/m por 6m com aceite formal**.
+
+**Análise honesta shiny object syndrome**: parcialmente sim (ROTA LIVRE 99%, 2º com.visual não fechado, justificativa "30x maior"). **Se Wagner re-questionar em 30-60d sem novos dados = sinal mais forte de shiny object.**
+
+## 📨 Rodada 6 — Sinais qualificados reais (4 agents)
+
+### R36 Post-mortem Gold Comunicação→Mubisys
+**Diagnóstico cru**: *"Perda da Gold não foi perda de produto — foi ausência de canal de descoberta."*
+
+3 hipóteses do "por que perderam":
+1. Sistema Frankenstein virou inviável (volume passou ~10 OS/dia)
+2. Mubisys SDR/AFACOM+ ativo no interior — oimpresso digital-only sem comercial físico
+3. Boca-a-boca regional: 1.800+ clientes Mubisys × 13 anos = "vizinho usa"
+
+**3 falas-killer pro próximo prospect Mubisys** documentadas.
+
+🚨 **Ação prioritária 30d**: **inscrever oimpresso na ABICOMV ESSA SEMANA** (criada jan/2025, janela igualada vs AFACOM+).
+
+### R37 Pricing recalibrado — Pro Plus R$ 899/m
+**Cenário C escolhido** — adicionar tier intermediário sem queimar entry:
+- Pro segue R$ 599 · Pro Plus **R$ 899/m + setup R$ 1.999** · Enterprise R$ 1.499
+- Pro Plus features: Jana ilimitada, multi-business até 2, API full+webhooks, suporte WhatsApp 8h
+- Reversível (se conversão <30% em 90d, descontinua silenciosamente)
+- Receita marginal +R$ 300/m por novo cliente
+- ROTA LIVRE preservada em Pro v1 (sem renegociar legacy)
+
+### R38 Martinho Mecânica
+- Pesquisa pública não identificou "Martinho Mecânica" único — confirmou hipótese: **cliente interno OfficeImpresso, sem presença web**
+- Análise direta no banco confirmou: **MARTINHO CAÇAMBAS LTDA, ativo, R$ 710/m, 4 pgtos recentes**
+- Abordagem recomendada: **WhatsApp acolhedor "26 anos juntos, eu te ajudo na migração"** + proposta pioneer R$ 599/m (economia R$ 230/m vs atual) + cláusula DAM-style 12 essenciais auto em 90d
+- 🚨 **Risco crítico**: cascata reputacional se atrasar (queima 26 anos relação + grupos WhatsApp regionais)
+- Mitigação: ringfence como **piloto experimental, não vertical inteira**
+
+### R39 Análise financeira interna (Python firebird-driver direto)
+**Já documentado no topo desta seção** — MRR real ~R$ 40k/m, ARR ~R$ 487k.
+
+## 🎯 Top 10 ações finais re-priorizadas (pós-todas as rodadas)
+
+| # | Ação | Tempo | ROI | Por quê |
+|---|------|-------|-----|---------|
+| 1 | Bug crítico #1 (wipe-DB-via-HTTP) + #2 (octane/mcp em require) | 15min | ⭐⭐⭐⭐⭐ | Reputação + segurança |
+| 2 | Tests órfãos + adr-lint required + 3 drifts skills | 25min | ⭐⭐⭐⭐⭐ | Governança CI |
+| 3 | NCM default + smoke SEFAZ biz=1 | 30min | ⭐⭐⭐⭐⭐ | Destrava M1+M2+M3 |
+| 4 | **Reter Martinho Caçambas** com WhatsApp acolhedor + proposta pioneer R$ 599/m | 1h | ⭐⭐⭐⭐⭐ | Sinal qualificado real |
+| 5 | **Plano anti-churn na base atual** (23% churn anual = R$ 110k/ano perdendo) | 4h | ⭐⭐⭐⭐⭐ | Receita marginal > aquisição |
+| 6 | **Investigar pico 2021** (R$ 1,07M vs R$ 540k anos vizinhos) | 2h | ⭐⭐⭐⭐⭐ | Playbook replicável? |
+| 7 | Aceitar pricing Pro Plus R$ 899 + cláusula DAM versão B | 30min | ⭐⭐⭐⭐ | Captura zona 800-1.499 |
+| 8 | Inscrever ABICOMV essa semana (janela jan/2025 ainda aberta) | 30min | ⭐⭐⭐⭐ | Canal antes Mubisys/Zênite |
+| 9 | API docs Swagger MVP (70% feito dormente, 20h Felipe) | 20h dev | ⭐⭐⭐⭐ | Destrava 5 P0 integrações |
+| 10 | NÃO expandir vertical auto agora — manter ADR feature-wish | — | preserva foco | 6 churns 2009-2013 + sem sinal |
+
+## 📈 Stats finais consolidados R1+R2+R3+R4+R5+R6
+
+- **Wallclock total**: ~150min (29 agents + 1 análise direta · ~36h equiv sequencial — eficiência ~14x)
+- **Artefatos**: **47 arquivos** (39 anteriores + 7 vertical auto + análise financeira gitignored + README receitas)
+- **Universo prospects mapeados**: 83 gráficas (com.visual)
+- **Decisões propostas**: 7 (DAM, mwart-gate, pricing 3 ajustes, cláusula DAM 90d, roadmap 12m, afiliados, pricing Pro Plus, vertical auto STAY-FOCUSED)
+- **ADR drafts**: 1 (mwart-gate ID 0120)
+- **Análise financeira interna**: ARR REAL R$ 487k (validado), 144 clientes pagantes, distribuição ticket conhecida
+- **Sinais qualificados reais identificados**: 1 (Martinho Caçambas LTDA, R$ 710/m ativo)
+- **Tokens consumidos**: ~3.3M sub-agents
+- **Cota Claude Design**: preservada
+- **Commits**: 4 + 1 desta rodada (5 total)
+
+---
+
+**Branch:** `claude/auto-2026-05-09-mercado` (sem push). 5 commits. `git log -5` + `git diff main`.
