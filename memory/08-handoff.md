@@ -46,8 +46,10 @@ Fix COALESCE em cascata: `CONCAT_WS(' ', first_name, last_name) → username →
 
 ### 📝 Documentos canônicos atualizados nesta sessão
 
-- **`memory/requisitos/Arquivos/RUNBOOK-ingestao-documentos.md`** (novo PR #N) — regra única canônica de ingestão de documentos no oimpresso. **Antes de qualquer Producer Module ingerir arquivo, ler este RUNBOOK.** Cobre: princípios duros, 4 caminhos canônicos (A) Producer Service, (B) UI Inertia futuro, (C) CLI batch, (D) Migration backfill DEV-only), 8 anti-padrões Tier 0, pipeline obrigatório (DISCOVER→CLASSIFY→DEDUPE→ROUTE→PERSIST→AUDIT), tabela roteamento por tipo (NFe XML, DANFE, foto OS, contrato, comprovante, .env BLOCK), checklist LGPD por ingestão.
+- **`memory/requisitos/Arquivos/RUNBOOK-ingestao-documentos.md`** (PR #484) — regra única canônica de ingestão de documentos no oimpresso. **Antes de qualquer Producer Module ingerir arquivo, ler este RUNBOOK.** Cobre: princípios duros, 4 caminhos canônicos, 8 anti-padrões Tier 0, pipeline obrigatório (DISCOVER→CLASSIFY→DEDUPE→ROUTE→PERSIST→AUDIT), tabela roteamento por tipo, checklist LGPD por ingestão.
 - **`memory/requisitos/Infra/RUNBOOK-validacao-pos-deploy.md`** (PR #483) — receita 4 camadas validação pós-merge (curl HTTP → SSH artisan → smoke commands → browser MCP). UltimatePOS schema gotchas catalogados.
+- **`memory/requisitos/Infra/RUNBOOK-consumer-migration-pattern.md`** (PR #N) — pattern accessor preferido + fallback legacy + Producer double-write. Validado em Modules/NfeBrasil + Modules/Repair. 6 fases (BACKBONE → BACKFILL → DOUBLE-WRITE → CONSUMER MIGRATE → STABILIZATION → REMOVE LEGACY).
+- **`memory/requisitos/Infra/RUNBOOK-artisan-command-pattern.md`** (PR #N) — template canônico pra commands artisan oimpresso (multi-tenant `--business=` + `--dry-run` + idempotência + audit log + cap interno + Pest mín 5 cenários). Usado nos 9 commands entregues 2026-05-10.
 
 ### ⚠️ Conflito ADR 0126 a resolver (Wagner decide)
 
