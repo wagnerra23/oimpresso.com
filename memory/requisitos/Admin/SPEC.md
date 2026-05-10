@@ -1,0 +1,80 @@
+# Admin Center — Centro de Operações @ CT 100
+
+> Módulo Laravel: `Modules/Admin/` (a criar)
+> ADR mãe: [0122](../../decisions/0122-admin-center-ct100.md)
+> Subdomínio: `admin.oimpresso.com` (Tailscale-only)
+
+## O que é
+
+Painel único Wagner-only que agrega visão de toda a infra/governance/time da empresa. NÃO substitui Officeimpresso superadmin nem `/copiloto/admin/team` — agrega read-mostly.
+
+## Princípios duros
+
+1. **Wagner-only** — gate `is_wagner($user)` + role `superadmin#1` + bloqueio duro pra equipe
+2. **CT 100 only** — `admin.oimpresso.com` Traefik com DNS A → Tailscale `100.99.207.66`; internet pública zera vetor de ataque
+3. **Agrega, não substitui** — Officeimpresso superadmin (cliente-side) e `/copiloto/admin/team` (MCP tokens) continuam existindo
+4. **Read-mostly** — ações mutacionais limitadas a `apply` Curador, regenerate token, run-now health-check
+5. **Multi-tenant Tier 0 preservado** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — `withoutGlobalScopes` apenas com `// SUPERADMIN: <razão>` mandatório
+
+## Stack
+
+- Laravel 13.6 + PHP 8.4 (FrankenPHP no CT 100)
+- Inertia v3 + React 19 + Tailwind 4 (mesmo padrão MWART)
+- Sanctum + Spatie role + Tailscale CIDR `100.99.0.0/16` whitelist
+- Horizon (queue), Centrifugo (real-time)
+- MySQL via autossh tunnel CT 100 → Hostinger
+
+## Sprint 1 — MVP CASCA + 4 widgets read-only (~3-5 dias IA-pair)
+
+### US-ADM-001..010
+
+| ID | Título | Prioridade | Tipo |
+|---|---|---|---|
+| US-ADM-001 | Scaffold `Modules/Admin/` (módulo nWidart) | p1 | infra |
+| US-ADM-002 | Traefik `admin.oimpresso.com` no CT 100 + DNS A Tailscale 100.99.207.66 | p1 | infra |
+| US-ADM-003 | Auth gate `is_wagner` + middleware `tailscale-only` + Spatie role `superadmin#1` | p0 | seg |
+| US-ADM-004 | Page `Pages/Index.tsx` shell (header + sidebar W1-W4 + footer) | p1 | UI |
+| US-ADM-005 | Widget W1 — Brief diário (preview render markdown via `brief-fetch`) | p1 | feat |
+| US-ADM-006 | Widget W2 — Health checks 5 SQL (jana:health-check) com 🟢🟡🔴 | p1 | feat |
+| US-ADM-007 | Widget W3 — Cycles + tasks (kanban read-only via `cycles-active`+`my-work`) | p2 | feat |
+| US-ADM-008 | Widget W4 — ADRs Tier 0 violados (alerta vermelho top-bar) | p1 | feat |
+| US-ADM-009 | Pest tests (auth gate, RBAC, Tailscale CIDR filter) | p1 | qa |
+| US-ADM-010 | Smoke walkthrough (Wagner abre via Tailscale, valida 4 widgets) | p2 | qa |
+
+## Sprint 2 — Curador integrado + extensões (~3-5 dias)
+
+| ID | Título | Prioridade | Depends |
+|---|---|---|---|
+| US-ADM-011 | Migration `mcp_curador_{batches,files,audit_log,consent}` (com `business_id` Tier 0) | p1 | US-ADM-001 |
+| US-ADM-012 | API `POST /admin/curador/api/upload-batch` recebe JSONL do script Node local | p1 | US-ADM-011 |
+| US-ADM-013 | Page `Pages/Curador/Batches/{Index,Review}.tsx` (substitui `[x]` markdown) | p1 | US-ADM-012 |
+| US-ADM-014 | Job `ApplyBatchJob` Horizon (move arquivos, git add via Symfony Process) | p1 | US-ADM-013 |
+| US-ADM-015 | Widget W5 — Curador (count batches pending, sensitive, métricas saúde) | p2 | US-ADM-013 |
+| US-ADM-016 | Widget W6 — MCP server health (`mcp_memory_documents` count, last sync, ping CT 100) | p2 | US-ADM-001 |
+| US-ADM-017 | Widget W7 — Vaultwarden (count itens, certs vencendo via API ADMIN_TOKEN) | p2 | US-ADM-001 |
+| US-ADM-018 | Widget W8 — Sessões Claude Code (cross-dev via cc-watcher, últimas 10) | p3 | US-ADM-001 |
+| US-ADM-019 | Widget W9 — Infra status (5 healthchecks paralelos com timeout) | p2 | US-ADM-001 |
+| US-ADM-020 | Widget W10 — Custos Brain B 24h (`jana_health_check_results`) | p3 | US-ADM-001 |
+
+## Sprint 3 (≥jul/2026, condicional)
+
+- Grafana dashboard CT 100 embedded
+- Alerting rules (Tier 0 violado → mensagem WhatsApp via Evolution)
+- Daemon background Curador (Tailscale-aware) — extensão de `scripts/curador/`
+
+## Não-goals
+
+- ❌ NÃO substitui Officeimpresso superadmin (mantido cliente-side)
+- ❌ NÃO substitui `/copiloto/admin/team` (mantido em Hostinger)
+- ❌ NÃO permite edição de PII cliente (LGPD — só auditoria)
+- ❌ NÃO acessível pelo time (bloqueio duro `is_wagner`)
+- ❌ NÃO acessível pela internet pública (Tailscale CIDR whitelist)
+- ❌ NÃO vira interface conversacional (Jana mantém esse papel)
+
+## Validação Sprint 1
+
+- ✅ Wagner abre `admin.oimpresso.com` via Tailscale → 4 widgets carregam em <2s
+- ✅ Maiara/Felipe tentam acessar → 403 + log em `mcp_admin_audit_log`
+- ✅ curl externo (sem Tailscale) → time-out
+- ✅ Health check W2 mostra estado real (testar quebrando isolamento multi-tenant temp em homolog → widget vira 🔴)
+- ✅ Brief widget W1 cache 5min funcionando

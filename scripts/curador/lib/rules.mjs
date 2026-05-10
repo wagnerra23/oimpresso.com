@@ -7,11 +7,16 @@
 //
 // Ordem importa: SENSITIVE > DUPLICATE > DISCARD > MEMORY-MATCH > AMBIGUOUS-FALLBACK.
 
+// Atenção: `.env` em Node retorna extname="" (dotfile sem extensão).
+// Portanto sensitive .env é tratado por basename match (regra dedicada abaixo).
 const SENSITIVE_EXT = new Set([
-  '.env', '.pfx', '.p12', '.pem', '.key', '.crt', '.rdp', '.kdbx',
+  '.pfx', '.p12', '.pem', '.key', '.crt', '.rdp', '.kdbx',
 ]);
 
 const SENSITIVE_NAME_PREFIXES = ['id_rsa', 'id_ed25519', 'id_dsa', 'id_ecdsa'];
+
+// .env templates públicos (NÃO sensíveis — são exemplos de OSS)
+const ENV_TEMPLATE_SUFFIXES = /\.(example|sample|dist|template|test|local\.example)$/i;
 
 const BANCO_KEYWORDS = {
   'BancoDoBrasil': /\b(banco[ _]?do[ _]?brasil|bb)\b/i,
@@ -54,6 +59,22 @@ function inferModule(path) {
 
 const RULES = [
   // === SENSITIVE ===
+
+  // 0. Sensitive .env real (basename starts com ".env" e NÃO termina com .example/.sample/.dist/etc)
+  // Ordem importa — esta regra precede sensitive_by_extension porque .env é dotfile sem extname em Node.
+  (f) => {
+    const lower = f.basename.toLowerCase();
+    if (/^\.env(\b|\.|$)/.test(lower) && !ENV_TEMPLATE_SUFFIXES.test(lower)) {
+      return {
+        bucket: 'sensitive',
+        subDestination: '_VAULT-PENDING/env-files/',
+        sensitiveFlags: ['env_secrets'],
+        ruleMatched: 'sensitive_env_real',
+        confidence: 1.0,
+      };
+    }
+    return null;
+  },
 
   // 1. Sensitive por extensão
   (f) => {
