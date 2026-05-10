@@ -41,13 +41,19 @@ class BackfillBusinessVerticalCommand extends Command
 {
     protected $signature = 'insights:backfill-vertical
                             {--business-id= : Specific business ID (default: all NULL vertical_id)}
-                            {--dry-run : Não escreve nada, só mostra o que faria}';
+                            {--dry-run : Não escreve nada, só mostra o que faria}
+                            {--force : Re-roda em business com vertical_id já setado (sobrescreve via BrasilAPI). Útil pra correção CNAE.}';
 
     protected $description = 'Backfill business.vertical_id + cnae_principal via BrasilAPI';
 
     public function handle(): int
     {
-        $query = DB::table('business')->whereNull('vertical_id');
+        $query = DB::table('business');
+        // D4 (Felipe 2026-05-11): default = só pendentes (idempotente). --force = re-processa
+        // todos pra correção de CNAE incorreto em business já classificado.
+        if (! $this->option('force')) {
+            $query->whereNull('vertical_id');
+        }
         if ($id = $this->option('business-id')) {
             $query->where('id', $id);
         }
@@ -64,7 +70,10 @@ class BackfillBusinessVerticalCommand extends Command
         $stats = ['ok' => 0, 'sem_cnpj' => 0, 'api_falha' => 0, 'sem_vertical_match' => 0];
 
         foreach ($businesses as $biz) {
-            $cnpj = preg_replace('/\D/', '', (string) ($biz->tax_number ?? ''));
+            // D3 (Felipe 2026-05-11): coluna real em UltimatePOS é `tax_number_1`
+            // (legacy multi-tax: pode ter tax_number_2 também). Confirmado via
+            // SHOW COLUMNS em prod 2026-05-10 tarde.
+            $cnpj = preg_replace('/\D/', '', (string) ($biz->tax_number_1 ?? ''));
 
             if (strlen($cnpj) !== 14) {
                 $stats['sem_cnpj']++;

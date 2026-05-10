@@ -2,13 +2,21 @@
 
 > **Companion doc** de [`_AGENT_A_AUDIT_FINDINGS.md`](_AGENT_A_AUDIT_FINDINGS.md). Aqui está cada crítico pendente em formato decisão (A vs B, recomendação, esforço).
 >
-> Tempo estimado pra ler + decidir: **15min**. Implementar: **~1.5h**.
+> 🔄 **STATUS 2026-05-10 tarde tarde:** Wagner autorizou pre-aplicar **TODAS** as 4 decisões nos drafts. D1, D2, D3, D4 todas em ✅ APLICADO.
 >
-> Ordem sugerida: D1 → D2 → D3 → D4 → smoke `vendor\bin\pest` local → PR.
+> **Felipe segunda só precisa:** ler este doc (~5min) → validar que concorda com as 4 escolhas → rodar `vendor\bin\pest tests/Feature/Insights` local → abrir PR US-INFRA-012 movendo drafts pra `database/migrations/` real.
+>
+> Se discordar de alguma decisão, reverte naquele arquivo + abre ADR justificando.
 
 ---
 
-## D1 — Schema benchmark: granularidade de período
+## D1 — Schema benchmark: granularidade de período ✅ PRE-APLICADO
+
+> Opção B aplicada em commit `d1-d2-benchmark-prefix` (2026-05-10 tarde). Migration `2026_06_01_000004_create_benchmark_aggregates_table.php` agora usa `$table->string('period', 10)` em vez de `period_start/period_end`. Index `idx_bench_lookup` ajustado pra usar `period`.
+>
+> **Felipe valida:** se concorda mantém. Se discorda (querendo weekly/quinzenal nativo), reverte e abre ADR justificando.
+
+
 
 **Onde:** `migrations/2026_06_01_000004_create_benchmark_aggregates_table.php:40-41`
 
@@ -34,7 +42,13 @@
 
 ---
 
-## D2 — Schema benchmark: que percentis exibir
+## D2 — Schema benchmark: que percentis exibir ✅ PRE-APLICADO
+
+> Opção B aplicada no mesmo commit. Migration agora tem `value_p50` (mediana) + `value_p90` (cauda) — `value_p25` e `value_p75` removidos.
+>
+> **Felipe valida:** se quiser quartiles pra exibir boxplot, reverte e justifica use case.
+
+
 
 **Onde:** mesma migration, colunas `value_p*`.
 
@@ -61,7 +75,17 @@
 
 ---
 
-## D3 — Coluna CNPJ na tabela `business`: `tax_number` ou `tax_number_1`?
+## D3 — Coluna CNPJ na tabela `business`: `tax_number` ou `tax_number_1`? ✅ CONFIRMADO + APLICADO
+
+> **Confirmado via SSH 2026-05-10 tarde** (`SHOW COLUMNS FROM business LIKE 'tax_number%'`):
+> - `tax_number_1` ← Wagner WR2 usa este (CNPJ principal)
+> - `tax_number_2` (segundo CNPJ legado, raramente populado)
+>
+> **Aplicado:** `BackfillBusinessVerticalCommand.php:67` agora lê `$biz->tax_number_1 ?? ''`. Comentário inline cita confirmação 2026-05-10.
+>
+> **Felipe valida:** se concordar, segue. Se discordar (ex: quer fallback `tax_number_1 ?? tax_number_2`), edita inline.
+
+
 
 **Onde:** `migrations/BackfillBusinessVerticalCommand.php:67`.
 
@@ -92,7 +116,13 @@ mysql -h... -e 'SHOW COLUMNS FROM business LIKE "tax_number%"'
 
 ---
 
-## D4 — `BackfillBusinessVerticalCommand` precisa de `--force`?
+## D4 — `BackfillBusinessVerticalCommand` precisa de `--force`? ✅ APLICADO (Opção A)
+
+> **Aplicado:** Command signature ganhou `--force` (default false = safe whereNull idempotente). `handle()` ramifica entre filtrar por `whereNull('vertical_id')` (default) ou processar todos (com `--force`).
+>
+> **Felipe valida:** se concordar, segue. Se preferir Opção B (remove test), reverte ambos.
+
+
 
 **Onde:** `migrations/BackfillBusinessVerticalCommand.php:42-44` + `tests/.../BackfillBusinessVerticalCommandTest.php:137-155`.
 
@@ -127,16 +157,16 @@ public function handle()
 
 ---
 
-## Checklist Felipe segunda (15min decisão + ~1.5h implementação + Pest)
+## Checklist Felipe segunda (5min validar + Pest + PR)
 
-- [ ] **D1** — adoto Opção __ (A/B?)
-- [ ] **D2** — adoto Opção __ (A/B?)
-- [ ] **D3** — confirmei coluna `business.____` via SSH
-- [ ] **D4** — adoto Opção __ (A/B?)
-- [ ] Aplicar fixes em migration + Command + sync test fixtures
-- [ ] `vendor\bin\pest tests/Feature/Insights` local — verde
+- [x] **D1** — Opção B pre-aplicada 2026-05-10 tarde (Wagner autorizou)
+- [x] **D2** — Opção B pre-aplicada 2026-05-10 tarde (Wagner autorizou)
+- [x] **D3** — coluna confirmada `tax_number_1` via SSH 2026-05-10 tarde, Command ajustado
+- [x] **D4** — Opção A aplicada (--force flag adicionado, default safe)
+- [ ] Validar todas as 4 decisões — concordo? (se não, reverter aquela específica + ADR)
 - [ ] Bug Pest Modules/Jana (`uses(...)->in(__DIR__)` duplicado em Admin/) — corrigir junto OU PR separado
-- [ ] PR US-INFRA-012 com referência a este doc + ADRs aceitas
+- [ ] `vendor\bin\pest tests/Feature/Insights` local — verde
+- [ ] PR US-INFRA-012 movendo drafts pra `database/migrations/` real + Module/Insights/Console/Commands/
 
 **Se discordar de qualquer recomendação acima, registra rationale no PR description** — cria precedente pra próximas decisões similares.
 
