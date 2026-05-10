@@ -117,6 +117,11 @@ class DriftAlertsController extends Controller
         try {
             $fm = Yaml::parse($m[1]);
         } catch (\Throwable $e) {
+            report($e);
+            \Log::error('Governance DriftAlertsController: YAML parse falhou em SCOPE.md', [
+                'scope_path' => $scopePath,
+                'exception'  => $e,
+            ]);
             return [];
         }
 
