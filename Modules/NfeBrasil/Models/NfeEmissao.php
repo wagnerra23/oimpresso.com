@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Arquivos\Concerns\HasArquivos;
+use Modules\Arquivos\Entities\Arquivo;
 
 /**
  * Emissão fiscal — NFe (55), NFC-e (65), CT-e (67).
@@ -26,7 +28,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class NfeEmissao extends Model
 {
     use HasBusinessScope;
-
+    use HasArquivos; // ADR 0123 — adopcao trait Sprint 3 US-ARQ-019
     use SoftDeletes;
 
     protected $table = 'nfe_emissoes';
@@ -74,5 +76,40 @@ class NfeEmissao extends Model
         $prazoHoras = $this->modelo === '65' ? 24 : 168;
         return $this->emitido_em
             && $this->emitido_em->diffInHours(now()) <= $prazoHoras;
+    }
+
+    /**
+     * Accessor — retorna Arquivo XML preferindo arquivos table (ADR 0123),
+     * fallback null se ainda usando coluna legacy xml_path.
+     *
+     * Sprint 3 US-ARQ-019. Migration backfill US-ARQ-020 popula arquivos rows
+     * pra xml_path existentes. Após estabilização, US-ARQ-021 remove coluna
+     * legacy.
+     *
+     * Uso:
+     *   $emissao->xml_arquivo  // ?Arquivo
+     *   $emissao->xml_arquivo?->signedUrl()  // download URL temporario
+     */
+    public function getXmlArquivoAttribute(): ?Arquivo
+    {
+        if (! method_exists($this, 'arquivos')) return null;
+        return $this->arquivos()
+            ->where('sub_destination', 'nfe-xml')
+            ->where('bucket', 'active')
+            ->latest('created_at')
+            ->first();
+    }
+
+    /**
+     * Accessor — retorna Arquivo DANFE (PDF). Idem xml_arquivo.
+     */
+    public function getDanfeArquivoAttribute(): ?Arquivo
+    {
+        if (! method_exists($this, 'arquivos')) return null;
+        return $this->arquivos()
+            ->where('sub_destination', 'nfe-danfe')
+            ->where('bucket', 'active')
+            ->latest('created_at')
+            ->first();
     }
 }
