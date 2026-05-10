@@ -1,3 +1,24 @@
+---
+module: Vestuario
+purpose: "Vertical lojas de vestuário/moda BR (CNAE 4781-4/00). Cliente piloto ROTA LIVRE biz=4 (Larissa, Termas do Gravatal/SC) em prod desde 2024-Q1, 99% volume oimpresso. Scaffold vazio — ROTA LIVRE usa núcleo (UltimatePOS + Financeiro + NfeBrasil + Copiloto) com customizações pontuais; pasta nasce para abrigar futuras especializações por vertical."
+contains:
+not_contains:
+  - "Customização global format_date shift +3h → ADR 0066 (preservada legacy)"
+  - "POS/sells/products genéricos → Modules/Connector (UltimatePOS)"
+  - "NF-e/NFC-e emissão → Modules/NfeBrasil"
+trust_required: L1
+owner: wagner
+permission_prefix: vestuario.*
+charter_adr: 0121
+related_adrs:
+  - 0066-format-date-shift-3h-preservado-legacy-clientes
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0121-oimpresso-modular-especializado-por-vertical
+url_prefixes:
+  - /vestuario/*
+drift_alerts: []
+---
+
 # Modules/Vestuario — vertical lojas de vestuário/moda BR
 
 > ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7

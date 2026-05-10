@@ -1,3 +1,26 @@
+---
+module: Admin
+purpose: "Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only). Painel agregador de Curador + health + time + Vaultwarden + MCP + brief + ADRs Tier 0 violados."
+contains:
+  - "DataController — UltimatePOS hooks (sidebar, permissions)"
+  - "IndexController — Page shell /admin com 4 widgets (brief/health/cycles/adrs)"
+  - "InstallController — install/enable/disable módulo"
+  - "MutationsController — POSTs widgets (refresh brief, dismiss alerta, etc.)"
+not_contains:
+  - "Cliente-side superadmin (Officeimpresso) → Modules/Officeimpresso"
+  - "Time MCP token CRUD → /copiloto/admin/team (Modules/TeamMcp)"
+trust_required: L0
+owner: wagner
+permission_prefix: admin.*
+charter_adr: 0122
+related_adrs:
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0122-admin-center-ct100
+url_prefixes:
+  - /admin/*
+drift_alerts: []
+---
+
 # Modules/Admin — Centro de Operações
 
 > ADR mãe: [0122](../../memory/decisions/0122-admin-center-ct100.md)

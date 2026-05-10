@@ -1,3 +1,23 @@
+---
+module: OficinaAuto
+purpose: "Vertical oficinas automotivas BR (CNAE 4520-0/01). Estado feature-wish (ADR 0105) — aguarda sinal qualificado pra ativar. Candidato piloto: Martinho Caçambas (a confirmar). Scaffold vazio."
+contains:
+not_contains:
+  - "Repair OS shared → Modules/Repair"
+  - "Catálogo peças → futuro Modules/Autopecas (ADR 0125 feature-wish)"
+trust_required: L1
+owner: wagner
+permission_prefix: oficinaauto.*
+charter_adr: 0121
+related_adrs:
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0121-oimpresso-modular-especializado-por-vertical
+url_prefixes:
+  - /oficina-auto/*
+drift_alerts: []
+---
+
 # Modules/OficinaAuto — vertical oficinas automotivas BR
 
 > ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7

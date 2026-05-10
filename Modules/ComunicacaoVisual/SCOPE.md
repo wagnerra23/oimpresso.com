@@ -1,3 +1,28 @@
+---
+module: ComunicacaoVisual
+purpose: "Vertical gráfica rápida BR (CNAE 1813-0/01). Em construção, piloto previsto 2026-Q3 com 1 dos 6 saudáveis OfficeImpresso (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo/Produart). Especializa núcleo com cálculo m², orçamento, OS de produção, apontamento."
+contains:
+  - "ApontamentoController — apontamentos de produção (etapas, máquina, operador)"
+  - "DataController — UltimatePOS hooks (sidebar, permissions)"
+  - "InstallController — install/enable/disable módulo"
+  - "OrcamentoController — orçamentos com cálculo m² + tabela preço por substrato"
+not_contains:
+  - "NF-e/NFC-e emissão → Modules/NfeBrasil"
+  - "Recurring billing/assinatura → Modules/RecurringBilling"
+  - "Repair OS shared → Modules/Repair"
+trust_required: L1
+owner: wagner
+permission_prefix: comunicacaovisual.*
+charter_adr: 0121
+related_adrs:
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0121-oimpresso-modular-especializado-por-vertical
+url_prefixes:
+  - /comunicacao-visual/*
+drift_alerts: []
+---
+
 # Modules/ComunicacaoVisual — vertical gráfica rápida BR
 
 > ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7

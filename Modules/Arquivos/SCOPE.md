@@ -1,3 +1,27 @@
+---
+module: Arquivos
+purpose: "DMS backbone — todo arquivo anexado (XML NFe, anexo ticket, foto produto, contrato, manual) cai aqui. Encryption-at-rest (AES-256), dedupe por hash, retention policy."
+contains:
+  - "DataController — UltimatePOS hooks"
+  - "DownloadController — endpoint download seguro com auth + audit"
+  - "InstallController — install/enable/disable módulo"
+not_contains:
+  - "Conhecimento canônico curado (ADRs, sessions) → Modules/KB"
+  - "Anexos email/chat realtime → Modules/Jana storage volátil"
+  - "Backups DB inteiros → infra Hostinger jobs SSH"
+trust_required: L1
+owner: wagner
+permission_prefix: arquivos.*
+charter_adr: 0123
+related_adrs:
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0123-modules-arquivos-backbone
+  - 0126-vault-chunked-encryption-sprint-2
+url_prefixes:
+  - /arquivos/*
+drift_alerts: []
+---
+
 # Modules/Arquivos — DMS backbone
 
 > ADR mãe: [0123](../../memory/decisions/0123-modules-arquivos-backbone.md)
