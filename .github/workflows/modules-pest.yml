@@ -1,0 +1,113 @@
+name: Modules Pest
+
+# CI Pest pra 5 módulos tocados na sessão 2026-05-10 — Sprint 2 ADR 0123.
+# Roda jobs paralelos (matrix) em cada PR que toca Modules/<X>/.
+# SQLite :memory: — evita o problema de boot providers UPos que consultam
+# system.crm_version antes de migrate criar a tabela (mesmo workaround do ci.yml).
+# markTestSkipped defensivo já implementado nos tests: se tabela ausente → skip gracioso.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Modules/Arquivos/**'
+      - 'Modules/ComunicacaoVisual/**'
+      - 'Modules/NfeBrasil/**'
+      - 'Modules/Repair/**'
+      - 'Modules/Vestuario/**'
+      - 'composer.lock'
+      - 'phpunit.xml'
+      - '.github/workflows/modules-pest.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Arquivos/**'
+      - 'Modules/ComunicacaoVisual/**'
+      - 'Modules/NfeBrasil/**'
+      - 'Modules/Repair/**'
+      - 'Modules/Vestuario/**'
+
+concurrency:
+  group: modules-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: "Pest — Modules/${{ matrix.module }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - Arquivos
+          - ComunicacaoVisual
+          - NfeBrasil
+          - Repair
+          - Vestuario
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, pdo_mysql, tokenizer, xml, zip, gd
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Prepare dirs de storage + bootstrap
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+      - name: Instalar dependências PHP (sem scripts até .env existir)
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Criar .env (SQLite :memory: — sem boot DB-heavy)
+        run: |
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-ci
+          APP_ENV=testing
+          APP_DEBUG=true
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          BCRYPT_ROUNDS=4
+          TELESCOPE_ENABLED=false
+          SCOUT_DRIVER=null
+          MCP_TOOLS_EXPOSED=false
+          EOF
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Migrate (SQLite :memory: — cria tabelas pra tests)
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          APP_ENV: testing
+        run: php artisan migrate --force --no-interaction
+
+      - name: "Pest — Modules/${{ matrix.module }}/Tests"
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          CACHE_DRIVER: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+        run: |
+          vendor/bin/pest Modules/${{ matrix.module }}/Tests \
+            --stop-on-failure \
+            --no-coverage \
+            --colors=always
