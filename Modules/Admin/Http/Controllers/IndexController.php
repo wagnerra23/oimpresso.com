@@ -8,8 +8,10 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Admin\Services\AdrAlertReader;
 use Modules\Admin\Services\BriefAdapter;
+use Modules\Admin\Services\CuradorStatsReader;
 use Modules\Admin\Services\CyclesAggregator;
 use Modules\Admin\Services\HealthSnapshotReader;
+use Modules\Admin\Services\McpServerHealthReader;
 
 /**
  * IndexController — Admin Center painel principal (`GET /admin`).
@@ -33,6 +35,8 @@ class IndexController extends Controller
         protected HealthSnapshotReader $health,
         protected CyclesAggregator $cycles,
         protected AdrAlertReader $adrAlerts,
+        protected CuradorStatsReader $curador,
+        protected McpServerHealthReader $mcp,
     ) {}
 
     public function __invoke(Request $request): Response
@@ -43,6 +47,8 @@ class IndexController extends Controller
                 'health'     => $this->health->fetch(),
                 'cycles'     => $this->cycles->fetch(),
                 'adr_alerts' => $this->adrAlerts->fetch(),
+                'curador'    => $this->curador->fetch(),
+                'mcp'        => $this->mcp->fetch(),
             ],
             'meta' => [
                 'subdomain'    => config('admin.subdomain', 'admin.oimpresso.com'),
