@@ -3,9 +3,32 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class TransactionSellLine extends Model
 {
+    use LogsActivity;
+
+    /**
+     * Activity log config — auditoria de itens de venda. Padrao Modules/Financeiro/Titulo.
+     *
+     * Refs: ADR 0127 (Modules/Auditoria UI + undo) US-AUDIT-004
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'quantity',
+                'unit_price_inc_tax',
+                'item_tax',
+                'line_discount_amount',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('sales.sell_line');
+    }
+
     /**
      * The attributes that aren't mass assignable.
      *
