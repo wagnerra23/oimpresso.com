@@ -72,7 +72,7 @@
 - 5.000 API calls
 - 10GB storage
 - Suporte: email 24h
-- **Target:** gráfica 2-5 funcionários (perfil ROTA LIVRE)
+- **Target:** PME 2-5 funcionários (perfil ROTA LIVRE — vestuário Gravatal/SC; também serve gráfica/oficina via módulo vertical correspondente — [ADR 0121](../0121-oimpresso-modular-especializado-por-vertical.md))
 
 ### Premium — R$ [redacted Tier 0]/m
 - Brain A unlimited (fair-use 10k)
@@ -289,7 +289,7 @@ Churn assumido 3%/m (SaaS B2B BR vertical):
 
 ### Complexidade percebida vs simplicidade
 
-Cliente Larissa-tipo (ROTA LIVRE, dona-operadora gráfica) **decora preço fixo**. Tabela com "200 queries Brain A + 50 Brain B + overage R$ [redacted Tier 0]" pode soar "celular pré-pago caro" e empurrar pra concorrente com R$ [redacted Tier 0] fixo flat.
+Cliente Larissa-tipo (ROTA LIVRE, dona-operadora **loja de roupa em Gravatal/SC**) **decora preço fixo**. Tabela com "200 queries Brain A + 50 Brain B + overage R$ [redacted Tier 0]" pode soar "celular pré-pago caro" e empurrar pra concorrente com R$ [redacted Tier 0] fixo flat.
 
 **Mitigações:**
 1. **Dashboard "modo conforto"** — cliente escolhe ver apenas "% do tier usado" (1 número), sem unidades técnicas

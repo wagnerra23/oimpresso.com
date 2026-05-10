@@ -30,7 +30,24 @@
 
 ## Padrão arquitetural
 
-**Modular monolith, DDD leve**, append-only onde a lei exige (Portaria MTP 671/2021), `business_id` global scope obrigatório (Tier 0 — [ADR 0093](decisions/0093-multi-tenant-isolation-tier-0.md)).
+**Modular monolith, DDD leve, especializado por vertical** ([ADR 0121](decisions/0121-oimpresso-modular-especializado-por-vertical.md)). Append-only onde a lei exige (Portaria MTP 671/2021), `business_id` global scope obrigatório (Tier 0 — [ADR 0093](decisions/0093-multi-tenant-isolation-tier-0.md)).
+
+```
+oimpresso (núcleo comum)
+├── Modules/Copiloto      (Jana IA + memória persistente)
+├── Modules/Financeiro    (visão unificada AR/AP)
+├── Modules/NfeBrasil     (NFe/NFC-e/NFSe)
+├── Modules/RecurringBilling (assinaturas + boletos)
+├── Modules/MemCofre      (cofre senhas)
+├── Modules/Repair        (Kanban OS — shared infrastructure entre verticais)
+└── Modules/<Vertical>    ← ESPECIALIZAÇÕES PROFUNDAS
+    ├── Vestuario              ✅ em prod (ROTA LIVRE) — CNAE 4781-4/00
+    ├── ComunicacaoVisual      🟡 em construção — CNAE 1813-0/01
+    ├── OficinaAuto            ⏸️ aguarda sinal — CNAE 4520-0/01
+    └── ...                    🔒 backlog ADR feature-wish
+```
+
+Cada módulo vertical = produto separado vendável como add-on ao núcleo.
 
 ## Módulos referência canônica (imitar antes de criar)
 
@@ -47,3 +64,4 @@ Ler `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` — checklist das 8 peças
 - [0062](decisions/0062-separacao-runtime-hostinger-ct100.md) Hostinger ≠ CT 100 · [0070](decisions/0070-jira-style-task-management-current-md-removed.md) Jira-style tasks
 - [0091](decisions/0091-daily-brief.md) Daily Brief · [0093](decisions/0093-multi-tenant-isolation-tier-0.md) Multi-tenant Tier 0
 - [0094](decisions/0094-constituicao-v2-7-camadas-8-principios.md) **Constituição v2 (mãe)** · [0095](decisions/0095-skills-tiers-convencao-interna.md) Skills Tiers
+- [0121](decisions/0121-oimpresso-modular-especializado-por-vertical.md) **Modular especializado por vertical** (núcleo + Modules/<Vertical>)
