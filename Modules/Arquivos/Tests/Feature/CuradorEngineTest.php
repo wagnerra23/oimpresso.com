@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\Curador\CuradorEngine;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * Pest tests do CuradorEngine PHP — port das 18 regras de scripts/curador/lib/rules.mjs.
