@@ -2,6 +2,14 @@
 // F3 baseada em prototipo-ui/prototipos/producao-oficina/F1.html — kanban
 // 5 colunas Recepção→Diagnóstico→Aguardando peças→Em execução→Pronto.
 // US-REPAIR-PROD-4 (2026-05-09): drag-and-drop entre colunas via HTML5 nativo.
+//
+// REFACTOR shared (audit 2026-05-10):
+// - Tipos genéricos (code/item/usage_meter/slot/area/executor) — vertical
+//   (OficinaAuto / ComunicacaoVisual / Vestuario) passa labelOverrides via
+//   business.repair_settings.labels (props vindas do Controller).
+// - Slot/area filters dinâmicos a partir de slot_config (vinda do Controller,
+//   alimentada por business.repair_settings.slots[]). Default conservador
+//   (B1..B4 + E1..E2) preserva UX atual quando biz não configurou ainda.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
@@ -11,21 +19,23 @@ type Tone = 'slate' | 'blue' | 'amber' | 'violet' | 'emerald';
 
 interface Card {
   id?: number;                    // presente em live data; ausente em mock (drag-drop só local)
-  plate: string;
-  vehicle: string;
-  brand: string;
-  km: number;
-  mecanico: string | null;
-  mecanico_initials: string | null;
+  code: string;                   // genérico: placa (auto) | nº OS (com.visual) | código serviço (vestuario)
+  item: string;                   // genérico: vehicle (auto) | arte/peça (com.visual) | roupa (vestuario)
+  brand: string;                  // genérico já no BD
+  usage_meter?: number | null;    // km (auto) | m² impresso (com.visual) | horas-máquina — pode ser null
+  usage_unit?: string | null;     // 'km' | 'm²' | 'h' — vertical define
+  executor: string | null;        // mecânico (auto) | designer (com.visual) | costureira (vestuario)
+  executor_initials: string | null;
   wait?: string;
-  box?: string | null;
+  slot?: string | null;           // box (auto) | mesa (vestuario) | bancada (com.visual)
+  area?: string | null;           // elevador (auto) | área impressão (com.visual)
   eta?: string;
-  aprovacao_pendente?: boolean;
-  aprovado?: boolean;
+  pending_approval?: boolean;
+  approved?: boolean;
   status_label?: string;
-  orcamento_total?: number;
-  orcamento_pecas?: number;
-  orcamento_status?: string;
+  quote_total?: number;
+  quote_items?: number;
+  quote_status?: string;
 }
 
 interface Column {
@@ -35,13 +45,30 @@ interface Column {
   cards: Card[];
 }
 
+interface SlotGroup {
+  key: string;            // 'slot' | 'area' | qualquer chave custom (ex: 'mesa', 'bancada')
+  label: string;          // 'Box' | 'Elevador' | 'Mesa' | 'Bancada' | 'Máquina'
+  options: string[];      // ['B1', 'B2', ...] — vertical configura
+}
+
+interface LabelOverrides {
+  code?: string;          // 'Placa' (auto) | 'Nº OS' (com.visual) — null usa default genérico
+  item?: string;          // 'Veículo' | 'Arte' | 'Peça'
+  brand?: string;         // 'Marca' | 'Categoria'
+  usage_meter?: string | null; // 'KM' | 'M²' — null omite render
+  usage_unit?: string | null;
+  executor?: string;      // 'Mecânico' | 'Designer' | 'Costureira'
+}
+
 interface PageProps {
   columns: Column[];
   totals: {
     os: number;
-    aguardando_aprovacao: number;
+    pending_approval: number;
   };
   data_source?: 'live' | 'mock';
+  slot_config: SlotGroup[];        // antes hardcoded BOXES/ELEVADORES; agora vem do Controller
+  label_overrides: LabelOverrides; // labels específicos por vertical
 }
 
 const TONE_DOT: Record<Tone, string> = {
@@ -60,14 +87,23 @@ const TONE_BOX_BADGE: Record<Tone, string> = {
   emerald: 'bg-emerald-50 text-emerald-700',
 };
 
-const BOXES = ['B1', 'B2', 'B3', 'B4'] as const;
-const ELEVADORES = ['E1', 'E2'] as const;
+// Formata medida de uso conforme unit configurada por vertical.
+// Default: omitir se usage_meter null.
+const formatUsage = (meter: number | null | undefined, unit: string | null | undefined) => {
+  if (meter == null || meter === 0) return null;
+  const u = unit ?? '';
+  if (u === 'km') return `KM ${meter.toLocaleString('pt-BR')}`;
+  if (u === 'm²' || u === 'm2') return `${meter.toLocaleString('pt-BR')} m²`;
+  if (u === 'h') return `${meter.toLocaleString('pt-BR')} h`;
+  return `${meter.toLocaleString('pt-BR')}${u ? ' ' + u : ''}`;
+};
 
-const formatKm = (km: number) => `KM ${km.toLocaleString('pt-BR')}`;
-
-export default function ProducaoOficinaIndex({ columns, totals, data_source }: PageProps) {
-  const [boxFilter, setBoxFilter] = useState<string>('all');
-  const [elevadorFilter, setElevadorFilter] = useState<string>('all');
+export default function ProducaoOficinaIndex({ columns, totals, data_source, slot_config, label_overrides }: PageProps) {
+  // Filtros dinâmicos (1 por SlotGroup). Cada vertical configura quantos grupos quer.
+  // Estado mantém um filter por group key — 'all' = sem filtro.
+  const [slotFilters, setSlotFilters] = useState<Record<string, string>>(() =>
+    Object.fromEntries(slot_config.map((g) => [g.key, 'all'])),
+  );
   const [activeCard, setActiveCard] = useState<Card | null>(null);
 
   // US-REPAIR-PROD-4 — drag-and-drop state.
@@ -114,50 +150,52 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source }: P
     }
   };
 
-  const filtersActive = boxFilter !== 'all' || elevadorFilter !== 'all';
+  const filtersActive = Object.values(slotFilters).some((v) => v !== 'all');
 
   const filteredColumns = useMemo(() => {
     if (!filtersActive) return localColumns;
     return localColumns.map((col) => ({
       ...col,
       cards: col.cards.filter((card) => {
-        const matchBox = boxFilter === 'all' || card.box === boxFilter;
-        const matchElev = elevadorFilter === 'all' || card.box === elevadorFilter;
-        return matchBox && matchElev;
+        // Cada SlotGroup filtra contra a key correspondente do card (slot|area|custom).
+        return slot_config.every((group) => {
+          const filterValue = slotFilters[group.key];
+          if (filterValue === 'all') return true;
+          // Card pode ter key dinâmica conforme group.key (slot, area, mesa, bancada).
+          const cardValue = (card as Record<string, unknown>)[group.key] as string | null | undefined;
+          return cardValue === filterValue;
+        });
       }),
     }));
-  }, [localColumns, boxFilter, elevadorFilter, filtersActive]);
+  }, [localColumns, slotFilters, filtersActive, slot_config]);
 
   const filteredCounts = useMemo(() => {
     const all = filteredColumns.flatMap((c) => c.cards);
     return {
       os: all.length,
-      aguardando: all.filter((c) => c.aprovacao_pendente).length,
+      pending: all.filter((c) => c.pending_approval).length,
     };
   }, [filteredColumns]);
 
   const clearFilters = () => {
-    setBoxFilter('all');
-    setElevadorFilter('all');
+    setSlotFilters(Object.fromEntries(slot_config.map((g) => [g.key, 'all'])));
   };
 
   return (
     <div className="flex flex-col h-full bg-slate-50 text-slate-900">
-      {/* Filter bar */}
-      <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-6 sticky top-0 z-10">
-        <FilterChips
-          label="Box"
-          options={['Todos', ...BOXES]}
-          value={boxFilter}
-          onChange={setBoxFilter}
-        />
-        <div className="w-px h-6 bg-slate-200" />
-        <FilterChips
-          label="Elevador"
-          options={['Todos', ...ELEVADORES]}
-          value={elevadorFilter}
-          onChange={setElevadorFilter}
-        />
+      {/* Filter bar — dinâmica conforme slot_config */}
+      <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-6 sticky top-0 z-10 flex-wrap">
+        {slot_config.map((group, idx) => (
+          <div key={group.key} className="flex items-center gap-2">
+            {idx > 0 && <div className="w-px h-6 bg-slate-200" />}
+            <FilterChips
+              label={group.label}
+              options={['Todos', ...group.options]}
+              value={slotFilters[group.key] ?? 'all'}
+              onChange={(v) => setSlotFilters((prev) => ({ ...prev, [group.key]: v }))}
+            />
+          </div>
+        ))}
         {filtersActive && (
           <button
             type="button"
@@ -179,13 +217,13 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source }: P
           {filtersActive ? (
             <>
               <span className="font-medium text-slate-900">{filteredCounts.os}</span> de {totals.os} OS ·{' '}
-              <span className="font-medium text-slate-900">{filteredCounts.aguardando}</span> de{' '}
-              {totals.aguardando_aprovacao} aguardando aprovação
+              <span className="font-medium text-slate-900">{filteredCounts.pending}</span> de{' '}
+              {totals.pending_approval} aguardando aprovação
             </>
           ) : (
             <>
               <span className="font-medium text-slate-900">{totals.os}</span> OS ·{' '}
-              <span className="font-medium text-slate-900">{totals.aguardando_aprovacao}</span> aguardando aprovação
+              <span className="font-medium text-slate-900">{totals.pending_approval}</span> aguardando aprovação
             </>
           )}
         </div>
@@ -200,6 +238,7 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source }: P
               column={col}
               isHover={hoverCol === col.id}
               isDraggingFrom={dragging?.srcColId === col.id}
+              labelOverrides={label_overrides}
               onCardClick={setActiveCard}
               onCardDragStart={(card) => setDragging({ card, srcColId: col.id })}
               onCardDragEnd={() => { setDragging(null); setHoverCol(null); }}
@@ -219,7 +258,7 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source }: P
       </main>
 
       {/* Drawer overlay */}
-      {activeCard && <JobDrawer card={activeCard} onClose={() => setActiveCard(null)} />}
+      {activeCard && <JobDrawer card={activeCard} labelOverrides={label_overrides} onClose={() => setActiveCard(null)} />}
     </div>
   );
 }
@@ -271,6 +310,7 @@ function KanbanColumn({
   column,
   isHover,
   isDraggingFrom,
+  labelOverrides,
   onCardClick,
   onCardDragStart,
   onCardDragEnd,
@@ -281,6 +321,7 @@ function KanbanColumn({
   column: Column;
   isHover: boolean;
   isDraggingFrom: boolean;
+  labelOverrides: LabelOverrides;
   onCardClick: (c: Card) => void;
   onCardDragStart: (card: Card) => void;
   onCardDragEnd: () => void;
@@ -318,9 +359,10 @@ function KanbanColumn({
         ) : (
           column.cards.map((card) => (
             <JobCard
-              key={card.plate}
+              key={card.code}
               card={card}
               tone={column.tone}
+              labelOverrides={labelOverrides}
               onClick={() => onCardClick(card)}
               onDragStart={() => onCardDragStart(card)}
               onDragEnd={onCardDragEnd}
@@ -335,22 +377,28 @@ function KanbanColumn({
 function JobCard({
   card,
   tone,
+  labelOverrides,
   onClick,
   onDragStart,
   onDragEnd,
 }: {
   card: Card;
   tone: Tone;
+  labelOverrides: LabelOverrides;
   onClick: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
 }) {
-  const isPending = card.aprovacao_pendente;
-  const isDone = card.aprovado;
+  const isPending = card.pending_approval;
+  const isDone = card.approved;
 
   const wrapperClass = isPending
     ? 'bg-amber-50 border-2 border-amber-200 hover:border-amber-500'
     : 'bg-slate-50 border border-slate-200 hover:border-slate-400';
+
+  // Slot/area badge — usa qualquer dos campos preenchidos (vertical define qual usa).
+  const slotBadgeText = card.slot ?? card.area ?? null;
+  const usageText = formatUsage(card.usage_meter, card.usage_unit);
 
   return (
     <article
@@ -358,7 +406,7 @@ function JobCard({
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = 'move';
         // Sentinel pra Firefox aceitar drag (sem isso onDragStart não dispara em alguns engines).
-        e.dataTransfer.setData('text/plain', card.plate);
+        e.dataTransfer.setData('text/plain', card.code);
         onDragStart();
       }}
       onDragEnd={onDragEnd}
@@ -366,43 +414,44 @@ function JobCard({
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="font-mono text-sm font-bold text-slate-900 tracking-wider">{card.plate}</span>
+        <span className="font-mono text-sm font-bold text-slate-900 tracking-wider">{card.code}</span>
         {isPending ? (
           <span className="text-[10px] px-1.5 py-0.5 bg-amber-500 text-white rounded font-medium uppercase tracking-wide">
             Aprov?
           </span>
         ) : isDone ? (
           <span className="text-xs text-emerald-700">✓ aprovado</span>
-        ) : card.box ? (
-          <span className={`text-xs px-1.5 rounded ${TONE_BOX_BADGE[tone]}`}>{card.box}</span>
+        ) : slotBadgeText ? (
+          <span className={`text-xs px-1.5 rounded ${TONE_BOX_BADGE[tone]}`}>{slotBadgeText}</span>
         ) : card.wait ? (
           <span className="text-xs text-slate-400">{card.wait}</span>
         ) : null}
       </div>
       <div className="text-xs text-slate-600 mb-1">
-        {card.vehicle} · {card.brand}
+        {card.item} · {card.brand}
       </div>
-      <div className="text-xs text-slate-500">{formatKm(card.km)}</div>
-      {isPending && card.orcamento_total ? (
+      {usageText && <div className="text-xs text-slate-500">{usageText}</div>}
+      {isPending && card.quote_total ? (
         <div className="mt-2 pt-2 border-t border-amber-200 text-[11px] text-amber-800">
-          R$ {card.orcamento_total.toLocaleString('pt-BR')} · {card.orcamento_pecas} peças ·{' '}
-          {card.orcamento_status}
+          R$ {card.quote_total.toLocaleString('pt-BR')}
+          {card.quote_items ? ` · ${card.quote_items} ${labelOverrides.item ? `${labelOverrides.item.toLowerCase()}s` : 'itens'}` : ''}
+          {card.quote_status ? ` · ${card.quote_status}` : ''}
         </div>
       ) : isDone ? (
         <div className="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-500">
           {card.status_label}
         </div>
-      ) : card.mecanico ? (
+      ) : card.executor ? (
         <div className="mt-2 pt-2 border-t border-slate-200 flex items-center gap-1.5">
           <div
             className={`w-5 h-5 rounded-full grid place-items-center text-[10px] font-bold ${
               tone === 'violet' ? 'bg-violet-300 text-violet-800' : 'bg-slate-300 text-slate-700'
             }`}
           >
-            {card.mecanico_initials}
+            {card.executor_initials}
           </div>
           <span className="text-xs text-slate-600">
-            {card.mecanico}
+            {card.executor}
             {card.eta ? ` · ETA ${card.eta}` : ''}
           </span>
         </div>
@@ -411,19 +460,22 @@ function JobCard({
   );
 }
 
-function JobDrawer({ card, onClose }: { card: Card; onClose: () => void }) {
+function JobDrawer({ card, labelOverrides, onClose }: { card: Card; labelOverrides: LabelOverrides; onClose: () => void }) {
+  const slotBadge = card.slot ?? card.area ?? null;
+  const usageText = formatUsage(card.usage_meter, card.usage_unit);
+
   return (
     <aside className="fixed top-0 right-0 h-full w-[480px] bg-white border-l border-slate-200 shadow-2xl flex flex-col z-30">
       <header className="px-5 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="font-mono text-lg font-bold text-slate-900 tracking-wider">{card.plate}</span>
-            {card.box && (
-              <span className="text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">{card.box}</span>
+            <span className="font-mono text-lg font-bold text-slate-900 tracking-wider">{card.code}</span>
+            {slotBadge && (
+              <span className="text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">{slotBadge}</span>
             )}
           </div>
           <div className="text-sm text-slate-600">
-            {card.vehicle} · {card.brand} · {formatKm(card.km)}
+            {card.item} · {card.brand}{usageText ? ` · ${usageText}` : ''}
           </div>
         </div>
         <button
@@ -436,12 +488,12 @@ function JobDrawer({ card, onClose }: { card: Card; onClose: () => void }) {
         </button>
       </header>
 
-      {card.aprovacao_pendente && (
+      {card.pending_approval && (
         <div className="px-5 py-3 bg-amber-50 border-b border-amber-200 flex items-center justify-between flex-shrink-0">
           <div>
             <div className="text-sm font-medium text-amber-800">Aguarda aprovação do cliente</div>
             <div className="text-xs text-amber-700/90">
-              Orçamento R$ {card.orcamento_total?.toLocaleString('pt-BR')} enviado há 2h via WhatsApp
+              Orçamento R$ {card.quote_total?.toLocaleString('pt-BR')} enviado há 2h via WhatsApp
             </div>
           </div>
           <button
@@ -474,7 +526,7 @@ function JobDrawer({ card, onClose }: { card: Card; onClose: () => void }) {
           </div>
         </DrawerSection>
 
-        <DrawerSection title="Peças sugeridas">
+        <DrawerSection title={labelOverrides.item ? `${labelOverrides.item}s sugeridos` : 'Itens sugeridos'}>
           <ul className="space-y-1.5 text-sm">
             <PriceRow label="Bandeja dianteira esq." value={890} />
             <PriceRow label="Pivô inferior (par)" value={420} />
