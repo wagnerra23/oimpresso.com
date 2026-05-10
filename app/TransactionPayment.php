@@ -5,9 +5,33 @@ namespace App;
 use App\Events\TransactionPaymentDeleted;
 use App\Events\TransactionPaymentUpdated;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class TransactionPayment extends Model
 {
+    use LogsActivity;
+
+    /**
+     * Activity log config — auditoria de pagamentos (criacao/alteracao/baixa).
+     * Padrao Modules/Financeiro/Titulo.
+     *
+     * Refs: ADR 0127 (Modules/Auditoria UI + undo) US-AUDIT-004
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'amount',
+                'method',
+                'paid_on',
+                'transaction_id',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('sales.payment');
+    }
+
     /**
      * The attributes that aren't mass assignable.
      *
