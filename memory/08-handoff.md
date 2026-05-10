@@ -1498,3 +1498,54 @@ Salvo em auto-mem `feedback_mcp_so_ct100.md`. Implicação: tool MCP exposed só
 - 🟢 Goal NOVO implícito: **Processo MWART enforced** ([ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) + ADR ui/0114) — fechado nesta sessão via mwart-gate.yml + MWART-CHECKLIST.md
 
 **Última atualização:** 2026-05-09 ~22h BRT — sessão maratona com 23 PRs (#321-#363); 2 telas em prod (Producao Oficina + Visao Unificada); processo MWART enforced via gate + doc; auditoria visual Chrome detectou e fechou 4 bugs do PR #349.
+
+---
+
+## Sessão autônoma 2026-05-09→10 (Opus 4.7 paralelos)
+
+**~50 sub-agents Opus 4.7 paralelos × ~8h wallclock (vs ~80h sequencial), 7 PRs mergeados (#372, #373, #375, #376, #377, #378, #382).**
+
+### Decisões estratégicas formalizadas
+- **ADR 0121** (canon, aceita) — oimpresso é ERP modular especializado por vertical (núcleo + Modules/<Vertical>)
+- **Hipótese D escolhida** vs A/B/C — Wagner: *"acho que vou fazer módulos especializados"*
+- ❌ **Pilar 5 DaaS externo descartado** — Wagner: *"não vou vender dados"*
+- ⏸️ **DPO Eliana adiado** — Eliana estuda LGPD com calma (advogada+financeiro descoberto)
+- ✅ Grandfather 12m dos 41 clientes atuais
+- ✅ ROTA LIVRE caso público anonimizado OK (loja roupa Gravatal/SC — NÃO gráfica em SP, erro factual corrigido em 14 arquivos)
+
+### Módulos verticais (estado canônico ADR 0121)
+- ✅ **Modules/Vestuario** em prod via ROTA LIVRE biz=4 — SPEC + charter
+- 🟡 **Modules/ComunicacaoVisual** em construção — SPEC + charter + scaffold drafts
+- ⏸️ **Modules/OficinaAuto** feature-wish — SPEC + charter (5 condições gatilho)
+- 🆕 **Modules/Autopecas** candidato — Vargas R$ 7,9M GMV é autopeças (sinal qualificado real)
+
+### Análise financeira interna (Firebird ServidorWR2:Banco) — confidencial gitignored
+- WR Sistemas MRR ~R$ 40.500/m, ARR ~R$ 487k (10% meta R$ 5M)
+- Resultado 12m: -R$ 68k déficit · A receber vencidas R$ 292k · A pagar vencidas R$ 575k
+- 49 bancos clientes legacy mapeados via registry HKCU
+- 6 bugs auditoria sequência: 3 ainda ABERTOS (US-INFRA-008/009/010)
+
+### CYCLE-03 ativo — tasks Sprint 1 criadas no MCP server
+- **US-INFRA-008** Pre-fix wipe-DB-via-HTTP (felipe, 0.5h, p0)
+- **US-INFRA-009** Pre-fix composer.json octane+mcp (felipe, 0.25h, p0)
+- **US-INFRA-010** Pre-fix phpunit.xml Ponto+ADS (felipe, 0.1h, p0)
+- **US-INFRA-011** Pre-fix adr-lint required (wagner, 0.1h, p0)
+- **US-INFRA-012** Schema multi-vertical (felipe, 18h, p0, blocked by 008/009/010)
+- **US-REPA-002** Refactor Caminho A Modules/Repair shared infra (felipe, 14h, p1)
+- **US-INFRA-013** Scaffold Modules/ComunicacaoVisual (felipe, 5h, p1, blocked by 012)
+- **US-INFRA-014** Validar CNAE 49 bancos Firebird (wagner, 2h, p1)
+- **US-INFRA-015** Email v3 New Signs Campinas (wagner, 0.5h, p2)
+
+**Total esforço registrado:** ~40,5h ≈ 5 dias úteis Sprint 1.
+
+### Próximos passos imediatos
+1. **30min pre-fix** US-INFRA-008..011 ANTES de iniciar Sprint 1 técnico
+2. **Felipe Pest local** drafts schema + refactor Repair + scaffold ComVisual (regra Wagner 2026-05-09)
+3. **Wagner**: email v3 New Signs Campinas + validar CNAE Vargas quando 192.168.0.55 voltar
+4. **Eliana**: revisar onboarding-wizard LGPD + 3 docs jurídicos draftados
+
+### Pendências de validação (servidor 192.168.0.55 offline 2026-05-10)
+- `_validar_cnae_saudaveis.py` (10 saudáveis, ~2min)
+- `_distribuicao_vertical_41_bancos.py` (49 totais, ~10min, BrasilAPI rate-limit)
+
+**Última atualização:** 2026-05-10 ~02h BRT — sessão autônoma terminou, Sprint 1 registrado no MCP server.
