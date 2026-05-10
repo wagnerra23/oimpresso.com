@@ -6,7 +6,7 @@
 //
 // Uso: node scripts/curador/classify.mjs [--reclassify]
 
-import { dirname, join } from 'node:path';
+import { dirname, join, dirname as pathDirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appendJsonl, readJsonl, rewriteJsonl, nowIso } from './lib/db.mjs';
 import { classifyFile, RULE_COUNT } from './lib/rules.mjs';
@@ -61,7 +61,9 @@ async function main() {
       mtime: f.mtime,
       extension: f.extension,
       basename: f.basename,
-      dirname: f.path.replace(f.basename, ''),
+      // Agent E (security review) 2026-05-10: f.path.replace(f.basename, '') quebra
+      // se basename aparece duas vezes no path (D:\foo\foo\foo.txt vira D:\\foo.txt).
+      dirname: pathDirname(f.path),
       md5: f.md5,
       isDuplicate,
       duplicateOf,

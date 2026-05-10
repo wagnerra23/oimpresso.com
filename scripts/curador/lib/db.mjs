@@ -29,7 +29,19 @@ export async function rewriteJsonl(path, records) {
   const tmp = path + '.tmp';
   const body = records.map((r) => JSON.stringify(r)).join('\n') + '\n';
   await fs.writeFile(tmp, body, 'utf8');
-  await fs.rename(tmp, path);
+  // Windows EBUSY retry (other process may hold handle briefly).
+  let lastErr;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await fs.rename(tmp, path);
+      return;
+    } catch (err) {
+      if (err.code !== 'EBUSY' && err.code !== 'EPERM') throw err;
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
+    }
+  }
+  throw lastErr;
 }
 
 export function nowIso() {

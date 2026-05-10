@@ -10,11 +10,12 @@
 //   node scripts/curador/report.mjs [--batch-size 500] [--out "D:\Conhecimento\_TRIAGEM"]
 
 import { promises as fs } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appendJsonl, readJsonl, nowIso } from './lib/db.mjs';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(SCRIPT_DIR, '..', '..');
 const DB_FILES = join(SCRIPT_DIR, 'db', 'files.jsonl');
 const DB_CLASS = join(SCRIPT_DIR, 'db', 'classifications.jsonl');
 const DB_BATCHES = join(SCRIPT_DIR, 'db', 'batches.jsonl');
@@ -135,6 +136,18 @@ async function main() {
   }
 
   const outAbs = resolve(args.out);
+
+  // Agent E (security review) 2026-05-10: LGPD timebomb — paths absolutos
+  // do PC (incluindo C:\Users\<dev>\) ficam em batch.md. Se --out apontar
+  // pra dentro do repo, vão pro git. Bloquear.
+  const outRel = relative(REPO_ROOT, outAbs);
+  if (!outRel.startsWith('..') && !/^[a-z]:/i.test(outRel) && outRel !== '') {
+    console.error(`ERROR: --out "${outAbs}" está dentro do REPO_ROOT.`);
+    console.error(`Batch.md contém paths absolutos do PC — risco LGPD se commitado.`);
+    console.error(`Use --out fora do repositório (ex: D:\\Conhecimento\\_TRIAGEM\\).`);
+    process.exit(2);
+  }
+
   await fs.mkdir(outAbs, { recursive: true });
   const today = new Date().toISOString().slice(0, 10);
 

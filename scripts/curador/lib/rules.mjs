@@ -18,8 +18,13 @@ const SENSITIVE_NAME_PREFIXES = ['id_rsa', 'id_ed25519', 'id_dsa', 'id_ecdsa'];
 // .env templates públicos (NÃO sensíveis — são exemplos de OSS)
 const ENV_TEMPLATE_SUFFIXES = /\.(example|sample|dist|template|test|local\.example)$/i;
 
+// Regex CNAB sem \b boundaries — "Cnab400", "CNAB_240", "cnab240" todos match.
+// Agent B (validar memory bucket) 2026-05-10: \bcnab\b falhava em "Cnab400"
+// porque digit-after não é word-boundary; 17/19 CNAB caíam em fallback.
+const CNAB_RE = /cnab/i;
+
 const BANCO_KEYWORDS = {
-  'BancoDoBrasil': /\b(banco[ _]?do[ _]?brasil|bb)\b/i,
+  'BancoDoBrasil': /banco[ _]?do[ _]?brasil|bancodobrasil|\bbb\b/i,
   'Bradesco': /bradesco/i,
   'CEF': /\b(cef|caixa[ _]?economica)\b/i,
   'Itau': /ita[uú]/i,
@@ -31,16 +36,20 @@ const BANCO_KEYWORDS = {
   'Cresol': /cresol/i,
 };
 
+// Módulos canônicos REAIS em Modules/ (não slugs PT-BR não-canon).
+// Agent B 2026-05-10: ~570/951 caíam em pastas inexistentes
+// (Venda, Compra, Producao, Suporte, Produto não são módulos canon).
 const MODULE_BY_KEYWORD = [
-  { mod: 'Producao', re: /\b(produ[cç][aã]o|fabrica[cç][aã]o|apontamento)\b/i },
-  { mod: 'Venda', re: /\b(venda|or[cç]amento|proposta|faturamento)\b/i },
-  { mod: 'Produto', re: /\b(produto|tabela[ _]de[ _]pre[cç]o|varia[cç][aã]o|grade)\b/i },
-  { mod: 'NfeBrasil', re: /\b(nfe|nfc-?e|sefaz|sintegra|sped|efd|icms|cfop|ncm|tipi)\b/i },
-  { mod: 'Financeiro', re: /\b(financeiro|fr0090|conta|caixa|banco|boleto|cnab|conciliacao)\b/i },
-  { mod: 'Compra', re: /\bcompra\b/i },
-  { mod: 'Cms', re: /\b(landing|blog|chatwoot|evolution[ _]?api)\b/i },
-  { mod: 'Suporte', re: /\b(suporte|atendimento|chamado|faq|kb)\b/i },
-  { mod: 'Officeimpresso', re: /\b(office[ _-]?impresso|relatorio|kpi|fastreport)\b/i },
+  { mod: 'Manufacturing', re: /\b(produ[cç][aã]o|fabrica[cç][aã]o|apontamento|composi[cç][aã]o)\b/i },
+  { mod: 'NfeBrasil', re: /\b(nfe|nfc-?e|sefaz|sintegra|sped|efd|icms|cfop|ncm|tipi|regime[ _]?tribut[aá]rio|consumidor|inscri[cç][aã]o[ _]estadual|cest|conv[eê]nio[ _]?icms)\b/i },
+  { mod: 'Financeiro', re: /\b(financeiro|fr0090|conta[ _]?banc[aá]ria|caixa|boleto|cnab|concilia[cç][aã]o|plano[ _]de[ _]conta)\b/i },
+  { mod: 'ProductCatalogue', re: /\b(produto|tabela[ _]de[ _]pre[cç]o|varia[cç][aã]o|grade|m[oó]dulo[ _]produto)\b/i },
+  { mod: 'Officeimpresso', re: /\b(venda|or[cç]amento|proposta|faturamento|compra|caixa fechado|m[oó]dulo[ _]?venda|m[oó]dulo[ _]?compra)\b/i },
+  { mod: 'Cms', re: /\b(landing|blog|chatwoot|evolution[ _]?api|chatwr2)\b/i },
+  { mod: 'KB', re: /\b(suporte|atendimento|chamado|faq|kb|knowledge[ _]?base|artigo[ _]?suporte)\b/i },
+  { mod: 'Crm', re: /\b(crm|cliente|fornecedor|contato|lead|pipeline)\b/i },
+  { mod: 'Jana', re: /\b(prompts?[ _]?jana|jana[ _]?ai|copiloto|janaai|dify|llm)\b/i },
+  { mod: 'Officeimpresso', re: /\b(office[ _-]?impresso|relat[oó]rio|kpi|fastreport)\b/i },
 ];
 
 const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 6;
@@ -54,7 +63,8 @@ function inferModule(path) {
   for (const { mod, re } of MODULE_BY_KEYWORD) {
     if (re.test(path)) return mod;
   }
-  return 'Officeimpresso'; // fallback
+  // Fallback dedicado em vez de Officeimpresso (Agent B: poluiria canon).
+  return '_inbox';
 }
 
 const RULES = [
@@ -105,11 +115,12 @@ const RULES = [
     return null;
   },
 
-  // 3. PII NF-e (XML em pasta Cliente)
+  // 3. PII NF-e (XML em pasta Cliente — só 1 nível abaixo, evita false-positive
+  // tipo "MeusClientesAtivos\bar\baz.xml" que acionaria o 2º alternativa antiga)
   (f) => {
     if (
       f.extension.toLowerCase() === '.xml' &&
-      /[\\/]XML[ _-]?Clientes?[\\/]|[\\/]Clientes?[\\/].*\.xml$/i.test(f.path)
+      /[\\/](XML[ _-]?Clientes?|Clientes?)[\\/][^\\/]+\.xml$/i.test(f.path)
     ) {
       return {
         bucket: 'sensitive',
@@ -117,6 +128,20 @@ const RULES = [
         sensitiveFlags: ['pii_nfe'],
         ruleMatched: 'sensitive_pii_xml_cliente',
         confidence: 0.95,
+      };
+    }
+    return null;
+  },
+
+  // 3b. Credentials JSON (Agent A bonus 2026-05-10: credentialsChatWoot.json missed)
+  (f) => {
+    if (/credentials?.*\.json$/i.test(f.basename)) {
+      return {
+        bucket: 'sensitive',
+        subDestination: '_VAULT-PENDING/credentials-json/',
+        sensitiveFlags: ['credentials_json'],
+        ruleMatched: 'sensitive_credentials_json',
+        confidence: 0.85,
       };
     }
     return null;
@@ -171,6 +196,36 @@ const RULES = [
     return null;
   },
 
+  // 1b. (Agent A 2026-05-10 R1) Pasta D:\Conhecimento\Software\ é convenção
+  // Wagner pra clones OSS de referência (chatwoot/janaAi/dify-plugins/etc).
+  // Captura 13.495 ambiguous que oss_clone_path perdia (paths sem node_modules/.git literal).
+  (f) => {
+    if (/[\\/]Conhecimento[\\/]Software[\\/]/i.test(f.path)) {
+      return {
+        bucket: 'discard',
+        subDestination: '_DESCARTADO/oss-software-folder/',
+        sensitiveFlags: [],
+        ruleMatched: 'oss_software_folder',
+        confidence: 1.0,
+      };
+    }
+    return null;
+  },
+
+  // 1c. (Agent A R9) .git/* interno do repo Docs/ (COMMIT_EDITMSG, HEAD, index, etc)
+  (f) => {
+    if (/[\\/]Docs[\\/]\.git[\\/]/i.test(f.path)) {
+      return {
+        bucket: 'discard',
+        subDestination: '_DESCARTADO/oss-clones/',
+        sensitiveFlags: [],
+        ruleMatched: 'docs_git_internals',
+        confidence: 1.0,
+      };
+    }
+    return null;
+  },
+
   // 18. README/CHANGELOG OSS gigante
   (f) => {
     const lower = f.basename.toLowerCase();
@@ -207,9 +262,108 @@ const RULES = [
 
   // === MEMORY (positive matches) ===
 
-  // 9. CNAB bancos
+  // (Agent A R2) Imagens/Jana — branding Jana
   (f) => {
-    if (/\bcnab\b/i.test(f.path)) {
+    if (/[\\/]Imagens[\\/]Jana[\\/]/i.test(f.path)) {
+      return {
+        bucket: 'memory',
+        subDestination: 'memory/branding/jana/',
+        sensitiveFlags: [],
+        ruleMatched: 'branding_jana',
+        confidence: 0.9,
+      };
+    }
+    return null;
+  },
+
+  // (Agent A R3) Imagens/Office Impresso — branding produto
+  (f) => {
+    if (/[\\/]Imagens[\\/]Office[ _]?Impresso[\\/]/i.test(f.path)) {
+      return {
+        bucket: 'memory',
+        subDestination: 'memory/branding/office-impresso/',
+        sensitiveFlags: [],
+        ruleMatched: 'branding_office_impresso',
+        confidence: 0.9,
+      };
+    }
+    return null;
+  },
+
+  // (Agent A R4) Suporte/Base de Conhecimento — KB FAQs
+  (f) => {
+    if (/[\\/]Suporte ao Cliente[\\/]Base de Conhecimento/i.test(f.path)) {
+      return {
+        bucket: 'memory',
+        subDestination: 'memory/requisitos/KB/legacy-faqs/',
+        sensitiveFlags: [],
+        ruleMatched: 'kb_legacy_faq',
+        confidence: 0.9,
+      };
+    }
+    return null;
+  },
+
+  // (Agent A R5) Infraestrutura/Portainer Docker stacks compose-managed
+  (f) => {
+    if (/[\\/]Infraestrutura[ _&-]+Opera[cç][oõ]es[\\/]Portainer[\\/]Docker[\\/].*\.ya?ml$/i.test(f.path)) {
+      return {
+        bucket: 'memory',
+        subDestination: 'memory/requisitos/Infra/portainer-stacks/',
+        sensitiveFlags: [],
+        ruleMatched: 'infra_portainer_stack',
+        confidence: 0.95,
+      };
+    }
+    return null;
+  },
+
+  // (Agent A R6) Infraestrutura/Evolution API yamls
+  (f) => {
+    if (/[\\/]Infraestrutura[ _&-]+Opera[cç][oõ]es[\\/]Evolution[ _]?API/i.test(f.path)) {
+      return {
+        bucket: 'memory',
+        subDestination: 'memory/requisitos/Infra/evolution-api/',
+        sensitiveFlags: [],
+        ruleMatched: 'infra_evolution_api',
+        confidence: 0.95,
+      };
+    }
+    return null;
+  },
+
+  // (Agent A R7) Docs/Atas — atas históricas (mais permissivo que regra atas-antigas
+  // que filtra só basename antigo; aqui captura por path)
+  (f) => {
+    if (/[\\/]Docs[\\/]Atas/i.test(f.path)) {
+      return {
+        bucket: 'memory',
+        subDestination: 'memory/sessions/atas-historicas/',
+        sensitiveFlags: [],
+        ruleMatched: 'atas_historicas_docs',
+        confidence: 0.7,
+      };
+    }
+    return null;
+  },
+
+  // (Agent A R8) Docs/Projeto/KPIS — KPIs export Notion (Officeimpresso historico)
+  (f) => {
+    if (/[\\/]Docs[\\/]Projeto[\\/]KPIS[\\/]/i.test(f.path)) {
+      return {
+        bucket: 'memory',
+        subDestination: 'memory/requisitos/Officeimpresso/kpis-historicos/',
+        sensitiveFlags: [],
+        ruleMatched: 'kpis_historicos',
+        confidence: 0.85,
+      };
+    }
+    return null;
+  },
+
+  // 9. CNAB bancos (regex sem boundary — pega Cnab400/CNAB_240/cnab240)
+  (f) => {
+    if (CNAB_RE.test(f.path)) {
       for (const [banco, re] of Object.entries(BANCO_KEYWORDS)) {
         if (re.test(f.path)) {
           return {

@@ -10,6 +10,7 @@
 import { promises as fs, createReadStream } from 'node:fs';
 import { resolve, extname, basename, dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { userInfo } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { appendJsonl, readJsonl, nowIso } from './lib/db.mjs';
 
@@ -58,9 +59,29 @@ async function* walk(dir) {
 }
 
 async function checkConsent(user) {
-  if (user === 'wagner') return true; // assume Wagner runs from his own machine
+  // Agent E (security review) 2026-05-10: cross-check OS username pra evitar
+  // que outro dev (ex: Maiara no PC dela) rode `--user wagner` e bypass LGPD.
+  const osUser = userInfo().username.toLowerCase();
+  const wagnerAliases = new Set(['wagne', 'wagner', 'wagnerra']);
+
+  if (user === 'wagner') {
+    if (!wagnerAliases.has(osUser)) {
+      console.error(`ERROR: --user wagner mas OS user é "${osUser}" — refusing scan.`);
+      console.error(`Pra outro dev scanear como wagner, registrar consent log explícito.`);
+      return false;
+    }
+    return true;
+  }
   const consents = await readJsonl(DB_CONSENT);
-  return consents.some((c) => c.user === user && c.granted_by === user);
+  // Agent E: também valida que OS user matches o user pedido (consent precisa ser
+  // do dono da máquina, não outra pessoa).
+  return consents.some(
+    (c) =>
+      c.user === user &&
+      c.granted_by === user &&
+      c.os_user &&
+      c.os_user.toLowerCase() === osUser
+  );
 }
 
 async function loadKnownPaths() {

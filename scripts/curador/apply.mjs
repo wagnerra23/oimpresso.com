@@ -11,7 +11,7 @@
 // Uso: node scripts/curador/apply.mjs --batch <id> --approved [--dry-run]
 
 import { promises as fs } from 'node:fs';
-import { dirname, join, basename, resolve, relative } from 'node:path';
+import { dirname, join, basename, extname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { readJsonl, appendJsonl, rewriteJsonl, nowIso } from './lib/db.mjs';
@@ -48,42 +48,86 @@ function parseApprovedRows(md) {
   return approved;
 }
 
-async function safeMove(src, dst, dryRun) {
+// Agent E (security review) 2026-05-10: se dst existe, antes sobrescrevia
+// silenciosamente (perdia dados). Agora sufixa com md5 prefix curto.
+function dedupeDst(dst, md5) {
+  const ext = extname(dst);
+  const base = dst.slice(0, dst.length - ext.length);
+  const suffix = md5 ? md5.slice(0, 8) : Date.now().toString(36);
+  return `${base}__${suffix}${ext}`;
+}
+
+async function safeMove(src, dst, dryRun, md5) {
   if (dryRun) {
     console.log(`  [dry] move ${src} → ${dst}`);
-    return;
+    return dst;
   }
   await fs.mkdir(dirname(dst), { recursive: true });
+
+  let finalDst = dst;
   try {
-    await fs.rename(src, dst);
+    await fs.access(dst);
+    // existe — sufixar
+    finalDst = dedupeDst(dst, md5);
+    console.warn(`  collision: ${dst} → ${finalDst}`);
+  } catch {
+    /* não existe, ok */
+  }
+
+  try {
+    await fs.rename(src, finalDst);
   } catch (err) {
     if (err.code === 'EXDEV') {
-      // cross-device: copy + delete
-      await fs.copyFile(src, dst);
+      await fs.copyFile(src, finalDst);
       await fs.unlink(src);
     } else {
       throw err;
     }
   }
+  return finalDst;
 }
 
-async function safeCopy(src, dst, dryRun) {
+async function safeCopy(src, dst, dryRun, md5) {
   if (dryRun) {
     console.log(`  [dry] copy ${src} → ${dst}`);
-    return;
+    return dst;
   }
   await fs.mkdir(dirname(dst), { recursive: true });
-  await fs.copyFile(src, dst);
+
+  let finalDst = dst;
+  try {
+    await fs.access(dst);
+    finalDst = dedupeDst(dst, md5);
+    console.warn(`  collision: ${dst} → ${finalDst}`);
+  } catch {
+    /* não existe, ok */
+  }
+
+  await fs.copyFile(src, finalDst);
+  return finalDst;
 }
 
 function gitAdd(relPath, dryRun) {
   if (dryRun) {
     console.log(`  [dry] git add ${relPath}`);
-    return;
+    return true;
   }
-  const r = spawnSync('git', ['add', relPath], { cwd: REPO_ROOT, encoding: 'utf8' });
+  const r = spawnSync('git', ['add', '--', relPath], { cwd: REPO_ROOT, encoding: 'utf8' });
   if (r.status !== 0) {
-    console.warn(`  git add failed: ${r.stderr}`);
+    // Agent E 2026-05-10: antes era warn silencioso. Agora retorna boolean
+    // pra caller decidir se aborta.
+    console.error(`  git add FAILED: ${r.stderr.trim() || 'unknown error'}`);
+    return false;
+  }
+  return true;
+}
+
+// Agent E 2026-05-10: path traversal — rejeita destino fora de REPO_ROOT
+// (ex: dst com `..` que escape pra fora do repo).
+function ensureInsideRepo(dstAbs) {
+  const rel = relative(REPO_ROOT, dstAbs);
+  if (rel.startsWith('..') || rel.startsWith('/') || /^[a-z]:/i.test(rel)) {
+    throw new Error(`path traversal blocked: ${dstAbs} resolves outside REPO_ROOT`);
   }
 }
 
@@ -91,24 +135,29 @@ async function applyOne(classRec, dryRun) {
   const src = classRec.path;
   const bucket = classRec.bucket;
   const sub = classRec.sub_destination || '';
+  const md5 = classRec.md5;
 
   if (bucket === 'sensitive') {
     const dst = join(VAULT_PENDING_BASE, sub.replace(/^_VAULT-PENDING\//, ''), basename(src));
-    await safeMove(src, dst, dryRun);
-    return { action: 'moved', from: src, to: dst };
+    const finalDst = await safeMove(src, dst, dryRun, md5);
+    return { action: 'moved', from: src, to: finalDst };
   }
   if (bucket === 'discard') {
     const dst = join(DESCARTADO_BASE, sub.replace(/^_DESCARTADO\//, ''), basename(src));
-    await safeMove(src, dst, dryRun);
-    return { action: 'moved', from: src, to: dst };
+    const finalDst = await safeMove(src, dst, dryRun, md5);
+    return { action: 'moved', from: src, to: finalDst };
   }
   if (bucket === 'memory' || bucket === 'user') {
     const subClean = sub.replace(/^memory\//, '');
     const dstRel = join('memory', subClean, basename(src));
     const dstAbs = join(REPO_ROOT, dstRel);
-    await safeCopy(src, dstAbs, dryRun);
-    gitAdd(dstRel, dryRun);
-    return { action: 'copied+git-add', from: src, to: dstAbs };
+    ensureInsideRepo(dstAbs);
+    const finalDst = await safeCopy(src, dstAbs, dryRun, md5);
+    const finalRel = relative(REPO_ROOT, finalDst);
+    if (!gitAdd(finalRel, dryRun)) {
+      return { action: 'copy_only_git_failed', from: src, to: finalDst };
+    }
+    return { action: 'copied+git-add', from: src, to: finalDst };
   }
   if (bucket === 'spec' || bucket === 'ambiguous') {
     return { action: 'skipped', reason: `bucket=${bucket} requires manual handling`, from: src };
@@ -145,6 +194,18 @@ async function main() {
 
   const classifications = await readJsonl(DB_CLASS);
   const classMap = new Map(classifications.map((c) => [c.path, c]));
+
+  // Agent E (security review) 2026-05-10: validar que approvedPaths SÃO todas
+  // do batch — sem isso, alguém editando markdown poderia injetar path arbitrário
+  // entre crases (ex: `D:\..\..\.env`) e safeMove tentaria mexer.
+  const batchPaths = new Set(batch.paths || []);
+  const unauthorized = approvedPaths.filter((p) => !batchPaths.has(p) || !classMap.has(p));
+  if (unauthorized.length > 0) {
+    console.error(`ERROR: ${unauthorized.length} path(s) approved não pertencem ao batch ${batch.id}:`);
+    for (const p of unauthorized.slice(0, 5)) console.error(`  ${p}`);
+    if (unauthorized.length > 5) console.error(`  ... +${unauthorized.length - 5} mais`);
+    process.exit(2);
+  }
 
   let actions = { moved: 0, 'copied+git-add': 0, skipped: 0 };
   const startMs = Date.now();
@@ -185,9 +246,16 @@ async function main() {
   const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
   console.log(`\n[apply] DONE in ${elapsed}s ${args.dryRun ? '(dry-run)' : ''}`);
   for (const [a, c] of Object.entries(actions)) console.log(`  ${a}: ${c}`);
-  console.log(`\nReminder: git add was used; YOU commit (not Curador). Run:`);
+  console.log(`\nReminder: git add was used; YOU commit (not Curador). Sugestão:`);
   console.log(`  git status`);
-  console.log(`  git commit -m "feat(curador): batch ${args.batch} ingested\\n\\nRefs: curador-${args.batch}"`);
+  // Agent E 2026-05-10: antes mostrava \\n\\n literal que vira backslash-n no shell.
+  // Agora HEREDOC pra preservar quebras reais.
+  console.log(`  git commit -m "$(cat <<'EOF'`);
+  console.log(`feat(curador): batch ${args.batch} ingested`);
+  console.log(``);
+  console.log(`Refs: curador-${args.batch}`);
+  console.log(`EOF`);
+  console.log(`)"`);
 }
 
 main().catch((err) => {
