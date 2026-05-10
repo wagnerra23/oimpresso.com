@@ -96,12 +96,12 @@
                                     <a href="{{ action('\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController@viewLicencas', [$busine->id]) }}"
                                        class="oi-btn oi-btn-primary oi-btn-xs"
                                        title="Ver computadores desta empresa">
-                                        <i class="fas fa-desktop"></i> Computadores
+                                        <i class="fas fa-desktop"></i>
                                     </a>
                                     <a href="{{ url('/officeimpresso/licenca_log?business_id=' . $busine->id) }}"
                                        class="oi-btn oi-btn-ghost oi-btn-xs"
                                        title="Ver log desta empresa">
-                                        <i class="fas fa-clipboard-list"></i> Log
+                                        <i class="fas fa-clipboard-list"></i>
                                     </a>
                                 </td>
                             </tr>

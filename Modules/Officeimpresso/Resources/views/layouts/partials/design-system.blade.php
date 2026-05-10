@@ -70,6 +70,8 @@
     .oi-btn-success:hover { background: #059669; color: #fff; }
     .oi-btn-danger { background: #ef4444; color: #fff; }
     .oi-btn-danger:hover { background: #dc2626; color: #fff; }
+    .oi-btn-warning { background: #f59e0b; color: #fff; }
+    .oi-btn-warning:hover { background: #d97706; color: #fff; }
     .oi-btn-ghost { background: #fff; color: #374151; border-color: #d1d5db; }
     .oi-btn-ghost:hover { background: #f9fafb; color: #111827; }
     .oi-btn-xs { padding: 3px 10px; font-size: 11px; }
