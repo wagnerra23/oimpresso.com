@@ -99,7 +99,7 @@ const ADVANCED_OPEN_KEY = 'oimpresso.sells.create.advanced.open';
 
 export default function SellsCreate(props: SellsCreatePageProps) {
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=format_now_local
-  const { data, setData, post, processing, errors } = useForm({
+  const { data, setData, post, processing, errors, transform } = useForm({
     location_id: props.defaultLocation?.id ?? null,
     contact_id: props.walkInCustomer.id,
     transaction_date: props.defaultDatetime,
@@ -287,7 +287,50 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   const handleSubmit = () => {
     if (!canSubmit) return;
-    post('/sells', {
+    // Transform: mapeia state UX-friendly do React pra payload que SellPosController@store
+    // espera (Blade legacy field names + flat shipping + is_direct_sale flag obrigatório).
+    // Refs: SellPosController@store linhas 352-680 + sell/create.blade.php Form::* fields.
+    transform((d) => ({
+      ...d,
+      // Flag CRÍTICO: sem is_direct_sale=1, controller cai em cashRegister check (linha 364).
+      is_direct_sale: 1,
+      // Rename pra Blade legacy convention
+      payment: d.payments,
+      commission_agent: d.commission_agent_id,
+      price_group: d.price_group_id,
+      sale_note: d.notes,
+      additional_notes: d.notes,
+      // Flatten shipping object pra campos top-level
+      shipping_details: d.shipping.details,
+      shipping_address: d.shipping.address,
+      shipping_charges: d.shipping.cost,
+      shipping_status: d.shipping.status,
+      delivered_to: d.shipping.deliver_to,
+      // Total calculado client-side (backend re-calcula via productUtil mas evita 422)
+      final_total: totalGeral,
+      // Campos hidden Blade que controller espera
+      default_price_group: d.price_group_id,
+      // Products precisam de campos que ProductUtil acessa direto (Undefined array key
+      // se faltar). Refs: app/Utils/ProductUtil.php:650 calculateInvoiceTotal +
+      // TransactionUtil.php:297-394 createOrUpdateSellLines.
+      products: d.products.map((p) => ({
+        ...p,
+        unit_price_inc_tax: p.unit_price, // sem tax separado por linha (tax via tax_rate_id pedido)
+        item_tax: 0,
+        tax_id: null,
+        line_discount_type: 'fixed',
+        line_discount_amount: p.discount,
+        // SellPosController:581 acessa $product['enable_stock'] direto. Se faltar,
+        // Undefined array key. Defaults seguros: stock-managed e single-type.
+        // Idealmente search API retornaria isso por produto — TODO US-SELL-PRODUCT-META.
+        enable_stock: 1,
+        product_type: 'single',
+      })),
+    }));
+    // POST /pos -> SellPosController@store (mesma rota do Blade legacy form em
+    // sell/create.blade.php:58). SellController@store é stub vazio — toda a
+    // lógica de criar Transaction + payments + estoque vive em SellPosController.
+    post('/pos', {
       preserveScroll: true,
       onError: (errs) => {
         // Rola pro topo da primeira seção com erro pra Wagner ver feedback.
