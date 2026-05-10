@@ -7,6 +7,31 @@
 
 ---
 
+## 🆕 Estado 2026-05-10 noite — PR #475 CI Modules Pest guards SQLite (worktree `vigorous-meitner-972abb`)
+
+**PR aberto aguardando CI:** [#475](https://github.com/wagnerra23/oimpresso.com/pull/475) — 5 arquivos com `markTestSkipped` defensivo pra SQLite CI.
+
+**Lição aprendida:** [PR #478](https://github.com/wagnerra23/oimpresso.com/pull/478) (já em main desde 11h08 BRT) cobriu 6 outros arquivos com pattern canônico `DB::connection()->getDriverName() === 'sqlite'`. Meu PR cobre arquivos diferentes (Curador*, OrcamentoCalculator, ProducaoOficina-base) — complementar.
+
+**Quando retomar:**
+1. Conferir CI [PR #475](https://github.com/wagnerra23/oimpresso.com/pull/475) — se 5 jobs Modules Pest verdes, mergear
+2. Se algum falhar, abrir log job-específico e diagnosticar test ainda sem guard
+3. Possível follow-up: alinhar meus 4 arquivos pro pattern canônico (PR separado, se valer)
+
+**Pattern canônico SQLite guard (adotar daqui pra frente):**
+```php
+use Illuminate\Support\Facades\DB;
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS');
+    }
+});
+```
+
+Detalhes completos em [`memory/sessions/2026-05-10-noite-pr475-ci-guards-sqlite.md`](sessions/2026-05-10-noite-pr475-ci-guards-sqlite.md).
+
+---
+
 ## 🆕 Estado 2026-05-10 ~final do dia — sessão massiva 25 PRs Modules/Arquivos+CV+Vestuario+CI
 
 **Sessão Claude autônoma** — Wagner deu autorização ampla ("faça", "todos", "continue") em modo iteração rápida. Sub-agents paralelos via worktrees isolados entregaram 25 PRs em 1 dia, fechando Sprint 1 backbone Modules/Arquivos + Sprint 1 técnico Modules/ComunicacaoVisual + saneamento CI.
