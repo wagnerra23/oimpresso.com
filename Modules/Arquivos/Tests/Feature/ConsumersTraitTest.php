@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Financeiro\Models\BoletoRemessa;
 use Modules\Repair\Entities\JobSheet;
@@ -21,6 +23,14 @@ uses(Tests\TestCase::class);
  *
  * @see memory/decisions/0123-modules-arquivos-backbone.md Sprint 4 plano
  */
+
+// Guard SQLite: Models com BusinessScope / accessors que chamam relações morfológicas
+// requerem schema MySQL UltimatePOS (repair_job_sheets, cms_pages, etc).
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: Models com BusinessScope requerem schema MySQL UltimatePOS (Wagner Pest local segue mandatory — ADR 0101)');
+    }
+});
 
 it('Repair JobSheet usa trait HasArquivos', function () {
     $traits = (new ReflectionClass(JobSheet::class))->getTraitNames();
