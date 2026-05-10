@@ -14,13 +14,6 @@
 Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')
     ->prefix('grow')->group(function() {
 
-        //TESTING [DEV]
-        // Route::get("test", "Test@index");
-        // Route::post("test", "Test@index");
-
-        Route::get("test", [\Modules\Grow\Http\Controllers\Test::class, 'index'])->name('grow.test.index');
-        Route::post("test", [\Modules\Grow\Http\Controllers\Test::class, 'index'])->name('grow.test.post');
-        
         // //HOME PAGE
         // Route::any('/', function () {
         //     return redirect('/home');
