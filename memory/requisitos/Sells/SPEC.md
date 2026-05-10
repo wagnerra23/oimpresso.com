@@ -312,6 +312,78 @@ sale_stage_action_roles     -- RBAC join: action × spatie_role/permission
 
 **Refs:** US-SELL-011 (FSM base). US-RB-044 fechada com pivot conceitual. ROTA LIVRE biz=4 deve ficar com default "Venda Sem Nota" pra não quebrar fluxo atual.
 
+**Caso prático referência:** [CASO-PRATICO-OS-COMUNICACAO-VISUAL.md](./CASO-PRATICO-OS-COMUNICACAO-VISUAL.md) — OS Comunicação Visual exemplifica gate por venda com 2 docs (NFe55 + NFSe56). Ver dependências adicionais US-SELL-013 (reservas estoque) + US-SELL-014 (multi-documento).
+
+### US-SELL-013 · Reservas de estoque (stock_reservations) — side-effects FSM aplicados
+
+> owner: wagner · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: US-SELL-011
+
+**Contexto:** caso prático OS Comunicação Visual revelou gap — UltimatePOS core baixa estoque no checkout, mas OS de produção precisa **reservar sem baixar** entre "orçamento aprovado" e "produção concluída". Reserva impede que o mesmo metro de lona seja vendido em 2 OS simultâneas, mas mantém estoque disponível enquanto OS pode ser cancelada.
+
+**Schema:**
+```sql
+stock_reservations
+  id, business_id, transaction_id, product_id, variation_id,
+  qty_reserved (decimal), status (active|consumed|released|expired),
+  expires_at (TTL configurável por business, default 30d)
+```
+
+**Side-effects FSM (consumidos por `sale_stage_actions.side_effect_class`):**
+- `App\Domain\Fsm\SideEffects\ReservarEstoque` — cria `stock_reservation` ativa, NÃO mexe `variation_location_details.qty_available`
+- `App\Domain\Fsm\SideEffects\ConsumirEstoque` — marca reserva como `consumed`, decrementa `qty_available`
+- `App\Domain\Fsm\SideEffects\LiberarReserva` — marca reserva como `released` (cancelamento OS)
+
+**Acceptance criteria:**
+- [ ] Migration `stock_reservations` com `business_id` global scope (ADR 0093 Tier 0)
+- [ ] Model `StockReservation` + 3 SideEffect classes invocáveis via stage_action
+- [ ] Job daily `ExpireStaleReservationsJob` (libera reservas vencidas)
+- [ ] Quantidade efetivamente disponível pra venda = `qty_available - SUM(active reservations)` (helper `Product::getAvailableForSaleAttribute()`)
+- [ ] UI POS mostra "X em estoque · Y reservados · Z disponíveis" no produto
+- [ ] Pest: 8 testes (criar reservation, consumir, liberar, expirar, cálculo disponível, isolation multi-tenant, race condition concorrente, side-effect dispatched via FSM action)
+
+**Caso prático referência:** [CASO-PRATICO-OS-COMUNICACAO-VISUAL.md](./CASO-PRATICO-OS-COMUNICACAO-VISUAL.md) — banner 3×2m reserva 6m² lona em "orçamento aprovado" e consome em "produção concluída".
+
+**Refs:** US-SELL-011 (FSM tabelas + side_effect_class). Boa prática varejo BR mas ausente no UltimatePOS core.
+
+### US-SELL-014 · Multi-documento por venda (transaction_documents poly) — N notas atreladas a 1 OS
+
+> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: US-SELL-011
+
+**Contexto:** caso prático OS Comunicação Visual revelou gap — 1 OS = N documentos fiscais. Banner (mercadoria) emite NFe55, instalação (serviço) emite NFSe56. Hoje `Modules/NfeBrasil` assume 1 transaction = 1 NFe via `transaction_id` direto na `nfe_emissoes`. Pra cobrir caso real BR (gráfica, oficina, eletricista, dentista) precisa relação **poly N:1**.
+
+**Schema:**
+```sql
+transaction_documents
+  id, business_id, transaction_id,
+  doc_type (nfe55|nfce65|nfse56|nfcom62|mdfe58|cte57),
+  doc_class (Modules\NfeBrasil\Models\NfeEmissao|Modules\NfeBrasil\Models\NfseEmissao|...),
+  doc_id (FK polimórfica),
+  value_total (decimal — soma dos itens cobertos por esse doc),
+  emitted_at (nullable — antes de emitir),
+  status (pending|authorized|rejected|cancelled)
+  UNIQUE(transaction_id, doc_type, doc_id)
+```
+
+**Mudanças correlatas:**
+- `Modules/NfeBrasil/Models/NfeEmissao` — coluna `transaction_id` deprecada (backref via `transaction_documents`)
+- Migration de dados — popula `transaction_documents` retroativamente pras NFe existentes
+- Listener `EmitirNFeAoReceberPagamento` — consulta `transaction_documents` antes de emitir (idempotência cross-doc)
+- UI tela `/sells/{id}` ganha card "Documentos Fiscais" listando N notas + status individual
+
+**Acceptance criteria:**
+- [ ] Migration `transaction_documents` (poly por `doc_class` + `doc_id`) com index `(business_id, transaction_id)` e `(business_id, doc_type, status)`
+- [ ] Model `TransactionDocument` + relacionamento poly em `Transaction`
+- [ ] Backfill migration popula NFe existentes (preserva idempotência)
+- [ ] Listener `EmitirNFeAoReceberPagamento` refatorado pra consultar poly
+- [ ] UI mostra N notas no card transaction (status colorido + link DANFE/PDF + botão re-emitir se rejeitada)
+- [ ] Pest: 6 testes (1 venda 1 nota, 1 venda 2 notas NFe+NFSe, idempotência cross-doc, multi-tenant isolation, status individual independente, backfill preserva data)
+
+**Caso prático referência:** [CASO-PRATICO-OS-COMUNICACAO-VISUAL.md](./CASO-PRATICO-OS-COMUNICACAO-VISUAL.md) — OS R$ 550 = NFe55 R$ 350 (banner) + NFSe56 R$ 200 (instalação).
+
+**Refs:** US-SELL-011 (FSM base). Pré-requisito pra US-NFE-060 (EmitirNFSeJob).
+
 ---
 
-**Última atualização:** 2026-05-10 — apêndice §5 (cadeia FSM) + nota pivot venda sem nota
+**Última atualização:** 2026-05-10 — sessão case fiscal BR (Wagner). Apêndice US-SELL-013/014 + caso prático Comunicação Visual + cross-refs em US-SELL-010/011/012. Findings do sub-agent FSM em [_AGENT_FSM_FINDINGS-2026-05-10.md](../../decisions/proposals/drafts/_AGENT_FSM_FINDINGS-2026-05-10.md) (alimenta ADR US-SELL-010).
