@@ -982,6 +982,12 @@ class NfeService
                 'metadata'   => ['nProt' => $nProt, 'cstat_lote' => $loteStatus],
             ]);
 
+            // US-ARQ-021 (ADR 0123) — double-write XML pra Modules/Arquivos backbone.
+            // Mantém Storage::put + xml_path coluna legacy (fallback). Cria row em
+            // arquivos table polimórfica pra futuro NfeService::xmlArquivo() consumir.
+            // Try/catch graceful — falha aqui NÃO bloqueia fluxo emit fiscal.
+            $this->writeArquivoXml($emissao, $xmlPath, $xmlSigned);
+
             // Atualiza contador fiscal no business (defensivo — coluna pode não existir em dev)
             try {
                 DB::table('business')
@@ -1045,5 +1051,77 @@ class NfeService
     private function fmt(float $value, int $dec = 2): string
     {
         return number_format($value, $dec, '.', '');
+    }
+
+    /**
+     * US-ARQ-021 — double-write XML autorizado pra Modules/Arquivos backbone.
+     *
+     * Cria row em `arquivos` polimórfica apontando pro mesmo storage_path
+     * que xml_path coluna legacy. md5 calculado do conteúdo real (Sprint 6+
+     * job recalcula size_bytes ler do disk).
+     *
+     * Idempotente: skip se Arquivo já existir pro emissao+sub_destination.
+     * Try/catch graceful — falha aqui NUNCA bloqueia fluxo fiscal emit.
+     *
+     * Mantém xml_path coluna legacy (fallback durante transição até US-ARQ-022
+     * Officeimpresso UI usar $emissao->xml_arquivo).
+     *
+     * @see memory/decisions/0123-modules-arquivos-backbone.md Sprint 4
+     */
+    private function writeArquivoXml(\Modules\NfeBrasil\Models\NfeEmissao $emissao, string $xmlPath, string $xmlSigned): void
+    {
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('arquivos')) {
+                return; // Modules/Arquivos não migrado ainda — skip silencioso
+            }
+
+            $arquivableType = 'Modules\\NfeBrasil\\Models\\NfeEmissao';
+
+            $exists = DB::table('arquivos')
+                ->where('arquivable_type', $arquivableType)
+                ->where('arquivable_id', $emissao->id)
+                ->where('sub_destination', 'nfe-xml')
+                ->where('storage_path', $xmlPath)
+                ->exists();
+
+            if ($exists) {
+                return; // já existe — idempotente
+            }
+
+            DB::table('arquivos')->insert([
+                'business_id'         => $emissao->business_id,
+                'arquivable_type'     => $arquivableType,
+                'arquivable_id'       => $emissao->id,
+                'disk'                => 'local',
+                'storage_path'        => $xmlPath,
+                'original_name'       => basename($xmlPath),
+                'mime_type'           => 'application/xml',
+                'size_bytes'          => strlen($xmlSigned),
+                'md5'                 => md5($xmlSigned),
+                'bucket'              => 'active',
+                'sub_destination'     => 'nfe-xml',
+                'sensitive_flags'     => null,
+                'classified_by'       => 'nfe-service-double-write',
+                'classified_at'       => now(),
+                'uploaded_by_user_id' => null,
+                'visibility'          => 'private',
+                'encrypted'           => false,
+                'retention_days'      => null,
+                'created_at'          => now(),
+                'updated_at'          => now(),
+            ]);
+
+            Log::info('NfeService.double_write.xml.ok', [
+                'emissao_id'  => $emissao->id,
+                'business_id' => $emissao->business_id,
+                'xml_path'    => $xmlPath,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('NfeService.double_write.xml.fail', [
+                'emissao_id' => $emissao->id ?? null,
+                'error'      => substr($e->getMessage(), 0, 200),
+            ]);
+            // NUNCA propaga — fluxo fiscal NÃO pode quebrar por falha em arquivos table
+        }
     }
 }
