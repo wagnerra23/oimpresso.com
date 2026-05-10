@@ -115,3 +115,131 @@ Padrão recorrente em N=3+ sessões `mcp_cc_*` → sugere skill nova com frontma
 - [ADR ARQ-0001](adr/arq/0001-fase-1-sintese-semanal.md)
 - ADR 0035 (laravel/ai canônico)
 - ADR 0050 (copiloto_memoria_metricas)
+
+---
+
+## Tasks operacionais (governança auto-mem)
+
+### US-MEMORIAAUTONOMA-001 · MEM-MIGRACAO Auto-mem → git/MCP (22 candidatos pós-consolidação 2026-05-10)
+
+> owner: wagner · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+#### Contexto
+
+Sessão de consolidação massiva 2026-05-10 reduziu auto-mem `C:\Users\wagne\.claude\projects\D--oimpresso-com\memory\` de **63 → 32 arquivos** (49% redução). Auditoria cross-check com canon CLAUDE.md identificou **22 candidatos a migração pro git/MCP** (ADR 0061: zero auto-mem privada de conhecimento canônico do time).
+
+#### Política ADR 0061
+
+Migrar **1 por trigger contextual, NÃO em batch** — skill `automem-pending` Tier B ativa quando user toca path com auto-mem stale relacionada e força decisão "migrar git OU deletar".
+
+#### Os 22 candidatos identificados
+
+##### 🟢 RUNBOOKs operacionais (4) — baixa fricção
+- `reference_tests_pest_canon.md` → `tests/README.md` ou `memory/requisitos/Infra/RUNBOOK-pest.md`
+- `reference_deploy_e_recovery.md` → `memory/requisitos/Infra/RUNBOOK-deploy-hostinger.md`
+- `reference_branch_protection_admin_merge.md` → `memory/requisitos/Infra/RUNBOOK-branch-protection.md`
+- `reference_local_dev_setup.md` → `memory/requisitos/Infra/RUNBOOK-local-dev.md`
+
+##### 🟢 Docs de módulo (7)
+- `project_form_shim_migration.md` → `docs/MIGRATIONS/form-shim.md`
+- `project_nfebrasil_estado_2026_05_07.md` → `memory/requisitos/NfeBrasil/STATE-2026-05-07.md`
+- `project_officeimpresso_modulo.md` → `memory/requisitos/Officeimpresso/MODULE-NOTES.md`
+- `reference_modules_cms_landing.md` → `memory/requisitos/Cms/MODULE-NOTES.md`
+- `reference_financeiro_integracao.md` → `memory/requisitos/Financeiro/INTEGRATION-NOTES.md`
+- `reference_ultimatepos_integracao.md` → `memory/requisitos/Core/ultimatepos-integration.md`
+- `reference_mcp_endpoints.md` → `memory/requisitos/Infra/mcp-endpoints.md`
+
+##### 🟢 Decisões/feedback que viram ADR (8)
+- `feedback_check_main_antes_de_pr.md` → skill `commit-discipline` ou ADR PR-checklist
+- `feedback_outbound_markdown_over_mcp_tasks.md` → ADR governança outbound
+- `feedback_tenancy_changes_require_pest_local.md` → ADR refina 0093/0094
+- `feedback_test_biz_99_cross_tenant_convention.md` → ADR refina 0101
+- `feedback_auto_merge_quando_verde.md` → skill ou ADR policy merge
+- `cockpit_layout_canonico.md` → ADR refina 0110
+- `ideia_chat_ia_contextual.md` → ADR feature-wish (framework ADR 0105)
+- `project_octane_mcp_prod_deps_pending_adr.md` → **abrir ADR estrutural** (pendente desde 2026-05-10)
+
+##### 🟡 MISTO — split público/sensível (3)
+- `cliente_rotalivre.md` — Migrar perfil + sensibilidades operacionais; CNPJ/telefone fica auto-mem
+- `reference_clientes_ativos.md` — Tabela 7-businesses agregada migra; nomes/IDs ficam
+- `reference_revenue_thesis_modulos.md` — Pricing migra; estimativas individuais ficam
+
+#### 🔴 FICAM em auto-mem (8) — auto-mem é o lugar correto
+
+`user_profile.md`, `trigger_guarde_no_cofre.md`, `reference_vaultwarden_credenciais.md`, `reference_cursor_collaboration.md`, `reference_hostinger.md`, `reference_infra_proxmox_ct100.md`, `reference_infra_rede_empresa.md`, `reference_legacy_delphi_firebird.md` (creds em plaintext, padrão ADR 0061).
+
+#### Acceptance criteria
+
+- [ ] Skill `automem-pending` ativa em pelo menos 5 paths cobrindo os 22 candidatos
+- [ ] Manifesto `memory/requisitos/Infra/AUTO-MEM-PENDING.md` atualizado com status de cada
+- [ ] PRs individuais (1 por arquivo migrado) com `Refs: US-MEMORIAAUTONOMA-001`
+- [ ] Auto-mem deletada APÓS git push + webhook propagar pro MCP server (verificar via `mcp_memory_documents`)
+
+#### Refs
+
+- ADR 0061 (zero auto-mem privada)
+- ADR 0053 (MCP server canônico)
+- Sessão 2026-05-10 consolidação fase 2 (4 agentes paralelos, auditoria 4-eixos)
+
+---
+
+### US-MEMORIAAUTONOMA-002 · MEM-VERIFICAR 8 pendências stale detectadas pós-consolidação 2026-05-10
+
+> owner: wagner · priority: p3 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+#### Contexto
+
+Auditoria de staleness na sessão de consolidação auto-mem 2026-05-10 identificou 8 itens com status questionável que **exigem decisão Wagner** (não dá pra fixar via análise estática).
+
+#### Itens a verificar
+
+##### 1. NfeBrasil smoke biz=1 aconteceu?
+- Auto-mem `project_nfebrasil_estado_2026_05_07.md` diz "biz=1 PRONTA pra smoke" há 3 dias
+- Goal cycle CYCLE-03: "1ª NFC-e real cstat 100"
+- Brief atual: "venda OS00126/127/128/129 criadas biz=1" — pipeline OK mas sem confirmação cstat
+- **Decidir:** flag `NFEBRASIL_AUTO_EMISSION_NFCE=true` ativada? Resposta SEFAZ recebida?
+
+##### 2. ADR estrutural Octane+Mcp prod-deps
+- Auto-mem `project_octane_mcp_prod_deps_pending_adr.md` aponta gap desde 2026-05-10
+- composer.json tem `laravel/octane` + `laravel/mcp` em `require` (não dev)
+- Hostinger contamina vendor/ — viola ADR 0062 (Hostinger ≠ CT 100)
+- **Decidir:** abrir ADR? 3 opções identificadas no auto-mem
+
+##### 3. Drift Modules/Cms (worktree ↔ produção)
+- Auto-mem `reference_modules_cms_landing.md` afirma "Modules/Cms ausente no worktree, vive em produção"
+- **Decidir:** drift resolvido nos últimos 14 dias?
+
+##### 4. Roadmap PontoWr2 começou?
+- ADR git `memory/requisitos/PontoWr2/adr/ui/0002` define 10 moves Tier A/B/C desde 2026-04-24
+- **Decidir:** algum move começou ou ainda backlog dormente?
+
+##### 5. Revenue thesis pós ADR 0121
+- `reference_revenue_thesis_modulos.md` menciona "LaravelAI" como módulo separado (Tier 3)
+- ADR 0121 (Modular especializado por vertical) pode ter mudado: "LaravelAI" virou Modules/Jana?
+- **Decidir:** atualizar pricing tiers
+
+##### 6. Central VoIP Issabel — relevância?
+- `reference_infra_rede_empresa.md`: CentOS 7 EOL + Asterisk 13 EOL desde 2024 + MySQL root password desconhecida + 2 ramais online
+- **Decidir:** projeto VoIP é prioridade ou desativar referência?
+
+##### 7. Concorrentes Com.Visual — outbound rolou?
+- Research 2026-04-25 (`reference_concorrentes_com_visual.md`) era pra "PR2 redesign Cms"
+- Política atual `feedback_outbound_markdown_over_mcp_tasks` — só vira US se sinal qualificado
+- **Decidir:** PR2 aconteceu OU virou outbound markdown ainda em standby?
+
+##### 8. Ideia chat IA contextual — quando?
+- `ideia_chat_ia_contextual.md`: "implementar depois Fase 1-3 redesign Ponto"
+- Status redesign Ponto?
+- **Decidir:** vira ADR feature-wish (framework ADR 0105) ou descarta?
+
+#### Acceptance
+
+- [ ] 8 verificações respondidas (sim/não/postpone com data)
+- [ ] Auto-mem atualizada OU deletada conforme veredito
+- [ ] Triggers concretos pra skill `automem-pending` ativar nos itens postpone
+
+#### Refs
+
+- Sessão consolidação 2026-05-10 (4 agentes paralelos, auditoria 4-eixos: QA + canon-cross-check + staleness + migração-ADR-0061)
