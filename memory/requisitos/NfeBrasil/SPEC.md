@@ -751,7 +751,6 @@ Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª 
 - Auto-mem: `project_nfebrasil_estado_2026_05_07.md`
 
 
-
 ### US-NFE-055 · Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
@@ -828,3 +827,63 @@ beforeEach(function () {
 - Auto-mem `reference_listener_bridge_event_fake_pattern.md`
 - Workflow CI: `.github/workflows/modules-pest.yml`
 - ADR ARQ-0005 — bridge listener nfe_fiscal_rules → tax_rates
+
+### US-NFE-056 · Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+PR #453 migrou business_id=4 → 1 em fixtures de tests, mas deixou pra trás `configBusiness(4)` em `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` linhas 150/174/189/203/228/259/273/286/307. Os calls correspondentes `(new MotorTributarioService)->calcular(...businessId: 1, ...)` já usam biz=1, criando mismatch — config inserido em biz=4 mas calcular busca em biz=1 → throws `TributacaoNaoConfiguradaException`.
+
+**Sintoma:** test "Nível 4: defaults business aplicam quando NCM não tem regra" falha tanto em SQLite quanto MySQL com `TributacaoNaoConfiguradaException`. Confirmado em sessão 2026-05-10 (PR #489).
+
+**Acceptance:**
+- [ ] Migrar 9 calls `configBusiness(4, ...)` → `configBusiness(1, ...)` (preservando o test multi-tenant que LEGITIMAMENTE usa biz=4 vs biz=5 — linha 246)
+- [ ] Validar `vendor/bin/pest Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php --no-coverage` em MySQL e SQLite
+- [ ] Conformidade ADR 0101 (biz=1 default Wagner WR2)
+
+**Refs:** PR #453 (migração biz=4→1 em fixtures), PR #489 (`claude/nfe-test-dual-mode-pr3`), ADR 0101
+
+### US-NFE-057 · Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename`
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+Test `Modules/NfeBrasil/Tests/Feature/DanfeServicePrefersArquivosTest.php` insere row em `arquivos` com coluna `filename` que não existe mais no schema atual:
+
+```
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'filename' in 'field list'
+```
+
+Coluna foi removida em alguma migração de Modules/Arquivos (provável Sprint 1 ADR 0123). 2 dos 3 tests do arquivo quebram em Pest local MySQL — confirmado em sessão 2026-05-10 (PR #488).
+
+**Acceptance:**
+- [ ] Identificar migration que removeu `filename` (ou se foi renomeada pra `original_name`)
+- [ ] Atualizar fixtures linhas ~99 e ~165 do test
+- [ ] Validar Pest local MySQL `oimpresso` verde
+- [ ] Validar SQLite parity preservada
+
+**Refs:** PR #488 (`claude/nfe-test-dual-mode-pr2`), ADR 0123 (Modules/Arquivos backbone), schema atual via `DESCRIBE arquivos`
+
+### US-NFE-058 · Aplicar pattern dual-mode em batch restante — Emitir* + NfeEmissaoController + DistribuicaoDfe (4 files, ~15 fails)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/MySQL canônico (PR #486) ainda não aplicado em 4 test files do catálogo NfeBrasil:
+
+| File | Falhas (catálogo) | Causa principal |
+|---|---|---|
+| `EmitirNfceAoFinalizarVendaTest.php` | 5 | FK contacts + outras (inclui PR #478 skip parcial) |
+| `EmitirNFeAoReceberPagamentoTest.php` | 4 | FK `rb_invoices.contact_id` |
+| `NfeEmissaoControllerSerializeUrlsTest.php` | 3 | dropIfExists `arquivos`+`nfe_emissoes` |
+| `DistribuicaoDfeServiceTest.php` | 3 | UniqueConstraintViolation em `nfe_dfe_recebidos` |
+
+**Acceptance:**
+- [ ] Aplicar pattern §4 do `reference_tests_pest_canon.md` em cada arquivo
+- [ ] Mapear FK reverses em INFORMATION_SCHEMA antes (decisão preserve+cleanup vs skip-em-MySQL)
+- [ ] Validar Pest local MySQL + SQLite parity
+- [ ] Cleanup conforme ADR 0101 (biz=1/99 only) — adaptar pra biz IDs específicos do test
+- [ ] 1 PR por agrupamento (≤300 linhas) — provável PR #491 (Emitir*) + PR #492 (NfeEmissao + DistribuicaoDfe)
+
+**Refs:** PRs #486-490 (pattern + 8 files já cobertos), ADR 0101, reference_tests_pest_canon.md §4 + §6 (FK map + dual-mode receita)
