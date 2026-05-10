@@ -54,18 +54,20 @@ class EmitirNfceJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    // PHP 8.4 + Laravel 13: Queueable trait define $queue sem type hint, então
-    // declarar 'public string $queue' aqui causa FatalError de composition
-    // ("definition differs and is considered incompatible"). Sem type, ok.
-    // $tries/$backoff são declarados ShouldQueue contract — type hints permitidos.
-    public $queue = 'nfe';
+    // PHP 8.4 + Laravel 13: Queueable trait declara `public $queue;` (sem default).
+    // Re-declarar property aqui com QUALQUER default ('nfe' ou null) viola trait
+    // composition strict rules ("definition differs and is considered incompatible").
+    // Solução canônica: setar via $this->onQueue() no constructor.
+    // $tries/$backoff são propriedades de ShouldQueue contract (não trait), seguros.
     public int $tries = 3;
     public int $backoff = 60;
 
     public function __construct(
         public readonly int $businessId,
         public readonly int $transactionId,
-    ) {}
+    ) {
+        $this->onQueue('nfe');
+    }
 
     /**
      * Fase 2A: chama `NfeService::emitirParaTransaction()` que monta XML +
