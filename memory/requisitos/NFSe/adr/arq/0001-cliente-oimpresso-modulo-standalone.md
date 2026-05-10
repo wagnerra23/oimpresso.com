@@ -25,7 +25,7 @@ Forçar NFSe dentro de RecurringBilling cria coupling com módulo que pode nem s
 | Negócio | Usa NFSe? |
 |---|---|
 | **oimpresso** (empresa Wagner, biz_id principal) | ✅ **SIM** — emite NFSe pra clientes finais do ERP |
-| **ROTA LIVRE** (biz_id=4, Larissa) | ❌ **NÃO** — gráfica não emite NFSe pelo sistema |
+| **ROTA LIVRE** (biz_id=4, Larissa) | ❌ **NÃO** — loja de roupa (vestuário) não emite NFSe pelo sistema (NFCe sim) |
 | Outros tenants | configurável (default OFF) |
 
 ### Origem da venda (trigger emissão)

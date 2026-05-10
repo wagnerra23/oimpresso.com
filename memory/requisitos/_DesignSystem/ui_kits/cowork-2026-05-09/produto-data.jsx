@@ -1,4 +1,5 @@
-// Mock data — Catálogo Produto · ROTA LIVRE estilo gráfica/comunicação visual.
+// Mock data — Catálogo Produto · oimpresso modular (ADR 0121).
+// Mix de exemplos: vestuário (ROTA LIVRE biz=4) + comunicação visual (futuro) + outros.
 // May 2026.
 
 const PROD_CATEGORIES = [

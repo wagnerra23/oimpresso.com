@@ -525,7 +525,7 @@ Então NÃO cria revenue_event (sem take rate)
 
 **Implementado em:** [`Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php`](../../../Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php) · [`Modules/NfeBrasil/Services/NfeService::emitirParaInvoice`](../../../Modules/NfeBrasil/Services/NfeService.php) · [`Modules/NfeBrasil/Events/NFeAutorizada`](../../../Modules/NfeBrasil/Events/NFeAutorizada.php)
 
-**Contexto.** CAPTERRA-INVENTARIO #6 ❌ AUSENTE — **diferencial vertical gráfica**. Gateway de boleto é commodity (Iugu/Asaas/Vindi/Pagar.me têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE) pediu há tempos. Event `InvoicePaid` JÁ existe em `Modules/RecurringBilling/Events/InvoicePaid.php`.
+**Contexto.** CAPTERRA-INVENTARIO #6 ❌ AUSENTE — **diferencial cross-vertical** (vai pro núcleo, não Modules/<Vertical>). Gateway de boleto é commodity (Iugu/Asaas/Vindi/Pagar.me têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE — Modules/Vestuario) pediu há tempos; também útil pra Modules/ComunicacaoVisual quando ativar. Event `InvoicePaid` JÁ existe em `Modules/RecurringBilling/Events/InvoicePaid.php`.
 
 **Acceptance criteria:**
 - [x] `Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php` registrado em `NfeBrasilServiceProvider` (consome `InvoicePaid`)
@@ -792,7 +792,7 @@ Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #4 ❌ AUSENTE �
 > blocked_by: —
 
 ## Contexto
-Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #6 ❌ AUSENTE — **diferencial vertical gráfica**. Gateway de boleto é commodity (5 concorrentes têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE) pediu isso há tempos.
+Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #6 ❌ AUSENTE — **diferencial cross-vertical do núcleo oimpresso** (não Modules/<Vertical>; serve qualquer assinatura/contrato com cobrança recorrente). Gateway de boleto é commodity (5 concorrentes têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE — Modules/Vestuario, loja roupa Gravatal/SC) pediu isso há tempos.
 
 Event `InvoicePaid` JÁ existe em `Modules/RecurringBilling/Events/InvoicePaid.php` — falta listener em NfeBrasil consumindo.
 
