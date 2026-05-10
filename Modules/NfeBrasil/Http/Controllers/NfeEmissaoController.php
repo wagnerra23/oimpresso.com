@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Modules\Arquivos\Services\ArquivosService;
 use Modules\NfeBrasil\Events\NFCeAutorizada;
 use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Listeners\EnviarDanfeNFCePorEmail;
@@ -38,6 +39,7 @@ class NfeEmissaoController extends Controller
     public function __construct(
         private readonly NfeService $nfeService,
         private readonly DanfeService $danfeService,
+        private readonly ArquivosService $arquivosService,
     ) {}
 
     /**
@@ -225,6 +227,9 @@ class NfeEmissaoController extends Controller
 
     private function serializeEmissao(NfeEmissao $emissao): array
     {
+        $xmlArquivo   = $emissao->xml_arquivo;
+        $danfeArquivo = $emissao->danfe_arquivo;
+
         return [
             'id'           => $emissao->id,
             'modelo'       => (string) $emissao->modelo,
@@ -239,6 +244,13 @@ class NfeEmissaoController extends Controller
             'emitido_em'   => optional($emissao->emitido_em)->toIso8601String(),
             'is_terminal'  => in_array($emissao->status, ['autorizada', 'rejeitada', 'denegada', 'cancelada'], true),
             'is_cancelavel' => method_exists($emissao, 'isCancelavel') ? $emissao->isCancelavel() : false,
+            // ADR 0123 — signed URLs backbone Arquivos (60min TTL). null quando arquivo ausente.
+            'xml_url'      => $xmlArquivo !== null
+                ? $this->arquivosService->signedUrl($xmlArquivo)
+                : null,
+            'danfe_url'    => $danfeArquivo !== null
+                ? $this->arquivosService->signedUrl($danfeArquivo)
+                : null,
         ];
     }
 }
