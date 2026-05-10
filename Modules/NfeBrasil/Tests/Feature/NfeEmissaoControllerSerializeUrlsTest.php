@@ -240,6 +240,9 @@ it('serializeEmissao mantém todas as keys fiscais existentes após adição de 
     ];
 
     foreach ($keysEsperadas as $key) {
-        expect($result)->toHaveKey($key, "Key '{$key}' ausente no retorno de serializeEmissao");
+        // Pest toHaveKey($key) — 2º arg é VALUE esperado, não mensagem.
+        // Usar expect+toBeTrue com array_key_exists pra mensagem custom.
+        expect(array_key_exists($key, $result))
+            ->toBeTrue("Key '{$key}' ausente no retorno de serializeEmissao");
     }
 });
