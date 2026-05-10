@@ -1539,13 +1539,21 @@ Salvo em auto-mem `feedback_mcp_so_ct100.md`. Implicação: tool MCP exposed só
 **Total esforço registrado:** ~40,5h ≈ 5 dias úteis Sprint 1.
 
 ### Próximos passos imediatos
-1. **30min pre-fix** US-INFRA-008..011 ANTES de iniciar Sprint 1 técnico
-2. **Felipe Pest local** drafts schema + refactor Repair + scaffold ComVisual (regra Wagner 2026-05-09)
-3. **Wagner**: email v3 New Signs Campinas + validar CNAE Vargas quando 192.168.0.55 voltar
+1. ~~**30min pre-fix** US-INFRA-008..011 ANTES de iniciar Sprint 1 técnico~~ → **FECHADO** [PR #387](https://github.com/wagnerra23/oimpresso.com/pull/387) mergeado 2026-05-10 ~07h BRT (sha 462a3565). 008+009+010 entregues; 011 RUNBOOK pronto, Wagner aplica branch protection manual.
+2. **Felipe Pest local** drafts schema + refactor Repair + scaffold ComVisual (regra Wagner 2026-05-09) — desbloqueado, pode rodar a partir de main verde
+3. **Wagner**: email v3 New Signs Campinas + validar CNAE Vargas quando 192.168.0.55 voltar + aplicar branch protection (RUNBOOK em `memory/requisitos/Infra/RUNBOOK-branch-protection.md`)
 4. **Eliana**: revisar onboarding-wizard LGPD + 3 docs jurídicos draftados
+
+### PR #387 — pre-fix CYCLE-03 (entregue 2026-05-10)
+- `app/Http/Controllers/Install/InstallController.php` +28 linhas — guard `isSystemAlreadyInstalled()` + chamada em `installAlternate()` (US-INFRA-008)
+- `phpunit.xml` +2 linhas — registra `Modules/Ponto/Tests/Feature` + `Modules/ADS/Tests/Unit` (US-INFRA-010)
+- `tests/Feature/Infra/InstallControllerSecurityTest.php` 99 linhas — 3 testes Reflection-based travam regressão (US-INFRA-008)
+- `tests/Feature/Infra/RuntimeSeparationTest.php` 85 linhas — valida config/mcp.php + composer + ADR 0062 (US-INFRA-009)
+- `memory/requisitos/Infra/RUNBOOK-branch-protection.md` 97 linhas — receita Wagner UI/API (US-INFRA-011)
+- **US-INFRA-009 mudou de approach:** em vez de mover octane+mcp pra require-dev (quebraria CT 100), gate fica em env (`MCP_TOOLS_EXPOSED=false` default) + test trava regressão.
 
 ### Pendências de validação (servidor 192.168.0.55 offline 2026-05-10)
 - `_validar_cnae_saudaveis.py` (10 saudáveis, ~2min)
 - `_distribuicao_vertical_41_bancos.py` (49 totais, ~10min, BrasilAPI rate-limit)
 
-**Última atualização:** 2026-05-10 ~02h BRT — sessão autônoma terminou, Sprint 1 registrado no MCP server.
+**Última atualização:** 2026-05-10 ~07h BRT — PR #387 pre-fix CYCLE-03 mergeado. Sprint 1 técnico desbloqueado pra Felipe.
