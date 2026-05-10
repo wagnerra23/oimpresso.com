@@ -7,6 +7,71 @@
 
 ---
 
+## 🆕 Estado 2026-05-10 madrugada — useForm v3 redo + OficinaAuto Pioneer + Vestuario Q3 expandido (3 PRs)
+
+**Sessão Claude madrugada** (5ª+ sessão paralela do dia, várias re-aberturas via /resume). Wagner pediu "merge tudo + continuar o que conseguir adiantar com prazo de 4 horas". Mergeou 7 PRs de outras sessões (#400, #403, #408, #414, #416, #417, #352, mais alguns) e gerou 3 PRs próprios novos.
+
+### (H) PR [#423](https://github.com/wagnerra23/oimpresso.com/pull/423) — `fix(inertia-v3)`: useForm reset/setData onSuccess→onFinish (refaz #411 expandido)
+
+#411 estava em draft state — Wagner autorizou "411 pode refazer sim". Refeito do zero em branch fresh + expandido pra 9 arquivos (vs 5 do #411 original):
+
+**Originais do #411 (5 arquivos):** Pages/Ponto/BancoHoras/Show, Configuracoes/Reps, Essentials/Documents/Index (uploadForm + memoForm), Essentials/Messages/Index, Essentials/Todo/Show (commentForm setData→reset + uploadForm)
+
+**Novos detectados (4 arquivos):** Pages/NfeBrasil/Configuracao/Certificado, superadmin/Usuario360/Show, ads/Admin/Projects, ads/Admin/Skills/Test (+ bug fix bonus: Skills/Test não destructurava `reset` do useForm — fix necessário pra mudança funcionar).
+
+Pattern aplicado: reset()/setData() saem de `onSuccess` pra `onFinish`; toast e UI side-effects (setOpen(false), input.value='') ficam em `onSuccess`. Trade-off: onFinish dispara também em erro → reset perde input em caso de erro de validação (mantido como #411 fez).
+
+⚠️ **Build Vite NÃO rodado** (node_modules ausente neste ambiente). Wagner valida via `npm run build:inertia` + smoke nas 9 telas (lista detalhada no commit body). #411 antigo deixado aberto (rate limit GraphQL bloqueou auto-fechamento) — fechar quando #423 mergear.
+
+### (I) PR [#439](https://github.com/wagnerra23/oimpresso.com/pull/439) — `docs(sales)`: outbound OficinaAuto Pioneer playbook (610 linhas)
+
+Playbook outbound completo pra Modules/OficinaAuto. **Status `feature-wish` (sem piloto pagante)** — outbound exploratório pioneer-hunting pra gerar sinal qualificado.
+
+**Diferença vs Vest/ComVis:** NÃO tem prova social vertical. Pitch é **pioneer-first transparente** — usa ROTA LIVRE como prova de capacidade técnica (stack moderna multi-tenant 2 anos em prod em vestuário SC), NÃO como prova de vertical.
+
+3 fases: P1 SP/RJ/MG (12 alta densidade), P2 Sul (8 multi-loja real), P3 CO/NE (10 emergente). 30 mensagens Cold #1 customizadas com léxico oficina (placa/chassi/CRLV, OS multi-mecânico, Bosch CS, peça OEM, Sindirepa, CONAMA, ADAS).
+
+Cold #2 + 6 arquétipos: multi-loja real, Bosch CS credenciado, especialista câmbio automático, B2B frota/seguradora, diesel CONAMA, premium importadas BMW/Audi/Porsche.
+
+Cold #3 "última chamada" pioneer-honest com transparência sobre status feature-wish + pacote pioneer (setup R$ [redacted Tier 0] + 50% off 6m + 24m grandfathered Enterprise R$ [redacted Tier 0]/m + case público).
+
+Métricas conservadoras (sem prova social vertical): P1 15-25%, P2 10-20%, P3 5-15%. **1 piloto em 90 dias = ATIVA Modules/OficinaAuto** (`feature-wish` → `em_construcao`). Nenhum em 90d = revalidar OU `historical` ([ADR 0105](decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)).
+
+### (J) PR [#443](https://github.com/wagnerra23/oimpresso.com/pull/443) — `docs(sales)`: Vestuario Q3 expansão Cold #1 customizadas (#9-#30)
+
+Completa o plano outbound Vestuario Q3. Antes: 8 vizinhos SC sul (P1) + framework + Cold #2/#3 templates (382 linhas). Agora: **30 mensagens Cold #1 individuais** (+248 linhas, total 626).
+
+P2 multi-loja SC (5 expandidas, #9-12 já estavam): #13 Marina&Gabriella (Blumenau, SKU explosion infantil PP→G6), #14 Inkieta Moda (Criciúma, 30+ anos, marca conceitual + Strangler Fig), #15 DLK Modas (Jaraguá, 3k+ SKUs).
+
+P3 outras UFs (15): SP (Mamô 11 lojas, All Side perfil quase-gêmeo ROTA LIVRE, Tatuapé 400m², Mega São José Brás), RJ (Pandora plus, Atitude Feminina VR), MG (Roupa Mágica BH 6 lojas infantil, Ousada Uberlândia), RS (Pole Modas Caxias, Tauth Pelotas multi-canal), BA (Soul Dila 10+ pontos, Kombikini Costa Descobrimento — sazonalidade idêntica ROTA LIVRE), PE (Morena Mel 226k IG hub regional), CE (BÚHO 3 lojas jeans), GO (Pó de Canella 2 lojas).
+
+### (K) Lições da sessão maratona (registrar)
+
+1. **Background agents Claude Code não retornam confiável após /resume.** Disparei 4 agentes em background ao longo das sessões — 2 Vestuario expansion + 2 OficinaAuto playbook. **Todos travaram silenciosamente.** Após confirmar segunda vez, pivotei pra foreground e entreguei #439 e #443 manualmente em ~2h. **Adotar foreground daqui em diante** quando prazo é tight ou já dispararou agente uma vez sem retorno.
+
+2. **GraphQL rate limit** (5000/h shared) atingido após dia inteiro de PRs. **Workaround robusto:** `gh api -X POST repos/.../pulls` (REST direto) em vez de `gh pr create` (GraphQL). Funciona pra criar; merge admin parece ainda viável via GraphQL com folga de cache.
+
+3. **Branches scaffolding paralelas confundem.** Outras sessões criaram local-only `claude/all-frentes-pr14-reencrypt-vault`, `pr15-nfe-serialize-urls`, `pr16-dedupe-stats`, `pr22-vault-max-size-cap` etc — meus commits caíram em duas dessas por engano antes eu de moveSer pra branch própria. **Padrão a adotar:** sempre `git checkout -b claude/<nome-task> origin/main` antes do primeiro commit.
+
+4. **`tasks-update` MCP em batch é overhead pesado** — várias tasks DOING/REVIEW estão obviamente mergeadas em main mas atualizar 18 sem autorização explícita do owner é estado compartilhado significativo que pisa em outros contextos. Reportei mas não tomei ação. Wagner decide se vale fazer batch update num momento de calma.
+
+### (L) Auto-discoveries que evitam retrabalho
+
+- **Autopecas charter+plano JÁ completos** via PR #400 (sessão tarde) — handoff anterior estava desatualizado dizendo "sub-agent C ficou parcial".
+- **`_FELIPE_DECISIONS_PRE_SPRINT1.md`** pra Felipe foi entregue por outra sessão paralela (PR #405 — fechado sem merge porque #408 já pré-aplicou os 4 críticos antes).
+- **ADR 0125** colidiu numericamente — minha ADR canon MCP virou 0126 após renomeação (sessão paralela usou 0125 pra Modules/Autopecas feature-wish primeiro).
+
+### Pendências pra próxima sessão
+
+1. **Wagner ~5min:** gera CSC SC no SAT (`https://sat.sef.sc.gov.br/`, cert digital seu) → smoke biz=1 destrava sem ir empresa
+2. **Wagner segunda na empresa:** cert Tech Press copiado pro storage Hostinger → smoke MG alternativo destrava
+3. **Wagner:** review + merge PRs #423 (useForm v3), #439 (OficinaAuto Pioneer), #443 (Vestuario expansion) + fechar #411 antigo
+4. **Wagner:** autoriza Larissa como referência viva nos prospects que citam ROTA LIVRE (Cold #1 P1+P3 vest, OficinaAuto também)
+5. **Felipe segunda 2026-05-11:** abre [_FELIPE_DECISIONS_PRE_SPRINT1.md](decisions/proposals/drafts/_FELIPE_DECISIONS_PRE_SPRINT1.md) + [_AUDIT_FIXES_SKETCH_2026_05_10.md](decisions/proposals/drafts/_AUDIT_FIXES_SKETCH_2026_05_10.md) → decide D1-D4 + roda Pest local + PR US-INFRA-012 (parcialmente já em main via #408)
+6. **Tasks-update MCP audit batch** — várias DOING/REVIEW já mergeadas (US-RB-045 #206+#331, US-COPI-096 #312, US-COPI-100 91d841a7, US-NFE-049/050/051/052, US-WA-040 PRs 1/2a/2b/2c, US-WA-013, US-WA-022). Wagner autoriza batch update quando puder.
+
+---
+
 ## 🆕 Estado 2026-05-10 noite — Smoke MG Tech Press investigado + Vestuario Q3 outbound + PR #414
 
 **Sessão Claude noite** (4ª sessão do dia, paralela às outras). Wagner pediu "continuar adiantar algo enquanto smoke biz=1 trava". Atacou 3 frentes documentação.
