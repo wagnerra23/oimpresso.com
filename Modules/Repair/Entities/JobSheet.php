@@ -131,6 +131,37 @@ class JobSheet extends Model
             ->get();
     }
 
+    /**
+     * Accessor — anexos da OS (fotos + documentos) com preferência backbone.
+     *
+     * Estratégia:
+     * 1. Consulta `arquivos` table (backbone ADR 0123) com sub_destination='repair-foto'
+     * 2. Se backbone vazio → fallback transparente para relação `media()` legacy (App\Media)
+     *
+     * Consumidores (controllers/views) devem usar este accessor em vez de `->media` direto.
+     * Protocolo de migração: US-ARQ-029 Sprint 3 ADR 0123 §2.
+     *
+     * @return \Illuminate\Support\Collection Itens possuem ao menos: id, original_name|display_name, display_url|storage_path, mime_type|media_type
+     */
+    public function getAnexosAttribute(): Collection
+    {
+        // Tenta backbone Arquivos primeiro.
+        if (method_exists($this, 'arquivos')) {
+            $backbone = $this->arquivos()
+                ->where('sub_destination', 'repair-foto')
+                ->where('bucket', 'active')
+                ->get();
+
+            if ($backbone->isNotEmpty()) {
+                return $backbone;
+            }
+        }
+
+        // Fallback graceful — relação Media legacy (Spatie-like morphMany).
+        // NÃO remover esta relação enquanto migration backfill não cobrir 100%.
+        return $this->media()->get();
+    }
+
     public function getPartsUsed()
     {
         $parts = [];
