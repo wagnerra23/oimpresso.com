@@ -4,11 +4,11 @@
 >
 > Sub-agent Opus 4.7 auditou os drafts em `migrations/`, `tests/`, `repair-shared-refactor/` e `modules-comunicacao-visual-scaffold/` em 2026-05-10. Achou 6 críticos + 8 médios + 3 cosméticos.
 >
-> 2 críticos já foram pre-fixados nos arquivos draft (typo + arquivo no lugar errado). Os outros 4 críticos exigem **decisão de design** — Felipe decide segunda, registra ADR ou comentário inline.
+> **Todos os 6 críticos pre-fixados nos drafts** (2 triviais 2026-05-10 manhã + 2 schema benchmark 2026-05-10 tarde + 2 BackfillCommand 2026-05-10 tarde tarde). Felipe segunda **só valida** que concorda com as escolhas, roda Pest local, e abre PR US-INFRA-012.
 
 ---
 
-## Pre-fixados nesta auditoria (2 críticos triviais)
+## Pre-fixados nesta auditoria (6 críticos — TODOS)
 
 ### 1. ✅ Typo middleware `'authh'` em scaffold ComunicacaoVisual
 
@@ -26,11 +26,33 @@
 
 **Fix aplicado:** movido pra `Http/Controllers/DataController.php`.
 
+### 3. ✅ Schema benchmark `period` (D1) — pre-fixado 2026-05-10 tarde
+
+**Arquivo:** `migrations/2026_06_01_000004_create_benchmark_aggregates_table.php`
+
+**Decisão aplicada:** Opção B do `_FELIPE_DECISIONS_PRE_SPRINT1.md` — `period` string YYYY-MM em vez de range `period_start/period_end`.
+
+**Razão:** benchmark de receita/ticket é mensal nativamente. Tests já usavam `period` string (linhas 55,69,85,151,296 do `BenchmarkAggregatorKAnonymityTest.php`).
+
+**Felipe segunda:** se discordar (querendo weekly/quinzenal) reverte e abre ADR justificando custo de range vs ganho de granularidade.
+
+### 4. ✅ Schema benchmark `p50/p90` (D2) — pre-fixado 2026-05-10 tarde
+
+**Arquivo:** mesmo `migrations/2026_06_01_000004_create_benchmark_aggregates_table.php`.
+
+**Decisão aplicada:** Opção B — `value_p50` (mediana) + `value_p90` (cauda) em vez de quartiles `p25/p50/p75`.
+
+**Razão:** padrão SaaS benchmarking (Stripe, ProfitWell, ChartMogul) — "estou acima da mediana? quão longe estou do top 10%?". p25 raramente entra em pitch real. Tests já alinhados.
+
+**Felipe segunda:** se quiser quartiles pra exibir boxplot, reverte e justifica use case.
+
 ---
 
-## Pendentes — Felipe decide segunda (4 críticos de design)
+## Pendentes — Felipe decide segunda (2 críticos de design)
 
-### 3. ⚠️ Schema benchmark — `period_start/period_end` (migration) vs `period` string (testes)
+> ⚠️ **#3 e #4 já pre-fixados** acima (schema benchmark via D1+D2). Restam só #5 (`tax_number` vs `tax_number_1`) e #6 (`--force` flag). Subseções abaixo mantidas pra histórico.
+
+### 3. ⚠️ Schema benchmark — `period_start/period_end` (migration) vs `period` string (testes) — RESOLVIDO
 
 **Arquivos:**
 - `migrations/2026_06_01_000004_create_benchmark_aggregates_table.php:40-41`
@@ -55,7 +77,7 @@ $table->date('period_end');
 $table->string('period', 10)->comment('YYYY-MM (mensal) ou YYYY-WW (semanal futuro)');
 ```
 
-### 4. ⚠️ Schema benchmark — `value_p25/p50/p75` (migration) vs `value_p50/p90` (testes)
+### 4. ⚠️ Schema benchmark — `value_p25/p50/p75` (migration) vs `value_p50/p90` (testes) — RESOLVIDO
 
 **Arquivos:** mesmos da #3.
 
@@ -76,7 +98,7 @@ $table->decimal('value_p50', 18, 2)->nullable()->comment('Mediana');
 $table->decimal('value_p90', 18, 2)->nullable()->comment('Top 10% cauda');
 ```
 
-### 5. ⚠️ `BackfillBusinessVerticalCommand` lê `tax_number` mas tabela `business` tem `tax_number_1`
+### 5. ⚠️ `BackfillBusinessVerticalCommand` lê `tax_number` mas tabela `business` tem `tax_number_1` — RESOLVIDO
 
 **Arquivos:**
 - `migrations/BackfillBusinessVerticalCommand.php:67`
@@ -93,7 +115,7 @@ $table->decimal('value_p90', 18, 2)->nullable()->comment('Top 10% cauda');
 
 E no test, factory já está correto (usa `tax_number_1`).
 
-### 6. ⚠️ Test usa `--force` flag, Command não tem signature `--force`
+### 6. ⚠️ Test usa `--force` flag, Command não tem signature `--force` — RESOLVIDO
 
 **Arquivos:**
 - `tests/Feature/Insights/BackfillBusinessVerticalCommandTest.php:137-155`
@@ -210,12 +232,12 @@ already uses the test case [Tests\TestCase].
 
 ## Ranking pra Felipe atacar segunda
 
-1. **Decidir #3+#4 (schema benchmark)** — 30min decisão + 15min update migration
-2. **#5 + #6 (BackfillCommand: tax_number_1 + --force)** — 30min update Command
+1. ~~**Decidir #3+#4 (schema benchmark)**~~ — ✅ pre-fixado 2026-05-10 tarde (Opção B). Felipe valida que concorda.
+2. **#5 + #6 (BackfillCommand: tax_number_1 + --force)** — 30min update Command (1 SSH `SHOW COLUMNS` + edit signature + edit handle)
 3. **Bug Pest Modules/Jana** — 15min mover `uses(...)->in()`
 4. **Médios (#7-#14)** — incremental, PR-2 separado
 
-Esforço total críticos: ~1.5h. Médios: ~2-3h.
+Esforço total restante: **~45min críticos** + ~2-3h médios. (Antes da pre-fix tarde: 1.5h).
 
 ---
 
