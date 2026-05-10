@@ -56,11 +56,9 @@ export default function ReposIndex({ reps }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     form.post('/ponto/configuracoes/reps', {
-      onSuccess: () => {
-        toast.success('REP cadastrado.');
-        form.reset();
-      },
+      onSuccess: () => toast.success('REP cadastrado.'),
       onError: () => toast.error('Verifique os campos.'),
+      onFinish: () => form.reset(),
     });
   };
 

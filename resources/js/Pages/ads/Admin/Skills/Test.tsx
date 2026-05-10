@@ -41,7 +41,7 @@ interface Props {
 
 const Test: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skill, currentVersion, recentRuns, dryRun }) => {
   const flash = (usePage().props as any)?.flash?.status
-  const { data, setData, post, processing } = useForm({
+  const { data, setData, post, processing, reset } = useForm({
     source: 'manual' as 'manual' | 'real_conversations',
     prompt: '',
     real_count: 5,
@@ -53,7 +53,7 @@ const Test: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
     post(`/ads/admin/skills/${skill.slug}/test`, {
       preserveScroll: true,
       preserveState: true,
-      onSuccess: () => setData('prompt', ''),
+      onFinish: () => reset('prompt'),
     })
   }
 

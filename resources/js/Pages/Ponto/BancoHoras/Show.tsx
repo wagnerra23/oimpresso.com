@@ -78,11 +78,9 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
     }
     form.post(`/ponto/banco-horas/${saldo.colaborador_id}/ajuste`, {
       preserveScroll: true,
-      onSuccess: () => {
-        toast.success('Ajuste registrado no ledger.');
-        form.reset();
-      },
+      onSuccess: () => toast.success('Ajuste registrado no ledger.'),
       onError: () => toast.error('Falha ao ajustar.'),
+      onFinish: () => form.reset(),
     });
   };
 

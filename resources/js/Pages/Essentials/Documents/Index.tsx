@@ -116,12 +116,12 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
       forceFormData: true,
       onSuccess: () => {
         toast.success('Arquivo enviado.');
-        uploadForm.reset();
         const input = document.getElementById('document-file') as HTMLInputElement | null;
         if (input) input.value = '';
         setUploadOpen(false);
       },
       onError: () => toast.error('Falha no upload.'),
+      onFinish: () => uploadForm.reset(),
     });
   };
 
@@ -130,11 +130,11 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
     memoForm.post('/essentials/document', {
       onSuccess: () => {
         toast.success('Memo criado.');
-        memoForm.reset();
         setMemoOpen(false);
         setTab('memos');
       },
       onError: () => toast.error('Verifique os campos.'),
+      onFinish: () => memoForm.reset(),
     });
   };
 
