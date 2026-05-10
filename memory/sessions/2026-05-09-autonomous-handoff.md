@@ -451,3 +451,155 @@ Razões persona E ganha: janela decisão aberta (12-18m após assumir), moderniz
 ---
 
 **Branch:** `claude/auto-2026-05-09-mercado` (sem push). 3 commits agora. `git log -3` + `git diff main`.
+
+---
+
+# 🔁🔁🔁 Rodada 4 — escopo expandido (10 frentes)
+
+> Wagner aprovou aumentar escopo. 10 agents paralelos. ~25min wallclock.
+> Foco: assets que destravam decisões + ecosistema com.visual completo.
+
+## 🚨 Achados críticos da Rodada 4
+
+### #1 — API docs MVP: **70% JÁ FEITO mas DORMENTE**
+`memory/decisions/proposals/api-docs-mvp-mubisys.md`
+
+- `knuckleswtf/scribe ^5.0` em `composer.json` mas **nunca rodou** (`public/docs/` vazio)
+- `laravel/passport ^13.0` ativo
+- `Modules/Connector/Http/Controllers/Api/*` tem **~300 anotações Scribe** já escritas + 12 Resources + OAuth2 ativo
+- 12 endpoints MVP escolhidos (Tier 1 leitura: GET /sell, /sell/{id}, /contactapi, /product, /business-details · Tier 2 escrita: POST /contactapi, **POST /sell**, PUT /sell/{id}, POST /contactapi-payment · Tier 3: GET /payment-methods, /business-location, POST /webhooks/asaas/{businessId})
+- **Estimativa real: 20h Felipe IA-pair**, 50h pra "API enterprise completa"
+- **🚨 BLOCKER pré-launch**: rotas `/connector/api/*` NÃO têm `/v1/` — incidente garantido se publicar sem versionar (+2h)
+
+### #2 — Audit skills: 29 skills (vs 20 em 06/maio) — Tier A inflou 6→8
+`memory/audits/2026-05-pre-sales/05-skills-audit-2026-05-09.md`
+
+- **3 skills com drift name vs pasta**: `mcp-first`, `jana-arch`, `jana-recall-flow` (frontmatter desatualizado pós-rename) — 15min Wagner
+- Rebaixar `mwart-process` + `mwart-comparative` Tier A→B salva **~8kb/sessão em 95% das sessões não-MWART** — 1h+ADR
+- Total liberado: ~10-13kb/sessão = 12-15% redução tokens
+- Gap: criar `pii-redactor-check` Tier A (Tier 0 LGPD sem hook hoje), `pest-fixture-builder`, `cliente-rotalivre-context`
+
+### #3 — Vagas LinkedIn: 5 prospects aquecidos esta semana
+`memory/research/2026-05-prospeccao/06-vagas-linkedin-graficas-sinal-aquecido.md`
+
+- **Crealle (SJP/PR)** — vaga Coordenador PCP aberta há 12 dias = **janela ouro abordar antes do PCP entrar**
+- Padrão dominante: vaga **instalação/montagem em campo** (51 SP + 41 BR + cluster ABC) = confirma tese "OS sem rastreamento na ponta = dor #1"
+- Volume mercado: 688 vagas Comunicação Visual BR + cluster Curitiba (170)
+- Loop mensal: ROI R$ 600-1.200/mês recorrente vs ~4h/mês investidas
+
+## 📊 Decisões propostas adicionais (proposed — Wagner valida)
+
+### Decisão #4 — Cláusula DAM 90d: **Versão B equilibrada** (recomendada)
+`memory/decisions/proposals/clausula-dam-90d-rascunho.md`
+
+- A conservadora (R$ 2.700/contrato exposição) — atratividade fraca
+- **B equilibrada** (R$ 5.396/contrato — desconto 30% retroativo + cap 12m) ← skin-in-the-game sem risco existencial
+- C agressiva (R$ 13.994/contrato — risco quebrar caixa se 3 atrasarem juntos = R$ 42k)
+- **3 riscos jurídicos pra advogado validar**: cláusula penal CC arts. 408-416 + cumulação perdas e danos, CDC B2B atividade-fim STJ oscilante, LGPD operadora/controlador (DAM armazena arte cliente final)
+
+### Decisão #5 — Roadmap técnico 12m: 6 milestones jun/26 → mai/27
+`memory/decisions/proposals/roadmap-tecnico-12m-2026-2027.md`
+
+| M | Período | Goal | Risco |
+|---|---------|------|-------|
+| M1 | jun/26 | Smoke fiscal + saúde tech | médio |
+| M2 | jul/26 | 2º cliente + API docs Swagger | médio |
+| M3 | ago-set/26 | 3º + 4º cliente | alto |
+| M4 | out-nov/26 | Hardening + ABICOMV + decisão DAM | médio |
+| M5 | dez/26-jan/27 | DAM nativo OU 5º cliente | **MUITO ALTO** ⚠️ |
+| M6 | fev-mai/27 | Endorsement + 7º ativo | alto |
+
+**M5 alto risco**: dependência dupla (3 contratos Enterprise pagos + recesso dezembro). Mitigação: decisão GO/NO-GO formal em M4 cycle 34 com critério explícito.
+
+**Top 3 ações pré-M1 (antes de 16/jun/26)**:
+1. **Smoke SEFAZ NFC-e biz=1 em homologação** — destrava M1+M2+M3 inteiros
+2. **Fechar ADR DAM = waiting-list formal** com critério "3 contratos = GO"
+3. **Pipeline ≥5 leads quentes** com discovery agendado
+
+### Decisão #6 — Programa afiliados: **Bronze 1º (jun/26)**, Silver 2º (ago/26), Gold só com candidato real
+`memory/sales/2026-05/15-programa-afiliados.md`
+
+- Bronze 10% MRR/12m · Silver 20% + 10% setup + bônus 30% · Gold 30% off pricing
+- **ROI 6m com 30 afiliados Bronze**: ~5 clientes (17% conversion) → R$ 2.395 MRR adicional → **R$ 25.866 líquido em 12m**, payback mês 2
+- Custo dev MVP Bronze: ~8h IA-pair = R$ 0 marginal
+
+## 🤝 Partnerships e canais
+
+### Top 3 fornecedores máquinas (R27)
+`memory/sales/2026-05/16-partnerships-fornecedores-maquinas.md`
+
+1. **HP Latex Partner First** — único self-service estruturado (formulário web, tier Silver/Gold/Platinum)
+2. **Roland DG via ICC** — distribuidor master histórico BR, base concentrada ICP
+3. **Mimaki Brasil (Cotia/SP)** — sem intermediário, cultura japonesa exige presença
+
+Investimento ano 1: R$ 18-25k + 80-120h Wagner. KPI 12m: 1 partnership oficial + 5-8 leads + **1-2 clientes via canal**.
+
+### Top 5 ecossistema com.visual (R29) — gap "comunicação visual" que você pediu
+`memory/sales/2026-05/17-ecosistema-com-visual-software-insumos.md`
+
+1. **CorelDraw Tech Partner + plugin VBA** (~80% gráficas BR) — esforço 4-6 sprints
+2. **ONYX RIP ISV Connect** (~40% large format premium)
+3. **3M / Avery Dennison portais B2B vinil** — comissão 5-15% sobre GMV
+4. **SAi (Flexi + PhotoPRINT)** — cobre RIP entry + cutting universal com 1 partnership
+5. **Heytex / Endutex lonas** — greenfield BR, zero concorrente
+
+🎯 **Stack ideal de gráfica BR (oimpresso como hub central)**: CorelDraw + ONYX/SAi + SAi Flexi + 3M/Avery + Heytex/Endutex. Posicionamento: **"ERP que aceita o stack que você já tem, não pede pra trocar nada."**
+
+Investimento ano 1: R$ 25-40k + 120-180h Wagner+dev. Risco: software gráfico legacy sem API moderna → mitigação: hot folder universal primeiro, API onde ROI claro.
+
+## 🔌 Integrações estratégicas (R28)
+`memory/decisions/proposals/integracoes-estrategicas-12m.md`
+
+**Top 5 P0 (3 meses)**:
+1. WhatsApp Business API oficial Meta — universal, substitui Z-API/Baileys
+2. NFSe + MDF-e via TecnoSpeed PlugNotas — 50% prospects Mubisys pedem
+3. Bling sync — destrava migração híbrida 6m (30% prospects Mubisys bloqueiam contrato sem)
+4. Conta Azul sync financeiro — 70% contadores aceitam recomendar
+5. Mercado Livre publish + receive order
+
+**Esforço total**: 248h IA-pair = ~50h wallclock = 6-7 dias úteis Felipe (10-14 semanas relógio real com KYC + canary). Custo: ~R$ 19.840. **Receita marginal 12m: R$ 75-150k ARR**. Payback: 1 contrato Enterprise.
+
+🚨 **Dependência crítica que atrasa TUDO**: API docs MVP Swagger (R23). Sem `/api/docs` publicado, cada integração reinventa contrato. Felipe precisa fechar 16-24h ANTES de qualquer P0.
+
+## 📝 Conteúdo público gerado
+
+### Blog SEO 30 posts (R22)
+`memory/sales/2026-05/blog/01-plano-editorial-30-posts.md`
+
+5 pillars: Margem por OS · Substituir WhatsApp · NFC-e automática · oimpresso vs Bling/Conta Azul/planilha · IA conversacional. Top 3 maior tráfego: #19 (170/m), #6 (130/m), #17 (130/m). Investimento ~37,5h Wagner.
+
+### Pós-mortem PR #349 (R24)
+`memory/sales/2026-05/blog/02-pos-mortem-pr-349-mwart-gate.md`
+
+3 versões: blog 1100p · LinkedIn 300p · Twitter thread 8 tweets. **LinkedIn maior potencial viralizar** (pós-mortem técnico-honesto raro no setor). 🚨 Risco: ROTA LIVRE/Larissa interpretar "5 PRs follow-up" como bug em prod. **Mitigação no doc**: parágrafo explícito "cliente atual não foi afetado" + Wagner manda WhatsApp pra Larissa antes de publicar. URLs reais: github.com/wagnerra23/oimpresso.com.
+
+## 📋 Top 10 ações pós-Rodada-4 (re-priorizadas)
+
+| # | Ação | Tempo | ROI |
+|---|------|-------|-----|
+| 1 | Bug #1 wipe-DB + #2 octane/mcp em require | 15min | ⭐⭐⭐⭐⭐ |
+| 2 | Tests órfãos Ponto+ADS no phpunit.xml + adr-lint required + 3 drifts skills | 25min | ⭐⭐⭐⭐⭐ |
+| 3 | NCM default + smoke SEFAZ biz=1 (destrava M1+M2+M3) | 30min | ⭐⭐⭐⭐⭐ |
+| 4 | **Aceitar 3 ajustes pricing** + cláusula DAM versão B | 30min | ⭐⭐⭐⭐⭐ |
+| 5 | Disparar 3 cold emails Tier 1 (New Signs Campinas, SP Sign, Sandice) + Crealle (vaga PCP janela ouro) | 1h | ⭐⭐⭐⭐⭐ |
+| 6 | **Felipe inicia API docs Swagger** (20h) — destrava 5 P0 integrações + R$ 75-150k ARR | 20h dev | ⭐⭐⭐⭐⭐ |
+| 7 | **Aceitar ADR mwart-gate HÍBRIDO** (PR ID 0120) + decisão DAM = waiting-list | 1h impl | ⭐⭐⭐⭐⭐ |
+| 8 | Email associativismo@abigraf.org.br + LinkedIn Judah Adonai (ABICOMV/AFACOM) | 30min | ⭐⭐⭐⭐ |
+| 9 | Reservar agenda ExpoPrint 24-28/mar/2026 + Future Print jul/26 | 5min | ⭐⭐⭐⭐ |
+| 10 | Lançar programa afiliados Bronze 2026-06-15 (8h dev) | 8h dev | ⭐⭐⭐⭐ |
+
+## 📈 Stats consolidados R1+R2+R3+R4
+
+- **Wallclock total**: ~120min (28 agents · ~32h equiv sequencial — eficiência ~16x)
+- **Artefatos**: **53 arquivos**
+- **Universo prospects**: 83 gráficas + 11 vagas-aquecidas
+- **Decisões propostas**: 6 (DAM, mwart-gate, pricing, cláusula DAM 90d, roadmap 12m, afiliados)
+- **Canais mapeados**: 3 setoriais + 3 fornecedores máquinas + 5 ecossistema com.visual + 5 integrações P0
+- **ADR drafts**: 1 (mwart-gate ID 0120)
+- **Tokens consumidos**: ~2.4M sub-agents
+- **Cota Claude Design**: preservada
+- **Commits**: 4 (3 atuais + 1 desta rodada agora)
+
+---
+
+**Branch:** `claude/auto-2026-05-09-mercado` (sem push). 4 commits. `git log -4` + `git diff main`.
