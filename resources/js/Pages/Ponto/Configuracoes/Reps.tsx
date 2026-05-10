@@ -44,7 +44,6 @@ interface Props {
 }
 
 export default function ReposIndex({ reps }: Props) {
-  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const form = useForm({
     tipo: 'REP_P',
     identificador: '',
@@ -56,10 +55,8 @@ export default function ReposIndex({ reps }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     form.post('/ponto/configuracoes/reps', {
-      onSuccess: () => {
-        toast.success('REP cadastrado.');
-        form.reset();
-      },
+      onSuccess: () => toast.success('REP cadastrado.'),
+      onFinish: () => form.reset(),
       onError: () => toast.error('Verifique os campos.'),
     });
   };

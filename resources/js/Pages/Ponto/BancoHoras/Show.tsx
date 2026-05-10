@@ -60,7 +60,6 @@ const tipoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'out
 };
 
 export default function BancoHorasShow({ saldo, movimentos }: Props) {
-  // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const form = useForm({
     minutos: 0,
     observacao: '',
@@ -78,10 +77,8 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
     }
     form.post(`/ponto/banco-horas/${saldo.colaborador_id}/ajuste`, {
       preserveScroll: true,
-      onSuccess: () => {
-        toast.success('Ajuste registrado no ledger.');
-        form.reset();
-      },
+      onSuccess: () => toast.success('Ajuste registrado no ledger.'),
+      onFinish: () => form.reset(),
       onError: () => toast.error('Falha ao ajustar.'),
     });
   };
