@@ -7,7 +7,78 @@
 
 ---
 
-## 🆕 Estado 2026-05-10 madrugada — useForm v3 redo + OficinaAuto Pioneer + Vestuario Q3 expandido (3 PRs)
+## 🆕 Estado 2026-05-10 ~14h BRT — Sprint Auditoria 100% código entregue (11 PRs/branches) — Wagner pausou
+
+**Sessão Claude tarde-2 + retomada pós-/resume.** Wagner pediu mecanismo de `active_log` + **undo** de alterações indevidas (humano OU IA). Resultado em 1 sessão paralela: **Sprint Auditoria inteiro de 21h IA-pair planejado entregue em código** (11 entregas), aguardando Wagner validar e mergear.
+
+### As 11 entregas
+
+| # | US | PR/branch | Conteúdo |
+|---|---|---|---|
+| 1 | docs ADR 0127 + SPEC | **#432** mergeado | Modules/Auditoria UI rica + undo, 7 princípios, whitelist UNREVERTIBLE 5 categorias |
+| 2 | seed AUDIT mcp_jira_projects | **#441** mergeado | migration idempotente + seeder espelho — destrava `tasks-create module:Auditoria` |
+| 3 | docs handoff (rate limit anterior) | **#470** aberto | apenda seção sprint Auditoria habilitado |
+| 4 | US-AUDIT-001 | **#463** aberto | trait LogsActivity em `App\Transaction` (sales) |
+| 5 | US-AUDIT-002 | **#465** aberto | trait em `App\Product` + `App\VariationLocationDetails` (catálogo+estoque) |
+| 6 | US-AUDIT-003 | **#467** aberto | trait em `App\Contact` com **PII LGPD redacted** (`tax_number_1` NUNCA loga) |
+| 7 | US-AUDIT-004 | **#468** aberto | trait em `App\TransactionSellLine` + `App\TransactionPayment` |
+| 8 | US-AUDIT-005 | **#469** aberto | migration aditiva: 5 colunas (`causer_kind` ENUM + `agent_run_id` + `reverted_at/by/reason`) + 2 índices |
+| 9 | US-AUDIT-006 | **#473** aberto | `ActivityCauserKindObserver` distingue user/agent/system/api automaticamente |
+| 10 | US-AUDIT-007 | **#474** aberto | scaffold `Modules/Auditoria/` 12 peças (8 obrigatórias + 4 extras) |
+| 11 | US-AUDIT-008 | **#476** aberto | `RevertService` + `RevertCheck` value object + whitelist UNREVERTIBLE 5 categorias citando lei/regra |
+| — | **US-AUDIT-009** | branch `claude/audit-009-pages-inertia` **pushed sem PR** | Pages Inertia `Index.tsx` + `Detail.tsx` + 2 charters per ADR 0094 §3 |
+| — | **US-AUDIT-010** | branch `claude/audit-010-controller-revert` **pushed sem PR** | wire Controller revert + permissions Spatie + Pest smoke |
+
+**Total: 11 entregas, 9 PRs abertos + 2 branches pushed sem PR + 2 PRs já mergeados (#432 #441).**
+
+### Por que 2 branches sem PR
+
+GitHub GraphQL rate limit esgotou (5011/5000) durante essa sessão paralela intensa (também outras sessões do time consumiram quota). Branches estão pushed; criação de PR via `gh pr create` retornou rate limit. Resetava em ~1h (timestamp 1778422754 UTC quando esgotou). Próxima Claude/Wagner cria os 2 PRs faltantes manualmente OU via `gh` quando reset.
+
+URLs:
+- https://github.com/wagnerra23/oimpresso.com/pull/new/claude/audit-009-pages-inertia
+- https://github.com/wagnerra23/oimpresso.com/pull/new/claude/audit-010-controller-revert
+
+### Cobertura técnica entregue
+
+- **Audit log estruturado** com `properties.old`/`new` em **6 Models críticos do core de vendas**: Transaction (cabeçalho), TransactionSellLine, TransactionPayment, Product, VariationLocationDetails, Contact (PII LGPD redacted)
+- **Causer dual** via Observer: distingue ação User/IA/System/API automaticamente (Jana Agents devem fazer `app()->instance('jana.agent_run_id', $runId)` antes de tools — trabalho separado)
+- **5 colunas + 2 índices** novos em `activity_log` (migration aditiva, zero-downtime)
+- **Modules/Auditoria** scaffold completo com 4 permissões Spatie (`auditoria.view`, `revert.own/any/unlimited`) + sidebar item + Install 1-click + Tests
+- **RevertService** com whitelist 5 categorias bloqueadas: Marcacao 671, NfeTransaction cstat ∈ {100,101,135}, TituloBaixa Asaas-paid, Repair\OS NFSe emitida, Transaction com payment posterior
+- **UI Inertia** `/auditoria` Index (filtros + tabela + Badge user/agent/system/api colorida) + Detail (diff side-by-side + modal Revert reason mín 10 chars + estado já-revertido) + 2 charters
+- **Redirect 301** `/reports/activity-log` → `/auditoria` mantendo querystring
+
+### Pendências pra Sprint fechar (Wagner faz quando voltar)
+
+1. **Criar 2 PRs faltantes** (rate limit GitHub esperar ou clicar URL acima) — ~1min
+2. **Validar Pest com mysql dev real** (~10min): rodar `vendor/bin/pest tests/Feature/Auditoria/` com `.env.testing` apontando mysql dev — 30+ cenários nos 9 PRs (todos skip-graceful em sqlite memory CI)
+3. **Aprovar 11 PRs** (admin bypass autorizado anteriormente OU UI aprovação por lote)
+4. **Aprovar screenshots Gate F1.5+F3** ([ADR 0107](decisions/0107-emendation-0104-visual-comparison-gate-f3.md)) das 2 telas Inertia (Index + Detail) — exigência ADR 0104 MWART
+5. **Pós-merge:** SSH Hostinger `php artisan migrate` (US-AUDIT-005 migration causer_kind) + `php artisan module:enable Auditoria` + smoke biz=1 (`/sells/create` → conferir entry em `/auditoria` com diff legível)
+
+### Aprendizados desta sessão (lições)
+
+1. **Rate limit GitHub GraphQL é 5000/h shared** entre tools e agentes do time. Sessão paralela intensa (8+ PRs criados num curto intervalo + outras sessões trabalhando) esgota rápido. Mitigação: paralelizar push de branches mas espaçar `gh pr create`.
+2. **Sessões paralelas Claude** mexem em working tree simultaneamente — `git checkout` de outra sessão pode reverter teu Edit local. Mitigação: cada US em branch própria + commit/push imediato. Confirmar via `git show <commit-sha> --stat` que o commit no remote está íntegro (working tree pode estar revertido localmente mas commit em remote OK).
+3. **Tool MCP `tasks-create` quebrado** durante esta sessão: schema JSON aceita só `module` (`additionalProperties: false`) mas backend exige `project` (rename ADR 0125 hoje 2026-05-10 não propagado pra tool). Workaround: SPEC.md no git é fonte canônica, tool MCP é cache. Fix do tool é trabalho separado (~30min).
+4. **Padrão Pest dev project**: `phpunit.xml` força sqlite `:memory:` com schema vazio. Tests integration UltimatePOS usam `markTestSkipped` defensivo no `beforeEach` (try/catch + Schema check). Skip-graceful em CI; validação real precisa mysql dev local com `.env.testing`.
+
+### Backlog imediato (próxima Claude / Wagner)
+
+| Pri | Tarefa | Esforço estimado |
+|---|---|---|
+| **P0** | Criar 2 PRs faltantes (US-AUDIT-009 e US-AUDIT-010) — rate limit reset OU click URL | 1min |
+| **P0** | Validar Pest local com mysql dev (~30 cenários nos 9 PRs) | 10min |
+| **P0** | Aprovar/mergear 11 PRs Sprint Auditoria | 5min |
+| **P1** | Capturar screenshots Index + Detail pra Gate F1.5+F3 | 5min |
+| **P1** | Pós-merge: migrate Hostinger + smoke biz=1 | 10min |
+| **P2** | Fix tool MCP `tasks-create` schema desatualizado vs backend (param `module` vs `project`) | ~30min |
+| **P2** | `Modules/Copiloto/Ai/Agents/*` precisa fazer `app()->instance('jana.agent_run_id', $runId)` antes de tools que mexem em Models — sem isso causer_kind cai pro 'user' default em ações Jana | ~1h |
+
+**Última atualização:** 2026-05-10 ~14h BRT — Sprint Auditoria entregue 100% em código, aguarda Wagner validar/mergear/screenshot Gate.
+
+---
 
 **Sessão Claude madrugada** (5ª+ sessão paralela do dia, várias re-aberturas via /resume). Wagner pediu "merge tudo + continuar o que conseguir adiantar com prazo de 4 horas". Mergeou 7 PRs de outras sessões (#400, #403, #408, #414, #416, #417, #352, mais alguns) e gerou 3 PRs próprios novos.
 
