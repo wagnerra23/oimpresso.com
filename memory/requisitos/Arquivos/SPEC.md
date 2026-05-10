@@ -67,11 +67,41 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 
 ## Sprint 4+ — outros módulos opt-in (conforme prioridade)
 
-- Suporte (anexos ticket Chatwoot)
-- Repair (foto OS)
-- Cms (uploads blog/landing)
-- RecurringBilling (PDF boleto gerado)
-- Officeimpresso (PDFs FastReport gerados)
+> **2026-05-10 — mapeamento completo via Agent F (Curador subagente)**: 10 consumers identificados em 26 migrations + 15 controllers de `Modules/*`.
+
+| Módulo | Model | Tabela | Coluna(s) anexo | Storage atual | Risco | Sprint |
+|---|---|---|---|---|---|---|
+| **NfeBrasil** | `NfeDfeRecebido` | `nfe_dfe_recebidos` | `xml_path` | disk `nfe_dfes_recebidos` | high | **3** ✅ planejado |
+| **NfeBrasil** | `NfeEmissao` | `nfe_emissoes` | `xml_path`, `danfe_path` | disk `nfe_dfes_recebidos` | high | **3** |
+| **NfeBrasil** | `NfeCertificado` | `nfe_certificados` | `uuid.pfx.enc` (encrypted-at-rest) | custom encrypted | **high** | **3** (já encrypted, validar parity vault) |
+| **Financeiro** | `FinBoletoRemessa` | `fin_boleto_remessas` | `pdf_path` | TBD | medium | **4** |
+| **Ponto** | `Importacao` | `ponto_importacoes` | `arquivo_path` | disk `local` | medium | **4** |
+| **Jana** | `TaskAttachment` | `mcp_task_attachments` | `file_url` + `sha256` dedupe | TBD | medium | **4** |
+| **SRS** | `DocSource` | `docs_sources` | `storage_path` | `config('memcofre.upload.disk')` | medium | **4** |
+| **Whatsapp** | `WhatsappMessage` | `whatsapp_messages` | payload JSON (mídia inline) | inline | low | **5** |
+| **CMS** | `CmsPage` | `cms_pages` | `feature_image` | TBD | low | **5** |
+| **Jana** | `McpMemoryDocuments` | `mcp_memory_documents` | `embedding` (binary vetores) | TBD | low | **5** (caso especial — vetores Meilisearch) |
+
+### 3 riscos transversais
+
+1. **Storage disks NÃO padronizado.** Cada módulo usa disk próprio (`nfe_dfes_recebidos`, `local`, `config('memcofre.upload.disk')`). **Trait `HasArquivos` precisa abstrair multi-disk** OU rodar **ADR-novo** consolidando tudo em disk único `arquivos` antes de Sprint 4 (recomendação Agent F).
+
+2. **Encryption-at-rest só em NfeBrasil.** Certificados PFX cifrados em disco (uuid.pfx.enc); outros módulos (Ponto/SRS/Jana) armazenam em claro. **Audit LGPD pré-migração** obrigatório. Jana memory docs terão dados sensíveis em breve ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) §Encryption).
+
+3. **Deduplicação inconsistente.** Ponto + Jana usam SHA-256 em DB; SRS + Whatsapp não. Trait `HasArquivos` deve **enforçar dedup global por hash** (`arquivos_dedupe` table do [ADR 0123](../../decisions/0123-modules-arquivos-backbone.md)) antes de Sprint 4 começar.
+
+### Ordem de execução Sprint 4 (proposta com base em valor × risco)
+
+1. **US-ARQ-023**: Migrar `Modules/Financeiro/FinBoletoRemessa` (PDFs boleto gerados — volume razoável, baixo cliente-facing)
+2. **US-ARQ-024**: Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance)
+3. **US-ARQ-025**: Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`)
+4. **US-ARQ-026**: Migrar `Modules/SRS/DocSource` (knowledge base — volume crescente)
+
+### Sprint 5 (deferred)
+
+- Whatsapp inline mídia (volume gigante, vai precisar S3 antes — adiar até disk swap)
+- CMS feature_image (baixo volume, pode esperar)
+- Jana McpMemoryDocuments embedding vetores (caso especial — pode ficar em Meilisearch sem ir pra `arquivos` table)
 
 ## Sprint Future — observability + features avançadas
 
