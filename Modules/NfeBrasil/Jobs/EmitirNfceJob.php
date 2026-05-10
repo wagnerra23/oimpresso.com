@@ -54,7 +54,11 @@ class EmitirNfceJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public string $queue = 'nfe';
+    // PHP 8.4 + Laravel 13: Queueable trait define $queue sem type hint, então
+    // declarar 'public string $queue' aqui causa FatalError de composition
+    // ("definition differs and is considered incompatible"). Sem type, ok.
+    // $tries/$backoff são declarados ShouldQueue contract — type hints permitidos.
+    public $queue = 'nfe';
     public int $tries = 3;
     public int $backoff = 60;
 
