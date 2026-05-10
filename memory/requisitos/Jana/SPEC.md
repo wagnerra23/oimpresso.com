@@ -645,3 +645,49 @@ Job que orquestra `HealthSnapshotService::snapshot()` → `HealthNarratorService
 **Refs:** US-COPI-095 (epic), US-COPI-097 (HealthSnapshotService), US-COPI-099 (HealthNarratorService), `app/Console/Kernel.php`.
 
 
+
+---
+
+## Auditoria de completude — 2026-05-10
+
+Disparada por: `/module-completeness-audit` (skill `module-completeness-audit` v0.1.0, sessão Wagner 2026-05-10).
+
+**Resultado: 4 ✅ / 4 🟡 / 0 ❌ (de 8 dimensões)**
+
+| Dim | Nome | Status | Evidência |
+|---|---|---|---|
+| 1 | Multi-instance scope | 🟡 PARCIAL | `ChatController.php:37-41` filtra business_id+user_id, mas UI sem business switcher mid-conversa (props já em `shellPropsFor():124`, falta render) |
+| 2 | Permissions middleware + UI | 🟡 PARCIAL | `McpAuthMiddleware.php:55` + permissions Spatie `jana.*` (migration 2026-05-09) OK; mas sem `Pages/Jana/Admin/Permissions.tsx` — gestão via painel Spatie genérico |
+| 3 | Charter | ✅ APROVADO | `Pages/Jana/Chat.charter.md` status:live, atualizado 2026-05-09, 11 seções + 12 Pest GUARD tests canônicos |
+| 4 | RUNBOOK | ✅ APROVADO | 8+ RUNBOOKs (RUNBOOK.md, RUNBOOK-chat.md, RUNBOOK-cockpit.md, RUNBOOK-memoria-semanal.md, RUNBOOK-governanca-mcp.md, RUNBOOK-qualidade-admin.md, RUNBOOK-custos-admin.md, RUNBOOK-dashboard.md) |
+| 5 | Pest golden + cross-tenant biz=99 | 🟡 PARCIAL | `JanaHealthCheckTest.php:1-76` (golden smoke OK) + `HitTrackerServiceTest.php:12-20` (cross-tenant scoped); sem `biz_99` hardcoded como pattern canon |
+| 6 | AuditLog em mutações | ✅ APROVADO | `McpAuthMiddleware.php:113-127` chama `McpAuditLog::registrar()` em toda request MCP com user_id, business_id, endpoint, tokens, custo, ip, duration |
+| 7 | business_id global scope | ✅ APROVADO | 32+ migrations com business_id; `ChatController.php:40-42` + `DashboardController.php:20-24` aplicam scope; TIER 0 IRREVOGÁVEL conformado |
+| 8 | Browser MCP smoke | 🟡 PARCIAL | `2026-05-06-pr-9-tabela-rename-copiloto-jana.md` (4d) + `2026-04-26-copiloto-testes-merge.md` (14d) — sem screenshot/console MCP recente |
+
+### Gaps virando US-fix
+
+— nenhum P0 detectado nesta auditoria.
+
+### Gaps deferred (P1/P2 — não aprovados nesta auditoria)
+
+- 🟡 Dim 1 Multi-instance UI (P2) — implementar business switcher na sidebar do Chat. Razão deferred: P2.
+- 🟡 Dim 2 Permissions UI (P1) — criar `Pages/Jana/Admin/Permissions/Index.tsx` + controller CRUD roles/scopes. Razão deferred: Wagner aprovou só P0; reauditar próximo cycle.
+- 🟡 Dim 5 Cross-tenant biz=99 hardcoded (P2) — adicionar `testCrossTenantGuardBiz99()` em `HitTrackerServiceTest`. Razão deferred: P2.
+- 🟡 Dim 8 Smoke MCP fresh (P2) — capturar screenshot Browser MCP em `memory/requisitos/Jana/smoke-2026-05-10.md`. Razão deferred: P2.
+
+
+### Atualização da auditoria 2026-05-10 — re-aprovação batch completo
+
+Wagner re-aprovou (mesma data, turno seguinte) o batch completo: P1 e P2 viraram US-fix. **Lista "Gaps deferred" acima zerada.**
+
+US-fix criadas:
+- **US-COPI-101** (P1): Dim 2 Pages/Jana/Admin/Permissions UI dedicada
+- **US-COPI-102** (P2): Dim 1 Business switcher na sidebar do Chat
+- **US-COPI-103** (P2): Dim 5 Pest cross-tenant biz=99 hardcoded
+- **US-COPI-104** (P2): Dim 8 Smoke Browser MCP fresh
+
+Total de gaps Jana convertidos em US-fix: **4 de 4 detectados.**
+
+> Nota: o MCP server usa prefixo `US-COPI-*` (legacy do nome anterior do módulo "Copiloto"). O módulo PHP/git foi renomeado pra `Modules/Jana/` em 2026-05-09 (migration `2026_05_09_140000_rename_copiloto_permissions_to_jana.php`). IDs `US-COPI-*` permanecem por convenção MCP — referem-se ao mesmo módulo.
+

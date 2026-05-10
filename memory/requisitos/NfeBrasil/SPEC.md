@@ -953,3 +953,43 @@ Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/My
 **Caso prático referência:** [Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md](../Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md) — NFSe instalação R$ 200, ISS 5% Floripa/SC, item 17.06.
 
 **Refs:** US-SELL-014 (transaction_documents poly). Pré-requisito pra US-NFE-059 (smoke prod end-to-end).
+
+---
+
+## Auditoria de completude — 2026-05-10
+
+Disparada por: `/module-completeness-audit` (skill `module-completeness-audit` v0.1.0, sessão Wagner 2026-05-10).
+
+**Resultado: 5 ✅ / 2 🟡 / 1 ❌ (de 8 dimensões)**
+
+| Dim | Nome | Status | Evidência |
+|---|---|---|---|
+| 1 | Multi-instance scope | ✅ APROVADO | `Modules/NfeBrasil/Models/NfeEmissao.php:17,37` (FK + business_id fillable; Controller filtra ownership) |
+| 2 | Permissions middleware + UI | ✅ APROVADO | `Modules/NfeBrasil/Http/Requests/UploadCertificadoRequest.php:11-13` (FormRequest authorize) + `DataController.php:57-139` (user_permissions) |
+| 3 | Charter | ❌ AUSENTE | nenhum `*.charter.md` em `resources/js/Pages/NfeBrasil/**` |
+| 4 | RUNBOOK | ✅ APROVADO | `RUNBOOK-smoke-sefaz.md` + `RUNBOOK-manifestacao.md` ambos status:live |
+| 5 | Pest golden + cross-tenant biz=99 | ✅ APROVADO | `EmitirNfceJobTest.php:42-58` + `DanfeServiceTest.php:227` + `CertificadoControllerTest.php:44,46` (26 feature tests) |
+| 6 | AuditLog em mutações | 🟡 PARCIAL | nenhum `AuditLog::log` em Controllers; mutações fiscais sem trail centralizado |
+| 7 | business_id global scope | ✅ APROVADO | 20/20 Models usam `HasBusinessScope` (TIER 0 IRREVOGÁVEL conformado) |
+| 8 | Browser MCP smoke | 🟡 PARCIAL | RUNBOOK fresh mas sem screenshot/console capture via Browser MCP |
+
+### Gaps virando US-fix
+
+- **US-NFE-061** (P0): Dim 3 Charter — bloqueia merge dos 4 PRs Manifestação NFe enquanto charter ausente
+
+### Gaps deferred (P1/P2 — não aprovados nesta auditoria)
+
+- 🟡 Dim 6 AuditLog (P1) — adicionar `activity('nfe.X')->log()` em store/update/destroy de TributacaoController, CertificadoController, ManifestacaoController. Razão deferred: Wagner aprovou só P0; reauditar próximo cycle.
+- 🟡 Dim 8 Smoke MCP (P2) — capturar screenshot Browser MCP em `memory/requisitos/NfeBrasil/smoke-2026-05-10.md`. Razão deferred: P2.
+
+
+### Atualização da auditoria 2026-05-10 — re-aprovação batch completo
+
+Wagner re-aprovou (mesma data, turno seguinte) o batch completo: P1 e P2 também viraram US-fix. **Lista "Gaps deferred" acima zerada.**
+
+US-fix adicionais criadas:
+- **US-NFE-062** (P1): Dim 6 AuditLog em mutações fiscais
+- **US-NFE-063** (P2): Dim 8 Smoke Browser MCP fresh
+
+Total de gaps NfeBrasil convertidos em US-fix: **3 de 3 detectados.**
+
