@@ -1,12 +1,12 @@
 ---
 name: curador
-description: ATIVAR quando user pedir "ingerir conhecimento", "triar D:\\Conhecimento", "organizar arquivos do computador", "ler tudo e classificar", "/curador <subcomando>", OU mencionar ingestão de batch de docs/manuais/PDFs pra alimentar Jana/oimpresso. Pipeline 5-fase (DISCOVER→CLASSIFY→REPORT→REVIEW→APPLY) com heurística-first (70-80% determinístico) e Claude-second (só itens ambíguos). Estado persistente em `scripts/curador/db/files.jsonl` (sobrevive /clear, /compact, reboot). NUNCA aplica sem aprovação humana batch-a-batch. Sensitive (.env, .pfx, .rdp, .key, XML cliente) BLOQUEIA commit. Multi-usuário consent-first (LGPD). ADR 0121.
+description: ATIVAR quando user pedir "ingerir conhecimento", "triar D:\\Conhecimento", "organizar arquivos do computador", "ler tudo e classificar", "/curador <subcomando>", OU mencionar ingestão de batch de docs/manuais/PDFs pra alimentar Jana/oimpresso. Pipeline 5-fase (DISCOVER→CLASSIFY→REPORT→REVIEW→APPLY) com heurística-first (70-80% determinístico) e Claude-second (só itens ambíguos). Estado persistente em `scripts/curador/db/files.jsonl` (sobrevive /clear, /compact, reboot). NUNCA aplica sem aprovação humana batch-a-batch. Sensitive (.env, .pfx, .rdp, .key, XML cliente) BLOQUEIA commit. Multi-usuário consent-first (LGPD). ADR 0124.
 ---
 
 # Curador — pipeline canônico de ingestão
 
 > **Status:** Tier C — invocada via slash command `/curador <subcomando>`
-> **ADR:** [0121](../../../memory/decisions/0121-curador-conhecimento-pipeline.md)
+> **ADR:** [0124](../../../memory/decisions/0124-curador-conhecimento-pipeline.md)
 
 ## Subcomandos
 
@@ -32,7 +32,7 @@ node scripts/curador/classify.mjs
 node scripts/curador/report.mjs --batch-size 500
 ```
 
-Default `--user wagner` (assume pasta do Wagner). Pra outro usuário, **exige consent registrado** ([ADR 0121](../../../memory/decisions/0121-curador-conhecimento-pipeline.md) §6 LGPD):
+Default `--user wagner` (assume pasta do Wagner). Pra outro usuário, **exige consent registrado** ([ADR 0124](../../../memory/decisions/0124-curador-conhecimento-pipeline.md) §6 LGPD):
 
 ```bash
 /curador consent maiara  # registra opt-in antes de scanear C:\Users\Maiara\
@@ -68,7 +68,7 @@ Registra opt-in pra scanear pasta de outro dev. Append em `db/consent.jsonl`:
 
 > **Bloqueio duro:** sem entrada em `consent.jsonl`, `discover.mjs --user <outro>` aborta com erro.
 
-## Buckets canônicos (do ADR 0121)
+## Buckets canônicos (do ADR 0124)
 
 | Bucket | Destino | Nunca commita | Reversível |
 |---|---|---|---|
@@ -81,7 +81,7 @@ Registra opt-in pra scanear pasta de outro dev. Append em `db/consent.jsonl`:
 
 ## Heurísticas (15+ regras em `lib/rules.mjs`)
 
-Aprendidas da triagem manual 2026-05-09. Detalhes no [ADR 0121](../../../memory/decisions/0121-curador-conhecimento-pipeline.md) §"Anti-padrões catalogados".
+Aprendidas da triagem manual 2026-05-09. Detalhes no [ADR 0124](../../../memory/decisions/0124-curador-conhecimento-pipeline.md) §"Anti-padrões catalogados".
 
 Resumo:
 1. **Clones OSS** (`/node_modules/`, `/\.git/objects/`, README+CONTRIBUTING+SECURITY+CODE_OF_CONDUCT raiz) → `discard`
@@ -147,7 +147,7 @@ Após cada batch, `report.mjs` imprime:
 
 ## Referências
 
-- [ADR 0121](../../../memory/decisions/0121-curador-conhecimento-pipeline.md) — decisão canônica
+- [ADR 0124](../../../memory/decisions/0124-curador-conhecimento-pipeline.md) — decisão canônica
 - [ADR 0061](../../../memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) — git/MCP é canônico
 - [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
 - [ADR 0105](../../../memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — cliente como sinal qualificado

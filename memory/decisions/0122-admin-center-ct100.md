@@ -13,13 +13,13 @@ references:
   - 0062-separacao-runtime-hostinger-ct100.md
   - 0093-multi-tenant-isolation-tier-0.md
   - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0121-curador-conhecimento-pipeline.md
+  - 0124-curador-conhecimento-pipeline.md
 lifecycle: active
 ---
 
 ## Contexto
 
-Wagner pediu **"administrador para gerenciar toda a infra da empresa"** — painel único que agrega visão de Curador (ADR 0121), health checks, time, Vaultwarden, MCP server, infra, brief diário, sessões Claude Code, e ADRs Tier 0 violados.
+Wagner pediu **"administrador para gerenciar toda a infra da empresa"** — painel único que agrega visão de Curador (ADR 0124), health checks, time, Vaultwarden, MCP server, infra, brief diário, sessões Claude Code, e ADRs Tier 0 violados.
 
 Hoje essa visão está fragmentada em:
 - `php artisan jana:health-check` (CLI, output em log)
@@ -94,7 +94,7 @@ Sprint 1 = MVP (~3-5 dias com IA-pair fator 10x [ADR 0106](0106-recalibracao-vel
 
 | # | Widget | Fonte | Esforço |
 |---|---|---|---|
-| W5 | **Curador** | `mcp_curador_batches` (criada na Fase 2 do [ADR 0121](0121-curador-conhecimento-pipeline.md)) | médio (precisa migration + API receive JSONL) |
+| W5 | **Curador** | `mcp_curador_batches` (criada na Fase 2 do [ADR 0124](0124-curador-conhecimento-pipeline.md)) | médio (precisa migration + API receive JSONL) |
 | W6 | **MCP server health** | `mcp_memory_documents` count, last `git_sha` sync, ping CT 100 | baixo |
 | W7 | **Vaultwarden** | API Vaultwarden (`vault.oimpresso.com:8200/api/`) com ADMIN_TOKEN | médio (parser de itens com tag `cert-vencendo-30d`) |
 | W8 | **Sessões Claude Code** | `cc_watcher_sessions` (já populada via `oimpresso-cc-watcher-setup` skill) | baixo |

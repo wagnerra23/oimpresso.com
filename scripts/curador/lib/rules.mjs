@@ -1,5 +1,5 @@
 // 18 heurísticas determinísticas pra classificar arquivos sem custar Claude.
-// Aprendidas da triagem manual 2026-05-09 (ADR 0121).
+// Aprendidas da triagem manual 2026-05-09 (ADR 0124).
 //
 // Cada regra recebe: { path, sizeBytes, mtime, extension, basename, dirname, md5 }
 // Retorna: { bucket, subDestination, sensitiveFlags, ruleMatched, confidence } | null
