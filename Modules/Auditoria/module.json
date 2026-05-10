@@ -1,0 +1,11 @@
+{
+    "name": "Auditoria",
+    "alias": "auditoria",
+    "description": "Camada de governança transversal — UI rica /auditoria + undo sobre activity_log existente. Distingue User vs IA (causer_kind). Whitelist UNREVERTIBLE de 5 categorias. Per ADR 0127.",
+    "keywords": ["auditoria", "audit", "activity-log", "undo", "governanca", "lgpd"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Auditoria\\Providers\\AuditoriaServiceProvider"
+    ],
+    "files": []
+}
