@@ -100,3 +100,88 @@ it('VaultEncryptionService é singleton no container', function () {
     $second = app(VaultEncryptionService::class);
     expect($first)->toBe($second);
 });
+
+// ─── Testes cap de tamanho Sprint 2 (ADR 0126) ───────────────────────────────
+
+it('putEncrypted lança RuntimeException quando contents excede cap 50MB', function () {
+    // Usa config override pra evitar alocar 51MB em memória nos testes
+    config(['arquivos.vault_max_file_size_mb' => 1]);
+
+    $vault    = new VaultEncryptionService();
+    $tooBig   = str_repeat('x', 1 * 1024 * 1024 + 1); // 1MB + 1 byte
+
+    expect(fn () => $vault->putEncrypted('vault-test', 'biz-1/big.bin', $tooBig))
+        ->toThrow(\RuntimeException::class, 'cap');
+});
+
+it('putEncrypted menciona ADR 0126 na mensagem de erro', function () {
+    config(['arquivos.vault_max_file_size_mb' => 1]);
+
+    $vault  = new VaultEncryptionService();
+    $tooBig = str_repeat('x', 1 * 1024 * 1024 + 1);
+
+    expect(fn () => $vault->putEncrypted('vault-test', 'biz-1/big.bin', $tooBig))
+        ->toThrow(\RuntimeException::class, 'ADR 0126');
+});
+
+it('putFileEncrypted lança RuntimeException quando UploadedFile size excede cap', function () {
+    config(['arquivos.vault_max_file_size_mb' => 1]);
+
+    $vault = new VaultEncryptionService();
+
+    // UploadedFile com size customizado (simulando arquivo grande sem alocar memória)
+    $tmp = tempnam(sys_get_temp_dir(), 'vault-test-big-');
+    file_put_contents($tmp, 'small-actual-content');
+
+    // Subclasse anônima pra sobrescrever getSize() sem alocar memória real
+    $bigFile = new class($tmp, 'big.bin', 'application/octet-stream', null, true) extends UploadedFile {
+        public function getSize(): int
+        {
+            return 2 * 1024 * 1024; // 2MB — excede cap de 1MB do config override
+        }
+    };
+
+    expect(fn () => $vault->putFileEncrypted('vault-test', 'biz-1/big.bin', $bigFile))
+        ->toThrow(\RuntimeException::class, 'cap');
+
+    @unlink($tmp);
+});
+
+it('respeita override config vault_max_file_size_mb — rejeita em 11MB quando config=10', function () {
+    config(['arquivos.vault_max_file_size_mb' => 10]);
+
+    $vault  = new VaultEncryptionService();
+    $tooBig = str_repeat('x', 10 * 1024 * 1024 + 1); // 10MB + 1 byte
+
+    expect(fn () => $vault->putEncrypted('vault-test', 'biz-1/over10mb.bin', $tooBig))
+        ->toThrow(\RuntimeException::class);
+});
+
+it('aceita conteúdo exatamente no limite do cap configurado', function () {
+    config(['arquivos.vault_max_file_size_mb' => 1]);
+
+    $vault    = new VaultEncryptionService();
+    $exactly  = str_repeat('x', 1 * 1024 * 1024); // exatamente 1MB
+
+    // Não deve lançar exceção
+    $result = $vault->putEncrypted('vault-test', 'biz-1/exactly.bin', $exactly);
+    expect($result)->toBeTrue();
+});
+
+it('lança RuntimeException de config quando vault_max_file_size_mb<=0', function () {
+    config(['arquivos.vault_max_file_size_mb' => 0]);
+
+    $vault = new VaultEncryptionService();
+
+    expect(fn () => $vault->putEncrypted('vault-test', 'biz-1/any.bin', 'qualquer'))
+        ->toThrow(\RuntimeException::class, 'vault_max_file_size_mb deve ser > 0');
+});
+
+it('lança RuntimeException de config quando vault_max_file_size_mb negativo', function () {
+    config(['arquivos.vault_max_file_size_mb' => -5]);
+
+    $vault = new VaultEncryptionService();
+
+    expect(fn () => $vault->putEncrypted('vault-test', 'biz-1/any.bin', 'qualquer'))
+        ->toThrow(\RuntimeException::class, 'ADR 0126');
+});
