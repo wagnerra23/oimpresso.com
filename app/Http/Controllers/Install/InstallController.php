@@ -264,6 +264,13 @@ class InstallController extends Controller
 
     public function installAlternate(Request $request)
     {
+        // SEC: prevent destructive re-install via public HTTP (US-INFRA-008).
+        // Bug detectado em audit pré-Sprint 1: rota chamava migrate:fresh --force sem
+        // qualquer guard, permitindo wipe da DB de produção por requisição não-autenticada.
+        if ($this->isSystemAlreadyInstalled()) {
+            abort(403, 'Sistema já instalado. Reinstalação via web não é permitida.');
+        }
+
         try {
             $this->installSettings();
 
@@ -282,6 +289,27 @@ class InstallController extends Controller
 
             return redirect()->back()
                 ->with('error', 'Something went wrong, please try again!!');
+        }
+    }
+
+    /**
+     * Heuristic guard: returns true if the system already has user/business data.
+     * Used to block destructive install endpoints from being called twice.
+     *
+     * Defense-in-depth com a regra de rota (throttle) e ADR 0093 (multi-tenant Tier 0).
+     */
+    protected function isSystemAlreadyInstalled(): bool
+    {
+        try {
+            $hasUsers = DB::table('users')->limit(1)->count() > 0;
+            if ($hasUsers) {
+                return true;
+            }
+            $hasBusiness = DB::table('business')->limit(1)->count() > 0;
+            return $hasBusiness;
+        } catch (\Throwable $e) {
+            // Tabelas não existem = primeira instalação legítima
+            return false;
         }
     }
 
