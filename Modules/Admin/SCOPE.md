@@ -11,10 +11,15 @@
 | US-ADM-001 scaffold | ✅ Sprint 1 (este PR) | módulo nWidart, 3 rotas Install + /admin |
 | US-ADM-002 Traefik+DNS | ⏳ pendente Wagner | DNS A admin.oimpresso.com → 100.99.207.66 + container CT 100 |
 | US-ADM-003 auth gate | ✅ Sprint 1 (este PR) | IsWagner + TailscaleOnly middleware + audit log migration |
-| US-ADM-004 Page shell | 🟡 placeholder | IndexController invoca Inertia 'Admin/Index'; .tsx pendente Sprint 1 |
-| US-ADM-005..008 widgets | ⏳ Sprint 1 dia 3-4 | Brief/Health/Cycles/ADRs Tier 0 |
-| US-ADM-009 Pest | 🟡 placeholder | matriz 6 cenários pendente |
-| US-ADM-010 smoke | ⏳ pendente Wagner | precisa Tailscale ativo + DNS resolvendo |
+| US-ADM-004 Page shell | ✅ Sprint 1 dia 3 | Pages/Admin/Index.tsx + 4 widget components React + charter |
+| US-ADM-005 Brief widget | ✅ Sprint 1 dia 3 | BriefAdapter (cache 5min) + WidgetBrief preview markdown |
+| US-ADM-006 Health widget | ✅ Sprint 1 dia 3 | HealthSnapshotReader + WidgetHealth (lê snapshot file) |
+| US-ADM-007 Cycles widget | ✅ Sprint 1 dia 3 | CyclesAggregator + WidgetCycles (mcp_cycles+mcp_tasks) |
+| US-ADM-008 ADR Tier 0 widget | ✅ Sprint 1 dia 3 | AdrAlertReader reusa snapshot + top-bar alerta vermelha |
+| US-ADM-009 Pest | 🟡 parcial | scaffold + 2 testes graceful adapters; matriz 6 cenários auth pendente Sprint 1 dia 5 |
+| US-ADM-010 smoke | ⏳ pendente Wagner | Tailscale + DNS resolvendo OU `ADMIN_BYPASS_LOCAL=true` em dev local |
+
+**Bypass DEV** (Sprint 1 dia 3): adicionado `config('admin.bypass_local')` em `IsWagner` + `TailscaleOnly`. Em `APP_ENV=local` + `.env ADMIN_BYPASS_LOCAL=true`, ambos middlewares passam direto. Wagner testa local sem Tailscale.
 
 ## Não-goals
 
