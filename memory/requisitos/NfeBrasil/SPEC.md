@@ -993,3 +993,80 @@ US-fix adicionais criadas:
 
 Total de gaps NfeBrasil convertidos em US-fix: **3 de 3 detectados.**
 
+
+### US-NFE-061 · Charters NFe (Certificado, Tributacao, Manifestacao) antes dos 4 PRs Manifestação
+
+> owner: wagner · sprint: cycle-04 · priority: p0 · estimate: 1.5h · status: done · type: story
+> blocked_by: —
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 3 Charter — ❌ AUSENTE).
+
+**Evidência:** Glob `resources/js/Pages/NfeBrasil/**/*.charter.md` retornou vazio. Telas Certificado, Tributacao e Manifestacao são P0 e Wagner abriu 4 PRs Manifestação hoje — risco de mergear sem charter.
+
+**Fix executado:** rodada skill `charter-write` 3× → criados 3 `.charter.md` ao lado dos `.tsx` → Wagner aprovou Mission/Goals/Non-Goals/Anti-hooks → marcou `status: live`.
+
+**Acceptance criteria:**
+- [x] `resources/js/Pages/NfeBrasil/Configuracao/Certificado.charter.md` criado, status:live
+- [x] `resources/js/Pages/NfeBrasil/Tributacao/Index.charter.md` criado, status:live
+- [x] `resources/js/Pages/NfeBrasil/Manifestacao/Index.charter.md` criado, status:live
+- [x] 11 seções obrigatórias preenchidas (Mission / Goals / Non-Goals / Anti-hooks / UX targets / Automation hooks / Métricas / Comparáveis / Refs / Histórico)
+- [x] Wagner aprovou Non-Goals + Anti-hooks de cada um (mesmo dia)
+
+**Disparo:** Auditoria de completude 2026-05-10 (skill `module-completeness-audit` v0.1.0). Bloqueava merge dos 4 PRs Manifestação NFe — desbloqueado em PR #499.
+
+**Tags:** completeness-gap, from-skill, audit-2026-05-10
+
+### US-NFE-062 · AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao)
+
+> owner: — · sprint: cycle-04 · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 6 AuditLog — 🟡 PARCIAL).
+
+**Evidência:** Grep negativo em `Modules/NfeBrasil/Http/Controllers/*.php` — nenhuma chamada a `AuditLog::log`, `->logActivity()` ou `audit()`. Mutações fiscais (toggleAutoEmission, upload certificado, cienciar/confirmar/desconhecer/naoRealizada) sem trail centralizado. Compliance fraca + debugging difícil.
+
+**Fix sugerido:** integrar Spatie Activitylog (mesmo pattern de `Modules/RecurringBilling/Http/Controllers/InvoiceController.php:97-121`):
+```php
+activity('nfe.tributacao')
+    ->causedBy(auth()->user())
+    ->withProperties(['business_id' => $businessId, 'before' => $before, 'after' => $after])
+    ->log('toggle_auto_emission');
+```
+
+**Acceptance criteria:**
+- [ ] `TributacaoController::toggleAutoEmission` loga (já implementado linha 105-112; manter)
+- [ ] `CertificadoController::upload/destroy` logam
+- [ ] `ManifestacaoController::cienciar/confirmar/desconhecer/naoRealizada` logam
+- [ ] Toda mensagem inclui `business_id` em properties (filter por tenant)
+- [ ] Pest test valida que `activity_log` recebe entry após mutation
+
+**Disparo:** Auditoria de completude 2026-05-10.
+**Tags:** completeness-gap, from-skill, audit-2026-05-10
+
+### US-NFE-063 · Smoke Browser MCP fresh (screenshot+console) para fluxos Certificado/Auto-emission/Manifestacao
+
+> owner: — · sprint: cycle-04 · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 8 Browser MCP smoke — 🟡 PARCIAL).
+
+**Evidência:** RUNBOOK-smoke-sefaz.md fresh (2026-05-10) mas **sem screenshot/console capture** via Browser MCP automatizado. Apenas docs operacionais; não tem evidência visual reproduzível.
+
+**Fix sugerido:** rodar `mcp__Claude_in_Chrome__*` em sequência pra cada fluxo principal:
+1. `/nfe-brasil/configuracao/certificado` (upload + valida vencimento)
+2. `/nfe-brasil/tributacao` (toggle auto_emission_nfce)
+3. `/nfe-brasil/manifestacao` (lista DFes recebidas + cienciar)
+
+Salvar em `memory/requisitos/NfeBrasil/smoke-2026-05-10.md`:
+- Screenshots binary inline ou link (Wagner aprova exposição)
+- `read_console_messages` filtrado por `error|Error|exception|TypeError|ReferenceError` (deve ser vazio)
+- Data + biz=1 (não cliente real, ADR 0101)
+
+**Acceptance criteria:**
+- [ ] 3 screenshots dos fluxos
+- [ ] Console clean (zero exceptions) em cada um
+- [ ] Salvo em memory/requisitos/NfeBrasil/smoke-2026-05-10.md
+- [ ] Push antes do go-live `NFEBRASIL_AUTO_EMISSION_NFCE=true`
+
+**Disparo:** Auditoria de completude 2026-05-10.
+**Tags:** completeness-gap, from-skill, audit-2026-05-10, smoke-mcp
