@@ -61,6 +61,7 @@ class TituloAutoService
         $valorPago = $valorTotal - $valorAberto;
 
         return DB::transaction(function () use ($tx, $tipo, $origem, $valorTotal, $valorAberto, $valorPago) {
+            // SUPERADMIN: Observer Transaction sem session — business_id deduzido da Transaction recebida
             // Procura existente pra preservar `numero` (idempotente).
             $existing = Titulo::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
@@ -72,6 +73,7 @@ class TituloAutoService
 
             $numero = $existing?->numero ?? $this->proximoNumero($tx->business_id, $tipo);
 
+            // SUPERADMIN: idem Observer — updateOrCreate com business_id da Transaction
             return Titulo::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
                 ->updateOrCreate(
@@ -89,9 +91,9 @@ class TituloAutoService
                         'valor_total' => $valorTotal,
                         'valor_aberto' => $valorAberto,
                         'moeda' => 'BRL',
-                        'emissao' => Carbon::parse($tx->transaction_date)->toDateString(),
+                        'emissao' => Carbon::parse($tx->transaction_date, config('app.timezone'))->toDateString(),
                         'vencimento' => $this->calcularVencimento($tx),
-                        'competencia_mes' => Carbon::parse($tx->transaction_date)->format('Y-m'),
+                        'competencia_mes' => Carbon::parse($tx->transaction_date, config('app.timezone'))->format('Y-m'),
                         'observacoes' => $tx->additional_notes,
                         'created_by' => $tx->created_by,
                         'metadata' => [
@@ -130,6 +132,7 @@ class TituloAutoService
             return null;
         }
 
+        // SUPERADMIN: Observer Transaction cancelarSeExistir — business_id da Transaction recebida
         $titulo = Titulo::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $tx->business_id)
@@ -178,6 +181,7 @@ class TituloAutoService
         }
 
         return DB::transaction(function () use ($tp, $tx, $origem) {
+            // SUPERADMIN: Observer TransactionPayment sem session — business_id da Transaction associada
             // Garante que Titulo existe (caso edge: pagamento veio antes/junto de
             // criar a transação).
             $titulo = Titulo::query()
@@ -194,6 +198,7 @@ class TituloAutoService
                 if (! $titulo) {
                     return null;
                 }
+                // SUPERADMIN: re-fetch com lock pelo ID recém-criado — Observer sem session
                 // Re-fetch com lock pra atualizar valor_aberto consistentemente.
                 $titulo = Titulo::query()
                     ->withoutGlobalScope(BusinessScopeImpl::class)
@@ -223,6 +228,7 @@ class TituloAutoService
             }
             $valor = (float) $tp->amount;
 
+            // SUPERADMIN: Observer TransactionPayment registrarPagamento — INSERT TituloBaixa com business_id da Transaction
             $baixa = TituloBaixa::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
                 ->create([
@@ -231,8 +237,8 @@ class TituloAutoService
                     'conta_bancaria_id' => $contaBancaria->id,
                     'valor_baixa' => $valor,
                     'data_baixa' => $tp->paid_on
-                        ? Carbon::parse($tp->paid_on)->toDateString()
-                        : Carbon::now()->toDateString(),
+                        ? Carbon::parse($tp->paid_on, config('app.timezone'))->toDateString()
+                        : Carbon::now(config('app.timezone'))->toDateString(),
                     'meio_pagamento' => $this->mapearMeioPagamento($tp->method),
                     'idempotency_key' => $this->idempotencyKeyParaBaixa($tx->business_id, $tp),
                     'transaction_payment_id' => $tp->id,
@@ -243,6 +249,7 @@ class TituloAutoService
             // Recalcula valor_aberto a partir das baixas líquidas (criado - estornado).
             $this->recalcularTitulo($titulo);
 
+            // SUPERADMIN: Observer TransactionPayment — INSERT CaixaMovimento com business_id da Transaction
             // Cria CaixaMovimento — entrada se receber (venda paga), saída se pagar (compra paga).
             CaixaMovimento::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
@@ -287,12 +294,14 @@ class TituloAutoService
                 return null;
             }
 
+            // SUPERADMIN: Observer TransactionPayment cancelarPagamento — busca Titulo pelo id da baixa original (biz da baixa)
             $titulo = Titulo::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('id', $original->titulo_id)
                 ->lockForUpdate()
                 ->first();
 
+            // SUPERADMIN: idem cancelarPagamento — INSERT estorno com business_id da baixa original
             // Cria baixa de estorno (valor negativo + estorno_de_id apontando).
             $estorno = TituloBaixa::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
@@ -301,7 +310,7 @@ class TituloAutoService
                     'titulo_id' => $original->titulo_id,
                     'conta_bancaria_id' => $original->conta_bancaria_id,
                     'valor_baixa' => -1 * (float) $original->valor_baixa,
-                    'data_baixa' => Carbon::now()->toDateString(),
+                    'data_baixa' => Carbon::now(config('app.timezone'))->toDateString(),
                     'meio_pagamento' => $original->meio_pagamento,
                     'idempotency_key' => $this->idempotencyKeyParaEstorno((int) $tp->business_id, $tp, $original),
                     'transaction_payment_id' => $tp->id,
@@ -313,6 +322,7 @@ class TituloAutoService
             // Recalcula valor_aberto do título.
             $this->recalcularTitulo($titulo);
 
+            // SUPERADMIN: cancelarPagamento — busca movimento original pelo origem_id da baixa (biz preservado pela FK)
             // Lança CaixaMovimento oposto pra reverter o ledger.
             $movimentoOriginal = CaixaMovimento::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
@@ -321,6 +331,7 @@ class TituloAutoService
                 ->first();
 
             if ($movimentoOriginal) {
+                // SUPERADMIN: idem — INSERT estorno CaixaMovimento com business_id do movimento original
                 CaixaMovimento::query()
                     ->withoutGlobalScope(BusinessScopeImpl::class)
                     ->create([
@@ -328,7 +339,7 @@ class TituloAutoService
                         'conta_bancaria_id' => $movimentoOriginal->conta_bancaria_id,
                         'tipo' => 'ajuste',
                         'valor' => $movimentoOriginal->valor,
-                        'data' => Carbon::now()->toDateString(),
+                        'data' => Carbon::now(config('app.timezone'))->toDateString(),
                         'saldo_apos' => 0,
                         'origem_tipo' => 'titulo_baixa',
                         'origem_id' => $estorno->id,
@@ -353,6 +364,7 @@ class TituloAutoService
      */
     public function recalcularTitulo(Titulo $titulo): void
     {
+        // SUPERADMIN: Observer/Job sem session — soma baixas pelo titulo_id (biz preservado pela FK Titulo)
         $somaBaixas = (float) TituloBaixa::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->where('titulo_id', $titulo->id)
@@ -388,10 +400,10 @@ class TituloAutoService
     private function calcularVencimento(Transaction $tx): string
     {
         if (! empty($tx->due_date)) {
-            return Carbon::parse($tx->due_date)->toDateString();
+            return Carbon::parse($tx->due_date, config('app.timezone'))->toDateString();
         }
 
-        $base = Carbon::parse($tx->transaction_date);
+        $base = Carbon::parse($tx->transaction_date, config('app.timezone'));
 
         if (! empty($tx->pay_term_number) && ! empty($tx->pay_term_type)) {
             return ($tx->pay_term_type === 'months'
@@ -411,6 +423,7 @@ class TituloAutoService
     {
         $prefix = $tipo === 'receber' ? 'R' : 'P';
 
+        // SUPERADMIN: Observer/Job sem session — sequencial business-isolado, business_id explícito como param
         $ultimo = Titulo::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $businessId)
@@ -442,6 +455,7 @@ class TituloAutoService
     private function resolverContaBancaria(int $businessId, ?int $accountId): ?ContaBancaria
     {
         if ($accountId) {
+            // SUPERADMIN: Observer/Job sem session — busca conta por account_id (UltimatePOS) + business_id explícito
             $conta = ContaBancaria::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('business_id', $businessId)
@@ -453,6 +467,7 @@ class TituloAutoService
             }
         }
 
+        // SUPERADMIN: fallback conta ativa pra boleto — sem session, business_id explícito
         $conta = ContaBancaria::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $businessId)
@@ -464,6 +479,7 @@ class TituloAutoService
             return $conta;
         }
 
+        // SUPERADMIN: último recurso — primeira conta do business sem filtro boleto
         return ContaBancaria::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $businessId)
@@ -493,6 +509,7 @@ class TituloAutoService
      */
     private function baixaAtivaPorTp(int $businessId, TransactionPayment $tp): ?TituloBaixa
     {
+        // SUPERADMIN: Observer/Job sem session — busca baixa ativa por transaction_payment_id + business_id explícito
         return TituloBaixa::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $businessId)
@@ -515,6 +532,7 @@ class TituloAutoService
     {
         $base = 'tp_' . $tp->id;
 
+        // SUPERADMIN: Observer/Job sem session — checa idempotência por transaction_payment_id + business_id explícito
         // Se ainda nenhuma baixa pra esse tp, usa key simples.
         $temBaixaAnterior = TituloBaixa::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
@@ -527,6 +545,7 @@ class TituloAutoService
             return $base;
         }
 
+        // SUPERADMIN: idem — conta versões prévias pra gerar sufixo _v<N>
         // Conta versões prévias e gera sufixo.
         $versoes = TituloBaixa::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
