@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Modules\Arquivos\Entities\Arquivo;
+use Modules\Arquivos\Services\VaultEncryptionService;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -26,7 +28,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class DownloadController extends Controller
 {
-    public function __invoke(Request $request, int $arquivo): StreamedResponse
+    public function __invoke(Request $request, int $arquivo, VaultEncryptionService $vault): Response|StreamedResponse
     {
         // Signed URL middleware (Laravel) já valida expiração + assinatura HMAC.
         // Aqui foco em business_id scope + audit + stream.
@@ -39,10 +41,24 @@ class DownloadController extends Controller
 
         $this->audit($row, 'signed_url_consumed', $request);
 
-        $disk = Storage::disk($row->disk ?: 'arquivos');
+        $diskName = $row->disk ?: 'arquivos';
+        $disk = Storage::disk($diskName);
 
         if (! $disk->exists($row->storage_path)) {
             abort(404, 'Arquivo não encontrado no storage.');
+        }
+
+        // Bucket=sensitive em disk=vault: encrypted-at-rest, decrypt antes de servir
+        // (ADR 0123 §3). Storage::download serviria ciphertext direto pro cliente.
+        if ($row->encrypted) {
+            $plain = $vault->getDecrypted($diskName, $row->storage_path);
+            if ($plain === null) {
+                abort(404, 'Arquivo não encontrado no storage (decrypt).');
+            }
+            return response($plain, 200, [
+                'Content-Type'        => $row->mime_type ?: 'application/octet-stream',
+                'Content-Disposition' => 'attachment; filename="' . addslashes($row->original_name) . '"',
+            ]);
         }
 
         return $disk->download(
