@@ -31,7 +31,7 @@ Módulo permanece `feature-wish` ([ADR 0105](decisions/0105-cliente-como-sinal-g
 
 **Wagner depois de mergear #403:** próxima vez que abrir 2ª/3ª sessão, rodar `.\tools\new-claude-session.ps1 -Name <escopo>` em vez de abrir direto na raiz.
 
-### (C) PR [#404](https://github.com/wagnerra23/oimpresso.com/pull/404) — Decision sheet pré-Sprint 1 pra Felipe segunda
+### (C) PR [#405](https://github.com/wagnerra23/oimpresso.com/pull/405) — Decision sheet pré-Sprint 1 pra Felipe segunda
 
 Companion do `_AGENT_A_AUDIT_FINDINGS.md`: cada um dos 4 críticos pendentes (#3-#6) reformatado em **Opção A vs B + recomendação + custo/esforço**. Felipe abre segunda 2026-05-11, lê em 15min, decide D1-D4, implementa em ~1.5h, roda Pest local, abre PR US-INFRA-012.
 
@@ -56,7 +56,7 @@ Recomendações são autoritativas → Wagner+Felipe ainda mandam. Se discordare
 ### Próxima Claude pega assim
 
 1. Lê este bloco + bloco "Estado pós-2026-05-10" abaixo (sessão manhã)
-2. Confirma que PR #400, #403, #404 mergearam (`gh pr list --state merged --limit 10`)
+2. Confirma que PR #400, #403, #405 mergearam (`gh pr list --state merged --limit 10`)
 3. Se Felipe atacou US-INFRA-012, pula pra próximo item da Sprint 1
 4. Se Vargas voltou com sinal Q4/26, ativa Modules/Autopecas via ADR de promoção (`feature-wish` → `accepted`)
 5. **Se for abrir trabalho paralelo:** usa `tools/new-claude-session.ps1` (após #403 mergeado)
