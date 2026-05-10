@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Tests\Helpers\AdminAuthHelper;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * US-ADM-009 — Matriz 6 cenários auth gate Modules/Admin (Sprint 1 dia 5).

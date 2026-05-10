@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Modules\Repair\Entities\JobSheet;
 use Tests\TestCase;
 
-uses(TestCase::class)->in(__DIR__);
+uses(TestCase::class);
 
 /**
  * US-REPA-002 — Pest snapshot pós-refactor Caminho A (vocabulário shared).

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\File;
 use Modules\Jana\Services\MemoriaAutonoma\SinteseSemanalService;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * Fase 1 MemoriaAutonoma — golden tests do comando copiloto:sintese-semanal.

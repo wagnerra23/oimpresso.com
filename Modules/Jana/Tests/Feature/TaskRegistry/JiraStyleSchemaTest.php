@@ -23,7 +23,7 @@ use Modules\Jana\Entities\Mcp\McpTaskDependency;
  *   - Cycle.progressPercent calcula
  */
 
-uses(Tests\TestCase::class, RefreshDatabase::class)->in(__DIR__);
+uses(Tests\TestCase::class, RefreshDatabase::class);
 
 it('cria projeto + alloc identifier sequencial', function () {
     $proj = McpProject::create([
