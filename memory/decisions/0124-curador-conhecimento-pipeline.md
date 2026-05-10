@@ -1,5 +1,5 @@
 ---
-adr: 0121
+adr: 0124
 title: Curador — pipeline canônico de ingestão de conhecimento (computador → empresa → MCP)
 status: proposed
 date: 2026-05-09

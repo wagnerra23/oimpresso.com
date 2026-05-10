@@ -12,7 +12,7 @@ references:
   - 0062-separacao-runtime-hostinger-ct100.md
   - 0093-multi-tenant-isolation-tier-0.md
   - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0121-curador-conhecimento-pipeline.md
+  - 0124-curador-conhecimento-pipeline.md
   - 0122-admin-center-ct100.md
 lifecycle: active
 ---
@@ -30,7 +30,7 @@ Hoje cada módulo lida com seus anexos isolado:
 
 Resultado: **fragmentação total** — sem busca unificada, sem dedupe cross-módulo, sem audit log unificado, sem retenção/LGPD política única, sem signed-URL, classificação ad-hoc.
 
-Curador ([ADR 0121](0121-curador-conhecimento-pipeline.md)) e Admin Center ([ADR 0122](0122-admin-center-ct100.md)) sozinhos não resolvem isso — Curador é pipeline de **ingestão** filesystem-aware (D:\Conhecimento), Admin é **UI de governança**. Falta o **backbone storage**.
+Curador ([ADR 0124](0124-curador-conhecimento-pipeline.md)) e Admin Center ([ADR 0122](0122-admin-center-ct100.md)) sozinhos não resolvem isso — Curador é pipeline de **ingestão** filesystem-aware (D:\Conhecimento), Admin é **UI de governança**. Falta o **backbone storage**.
 
 ## Decisão
 
@@ -265,5 +265,5 @@ Cap-passada → 413 + log. MIME-rejeitado → 415 + log.
 
 - ADR 0123 é proposta (status `proposed`). Wagner aprova ou rejeita após revisar princípios duros.
 - Sprint 1 NÃO começa até ADR estar `accepted`.
-- ADR 0121 (Curador) é amendado: Curador-engine vira biblioteca compartilhada (`scripts/curador/lib/rules.mjs` + `Modules/Arquivos/Services/CuradorEngine.php`).
+- ADR 0124 (Curador) é amendado: Curador-engine vira biblioteca compartilhada (`scripts/curador/lib/rules.mjs` + `Modules/Arquivos/Services/CuradorEngine.php`).
 - ADR 0122 (Admin) é amendado: `Pages/Arquivos/*` substitui `Pages/Curador/*`.

@@ -2,7 +2,7 @@
 
 > Ler todo o computador → separar por usuário → organizar → alimentar o oimpresso.
 > Heurística-first (70-80% determinístico), Claude-second (só ambíguos), humano-gateado.
-> ADR canônico: [0121](../../memory/decisions/0121-curador-conhecimento-pipeline.md).
+> ADR canônico: [0124](../../memory/decisions/0124-curador-conhecimento-pipeline.md).
 > Skill no Claude Code: `/curador <subcomando>` (`.claude/skills/curador/SKILL.md`).
 
 ## Por que existe
@@ -112,7 +112,7 @@ Sem entrada em `consent.jsonl`, `discover.mjs --user <outro>` aborta.
 
 ## Heurísticas (18 — `lib/rules.mjs`)
 
-Ver [ADR 0121 §"Anti-padrões catalogados"](../../memory/decisions/0121-curador-conhecimento-pipeline.md).
+Ver [ADR 0124 §"Anti-padrões catalogados"](../../memory/decisions/0124-curador-conhecimento-pipeline.md).
 
 ## FAQ
 
