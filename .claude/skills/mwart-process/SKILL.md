@@ -3,7 +3,7 @@ name: mwart-process
 description: Use SEMPRE que o trabalho envolva migrar tela Blade legacy → Inertia/React no oimpresso (MWART). Carrega o processo canônico ÚNICO definido em ADR 0104 — 5 fases obrigatórias e sequenciais (PLAN → BACKEND BASELINE → FRONTEND INCREMENTAL → QA → CUTOVER). Não há caminho alternativo. Ativa quando o pedido é "migrar tela X pra MWART", "criar tela em Pages/<Mod>/<Tela>.tsx", "migrar Blade pra React", ou quando Edit/Write em qualquer `resources/js/Pages/<Mod>/<Tela>.tsx` ou em controller chamando `Inertia::render`.
 tier: A
 status: active
-version: 1.0
+version: 1.1
 authority: canonical
 ---
 
@@ -77,14 +77,28 @@ RUNBOOK + SPEC → BASELINE      → INCREMENTAL     → HARDENING        → + 
 - [ ] Após 30d sem incidente: deletar Blade legacy + branch dual + comando artisan
 - [ ] Audit final do `Pages/<Mod>/<Tela>.tsx` ≥ 80
 
+## Adapção por tipo de módulo (F0 — antes de F1)
+
+Antes de F1 PLAN, **classificar o módulo alvo**. Diferentes tipos = diferentes decisões em placement no menu, perfil de teste e cutover:
+
+| Tipo | Exemplos | Placement no menu React | Cutover F5 | RUNBOOK exemplar |
+|---|---|---|---|---|
+| **Operativo** (uso day-to-day cliente) | Sells, Repair, Financeiro, NfeBrasil | Menu principal (sidebar grupos via `SIDEBAR_GROUPS` em `shared.ts`) | Aviso prévio cliente + canary 7d + monitor 30d | [RUNBOOK Sells/create](../../memory/requisitos/Sells/RUNBOOK-create.md) |
+| **Superadmin** (admin de plataforma) | Officeimpresso, CMS, Backup, Conector, Módulos | **APENAS cascata "Superadmin" do user dropdown footer** via `SUPERADMIN_LABELS` em `shared.ts:157`. NUNCA menu principal nem topnav. | Sem cliente externo → cutover sem janela de manutenção | [RUNBOOK Officeimpresso](../../memory/requisitos/Officeimpresso/RUNBOOK-migracao-react.md) |
+| **Público** (clientes finais sem login) | Catalogue QR, Status reparo público | Rota separada, layout próprio sem AppShellV2 | Cache CDN + canary IP-based | (criar quando aparecer) |
+
+**Pegadinhas específicas catalogadas em [`mwart-quality`](../mwart-quality/SKILL.md) Checks 11-12** — ler ANTES de F2 backend baseline em módulo superadmin (parent dropdown sem `url` + Spatie perm `superadmin` ausente).
+
 ## Anti-padrões (NUNCA fazer)
 
 - ❌ **Pular F1** (codar antes de RUNBOOK + SPEC) — bloqueado por hook + CI gate
 - ❌ **Pular F2** (mexer no controller `Inertia::render` sem Pest baseline) — bloqueado
+- ❌ **Pular F0** (não classificar tipo do módulo) — gera placement errado no menu (ex: módulo superadmin vazando pro menu principal polui UX)
 - ❌ **Audit modo B pós-merge** — sempre antes do PR mergear, não depois
 - ❌ **Habilitar flag em cliente real (biz≠1) sem F4 completa** — quebra ROTA LIVRE; auto-mem `feedback_test_business_id_1_nunca_4` é IRREVOGÁVEL
 - ❌ **PR > 300 LOC** ou **mistura intents** — quebra `commit-discipline` Tier A
 - ❌ **Caminho alternativo** "rápido" — não existe. Velocidade aparente vira refactor caro depois.
+- ❌ **Módulo superadmin no menu principal** ou topnav — viola regra `SUPERADMIN_LABELS` (skill `sidebar-menu-arch`); cliente fim-usuário NÃO deve ver entrada de admin de plataforma
 
 ## Como cuidar (3 camadas de enforcement)
 
@@ -106,11 +120,14 @@ Sem `/mwart-override`, gates não cedem. Iniciante (`[L]`), esposa (`[E]`), Maí
 
 - [ADR 0104 — Processo MWART canônico](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — documento mãe
 - [Skill cockpit-runbook](../cockpit-runbook/SKILL.md) — gera RUNBOOK + audit modo B
-- [Skill mwart-quality](../mwart-quality/SKILL.md) — pré-flight checks na implementação
+- [Skill mwart-quality](../mwart-quality/SKILL.md) — pré-flight checks na implementação (incluindo Checks 11-12 superadmin)
+- [Skill sidebar-menu-arch](../sidebar-menu-arch/SKILL.md) — placement de menu (DataController + SUPERADMIN_LABELS)
 - [Skill commit-discipline](../commit-discipline/SKILL.md) — Tier A; 1 PR = 1 intent ≤300 LOC
 - [Skill multi-tenant-patterns](../multi-tenant-patterns/SKILL.md) — Tier A; `business_id` global scope
 - [GOTCHAS](../cockpit-runbook/GOTCHAS.md) — bugs catalogados que motivaram este processo
+- [RUNBOOK exemplar Sells/create](../../memory/requisitos/Sells/RUNBOOK-create.md) — módulo operativo
+- [RUNBOOK exemplar Officeimpresso/migracao-react](../../memory/requisitos/Officeimpresso/RUNBOOK-migracao-react.md) — módulo superadmin
 
 ---
 
-**Última atualização:** 2026-05-08
+**Última atualização:** 2026-05-10 — v1.1 adiciona F0 (classificação por tipo de módulo) + regra placement superadmin
