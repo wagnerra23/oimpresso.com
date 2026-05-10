@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\NfeBrasil\Models\NfeEmissao;
@@ -14,80 +15,122 @@ uses(Tests\TestCase::class);
 /**
  * US-NFE-040 foundation · Models de domínio NfeBrasil.
  *
- * Tests sem RefreshDatabase (migrations UltimatePOS quebram SQLite —
- * ver BoletoServiceTest pra contexto). Cria as 4 tabelas manualmente.
+ * Pattern dual-mode (PR #486 reference):
+ *   - SQLite (CI sanity): drop+create as 4 tabelas isolado em :memory:
+ *   - MySQL (Pest local — gate Wagner): preserva schema real;
+ *     limpa rows biz=1/99 com FK_CHECKS=0 nas tabelas tocadas.
+ *     `nfe_certificados` cascateia em nfse_provider_configs.cert_id.
+ *     `nfe_emissoes` cascateia em nfe_eventos.emissao_id.
  */
 
 beforeEach(function () {
-    foreach (['nfe_eventos', 'nfe_emissoes', 'nfe_certificados', 'nfe_inutilizacoes'] as $t) {
-        Schema::dropIfExists($t);
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (['nfe_eventos', 'nfe_emissoes', 'nfe_certificados', 'nfe_inutilizacoes'] as $t) {
+            Schema::dropIfExists($t);
+        }
+
+        Schema::create('nfe_certificados', function ($table) {
+            $table->id();
+            $table->unsignedInteger('business_id')->index();
+            $table->uuid('uuid')->unique();
+            $table->string('cnpj_titular', 14)->index();
+            $table->date('valido_ate')->index();
+            $table->text('encrypted_password');
+            $table->boolean('ativo')->default(true);
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::create('nfe_emissoes', function ($table) {
+            $table->id();
+            $table->unsignedInteger('business_id')->index();
+            $table->unsignedInteger('transaction_id')->nullable();
+            $table->string('modelo', 2);
+            $table->string('serie', 3);
+            $table->unsignedInteger('numero');
+            $table->string('chave_44', 44)->nullable()->index();
+            $table->string('status', 20)->default('pendente')->index();
+            $table->string('cstat', 5)->nullable();
+            $table->text('motivo')->nullable();
+            $table->string('xml_path', 255)->nullable();
+            $table->string('danfe_path', 255)->nullable();
+            $table->decimal('valor_total', 15, 2);
+            $table->dateTime('emitido_em')->nullable();
+            $table->json('metadata')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->unique(['business_id', 'transaction_id'], 'biz_tx_unq');
+            $table->unique(['business_id', 'modelo', 'serie', 'numero'], 'biz_seq_unq');
+        });
+
+        Schema::create('nfe_eventos', function ($table) {
+            $table->id();
+            $table->unsignedInteger('business_id')->index();
+            $table->foreignId('emissao_id')->constrained('nfe_emissoes')->cascadeOnDelete();
+            $table->string('tipo', 6)->index();
+            $table->text('justificativa')->nullable();
+            $table->string('status', 20)->default('pendente')->index();
+            $table->string('cstat_evento', 5)->nullable();
+            $table->json('payload_json')->nullable();
+            $table->timestamp('created_at')->useCurrent();
+        });
+
+        Schema::create('nfe_inutilizacoes', function ($table) {
+            $table->id();
+            $table->unsignedInteger('business_id')->index();
+            $table->string('modelo', 2);
+            $table->string('serie', 3);
+            $table->unsignedInteger('numero_de');
+            $table->unsignedInteger('numero_ate');
+            $table->text('justificativa');
+            $table->string('status', 20)->default('pendente')->index();
+            $table->string('cstat', 5)->nullable();
+            $table->dateTime('autorizada_em')->nullable();
+            $table->json('payload_json')->nullable();
+            $table->timestamps();
+        });
+    } else {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        foreach (['nfe_eventos', 'nfe_inutilizacoes'] as $t) {
+            if (Schema::hasTable($t)) {
+                DB::table($t)->whereIn('business_id', [1, 5, 99])->delete();
+            }
+        }
+        if (Schema::hasTable('nfe_emissoes')) {
+            DB::table('nfe_emissoes')->whereIn('business_id', [1, 5, 99])->delete();
+        }
+        if (Schema::hasTable('nfe_certificados')) {
+            if (Schema::hasTable('nfse_provider_configs')) {
+                DB::table('nfse_provider_configs')->whereIn('business_id', [1, 5, 99])->delete();
+            }
+            DB::table('nfe_certificados')->whereIn('business_id', [1, 5, 99])->delete();
+        }
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
-
-    Schema::create('nfe_certificados', function ($table) {
-        $table->id();
-        $table->unsignedInteger('business_id')->index();
-        $table->uuid('uuid')->unique();
-        $table->string('cnpj_titular', 14)->index();
-        $table->date('valido_ate')->index();
-        $table->text('encrypted_password');
-        $table->boolean('ativo')->default(true);
-        $table->timestamps();
-        $table->softDeletes();
-    });
-
-    Schema::create('nfe_emissoes', function ($table) {
-        $table->id();
-        $table->unsignedInteger('business_id')->index();
-        $table->unsignedInteger('transaction_id')->nullable();
-        $table->string('modelo', 2);
-        $table->string('serie', 3);
-        $table->unsignedInteger('numero');
-        $table->string('chave_44', 44)->nullable()->index();
-        $table->string('status', 20)->default('pendente')->index();
-        $table->string('cstat', 5)->nullable();
-        $table->text('motivo')->nullable();
-        $table->string('xml_path', 255)->nullable();
-        $table->string('danfe_path', 255)->nullable();
-        $table->decimal('valor_total', 15, 2);
-        $table->dateTime('emitido_em')->nullable();
-        $table->json('metadata')->nullable();
-        $table->timestamps();
-        $table->softDeletes();
-        $table->unique(['business_id', 'transaction_id'], 'biz_tx_unq');
-        $table->unique(['business_id', 'modelo', 'serie', 'numero'], 'biz_seq_unq');
-    });
-
-    Schema::create('nfe_eventos', function ($table) {
-        $table->id();
-        $table->unsignedInteger('business_id')->index();
-        $table->foreignId('emissao_id')->constrained('nfe_emissoes')->cascadeOnDelete();
-        $table->string('tipo', 6)->index();
-        $table->text('justificativa')->nullable();
-        $table->string('status', 20)->default('pendente')->index();
-        $table->string('cstat_evento', 5)->nullable();
-        $table->json('payload_json')->nullable();
-        $table->timestamp('created_at')->useCurrent();
-    });
-
-    Schema::create('nfe_inutilizacoes', function ($table) {
-        $table->id();
-        $table->unsignedInteger('business_id')->index();
-        $table->string('modelo', 2);
-        $table->string('serie', 3);
-        $table->unsignedInteger('numero_de');
-        $table->unsignedInteger('numero_ate');
-        $table->text('justificativa');
-        $table->string('status', 20)->default('pendente')->index();
-        $table->string('cstat', 5)->nullable();
-        $table->dateTime('autorizada_em')->nullable();
-        $table->json('payload_json')->nullable();
-        $table->timestamps();
-    });
 });
 
 afterEach(function () {
-    foreach (['nfe_eventos', 'nfe_emissoes', 'nfe_certificados', 'nfe_inutilizacoes'] as $t) {
-        Schema::dropIfExists($t);
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (['nfe_eventos', 'nfe_emissoes', 'nfe_certificados', 'nfe_inutilizacoes'] as $t) {
+            Schema::dropIfExists($t);
+        }
+    } else {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        foreach (['nfe_eventos', 'nfe_inutilizacoes'] as $t) {
+            if (Schema::hasTable($t)) {
+                DB::table($t)->whereIn('business_id', [1, 5, 99])->delete();
+            }
+        }
+        if (Schema::hasTable('nfe_emissoes')) {
+            DB::table('nfe_emissoes')->whereIn('business_id', [1, 5, 99])->delete();
+        }
+        if (Schema::hasTable('nfe_certificados')) {
+            if (Schema::hasTable('nfse_provider_configs')) {
+                DB::table('nfse_provider_configs')->whereIn('business_id', [1, 5, 99])->delete();
+            }
+            DB::table('nfe_certificados')->whereIn('business_id', [1, 5, 99])->delete();
+        }
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 });
 
