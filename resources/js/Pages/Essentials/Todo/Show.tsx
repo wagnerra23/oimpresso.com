@@ -169,10 +169,8 @@ export default function TodoShow({
     e.preventDefault();
     commentForm.post('/essentials/todo/add-comment', {
       preserveScroll: true,
-      onSuccess: () => {
-        toast.success('Comentário adicionado.');
-        commentForm.setData('comment', '');
-      },
+      onSuccess: () => toast.success('Comentário adicionado.'),
+      onFinish: () => commentForm.reset('comment'),
       onError: () => toast.error('Falha ao comentar.'),
     });
   };
