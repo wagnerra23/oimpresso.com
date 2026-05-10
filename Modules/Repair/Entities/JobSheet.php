@@ -3,10 +3,14 @@
 namespace Modules\Repair\Entities;
 
 use App\Variation;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Arquivos\Concerns\HasArquivos;
 
 class JobSheet extends Model
 {
+    use HasArquivos; // ADR 0123 — adopcao Sprint 4 (foto OS via arquivos table)
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -106,6 +110,25 @@ class JobSheet extends Model
     public function media()
     {
         return $this->morphMany(\App\Media::class, 'model');
+    }
+
+    /**
+     * Accessor — fotos de OS via Modules/Arquivos backbone (ADR 0123).
+     *
+     * Convivência com `media()` legacy:
+     * - Sprint 4 US-ARQ-025+: novos uploads passam por arquivos table
+     * - Sprint 5 US-ARQ-026: migration backfill move Media → arquivos
+     * - Pós-estabilização: deprecate $jobSheet->media() + remove App\Media polymorphic
+     *
+     * Sub_destination convencional: 'repair-foto'.
+     */
+    public function getFotoArquivosAttribute(): Collection
+    {
+        if (! method_exists($this, 'arquivos')) return collect();
+        return $this->arquivos()
+            ->where('sub_destination', 'repair-foto')
+            ->where('bucket', 'active')
+            ->get();
     }
 
     public function getPartsUsed()
