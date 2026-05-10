@@ -37,6 +37,7 @@ class ArquivosServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Arquivos\Console\Commands\RecalcularMetadataCommand::class,
+                \Modules\Arquivos\Console\Commands\DedupeStatsCommand::class,
             ]);
         }
     }
