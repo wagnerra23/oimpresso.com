@@ -29,6 +29,22 @@ return [
     'upload_max_mb' => env('ARQUIVOS_UPLOAD_MAX_MB', 50),
 
     /**
+     * Cap máximo para VaultEncryptionService::putEncrypted e putFileEncrypted.
+     *
+     * Crypt::encryptString carrega o arquivo inteiro em memória. Acima deste
+     * limite o processo pode entrar em OOM. Cap conservador de 50MB alinhado
+     * com upload_max_mb acima.
+     *
+     * Para ajustar temporariamente defina ARQUIVOS_VAULT_MAX_FILE_SIZE_MB no .env.
+     * NÃO pode ser desabilitado (<=0 → RuntimeException).
+     *
+     * Chunked encryption real (stream AES-256-CBC, sem OOM) planejada Sprint 2.
+     * @see memory/decisions/0126-vault-chunked-encryption-sprint-2.md
+     * @see Modules/Arquivos/Services/VaultEncryptionService.php
+     */
+    'vault_max_file_size_mb' => env('ARQUIVOS_VAULT_MAX_FILE_SIZE_MB', 50),
+
+    /**
      * Retention default — dias após soft-delete pra hard-delete (job mensal).
      * NULL = sem retenção explícita (LGPD compliance audit pendente).
      */
