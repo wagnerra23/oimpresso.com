@@ -171,11 +171,9 @@ export default function TodoShow({
     e.preventDefault();
     commentForm.post('/essentials/todo/add-comment', {
       preserveScroll: true,
-      onSuccess: () => {
-        toast.success('Comentário adicionado.');
-        commentForm.setData('comment', '');
-      },
+      onSuccess: () => toast.success('Comentário adicionado.'),
       onError: () => toast.error('Falha ao comentar.'),
+      onFinish: () => commentForm.reset('comment'),
     });
   };
 
@@ -190,11 +188,11 @@ export default function TodoShow({
       preserveScroll: true,
       onSuccess: () => {
         toast.success('Anexo(s) enviado(s).');
-        uploadForm.reset('documents', 'description');
         const input = document.getElementById('documents-input') as HTMLInputElement | null;
         if (input) input.value = '';
       },
       onError: () => toast.error('Falha no upload.'),
+      onFinish: () => uploadForm.reset('documents', 'description'),
     });
   };
 

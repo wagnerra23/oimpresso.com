@@ -167,11 +167,11 @@ function Certificado(props: PageProps) {
       forceFormData: true,
       preserveScroll: true,
       onSuccess: () => {
-        form.reset('certificado', 'senha');
         if (fileRef.current) fileRef.current.value = '';
         toast.success('Certificado A1 cadastrado.');
       },
       onError: () => toast.error('Verifique o arquivo e a senha.'),
+      onFinish: () => form.reset('certificado', 'senha'),
     });
   };
 
