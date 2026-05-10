@@ -96,7 +96,7 @@ class DataController extends Controller
                         ['icon' => 'fa fas fa-clipboard-list', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'licenca_log']
                     );
                 },
-                ['icon' => 'fas fa-plug', 'style' => 'background-color: #2dce89 !important;']
+                ['url' => '/officeimpresso/computadores', 'icon' => 'fas fa-plug', 'style' => 'background-color: #2dce89 !important;']
             )->order(2);
         });
     }
