@@ -51,6 +51,12 @@ afterEach(function () {
     // Reset do tempo fictício após cada teste
     Carbon::setTestNow(null);
 
+    // afterEach roda mesmo em tests pulados (PHPUnit tearDown). Em SQLite CI
+    // sem migrate, DELETE estoura — bail antes.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        return;
+    }
+
     // Limpa apenas rows de teste — não afeta dados de outros suites
     DB::table('arquivos_audit_log')
         ->whereIn('arquivo_id', function ($q) {

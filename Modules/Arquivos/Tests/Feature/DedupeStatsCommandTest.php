@@ -30,6 +30,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // afterEach roda mesmo em tests pulados (PHPUnit tearDown). Em SQLite CI
+    // sem migrate, DELETE estoura — bail antes.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        return;
+    }
+
     // Limpa apenas rows de teste pra não afetar dados de outros suites.
     DB::table('arquivos')->where('classified_by', 'test-pr16-dedupe-stats')->delete();
     DB::table('arquivos_dedupe')->whereIn('md5', function ($q) {

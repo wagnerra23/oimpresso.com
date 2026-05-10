@@ -33,6 +33,7 @@ beforeEach(function () {
     });
 
     Storage::fake('local');
+    Storage::fake('nfe_certs'); // CertificadoService usa disk nfe_certs (config/filesystems.php)
 });
 
 afterEach(function () {
@@ -164,12 +165,12 @@ it('salvar() persiste cert encrypted + senha encrypted + cria row em nfe_certifi
     // Senha encrypted — verifica roundtrip
     expect(Crypt::decryptString($cert->encrypted_password))->toBe('minha-senha');
 
-    // Arquivo encrypted no storage
-    $path = "nfe-brasil/1/cert/{$cert->uuid}.pfx.enc";
-    expect(Storage::disk('local')->exists($path))->toBeTrue();
+    // Arquivo encrypted no storage — service usa disk 'nfe_certs' rooted em storage/app/nfe-certs
+    $path = "1/cert/{$cert->uuid}.pfx.enc";
+    expect(Storage::disk('nfe_certs')->exists($path))->toBeTrue();
 
     // Conteúdo do storage NÃO é o binary plain — é encrypted
-    $stored = Storage::disk('local')->get($path);
+    $stored = Storage::disk('nfe_certs')->get($path);
     expect($stored)->not()->toBe('binary-pfx');
     expect(Crypt::decrypt($stored))->toBe('binary-pfx');
 });

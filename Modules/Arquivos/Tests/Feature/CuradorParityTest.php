@@ -2,10 +2,20 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\Curador\CuradorEngine;
 
 uses(Tests\TestCase::class);
+
+beforeEach(function () {
+    // CI SQLite :memory: — pula gracioso se migrate não criou tabela arquivos.
+    // CuradorEngine é pura logic mas Arquivo Model resolve casts/global scope
+    // ao instanciar, e isso pode tocar Schema metadata.
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('Tabela arquivos ausente — rode migrate Modules/Arquivos primeiro.');
+    }
+});
 
 /**
  * ParityTest JS×PHP — US-ARQ-007.
