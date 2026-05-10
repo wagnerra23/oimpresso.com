@@ -7,6 +7,41 @@
 
 ---
 
+## 🆕 Estado 2026-05-10 noite — Smoke MG Tech Press investigado + Vestuario Q3 outbound + PR #414
+
+**Sessão Claude noite** (4ª sessão do dia, paralela às outras). Wagner pediu "continuar adiantar algo enquanto smoke biz=1 trava". Atacou 3 frentes documentação.
+
+### (E) PR [#414](https://github.com/wagnerra23/oimpresso.com/pull/414) — Audit fixes sketch + Vestuario Q3 outbound
+
+2 commits docs:
+- **`docs(audit)`** — [_AUDIT_FIXES_SKETCH_2026_05_10.md](decisions/proposals/drafts/_AUDIT_FIXES_SKETCH_2026_05_10.md) (380 linhas) — sketch dos 4 critical fixes pendentes (`period_start/end`→string YYYY-MM, `value_p25/p50/p75`→p50/p90, `tax_number`→`tax_number_1`, `--force` flag) com diff por linha + comando Pest. **Complementa** `_FELIPE_DECISIONS_PRE_SPRINT1.md` (PR #405 da sessão tarde) — Felipe segunda lê os dois (sketch tem diagnóstico técnico, decision sheet tem opção A/B + recomendação + custo).
+- **`docs(sales)`** — [outbound-vest-q3/00-PLAN.md](sales/2026-05/outbound-vest-q3/00-PLAN.md) (382 linhas) — espelho do `outbound-comvis-q2` adaptado pra Vestuario (vertical em produção há 2 anos com ROTA LIVRE = outbound legítimo). 3 fases: P1 (8 vizinhos SC sul, Cold #1 customizado por prospect com Larissa como referência viva), P2 (7 multi-loja SC), P3 (15 outras UFs). Cold #2 com 7 arquétipos vestuário (multi-loja / atacado-varejo dual / loja+ecommerce / SKU explosion / sazonalidade turística / multimarca premium / IG-first). Cold #3 com case ROTA LIVRE detalhado (R$80k→130k em 18 meses).
+
+⚠️ **Surpresa:** PR #414 acumulou 3º commit não-meu — `feat(arquivos): reencrypt-vault` (f8101c80, agent paralelo). Branch `claude/docs-audit-vest-2026-05-10` virou destino acidental do reencrypt-vault que outra sessão tinha como WIP. PR mistura 2 intents (docs + reencrypt feat). Wagner decide: split em 2 PRs ou merge tudo (reencrypt feat parece bom, foi recuperado de WIP que estava se perdendo).
+
+### (F) Smoke NFC-e investigação completa
+
+**biz=1 (WR2 SC):** flag `NFEBRASIL_AUTO_EMISSION_NFCE=true` JÁ ON no .env Hostinger (verificado via SSH). NCM `49111090`, cert ativo 2026-08-06, ambiente=2. **Falta CSC SC válido** (atual=`0`, 1 char placeholder). Wagner gera CSC homologação no portal SAT-SC com cert digital próprio, ~5min.
+
+**biz=171 Tech Press (BH/MG):** Wagner sugeriu "emita por minas, MG permite teste". Investigação: Tech Press já cadastrada no oimpresso (não migrada do Delphi), ambiente=2, IE="isenta", 0 vendas. Falta **cert digital A1 .pfx** Tech Press — pasta `storage/app/nfe-brasil/171/` não existe. Bloqueio absoluto sem cert. Cert provável em servidor empresa `D:\DadosClientes\TechPress\` (192.168.0.x — offline pra Wagner em casa).
+
+**Decisão:** smoke MG fica pra **segunda quando Wagner for empresa** OU pra após Wagner gerar CSC SC pelo SAT (caminho mais curto, biz=1 já tem cert).
+
+### (G) Auto-discoveries que evitam retrabalho
+
+1. **Autopecas charter + plano Vargas já estavam completos** — handoff anterior dizia "sub-agent C ficou parcial" mas PR #400 (sessão tarde paralela) entregou. Próxima Claude não precisa criar.
+2. **Branch `claude/all-frentes-pr14-reencrypt-vault` era scaffolding vazio** — outra sessão tinha WIP em arquivos untracked que foram cleanados em algum momento. Salvei o reencrypt-vault commit de outra sessão (apareceu na minha branch docs durante push paralelo).
+
+### Pendências (atualizadas com noite)
+
+1. **Wagner cria CSC SC no SAT** (`https://sat.sef.sc.gov.br/`, cert digital seu, 5min) → biz=1 smoke destrava SEM precisar ir empresa
+2. **Wagner segunda na empresa** → cert Tech Press copiado pro storage Hostinger → smoke MG alternativo destrava
+3. **Felipe segunda 2026-05-11** → abre [_FELIPE_DECISIONS_PRE_SPRINT1.md](decisions/proposals/drafts/_FELIPE_DECISIONS_PRE_SPRINT1.md) + [_AUDIT_FIXES_SKETCH_2026_05_10.md](decisions/proposals/drafts/_AUDIT_FIXES_SKETCH_2026_05_10.md) → decide D1-D4 + roda Pest local + PR US-INFRA-012
+4. **Wagner approve PR #400, #403, #405, #414** quando puder
+5. **Wagner pede autorização Larissa** pra usar nome+ROTA LIVRE como referência viva nos 8 prospects vizinhos SC (Cold #1 vest Q3 já cita)
+
+---
+
 ## 🆕 Estado 2026-05-10 tarde — Autopecas docs completas + helper sessões paralelas + audit decision sheet
 
 **Sessão Claude tarde** (paralela à da manhã, em desktop). 3 PRs novos abertos aguardando Wagner approve.
