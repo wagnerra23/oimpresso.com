@@ -2,10 +2,13 @@
 
 namespace Modules\Repair\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 class RepairStatus extends Model
 {
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (defesa-em-profundidade)
+
     /**
      * The attributes that aren't mass assignable.
      *
