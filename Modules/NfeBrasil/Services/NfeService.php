@@ -986,7 +986,7 @@ class NfeService
                 'motivo'     => $xMotivo,
                 'chave_44'   => $chNFe,
                 'xml_path'   => $xmlPath,
-                'emitido_em' => $dhRecbto ? now()->parse($dhRecbto) : now(),
+                'emitido_em' => $dhRecbto ? \Carbon\Carbon::parse($dhRecbto) : now(),
                 'metadata'   => ['nProt' => $nProt, 'cstat_lote' => $loteStatus],
             ]);
 
