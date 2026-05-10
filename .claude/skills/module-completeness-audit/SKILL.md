@@ -1,394 +1,336 @@
 ---
 name: module-completeness-audit
-mission: "Substituir auditoria manual de gaps de governança intra-módulo (multi-instance, perms UI, charter, runbook, pest, audit, scope, smoke) por checklist 8-dimensões executado antes de fechar US."
-description: ATIVAR quando user pedir "auditar completude do módulo X", "antes de fechar US-XXX-NNN tem gap?", "verificar governança do {modulo}", "/module-audit {modulo}", "tem gap em {modulo}?", OU **antes** de qualquer `tasks-update <ID> status:done` cuja US toque módulo do oimpresso. Roda 8 dimensões de governança INTERNA — (1) multi-instance scope, (2) permissions middleware+UI, (3) charter, (4) runbook, (5) pest golden+edge cross-tenant biz=99, (6) audit log em mutações, (7) business_id global scope, (8) browser MCP smoke salvo. Retorna gaps numerados — Wagner decide proceed (criar US-fix em batch) ou pular (registrar exceção em PR). NÃO confundir com `/comparativo` (skill irmã `comparativo-do-modulo` cobre gaps EXTERNOS Capterra/mercado); esta cobre gaps INTERNOS de governança (rota tem can:* mas sem tela de gestão; FK pra business existe mas multi-instance não; charter ausente; etc). Origem caso real US-WA-040 / Whatsapp settings 2026-05-10.
-type: skill
+mission: "Substituir auditoria humana de governança interna de módulo por checklist objetivo que bloqueia US `status:review→done` sem cobertura, fechando o loop métrica da Constituição v2 §4."
+description: ATIVAR antes de marcar US como `done` (`tasks-update task_id:US-XXX-NNN status:done` ou `tasks-update from:review to:done`), OU quando user pedir "auditar completude de {modulo}", "{modulo} está pronto?", "checklist de governança {modulo}", "/module-completeness-audit {modulo}", "está pronto pra fechar?", "vai poder marcar done?". Roda 8-10 verificações objetivas (multi-instance scope, permissions UI, charter, RUNBOOK, Pest cobertura, AuditLog write, business_id scope, browser MCP smoke salvo) cruzando código + memory/requisitos + Charter + browser MCP screenshots. Bloqueia transição se faltar item. Complementa skill `comparativo-do-modulo` (que detecta gaps mercado) — esta detecta gaps governança interna.
+type: process-skill
 status: active
-version: 0.1.0
+version: 1.0.0
 trust_level: L2
 owner: wagner
 created_at: 2026-05-10
-generated_from: feedback_module_completeness_audit_approach
-charter_adr: 0094  # Constituição v2 §4 loop fechado por métrica
-parent_mission: meta-skill-roi-erp-autonomo
+updated_at: 2026-05-10
+charter_adr: 0094
+parent_mission: "Toda skill substitui trabalho humano repetitivo com ROI provado, rumo ao ERP autônomo de R$ 10M em 24 meses."
 triggers_on:
-  - "/module-audit"
-  - "/module-audit {modulo}"
+  - "tasks-update {task_id} status:done"
+  - "tasks-update from:review to:done"
+  - "marcar {task_id} done"
+  - "fechar US {task_id}"
+  - "/module-completeness-audit {modulo}"
+  - "/audit-completude {modulo}"
+  - "{modulo} está pronto?"
+  - "checklist de governança {modulo}"
+  - "está pronto pra fechar?"
   - "auditar completude {modulo}"
-  - "audit completude {modulo}"
-  - "verificar governança {modulo}"
-  - "verificar governanca {modulo}"
-  - "tem gap em {modulo}?"
-  - "{modulo} tá pronto pra fechar?"
-  - "{modulo} esta pronto pra fechar?"
-  - "essa US tá completa?"
-  - "antes de fechar {US-ID}"
-  - "tasks-update {ID} status:done"  # auto-trigger pré-fechamento
 does_not_trigger_on:
-  - "/comparativo {modulo}" (use comparativo-do-modulo — gaps Capterra/mercado, não governança interna)
-  - feedback funcional Wagner sobre tela MWART (use mwart-quality — 9 checks Inertia/React)
-  - leitura de SPEC.md (use editor direto)
-  - criar módulo novo (use criar-modulo — checklist 8 peças)
-  - migrar módulo (use migrar-modulo — drift PHP-only vs URL move)
+  - tasks-update status:doing|review|blocked (só na transição final → done)
+  - comparar módulo com mercado (use `comparativo-do-modulo`)
+  - criar módulo novo (use `criar-modulo`)
+  - migração Blade→Inertia (use `mwart-process` + `mwart-quality`)
+  - revisar PR (use `/review` ou `/ultrareview`)
 roi_metric:
-  type: error
-  baseline: "Wagner detecta gap intra-módulo (multi-instance ausente, perms UI ausente, charter ausente, etc) só APÓS abrir tela em prod ~10-30min depois — round-trip Whatsapp settings 2026-05-10 (US-WA-040) custou 2 gaps que voltam pra backlog."
-  target: "Skill flagi 8 dimensões em ~2min ANTES de status:review→done — Wagner cria US-fix em batch antes de fechar a US original."
+  type: time + quality
+  baseline: "Wagner audita manualmente cada US no review→done (~15min) — frequente caso 'esqueci de cobrir Pest / Charter ausente / sem AuditLog' detectado em prod (ex: /whatsapp/settings em 2026-05-10 com falta de multi-phone scope + UI permissões)"
+  target: "Reduz pra ~30s automatizado + bloqueia transição com checklist red. Detecta 80%+ gaps governança antes de mergeado. ROI: evita 1 retrabalho/semana (≈2h)."
 metrics:
-  audits_run: 3
-  gaps_detected_total: 11
-  gaps_fixed_before_done: 9  # US-NFE-061+062+063 / US-RB-048+049 / US-COPI-101+102+103+104
-  gaps_ignored_with_exception: 2  # RB Dim 3 (Charter) + RB Dim 8 (Smoke) — UI ainda não existe
-  gaps_deferred_p1_p2: 0  # Wagner re-aprovou batch completo no mesmo dia
-  modules_covered: [NfeBrasil, RecurringBilling, Jana]
-  false_positives: 0
-  # ROI gate atual (audits_run >= 5 + fixed/detected > 0.6): fixed/detected = 9/11 = 0.82 ✅
-  # Falta atingir audits_run >= 5 pra revisar P1 hook bloqueador
+  audits_executados: 0
+  audits_aprovados: 0
+  audits_bloqueados: 0
+  gaps_detectados_total: 0
+  modulos_cobertos: []
+artefatos_governados:
+  - "memory/requisitos/{Modulo}/AUDIT-LOG.md (apêndice de cada audit run)"
+  - "mcp_tasks via tasks-comment (resultado registrado na própria US)"
+  - "mcp_tasks via tasks-update (BLOQUEIA transição se reprovado)"
 tier: B
-parent_adr: 0095
+parent_adr: 0094
+related_adrs: [0089, 0093, 0095, 0101, 0104, 0110]
 ---
 
-# module-completeness-audit
+# module-completeness-audit (v1.0)
 
-Skill para detectar gaps **INTERNOS de governança intra-módulo** antes de fechar US — complementar a `/comparativo` que detecta gaps **EXTERNOS** vs Capterra/mercado. As duas skills se compõem: comparativo responde "concorrente faz X e a gente não?", esta responde "a gente fez X mas faltou multi-instance / UI permissões / charter / pest cross-tenant?".
+Skill que **bloqueia** a transição `review → done` de uma US se o módulo não cobrir o checklist objetivo de 8 dimensões de governança interna.
 
-## Origem (caso real — registrar pra não repetir)
+Diferente de [`comparativo-do-modulo`](../comparativo-do-modulo/SKILL.md) (que mede gap **vs mercado**), esta mede gap **vs nossa própria Constituição v2** ([ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)).
 
-**US-WA-040** [doing → review, sprint 4 — 2026-05-10] em `/whatsapp/settings`. Wagner detectou em prod 2 gaps **APÓS** abrir a tela:
+## Origem (2026-05-10)
 
-- ❌ **Multi-instance scope ausente** — model `WhatsappAccount` é 1-por-business, mas business pode ter **N números** (ex: ROTA LIVRE tem atendimento + financeiro). Não tem FK + index pra `phone_number_id` nas tabelas dependentes; UI não permite trocar entre números.
-- ❌ **UI permissões dedicada ausente** — rotas em `Modules/Whatsapp/Routes/web.php` têm middleware `can:whatsapp.manage`, mas **não existe tela de gestão** em `/whatsapp/permissions` nem entrada em `/admin/roles` por módulo. Wagner descobriu tentando dar acesso de leitura pra Maiara sem dar gestão.
+Wagner detectou em prod (`/whatsapp/settings` Hostinger) **2 gaps que escaparam do review→done** das 9 US Whatsapp do CYCLE-04:
 
-`/comparativo Whatsapp` **não pegaria** — esses gaps são INTERNOS, não estão na FICHA Capterra (concorrentes podem nem expor multi-phone), mas são **OBRIGATÓRIOS** pelas decisões da Constituição v2 ([ADR 0094](../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §5 SoC brutal + §6 Multi-tenant Tier 0 + §4 Loop fechado por métrica).
+1. Falta tela multi-instance scope (1 phone por business hoje, US-WA-040 cobre só parcialmente)
+2. Falta tela permissões UI (middleware `can:whatsapp.*` existe, mas sem UI dedicada — cai no Roles UltimatePOS padrão)
 
-Custo do round-trip: ~30min Wagner + 2 US-fix novas pra backlog + perda de confiança ("US estava em review e tinha 2 gaps").
+Pergunta dele: "como automatizar essas verificações? deveria ter uma maneira de isso sempre ser feito". Esta skill é a resposta aprovada (approach 1+3 — ver auto-mem `feedback_module_completeness_audit_approach.md`).
 
-## Os 8 dimensões da auditoria
+## Quando ativar
 
-Cada dimensão tem critério `✅ APROVADO / 🟡 PARCIAL / ❌ AUSENTE` com **evidência citada `file:line`**.
+**Hard trigger (BLOQUEADOR):**
+- Antes de chamar tool MCP `tasks-update` com `status: done` (ou `from: review, to: done`)
+- Antes de mergear PR cuja branch contém commits que fecham US (`Refs: US-XXX-NNN`)
 
-| # | Dimensão | Pergunta | Onde olha |
-|---|---|---|---|
-| 1 | **Multi-instance scope** | A entidade é 1-por-business OU N-por-business? Se N, FK + index + UI batem? | Migrations + Model + Controller + Page Inertia |
-| 2 | **Permissions middleware + UI** | Rotas têm `can:*`? E existe UI dedicada de gestão (em `/admin/roles` OU dentro do módulo)? | `Routes/web.php` + `Pages/<Mod>/Permissions*` ou `Pages/<Mod>/Settings*` |
-| 3 | **Charter** | `*.charter.md` ao lado da `.tsx` da tela principal? | `resources/js/Pages/<Mod>/<Tela>.charter.md` |
-| 4 | **RUNBOOK** | `RUNBOOK-<tela>.md` em `memory/requisitos/<Mod>/`? | `memory/requisitos/<Mod>/RUNBOOK*.md` |
-| 5 | **Pest golden + edge cross-tenant** | 1 teste cobre golden path E 1 edge case com `biz=99` (cross-tenant)? | `Modules/<Mod>/Tests/**/*.php` + grep `business_id` + grep `biz_99\|business_id.*99` |
-| 6 | **AuditLog em mutações** | Controllers `store`/`update`/`destroy` registram em audit log? | grep `AuditLog::log\|audit(\|->logActivity(` em `Modules/<Mod>/Http/Controllers/*.php` |
-| 7 | **Multi-tenant `business_id` global scope** | Models tocam `business_id` + global scope (`BusinessIdScope` ou `BelongsToBusiness`)? | `Modules/<Mod>/Models/*.php` |
-| 8 | **Browser MCP smoke salvo** | Smoke test browser MCP existe (screenshot + console clean)? | Glob `memory/sessions/*<mod>*.md` + `memory/requisitos/<Mod>/smoke-*.md` |
+**Soft trigger (sob demanda):**
+- `/module-completeness-audit {Modulo}` — roda audit do módulo inteiro
+- "Modules/X está pronto pra fechar?" — Wagner pergunta livre
+- "checklist de governança Modules/X" — review proativo
 
-## Quando ativa
+**Não ativar:**
+- `tasks-update status:doing|review|blocked` (só na transição final pra done)
+- Comparar com mercado (use `comparativo-do-modulo`)
+- Criar módulo novo (use `criar-modulo`)
 
-| Gatilho | Modo |
-|---|---|
-| `/module-audit {Modulo}` | **Pre-flight** — antes de fechar US ou em momento de checagem |
-| "auditar completude do {Modulo}" | Pre-flight |
-| "antes de fechar {US-ID}" | Pre-flight com foco na US |
-| "{Modulo} tá pronto pra fechar?" | Pre-flight |
-| `tasks-update <ID> status:done` (próxima call) | **Auto-trigger** — força audit antes da call passar |
-| Wagner pergunta "tem gap em {Modulo}?" | Pre-flight |
+## Os 8 itens do checklist
 
-## Quando NÃO ativa
+Cada item é **binário** (✅/❌) com evidência citada em arquivo. Item 🟡 (parcial) conta como ❌ até evidência completa.
 
-- `/comparativo {Modulo}` — usa **`comparativo-do-modulo`** (gaps Capterra/mercado, não governança interna). As duas se complementam; rodar ambas é sinal de US grande.
-- Edit em `Pages/<Mod>/<Tela>.tsx` MWART — usa **`mwart-quality`** (9 checks técnicos Inertia/React específicos).
-- Criar módulo novo — usa **`criar-modulo`** (checklist 8 peças obrigatórias).
-- Edição direta de SPEC.md/charter — usa editor.
+### 1. Multi-instance scope decidido e documentado
 
-## Workflow obrigatório (Modo Pre-flight)
+**Pergunta:** Esta entidade é 1-per-business OU N-per-business? E o schema reflete isso?
 
-Copia o checklist no thinking e marca conforme avança:
+**Aprovado se:**
+- `memory/requisitos/{Modulo}/SPEC.md` declara explicitamente em `## Modelagem` ou `## Decisões`: "1 X por business" OU "N X por business"
+- Migration tem `UNIQUE(business_id)` (caso 1-per) ou índice em `(business_id, scope_key)` (caso N-per)
+- US correspondente cita decisão na descrição
 
-```
-- [ ] 1. Receber {Modulo} + {US-ID} se houver (default: cycle ativo my-work)
-- [ ] 2. Validar pré-condições:
-       - Modules/<Mod>/ existe? (parar se não)
-       - SPEC.md existe? (avisar se não, continuar)
-- [ ] 3. Read paralelo (1 rodada):
-       - SPEC.md
-       - Modules/<Mod>/Routes/web.php (+ api.php se houver)
-       - Glob Modules/<Mod>/Models/*.php
-       - Glob Modules/<Mod>/Http/Controllers/*.php
-       - Glob Modules/<Mod>/Database/Migrations/*.php
-       - Glob Modules/<Mod>/Tests/**/*.php
-       - Glob resources/js/Pages/<Mod>/**/*.tsx
-       - Glob resources/js/Pages/<Mod>/**/*.charter.md
-       - Glob memory/requisitos/<Mod>/*.md
-       - Glob memory/sessions/*<mod>*.md
-- [ ] 4. Aplicar 8 checks (cada dimensão cita file:line como evidência)
-- [ ] 5. Gerar relatório no formato:
-       - "✅ Dim N (Nome) — evidência file:line"
-       - "🟡 Dim N (Nome) — file:line — falta {item} — fix sugerido"
-       - "❌ Dim N (Nome) — sem evidência — fix sugerido"
-- [ ] 6. Apresentar batch ao Wagner: "{N} gaps detectados em {Modulo}. Aprovo criar {M} US-fix? (todas / nenhuma / 1,3 / só ❌)"
-- [ ] 7. PARAR aguardando resposta — não criar tasks sem aprovação (publication-policy ADR 0040)
-- [ ] 8. Após Wagner aprovar: tasks-create no MCP pra cada gap aprovado, prefix US-{MOD}-FIX-NNN
-- [ ] 9. Apender bloco "## Auditoria de completude {YYYY-MM-DD}" em SPEC.md (append-only, datado)
-- [ ] 10. NÃO fechar a US original (status:done) até gaps virarem US-fix OU Wagner registrar exceção em PR description
-```
+**Reprovado se:**
+- Schema permite N mas SPEC só fala em 1 (caso /whatsapp/settings em 2026-05-10)
+- US fala em "número primário" sem decidir multi-phone
 
-## Critério de classificação por dimensão
+### 2. Permissões: middleware E UI
 
-### Dim 1 · Multi-instance scope
+**Pergunta:** Toda rota tem `can:*` + existe UI pra atribuir/visualizar essa permissão?
 
-```
-✅ APROVADO se:
-  - Migration declara FK + index pra entidade-pai (business OU sub-entidade tipo phone_number)
-  - Model tem relacionamento explícito (hasMany / belongsTo)
-  - Controller filtra pelo escopo correto (não só business_id)
-  - UI tem seletor visível (dropdown / tabs / badge)
+**Aprovado se:**
+- `Modules/{Modulo}/Routes/web.php` toda rota mutadora tem `->middleware('can:{modulo}.{ação}')`
+- Permissão registrada em `Modules/{Modulo}/Database/Seeders/{Modulo}PermissionsSeeder.php`
+- UI existe: tela em `/admin/roles` reconhece + (opcional) tela dentro do módulo `/modulo/permissions` pra escopo per-resource
 
-🟡 PARCIAL se:
-  - FK existe mas UI não permite trocar (ex: hardcoded "primeira conta")
-  - Model OK mas Controller ignora multi-instance
+**Reprovado se:**
+- Middleware `can:*` existe mas seed da permission não foi rodado
+- Permission existe mas sem UI (Wagner não consegue dar acesso por usuário sem editar DB direto)
+- Falta scope per-resource quando módulo tem N entidades por business (ex: per-phone-number scope no Whatsapp)
 
-❌ AUSENTE se:
-  - Tabela só tem business_id, sem FK pra entidade-N
-  - Wagner indica "deveria ter N por business" mas só tem 1
+### 3. Charter `.charter.md` ao lado do `.tsx`
 
-Gatilho típico: "biz pode ter N números/contas/lojas" — se sim, audit aplica.
-```
+**Pergunta:** Toda Page Inertia tem charter declarando invariantes UX/Business?
 
-### Dim 2 · Permissions middleware + UI
+**Aprovado se:**
+- Cada `resources/js/Pages/{Modulo}/*.tsx` tem `*.charter.md` ao lado
+- Charter tem frontmatter `mission:`, `non_goals:`, `automation_hooks:`, `anti_hooks:`
+- `status: live` ratificado por Wagner
 
-```
-✅ APROVADO se:
-  - Routes/web.php tem `->middleware('can:<mod>.<action>')` em rotas mutáveis
-  - Existe Page de gestão visível: Pages/<Mod>/Permissions/Index.tsx OU entrada em /admin/roles que lista permissões do módulo
-  - Page tem CRUD de role↔permission
+**Reprovado se:**
+- `.tsx` existe sem `.charter.md` (skill `charter-first` Tier A dormente vai bloquear quando S4 ativar)
+- Charter `status: draft` em US done
 
-🟡 PARCIAL se:
-  - Middleware existe mas UI gestão ausente (rota gated mas Wagner não consegue editar quem tem)
-  - UI existe em /admin/roles mas sem agrupamento por módulo
+### 4. RUNBOOK do módulo
 
-❌ AUSENTE se:
-  - Sem middleware can:* (rotas todo-mundo-pode)
-  - OU middleware sim, UI não (caso US-WA-040 original)
-```
+**Pergunta:** Existe `RUNBOOK-*.md` em `memory/requisitos/{Modulo}/` cobrindo tela/feature?
 
-### Dim 3 · Charter
+**Aprovado se:**
+- `memory/requisitos/{Modulo}/RUNBOOK-{tela-kebab}.md` existe pra cada tela MWART
+- RUNBOOK segue 11 seções obrigatórias (skill `cockpit-runbook`)
+- Snippets PT-BR executáveis + clickable links
 
-```
-✅ APROVADO se:
-  - <Tela>.charter.md ao lado de <Tela>.tsx
-  - Frontmatter status: live (não draft)
-  - Mission + Goals + Non-Goals + Anti-hooks preenchidos
+**Reprovado se:**
+- Tela MWART sem RUNBOOK (já bloqueado por hook `block-mwart-violation.ps1` em runtime, mas validar)
+- RUNBOOK incompleto (faltando seção)
 
-🟡 PARCIAL se:
-  - charter.md existe mas status: draft (Wagner ainda não aprovou)
-  - Apenas tela principal tem; sub-telas (Edit/Create) sem charter
+### 5. Pest cobre golden path + edge case
 
-❌ AUSENTE se:
-  - Nenhum *.charter.md em Pages/<Mod>/
+**Pergunta:** Tem teste pra (a) caso feliz, (b) caso anti-tenancy, (c) caso edge?
 
-Skill irmã: charter-write (criar) + charter-first (ler antes de editar .tsx).
-```
+**Aprovado se:**
+- Cada Controller `store/update/destroy` tem test em `Modules/{Modulo}/Tests/Feature/`
+- Pelo menos 1 test de **isolamento multi-tenant** (biz=1 vs biz=99 — convenção `feedback_test_biz_99_cross_tenant_convention.md`)
+- 1 test de **autorização** (user sem `can:*` recebe 403)
+- Comando local: `vendor\bin\pest Modules/{Modulo}` PASSA ✅
 
-### Dim 4 · RUNBOOK
+**Reprovado se:**
+- `Modules/{Modulo}/Tests/` não registrado em `phpunit.xml` (ADR 0070 — tests fantasma sem CI)
+- Doc-comment `/** @test */` (PHPUnit 12 desabilita silenciosamente — ver `08-handoff.md`)
 
-```
-✅ APROVADO se:
-  - memory/requisitos/<Mod>/RUNBOOK-<tela>.md existe (1 por tela importante)
-  - 11 seções obrigatórias preenchidas (skill cockpit-runbook)
+### 6. AuditLog write em mutações sensíveis
 
-🟡 PARCIAL se:
-  - RUNBOOK existe pra tela principal mas não pra sub-telas
-  - Seções incompletas
+**Pergunta:** Mutações que afetam config, permission ou dados regulados gravam audit log?
 
-❌ AUSENTE se:
-  - Nenhum RUNBOOK*.md no módulo
+**Aprovado se:**
+- Cada Controller que muda `WhatsappBusinessConfig` / Roles / dados fiscais chama `AuditLog::write(...)`
+- Tabela `audit_logs` tem registros pra US do escopo (smoke local: rodar mutação + verificar `audit_logs.where('actor_id', auth()->id())`)
 
-Skill irmã: cockpit-runbook (gera/audita).
-```
+**Reprovado se:**
+- Update em config sem audit (Wagner não consegue rastrear "quem mudou meu Z-API token")
+- AuditLog grava só em `dev` mas não em `prod` (.env ENV-gated)
 
-### Dim 5 · Pest golden + edge cross-tenant
+### 7. Multi-tenant `business_id` global scope (Tier 0)
+
+**Pergunta:** Eloquent Model tem global scope? Job assíncrono passa `$businessId` no constructor?
+
+**Aprovado se:**
+- Cada Model em `Modules/{Modulo}/Entities/` (ou `Models/`) que toca dados de negócio tem trait `BelongsToBusiness` (ou equivalente — verificar [ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+- Cada Job em `Modules/{Modulo}/Jobs/` tem `$businessId` no constructor (NUNCA `session()`)
+- Migration tem `business_id` indexado + FK
+- 0 ocorrências de `withoutGlobalScopes()` sem comentário `// SUPERADMIN: <razão>`
+
+**Reprovado se:**
+- Job lê `session('user.business_id')` (vai dar `null` em fila)
+- Model sem global scope (vaza dados cross-tenant)
+
+### 8. Browser MCP smoke salvo
+
+**Pergunta:** Existe screenshot salvo provando que tela renderiza em `oimpresso.test` (local) E `oimpresso.com` (prod) pelo menos 1× depois do merge?
+
+**Aprovado se:**
+- `memory/requisitos/{Modulo}/smoke/{tela}-{YYYY-MM-DD}.png` (screenshot Chrome MCP)
+- Screenshot mostra header + 1 fluxo principal + ausência de errors (console limpo)
+- Tirado em ambiente prod (não só local)
+
+**Reprovado se:**
+- US done sem smoke (Wagner descobre quebrado pelo cliente)
+- Smoke só em local — não validou prod (ex: caso Whatsapp 2026-05-10 onde local mostrava inbox vazia mas prod tinha mensagens reais)
+
+## Os 7 passos do ciclo
+
+### 1. Detectar trigger
 
 ```
-✅ APROVADO se:
-  - Modules/<Mod>/Tests/Feature/*Test.php cobre golden path do Controller principal (store + index)
-  - Pelo menos 1 teste com `actingAs(biz=99 user)` validando que NÃO acessa biz=1 data
-  - Teste registrado em phpunit.xml (CI roda)
-
-🟡 PARCIAL se:
-  - Golden path coberto mas sem cross-tenant
-  - Teste existe mas não está em phpunit.xml (CI ignora — proibição § Código)
-
-❌ AUSENTE se:
-  - Sem testes feature do módulo
-  - OU testes só em biz=1 (sem biz=99 cross-tenant — violação ADR 0101 refinado)
+SE tool call = `tasks-update` com `status: done` ou `from: review, to: done`:
+  → resgatar `task_id`, ler `tasks-detail` pra pegar `module`
+  → rodar audit ANTES de executar o update
+SE user pediu "/module-completeness-audit {Modulo}":
+  → rodar audit do módulo inteiro (todos os items, não só task-specific)
+SE user perguntou "está pronto?":
+  → confirmar qual módulo + rodar audit
 ```
 
-### Dim 6 · AuditLog em mutações
+### 2. Validar pré-condições
 
 ```
-✅ APROVADO se:
-  - Controllers store/update/destroy chamam AuditLog::log() OU activity log Spatie OU equivalente
-  - Mensagem auditada cita: ator, ação, entidade, business_id
-
-🟡 PARCIAL se:
-  - Apenas store/destroy logam (update silencioso)
-  - Log existe mas sem business_id (não dá pra filtrar por tenant)
-
-❌ AUSENTE se:
-  - Nenhum log em mutação (caixa-preta — proibição governança)
+- Modules/{Modulo}/ existe?
+- memory/requisitos/{Modulo}/SPEC.md existe?
+- task_id (se trigger por tasks-update) está em status `review`?
+SE algo faltar: parar, instruir Wagner.
 ```
 
-### Dim 7 · Multi-tenant business_id global scope
+### 3. Rodar os 8 checks (paralelo onde possível)
+
+Para cada check:
+- Ler arquivos relevantes (Glob + Read)
+- Aplicar critério ✅/❌
+- Coletar evidência (citar arquivo:linha)
 
 ```
-✅ APROVADO se:
-  - Cada Model em Modules/<Mod>/Models/*.php que toca dados de negócio:
-    - Tem `business_id` na tabela (migration)
-    - Tem global scope (BusinessIdScope ou BelongsToBusiness trait)
-  - Jobs em Modules/<Mod>/Jobs/* recebem $businessId no constructor
-
-🟡 PARCIAL se:
-  - Tabela tem business_id mas Model sem global scope (vaza dados em queries cruas)
-  - Job acessa session() em vez de receber businessId no constructor
-
-❌ AUSENTE — Tier 0 IRREVOGÁVEL VIOLADO:
-  - Tabela sem business_id em entidade de negócio
-  - PARAR auditoria, escalar Wagner imediato (skill multi-tenant-patterns Tier A)
+Check 1 → Read SPEC.md + Glob Database/Migrations/ → grep UNIQUE(business_id)
+Check 2 → Read Routes/web.php + Glob PermissionsSeeder + check UI roles
+Check 3 → Glob resources/js/Pages/{Modulo}/*.tsx + check sibling .charter.md
+Check 4 → Glob memory/requisitos/{Modulo}/RUNBOOK-*.md
+Check 5 → Read phpunit.xml + Glob Modules/{Modulo}/Tests/ + Bash `vendor\bin\pest Modules/{Modulo} --no-coverage --stop-on-failure`
+Check 6 → Grep AuditLog::write em Modules/{Modulo}/Http/Controllers/
+Check 7 → Grep BelongsToBusiness + grep withoutGlobalScopes
+Check 8 → Glob memory/requisitos/{Modulo}/smoke/*.png (data > merge da US)
 ```
 
-### Dim 8 · Browser MCP smoke salvo
+### 4. Compilar resultado
+
+Tabela com 8 linhas:
+
+```markdown
+| # | Check | Status | Evidência | Próximo passo |
+|---|-------|--------|-----------|----------------|
+| 1 | Multi-instance scope | ✅ | SPEC.md:42 declara "1 config per business" + UNIQUE(business_id) em 2026_01_15_create_whatsapp_business_configs | — |
+| 2 | Permissions UI | ❌ | Routes/web.php tem can:whatsapp.* mas sem PermissionsSeeder + sem UI per-phone | Criar US-WA-041 + seed |
+| ... |
+```
+
+### 5. Apresentar resultado pro Wagner
 
 ```
-✅ APROVADO se:
-  - memory/sessions/*<mod>*.md OU memory/requisitos/<Mod>/smoke-*.md tem:
-    - Screenshot URL/binary
-    - Console messages (clean = sem error/Error/TypeError)
-    - Data do smoke (≤30 dias)
+🔍 Audit completude — Modules/{Modulo} ({task_id ou "módulo inteiro"})
 
-🟡 PARCIAL se:
-  - Smoke existe mas >30 dias (envelhecido)
-  - Screenshot sem console messages
+✅ Aprovados: {N}/8
+❌ Reprovados: {M}
 
-❌ AUSENTE se:
-  - Sem evidência de smoke browser MCP (caso típico de US fechada baseada só em "passa nos tests")
+Reprovados:
+- #2 Permissions UI: {evidência curta}
+- #6 AuditLog: {evidência curta}
+
+Decisão:
+- BLOQUEIO transição review→done desta US
+- Sugiro criar 2 US novas pros gaps. Aprova? (s/n/lista IDs)
 ```
+
+### 6. Decisão Wagner → ação
+
+**Se Wagner aprovar override** ("override #2", "force done", "vai assim mesmo"):
+- Registrar override em `memory/requisitos/{Modulo}/AUDIT-LOG.md` com justificativa
+- Permitir transição (registra ADR `lifecycle: historical` se >2 overrides na mesma US)
+- Apender comment na US via `tasks-comment`
+
+**Se Wagner aprovar criar US gaps**:
+- `tasks-create` no MCP pra cada gap (priority herda do score do check)
+- Apender no SPEC.md
+- Bloquear transição da US original até gaps fecharem
+
+**Se Wagner pedir fix antes**:
+- Listar próximos passos concretos
+- NÃO transicionar US
+
+### 7. Apender em AUDIT-LOG.md
+
+```markdown
+## {YYYY-MM-DD HH:MM} — {Modulo} — {task_id ou "full module"}
+
+- Checks: ✅{N} ❌{M}
+- Reprovados: [#2 Permissions UI, #6 AuditLog]
+- Decisão Wagner: {override / criou US / pediu fix}
+- US criadas: [US-XXX-NNN, ...]
+- Próxima ação: {fix antes / aguarda gaps / done liberado}
+```
+
+Atualizar `metrics:` no frontmatter desta skill.
 
 ## Saída final pro Wagner
 
 ```
-✅ Auditoria de completude — {Modulo} ({YYYY-MM-DD}).
+🔍 Audit completude — Modules/{Modulo}
 
-Cobertas: {N} de 8 dimensões
-- ✅ APROVADO: {N1}
-- 🟡 PARCIAL: {N2}
-- ❌ AUSENTE: {N3}
+Resultado: {APROVADO ✅ / BLOQUEADO ❌}
 
-Gaps detectados (priorizados ❌ antes de 🟡):
-1. ❌ Dim 1 (Multi-instance) — Modules/Whatsapp/Models/WhatsappAccount.php:8 — só 1 conta por business; biz pode ter N → propor migration `add_phone_number_id_to_*` + UI seletor
-2. ❌ Dim 2 (Permissions UI) — Modules/Whatsapp/Routes/web.php:14 tem can:whatsapp.manage mas sem Pages/Whatsapp/Permissions → propor UI dedicada
-3. 🟡 Dim 5 (Pest cross-tenant) — Modules/Whatsapp/Tests/Feature/SettingsTest.php cobre biz=1, falta biz=99 → adicionar teste BusinessIdGuardTest
-4. ❌ Dim 8 (Smoke MCP) — sem evidência em memory/sessions/*whatsapp*.md → rodar smoke pós-merge
+[se aprovado]
+✅ 8/8 checks passaram. Pode marcar US-XXX-NNN como done.
 
-Aprovo criar {M} US-fix? (todas / nenhuma / 1,2 / só ❌)
-[ ] todas (4 US-fix)
-[ ] só ❌ (3 US-fix — pula 🟡)
-[ ] 1,2,4 (3 US-fix — pula Pest)
-[ ] nenhuma — registrar exceção em PR description e fechar US original mesmo assim
+[se bloqueado]
+❌ {M} reprovados. Bloqueio transição review→done.
+Detalhes: AUDIT-LOG.md:linha
+{N} US novas criadas pros gaps: [...]
+
+Próximo passo: {Wagner decide}
 ```
 
-**PARAR aqui.** Aguardar resposta. Não criar tasks sozinha (publication-policy [ADR 0040](../../memory/decisions/0040-policy-publicacao-claude-supervisiona.md)).
+## Reprovações (não fazer)
 
-## Após aprovação Wagner
+- ❌ Marcar US done sem rodar audit (silenciar a skill)
+- ❌ Override sem justificativa (vira débito sem rastreio)
+- ❌ Inventar evidência (cada ✅ precisa citar arquivo:linha)
+- ❌ Rodar audit sem SPEC.md ou sem `Modules/{X}/` existir
+- ❌ Bloquear PR sem dar plano concreto de fix
+- ❌ Substituir `comparativo-do-modulo` (skills complementares — esta = governança, aquela = mercado)
 
-1. Pra cada gap aprovado, `tasks-create` com:
-   - `module: <Modulo>`
-   - `priority: P0` (❌) ou `P1` (🟡)
-   - `title: "fix({Modulo}): Dim N — {dimensão}"`
-   - `description: "Gap detectado por module-completeness-audit em {data}. Evidência: {file:line}. Fix sugerido: {fix}."`
-   - `tags: ["completeness-gap", "from-skill"]`
-   - `cycle: current` se houver
-   - `parent_us: {US-ID original}` se a audit foi disparada por fechamento
+## Métricas a popular
 
-2. Apender em `memory/requisitos/<Mod>/SPEC.md` (append-only, datado):
-```markdown
-## Auditoria de completude — {YYYY-MM-DD}
+A cada execução, atualizar `metrics:` no frontmatter:
+- `audits_executados` += 1
+- `audits_aprovados` += 1 (se passou todos)
+- `audits_bloqueados` += 1 (se reprovou ≥1)
+- `gaps_detectados_total` += N
+- `modulos_cobertos` adicionar `{Modulo}` se primeiro audit
 
-Disparada por: {US-ID original ou /module-audit manual}
-Resultado: {N1} ✅ / {N2} 🟡 / {N3} ❌
+## Roadmap (Fase 2)
 
-Gaps virando US-fix:
-- US-{MOD}-FIX-NNN (P0): Dim N (Nome) — file:line
-- ...
+- **CI gate** (`audit-gate.yml` workflow): falha PR se branch fecha US sem audit ✅
+- **Pest custom assertion** `assertModuleAuditPasses({Modulo})` — testa em CI
+- **Tela admin** `/admin/audit-log` renderiza histórico AUDIT-LOG.md cross-módulos
+- **Integração com `comparativo-do-modulo`**: roda os 2 em batch quando user pede "fechar sprint"
 
-Gaps com exceção registrada (Wagner aprovou pular):
-- Dim N — razão: {explicação curta} — risco aceito por Wagner em PR #NNN
-```
+## Não fazer (descartado pelo Wagner em 2026-05-10)
 
-3. Atualizar `metrics:` no frontmatter desta skill:
-   - `audits_run += 1`
-   - `gaps_detected_total += N`
-   - `gaps_fixed_before_done += {aprovados}`
-   - `gaps_ignored_with_exception += {pulados com aprovação}`
-   - `modules_covered` adiciona `{Modulo}` se ainda não estiver
-
-4. **NÃO fechar a US original** (`tasks-update <ID> status:done`) até:
-   - Todas as US-fix criadas estarem `status:doing` ou `done` E
-   - Wagner explicitamente confirmar "fecha US-{ID-original}"
-
-## Anti-padrões (NUNCA fazer)
-
-- ❌ Fechar US `status:done` sem rodar auditoria em módulo (= bug volta em prod, círculo Whatsapp 2026-05-10)
-- ❌ Confundir com `/comparativo` (skills complementares — gaps mercado vs gaps governança)
-- ❌ Marcar dim como ✅ sem evidência `file:line` (só evidência salva da alucinação)
-- ❌ Auto-criar US-fix sem aprovação Wagner (publication-policy + ADR 0040)
-- ❌ Bloquear `tasks-update status:done` tecnicamente (essa skill é **advise**; bloqueio técnico via hook PowerShell — TODO P1, ver §Próximo passo)
-- ❌ Rodar audit em módulo sem `Modules/<Mod>/` no FS (parar e instruir)
-- ❌ Sobrescrever bloco anterior em SPEC.md (append-only, datado — pra ter histórico de auditorias)
-- ❌ Pular Dim 7 (`business_id` global scope) — Tier 0 IRREVOGÁVEL, escalar Wagner se ❌
-
-## ROI / por que existe
-
-| Caso | Custo sem skill | Custo com skill |
-|---|---|---|
-| Whatsapp settings (2026-05-10, US-WA-040) | 2 gaps detectados em prod, ~30min Wagner round-trip, 2 US-fix backlog | 2min audit pré-review, 2 US-fix criadas em batch ANTES de status:done |
-| US futura módulos novos | Repete cenário Whatsapp (gap silencioso até prod) | Skill flagi 8 dims antes de fechar |
-| Modules/ConsultaOs (2026-05-04) | Foi mergeado sem audit; pode ter gaps escondidos | Re-auditar retroativo |
-
-**Loop fechado por métrica** (Constituição v2 §4) — gap detectado **antes** do prod = governança forte, base do ERP autônomo R$ 10M / 24m.
-
-## Skills irmãs (matriz de cobertura)
-
-| Skill | Cobre | Quando usar |
-|---|---|---|
-| **module-completeness-audit** (esta) | Gaps INTERNOS de governança (8 dimensões) | Antes de fechar US / `/module-audit {Mod}` |
-| `comparativo-do-modulo` | Gaps EXTERNOS vs Capterra/mercado | `/comparativo {Mod}` — features ausentes vs concorrentes |
-| `mwart-quality` | 9 checks técnicos Inertia/React | Edit em `Pages/<Mod>/<Tela>.tsx` |
-| `criar-modulo` | Scaffold Laravel modular novo | `git mv`/`mkdir` em `Modules/<Mod>/` |
-| `migrar-modulo` | Drift PHP-only vs URL move | Renomear/extrair Controller existente |
-| `commit-discipline` (Tier A) | 1 PR = 1 intent, ≤300 linhas | Sempre |
-| `multi-tenant-patterns` (Tier A) | Tier 0 isolation enforcement | Edit em Eloquent Model/Controller/Job |
-
-## Próximo passo (P1, fora desta skill)
-
-**Hook bloqueador `block-incomplete-us-close.ps1`:**
-
-Hoje a skill é **advise** (mostra gaps mas não bloqueia técnico). Pattern atual segue precedente de `mwart-quality` que avisa sem bloquear, e o bloqueio técnico vem via hook PowerShell separado (`block-mwart-violation.ps1`).
-
-Se ROI provado em **5+ audits** (`metrics.audits_run >= 5` + `gaps_fixed_before_done / gaps_detected_total > 0.6`), criar PR específico com:
-
-- `.claude/hooks/block-incomplete-us-close.ps1` — intercepta `mcp__Oimpresso_MCP___Wagner__tasks-update {*} status:done`, verifica se audit rodou nos últimos 7 dias pra `<Modulo>` da US, bloqueia se ❌ pendente sem exceção registrada
-- ADR 0NNN documentando aposta + criterio de override (`#module-audit-override <razão>` em PR description)
-- Workflow CI `module-audit-gate.yml` análogo a `mwart-gate.yml`
-
-Até lá, skill é advise. Wagner pode ignorar e fechar US mesmo com ❌ — mas tem que registrar exceção em SPEC.md e PR description.
-
-## Histórico de versões
-
-- **v0.1.0** (2026-05-10) — DRAFT inicial. Approach 1+3 aprovado em 2026-05-10 (memory/feedback_module_completeness_audit_approach.md). 8 dimensões definidas a partir do caso US-WA-040. Tier B (auto-trigger por description). Hook bloqueador é P1.
-
-## Referências
-
-- **Caso original:** US-WA-040 / `/whatsapp/settings` 2026-05-10 — 2 gaps detectados em prod (multi-phone scope + UI permissões)
-- **Approach aprovado:** `memory/feedback_module_completeness_audit_approach.md`
-- **Constituição v2:** [ADR 0094](../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4 (loop fechado por métrica) + §5 (SoC brutal) + §6 (multi-tenant Tier 0)
-- **Tier B convenção:** [ADR 0095](../../memory/decisions/0095-skills-tiers-convencao-interna.md)
-- **Publication policy:** [ADR 0040](../../memory/decisions/0040-policy-publicacao-claude-supervisiona.md) — não criar US sem aprovação humana
-- **Skills tiers audit:** `memory/sprints/s3-constituicao/03-skills-audit.md`
-- **Test cross-tenant convention:** `memory/feedback_test_biz_99_cross_tenant_convention.md`
-- **Skill irmã (gaps mercado):** `.claude/skills/comparativo-do-modulo/SKILL.md`
+- ❌ **Cron mensal** rodando audit sozinho — pouco ROI até ter histórico do (1) `/comparativo`. Reavaliar quando esta skill tiver 5+ módulos cobertos.
