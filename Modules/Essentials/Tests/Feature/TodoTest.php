@@ -6,13 +6,13 @@ use Modules\Essentials\Entities\ToDo;
 
 class TodoTest extends EssentialsTestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function index_exige_autenticacao(): void
     {
         $this->get('/essentials/todo')->assertRedirect('/login');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function index_retorna_inertia_com_estrutura_esperada(): void
     {
         $this->actAsAdmin();
@@ -48,7 +48,7 @@ class TodoTest extends EssentialsTestCase
         $this->assertArrayHasKey('last_page', $props['todos']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function filtro_por_status_preservado_nos_props(): void
     {
         $this->actAsAdmin();
@@ -58,7 +58,7 @@ class TodoTest extends EssentialsTestCase
         $this->assertEquals('completed', $response->json('props.filtros.status'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function filtro_por_priority_preservado_nos_props(): void
     {
         $this->actAsAdmin();
@@ -67,7 +67,7 @@ class TodoTest extends EssentialsTestCase
         $this->assertEquals('urgent', $response->json('props.filtros.priority'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function create_retorna_inertia_com_props_necessarios(): void
     {
         $this->actAsAdmin();
@@ -82,7 +82,7 @@ class TodoTest extends EssentialsTestCase
         $this->assertArrayHasKey('can', $props);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function store_exige_campos_obrigatorios(): void
     {
         $this->actAsAdmin();
@@ -95,7 +95,7 @@ class TodoTest extends EssentialsTestCase
         $response->assertJsonValidationErrors(['task', 'date']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function store_cria_tarefa_e_redireciona_para_show(): void
     {
         $admin = $this->actAsAdmin();
@@ -119,7 +119,7 @@ class TodoTest extends EssentialsTestCase
             ->delete();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function add_comment_valida_campos(): void
     {
         $this->actAsAdmin();
@@ -132,14 +132,14 @@ class TodoTest extends EssentialsTestCase
         $response->assertJsonValidationErrors(['task_id', 'comment']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function delete_document_requer_autenticacao(): void
     {
         $response = $this->get('/essentials/todo/delete-document/1');
         $response->assertRedirect('/login');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function view_shared_docs_retorna_json_para_ajax(): void
     {
         $admin = $this->actAsAdmin();

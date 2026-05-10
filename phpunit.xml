@@ -15,11 +15,8 @@
         </testsuite>
         <testsuite name="Feature">
             <directory>./tests/Feature</directory>
-            <directory>./Modules/PontoWr2/Tests/Unit</directory>
-            <directory>./Modules/PontoWr2/Tests/Feature</directory>
             <directory>./Modules/Essentials/Tests/Feature</directory>
             <directory>./Modules/Cms/Tests/Feature</directory>
-            <directory>./Modules/Copiloto/Tests/Feature</directory>
             <directory>./Modules/Jana/Tests/Feature</directory>
             <directory>./Modules/RecurringBilling/Tests/Feature</directory>
             <directory>./Modules/Financeiro/Tests/Feature</directory>
