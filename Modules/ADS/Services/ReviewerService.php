@@ -130,9 +130,10 @@ class ReviewerService
             $response = $agent->prompt($agent->montarPrompt());
             return $this->parseJson(trim((string) $response));
         } catch (\Throwable $e) {
+            report($e);
             Log::channel('single')->error('ads.reviewer.call_failed', [
                 'decision_id' => $decision->id,
-                'msg'         => $e->getMessage(),
+                'exception'   => $e,
             ]);
             return null;
         }
