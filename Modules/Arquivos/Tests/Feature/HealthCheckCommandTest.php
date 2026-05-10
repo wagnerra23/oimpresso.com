@@ -108,6 +108,12 @@ beforeEach(function () {
 afterEach(function () {
     Carbon::setTestNow(null);
 
+    // afterEach roda mesmo em tests pulados (PHPUnit tearDown semantics).
+    // Em SQLite CI sem migrate, DELETE em arquivos estoura — bail antes.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        return;
+    }
+
     // Limpa apenas rows de teste — nunca afeta dados reais de outros suites
     DB::table('arquivos')->where('classified_by', HC_TEST_MARKER)->delete();
 

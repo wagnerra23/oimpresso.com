@@ -32,6 +32,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // afterEach roda mesmo em tests pulados (PHPUnit tearDown). Em SQLite CI
+    // sem migrate, DELETE estoura — bail antes.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        return;
+    }
+
     // Cleanup pós-test
     DB::table('vestuario_settings')->where('business_id', 1)->delete();
 });

@@ -54,6 +54,13 @@ beforeEach(function () {
 
 afterEach(function () {
     Schema::dropIfExists('nfe_emissoes');
+
+    // afterEach roda mesmo em tests pulados (PHPUnit tearDown). Em SQLite CI
+    // sem migrate Modules/Arquivos, DELETE estoura — bail antes.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        return;
+    }
+
     DB::table('arquivos')->where('classified_by', 'test-pr13-prefer-arquivos')->delete();
 });
 

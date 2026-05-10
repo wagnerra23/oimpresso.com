@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Modules\ComunicacaoVisual\Entities\Material;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
 
 uses(Tests\TestCase::class);
+
+beforeEach(function () {
+    // CI SQLite :memory: sem migrate — controller persiste em comvis_orcamentos
+    // + comvis_orcamento_itens; tests precisam schema MySQL UPos completo.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (Wagner Pest local segue mandatory — ADR 0101)');
+    }
+});
 
 /**
  * Testes de integração do OrcamentoController — endpoints API JSON.

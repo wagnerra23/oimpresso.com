@@ -63,6 +63,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // afterEach roda mesmo em tests pulados (PHPUnit tearDown). Em SQLite CI
+    // sem migrate, DELETE estoura — bail antes.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        return;
+    }
+
     // Deleta apenas rows com o marcador de teste — nunca afeta dados reais.
     DB::table('arquivos_audit_log')
         ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.test_marker')) = 'pr19-audit'")
