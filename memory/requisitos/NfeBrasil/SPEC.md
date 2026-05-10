@@ -596,7 +596,7 @@ Após o caso Gold concluir, refinar runbook on-prem com aprendizados reais. Deta
 
 ### US-NFE-049 · Migrar models/service legados Manifesto/ItemDfe/DFeService pra `Modules/NfeBrasil/`
 
-> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: review · type: story
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: done · type: story
 > blocked_by: US-NFE-042
 > code-complete: 2026-05-09 (PR pendente) — 4 migrations + 4 models + legado removido
 
@@ -619,7 +619,7 @@ Resgatar arquivos legados UltimatePOS órfãos e migrar pro padrão `Modules/Nfe
 
 ### US-NFE-050 · ManifestacaoService — eventos 210/220/230/240 via sped-nfe
 
-> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: review · type: story
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: done · type: story
 > blocked_by: US-NFE-049
 > code-complete: 2026-05-09 (PR pendente) — service + 4 testes Pest (idempotência, just ≥15, 4 eventos)
 
@@ -640,7 +640,7 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` en
 
 ### US-NFE-051 · DistribuicaoDfeService + Job agendado puxa XMLs por NSU
 
-> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 5h · status: review · type: story
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 5h · status: done · type: story
 > blocked_by: US-NFE-049
 > code-complete: 2026-05-09 (PR pendente) — service + Job + Command artisan + Kernel schedule 06:15 + 4 testes Pest
 
@@ -666,7 +666,7 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php`
 
 ### US-NFE-052 · UI listar XMLs recebidos + 4 botões manifestar + alerta prazo 180d
 
-> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: review · type: story
+> owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: done · type: story
 > blocked_by: US-NFE-050, US-NFE-051
 > code-complete: 2026-05-09 (PR pendente) — RUNBOOK + visual-comparison approved + ManifestacaoController + Page Inertia + 3 LinkedApps + 7 testes Pest
 
