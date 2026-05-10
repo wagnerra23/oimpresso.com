@@ -750,3 +750,81 @@ Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª 
 - ADR 0101 (biz=1 nunca cliente)
 - Auto-mem: `project_nfebrasil_estado_2026_05_07.md`
 
+
+
+### US-NFE-055 · Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+Aplicar o pattern dual-mode SQLite/MySQL validado em PR #486 (`fix(test): ImportRegrasCsvServiceTest`) nos demais tests Modules/NfeBrasil que falham em Pest local MySQL `oimpresso`.
+
+## Contexto
+
+PR #486 fixou `ImportRegrasCsvServiceTest` (3 tests `aplicar()`) — validado verde MySQL+SQLite. Ao rodar suite completa `vendor/bin/pest Modules/NfeBrasil/Tests --no-coverage` em Pest local MySQL, sessão 2026-05-10 catalogou: **107 failed, 63 skipped, 50 passed**.
+
+Causa-raiz dominante: `Schema::dropIfExists(<tabela>)` em beforeEach colide com FKs de tabelas dependentes em prod schema MySQL.
+
+## Tabelas-alvo (FK conflicts catalogados)
+
+| Tabela | FK conflict | Ocorrências |
+|---|---|---|
+| `business` | `assets.business_id_foreign` | 10 |
+| `nfe_certificados` | `nfse_provider_configs.cert_id_foreign` | 43 |
+| `tax_rates` | `business.default_sales_tax_foreign` | 8 |
+| `nfe_fiscal_rules` | `nfe_fr_tr_links_fiscal_rule_fk` | já fixado PR #486 |
+
+## Test files afetados (group by failures count)
+
+- `DanfeServiceTest.php` (21)
+- `CertificadoControllerTest.php` (16)
+- `NfeDomainModelsTest.php` (14)
+- `CertificadoServiceTest.php` (13)
+- `SyncFiscalRuleToTaxRateTest.php` (8)
+- `MotorTributarioServiceTest.php` (8)
+- `CertificadoFallbackLegadoTest.php` (6)
+- `TributacaoControllerTest.php` (5)
+- `EmitirNfceAoFinalizarVendaTest.php` (5) — pode ter outras causas (FK contacts)
+- `EmitirNFeAoReceberPagamentoTest.php` (4) — FK rb_invoices.contact_id
+- `NfeEmissaoControllerSerializeUrlsTest.php` (3) — toHaveKey misuse residual?
+- `DistribuicaoDfeServiceTest.php` (3) — UniqueConstraintViolation em nfe_dfe_recebidos
+- `HasArquivosTraitTest.php` (3)
+- `DanfeServicePrefersArquivosTest.php` (3)
+- `ImportRegrasCsvServiceTest.php` ✅ fixado PR #486
+
+## Pattern de fix (PR #486 ref)
+
+```php
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('<tabela>');
+        Schema::create('<tabela>', function ($t) { /* schema mínimo */ });
+    } elseif (Schema::hasTable('<tabela>')) {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        // Limpa rows whereIn business_id [1, 99] — cascateia em links
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+    Event::fake([...listeners bridge]);
+});
+```
+
+## Acceptance criteria
+
+- [ ] `vendor/bin/pest Modules/NfeBrasil/Tests --no-coverage` em MySQL local sai >=95% verde
+- [ ] Cada test tocado também verde em SQLite `:memory:` (CI parity)
+- [ ] CI Modules Pest job `Pest — Modules/NfeBrasil` verde após merge
+
+## Constraints
+
+- ADR 0101 — biz=1 (Wagner WR2), biz=99 (cross-tenant), nunca biz=4 (cliente ROTA LIVRE)
+- Skill `commit-discipline` Tier A — ≤300 linhas por PR. Estimativa: dividir em 2-3 PRs por agrupamento (PR#1 Certificado*, PR#2 Danfe*, PR#3 outros)
+- Não tocar lógica de produção — só test setup
+- Pest local com MySQL real é gate verdadeiro (Wagner regra 2026-05-09)
+
+## Artefatos referência
+
+- PR #486: https://github.com/wagnerra23/oimpresso.com/pull/486
+- Auto-mem `reference_pattern_dual_mode_sqlite_mysql_tests.md`
+- Auto-mem `reference_listener_bridge_event_fake_pattern.md`
+- Workflow CI: `.github/workflows/modules-pest.yml`
+- ADR ARQ-0005 — bridge listener nfe_fiscal_rules → tax_rates
