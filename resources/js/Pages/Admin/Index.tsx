@@ -15,6 +15,10 @@ import WidgetCycles from './_components/WidgetCycles';
 import WidgetAdrTier0 from './_components/WidgetAdrTier0';
 import WidgetCurador from './_components/WidgetCurador';
 import WidgetMcpServer from './_components/WidgetMcpServer';
+import WidgetVaultwarden from './_components/WidgetVaultwarden';
+import WidgetSessions from './_components/WidgetSessions';
+import WidgetInfraStatus from './_components/WidgetInfraStatus';
+import WidgetBrainBCost from './_components/WidgetBrainBCost';
 
 interface BriefData {
   available: boolean;
@@ -106,6 +110,44 @@ interface McpData {
   instructions?: string;
 }
 
+interface VaultwardenData {
+  available: boolean;
+  reachable: boolean;
+  latency_ms?: number;
+  ciphers_total?: number;
+  expiring_30d?: number;
+  url?: string;
+  reason?: string;
+  instructions?: string;
+}
+
+interface SessionsData {
+  available: boolean;
+  latest: any[];
+  by_dev: any[];
+  reason?: string;
+  instructions?: string;
+}
+
+interface InfraData {
+  hostinger_ssh: { status: 'up' | 'down' | 'degraded'; latency_ms?: number | null; error?: string };
+  ct100_tailscale: { status: 'up' | 'down' | 'degraded'; latency_ms?: number | null; http_status?: number };
+  centrifugo: { status: 'up' | 'down' | 'degraded'; latency_ms?: number | null; http_status?: number };
+  meilisearch: { status: 'up' | 'down' | 'degraded'; latency_ms?: number | null; http_status?: number };
+  mysql: { status: 'up' | 'down' | 'degraded'; latency_ms?: number | null; error?: string };
+}
+
+interface BrainBCostData {
+  available: boolean;
+  cost_brl_24h?: number;
+  threshold_brl?: number;
+  pct_threshold?: number;
+  status?: 'green' | 'yellow' | 'red' | 'unknown';
+  last_run?: string | null;
+  reason?: string;
+  instructions?: string;
+}
+
 interface PageProps {
   widgets: {
     brief: BriefData;
@@ -114,6 +156,10 @@ interface PageProps {
     adr_alerts: AdrAlertsData;
     curador: CuradorData;
     mcp: McpData;
+    vaultwarden: VaultwardenData;
+    sessions: SessionsData;
+    infra: InfraData;
+    brain_b_cost: BrainBCostData;
   };
   meta: {
     subdomain: string;
@@ -124,7 +170,7 @@ interface PageProps {
 }
 
 export default function AdminIndex({ widgets, meta }: PageProps) {
-  const { brief, health, cycles, adr_alerts, curador, mcp } = widgets;
+  const { brief, health, cycles, adr_alerts, curador, mcp, vaultwarden, sessions, infra, brain_b_cost } = widgets;
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -233,6 +279,68 @@ export default function AdminIndex({ widgets, meta }: PageProps) {
           </CardHeader>
           <CardContent>
             <WidgetMcpServer data={mcp} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="lock" /> Vaultwarden
+              {vaultwarden.available && (vaultwarden.expiring_30d ?? 0) > 0 && (
+                <span className="ml-auto text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                  {vaultwarden.expiring_30d} vencendo
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WidgetVaultwarden data={vaultwarden} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="dollar-sign" /> Custos Brain B 24h
+              {brain_b_cost.available && (
+                <span
+                  className={`ml-auto text-xs px-2 py-0.5 rounded ${
+                    brain_b_cost.status === 'red'
+                      ? 'bg-red-100 text-red-800'
+                      : brain_b_cost.status === 'yellow'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-green-100 text-green-800'
+                  }`}
+                >
+                  {brain_b_cost.status}
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WidgetBrainBCost data={brain_b_cost} />
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="users" /> Sessões Claude (cross-dev 7d)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WidgetSessions data={sessions} />
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="server" /> Infra status (5 hosts)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WidgetInfraStatus data={infra} />
           </CardContent>
         </Card>
 
