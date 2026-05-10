@@ -3,12 +3,39 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Transaction extends Model
 {
+    use LogsActivity;
+
     //Transaction types = ['purchase','sell','expense','stock_adjustment','sell_transfer','purchase_transfer','opening_stock','sell_return','opening_balance','purchase_return', 'payroll', 'expense_refund', 'sales_order', 'purchase_order']
 
     //Transaction status = ['received','pending','ordered','draft','final', 'in_transit', 'completed']
+
+    /**
+     * Activity log config — captura mudancas em campos criticos pra auditoria
+     * com diff old/new automatico. Padrao canonico Modules/Financeiro/Models/Titulo.
+     *
+     * Refs: ADR 0127 (Modules/Auditoria UI + undo) US-AUDIT-001
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'status',
+                'total_before_tax',
+                'final_total',
+                'contact_id',
+                'location_id',
+                'transaction_date',
+                'payment_status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('sales.transaction');
+    }
 
     /**
      * The attributes that aren't mass assignable.
