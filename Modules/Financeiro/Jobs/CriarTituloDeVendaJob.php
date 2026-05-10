@@ -65,6 +65,7 @@ class CriarTituloDeVendaJob implements ShouldQueue
             return;
         }
 
+        // SUPERADMIN: job dispatched de Observer sem session — business_id da Transaction recebida via id no constructor
         // Idempotência via firstOrCreate (UNIQUE protege contra double dispatch)
         Titulo::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
@@ -102,6 +103,7 @@ class CriarTituloDeVendaJob implements ShouldQueue
     {
         $prefix = $tipo === 'receber' ? 'R' : 'P';
 
+        // SUPERADMIN: job sem session — sequencial business-isolado, business_id explícito como param
         $ultimo = Titulo::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $businessId)
