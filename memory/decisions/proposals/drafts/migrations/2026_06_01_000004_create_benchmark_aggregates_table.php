@@ -37,20 +37,22 @@ return new class extends Migration {
             $table->string('metric_key', 100)
                 ->comment('Ex: receita_anual, ticket_medio, m2_produzidos_mes');
             $table->string('uf', 2)->nullable()->comment('NULL = agregado nacional; SP/RJ/etc = regional');
-            $table->date('period_start');
-            $table->date('period_end');
+            // D1 (Felipe 2026-05-11): granularidade mensal nativa via string YYYY-MM.
+            // YYYY-WW reservado pra weekly futuro sem dor (migration trivial).
+            $table->string('period', 10)->comment('YYYY-MM (mensal). YYYY-WW reservado pra weekly futuro.');
             $table->unsignedInteger('n_businesses')
                 ->comment('# de negócios na agregação. MUST be >= 5 (CHECK constraint).');
             $table->decimal('value_min', 18, 2)->nullable();
-            $table->decimal('value_p25', 18, 2)->nullable()->comment('Percentil 25');
+            // D2 (Felipe 2026-05-11): mediana + p90 cauda — padrão SaaS benchmarking
+            // (Stripe, ProfitWell, ChartMogul). p25/p75 quartile descartado.
             $table->decimal('value_p50', 18, 2)->nullable()->comment('Mediana');
-            $table->decimal('value_p75', 18, 2)->nullable()->comment('Percentil 75');
+            $table->decimal('value_p90', 18, 2)->nullable()->comment('Top 10% (cauda)');
             $table->decimal('value_max', 18, 2)->nullable();
             $table->decimal('value_avg', 18, 2)->nullable();
             $table->timestamp('computed_at')->useCurrent();
             $table->timestamps();
 
-            $table->index(['vertical_id', 'metric_key', 'uf', 'period_start'], 'idx_bench_lookup');
+            $table->index(['vertical_id', 'metric_key', 'uf', 'period'], 'idx_bench_lookup');
             $table->index('n_businesses');
         });
 
