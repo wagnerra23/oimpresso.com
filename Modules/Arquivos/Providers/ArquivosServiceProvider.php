@@ -5,6 +5,7 @@ namespace Modules\Arquivos\Providers;
 use Illuminate\Support\ServiceProvider;
 use Modules\Arquivos\Services\ArquivosService;
 use Modules\Arquivos\Services\Curador\CuradorEngine;
+use Modules\Arquivos\Services\VaultEncryptionService;
 
 /**
  * ServiceProvider do módulo Arquivos (DMS backbone).
@@ -43,6 +44,7 @@ class ArquivosServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(CuradorEngine::class);
+        $this->app->singleton(VaultEncryptionService::class);
         $this->app->singleton(ArquivosService::class);
     }
 }
