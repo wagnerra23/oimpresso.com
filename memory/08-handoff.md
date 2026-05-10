@@ -7,7 +7,111 @@
 
 ---
 
-## 🆕 Estado 2026-05-10 noite — PR #475 CI Modules Pest verde (worktree `vigorous-meitner-972abb`)
+## 🆕 Estado 2026-05-10 noite-2 — Cycle higiene + Pivot fiscal + Cadeia FSM canônica (4 PRs + ADR 0129)
+
+Sessão de governança/planejamento (sem código de produção). Wagner [W] pediu orientação de próximos passos → análise revelou **drift 100% no CYCLE-03** (16/16 commits 7d não tocaram tasks do cycle) → higiene completa + pivot conceitual em US-RB-044 → cadeia FSM canônica desenhada e ADR aceita.
+
+### 4 PRs entregues (todos mergeados em main)
+
+| PR | Conteúdo |
+|---|---|
+| [#492](https://github.com/wagnerra23/oimpresso.com/pull/492) | Drenar 13 US REVIEW → done (sync SPEC com main); higiene CYCLE-03 → CYCLE-04 |
+| [#493](https://github.com/wagnerra23/oimpresso.com/pull/493) | Pivot venda-sem-nota: US-RB-044 done sem prod-evidence + cadeia FSM inicial (US-SELL-010/011/012 + US-NFE-059) |
+| [#494](https://github.com/wagnerra23/oimpresso.com/pull/494) | Caso prático Comunicação Visual + 3 US novas (US-SELL-013/014 + US-NFE-060) + findings sub-agent FSM |
+| [#495](https://github.com/wagnerra23/oimpresso.com/pull/495) | **ADR 0129 accepted** — State Machine canônica (custom 5 tabelas + Spatie Permission) |
+
+### Cycle higiene: CYCLE-03 fechado, CYCLE-04 ativo
+
+CYCLE-03 retro:
+- ✅ Goal #9 atingido (US-RB-044 code-complete em main)
+- ❌ Goal #8 órfão (cstat 100 prod biz=1 — pipeline pronto mas flag `nfebrasil.auto_emission_on_invoice_paid=true` não ativada)
+- ❌ Goal #10 órfão (health-check 7d — sem tracking)
+- ❌ Drift 100% — pivot Whatsapp+Gold (ADR 500/501) sequestrou foco sem cycle ser repactuado
+
+Lição: detectar pivot via brief drift-warning e fazer `cycles-close --rollover` imediato, não 4 dias depois.
+
+CYCLE-04 ativo (2026-05-10 → 2026-05-24, 14 dias). 3 goals refletindo trabalho real:
+1. 9 PRs Whatsapp REVIEW mergeados + 1 envio Z-API real biz=1 OK
+2. 4 PRs NFe Manifestação (US-NFE-049/050/051/052) mergeados + 1 evento 220 OK biz=Gold
+3. US-RB-045 Inter PJ — saldo real `/financeiro/dashboard` prod ROTA LIVRE biz=4
+
+### Pivot conceitual venda-sem-nota (chave da sessão)
+
+Wagner apontou: **"venda sem nota é caminho feliz, não falha"**. DoD original US-RB-044 pressupunha que toda venda emite nota. Errado pra varejo PME BR (Larissa vestuário Gravatal/SC talvez nunca opt-in).
+
+Solução desenhada: gate de emissão **POR VENDA** (não por business via flag global). Exige State Machine canônica com:
+- **Reserva de estoque** (não baixa) entre "aprovado" e "produção concluída"
+- **Multi-documento por venda** (1 OS = NFe55 + NFSe56 nacional) — caso prático Wagner: banner R$ [redacted Tier 0] + instalação R$ [redacted Tier 0]
+
+### Caso prático real (referência viva)
+
+**`memory/requisitos/Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md`** — OS Gráfica Vargas → Pizzaria Nicola (Florianópolis/SC). 12 stages FSM concretos + RBAC granular + 12 funções fiscais BR cobertas (NFe55, NFSe56 nacional NT 2024-001, NFCom 62 futuro, MDFe 58, manifestação destinatário, Reforma Tributária 2026 fase teste IBS+CBS). Comparativo competitivo vs Mubisys/Bling/Linx.
+
+### 6 US novas criadas (cadeia dependências)
+
+```
+US-SELL-010 (ADR FSM, 6h)  ✅ DONE
+   ↓
+US-SELL-011 (4 tabelas FSM + side_effect_class, 12h)
+   ├── US-SELL-013 (stock_reservations, 8h)
+   ├── US-SELL-014 (transaction_documents poly N:1, 6h)
+   │      └── US-NFE-060 (EmitirNFSeJob nacional NT 2024-001, 12h)
+   └── US-SELL-012 (gate emissão por venda, 8h)
+         └── US-NFE-059 (smoke prod end-to-end cliente real, 4h)
+```
+
+Total estimate: ~56h (1 cycle paralelo / ~28d sequencial).
+
+### ADR 0129 accepted (decisão técnica)
+
+**Custom 5 tabelas + Spatie Permission v6.0** — rejeitando Spatie ModelStates (overhead OOP, sem multi-tenant) e Symfony Workflow (peso 50+ deps, YAML estático).
+
+Schema:
+- `sale_processes` (catálogo "Venda Com Nota" / "Venda Sem Nota" / "Venda B2B")
+- `sale_process_stages` (estados rascunho/faturada/paga/emitida/enviada)
+- `sale_stage_actions` (transições com `side_effect_class` + `target_stage`)
+- `sale_stage_action_roles` (RBAC join Spatie Permission)
+- `sale_stage_history` (audit log)
+
+Service: `App\Domain\Fsm\Services\ExecuteStageActionService`. Catálogo side-effects em `App\Domain\Fsm\SideEffects\`: `ReservarEstoque`, `ConsumirEstoque`, `LiberarReserva`, `EmitirNFeJob`, `EmitirNFSeJob`, `BaixarFinanceiro`, `EnviarWhatsappCliente`.
+
+Multi-tenant Tier 0 (ADR 0093) amarração obrigatória — toda tabela tem `business_id` + global scope.
+
+### Sub-agent FSM (background) entregou findings
+
+`memory/decisions/proposals/drafts/_AGENT_FSM_FINDINGS-2026-05-10.md` — investigação independente em Modules/Repair, ProjectMgmt, mcp_tasks. Achados-chave:
+- Spatie ModelStates ❌ NÃO instalado · Symfony Workflow ❌ NÃO instalado · Spatie Permission ✅ v6.0
+- RBAC por transição NÃO existe em lugar nenhum (todos usam permission generic "edit")
+- `RepairStatusChanged` event declarado mas disparo COMENTADO (aguarda PR)
+- Recomendação técnica: custom 4 tabelas + Spatie Permission (convergiu independentemente com desenho US-SELL-011)
+
+### Próximos passos imediatos
+
+| # | Item | Owner | Quando |
+|---|------|-------|--------|
+| 1 | Pegar **US-SELL-011** (4 tabelas FSM + Service + 8 testes Pest, ~12h) | Wagner ou IA-pair | próxima sessão coding |
+| 2 | Adicionar US-SELL-011 como goal #4 do CYCLE-04 (visibilidade brief) | Wagner | quando começar implementação |
+| 3 | Webhook GitHub→MCP indexar ADR 0129 + 6 US novas (auto) | automático | <5min após push |
+| 4 | Wagner ativar `nfebrasil.auto_emission_on_invoice_paid=true` em prod (independente do FSM, US-RB-044 code-complete) | Wagner | quando 1º cliente opt-in (Gold candidato natural pós Manifestação) |
+
+### Pendências do handoff anterior (preservadas)
+
+- Felipe segunda — `_AGENT_A_AUDIT_FINDINGS.md` → 4 críticos pendentes → US-INFRA-012
+- Wagner — preencher placeholders 5 cartas warming + 06-vargas + manda 1/semana após Modules/CV Sprint 1
+- Wagner — rodar `officeimpresso-financial-snapshot` em cada Firebird quando 192.168.0.55 voltar
+- Próxima Claude — terminar Modules/Autopecas charter + plano Vargas (sub-agent C ficou parcial)
+
+### Arquivos canônicos novos (catalogados)
+
+- `memory/decisions/0129-state-machine-canonica-fsm-rbac.md` — ADR mãe FSM (canon, accepted)
+- `memory/requisitos/Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md` — referência viva (atualizar quando outros casos surgirem: oficina auto, eletricista, dentista)
+- `memory/decisions/proposals/drafts/_AGENT_FSM_FINDINGS-2026-05-10.md` — input pra ADR (já consumido, manter como histórico)
+
+**Última atualização:** 2026-05-10 noite-2 ~22h BRT — sessão higiene + pivot + cadeia FSM + ADR 0129 accepted.
+
+---
+
+## Estado 2026-05-10 noite — PR #475 CI Modules Pest verde (worktree `vigorous-meitner-972abb`)
 
 **PR aguardando merge (CI verde esperado):** [#475](https://github.com/wagnerra23/oimpresso.com/pull/475) — 16 arquivos com guards SQLite + 1 fix `toHaveKey`.
 
