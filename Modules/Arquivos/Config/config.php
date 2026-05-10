@@ -12,11 +12,15 @@ return [
 
     /**
      * Disk pra bucket=sensitive. Encryption-at-rest mandatório (ADR 0123 §3).
-     * Atenção: Laravel Filesystem NÃO suporta encryption nativo — precisa
-     * (a) league/flysystem-encrypted middleware OU (b) Crypt::encrypt antes
-     * de Storage::put. Decisão Wagner antes de Sprint 1 dia 4.
+     *
+     * Decisão Wagner 2026-05-10: VaultEncryptionService usa Crypt::encryptString
+     * (Laravel native, APP_KEY-backed AES-256-CBC) em vez de league/flysystem-encrypted.
+     * Trade-off: arquivos vault NÃO podem ser servidos via Storage::url direto —
+     * sempre passar pelo DownloadController. Ver ADR 0123 §6.
+     *
+     * @see Modules/Arquivos/Services/VaultEncryptionService.php
      */
-    'disk_vault' => env('ARQUIVOS_DISK_VAULT', 'local'),
+    'disk_vault' => env('ARQUIVOS_DISK_VAULT', 'vault'),
 
     /**
      * Cap upload por contexto. Sprint 1 default genérico; refinamento por
