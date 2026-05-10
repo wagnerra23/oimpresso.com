@@ -3,9 +3,33 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Product extends Model
 {
+    use LogsActivity;
+
+    /**
+     * Activity log config — captura mudancas em campos criticos pra auditoria
+     * com diff old/new automatico. Padrao canonico Modules/Financeiro/Models/Titulo.
+     *
+     * Refs: ADR 0127 (Modules/Auditoria UI + undo) US-AUDIT-002
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'sku',
+                'name',
+                'sell_price_inc_tax',
+                'enable_stock',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('inventory.product');
+    }
+
     /**
      * The attributes that aren't mass assignable.
      *
