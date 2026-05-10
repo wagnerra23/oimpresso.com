@@ -565,8 +565,16 @@ class ContactController extends Controller
         //Added check because $users is of no use if enable_contact_assign if false
         $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
 
+        // Pre-fill via query param: vem do cadastro inline em Sells/Create
+        // (CustomerSearchAutocomplete "Cadastrar 'NOME'"). Pedido Wagner 2026-05-10.
+        // Sanitiza pra evitar XSS — view escapa com {{ }} também (dupla camada).
+        $prefill_name = trim((string) request()->query('prefill_name', ''));
+        if (mb_strlen($prefill_name) > 100) {
+            $prefill_name = mb_substr($prefill_name, 0, 100);
+        }
+
         return view('contact.create')
-            ->with(compact('types', 'customer_groups', 'selected_type', 'module_form_parts', 'users'));
+            ->with(compact('types', 'customer_groups', 'selected_type', 'module_form_parts', 'users', 'prefill_name'));
     }
 
     /**
