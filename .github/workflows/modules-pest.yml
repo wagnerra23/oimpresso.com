@@ -1,13 +1,13 @@
 name: Modules Pest
 
-# CI Pest pra 5 módulos tocados na sessão 2026-05-10 — Sprint 2 ADR 0123.
+# CI Pest pra 5 modulos tocados na sessao 2026-05-10 - Sprint 2 ADR 0123.
 # Roda jobs paralelos (matrix) em cada PR que toca Modules/<X>/.
 #
-# SQLite :memory: SEM migrate — UltimatePOS tem migrations com MODIFY COLUMN
-# MySQL-only incompatíveis com SQLite. Tests usam markTestSkipped defensivo
-# (Schema::hasTable) e pulam graciosamente quando a tabela não existe.
-# Tests de pura logic (calculator/engine/validator) seguem rodando — esse é
-# o sinal útil capturado em CI; suite DB-bound roda local com MySQL.
+# NOTA: Sem migrate manual - UltimatePOS tem migrations MySQL-only (MODIFY COLUMN,
+# ENUM syntax) incompativeis com SQLite. Tests que precisam de DB real usam
+# markTestSkipped defensivo (skip gracioso quando tabela ausente).
+# Tests pure-logic (service classes, value objects, command logic) rodam normalmente.
+# Para rodar suite completa com DB real: vendor/bin/pest localmente com MySQL.
 
 on:
   pull_request:
@@ -36,7 +36,7 @@ concurrency:
 
 jobs:
   pest:
-    name: "Pest — Modules/${{ matrix.module }}"
+    name: Pest ${{ matrix.module }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -66,46 +66,38 @@ jobs:
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
-      - name: Prepare dirs de storage + bootstrap
+      - name: Prepare dirs
         run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
 
-      - name: Instalar dependências PHP (sem scripts até .env existir)
+      - name: Install PHP deps
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
-      - name: Criar .env (SQLite :memory: — sem boot DB-heavy)
+      - name: Create .env
         run: |
-          cat > .env <<'EOF'
-          APP_NAME=oimpresso-ci
-          APP_ENV=testing
-          APP_DEBUG=true
-          APP_URL=http://localhost
-          LOG_CHANNEL=stderr
-          DB_CONNECTION=sqlite
-          DB_DATABASE=:memory:
-          CACHE_DRIVER=array
-          QUEUE_CONNECTION=sync
-          SESSION_DRIVER=array
-          MAIL_MAILER=array
-          BCRYPT_ROUNDS=4
-          TELESCOPE_ENABLED=false
-          SCOUT_DRIVER=null
-          MCP_TOOLS_EXPOSED=false
-          EOF
+          printf '%s\n' \
+            'APP_NAME=oimpresso-ci' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=true' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' > .env
           php artisan key:generate
           php artisan package:discover --ansi
 
-      # Migrate INTENCIONALMENTE removido — UltimatePOS tem migrations com
-      # MODIFY COLUMN MySQL-only que falham em SQLite e travam o job.
-      # Tests usam markTestSkipped defensivo (Schema::hasTable) e pulam
-      # graciosamente quando a tabela não existe; tests de pura logic
-      # (calculator, engine, validator) seguem rodando normalmente.
-      # Pra rodar suite completa com DB real → vendor/bin/pest local com MySQL.
-
-      - name: "Pest — Modules/${{ matrix.module }}/Tests"
+      - name: Run Pest
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+          DB_DATABASE: ":memory:"
           CACHE_DRIVER: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
