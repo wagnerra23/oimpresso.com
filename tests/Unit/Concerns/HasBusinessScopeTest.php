@@ -81,3 +81,18 @@ test('Meta migrada do addGlobalScope manual pro trait', function () {
     $contents = file_get_contents($reflection->getFileName());
     expect($contents)->not->toContain('addGlobalScope(new ScopeByBusiness)');
 });
+
+test('Repair JobSheet usa HasBusinessScope', function () {
+    $traits = class_uses_recursive(\Modules\Repair\Entities\JobSheet::class);
+    expect($traits)->toHaveKey(HasBusinessScope::class);
+});
+
+test('Repair RepairStatus usa HasBusinessScope', function () {
+    $traits = class_uses_recursive(\Modules\Repair\Entities\RepairStatus::class);
+    expect($traits)->toHaveKey(HasBusinessScope::class);
+});
+
+test('Repair DeviceModel usa HasBusinessScope', function () {
+    $traits = class_uses_recursive(\Modules\Repair\Entities\DeviceModel::class);
+    expect($traits)->toHaveKey(HasBusinessScope::class);
+});
