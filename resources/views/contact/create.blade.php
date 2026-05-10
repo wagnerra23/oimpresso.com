@@ -39,7 +39,8 @@
             </div>
             <div class="col-md-4 mt-15">
                 <label class="radio-inline">
-                    <input type="radio" name="contact_type_radio" id="inlineRadio1" value="individual">
+                    {{-- prefill_name implica fluxo cadastro inline rapido (individual default) --}}
+                    <input type="radio" name="contact_type_radio" id="inlineRadio1" value="individual" {{ !empty($prefill_name) ? 'checked' : '' }}>
                     @lang('lang_v1.individual')
                 </label>
                 <label class="radio-inline">
@@ -96,7 +97,8 @@
             <div class="col-md-3 individual" style="display: none;">
                 <div class="form-group">
                     {!! Form::label('first_name', __( 'business.first_name' ) . ':*') !!}
-                    {!! Form::text('first_name', null, ['class' => 'form-control', 'required', 'placeholder' => __( 'business.first_name' ) ]); !!}
+                    {{-- prefill_name vem da query param ?prefill_name=NOME (cadastro inline Sells/Create) --}}
+                    {!! Form::text('first_name', $prefill_name ?? null, ['class' => 'form-control', 'required', 'placeholder' => __( 'business.first_name' ) ]); !!}
                 </div>
             </div>
             <div class="col-md-3 individual" style="display: none;">
@@ -548,6 +550,32 @@
     </div>
 
     {!! Form::close() !!}
-  
+
   </div><!-- /.modal-content -->
+
+@if(!empty($prefill_name))
+{{-- Cadastro inline standalone (vem do "Cadastrar 'X'" em /sells/create).
+     Quando aberto via URL direto (não via modal AJAX), o handler em
+     public/js/app.js:526 não dispara (bind em shown.bs.modal). Este script
+     força a exibição dos .individual quando radio individual está pre-checked
+     via $prefill_name. Pedido Wagner 2026-05-10 PR #430 follow-up. --}}
+<script>
+(function () {
+  function showIndividualFields() {
+    var divs = document.querySelectorAll('div.individual');
+    for (var i = 0; i < divs.length; i++) {
+      divs[i].style.display = '';
+    }
+    // Foca o last_name pra completar (first_name já preenchido)
+    var lastName = document.querySelector('input[name="last_name"]');
+    if (lastName) lastName.focus();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', showIndividualFields);
+  } else {
+    showIndividualFields();
+  }
+})();
+</script>
+@endif
 </div><!-- /.modal-dialog -->
