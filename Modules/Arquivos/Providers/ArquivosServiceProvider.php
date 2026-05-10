@@ -39,6 +39,7 @@ class ArquivosServiceProvider extends ServiceProvider
                 \Modules\Arquivos\Console\Commands\RecalcularMetadataCommand::class,
                 \Modules\Arquivos\Console\Commands\DedupeStatsCommand::class,
                 \Modules\Arquivos\Console\Commands\ReencryptVaultCommand::class,
+                \Modules\Arquivos\Console\Commands\AuditLogCommand::class,
             ]);
         }
     }
