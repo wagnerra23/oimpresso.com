@@ -11,7 +11,8 @@
 <section class="content">
 	@component('components.widget', ['class' => 'box-solid'])
 		<div class="row">
-			<div class="@if($job_sheet->media->count() > 0) col-md-6 @else col-md-12 @endif">
+			{{-- $anexos: coleção unificada backbone + fallback legacy (ADR 0123 §2) --}}
+			<div class="@if($anexos->count() > 0) col-md-6 @else col-md-12 @endif">
 				<table class="table">
 					<tr>
 						<th>@lang('repair::lang.job_sheet_no'):</th>
@@ -35,7 +36,7 @@
 					</tr>
 				</table>
 			</div>
-			@if($job_sheet->media->count() > 0)
+			@if($anexos->count() > 0)
 				<div class="col-md-6">
 					<div class="row ">
 						<div class="col-md-12">
@@ -44,7 +45,7 @@
 							</h4>
 						</div>
 						<div class="col-md-12">
-							@includeIf('repair::job_sheet.partials.document_table_view', ['medias' => $job_sheet->media])
+							@includeIf('repair::job_sheet.partials.document_table_view', ['medias' => $anexos])
 						</div>
 					</div>
 				</div>

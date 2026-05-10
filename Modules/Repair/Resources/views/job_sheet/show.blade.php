@@ -461,7 +461,8 @@ $jobsheet_settings['contact_custom_fields'] : [];
         </div>
     </div>
     <div class="row">
-        @if($job_sheet->media->count() > 0)
+        {{-- $anexos: coleção unificada backbone arquivos + fallback legacy (ADR 0123 §2) --}}
+        @if($anexos->count() > 0)
         <div class="col-md-6">
             <div class="box box-solid no-print">
                 <div class="box-header with-border">
@@ -470,7 +471,7 @@ $jobsheet_settings['contact_custom_fields'] : [];
                     </h4>
                 </div>
                 <div class="box-body">
-                    @includeIf('repair::job_sheet.partials.document_table_view', ['medias' => $job_sheet->media])
+                    @includeIf('repair::job_sheet.partials.document_table_view', ['medias' => $anexos])
                 </div>
             </div>
         </div>
