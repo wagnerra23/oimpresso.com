@@ -319,3 +319,135 @@ Mubisys exige 3-4 gaps construídos antes do 1º contrato pra entregar com hones
 ---
 
 **Branch:** `claude/auto-2026-05-09-mercado` (sem push). Faça `git log -2` pra ver os 2 commits, `git diff main` pra revisar tudo de uma vez.
+
+---
+
+# 🔁🔁 Rodada 3 — execução autônoma adicional (3ª onda)
+
+> Wagner aprovou rodada 3 logo em seguida. Mais 6 agents paralelos. ~10min wallclock.
+> **Foco**: ROI/canais/outbound/case/pricing/ADR — assets que destravam decisões reais ao invés de só material de venda.
+
+## 🎯 Decisões propostas (proposed — Wagner valida)
+
+### Decisão #1 — DAM nativo: **WAITING-LIST (Cenário D)** com fallback Híbrido
+`memory/decisions/proposals/dam-roi-mubisys-decision.md`
+
+- **Construir só após 3 contratos Enterprise pagos** (R$ [redacted Tier 0]k+ em setup fees comprometidos)
+- Lucro 12m: R$ [redacted Tier 0] (D) vs R$ [redacted Tier 0] (A) = só **5% de diferença** em troca de eliminar risco capex queimado
+- **Cláusula contratual "DAM em 90d ou desconto 30%"** vira selling point (governança formal vira compromisso auditável)
+- Payback ~30 dias após 1º contrato
+- Risco: cláusula percebida como red flag → 0 contratos em 90d → **mitigação**: testar em 2 discoveries reais antes de formalizar
+- **Alinhado ADR 0105** (cliente sinal qualificado) — Cenário A viola explicitamente
+
+### Decisão #2 — mwart-gate HARD: **HÍBRIDO #4** (HARD canônico, SOFT satélites)
+`memory/decisions/proposals/proposta-mwart-gate-hard.md` (provável ID 0120 quando aceita)
+
+- HARD apenas em `resources/js/Pages/<Mod>/<Tela>.tsx` canônico
+- SOFT em `_components/`, `_Showcase/`, `Components/shared/`
+- Warm-up 14d (D+0 → D+14, 2026-05-23)
+- **Justificativa decisiva (1 número)**: 100% das regressões silenciosas dos últimos 30d foram em path canônico, **0 em satélites**
+- **KPI sucesso D+30**: ≥95% PRs com 9/9 artefatos (baseline ~30%) + queda velocidade ≤15% + ≤2 overrides/cycle
+- Rollback <5min via revert + remover required-check
+- Reverter parcial se conformidade <70% OU velocidade -40%
+
+### Decisão #3 — Pricing oimpresso: **3 ajustes urgentes baseados em pesquisa real**
+`memory/research/2026-05-prospeccao/05-pricing-real-concorrentes-horizontais.md`
+
+| # | Mudança | Razão (1 número decisivo) |
+|---|---------|---------------------------|
+| 1 | Setup Pro R$ [redacted Tier 0] → **R$ [redacted Tier 0] default** (R$ [redacted Tier 0] só pra migração complexa) | Bling/Tiny/Conta Azul/Omie cobram **R$ [redacted Tier 0] setup** — atrito #1 na conversão |
+| 2 | **Trial 14d sem cartão** Starter+Pro | Bling/Tiny/Omie têm 30d, Conta Azul 3d — sem trial = "compre cego" |
+| 3 | **Anual "12 meses paga 10"** + setup grátis no anual | Padrão de mercado SMB — Starter R$ [redacted Tier 0] Pro R$ [redacted Tier 0] Enterprise R$ [redacted Tier 0] |
+
+**Stack atual real da gráfica média (4-10 func, ~500 vendas/m, ~1k boletos/m): R$ [redacted Tier 0]–3.617/mês**:
+- Bling Titânio T2 anual ~R$ [redacted Tier 0]/m
+- Asaas: 1.000 boletos × R$ [redacted Tier 0] + cartão = **R$ [redacted Tier 0] em taxas inevitáveis**
+- Conta Azul Avançado R$ [redacted Tier 0]/m
+- WhatsApp Business API ~R$ [redacted Tier 0]/m
+
+→ Use no ROI calculator: oimpresso Pro R$ [redacted Tier 0]/m substitui Bling+Conta Azul (~R$ [redacted Tier 0]/m) e tudo integrado, com economia real em horas/mês não-Frankenstein.
+
+## 📊 Canais setoriais — top 3 priorizados
+
+`memory/sales/2026-05/12-canais-associacoes-setoriais.md`
+
+| # | Associação | Fit | Tática | Janela |
+|---|-----------|-----|--------|--------|
+| 1 | **ABICOMV** (Abigraf div. com.visual) | 5/5 | Criada 22/jan/2025, conselho ainda formando — **antes Zênite/Mubisys travarem parceria** | 12 meses |
+| 2 | **AFACOM** (Judah Adonai, 20k empresas em 4 países) | 5/5 | Mubisys tem AFACOM+ — entrar como "Tech Partner opção 2" pra cliente em crescimento | 6-12m |
+| 3 | **Singrafs/Assingrafs** (ABCDMRP+Baixada Santista) | 4/5 | Zênite parceiro desde 2016 — atacar de flanco com evento "NFe automatizada" no mesmo auditório | aberta |
+
+**Investimento ano 1**: R$ [redacted Tier 0]-80k caixa + ~80h Wagner
+**KPI 90d**: 3 prospects qualificados (1 por canal) + 1 parceria oficial + 1 case publicado em revista institucional
+**KPI ano 1**: 1 cliente fechado via canal = break-even (LTV R$ [redacted Tier 0]-100k > investimento R$ [redacted Tier 0]-80k)
+
+**🎉 Cruzamento estratégico raro detectado**: Diretor técnico ABICOMV = **Judah Adonai** = fundador AFACOM. **Conquistar 1 = aproximar do 2.**
+
+## 🔗 LinkedIn outbound playbook
+
+`memory/sales/2026-05/13-linkedin-outbound-playbook.md`
+
+5 personas calibradas com connect-request + DM-1/2/3:
+- A. Dono(a) 1-10 func ativo no LI
+- B. Dono(a) 10-30 em modo expansão
+- C. Gerente operações
+- D. CFO/financeiro Mubisys-frustrado
+- **E. Herdeiro recém-empossado** ⭐ ← maior probabilidade de trial em 90d
+
+Razões persona E ganha: janela decisão aberta (12-18m após assumir), modernização alinhada com narrativa, menor amarra emocional ao legado, nativo digital 25-40.
+
+**Cadência conservadora**: 10 invites/dia, pausa dominical, personalização 100%. Mitigação LinkedIn jail.
+
+**Risco operacional**: Wagner único operador → semana intensa de produto = flywheel quebra. Mitigação: delegar comentários/posts agendados pra Eliana[E] ou Felipe, **mas DMs precisam ser do Wagner (autenticidade fundador)**.
+
+**Métricas 30/60/90d**:
+- 30d: 200 conexões, 60 DMs, 5 calls, 1 trial
+- 60d: 400/120/12/3 trials/1 contrato
+- 90d: 600/200/25/8 trials/3 contratos
+
+## 📰 Case study ROTA LIVRE anonimizado
+
+`memory/sales/2026-05/14-case-study-rotalivre-anonimizado.md`
+
+3 versões: long-form 1500p (blog/site) · 1-pager 300p (email/LinkedIn) · 5-bullets 50p (slide deck).
+
+**Anonimização**: "uma gráfica de comunicação visual em São Paulo" + "a gestora". NÃO citou "99% volume" no texto público (identificável).
+
+**Frase sugerida pra Larissa (ela escolhe palavras dela)**:
+> *"Antes eu trabalhava duas vezes pra cada venda — uma pra fazer e outra pra lembrar. Com oimpresso a nota sai sozinha quando o cliente paga, e quando eu pergunto pra Jana 'quanto faturei essa semana?', ela responde no celular."*
+
+**🚨 Mitigações obrigatórias antes de publicar**:
+1. Consentimento escrito da Larissa
+2. Wagner aprova versão final
+3. Métricas em **faixa** (não pontuais) — concorrente local pode triangular: "gráfica SP + com.visual completa + balcão diário + horário pico 14-17h + Jana com memória" deixa universo pequeno
+
+## 📋 Top 10 ações pós-Rodada-3 (re-priorizadas)
+
+| # | Ação | Tempo | ROI |
+|---|------|-------|-----|
+| 1 | Bug #1 (wipe DB público) + #2 (octane/mcp em require) | 15min | ⭐⭐⭐⭐⭐ |
+| 2 | Tests órfãos Ponto+ADS no phpunit.xml + adr-lint required | 10min | ⭐⭐⭐⭐⭐ |
+| 3 | Setar NCM default + executar smoke SEFAZ biz=1 | 30min | ⭐⭐⭐⭐⭐ |
+| 4 | **Aceitar pricing ajustes #1+#2+#3 (setup R$ [redacted Tier 0] trial 14d, anual 12 paga 10)** | 15min decisão | ⭐⭐⭐⭐⭐ |
+| 5 | Disparar 3 cold emails personalizados (New Signs Campinas, SP Sign, Sandice) | 30min | ⭐⭐⭐⭐⭐ |
+| 6 | **Aceitar ADR mwart-gate HÍBRIDO** (PR separado, ID 0120) | 1h impl | ⭐⭐⭐⭐⭐ |
+| 7 | **Aceitar decisão DAM = waiting-list** + redigir cláusula contratual | 1h | ⭐⭐⭐⭐ |
+| 8 | Email pra `associativismo@abigraf.org.br` + LinkedIn Judah Adonai (ABICOMV/AFACOM) | 30min | ⭐⭐⭐⭐ |
+| 9 | Reservar agenda ExpoPrint 24-28/mar/2026 (estande ou visitor) | 5min | ⭐⭐⭐⭐ |
+| 10 | Preparar 1ª salva LinkedIn outbound — 10 conexões persona E | 1h | ⭐⭐⭐ |
+
+## 📈 Stats consolidados Rodada 1+2+3
+
+- **Wallclock total**: ~95min wallclock (18 agents · ~21h trabalho equiv sequencial — eficiência ~13x)
+- **Artefatos**: 39 arquivos (19 R1 + 12 R2 + 8 R3)
+- **Universo prospects**: 83 gráficas (SP 42 + RS 19 + PR 22)
+- **Cold emails prontos**: 13 templates + personalizados
+- **Decisões propostas**: 3 (DAM, mwart-gate, pricing) com payback/KPIs claros
+- **Canais setoriais**: 3 priorizados com investimento R$ [redacted Tier 0]-80k/ano = break-even em 1 cliente
+- **ADR drafts**: 1 (mwart-gate provável 0120)
+- **Tokens consumidos**: ~1.6M sub-agents
+- **Cota Claude Design**: continua preservada
+
+---
+
+**Branch:** `claude/auto-2026-05-09-mercado` (sem push). 3 commits agora. `git log -3` + `git diff main`.
