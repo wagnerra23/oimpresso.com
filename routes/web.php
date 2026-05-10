@@ -178,6 +178,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     Route::get('/products/download-excel', [ProductController::class, 'downloadExcel']);
 
+    // Catálogo Unificado (Cockpit V2) — 5 sub-telas em uma rota.
+    // Persona Larissa [L] · 1280×1024 · ROTA LIVRE.
+    // TODO [CL]: adicionar middleware('can:product.view') após confirmar permission name.
+    Route::get('/products/unificado', [\App\Http\Controllers\ProdutoUnificadoController::class, 'index'])
+        ->name('products.unificado.index');
+
     Route::get('/products/stock-history/{id}', [ProductController::class, 'productStockHistory']);
     Route::get('/delete-media/{media_id}', [ProductController::class, 'deleteMedia']);
     Route::post('/products/mass-deactivate', [ProductController::class, 'massDeactivate']);
