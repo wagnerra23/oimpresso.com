@@ -26,6 +26,9 @@ class ReapurarDiaJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /** @var int */
+    public $businessId;
+
+    /** @var int */
     public $colaboradorId;
 
     /** @var string YYYY-MM-DD */
@@ -34,8 +37,9 @@ class ReapurarDiaJob implements ShouldQueue
     /** @var int */
     public $tries = 3;
 
-    public function __construct($colaboradorId, $data)
+    public function __construct($businessId, $colaboradorId, $data)
     {
+        $this->businessId = (int) $businessId;
         $this->colaboradorId = (int) $colaboradorId;
         // Carbon serializa mal como propriedade pública — passar string.
         if ($data instanceof Carbon) {
@@ -47,10 +51,17 @@ class ReapurarDiaJob implements ShouldQueue
 
     public function handle(ApuracaoService $apuracao)
     {
-        $colaborador = Colaborador::find($this->colaboradorId);
+        // SUPERADMIN: job sem session (queue worker não tem auth) — scope manual
+        // garante isolamento multi-tenant Tier 0 mesmo sem global scope ativo.
+        // Ver ADR 0093 + ScopeByBusiness::apply() (sem auth → sem filtro).
+        $colaborador = Colaborador::withoutGlobalScopes()
+            ->where('business_id', $this->businessId)
+            ->find($this->colaboradorId);
+
         if (!$colaborador) {
             Log::warning('[PontoWr2] ReapurarDiaJob: Colaborador não encontrado', [
-                'id' => $this->colaboradorId,
+                'business_id' => $this->businessId,
+                'id'          => $this->colaboradorId,
             ]);
             return;
         }
@@ -61,6 +72,7 @@ class ReapurarDiaJob implements ShouldQueue
     public function failed(\Throwable $e)
     {
         Log::error('[PontoWr2] ReapurarDiaJob failed', [
+            'business_id'    => $this->businessId,
             'colaborador_id' => $this->colaboradorId,
             'data'           => $this->data,
             'erro'           => $e->getMessage(),
