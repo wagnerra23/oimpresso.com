@@ -1,0 +1,100 @@
+{
+  "_comment": "Exemplo de business.repair_settings JSON pra cada vertical consumir Modules/Repair como shared infra. Coluna repair_settings (JSON) JÁ existe na tabela `business` (ver migration original Modules/Repair/Database/Migrations/). Cada vertical popula este JSON via /repair/settings ou seeder do módulo.",
+
+  "_schema": {
+    "slots": "SlotGroup[] — define filtros do kanban (Box/Elevador/Mesa/Bancada/Máquina/etc)",
+    "labels": "LabelOverrides — sobrescreve termos genéricos (code/item/brand/usage_meter/executor) por específicos da vertical"
+  },
+
+  "examples": {
+    "modules_oficina_auto": {
+      "_when_to_use": "Modules/OficinaAuto consome Modules/Repair via labelOverrides — preserva UX automotivo atual da PR #363",
+      "slots": [
+        { "key": "slot", "label": "Box", "options": ["B1", "B2", "B3", "B4"] },
+        { "key": "area", "label": "Elevador", "options": ["E1", "E2"] }
+      ],
+      "labels": {
+        "code": "Placa",
+        "item": "Veículo",
+        "brand": "Marca",
+        "usage_meter": "KM",
+        "usage_unit": "km",
+        "executor": "Mecânico"
+      }
+    },
+
+    "modules_comunicacao_visual": {
+      "_when_to_use": "Modules/ComunicacaoVisual (gráficas rápidas, plotters) — kanban de OS de impressão",
+      "slots": [
+        { "key": "slot", "label": "Bancada", "options": ["BC1", "BC2", "BC3"] },
+        { "key": "area", "label": "Máquina", "options": ["Plotter A", "Plotter B", "Laminadora", "Recortadora"] }
+      ],
+      "labels": {
+        "code": "Nº OS",
+        "item": "Arte",
+        "brand": "Categoria",
+        "usage_meter": "M²",
+        "usage_unit": "m²",
+        "executor": "Designer"
+      }
+    },
+
+    "modules_vestuario": {
+      "_when_to_use": "Modules/Vestuario (ROTA LIVRE biz=4) — kanban de costura/ajustes (caso queira usar OS no futuro; charter atual diz 'consome opcional')",
+      "slots": [
+        { "key": "slot", "label": "Mesa", "options": ["M1", "M2", "M3", "M4", "M5"] },
+        { "key": "area", "label": "Máquina", "options": ["Reta", "Overlock", "Galoneira", "Bordadeira"] }
+      ],
+      "labels": {
+        "code": "Cód. Serviço",
+        "item": "Peça",
+        "brand": "Tecido",
+        "usage_meter": null,
+        "usage_unit": null,
+        "executor": "Costureira"
+      }
+    },
+
+    "modules_repair_default_legacy": {
+      "_when_to_use": "Default conservador — biz que já usa Modules/Repair hoje sem ter rodado seeder. Preserva UX exata da PR #363.",
+      "slots": [
+        { "key": "slot", "label": "Box", "options": ["B1", "B2", "B3", "B4"] },
+        { "key": "area", "label": "Elevador", "options": ["E1", "E2"] }
+      ],
+      "labels": {
+        "code": "Código",
+        "item": "Item",
+        "brand": "Marca",
+        "usage_meter": null,
+        "usage_unit": null,
+        "executor": "Executor"
+      }
+    },
+
+    "modules_assistencia_tecnica_eletronica": {
+      "_when_to_use": "Caso futuro — assistência técnica eletrônica (celular, notebook). Vocabulário herdeiro UltimatePOS/repair_job_sheets original.",
+      "slots": [
+        { "key": "slot", "label": "Bancada", "options": ["BT1", "BT2", "BT3"] }
+      ],
+      "labels": {
+        "code": "Nº OS",
+        "item": "Aparelho",
+        "brand": "Marca",
+        "usage_meter": null,
+        "usage_unit": null,
+        "executor": "Técnico"
+      }
+    }
+  },
+
+  "_runtime_application": {
+    "where_stored": "tabela `business`, coluna `repair_settings` (JSON nullable)",
+    "loaded_by": "ProducaoOficinaController::loadRepairSettings(int $businessId)",
+    "fallback": "Se business.repair_settings é null OU não tem `slots`/`labels`, Controller usa DEFAULT_SLOT_CONFIG + DEFAULT_LABEL_OVERRIDES (constantes da classe). Mantém retrocompat — biz atual NÃO precisa configurar nada pra refactor não quebrar.",
+    "how_to_seed": [
+      "Opção A — UI: tela /repair/settings ganha aba 'Slot Config' + 'Label Overrides' (NÃO está nesta PR — escopo separado)",
+      "Opção B — Seeder por vertical: cada Modules/<Vertical>/Database/Seeders/RepairSettingsSeeder.php popula o JSON quando vertical é instalado",
+      "Opção C — Tinker (operação): php artisan tinker → Business::find(4)->update(['repair_settings' => json_encode([...])])"
+    ]
+  }
+}
