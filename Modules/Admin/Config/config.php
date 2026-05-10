@@ -34,4 +34,12 @@ return [
      * pro Wagner (Sprint 2+).
      */
     'subdomain' => env('ADMIN_SUBDOMAIN', 'admin.oimpresso.com'),
+
+    /**
+     * Bypass DEV — desabilita TailscaleOnly + IsWagner middlewares quando
+     * APP_ENV=local. SOMENTE pra dev local (Herd/php artisan serve).
+     * Default false. Em prod NUNCA setar true (.env.example tem todos
+     * desabilitados).
+     */
+    'bypass_local' => env('ADMIN_BYPASS_LOCAL', false),
 ];

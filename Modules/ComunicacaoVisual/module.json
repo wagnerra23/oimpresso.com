@@ -1,0 +1,14 @@
+{
+    "name": "ComunicacaoVisual",
+    "alias": "comunicacao-visual",
+    "description": "Modules/ComunicacaoVisual — vertical gráfica rápida e comunicação visual BR (CNAE 1813-0/01). Estado em construção (planejado piloto 2026-Q3 entre 6 saudáveis OfficeImpresso). Concorrentes: Mubisys, Zênite, Calcgraf. Diferencial: cálculo m² + PCP gráfico + apontamento + NFe-de-boleto-pago + IA conversacional. Ver memory/requisitos/ComunicacaoVisual/SPEC.md.",
+    "keywords": ["comunicacao-visual", "grafica", "lona", "fachada", "plotter", "vertical", "cnae-1813"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\ComunicacaoVisual\\Providers\\ComunicacaoVisualServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

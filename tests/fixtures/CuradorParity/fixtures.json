@@ -1,0 +1,626 @@
+{
+  "env_real": {
+    "input": {
+      "path": "D:\\app\\.env",
+      "sizeBytes": 9280,
+      "mtime": "2026-05-10T04:13:43.128Z",
+      "extension": "",
+      "basename": ".env",
+      "dirname": "D:\\app\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/env-files/",
+      "sensitiveFlags": [
+        "env_secrets"
+      ],
+      "ruleMatched": "sensitive_env_real",
+      "confidence": 1
+    }
+  },
+  "env_dify": {
+    "input": {
+      "path": "D:\\Conhecimento\\Infra\\Dify\\.env.1.4.0-dify.md",
+      "sizeBytes": 36530,
+      "mtime": "2026-05-10T04:13:43.129Z",
+      "extension": ".md",
+      "basename": ".env.1.4.0-dify.md",
+      "dirname": "D:\\Conhecimento\\Infra\\Dify\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/env-files/",
+      "sensitiveFlags": [
+        "env_secrets"
+      ],
+      "ruleMatched": "sensitive_env_real",
+      "confidence": 1
+    }
+  },
+  "env_example": {
+    "input": {
+      "path": "D:\\repo\\.env.example",
+      "sizeBytes": 200,
+      "mtime": "2026-05-10T04:13:43.129Z",
+      "extension": ".example",
+      "basename": ".env.example",
+      "dirname": "D:\\repo\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "ambiguous",
+      "subDestination": null,
+      "sensitiveFlags": [],
+      "ruleMatched": "no_rule_matched",
+      "confidence": 0.1
+    }
+  },
+  "env_sample": {
+    "input": {
+      "path": "D:\\repo\\.env.sample",
+      "sizeBytes": 220,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".sample",
+      "basename": ".env.sample",
+      "dirname": "D:\\repo\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "ambiguous",
+      "subDestination": null,
+      "sensitiveFlags": [],
+      "ruleMatched": "no_rule_matched",
+      "confidence": 0.1
+    }
+  },
+  "pfx_cert": {
+    "input": {
+      "path": "D:\\Cert\\cert.pfx",
+      "sizeBytes": 9508,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".pfx",
+      "basename": "cert.pfx",
+      "dirname": "D:\\Cert\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/by-extension/",
+      "sensitiveFlags": [
+        "pfx"
+      ],
+      "ruleMatched": "sensitive_by_extension",
+      "confidence": 1
+    }
+  },
+  "rdp_client": {
+    "input": {
+      "path": "D:\\RDP\\cliente.rdp",
+      "sizeBytes": 2900,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".rdp",
+      "basename": "cliente.rdp",
+      "dirname": "D:\\RDP\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/by-extension/",
+      "sensitiveFlags": [
+        "rdp"
+      ],
+      "ruleMatched": "sensitive_by_extension",
+      "confidence": 1
+    }
+  },
+  "pem_key": {
+    "input": {
+      "path": "D:\\keys\\private.pem",
+      "sizeBytes": 1600,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".pem",
+      "basename": "private.pem",
+      "dirname": "D:\\keys\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/by-extension/",
+      "sensitiveFlags": [
+        "pem"
+      ],
+      "ruleMatched": "sensitive_by_extension",
+      "confidence": 1
+    }
+  },
+  "kdbx_password": {
+    "input": {
+      "path": "D:\\backup\\cofre.kdbx",
+      "sizeBytes": 5000,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".kdbx",
+      "basename": "cofre.kdbx",
+      "dirname": "D:\\backup\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/by-extension/",
+      "sensitiveFlags": [
+        "kdbx"
+      ],
+      "ruleMatched": "sensitive_by_extension",
+      "confidence": 1
+    }
+  },
+  "ssh_id_rsa": {
+    "input": {
+      "path": "C:\\Users\\wagne\\.ssh\\id_rsa",
+      "sizeBytes": 3200,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": "",
+      "basename": "id_rsa",
+      "dirname": "C:\\Users\\wagne\\.ssh\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/ssh-keys/",
+      "sensitiveFlags": [
+        "ssh_key"
+      ],
+      "ruleMatched": "sensitive_ssh_key",
+      "confidence": 1
+    }
+  },
+  "ssh_id_ed25519": {
+    "input": {
+      "path": "C:\\Users\\wagne\\.ssh\\id_ed25519",
+      "sizeBytes": 411,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": "",
+      "basename": "id_ed25519",
+      "dirname": "C:\\Users\\wagne\\.ssh\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/ssh-keys/",
+      "sensitiveFlags": [
+        "ssh_key"
+      ],
+      "ruleMatched": "sensitive_ssh_key",
+      "confidence": 1
+    }
+  },
+  "pii_xml_cliente": {
+    "input": {
+      "path": "D:\\Suporte\\XML Clientes\\NFE.xml",
+      "sizeBytes": 5100,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".xml",
+      "basename": "NFE.xml",
+      "dirname": "D:\\Suporte\\XML Clientes\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/xml-clientes/",
+      "sensitiveFlags": [
+        "pii_nfe"
+      ],
+      "ruleMatched": "sensitive_pii_xml_cliente",
+      "confidence": 0.95
+    }
+  },
+  "credentials_json": {
+    "input": {
+      "path": "D:\\Infra\\chatwoot\\credentialsChatWoot.json",
+      "sizeBytes": 186,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".json",
+      "basename": "credentialsChatWoot.json",
+      "dirname": "D:\\Infra\\chatwoot\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "sensitive",
+      "subDestination": "_VAULT-PENDING/credentials-json/",
+      "sensitiveFlags": [
+        "credentials_json"
+      ],
+      "ruleMatched": "sensitive_credentials_json",
+      "confidence": 0.85
+    }
+  },
+  "oss_node_modules": {
+    "input": {
+      "path": "D:\\app\\node_modules\\foo\\index.js",
+      "sizeBytes": 2400,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".js",
+      "basename": "index.js",
+      "dirname": "D:\\app\\node_modules\\foo\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "discard",
+      "subDestination": "_DESCARTADO/oss-clones/",
+      "sensitiveFlags": [],
+      "ruleMatched": "oss_clone_path",
+      "confidence": 1
+    }
+  },
+  "oss_software_folder": {
+    "input": {
+      "path": "D:\\Conhecimento\\Software\\chatwoot\\app\\controllers\\foo.rb",
+      "sizeBytes": 1800,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": ".rb",
+      "basename": "rb_controller.rb",
+      "dirname": "",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "discard",
+      "subDestination": "_DESCARTADO/oss-software-folder/",
+      "sensitiveFlags": [],
+      "ruleMatched": "oss_software_folder",
+      "confidence": 1
+    }
+  },
+  "docs_git_internals": {
+    "input": {
+      "path": "D:\\Conhecimento\\Docs\\.git\\COMMIT_EDITMSG",
+      "sizeBytes": 200,
+      "mtime": "2026-05-10T04:13:43.130Z",
+      "extension": "",
+      "basename": "COMMIT_EDITMSG",
+      "dirname": "D:\\Conhecimento\\Docs\\.git\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "discard",
+      "subDestination": "_DESCARTADO/oss-clones/",
+      "sensitiveFlags": [],
+      "ruleMatched": "docs_git_internals",
+      "confidence": 1
+    }
+  },
+  "oss_readme_large": {
+    "input": {
+      "path": "D:\\Software\\foo\\README.md",
+      "sizeBytes": 60000,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".md",
+      "basename": "README.md",
+      "dirname": "D:\\Software\\foo\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "discard",
+      "subDestination": "_DESCARTADO/oss-docs/",
+      "sensitiveFlags": [],
+      "ruleMatched": "oss_readme_large",
+      "confidence": 0.9
+    }
+  },
+  "old_meeting": {
+    "input": {
+      "path": "D:\\foo\\Ata_de_Reuniao_2024-01.txt",
+      "sizeBytes": 800,
+      "mtime": "2023-01-01T00:00:00Z",
+      "extension": ".txt",
+      "basename": "Ata_de_Reuniao_2024-01.txt",
+      "dirname": "D:\\foo\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "ambiguous",
+      "subDestination": null,
+      "sensitiveFlags": [],
+      "ruleMatched": "short_scrap",
+      "confidence": 0.3
+    }
+  },
+  "cnab_itau": {
+    "input": {
+      "path": "D:\\Conhecimento\\ManuaisTecnicos\\Itau\\Cnab240_Itau.pdf",
+      "sizeBytes": 4000000,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".pdf",
+      "basename": "Cnab240_Itau.pdf",
+      "dirname": "D:\\Conhecimento\\ManuaisTecnicos\\Itau\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/Financeiro/CNAB-Itau/",
+      "sensitiveFlags": [],
+      "ruleMatched": "cnab_Itau",
+      "confidence": 0.95
+    }
+  },
+  "cnab_sicred_basename": {
+    "input": {
+      "path": "D:\\foo\\Sicred_ManualCnab400.pdf",
+      "sizeBytes": 3000000,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".pdf",
+      "basename": "Sicred_ManualCnab400.pdf",
+      "dirname": "D:\\foo\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/Financeiro/CNAB-Sicred/",
+      "sensitiveFlags": [],
+      "ruleMatched": "cnab_Sicred",
+      "confidence": 0.95
+    }
+  },
+  "cnab_bradesco": {
+    "input": {
+      "path": "D:\\Conhecimento\\ManuaisTecnicos\\Bradesco\\CNAB240.pdf",
+      "sizeBytes": 2000000,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".pdf",
+      "basename": "CNAB240.pdf",
+      "dirname": "D:\\Conhecimento\\ManuaisTecnicos\\Bradesco\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/Financeiro/CNAB-Bradesco/",
+      "sensitiveFlags": [],
+      "ruleMatched": "cnab_Bradesco",
+      "confidence": 0.95
+    }
+  },
+  "fiscal_sped": {
+    "input": {
+      "path": "D:\\fiscal\\GUIA_PRATICO_EFD_ICMS_IPI.pdf",
+      "sizeBytes": 2500000,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".pdf",
+      "basename": "GUIA_PRATICO_EFD_ICMS_IPI.pdf",
+      "dirname": "D:\\fiscal\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/_inbox/INDEX/",
+      "sensitiveFlags": [
+        "large_binary_index_only"
+      ],
+      "ruleMatched": "large_binary_indexed",
+      "confidence": 0.7
+    }
+  },
+  "branding_jana": {
+    "input": {
+      "path": "D:\\Conhecimento\\Imagens\\Jana\\logo.png",
+      "sizeBytes": 50000,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".png",
+      "basename": "logo.png",
+      "dirname": "D:\\Conhecimento\\Imagens\\Jana\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/branding/jana/",
+      "sensitiveFlags": [],
+      "ruleMatched": "branding_jana",
+      "confidence": 0.9
+    }
+  },
+  "branding_office": {
+    "input": {
+      "path": "D:\\Conhecimento\\Imagens\\Office Impresso\\logo.svg",
+      "sizeBytes": 40000,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".svg",
+      "basename": "logo.svg",
+      "dirname": "D:\\Conhecimento\\Imagens\\Office Impresso\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/branding/office-impresso/",
+      "sensitiveFlags": [],
+      "ruleMatched": "branding_office_impresso",
+      "confidence": 0.9
+    }
+  },
+  "kb_legacy_faq": {
+    "input": {
+      "path": "D:\\Conhecimento\\Suporte ao Cliente\\Base de Conhecimento (KB)\\FAQs\\faq.txt",
+      "sizeBytes": 3000,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".txt",
+      "basename": "faq.txt",
+      "dirname": "D:\\Conhecimento\\Suporte ao Cliente\\Base de Conhecimento (KB)\\FAQs\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/KB/legacy-faqs/",
+      "sensitiveFlags": [],
+      "ruleMatched": "kb_legacy_faq",
+      "confidence": 0.9
+    }
+  },
+  "infra_portainer": {
+    "input": {
+      "path": "D:\\Conhecimento\\Infraestrutura & Operações\\Portainer\\Docker\\chatwoot.yaml",
+      "sizeBytes": 800,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".yaml",
+      "basename": "chatwoot.yaml",
+      "dirname": "D:\\Conhecimento\\Infraestrutura & Operações\\Portainer\\Docker\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/Infra/portainer-stacks/",
+      "sensitiveFlags": [],
+      "ruleMatched": "infra_portainer_stack",
+      "confidence": 0.95
+    }
+  },
+  "infra_evolution": {
+    "input": {
+      "path": "D:\\Conhecimento\\Infraestrutura & Operações\\Evolution API 2.0\\traefik.yaml",
+      "sizeBytes": 1100,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".yaml",
+      "basename": "traefik.yaml",
+      "dirname": "D:\\Conhecimento\\Infraestrutura & Operações\\Evolution API 2.0\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/Infra/evolution-api/",
+      "sensitiveFlags": [],
+      "ruleMatched": "infra_evolution_api",
+      "confidence": 0.95
+    }
+  },
+  "office_legacy_venda": {
+    "input": {
+      "path": "D:\\Conhecimento\\Manuais Técnicos\\Venda.txt",
+      "sizeBytes": 25501,
+      "mtime": "2026-05-10T04:13:43.131Z",
+      "extension": ".txt",
+      "basename": "Venda.txt",
+      "dirname": "D:\\Conhecimento\\Manuais Técnicos\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/Officeimpresso/legacy-spec/",
+      "sensitiveFlags": [],
+      "ruleMatched": "office_comercial_legacy_Officeimpresso",
+      "confidence": 0.7
+    }
+  },
+  "office_legacy_producao": {
+    "input": {
+      "path": "D:\\Conhecimento\\Manuais Técnicos\\Producao.txt",
+      "sizeBytes": 12000,
+      "mtime": "2026-05-10T04:13:43.132Z",
+      "extension": ".txt",
+      "basename": "Producao.txt",
+      "dirname": "D:\\Conhecimento\\Manuais Técnicos\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/Manufacturing/legacy-spec/",
+      "sensitiveFlags": [],
+      "ruleMatched": "office_comercial_legacy_Manufacturing",
+      "confidence": 0.7
+    }
+  },
+  "large_pdf_indexed": {
+    "input": {
+      "path": "D:\\foo\\big.pdf",
+      "sizeBytes": 2000000,
+      "mtime": "2026-05-10T04:13:43.132Z",
+      "extension": ".pdf",
+      "basename": "big.pdf",
+      "dirname": "D:\\foo\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "memory",
+      "subDestination": "memory/requisitos/_inbox/INDEX/",
+      "sensitiveFlags": [
+        "large_binary_index_only"
+      ],
+      "ruleMatched": "large_binary_indexed",
+      "confidence": 0.7
+    }
+  },
+  "common_active": {
+    "input": {
+      "path": "D:\\foo\\relatorio.txt",
+      "sizeBytes": 1024,
+      "mtime": "2026-05-10T04:13:43.132Z",
+      "extension": ".txt",
+      "basename": "relatorio.txt",
+      "dirname": "D:\\foo\\",
+      "md5": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "isDuplicate": false,
+      "duplicateOf": null
+    },
+    "expected": {
+      "bucket": "ambiguous",
+      "subDestination": null,
+      "sensitiveFlags": [],
+      "ruleMatched": "no_rule_matched",
+      "confidence": 0.1
+    }
+  }
+}

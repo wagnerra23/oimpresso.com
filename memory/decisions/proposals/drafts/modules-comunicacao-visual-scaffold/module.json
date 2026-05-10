@@ -1,0 +1,11 @@
+{
+    "name": "ComunicacaoVisual",
+    "alias": "comvis",
+    "description": "ERP vertical comunicacao visual — calculo m2, PCP grafico, apontamento maquina, NFe automatica.",
+    "keywords": ["grafica", "comunicacao-visual", "vertical", "lona", "fachada", "plotter", "pcp"],
+    "priority": 0,
+    "providers": [
+        "Modules\\ComunicacaoVisual\\Providers\\ComunicacaoVisualServiceProvider"
+    ],
+    "files": []
+}

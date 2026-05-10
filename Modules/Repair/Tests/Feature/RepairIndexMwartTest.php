@@ -8,7 +8,7 @@ use App\User;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * Sprint 2 / MWART-0001 — cobertura mínima do branch Inertia em

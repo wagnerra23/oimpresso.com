@@ -25,6 +25,12 @@ class TailscaleOnly
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Bypass dev — Wagner testando localmente em Herd/serve (sem Tailscale).
+        // Habilitar via .env: ADMIN_BYPASS_LOCAL=true (default false em prod).
+        if (config('admin.bypass_local') && app()->environment('local')) {
+            return $next($request);
+        }
+
         $allowedCidrs = config('admin.tailscale_cidrs', '100.99.0.0/16');
         $cidrs = is_array($allowedCidrs)
             ? $allowedCidrs

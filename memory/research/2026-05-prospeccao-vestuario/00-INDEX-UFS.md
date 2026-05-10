@@ -93,7 +93,7 @@ Case study ROTA LIVRE em [memory/clientes-legacy/rota-livre.md](../../clientes-l
 ## Refs
 
 - [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) — vertical especializado
-- [ADR 0125](../../decisions/0125-mcp-jira-projects-modulos-verticais.md) — habilita VEST no canon MCP
+- [ADR 0126](../../decisions/0126-mcp-jira-projects-modulos-verticais.md) — habilita VEST no canon MCP
 - [memory/clientes-legacy/rota-livre.md](../../clientes-legacy/rota-livre.md) — case piloto
 
 ## Próximos passos sugeridos

@@ -25,13 +25,19 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 
 ## Por cliente (6 blocos)
 
-### 1. Vargas (R$ 7,9M GMV/ano) — biz_id legacy mapeado: 164
+### ~~1. Vargas (R$ 7,9M GMV/ano)~~ → **REMOVIDO de Modules/ComunicacaoVisual** (Wagner confirmou 2026-05-10: vertical = **autopeças**)
+
+> 🚨 **Atualização 2026-05-10**: Wagner confirmou que Vargas é **autopeças** (CNAE 4530-X), não comunicação visual. Vargas portanto NÃO entra no plano migração ComunicacaoVisual.
+>
+> **Vargas vira candidato Modules/Autopecas** — vertical novo a ativar com base em sinal qualificado real (cliente saudável R$ 7,9M GMV, 26 anos relação, Wagner conhece direto). Tratamento separado em `memory/requisitos/Autopecas/PLANO-MIGRACAO-VARGAS.md` (a criar).
+>
+> **Impacto neste plano**: top 1 piloto Modules/ComunicacaoVisual passa a ser **Extreme** (R$ 6,36M GMV, "EXTREMA LED" = com.visual nativo confirmado por nome).
 
 **Status atual (2026-05-10):**
 - ✅ saudável OfficeImpresso (Delphi versão 1468, banco em servidor remoto Wagner)
 - ⚠️ **build antigo** que NÃO chama backend Connector ([reference_delphi_wr_comercial.md](../../claude/reference_delphi_wr_comercial.md)) — sinal de cliente que não atualiza Delphi recentemente
-- Razão social provável: Vargas (sigla histórica WR Sistemas — Wagner conhece direto)
-- Localização: a confirmar (Vargas Acessorios pode ser filial; nome "Jardel acessorios" no path do registry)
+- Razão social: Vargas Jato de Granalha LTDA (autopeças/serviço industrial), banco "Jardel Acessorios" no registry sugere filial autopecas tradicional
+- Localização: a confirmar via banco quando 192.168.0.55 voltar online
 
 **GMV ano anterior:** R$ 7,9M/ano (snapshot Insights — fonte: Wagner reportou)
 

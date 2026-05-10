@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Jana\Services\TaskRegistry\TaskParserService;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * TaskRegistry Fase 0 — golden tests do parser SPEC.
