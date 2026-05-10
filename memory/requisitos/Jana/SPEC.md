@@ -691,3 +691,109 @@ Total de gaps Jana convertidos em US-fix: **4 de 4 detectados.**
 
 > Nota: o MCP server usa prefixo `US-COPI-*` (legacy do nome anterior do módulo "Copiloto"). O módulo PHP/git foi renomeado pra `Modules/Jana/` em 2026-05-09 (migration `2026_05_09_140000_rename_copiloto_permissions_to_jana.php`). IDs `US-COPI-*` permanecem por convenção MCP — referem-se ao mesmo módulo.
 
+
+### US-COPI-101 · Pages/Jana/Admin/Permissions — UI dedicada CRUD roles+scopes
+
+> owner: — · sprint: cycle-04 · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 2 Permissions middleware + UI — 🟡 PARCIAL).
+
+**Evidência:** `Modules/Jana/Http/Middleware/McpAuthMiddleware.php:55` valida `jana.mcp.use` (permissions Spatie renomeadas em migration `2026_05_09_140000_rename_copiloto_permissions_to_jana.php`). Mas **NÃO existe** `resources/js/Pages/Jana/Admin/Permissions.tsx`. Maiara/Felipe gestionam via painel Spatie genérico — sem UI especializada Jana (não vê escopos `jana.mcp.*` agrupados).
+
+**Fix sugerido:**
+1. Criar `Modules/Jana/Http/Controllers/PermissionsAdminController.php` (index/store/update/destroy)
+2. Pages: `resources/js/Pages/Jana/Admin/Permissions/Index.tsx` lista roles + scopes Jana (`jana.mcp.use`, `jana.mcp.tools_exposed`, `jana.memoria.read`, etc) com CRUD
+3. Charter ao lado: `Permissions.charter.md` status:live
+4. Middleware `can:jana.admin.permissions.manage` (superadmin only)
+
+**Acceptance criteria:**
+- [ ] Page Inertia `Jana/Admin/Permissions/Index.tsx` mostra todas roles
+- [ ] Toggle visual de cada permission jana.* por role
+- [ ] Apenas superadmin acessa (middleware can:jana.admin.permissions.manage)
+- [ ] Pest test feature: superadmin lista + toggle; user normal recebe 403
+- [ ] Charter Permissions.charter.md aprovado por Wagner
+
+**Disparo:** Auditoria de completude 2026-05-10.
+**Tags:** completeness-gap, from-skill, audit-2026-05-10
+
+### US-COPI-102 · Business switcher na sidebar do Chat (UI mid-conversa)
+
+> owner: — · sprint: cycle-04 · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 1 Multi-instance scope — 🟡 PARCIAL).
+
+**Evidência:** `Modules/Jana/Http/Controllers/ChatController.php:37-41` filtra business_id+user_id corretamente. `shellPropsFor():124` já entrega lista de businesses do user. **MAS** `Pages/Jana/Chat.tsx` não renderiza seletor — usuário entra com `session('user.business_id')` e fica preso ao primeiro business até logout/troca manual. Wagner+superadmin que tocam múltiplos businesses precisam abrir tab nova.
+
+**Fix sugerido:** adicionar `<BusinessSwitcher />` na sidebar do Chat:
+- Dropdown com lista de businesses do user (já em props)
+- Trocar dispara reload de conversas + memoria_facts daquele tenant
+- Persistir escolha em session OU URL param `?business=X`
+
+**Acceptance criteria:**
+- [ ] Componente `Pages/Jana/_components/BusinessSwitcher.tsx`
+- [ ] Renderiza no topo da sidebar quando `props.businesses.length > 1`
+- [ ] Trocar reload conversas (server-side via Inertia partial reload)
+- [ ] Pest test: superadmin com biz=[1,99] consegue trocar e vê só conversas do biz ativo
+- [ ] Charter Chat.charter.md atualizado mencionando BusinessSwitcher
+
+**Disparo:** Auditoria de completude 2026-05-10.
+**Tags:** completeness-gap, from-skill, audit-2026-05-10
+
+### US-COPI-103 · Pest cross-tenant biz=99 hardcoded em HitTrackerServiceTest
+
+> owner: — · sprint: cycle-04 · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 5 Pest golden + cross-tenant biz=99 — 🟡 PARCIAL).
+
+**Evidência:** `Modules/Jana/Tests/Feature/HitTrackerServiceTest.php:12-20` valida isolation via query scope inline (genérico) mas **não usa `biz_99` hardcoded como pattern canon**. Convenção do time é biz=1 default + biz=99 cross-tenant ([feedback_test_biz_99_cross_tenant_convention.md](memory/feedback_test_biz_99_cross_tenant_convention.md)).
+
+**Fix sugerido:** adicionar test explícito:
+```php
+test('cross-tenant guard biz=99', function () {
+    $hitsBiz1 = JanaMemoria::factory()->create(['business_id' => 1]);
+    $hitsBiz99 = JanaMemoria::factory()->create(['business_id' => 99]);
+
+    actingAs($userBiz99 = User::factory()->create(['business_id' => 99]));
+
+    expect(JanaMemoria::all())->toHaveCount(1)
+        ->and(JanaMemoria::first()->id)->toBe($hitsBiz99->id);
+});
+```
+
+**Acceptance criteria:**
+- [ ] Test `testCrossTenantGuardBiz99()` em `HitTrackerServiceTest`
+- [ ] Test passa local + CI
+- [ ] Pattern documentado pra outros módulos copiarem
+
+**Disparo:** Auditoria de completude 2026-05-10.
+**Tags:** completeness-gap, from-skill, audit-2026-05-10, pest, cross-tenant
+
+### US-COPI-104 · Smoke Browser MCP fresh (screenshot+console) para Chat Jana
+
+> owner: — · sprint: cycle-04 · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 8 Browser MCP smoke — 🟡 PARCIAL).
+
+**Evidência:** Última smoke é session log `memory/sessions/2026-05-06-pr-9-tabela-rename-copiloto-jana.md` (4d) — sem screenshot/console capture via Browser MCP recente. Outro `2026-04-26-copiloto-testes-merge.md` (14d) também sem visual.
+
+**Fix sugerido:** rodar `mcp__Claude_in_Chrome__*` em fluxos Chat:
+1. Abrir `/jana/chat` (golden path)
+2. Enviar pergunta "qual o faturamento de hoje?" (3 ângulos faturamento ADR 0052)
+3. Validar resposta + memória persistida
+4. Captura screenshot + console clean
+
+Salvar em `memory/requisitos/Jana/smoke-2026-05-10.md`.
+
+**Acceptance criteria:**
+- [ ] Screenshot do chat respondendo pergunta
+- [ ] Console messages clean (sem error/Error/TypeError/ReferenceError)
+- [ ] biz=1 (não cliente real, ADR 0101)
+- [ ] Salvo em memory/requisitos/Jana/smoke-2026-05-10.md
+- [ ] Inclui curl/PowerShell snippet pra repetir o smoke
+
+**Disparo:** Auditoria de completude 2026-05-10.
+**Tags:** completeness-gap, from-skill, audit-2026-05-10, smoke-mcp
