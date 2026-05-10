@@ -2,13 +2,21 @@
 
 > **Companion doc** de [`_AGENT_A_AUDIT_FINDINGS.md`](_AGENT_A_AUDIT_FINDINGS.md). Aqui está cada crítico pendente em formato decisão (A vs B, recomendação, esforço).
 >
-> Tempo estimado pra ler + decidir: **15min**. Implementar: **~1.5h**.
+> 🔄 **STATUS 2026-05-10 tarde:** Wagner autorizou pre-aplicar D1+D2 nos drafts (Opção B em ambos). **D3+D4 pendentes Felipe.**
 >
-> Ordem sugerida: D1 → D2 → D3 → D4 → smoke `vendor\bin\pest` local → PR.
+> Tempo estimado pra ler + decidir D3+D4: **5min**. Implementar D3+D4: **~30min**. Smoke + PR: ~1h.
+>
+> Ordem sugerida: validar D1+D2 já aplicados → D3 (SSH SHOW COLUMNS) → D4 (edit Command) → `vendor\bin\pest tests/Feature/Insights` local → PR US-INFRA-012.
 
 ---
 
-## D1 — Schema benchmark: granularidade de período
+## D1 — Schema benchmark: granularidade de período ✅ PRE-APLICADO
+
+> Opção B aplicada em commit `d1-d2-benchmark-prefix` (2026-05-10 tarde). Migration `2026_06_01_000004_create_benchmark_aggregates_table.php` agora usa `$table->string('period', 10)` em vez de `period_start/period_end`. Index `idx_bench_lookup` ajustado pra usar `period`.
+>
+> **Felipe valida:** se concorda mantém. Se discorda (querendo weekly/quinzenal nativo), reverte e abre ADR justificando.
+
+
 
 **Onde:** `migrations/2026_06_01_000004_create_benchmark_aggregates_table.php:40-41`
 
@@ -34,7 +42,13 @@
 
 ---
 
-## D2 — Schema benchmark: que percentis exibir
+## D2 — Schema benchmark: que percentis exibir ✅ PRE-APLICADO
+
+> Opção B aplicada no mesmo commit. Migration agora tem `value_p50` (mediana) + `value_p90` (cauda) — `value_p25` e `value_p75` removidos.
+>
+> **Felipe valida:** se quiser quartiles pra exibir boxplot, reverte e justifica use case.
+
+
 
 **Onde:** mesma migration, colunas `value_p*`.
 
@@ -127,13 +141,14 @@ public function handle()
 
 ---
 
-## Checklist Felipe segunda (15min decisão + ~1.5h implementação + Pest)
+## Checklist Felipe segunda (5min validar + 30min D3+D4 + Pest + PR)
 
-- [ ] **D1** — adoto Opção __ (A/B?)
-- [ ] **D2** — adoto Opção __ (A/B?)
+- [x] **D1** — Opção B pre-aplicada 2026-05-10 tarde (Wagner autorizou)
+- [x] **D2** — Opção B pre-aplicada 2026-05-10 tarde (Wagner autorizou)
+- [ ] Validar D1+D2 — concordo? (se não, reverter e abrir ADR)
 - [ ] **D3** — confirmei coluna `business.____` via SSH
 - [ ] **D4** — adoto Opção __ (A/B?)
-- [ ] Aplicar fixes em migration + Command + sync test fixtures
+- [ ] Aplicar fixes restantes em Command (D3+D4)
 - [ ] `vendor\bin\pest tests/Feature/Insights` local — verde
 - [ ] Bug Pest Modules/Jana (`uses(...)->in(__DIR__)` duplicado em Admin/) — corrigir junto OU PR separado
 - [ ] PR US-INFRA-012 com referência a este doc + ADRs aceitas
