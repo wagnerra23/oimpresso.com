@@ -26,12 +26,14 @@ use Illuminate\Support\Facades\Storage;
  *     --limit=1000                (cap rows processados)
  *     --dry-run                   (não escreve, só log)
  *
- * Heurística "é placeholder?":
- * - size_bytes = 0
- * - md5 começa com hash de pattern "type:id:path" (impossível distinguir
- *   sem armazenar marker — Sprint 7 adiciona coluna `metadata_recalculated_at`)
+ * Filtro primário (Sprint 7+):
+ * - whereNull('metadata_recalculated_at') — tracking explícito, auditável.
  *
- * @see memory/decisions/0123-modules-arquivos-backbone.md Sprint 6
+ * Backward compat (Sprint 6 — coluna ainda não existe):
+ * - Schema::hasColumn('arquivos', 'metadata_recalculated_at') detectado no início.
+ * - Se coluna ausente, fallback pra heurística size_bytes=0 (comportamento legado).
+ *
+ * @see memory/decisions/0123-modules-arquivos-backbone.md Sprint 7
  */
 class RecalcularMetadataCommand extends Command
 {
@@ -53,9 +55,21 @@ class RecalcularMetadataCommand extends Command
         $limit = (int) $this->option('limit');
         $dryRun = (bool) $this->option('dry-run');
 
-        $query = DB::table('arquivos')
-            ->where('size_bytes', 0) // placeholder candidates
-            ->whereNull('deleted_at');
+        // Sprint 7: filtro primário via coluna explícita.
+        // Backward compat Sprint 6: se coluna não existe, fallback pra heurística size_bytes=0.
+        $hasTrackingColumn = Schema::hasColumn('arquivos', 'metadata_recalculated_at');
+
+        $query = DB::table('arquivos')->whereNull('deleted_at');
+
+        if ($hasTrackingColumn) {
+            // Filtro preciso: só rows que ainda não foram recalculadas.
+            // Inclui rows com size_bytes>0 mas sem timestamp (ex: recalcular após mudança
+            // de algoritmo) — comportamento intencional.
+            $query->whereNull('metadata_recalculated_at');
+        } else {
+            // Legado Sprint 6: heurística size_bytes=0 como proxy de placeholder.
+            $query->where('size_bytes', 0);
+        }
 
         if (! empty($tags)) {
             $query->whereIn('classified_by', $tags);
@@ -65,7 +79,8 @@ class RecalcularMetadataCommand extends Command
         }
 
         $total = (clone $query)->count();
-        $this->info("Encontradas {$total} rows com placeholders" . ($dryRun ? ' [DRY-RUN]' : ''));
+        $modo = $hasTrackingColumn ? 'metadata_recalculated_at IS NULL' : 'size_bytes=0 (legado)';
+        $this->info("Encontradas {$total} rows a processar [{$modo}]" . ($dryRun ? ' [DRY-RUN]' : ''));
 
         if ($total === 0) {
             $this->info('Nada pra processar.');
@@ -80,7 +95,7 @@ class RecalcularMetadataCommand extends Command
 
         $query->orderBy('id')
             ->limit($limit)
-            ->chunk(200, function ($rows) use ($dryRun, &$stats) {
+            ->chunk(200, function ($rows) use ($dryRun, $hasTrackingColumn, &$stats) {
                 foreach ($rows as $row) {
                     try {
                         $disk = Storage::disk($row->disk ?: 'local');
@@ -105,13 +120,20 @@ class RecalcularMetadataCommand extends Command
                             continue;
                         }
 
+                        $updates = [
+                            'size_bytes' => $size,
+                            'md5'        => $md5,
+                            'updated_at' => now(),
+                        ];
+
+                        // Sprint 7: registrar timestamp de recalculação se coluna existe.
+                        if ($hasTrackingColumn) {
+                            $updates['metadata_recalculated_at'] = now();
+                        }
+
                         DB::table('arquivos')
                             ->where('id', $row->id)
-                            ->update([
-                                'size_bytes' => $size,
-                                'md5'        => $md5,
-                                'updated_at' => now(),
-                            ]);
+                            ->update($updates);
 
                         $stats['updated']++;
                     } catch (\Throwable $e) {
