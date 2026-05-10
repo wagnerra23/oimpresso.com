@@ -12,7 +12,16 @@ use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
 
 /**
- * Produção · Oficina — kanban da oficina (read-mostly).
+ * Produção · Oficina/OS — kanban shared infrastructure (read-mostly).
+ *
+ * REFACTOR shared (audit 2026-05-10):
+ * - Vocabulário automotivo (placa/vehicle/km/box/elevador/mecanico) → genérico
+ *   (code/item/usage_meter/slot/area/executor) consumível por
+ *   Modules/OficinaAuto, Modules/ComunicacaoVisual, Modules/Vestuario, etc.
+ * - SLOTS/AREAS hardcoded → consumidos de business.repair_settings JSON
+ *   (coluna BD JÁ existe; ver Modules/Repair/Entities/JobSheet -> business)
+ * - Frontend recebe `slotConfig` + `labelOverrides` opcionais — vertical
+ *   passa via `business.repair_settings.{slots,areas,labels}`.
  *
  * US-REPAIR-PROD-2 (2026-05-09): query real \`JobSheet\` por business_id, com
  * heurística \`sort_order\` quartil pra mapear cada status pra uma das 5 colunas
@@ -31,6 +40,27 @@ class ProducaoOficinaController extends Controller
         ['id' => 'pronto', 'label' => 'Pronto', 'tone' => 'emerald'],
     ];
 
+    /**
+     * Defaults conservadores caso business.repair_settings não tenha config.
+     * Mantém comportamento atual (B1..B4 + E1..E2) pra não quebrar UX legacy.
+     * Vertical OficinaAuto preserva via labelOverrides; ComunicacaoVisual /
+     * Vestuario sobrescreve com seus próprios slot groups (ver business-repair-settings-example.json).
+     */
+    private const DEFAULT_SLOT_CONFIG = [
+        ['key' => 'slot', 'label' => 'Box', 'options' => ['B1', 'B2', 'B3', 'B4']],
+        ['key' => 'area', 'label' => 'Elevador', 'options' => ['E1', 'E2']],
+    ];
+
+    private const DEFAULT_LABEL_OVERRIDES = [
+        // genérico-shared (defaults). Vertical passa labels específicas via JSON.
+        'code' => 'Código',
+        'item' => 'Item',
+        'brand' => 'Marca',
+        'usage_meter' => null,    // omite se null
+        'usage_unit' => null,
+        'executor' => 'Executor',
+    ];
+
     public function index()
     {
         $business_id = (int) request()->session()->get('user.business_id');
@@ -39,8 +69,10 @@ class ProducaoOficinaController extends Controller
             ->orderBy('sort_order', 'asc')
             ->get();
 
+        $repairSettings = $this->loadRepairSettings($business_id);
+
         if ($statuses->isEmpty()) {
-            return $this->renderMock();
+            return $this->renderMock($repairSettings);
         }
 
         $jobSheets = JobSheet::with(['status', 'technician', 'Brand', 'deviceModel'])
@@ -51,7 +83,7 @@ class ProducaoOficinaController extends Controller
             ->get();
 
         if ($jobSheets->isEmpty()) {
-            return $this->renderMock();
+            return $this->renderMock($repairSettings);
         }
 
         $statusToColumn = $this->mapStatusesToColumns($statuses);
@@ -61,12 +93,14 @@ class ProducaoOficinaController extends Controller
             'columns' => $columns,
             'totals' => [
                 'os' => $jobSheets->count(),
-                'aguardando_aprovacao' => collect($columns)
+                'pending_approval' => collect($columns)
                     ->flatMap(fn ($c) => $c['cards'])
-                    ->filter(fn ($card) => $card['aprovacao_pendente'] ?? false)
+                    ->filter(fn ($card) => $card['pending_approval'] ?? false)
                     ->count(),
             ],
             'data_source' => 'live',
+            'slot_config' => $repairSettings['slots'],
+            'label_overrides' => $repairSettings['labels'],
         ]);
     }
 
@@ -114,6 +148,27 @@ class ProducaoOficinaController extends Controller
         $jobSheet->save();
 
         return back()->with('success', 'OS movida.');
+    }
+
+    /**
+     * Lê business.repair_settings (JSON column) e devolve config consolidada
+     * com defaults preenchidos. Mantém retrocompat: biz que não configurou
+     * ainda recebe slot config B1..B4 + E1..E2 (= UX atual).
+     */
+    private function loadRepairSettings(int $businessId): array
+    {
+        $business = \App\Business::find($businessId);
+        $settings = $business?->repair_settings ?? [];
+
+        if (is_string($settings)) {
+            $decoded = json_decode($settings, true);
+            $settings = is_array($decoded) ? $decoded : [];
+        }
+
+        return [
+            'slots' => $settings['slots'] ?? self::DEFAULT_SLOT_CONFIG,
+            'labels' => array_merge(self::DEFAULT_LABEL_OVERRIDES, $settings['labels'] ?? []),
+        ];
     }
 
     /**
@@ -202,9 +257,9 @@ class ProducaoOficinaController extends Controller
         $brand = $js->Brand;
         $deviceModel = $js->deviceModel ?? null;
 
-        $mecanicoName = $tech ? trim(($tech->first_name ?? '').' '.($tech->last_name ?? '')) : null;
-        if ($mecanicoName === '') {
-            $mecanicoName = $tech?->username;
+        $executorName = $tech ? trim(($tech->first_name ?? '').' '.($tech->last_name ?? '')) : null;
+        if ($executorName === '') {
+            $executorName = $tech?->username;
         }
 
         $estimated = $js->estimated_cost !== null ? (int) round((float) $js->estimated_cost) : null;
@@ -212,18 +267,27 @@ class ProducaoOficinaController extends Controller
 
         return [
             'id' => $js->id,
-            'plate' => $js->serial_no ?: $js->job_sheet_no,
-            'vehicle' => $deviceModel?->name ?? '—',
+            // Genérico shared:
+            //  - code: identificador legível (placa pra auto, nº OS pra com.visual, código serviço pra costureira)
+            //  - item: descrição do objeto sendo processado (carro/arte/peça)
+            //  - brand: marca/categoria (genérico no BD)
+            //  - usage_meter / usage_unit: medida de uso (km/m²/horas) — null se não aplicável
+            //  - slot / area: posição física na produção (box/elevador/mesa/máquina) — vertical configura
+            //  - executor: pessoa atribuída (mecânico/designer/instalador/costureira)
+            'code' => $js->serial_no ?: $js->job_sheet_no,
+            'item' => $deviceModel?->name ?? '—',
             'brand' => $brand?->name ?? '—',
-            'km' => 0,
-            'mecanico' => $mecanicoName,
-            'mecanico_initials' => $this->initials($mecanicoName),
+            'usage_meter' => null,    // hoje hardcoded 0; vertical OficinaAuto pode preencher km via custom_field
+            'usage_unit' => null,     // 'km' | 'm²' | 'h' — vertical define
+            'executor' => $executorName,
+            'executor_initials' => $this->initials($executorName),
             'wait' => $js->created_at ? Carbon::parse($js->created_at)->diffForHumans(['short' => true]) : null,
-            'box' => null,
-            'aprovacao_pendente' => false,
-            'aprovado' => $isCompleted,
+            'slot' => null,
+            'area' => null,
+            'pending_approval' => false,
+            'approved' => $isCompleted,
             'status_label' => $isCompleted ? 'Aguardando retirada' : null,
-            'orcamento_total' => $estimated,
+            'quote_total' => $estimated,
         ];
     }
 
@@ -241,18 +305,26 @@ class ProducaoOficinaController extends Controller
         return mb_strtoupper($first.$last);
     }
 
-    private function renderMock()
+    private function renderMock(array $repairSettings)
     {
         return Inertia::render('Repair/ProducaoOficina/Index', [
             'columns' => $this->mockColumns(),
             'totals' => [
                 'os' => 17,
-                'aguardando_aprovacao' => 3,
+                'pending_approval' => 3,
             ],
             'data_source' => 'mock',
+            'slot_config' => $repairSettings['slots'],
+            'label_overrides' => $repairSettings['labels'],
         ]);
     }
 
+    /**
+     * Mock data — preserva fixture automotivo histórico (data shape estabelecido
+     * na PR #363, 2026-05-09) mas usando keys genéricas. Vertical OficinaAuto
+     * vê "Civic 2019 / Honda" via labelOverrides; verticais novas substituem o
+     * mock no Modules/<Vertical>/Tests/ próprio.
+     */
     private function mockColumns(): array
     {
         return [
@@ -261,9 +333,9 @@ class ProducaoOficinaController extends Controller
                 'label' => 'Recepção',
                 'tone' => 'slate',
                 'cards' => [
-                    ['plate' => 'RUI-2A45', 'vehicle' => 'Civic 2019', 'brand' => 'Honda', 'km' => 78420, 'mecanico' => 'Carlos R.', 'mecanico_initials' => 'CR', 'wait' => 'há 12min', 'box' => null, 'aprovacao_pendente' => false],
-                    ['plate' => 'QPF-7B12', 'vehicle' => 'Onix 2022', 'brand' => 'Chevrolet', 'km' => 42100, 'mecanico' => 'Diego M.', 'mecanico_initials' => 'DM', 'wait' => 'há 38min', 'box' => null, 'aprovacao_pendente' => false],
-                    ['plate' => 'SVE-9C03', 'vehicle' => 'HB20 2020', 'brand' => 'Hyundai', 'km' => 105880, 'mecanico' => 'Carlos R.', 'mecanico_initials' => 'CR', 'wait' => 'há 1h', 'box' => null, 'aprovacao_pendente' => false],
+                    ['code' => 'RUI-2A45', 'item' => 'Civic 2019', 'brand' => 'Honda', 'usage_meter' => 78420, 'usage_unit' => 'km', 'executor' => 'Carlos R.', 'executor_initials' => 'CR', 'wait' => 'há 12min', 'slot' => null, 'pending_approval' => false],
+                    ['code' => 'QPF-7B12', 'item' => 'Onix 2022', 'brand' => 'Chevrolet', 'usage_meter' => 42100, 'usage_unit' => 'km', 'executor' => 'Diego M.', 'executor_initials' => 'DM', 'wait' => 'há 38min', 'slot' => null, 'pending_approval' => false],
+                    ['code' => 'SVE-9C03', 'item' => 'HB20 2020', 'brand' => 'Hyundai', 'usage_meter' => 105880, 'usage_unit' => 'km', 'executor' => 'Carlos R.', 'executor_initials' => 'CR', 'wait' => 'há 1h', 'slot' => null, 'pending_approval' => false],
                 ],
             ],
             [
@@ -271,10 +343,10 @@ class ProducaoOficinaController extends Controller
                 'label' => 'Diagnóstico',
                 'tone' => 'blue',
                 'cards' => [
-                    ['plate' => 'TPL-3D88', 'vehicle' => 'Corolla 2018', 'brand' => 'Toyota', 'km' => 156300, 'mecanico' => 'João P.', 'mecanico_initials' => 'JP', 'box' => 'B1', 'aprovacao_pendente' => false],
-                    ['plate' => 'UNK-5E27', 'vehicle' => 'Polo 2021', 'brand' => 'Volkswagen', 'km' => 31770, 'mecanico' => 'Diego M.', 'mecanico_initials' => 'DM', 'box' => 'B2', 'aprovacao_pendente' => false],
-                    ['plate' => 'VWP-1F94', 'vehicle' => 'Sandero 2017', 'brand' => 'Renault', 'km' => 198450, 'mecanico' => 'João P.', 'mecanico_initials' => 'JP', 'box' => 'E1', 'aprovacao_pendente' => false],
-                    ['plate' => 'WXR-8G56', 'vehicle' => 'Yaris 2020', 'brand' => 'Toyota', 'km' => 67220, 'mecanico' => 'Carlos R.', 'mecanico_initials' => 'CR', 'box' => 'B3', 'aprovacao_pendente' => false],
+                    ['code' => 'TPL-3D88', 'item' => 'Corolla 2018', 'brand' => 'Toyota', 'usage_meter' => 156300, 'usage_unit' => 'km', 'executor' => 'João P.', 'executor_initials' => 'JP', 'slot' => 'B1', 'pending_approval' => false],
+                    ['code' => 'UNK-5E27', 'item' => 'Polo 2021', 'brand' => 'Volkswagen', 'usage_meter' => 31770, 'usage_unit' => 'km', 'executor' => 'Diego M.', 'executor_initials' => 'DM', 'slot' => 'B2', 'pending_approval' => false],
+                    ['code' => 'VWP-1F94', 'item' => 'Sandero 2017', 'brand' => 'Renault', 'usage_meter' => 198450, 'usage_unit' => 'km', 'executor' => 'João P.', 'executor_initials' => 'JP', 'slot' => 'E1', 'pending_approval' => false],
+                    ['code' => 'WXR-8G56', 'item' => 'Yaris 2020', 'brand' => 'Toyota', 'usage_meter' => 67220, 'usage_unit' => 'km', 'executor' => 'Carlos R.', 'executor_initials' => 'CR', 'slot' => 'B3', 'pending_approval' => false],
                 ],
             ],
             [
@@ -282,9 +354,9 @@ class ProducaoOficinaController extends Controller
                 'label' => 'Aguardando peças',
                 'tone' => 'amber',
                 'cards' => [
-                    ['plate' => 'YTQ-4H73', 'vehicle' => 'Strada 2019', 'brand' => 'Fiat', 'km' => 88350, 'mecanico' => null, 'mecanico_initials' => null, 'box' => null, 'aprovacao_pendente' => true, 'orcamento_total' => 2480, 'orcamento_pecas' => 4, 'orcamento_status' => 'Cliente não respondeu'],
-                    ['plate' => 'ZAB-6I20', 'vehicle' => 'Compass 2021', 'brand' => 'Jeep', 'km' => 54110, 'mecanico' => 'Diego M.', 'mecanico_initials' => 'DM', 'wait' => '3 dias', 'eta' => 'sex.', 'aprovacao_pendente' => false],
-                    ['plate' => 'ACE-2J15', 'vehicle' => 'Tracker 2018', 'brand' => 'Chevrolet', 'km' => 119880, 'mecanico' => 'João P.', 'mecanico_initials' => 'JP', 'wait' => '5 dias', 'eta' => 'seg.', 'aprovacao_pendente' => false],
+                    ['code' => 'YTQ-4H73', 'item' => 'Strada 2019', 'brand' => 'Fiat', 'usage_meter' => 88350, 'usage_unit' => 'km', 'executor' => null, 'executor_initials' => null, 'slot' => null, 'pending_approval' => true, 'quote_total' => 2480, 'quote_items' => 4, 'quote_status' => 'Cliente não respondeu'],
+                    ['code' => 'ZAB-6I20', 'item' => 'Compass 2021', 'brand' => 'Jeep', 'usage_meter' => 54110, 'usage_unit' => 'km', 'executor' => 'Diego M.', 'executor_initials' => 'DM', 'wait' => '3 dias', 'eta' => 'sex.', 'pending_approval' => false],
+                    ['code' => 'ACE-2J15', 'item' => 'Tracker 2018', 'brand' => 'Chevrolet', 'usage_meter' => 119880, 'usage_unit' => 'km', 'executor' => 'João P.', 'executor_initials' => 'JP', 'wait' => '5 dias', 'eta' => 'seg.', 'pending_approval' => false],
                 ],
             ],
             [
@@ -292,10 +364,10 @@ class ProducaoOficinaController extends Controller
                 'label' => 'Em execução',
                 'tone' => 'violet',
                 'cards' => [
-                    ['plate' => 'BDF-9K61', 'vehicle' => 'Kicks 2022', 'brand' => 'Nissan', 'km' => 28500, 'mecanico' => 'João P.', 'mecanico_initials' => 'JP', 'box' => 'B1', 'aprovacao_pendente' => false],
-                    ['plate' => 'CGE-3L08', 'vehicle' => 'Hilux 2019', 'brand' => 'Toyota', 'km' => 142700, 'mecanico' => 'Carlos R.', 'mecanico_initials' => 'CR', 'box' => 'E1', 'aprovacao_pendente' => false],
-                    ['plate' => 'DHJ-7M52', 'vehicle' => 'Argo 2021', 'brand' => 'Fiat', 'km' => 49330, 'mecanico' => 'Diego M.', 'mecanico_initials' => 'DM', 'box' => 'B2', 'aprovacao_pendente' => false],
-                    ['plate' => 'EIK-1N99', 'vehicle' => 'Renegade 2020', 'brand' => 'Jeep', 'km' => 71060, 'mecanico' => 'João P.', 'mecanico_initials' => 'JP', 'box' => 'E2', 'aprovacao_pendente' => false],
+                    ['code' => 'BDF-9K61', 'item' => 'Kicks 2022', 'brand' => 'Nissan', 'usage_meter' => 28500, 'usage_unit' => 'km', 'executor' => 'João P.', 'executor_initials' => 'JP', 'slot' => 'B1', 'pending_approval' => false],
+                    ['code' => 'CGE-3L08', 'item' => 'Hilux 2019', 'brand' => 'Toyota', 'usage_meter' => 142700, 'usage_unit' => 'km', 'executor' => 'Carlos R.', 'executor_initials' => 'CR', 'slot' => 'E1', 'pending_approval' => false],
+                    ['code' => 'DHJ-7M52', 'item' => 'Argo 2021', 'brand' => 'Fiat', 'usage_meter' => 49330, 'usage_unit' => 'km', 'executor' => 'Diego M.', 'executor_initials' => 'DM', 'slot' => 'B2', 'pending_approval' => false],
+                    ['code' => 'EIK-1N99', 'item' => 'Renegade 2020', 'brand' => 'Jeep', 'usage_meter' => 71060, 'usage_unit' => 'km', 'executor' => 'João P.', 'executor_initials' => 'JP', 'slot' => 'E2', 'pending_approval' => false],
                 ],
             ],
             [
@@ -303,9 +375,9 @@ class ProducaoOficinaController extends Controller
                 'label' => 'Pronto',
                 'tone' => 'emerald',
                 'cards' => [
-                    ['plate' => 'FJL-5O44', 'vehicle' => 'Cronos 2020', 'brand' => 'Fiat', 'km' => 88100, 'mecanico' => null, 'mecanico_initials' => null, 'status_label' => 'Aguardando retirada', 'aprovado' => true],
-                    ['plate' => 'GKM-8P77', 'vehicle' => 'Mobi 2018', 'brand' => 'Fiat', 'km' => 64220, 'mecanico' => null, 'mecanico_initials' => null, 'status_label' => 'Retirado às 14:30', 'aprovado' => true],
-                    ['plate' => 'HLN-2Q31', 'vehicle' => 'Saveiro 2019', 'brand' => 'Volkswagen', 'km' => 121450, 'mecanico' => null, 'mecanico_initials' => null, 'status_label' => 'Aguardando retirada', 'aprovado' => true],
+                    ['code' => 'FJL-5O44', 'item' => 'Cronos 2020', 'brand' => 'Fiat', 'usage_meter' => 88100, 'usage_unit' => 'km', 'executor' => null, 'executor_initials' => null, 'status_label' => 'Aguardando retirada', 'approved' => true],
+                    ['code' => 'GKM-8P77', 'item' => 'Mobi 2018', 'brand' => 'Fiat', 'usage_meter' => 64220, 'usage_unit' => 'km', 'executor' => null, 'executor_initials' => null, 'status_label' => 'Retirado às 14:30', 'approved' => true],
+                    ['code' => 'HLN-2Q31', 'item' => 'Saveiro 2019', 'brand' => 'Volkswagen', 'usage_meter' => 121450, 'usage_unit' => 'km', 'executor' => null, 'executor_initials' => null, 'status_label' => 'Aguardando retirada', 'approved' => true],
                 ],
             ],
         ];
