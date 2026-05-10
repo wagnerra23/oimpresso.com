@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
  */
 
 it('handle delega ao DistribuicaoDfeService::puxarLote com businessId', function () {
-    $businessId = 4;
+    $businessId = 1;
 
     $serviceMock = \Mockery::mock(DistribuicaoDfeService::class);
     $serviceMock->shouldReceive('puxarLote')

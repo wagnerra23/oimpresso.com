@@ -26,6 +26,7 @@ class NfseEmissaoService
     public function emitir(NfseEmissaoPayload $payload): NfseEmissao
     {
         // Idempotência: retorna nota existente se já foi emitida com mesmo payload
+        // SUPERADMIN: service de emissão NFSe sem context tenant — business_id vem do payload (DTO recebido); idempotência cross-session
         $existente = NfseEmissao::withoutGlobalScopes()
             ->where('idempotency_key', $payload->idempotencyKey())
             ->where('business_id', $payload->businessId)
@@ -129,6 +130,7 @@ class NfseEmissaoService
 
     private function getConfig(int $businessId): NfseProviderConfig
     {
+        // SUPERADMIN: service chamado por job sem session — business_id explícito como param
         $config = NfseProviderConfig::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->first();

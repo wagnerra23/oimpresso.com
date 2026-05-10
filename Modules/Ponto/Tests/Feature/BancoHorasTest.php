@@ -4,7 +4,7 @@ namespace Modules\Ponto\Tests\Feature;
 
 class BancoHorasTest extends PontoTestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function index_renderiza_inertia_com_totais(): void
     {
         $this->actAsAdmin();
@@ -22,7 +22,7 @@ class BancoHorasTest extends PontoTestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function ajuste_manual_exige_minutos_e_observacao(): void
     {
         $this->actAsAdmin();
@@ -33,7 +33,7 @@ class BancoHorasTest extends PontoTestCase
         $response->assertJsonValidationErrors(['minutos', 'observacao']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function show_retorna_404_para_colaborador_inexistente(): void
     {
         $this->actAsAdmin();

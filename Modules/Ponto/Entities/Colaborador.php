@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,9 +12,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Bridge entre users (UltimatePOS) e o domínio de Ponto.
  * Não é o User em si — é a configuração de ponto associada a ele.
+ *
+ * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): trait HasBusinessScope
+ * aplica global scope automático por business_id. Tabela tem coluna
+ * business_id (vide migration 2026_04_18_000001).
  */
 class Colaborador extends Model
 {
+    use HasBusinessScope;
     use HasFactory;
     use SoftDeletes;
 

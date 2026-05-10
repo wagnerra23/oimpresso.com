@@ -24,6 +24,9 @@ class ProcessarImportacaoAfdJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /** @var int business_id do tenant (multi-tenant Tier 0, ADR 0093) */
+    public $businessId;
+
     /** @var int ID da importação (Importacao.id) */
     public $importacaoId;
 
@@ -33,17 +36,23 @@ class ProcessarImportacaoAfdJob implements ShouldQueue
     /** @var int Timeout em segundos */
     public $timeout = 600;
 
-    public function __construct($importacaoId)
+    public function __construct($businessId, $importacaoId)
     {
-        $this->importacaoId = $importacaoId;
+        $this->businessId = (int) $businessId;
+        $this->importacaoId = (int) $importacaoId;
     }
 
     public function handle(AfdParserService $parser)
     {
-        $importacao = Importacao::find($this->importacaoId);
+        // SUPERADMIN: job sem session (queue worker não tem auth) — scope manual
+        // garante isolamento multi-tenant Tier 0. Ver ADR 0093 + ScopeByBusiness.
+        $importacao = Importacao::where('business_id', $this->businessId)
+            ->find($this->importacaoId);
+
         if (!$importacao) {
             Log::warning('[PontoWr2] ProcessarImportacaoAfdJob: Importacao não encontrada', [
-                'id' => $this->importacaoId,
+                'business_id' => $this->businessId,
+                'id'          => $this->importacaoId,
             ]);
             return;
         }
@@ -61,7 +70,9 @@ class ProcessarImportacaoAfdJob implements ShouldQueue
 
     public function failed(\Throwable $e)
     {
-        $importacao = Importacao::find($this->importacaoId);
+        // SUPERADMIN: callback failed() roda fora de session — scope manual.
+        $importacao = Importacao::where('business_id', $this->businessId)
+            ->find($this->importacaoId);
         if ($importacao) {
             $importacao->update([
                 'estado' => Importacao::ESTADO_FALHOU,
@@ -69,9 +80,10 @@ class ProcessarImportacaoAfdJob implements ShouldQueue
             ]);
         }
         Log::error('[PontoWr2] ProcessarImportacaoAfdJob failed', [
-            'id'    => $this->importacaoId,
-            'erro'  => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
+            'business_id' => $this->businessId,
+            'id'          => $this->importacaoId,
+            'erro'        => $e->getMessage(),
+            'trace'       => $e->getTraceAsString(),
         ]);
     }
 }

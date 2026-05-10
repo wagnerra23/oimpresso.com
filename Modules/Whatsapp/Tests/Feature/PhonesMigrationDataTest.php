@@ -197,7 +197,7 @@ it('migra cada config legacy pra 1 phone com label Comercial', function () {
             'updated_at' => now(),
         ],
         [
-            'business_id' => 4,
+            'business_id' => 99,
             'business_uuid' => (string) Str::uuid(),
             'driver' => 'zapi',
             'fallback_driver' => 'meta_cloud',
@@ -216,7 +216,7 @@ it('migra cada config legacy pra 1 phone com label Comercial', function () {
     expect($phones[0]->driver)->toBe('baileys');
     expect($phones[0]->baileys_phone_e164)->toBe('+5511999990001');
 
-    expect($phones[1]->business_id)->toBe(4);
+    expect($phones[1]->business_id)->toBe(99);
     expect($phones[1]->driver)->toBe('zapi');
 });
 
@@ -279,20 +279,20 @@ it('vincula conversations e messages do business pro phone correto', function ()
 it('multi-tenant: phone de business A nunca vincula a conversation de business B', function () {
     DB::table('whatsapp_business_configs')->insert([
         ['business_id' => 1, 'business_uuid' => (string) Str::uuid(), 'driver' => 'baileys', 'fallback_driver' => 'meta_cloud', 'created_at' => now(), 'updated_at' => now()],
-        ['business_id' => 4, 'business_uuid' => (string) Str::uuid(), 'driver' => 'zapi', 'fallback_driver' => 'meta_cloud', 'created_at' => now(), 'updated_at' => now()],
+        ['business_id' => 99, 'business_uuid' => (string) Str::uuid(), 'driver' => 'zapi', 'fallback_driver' => 'meta_cloud', 'created_at' => now(), 'updated_at' => now()],
     ]);
 
     $convA = DB::table('whatsapp_conversations')->insertGetId([
         'business_id' => 1, 'customer_phone' => '+5511990000001', 'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
     ]);
     $convB = DB::table('whatsapp_conversations')->insertGetId([
-        'business_id' => 4, 'customer_phone' => '+5511990000004', 'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
+        'business_id' => 99, 'customer_phone' => '+5511990000004', 'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
     runDataMigration();
 
     $phoneA = DB::table('whatsapp_business_phones')->where('business_id', 1)->first();
-    $phoneB = DB::table('whatsapp_business_phones')->where('business_id', 4)->first();
+    $phoneB = DB::table('whatsapp_business_phones')->where('business_id', 99)->first();
 
     $cA = DB::table('whatsapp_conversations')->where('id', $convA)->first();
     $cB = DB::table('whatsapp_conversations')->where('id', $convB)->first();

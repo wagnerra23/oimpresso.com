@@ -21,7 +21,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
         Cache::flush();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function rejeita_descricao_muito_curta(): void
     {
         $r = $this->ai->classificar('curto');
@@ -29,7 +29,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
         $this->assertStringContainsString('muito curta', $r['error']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function rejeita_descricao_muito_longa(): void
     {
         $r = $this->ai->classificar(str_repeat('a', 2001));
@@ -37,7 +37,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
         $this->assertStringContainsString('muito longa', $r['error']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function retorna_erro_quando_ai_desativada(): void
     {
         config(['app.env' => 'testing']);
@@ -48,7 +48,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
         $this->assertStringContainsString('IA não configurada', $r['error']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function mascara_cpf_pis_email_telefone(): void
     {
         $mask = new class extends IntercorrenciaAIClassifier {
@@ -66,7 +66,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
         $this->assertStringContainsString('[TELEFONE]', $output);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function normaliza_tipo_invalido_para_OUTRO(): void
     {
         $reflection = new \ReflectionClass(IntercorrenciaAIClassifier::class);
@@ -84,7 +84,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
         $this->assertEquals(1.0, $r['confianca']); // clamped
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function impacta_apuracao_default_por_tipo(): void
     {
         $reflection = new \ReflectionClass(IntercorrenciaAIClassifier::class);
@@ -100,7 +100,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
         $this->assertFalse($r2['impacta_apuracao']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function ai_habilitada_exige_flags_e_api_key(): void
     {
         putenv('AI_ENABLED=true');

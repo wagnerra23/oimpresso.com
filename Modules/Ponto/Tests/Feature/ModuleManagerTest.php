@@ -13,7 +13,7 @@ use Tests\TestCase;
  */
 class ModuleManagerTest extends TestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function list_retorna_os_modulos_do_diretorio(): void
     {
         $manager = app(ModuleManagerService::class);
@@ -31,7 +31,7 @@ class ModuleManagerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function list_inclui_ponto_wr2_e_marca_como_ativo(): void
     {
         $manager = app(ModuleManagerService::class);
@@ -43,7 +43,7 @@ class ModuleManagerTest extends TestCase
         $this->assertTrue($ponto['has_migrations']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function module_exists_funciona(): void
     {
         $manager = app(ModuleManagerService::class);
@@ -51,7 +51,7 @@ class ModuleManagerTest extends TestCase
         $this->assertFalse($manager->moduleExists('ModuloInexistente123'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function set_active_lanca_excecao_para_modulo_inexistente(): void
     {
         $manager = app(ModuleManagerService::class);
@@ -59,7 +59,7 @@ class ModuleManagerTest extends TestCase
         $manager->setActive('ModuloInexistente123', true);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function spec_generator_inspeciona_ponto_wr2(): void
     {
         $gen = app(ModuleSpecGenerator::class);
@@ -82,7 +82,7 @@ class ModuleManagerTest extends TestCase
         $this->assertGreaterThanOrEqual(3, count($spec['permissions']['registered']));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function spec_markdown_render_tem_secoes_importantes(): void
     {
         $gen = app(ModuleSpecGenerator::class);
@@ -97,7 +97,7 @@ class ModuleManagerTest extends TestCase
         $this->assertStringContainsString('## Integridade do banco', $md);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function spec_detecta_modulo_perdido_em_branch_antiga(): void
     {
         $gen = app(ModuleSpecGenerator::class);

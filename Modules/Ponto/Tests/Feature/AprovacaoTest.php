@@ -4,13 +4,13 @@ namespace Modules\Ponto\Tests\Feature;
 
 class AprovacaoTest extends PontoTestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function index_exige_autenticacao(): void
     {
         $this->get('/ponto/aprovacoes')->assertRedirect('/login');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function index_retorna_inertia_com_estrutura_esperada(): void
     {
         $this->actAsAdmin();
@@ -35,7 +35,7 @@ class AprovacaoTest extends PontoTestCase
         $this->assertArrayHasKey('value', $props['tipos'][0]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function filtro_por_estado_funciona(): void
     {
         $this->actAsAdmin();
@@ -45,7 +45,7 @@ class AprovacaoTest extends PontoTestCase
         $this->assertEquals('APROVADA', $response->json('props.filtros.estado'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function rejeitar_exige_motivo(): void
     {
         $this->actAsAdmin();
