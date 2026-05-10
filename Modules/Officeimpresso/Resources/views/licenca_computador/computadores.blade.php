@@ -110,9 +110,9 @@
                                 </td>
                                 <td>
                                     <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}"
-                                       class="oi-btn {{ $licenca->bloqueado ? 'oi-btn-danger' : 'oi-btn-success' }} oi-btn-xs"
-                                       title="{{ $licenca->bloqueado ? 'Clique pra desbloquear' : 'Clique pra bloquear' }}">
-                                        <i class="fas fa-{{ $licenca->bloqueado ? 'lock' : 'unlock' }}"></i>
+                                       class="oi-btn {{ $licenca->bloqueado ? 'oi-btn-success' : 'oi-btn-warning' }} oi-btn-xs"
+                                       title="{{ $licenca->bloqueado ? 'Restaurar acesso desta máquina' : 'Bloquear acesso desta máquina' }}">
+                                        <i class="fas fa-{{ $licenca->bloqueado ? 'unlock' : 'lock' }}"></i>
                                     </a>
                                     <a href="{{ url('/officeimpresso/licenca_log?licenca_id=' . $licenca->id) }}"
                                        class="oi-btn oi-btn-ghost oi-btn-xs"
