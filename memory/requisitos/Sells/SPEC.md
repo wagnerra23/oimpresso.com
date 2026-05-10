@@ -250,8 +250,9 @@ Histórico de comentários por US fica navegável via `/copiloto/admin/qualidade
 
 ### US-SELL-011 · Modelar 4 tabelas FSM canônicas (processes + stages + actions + RBAC)
 
-> owner: wagner · priority: p1 · estimate: 12h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 12h · status: done · type: story
 > blocked_by: US-SELL-010
+> done: 2026-05-10 · PR: #501 · Pest: 13/13 ✅
 
 **Contexto:** após ADR aceitar State Machine canônica (US-SELL-010), implementar a infraestrutura base que será usada por Sells (gate emissão NFe), Repair (kanban OS), Project (tasks), e qualquer feature futura multi-etapa.
 
@@ -282,8 +283,9 @@ sale_stage_action_roles     -- RBAC join: action × spatie_role/permission
 
 ### US-SELL-012 · Gate de emissão NFe por venda (aplicar FSM canônica em Sale)
 
-> owner: wagner · priority: p1 · estimate: 8h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-SELL-011
+> done: 2026-05-10 · PR: #507 · Pest: 6/6 ✅ (19/19 full)
 
 **Contexto:** primeira aplicação real da State Machine canônica (US-SELL-011). Resolve premissa errada do US-RB-044 original — "venda sem nota é caminho feliz, não falha". Auto-emissão NFe55 deixa de ser flag global por business e passa a ser **opt-in por venda** via processo escolhido.
 
@@ -316,8 +318,9 @@ sale_stage_action_roles     -- RBAC join: action × spatie_role/permission
 
 ### US-SELL-013 · Reservas de estoque (stock_reservations) — side-effects FSM aplicados
 
-> owner: wagner · priority: p1 · estimate: 8h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-SELL-011
+> done: 2026-05-10 · PR: #510 · Pest: 8/8 ✅
 
 **Contexto:** caso prático OS Comunicação Visual revelou gap — UltimatePOS core baixa estoque no checkout, mas OS de produção precisa **reservar sem baixar** entre "orçamento aprovado" e "produção concluída". Reserva impede que o mesmo metro de lona seja vendido em 2 OS simultâneas, mas mantém estoque disponível enquanto OS pode ser cancelada.
 
@@ -348,8 +351,9 @@ stock_reservations
 
 ### US-SELL-014 · Multi-documento por venda (transaction_documents poly) — N notas atreladas a 1 OS
 
-> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 6h · status: done · type: story
 > blocked_by: US-SELL-011
+> done: 2026-05-10 · PR: #508 · Pest: 6/6 ✅
 
 **Contexto:** caso prático OS Comunicação Visual revelou gap — 1 OS = N documentos fiscais. Banner (mercadoria) emite NFe55, instalação (serviço) emite NFSe56. Hoje `Modules/NfeBrasil` assume 1 transaction = 1 NFe via `transaction_id` direto na `nfe_emissoes`. Pra cobrir caso real BR (gráfica, oficina, eletricista, dentista) precisa relação **poly N:1**.
 
