@@ -7,7 +7,7 @@
 // Não vira shared ainda — extrair pra @/Components/shared só quando 2ª tela usar.
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, X } from 'lucide-react';
+import { Search, Loader2, X, UserPlus } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 
 export interface CustomerSearchResult {
@@ -175,8 +175,23 @@ export default function CustomerSearchAutocomplete({
       )}
 
       {open && query.length >= MIN_QUERY_LENGTH && results.length === 0 && !loading && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover px-3 py-2 text-sm text-muted-foreground shadow-md">
-          Nenhum cliente encontrado para "{query}".
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
+          <div className="px-3 py-2 text-sm text-muted-foreground">
+            Nenhum cliente encontrado para "{query}".
+          </div>
+          {/* Cadastro inline — leva o nome digitado pra ContactController@create
+              via query param prefill_name. Backend pre-popula first_name na view
+              contact/create.blade.php. Pedido Wagner 2026-05-10. */}
+          <a
+            href={`/contacts/create?type=customer&prefill_name=${encodeURIComponent(query)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center gap-2 border-t border-border bg-primary/5 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10 focus:bg-primary/10 focus:outline-none"
+            data-testid="customer-cadastrar-inline"
+          >
+            <UserPlus className="h-4 w-4" />
+            Cadastrar "{query}" como novo cliente
+          </a>
         </div>
       )}
     </div>
