@@ -320,6 +320,11 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         tax_id: null,
         line_discount_type: 'fixed',
         line_discount_amount: p.discount,
+        // SellPosController:581 acessa $product['enable_stock'] direto. Se faltar,
+        // Undefined array key. Defaults seguros: stock-managed e single-type.
+        // Idealmente search API retornaria isso por produto — TODO US-SELL-PRODUCT-META.
+        enable_stock: 1,
+        product_type: 'single',
       })),
     }));
     // POST /pos -> SellPosController@store (mesma rota do Blade legacy form em
