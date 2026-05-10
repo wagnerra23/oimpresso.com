@@ -1,10 +1,17 @@
 ---
 title: oimpresso Insights — Master Product Spec
-status: proposed (Wagner valida)
+status: proposed v2 (Wagner valida)
 date: 2026-05-09
+revised: 2026-05-10 (Pilar 5 DaaS externo descartado, DPO Eliana adiado)
 author: Claude Opus 4.7 (sub-agent autônomo, 13 frentes paralelas)
 synthesizes: F9-F21 (catalog, DaaS, benchmark, API, newsletter, performance fee, gap schema, state-of-art, Jana habit, multi-vertical, Jana roadmap, pricing usage, network effect)
 ---
+
+> ⚠️ **REVISÃO 2026-05-10**: Wagner decidiu:
+> - ❌ **Pilar 5 (DaaS externo — vender dado a fintech/seguradora) DESCARTADO**. Wagner: *"não vou vender dados"*. Doc original mantido por completude histórica, mas Pilar 5 NÃO está no escopo.
+> - ⏸️ **DPO formal Eliana adiado** — Eliana vai estudar LGPD com calma antes de assumir. Counsel externo segue obrigatório pra Pilares 1-4.
+> - ARR 24m revisado: ~R$ 1,2-2M (vs R$ 1,5-2,5M com Pilar 5).
+> - Foco vira **ERP+IA+Benchmark interno** — produto vende pros próprios clientes que assinam, não pra terceiros.
 
 # 🎯 oimpresso Insights — Master Product Spec
 
@@ -42,11 +49,15 @@ oimpresso Insights é o **único SaaS B2B brasileiro vertical que combina ERP op
 - **Defensibilidade 24-36 meses** — concorrente não consegue replicar em <2 anos
 - Top 3 a implementar Q1: Benchmark Setorial · Pricing Index · Recomendação Cross-Cliente
 
-### Pilar 5 — DaaS (Data-as-a-Service externa)
-- API "Score Gráfica BR" pra fintechs/seguradoras/fornecedores
-- Newsletter+webinar setorial mensal (lead magnet B2B)
-- Relatórios setoriais ad-hoc (R$ 5-50k/relatório)
-- Performance fee (Recovery 5-10% · Migration 20-30% incremento · Acquisition referral)
+### ~~Pilar 5 — DaaS (Data-as-a-Service externa)~~ ❌ DESCARTADO 2026-05-10
+- ~~API "Score Gráfica BR" pra fintechs/seguradoras/fornecedores~~
+- ~~Performance fee (Recovery 5-10% · Migration 20-30% incremento · Acquisition referral)~~
+
+✅ **Mantido (não-Pilar 5, são marketing/lead gen, não venda de dado externa)**:
+- Newsletter+webinar setorial mensal (lead magnet B2B com agregados k-anonymous publicados)
+- Relatórios setoriais agregados públicos (não vendidos a terceiros — usados como autoridade)
+
+**Razão da decisão**: Wagner *"não vou vender dados"*. Foco vira manter clientes pagantes felizes com Pilares 1-4. Performance fee Recovery pode voltar como Pilar 6 futuro com sinal qualificado (1 cliente pedir explicitamente).
 
 ---
 
@@ -67,18 +78,25 @@ oimpresso Insights é o **único SaaS B2B brasileiro vertical que combina ERP op
 
 ---
 
-## 🔄 Tiers DaaS externa (terceiros pagantes)
+## ~~🔄 Tiers DaaS externa~~ ❌ DESCARTADO 2026-05-10
 
-| Customer | Produto | Pricing |
+Wagner: *"não vou vender dados"*. Tabela mantida abaixo apenas pra registro histórico. **Não está no escopo do produto v2.**
+
+| ~~Customer~~ | ~~Produto~~ | ~~Pricing~~ |
 |----------|---------|--------:|
-| Fintech (Asaas/Iugu/Stone) | API Score Gráfica BR (consulta) | R$ 5-50/consulta + base R$ 299-4.999/m |
-| Seguradora (Porto/Tokio) | Risk score equipamento | R$ 50/consulta |
-| Fornecedor máquina (HP/Roland/Mimaki) | Demand intelligence | R$ 200-1.000/m |
-| Fornecedor insumo (3M/Avery/Heytex) | Lead+demand mapping | R$ 500-2.000/m |
-| Associação setorial (ABIGRAF/ABICOMV) | Relatório anual setorial | R$ 50k/ano |
-| Investidor/M&A | Setor research bespoke | R$ 15-50k/relatório |
+| ~~Fintech (Asaas/Iugu/Stone)~~ | ~~API Score Gráfica BR (consulta)~~ | ~~R$ 5-50/consulta + base R$ 299-4.999/m~~ |
+| ~~Seguradora (Porto/Tokio)~~ | ~~Risk score equipamento~~ | ~~R$ 50/consulta~~ |
+| ~~Fornecedor máquina (HP/Roland/Mimaki)~~ | ~~Demand intelligence~~ | ~~R$ 200-1.000/m~~ |
+| ~~Fornecedor insumo (3M/Avery/Heytex)~~ | ~~Lead+demand mapping~~ | ~~R$ 500-2.000/m~~ |
+| ~~Associação setorial (ABIGRAF/ABICOMV)~~ | ~~Relatório anual setorial~~ | ~~R$ 50k/ano~~ |
+| ~~Investidor/M&A~~ | ~~Setor research bespoke~~ | ~~R$ 15-50k/relatório~~ |
 
-**ARR projetado DaaS 24m realista**: R$ 250-400k
+~~**ARR projetado DaaS 24m realista**: R$ 250-400k~~ → **REMOVIDO. Foco em Pilares 1-4 (clientes próprios pagantes).**
+
+**Caminho alternativo aberto** (não-DaaS, sem venda de dado externo):
+- Newsletter+webinar com agregados k-anonymous = lead gen (gratuito, autoridade)
+- Relatório anual público setorial (gratuito, branding)
+- Se 1+ cliente atual pedir Performance Fee Recovery, abre Pilar 6 separado
 
 ---
 
@@ -126,8 +144,8 @@ oimpresso Insights é o **único SaaS B2B brasileiro vertical que combina ERP op
 ### Construir (diferencial vertical)
 - Schema multi-vertical CNAE (18h)
 - Jana habit features (8 semanas Fase 1)
-- Network effect engine (Q1)
-- DaaS API + dashboard parceiros (M6)
+- Network effect engine (Q1) — apenas benchmark interno (cliente vê, não vendido externamente)
+- ~~DaaS API + dashboard parceiros (M6)~~ ❌ removido — sem venda de dado externo
 
 ---
 
@@ -143,22 +161,21 @@ oimpresso Insights é o **único SaaS B2B brasileiro vertical que combina ERP op
 | **Total adicional 12m** | **R$ 260k** |
 | ARR total ano 1 (R$ 487k atual + R$ 260k) | **~R$ 750k** |
 
-### Cenário realista (24m)
+### Cenário realista 24m — REVISADO 2026-05-10 (sem Pilar 5)
 | Linha | ARR |
 |-------|----:|
 | ERP oimpresso (clientes Pro+Premium) | R$ 800k-1.2M |
-| DaaS interno (Snapshot+Insights Pro) | R$ 200k-400k |
-| DaaS externo (API + relatórios) | R$ 250k-400k |
-| Performance fees | R$ 200-300k |
-| **Total ano 2 (jun/28)** | **R$ 1,5-2,5M (30-50% meta R$ 5M)** |
+| Snapshot Tier 1-3 + Insights Pro (interno) | R$ 200k-400k |
+| ~~DaaS externo (API + relatórios)~~ | ~~R$ 250k-400k~~ ❌ removido |
+| ~~Performance fees~~ | ~~R$ 200-300k~~ ⏸️ adiado pra Pilar 6 com sinal |
+| **Total ano 2 (jun/28)** | **R$ 1-1.6M (20-32% meta R$ 5M)** |
 
-### Para chegar em R$ 5M (ano 3)
-- 100+ clientes ERP Pro/Premium = R$ 2M
-- 50+ Snapshot Tier 3 + 20 Data Partner = R$ 1M
-- 5+ fintechs + 5 fornecedores + 3 seguradoras = R$ 1M
-- Relatórios setoriais + ad-hoc = R$ 500k
-- Performance fees recorrentes = R$ 500k
-- **Total R$ 5M atingível em ~3 anos com network effect maduro**
+### Para chegar em R$ 5M sem DaaS externo
+- **150+ clientes ERP Pro/Premium = R$ 3M** (mais clientes pra compensar)
+- **80+ Snapshot Tier 3 = R$ 1.5M**
+- Newsletter+webinar setorial = lead gen + autoridade (não receita direta)
+- **Total R$ 4.5-5M atingível em ~4 anos** (vs 3 anos com DaaS externo)
+- **Tradeoff aceitado por Wagner**: mais lento mas alinhado com valor "não vou vender dados"
 
 ---
 
@@ -199,13 +216,14 @@ oimpresso Insights é o **único SaaS B2B brasileiro vertical que combina ERP op
 
 ---
 
-## 🔑 Decisões críticas pendentes (Wagner valida)
+## 🔑 Decisões críticas (Wagner valida) — atualização 2026-05-10
 
-- [ ] Aprovar este produto como linha de negócio formal (ADR canon)?
-- [ ] OK pra investir R$ 50-100k em counsel LGPD + DPO no Q3/26?
+- [ ] Aprovar produto v2 (sem Pilar 5) como linha de negócio formal (ADR canon)?
+- [x] **Pilar 5 DaaS externo: NÃO** ✅ Wagner decidiu 2026-05-10
+- [x] **DPO Eliana: ADIADO** ✅ Eliana estuda LGPD com calma primeiro
+- [ ] OK pra investir R$ 30-60k em counsel LGPD externo Q3/26 (escopo menor sem Pilar 5)?
 - [ ] OK pra grandfather 12m dos 41 clientes atuais (sem upgrade forçado)?
 - [ ] OK pra ROTA LIVRE Premium grátis até 2027 (compensação piloto)?
-- [ ] Aprovar Pilar 5 DaaS externo (vender dado a fintech/seguradora) ou só Pilares 1-4 internos?
 - [ ] Manter ROTA LIVRE como caso público anonimizado nas comunicações?
 
 ---
