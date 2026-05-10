@@ -7,7 +7,63 @@
 
 ---
 
-## 🆕 Estado pós-2026-05-10 — Prospecção 3 verticais + plano outbound + canon MCP + smoke NFe estado
+## 🆕 Estado 2026-05-10 tarde — Autopecas docs completas + helper sessões paralelas + audit decision sheet
+
+**Sessão Claude tarde** (paralela à da manhã, em desktop). 3 PRs novos abertos aguardando Wagner approve.
+
+### (A) PR [#400](https://github.com/wagnerra23/oimpresso.com/pull/400) — Autopecas charter v1 + plano migração Vargas
+
+Sub-agent Opus 4.7 background (`agentId: afc463f76faf52403`) terminou os 2 arquivos pendentes do trio Modules/Autopecas iniciado em #393/#396:
+
+- [memory/requisitos/Autopecas/Autopecas.charter.md](requisitos/Autopecas/Autopecas.charter.md) — charter v1 com 5 goals operacionais (lookup <2s, balcão p95<1500ms, devolução ≤60s, garantia <500ms, NFC-e+NFe-boleto auto) + 3 anti-hooks Tier 0 (NFe auto sem fechamento humano, devolução fora prazo, ajuste estoque sem rastreio)
+- [memory/requisitos/Autopecas/PLANO-MIGRACAO-VARGAS.md](requisitos/Autopecas/PLANO-MIGRACAO-VARGAS.md) — plano Q4/26 outreach → Q2/27 cutover, pacote pioneer Enterprise R$ [redacted Tier 0]/m grandfathered + 50% off 6m + setup R$ [redacted Tier 0]; Plano B preserva Vargas no OfficeImpresso legacy se recusar
+
+Módulo permanece `feature-wish` ([ADR 0105](decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) até Vargas assinar Q4/26.
+
+### (B) PR [#403](https://github.com/wagnerra23/oimpresso.com/pull/403) — Helper sessões Claude paralelas
+
+**Problema diagnosticado nesta sessão:** 3 sessões Claude Code abertas simultâneas em `D:\oimpresso.com` se atrapalharam — meu primeiro commit caiu em branch errada (`claude/all-frentes-pr6-vestuario-primeira` em vez da minha), `git add` capturou arquivos de sessão vizinha (HasArquivos trait CmsPage/JobSheet, Vestuario settings).
+
+**Solução:**
+- `tools/new-claude-session.ps1` — cria worktree isolado em `.claude/worktrees/<nome>` + branch `claude/<nome>` a partir de `origin/main`
+- `tools/list-claude-sessions.ps1` — lista worktrees ativos + status (mudanças não-commitadas, último commit)
+- [memory/requisitos/Infra/RUNBOOK-claude-paralelo.md](requisitos/Infra/RUNBOOK-claude-paralelo.md) — fluxo 3 passos + pegadinhas
+
+**Wagner depois de mergear #403:** próxima vez que abrir 2ª/3ª sessão, rodar `.\tools\new-claude-session.ps1 -Name <escopo>` em vez de abrir direto na raiz.
+
+### (C) PR [#405](https://github.com/wagnerra23/oimpresso.com/pull/405) — Decision sheet pré-Sprint 1 pra Felipe segunda
+
+Companion do `_AGENT_A_AUDIT_FINDINGS.md`: cada um dos 4 críticos pendentes (#3-#6) reformatado em **Opção A vs B + recomendação + custo/esforço**. Felipe abre segunda 2026-05-11, lê em 15min, decide D1-D4, implementa em ~1.5h, roda Pest local, abre PR US-INFRA-012.
+
+[memory/decisions/proposals/drafts/_FELIPE_DECISIONS_PRE_SPRINT1.md](decisions/proposals/drafts/_FELIPE_DECISIONS_PRE_SPRINT1.md):
+- **D1** Schema benchmark: `period_start/end` (range date) vs `period` string YYYY-MM → recomendado **B**
+- **D2** Schema benchmark: percentis `p25/p50/p75` vs `p50/p90` → recomendado **B** (padrão SaaS benchmarking)
+- **D3** Coluna CNPJ: `tax_number` vs `tax_number_1` (UltimatePOS legacy) → confirmar via SSH `SHOW COLUMNS`
+- **D4** `--force` no BackfillCommand: adicionar (Opção A) vs remover test (B) → recomendado **A**
+
+Recomendações são autoritativas → Wagner+Felipe ainda mandam. Se discordarem, registram rationale no PR US-INFRA-012.
+
+### (D) Lições da sessão (impacto em handoff/processo)
+
+1. **3 sessões paralelas no mesmo path = receita pra desastre.** PRs saltando de 3 em 3 (#400 → #401 → #402 → #403 → #404 em ~30min) é evidência. PR #403 resolve via worktrees.
+
+2. **Sub-agent C completou fora-de-banda.** Background `Agent` continuou rodando após "/compact"; charter+plano apareceram quando voltei. Lesson pra próxima Claude: monitor `agentId` antes de marcar como abandonado.
+
+3. **`git commit --only <files>` é mais robusto que `git add` + `git commit`** quando outras sessões podem estar mexendo no index. Padrão pra adotar.
+
+4. **Branch protection + many sessions = friction.** Cada PR meu hoje precisou aguardar approval. Funcional, mas 3+ PRs/sessão paralela acumula. Considerar relaxar required-reviews=0 pra docs-only paths (`memory/**`, `tools/**`) num próximo ADR — economiza overhead Wagner sem perder safety em código.
+
+### Próxima Claude pega assim
+
+1. Lê este bloco + bloco "Estado pós-2026-05-10" abaixo (sessão manhã)
+2. Confirma que PR #400, #403, #405 mergearam (`gh pr list --state merged --limit 10`)
+3. Se Felipe atacou US-INFRA-012, pula pra próximo item da Sprint 1
+4. Se Vargas voltou com sinal Q4/26, ativa Modules/Autopecas via ADR de promoção (`feature-wish` → `accepted`)
+5. **Se for abrir trabalho paralelo:** usa `tools/new-claude-session.ps1` (após #403 mergeado)
+
+---
+
+## 🗂️ Estado pós-2026-05-10 manhã — Prospecção 3 verticais + plano outbound + canon MCP + smoke NFe estado
 
 **Sessão 2026-05-10** — Wagner pediu "todos" das 4 frentes possíveis. Resultado em paralelo via 24+20=44 agentes (3 batches gráficas/com.visual + 10 oficinas auto + 10 vestuário) + foreground próprio.
 
