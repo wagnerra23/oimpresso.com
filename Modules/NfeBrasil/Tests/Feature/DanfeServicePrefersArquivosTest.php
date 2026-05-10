@@ -29,39 +29,61 @@ beforeEach(function () {
         $this->markTestSkipped('arquivos table missing — Modules/Arquivos não migrado');
     }
 
-    Schema::dropIfExists('nfe_emissoes');
-    Schema::create('nfe_emissoes', function ($t) {
-        $t->id();
-        $t->unsignedInteger('business_id')->index();
-        $t->unsignedInteger('transaction_id')->nullable();
-        $t->string('modelo', 2)->default('55');
-        $t->string('serie', 3)->default('1');
-        $t->unsignedInteger('numero')->nullable();
-        $t->string('chave_44', 44)->nullable();
-        $t->string('status', 20)->default('pendente');
-        $t->string('cstat', 5)->nullable();
-        $t->text('motivo')->nullable();
-        $t->string('xml_path', 255)->nullable();
-        $t->string('danfe_path', 255)->nullable();
-        $t->decimal('valor_total', 15, 2)->default(0);
-        $t->timestamp('emitido_em')->nullable();
-        $t->json('metadata')->nullable();
-        $t->timestamps();
-        $t->softDeletes();
-    });
+    // Pattern dual-mode (PR #486 reference):
+    //   - SQLite: drop+create isolado em :memory:
+    //   - MySQL (Pest local — gate Wagner): preserva schema real;
+    //     limpa rows biz=1/99 com FK_CHECKS=0 (cascateia em nfe_eventos.emissao_id)
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_emissoes');
+        Schema::create('nfe_emissoes', function ($t) {
+            $t->id();
+            $t->unsignedInteger('business_id')->index();
+            $t->unsignedInteger('transaction_id')->nullable();
+            $t->string('modelo', 2)->default('55');
+            $t->string('serie', 3)->default('1');
+            $t->unsignedInteger('numero')->nullable();
+            $t->string('chave_44', 44)->nullable();
+            $t->string('status', 20)->default('pendente');
+            $t->string('cstat', 5)->nullable();
+            $t->text('motivo')->nullable();
+            $t->string('xml_path', 255)->nullable();
+            $t->string('danfe_path', 255)->nullable();
+            $t->decimal('valor_total', 15, 2)->default(0);
+            $t->timestamp('emitido_em')->nullable();
+            $t->json('metadata')->nullable();
+            $t->timestamps();
+            $t->softDeletes();
+        });
+    } elseif (Schema::hasTable('nfe_emissoes')) {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        if (Schema::hasTable('nfe_eventos')) {
+            DB::table('nfe_eventos')->whereIn('business_id', [1, 99])->delete();
+        }
+        DB::table('nfe_emissoes')->whereIn('business_id', [1, 99])->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
     Storage::fake('local');
 });
 
 afterEach(function () {
-    Schema::dropIfExists('nfe_emissoes');
-
-    // afterEach roda mesmo em tests pulados (PHPUnit tearDown). Em SQLite CI
-    // sem migrate Modules/Arquivos, DELETE estoura — bail antes.
     if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_emissoes');
         return;
     }
 
-    DB::table('arquivos')->where('classified_by', 'test-pr13-prefer-arquivos')->delete();
+    if (Schema::hasTable('nfe_emissoes')) {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        if (Schema::hasTable('nfe_eventos')) {
+            DB::table('nfe_eventos')->whereIn('business_id', [1, 99])->delete();
+        }
+        DB::table('nfe_emissoes')->whereIn('business_id', [1, 99])->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
+    if (Schema::hasTable('arquivos')) {
+        DB::table('arquivos')->where('classified_by', 'test-pr13-prefer-arquivos')->delete();
+    }
 });
 
 function fakeFactoryCapturaXml(array &$captured): Closure

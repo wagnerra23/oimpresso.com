@@ -26,31 +26,54 @@ beforeEach(function () {
         $this->markTestSkipped('Tabela arquivos ausente — DanfeService::salvar() requer Modules/Arquivos migrado');
     }
 
-    Schema::dropIfExists('nfe_emissoes');
-    Schema::create('nfe_emissoes', function ($t) {
-        $t->id();
-        $t->unsignedInteger('business_id')->index();
-        $t->unsignedInteger('transaction_id')->nullable();
-        $t->string('modelo', 2)->default('55');
-        $t->string('serie', 3)->default('1');
-        $t->unsignedInteger('numero')->nullable();
-        $t->string('chave_44', 44)->nullable();
-        $t->string('status', 20)->default('pendente');
-        $t->string('cstat', 5)->nullable();
-        $t->text('motivo')->nullable();
-        $t->string('xml_path', 255)->nullable();
-        $t->string('danfe_path', 255)->nullable();
-        $t->decimal('valor_total', 15, 2)->default(0);
-        $t->timestamp('emitido_em')->nullable();
-        $t->json('metadata')->nullable();
-        $t->timestamps();
-        $t->softDeletes();
-    });
+    // Pattern dual-mode (PR #486 reference):
+    //   - SQLite: drop+create isolado em :memory:
+    //   - MySQL (Pest local — gate Wagner): preserva schema real;
+    //     limpa rows biz=1/99 com FK_CHECKS=0 (cascateia em nfe_eventos.emissao_id)
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_emissoes');
+        Schema::create('nfe_emissoes', function ($t) {
+            $t->id();
+            $t->unsignedInteger('business_id')->index();
+            $t->unsignedInteger('transaction_id')->nullable();
+            $t->string('modelo', 2)->default('55');
+            $t->string('serie', 3)->default('1');
+            $t->unsignedInteger('numero')->nullable();
+            $t->string('chave_44', 44)->nullable();
+            $t->string('status', 20)->default('pendente');
+            $t->string('cstat', 5)->nullable();
+            $t->text('motivo')->nullable();
+            $t->string('xml_path', 255)->nullable();
+            $t->string('danfe_path', 255)->nullable();
+            $t->decimal('valor_total', 15, 2)->default(0);
+            $t->timestamp('emitido_em')->nullable();
+            $t->json('metadata')->nullable();
+            $t->timestamps();
+            $t->softDeletes();
+        });
+    } elseif (Schema::hasTable('nfe_emissoes')) {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        if (Schema::hasTable('nfe_eventos')) {
+            DB::table('nfe_eventos')->whereIn('business_id', [1, 99])->delete();
+        }
+        DB::table('nfe_emissoes')->whereIn('business_id', [1, 99])->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
     Storage::fake('local');
 });
 
 afterEach(function () {
-    Schema::dropIfExists('nfe_emissoes');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_emissoes');
+    } elseif (Schema::hasTable('nfe_emissoes')) {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        if (Schema::hasTable('nfe_eventos')) {
+            DB::table('nfe_eventos')->whereIn('business_id', [1, 99])->delete();
+        }
+        DB::table('nfe_emissoes')->whereIn('business_id', [1, 99])->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
 });
 
 // ── helpers ───────────────────────────────────────────────────────────────
@@ -234,6 +257,11 @@ it('renderizar() passa string vazia pro Danfe::render quando business sem logo',
 });
 
 it('renderizar() passa string vazia quando business existe mas logo é null', function () {
+    // Schema sintético `business` (id, logo) conflita com schema UPos real (~80 cols + 80 FKs).
+    // Skip em MySQL — cobertura genuína da resolução de logo via integration tests E2E.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('Test cria schema sintético `business` — só roda em SQLite isolado');
+    }
     Schema::dropIfExists('business');
     Schema::create('business', function ($t) {
         $t->id();
@@ -254,6 +282,9 @@ it('renderizar() passa string vazia quando business existe mas logo é null', fu
 });
 
 it('renderizar() passa string vazia quando logo cadastrado mas arquivo ausente em storage', function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('Test cria schema sintético `business` — só roda em SQLite isolado');
+    }
     Schema::dropIfExists('business');
     Schema::create('business', function ($t) {
         $t->id();
@@ -275,6 +306,9 @@ it('renderizar() passa string vazia quando logo cadastrado mas arquivo ausente e
 });
 
 it('renderizar() passa path absoluto quando logo existe em storage/app/business_logos/', function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('Test cria schema sintético `business` — só roda em SQLite isolado');
+    }
     Schema::dropIfExists('business');
     Schema::create('business', function ($t) {
         $t->id();
@@ -300,6 +334,9 @@ it('renderizar() passa path absoluto quando logo existe em storage/app/business_
 });
 
 it('multi-tenant: logo do business 1 não vaza pra business 99', function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('Test cria schema sintético `business` — só roda em SQLite isolado');
+    }
     Schema::dropIfExists('business');
     Schema::create('business', function ($t) {
         $t->id();
