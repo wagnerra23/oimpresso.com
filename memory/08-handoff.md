@@ -7,6 +7,21 @@
 
 ---
 
+## 🆕 Estado 2026-05-10 noite — PR #475 CI Modules Pest verde (worktree `vigorous-meitner-972abb`)
+
+**PR aguardando merge (CI verde esperado):** [#475](https://github.com/wagnerra23/oimpresso.com/pull/475) — 16 arquivos com guards SQLite + 1 fix `toHaveKey`.
+
+**Cobertura final (PR #475 + complementa PR #478):**
+- 5 arquivos test guards iniciais (Curador*, OrcamentoCalculator, ProducaoOficina*)
+- 9 afterEach guards SQLite (Arquivos: HealthCheck/Dedupe/Retention/AuditLog/ExportZip; NfeBrasil: DanfeServicePrefersArquivos/DanfeServiceTest; Vestuario: VestuarioSettingsCommand; ComVis: OrcamentoController)
+- 1 fix bug pré-existente: `NfeEmissaoControllerSerializeUrlsTest` usava `toHaveKey($key, $msg)` — Pest interpreta 2º arg como value esperado, não mensagem custom
+
+**Insight:** afterEach do PHPUnit roda **mesmo em tests pulados** — `markTestSkipped` no beforeEach NÃO impede afterEach de tentar DELETE em tabela ausente. Pattern correto: bail explícito no afterEach com `if (DB::connection()->getDriverName() === 'sqlite') return;`.
+
+Detalhes em [`memory/sessions/2026-05-10-noite-pr475-ci-guards-sqlite.md`](sessions/2026-05-10-noite-pr475-ci-guards-sqlite.md).
+
+---
+
 ## 🆕 Estado 2026-05-10 ~final do dia (POST-VALIDAÇÃO) — sessão 28 PRs + browser test prod
 
 **Update final pós-validação browser+SSH:** Wagner pediu "use o browser para conferir e testar" depois de mergear os 25 PRs. Validação real em prod descobriu **1 bug** corrigido (PR #482) — total final: **28 PRs**.
