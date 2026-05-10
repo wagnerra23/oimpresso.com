@@ -148,14 +148,14 @@ it('aceita driver=zapi sem meta_* quando business_id está em bypass list (ADR 0
 it('rejeita driver=zapi sem meta_* quando business_id NÃO está em bypass list (Tier 0 IRREVOGÁVEL outros businesses)', function () {
     config()->set('whatsapp.fallback.bypass_business_ids', [1]);
 
-    // biz=4 (RotaLivre) NÃO está na bypass list — Tier 0 mantido
+    // biz=99 (cross-tenant adversário) NÃO está na bypass list — Tier 0 mantido
     $v = runRequest([
         'driver' => 'zapi',
         'zapi_instance_id' => 'inst-1',
         'zapi_instance_token' => 'tok-1',
         'zapi_client_token' => 'client-1',
         'lgpd_acknowledged' => true,
-    ], businessId: 4);
+    ], businessId: 99);
 
     expect($v->fails())->toBeTrue();
     expect($v->errors()->first('meta_phone_number_id'))->toContain('fallback Meta Cloud');

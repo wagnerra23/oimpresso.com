@@ -56,10 +56,10 @@ it('settings JSON helpers get/set funcionam', function () {
     $row->forceDelete();
 });
 
-it('global scope filtra biz=1 nao ve biz=4', function () {
+it('global scope filtra biz=1 nao ve biz=99 (cross-tenant)', function () {
     DB::table('vestuario_settings')->insert([
         ['business_id' => 1, 'settings' => json_encode(['biz' => 1]), 'created_at' => now(), 'updated_at' => now()],
-        ['business_id' => 4, 'settings' => json_encode(['biz' => 4]), 'created_at' => now(), 'updated_at' => now()],
+        ['business_id' => 99, 'settings' => json_encode(['biz' => 99]), 'created_at' => now(), 'updated_at' => now()],
     ]);
 
     session(['user' => ['business_id' => 1]]);
@@ -70,7 +70,7 @@ it('global scope filtra biz=1 nao ve biz=4', function () {
     expect($businessIds)->toBe([1]);
 
     // Cleanup
-    DB::table('vestuario_settings')->whereIn('business_id', [1, 4])->delete();
+    DB::table('vestuario_settings')->whereIn('business_id', [1, 99])->delete();
 });
 
 it('UNIQUE constraint impede 2 rows pro mesmo business_id', function () {

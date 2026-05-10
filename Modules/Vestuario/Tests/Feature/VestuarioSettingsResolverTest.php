@@ -131,22 +131,22 @@ it('forBusiness override permite consultar fora session web', function () {
     session()->forget('business');
 
     DB::table('vestuario_settings')->updateOrInsert(
-        ['business_id' => 4],
-        ['settings' => json_encode(['biz_specific' => 'rota-livre']), 'created_at' => now(), 'updated_at' => now()]
+        ['business_id' => 99],
+        ['settings' => json_encode(['biz_specific' => 'cross-tenant']), 'created_at' => now(), 'updated_at' => now()]
     );
 
     $resolver = new VestuarioSettingsResolver();
-    $value = $resolver->forBusiness(4)->get('biz_specific');
+    $value = $resolver->forBusiness(99)->get('biz_specific');
 
-    expect($value)->toBe('rota-livre');
+    expect($value)->toBe('cross-tenant');
 
-    DB::table('vestuario_settings')->where('business_id', 4)->delete();
+    DB::table('vestuario_settings')->where('business_id', 99)->delete();
 });
 
 it('forBusiness não muda instance original (chainable imutável)', function () {
     DB::table('vestuario_settings')->updateOrInsert(
-        ['business_id' => 4],
-        ['settings' => json_encode(['biz' => 4]), 'created_at' => now(), 'updated_at' => now()]
+        ['business_id' => 99],
+        ['settings' => json_encode(['biz' => 99]), 'created_at' => now(), 'updated_at' => now()]
     );
     DB::table('vestuario_settings')->updateOrInsert(
         ['business_id' => 1],
@@ -156,14 +156,14 @@ it('forBusiness não muda instance original (chainable imutável)', function () 
     session(['user' => ['business_id' => 1]]);
 
     $resolver = new VestuarioSettingsResolver();
-    $forBiz4 = $resolver->forBusiness(4);
+    $forBiz99 = $resolver->forBusiness(99);
 
     // Original ainda usa session biz=1
     expect($resolver->get('biz'))->toBe(1);
     // Override só na clone
-    expect($forBiz4->get('biz'))->toBe(4);
+    expect($forBiz99->get('biz'))->toBe(99);
 
-    DB::table('vestuario_settings')->whereIn('business_id', [1, 4])->delete();
+    DB::table('vestuario_settings')->whereIn('business_id', [1, 99])->delete();
 });
 
 it('VestuarioSettingsResolver é singleton no container', function () {
