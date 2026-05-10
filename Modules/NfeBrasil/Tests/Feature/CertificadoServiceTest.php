@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\NfeBrasil\Models\NfeCertificado;
@@ -16,28 +17,51 @@ uses(Tests\TestCase::class);
  *
  * Tests usam Closure injection (`pkcs12Reader`) pra evitar precisar de .pfx
  * real — fixtures cobrem casos de borda sem dependência de openssl.
+ *
+ * Pattern dual-mode (PR #486 reference):
+ *   - SQLite (CI sanity): drop+create isolado em :memory:
+ *   - MySQL (Pest local — gate Wagner): preserva schema real;
+ *     limpa rows biz=1/99 com FK_CHECKS=0 (cascateia em nfse_provider_configs.cert_id)
  */
 
 beforeEach(function () {
-    Schema::dropIfExists('nfe_certificados');
-    Schema::create('nfe_certificados', function ($table) {
-        $table->id();
-        $table->unsignedInteger('business_id')->index();
-        $table->uuid('uuid')->unique();
-        $table->string('cnpj_titular', 14)->index();
-        $table->date('valido_ate')->index();
-        $table->text('encrypted_password');
-        $table->boolean('ativo')->default(true);
-        $table->timestamps();
-        $table->softDeletes();
-    });
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_certificados');
+        Schema::create('nfe_certificados', function ($table) {
+            $table->id();
+            $table->unsignedInteger('business_id')->index();
+            $table->uuid('uuid')->unique();
+            $table->string('cnpj_titular', 14)->index();
+            $table->date('valido_ate')->index();
+            $table->text('encrypted_password');
+            $table->boolean('ativo')->default(true);
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    } elseif (Schema::hasTable('nfe_certificados')) {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        if (Schema::hasTable('nfse_provider_configs')) {
+            DB::table('nfse_provider_configs')->whereIn('business_id', [1, 99])->delete();
+        }
+        DB::table('nfe_certificados')->whereIn('business_id', [1, 99])->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
 
     Storage::fake('local');
     Storage::fake('nfe_certs'); // CertificadoService usa disk nfe_certs (config/filesystems.php)
 });
 
 afterEach(function () {
-    Schema::dropIfExists('nfe_certificados');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_certificados');
+    } elseif (Schema::hasTable('nfe_certificados')) {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        if (Schema::hasTable('nfse_provider_configs')) {
+            DB::table('nfse_provider_configs')->whereIn('business_id', [1, 99])->delete();
+        }
+        DB::table('nfe_certificados')->whereIn('business_id', [1, 99])->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
 });
 
 /**
