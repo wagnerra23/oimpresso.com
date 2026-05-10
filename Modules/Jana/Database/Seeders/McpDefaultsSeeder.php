@@ -46,6 +46,7 @@ class McpDefaultsSeeder extends Seeder
         ['key' => 'COMVIS',   'name' => 'ComunicacaoVisual',    'color' => 'pink',     'icon' => 'palette'],
         ['key' => 'VEST',     'name' => 'Vestuario',            'color' => 'rose',     'icon' => 'shirt'],
         ['key' => 'AUTO',     'name' => 'OficinaAuto',          'color' => 'zinc',     'icon' => 'car'],
+        ['key' => 'AUDIT',    'name' => 'Auditoria',            'color' => 'amber',    'icon' => 'shield-check'],
     ];
 
     /**
