@@ -43,6 +43,37 @@ return [
             'throw' => true,
         ],
 
+        /*
+         * Modules/Arquivos backbone — ADR 0123.
+         *
+         * Disk default pra anexos comuns (NFe XML, ticket attachment, foto OS, etc).
+         * Em CT 100 prod: bind volume `/var/lib/oimpresso-arquivos`.
+         * Em local dev: storage/app/arquivos (criado on-demand).
+         * Swap futuro Fase 3 ([ADR 0123](memory/decisions/0123-modules-arquivos-backbone.md)):
+         * S3-compatible (Backblaze/Wasabi) quando CT 100 disk passar 80%.
+         */
+        'arquivos' => [
+            'driver' => 'local',
+            'root'   => env('ARQUIVOS_DISK_ROOT', storage_path('app/arquivos')),
+            'throw'  => false,
+        ],
+
+        /*
+         * Disk vault — encryption-at-rest pra bucket=sensitive (.env/.pfx/.rdp/PII XML/etc).
+         *
+         * Agent C 2026-05-10 security review flagou que Laravel Filesystem NÃO suporta
+         * encryption nativo. Sprint 1: armazena em pasta separada com permissions 0700 e
+         * controle de acesso via signed URL + audit log. Sprint 2+ implementa middleware
+         * `league/flysystem-encrypted` OU `Crypt::encrypt` antes de Storage::put.
+         *
+         * NUNCA expor publicamente. Acesso APENAS via Modules/Arquivos/Service signedUrl().
+         */
+        'vault' => [
+            'driver' => 'local',
+            'root'   => env('ARQUIVOS_VAULT_ROOT', storage_path('app/vault')),
+            'throw'  => true,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

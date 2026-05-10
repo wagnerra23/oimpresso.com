@@ -7,7 +7,7 @@ use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * PMG-002 (ADR 0100) — Cmd+K Search Global.

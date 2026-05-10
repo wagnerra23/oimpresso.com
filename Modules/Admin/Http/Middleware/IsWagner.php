@@ -26,6 +26,12 @@ class IsWagner
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Bypass dev — Wagner testando localmente em Herd/serve.
+        // Habilitar via .env: ADMIN_BYPASS_LOCAL=true (default false em prod).
+        if (config('admin.bypass_local') && app()->environment('local')) {
+            return $next($request);
+        }
+
         $user = Auth::user();
 
         if (! $user) {

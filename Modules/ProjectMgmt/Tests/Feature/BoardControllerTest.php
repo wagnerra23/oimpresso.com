@@ -9,7 +9,7 @@ use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class)->in(__DIR__);
+uses(Tests\TestCase::class);
 
 /**
  * Project Mgmt UI Redesign — Fase 1 (PMG-003 / ADR 0100).

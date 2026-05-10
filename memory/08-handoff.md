@@ -36,7 +36,7 @@
 - **Migration:** `Modules/Jana/Database/Migrations/2026_05_10_120000_seed_modulos_verticais_mcp_jira_projects.php` (idempotente, com proteção rollback)
 - **Seeder atualizado:** `McpDefaultsSeeder.php` ganhou COMVIS/VEST/AUTO
 - **SPEC novo:** `memory/requisitos/OficinaAuto/SPEC.md` (mínimo, status backlog)
-- **ADR 0125:** [memory/decisions/0125-mcp-jira-projects-modulos-verticais.md](decisions/0125-mcp-jira-projects-modulos-verticais.md) — justifica governance change
+- **ADR 0126:** [memory/decisions/0126-mcp-jira-projects-modulos-verticais.md](decisions/0126-mcp-jira-projects-modulos-verticais.md) — justifica governance change
 
 Após merge + `php artisan migrate` em prod, `tasks-create module:ComunicacaoVisual` (etc) funciona. AUTO no canon **não autoriza** US-AUTO-* — ADR 0105 ainda manda, é só remoção de fricção operacional.
 
@@ -1548,3 +1548,130 @@ Salvo em auto-mem `feedback_mcp_so_ct100.md`. Implicação: tool MCP exposed só
 - 🟢 Goal NOVO implícito: **Processo MWART enforced** ([ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) + ADR ui/0114) — fechado nesta sessão via mwart-gate.yml + MWART-CHECKLIST.md
 
 **Última atualização:** 2026-05-09 ~22h BRT — sessão maratona com 23 PRs (#321-#363); 2 telas em prod (Producao Oficina + Visao Unificada); processo MWART enforced via gate + doc; auditoria visual Chrome detectou e fechou 4 bugs do PR #349.
+
+---
+
+## Sessão autônoma 2026-05-09→10 (Opus 4.7 paralelos)
+
+**~50 sub-agents Opus 4.7 paralelos × ~8h wallclock (vs ~80h sequencial), 7 PRs mergeados (#372, #373, #375, #376, #377, #378, #382).**
+
+### Decisões estratégicas formalizadas
+- **ADR 0121** (canon, aceita) — oimpresso é ERP modular especializado por vertical (núcleo + Modules/<Vertical>)
+- **Hipótese D escolhida** vs A/B/C — Wagner: *"acho que vou fazer módulos especializados"*
+- ❌ **Pilar 5 DaaS externo descartado** — Wagner: *"não vou vender dados"*
+- ⏸️ **DPO Eliana adiado** — Eliana estuda LGPD com calma (advogada+financeiro descoberto)
+- ✅ Grandfather 12m dos 41 clientes atuais
+- ✅ ROTA LIVRE caso público anonimizado OK (loja roupa Gravatal/SC — NÃO gráfica em SP, erro factual corrigido em 14 arquivos)
+
+### Módulos verticais (estado canônico ADR 0121)
+- ✅ **Modules/Vestuario** em prod via ROTA LIVRE biz=4 — SPEC + charter
+- 🟡 **Modules/ComunicacaoVisual** em construção — SPEC + charter + scaffold drafts
+- ⏸️ **Modules/OficinaAuto** feature-wish — SPEC + charter (5 condições gatilho)
+- 🆕 **Modules/Autopecas** candidato — Vargas R$ [redacted Tier 0]M GMV é autopeças (sinal qualificado real)
+
+### Análise financeira interna (Firebird ServidorWR2:Banco) — confidencial gitignored
+- WR Sistemas MRR ~R$ [redacted Tier 0]/m, ARR ~R$ [redacted Tier 0]k (10% meta R$ [redacted Tier 0]M)
+- Resultado 12m: -R$ [redacted Tier 0]k déficit · A receber vencidas R$ [redacted Tier 0]k · A pagar vencidas R$ [redacted Tier 0]k
+- 49 bancos clientes legacy mapeados via registry HKCU
+- 6 bugs auditoria sequência: 3 ainda ABERTOS (US-INFRA-008/009/010)
+
+### CYCLE-03 ativo — tasks Sprint 1 criadas no MCP server
+- **US-INFRA-008** Pre-fix wipe-DB-via-HTTP (felipe, 0.5h, p0)
+- **US-INFRA-009** Pre-fix composer.json octane+mcp (felipe, 0.25h, p0)
+- **US-INFRA-010** Pre-fix phpunit.xml Ponto+ADS (felipe, 0.1h, p0)
+- **US-INFRA-011** Pre-fix adr-lint required (wagner, 0.1h, p0)
+- **US-INFRA-012** Schema multi-vertical (felipe, 18h, p0, blocked by 008/009/010)
+- **US-REPA-002** Refactor Caminho A Modules/Repair shared infra (felipe, 14h, p1)
+- **US-INFRA-013** Scaffold Modules/ComunicacaoVisual (felipe, 5h, p1, blocked by 012)
+- **US-INFRA-014** Validar CNAE 49 bancos Firebird (wagner, 2h, p1)
+- **US-INFRA-015** Email v3 New Signs Campinas (wagner, 0.5h, p2)
+
+**Total esforço registrado:** ~40,5h ≈ 5 dias úteis Sprint 1.
+
+### Próximos passos imediatos
+1. ~~**30min pre-fix** US-INFRA-008..011 ANTES de iniciar Sprint 1 técnico~~ → **FECHADO** [PR #387](https://github.com/wagnerra23/oimpresso.com/pull/387) mergeado 2026-05-10 ~07h BRT (sha 462a3565). 008+009+010 entregues; 011 RUNBOOK pronto, Wagner aplica branch protection manual.
+2. **Felipe Pest local** drafts schema + refactor Repair + scaffold ComVisual (regra Wagner 2026-05-09) — desbloqueado, pode rodar a partir de main verde
+3. **Wagner**: email v3 New Signs Campinas + validar CNAE Vargas quando 192.168.0.55 voltar + aplicar branch protection (RUNBOOK em `memory/requisitos/Infra/RUNBOOK-branch-protection.md`)
+4. **Eliana**: revisar onboarding-wizard LGPD + 3 docs jurídicos draftados
+
+### PR #387 — pre-fix CYCLE-03 (entregue 2026-05-10)
+- `app/Http/Controllers/Install/InstallController.php` +28 linhas — guard `isSystemAlreadyInstalled()` + chamada em `installAlternate()` (US-INFRA-008)
+- `phpunit.xml` +2 linhas — registra `Modules/Ponto/Tests/Feature` + `Modules/ADS/Tests/Unit` (US-INFRA-010)
+- `tests/Feature/Infra/InstallControllerSecurityTest.php` 99 linhas — 3 testes Reflection-based travam regressão (US-INFRA-008)
+- `tests/Feature/Infra/RuntimeSeparationTest.php` 85 linhas — valida config/mcp.php + composer + ADR 0062 (US-INFRA-009)
+- `memory/requisitos/Infra/RUNBOOK-branch-protection.md` 97 linhas — receita Wagner UI/API (US-INFRA-011)
+- **US-INFRA-009 mudou de approach:** em vez de mover octane+mcp pra require-dev (quebraria CT 100), gate fica em env (`MCP_TOOLS_EXPOSED=false` default) + test trava regressão.
+
+### Pendências de validação (servidor 192.168.0.55 offline 2026-05-10)
+- `_validar_cnae_saudaveis.py` (10 saudáveis, ~2min)
+- `_distribuicao_vertical_41_bancos.py` (49 totais, ~10min, BrasilAPI rate-limit)
+
+**Última atualização:** 2026-05-10 ~07h BRT — PR #387 pre-fix CYCLE-03 mergeado. Sprint 1 técnico desbloqueado pra Felipe.
+
+---
+
+## Sessão domingo 2026-05-10 manhã (Wagner + Felipe ausente segunda)
+
+Wagner: *"Felipe só na segunda, vamos adiantar sem ele."* Frente B+C+A executadas em paralelo (sub-agents Opus 4.7 + correção Pest local).
+
+### PRs mergeados (todos main)
+
+| PR | Conteúdo |
+|---|---|
+| [#387](https://github.com/wagnerra23/oimpresso.com/pull/387) | Pre-fix CYCLE-03 — guard wipe-DB + 6 testes + RUNBOOK branch protection |
+| [#388](https://github.com/wagnerra23/oimpresso.com/pull/388) | Handoff atualizado |
+| [#390](https://github.com/wagnerra23/oimpresso.com/pull/390) | Audit drafts (6 críticos achados, 2 pre-fixados) + 5 cartas warming saudáveis |
+| [#393](https://github.com/wagnerra23/oimpresso.com/pull/393) | Fix Pest `uses(...)->in(__DIR__)` (19 arquivos) + PHPUnit 12 attributes (2) + newsletter polished + 06-vargas warming + ADR 0125 |
+| [#396](https://github.com/wagnerra23/oimpresso.com/pull/396) | Modules/Autopecas SPEC v1 (15 US, feature-wish) |
+
+### Branch protection ativa em main (US-INFRA-011 fechado)
+
+- Required check: `ADR frontmatter` (workflow [adr-lint.yml](.github/workflows/adr-lint.yml))
+- Required PR reviews: 1
+- Linear history (squash-only)
+- No force push, no branch delete
+- Admin bypass (Wagner) habilitado pra emergências
+- Verificar: `gh api repos/wagnerra23/oimpresso.com/branches/main/protection --jq .required_status_checks`
+
+### Bugs críticos achados durante validação Pest local
+
+1. **`uses(Tests\TestCase::class)->in(__DIR__)` duplicado em 19 arquivos** — Pest reclamava conflict de "TestCase já registrado pra esta pasta" quando 2+ arquivos na MESMA pasta declaravam `->in(__DIR__)`. Fix: remover `->in(__DIR__)` (deveria ser declarado UMA vez em `Modules/<X>/Tests/Pest.php` central, refactor maior pra outro PR). Mergeado PR #393.
+
+2. **PHPUnit 12 desabilita `/** @test */` annotation** — os 6 tests do PR #387 em `tests/Feature/Infra/` usavam doc-comment, PHPUnit 12 desabilitou silenciosamente. Tests **PASSAVAM CI sem rodar** (falsa cobertura grave). Fix: trocar por `#[\PHPUnit\Framework\Attributes\Test]` attribute. Mergeado PR #393. Validado local: `vendor\bin\phpunit tests/Feature/Infra` → ✅ OK (6 tests, 12 assertions).
+
+### ADRs novos (proposed/accepted)
+
+- **ADR 0125** Modules/Autopecas como feature-wish — Vargas é sinal qualificado real (26y relação, R$ [redacted Tier 0]M GMV, dono Wagner conhece direto). Status `proposed`.
+
+### Cartas + emails prontos (Wagner aprova + manda)
+
+- **5 cartas warming** em `memory/sales/2026-05/warming-saudaveis/01-extreme.md` a `05-produart.md` + `00-INDEX.md` — base instalada OfficeImpresso pra migrar pro Modules/ComunicacaoVisual
+- **06-vargas-autopecas.md** — carta pra Vargas, vertical Modules/Autopecas (uso pra estruturar conversa presencial Q4/26, não cold)
+- **Newsletter v1 jun26 polida** em `memory/sales/2026-05/blog/newsletter-edicao-01-jun26.md` — sem Pilar 5 DaaS externo, sem benchmark agregado, framing "Notas de quem atende PME BR há 20 anos"
+
+Wagner antes de mandar: preencher `<WAGNER_TEL>`, `<NOME_DONO>`, `<CIDADE_UF>` em cada uma + rodar `officeimpresso-financial-snapshot` (Firebird 192.168.0.55) pra confirmar receita real.
+
+### Audit drafts (Felipe lê segunda antes de US-INFRA-012)
+
+`memory/decisions/proposals/drafts/_AGENT_A_AUDIT_FINDINGS.md` — 6 críticos + 8 médios + 3 cosméticos. 2 críticos pre-fixados (typo `authh` middleware + `DataController.php` movido pra `Http/Controllers/`). 4 críticos pendentes:
+1. Schema benchmark `period_start/end` vs `period` string YYYY-MM
+2. Schema benchmark `value_p25/p50/p75` vs `value_p50/p90`
+3. `BackfillBusinessVerticalCommand` lê `tax_number` mas tabela é `tax_number_1`
+4. Test usa `--force` mas Command não tem signature
+
+### Pendências sub-agent C (Modules/Autopecas)
+
+Agent C terminou só SPEC.md (mergeado). Faltam (background ainda rodando ou travou):
+- `memory/requisitos/Autopecas/Autopecas.charter.md`
+- `memory/requisitos/Autopecas/PLANO-MIGRACAO-VARGAS.md`
+
+Próxima sessão pode disparar novo agent ou Wagner cria manual.
+
+### Próximos passos imediatos
+
+1. **Felipe segunda** — abre [_AGENT_A_AUDIT_FINDINGS.md](memory/decisions/proposals/drafts/_AGENT_A_AUDIT_FINDINGS.md) → decide #3-#6 (schema benchmark + BackfillCommand) → roda Pest local → PR US-INFRA-012
+2. **Wagner** — preencher placeholders 5 cartas warming + 06-vargas + manda 1/semana após Modules/CV Sprint 1 entregue (gate-check INDEX)
+3. **Wagner** — rodar `officeimpresso-financial-snapshot` em cada Firebird quando 192.168.0.55 voltar (2026-05-10 ainda offline)
+4. **Próxima Claude** — terminar Modules/Autopecas charter + plano Vargas (sub-agent C ficou parcial)
+
+**Última atualização:** 2026-05-10 ~10h30 BRT — 5 PRs mergeados, branch protection ativa, Sprint 1 técnico desbloqueado e Pest local funcional.

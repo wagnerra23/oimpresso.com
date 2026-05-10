@@ -6,6 +6,7 @@
     "AssetManagement": true,
     "Brief": true,
     "Cms": true,
+    "ComunicacaoVisual": true,
     "Connector": true,
     "ConsultaOs": true,
     "Crm": true,
@@ -25,6 +26,7 @@
     "NFSe": true,
     "NfeBrasil": true,
     "Officeimpresso": true,
+    "OficinaAuto": true,
     "Ponto": true,
     "ProductCatalogue": true,
     "ProjectMgmt": true,
@@ -34,6 +36,7 @@
     "Spreadsheet": true,
     "Superadmin": true,
     "TeamMcp": true,
+    "Vestuario": true,
     "Whatsapp": true,
     "Woocommerce": true
 }
