@@ -7,6 +7,8 @@ namespace Modules\NfeBrasil\Models;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Arquivos\Concerns\HasArquivos;
+use Modules\Arquivos\Entities\Arquivo;
 
 /**
  * NF-e recebida pelo destinatário (terceiro emitiu contra meu CNPJ).
@@ -19,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class NfeDfeRecebido extends Model
 {
     use HasBusinessScope;
+    use HasArquivos; // ADR 0123 — adopcao trait Sprint 3 US-ARQ-019
 
     protected $table = 'nfe_dfe_recebidos';
 
@@ -77,5 +80,22 @@ class NfeDfeRecebido extends Model
     {
         return $this->status_manifestacao === self::STATUS_PENDENTE
             || $this->status_manifestacao === self::STATUS_CIENCIA;
+    }
+
+    /**
+     * Accessor — retorna Arquivo XML preferindo arquivos table (ADR 0123),
+     * fallback null se ainda usando coluna legacy xml_path.
+     *
+     * Sprint 3 US-ARQ-019. Migration backfill US-ARQ-020 popula arquivos rows
+     * pra xml_path existentes.
+     */
+    public function getXmlArquivoAttribute(): ?Arquivo
+    {
+        if (! method_exists($this, 'arquivos')) return null;
+        return $this->arquivos()
+            ->where('sub_destination', 'nfe-xml')
+            ->where('bucket', 'active')
+            ->latest('created_at')
+            ->first();
     }
 }
