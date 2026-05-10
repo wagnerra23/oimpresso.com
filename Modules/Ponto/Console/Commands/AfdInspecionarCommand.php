@@ -126,6 +126,8 @@ class AfdInspecionarCommand extends Command
     {
         $importacaoId = $this->option('importacao');
         if ($importacaoId) {
+            // SUPERADMIN: CLI inspect sem context tenant — busca cross-business
+            // por ID. Operador é admin do servidor (Tier 0 trust). Ver ADR 0093.
             $importacao = Importacao::find($importacaoId);
             if (!$importacao) {
                 $this->error("Importacao #{$importacaoId} não encontrada.");
