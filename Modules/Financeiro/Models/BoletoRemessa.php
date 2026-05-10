@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Arquivos\Concerns\HasArquivos;
+use Modules\Arquivos\Entities\Arquivo;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
 
 /**
@@ -14,7 +16,9 @@ use Modules\Financeiro\Models\Concerns\BusinessScope;
  */
 class BoletoRemessa extends Model
 {
-    use HasFactory, SoftDeletes, BusinessScope;
+    use HasFactory, HasArquivos, SoftDeletes, BusinessScope;
+    // ADR 0123 Sprint 4 — adopcao trait. pdf_path coluna preservada
+    // (double-write durante transicao US-RB-044 NFe-de-boleto-pago workflow).
 
     public const STATUS_GERADO_MOCK = 'gerado_mock';
     public const STATUS_GERADO = 'gerado';
@@ -54,5 +58,25 @@ class BoletoRemessa extends Model
     public function contaBancaria(): BelongsTo
     {
         return $this->belongsTo(ContaBancaria::class, 'conta_bancaria_id');
+    }
+
+    /**
+     * Accessor — Arquivo PDF do boleto via backbone Modules/Arquivos (ADR 0123).
+     *
+     * Sprint 4 US-RB-044 (NFe-de-boleto-pago): TituloService gera PDF dinamicamente
+     * via lib laravel-boleto. Após geração, chama $boleto->attachArquivo($pdfFile,
+     * ['context' => 'fin-boleto-pdf']) ALÉM de salvar pdf_path coluna legacy
+     * (double-write durante transição).
+     *
+     * Sub_destination convencional: 'fin-boleto-pdf'.
+     */
+    public function getPdfArquivoAttribute(): ?Arquivo
+    {
+        if (! method_exists($this, 'arquivos')) return null;
+        return $this->arquivos()
+            ->where('sub_destination', 'fin-boleto-pdf')
+            ->where('bucket', 'active')
+            ->latest('created_at')
+            ->first();
     }
 }
