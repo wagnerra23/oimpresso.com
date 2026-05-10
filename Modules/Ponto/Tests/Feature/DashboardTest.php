@@ -7,13 +7,13 @@ namespace Modules\Ponto\Tests\Feature;
  */
 class DashboardTest extends PontoTestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dashboard_exige_autenticacao(): void
     {
         $this->get('/ponto')->assertRedirect('/login');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dashboard_renderiza_componente_correto_com_props_esperados(): void
     {
         $this->actAsAdmin();
@@ -42,7 +42,7 @@ class DashboardTest extends PontoTestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dashboard_shell_menu_contem_ponto_wr2(): void
     {
         $this->actAsAdmin();

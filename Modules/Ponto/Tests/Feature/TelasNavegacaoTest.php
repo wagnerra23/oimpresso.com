@@ -11,10 +11,8 @@ namespace Modules\Ponto\Tests\Feature;
  */
 class TelasNavegacaoTest extends PontoTestCase
 {
-    /**
-     * @test
-     * @dataProvider rotasInertiaDataProvider
-     */
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\DataProvider('rotasInertiaDataProvider')]
     public function rota_renderiza_component_inertia_esperado(string $url, string $component): void
     {
         $this->actAsAdmin();
@@ -25,7 +23,7 @@ class TelasNavegacaoTest extends PontoTestCase
         $this->assertEquals($component, $response->json('component'), "Component errado em {$url}");
     }
 
-    public function rotasInertiaDataProvider(): array
+    public static function rotasInertiaDataProvider(): array
     {
         return [
             'Dashboard'                => ['/ponto', 'Ponto/Dashboard/Index'],
@@ -46,7 +44,7 @@ class TelasNavegacaoTest extends PontoTestCase
         ];
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function modulos_admin_tambem_renderiza(): void
     {
         $this->actAsAdmin();
