@@ -310,6 +310,17 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       final_total: totalGeral,
       // Campos hidden Blade que controller espera
       default_price_group: d.price_group_id,
+      // Products precisam de campos que ProductUtil acessa direto (Undefined array key
+      // se faltar). Refs: app/Utils/ProductUtil.php:650 calculateInvoiceTotal +
+      // TransactionUtil.php:297-394 createOrUpdateSellLines.
+      products: d.products.map((p) => ({
+        ...p,
+        unit_price_inc_tax: p.unit_price, // sem tax separado por linha (tax via tax_rate_id pedido)
+        item_tax: 0,
+        tax_id: null,
+        line_discount_type: 'fixed',
+        line_discount_amount: p.discount,
+      })),
     }));
     // POST /pos -> SellPosController@store (mesma rota do Blade legacy form em
     // sell/create.blade.php:58). SellController@store é stub vazio — toda a
