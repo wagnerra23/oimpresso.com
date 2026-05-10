@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Listeners;
 
+use App\Domain\Fsm\Models\SaleStageAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Services\NfeService;
@@ -103,6 +105,31 @@ class EmitirNFeAoReceberPagamento implements ShouldQueue
             return;
         }
 
+        // Gate FSM (US-SELL-012, ADR 0129): se Invoice está vinculada a uma
+        // Transaction com process_id/current_stage_id (gate por venda), só
+        // emite se o stage atual tiver action `emitir_nfe`. Caso contrário,
+        // no-op silencioso ("venda sem nota é caminho feliz, não falha").
+        //
+        // Esse gate convive com os 2 gates anteriores (flag global +
+        // per-business). Quando POS checkout escrever process_id na
+        // transaction (US futura), este gate vira o canônico.
+        $sale = $this->resolveSaleForInvoice($invoice);
+        if ($sale && ! empty($sale->current_stage_id)) {
+            $action = SaleStageAction::where('stage_id', $sale->current_stage_id)
+                ->where('key', 'emitir_nfe')
+                ->first();
+
+            if (! $action) {
+                Log::info('NFe auto-emission: gate FSM bloqueou (stage atual sem action emitir_nfe) — caminho feliz', [
+                    'business_id'      => $event->businessId,
+                    'invoice_ref'      => $event->invoiceRef,
+                    'sale_id'          => $sale->id ?? null,
+                    'current_stage_id' => $sale->current_stage_id,
+                ]);
+                return;
+            }
+        }
+
         $service = $this->service ?? app(NfeService::class);
 
         try {
@@ -139,5 +166,40 @@ class EmitirNFeAoReceberPagamento implements ShouldQueue
         ]);
 
         // TODO: notificar admin do business via mcp_inbox_notifications
+    }
+
+    /**
+     * Tenta resolver a Transaction (sale) associada à Invoice pra consultar
+     * o gate FSM. Retorna `null` quando:
+     *   - Invoice não tem `transaction_id` (fluxo recurring sem venda direta)
+     *   - Tabela `transactions` não tem coluna `current_stage_id` ainda
+     *     (migration `add_fsm_columns_to_transactions` não rodou)
+     *   - Transaction não foi encontrada
+     *
+     * Em todos esses casos, o listener segue o fluxo legacy (3 gates anteriores).
+     *
+     * @return object|null Stub minimal `{id, current_stage_id, business_id}`.
+     */
+    private function resolveSaleForInvoice(Invoice $invoice): ?object
+    {
+        // Invoice precisa expor `transaction_id` (atributo direto ou relação).
+        // Hoje (2026-05-11) Invoice NÃO tem essa coluna — isso vira gate cego
+        // até US futura adicionar `transaction_id` em recurring_invoices ou
+        // POS checkout vincular Sell.transaction_id ao recurring.
+        $transactionId = $invoice->transaction_id ?? null;
+        if (! $transactionId) {
+            return null;
+        }
+
+        if (! Schema::hasColumn('transactions', 'current_stage_id')) {
+            return null;
+        }
+
+        $row = \DB::table('transactions')
+            ->select('id', 'business_id', 'current_stage_id')
+            ->where('id', $transactionId)
+            ->first();
+
+        return $row ?: null;
     }
 }
