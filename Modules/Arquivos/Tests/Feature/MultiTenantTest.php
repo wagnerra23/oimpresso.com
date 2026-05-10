@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
  * Cobertura:
  * - Global scope `business_id` aplica em queries Arquivo
  * - Auto-fill business_id no creating
- * - Sessão biz=1 NUNCA vê arquivos biz=4
+ * - Sessão biz=1 NUNCA vê arquivos biz=99 (cross-tenant adversário)
  * - withoutGlobalScopes só funciona com comentário (skill multi-tenant-patterns)
  *
  * @see Modules/Arquivos/Entities/Arquivo.php
@@ -28,7 +28,7 @@ beforeEach(function () {
 });
 
 it('global scope filtra arquivo por business_id da sessao', function () {
-    // Cria 2 arquivos: 1 biz=1, 1 biz=4
+    // Cria 2 arquivos: 1 biz=1, 1 biz=99 (cross-tenant adversário)
     DB::table('arquivos')->insert([
         [
             'business_id'   => 1,
@@ -43,13 +43,13 @@ it('global scope filtra arquivo por business_id da sessao', function () {
             'updated_at'    => now(),
         ],
         [
-            'business_id'   => 4,
+            'business_id'   => 99,
             'disk'          => 'arquivos',
-            'storage_path'  => 'biz-4/test.xml',
-            'original_name' => 'biz4.xml',
+            'storage_path'  => 'biz-99/test.xml',
+            'original_name' => 'biz99.xml',
             'mime_type'     => 'application/xml',
             'size_bytes'    => 100,
-            'md5'           => str_repeat('4', 32),
+            'md5'           => str_repeat('9', 32),
             'bucket'        => 'active',
             'created_at'    => now(),
             'updated_at'    => now(),
@@ -61,12 +61,12 @@ it('global scope filtra arquivo por business_id da sessao', function () {
 
     $arquivos = Arquivo::query()->get();
 
-    // Esperado: vê apenas biz=1, NUNCA biz=4
+    // Esperado: vê apenas biz=1, NUNCA biz=99
     $businessIds = $arquivos->pluck('business_id')->unique()->values()->toArray();
     expect($businessIds)->toBe([1]);
 
     // Cleanup
-    DB::table('arquivos')->whereIn('md5', [str_repeat('1', 32), str_repeat('4', 32)])->delete();
+    DB::table('arquivos')->whereIn('md5', [str_repeat('1', 32), str_repeat('9', 32)])->delete();
 });
 
 it('creating auto-fill business_id da sessao', function () {

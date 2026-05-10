@@ -69,10 +69,10 @@ beforeEach(function () {
 
 it('charter §1 — não expõe daemon_url/api_key em props da page', function () {
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => Str::uuid()->toString(),
         'driver' => 'baileys',
-        'baileys_instance_id' => 'biz4-abc123',
+        'baileys_instance_id' => 'biz1-abc123',
         'baileys_phone_e164' => '+5511987654321',
     ]);
 
@@ -91,26 +91,26 @@ it('charter §1 — não expõe daemon_url/api_key em props da page', function (
 
 it('charter §2 — multi-tenant: outro business não vê config alheia', function () {
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => Str::uuid()->toString(),
         'driver' => 'baileys',
         'baileys_phone_e164' => '+5511111111111',
     ]);
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 7,
+        'business_id' => 99,
         'business_uuid' => Str::uuid()->toString(),
         'driver' => 'baileys',
         'baileys_phone_e164' => '+5522222222222',
     ]);
 
     // Query com global scope (simula o controller pós-auth)
-    session(['user.business_id' => 4]);
+    session(['user.business_id' => 1]);
     $count = WhatsappBusinessConfig::query()->count();
-    expect($count)->toBeLessThanOrEqual(1); // só biz=4 (com global scope ativo no Model)
+    expect($count)->toBeLessThanOrEqual(1); // só biz=1 (com global scope ativo no Model)
 });
 
 it('charter §3 — UNIQUE(business_id, phone_e164) bloqueia duplicate', function () {
-    $businessId = 4;
+    $businessId = 1;
     $phone = '+5511987654321';
 
     WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
@@ -135,9 +135,9 @@ it('charter §3 — UNIQUE(business_id, phone_e164) bloqueia duplicate', functio
 it('charter §4 — BaileysConnectJob é dispatched quando driver=baileys + phone novo + LGPD', function () {
     Bus::fake();
 
-    BaileysConnectJob::dispatch(4);
+    BaileysConnectJob::dispatch(1);
 
-    Bus::assertDispatched(BaileysConnectJob::class, fn ($job) => $job->businessId === 4);
+    Bus::assertDispatched(BaileysConnectJob::class, fn ($job) => $job->businessId === 1);
 });
 
 it('charter §5 — não chama daemon no GET (render-only)', function () {
@@ -145,10 +145,10 @@ it('charter §5 — não chama daemon no GET (render-only)', function () {
 
     // Simula render — SettingsController@show NÃO deve chamar daemon
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => Str::uuid()->toString(),
         'driver' => 'baileys',
-        'baileys_instance_id' => 'biz4-test',
+        'baileys_instance_id' => 'biz1-test',
         'baileys_phone_e164' => '+5511987654321',
     ]);
 
@@ -165,7 +165,7 @@ it('charter §5 — não chama daemon no GET (render-only)', function () {
 
 it('charter §7 — instance_id é auto-gerado idempotente', function () {
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => Str::uuid()->toString(),
         'driver' => 'baileys',
         'baileys_phone_e164' => '+5511987654321',
@@ -176,13 +176,13 @@ it('charter §7 — instance_id é auto-gerado idempotente', function () {
     $first = $config->ensureBaileysInstanceId();
     $second = $config->ensureBaileysInstanceId();
 
-    expect($first)->toStartWith('biz4-')
+    expect($first)->toStartWith('biz1-')
         ->and($first)->toBe($second); // idempotente
 });
 
 it('charter §7 — BaileysConnectJob aborta com phone vazio', function () {
     $config = WhatsappBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 4,
+        'business_id' => 1,
         'business_uuid' => Str::uuid()->toString(),
         'driver' => 'baileys',
         'baileys_phone_e164' => null,
@@ -190,7 +190,7 @@ it('charter §7 — BaileysConnectJob aborta com phone vazio', function () {
 
     Http::fake();
 
-    (new BaileysConnectJob(4))->handle();
+    (new BaileysConnectJob(1))->handle();
 
     Http::assertNothingSent();
     $config->refresh();
