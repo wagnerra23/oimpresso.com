@@ -550,6 +550,32 @@
     </div>
 
     {!! Form::close() !!}
-  
+
   </div><!-- /.modal-content -->
+
+@if(!empty($prefill_name))
+{{-- Cadastro inline standalone (vem do "Cadastrar 'X'" em /sells/create).
+     Quando aberto via URL direto (não via modal AJAX), o handler em
+     public/js/app.js:526 não dispara (bind em shown.bs.modal). Este script
+     força a exibição dos .individual quando radio individual está pre-checked
+     via $prefill_name. Pedido Wagner 2026-05-10 PR #430 follow-up. --}}
+<script>
+(function () {
+  function showIndividualFields() {
+    var divs = document.querySelectorAll('div.individual');
+    for (var i = 0; i < divs.length; i++) {
+      divs[i].style.display = '';
+    }
+    // Foca o last_name pra completar (first_name já preenchido)
+    var lastName = document.querySelector('input[name="last_name"]');
+    if (lastName) lastName.focus();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', showIndividualFields);
+  } else {
+    showIndividualFields();
+  }
+})();
+</script>
+@endif
 </div><!-- /.modal-dialog -->
