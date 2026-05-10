@@ -88,7 +88,11 @@ class SellController extends Controller
         $is_service_staff_enabled = $this->transactionUtil->isModuleEnabled('service_staff');
         $is_types_service_enabled = $this->moduleUtil->isModuleEnabled('types_of_service');
 
-        if (request()->ajax()) {
+        // Inertia requests também são AJAX, mas precisam do branch Inertia::render
+        // (linha 651). Sem o ! header check, Inertia AJAX pegava o DataTables JSON
+        // — quebrava POST /pos -> redirect -> /sells follow-up. Bug 3/N descoberto
+        // 2026-05-10 em smoke SEFAZ biz=1 (PR #421/#424).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
             $with = [];
             $shipping_statuses = $this->transactionUtil->shipping_statuses();
