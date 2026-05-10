@@ -86,7 +86,7 @@ function pixPayload(string $endToEndId = 'E182361202026050709abc', ?string $txid
 it('rejeita 404 quando business não tem credencial Inter ativa', function () {
     Queue::fake();
 
-    $response = $this->postJson('/webhooks/inter/pix/4', pixPayload());
+    $response = $this->postJson('/webhooks/inter/pix/1', pixPayload());
 
     $response->assertStatus(404)->assertJsonPath('reason', 'credential_not_found');
     Queue::assertNothingPushed();
@@ -94,9 +94,9 @@ it('rejeita 404 quando business não tem credencial Inter ativa', function () {
 
 it('rejeita 401 sem header X-Inter-Webhook-Secret', function () {
     Queue::fake();
-    seedInterCredential(businessId: 4);
+    seedInterCredential(businessId: 1);
 
-    $response = $this->postJson('/webhooks/inter/pix/4', pixPayload());
+    $response = $this->postJson('/webhooks/inter/pix/1', pixPayload());
 
     $response->assertStatus(401)->assertJsonPath('reason', 'secret_mismatch');
     Queue::assertNothingPushed();
@@ -104,10 +104,10 @@ it('rejeita 401 sem header X-Inter-Webhook-Secret', function () {
 
 it('rejeita 401 com secret errado', function () {
     Queue::fake();
-    seedInterCredential(businessId: 4, secret: 'right-secret');
+    seedInterCredential(businessId: 1, secret: 'right-secret');
 
     $response = $this->withHeaders(['X-Inter-Webhook-Secret' => 'wrong-secret'])
-        ->postJson('/webhooks/inter/pix/4', pixPayload());
+        ->postJson('/webhooks/inter/pix/1', pixPayload());
 
     $response->assertStatus(401)->assertJsonPath('reason', 'secret_mismatch');
     Queue::assertNothingPushed();
@@ -115,10 +115,10 @@ it('rejeita 401 com secret errado', function () {
 
 it('aceita PIX com secret válido, grava em pg_webhook_events e dispatcha job', function () {
     Queue::fake();
-    seedInterCredential(businessId: 4, secret: 'sek-ok');
+    seedInterCredential(businessId: 1, secret: 'sek-ok');
 
     $response = $this->withHeaders(['X-Inter-Webhook-Secret' => 'sek-ok'])
-        ->postJson('/webhooks/inter/pix/4', pixPayload('E18-001'));
+        ->postJson('/webhooks/inter/pix/1', pixPayload('E18-001'));
 
     $response->assertStatus(200)
         ->assertJsonPath('ok', true)
@@ -134,11 +134,11 @@ it('aceita PIX com secret válido, grava em pg_webhook_events e dispatcha job', 
 
 it('idempotência: 2× mesmo endToEndId → 1 row, 1 dispatch (segunda skipa)', function () {
     Queue::fake();
-    seedInterCredential(businessId: 4, secret: 'sek-ok');
+    seedInterCredential(businessId: 1, secret: 'sek-ok');
 
     $headers = ['X-Inter-Webhook-Secret' => 'sek-ok'];
-    $r1 = $this->withHeaders($headers)->postJson('/webhooks/inter/pix/4', pixPayload('E18-dup'));
-    $r2 = $this->withHeaders($headers)->postJson('/webhooks/inter/pix/4', pixPayload('E18-dup'));
+    $r1 = $this->withHeaders($headers)->postJson('/webhooks/inter/pix/1', pixPayload('E18-dup'));
+    $r2 = $this->withHeaders($headers)->postJson('/webhooks/inter/pix/1', pixPayload('E18-dup'));
 
     $r1->assertJsonPath('accepted', 1);
     $r2->assertJsonPath('accepted', 0)->assertJsonPath('skipped', 1);
@@ -149,7 +149,7 @@ it('idempotência: 2× mesmo endToEndId → 1 row, 1 dispatch (segunda skipa)', 
 
 it('múltiplos PIX no mesmo request → 1 dispatch por endToEndId', function () {
     Queue::fake();
-    seedInterCredential(businessId: 4, secret: 'sek-ok');
+    seedInterCredential(businessId: 1, secret: 'sek-ok');
 
     $payload = ['pix' => [
         ['endToEndId' => 'E18-A', 'txid' => 'tx1', 'valor' => '10', 'horario' => '2026-05-07T20:00:00Z'],
@@ -158,7 +158,7 @@ it('múltiplos PIX no mesmo request → 1 dispatch por endToEndId', function () 
     ]];
 
     $response = $this->withHeaders(['X-Inter-Webhook-Secret' => 'sek-ok'])
-        ->postJson('/webhooks/inter/pix/4', $payload);
+        ->postJson('/webhooks/inter/pix/1', $payload);
 
     $response->assertStatus(200)->assertJsonPath('accepted', 3);
     Queue::assertPushed(ProcessInterWebhookJob::class, 3);
@@ -166,14 +166,14 @@ it('múltiplos PIX no mesmo request → 1 dispatch por endToEndId', function () 
 
 it('PIX sem endToEndId é skipado (sem dispatch)', function () {
     Queue::fake();
-    seedInterCredential(businessId: 4, secret: 'sek-ok');
+    seedInterCredential(businessId: 1, secret: 'sek-ok');
 
     $payload = ['pix' => [
         ['txid' => 'tx-no-id', 'valor' => '10', 'horario' => '2026-05-07T20:00:00Z'],
     ]];
 
     $response = $this->withHeaders(['X-Inter-Webhook-Secret' => 'sek-ok'])
-        ->postJson('/webhooks/inter/pix/4', $payload);
+        ->postJson('/webhooks/inter/pix/1', $payload);
 
     $response->assertJsonPath('accepted', 0)->assertJsonPath('skipped', 1);
     Queue::assertNothingPushed();
@@ -194,10 +194,10 @@ it('multi-tenant Tier 0: secret de business 1 não funciona pra business 2', fun
 
 it('dispatcha job na fila correta (rb_webhooks)', function () {
     Queue::fake();
-    seedInterCredential(businessId: 4, secret: 'sek-ok');
+    seedInterCredential(businessId: 1, secret: 'sek-ok');
 
     $this->withHeaders(['X-Inter-Webhook-Secret' => 'sek-ok'])
-        ->postJson('/webhooks/inter/pix/4', pixPayload('E18-queue'));
+        ->postJson('/webhooks/inter/pix/1', pixPayload('E18-queue'));
 
     Queue::assertPushedOn('rb_webhooks', ProcessInterWebhookJob::class);
 });
@@ -205,7 +205,7 @@ it('dispatcha job na fila correta (rb_webhooks)', function () {
 it('credencial inativa também rejeita 404', function () {
     Queue::fake();
     DB::table('rb_boleto_credentials')->insert([
-        'business_id' => 4,
+        'business_id' => 1,
         'banco'       => 'inter',
         'ativo'       => false,
         'config_json' => json_encode(['webhook_secret' => 'sek']),
@@ -214,7 +214,7 @@ it('credencial inativa também rejeita 404', function () {
     ]);
 
     $response = $this->withHeaders(['X-Inter-Webhook-Secret' => 'sek'])
-        ->postJson('/webhooks/inter/pix/4', pixPayload());
+        ->postJson('/webhooks/inter/pix/1', pixPayload());
 
     $response->assertStatus(404);
 });
