@@ -161,6 +161,9 @@ class DanfeService
 
         $emissao->update(['danfe_path' => $danfePath]);
 
+        // US-ARQ-021 (ADR 0123) — double-write DANFE pra Modules/Arquivos backbone.
+        $this->writeArquivoDanfe($emissao, $danfePath, $pdfBytes);
+
         Log::info('DanfeService: DANFE salvo', [
             'emissao_id' => $emissao->id,
             'danfe_path' => $danfePath,
@@ -168,6 +171,69 @@ class DanfeService
         ]);
 
         return $danfePath;
+    }
+
+    /**
+     * US-ARQ-021 — double-write DANFE PDF pra Modules/Arquivos.
+     *
+     * Idempotente, try/catch graceful (nunca quebra fluxo emit).
+     * Mantém danfe_path coluna legacy. sub_destination='nfe-danfe'.
+     *
+     * @see memory/decisions/0123-modules-arquivos-backbone.md Sprint 4
+     */
+    private function writeArquivoDanfe(\Modules\NfeBrasil\Models\NfeEmissao $emissao, string $danfePath, string $pdfBytes): void
+    {
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('arquivos')) {
+                return;
+            }
+
+            $arquivableType = 'Modules\\NfeBrasil\\Models\\NfeEmissao';
+
+            $exists = \Illuminate\Support\Facades\DB::table('arquivos')
+                ->where('arquivable_type', $arquivableType)
+                ->where('arquivable_id', $emissao->id)
+                ->where('sub_destination', 'nfe-danfe')
+                ->where('storage_path', $danfePath)
+                ->exists();
+
+            if ($exists) {
+                return;
+            }
+
+            \Illuminate\Support\Facades\DB::table('arquivos')->insert([
+                'business_id'         => $emissao->business_id,
+                'arquivable_type'     => $arquivableType,
+                'arquivable_id'       => $emissao->id,
+                'disk'                => 'local',
+                'storage_path'        => $danfePath,
+                'original_name'       => basename($danfePath),
+                'mime_type'           => 'application/pdf',
+                'size_bytes'          => strlen($pdfBytes),
+                'md5'                 => md5($pdfBytes),
+                'bucket'              => 'active',
+                'sub_destination'     => 'nfe-danfe',
+                'sensitive_flags'     => null,
+                'classified_by'       => 'danfe-service-double-write',
+                'classified_at'       => now(),
+                'uploaded_by_user_id' => null,
+                'visibility'          => 'private',
+                'encrypted'           => false,
+                'retention_days'      => null,
+                'created_at'          => now(),
+                'updated_at'          => now(),
+            ]);
+
+            Log::info('DanfeService.double_write.ok', [
+                'emissao_id' => $emissao->id,
+                'danfe_path' => $danfePath,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('DanfeService.double_write.fail', [
+                'emissao_id' => $emissao->id ?? null,
+                'error'      => substr($e->getMessage(), 0, 200),
+            ]);
+        }
     }
 
     /**
