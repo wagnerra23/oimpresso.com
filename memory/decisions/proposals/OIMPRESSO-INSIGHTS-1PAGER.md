@@ -7,12 +7,12 @@ read_time: 3min
 
 # 🎯 oimpresso Insights — resumo de 3 minutos (v2)
 
-> **Decisões Wagner 2026-05-10 (4 respostas):**
-> - ✅ Produto v2 ACEITO formal · ✅ Eliana cuida jurídico · ✅ Grandfather 12m · ✅ Caso ROTA LIVRE anonimizado OK
+> **Decisões Wagner 2026-05-10 (FINAL):**
+> - ✅ Produto ACEITO formal · ✅ Eliana cuida jurídico · ✅ Grandfather 12m · ✅ Caso ROTA LIVRE anonimizado OK
 > - ❌ **Pilar 5 (DaaS externo) DESCARTADO** — *"não vou vender dados"*
-> - ⏸️ **DPO Eliana ADIADO** — Eliana estuda LGPD com calma primeiro
-> - 🚨 **Correção factual**: ROTA LIVRE é **loja de roupa em Gravatal/SC** (não gráfica em SP). Vários docs erraram, em fix-em-batch.
-> - 🟡 **Pergunta aberta**: oimpresso é (A) vertical com.visual ou (B) horizontal multi-vertical?
+> - ⏸️ **DPO Eliana ADIADO** — estuda LGPD primeiro
+> - 🎯 **Hipótese D ESCOLHIDA — modular especializado por vertical** ([ADR 0121](0121-oimpresso-modular-especializado-por-vertical.md))
+> - **ROTA LIVRE = piloto Modules/Vestuario** (loja de roupa Gravatal/SC) — não gráfica nem SP
 
 ## O produto em 1 frase
 > **"O ERP+IA brasileiro que sabe seu negócio, lembra suas metas e te alerta antes do problema — porque aprendeu com 50+ empresas como a sua."**

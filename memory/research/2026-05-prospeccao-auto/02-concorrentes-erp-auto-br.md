@@ -459,7 +459,7 @@
 - Oimpresso já tem 3 wedges prontos sem precisar reinventar (NFC-e auto, Jana, stack).
 
 **Sinais NEGATIVOS:**
-- **Cliente piloto auto inexistente** — diferente de gráfica (ROTA LIVRE 2 anos) — risco "ERP genérico tentando entrar".
+- **Cliente piloto auto inexistente** — diferente de Modules/Vestuario (ROTA LIVRE 2 anos em prod) ou Modules/ComunicacaoVisual (6 saudáveis OfficeImpresso a migrar) — risco "ERP genérico tentando entrar".
 - **Tabela tempário + app mobile técnico + integração DETRAN** são esperadas; gap de 3-6 meses pra paridade mínima.
 - **Ultracar com 31 anos + Soften com 24 + Limersoft + IS2** têm relacionamento Sindirepa/Sindrepa/setoriais — barreira reputacional.
 - Mercado já tem **3 tiers de pricing maduros** — entrar como "mais um R$ 99" não diferencia.

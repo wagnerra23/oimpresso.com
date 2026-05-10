@@ -3,8 +3,8 @@
 > **Status:** desk research / pesquisa de viabilidade — NÃO compromisso de construir.
 > **Data:** 2026-05-09
 > **Autor:** Claude (analista de mercado)
-> **Escopo:** mapear ICP comparável a gráfica SMB que oimpresso atende hoje (cliente piloto ROTA LIVRE).
-> **Decisão a informar:** vale pivotar/expandir `Modules/Repair` pra autorepair, ou seguir vertical de comunicação visual?
+> **Escopo:** mapear ICP autorepair como possível **Modules/OficinaAuto** especializado ([ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)). Cliente piloto atual é ROTA LIVRE = **Modules/Vestuario** (loja roupa Gravatal/SC). Outro módulo em construção: **Modules/ComunicacaoVisual** (com expertise herdada de 26 anos WR Sistemas).
+> **Decisão a informar:** ativar `Modules/OficinaAuto` (criar módulo vertical especializado) requer 1+ cliente piloto pagante — sinal qualificado pendente.
 > **Governança:** ADR 0105 (cliente como sinal qualificado) — só vira backlog/US se cliente real pagar.
 
 ---
@@ -191,7 +191,7 @@ Validadas via posts em fóruns (Mecânica Online, Reclame Aqui sobre softwares d
 ### 8.3 Três razões pra adiar
 1. **Red ocean** — 10+ concorrentes verticais com 10-15 anos de história, base instalada grande, marketing pesado. Vender pra dono mecânico tradicional é caro (CAC alto, ciclo longo).
 2. **Faltam peças críticas:** NFS-e (oimpresso só tem NFC-e), tabela tempária, cadastro de veículo, catálogo de peças com referência montadora. Estimativa ~3-6 meses de dev pra paridade básica `[recalibrado ADR 0106 fator 10x: ~3-6 semanas IA-pair]`.
-3. **Distrai do foco atual** — ROTA LIVRE (gráfica) é 99% do volume, módulos S5+ (ADS Universal, Jana memória) ainda em construção. Pivotar antes de fortalecer base do piloto vira aposta em mercado novo com produto incompleto. ADR 0105 explícito: cliente sem sinal qualificado não vira backlog.
+3. **Distrai do foco atual** — ROTA LIVRE (Modules/Vestuario, vestuário Gravatal/SC) é 99% do volume; Modules/ComunicacaoVisual ainda em construção pra 6 saudáveis OfficeImpresso. Adicionar Modules/OficinaAuto antes de fortalecer 2 módulos verticais já em pipeline = dispersão. ADR 0105: cliente sem sinal qualificado não vira backlog.
 
 ### 8.4 Sinal qualificado pra começar
 **Critério rígido (ADR 0105):**
@@ -205,7 +205,7 @@ Validadas via posts em fóruns (Mecânica Online, Reclame Aqui sobre softwares d
 3. Se 1+ aceitar piloto pago → cria SPEC `Modules/Repair` extensão Auto + ADR de pivô.
 4. Se nenhum aceitar → arquiva pesquisa, foca em vertical comunicação visual.
 
-**Prazo sugerido pra revisitar se adiar:** **~Q4 2026 / Q1 2027**, após (a) estabilização ROTA LIVRE + 3-5 clientes gráfica adicionais, (b) ADS Universal entregue, (c) Jana memória estado da arte, (d) NFS-e implementada (porque útil pro próprio cliente gráfica que faz instalação de fachada — não exclusivo de auto).
+**Prazo sugerido pra revisitar se adiar:** **~Q4 2026 / Q1 2027**, após (a) estabilização ROTA LIVRE Modules/Vestuario + 3-5 clientes Modules/ComunicacaoVisual migrados do OfficeImpresso, (b) ADS Universal entregue, (c) Jana memória estado da arte, (d) NFS-e implementada (útil pra Modules/ComunicacaoVisual que faz instalação de fachada — não exclusivo de auto).
 
 ---
 

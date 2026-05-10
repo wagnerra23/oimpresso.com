@@ -88,7 +88,7 @@
 - **Concorrentes presentes:** **Mubisys** (programa AFACOM+ explícito, usa AFACOM como canal de implantação regional)
 - **3 ações concretas pra Wagner:**
   1. Comprar 1 curso AFACOM+ ou TDI **diagnóstico** pra entender por dentro a metodologia + criar relacionamento custodial (R$ 1-3k validar) — não vender, **aprender + ganhar credibilidade pra falar a língua**
-  2. Propor a Judah um **conteúdo conjunto**: webinar/podcast Print Live sobre "automação fiscal pra gráfica pequeno-médio porte" — oimpresso entra com case ROTA LIVRE (NFe automática a partir de boleto pago). Custo: **0 caixa, 4h Wagner**
+  2. Propor a Judah um **conteúdo conjunto**: webinar/podcast Print Live sobre "automação fiscal pra gráfica pequeno-médio porte" — oimpresso entra com NFe automática a partir de boleto pago (US-RB-044 entregue). *(Nota: ROTA LIVRE é Modules/Vestuario, não case válido pra audiência gráfica — substituir por case Modules/ComunicacaoVisual quando 1 dos 6 saudáveis OfficeImpresso migrar e aceitar virar caso público.)* Custo: **0 caixa, 4h Wagner**
   3. Após webinar, propor **programa "AFACOM+ Tech Partners — opção 2"** com Wagner: Mubisys cobre porte pequeno; oimpresso atende **gráfica em crescimento que precisa de API/IA/integração** (cobre o gap documentado da reclamação Mubisys "sistema engessado sem integração")
 
 ---
