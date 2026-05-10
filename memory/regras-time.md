@@ -10,7 +10,7 @@
 
 > ⚠️ **2 Elianas no projeto:** `Eliana[E]` (esposa, time interno) ≠ `Eliana(WR2)` (cliente externa, PontoWr2). Sempre desambiguar em commits/notas.
 
-> 🎯 **Eliana é advogada** (descoberto 2026-05-09) — perfil natural pra **DPO interno** se topar formalização + curso ABPDados (~R$ [redacted Tier 0]-5k). Reduz budget LGPD de R$ [redacted Tier 0]-110k/ano pra R$ [redacted Tier 0]-60k/ano. Cuidado: DPO em PJ familiar pode gerar questionamento ANPD — recomendado counsel externo como "consultor" mantém distância profissional. Decisão pendente: Wagner+Eliana avaliam se ela assume DPO (10-20h/mês carga real).
+> 🎯 **Eliana é advogada + financeiro** (descoberto 2026-05-09). **Decisão Wagner 2026-05-09**: Eliana **NÃO assume DPO formal por enquanto** — vai estudar LGPD com calma primeiro. Sem pressão. Quando/se decidir, retomar. Counsel LGPD externo segue necessário pra Pilares 1-4 do oimpresso Insights (escopo menor — Pilar 5 DaaS externo descartado).
 
 ## Regras duras
 
