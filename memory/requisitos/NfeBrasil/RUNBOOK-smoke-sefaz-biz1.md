@@ -6,6 +6,13 @@
 >
 > 🚨 **NUNCA rodar em `business_id=4` (RotaLivre cliente)** — ver [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md).
 
+> **Estado em 2026-05-10** (verificado via SSH+MySQL Hostinger):
+> - ✅ flag `NFEBRASIL_AUTO_EMISSION_NFCE=true` **já está ON** no `.env` (Passo 1 abaixo já feito)
+> - ✅ biz=1 CNPJ `36.613.150/0001-18`, NCM `49111090`, ambiente `2`, cert válido até `2026-08-06`
+> - ⚠️ **40 vendas paid+final em biz=1 mas 0 emissões NFC-e** — Listener só pega evento NOVO (não retroage). Significa que falta **criar 1 venda nova** pra disparar pipeline.
+>
+> Próxima ação: pular Passo 1, executar **Passo 2 (criar venda) → Passo 3 (verificar status) → Passo 4 (verificar SEFAZ + DANFE)**.
+
 ## Pré-requisitos checklist (verificar via SSH antes de tocar)
 
 ```bash
