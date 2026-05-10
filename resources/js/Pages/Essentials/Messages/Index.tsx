@@ -127,10 +127,10 @@ export default function MessagesIndex({
         // Backend faz redirect pra index e re-renderiza — pegamos props novos
         const newMessages = (page.props as any)?.messages as Message[] | undefined;
         if (newMessages) setMessages(newMessages);
-        form.reset('message');
         toast.success('Mensagem enviada.');
       },
       onError: () => toast.error('Falha ao enviar.'),
+      onFinish: () => form.reset('message'),
     });
   };
 
