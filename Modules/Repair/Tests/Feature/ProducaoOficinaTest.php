@@ -4,10 +4,21 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
+
+beforeEach(function () {
+    // CI SQLite :memory: — pula gracioso se migrate não criou tabelas core
+    // (UltimatePOS usa MODIFY COLUMN MySQL-only que falha em SQLite).
+    if (! Schema::hasTable('users')
+        || ! Schema::hasTable('business')
+        || ! Schema::hasTable('permissions')) {
+        $this->markTestSkipped('Tabelas users/business/permissions ausentes — rode migrate primeiro.');
+    }
+});
 
 /**
  * US-REPAIR-PROD-5 — Pest GUARD da tela Produção · Oficina.

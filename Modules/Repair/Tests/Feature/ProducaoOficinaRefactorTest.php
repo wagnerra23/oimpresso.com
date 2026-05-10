@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Schema;
 use Modules\Repair\Entities\JobSheet;
 use Tests\TestCase;
 
@@ -25,6 +26,12 @@ uses(TestCase::class);
  */
 
 beforeEach(function () {
+    // CI SQLite :memory: — pula gracioso se migrate não criou as tabelas core
+    // (UltimatePOS usa MODIFY COLUMN MySQL-only que falha em SQLite).
+    if (! Schema::hasTable('users') || ! Schema::hasTable('business')) {
+        $this->markTestSkipped('Tabelas users/business ausentes — rode migrate primeiro.');
+    }
+
     // ADR 0101 — biz=1 (Wagner WR2), NUNCA biz=4 (cliente ROTA LIVRE).
     // Se actingAsBusinessUser não existir como helper, substituir por:
     //   $user = \App\User::where('business_id', 1)->first();
