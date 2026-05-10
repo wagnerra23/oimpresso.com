@@ -491,9 +491,10 @@ class JobSheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Eager-load media (legacy) + arquivos (backbone) para o accessor `anexos` escolher a fonte.
         $query = JobSheet::with('customer',
                         'customer.business', 'technician',
-                        'status', 'Brand', 'Device', 'deviceModel', 'businessLocation', 'invoices', 'media')
+                        'status', 'Brand', 'Device', 'deviceModel', 'businessLocation', 'invoices', 'media', 'arquivos')
                         ->where('business_id', $business_id);
 
         //if user is not admin or didn't have permission `job_sheet.view_all` get only assgined/created_by job sheet
@@ -519,8 +520,11 @@ class JobSheetController extends Controller
            ->latest()
            ->get();
 
+        // Coleção unificada via accessor — view usa $anexos em vez de $job_sheet->media
+        $anexos = $job_sheet->anexos;
+
         return view('repair::job_sheet.show')
-            ->with(compact('job_sheet', 'repair_settings', 'parts', 'activities', 'jobsheet_settings'));
+            ->with(compact('job_sheet', 'repair_settings', 'parts', 'activities', 'jobsheet_settings', 'anexos'));
     }
 
     /**
@@ -953,9 +957,10 @@ class JobSheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Eager-load media (legacy) + arquivos (backbone) — apenas pra manter consistência eager-load.
         $query = JobSheet::with('customer',
                         'customer.business', 'technician',
-                        'status', 'Brand', 'Device', 'deviceModel', 'businessLocation', 'invoices', 'media')
+                        'status', 'Brand', 'Device', 'deviceModel', 'businessLocation', 'invoices', 'media', 'arquivos')
                         ->where('business_id', $business_id);
 
         //if user is not admin or didn't have permission `job_sheet.view_all` get only assgined/created_by job sheet
@@ -1073,11 +1078,16 @@ class JobSheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $job_sheet = JobSheet::with(['media'])
+        // Carrega media (legacy) + arquivos (backbone ADR 0123 §2) pro accessor `anexos`
+        // escolher a fonte correta. Eager-load ambas relações para evitar N+1 na view.
+        $job_sheet = JobSheet::with(['media', 'arquivos'])
                         ->where('business_id', $business_id)
                         ->findOrFail($id);
 
-        return view('repair::job_sheet.upload_doc', compact('job_sheet'));
+        // Passa coleção unificada via accessor — view usa $anexos em vez de $job_sheet->media
+        $anexos = $job_sheet->anexos;
+
+        return view('repair::job_sheet.upload_doc', compact('job_sheet', 'anexos'));
     }
 
     public function postUploadDocs(Request $request)
