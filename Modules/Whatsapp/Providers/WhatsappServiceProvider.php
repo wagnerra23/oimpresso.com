@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
+use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappMessage;
+use Modules\Whatsapp\Events\OmnichannelMessageReceived;
+use Modules\Whatsapp\Events\OmnichannelMessageSent;
 use Modules\Whatsapp\Events\WhatsappMessageReceived;
 use Modules\Whatsapp\Events\WhatsappMessageSent;
 use Modules\Whatsapp\Http\Middleware\VerifyBaileysSignature;
@@ -19,6 +22,8 @@ use Modules\Whatsapp\Listeners\DispatchToJanaBot;
 use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
 use Modules\Whatsapp\Listeners\PublishMessageReceivedToCentrifugo;
 use Modules\Whatsapp\Listeners\PublishMessageSentToCentrifugo;
+use Modules\Whatsapp\Listeners\PublishOmnichannelToCentrifugo;
+use Modules\Whatsapp\Observers\MessageObserver;
 use Modules\Whatsapp\Observers\WhatsappMessageObserver;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
 use Modules\Whatsapp\Services\Drivers\BaileysDriver;
@@ -58,6 +63,11 @@ class WhatsappServiceProvider extends ServiceProvider
         // Bloqueia UPDATE em IMMUTABLE_COLUMNS + DELETE direto
         WhatsappMessage::observe(WhatsappMessageObserver::class);
 
+        // Observer da entidade Message (schema novo omnichannel — ADR 0135)
+        // Dispara OmnichannelMessageReceived/Sent para o listener Centrifugo
+        // publicar em `omnichannel:business:{id}` (US-WA-059).
+        Message::observe(MessageObserver::class);
+
         // Plug Repair: dispara Whatsapp em mudança de status (cumpre ADR Repair tech/0001)
         // Evento Modules\Repair\Events\RepairStatusChanged é declarado em Modules/Repair/Events/
         // — dispatch real depende de PR coordenado com Felipe/Maiara modificando JobSheetController.
@@ -66,6 +76,11 @@ class WhatsappServiceProvider extends ServiceProvider
         // Centrifugo real-time UI (ADR 0058) — publica em whatsapp:business:{id} channel
         Event::listen(WhatsappMessageReceived::class, PublishMessageReceivedToCentrifugo::class);
         Event::listen(WhatsappMessageSent::class, PublishMessageSentToCentrifugo::class);
+
+        // Centrifugo real-time UI omnichannel (US-WA-059 + ADR 0135) — channel
+        // `omnichannel:business:{id}` separado do canal legacy acima.
+        Event::listen(OmnichannelMessageReceived::class, PublishOmnichannelToCentrifugo::class);
+        Event::listen(OmnichannelMessageSent::class, PublishOmnichannelToCentrifugo::class);
 
         // Bot Jana — Sprint 3 prep (default disabled via config('whatsapp.bot.enabled'))
         Event::listen(WhatsappMessageReceived::class, DispatchToJanaBot::class);
