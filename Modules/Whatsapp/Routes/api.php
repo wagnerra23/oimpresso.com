@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\Api\BaileysWebhookController;
+use Modules\Whatsapp\Http\Controllers\Api\ChannelBaileysWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\MetaWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\ZapiWebhookController;
 
@@ -41,4 +42,14 @@ Route::group(['prefix' => 'whatsapp/webhook'], function () {
     Route::post('/baileys/{business_uuid}', [BaileysWebhookController::class, 'handle'])
         ->middleware('whatsapp.baileys.signature')
         ->name('whatsapp.webhook.baileys.handle');
+});
+
+// Omnichannel webhook receiver (ADR 0135) — endereçado por channel_uuid
+// (em vez de business_uuid legacy). Daemon CT 100 deve apontar
+// WEBHOOK_BASE_URL pra: https://oimpresso.com/api/atendimento/channels/baileys
+// Auth: channel_uuid v4 (~122 bits entropia) como secret. HMAC futuro.
+Route::group(['prefix' => 'atendimento/channels'], function () {
+    Route::post('/baileys/{channel_uuid}', [ChannelBaileysWebhookController::class, 'handle'])
+        ->where('channel_uuid', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+        ->name('atendimento.channels.baileys.webhook');
 });
