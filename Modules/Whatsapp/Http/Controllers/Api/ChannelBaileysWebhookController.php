@@ -125,15 +125,23 @@ class ChannelBaileysWebhookController extends Controller
     {
         $msgKey = $data['key'] ?? [];
         $remoteJid = $msgKey['remoteJid'] ?? null;
+        $senderPn = $msgKey['senderPn'] ?? null; // Whatsapp Multi-Device entrega phone real aqui quando remoteJid é @lid
         $providerMessageId = $msgKey['id'] ?? null;
         $fromMe = (bool) ($msgKey['fromMe'] ?? false);
+        $pushName = $data['push_name'] ?? null;
 
-        if (! $remoteJid) {
+        if (! $remoteJid && ! $senderPn) {
             return response()->json(['ok' => false, 'error' => 'no_remote_jid'], 200);
         }
 
-        // Extrai phone E.164 do JID: "5548999872822@s.whatsapp.net" → "+5548999872822"
-        $rawNumber = preg_replace('/@.+$/', '', $remoteJid);
+        // Resolve phone E.164:
+        // 1. senderPn (formato "5548999872822@s.whatsapp.net") quando remoteJid é @lid → preferir
+        // 2. remoteJid se for @s.whatsapp.net normal
+        // 3. fallback @lid se nada mais (rato)
+        $resolvedJid = ($senderPn && str_contains($senderPn, '@s.whatsapp.net'))
+            ? $senderPn
+            : $remoteJid;
+        $rawNumber = preg_replace('/@.+$/', '', $resolvedJid);
         $customerExternalId = '+' . $rawNumber;
 
         // Extrai body (depende do tipo de mensagem)
@@ -163,7 +171,7 @@ class ChannelBaileysWebhookController extends Controller
                     'customer_external_id' => $customerExternalId,
                 ],
                 [
-                    'contact_name' => $customerExternalId,
+                    'contact_name' => $pushName ?: $customerExternalId,
                     'status' => 'open',
                     'bot_handling' => false,
                     'last_inbound_at' => now(),
@@ -171,6 +179,13 @@ class ChannelBaileysWebhookController extends Controller
                     'unread_count' => 0,
                 ]
             );
+
+        // Atualiza contact_name se push_name veio E o atual era só o E.164
+        // (não sobrescreve nome já curado pelo atendente)
+        if ($pushName && $conversation->contact_name === $customerExternalId) {
+            $conversation->contact_name = $pushName;
+            $conversation->save();
+        }
 
         Message::query()->create([
             'business_id' => $channel->business_id,
