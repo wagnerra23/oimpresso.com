@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
+use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\ConversationsController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
@@ -77,4 +78,24 @@ Route::group([
     Route::put('/settings', [SettingsController::class, 'update'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('whatsapp.settings.update');
+});
+
+// Omnichannel routes (ADR 0135 Fase 0) — coexistem com /whatsapp/settings legacy
+// até refactor drivers em PR seguinte. Permission reusa whatsapp.settings.manage.
+Route::group([
+    'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+    'prefix'     => 'atendimento',
+], function () {
+    Route::get('/canais', [ChannelsController::class, 'index'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.index');
+
+    Route::post('/canais', [ChannelsController::class, 'store'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.store');
+
+    Route::delete('/canais/{id}', [ChannelsController::class, 'destroy'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.destroy');
 });
