@@ -7,6 +7,7 @@
 //         SidebarTabs removidos — conv switcher migrou pra Pages/Copiloto/Chat.tsx.
 
 import { useEffect, useRef, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import {
   ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
@@ -19,6 +20,18 @@ import {
 
 import { useTheme } from '@/Hooks/useTheme';
 import { VIBES, type Vibe } from './shared';
+
+/**
+ * Sidebar counts reais (US-WA-083) — vem de
+ * `HandleInertiaRequests::sidebarCounts()` via shared prop
+ * `shell.sidebar_counts`. Pode ser null se módulo desinstalado ou page
+ * não pediu lazy.
+ */
+interface SidebarCountsShared {
+  atendimento: number;
+  tarefas: number;
+  chat: number;
+}
 
 // Mapa estático de ícones por label do shell.menu (LegacyMenuAdapter entrega
 // items flat sem campo `icon`; resolvemos via lookup case-insensitive).
@@ -440,12 +453,19 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
       : []),
   ];
 
+  // US-WA-083: counts reais via Inertia shared prop `shell.sidebar_counts`
+  // (HandleInertiaRequests::sidebarCounts). Fallback pra 0 se shared
+  // prop ainda não foi requisitada (lazy) ou se módulo desinstalado.
+  const sharedShell = (usePage().props as any)?.shell as { sidebar_counts?: SidebarCountsShared | null } | undefined;
+  const counts = sharedShell?.sidebar_counts ?? { atendimento: 0, tarefas: 0, chat: 0 };
+
   return (
     <div className="sb-menu-grouped">
-      {/* TODO US-WA-083: counts hard-coded mock. Wire backend counts reais
-         (Conversation.unread_count sum + tasks pending + chat unread) via
-         Inertia shared props ou hook useSidebarCounts. */}
-      <SidebarShortcuts tarefasCount={6} chatCount={3} atendimentoCount={2} />
+      <SidebarShortcuts
+        tarefasCount={counts.tarefas}
+        chatCount={counts.chat}
+        atendimentoCount={counts.atendimento}
+      />
       {groupsToRender.map((g) => (
         <SidebarGroup
           key={g.key}

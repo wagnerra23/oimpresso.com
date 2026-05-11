@@ -383,11 +383,14 @@ function MessageBubble({ message, showTail }: { message: Message; showTail: bool
         <div className="whitespace-pre-wrap break-words text-sm leading-snug">
           {message.body ?? <em className="opacity-70">[mídia]</em>}
         </div>
-        <div className="text-[10px] mt-0.5 flex items-center justify-end gap-1 opacity-80">
-          <span>{time}</span>
+        {/* US-WA-083: removido `opacity-80` do row pra NÃO atenuar o ícone
+            de status (CSS opacity é multiplicativa no stacking context, mata
+            o azul vivo do ✓✓ "lida"). Atenuação só no `<span>` do tempo. */}
+        <div className="text-[10px] mt-0.5 flex items-center justify-end gap-1">
+          <span className="opacity-70">{time}</span>
           {isOut && <StatusIcon status={message.status} />}
           {message.status === 'failed' && message.failed_reason && (
-            <span title={message.failed_reason} className="inline-flex items-center gap-0.5">
+            <span title={message.failed_reason} className="inline-flex items-center gap-0.5 opacity-80">
               <AlertTriangle size={10} aria-hidden />
               falha
             </span>
@@ -399,13 +402,17 @@ function MessageBubble({ message, showTail }: { message: Message; showTail: bool
 }
 
 function StatusIcon({ status }: { status: string }) {
+  // US-WA-083: ícones com opacity-70 padrão (segue WhatsApp Web pattern),
+  // exceto `read` que precisa ser bem visível em azul WhatsApp pra
+  // atendente saber claramente que cliente leu. strokeWidth=2.5 + cor
+  // cyan-500 = leitura instantânea em monitor claro/escuro.
   switch (status) {
-    case 'queued':    return <Hourglass size={11} aria-label="enfileirada" />;
-    case 'sent':      return <Check size={11} aria-label="enviada" />;
-    case 'delivered': return <CheckCheck size={11} aria-label="entregue" />;
-    case 'read':      return <CheckCheck size={11} className="text-sky-300 dark:text-sky-200" aria-label="lida" />;
-    case 'failed':    return <AlertTriangle size={11} aria-label="falhou" />;
-    default:          return <span className="text-[9px]">{status}</span>;
+    case 'queued':    return <Hourglass size={11} className="opacity-70" aria-label="enfileirada" />;
+    case 'sent':      return <Check size={11} className="opacity-70" aria-label="enviada" />;
+    case 'delivered': return <CheckCheck size={11} className="opacity-70" aria-label="entregue" />;
+    case 'read':      return <CheckCheck size={13} strokeWidth={2.5} className="text-cyan-500 dark:text-cyan-400" aria-label="lida" />;
+    case 'failed':    return <AlertTriangle size={11} className="text-red-500 dark:text-red-400" aria-label="falhou" />;
+    default:          return <span className="text-[9px] opacity-70">{status}</span>;
   }
 }
 
