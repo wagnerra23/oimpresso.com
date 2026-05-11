@@ -40,6 +40,8 @@ interface Props {
   permalinkRouteName: string;
   /** Endpoint pra atualizar tab/search (Index). */
   routeName: string;
+  /** Quando fornecido, renderiza botão minimizar lateral (chama callback). */
+  onCollapse?: () => void;
 }
 
 export default function ConversationList({
@@ -51,6 +53,7 @@ export default function ConversationList({
   onSelect,
   permalinkRouteName,
   routeName,
+  onCollapse,
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
 
@@ -124,11 +127,11 @@ export default function ConversationList({
   }, [onSelect, selectedId, conversations.data]);
 
   return (
-    <Card className="flex flex-col overflow-hidden h-full">
+    <Card className="flex flex-col overflow-hidden h-full py-0 gap-0">
       {/* Search + tabs */}
       <div className="border-b">
-        <div className="p-2">
-          <div className="relative">
+        <div className="p-2 flex items-center gap-1.5">
+          <div className="relative flex-1">
             <Input
               type="search"
               data-whatsapp-search
@@ -144,6 +147,17 @@ export default function ConversationList({
               aria-hidden
             />
           </div>
+          {onCollapse && (
+            <button
+              type="button"
+              onClick={onCollapse}
+              className="shrink-0 w-7 h-7 rounded hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
+              title="Minimizar lista"
+              aria-label="Minimizar lista de conversas"
+            >
+              <ChevronLeft size={14} />
+            </button>
+          )}
         </div>
         <div className="flex gap-0.5 px-2 pb-1 overflow-x-auto" role="tablist">
           <TabPill active={tab === 'all'} onClick={() => setTab('all')} label="Todas" />
