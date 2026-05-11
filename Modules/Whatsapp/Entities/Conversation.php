@@ -7,6 +7,7 @@ namespace Modules\Whatsapp\Entities;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -75,5 +76,21 @@ class Conversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class)->orderBy('created_at');
+    }
+
+    /**
+     * Tags aplicadas a esta conversa (US-WA-063).
+     *
+     * Many-to-many via pivot `whatsapp_conversation_tags`. Atendente toggle
+     * tags do sidebar direito; filtro nas tabs do Inbox usa `whereHas('tags')`.
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Tag::class,
+            'whatsapp_conversation_tags',
+            'conversation_id',
+            'tag_id',
+        )->withPivot('created_by_user_id')->withTimestamps();
     }
 }
