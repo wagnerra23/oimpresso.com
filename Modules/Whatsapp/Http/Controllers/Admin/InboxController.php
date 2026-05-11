@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
@@ -231,5 +236,143 @@ class InboxController extends Controller
             'sender_kind' => $m->sender_kind,
             'created_at' => $m->created_at?->toIso8601String() ?? now()->toIso8601String(),
         ];
+    }
+
+    /**
+     * Envia mensagem outbound pelo Channel apropriado (US-WA-069).
+     *
+     * Quick-path: chama daemon Baileys CT 100 direto (sem usar BaileysDriver
+     * legacy que ainda consome WhatsappBusinessPhone). PR seguinte refatora
+     * drivers pra aceitar Channel — então este método vira `Driver::send(...)`.
+     *
+     * Suporta só `whatsapp_baileys` por ora. Outros types retornam 422.
+     */
+    public function send(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+
+        $data = $request->validate([
+            'kind' => ['required', Rule::in(['freeform', 'template'])],
+            'body' => ['required_if:kind,freeform', 'nullable', 'string', 'max:4096'],
+            'template_name' => ['required_if:kind,template', 'nullable', 'string'],
+            'template_locale' => ['nullable', 'string'],
+            'template_params' => ['nullable', 'array'],
+        ]);
+
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->with('channel')
+            ->findOrFail($id);
+
+        $channel = $conversation->channel;
+        if (! $channel) {
+            return back()->withErrors(['send' => 'Canal não associado à conversa.']);
+        }
+
+        // Persiste Message outbound em status=queued ANTES do dispatch — defesa
+        // em profundidade. Se daemon falhar, a row já existe no DB pra retry.
+        $message = Message::query()->create([
+            'business_id' => $businessId,
+            'conversation_id' => $conversation->id,
+            'direction' => 'outbound',
+            'provider' => $channel->type,
+            'type' => $data['kind'] === 'template' ? 'template' : 'text',
+            'template_name' => $data['template_name'] ?? null,
+            'body' => $data['body'] ?? null,
+            'status' => 'queued',
+            'sender_user_id' => $userId ?: null,
+            'sender_kind' => 'human',
+        ]);
+
+        $conversation->forceFill([
+            'last_outbound_at' => now(),
+            'last_message_at' => now(),
+        ])->save();
+
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+            $message->forceFill([
+                'status' => 'failed',
+                'failed_reason' => "Envio só implementado pra Baileys nesta fase. Tipo atual: {$channel->type}",
+            ])->save();
+            return back()->withErrors(['send' => 'Envio só disponível pra canais Baileys nesta fase.']);
+        }
+
+        // Daemon Baileys: POST /instances/{instance_id}/text
+        $daemonUrl = config('whatsapp.baileys.daemon_url');
+        $apiKey = config('whatsapp.baileys.api_key');
+        $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
+        $toPhone = preg_replace('/^\+/', '', $conversation->customer_external_id);
+
+        try {
+            $response = Http::withToken($apiKey)
+                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
+                ->timeout(15)
+                ->post("{$daemonUrl}/instances/{$instanceId}/text", [
+                    'to' => $toPhone,
+                    'text' => $data['body'],
+                ]);
+
+            if (! $response->successful()) {
+                $message->forceFill([
+                    'status' => 'failed',
+                    'failed_reason' => 'Daemon ' . $response->status() . ': ' . mb_substr($response->body(), 0, 200),
+                ])->save();
+                Log::warning('[atendimento.inbox.send] daemon error', [
+                    'channel_id' => $channel->id,
+                    'status' => $response->status(),
+                ]);
+                return back()->withErrors(['send' => 'Falha ao enviar via daemon. Veja status da mensagem.']);
+            }
+
+            $payload = $response->json();
+            $message->forceFill([
+                'status' => $payload['status'] ?? 'sent',
+                'provider_message_id' => $payload['message_id'] ?? null,
+            ])->save();
+
+            return back()->with('success', 'Mensagem enviada.');
+        } catch (\Throwable $e) {
+            $message->forceFill([
+                'status' => 'failed',
+                'failed_reason' => mb_substr($e->getMessage(), 0, 240),
+            ])->save();
+            Log::error('[atendimento.inbox.send] exception', [
+                'channel_id' => $channel->id,
+                'exception' => $e->getMessage(),
+            ]);
+            return back()->withErrors(['send' => 'Erro de rede com daemon: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * PATCH status (atribuir a mim, marcar resolvido, etc).
+     */
+    public function updateStatus(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        $payload = $request->validate([
+            'status' => ['nullable', Rule::in(['open', 'awaiting_human', 'resolved', 'archived'])],
+            'assigned_to_me' => ['nullable', 'boolean'],
+            'bot_handling' => ['nullable', 'boolean'],
+        ]);
+
+        if (isset($payload['status'])) {
+            $conversation->status = $payload['status'];
+        }
+        if (array_key_exists('assigned_to_me', $payload)) {
+            $conversation->assigned_user_id = $payload['assigned_to_me'] ? $userId : null;
+        }
+        if (array_key_exists('bot_handling', $payload)) {
+            $conversation->bot_handling = (bool) $payload['bot_handling'];
+        }
+        $conversation->save();
+
+        return back()->with('success', 'Conversa atualizada.');
     }
 }

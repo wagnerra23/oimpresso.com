@@ -92,6 +92,16 @@ Route::group([
         ->middleware('can:whatsapp.access')
         ->name('atendimento.inbox.index');
 
+    Route::post('/inbox/{id}/send', [InboxController::class, 'send'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.send');
+
+    Route::patch('/inbox/{id}', [InboxController::class, 'updateStatus'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.update_status');
+
     Route::get('/canais', [ChannelsController::class, 'index'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.index');
