@@ -253,9 +253,9 @@ mcp__Claude_in_Chrome__browser_batch:
 
 Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi exatamente o ciclo que custou os PRs #143/#144/#145.**
 
-## Check 11 · Módulo superadmin — parent dropdown precisa de `'url'` ou cai em href='#'
+## Check 11 · Parent dropdown precisa de `'url'` ou cai em href='#'
 
-**Aplica a:** apenas módulos classificados como **superadmin** (Officeimpresso, CMS, Backup, Conector, Módulos, Personalizar) — ver F0 em [`mwart-process`](../mwart-process/SKILL.md).
+**Aplica a:** qualquer módulo cujo `DataController::modifyAdminMenu()` cria um `Menu::dropdown(...)` com children. Especialmente crítico pra módulos admin de plataforma (PR #516 promove `attributes.url` → `url` em `MenuItem::make`, então passa só passar `'url'` no 3º param).
 
 **❌ Errado** — `Modules/<X>/Http/Controllers/DataController.php::modifyAdminMenu()`:
 ```php
@@ -267,7 +267,7 @@ Menu::modify('admin-sidebar-menu', function ($menu) {
 });
 ```
 
-Resultado: na cascata "Superadmin" do user dropdown footer ([`Sidebar.tsx:603`](../../resources/js/Components/cockpit/Sidebar.tsx)), o item "Office Impresso" renderiza `<a href={item.href ?? '#'}>` — clica e não navega. [`LegacyMenuAdapter.php:307-315`](../../app/Services/LegacyMenuAdapter.php) só popula `result['href']` quando `$props['url']` existe.
+Resultado: no `SidebarMenuItem` React ([`Sidebar.tsx`](../../resources/js/Components/cockpit/Sidebar.tsx)), o item "Office Impresso" renderiza `<a href={item.href ?? '#'}>` — clicar no nome só toggla o sub-menu, não navega. [`LegacyMenuAdapter.php:307-315`](../../app/Services/LegacyMenuAdapter.php) só popula `result['href']` quando `$props['url']` existe.
 
 **✅ Certo:**
 ```php
@@ -278,7 +278,7 @@ $menu->dropdown('Office Impresso', function ($sub) { ... }, [
 ]);
 ```
 
-**Como auditar:** abrir cascata Superadmin via avatar do AppShellV2; clicar no nome do módulo (não chevron) deve navegar pra default page. Se não navega, falta `'url'`.
+**Como auditar:** abrir o módulo no sidebar AppShellV2; clicar no nome do módulo (não chevron) deve navegar pra default page. Se não navega, falta `'url'`.
 
 **Bug evitado:** "ele está no menu interno sem link para abrir" (Wagner 2026-05-10).
 
@@ -286,7 +286,7 @@ $menu->dropdown('Office Impresso', function ($sub) { ... }, [
 
 **Aplica a:** módulos com guard `auth()->user()->can('superadmin')` em `DataController::modifyAdminMenu()` (todos os módulos superadmin-only).
 
-**Sintoma do bug:** cascata "Superadmin" simplesmente NÃO aparece no user dropdown footer — sem mensagem, sem erro. Items publicados pelos DataControllers nunca chegam ao `shell.menu` porque o guard retorna early.
+**Sintoma do bug:** items dos módulos admin de plataforma (Officeimpresso, CMS, Backup, Conector, Módulos) simplesmente NÃO aparecem no sidebar nos grupos `office`/`plataforma` — sem mensagem, sem erro. Items publicados pelos DataControllers nunca chegam ao `shell.menu` porque o guard retorna early.
 
 **Como detectar:**
 ```bash
@@ -436,9 +436,9 @@ Quando o gatilho é "essa tela está feia" / "perdeu elementos" / *"o padrão do
 - ❌ Continuar criando telas MWART ANTES de topnav horizontal entrar no AppShellV2 — Check 10 Hard Gate
 - ❌ Passar objeto `CommonChart`/Highcharts pro Inertia onde TSX espera array — TypeError `.slice`
 - ❌ Pular smoke test browser MCP achando "código está certo" — só prod confirma render
-- ❌ **Módulo superadmin com parent dropdown sem `'url'` nas options** — cascata fica com item morto (Check 11)
-- ❌ **Migrar módulo superadmin sem confirmar `Spatie\Permission\Models\Permission::where('name','superadmin')->exists()`** — F4 smoke vai falhar silenciosamente (Check 12)
-- ❌ **Colocar módulo superadmin no menu principal** ou topnav — viola `SUPERADMIN_LABELS` em [`shared.ts`](../../resources/js/Components/cockpit/shared.ts); skill `sidebar-menu-arch` codifica a regra
+- ❌ **Módulo com parent dropdown sem `'url'` nas options** — sidebar fica com item parent que só toggla, não navega (Check 11)
+- ❌ **Migrar módulo admin de plataforma sem confirmar `Spatie\Permission\Models\Permission::where('name','superadmin')->exists()`** — F4 smoke vai falhar silenciosamente (Check 12)
+- ❌ **Colocar módulo de uso esporádico (Backup mensal, CMS raro) no topo do sidebar** — usa grupo `plataforma` no fim, não `office` (ACESSOS RÁPIDOS); skill `sidebar-menu-arch` codifica a regra
 
 ## Estrutura da skill (progressive disclosure — TODO P1)
 

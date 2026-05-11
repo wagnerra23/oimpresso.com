@@ -81,24 +81,27 @@ RUNBOOK + SPEC → BASELINE      → INCREMENTAL     → HARDENING        → + 
 
 Antes de F1 PLAN, **classificar o módulo alvo**. Diferentes tipos = diferentes decisões em placement no menu, perfil de teste e cutover:
 
-| Tipo | Exemplos | Placement no menu React | Cutover F5 | RUNBOOK exemplar |
+| Tipo | Exemplos | Placement no sidebar React | Cutover F5 | RUNBOOK exemplar |
 |---|---|---|---|---|
-| **Operativo** (uso day-to-day cliente) | Sells, Repair, Financeiro, NfeBrasil | Menu principal (sidebar grupos via `SIDEBAR_GROUPS` em `shared.ts`) | Aviso prévio cliente + canary 7d + monitor 30d | [RUNBOOK Sells/create](../../memory/requisitos/Sells/RUNBOOK-create.md) |
-| **Superadmin** (admin de plataforma) | Officeimpresso, CMS, Backup, Conector, Módulos | **APENAS cascata "Superadmin" do user dropdown footer** via `SUPERADMIN_LABELS` em `shared.ts:157`. NUNCA menu principal nem topnav. | Sem cliente externo → cutover sem janela de manutenção | [RUNBOOK Officeimpresso](../../memory/requisitos/Officeimpresso/RUNBOOK-migracao-react.md) |
+| **Operativo** (uso day-to-day cliente) | Sells, Repair, Financeiro, NfeBrasil | Grupos `office`/`fin`/`fiscal`/`rh`/`ia`/etc via `SIDEBAR_GROUPS` em `Sidebar.tsx` | Aviso prévio cliente + canary 7d + monitor 30d | [RUNBOOK Sells/create](../../memory/requisitos/Sells/RUNBOOK-create.md) |
+| **Admin de plataforma — uso pesado pelo owner** | Officeimpresso (gestão licenças desktop legacy WR) | Grupo `office` (ACESSOS RÁPIDOS) — fica perto dos itens day-to-day | Sem cliente externo → cutover sem janela | [RUNBOOK Officeimpresso](../../memory/requisitos/Officeimpresso/RUNBOOK-migracao-react.md) |
+| **Admin de plataforma — uso esporádico** | CMS, Conector, Backup, Módulos, Personalizar | Grupo `plataforma` (PLATAFORMA) — no fim, collapsed por default | Sem cliente externo → cutover sem janela | (mesmo RUNBOOK) |
 | **Público** (clientes finais sem login) | Catalogue QR, Status reparo público | Rota separada, layout próprio sem AppShellV2 | Cache CDN + canary IP-based | (criar quando aparecer) |
 
-**Pegadinhas específicas catalogadas em [`mwart-quality`](../mwart-quality/SKILL.md) Checks 11-12** — ler ANTES de F2 backend baseline em módulo superadmin (parent dropdown sem `url` + Spatie perm `superadmin` ausente).
+> **Histórico:** cascata "Superadmin" do user dropdown footer existiu de 2026-04-27 a 2026-05-10 ([PR #516](https://github.com/wagnerra23/oimpresso.com/pull/516) removeu). Decisão Wagner: admin de plataforma é menu como qualquer outro — não merece tratamento especial em UX. `SUPERADMIN_LABELS` em `shared.ts` está esvaziado (deprecated, mantém callers sem quebrar).
+
+**Pegadinhas específicas catalogadas em [`mwart-quality`](../mwart-quality/SKILL.md) Checks 11-12** — ler ANTES de F2 backend baseline em módulo admin de plataforma (parent dropdown sem `url` + Spatie perm `superadmin` ausente).
 
 ## Anti-padrões (NUNCA fazer)
 
 - ❌ **Pular F1** (codar antes de RUNBOOK + SPEC) — bloqueado por hook + CI gate
 - ❌ **Pular F2** (mexer no controller `Inertia::render` sem Pest baseline) — bloqueado
-- ❌ **Pular F0** (não classificar tipo do módulo) — gera placement errado no menu (ex: módulo superadmin vazando pro menu principal polui UX)
+- ❌ **Pular F0** (não classificar tipo do módulo) — gera placement errado no sidebar (ex: módulo de uso esporádico no grupo `office` topo, polui ACESSOS RÁPIDOS)
 - ❌ **Audit modo B pós-merge** — sempre antes do PR mergear, não depois
 - ❌ **Habilitar flag em cliente real (biz≠1) sem F4 completa** — quebra ROTA LIVRE; auto-mem `feedback_test_business_id_1_nunca_4` é IRREVOGÁVEL
 - ❌ **PR > 300 LOC** ou **mistura intents** — quebra `commit-discipline` Tier A
 - ❌ **Caminho alternativo** "rápido" — não existe. Velocidade aparente vira refactor caro depois.
-- ❌ **Módulo superadmin no menu principal** ou topnav — viola regra `SUPERADMIN_LABELS` (skill `sidebar-menu-arch`); cliente fim-usuário NÃO deve ver entrada de admin de plataforma
+- ❌ **Módulo no grupo errado do `SIDEBAR_GROUPS`** — uso esporádico (Backup mensal, CMS raríssimo) NÃO vai pra ACESSOS RÁPIDOS topo; usa grupo `plataforma` no fim. Regra de bolso: se usuário comum (não-superadmin) NÃO precisa ver, vai pra `plataforma`
 
 ## Como cuidar (3 camadas de enforcement)
 
@@ -130,4 +133,4 @@ Sem `/mwart-override`, gates não cedem. Iniciante (`[L]`), esposa (`[E]`), Maí
 
 ---
 
-**Última atualização:** 2026-05-10 — v1.1 adiciona F0 (classificação por tipo de módulo) + regra placement superadmin
+**Última atualização:** 2026-05-10 — v1.1 adiciona F0 (classificação por tipo de módulo). v1.1.1 (mesmo dia, pós-PR #516): cascata Superadmin removida; placement agora via `SIDEBAR_GROUPS` (`office` pra uso pesado, `plataforma` pra esporádico)
