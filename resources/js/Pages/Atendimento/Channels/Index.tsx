@@ -71,6 +71,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Channel | null>(null);
   const [connecting, setConnecting] = useState<Channel | null>(null);
+  const [qrImage, setQrImage] = useState<string | null>(null);
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [qrState, setQrState] = useState<string | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
@@ -122,6 +123,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
 
   async function startConnect(channel: Channel) {
     setConnecting(channel);
+    setQrImage(null);
     setPairingCode(null);
     setQrState(null);
     setQrError(null);
@@ -140,9 +142,12 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
       if (!r.ok || !data.ok) {
         setQrError(data.error || 'Falha desconhecida ao chamar daemon.');
       } else {
+        setQrImage(data.qr_png_data_url || null);
         setPairingCode(data.pairing_code || null);
         setQrState(data.state || null);
-        if (!data.pairing_code) setQrError(data.message || 'Daemon respondeu sem código de pareamento.');
+        if (!data.qr_png_data_url && !data.pairing_code) {
+          setQrError(data.message || 'Daemon respondeu sem QR nem código.');
+        }
       }
     } catch (e: any) {
       setQrError('Erro de rede: ' + (e?.message || 'desconhecido'));
@@ -208,21 +213,21 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
         </div>
       )}
 
-      {/* Modal connect Baileys via pairing code */}
-      <Dialog open={!!connecting} onOpenChange={(o) => { if (!o) { setConnecting(null); setPairingCode(null); } }}>
+      {/* Modal connect Baileys via QR (preferred) ou pairing code (fallback) */}
+      <Dialog open={!!connecting} onOpenChange={(o) => { if (!o) { setConnecting(null); setQrImage(null); setPairingCode(null); } }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Conectar {connecting?.label}</DialogTitle>
             <DialogDescription>
-              No celular: abra WhatsApp → Configurações → Dispositivos vinculados → Vincular dispositivo → <strong>"Vincular com número de telefone"</strong> → digite o código abaixo.
+              No celular: WhatsApp → Configurações → Dispositivos vinculados → <strong>Vincular dispositivo</strong> → aponta a câmera no QR abaixo.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col items-center justify-center py-4 gap-3 min-h-[200px]">
+          <div className="flex flex-col items-center justify-center py-4 gap-3 min-h-[280px]">
             {qrLoading && (
               <>
                 <Loader2 size={32} className="animate-spin text-muted-foreground" aria-hidden />
-                <p className="text-sm text-muted-foreground">Solicitando código ao daemon CT 100…</p>
+                <p className="text-sm text-muted-foreground">Gerando QR no daemon CT 100…</p>
               </>
             )}
             {!qrLoading && qrError && (
@@ -231,26 +236,34 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
                 {qrError}
               </div>
             )}
-            {!qrLoading && pairingCode && (
+            {!qrLoading && qrImage && (
               <>
+                <div className="bg-white p-2 rounded-lg shadow-sm">
+                  <img src={qrImage} alt="QR Code WhatsApp" width={280} height={280} />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Válido ~20s (renova automaticamente). State: <strong>{qrState || 'qr_required'}</strong>
+                  {qrState === 'connected' && <span className="text-emerald-600 ml-1">✓ conectado!</span>}
+                </p>
+              </>
+            )}
+            {!qrLoading && !qrImage && pairingCode && (
+              <>
+                <p className="text-xs text-muted-foreground">QR indisponível — use código numérico via "Vincular com número de telefone":</p>
                 <div className="bg-muted/50 rounded-lg px-6 py-4 text-center">
                   <div className="text-4xl font-mono font-bold tracking-[0.3em] text-primary">
                     {pairingCode.replace(/(.{4})/, '$1-')}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  Válido por ~60s. State: <strong>{qrState || 'connecting'}</strong>
-                  {qrState === 'connected' && <span className="text-emerald-600 ml-1">✓ conectado!</span>}
-                </p>
               </>
             )}
-            {!qrLoading && !pairingCode && !qrError && qrState && (
-              <p className="text-sm text-muted-foreground">State daemon: <strong>{qrState}</strong></p>
+            {!qrLoading && !qrImage && !pairingCode && !qrError && qrState && (
+              <p className="text-sm text-muted-foreground">State: <strong>{qrState}</strong></p>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setConnecting(null); setPairingCode(null); }}>
+            <Button variant="outline" onClick={() => { setConnecting(null); setQrImage(null); setPairingCode(null); }}>
               Fechar
             </Button>
           </DialogFooter>
