@@ -11,7 +11,7 @@
 
 import { router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import QRCode from 'react-qr-code';
+// QR vem como data URL PNG do daemon (string Baileys excede limite QR v40 23KB).
 import {
   Plus, Trash2, AlertTriangle, CheckCircle2, Circle, Loader2,
   MessageCircle, Plug, Smartphone, Zap,
@@ -234,7 +234,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             {!qrLoading && qrString && (
               <>
                 <div className="bg-white p-3 rounded">
-                  <QRCode value={qrString} size={240} />
+                  <img src={qrString} alt="QR Code Whatsapp" width={280} height={280} />
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
                   State: <strong>{qrState || 'qr_required'}</strong>
