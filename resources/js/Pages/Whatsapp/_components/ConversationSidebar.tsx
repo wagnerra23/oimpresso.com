@@ -85,7 +85,9 @@ export default function ConversationSidebar({ conversation, reloadOnly, enableSh
         <div className="flex flex-col items-center text-center gap-2">
           <Avatar name={conversation.contact_name} size="lg" />
           <div className="font-semibold leading-tight">{conversation.contact_name}</div>
-          <div className="text-xs text-muted-foreground">{conversation.customer_phone}</div>
+          {conversation.contact_name !== conversation.customer_phone && (
+            <div className="text-xs text-muted-foreground">{conversation.customer_phone}</div>
+          )}
           <StatusBadge status={conversation.status} />
         </div>
       </Card>
