@@ -173,46 +173,63 @@ class ChannelsController extends Controller
             $channel->channel_health = 'never_checked';
             $channel->save();
 
-            // Aguarda socket ficar pronto pra pairing-code (~3s) e solicita código.
-            // String QR Baileys é ~55KB — excede limite QR code v40 (23KB). Pairing
-            // code (8 dígitos) é o caminho oficial Baileys 6.5+ pra pareamento UX-friendly.
+            // Marca channel como connecting
+            $channel->status = 'setup';
+            $channel->channel_health = 'never_checked';
+            $channel->save();
+
+            // Baileys 6.7.18 entrega QR já como PNG data URL (~6KB) via
+            // QRCode.toDataURL no Instance.ts — cabe em <img src> sem problema.
+            // Poll /status até qr field popular (snapshot inclui qr quando
+            // state=qr_required). Fallback pairing code se /qr falhar.
+            $qrPngDataUrl = null;
             $pairingCode = null;
-            $error = null;
-            for ($i = 0; $i < 10; $i++) {
+            $state = null;
+            for ($i = 0; $i < 15; $i++) {
                 usleep(800_000); // 800ms
-                $pcResponse = Http::withToken($apiKey)
+                $statusResponse = Http::withToken($apiKey)
                     ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
+                    ->timeout($timeout)
+                    ->get("{$daemonUrl}/instances/{$instanceId}/status");
+
+                if ($statusResponse->successful()) {
+                    $snap = $statusResponse->json();
+                    $state = $snap['state'] ?? null;
+                    $qrField = $snap['qr'] ?? null;
+                    // qr field é "data:image/png;base64,..." se Baileys 6.7.18+ rasterizou
+                    if ($qrField && str_starts_with($qrField, 'data:image')) {
+                        $qrPngDataUrl = $qrField;
+                        break;
+                    }
+                    if ($state === 'connected') break;
+                }
+            }
+
+            // Fallback pairing code se QR não veio (raro)
+            if (! $qrPngDataUrl && $state !== 'connected') {
+                $pcResponse = Http::withToken($apiKey)
+                    ->withoutVerifying()
                     ->timeout($timeout)
                     ->post("{$daemonUrl}/instances/{$instanceId}/pairing-code", [
                         'phone' => $phone,
                     ]);
-
                 if ($pcResponse->status() === 200) {
                     $pairingCode = ($pcResponse->json())['pairing_code'] ?? null;
-                    if ($pairingCode) break;
-                }
-                if ($pcResponse->status() === 400) {
-                    $error = ($pcResponse->json())['message'] ?? $pcResponse->body();
-                    // Se já conectado, sai
-                    if (str_contains($error, 'already_connected')) break;
                 }
             }
-
-            // Status atual após tentativas
-            $statusResponse = Http::withToken($apiKey)
-                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
-                ->timeout($timeout)
-                ->get("{$daemonUrl}/instances/{$instanceId}/status");
-            $state = $statusResponse->successful() ? (($statusResponse->json())['state'] ?? null) : null;
 
             return response()->json([
                 'ok' => true,
                 'instance_id' => $instanceId,
+                'qr_png_data_url' => $qrPngDataUrl,
                 'pairing_code' => $pairingCode,
                 'state' => $state,
-                'message' => $pairingCode
-                    ? 'Abra WhatsApp → Configurações → Dispositivos vinculados → Vincular dispositivo → "Conectar com número de telefone" e digite o código abaixo.'
-                    : 'Daemon respondeu sem pairing code. ' . ($error ?? '(state=' . $state . ')'),
+                'message' => match (true) {
+                    $state === 'connected' => 'Canal já conectado.',
+                    $qrPngDataUrl !== null => 'Escaneie o QR no WhatsApp → Configurações → Dispositivos vinculados.',
+                    $pairingCode !== null => 'QR não disponível. Use o código numérico abaixo via "Conectar com número de telefone".',
+                    default => 'Daemon respondeu sem QR/código. State: ' . ($state ?? 'desconhecido'),
+                },
             ]);
         } catch (\Throwable $e) {
             Log::error('baileys.connect_exception', [
