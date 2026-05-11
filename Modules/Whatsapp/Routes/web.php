@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
-use Modules\Whatsapp\Http\Controllers\Admin\ConversationsController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
@@ -36,30 +35,18 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('install/update',    [InstallController::class, 'update']);
     });
 
-// Rotas admin (placeholder Lote 2a; Inertia pages em Lote 2c)
+// Rotas admin (placeholder Lote 2a; Inertia pages em Lote 2c).
+//
+// US-WA-091 (Wagner 2026-05-11 ordem): rotas legacy `/whatsapp/conversations*`
+// REMOVIDAS. `/atendimento/inbox` (ADR 0135 schema novo polimórfico) é o
+// caminho único. Schema legacy `whatsapp_conversations`/`whatsapp_messages`
+// continua existindo no DB pra histórico (2 convs do biz=1 testes), mas
+// SEM UI. Webhooks Zapi/Meta legacy seguem populando whatsapp_messages
+// até refactor drivers pro Channel polimórfico (PR seguinte).
 Route::group([
     'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
     'prefix'     => 'whatsapp',
 ], function () {
-    Route::get('/conversations', [ConversationsController::class, 'index'])
-        ->middleware('can:whatsapp.access')
-        ->name('whatsapp.conversations.index');
-
-    Route::get('/conversations/{id}', [ConversationsController::class, 'show'])
-        ->whereNumber('id')
-        ->middleware('can:whatsapp.access')
-        ->name('whatsapp.conversations.show');
-
-    Route::post('/conversations/{id}/send', [ConversationsController::class, 'send'])
-        ->whereNumber('id')
-        ->middleware('can:whatsapp.send')
-        ->name('whatsapp.conversations.send');
-
-    Route::patch('/conversations/{id}', [ConversationsController::class, 'updateStatus'])
-        ->whereNumber('id')
-        ->middleware('can:whatsapp.send')
-        ->name('whatsapp.conversations.update_status');
-
     Route::get('/templates', [TemplatesController::class, 'index'])
         ->middleware('can:whatsapp.templates.manage')
         ->name('whatsapp.templates.index');

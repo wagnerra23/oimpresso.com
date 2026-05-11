@@ -42,14 +42,14 @@ interface Props {
   reloadOnly: string[];
   /** Botão "← inbox" só aparece em rota permalink (Show). */
   backHref?: string;
-  /** Route name pro POST de envio (default whatsapp.conversations.send legacy).
-   * Inbox novo passa 'atendimento.inbox.send' (US-WA-069). */
+  /** Route name pro POST de envio. Default `atendimento.inbox.send`
+   * pós-US-WA-091 (rotas legacy `/whatsapp/conversations*` removidas). */
   sendRouteName?: string;
 }
 
 export default function ConversationThread({
   conversation, messages, centrifugoConfig, templates, reloadOnly, backHref,
-  sendRouteName = 'whatsapp.conversations.send',
+  sendRouteName = 'atendimento.inbox.send',
 }: Props) {
   const [composerText, setComposerText] = useState('');
   const [sending, setSending] = useState(false);
