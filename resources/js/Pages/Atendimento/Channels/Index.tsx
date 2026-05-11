@@ -71,7 +71,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Channel | null>(null);
   const [connecting, setConnecting] = useState<Channel | null>(null);
-  const [qrString, setQrString] = useState<string | null>(null);
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [qrState, setQrState] = useState<string | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
@@ -122,7 +122,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
 
   async function startConnect(channel: Channel) {
     setConnecting(channel);
-    setQrString(null);
+    setPairingCode(null);
     setQrState(null);
     setQrError(null);
     setQrLoading(true);
@@ -140,9 +140,9 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
       if (!r.ok || !data.ok) {
         setQrError(data.error || 'Falha desconhecida ao chamar daemon.');
       } else {
-        setQrString(data.qr || null);
+        setPairingCode(data.pairing_code || null);
         setQrState(data.state || null);
-        if (!data.qr) setQrError(data.message || 'Daemon respondeu sem QR.');
+        if (!data.pairing_code) setQrError(data.message || 'Daemon respondeu sem código de pareamento.');
       }
     } catch (e: any) {
       setQrError('Erro de rede: ' + (e?.message || 'desconhecido'));
@@ -208,21 +208,21 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
         </div>
       )}
 
-      {/* Modal QR connect Baileys */}
-      <Dialog open={!!connecting} onOpenChange={(o) => { if (!o) { setConnecting(null); setQrString(null); } }}>
+      {/* Modal connect Baileys via pairing code */}
+      <Dialog open={!!connecting} onOpenChange={(o) => { if (!o) { setConnecting(null); setPairingCode(null); } }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Conectar {connecting?.label}</DialogTitle>
             <DialogDescription>
-              Abra Whatsapp → Configurações → Dispositivos vinculados → Vincular dispositivo. Escaneie o QR abaixo.
+              No celular: abra WhatsApp → Configurações → Dispositivos vinculados → Vincular dispositivo → <strong>"Vincular com número de telefone"</strong> → digite o código abaixo.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col items-center justify-center py-4 gap-3 min-h-[280px]">
+          <div className="flex flex-col items-center justify-center py-4 gap-3 min-h-[200px]">
             {qrLoading && (
               <>
                 <Loader2 size={32} className="animate-spin text-muted-foreground" aria-hidden />
-                <p className="text-sm text-muted-foreground">Falando com daemon CT 100…</p>
+                <p className="text-sm text-muted-foreground">Solicitando código ao daemon CT 100…</p>
               </>
             )}
             {!qrLoading && qrError && (
@@ -231,24 +231,26 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
                 {qrError}
               </div>
             )}
-            {!qrLoading && qrString && (
+            {!qrLoading && pairingCode && (
               <>
-                <div className="bg-white p-3 rounded">
-                  <img src={qrString} alt="QR Code Whatsapp" width={280} height={280} />
+                <div className="bg-muted/50 rounded-lg px-6 py-4 text-center">
+                  <div className="text-4xl font-mono font-bold tracking-[0.3em] text-primary">
+                    {pairingCode.replace(/(.{4})/, '$1-')}
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
-                  State: <strong>{qrState || 'qr_required'}</strong>
+                  Válido por ~60s. State: <strong>{qrState || 'connecting'}</strong>
                   {qrState === 'connected' && <span className="text-emerald-600 ml-1">✓ conectado!</span>}
                 </p>
               </>
             )}
-            {!qrLoading && !qrString && !qrError && qrState && (
+            {!qrLoading && !pairingCode && !qrError && qrState && (
               <p className="text-sm text-muted-foreground">State daemon: <strong>{qrState}</strong></p>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setConnecting(null); setQrString(null); }}>
+            <Button variant="outline" onClick={() => { setConnecting(null); setPairingCode(null); }}>
               Fechar
             </Button>
           </DialogFooter>
