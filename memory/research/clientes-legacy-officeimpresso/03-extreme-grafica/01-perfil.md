@@ -43,8 +43,8 @@ Gráfica de **escala industrial** com **PCP estruturado por centro de trabalho**
 | DT_EMISSAO | 100% | sempre |
 | **DT_FATURAMENTO** | **92.9%** | uso muito alto |
 | DT_COMPETENCIA | 75.3% | regular |
-| DT_ENVIO_FATURAMENTO | 3.8% | quase não usa |
-| DT_PROMETIDO | (ausente) | sem coluna |
+| **FATURAMENTO_DT_ENVIO** ("Dt Env. Faturamento") | **89.1%** | ⚠️ v4: probe inicial subestimou — Extreme usa **massivamente** |
+| **PROJETO_DT_FIM** ("Dt. Prometido" do UI Delphi) | **91.4%** | ⚠️ **CORREÇÃO CRÍTICA v4** — é a coluna que o dropdown UI Delphi chama de "Dt. Prometido". Source-first via `Controller.Venda.Venda.pas` confirmou. **Extreme é o cliente paradigmático de controle de prazo formal** |
 | CODFINANCEIRO_GRUPO | 43.3% | médio |
 | Itens/venda média | 1.47 | maioria 1 item |
 | Status (VENDA.SITUACAO inline) | 1 vazio | **não usa status** |
