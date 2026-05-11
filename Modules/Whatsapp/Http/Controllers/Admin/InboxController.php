@@ -154,15 +154,21 @@ class InboxController extends Controller
 
     /**
      * Conversation pro componente lista (sidebar esquerda).
+     * Shape compatível com `ListConversation` (helpers.ts) pra reusar
+     * `ConversationList` legacy do Cockpit pattern V2 (ADR 0110).
      */
     protected function convToListArray(Conversation $c): array
     {
         $channel = $c->channel;
+        $lastMsg = $c->messages()->orderByDesc('created_at')->first();
+
         return [
             'id' => $c->id,
             'channel_id' => $c->channel_id,
             'channel_label' => $channel?->label,
             'channel_type' => $channel?->type,
+            // Alias compat com Cockpit legacy (customer_phone) + customer_external_id polimórfico
+            'customer_phone' => $c->customer_external_id,
             'customer_external_id' => $c->customer_external_id,
             'contact_name' => $c->contact_name ?? $c->customer_external_id,
             'status' => $c->status,
@@ -170,6 +176,9 @@ class InboxController extends Controller
             'bot_handling' => (bool) $c->bot_handling,
             'last_message_at' => optional($c->last_message_at)->toIso8601String(),
             'last_inbound_at' => optional($c->last_inbound_at)->toIso8601String(),
+            // Preview (compat ConversationList legacy) — corte 80 chars
+            'last_message_preview' => $lastMsg?->body ? mb_substr((string) $lastMsg->body, 0, 80) : null,
+            'last_message_direction' => $lastMsg?->direction,
             // Window 24h Meta — só pra type=whatsapp_meta
             'within_24h_window' => $channel?->type === 'whatsapp_meta'
                 ? ($c->last_inbound_at && $c->last_inbound_at->diffInHours(now()) < 24)
@@ -179,6 +188,7 @@ class InboxController extends Controller
 
     /**
      * Conversation pro componente thread (header central).
+     * Shape compatível com `ThreadConversation` (helpers.ts).
      */
     protected function convToThreadArray(Conversation $c): array
     {
@@ -188,6 +198,8 @@ class InboxController extends Controller
             'channel_id' => $c->channel_id,
             'channel_label' => $channel?->label,
             'channel_type' => $channel?->type,
+            // Alias compat com Cockpit legacy
+            'customer_phone' => $c->customer_external_id,
             'customer_external_id' => $c->customer_external_id,
             'contact_name' => $c->contact_name ?? $c->customer_external_id,
             'status' => $c->status,
@@ -198,6 +210,7 @@ class InboxController extends Controller
             'last_inbound_at' => optional($c->last_inbound_at)->toIso8601String(),
             'last_message_at' => optional($c->last_message_at)->toIso8601String(),
             'created_at' => optional($c->created_at)->toIso8601String(),
+            'assigned_user' => null, // futuro: resolve via assigned_user_id
             'messages_total' => $c->messages()->count(),
         ];
     }
