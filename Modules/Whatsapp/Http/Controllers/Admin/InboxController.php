@@ -97,9 +97,12 @@ class InboxController extends Controller
                 ->find($threadId);
             if ($threadModel) {
                 $thread = $this->convToThreadArray($threadModel);
+                // US-WA-077: eager-load `senderUser` pra evitar N+1 ao
+                // renderizar nome do atendente acima de cada bubble outbound.
                 $messages = Message::query()
                     ->where('business_id', $businessId)
                     ->where('conversation_id', $threadId)
+                    ->with('senderUser:id,first_name,surname,last_name')
                     ->orderBy('created_at')
                     ->limit(200)
                     ->get()
@@ -238,8 +241,34 @@ class InboxController extends Controller
             'status' => $m->status,
             'failed_reason' => $m->failed_reason,
             'sender_kind' => $m->sender_kind,
+            // US-WA-077: nome curto do atendente que enviou (web UI). Null se
+            // inbound, outbound do chip externo (Wagner pelo celular), ou bot.
+            // Frontend MessageBubble renderiza acima da bubble outbound quando
+            // sender_kind='human' E sender_user_name set (evita ambiguidade
+            // quando time compartilha chip).
+            'sender_user_name' => $this->resolveSenderUserName($m),
             'created_at' => $m->created_at?->toIso8601String() ?? now()->toIso8601String(),
         ];
+    }
+
+    /**
+     * Resolve nome curto do atendente pra exibir acima da bubble outbound.
+     *
+     * Prioridade: first_name → surname → last_name → "Atendente #id".
+     * Fallback final cobre user com nome vazio (raro mas possível em legacy
+     * UltimatePOS users criados via import).
+     */
+    protected function resolveSenderUserName(Message $m): ?string
+    {
+        $user = $m->senderUser;
+        if (! $user) {
+            return null;
+        }
+
+        return $user->first_name
+            ?: $user->surname
+            ?: $user->last_name
+            ?: "Atendente #{$user->id}";
     }
 
     /**
