@@ -12,7 +12,8 @@
 // aparece aqui.
 
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Centrifuge } from 'centrifuge';
 import {
   Inbox as InboxIcon,
   MessageCircle,
@@ -60,6 +61,12 @@ interface InboxThread extends InboxConversation {
   messages_total: number;
 }
 
+interface CentrifugoConfig {
+  wsUrl: string;
+  token: string;
+  channel: string;
+}
+
 interface Props {
   conversations: {
     data: InboxConversation[];
@@ -75,12 +82,54 @@ interface Props {
   thread: InboxThread | null;
   messages: InboxMessage[] | null;
   availableChannels: Array<{ id: number; label: string; type: string }>;
+  centrifugoConfig: CentrifugoConfig | null;
 }
 
 export default function InboxIndex({
   conversations, tab, q, channelFilter, stats, thread, messages, availableChannels,
+  centrifugoConfig,
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
+
+  // Centrifugo real-time (ADR 0058 + US-WA-059) — subscribe ao channel
+  // `omnichannel:business:{id}`. Quando backend publica
+  // `type === 'message.received'` ou `'message.sent'`:
+  // - Se thread aberta = conversation_id da msg → recarrega messages + thread
+  //   (auto-scroll via useEffect downstream sobre messages.length).
+  // - Caso contrário → recarrega só a lista esquerda (badge unread atualiza).
+  //
+  // Sem polling fallback aqui — o Inbox renderiza só ao navegar. Se Centrifugo
+  // estiver offline, refresh manual ou rota nova trazem dados atualizados.
+  useEffect(() => {
+    if (!centrifugoConfig) return;
+
+    const c = new Centrifuge(centrifugoConfig.wsUrl, { token: centrifugoConfig.token });
+    const sub = c.newSubscription(centrifugoConfig.channel);
+
+    sub.on('publication', (ctx: { data: Record<string, unknown> }) => {
+      const eventType = ctx.data?.type as string | undefined;
+      if (eventType !== 'message.received' && eventType !== 'message.sent') {
+        return;
+      }
+      const incomingConvId = ctx.data?.conversation_id as number | undefined;
+
+      if (thread && incomingConvId === thread.id) {
+        // Thread aberta = atualiza mensagens + dados thread + lista
+        router.reload({ only: ['messages', 'thread', 'conversations', 'stats'] });
+      } else {
+        // Thread fechada ou outra conversa = só lista/contadores
+        router.reload({ only: ['conversations', 'stats'] });
+      }
+    });
+
+    sub.subscribe();
+    c.connect();
+
+    return () => {
+      try { sub.unsubscribe(); } catch { /* ignore */ }
+      c.disconnect();
+    };
+  }, [centrifugoConfig?.token, centrifugoConfig?.channel, centrifugoConfig?.wsUrl, thread?.id]);
 
   function selectThread(id: number) {
     router.get(
