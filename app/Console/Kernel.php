@@ -89,6 +89,20 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADR 0133 — System audit (5 dimensões: observability/evals/ADR-stale/cost-agg/test-coverage).
+        // Princípio 2 (tiered cost): SQL+FS only, ZERO LLM. 06:15 BRT (15min após health-check
+        // pra evitar disputa DB). Tool MCP system-health-audit consulta o mesmo output.
+        $schedule->command('jana:system-audit --notify')
+            ->dailyAt('06:15')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule jana:system-audit FALHOU — investigar ' .
+                    'storage/logs/laravel.log pra ALERT entries (ADR 0133)'
+                );
+            });
+
         // US-COPI-100 — Brain A narrador horário do Cockpit Saúde do Ecossistema.
         // Lê snapshot via HealthSnapshotService + invoca HealthNarratorService
         // (gpt-4o-mini canônico ADR 0035) → persiste em jana_health_narratives.
