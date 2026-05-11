@@ -16,7 +16,7 @@
 
 import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Icon } from '@/Components/Icon';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -94,6 +94,14 @@ export default function ConversationsIndex({
     lsSet(LS.SIDEBAR_COLLAPSED, sidebarCollapsed ? '1' : null);
   }, [sidebarCollapsed]);
 
+  // Sidebar esquerda (lista conversations) colapsável — Wagner UX polish round 2.
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(
+    () => lsGet(LS.LEFT_SIDEBAR_COLLAPSED) === '1',
+  );
+  useEffect(() => {
+    lsSet(LS.LEFT_SIDEBAR_COLLAPSED, leftSidebarCollapsed ? '1' : null);
+  }, [leftSidebarCollapsed]);
+
   // Polling fallback 5s — Centrifugo CT 100 não exposto publicamente.
   // Mesmo padrão NfeBrasil (US-NFE-002). Hook abstrai a fonte; quando
   // Centrifugo for exposto via Traefik público + secrets em .env, basta
@@ -124,40 +132,52 @@ export default function ConversationsIndex({
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 gap-2">
+    <div className="flex flex-col flex-1 min-h-0 gap-1">
       {/* Header compacto */}
       <div className="flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Icon name="message-circle" size={18} />
+          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Icon name="message-circle" size={16} />
           </div>
-          <div className="min-w-0">
-            <h1 className="font-semibold text-base leading-tight truncate">Conversas WhatsApp</h1>
-            <div className="text-xs text-muted-foreground truncate">
-              Inbox real-time · canal Centrifugo whatsapp:business:{businessId}
-              <span className="ml-2 hidden md:inline opacity-70">
-                · atalhos: <kbd className="px-1 py-0 border rounded text-[10px]">J</kbd>/<kbd className="px-1 py-0 border rounded text-[10px]">K</kbd> navega · <kbd className="px-1 py-0 border rounded text-[10px]">/</kbd> busca · <kbd className="px-1 py-0 border rounded text-[10px]">E</kbd> resolve · <kbd className="px-1 py-0 border rounded text-[10px]">A</kbd> aguardar
-              </span>
-            </div>
+          <div className="min-w-0 flex items-center gap-2">
+            <h1 className="font-semibold text-sm leading-tight truncate">Inbox WhatsApp</h1>
+            <span className="hidden md:inline text-[11px] text-muted-foreground truncate">
+              atalhos: <kbd className="px-1 py-0 border rounded text-[10px]">J</kbd>/<kbd className="px-1 py-0 border rounded text-[10px]">K</kbd> navega · <kbd className="px-1 py-0 border rounded text-[10px]">/</kbd> busca · <kbd className="px-1 py-0 border rounded text-[10px]">E</kbd> resolve · <kbd className="px-1 py-0 border rounded text-[10px]">A</kbd> aguardar
+            </span>
           </div>
         </div>
       </div>
 
       {/* Cockpit 3-painéis */}
       <div className="flex-1 flex flex-col lg:flex-row gap-2 min-h-0">
-        {/* Painel ESQUERDO — lista */}
-        <div className="lg:w-80 xl:w-96 shrink-0 min-h-0">
-          <ConversationList
-            conversations={conversations}
-            tab={tab}
-            q={q}
-            stats={stats}
-            selectedId={thread?.id ?? null}
-            onSelect={selectThread}
-            permalinkRouteName="whatsapp.conversations.show"
-            routeName="whatsapp.conversations.index"
-          />
-        </div>
+        {/* Painel ESQUERDO — lista (colapsável) */}
+        {leftSidebarCollapsed ? (
+          <div className="hidden lg:flex shrink-0 min-h-0">
+            <button
+              type="button"
+              onClick={() => setLeftSidebarCollapsed(false)}
+              className="w-8 h-full border rounded bg-card hover:bg-accent flex items-start justify-center pt-3 text-muted-foreground hover:text-foreground transition-colors"
+              title="Expandir lista de conversas"
+              aria-label="Expandir lista"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        ) : (
+          <div className="lg:w-80 xl:w-96 shrink-0 min-h-0">
+            <ConversationList
+              conversations={conversations}
+              tab={tab}
+              q={q}
+              stats={stats}
+              selectedId={thread?.id ?? null}
+              onSelect={selectThread}
+              permalinkRouteName="whatsapp.conversations.show"
+              routeName="whatsapp.conversations.index"
+              onCollapse={() => setLeftSidebarCollapsed(true)}
+            />
+          </div>
+        )}
 
         {/* Painel CENTRO — thread ou empty */}
         <div className="flex-1 min-w-0 min-h-0">

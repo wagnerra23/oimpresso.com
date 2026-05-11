@@ -458,24 +458,31 @@ export default function AppShellV2({
               </>
             )}
 
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-              <button
-                className="icon-btn"
-                type="button"
-                title={linkedCollapsed ? 'Mostrar Apps' : 'Esconder Apps'}
-                onClick={() => setLinkedCollapsed((v) => !v)}
-                style={{
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  width: 28, height: 28, borderRadius: 6,
-                  display: 'grid', placeItems: 'center', color: 'var(--text-dim)',
-                }}
-              >
-                <ChevronDown
-                  size={14}
-                  style={{ transform: linkedCollapsed ? 'rotate(90deg)' : 'rotate(-90deg)' }}
-                />
-              </button>
-            </div>
+            {/* Toggle LinkedApps — só renderiza quando há painel pra alternar.
+               Sem `conversaFoco`, o LinkedAppsPanel não é montado (linha ~487)
+               então o botão chevron ficava órfão e confundia o usuário com o
+               chevron de páginas que têm sidebar própria (ex: Whatsapp UX
+               polish round 2 — Wagner 2026-05-11). */}
+            {conversaFoco && (
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                <button
+                  className="icon-btn"
+                  type="button"
+                  title={linkedCollapsed ? 'Mostrar Apps' : 'Esconder Apps'}
+                  onClick={() => setLinkedCollapsed((v) => !v)}
+                  style={{
+                    background: 'transparent', border: 'none', cursor: 'pointer',
+                    width: 28, height: 28, borderRadius: 6,
+                    display: 'grid', placeItems: 'center', color: 'var(--text-dim)',
+                  }}
+                >
+                  <ChevronDown
+                    size={14}
+                    style={{ transform: linkedCollapsed ? 'rotate(90deg)' : 'rotate(-90deg)' }}
+                  />
+                </button>
+              </div>
+            )}
           </header>
 
           <div className="main-body">
