@@ -131,13 +131,34 @@ return [
         // MEM-OTEL-1 (ADR 0051) — emissão OpenTelemetry GenAI semantic conventions.
         // Cada linha é 1 evento JSON com atributos `gen_ai.*` (system, model,
         // usage, business_id, conversation.id, response.duration_ms, etc).
-        // Quando ligarmos OTel SDK PHP de verdade, o channel vira sink dele.
-        // Datadog/Langfuse/Arize mapeiam direto sem rename.
+        //
+        // US-INFRA-016 PR-1 (ADR 0132) — Stack que combina local (fallback) +
+        // OTLP exporter pro Langfuse self-host CT 100. Channel Langfuse só
+        // ativa quando LANGFUSE_HOST + LANGFUSE_PUBLIC_KEY estão setados.
         'otel-gen-ai' => [
+            'driver' => 'stack',
+            'channels' => env('LANGFUSE_HOST') && env('LANGFUSE_PUBLIC_KEY')
+                ? ['otel-gen-ai-local', 'otel-gen-ai-langfuse']
+                : ['otel-gen-ai-local'],
+            'ignore_exceptions' => true,
+        ],
+
+        'otel-gen-ai-local' => [
             'driver' => 'daily',
             'path' => storage_path('logs/otel-gen-ai.log'),
             'level' => env('OTEL_GEN_AI_LOG_LEVEL', 'info'),
             'days' => env('OTEL_GEN_AI_LOG_DAYS', 30),
+        ],
+
+        'otel-gen-ai-langfuse' => [
+            'driver' => 'custom',
+            'via' => \App\Logging\OtlpHttpFactory::class,
+            'endpoint' => env('LANGFUSE_HOST', 'https://langfuse.oimpresso.com') . '/api/public/otel/v1/traces',
+            'public_key' => env('LANGFUSE_PUBLIC_KEY', ''),
+            'secret_key' => env('LANGFUSE_SECRET_KEY', ''),
+            'service_name' => env('LANGFUSE_SERVICE_NAME', 'jana'),
+            'level' => env('LANGFUSE_LOG_LEVEL', 'info'),
+            'timeout' => (float) env('LANGFUSE_TIMEOUT', 5.0),
         ],
 
         // Módulo NFSe — emissões, cancelamentos e erros da prefeitura.
