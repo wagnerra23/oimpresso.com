@@ -58,3 +58,19 @@ it('R-WA-091-007 — arquivos Inertia pages legacy `Conversations/Index.tsx` e `
     expect(file_exists($indexPath))->toBeFalse();
     expect(file_exists($showPath))->toBeFalse();
 });
+
+it('R-WA-091-008 — migration `create_conversation_tags_tables` declara `updated_at` no pivot (anti-drift Pest schema vs prod)', function () {
+    // Bug hotfix Wagner 2026-05-11: pivot `whatsapp_conversation_tags` tinha
+    // só `created_at` na migration original, mas relation `belongsToMany->
+    // withTimestamps()` exige AMBOS. Pest schema do beforeEach mascarou
+    // (tinha as 2 colunas) → CI verde + prod broken.
+    //
+    // Este test le a string da migration real e garante que ambas colunas
+    // estao declaradas. Se alguem remover `updated_at` da migration por
+    // engano, test quebra ANTES de chegar em prod.
+    $migrationPath = base_path('Modules/Whatsapp/Database/Migrations/2026_05_11_120000_create_conversation_tags_tables.php');
+    expect(file_exists($migrationPath))->toBeTrue();
+    $contents = file_get_contents($migrationPath);
+    expect($contents)->toContain("\$table->timestamp('created_at')");
+    expect($contents)->toContain("\$table->timestamp('updated_at')");
+});
