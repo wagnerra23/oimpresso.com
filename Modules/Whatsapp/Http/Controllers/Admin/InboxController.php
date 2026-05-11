@@ -16,6 +16,7 @@ use Illuminate\Validation\Rule;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
+use Modules\Whatsapp\Entities\Tag;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 
 /**
@@ -73,7 +74,18 @@ class InboxController extends Controller
             $convQuery->whereHas('channel', fn ($c) => $c->where('type', $channelFilter));
         }
 
+        // US-WA-063: filtro por tags (multi-select query param `tags=1,3,5`).
+        // Comportamento OR: conversa com QUALQUER das tags listadas aparece.
+        $tagsFilter = $request->input('tags', '');
+        if ($tagsFilter) {
+            $tagIds = array_filter(array_map('intval', explode(',', $tagsFilter)));
+            if (! empty($tagIds)) {
+                $convQuery->whereHas('tags', fn ($q) => $q->whereIn('whatsapp_tags.id', $tagIds));
+            }
+        }
+
         $paginated = $convQuery
+            ->with('tags:id,slug,label,color')
             ->orderByDesc('last_message_at')
             ->paginate(50);
 
@@ -93,7 +105,7 @@ class InboxController extends Controller
         if ($threadId) {
             $threadModel = Conversation::query()
                 ->where('business_id', $businessId)
-                ->with('channel')
+                ->with(['channel', 'tags:id,slug,label,color']) // US-WA-063: eager-load tags
                 ->find($threadId);
             if ($threadModel) {
                 $thread = $this->convToThreadArray($threadModel);
@@ -122,6 +134,24 @@ class InboxController extends Controller
             ->orderBy('label')
             ->get(['id', 'label', 'type'])
             ->map(fn ($ch) => ['id' => $ch->id, 'label' => $ch->label, 'type' => $ch->type]);
+
+        // US-WA-063: tags disponíveis no business (catálogo) + tags ativas
+        // (filtro UI). Seed automático no 1º load do business sem tags.
+        $this->ensureDefaultTags($businessId);
+        $availableTags = Tag::query()
+            ->where('business_id', $businessId)
+            ->orderBy('sort_order')
+            ->orderBy('label')
+            ->get(['id', 'slug', 'label', 'color'])
+            ->map(fn (Tag $t) => [
+                'id' => $t->id,
+                'slug' => $t->slug,
+                'label' => $t->label,
+                'color' => $t->color,
+            ]);
+        $activeTagIds = $tagsFilter
+            ? array_filter(array_map('intval', explode(',', $tagsFilter)))
+            : [];
 
         // Centrifugo real-time (ADR 0058 + US-WA-059) — channel
         // `omnichannel:business:{id}` segregado por business_id (Tier 0).
@@ -156,8 +186,79 @@ class InboxController extends Controller
             'thread' => $thread,
             'messages' => $messages,
             'availableChannels' => $availableChannels,
+            'availableTags' => $availableTags,
+            'activeTagIds' => $activeTagIds,
             'centrifugoConfig' => $centrifugoConfig,
         ]);
+    }
+
+    /**
+     * US-WA-063: garante que o business tem ao menos as 6 tags default
+     * ("Vendas", "Suporte", "Reclamação", "Repair-OS", "Cobrança",
+     * "Financeiro"). Idempotente — só insere se não existir o slug.
+     *
+     * Chamado uma vez por page load (lazy seed). Custo: 1 SELECT count;
+     * INSERTs só na 1ª vez. Cheaper que migration global pq atende
+     * multi-tenant Tier 0 sem precisar saber business_ids em advance.
+     */
+    protected function ensureDefaultTags(int $businessId): void
+    {
+        $existing = Tag::query()
+            ->where('business_id', $businessId)
+            ->count();
+        if ($existing > 0) {
+            return;
+        }
+
+        $defaults = [
+            ['slug' => 'vendas',     'label' => 'Vendas',     'color' => 'emerald', 'sort_order' => 10],
+            ['slug' => 'suporte',    'label' => 'Suporte',    'color' => 'blue',    'sort_order' => 20],
+            ['slug' => 'reclamacao', 'label' => 'Reclamação', 'color' => 'red',     'sort_order' => 30],
+            ['slug' => 'repair-os',  'label' => 'Repair-OS',  'color' => 'amber',   'sort_order' => 40],
+            ['slug' => 'cobranca',   'label' => 'Cobrança',   'color' => 'purple',  'sort_order' => 50],
+            ['slug' => 'financeiro', 'label' => 'Financeiro', 'color' => 'cyan',    'sort_order' => 60],
+        ];
+        foreach ($defaults as $d) {
+            Tag::query()->create(array_merge($d, ['business_id' => $businessId]));
+        }
+    }
+
+    /**
+     * US-WA-063: PATCH `/atendimento/inbox/{id}/tags` — sync tags da conv.
+     *
+     * Body: `{tag_ids: number[]}`. Substitui (não merge) — atendente
+     * desmarcar chips remove. Permission `whatsapp.send` (mesma do
+     * updateStatus, é ação operacional).
+     */
+    public function updateTags(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        $payload = $request->validate([
+            'tag_ids' => ['present', 'array'],
+            'tag_ids.*' => ['integer'],
+        ]);
+
+        // Filtra tag_ids — só permite tags do MESMO business (Tier 0 ADR 0093).
+        // Atacante mandando ids de outro business → silently dropped.
+        $validIds = Tag::query()
+            ->where('business_id', $businessId)
+            ->whereIn('id', $payload['tag_ids'])
+            ->pluck('id')
+            ->all();
+
+        // sync com pivot `created_by_user_id` setado no atendente atual.
+        $pivotData = [];
+        foreach ($validIds as $tagId) {
+            $pivotData[$tagId] = ['created_by_user_id' => $userId ?: null];
+        }
+        $conversation->tags()->sync($pivotData);
+
+        return back()->with('success', 'Tags atualizadas.');
     }
 
     /**
@@ -195,6 +296,10 @@ class InboxController extends Controller
             'within_24h_window' => $channel?->type === 'whatsapp_meta'
                 ? ($c->last_inbound_at && $c->last_inbound_at->diffInHours(now()) < 24)
                 : true, // Z-API/Baileys/Insta/etc não têm essa restrição
+            // US-WA-063: tags aplicadas (eager-loaded no index() — sem N+1)
+            'tags' => $c->relationLoaded('tags')
+                ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
+                : [],
         ];
     }
 
@@ -224,6 +329,10 @@ class InboxController extends Controller
             'created_at' => optional($c->created_at)->toIso8601String(),
             'assigned_user' => null, // futuro: resolve via assigned_user_id
             'messages_total' => $c->messages()->count(),
+            // US-WA-063: tags pra renderizar chips no ConversationSidebar
+            'tags' => $c->relationLoaded('tags')
+                ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
+                : [],
         ];
     }
 

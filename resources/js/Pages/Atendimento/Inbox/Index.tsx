@@ -31,6 +31,7 @@ import ConversationSidebar from '@/Pages/Whatsapp/_components/ConversationSideba
 import { LS, lsGet, lsSet } from '@/Pages/Whatsapp/_components/helpers';
 import type {
   CentrifugoConfig,
+  ConvTag,
   ListConversation,
   Message,
   ReadyTemplate,
@@ -54,12 +55,17 @@ interface Props {
   thread: ThreadConversation | null;
   messages: Message[] | null;
   availableChannels: Array<{ id: number; label: string; type: string }>;
+  /** US-WA-063: catálogo de tags do business (seeds default na 1ª visita) */
+  availableTags: ConvTag[];
+  /** US-WA-063: IDs das tags ativas no filtro atual (query param `tags=`) */
+  activeTagIds: number[];
   centrifugoConfig: CentrifugoConfig | null;
 }
 
 export default function InboxIndex({
   conversations, tab, q, stats,
   thread, messages, centrifugoConfig,
+  availableTags, activeTagIds,
 }: Props) {
   // Sidebar direita colapsável — preferência LS persistida
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
@@ -234,10 +240,12 @@ export default function InboxIndex({
             ) : (
               <ConversationSidebar
                 conversation={thread}
-                reloadOnly={['thread']}
+                reloadOnly={['thread', 'conversations']}
                 enableShortcuts
                 onCollapse={() => setSidebarCollapsed(true)}
                 updateStatusRouteName="atendimento.inbox.update_status"
+                availableTags={availableTags}
+                updateTagsRouteName="atendimento.inbox.update_tags"
               />
             )}
           </div>

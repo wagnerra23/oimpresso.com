@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
 import {
@@ -10,6 +10,10 @@ import {
   Hourglass,
   AlertTriangle,
   MessageCircle,
+  Search,
+  X,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -51,7 +55,55 @@ export default function ConversationThread({
   const [liveConnected, setLiveConnected] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  // US-WA-062: busca local na conversa (sem backend — filtra `messages`
+  // client-side, mantém ordem cronológica, highlight visual <mark>).
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentMatchIdx, setCurrentMatchIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Computa índices das msgs que match — usado pra navegação ↑/↓ + counter.
+  const matchIndices = useMemo(() => {
+    if (!searchQuery.trim()) return [] as number[];
+    const q = searchQuery.toLowerCase();
+    return messages
+      .map((m, idx) => (m.body && m.body.toLowerCase().includes(q) ? idx : -1))
+      .filter((idx) => idx !== -1);
+  }, [messages, searchQuery]);
+
+  // Reset cursor quando query muda
+  useEffect(() => {
+    setCurrentMatchIdx(0);
+  }, [searchQuery]);
+
+  // Ctrl+F atalho global dentro da thread foca search input
+  useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setSearchOpen(true);
+        setTimeout(() => searchInputRef.current?.focus(), 50);
+      }
+      if (e.key === 'Escape' && searchOpen) {
+        setSearchOpen(false);
+        setSearchQuery('');
+      }
+    }
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [searchOpen]);
+
+  // Scroll automatico pro match atual
+  useEffect(() => {
+    if (matchIndices.length === 0) return;
+    const targetMsgIdx = matchIndices[currentMatchIdx];
+    if (targetMsgIdx === undefined) return;
+    const targetMsg = messages[targetMsgIdx];
+    if (!targetMsg) return;
+    const el = document.querySelector(`[data-msg-id="${targetMsg.id}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [currentMatchIdx, matchIndices, messages]);
 
   // Auto-scroll quando nova mensagem chega (ou usuário entra na thread).
   useEffect(() => {
@@ -214,7 +266,21 @@ export default function ConversationThread({
             </div>
           </div>
         </div>
-        <div className="shrink-0">
+        <div className="shrink-0 flex items-center gap-2">
+          {/* US-WA-062: ícone search abre barra local */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={() => {
+              setSearchOpen((v) => !v);
+              if (!searchOpen) setTimeout(() => searchInputRef.current?.focus(), 50);
+            }}
+            title={searchOpen ? 'Fechar busca (Esc)' : 'Pesquisar nesta conversa (Ctrl+F)'}
+            aria-label="Pesquisar na conversa"
+          >
+            <Search size={14} aria-hidden />
+          </Button>
           {conversation.within_24h_window ? (
             <Badge
               variant="outline"
@@ -233,6 +299,74 @@ export default function ConversationThread({
           )}
         </div>
       </div>
+
+      {/* US-WA-062: search bar inline expansível abaixo do header */}
+      {searchOpen && (
+        <div className="border-b px-3 py-1.5 flex items-center gap-2 bg-muted/30 shrink-0">
+          <Search size={12} className="text-muted-foreground shrink-0" aria-hidden />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar nesta conversa…"
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (matchIndices.length === 0) return;
+                if (e.shiftKey) {
+                  setCurrentMatchIdx((i) => (i - 1 + matchIndices.length) % matchIndices.length);
+                } else {
+                  setCurrentMatchIdx((i) => (i + 1) % matchIndices.length);
+                }
+              }
+            }}
+          />
+          <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+            {matchIndices.length === 0 && searchQuery
+              ? '0 de 0'
+              : matchIndices.length > 0
+              ? `${currentMatchIdx + 1} de ${matchIndices.length}`
+              : ''}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            disabled={matchIndices.length === 0}
+            onClick={() => setCurrentMatchIdx((i) => (i - 1 + matchIndices.length) % matchIndices.length)}
+            title="Match anterior (Shift+Enter)"
+            aria-label="Match anterior"
+          >
+            <ChevronUp size={12} aria-hidden />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            disabled={matchIndices.length === 0}
+            onClick={() => setCurrentMatchIdx((i) => (i + 1) % matchIndices.length)}
+            title="Próximo match (Enter)"
+            aria-label="Próximo match"
+          >
+            <ChevronDown size={12} aria-hidden />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => {
+              setSearchOpen(false);
+              setSearchQuery('');
+            }}
+            title="Fechar (Esc)"
+            aria-label="Fechar busca"
+          >
+            <X size={12} aria-hidden />
+          </Button>
+        </div>
+      )}
 
       {/* Thread */}
       <div className="flex-1 relative min-h-0">
@@ -264,6 +398,7 @@ export default function ConversationThread({
                     key={m.id}
                     message={m}
                     showTail={i === group.messages.length - 1 || group.messages[i + 1]?.direction !== m.direction}
+                    highlight={searchQuery}
                   />
                 ))}
               </div>
@@ -347,7 +482,34 @@ export default function ConversationThread({
   );
 }
 
-function MessageBubble({ message, showTail }: { message: Message; showTail: boolean }) {
+/**
+ * US-WA-062: renderiza body da msg com matches da `query` envoltos em <mark>.
+ * Case-insensitive, escape de regex pra query do user (sem ReDoS).
+ * Exportado pra Pest test indireto via TS — funcção pura testável.
+ */
+export function HighlightedBody({ body, query }: { body: string; query: string }) {
+  const q = query.trim();
+  if (!q) return <>{body}</>;
+  // Escape regex chars do user input antes de compilar — evita ReDoS
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = body.split(new RegExp(`(${escaped})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === q.toLowerCase()
+          ? <mark key={i} className="bg-yellow-300 dark:bg-yellow-600 text-black dark:text-yellow-100 rounded-sm px-0.5">{part}</mark>
+          : <Fragment key={i}>{part}</Fragment>
+      )}
+    </>
+  );
+}
+
+function MessageBubble({ message, showTail, highlight = '' }: {
+  message: Message;
+  showTail: boolean;
+  /** US-WA-062: query da busca local — body matches recebem <mark> highlight */
+  highlight?: string;
+}) {
   const isOut = message.direction === 'outbound';
   const time = new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -362,7 +524,7 @@ function MessageBubble({ message, showTail }: { message: Message; showTail: bool
     : { background: 'var(--bubble-them)', color: 'var(--bubble-them-fg)' };
 
   return (
-    <div className={`flex ${isOut ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex ${isOut ? 'justify-end' : 'justify-start'}`} data-msg-id={message.id}>
       <div className={`max-w-[75%] px-3 py-1.5 shadow-sm border border-transparent ${corner}`} style={bubbleStyle}>
         {message.sender_kind === 'bot' && (
           <div className="text-[10px] font-semibold mb-0.5 uppercase tracking-wide opacity-80 inline-flex items-center gap-1">
@@ -381,7 +543,9 @@ function MessageBubble({ message, showTail }: { message: Message; showTail: bool
           </div>
         )}
         <div className="whitespace-pre-wrap break-words text-sm leading-snug">
-          {message.body ?? <em className="opacity-70">[mídia]</em>}
+          {message.body
+            ? <HighlightedBody body={message.body} query={highlight} />
+            : <em className="opacity-70">[mídia]</em>}
         </div>
         {/* US-WA-083: removido `opacity-80` do row pra NÃO atenuar o ícone
             de status (CSS opacity é multiplicativa no stacking context, mata

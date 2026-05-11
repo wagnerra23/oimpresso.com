@@ -90,6 +90,19 @@ export interface AssignedUser {
   name: string;
 }
 
+/**
+ * Tag classificadora de conversa (US-WA-063). Multi-tenant Tier 0 — tags
+ * vivem em `whatsapp_tags.business_id`, frontend só vê as do business
+ * atual. `color` é key Tailwind palette (resolvido pra classes via
+ * mapping interno em ConversationSidebar).
+ */
+export interface ConvTag {
+  id: number;
+  slug: string;
+  label: string;
+  color: string;
+}
+
 export interface ThreadConversation {
   id: number;
   customer_phone: string;
@@ -102,6 +115,8 @@ export interface ThreadConversation {
   created_at: string | null;
   assigned_user: AssignedUser | null;
   messages_total: number;
+  /** US-WA-063: tags aplicadas à conversa */
+  tags?: ConvTag[];
 }
 
 export interface CentrifugoConfig {
@@ -160,6 +175,8 @@ export interface ListConversation {
   within_24h_window: boolean;
   last_message_preview: string | null;
   last_message_direction: 'inbound' | 'outbound' | null;
+  /** US-WA-063: tags aplicadas — eager-loaded no InboxController */
+  tags?: ConvTag[];
 }
 
 /**
