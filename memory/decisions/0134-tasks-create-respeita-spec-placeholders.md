@@ -3,12 +3,12 @@ slug: 0134-tasks-create-respeita-spec-placeholders
 number: 134
 title: "tasks-create respeita placeholders em SPEC.md (regex headers + bullets)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-11
-module: Jana
+module: copiloto
 tags: [governance, mcp, tasks, spec, drift, prevention]
 supersedes: []
 supersedes_partially: []
