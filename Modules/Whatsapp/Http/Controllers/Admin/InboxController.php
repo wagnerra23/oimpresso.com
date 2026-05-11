@@ -165,7 +165,11 @@ class InboxController extends Controller
     protected function convToListArray(Conversation $c): array
     {
         $channel = $c->channel;
-        $lastMsg = $c->messages()->orderByDesc('created_at')->first();
+        // reorder() limpa o `orderBy('created_at')` ASC default da relação
+        // Conversation->messages() (Entities/Conversation.php). Sem isso,
+        // o ASC ganhava e first() retornava a mensagem mais ANTIGA — daí
+        // o preview mostrava lixo/vazio em vez do último texto. (US-WA-070)
+        $lastMsg = $c->messages()->reorder('created_at', 'desc')->first();
 
         return [
             'id' => $c->id,
