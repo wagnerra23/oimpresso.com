@@ -51,12 +51,22 @@ except ImportError:
 from lib.firebird_reader import firebird_connect, get_versao_banco, query  # noqa: E402
 from lib.mysql_writer import MysqlWriter  # noqa: E402
 
-IMPORTER_VERSION = "0.1.0"
+IMPORTER_VERSION = "0.2.0"
 LEGACY_SOURCE = "wr-comercial-delphi"
 
+# Mapping TIPO Delphi → account_types.id (biz=1 default UltimatePOS)
+# IDs 1=Banco, 2=Caixa criados em 2021. ID=3 "Cartão de Crédito" criado on-demand pelo importer.
+TIPO_TO_ACCOUNT_TYPE_NAME = {
+    "BANCO": "Banco",
+    "CAIXA": "Caixa",
+    "CARTA": "Cartão de Crédito",
+}
 
-def query_contas_delphi(con, codempresa: int | None = None) -> list[dict]:
-    """Busca CONTAS no Firebird, opcionalmente filtrando por CODEMPRESA.
+
+def query_contas_delphi(
+    con, codempresa: int | None = None, only_ativo: bool = False,
+) -> list[dict]:
+    """Busca CONTAS no Firebird, opcionalmente filtrando por CODEMPRESA e ATIVO.
 
     Usa SELECT * porque schema reconstruído de UpdateSQL.txt cobre v6+ mas
     CONTAS foi criada antes (provável v6 ou earlier — fora do .txt). Schema
@@ -64,12 +74,17 @@ def query_contas_delphi(con, codempresa: int | None = None) -> list[dict]:
     tolera ausência de colunas.
     """
     sql = "SELECT * FROM CONTAS"
-    params: tuple = ()
+    where = []
+    params: list = []
     if codempresa:
-        sql += " WHERE CODEMPRESA = ?"
-        params = (codempresa,)
+        where.append("CODEMPRESA = ?")
+        params.append(codempresa)
+    if only_ativo:
+        where.append("ATIVO = 'S'")
+    if where:
+        sql += " WHERE " + " AND ".join(where)
     sql += " ORDER BY CODIGO"
-    return query(con, sql, params)
+    return query(con, sql, tuple(params))
 
 
 def query_empresa_delphi(con, codempresa: int) -> dict | None:
@@ -102,7 +117,9 @@ def normalize_banco_codigo(codbanco: int | str | None) -> str:
 
 
 def map_conta_to_oimpresso(
-    delphi: dict, business_id: int, empresa_cache: dict[int, dict] | None = None,
+    delphi: dict, business_id: int,
+    empresa_cache: dict[int, dict] | None = None,
+    account_type_id_map: dict[str, int] | None = None,
 ) -> tuple[dict, dict, str, dict]:
     """Aplica mapping CONTAS Delphi → (account_data, fin_cb_data, legacy_id, metadata).
 
@@ -117,22 +134,27 @@ def map_conta_to_oimpresso(
     if delphi.get("CODEMPRESA") and empresa_cache is not None:
         empresa = empresa_cache.get(int(delphi["CODEMPRESA"]))
 
-    # accounts (core UltimatePOS)
+    # accounts (core UltimatePOS) — nome amigável: DESCRICAO Delphi (nome curto Wagner) >
+    # NOME_CEDENTE (razão social no boleto) > EMPRESA.RAZAOSOCIAL > fallback Legacy {id}
     nome_conta = (
-        delphi.get("NOME_CEDENTE")
+        delphi.get("DESCRICAO")
+        or delphi.get("NOME_CEDENTE")
         or (empresa and empresa.get("RAZAOSOCIAL"))
         or f"Conta legacy {delphi.get('CODIGO_CEDENTE') or delphi['CODIGO']}"
     )
+    # account_type_id: mapeamento automático TIPO Delphi (CAIXA/BANCO/CARTA) → account_types.id
+    tipo_delphi = str(delphi.get("TIPO") or "").strip().upper()
+    tipo_name = TIPO_TO_ACCOUNT_TYPE_NAME.get(tipo_delphi)
+    account_type_id = (account_type_id_map or {}).get(tipo_name) if tipo_name else None
+
     account_data = {
         "business_id": business_id,
         "name": str(nome_conta).strip()[:255] if nome_conta else f"Legacy {legacy_id}",
         "account_number": str(
-            delphi.get("CODIGO_CEDENTE") or delphi.get("CONTA") or delphi["CODIGO"]
+            delphi.get("CONTA") or delphi.get("CODIGO_CEDENTE") or delphi["CODIGO"]
         )[:64],
         "is_closed": delphi.get("ATIVO", "S") != "S",
-        # account_type_id null — Wagner classifica como Banco (1) ou Caixa (2)
-        # via UI após import (FK pra account_types tabela).
-        "account_type_id": None,
+        "account_type_id": account_type_id,
     }
 
     # fin_contas_bancarias (módulo Financeiro)
@@ -251,6 +273,11 @@ def main() -> int:
                         help="Senha Firebird (default 'masterkey' — hardcoded em Principal.pas {$IFDEF WR2})")
     parser.add_argument("--codempresa", type=int, default=None,
                         help="Filtrar CONTAS por CODEMPRESA Delphi (default: todas)")
+    parser.add_argument("--only-ativo", action="store_true",
+                        help="Só importa CONTAS com ATIVO='S' (default: importa todas)")
+    parser.add_argument("--reset-placeholders", action="store_true",
+                        help="Soft-delete em accounts pré-existentes da biz alvo SEM bridge legacy_map "
+                             "(limpa placeholders manuais antes de importar). Idempotente.")
     parser.add_argument("--limit", type=int, default=None, help="Limitar N primeiras (debug)")
     parser.add_argument("--created-by", type=int, default=int(os.environ.get("CREATED_BY", "1")),
                         help="users.id pra preencher accounts.created_by (default 1=admin)")
@@ -279,8 +306,8 @@ def main() -> int:
         print(f"   Versão schema banco  : {versao or '?'}")
 
         # 2) Lê CONTAS
-        print(f"\n📖 Lendo CONTAS...")
-        contas = query_contas_delphi(fb_con, codempresa=args.codempresa)
+        print(f"\n📖 Lendo CONTAS (only_ativo={args.only_ativo})...")
+        contas = query_contas_delphi(fb_con, codempresa=args.codempresa, only_ativo=args.only_ativo)
         if args.limit:
             contas = contas[: args.limit]
         print(f"   Encontradas: {len(contas)} contas")
@@ -316,18 +343,47 @@ def main() -> int:
 
         # 4) Itera + UPSERT
         with writer:
+            # 4.0) Pre-flight: garante account_types (Banco/Caixa/Cartão de Crédito) na biz alvo
+            account_type_id_map = writer.ensure_account_types(
+                business_id=args.target_business,
+                names=list(set(TIPO_TO_ACCOUNT_TYPE_NAME.values())),
+                created_by=args.created_by,
+            )
+            print(f"\n🏷️  account_types biz={args.target_business}: {account_type_id_map}")
+
+            # 4.0.5) Reset placeholders (soft-delete em accounts SEM bridge legacy_map)
+            if args.reset_placeholders:
+                n = writer.soft_delete_placeholder_accounts(business_id=args.target_business)
+                print(f"🧹 Soft-deleted {n} placeholders sem bridge legacy_map em biz={args.target_business}")
+
             for i, delphi in enumerate(contas, 1):
                 try:
                     account_data, fin_cb_data, legacy_id, metadata = map_conta_to_oimpresso(
-                        delphi, args.target_business, empresa_cache=empresa_cache
+                        delphi, args.target_business,
+                        empresa_cache=empresa_cache,
+                        account_type_id_map=account_type_id_map,
                     )
 
                     print(f"\n[{i}/{len(contas)}] CODIGO={delphi['CODIGO']} → {account_data['name']}")
+
+                    # account_details: agência/banco/empresa origem em texto curto pra Wagner ver na lista
+                    bank_desc = ""
+                    if delphi.get("CODBANCO"):
+                        bank_desc = f"FEBRABAN {normalize_banco_codigo(delphi.get('CODBANCO'))}"
+                    parts = [
+                        delphi.get("AGENCIA") and f"Ag {delphi.get('AGENCIA')}" or None,
+                        delphi.get("CONTA") and f"CC {delphi.get('CONTA')}" or None,
+                        bank_desc or None,
+                        (empresa_cache.get(int(delphi['CODEMPRESA'])) or {}).get("RAZAOSOCIAL")
+                            if delphi.get("CODEMPRESA") else None,
+                    ]
+                    account_details = " | ".join(p for p in parts if p)[:500] or None
 
                     account_id = writer.upsert_account(
                         business_id=args.target_business,
                         name=account_data["name"],
                         account_number=account_data["account_number"],
+                        account_details=account_details,
                         is_closed=account_data["is_closed"],
                         account_type_id=account_data["account_type_id"],
                         created_by=args.created_by,
