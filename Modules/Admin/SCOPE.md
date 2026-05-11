@@ -1,3 +1,27 @@
+---
+module: Admin
+purpose: "Centro de Operações Wagner-only (admin.oimpresso.com em CT 100/Tailscale-only). Dashboard executivo: brief + health + cycles + ADR Tier 0 alerts. Bloqueio duro is-wagner + TailscaleOnly middleware."
+contains:
+  - "DataController"
+  - "IndexController"
+  - "InstallController"
+  - "MutationsController"
+not_contains:
+  - "Superadmin cliente-side → Modules/Superadmin (mantido)"
+  - "Admin team MCP → /copiloto/admin/team (Hostinger)"
+  - "Acessível pelo time → bloqueio duro is-wagner"
+trust_required: L1
+owner: wagner
+permission_prefix: admin.*
+charter_adr: 0122
+related_adrs:
+  - 0122-admin-center-ct100
+  - 0062-separacao-runtime-hostinger-ct100
+url_prefixes:
+  - /admin/*
+drift_alerts: []
+---
+
 # Modules/Admin — Centro de Operações
 
 > ADR mãe: [0122](../../memory/decisions/0122-admin-center-ct100.md)
