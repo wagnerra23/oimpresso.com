@@ -78,6 +78,31 @@ audience: time interno + IA-pair (sobretudo IA nova que não viveu o legacy)
 
 ROTA LIVRE **não tem perfil aqui** — ela é cliente do oimpresso.com novo, não OfficeImpresso legacy.
 
+## Arquitetura Delphi (descobertas 2026-05-11)
+
+| Termo | Significado |
+|-------|-------------|
+| `TControllerMestre` | Classe base abstrata (3.444 LOC) em `Controller.Mestre.pas`. **Todos** Controllers herdam dela. Tem SQL/filtros/grid/permissões/validação/bridge OImpresso. |
+| `TControllerVenda` | Controller específico da Lista de Vendas (4.010 LOC), herda TControllerMestre. |
+| `Controller.<X>.Definicoes.pas` | Arquivo **gerado automaticamente** com valores default + validações da tabela X (ex: `Controller.Venda.Definicoes.pas`). |
+| `SQLInit` (em TControllerMestre) | TStringList com o SQL base da consulta. Ex: `select V.* from VENDA V` |
+| `SQLWhere` | WHERE adicional aplicado dinamicamente conforme filtros do usuário |
+| `SQLOrderBy` | ORDER BY default da tela |
+| `FormCreateConsulta` | Hook chamado quando tela abre — define filtros default, ordenação, agrupamento |
+| `TConsultaFiltros` | Coleção de filtros nomeados (`GetFiltroProNome('Retirar filtros')`) |
+| `TWR_GridDBColumn` | Coluna do grid configurada — `FGridDBColumnList: TList<TWR_GridDBColumn>` |
+| `CONFIGURACOES_GRID` (tabela Firebird) | Persiste config de colunas/filtros que o **usuário** configurou na tela. Custom por cliente. |
+| `TMestreOImpresso` | Bridge pro oimpresso.com novo — métodos `OImpressoPrepareFieldsForSet/Get`, `GeraFDQueryOImpressoPost/Get` |
+| `Controller.OImpresso.pas` | Tela "API OImpresso.com" — métodos `LoginDaAPI`, `SincronizarContatos/Vendas/Financeiro/Produto/Tudo` |
+| `OIMPRESSO` (tabela Firebird) | Master de registros sincronizados — uma linha por entidade no oimpresso.com novo |
+| `OIMPRESSO_LOG` | Log de cada operação de sync (timestamp, status, erro) |
+| `Controller.Pessoas.OImpresso.pas` | Sync específica de Pessoas (clientes/fornecedores) Delphi → oimpresso |
+| `TWR_APP` (em Classes.APP.pas) | Registro do app no framework (Caption, módulo, ícone) |
+| `RegisterController(Path, TControllerXXX.Create)` | Auto-registro no rodapé do `.pas` — Path do menu |
+| `TKanbanManager` | Suporte a Kanban built-in no framework (Wagner já tem!) |
+| `TValidationManager` | Sistema de validação dinâmica com regras e contextos condicionais |
+| `Path<X>` constants (wrConstantes) | Constantes que mapeiam path do menu → controller (`PathCONFIGURACAO_GRID`, `PathOIMPRESSO`, etc) |
+
 ## Acrônimos verticais oimpresso.com
 
 | Sigla | Módulo |

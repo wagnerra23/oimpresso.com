@@ -49,10 +49,25 @@ NN-slug-do-cliente/
 | Arquivo | Conteúdo |
 |---------|----------|
 | [README.md](README.md) | este protocolo |
+| **[_COMO-ANALISAR.md](_COMO-ANALISAR.md)** | **metodologia canônica 3 camadas** — source-first (Controllers Delphi) > heatmap > probes |
 | [_LGPD.md](_LGPD.md) | fundamentação legal + papéis (Wagner=controlador / Claude=operador) |
 | [_TEMPLATE-cliente.md](_TEMPLATE-cliente.md) | template novo cliente (copiar pra `NN-slug/01-perfil.md`) |
 | [_ANALISE-CROSS-CLIENTE.md](_ANALISE-CROSS-CLIENTE.md) | comparativo entre todos clientes — padrões, segmentos, prioridade migração |
 | [_GLOSSARIO.md](_GLOSSARIO.md) | termos do domínio OfficeImpresso/Delphi/Firebird |
+| [_OPT-OUT.md](_OPT-OUT.md) | registro de clientes que pediram não-análise (LGPD Art. 18) |
+
+## Hierarquia de fontes (descoberta 2026-05-11)
+
+| Camada | Fonte | Onde | Quando usar |
+|--------|-------|------|-------------|
+| **1ª — Source** | Controllers Delphi `.pas` | `D:\Programas\WR Comercial\app\Controller\` | "qual SQL/validação/lógica exata?" — fonte autoritativa, 10 min/tela |
+| 2ª — Schema | RDB$RELATIONS Firebird | banco do cliente | "qual estrutura?" — 2 min via script |
+| 3ª — Heatmap | queries agregadas | [sells_grade_heatmap.py](../../../scripts/sells_grade_heatmap.py) | "o que cliente USA?" — comportamental real |
+| 4ª — Probes | queries pontuais | scripts em [scripts/probe_*.py](../../../scripts/) | dúvidas específicas (config, log, usuários) |
+
+Detalhes em [_COMO-ANALISAR.md](_COMO-ANALISAR.md).
+
+**Descoberta crítica:** Delphi já tem `Controller.OImpresso.pas` que **sincroniza Contatos/Vendas/Financeiro/Produto/Tudo** com `oimpresso.com` via API. Migração pode ser **paralela** (cliente continua usando Delphi + ganha cloud) em vez de cutover.
 
 ## Como adicionar cliente novo
 
