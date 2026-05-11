@@ -82,7 +82,11 @@ class ContaBancariaController extends Controller
                     $gatewayClientId = $cfg['client_id'] ?? null;
                 }
 
-                $result = (array) $a;
+                // toArray(): converte Eloquent\Model corretamente em array plano.
+                // NÃO usar `(array) $a` aqui — PHP cast em Eloquent expõe propriedades protected
+                // com prefixo null-byte (`\x00*\x00attributes`...), quebra serialização Inertia
+                // (frontend recebe `Cc undefined` em vez do `name`).
+                $result = $a->toArray();
                 unset($result['gateway_config_json']); // nunca expõe segredos
                 $result['gateway_client_id'] = $gatewayClientId;
 
