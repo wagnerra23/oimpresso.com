@@ -21,7 +21,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sh
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
-import SectionNav from '@/Components/Financeiro/SectionNav';
 
 // ---------- Tipos ----------
 
@@ -252,7 +251,6 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
   return (
     <>
-      <SectionNav current="/financeiro/unificado" />
       <PageHeader
         icon="coins"
         title="Financeiro · Visão unificada"

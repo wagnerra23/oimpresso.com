@@ -1,7 +1,6 @@
 // @memcofre tela=/financeiro/categorias module=Financeiro
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import SectionNav from '@/Components/Financeiro/SectionNav';
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -69,7 +68,6 @@ function Index({ categorias, planos_conta }: Props) {
   return (
     <>
       <div className="p-6 max-w-5xl mx-auto space-y-6">
-        <SectionNav current="/financeiro/categorias" />
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
