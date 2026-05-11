@@ -388,6 +388,158 @@ transaction_documents
 
 **Refs:** US-SELL-011 (FSM base). Pré-requisito pra US-NFE-060 (EmitirNFSeJob).
 
+### US-SELL-015 · Modo "Grade Avançada" — toggle + layout densa base · **P0**
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
+> blocked_by: —
+
+**Contexto.** Power-user OfficeImpresso (gráficas — Vargas, Extreme, Gold, Zoom, Fixar, Produart) usa há 10-26 anos o grid Delphi DevExpress denso (30+ colunas, agrupamento, multiseleção, total rodapé). A Lista enxuta atual (5 colunas + 3 KPIs) é correta pra ROTA LIVRE/novos mas choca esse cliente. [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md) decide pelo **split via toggle no header** — `viewMode: 'lista' | 'grade-avancada'`, persistido em `localStorage` (`oimpresso.sells.viewMode`).
+
+**Escopo:**
+- [ ] Header `Sells/Index.tsx` ganha toggle "Lista | Grade Avançada" (segmented control à esquerda do "Nova venda")
+- [ ] Coluna `business.legacy_origin` (`nullable VARCHAR(32)`) — migration + preenchimento dos 6 candidatos OfficeImpresso saudáveis via seeder idempotente
+- [ ] `HandleInertiaRequests::share('sells.viewMode.default')` retorna `'grade-avancada'` se `business.legacy_origin === 'officeimpresso'` E user nunca tocou no toggle (`localStorage` vazio)
+- [ ] Componente `<GradeAvancadaLayout />` no mesmo arquivo `Sells/Index.tsx` — recebe `rows` + `meta` + handlers, monta tabela densa shadcn `<Table>` com colunas: Data emissão, Nº fatura, Cliente, Razão social, Total, Pago, Saldo, Status financeiro (badge), Status fiscal (badge), Funcionário, Data Faturamento, Placa (vazia pra não-frota)
+- [ ] Linha clicável → mesmo drawer `<SaleSheet>` (não duplica state)
+- [ ] Pest browser smoke: biz=1, modo "Grade Avançada", 100 vendas seed, screenshot OK
+- [ ] Charter `Sells/Index.charter.md` (S4 antecipado quando S4 vier — opcional agora) — Anti-hooks: "não duplicar fetch/state — só layout"
+
+**Acceptance criteria:**
+- [ ] Toggle aparece e alterna sem recarregar (re-render só do layout interno)
+- [ ] `localStorage['oimpresso.sells.viewMode']` persiste entre sessões
+- [ ] Cliente OfficeImpresso novo (sem `localStorage`) cai automático em Grade Avançada
+- [ ] Cliente novo qualquer (legacy_origin null) cai em Lista
+- [ ] Pest tests do `SellPosController@index` e `/sells-list-json` continuam verdes (zero mudança backend além da migration)
+- [ ] Visual comparison `memory/requisitos/Sells/sells-grade-avancada-visual-comparison.md` aprovado por Wagner antes de mergear (gate F3 — [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md))
+
+**Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md).
+
+### US-SELL-016 · Multiseleção + ações em lote (imprimir/exportar/agrupar) · **P0**
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
+> blocked_by: US-SELL-015
+
+**Contexto.** Grid Delphi tem checkbox por linha + barra de ações no topo quando ≥1 selecionada (Imprimir / Exportar Excel / Agrupar). Higiene UX 2026 pra qualquer grid empresarial (Mubisys, Zênite, Calcgraf, Conta Azul têm). Não depende de snapshot Firebird — sinal trivial.
+
+**Escopo:**
+- [ ] Coluna `<Checkbox />` à esquerda no `<GradeAvancadaLayout />` (header tem "selecionar todas as N filtradas")
+- [ ] Estado `selectedIds: Set<number>` em `SellsIndex`
+- [ ] Barra de ações flutuante (slide-down sobre o filter-pills) quando `selectedIds.size > 0`: botões "Imprimir seleção (PDF)", "Exportar CSV", "Agrupar por…" (dropdown — abre US-SELL-019 quando ela existir; agora dropdown vazio com tooltip "P1")
+- [ ] Endpoint POST `/sells/bulk-print` recebe `ids[]` retorna stream PDF (combina os DANFEs/PDFs já existentes; reusa lógica `SellController@printInvoice` chamada em loop)
+- [ ] Endpoint POST `/sells/bulk-export` retorna CSV das colunas visíveis no momento
+- [ ] Pest: 3 tests — multiseleção persiste em paginação, bulk-print retorna PDF válido, bulk-export retorna CSV com header das colunas
+
+**Acceptance criteria:**
+- [ ] Selecionar 5 vendas, clicar "Imprimir seleção" → 1 PDF com 5 DANFEs concatenadas
+- [ ] "Selecionar todas" respeita filtros aplicados (não seleciona vendas fora do filter)
+- [ ] Shift+click selecionar range entre 2 linhas (UX padrão grid moderno)
+- [ ] biz=1 isolation: user de biz=2 não consegue forjar IDs de biz=1 no payload
+
+**Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (bulk endpoints validam business_id de cada ID).
+
+### US-SELL-017 · Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
+> blocked_by: US-SELL-015
+
+**Contexto.** Delphi mostra "Total: R$ 16.763.317,54" ao pé do grid (soma dos filtros aplicados). Power-user gráfica chama esse número em **toda** demo. Falta no Inertia atual — KPI "Total" no topo é count (113), não soma R$. Cliente migrado vai sentir falta na hora.
+
+**Escopo:**
+- [ ] `/sells-list-json` retorna `totals: { count, sum_final_total, sum_total_paid, sum_due }` calculados com os mesmos `where` do query (não da página corrente — totais respeitam filtros mas não paginação)
+- [ ] `<GradeAvancadaLayout />` renderiza barra `<tfoot>` sticky-bottom: "Qtd: N vendas · Total: R$ X · Pago: R$ Y · A receber: R$ Z"
+- [ ] Modo "Lista" também ganha tfoot mínimo (Qtd + Total), atrás de um botão "Mostrar totais" (não polui Lista limpa por default)
+- [ ] Pest: 2 tests — totals respeitam filtro `payment_status=overdue`, totals respeitam search livre
+
+**Acceptance criteria:**
+- [ ] Filtrar "Atrasadas" → tfoot mostra `Qtd: 1 · Total: R$ 90,00` (caso atual da screenshot)
+- [ ] Limpar filtro → tfoot mostra `Qtd: 113 · Total: R$ X` (soma de todas)
+- [ ] Paginar pra página 3 não muda tfoot (totais são do filtro inteiro)
+
+**Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md). Performance: SUM no MySQL em índice `(business_id, payment_status)` já existente — sub-50ms pra 100k vendas.
+
 ---
 
-**Última atualização:** 2026-05-10 — sessão case fiscal BR (Wagner). Apêndice US-SELL-013/014 + caso prático Comunicação Visual + cross-refs em US-SELL-010/011/012. Findings do sub-agent FSM em [_AGENT_FSM_FINDINGS-2026-05-10.md](../../decisions/proposals/drafts/_AGENT_FSM_FINDINGS-2026-05-10.md) (alimenta ADR US-SELL-010).
+### Feature-wish — aguardando sinal qualificado (ADR 0105 + ADR 0136)
+
+> As US abaixo estão **listadas no SPEC mas NÃO ativadas no MCP** até ter sinal qualificado:
+> (a) snapshot Firebird via skill `officeimpresso-financial-snapshot` mostrando frequência de uso real, OU
+> (b) reclamação documentada de cliente migrado (≥1 em CRM/WhatsApp/email).
+>
+> Sem sinal, vira **feature-wish** ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Quando qualificada, `tasks-create` ativa a US e atribui owner/sprint.
+
+### US-SELL-018 · Filtros multi-data com presets Dia/Semana/Mês/Ano + custom · P1
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-015
+
+**Contexto.** Delphi tem botões verdes Dia/Semana/Mês/Ano + dropdown "Personalizado · Data:" com 6 opções (Última Alteração, Emissão NF, Emissão, Dt. Faturamento, Dt. Env. Faturamento, Dt. Competência, Dt. Prometido). Sinal pra ativar: snapshot Firebird mostrar ≥30% das sessões usando filter por data customizado.
+
+**Escopo (a especificar quando sinal confirmar):** botões `<Tabs>` Dia/Semana/Mês/Ano default `emissão`; dropdown "Tipo de data" pra trocar campo filtrado; date-range custom (popover `<DateRangePicker />`); URL deep-link `?date_from=...&date_to=...&date_field=transaction_date`.
+
+### US-SELL-019 · Agrupamento drag-to-group por campo do grid · P1
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-015
+
+**Contexto.** Delphi tem barra "Arraste uma coluna para fazer o agrupamento" no topo do grid. Cliente arrasta "Cliente" → vendas agrupadas por cliente com subtotal. Sinal: snapshot Firebird mostrar ≥20% das sessões usando agrupamento.
+
+**Escopo (a especificar):** TanStack Table `getGroupedRowModel`; drag-to-group via dnd-kit; subtotal por grupo (count + sum); expand/collapse por grupo; multi-level grouping (Cliente → Status → Mês).
+
+### US-SELL-020 · Especificação campo "Status" (financeiro vs produção vs fiscal — badges separados) · P1
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-015
+
+**Contexto.** Hoje "Status" é só financeiro (Pago/A receber/Parcial/Atrasada). Delphi mostra 3 status separados: Financeiro, Produção ("EM APROVAÇÃO", "ENTREGUE", "ORC APROVA…"), Fiscal (Rejeitada/Emitir). Sinal: reclamação cliente migrado.
+
+**Escopo (a especificar):** 3 colunas badge distintas — `Status Financeiro` (atual), `Status Produção` (depende US-SELL-023), `Status Fiscal` (já existe parcial via US-NFE-MANUAL).
+
+### US-SELL-021 · Especificação campo "Data" (qual data: emissão / NF / faturamento / competência / prometido) · P1
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-015
+
+**Contexto.** Hoje coluna "Data" mostra `transaction_date`. Delphi mostra 6 datas: Emissão, Última Alteração, Emissão NF, Dt. Faturamento, Dt. Env. Faturamento, Dt. Competência, Dt. Prometido. Sinal: reclamação cliente migrado ("qual data é essa?").
+
+**Escopo (a especificar):** header da coluna Data tem dropdown pra trocar qual data exibir; URL `?date_field=...` deep-link; tooltip mostra todas as 6 datas em hover.
+
+### US-SELL-022 · Sub-linha de produtos por venda (expandir linha) · P2
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-015
+
+**Contexto.** Delphi mostra produto + MEDIDAS · Quant · R$ Valor · R$ Total · Situação ao expandir uma venda inline no grid (sem abrir drawer). Útil pra gráfica que vende lona 5,60×3,10m. Sinal: snapshot Firebird mostrar ≥15% das sessões usando expandir.
+
+**Escopo (a especificar):** ícone chevron à esquerda da linha; fetch lazy dos itens da venda; render sub-tabela compacta.
+
+### US-SELL-023 · Status produção visível na lista (badge separado) · P2
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-020, FSM ([ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md))
+
+**Contexto.** Delphi mostra ENTREGUE/REIMPRESSÃO/EM APROVAÇÃO/ORC APROVA. Requer FSM produção (US-SELL-011 base + processo "Venda com Produção" novo) e mapping → badge.
+
+### US-SELL-024 · Campo "venda agrupada" explícito · P2
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-015
+
+**Contexto.** Delphi infere "está agrupada" do texto "ATIVO CRIADO" no campo Status (confuso pro cliente). Fazer certo: coluna boolean `is_grouped_invoice` + badge "Agrupada" quando true.
+
+### US-SELL-025 · Botões agrupamento rápido (1-click) · P3
+
+> owner: — · priority: p3 · estimate: 2h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-019
+
+**Contexto.** Telemetria pós-US-SELL-019 vai mostrar quais 3 agrupamentos são mais usados; vira botões 1-click ("Por Cliente", "Por Mês", "Por Status").
+
+### US-SELL-026 · Impressão batch de vendas selecionadas (PDF consolidado) · P3
+
+> owner: — · priority: p3 · estimate: 3h · status: todo · type: story · origin: aguarda-sinal-firebird
+> blocked_by: US-SELL-016
+
+**Contexto.** US-SELL-016 entrega "Imprimir seleção" combinando DANFEs. P3 estende pra layout consolidado (1 capa + N notas + 1 totalizador) — útil pra entregar lote físico ao cliente OfficeImpresso que recebia "Relatório de Vendas Selecionadas" do Delphi.
+
+---
+
+**Última atualização:** 2026-05-11 — sessão migração legacy OfficeImpresso (Wagner). [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md) split Lista/Grade Avançada + 12 US (US-SELL-015..026) — 3 P0 ativas, 9 feature-wish aguardando snapshot Firebird ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Findings FSM em [_AGENT_FSM_FINDINGS-2026-05-10.md](../../decisions/proposals/drafts/_AGENT_FSM_FINDINGS-2026-05-10.md).
