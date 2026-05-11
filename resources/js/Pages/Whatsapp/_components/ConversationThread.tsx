@@ -99,17 +99,34 @@ export default function ConversationThread({
   }, [liveConnected, conversation.id, reloadOnly.join(',')]);
 
   function handleSend() {
-    if (!composerText.trim() || sending) return;
-    setSending(true);
+    // US-WA-085: optimistic UI — clear composer IMEDIATAMENTE (sem esperar
+    // resposta do daemon que pode levar 2-5s no Hostinger). Não bloqueia
+    // sends subsequentes (atendente pode digitar próxima msg enquanto
+    // anterior está em flight).
+    //
+    // Como o InboxController::send PERSISTE Message com status='queued'
+    // ANTES de chamar daemon, o polling 5s / Centrifugo WSS traz a msg
+    // pra thread quase instantâneo com hourglass icon. Daemon confirma
+    // depois → status='sent' → MessageObserver updated → polling traz ✓.
+    // Daemon falha → status='failed' → bubble fica vermelha com alerta.
+    if (!composerText.trim()) return;
+    const textToSend = composerText;
+    setComposerText('');           // clear immediately
+    setSending(true);              // loader visual (sem bloquear)
     router.post(
       route(sendRouteName, conversation.id),
-      { kind: 'freeform', body: composerText },
+      { kind: 'freeform', body: textToSend },
       {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {
-          setComposerText('');
           router.reload({ only: reloadOnly });
+        },
+        onError: () => {
+          // Backend validação falhou — restaurar texto pro atendente
+          // reenviar sem retipar. Daemon error já fica como bubble failed
+          // via polling, não restaura nesse caso.
+          setComposerText(textToSend);
         },
         onFinish: () => setSending(false),
       },
@@ -300,7 +317,7 @@ export default function ConversationThread({
               variant="outline"
               size="sm"
               onClick={() => setTemplatePickerOpen(true)}
-              disabled={sending || templates.length === 0}
+              disabled={templates.length === 0}
               className="h-8"
               title={templates.length === 0
                 ? 'Nenhum template ready — cadastre em /whatsapp/templates'
@@ -308,8 +325,12 @@ export default function ConversationThread({
             >
               Template
             </Button>
-            <Button size="sm" onClick={handleSend} disabled={!composerText.trim() || sending} className="h-8">
-              {sending ? 'Enviando…' : 'Enviar'}
+            {/* US-WA-085: botão NÃO desabilita em `sending` — atendente pode
+                disparar próxima msg sem esperar daemon confirmar a anterior.
+                Feedback visual vem do bubble com hourglass icon (status='queued'),
+                que aparece via polling/Centrifugo <1s após o backend persistir. */}
+            <Button size="sm" onClick={handleSend} disabled={!composerText.trim()} className="h-8">
+              Enviar
             </Button>
           </div>
         </div>
