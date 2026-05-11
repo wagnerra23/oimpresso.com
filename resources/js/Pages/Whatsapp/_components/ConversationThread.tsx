@@ -14,6 +14,7 @@ import {
   X,
   ChevronUp,
   ChevronDown,
+  Ban,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -220,7 +221,10 @@ export default function ConversationThread({
     }
   }
 
-  const canSendFreeform = conversation.within_24h_window;
+  // US-WA-066: conv bloqueada = composer disabled (não dá pra enviar pra
+  // contato bloqueado). Janela 24h só importa se NÃO está bloqueado.
+  const isBlocked = !!conversation.is_blocked;
+  const canSendFreeform = conversation.within_24h_window && !isBlocked;
   const groupedMessages = useMemo(() => groupByDay(messages), [messages]);
 
   // Quando contact_name é igual ao phone (contato sem nome cadastrado),
@@ -281,6 +285,17 @@ export default function ConversationThread({
           >
             <Search size={14} aria-hidden />
           </Button>
+          {/* US-WA-066: badge BLOQUEADO em destaque vermelho — atendente vê
+              de longe que essa conv não recebe inbound novo. */}
+          {conversation.is_blocked && (
+            <Badge
+              variant="outline"
+              className="border-red-500 text-red-700 dark:text-red-400 dark:border-red-700 bg-red-50 dark:bg-red-950/30 text-[10px] inline-flex items-center gap-0.5"
+            >
+              <Ban size={10} aria-hidden />
+              BLOQUEADO
+            </Badge>
+          )}
           {conversation.within_24h_window ? (
             <Badge
               variant="outline"
@@ -423,7 +438,13 @@ export default function ConversationThread({
 
       {/* Composer */}
       <div className="border-t bg-card p-2.5 space-y-2 shrink-0">
-        {!canSendFreeform && (
+        {isBlocked && (
+          <div className="text-xs text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-700 rounded px-2.5 py-1.5 flex items-start gap-1.5">
+            <Ban size={12} className="mt-0.5 shrink-0" aria-hidden />
+            <span>Contato bloqueado. Inbound novo é descartado e envio está desabilitado. Desbloqueie no painel direito para reabrir.</span>
+          </div>
+        )}
+        {!isBlocked && !canSendFreeform && (
           <div className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 rounded px-2.5 py-1.5 flex items-start gap-1.5">
             <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden />
             <span>Janela 24h Meta fechada. Z-API/Baileys mandam freeform; Meta Cloud exige template HSM.</span>
@@ -432,9 +453,12 @@ export default function ConversationThread({
         <Textarea
           value={composerText}
           onChange={(e) => setComposerText(e.target.value)}
-          placeholder="Mensagem freeform…  (Enter envia · Shift+Enter quebra linha)"
+          placeholder={isBlocked
+            ? 'Contato bloqueado — envio desabilitado'
+            : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha)'}
           rows={2}
           className="resize-none"
+          disabled={isBlocked}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -452,9 +476,11 @@ export default function ConversationThread({
               variant="outline"
               size="sm"
               onClick={() => setTemplatePickerOpen(true)}
-              disabled={templates.length === 0}
+              disabled={templates.length === 0 || isBlocked}
               className="h-8"
-              title={templates.length === 0
+              title={isBlocked
+                ? 'Contato bloqueado — envio desabilitado'
+                : templates.length === 0
                 ? 'Nenhum template ready — cadastre em /whatsapp/templates'
                 : 'Enviar template HSM/LOCAL (única opção quando janela 24h Meta fechada)'}
             >
@@ -463,8 +489,9 @@ export default function ConversationThread({
             {/* US-WA-085: botão NÃO desabilita em `sending` — atendente pode
                 disparar próxima msg sem esperar daemon confirmar a anterior.
                 Feedback visual vem do bubble com hourglass icon (status='queued'),
-                que aparece via polling/Centrifugo <1s após o backend persistir. */}
-            <Button size="sm" onClick={handleSend} disabled={!composerText.trim()} className="h-8">
+                que aparece via polling/Centrifugo <1s após o backend persistir.
+                US-WA-066: disable em blocked (envio proibido). */}
+            <Button size="sm" onClick={handleSend} disabled={!composerText.trim() || isBlocked} className="h-8">
               Enviar
             </Button>
           </div>

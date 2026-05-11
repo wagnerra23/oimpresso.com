@@ -149,6 +149,9 @@ export interface ThreadConversation {
   tags?: ConvTag[];
   /** US-WA-064: Contact UltimatePOS vinculado (CRM). Null se não vinculado. */
   linked_contact?: LinkedContact | null;
+  /** US-WA-066: contato bloqueado — webhook inbound dropa msgs novas,
+   * composer fica disabled, badge "BLOQUEADO" no header. */
+  is_blocked?: boolean;
 }
 
 export interface CentrifugoConfig {

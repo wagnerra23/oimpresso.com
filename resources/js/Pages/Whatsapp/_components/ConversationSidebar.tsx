@@ -14,6 +14,8 @@ import {
   Mail,
   ExternalLink,
   X as XIcon,
+  Ban,
+  ShieldOff,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -47,6 +49,10 @@ interface Props {
   searchContactsRouteName?: string;
   /** US-WA-064: route name pra PATCH vincular/desvincular Contact à conv. */
   linkContactRouteName?: string;
+  /** US-WA-066: route name pra PATCH bloquear/desbloquear contato
+   * (ex: `atendimento.inbox.block`). Quando fornecido, renderiza botão
+   * "Bloquear" no card Ações. Omite pra esconder UI. */
+  blockRouteName?: string;
 }
 
 export default function ConversationSidebar({
@@ -56,9 +62,14 @@ export default function ConversationSidebar({
   updateTagsRouteName,
   searchContactsRouteName,
   linkContactRouteName,
+  blockRouteName,
 }: Props) {
   // US-WA-064: modal busca de Contact
   const [contactPickerOpen, setContactPickerOpen] = useState(false);
+  // US-WA-066: estado local pra confirmação inline antes do PATCH (evita
+  // clique acidental — bloquear contato é ação destrutiva, ROTA LIVRE 99%
+  // volume não pode perder cliente por erro de UI).
+  const [confirmingBlock, setConfirmingBlock] = useState(false);
   const sharedAuth = (usePage().props as any)?.auth?.user as { id?: number } | undefined;
   const currentUserId = sharedAuth?.id ?? null;
   const isMineAssigned = !!(conversation.assigned_user && currentUserId && conversation.assigned_user.id === currentUserId);
@@ -81,6 +92,20 @@ export default function ConversationSidebar({
       { contact_id: contactId },
       { preserveScroll: true, preserveState: true, only: reloadOnly },
     );
+  }
+
+  // US-WA-066: PATCH bloquear/desbloquear. UI optimistic (router.patch
+  // re-render via partial reload). Backend tolera 404 do daemon — UI
+  // refresh traz is_blocked atualizado.
+  function toggleBlock() {
+    if (!blockRouteName) return;
+    const shouldBlock = !conversation.is_blocked;
+    router.patch(
+      route(blockRouteName, conversation.id),
+      { block: shouldBlock },
+      { preserveScroll: true, preserveState: true, only: reloadOnly },
+    );
+    setConfirmingBlock(false);
   }
 
   // US-WA-063: toggle tag → sync array completo (substitui, não merge).
@@ -288,6 +313,59 @@ export default function ConversationSidebar({
             Aguardar humano
             {enableShortcuts && <kbd className="ml-auto text-[10px] opacity-60">A</kbd>}
           </Button>
+        )}
+        {/* US-WA-066: bloquear/desbloquear contato (anti-spam) */}
+        {blockRouteName && (
+          <>
+            <Separator className="my-2" />
+            {conversation.is_blocked ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 border-slate-500 text-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900/30"
+                onClick={toggleBlock}
+                title="Desbloquear contato — voltará a receber msgs no Inbox"
+              >
+                <ShieldOff size={14} aria-hidden />
+                Desbloquear contato
+              </Button>
+            ) : confirmingBlock ? (
+              <div className="space-y-1.5">
+                <div className="text-[11px] text-red-700 dark:text-red-400 px-1">
+                  Confirmar? Inbound futuro será dropado.
+                </div>
+                <div className="flex gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 border-red-500 text-red-700 dark:text-red-400 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    onClick={toggleBlock}
+                  >
+                    Sim, bloquear
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setConfirmingBlock(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 border-red-500 text-red-700 dark:text-red-400 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                onClick={() => setConfirmingBlock(true)}
+                title="Bloquear contato — para de receber msgs deste número (anti-spam)"
+              >
+                <Ban size={14} aria-hidden />
+                Bloquear contato
+              </Button>
+            )}
+          </>
         )}
       </Card>
 

@@ -180,6 +180,29 @@ class ChannelBaileysWebhookController extends Controller
             ], 200);
         }
 
+        // US-WA-066: drop inbound de conv blocked ANTES do firstOrCreate de Message.
+        // Verificação ANTES do firstOrCreate da Conversation pra NÃO criar conv
+        // nova com is_blocked. Se a conv não existe, deixa criar normalmente
+        // (não tem como bloquear o que nunca contataram).
+        $existingConv = Conversation::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $channel->business_id)
+            ->where('channel_id', $channel->id)
+            ->where('customer_external_id', $customerExternalId)
+            ->first();
+
+        if ($existingConv && $existingConv->is_blocked && ! $fromMe) {
+            // Inbound msg de contato bloqueado — drop silencioso (Wagner regra
+            // anti-spam US-WA-066). Não persiste Message, não bump unread_count,
+            // não emite evento Centrifugo. fromMe outbound ainda passa pq o
+            // atendente pode ter enviado msg programática antes do bloqueio.
+            return response()->json([
+                'ok' => true,
+                'note' => 'inbound_dropped_blocked',
+                'conversation_id' => $existingConv->id,
+            ], 200);
+        }
+
         // Pula global scope nas writes pq webhook não tem session user
         $conversation = Conversation::query()
             ->withoutGlobalScope(ScopeByBusiness::class)

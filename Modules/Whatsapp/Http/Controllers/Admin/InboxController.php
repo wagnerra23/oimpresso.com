@@ -323,6 +323,8 @@ class InboxController extends Controller
             'contact_name' => $c->contact_name ?? $c->customer_external_id,
             'status' => $c->status,
             'bot_handling' => (bool) $c->bot_handling,
+            // US-WA-066: flag de bloqueio — UI esconde composer + badge no header
+            'is_blocked' => (bool) $c->is_blocked,
             'within_24h_window' => $channel?->type === 'whatsapp_meta'
                 ? ($c->last_inbound_at && $c->last_inbound_at->diffInHours(now()) < 24)
                 : true,
@@ -516,6 +518,85 @@ class InboxController extends Controller
             ]);
             return back()->withErrors(['send' => 'Erro de rede com daemon: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * US-WA-066: PATCH `/atendimento/inbox/{id}/block` — toggle bloqueio do contato.
+     *
+     * Body: `{block: bool}` (true = bloquear, false = desbloquear).
+     *
+     * Comportamento:
+     *  1. Persiste `conversations.is_blocked` (defesa em profundidade — UI já
+     *     respeita esse flag mesmo sem daemon).
+     *  2. Chama daemon Baileys CT 100 `POST /instances/{id}/block` body
+     *     `{jid, action}` pra `sock.updateBlockStatus(jid, 'block'|'unblock')`.
+     *  3. Tolerância a 404 do daemon (graceful) — endpoint daemon pode não
+     *     existir ainda; backend NÃO falha pro user, apenas loga warning.
+     *     Ao Webhook inbound de conv blocked: handleMessage retorna
+     *     'inbound_dropped_blocked' 200 ANTES do firstOrCreate.
+     *
+     * Permission `whatsapp.send` (mesma escala operacional do updateStatus).
+     */
+    public function blockContact(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->with('channel')
+            ->findOrFail($id);
+
+        $payload = $request->validate([
+            'block' => ['present', 'boolean'],
+        ]);
+        $shouldBlock = (bool) $payload['block'];
+
+        // 1. Persiste flag — defesa em profundidade (UI respeita mesmo se daemon falhar)
+        $conversation->forceFill(['is_blocked' => $shouldBlock])->save();
+
+        // 2. Chama daemon CT 100 — tolera 404 (endpoint pode não existir ainda)
+        $channel = $conversation->channel;
+        if ($channel && $channel->type === Channel::TYPE_WHATSAPP_BAILEYS) {
+            $daemonUrl = config('whatsapp.baileys.daemon_url');
+            $apiKey = config('whatsapp.baileys.api_key');
+            $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
+            // JID Baileys: phone sem '+' + sufixo @s.whatsapp.net
+            $rawNumber = preg_replace('/^\+/', '', $conversation->customer_external_id);
+            $jid = $rawNumber . '@s.whatsapp.net';
+            $action = $shouldBlock ? 'block' : 'unblock';
+
+            try {
+                $response = Http::withToken($apiKey)
+                    ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
+                    ->timeout(10)
+                    ->post("{$daemonUrl}/instances/{$instanceId}/block", [
+                        'jid' => $jid,
+                        'action' => $action,
+                    ]);
+
+                if ($response->status() === 404) {
+                    // Daemon ainda não implementa o endpoint — graceful, não falha
+                    Log::warning('[atendimento.inbox.block] daemon endpoint missing (404 graceful)', [
+                        'channel_id' => $channel->id,
+                        'action' => $action,
+                    ]);
+                } elseif (! $response->successful()) {
+                    Log::warning('[atendimento.inbox.block] daemon error', [
+                        'channel_id' => $channel->id,
+                        'status' => $response->status(),
+                        'body' => mb_substr($response->body(), 0, 200),
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                // Erro de rede com daemon NÃO bloqueia o flag local — log + segue
+                Log::warning('[atendimento.inbox.block] daemon exception (graceful)', [
+                    'channel_id' => $channel->id,
+                    'exception' => mb_substr($e->getMessage(), 0, 200),
+                ]);
+            }
+        }
+
+        $msg = $shouldBlock ? 'Contato bloqueado.' : 'Contato desbloqueado.';
+        return back()->with('success', $msg);
     }
 
     /**
