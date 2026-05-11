@@ -82,4 +82,21 @@ class Message extends Model
     {
         return $this->belongsTo(Conversation::class);
     }
+
+    /**
+     * Atendente (humano) que enviou a mensagem outbound via web UI.
+     *
+     * Null quando:
+     * - inbound (cliente externo)
+     * - outbound do próprio chip (Wagner manda do celular — fora do oimpresso)
+     * - outbound do Bot (sender_kind='bot')
+     *
+     * Usado em US-WA-077 pra renderizar o nome do atendente acima da bubble
+     * na UI do Inbox (identifica QUAL agente do time enviou cada msg quando
+     * vários compartilham o mesmo chip).
+     */
+    public function senderUser(): BelongsTo
+    {
+        return $this->belongsTo(\App\User::class, 'sender_user_id');
+    }
 }

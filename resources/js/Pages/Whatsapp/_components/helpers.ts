@@ -76,6 +76,12 @@ export interface Message {
   status: string;
   failed_reason: string | null;
   sender_kind: 'human' | 'bot' | 'system' | null;
+  /**
+   * Nome curto do atendente que enviou (web UI). Populado em outbound
+   * com `sender_kind='human'` quando enviado via `/atendimento/inbox`.
+   * Null em inbound, outbound de chip externo (celular), ou bot. US-WA-077.
+   */
+  sender_user_name?: string | null;
   created_at: string;
 }
 
