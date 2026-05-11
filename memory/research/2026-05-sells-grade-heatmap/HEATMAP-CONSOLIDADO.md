@@ -21,22 +21,25 @@ version: v2 (correções Wagner — Q7 lê EQUIPAMENTO_VEICULO, Q3 lê 3 fontes,
 
 | Cliente | Vendas 24m | Veículos | PLACA | PLACA2 | CHASSI | PCP (centro_trab) | Status (situacao+estagio) | **Vertical real** |
 |---------|-----------:|---------:|------:|-------:|-------:|------------------:|--------------------------:|-------------------|
-| **WR Sistemas (Wagner)** | 180 | 102 (sujos) | 0% | 0% | 0% | 0 | 16+10 (catalog vazio) | gráfica toy |
-| **Vargas** | 3.979 | **1.064** | **80%** | **20%** | **19%** | 0 | 1 distinct (vazio) | **gráfica + frota** ⚠️ |
+| **WR Sistemas (Wagner)** | 180 | 102 (sujos) | 0% | 0% | 0% | 0 | 16+10 (catalog vazio) | ERP fornecedor (toy) |
+| **Vargas** | 3.979 | **1.064** | **80%** | **20%** | **19%** | 0 | 1 distinct (vazio) | **oficina recapagem caminhão** (cavalo+reboque) |
 | **Extreme** | 16.910 | 0 | — | — | — | **52.473** | 1 distinct (vazio) | **gráfica industrial PCP** |
-| **Gold** | 8.176 | 0 | — | — | — | 0 | 7+5 (29k EM PRODUÇÃO) | **gráfica c/ funil produção** |
-| **Martinho Caçambas** | (n/a Q1) | 91 | **96%** | 0% | 0% | 0 | 8+6 (status inline) | **oficina caçambas** |
+| **Gold** | 8.176 | 0 | — | — | — | 0 | 7+5 (29k EM PRODUÇÃO) | **comunicação visual** (sob demanda c/ prazo) |
+| **Martinho Caçambas** | (n/a Q1) | 91 | **96%** | 0% | 0% | 0 | 8+6 (status inline) | **oficina caçamba avulsa** |
+
+**Correção 2026-05-11 (Wagner):** v2 inicial classificou Vargas como "gráfica + frota" e Gold como "gráfica genérica". Errado:
+- **Vargas é oficina GRANDE de recapagem de caçamba de caminhão** — os 1.064 veículos são os caminhões dos clientes deles. PLACA2/CHASSI2 = cavalo+reboque (semi-reboque tem placa+chassi próprios).
+- **Gold é comunicação visual** — banner/fachada/sinalização sob demanda. DT_PROMETIDO 85% + 29k EM PRODUÇÃO = funil produção formal pra comvis personalizada.
 
 **Descoberta arquitetural mais importante do exercício:**
 
-🚨 **A premissa "1 business = 1 vertical = 1 layout" é FALSA.**
+🎯 **2 de 4 candidatos saudáveis são OFICINA** (Vargas grande + Martinho menor). Isso **qualifica o sinal pra `Modules/OficinaAuto`** ([ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) listava como "⏸️ aguardando sinal qualificado" — agora qualificado).
 
-- **Vargas é gráfica + frota** — 1.064 veículos com PLACA + PLACA2 + CHASSI + CHASSI2 cadastrados. Provavelmente adesivagem veicular / envelopamento / comunicação visual veicular OU logística própria de entrega. Cliente híbrido.
-- **Extreme é gráfica industrial com PCP** mas zero status estruturado — opera por **centro de trabalho** (Roland, Mimaki, HP Latex?) com 52k linhas em `VENDA_PRODUTO_CENTRO_TRABALHO`, sem precisar de status formal.
-- **Gold é gráfica com funil produção textual** — 7 status distintos no `VENDA.SITUACAO` ("EM PRODUÇÃO", "FINALIZADA", "ATIVO CRIADO", etc) + tabela lookup, mas zero PCP estruturado.
-- **Martinho é oficina pura** — 91 veículos com PLACA 96%, status estruturado (8 distinct + lookup 6).
-
-**Implicação direta:** Grade Avançada **NÃO pode ser configurada por `vertical` declarado** (gráfica vs oficina). Tem que ser **schema-driven**: detecta features reais no banco do cliente e configura colunas/badges dinamicamente. Isso reforça **US-SELL-027 (schema discovery)** como peça arquitetural central.
+**Demais descobertas:**
+- **Extreme é gráfica industrial com PCP por centro de trabalho** (52k linhas em `VENDA_PRODUTO_CENTRO_TRABALHO`) — feature `Modules/ComunicacaoVisual` ou novo `Modules/Pcp` precisa cobrir
+- **Gold é canary natural pra `Modules/ComunicacaoVisual`** — DT_PROMETIDO + status produção textual + zero veículos/PCP = comvis "padrão" sob demanda
+- **Martinho é piloto natural pra `Modules/OficinaAuto`** — caso simples (PLACA única, 8 status) antes de migrar Vargas (cavalo+reboque, custom)
+- **Schema do Delphi varia muito entre clientes** — DT_PROMETIDO só Gold; PCP só Extreme; multi-placa só Vargas → **US-SELL-027 (schema discovery) é peça arquitetural central**, P0 confirmada
 
 ## 2. Heatmap por dimensão
 

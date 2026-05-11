@@ -572,33 +572,34 @@ transaction_documents
 
 **Refs:** US-SELL-015 (toggle base), US-SELL-021 (header dropdown qual data lê de features). [HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) §1 origem da US.
 
-### US-SELL-028 · Auto-deteção de business multi-vertical (gráfica + frota) · **P2 (emergente v2)**
+### US-SELL-028 · Modules/OficinaAuto — schema com multi-placa (cavalo+reboque) · **P1 (emergente v3 — recalibrada)**
 
-> owner: — · priority: p2 · estimate: 3h · status: todo · type: story · origin: heatmap-v2-2026-05-11-vargas-hibrido
-> blocked_by: US-SELL-027
-> evidence: Vargas tem **1.064 veículos cadastrados (80% PLACA)** + 3.979 vendas gráficas 24m. Premissa "1 business = 1 vertical" do `oimpresso.com/Modules/<Vertical>` quebra. Discovery v2 deve aceitar **features de múltiplas verticais simultâneas** no mesmo business
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: heatmap-v3-2026-05-11-vargas-recapagem
+> blocked_by: ADR `Modules/OficinaAuto` qualificada (futuro amend de ADR 0121)
+> evidence: 2 de 4 candidatos OfficeImpresso saudáveis são oficina (Vargas grande recapagem caminhão + Martinho caçambas avulsas). Vargas exige multi-placa (PLACA2 20%, CHASSI2 8%) — cavalo+reboque. Martinho usa só PLACA simples (96%). Schema deve cobrir ambos casos: PLACA obrigatória + PLACA_SECUNDARIA opcional + CHASSI opcional + CHASSI_SECUNDARIO opcional. Ver [perfil Vargas](../../research/clientes-legacy-officeimpresso/02-vargas-recapagem/01-perfil.md) e [perfil Martinho](../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md)
 
-**Contexto.** Vargas é o caso paradigmático — gráfica + frota (provavelmente comunicação visual veicular, adesivagem, envelopamento ou logística própria de entrega). Não cabe em "Modules/ComunicacaoVisual XOR Modules/OficinaAuto" — precisa ambos.
+**Contexto.** v3 corrigiu inferência inicial (v2 dizia Vargas "gráfica + frota"; Wagner clarificou que é **oficina de recapagem de caçamba de caminhão**). Logo, premissa multi-vertical do v2 cai. O caso real: oficina-auto tem schema **com PLACA simples (caso majoritário Martinho)** + **PLACA secundária opcional pro cavalo+reboque (caso Vargas)**.
 
 **Escopo:**
-- [ ] `business.legacy_origin_features` JSON aceita estrutura `{ "verticais_detectados": ["grafica", "frota"], "evidencias": { "grafica": "9k VENDA_PRODUTO + agrupamento_pct=65", "frota": "1064 EQUIPAMENTO_VEICULO + PLACA_pct=80" } }`
-- [ ] `<GradeAvancadaLayout/>` renderiza colunas dos N verticais detectados (não apenas 1)
-- [ ] UI admin `/admin/businesses/{id}/legacy-features` permite priorizar visualmente (ex: gráfica primária + frota colapsada/secundária)
-- [ ] Pest: 1 test — business com 2 verticais detectados renderiza colunas dos dois layouts
+- [ ] `Modules/OficinaAuto/Models/Veiculo.php` com:
+  - `placa` (obrigatório)
+  - `placa_secundaria` (opcional, pra cavalo+reboque)
+  - `chassi` (opcional)
+  - `chassi_secundario` (opcional)
+  - `ano_fabricacao`, `ano_modelo`, `renavam` (opcionais)
+  - `tipo` (caminhão, caminhonete, cavalo, semi-reboque, caçamba-estacionária)
+- [ ] Migration com `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+- [ ] UI cadastro veículo com seção "Cavalo+Reboque" colapsável (só preenche quando `tipo IN (cavalo, semi-reboque)`)
+- [ ] Importador legacy mapeia `EQUIPAMENTO_VEICULO.PLACA2/CHASSI2` → `placa_secundaria/chassi_secundario`
+- [ ] Pest: 3 tests — veículo simples Martinho, veículo cavalo+reboque Vargas, isolation multi-tenant
 
 **Acceptance criteria:**
-- [ ] Vargas cai com Grade mostrando colunas gráficas (Data·Cliente·Total·Itens) + bloco colapsado "Veículo" (PLACA·PLACA2·CHASSI quando expandido)
-- [ ] Extreme cai sem bloco veículo (zero veículos cadastrados)
-- [ ] Martinho cai com Grade priorizando veículo (Vertical primário = frota)
+- [ ] Martinho importa 91 veículos com PLACA única (PLACA_SECUNDARIA null)
+- [ ] Vargas importa 1.064 veículos, 216 com PLACA_SECUNDARIA preenchida (cavalo+reboque)
+- [ ] OS aberta pra veículo Vargas exibe ambas placas no resumo
 
-**Refs:** US-SELL-027, [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) (modular especializado — precisa ser amended pra cobrir caso multi-vertical), [HEATMAP-CONSOLIDADO.md §1](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md).
+**Refs:** US-SELL-027 (schema discovery alimenta features OficinaAuto), [HEATMAP-CONSOLIDADO §3.3](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md), perfis 02-vargas + 05-martinho.
 
 ---
 
-**Última atualização:** 2026-05-11 tarde — **heatmap v2** com correções Wagner (Q7 EQUIPAMENTO_VEICULO; Q3 lê 3 fontes; +Q8 PCP; +Q9 obra). 5 clientes amostrados (WR2 + Vargas + Extreme + Gold + Martinho). **Descobertas críticas v2:**
-1. **Vargas é gráfica + frota** (1.064 veículos PLACA 80%; CHASSI/PLACA2 confirmam frota mista) → premissa "1 business=1 vertical" inválida
-2. **Status estruturado tem 3-4 fontes diferentes** (`VENDA.SITUACAO` inline · `VENDA_SITUACAO` lookup · `VENDA_ESTAGIO` FSM · `VENDA_PRODUTO_CENTRO_TRABALHO` PCP) — varia por cliente
-3. **PCP só em Extreme** (52k linhas centro_trabalho); Gold usa status textual; Vargas/Martinho nenhum
-4. **VENDA_OBRA não existe** — descartado
-
-**Mudanças v2:** US-SELL-027 P1→**P0** (centralidade ainda maior); +**US-SELL-028** (vertical-mixto, P2). Total: **5 P0 + 4 P1 + 4 P2 + 1 P3 = 14 US**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
+**Última atualização:** 2026-05-11 noite — **heatmap v3** com correções Wagner sobre classificação: Vargas = **oficina recapagem caminhão** (não gráfica+frota); Gold = **comunicação visual** (não gráfica genérica). Pasta de inteligência por cliente criada em [`memory/research/clientes-legacy-officeimpresso/`](../../research/clientes-legacy-officeimpresso/) com 5 perfis + LGPD protocol + cross-analysis. **Mudança v3:** US-SELL-028 redirecionada — não é mais "multi-vertical" e sim "schema multi-placa pra Modules/OficinaAuto" (P2→P1). **Sinal qualificado pra Modules/OficinaAuto obtido** (2 de 4 clientes = 50% do sample). Total: **5 P0 + 5 P1 + 3 P2 + 1 P3 = 14 US**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
