@@ -44,6 +44,8 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   copiloto: Bot,
   ads: ShieldCheck,
   conector: Plug,
+  'office impresso': Plug,
+  officeimpresso: Plug,
   'transferências de ações': ArrowRightLeft,
   'ajuste de estoque': PackageCheck,
   'gestão de ativos': Box,
