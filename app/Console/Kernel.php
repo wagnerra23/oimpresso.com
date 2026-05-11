@@ -259,6 +259,19 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-RB-045 — Sincroniza saldo Asaas/Inter pra contas_bancarias.saldo_cached.
+        // Sem este schedule, dashboard /financeiro mostra "—" (saldo_cached NULL).
+        // Hourly: latência aceitável vs custo de chamadas API gateways.
+        $schedule->command('rb:sync-bank-balances')
+            ->hourly()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule rb:sync-bank-balances FALHOU — saldo Asaas/Inter ficará stale no dashboard /financeiro'
+                );
+            });
+
         if ($env === 'demo') {
             //IMPORTANT NOTE: This command will delete all business details and create dummy business, run only in demo server.
             $schedule->command('pos:dummyBusiness')
