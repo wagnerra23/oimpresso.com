@@ -547,30 +547,70 @@ transaction_documents
 
 ### US-SELL-027 · Schema discovery dinâmico Grade Avançada · **P0 (subida v2!)**
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: heatmap-v2-2026-05-11
+> owner: — · priority: p0 · estimate: **10h** (aumentou v4 — parser DFM) · status: todo · type: story · origin: heatmap-v2-2026-05-11
 > blocked_by: US-SELL-015
-> evidence: heatmap v2 (correções Wagner) confirmou que schema OfficeImpresso varia ainda mais do que v1 imaginava — não só campos de data (DT_PROMETIDO só Gold), mas também tabelas inteiras de PCP (`VENDA_PRODUTO_CENTRO_TRABALHO` só Extreme, 52k linhas), status (Gold/Martinho usam inline `SITUACAO`; Vargas/Extreme não), e veículos (`EQUIPAMENTO_VEICULO`: Vargas 1064, Martinho 91, Extreme/Gold zero). Hardcoded coluna quebra Grade quando troca cliente
+> evidence: heatmap v2 (correções Wagner) + probe `CONFIGURACOES_GRID` v4 (Agent B PR #545) revelou **5ª dimensão** crítica que v2/v3 não previam — config de coluna do user vive em **BLOB DFM DevExpress serializado** dentro da tabela `CONFIGURACOES_GRID` Firebird, não em colunas estruturadas
 
-**Contexto v2.** Discovery atravessa 4 dimensões (não 1 como v1 supunha):
-1. **Colunas data** em `VENDA` (`DT_PROMETIDO`, `DT_COMPETENCIA`, `DT_ENVIO_FATURAMENTO` — variam por cliente)
+**Contexto v4 (atualização pós-PR #545):**
+
+Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
+
+1. **Colunas data** em `VENDA` (`PROJETO_DT_FIM` que é "Dt. Prometido", `DT_COMPETENCIA`, `DT_ENVIO_FATURAMENTO` — variam por cliente — corrigido pelo mapping source-first PR #540)
 2. **Fontes status** (`VENDA.SITUACAO` inline · `VENDA_SITUACAO` lookup · `VENDA_ESTAGIO` FSM · `VENDA_PRODUTO_CENTRO_TRABALHO` PCP — clientes usam UMA das 4, raramente combinam)
-3. **Veículos** em `EQUIPAMENTO_VEICULO` (Vargas 80% PLACA + 20% PLACA2 + 19% CHASSI — frota mista; Martinho 96% PLACA pura; Extreme/Gold zero)
+3. **Veículos** em `EQUIPAMENTO_VEICULO` (Vargas 80% PLACA + 20% PLACA2 + 19% CHASSI — recapagem cavalo+reboque; Martinho 96% PLACA pura; Extreme/Gold zero)
 4. **Agrupamento** (`CODFINANCEIRO_GRUPO` — universal 34-65% das linhas; sempre detectar)
+5. **⚠️ NOVO v4:** Config de coluna do user vive em **BLOB DFM DevExpress** dentro de `CONFIGURACOES_GRID.GRID` (~12-16KB binário por config). Parser ASCII detecta `TcxGridDBColumn`/`Visible: True/False`/`GroupIndex`/`SortOrder`. Achados PR #545:
+   - **42 colunas declaradas, 13-18 visíveis avg** (clientes filtram 60-70% por default — defeito do default!)
+   - **Quantidade de grids salvos = proxy company size** (Vargas 548 / Martinho 690 / WR2 253) — útil pra qualificar lead pré-demo
+   - **Agrupamento usado em 2/5 clientes** (Cliente_F8E47B 12.5% e Cliente_3A1E70 33.3%) — confirma US-SELL-019 P1 **condicional** (não universal)
+   - **Sort persistido = 0%** — NÃO priorizar persistência de sort no V1 Grade Avançada (low impact)
 
-**Escopo:**
-- [ ] Job artisan `officeimpresso:discover-schema {business_id}` rodado uma vez no setup quando `business.legacy_origin = 'officeimpresso'`: conecta ao Firebird do cliente (configuração `business.legacy_firebird_dsn`), dumpa colunas de `VENDA`, conta `% preenchimento` e `count(distinct)` de campos-chave. Salva em `business.legacy_origin_features` (JSON column nova).
-- [ ] `business.legacy_origin_features` schema: `{"venda_columns": [...], "date_fields": {"DT_EMISSAO": 100, "DT_PROMETIDO": 85, ...}, "situacao_distinct": 7, "tem_workflow": true}`
+**Escopo atualizado:**
+
+- [ ] Job artisan `officeimpresso:discover-schema {business_id}` rodado uma vez no setup quando `business.legacy_origin = 'officeimpresso'`:
+  - Conecta ao Firebird do cliente (configuração `business.legacy_firebird_dsn`)
+  - Dumpa colunas de `VENDA`, conta `% preenchimento` e `count(distinct)` de campos-chave (dimensões 1-4)
+  - **NOVO:** lê `CONFIGURACOES_GRID` filtrando `WHERE FORM LIKE '%Venda%' AND ATIVO='S'`, parse BLOB DFM via biblioteca Python ou script PHP que extrai colunas visíveis/agrupamento via regex ASCII
+  - Salva em `business.legacy_origin_features` (JSON column nova)
+- [ ] `business.legacy_origin_features` schema **expandido** (v4):
+  ```json
+  {
+    "venda_columns": [...],
+    "date_fields": {"DT_EMISSAO": 100, "PROJETO_DT_FIM": 85, ...},
+    "situacao_distinct": 7,
+    "tem_workflow": true,
+    "user_grid_configs": {
+      "Lista de Vendas": {
+        "configured_users": 12,
+        "common_visible_columns": ["DT_EMISSAO", "RAZAOSOCIAL", "TOTAL", ...],
+        "rarely_visible": ["DT_COMPETENCIA", "PROJETO_DT_FIM"],
+        "agrupamento_usado": false,
+        "grids_total": 548
+      }
+    }
+  }
+  ```
 - [ ] `HandleInertiaRequests::share('sells.legacy_features')` propaga JSON pra Inertia
-- [ ] `<GradeAvancadaLayout/>` lê features e configura colunas dinamicamente: coluna existe? `% > LIMIAR_VISIVEL (10%)`? renderiza com badge no header "Δ heatmap" mostrando %; senão, esconde
+- [ ] `<GradeAvancadaLayout/>` lê features e configura colunas dinamicamente: coluna existe? `% > LIMIAR_VISIVEL (10%)`? renderiza; senão, esconde. **NOVO:** colunas em `user_grid_configs.common_visible_columns` ficam visíveis por default (preserva fluxo do user OfficeImpresso); restante colapsável.
 - [ ] UI admin `/admin/businesses/{id}/legacy-features` permite ajustar colunas visíveis manualmente (override do discovery)
-- [ ] Pest: 3 tests — discovery cria JSON, layout esconde coluna ausente, override admin persiste
+- [ ] **NOVO:** Script standalone `scripts/probe_configuracoes_grid_blob.py` (parser DFM) virou base — incorporar via wrapper PHP no artisan
+- [ ] Pest: 4 tests — discovery cria JSON, layout esconde coluna ausente, override admin persiste, parser DFM extrai colunas corretamente de fixture BLOB
 
-**Acceptance criteria:**
-- [ ] Cliente Gold cai com `DT_PROMETIDO` + `DT_EMISSAO` + `DT_FATURAMENTO` + `SITUACAO` visíveis (1 distinct < 2 ainda esconde)
-- [ ] Cliente Vargas cai com `DT_EMISSAO` + `DT_COMPETENCIA` + `DT_FATURAMENTO` + `DT_ENVIO_FATURAMENTO` visíveis; `DT_PROMETIDO` e `SITUACAO` escondidos automaticamente
+**Acceptance criteria atualizado:**
+
+- [ ] Cliente Gold cai com `PROJETO_DT_FIM` + `DT_EMISSAO` + `DT_FATURAMENTO` + `SITUACAO` visíveis (heatmap confirma uso)
+- [ ] Cliente Vargas cai com `DT_EMISSAO` + `DT_COMPETENCIA` + `DT_FATURAMENTO` + `DT_ENVIO_FATURAMENTO` + `PLACA`/`PLACA2`/`CHASSI`/`CHASSI2` visíveis (recapagem); `PROJETO_DT_FIM` escondido automaticamente
+- [ ] Cliente Extreme cai com `PROJETO_DT_FIM` + `DT_EMISSAO` + `DT_FATURAMENTO` + `DT_ENVIO_FATURAMENTO` visíveis (gráfica industrial PCP); zero veículo
+- [ ] Cliente Martinho cai com `PLACA` (sem 2ª) + `DT_EMISSAO` + status `VENDA_ESTAGIO`/`VENDA_SITUACAO` visíveis
 - [ ] Zero linha de código de Grade Avançada referencia coluna específica — tudo via lookup `legacy_origin_features.columns`
+- [ ] Wagner pode verificar "company size" do cliente novo via 1 query no artisan (pré-demo lead qualification)
 
-**Refs:** US-SELL-015 (toggle base), US-SELL-021 (header dropdown qual data lê de features). [HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) §1 origem da US.
+**Refs:**
+- US-SELL-015 (toggle base), US-SELL-021 (header dropdown qual data lê de features — mergeado PR #548)
+- [HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) §1 origem da US
+- **[CONFIGURACOES-GRID.md](../../research/clientes-legacy-officeimpresso/_MAPPING/CONFIGURACOES-GRID.md)** ⭐ mapping canônico tabela + schema BLOB DFM + sinais (PR #545)
+- Skill [officeimpresso-source-analysis](../../../.claude/skills/officeimpresso-source-analysis/SKILL.md)
+- Scripts: `scripts/probe_configuracoes_grid.py` + `scripts/probe_configuracoes_grid_blob.py` (PR #545)
 
 ### US-SELL-028 · Modules/OficinaAuto — schema com multi-placa (cavalo+reboque) · **P1 (emergente v3 — recalibrada)**
 
