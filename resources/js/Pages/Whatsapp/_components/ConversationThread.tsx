@@ -37,10 +37,14 @@ interface Props {
   reloadOnly: string[];
   /** Botão "← inbox" só aparece em rota permalink (Show). */
   backHref?: string;
+  /** Route name pro POST de envio (default whatsapp.conversations.send legacy).
+   * Inbox novo passa 'atendimento.inbox.send' (US-WA-069). */
+  sendRouteName?: string;
 }
 
 export default function ConversationThread({
   conversation, messages, centrifugoConfig, templates, reloadOnly, backHref,
+  sendRouteName = 'whatsapp.conversations.send',
 }: Props) {
   const [composerText, setComposerText] = useState('');
   const [sending, setSending] = useState(false);
@@ -98,7 +102,7 @@ export default function ConversationThread({
     if (!composerText.trim() || sending) return;
     setSending(true);
     router.post(
-      route('whatsapp.conversations.send', conversation.id),
+      route(sendRouteName, conversation.id),
       { kind: 'freeform', body: composerText },
       {
         preserveScroll: true,
@@ -120,7 +124,7 @@ export default function ConversationThread({
     if (sending) return;
     setSending(true);
     router.post(
-      route('whatsapp.conversations.send', conversation.id),
+      route(sendRouteName, conversation.id),
       { kind: 'template', ...payload },
       {
         preserveScroll: true,

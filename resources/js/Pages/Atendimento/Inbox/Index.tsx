@@ -199,6 +199,7 @@ export default function InboxIndex({
               centrifugoConfig={centrifugoConfig}
               templates={[] as ReadyTemplate[]}
               reloadOnly={['thread', 'messages']}
+              sendRouteName="atendimento.inbox.send"
             />
           ) : (
             <Card className="h-full flex items-center justify-center bg-muted/20">
