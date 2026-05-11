@@ -14,8 +14,9 @@
 //   - Atalhos J/K (lista) + E/A (sidebar) + / (foca search) — ADR 0039 §2
 //   - Persistência: oimpresso.whatsapp.{tab,q,thread} em localStorage (R-DS-012)
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
+import { ChevronLeft } from 'lucide-react';
 import { Icon } from '@/Components/Icon';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -84,6 +85,15 @@ export default function ConversationsIndex({
     lsSet(LS.THREAD, thread?.id ? String(thread.id) : null);
   }, [thread?.id]);
 
+  // Sidebar direita colapsável (Wagner 2026-05-11) — monitor pequeno (1024-1366px)
+  // fica apertado com lista 384 + sidebar 320 fixos. Persiste preferência em LS.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => lsGet(LS.SIDEBAR_COLLAPSED) === '1',
+  );
+  useEffect(() => {
+    lsSet(LS.SIDEBAR_COLLAPSED, sidebarCollapsed ? '1' : null);
+  }, [sidebarCollapsed]);
+
   // Polling fallback 5s — Centrifugo CT 100 não exposto publicamente.
   // Mesmo padrão NfeBrasil (US-NFE-002). Hook abstrai a fonte; quando
   // Centrifugo for exposto via Traefik público + secrets em .env, basta
@@ -114,7 +124,7 @@ export default function ConversationsIndex({
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-7rem)] gap-2">
+    <div className="flex flex-col flex-1 min-h-0 gap-2">
       {/* Header compacto */}
       <div className="flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
@@ -173,12 +183,25 @@ export default function ConversationsIndex({
 
         {/* Painel DIREITO — sidebar contexto/ações (só quando thread aberta) */}
         {thread && (
-          <div className="hidden lg:block min-h-0">
-            <ConversationSidebar
-              conversation={thread}
-              reloadOnly={['thread']}
-              enableShortcuts
-            />
+          <div className="hidden lg:flex flex-col min-h-0">
+            {sidebarCollapsed ? (
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(false)}
+                className="w-8 h-full border rounded bg-card hover:bg-accent flex items-start justify-center pt-3 text-muted-foreground hover:text-foreground transition-colors"
+                title="Expandir painel de contexto"
+                aria-label="Expandir painel"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            ) : (
+              <ConversationSidebar
+                conversation={thread}
+                reloadOnly={['thread']}
+                enableShortcuts
+                onCollapse={() => setSidebarCollapsed(true)}
+              />
+            )}
           </div>
         )}
       </div>
