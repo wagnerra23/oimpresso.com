@@ -29,7 +29,7 @@
 
 ## Memória/governança
 
-- ⛔ **ZERO auto-mem privada** ([ADR 0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)). Hook `block-automem.ps1` BLOQUEIA `Write/Edit` em `~/.claude/projects/*/memory/*.md`
+- ⛔ **ZERO auto-mem privada legada** ([ADR 0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) + [ADR 0131](decisions/0131-tiering-memoria-canonico-local-segredo.md)). Hook `block-automem.ps1` BLOQUEIA `Write/Edit` em `~/.claude/projects/*/memory/*.md`. **Escape valves legítimas (ADR 0131):** (a) `~/.claude/oimpresso-local/**` pra máquina-local pessoal; (b) Vaultwarden pra segredos. Critério: segredo? → Vaultwarden; só seu? → oimpresso-local; time precisa ver? → git canônico
 - ⛔ **Não duplicar info entre sistemas.** Git é canônico; MCP é cache governado
 - ⛔ **ADRs CANON são append-only.** NUNCA editar accepted records — criar nova com `supersedes: [N]`
 - ⛔ **Tasks NÃO em markdown.** Estado vivo via tools MCP (`cycles-active`, `tasks-list`) — CURRENT.md/TASKS.md REMOVIDOS ([ADR 0070](decisions/0070-jira-style-task-management-current-md-removed.md))

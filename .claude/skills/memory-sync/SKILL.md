@@ -21,7 +21,8 @@ Triggers literais:
 - "salve no cofre" / "guarde no cofre" / "grave na memória"
 - "atualiza/cria SPEC/ADR/session log"
 - Após Write/Edit em `memory/**`, `MEMORY.md`, `TEAM.md`, `CLAUDE.md`, `DESIGN.md`, `INFRA.md`, `MANUAL_CLAUDE_CODE.md`, `HOW_TO_ASK_CLAUDE.md`
-- Após criar arquivo em `memory/decisions/`, `memory/sessions/`, `memory/requisitos/<Mod>/` (incluindo `SPEC.md` que é canônico TaskRegistry — ADR 0070)
+- Após criar arquivo em `memory/decisions/`, `memory/sessions/`, `memory/handoffs/`, `memory/requisitos/<Mod>/` (incluindo `SPEC.md` que é canônico TaskRegistry — ADR 0070)
+- **ANTES** de Write em `memory/handoffs/*.md` ([ADR 0130](../../../memory/decisions/0130-handoff-append-only-mcp-first.md)) — checklist MCP-first OBRIGATÓRIO, veja seção dedicada
 - ⚠️ `CURRENT.md`/`TASKS.md` REMOVIDOS (ADR 0070) — tasks vão pra tools MCP `tasks-create`/`tasks-update`/`tasks-comment`, status do cycle via `cycles-active`/`cycle-goals-track`
 - Após decisão arquitetural ou pattern novo
 
@@ -39,6 +40,25 @@ Triggers literais:
 - ❌ Usar `--no-verify` (gitleaks/pre-commit existem por razão)
 - ❌ Pular `/sync-mem` "porque é mudança pequena" — pequena também precisa ir pro MCP
 - ❌ Recriar `CURRENT.md`/`TASKS.md` — foram removidos pelo ADR 0070; tasks ficam em `mcp_tasks` via tools
+- ❌ **Sobrescrever `memory/08-handoff.md` ou editar handoff antigo em `memory/handoffs/`** — append-only desde [ADR 0130](../../../memory/decisions/0130-handoff-append-only-mcp-first.md). Veja seção dedicada abaixo.
+
+## Handoff append-only — MCP-first OBRIGATÓRIO (ADR 0130)
+
+`memory/08-handoff.md` é **índice puro**. Narrativa de fechamento vai em arquivo novo em `memory/handoffs/YYYY-MM-DD-HHMM-<slug>.md` (append-only — uma vez criado, nunca editado).
+
+**BLOQUEADOR:** antes de qualquer `Write` em `memory/handoffs/*.md`, executar nessa ordem e capturar resultado pra incluir no handoff:
+
+1. `cycles-active` — cycle ativo + goals + drift detectado
+2. `my-work` — tasks DOING/REVIEW reais (não confiar em memória)
+3. `sessions-recent limit:3` — handoffs/sessions irmãs nas últimas horas (detecta paralela)
+4. `decisions-search since:<data-último-handoff>` — ADRs aceitas no intervalo
+5. (se suspeita paralela) `whats-active` ([ADR 0119](../../../memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
+
+O handoff novo **deve** ter uma seção `## Estado MCP no momento do fechamento` com snapshot dos passos 1-4. Sem essa seção = sinal de overwrite cego (problema que motivou [ADR 0130](../../../memory/decisions/0130-handoff-append-only-mcp-first.md)).
+
+**Após criar handoff novo:** editar `memory/08-handoff.md` (índice) apenas pra adicionar 1 linha no topo da lista "Últimos handoffs" + truncar 5º item se passou. Nada mais.
+
+**Sessão offline (sem MCP):** documentar `## Estado MCP — INDISPONÍVEL` + qual fonte alternativa usou (`git log`, leitura direta de SPEC, etc). Ainda melhor que silêncio.
 
 ## Hook complementar
 

@@ -48,8 +48,12 @@ Lista completa + decisões em [memory/sprints/s3-constituicao/03-skills-audit.md
 ## Ao terminar uma sessão
 
 1. **Registrar via tools MCP** — `tasks-update <ID> status:done` ao fechar; `tasks-comment <ID>` se em progresso; `tasks-create` se for trabalho novo
-2. **Apender em `memory/08-handoff.md`** com novo estado narrativo
-3. **Criar session log** em `memory/sessions/YYYY-MM-DD-*.md` descrevendo o que foi feito
+2. **Handoff append-only** ([ADR 0130](decisions/0130-handoff-append-only-mcp-first.md)):
+   - **ANTES** de escrever, rodar checklist MCP-first OBRIGATÓRIO: `cycles-active` + `my-work` + `sessions-recent limit:3` + `decisions-search since:<data-último-handoff>` (+ `whats-active` se suspeita paralela — [ADR 0119](decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
+   - Criar **arquivo novo** em `memory/handoffs/YYYY-MM-DD-HHMM-<slug-kebab>.md` (NUNCA sobrescrever existente nem editar handoff antigo — append-only)
+   - Incluir seção `## Estado MCP no momento do fechamento` com snapshot da consulta (prova, não promessa)
+   - Atualizar índice em `memory/08-handoff.md` adicionando 1 linha no topo da lista "Últimos handoffs" (truncar 5º)
+3. **Criar session log** em `memory/sessions/YYYY-MM-DD-*.md` descrevendo o que foi feito (sessions/ ≠ handoffs/ — session log conta o trabalho, handoff conta o estado pro próximo)
 4. **Se decisão arquitetural nova**, criar ADR em `memory/decisions/NNNN-slug.md`
 
 ## SSH Hostinger (flaky — sempre warm-up + retry)
