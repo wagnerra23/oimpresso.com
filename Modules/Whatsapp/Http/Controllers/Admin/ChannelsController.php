@@ -185,7 +185,8 @@ class ChannelsController extends Controller
 
                 if ($qrResponse->status() === 200) {
                     $data = $qrResponse->json();
-                    $qr = $data['qr'] ?? null;
+                    // Prefere PNG data URL (string Baileys excede limite QR code v40 ~23KB)
+                    $qr = $data['qr_png_data_url'] ?? $data['qr'] ?? null;
                     if ($qr) break;
                 }
                 // 409 = qr ainda não pronto, continua polling
