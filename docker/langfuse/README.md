@@ -9,13 +9,34 @@ Langfuse v3 self-host rodando em `langfuse.oimpresso.com` (CT 100 docker-host 19
 
 **Por que CT 100, não Hostinger:** Langfuse v3 precisa ClickHouse + Postgres + Worker (3 daemons). Hostinger é shared hosting; daemons proibidos por [ADR 0062](../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md).
 
-## Recursos no CT 100
+## Recursos no CT 100 (medido pós-deploy 2026-05-10)
 
-- **RAM:** ~2.5GB (ClickHouse é o maior — ~1.5-2GB)
-- **Disk:** ~25GB (cresce com retention; padrão 30 dias)
-- **CPU:** ~0.5 core ocioso, picos de 1 core durante ingestion
+| Service | RAM (real) | RAM (estimado original) |
+|---|---|---|
+| postgres-langfuse | 83 MB | 200 MB |
+| clickhouse-langfuse | 492 MB | 1500-2000 MB |
+| minio-langfuse | 78 MB | (novo) |
+| redis-langfuse | 6 MB | (novo) |
+| langfuse-web | 728 MB | 300 MB |
+| langfuse-worker | 374 MB | 200 MB |
+| **TOTAL** | **~1.76 GB** | ~2.5 GB |
 
-⚠️ **Antes de subir, validar capacidade do CT 100:** `free -h && df -h /opt`. Se RAM total <8GB, considerar adicionar 2GB ao CT antes do deploy.
+ClickHouse real ficou ~500MB (≪ 2GB estimado) — workload baixo no MVP. Pode escalar até ~2GB sob carga real.
+
+Disk: ~25GB ainda válido (cresce com retention 30d).
+
+✅ **CT 100 atual (32GB RAM, 31GB disk livre) acomoda com folga.**
+
+## Stack v3 — 6 services (não 4)
+
+Diferente do plano inicial (4 services), Langfuse v3 EXIGE:
+
+- `postgres-langfuse` — metadata
+- `clickhouse-langfuse` — spans/traces OLAP
+- **`minio-langfuse`** — S3-compat pra event uploads (obrigatório v3, não opcional)
+- **`redis-langfuse`** — queue assíncrona (obrigatório v3)
+- `langfuse-web` — UI + OTLP receiver
+- `langfuse-worker` — async processing
 
 ## Deploy (primeira vez)
 
@@ -84,15 +105,20 @@ Volumes em `/opt/langfuse/data/` — adicionar ao plano de backup nightly do CT 
 
 Recomendação: backup semanal de `/opt/langfuse/data/postgres` (~100MB compacted). ClickHouse data é volumosa mas substituível.
 
-## Troubleshooting
+## Troubleshooting (5 bugs catalogados no deploy real 2026-05-10)
 
-| Sintoma | Causa provável | Fix |
-|---|---|---|
-| `langfuse-web` crashloop com `Database connection refused` | postgres ainda não healthy | Aguardar 30s — depends_on resolve |
-| `clickhouse-langfuse` crashloop com `ulimit` | host não permite 262144 nofile | Verificar `/etc/security/limits.conf` no CT 100 |
-| Traefik 404 em `langfuse.oimpresso.com` | DNS não propagou OU label típo | `dig langfuse.oimpresso.com` + checar Traefik dashboard |
-| Spans não aparecem no UI mas POST retorna 207 | Public/Secret key wrong no .env Hostinger | Re-gerar par no UI Langfuse + atualizar .env |
-| ClickHouse out-of-disk | Retention default 30d cresceu além de 25GB | Reduzir retention via `langfuse-web` env `LANGFUSE_TRACES_RETENTION_DAYS=14` |
+| # | Sintoma | Causa | Fix |
+|---|---|---|---|
+| 1 | ClickHouse `Listen [::]:8123 failed: DNS error: EAI: Address family for hostname not supported` | CT 100 LXC sem IPv6 ativo; ClickHouse default tenta `[::]` | Volume mount `config/clickhouse/listen-ipv4.xml` força `<listen_host>0.0.0.0</listen_host>` |
+| 2 | ClickHouse healthcheck "unhealthy" mas `wget -qO- http://127.0.0.1:8123/ping` retorna OK | `wget --spider http://localhost:8123/...` resolve `[::1]` IPv6 (Alpine) | Healthcheck usa `http://127.0.0.1:8123/ping` (não `localhost`) |
+| 3 | langfuse-web crashloop `Prisma P1013: invalid port number in database URL` | `POSTGRES_PASSWORD` com `/` ou `+` (base64) quebra parser URL | Gerar passwords com `openssl rand -hex 24` (só [0-9a-f]) |
+| 4 | langfuse-web crashloop `LANGFUSE_S3_EVENT_UPLOAD_BUCKET expected string received undefined` | Langfuse v3 exige S3 + Redis (mudança vs v2) | Adicionar MinIO + Redis ao stack + env vars S3 nos web/worker |
+| 5 | langfuse-web `healthy` lento; healthcheck "starting" indefinidamente | Next.js v16+ binda em IP do container (172.x.x.x), não 0.0.0.0 — healthcheck `127.0.0.1` falha | Env `HOSTNAME: "0.0.0.0"` no langfuse-web força bind em todas interfaces |
+| - | Traefik 404 em `langfuse.oimpresso.com` | DNS não propagou OU label típo | `dig langfuse.oimpresso.com` + checar Traefik dashboard |
+| - | Spans não aparecem no UI mas POST retorna 207 | Public/Secret key wrong no .env Hostinger | Re-gerar par no UI Langfuse + atualizar .env |
+| - | ClickHouse out-of-disk | Retention default 30d cresceu além de 25GB | Reduzir retention via env `LANGFUSE_TRACES_RETENTION_DAYS=14` |
+
+⚠️ **Todos 5 bugs já estão fixados** no `docker-compose.yml` deste repo. Deploy novo é direto, sem reincidência.
 
 ## Atualização
 
