@@ -10,10 +10,12 @@ contains:
   - "Admin/ConversationsController — Inbox Cockpit + send manual + Centrifugo subscribe"
   - "Admin/TemplatesController — sync HSM Meta + criar template LOCAL Z-API/Baileys"
   - "Admin/ChannelsController — CRUD Channel polimórfico /atendimento/canais (ADR 0135 Fase 0, coexiste Settings legacy)"
+  - "Admin/InboxController — UI omnichannel /atendimento/inbox lê schema novo (US-WA-067/069 ADR 0135)"
   # API webhooks (US-WA-010/010b/002d)
   - "Api/MetaWebhookController — recebe events Meta Cloud (HMAC SHA-256 verify)"
   - "Api/ZapiWebhookController — recebe events Z-API (Client-Token timing-safe)"
-  - "Api/BaileysWebhookController — recebe events daemon Node CT 100 (Bearer timing-safe)"
+  - "Api/BaileysWebhookController — recebe events daemon Node CT 100 schema legacy (Bearer timing-safe)"
+  - "Api/ChannelBaileysWebhookController — recebe events daemon Node CT 100 schema novo via channel_uuid (ADR 0135)"
   # Services / Drivers
   - "Services/Drivers/{ZapiDriver, MetaCloudDriver, BaileysDriver, NullDriver, DriverFactory} — abstração + fallback runtime"
   - "Services/Centrifugo/{CentrifugoPublisher, CentrifugoTokenIssuer} — real-time UI ADR 0058"

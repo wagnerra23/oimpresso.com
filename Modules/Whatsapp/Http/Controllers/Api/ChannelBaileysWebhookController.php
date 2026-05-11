@@ -187,35 +187,53 @@ class ChannelBaileysWebhookController extends Controller
             $conversation->save();
         }
 
-        // MessageObserver registrado no ServiceProvider dispara
-        // OmnichannelMessageReceived/Sent automaticamente em `created`.
-        // Listener PublishOmnichannelToCentrifugo publica em
-        // `omnichannel:business:{id}` real-time. ADR 0058 + 0135 + US-WA-059.
-        Message::query()->create([
-            'business_id' => $channel->business_id,
-            'conversation_id' => $conversation->id,
-            'direction' => $fromMe ? 'outbound' : 'inbound',
-            'provider' => $channel->type,
-            'provider_message_id' => $providerMessageId,
-            'type' => $type,
-            'body' => $body,
-            'payload' => $data,
-            'status' => $fromMe ? 'sent' : 'received',
-            'sender_kind' => $fromMe ? 'human' : null,
-        ]);
+        // Idempotência (US-WA-070): daemon Baileys reentrega o mesmo
+        // `provider_message_id` várias vezes em reconnect/replay/restart.
+        // `create()` puro quebrava na UNIQUE `msgs_provider_msg_uniq` →
+        // 500 → daemon retentava infinito → todo pipeline real-time morria
+        // junto (Observer/Event/Listener/Centrifugo nunca rodam após exception).
+        //
+        // `firstOrCreate` keyed em (business_id, provider_message_id):
+        //  - 1ª chamada: cria row → Observer fires → Centrifugo publish OK
+        //  - reentregas: no-op (row já existe) → 200 idempotente sem dup
+        //
+        // Pula global scope no SELECT do firstOrCreate (webhook não tem
+        // session user — global scope HasBusinessScope filtraria por null).
+        $message = Message::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->firstOrCreate(
+                [
+                    'business_id' => $channel->business_id,
+                    'provider_message_id' => $providerMessageId,
+                ],
+                [
+                    'conversation_id' => $conversation->id,
+                    'direction' => $fromMe ? 'outbound' : 'inbound',
+                    'provider' => $channel->type,
+                    'type' => $type,
+                    'body' => $body,
+                    'payload' => $data,
+                    'status' => $fromMe ? 'sent' : 'received',
+                    'sender_kind' => $fromMe ? 'human' : null,
+                ]
+            );
 
-        // Atualiza last_*_at + unread count
-        $conversation->forceFill([
-            'last_message_at' => now(),
-            'last_inbound_at' => $fromMe ? $conversation->last_inbound_at : now(),
-            'last_outbound_at' => $fromMe ? now() : $conversation->last_outbound_at,
-            'unread_count' => $fromMe ? $conversation->unread_count : $conversation->unread_count + 1,
-        ])->save();
+        // Atualiza last_*_at + unread count APENAS se row foi criada agora
+        // (reentregas duplicadas NÃO devem incrementar unread).
+        if ($message->wasRecentlyCreated) {
+            $conversation->forceFill([
+                'last_message_at' => now(),
+                'last_inbound_at' => $fromMe ? $conversation->last_inbound_at : now(),
+                'last_outbound_at' => $fromMe ? now() : $conversation->last_outbound_at,
+                'unread_count' => $fromMe ? $conversation->unread_count : $conversation->unread_count + 1,
+            ])->save();
+        }
 
         return response()->json([
             'ok' => true,
-            'note' => 'message_persisted',
+            'note' => $message->wasRecentlyCreated ? 'message_persisted' : 'message_duplicate_ignored',
             'conversation_id' => $conversation->id,
+            'message_id' => $message->id,
         ], 200);
     }
 
