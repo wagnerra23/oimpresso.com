@@ -89,123 +89,17 @@ class DataController extends Controller
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $segmento_ativo = request()->segment(1) == 'financeiro';
 
+        // Sidebar: link direto pra Visao Unificada (Wagner 2026-05-11 — submenu removido,
+        // "perguntar menos automatizar mais"). Sub-telas (contas-receber, contas-pagar,
+        // contas-bancarias, boletos, conciliacao, categorias, relatorios) continuam
+        // acessiveis via URL direta + navegacao interna do unificado.
+        // Permission gates permanecem nos controllers — sidebar so esconde a entrada.
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
-                $menu->dropdown(
+                $menu->url(
+                    url('/financeiro/unificado'),
                     __('financeiro::financeiro.module_label'),
-                    function ($sub) {
-                        $sub->url(
-                            url('/financeiro'),
-                            __('financeiro::financeiro.menu.dashboard'),
-                            [
-                                'icon'   => 'fa fas fa-chart-pie',
-                                'active' => request()->segment(1) == 'financeiro' && ! request()->segment(2),
-                            ]
-                        );
-
-                        // Visão Unificada (US-FIN-013/020) — kanban Pagar/Receber/Recebidas/Pagas
-                        // numa tela única (ADR ui/0002). Antes desta entrada o usuário precisava
-                        // digitar /financeiro/unificado na URL pra acessar.
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.dashboard.view')) {
-                            $sub->url(
-                                url('/financeiro/unificado'),
-                                'Visão unificada',
-                                [
-                                    'icon'   => 'fa fas fa-coins',
-                                    'active' => request()->segment(2) == 'unificado',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.contas_receber.view')) {
-                            $sub->url(
-                                url('/financeiro/contas-receber'),
-                                __('financeiro::financeiro.menu.contas_receber'),
-                                [
-                                    'icon'   => 'fa fas fa-arrow-down',
-                                    'active' => request()->segment(2) == 'contas-receber',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.contas_pagar.view')) {
-                            $sub->url(
-                                url('/financeiro/contas-pagar'),
-                                __('financeiro::financeiro.menu.contas_pagar'),
-                                [
-                                    'icon'   => 'fa fas fa-arrow-up',
-                                    'active' => request()->segment(2) == 'contas-pagar',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.caixa.view')) {
-                            $sub->url(
-                                url('/financeiro/caixa'),
-                                __('financeiro::financeiro.menu.caixa'),
-                                [
-                                    'icon'   => 'fa fas fa-cash-register',
-                                    'active' => request()->segment(2) == 'caixa',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.contas_bancarias.manage')) {
-                            $sub->url(
-                                url('/financeiro/contas-bancarias'),
-                                __('financeiro::financeiro.menu.contas_bancarias'),
-                                [
-                                    'icon'   => 'fa fas fa-university',
-                                    'active' => request()->segment(2) == 'contas-bancarias',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.access')) {
-                            $sub->url(
-                                url('/financeiro/categorias'),
-                                __('financeiro::financeiro.menu.categorias'),
-                                [
-                                    'icon'   => 'fa fas fa-tags',
-                                    'active' => request()->segment(2) == 'categorias',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.boletos.view')) {
-                            $sub->url(
-                                url('/financeiro/boletos'),
-                                'Boletos',
-                                [
-                                    'icon'   => 'fa fas fa-receipt',
-                                    'active' => request()->segment(2) == 'boletos',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.conciliacao.manage')) {
-                            $sub->url(
-                                url('/financeiro/conciliacao'),
-                                __('financeiro::financeiro.menu.conciliacao'),
-                                [
-                                    'icon'   => 'fa fas fa-check-double',
-                                    'active' => request()->segment(2) == 'conciliacao',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('financeiro.relatorios.view')) {
-                            $sub->url(
-                                url('/financeiro/relatorios'),
-                                __('financeiro::financeiro.menu.relatorios'),
-                                [
-                                    'icon'   => 'fa fas fa-chart-bar',
-                                    'active' => request()->segment(2) == 'relatorios',
-                                ]
-                            );
-                        }
-                    },
                     [
                         'icon'   => 'fa fas fa-coins',
                         'style'  => 'background-color:' . $background_color,
