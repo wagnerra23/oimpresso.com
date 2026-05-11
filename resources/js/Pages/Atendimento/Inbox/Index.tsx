@@ -246,6 +246,8 @@ export default function InboxIndex({
                 updateStatusRouteName="atendimento.inbox.update_status"
                 availableTags={availableTags}
                 updateTagsRouteName="atendimento.inbox.update_tags"
+                searchContactsRouteName="atendimento.inbox.contacts.search"
+                linkContactRouteName="atendimento.inbox.link_contact"
               />
             )}
           </div>
