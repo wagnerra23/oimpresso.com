@@ -105,7 +105,15 @@ class OtlpHttpHandler extends AbstractProcessingHandler
             if ($value === null) {
                 continue;
             }
+            // OTLP spec permite só 1 value type por attribute. Pra int/float, mandamos
+            // o spec-correct (intValue/doubleValue) + duplicamos como stringValue numa
+            // chave irmã `<key>.str` pra Langfuse v3 renderizar (UI só lê stringValue).
+            // Quando Langfuse fixar suporte intValue, remove .str fallback.
             $result[] = ['key' => (string) $key, 'value' => $this->toOtlpValue($value)];
+
+            if (is_int($value) || is_float($value) || is_bool($value)) {
+                $result[] = ['key' => (string) $key . '.str', 'value' => ['stringValue' => $this->toScalarString($value)]];
+            }
         }
 
         return $result;
@@ -126,5 +134,14 @@ class OtlpHttpHandler extends AbstractProcessingHandler
         }
 
         return ['stringValue' => (string) $v];
+    }
+
+    private function toScalarString(int|float|bool $v): string
+    {
+        if (is_bool($v)) {
+            return $v ? 'true' : 'false';
+        }
+
+        return (string) $v;
     }
 }

@@ -100,6 +100,12 @@ it('exporta span com payload OTLP/JSON correto quando POST returns 200', functio
     expect($attrs['gen_ai.business_id']['value']['intValue'])->toBe('4');
     expect($attrs['gen_ai.response.duration_ms']['value']['intValue'])->toBe('1234');
     expect($attrs['gen_ai.usage.input_tokens']['value']['intValue'])->toBe('100');
+
+    // Dual-emit: cada int também tem irmã .str (stringValue) — workaround Langfuse v3
+    // que só renderiza stringValue no UI. Quando upstream fixar, remover .str.
+    expect($attrs['gen_ai.business_id.str']['value']['stringValue'])->toBe('4');
+    expect($attrs['gen_ai.response.duration_ms.str']['value']['stringValue'])->toBe('1234');
+    expect($attrs['gen_ai.usage.input_tokens.str']['value']['stringValue'])->toBe('100');
 });
 
 it('cai em fallback silencioso quando POST returns HTTP 500 (não throws)', function () {
