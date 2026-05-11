@@ -237,6 +237,7 @@ export default function InboxIndex({
                 reloadOnly={['thread']}
                 enableShortcuts
                 onCollapse={() => setSidebarCollapsed(true)}
+                updateStatusRouteName="atendimento.inbox.update_status"
               />
             )}
           </div>

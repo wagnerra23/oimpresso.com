@@ -27,15 +27,23 @@ interface Props {
   enableShortcuts?: boolean;
   /** Quando fornecido, renderiza botão pra colapsar a sidebar (chama callback). */
   onCollapse?: () => void;
+  /** Route name pro PATCH de updateStatus (default legacy
+   * `whatsapp.conversations.update_status`). Inbox novo
+   * `/atendimento/inbox` passa `atendimento.inbox.update_status`
+   * (US-WA-085 — fix tela branca ao clicar Atribuir/Ativar bot). */
+  updateStatusRouteName?: string;
 }
 
-export default function ConversationSidebar({ conversation, reloadOnly, enableShortcuts = false, onCollapse }: Props) {
+export default function ConversationSidebar({
+  conversation, reloadOnly, enableShortcuts = false, onCollapse,
+  updateStatusRouteName = 'whatsapp.conversations.update_status',
+}: Props) {
   const sharedAuth = (usePage().props as any)?.auth?.user as { id?: number } | undefined;
   const currentUserId = sharedAuth?.id ?? null;
   const isMineAssigned = !!(conversation.assigned_user && currentUserId && conversation.assigned_user.id === currentUserId);
 
   function patchConversation(payload: Record<string, string | number | boolean>) {
-    router.patch(route('whatsapp.conversations.update_status', conversation.id), payload, {
+    router.patch(route(updateStatusRouteName, conversation.id), payload, {
       preserveScroll: true,
       preserveState: true,
       only: reloadOnly,
