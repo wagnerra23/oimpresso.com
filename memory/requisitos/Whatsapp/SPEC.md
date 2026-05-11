@@ -569,12 +569,12 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 
 **Out of scope (vai em US separadas se acontecer):**
 
-- US-WA-053 — "Mover conversa pra outro número" (admin reclassifica conversa antiga)
-- US-WA-054 — Importar números em massa via CSV (50+ businesses migrando manualmente é ruim)
-- US-WA-055 — Compartilhar número entre businesses (NÃO permitir; abrir nova ADR se algum cliente pedir)
-- US-WA-056 — Spatie permissions parametrizadas per-phone (alternativa Q5-i, ainda rejeitada — reabrir só se Spatie ganhar suporte nativo a scope dinâmico)
+- US-WA-057 — "Mover conversa pra outro número" (admin reclassifica conversa antiga)
+- US-WA-058 — Importar números em massa via CSV (50+ businesses migrando manualmente é ruim)
+- US-WA-059 — Compartilhar número entre businesses (NÃO permitir; abrir nova ADR se algum cliente pedir)
+- US-WA-060 — Spatie permissions parametrizadas per-phone (alternativa Q5-i, ainda rejeitada — reabrir só se Spatie ganhar suporte nativo a scope dinâmico)
 
-> _IDs renumerados de 041-044 → 053-056 em 2026-05-10 — IDs antigos foram alocados pelo `/comparativo` na seção 9._
+> _IDs renumerados de 041-044 → 053-056 em 2026-05-10. Renumerados de 053-056 → 057-060 em 2026-05-11 (US-WA-053 reusada pra fix UX concreto CYCLE-05)._
 
 ## 8. Backlog futuro (não-Sprint 1-4)
 
@@ -774,5 +774,30 @@ Pré-requisito da skill `module-completeness-audit` Tier B (criada 2026-05-10). 
   - Tasks criadas: US-WA-041..052
   - Próxima ação: aguarda CYCLE-04 alocar P0+P1
 - Format declarado na SKILL.md `module-completeness-audit` §7
+
+### US-WA-053 · UX /whatsapp/conversations — composer no rodapé + sidebar colapsável + responsivo monitor pequeno
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Problemas reportados Wagner 2026-05-11:**
+
+1. Composer (input mensagem) flutua no meio da tela em vez do rodapé
+2. Sidebar direita (Ações/Janela 24h/Detalhes) não minimiza — toma 288-320px fixos em ≥lg
+3. Monitor pequeno (1024-1366px) fica apertado
+
+**Causa raiz:**
+
+1. `Index.tsx:117` usa `h-[calc(100vh-7rem)]` mas pai `.main-body` (cockpit.css) é flex column com overflow-y:auto → quando sobra altura, composer não vai pro fundo
+2. `Index.tsx:175-183` renderiza ConversationSidebar com `hidden lg:block` sem toggle pra colapsar
+3. Em 1024-1280px lista 384px + sidebar 320px = 704px fixo, sobra pouco
+
+**Fix:**
+
+- `Index.tsx`: altura raiz `flex-1 min-h-0` (em vez de calc); state `sidebarCollapsed` persistido em `LS.SIDEBAR_COLLAPSED`; faixa estreita 32px com chevron quando colapsado
+- `ConversationSidebar.tsx`: prop `onCollapse?: () => void`; botão minimizar no header da aside
+- `helpers.ts`: adicionar `LS.SIDEBAR_COLLAPSED`
+
+Frontend-only, sem mudança backend/migration. ROTA LIVRE não pega regressão.
 
 **Evidência baseline:** Gap G-4 do CAPTERRA-INVENTARIO.md.

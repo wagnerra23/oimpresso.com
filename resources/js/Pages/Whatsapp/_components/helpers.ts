@@ -9,6 +9,7 @@ export const LS = {
   TAB: 'oimpresso.whatsapp.tab',
   Q: 'oimpresso.whatsapp.q',
   THREAD: 'oimpresso.whatsapp.thread',
+  SIDEBAR_COLLAPSED: 'oimpresso.whatsapp.sidebar_collapsed',
 } as const;
 
 export function lsGet(key: string, fallback = ''): string {
