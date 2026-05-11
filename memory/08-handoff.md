@@ -10,10 +10,10 @@
 
 ## Últimos handoffs
 
+- [2026-05-11 18:30 — Paralelização Omnichannel frustrada (subagents mortos com worktree)](handoffs/2026-05-11-1830-paralelizacao-omnichannel-frustrada.md) (1 PR #551 SPEC · US-WA-058..061 cadastradas · lição: não spawn agents de worktree filha)
 - [2026-05-11 17:30 — Sells Grade Avançada + Modules/OficinaAuto qualificada + 5 agents paralelos](handoffs/2026-05-11-1730-sells-grade-oficinaauto-paralelizacao.md) (11 PRs · ADR 0136 + 0137 · 5 agents paralelos · pivot estratégico OfficeImpresso legacy)
 - [2026-05-10 23:40 — Audit adversarial pós-Langfuse + Runbooks infra canônicos](handoffs/2026-05-10-2340-audit-adversarial-runbooks-infra.md) (3 PRs + 4 ADRs + 7 tasks MCP) — modo especialista SRE adversarial
 - [2026-05-10 23:30 — Officeimpresso clickável + cascata Superadmin removida + MWART knowledge](handoffs/2026-05-10-2330-officeimpresso-sidebar-cascata.md) (4 PRs #505/#511/#512/#516)
-- [2026-05-10 22:30 — Cycle higiene + Pivot fiscal + Cadeia FSM (4 PRs + ADR 0129)](handoffs/2026-05-10-2230-cycle-higiene-pivot-fsm.md)
 
 > Handoffs anteriores a 2026-05-10 22:30 viviam em `memory/sessions/` (era pré-ADR-0130). Consultar `ls -t memory/sessions/ | head -10` pra histórico narrativo.
 
