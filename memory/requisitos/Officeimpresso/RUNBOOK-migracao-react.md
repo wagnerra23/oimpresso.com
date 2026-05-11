@@ -20,14 +20,21 @@ related:
 > **Não substitui:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — segue F1→F5 sem desvio
 > **Adiciona:** regras específicas pra módulo superadmin (placement no menu, Spatie perm, parent dropdown href)
 > **Estado origem:** 14 telas Blade em `Modules/Officeimpresso/Resources/views/` + layout próprio (`master.blade.php` + `nav.blade.php`)
-> **Estado alvo:** Pages Inertia em `resources/js/Pages/Officeimpresso/<Tela>.tsx` + AppShellV2 com Vibe `daylight` (admin) + cascata Superadmin do user dropdown como ponto de entrada único
+> **Estado alvo:** Pages Inertia em `resources/js/Pages/Officeimpresso/<Tela>.tsx` + AppShellV2 com Vibe `daylight` (admin) + entrada no **sidebar principal** (grupo ACESSOS RÁPIDOS — uso pesado pra gestão de licenças desktop dos clientes legacy WR Sistemas)
 > **Persona alvo:** Wagner (superadmin único hoje) — usa pra gestão de licenças desktop Delphi e auditoria de máquinas dos clientes legacy WR Comercial. Eventualmente delegação pra Felipe (suporte) com permission `officeimpresso.access`.
 
 ---
 
 ## Regra crítica — onde módulos superadmin VIVEM no menu
 
-**Módulos de administração de plataforma** (Officeimpresso, CMS, Backup, Conector, Módulos, Personalizar) **só aparecem na cascata "Superadmin" do user dropdown footer** (avatar no rodapé esquerdo do AppShellV2). **NUNCA** no menu principal (sidebar grupos) nem no topnav horizontal. Isso preserva o menu day-to-day limpo pra operação (Tarefas, Vendas, Financeiro, etc).
+> **Atualizado 2026-05-10 (Wagner):** cascata "Superadmin" do user dropdown footer **REMOVIDA** ([PR #516](https://github.com/wagnerra23/oimpresso.com/pull/516)). Módulos de admin de plataforma vivem no **sidebar principal** como qualquer outro grupo. Histórico: cascata existiu de 2026-04-27 a 2026-05-10 (skill `sidebar-menu-arch` § Histórico).
+
+**Placement por uso:**
+
+| Módulo | Grupo no sidebar | Razão |
+|---|---|---|
+| **Officeimpresso** | **ACESSOS RÁPIDOS** | Uso pesado (gestão de licenças desktop dos clientes legacy WR Sistemas) |
+| **CMS / Conector / Backup / Módulos / Personalizar** | **PLATAFORMA** (novo grupo, no fim, collapsed) | Uso esporádico (admin de plataforma — Backup mensal, CMS raríssimo, Conector setup, Módulos só ativar/desativar) |
 
 **Implementação canônica** (não inventar):
 
@@ -35,25 +42,18 @@ related:
 |---|---|---|
 | Backend publica menu | `Modules/Officeimpresso/Http/Controllers/DataController.php::modifyAdminMenu()` | Guard `auth()->user()->can('superadmin')` + `Menu::modify('admin-sidebar-menu', dropdown(...))` |
 | Conversor nwidart→JSON | [`app/Services/LegacyMenuAdapter.php`](../../../app/Services/LegacyMenuAdapter.php) | Itera Menu instance, vira ShellMenuItem[] flat |
-| Classifier label→cascata | [`resources/js/Components/cockpit/shared.ts:157`](../../../resources/js/Components/cockpit/shared.ts) — `SUPERADMIN_LABELS` Set | Inclui `'Office Impresso'`, `'Officeimpresso'` |
-| Filtro do menu principal | [`Sidebar.tsx:395`](../../../resources/js/Components/cockpit/Sidebar.tsx) — `principais.filter(!isSuperadminMenu && !isUserMenuItem)` | Tira do menu principal |
-| Render cascata | [`Sidebar.tsx:594-621`](../../../resources/js/Components/cockpit/Sidebar.tsx) — `SidebarUserMenu` `activeSub === 'superadmin'` | Cascata lateral à direita do user dropdown |
+| **Classifier label→grupo sidebar** | [`Sidebar.tsx`](../../../resources/js/Components/cockpit/Sidebar.tsx) — `SIDEBAR_GROUPS` (`office` + `plataforma`) | Lookup case-insensitive label → grupo visual |
+| Cascata Superadmin (deprecated) | `shared.ts` — `SUPERADMIN_LABELS` esvaziado, `isSuperadminMenu()` retorna false | Code path dormente sem quebrar callers |
 
 > ✅ **Skill canônica:** [`sidebar-menu-arch`](../../../.claude/skills/sidebar-menu-arch/SKILL.md) — sempre carregar antes de mexer em sidebar/menu.
 
-### Pegadinha #1 — parent dropdown sem `url` cai em href='#'
+### Pegadinha #1 — parent dropdown sem `url` cai em href='#' (resolvido em PR #516)
 
-`Menu::modify(...)->dropdown('Office Impresso', closure, ['icon' => '...'])` cria item parent **sem href**. [`LegacyMenuAdapter.php:307-315`](../../../app/Services/LegacyMenuAdapter.php#L307) só popula `result['href']` se `$props['url']` existir. Sem href, [`Sidebar.tsx:603`](../../../resources/js/Components/cockpit/Sidebar.tsx) renderiza `<a href={item.href ?? '#'}>` — clica e não navega.
+`Menu::modify(...)->dropdown('Office Impresso', closure, ['icon' => '...'])` cria item parent **sem href**. Resolvido em [PR #516](https://github.com/wagnerra23/oimpresso.com/pull/516):
+1. `MenuItem::make()` agora promove `attributes.url` → `url` no topo (mesmo pattern existente do icon)
+2. `DataController.php` adiciona `'url' => '/officeimpresso/computadores'` no parent dropdown
 
-**Fix obrigatório**: adicionar `'url' => '/officeimpresso/computadores'` (ou outra default page) no 3º param do dropdown:
-
-```php
-$menu->dropdown('Office Impresso', function ($sub) { ... }, [
-    'url'   => '/officeimpresso/computadores',  // ← OBRIGATÓRIO pra cascata clickável
-    'icon'  => 'fas fa-plug',
-    'style' => '...',
-])->order(2);
-```
+Pra módulos novos: sempre passar `'url' => '/landing/page'` no 3º param de `Menu::dropdown(...)`. Sem isso, sidebar React renderiza item de dropdown sem URL no parent (clicar só toggla sub-menu, não navega) — UX inconsistente.
 
 ### Pegadinha #2 — Spatie permission `superadmin` precisa existir + estar atribuída
 
@@ -63,7 +63,7 @@ Muitas instalações reseed Spatie permissions sem incluir `superadmin`. Verific
 php artisan tinker --execute="echo \App\User::find(1)->can('superadmin') ? 'OK' : 'FALTA'"
 ```
 
-Se faltar, criar + atribuir ao role `Admin#1` + `permission:cache-reset`. Cascata Superadmin **simplesmente não aparece** sem essa perm — DataController guard `if (! auth()->user()->can('superadmin')) return;` é o gate único.
+Se faltar, criar + atribuir ao role `Admin#1` + `permission:cache-reset`. Items dos módulos superadmin **simplesmente não aparecem no shell.menu** sem essa perm — `DataController::modifyAdminMenu()` guarda `if (! auth()->user()->can('superadmin')) return;` é o gate único.
 
 ---
 
