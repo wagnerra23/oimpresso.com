@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
+use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Api\ChannelBaileysWebhookController;
 
 uses(Tests\TestCase::class);
@@ -261,4 +264,167 @@ it('R-WA-077 — Message->senderUser e null pra outbound do chip externo (sender
         ->find($msgFromChip->id);
 
     expect($loaded->senderUser)->toBeNull();
+});
+
+/**
+ * R-WA-085 — GUARD tests fix tela branca Atribuir/Ativar bot + optimistic UI send.
+ *
+ *   001/002. updateStatus toggle `assigned_to_me`/`bot_handling` retorna
+ *            RedirectResponse (Inertia 302 back) e atualiza DB. Antes:
+ *            ConversationSidebar chamava `whatsapp.conversations.update_status`
+ *            legacy do `/atendimento/inbox` → controller legacy redirect pra
+ *            URL legacy → tela branca. Fix: prop `updateStatusRouteName` no
+ *            componente + `atendimento.inbox.update_status` no novo Inbox.
+ *
+ *   003/004. send queueia Message com status final em DB ANTES do request
+ *            retornar — permite UI mostrar bubble com hourglass/check
+ *            imediatamente via polling/Centrifugo. Compose UX otimista.
+ */
+it('R-WA-085-001 — updateStatus assigned_to_me=true seta assigned_user_id ao current user + retorna RedirectResponse', function () {
+    session()->put('user.business_id', 1);
+    session()->put('user.id', 42);
+
+    $channel = Channel::query()->create([
+        'business_id' => 1,
+        'channel_uuid' => 'dddddddd-0000-0000-0000-000000000001',
+        'label' => 'X',
+        'type' => Channel::TYPE_WHATSAPP_BAILEYS,
+        'status' => 'active',
+    ]);
+    $conv = Conversation::query()->create([
+        'business_id' => 1, 'channel_id' => $channel->id,
+        'customer_external_id' => '+554899999999', 'status' => 'open',
+        'assigned_user_id' => null,
+    ]);
+
+    $controller = app(InboxController::class);
+    $req = Request::create('/test', 'PATCH', ['assigned_to_me' => true]);
+    $resp = $controller->updateStatus($req, $conv->id);
+
+    expect($resp)->toBeInstanceOf(RedirectResponse::class);
+    $conv->refresh();
+    expect($conv->assigned_user_id)->toBe(42);
+
+    // Toggle off — null
+    $req2 = Request::create('/test', 'PATCH', ['assigned_to_me' => false]);
+    $controller->updateStatus($req2, $conv->id);
+    $conv->refresh();
+    expect($conv->assigned_user_id)->toBeNull();
+});
+
+it('R-WA-085-002 — updateStatus bot_handling=true atualiza coluna por conversa (not global) + retorna RedirectResponse', function () {
+    session()->put('user.business_id', 1);
+    session()->put('user.id', 42);
+
+    $channel = Channel::query()->create([
+        'business_id' => 1,
+        'channel_uuid' => 'dddddddd-0000-0000-0000-000000000002',
+        'label' => 'X',
+        'type' => Channel::TYPE_WHATSAPP_BAILEYS,
+        'status' => 'active',
+    ]);
+    // 2 conversas no mesmo channel — toggle bot em 1 NÃO afeta a outra
+    $convA = Conversation::query()->create([
+        'business_id' => 1, 'channel_id' => $channel->id,
+        'customer_external_id' => '+554811111111', 'status' => 'open',
+        'bot_handling' => false,
+    ]);
+    $convB = Conversation::query()->create([
+        'business_id' => 1, 'channel_id' => $channel->id,
+        'customer_external_id' => '+554822222222', 'status' => 'open',
+        'bot_handling' => false,
+    ]);
+
+    $controller = app(InboxController::class);
+    $req = Request::create('/test', 'PATCH', ['bot_handling' => true]);
+    $resp = $controller->updateStatus($req, $convA->id);
+
+    expect($resp)->toBeInstanceOf(RedirectResponse::class);
+    $convA->refresh();
+    $convB->refresh();
+    expect((bool) $convA->bot_handling)->toBeTrue();  // ligou só em A
+    expect((bool) $convB->bot_handling)->toBeFalse(); // B segue desligado — bot é PER-CONVERSATION
+});
+
+it('R-WA-085-003 — send queueia Message com status="sent" + provider_message_id quando daemon retorna 200', function () {
+    session()->put('user.business_id', 1);
+    session()->put('user.id', 42);
+
+    Http::fake([
+        '*/instances/*/text' => Http::response(['status' => 'sent', 'message_id' => 'DAEMON_MSG_XYZ'], 200),
+    ]);
+
+    $channel = Channel::query()->create([
+        'business_id' => 1,
+        'channel_uuid' => 'dddddddd-0000-0000-0000-000000000003',
+        'label' => 'X',
+        'type' => Channel::TYPE_WHATSAPP_BAILEYS,
+        'status' => 'active',
+    ]);
+    $conv = Conversation::query()->create([
+        'business_id' => 1, 'channel_id' => $channel->id,
+        'customer_external_id' => '+554899872822', 'status' => 'open',
+    ]);
+
+    $controller = app(InboxController::class);
+    $req = Request::create('/test', 'POST', [
+        'kind' => 'freeform',
+        'body' => 'Olá, vou checar seu pedido',
+    ]);
+    $resp = $controller->send($req, $conv->id);
+
+    expect($resp)->toBeInstanceOf(RedirectResponse::class);
+
+    $msg = Message::query()
+        ->withoutGlobalScope(ScopeByBusiness::class)
+        ->where('conversation_id', $conv->id)
+        ->first();
+    expect($msg)->not->toBeNull();
+    expect($msg->body)->toBe('Olá, vou checar seu pedido');
+    expect($msg->direction)->toBe('outbound');
+    expect($msg->sender_kind)->toBe('human');
+    expect($msg->sender_user_id)->toBe(42);
+    expect($msg->status)->toBe('sent');
+    expect($msg->provider_message_id)->toBe('DAEMON_MSG_XYZ');
+});
+
+it('R-WA-085-004 — send com daemon falha mantem Message em DB com status="failed" + reason (nao bloqueia retry)', function () {
+    session()->put('user.business_id', 1);
+    session()->put('user.id', 42);
+
+    Http::fake([
+        '*/instances/*/text' => Http::response(['error' => 'instance_disconnected'], 503),
+    ]);
+
+    $channel = Channel::query()->create([
+        'business_id' => 1,
+        'channel_uuid' => 'dddddddd-0000-0000-0000-000000000004',
+        'label' => 'X',
+        'type' => Channel::TYPE_WHATSAPP_BAILEYS,
+        'status' => 'active',
+    ]);
+    $conv = Conversation::query()->create([
+        'business_id' => 1, 'channel_id' => $channel->id,
+        'customer_external_id' => '+554899872822', 'status' => 'open',
+    ]);
+
+    $controller = app(InboxController::class);
+    $req = Request::create('/test', 'POST', [
+        'kind' => 'freeform',
+        'body' => 'msg que vai falhar',
+    ]);
+    $resp = $controller->send($req, $conv->id);
+
+    expect($resp)->toBeInstanceOf(RedirectResponse::class);
+
+    // Row em DB com status='failed' — frontend bubble mostra ícone vermelho
+    // + atendente pode retentar (não trava UI). Optimistic UI premissa
+    // mantida mesmo no caminho de erro.
+    $msg = Message::query()
+        ->withoutGlobalScope(ScopeByBusiness::class)
+        ->where('conversation_id', $conv->id)
+        ->first();
+    expect($msg)->not->toBeNull();
+    expect($msg->status)->toBe('failed');
+    expect($msg->failed_reason)->toContain('503');
 });
