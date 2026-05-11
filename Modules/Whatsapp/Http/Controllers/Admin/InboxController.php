@@ -11,6 +11,7 @@ use Inertia\Response;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
+use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 
 /**
  * InboxController — UI omnichannel `/atendimento/inbox` (ADR 0135 Fase 0).
@@ -27,7 +28,7 @@ use Modules\Whatsapp\Entities\Message;
  */
 class InboxController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, CentrifugoTokenIssuer $tokenIssuer): Response
     {
         $businessId = (int) session('user.business_id');
         $tab = $request->input('tab', 'all');
@@ -114,6 +115,24 @@ class InboxController extends Controller
             ->get(['id', 'label', 'type'])
             ->map(fn ($ch) => ['id' => $ch->id, 'label' => $ch->label, 'type' => $ch->type]);
 
+        // Centrifugo real-time (ADR 0058 + US-WA-059) — channel
+        // `omnichannel:business:{id}` segregado por business_id (Tier 0).
+        // Token JWT HS256 ttl curto, re-emitido a cada page load. Se
+        // emissor falhar (secret ausente, etc), payload vira null e o
+        // frontend cai pra polling fallback.
+        $channel = "omnichannel:business:{$businessId}";
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+        $token = $tokenIssuer->issue(
+            $userId,
+            [$channel],
+            (int) config('whatsapp.centrifugo.token_ttl_seconds', 3600)
+        );
+        $centrifugoConfig = $token !== null ? [
+            'wsUrl' => config('whatsapp.centrifugo.ws_url'),
+            'token' => $token,
+            'channel' => $channel,
+        ] : null;
+
         return Inertia::render('Atendimento/Inbox/Index', [
             'conversations' => [
                 'data' => $conversationsForUi,
@@ -129,6 +148,7 @@ class InboxController extends Controller
             'thread' => $thread,
             'messages' => $messages,
             'availableChannels' => $availableChannels,
+            'centrifugoConfig' => $centrifugoConfig,
         ]);
     }
 
