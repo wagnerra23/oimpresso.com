@@ -34,7 +34,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   templates: ReadyTemplate[];
   /**
-   * Sender — recebe payload pronto pra POST whatsapp.conversations.send com kind=template.
+   * Sender — recebe payload pronto pra POST atendimento.inbox.send com kind=template.
    * Retorna boolean: true se enviou com sucesso (fecha dialog), false mantém aberto.
    */
   onSend: (payload: {
