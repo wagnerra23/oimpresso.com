@@ -147,17 +147,19 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader className="pb-5 border-b">
+      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto px-6">
+        <SheetHeader className="pb-5 border-b px-0">
           <SheetTitle className="text-xl font-semibold tracking-tight">
             Configurar boleto
           </SheetTitle>
           <SheetDescription className="text-sm text-muted-foreground">
-            {account.name} · Conta {account.account_number}
+            {[account.name?.trim(), account.account_number?.trim() && `Conta ${account.account_number}`]
+              .filter(Boolean)
+              .join(' · ') || 'Preencha os dados pra emitir boleto desta conta'}
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={submit} className="space-y-6 mt-5 pb-6">
+        <form onSubmit={submit} className="space-y-5 mt-5 pb-6">
           {/* Conta bancária */}
           <div className="space-y-4">
             <SectionHeader icon={Landmark} title="Conta bancária" eyebrow="dados pra emissão" />
@@ -267,7 +269,7 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
           </div>
 
           {/* Beneficiário */}
-          <div className="border-t pt-6 space-y-4">
+          <div className="border-t pt-5 space-y-4">
             <SectionHeader icon={Building2} title="Beneficiário" eyebrow="PJ que emite o boleto" />
 
             <div className="grid grid-cols-2 gap-4">
@@ -311,8 +313,9 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-2">
+            {/* Grid 12-col linear pra evitar grid aninhado (causava overflow do CEP) */}
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-5">
                 <Label htmlFor="beneficiario_bairro">Bairro</Label>
                 <Input
                   id="beneficiario_bairro"
@@ -320,7 +323,7 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
                   onChange={(e) => form.setData('beneficiario_bairro', e.target.value)}
                 />
               </div>
-              <div>
+              <div className="col-span-4">
                 <Label htmlFor="beneficiario_cidade">Cidade</Label>
                 <Input
                   id="beneficiario_cidade"
@@ -328,33 +331,31 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
                   onChange={(e) => form.setData('beneficiario_cidade', e.target.value)}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="beneficiario_uf">UF</Label>
-                  <Input
-                    id="beneficiario_uf"
-                    maxLength={2}
-                    className="text-center uppercase"
-                    value={form.data.beneficiario_uf}
-                    onChange={(e) => form.setData('beneficiario_uf', e.target.value.toUpperCase())}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="beneficiario_cep">CEP</Label>
-                  <Input
-                    id="beneficiario_cep"
-                    placeholder="00000-000"
-                    value={form.data.beneficiario_cep}
-                    onChange={(e) => form.setData('beneficiario_cep', e.target.value)}
-                  />
-                </div>
+              <div className="col-span-1">
+                <Label htmlFor="beneficiario_uf">UF</Label>
+                <Input
+                  id="beneficiario_uf"
+                  maxLength={2}
+                  className="text-center uppercase"
+                  value={form.data.beneficiario_uf}
+                  onChange={(e) => form.setData('beneficiario_uf', e.target.value.toUpperCase())}
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="beneficiario_cep">CEP</Label>
+                <Input
+                  id="beneficiario_cep"
+                  placeholder="00000-000"
+                  value={form.data.beneficiario_cep}
+                  onChange={(e) => form.setData('beneficiario_cep', e.target.value)}
+                />
               </div>
             </div>
           </div>
 
           {/* Credenciais API — gateway banks (Inter 077 / Asaas 274) */}
           {isGatewayBank && (
-            <div className="border-t pt-6 space-y-4">
+            <div className="border-t pt-5 space-y-4">
               <SectionHeader
                 icon={KeyRound}
                 title="Credenciais API"
@@ -481,9 +482,9 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
             </div>
           )}
 
-          {/* Toggle ativo — card destacado com hint */}
-          <div className="border-t pt-6">
-            <div className="rounded-lg border border-border bg-muted/30 p-4 flex items-start gap-3">
+          {/* Toggle ativo — card destacado sem border duplicada (bg + radius bastam) */}
+          <div className="border-t pt-5">
+            <div className="rounded-lg bg-muted/40 p-4 flex items-start gap-3">
               <Switch
                 id="ativo_para_boleto"
                 checked={!!form.data.ativo_para_boleto}
