@@ -112,6 +112,7 @@ class MysqlWriter:
         is_closed: bool = False,
         account_type_id: int | None = None,
         created_by: int = 1,
+        account_details: str | None = None,
     ) -> int | None:
         """UPSERT em accounts (core) + accounts_legacy_map (bridge).
 
@@ -131,13 +132,14 @@ class MysqlWriter:
         if existing_id is None:
             # INSERT em accounts (schema real UltimatePOS)
             sql_account = """
-                INSERT INTO accounts (business_id, name, account_number, account_type_id, created_by, is_closed, created_at, updated_at)
-                VALUES (%(business_id)s, %(name)s, %(account_number)s, %(account_type_id)s, %(created_by)s, %(is_closed)s, NOW(), NOW())
+                INSERT INTO accounts (business_id, name, account_number, account_details, account_type_id, created_by, is_closed, created_at, updated_at)
+                VALUES (%(business_id)s, %(name)s, %(account_number)s, %(account_details)s, %(account_type_id)s, %(created_by)s, %(is_closed)s, NOW(), NOW())
             """
             params = {
                 "business_id": business_id,
                 "name": name,
                 "account_number": account_number,
+                "account_details": account_details,
                 "account_type_id": account_type_id,
                 "created_by": created_by,
                 "is_closed": 1 if is_closed else 0,
@@ -173,6 +175,8 @@ class MysqlWriter:
                 UPDATE accounts
                 SET name = %(name)s,
                     account_number = %(account_number)s,
+                    account_details = %(account_details)s,
+                    account_type_id = %(account_type_id)s,
                     is_closed = %(is_closed)s,
                     updated_at = NOW()
                 WHERE id = %(account_id)s
@@ -182,6 +186,8 @@ class MysqlWriter:
                 {
                     "name": name,
                     "account_number": account_number,
+                    "account_details": account_details,
+                    "account_type_id": account_type_id,
                     "is_closed": 1 if is_closed else 0,
                     "account_id": existing_id,
                 },
@@ -190,6 +196,82 @@ class MysqlWriter:
             account_id = existing_id
 
         return account_id
+
+    # ------------------------------------------------------------------------
+    # Helpers Wagner v0.2.0
+    # ------------------------------------------------------------------------
+
+    def ensure_account_types(
+        self, business_id: int, names: list[str], created_by: int = 1,
+    ) -> dict[str, int]:
+        """Garante que cada `name` exista em account_types(business_id). Retorna {name: id}.
+
+        Idempotente — re-rodar não duplica.
+        """
+        result: dict[str, int] = {}
+
+        if self.target == "dry-run":
+            # placeholders consistentes pra dry-run: 1=Banco, 2=Caixa, 3=Cartão de Crédito...
+            for i, name in enumerate(names, 1):
+                result[name] = i
+                self.dry_run_lines.append(
+                    f"-- ensure_account_type: '{name}' biz={business_id}"
+                )
+                self.dry_run_lines.append(
+                    f"INSERT INTO account_types (name, business_id, created_at, updated_at) "
+                    f"SELECT '{name}', {business_id}, NOW(), NOW() "
+                    f"WHERE NOT EXISTS (SELECT 1 FROM account_types WHERE name='{name}' AND business_id={business_id});"
+                )
+            self.dry_run_lines.append("")
+            return result
+
+        if self.con is None:
+            raise RuntimeError("Conexão MySQL não aberta")
+
+        with self.con.cursor() as cur:
+            for name in names:
+                cur.execute(
+                    "SELECT id FROM account_types WHERE business_id=%s AND name=%s LIMIT 1",
+                    (business_id, name),
+                )
+                row = cur.fetchone()
+                if row:
+                    result[name] = row["id"]
+                else:
+                    cur.execute(
+                        "INSERT INTO account_types (name, business_id, created_at, updated_at) "
+                        "VALUES (%s, %s, NOW(), NOW())",
+                        (name, business_id),
+                    )
+                    result[name] = cur.lastrowid
+        return result
+
+    def soft_delete_placeholder_accounts(self, business_id: int) -> int:
+        """Soft-delete em accounts que NÃO estão registradas no bridge accounts_legacy_map.
+
+        Idempotente — re-rodar não faz nada se já estão deletadas.
+        Retorna número de linhas afetadas.
+        """
+        sql = """
+            UPDATE accounts a
+            LEFT JOIN accounts_legacy_map m ON m.account_id = a.id
+            SET a.deleted_at = NOW(), a.updated_at = NOW()
+            WHERE a.business_id = %(business_id)s
+              AND a.deleted_at IS NULL
+              AND m.id IS NULL
+        """
+        if self.target == "dry-run":
+            self.dry_run_lines.append("-- soft_delete_placeholder_accounts:")
+            self.dry_run_lines.append(self._format_sql_for_log(sql, {"business_id": business_id}) + ";")
+            self.dry_run_lines.append("")
+            return -1  # unknown in dry-run
+
+        if self.con is None:
+            raise RuntimeError("Conexão MySQL não aberta")
+
+        with self.con.cursor() as cur:
+            cur.execute(sql, {"business_id": business_id})
+            return cur.rowcount
 
     def upsert_fin_conta_bancaria(
         self,
