@@ -1,3 +1,28 @@
+---
+module: ComunicacaoVisual
+purpose: "Vertical gráfica rápida BR (CNAE 1813-0/01). Diferencial: cálculo m² + PCP gráfico + apontamento + NFe-de-boleto-pago + IA conversacional. Greenfield aguardando piloto Q3/2026 entre OfficeImpresso clients."
+contains:
+  - "ApontamentoController"
+  - "DataController"
+  - "InstallController"
+  - "OrcamentoController"
+not_contains:
+  - "Kanban shared infra → Modules/Repair (consumido via repair_settings)"
+  - "Núcleo transactions/contacts → UltimatePOS core"
+  - "NFe backbone → Modules/NfeBrasil (consumido)"
+trust_required: L2
+owner: wagner
+permission_prefix: com_visual.*
+charter_adr: 0121
+related_adrs:
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0093-multi-tenant-isolation-tier-0
+url_prefixes:
+  - /com-visual/*
+drift_alerts: []
+---
+
 # Modules/ComunicacaoVisual — vertical gráfica rápida BR
 
 > ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
