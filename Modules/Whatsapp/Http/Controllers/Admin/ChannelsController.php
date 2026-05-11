@@ -145,7 +145,11 @@ class ChannelsController extends Controller
 
         try {
             // Dispara connect (202 + snapshot inicial)
+            // FIXME(US-WA-058): withoutVerifying temp — cert Let's Encrypt no CT 100
+            // ainda não emitido (DNS propagou após Traefik tentar ACME). Remover
+            // após restart container disparar nova emissão.
             $connectResponse = Http::withToken($apiKey)
+                ->withoutVerifying()
                 ->timeout($timeout)
                 ->post("{$daemonUrl}/instances/{$instanceId}/connect", [
                     'business_uuid' => $channel->channel_uuid,
@@ -175,6 +179,7 @@ class ChannelsController extends Controller
             for ($i = 0; $i < 20; $i++) {
                 usleep(1_000_000); // 1s
                 $qrResponse = Http::withToken($apiKey)
+                    ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
                     ->timeout($timeout)
                     ->get("{$daemonUrl}/instances/{$instanceId}/qr");
 
@@ -188,6 +193,7 @@ class ChannelsController extends Controller
 
             // Status atual após tentativas
             $statusResponse = Http::withToken($apiKey)
+                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
                 ->timeout($timeout)
                 ->get("{$daemonUrl}/instances/{$instanceId}/status");
             if ($statusResponse->successful()) {
@@ -235,6 +241,7 @@ class ChannelsController extends Controller
 
         try {
             $r = Http::withToken($apiKey)
+                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
                 ->timeout($timeout)
                 ->get("{$daemonUrl}/instances/{$instanceId}/status");
 
