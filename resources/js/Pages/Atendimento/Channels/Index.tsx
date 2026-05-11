@@ -10,10 +10,11 @@
 // pra consumir Channel direto vai num PR seguinte.
 
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import QRCode from 'react-qr-code';
 import {
   Plus, Trash2, AlertTriangle, CheckCircle2, Circle, Loader2,
-  MessageCircle, Plug, Smartphone,
+  MessageCircle, Plug, Smartphone, Zap,
 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -69,6 +70,11 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Channel | null>(null);
+  const [connecting, setConnecting] = useState<Channel | null>(null);
+  const [qrString, setQrString] = useState<string | null>(null);
+  const [qrState, setQrState] = useState<string | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
 
   // Form state
   const [type, setType] = useState<string>('whatsapp_baileys');
@@ -114,6 +120,59 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
     });
   }
 
+  async function startConnect(channel: Channel) {
+    setConnecting(channel);
+    setQrString(null);
+    setQrState(null);
+    setQrError(null);
+    setQrLoading(true);
+    try {
+      const r = await fetch(route('atendimento.channels.connect', channel.id), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': (document.querySelector('meta[name=csrf-token]') as HTMLMetaElement)?.content || '',
+        },
+        credentials: 'same-origin',
+      });
+      const data = await r.json();
+      if (!r.ok || !data.ok) {
+        setQrError(data.error || 'Falha desconhecida ao chamar daemon.');
+      } else {
+        setQrString(data.qr || null);
+        setQrState(data.state || null);
+        if (!data.qr) setQrError(data.message || 'Daemon respondeu sem QR.');
+      }
+    } catch (e: any) {
+      setQrError('Erro de rede: ' + (e?.message || 'desconhecido'));
+    } finally {
+      setQrLoading(false);
+    }
+  }
+
+  // Poll status enquanto modal connect aberto
+  useEffect(() => {
+    if (!connecting) return;
+    const interval = setInterval(async () => {
+      try {
+        const r = await fetch(route('atendimento.channels.status', connecting.id), {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          credentials: 'same-origin',
+        });
+        const data = await r.json();
+        setQrState(data.state);
+        if (data.state === 'connected') {
+          setTimeout(() => {
+            setConnecting(null);
+            router.reload({ only: ['channels'] });
+          }, 1500);
+        }
+      } catch { /* swallow */ }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [connecting?.id]);
+
   return (
     <div className="p-4 space-y-4">
       <PageHeader
@@ -139,10 +198,62 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {channels.map((ch) => (
-            <ChannelCard key={ch.id} channel={ch} onDelete={() => setConfirmDelete(ch)} />
+            <ChannelCard
+              key={ch.id}
+              channel={ch}
+              onDelete={() => setConfirmDelete(ch)}
+              onConnect={() => startConnect(ch)}
+            />
           ))}
         </div>
       )}
+
+      {/* Modal QR connect Baileys */}
+      <Dialog open={!!connecting} onOpenChange={(o) => { if (!o) { setConnecting(null); setQrString(null); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Conectar {connecting?.label}</DialogTitle>
+            <DialogDescription>
+              Abra Whatsapp → Configurações → Dispositivos vinculados → Vincular dispositivo. Escaneie o QR abaixo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center justify-center py-4 gap-3 min-h-[280px]">
+            {qrLoading && (
+              <>
+                <Loader2 size={32} className="animate-spin text-muted-foreground" aria-hidden />
+                <p className="text-sm text-muted-foreground">Falando com daemon CT 100…</p>
+              </>
+            )}
+            {!qrLoading && qrError && (
+              <div className="text-sm text-red-700 dark:text-red-400 text-center px-4">
+                <AlertTriangle size={20} className="inline mr-2" aria-hidden />
+                {qrError}
+              </div>
+            )}
+            {!qrLoading && qrString && (
+              <>
+                <div className="bg-white p-3 rounded">
+                  <QRCode value={qrString} size={240} />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  State: <strong>{qrState || 'qr_required'}</strong>
+                  {qrState === 'connected' && <span className="text-emerald-600 ml-1">✓ conectado!</span>}
+                </p>
+              </>
+            )}
+            {!qrLoading && !qrString && !qrError && qrState && (
+              <p className="text-sm text-muted-foreground">State daemon: <strong>{qrState}</strong></p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setConnecting(null); setQrString(null); }}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add channel dialog */}
       <Dialog open={showAddDialog} onOpenChange={(o) => { setShowAddDialog(o); if (!o) resetForm(); }}>
@@ -242,7 +353,9 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
   );
 }
 
-function ChannelCard({ channel, onDelete }: { channel: Channel; onDelete: () => void }) {
+function ChannelCard({
+  channel, onDelete, onConnect,
+}: { channel: Channel; onDelete: () => void; onConnect: () => void }) {
   const TypeIcon = channel.type.startsWith('whatsapp_') ? MessageCircle : Plug;
   const healthColor = {
     healthy: 'text-emerald-600 dark:text-emerald-400',
@@ -251,6 +364,10 @@ function ChannelCard({ channel, onDelete }: { channel: Channel; onDelete: () => 
     banned: 'text-red-700 dark:text-red-500',
     never_checked: 'text-muted-foreground',
   }[channel.channel_health];
+
+  const showConnect = channel.type === 'whatsapp_baileys'
+    && channel.status !== 'active'
+    && channel.channel_health !== 'healthy';
 
   return (
     <Card className="p-4 flex flex-col gap-2">
@@ -262,9 +379,16 @@ function ChannelCard({ channel, onDelete }: { channel: Channel; onDelete: () => 
             <div className="text-xs text-muted-foreground truncate">{channel.type}</div>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={onDelete} title="Remover canal" className="h-7 w-7 shrink-0">
-          <Trash2 size={14} className="text-muted-foreground hover:text-destructive" aria-hidden />
-        </Button>
+        <div className="flex items-center gap-1 shrink-0">
+          {showConnect && (
+            <Button variant="ghost" size="icon" onClick={onConnect} title="Conectar (gerar QR)" className="h-7 w-7">
+              <Zap size={14} className="text-primary" aria-hidden />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={onDelete} title="Remover canal" className="h-7 w-7">
+            <Trash2 size={14} className="text-muted-foreground hover:text-destructive" aria-hidden />
+          </Button>
+        </div>
       </div>
 
       {channel.display_identifier && (

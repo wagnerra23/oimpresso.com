@@ -98,4 +98,14 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.destroy');
+
+    Route::post('/canais/{id}/connect', [ChannelsController::class, 'connect'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.connect');
+
+    Route::get('/canais/{id}/status', [ChannelsController::class, 'status'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.status');
 });

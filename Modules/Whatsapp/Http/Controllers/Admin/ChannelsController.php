@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Http\Controllers\Admin;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Whatsapp\Entities\Channel;
@@ -94,6 +97,172 @@ class ChannelsController extends Controller
         $channel->delete();
 
         return back()->with('success', "Canal '{$label}' removido.");
+    }
+
+    /**
+     * Dispara connect Baileys + poll status até QR ou timeout.
+     *
+     * Quick-path pra testar daemon CT 100 sem refatorar BaileysConnectJob ainda
+     * (ADR 0135 Fase 0 PR C completo virá depois). Funciona só pra
+     * `whatsapp_baileys` por ora.
+     */
+    public function connect(int $id): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $channel = Channel::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+            return response()->json([
+                'ok' => false,
+                'error' => "Connect rápido só implementado pra Baileys nesta fase. Tipo atual: {$channel->type}",
+            ], 422);
+        }
+
+        $cfg = $channel->config_json ?? [];
+        $phone = $cfg['baileys_phone_e164'] ?? null;
+        if (empty($phone)) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'baileys_phone_e164 ausente em config_json.',
+            ], 422);
+        }
+
+        $daemonUrl = config('whatsapp.baileys.daemon_url');
+        $apiKey = config('whatsapp.baileys.api_key');
+        $timeout = (int) config('whatsapp.baileys.request_timeout', 15);
+
+        if (empty($daemonUrl) || empty($apiKey)) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'WHATSAPP_BAILEYS_DAEMON_URL ou _API_KEY não configurados no .env.',
+            ], 503);
+        }
+
+        // Instance ID estável pelo channel_uuid
+        $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
+
+        try {
+            // Dispara connect (202 + snapshot inicial)
+            $connectResponse = Http::withToken($apiKey)
+                ->timeout($timeout)
+                ->post("{$daemonUrl}/instances/{$instanceId}/connect", [
+                    'business_uuid' => $channel->channel_uuid,
+                    'business_id' => $businessId,
+                ]);
+
+            if (! $connectResponse->successful()) {
+                Log::warning('baileys.connect_failed', [
+                    'channel_id' => $channel->id,
+                    'status' => $connectResponse->status(),
+                    'body' => $connectResponse->body(),
+                ]);
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'Daemon retornou ' . $connectResponse->status() . ': ' . $connectResponse->body(),
+                ], 502);
+            }
+
+            // Marca channel como connecting
+            $channel->status = 'setup';
+            $channel->channel_health = 'never_checked';
+            $channel->save();
+
+            // Poll QR ~20s (Baileys leva 1-3s pra gerar)
+            $qr = null;
+            $state = null;
+            for ($i = 0; $i < 20; $i++) {
+                usleep(1_000_000); // 1s
+                $qrResponse = Http::withToken($apiKey)
+                    ->timeout($timeout)
+                    ->get("{$daemonUrl}/instances/{$instanceId}/qr");
+
+                if ($qrResponse->status() === 200) {
+                    $data = $qrResponse->json();
+                    $qr = $data['qr'] ?? null;
+                    if ($qr) break;
+                }
+                // 409 = qr ainda não pronto, continua polling
+            }
+
+            // Status atual após tentativas
+            $statusResponse = Http::withToken($apiKey)
+                ->timeout($timeout)
+                ->get("{$daemonUrl}/instances/{$instanceId}/status");
+            if ($statusResponse->successful()) {
+                $state = ($statusResponse->json())['state'] ?? null;
+            }
+
+            return response()->json([
+                'ok' => true,
+                'instance_id' => $instanceId,
+                'qr' => $qr,
+                'state' => $state,
+                'message' => $qr ? 'Escaneie o QR no Whatsapp do número cadastrado.' : 'Daemon respondeu sem QR (state=' . $state . '). Pode estar reusando sessão.',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('baileys.connect_exception', [
+                'channel_id' => $channel->id,
+                'exception' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'ok' => false,
+                'error' => 'Falha ao falar com daemon: ' . $e->getMessage(),
+            ], 502);
+        }
+    }
+
+    /**
+     * Lê status atual da instance no daemon (poll do frontend pra detectar
+     * connected após scan QR).
+     */
+    public function status(int $id): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $channel = Channel::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+            return response()->json(['state' => null, 'reason' => 'only_baileys']);
+        }
+
+        $daemonUrl = config('whatsapp.baileys.daemon_url');
+        $apiKey = config('whatsapp.baileys.api_key');
+        $timeout = (int) config('whatsapp.baileys.request_timeout', 10);
+        $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
+
+        try {
+            $r = Http::withToken($apiKey)
+                ->timeout($timeout)
+                ->get("{$daemonUrl}/instances/{$instanceId}/status");
+
+            if (! $r->successful()) {
+                return response()->json(['state' => 'unknown', 'http' => $r->status()]);
+            }
+
+            $snap = $r->json();
+            $state = $snap['state'] ?? 'unknown';
+
+            // Atualiza channel.status quando conectado
+            if ($state === 'connected' && $channel->status !== 'active') {
+                $channel->status = 'active';
+                $channel->channel_health = 'healthy';
+                $channel->last_health_check_at = now();
+                $channel->save();
+            }
+
+            return response()->json([
+                'state' => $state,
+                'qr_available' => $state === 'qr_required',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'state' => 'error',
+                'error' => $e->getMessage(),
+            ], 502);
+        }
     }
 
     /**
