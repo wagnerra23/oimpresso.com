@@ -1,0 +1,173 @@
+# US-INFRA-016 — Langfuse self-host pra observabilidade GenAI (ADR 0132)
+#
+# Hospedagem: CT 100 docker-host (Proxmox empresa, 192.168.0.50)
+# Subdomínio: langfuse.oimpresso.com → 177.74.67.30 → Traefik → langfuse-web
+# Cert: Let's Encrypt R12 automático via Traefik labels (mesmo padrão de mcp.oimpresso.com)
+#
+# Recebe spans OTel GenAI emitidos pelo LaravelAiSdkDriver via OTLP HTTP exporter
+# (PR-1 da US-INFRA-016). Driver já emite spans hoje em storage/logs/otel-gen-ai.log;
+# este stack é o destino final do exporter.
+#
+# Versão Langfuse: v3 (LTS) — receiver OTLP nativo, dispensa Langfuse PHP SDK proprietário
+#
+# Deploy:
+#   tailscale ssh root@ct100-mcp
+#   cd /opt/langfuse/code && git pull
+#   cd docker/langfuse
+#   cp .env.example .env  # primeira vez — preencher secrets do Vaultwarden
+#   docker compose up -d
+#
+# Recursos esperados (provisionar antes — verificar capacidade CT 100):
+#   - postgres-langfuse: 200MB RAM, 5GB disk (cresce ~100MB/mês)
+#   - clickhouse-langfuse: 1.5-2GB RAM (atenção — maior consumo), 20GB disk
+#   - langfuse-web: 300MB RAM
+#   - langfuse-worker: 200MB RAM
+#   - TOTAL: ~2.5GB RAM, 25GB disk
+#
+# Volumes persistentes em /opt/langfuse/data/ (host) — backup nightly recomendado
+
+services:
+
+  # ========================================================================
+  # postgres-langfuse — metadata Langfuse (projects, users, prompt versions)
+  # ========================================================================
+  postgres-langfuse:
+    image: postgres:16-alpine
+    container_name: postgres-langfuse
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+    environment:
+      POSTGRES_DB: langfuse
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (Vaultwarden)}
+    volumes:
+      - /opt/langfuse/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse -d langfuse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================================================
+  # clickhouse-langfuse — armazenamento de spans/traces (analytics OLAP)
+  # ========================================================================
+  clickhouse-langfuse:
+    image: clickhouse/clickhouse-server:24.3-alpine
+    container_name: clickhouse-langfuse
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+    environment:
+      CLICKHOUSE_DB: langfuse
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?Set CLICKHOUSE_PASSWORD in .env (Vaultwarden)}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - /opt/langfuse/data/clickhouse/data:/var/lib/clickhouse
+      - /opt/langfuse/data/clickhouse/logs:/var/log/clickhouse-server
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================================================
+  # langfuse-web — UI + API + OTLP receiver
+  # ========================================================================
+  langfuse-web:
+    image: langfuse/langfuse:3
+    container_name: langfuse-web
+    restart: unless-stopped
+    depends_on:
+      postgres-langfuse:
+        condition: service_healthy
+      clickhouse-langfuse:
+        condition: service_healthy
+    networks:
+      - docker-host_default
+    env_file:
+      - .env
+    environment:
+      # Database
+      DATABASE_URL: postgresql://langfuse:${POSTGRES_PASSWORD}@postgres-langfuse:5432/langfuse
+      # ClickHouse
+      CLICKHOUSE_URL: http://clickhouse-langfuse:8123
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse-langfuse:9000
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      # App config
+      NEXTAUTH_URL: https://langfuse.oimpresso.com
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET in .env (Vaultwarden — openssl rand -base64 32)}
+      SALT: ${SALT:?Set SALT in .env (Vaultwarden — openssl rand -base64 32)}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set ENCRYPTION_KEY in .env (Vaultwarden — 64-char hex)}
+      # Telemetria self-host: desabilitar phone-home Langfuse
+      TELEMETRY_ENABLED: "false"
+      # Login: restringir signup ao admin Wagner (depois libera time)
+      AUTH_DISABLE_SIGNUP: ${AUTH_DISABLE_SIGNUP:-false}
+      # Redis opcional (in-memory queue default basta no MVP)
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/public/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    labels:
+      # Traefik routing (mesmo padrão de mcp.oimpresso.com)
+      - "traefik.enable=true"
+      - "traefik.docker.network=docker-host_default"
+
+      # HTTPS router
+      - "traefik.http.routers.langfuse.rule=Host(`langfuse.oimpresso.com`)"
+      - "traefik.http.routers.langfuse.entrypoints=websecure"
+      - "traefik.http.routers.langfuse.tls=true"
+      - "traefik.http.routers.langfuse.tls.certresolver=le"
+      - "traefik.http.routers.langfuse.service=langfuse"
+
+      # Backend
+      - "traefik.http.services.langfuse.loadbalancer.server.port=3000"
+      - "traefik.http.services.langfuse.loadbalancer.healthcheck.path=/api/public/health"
+      - "traefik.http.services.langfuse.loadbalancer.healthcheck.interval=30s"
+
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.langfuse-http.rule=Host(`langfuse.oimpresso.com`)"
+      - "traefik.http.routers.langfuse-http.entrypoints=web"
+      - "traefik.http.routers.langfuse-http.middlewares=langfuse-redirect"
+      - "traefik.http.middlewares.langfuse-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.langfuse-redirect.redirectscheme.permanent=true"
+
+  # ========================================================================
+  # langfuse-worker — processa spans assíncronos (ingestion, score, etc)
+  # ========================================================================
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    container_name: langfuse-worker
+    restart: unless-stopped
+    depends_on:
+      postgres-langfuse:
+        condition: service_healthy
+      clickhouse-langfuse:
+        condition: service_healthy
+    networks:
+      - docker-host_default
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://langfuse:${POSTGRES_PASSWORD}@postgres-langfuse:5432/langfuse
+      CLICKHOUSE_URL: http://clickhouse-langfuse:8123
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse-langfuse:9000
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      SALT: ${SALT}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      TELEMETRY_ENABLED: "false"
+
+networks:
+  docker-host_default:
+    external: true
