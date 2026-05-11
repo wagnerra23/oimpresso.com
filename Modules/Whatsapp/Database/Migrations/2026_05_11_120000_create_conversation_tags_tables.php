@@ -49,6 +49,11 @@ return new class extends Migration
             $table->unsignedBigInteger('conversation_id');
             $table->unsignedBigInteger('tag_id');
             $table->timestamp('created_at')->useCurrent();
+            // updated_at obrigatório pra relation `belongsToMany->withTimestamps()`
+            // — adicionado pós-hotfix US-WA-091 (laravel.log 18:14 prod broke).
+            // Pest tests anteriores tinham a coluna no schema mas a migration
+            // original não — drift entre intenção e migração real.
+            $table->timestamp('updated_at')->nullable();
             $table->unsignedInteger('created_by_user_id')->nullable()->comment('atendente que aplicou a tag');
 
             // UNIQUE — mesma tag não pode ser aplicada 2x na mesma conv
