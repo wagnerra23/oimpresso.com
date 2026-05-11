@@ -131,6 +131,14 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  /* Páginas sem topnav-module têm só 2 children no `.main` (topbar + body)
+     mas o grid declara 3 rows (44px auto 1fr). Main-body cairia no track
+     `auto` (359px content-size) e o `1fr` ficaria vazio. `grid-row-end: -1`
+     força span até o último track, garantindo viewport-fill em qualquer
+     caso. Páginas COM topnav (3 children) continuam OK: child 3 vai pro
+     track 3 e -1 = track 3 (no-op). Descoberto via /whatsapp/conversations
+     que precisa fill pra composer no rodapé (US-WA-053, 2026-05-11). */
+  grid-row-end: -1;
 }
 
 /* ────────────────── Topbar ────────────────── */.cockpit .topbar {
