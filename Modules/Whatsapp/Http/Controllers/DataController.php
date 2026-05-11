@@ -2,9 +2,7 @@
 
 namespace Modules\Whatsapp\Http\Controllers;
 
-use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
-use Menu;
 
 /**
  * DataController do módulo Whatsapp.
@@ -45,61 +43,10 @@ class DataController extends Controller
 
     public function modifyAdminMenu(): void
     {
-        $module_util = new ModuleUtil();
-
-        if (auth()->user()->can('superadmin')) {
-            $is_enabled = $module_util->isModuleInstalled('Whatsapp');
-        } else {
-            $business_id = session()->get('user.business_id');
-            $is_enabled  = (bool) $module_util->hasThePermissionInSubscription(
-                $business_id,
-                'whatsapp_module',
-                'superadmin_package'
-            );
-        }
-
-        if (! $is_enabled) {
-            return;
-        }
-
-        $usuario_pode_ver = auth()->user()->can('superadmin')
-            || auth()->user()->can('whatsapp.access');
-
-        if (! $usuario_pode_ver) {
-            return;
-        }
-
-        $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
-        $segmento_ativo   = request()->segment(1) === 'whatsapp';
-
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
-                $menu->dropdown(
-                    'Whatsapp',
-                    function ($sub) {
-                        $segment2 = request()->segment(2);
-
-                        $sub->url(url('/whatsapp/conversations'), 'Conversas', [
-                            'icon'   => 'fa fas fa-comments',
-                            'active' => $segment2 === 'conversations',
-                        ]);
-                        $sub->url(url('/whatsapp/templates'), 'Templates', [
-                            'icon'   => 'fa fas fa-file-alt',
-                            'active' => $segment2 === 'templates',
-                        ]);
-                        $sub->url(url('/whatsapp/settings'), 'Configurações', [
-                            'icon'   => 'fa fas fa-cog',
-                            'active' => $segment2 === 'settings',
-                        ]);
-                    },
-                    [
-                        'icon'   => 'fa fab fa-whatsapp',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
-                    ]
-                )->order(95);
-            }
-        );
+        // Wagner 2026-05-11: entrada de sidebar removida — o shortcut fixo
+        // "WhatsApp" no topo do Sidebar.tsx (SidebarShortcuts) ja e o ponto
+        // de entrada unico pra /whatsapp/conversations. Sub-itens (Templates,
+        // Configuracoes) permanecem disponiveis via topnav declarativo em
+        // Resources/menus/topnav.php (montado pelo LegacyMenuAdapter::buildTopNavs).
     }
 }
