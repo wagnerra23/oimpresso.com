@@ -384,9 +384,9 @@ function DirIcon({ kind }) {
 function ScreenUnified({ rows, setRows, drawerRow, setDrawerRow }) {
   const [tab, setTab] = useState("all");
   const [query, setQuery] = useState("");
-  const [density, setDensity] = useState(() => localStorage.getItem("fin-density") || "comfortable");
+  const [density, setDensity] = useState(() => localStorage.getItem("fin-density-v2") || "compact");
 
-  const setDens = (v) => { setDensity(v); localStorage.setItem("fin-density", v); };
+  const setDens = (v) => { setDensity(v); localStorage.setItem("fin-density-v2", v); };
 
   const ROW_H = { compact: 34, comfortable: 44, spacious: 56 };
 
