@@ -349,6 +349,16 @@ function MessageBubble({ message, showTail }: { message: Message; showTail: bool
             Bot
           </div>
         )}
+        {/* US-WA-077: identifica QUAL atendente do time enviou a msg outbound
+            quando vários compartilham o mesmo chip. Só renderiza quando:
+            - sender_kind='human' (não bot, não system)
+            - sender_user_name set (msg enviada via web UI, não chip externo)
+            - isOut (bubble do nosso lado — não faz sentido em inbound) */}
+        {isOut && message.sender_kind === 'human' && message.sender_user_name && (
+          <div className="text-[10px] font-semibold mb-0.5 opacity-80">
+            {message.sender_user_name}
+          </div>
+        )}
         <div className="whitespace-pre-wrap break-words text-sm leading-snug">
           {message.body ?? <em className="opacity-70">[mídia]</em>}
         </div>

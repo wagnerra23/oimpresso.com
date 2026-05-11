@@ -161,6 +161,25 @@ class ChannelBaileysWebhookController extends Controller
             default => 'text',
         };
 
+        // US-WA-076: filtrar msgs "protocol" do Baileys (senderKeyDistributionMessage,
+        // protocolMessage, messageContextInfo, app-state-sync events). Chegam com
+        // body=null + sem media (cai no default 'text' do match). Sem valor pro
+        // Inbox — só polui Conversation + zera o preview lastMsg.
+        //
+        // Bug observado em prod 2026-05-11: conv #3 do biz=1 acumulou ~10 msgs
+        // outbound body=null porque chip Suporte emitia eventos internos quando
+        // reconectava durante o pairing turbulento US-WA-067/068. Mensagens
+        // vazias quebravam o preview na lista esquerda + criavam "conv fantasma"
+        // com customer_external_id = phone do próprio chip (não tem como conversar
+        // com si mesmo). Filtro aqui evita esse lixo entrar no schema.
+        if ($body === null && $type === 'text') {
+            return response()->json([
+                'ok' => true,
+                'note' => 'protocol_msg_ignored',
+                'provider_message_id' => $providerMessageId,
+            ], 200);
+        }
+
         // Pula global scope nas writes pq webhook não tem session user
         $conversation = Conversation::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
