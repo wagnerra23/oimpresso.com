@@ -20,12 +20,67 @@ owner: [W]
 
 > Convenção do ID: `US-OFICINA-NNN` para user stories desta vertical (ADR 0137). O antigo `US-AUTO-NNN` (preservado abaixo §3) era do SPEC antecipatório — não criar novas tasks com esse prefixo, usar `US-OFICINA-NNN`.
 
-| US | Descrição | Estado | PR |
-|---|---|---|---|
-| **US-OFICINA-001** | Scaffold módulo V0 (8 peças + Vehicle + ServiceOrder + Pest + Inertia Pages) | Em curso (este PR) | TBD |
-| **US-OFICINA-002** | Importer Firebird `EQUIPAMENTO_VEICULO` → `vehicles` Laravel (piloto Martinho) | Backlog Sprint 2+ | — |
-| **US-OFICINA-003** | FSM canônica OS (3 estados Simples + 5 estados Complexa) — ADR 0129 | Backlog | — |
-| **US-OFICINA-004** | UI Kanban OS Vargas (V1 — multi-item + multi-mecânico) | Backlog V1 | — |
+> **Formato:** US em headers `### US-OFICINA-NNN · ...` (não tabela) pra parser MCP indexar via regex [ADR 0134](../../decisions/0134-tasks-create-respeita-spec-placeholders.md).
+
+### US-OFICINA-001 · Scaffold módulo V0 (8 peças + Vehicle + ServiceOrder + Pest + Inertia Pages) — **DONE PR #556**
+
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story · origin: ADR-0137
+> done: 2026-05-11 · PR: #556 (squash `b72981eb`) · Pest: pendente Wagner validar local
+
+Scaffold completo conforme [ADR 0137 §"Escopo arquitetural V0"](../../decisions/0137-modules-oficinaauto-qualificada.md):
+- 8 peças nWidart canônicas (module.json + composer + Config + ServiceProvider + RouteServiceProvider + InstallController + DataController + Routes)
+- Migrations `vehicles` (multi-placa nullable) + `service_orders` (vehicle_id FK + transaction_id nullable) — multi-tenant Tier 0 ADR 0093
+- Models `Vehicle` + `ServiceOrder` com global scope `business_id` + soft delete + relations
+- 9 permissions registradas + sidebar entry "Oficina Auto" via DataController
+- 8 Pages Inertia (Vehicles + ServiceOrders × Index/Create/Show/Edit)
+- 16 Pest tests (CRUD + multi-tenant biz=1 vs biz=99)
+- 4 RUNBOOKs MWART hook satisfaction
+
+**Pendente Wagner:** `php artisan test --filter=OficinaAuto` local + decisão naming `vehicles` vs `oficina_auto_vehicles` antes de US-OFICINA-002.
+
+### US-OFICINA-002 · Importer Firebird `EQUIPAMENTO_VEICULO` → `vehicles` Laravel — **P0**
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story · origin: ADR-0137
+> blocked_by: US-OFICINA-001 (done)
+
+Artisan command `officeimpresso:import-vehicles {business_id} {firebird_dsn}` que:
+- Conecta Firebird cliente OfficeImpresso (ex: Martinho Caçambas — 91 veículos piloto V0)
+- Lê `EQUIPAMENTO_VEICULO` (mapping em [_MAPPING/TELA-LISTA-VENDAS.md §9.4](../../research/clientes-legacy-officeimpresso/_MAPPING/TELA-LISTA-VENDAS.md))
+- Popula `vehicles` Laravel respeitando `business_id` global scope
+- Preserva `EQUIPAMENTO_VEICULO.CODIGO` em `vehicles.legacy_id`
+- Pest: smoke biz=1 (Wagner WR2 SC) + integration cruzando 91 vehicles esperados Martinho
+- **NOVO insight (Agent F PR #555):** importer deve ter **cleanup rules** — `FINANCEIRO.DT_VENCTO > 365d + sem BOLETO + sem movimentação` → flag `write-off candidate`. ROI maior que dunning pra cliente legacy típico.
+
+### US-OFICINA-003 · FSM canônica OS (3 estados Simples + 5 Complexa) — **P0**
+
+> owner: — · priority: p0 · estimate: 5h · status: todo · type: story · origin: ADR-0137
+> blocked_by: US-OFICINA-001 (done), ADR-0129 (FSM canônica)
+
+2 processos seed por business pra `service_orders` ([ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md) FSM tabular):
+- **OS Simples** (Martinho caçamba avulsa): `aberta` → `em_servico` → `concluida`
+- **OS Complexa** (Vargas recapagem multi-item, futuro): `aberta` → `orcamento` → `aprovada` → `em_producao` → `concluida` → `entregue`
+
+Importer legacy mapeia `VENDA_ESTAGIO` Firebird → estado FSM correspondente. Pest: state transitions + side-effects.
+
+### US-OFICINA-004 · UI Kanban OS (V1 — multi-item + multi-mecânico) — **P1**
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story · origin: ADR-0137
+> blocked_by: US-OFICINA-003
+
+Aproveitar **pré-arte Delphi** ([Controller.Producao.Kanban.pas](../../research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md)) — Wagner descobriu Kanban industrial built-in com 8 agrupadores + drag-drop. Replicar via @dnd-kit React + persistir estado UI em tabela equivalente a `WR_KANBAN(CHAVE, COLUNA, ORDEM, COLUNA_FECHADA)`. Caso piloto V1: **Vargas** (multi-item média 3 itens/OS).
+
+### US-OFICINA-005 · Cleanup tools pra cliente legacy migrado — **P0 (emergente PR #555)**
+
+> owner: — · priority: p0 · estimate: 12h · status: todo · type: story · origin: Agent-F-investigacao-Martinho-2026-05-11
+> blocked_by: US-OFICINA-002 (importer)
+> evidence: Martinho 76,7% inadimplência = lixo histórico 2015-19 (não cliente que não paga). Veredito adversarial [04-inadimplencia-investigacao.md](../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/04-inadimplencia-investigacao.md)
+
+3 sub-features ROI principal pra cliente OfficeImpresso migrado:
+- (a) **Tela "Revisão de pendências legadas"** — batch UI (200/dia × 23 dias) com ações: Baixar / Cancelar / Renegociar / Write-off
+- (b) **Conciliação VENDA↔FINANCEIRO** — detectar 374 vendas 12m sem lançamento (R$ [redacted Tier 0]M drift Martinho)
+- (c) **PESSOAS deduplicador** — fuzzy match das ~920 razões sociais órfãs (cliente vencido mas não cadastrado)
+
+**Pricing piloto:** R$ [redacted Tier 0]k one-time + R$ [redacted Tier 0]/mês. Pitch: *"R$ [redacted Tier 0]M no relatório, só R$ [redacted Tier 0]k cobrável; R$ [redacted Tier 0]M é fóssil 2015-19. Limpamos em 3 semanas e o relatório passa a ser honesto."*
 
 ### Schema V0 (canônico ADR 0137)
 
