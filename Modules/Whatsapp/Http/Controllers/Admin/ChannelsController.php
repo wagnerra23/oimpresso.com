@@ -173,23 +173,29 @@ class ChannelsController extends Controller
             $channel->channel_health = 'never_checked';
             $channel->save();
 
-            // Poll QR ~20s (Baileys leva 1-3s pra gerar)
-            $qr = null;
-            $state = null;
-            for ($i = 0; $i < 20; $i++) {
-                usleep(1_000_000); // 1s
-                $qrResponse = Http::withToken($apiKey)
+            // Aguarda socket ficar pronto pra pairing-code (~3s) e solicita código.
+            // String QR Baileys é ~55KB — excede limite QR code v40 (23KB). Pairing
+            // code (8 dígitos) é o caminho oficial Baileys 6.5+ pra pareamento UX-friendly.
+            $pairingCode = null;
+            $error = null;
+            for ($i = 0; $i < 10; $i++) {
+                usleep(800_000); // 800ms
+                $pcResponse = Http::withToken($apiKey)
                     ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
                     ->timeout($timeout)
-                    ->get("{$daemonUrl}/instances/{$instanceId}/qr");
+                    ->post("{$daemonUrl}/instances/{$instanceId}/pairing-code", [
+                        'phone' => $phone,
+                    ]);
 
-                if ($qrResponse->status() === 200) {
-                    $data = $qrResponse->json();
-                    // Prefere PNG data URL (string Baileys excede limite QR code v40 ~23KB)
-                    $qr = $data['qr_png_data_url'] ?? $data['qr'] ?? null;
-                    if ($qr) break;
+                if ($pcResponse->status() === 200) {
+                    $pairingCode = ($pcResponse->json())['pairing_code'] ?? null;
+                    if ($pairingCode) break;
                 }
-                // 409 = qr ainda não pronto, continua polling
+                if ($pcResponse->status() === 400) {
+                    $error = ($pcResponse->json())['message'] ?? $pcResponse->body();
+                    // Se já conectado, sai
+                    if (str_contains($error, 'already_connected')) break;
+                }
             }
 
             // Status atual após tentativas
@@ -197,16 +203,16 @@ class ChannelsController extends Controller
                 ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
                 ->timeout($timeout)
                 ->get("{$daemonUrl}/instances/{$instanceId}/status");
-            if ($statusResponse->successful()) {
-                $state = ($statusResponse->json())['state'] ?? null;
-            }
+            $state = $statusResponse->successful() ? (($statusResponse->json())['state'] ?? null) : null;
 
             return response()->json([
                 'ok' => true,
                 'instance_id' => $instanceId,
-                'qr' => $qr,
+                'pairing_code' => $pairingCode,
                 'state' => $state,
-                'message' => $qr ? 'Escaneie o QR no Whatsapp do número cadastrado.' : 'Daemon respondeu sem QR (state=' . $state . '). Pode estar reusando sessão.',
+                'message' => $pairingCode
+                    ? 'Abra WhatsApp → Configurações → Dispositivos vinculados → Vincular dispositivo → "Conectar com número de telefone" e digite o código abaixo.'
+                    : 'Daemon respondeu sem pairing code. ' . ($error ?? '(state=' . $state . ')'),
             ]);
         } catch (\Throwable $e) {
             Log::error('baileys.connect_exception', [
