@@ -225,3 +225,40 @@ Reporta:
 ✅ Setup completo. Você tem acesso ao MCP server do time.
 Próximo: reinicia Claude Code e pergunta "cycles-active" + "my-work" pra ver o que tá rolando.
 ```
+
+## 10. Setup `~/.claude/oimpresso-local/` — zona pessoal (ADR 0131)
+
+Após o setup MCP completar (passos 1-9), orientar o dev a criar a **zona pessoal** dele — onde mora config de máquina, TODO pessoal e refs pro Vaultwarden.
+
+```
+Última coisa: você precisa de um lugar pra coisa SUA (path da sua máquina, monitor,
+TODO pessoal, atalhos IDE) que não vai pro git nem pro MCP. ADR 0131 define isso.
+
+PASSO 1 — Criar a pasta (PowerShell):
+   New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\oimpresso-local"
+
+PASSO 2 — Eu vou copiar pra você o README mínimo que explica o sistema 3-tiers:
+   (Cópia de .claude/skills/oimpresso-team-onboarding/_oimpresso-local-readme-template.md
+    pro destino acima, ajustando refs pro repo)
+
+PASSO 3 — (opcional, recomendado) Backup via OneDrive/Dropbox:
+   Wagner usa OneDrive. Felipe/Maiara/Luiz/Eliana — confirmem qual cloud já usam
+   pra documentos pessoais e movam a pasta pra lá com symlink.
+
+REGRA EM 1 LINHA:
+   Segredo? → Vaultwarden (vault.oimpresso.com)
+   Só meu? → ~/.claude/oimpresso-local/
+   Time precisa ver? → memory/ no git → MCP
+```
+
+Após dev confirmar criação, valida com:
+
+```bash
+test -d "$HOME/.claude/oimpresso-local" && test -f "$HOME/.claude/oimpresso-local/README.md"
+```
+
+**Atenção ao hook:** `.claude/hooks/block-automem.ps1` (ADR 0061 + 0131) bloqueia Write em `~/.claude/projects/*/memory/*.md` (auto-mem legada) mas **permite** Write em `~/.claude/oimpresso-local/**`. Se o dev tentar criar arquivo no path errado, hook explica os 3 tiers.
+
+Referências:
+- [ADR 0131](../../../memory/decisions/0131-tiering-memoria-canonico-local-segredo.md) — tiering canônico
+- [ADR 0061](../../../memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) — base proibindo auto-mem privada (refinada por 0131)
