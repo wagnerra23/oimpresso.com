@@ -35,10 +35,8 @@ interface Props {
   enableShortcuts?: boolean;
   /** Quando fornecido, renderiza botão pra colapsar a sidebar (chama callback). */
   onCollapse?: () => void;
-  /** Route name pro PATCH de updateStatus (default legacy
-   * `whatsapp.conversations.update_status`). Inbox novo
-   * `/atendimento/inbox` passa `atendimento.inbox.update_status`
-   * (US-WA-085 — fix tela branca ao clicar Atribuir/Ativar bot). */
+  /** Route name pro PATCH de updateStatus. Default `atendimento.inbox.update_status`
+   * pós-US-WA-091 (rotas legacy `/whatsapp/conversations*` removidas). */
   updateStatusRouteName?: string;
   /** US-WA-063: tags disponíveis no business (catálogo). Quando fornecido,
    * renderiza card "Tags" com chips multi-select. Omite pra esconder UI. */
@@ -57,7 +55,7 @@ interface Props {
 
 export default function ConversationSidebar({
   conversation, reloadOnly, enableShortcuts = false, onCollapse,
-  updateStatusRouteName = 'whatsapp.conversations.update_status',
+  updateStatusRouteName = 'atendimento.inbox.update_status',
   availableTags,
   updateTagsRouteName,
   searchContactsRouteName,
