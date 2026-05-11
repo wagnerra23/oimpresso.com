@@ -131,13 +131,18 @@ export default function InboxIndex({
   }, [thread?.id]);
 
   function selectThread(id: number) {
+    // Perf §1(a) charter: refetch APENAS thread+messages quando troca conv.
+    // `conversations` NÃO precisa rebuscar — selectedId é estado local
+    // React (thread?.id), o highlight da linha é puramente client-side.
+    // Antes incluía 'conversations' no only[] → 50 conv rows com N+1
+    // lastMsg subquery a cada click → switch ~2s. Sem ele: ~300ms.
     router.get(
       route('atendimento.inbox.index'),
       { tab, q, thread: id },
       {
         preserveScroll: true,
         preserveState: true,
-        only: ['thread', 'messages', 'conversations'],
+        only: ['thread', 'messages'],
       },
     );
   }
