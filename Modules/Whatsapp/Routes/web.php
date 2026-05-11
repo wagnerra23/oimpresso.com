@@ -118,6 +118,11 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.link_contact');
+    // US-WA-066: bloquear/desbloquear contato (toggle is_blocked + daemon Baileys)
+    Route::patch('/inbox/{id}/block', [InboxController::class, 'blockContact'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.block');
 
     Route::get('/canais', [ChannelsController::class, 'index'])
         ->middleware('can:whatsapp.settings.manage')
