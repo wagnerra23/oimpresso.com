@@ -146,6 +146,7 @@ class ChannelsController extends Controller
         try {
             // Dispara connect (202 + snapshot inicial)
             $connectResponse = Http::withToken($apiKey)
+                ->withoutVerifying() // FIXME(US-WA-058): cert Let's Encrypt no CT 100 ainda não emitido — remover após ACME resolver
                 ->timeout($timeout)
                 ->post("{$daemonUrl}/instances/{$instanceId}/connect", [
                     'business_uuid' => $channel->channel_uuid,
@@ -188,6 +189,7 @@ class ChannelsController extends Controller
 
             // Status atual após tentativas
             $statusResponse = Http::withToken($apiKey)
+                ->withoutVerifying() // FIXME(US-WA-058): cert Let's Encrypt no CT 100 ainda não emitido — remover após ACME resolver
                 ->timeout($timeout)
                 ->get("{$daemonUrl}/instances/{$instanceId}/status");
             if ($statusResponse->successful()) {
@@ -235,6 +237,7 @@ class ChannelsController extends Controller
 
         try {
             $r = Http::withToken($apiKey)
+                ->withoutVerifying() // FIXME(US-WA-058): cert Let's Encrypt no CT 100 ainda não emitido — remover após ACME resolver
                 ->timeout($timeout)
                 ->get("{$daemonUrl}/instances/{$instanceId}/status");
 
