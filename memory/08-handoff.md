@@ -10,6 +10,7 @@
 
 ## Últimos handoffs
 
+- [2026-05-11 20:40 — Design fix v2 + Pest mock smoke + cleanup merges paralelos](handoffs/2026-05-11-2040-design-fix-v2-mock-smoke-merge-cleanup.md) (3 PRs #583/#585/#586 · lição: revisão visual em wide screen pega o que design-critique isolado não vê · mock CnabDirectStrategy provado funcional · dívida SCOPE.md OficinaAuto/Vestuario detectada e task spawned)
 - [2026-05-11 19:55 — Financeiro sidebar/topnav canônico + design ConfigurarBoletoSheet + tentativa Inter API](handoffs/2026-05-11-1955-financeiro-sidebar-topnav-design-boleto-inter.md) (4 PRs #565/#568→reverted/#569/#579 · lição: AppShellV2 já tem topnav nativo via topnav.php · Inter API bloqueado lado Inter "Aplicações não existe")
 - [2026-05-11 19:45 — Fix drift ADS Brain B (site nunca quebrou; 7 colunas restauradas)](handoffs/2026-05-11-1945-ads-dual-brain-drift-fix.md) (2 PRs #574/#576 · migration idempotente · Brain B autônomo restaurado · pattern reusável de drift fix)
 - [2026-05-11 18:30 — Paralelização Omnichannel frustrada (subagents mortos com worktree)](handoffs/2026-05-11-1830-paralelizacao-omnichannel-frustrada.md) (1 PR #551 SPEC · US-WA-058..061 cadastradas · lição: não spawn agents de worktree filha)
