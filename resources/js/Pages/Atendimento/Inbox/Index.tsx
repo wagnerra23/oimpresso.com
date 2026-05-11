@@ -97,9 +97,6 @@ export default function InboxIndex({
   // - Se thread aberta = conversation_id da msg → recarrega messages + thread
   //   (auto-scroll via useEffect downstream sobre messages.length).
   // - Caso contrário → recarrega só a lista esquerda (badge unread atualiza).
-  //
-  // Sem polling fallback aqui — o Inbox renderiza só ao navegar. Se Centrifugo
-  // estiver offline, refresh manual ou rota nova trazem dados atualizados.
   useEffect(() => {
     if (!centrifugoConfig) return;
 
@@ -130,6 +127,23 @@ export default function InboxIndex({
       c.disconnect();
     };
   }, [centrifugoConfig?.token, centrifugoConfig?.channel, centrifugoConfig?.wsUrl, thread?.id]);
+
+  // Polling fallback 5s — defense in depth (US-WA-066).
+  // RODA SEMPRE (Centrifugo ON ou OFF). Cliente real cancelou contrato em
+  // 2026-05-11 por mensagem perdida quando Centrifugo falhou silenciosamente.
+  // Custo: 1 req partial reload a cada 5s por aba ativa (~12 req/min).
+  // Pausa quando aba inativa (document.visibilityState !== 'visible') pra
+  // evitar tráfego inútil e drenar bateria.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      const only = thread
+        ? ['messages', 'thread', 'conversations', 'stats']
+        : ['conversations', 'stats'];
+      router.reload({ only });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [thread?.id]);
 
   function selectThread(id: number) {
     router.get(
