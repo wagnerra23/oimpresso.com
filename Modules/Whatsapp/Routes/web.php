@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\ConversationsController;
+use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
 
@@ -86,6 +87,11 @@ Route::group([
     'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
     'prefix'     => 'atendimento',
 ], function () {
+    // Inbox omnichannel — lê schema novo (Channel + Conversation + Message)
+    Route::get('/inbox', [InboxController::class, 'index'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.inbox.index');
+
     Route::get('/canais', [ChannelsController::class, 'index'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.index');
