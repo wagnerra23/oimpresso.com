@@ -1,6 +1,7 @@
 // @memcofre tela=/financeiro/boletos module=Financeiro
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import SectionNav from '@/Components/Financeiro/SectionNav';
 import { router, useForm } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -78,6 +79,7 @@ function Index({ remessas, filtros }: Props) {
   return (
     <>
       <div className="p-6 max-w-6xl mx-auto space-y-6">
+        <SectionNav current="/financeiro/boletos" />
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Boletos Emitidos</h1>
           <p className="text-sm text-muted-foreground mt-1">
