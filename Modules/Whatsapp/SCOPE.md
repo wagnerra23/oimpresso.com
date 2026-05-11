@@ -5,10 +5,11 @@ contains:
   # Install (ADR 0024)
   - "InstallController — extends BaseModuleInstallController (rotas install/uninstall/update)"
   - "DataController — 3 hooks UltimatePOS (user_permissions/modifyAdminMenu/superadmin_package)"
-  # Admin Inertia (US-WA-001/012/013)
+  # Admin Inertia (US-WA-001/012/013/057)
   - "Admin/SettingsController — wizard 2 passos Z-API+Meta + gating LGPD (BusinessSettingsRequest)"
   - "Admin/ConversationsController — Inbox Cockpit + send manual + Centrifugo subscribe"
   - "Admin/TemplatesController — sync HSM Meta + criar template LOCAL Z-API/Baileys"
+  - "Admin/ChannelsController — CRUD Channel polimórfico /atendimento/canais (ADR 0135 Fase 0, coexiste Settings legacy)"
   # API webhooks (US-WA-010/010b/002d)
   - "Api/MetaWebhookController — recebe events Meta Cloud (HMAC SHA-256 verify)"
   - "Api/ZapiWebhookController — recebe events Z-API (Client-Token timing-safe)"
