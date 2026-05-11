@@ -545,13 +545,17 @@ transaction_documents
 
 **Contexto.** US-SELL-016 entrega "Imprimir seleção" combinando DANFEs. P2 estende pra layout consolidado (1 capa + N notas + 1 totalizador) — útil pra entregar lote físico ao cliente OfficeImpresso que recebia "Relatório de Vendas Selecionadas" do Delphi.
 
-### US-SELL-027 · Schema discovery dinâmico Grade Avançada · **P1 (nova — emergente do heatmap)**
+### US-SELL-027 · Schema discovery dinâmico Grade Avançada · **P0 (subida v2!)**
 
-> owner: — · priority: p1 · estimate: 5h · status: todo · type: story · origin: heatmap-2026-05-11
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: heatmap-v2-2026-05-11
 > blocked_by: US-SELL-015
-> evidence: schema da `VENDA` no Firebird varia entre instalações OfficeImpresso — Gold tem `DT_PROMETIDO` 85% preenchido, os outros 3 clientes amostrados nem têm a coluna. Hardcoded coluna no `<GradeAvancadaLayout/>` quebra ao mudar de cliente
+> evidence: heatmap v2 (correções Wagner) confirmou que schema OfficeImpresso varia ainda mais do que v1 imaginava — não só campos de data (DT_PROMETIDO só Gold), mas também tabelas inteiras de PCP (`VENDA_PRODUTO_CENTRO_TRABALHO` só Extreme, 52k linhas), status (Gold/Martinho usam inline `SITUACAO`; Vargas/Extreme não), e veículos (`EQUIPAMENTO_VEICULO`: Vargas 1064, Martinho 91, Extreme/Gold zero). Hardcoded coluna quebra Grade quando troca cliente
 
-**Contexto.** Heatmap 2026-05-11 revelou que **o schema do Delphi varia entre clientes** (módulos opcionais ativados/não). Gold tem `DT_PROMETIDO` e usa 85%; Vargas usa `DT_COMPETENCIA` 100% mas zero `DT_PROMETIDO`; Extreme usa `DT_FATURAMENTO` 92.9% mas só 3.8% em `DT_ENVIO_FATURAMENTO`. Hardcodar 6 colunas de data no `<GradeAvancadaLayout/>` produz colunas vazias pra metade dos clientes — UX ruim.
+**Contexto v2.** Discovery atravessa 4 dimensões (não 1 como v1 supunha):
+1. **Colunas data** em `VENDA` (`DT_PROMETIDO`, `DT_COMPETENCIA`, `DT_ENVIO_FATURAMENTO` — variam por cliente)
+2. **Fontes status** (`VENDA.SITUACAO` inline · `VENDA_SITUACAO` lookup · `VENDA_ESTAGIO` FSM · `VENDA_PRODUTO_CENTRO_TRABALHO` PCP — clientes usam UMA das 4, raramente combinam)
+3. **Veículos** em `EQUIPAMENTO_VEICULO` (Vargas 80% PLACA + 20% PLACA2 + 19% CHASSI — frota mista; Martinho 96% PLACA pura; Extreme/Gold zero)
+4. **Agrupamento** (`CODFINANCEIRO_GRUPO` — universal 34-65% das linhas; sempre detectar)
 
 **Escopo:**
 - [ ] Job artisan `officeimpresso:discover-schema {business_id}` rodado uma vez no setup quando `business.legacy_origin = 'officeimpresso'`: conecta ao Firebird do cliente (configuração `business.legacy_firebird_dsn`), dumpa colunas de `VENDA`, conta `% preenchimento` e `count(distinct)` de campos-chave. Salva em `business.legacy_origin_features` (JSON column nova).
@@ -566,8 +570,35 @@ transaction_documents
 - [ ] Cliente Vargas cai com `DT_EMISSAO` + `DT_COMPETENCIA` + `DT_FATURAMENTO` + `DT_ENVIO_FATURAMENTO` visíveis; `DT_PROMETIDO` e `SITUACAO` escondidos automaticamente
 - [ ] Zero linha de código de Grade Avançada referencia coluna específica — tudo via lookup `legacy_origin_features.columns`
 
-**Refs:** US-SELL-015 (toggle base), US-SELL-021 (header dropdown qual data lê de features). [HEATMAP-CONSOLIDADO.md §4](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) origem da US.
+**Refs:** US-SELL-015 (toggle base), US-SELL-021 (header dropdown qual data lê de features). [HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) §1 origem da US.
+
+### US-SELL-028 · Auto-deteção de business multi-vertical (gráfica + frota) · **P2 (emergente v2)**
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story · origin: heatmap-v2-2026-05-11-vargas-hibrido
+> blocked_by: US-SELL-027
+> evidence: Vargas tem **1.064 veículos cadastrados (80% PLACA)** + 3.979 vendas gráficas 24m. Premissa "1 business = 1 vertical" do `oimpresso.com/Modules/<Vertical>` quebra. Discovery v2 deve aceitar **features de múltiplas verticais simultâneas** no mesmo business
+
+**Contexto.** Vargas é o caso paradigmático — gráfica + frota (provavelmente comunicação visual veicular, adesivagem, envelopamento ou logística própria de entrega). Não cabe em "Modules/ComunicacaoVisual XOR Modules/OficinaAuto" — precisa ambos.
+
+**Escopo:**
+- [ ] `business.legacy_origin_features` JSON aceita estrutura `{ "verticais_detectados": ["grafica", "frota"], "evidencias": { "grafica": "9k VENDA_PRODUTO + agrupamento_pct=65", "frota": "1064 EQUIPAMENTO_VEICULO + PLACA_pct=80" } }`
+- [ ] `<GradeAvancadaLayout/>` renderiza colunas dos N verticais detectados (não apenas 1)
+- [ ] UI admin `/admin/businesses/{id}/legacy-features` permite priorizar visualmente (ex: gráfica primária + frota colapsada/secundária)
+- [ ] Pest: 1 test — business com 2 verticais detectados renderiza colunas dos dois layouts
+
+**Acceptance criteria:**
+- [ ] Vargas cai com Grade mostrando colunas gráficas (Data·Cliente·Total·Itens) + bloco colapsado "Veículo" (PLACA·PLACA2·CHASSI quando expandido)
+- [ ] Extreme cai sem bloco veículo (zero veículos cadastrados)
+- [ ] Martinho cai com Grade priorizando veículo (Vertical primário = frota)
+
+**Refs:** US-SELL-027, [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) (modular especializado — precisa ser amended pra cobrir caso multi-vertical), [HEATMAP-CONSOLIDADO.md §1](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md).
 
 ---
 
-**Última atualização:** 2026-05-11 (sessão tarde) — heatmap Firebird 4 clientes coletado ([HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md)). Re-priorização baseada em evidência: US-SELL-021 P1→**P0**, US-SELL-023 P2→**P1**, US-SELL-024 P2→**P1**, US-SELL-026 P3→**P2**, US-SELL-020 P1→**P2** (rebaixada). +1 US nova: **US-SELL-027** (schema discovery dinâmico, P1). Total: 4 P0 + 5 P1 + 3 P2 + 1 P3 = 13 US. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (cliente como sinal qualificado).
+**Última atualização:** 2026-05-11 tarde — **heatmap v2** com correções Wagner (Q7 EQUIPAMENTO_VEICULO; Q3 lê 3 fontes; +Q8 PCP; +Q9 obra). 5 clientes amostrados (WR2 + Vargas + Extreme + Gold + Martinho). **Descobertas críticas v2:**
+1. **Vargas é gráfica + frota** (1.064 veículos PLACA 80%; CHASSI/PLACA2 confirmam frota mista) → premissa "1 business=1 vertical" inválida
+2. **Status estruturado tem 3-4 fontes diferentes** (`VENDA.SITUACAO` inline · `VENDA_SITUACAO` lookup · `VENDA_ESTAGIO` FSM · `VENDA_PRODUTO_CENTRO_TRABALHO` PCP) — varia por cliente
+3. **PCP só em Extreme** (52k linhas centro_trabalho); Gold usa status textual; Vargas/Martinho nenhum
+4. **VENDA_OBRA não existe** — descartado
+
+**Mudanças v2:** US-SELL-027 P1→**P0** (centralidade ainda maior); +**US-SELL-028** (vertical-mixto, P2). Total: **5 P0 + 4 P1 + 4 P2 + 1 P3 = 14 US**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).

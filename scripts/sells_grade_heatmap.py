@@ -115,21 +115,59 @@ def q2_date_fields_filled(cur) -> dict:
 
 
 def q3_situacao_distinct(cur) -> dict:
-    """Quantos sub-status distintos existem + top 20."""
-    cols = set(table_columns(cur, "VENDA"))
-    # campo candidato pode ter nomes diferentes
-    candidates = ["SITUACAO", "STATUS", "STATUS_VENDA", "ETAPA", "ESTAGIO"]
-    field = next((c for c in candidates if c in cols), None)
-    if not field:
-        return {"campo": None, "distinct": 0, "top": []}
-    cur.execute(f"SELECT COUNT(DISTINCT {field}) FROM VENDA")
-    distinct = cur.fetchone()[0]
-    cur.execute(
-        f"SELECT FIRST 20 {field}, COUNT(*) FROM VENDA "
-        f"WHERE {field} IS NOT NULL GROUP BY 1 ORDER BY 2 DESC"
-    )
-    top = [(row[0], int(row[1])) for row in cur.fetchall()]
-    return {"campo": field, "distinct": int(distinct), "top": top}
+    """Status estruturado em 3 lugares: VENDA.SITUACAO (string), VENDA_SITUACAO, VENDA_ESTAGIO."""
+    out = {"venda_situacao_inline": None, "venda_situacao_table": None, "venda_estagio": None}
+    venda_cols = set(table_columns(cur, "VENDA"))
+
+    # Inline VENDA.SITUACAO/STATUS
+    candidates = ["SITUACAO", "STATUS", "STATUS_VENDA"]
+    field = next((c for c in candidates if c in venda_cols), None)
+    if field:
+        cur.execute(f"SELECT COUNT(DISTINCT {field}) FROM VENDA")
+        distinct = int(cur.fetchone()[0])
+        cur.execute(
+            f"SELECT FIRST 20 {field}, COUNT(*) FROM VENDA "
+            f"WHERE {field} IS NOT NULL GROUP BY 1 ORDER BY 2 DESC"
+        )
+        top = [(row[0], int(row[1])) for row in cur.fetchall()]
+        out["venda_situacao_inline"] = {"campo": field, "distinct": distinct, "top": top}
+
+    # Tabela filha VENDA_SITUACAO (lookup)
+    try:
+        cur.execute("SELECT COUNT(*) FROM VENDA_SITUACAO")
+        n = int(cur.fetchone()[0])
+        cur.execute("SELECT FIRST 20 * FROM VENDA_SITUACAO")
+        rows = cur.fetchall()
+        sample_cols = [d[0] for d in cur.description]
+        # tenta achar coluna com label legivel
+        nome_col = next((c for c in sample_cols if any(k in c.upper() for k in ["NOME", "DESCRICAO", "LABEL", "DESCR"])), None)
+        out["venda_situacao_table"] = {
+            "total_linhas": n,
+            "columns": sample_cols,
+            "nome_col": nome_col,
+            "sample": [tuple(str(x)[:40] if x else x for x in r) for r in rows[:10]],
+        }
+    except Exception:
+        pass
+
+    # Tabela VENDA_ESTAGIO — provavel FSM/funil
+    try:
+        cur.execute("SELECT COUNT(*) FROM VENDA_ESTAGIO")
+        n = int(cur.fetchone()[0])
+        cur.execute("SELECT FIRST 20 * FROM VENDA_ESTAGIO")
+        rows = cur.fetchall()
+        sample_cols = [d[0] for d in cur.description]
+        nome_col = next((c for c in sample_cols if any(k in c.upper() for k in ["NOME", "DESCRICAO", "LABEL"])), None)
+        out["venda_estagio"] = {
+            "total_linhas": n,
+            "columns": sample_cols,
+            "nome_col": nome_col,
+            "sample": [tuple(str(x)[:40] if x else x for x in r) for r in rows[:10]],
+        }
+    except Exception:
+        pass
+
+    return out
 
 
 def q4_agrupamento_implicito(cur) -> dict:
@@ -242,23 +280,65 @@ def q6_range_temporal(cur) -> dict:
 
 
 def q7_campos_automotivos(cur) -> dict:
-    """Top 10 valores em PLACA/CHASSI/MARCAMODELO — verifica se grafica usa."""
-    cols = set(table_columns(cur, "MENSALIDADE_FINANCEIRO"))
-    out = {}
-    for field in ["PLACA", "CHASSI", "CHASSI_2", "MARCAMODELO", "ANO"]:
-        if field not in cols:
-            continue
-        cur.execute(
-            f"SELECT COUNT(*) FROM MENSALIDADE_FINANCEIRO WHERE {field} IS NOT NULL AND TRIM({field}) <> ''"
-        )
-        filled = int(cur.fetchone()[0])
-        cur.execute(f"SELECT COUNT(*) FROM MENSALIDADE_FINANCEIRO")
+    """PLACA/CHASSI vivem em EQUIPAMENTO_VEICULO (correcao Wagner 2026-05-11)."""
+    out = {"main_table": "EQUIPAMENTO_VEICULO", "fields": {}, "total_veiculos": 0}
+    try:
+        cols = set(table_columns(cur, "EQUIPAMENTO_VEICULO"))
+        if not cols:
+            out["error"] = "EQUIPAMENTO_VEICULO nao existe"
+            return out
+        cur.execute("SELECT COUNT(*) FROM EQUIPAMENTO_VEICULO")
         total = int(cur.fetchone()[0])
-        out[field] = {
-            "filled": filled, "total": total,
-            "pct": round(100 * filled / total, 1) if total else 0,
-        }
+        out["total_veiculos"] = total
+        if total == 0:
+            return out
+        for c in ["PLACA", "PLACA2", "CHASSI", "CHASSI2", "ANO_MODELO", "ANO_FABRICACAO", "RENAVAN", "TIPO", "ESPECIE"]:
+            if c not in cols:
+                continue
+            try:
+                cur.execute(
+                    f"SELECT COUNT(*) FROM EQUIPAMENTO_VEICULO "
+                    f"WHERE {c} IS NOT NULL AND TRIM(CAST({c} AS VARCHAR(200))) <> ''"
+                )
+                filled = int(cur.fetchone()[0])
+                out["fields"][c] = {
+                    "filled": filled,
+                    "pct": round(100 * filled / total, 1) if total else 0,
+                }
+            except Exception as e:
+                out["fields"][c] = {"error": str(e)[:60]}
+    except Exception as e:
+        out["error"] = str(e)[:100]
     return out
+
+
+def q8_pcp_estruturado(cur) -> dict:
+    """Detecta PCP estruturado: VENDA_PRODUTO_ETAPA e VENDA_PRODUTO_CENTRO_TRABALHO."""
+    out = {}
+    for table in ["VENDA_PRODUTO_ETAPA", "VENDA_PRODUTO_CENTRO_TRABALHO"]:
+        try:
+            cur.execute(f"SELECT COUNT(*) FROM {table}")
+            n = int(cur.fetchone()[0])
+            cur.execute(
+                "SELECT COUNT(DISTINCT v.CODVENDA) FROM " + table + " v"
+            )
+            distinct_vendas = int(cur.fetchone()[0])
+            out[table] = {"total_linhas": n, "distinct_vendas": distinct_vendas}
+        except Exception as e:
+            out[table] = {"error": str(e)[:60]}
+    return out
+
+
+def q9_venda_obra(cur) -> dict:
+    """Detecta uso de VENDA_OBRA (obra/instalacao fisica — relevante pra Modules/ComunicacaoVisual)."""
+    try:
+        cur.execute("SELECT COUNT(*) FROM VENDA_OBRA")
+        n = int(cur.fetchone()[0])
+        cur.execute("SELECT COUNT(DISTINCT CODVENDA) FROM VENDA_OBRA")
+        distinct_v = int(cur.fetchone()[0])
+        return {"total_linhas": n, "distinct_vendas_com_obra": distinct_v}
+    except Exception as e:
+        return {"error": str(e)[:60]}
 
 
 def schema_dump_venda(cur) -> list[dict]:
@@ -316,8 +396,12 @@ def collect_all(host_alias: str) -> dict:
     q5 = q5_itens_por_venda(cur)
     print("[10/11] Q6 range temporal...", file=sys.stderr)
     q6 = q6_range_temporal(cur)
-    print("[11/11] Q7 campos automotivos...", file=sys.stderr)
+    print("[11/13] Q7 campos automotivos (EQUIPAMENTO_VEICULO)...", file=sys.stderr)
     q7 = q7_campos_automotivos(cur)
+    print("[12/13] Q8 PCP estruturado (etapa/centro_trabalho)...", file=sys.stderr)
+    q8 = q8_pcp_estruturado(cur)
+    print("[13/13] Q9 VENDA_OBRA (obra/instalacao)...", file=sys.stderr)
+    q9 = q9_venda_obra(cur)
 
     con.close()
     return {
@@ -333,6 +417,8 @@ def collect_all(host_alias: str) -> dict:
         "q5_itens": q5,
         "q6_range_temporal": q6,
         "q7_automotivos": q7,
+        "q8_pcp": q8,
+        "q9_obra": q9,
     }
 
 
@@ -383,24 +469,34 @@ def render_md(data: dict, *, anonimize: bool, slug: str) -> str:
     md.append("- Campo <30% → rebaixar pra P3 ou esconder por default na Grade")
     md.append("")
 
-    # Q3
-    md.append("## Q3 · SITUACAO/Status distincts (US-SELL-020 + US-SELL-023)")
+    # Q3 — agora 3 sub-secoes
+    md.append("## Q3 · Status estruturado (US-SELL-020 + US-SELL-023)")
     md.append("")
-    if q3["campo"]:
-        md.append(f"- Campo encontrado: `{q3['campo']}`")
-        md.append(f"- Valores distintos: **{q3['distinct']}**")
+    inline = q3.get("venda_situacao_inline")
+    if inline:
+        md.append(f"### Inline VENDA.{inline['campo']}")
+        md.append(f"- Valores distintos: **{inline['distinct']}**")
         md.append("")
         md.append("| Situacao | Vendas |")
         md.append("|----------|-------:|")
-        for sit, n in q3["top"]:
-            label = sit if not anonimize else f"_situacao_redacted_{hashlib.sha1(str(sit).encode()).hexdigest()[:4]}_"
+        for sit, n in inline["top"]:
+            label = sit if not anonimize else f"_redacted_{hashlib.sha1(str(sit).encode()).hexdigest()[:4]}_"
             md.append(f"| {label} | {n:,} |")
-    else:
-        md.append("- Nenhum campo de status encontrado em `VENDA`. **Cliente nao usa status estruturado** → US-SELL-020/023 viram P3.")
-    md.append("")
-    md.append("**Regra de qualificacao:**")
-    md.append("- distinct > 5 → ha sub-status estruturados → US-SELL-020 (3 badges separados) faz sentido")
-    md.append("- distinct ≤ 3 → simples → 1 badge unico, US-SELL-020 vira P3")
+        md.append("")
+    tab = q3.get("venda_situacao_table")
+    if tab:
+        md.append(f"### Tabela VENDA_SITUACAO (lookup)")
+        md.append(f"- Linhas: **{tab['total_linhas']}** · cols: `{', '.join(tab['columns'][:6])}{'...' if len(tab['columns'])>6 else ''}`")
+        md.append("")
+    est = q3.get("venda_estagio")
+    if est:
+        md.append(f"### Tabela VENDA_ESTAGIO (FSM funil)")
+        md.append(f"- Linhas: **{est['total_linhas']}** · cols: `{', '.join(est['columns'][:6])}{'...' if len(est['columns'])>6 else ''}`")
+        md.append("")
+    md.append("**Regra de qualificacao revisada (Wagner 2026-05-11):**")
+    md.append("- VENDA_ESTAGIO populado (>0 linhas) → cliente USA FSM/funil de venda → US-SELL-023 P1")
+    md.append("- VENDA_SITUACAO lookup populado → US-SELL-020 P1 (3 badges separados)")
+    md.append("- Nenhum dos dois → status inexistente → US-SELL-020/023 P3")
     md.append("")
 
     # Q4
@@ -484,16 +580,49 @@ def render_md(data: dict, *, anonimize: bool, slug: str) -> str:
     md.append(f"Tabelas candidatas a producao: `{', '.join(data.get('producao_candidates', []))}`")
     md.append("")
 
-    # Q7
-    md.append("## Q7 · Campos automotivos (decisao Grade hide-by-default)")
+    # Q7 — EQUIPAMENTO_VEICULO (corrigido Wagner 2026-05-11)
+    md.append("## Q7 · Veiculos cadastrados (EQUIPAMENTO_VEICULO — corrigido)")
     md.append("")
-    if q7:
+    md.append(f"Tabela: `{q7.get('main_table', 'EQUIPAMENTO_VEICULO')}` · Total veiculos cadastrados: **{q7.get('total_veiculos', 0):,}**")
+    md.append("")
+    if q7.get("fields"):
         md.append("| Campo | Preenchidos | % |")
         md.append("|-------|------------:|--:|")
-        for field, info in q7.items():
-            md.append(f"| `{field}` | {info['filled']:,} | {info['pct']}% |")
+        for field, info in q7["fields"].items():
+            if "error" in info:
+                md.append(f"| `{field}` | (erro) | — |")
+            else:
+                md.append(f"| `{field}` | {info['filled']:,} | **{info['pct']}%** |")
         md.append("")
-        md.append("**Regra:** se TODOS os campos automotivos < 5% → grafica → Grade Avancada esconde colunas Placa/Chassi por default (mostra so se `vertical='oficina'`).")
+    md.append("**Regra revisada:**")
+    md.append("- total_veiculos = 0 → grafica pura → esconde colunas auto na Grade")
+    md.append("- total_veiculos > 0 E PLACA > 30% → cliente USA veiculo → mostra colunas PLACA + dependent (PLACA2/CHASSI conforme uso)")
+    md.append("- PLACA2 > 10% → cliente trabalha com cavalo+reboque/multiplas placas (Vargas) → mostra PLACA2 tambem")
+    md.append("")
+
+    # Q8 — PCP estruturado
+    q8 = data.get("q8_pcp", {})
+    md.append("## Q8 · PCP estruturado (US-SELL-023 sinal real)")
+    md.append("")
+    for table, info in q8.items():
+        if "error" in info:
+            md.append(f"- `{table}`: nao existe / erro")
+        else:
+            md.append(f"- `{table}`: **{info['total_linhas']:,}** linhas · **{info['distinct_vendas']:,}** vendas distintas com etapa/centro")
+    md.append("")
+    md.append("**Regra:** linhas > 100 em qualquer das duas tabelas → cliente USA PCP estruturado → US-SELL-023 P1")
+    md.append("")
+
+    # Q9 — VENDA_OBRA
+    q9 = data.get("q9_obra", {})
+    md.append("## Q9 · VENDA_OBRA (relevante pra Modules/ComunicacaoVisual)")
+    md.append("")
+    if "error" in q9:
+        md.append("- VENDA_OBRA nao existe ou erro")
+    else:
+        md.append(f"- Linhas: **{q9.get('total_linhas', 0):,}** · Vendas com obra: **{q9.get('distinct_vendas_com_obra', 0):,}**")
+    md.append("")
+    md.append("**Regra:** vendas_com_obra > 0 → cliente tem instalacao fisica (gestao de obra) → relevante pra Modules/ComunicacaoVisual; possivel coluna 'Obra' na Grade Avancada")
     md.append("")
 
     # Resumo decisional

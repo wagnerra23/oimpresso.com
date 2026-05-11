@@ -1,6 +1,6 @@
 # Heatmap UI Vendas — `02-vargas` (anonimizado)
 
-> Coletado: 2026-05-11T09:59:04.119236
+> Coletado: 2026-05-11T10:14:32.398926
 > Banco: `192.168.0.55:D:\DadosClientes\Vargas\Dados\BANCO.FDB` · Schema fingerprint: OK
 > Refs: [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md) · [Sells/SPEC.md](../../requisitos/Sells/SPEC.md) US-SELL-015..026
 
@@ -43,18 +43,25 @@ Total vendas: 3,981
 - Campo 30-70% → considerar como opcional na UI
 - Campo <30% → rebaixar pra P3 ou esconder por default na Grade
 
-## Q3 · SITUACAO/Status distincts (US-SELL-020 + US-SELL-023)
+## Q3 · Status estruturado (US-SELL-020 + US-SELL-023)
 
-- Campo encontrado: `SITUACAO`
+### Inline VENDA.SITUACAO
 - Valores distintos: **1**
 
 | Situacao | Vendas |
 |----------|-------:|
-| _situacao_redacted_da39_ | 1,929 |
+| _redacted_da39_ | 1,929 |
 
-**Regra de qualificacao:**
-- distinct > 5 → ha sub-status estruturados → US-SELL-020 (3 badges separados) faz sentido
-- distinct ≤ 3 → simples → 1 badge unico, US-SELL-020 vira P3
+### Tabela VENDA_SITUACAO (lookup)
+- Linhas: **0** · cols: `CODIGO, DESCRICAO, DT_ALTERACAO, ATIVO, TEM_FATURA`
+
+### Tabela VENDA_ESTAGIO (FSM funil)
+- Linhas: **0** · cols: `CODIGO, DESCRICAO, ICONE, ATIVO, DT_ALTERACAO`
+
+**Regra de qualificacao revisada (Wagner 2026-05-11):**
+- VENDA_ESTAGIO populado (>0 linhas) → cliente USA FSM/funil de venda → US-SELL-023 P1
+- VENDA_SITUACAO lookup populado → US-SELL-020 P1 (3 badges separados)
+- Nenhum dos dois → status inexistente → US-SELL-020/023 P3
 
 ## Q4 · Agrupamento implicito (US-SELL-019 + US-SELL-024)
 
@@ -153,15 +160,39 @@ Total colunas em VENDA: **359**. Relevantes pra UI Grade (41):
 
 Tabelas candidatas a producao: `AGENDA_TITULO_WORKFLOW, BALANCO_PRODUTO, BALANCO_PRODUTOS, CLIENTES_PRODUTO, COMISSAO_PRODUTO, CONTRATO_PRODUTO, ECF_ATUALIZACAO_PRODUTOS, NF_ENTRADA_PRODUTOS, NF_ENTRADA_PRODUTOS_AFETADOS, NF_ENTRADA_PRODUTOS_COMPOSICAO, NF_ENTRADA_PRODUTOS_CUSTO_AD, NOTA_FISCAL_PRODUTO, PESSOAS_PRODUTO, PROCESSOS_ETAPAS, PROCESSOS_ETAPAS_PERMISSOES, PROCESSOS_ETAPAS_REGRAS, PRODUCAO, PRODUCAO_ACAO, PRODUCAO_CENTRO_TRABALHO, PRODUCAO_CUSTO_ADICIONAL, PRODUCAO_ESTAGIO, PRODUCAO_ETAPAS, PRODUCAO_MARCADOR, PRODUCAO_MOTIVO, PRODUCAO_MOVIMENTO, PRODUCAO_NAO_LIDO, PRODUCAO_OS, PRODUCAO_PRODUTO, PRODUCAO_ROTEIRO, PRODUCAO_ROTEIRO_ORGANOGRAMA`
 
-## Q7 · Campos automotivos (decisao Grade hide-by-default)
+## Q7 · Veiculos cadastrados (EQUIPAMENTO_VEICULO — corrigido)
+
+Tabela: `EQUIPAMENTO_VEICULO` · Total veiculos cadastrados: **1,064**
 
 | Campo | Preenchidos | % |
 |-------|------------:|--:|
-| `PLACA` | 0 | 0% |
-| `MARCAMODELO` | 0 | 0% |
-| `ANO` | 0 | 0% |
+| `PLACA` | 852 | **80.1%** |
+| `PLACA2` | 216 | **20.3%** |
+| `CHASSI` | 202 | **19.0%** |
+| `CHASSI2` | 88 | **8.3%** |
+| `ANO_MODELO` | 0 | **0.0%** |
+| `ANO_FABRICACAO` | 0 | **0.0%** |
+| `RENAVAN` | 0 | **0.0%** |
+| `TIPO` | 106 | **10.0%** |
+| `ESPECIE` | 0 | **0.0%** |
 
-**Regra:** se TODOS os campos automotivos < 5% → grafica → Grade Avancada esconde colunas Placa/Chassi por default (mostra so se `vertical='oficina'`).
+**Regra revisada:**
+- total_veiculos = 0 → grafica pura → esconde colunas auto na Grade
+- total_veiculos > 0 E PLACA > 30% → cliente USA veiculo → mostra colunas PLACA + dependent (PLACA2/CHASSI conforme uso)
+- PLACA2 > 10% → cliente trabalha com cavalo+reboque/multiplas placas (Vargas) → mostra PLACA2 tambem
+
+## Q8 · PCP estruturado (US-SELL-023 sinal real)
+
+- `VENDA_PRODUTO_ETAPA`: **0** linhas · **0** vendas distintas com etapa/centro
+- `VENDA_PRODUTO_CENTRO_TRABALHO`: **0** linhas · **0** vendas distintas com etapa/centro
+
+**Regra:** linhas > 100 em qualquer das duas tabelas → cliente USA PCP estruturado → US-SELL-023 P1
+
+## Q9 · VENDA_OBRA (relevante pra Modules/ComunicacaoVisual)
+
+- VENDA_OBRA nao existe ou erro
+
+**Regra:** vendas_com_obra > 0 → cliente tem instalacao fisica (gestao de obra) → relevante pra Modules/ComunicacaoVisual; possivel coluna 'Obra' na Grade Avancada
 
 ---
 
@@ -171,7 +202,7 @@ Tabelas candidatas a producao: `AGENDA_TITULO_WORKFLOW, BALANCO_PRODUTO, BALANCO
 |----|----------------|---------------------|
 | US-SELL-018 (filtros multi-data) | a definir | Q2 mostra 5/5 campos de data com uso >30% |
 | US-SELL-019 (agrupamento) | a definir | Q4 pct agrupamento: VF=-% / FIN=65.1% |
-| US-SELL-020 (status badges) | a definir | Q3 distinct: 1 → unico |
+| US-SELL-020 (status badges) | a definir | Q3 distinct: 0 → unico |
 | US-SELL-021 (qual data) | a definir | Q2 mesmo sinal de 018 |
 | US-SELL-022 (sub-linha produtos) | a definir | Q5 media itens/venda: 3.08 |
 | US-SELL-024 (is_grouped explicito) | a definir | Q4 mesmo sinal de 019 |
