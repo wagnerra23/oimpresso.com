@@ -106,6 +106,14 @@ Route::group(
         Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
             ->name('jana.admin.qualidade.index');
 
+        // ---- JANA Pro Sprint A (US-COPI-201, ADR 0140) — preview brief diário
+        // Endpoint admin pra rodar BriefDiarioService manualmente e ver JSON
+        // antes de configurar Job 8h. Permission: copiloto.superadmin
+        // (Wagner inicial — depois jana_pro.preview quando US-COPI-212 entrar).
+        Route::get('/admin/jana-pro/preview',              'Admin\JanaProController@preview')
+            ->middleware('can:copiloto.superadmin')
+            ->name('jana.admin.jana_pro.preview');
+
         // (TaskRegistry F2 e MEM-CC-UI-1 movidos pra Modules/TeamMcp/ — ver
         //  Modules/TeamMcp/Http/routes.php; redirects 301 no rodapé deste arquivo)
     }
