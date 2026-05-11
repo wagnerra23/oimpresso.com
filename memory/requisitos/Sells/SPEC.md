@@ -388,6 +388,218 @@ transaction_documents
 
 **Refs:** US-SELL-011 (FSM base). Pré-requisito pra US-NFE-060 (EmitirNFSeJob).
 
+### US-SELL-015 · Modo "Grade Avançada" — toggle + layout densa base · **P0**
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
+> blocked_by: —
+
+**Contexto.** Power-user OfficeImpresso (gráficas — Vargas, Extreme, Gold, Zoom, Fixar, Produart) usa há 10-26 anos o grid Delphi DevExpress denso (30+ colunas, agrupamento, multiseleção, total rodapé). A Lista enxuta atual (5 colunas + 3 KPIs) é correta pra ROTA LIVRE/novos mas choca esse cliente. [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md) decide pelo **split via toggle no header** — `viewMode: 'lista' | 'grade-avancada'`, persistido em `localStorage` (`oimpresso.sells.viewMode`).
+
+**Escopo:**
+- [ ] Header `Sells/Index.tsx` ganha toggle "Lista | Grade Avançada" (segmented control à esquerda do "Nova venda")
+- [ ] Coluna `business.legacy_origin` (`nullable VARCHAR(32)`) — migration + preenchimento dos 6 candidatos OfficeImpresso saudáveis via seeder idempotente
+- [ ] `HandleInertiaRequests::share('sells.viewMode.default')` retorna `'grade-avancada'` se `business.legacy_origin === 'officeimpresso'` E user nunca tocou no toggle (`localStorage` vazio)
+- [ ] Componente `<GradeAvancadaLayout />` no mesmo arquivo `Sells/Index.tsx` — recebe `rows` + `meta` + handlers, monta tabela densa shadcn `<Table>` com colunas: Data emissão, Nº fatura, Cliente, Razão social, Total, Pago, Saldo, Status financeiro (badge), Status fiscal (badge), Funcionário, Data Faturamento, Placa (vazia pra não-frota)
+- [ ] Linha clicável → mesmo drawer `<SaleSheet>` (não duplica state)
+- [ ] Pest browser smoke: biz=1, modo "Grade Avançada", 100 vendas seed, screenshot OK
+- [ ] Charter `Sells/Index.charter.md` (S4 antecipado quando S4 vier — opcional agora) — Anti-hooks: "não duplicar fetch/state — só layout"
+
+**Acceptance criteria:**
+- [ ] Toggle aparece e alterna sem recarregar (re-render só do layout interno)
+- [ ] `localStorage['oimpresso.sells.viewMode']` persiste entre sessões
+- [ ] Cliente OfficeImpresso novo (sem `localStorage`) cai automático em Grade Avançada
+- [ ] Cliente novo qualquer (legacy_origin null) cai em Lista
+- [ ] Pest tests do `SellPosController@index` e `/sells-list-json` continuam verdes (zero mudança backend além da migration)
+- [ ] Visual comparison `memory/requisitos/Sells/sells-grade-avancada-visual-comparison.md` aprovado por Wagner antes de mergear (gate F3 — [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md))
+
+**Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md).
+
+### US-SELL-016 · Multiseleção + ações em lote (imprimir/exportar/agrupar) · **P0**
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
+> blocked_by: US-SELL-015
+
+**Contexto.** Grid Delphi tem checkbox por linha + barra de ações no topo quando ≥1 selecionada (Imprimir / Exportar Excel / Agrupar). Higiene UX 2026 pra qualquer grid empresarial (Mubisys, Zênite, Calcgraf, Conta Azul têm). Não depende de snapshot Firebird — sinal trivial.
+
+**Escopo:**
+- [ ] Coluna `<Checkbox />` à esquerda no `<GradeAvancadaLayout />` (header tem "selecionar todas as N filtradas")
+- [ ] Estado `selectedIds: Set<number>` em `SellsIndex`
+- [ ] Barra de ações flutuante (slide-down sobre o filter-pills) quando `selectedIds.size > 0`: botões "Imprimir seleção (PDF)", "Exportar CSV", "Agrupar por…" (dropdown — abre US-SELL-019 quando ela existir; agora dropdown vazio com tooltip "P1")
+- [ ] Endpoint POST `/sells/bulk-print` recebe `ids[]` retorna stream PDF (combina os DANFEs/PDFs já existentes; reusa lógica `SellController@printInvoice` chamada em loop)
+- [ ] Endpoint POST `/sells/bulk-export` retorna CSV das colunas visíveis no momento
+- [ ] Pest: 3 tests — multiseleção persiste em paginação, bulk-print retorna PDF válido, bulk-export retorna CSV com header das colunas
+
+**Acceptance criteria:**
+- [ ] Selecionar 5 vendas, clicar "Imprimir seleção" → 1 PDF com 5 DANFEs concatenadas
+- [ ] "Selecionar todas" respeita filtros aplicados (não seleciona vendas fora do filter)
+- [ ] Shift+click selecionar range entre 2 linhas (UX padrão grid moderno)
+- [ ] biz=1 isolation: user de biz=2 não consegue forjar IDs de biz=1 no payload
+
+**Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (bulk endpoints validam business_id de cada ID).
+
+### US-SELL-017 · Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
+> blocked_by: US-SELL-015
+
+**Contexto.** Delphi mostra "Total: R$ [redacted Tier 0]" ao pé do grid (soma dos filtros aplicados). Power-user gráfica chama esse número em **toda** demo. Falta no Inertia atual — KPI "Total" no topo é count (113), não soma R$. Cliente migrado vai sentir falta na hora.
+
+**Escopo:**
+- [ ] `/sells-list-json` retorna `totals: { count, sum_final_total, sum_total_paid, sum_due }` calculados com os mesmos `where` do query (não da página corrente — totais respeitam filtros mas não paginação)
+- [ ] `<GradeAvancadaLayout />` renderiza barra `<tfoot>` sticky-bottom: "Qtd: N vendas · Total: R$ X · Pago: R$ Y · A receber: R$ Z"
+- [ ] Modo "Lista" também ganha tfoot mínimo (Qtd + Total), atrás de um botão "Mostrar totais" (não polui Lista limpa por default)
+- [ ] Pest: 2 tests — totals respeitam filtro `payment_status=overdue`, totals respeitam search livre
+
+**Acceptance criteria:**
+- [ ] Filtrar "Atrasadas" → tfoot mostra `Qtd: 1 · Total: R$ [redacted Tier 0]` (caso atual da screenshot)
+- [ ] Limpar filtro → tfoot mostra `Qtd: 113 · Total: R$ X` (soma de todas)
+- [ ] Paginar pra página 3 não muda tfoot (totais são do filtro inteiro)
+
+**Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md). Performance: SUM no MySQL em índice `(business_id, payment_status)` já existente — sub-50ms pra 100k vendas.
+
 ---
 
-**Última atualização:** 2026-05-10 — sessão case fiscal BR (Wagner). Apêndice US-SELL-013/014 + caso prático Comunicação Visual + cross-refs em US-SELL-010/011/012. Findings do sub-agent FSM em [_AGENT_FSM_FINDINGS-2026-05-10.md](../../decisions/proposals/drafts/_AGENT_FSM_FINDINGS-2026-05-10.md) (alimenta ADR US-SELL-010).
+### Heatmap Firebird 2026-05-11 — sinal qualificado para US-018..027
+
+> **Sinal qualificado obtido** via [HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) — 4 bancos Firebird amostrados (WR Sistemas + Vargas + Extreme + Gold). As prioridades abaixo refletem evidência, não chute. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
+
+### US-SELL-018 · Filtros multi-data com presets Dia/Semana/Mês/Ano + custom · **P1 confirmado**
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-015
+> evidence: 3-4 campos data com uso real >30% em pelo menos 1 cliente (DT_FATURAMENTO 92% Extreme/Gold · DT_COMPETENCIA 100% Vargas · DT_PROMETIDO 85% Gold). Preset Ano essencial (10+ anos histórico em todos)
+
+**Contexto.** Delphi tem botões verdes Dia/Semana/Mês/Ano + dropdown "Personalizado · Data:" com 6 opções (Última Alteração, Emissão NF, Emissão, Dt. Faturamento, Dt. Env. Faturamento, Dt. Competência, Dt. Prometido). Sinal pra ativar: snapshot Firebird mostrar ≥30% das sessões usando filter por data customizado.
+
+**Escopo (a especificar quando sinal confirmar):** botões `<Tabs>` Dia/Semana/Mês/Ano default `emissão`; dropdown "Tipo de data" pra trocar campo filtrado; date-range custom (popover `<DateRangePicker />`); URL deep-link `?date_from=...&date_to=...&date_field=transaction_date`.
+
+### US-SELL-019 · Agrupamento drag-to-group por campo do grid · **P1 confirmado**
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-015
+> evidence: CODFINANCEIRO_GRUPO em uso 43-65% das linhas em todos clientes (WR2 34.5% · Vargas 65.1% · Extreme 43.3% · Gold 53.1%)
+
+**Contexto.** Delphi tem barra "Arraste uma coluna para fazer o agrupamento" no topo do grid. Cliente arrasta "Cliente" → vendas agrupadas por cliente com subtotal. Sinal: snapshot Firebird mostrar ≥20% das sessões usando agrupamento.
+
+**Escopo (a especificar):** TanStack Table `getGroupedRowModel`; drag-to-group via dnd-kit; subtotal por grupo (count + sum); expand/collapse por grupo; multi-level grouping (Cliente → Status → Mês).
+
+### US-SELL-020 · Especificação campo "Status" (financeiro vs produção vs fiscal — badges separados) · **P2 (rebaixado)**
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-015
+> evidence: SITUACAO estruturado só em Gold (7 distinct, 29k vendas EM PRODUÇÃO); WR2 5 distinct mas pobre; Vargas/Extreme 1 distinct vazio = não usa. Status separados em badges é **feature de cliente específico (PCP)**, não padrão
+
+**Contexto.** Hoje "Status" é só financeiro (Pago/A receber/Parcial/Atrasada). Delphi mostra 3 status separados: Financeiro, Produção ("EM APROVAÇÃO", "ENTREGUE", "ORC APROVA…"), Fiscal (Rejeitada/Emitir). Sinal: reclamação cliente migrado.
+
+**Escopo (a especificar):** 3 colunas badge distintas — `Status Financeiro` (atual), `Status Produção` (depende US-SELL-023), `Status Fiscal` (já existe parcial via US-NFE-MANUAL).
+
+### US-SELL-021 · Especificação campo "Data" (qual data: emissão / NF / faturamento / competência / prometido) · **P0 (subido!)**
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-015
+> evidence: DT_PROMETIDO existe e é 85% preenchido em Gold mas **ausente como coluna** em WR2/Vargas/Extreme. Schema OfficeImpresso varia entre instalações — Grade Avançada **não pode hardcodar colunas**, header da coluna Data precisa dropdown dinâmico ler o que existe
+
+**Contexto.** Hoje coluna "Data" mostra `transaction_date`. Delphi mostra 6 datas: Emissão, Última Alteração, Emissão NF, Dt. Faturamento, Dt. Env. Faturamento, Dt. Competência, Dt. Prometido. Sinal: reclamação cliente migrado ("qual data é essa?").
+
+**Escopo (a especificar):** header da coluna Data tem dropdown pra trocar qual data exibir; URL `?date_field=...` deep-link; tooltip mostra todas as 6 datas em hover.
+
+### US-SELL-022 · Sub-linha de produtos por venda (expandir linha) · **P2 confirmado**
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-015
+> evidence: Vargas média 3.08 itens/venda (47% das vendas 2-5 itens; 15% 6+); outros marginais (1.30-1.58). Vale pra cliente gráfica produtiva, não pra majoritária
+
+**Contexto.** Delphi mostra produto + MEDIDAS · Quant · R$ Valor · R$ Total · Situação ao expandir uma venda inline no grid (sem abrir drawer). Útil pra gráfica que vende lona 5,60×3,10m. Sinal: snapshot Firebird mostrar ≥15% das sessões usando expandir.
+
+**Escopo (a especificar):** ícone chevron à esquerda da linha; fetch lazy dos itens da venda; render sub-tabela compacta.
+
+### US-SELL-023 · Status produção visível na lista (badge separado) · **P1 (subido!)**
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-020, FSM ([ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md))
+> evidence: Gold tem **29.559 vendas em "EM PRODUÇÃO" + 7.082 "FINALIZADA"** — uso massivo de PCP. Tabela `AGENDA_TITULO_WORKFLOW` aparece em todos 3 clientes (Vargas/Extreme/Gold) como possível fonte de workflow
+
+**Contexto.** Delphi mostra ENTREGUE/REIMPRESSÃO/EM APROVAÇÃO/ORC APROVA. Requer FSM produção (US-SELL-011 base + processo "Venda com Produção" novo) e mapping → badge. Investigar `AGENDA_TITULO_WORKFLOW` no PR.
+
+### US-SELL-024 · Campo "venda agrupada" explícito · **P1 (subido!)**
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-015, US-SELL-019
+> evidence: Mesmo sinal de US-SELL-019 (43-65% das linhas com CODFINANCEIRO_GRUPO em todos clientes). Sem coluna explícita `is_grouped_invoice`, o agrupamento fica ambíguo como no Delphi ("ATIVO CRIADO" string)
+
+**Contexto.** Delphi infere "está agrupada" do texto "ATIVO CRIADO" no campo Status (confuso pro cliente). Fazer certo: coluna boolean `is_grouped_invoice` + badge "Agrupada" quando true.
+
+### US-SELL-025 · Botões agrupamento rápido (1-click) · **P3 confirmado**
+
+> owner: — · priority: p3 · estimate: 2h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-019
+> evidence: depende de telemetria pós-US-SELL-019 — só depois saberemos quais 3 agrupamentos são os mais usados
+
+**Contexto.** Telemetria pós-US-SELL-019 vai mostrar quais 3 agrupamentos são mais usados; vira botões 1-click ("Por Cliente", "Por Mês", "Por Status").
+
+### US-SELL-026 · Impressão batch de vendas selecionadas (PDF consolidado) · **P2 (subido)**
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story · origin: heatmap-2026-05-11
+> blocked_by: US-SELL-016
+> evidence: power-user OfficeImpresso vai pedir — expectativa óbvia ao migrar (Delphi tinha "Relatório de Vendas Selecionadas"). Não é P0 só porque US-SELL-016 já entrega "imprimir seleção" combinando DANFEs; P2 é layout consolidado (capa + N notas + totalizador)
+
+**Contexto.** US-SELL-016 entrega "Imprimir seleção" combinando DANFEs. P2 estende pra layout consolidado (1 capa + N notas + 1 totalizador) — útil pra entregar lote físico ao cliente OfficeImpresso que recebia "Relatório de Vendas Selecionadas" do Delphi.
+
+### US-SELL-027 · Schema discovery dinâmico Grade Avançada · **P0 (subida v2!)**
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: heatmap-v2-2026-05-11
+> blocked_by: US-SELL-015
+> evidence: heatmap v2 (correções Wagner) confirmou que schema OfficeImpresso varia ainda mais do que v1 imaginava — não só campos de data (DT_PROMETIDO só Gold), mas também tabelas inteiras de PCP (`VENDA_PRODUTO_CENTRO_TRABALHO` só Extreme, 52k linhas), status (Gold/Martinho usam inline `SITUACAO`; Vargas/Extreme não), e veículos (`EQUIPAMENTO_VEICULO`: Vargas 1064, Martinho 91, Extreme/Gold zero). Hardcoded coluna quebra Grade quando troca cliente
+
+**Contexto v2.** Discovery atravessa 4 dimensões (não 1 como v1 supunha):
+1. **Colunas data** em `VENDA` (`DT_PROMETIDO`, `DT_COMPETENCIA`, `DT_ENVIO_FATURAMENTO` — variam por cliente)
+2. **Fontes status** (`VENDA.SITUACAO` inline · `VENDA_SITUACAO` lookup · `VENDA_ESTAGIO` FSM · `VENDA_PRODUTO_CENTRO_TRABALHO` PCP — clientes usam UMA das 4, raramente combinam)
+3. **Veículos** em `EQUIPAMENTO_VEICULO` (Vargas 80% PLACA + 20% PLACA2 + 19% CHASSI — frota mista; Martinho 96% PLACA pura; Extreme/Gold zero)
+4. **Agrupamento** (`CODFINANCEIRO_GRUPO` — universal 34-65% das linhas; sempre detectar)
+
+**Escopo:**
+- [ ] Job artisan `officeimpresso:discover-schema {business_id}` rodado uma vez no setup quando `business.legacy_origin = 'officeimpresso'`: conecta ao Firebird do cliente (configuração `business.legacy_firebird_dsn`), dumpa colunas de `VENDA`, conta `% preenchimento` e `count(distinct)` de campos-chave. Salva em `business.legacy_origin_features` (JSON column nova).
+- [ ] `business.legacy_origin_features` schema: `{"venda_columns": [...], "date_fields": {"DT_EMISSAO": 100, "DT_PROMETIDO": 85, ...}, "situacao_distinct": 7, "tem_workflow": true}`
+- [ ] `HandleInertiaRequests::share('sells.legacy_features')` propaga JSON pra Inertia
+- [ ] `<GradeAvancadaLayout/>` lê features e configura colunas dinamicamente: coluna existe? `% > LIMIAR_VISIVEL (10%)`? renderiza com badge no header "Δ heatmap" mostrando %; senão, esconde
+- [ ] UI admin `/admin/businesses/{id}/legacy-features` permite ajustar colunas visíveis manualmente (override do discovery)
+- [ ] Pest: 3 tests — discovery cria JSON, layout esconde coluna ausente, override admin persiste
+
+**Acceptance criteria:**
+- [ ] Cliente Gold cai com `DT_PROMETIDO` + `DT_EMISSAO` + `DT_FATURAMENTO` + `SITUACAO` visíveis (1 distinct < 2 ainda esconde)
+- [ ] Cliente Vargas cai com `DT_EMISSAO` + `DT_COMPETENCIA` + `DT_FATURAMENTO` + `DT_ENVIO_FATURAMENTO` visíveis; `DT_PROMETIDO` e `SITUACAO` escondidos automaticamente
+- [ ] Zero linha de código de Grade Avançada referencia coluna específica — tudo via lookup `legacy_origin_features.columns`
+
+**Refs:** US-SELL-015 (toggle base), US-SELL-021 (header dropdown qual data lê de features). [HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) §1 origem da US.
+
+### US-SELL-028 · Modules/OficinaAuto — schema com multi-placa (cavalo+reboque) · **P1 (emergente v3 — recalibrada)**
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: heatmap-v3-2026-05-11-vargas-recapagem
+> blocked_by: ADR `Modules/OficinaAuto` qualificada (futuro amend de ADR 0121)
+> evidence: 2 de 4 candidatos OfficeImpresso saudáveis são oficina (Vargas grande recapagem caminhão + Martinho caçambas avulsas). Vargas exige multi-placa (PLACA2 20%, CHASSI2 8%) — cavalo+reboque. Martinho usa só PLACA simples (96%). Schema deve cobrir ambos casos: PLACA obrigatória + PLACA_SECUNDARIA opcional + CHASSI opcional + CHASSI_SECUNDARIO opcional. Ver [perfil Vargas](../../research/clientes-legacy-officeimpresso/02-vargas-recapagem/01-perfil.md) e [perfil Martinho](../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md)
+
+**Contexto.** v3 corrigiu inferência inicial (v2 dizia Vargas "gráfica + frota"; Wagner clarificou que é **oficina de recapagem de caçamba de caminhão**). Logo, premissa multi-vertical do v2 cai. O caso real: oficina-auto tem schema **com PLACA simples (caso majoritário Martinho)** + **PLACA secundária opcional pro cavalo+reboque (caso Vargas)**.
+
+**Escopo:**
+- [ ] `Modules/OficinaAuto/Models/Veiculo.php` com:
+  - `placa` (obrigatório)
+  - `placa_secundaria` (opcional, pra cavalo+reboque)
+  - `chassi` (opcional)
+  - `chassi_secundario` (opcional)
+  - `ano_fabricacao`, `ano_modelo`, `renavam` (opcionais)
+  - `tipo` (caminhão, caminhonete, cavalo, semi-reboque, caçamba-estacionária)
+- [ ] Migration com `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+- [ ] UI cadastro veículo com seção "Cavalo+Reboque" colapsável (só preenche quando `tipo IN (cavalo, semi-reboque)`)
+- [ ] Importador legacy mapeia `EQUIPAMENTO_VEICULO.PLACA2/CHASSI2` → `placa_secundaria/chassi_secundario`
+- [ ] Pest: 3 tests — veículo simples Martinho, veículo cavalo+reboque Vargas, isolation multi-tenant
+
+**Acceptance criteria:**
+- [ ] Martinho importa 91 veículos com PLACA única (PLACA_SECUNDARIA null)
+- [ ] Vargas importa 1.064 veículos, 216 com PLACA_SECUNDARIA preenchida (cavalo+reboque)
+- [ ] OS aberta pra veículo Vargas exibe ambas placas no resumo
+
+**Refs:** US-SELL-027 (schema discovery alimenta features OficinaAuto), [HEATMAP-CONSOLIDADO §3.3](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md), perfis 02-vargas + 05-martinho.
+
+---
+
+**Última atualização:** 2026-05-11 noite — **heatmap v3** com correções Wagner sobre classificação: Vargas = **oficina recapagem caminhão** (não gráfica+frota); Gold = **comunicação visual** (não gráfica genérica). Pasta de inteligência por cliente criada em [`memory/research/clientes-legacy-officeimpresso/`](../../research/clientes-legacy-officeimpresso/) com 5 perfis + LGPD protocol + cross-analysis. **Mudança v3:** US-SELL-028 redirecionada — não é mais "multi-vertical" e sim "schema multi-placa pra Modules/OficinaAuto" (P2→P1). **Sinal qualificado pra Modules/OficinaAuto obtido** (2 de 4 clientes = 50% do sample). Total: **5 P0 + 5 P1 + 3 P2 + 1 P3 = 14 US**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
