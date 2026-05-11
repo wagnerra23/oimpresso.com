@@ -102,6 +102,12 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.update_status');
 
+    // US-WA-063: sync tags da conversa
+    Route::patch('/inbox/{id}/tags', [InboxController::class, 'updateTags'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.update_tags');
+
     Route::get('/canais', [ChannelsController::class, 'index'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.index');

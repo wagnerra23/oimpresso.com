@@ -17,7 +17,7 @@ import { Button } from '@/Components/ui/button';
 import { Separator } from '@/Components/ui/separator';
 
 import Avatar from './Avatar';
-import { formatDateTime, type ThreadConversation } from './helpers';
+import { formatDateTime, type ConvTag, type ThreadConversation } from './helpers';
 
 interface Props {
   conversation: ThreadConversation;
@@ -32,15 +32,24 @@ interface Props {
    * `/atendimento/inbox` passa `atendimento.inbox.update_status`
    * (US-WA-085 — fix tela branca ao clicar Atribuir/Ativar bot). */
   updateStatusRouteName?: string;
+  /** US-WA-063: tags disponíveis no business (catálogo). Quando fornecido,
+   * renderiza card "Tags" com chips multi-select. Omite pra esconder UI. */
+  availableTags?: ConvTag[];
+  /** US-WA-063: route name pra PATCH sync tags (ex: `atendimento.inbox.update_tags`). */
+  updateTagsRouteName?: string;
 }
 
 export default function ConversationSidebar({
   conversation, reloadOnly, enableShortcuts = false, onCollapse,
   updateStatusRouteName = 'whatsapp.conversations.update_status',
+  availableTags,
+  updateTagsRouteName,
 }: Props) {
   const sharedAuth = (usePage().props as any)?.auth?.user as { id?: number } | undefined;
   const currentUserId = sharedAuth?.id ?? null;
   const isMineAssigned = !!(conversation.assigned_user && currentUserId && conversation.assigned_user.id === currentUserId);
+  // US-WA-063: IDs das tags atualmente aplicadas à conv
+  const activeTagIds = new Set((conversation.tags ?? []).map((t) => t.id));
 
   function patchConversation(payload: Record<string, string | number | boolean>) {
     router.patch(route(updateStatusRouteName, conversation.id), payload, {
@@ -48,6 +57,39 @@ export default function ConversationSidebar({
       preserveState: true,
       only: reloadOnly,
     });
+  }
+
+  // US-WA-063: toggle tag → sync array completo (substitui, não merge).
+  function toggleTag(tagId: number) {
+    if (!updateTagsRouteName) return;
+    const nextIds = new Set(activeTagIds);
+    if (nextIds.has(tagId)) nextIds.delete(tagId);
+    else nextIds.add(tagId);
+    router.patch(
+      route(updateTagsRouteName, conversation.id),
+      { tag_ids: Array.from(nextIds) },
+      { preserveScroll: true, preserveState: true, only: reloadOnly },
+    );
+  }
+
+  // US-WA-063: mapping cor key → classes Tailwind chip
+  function chipClasses(color: string, active: boolean): string {
+    const map: Record<string, { border: string; text: string; bg: string }> = {
+      blue:     { border: 'border-blue-500',     text: 'text-blue-700 dark:text-blue-300',       bg: 'bg-blue-50 dark:bg-blue-950/40' },
+      green:    { border: 'border-green-500',    text: 'text-green-700 dark:text-green-300',     bg: 'bg-green-50 dark:bg-green-950/40' },
+      emerald:  { border: 'border-emerald-500',  text: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-50 dark:bg-emerald-950/40' },
+      amber:    { border: 'border-amber-500',    text: 'text-amber-700 dark:text-amber-300',     bg: 'bg-amber-50 dark:bg-amber-950/40' },
+      red:      { border: 'border-red-500',      text: 'text-red-700 dark:text-red-300',         bg: 'bg-red-50 dark:bg-red-950/40' },
+      purple:   { border: 'border-purple-500',   text: 'text-purple-700 dark:text-purple-300',   bg: 'bg-purple-50 dark:bg-purple-950/40' },
+      cyan:     { border: 'border-cyan-500',     text: 'text-cyan-700 dark:text-cyan-300',       bg: 'bg-cyan-50 dark:bg-cyan-950/40' },
+      orange:   { border: 'border-orange-500',   text: 'text-orange-700 dark:text-orange-300',   bg: 'bg-orange-50 dark:bg-orange-950/40' },
+      rose:     { border: 'border-rose-500',     text: 'text-rose-700 dark:text-rose-300',       bg: 'bg-rose-50 dark:bg-rose-950/40' },
+      slate:    { border: 'border-slate-500',    text: 'text-slate-700 dark:text-slate-300',     bg: 'bg-slate-50 dark:bg-slate-900/40' },
+    };
+    const conf = map[color] ?? map.slate!;
+    return active
+      ? `${conf.border} ${conf.text} ${conf.bg}`
+      : 'border-border text-muted-foreground bg-transparent hover:bg-accent';
   }
 
   // Atalhos teclado E (resolver) e A (aguardar humano) — ADR 0039 §2.
@@ -161,6 +203,31 @@ export default function ConversationSidebar({
           </Button>
         )}
       </Card>
+
+      {/* US-WA-063: card Tags — só renderiza se Inbox novo passou availableTags */}
+      {availableTags && availableTags.length > 0 && updateTagsRouteName && (
+        <Card className="p-3">
+          <SectionLabel>Tags</SectionLabel>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {availableTags.map((tag) => {
+              const active = activeTagIds.has(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => toggleTag(tag.id)}
+                  className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-colors ${chipClasses(tag.color, active)}`}
+                  title={active ? `Remover tag "${tag.label}"` : `Adicionar tag "${tag.label}"`}
+                  aria-pressed={active}
+                >
+                  {active && <Check size={10} aria-hidden />}
+                  {tag.label}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       <Card className="p-3">
         <SectionLabel>Janela 24h Meta</SectionLabel>
