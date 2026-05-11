@@ -108,6 +108,17 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.update_tags');
 
+    // US-WA-064: busca de Contacts UltimatePOS (debounced search modal)
+    Route::get('/inbox/contacts/search', [InboxController::class, 'searchContacts'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.contacts.search');
+
+    // US-WA-064: vincula/desvincula Contact à Conversation
+    Route::patch('/inbox/{id}/contact', [InboxController::class, 'linkContact'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.link_contact');
+
     Route::get('/canais', [ChannelsController::class, 'index'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.index');

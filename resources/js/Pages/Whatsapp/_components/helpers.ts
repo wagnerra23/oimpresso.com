@@ -103,6 +103,36 @@ export interface ConvTag {
   color: string;
 }
 
+/**
+ * Contact UltimatePOS vinculado à Conversation (US-WA-064). Multi-tenant
+ * Tier 0 — backend só retorna Contact do business_id atual. Não inclui
+ * PII LGPD sensível (tax_number/cpf_cnpj) — só dados de display.
+ */
+export interface LinkedContact {
+  id: number;
+  name: string;
+  mobile: string | null;
+  landline: string | null;
+  email: string | null;
+  type: string;
+  /** URL pra editar no UltimatePOS legacy (`/contacts/{id}`) */
+  edit_url: string;
+}
+
+/**
+ * Search result no ContactPickerModal (US-WA-064). Shape menor que
+ * `LinkedContact` (sem edit_url — gerado client-side se necessário).
+ */
+export interface ContactSearchResult {
+  id: number;
+  name: string;
+  mobile: string | null;
+  landline: string | null;
+  email: string | null;
+  type: string;
+  supplier_business_name: string | null;
+}
+
 export interface ThreadConversation {
   id: number;
   customer_phone: string;
@@ -117,6 +147,8 @@ export interface ThreadConversation {
   messages_total: number;
   /** US-WA-063: tags aplicadas à conversa */
   tags?: ConvTag[];
+  /** US-WA-064: Contact UltimatePOS vinculado (CRM). Null se não vinculado. */
+  linked_contact?: LinkedContact | null;
 }
 
 export interface CentrifugoConfig {
