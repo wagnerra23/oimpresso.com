@@ -53,8 +53,8 @@ Empresa de **comunicação visual** — banner, fachada, sinalização, adesivag
 | DT_EMISSAO | 100% | sempre |
 | **DT_FATURAMENTO** | **92.4%** | uso alto |
 | DT_COMPETENCIA | 7.5% | baixo — não controla regime competência |
-| **DT_PROMETIDO** | **85.2%** | **único cliente do sample com essa coluna** |
-| DT_ENVIO_FATURAMENTO | 6.5% | baixo |
+| ~~DT_PROMETIDO 85.2%~~ | ❌ erro v3 | ⚠️ **v4 CORRIGIDO** — coluna correta é `PROJETO_DT_FIM` ("Dt. Prometido" no UI). Gold tem só **6.2%** — NÃO usa controle de prazo |
+| FATURAMENTO_DT_ENVIO | 0.0% | não usa |
 | CODFINANCEIRO_GRUPO | 53.1% | médio-alto |
 | Itens/venda média | 1.58 | maioria 1 item |
 | **Status (VENDA.SITUACAO inline)** | **7 distinct** | EM PRODUÇÃO 29k, FINALIZADA 7k + outros 5 |
