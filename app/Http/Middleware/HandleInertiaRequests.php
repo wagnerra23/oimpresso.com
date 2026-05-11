@@ -101,6 +101,14 @@ class HandleInertiaRequests extends Middleware
                 // pede `shell.nfe_cert_status`. Silencioso se módulo NfeBrasil não
                 // instalado (try/catch — não trava render).
                 'nfe_cert_status' => fn () => $user && $businessId ? $this->nfeCertStatus((int) $businessId) : null,
+                // US-WA-083: counts reais pros 3 atalhos da Sidebar (Tarefas,
+                // Chat, Atendimento). Antes eram hard-coded mock `{6, 3, 2}` em
+                // Sidebar.tsx — Wagner reportou que o "2" do Atendimento não
+                // batia com unread real (era mock estático). Lazy: só computa
+                // quando a página pede `shell.sidebar_counts`. Try/catch
+                // envolve cada count separadamente (módulos podem estar
+                // desinstalados / migrations ausentes).
+                'sidebar_counts' => fn () => $user && $businessId ? $this->sidebarCounts((int) $businessId, $user->id) : null,
             ],
             'locale'     => app()->getLocale(),
             'csrf_token' => fn () => csrf_token(),
@@ -225,6 +233,70 @@ class HandleInertiaRequests extends Middleware
             // do shell continua sem badge.
             return null;
         }
+    }
+
+    /**
+     * Counts reais pros atalhos da Sidebar (US-WA-083).
+     *
+     * Retorna 3 inteiros pra UI render badge no `SidebarShortcuts`:
+     *  - `atendimento`: soma de `unread_count` de Conversations omnichannel
+     *    do business atual (todos channels: Baileys/Meta/Z-API)
+     *  - `tarefas`: tasks `mcp_tasks` do user atual em status ativo
+     *    (todo/doing/blocked). Resolvido via `mcp_actors.slug` (user_id FK)
+     *  - `chat`: notificações `mcp_inbox_notifications` não lidas
+     *
+     * Multi-tenant Tier 0 (ADR 0093): `atendimento` filtra por `business_id`;
+     * `tarefas`/`chat` filtram por `user_id` (próprio do user).
+     *
+     * Try/catch per-key — qualquer count individual que falhe vira 0 sem
+     * travar render. Wagner viu mock "2" estático em produção sem perceber
+     * que era hard-coded — agora reflete dado real.
+     */
+    protected function sidebarCounts(int $businessId, int $userId): array
+    {
+        $counts = ['atendimento' => 0, 'tarefas' => 0, 'chat' => 0];
+
+        try {
+            // Atendimento: soma unread de Conversations omnichannel.
+            // Schema novo (ADR 0135) — `conversations` table.
+            // Se módulo Whatsapp não instalado (sem tabela), try/catch vira 0.
+            $counts['atendimento'] = (int) \DB::table('conversations')
+                ->where('business_id', $businessId)
+                ->sum('unread_count');
+        } catch (\Throwable $e) {
+            // Tabela ausente / módulo desinstalado — fica 0.
+        }
+
+        try {
+            // Tarefas: mapping user_id → actor.slug → tasks.owner.
+            // ADR 0070 task system: owner é slug ("wagner") não username
+            // UltimatePOS ("WR23"). `mcp_actors.user_id` é o link.
+            $actorSlug = \DB::table('mcp_actors')
+                ->where('user_id', $userId)
+                ->whereNull('revoked_at')
+                ->value('slug');
+
+            if ($actorSlug) {
+                $counts['tarefas'] = (int) \DB::table('mcp_tasks')
+                    ->where('owner', $actorSlug)
+                    ->whereIn('status', ['todo', 'doing', 'blocked'])
+                    ->count();
+            }
+        } catch (\Throwable $e) {
+            // mcp_actors/mcp_tasks ausentes — fica 0.
+        }
+
+        try {
+            // Chat: inbox notifications não lidas do user.
+            $counts['chat'] = (int) \DB::table('mcp_inbox_notifications')
+                ->where('user_id', $userId)
+                ->whereNull('read_at')
+                ->count();
+        } catch (\Throwable $e) {
+            // mcp_inbox_notifications ausente — fica 0.
+        }
+
+        return $counts;
     }
 
     /**
