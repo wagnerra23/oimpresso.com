@@ -89,10 +89,20 @@ export default function InboxIndex({
       if (eventType !== 'message.received' && eventType !== 'message.sent') return;
       const incomingConvId = ctx.data?.conversation_id as number | undefined;
 
+      // preserveScroll + preserveState anti-flash (US-WA-068):
+      // sem isso, partial reload re-renderiza tudo + UI pisca a cada msg nova
       if (thread && incomingConvId === thread.id) {
-        router.reload({ only: ['messages', 'thread', 'conversations', 'stats'] });
+        router.reload({
+          only: ['messages', 'thread', 'conversations', 'stats'],
+          preserveScroll: true,
+          preserveState: true,
+        });
       } else {
-        router.reload({ only: ['conversations', 'stats'] });
+        router.reload({
+          only: ['conversations', 'stats'],
+          preserveScroll: true,
+          preserveState: true,
+        });
       }
     });
 
@@ -114,7 +124,8 @@ export default function InboxIndex({
       const only = thread
         ? ['messages', 'thread', 'conversations', 'stats']
         : ['conversations', 'stats'];
-      router.reload({ only });
+      // preserveScroll+preserveState anti-flash (US-WA-068)
+      router.reload({ only, preserveScroll: true, preserveState: true });
     }, 5000);
     return () => clearInterval(interval);
   }, [thread?.id]);
