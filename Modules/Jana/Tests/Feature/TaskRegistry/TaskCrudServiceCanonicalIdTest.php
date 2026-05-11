@@ -82,3 +82,43 @@ it('considera SPEC quando DB está atrás do SPEC (out-of-sync)', function () {
 
     expect($reflect->invoke($svc, '__TestCanonicalA'))->toBe('US-RB-041');
 });
+
+it('considera placeholders em bullets (não só headers) — regressão US-WA-053 / ADR 0134', function () {
+    // Cenário real: SPEC tem story detalhada + placeholders bullet em "out of scope".
+    // 2026-05-11 deu drift: tasks-create gerou US-WA-053 ignorando bullet
+    // "- US-WA-053 — Mover conversa" que existia há 1 dia no SPEC.
+    // Fix: regex agora pega ### E - bullets.
+    $body = "# SPEC\n\n"
+          . "### US-RB-001 · Story detalhada\n\n"
+          . "### US-RB-010 · Outra detalhada\n\n"
+          . "## Out of scope\n\n"
+          . "- US-RB-053 — placeholder bullet\n"
+          . "- US-RB-054 — outro placeholder\n"
+          . "- US-RB-056 — pulou 055 de propósito\n";
+    tcWriteSpec('__TestCanonicalA', $body);
+
+    $svc = new TaskCrudService();
+    $reflect = (new ReflectionClass(TaskCrudService::class))
+        ->getMethod('gerarProximoIdCanonical');
+    $reflect->setAccessible(true);
+
+    // max(headers=010, bullets=056) + 1 = 057
+    expect($reflect->invoke($svc, '__TestCanonicalA'))->toBe('US-RB-057');
+});
+
+it('regex bullet ignora menções inline em prose (não confunde com declarações)', function () {
+    // "ver US-RB-099" no meio de parágrafo NÃO é declaração de ID.
+    // Só ^### ou ^- + US-XX-NNN contam.
+    $body = "# SPEC\n\n"
+          . "### US-RB-005 · Story\n\n"
+          . "Aqui a gente menciona US-RB-099 no meio do texto.\n"
+          . "Outra linha refere a `US-RB-100` inline (inline code).\n";
+    tcWriteSpec('__TestCanonicalA', $body);
+
+    $svc = new TaskCrudService();
+    $reflect = (new ReflectionClass(TaskCrudService::class))
+        ->getMethod('gerarProximoIdCanonical');
+    $reflect->setAccessible(true);
+
+    expect($reflect->invoke($svc, '__TestCanonicalA'))->toBe('US-RB-006');
+});
