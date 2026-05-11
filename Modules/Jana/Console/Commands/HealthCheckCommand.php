@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Log;
  *   4. PII leak detection (COPI-43) — mensagens user com regex CPF/email
  *   5. ProfileDistiller drift (COPI-26) — profiles >7d sem regenerar
  *   6. Procedure drift (US-COPI-092) — hash deployed vs migration canônica
+ *   7. Spec ID drift (ADR 0134) — colisão DB↔SPEC.md (mesmo ID, title diferente)
  *
  * Uso:
  *   php artisan jana:health-check
@@ -34,7 +35,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (6 checks SQL)';
+    protected $description = 'Health check diário Jana + Constituição v2 (7 checks SQL)';
 
     public function handle(): int
     {
@@ -45,6 +46,7 @@ class HealthCheckCommand extends Command
             $this->checkPiiLeak(),
             $this->checkProfileDrift(),
             $this->checkProcedureDrift(),
+            $this->checkSpecIdDrift(),
         ];
 
         $allOk = collect($checks)->every(fn ($c) => $c['ok']);
@@ -314,6 +316,81 @@ class HealthCheckCommand extends Command
         }
     }
 
+    /**
+     * Check 7 — Spec ID drift (ADR 0134).
+     * Detecta colisões duras entre DB MCP e SPEC.md (mesmo ID, title diferente).
+     *
+     * Caso recorrente: alguém detalha placeholder bullet "- US-XX-NNN — X" no SPEC,
+     * mas `tasks-create` já criou US-XX-NNN no DB com title diferente em outra sessão.
+     * Próximo git push do SPEC → conflito UNIQUE no webhook sync.
+     *
+     * Prevenção: TaskCrudService::gerarProximoIdCanonical agora lê headers E bullets
+     * (2026-05-11). Este check é defesa em profundidade: pega drift que escapou.
+     */
+    protected function checkSpecIdDrift(): array
+    {
+        try {
+            $reqDir = base_path('memory/requisitos');
+            if (! is_dir($reqDir)) {
+                return [
+                    'name' => 'spec_id_drift',
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => 0,
+                    'message' => 'memory/requisitos/ ausente — sem SPECs pra checar',
+                ];
+            }
+
+            $hardDrifts = [];
+            foreach (glob($reqDir . '/*/SPEC.md') as $specPath) {
+                $content = (string) @file_get_contents($specPath);
+
+                // Pega só section headers (têm title comparável após `·`).
+                // Bullets não têm title estruturado pra comparar com DB.
+                if (! preg_match_all(
+                    '/^###\s+(?:\S+\s+)?US-([A-Z]+)-(\d+)\s*·\s*(.+?)$/m',
+                    $content,
+                    $matches,
+                    PREG_SET_ORDER,
+                )) {
+                    continue;
+                }
+
+                foreach ($matches as $m) {
+                    $prefix = $m[1];
+                    $n = (int) $m[2];
+                    $specTitle = trim($m[3]);
+                    $taskId = "US-{$prefix}-" . str_pad((string) $n, 3, '0', STR_PAD_LEFT);
+
+                    $dbRow = DB::table('mcp_tasks')->where('task_id', $taskId)->first();
+                    if ($dbRow && trim((string) $dbRow->title) !== $specTitle) {
+                        $hardDrifts[] = "{$taskId}";
+                    }
+                }
+            }
+
+            $count = count($hardDrifts);
+            return [
+                'name' => 'spec_id_drift',
+                'ok' => $count === 0,
+                'value' => $count,
+                'threshold' => 0,
+                'message' => $count === 0
+                    ? 'Zero colisões duras DB↔SPEC'
+                    : 'ALERTA drift duro: ' . implode(' · ', array_slice($hardDrifts, 0, 5))
+                        . ($count > 5 ? " (+" . ($count - 5) . " mais)" : ''),
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => 'spec_id_drift',
+                'ok' => false,
+                'value' => null,
+                'threshold' => 0,
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
     protected function renderTable(array $checks, bool $allOk): void
     {
         $this->newLine();
@@ -334,7 +411,7 @@ class HealthCheckCommand extends Command
 
         $this->newLine();
         if ($allOk) {
-            $this->info('✓ Todos os 6 checks passaram. Sistema saudável.');
+            $this->info('✓ Todos os 7 checks passaram. Sistema saudável.');
         } else {
             $failed = collect($checks)->where('ok', false)->count();
             $this->error("✗ {$failed} check(s) falharam — investigar acima.");

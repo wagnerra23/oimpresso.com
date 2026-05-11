@@ -425,11 +425,16 @@ class TaskCrudService
 
         // Cobre o caso DB out-of-sync: webhook ainda não rodou pro último push
         // OU o operador escreveu US-RB-NNN à mão no SPEC. Pegamos max(DB, SPEC).
+        // Captura 2 formatos (ADR 0134):
+        //   1. "### US-XX-NNN ·" (story detalhada — section header)
+        //   2. "- US-XX-NNN —" (placeholder em out-of-scope ou backlog futuro)
+        // Antes só pegava headers → 2026-05-11 deu drift em US-WA-053 (placeholder
+        // bullet no SPEC.md Whatsapp linha 572 colidiu com tasks-create).
         $nSpec = 0;
         $specPath = base_path("memory/requisitos/{$module}/SPEC.md");
         if (is_file($specPath)) {
             $content = (string) @file_get_contents($specPath);
-            if (preg_match_all('/^###\s+' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
+            if (preg_match_all('/(?:^###|^-)\s+(?:\S+\s+)?' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
                 $nSpec = max(array_map('intval', $matches[1]));
             }
         }
