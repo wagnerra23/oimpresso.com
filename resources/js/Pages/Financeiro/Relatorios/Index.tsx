@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
 import PageHeader from '@/Components/shared/PageHeader';
+import SectionNav from '@/Components/Financeiro/SectionNav';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 
@@ -118,6 +119,7 @@ function FinanceiroRelatorios({ filters, dre, fluxo, resumo }: Props) {
 
   return (
     <>
+      <SectionNav current="/financeiro/relatorios" />
       <PageHeader
         icon="bar-chart-3"
         title="Relatórios"

@@ -1,6 +1,7 @@
 // @memcofre tela=/financeiro/extrato/{contaId} module=Financeiro
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import SectionNav from '@/Components/Financeiro/SectionNav';
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -54,6 +55,7 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
 
   return (
     <div className="p-6 space-y-6">
+      <SectionNav current="/financeiro/extrato" />
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Extrato — {conta.banco_nome}</h1>
