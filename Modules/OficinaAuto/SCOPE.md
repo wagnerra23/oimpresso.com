@@ -1,30 +1,38 @@
 # Modules/OficinaAuto — vertical oficinas automotivas BR
 
-> ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
+> ADR mãe: [0137](../../memory/decisions/0137-modules-oficinaauto-qualificada.md) (amends [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7)
 > SPEC: [memory/requisitos/OficinaAuto/SPEC.md](../../memory/requisitos/OficinaAuto/SPEC.md)
-> Status: ⏸️ feature-wish (aguarda sinal qualificado [ADR 0105])
-> Candidato piloto: Martinho Caçambas (a confirmar)
-> CNAE: 4520-0/01 · Concorrentes: Mecânico, Auto Manager, Lokoz
+> Charter: [memory/requisitos/OficinaAuto/OficinaAuto.charter.md](../../memory/requisitos/OficinaAuto/OficinaAuto.charter.md)
+> **Status: 🟡 em construção (V0)** — sinal qualificado por Vargas + Martinho (ADR 0137)
+> CNAEs: 4520-0/01 (mecânica geral) · 2212-9/00 (recapagem) · 4581-4/00 (locação caçamba)
+> Concorrentes: Ultracar, Oficina Integrada, Onmotor, Manager Full
 
-## Estado Sprint 1
+## Estado V0 (Sprint 1 — US-OFICINA-001)
 
-Scaffold formal nWidart **vazio** + RepairSettingsSeeder com vocabulário automotivo. Vertical é o caso de uso ORIGINAL do Modules/Repair (assistência-técnica/automotiva) — defaults Repair já cobrem (Box+Elevador+Mecânico+Placa).
+Scaffold completo nWidart com:
 
-Esta pasta nasce pra:
-1. **Encapsular vocabulário automotivo** quando refactor US-REPA-002 tornou Modules/Repair shared (vocabulário neutro)
-2. **Esperar sinal qualificado** Martinho Caçambas confirmar piloto
-3. **Não impedir uso atual** — Repair continua funcional sem este módulo
+- **8 peças canônicas** (RUNBOOK-criar-modulo): module.json, composer.json, Config, ServiceProvider + RouteServiceProvider, DataController, InstallController, Routes/web.php
+- **2 migrations:** `vehicles` (multi-placa nullable — Vargas case) + `service_orders` (FK vehicle + transaction nullable)
+- **2 Eloquent Models** com global scope multi-tenant Tier 0 (ADR 0093)
+- **2 Controllers CRUD** (Inertia render — VehicleController + ServiceOrderController)
+- **8 Pages Inertia** (Index/Create/Show/Edit × Vehicles + ServiceOrders) com AppShellV2
+- **3 Pest tests** (Vehicle CRUD + multi-tenant isolation + ServiceOrder CRUD)
+- **9 permissões Spatie** (access + 4 vehicle.* + 4 service_order.*)
+- **Sidebar entry** "Oficina Auto" dropdown (Veículos + Ordens de Serviço)
 
-## Sprint 2+ — adoção condicional
+## Sprint 2+ — backlog ativo (em SPEC.md)
 
-| US | Descrição | Sinal qualificado |
+| US | Descrição | Estado |
 |---|---|---|
-| US-OFICAUTO-001 | Scaffold módulo (este PR) | ADR 0121 §P7 |
-| US-OFICAUTO-002 | RepairSettingsSeeder apply em biz piloto | Martinho confirma |
-| US-OFICAUTO-003 | Pages Inertia próprias (busca FIPE, OS-com-OS_pai recall) | Pós-piloto |
+| **US-OFICINA-001** | Scaffold V0 (este PR) | em curso |
+| **US-OFICINA-002** | Importer Firebird `EQUIPAMENTO_VEICULO` → `vehicles` (Martinho 91 vehs) | backlog |
+| **US-OFICINA-003** | FSM canônica OS (3 estados Simples + 5 estados Complexa) — ADR 0129 | backlog |
+| **US-OFICINA-004** | UI Kanban OS Vargas — multi-item + multi-mecânico | backlog V1 |
 
-## Não-goals
+## Não-goals (V0)
 
-- ❌ NÃO codificar features sem cliente piloto pagante [ADR 0105]
-- ❌ NÃO duplicar shared Modules/Repair (vocabulário automotivo via seeder per-vertical)
-- ❌ NÃO substituir núcleo UltimatePOS
+- ❌ NÃO implementar FSM antes de US-OFICINA-003 (status string livre na V0)
+- ❌ NÃO implementar importer Firebird antes de US-OFICINA-002
+- ❌ NÃO implementar Kanban antes de US-OFICINA-004 (V1)
+- ❌ NÃO substituir núcleo UltimatePOS (transactions/contacts continuam canônicos)
+- ❌ NÃO duplicar Modules/Repair shared infra — OficinaAuto usa vocabulário/schema próprio (placa+veículo) onde Repair usa schema neutro (serial_no+device)

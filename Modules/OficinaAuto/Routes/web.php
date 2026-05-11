@@ -1,4 +1,47 @@
 <?php
 
-// Modules/OficinaAuto — rotas web. Sprint 1: scaffold vazio (feature-wish).
-// Routes reais entram quando candidato Martinho Caçambas confirmar piloto.
+use Illuminate\Support\Facades\Route;
+use Modules\OficinaAuto\Http\Controllers\InstallController;
+use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
+use Modules\OficinaAuto\Http\Controllers\VehicleController;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).
+//
+// Sem essas 3 rotas, action() helper em Install/ModulesController vira '#'
+// e o botão "Install" da tela /manage-modules fica sem ação.
+// Incidente documentado: ConsultaOs 2026-05-04 (skill criar-modulo §Críticas).
+// ─────────────────────────────────────────────────────────────────────────────
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('oficina-auto')
+    ->group(function () {
+        Route::get('install',           [InstallController::class, 'index']);
+        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
+        Route::get('install/update',    [InstallController::class, 'update']);
+    });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// V0 — CRUD Vehicle + ServiceOrder (US-OFICINA-001).
+// Stack canônica UltimatePOS admin (skill criar-modulo §Críticas).
+// ─────────────────────────────────────────────────────────────────────────────
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('oficina-auto')
+    ->group(function () {
+        // CRUD Vehicle
+        Route::get('veiculos',                     [VehicleController::class, 'index'])->name('oficinaauto.vehicles.index');
+        Route::get('veiculos/create',              [VehicleController::class, 'create'])->name('oficinaauto.vehicles.create');
+        Route::post('veiculos',                    [VehicleController::class, 'store'])->name('oficinaauto.vehicles.store');
+        Route::get('veiculos/{vehicle}',           [VehicleController::class, 'show'])->name('oficinaauto.vehicles.show');
+        Route::get('veiculos/{vehicle}/edit',      [VehicleController::class, 'edit'])->name('oficinaauto.vehicles.edit');
+        Route::put('veiculos/{vehicle}',           [VehicleController::class, 'update'])->name('oficinaauto.vehicles.update');
+        Route::delete('veiculos/{vehicle}',        [VehicleController::class, 'destroy'])->name('oficinaauto.vehicles.destroy');
+
+        // CRUD ServiceOrder (status livre V0; FSM em US-OFICINA-003)
+        Route::get('ordens-servico',                [ServiceOrderController::class, 'index'])->name('oficinaauto.orders.index');
+        Route::get('ordens-servico/create',         [ServiceOrderController::class, 'create'])->name('oficinaauto.orders.create');
+        Route::post('ordens-servico',               [ServiceOrderController::class, 'store'])->name('oficinaauto.orders.store');
+        Route::get('ordens-servico/{order}',        [ServiceOrderController::class, 'show'])->name('oficinaauto.orders.show');
+        Route::get('ordens-servico/{order}/edit',   [ServiceOrderController::class, 'edit'])->name('oficinaauto.orders.edit');
+        Route::put('ordens-servico/{order}',        [ServiceOrderController::class, 'update'])->name('oficinaauto.orders.update');
+        Route::delete('ordens-servico/{order}',     [ServiceOrderController::class, 'destroy'])->name('oficinaauto.orders.destroy');
+    });

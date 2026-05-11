@@ -1,8 +1,8 @@
 {
     "name": "OficinaAuto",
     "alias": "oficina-auto",
-    "description": "Modules/OficinaAuto — vertical oficinas automotivas BR (CNAE 4520-0/01). Estado feature-wish (aguarda sinal qualificado: candidato Martinho Caçambas a confirmar). Concorrentes: Mecânico, Auto Manager, Lokoz. Reusa default Modules/Repair (Box+Elevador). Ver memory/requisitos/OficinaAuto/SPEC.md.",
-    "keywords": ["oficina-auto", "automotivo", "mecanico", "vertical", "cnae-4520"],
+    "description": "Modules/OficinaAuto — vertical oficinas automotivas BR (CNAEs 4520-0/01, 2212-9/00, 4581-4/00). Estado V0 em construção (ADR 0137 — qualificada por sinal Vargas + Martinho). Scaffold inicial com CRUD Vehicle + ServiceOrder multi-tenant Tier 0. Ver memory/requisitos/OficinaAuto/SPEC.md.",
+    "keywords": ["oficina-auto", "automotivo", "veiculo", "ordem-servico", "vertical", "cnae-4520"],
     "active": 1,
     "order": 0,
     "providers": [

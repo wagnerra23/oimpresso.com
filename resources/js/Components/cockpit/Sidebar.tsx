@@ -88,6 +88,13 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar', 'CRM', 'Crm', 'Office Impresso', 'Officeimpresso'],
   },
   {
+    // ADR 0137 — Modules/OficinaAuto vertical CNAEs 4520/2212/4581 (V0).
+    // Sub-itens "Veículos" + "Ordens de Serviço" entram via DataController.modifyAdminMenu.
+    key: 'oficina',
+    label: 'OFICINA AUTO',
+    items: ['Oficina Auto'],
+  },
+  {
     key: 'fin',
     label: 'FINANCEIRO',
     items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro'],
