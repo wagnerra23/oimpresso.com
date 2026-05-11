@@ -545,7 +545,7 @@ Então NÃO cria revenue_event (sem take rate)
 
 ### US-RB-045 · Inter PJ — saldo via Banking API v2 (Fase 1 OF direto)
 
-> owner: wagner · priority: p1 · estimate: 2h · status: doing · type: story · origin: sessao-2026-05-07-of-direto
+> owner: wagner · priority: p1 · estimate: 2h · status: done · type: story · origin: sessao-2026-05-07-of-direto
 > blocked_by: —
 
 **Contexto.** Wagner aprovou plano em 3 fases pra ter "extrato + boleto + PIX direto" do Inter (sem agregador OF tipo Pluggy). Esta é a **Fase 1 — Quick win** que valida cert mTLS + OAuth ponta-a-ponta antes de gastar com extrato/PIX. Hoje [`SyncBankBalancesJob.php:73`](../../../Modules/RecurringBilling/Jobs/SyncBankBalancesJob.php#L73) tem `'inter' => null` (TODO).
@@ -557,14 +557,16 @@ Então NÃO cria revenue_event (sem take rate)
 - Wire `SyncBankBalancesJob::fetchInterSaldo()` rotando `'inter' => $this->fetchInterSaldo($conta, $config)`
 
 **Acceptance criteria:**
-- [ ] `InterBankingClient` cria com config + retorna `disponivel` como float
-- [ ] OAuth token cacheado por `(business_id, scope)` com TTL 3000s
-- [ ] `SyncBankBalancesJob` atualiza `fin_contas_bancarias.saldo_cached` da conta Inter
-- [ ] Pest `InterBankingClientTest` com `Http::fake()`: token request → saldo request → cache hit
-- [ ] Pest passa multi-tenant: 2 businesses com Inter cada, sync isola cache de token
-- [ ] Erro 401 (cert inválido) loga `[REDACTED]` e propaga RequestException
-- [ ] PR ≤300 linhas, conventional commits `feat(rb): inter banking client + saldo sync`
-- [ ] Sem `withoutGlobalScopes` (Tier 0 multi-tenant)
+- [x] `InterBankingClient` cria com config + retorna `disponivel` como float
+- [x] OAuth token cacheado por `(business_id, scope)` com TTL 3000s
+- [x] `SyncBankBalancesJob` atualiza `fin_contas_bancarias.saldo_cached` da conta Inter
+- [x] Pest `InterBankingClientTest` com `Http::fake()`: token request → saldo request → cache hit
+- [x] Pest passa multi-tenant: 2 businesses com Inter cada, sync isola cache de token
+- [x] Erro 401 (cert inválido) loga `[REDACTED]` e propaga RequestException
+- [x] PR ≤300 linhas, conventional commits `feat(rb): inter banking client + saldo sync`
+- [x] Sem `withoutGlobalScopes` (Tier 0 multi-tenant)
+
+**Marcada `done` em 2026-05-11** — code-complete em main desde PR [#206](https://github.com/wagnerra23/oimpresso.com/pull/206) (`feat(rb): InterBankingClient + saldo Inter via Banking API v2`, MERGED 2026-05-07) + fix PR [#331](https://github.com/wagnerra23/oimpresso.com/pull/331) (`fix(recurring-billing): descriptografar certificado_key_b64 nos Sync jobs`, MERGED 2026-05-09). 7 cenários Pest em `Modules/RecurringBilling/Tests/Feature/InterBankingClientTest.php` cobrem saldo OK, cache 50min, isolamento multi-tenant (biz=1 vs biz=2), isolamento por scope, 401 saldo, 401 token, cert 0600 idempotente. Smoke prod real fica em [US-RB-048](#us-rb-048) (RUNBOOK + canary 7d).
 
 **Pré-requisito (Wagner):** liberar escopo `extrato.read` no portal Inter pra conta de teste.
 
