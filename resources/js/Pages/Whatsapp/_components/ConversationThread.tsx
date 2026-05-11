@@ -150,8 +150,12 @@ export default function ConversationThread({
   const canSendFreeform = conversation.within_24h_window;
   const groupedMessages = useMemo(() => groupByDay(messages), [messages]);
 
+  // Quando contact_name é igual ao phone (contato sem nome cadastrado),
+  // não duplica o número visualmente (Wagner UX polish round 2).
+  const phoneIsName = conversation.contact_name === conversation.customer_phone;
+
   return (
-    <Card className="flex flex-col overflow-hidden h-full min-w-0">
+    <Card className="flex flex-col overflow-hidden h-full min-w-0 py-0 gap-0">
       {/* Header sticky */}
       <div className="border-b px-3 py-2 flex items-center justify-between gap-3 bg-card shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -169,7 +173,7 @@ export default function ConversationThread({
               <StatusDot status={conversation.status} />
             </div>
             <div className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
-              <span>{conversation.customer_phone}</span>
+              {!phoneIsName && <span>{conversation.customer_phone}</span>}
               {centrifugoConfig && (
                 <>
                   <span className="text-border">·</span>

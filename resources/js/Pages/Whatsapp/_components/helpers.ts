@@ -10,6 +10,7 @@ export const LS = {
   Q: 'oimpresso.whatsapp.q',
   THREAD: 'oimpresso.whatsapp.thread',
   SIDEBAR_COLLAPSED: 'oimpresso.whatsapp.sidebar_collapsed',
+  LEFT_SIDEBAR_COLLAPSED: 'oimpresso.whatsapp.left_sidebar_collapsed',
 } as const;
 
 export function lsGet(key: string, fallback = ''): string {
