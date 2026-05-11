@@ -800,4 +800,106 @@ Pré-requisito da skill `module-completeness-audit` Tier B (criada 2026-05-10). 
 
 Frontend-only, sem mudança backend/migration. ROTA LIVRE não pega regressão.
 
+---
+
+### US-WA-058 · Inbox omnichannel — envio outbound via Channel (shim Phone, drivers intactos)
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** Inbox novo `/atendimento/inbox` (ADR 0135 Fase 0) é GET-only. Composer no UI precisa rota POST que envie via `Channel` polimórfico sem quebrar Z-API/Meta legacy em prod.
+
+**Escopo (shim minimal — refactor drivers profundo fica DORMENTE):**
+
+- Rota `POST /atendimento/inbox/{conversation}/send` permission `whatsapp.send`
+- `InboxController::send(SendChannelMessageRequest, Conversation)` — multi-tenant via global scope
+- FormRequest `SendChannelMessageRequest` (kind=freeform|template|media, regra janela 24h Meta)
+- Job novo `SendChannelMessageJob` (constructor: businessId, channelId, conversationId, to, kind, payload) — append-only cria `Message` status=queued, dispara `ChannelDriverFactory::resolve($channel)`, adapter Channel→Phone shim em memória se driver ainda consome `WhatsappBusinessPhone`
+- Frontend: `Atendimento/Inbox/Index.tsx` composer rodapé wire pra rota nova
+- Pest: send via Channel baileys cria Message queued + multi-tenant isolation
+
+**Não escopo:**
+
+- Refactor `DriverInterface::send(Channel,...)` (PR-B separado depois)
+- Mídia upload (US-WA-042 separada)
+
+**ADRs:** 0135, 0093, 0096
+
+**Tier 0:** business_id no Job constructor; Pest biz=1.
+
+---
+
+### US-WA-059 · Inbox omnichannel — real-time via Centrifugo (novo schema)
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** Inbox novo `/atendimento/inbox` não tem real-time. Schema antigo já tem `PublishMessageReceivedToCentrifugo` listener em `whatsapp:business:{id}`. Replicar pro novo schema sem afetar o antigo.
+
+**Escopo:**
+
+- Eventos novos: `OmnichannelMessageReceived(Message $m)` + `OmnichannelMessageSent(Message $m)`
+- Listener `PublishOmnichannelToCentrifugo` — publica em canal `omnichannel:business:{id}` (reusa `CentrifugoPublisher`)
+- `MessageObserver` dispatches eventos no `created`/`updated:status` do `Message` (novo schema)
+- `InboxController::index` injeta `centrifugoConfig` (wsUrl + token + channel) no payload
+- Frontend: `Atendimento/Inbox/Index.tsx` subscribe channel + append message na thread em tempo real (insert + autoscroll)
+- Pest: evento dispara listener; CentrifugoPublisher chamado com payload correto; multi-tenant (canal não vaza entre businesses)
+
+**Não escopo:**
+
+- Refactor schema antigo (continua intacto)
+- Typing indicators / read receipts
+
+**ADRs:** 0135, 0058
+
+**Tier 0:** canal por business_id; token TTL 1h.
+
+---
+
+### US-WA-060 · Sync daemon-node source do CT 100 pra Modules/Whatsapp/daemon-node/
+
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** Daemon Baileys roda em CT 100 (FrankenPHP host, mas daemon é Node.js separado em `/opt/baileys-daemon/` ou similar). Patches feitos remotamente (US-WA-064 fix @lid + push_name) vivem só no servidor — repo local não tem source.
+
+**Escopo:**
+
+- Trazer source Node do CT 100 pra `Modules/Whatsapp/daemon-node/` (gitignored hoje? confirmar)
+- Estrutura: `package.json`, `src/server.ts` ou `src/index.js`, `README.md` com path canônico CT 100 + procedimento update (link pra skill `baileys-update-procedure`)
+- Confirma versão Baileys atual (6.7.18) e dependencies
+- Smoke: `npm install` local funciona; daemon não precisa rodar local (só doc)
+- Não-commit: `.env`, creds, session storage
+
+**Não escopo:**
+
+- Empacotar daemon em container Docker
+- CI workflow pra daemon
+
+**Decisão pendente nesta US:** daemon-node fica COMMITTED no repo principal ou em repo separado (sub-tree, submodule)?
+
+**Tier 0:** nenhum cred/PII no source committed.
+
+---
+
+### US-WA-061 · Drift webhook legacy Z-API/Meta — observability + cutover plan
+
+> owner: wagner · sprint: CYCLE-05 · priority: p3 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** Webhooks legacy `ZapiWebhookController`/`MetaWebhookController` continuam escrevendo em `whatsapp_conversations/messages` (schema antigo). Precisamos detectar quem ainda manda nesses endpoints pra planejar cutover.
+
+**Escopo (paralelo, baixa urgência — observability only, sem mudar comportamento):**
+
+- Adiciona log warning estruturado em cada legacy webhook controller: `Log::warning('webhook_legacy_hit', ['driver' => 'zapi|meta', 'business_id' => ..., 'phone_id' => ...])`
+- Métrica counter `whatsapp_legacy_webhook_hits_total` (labels: driver, business_id) — se Telescope ou DB-counter (Hostinger não tem Prometheus exposed; usar tabela `mcp_metrics` ou similar canônica)
+- ADR-mini sob `memory/decisions/` ou append em ADR 0135 sobre plano cutover (ativa-se quando hits/24h < threshold por 7d consecutivos)
+
+**Não escopo:**
+
+- Migrar webhooks legacy pra novo schema (Fase 2 do ADR 0135)
+- Bloquear endpoint legacy
+
+**ADRs:** 0135 (Fase 0→1 cutover criteria)
+
 **Evidência baseline:** Gap G-4 do CAPTERRA-INVENTARIO.md.
