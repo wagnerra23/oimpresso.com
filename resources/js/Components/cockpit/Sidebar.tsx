@@ -307,18 +307,29 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
   );
 }
 
-// ── SidebarShortcuts — Tarefas + Chat + Whatsapp no topo (UI-0011) ──────
+// ── SidebarShortcuts — Tarefas + Chat + Atendimento no topo (UI-0011) ──────
 // Wagner 2026-05-08: "o whatszap precisa ir abaixo do chat" — entrypoint
-// rápido pra Inbox WhatsApp ao lado do chat com a Jana.
+// rápido pra Inbox ao lado do chat com a Jana.
+//
+// Renomeado 2026-05-11 (US-WA-082): "WhatsApp" → "Atendimento" pra refletir
+// arquitetura omnichannel (ADR 0135). Hoje só Whatsapp Baileys/Meta/Z-API;
+// amanhã Instagram DM, Messenger, Email, Mercado Livre — tudo entra no
+// mesmo Inbox `/atendimento/inbox`. URL atualizada de `/whatsapp/conversations`
+// legacy pra `/atendimento/inbox` (topnav já tinha mudado em US-WA-067).
+//
+// TODO US-WA-083: badges hoje são hard-coded (tarefasCount=6 chatCount=3
+// whatsappCount=2 — chamando aqui também por consistência). Wire backend
+// count real via Inertia shared props (Conversation.unread_count sum por
+// business_id + Task.where(owner_user_id, status='todo').count() etc).
 
 function SidebarShortcuts({
   tarefasCount,
   chatCount,
-  whatsappCount,
+  atendimentoCount,
 }: {
   tarefasCount?: number;
   chatCount?: number;
-  whatsappCount?: number;
+  atendimentoCount?: number;
 }) {
   return (
     <div className="sb-shortcuts">
@@ -332,10 +343,10 @@ function SidebarShortcuts({
         <span className="label">Chat</span>
         {!!chatCount && <span className="badge">{chatCount}</span>}
       </a>
-      <a href="/whatsapp/conversations" className="sb-shortcut">
+      <a href="/atendimento/inbox" className="sb-shortcut">
         <MessageCircle size={13} />
-        <span className="label">WhatsApp</span>
-        {!!whatsappCount && <span className="badge">{whatsappCount}</span>}
+        <span className="label">Atendimento</span>
+        {!!atendimentoCount && <span className="badge">{atendimentoCount}</span>}
       </a>
     </div>
   );
@@ -431,7 +442,10 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
 
   return (
     <div className="sb-menu-grouped">
-      <SidebarShortcuts tarefasCount={6} chatCount={3} whatsappCount={2} />
+      {/* TODO US-WA-083: counts hard-coded mock. Wire backend counts reais
+         (Conversation.unread_count sum + tasks pending + chat unread) via
+         Inertia shared props ou hook useSidebarCounts. */}
+      <SidebarShortcuts tarefasCount={6} chatCount={3} atendimentoCount={2} />
       {groupsToRender.map((g) => (
         <SidebarGroup
           key={g.key}
