@@ -90,6 +90,10 @@ class OimpressoMcpServer extends Server
         // ADR 0119 Tier 1 — coordenação entre sessões Claude (alerta passivo,
         // não lock). Agregação derivada de mcp_cc_sessions + mcp_cc_messages.
         Tools\WhatsActiveTool::class,
+        // ADR 0133 — System health audit canônico (5 dimensões: observability/evals/
+        // ADR-stale/cost-agg/test-coverage). Wrapper sobre jana:system-audit --json.
+        // Princípio 2 (tiered cost): SQL+FS only, ZERO LLM call.
+        Tools\SystemHealthAuditTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
