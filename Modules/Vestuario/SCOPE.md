@@ -1,3 +1,28 @@
+---
+module: Vestuario
+purpose: "Vertical lojas de vestuário/moda BR (CNAE 4781-4/00). Encapsula customizações ROTA LIVRE (cliente piloto biz=4) e habilita revenda do módulo. Consome Modules/Repair shared infra opcional (kanban costureira→revisão→finalização) via vocabulário shared."
+contains:
+  # módulo scaffold vazio — customizações ROTA LIVRE migram progressivamente
+  # (US-VEST-002+). Quando nascer 1º Controller, declarar aqui.
+not_contains:
+  - "Núcleo transactions/contacts → UltimatePOS core (compartilhado entre verticais)"
+  - "NFe/NFC-e → Modules/NfeBrasil (backbone)"
+  - "Kanban shared infra → Modules/Repair (consumido opcional via repair_settings JSON)"
+  - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
+trust_required: L2
+owner: wagner
+permission_prefix: vestuario.*
+charter_adr: 0121
+related_adrs:
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0066-format-date-shift-3h-preservado-legacy-clientes
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0093-multi-tenant-isolation-tier-0
+url_prefixes:
+  - /vestuario/*
+drift_alerts: []
+---
+
 # Modules/Vestuario — vertical lojas de vestuário/moda BR
 
 > ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7

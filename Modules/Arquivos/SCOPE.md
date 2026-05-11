@@ -1,3 +1,26 @@
+---
+module: Arquivos
+purpose: "DMS backbone — todo arquivo anexado do oimpresso deve cair aqui. Tabelas arquivos + arquivos_audit_log + arquivos_dedupe. Trait HasArquivos morphMany pra opt-in por entidade. Curador engine PHP + parity com JS scripts/curador. Signed URLs + soft-delete + dedupe sha256."
+contains:
+  - "DataController"
+  - "DownloadController"
+  - "InstallController"
+not_contains:
+  - "MemCofre senhas/segredos → Modules/MemCofre"
+  - "Memoria RAG semântico Jana → Modules/Jana"
+  - "OCR/transcrição/antivirus → fora de MVP"
+trust_required: L2
+owner: wagner
+permission_prefix: arquivos.*
+charter_adr: 0123
+related_adrs:
+  - 0123-modules-arquivos-backbone
+  - 0093-multi-tenant-isolation-tier-0
+url_prefixes:
+  - /arquivos/*
+drift_alerts: []
+---
+
 # Modules/Arquivos — DMS backbone
 
 > ADR mãe: [0123](../../memory/decisions/0123-modules-arquivos-backbone.md)
