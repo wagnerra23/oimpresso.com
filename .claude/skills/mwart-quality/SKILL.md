@@ -253,6 +253,68 @@ mcp__Claude_in_Chrome__browser_batch:
 
 Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi exatamente o ciclo que custou os PRs #143/#144/#145.**
 
+## Check 11 · Parent dropdown precisa de `'url'` ou cai em href='#'
+
+**Aplica a:** qualquer módulo cujo `DataController::modifyAdminMenu()` cria um `Menu::dropdown(...)` com children. Especialmente crítico pra módulos admin de plataforma (PR #516 promove `attributes.url` → `url` em `MenuItem::make`, então passa só passar `'url'` no 3º param).
+
+**❌ Errado** — `Modules/<X>/Http/Controllers/DataController.php::modifyAdminMenu()`:
+```php
+Menu::modify('admin-sidebar-menu', function ($menu) {
+    $menu->dropdown('Office Impresso', function ($sub) {
+        $sub->url('/officeimpresso/computadores', 'Computadores', [...]);
+        // ... mais subitens
+    }, ['icon' => 'fas fa-plug', 'style' => '...']);  // ❌ FALTA 'url' no parent
+});
+```
+
+Resultado: no `SidebarMenuItem` React ([`Sidebar.tsx`](../../resources/js/Components/cockpit/Sidebar.tsx)), o item "Office Impresso" renderiza `<a href={item.href ?? '#'}>` — clicar no nome só toggla o sub-menu, não navega. [`LegacyMenuAdapter.php:307-315`](../../app/Services/LegacyMenuAdapter.php) só popula `result['href']` quando `$props['url']` existe.
+
+**✅ Certo:**
+```php
+$menu->dropdown('Office Impresso', function ($sub) { ... }, [
+    'url'   => '/officeimpresso/computadores',  // ✅ default landing — torna parent clickável
+    'icon'  => 'fas fa-plug',
+    'style' => '...',
+]);
+```
+
+**Como auditar:** abrir o módulo no sidebar AppShellV2; clicar no nome do módulo (não chevron) deve navegar pra default page. Se não navega, falta `'url'`.
+
+**Bug evitado:** "ele está no menu interno sem link para abrir" (Wagner 2026-05-10).
+
+## Check 12 · Módulo superadmin — Spatie permission `superadmin` precisa existir + estar atribuída
+
+**Aplica a:** módulos com guard `auth()->user()->can('superadmin')` em `DataController::modifyAdminMenu()` (todos os módulos superadmin-only).
+
+**Sintoma do bug:** items dos módulos admin de plataforma (Officeimpresso, CMS, Backup, Conector, Módulos) simplesmente NÃO aparecem no sidebar nos grupos `office`/`plataforma` — sem mensagem, sem erro. Items publicados pelos DataControllers nunca chegam ao `shell.menu` porque o guard retorna early.
+
+**Como detectar:**
+```bash
+php artisan tinker --execute="echo \App\User::find(1)->can('superadmin') ? 'OK' : 'FALTA_PERM'"
+# Esperado: OK
+# Se FALTA_PERM, próximo passo:
+php artisan tinker --execute="
+  \$exists = \Spatie\Permission\Models\Permission::where('name','superadmin')->exists();
+  echo 'perm_exists=' . var_export(\$exists, true) . PHP_EOL;
+"
+```
+
+**Fix se permission não existe:**
+```sql
+INSERT INTO permissions (name, guard_name, business_id, created_at, updated_at)
+VALUES ('superadmin', 'web', 1, NOW(), NOW());
+
+INSERT INTO role_has_permissions (permission_id, role_id)
+SELECT (SELECT id FROM permissions WHERE name='superadmin'), id
+FROM roles WHERE name='Admin#1';
+```
+
+Depois: `php artisan permission:cache-reset`
+
+**Por que verificar PRÉ-MWART:** se Wagner não tem a perm, F4 smoke biz=1 vai falhar silenciosamente (cascata vazia → ele não vê o item migrado → assume "tela quebrou"). Bug catalogado em sessão 2026-05-10 — local dev tinha `perm_exists=false`.
+
+**Bug evitado:** debug de 2 horas tentando achar por que cascata Superadmin não renderizava.
+
 ## ⛔ Check 10 (HARD GATE) · Paridade visual com o Cockpit canônico (Claude design)
 
 **Visual canon decidido em 2026-05-07 (madrugada):**
@@ -311,6 +373,8 @@ Sem este check, bugs só aparecem quando o usuário (Wagner/Larissa) abre. **Foi
 [ ] Check 8 — zero route() Ziggy; URLs hardcoded com prefix do módulo
 [ ] Check 9 — após merge, smoke test browser MCP + console clean
 [ ] Check 10 (HARD GATE) — paridade visual com Blade legacy: top navbar + topnav horizontal módulo + breadcrumb correto + action bar (sem isso NÃO promover flag MWART em prod)
+[ ] Check 11 (SE módulo superadmin) — parent dropdown em DataController tem 'url' default page (cascata clickável)
+[ ] Check 12 (SE módulo superadmin) — Spatie permission 'superadmin' existe no DB + atribuída ao role do user que vai testar
 ```
 
 ## ROI / por que esta skill existe
@@ -372,6 +436,9 @@ Quando o gatilho é "essa tela está feia" / "perdeu elementos" / *"o padrão do
 - ❌ Continuar criando telas MWART ANTES de topnav horizontal entrar no AppShellV2 — Check 10 Hard Gate
 - ❌ Passar objeto `CommonChart`/Highcharts pro Inertia onde TSX espera array — TypeError `.slice`
 - ❌ Pular smoke test browser MCP achando "código está certo" — só prod confirma render
+- ❌ **Módulo com parent dropdown sem `'url'` nas options** — sidebar fica com item parent que só toggla, não navega (Check 11)
+- ❌ **Migrar módulo admin de plataforma sem confirmar `Spatie\Permission\Models\Permission::where('name','superadmin')->exists()`** — F4 smoke vai falhar silenciosamente (Check 12)
+- ❌ **Colocar módulo de uso esporádico (Backup mensal, CMS raro) no topo do sidebar** — usa grupo `plataforma` no fim, não `office` (ACESSOS RÁPIDOS); skill `sidebar-menu-arch` codifica a regra
 
 ## Estrutura da skill (progressive disclosure — TODO P1)
 
