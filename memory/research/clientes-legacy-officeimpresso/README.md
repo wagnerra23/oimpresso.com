@@ -55,6 +55,8 @@ NN-slug-do-cliente/
 | [_ANALISE-CROSS-CLIENTE.md](_ANALISE-CROSS-CLIENTE.md) | comparativo entre todos clientes — padrões, segmentos, prioridade migração |
 | [_GLOSSARIO.md](_GLOSSARIO.md) | termos do domínio OfficeImpresso/Delphi/Firebird |
 | [_OPT-OUT.md](_OPT-OUT.md) | registro de clientes que pediram não-análise (LGPD Art. 18) |
+| **[_LICOES-CRITICAS.md](_LICOES-CRITICAS.md)** ⭐ | **8 erros consolidados** anti-bug (Vargas/Gold classification, PROJETO_DT_FIM, BLOB DFM, paralelização agents) — **ler primeiro** se vai analisar cliente novo OU mergear Modules/OficinaAuto V0/V1 |
+| **[_MAPPING/](_MAPPING/)** | 6 mappings canônicos Delphi→Laravel — TELA-LISTA-VENDAS · TELA-PESSOAS · TELA-COMPRA · TELA-FINANCEIRO · TELA-PRODUCAO-KANBAN · CONFIGURACOES-GRID |
 
 ## Hierarquia de fontes (descoberta 2026-05-11)
 
