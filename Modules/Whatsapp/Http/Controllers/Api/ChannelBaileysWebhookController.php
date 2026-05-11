@@ -187,6 +187,10 @@ class ChannelBaileysWebhookController extends Controller
             $conversation->save();
         }
 
+        // MessageObserver registrado no ServiceProvider dispara
+        // OmnichannelMessageReceived/Sent automaticamente em `created`.
+        // Listener PublishOmnichannelToCentrifugo publica em
+        // `omnichannel:business:{id}` real-time. ADR 0058 + 0135 + US-WA-059.
         Message::query()->create([
             'business_id' => $channel->business_id,
             'conversation_id' => $conversation->id,
