@@ -107,26 +107,44 @@ class SystemAuditCommand extends Command
             ];
         }
 
-        try {
-            $client = new Client(['timeout' => 5.0]);
-            $response = $client->get(rtrim($host, '/') . '/api/public/health');
-            $status = $response->getStatusCode();
+        // Retry 3× com backoff exponencial pra evitar false-alarm em blip de rede.
+        // Princípio 8 ADR 0094 (confiabilidade com fallback): check só vira FAIL após
+        // 3 tentativas falharem — não 1 timeout transitório.
+        $client = new Client(['timeout' => 5.0]);
+        $endpoint = rtrim($host, '/') . '/api/public/health';
+        $lastError = null;
 
-            return [
-                'name' => 'observability_pipeline',
-                'ok' => $status === 200,
-                'value' => "HTTP {$status} de {$host}",
-                'threshold' => 'HTTP 200',
-            ];
-        } catch (\Throwable $e) {
-            return [
-                'name' => 'observability_pipeline',
-                'ok' => false,
-                'value' => 'HTTP fail: ' . $e->getMessage(),
-                'threshold' => 'HTTP 200',
-                'remediation' => 'Verificar CT 100 Langfuse stack: tailscale ssh root@ct100-mcp + docker compose ps em /opt/langfuse/code/docker/langfuse/',
-            ];
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            try {
+                $response = $client->get($endpoint);
+                $status = $response->getStatusCode();
+
+                if ($status === 200) {
+                    return [
+                        'name' => 'observability_pipeline',
+                        'ok' => true,
+                        'value' => "HTTP 200 de {$host}" . ($attempt > 1 ? " (try {$attempt}/3)" : ''),
+                        'threshold' => 'HTTP 200 em ≤3 tentativas',
+                    ];
+                }
+
+                $lastError = "HTTP {$status}";
+            } catch (\Throwable $e) {
+                $lastError = $e->getMessage();
+            }
+
+            if ($attempt < 3) {
+                usleep(500_000 * $attempt); // 0.5s, 1s
+            }
         }
+
+        return [
+            'name' => 'observability_pipeline',
+            'ok' => false,
+            'value' => "FAIL após 3 tentativas: {$lastError}",
+            'threshold' => 'HTTP 200 em ≤3 tentativas',
+            'remediation' => 'Verificar CT 100 Langfuse: tailscale ssh root@ct100-mcp \'cd /opt/langfuse/code/docker/langfuse && docker compose ps\'',
+        ];
     }
 
     /**
@@ -165,24 +183,49 @@ class SystemAuditCommand extends Command
             ];
         }
 
+        // Refinado pós-audit adversarial: sub-agent paralelo detectou 10 candidatas
+        // enquanto regex strict só detectou 1. Agora cobre 5 sinais de stale:
+        //   1. Vizra (laravel/ai SDK substitui)
+        //   2. CURRENT.md / TASKS.md (deprecados ADR 0070)
+        //   3. Reverb sem superseded_by: 0058 (Centrifugo substitui)
+        //   4. Hostinger como runtime daemon (ADR 0062 proíbe)
+        //   5. Octane Hostinger (proibido ADR 0062)
         $patterns = [
-            '/(^|\s)Vizra(\s|\.)/i',
-            '/CURRENT\.md/',
-            '/TASKS\.md(?!.*deprecated)/',
+            '/\bVizra\b/i',
+            '/\bCURRENT\.md\b/',
+            '/\bTASKS\.md\b/',
+            '/\boctane.{0,30}hostinger\b/i',
         ];
 
         $candidates = collect(File::files($dir))
             ->filter(fn ($f) => str_ends_with($f->getFilename(), '.md'))
             ->filter(function ($f) use ($patterns) {
                 $content = File::get($f->getRealPath());
-                if (! preg_match('/lifecycle:\s*canon|status:\s*accepted/', $content)) {
+
+                // Skip ADRs já marked deprecated/superseded/historical
+                if (preg_match('/^\s*lifecycle:\s*(deprecated|superseded|historical)/mi', $content)) {
                     return false;
                 }
+                if (preg_match('/^\s*status:\s*(deprecated|superseded|rejected)/mi', $content)) {
+                    return false;
+                }
+
+                // Não é canon nem accepted? skip
+                if (! preg_match('/lifecycle:\s*canon|status:\s*accepted/i', $content)) {
+                    return false;
+                }
+
                 foreach ($patterns as $p) {
                     if (preg_match($p, $content)) {
                         return true;
                     }
                 }
+
+                // Reverb mention sem superseded_by 0058 (Centrifugo)
+                if (preg_match('/\bReverb\b/i', $content) && ! preg_match('/superseded_by:\s*\[?\s*0058/i', $content)) {
+                    return true;
+                }
+
                 return false;
             })
             ->count();
