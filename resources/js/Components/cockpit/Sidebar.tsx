@@ -83,7 +83,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'office',
     label: 'ACESSOS RÁPIDOS',
-    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar', 'CRM', 'Crm'],
+    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar', 'CRM', 'Crm', 'Office Impresso', 'Officeimpresso'],
   },
   {
     key: 'fin',
@@ -124,6 +124,15 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     key: 'governanca',
     label: 'GOVERNANÇA',
     items: ['Governança', 'Governance', 'ADS', 'Adaptive Decision', 'Team MCP', 'TeamMcp'],
+  },
+  {
+    // Wagner 2026-05-10: cascata "Superadmin" do user dropdown footer foi
+    // removida; admin de plataforma vive no sidebar como qualquer outro grupo.
+    // Officeimpresso saiu deste grupo e foi pra ACESSOS RÁPIDOS (uso pesado
+    // pra gestão de licenças desktop dos clientes legacy WR Sistemas).
+    key: 'plataforma',
+    label: 'PLATAFORMA',
+    items: ['CMS', 'Conector', 'Connector', 'Backup', 'Módulos', 'Modulos', 'Manage Modules', 'Personalizar'],
   },
 ];
 
