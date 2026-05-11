@@ -16,7 +16,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
-import SectionNav from '@/Components/Financeiro/SectionNav';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -131,7 +130,6 @@ function FinanceiroDashboard({ kpis, titulos, filters, contas, saldo_total }: Pr
 
   return (
     <>
-      <SectionNav current="/financeiro/unificado" />
       <PageHeader
         icon="coins"
         title="Financeiro"
