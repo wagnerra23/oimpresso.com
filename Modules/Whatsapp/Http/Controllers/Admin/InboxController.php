@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use App\Contact;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
@@ -105,7 +106,8 @@ class InboxController extends Controller
         if ($threadId) {
             $threadModel = Conversation::query()
                 ->where('business_id', $businessId)
-                ->with(['channel', 'tags:id,slug,label,color']) // US-WA-063: eager-load tags
+                // US-WA-063: eager-load tags · US-WA-064: eager-load Contact UltimatePOS
+                ->with(['channel', 'tags:id,slug,label,color'])
                 ->find($threadId);
             if ($threadModel) {
                 $thread = $this->convToThreadArray($threadModel);
@@ -333,7 +335,36 @@ class InboxController extends Controller
             'tags' => $c->relationLoaded('tags')
                 ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
                 : [],
+            // US-WA-064: contato UltimatePOS vinculado (CRM). Null se ainda
+            // não vinculado. Inicialmente vem null porque webhook cria
+            // Conversation com contact_id=null. Atendente vincula via modal.
+            'linked_contact' => $c->contact_id ? $this->resolveLinkedContact((int) $c->contact_id, $c->business_id) : null,
         ];
+    }
+
+    /**
+     * US-WA-064: resolve Contact UltimatePOS vinculado pra exibir no sidebar.
+     *
+     * Retorna campos minimos pro card (avatar/nome/phone/email/tipo + link
+     * pra `/contacts/{id}` UltimatePOS edit). Tier 0 enforced — só retorna
+     * Contact do mesmo business_id (defense-in-depth — controller já filtra).
+     */
+    protected function resolveLinkedContact(int $contactId, int $businessId): ?array
+    {
+        $contact = Contact::query()
+            ->where('id', $contactId)
+            ->where('business_id', $businessId)
+            ->first(['id', 'name', 'mobile', 'landline', 'email', 'type']);
+
+        return $contact ? [
+            'id' => $contact->id,
+            'name' => $contact->name,
+            'mobile' => $contact->mobile,
+            'landline' => $contact->landline,
+            'email' => $contact->email,
+            'type' => $contact->type,
+            'edit_url' => "/contacts/{$contact->id}",
+        ] : null;
     }
 
     /**
@@ -516,5 +547,100 @@ class InboxController extends Controller
         $conversation->save();
 
         return back()->with('success', 'Conversa atualizada.');
+    }
+
+    /**
+     * US-WA-064: GET `/atendimento/inbox/contacts/search?q=...` — busca
+     * Contacts UltimatePOS do business atual filtrando por nome/mobile/landline.
+     *
+     * Frontend usa pra debounced search no modal de vincular contato.
+     * Multi-tenant Tier 0 (ADR 0093) — APENAS contacts do business atual,
+     * NUNCA vaza CRM cross-tenant (especialmente PII LGPD CPF/CNPJ).
+     *
+     * Retorna até 15 results, ordem `name ASC`. Não inclui PII sensível
+     * (tax_number/cpf_cnpj) — só dados de display.
+     */
+    public function searchContacts(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $q = trim((string) $request->input('q', ''));
+
+        if (mb_strlen($q) < 2) {
+            return response()->json(['contacts' => []], 200);
+        }
+
+        // Sanitiza query — LIKE escape ` % _ \`
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
+        $like = "%{$escaped}%";
+
+        // Filtra type=customer/supplier/both (exclui lead — ainda não é cliente).
+        // Permite buscar tanto por nome quanto por qualquer phone field (mobile,
+        // landline, alternate_number).
+        $contacts = Contact::query()
+            ->where('business_id', $businessId)
+            ->whereIn('type', ['customer', 'supplier', 'both'])
+            ->where(function ($q2) use ($like) {
+                $q2->where('name', 'LIKE', $like)
+                    ->orWhere('mobile', 'LIKE', $like)
+                    ->orWhere('landline', 'LIKE', $like)
+                    ->orWhere('alternate_number', 'LIKE', $like)
+                    ->orWhere('email', 'LIKE', $like)
+                    ->orWhere('supplier_business_name', 'LIKE', $like);
+            })
+            ->orderBy('name')
+            ->limit(15)
+            ->get(['id', 'name', 'mobile', 'landline', 'email', 'type', 'supplier_business_name']);
+
+        return response()->json([
+            'contacts' => $contacts->map(fn (Contact $c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'mobile' => $c->mobile,
+                'landline' => $c->landline,
+                'email' => $c->email,
+                'type' => $c->type,
+                'supplier_business_name' => $c->supplier_business_name,
+            ])->all(),
+        ], 200);
+    }
+
+    /**
+     * US-WA-064: PATCH `/atendimento/inbox/{id}/contact` — vincula ou
+     * desvincula Contact UltimatePOS à Conversation.
+     *
+     * Body: `{contact_id: int|null}`. Null desvincula (reset contact_id=null).
+     * Tier 0 enforced — contact_id que não pertence ao mesmo business_id
+     * vira null (silently dropped, atacante neutralizado).
+     */
+    public function linkContact(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        $payload = $request->validate([
+            'contact_id' => ['nullable', 'integer'],
+        ]);
+
+        $contactId = $payload['contact_id'] ?? null;
+
+        if ($contactId !== null) {
+            // Valida que Contact pertence ao MESMO business (Tier 0 defense).
+            // Sem withoutGlobalScope porque Contact não usa HasBusinessScope
+            // (legacy UltimatePOS — controller já filtra explicito).
+            $exists = Contact::query()
+                ->where('id', $contactId)
+                ->where('business_id', $businessId)
+                ->exists();
+            if (! $exists) {
+                $contactId = null; // silently dropped cross-tenant
+            }
+        }
+
+        $conversation->contact_id = $contactId;
+        $conversation->save();
+
+        return back()->with('success', $contactId ? 'Contato vinculado.' : 'Contato desvinculado.');
     }
 }
