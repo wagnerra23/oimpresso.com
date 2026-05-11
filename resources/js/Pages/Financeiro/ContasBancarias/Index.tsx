@@ -1,7 +1,6 @@
 // @memcofre tela=/financeiro/contas-bancarias module=Financeiro
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import SectionNav from '@/Components/Financeiro/SectionNav';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -82,7 +81,6 @@ function Index({ accounts, bancos_suportados }: Props) {
   return (
     <>
       <div className="p-6 max-w-6xl mx-auto space-y-6">
-        <SectionNav current="/financeiro/contas-bancarias" />
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Contas Bancárias</h1>
