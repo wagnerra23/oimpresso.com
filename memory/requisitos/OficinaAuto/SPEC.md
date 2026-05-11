@@ -1,19 +1,71 @@
 ---
 module: OficinaAuto
-status: feature-wish
-lifecycle: aguarda-sinal-qualificado
-piloto: NENHUM (Martinho Caçambas é vestuário/caçamba — candidato fraco, não oficina clássica)
-piloto_previsao: depende de sinal qualificado (ADR 0105) — sem ETA
+status: em-construcao
+lifecycle: ativo
+piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
+piloto_previsao: V0 scaffold 2026-05-11 (PR US-OFICINA-001); V1 importer Martinho Sprint 2+
 cnae_principal: "4520-0/01" (serviços de manutenção e reparação mecânica de veículos automotores)
-related_adrs: [0121, 0094, 0093, 0105, 0106, 0035, 0011, 0089, 0119]
+cnaes_cobertos: ["4520-0/01", "2212-9/00", "4581-4/00"]
+related_adrs: [0137, 0121, 0094, 0093, 0105, 0106, 0035, 0011, 0089, 0119, 0129]
 related_proposals: [proposals/gap-repair-vs-oficina-auto.md]
-last_review: 2026-05-10
+last_review: 2026-05-11
 owner: [W]
 ---
 
 # Especificação funcional — Modules/OficinaAuto
 
-> Convenção do ID: `US-AUTO-NNN` para user stories, `R-AUTO-NNN` para regras Gherkin.
+> ⚠️ **STATUS ATUALIZADO 2026-05-11** — [ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md) (`amends` 0121) qualifica `Modules/OficinaAuto` como **em construção** baseado em sinal qualificado (Vargas + Martinho — 50% sample OfficeImpresso saudável). Seções §1-§13 abaixo são do SPEC antecipatório original (2026-05-10) — preservadas como contexto estratégico (concorrentes, posicionamento, pricing). A tabela de US **ativas** é a §V0 logo abaixo. Esquema técnico canônico está em ADR 0137 §"Escopo arquitetural V0".
+
+## V0 — Scaffold ativo (US-OFICINA-NNN)
+
+> Convenção do ID: `US-OFICINA-NNN` para user stories desta vertical (ADR 0137). O antigo `US-AUTO-NNN` (preservado abaixo §3) era do SPEC antecipatório — não criar novas tasks com esse prefixo, usar `US-OFICINA-NNN`.
+
+| US | Descrição | Estado | PR |
+|---|---|---|---|
+| **US-OFICINA-001** | Scaffold módulo V0 (8 peças + Vehicle + ServiceOrder + Pest + Inertia Pages) | Em curso (este PR) | TBD |
+| **US-OFICINA-002** | Importer Firebird `EQUIPAMENTO_VEICULO` → `vehicles` Laravel (piloto Martinho) | Backlog Sprint 2+ | — |
+| **US-OFICINA-003** | FSM canônica OS (3 estados Simples + 5 estados Complexa) — ADR 0129 | Backlog | — |
+| **US-OFICINA-004** | UI Kanban OS Vargas (V1 — multi-item + multi-mecânico) | Backlog V1 | — |
+
+### Schema V0 (canônico ADR 0137)
+
+#### Tabela `vehicles`
+
+Cadastro de veículos. Multi-placa nullable (cavalo+reboque Vargas case) + ENUM vehicle_type cobrindo 3 sub-verticais (caminhão/cavalo/semi_reboque/caçamba/auto/moto/outro). `legacy_id` preserva CODIGO Firebird EQUIPAMENTO_VEICULO pra importer US-OFICINA-002.
+
+Multi-tenant Tier 0 (ADR 0093): `business_id` indexado + FK CASCADE + global scope no Model.
+
+#### Tabela `service_orders`
+
+OS vinculada a 1 vehicle + opcionalmente 1 transaction UltimatePOS (1 OS = 1 venda). Status livre na V0 (FSM em US-OFICINA-003). Soft delete.
+
+### Permissões V0
+
+- `oficinaauto.access` — acessar módulo
+- `oficinaauto.vehicle.{view,create,update,delete}`
+- `oficinaauto.service_order.{view,create,update,delete}`
+
+### Inertia Pages V0
+
+- `resources/js/Pages/OficinaAuto/Vehicles/{Index,Create,Show,Edit}.tsx`
+- `resources/js/Pages/OficinaAuto/ServiceOrders/{Index,Create,Show,Edit}.tsx`
+
+Todos usam `AppShellV2` Persistent Layout + components shared (`PageHeader`, `EmptyState`).
+
+### Critério de validação V0 → V1 (ADR 0137 §"Critério de validação")
+
+- [x] Scaffold 8 peças (RUNBOOK criar-modulo) — este PR
+- [x] Pest tests escritos (Vehicle CRUD + Multi-tenant + ServiceOrder CRUD) — este PR
+- [ ] Martinho importado (91 veículos legacy → MySQL) — US-OFICINA-002
+- [ ] 1 OS criada manualmente via UI nova — smoke pós-deploy
+- [ ] Smoke biz=1 sem regressão (ADR 0101)
+- [ ] Canary 7 dias com Martinho sem incidente
+
+---
+
+## Anexo (SPEC antecipatório 2026-05-10)
+
+> Convenção do ID antiga: `US-AUTO-NNN` para user stories, `R-AUTO-NNN` para regras Gherkin.
 > **Modulo NÃO existe em código.** Este SPEC é **antecipatório** — formaliza o contrato de construção SE/QUANDO houver cliente piloto pagante (gatilho ADR 0105).
 > Antes de scaffoldear (caso ativado), ler [Modules/Repair](../../../Modules/Repair) (shared infra — ADR 0121 §P8) + [Modules/Jana](../../../Modules/Jana) + imitar (ADR 0011).
 
