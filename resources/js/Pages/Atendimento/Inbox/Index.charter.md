@@ -173,20 +173,13 @@ pro schema novo polimórfico (Channel/Conversation/Message).
 
 ## Métricas vivas (Pest GUARD)
 
-Pendentes — fica em US-WA-074 (charter Pest test suite):
-
-- `InboxCharterTest::it_isolates_centrifugo_channel_per_business()` —
-  business=1 token NÃO autoriza sub em `omnichannel:business:99`.
-- `InboxCharterTest::it_partial_reloads_only_with_preserve_state()` —
-  garante que toda `router.reload` na page tem `preserveScroll: true` +
-  `preserveState: true` (regex source).
-- `InboxCharterTest::it_polls_5s_always_not_only_on_fallback()` —
-  setInterval(5000) presente independente de centrifugoConfig estado.
-- `InboxCharterTest::it_webhook_is_idempotent()` — POST mesmo
-  `provider_message_id` 2x retorna 200 + zero duplicatas no DB +
-  unread NÃO incrementa 2x.
-- `InboxCharterTest::it_last_message_preview_is_latest_not_earliest()` —
-  conv com 3 msgs retorna preview da 3ª (mais nova).
+| Status | Test | Arquivo |
+|---|---|---|
+| ✅ | `R-WA-070-001 — firstOrCreate keyed em (business_id, provider_message_id) é idempotente` (PR seguinte) | `Modules/Whatsapp/Tests/Feature/ChannelBaileysWebhookIdempotencyTest.php` |
+| ✅ | `R-WA-070-002 — reorder("created_at", "desc") retorna mensagem mais recente, anti-regressão stacked orderBy ASC+DESC` (PR seguinte) | mesmo arquivo |
+| ⏳ | `InboxCharterTest::it_isolates_centrifugo_channel_per_business()` — business=1 token NÃO autoriza sub em `omnichannel:business:99` | pendente US-WA-084 |
+| ⏳ | `InboxCharterTest::it_partial_reloads_only_with_preserve_state()` — toda `router.reload` na page tem `preserveScroll: true` + `preserveState: true` (regex source TS) | pendente US-WA-084 |
+| ⏳ | `InboxCharterTest::it_polls_5s_always_not_only_on_fallback()` — `setInterval(5000)` presente independente de `centrifugoConfig` estado (regex source TS) | pendente US-WA-084 |
 
 ---
 
