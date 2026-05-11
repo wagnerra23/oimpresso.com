@@ -151,19 +151,17 @@ export function gradientFor(id: number): string {
   return `linear-gradient(135deg, oklch(0.55 0.15 ${hue}), oklch(0.65 0.15 ${(hue + 60) % 360}))`;
 }
 
-// Labels de menu items que pertencem ao "rodape superadmin"
-// (heuristica por enquanto — TODO Fase 5: virar flag is_superadmin no MenuItem
-//  do LegacyMenuAdapter pra ficar declarativo)
-export const SUPERADMIN_LABELS = new Set<string>([
-  'Backup', 'CMS', 'Connector', 'Conector', 'Office Impresso', 'Officeimpresso',
-  'Módulos', 'Modulos', 'Manage Modules', 'Personalizar',
-]);
+// DEPRECATED 2026-05-10 — cascata "Superadmin" do user dropdown footer foi
+// removida (Wagner). Admin de plataforma agora vive no sidebar principal:
+// Officeimpresso em ACESSOS RÁPIDOS, demais (CMS/Conector/Backup/Módulos) em
+// novo grupo "PLATAFORMA". SidebarMenu não filtra mais — itens caem no grupo
+// canônico via SIDEBAR_GROUPS. Set mantido vazio + isSuperadminMenu sempre
+// false pra preservar callers (SidebarMenu.principais filter, SidebarFooter
+// hasSuperadmin) sem quebrar até refactor remover o code path.
+export const SUPERADMIN_LABELS = new Set<string>();
 
-export function isSuperadminMenu(label: string): boolean {
-  const norm = label.trim();
-  if (SUPERADMIN_LABELS.has(norm)) return true;
-  // matching parcial pra labels longos
-  return /superadmin|module|backup|connector|cms\b/i.test(norm);
+export function isSuperadminMenu(_label: string): boolean {
+  return false;
 }
 
 // Items que vão pro user dropdown footer (botão de avatar/usuário no rodapé)

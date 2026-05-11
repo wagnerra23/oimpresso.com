@@ -50,6 +50,15 @@ class MenuItem implements Arrayable
             $properties['icon'] = $icon;
             Arr::forget($properties, 'attributes.icon');
         }
+        // Move attributes.url para url no topo — torna parent dropdown clickável
+        // quando criado via Menu::dropdown('Label', closure, ['url' => '/path', ...]).
+        // Sem isso, getUrl() cai em '/#' e SidebarMenuItem React renderiza link
+        // morto (catalogado em mwart-quality Check 11 — Wagner 2026-05-10).
+        $url = Arr::get($properties, 'attributes.url');
+        if (!is_null($url)) {
+            $properties['url'] = $url;
+            Arr::forget($properties, 'attributes.url');
+        }
         return new self($properties);
     }
 
