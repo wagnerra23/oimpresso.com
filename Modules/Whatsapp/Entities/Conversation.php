@@ -57,11 +57,12 @@ class Conversation extends Model
         'customer_external_id', 'contact_name',
         'status', 'assigned_user_id', 'bot_handling',
         'last_inbound_at', 'last_outbound_at', 'last_message_at',
-        'unread_count',
+        'unread_count', 'is_blocked',
     ];
 
     protected $casts = [
         'bot_handling' => 'boolean',
+        'is_blocked' => 'boolean',
         'last_inbound_at' => 'datetime',
         'last_outbound_at' => 'datetime',
         'last_message_at' => 'datetime',
