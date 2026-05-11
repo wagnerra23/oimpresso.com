@@ -35,6 +35,10 @@ UI humana: `/copiloto/admin/memoria` lista 352+ docs com filtros + preview markd
 - **Plan mode** (Shift+Tab×2) pra mudanças não-triviais
 - **`/continuar`** pra retomar sessão sem re-explorar repo do zero (chama `cycles-active` + `my-work` + handoff + último session log)
 
+## Transferir trabalho entre sessões (nuvem ↔ local)
+
+Sessão claude.ai/code (nuvem) e Claude Code local não se enxergam — git é a ponte. Caminho canônico: **bridge branch via GitHub device flow** (sem PAT no chat, sem chunks copiados). Ver [`memory/how-bridge-cloud-local.md`](how-bridge-cloud-local.md).
+
 ## Skills auto-ativáveis
 
 Arquivos em `.claude/skills/<nome>/SKILL.md` ativam por contexto. Ver tier no frontmatter (convenção interna [ADR 0095](decisions/0095-skills-tiers-convencao-interna.md)):
