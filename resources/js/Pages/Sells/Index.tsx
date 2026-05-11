@@ -55,6 +55,9 @@ interface SellKpis {
 interface SaleRow {
   id: number;
   transaction_date: string;
+  // US-SELL-021 — valor da data conforme `date_field` escolhido pelo user no header dropdown.
+  // Pode ser null se a venda não tem o campo (ex: nfe_issued_at sem NF emitida).
+  display_date: string | null;
   invoice_no: string;
   final_total: number;
   total_paid: number;
@@ -67,6 +70,58 @@ interface SaleRow {
   // US-NFE-MANUAL — fiscal status badge na lista.
   fiscal_status: 'pendente' | 'autorizada' | 'rejeitada' | 'denegada' | 'cancelada' | null;
   fiscal_modelo: '55' | '65' | null;
+}
+
+// US-SELL-021 — 7 datas que user pode escolher exibir na coluna Data.
+// Mapping canônico Delphi → Laravel: memory/research/clientes-legacy-officeimpresso/_MAPPING/TELA-LISTA-VENDAS.md §5
+type DateField =
+  | 'transaction_date'  // DT_EMISSAO (default)
+  | 'updated_at'        // DT_ALTERACAO
+  | 'nfe_issued_at'     // NF_DT_EMISSAO (JOIN nfe_emissoes)
+  | 'invoiced_at'       // DT_FATURAMENTO
+  | 'invoice_sent_at'   // FATURAMENTO_DT_ENVIO
+  | 'competence_date'   // DT_COMPETENCIA
+  | 'due_date';         // PROJETO_DT_FIM (data prometida)
+
+const DATE_FIELD_LABEL: Record<DateField, string> = {
+  transaction_date: 'Emissão',
+  updated_at: 'Última alteração',
+  nfe_issued_at: 'Emissão NF',
+  invoiced_at: 'Faturamento',
+  invoice_sent_at: 'Envio do faturamento',
+  competence_date: 'Competência',
+  due_date: 'Prometido',
+};
+
+const DATE_FIELD_OPTIONS: DateField[] = [
+  'transaction_date',
+  'updated_at',
+  'nfe_issued_at',
+  'invoiced_at',
+  'invoice_sent_at',
+  'competence_date',
+  'due_date',
+];
+
+const DATE_FIELD_STORAGE_KEY = 'oimpresso.sells.dateField';
+
+function readStoredDateField(): DateField {
+  if (typeof window === 'undefined') return 'transaction_date';
+  // URL query (deep-link) tem precedência se válida.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('date_field');
+    if (fromUrl && (DATE_FIELD_OPTIONS as string[]).includes(fromUrl)) {
+      return fromUrl as DateField;
+    }
+  } catch (_) { /* SSR */ }
+  try {
+    const v = window.localStorage.getItem(DATE_FIELD_STORAGE_KEY);
+    if (v && (DATE_FIELD_OPTIONS as string[]).includes(v)) {
+      return v as DateField;
+    }
+  } catch (_) { /* localStorage indisponível */ }
+  return 'transaction_date';
 }
 
 export interface SellsIndexPageProps {
@@ -142,10 +197,28 @@ export default function SellsIndex(props: SellsIndexPageProps) {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [meta, setMeta] = useState<ListMeta | null>(null);
 
-  // Reseta pra página 1 quando muda filtro/busca/ordem/per-page.
+  // US-SELL-021 — campo de data exibido na coluna Data (7 opções via header dropdown).
+  const [dateField, setDateField] = useState<DateField>(() => readStoredDateField());
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(DATE_FIELD_STORAGE_KEY, dateField);
+    } catch (_) { /* localStorage indisponível */ }
+    // Atualiza URL pra deep-link sem disparar Inertia visit (preserva state local).
+    try {
+      const url = new URL(window.location.href);
+      if (dateField === 'transaction_date') {
+        url.searchParams.delete('date_field');
+      } else {
+        url.searchParams.set('date_field', dateField);
+      }
+      window.history.replaceState({}, '', url.toString());
+    } catch (_) { /* SSR */ }
+  }, [dateField]);
+
+  // Reseta pra página 1 quando muda filtro/busca/ordem/per-page/date_field.
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, search, sortKey, sortDir, perPage]);
+  }, [statusFilter, search, sortKey, sortDir, perPage, dateField]);
 
   // Fetch quando qualquer parâmetro muda.
   useEffect(() => {
@@ -158,6 +231,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     params.set('page', String(page));
     params.set('sort', sortKey);
     params.set('dir', sortDir);
+    params.set('date_field', dateField);
     fetch(`/sells-list-json?${params.toString()}`, {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin',
@@ -179,7 +253,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [statusFilter, search, page, perPage, sortKey, sortDir]);
+  }, [statusFilter, search, page, perPage, sortKey, sortDir, dateField]);
 
   const handleSort = (key: SortKey) => {
     if (key === sortKey) {
@@ -198,6 +272,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     params.set('page', String(page));
     params.set('sort', sortKey);
     params.set('dir', sortDir);
+    params.set('date_field', dateField);
     fetch(`/sells-list-json?${params.toString()}`, {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin',
@@ -334,7 +409,13 @@ export default function SellsIndex(props: SellsIndexPageProps) {
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr className="border-b border-border">
-                  <SortableTh sortKey="transaction_date" current={sortKey} dir={sortDir} onSort={handleSort} className="w-32">Data</SortableTh>
+                  <DateColumnHeader
+                    dateField={dateField}
+                    onDateFieldChange={setDateField}
+                    sortDir={sortDir}
+                    isSortActive={sortKey === 'transaction_date'}
+                    onSort={() => handleSort('transaction_date')}
+                  />
                   <SortableTh sortKey="invoice_no" current={sortKey} dir={sortDir} onSort={handleSort}>Nº fatura</SortableTh>
                   <SortableTh sortKey="customer_name" current={sortKey} dir={sortDir} onSort={handleSort}>Cliente</SortableTh>
                   <SortableTh sortKey="final_total" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-28">Total</SortableTh>
@@ -372,7 +453,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
                         onClick={() => setOpenSaleId(row.id)}
                       >
                         <td className="px-4 py-3 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
-                          {formatDate(row.transaction_date)}
+                          {row.display_date ? formatDate(row.display_date) : <span className="text-muted-foreground/50">—</span>}
                         </td>
                         <td className="px-4 py-3 font-medium text-foreground">
                           <span className="inline-flex items-center gap-2">
@@ -499,6 +580,74 @@ function Th({ children, className = '' }: { children: ReactNode; className?: str
       }
     >
       {children}
+    </th>
+  );
+}
+
+// US-SELL-021 — Header da coluna "Data" híbrido: sort + dropdown de 7 datas.
+// Click no label faz sort por transaction_date (mantém UX), click no chevron abre dropdown.
+function DateColumnHeader({
+  dateField,
+  onDateFieldChange,
+  sortDir,
+  isSortActive,
+  onSort,
+}: {
+  dateField: DateField;
+  onDateFieldChange: (f: DateField) => void;
+  sortDir: SortDir;
+  isSortActive: boolean;
+  onSort: () => void;
+}) {
+  const SortIcon = !isSortActive ? ArrowUpDown : sortDir === 'asc' ? ArrowUp : ArrowDown;
+  const label = DATE_FIELD_LABEL[dateField];
+  return (
+    <th
+      className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-32"
+      aria-sort={isSortActive ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+    >
+      <div className="inline-flex items-center gap-0.5">
+        <button
+          type="button"
+          onClick={onSort}
+          className={
+            'inline-flex items-center gap-1 transition-colors hover:text-foreground ' +
+            (isSortActive ? 'text-foreground' : '')
+          }
+          title={`Ordenar por data · Data exibida: ${label}`}
+        >
+          Data
+          <SortIcon size={12} className={isSortActive ? '' : 'opacity-40'} />
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex h-5 items-center rounded px-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              aria-label={`Trocar campo de data exibido. Atual: ${label}`}
+              title={`Data exibida: ${label}. Clique pra trocar.`}
+            >
+              <ChevronDown size={11} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            {DATE_FIELD_OPTIONS.map((opt) => {
+              const isActive = opt === dateField;
+              return (
+                <DropdownMenuItem
+                  key={opt}
+                  onSelect={() => onDateFieldChange(opt)}
+                  className={isActive ? 'font-medium text-foreground' : ''}
+                >
+                  {isActive && <span className="mr-1.5 text-primary" aria-hidden>•</span>}
+                  {!isActive && <span className="mr-1.5 w-2 inline-block" aria-hidden />}
+                  {DATE_FIELD_LABEL[opt]}
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </th>
   );
 }

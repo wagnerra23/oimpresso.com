@@ -889,8 +889,32 @@ class SellController extends Controller
         $business_id = request()->session()->get('user.business_id');
         $payment_status = $request->input('payment_status'); // '', paid, due, partial, overdue
         $search = trim((string) $request->input('q', ''));
-        $perPage = min(max((int) $request->input('per_page', 25), 5), 100);
+        // anti-DoS: hard cap 200 (US-SELL-008 contract).
+        $limit = min((int) $request->input('limit', 200), 200);
+        $perPage = min(max((int) $request->input('per_page', 25), 5), $limit);
         $page = max((int) $request->input('page', 1), 1);
+
+        // US-SELL-021 — Whitelist de campos de data (header dropdown 7 opções).
+        // Alias frontend → expressão SQL. Mapping Delphi → Laravel canônico em
+        // memory/research/clientes-legacy-officeimpresso/_MAPPING/TELA-LISTA-VENDAS.md §5.
+        $dateFieldMap = [
+            'transaction_date' => 'transactions.transaction_date', // DT_EMISSAO (default)
+            'updated_at'       => 'transactions.updated_at',       // DT_ALTERACAO
+            'nfe_issued_at'    => 'nfe.emitido_em',                // NF_DT_EMISSAO (JOIN nfe_emissoes)
+            'invoiced_at'      => 'transactions.invoiced_at',      // DT_FATURAMENTO
+            'invoice_sent_at'  => 'transactions.invoice_sent_at',  // FATURAMENTO_DT_ENVIO
+            'competence_date'  => 'transactions.competence_date',  // DT_COMPETENCIA
+            'due_date'         => 'transactions.due_date',         // PROJETO_DT_FIM (data prometida)
+        ];
+        $dateField = $request->input('date_field', 'transaction_date');
+        if (! array_key_exists($dateField, $dateFieldMap)) {
+            $dateField = 'transaction_date';
+        }
+        $dateFieldSql = $dateFieldMap[$dateField];
+
+        // date_from / date_to aplicam ao date_field escolhido.
+        $dateFrom = trim((string) $request->input('date_from', ''));
+        $dateTo = trim((string) $request->input('date_to', ''));
 
         // Whitelist de colunas ordenáveis — alias frontend → expressão SQL.
         $sortMap = [
@@ -912,6 +936,23 @@ class SellController extends Controller
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
             ->whereNull('transactions.sub_type');
+
+        // US-SELL-021 — JOIN nfe_emissoes só quando precisamos da NF_DT_EMISSAO.
+        // Tabela tem unique (business_id, transaction_id) — não duplica linhas.
+        if ($dateField === 'nfe_issued_at') {
+            $q->leftJoin('nfe_emissoes as nfe', function ($j) use ($business_id) {
+                $j->on('nfe.transaction_id', '=', 'transactions.id')
+                    ->where('nfe.business_id', '=', $business_id);
+            });
+        }
+
+        // US-SELL-021 — filtros date_from/date_to aplicam ao date_field escolhido.
+        if ($dateFrom !== '') {
+            $q->whereRaw("$dateFieldSql >= ?", [$dateFrom]);
+        }
+        if ($dateTo !== '') {
+            $q->whereRaw("$dateFieldSql <= ?", [$dateTo]);
+        }
 
         // Permission scope (mesmo padrão do index() AJAX).
         if (!auth()->user()->can('direct_sell.view')) {
@@ -963,6 +1004,8 @@ class SellController extends Controller
                 'contacts.name as customer_name',
                 'contacts.supplier_business_name as customer_business',
                 'bl.name as location_name',
+                // US-SELL-021 — display_date é o valor do date_field escolhido pra mostrar na coluna Data.
+                \DB::raw($dateFieldSql . ' as display_date'),
             ], 'page', $page);
         $rows = $paginator->getCollection();
 
@@ -993,6 +1036,8 @@ class SellController extends Controller
                 return [
                     'id' => $r->id,
                     'transaction_date' => $r->transaction_date,
+                    // US-SELL-021 — valor a exibir na coluna Data (depende do date_field escolhido).
+                    'display_date' => $r->display_date ?? $r->transaction_date,
                     'invoice_no' => $r->invoice_no,
                     'final_total' => (float) $r->final_total,
                     'total_paid' => (float) $r->total_paid,
@@ -1019,6 +1064,8 @@ class SellController extends Controller
                 'to'           => $paginator->lastItem(),
                 'sort'         => $sortKey,
                 'dir'          => $sortDir,
+                // US-SELL-021 — echo do campo escolhido (validado via whitelist).
+                'date_field'   => $dateField,
             ],
         ]);
     }
