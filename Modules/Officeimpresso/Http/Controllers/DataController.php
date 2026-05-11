@@ -63,40 +63,13 @@ class DataController extends Controller
         }
 
         Menu::modify('admin-sidebar-menu', function ($menu) {
-            $menu->dropdown(
+            $menu->url(
+                action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'computadores']),
                 __('officeimpresso::lang.officeimpresso'),
-                function ($sub) {
-                    $sub->url(
-                        action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'businessall']),
-                        __('officeimpresso::lang.businessall'),
-                        ['icon' => 'fa fas fa-network-wired', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'businessall']
-                    );
-
-                    $sub->url(
-                        action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'computadores']),
-                        __('officeimpresso::lang.computadores'),
-                        ['icon' => 'fa fas fa-desktop', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'computadores']
-                    );
-
-                    $sub->url(
-                        action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'index']),
-                        __('officeimpresso::lang.licencas'),
-                        ['icon' => 'fa fas fa-key', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'licenca_computador']
-                    );
-
-                    $sub->url(
-                        action([\Modules\Officeimpresso\Http\Controllers\ClientController::class, 'index']),
-                        __('officeimpresso::lang.clients'),
-                        ['icon' => 'fa fas fa-user-tag', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'client']
-                    );
-
-                    $sub->url(
-                        action([\Modules\Officeimpresso\Http\Controllers\LicencaLogController::class, 'index']),
-                        'Log de Acesso',
-                        ['icon' => 'fa fas fa-clipboard-list', 'active' => request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'licenca_log']
-                    );
-                },
-                ['url' => '/officeimpresso/computadores', 'icon' => 'fas fa-plug', 'style' => 'background-color: #2dce89 !important;']
+                [
+                    'icon'   => 'fa fas fa-plug',
+                    'active' => request()->segment(1) == 'officeimpresso',
+                ]
             )->order(2);
         });
     }
