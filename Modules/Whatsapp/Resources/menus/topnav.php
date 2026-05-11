@@ -9,8 +9,13 @@
  * @see memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md
  */
 
+// Label "Atendimento" (não "Whatsapp") pra refletir arquitetura omnichannel
+// ADR 0135 — hoje Whatsapp Baileys/Meta/Z-API; futuro Instagram DM, Messenger,
+// Email, Mercado Livre tudo entra no mesmo módulo. Renomeado 2026-05-11
+// (US-WA-082). Diretório `Modules/Whatsapp/` mantido (refator de namespace
+// caro vs benefício — só labels visíveis ao usuário mudaram).
 return [
-    'label' => 'Whatsapp',
+    'label' => 'Atendimento',
     'icon'  => 'MessageCircle',
     'items' => [
         // US-WA-067 — Inbox unificada. /whatsapp/conversations legacy permanece
