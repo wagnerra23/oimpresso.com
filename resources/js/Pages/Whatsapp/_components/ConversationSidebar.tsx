@@ -8,6 +8,7 @@ import {
   Hourglass,
   Clock,
   AlertTriangle,
+  ChevronRight,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -24,9 +25,11 @@ interface Props {
   reloadOnly: string[];
   /** Quando true, registra atalhos E (resolver) e A (aguardar humano) globais. */
   enableShortcuts?: boolean;
+  /** Quando fornecido, renderiza botão pra colapsar a sidebar (chama callback). */
+  onCollapse?: () => void;
 }
 
-export default function ConversationSidebar({ conversation, reloadOnly, enableShortcuts = false }: Props) {
+export default function ConversationSidebar({ conversation, reloadOnly, enableShortcuts = false, onCollapse }: Props) {
   const sharedAuth = (usePage().props as any)?.auth?.user as { id?: number } | undefined;
   const currentUserId = sharedAuth?.id ?? null;
   const isMineAssigned = !!(conversation.assigned_user && currentUserId && conversation.assigned_user.id === currentUserId);
@@ -67,7 +70,18 @@ export default function ConversationSidebar({ conversation, reloadOnly, enableSh
 
   return (
     <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-3 overflow-y-auto" aria-label="Contexto da conversa">
-      <Card className="p-4">
+      <Card className="p-4 relative">
+        {onCollapse && (
+          <button
+            type="button"
+            onClick={onCollapse}
+            className="absolute top-2 right-2 w-6 h-6 rounded hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
+            title="Minimizar painel"
+            aria-label="Minimizar painel de contexto"
+          >
+            <ChevronRight size={14} />
+          </button>
+        )}
         <div className="flex flex-col items-center text-center gap-2">
           <Avatar name={conversation.contact_name} size="lg" />
           <div className="font-semibold leading-tight">{conversation.contact_name}</div>
