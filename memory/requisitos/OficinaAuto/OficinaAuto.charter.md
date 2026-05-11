@@ -1,20 +1,20 @@
 ---
 module: OficinaAuto
 charter_type: module
-status: proposto
-lifecycle: feature-wish
-piloto: NENHUM (sinal qualificado pendente — sem cliente piloto pagante)
-last_review: 2026-05-10
+status: ativo
+lifecycle: em-construcao
+piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis)
+last_review: 2026-05-11
 owner: wagner
-parent_adr: 0121
-related_adrs: [0011, 0093, 0094, 0105, 0121]
+parent_adr: 0137
+related_adrs: [0011, 0093, 0094, 0105, 0121, 0129, 0137]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Module Charter — Modules/OficinaAuto
 
-> **Status `proposto` / lifecycle `feature-wish`:** charter **antecipatório**, escrito como *template aplicado* pra firmar contrato de produto **antes** de virar US ativa. Sem cliente piloto pagante, **nada aqui é compromisso de roadmap** — é hipótese formalizada conforme [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (cliente como sinal qualificado).
+> **Status atualizado 2026-05-11** ([ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md)): charter migrou de `proposto/feature-wish` (v1) pra `ativo/em-construcao` (v2). Sinal qualificado materializado: Vargas (recapagem caçamba, 1.064 veículos, multi-placa 20%) + Martinho (caçambas avulsas, 91 veículos, placa única 96%). V0 scaffold em curso — Vehicle + ServiceOrder CRUD multi-tenant Tier 0.
 >
 > Reusa convenções da [Vestuario.charter.md](../Vestuario/Vestuario.charter.md) (template canônico ADR 0121) e antecipa que a infra de OS será compartilhada com `Modules/Repair` após o refactor Caminho A do audit F29 (extração de `RepairCore` reutilizável).
 >
