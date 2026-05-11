@@ -1,3 +1,29 @@
+---
+module: OficinaAuto
+purpose: "Vertical oficinas automotivas BR (mecânica geral, recapagem, locação caçamba). Schema próprio veículo+placa (≠ Repair que usa serial_no+device neutro)."
+contains:
+  - "DataController"
+  - "InstallController"
+  - "ServiceOrderController"
+  - "VehicleController"
+not_contains:
+  - "Kanban shared infra → Modules/Repair (consumido opcionalmente)"
+  - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
+  - "Núcleo transactions/contacts → UltimatePOS core"
+trust_required: L2
+owner: wagner
+permission_prefix: oficina_auto.*
+charter_adr: 0137
+related_adrs:
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0137-modules-oficinaauto-qualificada
+  - 0093-multi-tenant-isolation-tier-0
+  - 0129-state-machine-canonica-fsm-rbac
+url_prefixes:
+  - /oficina-auto/*
+drift_alerts: []
+---
+
 # Modules/OficinaAuto — vertical oficinas automotivas BR
 
 > ADR mãe: [0137](../../memory/decisions/0137-modules-oficinaauto-qualificada.md) (amends [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7)
