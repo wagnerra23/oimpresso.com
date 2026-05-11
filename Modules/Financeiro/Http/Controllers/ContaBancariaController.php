@@ -89,10 +89,13 @@ class ContaBancariaController extends Controller
                 return $result;
             });
 
-        $bancosSuportados = array_unique(array_merge(
+        // array_values: força reindexação 0..N. Sem isso, Inertia serializa como
+        // objeto {0:..., 2:..., 5:...} (chaves não-sequenciais), e React quebra
+        // com `bancos_suportados.join is not a function` (detectado 2026-05-10).
+        $bancosSuportados = array_values(array_unique(array_merge(
             array_keys(CnabDirectStrategy::BANCO_MAP),
             array_keys(self::GATEWAY_BANKS),
-        ));
+        )));
 
         return Inertia::render('Financeiro/ContasBancarias/Index', [
             'accounts'         => $accounts,
