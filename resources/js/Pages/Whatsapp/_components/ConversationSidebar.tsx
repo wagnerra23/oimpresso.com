@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import {
   UserCheck,
+  UserPlus,
   Bot,
   Check,
   RotateCcw,
@@ -9,6 +10,10 @@ import {
   Clock,
   AlertTriangle,
   ChevronRight,
+  Phone,
+  Mail,
+  ExternalLink,
+  X as XIcon,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -17,6 +22,7 @@ import { Button } from '@/Components/ui/button';
 import { Separator } from '@/Components/ui/separator';
 
 import Avatar from './Avatar';
+import ContactPickerModal from './ContactPickerModal';
 import { formatDateTime, type ConvTag, type ThreadConversation } from './helpers';
 
 interface Props {
@@ -37,6 +43,10 @@ interface Props {
   availableTags?: ConvTag[];
   /** US-WA-063: route name pra PATCH sync tags (ex: `atendimento.inbox.update_tags`). */
   updateTagsRouteName?: string;
+  /** US-WA-064: route name pra GET busca de Contacts (modal). */
+  searchContactsRouteName?: string;
+  /** US-WA-064: route name pra PATCH vincular/desvincular Contact à conv. */
+  linkContactRouteName?: string;
 }
 
 export default function ConversationSidebar({
@@ -44,7 +54,11 @@ export default function ConversationSidebar({
   updateStatusRouteName = 'whatsapp.conversations.update_status',
   availableTags,
   updateTagsRouteName,
+  searchContactsRouteName,
+  linkContactRouteName,
 }: Props) {
+  // US-WA-064: modal busca de Contact
+  const [contactPickerOpen, setContactPickerOpen] = useState(false);
   const sharedAuth = (usePage().props as any)?.auth?.user as { id?: number } | undefined;
   const currentUserId = sharedAuth?.id ?? null;
   const isMineAssigned = !!(conversation.assigned_user && currentUserId && conversation.assigned_user.id === currentUserId);
@@ -57,6 +71,16 @@ export default function ConversationSidebar({
       preserveState: true,
       only: reloadOnly,
     });
+  }
+
+  // US-WA-064: vincular/desvincular Contact UltimatePOS via PATCH
+  function linkContactAction(contactId: number | null) {
+    if (!linkContactRouteName) return;
+    router.patch(
+      route(linkContactRouteName, conversation.id),
+      { contact_id: contactId },
+      { preserveScroll: true, preserveState: true, only: reloadOnly },
+    );
   }
 
   // US-WA-063: toggle tag → sync array completo (substitui, não merge).
@@ -141,6 +165,69 @@ export default function ConversationSidebar({
           <StatusBadge status={conversation.status} />
         </div>
       </Card>
+
+      {/* US-WA-064: card Contato — só renderiza se Inbox novo passou rotas.
+          - Não vinculado: botão "Vincular contato" abre modal busca
+          - Vinculado: mostra nome/phones/email + link UltimatePOS + Desvincular */}
+      {linkContactRouteName && searchContactsRouteName && (
+        <Card className="p-3 space-y-2">
+          <SectionLabel>Contato CRM</SectionLabel>
+          {conversation.linked_contact ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <Avatar name={conversation.linked_contact.name} size="sm" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{conversation.linked_contact.name}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                    {conversation.linked_contact.type}
+                  </div>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground space-y-0.5">
+                {conversation.linked_contact.mobile && (
+                  <div className="inline-flex items-center gap-1.5"><Phone size={11} aria-hidden />{conversation.linked_contact.mobile}</div>
+                )}
+                {conversation.linked_contact.email && (
+                  <div className="inline-flex items-center gap-1.5 truncate"><Mail size={11} aria-hidden />{conversation.linked_contact.email}</div>
+                )}
+              </div>
+              <div className="flex gap-1.5 pt-1">
+                <a
+                  href={conversation.linked_contact.edit_url}
+                  target="_blank"
+                  className="flex-1"
+                  rel="noreferrer"
+                >
+                  <Button variant="outline" size="sm" className="w-full text-xs h-7 gap-1">
+                    <ExternalLink size={11} aria-hidden />
+                    Abrir CRM
+                  </Button>
+                </a>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-7 px-2"
+                  onClick={() => linkContactAction(null)}
+                  title="Desvincular contato"
+                >
+                  <XIcon size={11} aria-hidden />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start gap-2"
+              onClick={() => setContactPickerOpen(true)}
+              title="Vincular este número a um contato do CRM"
+            >
+              <UserPlus size={14} aria-hidden />
+              Vincular contato
+            </Button>
+          )}
+        </Card>
+      )}
 
       <Card className="p-3 space-y-2">
         <SectionLabel>Ações</SectionLabel>
@@ -271,6 +358,17 @@ export default function ConversationSidebar({
           )}
         </dl>
       </Card>
+
+      {/* US-WA-064: modal busca de Contact UltimatePOS */}
+      {searchContactsRouteName && linkContactRouteName && (
+        <ContactPickerModal
+          open={contactPickerOpen}
+          onOpenChange={setContactPickerOpen}
+          searchRouteName={searchContactsRouteName}
+          customerPhone={conversation.customer_phone}
+          onSelect={(contactId) => linkContactAction(contactId)}
+        />
+      )}
     </aside>
   );
 }
