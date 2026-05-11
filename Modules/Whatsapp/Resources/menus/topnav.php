@@ -18,9 +18,9 @@ return [
     'label' => 'Atendimento',
     'icon'  => 'MessageCircle',
     'items' => [
-        // US-WA-067 — Inbox unificada. /whatsapp/conversations legacy permanece
-        // ativa pra compat (Z-API/Meta Cloud que ainda usam WhatsappBusinessConfig)
-        // mas escondida do topnav. Acessível direto via URL pra debug.
+        // US-WA-067 — Inbox unificada `/atendimento/inbox`. US-WA-091
+        // (Wagner 2026-05-11): rotas `/whatsapp/conversations*` legacy
+        // REMOVIDAS completamente — caminho único agora.
         ['label' => 'Inbox',          'href' => '/atendimento/inbox',      'icon' => 'Inbox',         'can' => 'whatsapp.access'],
         ['label' => 'Templates',      'href' => '/whatsapp/templates',     'icon' => 'FileText',      'can' => 'whatsapp.templates.manage'],
         ['label' => 'Canais',         'href' => '/atendimento/canais',     'icon' => 'Plug',          'can' => 'whatsapp.settings.manage'],
