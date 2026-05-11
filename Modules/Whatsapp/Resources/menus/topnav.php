@@ -13,8 +13,10 @@ return [
     'label' => 'Whatsapp',
     'icon'  => 'MessageCircle',
     'items' => [
+        // US-WA-067 — Inbox unificada. /whatsapp/conversations legacy permanece
+        // ativa pra compat (Z-API/Meta Cloud que ainda usam WhatsappBusinessConfig)
+        // mas escondida do topnav. Acessível direto via URL pra debug.
         ['label' => 'Inbox',          'href' => '/atendimento/inbox',      'icon' => 'Inbox',         'can' => 'whatsapp.access'],
-        ['label' => 'Conversas',      'href' => '/whatsapp/conversations', 'icon' => 'MessageSquare', 'can' => 'whatsapp.access'],
         ['label' => 'Templates',      'href' => '/whatsapp/templates',     'icon' => 'FileText',      'can' => 'whatsapp.templates.manage'],
         ['label' => 'Canais',         'href' => '/atendimento/canais',     'icon' => 'Plug',          'can' => 'whatsapp.settings.manage'],
         ['label' => 'Configurações',  'href' => '/whatsapp/settings',      'icon' => 'Settings',      'can' => 'whatsapp.settings.manage'],
