@@ -16,9 +16,10 @@ use Illuminate\Support\Facades\Log;
  * Orquestra os efeitos colaterais necessários quando uma venda é cancelada
  * (transição FSM `cancelar_venda` em qualquer stage não-terminal):
  *
- *   1. Pra cada TransactionDocument doc_type=nfe55/nfce65/nfse56/...
- *      status=authorized: dispatch Modules\NfeBrasil\Jobs\CancelarNfeJob
- *      (idempotente — NFe já cancelada não duplica job)
+ *   1. Pra cada TransactionDocument com status=authorized, bifurca por doc_type:
+ *      - nfe55/nfce65 → dispatch Modules\NfeBrasil\Jobs\CancelarNfeJob (SEFAZ tpEvento=110111)
+ *      - nfse56       → dispatch Modules\NfeBrasil\Jobs\CancelarNfseJob (resolve driver per-município)
+ *      (ambos idempotentes — emissão já cancelada não duplica job)
  *   2. Pra cada TransactionDocument doc_type=boleto_asaas/boleto_inter
  *      status=pending: dispatch App\Jobs\EstornarBoletoJob (hub que roteia
  *      pro gateway — US-CASCADE-BOLETO-002)
@@ -89,9 +90,18 @@ class CancelarVendaCascade implements SideEffectInterface
             return;
         }
 
-        $jobClass = '\Modules\NfeBrasil\Jobs\CancelarNfeJob';
-        if (! class_exists($jobClass)) {
-            Log::warning('CancelarVendaCascade: CancelarNfeJob não existe — pulando dispatch', [
+        // Bifurcação por modelo fiscal:
+        //   - nfe55/nfce65 → CancelarNfeJob (evento SEFAZ tpEvento=110111 padronizado)
+        //   - nfse56       → CancelarNfseJob (resolve driver per-município —
+        //                    ABRASF/GINFES/IPM/Tiplan/nfse.gov.br/sefin)
+        $nfeJobClass = '\Modules\NfeBrasil\Jobs\CancelarNfeJob';
+        $nfseJobClass = '\Modules\NfeBrasil\Jobs\CancelarNfseJob';
+
+        $nfeJobExists = class_exists($nfeJobClass);
+        $nfseJobExists = class_exists($nfseJobClass);
+
+        if (! $nfeJobExists && ! $nfseJobExists) {
+            Log::warning('CancelarVendaCascade: nem CancelarNfeJob nem CancelarNfseJob existem — pulando dispatch', [
                 'transaction_id' => $transactionId,
                 'docs_count' => $docs->count(),
             ]);
@@ -100,11 +110,28 @@ class CancelarVendaCascade implements SideEffectInterface
 
         foreach ($docs as $doc) {
             try {
-                dispatch(new $jobClass($businessId, (int) $doc->id, $motivo));
+                if ($doc->doc_type === TransactionDocument::DOC_NFSE56) {
+                    if (! $nfseJobExists) {
+                        Log::warning('CancelarVendaCascade: CancelarNfseJob não existe — pulando NFSe', [
+                            'transaction_document_id' => $doc->id,
+                        ]);
+                        continue;
+                    }
+                    dispatch(new $nfseJobClass($businessId, (int) $doc->id, $motivo));
+                } else {
+                    if (! $nfeJobExists) {
+                        Log::warning('CancelarVendaCascade: CancelarNfeJob não existe — pulando NFe/NFCe', [
+                            'transaction_document_id' => $doc->id,
+                        ]);
+                        continue;
+                    }
+                    dispatch(new $nfeJobClass($businessId, (int) $doc->id, $motivo));
+                }
             } catch (\Throwable $e) {
-                Log::error('CancelarVendaCascade: falha ao dispatch CancelarNfeJob', [
+                Log::error('CancelarVendaCascade: falha ao dispatch job de cancelamento', [
                     'business_id' => $businessId,
                     'transaction_document_id' => $doc->id,
+                    'doc_type' => $doc->doc_type,
                     'error' => $e->getMessage(),
                 ]);
             }
