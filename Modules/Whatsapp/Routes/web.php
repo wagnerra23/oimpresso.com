@@ -97,6 +97,14 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.send_media');
 
+    // US-WA-045b: envio de mensagem interativa (HSM buttons / list / cta_url).
+    // Path com prefix `conversations/{id}` pra consistência com a chamada UI
+    // (frontend usa `/inbox/conversations/{id}/send-interactive`).
+    Route::post('/inbox/conversations/{id}/send-interactive', [InboxController::class, 'sendInteractive'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.send_interactive');
+
     Route::patch('/inbox/{id}', [InboxController::class, 'updateStatus'])
         ->whereNumber('id')
         ->middleware('can:whatsapp.send')
