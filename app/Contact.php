@@ -55,7 +55,38 @@ class Contact extends Authenticatable
      */
     protected $casts = [
         'shipping_custom_field_details' => 'array',
+        // LGPD consent (US-LGPD — migration 2026_05_12_060001)
+        'whatsapp_consent' => 'bool',
+        'email_consent' => 'bool',
+        'consent_updated_at' => 'datetime',
     ];
+
+    /**
+     * LGPD — Pode receber notificação WhatsApp?
+     *
+     * Semântica conservadora (back-compat ROTA LIVRE biz=4):
+     *   - NULL  = consent não definido (legacy pre-coluna) → PERMITE
+     *   - TRUE  = cliente autorizou explicitamente         → PERMITE
+     *   - FALSE = cliente recusou explicitamente           → BLOQUEIA
+     *
+     * Opt-in gradual via UI admin de privacidade (US futura). Clientes
+     * existentes não param de receber notificação ao subir a migration.
+     */
+    public function canReceiveWhatsappNotification(): bool
+    {
+        return $this->whatsapp_consent !== false;
+    }
+
+    /**
+     * LGPD — Pode receber notificação por email?
+     *
+     * Mesma semântica de `canReceiveWhatsappNotification()`: NULL ou TRUE
+     * permitem; apenas FALSE explícito bloqueia.
+     */
+    public function canReceiveEmailNotification(): bool
+    {
+        return $this->email_consent !== false;
+    }
 
     /**
      * Get the business that owns the user.

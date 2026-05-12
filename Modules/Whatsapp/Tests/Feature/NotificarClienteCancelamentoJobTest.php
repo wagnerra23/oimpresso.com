@@ -51,6 +51,10 @@ beforeEach(function () {
         $table->string('mobile', 60)->nullable();
         $table->string('landline', 60)->nullable();
         $table->string('email', 191)->nullable();
+        // LGPD consent (migration 2026_05_12_060001_add_consent_columns_to_contacts)
+        $table->boolean('whatsapp_consent')->nullable();
+        $table->boolean('email_consent')->nullable();
+        $table->timestamp('consent_updated_at')->nullable();
         $table->timestamps();
         $table->softDeletes();
     });
@@ -396,6 +400,100 @@ it('10. contact com phone NÃO tenta email (WhatsApp tem prioridade)', function 
 
     (new NotificarClienteCancelamentoJob(1, $txId, 'Tem os dois'))->handle();
 
+    Bus::assertDispatched(SendWhatsappMessageJob::class);
+    Mail::assertNothingSent();
+});
+
+// US-LGPD — consent gates (migration 2026_05_12_060001)
+
+it('11. whatsapp_consent=false bloqueia WhatsApp + tenta email fallback', function () {
+    Bus::fake();
+    Mail::fake();
+
+    makePhone(1, true);
+
+    // Contact com phone E email, mas opt-out WhatsApp explícito.
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => 1,
+        'name' => 'Recusou WhatsApp',
+        'mobile' => '+5511977777777',
+        'email' => 'fallback@example.com',
+        'whatsapp_consent' => false,    // ← LGPD opt-out
+        'email_consent' => null,        // legacy → permite
+    ]);
+
+    $txId = DB::table('transactions')->insertGetId([
+        'business_id' => 1,
+        'contact_id' => $contactId,
+        'invoice_no' => 'INV-LGPD-WA',
+        'final_total' => 75.00,
+        'transaction_date' => '2026-05-12',
+    ]);
+
+    (new NotificarClienteCancelamentoJob(1, $txId, 'Consent off'))->handle();
+
+    // WhatsApp bloqueado pelo consent
+    Bus::assertNothingDispatched();
+    // Email fallback enviado (consent NULL = permite)
+    Mail::assertSent(\Illuminate\Mail\SentMessage::class, fn ($m) => true);
+});
+
+it('12. whatsapp_consent=false + email_consent=false não envia nada (Bus + Mail vazios)', function () {
+    Bus::fake();
+    Mail::fake();
+
+    makePhone(1, true);
+
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => 1,
+        'name' => 'Recusou Tudo',
+        'mobile' => '+5511966666666',
+        'email' => 'nao-quero@example.com',
+        'whatsapp_consent' => false,
+        'email_consent' => false,
+    ]);
+
+    $txId = DB::table('transactions')->insertGetId([
+        'business_id' => 1,
+        'contact_id' => $contactId,
+        'invoice_no' => 'INV-LGPD-FULL-OPT-OUT',
+        'final_total' => 33.00,
+        'transaction_date' => '2026-05-12',
+    ]);
+
+    (new NotificarClienteCancelamentoJob(1, $txId, 'Tudo off'))->handle();
+
+    Bus::assertNothingDispatched();
+    Mail::assertNothingSent();
+});
+
+it('13. consent NULL (legacy) permite WhatsApp (back-compat)', function () {
+    Bus::fake();
+    Mail::fake();
+
+    makePhone(1, true);
+
+    // Contact criado antes da migration consent — colunas ficam NULL.
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => 1,
+        'name' => 'Cliente Legacy',
+        'mobile' => '+5511955555555',
+        'email' => 'legacy@example.com',
+        'whatsapp_consent' => null,     // ← NULL = pre-coluna
+        'email_consent' => null,
+    ]);
+
+    $txId = DB::table('transactions')->insertGetId([
+        'business_id' => 1,
+        'contact_id' => $contactId,
+        'invoice_no' => 'INV-LGPD-LEGACY',
+        'final_total' => 88.00,
+        'transaction_date' => '2026-05-12',
+    ]);
+
+    (new NotificarClienteCancelamentoJob(1, $txId, 'Legacy NULL'))->handle();
+
+    // NULL = permite → WhatsApp dispara normalmente, email não (phone tem prioridade)
     Bus::assertDispatched(SendWhatsappMessageJob::class);
     Mail::assertNothingSent();
 });
