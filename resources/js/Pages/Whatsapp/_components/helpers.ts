@@ -76,6 +76,17 @@ export function formatDateTime(iso: string): string {
 }
 
 /**
+ * Formata bytes em string legível (B / KB / MB). Usado em MediaPreviewCard
+ * (US-WA-042) + MessageBubble document (US-WA-072). Exportado pra reuso —
+ * ANTES estava duplicado dentro de ConversationThread.tsx.
+ */
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+/**
  * Detecta se `phone` parece ser um LID (Linked ID Multi-Device) em vez de
  * phone real. WhatsApp envia LID como remoteJid quando cliente fala via
  * Click-to-Chat / Status / Ads — Baileys 6.7.9 não decodifica (workaround
