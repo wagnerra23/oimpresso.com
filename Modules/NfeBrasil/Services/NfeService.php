@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services;
 
+use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use App\Transaction;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
@@ -603,9 +606,217 @@ class NfeService
         ];
     }
 
+    /**
+     * US-SELL-034 · Cancela NFe autorizada via evento SEFAZ (tpEvento=110111).
+     *
+     * Aciona Tools::sefazCancela, parseia cstat, persiste evento em nfe_eventos
+     * e atualiza NfeEmissao.status='cancelada'. Idempotente: re-chamada com
+     * NfeEmissao já cancelada retorna o evento autorizado existente sem chamar
+     * SEFAZ de novo.
+     *
+     * Regras SEFAZ:
+     *   - Justificativa: 15-255 chars obrigatórios
+     *   - cstat=135 → "Evento registrado e vinculado a NF-e" (cancelamento OK)
+     *   - cstat=136 → "Evento registrado, NF-e não localizada" (aceitamos como OK
+     *     — SEFAZ confirmou o registro do evento; raríssimo em prod mas defensivo)
+     *   - Demais cstat → RuntimeException com xMotivo
+     *
+     * Prazo legal de cancelamento (NFe55=168h, NFC-e=24h) NÃO validado aqui —
+     * caller (CancelarVendaCascade após decisão gerente) é responsável. Caso
+     * fora do prazo, SEFAZ devolve cstat de erro e RuntimeException sobe.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): cross-tenant guard via $businessId
+     * cruzando com emissao.business_id (defesa em profundidade — global scope
+     * já filtra mas guard explícito previne bypass via withoutGlobalScopes).
+     *
+     * @throws InvalidArgumentException  Justificativa fora de 15-255 chars
+     * @throws UnauthorizedActionException Cross-tenant
+     * @throws RuntimeException          NfeEmissao não encontrada, não cancelável,
+     *                                   SEFAZ retornou cstat de erro, ou falha
+     *                                   de infra/cert
+     */
+    public function cancelar(
+        int $businessId,
+        int $nfeEmissaoId,
+        string $justificativa,
+    ): NfeEvento {
+        // ── 1. Validar justificativa ────────────────────────────────────────
+        $len = mb_strlen($justificativa);
+        if ($len < 15 || $len > 255) {
+            throw new InvalidArgumentException(
+                "Justificativa deve ter 15-255 caracteres (regra SEFAZ). " .
+                "Recebido: {$len} chars."
+            );
+        }
+
+        // ── 2. Carregar NfeEmissao (sem global scope p/ cross-tenant guard
+        //      explícito — defesa em profundidade ADR 0093) ────────────────
+        $emissao = NfeEmissao::withoutGlobalScopes()->find($nfeEmissaoId);
+        if (! $emissao) {
+            throw new RuntimeException("NfeEmissao {$nfeEmissaoId} não encontrada.");
+        }
+
+        // ── 3. Cross-tenant guard ───────────────────────────────────────────
+        if ((int) $emissao->business_id !== $businessId) {
+            throw new UnauthorizedActionException(
+                "Cross-tenant attempt: business {$businessId} tentou cancelar NfeEmissao " .
+                "{$nfeEmissaoId} de business {$emissao->business_id}."
+            );
+        }
+
+        // ── 4. Idempotência: já cancelada? ──────────────────────────────────
+        if ($emissao->status === 'cancelada') {
+            $eventoExistente = NfeEvento::withoutGlobalScopes()
+                ->where('business_id', $businessId)
+                ->where('emissao_id', $emissao->id)
+                ->where('tipo', '110111')
+                ->where('status', 'autorizado')
+                ->latest('id')
+                ->first();
+
+            if ($eventoExistente) {
+                Log::info('NfeService.cancelar: idempotência — NFe já cancelada, retornando evento existente', [
+                    'business_id'    => $businessId,
+                    'nfe_emissao_id' => $emissao->id,
+                    'evento_id'      => $eventoExistente->id,
+                ]);
+                return $eventoExistente;
+            }
+
+            // Edge case: status=cancelada mas evento autorizado sumiu (drift).
+            // Loga e segue pra reemitir o evento — defensivo.
+            Log::warning('NfeService.cancelar: status=cancelada sem evento 110111 autorizado — reemitindo evento', [
+                'business_id'    => $businessId,
+                'nfe_emissao_id' => $emissao->id,
+            ]);
+        }
+
+        // ── 5. Carregar cert + business ─────────────────────────────────────
+        $certData = $this->certificadoService->carregarParaSefaz($businessId);
+
+        $business = DB::table('business')->where('id', $businessId)->first();
+        if (! $business) {
+            throw new RuntimeException("Business {$businessId} não encontrado.");
+        }
+
+        // ── 6. Construir Tools + chamar sefazCancela ─────────────────────────
+        // Protocolo de autorização vive em metadata.nProt (JSON). Sem ele,
+        // SEFAZ rejeita o evento (cstat 215 "Falha schema XML").
+        $nProtocolo = (string) ($emissao->metadata['nProt'] ?? '');
+        if ($nProtocolo === '') {
+            throw new RuntimeException(
+                "NfeEmissao {$emissao->id} sem protocolo de autorização (metadata.nProt vazio). " .
+                "Cancelamento SEFAZ exige nProt da autorização original."
+            );
+        }
+
+        $chave = (string) ($emissao->chave_44 ?? '');
+        if (strlen($chave) !== 44) {
+            throw new RuntimeException(
+                "NfeEmissao {$emissao->id} sem chave_44 válida (len=" . strlen($chave) . "). " .
+                "Não é possível cancelar uma NFe sem chave de acesso."
+            );
+        }
+
+        $modelo = (string) $emissao->modelo;
+        $xmlResp = null;
+
+        try {
+            // criarTools já trata $toolsFactory pra testes — reusa código existente
+            $tools = $this->criarTools($business, $certData, [], $modelo);
+            $xmlResp = $tools->sefazCancela($chave, $justificativa, $nProtocolo);
+        } catch (\Throwable $e) {
+            Log::error('NfeService.cancelar: falha SEFAZ', [
+                'business_id'    => $businessId,
+                'nfe_emissao_id' => $emissao->id,
+                'chave'          => $chave,
+                'error'          => $e->getMessage(),
+            ]);
+            // Persiste tentativa rejeitada pra rastreabilidade + re-lança
+            $this->persistirEventoCancelamento(
+                $emissao, $justificativa, 'rejeitado', null,
+                ['erro' => $e->getMessage()],
+            );
+            throw new RuntimeException(
+                "Falha SEFAZ ao cancelar NFe chave={$chave}: {$e->getMessage()}",
+                previous: $e,
+            );
+        }
+
+        // ── 7. Parse resposta SEFAZ ─────────────────────────────────────────
+        $std = (new Standardize((string) $xmlResp))->toStd();
+
+        // Resposta vem em retEnvEvento → retEvento.infEvento (singular ou array)
+        $retEvento = $std->retEvento ?? null;
+        if (is_array($retEvento)) {
+            $retEvento = $retEvento[0] ?? null;
+        }
+        $infEvento = $retEvento->infEvento ?? null;
+
+        $cstat   = (string) ($infEvento->cStat ?? $std->cStat ?? '999');
+        $xMotivo = (string) ($infEvento->xMotivo ?? $std->xMotivo ?? '');
+
+        $aceito = in_array($cstat, ['135', '136'], true);
+
+        // ── 8. Persistir evento + atualizar status ──────────────────────────
+        if (! $aceito) {
+            // Persiste rejeição pra rastreabilidade + lança
+            $this->persistirEventoCancelamento(
+                $emissao, $justificativa, 'rejeitado', $cstat,
+                ['xml_ret' => $xmlResp, 'x_motivo' => $xMotivo],
+            );
+            throw new RuntimeException(
+                "SEFAZ rejeitou cancelamento NFe chave={$chave}: cstat={$cstat} {$xMotivo}"
+            );
+        }
+
+        // cstat 135 ou 136 → cancelamento aceito
+        return DB::transaction(function () use ($emissao, $justificativa, $cstat, $xMotivo, $xmlResp) {
+            $emissao->update(['status' => 'cancelada']);
+
+            $evento = $this->persistirEventoCancelamento(
+                $emissao, $justificativa, 'autorizado', $cstat,
+                ['xml_ret' => $xmlResp, 'x_motivo' => $xMotivo],
+            );
+
+            Log::info('NfeService.cancelar: NFe cancelada via SEFAZ', [
+                'business_id'    => $emissao->business_id,
+                'nfe_emissao_id' => $emissao->id,
+                'chave'          => $emissao->chave_44,
+                'cstat'          => $cstat,
+                'evento_id'      => $evento->id,
+            ]);
+
+            return $evento;
+        });
+    }
+
     // ────────────────────────────────────────────────────────────────────────
     // Privados
     // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Cria registro em nfe_eventos pro evento de cancelamento (tipo=110111).
+     *
+     * @internal Usado SOMENTE por cancelar() — não exponha externamente.
+     */
+    private function persistirEventoCancelamento(
+        NfeEmissao $emissao,
+        string $justificativa,
+        string $status,
+        ?string $cstat,
+        array $payload,
+    ): NfeEvento {
+        return NfeEvento::create([
+            'business_id'   => $emissao->business_id,
+            'emissao_id'    => $emissao->id,
+            'tipo'          => '110111',
+            'justificativa' => $justificativa,
+            'status'        => $status,
+            'cstat_evento'  => $cstat,
+            'payload_json'  => $payload,
+        ]);
+    }
 
     private function criarTools(object $business, array $certData, array $emitOverride, string $modelo = '55'): Tools
     {
