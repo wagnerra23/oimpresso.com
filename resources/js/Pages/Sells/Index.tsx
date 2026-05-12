@@ -104,6 +104,8 @@ const DATE_FIELD_OPTIONS: DateField[] = [
 ];
 
 const DATE_FIELD_STORAGE_KEY = 'oimpresso.sells.dateField';
+const STATUS_FILTER_STORAGE_KEY = 'oimpresso.sells.lastStatus';
+const STATUS_FILTER_VALUES = ['', 'paid', 'due', 'partial', 'overdue'] as const;
 
 function readStoredDateField(): DateField {
   if (typeof window === 'undefined') return 'transaction_date';
@@ -122,6 +124,25 @@ function readStoredDateField(): DateField {
     }
   } catch (_) { /* localStorage indisponível */ }
   return 'transaction_date';
+}
+
+function readStoredStatusFilter(): StatusFilter {
+  if (typeof window === 'undefined') return '';
+  // URL query (deep-link) tem precedência: usuário entrou via link explícito → respeitar.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('payment_status');
+    if (fromUrl !== null && (STATUS_FILTER_VALUES as readonly string[]).includes(fromUrl)) {
+      return fromUrl as StatusFilter;
+    }
+  } catch (_) { /* SSR */ }
+  try {
+    const v = window.localStorage.getItem(STATUS_FILTER_STORAGE_KEY);
+    if (v !== null && (STATUS_FILTER_VALUES as readonly string[]).includes(v)) {
+      return v as StatusFilter;
+    }
+  } catch (_) { /* localStorage indisponível */ }
+  return '';
 }
 
 export interface SellsIndexPageProps {
@@ -177,7 +198,7 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
 };
 
 export default function SellsIndex(props: SellsIndexPageProps) {
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => readStoredStatusFilter());
   const [rows, setRows] = useState<SaleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openSaleId, setOpenSaleId] = useState<number | null>(null);
@@ -214,6 +235,13 @@ export default function SellsIndex(props: SellsIndexPageProps) {
       window.history.replaceState({}, '', url.toString());
     } catch (_) { /* SSR */ }
   }, [dateField]);
+
+  // Persistência da última aba financeira escolhida pelo user (pattern oi.* localStorage).
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STATUS_FILTER_STORAGE_KEY, statusFilter);
+    } catch (_) { /* localStorage indisponível */ }
+  }, [statusFilter]);
 
   // Reseta pra página 1 quando muda filtro/busca/ordem/per-page/date_field.
   useEffect(() => {
