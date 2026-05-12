@@ -12,6 +12,7 @@ use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Console\Commands\RegisterWhatsappPermissionsCommand;
+use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
 use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappMessage;
@@ -73,6 +74,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 // Guardião 6 camadas anti-mídia-perdida
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
+                ReparseMediaFromPayloadCommand::class,  // Bonus — extrai meta de payload pré-PR #664
             ]);
         }
 
