@@ -6,10 +6,17 @@ contains:
   - "DataController"
   - "InstallController"
   - "OrcamentoController"
+  - "Entities/Substrato (cv_substratos)"
+  - "Entities/Acabamento (cv_acabamentos)"
+  - "Entities/InstalacaoCatalogo (cv_instalacoes_catalogo)"
+  - "Entities/OrdemProducao (cv_ordens_producao + FSM canon ADR 0143)"
+  - "Entities/Instalacao (cv_instalacoes)"
+  - "FsmProcessoComunicacaoVisualSeeder (16 stages + 10 roles per-business)"
 not_contains:
   - "Kanban shared infra → Modules/Repair (consumido via repair_settings)"
   - "Núcleo transactions/contacts → UltimatePOS core"
   - "NFe backbone → Modules/NfeBrasil (consumido)"
+  - "FSM canon (sale_processes/stages/actions) → app/Domain/Fsm/ (shared infra ADR 0143)"
 trust_required: L2
 owner: wagner
 permission_prefix: com_visual.*
@@ -30,13 +37,15 @@ drift_alerts: []
 > Status: 🟡 em construção · Piloto previsto 2026-Q3
 > CNAE: 1813-0/01 · Concorrentes: Mubisys, Zênite, Calcgraf
 
-## Estado Sprint 1
+## Estado Fase 1 V0 scaffold (2026-05-12)
 
-Scaffold formal nWidart **vazio** — vertical greenfield. Pasta nasce pra:
+Scaffold nWidart **completo** + 5 migrations canon `cv_*` SPEC §12.1 + 5 Entities com BusinessIdScope + FsmProcessoComunicacaoVisualSeeder (16 stages × 30+ actions × 10 roles per-business).
 
-1. **Habilitar piloto Q3/2026** entre 6 saudáveis OfficeImpresso (Vargas, Extreme, Gold, Zoom, Fixar, Mhundo, Produart — Wagner escolhe 1)
-2. **Consumir shared Modules/Repair** com vocabulário gráfico via `RepairSettingsSeeder` (OS / Trabalho / Operador / Máquina Plotter+ACM+Lona / Setor Arte+Impressão+Acabamento)
-3. **Diferencial vs concorrentes:** cálculo m² + PCP gráfico + apontamento + NFe-de-boleto-pago + IA conversacional (5 capacidades juntas, nenhum concorrente tem todas)
+Coexiste com legacy Sprint 1 (`comvis_*` tables — Material/Orcamento/Os/Apontamento) — Migration Factory US-COMVIS-NEW-014 (Sprint 2+) decide caminho de unificação.
+
+1. **Habilitar piloto Q3/2026** entre 6 saudáveis OfficeImpresso (Gold confirmado vertical comvis; Extreme/Zoom/Fixar/Mhundo/Produart a confirmar — ROADMAP Fase 2)
+2. **Consumir FSM canon shared** `app/Domain/Fsm/` (ADR 0143 LIVE prod biz=1 desde 2026-05-12) via `current_stage_id` em `cv_ordens_producao` + trait `GuardsFsmTransitions`
+3. **Diferencial vs concorrentes:** cálculo m² + PCP gráfico FSM + dual-doc fiscal NFe55+NFSe56 paralelo + NFe-de-boleto-pago + IA conversacional (5 capacidades juntas, nenhum concorrente tem todas — Mubisys/Zênite/Calcgraf SPEC §4-5)
 
 ## Sprint 2+ — adoção pós-piloto
 
