@@ -28,6 +28,22 @@
 - Tabela `mcp_memory_documents` com índice FULLTEXT + Meilisearch hybrid embedder
 - Token gerenciado em `/copiloto/admin/team`
 
+## FSM Pipeline Canônico ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — LIVE prod biz=1 desde 2026-05-12)
+
+Toda mudança de estado em **Sells** (vendas) e **Repair** (OS) passa pelo `ExecuteStageActionService` ([app/Domain/Fsm/](../app/Domain/Fsm/)):
+
+- **5 tabelas FSM** canônicas: `sale_processes`, `sale_process_stages`, `sale_stage_actions`, `sale_stage_action_roles`, `sale_stage_history` (audit append-only)
+- **Trait `GuardsFsmTransitions`** em Transaction + JobSheet bloqueia UPDATE direto em `current_stage_id` — gateway obrigatório
+- **Singleton `FsmAuthorizationFlag`** autoriza save (per-request, consume-once)
+- **Pipeline Sells**: 11 stages (`quote_draft` → ... → `completed` + `cancelled`/`on_hold`) × 21 actions × 10 roles per-business
+- **Pipeline Repair**: 13 stages (`recebido_para_diagnostico` → ... → `entregue_completo` + terminais) × ~15 actions × 6 roles per-business
+- **Side-effects** isolados: `ReservarEstoque`, `ConsumirEstoque`, `LiberarReserva`, `CancelarVendaCascade` (orquestra cancel NFe SEFAZ + Asaas/Inter refund/cancel + Whatsapp/email)
+- **UI drawer SaleSheet** ([resources/js/Pages/Sells/_components/FsmActionPanel.tsx](../resources/js/Pages/Sells/_components/FsmActionPanel.tsx)): botões dinâmicos por stage + RBAC + timeline auditável
+- **Comandos artisan**: `fsm:bulk-start-pipeline {biz} [--dry-run]` (migrar vendas legadas), `fsm:scan-drift transactions` (cron daily 03:00 BRT, alerta mass-update bypass)
+- **Coexistência opt-in** com state machine legacy — `current_stage_id` nullable permite migração gradual
+
+Aplicação em vendas legadas: 162 vendas biz=1 prontas pra migrar via `php artisan fsm:bulk-start-pipeline 1`.
+
 ## Padrão arquitetural
 
 **Modular monolith, DDD leve, especializado por vertical** ([ADR 0121](decisions/0121-oimpresso-modular-especializado-por-vertical.md)). Append-only onde a lei exige (Portaria MTP 671/2021), `business_id` global scope obrigatório (Tier 0 — [ADR 0093](decisions/0093-multi-tenant-isolation-tier-0.md)).
@@ -65,3 +81,4 @@ Ler `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` — checklist das 8 peças
 - [0091](decisions/0091-daily-brief.md) Daily Brief · [0093](decisions/0093-multi-tenant-isolation-tier-0.md) Multi-tenant Tier 0
 - [0094](decisions/0094-constituicao-v2-7-camadas-8-principios.md) **Constituição v2 (mãe)** · [0095](decisions/0095-skills-tiers-convencao-interna.md) Skills Tiers
 - [0121](decisions/0121-oimpresso-modular-especializado-por-vertical.md) **Modular especializado por vertical** (núcleo + Modules/<Vertical>)
+- [0129](decisions/0129-state-machine-canonica-fsm-rbac.md) FSM tabular custom (fundação) · [0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) **FSM Pipeline LIVE prod biz=1** (marco 2026-05-12)
