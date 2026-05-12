@@ -37,6 +37,8 @@ import type {
   ReadyTemplate,
   ThreadConversation,
 } from '@/Pages/Whatsapp/_components/helpers';
+// CYCLE-08 PR-A (US-WA-040): dropdown topbar pra alternar canal ativo
+import ChannelSelector, { type AvailableChannel } from '@/Pages/Atendimento/Inbox/_components/ChannelSelector';
 
 interface Paginated<T> {
   data: T[];
@@ -54,7 +56,14 @@ interface Props {
   businessId: number;
   thread: ThreadConversation | null;
   messages: Message[] | null;
-  availableChannels: Array<{ id: number; label: string; type: string }>;
+  /**
+   * CYCLE-08 PR-A (US-WA-040): canais visíveis ao user (filtrados por ACL
+   * `channel_user_access`). Inclui phone/health/unread per-canal pra
+   * `ChannelSelector` renderizar dropdown rico no header.
+   */
+  availableChannels: AvailableChannel[];
+  /** CYCLE-08 PR-A: canal selecionado no dropdown topbar (null = "Todos") */
+  selectedChannelId: number | null;
   /** US-WA-063: catálogo de tags do business (seeds default na 1ª visita) */
   availableTags: ConvTag[];
   /** US-WA-063: IDs das tags ativas no filtro atual (query param `tags=`) */
@@ -75,6 +84,7 @@ interface Props {
 export default function InboxIndex({
   conversations, tab, q, stats,
   thread, messages, centrifugoConfig,
+  availableChannels, selectedChannelId,
   availableTags, activeTagIds,
   within24h, unlinked, mediaInbound24h, inboundAging, orderBy,
 }: Props) {
@@ -168,12 +178,17 @@ export default function InboxIndex({
     <div className="flex flex-col flex-1 min-h-0 gap-1">
       {/* Header compacto */}
       <div className="flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <InboxIcon size={16} />
           </div>
-          <div className="min-w-0 flex items-center gap-2">
+          <div className="min-w-0 flex items-center gap-2 flex-wrap">
             <h1 className="font-semibold text-sm leading-tight truncate">Inbox Atendimento</h1>
+            {/* CYCLE-08 PR-A (US-WA-040): dropdown topbar pra alternar canal ativo */}
+            <ChannelSelector
+              availableChannels={availableChannels}
+              selectedChannelId={selectedChannelId}
+            />
             <span className="hidden md:inline text-[11px] text-muted-foreground truncate">
               atalhos: <kbd className="px-1 py-0 border rounded text-[10px]">J</kbd>/<kbd className="px-1 py-0 border rounded text-[10px]">K</kbd> navega · <kbd className="px-1 py-0 border rounded text-[10px]">/</kbd> busca · <kbd className="px-1 py-0 border rounded text-[10px]">E</kbd> resolve · <kbd className="px-1 py-0 border rounded text-[10px]">A</kbd> aguardar
             </span>
