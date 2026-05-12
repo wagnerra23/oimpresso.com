@@ -118,6 +118,38 @@ class BaileysDriver implements DriverInterface
         return $this->mapSendResponse($response);
     }
 
+    public function sendInteractive(
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
+        string $to,
+        string $body,
+        array $interactive,
+    ): WhatsappSendResult {
+        $type = (string) ($interactive['type'] ?? '');
+
+        // Baileys 6.7+ suporta buttons + list nativos. CTA URL não tem
+        // equivalente direto no Whatsapp Web protocol — daemon mapeia pra
+        // texto com URL embedded, mas preferimos rejeitar explícito pro
+        // caller saber que precisa cair pro Meta Cloud.
+        if ($type === 'cta_url') {
+            throw DriverDoesNotSupport::for('baileys', 'interactive.cta_url');
+        }
+
+        if (! in_array($type, ['buttons', 'list'], true)) {
+            throw DriverDoesNotSupport::for('baileys', "interactive.{$type}");
+        }
+
+        $payload = [
+            'to' => $this->normalizePhone($to),
+            'body' => $body,
+            'interactive' => $interactive,
+        ];
+
+        $response = $this->client($config)
+            ->post("/instances/{$config->baileys_instance_id}/interactive", $payload);
+
+        return $this->mapSendResponse($response);
+    }
+
     public function fetchMessageStatus(
         WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,
