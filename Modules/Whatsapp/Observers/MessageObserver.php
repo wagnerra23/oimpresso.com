@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Observers;
 
+use Modules\Jana\Scopes\ScopeByBusiness;
+use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Events\OmnichannelMessageReceived;
 use Modules\Whatsapp\Events\OmnichannelMessageSent;
@@ -28,10 +30,18 @@ use Modules\Whatsapp\Events\OmnichannelMessageSent;
 class MessageObserver
 {
     /**
-     * Em created: dispara received pra inbound; sent pra outbound.
+     * Em created: atualiza preview denormalizado (US-WA-072) e dispara
+     * received pra inbound; sent pra outbound.
+     *
+     * Update do preview vem ANTES do dispatch dos events Centrifugo —
+     * garante que listeners que recarregam Conversation pegam o estado
+     * atualizado. NÃO toca `updated_at` da conv (forceFill->save) — esse
+     * já é mantido pelos outros writes do controller.
      */
     public function created(Message $message): void
     {
+        $this->syncConversationPreview($message);
+
         if ($message->direction === Message::DIRECTION_INBOUND) {
             OmnichannelMessageReceived::dispatch($message);
             return;
@@ -40,6 +50,33 @@ class MessageObserver
         if ($message->direction === Message::DIRECTION_OUTBOUND) {
             OmnichannelMessageSent::dispatch($message);
         }
+    }
+
+    /**
+     * US-WA-072 — escreve `last_message_preview` + `last_message_direction`
+     * em `conversations`. Substitui o N+1 anterior em
+     * `InboxController::convToListArray()`.
+     *
+     * - body=null → preview=null (tipos media-only sem texto)
+     * - mb_substr truncate em 80 chars (UI mostra ~60 com ellipsis CSS)
+     * - 2ª msg sobrescreve a 1ª (não acumula histórico — sempre o último)
+     * - withoutGlobalScope ScopeByBusiness pq Observer roda em qualquer
+     *   sessão (incluindo webhook sem session()->user.business_id setado).
+     *   Filtro explícito por conversation_id já garante isolamento Tier 0.
+     */
+    protected function syncConversationPreview(Message $message): void
+    {
+        $preview = $message->body !== null
+            ? mb_substr((string) $message->body, 0, 80)
+            : null;
+
+        Conversation::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('id', $message->conversation_id)
+            ->update([
+                'last_message_preview' => $preview,
+                'last_message_direction' => $message->direction,
+            ]);
     }
 
     /**
