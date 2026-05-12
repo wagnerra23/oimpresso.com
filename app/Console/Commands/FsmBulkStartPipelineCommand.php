@@ -52,6 +52,12 @@ class FsmBulkStartPipelineCommand extends Command
 
     protected $description = 'Migra vendas legadas (current_stage_id=NULL) pro pipeline FSM em lote, mapeando status legacy → stage inicial';
 
+    public function __construct(
+        private readonly \App\Domain\Fsm\Services\InitialStageResolver $resolver,
+    ) {
+        parent::__construct();
+    }
+
     public function handle(): int
     {
         $businessId = (int) $this->argument('business_id');
@@ -137,7 +143,7 @@ class FsmBulkStartPipelineCommand extends Command
                     }
                     $restante--;
 
-                    $stageKey = $this->resolveInitialStage($venda);
+                    $stageKey = $this->resolver->resolve($venda);
                     $stage = $stagesByKey[$stageKey] ?? null;
 
                     if (! $stage) {
@@ -226,31 +232,4 @@ class FsmBulkStartPipelineCommand extends Command
         return 0;
     }
 
-    /**
-     * Mapeia status legacy da Transaction pro stage FSM inicial.
-     *
-     * Espelho da lógica em
-     * {@see \App\Http\Controllers\SaleFsmActionController::resolveInitialStage()}.
-     * Manter em sincronia (TODO: extrair pra InitialStageResolver service).
-     */
-    private function resolveInitialStage(Transaction $venda): string
-    {
-        $status = $venda->status ?? 'final';
-        $paymentStatus = $venda->payment_status ?? 'due';
-        $subStatus = $venda->sub_status ?? null;
-
-        if ($status === 'draft') {
-            return $subStatus === 'quotation' ? 'quote_sent' : 'quote_draft';
-        }
-
-        if ($status === 'final') {
-            return match ($paymentStatus) {
-                'paid' => 'paid',
-                'partial' => 'invoiced',
-                default => 'invoiced',
-            };
-        }
-
-        return 'quote_draft';
-    }
 }
