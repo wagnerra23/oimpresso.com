@@ -478,14 +478,24 @@ function GroupedTable({
     },
   ], []);
 
-  const grouping: GroupingState = groupingColumnId ? [groupingColumnId] : [];
+  // useMemo aqui é CRÍTICO — sem ele, [groupingColumnId] cria nova ref a cada
+  // render → TanStack vê estado novo → recria internal state → re-render loop
+  // (root cause prod incident 2026-05-12 quando Wagner filtrava/agrupava).
+  const grouping = useMemo<GroupingState>(
+    () => (groupingColumnId ? [groupingColumnId] : []),
+    [groupingColumnId]
+  );
   // Default expanded all groups (DX melhor — user vê tudo, depois recolhe se quiser).
   const [expanded, setExpanded] = useState<ExpandedState>(true);
+
+  // useMemo no state object idem — { grouping, expanded } literal cria nova ref
+  // a cada render se não cachear.
+  const tableState = useMemo(() => ({ grouping, expanded }), [grouping, expanded]);
 
   const table = useReactTable({
     data,
     columns,
-    state: { grouping, expanded },
+    state: tableState,
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getGroupedRowModel: getGroupedRowModel(),
