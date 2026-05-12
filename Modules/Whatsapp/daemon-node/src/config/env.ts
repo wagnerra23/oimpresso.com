@@ -48,6 +48,15 @@ const schema = z.object({
   MAX_INSTANCES: numberFromString(30),
   INSTANCE_CONNECT_TIMEOUT_MS: numberFromString(60_000),
   QR_TIMEOUT_MS: numberFromString(120_000),
+
+  // Anti-ban middleware (US-WA-094) — jitter Gaussian + typing presence + warmup
+  // quota per-instance. Defaults seguros: ENABLED=true em prod, dev/test
+  // setam ANTIBAN_ENABLED=false no .env pra evitar slow tests (1.5-4s/msg).
+  ANTIBAN_ENABLED: boolFromString(true),
+  ANTIBAN_JITTER_MIN_MS: numberFromString(1_500),
+  ANTIBAN_JITTER_MAX_MS: numberFromString(4_000),
+  ANTIBAN_TYPING_MS: numberFromString(500),
+  ANTIBAN_WARMUP_DAYS: numberFromString(7),
 });
 
 export type Env = z.infer<typeof schema> & { API_KEY: string };
