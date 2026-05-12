@@ -227,6 +227,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
     Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
+    // US-SELL-035 — Timeline FSM (sale_stage_history) pra drawer e auditoria.
+    Route::get('/api/sells/{id}/history', [\App\Http\Controllers\SaleHistoryController::class, 'index'])
+        ->name('sells.history');
     Route::resource('sells', 'SellController')->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 
