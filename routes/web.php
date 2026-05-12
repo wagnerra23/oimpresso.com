@@ -235,6 +235,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('sells.fsm-actions');
     Route::post('/sells/{id}/fsm-action', [\App\Http\Controllers\SaleFsmActionController::class, 'execute'])
         ->name('sells.fsm-execute');
+    Route::post('/sells/{id}/fsm-start-pipeline', [\App\Http\Controllers\SaleFsmActionController::class, 'startPipeline'])
+        ->name('sells.fsm-start-pipeline');
     Route::resource('sells', 'SellController')->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 

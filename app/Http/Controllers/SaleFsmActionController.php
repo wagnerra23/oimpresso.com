@@ -6,10 +6,13 @@ namespace App\Http\Controllers;
 
 use App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException;
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
+use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
+use App\Domain\Fsm\Models\SaleStageHistory;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
+use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -146,5 +149,120 @@ class SaleFsmActionController extends Controller
             ]);
             return response()->json(['error' => 'Falha interna: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Inicia pipeline FSM numa venda legada (current_stage_id IS NULL).
+     *
+     * Mapeia status atual da venda pro stage inicial apropriado:
+     *   - status='draft' + sub_status='quotation' → 'quote_sent'
+     *   - status='draft' (rascunho puro) → 'quote_draft'
+     *   - status='final' + payment_status='paid' → 'paid'
+     *   - status='final' + payment_status='due' → 'invoiced'
+     *   - default → 'quote_draft' (início do pipeline)
+     *
+     * Cria entrada em sale_stage_history pra rastreabilidade ("pipeline iniciado").
+     */
+    public function startPipeline(Request $request, int $id): JsonResponse
+    {
+        if (! auth()->check()) {
+            abort(Response::HTTP_UNAUTHORIZED);
+        }
+
+        $validated = $request->validate([
+            'process_key' => 'sometimes|string|max:80',
+        ]);
+        $processKey = $validated['process_key'] ?? 'venda_com_producao';
+
+        $businessId = (int) session('user.business_id');
+        $venda = Transaction::where('business_id', $businessId)->find($id);
+
+        if (! $venda) {
+            return response()->json(['error' => 'Venda não encontrada'], 404);
+        }
+
+        if ($venda->current_stage_id !== null) {
+            return response()->json([
+                'error' => 'Venda já está em pipeline FSM (stage_id=' . $venda->current_stage_id . ')',
+            ], 422);
+        }
+
+        $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->where('key', $processKey)
+            ->where('active', true)
+            ->first();
+
+        if (! $process) {
+            return response()->json([
+                'error' => "Processo '{$processKey}' não cadastrado pro business {$businessId}. " .
+                    'Rode o seeder FsmProcessoVendaComProducaoSeeder.',
+            ], 422);
+        }
+
+        $stageKey = $this->resolveInitialStage($venda);
+        $stage = $process->stages()->where('key', $stageKey)->first();
+
+        if (! $stage) {
+            return response()->json([
+                'error' => "Stage '{$stageKey}' não cadastrado no processo '{$processKey}'.",
+            ], 422);
+        }
+
+        // Marca flag autorizativa + atualiza current_stage_id
+        FsmAuthorizationFlag::mark($venda::class, $venda->getKey());
+        $venda->current_stage_id = $stage->id;
+        $venda->save();
+
+        // Audit log: registra entrada no pipeline
+        SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->create([
+            'business_id' => $businessId,
+            'transaction_id' => $venda->id,
+            'action_id' => null,
+            'from_stage_id' => null,
+            'to_stage_id' => $stage->id,
+            'user_id' => auth()->id(),
+            'payload_snapshot' => [
+                'pipeline_started' => true,
+                'process_key' => $processKey,
+                'mapped_from' => "status={$venda->status} payment_status={$venda->payment_status} sub_status={$venda->sub_status}",
+            ],
+            'executed_at' => now(),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'process_key' => $processKey,
+            'new_stage_id' => $stage->id,
+            'stage' => [
+                'key' => $stage->key,
+                'name' => $stage->name,
+                'color' => $stage->color,
+            ],
+        ]);
+    }
+
+    /**
+     * Mapeia status legacy da Transaction pro stage FSM inicial apropriado.
+     */
+    private function resolveInitialStage(Transaction $venda): string
+    {
+        $status = $venda->status ?? 'final';
+        $paymentStatus = $venda->payment_status ?? 'due';
+        $subStatus = $venda->sub_status ?? null;
+
+        if ($status === 'draft') {
+            return $subStatus === 'quotation' ? 'quote_sent' : 'quote_draft';
+        }
+
+        if ($status === 'final') {
+            return match ($paymentStatus) {
+                'paid' => 'paid',
+                'partial' => 'invoiced',
+                default => 'invoiced',
+            };
+        }
+
+        return 'quote_draft';
     }
 }
