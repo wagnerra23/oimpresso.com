@@ -78,6 +78,10 @@ interface SaleRow {
   // US-NFE-MANUAL — fiscal status badge na lista.
   fiscal_status: 'pendente' | 'autorizada' | 'rejeitada' | 'denegada' | 'cancelada' | null;
   fiscal_modelo: '55' | '65' | null;
+  // US-SELL-023 — stage_key FSM (badge produção em Grade Avançada). NULL = legacy sem FSM.
+  current_stage_key: string | null;
+  // US-SELL-024 — flag boolean explícita "venda agrupada" (Delphi CODFINANCEIRO_GRUPO).
+  is_grouped_invoice: boolean;
 }
 
 // US-SELL-021 — 7 datas que user pode escolher exibir na coluna Data.

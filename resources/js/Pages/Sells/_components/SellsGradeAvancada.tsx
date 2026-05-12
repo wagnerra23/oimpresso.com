@@ -50,7 +50,48 @@ interface SaleRow {
   is_overdue: boolean;
   fiscal_status: 'pendente' | 'autorizada' | 'rejeitada' | 'denegada' | 'cancelada' | null;
   fiscal_modelo: '55' | '65' | null;
+  // US-SELL-023 — stage_key FSM (badge produção). NULL = venda legacy sem FSM.
+  current_stage_key:
+    | 'quote_draft' | 'quote_sent' | 'quote_approved'
+    | 'in_production' | 'ready_for_invoice'
+    | 'invoiced' | 'paid'
+    | 'delivered' | 'completed'
+    | 'cancelled' | 'on_hold'
+    | string | null;
+  // US-SELL-024 — boolean explícito "venda agrupada" (Delphi CODFINANCEIRO_GRUPO).
+  is_grouped_invoice: boolean;
 }
+
+// US-SELL-023 — Mapping stage_key FSM → badge PT-BR + cor semantic.
+// 11 stages canônicos (FsmProcessoVendaComProducaoSeeder) — alinhado com seeder
+// FSM Pipeline LIVE prod biz=1 desde 2026-05-12 (ADR 0143).
+const PRODUCAO_STAGE_LABEL: Record<string, string> = {
+  quote_draft: 'Aprovação',
+  quote_sent: 'Aprovação',
+  quote_approved: 'Aprovação',
+  in_production: 'Em produção',
+  ready_for_invoice: 'Pronto',
+  invoiced: 'Faturada',
+  paid: 'Faturada',
+  delivered: 'Entregue',
+  completed: 'Entregue',
+  cancelled: 'Cancelada',
+  on_hold: 'Em espera',
+};
+
+const PRODUCAO_STAGE_STYLE: Record<string, string> = {
+  quote_draft: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/40 dark:text-slate-300',
+  quote_sent: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/40 dark:text-slate-300',
+  quote_approved: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/40 dark:text-slate-300',
+  in_production: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
+  ready_for_invoice: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
+  invoiced: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+  delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+  completed: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+  cancelled: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
+  on_hold: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/40 dark:text-slate-300',
+};
 
 type SortKey = 'transaction_date' | 'invoice_no' | 'customer_name' | 'final_total' | 'payment_status';
 type SortDir = 'asc' | 'desc';
@@ -243,19 +284,22 @@ export default function SellsGradeAvancada({
                 <Th className="text-right w-28">Pago</Th>
                 <Th className="text-right w-28">A receber</Th>
                 <SortableTh sortKey="payment_status" current={sortKey} dir={sortDir} onSort={onSort} className="w-32">Status</SortableTh>
+                {/* US-SELL-023 — coluna "Produção" badge FSM (Grade Avançada only,
+                    Lista mode é enxuto e não mostra esta coluna). Default visível. */}
+                <Th className="w-32">Produção</Th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-12 text-muted-foreground text-xs">
+                  <td colSpan={10} className="text-center py-12 text-muted-foreground text-xs">
                     <Loader2 className="inline-block mr-2 h-3.5 w-3.5 animate-spin" />
                     Carregando…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-12 text-muted-foreground text-xs">
+                  <td colSpan={10} className="text-center py-12 text-muted-foreground text-xs">
                     Nenhuma venda encontrada nesse filtro.
                   </td>
                 </tr>
@@ -297,6 +341,9 @@ export default function SellsGradeAvancada({
                             />
                           )}
                           {row.invoice_no}
+                          {/* US-SELL-024 — badge "Agrupada" ao lado do nº fatura quando true.
+                              Substitui a inferência confusa "ATIVO CRIADO" do Delphi por flag boolean explícita. */}
+                          <GroupedInvoiceBadge isGrouped={row.is_grouped_invoice} />
                         </span>
                       </td>
                       <td className="px-3 py-2.5">
@@ -313,6 +360,10 @@ export default function SellsGradeAvancada({
                       <td className="px-3 py-2.5 text-right tabular-nums text-amber-700 dark:text-amber-300">{formatBRL(due)}</td>
                       <td className="px-3 py-2.5">
                         <PaymentStatusBadge status={row.payment_status} overdue={row.is_overdue} />
+                      </td>
+                      {/* US-SELL-023 — badge produção (FSM stage). NULL = "—" silencioso pra legacy. */}
+                      <td className="px-3 py-2.5">
+                        <ProducaoStageBadge stageKey={row.current_stage_key} />
                       </td>
                     </tr>
                   );
@@ -644,6 +695,38 @@ function PaymentStatusBadge({ status, overdue }: { status: string; overdue: bool
   return (
     <span className={'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ' + cls}>
       {label}
+    </span>
+  );
+}
+
+// US-SELL-023 — Badge produção FSM. NULL stage_key (legacy sem FSM) → "—" muted.
+function ProducaoStageBadge({ stageKey }: { stageKey: string | null | undefined }) {
+  if (!stageKey) {
+    return <span className="text-xs text-muted-foreground/60" aria-label="Sem pipeline FSM">—</span>;
+  }
+  const cls = PRODUCAO_STAGE_STYLE[stageKey] ?? 'bg-muted text-muted-foreground border-border';
+  const label = PRODUCAO_STAGE_LABEL[stageKey] ?? stageKey;
+  return (
+    <span
+      className={'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ' + cls}
+      title={`Estágio FSM: ${stageKey}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+// US-SELL-024 — Badge "Agrupada" ao lado do nº fatura quando is_grouped_invoice=true.
+// Substitui inferência ambígua "ATIVO CRIADO" do Delphi.
+function GroupedInvoiceBadge({ isGrouped }: { isGrouped: boolean }) {
+  if (!isGrouped) return null;
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-1.5 py-0 text-[10px] font-semibold text-violet-700 dark:border-violet-900/40 dark:bg-violet-950/40 dark:text-violet-300"
+      title="Venda agrupada (várias OS combinadas em 1 fatura)"
+      aria-label="Venda agrupada"
+    >
+      Agrupada
     </span>
   );
 }
