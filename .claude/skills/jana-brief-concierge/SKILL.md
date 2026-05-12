@@ -52,39 +52,107 @@ Sempre que Wagner trouxer um snapshot JSON do JANA Pro pra eu transformar em bri
 - Refactor/feature de código `Modules/Jana/` (use grep/edit normal)
 - Pedido de análise de ticket individual (use skill `ticket-triage` — diferente escopo)
 
-## Output obrigatório (formato fixo)
+## Output obrigatório (formato fixo — Versão A Dashboard/Email)
 
-Markdown ~250-400 palavras, pronto pra colar em WhatsApp ou converter pra email HTML. **Mesma estrutura do prompt no `BriefDiarioAgent::instructions()`** — quando provider LLM ligar, output é idêntico.
+Markdown profissional ~300-500 palavras, formato Dashboard/Email rico (renderiza em GitHub, email HTML, web preview). **Mesma estrutura do prompt no `BriefDiarioAgent::instructions()`** — quando provider LLM ligar, output é idêntico (zero retrabalho).
+
+Wagner aprovou Versão A em 2026-05-12 ("encanta a demonstração"). NÃO usar formato compacto WhatsApp aqui — esse vira derivativo gerado a partir do Dashboard se solicitado.
 
 ```markdown
-## ☀️ Bom dia, [Nome do gestor]!
+# 🌅 Brief Diário — [Nome da empresa]
 
-### 📊 Vendas
-[1-2 linhas: ontem fechou em R$ X com Y vendas. Tendência semana/mês.]
+**[Dia da semana], [DD] de [mês] de [YYYY]** · gerado às [HHhMM] BRT
 
-### 🚨 Alertas
-[1-3 sinais críticos:
-- NF-e taxa rejeição X% (top motivo cstat YYY)
-- Cliente Z com R$ W em atraso há D dias
-- Ticket P1 da [Nome]: "[primeira frase da última msg]"]
+---
 
-### 💡 Oportunidades
-[1-2 ações:
-- Cliente [Nome] LTV R$ X sumiu há Y dias — reativar
-- Produto [Nome] comprado N× em 90d pelo cliente [Nome] — sugerir combo]
+## ⭐ Destaque do dia
 
-### ✅ Ação sugerida hoje
-[1 frase ação concreta: "Liga pra [Nome] antes do almoço pra entender se voltou ao concorrente"]
+> [Frase forte com o número mais relevante. Tom confiante, BR.]
+
+---
+
+## 📊 Operação
+
+| Período | Vendas | Receita | Ticket médio |
+|---|---:|---:|---:|
+| Ontem | X | R$ X | R$ X |
+| Semana atual | X | R$ X | R$ X |
+| Mês até hoje | X | R$ X | R$ X |
+| [Mês anterior] fechado | X | R$ X | R$ X |
+
+[1 frase de interpretação do ticket médio / volume]
+
+---
+
+## 📈 Projeção do mês
+
+USAR `projecao_fechamento_mes` + `delta_projetado_pct` da tool. NUNCA cite `delta_mes_pct` cru sozinho (compara mês incompleto vs completo = falso alarme).
+
+"No ritmo atual (X vendas/dia), [mês] deve fechar em ~R$ X (vs R$ Y mês anterior → ±Z%)."
+
+---
+
+## ✅ Status geral
+
+| Indicador | Estado |
+|---|---|
+| Inadimplência | 🟢/🔴 [valor] |
+| Atendimento Inbox | 🟢/⚪ [pendências] |
+| Movimento fiscal | 🟢/🔴 [emitidas/rejeitadas] |
+
+---
+
+## ⭐ Oportunidade-foco do dia
+
+### [NOME LITERAL EM CAPS]
+
+| Métrica | Valor |
+|---|---|
+| LTV histórico | **R$ X** |
+| Última compra | data |
+| Tempo ausente | X dias |
+
+[2-3 frases racional do foco — janela de retorno, valor relativo]
+
+**📱 Mensagem sugerida (copia e cola no WhatsApp):**
+
+> [Mensagem pronta, voz da loja, 30-60 palavras]
+
+---
+
+## 💡 Ideia da semana
+
+| Produto | Saídas em 90d |
+|---|---:|
+| NOME LITERAL | X |
+
+Sugestão: [ação + racional + estimativa impacto]
+
+---
+
+## 🎯 Plano do dia
+
+1. **[Ação 1]** (~X min) — [racional]
+2. **[Ação 2]** (~X min) — [racional]
+
+Resto do dia segue normal.
+
+---
+
+*JANA PRO · análise gerada automaticamente · próximo brief: amanhã, 8h*
 ```
 
 ## Regras duras (anti-fabricação)
 
-1. **NUNCA invente dados.** Se source retornou `ok:false` ou vazio, NÃO mencione no brief.
-2. **Cite valores LITERAIS do JSON** — R$ formatado PT-BR (R$ 1.500,00) + porcentagens 1 casa (5,2%).
-3. **Cite NOMES literais** das tools (contact_name, product_name) — não generalize "um cliente sumiu".
-4. **Tom direto, brasileiro, sem corporativês.** Sem emoji excessivo.
-5. **Se TODAS sources voltaram vazias:** responda "Sem movimento relevante hoje. Bom dia pra começar do zero. ☕"
-6. **Tier 0:** snapshot tem `business_id` — nunca misture com outro biz nem ofereça cross-tenant.
+1. **NUNCA invente dados.** Se source retornou `ok:false` ou vazio, OMITA a seção (não force preencher).
+2. **NUNCA cite `delta_mes_pct` cru** se mês corrente está incompleto. USE `projecao_fechamento_mes` + `delta_projetado_pct` (presentes desde fix US-COPI-202c).
+3. **NUNCA cite combo de cliente walk-in** (contact com `is_default=1` no UltimatePOS) — é produto best-seller agregado, não combo individual. Esses contacts NÃO devem aparecer em `combo_candidatos`/`reativacao_candidatos` desde fix US-COPI-202c, mas se aparecer, ignore.
+4. **Cite valores LITERAIS do JSON** — R$ formatado PT-BR (R$ 1.500,00) + porcentagens 1 casa (5,2%).
+5. **Cite NOMES literais** das tools (contact_name, product_name) — não generalize "um cliente sumiu".
+6. **Tom advisor sênior, brasileiro, sem corporativês.** "Conforme análise dos indicadores apresentados" PROIBIDO.
+7. **Mensagem WhatsApp sugerida tem voz da loja**, não do consultor JANA.
+8. **Se TODAS sources voltaram vazias:** responda "Sem movimento relevante hoje. Bom dia pra começar do zero. ☕"
+9. **Tier 0:** snapshot tem `business_id` — nunca misture com outro biz nem ofereça cross-tenant.
 
 ## Algoritmo (mesma lógica que vai pro LLM automatizado depois)
 
