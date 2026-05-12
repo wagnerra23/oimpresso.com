@@ -59,6 +59,39 @@ export interface SendResult {
   status: 'sent' | 'queued';
 }
 
+// US-WA-080 — import histórico Baileys
+export interface FetchHistoryInput {
+  jid: string;
+  count: number;
+  before_id: string;
+  before_ts: number;
+  from_me?: boolean;
+  timeout_ms?: number;
+}
+
+export interface FetchHistoryMessage {
+  key: {
+    remoteJid?: string | null;
+    fromMe?: boolean | null;
+    id?: string | null;
+    participant?: string | null;
+  };
+  message: unknown;
+  push_name: string | null;
+  timestamp: number | null;
+}
+
+export interface FetchHistoryResult {
+  count: number;
+  has_more: boolean;
+  oldest_id: string | null;
+  oldest_ts: number | null;
+  messages: FetchHistoryMessage[];
+  // Sentinel quando WhatsApp não devolve nada dentro do timeout — caller
+  // sabe que precisa parar a paginação.
+  empty: boolean;
+}
+
 export class Instance extends EventEmitter {
   private socket: WASocket | null = null;
   private state: InstanceState = 'idle';
@@ -214,6 +247,112 @@ export class Instance extends EventEmitter {
     messageLagHistogram.observe({ instance_id: this.meta.instance_id }, Date.now() - start);
     sendCounter.inc({ instance_id: this.meta.instance_id, status: 'sent', kind: input.type });
     return { message_id: sent?.key.id ?? '', status: 'sent' };
+  }
+
+  /**
+   * Puxa batch histórico de mensagens de uma conversa (US-WA-080).
+   *
+   * Baileys 6.7.9 API: `socket.fetchMessageHistory(count, oldestMsgKey, oldestMsgTs)`
+   * envia um Peer Data Operation Request (HISTORY_SYNC_ON_DEMAND) ao
+   * WhatsApp e retorna um request ID (string). A resposta chega async
+   * pelo evento `messaging-history.set` (mesmo evento do pairing inicial).
+   *
+   * O caller PHP gerencia cursor — sempre passa `before_id` + `before_ts`
+   * da mensagem mais antiga já conhecida. Daemon não cacheia msgs entre
+   * chamadas.
+   *
+   * Retorna `empty=true` se WhatsApp não devolveu nada dentro do timeout
+   * (caller sabe que chegou no início da história ou perdeu pacote).
+   *
+   * Anti-ban: caller deve fazer sleep 1-2s entre chamadas. Daemon não
+   * impõe rate limit aqui pra deixar caller controlar.
+   */
+  async fetchHistory(input: FetchHistoryInput): Promise<FetchHistoryResult> {
+    const sock = this.requireConnected();
+    const timeoutMs = input.timeout_ms ?? 60_000;
+
+    const oldestKey: proto.IMessageKey = {
+      remoteJid: input.jid,
+      id: input.before_id,
+      fromMe: input.from_me ?? false,
+    };
+
+    // Promise wrapper — captura o evento `messaging-history.set` que
+    // chega depois do PDO request. Filtra mensagens do `jid` alvo pra
+    // evitar misturar com sync passivo de outras conversas.
+    const collected = new Promise<proto.IWebMessageInfo[]>((resolve) => {
+      const buffer: proto.IWebMessageInfo[] = [];
+
+      const handler = (payload: {
+        messages: proto.IWebMessageInfo[];
+        peerDataRequestSessionId?: string | null;
+      }): void => {
+        const matched = payload.messages.filter(
+          (m) => m.key?.remoteJid === input.jid,
+        );
+        if (matched.length === 0) return;
+        buffer.push(...matched);
+        // Pode chegar em chunks — aguarda timeout pra acumular tudo
+        // antes de resolver. Não dá pra confiar em `isLatest` aqui pq
+        // o evento vem com syncType ON_DEMAND mas Baileys não marca
+        // `isLatest` consistentemente nessa request.
+      };
+
+      sock.ev.on('messaging-history.set', handler);
+
+      const finalize = (): void => {
+        sock.ev.off('messaging-history.set', handler);
+        resolve(buffer);
+      };
+
+      setTimeout(finalize, timeoutMs);
+    });
+
+    // Dispara o request — retorna request ID (string), não os dados.
+    await sock.fetchMessageHistory(input.count, oldestKey, input.before_ts);
+
+    const raw = await collected;
+
+    // Dedupe + ordenação por timestamp DESC (mais recente primeiro,
+    // alinhado com o que o Baileys já faz internamente — "reverse
+    // chronologically sorted").
+    const dedup = new Map<string, proto.IWebMessageInfo>();
+    for (const m of raw) {
+      const key = m.key?.id ?? '';
+      if (key && !dedup.has(key)) dedup.set(key, m);
+    }
+    const sorted = Array.from(dedup.values()).sort((a, b) => {
+      const ta = Number(a.messageTimestamp ?? 0);
+      const tb = Number(b.messageTimestamp ?? 0);
+      return tb - ta;
+    });
+
+    const out = sorted.slice(0, input.count).map((m) => ({
+      key: {
+        remoteJid: m.key?.remoteJid ?? null,
+        fromMe: m.key?.fromMe ?? null,
+        id: m.key?.id ?? null,
+        participant: m.key?.participant ?? null,
+      },
+      message: m.message,
+      push_name: m.pushName ?? null,
+      timestamp: m.messageTimestamp ? Number(m.messageTimestamp) : null,
+    }));
+
+    const oldest = out[out.length - 1];
+
+    return {
+      count: out.length,
+      // `has_more` heurística: se devolveu o batch completo (==count),
+      // assume que tem mais. Se devolveu menos, provável chegou no
+      // início da história. Caller pode forçar mais 1 chamada pra
+      // confirmar (e receberá empty=true).
+      has_more: out.length >= input.count,
+      oldest_id: oldest?.key.id ?? null,
+      oldest_ts: oldest?.timestamp ?? null,
+      messages: out,
+      empty: out.length === 0,
+    };
   }
 
   // ---------- internals ----------
