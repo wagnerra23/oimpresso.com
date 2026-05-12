@@ -642,4 +642,194 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 ---
 
-**Última atualização:** 2026-05-11 noite — **heatmap v3** com correções Wagner sobre classificação: Vargas = **oficina recapagem caminhão** (não gráfica+frota); Gold = **comunicação visual** (não gráfica genérica). Pasta de inteligência por cliente criada em [`memory/research/clientes-legacy-officeimpresso/`](../../research/clientes-legacy-officeimpresso/) com 5 perfis + LGPD protocol + cross-analysis. **Mudança v3:** US-SELL-028 redirecionada — não é mais "multi-vertical" e sim "schema multi-placa pra Modules/OficinaAuto" (P2→P1). **Sinal qualificado pra Modules/OficinaAuto obtido** (2 de 4 clientes = 50% do sample). Total: **5 P0 + 5 P1 + 3 P2 + 1 P3 = 14 US**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
+## 6. Pipeline Vendas — 7 GAPs canônicos (sessão 2026-05-12)
+
+> Cadeia criada após discovery profundo de [ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md) + código `app/Domain/Fsm/` existente + auditoria NfeService.
+> **Pain points reais Wagner 2026-05-12:**
+> 1. *"cancelam nota perdem número pula sequencial"* → G1+G2 (US-029/030)
+> 2. *"orçamento foi para estágio voltou sem ninguém ter autorizado"* → G3+G4 (US-031/032)
+> 3. *"produção iniciada sem pessoas ter autorizado"* → G5 (US-033)
+>
+> Doc canônico: [CASOS-USO-PIPELINE-VENDAS.md](./CASOS-USO-PIPELINE-VENDAS.md) — 7 casos Given/When/Then + 5 arquivos Pest failing-first.
+> **Aprovação pendente Wagner** antes de implementar qualquer linha.
+
+### US-SELL-029 · NFe cancelada via SEFAZ não sofre forceDelete (preserva sequencial) · **P0 fiscal**
+
+> owner: — · priority: p0 · estimate: 3h codável + 5h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> blocked_by: — (precede US-030)
+> evidence: bug confirmado em [NfeService.php:380-398](../../../Modules/NfeBrasil/Services/NfeService.php#L380) — `cancelada` tratada igual `rejeitada/denegada` recebe `forceDelete()`, próxima emissão pula sequencial
+
+**Contexto.** SEFAZ distingue: `cancelada via evento` (número usado oficialmente, imutável) ≠ `rejeitada/denegada` (número não declarado, reaproveitável via inutilização). Mistura atual gera buraco no sequencial fiscal sujeito a multa ([CONFAZ Ajuste SINIEF 07/2005 Art. 14](https://www.confaz.fazenda.gov.br/legislacao/ajustes/2005/ajuste-007-05)).
+
+**Escopo:**
+- [ ] Refator `NfeService::emitir()` linha 380: distinguir `cancelada` (bloqueia retry com erro instrutivo) de `rejeitada/denegada` (permite retry após inutilização)
+- [ ] NÃO usar mais `forceDelete()` — preservar registro com status `inutilizado` em vez de hard delete
+- [ ] Action FSM nova `emitir_nova_apos_cancelamento` (cria nova `transaction_id` que aponta pra transaction original — bridge)
+- [ ] Pest 7+ testes em [`tests/Feature/Domain/Fsm/SequencialNfeAposCancelamentoTest.php`](../../../tests/Feature/Domain/Fsm/SequencialNfeAposCancelamentoTest.php) (criado failing-first)
+
+**Acceptance criteria:**
+- [ ] `SELECT numero, status FROM nfe_emissoes WHERE business_id=1 AND modelo='55' ORDER BY numero` retorna sequência contínua mesmo após cancelamento
+- [ ] Tentativa de re-emitir mesma transaction com NFe cancelada lança `RuntimeException` com mensagem instrutiva
+- [ ] Pest `SequencialNfeAposCancelamentoTest` todos verdes
+- [ ] Smoke biz=1: cancelar NFe → criar nova venda → conferir `proximoNumeroLocked` avança sem pular
+
+### US-SELL-030 · NfeInutilizacaoService — chama SEFAZ + persiste em `nfe_inutilizacoes` · **P0 fiscal**
+
+> owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> blocked_by: US-029 (refator NfeService precede)
+> evidence: tabela `nfe_inutilizacoes` existe ([migration 002003](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002003_create_nfe_inutilizacoes_table.php)) **sem service que a use**
+
+**Contexto.** Tabela criada na fundação mas sem código que dispare inutilização via SEFAZ. Caso real: lote de NFes rejeitadas precisa inutilizar faixa pra preservar sequencial (ex: erro técnico + retry impossível).
+
+**Escopo:**
+- [ ] `Modules\NfeBrasil\Services\NfeInutilizacaoService::inutilizar($businessId, $modelo, $serie, $numeroDe, $numeroAte, $justificativa)`
+- [ ] Validações: justificativa 15-255 chars (regra SEFAZ), cross-tenant guard, faixa válida (numeroDe ≤ numeroAte)
+- [ ] Integração `NFePHP\NFe\Tools::sefazInutiliza()`
+- [ ] Persiste em `nfe_inutilizacoes` + atualiza status `inutilizado` em `nfe_emissoes` da faixa
+- [ ] Action FSM `inutilizar_faixa` chamável via UI admin fiscal
+- [ ] Pest cobertura: faixa simples, faixa múltipla, justificativa curta, cross-tenant, cstat=102 success / cstat≠102 failure
+
+**Acceptance criteria:**
+- [ ] Service callable via UI admin: form `numero_de`, `numero_ate`, `justificativa`
+- [ ] Após inutilizar: faixa marcada `inutilizado` em `nfe_emissoes`, registro em `nfe_inutilizacoes` com cstat=102 ou error trace
+- [ ] Smoke biz=1: inutilizar nº 200-205 → próxima emissão pega 206
+
+### US-SELL-031 · Action FSM crítica (is_critical) exige role explícita (fail-secure) · **P1 governança**
+
+> owner: — · priority: p1 · estimate: 2h codável + 1h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> blocked_by: —
+> evidence: [ExecuteStageActionService.php:62](../../../app/Domain/Fsm/Services/ExecuteStageActionService.php#L62) — `empty($roleNames)` libera pra qualquer user; seed incompleto vira bypass silencioso
+
+**Contexto.** Hoje action sem role cadastrada permite execução. Pra actions de risco (cancelar venda, voltar estágio, iniciar produção), comportamento fail-secure: sem role = bloqueio.
+
+**Escopo:**
+- [ ] Migration `add_is_critical_to_sale_stage_actions` (boolean default false)
+- [ ] Refator `ExecuteStageActionService::execute()`: se `is_critical && empty($roleNames)` → `UnauthorizedActionException` com mensagem instrutiva
+- [ ] Seeder atualiza actions de risco com `is_critical=true` + role mínima default
+- [ ] Pest 5 testes em [`tests/Feature/Domain/Fsm/TransicaoCriticaExigeAutorizacaoTest.php`](../../../tests/Feature/Domain/Fsm/TransicaoCriticaExigeAutorizacaoTest.php) (criado failing-first)
+
+**Acceptance criteria:**
+- [ ] Action `is_critical=true` sem role bloqueia execução
+- [ ] Action `is_critical=false` sem role mantém comportamento aberto (back-compat)
+- [ ] Mensagem da exception instrui qual role configurar
+
+### US-SELL-032 · Observer bloqueia UPDATE direto em current_stage_id (gateway obrigatório) · **P1 governança**
+
+> owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> blocked_by: —
+> evidence: ExecuteStageActionService é gateway recomendado mas não obrigatório — bypass via Eloquent direto, query builder mass-update, tinker, ou DB::table
+
+**Contexto.** Pra transformar service em gateway obrigatório, Observer Eloquent intercepta `saving` de `current_stage_id`. Flag interna `_fsmAuthorizedTransition` setada pelo service contorna. Acesso superadmin via flag explícita + log estruturado.
+
+**Escopo:**
+- [ ] `App\Domain\Fsm\Observers\TransactionFsmObserver` com hook `updating`
+- [ ] Modificar `ExecuteStageActionService::execute()` pra setar `$subject->_fsmAuthorizedTransition = true` antes do `save()`
+- [ ] Registrar observer em `Transaction::booted()` + em qualquer model FSM-managed (Repair JobSheet futuro)
+- [ ] Comando artisan `fsm:scan-drift` detecta drift via raw DB::table updates (Observer não pega)
+- [ ] Pest 5 testes em [`tests/Feature/Domain/Fsm/CurrentStageIdBypassObserverTest.php`](../../../tests/Feature/Domain/Fsm/CurrentStageIdBypassObserverTest.php) (criado failing-first)
+- [ ] Doc no SPEC: padrão "todo write em current_stage_id passa pelo Service"
+
+**Acceptance criteria:**
+- [ ] UPDATE direto (Eloquent ou Eloquent::update) lança `UnauthorizedActionException`
+- [ ] ExecuteStageActionService passa normal
+- [ ] `php artisan fsm:scan-drift` detecta registros que mudaram via raw SQL e loga WARNING
+
+### US-SELL-033 · Processo seed "Venda Com Produção" canônico (9 stages + 12 actions + roles) · **P0 negócio**
+
+> owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> blocked_by: US-031 (is_critical) + US-032 (Observer)
+> evidence: 3 processos seed atuais (Sem Nota / Com Nota Manual / Com Nota Auto) **não têm stages de produção** — gambiarra/informal pra clientes OficinaAuto/ComunicacaoVisual/Vestuario
+
+**Contexto.** Pipeline canônico cobre ciclo completo Orçamento → Produção → Venda → Faturamento com sub-FSM internas por setor (RBAC granular por transição).
+
+**Stages canônicos:**
+```
+quote_draft → quote_sent → quote_approved → in_production →
+ready_for_invoice → invoiced → paid → delivered → completed (terminal)
+Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_hold
+```
+
+**Actions com roles obrigatórias (is_critical=true marcadas com 🔒):**
+- `enviar_orcamento` — role `vendas.enviar`
+- `cliente_aprovou` — role `vendas.confirmar_aprovacao` 🔒 + side_effect `ReservarEstoque`
+- `cliente_rejeitou` — role `vendas.confirmar_aprovacao`
+- `iniciar_producao` — role `producao.iniciar` 🔒
+- `pausar_producao` — role `producao.pausar`
+- `concluir_producao` — role `producao.concluir` 🔒 + side_effect `ConsumirEstoque`
+- `faturar` — role `financeiro.faturar` 🔒
+- `emitir_nfe` — role `fiscal.emitir` 🔒 + side_effect `EmitirNFeJob`
+- `marcar_pago` — role `financeiro.baixar` 🔒 + side_effect `BaixarFinanceiro`
+- `entregar` — role `logistica.entregar`
+- `concluir` — role `vendas.gerente`
+- `cancelar_venda` — role `vendas.gerente` 🔒 + side_effect `CancelarVendaCascade` (US-034)
+- `reabrir_para_revisao` (volta `quote_approved → quote_sent`) — role `vendas.gerente` 🔒
+
+**Escopo:**
+- [ ] Seeder `Database\Seeders\FsmProcessoVendaComProducaoSeeder` (idempotente, por business)
+- [ ] Roles novas via Spatie Permission seed: `producao.iniciar`, `producao.pausar`, `producao.concluir`, `vendas.enviar`, `vendas.confirmar_aprovacao`, `vendas.gerente`, `fiscal.emitir`, `financeiro.faturar`, `financeiro.baixar`, `logistica.entregar`
+- [ ] Comando artisan `fsm:install-process {business_id} venda_com_producao`
+- [ ] Pest 7 testes em [`tests/Feature/Domain/Fsm/ProcessoVendaComProducaoTest.php`](../../../tests/Feature/Domain/Fsm/ProcessoVendaComProducaoTest.php) (criado failing-first)
+- [ ] Charter `memory/requisitos/Sells/CHARTER-pipeline-vendas.charter.md` (S4 antecipado)
+
+**Acceptance criteria:**
+- [ ] Seeder cria processo + 11 stages (9 lineares + cancelled + on_hold) + 13 actions + 10 roles
+- [ ] Fluxo feliz end-to-end testado: rascunho → completed (8 transições)
+- [ ] Multi-tenant: seeder biz=1 não vaza pra biz=99
+- [ ] Idempotência: rodar 2x não cria duplicatas
+
+### US-SELL-034 · Side-effect `CancelarVendaCascade` orquestra NFe + boleto + reserva + notificação · **P1 negócio**
+
+> owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> blocked_by: US-029 (cancelamento NFe correto) + US-033 (action cancelar_venda)
+> evidence: hoje cancelar venda é processo manual com risco de inconsistência (cancela NFe mas esquece de estornar boleto, libera reserva mas não notifica cliente, etc)
+
+**Contexto.** Side-effect transacional canônico que orquestra todos os efeitos colaterais do cancelamento — best-effort com idempotência por job individual.
+
+**Escopo:**
+- [ ] `App\Domain\Fsm\SideEffects\CancelarVendaCascade implements SideEffectInterface`
+- [ ] Jobs filhos (dispatch dentro do side-effect):
+  - `Modules\NfeBrasil\Jobs\CancelarNfeJob` (cancela cada NFe `authorized` via SEFAZ — não pula sequencial, US-029)
+  - `App\Jobs\EstornarBoletoJob` (Asaas/Inter API cancel — idempotente)
+  - `Modules\Whatsapp\Jobs\NotificarClienteCancelamentoJob` (WhatsApp/email "venda cancelada — motivo: X")
+- [ ] Side-effect síncrono `LiberarReserva` (já existe, US-013)
+- [ ] Pest 5 testes em [`tests/Feature/Domain/Fsm/CancelarVendaCascadeSideEffectTest.php`](../../../tests/Feature/Domain/Fsm/CancelarVendaCascadeSideEffectTest.php) (criado failing-first)
+
+**Acceptance criteria:**
+- [ ] Cancelar venda com NFe+boleto+reserva dispara 4 efeitos em ordem
+- [ ] NFe já cancelada antes não duplica job (idempotência)
+- [ ] Sem boleto: não dispara EstornarBoletoJob (caso vazio, não erro)
+- [ ] Motivo registrado em `sale_stage_history.payload_snapshot`
+- [ ] Smoke biz=1: cancelar venda real, conferir 4 efeitos rastreáveis no log
+
+### US-SELL-035 · UI timeline de transições FSM (drawer + page) · **P2 UX/auditoria**
+
+> owner: — · priority: p2 · estimate: 8h frontend (sem canary) · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> blocked_by: US-033 (processo canon) + visibilidade real após implementação
+> evidence: `sale_stage_history` registra tudo desde US-011 mas **não há UI** mostrando — Wagner não consegue responder "quem aprovou? quando? com qual motivo?"
+
+**Contexto.** Audit trail LGPD + governança operacional. Sem UI, o dado existe mas não é útil pra operador. Crítico pra Wagner responder reclamações de cliente ("você aprovou via WhatsApp em 12/05 14h32").
+
+**Escopo:**
+- [ ] Endpoint `/api/sells/{id}/history` retorna `sale_stage_history` com joins (user.name, action.label, stage_from.name, stage_to.name)
+- [ ] Componente `<SaleTimeline />` em `resources/js/Pages/Sells/_components/SaleTimeline.tsx`
+- [ ] Tab "Histórico" no drawer existente `SaleSheet.tsx` (já implementado em US-008)
+- [ ] Filtros: tipo de transição (críticas / side-effects fiscais / todas), faixa de data
+- [ ] Render badges de side-effects disparados (visual quick-scan)
+- [ ] Pest controller test `SaleHistoryControllerTest` (autorização + multi-tenant isolation)
+
+**Acceptance criteria:**
+- [ ] Drawer mostra timeline vertical com 5+ transições de venda exemplo biz=1
+- [ ] Cada item: user, action label, stage from→to, timestamp, motivo (se payload), badges side-effects
+- [ ] LGPD: timeline só visível pra users com permission `sale.history.view` (default ON pra roles vendas.*, financeiro.*, gerencial)
+
+---
+
+**Refs:**
+- Doc canônico [CASOS-USO-PIPELINE-VENDAS.md](./CASOS-USO-PIPELINE-VENDAS.md) (origem destas US)
+- [ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md) (fundação FSM)
+- [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) (§5 SoC, §6 Tier 0)
+- [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) (estimates recalibradas)
+
+---
+
+**Última atualização:** 2026-05-12 — **discovery + spec executable Pipeline Vendas (7 GAPs)**. Wagner valida casos de uso + testes failing-first **antes** de implementar (estratégia: pagar custo agora com poucos clientes ativos vs. retrabalho exponencial com mais clientes). Antes era heatmap v3 → agora pipeline canon completo Orçamento→Produção→Venda→Faturamento. Total SPEC: **5 P0 + 5 P1 + 3 P2 + 1 P3 (US-015..028) + 4 P0 + 2 P1 + 1 P2 (US-029..035) = 21 US ativas**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado pelo próprio Wagner — pain points reportados em sessão).
