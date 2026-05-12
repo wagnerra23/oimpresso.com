@@ -36,6 +36,7 @@ import TemplatePicker from './TemplatePicker';
 import MicRecorder from './MicRecorder';
 import {
   groupByDay,
+  isLikelyLid,
   type CentrifugoConfig,
   type Message,
   type ReadyTemplate,
@@ -428,6 +429,19 @@ export default function ConversationThread({
             </div>
             <div className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
               {!phoneIsName && <span>{conversation.customer_phone}</span>}
+              {/* US-WA-093: badge LID — WhatsApp Multi-Device mascara phone real
+                  (Click-to-Chat / Status / Ads). LidPhoneResolver workaround
+                  ainda não cacheou este LID — hint pro atendente. */}
+              {isLikelyLid(conversation.customer_phone) && (
+                <Badge
+                  variant="outline"
+                  className="text-[9px] px-1.5 py-0 h-4 gap-1 cursor-help"
+                  title="WhatsApp não enviou o número real (LID Multi-Device). Pode resolver vinculando contato CRM, ou aguardar próxima msg do cliente."
+                >
+                  <Lock size={9} aria-hidden />
+                  número oculto
+                </Badge>
+              )}
               {centrifugoConfig && (
                 <>
                   <span className="text-border">·</span>

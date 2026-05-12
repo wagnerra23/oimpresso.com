@@ -75,6 +75,29 @@ export function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 }
 
+/**
+ * Detecta se `phone` parece ser um LID (Linked ID Multi-Device) em vez de
+ * phone real. WhatsApp envia LID como remoteJid quando cliente fala via
+ * Click-to-Chat / Status / Ads — Baileys 6.7.9 não decodifica (workaround
+ * em `LidPhoneResolver` cobre quando senderPn vem; quando não vem, mostra
+ * badge "número oculto" na UI).
+ *
+ * Critérios (espelha `LidPhoneResolver::isLid` PHP):
+ *  - Contém sufixo `@lid`.
+ *  - String só dígitos com 14+ chars E não começa com DDI BR (55).
+ *
+ * Falso positivo: phones internacionais 14+ dígitos sem DDI BR. Aceitável
+ * em ROTA LIVRE biz=1 (todos BR); reavaliar quando onboardar tenants
+ * internacionais.
+ */
+export function isLikelyLid(phone: string | null | undefined): boolean {
+  if (!phone) return false;
+  if (phone.includes('@lid')) return true;
+  const digits = phone.replace(/\D+/g, '');
+  if (digits.length >= 14 && !digits.startsWith('55')) return true;
+  return false;
+}
+
 export interface Message {
   id: number;
   direction: 'inbound' | 'outbound';

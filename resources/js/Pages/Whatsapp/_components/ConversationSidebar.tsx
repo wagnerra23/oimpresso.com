@@ -26,7 +26,7 @@ import { Separator } from '@/Components/ui/separator';
 
 import Avatar from './Avatar';
 import ContactPickerModal from './ContactPickerModal';
-import { formatDateTime, type ConvTag, type ThreadConversation } from './helpers';
+import { formatDateTime, isLikelyLid, type ConvTag, type ThreadConversation } from './helpers';
 
 interface Props {
   conversation: ThreadConversation;
@@ -203,6 +203,20 @@ export default function ConversationSidebar({
           <div className="font-semibold leading-tight">{conversation.contact_name}</div>
           {conversation.contact_name !== conversation.customer_phone && (
             <div className="text-xs text-muted-foreground">{conversation.customer_phone}</div>
+          )}
+          {/* US-WA-093: badge LID — WhatsApp Multi-Device mascara phone real
+              em conversas via Click-to-Chat / Status / Ads. Workaround custom
+              (LidPhoneResolver) ainda não resolveu este LID — mostra hint pro
+              atendente saber por que o número não parece BR. */}
+          {isLikelyLid(conversation.customer_phone) && (
+            <Badge
+              variant="outline"
+              className="text-[10px] gap-1 cursor-help"
+              title="WhatsApp não enviou o número real (LID Multi-Device). Pode resolver vinculando contato CRM, ou aguardar próxima msg do cliente."
+            >
+              <ShieldOff size={10} aria-hidden />
+              número oculto
+            </Badge>
           )}
           <StatusBadge status={conversation.status} />
         </div>
