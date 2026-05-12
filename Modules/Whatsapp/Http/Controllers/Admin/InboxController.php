@@ -388,6 +388,10 @@ class InboxController extends Controller
             // sender_kind='human' E sender_user_name set (evita ambiguidade
             // quando time compartilha chip).
             'sender_user_name' => $this->resolveSenderUserName($m),
+            // US-WA-071 (ADR 0142): flag pra UI renderizar bubble amarelo
+            // de nota interna. Backend já garante via global scope que só
+            // atendentes do business veem (Tier 0).
+            'is_internal_note' => (bool) $m->is_internal_note,
             'created_at' => $m->created_at?->toIso8601String() ?? now()->toIso8601String(),
         ];
     }
@@ -432,7 +436,16 @@ class InboxController extends Controller
             'template_name' => ['required_if:kind,template', 'nullable', 'string'],
             'template_locale' => ['nullable', 'string'],
             'template_params' => ['nullable', 'array'],
+            // US-WA-071 (ADR 0142): true = nota interna, NUNCA vai pro driver
+            'is_internal_note' => ['nullable', 'boolean'],
         ]);
+
+        $isInternalNote = (bool) ($data['is_internal_note'] ?? false);
+
+        // Template + nota interna = combinação inválida (template é sempre cliente-facing)
+        if ($isInternalNote && $data['kind'] === 'template') {
+            return back()->withErrors(['send' => 'Template não pode ser nota interna — templates sempre vão pro cliente.']);
+        }
 
         $conversation = Conversation::query()
             ->where('business_id', $businessId)
@@ -446,6 +459,9 @@ class InboxController extends Controller
 
         // Persiste Message outbound em status=queued ANTES do dispatch — defesa
         // em profundidade. Se daemon falhar, a row já existe no DB pra retry.
+        //
+        // US-WA-071: notas internas nascem com status='sent' direto (sem
+        // dispatch driver) — Centrifugo distribui pros atendentes do business.
         $message = Message::query()->create([
             'business_id' => $businessId,
             'conversation_id' => $conversation->id,
@@ -454,15 +470,29 @@ class InboxController extends Controller
             'type' => $data['kind'] === 'template' ? 'template' : 'text',
             'template_name' => $data['template_name'] ?? null,
             'body' => $data['body'] ?? null,
-            'status' => 'queued',
+            'status' => $isInternalNote ? 'sent' : 'queued',
             'sender_user_id' => $userId ?: null,
             'sender_kind' => 'human',
+            'is_internal_note' => $isInternalNote,
         ]);
 
         $conversation->forceFill([
             'last_outbound_at' => now(),
             'last_message_at' => now(),
         ])->save();
+
+        // US-WA-071 Tier 0 IRREVOGÁVEL — nota interna NUNCA vai pro driver.
+        // Gate aplicado AQUI antes de qualquer HTTP. ADR 0142 §1.
+        // Métrica `internal_note_dispatch_to_driver_violation_24h` MUST be 0.
+        if ($isInternalNote) {
+            Log::info('[atendimento.inbox.send] internal note persisted (no driver dispatch)', [
+                'message_id' => $message->id,
+                'conversation_id' => $conversation->id,
+                'business_id' => $businessId,
+                'author_user_id' => $userId,
+            ]);
+            return back()->with('success', 'Nota interna salva.');
+        }
 
         if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
             $message->forceFill([
