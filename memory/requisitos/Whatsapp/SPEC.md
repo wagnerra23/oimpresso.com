@@ -975,7 +975,7 @@ Detalhe do canal em `/atendimento/canais/{id}` ganha tabs: `Config | Usuários |
 
 ### US-WA-069 · Validar canal=fila — Suporte não vê inbox do Financeiro
 
-> owner: wagner · sprint: CYCLE-05 · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p0 · estimate: 4h · status: review · type: story
 > blocked_by: US-WA-068
 
 Modelo confirmado (2026-05-12 Wagner): **Canal = Fila**. ACL per-canal via `whatsapp_phone_user_access` já existe. Esta US é só **validar** que o filtro funciona ponta-a-ponta.
