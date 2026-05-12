@@ -61,3 +61,18 @@ export const webhookLatencyHistogram = new Histogram({
   buckets: [50, 100, 250, 500, 1_000, 2_500, 5_000, 10_000, 30_000],
   registers: [registry],
 });
+
+export const mediaDecryptCounter = new Counter({
+  name: 'whatsapp_baileys_media_decrypt_total',
+  help: 'Decrypt de URL Baileys inbound: status ok | invalid_body | decrypt_failed | cdn_unreachable.',
+  labelNames: ['status', 'type'] as const,
+  registers: [registry],
+});
+
+export const mediaDecryptLatencyHistogram = new Histogram({
+  name: 'whatsapp_baileys_media_decrypt_latency_ms',
+  help: 'Tempo de decrypt de mídia inbound (download CDN + AES).',
+  labelNames: ['type'] as const,
+  buckets: [50, 100, 250, 500, 1_000, 2_500, 5_000, 10_000, 30_000],
+  registers: [registry],
+});
