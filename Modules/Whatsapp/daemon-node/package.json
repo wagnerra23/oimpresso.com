@@ -32,6 +32,7 @@
     "@opentelemetry/semantic-conventions": "1.27.0",
     "@whiskeysockets/baileys": "6.7.18",
     "fastify": "4.28.1",
+    "mysql2": "3.11.5",
     "pino": "9.5.0",
     "pino-pretty": "11.3.0",
     "prom-client": "15.1.3",
