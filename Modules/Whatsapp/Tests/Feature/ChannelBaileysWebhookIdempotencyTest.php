@@ -88,6 +88,9 @@ beforeEach(function () {
         $table->timestamp('last_outbound_at')->nullable();
         $table->timestamp('last_message_at')->nullable();
         $table->unsignedInteger('unread_count')->default(0);
+        $table->string('last_message_preview', 120)->nullable();
+        $table->string('last_message_direction', 20)->nullable();
+        $table->boolean('is_blocked')->default(false);
         $table->timestamps();
     });
 
@@ -108,6 +111,20 @@ beforeEach(function () {
         $table->unsignedInteger('sender_user_id')->nullable();
         $table->string('sender_kind', 20)->nullable();
         $table->unsignedInteger('cost_centavos')->nullable();
+        $table->boolean('is_internal_note')->default(false);
+        // US-WA-072 mídia
+        $table->string('media_url', 500)->nullable();
+        $table->string('media_mime', 100)->nullable();
+        $table->unsignedBigInteger('media_size_bytes')->nullable();
+        $table->unsignedSmallInteger('media_duration_s')->nullable();
+        $table->string('media_thumbnail_url', 500)->nullable();
+        $table->text('media_transcription')->nullable();
+        $table->string('media_filename', 255)->nullable();
+        // Guardião 6 camadas (Camada 2)
+        $table->string('media_download_status', 30)->default('pending');
+        $table->unsignedInteger('media_download_attempts')->default(0);
+        $table->timestamp('media_download_last_attempt_at')->nullable();
+        $table->string('media_download_failed_reason', 255)->nullable();
         $table->timestamp('created_at')->useCurrent();
         $table->timestamp('updated_at')->nullable();
         // Espelha UNIQUE `msgs_provider_msg_uniq` da migration prod.

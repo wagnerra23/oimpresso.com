@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Log;
  *   5. ProfileDistiller drift (COPI-26) — profiles >7d sem regenerar
  *   6. Procedure drift (US-COPI-092) — hash deployed vs migration canônica
  *   7. Spec ID drift (ADR 0134) — colisão DB↔SPEC.md (mesmo ID, title diferente)
+ *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
  *
  * Uso:
  *   php artisan jana:health-check
@@ -47,6 +48,7 @@ class HealthCheckCommand extends Command
             $this->checkProfileDrift(),
             $this->checkProcedureDrift(),
             $this->checkSpecIdDrift(),
+            $this->checkWhatsappMediaPending1h(),
         ];
 
         $allOk = collect($checks)->every(fn ($c) => $c['ok']);
@@ -391,6 +393,72 @@ class HealthCheckCommand extends Command
         }
     }
 
+    /**
+     * Check 8 — Whatsapp media pending 1h (Guardião 6 Camada 6).
+     *
+     * Detecta mídia órfã > 1h (pending|downloading + media_url=null + não failed_permanent).
+     * Tolerância: 0 — qualquer mídia pending > 1h significa que Observer (Camada 1)
+     * + Retry hourly (Camada 4) não fecharam o caso → daemon offline, MIME novo
+     * bloqueado, ou bug introduzido.
+     *
+     * Skip silencioso quando tabela `messages` não existe (ambientes sem módulo
+     * Whatsapp instalado).
+     *
+     * @see Modules/Whatsapp/Jobs/DownloadMediaJob.php (Camada 3)
+     * @see Modules/Whatsapp/Console/Commands/ScanMediaDriftCommand.php (Camada 5)
+     */
+    protected function checkWhatsappMediaPending1h(): array
+    {
+        try {
+            // Skip se tabela não existe (módulo Whatsapp ausente).
+            if (! \Illuminate\Support\Facades\Schema::hasTable('messages')) {
+                return [
+                    'name' => 'whatsapp_media_pending_1h',
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => 0,
+                    'message' => 'Tabela messages ausente — módulo Whatsapp não instalado',
+                ];
+            }
+
+            // Skip se coluna media_download_status não existe (migration pendente).
+            if (! \Illuminate\Support\Facades\Schema::hasColumn('messages', 'media_download_status')) {
+                return [
+                    'name' => 'whatsapp_media_pending_1h',
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => 0,
+                    'message' => 'Coluna media_download_status ausente — guardião 6 não migrado',
+                ];
+            }
+
+            $count = (int) DB::table('messages')
+                ->whereNotNull('media_mime')
+                ->whereNull('media_url')
+                ->where('media_download_status', '!=', 'failed_permanent')
+                ->where('created_at', '<', now()->subHour())
+                ->count();
+
+            return [
+                'name' => 'whatsapp_media_pending_1h',
+                'ok' => $count === 0,
+                'value' => $count,
+                'threshold' => 0,
+                'message' => $count === 0
+                    ? 'Zero mídia órfã > 1h'
+                    : "ALERTA: {$count} mídia(s) pending > 1h — checar daemon CT 100 + RetryFailedMediaDownloadsJob",
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => 'whatsapp_media_pending_1h',
+                'ok' => false,
+                'value' => null,
+                'threshold' => 0,
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
     protected function renderTable(array $checks, bool $allOk): void
     {
         $this->newLine();
@@ -411,7 +479,7 @@ class HealthCheckCommand extends Command
 
         $this->newLine();
         if ($allOk) {
-            $this->info('✓ Todos os 7 checks passaram. Sistema saudável.');
+            $this->info('✓ Todos os 8 checks passaram. Sistema saudável.');
         } else {
             $failed = collect($checks)->where('ok', false)->count();
             $this->error("✗ {$failed} check(s) falharam — investigar acima.");

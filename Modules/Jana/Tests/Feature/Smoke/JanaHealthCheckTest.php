@@ -36,7 +36,9 @@ test('--json output tem shape canonico', function () {
         ->toHaveKey('checked_at')
         ->toHaveKey('checks');
 
-    expect($json['checks'])->toBeArray()->toHaveCount(6);
+    // 8 checks: multi_tenant, brief_uptime, custo_brain_b, pii_leak,
+    // profile_drift, procedure_drift, spec_id_drift, whatsapp_media_pending_1h.
+    expect($json['checks'])->toBeArray()->toHaveCount(8);
 });
 
 test('cada check tem campos canonicos', function () {
@@ -51,6 +53,8 @@ test('cada check tem campos canonicos', function () {
         'pii_leak_in_assistant_responses',
         'profile_distiller_drift',
         'procedure_drift',
+        'spec_id_drift',
+        'whatsapp_media_pending_1h',
     ];
 
     $namesReais = array_column($json['checks'], 'name');
