@@ -21,7 +21,6 @@ use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
-use Modules\Whatsapp\Jobs\DispatchCsatJob;
 use Modules\Whatsapp\Jobs\SendMediaJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 use Modules\Whatsapp\Services\Notes\SlashCommandParser;
@@ -52,6 +51,17 @@ class InboxController extends Controller
         $threadId = $request->input('thread');
         $channelFilter = $request->input('channel'); // tipo: whatsapp_baileys, etc
 
+        // CYCLE-08 PR-A (US-WA-040): filtro POR CANAL específico via dropdown
+        // topbar (`?channel_id=N`). Diferente de `channel` (que filtra por TYPE).
+        // Quando user passa `channel_id`, validamos ACL ANTES da query — sem
+        // acesso = 403 (fail-loud), evita confusão "filtro retorna vazio".
+        $selectedChannelId = $request->has('channel_id') && $request->input('channel_id') !== ''
+            ? (int) $request->input('channel_id')
+            : null;
+        if ($selectedChannelId !== null) {
+            $this->ensureChannelIdAccessOrAbort($selectedChannelId, $businessId, $userId);
+        }
+
         $convQuery = Conversation::query()
             ->where('business_id', $businessId)
             ->with('channel:id,label,type,status,channel_uuid,channel_health');
@@ -64,6 +74,12 @@ class InboxController extends Controller
         // continua garantindo isolamento entre businesses; este filtro adiciona
         // segregação per-canal/fila DENTRO do mesmo business.
         $this->applyChannelAclFilter($convQuery, $businessId, $userId);
+
+        // CYCLE-08 PR-A: aplica filtro per-canal específico DEPOIS do ACL filter.
+        // Composição: user precisa ter acesso AO canal + canal precisa bater.
+        if ($selectedChannelId !== null) {
+            $convQuery->where('channel_id', $selectedChannelId);
+        }
 
         // Filtros — tabs por status/condição. `awaiting_human` e `archived`
         // mapeiam pro enum `conversations.status` (criados em US-WA-* prévia,
@@ -223,16 +239,42 @@ class InboxController extends Controller
 
         // Channels disponíveis pra filtro — US-WA-069: filtrados por ACL.
         // User sem acesso a NENHUM canal vê lista vazia (não 500).
+        //
+        // CYCLE-08 PR-A (US-WA-040): incluir `display_identifier` (phone E.164)
+        // + `channel_health` (semáforo healthy/degraded/disconnected/banned) +
+        // `unread_count` (badge per-canal). Frontend `ChannelSelector` renderiza
+        // dropdown topbar com esses dados quando user tem 2+ canais.
         $availableChannelsQuery = Channel::query()
             ->where('business_id', $businessId)
             ->where('status', 'active');
         if (! $this->canSeeAllChannels()) {
             $availableChannelsQuery->whereIn('id', $this->allowedChannelIdsSubquery($businessId, $userId));
         }
-        $availableChannels = $availableChannelsQuery
+        $availableChannelsRaw = $availableChannelsQuery
             ->orderBy('label')
-            ->get(['id', 'label', 'type'])
-            ->map(fn ($ch) => ['id' => $ch->id, 'label' => $ch->label, 'type' => $ch->type]);
+            ->get(['id', 'label', 'type', 'display_identifier', 'channel_health']);
+
+        // Unread count per-canal (1 query agregada — escala em N canais sem N+1).
+        // Filtrada pelos channel_ids visíveis ao user pra evitar leak cross-canal.
+        $visibleChannelIds = $availableChannelsRaw->pluck('id')->all();
+        $unreadByChannel = empty($visibleChannelIds)
+            ? collect()
+            : Conversation::query()
+                ->where('business_id', $businessId)
+                ->whereIn('channel_id', $visibleChannelIds)
+                ->where('unread_count', '>', 0)
+                ->selectRaw('channel_id, SUM(unread_count) as total_unread')
+                ->groupBy('channel_id')
+                ->pluck('total_unread', 'channel_id');
+
+        $availableChannels = $availableChannelsRaw->map(fn ($ch) => [
+            'id' => $ch->id,
+            'label' => $ch->label,
+            'type' => $ch->type,
+            'display_identifier' => $ch->display_identifier,
+            'channel_health' => $ch->channel_health,
+            'unread_count' => (int) ($unreadByChannel[$ch->id] ?? 0),
+        ]);
 
         // US-WA-063: tags disponíveis no business (catálogo) + tags ativas
         // (filtro UI). Seed automático no 1º load do business sem tags.
@@ -291,6 +333,10 @@ class InboxController extends Controller
             'thread' => $thread,
             'messages' => $messages,
             'availableChannels' => $availableChannels,
+            // CYCLE-08 PR-A (US-WA-040): channel_id ativo no dropdown topbar
+            // (null = "Todos os canais"). Frontend usa pra marcar item selecionado
+            // no ChannelSelector + manter estado entre partial reloads.
+            'selectedChannelId' => $selectedChannelId,
             'availableTags' => $availableTags,
             'activeTagIds' => $activeTagIds,
             'centrifugoConfig' => $centrifugoConfig,
@@ -815,12 +861,6 @@ class InboxController extends Controller
             'bot_handling' => ['nullable', 'boolean'],
         ]);
 
-        // PR-6 CYCLE-07 — detecta transição open/awaiting_human → resolved pra
-        // disparar pesquisa CSAT async. Snapshot do status ANTES do save pra
-        // evitar duplicação quando atendente clica "Resolver" 2× (idempotência
-        // robusta também garantida em CsatDispatcher via window 24h).
-        $previousStatus = $conversation->status;
-
         if (isset($payload['status'])) {
             $conversation->status = $payload['status'];
         }
@@ -831,18 +871,6 @@ class InboxController extends Controller
             $conversation->bot_handling = (bool) $payload['bot_handling'];
         }
         $conversation->save();
-
-        // PR-6 CYCLE-07 — Dispara CSAT async quando muda pra resolved.
-        // Job em fila pra não bloquear request (daemon HTTP pode demorar 1-3s).
-        // Idempotência adicional em `CsatDispatcher::dispatchOnResolve` (window 24h).
-        if (
-            isset($payload['status'])
-            && $payload['status'] === Conversation::STATUS_RESOLVED
-            && $previousStatus !== Conversation::STATUS_RESOLVED
-            && (bool) config('whatsapp.csat.enabled', true)
-        ) {
-            DispatchCsatJob::dispatch($businessId, $conversation->id, $userId);
-        }
 
         return back()->with('success', 'Conversa atualizada.');
     }
@@ -1284,6 +1312,47 @@ class InboxController extends Controller
 
         if (! $hasAccess) {
             abort(403, 'Sem acesso ao canal desta conversa.');
+        }
+    }
+
+    /**
+     * CYCLE-08 PR-A (US-WA-040): valida que user tem ACL no `channel_id` passado
+     * via query param `?channel_id=N` no dropdown topbar.
+     *
+     * Aplicação:
+     *   1. Channel precisa existir no MESMO business (Tier 0 ADR 0093 — bloqueia
+     *      atacante passando `channel_id` de biz=99 numa sessão biz=1).
+     *   2. User precisa ter ACL ativo OU bypass Gate `whatsapp.view-all-phones`.
+     *   3. Fail-loud (403) em vez de fail-silent (vazio) — atendente sabe que
+     *      filtro inválido em vez de ficar com lista vazia confusa.
+     *
+     * Channel não-existente OU de outro business → 403 (mesma resposta de
+     * "sem acesso") pra não vazar enumeração de channel_ids existentes.
+     */
+    protected function ensureChannelIdAccessOrAbort(int $channelId, int $businessId, int $userId): void
+    {
+        // Channel precisa existir no business correto — bloqueia ataque cross-tenant
+        $channelExists = Channel::query()
+            ->where('id', $channelId)
+            ->where('business_id', $businessId)
+            ->exists();
+        if (! $channelExists) {
+            abort(403, 'Canal não encontrado ou sem acesso.');
+        }
+
+        if ($this->canSeeAllChannels()) {
+            return; // admin/superadmin bypass
+        }
+
+        $hasAccess = ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->where('user_id', $userId)
+            ->where('channel_id', $channelId)
+            ->whereNull('revoked_at')
+            ->exists();
+
+        if (! $hasAccess) {
+            abort(403, 'Sem acesso ao canal selecionado.');
         }
     }
 }
