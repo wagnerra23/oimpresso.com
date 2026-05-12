@@ -23,6 +23,16 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  *
  * Status individual por documento — cancelar NFe55 não afeta NFSe56 da mesma
  * transação. Cada documento tem seu próprio ciclo de vida fiscal.
+ *
+ * Doc types fiscais (NF-e/NFCe/NFSe/NFCom/MDFe/CTe) representam documentos
+ * fiscais stricto sensu — emissão SEFAZ/prefeitura, XML autorizado, etc.
+ *
+ * Doc types de cobrança financeira (boleto_asaas, boleto_inter) representam
+ * cargas de gateway de pagamento — NÃO são documento fiscal. São registrados
+ * aqui pra unificar o ciclo de cancelamento (CancelarVendaCascade lê todos
+ * os documentos da transaction e despacha estorno por tipo). Adicionados em
+ * 2026_05_12_020001_alter_transaction_documents_add_boleto_types.php
+ * (US-CASCADE-BOLETO-001 foundational).
  */
 class TransactionDocument extends Model
 {
@@ -56,6 +66,17 @@ class TransactionDocument extends Model
     public const DOC_MDFE58 = 'mdfe58';
 
     public const DOC_CTE57 = 'cte57';
+
+    /**
+     * Doc types de cobrança financeira via gateway de pagamento.
+     *
+     * Não são documentos fiscais stricto sensu — são charges Asaas / Inter PJ
+     * registradas aqui pra unificar o ciclo de cancelamento via
+     * CancelarVendaCascade + EstornarBoletoJob (US-CASCADE-BOLETO-001+).
+     */
+    public const DOC_BOLETO_ASAAS = 'boleto_asaas';
+
+    public const DOC_BOLETO_INTER = 'boleto_inter';
 
     /**
      * Relacionamento polimórfico — resolve doc_class+doc_id pro Model concreto.
