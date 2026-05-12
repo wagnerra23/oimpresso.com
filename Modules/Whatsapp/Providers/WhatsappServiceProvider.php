@@ -10,6 +10,7 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
+use Modules\Whatsapp\Console\Commands\RegisterWhatsappPermissionsCommand;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\OmnichannelMessageReceived;
@@ -66,6 +67,7 @@ class WhatsappServiceProvider extends ServiceProvider
             $this->commands([
                 DriverHealthCheckAllCommand::class,
                 BackfillChannelAccessCommand::class,
+                RegisterWhatsappPermissionsCommand::class,
             ]);
         }
 
