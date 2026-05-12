@@ -9,6 +9,7 @@ use App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException;
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageHistory;
+use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -86,14 +87,12 @@ class ExecuteStageActionService
             }
 
             if ($action->target_stage_id !== null) {
-                // US-SELL-032 — flag interna sinaliza ao TransactionFsmObserver
-                // que esta transição é autorizada pelo gateway canônico.
-                // Sem essa flag, save() lança UnauthorizedActionException
-                // (caso o model use o trait GuardsFsmTransitions).
-                $subject->_fsmAuthorizedTransition = true;
+                // US-SELL-032 — flag estática autoriza UPDATE em current_stage_id
+                // (consumida pelo trait GuardsFsmTransitions). Singleton evita
+                // property dinâmica no Eloquent que viraria coluna fantasma.
+                FsmAuthorizationFlag::mark($subject::class, $subject->getKey());
                 $subject->current_stage_id = $action->target_stage_id;
                 $subject->save();
-                unset($subject->_fsmAuthorizedTransition);
             }
 
             if ($action->event_class) {
