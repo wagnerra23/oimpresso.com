@@ -928,6 +928,101 @@ class InboxController extends Controller
     }
 
     /**
+     * US-WA-078: POST `/atendimento/inbox/{id}/contact/create-from-phone` —
+     * cria Contact UltimatePOS a partir do phone da conversa + linka.
+     *
+     * Fluxo: atendente clica "Cadastrar como contato" no painel direito
+     * quando `linked_contact === null` (US-WA-064 vincula contact existente
+     * via modal; este endpoint cria do zero usando push_name+phone que o
+     * webhook já capturou).
+     *
+     * Side-effects:
+     *   1. Cria `App\Contact` com type='customer', business_id atual,
+     *      name=$conversation->contact_name, mobile=$customer_external_id.
+     *      `contact_id` (campo UltimatePOS numérico) gerado via
+     *      `commonUtil->generateReferenceNumber('contacts', ...)`.
+     *   2. Linka `conversation->contact_id = contact->id` + save.
+     *   3. Returns back() com flash success — Inertia partial reload faz
+     *      `linked_contact` aparecer no sidebar.
+     *
+     * Tier 0 enforced — Contact criado SEMPRE no business da conversa
+     * (defense-in-depth ON TOP do global scope).
+     *
+     * Permission `whatsapp.send` + ACL canal (mesma do linkContact).
+     */
+    public function createContactFromPhone(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
+
+        // Já vinculado? Não tem o que fazer — defense vs double-click.
+        if ($conversation->contact_id !== null) {
+            return back()->with('success', 'Conversa já vinculada a um contato.');
+        }
+
+        // Nome cadastrado vai ser: push_name (já curado pelo webhook),
+        // ou fallback "Cliente {E.164 truncado}" se vazio. Atendente edita
+        // depois via /contacts/{id}.
+        $contactName = trim((string) ($conversation->contact_name ?? ''));
+        if ($contactName === '' || $contactName === $conversation->customer_external_id) {
+            $contactName = 'Cliente ' . mb_substr((string) $conversation->customer_external_id, -4);
+        }
+
+        // Mobile: usa o E.164 cru (com '+'). UltimatePOS Contact aceita
+        // string livre — atendente normaliza no /contacts edit depois.
+        $mobile = (string) $conversation->customer_external_id;
+
+        try {
+            // Gera `contact_id` UltimatePOS (numérico/string formatado tipo
+            // CO0001) via util padrão. Mesmo pattern do ContactController
+            // legacy quando cria contact via API ou import.
+            $commonUtil = app(\App\Utils\Util::class);
+            $refCount = $commonUtil->setAndGetReferenceCount('contacts', $businessId);
+            $generatedContactId = $commonUtil->generateReferenceNumber('contacts', $refCount, $businessId);
+        } catch (\Throwable $e) {
+            // Fallback se Util falhar (ex: test env sem ref_count_details
+            // configurado). Usa um sufixo timestamp pra evitar collision.
+            $generatedContactId = 'WA-' . $businessId . '-' . now()->format('YmdHis');
+            Log::warning('[atendimento.inbox.create_contact_from_phone] fallback contact_id', [
+                'conversation_id' => $conversation->id,
+                'business_id' => $businessId,
+                'reason' => mb_substr($e->getMessage(), 0, 200),
+            ]);
+        }
+
+        $contact = Contact::query()->create([
+            'business_id' => $businessId,
+            'type' => 'customer',
+            'contact_type' => 'customer',
+            'name' => $contactName,
+            'mobile' => $mobile,
+            'contact_status' => 'active',
+            'contact_id' => $generatedContactId,
+            'created_by' => $userId ?: null,
+        ]);
+
+        $conversation->contact_id = $contact->id;
+        if (empty($conversation->contact_name) || $conversation->contact_name === $conversation->customer_external_id) {
+            $conversation->contact_name = $contact->name;
+        }
+        $conversation->save();
+
+        Log::info('[atendimento.inbox.create_contact_from_phone.created]', [
+            'conversation_id' => $conversation->id,
+            'business_id' => $businessId,
+            'contact_id' => $contact->id,
+            'created_by_user_id' => $userId,
+        ]);
+
+        return back()->with('success', 'Contato cadastrado e vinculado.');
+    }
+
+    /**
      * US-WA-072 — POST `/atendimento/inbox/{id}/send-media` — upload outbound.
      *
      * Aceita multipart com:

@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
+use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
@@ -75,6 +76,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
                 ReparseMediaFromPayloadCommand::class,  // Bonus — extrai meta de payload pré-PR #664
+                AutoLinkConversationContactsCommand::class, // US-WA-078 — backfill auto-link Contact CRM
             ]);
         }
 
