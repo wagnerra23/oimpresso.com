@@ -105,7 +105,7 @@ function inutToolsFactory(string $cstat = '102', string $motivo = 'Inutilizacao 
 {
     return function (string $config, array $certData) use ($cstat, $motivo) {
         $tools = \Mockery::mock(\NFePHP\NFe\Tools::class);
-        $tools->shouldReceive('model')->andReturnSelf();
+        $tools->shouldReceive('model')->andReturn(55); // NFePHP\Tools::model retorna ?int (não chainable)
         $tools->shouldReceive('sefazInutiliza')
             ->andReturn("<?xml version=\"1.0\"?><retInutNFe><infInut><cStat>{$cstat}</cStat><xMotivo>{$motivo}</xMotivo></infInut></retInutNFe>");
         return $tools;

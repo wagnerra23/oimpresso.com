@@ -216,7 +216,7 @@ function nfeInutilizacaoMockSuccess(): Closure
 {
     return function (string $config, array $certData) {
         $tools = \Mockery::mock(\NFePHP\NFe\Tools::class);
-        $tools->shouldReceive('model')->andReturnSelf();
+        $tools->shouldReceive('model')->andReturn(55); // NFePHP\Tools::model retorna ?int (não chainable)
         $tools->shouldReceive('sefazInutiliza')
             ->andReturn('<?xml version="1.0"?><retInutNFe><infInut><cStat>102</cStat><xMotivo>Inutilizacao de numero homologado</xMotivo></infInut></retInutNFe>');
         return $tools;
@@ -364,7 +364,7 @@ it('11. cstat != 102 (rejeitado) NÃO marca emissões como inutilizada', functio
     // Mock retorna cstat=999 (rejeitado SEFAZ)
     $toolsRejeitado = function (string $config, array $certData) {
         $tools = \Mockery::mock(\NFePHP\NFe\Tools::class);
-        $tools->shouldReceive('model')->andReturnSelf();
+        $tools->shouldReceive('model')->andReturn(55); // NFePHP\Tools::model retorna ?int (não chainable)
         $tools->shouldReceive('sefazInutiliza')
             ->andReturn('<?xml version="1.0"?><retInutNFe><infInut><cStat>999</cStat><xMotivo>Erro generico</xMotivo></infInut></retInutNFe>');
         return $tools;
