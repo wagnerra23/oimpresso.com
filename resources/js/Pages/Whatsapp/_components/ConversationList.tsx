@@ -12,6 +12,11 @@ import {
   UserPlus,
   X,
   ArrowDownUp,
+  Image as ImageIcon,
+  Music,
+  Video as VideoIcon,
+  FileText,
+  Paperclip,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -61,6 +66,9 @@ interface Props {
    */
   within24h?: boolean | null;
   unlinked?: boolean;
+  /** US-WA-043: filtro "Mídia 24h" — só convs que receberam image/audio/video/document
+   *  inbound nas últimas 24h. */
+  mediaInbound24h?: boolean;
   inboundAging?: InboundAging;
   orderBy?: OrderBy;
 }
@@ -77,6 +85,7 @@ export default function ConversationList({
   onCollapse,
   within24h,
   unlinked,
+  mediaInbound24h,
   inboundAging,
   orderBy,
 }: Props) {
@@ -91,6 +100,7 @@ export default function ConversationList({
     };
     if (within24h !== undefined && within24h !== null) params.within_24h = within24h ? 'true' : 'false';
     if (unlinked) params.unlinked = 'true';
+    if (mediaInbound24h) params.media_inbound_24h = 'true';
     if (inboundAging) params.inbound_aging = inboundAging;
     if (orderBy && orderBy !== 'last_message') params.orderBy = orderBy;
     return { ...params, ...overrides };
@@ -160,6 +170,18 @@ export default function ConversationList({
     });
   }
 
+  function toggleMediaInbound24h() {
+    const next = !mediaInbound24h;
+    lsSet(LS.MEDIA_INBOUND_24H, next ? '1' : null);
+    const params = buildQuery();
+    if (next) params.media_inbound_24h = 'true';
+    else delete (params as Record<string, unknown>).media_inbound_24h;
+    router.get(route(routeName), params, {
+      preserveScroll: true, preserveState: true,
+      only: ['conversations', 'mediaInbound24h'],
+    });
+  }
+
   function setInboundAging(value: InboundAging) {
     lsSet(LS.INBOUND_AGING, value);
     const params = buildQuery();
@@ -183,7 +205,7 @@ export default function ConversationList({
   }
 
   function resetFilters() {
-    [LS.WITHIN_24H, LS.UNLINKED, LS.INBOUND_AGING, LS.ORDER_BY].forEach((k) => lsSet(k, null));
+    [LS.WITHIN_24H, LS.UNLINKED, LS.MEDIA_INBOUND_24H, LS.INBOUND_AGING, LS.ORDER_BY].forEach((k) => lsSet(k, null));
     router.get(route(routeName), { tab, q: searchInput }, {
       preserveScroll: true, preserveState: true,
     });
@@ -193,6 +215,7 @@ export default function ConversationList({
   const activeFiltersCount = [
     within24h !== null && within24h !== undefined,
     unlinked,
+    mediaInbound24h,
     !!inboundAging,
     orderBy && orderBy !== 'last_message',
   ].filter(Boolean).length;
@@ -307,6 +330,13 @@ export default function ConversationList({
               icon={<Clock size={11} aria-hidden />}
               label={within24h === false ? '24h fechada' : '24h aberta'}
               title="Janela 24h Meta — clique alterna: aberta → fechada → sem filtro"
+            />
+            <FilterChip
+              active={mediaInbound24h === true}
+              onClick={toggleMediaInbound24h}
+              icon={<Paperclip size={11} aria-hidden />}
+              label="Mídia 24h"
+              title="Só conversas com foto/áudio/vídeo/doc recebidos nas últimas 24h"
             />
             {/* Aging dropdown — botão compacto que abre native select */}
             <div className="relative">
@@ -471,8 +501,11 @@ function ConversationRow({
             {conv.last_message_direction === 'outbound' && (
               <ArrowUpRight size={11} className="text-emerald-600 dark:text-emerald-400 shrink-0" aria-label="enviada" />
             )}
+            <MediaTypeIcon type={conv.last_message_type} />
             <span className="truncate">
-              {conv.last_message_preview ?? <span className="italic opacity-60">{conv.customer_phone}</span>}
+              {conv.last_message_preview
+                ?? mediaTypeLabel(conv.last_message_type)
+                ?? <span className="italic opacity-60">{conv.customer_phone}</span>}
             </span>
           </div>
           <div className="flex items-center gap-1 shrink-0">
@@ -558,6 +591,42 @@ function FilterChip({
       {label}
     </button>
   );
+}
+
+/**
+ * US-WA-043 — ícone semântico do tipo da última mensagem (mídia).
+ * Renderiza nothing pra text/null (não polui preview de texto).
+ * Tamanho 10px alinhado com tipografia da linha de preview.
+ */
+function MediaTypeIcon({ type }: { type?: string | null }) {
+  if (!type) return null;
+  const common = 'shrink-0 opacity-70';
+  switch (type) {
+    case 'image':
+      return <ImageIcon size={11} className={common} aria-label="imagem" />;
+    case 'audio':
+      return <Music size={11} className={common} aria-label="áudio" />;
+    case 'video':
+      return <VideoIcon size={11} className={common} aria-label="vídeo" />;
+    case 'document':
+      return <FileText size={11} className={common} aria-label="documento" />;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Fallback humano-legível pro preview quando a última msg é mídia SEM caption
+ * (body=null). Ex: "Foto", "Áudio", "Vídeo", "Documento".
+ */
+function mediaTypeLabel(type?: string | null): string | null {
+  switch (type) {
+    case 'image': return 'Foto';
+    case 'audio': return 'Áudio';
+    case 'video': return 'Vídeo';
+    case 'document': return 'Documento';
+    default: return null;
+  }
 }
 
 function StatusDot({ status }: { status: string }) {
