@@ -82,6 +82,12 @@ export interface Message {
    * Null em inbound, outbound de chip externo (celular), ou bot. US-WA-077.
    */
   sender_user_name?: string | null;
+  /**
+   * US-WA-071 (ADR 0142): true = nota interna estilo Chatwoot. Não foi
+   * enviada pro WhatsApp do cliente — só atendentes do business veem.
+   * Backend gateia dispatch driver com `is_internal_note=false`.
+   */
+  is_internal_note?: boolean;
   created_at: string;
 }
 
