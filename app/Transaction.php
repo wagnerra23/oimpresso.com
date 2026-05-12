@@ -2,12 +2,14 @@
 
 namespace App;
 
+use App\Domain\Fsm\Concerns\GuardsFsmTransitions;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Transaction extends Model
 {
+    use GuardsFsmTransitions;
     use LogsActivity;
 
     //Transaction types = ['purchase','sell','expense','stock_adjustment','sell_transfer','purchase_transfer','opening_stock','sell_return','opening_balance','purchase_return', 'payroll', 'expense_refund', 'sales_order', 'purchase_order']
