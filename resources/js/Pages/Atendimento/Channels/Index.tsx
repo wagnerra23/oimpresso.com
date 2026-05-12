@@ -9,7 +9,7 @@
 // Coexiste com /whatsapp/settings legacy durante PR B. Refactor drivers/jobs
 // pra consumir Channel direto vai num PR seguinte.
 
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 // QR vem como data URL PNG do daemon (string Baileys excede limite QR v40 23KB).
 import {
@@ -390,7 +390,14 @@ function ChannelCard({
         <div className="flex items-center gap-2 min-w-0">
           <TypeIcon size={20} className="text-primary shrink-0" aria-hidden />
           <div className="min-w-0">
-            <div className="font-semibold truncate">{channel.label}</div>
+            {/* US-WA-068: nome do canal vira link pro detail (tabs Config | Usuários | Histórico) */}
+            <Link
+              href={route('atendimento.channels.show', channel.id)}
+              className="font-semibold truncate block hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              data-testid={`channel-card-link-${channel.id}`}
+            >
+              {channel.label}
+            </Link>
             <div className="text-xs text-muted-foreground truncate">{channel.type}</div>
           </div>
         </div>
