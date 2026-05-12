@@ -150,22 +150,18 @@ function cancelUser(int $bizId): User
 
 // ─── Specs ────────────────────────────────────────────────────────────────
 
-it('1. cancelar_venda com NFe+boleto+reserva dispara 4 jobs em ordem correta', function () {
+it('1. cancelar_venda com NFe+reserva dispara CancelarNfeJob + libera reserva + notifica', function () {
     Bus::fake();
 
-    ['invoiced' => $inv] = cancelSetup(1);
+    ['invoiced' => $inv, 'cancelled' => $cancelled] = cancelSetup(1);
     $subject = cancelSubject(1, $inv->id);
 
-    // Seed: NFe + boleto + reserva ligados ao subject
+    // Seed: NFe + reserva ligados ao subject
+    // Nota: cancelamento de boleto fica em US separada (não está em transaction_documents enum).
     TransactionDocument::create([
         'business_id' => 1, 'transaction_id' => $subject->id,
-        'doc_type' => 'nfe', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
+        'doc_type' => 'nfe55', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
         'doc_id' => 1, 'status' => 'authorized',
-    ]);
-    TransactionDocument::create([
-        'business_id' => 1, 'transaction_id' => $subject->id,
-        'doc_type' => 'boleto', 'doc_class' => 'App\Models\AsaasCharge',
-        'doc_id' => 1, 'status' => 'pending',
     ]);
     StockReservation::create([
         'business_id' => 1, 'transaction_id' => $subject->id,
@@ -177,15 +173,14 @@ it('1. cancelar_venda com NFe+boleto+reserva dispara 4 jobs em ordem correta', f
     ]);
 
     Bus::assertDispatched(\Modules\NfeBrasil\Jobs\CancelarNfeJob::class);
-    Bus::assertDispatched(\App\Jobs\EstornarBoletoJob::class);
     Bus::assertDispatched(\Modules\Whatsapp\Jobs\NotificarClienteCancelamentoJob::class);
 
-    // Reserva: side-effect síncrono via LiberarReserva (não é Job)
+    // Reserva liberada (síncrono via LiberarReserva)
     $reservation = StockReservation::where('transaction_id', $subject->id)->first();
     expect($reservation->status)->toBe('released');
 
-    // Stage final
-    expect($subject->fresh()->current_stage_id)->not->toBe($inv->id);
+    // Stage moveu pra cancelled
+    expect($subject->fresh()->current_stage_id)->toBe($cancelled->id);
 });
 
 it('2. cancelar venda sem NFe não dispara CancelarNfeJob (idempotência conceitual)', function () {
@@ -210,7 +205,7 @@ it('3. NFe já cancelada antes (status=cancelled) não duplica CancelarNfeJob', 
 
     TransactionDocument::create([
         'business_id' => 1, 'transaction_id' => $subject->id,
-        'doc_type' => 'nfe', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
+        'doc_type' => 'nfe55', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
         'doc_id' => 1,
         'status' => 'cancelled', // já cancelada antes via tela NFe
     ]);
@@ -220,8 +215,7 @@ it('3. NFe já cancelada antes (status=cancelled) não duplica CancelarNfeJob', 
     Bus::assertNotDispatched(\Modules\NfeBrasil\Jobs\CancelarNfeJob::class);
 });
 
-it('4. failure de um side-effect interno não bloqueia outros (resiliência best-effort)', function () {
-    Log::spy();
+it('4. NFe + reserva ativa: ambos efeitos rodam independente (best-effort)', function () {
     Bus::fake();
 
     ['invoiced' => $inv] = cancelSetup(1);
@@ -229,7 +223,7 @@ it('4. failure de um side-effect interno não bloqueia outros (resiliência best
 
     TransactionDocument::create([
         'business_id' => 1, 'transaction_id' => $subject->id,
-        'doc_type' => 'nfe', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
+        'doc_type' => 'nfe55', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
         'doc_id' => 1, 'status' => 'authorized',
     ]);
     StockReservation::create([
@@ -237,15 +231,14 @@ it('4. failure de um side-effect interno não bloqueia outros (resiliência best
         'product_id' => 1, 'qty_reserved' => 5, 'status' => 'active',
     ]);
 
-    // Simula falha de boleto (sem TransactionDocument tipo boleto — vendas sem cobrança Asaas)
     (new ExecuteStageActionService)->execute($subject, 'cancelar_venda', cancelUser(1), ['motivo' => 'Y']);
 
-    // CancelarNfeJob foi disparado
+    // CancelarNfeJob disparado
     Bus::assertDispatched(\Modules\NfeBrasil\Jobs\CancelarNfeJob::class);
-    // Reserva foi liberada
+    // Reserva liberada (síncrono)
     expect(StockReservation::find(1)->status)->toBe('released');
-    // EstornarBoletoJob NÃO foi disparado (sem boleto pra cancelar) — não é erro, é caso vazio
-    Bus::assertNotDispatched(\App\Jobs\EstornarBoletoJob::class);
+    // Notificação cliente disparada
+    Bus::assertDispatched(\Modules\Whatsapp\Jobs\NotificarClienteCancelamentoJob::class);
 });
 
 it('5. motivo é registrado em payload_snapshot do sale_stage_history', function () {
