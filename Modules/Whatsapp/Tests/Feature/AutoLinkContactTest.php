@@ -483,6 +483,146 @@ it('R-WA-078-009 — Phone curto (<8 digitos) NAO dispara query (anti false-posi
     expect($conv->contact_id)->toBeNull();
 });
 
+it('R-WA-078-011 — attemptLink(biz, phone) retorna contact_id e cacheia resultado 1h', function () {
+    // Cobertura assinatura PR-5: stateless lookup (sem Conversation).
+    // Cache hit evita reconsulta DB em janela curta (UI listagens, dashboards).
+    $contact = Contact::create([
+        'business_id' => 1, 'name' => 'Wagner Rocha',
+        'mobile' => '+5548999872822', 'type' => 'customer', 'contact_id' => 'CO0001',
+    ]);
+
+    // 1ª call → cache MISS → DB hit
+    $linker = app(ConversationContactLinker::class);
+    $contactId = $linker->attemptLink(1, '+5548999872822');
+
+    expect($contactId)->toBe($contact->id);
+
+    // Apaga Contact pra provar que 2ª call vem do cache (não reconsulta DB)
+    Contact::query()
+        ->withoutGlobalScope(ScopeByBusiness::class)
+        ->where('id', $contact->id)
+        ->delete();
+
+    $cachedId = $linker->attemptLink(1, '+5548999872822');
+    expect($cachedId)->toBe($contact->id); // Veio do cache (contact já deletado no DB)
+
+    // forgetAttemptLinkCache invalida → próxima call retorna null (DB sem Contact)
+    $linker->forgetAttemptLinkCache(1, '+5548999872822');
+    $afterForget = $linker->attemptLink(1, '+5548999872822');
+    expect($afterForget)->toBeNull();
+});
+
+it('R-WA-078-011b — attemptLink ambíguo escolhe Contact mais recente (created_at DESC) + warn log', function () {
+    // Wagner regra: múltiplos Contacts no mesmo phone → escolhe o created_at
+    // mais recente (atendente provavelmente atualizou cadastro pra novo).
+    $old = Contact::create([
+        'business_id' => 1, 'name' => 'Wagner Antigo',
+        'mobile' => '+5548999872822', 'type' => 'customer', 'contact_id' => 'CO0001',
+        'created_at' => now()->subYear(),
+    ]);
+    $new = Contact::create([
+        'business_id' => 1, 'name' => 'Wagner Atual',
+        'mobile' => '+5548999872822', 'type' => 'customer', 'contact_id' => 'CO0002',
+        'created_at' => now()->subDay(),
+    ]);
+
+    $linker = app(ConversationContactLinker::class);
+    $pickedId = $linker->attemptLink(1, '+5548999872822');
+
+    expect($pickedId)->toBe($new->id); // mais recente
+    expect($pickedId)->not->toBe($old->id);
+});
+
+it('R-WA-078-011c — attemptLink cross-tenant biz=99 NAO vaza pra biz=1', function () {
+    // Tier 0: mesmo phone em biz diferente NÃO match em business consultado.
+    Contact::create([
+        'business_id' => 99, 'name' => 'Alien CRM',
+        'mobile' => '+5548999872822', 'type' => 'customer', 'contact_id' => 'CO9999',
+    ]);
+
+    $linker = app(ConversationContactLinker::class);
+    expect($linker->attemptLink(1, '+5548999872822'))->toBeNull();
+    expect($linker->attemptLink(99, '+5548999872822'))->not->toBeNull();
+});
+
+it('R-WA-078-011d — attemptLink normaliza phone (strips +, separators, espacos)', function () {
+    $contact = Contact::create([
+        'business_id' => 1, 'name' => 'Wagner Rocha',
+        'mobile' => '5548999872822', 'type' => 'customer', 'contact_id' => 'CO0001',
+    ]);
+
+    $linker = app(ConversationContactLinker::class);
+
+    // Vários formatos normalizam pro mesmo phoneDigits "5548999872822"
+    expect($linker->attemptLink(1, '+5548999872822'))->toBe($contact->id);
+    expect($linker->attemptLink(1, '+55 48 99987-2822'))->toBe($contact->id);
+    expect($linker->attemptLink(1, '5548999872822'))->toBe($contact->id);
+
+    // Phone curto (<8 dígitos) sempre null
+    expect($linker->attemptLink(1, '+1234'))->toBeNull();
+});
+
+it('R-WA-078-012 — backfill CLI emite tabela "biz | total_unlinked | linked | still_unlinked | duration_ms"', function () {
+    // Pra cobrir o --limit + tabela multi-business sem precisar Artisan output
+    // capture (que é frágil), verificamos os efeitos: convs linkadas + exit code.
+    Contact::create([
+        'business_id' => 1, 'name' => 'Wagner Rocha',
+        'mobile' => '+5548999872822', 'type' => 'customer', 'contact_id' => 'CO0001',
+    ]);
+    Contact::create([
+        'business_id' => 1, 'name' => 'Larissa',
+        'mobile' => '+5548996486699', 'type' => 'customer', 'contact_id' => 'CO0002',
+    ]);
+    Contact::create([
+        'business_id' => 2, 'name' => 'Outra Biz',
+        'mobile' => '+5511000001111', 'type' => 'customer', 'contact_id' => 'CO0003',
+    ]);
+
+    [, $b1c1] = makeChannelConv(1, '+5548999872822', null, '101');
+    [, $b1c2] = makeChannelConv(1, '+5548996486699', null, '102');
+    [, $b1c3] = makeChannelConv(1, '+5548000000000', null, '103'); // sem match biz=1
+    [, $b2c1] = makeChannelConv(2, '+5511000001111', null, '104');
+
+    $exitCode = \Illuminate\Support\Facades\Artisan::call('whatsapp:auto-link-contacts', [
+        '--business' => 'all',
+        '--limit' => 100,
+    ]);
+    expect($exitCode)->toBe(0);
+
+    $b1c1->refresh();
+    $b1c2->refresh();
+    $b1c3->refresh();
+    $b2c1->refresh();
+    expect($b1c1->contact_id)->not->toBeNull();
+    expect($b1c2->contact_id)->not->toBeNull();
+    expect($b1c3->contact_id)->toBeNull(); // sem match biz=1
+    expect($b2c1->contact_id)->not->toBeNull(); // biz=2 processado também
+});
+
+it('R-WA-078-012b — backfill --limit respeitado por business (cap N convs processadas)', function () {
+    Contact::create([
+        'business_id' => 1, 'name' => 'Wagner Rocha',
+        'mobile' => '+5548999872822', 'type' => 'customer', 'contact_id' => 'CO0001',
+    ]);
+
+    // 3 convs órfãs com mesmo phone → todas potencialmente linkáveis
+    [, $c1] = makeChannelConv(1, '+5548999872822', null, '201');
+    [, $c2] = makeChannelConv(1, '+5548999872822', null, '202');
+    [, $c3] = makeChannelConv(1, '+5548999872822', null, '203');
+
+    \Illuminate\Support\Facades\Artisan::call('whatsapp:auto-link-contacts', [
+        '--business' => '1',
+        '--limit' => 2, // só 2 das 3 convs devem ser processadas
+    ]);
+
+    $c1->refresh();
+    $c2->refresh();
+    $c3->refresh();
+
+    $linked = collect([$c1, $c2, $c3])->filter(fn ($c) => $c->contact_id !== null)->count();
+    expect($linked)->toBe(2); // exatamente 2 convs linkadas, 1 ficou pra próxima rodada
+});
+
 it('R-WA-078-010 — Webhook handler invoca Linker apos firstOrCreate conversation', function () {
     // Smoke: payload mínimo do daemon Baileys com push_name + JID. Após
     // handle(), conv deve estar linkada ao Contact match.
