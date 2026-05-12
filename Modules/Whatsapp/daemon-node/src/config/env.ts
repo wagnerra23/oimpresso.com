@@ -57,6 +57,16 @@ const schema = z.object({
   ANTIBAN_JITTER_MAX_MS: numberFromString(4_000),
   ANTIBAN_TYPING_MS: numberFromString(500),
   ANTIBAN_WARMUP_DAYS: numberFromString(7),
+  // P0 #1 — auth state backend (filesystem default = dev, mysql = prod).
+  // Filesystem mantém useMultiFileAuthState (NÃO usar em prod — corrupção FS = session revogada).
+  // MySQL usa useMySQLAuthState custom com AES-256-CBC + APP_KEY Laravel.
+  AUTH_STATE_BACKEND: z.enum(['filesystem', 'mysql']).default('filesystem'),
+  WHATSAPP_AUTH_STATE_ENCRYPTION_KEY: z.string().optional(),
+  MYSQL_AUTH_STATE_HOST: z.string().default('127.0.0.1'),
+  MYSQL_AUTH_STATE_PORT: numberFromString(3306),
+  MYSQL_AUTH_STATE_USER: z.string().optional(),
+  MYSQL_AUTH_STATE_PASS: z.string().optional(),
+  MYSQL_AUTH_STATE_DB: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema> & { API_KEY: string };

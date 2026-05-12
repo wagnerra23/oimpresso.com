@@ -31,6 +31,14 @@ services:
       METRICS_ENABLED: "true"
       MAX_INSTANCES: ${MAX_INSTANCES:-30}
       API_KEY_FILE: /run/secrets/whatsapp_baileys_api_key
+      # P0 #1 — auth state backend (default filesystem; setar mysql + secrets pra ativar em prod).
+      AUTH_STATE_BACKEND: ${AUTH_STATE_BACKEND:-filesystem}
+      WHATSAPP_AUTH_STATE_ENCRYPTION_KEY: ${WHATSAPP_AUTH_STATE_ENCRYPTION_KEY:-}
+      MYSQL_AUTH_STATE_HOST: ${MYSQL_AUTH_STATE_HOST:-127.0.0.1}
+      MYSQL_AUTH_STATE_PORT: ${MYSQL_AUTH_STATE_PORT:-3306}
+      MYSQL_AUTH_STATE_USER: ${MYSQL_AUTH_STATE_USER:-}
+      MYSQL_AUTH_STATE_PASS: ${MYSQL_AUTH_STATE_PASS:-}
+      MYSQL_AUTH_STATE_DB: ${MYSQL_AUTH_STATE_DB:-}
     secrets:
       - whatsapp_baileys_api_key
     networks:
