@@ -5,6 +5,8 @@
 //         cockpit que tem chat (Copiloto, MemCofre, Atendimento, Equipe).
 
 import React, { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Check, CheckCheck, Hash, Info, MoreHorizontal, Paperclip, Phone, Search,
   Send, Smile,
@@ -17,6 +19,18 @@ import {
   Mensagem,
   gradientFor,
 } from './shared';
+
+/**
+ * Heurística pra detectar se mensagem tem conteúdo markdown rich
+ * (headings, tabelas, citações). Se sim, renderiza via ReactMarkdown+gfm
+ * pra mostrar formato Versão A do JANA Pro Brief Diário (US-COPI-203).
+ *
+ * Texto simples sem markdown segue renderização plain (preserva whitespace,
+ * sem custo de parsing).
+ */
+function hasRichMarkdown(text: string): boolean {
+  return /(^#{1,4}\s)|(^\|.*\|)|(^>\s)|(^---+$)|(\*\*.+\*\*)/m.test(text);
+}
 
 // ── ChatTabs (Todos / OS / Equipe / Clientes) ───────────────────────────
 
@@ -129,7 +143,15 @@ function Bubble({ m, prev }: { m: Mensagem; prev?: Mensagem }) {
       )}
       <div className="bubble them">
         {!continued && m.whoNome && <span className="author">{m.whoNome}</span>}
-        <div className="bubble-text">{m.texto}</div>
+        <div className="bubble-text">
+          {hasRichMarkdown(m.texto) ? (
+            <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:my-2 prose-p:my-1.5 prose-table:my-2 prose-thead:bg-muted/50 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-th:border prose-td:border prose-blockquote:border-l-primary prose-blockquote:not-italic prose-blockquote:my-2">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.texto}</ReactMarkdown>
+            </div>
+          ) : (
+            m.texto
+          )}
+        </div>
         <div className="meta">{m.hora}</div>
       </div>
     </div>
