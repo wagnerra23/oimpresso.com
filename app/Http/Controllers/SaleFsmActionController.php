@@ -12,6 +12,7 @@ use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageHistory;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
+use App\Domain\Fsm\Services\InitialStageResolver;
 use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\Transaction;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +33,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SaleFsmActionController extends Controller
 {
+    public function __construct(
+        private readonly InitialStageResolver $resolver,
+    ) {}
+
     /**
      * Lista actions disponíveis no stage atual da venda.
      */
@@ -200,7 +205,7 @@ class SaleFsmActionController extends Controller
             ], 422);
         }
 
-        $stageKey = $this->resolveInitialStage($venda);
+        $stageKey = $this->resolver->resolve($venda);
         $stage = $process->stages()->where('key', $stageKey)->first();
 
         if (! $stage) {
@@ -242,27 +247,4 @@ class SaleFsmActionController extends Controller
         ]);
     }
 
-    /**
-     * Mapeia status legacy da Transaction pro stage FSM inicial apropriado.
-     */
-    private function resolveInitialStage(Transaction $venda): string
-    {
-        $status = $venda->status ?? 'final';
-        $paymentStatus = $venda->payment_status ?? 'due';
-        $subStatus = $venda->sub_status ?? null;
-
-        if ($status === 'draft') {
-            return $subStatus === 'quotation' ? 'quote_sent' : 'quote_draft';
-        }
-
-        if ($status === 'final') {
-            return match ($paymentStatus) {
-                'paid' => 'paid',
-                'partial' => 'invoiced',
-                default => 'invoiced',
-            };
-        }
-
-        return 'quote_draft';
-    }
 }
