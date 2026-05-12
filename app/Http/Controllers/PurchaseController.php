@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\PurchaseCreatedOrModified;
+use Inertia\Inertia;
 
 class PurchaseController extends Controller
 {
@@ -218,8 +219,118 @@ class PurchaseController extends Controller
         $suppliers = Contact::suppliersDropdown($business_id, false);
         $orderStatuses = $this->productUtil->orderStatuses();
 
+        // === MWART DUAL (skill migracao-blade-react v0.1.0 piloto, ADR 0141) ===
+        // Path Inertia ativa via:
+        //   - Header X-Inertia (navegação Inertia client-side)
+        //   - Query ?v=2 (smoke manual sem quebrar Blade legacy)
+        // Tier 0 IRREVOGÁVEL preservado: business_id scope + permitted_locations.
+        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+            return $this->indexInertia($business_id, $business_locations, $suppliers, $orderStatuses);
+        }
+
         return view('purchase.index')
             ->with(compact('business_locations', 'suppliers', 'orderStatuses'));
+    }
+
+    /**
+     * MWART dual path: Inertia render preservando todos os scopes do legacy index().
+     * Snapshot paridade: memory/mwart-inventory/purchase/index.snapshot.md
+     */
+    private function indexInertia($business_id, $business_locations_raw, $suppliers_raw, $orderStatuses)
+    {
+        $purchasesQuery = $this->transactionUtil->getListPurchases($business_id);
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $purchasesQuery->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (! empty(request()->location_id)) {
+            $purchasesQuery->where('transactions.location_id', request()->location_id);
+        }
+        if (! empty(request()->supplier_id)) {
+            $purchasesQuery->where('contacts.id', request()->supplier_id);
+        }
+        if (! empty(request()->input('payment_status')) && request()->input('payment_status') != 'overdue') {
+            $purchasesQuery->where('transactions.payment_status', request()->input('payment_status'));
+        } elseif (request()->input('payment_status') == 'overdue') {
+            $purchasesQuery->whereIn('transactions.payment_status', ['due', 'partial'])
+                ->whereNotNull('transactions.pay_term_number')
+                ->whereNotNull('transactions.pay_term_type')
+                ->whereRaw("IF(transactions.pay_term_type='days', DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY) < CURDATE(), DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH) < CURDATE())");
+        }
+        if (! empty(request()->status)) {
+            $purchasesQuery->where('transactions.status', request()->status);
+        }
+        if (! empty(request()->start_date) && ! empty(request()->end_date)) {
+            $purchasesQuery->whereDate('transactions.transaction_date', '>=', request()->start_date)
+                           ->whereDate('transactions.transaction_date', '<=', request()->end_date);
+        }
+        if (! auth()->user()->can('purchase.view') && auth()->user()->can('view_own_purchase')) {
+            $purchasesQuery->where('transactions.created_by', request()->session()->get('user.id'));
+        }
+
+        $purchases = $purchasesQuery->orderByDesc('transactions.transaction_date')->limit(200)->get();
+
+        $rows = $purchases->map(function ($p) {
+            $due = (float) ($p->final_total ?? 0) - (float) ($p->amount_paid ?? 0);
+            return [
+                'id' => (int) $p->id,
+                'ref_no' => $p->ref_no ?? '',
+                'transaction_date' => (string) $p->transaction_date,
+                'location_name' => $p->location_name ?? '',
+                'supplier_name' => $p->name ?? '',
+                'supplier_business_name' => $p->supplier_business_name,
+                'status' => $p->status,
+                'payment_status' => $p->payment_status,
+                'final_total' => (float) $p->final_total,
+                'amount_paid' => (float) ($p->amount_paid ?? 0),
+                'payment_due' => $due,
+                'added_by_name' => $p->added_by_name ?? '',
+                'return_exists' => (bool) ($p->return_exists ?? false),
+                'return_due' => (float) (($p->amount_return ?? 0) - ($p->return_paid ?? 0)),
+                'document' => $p->document,
+            ];
+        });
+
+        $business_locations = collect($business_locations_raw)->map(fn ($label, $id) => [
+            'id' => (int) $id,
+            'label' => (string) $label,
+        ])->values();
+
+        $suppliers = collect($suppliers_raw)->map(fn ($label, $id) => [
+            'id' => (int) $id,
+            'label' => (string) $label,
+        ])->values();
+
+        $order_statuses = collect($orderStatuses)->map(fn ($label, $id) => [
+            'id' => (string) $id,
+            'label' => (string) $label,
+        ])->values();
+
+        $user = auth()->user();
+        return Inertia::render('Purchase/Index', [
+            'rows' => $rows,
+            'filters' => [
+                'location_id' => (string) (request()->location_id ?? ''),
+                'supplier_id' => (string) (request()->supplier_id ?? ''),
+                'status' => (string) (request()->status ?? ''),
+                'payment_status' => (string) (request()->payment_status ?? ''),
+                'start_date' => (string) (request()->start_date ?? ''),
+                'end_date' => (string) (request()->end_date ?? ''),
+            ],
+            'business_locations' => $business_locations,
+            'suppliers' => $suppliers,
+            'order_statuses' => $order_statuses,
+            'permissions' => [
+                'view' => $user->can('purchase.view'),
+                'create' => $user->can('purchase.create'),
+                'update' => $user->can('purchase.update'),
+                'delete' => $user->can('purchase.delete'),
+                'update_status' => $user->can('purchase.update_status'),
+                'payments' => $user->can('purchase.payments') || $user->can('edit_purchase_payment') || $user->can('delete_purchase_payment'),
+            ],
+        ]);
     }
 
     /**
