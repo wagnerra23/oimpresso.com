@@ -10,6 +10,7 @@
 
 ## Últimos handoffs
 
+- [2026-05-11 22:30 — JANA Pro Sprint A foundation + modo Concierge MVP + pegadinha junction NTFS](handoffs/2026-05-11-2230-jana-pro-foundation-concierge-pegadinha.md) (5 PRs #597/#598/#600/#602/#603 · ADR 0140 JANA Pro SaaS + ADR 0141 Camada B v2 estilo Claude Code · caminho B Concierge MVP escolhido · pegadinha junction NTFS proibida Tier 0 · OPENAI_API_KEY rotação pendente)
 - [2026-05-11 20:40 — Design fix v2 + Pest mock smoke + cleanup merges paralelos](handoffs/2026-05-11-2040-design-fix-v2-mock-smoke-merge-cleanup.md) (3 PRs #583/#585/#586 · lição: revisão visual em wide screen pega o que design-critique isolado não vê · mock CnabDirectStrategy provado funcional · dívida SCOPE.md OficinaAuto/Vestuario detectada e task spawned)
 - [2026-05-11 19:55 — Financeiro sidebar/topnav canônico + design ConfigurarBoletoSheet + tentativa Inter API](handoffs/2026-05-11-1955-financeiro-sidebar-topnav-design-boleto-inter.md) (4 PRs #565/#568→reverted/#569/#579 · lição: AppShellV2 já tem topnav nativo via topnav.php · Inter API bloqueado lado Inter "Aplicações não existe")
 - [2026-05-11 19:45 — Fix drift ADS Brain B (site nunca quebrou; 7 colunas restauradas)](handoffs/2026-05-11-1945-ads-dual-brain-drift-fix.md) (2 PRs #574/#576 · migration idempotente · Brain B autônomo restaurado · pattern reusável de drift fix)
@@ -49,4 +50,4 @@ Detalhes da skill em [`.claude/skills/memory-sync/SKILL.md`](../.claude/skills/m
 
 ---
 
-**Última atualização do índice:** 2026-05-10 — ADR 0130 aceita; 08-handoff.md reescrito de narrativa pra índice; conteúdos noite-2 e noite-3 preservados em `handoffs/2026-05-10-2230-*.md` e `handoffs/2026-05-10-2330-*.md`.
+**Última atualização do índice:** 2026-05-11 22:30 — handoff JANA Pro Sprint A foundation + modo Concierge MVP + pegadinha junction NTFS adicionado.
