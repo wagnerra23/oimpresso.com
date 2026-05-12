@@ -122,6 +122,12 @@ Route::group([
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.store');
 
+    // US-WA-068: Page Detail do canal + tabs (Config | Usuários | Histórico)
+    Route::get('/canais/{id}', [ChannelsController::class, 'show'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.show');
+
     Route::delete('/canais/{id}', [ChannelsController::class, 'destroy'])
         ->whereNumber('id')
         ->middleware('can:whatsapp.settings.manage')
@@ -136,6 +142,18 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.status');
+
+    // US-WA-068: ACL atendente↔canal (grant/revoke)
+    Route::post('/canais/{id}/users', [ChannelsController::class, 'grantUser'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.users.grant');
+
+    Route::delete('/canais/{id}/users/{userId}', [ChannelsController::class, 'revokeUser'])
+        ->whereNumber('id')
+        ->whereNumber('userId')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.users.revoke');
 
     // US-WA-070: Templates HSM + toggle Bot Jana — herda Controller
     // SettingsController pós-067 (já enxuto: só 5 campos bot_enabled +
