@@ -36,6 +36,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?int $sender_user_id
  * @property ?string $sender_kind
  * @property ?int $cost_centavos
+ * @property bool $is_internal_note
  */
 class Message extends Model
 {
@@ -71,11 +72,13 @@ class Message extends Model
         'status', 'failed_reason',
         'sender_user_id', 'sender_kind',
         'cost_centavos',
+        'is_internal_note',
     ];
 
     protected $casts = [
         'payload' => 'array',
         'cost_centavos' => 'integer',
+        'is_internal_note' => 'boolean',
     ];
 
     public function conversation(): BelongsTo
