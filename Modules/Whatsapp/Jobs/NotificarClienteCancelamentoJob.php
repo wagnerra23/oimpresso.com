@@ -35,8 +35,9 @@ use Modules\Whatsapp\Templates\CancelamentoVendaTemplate;
  * Fluxo:
  *   1. Carrega Transaction + multi-tenant guard
  *   2. Carrega Contact (walk-in/null contact → skip)
- *   3. Resolve phone: mobile → landline → (fallback email — TODO)
- *   4. (TODO LGPD) Verifica consent — tabela contacts sem coluna hoje
+ *   3. Resolve phone: mobile → landline → (fallback email)
+ *   4. LGPD: verifica `whatsapp_consent` (NULL=permite, TRUE=permite, FALSE=bloqueia)
+ *      Se FALSE → tenta email fallback (que também checa `email_consent`)
  *   5. Renderiza template CancelamentoVendaTemplate
  *   6. Dispatch SendWhatsappMessageJob (kind=freeform)
  *
@@ -103,14 +104,22 @@ class NotificarClienteCancelamentoJob implements ShouldQueue
         // Resolve telefone: mobile → landline
         $phoneNumber = $this->resolvePhone($contact);
 
-        // TODO US-LGPD-XXX: verificar consent WhatsApp do contact.
-        // Tabela `contacts` HOJE não tem coluna whatsapp_consent / marketing_opt_in.
-        // Quando a US LGPD adicionar a coluna, validar aqui ANTES de dispatch.
-        // (Skipping check porque coluna inexistente — comportamento mantém best-effort.)
-
         if ($phoneNumber === null) {
             // CASCADE-NOTIFY-002 — fallback email quando contact sem telefone.
             // Best-effort: falha SMTP só loga, não retryar infinito.
+            $this->tryFallbackEmail($transaction, $contact);
+            return;
+        }
+
+        // LGPD: verifica consent WhatsApp ANTES de dispatch.
+        // NULL (legacy pre-coluna) ou TRUE → permite; apenas FALSE bloqueia.
+        // Quando bloqueado, ainda tenta email fallback (com consent próprio).
+        if (! $contact->canReceiveWhatsappNotification()) {
+            Log::info('[whatsapp.notify_cancelamento] WhatsApp consent=false — skip phone, tentando email', [
+                'business_id' => $this->businessId,
+                'transaction_id' => $this->transactionId,
+                'contact_id' => (int) $contact->id,
+            ]);
             $this->tryFallbackEmail($transaction, $contact);
             return;
         }
@@ -170,11 +179,21 @@ class NotificarClienteCancelamentoJob implements ShouldQueue
      * Best-effort: falha SMTP só loga; cancelamento já está confirmado
      * via FSM history audit. Sem PII em logs (apenas IDs).
      *
-     * TODO US-LGPD-XXX: validar coluna `email_consent` em contacts quando
-     * adicionada. Por ora consent implícito (mesma postura WhatsApp).
+     * LGPD: respeita `email_consent` (NULL=permite, TRUE=permite,
+     * FALSE=bloqueia). Apenas opt-out explícito barra envio.
      */
     private function tryFallbackEmail(Transaction $transaction, Contact $contact): void
     {
+        // LGPD: opt-out explícito bloqueia email também.
+        if (! $contact->canReceiveEmailNotification()) {
+            Log::info('[whatsapp.notify_cancelamento] Email consent=false — skip email tambem', [
+                'business_id' => $this->businessId,
+                'transaction_id' => $this->transactionId,
+                'contact_id' => (int) $contact->id,
+            ]);
+            return;
+        }
+
         $email = trim((string) ($contact->email ?? ''));
 
         if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
