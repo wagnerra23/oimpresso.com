@@ -68,6 +68,41 @@ class NfeBrasilServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        $this->registerNfseCancelDrivers();
+    }
+
+    /**
+     * US-NFSE-CANCEL-001 — Registra Service Manager + drivers per-município.
+     *
+     * Pattern: tag drivers no container ('nfse.cancel.drivers') e injeta o
+     * `iterable` resolvido em `NfseCancelService`. Drivers novos (GINFES, IPM,
+     * Tiplan, nfse.gov.br/sefin) são adicionados em PRs separadas só
+     * extendendo a lista de tags abaixo — sem mexer no service ou no Job.
+     *
+     * @see Modules\NfeBrasil\Services\NfseCancelService
+     * @see Modules\NfeBrasil\Contracts\NfseCancelDriverInterface
+     */
+    private function registerNfseCancelDrivers(): void
+    {
+        // Drivers registrados como singletons + taggeados.
+        $this->app->singleton(\Modules\NfeBrasil\Services\NfseDrivers\AbrasfV204CancelDriver::class);
+
+        $this->app->tag([
+            \Modules\NfeBrasil\Services\NfseDrivers\AbrasfV204CancelDriver::class,
+            // TODO US-NFSE-CANCEL-003+: GinfesV1CancelDriver, IpmCancelDriver,
+            // TiplanCancelDriver, NfseGovBrCancelDriver — quando integração real.
+        ], 'nfse.cancel.drivers');
+
+        // Service Manager recebe drivers taggeados como iterable.
+        $this->app->singleton(
+            \Modules\NfeBrasil\Services\NfseCancelService::class,
+            function ($app) {
+                return new \Modules\NfeBrasil\Services\NfseCancelService(
+                    $app->tagged('nfse.cancel.drivers')
+                );
+            }
+        );
     }
 
     /**
