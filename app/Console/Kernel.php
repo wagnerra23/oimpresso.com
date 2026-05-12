@@ -275,6 +275,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Self-healing Camada 2 — probe + auto-recovery canais Baileys.
+        // Itera Channels Baileys ativos, pinga /status no daemon CT 100, e
+        // tenta /connect (3 retries com backoff 1s/5s/30s) se algum não
+        // estiver connected. Cobre falhas do bootstrap auto-reconnect
+        // Camada 1 daemon-side (Agent A paralelo). Daily 03:30 BRT — antes
+        // do horário comercial pra deixar canais frescos. withoutOverlapping(30)
+        // protege contra job lento (~3 canais × 3 retries × 30s = ~5min worst).
+        $schedule->command('whatsapp:health-probe-channels')
+            ->dailyAt('03:30')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping(30)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:health-probe-channels FALHOU — canais Baileys podem estar sem auto-recovery'
+                );
+            });
+
         // Guardião 6 camadas anti-mídia-perdida — Camada 4 (retry hourly).
         // Rede de proteção pra mídia órfã (status=pending|downloading, media_url=null,
         // attempts<5, criada nos últimos 7d). Dispatcha DownloadMediaJob pra cada.
