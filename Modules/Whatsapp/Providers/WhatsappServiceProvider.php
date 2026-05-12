@@ -33,6 +33,7 @@ use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
 use Modules\Whatsapp\Services\Drivers\ZapiDriver;
+use Modules\Whatsapp\Services\Notes\ConfigHandler;
 use Modules\Whatsapp\Services\Notes\LembrarHandler;
 use Modules\Whatsapp\Services\Notes\LembreteHandler;
 use Modules\Whatsapp\Services\Notes\SlashCommandParser;
@@ -142,13 +143,16 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->app->singleton(SlashCommandParser::class);
         $this->app->singleton(LembrarHandler::class);
         $this->app->singleton(LembreteHandler::class);
+        $this->app->singleton(ConfigHandler::class);
         $this->app->singleton(SlashCommandRegistry::class, function ($app) {
             $registry = new SlashCommandRegistry();
             $registry->register('lembrar', $app->make(LembrarHandler::class));
+            // US-WA-076 (ADR 0142 §3b) — lembrete agendado + cron hourly
             $registry->register('lembrete', $app->make(LembreteHandler::class));
-            // Reserved slots — handlers preenchidos em US-WA-075/077:
+            // US-WA-077 (ADR 0142 §3c) — toggle bot per-contato via /config bot=on|off
+            $registry->register('config', $app->make(ConfigHandler::class));
+            // Reserved slot — handler preenchido em US-WA-075:
             //   $registry->register('corrigir', $app->make(CorrigirHandler::class));
-            //   $registry->register('config',   $app->make(ConfigHandler::class));
             return $registry;
         });
     }

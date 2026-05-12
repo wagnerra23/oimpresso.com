@@ -6,6 +6,7 @@ namespace Modules\Whatsapp\Listeners;
 
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
+use Modules\Whatsapp\Entities\WhatsappContactBotOverride;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Events\WhatsappMessageReceived;
 
@@ -80,6 +81,22 @@ class DispatchToJanaBot
 
         if (! $phone->handles_jana_bot || ! $phone->bot_enabled) {
             return; // admin desativou bot pra este phone — silencioso
+        }
+
+        // US-WA-077 (ADR 0142 §3c) — override per-contato via /config bot=off.
+        // Override vence o flag global do phone/business. Só consultamos
+        // quando a conversa tem contact_id vinculado (conversas provisionais
+        // sem contact_id seguem flag global — não há override pra applicar).
+        if ($conversation->contact_id !== null) {
+            $effectiveBotEnabled = WhatsappContactBotOverride::resolvedFor(
+                (int) $message->business_id,
+                (int) $conversation->contact_id,
+                fallback: (bool) $phone->bot_enabled,
+            );
+            if (! $effectiveBotEnabled) {
+                // Atendente desligou bot pra este contato — silencioso, igual gate global.
+                return;
+            }
         }
 
         // Marca conversa como bot_handling — UI mostra badge "🤖 bot"
