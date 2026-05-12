@@ -14,6 +14,7 @@ use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Console\Commands\ImportHistoryCommand;
 use Modules\Whatsapp\Console\Commands\LidBackfillCommand;
+use Modules\Whatsapp\Console\Commands\MetricsAggregateCommand;
 use Modules\Whatsapp\Console\Commands\RegisterWhatsappPermissionsCommand;
 use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
 use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
@@ -83,6 +84,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 ImportHistoryCommand::class,            // US-WA-080 — import histórico Baileys 90d
                 LidBackfillCommand::class,              // US-WA-093 P1 — backfill LID→phone de messages.payload histórico
                 SlaScanCommand::class,                  // CYCLE-07 PR-2 — scan SLA policies + alertas escalation
+                MetricsAggregateCommand::class,         // US-WA-021/041 — snapshot diário métricas (CYCLE-07 PR-3)
             ]);
         }
 

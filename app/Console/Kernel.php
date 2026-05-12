@@ -355,6 +355,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-WA-021/041 (CYCLE-07 PR-3) — Snapshot diário de métricas
+        // omnichannel (conversation/messages) em `whatsapp_conversation_metricas`.
+        // 02:30 BRT daily, ANTES do health-check 06:00, pra dashboard
+        // `/atendimento/metricas` já estar fresh quando time chega.
+        // Idempotente (UPSERT) — re-run mesmo dia substitui rows.
+        $schedule->command('whatsapp:metrics-aggregate')
+            ->dailyAt('02:30')
+            ->timezone('America/Sao_Paulo')
+            ->name('whatsapp-metrics-aggregate-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:metrics-aggregate FALHOU — dashboard /atendimento/metricas pode mostrar dados stale'
+                );
+            });
+
         // US-NFE-051 (ADR 0116 caso Gold) — Distribuição DFe pra businesses com cert
         // ativo. Puxa NF-e emitidas contra meu CNPJ via NSU SEFAZ ambiente nacional.
         // 06:15 BRT (após jana:health-check 06:00). Cooldown 5min protege se cron

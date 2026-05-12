@@ -5,6 +5,7 @@ use Modules\Whatsapp\Http\Controllers\InstallController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacrosController;
+use Modules\Whatsapp\Http\Controllers\Admin\MetricsController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
 
@@ -202,4 +203,11 @@ Route::group([
         ->whereNumber('id')->whereNumber('macroId')
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.apply_macro');
+
+    // US-WA-021/041 (CYCLE-07 PR-3) — Dashboard métricas omnichannel
+    // (gap P0 #4 do COMPARATIVO-MERCADO-2026-05-12). Lê snapshot diário
+    // agregado em `whatsapp_conversation_metricas` (cron 02:30 BRT).
+    Route::get('/metricas', [MetricsController::class, 'index'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.metricas.index');
 });
