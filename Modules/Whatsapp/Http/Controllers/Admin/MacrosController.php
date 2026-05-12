@@ -11,6 +11,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Schema;
 use Modules\Whatsapp\Entities\Macro;
 use Modules\Whatsapp\Entities\Tag;
 use Modules\Whatsapp\Services\Macros\MacroExecutor;
@@ -38,12 +39,24 @@ class MacrosController extends Controller
     {
         $businessId = (int) session('user.business_id');
 
+        // US-WA-049: pré-computa variants_count por macro pra coluna na tela.
+        // Schema guard pra back-compat (migration pode não ter rodado ainda).
+        $variantCounts = [];
+        if (Schema::hasTable('macro_variants')) {
+            $variantCounts = \Illuminate\Support\Facades\DB::table('macro_variants')
+                ->where('business_id', $businessId)
+                ->selectRaw('macro_id, COUNT(*) as c')
+                ->groupBy('macro_id')
+                ->pluck('c', 'macro_id')
+                ->toArray();
+        }
+
         $macros = Macro::query()
             ->where('business_id', $businessId)
             ->orderByDesc('used_count')
             ->orderBy('label')
             ->get()
-            ->map(fn (Macro $m) => $this->macroToUiArray($m));
+            ->map(fn (Macro $m) => $this->macroToUiArray($m, (int) ($variantCounts[$m->id] ?? 0)));
 
         // Catálogo de tags pra form (multi-select actions)
         $tags = Tag::query()
@@ -212,7 +225,7 @@ class MacrosController extends Controller
         return $validated;
     }
 
-    protected function macroToUiArray(Macro $m): array
+    protected function macroToUiArray(Macro $m, int $variantsCount = 0): array
     {
         return [
             'id' => $m->id,
@@ -221,6 +234,7 @@ class MacrosController extends Controller
             'body' => $m->body,
             'actions_json' => $m->actions_json ?? [],
             'used_count' => (int) $m->used_count,
+            'variants_count' => $variantsCount,
             'created_at' => optional($m->created_at)->toIso8601String(),
             'updated_at' => optional($m->updated_at)->toIso8601String(),
         ];

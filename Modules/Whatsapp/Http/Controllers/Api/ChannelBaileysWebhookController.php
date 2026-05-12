@@ -15,6 +15,7 @@ use Modules\Whatsapp\Jobs\DownloadMediaJob;
 use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
 use Modules\Whatsapp\Services\Contacts\LidPhoneResolver;
 use Modules\Whatsapp\Services\Csat\CsatResponseParser;
+use Modules\Whatsapp\Services\Macros\MacroVariantResponseTracker;
 use Modules\Jana\Scopes\ScopeByBusiness;
 
 /**
@@ -489,6 +490,32 @@ class ChannelBaileysWebhookController extends Controller
                     $comment,
                     (int) $message->id,
                 );
+            }
+        }
+
+        // US-WA-049 — A/B testing response tracking (gap P2 #18).
+        //
+        // Quando inbound chega numa conv onde a última outbound tem
+        // `macro_variant_id != null` E foi enviada nas últimas 24h,
+        // incrementa `response_count` da variante. Idempotente — grava
+        // flag em messages.payload pra nunca duplicar em reentregas
+        // do daemon.
+        //
+        // Por que aqui: bloco isolado dos outros agents (CSAT/LID/auto-link)
+        // pra evitar conflito de merge. Service `MacroVariantResponseTracker`
+        // encapsula query + idempotência (ver Modules/Whatsapp/Services/
+        // Macros/MacroVariantResponseTracker.php).
+        if ($message->wasRecentlyCreated && ! $fromMe) {
+            try {
+                app(MacroVariantResponseTracker::class)
+                    ->trackResponseFromInbound($channel->business_id, $message);
+            } catch (\Throwable $e) {
+                // Tracking é best-effort — falha NÃO derruba webhook.
+                Log::warning('[macro_variant.response_track_failed]', [
+                    'business_id' => $channel->business_id,
+                    'inbound_message_id' => $message->id,
+                    'exception' => mb_substr($e->getMessage(), 0, 200),
+                ]);
             }
         }
 
