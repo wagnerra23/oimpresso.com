@@ -99,6 +99,21 @@ class BriefDiarioService
                 ? round(100 * ($mesAtual['total'] - $mesAnt['total']) / $mesAnt['total'], 1)
                 : null;
 
+            // PROJEÇÃO FECHAMENTO MÊS (US-COPI-202c — fix Wagner 2026-05-12)
+            // Problema do delta_mes_pct cru: compara mês incompleto (ex: dia 12)
+            // com mês completo anterior — gera falso alarme "-26,8%". A projeção
+            // normaliza pelo ritmo diário decorrido, dando comparação justa.
+            $diasDecorridos = (int) now()->day;
+            $diasNoMes = (int) now()->daysInMonth;
+            $diasRestantes = max(0, $diasNoMes - $diasDecorridos);
+            $ritmoDiario = $diasDecorridos > 0
+                ? round($mesAtual['total'] / $diasDecorridos, 2)
+                : 0.0;
+            $projecaoFechamento = round($ritmoDiario * $diasNoMes, 2);
+            $deltaMesProjetadoPct = $mesAnt['total'] > 0 && $projecaoFechamento > 0
+                ? round(100 * ($projecaoFechamento - $mesAnt['total']) / $mesAnt['total'], 1)
+                : null;
+
             return [
                 'ok' => true,
                 'hoje' => $hoje,
@@ -108,7 +123,14 @@ class BriefDiarioService
                 'delta_semana_pct' => $deltaSem,
                 'mes_corrente' => $mesAtual,
                 'mes_anterior' => $mesAnt,
+                // delta_mes_pct mantido por BC (consumers podem ter dependência),
+                // mas brief executivo DEVE usar projecao_fechamento + delta_projetado.
                 'delta_mes_pct' => $deltaMes,
+                'dias_decorridos_mes' => $diasDecorridos,
+                'dias_restantes_mes' => $diasRestantes,
+                'ritmo_diario' => $ritmoDiario,
+                'projecao_fechamento_mes' => $projecaoFechamento,
+                'delta_projetado_pct' => $deltaMesProjetadoPct,
             ];
         } catch (Throwable $e) {
             return $this->errorSource($e);
@@ -368,14 +390,27 @@ class BriefDiarioService
                 return $this->emptySource('table_missing');
             }
 
-            // Combo: top 5 (contact, product) com count >3 em 90d
+            // Combo: top 5 (contact, product) com count >3 em 90d.
+            // US-COPI-202c (fix Wagner 2026-05-12): EXCLUI walk-in customers
+            // (UltimatePOS marca "Cliente Balcão"/"Cliente Padrão" com
+            // contacts.is_default=1). Sem o filtro, agregação de vendas sem
+            // cadastro vira falso combo (várias clientes comprando produto X
+            // viram "cliente walk-in comprou X 6 vezes"). Anti-pattern: tratar
+            // produto best-seller como combo individual.
             $combo = DB::table('transaction_sell_lines as tsl')
                 ->join('transactions as t', 't.id', '=', 'tsl.transaction_id')
+                ->join('contacts as c', 'c.id', '=', 't.contact_id')
                 ->where('t.business_id', $this->businessId)
                 ->where('t.type', 'sell')
                 ->whereNotIn('t.status', ['draft'])
                 ->where('t.transaction_date', '>=', now()->subDays(90))
                 ->whereNotNull('t.contact_id')
+                ->where(function ($q) {
+                    // Schema UltimatePOS: contacts.is_default=1 marca walk-in.
+                    // Em ambientes de teste a coluna pode não existir — usar
+                    // raw IS NULL OR != 1 pra tolerar.
+                    $q->whereRaw('(c.is_default IS NULL OR c.is_default <> 1)');
+                })
                 ->selectRaw('t.contact_id, tsl.product_id, COUNT(*) as repetes')
                 ->groupBy('t.contact_id', 'tsl.product_id')
                 ->having('repetes', '>=', 3)
@@ -401,16 +436,21 @@ class BriefDiarioService
                 ];
             })->filter(fn ($r) => $r['contact_name'] && $r['product_name'])->values()->all();
 
-            // Reativação: contacts com última compra >60d E LTV > 1k
-            $reativacao = DB::table('transactions')
-                ->where('business_id', $this->businessId)
-                ->where('type', 'sell')
-                ->whereNotIn('status', ['draft'])
-                ->whereNotNull('contact_id')
-                ->selectRaw('contact_id, SUM(final_total) as ltv, MAX(transaction_date) as ultima_compra')
-                ->groupBy('contact_id')
-                ->havingRaw('SUM(final_total) > ?', [1000])
-                ->havingRaw('MAX(transaction_date) < ?', [now()->subDays(60)])
+            // Reativação: contacts com última compra >60d E LTV > 1k.
+            // US-COPI-202c (fix Wagner 2026-05-12): EXCLUI walk-in (is_default=1)
+            // — Cliente Balcão acumula LTV gigante de várias clientes anônimas
+            // e contamina ranking.
+            $reativacao = DB::table('transactions as t')
+                ->join('contacts as c', 'c.id', '=', 't.contact_id')
+                ->where('t.business_id', $this->businessId)
+                ->where('t.type', 'sell')
+                ->whereNotIn('t.status', ['draft'])
+                ->whereNotNull('t.contact_id')
+                ->whereRaw('(c.is_default IS NULL OR c.is_default <> 1)')
+                ->selectRaw('t.contact_id, SUM(t.final_total) as ltv, MAX(t.transaction_date) as ultima_compra')
+                ->groupBy('t.contact_id')
+                ->havingRaw('SUM(t.final_total) > ?', [1000])
+                ->havingRaw('MAX(t.transaction_date) < ?', [now()->subDays(60)])
                 ->orderByDesc('ltv')
                 ->limit(5)
                 ->get();
