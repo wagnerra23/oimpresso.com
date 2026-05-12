@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Contacts;
 
+use Illuminate\Support\Facades\Cache;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\LidPhoneMap;
 
@@ -36,6 +37,11 @@ use Modules\Whatsapp\Entities\LidPhoneMap;
 class LidPhoneResolver
 {
     /**
+     * Cache TTL pro mapping LID→phone (24h é razoável — phone troca raro).
+     */
+    private const CACHE_TTL_HOURS = 24;
+
+    /**
      * Resolve phone E.164 a partir do LID já cacheado.
      *
      * Retorna null quando:
@@ -44,6 +50,11 @@ class LidPhoneResolver
      *
      * Caller (webhook) decide o fallback — atualmente usa o próprio LID
      * como customer_external_id, UI marca com badge "número oculto".
+     *
+     * P1 (#697) — Cache layer (TTL 24h) reduz 1 SELECT/msg `@lid` no webhook
+     * pra 1 SELECT/24h por LID resolvido. Usa `Cache::remember` sem tags pra
+     * funcionar com qualquer driver (default `file` em prod Hostinger não
+     * suporta `Cache::tags`). Invalidação em `record()` quando phone muda.
      */
     public function resolve(int $businessId, string $lid): ?string
     {
@@ -52,14 +63,40 @@ class LidPhoneResolver
             return null;
         }
 
-        // SUPERADMIN: ADR 0093 — webhook sem session user; scope manual
-        $row = LidPhoneMap::query()
-            ->withoutGlobalScope(ScopeByBusiness::class)
-            ->where('business_id', $businessId)
-            ->where('lid', $normalized)
-            ->first();
+        $cacheKey = $this->cacheKey($businessId, $normalized);
 
-        return $row?->phone_e164;
+        // remember() retorna o miss closure result; pra distinguir "LID não
+        // existe" vs "LID existe com phone NULL" usamos sentinel '' (string
+        // vazia) → cache miss vira NULL real. NULL não cacheia bem em alguns
+        // drivers, sentinel '' resolve.
+        $cached = Cache::remember(
+            $cacheKey,
+            now()->addHours(self::CACHE_TTL_HOURS),
+            function () use ($businessId, $normalized): string {
+                // SUPERADMIN: ADR 0093 — webhook sem session user; scope manual
+                $phone = LidPhoneMap::query()
+                    ->withoutGlobalScope(ScopeByBusiness::class)
+                    ->where('business_id', $businessId)
+                    ->where('lid', $normalized)
+                    ->value('phone_e164');
+
+                return $phone ?? '';
+            }
+        );
+
+        return $cached === '' ? null : $cached;
+    }
+
+    /**
+     * Chave de cache canônica por business + LID normalizado.
+     *
+     * Formato: `whatsapp:lid:{businessId}:{lidDigits}` — namespace evita
+     * colisão com outras keys; biz no path facilita debug + flush manual
+     * (`php artisan cache:forget whatsapp:lid:1:5196915463394`).
+     */
+    private function cacheKey(int $businessId, string $normalizedLid): string
+    {
+        return "whatsapp:lid:{$businessId}:{$normalizedLid}";
     }
 
     /**
@@ -122,6 +159,11 @@ class LidPhoneResolver
         if ($dirty) {
             $row->save();
         }
+
+        // Invalida cache pra próximo resolve() ver o phone descoberto/atualizado.
+        // Mesmo quando $dirty=true só por last_seen_at bump, forget é barato
+        // (1 op O(1)) e mantém o invariante: cache nunca fica stale.
+        Cache::forget($this->cacheKey($businessId, $normalizedLid));
 
         return $row;
     }
