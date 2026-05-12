@@ -34,10 +34,21 @@ use Modules\Whatsapp\Entities\Tag;
  */
 class MacroExecutor
 {
+    public function __construct(
+        protected ?MacroVariantPicker $variantPicker = null,
+    ) {
+        // Container resolve quando null — mantém retrocompat (testes que instanciam new MacroExecutor()).
+        $this->variantPicker = $variantPicker ?? app(MacroVariantPicker::class);
+    }
+
     /**
      * Executa macro em conversa. Retorna info pro Controller flash.
      *
-     * @return array{message_id: ?int, actions_applied: array<int, string>, send_failed: bool}
+     * US-WA-049 (gap P2 #18): se a macro tem MacroVariants ativas, sorteia
+     * uma via weighted random e usa o body da variante (override sem
+     * refactor — comportamento default segue inalterado quando 0 variantes).
+     *
+     * @return array{message_id: ?int, actions_applied: array<int, string>, send_failed: bool, macro_variant_id: ?int}
      */
     public function execute(int $businessId, int $macroId, int $conversationId, int $userId): array
     {
@@ -52,6 +63,10 @@ class MacroExecutor
 
         $channel = $conversation->channel;
 
+        // US-WA-049: sorteia variante ativa (null se nenhuma cadastrada).
+        $variant = $this->variantPicker->pickFor($macro);
+        $bodyToSend = $variant?->body ?? $macro->body;
+
         // 1+2. Persiste Message outbound — mesmo se driver falhar, audit fica.
         $message = Message::query()->create([
             'business_id' => $businessId,
@@ -59,12 +74,21 @@ class MacroExecutor
             'direction' => Message::DIRECTION_OUTBOUND,
             'provider' => $channel?->type ?? 'unknown',
             'type' => 'text',
-            'body' => $macro->body,
+            'body' => $bodyToSend,
             'status' => Message::STATUS_QUEUED,
             'sender_user_id' => $userId ?: null,
             'sender_kind' => 'human',
             'is_internal_note' => false,
+            'macro_variant_id' => $variant?->id,
         ]);
+
+        // US-WA-049: incrementa sent_count atomicamente (após persist da msg).
+        if ($variant) {
+            DB::table('macro_variants')
+                ->where('id', $variant->id)
+                ->where('business_id', $businessId)
+                ->increment('sent_count');
+        }
 
         $conversation->forceFill([
             'last_outbound_at' => now(),
@@ -98,6 +122,7 @@ class MacroExecutor
             'message_id' => $message->id,
             'actions_applied' => $actionsApplied,
             'send_failed' => $sendFailed,
+            'macro_variant_id' => $variant?->id,
         ];
     }
 

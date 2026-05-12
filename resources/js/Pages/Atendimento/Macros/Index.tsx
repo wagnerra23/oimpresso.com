@@ -9,9 +9,9 @@
 // UI: lista de macros (table) + modal nova/editar com accordion "Ações avançadas".
 // Composer dropdown (em ConversationThread.tsx) consome /atendimento/macros/list JSON.
 
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Zap, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Zap, X, Beaker } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -52,6 +52,9 @@ interface Macro {
   body: string;
   actions_json: MacroAction[];
   used_count: number;
+  // US-WA-049: opcional — contador de variantes A/B cadastradas
+  // (back-compat com Controller que ainda não popula). Default 0.
+  variants_count?: number;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -197,8 +200,9 @@ export default function MacrosIndex({ macros, availableTags, availableStatuses }
                   <th className="text-left px-3 py-2">Rótulo</th>
                   <th className="text-left px-3 py-2">Atalho</th>
                   <th className="text-left px-3 py-2">Ações</th>
+                  <th className="text-center px-3 py-2">Variantes</th>
                   <th className="text-right px-3 py-2">Usos</th>
-                  <th className="px-3 py-2 w-24">&nbsp;</th>
+                  <th className="px-3 py-2 w-32">&nbsp;</th>
                 </tr>
               </thead>
               <tbody>
@@ -232,9 +236,31 @@ export default function MacrosIndex({ macros, availableTags, availableStatuses }
                         </div>
                       )}
                     </td>
+                    <td className="px-3 py-2 text-center">
+                      <Link
+                        href={route('atendimento.macros.variants.index', { macro: m.id })}
+                        className="inline-flex items-center gap-1 text-xs hover:underline"
+                        aria-label={`Variantes A/B de ${m.label}`}
+                      >
+                        <Beaker size={11} aria-hidden />
+                        <span className="tabular-nums">{m.variants_count ?? 0}</span>
+                      </Link>
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums text-xs">{m.used_count}</td>
                     <td className="px-3 py-2 text-right">
                       <div className="flex gap-1 justify-end">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          asChild
+                          aria-label={`Variantes A/B de ${m.label}`}
+                          className="h-7 w-7 p-0"
+                          title="Variantes A/B"
+                        >
+                          <Link href={route('atendimento.macros.variants.index', { macro: m.id })}>
+                            <Beaker size={13} aria-hidden />
+                          </Link>
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"
