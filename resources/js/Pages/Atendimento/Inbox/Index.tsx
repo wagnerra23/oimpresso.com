@@ -64,6 +64,8 @@ interface Props {
   within24h: boolean | null;
   /** Filtra só convs sem Contact CRM vinculado */
   unlinked: boolean;
+  /** US-WA-043 (PR-8 CYCLE-07): convs com mídia inbound nas últimas 24h */
+  mediaInbound24h: boolean;
   /** Aging do último inbound do cliente: 6h/12h/24h/48h/7d ou null */
   inboundAging: '6h' | '12h' | '24h' | '48h' | '7d' | null;
   /** Ordenação default `last_message` | inbound (last_inbound_at desc) */
@@ -74,7 +76,7 @@ export default function InboxIndex({
   conversations, tab, q, stats,
   thread, messages, centrifugoConfig,
   availableTags, activeTagIds,
-  within24h, unlinked, inboundAging, orderBy,
+  within24h, unlinked, mediaInbound24h, inboundAging, orderBy,
 }: Props) {
   // Sidebar direita colapsável — preferência LS persistida
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
@@ -208,6 +210,7 @@ export default function InboxIndex({
               onCollapse={() => setLeftSidebarCollapsed(true)}
               within24h={within24h}
               unlinked={unlinked}
+              mediaInbound24h={mediaInbound24h}
               inboundAging={inboundAging}
               orderBy={orderBy}
             />

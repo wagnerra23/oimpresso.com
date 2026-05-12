@@ -17,6 +17,7 @@ export const LS = {
   // se time compartilhar máquina, cada login limpa via lsSet null.
   WITHIN_24H: 'oimpresso.whatsapp.within_24h',
   UNLINKED: 'oimpresso.whatsapp.unlinked',
+  MEDIA_INBOUND_24H: 'oimpresso.whatsapp.media_inbound_24h',
   INBOUND_AGING: 'oimpresso.whatsapp.inbound_aging',
   ORDER_BY: 'oimpresso.whatsapp.order_by',
 } as const;
@@ -77,8 +78,8 @@ export function formatDateTime(iso: string): string {
 
 /**
  * Formata bytes em string legível (B / KB / MB). Usado em MediaPreviewCard
- * (US-WA-042) + MessageBubble document (US-WA-072). Exportado pra reuso —
- * ANTES estava duplicado dentro de ConversationThread.tsx.
+ * (US-WA-042) + MessageBubble document (US-WA-072) + MediaContent
+ * (ConversationThread, PR #707/#716). Exportado pra reuso cross-component.
  */
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -271,6 +272,10 @@ export interface ListConversation {
   within_24h_window: boolean;
   last_message_preview: string | null;
   last_message_direction: 'inbound' | 'outbound' | null;
+  /** US-WA-043: type da última msg (text/image/audio/video/document/...) pra UI
+   *  mostrar ícone semântico ao lado do preview. Subquery scalar em
+   *  `InboxController::index()` — null se conv vazia. */
+  last_message_type?: string | null;
   /** US-WA-063: tags aplicadas — eager-loaded no InboxController */
   tags?: ConvTag[];
 }

@@ -133,6 +133,20 @@ class InboxController extends Controller
             $convQuery->whereNull('contact_id');
         }
 
+        // US-WA-043 (PR-8 CYCLE-07) — filtro `media_inbound_24h`: conversas
+        // que receberam mídia (image/audio/video/document) inbound nas
+        // últimas 24h. Útil pra atendente revisar fotos/áudios de clientes
+        // sem ter que abrir conv por conv.
+        //
+        // Custo: 1 subquery por hit (`whereHas('messages')` vira EXISTS),
+        // indexada via `messages.business_id + created_at` já presente.
+        if ($request->boolean('media_inbound_24h')) {
+            $convQuery->whereHas('messages', fn ($q) => $q
+                ->where('direction', 'inbound')
+                ->whereIn('type', ['image', 'audio', 'video', 'document'])
+                ->where('created_at', '>=', now()->subHours(24)));
+        }
+
         // Filtro `inbound_aging` — última msg do cliente há > X tempo E cliente
         // foi o último a falar. Fila SLA "esperando resposta". Whitelist do
         // valor (enum) bloqueia SQL injection via input não confiável.
@@ -166,8 +180,19 @@ class InboxController extends Controller
         $orderBy = $request->input('orderBy');
         $orderColumn = $orderBy === 'inbound' ? 'last_inbound_at' : 'last_message_at';
 
+        // US-WA-043 — `last_message_type` exposto via subquery scalar pra UI
+        // mostrar ícone semântico (📷 image / 🎵 audio / 🎥 video / 📄 document)
+        // ao lado do preview da última msg. Evita N+1 escolhendo subquery
+        // correlated 1× por row no SELECT (1 EXISTS por linha, indexada em
+        // `messages.conversation_id` + `created_at`).
         $paginated = $convQuery
             ->with('tags:id,slug,label,color')
+            ->addSelect(['last_message_type' => Message::query()
+                ->select('type')
+                ->whereColumn('conversation_id', 'conversations.id')
+                ->orderByDesc('created_at')
+                ->limit(1),
+            ])
             ->orderByDesc($orderColumn)
             ->paginate(50);
 
@@ -285,6 +310,7 @@ class InboxController extends Controller
             // p/ ausente — usar has() pra distinguir "não filtrado" de "false").
             'within24h' => $request->has('within_24h') ? $request->boolean('within_24h') : null,
             'unlinked' => $request->boolean('unlinked'),
+            'mediaInbound24h' => $request->boolean('media_inbound_24h'),
             'inboundAging' => $request->input('inbound_aging'),
             'orderBy' => $request->input('orderBy', 'last_message'),
             'businessId' => $businessId,
@@ -399,6 +425,8 @@ class InboxController extends Controller
             // Preview (compat ConversationList legacy) — denormalizado (US-WA-072)
             'last_message_preview' => $c->last_message_preview,
             'last_message_direction' => $c->last_message_direction,
+            // US-WA-043 — type da última msg pra UI ícone semântico (📷/🎵/🎥/📄)
+            'last_message_type' => $c->getAttribute('last_message_type'),
             // Window 24h Meta — só pra type=whatsapp_meta
             'within_24h_window' => $channel?->type === 'whatsapp_meta'
                 ? ($c->last_inbound_at && $c->last_inbound_at->diffInHours(now()) < 24)
