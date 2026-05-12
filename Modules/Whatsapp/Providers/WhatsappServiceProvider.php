@@ -17,6 +17,7 @@ use Modules\Whatsapp\Console\Commands\LidBackfillCommand;
 use Modules\Whatsapp\Console\Commands\RegisterWhatsappPermissionsCommand;
 use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
 use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
+use Modules\Whatsapp\Console\Commands\SlaScanCommand;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\OmnichannelMessageReceived;
@@ -81,6 +82,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 AutoLinkConversationContactsCommand::class, // US-WA-078 — backfill auto-link Contact CRM
                 ImportHistoryCommand::class,            // US-WA-080 — import histórico Baileys 90d
                 LidBackfillCommand::class,              // US-WA-093 P1 — backfill LID→phone de messages.payload histórico
+                SlaScanCommand::class,                  // CYCLE-07 PR-2 — scan SLA policies + alertas escalation
             ]);
         }
 
