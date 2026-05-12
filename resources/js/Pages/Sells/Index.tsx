@@ -43,6 +43,8 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import SaleSheet from './_components/SaleSheet';
+import SellsToggleViewMode, { type SellsViewMode } from './_components/SellsToggleViewMode';
+import SellsGradeAvancada from './_components/SellsGradeAvancada';
 
 interface SellKpis {
   total: number;
@@ -107,6 +109,24 @@ const DATE_FIELD_STORAGE_KEY = 'oimpresso.sells.dateField';
 const STATUS_FILTER_STORAGE_KEY = 'oimpresso.sells.lastStatus';
 const STATUS_FILTER_VALUES = ['', 'paid', 'due', 'partial', 'overdue'] as const;
 
+// US-SELL-015 — viewMode persist (ADR 0136). Default vem do controller via
+// HandleInertiaRequests share (`sells.viewMode.default`) — 'grade-avancada'
+// pra business com legacy_origin='officeimpresso', 'lista' pros demais.
+// Toggle manual do user precede sempre.
+const VIEW_MODE_STORAGE_KEY = 'oimpresso.sells.viewMode';
+const VIEW_MODE_VALUES = ['lista', 'grade-avancada'] as const;
+
+function readStoredViewMode(serverDefault: SellsViewMode): SellsViewMode {
+  if (typeof window === 'undefined') return serverDefault;
+  try {
+    const v = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+    if (v && (VIEW_MODE_VALUES as readonly string[]).includes(v)) {
+      return v as SellsViewMode;
+    }
+  } catch (_) { /* localStorage indisponível */ }
+  return serverDefault;
+}
+
 function readStoredDateField(): DateField {
   if (typeof window === 'undefined') return 'transaction_date';
   // URL query (deep-link) tem precedência se válida.
@@ -150,6 +170,14 @@ export interface SellsIndexPageProps {
   permissions: {
     create: boolean;
     view: boolean;
+  };
+  // US-SELL-015 — default vindo de HandleInertiaRequests share
+  // (sells.viewMode.default). Pode ser ausente em backwards-compat ou se
+  // share lazy não foi solicitado por outra page — fallback 'lista'.
+  sells?: {
+    viewMode?: {
+      default?: SellsViewMode;
+    };
   };
 }
 
@@ -198,6 +226,16 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
 };
 
 export default function SellsIndex(props: SellsIndexPageProps) {
+  // US-SELL-015 — viewMode (lista | grade-avancada). Lê localStorage com
+  // fallback pro default vindo do server (legacy_origin-aware).
+  const serverViewModeDefault: SellsViewMode = props.sells?.viewMode?.default ?? 'lista';
+  const [viewMode, setViewMode] = useState<SellsViewMode>(() => readStoredViewMode(serverViewModeDefault));
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    } catch (_) { /* localStorage indisponível */ }
+  }, [viewMode]);
+
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => readStoredStatusFilter());
   const [rows, setRows] = useState<SaleRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -337,16 +375,18 @@ export default function SellsIndex(props: SellsIndexPageProps) {
                 Lista de vendas com filtros por status e drawer de detalhes ao clicar na linha.
               </p>
             </div>
-            {props.permissions.create && (
-              <div className="flex-shrink-0">
+            <div className="flex-shrink-0 flex items-center gap-3">
+              {/* US-SELL-015 — toggle Lista | Grade Avançada (ADR 0136) */}
+              <SellsToggleViewMode viewMode={viewMode} onChange={setViewMode} />
+              {props.permissions.create && (
                 <Button asChild>
                   <Link href="/sells/create">
                     <Plus className="mr-1.5 h-4 w-4" />
                     Nova venda
                   </Link>
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* 3 KPIs cards (Abertas — neutra; Atrasadas — destaque rose; Total mês — neutra) */}
@@ -356,7 +396,9 @@ export default function SellsIndex(props: SellsIndexPageProps) {
             <KpiCard label="Total" value={kpis.total} icon={Receipt} />
           </div>
 
-          {/* Filter pills — pattern Cockpit canon (rounded-full + counter, ref exemplo OS) */}
+          {/* Filter pills — pattern Cockpit canon (rounded-full + counter, ref exemplo OS).
+              US-SELL-015: pills só em modo Lista — Grade Avançada terá filtros próprios (US-SELL-018+). */}
+          {viewMode === 'lista' && (
           <nav className="flex items-center gap-2 mt-6 flex-wrap" aria-label="Filtro de status de pagamento">
             {pills.map((pill) => {
               const isActive = statusFilter === pill.key;
@@ -399,10 +441,18 @@ export default function SellsIndex(props: SellsIndexPageProps) {
               );
             })}
           </nav>
+          )}
         </div>
       </div>
 
-      {/* Tabela — clean, sem widget wrapper, header bg cinza muito claro */}
+      {/* US-SELL-015 — render condicional. Default 'lista' = tela existente
+          intacta (Cockpit V2 canon). 'grade-avancada' = skeleton com mensagem
+          "em construção" — preenchido por US-SELL-016/017/018+. */}
+      {viewMode === 'grade-avancada' ? (
+        <div className="container mx-auto px-8 py-6 max-w-7xl">
+          <SellsGradeAvancada sellKpis={kpis} />
+        </div>
+      ) : (
       <div className="container mx-auto px-8 py-6 max-w-7xl">
         {/* Busca livre — cliente ou nº fatura */}
         <div className="mb-4 flex items-center gap-2">
@@ -534,8 +584,9 @@ export default function SellsIndex(props: SellsIndexPageProps) {
           />
         )}
       </div>
+      )}
 
-      {/* Drawer SaleSheet — abre ao clicar linha */}
+      {/* Drawer SaleSheet — abre ao clicar linha (só em modo Lista — Grade Avançada terá interação própria) */}
       <SaleSheet
         saleId={openSaleId}
         open={openSaleId !== null}
