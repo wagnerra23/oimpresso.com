@@ -16,6 +16,10 @@ class DatabaseSeeder extends Seeder
         $this->call([BarcodesTableSeeder::class,
             PermissionsTableSeeder::class,
             CurrenciesTableSeeder::class,
+            // US-SELL-015 — marca 6 candidatos saudáveis OfficeImpresso com
+            // legacy_origin='officeimpresso' pra default de Grade Avançada
+            // (ADR 0136). Idempotente: skipa se coluna ausente ou já marcado.
+            BusinessLegacyOriginSeeder::class,
         ]);
     }
 }

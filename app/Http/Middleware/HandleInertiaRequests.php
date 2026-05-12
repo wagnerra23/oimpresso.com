@@ -114,6 +114,20 @@ class HandleInertiaRequests extends Middleware
                 // desinstalados / migrations ausentes).
                 'sidebar_counts' => fn () => $user && $businessId ? $this->sidebarCounts((int) $businessId, $user->id) : null,
             ],
+            // US-SELL-015 — props de UI específicas do módulo Sells, lazy
+            // (só computa quando a Page solicita `sells.*`). ADR 0136:
+            //   - viewMode.default = 'grade-avancada' pra business com
+            //     legacy_origin='officeimpresso' (power-user gráfica migrado)
+            //   - viewMode.default = 'lista' pra demais (ROTA LIVRE + novos)
+            // Frontend (Sells/Index.tsx) usa esse default APENAS quando
+            // localStorage está vazio — toggle manual do user precede.
+            'sells' => [
+                'viewMode' => [
+                    'default' => fn () => $businessId
+                        ? $this->sellsViewModeDefault((int) $businessId)
+                        : 'lista',
+                ],
+            ],
             'locale'     => app()->getLocale(),
             'csrf_token' => fn () => csrf_token(),
             // Rotas publicas condicionais a modulos ativos. Espelha o padrao
@@ -301,6 +315,41 @@ class HandleInertiaRequests extends Middleware
         }
 
         return $counts;
+    }
+
+    /**
+     * US-SELL-015 — Default de viewMode pra Lista de Vendas (`/sells`).
+     *
+     * Roteia 'grade-avancada' (densa DevExpress-style — 30+ colunas + multi-
+     * select + agrupamento) pra business migrado do Delphi WR Comercial,
+     * onde power-user espera o grid legado. 'lista' (Cockpit V2 enxuta — 5
+     * colunas + drawer) pra demais clientes (ROTA LIVRE biz=4 + novos).
+     *
+     * Default usado APENAS quando localStorage do user está vazio — toggle
+     * manual do user (`oimpresso.sells.viewMode`) sempre tem precedência no
+     * frontend.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): consulta `business.legacy_origin`
+     * filtrado por business_id da sessão. Try/catch envolve consulta — se
+     * coluna ausente (migration pendente) retorna 'lista' silenciosamente
+     * (back-compat).
+     *
+     * Refs: ADR 0136 (Sells: split Lista vs Grade Avançada toggle).
+     *
+     * @return 'lista'|'grade-avancada'
+     */
+    protected function sellsViewModeDefault(int $businessId): string
+    {
+        try {
+            $origin = \DB::table('business')
+                ->where('id', $businessId)
+                ->value('legacy_origin');
+
+            return $origin === 'officeimpresso' ? 'grade-avancada' : 'lista';
+        } catch (\Throwable $e) {
+            // Coluna ausente / DB indisponível — fallback seguro.
+            return 'lista';
+        }
     }
 
     /**
