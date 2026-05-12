@@ -21,6 +21,7 @@ import {
 import type { WebhookDispatcher } from '../webhook/WebhookDispatcher';
 import { analyzeDisconnect } from './banDetector';
 import { instanceDir, loadAuthState } from './authState';
+import { antiBanConfigFromEnv, sendWithAntiBan, type AntiBanConfig } from './antiBan';
 
 export type InstanceState = 'idle' | 'connecting' | 'qr_required' | 'connected' | 'disconnected' | 'banned';
 
@@ -102,6 +103,7 @@ export class Instance extends EventEmitter {
   private connectedAt: Date | null = null;
   private banReason: string | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
+  private _antiBanConfig: AntiBanConfig | null = null;
 
   constructor(
     public readonly meta: InstanceMeta,
@@ -209,7 +211,12 @@ export class Instance extends EventEmitter {
     const sock = this.requireConnected();
     const jid = normalizeJid(input.to);
     const start = Date.now();
-    const sent = await sock.sendMessage(jid, { text: input.text });
+    const sent = await sendWithAntiBan(
+      { meta: this.meta, socket: sock },
+      jid,
+      () => sock.sendMessage(jid, { text: input.text }),
+      this.getAntiBanConfig(),
+    );
     messageLagHistogram.observe({ instance_id: this.meta.instance_id }, Date.now() - start);
     sendCounter.inc({ instance_id: this.meta.instance_id, status: 'sent', kind: 'text' });
     return { message_id: sent?.key.id ?? '', status: 'sent' };
@@ -244,10 +251,26 @@ export class Instance extends EventEmitter {
     }
 
     const start = Date.now();
-    const sent = await sock.sendMessage(jid, content);
+    const sent = await sendWithAntiBan(
+      { meta: this.meta, socket: sock },
+      jid,
+      () => sock.sendMessage(jid, content),
+      this.getAntiBanConfig(),
+    );
     messageLagHistogram.observe({ instance_id: this.meta.instance_id }, Date.now() - start);
     sendCounter.inc({ instance_id: this.meta.instance_id, status: 'sent', kind: input.type });
     return { message_id: sent?.key.id ?? '', status: 'sent' };
+  }
+
+  /**
+   * Lazy resolve do AntiBanConfig a partir do Env injetado. Cached na primeira
+   * chamada (env nao muda em runtime).
+   */
+  private getAntiBanConfig(): AntiBanConfig {
+    if (!this._antiBanConfig) {
+      this._antiBanConfig = antiBanConfigFromEnv(this.env);
+    }
+    return this._antiBanConfig;
   }
 
   /**
