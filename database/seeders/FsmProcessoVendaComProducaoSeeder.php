@@ -152,15 +152,15 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
             ['paid', 'entregar', 'Entregar ao cliente', 'delivered', ['logistica.entregar'], false, null],
             ['delivered', 'concluir', 'Concluir venda', 'completed', ['vendas.gerente'], false, null],
             // Cancelamento — disponível de qualquer stage não-terminal (criar 1 action por stage)
-            ['quote_draft', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
-            ['quote_sent', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
-            ['quote_approved', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
-            ['in_production', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
-            ['ready_for_invoice', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
-            ['invoiced', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
-            ['paid', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
-            ['delivered', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
-            ['on_hold', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, null],
+            ['quote_draft', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ['quote_sent', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ['quote_approved', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ['in_production', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ['ready_for_invoice', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ['invoiced', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ['paid', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ['delivered', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ['on_hold', 'cancelar_venda', 'Cancelar venda', 'cancelled', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
         ];
 
         foreach ($defs as [$stageKey, $key, $label, $targetKey, $roles, $isCritical, $sideEffect]) {
