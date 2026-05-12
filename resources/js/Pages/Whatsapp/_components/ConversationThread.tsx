@@ -35,7 +35,9 @@ import { Textarea } from '@/Components/ui/textarea';
 import Avatar from './Avatar';
 import TemplatePicker from './TemplatePicker';
 import MicRecorder from './MicRecorder';
+import MediaPreviewCard from './MediaPreviewCard';
 import {
+  formatBytes,
   groupByDay,
   isLikelyLid,
   type CentrifugoConfig,
@@ -43,6 +45,11 @@ import {
   type ReadyTemplate,
   type ThreadConversation,
 } from './helpers';
+
+/** US-WA-042: limite legal Tier 0 da caption (espelha `InboxController::sendMedia`). */
+const CAPTION_MAX_CHARS = 1024;
+/** US-WA-042: limite legal Tier 0 do arquivo (espelha `Message::MEDIA_MAX_SIZE_BYTES`). */
+const MEDIA_MAX_BYTES = 16 * 1024 * 1024;
 
 /**
  * US-WA-048: shape do item retornado por GET `/atendimento/macros/list`.
@@ -110,6 +117,15 @@ export default function ConversationThread({
   // no botão Paperclip enquanto o POST multipart está em flight. Não bloqueia
   // composer texto (atendente pode digitar próxima msg em paralelo).
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  // US-WA-042 — fila de arquivos PRÉ-envio. Atendente seleciona/arrasta arquivos,
+  // confere thumbnail+nome+tamanho, opcionalmente digita caption, e SÓ ENTÃO
+  // clica "Enviar mídia". Substitui o fluxo antigo "click → upload imediato"
+  // (que causava envios errados frequentes). Reset após sucesso ou cancel.
+  const [pendingMediaFiles, setPendingMediaFiles] = useState<File[]>([]);
+  // US-WA-042 — erro de validação client-side (size > 16MB) exibido inline
+  // no painel preview. Erro server-side (MIME bloqueado) ainda vai via flash
+  // onError do Inertia que cai no alert global.
+  const [mediaError, setMediaError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // US-WA-071 (ADR 0142): toggle Reply / Internal Note (Chatwoot pattern).
   // 'reply' = vai pro WhatsApp · 'note' = só atendentes do business (fundo amarelo).
@@ -285,29 +301,74 @@ export default function ConversationThread({
   }
 
   /**
-   * US-WA-072 — upload de mídia outbound. Aceita 1+ arquivos do file input
-   * OU drag-and-drop. Cada upload é POST multipart separado pra
-   * `/atendimento/inbox/{id}/send-media`. Tier 0 enforce no backend
-   * (MIME whitelist + size max). Nota interna NÃO permite mídia (combo 422).
+   * US-WA-042 — adiciona arquivos à fila pré-envio (NÃO envia ainda).
+   * Atendente confere preview, opcionalmente digita caption, e dispara
+   * `handleSendPendingMedia` clicando "Enviar mídia". Valida size client-side
+   * (16MB Tier 0 — espelha `Message::MEDIA_MAX_SIZE_BYTES`); MIME blacklist
+   * fica no backend (browser file picker já filtra por `accept`).
    */
-  function handleSendMedia(files: FileList | null) {
+  function queueMediaFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     if (composerKind === 'note') {
-      alert('Notas internas não suportam mídia nesta fase.');
+      setMediaError('Notas internas não suportam mídia nesta fase.');
+      return;
+    }
+    const arr = Array.from(files);
+    const oversized = arr.filter((f) => f.size > MEDIA_MAX_BYTES);
+    const valid = arr.filter((f) => f.size <= MEDIA_MAX_BYTES);
+    if (oversized.length > 0) {
+      setMediaError(
+        `Arquivo${oversized.length > 1 ? 's' : ''} acima de 16MB ignorado${oversized.length > 1 ? 's' : ''}: `
+        + oversized.map((f) => `${f.name} (${formatBytes(f.size)})`).join(', '),
+      );
+    } else {
+      setMediaError(null);
+    }
+    if (valid.length === 0) return;
+    setPendingMediaFiles((prev) => [...prev, ...valid]);
+    // Reset input pra permitir re-selecionar o mesmo arquivo se atendente
+    // removeu e quer reanexar (browser não dispara onChange se value não mudou).
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function removePendingFile(idx: number) {
+    setPendingMediaFiles((prev) => prev.filter((_, i) => i !== idx));
+    setMediaError(null);
+  }
+
+  function clearPendingMedia() {
+    setPendingMediaFiles([]);
+    setMediaError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  /**
+   * US-WA-072 / US-WA-042 — dispara POST multipart de cada arquivo da fila
+   * `pendingMediaFiles` pra `/atendimento/inbox/{id}/send-media`. Tier 0
+   * enforce no backend (MIME whitelist + size max). Cada arquivo é 1 POST
+   * separado — backend cria Message com type derivado do MIME. Caption
+   * (composerText) vai apenas no primeiro POST pra não duplicar texto em
+   * múltiplos bubbles.
+   */
+  function handleSendPendingMedia() {
+    if (pendingMediaFiles.length === 0) return;
+    if (composerKind === 'note') {
+      setMediaError('Notas internas não suportam mídia nesta fase.');
       return;
     }
     setUploadingMedia(true);
+    setMediaError(null);
 
-    // Processa 1 arquivo por POST — pra cada arquivo o backend cria Message
-    // separada com type derivado do MIME (image/audio/video/document).
-    const arr = Array.from(files);
-    let remaining = arr.length;
+    const captionText = composerText.trim();
+    let remaining = pendingMediaFiles.length;
 
-    arr.forEach((file) => {
+    pendingMediaFiles.forEach((file, idx) => {
       const formData = new FormData();
       formData.append('file', file);
-      if (composerText.trim()) {
-        formData.append('caption', composerText);
+      // Caption só vai no primeiro arquivo da fila — evita repetir o mesmo
+      // texto em N bubbles quando atendente anexa vários docs com 1 legenda.
+      if (idx === 0 && captionText) {
+        formData.append('caption', captionText.slice(0, CAPTION_MAX_CHARS));
       }
       router.post(
         route('atendimento.inbox.send_media', conversation.id),
@@ -321,14 +382,20 @@ export default function ConversationThread({
           },
           onError: (errors) => {
             const firstErr = Object.values(errors)[0];
-            if (firstErr) alert(`Falha no upload: ${firstErr}`);
+            const msg = typeof firstErr === 'string' ? firstErr : 'Falha no upload.';
+            setMediaError(`${file.name}: ${msg}`);
           },
           onFinish: () => {
             remaining -= 1;
             if (remaining === 0) {
               setUploadingMedia(false);
-              setComposerText('');
-              if (fileInputRef.current) fileInputRef.current.value = '';
+              // Limpa fila + caption só se NÃO teve erro pendente — caso
+              // contrário atendente perde os arquivos selecionados e fica
+              // sem saber qual falhou.
+              setPendingMediaFiles((prev) => (mediaError ? prev : []));
+              if (!mediaError) {
+                setComposerText('');
+              }
             }
           },
         },
@@ -759,6 +826,60 @@ export default function ConversationThread({
             <span>Janela 24h Meta fechada. Z-API/Baileys mandam freeform; Meta Cloud exige template HSM.</span>
           </div>
         )}
+        {/* US-WA-042: erro client/server-side de upload — exibido inline (não alert) */}
+        {mediaError && (
+          <div
+            className="text-xs text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-700 rounded px-2.5 py-1.5 flex items-start gap-1.5"
+            data-testid="composer-media-error"
+          >
+            <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden />
+            <span className="break-words">{mediaError}</span>
+            <button
+              type="button"
+              onClick={() => setMediaError(null)}
+              className="ml-auto shrink-0 hover:text-red-900 dark:hover:text-red-100"
+              aria-label="Fechar erro"
+            >
+              <X size={12} aria-hidden />
+            </button>
+          </div>
+        )}
+        {/* US-WA-042: painel preview-then-send. Quando há arquivos na fila,
+            atendente vê thumbnails+nomes+tamanhos antes de disparar upload.
+            Botão "Enviar mídia" abaixo confirma. Botão X em cada card remove. */}
+        {pendingMediaFiles.length > 0 && (
+          <div
+            className="rounded-md border border-border bg-muted/20 p-2 space-y-1.5"
+            data-testid="composer-media-preview"
+          >
+            <div className="flex items-center justify-between gap-2 px-1">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                {pendingMediaFiles.length === 1
+                  ? '1 arquivo pronto pra enviar'
+                  : `${pendingMediaFiles.length} arquivos prontos pra enviar`}
+                {composerText.trim() && ' · com legenda'}
+              </span>
+              <button
+                type="button"
+                onClick={clearPendingMedia}
+                disabled={uploadingMedia}
+                className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50"
+                data-testid="composer-media-clear-all"
+              >
+                Cancelar tudo
+              </button>
+            </div>
+            <div className="space-y-1">
+              {pendingMediaFiles.map((file, idx) => (
+                <MediaPreviewCard
+                  key={`${file.name}-${file.size}-${idx}`}
+                  file={file}
+                  onRemove={() => removePendingFile(idx)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
         <div className="relative">
           <Textarea
             value={composerText}
@@ -778,7 +899,9 @@ export default function ConversationThread({
               ? 'Contato bloqueado — envio desabilitado'
               : isNote
                 ? 'Nota interna…  (digite / pra comandos — Enter envia)'
-                : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha · arraste arquivos pra anexar)'}
+                : pendingMediaFiles.length > 0
+                  ? `Legenda da mídia (opcional, max ${CAPTION_MAX_CHARS})…`
+                  : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha · arraste arquivos pra anexar)'}
             rows={2}
             className="resize-none"
             disabled={composerDisabled}
@@ -791,18 +914,25 @@ export default function ConversationThread({
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 setShowSlashAutocomplete(false);
-                handleSend();
+                // US-WA-042: se há mídia em fila, Enter dispara upload em vez
+                // de enviar texto puro (texto vira caption).
+                if (pendingMediaFiles.length > 0 && !isNote && !isBlocked) {
+                  handleSendPendingMedia();
+                } else {
+                  handleSend();
+                }
               }
             }}
             // US-WA-072: drag-and-drop pra anexar arquivos direto no textarea
             // (só faz sentido em modo Reply — nota interna não tem mídia outbound).
+            // US-WA-042: enfileira em vez de enviar imediato — atendente confere preview.
             onDragOver={(e) => {
               if (!isNote && !isBlocked) e.preventDefault();
             }}
             onDrop={(e) => {
               if (isNote || isBlocked) return;
               e.preventDefault();
-              handleSendMedia(e.dataTransfer.files);
+              queueMediaFiles(e.dataTransfer.files);
             }}
             aria-label="Compositor de mensagem"
             data-testid="composer-textarea"
@@ -850,8 +980,16 @@ export default function ConversationThread({
           )}
         </div>
         <div className="flex justify-between items-center gap-2">
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {composerText.length} {composerText.length === 1 ? 'caractere' : 'caracteres'}
+          <span
+            className={`text-xs tabular-nums ${
+              pendingMediaFiles.length > 0 && composerText.length > CAPTION_MAX_CHARS
+                ? 'text-red-600 dark:text-red-400 font-medium'
+                : 'text-muted-foreground'
+            }`}
+          >
+            {pendingMediaFiles.length > 0
+              ? `legenda ${composerText.length}/${CAPTION_MAX_CHARS}`
+              : `${composerText.length} ${composerText.length === 1 ? 'caractere' : 'caracteres'}`}
           </span>
           <div className="flex gap-1.5">
             {/* US-WA-072 — botão paperclip abre file input. Hidden por
@@ -862,7 +1000,7 @@ export default function ConversationThread({
               multiple
               accept="image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm,video/quicktime,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv"
               className="hidden"
-              onChange={(e) => handleSendMedia(e.target.files)}
+              onChange={(e) => queueMediaFiles(e.target.files)}
               data-testid="composer-file-input"
             />
             <Button
@@ -1017,15 +1155,25 @@ export default function ConversationThread({
                 disparar próxima msg sem esperar daemon confirmar a anterior.
                 Feedback visual vem do bubble com hourglass icon (status='queued'),
                 que aparece via polling/Centrifugo <1s após o backend persistir.
-                US-WA-066: disable em blocked (envio proibido), exceto nota interna. */}
+                US-WA-066: disable em blocked (envio proibido), exceto nota interna.
+                US-WA-042: quando há mídia em fila, vira "Enviar mídia" e dispara
+                handleSendPendingMedia (texto entra como caption). */}
             <Button
               size="sm"
-              onClick={handleSend}
-              disabled={!composerText.trim() || composerDisabled}
+              onClick={pendingMediaFiles.length > 0 ? handleSendPendingMedia : handleSend}
+              disabled={
+                pendingMediaFiles.length > 0
+                  ? uploadingMedia || isBlocked || isNote || composerText.length > CAPTION_MAX_CHARS
+                  : !composerText.trim() || composerDisabled
+              }
               className={`h-8 ${isNote ? 'bg-amber-600 hover:bg-amber-700' : ''}`}
-              data-testid="composer-send"
+              data-testid={pendingMediaFiles.length > 0 ? 'composer-send-media' : 'composer-send'}
             >
-              {isNote ? 'Salvar nota' : 'Enviar'}
+              {pendingMediaFiles.length > 0
+                ? (uploadingMedia
+                    ? <><Loader2 size={14} className="animate-spin mr-1" aria-hidden />Enviando…</>
+                    : `Enviar mídia${pendingMediaFiles.length > 1 ? ` (${pendingMediaFiles.length})` : ''}`)
+                : isNote ? 'Salvar nota' : 'Enviar'}
             </Button>
           </div>
         </div>
@@ -1330,12 +1478,6 @@ function MediaContent({ message }: { message: Message }) {
       <Download size={14} className="shrink-0 opacity-70" aria-hidden />
     </a>
   );
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 /**
