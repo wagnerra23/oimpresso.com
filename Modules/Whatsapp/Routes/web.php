@@ -6,6 +6,7 @@ use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\CsatController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacrosController;
+use Modules\Whatsapp\Http\Controllers\Admin\MacroVariantsController;
 use Modules\Whatsapp\Http\Controllers\Admin\MetricsController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
@@ -204,6 +205,30 @@ Route::group([
         ->whereNumber('id')->whereNumber('macroId')
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.apply_macro');
+
+    // US-WA-049 — Variantes A/B de Macros (gap P2 #18, Take Blip pattern).
+    // CRUD nested em macro_id. Sorteio ponderado por weight + tracking
+    // response em 24h pra calcular response_rate por variante.
+    Route::get('/macros/{macro}/variants', [MacroVariantsController::class, 'index'])
+        ->whereNumber('macro')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.variants.index');
+    Route::post('/macros/{macro}/variants', [MacroVariantsController::class, 'store'])
+        ->whereNumber('macro')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.variants.store');
+    Route::put('/macros/{macro}/variants/{variant}', [MacroVariantsController::class, 'update'])
+        ->whereNumber('macro')->whereNumber('variant')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.variants.update');
+    Route::delete('/macros/{macro}/variants/{variant}', [MacroVariantsController::class, 'destroy'])
+        ->whereNumber('macro')->whereNumber('variant')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.variants.destroy');
+    Route::post('/macros/{macro}/variants/{variant}/mark-winner', [MacroVariantsController::class, 'markWinner'])
+        ->whereNumber('macro')->whereNumber('variant')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.variants.mark_winner');
 
     // US-WA-021/041 (CYCLE-07 PR-3) — Dashboard métricas omnichannel
     // (gap P0 #4 do COMPARATIVO-MERCADO-2026-05-12). Lê snapshot diário
