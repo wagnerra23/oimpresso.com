@@ -34,6 +34,7 @@ use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
 use Modules\Whatsapp\Services\Drivers\ZapiDriver;
 use Modules\Whatsapp\Services\Notes\LembrarHandler;
+use Modules\Whatsapp\Services\Notes\LembreteHandler;
 use Modules\Whatsapp\Services\Notes\SlashCommandParser;
 use Modules\Whatsapp\Services\Notes\SlashCommandRegistry;
 
@@ -140,12 +141,13 @@ class WhatsappServiceProvider extends ServiceProvider
         // por US-WA-075..077 — apenas adicionar `register('xxx', $handler)`.
         $this->app->singleton(SlashCommandParser::class);
         $this->app->singleton(LembrarHandler::class);
+        $this->app->singleton(LembreteHandler::class);
         $this->app->singleton(SlashCommandRegistry::class, function ($app) {
             $registry = new SlashCommandRegistry();
             $registry->register('lembrar', $app->make(LembrarHandler::class));
-            // Reserved slots — handlers preenchidos em US-WA-075/076/077:
+            $registry->register('lembrete', $app->make(LembreteHandler::class));
+            // Reserved slots — handlers preenchidos em US-WA-075/077:
             //   $registry->register('corrigir', $app->make(CorrigirHandler::class));
-            //   $registry->register('lembrete', $app->make(LembreteHandler::class));
             //   $registry->register('config',   $app->make(ConfigHandler::class));
             return $registry;
         });
