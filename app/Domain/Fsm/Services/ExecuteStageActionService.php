@@ -75,8 +75,14 @@ class ExecuteStageActionService
             }
 
             if ($action->target_stage_id !== null) {
+                // US-SELL-032 — flag interna sinaliza ao TransactionFsmObserver
+                // que esta transição é autorizada pelo gateway canônico.
+                // Sem essa flag, save() lança UnauthorizedActionException
+                // (caso o model use o trait GuardsFsmTransitions).
+                $subject->_fsmAuthorizedTransition = true;
                 $subject->current_stage_id = $action->target_stage_id;
                 $subject->save();
+                unset($subject->_fsmAuthorizedTransition);
             }
 
             if ($action->event_class) {
