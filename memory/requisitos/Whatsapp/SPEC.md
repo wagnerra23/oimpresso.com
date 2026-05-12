@@ -903,3 +903,133 @@ Frontend-only, sem mudança backend/migration. ROTA LIVRE não pega regressão.
 **ADRs:** 0135 (Fase 0→1 cutover criteria)
 
 **Evidência baseline:** Gap G-4 do CAPTERRA-INVENTARIO.md.
+
+---
+
+### US-WA-067 · Limpar tela Configurações WhatsApp — apagar 7 blocos de driver/LGPD
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Tela `/whatsapp/settings` ([Whatsapp/Settings.tsx](../../../resources/js/Pages/Whatsapp/Settings.tsx)) está defasada após criação do módulo Canais (ADR 0135). Drivers viraram polimórficos via `Channel.config_json`.
+
+**Apagar:**
+
+- Status do driver (linhas 213-243)
+- Aviso risco LGPD (linhas 257-268)
+- Passo 1 — Driver primário seletor (linhas 271-302)
+- Z-API credenciais (linhas 305-337)
+- Baileys telefone + QR panel (linhas 340-380)
+- Passo 2 — Meta Cloud (linhas 383-419)
+- Termo LGPD (linhas 422-453)
+
+**Manter:**
+
+- Templates + Bot Jana (linhas 456-485) — mas migrar pra `/atendimento/canais/jana-templates` na US-WA-070
+
+**Acceptance:**
+
+- `Settings.tsx` ~150 linhas a menos
+- Controller `SettingsController::show()` para de passar props de driver
+- Smoke biz=1: tela abre sem erro, sem blocos órfãos
+- Pest atualizado se houver assertion nesses blocos
+
+**ADRs:** 0135 Omnichannel
+
+---
+
+### US-WA-068 · Tab "Usuários do canal" dentro de Canais (ACL per-canal visível)
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: US-WA-067
+
+Detalhe do canal em `/atendimento/canais/{id}` ganha tabs: `Config | Usuários | Histórico`.
+
+**Tab Usuários:**
+
+- Lista usuários com acesso (join `whatsapp_phone_user_access` com `users`)
+- Add user: seletor + grant per-channel
+- Remove user: soft remove (decisão durante implementação)
+- Mostra role atual (superadmin bypassa via gate `whatsapp.view-all-phones`)
+
+**Backend:**
+
+- `ChannelsController::users($channel)` retorna lista
+- `ChannelsController::grantUser($channel, $user)` + `revokeUser`
+- Reusa permissão `whatsapp.settings.manage` por enquanto
+
+**UI:**
+
+- Componente `ChannelUsersTab.tsx` em `Modules/Whatsapp/resources/js/Pages/Atendimento/Channels/_components/`
+- Tabela com `user_name`, `granted_at`, `granted_by`, ação remover
+
+**Acceptance:**
+
+- Smoke biz=1: criar canal, adicionar 2 users, remover 1, listar
+- Pest cross-tenant biz=99: user de outro business NÃO aparece nem pode ser added
+- AuditLog write em grant/revoke
+
+**ADRs:** 0135, tabela `whatsapp_phone_user_access` (migração 2026_05_09_120100)
+
+---
+
+### US-WA-069 · Validar canal=fila — Suporte não vê inbox do Financeiro
+
+> owner: wagner · sprint: CYCLE-05 · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: US-WA-068
+
+Modelo confirmado (2026-05-12 Wagner): **Canal = Fila**. ACL per-canal via `whatsapp_phone_user_access` já existe. Esta US é só **validar** que o filtro funciona ponta-a-ponta.
+
+**Smoke biz=1 (manual):**
+
+1. Criar 2 canais: "Suporte" e "Financeiro"
+2. Criar 2 users: `user_suporte` e `user_financeiro`
+3. Grant `user_suporte` → só canal Suporte
+4. Grant `user_financeiro` → só canal Financeiro
+5. Login como `user_suporte` → inbox `/atendimento/inbox` mostra SÓ conversas do canal Suporte
+6. Login como `user_financeiro` → idem
+
+**Pest cross-tenant biz=99:**
+
+- Cenário cross-canal dentro do mesmo business
+- Cenário cross-business (biz=99 não vê canais de biz=1)
+
+**Backend a inspecionar:**
+
+- Query do `InboxController::index()` filtra por canais permitidos do user?
+- Cobertura do gate `whatsapp.view-all-phones` (admin bypass)
+- Pode precisar ajustar query se hoje filtra por `phone_id` ao invés de `channel_id`
+
+**Acceptance:**
+
+- Pest passa em isolamento
+- Smoke manual documentado em comment da US
+- Se descobrir bug de scope → vira US separada P0 (vazamento Tier 0)
+
+**ADRs:** 0093 multi-tenant Tier 0, 0135 Omnichannel
+
+---
+
+### US-WA-070 · Sidebar/rotas — Canais vira entrada principal de Atendimento, Settings velha morre
+
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: US-WA-067
+
+Após limpeza da Settings velha (US-WA-067), reorganizar navegação.
+
+**Sidebar (DataController do Whatsapp):**
+
+- Remover item "Configurações WhatsApp" (rota `/whatsapp/settings`)
+- "Canais" continua como item principal em `/atendimento/canais`
+- Adicionar sub-item "Templates Jana" → `/atendimento/canais/jana-templates` (onde bloco Jana foi parar)
+
+**Rotas:**
+
+- `/whatsapp/settings` → 301 redirect pra `/atendimento/canais` (pra não quebrar bookmark)
+- Nova rota `/atendimento/canais/jana-templates` renderiza bloco Templates (props: `bot_enabled` + 4 templates)
+
+**Acceptance:**
+
+- Sidebar testada em superadmin + user normal com `whatsapp.settings.manage`
+- 301 redirect funciona
+- Smoke biz=1 visual: clicar em todos os itens novos, nenhum 404
