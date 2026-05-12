@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Conversation;
@@ -25,7 +26,11 @@ use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
  * Uso:
  *   php artisan whatsapp:auto-link-contacts --business=1            # smoke biz=1
  *   php artisan whatsapp:auto-link-contacts --dry-run               # preview todos
+ *   php artisan whatsapp:auto-link-contacts --limit=500             # limita por execução (schedule weekly)
  *   php artisan whatsapp:auto-link-contacts                         # roda todos
+ *
+ * Output tabela CLI por business:
+ *   biz | total_unlinked | linked | still_unlinked | duration_ms
  *
  * Tier 0 IRREVOGÁVEL (ADR 0093):
  *  - `business_id` scope explícito em todas queries.
@@ -40,133 +45,182 @@ class AutoLinkConversationContactsCommand extends Command
 {
     protected $signature = 'whatsapp:auto-link-contacts
                             {--business=all : business_id alvo (default: all)}
+                            {--limit=1000 : Máximo de conversations órfãs processadas por business (default: 1000)}
                             {--dry-run : Só conta, não persiste}';
 
-    protected $description = 'Backfill auto-link Conversation→Contact CRM por phone (idempotente)';
+    protected $description = 'Backfill auto-link Conversation→Contact CRM por phone (idempotente, schedule weekly)';
 
     public function handle(ConversationContactLinker $linker): int
     {
         $businessOpt = (string) $this->option('business');
+        $limit = (int) $this->option('limit');
         $dryRun = (bool) $this->option('dry-run');
+
+        if ($limit <= 0) {
+            $this->error("--limit={$limit} inválido (esperado inteiro > 0).");
+            return self::FAILURE;
+        }
 
         if ($dryRun) {
             $this->warn('[dry-run] Nenhuma row será persistida.');
         }
 
-        // SUPERADMIN: command CLI cross-business — sem auth, scope não filtra.
-        // Explicitamos `withoutGlobalScope` pra intent visível.
-        $query = Conversation::query()
-            ->withoutGlobalScope(ScopeByBusiness::class)
-            ->whereNull('contact_id');
-
-        if ($businessOpt !== 'all') {
-            $businessId = (int) $businessOpt;
-            if ($businessId <= 0) {
-                $this->error("--business={$businessOpt} inválido (esperado inteiro > 0 ou 'all').");
-                return self::FAILURE;
-            }
-            $query->where('business_id', $businessId);
+        // Resolve lista de businesses alvo. Quando 'all', faz GROUP BY direto
+        // pra evitar full-scan dispatch de Conversation::all() na app-layer.
+        $businessIds = $this->resolveBusinessIds($businessOpt);
+        if ($businessIds === null) {
+            return self::FAILURE;
         }
-
-        $total = (clone $query)->count();
-        if ($total === 0) {
-            $this->info('Nenhuma conversation com contact_id=null pra processar.');
+        if (empty($businessIds)) {
+            $this->info('Nenhum business com conversation órfã (contact_id=null).');
             return self::SUCCESS;
         }
 
-        $this->info("Processando {$total} conversation(s) sem Contact vinculado...");
+        $rows = [];
+        $grandTotal = 0;
+        $grandLinked = 0;
+        $grandAmbiguous = 0;
 
-        $linked = 0;
-        $skipped = 0;
-        $ambiguous = 0;
+        foreach ($businessIds as $bizId) {
+            $startedAt = microtime(true);
+            $stats = $this->processBusiness($bizId, $limit, $dryRun, $linker);
+            $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
 
-        // Cursor pra evitar memória estourar em business com 10k+ convs órfãs.
-        $query->orderBy('id')->chunk(200, function ($chunk) use (
-            $linker,
-            $dryRun,
-            &$linked,
-            &$skipped,
-            &$ambiguous,
-        ) {
-            foreach ($chunk as $conv) {
-                /** @var Conversation $conv */
-                $contact = $this->attemptLink($conv, $linker, $dryRun, $ambiguous);
+            $rows[] = [
+                'biz' => $bizId,
+                'total_unlinked' => $stats['total_unlinked'],
+                'linked' => ($dryRun ? '(' . $stats['linked'] . ')' : (string) $stats['linked']),
+                'still_unlinked' => $stats['still_unlinked'],
+                'duration_ms' => $durationMs,
+            ];
 
-                if ($contact) {
-                    $linked++;
-                    $this->line(sprintf(
-                        '  conv #%d (biz=%d) → contact #%d',
-                        $conv->id,
-                        $conv->business_id,
-                        $contact->id,
-                    ));
-                } else {
-                    $skipped++;
-                }
-            }
-        });
+            $grandTotal += $stats['total_unlinked'];
+            $grandLinked += $stats['linked'];
+            $grandAmbiguous += $stats['ambiguous'];
+        }
 
-        $this->newLine();
+        $this->table(
+            ['biz', 'total_unlinked', 'linked', 'still_unlinked', 'duration_ms'],
+            $rows,
+        );
+
         $this->info(sprintf(
-            '✓ Resumo: %d total · %s %d linkadas · %d puladas (sem match) · %d ambíguas (linkadas primeiro)',
-            $total,
+            '✓ Resumo: %d total · %s %d linkadas · %d ambíguas (linkadas primeiro)',
+            $grandTotal,
             $dryRun ? 'WOULD link' : 'linked',
-            $linked,
-            $skipped,
-            $ambiguous,
+            $grandLinked,
+            $grandAmbiguous,
         ));
 
         Log::info('[whatsapp.auto_link_contacts.completed]', [
             'business_filter' => $businessOpt,
             'dry_run' => $dryRun,
-            'total_processed' => $total,
-            'linked' => $linked,
-            'skipped' => $skipped,
-            'ambiguous' => $ambiguous,
+            'limit' => $limit,
+            'total_processed' => $grandTotal,
+            'linked' => $grandLinked,
+            'ambiguous' => $grandAmbiguous,
+            'businesses_count' => count($businessIds),
         ]);
 
         return self::SUCCESS;
     }
 
     /**
-     * Tenta linkar uma conv. Em dry-run, simula sem persistir.
+     * Retorna lista de business_ids a processar:
+     *  - businessOpt='all' → GROUP BY business em conversations órfãs
+     *  - businessOpt=int   → [int] (sem validar existência)
+     *  - businessOpt inválido → null (caller aborta)
      *
-     * Retorna o Contact match (ou null se nenhum). Incrementa contador
-     * `ambiguous` quando >1 match (passed by ref).
+     * @return array<int>|null
      */
-    private function attemptLink(
-        Conversation $conv,
-        ConversationContactLinker $linker,
-        bool $dryRun,
-        int &$ambiguous,
-    ): ?\App\Contact {
-        if (! $dryRun) {
-            // Caminho real — Linker faz save() + Log emit.
-            $contact = $linker->tryLink($conv);
-            // O Linker já lida com ambiguidade internamente (loga warning).
-            // Pro reporting da CLI a gente reconsulta o count rapidamente:
-            if ($contact && $linker->findMatches($conv->fresh() ?? $conv)->count() > 1) {
-                // Note: após save() $conv->contact_id != null → findMatches
-                // retorna vazio (tryLink early returns). Pra detectar ambiguidade
-                // pós-save, usaríamos uma instância "fresh" pré-link. Aqui
-                // simplificamos: count >1 nas conditions originais já foi logado
-                // pelo Linker — incrementamos contador via inspeção do log mais
-                // tarde. Pro relatório CLI, ambiguous fica reportado via
-                // findMatches re-run no dry-run apenas.
-                $ambiguous++;
-            }
-            return $contact;
+    private function resolveBusinessIds(string $businessOpt): ?array
+    {
+        if ($businessOpt === 'all') {
+            return Conversation::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->whereNull('contact_id')
+                ->select('business_id')
+                ->distinct()
+                ->orderBy('business_id')
+                ->pluck('business_id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
         }
 
-        // Dry-run: reusa findMatches do Linker — mesma heurística, sem save.
-        $matches = $linker->findMatches($conv);
-        if ($matches->isEmpty()) {
+        $businessId = (int) $businessOpt;
+        if ($businessId <= 0) {
+            $this->error("--business={$businessOpt} inválido (esperado inteiro > 0 ou 'all').");
             return null;
         }
-        if ($matches->count() > 1) {
-            $ambiguous++;
+
+        return [$businessId];
+    }
+
+    /**
+     * Processa convs órfãs de um business até `$limit`. Retorna stats.
+     *
+     * @return array{total_unlinked: int, linked: int, still_unlinked: int, ambiguous: int}
+     */
+    private function processBusiness(int $bizId, int $limit, bool $dryRun, ConversationContactLinker $linker): array
+    {
+        $query = Conversation::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $bizId)
+            ->whereNull('contact_id');
+
+        $total = (clone $query)->count();
+        $linked = 0;
+        $ambiguous = 0;
+
+        if ($total === 0) {
+            return [
+                'total_unlinked' => 0,
+                'linked' => 0,
+                'still_unlinked' => 0,
+                'ambiguous' => 0,
+            ];
         }
 
-        return $matches->first();
+        $query->orderBy('id')
+            ->limit($limit)
+            ->chunk(200, function ($chunk) use (
+                $linker,
+                $dryRun,
+                &$linked,
+                &$ambiguous,
+            ) {
+                foreach ($chunk as $conv) {
+                    /** @var Conversation $conv */
+                    if ($dryRun) {
+                        $matches = $linker->findMatches($conv);
+                        if ($matches->isNotEmpty()) {
+                            $linked++;
+                            if ($matches->count() > 1) {
+                                $ambiguous++;
+                            }
+                        }
+                        continue;
+                    }
+
+                    $matchesPre = $linker->findMatches($conv);
+                    if ($matchesPre->count() > 1) {
+                        $ambiguous++;
+                    }
+
+                    $contact = $linker->tryLink($conv);
+                    if ($contact) {
+                        $linked++;
+                    }
+                }
+            });
+
+        $stillUnlinked = max(0, $total - $linked);
+
+        return [
+            'total_unlinked' => $total,
+            'linked' => $linked,
+            'still_unlinked' => $stillUnlinked,
+            'ambiguous' => $ambiguous,
+        ];
     }
 }
