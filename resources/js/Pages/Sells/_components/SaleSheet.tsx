@@ -32,6 +32,7 @@ import {
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import FiscalSection from './FiscalSection';
+import SaleTimeline from './SaleTimeline';
 
 interface Customer {
   id: number;
@@ -533,6 +534,11 @@ export default function SaleSheet({ saleId, open, onOpenChange, onSaleChanged }:
 
               {/* Fiscal — emissões NFC-e/NFe + ações (US-NFE-MANUAL) */}
               <FiscalSection saleId={data.id} enabled={open} />
+
+              {/* Histórico — timeline FSM da venda (US-SELL-035) */}
+              <Section title="Histórico" icon={Clock}>
+                <SaleTimeline saleId={data.id} enabled={open} />
+              </Section>
             </div>
 
             {/* Footer ações sticky */}
