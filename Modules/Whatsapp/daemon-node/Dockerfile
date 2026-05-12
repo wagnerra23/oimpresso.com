@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # ===========================================
-# whatsapp-baileys-daemon
+# whatsapp-baileys-nodeapp
 # Multi-stage build, non-root, distroless-ish.
 # ===========================================
 
@@ -11,15 +11,20 @@ FROM node:${NODE_VERSION}-bookworm-slim AS deps
 WORKDIR /app
 
 # Baileys precisa de libsystemd + tools nativas para sharp/qrcode em alguns builds.
+# git: alguns deps (Baileys/OpenTelemetry transientes) clonam de github via npm.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
         dumb-init \
+        git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY package.json package-lock.json* ./
+# Repo não commita package-lock.json (decisão de Agent J PR #669). Usa
+# npm install em vez de npm ci pra evitar dependência rígida de lockfile.
+# Trade-off: build ligeiramente menos reprodutível mas funcional sem fricção.
+COPY package.json ./
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --no-audit --no-fund --prefer-offline
+    npm install --no-audit --no-fund --prefer-offline
 
 # ---------- Stage 2: build ----------
 FROM deps AS build
@@ -43,16 +48,16 @@ RUN apt-get update \
         dumb-init \
         tini \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd --system --gid 1001 daemon \
-    && useradd --system --uid 1001 --gid daemon --home /app daemon \
+    && groupadd --system --gid 1001 nodeapp \
+    && useradd --system --uid 1001 --gid nodeapp --home /app nodeapp \
     && mkdir -p /app/sessions \
-    && chown -R daemon:daemon /app
+    && chown -R nodeapp:nodeapp /app
 
-COPY --from=build --chown=daemon:daemon /app/node_modules ./node_modules
-COPY --from=build --chown=daemon:daemon /app/dist ./dist
-COPY --chown=daemon:daemon package.json ./
+COPY --from=build --chown=nodeapp:nodeapp /app/node_modules ./node_modules
+COPY --from=build --chown=nodeapp:nodeapp /app/dist ./dist
+COPY --chown=nodeapp:nodeapp package.json ./
 
-USER daemon
+USER nodeapp
 EXPOSE 3000
 
 # Healthcheck consulta o /health interno.
