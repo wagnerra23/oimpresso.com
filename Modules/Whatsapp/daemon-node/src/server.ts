@@ -75,6 +75,19 @@ async function main(): Promise<void> {
     { host: env.HTTP_HOST, port: env.HTTP_PORT, otel: env.OTEL_ENABLED, max_instances: env.MAX_INSTANCES },
     'whatsapp-baileys-daemon ready',
   );
+
+  // Camada 1 self-healing — auto-reconnect das instances com session salva.
+  // Background (sem await) pra não bloquear /health enquanto Baileys
+  // handshake pode demorar 5-15s por canal. Falha aqui NÃO derruba o
+  // daemon: log error + segue (manager continua aceitando connect via API).
+  manager
+    .bootstrap()
+    .then((result) => {
+      logger.info(result, 'bootstrap auto-reconnect completo');
+    })
+    .catch((err) => {
+      logger.error({ err: (err as Error).message }, 'bootstrap auto-reconnect falhou (daemon segue OK)');
+    });
 }
 
 main().catch((err) => {

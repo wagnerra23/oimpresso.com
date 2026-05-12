@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events';
-import { rm } from 'node:fs/promises';
+import { rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import QRCode from 'qrcode';
 import makeWASocket, {
   Browsers,
@@ -397,6 +398,10 @@ export class Instance extends EventEmitter {
         { instance_id: this.meta.instance_id, business_id: String(this.meta.business_id ?? '') },
         1,
       );
+      // Persiste meta.json ao lado do session — necessário pro bootstrap
+      // (InstanceManager.bootstrap) reler na próxima boot do daemon e
+      // auto-reconectar sem precisar de UI clicando "Conectar". Idempotente.
+      void this.persistMeta();
       void this.webhook.dispatch({
         instance_id: this.meta.instance_id,
         business_uuid: this.meta.business_uuid,
@@ -454,6 +459,34 @@ export class Instance extends EventEmitter {
         timestamp: msg.messageTimestamp,
       },
     });
+  }
+
+  /**
+   * Grava `meta.json` ao lado do session — sentinela usado por
+   * InstanceManager.bootstrap() na próxima boot do daemon. Sem este
+   * arquivo a instance fica "órfã" (Baileys tem auth state mas daemon
+   * não sabe business_uuid/business_id pra reconectar).
+   *
+   * Idempotente — chamado toda vez que conexão abre. Falha não é fatal:
+   * log warn e segue (instance segue conectada, só perde auto-resume
+   * na próxima boot).
+   */
+  private async persistMeta(): Promise<void> {
+    try {
+      const dir = instanceDir(this.env.SESSIONS_DIR, this.meta.instance_id);
+      const payload = {
+        instance_id: this.meta.instance_id,
+        business_uuid: this.meta.business_uuid,
+        business_id: this.meta.business_id ?? null,
+        last_connected_at: new Date().toISOString(),
+      };
+      await writeFile(join(dir, 'meta.json'), JSON.stringify(payload, null, 2), { mode: 0o600 });
+    } catch (err) {
+      this.logger.warn(
+        { err: (err as Error).message, instance_id: this.meta.instance_id },
+        'persistMeta falhou — auto-reconnect na próxima boot pode pular esta instance',
+      );
+    }
   }
 
   private setState(next: InstanceState): void {
