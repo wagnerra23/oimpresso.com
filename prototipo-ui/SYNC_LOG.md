@@ -38,3 +38,16 @@
 2026-05-09 21:15 [CL] sequência sugerida pra F3: fluxo (sem tabela nova) → plano-contas (fundação) → dre (consome plano) — conciliacao escopo separado (exige bank_statement_lines + ADR arq/0006)
 2026-05-09 23:55 [CL] dropped prototipos/produto-unificado/ — 4 pinos F1 visuais (.jsx + .html) extraídos do PR #352 bloqueado (anti-padrões T-AP-9, M-AP-1, M-AP-3, M-AP-4 catalogados em LICOES_F3_FINANCEIRO_REJEITADO.md)
 2026-05-09 23:55 [CL] PR #352 mantido aberto com comentário de bloqueio — código de produção (controller + routes + Page.tsx) bloqueado, só material visual aproveitado nesse PR menor
+2026-05-11 21:30 [W]  declarou "Oimpresso ERP Conunicação Visual. novo.zip" como canon visual único — autorizou substituição completa dos prototipos/financeiro-*/
+2026-05-11 21:30 [CL] extraiu ZIP (177 arquivos, 2.9 MB) pra prototipo-ui/_zip-novo-2026-05-11/ (área isolada)
+2026-05-11 21:30 [CL] substituiu 5 page.tsx em prototipos/financeiro-{unificado,conciliacao,dre,fluxo,plano-contas}/ com Index.tsx do prototipo-ui-patch/ do ZIP (canon visual novo)
+2026-05-11 21:30 [CL] adicionou 5 arquivos visuais em financeiro-unificado/ (visual-source.html + 4 cowork-*.jsx standalone) como referência completa
+2026-05-11 21:30 [CL] ALERTA — Design System do ZIP (uploads/Design System/resources/js/) é fotografia ANTIGA: AppShellV2 −5.4KB, Sidebar −16.3KB, AppShell removido em prod, StatusBadge −1.8KB. NÃO copiado pra resources/js/ — fica em _zip-novo-2026-05-11/ como referência. Sobrescrever destruiria features mergeadas em prod.
+2026-05-11 21:30 [CL] prototipo-ui-patch/Modules/Financeiro/Http/Controllers/*.php (5 controllers) mantidos APENAS em _zip-novo-2026-05-11/ — não copiados pra Modules/Financeiro/ (Tier 0 IRREVOGÁVEL, ADR 0093, mesmo bloqueio de 2026-05-09)
+2026-05-11 21:35 [W]  decidiu: sidebar = o que está em prod (resources/js/Components/cockpit/Sidebar.tsx 30KB) é canon, Design System do ZIP descartado
+2026-05-11 21:35 [W]  pediu remoção de material antigo pra evitar confusão
+2026-05-11 21:35 [CL] removeu _zip-novo-2026-05-11/ inteiro (177 arquivos) — todo material relevante pro Financeiro já copiado pra prototipos/financeiro-*/ (canon visual novo consolidado)
+2026-05-11 21:45 [W]  apontou que ZIP tinha material de TODOS os módulos (não só Financeiro) — pediu cópia completa mantendo identidade visual consistente
+2026-05-11 21:45 [CL] re-extraiu ZIP e copiou HTMLs/JSX por módulo: criou 5 dirs novos (compras, os, clientes, orcamento, chat) + populou produto, produto-cockpit, produto-unificado, sells-create, vendas-cockpit, inventario-migracao, producao-oficina com visual-source.html + cowork-*.jsx
+2026-05-11 21:45 [CL] decisão arquitetural: identidade visual canônica = shared components em prod (KpiCard, PageHeader, StatusBadge, AppShellV2). HTMLs/JSX do ZIP = mockups por tela (referência F1). Refator em prod aplica shared components garantindo consistência automática.
+2026-05-11 21:45 [CL] removeu _zip-novo-2026-05-11/ definitivamente — todo material consolidado em prototipos/
