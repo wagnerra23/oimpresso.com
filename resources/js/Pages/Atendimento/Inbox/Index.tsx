@@ -261,6 +261,7 @@ export default function InboxIndex({
                 updateTagsRouteName="atendimento.inbox.update_tags"
                 searchContactsRouteName="atendimento.inbox.contacts.search"
                 linkContactRouteName="atendimento.inbox.link_contact"
+                createContactFromPhoneRouteName="atendimento.inbox.contact.create_from_phone"
                 blockRouteName="atendimento.inbox.block"
               />
             )}

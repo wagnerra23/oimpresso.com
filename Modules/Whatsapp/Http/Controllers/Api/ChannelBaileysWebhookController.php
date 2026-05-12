@@ -12,6 +12,7 @@ use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Jobs\DownloadMediaJob;
+use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
 use Modules\Jana\Scopes\ScopeByBusiness;
 
 /**
@@ -279,6 +280,27 @@ class ChannelBaileysWebhookController extends Controller
         if ($pushName && $conversation->contact_name === $customerExternalId) {
             $conversation->contact_name = $pushName;
             $conversation->save();
+        }
+
+        // US-WA-078: auto-link Contact CRM por phone normalizado.
+        //
+        // Hoje em prod biz=1: 32 conversations com contact_id=null (NENHUMA
+        // linkada manualmente porque US-WA-064 exige clique no atendente).
+        // Esta lógica roda em duas situações:
+        //   (a) conversation recém-criada (wasRecentlyCreated=true) — best
+        //       moment, evita ficar orfã desde o nascimento.
+        //   (b) conversation pré-existente com contact_id=null — orphan
+        //       tracking pra casos onde o Contact CRM foi cadastrado DEPOIS
+        //       da conv ser criada (atendente cadastrou via /contacts).
+        //
+        // Service `ConversationContactLinker` isola a heurística (LIKE phone
+        // fuzzy match, min 8 dígitos, scope business_id, ambiguidade=log warn)
+        // pra ser reusada pelo command de backfill (Parte B) com a MESMA
+        // lógica — sem duplicar regex/LIKE/ambiguidade entre webhook e CLI.
+        if ($conversation->wasRecentlyCreated || $conversation->contact_id === null) {
+            /** @var ConversationContactLinker $linker */
+            $linker = app(ConversationContactLinker::class);
+            $linker->tryLink($conversation);
         }
 
         // Idempotência (US-WA-070): daemon Baileys reentrega o mesmo
