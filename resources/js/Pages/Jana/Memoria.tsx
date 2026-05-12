@@ -68,7 +68,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
   const rel = memoria.metadata?.relevancia as number | undefined
 
   const onSalvar = () => {
-    patch(`/copiloto/memoria/${memoria.id}`, {
+    patch(`/jana/memoria/${memoria.id}`, {
       preserveScroll: true,
       onSuccess: () => setEditando(false),
     })
