@@ -22,14 +22,34 @@ export const sendTextBody = z.object({
   text: z.string().min(1).max(4096),
 });
 
-export const sendMediaBody = z.object({
-  to: phoneOrJid,
-  media_url: z.string().url(),
-  type: z.enum(['image', 'document', 'audio', 'video']),
-  caption: z.string().max(1024).optional(),
-  filename: z.string().max(128).optional(),
-  mimetype: z.string().max(128).optional(),
-});
+// ------------------------------------------------------------------------------------------------
+// Send media outbound — POST /instances/:id/media
+//
+// Schema canônico usa `mimetype` (alinhado com Baileys SDK + Hotfix B1 webhook).
+//
+// LEGACY KEY `mime` — `SendMediaJob.php` (Laravel/Hostinger) historicamente
+// envia a chave `mime`. Pra evitar regressão silenciosa (Zod por padrão faz
+// strip de chaves desconhecidas → `mimetype` ficava undefined → áudio outbound
+// chegava no WhatsApp sem MIME), aceitamos ambas no preflight e normalizamos
+// pra `mimetype` via `transform`. `SendMediaJob.php` foi migrado pra `mimetype`
+// no mesmo PR — janela de migração 30 dias terminando 2026-06-12, depois disso
+// remover suporte a `mime`.
+// ------------------------------------------------------------------------------------------------
+export const sendMediaBody = z
+  .object({
+    to: phoneOrJid,
+    media_url: z.string().url(),
+    type: z.enum(['image', 'document', 'audio', 'video']),
+    caption: z.string().max(1024).optional(),
+    filename: z.string().max(128).optional(),
+    mimetype: z.string().max(128).optional(),
+    // `mime` deprecated. Migration window 30d ending 2026-06-12.
+    mime: z.string().max(128).optional(),
+  })
+  .transform(({ mime, mimetype, ...rest }) => ({
+    ...rest,
+    mimetype: mimetype ?? mime,
+  }));
 
 // ------------------------------------------------------------------------------------------------
 // Decrypt de mídia inbound Baileys
