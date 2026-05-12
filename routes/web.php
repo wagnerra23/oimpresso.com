@@ -214,6 +214,19 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/products/toggle-woocommerce-sync', [ProductController::class, 'toggleWooCommerceSync']);
 
     Route::resource('products', ProductController::class);
+
+    // US-INV-001 — endpoints CRUD BOM (Bill of Materials).
+    // Multi-tenant Tier 0 + permission product.update enforced no Controller.
+    Route::get('/api/products/{id}/bom', [\App\Http\Controllers\Inventory\ProductBomController::class, 'index'])
+        ->whereNumber('id')
+        ->name('products.bom.index');
+    Route::post('/api/products/{id}/bom', [\App\Http\Controllers\Inventory\ProductBomController::class, 'store'])
+        ->whereNumber('id')
+        ->name('products.bom.store');
+    Route::delete('/api/products/{id}/bom/{bom_id}', [\App\Http\Controllers\Inventory\ProductBomController::class, 'destroy'])
+        ->whereNumber('id')->whereNumber('bom_id')
+        ->name('products.bom.destroy');
+
     Route::get('/toggle-subscription/{id}', 'SellPosController@toggleRecurringInvoices');
     Route::post('/sells/pos/get-types-of-service-details', 'SellPosController@getTypesOfServiceDetails');
     Route::get('/sells/subscriptions', 'SellPosController@listSubscriptions');
