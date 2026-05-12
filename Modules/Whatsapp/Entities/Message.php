@@ -161,6 +161,8 @@ class Message extends Model
         'video/mp4',
         'video/mpeg',
         'video/3gpp',
+        'video/webm',
+        'video/quicktime',
         // Documentos
         'application/pdf',
         'application/msword',
