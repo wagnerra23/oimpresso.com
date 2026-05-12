@@ -17,21 +17,25 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * CU-02 (G3) — Action FSM crítica exige role obrigatória.
+ * CU-02 (G3) — Action FSM crítica exige role obrigatória (fail-secure).
  *
- * Specs FAILING-FIRST:
- *   1. Migration `add_is_critical_to_sale_stage_actions` ainda não existe
- *   2. Lógica is_critical em ExecuteStageActionService ainda não existe
+ * Estado em prod (ADR 0143 marco 2026-05-12):
+ *   - Migration `2026_05_12_010001_add_is_critical_to_sale_stage_actions.php`
+ *   - Lógica em `ExecuteStageActionService::execute()` (linhas ~64-73)
+ *   - Seeder `FsmProcessoVendaComProducaoSeeder` marca is_critical=true em
+ *     cancelar_venda × 9 stages, iniciar_producao, reabrir_para_revisao,
+ *     concluir_producao, faturar, etc — sempre com role default
+ *     (`vendas.gerente#{biz}`, `producao.iniciar#{biz}`, ...).
  *
- * Pain point Wagner 2026-05-12:
+ * Pain point Wagner 2026-05-12 (resolvido):
  *   "Orçamento foi para estágio voltou sem ninguém ter autorizado"
  *
- * Bug raiz: ExecuteStageActionService.php:62 — se `roleNames` vazio,
- * libera pra qualquer user. Actions críticas (voltar_para_orcamento,
- * iniciar_producao, cancelar_venda) precisam EXIGIR role mesmo
- * quando seed esquece de cadastrar.
+ * Bug raiz original: action sem role em sale_stage_action_roles era LIBERADA
+ * pra qualquer user (silent bypass). Hoje action is_critical=true SEM role
+ * lança UnauthorizedActionException com mensagem instrutiva apontando tabela.
  *
- * Ver: memory/requisitos/Sells/CASOS-USO-PIPELINE-VENDAS.md §CU-02
+ * Ver: memory/requisitos/Sells/CASOS-USO-PIPELINE-VENDAS.md §CU-02 +
+ *      memory/proibicoes.md §FSM Pipeline Canônico.
  */
 
 class FsmCriticalTestSubject extends Model
@@ -236,7 +240,7 @@ it('4. action is_critical=true COM role + user COM role permite execução + log
     expect($subject->fresh()->current_stage_id)->toBe($e->id);
 });
 
-it('5. mensagem da exception é instrutiva (diz qual role configurar)', function () {
+it('5. mensagem da exception é instrutiva (cita action key + tabela + caminho fix)', function () {
     ['aprovado' => $a, 'enviado' => $e] = fsmSetupCritical(1);
 
     SaleStageAction::create([
@@ -254,7 +258,33 @@ it('5. mensagem da exception é instrutiva (diz qual role configurar)', function
         $this->fail('Esperava UnauthorizedActionException');
     } catch (UnauthorizedActionException $e) {
         expect($e->getMessage())
-            ->toContain('cancelar_venda')
-            ->toContain('crítica');
+            ->toContain('cancelar_venda')                // action key
+            ->toContain('crítica')                       // termo conceitual
+            ->toContain('sale_stage_action_roles');      // tabela pra fix
     }
+});
+
+it('6. cross-tenant biz=99 vs subject biz=1 lança UnauthorizedActionException', function () {
+    // biz=1 default smoke; biz=99 é convenção cross-tenant guard (ADR 0101 +
+    // memory/feedback_test_biz_99_cross_tenant_convention.md). NUNCA biz=4
+    // (cliente real ROTA LIVRE).
+    ['aprovado' => $a, 'enviado' => $e] = fsmSetupCritical(99);
+
+    $action = SaleStageAction::create([
+        'stage_id' => $a->id,
+        'key' => 'reabrir_para_revisao',
+        'label' => 'Reabrir',
+        'target_stage_id' => $e->id,
+        'is_critical' => true,
+    ]);
+    SaleStageActionRole::create(['action_id' => $action->id, 'role_name' => 'vendas.gerente']);
+    Role::create(['name' => 'vendas.gerente', 'guard_name' => 'web']);
+
+    // Subject biz=1 (cross-tenant attempt: subject != process.business_id=99)
+    $subject = fsmCriticalSubject(1, $a->id);
+    $user = fsmCriticalUser(1);
+    $user->assignRole('vendas.gerente');
+
+    expect(fn () => (new ExecuteStageActionService)->execute($subject, 'reabrir_para_revisao', $user))
+        ->toThrow(UnauthorizedActionException::class, 'Cross-tenant');
 });
