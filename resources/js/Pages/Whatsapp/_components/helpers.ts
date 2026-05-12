@@ -199,6 +199,8 @@ export interface ThreadConversation {
   id: number;
   customer_phone: string;
   contact_name: string;
+  /** US-WA-045b: tipo do canal pra UI saber recursos suportados (CTA URL = Meta only). */
+  channel_type?: string;
   status: 'open' | 'awaiting_human' | 'resolved' | 'archived';
   bot_handling: boolean;
   within_24h_window: boolean;
