@@ -11,6 +11,14 @@ export const LS = {
   THREAD: 'oimpresso.whatsapp.thread',
   SIDEBAR_COLLAPSED: 'oimpresso.whatsapp.sidebar_collapsed',
   LEFT_SIDEBAR_COLLAPSED: 'oimpresso.whatsapp.left_sidebar_collapsed',
+  // Filtros novos do Inbox (US-WA-* — within_24h/unlinked/aging/orderBy).
+  // Wagner 2026-05-12: persistência POR session/business, sem perfil global.
+  // Não inclui o businessId no path porque LS é per-browser per-user já;
+  // se time compartilhar máquina, cada login limpa via lsSet null.
+  WITHIN_24H: 'oimpresso.whatsapp.within_24h',
+  UNLINKED: 'oimpresso.whatsapp.unlinked',
+  INBOUND_AGING: 'oimpresso.whatsapp.inbound_aging',
+  ORDER_BY: 'oimpresso.whatsapp.order_by',
 } as const;
 
 export function lsGet(key: string, fallback = ''): string {
