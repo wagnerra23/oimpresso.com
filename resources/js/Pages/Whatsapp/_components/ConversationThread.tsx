@@ -24,6 +24,7 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   File as FileIcon,
+  Zap,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -42,6 +43,19 @@ import {
   type ReadyTemplate,
   type ThreadConversation,
 } from './helpers';
+
+/**
+ * US-WA-048: shape do item retornado por GET `/atendimento/macros/list`.
+ * Backend (MacrosController::list) limita a 50 ordenados por used_count.
+ */
+interface MacroEntry {
+  id: number;
+  label: string;
+  shortcut: string | null;
+  body: string;
+  used_count: number;
+  body_preview: string;
+}
 
 /**
  * US-WA-074 (ADR 0142): payload de flash slash command vindo do Controller.
@@ -112,6 +126,14 @@ export default function ConversationThread({
   // US-WA-074 (ADR 0142): autocomplete `/` slash commands em nota interna.
   // Aparece quando atendente digita `/` no início e modo é `note`.
   const [showSlashAutocomplete, setShowSlashAutocomplete] = useState(false);
+  // US-WA-048: macros dropdown — fetch lazy ao abrir, click apply dispara
+  // POST `atendimento.inbox.apply_macro` + reload conv. Tier 0 garantido
+  // no backend (Macro.business_id global scope).
+  const [macrosOpen, setMacrosOpen] = useState(false);
+  const [macrosList, setMacrosList] = useState<MacroEntry[] | null>(null);
+  const [macrosLoading, setMacrosLoading] = useState(false);
+  const [macrosFilter, setMacrosFilter] = useState('');
+  const [applyingMacroId, setApplyingMacroId] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -379,6 +401,57 @@ export default function ConversationThread({
           router.reload({ only: reloadOnly });
         },
         onFinish: () => setSending(false),
+      },
+    );
+  }
+
+  // US-WA-048: macros dropdown. fetchMacros é idempotente — só busca 1x,
+  // re-abrir dropdown reusa cache local (atendente edita lista raramente).
+  function fetchMacros() {
+    if (macrosList !== null || macrosLoading) return;
+    setMacrosLoading(true);
+    fetch(route('atendimento.macros.list'), {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+    })
+      .then((r) => r.json())
+      .then((data: { macros: MacroEntry[] }) => {
+        setMacrosList(data.macros ?? []);
+      })
+      .catch(() => {
+        // Falha silenciosa — dropdown mostra "Erro ao carregar"
+        setMacrosList([]);
+      })
+      .finally(() => setMacrosLoading(false));
+  }
+
+  function openMacrosDropdown() {
+    setMacrosOpen((open) => {
+      if (!open) {
+        setMacrosFilter('');
+        fetchMacros();
+      }
+      return !open;
+    });
+  }
+
+  function applyMacro(macro: MacroEntry) {
+    if (applyingMacroId !== null || isBlocked || isNote) return;
+    setApplyingMacroId(macro.id);
+    router.post(
+      route('atendimento.inbox.apply_macro', { id: conversation.id, macroId: macro.id }),
+      {},
+      {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+          setMacrosOpen(false);
+          setMacrosFilter('');
+          // Invalida cache pra refletir used_count atualizado na próxima abertura
+          setMacrosList(null);
+          router.reload({ only: reloadOnly });
+        },
+        onFinish: () => setApplyingMacroId(null),
       },
     );
   }
@@ -833,6 +906,113 @@ export default function ConversationThread({
             >
               Template
             </Button>
+            {/* US-WA-048 — botão Macros (quick replies + ações Chatwoot pattern).
+                Dropdown lazy-loaded ao abrir, busca live por shortcut/label,
+                click envia msg + aplica actions (tag/status/assign) em 1 clique.
+                Disabled em note/blocked (macros são cliente-facing). */}
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openMacrosDropdown}
+                disabled={isBlocked || isNote}
+                className="h-8 px-2 gap-1"
+                title={isNote
+                  ? 'Macros não fazem sentido em nota interna'
+                  : isBlocked
+                    ? 'Contato bloqueado — envio desabilitado'
+                    : 'Macros — respostas rápidas + ações (clique pra abrir)'}
+                data-testid="composer-macros-btn"
+                aria-label="Abrir macros"
+                aria-expanded={macrosOpen}
+              >
+                <Zap size={13} aria-hidden />
+                <span className="hidden sm:inline text-xs">Macros</span>
+              </Button>
+              {macrosOpen && (
+                <div
+                  className="absolute bottom-full right-0 mb-1 w-80 bg-card border border-border rounded-md shadow-lg z-20"
+                  data-testid="composer-macros-dropdown"
+                  role="listbox"
+                >
+                  <div className="p-2 border-b">
+                    <input
+                      type="text"
+                      value={macrosFilter}
+                      onChange={(e) => setMacrosFilter(e.target.value)}
+                      placeholder="Buscar macro (atalho ou rótulo)…"
+                      className="w-full text-xs px-2 py-1 border rounded bg-background"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          e.preventDefault();
+                          setMacrosOpen(false);
+                        }
+                      }}
+                      data-testid="composer-macros-filter"
+                    />
+                  </div>
+                  <div className="max-h-72 overflow-y-auto">
+                    {macrosLoading && (
+                      <div className="px-3 py-3 text-xs text-muted-foreground">Carregando…</div>
+                    )}
+                    {!macrosLoading && macrosList !== null && macrosList.length === 0 && (
+                      <div className="px-3 py-3 text-xs text-muted-foreground">
+                        Nenhuma macro cadastrada.{' '}
+                        <a
+                          href={route('atendimento.macros.index')}
+                          className="text-primary underline"
+                        >
+                          Criar em settings
+                        </a>
+                      </div>
+                    )}
+                    {!macrosLoading && macrosList !== null && macrosList.length > 0 && (
+                      (() => {
+                        const q = macrosFilter.trim().toLowerCase().replace(/^\//, '');
+                        const filtered = q
+                          ? macrosList.filter((m) =>
+                              (m.shortcut ?? '').toLowerCase().includes(q) ||
+                              m.label.toLowerCase().includes(q),
+                            )
+                          : macrosList;
+                        if (filtered.length === 0) {
+                          return (
+                            <div className="px-3 py-3 text-xs text-muted-foreground">
+                              Nenhuma macro match com "{macrosFilter}".
+                            </div>
+                          );
+                        }
+                        return filtered.map((m) => (
+                          <button
+                            type="button"
+                            key={m.id}
+                            onClick={() => applyMacro(m)}
+                            disabled={applyingMacroId !== null}
+                            className="w-full text-left px-3 py-2 hover:bg-muted/50 border-b last:border-b-0 border-border disabled:opacity-50"
+                            data-testid={`composer-macro-${m.id}`}
+                            role="option"
+                            aria-selected={false}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-medium">{m.label}</span>
+                              {m.shortcut && (
+                                <code className="font-mono text-[10px] bg-muted px-1 py-0.5 rounded shrink-0">
+                                  /{m.shortcut}
+                                </code>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                              {m.body_preview}
+                            </div>
+                          </button>
+                        ));
+                      })()
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             {/* US-WA-085: botão NÃO desabilita em `sending` — atendente pode
                 disparar próxima msg sem esperar daemon confirmar a anterior.
                 Feedback visual vem do bubble com hourglass icon (status='queued'),

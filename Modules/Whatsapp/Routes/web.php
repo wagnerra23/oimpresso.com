@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
+use Modules\Whatsapp\Http\Controllers\Admin\MacrosController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
 
@@ -176,4 +177,29 @@ Route::group([
     Route::put('/canais/jana-templates', [SettingsController::class, 'update'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.canais.jana_templates.update');
+
+    // US-WA-048 — Macros (quick replies + automation actions, Chatwoot pattern).
+    // CRUD na tela settings + endpoint JSON pra dropdown do composer + apply.
+    // Permission CRUD = settings.manage (config); apply = whatsapp.send (operacional).
+    Route::get('/macros', [MacrosController::class, 'index'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.index');
+    Route::get('/macros/list', [MacrosController::class, 'list'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.macros.list');
+    Route::post('/macros', [MacrosController::class, 'store'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.store');
+    Route::put('/macros/{id}', [MacrosController::class, 'update'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.update');
+    Route::delete('/macros/{id}', [MacrosController::class, 'destroy'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.macros.destroy');
+    Route::post('/inbox/conversations/{id}/apply-macro/{macroId}', [MacrosController::class, 'apply'])
+        ->whereNumber('id')->whereNumber('macroId')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.apply_macro');
 });
