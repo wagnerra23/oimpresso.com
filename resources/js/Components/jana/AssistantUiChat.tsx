@@ -22,10 +22,13 @@ import {
   ThreadPrimitive,
   MessagePrimitive,
   ComposerPrimitive,
+  useMessage,
+  useThread,
   type AppendMessage,
   type ThreadMessageLike,
 } from '@assistant-ui/react';
-import { MarkdownTextPrimitive } from '@assistant-ui/react-markdown';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { ArrowDown, ArrowUp, Square } from 'lucide-react';
@@ -129,6 +132,109 @@ function UserMessage() {
   );
 }
 
+/**
+ * Custom Text component que renderiza via ReactMarkdown + remark-gfm.
+ *
+ * Por que NÃO usar MarkdownTextPrimitive do @assistant-ui/react-markdown:
+ *  - Não suporta GFM tables (formato Versão A do JANA Pro Brief tem várias)
+ *  - Versão A foi aprovada Wagner 2026-05-12 ("encanta a demonstração")
+ *
+ * Recebe `{ text }` da MessagePrimitive.Parts. Renderiza com classes
+ * prose-* customizadas pra tabelas (border + padding consistente).
+ */
+function MarkdownText({ text }: { text: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // Tabelas com border + padding
+        table: ({ children }) => (
+          <div className="my-3 overflow-x-auto rounded border border-border">
+            <table className="w-full border-collapse text-xs">{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => <thead className="bg-muted/50">{children}</thead>,
+        th: ({ children }) => (
+          <th className="border border-border px-2 py-1.5 text-left font-semibold">
+            {children}
+          </th>
+        ),
+        td: ({ children }) => (
+          <td className="border border-border px-2 py-1.5">{children}</td>
+        ),
+        // Headings hierárquicos
+        h1: ({ children }) => (
+          <h1 className="mt-3 mb-2 text-lg font-bold">{children}</h1>
+        ),
+        h2: ({ children }) => (
+          <h2 className="mt-3 mb-1.5 text-base font-bold">{children}</h2>
+        ),
+        h3: ({ children }) => (
+          <h3 className="mt-2 mb-1 text-sm font-semibold">{children}</h3>
+        ),
+        // Blockquote com border
+        blockquote: ({ children }) => (
+          <blockquote className="my-2 border-l-4 border-primary/60 bg-muted/30 py-1.5 pl-3 italic">
+            {children}
+          </blockquote>
+        ),
+        // Separator
+        hr: () => <hr className="my-3 border-border" />,
+        // Lists
+        ul: ({ children }) => <ul className="my-2 ml-5 list-disc space-y-1">{children}</ul>,
+        ol: ({ children }) => <ol className="my-2 ml-5 list-decimal space-y-1">{children}</ol>,
+        // Links externos abrem em nova aba
+        a: ({ href, children }) => (
+          <a href={href} target="_blank" rel="noreferrer" className="text-primary underline">
+            {children}
+          </a>
+        ),
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
+}
+
+/**
+ * Typing indicator — pulsing dots quando assistant message tá vazio
+ * E thread tá running. UX: bubble vazio fica com "..." animado pra user
+ * saber que tá processando (brief diário leva ~5-8s sem stream).
+ */
+function TypingIndicator() {
+  return (
+    <span className="inline-flex items-center gap-1 py-1" aria-label="Jana está pensando">
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:0ms]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:150ms]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:300ms]" />
+      <span className="ml-2 text-xs text-muted-foreground">Jana está pensando…</span>
+    </span>
+  );
+}
+
+function AssistantMessageContent() {
+  // Thread.isRunning é confiável em ExternalStoreRuntime (já passamos `isRunning`
+  // no useExternalStoreRuntime). Message.status individual NÃO funciona em
+  // external store sem streaming nativo (todas messages ficam status='complete').
+  const isRunning = useThread((s) => s.isRunning);
+  const hasText = useMessage((s) =>
+    s.content.some(
+      (p: any) => p.type === 'text' && typeof p.text === 'string' && p.text.length > 0
+    )
+  );
+
+  // Bubble vazio enquanto thread roda → typing indicator
+  if (isRunning && !hasText) {
+    return <TypingIndicator />;
+  }
+
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed">
+      <MessagePrimitive.Parts components={{ Text: MarkdownText }} />
+    </div>
+  );
+}
+
 function AssistantMessage() {
   return (
     <MessagePrimitive.Root className="flex gap-3 px-4 py-3">
@@ -136,9 +242,7 @@ function AssistantMessage() {
         CP
       </div>
       <div className="flex-1 max-w-[85%] rounded-2xl rounded-bl-sm bg-card border border-border px-4 py-2.5 text-sm">
-        <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed">
-          <MessagePrimitive.Parts components={{ Text: MarkdownTextPrimitive }} />
-        </div>
+        <AssistantMessageContent />
       </div>
     </MessagePrimitive.Root>
   );
