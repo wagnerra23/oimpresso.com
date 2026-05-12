@@ -908,7 +908,7 @@ Frontend-only, sem mudança backend/migration. ROTA LIVRE não pega regressão.
 
 ### US-WA-067 · Limpar tela Configurações WhatsApp — apagar 7 blocos de driver/LGPD
 
-> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 Tela `/whatsapp/settings` ([Whatsapp/Settings.tsx](../../../resources/js/Pages/Whatsapp/Settings.tsx)) está defasada após criação do módulo Canais (ADR 0135). Drivers viraram polimórficos via `Channel.config_json`.
@@ -940,7 +940,7 @@ Tela `/whatsapp/settings` ([Whatsapp/Settings.tsx](../../../resources/js/Pages/W
 
 ### US-WA-068 · Tab "Usuários do canal" dentro de Canais (ACL per-canal visível)
 
-> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 8h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-WA-067
 
 Detalhe do canal em `/atendimento/canais/{id}` ganha tabs: `Config | Usuários | Histórico`.
@@ -975,7 +975,7 @@ Detalhe do canal em `/atendimento/canais/{id}` ganha tabs: `Config | Usuários |
 
 ### US-WA-069 · Validar canal=fila — Suporte não vê inbox do Financeiro
 
-> owner: wagner · sprint: CYCLE-05 · priority: p0 · estimate: 4h · status: review · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: US-WA-068
 
 Modelo confirmado (2026-05-12 Wagner): **Canal = Fila**. ACL per-canal via `whatsapp_phone_user_access` já existe. Esta US é só **validar** que o filtro funciona ponta-a-ponta.
@@ -1012,7 +1012,7 @@ Modelo confirmado (2026-05-12 Wagner): **Canal = Fila**. ACL per-canal via `what
 
 ### US-WA-070 · Sidebar/rotas — Canais vira entrada principal de Atendimento, Settings velha morre
 
-> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 3h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 3h · status: done · type: story
 > blocked_by: US-WA-067
 
 Após limpeza da Settings velha (US-WA-067), reorganizar navegação.
@@ -1038,7 +1038,7 @@ Após limpeza da Settings velha (US-WA-067), reorganizar navegação.
 
 ### US-WA-071 · Notas internas (private notes) MVP — toggle Reply/Note estilo Chatwoot
 
-> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 6h · status: done · type: story
 > blocked_by: —
 
 Atendentes precisam de canal interno pra coordenar sobre uma conversa sem o cliente ver. Padrão Chatwoot: cada mensagem na timeline ou é "Reply" (vai pro WhatsApp) ou é "Private Note" (fica só no painel).
@@ -1089,7 +1089,7 @@ Migration idempotente, índice em `(conversation_id, is_internal_note)` pra filt
 
 ### US-WA-072 · Mídia (imagens, áudio, docs) inbound + outbound + Whisper transcrição
 
-> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 12h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 12h · status: done · type: story
 > blocked_by: —
 
 Inbox hoje só suporta texto. WhatsApp driver entrega image/audio/video/document/sticker via webhook — precisa schema + storage + UI + outbound + ASR pra áudio.
@@ -1157,7 +1157,7 @@ Adicionar:
 
 ### US-WA-073 · ADR — Notas internas como sinal de treino pra Jana (design 4 slash commands)
 
-> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 2h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 2h · status: done · type: story
 > blocked_by: US-WA-071
 
 Antes de implementar slash commands (US-WA-074..077), precisa ADR com schema + parser + integração com `copiloto_memoria_facts` (RAG hybrid ADR 0052).
@@ -1200,7 +1200,7 @@ Antes de implementar slash commands (US-WA-074..077), precisa ADR com schema + p
 
 ### US-WA-074 · Slash /lembrar — atendente grava fato sobre cliente em copiloto_memoria_facts
 
-> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 4h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 4h · status: done · type: story
 > blocked_by: US-WA-071, US-WA-073
 
 Atendente escreve em nota interna `/lembrar prefere boleto, recusa cartão` → cria entry em `copiloto_memoria_facts` que Jana usa em recall futuro.
@@ -1237,7 +1237,7 @@ Atendente escreve em nota interna `/lembrar prefere boleto, recusa cartão` → 
 
 ### US-WA-075 · Slash /corrigir — marca mensagem do bot como errada (training signal Jana)
 
-> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 6h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 6h · status: done · type: story
 > blocked_by: US-WA-071, US-WA-073
 
 Atendente vê resposta errada da Jana, clica em "Corrigir" na mensagem do bot, escreve em nota interna `/corrigir Deveria ter dito que entrega é em 3 dias, não 7`. Grava em `whatsapp_jana_correcoes` pra fine-tune/few-shot futuro.
@@ -1270,7 +1270,7 @@ Atendente vê resposta errada da Jana, clica em "Corrigir" na mensagem do bot, e
 
 ### US-WA-076 · Slash /lembrete — cria lembrete agendado pro atendente
 
-> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 4h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 4h · status: done · type: story
 > blocked_by: US-WA-071, US-WA-073
 
 Atendente escreve em nota interna `/lembrete 2026-05-20 cobrar boleto vencendo` → cria row em `whatsapp_reminders` + cron horário processa e notifica atendente.
@@ -1301,7 +1301,7 @@ Atendente escreve em nota interna `/lembrete 2026-05-20 cobrar boleto vencendo` 
 
 ### US-WA-077 · Slash /config bot=off — toggle Jana per-contact (override global)
 
-> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 3h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 3h · status: done · type: story
 > blocked_by: US-WA-071, US-WA-073
 
 Cliente reclama que bot é chato. Atendente escreve em nota interna `/config bot=off` → bot Jana fica desligado SÓ pra esse contato. `/config bot=on` reativa.
