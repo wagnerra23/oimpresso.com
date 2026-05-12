@@ -275,6 +275,36 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Guardião 6 camadas anti-mídia-perdida — Camada 4 (retry hourly).
+        // Rede de proteção pra mídia órfã (status=pending|downloading, media_url=null,
+        // attempts<5, criada nos últimos 7d). Dispatcha DownloadMediaJob pra cada.
+        // Observer Camada 1 já dispara no created; este cron cobre falhas onde:
+        //   - Queue connection down quando Observer rodou
+        //   - Daemon CT 100 offline temporariamente
+        //   - Race condition entre webhook + observer
+        // withoutOverlapping(30) evita 2 instâncias batendo no daemon ao mesmo tempo.
+        $schedule->job(new \Modules\Whatsapp\Jobs\RetryFailedMediaDownloadsJob())
+            ->hourly()
+            ->withoutOverlapping(30)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule RetryFailedMediaDownloadsJob FALHOU — mídia órfã pode acumular'
+                );
+            });
+
+        // Guardião 6 camadas anti-mídia-perdida — Camada 5 (scan drift daily 03:30 BRT).
+        // Não corrige drift, apenas LOGA métricas (pending_count_1h/24h, failed_permanent_7d,
+        // total_size_pending_bytes) pra observability. 30min após fsm:scan-drift (03:00)
+        // pra evitar disputa DB. Health check Camada 6 (jana:health-check 06:00) alerta
+        // se pending_count_1h > 0.
+        $schedule->command('whatsapp:scan-media-drift')
+            ->dailyAt('03:30')
+            ->timezone('America/Sao_Paulo')
+            ->name('whatsapp-scan-media-drift-daily')
+            ->withoutOverlapping()
+            ->environments(['live']);
+
         // US-NFE-051 (ADR 0116 caso Gold) — Distribuição DFe pra businesses com cert
         // ativo. Puxa NF-e emitidas contra meu CNPJ via NSU SEFAZ ambiente nacional.
         // 06:15 BRT (após jana:health-check 06:00). Cooldown 5min protege se cron
