@@ -39,6 +39,40 @@ UI humana: `/copiloto/admin/memoria` lista 352+ docs com filtros + preview markd
 
 Sessão claude.ai/code (nuvem) e Claude Code local não se enxergam — git é a ponte. Caminho canônico: **bridge branch via GitHub device flow** (sem PAT no chat, sem chunks copiados). Ver [`memory/how-bridge-cloud-local.md`](how-bridge-cloud-local.md).
 
+## Paralelização N agents na mesma worktree
+
+Pattern comprovado em FSM canon (3 waves × 4-5 agents) + Wave A (5 agents) + Wave B (1 agent) 2026-05-12.
+
+**Pré-requisitos pra spawnar N agents simultâneos sem conflito:**
+
+1. **Áreas isoladas obrigatórias** — cada agent recebe lista de pastas permitidas no prompt; sem overlap entre agents. Ex: `Modules/ComunicacaoVisual/` (agent 1) vs `Modules/OficinaAuto/` (agent 2) vs `memory/requisitos/Garantia/` (agent 3).
+2. **Zero git ops nos agents** — agents NÃO fazem `git commit/push/branch`. Só `Write/Edit`. Parent coleta no final.
+3. **Prompt agent com regra Tier 0 "comparar e não duplicar"** — lista concreta de módulos referência a LER antes de criar (ex: `Modules/<MaisRecente>`, `Modules/<EmProd>`, `Modules/<SharedInfra>`). Comprovado: ComVis V0 agent pulou `cv_orcamentos` (legacy `comvis_orcamentos` existe) + reusou Sprint 1 (module.json/Providers/Charter) — economizou ~6 entregas duplicadas.
+4. **Restrições Tier 0 IRREVOGÁVEIS no prompt** — `business_id` global scope, Pest cross-tenant biz=1 vs biz=99, PT-BR, convenções nomenclatura. Sem isso agent inventa.
+5. **Pré-reqs ROADMAP da Fase N checados ANTES de disparar** — cada ROADMAP lista pré-reqs Wagner sign-off na entrada de cada fase. Disparar agent sem checar = retrabalho ou decisões assumidas erradas. Conservador: pedir Wagner desbloquear primeiro.
+
+**Consolidação parent (eu) após agents terminarem:**
+
+```bash
+# Stash all + branches fresh por domínio:
+git stash push -u -m "wave-X-all-agents"
+git checkout -B claude/<dominio-1> origin/main
+git stash pop  # restaura tudo
+git add <subset-dominio-1>  # seletivo
+git commit -F - <<'EOF'
+...
+EOF
+git push -u origin claude/<dominio-1>
+gh pr create ...
+
+# Próximo domínio:
+git checkout -B claude/<dominio-2> origin/main  # untracked files persistem
+git add <subset-dominio-2>
+git commit + push + PR
+```
+
+**Diferente do handoff frustrado** [2026-05-11-1830-paralelizacao-omnichannel-frustrada.md](handoffs/2026-05-11-1830-paralelizacao-omnichannel-frustrada.md) — naquele caso agents tentavam git ops em worktree filha (morriam). Aqui agents só Write/Edit, parent faz git ops.
+
 ## Skills auto-ativáveis
 
 Arquivos em `.claude/skills/<nome>/SKILL.md` ativam por contexto. Ver tier no frontmatter (convenção interna [ADR 0095](decisions/0095-skills-tiers-convencao-interna.md)):
