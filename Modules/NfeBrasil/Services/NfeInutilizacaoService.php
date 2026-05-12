@@ -79,7 +79,9 @@ class NfeInutilizacaoService
             $cnpj = preg_replace('/\D/', '', (string) ($business->tax_number ?? '00000000000000'));
 
             // Tools::sefazInutiliza(nSerie, nIni, nFin, xJust, tpAmb=null, modelo)
-            $tools->model($modelo);
+            // NFePHP\NFe\Tools::model exige ?int — cast obrigatório (modelo vem
+            // string da fachada pra preservar zero-padding "55"/"65")
+            $tools->model((int) $modelo);
             $xmlRet = $tools->sefazInutiliza(
                 (int) $serie,
                 $numeroDe,

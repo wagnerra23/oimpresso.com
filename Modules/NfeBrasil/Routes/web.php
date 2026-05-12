@@ -6,6 +6,7 @@ use Modules\NfeBrasil\Http\Controllers\ConfigDefaultController;
 use Modules\NfeBrasil\Http\Controllers\ImportRegrasController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
+use Modules\NfeBrasil\Http\Controllers\NfeInutilizacaoController;
 use Modules\NfeBrasil\Http\Controllers\NfeStatusController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 
@@ -131,6 +132,17 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('{tx}/status', [NfeStatusController::class, 'showPage'])
             ->whereNumber('tx')
             ->name('status');
+    });
+
+// US-SELL-030 — Inutilização SEFAZ de faixa de números fiscais NFe.
+// Permissão: `fiscal.inutilizar` (role per-business, seeder NfeFiscalActionsSeeder).
+// Refs: SPEC.md US-SELL-030 + CONFAZ Ajuste SINIEF 07/2005 Art. 14
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('nfe-brasil/inutilizacoes')
+    ->name('nfe-brasil.inutilizacoes.')
+    ->group(function () {
+        Route::get('/', [NfeInutilizacaoController::class, 'index'])->name('index');
+        Route::post('/', [NfeInutilizacaoController::class, 'store'])->name('store');
     });
 
 // US-NFE-052 (ADR 0116 caso Gold) — UI Manifestação do Destinatário.
