@@ -10,6 +10,7 @@
 
 ## Últimos handoffs
 
+- [2026-05-12 08:48 — JANA Pro Brief Diário FUNCIONAL em prod (US-COPI-203 completa)](handoffs/2026-05-12-0848-jana-pro-brief-funcional-prod.md) (5 PRs #608/#609/#611/#612/#616 · OpenAI gpt-4o-mini ligado · BriefDiarioChatTrigger 9 regex unicode · ReactMarkdown+remarkGfm pra GFM tables · TypingIndicator durante isRunning · 2 bugs URL legacy /copiloto descobertos em prod e fixados · Wagner aprovou screenshot "ficou ótimo")
 - [2026-05-11 22:30 — JANA Pro Sprint A foundation + modo Concierge MVP + pegadinha junction NTFS](handoffs/2026-05-11-2230-jana-pro-foundation-concierge-pegadinha.md) (5 PRs #597/#598/#600/#602/#603 · ADR 0140 JANA Pro SaaS + ADR 0141 Camada B v2 estilo Claude Code · caminho B Concierge MVP escolhido · pegadinha junction NTFS proibida Tier 0 · OPENAI_API_KEY rotação pendente)
 - [2026-05-11 20:40 — Design fix v2 + Pest mock smoke + cleanup merges paralelos](handoffs/2026-05-11-2040-design-fix-v2-mock-smoke-merge-cleanup.md) (3 PRs #583/#585/#586 · lição: revisão visual em wide screen pega o que design-critique isolado não vê · mock CnabDirectStrategy provado funcional · dívida SCOPE.md OficinaAuto/Vestuario detectada e task spawned)
 - [2026-05-11 19:55 — Financeiro sidebar/topnav canônico + design ConfigurarBoletoSheet + tentativa Inter API](handoffs/2026-05-11-1955-financeiro-sidebar-topnav-design-boleto-inter.md) (4 PRs #565/#568→reverted/#569/#579 · lição: AppShellV2 já tem topnav nativo via topnav.php · Inter API bloqueado lado Inter "Aplicações não existe")
@@ -50,4 +51,4 @@ Detalhes da skill em [`.claude/skills/memory-sync/SKILL.md`](../.claude/skills/m
 
 ---
 
-**Última atualização do índice:** 2026-05-11 22:30 — handoff JANA Pro Sprint A foundation + modo Concierge MVP + pegadinha junction NTFS adicionado.
+**Última atualização do índice:** 2026-05-12 08:48 — handoff JANA Pro Brief Diário FUNCIONAL em prod (US-COPI-203 completa) adicionado.
