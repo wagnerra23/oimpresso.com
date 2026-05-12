@@ -554,9 +554,9 @@ class PurchaseController extends Controller
      */
     public function show($id)
     {
-        // if (!auth()->user()->can('purchase.view')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (! auth()->user()->can('purchase.view') && ! auth()->user()->can('view_own_purchase')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $business_id = request()->session()->get('user.business_id');
         $taxes = TaxRate::where('business_id', $business_id)
@@ -617,8 +617,133 @@ class PurchaseController extends Controller
 
         $statuses = $this->productUtil->orderStatuses();
 
-        return view('purchase.show')
+        // === MWART DUAL (skill migracao-blade-react v0.1.0 PR2 piloto-purchase-show, ADR 0141) ===
+        // Blade legacy show_details.blade.php:430 quebra com DNS1D::getBarcodePNG() em prod.
+        // Inertia mata o bug por substituicao. Caminho AJAX modal legacy preservado pra
+        // compat retroativa (mas tambem quebrado em prod — vai morrer junto com index).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
+            // Modal AJAX legacy (Blade quebrado em prod — preservado pra retro-compat).
+            return view('purchase.show')
                 ->with(compact('taxes', 'purchase', 'payment_methods', 'purchase_taxes', 'activities', 'statuses', 'purchase_order_nos', 'purchase_order_dates'));
+        }
+
+        return $this->showInertia($purchase, $taxes, $payment_methods, $purchase_taxes);
+    }
+
+    /**
+     * MWART dual path: renderiza Purchase/Show Inertia preservando Tier 0.
+     * Snapshot: memory/mwart-inventory/purchase/show.snapshot.md
+     */
+    private function showInertia($purchase, $taxes, $payment_methods, $purchase_taxes)
+    {
+        $purchase_lines = $purchase->purchase_lines->map(function ($line) use ($taxes) {
+            $unit_name = ! empty($line->sub_unit) ? $line->sub_unit->actual_name : ($line->product->unit->actual_name ?? '');
+            $variation_name = null;
+            if ($line->product->type === 'variable' && $line->variations) {
+                $variation_name = trim(($line->variations->product_variation->name ?? '') . ' - ' . ($line->variations->name ?? ''), ' -');
+            }
+            $sku = $line->product->type === 'variable' ? ($line->variations->sub_sku ?? '') : ($line->product->sku ?? '');
+            return [
+                'id' => (int) $line->id,
+                'product_name' => (string) ($line->product->name ?? ''),
+                'sku' => (string) $sku,
+                'variation_name' => $variation_name,
+                'quantity' => (float) $line->quantity,
+                'unit_name' => (string) $unit_name,
+                'pp_without_discount' => (float) ($line->pp_without_discount ?? 0),
+                'discount_percent' => (float) ($line->discount_percent ?? 0),
+                'purchase_price' => (float) ($line->purchase_price ?? 0),
+                'item_tax' => (float) ($line->item_tax ?? 0),
+                'tax_name' => isset($taxes[$line->tax_id]) ? (string) $taxes[$line->tax_id] : null,
+                'purchase_price_inc_tax' => (float) ($line->purchase_price_inc_tax ?? 0),
+                'subtotal' => (float) (($line->purchase_price_inc_tax ?? 0) * ($line->quantity ?? 0)),
+                'lot_number' => $line->lot_number,
+                'mfg_date' => $line->mfg_date,
+                'exp_date' => $line->exp_date,
+            ];
+        })->values();
+
+        $payment_lines = $purchase->payment_lines->map(function ($p) use ($payment_methods) {
+            return [
+                'id' => (int) $p->id,
+                'paid_on' => (string) $p->paid_on,
+                'payment_ref_no' => $p->payment_ref_no,
+                'amount' => (float) $p->amount,
+                'method_label' => (string) ($payment_methods[$p->method] ?? $p->method),
+                'note' => $p->note,
+            ];
+        })->values();
+
+        $net_total = (float) $purchase->purchase_lines->sum(fn ($l) => ($l->quantity ?? 0) * ($l->purchase_price ?? 0));
+        $discount_value = $purchase->discount_type === 'percentage'
+            ? (float) ($purchase->discount_amount * $net_total / 100)
+            : (float) $purchase->discount_amount;
+
+        $tax_breakdown = [];
+        foreach ($purchase_taxes as $name => $amount) {
+            $tax_breakdown[] = ['name' => (string) $name, 'amount' => (float) $amount];
+        }
+
+        $amount_paid = (float) $purchase->payment_lines->sum('amount');
+        $final_total = (float) $purchase->final_total;
+
+        $location_city_state = implode(', ', array_filter([
+            $purchase->location->city ?? null,
+            $purchase->location->state ?? null,
+            $purchase->location->country ?? null,
+        ]));
+
+        $user = auth()->user();
+
+        return Inertia::render('Purchase/Show', [
+            'purchase' => [
+                'id' => (int) $purchase->id,
+                'ref_no' => (string) ($purchase->ref_no ?? ''),
+                'transaction_date' => (string) $purchase->transaction_date,
+                'type' => (string) $purchase->type,
+                'status' => (string) $purchase->status,
+                'payment_status' => (string) $purchase->payment_status,
+                'additional_notes' => $purchase->additional_notes,
+                // Supplier
+                'supplier_name' => (string) ($purchase->contact->name ?? ''),
+                'supplier_business_name' => $purchase->contact->supplier_business_name ?? null,
+                'supplier_address' => $purchase->contact->contact_address ?? null,
+                'supplier_tax_number' => $purchase->contact->tax_number ?? null,
+                'supplier_mobile' => $purchase->contact->mobile ?? null,
+                'supplier_email' => $purchase->contact->email ?? null,
+                // Business
+                'business_name' => (string) ($purchase->business->name ?? ''),
+                'business_tax_label_1' => $purchase->business->tax_label_1 ?? null,
+                'business_tax_number_1' => $purchase->business->tax_number_1 ?? null,
+                'business_tax_label_2' => $purchase->business->tax_label_2 ?? null,
+                'business_tax_number_2' => $purchase->business->tax_number_2 ?? null,
+                'location_name' => (string) ($purchase->location->name ?? ''),
+                'location_landmark' => $purchase->location->landmark ?? null,
+                'location_city_state' => $location_city_state ?: null,
+                'location_mobile' => $purchase->location->mobile ?? null,
+                'location_email' => $purchase->location->email ?? null,
+                // Document
+                'document_path' => $purchase->document_path ?? null,
+                'document_name' => $purchase->document_name ?? null,
+                // Items + totais
+                'purchase_lines' => $purchase_lines,
+                'payment_lines' => $payment_lines,
+                'net_total' => $net_total,
+                'discount_type' => (string) ($purchase->discount_type ?? 'fixed'),
+                'discount_amount' => (float) ($purchase->discount_amount ?? 0),
+                'discount_value' => $discount_value,
+                'tax_breakdown' => $tax_breakdown,
+                'shipping_charges' => (float) ($purchase->shipping_charges ?? 0),
+                'final_total' => $final_total,
+                'amount_paid' => $amount_paid,
+                'payment_due' => $final_total - $amount_paid,
+            ],
+            'permissions' => [
+                'update' => $user->can('purchase.update'),
+                'delete' => $user->can('purchase.delete'),
+                'payments' => $user->can('purchase.payments') || $user->can('edit_purchase_payment') || $user->can('delete_purchase_payment'),
+            ],
+        ]);
     }
 
     /**
