@@ -15,6 +15,7 @@ import {
   ChevronUp,
   ChevronDown,
   Ban,
+  Lock,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -56,6 +57,13 @@ export default function ConversationThread({
   const [liveConnected, setLiveConnected] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  // US-WA-071 (ADR 0142): toggle Reply / Internal Note (Chatwoot pattern).
+  // 'reply' = vai pro WhatsApp · 'note' = só atendentes do business (fundo amarelo).
+  // Persistido em localStorage por conversation_id pra não perder modo ao trocar.
+  const [composerKind, setComposerKind] = useState<'reply' | 'note'>(() => {
+    if (typeof window === 'undefined') return 'reply';
+    return (localStorage.getItem(`oimpresso.whatsapp.composer_kind.${conversation.id}`) as 'reply' | 'note') ?? 'reply';
+  });
   // US-WA-062: busca local na conversa (sem backend — filtra `messages`
   // client-side, mantém ordem cronológica, highlight visual <mark>).
   const [searchOpen, setSearchOpen] = useState(false);
@@ -78,13 +86,18 @@ export default function ConversationThread({
     setCurrentMatchIdx(0);
   }, [searchQuery]);
 
-  // Ctrl+F atalho global dentro da thread foca search input
+  // Ctrl+F atalho global dentro da thread foca search input.
+  // Ctrl+/ (Cmd+/) toggle composer Reply ↔ Internal Note (US-WA-071 ADR 0142).
   useEffect(() => {
     function handler(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
         setSearchOpen(true);
         setTimeout(() => searchInputRef.current?.focus(), 50);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setComposerKind((k) => (k === 'reply' ? 'note' : 'reply'));
       }
       if (e.key === 'Escape' && searchOpen) {
         setSearchOpen(false);
@@ -94,6 +107,12 @@ export default function ConversationThread({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [searchOpen]);
+
+  // Persiste composer kind por conversation_id
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(`oimpresso.whatsapp.composer_kind.${conversation.id}`, composerKind);
+  }, [composerKind, conversation.id]);
 
   // Scroll automatico pro match atual
   useEffect(() => {
@@ -164,11 +183,12 @@ export default function ConversationThread({
     // Daemon falha → status='failed' → bubble fica vermelha com alerta.
     if (!composerText.trim()) return;
     const textToSend = composerText;
+    const isInternalNote = composerKind === 'note';
     setComposerText('');           // clear immediately
     setSending(true);              // loader visual (sem bloquear)
     router.post(
       route(sendRouteName, conversation.id),
-      { kind: 'freeform', body: textToSend },
+      { kind: 'freeform', body: textToSend, is_internal_note: isInternalNote },
       {
         preserveScroll: true,
         preserveState: true,
@@ -223,8 +243,11 @@ export default function ConversationThread({
 
   // US-WA-066: conv bloqueada = composer disabled (não dá pra enviar pra
   // contato bloqueado). Janela 24h só importa se NÃO está bloqueado.
+  // US-WA-071: nota interna BYPASSA bloqueio + janela 24h (não vai pro driver).
   const isBlocked = !!conversation.is_blocked;
-  const canSendFreeform = conversation.within_24h_window && !isBlocked;
+  const isNote = composerKind === 'note';
+  const canSendFreeform = isNote || (conversation.within_24h_window && !isBlocked);
+  const composerDisabled = !isNote && isBlocked;
   const groupedMessages = useMemo(() => groupByDay(messages), [messages]);
 
   // Quando contact_name é igual ao phone (contato sem nome cadastrado),
@@ -437,14 +460,58 @@ export default function ConversationThread({
       </div>
 
       {/* Composer */}
-      <div className="border-t bg-card p-2.5 space-y-2 shrink-0">
-        {isBlocked && (
+      <div className={`border-t p-2.5 space-y-2 shrink-0 transition-colors ${
+        isNote ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800' : 'bg-card'
+      }`}>
+        {/* US-WA-071 (ADR 0142): toggle Reply / Nota interna estilo Chatwoot.
+            Nota interna NÃO vai pro WhatsApp — fica visível só pros atendentes
+            do business (Tier 0 gate no Controller). */}
+        <div className="flex items-center gap-1 -mt-1">
+          <button
+            type="button"
+            onClick={() => setComposerKind('reply')}
+            className={`text-[11px] px-2.5 py-1 rounded transition-colors ${
+              composerKind === 'reply'
+                ? 'bg-card text-foreground font-medium shadow-sm border border-border'
+                : 'text-muted-foreground hover:bg-muted/50'
+            }`}
+            title="Resposta — vai pro WhatsApp do cliente"
+            data-testid="composer-toggle-reply"
+          >
+            Resposta
+          </button>
+          <button
+            type="button"
+            onClick={() => setComposerKind('note')}
+            className={`text-[11px] px-2.5 py-1 rounded transition-colors inline-flex items-center gap-1 ${
+              composerKind === 'note'
+                ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-900 dark:text-amber-100 font-medium shadow-sm border border-amber-400 dark:border-amber-600'
+                : 'text-muted-foreground hover:bg-muted/50'
+            }`}
+            title="Nota interna — só atendentes veem (Ctrl+/ toggle)"
+            data-testid="composer-toggle-note"
+          >
+            <Lock size={10} aria-hidden />
+            Nota interna
+          </button>
+          <span className="text-[10px] text-muted-foreground ml-auto">
+            <kbd className="px-1 py-0.5 bg-muted/50 rounded text-[9px] font-mono">Ctrl+/</kbd> toggle
+          </span>
+        </div>
+
+        {isNote && (
+          <div className="text-xs text-amber-900 dark:text-amber-200 bg-amber-100/60 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded px-2.5 py-1.5 flex items-start gap-1.5">
+            <Lock size={12} className="mt-0.5 shrink-0" aria-hidden />
+            <span>Nota interna — NÃO vai pro WhatsApp. Só atendentes do business veem.</span>
+          </div>
+        )}
+        {!isNote && isBlocked && (
           <div className="text-xs text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-700 rounded px-2.5 py-1.5 flex items-start gap-1.5">
             <Ban size={12} className="mt-0.5 shrink-0" aria-hidden />
             <span>Contato bloqueado. Inbound novo é descartado e envio está desabilitado. Desbloqueie no painel direito para reabrir.</span>
           </div>
         )}
-        {!isBlocked && !canSendFreeform && (
+        {!isNote && !isBlocked && !canSendFreeform && (
           <div className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 rounded px-2.5 py-1.5 flex items-start gap-1.5">
             <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden />
             <span>Janela 24h Meta fechada. Z-API/Baileys mandam freeform; Meta Cloud exige template HSM.</span>
@@ -453,12 +520,14 @@ export default function ConversationThread({
         <Textarea
           value={composerText}
           onChange={(e) => setComposerText(e.target.value)}
-          placeholder={isBlocked
+          placeholder={composerDisabled
             ? 'Contato bloqueado — envio desabilitado'
-            : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha)'}
+            : isNote
+              ? 'Nota interna…  (visível só pros atendentes — Enter envia)'
+              : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha)'}
           rows={2}
           className="resize-none"
-          disabled={isBlocked}
+          disabled={composerDisabled}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -466,6 +535,7 @@ export default function ConversationThread({
             }
           }}
           aria-label="Compositor de mensagem"
+          data-testid="composer-textarea"
         />
         <div className="flex justify-between items-center gap-2">
           <span className="text-xs text-muted-foreground tabular-nums">
@@ -476,13 +546,15 @@ export default function ConversationThread({
               variant="outline"
               size="sm"
               onClick={() => setTemplatePickerOpen(true)}
-              disabled={templates.length === 0 || isBlocked}
+              disabled={templates.length === 0 || isBlocked || isNote}
               className="h-8"
-              title={isBlocked
-                ? 'Contato bloqueado — envio desabilitado'
-                : templates.length === 0
-                ? 'Nenhum template ready — cadastre em /whatsapp/templates'
-                : 'Enviar template HSM/LOCAL (única opção quando janela 24h Meta fechada)'}
+              title={isNote
+                ? 'Templates HSM não fazem sentido em nota interna'
+                : isBlocked
+                  ? 'Contato bloqueado — envio desabilitado'
+                  : templates.length === 0
+                    ? 'Nenhum template ready — cadastre em /whatsapp/templates'
+                    : 'Enviar template HSM/LOCAL (única opção quando janela 24h Meta fechada)'}
             >
               Template
             </Button>
@@ -490,9 +562,15 @@ export default function ConversationThread({
                 disparar próxima msg sem esperar daemon confirmar a anterior.
                 Feedback visual vem do bubble com hourglass icon (status='queued'),
                 que aparece via polling/Centrifugo <1s após o backend persistir.
-                US-WA-066: disable em blocked (envio proibido). */}
-            <Button size="sm" onClick={handleSend} disabled={!composerText.trim() || isBlocked} className="h-8">
-              Enviar
+                US-WA-066: disable em blocked (envio proibido), exceto nota interna. */}
+            <Button
+              size="sm"
+              onClick={handleSend}
+              disabled={!composerText.trim() || composerDisabled}
+              className={`h-8 ${isNote ? 'bg-amber-600 hover:bg-amber-700' : ''}`}
+              data-testid="composer-send"
+            >
+              {isNote ? 'Salvar nota' : 'Enviar'}
             </Button>
           </div>
         </div>
@@ -538,7 +616,36 @@ function MessageBubble({ message, showTail, highlight = '' }: {
   highlight?: string;
 }) {
   const isOut = message.direction === 'outbound';
+  const isNote = !!message.is_internal_note; // US-WA-071
   const time = new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  // US-WA-071: nota interna ocupa toda a largura, fundo amarelo, padding maior —
+  // estilo "post-it" centralizado, distinto das bubbles de chat (Chatwoot pattern).
+  if (isNote) {
+    return (
+      <div className="flex justify-center my-1" data-msg-id={message.id} data-internal-note="true">
+        <div className="max-w-[90%] bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 rounded-md px-3 py-2 shadow-sm">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-1 inline-flex items-center gap-1">
+            <Lock size={10} aria-hidden />
+            Nota interna
+            {message.sender_user_name && (
+              <span className="font-normal normal-case ml-1 text-amber-700 dark:text-amber-400">
+                · {message.sender_user_name}
+              </span>
+            )}
+          </div>
+          <div className="whitespace-pre-wrap break-words text-sm leading-snug text-amber-950 dark:text-amber-100">
+            {message.body
+              ? <HighlightedBody body={message.body} query={highlight} />
+              : <em className="opacity-70">[vazio]</em>}
+          </div>
+          <div className="text-[10px] mt-1 text-amber-700/70 dark:text-amber-400/70">
+            {time}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const corner = isOut
     ? showTail ? 'rounded-2xl rounded-br-md' : 'rounded-2xl rounded-r-md'
