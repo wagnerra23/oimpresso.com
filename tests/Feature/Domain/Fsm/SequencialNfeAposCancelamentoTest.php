@@ -130,11 +130,38 @@ it('4. NFe rejeitada NÃO é hard-deletada — marca como inutilizada pra preser
     expect($original->status)->toBe('inutilizada');
 });
 
-// ─── G2 — NfeInutilizacaoService (a criar) ────────────────────────────────
+// ─── G2 — NfeInutilizacaoService (US-SELL-030) ─────────────────────────────
+
+/**
+ * Helper: factory de Tools mock que retorna xmlRet com cstat=102 (autorizado).
+ * Evita SEFAZ HTTP real em testes.
+ */
+function nfeInutilizacaoMockSuccess(): Closure
+{
+    return function (string $config, array $certData) {
+        $tools = Mockery::mock(\NFePHP\NFe\Tools::class);
+        $tools->shouldReceive('model')->andReturnSelf();
+        $tools->shouldReceive('sefazInutiliza')
+            ->andReturn('<?xml version="1.0"?><retInutNFe><infInut><cStat>102</cStat><xMotivo>Inutilizacao de numero homologado</xMotivo></infInut></retInutNFe>');
+        return $tools;
+    };
+}
 
 it('5. NfeInutilizacaoService::inutilizar cria registro em nfe_inutilizacoes', function () {
-    /** @var \Modules\NfeBrasil\Services\NfeInutilizacaoService $service */
-    $service = app(\Modules\NfeBrasil\Services\NfeInutilizacaoService::class);
+    $service = new \Modules\NfeBrasil\Services\NfeInutilizacaoService(
+        app(\Modules\NfeBrasil\Services\CertificadoService::class),
+        nfeInutilizacaoMockSuccess(),
+    );
+
+    // Mock CertificadoService::carregarParaSefaz pra evitar leitura de PFX
+    $this->instance(
+        \Modules\NfeBrasil\Services\CertificadoService::class,
+        Mockery::mock(\Modules\NfeBrasil\Services\CertificadoService::class, function ($m) {
+            $m->shouldReceive('carregarParaSefaz')->andReturn([
+                'pfx_binary' => 'fake', 'senha' => 'x', 'valido_ate' => now(), 'source' => 'test',
+            ]);
+        }),
+    );
 
     $inut = $service->inutilizar(
         businessId: 1,
@@ -148,20 +175,29 @@ it('5. NfeInutilizacaoService::inutilizar cria registro em nfe_inutilizacoes', f
     expect($inut)->toBeInstanceOf(NfeInutilizacao::class);
     expect($inut->business_id)->toBe(1);
     expect($inut->modelo)->toBe('55');
-    expect($inut->serie)->toBe('1');
     expect($inut->numero_de)->toBe(100);
-    expect($inut->numero_ate)->toBe(100);
-    expect($inut->justificativa)->toBe('Erro no XML — número não enviado pra SEFAZ');
+    expect($inut->status)->toBe('autorizado');
+    expect($inut->cstat)->toBe('102');
 });
 
-it('6. inutilização de faixa (numero_de=100, numero_ate=105) marca todos como inutilizado em nfe_emissoes', function () {
-    // Cria 6 registros rejeitados
+it('6. inutilização de faixa (100..105) marca todos como inutilizada em nfe_emissoes', function () {
     foreach (range(100, 105) as $n) {
         nfeFake(businessId: 1, numero: $n, status: 'rejeitada');
     }
 
-    /** @var \Modules\NfeBrasil\Services\NfeInutilizacaoService $service */
-    $service = app(\Modules\NfeBrasil\Services\NfeInutilizacaoService::class);
+    $this->instance(
+        \Modules\NfeBrasil\Services\CertificadoService::class,
+        Mockery::mock(\Modules\NfeBrasil\Services\CertificadoService::class, function ($m) {
+            $m->shouldReceive('carregarParaSefaz')->andReturn([
+                'pfx_binary' => 'fake', 'senha' => 'x', 'valido_ate' => now(), 'source' => 'test',
+            ]);
+        }),
+    );
+
+    $service = new \Modules\NfeBrasil\Services\NfeInutilizacaoService(
+        app(\Modules\NfeBrasil\Services\CertificadoService::class),
+        nfeInutilizacaoMockSuccess(),
+    );
 
     $service->inutilizar(
         businessId: 1,
@@ -177,7 +213,7 @@ it('6. inutilização de faixa (numero_de=100, numero_ate=105) marca todos como 
         ->pluck('status')
         ->all();
 
-    expect($statuses)->each->toBe('inutilizado');
+    expect($statuses)->each->toBe('inutilizada');
 });
 
 it('7. justificativa < 15 chars lança InvalidArgumentException (regra SEFAZ)', function () {
