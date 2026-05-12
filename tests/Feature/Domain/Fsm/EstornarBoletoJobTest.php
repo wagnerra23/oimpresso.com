@@ -53,6 +53,19 @@ class FakeCancelarCobrancaAsaasJobStub
     ) {}
 }
 
+/**
+ * Stub Job que simula RefundCobrancaAsaasJob existindo na app
+ * (mesmo padrão, mas pra roteamento de refund em charges pagas).
+ */
+class FakeRefundCobrancaAsaasJobStub
+{
+    public function __construct(
+        public readonly int $businessId,
+        public readonly int $documentId,
+        public readonly string $motivo,
+    ) {}
+}
+
 beforeEach(function () {
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
@@ -68,6 +81,9 @@ beforeEach(function () {
         $t->bigIncrements('id');
         $t->unsignedInteger('business_id');
         $t->string('gateway_id', 60)->nullable();
+        // status do charge — usado pelo roteamento refund vs cancel
+        // (US-CASCADE-BOLETO-005/006). null/pending = cancel; paid/received = refund.
+        $t->string('status', 20)->nullable();
     });
 
     // Spatie Permission tabelas (HasBusinessScope toca auth())
@@ -141,11 +157,12 @@ function ebjCriarUser(int $bizId): User
     ]);
 }
 
-function ebjCriarCharge(int $bizId, string $gatewayId = 'pay_xpto'): FakeBoletoCharge
+function ebjCriarCharge(int $bizId, string $gatewayId = 'pay_xpto', ?string $status = null): FakeBoletoCharge
 {
     $c = new FakeBoletoCharge;
     $c->business_id = $bizId;
     $c->gateway_id = $gatewayId;
+    $c->status = $status;
     $c->save();
 
     return $c;
@@ -262,6 +279,74 @@ it('4. cross-tenant: businessId != document.business_id lança exception', funct
     // Documento NÃO foi atualizado
     $reload = TransactionDocument::withoutGlobalScope(ScopeByBusiness::class)->find($doc->id);
     expect($reload->status)->toBe(TransactionDocument::STATUS_PENDING);
+});
+
+it('6. dispatch RefundCobrancaAsaasJob quando charge.status=paid (US-CASCADE-BOLETO-005)', function () {
+    // Ambos stubs precisam estar alias-ados pros FQCNs reais — Bus::fake()
+    // captura tudo, mas o roteamento dentro de despacharGateway() lê da matriz
+    // e decide pelo status da charge polimórfica.
+    $expectedRefundFqcn = '\\Modules\\RecurringBilling\\Jobs\\RefundCobrancaAsaasJob';
+    $expectedRefundClass = ltrim($expectedRefundFqcn, '\\');
+
+    if (! class_exists($expectedRefundClass)) {
+        class_alias(FakeRefundCobrancaAsaasJobStub::class, $expectedRefundClass);
+    }
+
+    // Charge marcada como paga — deve disparar refund
+    $charge = ebjCriarCharge(1, 'pay_paid_dispatch', 'paid');
+    $doc = ebjCriarDocumento(1, 1006, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id, '888.0000');
+
+    $this->actingAs(ebjCriarUser(1));
+    session(['user.business_id' => 1]);
+
+    Bus::fake();
+
+    $job = new EstornarBoletoJob(
+        businessId: 1,
+        transactionDocumentId: $doc->id,
+        motivo: 'venda cancelada — charge paga → refund',
+    );
+    $job->handle();
+
+    // RefundCobrancaAsaasJob foi despachado (não o Cancelar*)
+    Bus::assertDispatched($expectedRefundClass);
+    Bus::assertNotDispatched('Modules\\RecurringBilling\\Jobs\\CancelarCobrancaAsaasJob');
+
+    // Documento marcado cancelled localmente (otimista — fonte verdade é gateway)
+    $reload = TransactionDocument::withoutGlobalScope(ScopeByBusiness::class)->find($doc->id);
+    expect($reload->status)->toBe(TransactionDocument::STATUS_CANCELLED);
+});
+
+it('7. dispatch CancelarCobrancaAsaasJob quando charge.status=pending (preserva caminho legacy)', function () {
+    $expectedCancelFqcn = '\\Modules\\RecurringBilling\\Jobs\\CancelarCobrancaAsaasJob';
+    $expectedCancelClass = ltrim($expectedCancelFqcn, '\\');
+
+    if (! class_exists($expectedCancelClass)) {
+        class_alias(FakeCancelarCobrancaAsaasJobStub::class, $expectedCancelClass);
+    }
+
+    // Charge pending — deve disparar cancel (caminho original)
+    $charge = ebjCriarCharge(1, 'pay_pending_dispatch', 'pending');
+    $doc = ebjCriarDocumento(1, 1007, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id, '111.0000');
+
+    $this->actingAs(ebjCriarUser(1));
+    session(['user.business_id' => 1]);
+
+    Bus::fake();
+
+    $job = new EstornarBoletoJob(
+        businessId: 1,
+        transactionDocumentId: $doc->id,
+        motivo: 'venda cancelada — charge pending → cancel',
+    );
+    $job->handle();
+
+    // CancelarCobrancaAsaasJob foi despachado (não Refund*)
+    Bus::assertDispatched($expectedCancelClass);
+    Bus::assertNotDispatched('Modules\\RecurringBilling\\Jobs\\RefundCobrancaAsaasJob');
+
+    $reload = TransactionDocument::withoutGlobalScope(ScopeByBusiness::class)->find($doc->id);
+    expect($reload->status)->toBe(TransactionDocument::STATUS_CANCELLED);
 });
 
 it('5. dispatch CancelarCobrancaAsaasJob se classe existir (mock via class_alias)', function () {
