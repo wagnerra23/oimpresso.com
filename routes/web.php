@@ -230,6 +230,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // US-SELL-035 — Timeline FSM (sale_stage_history) pra drawer e auditoria.
     Route::get('/api/sells/{id}/history', [\App\Http\Controllers\SaleHistoryController::class, 'index'])
         ->name('sells.history');
+    // Wire-up UI FSM — actions disponíveis no stage atual + execute transição.
+    Route::get('/api/sells/{id}/fsm-actions', [\App\Http\Controllers\SaleFsmActionController::class, 'actions'])
+        ->name('sells.fsm-actions');
+    Route::post('/sells/{id}/fsm-action', [\App\Http\Controllers\SaleFsmActionController::class, 'execute'])
+        ->name('sells.fsm-execute');
     Route::resource('sells', 'SellController')->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 
