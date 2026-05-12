@@ -5,23 +5,26 @@ declare(strict_types=1);
 namespace App\Domain\Fsm\Concerns;
 
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
+use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
 /**
- * US-SELL-032 — Trait que registra hook `updating` em models FSM-managed.
+ * US-SELL-032 — Trait que bloqueia UPDATE direto em `current_stage_id` sem
+ * passar pelo `ExecuteStageActionService`.
  *
- * Bloqueia UPDATE direto em `current_stage_id` sem flag interna
- * `_fsmAuthorizedTransition` (que o ExecuteStageActionService seta).
+ * Hook `updating` via static::updating(closure) — não usa Observer pra
+ * evitar boot recursion (ver PR #639 hotfix).
  *
- * **Por que não usar `static::observe(Observer::class)` no boot:**
- * Laravel chama `static::observe()` que internamente resolve Observer via
- * `static::resolveObserverClassName` + `static::registerObserver` — esse
- * caminho dispara recursão pra inicializar a Observer class, e quebra com:
- *   "The [Model::observe] method may not be called on model X while it is being booted."
+ * Autorização: ExecuteStageActionService chama
+ *   FsmAuthorizationFlag::mark(Transaction::class, $tx->id)
+ * antes de $tx->save(). Trait consume a flag — se ausente, lança
+ * UnauthorizedActionException. Consume-once: cada save precisa flag fresh.
  *
- * Solução canônica: registrar event listener inline via `static::updating(...)`
- * (syntactic sugar de `static::registerModelEvent('updating', ...)`).
+ * Por que flag estática vs property dinâmica:
+ *   Eloquent interpreta $model->X = Y como atributo persistível. Property
+ *   dinâmica vai pro SQL UPDATE → "Unknown column" error em prod.
+ *   Singleton estático per-request resolve sem coluna fantasma.
  *
  * Uso:
  *   class Transaction extends Model {
@@ -37,7 +40,10 @@ trait GuardsFsmTransitions
                 return;
             }
 
-            $authorized = (bool) ($model->_fsmAuthorizedTransition ?? false);
+            $authorized = FsmAuthorizationFlag::consume(
+                $model::class,
+                $model->getKey() ?? '',
+            );
 
             if (! $authorized) {
                 throw new UnauthorizedActionException(
