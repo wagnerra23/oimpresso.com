@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>oimpresso — OficinaAuto · Martinho Caçambas (preview)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif; }
+  .tabular { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body class="bg-slate-50">
+
+<!-- Aviso topo -->
+<div class="bg-amber-50 border-b border-amber-200 px-6 py-3 text-xs text-amber-800">
+  <strong>📋 Preview personalizado pra Martinho Caçambas</strong> · Esse mockup mostra como sua operação ficará no <strong>oimpresso</strong> após importarmos automaticamente <strong>91 caçambas + 44.709 vendas</strong> do seu OfficeImpresso (Cliente_731814). Dados abaixo são <em>realistas mas fictícios</em> — apenas pra visualização.
+</div>
+
+<!-- Sidebar fake + main -->
+<div class="flex">
+  <aside class="w-56 bg-white border-r border-slate-200 min-h-screen p-4 text-sm">
+    <div class="font-bold text-slate-900 mb-4">Martinho Caçambas</div>
+    <nav class="space-y-1 text-slate-700">
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">Dashboard</a>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">Atendimento</a>
+      <div class="text-xs uppercase text-slate-400 mt-4 mb-1 px-2">OFICINA</div>
+      <a class="block px-2 py-1 rounded bg-blue-50 text-blue-700 font-medium">🚛 Caçambas</a>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">📋 Ordens de serviço</a>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">📅 Locações ativas</a>
+      <div class="text-xs uppercase text-slate-400 mt-4 mb-1 px-2">VENDAS</div>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">Vendas</a>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">Orçamentos</a>
+      <div class="text-xs uppercase text-slate-400 mt-4 mb-1 px-2">FINANCEIRO</div>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">Contas a receber</a>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">Contas a pagar</a>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">Boletos Inter PJ</a>
+      <div class="text-xs uppercase text-slate-400 mt-4 mb-1 px-2">FISCAL</div>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">NFe Brasil</a>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">NFSe</a>
+      <div class="text-xs uppercase text-slate-400 mt-4 mb-1 px-2">CRM</div>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">Clientes</a>
+      <a class="block px-2 py-1 rounded hover:bg-slate-100">WhatsApp</a>
+    </nav>
+  </aside>
+
+  <main class="flex-1 p-6">
+    <!-- Header -->
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">Caçambas</h1>
+        <p class="text-sm text-slate-600 mt-1">91 caçambas cadastradas · 23 locadas no momento · 4 em manutenção</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="px-3 py-1.5 text-sm border border-slate-300 rounded text-slate-700 hover:bg-slate-50">Importar do Office Impresso</button>
+        <button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">+ Nova caçamba</button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-xs text-slate-500 uppercase">Disponíveis</div>
+        <div class="text-3xl font-bold text-emerald-700 mt-1 tabular">64</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-xs text-slate-500 uppercase">Locadas</div>
+        <div class="text-3xl font-bold text-blue-700 mt-1 tabular">23</div>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div class="text-xs text-amber-700 uppercase">Em manutenção</div>
+        <div class="text-3xl font-bold text-amber-700 mt-1 tabular">4</div>
+      </div>
+      <div class="bg-rose-50 border border-rose-200 rounded-lg p-4">
+        <div class="text-xs text-rose-700 uppercase">Locação atrasada</div>
+        <div class="text-3xl font-bold text-rose-700 mt-1 tabular">3</div>
+      </div>
+    </div>
+
+    <!-- Toolbar filtros -->
+    <div class="flex items-center gap-3 mb-3 text-sm">
+      <div class="inline-flex rounded-md border border-slate-200 overflow-hidden">
+        <button class="px-3 py-1 bg-slate-100 text-slate-700 font-medium">Todas</button>
+        <button class="px-3 py-1 hover:bg-slate-50">Disponíveis</button>
+        <button class="px-3 py-1 hover:bg-slate-50">Locadas</button>
+        <button class="px-3 py-1 hover:bg-slate-50">Em manutenção</button>
+        <button class="px-3 py-1 hover:bg-slate-50">Atrasadas</button>
+      </div>
+      <input class="border border-slate-200 rounded px-3 py-1 text-sm w-64" placeholder="Buscar caçamba ou cliente…">
+      <div class="ml-auto inline-flex rounded-md border border-slate-200 overflow-hidden text-xs">
+        <button class="px-3 py-1 hover:bg-slate-50">Lista</button>
+        <button class="px-3 py-1 bg-slate-100 font-medium">Grade Avançada</button>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs uppercase text-slate-600">
+          <tr>
+            <th class="px-3 py-2 text-left w-8"><input type="checkbox"></th>
+            <th class="px-3 py-2 text-left">Caçamba</th>
+            <th class="px-3 py-2 text-left">Capacidade</th>
+            <th class="px-3 py-2 text-left">Cliente atual</th>
+            <th class="px-3 py-2 text-left">Endereço</th>
+            <th class="px-3 py-2 text-left">Início</th>
+            <th class="px-3 py-2 text-right">Diárias</th>
+            <th class="px-3 py-2 text-right">A receber</th>
+            <th class="px-3 py-2 text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-3 py-2.5"><input type="checkbox"></td>
+            <td class="px-3 py-2.5 font-medium">CC-001 <span class="text-xs text-slate-400">(QXR-1A45)</span></td>
+            <td class="px-3 py-2.5 text-xs">5m³</td>
+            <td class="px-3 py-2.5">Construtora Aliança Ltda</td>
+            <td class="px-3 py-2.5 text-xs text-slate-600">R. Joaquim Murtinho, 234 — Bairro Centro</td>
+            <td class="px-3 py-2.5 text-xs tabular">08/05/2026</td>
+            <td class="px-3 py-2.5 text-right tabular">5</td>
+            <td class="px-3 py-2.5 text-right tabular text-amber-700">R$ [redacted Tier 0]</td>
+            <td class="px-3 py-2.5"><span class="inline-block px-2 py-0.5 text-xs rounded bg-blue-50 text-blue-700 border border-blue-200">Locada</span></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-3 py-2.5"><input type="checkbox"></td>
+            <td class="px-3 py-2.5 font-medium">CC-002 <span class="text-xs text-slate-400">(MNB-7K23)</span></td>
+            <td class="px-3 py-2.5 text-xs">7m³</td>
+            <td class="px-3 py-2.5">Particular — Pedro Henrique S.</td>
+            <td class="px-3 py-2.5 text-xs text-slate-600">R. das Acácias, 1102 — Jardim Primavera</td>
+            <td class="px-3 py-2.5 text-xs tabular">10/05/2026</td>
+            <td class="px-3 py-2.5 text-right tabular">3</td>
+            <td class="px-3 py-2.5 text-right tabular text-emerald-700">R$ [redacted Tier 0]</td>
+            <td class="px-3 py-2.5"><span class="inline-block px-2 py-0.5 text-xs rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Locada · pago</span></td>
+          </tr>
+          <tr class="border-t border-slate-100 bg-rose-50/40 hover:bg-rose-50/60 cursor-pointer">
+            <td class="px-3 py-2.5"><input type="checkbox"></td>
+            <td class="px-3 py-2.5 font-medium"><span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5" title="Atrasada"></span>CC-003 <span class="text-xs text-slate-400">(LOR-3F88)</span></td>
+            <td class="px-3 py-2.5 text-xs">5m³</td>
+            <td class="px-3 py-2.5">Reformas Vila Nova ME</td>
+            <td class="px-3 py-2.5 text-xs text-slate-600">Av. Tiradentes, 87 — Bairro Industrial</td>
+            <td class="px-3 py-2.5 text-xs tabular">28/04/2026</td>
+            <td class="px-3 py-2.5 text-right tabular text-rose-700 font-medium">15 ⚠</td>
+            <td class="px-3 py-2.5 text-right tabular text-rose-700 font-medium">R$ [redacted Tier 0]</td>
+            <td class="px-3 py-2.5"><span class="inline-block px-2 py-0.5 text-xs rounded bg-rose-100 text-rose-700 border border-rose-300">Atrasada · cobrar</span></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-3 py-2.5"><input type="checkbox"></td>
+            <td class="px-3 py-2.5 font-medium">CC-004 <span class="text-xs text-slate-400">(KPL-9X10)</span></td>
+            <td class="px-3 py-2.5 text-xs">3m³</td>
+            <td class="px-3 py-2.5">—</td>
+            <td class="px-3 py-2.5 text-xs text-slate-400">— pátio matriz</td>
+            <td class="px-3 py-2.5 text-xs text-slate-400">—</td>
+            <td class="px-3 py-2.5 text-right tabular text-slate-400">—</td>
+            <td class="px-3 py-2.5 text-right tabular text-slate-400">R$ [redacted Tier 0]</td>
+            <td class="px-3 py-2.5"><span class="inline-block px-2 py-0.5 text-xs rounded bg-slate-50 text-slate-700 border border-slate-200">Disponível</span></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-3 py-2.5"><input type="checkbox"></td>
+            <td class="px-3 py-2.5 font-medium">CC-005 <span class="text-xs text-slate-400">(VWR-4D67)</span></td>
+            <td class="px-3 py-2.5 text-xs">5m³</td>
+            <td class="px-3 py-2.5">Empreiteira Galvão SA</td>
+            <td class="px-3 py-2.5 text-xs text-slate-600">Rod. BR-101 km 142 — Obra ponte</td>
+            <td class="px-3 py-2.5 text-xs tabular">11/05/2026</td>
+            <td class="px-3 py-2.5 text-right tabular">2</td>
+            <td class="px-3 py-2.5 text-right tabular text-amber-700">R$ [redacted Tier 0]</td>
+            <td class="px-3 py-2.5"><span class="inline-block px-2 py-0.5 text-xs rounded bg-blue-50 text-blue-700 border border-blue-200">Locada</span></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer bg-amber-50/30">
+            <td class="px-3 py-2.5"><input type="checkbox"></td>
+            <td class="px-3 py-2.5 font-medium">CC-018 <span class="text-xs text-slate-400">(GTA-2H89)</span></td>
+            <td class="px-3 py-2.5 text-xs">7m³</td>
+            <td class="px-3 py-2.5 text-slate-500 italic">manutenção</td>
+            <td class="px-3 py-2.5 text-xs text-slate-500">— oficina</td>
+            <td class="px-3 py-2.5 text-xs tabular">06/05/2026</td>
+            <td class="px-3 py-2.5 text-right tabular text-slate-400">—</td>
+            <td class="px-3 py-2.5 text-right tabular text-slate-400">R$ [redacted Tier 0]</td>
+            <td class="px-3 py-2.5"><span class="inline-block px-2 py-0.5 text-xs rounded bg-amber-50 text-amber-700 border border-amber-200">Em manutenção</span></td>
+          </tr>
+        </tbody>
+        <!-- Totalizador -->
+        <tfoot class="bg-slate-50 border-t border-slate-200 sticky bottom-0 text-xs">
+          <tr>
+            <td colspan="6" class="px-3 py-2.5 text-slate-600">
+              <strong class="text-slate-900">QTD:</strong> 6 caçambas (de 91)
+            </td>
+            <td class="px-3 py-2.5 text-right tabular font-medium">25 diárias</td>
+            <td class="px-3 py-2.5 text-right tabular text-amber-700 font-bold">R$ [redacted Tier 0]</td>
+            <td class="px-3 py-2.5 text-xs text-slate-500">filtro: ativas</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- WhatsApp inbox preview -->
+    <div class="grid grid-cols-2 gap-4 mt-6">
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-slate-900 text-sm">📱 WhatsApp · últimas conversas</h3>
+          <span class="text-xs text-slate-500">3 não lidas</span>
+        </div>
+        <div class="space-y-2 text-sm">
+          <div class="flex items-start gap-2 p-2 rounded hover:bg-slate-50">
+            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">CA</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between"><span class="font-medium">Construtora Aliança</span><span class="text-xs text-slate-400">há 12min</span></div>
+              <div class="text-xs text-slate-600 truncate">Vou precisar prorrogar a CC-001 mais 3 dias…</div>
+            </div>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 mt-2"></span>
+          </div>
+          <div class="flex items-start gap-2 p-2 rounded hover:bg-slate-50">
+            <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-xs">RV</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between"><span class="font-medium">Reformas Vila Nova</span><span class="text-xs text-slate-400">há 3h</span></div>
+              <div class="text-xs text-slate-600 truncate">Pode mandar boleto novamente? Vou pagar amanhã…</div>
+            </div>
+            <span class="w-2 h-2 rounded-full bg-rose-500 mt-2"></span>
+          </div>
+          <div class="flex items-start gap-2 p-2 rounded hover:bg-slate-50">
+            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">PH</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between"><span class="font-medium">Pedro Henrique S.</span><span class="text-xs text-slate-400">ontem</span></div>
+              <div class="text-xs text-slate-600 truncate">✓ Pagamento confirmado · Caçamba CC-002 entregue</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline FSM preview -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <h3 class="font-semibold text-slate-900 text-sm mb-3">⚙️ Ordem de Serviço · CC-018 (manutenção)</h3>
+        <div class="space-y-2.5 text-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center">✓</div>
+            <div class="flex-1">
+              <div class="font-medium text-slate-900">Aberta</div>
+              <div class="text-xs text-slate-500">06/05 14:23 · Wagner</div>
+            </div>
+          </div>
+          <div class="ml-3 border-l-2 border-emerald-500 h-2"></div>
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center animate-pulse">●</div>
+            <div class="flex-1">
+              <div class="font-medium text-slate-900">Em serviço <span class="text-xs text-amber-700 font-normal">(atual)</span></div>
+              <div class="text-xs text-slate-500">06/05 16:00 · Mecânico Júlio · trocando lateral amassada</div>
+            </div>
+          </div>
+          <div class="ml-3 border-l-2 border-slate-200 h-2"></div>
+          <div class="flex items-center gap-3 opacity-50">
+            <div class="w-6 h-6 rounded-full bg-slate-300 text-white text-xs flex items-center justify-center">○</div>
+            <div class="flex-1">
+              <div class="font-medium text-slate-700">Concluída</div>
+              <div class="text-xs text-slate-400">previsão 13/05</div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex gap-2">
+          <button class="px-3 py-1.5 text-xs bg-amber-100 text-amber-800 border border-amber-300 rounded hover:bg-amber-200">Pausar serviço</button>
+          <button class="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-800 border border-emerald-300 rounded hover:bg-emerald-200">✓ Concluir</button>
+          <button class="ml-auto text-xs text-slate-500 hover:text-slate-700">Ver auditoria</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap teaser -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-5">
+      <div class="text-xs uppercase text-blue-700 font-semibold mb-1">Roadmap específico Martinho Caçambas</div>
+      <ol class="space-y-1.5 text-sm text-slate-800 mt-2">
+        <li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span> <span><strong>V0 fundação</strong> (PR #556 · 11/maio) — Vehicle + ServiceOrder + 8 telas Inertia + 16 testes Pest <span class="text-emerald-600">DONE</span></span></li>
+        <li class="flex gap-2"><span class="text-amber-600 font-bold">◐</span> <span><strong>V1 importer Martinho</strong> — script Python migra suas 91 caçambas + 44.709 vendas Firebird → MySQL oimpresso (idempotente, dry-run primeiro)</span></li>
+        <li class="flex gap-2"><span class="text-slate-400 font-bold">○</span> <span><strong>V2 NFSe locação</strong> — emissão fiscal automática mensal com município SP (CNAE 4581-4/00)</span></li>
+        <li class="flex gap-2"><span class="text-slate-400 font-bold">○</span> <span><strong>V3 cobrança Inter PJ</strong> — boleto/PIX automático no início de cada locação · webhook confirma pagamento</span></li>
+        <li class="flex gap-2"><span class="text-slate-400 font-bold">○</span> <span><strong>V4 IA Jana</strong> — assistente cobra inadimplentes via WhatsApp · classifica priorização locação · responde FAQ cliente</span></li>
+      </ol>
+      <div class="text-xs text-slate-600 mt-3 pt-3 border-t border-blue-200">
+        ADR <a href="#" class="text-blue-700 underline">0137 (oficinaauto qualificada)</a> · ADR <a href="#" class="text-blue-700 underline">0143 (FSM Pipeline LIVE)</a> · oimpresso v6.7 modular
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer class="text-center text-xs text-slate-400 py-4 border-t border-slate-100 mt-8">
+  oimpresso · Modules/OficinaAuto · preview gerado 2026-05-12 pra reunião com Martinho 13/maio 10h
+</footer>
+
+</body>
+</html>
