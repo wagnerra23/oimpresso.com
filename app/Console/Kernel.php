@@ -246,6 +246,22 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-WA-076 (ADR 0142 §5) — ProcessRemindersJob hourly.
+        // Varre `whatsapp_reminders` com status='pending' + due_at<=now() +
+        // notified_at IS NULL, publica Centrifugo em `user:{atendente_id}` e
+        // marca notified_at. Cross-tenant (job genérico, sem session) —
+        // canal Centrifugo per-user impede leak. withoutOverlapping(30) cobre
+        // ~2 ciclos consecutivos pra job lento.
+        $schedule->job(new \Modules\Whatsapp\Jobs\ProcessRemindersJob())
+            ->hourly()
+            ->withoutOverlapping(30)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule ProcessRemindersJob FALHOU — lembretes /lembrete podem atrasar'
+                );
+            });
+
         // US-WA-014 (ADR 0096) — Whatsapp driver health check pra detectar
         // ban Z-API/Baileys e ativar fallback automático Meta Cloud.
         // Roda a cada 6h. Pula Meta Cloud (oficial não bane).
