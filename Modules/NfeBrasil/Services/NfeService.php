@@ -367,10 +367,15 @@ class NfeService
         $transactionId = isset($dadosNfe['transaction_id']) ? (int) $dadosNfe['transaction_id'] : null;
 
         // ── 1. Idempotência ─────────────────────────────────────────────────
-        // Regra: só retorna existente se status é positivo (autorizada/pendente).
-        // Status terminal negativo (rejeitada/denegada/cancelada) → hard delete pra
-        // permitir retry. UNIQUE(business_id, transaction_id) impede 2 registros.
-        // Soft delete não bypass UNIQUE em MySQL — forceDelete obrigatório.
+        // SEFAZ distingue 3 estados terminais (US-SELL-029):
+        //   - autorizada → número usado oficialmente, imutável
+        //   - cancelada (via evento SEFAZ) → número usado oficialmente, NÃO pode ser
+        //     reaproveitado nem deletado (CONFAZ SINIEF 07/2005 Art. 14). Bloqueia
+        //     retry com mensagem instrutiva — nova emissão exige nova transaction.
+        //   - rejeitada/denegada/erro_envio → número NÃO foi declarado pra Receita.
+        //     Permite retry, mas preserva registro como `inutilizado` (não hard
+        //     delete) pra rastreabilidade fiscal. Inutilização SEFAZ formal via
+        //     NfeInutilizacaoService (US-SELL-030).
         if ($transactionId !== null) {
             $existente = NfeEmissao::where('business_id', $businessId)
                 ->where('transaction_id', $transactionId)
@@ -386,15 +391,32 @@ class NfeService
                     ]);
                     return $existente;
                 }
-                // Status terminal negativo: log + force delete pra permitir retry.
-                Log::info('NfeService: emissão terminal negativa — force delete pra permitir retry', [
+
+                if ($existente->status === 'cancelada') {
+                    Log::warning('NfeService: tentativa re-emitir transaction com NFe cancelada via SEFAZ', [
+                        'business_id'    => $businessId,
+                        'transaction_id' => $transactionId,
+                        'emissao_id'     => $existente->id,
+                        'numero'         => $existente->numero,
+                    ]);
+                    throw new RuntimeException(
+                        "NFe {$existente->numero} foi cancelada via SEFAZ — número permanece usado oficialmente. " .
+                        'Pra emitir nova NFe execute action FSM `emitir_nova_apos_cancelamento` (cria nova transaction).'
+                    );
+                }
+
+                // rejeitada / denegada / erro_envio: número não foi declarado.
+                // Marca como `inutilizado` preservando registro pra rastreabilidade.
+                // Inutilização formal SEFAZ via NfeInutilizacaoService (US-SELL-030).
+                Log::info('NfeService: emissão rejeitada — marcando inutilizado pra preservar sequencial', [
                     'business_id'      => $businessId,
                     'transaction_id'   => $transactionId,
                     'emissao_id'       => $existente->id,
                     'status_anterior'  => $existente->status,
                     'motivo_anterior'  => $existente->motivo,
+                    'numero'           => $existente->numero,
                 ]);
-                $existente->forceDelete();
+                $existente->update(['status' => 'inutilizada']);
             }
         }
 

@@ -105,20 +105,20 @@ it('3. tentativa re-emitir transaction com NFe cancelada lança RuntimeException
 
 // ─── G1 — Caso correlato: rejeitada permite retry via inutilização ────────
 
-it('4. NFe rejeitada NÃO é hard-deletada — marca como inutilizado pra preservar sequencial', function () {
+it('4. NFe rejeitada NÃO é hard-deletada — marca como inutilizada pra preservar sequencial', function () {
     nfeFake(businessId: 1, numero: 100, status: 'rejeitada', transactionId: 5000);
 
-    // Retry chamando emitir() deve invocar fluxo de inutilização ao invés de forceDelete
-    // (este é o NOVO comportamento esperado — hoje faz forceDelete)
+    // Retry chamando emitir() invoca fluxo que marca status=inutilizada (preserva
+    // registro), ao invés de forceDelete (US-SELL-029). Pode falhar por payload
+    // incompleto adiante (cert/etc), mas o guard inicial é o que importa.
     try {
         app(NfeService::class)->emitir(1, [
             'modelo' => '55',
             'transaction_id' => 5000,
             'serie' => '1',
-            // ... payload mínimo
         ]);
     } catch (\Throwable $e) {
-        // Pode falhar por payload incompleto, mas o registro original NÃO pode ter sido hard-deletado
+        // Falha de cert/payload é esperada — o que importa é o guard inicial
     }
 
     $original = NfeEmissao::withTrashed()
@@ -127,7 +127,7 @@ it('4. NFe rejeitada NÃO é hard-deletada — marca como inutilizado pra preser
         ->first();
 
     expect($original)->not->toBeNull();
-    expect($original->status)->toBe('inutilizado');
+    expect($original->status)->toBe('inutilizada');
 });
 
 // ─── G2 — NfeInutilizacaoService (a criar) ────────────────────────────────
