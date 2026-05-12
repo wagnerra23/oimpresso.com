@@ -1,20 +1,40 @@
-// US-SELL-016 + US-SELL-017 — Grade Avançada (multiseleção + totalizador rodapé).
+// US-SELL-016/017/019 — Grade Avançada (multiseleção + totalizador + agrupamento).
 // Refs: ADR 0136 (Sells: split Lista vs Grade Avançada toggle).
 //
-// Roadmap progressivo (P0 entregue, P1+ aguarda sinal Firebird):
+// Roadmap progressivo:
 //   ✅ US-SELL-015 — Toggle Lista|Grade Avançada (PR #691)
-//   ✅ US-SELL-016 — Multiseleção + ações em lote (este PR)
-//   ✅ US-SELL-017 — Totalizador rodapé sticky (este PR)
-//   ⏸ US-SELL-018+ — filtros multi-data, agrupamento drag, sub-linha produtos…
+//   ✅ US-SELL-016 — Multiseleção + ações em lote (PR #694)
+//   ✅ US-SELL-017 — Totalizador rodapé sticky (PR #694)
+//   ✅ US-SELL-018 — Filtros multi-data presets + custom (este PR)
+//   ✅ US-SELL-019 — Agrupamento por campo (TanStack getGroupedRowModel — este PR)
+//   ⏸ US-SELL-022+ — sub-linha produtos, drag-to-group multi-level…
 //
 // Esta tela COMPARTILHA fetch/state com Index.tsx (props-driven). Não duplica
 // useEffect de fetch — só layout (anti-pattern §ADR 0136 "Riscos").
+//
+// US-SELL-019: agrupamento via TanStack getGroupedRowModel client-side.
+// Trade-off: client-side suficiente <500 vendas (per_page max 100). Pra escala
+// maior considerar pré-agregação SQL backend (?group_by=...) em US futura.
 
-import { useMemo } from 'react';
-import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, Layers, Loader2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import {
+  AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown,
+  ChevronDown, ChevronRight,
+  Layers, Loader2,
+} from 'lucide-react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getGroupedRowModel,
+  getExpandedRowModel,
+  type ColumnDef,
+  type GroupingState,
+  type ExpandedState,
+} from '@tanstack/react-table';
 import { Checkbox } from '@/Components/ui/checkbox';
 import SellsBulkActionsBar from './SellsBulkActionsBar';
 import SellsTotalsRow, { type SellsTotals } from './SellsTotalsRow';
+import SellsGroupByDropdown, { type GroupByField } from './SellsGroupByDropdown';
 
 interface SaleRow {
   id: number;
@@ -49,10 +69,16 @@ interface SellsGradeAvancadaProps {
   sortKey: SortKey;
   sortDir: SortDir;
   onSort: (key: SortKey) => void;
+  // US-SELL-019 — agrupamento (state lifted up).
+  groupBy: GroupByField;
+  onGroupByChange: (g: GroupByField) => void;
 }
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+const formatCount = (n: number) =>
+  new Intl.NumberFormat('pt-BR').format(n);
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -76,6 +102,22 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
   partial: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
 };
 
+// US-SELL-019 — derive month YYYY-MM pra agrupar por mês emissão.
+function emissionMonth(row: SaleRow): string {
+  const src = row.transaction_date;
+  if (!src) return '—';
+  const d = new Date(src);
+  if (Number.isNaN(d.getTime())) return '—';
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${yyyy}-${mm}`;
+}
+
+// US-SELL-019 — Mapeia GroupByField → accessor TanStack.
+function buildGroupedRows(rows: SaleRow[]): Array<SaleRow & { _emissionMonth: string }> {
+  return rows.map((r) => ({ ...r, _emissionMonth: emissionMonth(r) }));
+}
+
 export default function SellsGradeAvancada({
   rows,
   loading,
@@ -90,6 +132,8 @@ export default function SellsGradeAvancada({
   sortKey,
   sortDir,
   onSort,
+  groupBy,
+  onGroupByChange,
 }: SellsGradeAvancadaProps) {
   const allRowsSelected = useMemo(() => {
     if (rows.length === 0) return false;
@@ -102,21 +146,72 @@ export default function SellsGradeAvancada({
 
   const selectedArray = useMemo(() => Array.from(selectedIds), [selectedIds]);
 
+  // US-SELL-019 — quando agrupado renderiza via TanStack; senão render legado.
+  const isGrouped = groupBy !== 'none';
+
+  if (isGrouped) {
+    return (
+      <div className="space-y-3">
+        <SellsBulkActionsBar
+          selectedIds={selectedArray}
+          totalFiltered={totalFiltered}
+          onClearSelection={onClearSelection}
+          groupBy={groupBy}
+          onGroupByChange={onGroupByChange}
+        />
+
+        {/* Toolbar agrupamento ativo (mostra dropdown + clear) */}
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div className="text-xs text-muted-foreground">
+            Agrupamento ativo. Clique no chevron de cada grupo pra expandir/recolher.
+          </div>
+          <SellsGroupByDropdown groupBy={groupBy} onChange={onGroupByChange} />
+        </div>
+
+        <GroupedTable
+          rows={rows}
+          loading={loading}
+          groupBy={groupBy}
+          selectedIds={selectedIds}
+          onToggleSelect={onToggleSelect}
+          onRowClick={onRowClick}
+          openSaleId={openSaleId}
+        />
+
+        <SellsTotalsRow totals={totals} loading={loading} />
+
+        <p className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground mt-2">
+          <Layers size={12} />
+          US-SELL-016/017/018/019 ativas · Próximas (aguardando sinal): SELL-022 (sub-linha produtos)
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
-      {/* Barra ações em lote — slide-down quando há seleção */}
+      {/* Barra ações em lote — slide-down quando há seleção (US-SELL-016)
+          + dropdown agrupamento sempre visível (US-SELL-019) */}
       <SellsBulkActionsBar
         selectedIds={selectedArray}
         totalFiltered={totalFiltered}
         onClearSelection={onClearSelection}
+        groupBy={groupBy}
+        onGroupByChange={onGroupByChange}
       />
+
+      {/* Toolbar sempre visível (mesmo sem seleção) — agrupamento à direita */}
+      {selectedArray.length === 0 && (
+        <div className="flex items-center justify-end gap-2 px-1">
+          <SellsGroupByDropdown groupBy={groupBy} onChange={onGroupByChange} />
+        </div>
+      )}
 
       <div className="rounded-lg border border-border bg-background overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr className="border-b border-border">
-                {/* Coluna checkbox header — "selecionar todas as N filtradas" */}
                 <th className="w-10 px-3 py-2.5 text-left">
                   <Checkbox
                     checked={allRowsSelected}
@@ -231,11 +326,250 @@ export default function SellsGradeAvancada({
         <SellsTotalsRow totals={totals} loading={loading} />
       </div>
 
-      {/* Roadmap callout — features P1+ aguardando sinal Firebird (ADR 0105) */}
       <p className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground mt-2">
         <Layers size={12} />
-        US-SELL-016/017 ativas · Próximas (aguardando sinal): SELL-018 (filtros multi-data), SELL-019 (agrupamento drag-to-group), SELL-022 (sub-linha produtos)
+        US-SELL-016/017/018/019 ativas · Próximas (aguardando sinal): SELL-022 (sub-linha produtos)
       </p>
+    </div>
+  );
+}
+
+// ─── US-SELL-019 — GroupedTable (TanStack getGroupedRowModel) ────────────────
+
+interface GroupedTableProps {
+  rows: SaleRow[];
+  loading: boolean;
+  groupBy: GroupByField;
+  selectedIds: Set<number>;
+  onToggleSelect: (id: number) => void;
+  onRowClick: (id: number) => void;
+  openSaleId: number | null;
+}
+
+function GroupedTable({
+  rows,
+  loading,
+  groupBy,
+  selectedIds,
+  onToggleSelect,
+  onRowClick,
+  openSaleId,
+}: GroupedTableProps) {
+  const data = useMemo(() => buildGroupedRows(rows), [rows]);
+
+  // Mapeia groupBy → coluna TanStack que será agrupada.
+  const groupingColumnId = useMemo(() => {
+    switch (groupBy) {
+      case 'customer_name': return 'customer_name';
+      case 'payment_status': return 'payment_status';
+      case 'emission_month': return 'emission_month';
+      default: return null;
+    }
+  }, [groupBy]);
+
+  const columns = useMemo<ColumnDef<SaleRow & { _emissionMonth: string }>[]>(() => [
+    {
+      id: 'customer_name',
+      accessorFn: (row) => row.customer_name ?? '—',
+      header: 'Cliente',
+      cell: ({ getValue }) => String(getValue() ?? '—'),
+      aggregationFn: 'count',
+    },
+    {
+      id: 'payment_status',
+      accessorFn: (row) => row.payment_status,
+      header: 'Status',
+      cell: ({ getValue }) => PAYMENT_STATUS_LABEL[String(getValue())] ?? String(getValue()),
+      aggregationFn: 'count',
+    },
+    {
+      id: 'emission_month',
+      accessorFn: (row) => row._emissionMonth,
+      header: 'Mês emissão',
+      cell: ({ getValue }) => String(getValue() ?? '—'),
+      aggregationFn: 'count',
+    },
+    {
+      id: 'invoice_no',
+      accessorKey: 'invoice_no',
+      header: 'Nº fatura',
+    },
+    {
+      id: 'display_date',
+      accessorFn: (row) => row.display_date ?? row.transaction_date,
+      header: 'Data',
+      cell: ({ getValue }) => {
+        const v = getValue();
+        return v ? formatDate(String(v)) : '—';
+      },
+    },
+    {
+      id: 'final_total',
+      accessorKey: 'final_total',
+      header: 'Total',
+      aggregationFn: 'sum',
+      cell: ({ getValue }) => formatBRL(Number(getValue() ?? 0)),
+      aggregatedCell: ({ getValue }) => (
+        <span className="font-semibold tabular-nums">{formatBRL(Number(getValue() ?? 0))}</span>
+      ),
+    },
+    {
+      id: 'total_paid',
+      accessorKey: 'total_paid',
+      header: 'Pago',
+      aggregationFn: 'sum',
+      cell: ({ getValue }) => formatBRL(Number(getValue() ?? 0)),
+      aggregatedCell: ({ getValue }) => (
+        <span className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
+          {formatBRL(Number(getValue() ?? 0))}
+        </span>
+      ),
+    },
+  ], []);
+
+  const grouping: GroupingState = groupingColumnId ? [groupingColumnId] : [];
+  // Default expanded all groups (DX melhor — user vê tudo, depois recolhe se quiser).
+  const [expanded, setExpanded] = useState<ExpandedState>(true);
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: { grouping, expanded },
+    onExpandedChange: setExpanded,
+    getCoreRowModel: getCoreRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+  });
+
+  if (loading) {
+    return (
+      <div className="rounded-lg border border-border bg-background p-12 text-center text-xs text-muted-foreground">
+        <Loader2 className="inline-block mr-2 h-3.5 w-3.5 animate-spin" />
+        Carregando…
+      </div>
+    );
+  }
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-lg border border-border bg-background p-12 text-center text-xs text-muted-foreground">
+        Nenhuma venda encontrada nesse filtro.
+      </div>
+    );
+  }
+
+  const groupedRows = table.getRowModel().rows;
+
+  return (
+    <div className="rounded-lg border border-border bg-background overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50">
+            <tr className="border-b border-border">
+              <Th className="w-8"><span className="sr-only">Expandir grupo</span></Th>
+              <Th>Nº fatura</Th>
+              <Th className="w-28">Data</Th>
+              <Th>Cliente</Th>
+              <Th className="text-right w-28">Total</Th>
+              <Th className="text-right w-28">Pago</Th>
+              <Th className="w-32">Status</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {groupedRows.map((row) => {
+              if (row.getIsGrouped()) {
+                // Header de grupo — chevron expand + label + count + subtotal
+                const groupValue = row.getValue(row.groupingColumnId!);
+                const groupLabel =
+                  groupBy === 'payment_status'
+                    ? PAYMENT_STATUS_LABEL[String(groupValue)] ?? String(groupValue)
+                    : String(groupValue ?? '—');
+                const subTotalCell = row.getValue('final_total');
+                const subPaidCell = row.getValue('total_paid');
+                return (
+                  <tr
+                    key={row.id}
+                    className="border-b border-border bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={row.getToggleExpandedHandler()}
+                  >
+                    <td className="px-3 py-2.5 w-8">
+                      {row.getIsExpanded() ? (
+                        <ChevronDown size={14} className="text-muted-foreground" />
+                      ) : (
+                        <ChevronRight size={14} className="text-muted-foreground" />
+                      )}
+                    </td>
+                    <td colSpan={3} className="px-3 py-2.5 font-semibold text-foreground">
+                      {groupLabel}
+                      <span className="ml-2 inline-flex items-center rounded-full bg-background border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground tabular-nums">
+                        {formatCount(row.subRows.length)} {row.subRows.length === 1 ? 'venda' : 'vendas'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 text-right tabular-nums text-foreground font-semibold">
+                      {formatBRL(Number(subTotalCell ?? 0))}
+                    </td>
+                    <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-emerald-700 dark:text-emerald-300">
+                      {formatBRL(Number(subPaidCell ?? 0))}
+                    </td>
+                    <td className="px-3 py-2.5">{/* status placeholder no header */}</td>
+                  </tr>
+                );
+              }
+              // Linha normal (filha de grupo expandido)
+              const original = row.original;
+              const isOpen = openSaleId === original.id;
+              const isSelected = selectedIds.has(original.id);
+              return (
+                <tr
+                  key={row.id}
+                  className={
+                    'border-b border-border cursor-pointer transition-colors ' +
+                    (isOpen
+                      ? 'bg-blue-50/60 dark:bg-blue-950/30'
+                      : isSelected
+                        ? 'bg-blue-50/30 dark:bg-blue-950/20 hover:bg-blue-50/50 dark:hover:bg-blue-950/40'
+                        : 'hover:bg-muted/40')
+                  }
+                  onClick={() => onRowClick(original.id)}
+                >
+                  <td className="px-3 py-2.5 pl-6" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => onToggleSelect(original.id)}
+                      aria-label={`Selecionar venda ${original.invoice_no}`}
+                    />
+                  </td>
+                  <td className="px-3 py-2.5 font-medium text-foreground">
+                    <span className="inline-flex items-center gap-2">
+                      {original.is_overdue && (
+                        <span
+                          className="h-2 w-2 rounded-full bg-rose-500"
+                          title="Atrasada"
+                          aria-label="Venda atrasada"
+                        />
+                      )}
+                      {original.invoice_no}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                    {original.display_date ? formatDate(original.display_date) : '—'}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="text-foreground font-medium leading-tight">{original.customer_name ?? '—'}</div>
+                    {original.customer_secondary && (
+                      <div className="text-xs text-muted-foreground leading-tight mt-0.5">{original.customer_secondary}</div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-foreground">{formatBRL(original.final_total)}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-emerald-700 dark:text-emerald-300">{formatBRL(original.total_paid)}</td>
+                  <td className="px-3 py-2.5">
+                    <PaymentStatusBadge status={original.payment_status} overdue={original.is_overdue} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
