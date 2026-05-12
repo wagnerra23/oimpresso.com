@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\Schema;
  *
  * Idempotente: reservas já `consumed`/`released`/`expired` são ignoradas.
  * Guard: qty_available NUNCA fica negativo (clamp em 0 com log de warning).
+ *
+ * V2 BOM (US-INV-004): pra kits, ReservarEstoque já criou 1 stock_reservation
+ * POR COMPONENTE-FOLHA via BomResolver. Como ConsumirEstoque itera sobre TODAS
+ * as reservations active da transaction, o consumo cascateado por componente
+ * já acontece automaticamente — single source of truth = stock_reservations.
+ * Sem mudança de algoritmo necessária aqui.
  */
 class ConsumirEstoque implements SideEffectInterface
 {
