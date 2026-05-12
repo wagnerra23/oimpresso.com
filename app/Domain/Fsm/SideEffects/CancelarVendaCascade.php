@@ -6,6 +6,7 @@ namespace App\Domain\Fsm\SideEffects;
 
 use App\Domain\Fsm\Contracts\SideEffectInterface;
 use App\Domain\Fsm\Models\TransactionDocument;
+use App\Jobs\EstornarBoletoJob;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -18,8 +19,11 @@ use Illuminate\Support\Facades\Log;
  *   1. Pra cada TransactionDocument doc_type=nfe55/nfce65/nfse56/...
  *      status=authorized: dispatch Modules\NfeBrasil\Jobs\CancelarNfeJob
  *      (idempotente — NFe já cancelada não duplica job)
- *   2. Side-effect síncrono: LiberarReserva (estoque)
- *   3. Dispatch Modules\Whatsapp\Jobs\NotificarClienteCancelamentoJob
+ *   2. Pra cada TransactionDocument doc_type=boleto_asaas/boleto_inter
+ *      status=pending: dispatch App\Jobs\EstornarBoletoJob (hub que roteia
+ *      pro gateway — US-CASCADE-BOLETO-002)
+ *   3. Side-effect síncrono: LiberarReserva (estoque)
+ *   4. Dispatch Modules\Whatsapp\Jobs\NotificarClienteCancelamentoJob
  *
  * Best-effort com idempotência por job individual. Falha de um efeito
  * NÃO bloqueia os outros — todos rodam independentes.
@@ -46,7 +50,11 @@ class CancelarVendaCascade implements SideEffectInterface
         // 1) Cancelar NFes autorizadas
         $this->cancelarNfes($businessId, $transactionId, $motivo);
 
-        // 2) Liberar reservas de estoque (síncrono — reusa LiberarReserva)
+        // 2) Cancelar boletos pending (Asaas/Inter) — hub EstornarBoletoJob
+        //    roteia pro Cancelar*Job específico do gateway (US-CASCADE-BOLETO-002).
+        $this->cancelarBoletos($businessId, $transactionId, $motivo);
+
+        // 3) Liberar reservas de estoque (síncrono — reusa LiberarReserva)
         try {
             (new LiberarReserva)->execute($subject, $payload);
         } catch (\Throwable $e) {
@@ -57,7 +65,7 @@ class CancelarVendaCascade implements SideEffectInterface
             ]);
         }
 
-        // 3) Notificar cliente (Whatsapp/email)
+        // 4) Notificar cliente (Whatsapp/email)
         $this->notificarCliente($businessId, $transactionId, $motivo);
     }
 
@@ -97,6 +105,47 @@ class CancelarVendaCascade implements SideEffectInterface
                 Log::error('CancelarVendaCascade: falha ao dispatch CancelarNfeJob', [
                     'business_id' => $businessId,
                     'transaction_document_id' => $doc->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Cancela boletos pending (Asaas/Inter) via hub EstornarBoletoJob.
+     *
+     * O hub `EstornarBoletoJob` valida multi-tenant, garante idempotência
+     * (no-op se já cancelled) e roteia pro Cancelar*Job específico do
+     * gateway (US-CASCADE-BOLETO-002). Best-effort: falha em 1 doc não
+     * bloqueia os demais — espelha pattern de `cancelarNfes`.
+     */
+    private function cancelarBoletos(int $businessId, int $transactionId, string $motivo): void
+    {
+        $docs = TransactionDocument::query()
+            ->where('business_id', $businessId)
+            ->where('transaction_id', $transactionId)
+            ->whereIn('doc_type', [
+                TransactionDocument::DOC_BOLETO_ASAAS,
+                TransactionDocument::DOC_BOLETO_INTER,
+            ])
+            ->where('status', TransactionDocument::STATUS_PENDING)
+            ->get();
+
+        if ($docs->isEmpty()) {
+            Log::info('CancelarVendaCascade: nenhum boleto pra cancelar', [
+                'transaction_id' => $transactionId,
+            ]);
+            return;
+        }
+
+        foreach ($docs as $doc) {
+            try {
+                dispatch(new EstornarBoletoJob($businessId, (int) $doc->id, $motivo));
+            } catch (\Throwable $e) {
+                Log::warning('CancelarVendaCascade: falha ao dispatch EstornarBoletoJob (não bloqueia cascade)', [
+                    'business_id' => $businessId,
+                    'transaction_document_id' => $doc->id,
+                    'doc_type' => $doc->doc_type,
                     'error' => $e->getMessage(),
                 ]);
             }
