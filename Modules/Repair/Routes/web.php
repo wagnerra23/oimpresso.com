@@ -38,4 +38,18 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
 
     Route::get('producao-oficina', [Modules\Repair\Http\Controllers\ProducaoOficinaController::class, 'index'])->name('repair.producao-oficina');
     Route::post('producao-oficina/{id}/move', [Modules\Repair\Http\Controllers\ProducaoOficinaController::class, 'move'])->whereNumber('id')->name('repair.producao-oficina.move');
+
+});
+
+// US-REP-FSM-004 — Wire-up FSM canônico (ADR 0129). Espelha SaleFsmActionController.
+// Fora do grupo prefix('repair') pra suportar URLs canônicas /api/repair/... e
+// /repair/job-sheets/... (Sells usa pattern análogo em routes/web.php).
+// Mesmo middleware stack (web+auth+SetSessionData) pra preservar session('user.business_id').
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])->group(function () {
+    Route::get('/api/repair/job-sheets/{id}/fsm-actions', [Modules\Repair\Http\Controllers\RepairFsmActionController::class, 'actions'])
+        ->whereNumber('id')->name('repair.fsm-actions');
+    Route::post('/repair/job-sheets/{id}/fsm-action', [Modules\Repair\Http\Controllers\RepairFsmActionController::class, 'execute'])
+        ->whereNumber('id')->name('repair.fsm-execute');
+    Route::post('/repair/job-sheets/{id}/fsm-start-pipeline', [Modules\Repair\Http\Controllers\RepairFsmActionController::class, 'startPipeline'])
+        ->whereNumber('id')->name('repair.fsm-start-pipeline');
 });
