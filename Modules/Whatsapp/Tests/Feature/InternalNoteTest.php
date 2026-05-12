@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
@@ -31,9 +32,23 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-071
  */
 beforeEach(function () {
-    foreach (['messages', 'conversations', 'channels'] as $t) {
+    foreach (['messages', 'channel_user_access', 'conversations', 'channels'] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // US-WA-069: send() agora valida ACL canal — adicionar tabela + grant
+    // pra preservar compat com testes pré-existentes (PR #644).
+    Schema::create('channel_user_access', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('channel_id');
+        $table->unsignedInteger('user_id');
+        $table->unsignedInteger('granted_by_user_id');
+        $table->timestamp('granted_at');
+        $table->timestamp('revoked_at')->nullable();
+        $table->unsignedInteger('revoked_by_user_id')->nullable();
+        $table->timestamps();
+    });
 
     Schema::create('channels', function ($table) {
         $table->bigIncrements('id');
@@ -122,6 +137,16 @@ function makeChannelAndConv(int $businessId, string $uuid = 'aaaa-0000-0000-0000
         'customer_external_id' => '+5511999999999',
         'contact_name' => 'Cliente Teste',
         'status' => 'open',
+    ]);
+
+    // US-WA-069: send() valida ACL canal; concede acesso pro user_id=1 (default
+    // dos testes pré-existentes desta suíte) pra preservar compat.
+    ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => $businessId,
+        'channel_id' => $channel->id,
+        'user_id' => 1,
+        'granted_by_user_id' => 1,
+        'granted_at' => now(),
     ]);
 
     return [$channel, $conv];
