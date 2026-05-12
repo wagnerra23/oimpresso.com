@@ -167,7 +167,7 @@ export class Instance extends EventEmitter {
     this.setState('connecting');
     this.banReason = null;
 
-    const auth = await loadAuthState(this.env.SESSIONS_DIR, this.meta.instance_id);
+    const auth = await loadAuthState(this.env, this.meta.instance_id);
     const { version } = await fetchLatestBaileysVersion();
 
     const sock = makeWASocket({
