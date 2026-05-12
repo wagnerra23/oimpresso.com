@@ -1,26 +1,33 @@
-// US-SELL-016 — Barra flutuante de ações em lote sobre seleção múltipla na
-// Grade Avançada. Refs: ADR 0136 (Sells: Lista vs Grade Avançada toggle).
+// US-SELL-016 + US-SELL-019 — Barra flutuante de ações em lote sobre seleção
+// múltipla na Grade Avançada. Refs: ADR 0136 (Sells: Lista vs Grade Avançada).
 //
 // Aparece quando `selectedIds.size > 0`. Endpoints backend:
 //   POST /sells/bulk-print  -> HTML printable consolidado
 //   POST /sells/bulk-export -> CSV download
 //
-// "Agrupar por…" fica desabilitado com tooltip "P1 — em breve" (US-SELL-019).
+// US-SELL-019: "Agrupar por…" agora HABILITADO via SellsGroupByDropdown
+// (replace do botão disabled "em breve"). 4 opções (none/cliente/status/mês).
 
 import { useState } from 'react';
-import { Layers3, Loader2, Printer, Sheet as SheetIcon, X } from 'lucide-react';
+import { Loader2, Printer, Sheet as SheetIcon, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import SellsGroupByDropdown, { type GroupByField } from './SellsGroupByDropdown';
 
 interface SellsBulkActionsBarProps {
   selectedIds: number[];
   totalFiltered: number;
   onClearSelection: () => void;
+  // US-SELL-019 — agrupamento controlled (lifted state).
+  groupBy?: GroupByField;
+  onGroupByChange?: (g: GroupByField) => void;
 }
 
 export default function SellsBulkActionsBar({
   selectedIds,
   totalFiltered,
   onClearSelection,
+  groupBy = 'none',
+  onGroupByChange,
 }: SellsBulkActionsBarProps) {
   const [busy, setBusy] = useState<'print' | 'export' | null>(null);
 
@@ -157,16 +164,14 @@ export default function SellsBulkActionsBar({
           )}
           Exportar CSV
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled
-          title="P1 — em breve (US-SELL-019)"
-          className="bg-background opacity-60"
-        >
-          <Layers3 className="mr-1.5 h-3.5 w-3.5" />
-          Agrupar por…
-        </Button>
+        {/* US-SELL-019 — Agrupar por… agora habilitado (substitui botão disabled "em breve") */}
+        {onGroupByChange && (
+          <SellsGroupByDropdown
+            groupBy={groupBy}
+            onChange={onGroupByChange}
+            variant="bar"
+          />
+        )}
       </div>
     </div>
   );

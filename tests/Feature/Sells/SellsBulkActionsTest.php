@@ -204,11 +204,15 @@ it('SellsBulkActionsBar tem botão Exportar CSV (PT-BR copy)', function () {
     expect($src)->toContain('Exportar CSV');
 });
 
-it('SellsBulkActionsBar tem dropdown "Agrupar por…" desabilitado (P1 — em breve)', function () {
+it('SellsBulkActionsBar tem dropdown "Agrupar por…" HABILITADO via SellsGroupByDropdown (US-SELL-019)', function () {
+    // Atualizado 2026-05-12 — US-SELL-019 substitui o botão disabled "P1 — em breve"
+    // por <SellsGroupByDropdown variant="bar" /> funcional. Tier 0 anti-regressão:
+    // botão antigo NÃO pode reaparecer (cobre rollback acidental).
     $src = readBulkBar();
-    expect($src)->toContain('Agrupar por');
-    // Deve ter disabled E indicar P1 — em breve no title/tooltip
-    expect($src)->toMatch('/disabled[\\s\\S]*?P1\\s*—\\s*em\\s*breve/');
+    expect($src)->toContain('SellsGroupByDropdown');
+    expect($src)->toContain('variant="bar"');
+    // Garante que disabled "P1 — em breve" foi removido
+    expect($src)->not->toContain('P1 — em breve');
 });
 
 it('SellsBulkActionsBar usa endpoint POST /sells/bulk-print', function () {
