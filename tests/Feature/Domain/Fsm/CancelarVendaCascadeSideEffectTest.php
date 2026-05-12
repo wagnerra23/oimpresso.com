@@ -22,7 +22,7 @@ use Spatie\Permission\PermissionRegistrar;
 /**
  * CU-05 (G6) — CancelarVendaCascade side-effect orquestra:
  *   - CancelarNfeJob (via NfeBrasil — não pula sequencial, CU-01)
- *   - EstornarBoletoJob (Asaas/Inter)
+ *   - EstornarBoletoJob (Asaas/Inter — US-CASCADE-BOLETO-002 integrado)
  *   - LiberarReserva (estoque)
  *   - NotificarClienteJob (WhatsApp/email)
  *
@@ -156,8 +156,7 @@ it('1. cancelar_venda com NFe+reserva dispara CancelarNfeJob + libera reserva + 
     ['invoiced' => $inv, 'cancelled' => $cancelled] = cancelSetup(1);
     $subject = cancelSubject(1, $inv->id);
 
-    // Seed: NFe + reserva ligados ao subject
-    // Nota: cancelamento de boleto fica em US separada (não está em transaction_documents enum).
+    // Seed: NFe + reserva ligados ao subject (sem boleto neste spec)
     TransactionDocument::create([
         'business_id' => 1, 'transaction_id' => $subject->id,
         'doc_type' => 'nfe55', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
@@ -173,6 +172,7 @@ it('1. cancelar_venda com NFe+reserva dispara CancelarNfeJob + libera reserva + 
     ]);
 
     Bus::assertDispatched(\Modules\NfeBrasil\Jobs\CancelarNfeJob::class);
+    Bus::assertNotDispatched(\App\Jobs\EstornarBoletoJob::class);
     Bus::assertDispatched(\Modules\Whatsapp\Jobs\NotificarClienteCancelamentoJob::class);
 
     // Reserva liberada (síncrono via LiberarReserva)
@@ -259,4 +259,82 @@ it('5. motivo é registrado em payload_snapshot do sale_stage_history', function
     expect($history->payload_snapshot)
         ->toBeArray()
         ->toHaveKey('motivo', 'Cliente arrependeu da compra após 24h');
+});
+
+it('6. cancelar venda com boleto pending dispatch EstornarBoletoJob', function () {
+    // US-CASCADE-BOLETO-002 — hub EstornarBoletoJob é integrado no cascade.
+    Bus::fake();
+
+    ['invoiced' => $inv, 'cancelled' => $cancelled] = cancelSetup(1);
+    $subject = cancelSubject(1, $inv->id);
+
+    // Seed: 1 boleto Asaas pending + 1 boleto Inter pending + 1 boleto Asaas
+    // já cancelled (não deve duplicar) + 1 NFe authorized (cascade paralelo)
+    $boletoAsaas = TransactionDocument::create([
+        'business_id' => 1, 'transaction_id' => $subject->id,
+        'doc_type' => TransactionDocument::DOC_BOLETO_ASAAS,
+        'doc_class' => 'Modules\\RecurringBilling\\Models\\AsaasCharge',
+        'doc_id' => 10, 'status' => TransactionDocument::STATUS_PENDING,
+    ]);
+    $boletoInter = TransactionDocument::create([
+        'business_id' => 1, 'transaction_id' => $subject->id,
+        'doc_type' => TransactionDocument::DOC_BOLETO_INTER,
+        'doc_class' => 'App\\Models\\InterCharge',
+        'doc_id' => 20, 'status' => TransactionDocument::STATUS_PENDING,
+    ]);
+    TransactionDocument::create([
+        'business_id' => 1, 'transaction_id' => $subject->id,
+        'doc_type' => TransactionDocument::DOC_BOLETO_ASAAS,
+        'doc_class' => 'Modules\\RecurringBilling\\Models\\AsaasCharge',
+        'doc_id' => 30, 'status' => TransactionDocument::STATUS_CANCELLED,
+    ]);
+    TransactionDocument::create([
+        'business_id' => 1, 'transaction_id' => $subject->id,
+        'doc_type' => 'nfe55', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
+        'doc_id' => 1, 'status' => 'authorized',
+    ]);
+
+    (new ExecuteStageActionService)->execute($subject, 'cancelar_venda', cancelUser(1), [
+        'motivo' => 'Cliente cancelou — estornar boletos',
+    ]);
+
+    // Só os 2 boletos PENDING geram dispatch — boleto já cancelled não duplica
+    Bus::assertDispatchedTimes(\App\Jobs\EstornarBoletoJob::class, 2);
+
+    Bus::assertDispatched(\App\Jobs\EstornarBoletoJob::class, function ($job) use ($boletoAsaas) {
+        return $job->businessId === 1
+            && $job->transactionDocumentId === (int) $boletoAsaas->id
+            && $job->motivo === 'Cliente cancelou — estornar boletos';
+    });
+    Bus::assertDispatched(\App\Jobs\EstornarBoletoJob::class, function ($job) use ($boletoInter) {
+        return $job->businessId === 1
+            && $job->transactionDocumentId === (int) $boletoInter->id;
+    });
+
+    // Cascade paralelo segue rodando — NFe e notificação não bloqueiam
+    Bus::assertDispatched(\Modules\NfeBrasil\Jobs\CancelarNfeJob::class);
+    Bus::assertDispatched(\Modules\Whatsapp\Jobs\NotificarClienteCancelamentoJob::class);
+
+    // Stage moveu pra cancelled
+    expect($subject->fresh()->current_stage_id)->toBe($cancelled->id);
+});
+
+it('7. cancelar venda sem boleto não dispara EstornarBoletoJob', function () {
+    Bus::fake();
+
+    ['invoiced' => $inv] = cancelSetup(1);
+    $subject = cancelSubject(1, $inv->id);
+
+    // Sem TransactionDocument boleto_* — só NFe
+    TransactionDocument::create([
+        'business_id' => 1, 'transaction_id' => $subject->id,
+        'doc_type' => 'nfe55', 'doc_class' => 'Modules\NfeBrasil\Models\NfeEmissao',
+        'doc_id' => 1, 'status' => 'authorized',
+    ]);
+
+    (new ExecuteStageActionService)->execute($subject, 'cancelar_venda', cancelUser(1), [
+        'motivo' => 'Sem boleto',
+    ]);
+
+    Bus::assertNotDispatched(\App\Jobs\EstornarBoletoJob::class);
 });
