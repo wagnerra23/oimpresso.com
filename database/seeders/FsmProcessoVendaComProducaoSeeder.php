@@ -9,6 +9,7 @@ use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageActionRole;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Spatie\Permission\Models\Role;
 
@@ -85,7 +86,7 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
 
     public function runForBusiness(int $businessId): void
     {
-        $this->ensureRoles();
+        $roleMap = $this->ensureRoles($businessId);
 
         $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $businessId)
@@ -104,14 +105,40 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
         }
 
         $stages = $this->ensureStages($process);
-        $this->ensureActions($stages);
+        $this->ensureActions($stages, $roleMap);
     }
 
-    private function ensureRoles(): void
+    /**
+     * Cria roles globais OU per-business conforme schema da tabela `roles`.
+     *
+     * UltimatePOS estende Spatie Permission com coluna `roles.business_id`
+     * (NOT NULL + FK pra business). Quando essa coluna existe, criamos role
+     * per-business com nome único \"role.key#{business_id}\" (convenção UPos).
+     *
+     * Quando NÃO existe (Pest in-memory SQLite usa schema Spatie puro), cria
+     * role global com nome puro.
+     *
+     * SaleStageActionRole.role_name guarda o nome resolvido — Service consulta
+     * via $user->hasAnyRole($roleNames) que casa o que estiver registrado.
+     */
+    private function ensureRoles(int $businessId): array
     {
+        $hasBusinessIdColumn = Schema::hasColumn('roles', 'business_id');
+        $resolved = [];
+
         foreach (self::ROLES as $role) {
-            Role::findOrCreate($role, 'web');
+            $roleName = $hasBusinessIdColumn ? "{$role}#{$businessId}" : $role;
+
+            $attrs = ['name' => $roleName, 'guard_name' => 'web'];
+            if ($hasBusinessIdColumn) {
+                $attrs['business_id'] = $businessId;
+            }
+
+            Role::firstOrCreate($attrs);
+            $resolved[$role] = $roleName;
         }
+
+        return $resolved;
     }
 
     /** @return array<string, SaleProcessStage> */
@@ -134,8 +161,11 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
         return $stages;
     }
 
-    /** @param array<string, SaleProcessStage> $stages */
-    private function ensureActions(array $stages): void
+    /**
+     * @param array<string, SaleProcessStage> $stages
+     * @param array<string, string> $roleMap key canônica → nome resolvido (com/sem sufixo #biz)
+     */
+    private function ensureActions(array $stages, array $roleMap): void
     {
         $defs = [
             // [stage_origem, key, label, target, roles[], is_critical, side_effect]
@@ -176,13 +206,15 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
                 ],
             );
 
-            // Idempotente: sync roles (cria as faltantes, mantém as existentes)
+            // Idempotente: sync roles (cria as faltantes, mantém as existentes).
+            // Usa nome resolvido do roleMap (com sufixo #{biz} em UltimatePOS).
             $existingRoles = $action->roles->pluck('role_name')->all();
-            foreach ($roles as $role) {
-                if (! in_array($role, $existingRoles, true)) {
+            foreach ($roles as $roleKey) {
+                $resolvedName = $roleMap[$roleKey] ?? $roleKey;
+                if (! in_array($resolvedName, $existingRoles, true)) {
                     SaleStageActionRole::create([
                         'action_id' => $action->id,
-                        'role_name' => $role,
+                        'role_name' => $resolvedName,
                     ]);
                 }
             }
