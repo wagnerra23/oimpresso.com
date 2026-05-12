@@ -118,6 +118,361 @@ Todos usam `AppShellV2` Persistent Layout + components shared (`PageHeader`, `Em
 
 ---
 
+## §14 — Pipeline FSM canônico OficinaAuto (proposto pós-ADR 0143)
+
+> **Contexto:** [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) tornou o `App\Domain\Fsm` o caminho ÚNICO de pipeline em prod (Sells + Repair LIVE em biz=1). OficinaAuto **DEVE** wirar-se ao FSM canônico em vez de inventar state machine própria. Espelha o pattern Sells/Repair com semântica oficina-específica.
+>
+> Discovery realizado contra perfis Vargas (recapagem caminhão multi-placa, 181 OS/mês, sem PCP) + Martinho (caçambas avulsas, 91 veículos, 8 status distinct + 2 estágios FSM já no legacy). Stages calibrados pra suportar ambos sub-tipos.
+
+### §14.1 Stages canônicos OficinaAuto (15 stages)
+
+| # | Key | Label PT-BR | Cor | Initial? | Terminal? | Notas / motivação cliente |
+|---|---|---|---|---|---|---|
+| 0 | `recebido_para_diagnostico` | Recebido pra diagnóstico | `slate` | ✅ | — | Veículo na recepção; checklist entrada |
+| 1 | `em_diagnostico` | Em diagnóstico | `blue` | — | — | Mecânico avaliando + fotos |
+| 2 | `diagnosticado_aguardando_aprovacao` | Diagnosticado — aguardando aprovação | `amber` | — | — | Orçamento gerado, link WhatsApp enviado |
+| 3 | `cliente_aprovou_orcamento` | Cliente aprovou orçamento | `cyan` | — | — | 🔒 ReservarEstoque peças + criar OS-filhas comissão |
+| 4 | `cliente_rejeitou_orcamento` | Cliente rejeitou orçamento | `red` | — | ✅ T | Vai pra entrega-sem-conserto + KPI taxa rejeição |
+| 5 | `aguardando_aprovacao_supervisor` | Aguardando aprovação supervisor (escalada) | `yellow` | — | — | **NOVO oficina** — peças caras (> R$ X config per business) ou re-orçamento. Lateral entrada de #3 |
+| 6 | `aguardando_pecas` | Aguardando peças | `purple` | — | — | Reserva confirmada; espera fornecedor |
+| 7 | `pecas_chegadas` | Peças chegaram | `indigo` | — | — | Estoque libera mecânico |
+| 8 | `em_execucao` | Em execução | `orange` | — | — | Conserto em andamento; clock-in mecânico |
+| 9 | `pausado` | Pausado | `gray` | — | — | Espera externa (cliente, fornecedor, peça extra detectada) |
+| 10 | `teste_estrada` | Teste de estrada / rodagem | `lime` | — | — | **NOVO oficina** — pós-execução, validação real (recapagem Vargas: ⚠️ obrigatório) |
+| 11 | `ajuste_final` | Ajuste final | `teal` | — | — | **NOVO oficina** — re-entrada loop teste→ajuste→teste (típico Vargas pneu) |
+| 12 | `concluido_aguardando_retirada` | Concluído — aguardando retirada | `green` | — | — | Pronto + WhatsApp cliente |
+| 13 | `entregue_completo` | Entregue ao cliente | `emerald` | — | ✅ T | Caso de sucesso |
+| 14 | `cancelado` | Cancelado | `zinc` | — | ✅ T | Override gerente (🔒 LiberarReserva) |
+| 15 | `garantia_acionada` | Garantia acionada (re-entrada) | `rose` | — | ✅ T | **NOVO oficina** — cria OS-filha vinculada `os_pai_id`; OS-filha NÃO fatura cliente, alimenta KPI custo-garantia % faturamento |
+
+**Stages novos vs Repair canon (ADR 0143):**
+- `aguardando_aprovacao_supervisor` — escalada hierarquica (peças > R$ X / re-orçamento pós-execução)
+- `teste_estrada` — diferencial caminhão/oficina pesada (Vargas exige pós-recapagem)
+- `ajuste_final` — loop iterativo teste↔ajuste antes de concluir
+- `garantia_acionada` — cria OS-filha; comum em oficina (Martinho 8 status distinct → provavelmente já tem)
+
+**Diferenças vs Repair (eletrônico/genérico):**
+- Sem `orcamento_aprovado` / `orcamento_rejeitado` separados — usa `cliente_aprovou_orcamento` / `cliente_rejeitou_orcamento` (mais natural PT-BR oficina)
+- Adiciona test-loop (10→11→10) que Repair não tem
+- Garantia é stage **terminal** (não in-progress) — OS-filha vira nova OS
+
+### §14.2 Actions × roles (proposto — calibrar com Wagner)
+
+| Action | Stages from | Stage to | Role | Side-effect 🔒 |
+|---|---|---|---|---|
+| `iniciar_diagnostico` | 0 | 1 | `oficina.atendente#{biz}` | — |
+| `gerar_orcamento` | 1 | 2 | `oficina.mecanico#{biz}` | `EnviarLinkAprovacaoWhatsapp` |
+| `cliente_aprovou` (via link público) | 2 | 3 | `public.token` | 🔒 `ReservarEstoquePecas` |
+| `cliente_rejeitou` (via link público) | 2 | 4 | `public.token` | — |
+| `escalar_supervisor` | 3, 8, 11 | 5 | `oficina.mecanico#{biz}` | `NotificarSupervisor` |
+| `supervisor_aprovou` | 5 | 3 ou 8 | `oficina.supervisor#{biz}` | — |
+| `confirmar_pecas_pedidas` | 3 | 6 | `oficina.estoque#{biz}` | — |
+| `marcar_pecas_chegadas` | 6 | 7 | `oficina.estoque#{biz}` | `NotificarMecanico` |
+| `iniciar_execucao` | 7 | 8 | `oficina.mecanico#{biz}` | 🔒 `ClockInApontamento` |
+| `pausar` | 8 | 9 | `oficina.mecanico#{biz}` | `ClockOutApontamento` |
+| `retomar` | 9 | 8 | `oficina.mecanico#{biz}` | `ClockInApontamento` |
+| `concluir_execucao` | 8 | 10 | `oficina.mecanico#{biz}` | 🔒 `ConsumirEstoque` + `ClockOutApontamento` |
+| `iniciar_teste` | 10 | 10 | `oficina.mecanico#{biz}` | — (mantém stage, log) |
+| `precisa_ajuste` | 10 | 11 | `oficina.mecanico#{biz}` | — |
+| `ajuste_concluido` | 11 | 10 | `oficina.mecanico#{biz}` | — |
+| `aprovar_entrega` | 10 | 12 | `oficina.supervisor#{biz}` | `NotificarClientePronto` |
+| `entregar_veiculo` | 12 | 13 | `oficina.atendente#{biz}` | 🔒 `EmitirDocumentosFiscais` (split NFe55+NFSe56) |
+| `cancelar_os` | 0..12 | 14 | `oficina.gerente#{biz}` | 🔒 `LiberarReservaEstoque` + `CancelarVendaCascade` |
+| `acionar_garantia` | 13 (após X dias) | 15 | `oficina.atendente#{biz}` | 🔒 `CriarOsFilhaGarantia` |
+
+Convenção espelha Sells/Repair: roles per-business com suffix `#{biz}` (Spatie), actions `is_critical` exigem role obrigatória (fail-secure).
+
+### §14.3 Transitions inválidas explícitas (anti-bypass governance)
+
+Wagner pain-point original ADR 0143: *"orçamento foi para estágio voltou sem ninguém ter autorizado"*. Aqui idem:
+
+- ❌ `recebido → entregue` direto (pular diagnóstico) — só `cancelar_os` permite atalho
+- ❌ `aguardando_pecas → entregue` (pular execução) — só via cancelar
+- ❌ `cliente_rejeitou → qualquer não-terminal` — terminal acabou
+- ❌ `garantia_acionada → entregue_completo` — OS-filha é fluxo novo
+
+---
+
+## §15 — Schema proposto evolução `Modules/OficinaAuto/Entities`
+
+> Schema V0 (PR #556) preservado. Adições propostas pra V1 (importer Vargas/Martinho + FSM wire-up + diferenciais ROI).
+
+### §15.1 `vehicles` — campos novos
+
+| Campo | Tipo | Default | Motivação |
+|---|---|---|---|
+| `km_atual` | unsignedInteger nullable | NULL | já presente V0 — usar |
+| `combustivel` | enum [gasolina/etanol/flex/diesel/gnv/eletrico/hibrido] | NULL | fiscal NFSe + lembrete revisão |
+| `fipe_codigo` | string(20) nullable | NULL | **NOVO** — código FIPE pra valor de mercado (seguro/garantia) |
+| `crlv_consultado_em` | timestamp nullable | NULL | cache 30d consulta DETRAN |
+| `crlv_dados_json` | json nullable | NULL | snapshot resposta API |
+| `observacao_tecnica` | text nullable | NULL | "carro antigo, motor turbinado, atenção freios" — texto livre mecânico |
+
+### §15.2 `service_orders` — campos novos
+
+| Campo | Tipo | Default | Motivação |
+|---|---|---|---|
+| `current_stage_id` | bigint FK `sale_process_stages` nullable | NULL | **FSM canon** ADR 0143 (opt-in per OS) |
+| `km_entrada` | unsignedInteger nullable | NULL | controle quilometragem na recepção |
+| `km_saida` | unsignedInteger nullable | NULL | km ao entregar (diff = uso teste estrada) |
+| `defeitos_json` | json nullable | NULL | **multi-defeitos** (Vargas: pneu+freio+óleo em 1 OS) — array `[{descricao, gravidade, prioridade}]` |
+| `diagnostico_tecnico` | text nullable | NULL | texto livre mecânico pós-diagnóstico (parente de `observacao_tecnica` veículo mas por OS) |
+| `aprovado_em_orcamento` | timestamp nullable | NULL | quando cliente clicou aprovar |
+| `aprovado_apos_aumento` | bool default false | false | flag re-orçamento (peça extra detectada → cliente re-aprovou) |
+| `valor_orcamento_inicial` | decimal(15,2) nullable | NULL | snapshot orçamento original |
+| `valor_orcamento_final` | decimal(15,2) nullable | NULL | snapshot pós-execução |
+| `os_pai_id` | bigint FK `service_orders.id` nullable | NULL | **garantia** — OS-filha referencia OS-pai |
+| `tipo_os` | enum [normal, retorno_garantia, re_entrada, reentrega_defeito] | normal | classificação pra KPI |
+| `mecanico_principal_user_id` | bigint FK `users.id` nullable | NULL | atribuição V1 (multi-mecânico = `oa_apontamentos` V2) |
+
+### §15.3 Tabelas novas
+
+**`oa_pecas_utilizadas`** — peças aplicadas em 1 OS (granular per-item)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | bigint PK | |
+| `business_id` | int FK + scope | Tier 0 |
+| `service_order_id` | bigint FK | CASCADE |
+| `product_id` | bigint FK products | UltimatePOS produto base |
+| `quantidade` | decimal(10,3) | |
+| `valor_custo` | decimal(15,2) | snapshot custo (não muda se preço mudar depois) |
+| `valor_venda` | decimal(15,2) | |
+| `fornecedor_id` | bigint FK contacts nullable | rastreabilidade |
+| `garantia_dias` | int default 90 | |
+| `oem_code` | string(50) nullable | original/similar |
+| `qualidade` | enum [original, oem, genuina, similar] | |
+
+**`oa_servicos_executados`** — serviços (mão-de-obra) por OS
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | bigint PK | |
+| `business_id` | int FK + scope | |
+| `service_order_id` | bigint FK | |
+| `descricao` | string(255) | |
+| `mecanico_user_id` | bigint FK users | |
+| `horas_apontadas` | decimal(6,2) | |
+| `valor_hora_aplicado` | decimal(10,2) | |
+| `valor_servico` | decimal(15,2) computed | `horas × valor_hora` |
+| `garantia_dias` | int default 180 | serviço > peça |
+| `categoria` | enum [mecanica, eletrica, lanternagem, pintura, diagnostico] | |
+| `codigo_tempario` | string(20) nullable | FK futura Sindirepa |
+
+**`oa_garantias`** — garantia GRANULAR per-item (peça OU serviço)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | bigint PK | |
+| `business_id` | int FK + scope | |
+| `service_order_id` | bigint FK | OS origem |
+| `item_type` | enum [peca, servico] | morphTo manual |
+| `item_id` | bigint | `oa_pecas_utilizadas.id` OU `oa_servicos_executados.id` |
+| `garantia_dias` | int | |
+| `expira_em` | date | calculado na criação |
+| `acionada_em` | timestamp nullable | NULL = não acionada |
+| `acionada_os_filha_id` | bigint FK service_orders nullable | OS criada via `acionar_garantia` action |
+| `observacoes` | text nullable | "trocada por defeito de fábrica" |
+| `lembrete_enviado_em` | timestamp nullable | WhatsApp pré-vencimento |
+
+**Decisão pendente**: granularidade garantia per-item (rastreável, complexo) vs OS-todo (simples, perde rastreio peça-específica). Recomendação: **per-item** — Vargas pode ter peça com 1 ano + serviço com 3 meses na MESMA OS, OS-todo perde isso. Custo extra: 1 join + UI mostra timeline garantia por item.
+
+---
+
+## §16 — Vinculação NFSe56 + NFe55 (split documentos fiscais)
+
+> Reusa pipeline ADR 0143 `EmitirDocumentosFiscais` (já LIVE pra Sells single-doc). OficinaAuto requer **split** porque OS típica oficina = NFC-e/NFe (peça) + NFSe (serviço) em paralelo.
+
+### Cenário canônico Vargas (recapagem)
+
+| Item | Tipo fiscal | Modelo | Valor |
+|---|---|---|---|
+| Pneu recauchutado 295/80R22.5 | Mercadoria | **NFe modelo 55** ou **NFC-e modelo 65** se PF | R$ 800 |
+| Banda de rodagem aplicação | Serviço | **NFSe modelo 56** (LC 116/03 item 14.05 — recapagem) | R$ 500 |
+| **Total OS** | — | 2 documentos coexistindo | R$ 1.300 |
+
+### Action FSM `emitir_documentos` (entregar_veiculo side-effect 🔒)
+
+Pseudo-código (não implementar agora):
+
+```
+foreach (oa_pecas_utilizadas as peca):
+    if cliente.tipo == 'PF' and peca.valor < threshold_nfe:
+        dispatch EmitirNfceJob(peca)
+    else:
+        dispatch EmitirNfeJob(peca)
+
+foreach (oa_servicos_executados as servico):
+    dispatch EmitirNfseJob(servico, codigo_lc_116=servico.codigo_lc)
+```
+
+Cria 1+N `transaction_documents` linkados ao `transaction_id` da OS. Pipeline US-RB-044 (boleto pago→NFe) já entregue cobre 1 documento — adapter `OficinaAutoNfsService` faz o split.
+
+**Pré-requisito não atendido:** Modules/NFSe driver real (ADR 0143 §"Plano restante" — 0 drivers implementados, 10 US backlog). OficinaAuto V1 só pode emitir NFC-e/NFe55 (estamos cobertos pela Modules/NfeBrasil US-NFE-002). NFSe56 vira P1 quando 1º driver municipal estiver verde.
+
+### Falha graceful — anti-rollback
+
+Se NFSe falhar (SEFAZ municipal down): OS **continua entregue**, lança Event `NfseFalhouAdiar` + cron retry exponencial 24h. Documentação parcial gera transaction_documents.status = `pending_retry`. Wagner pain-point ADR 0143 #1 preservado: nunca pular sequencial fiscal por defeito de OS.
+
+---
+
+## §17 — App campo mecânico (Fase 4 futura)
+
+> Mecânico Vargas trabalha em galpão grande, longe de PC. Mecânico Martinho roda nas caçambas em campo (estacionária = ele sobe e desce do caminhão). UI desktop atual NÃO atende. PWA mobile-first é diferencial alto vs concorrência (só Oficina Integrada Android + Manager Full web mobile entregam isso hoje).
+
+### Capacidades V0 da app
+
+1. **"Minhas OS hoje"** — lista filtrada por `mecanico_principal_user_id = current_user` + `current_stage_id IN (em_execucao, pausado, ajuste_final)` ordenada por SLA
+2. **Push notifications** transição — `pecas_chegadas` notifica mecânico, `concluido_aguardando_retirada` notifica recepção
+3. **Diagnóstico voz → texto** — Web Speech API (offline graceful) preenche `diagnostico_tecnico`
+4. **Foto antes/depois (audit)** — `morphMany Media` já reusável de Modules/Repair; auto-tagging EXIF timestamp+geo
+5. **Carimbo digital tempo trabalhado** — clock-in/out POR OS (vira `oa_apontamentos` futuro); botão "Pausei" / "Voltei" 1-tap
+6. **Lista peças aplicar** — visualiza `oa_pecas_utilizadas` da OS atribuída pra mecânico não esquecer
+7. **Confirmação `concluir_execucao`** — FSM action requer assinatura digital (canvas) ou foto carro montado
+
+### Não-V0 (Fase 5+)
+
+- OBD-II read (Bluetooth) → tirar leitura ECU automática
+- Reconhecimento placa via OCR câmera (boas-vindas zero-typing)
+- Anotação por voz longa-duração (diagnóstico extenso vira transcript)
+- Sync offline-first robusta (galpão Vargas pode ter 4G ruim)
+
+Estimate Fase 4: ~80h IA-pair fator 10x = ~2 semanas Felipe (PWA scaffold + 5 screens + push Centrifugo + clock-in side-effect). **Bloqueado** até FSM canon Repair LIVE + 1 piloto pagante validar.
+
+### Listado como US-OFICINA-FASE-4-001..007 (BACKLOG futuro)
+
+---
+
+## §18 — User stories US-OFICINA-NNN (continuação 003+)
+
+> Continuação das US ativas (001 DONE, 002 P0 backlog). Estimates ADR 0106 (fator 10x IA-pair, margem 2x).
+
+### US-OFICINA-006 · FSM wire-up canônico `ServiceOrder` (espelha Sells/Repair ADR 0143) — **P0**
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: ADR-0143
+> blocked_by: US-OFICINA-001 (done)
+
+- Adicionar `current_stage_id` em `service_orders` migration
+- Criar seeder `FsmProcessoOficinaAutoPadraoSeeder` (15 stages × 19 actions × roles)
+- `ServiceOrder` Model adota trait `GuardsFsmTransitions`
+- `OficinaAutoFsmActionController` espelhando `RepairFsmActionController`
+- UI drawer `FsmActionPanel` reuso de Modules/Repair (R5)
+- Pest: 15 transition tests biz=1 + cross-tenant biz=99 guard
+
+### US-OFICINA-007 · Importer Vargas (1.064 veículos multi-placa) — **P0**
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story · origin: ADR-0137 + Vargas perfil
+> blocked_by: US-OFICINA-002 (Martinho importer paving)
+
+Espelha US-OFICINA-002 (Martinho) mas adiciona:
+- Mapping PLACA2/CHASSI2 → `placa_secundaria` / `chassi_secundario`
+- Suporte `tipo_veiculo` = `cavalo`/`semi_reboque` distintos
+- Importer detecta cliente PESSOA vinculado a múltiplos EQUIPAMENTO_VEICULO (1 transportadora → N caminhões)
+- Pest fixture: cliente PF dono de 1 cavalo + 2 reboques distintos
+
+### US-OFICINA-008 · Schema garantia granular per-item (`oa_pecas_utilizadas`+`oa_servicos_executados`+`oa_garantias`) — **P1**
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story · origin: §15
+> blocked_by: US-OFICINA-006 (FSM ServiceOrder pra side-effect ConsumirEstoque dispatcher criar registro)
+
+Cria as 3 tabelas + Models + global scope. UI lista garantias ativas + status (válida/vencendo/expirada/acionada).
+
+### US-OFICINA-009 · Defeitos múltiplos por OS (JSON array) — **P1**
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story · origin: Vargas (3.08 itens/OS = média 3 defeitos/peças)
+> blocked_by: US-OFICINA-006
+
+Campo `defeitos_json` em `service_orders` + UI form repeater + render pretty no drawer. Form schema `{descricao, gravidade enum[baixa/media/alta/critica], prioridade int}`.
+
+### US-OFICINA-010 · Stages oficina-específicos `teste_estrada` + `ajuste_final` + loop — **P1**
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: §14.1
+> blocked_by: US-OFICINA-006
+
+Inclui no seeder + UI mostra contagem de iterações loop (KPI "média ajustes por OS"). Útil pra Vargas (recapagem requer N passadas teste).
+
+### US-OFICINA-011 · Re-orçamento (action `escalar_supervisor` + flag `aprovado_apos_aumento`) — **P1**
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: §15
+> blocked_by: US-OFICINA-006
+
+Cenário Vargas: mecânico abre pneu, descobre roda interna danificada não prevista, orçamento sobe R$ 200. Action `escalar_supervisor` muda stage temporário → supervisor aprova → volta com `aprovado_apos_aumento=true`. KPI "% OSs com re-orçamento".
+
+### US-OFICINA-012 · Consulta CRLV/placa (cache 30d + adapter pluggable) — **P1**
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-002
+> blocked_by: US-OFICINA-001
+
+Adapter `ConsultaPlacaService` (SerPro homologação OU Infosimples R$ 0,15/consulta). Cache `vehicles.crlv_dados_json` 30 dias. Add-on cobrável (não tier-1 free).
+
+### US-OFICINA-013 · Tabela tempária seed (100 serviços comuns BR) — **P1**
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-004
+> blocked_by: US-OFICINA-008
+
+Tabela `oa_temparios` + seed manual 100 serviços frequentes (troca óleo, alinhamento, recapagem banda padrão, troca pastilha freio etc) com tempo_horas calibrado. Categoria enum [mecanica, eletrica, lanternagem, pintura, diagnostico].
+
+### US-OFICINA-014 · Aprovação OS via WhatsApp (link público + PIN) — **P0**
+
+> owner: — · priority: p0 · estimate: 7h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-009
+> blocked_by: US-OFICINA-006 (FSM action `cliente_aprovou` precisa estar no seeder)
+
+Endpoint público `/oficina/aprovar/{token}` mostra orçamento mobile-first + PIN 4 dígitos via SMS/WhatsApp. Webhook dispara FSM action `cliente_aprovou` ou `cliente_rejeitou` com role `public.token`. Rate-limit + LGPD consentimento.
+
+### US-OFICINA-015 · App PWA mecânico campo (V0 — minhas OS + foto + clock-in) — **P2**
+
+> owner: — · priority: p2 · estimate: 16h · status: todo · type: story · origin: §17
+> blocked_by: US-OFICINA-006, US-OFICINA-008
+
+Scope V0: lista minhas OS + foto antes/depois + clock-in/out botão grande. Sem voz/OBD-II ainda.
+
+### US-OFICINA-016 · Garantia lembrete cron (pré-vencimento WhatsApp) — **P2**
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-013
+> blocked_by: US-OFICINA-008
+
+Job daily compara `oa_garantias.expira_em - 7d` → dispara WhatsApp template "Sr. João, garantia do pneu OS-1234 vence em 7 dias — algum sintoma?". Opt-in LGPD obrigatório.
+
+### US-OFICINA-017 · Histórico veículo (timeline OS + KPIs km/manutenção) — **P1**
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-003
+> blocked_by: US-OFICINA-006
+
+Page `Vehicles/Show.tsx` aba "Histórico" lista todas OS daquele veículo + foto antes/depois + soma km percorrido entre revisões. Útil Vargas (mesmo caminhão volta a cada 6m recapagem).
+
+### US-OFICINA-018 · NFSe modelo 56 split documentos fiscais — **P1**
+
+> owner: — · priority: p1 · estimate: 10h · status: todo · type: story · origin: §16
+> blocked_by: Modules/NFSe driver real (10 US backlog SPEC-NFSE-CANCEL.md ADR 0143)
+
+Adapter `OficinaAutoNfsService.emitirSplit($serviceOrder)` que dispatches N jobs NFe55/NFC-e + M jobs NFSe56 paralelos. Falha graceful (1 documento OK, outro pending_retry). Pré-requisito: 1 driver municipal NFSe verde (Joinville/SC ou cidade piloto).
+
+### US-OFICINA-019 · Comissão por OS (mecânico + atendente, % escalonado) — **P2**
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-011
+> blocked_by: US-OFICINA-008 (oa_servicos_executados pra calcular base)
+
+Regras config per-user. Trigger: FSM action `entregar_veiculo` side-effect `CalcularComissaoJob`. Relatório mensal.
+
+### US-OFICINA-020 · Importer Firebird `WR_KANBAN` → `oa_kanban_state` (pré-arte Vargas/Martinho) — **P2**
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story · origin: _LICOES-CRITICAS §8
+> blocked_by: US-OFICINA-007 (Vargas importer)
+
+Aproveita Kanban industrial Delphi (descobeto sessão 2026-05-11). Importer lê `WR_KANBAN(CHAVE, COLUNA, ORDEM, COLUNA_FECHADA)` → popula tabela equivalente preservando estado UI do cliente legacy. Bonus migration UX.
+
+### US-OFICINA-021 · Integração FIPE veículo (valor mercado + filtro garantia) — **P2**
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story · origin: §15.1 `fipe_codigo`
+> blocked_by: US-OFICINA-001
+
+Adapter consulta FIPE (API pública gratuita) auto-popula `vehicles.fipe_codigo` + valor de referência. Útil pra cap garantia em peças caras (% sobre valor FIPE) ou seguro frota.
+
+### US-OFICINA-022 · Cleanup tools cliente legacy migrado (continua US-OFICINA-005) — **P0 já existe**
+
+(US-005 já cobre — pular ID 022)
+
+**Total estimate US 003-021 (excluindo 022 que já existe):** ~109h codáveis × 2x margem (ADR 0106) = ~6 semanas Felipe IA-pair (assumindo ~20h/semana focal).
+
+---
+
 ## Anexo (SPEC antecipatório 2026-05-10)
 
 > Convenção do ID antiga: `US-AUTO-NNN` para user stories, `R-AUTO-NNN` para regras Gherkin.
