@@ -7,6 +7,7 @@ use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
+use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,21 +16,30 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 
 /**
- * CU-03 (G4) — UPDATE direto em current_stage_id é bloqueado por Observer.
+ * CU-03 (G4) — UPDATE direto em current_stage_id é bloqueado por gateway FSM.
  *
- * Specs FAILING-FIRST:
- *   1. App\Domain\Fsm\Observers\TransactionFsmObserver ainda não existe
- *   2. Registro do observer em booted() de Transaction ainda não existe
- *   3. Flag _fsmAuthorizedTransition no ExecuteStageActionService ainda não existe
+ * Pattern canônico em prod (ADR 0143 marco 2026-05-12):
+ *   - Trait `App\Domain\Fsm\Concerns\GuardsFsmTransitions` aplicado em
+ *     `App\Transaction` + `Modules\Repair\Entities\JobSheet` é o gateway REAL.
+ *   - Observer `App\Domain\Fsm\Observers\TransactionFsmObserver` é alternativa
+ *     pra Models que não puderem usar trait (ex: subjects de teste).
+ *   - Ambos consomem do mesmo singleton `FsmAuthorizationFlag`.
  *
  * Pain point Wagner 2026-05-12 (implícito):
  *   "Sem ninguém ter autorizado" — alguém pode estar burlando via Eloquent
- *   $tx->current_stage_id = X; $tx->save() ou via tinker.
+ *   $tx->current_stage_id = X; $tx->save() ou via tinker. Trait + Observer
+ *   transformam ExecuteStageActionService em gateway OBRIGATÓRIO.
  *
- * Surface attack: ExecuteStageActionService é o gateway recomendado mas
- * NÃO o obrigatório. Observer transforma em obrigatório.
+ * Test usa Observer (não trait) porque é fixture leve sem necessidade de
+ * Schema-real-Model. Validação do trait em prod é via smoke (`php artisan
+ * fsm:scan-drift transactions`).
  *
- * Ver: memory/requisitos/Sells/CASOS-USO-PIPELINE-VENDAS.md §CU-03
+ * Lição hotfix #640: NÃO usar property dinâmica `$model->_flag = true` —
+ * Eloquent inclui em SQL UPDATE → "Unknown column" error em prod. Use
+ * `FsmAuthorizationFlag::mark()` singleton consume-once.
+ *
+ * Ver: memory/requisitos/Sells/CASOS-USO-PIPELINE-VENDAS.md §CU-03 +
+ *      memory/proibicoes.md §FSM Pipeline Canônico.
  */
 
 class FsmObserverTestSubject extends Model
@@ -54,6 +64,9 @@ class FsmObserverTestSubject extends Model
 }
 
 beforeEach(function () {
+    // Reset singleton entre cenários — flags de teste anterior não vazam
+    FsmAuthorizationFlag::reset();
+
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
         $t->string('username')->unique();
@@ -186,15 +199,17 @@ it('3. mass update Eloquent BYPASSA o Observer (limitação técnica conhecida)'
     expect(FsmObserverTestSubject::find($subject->id)->current_stage_id)->toBe($b->id);
 });
 
-it('4. flag _fsmAuthorizedTransition explícita libera + gera log WARNING auditável', function () {
+it('4. flag explícita via FsmAuthorizationFlag::mark libera + gera log auditável', function () {
     ['a' => $a, 'b' => $b] = fsmObserverSetup(1);
     $subject = fsmObserverSubject(1, $a->id);
 
     Log::spy();
 
-    // Escape hatch superadmin: flag explícita libera Observer mas registra
-    // log estruturado pra auditoria (fsm:scan-drift cruza com sale_stage_history)
-    $subject->_fsmAuthorizedTransition = true;
+    // Escape hatch superadmin: marcar flag no singleton libera Observer mas
+    // gera log estruturado pra auditoria (fsm:scan-drift cruza com
+    // sale_stage_history). Pattern canônico hotfix #640 — NÃO usar property
+    // dinâmica em Eloquent (gera "Unknown column" no SQL UPDATE).
+    FsmAuthorizationFlag::mark($subject::class, $subject->getKey());
     $subject->current_stage_id = $b->id;
     $subject->save();
 
@@ -211,4 +226,21 @@ it('5. update parcial de outros campos NÃO dispara o Observer (back-compat)', f
     // Outros campos podem ser atualizados normalmente — Observer só pega current_stage_id
     $subject->business_id = 1; // re-atribui (no-op)
     expect(fn () => $subject->save())->not->toThrow(UnauthorizedActionException::class);
+});
+
+it('6. flag biz=99 não vaza pra subject biz=1 (singleton scoped por (class, id))', function () {
+    // biz=99 = convenção cross-tenant guard (ADR 0101). Singleton chave por
+    // (Model class + id) — flag marcada pra (FsmObserverTestSubject, id=42)
+    // NÃO autoriza save em (FsmObserverTestSubject, id=99). consume() é
+    // exact-match.
+    ['a' => $a, 'b' => $b] = fsmObserverSetup(1);
+    $subjectBiz99 = fsmObserverSubject(99, $a->id);
+
+    // Marca flag pra ID DIFERENTE — não autoriza este subject
+    FsmAuthorizationFlag::mark(FsmObserverTestSubject::class, 99999);
+
+    $subjectBiz99->current_stage_id = $b->id;
+
+    expect(fn () => $subjectBiz99->save())
+        ->toThrow(UnauthorizedActionException::class, 'use ExecuteStageActionService');
 });

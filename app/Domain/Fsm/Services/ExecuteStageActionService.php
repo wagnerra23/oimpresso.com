@@ -64,10 +64,12 @@ class ExecuteStageActionService
         // US-SELL-031 — fail-secure: action is_critical=true SEM role configurada
         // bloqueia execução. Seeds incompletos viravam bypass silencioso pra
         // actions de risco (cancelar_venda, voltar_para_orcamento, iniciar_producao).
+        // Mensagem instrutiva cita tabela e caminho de fix pra desbloquear o dev.
         if (empty($roleNames) && ($action->is_critical ?? false)) {
             throw new UnauthorizedActionException(
-                "Action '{$actionKey}' é crítica e exige role explícita — " .
-                "nenhuma role configurada bloqueia execução por segurança"
+                "Action crítica '{$actionKey}' exige role configurada em " .
+                "sale_stage_action_roles. Adicione role no seeder ou via UI " .
+                "antes de executar (fail-secure US-SELL-031)."
             );
         }
 
