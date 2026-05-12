@@ -50,6 +50,18 @@
 - ⛔ **Tabela de negócio nova obrigatoriamente** tem `business_id` indexado + FK
 - ⛔ **PII reais (CPF/CNPJ cliente) NUNCA em PR/commit/log** — use `[REDACTED]` ou `PiiRedactor`
 
+## FSM Pipeline Canônico ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — LIVE prod biz=1 desde 2026-05-12)
+
+- ⛔ **UPDATE direto em `current_stage_id`** (Eloquent `$tx->current_stage_id = X; $tx->save()` ou tinker raw) — trait `GuardsFsmTransitions` em Transaction + JobSheet lança `UnauthorizedActionException`. Use `ExecuteStageActionService::execute(subject, action_key, user, payload)` que aciona `FsmAuthorizationFlag::mark()` singleton ([app/Domain/Fsm/Support/FsmAuthorizationFlag.php](../app/Domain/Fsm/Support/FsmAuthorizationFlag.php))
+- ⛔ **Property dinâmica em Eloquent Model com nome ≠ coluna real** (`$model->_flag = true`) — Eloquent interpreta como atributo persistível e SQL UPDATE inclui na cláusula SET → "Unknown column" error. Use singleton estático per-request OU registrar `protected $appends` + accessor (lição hotfix #640 — 2026-05-12)
+- ⛔ **`static::observe(ObserverClass)` dentro de `bootXxx()` do trait** — Laravel detecta recursão de boot e lança `LogicException: bootIfNotBooted method may not be called`. Use `static::updating(closure)` que é syntactic sugar de `static::registerModelEvent` (lição hotfix #639 — 2026-05-12)
+- ⛔ **Mudar `sale_stage_history.action_id` pra NOT NULL** — entrada "Pipeline iniciado" (via `startPipeline` ou `bulk-start-pipeline`) cria audit log SEM action (transição não veio de action cadastrada). Coluna é nullable desde hotfix #643 (2026-05-12)
+- ⛔ **Roles Spatie sem suffix `#{biz}` em UltimatePOS** — tabela `roles.business_id` é NOT NULL com FK pra business; criar role global (sem business_id) viola FK. Use `Role::firstOrCreate(['name' => "{$role}#{$bizId}", 'business_id' => $bizId, 'guard_name' => 'web'])` ou auto-detect via `Schema::hasColumn('roles', 'business_id')` (lição hotfix #624 — 2026-05-12)
+- ⛔ **Action FSM `is_critical=true` SEM role cadastrada** em `sale_stage_action_roles` — Service lança `UnauthorizedActionException` (fail-secure). Seed sempre cadastra role pra actions de risco (cancelar_venda, voltar_estagio, iniciar_producao)
+- ⛔ **NFe cancelada via SEFAZ `forceDelete()` em `nfe_emissoes`** — número permanece usado oficialmente (CONFAZ SINIEF 07/2005 Art. 14). Marca status `cancelada` + permanece no banco. Apenas `rejeitada/denegada/erro_envio` viram status `inutilizada` (preserva registro, NÃO hard delete)
+- ⛔ **Refund Asaas POST `/v3/payments/{id}/refund` sem flag `ASAAS_REFUND_ENABLED=true`** — RefundCobrancaAsaasJob respeita config; default false em prod = só loga TODO. Wagner ativa manual no .env após validação homolog
+- ⛔ **`Mail::raw` ou Mail dispatch em `NotificarClienteCancelamentoJob` sem checar `Contact::canReceiveEmailNotification()`** — LGPD opt-in. NULL=permite (back-compat); FALSE=bloqueia + log. Mesma regra pra WhatsApp via `canReceiveWhatsappNotification()`
+
 ## Sempre fazer
 
 - ✅ **PT-BR em tudo** — texto, commit, comentário, label. Código em inglês ok; domínio negócio em PT (`Marcacao`, `Intercorrencia`, `BancoHoras`)
