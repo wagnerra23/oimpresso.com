@@ -21,6 +21,7 @@ use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
+use Modules\Whatsapp\Jobs\SendInteractiveJob;
 use Modules\Whatsapp\Jobs\SendMediaJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 use Modules\Whatsapp\Services\Notes\SlashCommandParser;
@@ -1213,6 +1214,283 @@ class InboxController extends Controller
         SendMediaJob::dispatch($businessId, $message->id);
 
         return back()->with('success', 'Mídia enviada (aguardando confirmação do daemon).');
+    }
+
+    /**
+     * US-WA-045b — POST `/atendimento/inbox/conversations/{id}/send-interactive`.
+     *
+     * Envia mensagem interativa (buttons / list / cta_url) HSM. Atendente
+     * compõe via `InteractiveMessageDialog.tsx` no composer e dispara este
+     * endpoint que valida payload, persiste `Message(type=interactive)` em
+     * `status=queued`, e dispatcha pro daemon Baileys CT 100 (Tier 0 ADR 0093).
+     *
+     * Estrutura `$interactive` (discriminated union pelo `type`):
+     *  - `['type' => 'buttons', 'buttons' => [{id, label}], 'header'?, 'footer'?]` (max 3 buttons)
+     *  - `['type' => 'list',    'button_label' => '...', 'sections' => [{title, items: [{id, title, description?}]}]]` (max 10 items)
+     *  - `['type' => 'cta_url', 'cta_label' => '...', 'cta_url' => 'https://...']` (Meta Cloud only)
+     *
+     * Permission `whatsapp.send`. ACL canal Tier 0 (US-WA-069). Não permite
+     * notas internas (interactive sempre cliente-facing).
+     *
+     * @see Modules/Whatsapp/Jobs/SendInteractiveJob.php (PR #715)
+     * @see Modules/Whatsapp/Services/Drivers/DriverInterface.php::sendInteractive
+     */
+    public function sendInteractive(Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->with('channel')
+            ->findOrFail($id);
+
+        // US-WA-069 defense-in-depth: ACL canal antes de QUALQUER persist/dispatch.
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
+
+        if ($conversation->is_blocked) {
+            return back()->withErrors(['send_interactive' => 'Contato bloqueado.']);
+        }
+
+        $channel = $conversation->channel;
+        if (! $channel) {
+            return back()->withErrors(['send_interactive' => 'Canal não associado à conversa.']);
+        }
+
+        // Validação base — `type` discrimina o resto via rules condicionais.
+        $data = $request->validate([
+            'body' => ['required', 'string', 'max:1024'],
+            'type' => ['required', Rule::in(['buttons', 'list', 'cta_url'])],
+            // buttons
+            'header' => ['nullable', 'string', 'max:60'],
+            'footer' => ['nullable', 'string', 'max:60'],
+            'buttons' => ['required_if:type,buttons', 'array', 'min:1', 'max:3'],
+            'buttons.*.id' => ['required_with:buttons', 'string', 'min:1', 'max:64'],
+            'buttons.*.label' => ['required_with:buttons', 'string', 'min:1', 'max:20'],
+            // list
+            'button_label' => ['required_if:type,list', 'nullable', 'string', 'min:1', 'max:20'],
+            'sections' => ['required_if:type,list', 'array', 'min:1'],
+            'sections.*.title' => ['required_with:sections', 'string', 'min:1', 'max:24'],
+            'sections.*.items' => ['required_with:sections', 'array', 'min:1'],
+            'sections.*.items.*.id' => ['required_with:sections', 'string', 'min:1', 'max:64'],
+            'sections.*.items.*.title' => ['required_with:sections', 'string', 'min:1', 'max:24'],
+            'sections.*.items.*.description' => ['nullable', 'string', 'max:72'],
+            // cta_url (Meta only)
+            'cta_label' => ['required_if:type,cta_url', 'nullable', 'string', 'min:1', 'max:20'],
+            'cta_url' => ['required_if:type,cta_url', 'nullable', 'url', 'max:2048'],
+        ]);
+
+        // Total items list ≤ 10 (limite WhatsApp Meta/Baileys). Validation rule
+        // sections.*.items.* não consegue contar agregado, então enforce aqui.
+        if ($data['type'] === 'list') {
+            $totalItems = collect($data['sections'])->sum(fn ($s) => count($s['items'] ?? []));
+            if ($totalItems > 10) {
+                return back()->withErrors(['send_interactive' => "Lista pode ter no máximo 10 itens (recebido {$totalItems})."]);
+            }
+        }
+
+        // cta_url só Meta Cloud — qualquer driver baileys/zapi rejeita.
+        // Defense-in-depth ON TOP da `DriverDoesNotSupport` que o Job/Driver
+        // lança no fluxo backend (fail-fast 422 em vez de Message=failed).
+        if ($data['type'] === 'cta_url' && $channel->type !== Channel::TYPE_WHATSAPP_META) {
+            return back()->withErrors([
+                'send_interactive' => 'Botão CTA URL só está disponível em canais Meta Cloud.',
+            ]);
+        }
+
+        // Monta payload `$interactive` no shape do DriverInterface::sendInteractive
+        // (discriminated union) — backend único contrato pra Job + daemon direto.
+        $interactive = match ($data['type']) {
+            'buttons' => array_filter([
+                'type' => 'buttons',
+                'buttons' => collect($data['buttons'])
+                    ->map(fn ($b) => ['id' => $b['id'], 'label' => $b['label']])
+                    ->all(),
+                'header' => $data['header'] ?? null,
+                'footer' => $data['footer'] ?? null,
+            ], fn ($v) => $v !== null && $v !== ''),
+            'list' => [
+                'type' => 'list',
+                'button_label' => $data['button_label'],
+                'sections' => collect($data['sections'])
+                    ->map(fn ($s) => [
+                        'title' => $s['title'],
+                        'items' => collect($s['items'])
+                            ->map(fn ($i) => array_filter([
+                                'id' => $i['id'],
+                                'title' => $i['title'],
+                                'description' => $i['description'] ?? null,
+                            ], fn ($v) => $v !== null && $v !== ''))
+                            ->all(),
+                    ])
+                    ->all(),
+            ],
+            'cta_url' => [
+                'type' => 'cta_url',
+                'button_label' => $data['cta_label'],
+                'url' => $data['cta_url'],
+            ],
+        };
+
+        // Persiste Message em status=queued ANTES do dispatch — defesa em
+        // profundidade (mesmo padrão do send()/sendMedia()). Payload JSON
+        // serializado pra UI renderizar resumo + auditoria.
+        $message = Message::query()->create([
+            'business_id' => $businessId,
+            'conversation_id' => $conversation->id,
+            'direction' => 'outbound',
+            'provider' => $channel->type,
+            'type' => 'interactive',
+            'body' => $data['body'],
+            'payload' => $interactive,
+            'status' => 'queued',
+            'sender_user_id' => $userId ?: null,
+            'sender_kind' => 'human',
+            'is_internal_note' => false,
+        ]);
+
+        $conversation->forceFill([
+            'last_outbound_at' => now(),
+            'last_message_at' => now(),
+        ])->save();
+
+        // Path baileys: chama daemon direto (mesmo quick-path do send()).
+        // Path meta: dispatch Job — driver MetaCloudDriver vai fazer o POST.
+        // Path zapi: dispatch Job idem (driver decide se rejeita).
+        if ($channel->type === Channel::TYPE_WHATSAPP_BAILEYS) {
+            return $this->dispatchInteractiveViaBaileysDaemon($message, $conversation, $channel, $interactive);
+        }
+
+        // Meta/Z-API: usa Job (SendInteractiveJob — PR #715). Job espera
+        // WhatsappBusinessPhone legacy; durante coexistência (ADR 0135), o
+        // controller localiza phone pelo business — refactor pra Channel
+        // será em PR separado (mesmo todo do send()).
+        $phoneId = $this->resolveLegacyPhoneIdForChannel($businessId, $channel);
+        if ($phoneId === null) {
+            $message->forceFill([
+                'status' => 'failed',
+                'failed_reason' => "Sem WhatsappBusinessPhone legacy mapeado pra canal {$channel->type} — envio interactive indisponível nesta fase.",
+            ])->save();
+
+            return back()->withErrors([
+                'send_interactive' => 'Canal sem phone legacy associado pra dispatch interactive. Configure em /whatsapp/settings.',
+            ]);
+        }
+
+        $rawNumber = preg_replace('/^\+/', '', (string) $conversation->customer_external_id);
+        SendInteractiveJob::dispatch($businessId, $phoneId, $rawNumber, $data['body'], $interactive);
+
+        return back()->with('success', 'Mensagem interativa enviada (aguardando confirmação do driver).');
+    }
+
+    /**
+     * US-WA-045b — quick-path Baileys CT 100: chama daemon `/interactive` direto
+     * sem passar pelo Job (mesmo padrão do `send()` legacy de texto).
+     */
+    protected function dispatchInteractiveViaBaileysDaemon(
+        Message $message,
+        Conversation $conversation,
+        Channel $channel,
+        array $interactive,
+    ): RedirectResponse {
+        // Daemon só aceita buttons/list (cta_url é Meta-only — caller já bloqueou).
+        // Defense-in-depth: se chegou aqui com cta_url, falha graciosa antes do HTTP.
+        if ($interactive['type'] === 'cta_url') {
+            $message->forceFill([
+                'status' => 'failed',
+                'failed_reason' => 'CTA URL não suportado em Baileys (Meta Cloud only).',
+            ])->save();
+
+            return back()->withErrors([
+                'send_interactive' => 'Daemon Baileys não suporta CTA URL.',
+            ]);
+        }
+
+        $daemonUrl = config('whatsapp.baileys.daemon_url');
+        $apiKey = config('whatsapp.baileys.api_key');
+        $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
+        $toPhone = preg_replace('/^\+/', '', (string) $conversation->customer_external_id);
+
+        try {
+            $response = Http::withToken($apiKey)
+                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
+                ->timeout(15)
+                ->post("{$daemonUrl}/instances/{$instanceId}/interactive", [
+                    'to' => $toPhone,
+                    'body' => $message->body,
+                    'interactive' => $interactive,
+                ]);
+
+            if (! $response->successful()) {
+                $message->forceFill([
+                    'status' => 'failed',
+                    'failed_reason' => 'Daemon ' . $response->status() . ': ' . mb_substr($response->body(), 0, 200),
+                ])->save();
+                Log::warning('[atendimento.inbox.send_interactive] daemon error', [
+                    'channel_id' => $channel->id,
+                    'status' => $response->status(),
+                ]);
+
+                return back()->withErrors(['send_interactive' => 'Falha ao enviar interativo via daemon.']);
+            }
+
+            $payload = $response->json();
+            $message->forceFill([
+                'status' => $payload['status'] ?? 'sent',
+                'provider_message_id' => $payload['message_id'] ?? null,
+            ])->save();
+
+            return back()->with('success', 'Mensagem interativa enviada.');
+        } catch (\Throwable $e) {
+            $message->forceFill([
+                'status' => 'failed',
+                'failed_reason' => mb_substr($e->getMessage(), 0, 240),
+            ])->save();
+            Log::error('[atendimento.inbox.send_interactive] exception', [
+                'channel_id' => $channel->id,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors(['send_interactive' => 'Erro de rede com daemon: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * US-WA-045b — localiza WhatsappBusinessPhone legacy correspondente ao
+     * Channel polimórfico (ADR 0135). Necessário enquanto SendInteractiveJob
+     * + DriverInterface seguem acoplados a WhatsappBusinessPhone.
+     *
+     * Heurística (consistência com BaileysConnectJob/SettingsController):
+     *  - Channel.config_json pode trazer `legacy_phone_id` quando criado via
+     *    `/whatsapp/settings` migration. Se sim, usa direto.
+     *  - Senão, tenta phone único do business com driver compatível
+     *    (whatsapp_meta → driver=meta_cloud, whatsapp_zapi → driver=zapi).
+     *  - Sem match → null (controller falha graciosamente).
+     */
+    protected function resolveLegacyPhoneIdForChannel(int $businessId, Channel $channel): ?int
+    {
+        $config = is_string($channel->config_json) ? json_decode($channel->config_json, true) : ($channel->config_json ?? []);
+        if (is_array($config) && isset($config['legacy_phone_id'])) {
+            return (int) $config['legacy_phone_id'];
+        }
+
+        $driverByType = match ($channel->type) {
+            Channel::TYPE_WHATSAPP_META => 'meta_cloud',
+            Channel::TYPE_WHATSAPP_ZAPI => 'zapi',
+            Channel::TYPE_WHATSAPP_BAILEYS => 'baileys',
+            default => null,
+        };
+        if ($driverByType === null) {
+            return null;
+        }
+
+        $phone = \Modules\Whatsapp\Entities\WhatsappBusinessPhone::query()
+            ->where('business_id', $businessId)
+            ->where('driver', $driverByType)
+            ->orderByDesc('id')
+            ->first(['id']);
+
+        return $phone?->id;
     }
 
     /**
