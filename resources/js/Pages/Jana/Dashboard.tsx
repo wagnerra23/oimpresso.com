@@ -187,7 +187,7 @@ export default function Dashboard({ metas }: Props) {
             </p>
           </div>
 
-          <Link href="/copiloto">
+          <Link href="/jana">
             <Button className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversar com Copiloto
@@ -199,7 +199,7 @@ export default function Dashboard({ metas }: Props) {
           <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
             <MessageSquare className="h-12 w-12 text-muted-foreground/50" />
             <p className="text-muted-foreground">Nenhuma meta ativa. Converse com o Copiloto para criar a primeira.</p>
-            <Link href="/copiloto">
+            <Link href="/jana">
               <Button>Iniciar conversa</Button>
             </Link>
           </div>
