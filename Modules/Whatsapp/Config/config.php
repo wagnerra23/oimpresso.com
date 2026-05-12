@@ -147,4 +147,17 @@ return [
         // Disk `public` retorna `Storage::url()` direto (sem TTL).
         'signed_url_ttl_seconds' => (int) env('WHATSAPP_MEDIA_SIGNED_TTL', 86400),
     ],
+
+    /*
+     * PR-6 CYCLE-07 — CSAT (pesquisa pós-resolução 1-5 estrelas).
+     *
+     * `enabled=true` dispara mensagem CSAT automática quando atendente marca
+     * conv como `resolved` E parser tenta extrair score do próximo inbound.
+     * Default true em todos ambientes — Wagner desliga via env por business
+     * se cliente reclamar (opt-out simples por enquanto; template per-business
+     * + opt-out granular em PR futuro — ver follow-ups no commit).
+     */
+    'csat' => [
+        'enabled' => (bool) env('WHATSAPP_CSAT_ENABLED', true),
+    ],
 ];

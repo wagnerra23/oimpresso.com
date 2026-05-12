@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
+use Modules\Whatsapp\Http\Controllers\Admin\CsatController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacrosController;
 use Modules\Whatsapp\Http\Controllers\Admin\MetricsController;
@@ -210,4 +211,11 @@ Route::group([
     Route::get('/metricas', [MetricsController::class, 'index'])
         ->middleware('can:whatsapp.access')
         ->name('atendimento.metricas.index');
+
+    // PR-6 CYCLE-07 — Dashboard CSAT (pesquisa pós-resolução).
+    // Reusa permissão `whatsapp.access` (mesma do Inbox — quem acessa atendimento
+    // pode ver indicadores agregados de satisfação do próprio business).
+    Route::get('/csat', [CsatController::class, 'index'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.csat.index');
 });

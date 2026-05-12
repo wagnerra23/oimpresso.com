@@ -14,6 +14,7 @@ use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Jobs\DownloadMediaJob;
 use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
 use Modules\Whatsapp\Services\Contacts\LidPhoneResolver;
+use Modules\Whatsapp\Services\Csat\CsatResponseParser;
 use Modules\Jana\Scopes\ScopeByBusiness;
 
 /**
@@ -431,6 +432,43 @@ class ChannelBaileysWebhookController extends Controller
                 'last_outbound_at' => $fromMe ? now() : $conversation->last_outbound_at,
                 'unread_count' => $fromMe ? $conversation->unread_count : $conversation->unread_count + 1,
             ])->save();
+        }
+
+        // PR-6 CYCLE-07 — CSAT response parsing.
+        //
+        // Quando atendente marca conv como `resolved`, CsatDispatcher envia
+        // mensagem CSAT outbound + cria row pending em whatsapp_csat_responses.
+        // Próximo inbound do mesmo cliente (`!$fromMe`) pode ser a nota — tenta
+        // extrair score 1-5 + comment opcional via parser tolerante.
+        //
+        // Critérios pra tentar:
+        //   - Message foi criada agora (não-duplicada)
+        //   - É inbound (!$fromMe)
+        //   - Type text com body (parser não roda em mídia)
+        //   - CSAT feature toggle on (default true)
+        //
+        // Parser internamente busca CsatResponse pending dentro de 24h da
+        // asked_at. Se não há pending → no-op silencioso. Se inbound não
+        // parser como 1-5 → no-op também (cliente respondeu texto livre
+        // "obrigado" sem nota, atendente vê normalmente na thread).
+        if (
+            $message->wasRecentlyCreated
+            && ! $fromMe
+            && $type === 'text'
+            && $body !== null
+            && (bool) config('whatsapp.csat.enabled', true)
+        ) {
+            $score = app(CsatResponseParser::class)->tryParse((string) $body);
+            if ($score !== null) {
+                $comment = app(CsatResponseParser::class)->tryParseComment((string) $body);
+                app(CsatResponseParser::class)->recordResponse(
+                    $channel->business_id,
+                    $conversation->id,
+                    $score,
+                    $comment,
+                    (int) $message->id,
+                );
+            }
         }
 
         return response()->json([
