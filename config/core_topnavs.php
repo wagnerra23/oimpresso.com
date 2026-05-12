@@ -64,4 +64,44 @@ return [
             ],
         ],
     ],
+
+    // MWART migracao-blade-react: topnav módulo Compras (ADR 0141 piloto).
+    // Match useAutoModuleNav() ocorre em qualquer item cujo URL root bate com o atual,
+    // então listar todas as sub-rotas garante topnav presente em todas as 5 telas.
+    'Purchase' => [
+        'label' => 'Compras',
+        'icon'  => 'ShoppingCart',
+        'items' => [
+            [
+                'label' => 'Lista de compras',
+                'href'  => '/purchases',
+                'icon'  => 'List',
+                'can'   => 'purchase.view',
+            ],
+            [
+                'label' => 'Nova compra',
+                'href'  => '/purchases/create',
+                'icon'  => 'Plus',
+                'can'   => 'purchase.create',
+            ],
+            [
+                'label' => 'Devoluções',
+                'href'  => '/purchase-return',
+                'icon'  => 'Undo2',
+                'can'   => 'purchase.update',
+            ],
+            [
+                'label' => 'Pedidos de compra',
+                'href'  => '/purchase-order',
+                'icon'  => 'ShoppingBag',
+                'can'   => 'purchase.create',
+            ],
+            [
+                'label' => 'Requisições',
+                'href'  => '/purchase-requisition',
+                'icon'  => 'FileEdit',
+                'can'   => 'purchase.create',
+            ],
+        ],
+    ],
 ];

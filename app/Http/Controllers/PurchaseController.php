@@ -64,6 +64,20 @@ class PurchaseController extends Controller
             abort(403, 'Unauthorized action.');
         }
         $business_id = request()->session()->get('user.business_id');
+
+        // === HOT-FIX (PR pos-#601) MWART: Inertia ANTES de AJAX ===
+        // router.get do Inertia envia X-Inertia=true + X-Requested-With=XMLHttpRequest.
+        // Sem este check upstream, o `request()->ajax()` abaixo capturava o request
+        // Inertia e retornava JSON Datatables → "All Inertia requests must receive a
+        // valid Inertia response" + filtros quebravam a tela em prod.
+        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+            $business_locations = BusinessLocation::forDropdown($business_id);
+            $suppliers = Contact::suppliersDropdown($business_id, false);
+            $orderStatuses = $this->productUtil->orderStatuses();
+
+            return $this->indexInertia($business_id, $business_locations, $suppliers, $orderStatuses);
+        }
+
         if (request()->ajax()) {
             $purchases = $this->transactionUtil->getListPurchases($business_id);
 
@@ -219,15 +233,8 @@ class PurchaseController extends Controller
         $suppliers = Contact::suppliersDropdown($business_id, false);
         $orderStatuses = $this->productUtil->orderStatuses();
 
-        // === MWART DUAL (skill migracao-blade-react v0.1.0 piloto, ADR 0141) ===
-        // Path Inertia ativa via:
-        //   - Header X-Inertia (navegação Inertia client-side)
-        //   - Query ?v=2 (smoke manual sem quebrar Blade legacy)
-        // Tier 0 IRREVOGÁVEL preservado: business_id scope + permitted_locations.
-        if (request()->header('X-Inertia') || request()->query('v') === '2') {
-            return $this->indexInertia($business_id, $business_locations, $suppliers, $orderStatuses);
-        }
-
+        // Blade legacy fallback (request sem X-Inertia, sem ?v=2 e não AJAX).
+        // Inertia path tratado upstream antes do AJAX check (HOT-FIX MWART).
         return view('purchase.index')
             ->with(compact('business_locations', 'suppliers', 'orderStatuses'));
     }
