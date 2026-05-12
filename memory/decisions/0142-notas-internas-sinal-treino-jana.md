@@ -3,7 +3,7 @@ slug: 0142-notas-internas-sinal-treino-jana
 number: 142
 title: "Notas internas como sinal de treino pra Jana — slash commands + 3 tabelas + parser"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
@@ -319,6 +319,7 @@ Generalizar `/config` pra qualquer chave de configuração per-contato.
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-12 | Wagner + Opus 4.7 | ADR criada (US-WA-073). Status: **proposto**. Bloqueia US-WA-074..077. |
+| 2026-05-12 | Wagner | **Status: aceito**. Wagner aprovou em chat ("notas internas aceito"). US-WA-071 unblocked + US-WA-074..077 unblocked. |
 
 ## Referências
 
