@@ -1,6 +1,12 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { InstanceManager } from '../../baileys/InstanceManager';
-import { fetchHistoryBody, instanceIdParam, sendMediaBody, sendTextBody } from '../schemas';
+import {
+  fetchHistoryBody,
+  instanceIdParam,
+  sendInteractiveBody,
+  sendMediaBody,
+  sendTextBody,
+} from '../schemas';
 
 interface Deps {
   manager: InstanceManager;
@@ -31,6 +37,51 @@ export const messageRoutes: FastifyPluginAsync<Deps> = async (app, deps) => {
     };
     const result = await instance.sendMedia(input);
     return result;
+  });
+
+  // US-WA-045/046 — mensagens interativas (buttons + list).
+  // CTA URL é Meta Cloud-only — Zod do schema só aceita 2 variantes.
+  app.post('/instances/:id/interactive', async (req, reply) => {
+    const { id } = instanceIdParam.parse(req.params);
+    const body = sendInteractiveBody.parse(req.body);
+    const instance = deps.manager.get(id);
+    if (!instance) return reply.code(404).send({ error: 'instance_not_found' });
+    try {
+      // Normalizar pra remover `description: undefined` (exactOptionalPropertyTypes
+      // do tsconfig). Switch sobre discriminated union preserva tipos.
+      let result;
+      if (body.interactive.type === 'buttons') {
+        result = await instance.sendInteractive({
+          to: body.to,
+          body: body.body,
+          interactive: body.interactive,
+        });
+      } else {
+        result = await instance.sendInteractive({
+          to: body.to,
+          body: body.body,
+          interactive: {
+            type: 'list',
+            button_label: body.interactive.button_label,
+            sections: body.interactive.sections.map((s) => ({
+              title: s.title,
+              items: s.items.map((it) => ({
+                id: it.id,
+                title: it.title,
+                ...(it.description !== undefined ? { description: it.description } : {}),
+              })),
+            })),
+          },
+        });
+      }
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes('not connected')) {
+        return reply.code(409).send({ error: 'instance_not_connected', message });
+      }
+      throw err;
+    }
   });
 
   // US-WA-080 — import histórico Baileys (90d).

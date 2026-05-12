@@ -110,6 +110,66 @@ class ZapiDriver implements DriverInterface
         return $this->mapSendResponse($response);
     }
 
+    public function sendInteractive(
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
+        string $to,
+        string $body,
+        array $interactive,
+    ): WhatsappSendResult {
+        $type = (string) ($interactive['type'] ?? '');
+
+        // Z-API não tem endpoint nativo pra CTA URL (Whatsapp Cloud-only).
+        if ($type === 'cta_url') {
+            throw DriverDoesNotSupport::for('zapi', 'interactive.cta_url');
+        }
+
+        if ($type === 'buttons') {
+            // POST /send-button-actions — payload Z-API:
+            // { phone, message, buttonActions: [{ id, label }, ...] }
+            $payload = [
+                'phone' => $this->normalizePhone($to),
+                'message' => $body,
+                'buttonActions' => array_map(
+                    fn (array $btn) => [
+                        'id' => (string) $btn['id'],
+                        'label' => (string) $btn['label'],
+                    ],
+                    array_slice($interactive['buttons'] ?? [], 0, 3),
+                ),
+            ];
+            $endpoint = 'send-button-actions';
+        } elseif ($type === 'list') {
+            // POST /send-option-list — Z-API formata via {title, buttonLabel, options}
+            $items = [];
+            foreach (($interactive['sections'] ?? []) as $section) {
+                foreach (($section['items'] ?? []) as $item) {
+                    $items[] = array_filter([
+                        'id' => (string) $item['id'],
+                        'title' => (string) $item['title'],
+                        'description' => $item['description'] ?? null,
+                    ], fn ($v) => $v !== null);
+                }
+            }
+            $payload = [
+                'phone' => $this->normalizePhone($to),
+                'message' => $body,
+                'optionList' => [
+                    'title' => mb_substr((string) ($interactive['button_label'] ?? 'Escolha'), 0, 24),
+                    'buttonLabel' => mb_substr((string) ($interactive['button_label'] ?? 'Opções'), 0, 20),
+                    'options' => $items,
+                ],
+            ];
+            $endpoint = 'send-option-list';
+        } else {
+            throw DriverDoesNotSupport::for('zapi', "interactive.{$type}");
+        }
+
+        $response = $this->client($config)
+            ->post("/instances/{$config->zapi_instance_id}/token/{$config->zapi_instance_token}/{$endpoint}", $payload);
+
+        return $this->mapSendResponse($response);
+    }
+
     public function fetchMessageStatus(
         WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,
