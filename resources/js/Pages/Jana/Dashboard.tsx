@@ -165,7 +165,7 @@ function MetaCard({ meta }: { meta: Meta }) {
         )}
 
         <Link
-          href={`/copiloto/metas/${meta.id}`}
+          href={`/jana/metas/${meta.id}`}
           className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
         >
           Ver detalhe <ExternalLink className="h-3 w-3" />
@@ -212,7 +212,7 @@ export default function Dashboard({ metas }: Props) {
         )}
       </div>
 
-      <FabJana contextRoute="/copiloto/dashboard" />
+      <FabJana contextRoute="/jana/dashboard" />
     </>
   )
 }
