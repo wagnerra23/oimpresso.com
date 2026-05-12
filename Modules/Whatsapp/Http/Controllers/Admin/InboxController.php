@@ -21,6 +21,7 @@ use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
+use Modules\Whatsapp\Jobs\DispatchCsatJob;
 use Modules\Whatsapp\Jobs\SendMediaJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 use Modules\Whatsapp\Services\Notes\SlashCommandParser;
@@ -814,6 +815,12 @@ class InboxController extends Controller
             'bot_handling' => ['nullable', 'boolean'],
         ]);
 
+        // PR-6 CYCLE-07 — detecta transição open/awaiting_human → resolved pra
+        // disparar pesquisa CSAT async. Snapshot do status ANTES do save pra
+        // evitar duplicação quando atendente clica "Resolver" 2× (idempotência
+        // robusta também garantida em CsatDispatcher via window 24h).
+        $previousStatus = $conversation->status;
+
         if (isset($payload['status'])) {
             $conversation->status = $payload['status'];
         }
@@ -824,6 +831,18 @@ class InboxController extends Controller
             $conversation->bot_handling = (bool) $payload['bot_handling'];
         }
         $conversation->save();
+
+        // PR-6 CYCLE-07 — Dispara CSAT async quando muda pra resolved.
+        // Job em fila pra não bloquear request (daemon HTTP pode demorar 1-3s).
+        // Idempotência adicional em `CsatDispatcher::dispatchOnResolve` (window 24h).
+        if (
+            isset($payload['status'])
+            && $payload['status'] === Conversation::STATUS_RESOLVED
+            && $previousStatus !== Conversation::STATUS_RESOLVED
+            && (bool) config('whatsapp.csat.enabled', true)
+        ) {
+            DispatchCsatJob::dispatch($businessId, $conversation->id, $userId);
+        }
 
         return back()->with('success', 'Conversa atualizada.');
     }
