@@ -22,6 +22,9 @@ use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
 use Modules\Whatsapp\Jobs\SendMediaJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
+use Modules\Whatsapp\Services\Notes\SlashCommandParser;
+use Modules\Whatsapp\Services\Notes\SlashCommandRegistry;
+use Modules\Whatsapp\Services\Notes\SlashCommandResult;
 
 /**
  * InboxController — UI omnichannel `/atendimento/inbox` (ADR 0135 Fase 0).
@@ -530,7 +533,21 @@ class InboxController extends Controller
                 'business_id' => $businessId,
                 'author_user_id' => $userId,
             ]);
-            return back()->with('success', 'Nota interna salva.');
+
+            // US-WA-074 (ADR 0142) — slash commands em notas internas.
+            // Gate DUPLO Tier 0: parser SÓ roda quando is_internal_note=true.
+            // Comando não reconhecido / sem argumentos → nota fica como normal
+            // (parser retorna null) sem warning na UI. Eager-load conversation
+            // pra handler acessar contact_id sem N+1.
+            $slashFlash = $this->dispatchSlashCommand($message, (string) ($data['body'] ?? ''));
+
+            $back = back()->with('success', 'Nota interna salva.');
+            if ($slashFlash !== null) {
+                // Adiciona payload pra UI renderizar badge ao lado da bubble.
+                // Chave dedicada `slash` evita poluir flash `success` genérico.
+                $back = $back->with('slash', $slashFlash);
+            }
+            return $back;
         }
 
         if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
@@ -909,5 +926,53 @@ class InboxController extends Controller
         SendMediaJob::dispatch($businessId, $message->id);
 
         return back()->with('success', 'Mídia enviada (aguardando confirmação do daemon).');
+    }
+
+    /**
+     * US-WA-074 (ADR 0142) — dispatcha slash command da nota interna.
+     *
+     * Tier 0 IRREVOGÁVEL — parser SÓ é invocado quando `is_internal_note=true`
+     * (caller já gateou). Comportamento conservador:
+     *   - body sem `/cmd args` válido → retorna null (UI mostra nota normal)
+     *   - comando registrado retorna success → flash payload {kind, badge, link_url}
+     *   - comando retorna error → flash payload {kind=error, error_message}
+     *   - comando unrecognized (no-op gracioso) → null (não polui UI)
+     *
+     * O retorno alimenta a flash session — frontend lê `props.flash.slash` e
+     * renderiza badge clicável ao lado da bubble da nota recém-criada.
+     */
+    protected function dispatchSlashCommand(Message $note, string $body): ?array
+    {
+        // Defense-in-depth: parser só roda em nota interna. Caller já garante,
+        // mas mantém auditável aqui (Tier 0 ADR 0142 §1).
+        if (! $note->is_internal_note) {
+            return null;
+        }
+
+        /** @var SlashCommandParser $parser */
+        $parser = app(SlashCommandParser::class);
+        $parsed = $parser->parse($body);
+        if ($parsed === null) {
+            return null;
+        }
+
+        /** @var SlashCommandRegistry $registry */
+        $registry = app(SlashCommandRegistry::class);
+
+        // Eager-load conversation pra handler acessar contact_id sem extra query.
+        $note->loadMissing('conversation');
+
+        $result = $registry->dispatch($parsed->command, $note, $parsed->arguments);
+
+        // Unrecognized = no-op gracioso (comando não registrado OU args vazio
+        // pós-validation no handler). UI ignora.
+        if ($result->isUnrecognized()) {
+            return null;
+        }
+
+        return array_merge(
+            $result->toFlashPayload(),
+            ['command' => $parsed->command, 'message_id' => $note->id],
+        );
     }
 }

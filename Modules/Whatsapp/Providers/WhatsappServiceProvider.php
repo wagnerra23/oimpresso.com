@@ -33,6 +33,9 @@ use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
 use Modules\Whatsapp\Services\Drivers\ZapiDriver;
+use Modules\Whatsapp\Services\Notes\LembrarHandler;
+use Modules\Whatsapp\Services\Notes\SlashCommandParser;
+use Modules\Whatsapp\Services\Notes\SlashCommandRegistry;
 
 /**
  * ServiceProvider do módulo Whatsapp.
@@ -129,6 +132,22 @@ class WhatsappServiceProvider extends ServiceProvider
                 'null' => $this->app->make(NullDriver::class),
                 default => $this->app->make(NullDriver::class),
             };
+        });
+
+        // US-WA-074 (ADR 0142) — Slash commands em notas internas.
+        // Parser é stateless. Registry carrega handlers via injeção (singleton).
+        // Slots vazios (`corrigir`/`lembrete`/`config`) serão preenchidos
+        // por US-WA-075..077 — apenas adicionar `register('xxx', $handler)`.
+        $this->app->singleton(SlashCommandParser::class);
+        $this->app->singleton(LembrarHandler::class);
+        $this->app->singleton(SlashCommandRegistry::class, function ($app) {
+            $registry = new SlashCommandRegistry();
+            $registry->register('lembrar', $app->make(LembrarHandler::class));
+            // Reserved slots — handlers preenchidos em US-WA-075/076/077:
+            //   $registry->register('corrigir', $app->make(CorrigirHandler::class));
+            //   $registry->register('lembrete', $app->make(LembreteHandler::class));
+            //   $registry->register('config',   $app->make(ConfigHandler::class));
+            return $registry;
         });
     }
 
