@@ -240,6 +240,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
     Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
+    // US-SELL-016 — Bulk actions (Grade Avançada — multiseleção).
+    Route::post('/sells/bulk-print', [SellController::class, 'bulkPrint'])->name('sells.bulk-print');
+    Route::post('/sells/bulk-export', [SellController::class, 'bulkExport'])->name('sells.bulk-export');
     // US-SELL-035 — Timeline FSM (sale_stage_history) pra drawer e auditoria.
     Route::get('/api/sells/{id}/history', [\App\Http\Controllers\SaleHistoryController::class, 'index'])
         ->name('sells.history');

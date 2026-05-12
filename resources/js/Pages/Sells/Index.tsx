@@ -45,6 +45,7 @@ import {
 import SaleSheet from './_components/SaleSheet';
 import SellsToggleViewMode, { type SellsViewMode } from './_components/SellsToggleViewMode';
 import SellsGradeAvancada from './_components/SellsGradeAvancada';
+import SellsTotalsRow, { type SellsTotals } from './_components/SellsTotalsRow';
 
 interface SellKpis {
   total: number;
@@ -238,8 +239,28 @@ export default function SellsIndex(props: SellsIndexPageProps) {
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => readStoredStatusFilter());
   const [rows, setRows] = useState<SaleRow[]>([]);
+  const [totals, setTotals] = useState<SellsTotals | null>(null);
   const [loading, setLoading] = useState(true);
   const [openSaleId, setOpenSaleId] = useState<number | null>(null);
+
+  // US-SELL-016 — Multiseleção. State lifted up pra ser shared entre Lista e Grade.
+  // Set<number> via state functional updates pra evitar mutação acidental.
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
+
+  // US-SELL-017 — Toggle "Mostrar totais" em modo Lista (off por default — não polui).
+  const [showTotalsLista, setShowTotalsLista] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.localStorage.getItem('oimpresso.sells.showTotalsLista') === '1';
+    } catch (_) {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('oimpresso.sells.showTotalsLista', showTotalsLista ? '1' : '0');
+    } catch (_) { /* localStorage indisponível */ }
+  }, [showTotalsLista]);
 
   // Busca livre (cliente / nº fatura) — debounce 300ms.
   const [searchInput, setSearchInput] = useState('');
@@ -286,6 +307,13 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     setPage(1);
   }, [statusFilter, search, sortKey, sortDir, perPage, dateField]);
 
+  // US-SELL-016 — Limpa seleção quando muda filtro/busca/date_field — IDs
+  // selecionados podem não ser mais visíveis no escopo atual, evita
+  // ações em lote sobre vendas "fora do filtro" (confunde user).
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [statusFilter, search, dateField]);
+
   // Fetch quando qualquer parâmetro muda.
   useEffect(() => {
     let cancelled = false;
@@ -307,11 +335,13 @@ export default function SellsIndex(props: SellsIndexPageProps) {
         if (cancelled) return;
         setRows(Array.isArray(json.data) ? json.data : []);
         setMeta(json.meta ?? null);
+        setTotals(json.totals ?? null);
       })
       .catch(() => {
         if (cancelled) return;
         setRows([]);
         setMeta(null);
+        setTotals(null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -347,8 +377,40 @@ export default function SellsIndex(props: SellsIndexPageProps) {
       .then((json) => {
         setRows(Array.isArray(json.data) ? json.data : []);
         setMeta(json.meta ?? null);
+        setTotals(json.totals ?? null);
       });
   };
+
+  // US-SELL-016 — Handlers de seleção (memo callbacks pra estabilidade React 19).
+  const handleToggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      // Se TODAS as rows da página atual já estão marcadas → desmarca todas.
+      const allMarked = rows.length > 0 && rows.every((r) => prev.has(r.id));
+      if (allMarked) {
+        const next = new Set(prev);
+        rows.forEach((r) => next.delete(r.id));
+        return next;
+      }
+      // Caso contrário marca todas as rows visíveis.
+      const next = new Set(prev);
+      rows.forEach((r) => next.add(r.id));
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => setSelectedIds(new Set());
 
   // KPIs cards (3 principais — Abertas, Atrasadas com destaque rose, Total).
   const kpis = props.sellKpis;
@@ -450,7 +512,29 @@ export default function SellsIndex(props: SellsIndexPageProps) {
           "em construção" — preenchido por US-SELL-016/017/018+. */}
       {viewMode === 'grade-avancada' ? (
         <div className="container mx-auto px-8 py-6 max-w-7xl">
-          <SellsGradeAvancada sellKpis={kpis} />
+          <SellsGradeAvancada
+            rows={rows}
+            loading={loading}
+            totals={totals}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
+            onClearSelection={handleClearSelection}
+            onRowClick={setOpenSaleId}
+            openSaleId={openSaleId}
+            totalFiltered={totals?.count ?? meta?.total ?? 0}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={handleSort}
+          />
+          {meta && meta.total > 0 && (
+            <Pagination
+              meta={meta}
+              perPage={perPage}
+              onPageChange={setPage}
+              onPerPageChange={setPerPage}
+            />
+          )}
         </div>
       ) : (
       <div className="container mx-auto px-8 py-6 max-w-7xl">
@@ -480,7 +564,29 @@ export default function SellsIndex(props: SellsIndexPageProps) {
           {loading && search && (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           )}
+          {/* US-SELL-017 — Toggle "Mostrar totais" em modo Lista (default off — não polui Lista limpa) */}
+          <button
+            type="button"
+            onClick={() => setShowTotalsLista((v) => !v)}
+            className={
+              'ml-auto inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ' +
+              (showTotalsLista
+                ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300'
+                : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground')
+            }
+            aria-pressed={showTotalsLista}
+            title={showTotalsLista ? 'Esconder totais' : 'Mostrar totais do filtro'}
+          >
+            {showTotalsLista ? 'Esconder totais' : 'Mostrar totais'}
+          </button>
         </div>
+
+        {/* US-SELL-017 — totais opt-in em modo Lista (compact single-line) */}
+        {showTotalsLista && (
+          <div className="mb-3">
+            <SellsTotalsRow totals={totals} loading={loading} compact />
+          </div>
+        )}
 
         <div className="rounded-lg border border-border bg-background overflow-hidden">
           <div className="overflow-x-auto">
