@@ -275,6 +275,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-WA-078 (PR-5 CYCLE-07) — Backfill weekly auto-link Conversation→Contact CRM
+        // por phone match. Webhook auto-link cobre NOVAS conversations; este cron
+        // cuida das órfãs históricas e dos casos onde o Contact CRM foi cadastrado
+        // DEPOIS da conv ser criada (atendente cadastrou via /contacts).
+        // Segunda 03:00 BRT — horário de baixa carga + após scan-drift 03:00 sem
+        // disputa por being weekly. Limit 500 protege contra business com 10k+
+        // órfãs travando a janela; próxima execução pega o restante.
+        $schedule->command('whatsapp:auto-link-contacts --business=all --limit=500')
+            ->weeklyOn(1, '03:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:auto-link-contacts FALHOU — convs órfãs podem acumular sem Contact CRM vinculado'
+                );
+            });
+
         // Self-healing Camada 2 — probe + auto-recovery canais Baileys.
         // Itera Channels Baileys ativos, pinga /status no daemon CT 100, e
         // tenta /connect (3 retries com backoff 1s/5s/30s) se algum não

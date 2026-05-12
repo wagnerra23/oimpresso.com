@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Contacts;
 
 use App\Contact;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Conversation;
@@ -51,6 +52,156 @@ class ConversationContactLinker
      * positivo garantido.
      */
     public const MIN_PHONE_DIGITS = 8;
+
+    /**
+     * TTL do cache do `attemptLink(biz, phone)`. 1h é suficiente pra cobrir
+     * burst de mensagens consecutivas do mesmo contato sem reconsultar DB,
+     * e curto o bastante pra refletir Contact recém-cadastrado pela UI.
+     */
+    public const ATTEMPT_LINK_CACHE_TTL = 3600;
+
+    /**
+     * Tenta resolver um Contact CRM (id) pra um phone E.164 cru — variante
+     * stateless do `tryLink()` (não recebe Conversation, não persiste).
+     *
+     * Uso canônico (US-WA-078 PR-5):
+     *  - Pipelines que recebem só `(business_id, phone)` sem ter Conversation
+     *    instanciada (jobs assíncronos, integrações externas, smoke probes).
+     *  - Resolução cacheada quando o caller repete a query várias vezes em
+     *    janela curta (UI listagem, dashboard de inadimplência, etc).
+     *
+     * Cache `auto_link:{biz}:{phoneDigits}` por 1h (`ATTEMPT_LINK_CACHE_TTL`):
+     *  - HIT → retorna contact_id (ou null marker) sem tocar DB.
+     *  - MISS → roda findMatchesForPhone() e grava resultado (incluindo null
+     *    pra evitar restampede em phone sem match).
+     *
+     * Devolve int (contact_id) OU null se nenhum match / phone curto demais.
+     *
+     * @see findMatches()  variante stateful (recebe Conversation)
+     */
+    public function attemptLink(int $businessId, string $customerPhone): ?int
+    {
+        $phoneDigits = $this->normalizePhone($customerPhone);
+
+        if (mb_strlen($phoneDigits) < self::MIN_PHONE_DIGITS) {
+            return null;
+        }
+
+        $cacheKey = sprintf('whatsapp.auto_link:%d:%s', $businessId, $phoneDigits);
+
+        // `Cache::remember` aceita closures retornando null — porém alguns
+        // drivers (Database/Redis) gravam null como "miss" e re-disparam a
+        // closure no próximo hit. Pra cachear miss explícito (anti-stampede
+        // em phone sem match), usamos sentinel int 0 e mapeamos pra null
+        // na leitura.
+        $cached = Cache::remember(
+            $cacheKey,
+            self::ATTEMPT_LINK_CACHE_TTL,
+            function () use ($businessId, $phoneDigits) {
+                $matches = $this->findMatchesForPhone($businessId, $phoneDigits);
+
+                if ($matches->isEmpty()) {
+                    return 0; // sentinel "no match" — distinguir miss real
+                }
+
+                $picked = $matches->first();
+
+                if ($matches->count() > 1) {
+                    Log::warning('[whatsapp.auto_link_contact.ambiguous]', [
+                        'business_id' => $businessId,
+                        'picked_contact_id' => $picked->id,
+                        'match_count' => $matches->count(),
+                        'via' => 'attemptLink',
+                    ]);
+                }
+
+                return (int) $picked->id;
+            }
+        );
+
+        return $cached === 0 ? null : (int) $cached;
+    }
+
+    /**
+     * Limpa cache do `attemptLink()` pra `(biz, phone)` específico.
+     *
+     * Usado quando Contact é criado/editado via UI — o caller dispara para
+     * invalidar entradas stale antes do TTL expirar (background sync admin).
+     */
+    public function forgetAttemptLinkCache(int $businessId, string $customerPhone): void
+    {
+        $phoneDigits = $this->normalizePhone($customerPhone);
+        if ($phoneDigits === '') {
+            return;
+        }
+
+        Cache::forget(sprintf('whatsapp.auto_link:%d:%s', $businessId, $phoneDigits));
+    }
+
+    /**
+     * Normaliza phone E.164/BR pra string só com dígitos (sem '+').
+     *
+     * Heurística simples — regex strip. `libphonenumber-for-php` não está
+     * em `composer.json`; adicionar dependência só pra strip de não-dígitos
+     * seria sobre-engenharia. O domínio BR é fechado: Baileys envia E.164
+     * crú, webhook Z-API/Meta idem, Contact UltimatePOS aceita formato livre
+     * (filtrado depois). Caso futuro precise validar país/DDD, plug aqui.
+     */
+    private function normalizePhone(string $raw): string
+    {
+        return (string) preg_replace('/\D+/', '', $raw);
+    }
+
+    /**
+     * Variante stateless do findMatches — recebe `(biz, phoneDigits)` em vez
+     * de Conversation. Compartilha mesma estratégia LIKE+PHP-filter.
+     *
+     * @return \Illuminate\Support\Collection<int, Contact>
+     */
+    public function findMatchesForPhone(int $businessId, string $phoneDigits): \Illuminate\Support\Collection
+    {
+        if (mb_strlen($phoneDigits) < self::MIN_PHONE_DIGITS) {
+            return collect();
+        }
+
+        $suffix = mb_substr($phoneDigits, -8);
+        $tail4 = mb_substr($phoneDigits, -4);
+
+        $candidates = Contact::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->where(function ($q) use ($phoneDigits, $tail4) {
+                $q->where('mobile', 'LIKE', '%' . $phoneDigits . '%')
+                  ->orWhere('landline', 'LIKE', '%' . $phoneDigits . '%')
+                  ->orWhere('alternate_number', 'LIKE', '%' . $phoneDigits . '%')
+                  ->orWhere('mobile', 'LIKE', '%' . $tail4)
+                  ->orWhere('landline', 'LIKE', '%' . $tail4)
+                  ->orWhere('alternate_number', 'LIKE', '%' . $tail4);
+            })
+            ->whereNull('deleted_at')
+            ->orderBy('created_at', 'desc') // Wagner regra: ambíguo → mais recente
+            ->orderBy('id', 'desc')
+            ->limit(200)
+            ->get(['id', 'name', 'business_id', 'mobile', 'landline', 'alternate_number', 'created_at']);
+
+        return $candidates->filter(function (Contact $c) use ($phoneDigits, $suffix) {
+            foreach (['mobile', 'landline', 'alternate_number'] as $field) {
+                $raw = (string) ($c->{$field} ?? '');
+                if ($raw === '') {
+                    continue;
+                }
+                $clean = preg_replace('/\D+/', '', $raw);
+                if (! is_string($clean) || mb_strlen($clean) < self::MIN_PHONE_DIGITS) {
+                    continue;
+                }
+                if (str_contains($clean, $phoneDigits) || str_contains($clean, $suffix)) {
+                    return true;
+                }
+            }
+
+            return false;
+        })->values();
+    }
 
     /**
      * Tenta vincular um Contact CRM à Conversation.
