@@ -440,7 +440,13 @@ export class Instance extends EventEmitter {
   }
 
   private handleIncomingMessage(msg: proto.IWebMessageInfo): void {
-    if (!msg.message || msg.key.fromMe) return;
+    // Multi-Device unified inbox: emitir tanto inbound (fromMe=false) quanto
+    // outbound (fromMe=true). Outbound vem quando o MESMO numero envia por
+    // outro device (WhatsApp Web, app celular, etc.) — oimpresso registra
+    // pra ver o historico completo. Loop quando oimpresso envia via API e
+    // recebe eco eh resolvido no webhook controller via dedup por
+    // (business_id, provider_message_id) firstOrCreate.
+    if (!msg.message) return;
     this.lastSeen = new Date();
     recvCounter.inc({ instance_id: this.meta.instance_id });
     void this.webhook.dispatch({
