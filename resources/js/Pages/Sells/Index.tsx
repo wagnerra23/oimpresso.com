@@ -5,7 +5,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link, router } from '@inertiajs/react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
   ArrowDown,
@@ -494,14 +494,22 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     };
   }, [statusFilter, search, page, perPage, sortKey, sortDir, dateField, dateFrom, dateTo]);
 
-  const handleSort = (key: SortKey) => {
-    if (key === sortKey) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key);
-      setSortDir(key === 'transaction_date' || key === 'final_total' ? 'desc' : 'asc');
-    }
-  };
+  // useCallback CRÍTICO — Index.tsx re-renderiza muito (filter/search/page state).
+  // Sem useCallback, novos handler refs propagam pra SellsGradeAvancada → React.memo
+  // se torna inútil → re-render cascata + TanStack getRowModel re-trigger → loop
+  // (root cause prod incident 2026-05-12 — Wagner travou ao filtrar/agrupar).
+  const handleSort = useCallback((key: SortKey) => {
+    setSortKey((prevKey) => {
+      if (key === prevKey) return prevKey;
+      return key;
+    });
+    setSortDir((prevDir) => {
+      if (key === sortKey) {
+        return prevDir === 'asc' ? 'desc' : 'asc';
+      }
+      return key === 'transaction_date' || key === 'final_total' ? 'desc' : 'asc';
+    });
+  }, [sortKey]);
 
   const refetch = () => {
     const params = new URLSearchParams();
@@ -526,8 +534,8 @@ export default function SellsIndex(props: SellsIndexPageProps) {
       });
   };
 
-  // US-SELL-016 — Handlers de seleção (memo callbacks pra estabilidade React 19).
-  const handleToggleSelect = (id: number) => {
+  // US-SELL-016 — Handlers de seleção (useCallback obrigatório — ver handleSort acima).
+  const handleToggleSelect = useCallback((id: number) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -537,9 +545,9 @@ export default function SellsIndex(props: SellsIndexPageProps) {
       }
       return next;
     });
-  };
+  }, []);
 
-  const handleToggleSelectAll = () => {
+  const handleToggleSelectAll = useCallback(() => {
     setSelectedIds((prev) => {
       // Se TODAS as rows da página atual já estão marcadas → desmarca todas.
       const allMarked = rows.length > 0 && rows.every((r) => prev.has(r.id));
@@ -553,9 +561,9 @@ export default function SellsIndex(props: SellsIndexPageProps) {
       rows.forEach((r) => next.add(r.id));
       return next;
     });
-  };
+  }, [rows]);
 
-  const handleClearSelection = () => setSelectedIds(new Set());
+  const handleClearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
   // KPIs cards (3 principais — Abertas, Atrasadas com destaque rose, Total).
   const kpis = props.sellKpis;
