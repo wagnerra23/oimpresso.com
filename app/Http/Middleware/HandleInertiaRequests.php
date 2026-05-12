@@ -85,6 +85,10 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $session->get('status.success') ?? $session->get('success'),
                 'error'   => fn () => $session->get('status.error')   ?? $session->get('error'),
                 'info'    => fn () => $session->get('status.info')    ?? $session->get('info'),
+                // US-WA-074 (ADR 0142): payload de slash command em notas internas.
+                // Shape: {kind: 'success'|'error', badge?, link_url?, error_message?,
+                // command, message_id}. UI renderiza badge ao lado da bubble.
+                'slash'   => fn () => $session->get('slash'),
             ],
             'shell' => [
                 // Menu lazy: só computa quando a página precisa

@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
 import {
   ArrowLeft,
@@ -36,6 +36,31 @@ import {
   type ReadyTemplate,
   type ThreadConversation,
 } from './helpers';
+
+/**
+ * US-WA-074 (ADR 0142): payload de flash slash command vindo do Controller.
+ * Backend popula em `session('slash')` ao executar `/lembrar`, `/corrigir`,
+ * `/lembrete`, `/config` em nota interna. Frontend lê via `usePage().props.flash.slash`.
+ */
+interface SlashFlashPayload {
+  kind: 'success' | 'error';
+  badge?: string | null;
+  link_url?: string | null;
+  error_message?: string | null;
+  command: string;
+  message_id: number;
+}
+
+/**
+ * US-WA-074: comandos slash conhecidos pelo SlashCommandParser backend.
+ * Mantém em paralelo a `SlashCommandParser::knownCommands()` PHP.
+ */
+const SLASH_COMMANDS: Array<{ name: string; description: string }> = [
+  { name: 'lembrar',  description: 'Grava fato sobre o contato pra Jana lembrar' },
+  { name: 'corrigir', description: 'Marca resposta do bot como errada (treino)' },
+  { name: 'lembrete', description: 'Cria lembrete agendado' },
+  { name: 'config',   description: 'Toggle bot per-contato (bot=on|off)' },
+];
 
 interface Props {
   conversation: ThreadConversation;
@@ -78,8 +103,24 @@ export default function ConversationThread({
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentMatchIdx, setCurrentMatchIdx] = useState(0);
+  // US-WA-074 (ADR 0142): autocomplete `/` slash commands em nota interna.
+  // Aparece quando atendente digita `/` no início e modo é `note`.
+  const [showSlashAutocomplete, setShowSlashAutocomplete] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // US-WA-074: lê flash.slash do backend pra renderizar badge ao lado da
+  // bubble da nota recém-criada. Persistimos local pra sobreviver a partial
+  // reloads que limpam props.flash mas mantemos a mensagem no thread.
+  // Shape: { kind, badge?, link_url?, error_message?, command, message_id }
+  const page = usePage<{ flash?: { slash?: SlashFlashPayload | null } }>();
+  const flashSlash = page.props.flash?.slash ?? null;
+  const [slashBadges, setSlashBadges] = useState<Record<number, SlashFlashPayload>>({});
+  useEffect(() => {
+    if (flashSlash && typeof flashSlash.message_id === 'number') {
+      setSlashBadges((prev) => ({ ...prev, [flashSlash.message_id]: flashSlash }));
+    }
+  }, [flashSlash?.message_id, flashSlash?.kind]);
 
   // Computa índices das msgs que match — usado pra navegação ↑/↓ + counter.
   const matchIndices = useMemo(() => {
@@ -498,6 +539,7 @@ export default function ConversationThread({
                     message={m}
                     showTail={i === group.messages.length - 1 || group.messages[i + 1]?.direction !== m.direction}
                     highlight={searchQuery}
+                    slashBadge={slashBadges[m.id] ?? null}
                   />
                 ))}
               </div>
@@ -578,35 +620,96 @@ export default function ConversationThread({
             <span>Janela 24h Meta fechada. Z-API/Baileys mandam freeform; Meta Cloud exige template HSM.</span>
           </div>
         )}
-        <Textarea
-          value={composerText}
-          onChange={(e) => setComposerText(e.target.value)}
-          placeholder={composerDisabled
-            ? 'Contato bloqueado — envio desabilitado'
-            : isNote
-              ? 'Nota interna…  (visível só pros atendentes — Enter envia)'
-              : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha · arraste arquivos pra anexar)'}
-          rows={2}
-          className="resize-none"
-          disabled={composerDisabled}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+        <div className="relative">
+          <Textarea
+            value={composerText}
+            onChange={(e) => {
+              const v = e.target.value;
+              setComposerText(v);
+              // US-WA-074: dropdown autocomplete quando atendente começa com `/`
+              // em modo nota. Heurística simples — só ativa se ainda não digitou
+              // espaço (sugestão é de comando, não de argumento).
+              if (isNote && v.startsWith('/') && !v.includes(' ')) {
+                setShowSlashAutocomplete(true);
+              } else {
+                setShowSlashAutocomplete(false);
+              }
+            }}
+            placeholder={composerDisabled
+              ? 'Contato bloqueado — envio desabilitado'
+              : isNote
+                ? 'Nota interna…  (digite / pra comandos — Enter envia)'
+                : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha · arraste arquivos pra anexar)'}
+            rows={2}
+            className="resize-none"
+            disabled={composerDisabled}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' && showSlashAutocomplete) {
+                e.preventDefault();
+                setShowSlashAutocomplete(false);
+                return;
+              }
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                setShowSlashAutocomplete(false);
+                handleSend();
+              }
+            }}
+            // US-WA-072: drag-and-drop pra anexar arquivos direto no textarea
+            // (só faz sentido em modo Reply — nota interna não tem mídia outbound).
+            onDragOver={(e) => {
+              if (!isNote && !isBlocked) e.preventDefault();
+            }}
+            onDrop={(e) => {
+              if (isNote || isBlocked) return;
               e.preventDefault();
-              handleSend();
-            }
-          }}
-          // US-WA-072: drag-and-drop pra anexar arquivos direto no textarea
-          onDragOver={(e) => {
-            if (!isNote && !isBlocked) e.preventDefault();
-          }}
-          onDrop={(e) => {
-            if (isNote || isBlocked) return;
-            e.preventDefault();
-            handleSendMedia(e.dataTransfer.files);
-          }}
-          aria-label="Compositor de mensagem"
-          data-testid="composer-textarea"
-        />
+              handleSendMedia(e.dataTransfer.files);
+            }}
+            aria-label="Compositor de mensagem"
+            data-testid="composer-textarea"
+          />
+          {/* US-WA-074: autocomplete dropdown (visual-only — não bloqueia digitar
+              livre). Clicar item preenche `/<cmd> ` e foca textarea. */}
+          {showSlashAutocomplete && isNote && (
+            <div
+              className="absolute bottom-full left-0 right-0 mb-1 bg-card border border-amber-300 dark:border-amber-700 rounded-md shadow-lg max-h-48 overflow-y-auto z-10"
+              data-testid="slash-autocomplete"
+              role="listbox"
+              aria-label="Sugestões de comandos slash"
+            >
+              {SLASH_COMMANDS
+                .filter((c) => {
+                  const prefix = composerText.slice(1).toLowerCase();
+                  return prefix === '' || c.name.startsWith(prefix);
+                })
+                .map((c) => (
+                  <button
+                    type="button"
+                    key={c.name}
+                    onClick={() => {
+                      setComposerText(`/${c.name} `);
+                      setShowSlashAutocomplete(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 hover:bg-amber-50 dark:hover:bg-amber-950/30 border-b last:border-b-0 border-amber-100 dark:border-amber-900"
+                    data-testid={`slash-autocomplete-item-${c.name}`}
+                    role="option"
+                    aria-selected={false}
+                  >
+                    <div className="text-sm font-mono text-amber-900 dark:text-amber-200">/{c.name}</div>
+                    <div className="text-[11px] text-muted-foreground">{c.description}</div>
+                  </button>
+                ))}
+              {SLASH_COMMANDS.filter((c) => {
+                const prefix = composerText.slice(1).toLowerCase();
+                return prefix === '' || c.name.startsWith(prefix);
+              }).length === 0 && (
+                <div className="px-3 py-2 text-[11px] text-muted-foreground">
+                  Nenhum comando — Enter envia como nota normal.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex justify-between items-center gap-2">
           <span className="text-xs text-muted-foreground tabular-nums">
             {composerText.length} {composerText.length === 1 ? 'caractere' : 'caracteres'}
@@ -708,11 +811,14 @@ export function HighlightedBody({ body, query }: { body: string; query: string }
   );
 }
 
-function MessageBubble({ message, showTail, highlight = '' }: {
+function MessageBubble({ message, showTail, highlight = '', slashBadge = null }: {
   message: Message;
   showTail: boolean;
   /** US-WA-062: query da busca local — body matches recebem <mark> highlight */
   highlight?: string;
+  /** US-WA-074 (ADR 0142): payload do slash command resultante (success/error)
+   * — quando set, badge clicável aparece ao lado da bubble da nota. */
+  slashBadge?: SlashFlashPayload | null;
 }) {
   const isOut = message.direction === 'outbound';
   const isNote = !!message.is_internal_note; // US-WA-071
@@ -724,12 +830,43 @@ function MessageBubble({ message, showTail, highlight = '' }: {
     return (
       <div className="flex justify-center my-1" data-msg-id={message.id} data-internal-note="true">
         <div className="max-w-[90%] bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 rounded-md px-3 py-2 shadow-sm">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-1 inline-flex items-center gap-1">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-1 inline-flex items-center gap-1 flex-wrap">
             <Lock size={10} aria-hidden />
             Nota interna
             {message.sender_user_name && (
               <span className="font-normal normal-case ml-1 text-amber-700 dark:text-amber-400">
                 · {message.sender_user_name}
+              </span>
+            )}
+            {/* US-WA-074 (ADR 0142): badge resultado slash command. Clica
+                e vai pra tela de memória (lembrar) / correções (corrigir) / etc. */}
+            {slashBadge && slashBadge.kind === 'success' && slashBadge.badge && (
+              slashBadge.link_url ? (
+                <a
+                  href={slashBadge.link_url}
+                  className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-normal normal-case bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 rounded px-1.5 py-0.5 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition-colors"
+                  data-testid="slash-badge-memorized"
+                  title={`Comando /${slashBadge.command} executado — ver detalhes`}
+                >
+                  {slashBadge.badge}
+                </a>
+              ) : (
+                <span
+                  className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-normal normal-case bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 rounded px-1.5 py-0.5"
+                  data-testid="slash-badge-memorized"
+                  title={`Comando /${slashBadge.command} executado`}
+                >
+                  {slashBadge.badge}
+                </span>
+              )
+            )}
+            {slashBadge && slashBadge.kind === 'error' && slashBadge.error_message && (
+              <span
+                className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-normal normal-case bg-amber-200 dark:bg-amber-900/60 border border-amber-400 dark:border-amber-600 text-amber-900 dark:text-amber-100 rounded px-1.5 py-0.5"
+                data-testid="slash-badge-error"
+                title={slashBadge.error_message}
+              >
+                ⚠ /{slashBadge.command} falhou
               </span>
             )}
           </div>
