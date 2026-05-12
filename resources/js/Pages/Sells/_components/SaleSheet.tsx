@@ -32,6 +32,7 @@ import {
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import FiscalSection from './FiscalSection';
+import FsmActionPanel from './FsmActionPanel';
 import SaleTimeline from './SaleTimeline';
 
 interface Customer {
@@ -534,6 +535,19 @@ export default function SaleSheet({ saleId, open, onOpenChange, onSaleChanged }:
 
               {/* Fiscal — emissões NFC-e/NFe + ações (US-NFE-MANUAL) */}
               <FiscalSection saleId={data.id} enabled={open} />
+
+              {/* Pipeline FSM — ações disponíveis (Wire-up UI FSM) */}
+              <Section title="Pipeline FSM" icon={CheckCircle2}>
+                <FsmActionPanel
+                  saleId={data.id}
+                  enabled={open}
+                  onTransition={() => {
+                    // Refresh sheet-data + history após transição bem-sucedida
+                    void fetchData();
+                    onSaleChanged?.();
+                  }}
+                />
+              </Section>
 
               {/* Histórico — timeline FSM da venda (US-SELL-035) */}
               <Section title="Histórico" icon={Clock}>
