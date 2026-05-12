@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Ai\Agents;
 
+use Laravel\Ai\Attributes\MaxSteps;
+use Laravel\Ai\Attributes\Model;
+use Laravel\Ai\Attributes\Provider;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
@@ -36,6 +39,9 @@ use Stringable;
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
+#[Provider('openai')]
+#[Model('gpt-4o-mini')]
+#[MaxSteps(10)]
 class BriefDiarioAgent implements Agent, HasTools
 {
     use Promptable;
