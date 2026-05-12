@@ -44,6 +44,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?string $media_thumbnail_url
  * @property ?string $media_transcription
  * @property ?string $media_filename
+ * @property string $media_download_status
+ * @property int $media_download_attempts
+ * @property ?\Illuminate\Support\Carbon $media_download_last_attempt_at
+ * @property ?string $media_download_failed_reason
  */
 class Message extends Model
 {
@@ -84,6 +88,9 @@ class Message extends Model
         'media_url', 'media_mime', 'media_size_bytes',
         'media_duration_s', 'media_thumbnail_url',
         'media_transcription', 'media_filename',
+        // Guardião 6 camadas — download tracking
+        'media_download_status', 'media_download_attempts',
+        'media_download_last_attempt_at', 'media_download_failed_reason',
     ];
 
     protected $casts = [
@@ -92,7 +99,38 @@ class Message extends Model
         'is_internal_note' => 'boolean',
         'media_size_bytes' => 'integer',
         'media_duration_s' => 'integer',
+        'media_download_attempts' => 'integer',
+        'media_download_last_attempt_at' => 'datetime',
     ];
+
+    /**
+     * Guardião 6 camadas — status do ciclo de vida do download de mídia.
+     *
+     * Transições válidas:
+     *   pending → downloading → success
+     *   pending → downloading → pending (soft fail, attempts < 5 → retry)
+     *   pending → downloading → failed_permanent (attempts >= 5)
+     *
+     * `success` é terminal. `failed_permanent` é terminal mas pode ser
+     * forçado a retentar via `whatsapp:backfill-media-download --force-failed`.
+     */
+    public const DOWNLOAD_STATUS_PENDING = 'pending';
+    public const DOWNLOAD_STATUS_DOWNLOADING = 'downloading';
+    public const DOWNLOAD_STATUS_SUCCESS = 'success';
+    public const DOWNLOAD_STATUS_FAILED_PERMANENT = 'failed_permanent';
+
+    public const DOWNLOAD_STATUSES = [
+        self::DOWNLOAD_STATUS_PENDING,
+        self::DOWNLOAD_STATUS_DOWNLOADING,
+        self::DOWNLOAD_STATUS_SUCCESS,
+        self::DOWNLOAD_STATUS_FAILED_PERMANENT,
+    ];
+
+    /** Tipos de mensagem que carregam mídia (auto-dispatch Observer Camada 1). */
+    public const MEDIA_TYPES = ['image', 'audio', 'video', 'document', 'sticker'];
+
+    /** Limite máximo de tentativas antes de marcar failed_permanent. */
+    public const MEDIA_DOWNLOAD_MAX_ATTEMPTS = 5;
 
     /**
      * US-WA-072 — MIME whitelist seguro pra upload outbound.

@@ -116,6 +116,11 @@ beforeEach(function () {
         $table->string('media_thumbnail_url', 500)->nullable();
         $table->text('media_transcription')->nullable();
         $table->string('media_filename', 255)->nullable();
+        // Guardião 6 camadas (Camada 2)
+        $table->string('media_download_status', 30)->default('pending');
+        $table->unsignedInteger('media_download_attempts')->default(0);
+        $table->timestamp('media_download_last_attempt_at')->nullable();
+        $table->string('media_download_failed_reason', 255)->nullable();
         $table->timestamp('created_at')->useCurrent();
         $table->timestamp('updated_at')->nullable();
     });
