@@ -351,7 +351,7 @@ function SidebarShortcuts({
         <span className="label">Tarefas</span>
         {!!tarefasCount && <span className="badge">{tarefasCount}</span>}
       </a>
-      <a href="/copiloto" className="sb-shortcut">
+      <a href="/jana" className="sb-shortcut">
         <MessageSquare size={13} />
         <span className="label">Chat</span>
         {!!chatCount && <span className="badge">{chatCount}</span>}

@@ -76,7 +76,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
 
   const onEsquecer = () => {
     if (!confirm('Tem certeza? Essa memória será esquecida e não voltará.')) return
-    router.delete(`/copiloto/memoria/${memoria.id}`, { preserveScroll: true })
+    router.delete(`/jana/memoria/${memoria.id}`, { preserveScroll: true })
   }
 
   return (
