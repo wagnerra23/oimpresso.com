@@ -104,7 +104,13 @@ class SendMediaJob implements ShouldQueue
                 ->post("{$daemonUrl}/instances/{$instanceId}/media", [
                     'to' => $toPhone,
                     'media_url' => $mediaPublicUrl,
-                    'mime' => $message->media_mime,
+                    // P0 #2 (2026-05-12): Zod schema do daemon espera `mimetype`,
+                    // não `mime`. Antes desta correção a chave era stripada
+                    // silenciosamente → áudios/docs outbound iam sem MIME →
+                    // WhatsApp rejeitava ou entregava como `application/octet-stream`.
+                    // Schema aceita ambas chaves por 30d (até 2026-06-12), mas
+                    // canônico aqui é `mimetype`.
+                    'mimetype' => $message->media_mime,
                     'filename' => $message->media_filename,
                     'caption' => $message->body, // body é caption no envio
                     'type' => $message->type,    // image|audio|document|video
