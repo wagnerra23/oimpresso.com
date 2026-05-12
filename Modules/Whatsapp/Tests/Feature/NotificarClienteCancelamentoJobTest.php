@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
@@ -200,8 +201,9 @@ it('3. transaction sem contact_id loga info e não dispatch (walk-in)', function
     Bus::assertNothingDispatched();
 });
 
-it('4. contact sem mobile nem landline → no dispatch (TODO fallback email)', function () {
+it('4. contact sem mobile nem landline + sem email → no dispatch + Mail vazio (notificação manual)', function () {
     Bus::fake();
+    Mail::fake();
 
     makePhone(1, true);
 
@@ -210,20 +212,21 @@ it('4. contact sem mobile nem landline → no dispatch (TODO fallback email)', f
         'name' => 'Sem Fone',
         'mobile' => null,
         'landline' => null,
-        'email' => 'sem-fone@example.com',
+        'email' => null,
     ]);
 
     $txId = DB::table('transactions')->insertGetId([
         'business_id' => 1,
         'contact_id' => $contactId,
-        'invoice_no' => 'INV-NO-PHONE',
+        'invoice_no' => 'INV-NO-CONTACT',
         'final_total' => 25.50,
         'transaction_date' => '2026-05-10',
     ]);
 
-    (new NotificarClienteCancelamentoJob(1, $txId, 'Sem fone'))->handle();
+    (new NotificarClienteCancelamentoJob(1, $txId, 'Sem canal'))->handle();
 
     Bus::assertNothingDispatched();
+    Mail::assertNothingSent();
 });
 
 it('5. mensagem contém invoice_no + motivo + business_name + primeiro nome do contact', function () {
@@ -308,4 +311,91 @@ it('7. business sem phone outbound_default → no dispatch (silencioso)', functi
     (new NotificarClienteCancelamentoJob(1, $txId, 'Sem outbound'))->handle();
 
     Bus::assertNothingDispatched();
+});
+
+// CASCADE-NOTIFY-002 — fallback email
+
+it('8. fallback email: contact sem phone mas com email válido envia Mail::raw', function () {
+    Bus::fake();
+    Mail::fake();
+
+    makePhone(1, true);
+
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => 1,
+        'name' => 'Carlos Email',
+        'mobile' => null,
+        'landline' => null,
+        'email' => 'carlos@example.com',
+    ]);
+
+    $txId = DB::table('transactions')->insertGetId([
+        'business_id' => 1,
+        'contact_id' => $contactId,
+        'invoice_no' => 'INV-EMAIL-001',
+        'final_total' => 199.90,
+        'transaction_date' => '2026-05-12',
+    ]);
+
+    (new NotificarClienteCancelamentoJob(1, $txId, 'Cliente arrependeu'))->handle();
+
+    // WhatsApp não disparou (sem phone)
+    Bus::assertNothingDispatched();
+    // Mail::raw enviado pro email do contact
+    Mail::assertSent(\Illuminate\Mail\SentMessage::class, fn ($m) => true);
+});
+
+it('9. sem phone E email inválido → Bus e Mail vazios (warning log)', function () {
+    Bus::fake();
+    Mail::fake();
+
+    makePhone(1, true);
+
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => 1,
+        'name' => 'Email Inválido',
+        'mobile' => null,
+        'landline' => null,
+        'email' => 'isso-nao-eh-email',
+    ]);
+
+    $txId = DB::table('transactions')->insertGetId([
+        'business_id' => 1,
+        'contact_id' => $contactId,
+        'invoice_no' => 'INV-INVALID-EMAIL',
+        'final_total' => 50.00,
+        'transaction_date' => '2026-05-12',
+    ]);
+
+    (new NotificarClienteCancelamentoJob(1, $txId, 'Email inválido'))->handle();
+
+    Bus::assertNothingDispatched();
+    Mail::assertNothingSent();
+});
+
+it('10. contact com phone NÃO tenta email (WhatsApp tem prioridade)', function () {
+    Bus::fake();
+    Mail::fake();
+
+    makePhone(1, true);
+
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => 1,
+        'name' => 'Phone + Email',
+        'mobile' => '+5511988888888',
+        'email' => 'ambos@example.com',
+    ]);
+
+    $txId = DB::table('transactions')->insertGetId([
+        'business_id' => 1,
+        'contact_id' => $contactId,
+        'invoice_no' => 'INV-BOTH',
+        'final_total' => 100.00,
+        'transaction_date' => '2026-05-12',
+    ]);
+
+    (new NotificarClienteCancelamentoJob(1, $txId, 'Tem os dois'))->handle();
+
+    Bus::assertDispatched(SendWhatsappMessageJob::class);
+    Mail::assertNothingSent();
 });
