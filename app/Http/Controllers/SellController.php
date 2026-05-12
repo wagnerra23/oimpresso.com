@@ -932,14 +932,6 @@ class SellController extends Controller
 
         $q = \App\Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
             ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
-            // US-SELL-023 — JOIN sale_process_stages pra retornar current_stage_key
-            // (badge produção na lista). LEFT JOIN preserva vendas legadas sem FSM
-            // (current_stage_id NULL → stage_key NULL → frontend mostra "—" silencioso).
-            // sale_process_stages NÃO tem business_id direto — tenancy garantido via
-            // SaleProcess (skill multi-tenant-patterns Tier A); FK em current_stage_id
-            // só pode apontar pra stage do mesmo business porque foi resolvido pelo
-            // ExecuteStageActionService que valida tenancy.
-            ->leftJoin('sale_process_stages as sps', 'transactions.current_stage_id', '=', 'sps.id')
             ->where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
@@ -1033,12 +1025,6 @@ class SellController extends Controller
                 'bl.name as location_name',
                 // US-SELL-021 — display_date é o valor do date_field escolhido pra mostrar na coluna Data.
                 \DB::raw($dateFieldSql . ' as display_date'),
-                // US-SELL-023 — current_stage_key vem do JOIN sale_process_stages (badge produção).
-                // NULL pra vendas legadas sem FSM iniciado.
-                'sps.key as current_stage_key',
-                // US-SELL-024 — flag boolean explícita "venda agrupada" (default false em vendas legadas).
-                // Defesa: COALESCE pra schemas SQLite Pest sem a coluna ainda (default 0).
-                \DB::raw('COALESCE(transactions.is_grouped_invoice, 0) as is_grouped_invoice'),
             ], 'page', $page);
         $rows = $paginator->getCollection();
 
@@ -1083,12 +1069,6 @@ class SellController extends Controller
                     // US-NFE-MANUAL — fiscal_status pra badge na lista.
                     'fiscal_status' => $fiscal?->status,
                     'fiscal_modelo' => $fiscal ? (string) $fiscal->modelo : null,
-                    // US-SELL-023 — stage_key FSM (NULL = legacy sem FSM iniciado).
-                    // Frontend mapeia pra badge ("Em produção", "Faturada", etc) ou "—" silencioso.
-                    'current_stage_key' => $r->current_stage_key,
-                    // US-SELL-024 — boolean explícito "venda agrupada" (cast pra bool defensivo
-                    // — vem como 0/1 do COALESCE quando coluna ausente em SQLite Pest).
-                    'is_grouped_invoice' => (bool) $r->is_grouped_invoice,
                 ];
             });
 
