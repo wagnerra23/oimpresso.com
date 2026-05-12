@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Http\Controllers\Admin;
 
+use App\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Http\Requests\ChannelRequest;
+use Modules\Whatsapp\Http\Requests\GrantChannelUserRequest;
 
 /**
  * ChannelsController — CRUD omnichannel (ADR 0135 Fase 0).
@@ -97,6 +101,216 @@ class ChannelsController extends Controller
         $channel->delete();
 
         return back()->with('success', "Canal '{$label}' removido.");
+    }
+
+    /**
+     * Detalhe do canal — Page Show com tabs (Config | Usuários | Histórico).
+     *
+     * US-WA-068. Carrega:
+     *  - canal completo (toUiArray)
+     *  - lista de users com acesso ATIVO (revoked_at NULL) com join users
+     *  - lista de users DISPONÍVEIS pra grant (mesmo business, tem
+     *    whatsapp.access ou whatsapp.send, não já tem grant ativo)
+     *  - audit log curto (últimas 20 entradas grant+revoke do canal)
+     */
+    public function show(int $id): Response
+    {
+        $businessId = (int) session('user.business_id');
+
+        $channel = Channel::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        $accessRows = ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->where('channel_id', $channel->id)
+            ->active()
+            ->orderBy('granted_at', 'desc')
+            ->get();
+
+        $userIds = $accessRows->pluck('user_id')
+            ->merge($accessRows->pluck('granted_by_user_id'))
+            ->unique()
+            ->values()
+            ->all();
+        $usersById = User::whereIn('id', $userIds)
+            ->where('business_id', $businessId)
+            ->get(['id', 'first_name', 'last_name', 'email', 'username'])
+            ->keyBy('id');
+
+        $accessUi = $accessRows->map(function (ChannelUserAccess $row) use ($usersById) {
+            $u = $usersById->get($row->user_id);
+            $granter = $usersById->get($row->granted_by_user_id);
+            return [
+                'id' => $row->id,
+                'user_id' => $row->user_id,
+                'name' => $u ? trim($u->first_name . ' ' . ($u->last_name ?? '')) : "user#{$row->user_id}",
+                'email' => $u?->email,
+                'granted_at' => optional($row->granted_at)->toIso8601String(),
+                'granted_by_user_id' => $row->granted_by_user_id,
+                'granted_by_name' => $granter
+                    ? trim($granter->first_name . ' ' . ($granter->last_name ?? ''))
+                    : "user#{$row->granted_by_user_id}",
+            ];
+        })->values();
+
+        // Users disponíveis pra grant (do mesmo business, têm permission
+        // whatsapp.access OU whatsapp.send, e ainda não têm grant ativo neste canal).
+        $alreadyGrantedIds = $accessRows->pluck('user_id')->all();
+        $candidatesQuery = User::where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->whereNotIn('id', $alreadyGrantedIds)
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name', 'email', 'username']);
+
+        $available = $candidatesQuery->filter(function (User $u) {
+            return $u->can('whatsapp.access') || $u->can('whatsapp.send');
+        })->map(function (User $u) {
+            return [
+                'id' => $u->id,
+                'name' => trim($u->first_name . ' ' . ($u->last_name ?? '')),
+                'email' => $u->email,
+                'username' => $u->username,
+            ];
+        })->values();
+
+        // Audit log curto — últimas 20 entradas do canal (grant + revoke).
+        // Inclui rows revoked pra mostrar histórico.
+        $audit = ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->where('channel_id', $channel->id)
+            ->orderBy('updated_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        $auditUserIds = $audit->pluck('user_id')
+            ->merge($audit->pluck('granted_by_user_id'))
+            ->merge($audit->pluck('revoked_by_user_id')->filter())
+            ->unique()
+            ->values()
+            ->all();
+        $auditUsers = User::whereIn('id', $auditUserIds)
+            ->where('business_id', $businessId)
+            ->get(['id', 'first_name', 'last_name'])
+            ->keyBy('id');
+
+        $auditUi = $audit->map(function (ChannelUserAccess $row) use ($auditUsers) {
+            $userName = fn ($uid) => $uid && $auditUsers->get($uid)
+                ? trim($auditUsers->get($uid)->first_name . ' ' . ($auditUsers->get($uid)->last_name ?? ''))
+                : ($uid ? "user#{$uid}" : null);
+
+            return [
+                'id' => $row->id,
+                'user_id' => $row->user_id,
+                'user_name' => $userName($row->user_id),
+                'granted_at' => optional($row->granted_at)->toIso8601String(),
+                'granted_by_name' => $userName($row->granted_by_user_id),
+                'revoked_at' => optional($row->revoked_at)->toIso8601String(),
+                'revoked_by_name' => $userName($row->revoked_by_user_id),
+                'is_active' => $row->revoked_at === null,
+            ];
+        })->values();
+
+        return Inertia::render('Atendimento/Channels/Show', [
+            'channel' => $this->toUiArray($channel),
+            'users' => $accessUi,
+            'availableUsers' => $available,
+            'audit' => $auditUi,
+        ]);
+    }
+
+    /**
+     * Grant de acesso ao canal pra um user (US-WA-068).
+     *
+     * - Valida cross-tenant via GrantChannelUserRequest (user_id mesmo business
+     *   + tem whatsapp.access ou whatsapp.send).
+     * - Idempotente: re-grant após revoke funciona (UNIQUE permite via
+     *   revoked_at). Grant duplicado ativo retorna no-op com aviso.
+     * - AuditLog write via Log::info (estrutura padrão Whatsapp).
+     */
+    public function grantUser(GrantChannelUserRequest $request, int $channelId): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $currentUserId = (int) (session('user.id') ?? auth()->id() ?? 0);
+
+        $channel = Channel::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($channelId);
+
+        $userId = (int) $request->validated('user_id');
+
+        // Já existe grant ativo? → no-op (não cria duplicata)
+        $existingActive = ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->where('channel_id', $channel->id)
+            ->where('user_id', $userId)
+            ->active()
+            ->first();
+
+        if ($existingActive) {
+            return back()->with('info', 'Usuário já tem acesso ativo a este canal.');
+        }
+
+        DB::transaction(function () use ($channel, $userId, $businessId, $currentUserId) {
+            ChannelUserAccess::create([
+                'business_id' => $businessId,
+                'channel_id' => $channel->id,
+                'user_id' => $userId,
+                'granted_by_user_id' => $currentUserId,
+                'granted_at' => now(),
+            ]);
+        });
+
+        Log::info('[whatsapp.channel_user_access.granted]', [
+            'business_id' => $businessId,
+            'channel_id' => $channel->id,
+            'user_id' => $userId,
+            'granted_by_user_id' => $currentUserId,
+        ]);
+
+        return back()->with('success', 'Acesso concedido.');
+    }
+
+    /**
+     * Revoke (soft) de acesso ao canal — set revoked_at + revoked_by_user_id.
+     *
+     * Preserva audit history (NÃO deleta a row). Re-grant possível depois
+     * via grantUser.
+     */
+    public function revokeUser(int $channelId, int $userId): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $currentUserId = (int) (session('user.id') ?? auth()->id() ?? 0);
+
+        $channel = Channel::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($channelId);
+
+        $row = ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->where('channel_id', $channel->id)
+            ->where('user_id', $userId)
+            ->active()
+            ->first();
+
+        if (! $row) {
+            return back()->with('info', 'Usuário não tem acesso ativo a este canal.');
+        }
+
+        DB::transaction(function () use ($row, $currentUserId) {
+            $row->revoked_at = now();
+            $row->revoked_by_user_id = $currentUserId;
+            $row->save();
+        });
+
+        Log::info('[whatsapp.channel_user_access.revoked]', [
+            'business_id' => $businessId,
+            'channel_id' => $channel->id,
+            'user_id' => $userId,
+            'revoked_by_user_id' => $currentUserId,
+        ]);
+
+        return back()->with('success', 'Acesso revogado.');
     }
 
     /**
