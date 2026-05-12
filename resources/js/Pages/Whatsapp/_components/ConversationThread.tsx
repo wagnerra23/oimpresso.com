@@ -36,6 +36,7 @@ import Avatar from './Avatar';
 import TemplatePicker from './TemplatePicker';
 import MicRecorder from './MicRecorder';
 import MediaPreviewCard from './MediaPreviewCard';
+import MediaFullscreenModal from './MediaFullscreenModal';
 import {
   formatBytes,
   groupByDay,
@@ -1400,28 +1401,17 @@ function MediaContent({ message }: { message: Message }) {
             loading="lazy"
           />
         </button>
-        {modalOpen && (
-          <div
-            className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 cursor-zoom-out"
-            onClick={() => setModalOpen(false)}
-            role="dialog"
-            aria-modal="true"
-          >
-            <img
-              src={message.media_url ?? ''}
-              alt={message.media_filename ?? 'imagem'}
-              className="max-w-full max-h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button
-              type="button"
-              className="absolute top-3 right-3 text-white hover:opacity-80"
-              onClick={() => setModalOpen(false)}
-              aria-label="Fechar"
-            >
-              <X size={24} />
-            </button>
-          </div>
+        {/* US-WA-043 (PR-8 CYCLE-07): lightbox reusável extraído pra
+            `MediaFullscreenModal.tsx`. Substitui modal inline anterior por
+            componente isolado com zoom, download, navegação Anterior/Próxima
+            e teclado (ESC/←/→/+/-). */}
+        {modalOpen && message.media_url && (
+          <MediaFullscreenModal
+            urls={[message.media_url]}
+            filenames={[message.media_filename ?? null]}
+            currentIndex={0}
+            onClose={() => setModalOpen(false)}
+          />
         )}
       </>
     );
@@ -1433,9 +1423,11 @@ function MediaContent({ message }: { message: Message }) {
         <audio controls src={message.media_url ?? ''} className="max-w-[280px] h-9">
           Seu navegador não suporta áudio HTML5.
         </audio>
+        {/* US-WA-043: transcrição Whisper destacada (label + texto) — pré-existia
+            mas ganha label semântica pra atendente saber que é texto auto-gerado. */}
         {message.media_transcription && (
-          <div className="text-xs italic opacity-80 max-w-[300px]">
-            {message.media_transcription}
+          <div className="text-xs italic opacity-80 max-w-[300px]" data-testid={`bubble-audio-transcription-${message.id}`}>
+            <span className="not-italic opacity-60 font-medium">Transcrição:</span> {message.media_transcription}
           </div>
         )}
       </div>
@@ -1443,31 +1435,37 @@ function MediaContent({ message }: { message: Message }) {
   }
 
   if (message.type === 'video') {
+    // US-WA-043: thumb opcional via media_thumbnail_url (gerado backend se houver).
     return (
       <video
         controls
         src={message.media_url ?? ''}
+        poster={message.media_thumbnail_url ?? undefined}
         className="max-w-[300px] max-h-[260px] rounded-md mb-1"
         data-testid={`bubble-media-video-${message.id}`}
+        preload="metadata"
       >
         Seu navegador não suporta vídeo HTML5.
       </video>
     );
   }
 
-  // Document fallback
+  // US-WA-043: Document — link download com filename + tamanho humano-formatado.
+  const docName = message.media_filename ?? 'documento';
   return (
     <a
       href={message.media_url ?? '#'}
       target="_blank"
       rel="noopener noreferrer"
+      download={docName}
       className="flex items-center gap-2 px-2 py-1.5 mb-1 rounded-md bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 transition-colors"
       data-testid={`bubble-media-document-${message.id}`}
+      title={`Baixar ${docName}`}
     >
       <FileText size={20} className="shrink-0 opacity-80" aria-hidden />
       <div className="min-w-0 flex-1">
         <div className="text-xs font-medium truncate">
-          {message.media_filename ?? 'documento'}
+          {docName}
         </div>
         {message.media_size_bytes && (
           <div className="text-[10px] opacity-70">

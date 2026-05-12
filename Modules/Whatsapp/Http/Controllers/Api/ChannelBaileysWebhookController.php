@@ -413,12 +413,33 @@ class ChannelBaileysWebhookController extends Controller
         // provider, salvar no disco public, gerar thumbnail (image) e
         // encadear TranscribeAudioJob (audio). Só se for mídia E só na 1ª
         // criação (reentregas não duplicam download).
+        //
+        // US-WA-043 (PR-8 CYCLE-07) — dispatch PROATIVO mesmo sem `media_url`
+        // direto. Pra Baileys, URL vem aninhada (.enc + mediaKey) e
+        // `DownloadMediaJob::fetchViaDaemonDecrypt()` resolve a chave via
+        // payload `imageMessage`/`audioMessage`/etc. SEM esse dispatch,
+        // mídia inbound ficava só com placeholder "aguardando download" até
+        // `BackfillMediaDownloadCommand` rodar (cron horário). Agora a UI
+        // mostra a mídia segundos após webhook chegar.
+        //
+        // Guard `media_download_status IS NULL` evita re-dispatch em race
+        // condition (Observer pode disparar em paralelo). `wasRecentlyCreated`
+        // garante que reentregas idempotentes não dispatcham de novo.
         $mediaTypes = ['image', 'audio', 'video', 'document'];
-        if ($message->wasRecentlyCreated && in_array($type, $mediaTypes, true) && $mediaUrl) {
+        $downloadAlreadyDone = in_array(
+            $message->media_download_status,
+            [Message::DOWNLOAD_STATUS_SUCCESS, Message::DOWNLOAD_STATUS_DOWNLOADING],
+            true,
+        );
+        if ($message->wasRecentlyCreated
+            && in_array($type, $mediaTypes, true)
+            && $message->media_url === null
+            && ! $downloadAlreadyDone
+        ) {
             DownloadMediaJob::dispatch(
                 $channel->business_id,
                 $message->id,
-                $mediaUrl,
+                (string) $mediaUrl,
                 (string) $mediaMime,
             );
         }
