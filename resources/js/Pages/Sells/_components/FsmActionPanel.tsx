@@ -74,6 +74,73 @@ async function getCsrfToken(): Promise<string> {
   return meta?.getAttribute('content') ?? '';
 }
 
+/**
+ * Empty state quando venda ainda não tem current_stage_id (legada).
+ * Mostra botão "Iniciar pipeline FSM" que chama o endpoint backend.
+ */
+function StartPipelineEmptyState({ saleId, onStarted }: { saleId: number; onStarted: () => void }) {
+  const [starting, setStarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const startPipeline = async () => {
+    setStarting(true);
+    setError(null);
+    try {
+      const csrf = await getCsrfToken();
+      const res = await fetch(`/sells/${saleId}/fsm-start-pipeline`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json?.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      onStarted();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erro ao iniciar pipeline');
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-muted-foreground">
+        Esta venda ainda não está em pipeline FSM (Orçamento → Produção → Faturamento).
+        Inicie pra rastrear o ciclo completo via timeline auditável.
+      </p>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={startPipeline}
+        disabled={starting}
+        className="text-xs"
+      >
+        {starting ? (
+          <>
+            <Loader2 size={12} className="mr-1 animate-spin" />
+            Iniciando…
+          </>
+        ) : (
+          <>
+            <Play size={12} className="mr-1" />
+            Iniciar pipeline FSM
+          </>
+        )}
+      </Button>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+
 export default function FsmActionPanel({ saleId, enabled, onTransition }: Props) {
   const [data, setData] = useState<ActionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -175,13 +242,7 @@ export default function FsmActionPanel({ saleId, enabled, onTransition }: Props)
   }
 
   if (!data || !data.in_pipeline) {
-    return (
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">
-          Esta venda ainda não está em pipeline FSM. Pra iniciar o ciclo Orçamento → Produção → Faturamento, será necessária US futura "Iniciar pipeline FSM".
-        </p>
-      </div>
-    );
+    return <StartPipelineEmptyState saleId={saleId} onStarted={fetchActions} />;
   }
 
   const stage = data.current_stage;
