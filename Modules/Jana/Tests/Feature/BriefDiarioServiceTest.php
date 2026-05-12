@@ -50,6 +50,9 @@ beforeEach(function () {
         $t->increments('id');
         $t->unsignedInteger('business_id');
         $t->string('name', 191);
+        // US-COPI-202c — schema UltimatePOS marca walk-in com is_default=1.
+        // Fix anti-falso-combo precisa testar exclusão deste flag.
+        $t->boolean('is_default')->nullable()->default(0);
         $t->timestamps();
     });
 
@@ -107,11 +110,13 @@ beforeEach(function () {
 });
 
 it('R-JANA-001 — vendas_periodo soma transactions sell por período + delta % vs anterior', function () {
-    // 3 sells hoje biz=1: total 600
+    // 3 sells hoje biz=1: total 600. Forçar dia atual no startOfDay+offset
+    // pra evitar flakiness em runs cedo de manhã (subHours(8) caía em ontem).
+    $hojeRef = now()->startOfDay()->addHours(10);
     DB::table('transactions')->insert([
-        ['business_id' => 1, 'type' => 'sell', 'status' => 'final', 'final_total' => 200, 'transaction_date' => now()->subHours(2), 'created_at' => now()->subHours(2), 'updated_at' => now()->subHours(2)],
-        ['business_id' => 1, 'type' => 'sell', 'status' => 'final', 'final_total' => 250, 'transaction_date' => now()->subHours(5), 'created_at' => now()->subHours(5), 'updated_at' => now()->subHours(5)],
-        ['business_id' => 1, 'type' => 'sell', 'status' => 'final', 'final_total' => 150, 'transaction_date' => now()->subHours(8), 'created_at' => now()->subHours(8), 'updated_at' => now()->subHours(8)],
+        ['business_id' => 1, 'type' => 'sell', 'status' => 'final', 'final_total' => 200, 'transaction_date' => $hojeRef->copy()->addMinutes(10), 'created_at' => $hojeRef->copy()->addMinutes(10), 'updated_at' => $hojeRef->copy()->addMinutes(10)],
+        ['business_id' => 1, 'type' => 'sell', 'status' => 'final', 'final_total' => 250, 'transaction_date' => $hojeRef->copy()->addMinutes(30), 'created_at' => $hojeRef->copy()->addMinutes(30), 'updated_at' => $hojeRef->copy()->addMinutes(30)],
+        ['business_id' => 1, 'type' => 'sell', 'status' => 'final', 'final_total' => 150, 'transaction_date' => $hojeRef->copy()->addMinutes(50), 'created_at' => $hojeRef->copy()->addMinutes(50), 'updated_at' => $hojeRef->copy()->addMinutes(50)],
         // 1 draft IGNORADO
         ['business_id' => 1, 'type' => 'sell', 'status' => 'draft', 'final_total' => 9999, 'transaction_date' => now(), 'created_at' => now(), 'updated_at' => now()],
         // 1 purchase IGNORADA
@@ -260,4 +265,169 @@ it('R-JANA-007 — snapshot retorna shape estavel com metadata (version, generat
     expect($snap['business_id'])->toBe(7);
     expect($snap['version'])->toBe('0.1.0');
     expect($snap['sources'])->toHaveKeys(['vendas', 'inadimplencia', 'tickets', 'nfe', 'oportunidades']);
+});
+
+/*
+|----------------------------------------------------------------------
+| US-COPI-202c (Wagner 2026-05-12) — quality fixes pro brief virar produto
+|----------------------------------------------------------------------
+| Sessão de validação biz=4 ROTA LIVRE expôs 2 falhas operacionais:
+|  1. Cliente Balcão (contacts.is_default=1) virava "combo candidato" porque
+|     várias clientes anônimas compram o mesmo produto e o agregado fica
+|     atribuído ao contact walk-in id=40. Vira ruído no brief.
+|  2. delta_mes_pct comparava mês incompleto (ex: dia 12) com mês completo
+|     anterior, gerando falso alarme "-26,8%". Brief precisa de projeção
+|     normalizada por ritmo diário.
+*/
+
+it('R-COPI-202c-001 — walk-in is_default=1 NAO aparece em combo_candidatos', function () {
+    DB::table('contacts')->insert([
+        // Walk-in (Cliente Balcão) — deve ser EXCLUÍDO do combo
+        ['id' => 40, 'business_id' => 1, 'name' => 'Cliente Balcão', 'is_default' => 1, 'created_at' => now(), 'updated_at' => now()],
+        // Cliente real — deve aparecer
+        ['id' => 50, 'business_id' => 1, 'name' => 'Maria Cliente Real', 'is_default' => 0, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+    DB::table('products')->insert([
+        ['id' => 100, 'business_id' => 1, 'name' => 'BLUSA RE002', 'created_at' => now(), 'updated_at' => now()],
+        ['id' => 101, 'business_id' => 1, 'name' => 'VESTIDO NT008', 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    // Walk-in id=40 com produto 100 comprado 6× — NÃO pode aparecer no combo
+    for ($i = 0; $i < 6; $i++) {
+        $txId = DB::table('transactions')->insertGetId([
+            'business_id' => 1, 'type' => 'sell', 'status' => 'final',
+            'contact_id' => 40, 'final_total' => 100,
+            'transaction_date' => now()->subDays(10 + $i),
+            'created_at' => now()->subDays(10 + $i), 'updated_at' => now()->subDays(10 + $i),
+        ]);
+        DB::table('transaction_sell_lines')->insert([
+            'transaction_id' => $txId, 'product_id' => 100,
+            'created_at' => now()->subDays(10 + $i), 'updated_at' => now()->subDays(10 + $i),
+        ]);
+    }
+
+    // Cliente real id=50 com produto 101 comprado 4× — DEVE aparecer
+    for ($i = 0; $i < 4; $i++) {
+        $txId = DB::table('transactions')->insertGetId([
+            'business_id' => 1, 'type' => 'sell', 'status' => 'final',
+            'contact_id' => 50, 'final_total' => 200,
+            'transaction_date' => now()->subDays(5 + $i),
+            'created_at' => now()->subDays(5 + $i), 'updated_at' => now()->subDays(5 + $i),
+        ]);
+        DB::table('transaction_sell_lines')->insert([
+            'transaction_id' => $txId, 'product_id' => 101,
+            'created_at' => now()->subDays(5 + $i), 'updated_at' => now()->subDays(5 + $i),
+        ]);
+    }
+
+    $svc = new BriefDiarioService(1);
+    $snap = $svc->snapshot();
+    $combo = $snap['sources']['oportunidades']['combo_candidatos'];
+
+    $walkInIds = array_column($combo, 'contact_id');
+
+    // Walk-in NÃO aparece (apesar de ter mais repetes)
+    expect($walkInIds)->not->toContain(40);
+    // Cliente real DEVE aparecer
+    expect($walkInIds)->toContain(50);
+});
+
+it('R-COPI-202c-002 — walk-in is_default=1 NAO aparece em reativacao_candidatos', function () {
+    DB::table('contacts')->insert([
+        ['id' => 40, 'business_id' => 1, 'name' => 'Cliente Balcão', 'is_default' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ['id' => 49, 'business_id' => 1, 'name' => 'Andreia Real', 'is_default' => 0, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    // Walk-in com LTV gigante (R$ [redacted Tier 0]k) — NÃO pode aparecer em reativação
+    DB::table('transactions')->insert([
+        'business_id' => 1, 'type' => 'sell', 'status' => 'final',
+        'contact_id' => 40, 'final_total' => 50000,
+        'transaction_date' => now()->subDays(120),
+        'created_at' => now()->subDays(120), 'updated_at' => now()->subDays(120),
+    ]);
+    // Cliente real com LTV R$ [redacted Tier 0]k — DEVE aparecer
+    DB::table('transactions')->insert([
+        'business_id' => 1, 'type' => 'sell', 'status' => 'final',
+        'contact_id' => 49, 'final_total' => 5000,
+        'transaction_date' => now()->subDays(108),
+        'created_at' => now()->subDays(108), 'updated_at' => now()->subDays(108),
+    ]);
+
+    $svc = new BriefDiarioService(1);
+    $snap = $svc->snapshot();
+    $reat = $snap['sources']['oportunidades']['reativacao_candidatos'];
+
+    $ids = array_column($reat, 'contact_id');
+    // Walk-in NÃO aparece (apesar de ter LTV maior)
+    expect($ids)->not->toContain(40);
+    // Cliente real DEVE aparecer
+    expect($ids)->toContain(49);
+});
+
+it('R-COPI-202c-003 — vendasPeriodo retorna projecao_fechamento_mes + delta_projetado_pct', function () {
+    $svc = new BriefDiarioService(1);
+    $snap = $svc->snapshot();
+    $v = $snap['sources']['vendas'];
+
+    // Novas chaves obrigatórias (US-COPI-202c)
+    expect($v)->toHaveKeys([
+        'dias_decorridos_mes',
+        'dias_restantes_mes',
+        'ritmo_diario',
+        'projecao_fechamento_mes',
+        'delta_projetado_pct',
+    ]);
+
+    // dias_decorridos + dias_restantes = total do mês (entre 28 e 31)
+    $total = $v['dias_decorridos_mes'] + $v['dias_restantes_mes'];
+    expect($total)->toBeGreaterThanOrEqual(28)
+        ->and($total)->toBeLessThanOrEqual(31);
+
+    // BC: delta_mes_pct cru continua presente (consumers legacy podem usar)
+    expect($v)->toHaveKey('delta_mes_pct');
+});
+
+it('R-COPI-202c-004 — projecao normaliza ritmo diario (cobre falso alarme delta_mes)', function () {
+    // Cenário ROTA LIVRE biz=4 real: mês corrente até dia 12 com 88 vendas R$ [redacted Tier 0]k,
+    // mês anterior fechado em 145 vendas R$ [redacted Tier 0]k. delta_mes_pct cru daria -26,8%
+    // (falso alarme). Projeção pelo ritmo deve indicar projeção MAIOR que mês ant.
+
+    $diaAtual = (int) now()->day;
+    $diasNoMes = (int) now()->daysInMonth;
+
+    // Mês anterior fechado: 1 venda R$ [redacted Tier 0] (referência baixa pra forçar projeção > antes)
+    DB::table('transactions')->insert([
+        'business_id' => 1, 'type' => 'sell', 'status' => 'final',
+        'final_total' => 1000,
+        'transaction_date' => now()->subMonth()->startOfMonth()->addDays(5),
+        'created_at' => now()->subMonth(), 'updated_at' => now()->subMonth(),
+    ]);
+
+    // Mês corrente: ritmo de R$ [redacted Tier 0]/dia × dias decorridos. Projeção =
+    // R$ [redacted Tier 0] × diasNoMes. Se mês tem 31 dias → R$ [redacted Tier 0] (3.1x > R$ [redacted Tier 0] ant).
+    for ($i = 0; $i < $diaAtual; $i++) {
+        DB::table('transactions')->insert([
+            'business_id' => 1, 'type' => 'sell', 'status' => 'final',
+            'final_total' => 100,
+            'transaction_date' => now()->startOfMonth()->addDays($i)->setTime(12, 0, 0),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    $svc = new BriefDiarioService(1);
+    $snap = $svc->snapshot();
+    $v = $snap['sources']['vendas'];
+
+    // Validações:
+    // 1. ritmo_diario ≈ R$ [redacted Tier 0] (mes_corrente.total / dias_decorridos)
+    expect($v['ritmo_diario'])->toBeGreaterThanOrEqual(90.0)
+        ->and($v['ritmo_diario'])->toBeLessThanOrEqual(110.0);
+
+    // 2. projecao_fechamento ≈ ritmo × diasNoMes
+    $projEsperada = $v['ritmo_diario'] * $diasNoMes;
+    expect(abs($v['projecao_fechamento_mes'] - $projEsperada))->toBeLessThan(1.0);
+
+    // 3. delta_projetado deve ser POSITIVO (projeção 3000+ vs anterior 1000)
+    expect($v['delta_projetado_pct'])->toBeGreaterThan(0,
+        'delta_projetado_pct deve normalizar falso alarme do mês incompleto');
 });
