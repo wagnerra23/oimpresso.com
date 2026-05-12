@@ -46,6 +46,11 @@ import SaleSheet from './_components/SaleSheet';
 import SellsToggleViewMode, { type SellsViewMode } from './_components/SellsToggleViewMode';
 import SellsGradeAvancada from './_components/SellsGradeAvancada';
 import SellsTotalsRow, { type SellsTotals } from './_components/SellsTotalsRow';
+import SellsDateFilter, {
+  computePresetRange,
+  type DateFilterPreset,
+} from './_components/SellsDateFilter';
+import { type GroupByField } from './_components/SellsGroupByDropdown';
 
 interface SellKpis {
   total: number;
@@ -110,6 +115,15 @@ const DATE_FIELD_STORAGE_KEY = 'oimpresso.sells.dateField';
 const STATUS_FILTER_STORAGE_KEY = 'oimpresso.sells.lastStatus';
 const STATUS_FILTER_VALUES = ['', 'paid', 'due', 'partial', 'overdue'] as const;
 
+// US-SELL-018 — preset (Dia/Semana/Mês/Ano/Personalizado/all) persistido.
+// Default 'all' = sem filtro de data → mantém comportamento legado.
+const DATE_PRESET_STORAGE_KEY = 'oimpresso.sells.datePreset';
+const DATE_PRESET_VALUES = ['day', 'week', 'month', 'year', 'custom', 'all'] as const;
+
+// US-SELL-019 — agrupamento persistido (default none).
+const GROUP_BY_STORAGE_KEY = 'oimpresso.sells.groupBy';
+const GROUP_BY_VALUES = ['none', 'customer_name', 'payment_status', 'emission_month'] as const;
+
 // US-SELL-015 — viewMode persist (ADR 0136). Default vem do controller via
 // HandleInertiaRequests share (`sells.viewMode.default`) — 'grade-avancada'
 // pra business com legacy_origin='officeimpresso', 'lista' pros demais.
@@ -145,6 +159,50 @@ function readStoredDateField(): DateField {
     }
   } catch (_) { /* localStorage indisponível */ }
   return 'transaction_date';
+}
+
+function readStoredDatePreset(): DateFilterPreset {
+  if (typeof window === 'undefined') return 'all';
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('preset');
+    if (fromUrl && (DATE_PRESET_VALUES as readonly string[]).includes(fromUrl)) {
+      return fromUrl as DateFilterPreset;
+    }
+  } catch (_) { /* SSR */ }
+  try {
+    const v = window.localStorage.getItem(DATE_PRESET_STORAGE_KEY);
+    if (v && (DATE_PRESET_VALUES as readonly string[]).includes(v)) {
+      return v as DateFilterPreset;
+    }
+  } catch (_) { /* localStorage indisponível */ }
+  return 'all';
+}
+
+function readStoredGroupBy(): GroupByField {
+  if (typeof window === 'undefined') return 'none';
+  try {
+    const v = window.localStorage.getItem(GROUP_BY_STORAGE_KEY);
+    if (v && (GROUP_BY_VALUES as readonly string[]).includes(v)) {
+      return v as GroupByField;
+    }
+  } catch (_) { /* localStorage indisponível */ }
+  return 'none';
+}
+
+// US-SELL-018 — lê date_from/date_to do URL pra deep-link (ex: dashboard
+// drilldown manda link com range específico).
+function readUrlDateRange(): { dateFrom: string; dateTo: string } {
+  if (typeof window === 'undefined') return { dateFrom: '', dateTo: '' };
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      dateFrom: params.get('date_from') ?? '',
+      dateTo: params.get('date_to') ?? '',
+    };
+  } catch (_) {
+    return { dateFrom: '', dateTo: '' };
+  }
 }
 
 function readStoredStatusFilter(): StatusFilter {
@@ -295,6 +353,86 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     } catch (_) { /* SSR */ }
   }, [dateField]);
 
+  // US-SELL-018 — preset (Dia/Semana/Mês/Ano/Personalizado/all) + range explicit.
+  // Inicialização: prioridade URL deep-link → localStorage → 'all' (sem filtro).
+  // Se URL traz date_from/date_to mas sem preset, infere 'custom'.
+  const initialPreset = useMemo(() => {
+    if (typeof window === 'undefined') return 'all' as DateFilterPreset;
+    const url = readUrlDateRange();
+    if (url.dateFrom || url.dateTo) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const p = params.get('preset');
+        if (p && (DATE_PRESET_VALUES as readonly string[]).includes(p)) {
+          return p as DateFilterPreset;
+        }
+      } catch (_) { /* SSR */ }
+      return 'custom' as DateFilterPreset;
+    }
+    return readStoredDatePreset();
+  }, []);
+
+  const [datePreset, setDatePreset] = useState<DateFilterPreset>(initialPreset);
+  const [dateFrom, setDateFrom] = useState<string>(() => {
+    const url = readUrlDateRange();
+    if (url.dateFrom) return url.dateFrom;
+    if (initialPreset !== 'all' && initialPreset !== 'custom') {
+      return computePresetRange(initialPreset).dateFrom;
+    }
+    return '';
+  });
+  const [dateTo, setDateTo] = useState<string>(() => {
+    const url = readUrlDateRange();
+    if (url.dateTo) return url.dateTo;
+    if (initialPreset !== 'all' && initialPreset !== 'custom') {
+      return computePresetRange(initialPreset).dateTo;
+    }
+    return '';
+  });
+
+  // Persiste preset + sincroniza URL (preset, date_from, date_to).
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(DATE_PRESET_STORAGE_KEY, datePreset);
+    } catch (_) { /* localStorage indisponível */ }
+    try {
+      const url = new URL(window.location.href);
+      if (datePreset === 'all') {
+        url.searchParams.delete('preset');
+        url.searchParams.delete('date_from');
+        url.searchParams.delete('date_to');
+      } else {
+        url.searchParams.set('preset', datePreset);
+        if (dateFrom) url.searchParams.set('date_from', dateFrom);
+        else url.searchParams.delete('date_from');
+        if (dateTo) url.searchParams.set('date_to', dateTo);
+        else url.searchParams.delete('date_to');
+      }
+      window.history.replaceState({}, '', url.toString());
+    } catch (_) { /* SSR */ }
+  }, [datePreset, dateFrom, dateTo]);
+
+  // US-SELL-019 — agrupamento (state lifted up). Persiste em localStorage.
+  const [groupBy, setGroupBy] = useState<GroupByField>(() => readStoredGroupBy());
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(GROUP_BY_STORAGE_KEY, groupBy);
+    } catch (_) { /* localStorage indisponível */ }
+  }, [groupBy]);
+
+  // Handler do componente SellsDateFilter — recebe shape consolidado.
+  const handleDateFilterChange = (next: {
+    preset: DateFilterPreset;
+    dateFrom: string;
+    dateTo: string;
+    dateField: DateField;
+  }) => {
+    setDatePreset(next.preset);
+    setDateFrom(next.dateFrom);
+    setDateTo(next.dateTo);
+    setDateField(next.dateField);
+  };
+
   // Persistência da última aba financeira escolhida pelo user (pattern oi.* localStorage).
   useEffect(() => {
     try {
@@ -302,17 +440,16 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     } catch (_) { /* localStorage indisponível */ }
   }, [statusFilter]);
 
-  // Reseta pra página 1 quando muda filtro/busca/ordem/per-page/date_field.
+  // Reseta pra página 1 quando muda filtro/busca/ordem/per-page/date_field/date_range.
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, search, sortKey, sortDir, perPage, dateField]);
+  }, [statusFilter, search, sortKey, sortDir, perPage, dateField, dateFrom, dateTo]);
 
-  // US-SELL-016 — Limpa seleção quando muda filtro/busca/date_field — IDs
-  // selecionados podem não ser mais visíveis no escopo atual, evita
-  // ações em lote sobre vendas "fora do filtro" (confunde user).
+  // US-SELL-016 — Limpa seleção quando muda filtro/busca/date_field/date_range —
+  // IDs selecionados podem não ser mais visíveis no escopo atual.
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [statusFilter, search, dateField]);
+  }, [statusFilter, search, dateField, dateFrom, dateTo]);
 
   // Fetch quando qualquer parâmetro muda.
   useEffect(() => {
@@ -326,6 +463,8 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     params.set('sort', sortKey);
     params.set('dir', sortDir);
     params.set('date_field', dateField);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
     fetch(`/sells-list-json?${params.toString()}`, {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin',
@@ -349,7 +488,7 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [statusFilter, search, page, perPage, sortKey, sortDir, dateField]);
+  }, [statusFilter, search, page, perPage, sortKey, sortDir, dateField, dateFrom, dateTo]);
 
   const handleSort = (key: SortKey) => {
     if (key === sortKey) {
@@ -369,6 +508,8 @@ export default function SellsIndex(props: SellsIndexPageProps) {
     params.set('sort', sortKey);
     params.set('dir', sortDir);
     params.set('date_field', dateField);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
     fetch(`/sells-list-json?${params.toString()}`, {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin',
@@ -511,7 +652,16 @@ export default function SellsIndex(props: SellsIndexPageProps) {
           intacta (Cockpit V2 canon). 'grade-avancada' = skeleton com mensagem
           "em construção" — preenchido por US-SELL-016/017/018+. */}
       {viewMode === 'grade-avancada' ? (
-        <div className="container mx-auto px-8 py-6 max-w-7xl">
+        <div className="container mx-auto px-8 py-6 max-w-7xl space-y-3">
+          {/* US-SELL-018 — Filtro multi-data presets + dropdown tipo + custom range */}
+          <SellsDateFilter
+            preset={datePreset}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            dateField={dateField}
+            onChange={handleDateFilterChange}
+          />
+
           <SellsGradeAvancada
             rows={rows}
             loading={loading}
@@ -526,6 +676,8 @@ export default function SellsIndex(props: SellsIndexPageProps) {
             sortKey={sortKey}
             sortDir={sortDir}
             onSort={handleSort}
+            groupBy={groupBy}
+            onGroupByChange={setGroupBy}
           />
           {meta && meta.total > 0 && (
             <Pagination
