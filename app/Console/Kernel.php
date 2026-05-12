@@ -323,6 +323,20 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->environments(['live']);
 
+        // CYCLE-07 PR-2 — SLA scan policies + alertas escalation (Gap P0 #2).
+        // Itera sla_policies ativas cross-tenant, varre conversations que
+        // violam threshold, dispara action (Centrifugo notify / reassign /
+        // set_status). withoutOverlapping(10) cobre ~2 ciclos de 5min.
+        $schedule->command('whatsapp:sla-scan --business=all')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(10)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:sla-scan FALHOU — alertas SLA podem não disparar'
+                );
+            });
+
         // US-NFE-051 (ADR 0116 caso Gold) — Distribuição DFe pra businesses com cert
         // ativo. Puxa NF-e emitidas contra meu CNPJ via NSU SEFAZ ambiente nacional.
         // 06:15 BRT (após jana:health-check 06:00). Cooldown 5min protege se cron
