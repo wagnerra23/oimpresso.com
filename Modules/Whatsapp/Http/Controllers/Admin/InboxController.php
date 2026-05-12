@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Contact;
 use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
@@ -44,6 +45,7 @@ class InboxController extends Controller
     public function index(Request $request, CentrifugoTokenIssuer $tokenIssuer): Response
     {
         $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
         $tab = $request->input('tab', 'all');
         $q = $request->input('q', '');
         $threadId = $request->input('thread');
@@ -53,13 +55,21 @@ class InboxController extends Controller
             ->where('business_id', $businessId)
             ->with('channel:id,label,type,status,channel_uuid,channel_health');
 
+        // US-WA-069 (ADR 0135 canal=fila): filtra conversas pelos canais que o
+        // user tem ACL ativa em `channel_user_access`. Gate
+        // `whatsapp.view-all-phones` é o ÚNICO bypass (admin/superadmin).
+        //
+        // Defense-in-depth ON TOP do business_id global scope — Tier 0 ADR 0093
+        // continua garantindo isolamento entre businesses; este filtro adiciona
+        // segregação per-canal/fila DENTRO do mesmo business.
+        $this->applyChannelAclFilter($convQuery, $businessId, $userId);
+
         // Filtros
         switch ($tab) {
             case 'unread':
                 $convQuery->where('unread_count', '>', 0);
                 break;
             case 'assigned':
-                $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
                 $convQuery->where('assigned_user_id', $userId);
                 break;
             case 'bot':
@@ -98,23 +108,31 @@ class InboxController extends Controller
 
         $conversationsForUi = $paginated->getCollection()->map(fn (Conversation $c) => $this->convToListArray($c));
 
-        // Stats counters
+        // Stats counters — também filtrados por ACL canal (US-WA-069) pra
+        // contadores baterem com a lista efetivamente visível.
+        $statsBase = fn () => tap(
+            Conversation::query()->where('business_id', $businessId),
+            fn ($q) => $this->applyChannelAclFilter($q, $businessId, $userId)
+        );
+
         $stats = [
-            'unread' => Conversation::query()->where('business_id', $businessId)->where('unread_count', '>', 0)->count(),
-            'assigned' => Conversation::query()->where('business_id', $businessId)
-                ->where('assigned_user_id', (int) (session('user.id') ?? auth()->id() ?? 0))->count(),
-            'bot' => Conversation::query()->where('business_id', $businessId)->where('bot_handling', true)->count(),
+            'unread' => $statsBase()->where('unread_count', '>', 0)->count(),
+            'assigned' => $statsBase()->where('assigned_user_id', $userId)->count(),
+            'bot' => $statsBase()->where('bot_handling', true)->count(),
         ];
 
         // Thread aberta?
         $thread = null;
         $messages = null;
         if ($threadId) {
-            $threadModel = Conversation::query()
+            // US-WA-069: tenta achar com ACL ativo — se user não tem acesso ao
+            // canal, thread vira null (UI mostra lista vazia, sem 500).
+            $threadQuery = Conversation::query()
                 ->where('business_id', $businessId)
                 // US-WA-063: eager-load tags · US-WA-064: eager-load Contact UltimatePOS
-                ->with(['channel', 'tags:id,slug,label,color'])
-                ->find($threadId);
+                ->with(['channel', 'tags:id,slug,label,color']);
+            $this->applyChannelAclFilter($threadQuery, $businessId, $userId);
+            $threadModel = $threadQuery->find($threadId);
             if ($threadModel) {
                 $thread = $this->convToThreadArray($threadModel);
                 // US-WA-077: eager-load `senderUser` pra evitar N+1 ao
@@ -135,10 +153,15 @@ class InboxController extends Controller
             }
         }
 
-        // Channels disponíveis pra filtro
-        $availableChannels = Channel::query()
+        // Channels disponíveis pra filtro — US-WA-069: filtrados por ACL.
+        // User sem acesso a NENHUM canal vê lista vazia (não 500).
+        $availableChannelsQuery = Channel::query()
             ->where('business_id', $businessId)
-            ->where('status', 'active')
+            ->where('status', 'active');
+        if (! $this->canSeeAllChannels()) {
+            $availableChannelsQuery->whereIn('id', $this->allowedChannelIdsSubquery($businessId, $userId));
+        }
+        $availableChannels = $availableChannelsQuery
             ->orderBy('label')
             ->get(['id', 'label', 'type'])
             ->map(fn ($ch) => ['id' => $ch->id, 'label' => $ch->label, 'type' => $ch->type]);
@@ -167,7 +190,6 @@ class InboxController extends Controller
         // emissor falhar (secret ausente, etc), payload vira null e o
         // frontend cai pra polling fallback.
         $channel = "omnichannel:business:{$businessId}";
-        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
         $token = $tokenIssuer->issue(
             $userId,
             [$channel],
@@ -245,6 +267,9 @@ class InboxController extends Controller
         $conversation = Conversation::query()
             ->where('business_id', $businessId)
             ->findOrFail($id);
+
+        // US-WA-069 defense-in-depth: user sem acesso ao canal não muta tags.
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
 
         $payload = $request->validate([
             'tag_ids' => ['present', 'array'],
@@ -472,6 +497,13 @@ class InboxController extends Controller
         $businessId = (int) session('user.business_id');
         $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
 
+        // US-WA-069 Tier 0 defense-in-depth: valida ACL do canal ANTES de
+        // persistir Message ou tocar driver. Sem acesso → 403, não 200.
+        $conversationForCheck = Conversation::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+        $this->ensureChannelAccessOrAbort($conversationForCheck, $businessId, $userId);
+
         $data = $request->validate([
             'kind' => ['required', Rule::in(['freeform', 'template'])],
             'body' => ['required_if:kind,freeform', 'nullable', 'string', 'max:4096'],
@@ -625,10 +657,14 @@ class InboxController extends Controller
     public function blockContact(\Illuminate\Http\Request $request, int $id): RedirectResponse
     {
         $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
         $conversation = Conversation::query()
             ->where('business_id', $businessId)
             ->with('channel')
             ->findOrFail($id);
+
+        // US-WA-069 defense-in-depth: user sem acesso ao canal não bloqueia.
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
 
         $payload = $request->validate([
             'block' => ['present', 'boolean'],
@@ -694,6 +730,9 @@ class InboxController extends Controller
         $conversation = Conversation::query()
             ->where('business_id', $businessId)
             ->findOrFail($id);
+
+        // US-WA-069 defense-in-depth: user sem acesso ao canal não muta status.
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
 
         $payload = $request->validate([
             'status' => ['nullable', Rule::in(['open', 'awaiting_human', 'resolved', 'archived'])],
@@ -781,9 +820,13 @@ class InboxController extends Controller
     public function linkContact(\Illuminate\Http\Request $request, int $id): RedirectResponse
     {
         $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
         $conversation = Conversation::query()
             ->where('business_id', $businessId)
             ->findOrFail($id);
+
+        // US-WA-069 defense-in-depth: user sem acesso ao canal não vincula contato.
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
 
         $payload = $request->validate([
             'contact_id' => ['nullable', 'integer'],
@@ -974,5 +1017,85 @@ class InboxController extends Controller
             $result->toFlashPayload(),
             ['command' => $parsed->command, 'message_id' => $note->id],
         );
+    }
+
+    /**
+     * US-WA-069: aplica filtro ACL canal=fila no query de Conversation.
+     *
+     * Filtragem por canais que o user tem acesso ATIVO em
+     * `channel_user_access` (revoked_at IS NULL). Bypass único: Gate
+     * `whatsapp.view-all-phones` (admin/superadmin). Sem acesso a nenhum
+     * canal → user vê inbox vazia (não 500).
+     *
+     * Implementação por subquery em vez de `pluck()->whereIn(array)` pra
+     * escalar em users com 50+ canais sem hidratar lista no PHP.
+     */
+    protected function applyChannelAclFilter($query, int $businessId, int $userId): void
+    {
+        if ($this->canSeeAllChannels()) {
+            return; // admin/superadmin bypass
+        }
+
+        $query->whereIn('channel_id', $this->allowedChannelIdsSubquery($businessId, $userId));
+    }
+
+    /**
+     * Subquery dos channel_ids que o user tem ACL ATIVA pra este business.
+     *
+     * Retorna um Builder pra ser passado em `whereIn(...)` — performático mesmo
+     * com 50+ canais (não hidrata PHP). Importante: filtra ALSO por business_id
+     * pra reforçar Tier 0 ADR 0093 (defense-in-depth — global scope já garante,
+     * mas subquery explícita não custa).
+     */
+    protected function allowedChannelIdsSubquery(int $businessId, int $userId)
+    {
+        return ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->where('user_id', $userId)
+            ->whereNull('revoked_at')
+            ->select('channel_id');
+    }
+
+    /**
+     * US-WA-069: Gate `whatsapp.view-all-phones` é o ÚNICO bypass do filtro
+     * per-canal. Mesmo gate usado pra `whatsapp_phone_user_access` legacy
+     * (consistência). Definido em AuthServiceProvider — geralmente concedido
+     * a roles `Admin#{biz}` (UltimatePOS) e superadmin global.
+     */
+    protected function canSeeAllChannels(): bool
+    {
+        return (bool) (auth()->user()?->can('whatsapp.view-all-phones') ?? false);
+    }
+
+    /**
+     * US-WA-069 defense-in-depth: aborta com 403 se user não tem ACL no
+     * canal da conversa. Chamado nos métodos de mutação (send, updateStatus,
+     * updateTags, linkContact, blockContact) ANTES de qualquer write/dispatch.
+     *
+     * Admin (Gate `whatsapp.view-all-phones`) bypassa. Caso sem `channel_id`
+     * (conversa órfã) NÃO bloqueia — global scope business_id já garante
+     * Tier 0; mutação prossegue.
+     */
+    protected function ensureChannelAccessOrAbort(Conversation $conversation, int $businessId, int $userId): void
+    {
+        if ($this->canSeeAllChannels()) {
+            return;
+        }
+
+        $channelId = (int) ($conversation->channel_id ?? 0);
+        if ($channelId === 0) {
+            return; // conversa sem canal (legacy órfã) — não bloqueia
+        }
+
+        $hasAccess = ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->where('user_id', $userId)
+            ->where('channel_id', $channelId)
+            ->whereNull('revoked_at')
+            ->exists();
+
+        if (! $hasAccess) {
+            abort(403, 'Sem acesso ao canal desta conversa.');
+        }
     }
 }
