@@ -87,6 +87,12 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.send');
 
+    // US-WA-072: upload de mídia outbound (image/audio/document/video)
+    Route::post('/inbox/{id}/send-media', [InboxController::class, 'sendMedia'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.send_media');
+
     Route::patch('/inbox/{id}', [InboxController::class, 'updateStatus'])
         ->whereNumber('id')
         ->middleware('can:whatsapp.send')
