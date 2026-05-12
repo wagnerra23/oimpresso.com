@@ -89,8 +89,49 @@ export const fetchHistoryBody = z.object({
   timeout_ms: z.number().int().min(5_000).max(120_000).optional().default(60_000),
 });
 
+// ------------------------------------------------------------------------------------------------
+// Mensagens interativas — POST /instances/:id/interactive (US-WA-045/046)
+//
+// Baileys 6.7 suporta nativamente buttons (até 3) e list messages. CTA URL é
+// Meta Cloud-only — daemon não aceita (PHP `BaileysDriver::sendInteractive`
+// já lança DriverDoesNotSupport antes de chegar aqui, mas mantemos a guarda
+// no Zod schema também).
+// ------------------------------------------------------------------------------------------------
+const interactiveButton = z.object({
+  id: z.string().min(1).max(64),
+  label: z.string().min(1).max(20),
+});
+
+const interactiveListItem = z.object({
+  id: z.string().min(1).max(64),
+  title: z.string().min(1).max(24),
+  description: z.string().max(72).optional(),
+});
+
+const interactiveListSection = z.object({
+  title: z.string().min(1).max(24),
+  items: z.array(interactiveListItem).min(1).max(10),
+});
+
+export const sendInteractiveBody = z.object({
+  to: phoneOrJid,
+  body: z.string().min(1).max(1024),
+  interactive: z.discriminatedUnion('type', [
+    z.object({
+      type: z.literal('buttons'),
+      buttons: z.array(interactiveButton).min(1).max(3),
+    }),
+    z.object({
+      type: z.literal('list'),
+      button_label: z.string().min(1).max(20),
+      sections: z.array(interactiveListSection).min(1).max(10),
+    }),
+  ]),
+});
+
 export type ConnectBody = z.infer<typeof connectBody>;
 export type SendTextBody = z.infer<typeof sendTextBody>;
 export type SendMediaBody = z.infer<typeof sendMediaBody>;
+export type SendInteractiveBody = z.infer<typeof sendInteractiveBody>;
 export type DecryptUrlBody = z.infer<typeof decryptUrlBody>;
 export type FetchHistoryBody = z.infer<typeof fetchHistoryBody>;

@@ -47,6 +47,15 @@ class NullDriver implements DriverInterface
         return WhatsappSendResult::ok('null-media-' . Str::uuid()->toString());
     }
 
+    public function sendInteractive(
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
+        string $to,
+        string $body,
+        array $interactive,
+    ): WhatsappSendResult {
+        return WhatsappSendResult::ok('null-interactive-' . Str::uuid()->toString());
+    }
+
     public function fetchMessageStatus(
         WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,

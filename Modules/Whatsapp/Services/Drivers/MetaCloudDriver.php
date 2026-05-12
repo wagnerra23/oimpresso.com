@@ -127,6 +127,81 @@ class MetaCloudDriver implements DriverInterface
         return $this->mapSendResponse($response);
     }
 
+    public function sendInteractive(
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
+        string $to,
+        string $body,
+        array $interactive,
+    ): WhatsappSendResult {
+        // Meta Cloud interactive type — `type=interactive` no payload Whatsapp Cloud
+        // https://developers.facebook.com/docs/whatsapp/cloud-api/reference/messages#interactive-object
+        $type = (string) ($interactive['type'] ?? '');
+
+        $action = match ($type) {
+            'buttons' => [
+                'buttons' => array_map(
+                    fn (array $btn) => [
+                        'type' => 'reply',
+                        'reply' => [
+                            'id' => (string) $btn['id'],
+                            'title' => mb_substr((string) $btn['label'], 0, 20),
+                        ],
+                    ],
+                    array_slice($interactive['buttons'] ?? [], 0, 3),
+                ),
+            ],
+            'list' => [
+                'button' => mb_substr((string) ($interactive['button_label'] ?? 'Escolha'), 0, 20),
+                'sections' => array_map(
+                    fn (array $section) => [
+                        'title' => mb_substr((string) $section['title'], 0, 24),
+                        'rows' => array_map(
+                            fn (array $item) => array_filter([
+                                'id' => (string) $item['id'],
+                                'title' => mb_substr((string) $item['title'], 0, 24),
+                                'description' => isset($item['description'])
+                                    ? mb_substr((string) $item['description'], 0, 72)
+                                    : null,
+                            ], fn ($v) => $v !== null),
+                            $section['items'] ?? [],
+                        ),
+                    ],
+                    $interactive['sections'] ?? [],
+                ),
+            ],
+            'cta_url' => [
+                'name' => 'cta_url',
+                'parameters' => [
+                    'display_text' => mb_substr((string) ($interactive['button_label'] ?? 'Abrir'), 0, 20),
+                    'url' => (string) ($interactive['url'] ?? ''),
+                ],
+            ],
+            default => throw DriverDoesNotSupport::for('meta_cloud', "interactive.{$type}"),
+        };
+
+        $metaInteractiveType = match ($type) {
+            'buttons' => 'button',
+            'list' => 'list',
+            'cta_url' => 'cta_url',
+        };
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $this->normalizePhone($to),
+            'type' => 'interactive',
+            'interactive' => [
+                'type' => $metaInteractiveType,
+                'body' => ['text' => $body],
+                'action' => $action,
+            ],
+        ];
+
+        $response = $this->client($config)
+            ->post("/{$config->meta_phone_number_id}/messages", $payload);
+
+        return $this->mapSendResponse($response);
+    }
+
     public function fetchMessageStatus(
         WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $providerMessageId,
