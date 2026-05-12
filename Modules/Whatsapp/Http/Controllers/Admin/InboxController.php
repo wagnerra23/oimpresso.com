@@ -64,7 +64,9 @@ class InboxController extends Controller
         // segregação per-canal/fila DENTRO do mesmo business.
         $this->applyChannelAclFilter($convQuery, $businessId, $userId);
 
-        // Filtros
+        // Filtros — tabs por status/condição. `awaiting_human` e `archived`
+        // mapeiam pro enum `conversations.status` (criados em US-WA-* prévia,
+        // tab visual faltando).
         switch ($tab) {
             case 'unread':
                 $convQuery->where('unread_count', '>', 0);
@@ -77,6 +79,14 @@ class InboxController extends Controller
                 break;
             case 'resolved':
                 $convQuery->where('status', 'resolved');
+                break;
+            case 'awaiting_human':
+                // Bot escalou pra humano — fila de atendimento manual.
+                $convQuery->where('status', 'awaiting_human');
+                break;
+            case 'archived':
+                // Conversa arquivada pelo atendente — fora do operacional dia-a-dia.
+                $convQuery->where('status', 'archived');
                 break;
         }
 
@@ -101,9 +111,63 @@ class InboxController extends Controller
             }
         }
 
+        // Filtro `within_24h` — janela 24h da Meta WhatsApp Cloud.
+        // true  → conversas com `last_inbound_at` >= 24h atrás (freeform OK)
+        // false → conversas com `last_inbound_at` < 24h atrás OU null (precisa HSM)
+        // Útil pro atendente decidir quem ainda dá pra mandar freeform.
+        if ($request->has('within_24h')) {
+            if ($request->boolean('within_24h')) {
+                $convQuery->where('last_inbound_at', '>=', now()->subHours(24));
+            } else {
+                $convQuery->where(function ($q2) {
+                    $q2->whereNull('last_inbound_at')
+                       ->orWhere('last_inbound_at', '<', now()->subHours(24));
+                });
+            }
+        }
+
+        // Filtro `unlinked` — sem Contact CRM UltimatePOS vinculado.
+        // Oportunidade pra atendente cadastrar/vincular contato existente.
+        if ($request->boolean('unlinked')) {
+            $convQuery->whereNull('contact_id');
+        }
+
+        // Filtro `inbound_aging` — última msg do cliente há > X tempo E cliente
+        // foi o último a falar. Fila SLA "esperando resposta". Whitelist do
+        // valor (enum) bloqueia SQL injection via input não confiável.
+        $inboundAging = $request->input('inbound_aging');
+        if ($inboundAging) {
+            $hours = match ($inboundAging) {
+                '6h' => 6,
+                '12h' => 12,
+                '24h' => 24,
+                '48h' => 48,
+                '7d' => 168,
+                default => null,
+            };
+            if ($hours !== null) {
+                $convQuery
+                    ->whereNotNull('last_inbound_at')
+                    ->where('last_inbound_at', '<', now()->subHours($hours))
+                    ->where(function ($q2) {
+                        // Só conta como "esperando resposta" se cliente foi o
+                        // último a falar (atendente ainda não respondeu OU
+                        // resposta veio antes da última msg do cliente).
+                        $q2->whereNull('last_outbound_at')
+                           ->orWhereColumn('last_outbound_at', '<', 'last_inbound_at');
+                    });
+            }
+        }
+
+        // Ordenação: default `last_message_at` (mais recente). Opção `inbound`
+        // ordena por `last_inbound_at` desc — útil pra ver primeiro quem está
+        // esperando resposta (visão SLA-first).
+        $orderBy = $request->input('orderBy');
+        $orderColumn = $orderBy === 'inbound' ? 'last_inbound_at' : 'last_message_at';
+
         $paginated = $convQuery
             ->with('tags:id,slug,label,color')
-            ->orderByDesc('last_message_at')
+            ->orderByDesc($orderColumn)
             ->paginate(50);
 
         $conversationsForUi = $paginated->getCollection()->map(fn (Conversation $c) => $this->convToListArray($c));
@@ -119,6 +183,9 @@ class InboxController extends Controller
             'unread' => $statsBase()->where('unread_count', '>', 0)->count(),
             'assigned' => $statsBase()->where('assigned_user_id', $userId)->count(),
             'bot' => $statsBase()->where('bot_handling', true)->count(),
+            // Novos tabs (US-WA-* filtros novos)
+            'awaiting_human' => $statsBase()->where('status', 'awaiting_human')->count(),
+            'archived' => $statsBase()->where('status', 'archived')->count(),
         ];
 
         // Thread aberta?
@@ -212,6 +279,13 @@ class InboxController extends Controller
             'q' => $q,
             'channelFilter' => $channelFilter,
             'stats' => $stats,
+            // Filtros novos — passa estado pra UI re-renderizar chips/dropdown.
+            // `within_24h` chega como bool|null (request->boolean retorna false
+            // p/ ausente — usar has() pra distinguir "não filtrado" de "false").
+            'within24h' => $request->has('within_24h') ? $request->boolean('within_24h') : null,
+            'unlinked' => $request->boolean('unlinked'),
+            'inboundAging' => $request->input('inbound_aging'),
+            'orderBy' => $request->input('orderBy', 'last_message'),
             'businessId' => $businessId,
             'thread' => $thread,
             'messages' => $messages,

@@ -8,6 +8,10 @@ import {
   ChevronRight,
   MessageCircle,
   AlertTriangle,
+  Clock,
+  UserPlus,
+  X,
+  ArrowDownUp,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -17,6 +21,9 @@ import { Input } from '@/Components/ui/input';
 
 import Avatar from './Avatar';
 import { LS, lsSet, relativeTime, type ListConversation } from './helpers';
+
+type InboundAging = '6h' | '12h' | '24h' | '48h' | '7d' | null;
+type OrderBy = 'last_message' | 'inbound';
 
 interface Paginated<T> {
   data: T[];
@@ -29,7 +36,13 @@ interface Props {
   conversations: Paginated<ListConversation>;
   tab: string;
   q: string;
-  stats: { unread: number; assigned: number; bot: number };
+  stats: {
+    unread: number;
+    assigned: number;
+    bot: number;
+    awaiting_human?: number;
+    archived?: number;
+  };
   selectedId: number | null;
   /**
    * Quando setado, clicar uma conversa faz partial reload no Index (cockpit
@@ -42,6 +55,14 @@ interface Props {
   routeName: string;
   /** Quando fornecido, renderiza botão minimizar lateral (chama callback). */
   onCollapse?: () => void;
+  /**
+   * Filtros novos — todos opcionais pra back-compat com /whatsapp/conversations
+   * legacy. Quando undefined, renderiza UI sem a linha de chips.
+   */
+  within24h?: boolean | null;
+  unlinked?: boolean;
+  inboundAging?: InboundAging;
+  orderBy?: OrderBy;
 }
 
 export default function ConversationList({
@@ -54,15 +75,33 @@ export default function ConversationList({
   permalinkRouteName,
   routeName,
   onCollapse,
+  within24h,
+  unlinked,
+  inboundAging,
+  orderBy,
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
+
+  // Constrói o objeto de query params preservando os filtros novos.
+  // Centraliza a serialização pra evitar duplicação em cada `router.get`.
+  function buildQuery(overrides: Record<string, unknown> = {}) {
+    const params: Record<string, unknown> = {
+      tab,
+      q: searchInput,
+    };
+    if (within24h !== undefined && within24h !== null) params.within_24h = within24h ? 'true' : 'false';
+    if (unlinked) params.unlinked = 'true';
+    if (inboundAging) params.inbound_aging = inboundAging;
+    if (orderBy && orderBy !== 'last_message') params.orderBy = orderBy;
+    return { ...params, ...overrides };
+  }
 
   // Debounce search → server-side via Inertia partial reload + persistência localStorage.
   useEffect(() => {
     if (searchInput === q) return;
     const t = setTimeout(() => {
       lsSet(LS.Q, searchInput);
-      router.get(route(routeName), { tab, q: searchInput }, {
+      router.get(route(routeName), buildQuery({ q: searchInput }), {
         preserveScroll: true,
         preserveState: true,
         only: ['conversations', 'q'],
@@ -70,11 +109,12 @@ export default function ConversationList({
       });
     }, 250);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput, q, tab, routeName]);
 
   function setTab(newTab: string) {
     lsSet(LS.TAB, newTab);
-    router.get(route(routeName), { tab: newTab, q: searchInput }, {
+    router.get(route(routeName), buildQuery({ tab: newTab }), {
       preserveScroll: true,
       preserveState: true,
       only: ['conversations', 'tab', 'stats'],
@@ -82,12 +122,80 @@ export default function ConversationList({
   }
 
   function navigatePage(page: number) {
-    router.get(route(routeName), { tab, q: searchInput, page }, {
+    router.get(route(routeName), buildQuery({ page }), {
       preserveScroll: true,
       preserveState: true,
       only: ['conversations'],
     });
   }
+
+  /**
+   * Toggle within_24h tri-estado: null → true → false → null. Persiste em LS
+   * pra preservar entre sessões (Wagner 2026-05-12: per-browser, sem perfil).
+   */
+  function cycleWithin24h() {
+    let next: boolean | null;
+    if (within24h === null || within24h === undefined) next = true;
+    else if (within24h === true) next = false;
+    else next = null;
+    lsSet(LS.WITHIN_24H, next === null ? null : (next ? 'true' : 'false'));
+    const params = buildQuery();
+    if (next === null) delete (params as Record<string, unknown>).within_24h;
+    else params.within_24h = next ? 'true' : 'false';
+    router.get(route(routeName), params, {
+      preserveScroll: true, preserveState: true,
+      only: ['conversations', 'stats', 'within24h'],
+    });
+  }
+
+  function toggleUnlinked() {
+    const next = !unlinked;
+    lsSet(LS.UNLINKED, next ? '1' : null);
+    const params = buildQuery();
+    if (next) params.unlinked = 'true';
+    else delete (params as Record<string, unknown>).unlinked;
+    router.get(route(routeName), params, {
+      preserveScroll: true, preserveState: true,
+      only: ['conversations', 'unlinked'],
+    });
+  }
+
+  function setInboundAging(value: InboundAging) {
+    lsSet(LS.INBOUND_AGING, value);
+    const params = buildQuery();
+    if (value) params.inbound_aging = value;
+    else delete (params as Record<string, unknown>).inbound_aging;
+    router.get(route(routeName), params, {
+      preserveScroll: true, preserveState: true,
+      only: ['conversations', 'inboundAging'],
+    });
+  }
+
+  function setOrderBy(value: OrderBy) {
+    lsSet(LS.ORDER_BY, value === 'last_message' ? null : value);
+    const params = buildQuery();
+    if (value === 'last_message') delete (params as Record<string, unknown>).orderBy;
+    else params.orderBy = value;
+    router.get(route(routeName), params, {
+      preserveScroll: true, preserveState: true,
+      only: ['conversations', 'orderBy'],
+    });
+  }
+
+  function resetFilters() {
+    [LS.WITHIN_24H, LS.UNLINKED, LS.INBOUND_AGING, LS.ORDER_BY].forEach((k) => lsSet(k, null));
+    router.get(route(routeName), { tab, q: searchInput }, {
+      preserveScroll: true, preserveState: true,
+    });
+  }
+
+  // Conta filtros ativos pra mostrar badge no botão "Limpar"
+  const activeFiltersCount = [
+    within24h !== null && within24h !== undefined,
+    unlinked,
+    !!inboundAging,
+    orderBy && orderBy !== 'last_message',
+  ].filter(Boolean).length;
 
   // Atalhos teclado: J/K navega lista, "/" foca search (ADR 0039 §2).
   useEffect(() => {
@@ -164,8 +272,98 @@ export default function ConversationList({
           <TabPill active={tab === 'unread'} onClick={() => setTab('unread')} label="Não lidas" count={stats.unread} />
           <TabPill active={tab === 'assigned'} onClick={() => setTab('assigned')} label="Minhas" count={stats.assigned} />
           <TabPill active={tab === 'bot'} onClick={() => setTab('bot')} label="Bot" count={stats.bot} />
+          <TabPill
+            active={tab === 'awaiting_human'}
+            onClick={() => setTab('awaiting_human')}
+            label="Aguardando"
+            count={stats.awaiting_human}
+            title="Bot escalou pra humano — fila de atendimento manual"
+          />
           <TabPill active={tab === 'resolved'} onClick={() => setTab('resolved')} label="Resolvidas" />
+          <TabPill
+            active={tab === 'archived'}
+            onClick={() => setTab('archived')}
+            label="Arquivadas"
+            count={stats.archived}
+            title="Conversas arquivadas pelo atendente"
+          />
         </div>
+
+        {/* Linha de filtros secundários — chips + dropdown. Só renderiza se o
+            pai passou os props (within24h !== undefined indica modo Inbox).
+            Mostra "Limpar" apenas quando há filtros ativos. */}
+        {within24h !== undefined && (
+          <div className="flex flex-wrap items-center gap-1 px-2 pb-1.5">
+            <FilterChip
+              active={unlinked === true}
+              onClick={toggleUnlinked}
+              icon={<UserPlus size={11} aria-hidden />}
+              label="Sem contato CRM"
+              title="Conversas sem Contact UltimatePOS vinculado (oportunidade de cadastro)"
+            />
+            <FilterChip
+              active={within24h === true}
+              onClick={cycleWithin24h}
+              icon={<Clock size={11} aria-hidden />}
+              label={within24h === false ? '24h fechada' : '24h aberta'}
+              title="Janela 24h Meta — clique alterna: aberta → fechada → sem filtro"
+            />
+            {/* Aging dropdown — botão compacto que abre native select */}
+            <div className="relative">
+              <select
+                value={inboundAging ?? ''}
+                onChange={(e) => setInboundAging((e.target.value || null) as InboundAging)}
+                aria-label="Esperando resposta há mais de"
+                className={`text-[11px] h-6 px-1.5 pr-5 rounded border bg-card cursor-pointer hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none ${
+                  inboundAging ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground'
+                }`}
+              >
+                <option value="">Esperando há…</option>
+                <option value="6h">&gt; 6h</option>
+                <option value="12h">&gt; 12h</option>
+                <option value="24h">&gt; 24h</option>
+                <option value="48h">&gt; 48h</option>
+                <option value="7d">&gt; 7 dias</option>
+              </select>
+              <Clock
+                size={10}
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                aria-hidden
+              />
+            </div>
+            {/* Ordenação — dropdown */}
+            <div className="relative">
+              <select
+                value={orderBy ?? 'last_message'}
+                onChange={(e) => setOrderBy(e.target.value as OrderBy)}
+                aria-label="Ordenar por"
+                className={`text-[11px] h-6 px-1.5 pr-5 rounded border bg-card cursor-pointer hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none ${
+                  orderBy === 'inbound' ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground'
+                }`}
+              >
+                <option value="last_message">Ordenar: última msg</option>
+                <option value="inbound">Ordenar: última do cliente</option>
+              </select>
+              <ArrowDownUp
+                size={10}
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                aria-hidden
+              />
+            </div>
+            {activeFiltersCount > 0 && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="text-[11px] h-6 px-1.5 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors inline-flex items-center gap-0.5"
+                title="Limpar todos os filtros"
+                aria-label="Limpar filtros"
+              >
+                <X size={11} aria-hidden />
+                Limpar ({activeFiltersCount})
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Lista */}
@@ -300,12 +498,13 @@ function ConversationRow({
 }
 
 function TabPill({
-  active, onClick, label, count,
+  active, onClick, label, count, title,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
   count?: number;
+  title?: string;
 }) {
   return (
     <Button
@@ -315,6 +514,7 @@ function TabPill({
       onClick={onClick}
       role="tab"
       aria-selected={active}
+      title={title}
       className="text-xs px-2.5 h-7 shrink-0 gap-1"
     >
       {label}
@@ -326,6 +526,37 @@ function TabPill({
         </span>
       )}
     </Button>
+  );
+}
+
+/**
+ * Chip de filtro toggle binário (Sem contato CRM, 24h aberta/fechada).
+ * Visual: pill compacto h-6, ativo = border-primary + bg accent.
+ */
+function FilterChip({
+  active, onClick, icon, label, title,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-pressed={active}
+      className={`text-[11px] h-6 px-1.5 rounded border transition-colors inline-flex items-center gap-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        active
+          ? 'border-primary bg-primary/10 text-primary font-medium'
+          : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 

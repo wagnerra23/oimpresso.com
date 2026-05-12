@@ -47,10 +47,10 @@ interface Paginated<T> {
 
 interface Props {
   conversations: Paginated<ListConversation>;
-  tab: 'all' | 'unread' | 'assigned' | 'bot' | 'resolved';
+  tab: 'all' | 'unread' | 'assigned' | 'bot' | 'resolved' | 'awaiting_human' | 'archived';
   q: string;
   channelFilter: string | null;
-  stats: { unread: number; assigned: number; bot: number };
+  stats: { unread: number; assigned: number; bot: number; awaiting_human: number; archived: number };
   businessId: number;
   thread: ThreadConversation | null;
   messages: Message[] | null;
@@ -60,12 +60,21 @@ interface Props {
   /** US-WA-063: IDs das tags ativas no filtro atual (query param `tags=`) */
   activeTagIds: number[];
   centrifugoConfig: CentrifugoConfig | null;
+  /** true=dentro 24h Meta, false=fora, null=sem filtro. Tri-estado. */
+  within24h: boolean | null;
+  /** Filtra só convs sem Contact CRM vinculado */
+  unlinked: boolean;
+  /** Aging do último inbound do cliente: 6h/12h/24h/48h/7d ou null */
+  inboundAging: '6h' | '12h' | '24h' | '48h' | '7d' | null;
+  /** Ordenação default `last_message` | inbound (last_inbound_at desc) */
+  orderBy: 'last_message' | 'inbound';
 }
 
 export default function InboxIndex({
   conversations, tab, q, stats,
   thread, messages, centrifugoConfig,
   availableTags, activeTagIds,
+  within24h, unlinked, inboundAging, orderBy,
 }: Props) {
   // Sidebar direita colapsável — preferência LS persistida
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
@@ -197,6 +206,10 @@ export default function InboxIndex({
               permalinkRouteName="atendimento.inbox.index"
               routeName="atendimento.inbox.index"
               onCollapse={() => setLeftSidebarCollapsed(true)}
+              within24h={within24h}
+              unlinked={unlinked}
+              inboundAging={inboundAging}
+              orderBy={orderBy}
             />
           </div>
         )}
