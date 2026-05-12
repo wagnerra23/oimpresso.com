@@ -12,7 +12,7 @@ use Throwable;
  * BriefDiarioService — fundação do JANA Pro (US-COPI-201, ADR 0140).
  *
  * Agrega 5 fontes do business em snapshot imutável que alimenta:
- *   - BriefDiarioAgent (Vizra ADK Camada B) — gera narrativa markdown
+ *   - BriefDiarioAgent (laravel/ai HasTools — ADR 0141) — gera narrativa markdown
  *   - BriefDiarioJob — schedule 8h BRT cron, envia WhatsApp+email
  *   - Page Inertia /copiloto/admin/jana-pro — preview admin
  *
@@ -63,7 +63,7 @@ class BriefDiarioService
      *  - mes_corrente, mes_anterior, delta_mes_pct
      *  - ticket_medio_atual, ticket_medio_anterior
      */
-    private function vendasPeriodo(): array
+    public function vendasPeriodo(): array
     {
         try {
             if (! Schema::hasTable('transactions')) {
@@ -141,7 +141,7 @@ class BriefDiarioService
      *
      * Returns: buckets + total_devido + clientes_inadimplentes_count + top_5
      */
-    private function inadimplenciaBuckets(): array
+    public function inadimplenciaBuckets(): array
     {
         try {
             if (! Schema::hasTable('transactions')) {
@@ -235,7 +235,7 @@ class BriefDiarioService
      * sentimento detectado raivoso/frustrado (heurística simplificada da
      * skill ticket-triage v0.1.0).
      */
-    private function ticketsPriorizados(): array
+    public function ticketsPriorizados(): array
     {
         try {
             if (! Schema::hasTable('conversations')) {
@@ -314,7 +314,7 @@ class BriefDiarioService
      * Source 4: NFe status — emissões 30d + rejeições por cstat + cert
      * vencimento se Modules/NfeBrasil instalado.
      */
-    private function nfeStatus(): array
+    public function nfeStatus(): array
     {
         try {
             if (! Schema::hasTable('nfe_emissoes')) {
@@ -361,7 +361,7 @@ class BriefDiarioService
      * Source 5: OPORTUNIDADES de upsell — combo (cliente comprou >3x mesmo
      * produto, sugerir kit) + reativação (inativos >60d com LTV > média).
      */
-    private function oportunidadesUpsell(): array
+    public function oportunidadesUpsell(): array
     {
         try {
             if (! Schema::hasTable('transactions') || ! Schema::hasTable('transaction_sell_lines')) {
