@@ -10,6 +10,7 @@
 - ⛔ **Nunca editar arquivo direto via SSH** sem commit no git — drift mata governança
 - ⛔ **DDL direto em prod** (`ALTER TABLE`, `CREATE/REPLACE PROCEDURE` via SQL prompt ou phpMyAdmin) sem migration — o check `procedure_drift` em `jana:health-check` detecta e alerta; o `ProcedureDriftSnapshotTest` quebra em CI (US-COPI-092, ADR 0094 §5 SoC brutal)
 - ⛔ **Nunca rodar daemons no Hostinger** (Reverb, Centrifugo, Horizon, autossh, Meilisearch). Pra daemons → CT 100
+- ⛔ **Nunca rodar `git worktree remove --force` no Windows com junction de `vendor/` ainda presente.** A junction NTFS é seguida pelo delete recursivo → esvazia o `vendor/` do repo principal (318MB → 0B em segundos). Remover a junction explícita ANTES: `Remove-Item <worktree>\vendor -Force` então `git worktree remove <worktree>` (sem `--force`). Detalhes + recovery em [`memory/requisitos/Infra/PEGADINHA-junction-vendor-worktree-windows.md`](requisitos/Infra/PEGADINHA-junction-vendor-worktree-windows.md). Caí 2026-05-11 — composer install demora 3-5min pra recuperar
 
 ## Código
 
