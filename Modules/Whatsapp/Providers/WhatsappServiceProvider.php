@@ -34,6 +34,7 @@ use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
 use Modules\Whatsapp\Services\Drivers\ZapiDriver;
 use Modules\Whatsapp\Services\Notes\ConfigHandler;
+use Modules\Whatsapp\Services\Notes\CorrigirHandler;
 use Modules\Whatsapp\Services\Notes\LembrarHandler;
 use Modules\Whatsapp\Services\Notes\LembreteHandler;
 use Modules\Whatsapp\Services\Notes\SlashCommandParser;
@@ -138,21 +139,23 @@ class WhatsappServiceProvider extends ServiceProvider
 
         // US-WA-074 (ADR 0142) — Slash commands em notas internas.
         // Parser é stateless. Registry carrega handlers via injeção (singleton).
-        // Slots vazios (`corrigir`/`lembrete`/`config`) serão preenchidos
-        // por US-WA-075..077 — apenas adicionar `register('xxx', $handler)`.
+        // Família completa US-WA-074/075/076/077 — 4 comandos slash registrados.
         $this->app->singleton(SlashCommandParser::class);
+        $this->app->singleton(CorrigirHandler::class);
         $this->app->singleton(LembrarHandler::class);
         $this->app->singleton(LembreteHandler::class);
         $this->app->singleton(ConfigHandler::class);
         $this->app->singleton(SlashCommandRegistry::class, function ($app) {
             $registry = new SlashCommandRegistry();
+            // Ordem alfabética dos comandos (estável pra reduzir conflito merge).
+            // US-WA-075 (ADR 0142 §3a) — training signal Jana
+            $registry->register('corrigir', $app->make(CorrigirHandler::class));
+            // US-WA-077 (ADR 0142 §3c) — toggle bot per-contato via /config bot=on|off
+            $registry->register('config', $app->make(ConfigHandler::class));
+            // US-WA-074 (ADR 0142 §3d) — grava fato em memoria_facts
             $registry->register('lembrar', $app->make(LembrarHandler::class));
             // US-WA-076 (ADR 0142 §3b) — lembrete agendado + cron hourly
             $registry->register('lembrete', $app->make(LembreteHandler::class));
-            // US-WA-077 (ADR 0142 §3c) — toggle bot per-contato via /config bot=on|off
-            $registry->register('config', $app->make(ConfigHandler::class));
-            // Reserved slot — handler preenchido em US-WA-075:
-            //   $registry->register('corrigir', $app->make(CorrigirHandler::class));
             return $registry;
         });
     }
