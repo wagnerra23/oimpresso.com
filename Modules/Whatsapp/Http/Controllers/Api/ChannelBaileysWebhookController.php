@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
+use Modules\Whatsapp\Jobs\DownloadMediaJob;
 use Modules\Jana\Scopes\ScopeByBusiness;
 
 /**
@@ -156,10 +157,29 @@ class ChannelBaileysWebhookController extends Controller
             isset($messageProto['documentMessage']) => 'document',
             isset($messageProto['audioMessage']) => 'audio',
             isset($messageProto['videoMessage']) => 'video',
+            isset($messageProto['stickerMessage']) => 'image',
             isset($messageProto['locationMessage']) => 'location',
             isset($messageProto['contactMessage']) => 'contacts',
             default => 'text',
         };
+
+        // US-WA-072 — extrai meta de mídia se houver. Daemon Baileys envia
+        // `media_url` (URL absoluta direct-download), `mime`, `size_bytes`,
+        // `duration_s` (audio/video), `filename` (document). Caption em
+        // `imageMessage.caption` / `videoMessage.caption` vai pro body.
+        $mediaUrl = $data['media_url'] ?? null;
+        $mediaMime = $data['mime'] ?? null;
+        $mediaSize = isset($data['size_bytes']) ? (int) $data['size_bytes'] : null;
+        $mediaDuration = isset($data['duration_s']) ? (int) $data['duration_s'] : null;
+        $mediaFilename = $data['filename'] ?? ($messageProto['documentMessage']['fileName'] ?? null);
+
+        // Caption (image/video) sobrescreve body=null quando vem
+        if ($body === null) {
+            $body = $messageProto['imageMessage']['caption']
+                ?? $messageProto['videoMessage']['caption']
+                ?? $messageProto['documentMessage']['caption']
+                ?? null;
+        }
 
         // US-WA-076: filtrar msgs "protocol" do Baileys (senderKeyDistributionMessage,
         // protocolMessage, messageContextInfo, app-state-sync events). Chegam com
@@ -257,8 +277,30 @@ class ChannelBaileysWebhookController extends Controller
                     'payload' => $data,
                     'status' => $fromMe ? 'sent' : 'received',
                     'sender_kind' => $fromMe ? 'human' : null,
+                    // US-WA-072 — preserva meta vinda do daemon antes do
+                    // download. `media_url` desta linha é a URL provider-side
+                    // (temporária Baileys) — o DownloadMediaJob substitui pelo
+                    // path local após persistir no disco public.
+                    'media_mime' => $mediaMime,
+                    'media_size_bytes' => $mediaSize,
+                    'media_duration_s' => $mediaDuration,
+                    'media_filename' => $mediaFilename,
                 ]
             );
+
+        // US-WA-072 — dispatcha DownloadMediaJob async pra baixar a mídia do
+        // provider, salvar no disco public, gerar thumbnail (image) e
+        // encadear TranscribeAudioJob (audio). Só se for mídia E só na 1ª
+        // criação (reentregas não duplicam download).
+        $mediaTypes = ['image', 'audio', 'video', 'document'];
+        if ($message->wasRecentlyCreated && in_array($type, $mediaTypes, true) && $mediaUrl) {
+            DownloadMediaJob::dispatch(
+                $channel->business_id,
+                $message->id,
+                $mediaUrl,
+                (string) $mediaMime,
+            );
+        }
 
         // Atualiza last_*_at + unread count APENAS se row foi criada agora
         // (reentregas duplicadas NÃO devem incrementar unread).

@@ -88,6 +88,19 @@ export interface Message {
    * Backend gateia dispatch driver com `is_internal_note=false`.
    */
   is_internal_note?: boolean;
+  /**
+   * US-WA-072 — mídia (image/audio/document/video/sticker). URLs resolvidas
+   * server-side via Storage::temporaryUrl (S3) ou Storage::url (local public).
+   * Thumbnail only para image (256x256 jpeg). Transcription only para audio
+   * (Whisper output, ~10s após inbound). Filename only para document.
+   */
+  media_url?: string | null;
+  media_mime?: string | null;
+  media_size_bytes?: number | null;
+  media_duration_s?: number | null;
+  media_thumbnail_url?: string | null;
+  media_transcription?: string | null;
+  media_filename?: string | null;
   created_at: string;
 }
 

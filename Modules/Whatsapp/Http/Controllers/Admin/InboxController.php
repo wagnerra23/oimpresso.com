@@ -12,12 +12,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Contact;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
+use Modules\Whatsapp\Jobs\SendMediaJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 
 /**
@@ -392,8 +395,44 @@ class InboxController extends Controller
             // de nota interna. Backend já garante via global scope que só
             // atendentes do business veem (Tier 0).
             'is_internal_note' => (bool) $m->is_internal_note,
+            // US-WA-072 — mídia (image/audio/document/sticker/video). URLs
+            // resolvidas via Storage::temporaryUrl (S3) ou Storage::url (local).
+            'media_url' => $this->resolveMediaUrl($m->media_url),
+            'media_mime' => $m->media_mime,
+            'media_size_bytes' => $m->media_size_bytes,
+            'media_duration_s' => $m->media_duration_s,
+            'media_thumbnail_url' => $this->resolveMediaUrl($m->media_thumbnail_url),
+            'media_transcription' => $m->media_transcription,
+            'media_filename' => $m->media_filename,
             'created_at' => $m->created_at?->toIso8601String() ?? now()->toIso8601String(),
         ];
+    }
+
+    /**
+     * US-WA-072 — Resolve URL pública/assinada do media path.
+     *
+     * - Disco `s3`/`gcs`: `Storage::temporaryUrl()` 24h (TTL config).
+     * - Disco `public`: `Storage::url()` direto (sem TTL — caminho público).
+     *   Defense-in-depth do path inclui {business_id} + UUID v4 (~122 bits
+     *   entropia) → não enumerável por força bruta.
+     *
+     * `temporaryUrl()` lança RuntimeException em drivers que não suportam
+     * (local) — try/catch faz fallback gracioso pra `url()` plain.
+     */
+    protected function resolveMediaUrl(?string $relativePath): ?string
+    {
+        if (! $relativePath) {
+            return null;
+        }
+        $disk = config('whatsapp.media.disk', 'public');
+        $ttl = (int) config('whatsapp.media.signed_url_ttl_seconds', 86400);
+        $storage = Storage::disk($disk);
+
+        try {
+            return $storage->temporaryUrl($relativePath, now()->addSeconds($ttl));
+        } catch (\Throwable) {
+            return $storage->url($relativePath);
+        }
     }
 
     /**
@@ -752,5 +791,123 @@ class InboxController extends Controller
         $conversation->save();
 
         return back()->with('success', $contactId ? 'Contato vinculado.' : 'Contato desvinculado.');
+    }
+
+    /**
+     * US-WA-072 — POST `/atendimento/inbox/{id}/send-media` — upload outbound.
+     *
+     * Aceita multipart com:
+     *   - `file` (UploadedFile, obrigatório)
+     *   - `caption` (string opcional, vira `body` da Message)
+     *
+     * Valida MIME contra `Message::MEDIA_MIME_WHITELIST` (bloqueia SVG/HTML),
+     * size <= 16MB. Salva no disco config('whatsapp.media.disk', 'public')
+     * em `whatsapp/{business_id}/{yyyy-mm}/{uuid}.{ext}`.
+     *
+     * Persiste Message em `status='queued'` ANTES de dispatchar `SendMediaJob`
+     * (defense-in-depth: row já existe pra retry se daemon falhar).
+     *
+     * Tier 0 IRREVOGÁVEL — `is_internal_note` + `send-media` = 422 (notas
+     * internas NÃO podem ter mídia outbound — atendente pode usar caption
+     * mas não anexar arquivo).
+     *
+     * Permission `whatsapp.send` (mesma do send freeform).
+     */
+    public function sendMedia(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+
+        $data = $request->validate([
+            'file' => ['required', 'file', 'max:' . (Message::MEDIA_MAX_SIZE_BYTES / 1024)],
+            'caption' => ['nullable', 'string', 'max:1024'],
+            // Tier 0: notas internas NÃO podem ter mídia outbound (combinação inválida)
+            'is_internal_note' => ['nullable', 'boolean'],
+        ]);
+
+        if (! empty($data['is_internal_note'])) {
+            return back()->withErrors([
+                'send_media' => 'Notas internas não podem ter mídia outbound nesta fase.',
+            ]);
+        }
+
+        $file = $request->file('file');
+        $mime = $file->getMimeType() ?: $file->getClientMimeType();
+
+        // MIME whitelist enforce — bloqueia SVG (XSS), HTML, executáveis
+        if (! in_array($mime, Message::MEDIA_MIME_WHITELIST, true)) {
+            return back()->withErrors([
+                'send_media' => "Tipo de arquivo não permitido: {$mime}",
+            ]);
+        }
+
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->with('channel')
+            ->findOrFail($id);
+
+        if ($conversation->is_blocked) {
+            return back()->withErrors(['send_media' => 'Contato bloqueado.']);
+        }
+
+        $channel = $conversation->channel;
+        if (! $channel) {
+            return back()->withErrors(['send_media' => 'Canal não associado à conversa.']);
+        }
+
+        // Salva o arquivo no disco public
+        $disk = config('whatsapp.media.disk', 'public');
+        $uuid = Str::uuid()->toString();
+        $ext = $file->getClientOriginalExtension() ?: 'bin';
+        $relativePath = sprintf(
+            'whatsapp/%d/%s/%s.%s',
+            $businessId,
+            now()->format('Y-m'),
+            $uuid,
+            $ext,
+        );
+        Storage::disk($disk)->put($relativePath, file_get_contents($file->getRealPath()));
+
+        // Type derivado do MIME — mesmo mapping do webhook inbound
+        $type = match (true) {
+            str_starts_with($mime, 'image/') => 'image',
+            str_starts_with($mime, 'audio/') => 'audio',
+            str_starts_with($mime, 'video/') => 'video',
+            default => 'document',
+        };
+
+        $message = Message::query()->create([
+            'business_id' => $businessId,
+            'conversation_id' => $conversation->id,
+            'direction' => 'outbound',
+            'provider' => $channel->type,
+            'type' => $type,
+            'body' => $data['caption'] ?? null,
+            'status' => 'queued',
+            'sender_user_id' => $userId ?: null,
+            'sender_kind' => 'human',
+            'is_internal_note' => false,
+            'media_url' => $relativePath,
+            'media_mime' => $mime,
+            'media_size_bytes' => $file->getSize(),
+            'media_filename' => $file->getClientOriginalName(),
+        ]);
+
+        $conversation->forceFill([
+            'last_outbound_at' => now(),
+            'last_message_at' => now(),
+        ])->save();
+
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+            $message->forceFill([
+                'status' => 'failed',
+                'failed_reason' => "Envio de mídia só implementado pra Baileys nesta fase. Tipo: {$channel->type}",
+            ])->save();
+            return back()->withErrors(['send_media' => 'Envio de mídia só disponível pra canais Baileys.']);
+        }
+
+        SendMediaJob::dispatch($businessId, $message->id);
+
+        return back()->with('success', 'Mídia enviada (aguardando confirmação do daemon).');
     }
 }
