@@ -1,11 +1,11 @@
 ---
 module: ComunicacaoVisual
 status: em_construcao (planejado)
-piloto: 1 dos 6 saudáveis OfficeImpresso (a confirmar — Vargas/Extreme/Gold/Zoom/Fixar/Mhundo/Produart)
+piloto: Gold confirmado vertical comvis (perfil 04-gold-comvis) — Vargas REMOVIDO (autopeças confirmado 2026-05-10 → Modules/OficinaAuto)
 piloto_previsao: 2026-Q3
 cnae_principal: "1813-0/01"
-related_adrs: [0121, 0094, 0093, 0035, 0119, 0105, 0011, 0024]
-last_review: 2026-05-10
+related_adrs: [0121, 0143, 0094, 0093, 0035, 0119, 0117, 0136, 0105, 0011, 0024]
+last_review: 2026-05-12
 owner: [W]
 ---
 
@@ -676,8 +676,481 @@ Quando snapshot financeiro de cada um estiver pronto, priorizar quem tem:
 
 ---
 
+## 11. Pipeline FSM canônico Comunicação Visual ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md))
+
+> Sessão 2026-05-12 marcou FSM Pipeline canônico LIVE em prod biz=1 (40+ PRs ~10h). ComVis **reusa fundação canon** `sale_processes` + `sale_process_stages` + `ExecuteStageActionService` + `GuardsFsmTransitions` — não duplica fundação. Stages CV-específicos cadastrados PER-business via processo seed "OS Comunicação Visual".
+>
+> Detalhes arquiteturais em [proposal ADR `comunicacao-visual-modulo-canonico`](../../decisions/proposals/drafts/comunicacao-visual-modulo-canonico.md) §D2.
+
+### 11.1 Stages canônicos CV (13 ativos + 4 laterais + 2 terminais)
+
+```
+quote_draft (initial)
+  → quote_sent
+  → quote_approved
+  → arte_em_aprovacao              ← split do "aprovado" pra ciclo designer→cliente
+  → arte_aprovada
+  → aguardando_maquina             ← OPCIONAL — habilitado per-business (Extreme PCP industrial); off pra Gold comvis sob demanda
+  → em_impressao
+  → impressao_concluida
+  → aguardando_acabamento          ← 1 stage genérico; sub-itens corte/ilhós/costura/perfuração via acabamento_json
+  → acabamento_concluido
+  → aguardando_instalacao          ← SKIP se instalacao_tipo='cliente_busca' (jump direto pra entregue_completo)
+  → em_instalacao
+  → instalado_aguardando_aprovacao_final  ← cliente recebe foto pós + assina digital
+  → entregue_completo (T)
+
+Laterais (transitam pra estados não-terminais):
+  → rejeitar_arte → arte_em_aprovacao (loop volta + side-effect NotificarDesigner)
+  → refazer_impressao → em_impressao (side-effect ConsumirEstoqueExtra + AlertaMargemNegativa)
+  → reagendar_instalacao → aguardando_instalacao (side-effect AtualizarAgendaEquipe)
+
+Terminais laterais:
+  → cancelado (T)            ← qualquer stage não-terminal; side-effect CancelarVendaCascade (libera reserva + cancela NFe se já emitida + estorna boleto)
+  → garantia_acionada (T)    ← pós entregue_completo; abre OS filha tipo "garantia"
+```
+
+### 11.2 Actions críticas (🔒 — RBAC obrigatório + audit + side-effects)
+
+| Action | Roles permitidas | Side-effects | Anti-hook charter |
+|---|---|---|---|
+| `enviar_para_aprovacao_arte` | designer, gerente | `NotificarClienteAprovacaoArteJob` (WhatsApp ADR 0117) | Respeita `whatsapp_consent` LGPD |
+| `aprovar_arte` 🔒 | sistema (via link público token) ou gerente | freeze arte_url (imutável daqui) | Bloqueia recálculo m² (#2) |
+| `iniciar_impressao` 🔒 | operador, gerente | — | NUNCA dispara plotter auto (#1) |
+| `concluir_impressao` 🔒 | operador, gerente | `ConsumirEstoque` substrato (m² lona da reservation) | — |
+| `concluir_acabamento` 🔒 | operador, gerente | — | — |
+| `concluir_instalacao` 🔒 | instalador, gerente | unlock `faturar`; gera assinatura cliente + GPS (LGPD-consent) | NUNCA marca auto "concluído" (#5) |
+| `emitir_nfe_e_nfse` 🔒 | gerente, financeiro | dispatch `EmitirNfeJob` + `EmitirNfseJob` PARALELO (ver §13) | NUNCA emite fiscal auto (#3) |
+| `cancelar_os` 🔒 | gerente | `CancelarVendaCascade` (libera reserva + cancela docs + estorna boleto) | NUNCA cancela NFe autorizada sem fluxo formal (#9) |
+| `aplicar_garantia` 🔒 | gerente | abre OS filha tipo garantia | — |
+
+### 11.3 Override per-business (stages opcionais)
+
+Cada gráfica habilita/desabilita stages via `sale_process_stages.business_id` FK + flag `is_active`:
+
+| Stage | Gold (comvis sob demanda) | Extreme (industrial PCP) | Razão |
+|---|:-:|:-:|---|
+| `aguardando_maquina` | OFF | **ON** | Gold zero PCP industrial; Extreme 52k linhas centro_trabalho |
+| `arte_em_aprovacao` | ON | ON | universal |
+| `aguardando_acabamento` | ON | ON | universal |
+| `aguardando_instalacao` | ON (50% das OS) | ON (30% das OS) | both atendem fachada |
+
+---
+
+## 12. Schema proposto `Modules/ComunicacaoVisual/Entities`
+
+> Detalhes em [proposal ADR §D1+§schema](../../decisions/proposals/drafts/comunicacao-visual-modulo-canonico.md). Todas tabelas com `business_id` indexado + FK + global scope (Tier 0 [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
+
+### 12.1 Tabelas (6 core + 2 opcionais)
+
+| Tabela | Tipo | Campos críticos | FK chave |
+|---|---|---|---|
+| `cv_substratos` | catálogo | nome, categoria (lona/vinil/adesivo/acm/tela/mdf/neon/letra_caixa), gramatura_g_m2, preco_custo_m2, preco_venda_m2, minimo_m2, ncm, cfop_padrao, csosn_padrao | business_id, fornecedor_id |
+| `cv_acabamentos` | catálogo | nome, tipo ENUM(m_linear/unitario/m2/fixo), preco DECIMAL(8,2) | business_id |
+| `cv_instalacoes_catalogo` | catálogo | nome, preco_base, preco_m2, preco_km, exige_nr35, ferramentas_necessarias_json | business_id |
+| **`cv_ordens_producao`** | transacional | codigo, contato_id, current_stage_id (FK sale_process_stages), substrato_id, largura_m, altura_m, qtd, area_m2 GENERATED, acabamento_json, instalacao_tipo ENUM, endereco_instalacao_json, equipamentos_necessarios_json, arte_url, arte_aprovada_em, estimated_completion, prazo_prometido (mapeia PROJETO_DT_FIM Delphi — `_LICOES-CRITICAS.md` §3), commission_distribution_json (§14), subtotal, extras, total | business_id, transaction_id (FK opcional pro fiscal), orcamento_id |
+| `cv_instalacoes` | execução | equipe_user_ids_json, data_agendada, data_realizada, foto_pre_url, foto_pos_url, assinatura_cliente_url, lat_lng_inicio POINT, lat_lng_fim POINT | business_id, ordem_id, nfse_emissao_id (FK nfe_documents NULLABLE) |
+| `cv_orcamentos` | transacional | status (rascunho/enviado/aprovado/reprovado/virou_os), subtotal, extras, instalacao, entrega, total, data_validade, observacao | business_id, contato_id, vendedor_id |
+
+**Opcionais (Extreme/PCP industrial):**
+
+| Tabela | Tipo | Razão | Ativação |
+|---|---|---|---|
+| `cv_maquinas` | catálogo plotters | Roland/Mimaki/HP Latex + cartuchos CMYK json | per-business flag |
+| `cv_apontamentos` | execução | inicio, fim, m2_impresso, consumo_tinta_json | per-business flag |
+
+### 12.2 Decisão "campos em cv_ordens_producao direto vs sub-tabelas"
+
+| Campo | Decisão | Razão |
+|---|---|---|
+| `acabamento_json` | JSON inline | Catalog estável (5-10 opções); busca analytics secundária via JSON_EXTRACT MySQL 8+ |
+| `commission_distribution_json` | JSON inline | Multi-papel flexível; promover pra `cv_commission_lines` quando gráfica >100 OS/m |
+| `equipamentos_necessarios_json` | JSON inline | Pequeno (3-8 items), não FK |
+| `endereco_instalacao_json` | JSON inline | Snapshot momento agendamento; histórico cliente em `contacts.address` |
+| `substrato_id` | FK direta | Reutilização alta + busca por substrato comum |
+| `current_stage_id` | FK direta (FSM canon) | Gateway obrigatório `ExecuteStageActionService` |
+
+---
+
+## 13. Vinculação NFe55 + NFSe56 simultânea ([CASO-PRATICO](../Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md))
+
+### 13.1 Caso prático canônico
+
+> Wagner referência sessão 2026-05-10. Banner R$ [redacted Tier 0] (mercadoria — NFe55) + Instalação R$ [redacted Tier 0] (serviço — NFSe56) = 1 OS = 2 documents.
+
+```
+cv_ordens_producao.id = 12345
+  └── transaction_id = 99999 (cria 1 Transaction Sells)
+       ├── transaction_documents poly:
+       │     ├── doc_type=nfe55  · doc_id=789 · value=350.00 · status=authorized (banner)
+       │     ├── doc_type=nfse56 · doc_id=44  · value=200.00 · status=authorized (instalação LC 17.06)
+       │     └── (opcional) doc_type=mdfe58 · doc_id=12 · value=550.00 (transporte >R$ [redacted Tier 0])
+       └── total Transaction = R$ [redacted Tier 0] = total documentado ✓
+```
+
+### 13.2 Action FSM `emitir_nfe_e_nfse` 🔒 — side-effect dispatch PARALELO
+
+```php
+class EmitirNfeENfseSideEffect implements StageActionSideEffect
+{
+    public function execute(OrdemProducaoCv $os): void
+    {
+        DB::transaction(function() use ($os) {
+            // Item 1: banner = NFe55
+            if ($os->valor_substrato > 0) {
+                EmitirNfeJob::dispatch(
+                    business_id: $os->business_id,
+                    ordem_id: $os->id,
+                    item: 'substrato',
+                    value: $os->valor_substrato,
+                    ncm: $os->substrato->ncm,
+                    cfop: $os->substrato->cfop_padrao,
+                    csosn: $os->substrato->csosn_padrao,
+                )->onQueue('fiscal');
+            }
+            // Item 2: instalação = NFSe56 (modelo nacional NT 2024-001)
+            if ($os->valor_instalacao > 0) {
+                EmitirNfseJob::dispatch(
+                    business_id: $os->business_id,
+                    ordem_id: $os->id,
+                    value: $os->valor_instalacao,
+                    item_lc: '17.06',           // Publicidade
+                    iss_municipio: $os->endereco_instalacao->municipio_ibge,
+                )->onQueue('fiscal');
+            }
+        });
+    }
+}
+```
+
+**Falha 1 NÃO bloqueia o outro** — retry exponencial independente 24h.
+
+### 13.3 UI tela `/comvis/ordens/{id}` card "Documentos Fiscais"
+
+```
+┌─ Documentos Fiscais (2) ────────────────────────────┐
+│ ✅ NFe 55  nº 789      R$ [redacted Tier 0]   Banner          │
+│ ✅ NFSe 56 nº 44       R$ [redacted Tier 0]   Instalação      │
+│                                                     │
+│ Total documentado: R$ [redacted Tier 0] = total OS ✓          │
+└─────────────────────────────────────────────────────┘
+```
+
+### 13.4 Wedge competitivo
+
+| Concorrente | Comportamento | Problema |
+|---|---|---|
+| **Mubisys/Zênite/Calcgraf** | 2 vendas SEPARADAS | Cadastro duplo + financeiro duplo + estoque descasado |
+| **Bling/Omie horizontal** | Suporte NFSe parcial (emissor municipal direto) | Vai parar com adesão obrigatória NT 2024-001 |
+| **oimpresso** | 1 OS → 1 Transaction → 2 documents | Cadastro único, financeiro unificado, FSM canon |
+
+---
+
+## 14. Comissão multi-vendedor/instalador via `commission_distribution_json`
+
+### 14.1 Cenário Gold/Extreme típico
+
+- **Vendedor calcula+aprova:** 5% sobre total OS
+- **Designer faz arte:** R$ [redacted Tier 0] fixo por OS
+- **Instalador externo:** 30% sobre `valor_instalacao` apenas
+
+### 14.2 Schema JSON `cv_ordens_producao.commission_distribution_json`
+
+```json
+[
+  {"user_id": 12, "papel": "vendedor",   "tipo": "pct_total",         "valor": 5.0,  "calculado_brl": 27.50},
+  {"user_id": 19, "papel": "designer",   "tipo": "fixo",              "valor": 50.0, "calculado_brl": 50.00},
+  {"user_id": 7,  "papel": "instalador", "tipo": "pct_instalacao",    "valor": 30.0, "calculado_brl": 60.00}
+]
+```
+
+Tipos suportados: `pct_total`, `pct_subtotal`, `pct_instalacao`, `pct_acabamento`, `fixo`, `por_m2`.
+
+### 14.3 Trigger comissão
+
+Action FSM `concluir_instalacao` (default) ou `marcar_pago` (override per-business `business.comvis_settings.comissao_sobre = 'recebido'`) dispatcha:
+
+```php
+CalcularComissaoOsJob::dispatch(
+    business_id: $os->business_id,
+    ordem_id: $os->id,
+);
+```
+
+Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comissao_pendente` em `Modules/Financeiro`. Audit log preservado.
+
+### 14.4 Limitações conhecidas (V1)
+
+- ❌ Sem FK validation no JSON — `user_id` inválido detectado só no Job. Mitigação: Pest test guard.
+- ❌ Sem analytics agregadas DB-side ("top vendedores trimestre") — Service lê via JSON_EXTRACT (MySQL 8+ ok). Promover pra `cv_commission_lines` quando gráfica >100 OS/m.
+
+---
+
+## 15. User stories adicionais — US-COMVIS-NEW-NNN
+
+> Complementam as 18 US base (§3). Recalibradas ADR 0106 (fator 10x IA-pair).
+
+### US-COMVIS-NEW-001 · Cadastrar processo FSM "OS Comunicação Visual" per-business — **P0**
+
+> **Owner:** — (aguarda atribuição) · **Estimate:** 4h IA-pair · **Status:** todo · **Blocked_by:** ADR proposal accepted + scaffold módulo (Fase 1)
+
+**Como** dono de gráfica novo onboarding
+**Quero** que ao instalar Modules/ComunicacaoVisual no meu business, o processo FSM "OS Comunicação Visual" (13 stages + 6 actions críticas + 10 roles) seja cadastrado automaticamente
+**Para** começar a usar o pipeline sem configuração manual
+
+**Acceptance:**
+- [ ] Seeder `FsmProcessoOsComvisSeeder` cadastra processo per-business no install do módulo
+- [ ] Roles Spatie suffix `#{biz}`: `comvis.designer#{biz}`, `comvis.operador#{biz}`, `comvis.instalador#{biz}`, `comvis.gerente#{biz}`, `comvis.financeiro#{biz}`
+- [ ] Stages opcionais (`aguardando_maquina`) cadastrados mas `is_active=false` default (gráfica industrial liga via admin)
+- [ ] Pest test: instala módulo em biz=99 (cross-tenant test conforme `feedback_test_biz_99_cross_tenant_convention.md`) → 13 stages + 6 actions cadastrados + roles per-business
+
+### US-COMVIS-NEW-002 · Sub-feature PCP gráfico industrial (Extreme `aguardando_maquina`) — **P1**
+
+> **Owner:** — · **Estimate:** 8h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-001 + sinal qualificado Extreme piloto
+
+**Como** PCP de gráfica industrial (Extreme)
+**Quero** habilitar stage `aguardando_maquina` no fluxo FSM
+**Para** rastrear OS aguardando máquina específica (Roland/Mimaki) ocupada
+
+**Acceptance:**
+- [ ] UI admin permite gráfica habilitar/desabilitar stages opcionais via toggle
+- [ ] `business.comvis_settings.stages_opcionais_ativos = ['aguardando_maquina']` JSON config
+- [ ] Quando ativo: action `iniciar_impressao` exige `maquina_id` no payload; sem máquina disponível → stage `aguardando_maquina`
+- [ ] Liberação máquina dispatcha event → tenta avançar stage seguinte automaticamente (com confirmação humana)
+- [ ] Pest: smoke biz Extreme piloto end-to-end
+
+### US-COMVIS-NEW-003 · Action FSM `emitir_nfe_e_nfse` paralelo dual-doc — **P0**
+
+> **Owner:** — · **Estimate:** 6h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-001 + Modules/NfeBrasil já entregue + US-SELL-014 transaction_documents poly entregue
+
+**Como** financeiro de gráfica
+**Quero** que ao concluir instalação + clicar "Emitir fiscal", AMBOS NFe55 (banner) E NFSe56 (instalação) sejam emitidos em paralelo
+**Para** não emitir manualmente cada documento + 1 cadastro de OS
+
+**Acceptance:**
+- [ ] Action FSM `emitir_nfe_e_nfse` (🔒 gerente+financeiro role) dispatch `EmitirNfeJob` + `EmitirNfseJob` paralelo
+- [ ] Falha 1 não bloqueia outro (retry exponencial 24h independente)
+- [ ] Card UI "Documentos Fiscais" mostra status independente de cada doc
+- [ ] Pest: caso prático banner R$ [redacted Tier 0] + instalação R$ [redacted Tier 0] → 2 documents criados em transaction_documents poly
+- [ ] Smoke biz=gold real (após cutover) — emissão real SEFAZ + prefeitura
+
+### US-COMVIS-NEW-004 · Workflow arte aprovação via WhatsApp link token — **P1**
+
+> **Owner:** — · **Estimate:** 8h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-001 + ADR 0117 multi-números entregue + LGPD consent contacts
+
+**Como** designer de gráfica
+**Quero** enviar arte (preview imagem) pelo WhatsApp pro cliente final, ele clicar link → ver preview → aprovar/rejeitar em 1 clique
+**Para** reduzir ciclo aprovação de 2 dias pra 4h
+
+**Acceptance:**
+- [ ] Action `enviar_para_aprovacao_arte` dispatcha `NotificarClienteAprovacaoArteJob` (WhatsApp via número arte_id business)
+- [ ] Mensagem contém link assinado curta-validade `/b/{slug}/arte-aprovacao/{token}` (7d, Laravel signed URL)
+- [ ] Página pública (sem auth) renderiza preview + 2 botões (Aprovar / Solicitar alteração)
+- [ ] Aprovar → dispatcha action FSM `aprovar_arte` em nome de `system_user` + log audit
+- [ ] Solicitar alteração → action `rejeitar_arte` + campo motivo livre (notifica designer)
+- [ ] LGPD: `contact.whatsapp_consent === true` antes de dispatch; fallback email se consent
+- [ ] Sem nenhum canal → log warning + UI alerta "Cliente sem canal — contate manualmente"
+- [ ] Pest: token expirado → 410; token válido após aprovação → 410 (one-time use)
+
+### US-COMVIS-NEW-005 · Wizard onboarding CNAE 1813 via Jana detecta — **P2**
+
+> **Owner:** — · **Estimate:** 3h · **Status:** todo · **Blocked_by:** Modules/Jana + Modules/NfeBrasil seed tributária
+
+**Como** dono novo onboarding (criando business novo)
+**Quero** que Jana detecte CNAE 1813-0/01 no cadastro do business e pré-popule NCMs/CFOPs/CSOSN
+**Para** não precisar contador configurar 80 produtos
+
+**Acceptance:**
+- [ ] Hook em `BusinessCreated` listener: se `cnae_principal` começa com `1813`, ativa wizard ComVis
+- [ ] Wizard cria 12 substratos padrão (lona 440g, lona 510g blackout, vinil adesivo, vinil perfurado, ACM 3mm, tela mesh, etc.) + 6 acabamentos (corte reto, corte vinco, ilhós, costura, perfuração, aplicação adesivo) + 3 instalações (fachada simples, fachada com escadote, fachada com andaime NR-35)
+- [ ] Preço sugestão baseado em média mercado SC/SP (configurável)
+- [ ] Wagner aprovou cada item via 1 clique
+- [ ] Pest: business novo CNAE 1813 → wizard ativado + 21 itens cadastrados
+
+### US-COMVIS-NEW-006 · Mapeamento Delphi `VENDA.SITUACAO` Gold → stage FSM — **P0**
+
+> **Owner:** — · **Estimate:** 6h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-001 + US-COMVIS-017 importer
+
+**Como** engenheiro de migração
+**Quero** mapear os 7 estados Gold textuais (`VENDA.SITUACAO`) pros stages CV-específicos
+**Para** importar 29k vendas EM PRODUÇÃO + 7k FINALIZADA sem perder contexto
+
+**Acceptance:**
+- [ ] Map table dry-run: cada distinct value de `Cliente_09FEB1.VENDA.SITUACAO` mapeia pra 1 stage CV
+- [ ] Validação Wagner cada mapeamento (manual approval gate)
+- [ ] Bridge `cv_ordens_producao_legacy_map` com `business_id` global scope (Pattern 02)
+- [ ] Importer preserva `created_at` legacy + adiciona `imported_at`
+- [ ] Pest: dry-run em copy local Firebird Gold → 29k+7k stages atribuídos sem erro
+
+### US-COMVIS-NEW-007 · Pós-cálculo ConsumirEstoque + AlertaMargem — **P1**
+
+> **Owner:** — · **Estimate:** 10h · **Status:** todo · **Blocked_by:** US-COMVIS-005 + US-COMVIS-NEW-001 + apontamento US-COMVIS-004
+
+**Como** dono de gráfica
+**Quero** que ao concluir impressão, sistema calcule margem real (orçado vs realizado m² consumido + tinta + tempo etapa) e alerte se negativa
+**Para** descobrir OS sangrando + ajustar tabela
+
+**Acceptance:**
+- [ ] Side-effect `ConsumirEstoque` registra `cv_apontamentos_consumo` snapshot
+- [ ] Service `PosCalculoService::calcular($ordem)` retorna DTO com {orçado_brl, realizado_brl, margem_pct}
+- [ ] Margem < orçado em >5pp → Event `MargemNegativaDetectada` → notificação passiva no Jana brief
+- [ ] Action FSM `concluir_impressao` 🔒 chama `PosCalculoService::calcular`
+- [ ] UI tela OS mostra card "Pós-cálculo" com breakdown auditável
+- [ ] Pest: caso banner orçado 22% margem, realizado 15% → alerta gerado
+
+### US-COMVIS-NEW-008 · Driver NFSe Floripa SC (ABRASF v2.04 SOAP) — **P1**
+
+> **Owner:** — · **Estimate:** 14h · **Status:** todo · **Blocked_by:** Modules/NfeBrasil NFSe framework (PR #653 ADR 0143) + cert A1 sandbox Floripa + cliente piloto SC
+
+**Como** financeiro de gráfica SC
+**Quero** emitir NFSe modelo 56 automática pra Florianópolis
+**Para** cumprir LC 116/2003 + adesão NT 2024-001
+
+**Acceptance:**
+- [ ] Implementa interface `NfseDriver` em `Modules/NfeBrasil/Services/NfseDrivers/NfseDriverFloripa.php`
+- [ ] SOAP request ABRASF v2.04 → endpoint sandbox Floripa
+- [ ] Retry exponencial 24h se SEFAZ/prefeitura down
+- [ ] Cert A1 lido de `Modules/MemCofre`
+- [ ] Pest: mock SOAP success path + 3 error paths (cert vencido, payload inválido, rejeitada)
+- [ ] Smoke biz=gold real (se SC) ou biz=99 sandbox
+
+### US-COMVIS-NEW-009 · UI Inertia Cockpit Pattern V2 — **P0**
+
+> **Owner:** — · **Estimate:** 12h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-001 + ADR 0110 Cockpit V2 + Repair KanbanBoard extraível
+
+**Como** designer/atendente
+**Quero** UI Inertia/React Cockpit Pattern V2 pra orçamento + listagem OS + drawer detail
+**Para** consistente com Sells/Repair/Vestuario
+
+**Acceptance:**
+- [ ] `/comvis/orcamento/calcular` — form mobile-first + preview tempo real
+- [ ] `/comvis/ordens` — Listagem com filtros (stage, cliente, vendedor) + DataTables ou React Table
+- [ ] `/comvis/ordens/{id}` — drawer SaleSheet-style com pipeline FSM panel + timeline histórico + documents fiscais card
+- [ ] Kanban PCP em `/comvis/pcp` — reusa componente `<KanbanBoard>` extraído pra `Components/shared/`
+- [ ] Charter `.charter.md` ao lado de cada Page
+- [ ] Tipografia + cores semânticas ADR 0110 (rose/emerald/amber/blue)
+- [ ] Mobile-first apontamento (US-COMVIS-004)
+- [ ] Pest browser MCP smoke biz=gold
+
+### US-COMVIS-NEW-010 · Charter de cada Page Inertia — **P1** (governance gate)
+
+> **Owner:** — · **Estimate:** 4h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-009
+
+**Como** governance (S4+ charter-first Tier A)
+**Quero** charter `.charter.md` ao lado de cada Page Inertia
+**Para** garantir mission + non-goals + ux targets explícitos antes de Edit/Write
+
+**Acceptance:**
+- [ ] `OrcamentoCalculator.charter.md` ao lado de `OrcamentoCalculator.tsx`
+- [ ] `OrdensProducaoIndex.charter.md` ao lado de `OrdensProducaoIndex.tsx`
+- [ ] `OrdemProducaoShow.charter.md` (drawer) ao lado
+- [ ] `PcpKanban.charter.md` ao lado
+- [ ] Cada charter: mission 1 frase + goals 3 itens + non-goals 5+ itens + anti-hooks 5+ itens
+- [ ] Validado via skill `charter-write` se disponível
+
+### US-COMVIS-NEW-011 · Permission UI Spatie granular per-action FSM — **P0** (governance)
+
+> **Owner:** — · **Estimate:** 4h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-001
+
+**Como** gerente RBAC
+**Quero** atribuir roles Spatie (`comvis.designer#{biz}`, etc.) per-user via UI
+**Para** controlar quem executa cada action FSM (designer aprova arte, financeiro emite fiscal, instalador conclui instalação)
+
+**Acceptance:**
+- [ ] UI admin `/admin/roles` lista roles ComVis per-business
+- [ ] Atribuição user → role visível em `/admin/users/{id}/edit`
+- [ ] Action FSM sem role compatível → 403 com mensagem clara
+- [ ] Pest cross-tenant: user com role `comvis.designer#1` NÃO consegue aprovar arte em biz=2 (403)
+
+### US-COMVIS-NEW-012 · Pest GUARD Tier 0 anti-hooks charter — **P0** (governance)
+
+> **Owner:** — · **Estimate:** 6h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-001
+
+**Como** governance Tier 0
+**Quero** Pest test guard pra cada anti-hook listado em `ComunicacaoVisual.charter.md` §7
+**Para** detectar regressão de Tier 0 imediatamente
+
+**Acceptance:**
+- [ ] Test: NUNCA disparar plotter auto (test `iniciar_impressao` sem role → falha)
+- [ ] Test: NUNCA recalcular m² pós-NFe (try update `area_m2` com NFe emitida → exception)
+- [ ] Test: NUNCA emitir fiscal auto (test `emitir_nfe_e_nfse` sem role gerente → 403)
+- [ ] Test: NUNCA cancelar OS com NFe autorizada sem fluxo (test ordem com NFe authorized + `cancelar_os` simples → exige fluxo)
+- [ ] Test: NUNCA escrever em outro business_id (test biz=1 user tentando criar ordem biz=2 → 404)
+- [ ] Test: NUNCA aplicar reajuste bulk >5% sem confirmação humana (test `bulk_update_substratos` 10% → REQUIRE_HUMAN_REVIEW)
+
+### US-COMVIS-NEW-013 · Comissão multi-papel JSON Job — **P1**
+
+> **Owner:** — · **Estimate:** 5h · **Status:** todo · **Blocked_by:** US-COMVIS-NEW-001 + Modules/Financeiro lançamento comissão
+
+**Como** financeiro
+**Quero** que ao concluir instalação (ou marcar pago), comissões dos papéis (vendedor + designer + instalador) sejam calculadas e lançadas
+**Para** pagar correto na folha sem planilha paralela
+
+**Acceptance:**
+- [ ] `CalcularComissaoOsJob` lê `commission_distribution_json`
+- [ ] Cria lançamentos `comissao_pendente` em `Modules/Financeiro` por papel
+- [ ] Audit log com user, role, valor calculado, base, fórmula
+- [ ] Override per-business: `business.comvis_settings.comissao_sobre = 'faturado'|'recebido'`
+- [ ] Pest: caso 3 papéis (vendedor 5% + designer R$ [redacted Tier 0] + instalador 30% instalação) → 3 lançamentos R$ [redacted Tier 0] + R$ [redacted Tier 0] + R$ [redacted Tier 0]
+
+### US-COMVIS-NEW-014 · Snapshot financeiro pré-venda 6 saudáveis batch — **P0** (sales)
+
+> **Owner:** Wagner [W] · **Estimate:** 6h wallclock (1h × 6 clientes via skill) · **Status:** todo · **Blocked_by:** skill `officeimpresso-financial-snapshot` (Tier B Bash)
+
+**Como** vendedor (Wagner)
+**Quero** rodar snapshot financeiro nos 5 candidatos (Extreme/Zoom/Fixar/Mhundo/Produart — Vargas removido)
+**Para** apresentar receita real do cliente extraída do .FDB na call de venda + decidir ordem prioridade
+
+**Acceptance:**
+- [ ] Snapshot batch via skill `officeimpresso-financial-snapshot`
+- [ ] Cada cliente: receita 12m, despesa 12m, MRR, ticket médio, top 30 clientes, inadimplência
+- [ ] Arquivo em `memory/research/clientes-legacy-officeimpresso/NN-<slug>/03-financeiro-<data>.md`
+- [ ] Anonimização sha1 PIIs (LGPD)
+- [ ] Wagner valida identidade Gold (registry vs Mubisys post-mortem)
+
+### US-COMVIS-NEW-015 · Componente `<KanbanBoard>` extraído pra Components/shared — **P0** (reuso)
+
+> **Owner:** — · **Estimate:** 6h · **Status:** todo · **Blocked_by:** investigar acoplamento atual Modules/Repair
+
+**Como** dev frontend
+**Quero** extrair componente Kanban drag-drop de Modules/Repair pra `Components/shared/KanbanBoard.tsx`
+**Para** reuso em CV (US-COMVIS-003 PCP gráfico) sem duplicar código
+
+**Acceptance:**
+- [ ] Componente puro `<KanbanBoard items={...} columns={...} onMove={...} renderCard={...} />`
+- [ ] Modules/Repair migra import sem regressão
+- [ ] Modules/ComunicacaoVisual usa mesmo componente com renderCard CV-específico
+- [ ] Pest browser MCP smoke ambos módulos
+- [ ] Storybook entry pra componente (opcional)
+
+---
+
+## 16. Total US recalibrado (base 18 + novas 15 = 33 US)
+
+| Prioridade | US | Total esforço (h IA-pair) |
+|---|---|--:|
+| **P0** | COMVIS-001, 002, 003, 006, 009, 017 + NEW-001, NEW-003, NEW-006, NEW-009, NEW-011, NEW-012, NEW-014, NEW-015 | ~110h |
+| **P1** | COMVIS-004, 005, 007, 008, 011 + NEW-002, NEW-004, NEW-007, NEW-008, NEW-010, NEW-013 | ~95h |
+| **P2** | COMVIS-010, 012, 013, 014, 015 + NEW-005 | ~50h |
+| **P3** | COMVIS-016, 018 | ~22h |
+| **Total** | **33 US** | **~277h IA-pair** |
+
+Recalibrado ADR 0106 fator 10x — tarefas codáveis. Tarefas humano-limitadas (treinamento, canary, monitor) mantém wallclock (ver ROADMAP.md).
+
+---
+
 ## Anexo — links canônicos
 
+- [MATRIZ-ROI.md](MATRIZ-ROI.md) — 24 features × ROI score + esforço + concorrentes
+- [ROADMAP.md](ROADMAP.md) — 5 fases com gate de sinal qualificado
+- [ComunicacaoVisual.charter.md](ComunicacaoVisual.charter.md) — charter módulo
+- [PLANO-MIGRACAO-6-SAUDAVEIS.md](PLANO-MIGRACAO-6-SAUDAVEIS.md) — plano migração (Vargas removido)
+- [proposal ADR `comunicacao-visual-modulo-canonico`](../../decisions/proposals/drafts/comunicacao-visual-modulo-canonico.md) — 7 decisões arquiteturais
+- [CASO-PRATICO-OS-COMUNICACAO-VISUAL](../Sells/CASO-PRATICO-OS-COMUNICACAO-VISUAL.md) — dual-doc fiscal NFe55 + NFSe56
+- [04-gold-comvis/01-perfil.md](../../research/clientes-legacy-officeimpresso/04-gold-comvis/01-perfil.md) — piloto Gold qualificado
+- [_ANALISE-CROSS-CLIENTE.md](../../research/clientes-legacy-officeimpresso/_ANALISE-CROSS-CLIENTE.md) — Gold/Extreme padrões cross-cliente
+- [_LICOES-CRITICAS.md](../../research/clientes-legacy-officeimpresso/_LICOES-CRITICAS.md) — anti-bugs Delphi→Laravel
+- [ADR 0143 FSM Pipeline canônico LIVE](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
 - [ADR 0121 — modular especializado por vertical](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)
 - [Comparativo Capterra/G2 oimpresso vs concorrentes (2026-04-25)](../../comparativos/oimpresso_vs_concorrentes_capterra_2026_04_25.md)
 - [Research Zênite + Mubisys (2026-05-09)](../../research/2026-05-prospeccao/02-concorrentes-zenite-mubisys.md)
