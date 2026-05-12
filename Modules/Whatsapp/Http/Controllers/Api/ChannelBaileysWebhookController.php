@@ -136,6 +136,26 @@ class ChannelBaileysWebhookController extends Controller
             return response()->json(['ok' => false, 'error' => 'no_remote_jid'], 200);
         }
 
+        // Filter Tier 0 — drop NON-conversação:
+        //   - `status@broadcast` → feed de WhatsApp Status (Stories) que outros contatos postam.
+        //     Bug 2026-05-12: 54 status agruparam fake numa única conv #7 "+status" com push_name
+        //     da última pessoa que postou. NÃO É CONVERSA — é stream de stories.
+        //   - `@g.us` → grupos WhatsApp. Inbox é 1:1 atendimento por enquanto;
+        //     grupos exigem schema diferente (US futura). Drop silencioso.
+        //   - `@newsletter` / `@broadcast` → canais/listas de transmissão. Drop.
+        $isStatusBroadcast = $remoteJid === 'status@broadcast'
+            || str_starts_with((string) $remoteJid, 'status@');
+        $isGroupOrBroadcast = str_contains((string) $remoteJid, '@g.us')
+            || str_contains((string) $remoteJid, '@broadcast')
+            || str_contains((string) $remoteJid, '@newsletter');
+        if ($isStatusBroadcast || $isGroupOrBroadcast) {
+            return response()->json([
+                'ok' => true,
+                'note' => $isStatusBroadcast ? 'status_broadcast_dropped' : 'group_or_broadcast_dropped',
+                'remote_jid_sample' => substr((string) $remoteJid, 0, 50),
+            ], 200);
+        }
+
         // Resolve phone E.164:
         // 1. senderPn (formato "5548999872822@s.whatsapp.net") quando remoteJid é @lid → preferir
         // 2. remoteJid se for @s.whatsapp.net normal
