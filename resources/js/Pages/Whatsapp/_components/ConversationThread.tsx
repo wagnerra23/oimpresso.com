@@ -25,6 +25,7 @@ import {
   Video as VideoIcon,
   File as FileIcon,
   Zap,
+  MessageSquareDashed,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -34,6 +35,7 @@ import { Textarea } from '@/Components/ui/textarea';
 
 import Avatar from './Avatar';
 import TemplatePicker from './TemplatePicker';
+import InteractiveMessageDialog from './InteractiveMessageDialog';
 import MicRecorder from './MicRecorder';
 import MediaPreviewCard from './MediaPreviewCard';
 import MediaFullscreenModal from './MediaFullscreenModal';
@@ -114,6 +116,10 @@ export default function ConversationThread({
   const [liveConnected, setLiveConnected] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  // US-WA-045b: dialog pra compor mensagem interativa HSM (buttons/list/cta_url).
+  // Aberto pelo botão "Interativa" no composer; envia via
+  // POST /atendimento/inbox/conversations/{id}/send-interactive (Inertia router).
+  const [interactiveDialogOpen, setInteractiveDialogOpen] = useState(false);
   // US-WA-072 — upload de mídia. `uploadingMedia` mostra spinner inline
   // no botão Paperclip enquanto o POST multipart está em flight. Não bloqueia
   // composer texto (atendente pode digitar próxima msg em paralelo).
@@ -1045,6 +1051,26 @@ export default function ConversationThread({
             >
               Template
             </Button>
+            {/* US-WA-045b — botão Interativa abre dialog pra compor HSM
+                (buttons/list/cta_url). Disabled em note/blocked (interativa
+                é cliente-facing, igual templates/macros). */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setInteractiveDialogOpen(true)}
+              disabled={isBlocked || isNote}
+              className="h-8 px-2 gap-1"
+              title={isNote
+                ? 'Mensagens interativas não fazem sentido em nota interna'
+                : isBlocked
+                  ? 'Contato bloqueado — envio desabilitado'
+                  : 'Mensagem interativa (botões reply / lista / CTA URL)'}
+              data-testid="composer-interactive-btn"
+              aria-label="Abrir compositor de mensagem interativa"
+            >
+              <MessageSquareDashed size={13} aria-hidden />
+              <span className="hidden sm:inline text-xs">Interativa</span>
+            </Button>
             {/* US-WA-048 — botão Macros (quick replies + ações Chatwoot pattern).
                 Dropdown lazy-loaded ao abrir, busca live por shortcut/label,
                 click envia msg + aplica actions (tag/status/assign) em 1 clique.
@@ -1186,6 +1212,15 @@ export default function ConversationThread({
         templates={templates}
         onSend={handleSendTemplate}
         sending={sending}
+      />
+
+      {/* US-WA-045b — dialog HSM interativo (buttons/list/cta_url).
+          driverType vem do channel_type da conversation (Meta libera CTA URL). */}
+      <InteractiveMessageDialog
+        conversationId={conversation.id}
+        open={interactiveDialogOpen}
+        onOpenChange={setInteractiveDialogOpen}
+        driverType={conversation.channel_type ?? 'whatsapp_baileys'}
       />
     </Card>
   );
