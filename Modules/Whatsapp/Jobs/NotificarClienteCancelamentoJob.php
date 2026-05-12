@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Templates\CancelamentoVendaTemplate;
 
@@ -108,13 +109,9 @@ class NotificarClienteCancelamentoJob implements ShouldQueue
         // (Skipping check porque coluna inexistente — comportamento mantém best-effort.)
 
         if ($phoneNumber === null) {
-            // TODO CASCADE-NOTIFY-002: fallback email (Mail facade) quando
-            // infraestrutura de mail consolidada. Por ora, só log info.
-            Log::info('[whatsapp.notify_cancelamento] contact sem telefone — skip (fallback email pendente)', [
-                'business_id' => $this->businessId,
-                'transaction_id' => $this->transactionId,
-                'contact_id' => (int) $contact->id,
-            ]);
+            // CASCADE-NOTIFY-002 — fallback email quando contact sem telefone.
+            // Best-effort: falha SMTP só loga, não retryar infinito.
+            $this->tryFallbackEmail($transaction, $contact);
             return;
         }
 
@@ -165,5 +162,51 @@ class NotificarClienteCancelamentoJob implements ShouldQueue
             ->where('handles_outbound_default', true)
             ->orderBy('id')
             ->first();
+    }
+
+    /**
+     * CASCADE-NOTIFY-002 — Fallback email quando WhatsApp não disponível.
+     *
+     * Best-effort: falha SMTP só loga; cancelamento já está confirmado
+     * via FSM history audit. Sem PII em logs (apenas IDs).
+     *
+     * TODO US-LGPD-XXX: validar coluna `email_consent` em contacts quando
+     * adicionada. Por ora consent implícito (mesma postura WhatsApp).
+     */
+    private function tryFallbackEmail(Transaction $transaction, Contact $contact): void
+    {
+        $email = trim((string) ($contact->email ?? ''));
+
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Log::warning('[whatsapp.notify_cancelamento] contact sem phone E sem email válido — notificação manual necessária', [
+                'business_id' => $this->businessId,
+                'transaction_id' => $this->transactionId,
+                'contact_id' => (int) $contact->id,
+            ]);
+            // TODO US futura: emit Event ClienteSemCanal pra workflow humano
+            return;
+        }
+
+        $body = CancelamentoVendaTemplate::render($transaction, $contact, $this->motivo);
+        $subject = "Venda #{$transaction->invoice_no} cancelada";
+
+        try {
+            Mail::raw($body, function ($message) use ($email, $subject) {
+                $message->to($email)->subject($subject);
+            });
+
+            Log::info('[whatsapp.notify_cancelamento] fallback email enviado', [
+                'business_id' => $this->businessId,
+                'transaction_id' => $this->transactionId,
+                'contact_id' => (int) $contact->id,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('[whatsapp.notify_cancelamento] falha fallback email — sem retry (best-effort)', [
+                'business_id' => $this->businessId,
+                'transaction_id' => $this->transactionId,
+                'contact_id' => (int) $contact->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
