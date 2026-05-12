@@ -13,6 +13,7 @@ use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Jobs\DownloadMediaJob;
 use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
+use Modules\Whatsapp\Services\Contacts\LidPhoneResolver;
 use Modules\Jana\Scopes\ScopeByBusiness;
 
 /**
@@ -165,6 +166,47 @@ class ChannelBaileysWebhookController extends Controller
             : $remoteJid;
         $rawNumber = preg_replace('/@.+$/', '', $resolvedJid);
         $customerExternalId = '+' . $rawNumber;
+
+        // US-WA-093 — LID Resolution Custom (workaround pré-Baileys 7.x).
+        //
+        // Bug 2026-05-12 prod biz=1: customer_phone "+519691546333945" (15
+        // dígitos sem DDI BR) na inbox em vez do número real. É um LID
+        // (Linked ID Multi-Device) que mascara o phone quando cliente fala
+        // via Click-to-Chat / Status / Ads. Baileys 6.7.9 não expõe Alt JID
+        // — workaround tabela ponte custom.
+        //
+        // Lógica:
+        //  (a) senderPn veio E remoteJid é @lid → REGISTRA mapping pra
+        //      próximas msgs do mesmo LID resolverem cache (customer_phone
+        //      já está correto via senderPn neste caso).
+        //  (b) senderPn NÃO veio E remoteJid é @lid → tenta resolver via
+        //      cache. Se acertar, troca customer_external_id pelo phone
+        //      real cacheado. Caso contrário, REGISTRA o LID com phone=null
+        //      pra rastrear (e UI badge "número oculto" entra em ação).
+        $remoteJidIsLid = is_string($remoteJid) && str_contains($remoteJid, '@lid');
+        if ($remoteJidIsLid) {
+            /** @var LidPhoneResolver $lidResolver */
+            $lidResolver = app(LidPhoneResolver::class);
+            $senderPnHasPhone = is_string($senderPn) && str_contains($senderPn, '@s.whatsapp.net');
+
+            if ($senderPnHasPhone) {
+                // Caso (a): WhatsApp deu o phone real ao lado do LID — grava o par.
+                $lidResolver->record(
+                    $channel->business_id,
+                    $remoteJid,
+                    $senderPn,
+                );
+            } else {
+                // Caso (b): só temos LID — tenta cache.
+                $cachedPhone = $lidResolver->resolve($channel->business_id, $remoteJid);
+                if ($cachedPhone !== null) {
+                    $customerExternalId = $cachedPhone;
+                } else {
+                    // Registra LID com phone=null pra futura descoberta.
+                    $lidResolver->record($channel->business_id, $remoteJid, null);
+                }
+            }
+        }
 
         // Extrai body (depende do tipo de mensagem)
         $messageProto = $data['message'] ?? [];
