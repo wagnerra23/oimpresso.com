@@ -59,6 +59,17 @@ class ExecuteStageActionService
         }
 
         $roleNames = $action->roles->pluck('role_name')->all();
+
+        // US-SELL-031 — fail-secure: action is_critical=true SEM role configurada
+        // bloqueia execução. Seeds incompletos viravam bypass silencioso pra
+        // actions de risco (cancelar_venda, voltar_para_orcamento, iniciar_producao).
+        if (empty($roleNames) && ($action->is_critical ?? false)) {
+            throw new UnauthorizedActionException(
+                "Action '{$actionKey}' é crítica e exige role explícita — " .
+                "nenhuma role configurada bloqueia execução por segurança"
+            );
+        }
+
         if (! empty($roleNames) && (! $user || ! $user->hasAnyRole($roleNames))) {
             throw new UnauthorizedActionException(
                 "User não tem nenhuma das roles exigidas: " . implode(',', $roleNames)
