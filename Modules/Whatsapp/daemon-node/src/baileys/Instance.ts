@@ -61,6 +61,39 @@ export interface SendResult {
   status: 'sent' | 'queued';
 }
 
+// US-WA-045/046 — interactive messages
+export interface SendInteractiveButton {
+  id: string;
+  label: string;
+}
+
+export interface SendInteractiveListItem {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+export interface SendInteractiveListSection {
+  title: string;
+  items: SendInteractiveListItem[];
+}
+
+export type SendInteractiveInput =
+  | {
+      to: string;
+      body: string;
+      interactive: { type: 'buttons'; buttons: SendInteractiveButton[] };
+    }
+  | {
+      to: string;
+      body: string;
+      interactive: {
+        type: 'list';
+        button_label: string;
+        sections: SendInteractiveListSection[];
+      };
+    };
+
 // US-WA-080 — import histórico Baileys
 export interface FetchHistoryInput {
   jid: string;
@@ -259,6 +292,60 @@ export class Instance extends EventEmitter {
     );
     messageLagHistogram.observe({ instance_id: this.meta.instance_id }, Date.now() - start);
     sendCounter.inc({ instance_id: this.meta.instance_id, status: 'sent', kind: input.type });
+    return { message_id: sent?.key.id ?? '', status: 'sent' };
+  }
+
+  /**
+   * Envia mensagem interativa (botões reply ou list menu) — US-WA-045/046.
+   *
+   * Baileys 6.7+ aceita `buttons` (reply, até 3) e `listMessage` (sections + rows)
+   * dentro do `sendMessage(jid, content)`. CTA URL é Meta Cloud-only — não tratado
+   * aqui (Zod do `/instances/:id/interactive` rejeita antes).
+   */
+  async sendInteractive(input: SendInteractiveInput): Promise<SendResult> {
+    const sock = this.requireConnected();
+    const jid = normalizeJid(input.to);
+
+    let content: Parameters<WASocket['sendMessage']>[1];
+    if (input.interactive.type === 'buttons') {
+      content = {
+        text: input.body,
+        buttons: input.interactive.buttons.map((b) => ({
+          buttonId: b.id,
+          buttonText: { displayText: b.label },
+          type: 1,
+        })),
+        headerType: 1,
+      } as unknown as Parameters<WASocket['sendMessage']>[1];
+    } else {
+      content = {
+        text: input.body,
+        title: input.interactive.button_label,
+        buttonText: input.interactive.button_label,
+        sections: input.interactive.sections.map((s) => ({
+          title: s.title,
+          rows: s.items.map((it) => ({
+            rowId: it.id,
+            title: it.title,
+            ...(it.description !== undefined ? { description: it.description } : {}),
+          })),
+        })),
+      } as unknown as Parameters<WASocket['sendMessage']>[1];
+    }
+
+    const start = Date.now();
+    const sent = await sendWithAntiBan(
+      { meta: this.meta, socket: sock },
+      jid,
+      () => sock.sendMessage(jid, content),
+      this.getAntiBanConfig(),
+    );
+    messageLagHistogram.observe({ instance_id: this.meta.instance_id }, Date.now() - start);
+    sendCounter.inc({
+      instance_id: this.meta.instance_id,
+      status: 'sent',
+      kind: `interactive_${input.interactive.type}`,
+    });
     return { message_id: sent?.key.id ?? '', status: 'sent' };
   }
 

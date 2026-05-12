@@ -84,4 +84,31 @@ interface DriverInterface
      * Health check do driver — usado pelo WhatsappDriverHealthCheckJob (6h em 6h).
      */
     public function ping(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverHealthStatus;
+
+    /**
+     * Envia mensagem INTERATIVA (US-WA-045/046).
+     *
+     * Tipos suportados (variam por driver — driver não-suportado lança
+     * `DriverDoesNotSupport`):
+     *  - `buttons` (até 3 reply buttons) — Meta Cloud, Baileys 6.7+, Z-API
+     *  - `list` (sections + items, 10 max) — Meta Cloud, Baileys 6.7+, Z-API
+     *  - `cta_url` (botão link único) — Meta Cloud apenas
+     *
+     * Estrutura `$interactive`:
+     *   ['type' => 'buttons', 'buttons' => [['id' => 'sim', 'label' => 'Sim'], ...]]
+     *   ['type' => 'list', 'button_label' => 'Escolha', 'sections' => [
+     *     ['title' => 'Tamanhos', 'items' => [['id' => 'p', 'title' => 'P', 'description' => null], ...]]
+     *   ]]
+     *   ['type' => 'cta_url', 'button_label' => 'Pagar', 'url' => 'https://...']
+     *
+     * @param  array<string, mixed>  $interactive  Payload tipado discriminated union pelo `type`
+     *
+     * @throws DriverDoesNotSupport quando driver não suporta o tipo solicitado
+     */
+    public function sendInteractive(
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
+        string $to,
+        string $body,
+        array $interactive,
+    ): WhatsappSendResult;
 }
