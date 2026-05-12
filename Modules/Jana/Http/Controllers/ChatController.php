@@ -14,6 +14,7 @@ use Modules\Jana\Entities\MetaFonte;
 use Modules\Jana\Entities\MetaPeriodo;
 use Modules\Jana\Entities\Sugestao;
 use Modules\Jana\Jobs\ApurarMetaJob;
+use Modules\Jana\Services\BriefDiarioChatTrigger;
 use Modules\Jana\Services\ContextSnapshotService;
 use Modules\Jana\Services\SuggestionEngine;
 
@@ -26,6 +27,7 @@ class ChatController extends Controller
         protected ContextSnapshotService $context,
         protected SuggestionEngine $suggestions,
         protected AiAdapter $ai,
+        protected BriefDiarioChatTrigger $briefTrigger,
     ) {
     }
 
@@ -223,18 +225,27 @@ class ChatController extends Controller
         $conversa = Conversa::findOrFail($id);
         abort_unless($conversa->user_id === auth()->id(), 403);
 
+        $userInput = $request->input('content');
+
         // Persiste mensagem do usuário
         Mensagem::create([
             'conversa_id' => $conversa->id,
             'role'        => 'user',
-            'content'     => $request->input('content'),
+            'content'     => $userInput,
         ]);
 
-        // Obtém resposta da IA
-        try {
-            $resposta = $this->ai->responderChat($conversa, $request->input('content'));
-        } catch (\Throwable $e) {
-            $resposta = 'Estou com dificuldades técnicas no momento. Tente novamente em instantes.';
+        // US-COPI-203: intent shortcut pro brief diário JANA Pro. Se user
+        // pediu brief (regex match), invoca BriefDiarioAgent direto em vez
+        // do ChatCopilotoAgent. Retorna markdown formatado Versão A.
+        if ($this->briefTrigger->matches($userInput)) {
+            $resposta = $this->briefTrigger->gerar($conversa);
+        } else {
+            // Caminho padrão — IA conversacional ChatCopilotoAgent
+            try {
+                $resposta = $this->ai->responderChat($conversa, $userInput);
+            } catch (\Throwable $e) {
+                $resposta = 'Estou com dificuldades técnicas no momento. Tente novamente em instantes.';
+            }
         }
 
         $msgAssistant = Mensagem::create([
@@ -297,20 +308,28 @@ class ChatController extends Controller
 
             $textoCompleto = '';
 
-            try {
-                foreach ($this->ai->responderChatStream($conversa, $userInput) as $chunk) {
-                    if ($chunk === '') {
-                        continue;
+            // US-COPI-203: brief shortcut pre-empta stream normal. Como agent
+            // responde tudo de uma vez (não streaming nativo), enviamos como
+            // 1 único chunk grande + end (UX: spinner curto → texto inteiro).
+            if ($this->briefTrigger->matches($userInput)) {
+                $textoCompleto = $this->briefTrigger->gerar($conversa);
+                $write(['type' => 'chunk', 'content' => $textoCompleto]);
+            } else {
+                try {
+                    foreach ($this->ai->responderChatStream($conversa, $userInput) as $chunk) {
+                        if ($chunk === '') {
+                            continue;
+                        }
+                        $textoCompleto .= $chunk;
+                        $write(['type' => 'chunk', 'content' => $chunk]);
                     }
-                    $textoCompleto .= $chunk;
-                    $write(['type' => 'chunk', 'content' => $chunk]);
+                } catch (\Throwable $e) {
+                    $write([
+                        'type'    => 'error',
+                        'message' => 'Erro ao gerar resposta: ' . substr($e->getMessage(), 0, 200),
+                    ]);
+                    $textoCompleto = $textoCompleto !== '' ? $textoCompleto : '_(erro)_';
                 }
-            } catch (\Throwable $e) {
-                $write([
-                    'type'    => 'error',
-                    'message' => 'Erro ao gerar resposta: ' . substr($e->getMessage(), 0, 200),
-                ]);
-                $textoCompleto = $textoCompleto !== '' ? $textoCompleto : '_(erro)_';
             }
 
             // Persiste mensagem assistant ao fim do stream.
