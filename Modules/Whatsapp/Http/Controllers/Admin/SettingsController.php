@@ -16,10 +16,10 @@ use Modules\Whatsapp\Http\Requests\BusinessSettingsRequest;
  * SettingsController — Templates HSM + toggle Bot Jana.
  *
  * Drivers (Z-API / Meta Cloud / Baileys) migraram para Modules\Whatsapp\Channels
- * (US-WA-067 + ADR 0135). Esta tela é stub temporário até US-WA-070 mover
- * para `/atendimento/canais/jana-templates`.
+ * (US-WA-067 + ADR 0135). Tela canônica agora é `/atendimento/canais/jana-templates`
+ * (US-WA-070); rota legacy `/whatsapp/settings` é redirect 301.
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-067
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-067, US-WA-070
  */
 class SettingsController extends Controller
 {
@@ -36,7 +36,7 @@ class SettingsController extends Controller
             'template_billing_paid_name' => $config->template_billing_paid_name,
         ];
 
-        return Inertia::render('Whatsapp/Settings', [
+        return Inertia::render('Atendimento/JanaTemplates', [
             'config' => $configForUi,
         ]);
     }

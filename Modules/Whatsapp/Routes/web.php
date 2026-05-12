@@ -59,11 +59,14 @@ Route::group([
         ->middleware('can:whatsapp.templates.manage')
         ->name('whatsapp.templates.store');
 
-    Route::get('/settings', [SettingsController::class, 'show'])
+    // US-WA-070: rota legacy `/whatsapp/settings` → 301 pra
+    // `/atendimento/canais/jana-templates`. Mantém compat de bookmark e
+    // qualquer middleware/handler externo que ainda aponte pra cá.
+    Route::get('/settings', fn () => redirect()->route('atendimento.canais.jana_templates.show', [], 301))
         ->middleware('can:whatsapp.settings.manage')
         ->name('whatsapp.settings.show');
 
-    Route::put('/settings', [SettingsController::class, 'update'])
+    Route::put('/settings', fn () => redirect()->route('atendimento.canais.jana_templates.show', [], 301))
         ->middleware('can:whatsapp.settings.manage')
         ->name('whatsapp.settings.update');
 });
@@ -133,4 +136,15 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.status');
+
+    // US-WA-070: Templates HSM + toggle Bot Jana — herda Controller
+    // SettingsController pós-067 (já enxuto: só 5 campos bot_enabled +
+    // 4 templates). Substitui legacy /whatsapp/settings.
+    Route::get('/canais/jana-templates', [SettingsController::class, 'show'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.canais.jana_templates.show');
+
+    Route::put('/canais/jana-templates', [SettingsController::class, 'update'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.canais.jana_templates.update');
 });

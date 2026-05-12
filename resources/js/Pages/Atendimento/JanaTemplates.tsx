@@ -1,10 +1,9 @@
 // @memcofre
-//   tela: /whatsapp/settings
-//   stories: US-WA-067 (limpeza pós-Canais) — drivers migraram pra Modules/Whatsapp/Channels (ADR 0135).
-//            Tela vira stub temporário com Templates+Bot Jana até US-WA-070 mover pra
-//            /atendimento/canais/jana-templates.
-//   charter: resources/js/Pages/Whatsapp/Settings.charter.md (status: deprecated)
-//   spec: memory/requisitos/Whatsapp/SPEC.md US-WA-067
+//   tela: /atendimento/canais/jana-templates
+//   stories: US-WA-070 (renomeação pós-Canais)
+//   herda: US-WA-067 (bloco Templates+Bot Jana migrado de /whatsapp/settings)
+//   charter: resources/js/Pages/Atendimento/JanaTemplates.charter.md
+//   spec: memory/requisitos/Whatsapp/SPEC.md
 //   permissao: whatsapp.settings.manage
 
 import { useState, type FormEvent } from 'react';
@@ -31,7 +30,7 @@ interface Props {
   config: ConfigForUi | null;
 }
 
-export default function WhatsappSettings({ config }: Props) {
+export default function JanaTemplates({ config }: Props) {
   const [botEnabled, setBotEnabled] = useState(config?.bot_enabled ?? false);
   const [tplReady, setTplReady] = useState(config?.template_repair_ready_name ?? '');
   const [tplWaiting, setTplWaiting] = useState(config?.template_repair_waiting_parts_name ?? '');
@@ -45,7 +44,7 @@ export default function WhatsappSettings({ config }: Props) {
     setSubmitting(true);
 
     router.put(
-      route('whatsapp.settings.update'),
+      route('atendimento.canais.jana_templates.update'),
       {
         bot_enabled: botEnabled,
         template_repair_ready_name: tplReady || null,
@@ -63,9 +62,9 @@ export default function WhatsappSettings({ config }: Props) {
   return (
     <div className="space-y-6">
       <PageHeader
-        icon="settings"
+        icon="bot"
         title="Templates + Bot Jana"
-        description="Drivers Whatsapp foram movidos para Canais. Esta tela mantém só os templates HSM e o toggle do bot."
+        description="Toggle do bot Jana e nomes dos templates HSM que disparam automaticamente (cobrança, repair). Drivers Whatsapp ficam em Canais."
       />
 
       <form onSubmit={onSubmit} className="space-y-6">
@@ -110,4 +109,4 @@ export default function WhatsappSettings({ config }: Props) {
   );
 }
 
-WhatsappSettings.layout = (page: any) => <AppShellV2>{page}</AppShellV2>;
+JanaTemplates.layout = (page: any) => <AppShellV2>{page}</AppShellV2>;
