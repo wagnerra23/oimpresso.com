@@ -163,15 +163,47 @@ class ChannelBaileysWebhookController extends Controller
             default => 'text',
         };
 
-        // US-WA-072 — extrai meta de mídia se houver. Daemon Baileys envia
-        // `media_url` (URL absoluta direct-download), `mime`, `size_bytes`,
-        // `duration_s` (audio/video), `filename` (document). Caption em
-        // `imageMessage.caption` / `videoMessage.caption` vai pro body.
+        // US-WA-072 + Hotfix B1 (2026-05-12) — extrai meta de mídia.
+        //
+        // Daemon Baileys CT 100 (quando rodando) envia `data.media_url` (URL
+        // direct-download decodificada), `data.mime`, `data.size_bytes`,
+        // `data.duration_s`, `data.filename`. Caso ideal — meta no nível raiz.
+        //
+        // Bug em prod 2026-05-12: webhook estava recebendo payload aninhado
+        // raw do Baileys (sem o flatten do daemon) — 89 messages biz=1 sem
+        // body, 0 com `media_url`/`media_mime` populado. Áudios chegavam só
+        // como type=audio sem nenhuma meta visível.
+        //
+        // Fallback defensivo: se daemon não normalizou, lê direto dos protos
+        // aninhados `imageMessage`/`audioMessage`/`videoMessage`/`documentMessage`/
+        // `stickerMessage`. URL Baileys é criptografada (.enc + mediaKey) —
+        // Hostinger Laravel NÃO consegue decrypt (precisa SDK Baileys daemon
+        // CT 100). Por isso `media_url` continua null nesse fallback; UI B2
+        // renderiza placeholder "aguardando download". Daemon C futuro vai
+        // popular media_url via endpoint decrypt+upload.
+        $mediaProto = $messageProto['imageMessage']
+            ?? $messageProto['audioMessage']
+            ?? $messageProto['videoMessage']
+            ?? $messageProto['documentMessage']
+            ?? $messageProto['stickerMessage']
+            ?? null;
+
         $mediaUrl = $data['media_url'] ?? null;
-        $mediaMime = $data['mime'] ?? null;
-        $mediaSize = isset($data['size_bytes']) ? (int) $data['size_bytes'] : null;
-        $mediaDuration = isset($data['duration_s']) ? (int) $data['duration_s'] : null;
-        $mediaFilename = $data['filename'] ?? ($messageProto['documentMessage']['fileName'] ?? null);
+        $mediaMimeRaw = $data['mime']
+            ?? ($mediaProto['mimetype'] ?? null);
+        // Sanitize MIME: Baileys envia `"audio/ogg; codecs=opus"` — strip
+        // codec pra match com Message::MEDIA_MIME_WHITELIST e Whisper API.
+        $mediaMime = $mediaMimeRaw
+            ? trim(explode(';', (string) $mediaMimeRaw, 2)[0])
+            : null;
+        $mediaSize = isset($data['size_bytes'])
+            ? (int) $data['size_bytes']
+            : (isset($mediaProto['fileLength']) ? (int) $mediaProto['fileLength'] : null);
+        $mediaDuration = isset($data['duration_s'])
+            ? (int) $data['duration_s']
+            : (isset($mediaProto['seconds']) ? (int) $mediaProto['seconds'] : null);
+        $mediaFilename = $data['filename']
+            ?? ($mediaProto['fileName'] ?? null);
 
         // Caption (image/video) sobrescreve body=null quando vem
         if ($body === null) {
@@ -277,10 +309,14 @@ class ChannelBaileysWebhookController extends Controller
                     'payload' => $data,
                     'status' => $fromMe ? 'sent' : 'received',
                     'sender_kind' => $fromMe ? 'human' : null,
-                    // US-WA-072 — preserva meta vinda do daemon antes do
-                    // download. `media_url` desta linha é a URL provider-side
-                    // (temporária Baileys) — o DownloadMediaJob substitui pelo
-                    // path local após persistir no disco public.
+                    // US-WA-072 + Hotfix B1 (2026-05-12) — preserva meta vinda
+                    // do daemon antes do download. Quando daemon C normaliza
+                    // flat (`data.media_url` set), persiste o path direto pra
+                    // UI já renderizar a mídia. Quando só vem proto Baileys
+                    // raw aninhado, `$mediaUrl` permanece null (URL cripto
+                    // `.enc` que Hostinger não decrypta) — UI B2 mostra
+                    // placeholder "aguardando download".
+                    'media_url' => $mediaUrl,
                     'media_mime' => $mediaMime,
                     'media_size_bytes' => $mediaSize,
                     'media_duration_s' => $mediaDuration,

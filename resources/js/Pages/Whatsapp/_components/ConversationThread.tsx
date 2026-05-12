@@ -20,6 +20,10 @@ import {
   FileText,
   Download,
   Loader2,
+  Music,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  File as FileIcon,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -29,6 +33,7 @@ import { Textarea } from '@/Components/ui/textarea';
 
 import Avatar from './Avatar';
 import TemplatePicker from './TemplatePicker';
+import MicRecorder from './MicRecorder';
 import {
   groupByDay,
   type CentrifugoConfig,
@@ -302,6 +307,53 @@ export default function ConversationThread({
               setComposerText('');
               if (fileInputRef.current) fileInputRef.current.value = '';
             }
+          },
+        },
+      );
+    });
+  }
+
+  /**
+   * Hotfix B3 (2026-05-12) — envio de áudio gravado via MicRecorder.
+   * Mesma rota do `send_media` (US-WA-072), arquivo nomeado `voice.ogg`
+   * com MIME inferido do MediaRecorder. Tier 0 (ADR 0142): MicRecorder
+   * já vem disabled em modo nota — defense-in-depth aqui rejeitando.
+   */
+  function handleSendVoice(blob: Blob, _durationS: number): Promise<void> {
+    if (composerKind === 'note') {
+      return Promise.reject(new Error('Notas internas não suportam áudio.'));
+    }
+    return new Promise<void>((resolve, reject) => {
+      // Extensão default por MIME: ogg pra opus, webm fallback
+      const isOgg = blob.type.includes('ogg');
+      const filename = isOgg ? 'voice.ogg' : 'voice.webm';
+      // Normaliza MIME pra match com Message::MEDIA_MIME_WHITELIST
+      // (backend aceita audio/ogg e audio/webm pode cair em audio/mp4 mapping;
+      // se o browser deu webm, força audio/ogg fallback é arriscado — manter raw).
+      const file = new File([blob], filename, { type: blob.type || 'audio/ogg' });
+
+      const formData = new FormData();
+      formData.append('file', file);
+      // Caption opcional — se atendente digitou texto antes de gravar
+      if (composerText.trim()) {
+        formData.append('caption', composerText);
+      }
+
+      router.post(
+        route('atendimento.inbox.send_media', conversation.id),
+        formData,
+        {
+          forceFormData: true,
+          preserveScroll: true,
+          preserveState: true,
+          onSuccess: () => {
+            setComposerText('');
+            router.reload({ only: reloadOnly });
+            resolve();
+          },
+          onError: (errors) => {
+            const firstErr = Object.values(errors)[0];
+            reject(new Error(typeof firstErr === 'string' ? firstErr : 'Falha no envio.'));
           },
         },
       );
@@ -744,6 +796,13 @@ export default function ConversationThread({
                 ? <Loader2 size={14} className="animate-spin" aria-hidden />
                 : <Paperclip size={14} aria-hidden />}
             </Button>
+            {/* Hotfix B3 (2026-05-12) — gravar áudio via MediaRecorder API.
+                Disabled em nota interna (Tier 0 ADR 0142) e contato bloqueado.
+                Componente separado encapsula state recording/uploading. */}
+            <MicRecorder
+              disabled={isBlocked || isNote || uploadingMedia}
+              onSend={handleSendVoice}
+            />
             <Button
               variant="outline"
               size="sm"
@@ -914,10 +973,16 @@ function MessageBubble({ message, showTail, highlight = '', slashBadge = null }:
         )}
         {/* US-WA-072 — render mídia. Image=thumb clicável; Audio=<audio>+transcricao;
             Document=ícone+filename+download; Outros=fallback [mídia]. Caption (body)
-            renderiza abaixo da mídia quando presente. */}
+            renderiza abaixo da mídia quando presente.
+            Hotfix B2 (2026-05-12) — quando `media_url` é null mas `media_mime`
+            está set (típico: webhook persistiu meta do Baileys mas daemon
+            ainda não fez download+decrypt) renderiza placeholder semântico
+            "aguardando download" em vez do fallback genérico `[mídia]`. */}
         {(message.type === 'image' || message.type === 'audio' || message.type === 'document' || message.type === 'video')
-          && message.media_url ? (
-          <MediaContent message={message} />
+          && (message.media_url || message.media_mime) ? (
+          message.media_url
+            ? <MediaContent message={message} />
+            : <MediaPending message={message} />
         ) : null}
         {/* Body (caption ou texto puro). Em mídia sem caption, omite o
             placeholder pq o MediaContent acima já preenche o bubble. */}
@@ -925,7 +990,7 @@ function MessageBubble({ message, showTail, highlight = '', slashBadge = null }:
           <div className="whitespace-pre-wrap break-words text-sm leading-snug">
             <HighlightedBody body={message.body} query={highlight} />
           </div>
-        ) : (!message.media_url ? (
+        ) : (!message.media_url && !message.media_mime ? (
           <div className="whitespace-pre-wrap break-words text-sm leading-snug">
             <em className="opacity-70">[mídia]</em>
           </div>
@@ -1077,6 +1142,69 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+/**
+ * Hotfix B2 (2026-05-12) — placeholder semântico pra mídia inbound que
+ * o webhook persistiu com meta (`media_mime`/`media_size_bytes`/
+ * `media_duration_s`) mas SEM `media_url` ainda. Cenário típico em prod
+ * Hostinger: payload Baileys traz URL criptografada (`.enc` + `mediaKey`)
+ * que só o daemon CT 100 com SDK consegue decrypt. Enquanto daemon não
+ * popular `media_url`, mostra placeholder com ícone + descrição + spinner.
+ *
+ * Tipos cobertos:
+ *   - audio/*           → Music + duração
+ *   - image/*           → Image  + tamanho
+ *   - video/*           → Video  + duração
+ *   - application/pdf   → FileText + nome
+ *   - Outros            → File   + mime
+ */
+function MediaPending({ message }: { message: Message }) {
+  const mime = message.media_mime ?? '';
+
+  let Icon = FileIcon;
+  let label = 'Arquivo';
+  let extra: string | null = null;
+
+  if (mime.startsWith('audio/')) {
+    Icon = Music;
+    label = 'Áudio';
+    extra = message.media_duration_s ? `${message.media_duration_s}s` : null;
+  } else if (mime.startsWith('image/')) {
+    Icon = ImageIcon;
+    label = 'Imagem';
+    extra = message.media_size_bytes ? formatBytes(message.media_size_bytes) : null;
+  } else if (mime.startsWith('video/')) {
+    Icon = VideoIcon;
+    label = 'Vídeo';
+    extra = message.media_duration_s ? `${message.media_duration_s}s` : null;
+  } else if (mime === 'application/pdf') {
+    Icon = FileText;
+    label = 'PDF';
+    extra = message.media_filename ?? null;
+  } else if (mime) {
+    Icon = FileIcon;
+    label = 'Arquivo';
+    extra = mime;
+  }
+
+  return (
+    <div
+      className="flex items-center gap-2 px-2 py-1.5 mb-1 rounded-md bg-black/5 dark:bg-white/10"
+      data-testid={`bubble-media-pending-${message.id}`}
+      title="Webhook persistiu meta da mídia mas daemon ainda não baixou o arquivo decryptado"
+    >
+      <Icon size={18} className="shrink-0 opacity-80" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <div className="text-xs font-medium truncate">
+          {label}
+          {extra ? <span className="font-normal opacity-70"> · {extra}</span> : null}
+        </div>
+        <div className="text-[10px] opacity-70">aguardando download</div>
+      </div>
+      <Loader2 size={12} className="shrink-0 opacity-60 animate-spin" aria-hidden />
+    </div>
+  );
 }
 
 function StatusDot({ status }: { status: string }) {
