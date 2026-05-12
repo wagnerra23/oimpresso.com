@@ -33,6 +33,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?\Carbon\CarbonImmutable $last_outbound_at
  * @property ?\Carbon\CarbonImmutable $last_message_at
  * @property int $unread_count
+ * @property ?string $last_message_preview
+ * @property ?string $last_message_direction
  */
 class Conversation extends Model
 {
@@ -58,6 +60,8 @@ class Conversation extends Model
         'status', 'assigned_user_id', 'bot_handling',
         'last_inbound_at', 'last_outbound_at', 'last_message_at',
         'unread_count', 'is_blocked',
+        // US-WA-072 — denormalizado pra evitar N+1 em InboxController list
+        'last_message_preview', 'last_message_direction',
     ];
 
     protected $casts = [
