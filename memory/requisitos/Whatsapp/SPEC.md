@@ -903,3 +903,427 @@ Frontend-only, sem mudança backend/migration. ROTA LIVRE não pega regressão.
 **ADRs:** 0135 (Fase 0→1 cutover criteria)
 
 **Evidência baseline:** Gap G-4 do CAPTERRA-INVENTARIO.md.
+
+---
+
+### US-WA-067 · Limpar tela Configurações WhatsApp — apagar 7 blocos de driver/LGPD
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Tela `/whatsapp/settings` ([Whatsapp/Settings.tsx](../../../resources/js/Pages/Whatsapp/Settings.tsx)) está defasada após criação do módulo Canais (ADR 0135). Drivers viraram polimórficos via `Channel.config_json`.
+
+**Apagar:**
+
+- Status do driver (linhas 213-243)
+- Aviso risco LGPD (linhas 257-268)
+- Passo 1 — Driver primário seletor (linhas 271-302)
+- Z-API credenciais (linhas 305-337)
+- Baileys telefone + QR panel (linhas 340-380)
+- Passo 2 — Meta Cloud (linhas 383-419)
+- Termo LGPD (linhas 422-453)
+
+**Manter:**
+
+- Templates + Bot Jana (linhas 456-485) — mas migrar pra `/atendimento/canais/jana-templates` na US-WA-070
+
+**Acceptance:**
+
+- `Settings.tsx` ~150 linhas a menos
+- Controller `SettingsController::show()` para de passar props de driver
+- Smoke biz=1: tela abre sem erro, sem blocos órfãos
+- Pest atualizado se houver assertion nesses blocos
+
+**ADRs:** 0135 Omnichannel
+
+---
+
+### US-WA-068 · Tab "Usuários do canal" dentro de Canais (ACL per-canal visível)
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: US-WA-067
+
+Detalhe do canal em `/atendimento/canais/{id}` ganha tabs: `Config | Usuários | Histórico`.
+
+**Tab Usuários:**
+
+- Lista usuários com acesso (join `whatsapp_phone_user_access` com `users`)
+- Add user: seletor + grant per-channel
+- Remove user: soft remove (decisão durante implementação)
+- Mostra role atual (superadmin bypassa via gate `whatsapp.view-all-phones`)
+
+**Backend:**
+
+- `ChannelsController::users($channel)` retorna lista
+- `ChannelsController::grantUser($channel, $user)` + `revokeUser`
+- Reusa permissão `whatsapp.settings.manage` por enquanto
+
+**UI:**
+
+- Componente `ChannelUsersTab.tsx` em `Modules/Whatsapp/resources/js/Pages/Atendimento/Channels/_components/`
+- Tabela com `user_name`, `granted_at`, `granted_by`, ação remover
+
+**Acceptance:**
+
+- Smoke biz=1: criar canal, adicionar 2 users, remover 1, listar
+- Pest cross-tenant biz=99: user de outro business NÃO aparece nem pode ser added
+- AuditLog write em grant/revoke
+
+**ADRs:** 0135, tabela `whatsapp_phone_user_access` (migração 2026_05_09_120100)
+
+---
+
+### US-WA-069 · Validar canal=fila — Suporte não vê inbox do Financeiro
+
+> owner: wagner · sprint: CYCLE-05 · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: US-WA-068
+
+Modelo confirmado (2026-05-12 Wagner): **Canal = Fila**. ACL per-canal via `whatsapp_phone_user_access` já existe. Esta US é só **validar** que o filtro funciona ponta-a-ponta.
+
+**Smoke biz=1 (manual):**
+
+1. Criar 2 canais: "Suporte" e "Financeiro"
+2. Criar 2 users: `user_suporte` e `user_financeiro`
+3. Grant `user_suporte` → só canal Suporte
+4. Grant `user_financeiro` → só canal Financeiro
+5. Login como `user_suporte` → inbox `/atendimento/inbox` mostra SÓ conversas do canal Suporte
+6. Login como `user_financeiro` → idem
+
+**Pest cross-tenant biz=99:**
+
+- Cenário cross-canal dentro do mesmo business
+- Cenário cross-business (biz=99 não vê canais de biz=1)
+
+**Backend a inspecionar:**
+
+- Query do `InboxController::index()` filtra por canais permitidos do user?
+- Cobertura do gate `whatsapp.view-all-phones` (admin bypass)
+- Pode precisar ajustar query se hoje filtra por `phone_id` ao invés de `channel_id`
+
+**Acceptance:**
+
+- Pest passa em isolamento
+- Smoke manual documentado em comment da US
+- Se descobrir bug de scope → vira US separada P0 (vazamento Tier 0)
+
+**ADRs:** 0093 multi-tenant Tier 0, 0135 Omnichannel
+
+---
+
+### US-WA-070 · Sidebar/rotas — Canais vira entrada principal de Atendimento, Settings velha morre
+
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: US-WA-067
+
+Após limpeza da Settings velha (US-WA-067), reorganizar navegação.
+
+**Sidebar (DataController do Whatsapp):**
+
+- Remover item "Configurações WhatsApp" (rota `/whatsapp/settings`)
+- "Canais" continua como item principal em `/atendimento/canais`
+- Adicionar sub-item "Templates Jana" → `/atendimento/canais/jana-templates` (onde bloco Jana foi parar)
+
+**Rotas:**
+
+- `/whatsapp/settings` → 301 redirect pra `/atendimento/canais` (pra não quebrar bookmark)
+- Nova rota `/atendimento/canais/jana-templates` renderiza bloco Templates (props: `bot_enabled` + 4 templates)
+
+**Acceptance:**
+
+- Sidebar testada em superadmin + user normal com `whatsapp.settings.manage`
+- 301 redirect funciona
+- Smoke biz=1 visual: clicar em todos os itens novos, nenhum 404
+
+---
+
+### US-WA-071 · Notas internas (private notes) MVP — toggle Reply/Note estilo Chatwoot
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Atendentes precisam de canal interno pra coordenar sobre uma conversa sem o cliente ver. Padrão Chatwoot: cada mensagem na timeline ou é "Reply" (vai pro WhatsApp) ou é "Private Note" (fica só no painel).
+
+**Schema (nova coluna ou tabela?):**
+
+Recomendo coluna nova em `whatsapp_messages` (ou tabela equivalente no novo schema Channels):
+
+- `is_internal_note` boolean default false
+- `author_user_id` unsignedInteger nullable (quem escreveu — null se for cliente/bot)
+- `mentions_user_ids` json nullable (array de user_ids para `@mention`)
+
+Migration idempotente, índice em `(conversation_id, is_internal_note)` pra filtros rápidos.
+
+**Backend (Tier 0 multi-tenant):**
+
+- `InboxController::storeMessage()` aceita flag `is_internal_note` no payload
+- Dispatch driver SOMENTE quando `is_internal_note = false` (gate duro — nota interna NUNCA vaza pro WhatsApp)
+- `@mention` dispara notificação Centrifugo no canal `user:{mentioned_user_id}` (badge na sidebar)
+- AuditLog: nota interna registrada com author + conversation_id
+
+**UI:**
+
+- Toggle "Resposta | Nota interna" acima do campo de mensagem (estado persistido em localStorage por sessão)
+- Nota interna renderiza com fundo amarelo claro + ícone cadeado + label "interno"
+- `@` no input abre dropdown com users do business que têm `whatsapp.access` (ou `whatsapp.send`)
+- Atalho `Ctrl+/` (ou `Cmd+/`) toggle Reply/Note rápido
+
+**Acceptance:**
+
+- Smoke biz=1: criar 2 atendentes, abrir conversa, atendente A escreve nota interna `@user_b lembrar disso` — atendente B recebe notificação Centrifugo, nota fica visível só pros 2 atendentes
+- Pest cross-tenant biz=99: nota de biz=1 NUNCA aparece em queries de biz=99
+- Pest: tentativa de dispatch driver com `is_internal_note=true` → falha com exception
+- AuditLog write em criação
+
+**Tier 0 IRREVOGÁVEL:** dispatch driver gateado por `is_internal_note=false` em **2 lugares** (Controller + Job) — defense-in-depth contra vazamento.
+
+**ADRs:** 0093 multi-tenant Tier 0, 0135 Omnichannel
+
+**Não escopo (vai em US separadas):**
+
+- Slash commands `/lembrar`, `/corrigir`, `/lembrete`, `/config` (US-WA-074..077)
+- Mídia em notas (US-WA-072)
+
+**Decisão pendente:** schema usa `whatsapp_messages` legacy ou novo schema `omnichannel_messages` do Channels Fase 1? Resolver na implementação cruzando com ADR 0135.
+
+---
+
+### US-WA-072 · Mídia (imagens, áudio, docs) inbound + outbound + Whisper transcrição
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+Inbox hoje só suporta texto. WhatsApp driver entrega image/audio/video/document/sticker via webhook — precisa schema + storage + UI + outbound + ASR pra áudio.
+
+**Schema (`whatsapp_messages` ou `omnichannel_messages`):**
+
+Adicionar:
+
+- `media_url` varchar 500 nullable
+- `media_mime` varchar 100 nullable
+- `media_size_bytes` unsignedBigInteger nullable
+- `media_duration_s` unsignedSmallInteger nullable (só áudio/video)
+- `media_thumbnail_url` varchar 500 nullable
+- `media_transcription` text nullable (Whisper output pra áudio)
+- `media_filename` varchar 255 nullable (docs)
+
+**Storage:**
+
+- Path: `storage/app/public/whatsapp/{business_id}/{yyyy-mm}/{message_uuid}.{ext}`
+- URL assinada 24h via `Storage::temporaryUrl()` (driver `s3` ou `local`)
+- Antivirus scan opcional (ClamAV) — adiar pra US separada
+
+**Inbound (webhook):**
+
+- `WebhookController` detecta tipo (`image|audio|video|document|sticker`) — driver-específico (Z-API tem url direto, Meta exige fetch via media-id, Baileys envia base64)
+- Job assíncrono `DownloadMediaJob` salva no storage, gera thumbnail (imagem), atualiza row
+- Pra áudio: dispara `TranscribeAudioJob` com OpenAI API (`gpt-4o-mini-transcribe` ou `whisper-1`), grava `media_transcription`
+
+**Outbound:**
+
+- UI: botão `📎` abre `<input type=file>` ou drag-drop, valida MIME (whitelist) + size (max 16MB WhatsApp Cloud, 100MB Baileys)
+- `SendMediaJob` faz upload pro driver correto
+- Loading spinner inline na mensagem até confirmar entrega
+
+**UI inbox:**
+
+- Imagem: thumbnail clicável, modal fullscreen
+- Áudio: `<audio controls>` HTML5 + texto transcrito abaixo em itálico (cliente vê só áudio; Jana lê texto)
+- Documento: ícone tipo MIME + filename + botão download
+- Sticker: render PNG direto
+
+**Whisper integração:**
+
+- Service `Modules\Whatsapp\Services\Audio\WhisperTranscriber` com fallback (OpenAI primário; futuro Ollama whisper-local secundário)
+- Config `whatsapp.audio.transcription.provider` (default `openai`)
+- Custo metering: log custo per minuto em `mcp_usage_costs` (tag: whatsapp_audio)
+- Rate limit 100min/business/dia (anti-abuse)
+
+**Acceptance:**
+
+- Smoke biz=1: enviar imagem → cliente recebe; enviar áudio → cliente recebe; receber áudio → transcrição aparece em ≤ 10s
+- Pest: `DownloadMediaJob` testado com fake HTTP; `TranscribeAudioJob` testado com OpenAI mock
+- Custo per business/mês mostrado no Daily Brief (alerta se > R$ [redacted Tier 0])
+
+**Tier 0:** validar `mime` whitelist no upload (evitar XSS via SVG upload); URL assinada SEMPRE (nunca pública); scope multi-tenant nas queries de media.
+
+**ADRs:** 0093 multi-tenant Tier 0, 0135 Omnichannel
+
+**Decisões pendentes:**
+
+1. Provider Whisper: OpenAI ($0.003/min) ou Ollama whisper-local (CT 100 self-host, latência maior)? Default OpenAI.
+2. Storage: `storage/app/public` Hostinger ou S3 desde já? Default Hostinger local até > 10GB.
+
+---
+
+### US-WA-073 · ADR — Notas internas como sinal de treino pra Jana (design 4 slash commands)
+
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: US-WA-071
+
+Antes de implementar slash commands (US-WA-074..077), precisa ADR com schema + parser + integração com `copiloto_memoria_facts` (RAG hybrid ADR 0052).
+
+**Escopo do ADR:**
+
+1. **Schema novas tabelas:**
+   - `whatsapp_jana_correcoes` (id, business_id, message_id_errada, conversation_id, correcao_texto, atendente_user_id, training_status, created_at)
+   - `whatsapp_reminders` (id, business_id, conversation_id, contact_id, atendente_user_id, due_at, body, status `pending|done|cancelled`, created_at)
+   - `whatsapp_contact_bot_overrides` (id, business_id, contact_id, bot_enabled boolean, set_by_user_id, set_at) — override per-contact do `bot_enabled` global
+
+2. **Parser slash commands:**
+   - Onde roda: `Modules\Whatsapp\Services\Notes\SlashCommandParser` invocado em `InboxController::storeMessage()` quando `is_internal_note=true`
+   - 4 comandos suportados: `/lembrar`, `/corrigir`, `/lembrete`, `/config`
+   - Sintaxe formal (regex + grammar)
+   - Tratamento de erro (comando inválido vira nota normal + warning UI)
+
+3. **Integração `copiloto_memoria_facts`:**
+   - `/lembrar` cria fato com `scope='contact:{contact_id}'`, `fact_type='preference'`, `source='human_note'`, `confidence=1.0`
+   - Jana ContextSnapshotService inclui facts deste contato no recall (já existe ADR 0052, só validar)
+
+4. **Training signal (`/corrigir`):**
+   - Stub agora — registra correção mas não roda fine-tune
+   - Plano fase 2: export dataset jsonl semanal pra OpenAI fine-tuning OU usar como few-shot examples em system prompt
+
+5. **Reminder cron:**
+   - Job hourly `ProcessRemindersJob` busca `whatsapp_reminders.due_at <= now()` AND `status=pending`
+   - Notifica atendente_user_id via Centrifugo + email (se config)
+   - Marca como `done` quando atendente clica "OK"
+
+**Acceptance:**
+
+- ADR escrita em `memory/decisions/NNNN-notas-internas-sinal-treino-jana.md`
+- Aprovação Wagner explícita (status: accepted)
+- 4 US US-WA-074..077 unblocked após aprovação
+
+**Refs:** ADR 0035 Stack IA, ADR 0052 Memória 3 ângulos, ADR 0135 Omnichannel
+
+---
+
+### US-WA-074 · Slash /lembrar — atendente grava fato sobre cliente em copiloto_memoria_facts
+
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: US-WA-071, US-WA-073
+
+Atendente escreve em nota interna `/lembrar prefere boleto, recusa cartão` → cria entry em `copiloto_memoria_facts` que Jana usa em recall futuro.
+
+**Behavior:**
+
+- Parser slash detecta `/lembrar <texto>` na nota interna
+- Cria row em `copiloto_memoria_facts`:
+  - `scope = 'contact:{contact_id}'`
+  - `fact_type = 'preference'`
+  - `fact_body = <texto>`
+  - `source = 'human_note'`
+  - `confidence = 1.0`
+  - `source_user_id = <atendente>`
+  - `source_conversation_id = <conv_id>`
+- Embedding gerado via Ollama no CT 100 (já existe pipeline)
+- Nota interna na timeline mostra badge "✓ memorizado" + link clicável pra ver o fato
+
+**UI:**
+
+- Sugestão autocomplete quando atendente digita `/` (lista comandos)
+- Preview do fato antes de salvar (toggle "memorizar como fato | salvar como nota apenas")
+- Editar/deletar fato linka pra `/copiloto/admin/memoria?fact_id={id}`
+
+**Acceptance:**
+
+- Smoke biz=1: 2 fatos diferentes pra mesmo contato → Jana recall puxa ambos quando aciona memoria_facts deste contato
+- Pest: cross-tenant biz=99 não vê facts de biz=1
+- Pest: `/lembrar` sem texto → falha graceful, mostra ajuda
+
+**ADRs:** 0035, 0052, 0135, ADR slash commands (US-WA-073)
+
+---
+
+### US-WA-075 · Slash /corrigir — marca mensagem do bot como errada (training signal Jana)
+
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: US-WA-071, US-WA-073
+
+Atendente vê resposta errada da Jana, clica em "Corrigir" na mensagem do bot, escreve em nota interna `/corrigir Deveria ter dito que entrega é em 3 dias, não 7`. Grava em `whatsapp_jana_correcoes` pra fine-tune/few-shot futuro.
+
+**Behavior:**
+
+- Mensagem do bot tem botão "🛠 Corrigir" → abre input pré-preenchido com `/corrigir ` + ID da msg referenciada
+- Parser slash detecta `/corrigir <expected_response>` + `replied_to_message_id` (set automaticamente pelo UI)
+- Cria row em `whatsapp_jana_correcoes`:
+  - `message_id_errada`, `conversation_id`, `contact_id`, `correcao_texto`, `atendente_user_id`
+  - `training_status = 'pending_review'`
+- Badge "⚠ corrigida" aparece na msg original do bot
+
+**Dashboard de correções (link na sidebar admin Jana):**
+
+- `/copiloto/admin/correcoes-jana` mostra todas correções
+- Filtros: data, atendente, status
+- Botão "Exportar JSONL" pra fine-tuning OpenAI
+- Sprint atual: só observability + export manual. Fase 2: cron auto-tune.
+
+**Acceptance:**
+
+- Smoke biz=1: correção criada via UI → aparece no dashboard
+- Pest: cross-tenant biz=99 não vê correções de biz=1
+- AuditLog write na criação
+
+**ADRs:** 0035 Stack IA, 0052 Memória, 0135, ADR slash commands (US-WA-073)
+
+---
+
+### US-WA-076 · Slash /lembrete — cria lembrete agendado pro atendente
+
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: US-WA-071, US-WA-073
+
+Atendente escreve em nota interna `/lembrete 2026-05-20 cobrar boleto vencendo` → cria row em `whatsapp_reminders` + cron horário processa e notifica atendente.
+
+**Behavior:**
+
+- Parser detecta `/lembrete <data> <body>`. Data aceita: `YYYY-MM-DD`, `amanhã`, `daqui 3 dias`, `próxima segunda` (chrono-php ou similar).
+- Cria row em `whatsapp_reminders`:
+  - `due_at`, `body`, `conversation_id`, `contact_id`, `atendente_user_id = quem escreveu`, `status='pending'`
+- Cron `ProcessRemindersJob` hourly busca `due_at <= now()` AND `status=pending` → notifica via Centrifugo (popup no painel) + opcional email
+- Botão "Concluir" na notificação → status = `done`
+
+**UI:**
+
+- Badge "⏰ lembrete" na nota interna após criar
+- Lista `/atendimento/lembretes` (sidebar) com lembretes pendentes/concluídos do atendente
+- Pode anexar lembrete a outro atendente: `/lembrete @maria 2026-05-20 ...`
+
+**Acceptance:**
+
+- Smoke biz=1: criar lembrete pra `+10 segundos`, esperar, ver notificação Centrifugo
+- Pest: cross-tenant biz=99 não vê reminders de biz=1
+- Pest: data inválida → falha graceful com sugestão
+
+**ADRs:** 0135, ADR slash commands (US-WA-073)
+
+---
+
+### US-WA-077 · Slash /config bot=off — toggle Jana per-contact (override global)
+
+> owner: wagner · sprint: CYCLE-05 · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: US-WA-071, US-WA-073
+
+Cliente reclama que bot é chato. Atendente escreve em nota interna `/config bot=off` → bot Jana fica desligado SÓ pra esse contato. `/config bot=on` reativa.
+
+**Behavior:**
+
+- Parser detecta `/config <key>=<value>`. Por enquanto só `bot` (true/false/on/off).
+- Cria/atualiza row em `whatsapp_contact_bot_overrides`:
+  - `contact_id`, `business_id`, `bot_enabled`, `set_by_user_id`, `set_at`
+- Engine de bot consulta override ANTES do `bot_enabled` global do business
+- Badge persistente "🤖 bot desligado" no header da conversa quando override = off
+
+**UI:**
+
+- Confirmação inline antes de aplicar (anti-typo)
+- Botão toggle direto no header da conversa também (sem precisar slash)
+
+**Acceptance:**
+
+- Smoke biz=1: `/config bot=off` → próxima mensagem do cliente NÃO dispara bot
+- Smoke biz=1: `/config bot=on` reativa
+- Pest: cross-tenant biz=99 não consulta override de biz=1
+- Pest: engine de bot respeita override > global
+
+**ADRs:** 0135, ADR slash commands (US-WA-073)
