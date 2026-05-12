@@ -26,6 +26,7 @@ class SaleStageAction extends Model
 
     protected $casts = [
         'requires_confirmation' => 'bool',
+        'is_critical' => 'bool',
         'side_effect_payload' => 'array',
     ];
 
