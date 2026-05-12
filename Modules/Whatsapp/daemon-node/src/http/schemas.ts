@@ -31,6 +31,23 @@ export const sendMediaBody = z.object({
   mimetype: z.string().max(128).optional(),
 });
 
+// ------------------------------------------------------------------------------------------------
+// Decrypt de mídia inbound Baileys
+//
+// WhatsApp entrega mídias recebidas como URL `.enc` (AES-256-CBC + HKDF derivada de `mediaKey`).
+// PHP no Hostinger não tem stack pra fazer o decrypt — encaminhamos pro daemon que usa o próprio
+// SDK Baileys pra resolver. Stateless: não precisa instance conectada.
+// ------------------------------------------------------------------------------------------------
+export const decryptUrlBody = z.object({
+  url: z.string().url(),
+  mediaKey: z.string().min(32), // base64, mediaKey de 32 bytes vira ~44 chars em b64
+  mimetype: z.string().max(128),
+  fileSha256: z.string().optional(),
+  fileLength: z.number().int().positive().optional(),
+  type: z.enum(['image', 'audio', 'video', 'document', 'sticker']),
+});
+
 export type ConnectBody = z.infer<typeof connectBody>;
 export type SendTextBody = z.infer<typeof sendTextBody>;
 export type SendMediaBody = z.infer<typeof sendMediaBody>;
+export type DecryptUrlBody = z.infer<typeof decryptUrlBody>;

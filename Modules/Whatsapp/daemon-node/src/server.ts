@@ -13,6 +13,7 @@ import authPlugin from './http/plugins/auth';
 import errorHandlerPlugin from './http/plugins/errorHandler';
 import { healthRoutes } from './http/routes/health';
 import { instanceRoutes } from './http/routes/instances';
+import { mediaRoutes } from './http/routes/media';
 import { messageRoutes } from './http/routes/messages';
 
 async function main(): Promise<void> {
@@ -36,6 +37,7 @@ async function main(): Promise<void> {
   await app.register(healthRoutes, { manager, env, startedAt });
   await app.register(instanceRoutes, { manager });
   await app.register(messageRoutes, { manager });
+  await app.register(mediaRoutes, { prefix: '/media' });
 
   let shuttingDown = false;
   const shutdown = async (signal: string): Promise<void> => {
