@@ -271,11 +271,10 @@ class InboxController extends Controller
     protected function convToListArray(Conversation $c): array
     {
         $channel = $c->channel;
-        // reorder() limpa o `orderBy('created_at')` ASC default da relação
-        // Conversation->messages() (Entities/Conversation.php). Sem isso,
-        // o ASC ganhava e first() retornava a mensagem mais ANTIGA — daí
-        // o preview mostrava lixo/vazio em vez do último texto. (US-WA-070)
-        $lastMsg = $c->messages()->reorder('created_at', 'desc')->first();
+        // US-WA-072 — preview/direction lidos direto das colunas denormalizadas.
+        // Antes (US-WA-070): `$c->messages()->reorder('created_at','desc')->first()`
+        // disparava 50 queries N+1 no paginate(50). Agora 0 queries — colunas
+        // são mantidas pelo MessageObserver::created() em sync com cada msg nova.
 
         return [
             'id' => $c->id,
@@ -291,9 +290,9 @@ class InboxController extends Controller
             'bot_handling' => (bool) $c->bot_handling,
             'last_message_at' => optional($c->last_message_at)->toIso8601String(),
             'last_inbound_at' => optional($c->last_inbound_at)->toIso8601String(),
-            // Preview (compat ConversationList legacy) — corte 80 chars
-            'last_message_preview' => $lastMsg?->body ? mb_substr((string) $lastMsg->body, 0, 80) : null,
-            'last_message_direction' => $lastMsg?->direction,
+            // Preview (compat ConversationList legacy) — denormalizado (US-WA-072)
+            'last_message_preview' => $c->last_message_preview,
+            'last_message_direction' => $c->last_message_direction,
             // Window 24h Meta — só pra type=whatsapp_meta
             'within_24h_window' => $channel?->type === 'whatsapp_meta'
                 ? ($c->last_inbound_at && $c->last_inbound_at->diffInHours(now()) < 24)
