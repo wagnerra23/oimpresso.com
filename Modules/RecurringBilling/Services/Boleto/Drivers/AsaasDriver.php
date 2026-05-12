@@ -74,6 +74,47 @@ class AsaasDriver implements BoletoDriverContract
         return true;
     }
 
+    /**
+     * Refund (estorno) de cobrança JÁ PAGA — POST /payments/{id}/refund.
+     *
+     * Diferente de cancelar() que faz DELETE em charge pending, refund mexe
+     * em charge com status RECEIVED/CONFIRMED e devolve dinheiro pro pagador.
+     * Asaas executa via PIX/TED automático na conta de origem do pagador.
+     *
+     * @param  string  $chargeId  ID Asaas (pay_xxx) da cobrança paga
+     * @param  string  $descricao  Motivo do estorno (vai no body Asaas)
+     * @param  float|null  $valor  Valor parcial; null = refund total
+     * @return array  Response Asaas decodificada — chaves esperadas:
+     *                id, status (REFUNDED|PARTIALLY_REFUNDED), value, refundedDate
+     */
+    public function refund(string $chargeId, string $descricao, ?float $valor = null): array
+    {
+        $body = ['description' => $descricao];
+
+        if ($valor !== null) {
+            $body['value'] = $valor;
+        }
+
+        return Http::withHeaders($this->headers())
+            ->post("{$this->baseUrl}/payments/{$chargeId}/refund", $body)
+            ->throw()
+            ->json();
+    }
+
+    /**
+     * GET /payments/{id} — usado pra checar status atual (PENDING / RECEIVED /
+     * CONFIRMED / REFUNDED) antes de decidir cancelar vs refund.
+     *
+     * Retorna array Asaas (id, status, value, dueDate, paymentDate, etc).
+     */
+    public function fetchPayment(string $chargeId): array
+    {
+        return Http::withHeaders($this->headers())
+            ->get("{$this->baseUrl}/payments/{$chargeId}")
+            ->throw()
+            ->json();
+    }
+
     public function pdf(string $nossoNumero): string
     {
         // Asaas disponibiliza URL pública do boleto PDF — retorna URL em base64 dummy

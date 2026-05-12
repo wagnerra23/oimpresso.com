@@ -35,6 +35,52 @@ class BoletoService
         return $this->driver($businessId)->pdf($nossoNumero);
     }
 
+    /**
+     * Refund Asaas (estorno de cobrança paga) — só faz sentido pro driver Asaas.
+     *
+     * Inter PJ não tem endpoint nativo de reembolso; nesse caso o caller é
+     * RefundCobrancaInterJob que cuida do path manual (TED/PIX humano).
+     *
+     * @param  int  $businessId  Tenant
+     * @param  string  $chargeId  pay_xxx Asaas
+     * @param  string  $descricao  Motivo (gravado no Asaas)
+     * @param  float|null  $valor  Parcial; null = total
+     * @return array  Response Asaas (id, status, value, refundedDate)
+     *
+     * @throws \InvalidArgumentException se driver do tenant não for Asaas
+     */
+    public function refundAsaas(int $businessId, string $chargeId, string $descricao, ?float $valor = null): array
+    {
+        $driver = $this->driver($businessId);
+
+        if (! $driver instanceof AsaasDriver) {
+            throw new \InvalidArgumentException(
+                'refundAsaas() exige driver Asaas — tenant business_id=' . $businessId
+                . ' está configurado com driver diferente.'
+            );
+        }
+
+        return $driver->refund($chargeId, $descricao, $valor);
+    }
+
+    /**
+     * Fetch payment Asaas — usado pra checar status atual antes de decidir
+     * cancelar vs refund (PENDING => cancelar; RECEIVED|CONFIRMED => refund).
+     */
+    public function fetchPaymentAsaas(int $businessId, string $chargeId): array
+    {
+        $driver = $this->driver($businessId);
+
+        if (! $driver instanceof AsaasDriver) {
+            throw new \InvalidArgumentException(
+                'fetchPaymentAsaas() exige driver Asaas — tenant business_id=' . $businessId
+                . ' está configurado com driver diferente.'
+            );
+        }
+
+        return $driver->fetchPayment($chargeId);
+    }
+
     private function driver(int $businessId): BoletoDriverContract
     {
         $credential = BoletoCredential::where('business_id', $businessId)
