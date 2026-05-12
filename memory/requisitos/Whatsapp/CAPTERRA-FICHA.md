@@ -193,29 +193,87 @@ Wagner aprova → batch `tasks-create` MCP pros gaps P0 não cobertos (se houver
 ## UX heuristics (Capterra v2 — eixo Usabilidade)
 
 > Capterra v2 ([ADR 0101](../../decisions/0101-sistema-charter-capterra-governanca-escopo.md) §3 eixos): além de medir features, mede **como** o concorrente entrega — cliques, tempo, recuperação de erro.
-> ⚠️ **TODO Wagner pesquisar/curate** — placeholder vazio até inventariar 3-5 heurísticas P0 do módulo.
+> Curado em 2026-05-10 (US-WA-051) cruzando Take Blip / Wati / Z-API + estado funcional Inbox prod biz=1.
 
 ```yaml
-ux_heuristics: []
-  # - id: example-clicks
-  #   nome: "Cliques pra ação X"
-  #   score: P0
-  #   benchmark: "Concorrente A: 1 clique. Concorrente B: 5."
-  #   target: "<= 2 cliques"
-  #   metrica: "navegacao_steps_X"
+ux_heuristics:
+  - id: clicks-primeira-resposta
+    nome: "Cliques pra responder o primeiro inbound da Inbox"
+    score: P0
+    benchmark: "Take Blip 2 cliques (lista → thread + textarea já focada). Wati 2 cliques. Z-API web 3 cliques (lista → abrir → clicar campo)."
+    target: "<= 2 cliques (lista → thread com textarea autoFocus)"
+    metrica: "ux_clicks_primeira_resposta"
+    evidencia_atual: "resources/js/Pages/Whatsapp/Conversations/Show.tsx — falta autoFocus no textarea ao montar thread (verificar)"
+  - id: tempo-render-inbox-100-conversas
+    nome: "Tempo médio first-paint da Inbox com 100 conversas carregadas"
+    score: P0
+    benchmark: "Wati < 400ms (lazy-load). Take Blip < 600ms (paginado). Concorrentes legacy (Olos, Octadesk) > 1.2s."
+    target: "< 500ms first-paint (paginação 50/page + lazy-load avatar/thumb)"
+    metrica: "ux_inbox_first_paint_ms"
+    evidencia_atual: "Inbox biz=1 com 32 conversas hoje OK; falta teste de carga sintética 100+ pra validar < 500ms"
+  - id: recuperacao-qr-expirado
+    nome: "Recuperação quando QR Z-API/Baileys expira (sessão Web cai)"
+    score: P0
+    benchmark: "Z-API painel próprio: 1 clique 'Gerar novo QR' + toast. Wati N/A (Cloud). Evolution: precisa restart container."
+    target: "1 clique 'Regenerar QR' em Settings + toast amigável + auto-refresh 30s; banner topbar quando driver=degraded"
+    metrica: "ux_qr_recovery_clicks"
+    evidencia_atual: "WhatsappDriverHealthCheckJob detecta + flipa pra fallback Meta Cloud, mas UI Settings.tsx não tem botão 'Regenerar QR' explícito (verificar PR3 US-WA-040)"
+  - id: switch-numero-multi-phone
+    nome: "Trocar contexto do número ativo (multi-phone per-business)"
+    score: P0
+    benchmark: "Take Blip: dropdown topbar 1 clique. Wati: tab por número. Z-API: instância separada (re-login)."
+    target: "Dropdown topbar Inbox 1 clique + persistir escolha em session + filtrar conversas/templates do número"
+    metrica: "ux_switch_phone_clicks"
+    evidencia_atual: "Schema whatsapp_business_phones migrated (PR1 US-WA-040), UI dropdown ainda pendente (PR3)"
+  - id: feedback-erro-envio
+    nome: "Feedback quando envio falha (driver down, número inválido, sem janela 24h)"
+    score: P1
+    benchmark: "Wati: ícone vermelho + tooltip motivo + botão 'Reenviar'. Take Blip: status no balão + retry automático 3x."
+    target: "Balão com status 'failed' + tooltip motivo (driver/janela/número) + botão 'Reenviar' inline; retry automático Job 3x antes de marcar failed final"
+    metrica: "ux_envio_falha_recovery_seconds"
+    evidencia_atual: "MessageStatus.php tem failed status; UI Show.tsx renderiza ícone mas sem tooltip motivo nem botão reenviar"
 ```
 
 ## Automation targets (Capterra v2 — eixo Automação)
 
 > O que mercado faz **sem humano**? Listener? Cron? Job? Webhook?
-> ⚠️ **TODO Wagner pesquisar/curate** — placeholder vazio até inventariar 3-5 automações P0 do módulo.
+> Curado em 2026-05-10 (US-WA-051) — cruza com inventário CAPTERRA-INVENTARIO.md (back-compat com `NotifyRepairCustomer`, `WhatsappDriverHealthCheckJob`, `DispatchToJanaBot`, `BillingNotificationListener`).
 
 ```yaml
-automation_targets: []
-  # - id: example-auto-action
-  #   nome: "Auto-disparar X quando Y"
-  #   score: P0
-  #   benchmark: "Concorrente A SIM, B SIM, C PARCIAL"
-  #   target: "Listener event Y → JobDoX, p95 < 30s"
-  #   metrica: "auto_X_p95_seconds"
+automation_targets:
+  - id: auto-template-repair-status
+    nome: "Auto-disparar template `repair_status_ready` quando OS muda pra status `pronto`/`aguardando_pecas`"
+    score: P0
+    benchmark: "Take Blip via Studio (configurar fluxo manual). Wati via Zapier (cliente paga extra). oimpresso nativo."
+    target: "Listener Repair `JobSheet status changed` → SendWhatsappMessageJob, p95 < 30s"
+    metrica: "auto_repair_notify_p95_seconds"
+    evidencia_atual: "✅ JÁ IMPLEMENTADO — Modules/Whatsapp/Listeners/NotifyRepairCustomer.php + NotifyRepairCustomerTest.php (US-WA-004 done)"
+  - id: auto-fallback-driver-degraded
+    nome: "Auto-fallback driver Z-API → Meta Cloud quando health check detecta degraded (ban/disconnect)"
+    score: P0
+    benchmark: "Z-API: nenhum (mono-driver). Wati: nenhum. Twilio: requer config manual. oimpresso diferencial nativo (ADR 0096 emenda 4)."
+    target: "Cron WhatsappDriverHealthCheckJob 6h/6h → flipa `driver_health=degraded` → DriverFactory resolve fallback automático sem intervenção; alerta Wagner via banner topbar + email"
+    metrica: "auto_fallback_trigger_total / auto_fallback_recovery_seconds"
+    evidencia_atual: "✅ JÁ IMPLEMENTADO — WhatsappDriverHealthCheckJob + WhatsappDriverHealthCheckJobTest.php + DriverFactory resolve por driver_health"
+  - id: auto-anexo-boleto-nfe
+    nome: "Auto-anexar boleto + NFe ao Whatsapp quando RecurringBilling cria fatura paga"
+    score: P0
+    benchmark: "BSPs: nenhum (não conhecem ledger Financeiro). Take Blip via parceiros Asaas (manual). oimpresso diferencial único (C-205)."
+    target: "Listener `RecurringBilling::InvoicePaid` → AnexarBoletoNFe → SendWhatsappMessageJob com mídia, p95 < 60s"
+    metrica: "auto_anexo_boleto_nfe_p95_seconds"
+    evidencia_atual: "✅ JÁ IMPLEMENTADO parcial — Modules/RecurringBilling/Listeners/AnexarBoletoNFe.php + BillingNotificationListener (US-RB-044 v1); v2 com mídia outbound depende US-WA-NEW-MIDIA-OUT"
+  - id: auto-tagging-keyword-inbound
+    nome: "Auto-tagging conversa por keyword inbound (ex: 'orçamento'→tag:vendas, 'reclamação'→tag:suporte, 'segunda via'→tag:financeiro)"
+    score: P0
+    benchmark: "Wati: regras keyword no admin (cobre). Take Blip: via Blip AI (paga). Z-API: nenhum."
+    target: "Listener `WhatsappInboundReceived` → TaggingService (regras keyword per-business config) → grava `whatsapp_conversation_tags`, p95 < 5s"
+    metrica: "auto_tagging_inbound_p95_seconds"
+    evidencia_atual: "❌ TODO — depende US-WA-NEW-TAGS (schema tags ausente) + WhatsappTaggingService a criar"
+  - id: auto-handoff-bot-humano
+    nome: "Auto-handoff bot Jana → humano quando confidence < threshold OU keyword 'falar com atendente'"
+    score: P1
+    benchmark: "Take Blip: via Blip AI nativa. Wati: regras estáticas. oimpresso via PolicyEngine ADS (4 outcomes)."
+    target: "DispatchToJanaBot retorna outcome REQUIRE_HUMAN_REVIEW → conversation.status = `awaiting_human` + notifica atendente assigned, p95 < 10s"
+    metrica: "auto_handoff_p95_seconds"
+    evidencia_atual: "✅ JÁ IMPLEMENTADO — Modules/Whatsapp/Listeners/DispatchToJanaBot.php + DispatchToJanaBotTest.php (US-WA-020 done) integrado com PolicyEngine ADS"
 ```
