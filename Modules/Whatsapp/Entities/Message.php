@@ -37,6 +37,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?string $sender_kind
  * @property ?int $cost_centavos
  * @property bool $is_internal_note
+ * @property ?string $media_url
+ * @property ?string $media_mime
+ * @property ?int $media_size_bytes
+ * @property ?int $media_duration_s
+ * @property ?string $media_thumbnail_url
+ * @property ?string $media_transcription
+ * @property ?string $media_filename
  */
 class Message extends Model
 {
@@ -73,13 +80,63 @@ class Message extends Model
         'sender_user_id', 'sender_kind',
         'cost_centavos',
         'is_internal_note',
+        // US-WA-072 — mídia
+        'media_url', 'media_mime', 'media_size_bytes',
+        'media_duration_s', 'media_thumbnail_url',
+        'media_transcription', 'media_filename',
     ];
 
     protected $casts = [
         'payload' => 'array',
         'cost_centavos' => 'integer',
         'is_internal_note' => 'boolean',
+        'media_size_bytes' => 'integer',
+        'media_duration_s' => 'integer',
     ];
+
+    /**
+     * US-WA-072 — MIME whitelist seguro pra upload outbound.
+     *
+     * Bloqueia explicitamente:
+     *   - image/svg+xml  → XSS vector (script tags em SVG executam ao renderizar)
+     *   - text/html      → XSS direto
+     *   - application/x-* (executáveis Windows/macOS/Linux)
+     *
+     * Whitelist segue limites Meta Cloud + Z-API + Baileys (interseção).
+     */
+    public const MEDIA_MIME_WHITELIST = [
+        // Imagens (raster only — SVG é XSS)
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        // Áudio
+        'audio/ogg',
+        'audio/opus',
+        'audio/mpeg',
+        'audio/mp4',
+        'audio/m4a',
+        'audio/x-m4a',
+        'audio/wav',
+        'audio/x-wav',
+        // Vídeo
+        'video/mp4',
+        'video/mpeg',
+        'video/3gpp',
+        // Documentos
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain',
+        'text/csv',
+    ];
+
+    /** Max upload size — Meta Cloud cap (Baileys aceita 100MB mas alinhamos no menor). */
+    public const MEDIA_MAX_SIZE_BYTES = 16 * 1024 * 1024;
 
     public function conversation(): BelongsTo
     {

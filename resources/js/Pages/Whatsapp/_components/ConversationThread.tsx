@@ -16,6 +16,10 @@ import {
   ChevronDown,
   Ban,
   Lock,
+  Paperclip,
+  FileText,
+  Download,
+  Loader2,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -57,6 +61,11 @@ export default function ConversationThread({
   const [liveConnected, setLiveConnected] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  // US-WA-072 — upload de mídia. `uploadingMedia` mostra spinner inline
+  // no botão Paperclip enquanto o POST multipart está em flight. Não bloqueia
+  // composer texto (atendente pode digitar próxima msg em paralelo).
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // US-WA-071 (ADR 0142): toggle Reply / Internal Note (Chatwoot pattern).
   // 'reply' = vai pro WhatsApp · 'note' = só atendentes do business (fundo amarelo).
   // Persistido em localStorage por conversation_id pra não perder modo ao trocar.
@@ -204,6 +213,58 @@ export default function ConversationThread({
         onFinish: () => setSending(false),
       },
     );
+  }
+
+  /**
+   * US-WA-072 — upload de mídia outbound. Aceita 1+ arquivos do file input
+   * OU drag-and-drop. Cada upload é POST multipart separado pra
+   * `/atendimento/inbox/{id}/send-media`. Tier 0 enforce no backend
+   * (MIME whitelist + size max). Nota interna NÃO permite mídia (combo 422).
+   */
+  function handleSendMedia(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    if (composerKind === 'note') {
+      alert('Notas internas não suportam mídia nesta fase.');
+      return;
+    }
+    setUploadingMedia(true);
+
+    // Processa 1 arquivo por POST — pra cada arquivo o backend cria Message
+    // separada com type derivado do MIME (image/audio/video/document).
+    const arr = Array.from(files);
+    let remaining = arr.length;
+
+    arr.forEach((file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (composerText.trim()) {
+        formData.append('caption', composerText);
+      }
+      router.post(
+        route('atendimento.inbox.send_media', conversation.id),
+        formData,
+        {
+          forceFormData: true,
+          preserveScroll: true,
+          preserveState: true,
+          onSuccess: () => {
+            router.reload({ only: reloadOnly });
+          },
+          onError: (errors) => {
+            const firstErr = Object.values(errors)[0];
+            if (firstErr) alert(`Falha no upload: ${firstErr}`);
+          },
+          onFinish: () => {
+            remaining -= 1;
+            if (remaining === 0) {
+              setUploadingMedia(false);
+              setComposerText('');
+              if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+          },
+        },
+      );
+    });
   }
 
   function handleSendTemplate(payload: {
@@ -524,7 +585,7 @@ export default function ConversationThread({
             ? 'Contato bloqueado — envio desabilitado'
             : isNote
               ? 'Nota interna…  (visível só pros atendentes — Enter envia)'
-              : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha)'}
+              : 'Mensagem freeform…  (Enter envia · Shift+Enter quebra linha · arraste arquivos pra anexar)'}
           rows={2}
           className="resize-none"
           disabled={composerDisabled}
@@ -534,6 +595,15 @@ export default function ConversationThread({
               handleSend();
             }
           }}
+          // US-WA-072: drag-and-drop pra anexar arquivos direto no textarea
+          onDragOver={(e) => {
+            if (!isNote && !isBlocked) e.preventDefault();
+          }}
+          onDrop={(e) => {
+            if (isNote || isBlocked) return;
+            e.preventDefault();
+            handleSendMedia(e.dataTransfer.files);
+          }}
           aria-label="Compositor de mensagem"
           data-testid="composer-textarea"
         />
@@ -542,6 +612,35 @@ export default function ConversationThread({
             {composerText.length} {composerText.length === 1 ? 'caractere' : 'caracteres'}
           </span>
           <div className="flex gap-1.5">
+            {/* US-WA-072 — botão paperclip abre file input. Hidden por
+                accessibility (input[type=file] feio cross-browser). */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv"
+              className="hidden"
+              onChange={(e) => handleSendMedia(e.target.files)}
+              data-testid="composer-file-input"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isBlocked || isNote || uploadingMedia}
+              className="h-8 px-2"
+              title={isNote
+                ? 'Notas internas não suportam mídia nesta fase'
+                : isBlocked
+                  ? 'Contato bloqueado — envio desabilitado'
+                  : 'Anexar mídia (image/audio/document, max 16MB)'}
+              data-testid="composer-attach"
+              aria-label="Anexar mídia"
+            >
+              {uploadingMedia
+                ? <Loader2 size={14} className="animate-spin" aria-hidden />
+                : <Paperclip size={14} aria-hidden />}
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -676,11 +775,24 @@ function MessageBubble({ message, showTail, highlight = '' }: {
             {message.sender_user_name}
           </div>
         )}
-        <div className="whitespace-pre-wrap break-words text-sm leading-snug">
-          {message.body
-            ? <HighlightedBody body={message.body} query={highlight} />
-            : <em className="opacity-70">[mídia]</em>}
-        </div>
+        {/* US-WA-072 — render mídia. Image=thumb clicável; Audio=<audio>+transcricao;
+            Document=ícone+filename+download; Outros=fallback [mídia]. Caption (body)
+            renderiza abaixo da mídia quando presente. */}
+        {(message.type === 'image' || message.type === 'audio' || message.type === 'document' || message.type === 'video')
+          && message.media_url ? (
+          <MediaContent message={message} />
+        ) : null}
+        {/* Body (caption ou texto puro). Em mídia sem caption, omite o
+            placeholder pq o MediaContent acima já preenche o bubble. */}
+        {message.body ? (
+          <div className="whitespace-pre-wrap break-words text-sm leading-snug">
+            <HighlightedBody body={message.body} query={highlight} />
+          </div>
+        ) : (!message.media_url ? (
+          <div className="whitespace-pre-wrap break-words text-sm leading-snug">
+            <em className="opacity-70">[mídia]</em>
+          </div>
+        ) : null)}
         {/* US-WA-083: removido `opacity-80` do row pra NÃO atenuar o ícone
             de status (CSS opacity é multiplicativa no stacking context, mata
             o azul vivo do ✓✓ "lida"). Atenuação só no `<span>` do tempo. */}
@@ -712,6 +824,122 @@ function StatusIcon({ status }: { status: string }) {
     case 'failed':    return <AlertTriangle size={11} className="text-red-500 dark:text-red-400" aria-label="falhou" />;
     default:          return <span className="text-[9px] opacity-70">{status}</span>;
   }
+}
+
+/**
+ * US-WA-072 — render diferenciado por type de mídia dentro da bubble.
+ *
+ * Image: thumbnail clicável + modal fullscreen ao clicar.
+ * Audio: <audio controls> HTML5 + transcrição em itálico abaixo (cliente
+ *   vê só áudio; atendente lê texto).
+ * Document: ícone tipo MIME + filename + botão Download (target=_blank).
+ * Video: <video controls> HTML5.
+ */
+function MediaContent({ message }: { message: Message }) {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  if (message.type === 'image') {
+    const thumb = message.media_thumbnail_url || message.media_url;
+    return (
+      <>
+        <button
+          type="button"
+          className="block mb-1 rounded-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => setModalOpen(true)}
+          data-testid={`bubble-media-image-${message.id}`}
+          aria-label="Abrir imagem em tamanho real"
+        >
+          <img
+            src={thumb ?? ''}
+            alt={message.media_filename ?? 'imagem'}
+            className="max-w-[300px] max-h-[260px] object-cover"
+            loading="lazy"
+          />
+        </button>
+        {modalOpen && (
+          <div
+            className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+            onClick={() => setModalOpen(false)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <img
+              src={message.media_url ?? ''}
+              alt={message.media_filename ?? 'imagem'}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              type="button"
+              className="absolute top-3 right-3 text-white hover:opacity-80"
+              onClick={() => setModalOpen(false)}
+              aria-label="Fechar"
+            >
+              <X size={24} />
+            </button>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (message.type === 'audio') {
+    return (
+      <div className="mb-1 space-y-1" data-testid={`bubble-media-audio-${message.id}`}>
+        <audio controls src={message.media_url ?? ''} className="max-w-[280px] h-9">
+          Seu navegador não suporta áudio HTML5.
+        </audio>
+        {message.media_transcription && (
+          <div className="text-xs italic opacity-80 max-w-[300px]">
+            {message.media_transcription}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (message.type === 'video') {
+    return (
+      <video
+        controls
+        src={message.media_url ?? ''}
+        className="max-w-[300px] max-h-[260px] rounded-md mb-1"
+        data-testid={`bubble-media-video-${message.id}`}
+      >
+        Seu navegador não suporta vídeo HTML5.
+      </video>
+    );
+  }
+
+  // Document fallback
+  return (
+    <a
+      href={message.media_url ?? '#'}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 px-2 py-1.5 mb-1 rounded-md bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 transition-colors"
+      data-testid={`bubble-media-document-${message.id}`}
+    >
+      <FileText size={20} className="shrink-0 opacity-80" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <div className="text-xs font-medium truncate">
+          {message.media_filename ?? 'documento'}
+        </div>
+        {message.media_size_bytes && (
+          <div className="text-[10px] opacity-70">
+            {formatBytes(message.media_size_bytes)}
+          </div>
+        )}
+      </div>
+      <Download size={14} className="shrink-0 opacity-70" aria-hidden />
+    </a>
+  );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 function StatusDot({ status }: { status: string }) {

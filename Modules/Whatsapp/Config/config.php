@@ -114,4 +114,37 @@ return [
         // Disabled até Sprint 3 ativar ADS Universal (ADR 0096 emenda 4 + ads-route skill).
         'enabled' => env('WHATSAPP_BOT_ENABLED', false),
     ],
+
+    /*
+     * US-WA-072 — Áudio (Whisper transcription) + Mídia (upload outbound).
+     *
+     * Provider único Whisper nesta fase. Fallback Ollama whisper-local
+     * (CT 100 self-host) fica em US separada. OPENAI_API_KEY reusa env
+     * já existente (Jana Camada A — laravel/ai SDK, ADR 0035).
+     */
+    'audio' => [
+        'transcription' => [
+            'provider' => env('WHATSAPP_AUDIO_TRANSCRIPTION_PROVIDER', 'openai'),
+            'api_key' => env('OPENAI_API_KEY'),
+            'model' => env('WHATSAPP_AUDIO_TRANSCRIPTION_MODEL', 'whisper-1'),
+            'endpoint' => env('WHATSAPP_AUDIO_TRANSCRIPTION_ENDPOINT', 'https://api.openai.com/v1/audio/transcriptions'),
+            'timeout' => (int) env('WHATSAPP_AUDIO_TRANSCRIPTION_TIMEOUT', 60),
+            // Rate limit anti-abuse: 100min/business/dia (~R$1,80/dia max)
+            'rate_limit_minutes_per_day' => (int) env('WHATSAPP_AUDIO_RATE_LIMIT_MIN_DAY', 100),
+        ],
+    ],
+
+    /*
+     * US-WA-072 — Upload de mídia (image/audio/document) outbound.
+     * Disk default `public` em Hostinger; S3 em US separada. Max 16MB =
+     * limite Meta Cloud (Baileys aceita 100MB mas alinhamos no menor pra
+     * Tier 0 multi-provider consistency).
+     */
+    'media' => [
+        'disk' => env('WHATSAPP_MEDIA_DISK', 'public'),
+        'max_size_bytes' => (int) env('WHATSAPP_MEDIA_MAX_SIZE_BYTES', 16 * 1024 * 1024),
+        // URL assinada TTL — `Storage::temporaryUrl()` SOMENTE em S3/GCS.
+        // Disk `public` retorna `Storage::url()` direto (sem TTL).
+        'signed_url_ttl_seconds' => (int) env('WHATSAPP_MEDIA_SIGNED_TTL', 86400),
+    ],
 ];

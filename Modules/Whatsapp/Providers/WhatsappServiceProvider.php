@@ -25,6 +25,8 @@ use Modules\Whatsapp\Listeners\PublishMessageSentToCentrifugo;
 use Modules\Whatsapp\Listeners\PublishOmnichannelToCentrifugo;
 use Modules\Whatsapp\Observers\MessageObserver;
 use Modules\Whatsapp\Observers\WhatsappMessageObserver;
+use Modules\Whatsapp\Services\Audio\Contracts\AudioTranscriber;
+use Modules\Whatsapp\Services\Audio\WhisperTranscriber;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
 use Modules\Whatsapp\Services\Drivers\BaileysDriver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
@@ -108,6 +110,11 @@ class WhatsappServiceProvider extends ServiceProvider
 
         // Centrifugo publisher singleton (stateless HTTP wrapper)
         $this->app->singleton(CentrifugoPublisher::class);
+
+        // US-WA-072 — Whisper transcription contract. WhisperTranscriber é
+        // o único impl nesta fase; Ollama whisper-local vai em US separada.
+        // Mock fácil em test via $this->app->bind(AudioTranscriber::class, ...).
+        $this->app->bind(AudioTranscriber::class, WhisperTranscriber::class);
 
         // Bind default da interface — usado quando algum service injeta
         // DriverInterface diretamente (sem passar business). Aponta pro
