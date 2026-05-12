@@ -30,13 +30,13 @@ piloto_seguinte_candidatos: "Extreme (gráfica industrial PCP), Zoom, Fixar, Mhu
 
 | # | Entrega | US | Esforço | Owner | Status |
 |---|---|---|--:|---|---|
-| 1.1 | Module scaffold via skill `criar-modulo` (8 peças nWidart obrigatórias) | — | 4h | — | todo |
-| 1.2 | DataController hooks UltimatePOS (`user_permissions`, `modifyAdminMenu`, `superadmin_package`) | — | 2h | — | todo |
-| 1.3 | InstallController + 3 rotas Install (status, install, uninstall — RUNBOOK-criar-modulo) | — | 2h | — | todo |
-| 1.4 | Migrations das 6 tabelas core: cv_substratos, cv_acabamentos, cv_instalacoes_catalogo, cv_ordens_producao, cv_instalacoes, cv_orcamentos | — | 6h | — | todo |
-| 1.5 | Models Entities/* com BusinessIdScope global + relacionamentos | — | 4h | — | todo |
-| 1.6 | Seed processo FSM "OS Comunicação Visual" (13 stages + 6 actions críticas + 10 roles per-business) | — | 4h | — | todo |
-| 1.7 | Pest GUARD Tier 0: multi-tenant scope + anti-hook charter (NÃO recálculo m² pós-NFe + NÃO disparar plotter auto + NÃO emitir fiscal auto) | — | 2h | — | todo |
+| 1.1 | Module scaffold via skill `criar-modulo` (8 peças nWidart obrigatórias) | — | 4h | Claude | done (legacy 2026-05-10) |
+| 1.2 | DataController hooks UltimatePOS (`user_permissions`, `modifyAdminMenu`, `superadmin_package`) | — | 2h | Claude | done (legacy 2026-05-10) |
+| 1.3 | InstallController + 3 rotas Install (status, install, uninstall — RUNBOOK-criar-modulo) | — | 2h | Claude | done (legacy 2026-05-10) |
+| 1.4 | Migrations 5 tabelas canon `cv_*` (substratos, acabamentos, instalacoes_catalogo, ordens_producao, instalacoes) — `cv_orcamentos` mapeia pra legacy `comvis_orcamentos` (não duplica) | — | 6h | Claude | done 2026-05-12 |
+| 1.5 | Models Entities/* (Substrato, Acabamento, InstalacaoCatalogo, OrdemProducao, Instalacao) com BusinessIdScope + GuardsFsmTransitions trait | — | 4h | Claude | done 2026-05-12 |
+| 1.6 | Seed processo FSM "OS Comunicação Visual" (16 stages + 30+ actions críticas + 10 roles per-business) — `FsmProcessoComunicacaoVisualSeeder` | — | 4h | Claude | done 2026-05-12 |
+| 1.7 | Pest GUARD Tier 0 (`Tier0GuardTest.php`): multi-tenant scope biz=1 vs biz=99 + anti-hook charter (NÃO recálculo m² pós-NFe + NÃO disparar plotter auto + NÃO emitir fiscal auto + FSM UPDATE direto bloqueado + idempotência seeder) | — | 2h | Claude | done 2026-05-12 |
 | 1.8 | Charter `.charter.md` ao lado de cada Page Inertia inicial (Index + OS detail) | — | 0h (já existe ComunicacaoVisual.charter.md módulo) | — | done |
 
 **Sinal qualificado pra ativar Fase 2:**
