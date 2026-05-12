@@ -3,6 +3,7 @@
 namespace Modules\Repair\Entities;
 
 use App\Concerns\HasBusinessScope;
+use App\Domain\Fsm\Concerns\GuardsFsmTransitions;
 use App\Variation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,7 @@ use Modules\Arquivos\Concerns\HasArquivos;
 
 class JobSheet extends Model
 {
+    use GuardsFsmTransitions; // US-REP-FSM-003 — bloqueia UPDATE direto em current_stage_id sem ExecuteStageActionService (ADR 0129)
     use HasArquivos; // ADR 0123 — adopcao Sprint 4 (foto OS via arquivos table)
     use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (defesa-em-profundidade)
 
