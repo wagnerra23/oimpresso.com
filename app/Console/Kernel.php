@@ -273,6 +273,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-SELL-032 v2 — `fsm:scan-drift transactions` daily 03:00 BRT.
+        // Detecta current_stage_id que bypassou o TransactionFsmObserver via
+        // mass-update Eloquent ou DB::table writes (FsmDriftDetector compara
+        // current_stage_id atual vs último to_stage_id em sale_stage_history).
+        // Exit 1 → log error → alerta. ADR 0129 §Drift Detection.
+        $schedule->command('fsm:scan-drift transactions')
+            ->dailyAt('03:00')
+            ->timezone('America/Sao_Paulo')
+            ->name('fsm-scan-drift-transactions')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule fsm:scan-drift transactions FALHOU ou DETECTOU drift — ' .
+                    'investigar storage/logs/laravel.log entries "FsmDriftDetector: drift detected"'
+                );
+            });
+
         // US-RB-045 — Sincroniza saldo Asaas/Inter pra contas_bancarias.saldo_cached.
         // Sem este schedule, dashboard /financeiro mostra "—" (saldo_cached NULL).
         // Hourly: latência aceitável vs custo de chamadas API gateways.
