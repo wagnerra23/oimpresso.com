@@ -9,6 +9,7 @@ contains:
   - "Entities/jana_memoria_* — memória persistente do business (rename ADR 0092)"
   # Custos / Qualidade
   - "Admin/CustosController — dashboard custos LLM"
+  - "Admin/JanaProController — brief diário invocável (US-COPI-203)"
   - "Admin/QualidadeController — qualidade RAG/memória (RAGAS)"
   # Metas / Períodos
   - "MetasController — metas do business"
