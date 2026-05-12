@@ -2,19 +2,26 @@
 page: /whatsapp/settings
 component: resources/js/Pages/Whatsapp/Settings.tsx
 owner: wagner
-status: live
+status: deprecated
 last_validated: 2026-05-09
+deprecated_at: 2026-05-12
+deprecated_by: US-WA-067
 parent_module: Whatsapp
 parent_capterra: memory/requisitos/Whatsapp/CAPTERRA-FICHA.md
-related_adrs: [0058, 0093, 0096, 0104, 0107, 0112]
+related_adrs: [0058, 0093, 0096, 0104, 0107, 0112, 0135]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
-# Page Charter — `/whatsapp/settings`
+# Page Charter — `/whatsapp/settings` (DEPRECATED)
 
-> Define as invariantes da tela de configuração Whatsapp do business.
-> Mudanças que violem este charter exigem PR + atualização do charter.
+> **Status:** deprecated em 2026-05-12 (US-WA-067).
+>
+> Drivers Z-API/Meta/Baileys migraram para `Modules\Whatsapp\Channels` (ADR 0135). Esta tela virou stub temporário com apenas Templates HSM + toggle Bot Jana. Será removida em US-WA-070 — bloco Jana move para `/atendimento/canais/jana-templates` e `/whatsapp/settings` vira 301 redirect para `/atendimento/canais`.
+>
+> Charter mantido como histórico das invariantes que valiam ANTES da migração Canais. Charter v3 nasce com a nova rota.
+
+---
 
 ---
 
