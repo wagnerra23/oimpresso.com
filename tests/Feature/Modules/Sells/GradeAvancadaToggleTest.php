@@ -253,14 +253,12 @@ it('SellsGradeAvancada existe', function () {
     expect(file_exists(base_path(GRADE_PATH_015)))->toBeTrue();
 });
 
-it('SellsGradeAvancada renderiza mensagem PT-BR "em construção"', function () {
-    $src = read015(GRADE_PATH_015);
-    expect($src)->toContain('em construção');
-});
+// US-SELL-016/017 (este PR) substitui o skeleton de US-SELL-015.
+// O componente agora renderiza tabela funcional com multiseleção + totalizador.
+// Tests detalhados em SellsBulkActionsTest.php + SellsTotalsTest.php.
 
-it('SellsGradeAvancada anuncia próximas US (SELL-016 multiseleção, SELL-017 totalizador)', function () {
+it('SellsGradeAvancada anuncia roadmap progressivo (US-SELL-016/017 ativos + P1+ aguarda sinal)', function () {
     $src = read015(GRADE_PATH_015);
-    expect($src)->toContain('SELL-015');
     expect($src)->toContain('SELL-016');
     expect($src)->toContain('SELL-017');
     // Linguagem alinhada com ADR 0136 (multiseleção, totalizador)
@@ -268,9 +266,10 @@ it('SellsGradeAvancada anuncia próximas US (SELL-016 multiseleção, SELL-017 t
     expect($src)->toMatch('/totalizador|total/iu');
 });
 
-it('SellsGradeAvancada aceita sellKpis prop (mesmo payload que Lista)', function () {
+it('SellsGradeAvancada aceita props funcionais (rows, totals, selectedIds — pós US-SELL-016/017)', function () {
     $src = read015(GRADE_PATH_015);
-    expect($src)->toContain('sellKpis');
-    expect($src)->toMatch('/total:\\s*number/');
-    expect($src)->toMatch('/overdue:\\s*number/');
+    // Lift state up — Index.tsx é fonte da verdade pra rows/totals/selectedIds.
+    expect($src)->toContain('rows: SaleRow[]');
+    expect($src)->toContain('selectedIds: Set<number>');
+    expect($src)->toMatch('/totals:\\s*SellsTotals\\s*\\|\\s*null/');
 });

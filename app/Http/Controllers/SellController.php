@@ -986,6 +986,25 @@ class SellController extends Controller
             $q->where('transactions.payment_status', $payment_status);
         }
 
+        // US-SELL-017 — Totalizador rodapé. Calcula totais SOBRE O FILTRO INTEIRO
+        // (não só página corrente). Clone do builder antes do paginate pra preservar
+        // joins/wheres mas remover orderBy/limit. Subquery separada pra somar
+        // total_paid (mesma lógica do select da grid — coluna não existe direta).
+        $totalsQuery = (clone $q);
+        $totalsRow = $totalsQuery->selectRaw(
+            'COUNT(transactions.id) as count_rows, '.
+            'COALESCE(SUM(transactions.final_total), 0) as sum_final_total, '.
+            'COALESCE(SUM((SELECT COALESCE(SUM(IF(tp.is_return = 0, tp.amount, tp.amount * -1)), 0) FROM transaction_payments as tp WHERE tp.transaction_id = transactions.id)), 0) as sum_total_paid'
+        )->first();
+        $sumFinalTotal = (float) ($totalsRow->sum_final_total ?? 0);
+        $sumTotalPaid = (float) ($totalsRow->sum_total_paid ?? 0);
+        $totals = [
+            'count'           => (int) ($totalsRow->count_rows ?? 0),
+            'sum_final_total' => $sumFinalTotal,
+            'sum_total_paid'  => $sumTotalPaid,
+            'sum_due'         => max(0.0, $sumFinalTotal - $sumTotalPaid),
+        ];
+
         // total_paid via subquery — coluna não existe em transactions (UltimatePOS pattern).
         // Ref: TransactionUtil.php:2400 e :2983.
         $paginator = $q->orderBy($sortMap[$sortKey], $sortDir)
@@ -1067,6 +1086,224 @@ class SellController extends Controller
                 // US-SELL-021 — echo do campo escolhido (validado via whitelist).
                 'date_field'   => $dateField,
             ],
+            // US-SELL-017 — totais sobre o filtro inteiro (não só página).
+            'totals' => $totals,
+        ]);
+    }
+
+    /**
+     * US-SELL-016 — Bulk Print. Recebe lista de transaction IDs e devolve uma
+     * página HTML printable que combina todos os recibos/DANFEs num doc só.
+     * Reusa receiptContent() (mesmo helper do printInvoice) por venda + concatena.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): SEMPRE filtra business_id antes de carregar.
+     * IDs cross-tenant são silenciosamente descartados (não vaza existência).
+     *
+     * Payload: { ids: [int, int, ...] } (max 200 anti-DoS).
+     * Retorna: text/html (browser imprime via window.print).
+     */
+    public function bulkPrint(Request $request)
+    {
+        if (!auth()->user()->can('direct_sell.view') &&
+            !auth()->user()->can('view_own_sell_only') &&
+            !auth()->user()->can('view_commission_agent_sell')) {
+            abort(403);
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+        $ids = (array) $request->input('ids', []);
+        // Sanitiza: só inteiros positivos, max 200 (anti-DoS, mesma constante da lista).
+        $ids = array_values(array_filter(array_map('intval', $ids), fn($i) => $i > 0));
+        if (count($ids) > 200) {
+            $ids = array_slice($ids, 0, 200);
+        }
+        if (empty($ids)) {
+            return response('Nenhuma venda selecionada.', 400);
+        }
+
+        // Multi-tenant: WHERE business_id BEFORE WHERE IN (Tier 0 ADR 0093).
+        $query = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final')
+            ->whereNull('sub_type')
+            ->whereIn('id', $ids);
+
+        // Permission scope (mesmo padrão do inertiaList — defesa em profundidade).
+        if (!auth()->user()->can('direct_sell.view')) {
+            $userId = request()->session()->get('user.id');
+            $query->where(function ($qq) use ($userId) {
+                if (auth()->user()->hasAnyPermission(['view_own_sell_only', 'access_own_shipping'])) {
+                    $qq->where('created_by', $userId);
+                }
+                if (auth()->user()->hasAnyPermission(['view_commission_agent_sell', 'access_commission_agent_shipping'])) {
+                    $qq->orWhere('commission_agent', $userId);
+                }
+            });
+        }
+
+        $transactions = $query->with(['location'])->get();
+
+        if ($transactions->isEmpty()) {
+            return response('Nenhuma venda válida no seu tenant.', 404);
+        }
+
+        // Reusa receiptContent() de SellPosController via Reflection (private method).
+        // Alternativa: refactor pra public/Service — fora do escopo P0 desta US.
+        $sellPosController = app(\App\Http\Controllers\SellPosController::class);
+        $reflection = new \ReflectionClass($sellPosController);
+        $method = $reflection->getMethod('receiptContent');
+        $method->setAccessible(true);
+
+        $receipts = [];
+        foreach ($transactions as $tx) {
+            $invoice_layout_id = $tx->is_direct_sale ? optional($tx->location)->sale_invoice_layout_id : null;
+            try {
+                $receipt = $method->invoke(
+                    $sellPosController,
+                    $business_id,
+                    $tx->location_id,
+                    $tx->id,
+                    'browser', // printer_type
+                    false,     // is_package_slip
+                    false,     // from_pos_screen
+                    $invoice_layout_id,
+                    false      // is_delivery_note
+                );
+                if (!empty($receipt) && !empty($receipt['html_content'])) {
+                    $receipts[] = $receipt['html_content'];
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('[bulkPrint] Falha receipt tx '.$tx->id.': '.$e->getMessage());
+            }
+        }
+
+        if (empty($receipts)) {
+            return response('Falha ao gerar recibos.', 500);
+        }
+
+        // Combina HTML — page-break-after entre recibos pra impressora separar.
+        $body = '';
+        foreach ($receipts as $idx => $html) {
+            $pageBreak = $idx < count($receipts) - 1 ? 'style="page-break-after: always;"' : '';
+            $body .= '<div '.$pageBreak.'>'.$html.'</div>';
+        }
+
+        $combined = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Vendas selecionadas</title>'.
+            '<style>@media print { @page { margin: 1cm; } } body { font-family: sans-serif; }</style>'.
+            '</head><body onload="window.print()">'.$body.'</body></html>';
+
+        return response($combined)->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    /**
+     * US-SELL-016 — Bulk Export CSV. Recebe IDs + colunas opcionais e devolve
+     * arquivo CSV download. Multi-tenant Tier 0: SEMPRE business_id where antes
+     * de WHERE IN. Streaming response pra evitar memória em export grande.
+     *
+     * Payload: { ids: [int], columns?: [string] }.
+     * Retorna: text/csv attachment.
+     */
+    public function bulkExport(Request $request)
+    {
+        if (!auth()->user()->can('direct_sell.view') &&
+            !auth()->user()->can('view_own_sell_only') &&
+            !auth()->user()->can('view_commission_agent_sell')) {
+            abort(403);
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+        $ids = (array) $request->input('ids', []);
+        $ids = array_values(array_filter(array_map('intval', $ids), fn($i) => $i > 0));
+        if (count($ids) > 200) {
+            $ids = array_slice($ids, 0, 200);
+        }
+        if (empty($ids)) {
+            return response('Nenhuma venda selecionada.', 400);
+        }
+
+        // Whitelist de colunas (default: tudo que aparece na grid).
+        $allColumns = [
+            'transaction_date' => 'Data',
+            'invoice_no'       => 'Nº fatura',
+            'customer_name'    => 'Cliente',
+            'final_total'      => 'Total',
+            'total_paid'       => 'Pago',
+            'due_amount'       => 'A receber',
+            'payment_status'   => 'Status pagamento',
+            'location_name'    => 'Localização',
+        ];
+        $requestedCols = (array) $request->input('columns', array_keys($allColumns));
+        $columns = array_values(array_intersect($requestedCols, array_keys($allColumns)));
+        if (empty($columns)) {
+            $columns = array_keys($allColumns);
+        }
+
+        $query = \App\Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+            ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'final')
+            ->whereNull('transactions.sub_type')
+            ->whereIn('transactions.id', $ids);
+
+        // Permission scope (mesmo padrão do inertiaList — defesa em profundidade).
+        if (!auth()->user()->can('direct_sell.view')) {
+            $userId = request()->session()->get('user.id');
+            $query->where(function ($qq) use ($userId) {
+                if (auth()->user()->hasAnyPermission(['view_own_sell_only', 'access_own_shipping'])) {
+                    $qq->where('transactions.created_by', $userId);
+                }
+                if (auth()->user()->hasAnyPermission(['view_commission_agent_sell', 'access_commission_agent_shipping'])) {
+                    $qq->orWhere('transactions.commission_agent', $userId);
+                }
+            });
+        }
+
+        $rows = $query->select([
+                'transactions.id',
+                'transactions.transaction_date',
+                'transactions.invoice_no',
+                'transactions.final_total',
+                \DB::raw('(SELECT COALESCE(SUM(IF(tp.is_return = 0, tp.amount, tp.amount * -1)), 0) FROM transaction_payments as tp WHERE tp.transaction_id = transactions.id) as total_paid'),
+                'transactions.payment_status',
+                'contacts.name as customer_name',
+                'contacts.supplier_business_name as customer_business',
+                'bl.name as location_name',
+            ])
+            ->orderBy('transactions.transaction_date', 'desc')
+            ->get();
+
+        $filename = 'vendas-'.date('Y-m-d-His').'.csv';
+        $callback = function () use ($rows, $columns, $allColumns) {
+            $handle = fopen('php://output', 'w');
+            // BOM UTF-8 pra Excel BR abrir com acentuação correta.
+            fwrite($handle, "\xEF\xBB\xBF");
+            // Cabeçalho PT-BR.
+            $headers = array_map(fn($c) => $allColumns[$c], $columns);
+            fputcsv($handle, $headers, ';');
+            foreach ($rows as $r) {
+                $line = [];
+                foreach ($columns as $c) {
+                    $val = match ($c) {
+                        'transaction_date' => $r->transaction_date,
+                        'invoice_no'       => (string) $r->invoice_no,
+                        'customer_name'    => $r->customer_business ?: $r->customer_name ?: '',
+                        'final_total'      => number_format((float) $r->final_total, 2, ',', '.'),
+                        'total_paid'       => number_format((float) $r->total_paid, 2, ',', '.'),
+                        'due_amount'       => number_format(max(0, (float) $r->final_total - (float) $r->total_paid), 2, ',', '.'),
+                        'payment_status'   => $r->payment_status,
+                        'location_name'    => $r->location_name ?: '',
+                        default            => '',
+                    };
+                    $line[] = $val;
+                }
+                fputcsv($handle, $line, ';');
+            }
+            fclose($handle);
+        };
+
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv; charset=utf-8',
         ]);
     }
 
