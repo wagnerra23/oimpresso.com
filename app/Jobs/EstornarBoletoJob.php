@@ -16,23 +16,24 @@ use Modules\Jana\Scopes\ScopeByBusiness;
 use RuntimeException;
 
 /**
- * EstornarBoletoJob — Hub de cancelamento de cobrança (Asaas / Inter PJ).
+ * EstornarBoletoJob — Hub de cancelamento / estorno de cobrança (Asaas / Inter PJ).
  *
  * US-CASCADE-BOLETO-001 (PR foundational): este Job é o ponto único de entrada
- * pra cancelar um TransactionDocument do tipo boleto_*. Ele resolve o gateway
- * (Asaas vs Inter PJ) e despacha pro Cancelar*Job específico que faz a chamada
- * HTTP real ao provedor.
+ * pra processar refund de um TransactionDocument do tipo boleto_*. Ele resolve
+ * 2 dimensões: (a) gateway (Asaas vs Inter PJ), (b) ação (cancelar pending vs
+ * refund paid). Despacha pro Job específico que faz a chamada real.
  *
- * ⚠️ TODO (US-CASCADE-BOLETO-002): integrar este Job no CancelarVendaCascade.
- * Hoje ele ainda NÃO é chamado por ninguém — esse PR só prepara a infra
- * (doc_type ENUM estendido + Job hub + tests). A integração com cascade fica
- * na próxima US.
+ * Roteamento por status (US-CASCADE-BOLETO-005/006):
  *
- * ⚠️ TODO (US-CASCADE-BOLETO-003+): implementar as classes concretas dos
- * gateways. Hoje `\Modules\RecurringBilling\Jobs\CancelarCobrancaAsaasJob` e
- * `\App\Jobs\CancelarCobrancaInterJob` NÃO existem — `class_exists()` retorna
- * false e este Job apenas loga TODO (sem falhar). Quando os Jobs reais
- * forem criados o despacho passa a funcionar automaticamente.
+ *   ┌────────────────────┬──────────────────────────────────────┐
+ *   │ charge.status      │ Job despachado                       │
+ *   ├────────────────────┼──────────────────────────────────────┤
+ *   │ pending / null     │ CancelarCobrancaAsaasJob / Inter     │
+ *   │                    │ (DELETE /payments/{id} pra Asaas)    │
+ *   │ paid / received    │ RefundCobrancaAsaasJob / Inter       │
+ *   │ confirmed          │ (POST /payments/{id}/refund Asaas;   │
+ *   │                    │  manual TED/PIX pra Inter)           │
+ *   └────────────────────┴──────────────────────────────────────┘
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093):
  *   - businessId vem do constructor (Job assíncrono não enxerga session)
@@ -130,17 +131,46 @@ class EstornarBoletoJob implements ShouldQueue
     }
 
     /**
-     * Despacha Cancelar*Job específico por gateway, ou loga TODO se
-     * a classe ainda não existe (Jobs concretos virão em US separada).
+     * Despacha Job específico por gateway + ação (cancel vs refund).
+     *
+     * Decisão em 2 passos:
+     *   1. Resolver status atual da charge polimórfica (campo charge.status)
+     *   2. Mapear (doc_type, action) → FQCN Job
+     *
+     * Se charge tiver status 'paid' / 'received' / 'confirmed' (case-insensitive)
+     * → refund. Caso contrário → cancel (caminho default já existente, preserva
+     * comportamento original pra charges pending).
      */
     private function despacharGateway(TransactionDocument $document): void
     {
+        $charge = $document->document; // MorphTo
+        $chargeStatus = $charge?->status ?? null;
+        $action = $this->resolverAcao($chargeStatus);
+
+        Log::info('EstornarBoletoJob: roteando gateway por status', [
+            'business_id' => $this->businessId,
+            'document_id' => $document->id,
+            'doc_type' => $document->doc_type,
+            'charge_status' => $chargeStatus,
+            'action' => $action,
+            'motivo' => $this->motivo,
+        ]);
+
+        // Matriz (doc_type, action) → FQCN. RefundCobranca*Job só roteia
+        // quando charge.status indica pago. Mantém preservação do caminho
+        // original cancelar pending (back-compat do US-CASCADE-BOLETO-001).
         $mapaJobs = [
-            TransactionDocument::DOC_BOLETO_ASAAS => '\\Modules\\RecurringBilling\\Jobs\\CancelarCobrancaAsaasJob',
-            TransactionDocument::DOC_BOLETO_INTER => '\\App\\Jobs\\CancelarCobrancaInterJob',
+            'cancel' => [
+                TransactionDocument::DOC_BOLETO_ASAAS => '\\Modules\\RecurringBilling\\Jobs\\CancelarCobrancaAsaasJob',
+                TransactionDocument::DOC_BOLETO_INTER => '\\App\\Jobs\\CancelarCobrancaInterJob',
+            ],
+            'refund' => [
+                TransactionDocument::DOC_BOLETO_ASAAS => '\\Modules\\RecurringBilling\\Jobs\\RefundCobrancaAsaasJob',
+                TransactionDocument::DOC_BOLETO_INTER => '\\App\\Jobs\\RefundCobrancaInterJob',
+            ],
         ];
 
-        $jobClass = $mapaJobs[$document->doc_type] ?? null;
+        $jobClass = $mapaJobs[$action][$document->doc_type] ?? null;
 
         if ($jobClass === null) {
             // Não deveria chegar aqui — validação acima já protege.
@@ -152,9 +182,10 @@ class EstornarBoletoJob implements ShouldQueue
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'doc_type' => $document->doc_type,
+                'action' => $action,
                 'expected_class' => $jobClass,
                 'motivo' => $this->motivo,
-                'todo' => 'Implementar em US-CASCADE-BOLETO-003+ (chamada HTTP real ao gateway)',
+                'todo' => 'Implementar Job concreto (US-CASCADE-BOLETO-003+ cancel; 005/006 refund)',
             ]);
 
             return;
@@ -166,5 +197,29 @@ class EstornarBoletoJob implements ShouldQueue
             $document->id,
             $this->motivo,
         ));
+    }
+
+    /**
+     * Decide 'cancel' vs 'refund' a partir do status atual da charge polimórfica.
+     *
+     * Statuses considerados "pago" (qualquer case):
+     *   - paid           (convenção local Eloquent)
+     *   - received       (Asaas: cobrança quitada, valor já creditado)
+     *   - confirmed      (Asaas: pagamento confirmado, ainda em D+1)
+     *
+     * Statuses null/desconhecido → 'cancel' (back-compat com charges legacy
+     * que não populam status — preserva comportamento pré-refactor).
+     */
+    private function resolverAcao(?string $chargeStatus): string
+    {
+        if ($chargeStatus === null || $chargeStatus === '') {
+            return 'cancel';
+        }
+
+        $normalized = strtolower(trim($chargeStatus));
+
+        return in_array($normalized, ['paid', 'received', 'confirmed'], true)
+            ? 'refund'
+            : 'cancel';
     }
 }
