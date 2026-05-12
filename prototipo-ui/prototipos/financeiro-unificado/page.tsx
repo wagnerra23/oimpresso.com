@@ -1,7 +1,3 @@
-// PROTÓTIPO F1 — não é a tela em prod
-// Cowork export, aprovado por [W] 2026-05-09. WAITING_FOR_BACKEND.
-// Ver ./README.md antes de copiar pra resources/js/Pages/.
-//
 // @memcofre
 //   tela: /financeiro/unificado
 //   module: Financeiro
