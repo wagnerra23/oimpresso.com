@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { InstanceManager } from '../../baileys/InstanceManager';
-import { instanceIdParam, sendMediaBody, sendTextBody } from '../schemas';
+import { fetchHistoryBody, instanceIdParam, sendMediaBody, sendTextBody } from '../schemas';
 
 interface Deps {
   manager: InstanceManager;
@@ -31,5 +31,34 @@ export const messageRoutes: FastifyPluginAsync<Deps> = async (app, deps) => {
     };
     const result = await instance.sendMedia(input);
     return result;
+  });
+
+  // US-WA-080 — import histórico Baileys (90d).
+  // Caller (PHP `whatsapp:import-history`) passa cursor inicial
+  // (before_id + before_ts) e itera. Daemon devolve 1 batch + has_more.
+  app.post('/instances/:id/history', async (req, reply) => {
+    const { id } = instanceIdParam.parse(req.params);
+    const body = fetchHistoryBody.parse(req.body);
+    const instance = deps.manager.get(id);
+    if (!instance) return reply.code(404).send({ error: 'instance_not_found' });
+    try {
+      const result = await instance.fetchHistory({
+        jid: body.jid,
+        count: body.count,
+        before_id: body.before_id,
+        before_ts: body.before_ts,
+        from_me: body.from_me,
+        timeout_ms: body.timeout_ms,
+      });
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      // Não-conectado é 409 (alinha com /text e /media — sessionLost no PHP)
+      if (message.includes('not connected')) {
+        return reply.code(409).send({ error: 'instance_not_connected', message });
+      }
+      app.log.warn({ err, instance_id: id }, 'fetchHistory failed');
+      return reply.code(500).send({ error: 'fetch_history_failed', message });
+    }
   });
 };
