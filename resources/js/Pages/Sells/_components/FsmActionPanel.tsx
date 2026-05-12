@@ -11,6 +11,7 @@ import {
   Zap,
   X,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
 import { Label } from '@/Components/ui/label';
@@ -206,14 +207,20 @@ export default function FsmActionPanel({ saleId, enabled, onTransition }: Props)
       });
       const json = await res.json();
       if (!res.ok) {
-        alert(json?.error ?? `HTTP ${res.status}`);
+        // Erro 4xx/5xx do backend — exibe motivo via toast (substitui alert() legacy)
+        toast.error(json?.error ?? `HTTP ${res.status}`);
         return;
       }
       closeModal();
       await fetchActions();
       onTransition?.();
+      // Feedback de sucesso — usa label da action recém-executada (lookup no state atual)
+      const executedLabel =
+        data?.actions.find((a) => a.key === actionKey)?.label ?? actionKey;
+      toast.success(`Transição aplicada: ${executedLabel}`);
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Erro ao executar transição');
+      // Erro de rede / parse — substitui alert() legacy
+      toast.error(e instanceof Error ? e.message : 'Erro ao executar transição');
     } finally {
       setExecuting(false);
     }
