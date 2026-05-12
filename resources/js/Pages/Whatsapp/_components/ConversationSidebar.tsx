@@ -16,6 +16,7 @@ import {
   X as XIcon,
   Ban,
   ShieldOff,
+  Plus,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -47,6 +48,11 @@ interface Props {
   searchContactsRouteName?: string;
   /** US-WA-064: route name pra PATCH vincular/desvincular Contact à conv. */
   linkContactRouteName?: string;
+  /** US-WA-078: route name pra POST que cria Contact UltimatePOS a partir
+   * do phone da conversa e linka. Quando fornecido (junto com `linkContactRouteName`),
+   * o card "Contato CRM" mostra um botão secundário "+ Cadastrar como contato"
+   * quando `linked_contact` é null. */
+  createContactFromPhoneRouteName?: string;
   /** US-WA-066: route name pra PATCH bloquear/desbloquear contato
    * (ex: `atendimento.inbox.block`). Quando fornecido, renderiza botão
    * "Bloquear" no card Ações. Omite pra esconder UI. */
@@ -60,6 +66,7 @@ export default function ConversationSidebar({
   updateTagsRouteName,
   searchContactsRouteName,
   linkContactRouteName,
+  createContactFromPhoneRouteName,
   blockRouteName,
 }: Props) {
   // US-WA-064: modal busca de Contact
@@ -88,6 +95,18 @@ export default function ConversationSidebar({
     router.patch(
       route(linkContactRouteName, conversation.id),
       { contact_id: contactId },
+      { preserveScroll: true, preserveState: true, only: reloadOnly },
+    );
+  }
+
+  // US-WA-078: cria Contact UltimatePOS a partir do phone+push_name e linka.
+  // Backend gera o `contact_id` UltimatePOS (numérico) + type='customer'.
+  // Atendente edita campos extras (email, endereço) depois via /contacts/{id}.
+  function createContactFromPhoneAction() {
+    if (!createContactFromPhoneRouteName) return;
+    router.post(
+      route(createContactFromPhoneRouteName, conversation.id),
+      {},
       { preserveScroll: true, preserveState: true, only: reloadOnly },
     );
   }
@@ -238,16 +257,32 @@ export default function ConversationSidebar({
               </div>
             </div>
           ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-start gap-2"
-              onClick={() => setContactPickerOpen(true)}
-              title="Vincular este número a um contato do CRM"
-            >
-              <UserPlus size={14} aria-hidden />
-              Vincular contato
-            </Button>
+            <div className="space-y-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2"
+                onClick={() => setContactPickerOpen(true)}
+                title="Vincular este número a um contato existente do CRM"
+              >
+                <UserPlus size={14} aria-hidden />
+                Vincular contato
+              </Button>
+              {/* US-WA-078: cria Contact do zero usando push_name+phone que
+                  o webhook já capturou. Só renderiza se Inbox passou a rota. */}
+              {createContactFromPhoneRouteName && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start gap-2 text-muted-foreground"
+                  onClick={createContactFromPhoneAction}
+                  title="Cadastrar este número como contato novo no CRM"
+                >
+                  <Plus size={14} aria-hidden />
+                  Cadastrar como contato
+                </Button>
+              )}
+            </div>
           )}
         </Card>
       )}

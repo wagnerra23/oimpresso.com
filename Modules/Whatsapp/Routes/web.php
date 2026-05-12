@@ -114,6 +114,11 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.link_contact');
+    // US-WA-078: cria Contact UltimatePOS a partir do phone da conversa + linka
+    Route::post('/inbox/{id}/contact/create-from-phone', [InboxController::class, 'createContactFromPhone'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.contact.create_from_phone');
     // US-WA-066: bloquear/desbloquear contato (toggle is_blocked + daemon Baileys)
     Route::patch('/inbox/{id}/block', [InboxController::class, 'blockContact'])
         ->whereNumber('id')
