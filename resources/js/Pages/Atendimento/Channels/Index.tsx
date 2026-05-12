@@ -403,8 +403,15 @@ function ChannelCard({
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {showConnect && (
-            <Button variant="ghost" size="icon" onClick={onConnect} title="Conectar (gerar QR)" className="h-7 w-7">
-              <Zap size={14} className="text-primary" aria-hidden />
+            <Button
+              variant="default"
+              size="sm"
+              onClick={onConnect}
+              title="Gerar QR Code pra conectar este número ao WhatsApp"
+              className="h-7 gap-1.5"
+            >
+              <Zap size={14} aria-hidden />
+              Conectar
             </Button>
           )}
           <Button variant="ghost" size="icon" onClick={onDelete} title="Remover canal" className="h-7 w-7">
