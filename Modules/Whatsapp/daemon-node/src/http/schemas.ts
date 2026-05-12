@@ -47,7 +47,30 @@ export const decryptUrlBody = z.object({
   type: z.enum(['image', 'audio', 'video', 'document', 'sticker']),
 });
 
+// ------------------------------------------------------------------------------------------------
+// Import histórico Baileys (US-WA-080)
+//
+// Endpoint POST /instances/:id/history puxa mensagens antigas via
+// `socket.fetchMessageHistory(count, oldestMsgKey, oldestMsgTimestamp)` da
+// API Baileys 6.7.9. WhatsApp entrega o batch async via evento
+// `messaging-history.set` correlacionado por `peerDataRequestSessionId`.
+//
+// Caller (PHP `whatsapp:import-history`) gerencia cursor + paginação +
+// rate limit. Daemon responde 1 batch por chamada (no máx ~100 msgs).
+// ------------------------------------------------------------------------------------------------
+export const fetchHistoryBody = z.object({
+  jid: z.string().min(8).max(64),
+  count: z.number().int().min(1).max(100).default(50),
+  before_id: z.string().min(1).max(128),
+  before_ts: z.number().int().positive(), // unix ts em segundos
+  from_me: z.boolean().optional().default(false),
+  // Timeout pra esperar `messaging-history.set` (default 60s WhatsApp pode
+  // demorar — não confundir com timeout HTTP do caller PHP).
+  timeout_ms: z.number().int().min(5_000).max(120_000).optional().default(60_000),
+});
+
 export type ConnectBody = z.infer<typeof connectBody>;
 export type SendTextBody = z.infer<typeof sendTextBody>;
 export type SendMediaBody = z.infer<typeof sendMediaBody>;
 export type DecryptUrlBody = z.infer<typeof decryptUrlBody>;
+export type FetchHistoryBody = z.infer<typeof fetchHistoryBody>;

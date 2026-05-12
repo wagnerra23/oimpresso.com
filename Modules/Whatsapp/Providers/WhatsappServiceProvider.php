@@ -12,6 +12,7 @@ use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
+use Modules\Whatsapp\Console\Commands\ImportHistoryCommand;
 use Modules\Whatsapp\Console\Commands\RegisterWhatsappPermissionsCommand;
 use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
 use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
@@ -77,6 +78,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
                 ReparseMediaFromPayloadCommand::class,  // Bonus — extrai meta de payload pré-PR #664
                 AutoLinkConversationContactsCommand::class, // US-WA-078 — backfill auto-link Contact CRM
+                ImportHistoryCommand::class,            // US-WA-080 — import histórico Baileys 90d
             ]);
         }
 
