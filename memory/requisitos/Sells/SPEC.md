@@ -92,7 +92,7 @@
 
 ### US-SELL-005 · Produtos — busca + tabela + cálculos
 
-> owner: wagner · priority: p1 · estimate: 2.5h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 2.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-004
 
 **Contexto.** Coração da tela. Hoje é Select2 + AJAX + DataTables jQuery. Migrar pra `<ProductSearchAutocomplete/>` (debounce 250ms) + tabela editável com cálculo reativo de subtotal/desconto/total.
@@ -114,7 +114,7 @@
 
 ### US-SELL-006 · Pagamento + frete + descontos colapsáveis
 
-> owner: wagner · priority: p1 · estimate: 1.5h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 1.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-005
 
 **Contexto.** Bloco pagamento sempre visível (default 1 linha `payments[0]`). Frete em `<details>`. Desconto pedido + imposto pedido em `<details>` separado.
@@ -134,7 +134,7 @@
 
 ### US-SELL-007 · Atalhos + auto-save draft + estados visuais
 
-> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+> owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-006
 
 **Contexto.** Larissa atende telefone no meio. Não pode perder rascunho. Auto-save em `localStorage.oimpresso.sells.create.draft.{biz}.{user}` debounced 500ms. Recuperação ao reabrir.

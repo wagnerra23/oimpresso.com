@@ -16,6 +16,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useAuth, useBusiness } from '@/Hooks/usePageProps';
 import { CreditCard, FileText, Loader2, Package, Plus, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -94,6 +95,9 @@ export interface SellsCreatePageProps {
 }
 
 const ADVANCED_OPEN_KEY = 'oimpresso.sells.create.advanced.open';
+// US-SELL-007 — auto-save draft. STORAGE_KEY DEVE incluir business_id + user_id
+// (Tier 0 multi-tenant ADR 0093) — sem isso ROTA LIVRE biz=4 leria draft de biz=1.
+const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
 // dropdownEntries movido pra _components/dropdownEntries.ts (utility shared local).
 
@@ -332,6 +336,16 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     // lógica de criar Transaction + payments + estoque vive em SellPosController.
     post('/pos', {
       preserveScroll: true,
+      onSuccess: () => {
+        // US-SELL-007 — limpar draft após salvar com sucesso (senão fica entre vendas).
+        if (draftKey) {
+          try {
+            localStorage.removeItem(draftKey);
+          } catch {
+            // ignore
+          }
+        }
+      },
       onError: (errs) => {
         // Rola pro topo da primeira seção com erro pra Wagner ver feedback.
         const firstErrorKey = Object.keys(errs)[0];
@@ -363,6 +377,79 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canSubmit]);
+
+  // US-SELL-007 — Esc top-level: blur active element (sair de input/select/textarea).
+  // Autocompletes (ProductSearch, CustomerSearch) já têm Esc próprio em _components/.
+  useEffect(() => {
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && typeof active.blur === 'function' && active !== document.body) {
+          active.blur();
+        }
+      }
+    };
+    window.addEventListener('keydown', onEsc);
+    return () => window.removeEventListener('keydown', onEsc);
+  }, []);
+
+  // US-SELL-007 — Auto-save draft localStorage debounced 500ms.
+  // STORAGE_KEY com business_id + user_id (Tier 0 multi-tenant ADR 0093).
+  // Larissa atende telefone no meio — não pode perder rascunho ao F5.
+  const auth = useAuth();
+  const business = useBusiness();
+  const draftKey = useMemo(() => {
+    const bizId = business?.id;
+    const userId = auth?.user?.id;
+    if (!bizId || !userId) return null;
+    return `oimpresso.sells.create.draft.${bizId}.${userId}`;
+  }, [auth, business]);
+
+  // Recover ao montar (apenas 1x). Pergunta antes — Larissa pode ter terminado em outro tab.
+  const recoveredRef = useRef(false);
+  useEffect(() => {
+    if (!draftKey || recoveredRef.current) return;
+    recoveredRef.current = true;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { data: typeof data; savedAt: number };
+      if (!parsed?.savedAt || Date.now() - parsed.savedAt > DRAFT_TTL_MS) {
+        localStorage.removeItem(draftKey);
+        return;
+      }
+      const time = new Date(parsed.savedAt).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      if (confirm(`Recuperar rascunho de venda salvo às ${time}?`)) {
+        setData(parsed.data);
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+    } catch {
+      // Draft corrompido — descartar silenciosamente.
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {
+        // ignore
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey]);
+
+  // Auto-save debounced 500ms quando data mudar (após mount).
+  useEffect(() => {
+    if (!draftKey || !recoveredRef.current) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify({ data, savedAt: Date.now() }));
+      } catch {
+        // localStorage quota / incognito — silencioso.
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [data, draftKey]);
 
   // Smooth scroll pra seção quando user clica numa aba.
   const scrollToSection = (id: string) => {

@@ -34,17 +34,18 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 - ProductSearchAutocomplete (debounce + min query) + tabela editável produtos (5 cols)
 - PaymentRow split de pagamento + indicador saldo (falta/troco/exato)
 - Footer sticky no bottom: Cancelar + Salvar venda (sempre visíveis em form longo)
+- Atalho Cmd+Enter / Ctrl+Enter submete (US-SELL-007)
+- Atalho Esc faz blur do input ativo — autocompletes têm Esc próprio (US-SELL-007)
+- Auto-save draft localStorage `oimpresso.sells.create.draft.{biz}.{user}` debounced 500ms + recover ao montar com confirm + TTL 24h + clear no onSuccess (US-SELL-007 — Larissa atende telefone no meio)
 
 ---
 
 ## Non-Goals — Features (NÃO faz)
 
 - ❌ POS rápido (vai pra `/sale-pos/create`)
-- ❌ Cotação (vai pra `/sells/quotation/create`)
-- ❌ NFC-e auto (vai por flag NFEBRASIL_AUTO_EMISSION_NFCE — backend handler)
+- ❌ Cotação (vai pra `/sells/quotation/create` — FSM stage `quote_draft`/`quote_sent` via `InitialStageResolver`)
+- ❌ NFC-e auto (vai por flag `NFEBRASIL_AUTO_EMISSION_NFCE` — backend handler `EmitirNfceAoFinalizarVenda` listener)
 - ❌ Print direto (rota separada Blade `/sells/{id}/print`)
-- ❌ Auto-save draft localStorage (US-SELL-007 backlog)
-- ❌ Atalho Esc/Cmd+Enter (US-SELL-007 backlog)
 - ❌ Tabs com troca de conteúdo (canon = pills + scroll-spy)
 
 ---
