@@ -94,6 +94,10 @@ class OimpressoMcpServer extends Server
         // ADR-stale/cost-agg/test-coverage). Wrapper sobre jana:system-audit --json.
         // Princípio 2 (tiered cost): SQL+FS only, ZERO LLM call.
         Tools\SystemHealthAuditTool::class,
+        // Bug #4 BUGS-MCP-SYNC-2026-05-13 — staleness detection em mcp_tasks
+        // (stale_todo >21d, stale_blocked >30d, stale_doing >7d sem commit, stale_review >5d).
+        // Expõe o mesmo pipeline do command `mcp:tasks:health-check`.
+        Tools\TasksHealthTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */

@@ -103,6 +103,25 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Bug #4 BUGS-MCP-SYNC-2026-05-13 — mcp:tasks:health-check daily 06:20 BRT.
+        // Flagga tasks dormentes em mcp_tasks (stale_todo >21d, stale_blocked >30d,
+        // stale_doing >7d sem commit, stale_review >5d). Roda SEM --auto-comment
+        // (só relatório no log) pra não poluir as US com comentários automáticos
+        // diários. Tool MCP `tasks-health` permite Claude/Wagner rodar com
+        // auto_comment=true quando quiser cleanup explícito.
+        // 06:20 BRT pra evitar disputa DB com health-check (06:00) e system-audit (06:15).
+        $schedule->command('mcp:tasks:health-check')
+            ->dailyAt('06:20')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule mcp:tasks:health-check FALHOU — investigar ' .
+                    'storage/logs/laravel.log pra entries "mcp:tasks:health-check"'
+                );
+            });
+
         // US-COPI-100 — Brain A narrador horário do Cockpit Saúde do Ecossistema.
         // Lê snapshot via HealthSnapshotService + invoca HealthNarratorService
         // (gpt-4o-mini canônico ADR 0035) → persiste em jana_health_narratives.
