@@ -3,12 +3,13 @@ slug: 0144-tasks-db-canonico-spec-template
 number: 144
 title: "TaskRegistry — DB é canon de estado vivo, SPEC.md é template descritivo"
 type: adr
-status: proposto
+status: accepted
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
 decided_at: 2026-05-13
-decided_by: []
+accepted_at: 2026-05-13
+decided_by: [wagner]
 module: governance
 supersedes_partially: [0070]
 superseded_by: []
