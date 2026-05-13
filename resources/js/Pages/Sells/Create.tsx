@@ -99,6 +99,36 @@ const ADVANCED_OPEN_KEY = 'oimpresso.sells.create.advanced.open';
 // (Tier 0 multi-tenant ADR 0093) — sem isso ROTA LIVRE biz=4 leria draft de biz=1.
 const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
+// US-SELL-010 — campos dentro do <details> "Mais opções". Se erro cair em algum
+// destes, o details abre automaticamente pra Larissa achar o campo (gap UX
+// detectado pelo design-arte agent 2026-05-13).
+const COLLAPSED_FIELD_KEYS = [
+  'invoice_scheme_id',
+  'invoice_no',
+  'document',
+  'pay_term_number',
+  'pay_term_type',
+  'price_group_id',
+  'commission_agent_id',
+  'tax_rate_id',
+  'shipping_details',
+  'shipping_address',
+  'shipping_charges',
+  'shipping_status',
+  'delivered_to',
+];
+
+// FieldError — exibe erro de validação por campo. Inline (canon: componente
+// reusável só ao 2º uso; aqui é local). role="alert" pra screen reader.
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="text-xs text-destructive mt-1" role="alert">
+      {message}
+    </p>
+  );
+}
+
 // dropdownEntries movido pra _components/dropdownEntries.ts (utility shared local).
 
 export default function SellsCreate(props: SellsCreatePageProps) {
@@ -393,6 +423,23 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     return () => window.removeEventListener('keydown', onEsc);
   }, []);
 
+  // US-SELL-010 — Auto-open <details> "Mais opções" quando erro está em campo colapsado.
+  // Larissa scrola pro erro mas a seção fica fechada — sem isso ela não acha o campo.
+  // Detectado pelo design-arte agent 2026-05-13 como maior gap UX restante.
+  useEffect(() => {
+    const errKeys = Object.keys(errors);
+    if (errKeys.length === 0) return;
+    const hasCollapsedError = errKeys.some((k) => COLLAPSED_FIELD_KEYS.includes(k));
+    if (hasCollapsedError && !advancedOpen) {
+      setAdvancedOpen(true);
+      try {
+        localStorage.setItem(ADVANCED_OPEN_KEY, 'true');
+      } catch {
+        // ignore
+      }
+    }
+  }, [errors, advancedOpen]);
+
   // US-SELL-007 — Auto-save draft localStorage debounced 500ms.
   // STORAGE_KEY com business_id + user_id (Tier 0 multi-tenant ADR 0093).
   // Larissa atende telefone no meio — não pode perder rascunho ao F5.
@@ -638,6 +685,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <p className="text-xs text-muted-foreground">
               Digite ≥2 caracteres pra buscar. Limpe pra voltar ao cliente padrão.
             </p>
+            <FieldError message={errors.contact_id as string | undefined} />
           </div>
 
           <div className="space-y-1.5">
@@ -649,6 +697,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               onChange={(e) => setData('transaction_date', e.target.value)}
               placeholder="DD/MM/AAAA HH:mm"
             />
+            <FieldError message={errors.transaction_date as string | undefined} />
           </div>
 
           <div className="space-y-1.5">
@@ -686,6 +735,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 ))}
               </SelectContent>
             </Select>
+            <FieldError message={errors.location_id as string | undefined} />
           </div>
         </CardContent>
       </Card>
@@ -1001,6 +1051,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 onChange={(e) => setData('invoice_no', e.target.value)}
                 placeholder="Auto-gerado se vazio"
               />
+              <FieldError message={errors.invoice_no as string | undefined} />
             </div>
 
             <div className="space-y-1.5">
