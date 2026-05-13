@@ -49,6 +49,15 @@ const schema = z.object({
   INSTANCE_CONNECT_TIMEOUT_MS: numberFromString(60_000),
   QR_TIMEOUT_MS: numberFromString(120_000),
 
+  // Healthcheck zombie detection — instância com `state=connected` mas
+  // `last_seen` parado há mais que esse threshold é zombie (socket morto
+  // WhatsApp-side). Healthcheck devolve 503 quando detecta — Docker healthcheck
+  // marca container unhealthy → restart policy reage. Caso real 2026-05-13:
+  // instância `ch-88b13697...` ficou state=connected mas last_seen estagnado
+  // 99min até intervenção manual. Default 30min = compromisso entre falso
+  // positivo (lulls reais) e detecção rápida.
+  HEALTH_ZOMBIE_THRESHOLD_MS: numberFromString(30 * 60 * 1000),
+
   // Anti-ban middleware (US-WA-094) — jitter Gaussian + typing presence + warmup
   // quota per-instance. Defaults seguros: ENABLED=true em prod, dev/test
   // setam ANTIBAN_ENABLED=false no .env pra evitar slow tests (1.5-4s/msg).
