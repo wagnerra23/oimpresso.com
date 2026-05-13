@@ -5,6 +5,7 @@ namespace Modules\OficinaAuto\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\OficinaAuto\Entities\Vehicle;
@@ -38,28 +39,112 @@ class VehicleController extends Controller
             403
         );
 
-        // Global scope multi-tenant já filtra por business_id (ADR 0093)
-        $vehicles = Vehicle::query()
-            ->when($request->filled('q'), function ($q) use ($request) {
-                $term = '%' . $request->string('q') . '%';
-                $q->where(function ($w) use ($term) {
-                    $w->where('plate', 'like', $term)
-                        ->orWhere('secondary_plate', 'like', $term)
-                        ->orWhere('chassis', 'like', $term);
-                });
-            })
-            ->orderByDesc('id')
-            ->limit(100)
-            ->get([
-                'id', 'plate', 'secondary_plate', 'chassis', 'vehicle_type',
-                'manufacture_year', 'model_year', 'color', 'mileage_at_entry',
-                'contact_id', 'created_at',
+        // Global scope multi-tenant já filtra por business_id (ADR 0093) — todas
+        // as queries abaixo herdam scope automaticamente.
+        $statusFilter = $request->string('status')->toString() ?: 'all';
+        $allowedStatuses = ['all', 'disponivel', 'locada', 'manutencao', 'atrasada'];
+        if (! in_array($statusFilter, $allowedStatuses, true)) {
+            $statusFilter = 'all';
+        }
+
+        $search = trim((string) $request->string('q'));
+
+        // Schema Wave 5 (Agent A) entrega coluna `current_status` enum + relation
+        // `currentRental` (FK pra service_orders). Até essa migration rodar,
+        // degradamos pra CRUD básico (sem KPIs nem filter por status) — fail-soft.
+        $hasFsmSchema = Schema::hasColumn('vehicles', 'current_status');
+
+        // KPIs — 4 contagens conforme demo Martinho (mockup demo-martinho-2026-05-13).
+        $kpis = $this->buildKpis($hasFsmSchema);
+
+        $query = Vehicle::query();
+
+        if ($hasFsmSchema) {
+            $query->with([
+                'currentRental:id,vehicle_id,contact_id,started_at,delivery_address,expected_return_date',
+                'currentRental.contact:id,name',
             ]);
+
+            // Filter por status
+            if ($statusFilter === 'atrasada') {
+                $query->where('current_status', 'locada')
+                    ->whereHas('currentRental', function ($q) {
+                        $q->whereDate('expected_return_date', '<', now());
+                    });
+            } elseif ($statusFilter !== 'all') {
+                $query->where('current_status', $statusFilter);
+            }
+        }
+
+        // Search livre por placa, vehicle_number ou nome do cliente atual
+        if ($search !== '') {
+            $term = '%' . $search . '%';
+            $query->where(function ($w) use ($term, $hasFsmSchema) {
+                $w->where('plate', 'like', $term)
+                    ->orWhere('secondary_plate', 'like', $term);
+                if ($hasFsmSchema && Schema::hasColumn('vehicles', 'vehicle_number')) {
+                    $w->orWhere('vehicle_number', 'like', $term);
+                }
+                if ($hasFsmSchema) {
+                    $w->orWhereHas('currentRental.contact', function ($qq) use ($term) {
+                        $qq->where('name', 'like', $term);
+                    });
+                }
+            });
+        }
+
+        if ($hasFsmSchema) {
+            $query->orderByRaw("FIELD(current_status, 'locada', 'manutencao', 'disponivel', 'indisponivel')");
+        }
+
+        $vehicles = $query
+            ->orderByDesc('id')
+            ->paginate(25)
+            ->withQueryString();
 
         return Inertia::render('OficinaAuto/Vehicles/Index', [
             'vehicles' => $vehicles,
-            'filters'  => ['q' => $request->string('q')],
+            'kpis'     => $kpis,
+            'filters'  => [
+                'q'      => $search,
+                'status' => $statusFilter,
+            ],
         ]);
+    }
+
+    /**
+     * KPIs counts pra header da tela de caçambas.
+     *
+     * Agent A (Wave 5) entrega coluna `current_status` enum + relation
+     * `currentRental`. Até essa migration rodar, retorna zeros pra evitar
+     * tela quebrada (fail-soft) — mockup mostra estado vazio aceitável.
+     *
+     * @return array{disponivel:int,locada:int,manutencao:int,atrasada:int,total:int}
+     */
+    protected function buildKpis(bool $hasFsmSchema): array
+    {
+        $total = (int) Vehicle::count();
+
+        if (! $hasFsmSchema) {
+            return [
+                'disponivel' => 0,
+                'locada'     => 0,
+                'manutencao' => 0,
+                'atrasada'   => 0,
+                'total'      => $total,
+            ];
+        }
+
+        $disponivel = (int) Vehicle::where('current_status', 'disponivel')->count();
+        $locada     = (int) Vehicle::where('current_status', 'locada')->count();
+        $manutencao = (int) Vehicle::where('current_status', 'manutencao')->count();
+        $atrasada   = (int) Vehicle::where('current_status', 'locada')
+            ->whereHas('currentRental', function ($q) {
+                $q->whereDate('expected_return_date', '<', now());
+            })
+            ->count();
+
+        return compact('disponivel', 'locada', 'manutencao', 'atrasada', 'total');
     }
 
     public function create(): Response
