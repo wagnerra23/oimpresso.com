@@ -3,6 +3,7 @@ module: Admin
 purpose: "Centro de Operações Wagner-only (admin.oimpresso.com em CT 100/Tailscale-only). Dashboard executivo: brief + health + cycles + ADR Tier 0 alerts. Bloqueio duro is-wagner + TailscaleOnly middleware."
 contains:
   - "DataController"
+  - "FeatureFlagsController"
   - "IndexController"
   - "InstallController"
   - "MutationsController"

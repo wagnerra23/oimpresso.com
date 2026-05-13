@@ -223,6 +223,24 @@
 
 **Refs:** US-INFRA-001 (GrowthBook self-hosted), [ADR 0094 §princípio 7 transparência](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md), [ADR 0122 Admin Center CT 100](../../decisions/0122-admin-center-ct100.md), [ADR 0131 tiering memória](../../decisions/0131-tiering-memoria-canonico-local-segredo.md)
 
+### US-INFRA-009 · Artisan command `feature:activate` via GrowthBook API ⚠️ **SUPERSEDED por US-INFRA-008**
+
+> owner: wagner · priority: p2 · estimate: 3h · status: superseded · type: story
+> superseded_by: US-INFRA-008
+> blocked_by: US-INFRA-001
+
+**Status (2026-05-13):** Substituída por US-INFRA-008, que entrega **superset** (5 commands artisan + 5 tools MCP + painel Inertia, todos sobre `GrowthBookAdminService`). Mantida aqui como histórico — a entry foi adicionada via PR #811 em paralelo à implementação de US-INFRA-008 (#818). Comandos equivalentes:
+
+| US-INFRA-009 (plano) | US-INFRA-008 (entregue) |
+|---|---|
+| `php artisan feature:activate {flag} {biz}` | `php artisan flag:set {flag} --biz={biz} --enabled=true` |
+| `php artisan feature:deactivate {flag} {biz}` | `php artisan flag:set {flag} --biz={biz} --enabled=false` ou `--remove` |
+| `GROWTHBOOK_API_TOKEN` | `GROWTHBOOK_ADMIN_API_TOKEN` (mesmo conceito, nome mais explícito) |
+
+**Contexto original.** Hoje ativar uma feature flag para um biz_id exige 15 cliques manuais no GrowthBook UI (Add Rule → Targeted release → preencher condição → Save Draft → Review & Publish). Automatizar via artisan command.
+
+**Refs:** US-INFRA-008 (substituta), [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)
+
 ## 3. Sequência recomendada
 
 ```
