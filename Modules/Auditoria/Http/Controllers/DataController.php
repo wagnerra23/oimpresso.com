@@ -79,11 +79,12 @@ class DataController extends Controller
             return;
         }
 
-        Menu::modify('admin-sidebar-menu', function ($menu) {
-            $menu->add('/auditoria', [
-                'icon'  => 'fa fa-shield',
-                'label' => 'Auditoria',
-                'class' => 'auditoria-menu-item',
+        $segmento_ativo = request()->segment(1) === 'auditoria';
+
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
+            $menu->url(url('/auditoria'), 'Auditoria', [
+                'icon'   => 'fa fa-shield',
+                'active' => $segmento_ativo,
             ]);
         });
     }
