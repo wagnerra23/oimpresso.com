@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\MemoriaContrato;
 use Modules\Jana\Contracts\MemoriaPersistida;
 use Modules\Jana\Entities\MemoriaFato;
+use Modules\Jana\Services\Retrieval\Reranker;
 
 /**
  * MeilisearchDriver — driver default da MemoriaContrato (verdade canônica ADR 0036).
@@ -131,9 +132,13 @@ class MeilisearchDriver implements MemoriaContrato
             return [];
         }
 
-        // 4. LLM Reranker — reordena candidatos por relevância à query original
-        /** @var LlmReranker $reranker */
-        $reranker   = app(LlmReranker::class);
+        // 4. Reranker canônico via contrato Reranker (GAP-A — AUDITORIA 2026-05-13 §5 G3)
+        //    Driver resolvido por config('copiloto.reranker.driver'): rrf|llm|null
+        //    - rrf  (default): RrfReranker — zero custo, ~1ms latência
+        //    - llm:           LlmRerankerAdapter wrapping legacy LlmReranker (gpt-4o-mini)
+        //    - null:          NullReranker passthrough (feature flag off)
+        /** @var Reranker $reranker */
+        $reranker   = app(Reranker::class);
         $candidatos = $merged->map(fn (MemoriaFato $f) => [
             'id'      => $f->id,
             'snippet' => mb_substr($f->fato, 0, 300),
