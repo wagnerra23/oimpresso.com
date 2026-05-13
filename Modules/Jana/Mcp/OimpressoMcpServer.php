@@ -98,6 +98,11 @@ class OimpressoMcpServer extends Server
         // (stale_todo >21d, stale_blocked >30d, stale_doing >7d sem commit, stale_review >5d).
         // Expõe o mesmo pipeline do command `mcp:tasks:health-check`.
         Tools\TasksHealthTool::class,
+        // G4 (AUDITORIA-SESSION-HANDOFF-2026-05-13 §5 P0) — Resume handoffs via gpt-4o-mini
+        // pra Wagner não reler 2000 linhas/dia (mediana 142 linhas, outlier 2151).
+        // Cache MD5(filename+content) em `mcp_handoff_summaries`. ~R$ 0.003 por handoff.
+        // Page 2 (knowledge cluster).
+        Tools\HandoffFetchSummarizedTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
