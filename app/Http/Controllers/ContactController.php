@@ -1671,7 +1671,11 @@ class ContactController extends Controller
     {
         $business_id = $request->session()->get('user.business_id');
 
-        $mobile_number = $request->input('mobile_number');
+        $mobile_number = trim((string) $request->input('mobile_number'));
+
+        if ($mobile_number === '') {
+            return ['is_mobile_exists' => false, 'msg' => ''];
+        }
 
         $query = Contact::where('business_id', $business_id)
                         ->where('mobile', 'like', "%{$mobile_number}");
