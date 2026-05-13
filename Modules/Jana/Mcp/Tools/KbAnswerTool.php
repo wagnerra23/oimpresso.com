@@ -11,6 +11,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Ai\Agents\KbAnswerAgent;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Services\Summarizer\AutoSummarizerHelper;
 use Throwable;
 
 /**
@@ -147,17 +148,29 @@ class KbAnswerTool extends Tool
 
             // Sanity check: se LLM não seguiu formato, faz fallback determinístico.
             if (! str_starts_with($texto, 'Resposta:')) {
-                return Response::text($this->fallbackSemIa($pergunta, $docs, $maxCitacoes));
+                return Response::text(
+                    AutoSummarizerHelper::summarizeAndRender(
+                        $this->fallbackSemIa($pergunta, $docs, $maxCitacoes)
+                    )
+                );
             }
 
-            return Response::text($texto);
+            // A1 Onda 5 (dossier 2026-05-13 §6) — auto-summary se response > 8KB.
+            // KB synthesis 10+ citações pode estourar quando fontes longas
+            // vazam pra resposta (anti-padrão LLM). Helper passthrough abaixo
+            // do threshold (caso comum: 2-3KB).
+            return Response::text(AutoSummarizerHelper::summarizeAndRender($texto));
         } catch (Throwable $e) {
             Log::channel('copiloto-ai')->warning('kb-answer falhou (degradação)', [
                 'error' => $e->getMessage(),
                 'pergunta_chars' => strlen($pergunta),
             ]);
 
-            return Response::text($this->fallbackSemIa($pergunta, $docs, $maxCitacoes));
+            return Response::text(
+                AutoSummarizerHelper::summarizeAndRender(
+                    $this->fallbackSemIa($pergunta, $docs, $maxCitacoes)
+                )
+            );
         }
     }
 
