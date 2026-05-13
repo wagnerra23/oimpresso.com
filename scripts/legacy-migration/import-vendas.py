@@ -105,7 +105,8 @@ COLS_CANONICAS = [
     "PESSOA_FUNCIONARIO_CODIGO",     # salesman legacy_id
     "PESSOA_REPRESENTANTE_CODIGO",   # representative legacy_id
     "TELEFONE", "CONTATO",           # contact info (denormalizado denphy)
-    "CPF_CNPJ_RESPONSAVEL",          # PII — redacted audit
+    "CPF_CNPJ_RESPONSAVEL",          # PII — redacted audit (v1474 canônica nomenclatura)
+    "RESPONSAVEL_CNPJCPF",           # PII — redacted audit (v1404 Martinho nomenclatura, alias)
 ]
 
 # PII fields a redactar em audit JSON
@@ -194,13 +195,21 @@ def derive_subtype(venda_row: dict) -> str | None:
 
 
 def map_venda_to_transaction(
-    venda: dict, business_id: int, vehicle_lookup: dict[str, int]
+    venda: dict,
+    business_id: int,
+    vehicle_lookup: dict[str, int],
+    contact_lookup: dict[str, int],
 ) -> tuple[dict, dict]:
     """VENDA Delphi → linha em `transactions`.
 
     vehicle_lookup: {EQUIPAMENTO_VEICULO.CODIGO (str) → vehicles.id (int)}
                     pra resolver `service_orders.vehicle_id` em fase futura.
                     Por ora marcamos em metadata.
+
+    contact_lookup: {CNPJ_normalized (str) → contacts.id (int)}
+                    Resolve transactions.contact_id (NOT NULL FK) via
+                    CNPJ extraído de VENDA.RESPONSAVEL_CNPJCPF.
+                    Populado em prep step pelo import-contacts-from-venda.py.
 
     Retorna (data, audit).
     """
@@ -209,6 +218,15 @@ def map_venda_to_transaction(
     has_vehicle = placa_fk is not None and placa_fk in vehicle_lookup
     vehicle_id = vehicle_lookup.get(placa_fk) if has_vehicle else None
 
+    # Resolve contact_id via CNPJ normalizado (RESPONSAVEL_CNPJCPF)
+    cnpj_raw = venda.get("CPF_CNPJ_RESPONSAVEL") or venda.get("RESPONSAVEL_CNPJCPF")
+    cnpj_norm = None
+    if cnpj_raw:
+        digits = re.sub(r"\D", "", str(cnpj_raw))
+        if digits and len(digits) in (11, 14):
+            cnpj_norm = digits
+    contact_id = contact_lookup.get(cnpj_norm) if cnpj_norm else None
+
     razao = normalize_str(venda.get("RAZAOSOCIAL")) or f"Legacy {legacy_id}"
 
     data = {
@@ -216,10 +234,10 @@ def map_venda_to_transaction(
         "type": derive_type(venda),
         "status": derive_status(venda),
         "payment_status": derive_payment_status(venda),
-        # contact_id é obrigatório (NOT NULL FK) — vai usar contact 'Legacy placeholder'
-        # criado fora do scope (Fase 2 Empresas resolve isso). Aqui marcamos NULL
-        # → dry-run avisa Wagner, prod precisa de placeholder contact existente.
-        "contact_id": None,
+        # contact_id é obrigatório (NOT NULL FK). Resolvido via lookup CNPJ
+        # (import-contacts-from-venda.py popula contacts.legacy_id=CNPJ ANTES).
+        # Dry-run: pode ficar None pra audit. Prod: skip se None.
+        "contact_id": contact_id,
         "ref_no": legacy_id,
         "invoice_no": normalize_str(venda.get("NOTAFISCAL")),
         "transaction_date": venda.get("DT_EMISSAO"),
@@ -254,7 +272,9 @@ def map_venda_to_transaction(
         "venda_tipo_delphi": normalize_str(venda.get("VENDA_TIPO")),
         "situacao_delphi": normalize_str(venda.get("SITUACAO")),
         "raw_delphi_pii_safe": pii_safe_delphi,
-        "razaosocial_denormalized": razao,  # contact lookup depende Fase 2 (empresas)
+        "razaosocial_denormalized": razao,
+        "cnpj_normalized_redacted": ("[REDACTED-" + cnpj_norm[:4] + "...]") if cnpj_norm else None,
+        "contact_id_resolved": contact_id,
         "responsavel_codigo_legacy": normalize_str(venda.get("PESSOA_RESPONSAVEL_CODIGO")),
         "imported_at_iso": datetime.utcnow().isoformat() + "Z",
         "importer_version": IMPORTER_VERSION,
@@ -326,6 +346,8 @@ def main() -> int:
         "inserts": 0,
         "updates": 0,
         "skipped_no_contact": 0,
+        "com_contact_resolved": 0,
+        "sem_contact_resolved": 0,
         "errors": 0,
         "com_vehicle": 0,
         "sem_vehicle": 0,
@@ -341,8 +363,9 @@ def main() -> int:
         "-- UPDATE OU INSERT manual (transactions schema usa index, não unique).",
         "-- Este preview emite INSERT puro pra auditoria.",
         "",
-        "-- ATENÇÃO: contact_id está NULL — produção requer dependência de Fase 2 (Empresas)",
-        "-- pra criar contacts com legacy_id antes desta fase. Dry-run só audita.",
+        "-- contact_id resolvido via lookup CNPJ (RESPONSAVEL_CNPJCPF normalizado).",
+        "-- Pré-req: rodar import-contacts-from-venda.py ANTES (popula contacts.legacy_id=CNPJ).",
+        "-- Dry-run: pode mostrar contact_id NULL se nenhum contact pré-criado em biz.",
         "",
     ]
     audit_records: list[dict] = []
@@ -357,10 +380,11 @@ def main() -> int:
         if cols_ausentes:
             print(f"          Ausentes (viram NULL): {cols_ausentes}")
 
-        # Carrega vehicle_lookup: legacy_id_string → vehicles.id INT
-        # Pra dry-run, não precisa de MySQL — só usamos pra contar/audit.
-        # Mas pra resolver vehicle_id em produção (fase futura service_orders), precisamos.
+        # Carrega vehicle_lookup + contact_lookup do MySQL alvo.
+        # Pra dry-run, vehicle_lookup é simulado via EQUIPAMENTO_VEICULO Firebird (sentinel),
+        # contact_lookup também é simulado via DISTINCT CNPJ de VENDA.
         vehicle_lookup: dict[str, int] = {}
+        contact_lookup: dict[str, int] = {}
         if args.target in ("local", "prod"):
             if pymysql is None:
                 print("[ERRO] pymysql não instalado: pip install pymysql", file=sys.stderr)
@@ -379,18 +403,35 @@ def main() -> int:
                     )
                     for r in cur.fetchall():
                         vehicle_lookup[str(r["legacy_id"])] = int(r["id"])
+                    cur.execute(
+                        "SELECT id, legacy_id FROM contacts WHERE business_id=%s AND legacy_id IS NOT NULL",
+                        (args.target_business,),
+                    )
+                    for r in cur.fetchall():
+                        contact_lookup[str(r["legacy_id"])] = int(r["id"])
             finally:
                 tmp_con.close()
-            print(f"[Vehicle lookup] {len(vehicle_lookup)} vehicles biz={args.target_business} pra resolver FK Delphi")
+            print(f"[Vehicle lookup] {len(vehicle_lookup)} vehicles biz={args.target_business}")
+            print(f"[Contact lookup] {len(contact_lookup)} contacts biz={args.target_business} (CNPJ → id)")
+            if not contact_lookup:
+                print("[WARN] Nenhum contact com legacy_id em biz alvo — rode import-contacts-from-venda.py ANTES.")
         else:
-            # Dry-run: simula leitura do MySQL via EQUIPAMENTO_VEICULO Firebird
-            # (legacy_id virtual = CODIGO Delphi)
+            # Dry-run: simula vehicle_lookup via EQUIPAMENTO_VEICULO + contact_lookup via DISTINCT CNPJ
             cur = fb_con.cursor()
             cur.execute("SELECT CODIGO FROM EQUIPAMENTO_VEICULO ORDER BY CODIGO")
             for r in cur.fetchall():
                 vehicle_lookup[str(r[0]).strip()] = -1  # sentinel
+            cur.execute(
+                "SELECT DISTINCT RESPONSAVEL_CNPJCPF FROM VENDA WHERE RESPONSAVEL_CNPJCPF IS NOT NULL"
+            )
+            for r in cur.fetchall():
+                if r[0]:
+                    digits = re.sub(r"\D", "", str(r[0]))
+                    if digits and len(digits) in (11, 14):
+                        contact_lookup[digits] = -1  # sentinel
             cur.close()
-            print(f"[Vehicle lookup] dry-run · {len(vehicle_lookup)} legacy_ids EQUIPAMENTO_VEICULO (sentinel ids)")
+            print(f"[Vehicle lookup] dry-run · {len(vehicle_lookup)} legacy_ids EQUIPAMENTO_VEICULO (sentinel)")
+            print(f"[Contact lookup] dry-run · {len(contact_lookup)} CNPJ distinct VENDA (sentinel)")
 
         # Query principal VENDA com filtros
         where_parts = []
@@ -431,7 +472,9 @@ def main() -> int:
             for row in cur:
                 stats["lidos"] += 1
                 venda = dict(zip(col_names, row))
-                data, audit = map_venda_to_transaction(venda, args.target_business, vehicle_lookup)
+                data, audit = map_venda_to_transaction(
+                    venda, args.target_business, vehicle_lookup, contact_lookup
+                )
                 audit_records.append(audit)
 
                 if audit["has_vehicle"]:
@@ -440,6 +483,11 @@ def main() -> int:
                     stats["placa_orfa"] += 1
                 else:
                     stats["sem_vehicle"] += 1
+
+                if audit["contact_id_resolved"] is not None:
+                    stats["com_contact_resolved"] += 1
+                else:
+                    stats["sem_contact_resolved"] += 1
 
                 if args.target == "dry-run":
                     sql_str = emit_insert_sql(data)
