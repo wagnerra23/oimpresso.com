@@ -1,20 +1,22 @@
 ---
 name: charter-first
-description: Use ANTES de editar qualquer .tsx que tenha .charter.md ao lado (ex Index.tsx + Index.charter.md). Carrega contrato vivo da página/feature/mission antes de mexer. Tier A DORMENTE — ativa quando S4 entregar tool charter-fetch (~jun/2026).
+description: BLOQUEADOR — ANTES de editar qualquer .tsx que tenha .charter.md ao lado (ex Index.tsx + Index.charter.md), chame tool MCP `charter-fetch <page-id>` pra carregar contrato vivo da página (Mission/Goals/Non-Goals/UX targets/Anti-hooks). Tier A always-on — princípio duro #3 Constituição V2 (Charter > Spec). 26 charters em prod, tool MCP deployed em 2026-05-13.
 tier: A
+always_on: true
 tier_enforce: hook-pre-tool-use-edit
 parent_adr: 0095
 related_adrs: [0094, 0101]
 enabled: true
 ativacao: 2026-05-08 (S6 F1+F2 partial — charters em prod + artisan charter:audit)
-ativacao_notas: charter-fetch tool MCP fica em F2 deploy CT 100 (pendente Wagner). Skill já ativa pq charters existem em prod e Pest GUARD valida estrutura.
+plena_ativacao: 2026-05-13 (C1 P0 Onda 4 — tool MCP `charter-fetch` deployed + skill upgrade Tier A always-on + hook `charter-validate` warning-mode)
+ativacao_notas: charter-fetch tool MCP entregue 2026-05-13 (CharterFetchTool.php em Modules/Jana/Mcp/Tools). 26 charters .charter.md em produção (21 live + 3 draft + 1 rascunho + 1 piloto). Hook .claude/hooks/charter-validate.{ps1,sh} warn-only — vira bloqueante quando ROI provado.
 ---
 
-# charter-first — Tier A ATIVA
+# charter-first — Tier A ATIVA (plena)
 
-> ✅ **ATIVA desde 2026-05-08** — `enabled: true`. 5 charters Tier A em prod, workflow `charter-gate.yml` valida estrutura em PR (modo soft). Tool MCP `charter-fetch` ainda pendente deploy CT 100; até lá, skill carrega charter via Read direto do filesystem.
+> ✅ **PLENAMENTE ATIVA desde 2026-05-13** — Tool MCP `charter-fetch` deployed (CharterFetchTool.php em Modules/Jana/Mcp/Tools/, registrada em OimpressoMcpServer page 2). 26 charters .charter.md em produção (21 status: live + 5 draft/rascunho/proposto). Hook `.claude/hooks/charter-validate.{ps1,sh}` rodando em PreToolUse Edit/Write modo warning (P1 — vira bloqueante quando ROI provado em ≥5 sessões).
 
-## Quando ativar (futuro pós-S4)
+## Quando ativar
 
 ANTES de qualquer Edit/Write em `.tsx` que tenha `.charter.md` no mesmo diretório.
 
@@ -24,6 +26,18 @@ resources/js/Pages/Repair/
 ├── Index.tsx         ← Claude vai editar
 └── Index.charter.md  ← skill força chamada charter-fetch primeiro
 ```
+
+## Como chamar (canon a partir de 2026-05-13)
+
+Tool MCP (servidor oimpresso) — nome varia por dev:
+```
+mcp__Oimpresso_MCP___Wagner__charter-fetch page_id:"/sells"
+mcp__Oimpresso_MCP___Wagner__charter-fetch page_id:"resources/js/Pages/Sells/Index.tsx"
+mcp__Oimpresso_MCP___Wagner__charter-fetch page_id:"resources/js/Pages/Sells/Index.charter.md"
+mcp__Oimpresso_MCP___Wagner__charter-fetch page_id:"/admin" format:"json"
+```
+
+Output retorna 6 seções canônicas: Mission · Goals · Non-Goals · UX targets · Automation hooks · Anti-hooks + frontmatter (status/owner/tier/related_adrs). Se `status: draft|rascunho|proposto`, anexa WARNING — Wagner ainda não aprovou Non-Goals + Anti-hooks (parte sensível anti-alucinação).
 
 ## Por que Tier A
 
