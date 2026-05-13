@@ -404,6 +404,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Bug #3 fix MCP inbox (2026-05-13) — auto-cleanup notifications stale.
+        // Marca read todas as mcp_inbox_notifications unread com created_at > 7d.
+        // Daily 04:00 BRT — antes do horário comercial, depois das janelas Brain B
+        // (02:00 ads:learn-patterns, 03:00 fsm:scan-drift, 03:30 health-probe).
+        // Multi-tenant safe (per-user via user_id, sem business_id).
+        // Ver memory/requisitos/Jana/BUGS-MCP-SYNC-2026-05-13.md.
+        $schedule->job(new \Modules\Jana\Jobs\Mcp\InboxAutoCleanupJob())
+            ->dailyAt('04:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule InboxAutoCleanupJob FALHOU — inbox notifications stale podem acumular'
+                );
+            });
+
         // US-RB-045 — Sincroniza saldo Asaas/Inter pra contas_bancarias.saldo_cached.
         // Sem este schedule, dashboard /financeiro mostra "—" (saldo_cached NULL).
         // Hourly: latência aceitável vs custo de chamadas API gateways.

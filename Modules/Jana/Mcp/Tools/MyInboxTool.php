@@ -20,14 +20,15 @@ class MyInboxTool extends Tool
 
     protected string $title = 'Caixa de entrada';
 
-    protected string $description = 'Retorna notificações na minha caixa de entrada (mentions, assignments, review requests, comments). Default: unread, últimos 30 dias.';
+    protected string $description = 'Retorna notificações na minha caixa de entrada (mentions, assignments, review requests, comments). Default: unread, últimos 30 dias, CONSOME (mark_read=true igual email inbox). Use keep_unread:true pra apenas espiar.';
 
     public function schema(JsonSchema $schema): array
     {
         return [
             'include_read' => $schema->boolean()->description('Incluir já lidas (default false)'),
             'limit' => $schema->integer()->description('Máx (default 50)'),
-            'mark_read' => $schema->boolean()->description('Se true, marca todas as retornadas como lidas'),
+            'mark_read' => $schema->boolean()->description('Se true (DEFAULT), marca todas as retornadas como lidas (consome). Bug #3 fix 2026-05-13 — UX inbox precisa ser consumível.'),
+            'keep_unread' => $schema->boolean()->description('Se true, preserva unread mesmo com mark_read default (modo "espiar"). Override explícito.'),
         ];
     }
 
@@ -63,7 +64,12 @@ class MyInboxTool extends Tool
 
         $includeRead = (bool) $request->get('include_read', false);
         $limit = min((int) $request->get('limit', 50), 200);
-        $markRead = (bool) $request->get('mark_read', false);
+
+        // Bug #3 fix (2026-05-13) — UX inbox: default consume-on-read.
+        // Antes era `mark_read=false` default → 33+ notifications acumulavam unread
+        // poluindo my-inbox. Agora consome igual email; keep_unread:true escapa.
+        $keepUnread = (bool) $request->get('keep_unread', false);
+        $markRead = (bool) $request->get('mark_read', true) && ! $keepUnread;
 
         $q = McpInboxNotification::forUser($userId)
             ->where('created_at', '>', now()->subDays(30))
