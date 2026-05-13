@@ -113,6 +113,10 @@ class OimpressoMcpServer extends Server
         // log / gh api / mcp_tasks. Reduz cognitive load reler handoff inteiro.
         // Cache em mcp_handoff_diffs (MD5 hash dos events). Page 2 knowledge cluster.
         Tools\HandoffDiffTool::class,
+        // H6 Onda 3 (G8 P2 AUDITORIA-KNOWLEDGE-2026-05-13) — Reflect-style weekly
+        // digest. Coleta commits/PRs/US/ADRs/handoffs últimos 7 dias + gpt-4o-mini
+        // sintetiza em 5 seções. Schedule seg 09h BRT. Cache `mcp_weekly_digests`.
+        Tools\WeeklyDigestFetchTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
