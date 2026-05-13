@@ -37,11 +37,25 @@ use Modules\Jana\Entities\Mcp\McpTask;
  *
  * Idempotente: rodar 2x sem mudança = 0 inserts/updates.
  * US deletada do SPEC vira status=cancelled (soft) em vez de DELETE.
+ *
+ * ADR 0144 (Bug #2 BUGS-MCP-SYNC-2026-05-13) — DB = canon, SPEC = template.
+ * Para tasks já existentes no DB, o sync só atualiza campos descritivos
+ * (title, description, labels, type, módulo, epic/cycle/component etc).
+ * Campos de estado vivo (status, owner, sprint, priority) NUNCA são
+ * sobrescritos pelo webhook — `tasks-update` é durável. Novas USs (ainda
+ * não no DB) usam o SPEC pra valores iniciais normalmente.
  */
 class TaskParserService
 {
     /** Regex pra heading de US: ###(#)? US-XXX-NNN[N] · Título */
     public const US_HEADING_REGEX = '/^#{2,4}\s+(US-[A-Z0-9]+-\d{3,4})\s*[·\-:]?\s*(.*)$/m';
+
+    /**
+     * Campos de "estado vivo" — ADR 0144.
+     * Webhook NUNCA sobrescreve estes em tasks já existentes no DB.
+     * Mudança só via tool MCP `tasks-update` (auditada em mcp_task_events).
+     */
+    public const LIVE_STATE_FIELDS = ['status', 'owner', 'sprint', 'priority'];
 
     /**
      * Parser SPEC + sync DB. Retorna relatório por módulo.
@@ -82,10 +96,16 @@ class TaskParserService
                 $existente = McpTask::where('task_id', $cand['task_id'])->first();
 
                 if ($existente === null) {
+                    // Task nova — usa SPEC integral (status inicial vem do SPEC)
                     McpTask::create($cand);
                     $inseridas++;
                 } elseif ($this->precisaAtualizar($existente, $cand)) {
-                    $existente->update($cand);
+                    // Task existente — ADR 0144 — só atualiza campos descritivos.
+                    // Estado vivo (status/owner/sprint/priority) é canônico no DB,
+                    // mudança via `tasks-update`. SPEC vira template descritivo.
+                    $updatePayload = $this->extrairCamposDescritivos($cand);
+                    $this->logarSkipsDeEstadoVivo($existente, $cand);
+                    $existente->update($updatePayload);
                     $atualizadas++;
                 }
             }
@@ -94,8 +114,10 @@ class TaskParserService
         // Tasks que não apareceram no SPEC mais → cancelar (soft).
         // ADR 0070: NÃO cancelar tasks ad-hoc ou backfilled — só vivem no DB,
         // não são esperadas no SPEC.
+        // ADR 0144: NÃO regredir `done` → `cancelled`. Estado terminal é canon
+        // do DB; remover linha do SPEC depois de mergear PR é fluxo normal.
         $canceladas = 0;
-        $query = McpTask::where('status', '!=', 'cancelled')
+        $query = McpTask::whereNotIn('status', ['cancelled', 'done'])
             ->where(function ($q) {
                 $q->where('source_path', 'LIKE', 'memory/requisitos/%')
                   ->orWhereNull('source_path');
@@ -358,11 +380,17 @@ class TaskParserService
         return mb_substr(trim(implode("\n", $body)), 0, 1000);
     }
 
+    /**
+     * Determina se a task precisa de update — só considera campos descritivos
+     * (ADR 0144). Mudanças em status/owner/sprint/priority NO SPEC são
+     * ignoradas (DB é canônico pra estado vivo).
+     */
     protected function precisaAtualizar(McpTask $existente, array $cand): bool
     {
+        // Campos escalares descritivos — note que status/owner/sprint/priority
+        // foram REMOVIDOS desta lista intencionalmente (ADR 0144).
         $campos = [
-            'title', 'description', 'status', 'owner', 'sprint',
-            'priority', 'estimate_h', 'source_path', 'identifier',
+            'title', 'description', 'estimate_h', 'source_path', 'identifier',
             'project_id', 'epic_id', 'cycle_id', 'component_id',
             'type', 'story_points', 'estimate_unit', 'estimate_value',
         ];
@@ -371,7 +399,7 @@ class TaskParserService
                 return true;
             }
         }
-        // Comparar arrays (labels, blocked_by, custom_fields)
+        // Comparar arrays descritivos (labels, blocked_by, custom_fields)
         foreach (['labels', 'blocked_by', 'custom_fields'] as $jsonField) {
             if (json_encode($existente->{$jsonField} ?? null) !== json_encode($cand[$jsonField] ?? null)) {
                 return true;
@@ -384,6 +412,50 @@ class TaskParserService
             return true;
         }
         return false;
+    }
+
+    /**
+     * Filtra do payload da SPEC só os campos descritivos (ADR 0144).
+     * Remove status/owner/sprint/priority — esses são canônicos no DB.
+     * `parsed_at` e `source_git_sha` continuam atualizando (são metadata do sync).
+     */
+    protected function extrairCamposDescritivos(array $cand): array
+    {
+        $remover = self::LIVE_STATE_FIELDS;
+        return array_diff_key($cand, array_flip($remover));
+    }
+
+    /**
+     * Loga quando o sync teria sobrescrito estado vivo mas foi pulado.
+     * Ajuda auditoria — se SPEC.md tem `status: todo` mas DB tem `status: done`,
+     * registra qual divergência foi preservada e por quê (ADR 0144).
+     */
+    protected function logarSkipsDeEstadoVivo(McpTask $existente, array $cand): void
+    {
+        $skipsDetectados = [];
+        foreach (self::LIVE_STATE_FIELDS as $field) {
+            $valorDb = $existente->{$field};
+            $valorSpec = $cand[$field] ?? null;
+
+            // Normaliza pra string pra comparação estável
+            $vDb = $valorDb === null ? null : (string) $valorDb;
+            $vSpec = $valorSpec === null ? null : (string) $valorSpec;
+
+            if ($vDb !== $vSpec) {
+                $skipsDetectados[$field] = [
+                    'db' => $vDb,
+                    'spec' => $vSpec,
+                ];
+            }
+        }
+
+        if (! empty($skipsDetectados)) {
+            Log::channel('copiloto-ai')->info('TaskParser preservou estado vivo DB (ADR 0144)', [
+                'task_id' => $existente->task_id,
+                'preservados' => $skipsDetectados,
+                'fonte' => 'webhook-sync',
+            ]);
+        }
     }
 
     /** Cache em-memória pra evitar query repetida no mesmo sync. */
