@@ -10,6 +10,7 @@ contains:
   - "JobSheetController"
   - "ProducaoOficinaController"
   - "RepairController"
+  - "RepairFsmActionController"
   - "RepairSettingsController"
   - "RepairStatusController"
 not_contains:
