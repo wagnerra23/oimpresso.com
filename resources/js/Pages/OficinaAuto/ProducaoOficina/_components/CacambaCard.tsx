@@ -11,6 +11,7 @@
 // quando hierarquia profunda (Index → Coluna → Card × N).
 
 import { memo } from 'react';
+import MercosulPlate from './MercosulPlate';
 
 export type CacambaStatus = 'disponivel' | 'locada' | 'aguardando' | 'manutencao' | 'pronta';
 
@@ -86,14 +87,14 @@ function CacambaCardImpl({ cacamba, variant, onClick }: Props) {
       tabIndex={0}
       aria-label={`Caçamba ${headerLabel}${cacamba.cliente_nome ? ` — ${cacamba.cliente_nome}` : ''}`}
     >
-      {/* Linha 1: plate mono + badge capacidade ou status */}
-      <div className="flex items-center justify-between mb-2 gap-2">
-        <span
-          className="text-sm font-bold text-slate-900 tracking-wide"
-          style={{ fontFamily: 'ui-monospace, "Cascadia Code", Menlo, monospace' }}
-        >
-          {headerLabel}
-        </span>
+      {/* Linha 1: placa Mercosul visual + badge capacidade ou status */}
+      <div className="flex items-start justify-between mb-2 gap-2">
+        <div className="flex flex-col gap-1">
+          <MercosulPlate plate={cacamba.plate} size="sm" />
+          {subPlate || (cacamba.vehicle_number && cacamba.vehicle_number !== cacamba.plate) ? (
+            <span className="text-[10px] text-slate-500 tracking-wide">{cacamba.vehicle_number}</span>
+          ) : null}
+        </div>
         {isAprovacao ? (
           <span className="text-[10px] px-1.5 py-0.5 bg-amber-500 text-white rounded font-medium uppercase tracking-wide whitespace-nowrap">
             Recolher
