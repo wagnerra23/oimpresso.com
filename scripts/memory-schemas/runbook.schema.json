@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oimpresso.com/schemas/runbook.schema.json",
+  "title": "RUNBOOK frontmatter — oimpresso (ONDA 5 S1)",
+  "description": "Schema canônico do bloco YAML em memory/requisitos/<Mod>/RUNBOOK*.md. ONDA-5-DOSSIER §5 S1 — required minimalista (title, owner, last_validated, preconditions, steps).",
+  "type": "object",
+  "required": ["title", "owner", "last_validated"],
+  "additionalProperties": true,
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 250
+    },
+    "module": {
+      "type": ["string", "null"]
+    },
+    "tela": {
+      "type": ["string", "null"],
+      "description": "Tela específica quando RUNBOOK é per-screen (ex: Vendas/Index)"
+    },
+    "owner": {
+      "type": "string",
+      "enum": ["W", "F", "M", "L", "E"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["rascunho", "ativo", "arquivado", "historical"]
+    },
+    "last_validated": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Última data que rodou o RUNBOOK e o resultado bateu — dispara alerta se >30d"
+    },
+    "preconditions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "steps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Lista de passos high-level — corpo markdown detalha cada um"
+    },
+    "related_adrs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
+      "uniqueItems": true,
+      "default": []
+    }
+  }
+}

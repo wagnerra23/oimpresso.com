@@ -1,0 +1,200 @@
+name: Memory schema gate (ONDA 5 S1)
+
+# ONDA 5 S1 — Schema rígido CI híbrido.
+# Workflow A do híbrido (gate PR remark-lint + AJV via npx).
+# Gate C complementar = `php artisan jana:validate-memory` (cron daily 06:30 BRT).
+#
+# Schemas: scripts/memory-schemas/*.schema.json
+# Mapa glob→schema: scripts/memory-schemas/README.md
+#
+# Grace period 14d:
+# - var JANA_VALIDATE_MEMORY_STRICT=false default → continue-on-error
+# - var JANA_VALIDATE_MEMORY_STRICT=true (após Wagner sign-off) → fail merge
+#
+# Trigger: PR que toca memory/**/*.md OU charter ao lado de Page Inertia.
+
+on:
+  pull_request:
+    paths:
+      - 'memory/**/*.md'
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'scripts/memory-schemas/**'
+      - '.remarkrc.cjs'
+      - '.github/workflows/memory-schema-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'memory/**/*.md'
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'scripts/memory-schemas/**'
+      - '.remarkrc.cjs'
+
+concurrency:
+  group: memory-schema-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: ADR (memory/decisions/*.md)
+            schema: scripts/memory-schemas/adr.schema.json
+            glob: "memory/decisions/[0-9][0-9][0-9][0-9]-*.md"
+          - label: SPEC (memory/requisitos/*/SPEC.md)
+            schema: scripts/memory-schemas/spec.schema.json
+            glob: "memory/requisitos/*/SPEC.md"
+          - label: RUNBOOK (memory/requisitos/**/RUNBOOK*.md)
+            schema: scripts/memory-schemas/runbook.schema.json
+            glob: "memory/requisitos/**/RUNBOOK*.md"
+          - label: Session log (memory/sessions/*.md)
+            schema: scripts/memory-schemas/session.schema.json
+            glob: "memory/sessions/[0-9][0-9][0-9][0-9]-*.md"
+          - label: Handoff (memory/handoffs/*.md)
+            schema: scripts/memory-schemas/handoff.schema.json
+            glob: "memory/handoffs/[0-9][0-9][0-9][0-9]-*.md"
+          - label: Charter (resources/js/Pages/**/*.charter.md)
+            schema: scripts/memory-schemas/charter.schema.json
+            glob: "resources/js/Pages/**/*.charter.md"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install AJV CLI (validation only — sem deps custos do remark)
+        run: |
+          npm install --no-save \
+            ajv@^8.17.1 \
+            ajv-cli@^5.0.0 \
+            ajv-formats@^3.0.1 \
+            gray-matter@^4.0.3 \
+            glob@^11.0.0
+
+      - name: Compute strict mode flag
+        id: strict
+        run: |
+          # var/secret JANA_VALIDATE_MEMORY_STRICT controla bloqueio
+          # default false durante grace period 14d (Wagner sign-off pra ligar)
+          STRICT="${{ vars.JANA_VALIDATE_MEMORY_STRICT || 'false' }}"
+          echo "value=$STRICT" >> "$GITHUB_OUTPUT"
+          echo "Strict mode: $STRICT (false=warning, true=fail merge)"
+
+      - name: Validate frontmatter against schema
+        id: validate
+        continue-on-error: ${{ steps.strict.outputs.value != 'true' }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const matter = require('gray-matter');
+          const { globSync } = require('glob');
+          const Ajv = require('ajv/dist/2020').default;
+          const addFormats = require('ajv-formats').default;
+
+          const schemaPath = process.env.SCHEMA;
+          const pattern = process.env.GLOB;
+
+          if (!fs.existsSync(schemaPath)) {
+            console.error(`[SKIP] schema não existe: ${schemaPath}`);
+            process.exit(0);
+          }
+
+          const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+          const ajv = new Ajv({ allErrors: true, strict: false });
+          addFormats(ajv);
+          const validate = ajv.compile(schema);
+
+          const files = globSync(pattern, { ignore: ['**/_*.md', '**/README.md', '**/INDEX.md'] });
+          if (files.length === 0) {
+            console.log(`[OK] nenhum arquivo bate ${pattern}`);
+            process.exit(0);
+          }
+
+          let failed = 0;
+          const violations = [];
+          for (const file of files) {
+            const raw = fs.readFileSync(file, 'utf8');
+            const { data } = matter(raw);
+            // grace period: arquivos sem frontmatter (legacy) — só warning
+            if (!data || Object.keys(data).length === 0) {
+              violations.push({ file, level: 'warn', errors: ['frontmatter ausente (legacy)'] });
+              continue;
+            }
+            const ok = validate(data);
+            if (!ok) {
+              failed++;
+              violations.push({
+                file,
+                level: 'error',
+                errors: validate.errors.map((e) => `${e.instancePath || '/'} ${e.message}`),
+              });
+            }
+          }
+
+          console.log(`Arquivos validados: ${files.length}`);
+          console.log(`Falharam (erro): ${failed}`);
+          console.log(`Avisos (legacy sem frontmatter): ${violations.filter((v) => v.level === 'warn').length}`);
+
+          for (const v of violations) {
+            const tag = v.level === 'error' ? '::error file=' + v.file + '::' : '::warning file=' + v.file + '::';
+            console.log(tag + v.errors.join(' | '));
+          }
+
+          // Persist pra job summary + comment PR
+          fs.writeFileSync('violations.json', JSON.stringify(violations, null, 2));
+
+          process.exit(failed > 0 ? 1 : 0);
+          NODE
+        env:
+          SCHEMA: ${{ matrix.schema }}
+          GLOB: ${{ matrix.glob }}
+
+      - name: Upload violations artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: violations-${{ strategy.job-index }}
+          path: violations.json
+          if-no-files-found: ignore
+
+      - name: Comment PR with violations
+        if: github.event_name == 'pull_request' && steps.validate.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('violations.json')) return;
+            const violations = JSON.parse(fs.readFileSync('violations.json', 'utf8'));
+            const errors = violations.filter((v) => v.level === 'error');
+            if (errors.length === 0) return;
+            const strict = '${{ steps.strict.outputs.value }}';
+            const label = '${{ matrix.label }}';
+            const lines = errors.slice(0, 20).map((v) => `- \`${v.file}\` → ${v.errors.join(' · ')}`);
+            const body = [
+              `### Memory schema gate — ${label}`,
+              '',
+              strict === 'true'
+                ? `**STRICT mode ligado** — ${errors.length} violação(ões) BLOQUEIA merge.`
+                : `**Grace period (strict=false)** — ${errors.length} violação(ões) reportada(s) como warning.`,
+              '',
+              ...lines,
+              errors.length > 20 ? `\n_...mais ${errors.length - 20} omitidas (ver job logs)._` : '',
+              '',
+              `Schema: \`${'${{ matrix.schema }}'}\``,
+              '',
+              'Como corrigir → ver [scripts/memory-schemas/README.md](../tree/${{ github.head_ref }}/scripts/memory-schemas/README.md).',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
