@@ -11,6 +11,7 @@ contains:
   - "Admin/CustosController — dashboard custos LLM"
   - "Admin/JanaProController — brief diário invocável (US-COPI-203)"
   - "Admin/QualidadeController — qualidade RAG/memória (RAGAS)"
+  - "Admin/RoadmapController — timeline Gantt do cycle ativo (Onda 5 V1)"
   # Metas / Períodos
   - "MetasController — metas do business"
   - "PeriodosController — períodos de apuração"
