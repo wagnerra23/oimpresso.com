@@ -38,6 +38,49 @@ it('ignora msg sem refs válidos', function () {
     expect($this->svc->extractRefsFromMessage('lowercase fixes copi-42'))->toBe([]);
 });
 
+// Bug #1 (memory/requisitos/Jana/BUGS-MCP-SYNC-2026-05-13.md) — regex puro (sem DB)
+// vive em GitTaskLinkerRegexTest.php. Aqui só o end-to-end (precisa de RefreshDatabase).
+
+it('Bug#1: end-to-end — commit parentético (US-X-N) em main fecha task como done', function () {
+    $proj = McpProject::create(['key' => 'WA', 'name' => 'Whatsapp', 'status' => 'active']);
+    $id = $proj->allocateNextIdentifier(); // ex: WA-1
+
+    $task = McpTask::create([
+        'task_id' => $id,
+        'identifier' => $id,
+        'project_id' => $proj->id,
+        'module' => 'WA',
+        'title' => 'Test bracket close',
+        'status' => 'doing',
+        'priority' => 'p0',
+        'estimate_unit' => 'points',
+        'source_path' => 'ad-hoc',
+        'parsed_at' => now(),
+    ]);
+
+    // Mesmo formato real produzido por commits do Wagner ([W])
+    $idNumber = (int) explode('-', $id)[1];
+    $idPadded = str_pad((string) $idNumber, 3, '0', STR_PAD_LEFT);
+
+    $payload = [
+        'ref' => 'refs/heads/main',
+        'commits' => [[
+            'id' => 'abc1234567890',
+            'message' => "feat(whatsapp): mídia outbound (US-WA-{$idPadded}) [W] (#707)",
+            'author' => ['username' => 'wagner'],
+            'timestamp' => now()->toIso8601String(),
+        ]],
+        'repository' => ['full_name' => 'wagnerra23/oimpresso.com'],
+    ];
+
+    $stats = $this->svc->handlePushEvent($payload);
+
+    expect($stats['links_created'])->toBe(1);
+    expect($stats['tasks_updated'])->toBe(1);
+    expect($task->fresh()->status)->toBe('done');
+    expect($task->fresh()->completed_at)->not->toBeNull();
+});
+
 it('linka commit fixes COPI-1 e atualiza status pra done quando push em main', function () {
     $proj = McpProject::create(['key' => 'COPI', 'name' => 'Copiloto', 'status' => 'active']);
     $id = $proj->allocateNextIdentifier();
