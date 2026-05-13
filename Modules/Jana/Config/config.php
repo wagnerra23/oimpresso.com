@@ -237,6 +237,49 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | K1 — Time-decay weighting recall (Onda 5 — ADR 0061 + dossier 2026-05-13)
+    |--------------------------------------------------------------------------
+    | Half-life decay aplicado pós-recall, pré-rerank em MeilisearchDriver::buscar.
+    | Fórmula canônica (TDS Temporal Layer 2026):
+    |   score_final = score_base × (
+    |       (1 - temporal_weight)
+    |     + temporal_weight × 0.5^(age_days / half_life_days)
+    |   ) × status_multiplier
+    |
+    | half_life_days por doc_type (default ADR=365, SPEC=180, session=30, handoff=14).
+    | status_multipliers per lifecycle (accepted=1.2, proposed=1.0, historical=0.5,
+    | superseded=0.3) — Wagner aprovou 2026-05-13.
+    |
+    | Per-doc-type/status: lê via metadata['doc_type'] e metadata['status'] do
+    | MemoriaFato. Doc sem date / sem metadata → score base preservado (fallback).
+    |
+    | Desabilitar via JANA_TIME_DECAY_ENABLED=false (back-compat).
+    */
+    'time_decay' => [
+        'enabled'         => env('JANA_TIME_DECAY_ENABLED', true),
+        'temporal_weight' => (float) env('JANA_TIME_DECAY_TEMPORAL_WEIGHT', 0.4),
+
+        // Meia-vida em dias por tipo de doc (sem entrada → default 180d).
+        'half_life' => [
+            'adr'     => (int) env('JANA_TIME_DECAY_HL_ADR', 365),
+            'spec'    => (int) env('JANA_TIME_DECAY_HL_SPEC', 180),
+            'session' => (int) env('JANA_TIME_DECAY_HL_SESSION', 30),
+            'handoff' => (int) env('JANA_TIME_DECAY_HL_HANDOFF', 14),
+            'default' => (int) env('JANA_TIME_DECAY_HL_DEFAULT', 180),
+        ],
+
+        // Multiplicadores por status (lifecycle) — accepted boost, historical pena.
+        'status_multipliers' => [
+            'accepted'   => (float) env('JANA_TIME_DECAY_MULT_ACCEPTED', 1.2),
+            'proposed'   => (float) env('JANA_TIME_DECAY_MULT_PROPOSED', 1.0),
+            'historical' => (float) env('JANA_TIME_DECAY_MULT_HISTORICAL', 0.5),
+            'superseded' => (float) env('JANA_TIME_DECAY_MULT_SUPERSEDED', 0.3),
+            'default'    => (float) env('JANA_TIME_DECAY_MULT_DEFAULT', 1.0),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | MEM-MEM-WIRE Phase 2 — Negative Cache (ADR 0054)
     |--------------------------------------------------------------------------
     | Queries que retornam 0 resultados são marcadas por TTL segundos.
@@ -276,6 +319,36 @@ return [
         'enabled'           => env('COPILOTO_SUMMARIZER_ENABLED', true),
         'threshold_turnos'  => env('COPILOTO_SUMMARIZER_THRESHOLD', 15),
         'msgs_recentes'     => env('COPILOTO_SUMMARIZER_RECENT', 8),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Onda 5 — A1 Auto-summary docs longos (dossier 2026-05-13 §6)
+    |--------------------------------------------------------------------------
+    | AutoSummarizerService (Modules/Jana/Services/Summarizer/) comprime
+    | responses > threshold das tools MCP `decisions-fetch`, `tasks-detail`,
+    | `kb-answer` via map-reduce gpt-4o-mini + cache MySQL 24h.
+    |
+    | Cap mensal hard-enforce: ao exceder JANA_SUMMARIZER_MAX_COST_BRL,
+    | service fail-open (retorna texto truncado, NÃO bloqueia tool).
+    |
+    | Anthropic prompt caching: prompts incluem sentinels
+    | `<!--JANA_CACHE_BREAKPOINT_*-->` que serão traduzidos pra
+    | cache_control breakpoints `{"type": "ephemeral"}` quando provider
+    | trocar pra Anthropic direto (laravel/ai 0.6 não expõe ainda).
+    |
+    | Surpresa estratégica (dossier §9): economia ~R$ 42/mês quando agente
+    | Jana migrar pra Sonnet com ADR canon cacheado 1h.
+    */
+    'auto_summarizer' => [
+        'enabled'           => env('JANA_AUTO_SUMMARIZER_ENABLED', true),
+        'threshold_chars'   => (int) env('JANA_AUTO_SUMMARIZER_THRESHOLD_CHARS', 8000),
+        'target_tokens'     => (int) env('JANA_AUTO_SUMMARIZER_TARGET_TOKENS', 1500),
+        'chunk_size_chars'  => (int) env('JANA_AUTO_SUMMARIZER_CHUNK_SIZE_CHARS', 5000),
+        'cache_ttl_hours'   => (int) env('JANA_AUTO_SUMMARIZER_CACHE_TTL_HOURS', 24),
+        'model'             => env('JANA_AUTO_SUMMARIZER_MODEL', 'gpt-4o-mini'),
+        'max_cost_brl'      => (float) env('JANA_SUMMARIZER_MAX_COST_BRL', 10),
+        'anthropic_cache_breakpoints' => (bool) env('JANA_SUMMARIZER_ANTHROPIC_CACHE_BREAKPOINTS', true),
     ],
 
     /*

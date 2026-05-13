@@ -139,11 +139,14 @@ class MeilisearchDriver implements MemoriaContrato
         //    - null:          NullReranker passthrough (feature flag off)
         /** @var Reranker $reranker */
         $reranker   = app(Reranker::class);
-        $candidatos = $merged->map(fn (MemoriaFato $f) => [
-            'id'      => $f->id,
-            'snippet' => mb_substr($f->fato, 0, 300),
-            'score'   => 1.0,
-        ])->values()->all();
+
+        // 3.5 Time-decay (K1 — Onda 5 dossier 2026-05-13). Aplica half-life decay
+        // pós-recall, pré-rerank. Doc velho (lifecycle=historical/superseded) cai;
+        // doc recente accepted sobe. Score base fica 1.0 (sem hybrid score do Scout
+        // exposto), então time-decay opera como pure multiplier sobre o material já
+        // filtered (ordem preservada pelo $merged). Reranker depois reordena por
+        // score ajustado.
+        $candidatos = $this->applyTimeDecay($merged);
 
         $reranked = $reranker->reranquear($query, $candidatos, $topK);
 
@@ -246,6 +249,125 @@ class MeilisearchDriver implements MemoriaContrato
             ->get()
             ->map(fn (MemoriaFato $f) => $this->toPersistida($f))
             ->all();
+    }
+
+    /**
+     * Aplica half-life time-decay + status multipliers (K1 — Onda 5 dossier 2026-05-13).
+     *
+     * Fórmula canônica (TDS Temporal Layer 2026):
+     *   score_final = score_base × (
+     *       (1 - temporal_weight) + temporal_weight × 0.5^(age_days / half_life)
+     *   ) × status_multiplier
+     *
+     * Defaults (Wagner aprovou 2026-05-13):
+     *   - temporal_weight = 0.4 (40% time, 60% meaning)
+     *   - half_life per doc_type: adr=365, spec=180, session=30, handoff=14
+     *   - status: accepted=1.2, proposed=1.0, historical=0.5, superseded=0.3
+     *
+     * Edge cases:
+     *   - JANA_TIME_DECAY_ENABLED=false → score base preservado (back-compat)
+     *   - doc sem published_at/valid_from/created_at → temporal factor = 1.0 (sem decay)
+     *   - doc_type/status ausente em metadata → defaults da config
+     *   - half_life inválido (<=0) → fallback default
+     *
+     * @param  Collection<int, MemoriaFato> $hits Collection mapped por buscar() — ordem do RRF preservada.
+     * @return array<int, array{id:int, snippet:string, score:float}> Formato esperado pelo Reranker.
+     */
+    private function applyTimeDecay(Collection $hits): array
+    {
+        $enabled = (bool) config('copiloto.time_decay.enabled', true);
+
+        // Bypass quando flag off (back-compat) — score base 1.0 idêntico ao legado.
+        if (! $enabled) {
+            return $hits->map(fn (MemoriaFato $f) => [
+                'id'      => $f->id,
+                'snippet' => mb_substr($f->fato, 0, 300),
+                'score'   => 1.0,
+            ])->values()->all();
+        }
+
+        $temporalWeight    = (float) config('copiloto.time_decay.temporal_weight', 0.4);
+        $halfLifeMap       = (array) config('copiloto.time_decay.half_life', []);
+        $statusMultipliers = (array) config('copiloto.time_decay.status_multipliers', []);
+
+        $defaultHalfLife        = (int)   ($halfLifeMap['default'] ?? 180);
+        $defaultStatusMultiplier = (float) ($statusMultipliers['default'] ?? 1.0);
+
+        $now = now();
+
+        return $hits->map(function (MemoriaFato $f) use (
+            $temporalWeight,
+            $halfLifeMap,
+            $statusMultipliers,
+            $defaultHalfLife,
+            $defaultStatusMultiplier,
+            $now,
+        ) {
+            $metadata = $f->metadata ?? [];
+            $docType  = strtolower((string) ($metadata['doc_type'] ?? 'default'));
+            $status   = strtolower((string) ($metadata['status']   ?? 'default'));
+
+            // Half-life em dias por tipo (fallback default se chave ausente).
+            $halfLifeDays = (int) ($halfLifeMap[$docType] ?? $defaultHalfLife);
+            if ($halfLifeDays <= 0) {
+                $halfLifeDays = $defaultHalfLife > 0 ? $defaultHalfLife : 180;
+            }
+
+            // Status multiplier (default 1.0 se status desconhecido).
+            $statusMultiplier = (float) ($statusMultipliers[$status] ?? $defaultStatusMultiplier);
+
+            // Resolve data de referência — prioridade: metadata.published_at,
+            // valid_from, created_at. Sem nenhuma → fator temporal = 1.0 (no decay).
+            $publishedAt = $this->resolveDocDate($f);
+            if ($publishedAt === null) {
+                $temporalFactor = 1.0;
+            } else {
+                $ageDays        = max(0.0, $publishedAt->diffInDays($now, false));
+                $decay          = pow(0.5, $ageDays / $halfLifeDays);
+                $temporalFactor = (1.0 - $temporalWeight) + $temporalWeight * $decay;
+            }
+
+            // Score base 1.0 (Scout hybrid não expõe score raw via Eloquent —
+            // ordem do RRF é o sinal preservado). Reranker depois reordena.
+            $scoreBase  = 1.0;
+            $scoreFinal = $scoreBase * $temporalFactor * $statusMultiplier;
+
+            return [
+                'id'      => $f->id,
+                'snippet' => mb_substr($f->fato, 0, 300),
+                'score'   => $scoreFinal,
+            ];
+        })->values()->all();
+    }
+
+    /**
+     * Resolve melhor data disponível pra cálculo de age_days.
+     * Ordem: metadata.published_at → valid_from → created_at → null.
+     */
+    private function resolveDocDate(MemoriaFato $f): ?\Illuminate\Support\Carbon
+    {
+        $metadata = $f->metadata ?? [];
+
+        // 1. metadata.published_at (campo canônico ADR memory/decisions)
+        if (! empty($metadata['published_at'])) {
+            try {
+                return \Illuminate\Support\Carbon::parse((string) $metadata['published_at']);
+            } catch (\Throwable $e) {
+                // Data malformada — cai pro próximo fallback.
+            }
+        }
+
+        // 2. valid_from do próprio fato
+        if ($f->valid_from !== null) {
+            return $f->valid_from;
+        }
+
+        // 3. created_at (sempre populado pelo Eloquent)
+        if ($f->created_at !== null) {
+            return $f->created_at;
+        }
+
+        return null;
     }
 
     private function toPersistida(MemoriaFato $f): MemoriaPersistida
