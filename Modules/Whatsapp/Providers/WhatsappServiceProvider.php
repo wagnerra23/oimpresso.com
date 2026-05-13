@@ -97,6 +97,12 @@ class WhatsappServiceProvider extends ServiceProvider
         // publicar em `omnichannel:business:{id}` (US-WA-059).
         Message::observe(MessageObserver::class);
 
+        // Observer da entidade Channel (sync Laravel→daemon Baileys)
+        // Quando status transita pra banned/disconnected/removed/setup OU
+        // channel é deletado, purga instance no daemon CT 100 (fecha Gap A
+        // do post-mortem 2026-05-13).
+        \Modules\Whatsapp\Entities\Channel::observe(\Modules\Whatsapp\Observers\ChannelObserver::class);
+
         // Plug Repair: dispara Whatsapp em mudança de status (cumpre ADR Repair tech/0001)
         // Evento Modules\Repair\Events\RepairStatusChanged é declarado em Modules/Repair/Events/
         // — dispatch real depende de PR coordenado com Felipe/Maiara modificando JobSheetController.
