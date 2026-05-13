@@ -108,6 +108,10 @@ class OimpressoMcpServer extends Server
         // Cache MD5(filename+content) em `mcp_handoff_summaries`. ~R$ 0.003 por handoff.
         // Page 2 (knowledge cluster).
         Tools\HandoffFetchSummarizedTool::class,
+        // H6 Onda 3 (G8 P2 AUDITORIA-KNOWLEDGE-2026-05-13) — Reflect-style weekly
+        // digest. Coleta commits/PRs/US/ADRs/handoffs últimos 7 dias + gpt-4o-mini
+        // sintetiza em 5 seções. Schedule seg 09h BRT. Cache `mcp_weekly_digests`.
+        Tools\WeeklyDigestFetchTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
