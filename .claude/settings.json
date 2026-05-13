@@ -7,6 +7,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/brief-fetch-curl.ps1"
+          },
+          {
+            "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (Test-Path 'memory/08-handoff.md') { Write-Host '=== memory/08-handoff.md (últimas 40 linhas) ==='; Get-Content 'memory/08-handoff.md' -Tail 40 -Encoding UTF8; Write-Host '' } ; Write-Host '=== Estado vivo de tasks/cycles ==='; Write-Host 'Use tools MCP: cycles-active + my-work + my-inbox (CURRENT.md/TASKS.md removidos em 2026-05-04, ADR 0070)'\""
           },
           {
