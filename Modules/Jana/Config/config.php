@@ -214,6 +214,10 @@ return [
     | Driver options:
     |   'rrf'  — Reciprocal Rank Fusion (default MVP, zero custo, ~1ms latência)
     |   'llm'  — LLM-as-judge gpt-4o-mini (Sprint 10 — +5pp recall, ~200ms, R$ [redacted Tier 0]/rerank)
+    |   'bge'  — Cross-encoder BGE-v2-m3 self-host CT 100 (Onda 4 R1 P0 — +6pp NDCG@10,
+    |            100-300ms CPU, zero custo cloud, fallback RRF se HTTP falha).
+    |            Pré-req: container `bge-reranker` no CT 100 — ver
+    |            memory/requisitos/Infra/RUNBOOK-bge-reranker-ct100.md
     |   'null' — passthrough top-K (debug / disable)
     |
     | Compat: env legado COPILOTO_RERANKER_ENABLED ainda funciona (true=usa driver, false=null).
@@ -222,6 +226,13 @@ return [
     'reranker' => [
         'enabled' => env('JANA_RERANKER_ENABLED', env('COPILOTO_RERANKER_ENABLED', true)),
         'driver'  => env('JANA_RERANKER_DRIVER', env('COPILOTO_RERANKER_DRIVER', 'rrf')),
+
+        // BGE-v2-m3 self-host (CT 100). Endpoint default = LAN Tailscale hostname.
+        // Pra prod via Traefik: JANA_RERANKER_BGE_ENDPOINT=https://bge-reranker.ct100.oimpresso.com/rerank
+        'bge' => [
+            'endpoint' => env('JANA_RERANKER_BGE_ENDPOINT', 'http://bge-reranker.ct100:8080/rerank'),
+            'timeout'  => (int) env('JANA_RERANKER_BGE_TIMEOUT', 5),
+        ],
     ],
 
     /*
