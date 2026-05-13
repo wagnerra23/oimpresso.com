@@ -207,8 +207,21 @@ return [
     |
     | Desabilitado por default — habilitar via env COPILOTO_RERANKER_ENABLED=true.
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Reranker canônico (GAP-A — AUDITORIA 2026-05-13 §5 G3)
+    |--------------------------------------------------------------------------
+    | Driver options:
+    |   'rrf'  — Reciprocal Rank Fusion (default MVP, zero custo, ~1ms latência)
+    |   'llm'  — LLM-as-judge gpt-4o-mini (Sprint 10 — +5pp recall, ~200ms, R$ 0,0005/rerank)
+    |   'null' — passthrough top-K (debug / disable)
+    |
+    | Compat: env legado COPILOTO_RERANKER_ENABLED ainda funciona (true=usa driver, false=null).
+    | Novo env JANA_RERANKER_ENABLED + JANA_RERANKER_DRIVER. Default = habilitado RRF.
+    */
     'reranker' => [
-        'enabled' => env('COPILOTO_RERANKER_ENABLED', false),
+        'enabled' => env('JANA_RERANKER_ENABLED', env('COPILOTO_RERANKER_ENABLED', true)),
+        'driver'  => env('JANA_RERANKER_DRIVER', env('COPILOTO_RERANKER_DRIVER', 'rrf')),
     ],
 
     /*

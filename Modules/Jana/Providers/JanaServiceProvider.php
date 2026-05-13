@@ -124,6 +124,29 @@ class JanaServiceProvider extends ServiceProvider
                 );
             }
         );
+
+        // Reranker canônico (GAP-A — AUDITORIA 2026-05-13 §5 G3)
+        // Drivers: rrf (default), llm (LLM-as-judge), null (passthrough).
+        $this->app->bind(
+            \Modules\Jana\Services\Retrieval\Reranker::class,
+            function () {
+                $enabled = (bool) config('copiloto.reranker.enabled', true);
+                $driver  = (string) config('copiloto.reranker.driver', 'rrf');
+
+                if (! $enabled || $driver === 'null') {
+                    return $this->app->make(\Modules\Jana\Services\Retrieval\NullReranker::class);
+                }
+
+                if ($driver === 'llm') {
+                    return new \Modules\Jana\Services\Retrieval\LlmRerankerAdapter(
+                        $this->app->make(\Modules\Jana\Services\Memoria\LlmReranker::class)
+                    );
+                }
+
+                // rrf (default MVP)
+                return $this->app->make(\Modules\Jana\Services\Retrieval\RrfReranker::class);
+            }
+        );
     }
 
     /**
