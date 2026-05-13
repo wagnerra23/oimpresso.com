@@ -1,0 +1,140 @@
+name: RAGAS Gate
+
+# RAGAS gate IA-pair — avalia recall quality do Brief Diário + kb-answer.
+# ADR 0037 §GAP-2 + COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md §4 Gap #6 P1.
+#
+# 4 métricas RAGAS canônicas (gpt-4o-mini judge):
+#   - faithfulness     ≥ 0.70 (claims suportados pelo contexto)
+#   - answer_relevancy ≥ 0.60 (resposta direta à query)
+#   - context_precision ≥ 0.70 (chunks bem ranqueados)
+#   - context_recall   ≥ 0.60 (cobertura ground truth)
+#
+# Modo: manual (workflow_dispatch) OU weekly cron (segunda 06h BRT = 09 UTC).
+# Custo: ~$0.02/run (5 perguntas × 4 métricas × 2 suites × gpt-4o-mini).
+# NÃO bloqueia merge automático — gate alerta, não trava (MVP).
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Suite (all|brief|kb)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - brief
+          - kb
+      sample_size:
+        description: 'Quantas perguntas avaliar'
+        required: false
+        default: '5'
+  schedule:
+    # Segunda 09:00 UTC = 06:00 BRT
+    - cron: '0 9 * * 1'
+
+concurrency:
+  group: ragas-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ragas:
+    name: RAGAS Eval (Brief + kb-answer)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, pdo_mysql, tokenizer, xml, zip, gd
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Create .env
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-ragas' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=false' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' \
+            'RAGAS_ENABLED=true' \
+            "RAGAS_SAMPLE_SIZE=${{ github.event.inputs.sample_size || 5 }}" > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Prepare dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app/ragas bootstrap/cache
+
+      - name: Run RAGAS Pest suite
+        id: ragas
+        continue-on-error: true
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RAGAS_ENABLED: 'true'
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: |
+          vendor/bin/pest tests/Feature/Ragas \
+            --group=ragas \
+            --no-coverage \
+            --colors=never \
+            | tee ragas-output.txt
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ragas-report-${{ github.run_id }}
+          path: |
+            ragas-output.txt
+            storage/app/ragas/
+
+      - name: Comment on PR (se manual a partir de PR)
+        if: github.event_name == 'workflow_dispatch' && github.event.pull_request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('ragas-output.txt', 'utf8').slice(0, 60000);
+            const passed = ${{ steps.ragas.outcome == 'success' }};
+            const icon = passed ? '✅' : '⚠️';
+            const body = `${icon} **RAGAS Gate** — ${passed ? 'PASSOU' : 'ALERTA (gate não bloqueia merge)'}\n\n<details><summary>Output</summary>\n\n\`\`\`\n${output}\n\`\`\`\n</details>`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+
+      - name: Fail step apenas se erro grave
+        if: steps.ragas.outcome == 'failure'
+        run: |
+          echo "::warning::RAGAS gate falhou — métricas abaixo do threshold ou erro de chamada judge."
+          echo "Veja artifact ragas-report-${{ github.run_id }} pra detalhes."
+          # NÃO `exit 1` — gate é alerta, não bloqueio (MVP).
