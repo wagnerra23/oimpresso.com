@@ -137,6 +137,21 @@ Route::get('install/uninstall', [InstallController::class, 'uninstall']);
 Route::get('install/update',    [InstallController::class, 'update']);
 ```
 
+**`moduleSystemKey()` é lowercase SEM hífen** — DEVE bater com `strtolower($moduleName)`:
+
+```php
+// ❌ ERRADO — install grava chave kebab-case no `system` table
+protected function moduleName(): string { return 'OficinaAuto'; }
+protected function moduleSystemKey(): string { return 'oficina-auto'; }  // ← kebab
+
+// ✅ CERTO
+protected function moduleSystemKey(): string { return 'oficinaauto'; }  // ← lowercase sem hífen
+```
+
+Por quê: `app/Utils/ModuleUtil.php::isModuleInstalled()` faz `System::getProperty(strtolower($module_name).'_version')` — busca `oficinaauto_version`, NÃO `oficina-auto_version`. Se moduleSystemKey for kebab, install grava chave errada → `isModuleInstalled()` sempre false → DataController nunca rodado → sidebar não monta item → tela `/manage-modules` mostra "Instalar" perpetuamente.
+
+Bug real catalogado 2026-05-13: OficinaAuto + ComunicacaoVisual. Pest `tests/Feature/Modules/InstallControllerKeyConventionTest.php` agora trava CI.
+
 ## ⚠️ Schemas DB que controllers acessam — VERIFICAR antes de escrever query
 
 Erros comuns (não chute schema):
@@ -179,6 +194,7 @@ ServiceProvider.registerTranslations() carrega `__DIR__ . '/../Resources/lang'` 
 4. ❌ Rotas Install com `install/install` em vez de só `install`, action `install` em vez de `index`
 5. ❌ Queries DB com colunas inventadas (`frontmatter_json`, `mcp_alertas.category`, `mcp_skill_approvals.status`)
 6. ❌ Translations só em `pt-BR/` — pattern canonical é `pt/` + `en/`
+7. ❌ `moduleSystemKey()` em kebab-case (`'oficina-auto'`) — system table grava chave errada, `isModuleInstalled()` sempre false, sidebar nunca monta item. Catalogado 2026-05-13 (OficinaAuto + ComunicacaoVisual em prod).
 
 **Antídoto:** **PRIMEIRO comando ao iniciar criação de módulo: invocar skill `criar-modulo` via tool `Skill`.** Antes de escrever 1 linha de código novo em `Modules/<Nome>/`.
 

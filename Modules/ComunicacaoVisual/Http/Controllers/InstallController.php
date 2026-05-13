@@ -28,7 +28,7 @@ class InstallController extends BaseModuleInstallController
 
     protected function moduleSystemKey(): string
     {
-        return 'comunicacao-visual';
+        return 'comunicacaovisual';
     }
 
     protected function moduleVersion(): string

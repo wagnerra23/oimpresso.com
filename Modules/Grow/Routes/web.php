@@ -1,5 +1,17 @@
 <?php
 
+use Modules\Grow\Http\Controllers\InstallController;
+
+// Rotas Install 1-click (ADR 0024) — sem elas o botao "Install" da tela
+// /manage-modules fica sem action.
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('grow')
+    ->group(function () {
+        Route::get('install',           [InstallController::class, 'index']);
+        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
+        Route::get('install/update',    [InstallController::class, 'update']);
+    });
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
