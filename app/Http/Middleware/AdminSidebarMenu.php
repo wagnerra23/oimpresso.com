@@ -735,10 +735,15 @@ class AdminSidebarMenu
                         }
 
                         if ($is_admin) {
+                            // Modules/Auditoria (ADR 0127 §F3) sobrescreveu /reports/activity-log
+                            // com redirect 301 → /auditoria. Quando módulo habilitado, apontamos
+                            // direto pra `auditoria.index`; senão, fallback pra rota legacy.
                             $sub->url(
-                                action([\App\Http\Controllers\ReportController::class, 'activityLog']),
+                                \Route::has('auditoria.index')
+                                    ? route('auditoria.index')
+                                    : url('/reports/activity-log'),
                                 __('lang_v1.activity_log'),
-                                ['icon' => '', 'active' => request()->segment(2) == 'activity-log']
+                                ['icon' => '', 'active' => in_array(request()->segment(1), ['auditoria']) || request()->segment(2) == 'activity-log']
                             );
                         }
                     },
