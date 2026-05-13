@@ -81,8 +81,9 @@ Subagents Opus invocados via Task tool ou linguagem natural. **Experimentais** a
 |---|---|---|---|
 | **`estado-da-arte`** | Pesquisa os melhores em 2026 + compara com o que oimpresso tem + avalia gaps por impacto×esforço | "Faça o estado da arte de X" / "Como os melhores fazem Y" / "/estado-da-arte X" | `memory/sessions/YYYY-MM-DD-arte-<slug>.md` |
 | **`coordenador-paralelo`** | Formaliza pattern de Waves desta seção. Recebe problema → research + inventário → decomposição em N waves isoladas → spawn N sub-agents general-purpose paralelos → consolidação | "Coordene em paralelo X" / "Decomponha em waves" / "Faça em paralelo sem invadir outras áreas" | `memory/sessions/YYYY-MM-DD-coord-<slug>.md` + plano executável + git consolidação |
+| **`whatsapp-doctor`** | SRE de plantão do daemon Baileys CT 100. Diagnóstico (daemon + DB Hostinger + logs) + recovery (purge banned, reconnect zombie, force fallback Meta) + auditoria anti-ban (warmup 7d, jitter, rate limit, circadian, contact graph) + post-mortem. Compatível com [runbook canônico](requisitos/Whatsapp/runbooks/baileys-troubleshoot-ban.md) + [ADR 0096 emenda 4](decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) | "WhatsApp parou" / "device_removed" / "tá banido?" / alarme `whatsapp_baileys_ban_detected_total` ≥ 3 cross-tenant / "vou parear canal novo, faz seguro" | `memory/sessions/YYYY-MM-DD-whatsapp-incident-<slug>.md` + comandos recovery executados |
 
-Diferença: `estado-da-arte` entrega CONHECIMENTO (1 doc decisório); `coordenador-paralelo` entrega EXECUÇÃO (N artefatos/PRs). Fluxo natural: estado-da-arte gera plano → coordenador-paralelo executa.
+Diferença: `estado-da-arte` entrega CONHECIMENTO (1 doc decisório); `coordenador-paralelo` entrega EXECUÇÃO (N artefatos/PRs); `whatsapp-doctor` entrega OPERAÇÃO (recovery + audit + post-mortem do daemon vivo).
 
 Histórico: criados 2026-05-13 sessão crazy-euclid-b68bb7. Dogfood do `estado-da-arte` sobre própria decisão de design pegou 3 P0 fatais (Reflexion paper validado empiricamente N=1). Ver [`memory/sessions/2026-05-13-agents-canonicos-meta-degradacao.md`](sessions/2026-05-13-agents-canonicos-meta-degradacao.md).
 
