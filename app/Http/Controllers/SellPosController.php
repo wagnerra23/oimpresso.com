@@ -268,8 +268,17 @@ class SellPosController extends Controller
         // Flag `useV2SellsCreate` é gerenciada no GrowthBook self-hosted (US-INFRA-001).
         // Default OFF; Rule canary `business_id == 1` ativa pra Wagner WR2 SC validar antes de ROTA LIVRE.
         // Refs: ADR 0104 (MWART canônico §F2 backend baseline), ADR 0105 (3 graus regulação).
+        //
+        // HOTFIX rollback emergencial 2026-05-13 — biz=4 (Larissa/ROTA LIVRE) reportou bugs v2:
+        //   (1) "traz o mesmo produto com estoque" (duplicação/seleção variação errada)
+        //   (2) faltam botões "preço diferenciado / tamanho / conversão unidade medida" do Blade
+        //   (3) erro visível na tela
+        // Cintura+suspensório: GrowthBook regra biz=4 OFF + este guard hardcoded.
+        // TODO: remover guard quando bugs corrigidos + canary biz=4 re-ativado.
         $ffs = app(FeatureFlagService::class);
-        if ($ffs->isOn('useV2SellsCreate', ['business_id' => $business_id])) {
+        $useV2 = $business_id !== 4
+            && $ffs->isOn('useV2SellsCreate', ['business_id' => $business_id]);
+        if ($useV2) {
             return Inertia::render('Sells/Create', [
                 'businessLocations'    => $business_locations,
                 'blAttributes'         => $bl_attributes,
