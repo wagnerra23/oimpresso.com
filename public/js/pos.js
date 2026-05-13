@@ -942,9 +942,16 @@ $(document).ready(function() {
     $(document).on('click', '.add_new_customer', function() {
         $('#customer_id').select2('close');
         var name = $(this).data('name');
+        // contact.create form tem first_name + supplier_business_name (PF/PJ).
+        // Setar nos dois cobre ambos fluxos — usuário escolhe o radio individual/business.
         $('.contact_modal')
-            .find('input#name')
-            .val(name);
+            .find('input#first_name')
+            .val(name)
+            .trigger('change');
+        $('.contact_modal')
+            .find('input#supplier_business_name')
+            .val(name)
+            .trigger('change');
         $('.contact_modal')
             .find('select#contact_type')
             .val('customer')
