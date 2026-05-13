@@ -122,6 +122,11 @@ class OimpressoMcpServer extends Server
         // Non-Goals/UX targets/Automation hooks/Anti-hooks. Skill `charter-first`
         // Tier A always-on BLOQUEADOR pré-Edit em Pages com charter live.
         Tools\CharterFetchTool::class,
+        // H1 Onda 5 (P1 ONDA-5-DOSSIER-2026-05-13) — Auto-skeleton handoff
+        // via git log + gpt-4o-mini. Reusa HandoffDiffTool (PR #768). Salva
+        // draft em memory/handoffs/YYYY-MM-DD-HHMM-<slug>.md. Wagner edita.
+        // ~R$ 0.005/draft. Page 2 knowledge cluster.
+        Tools\HandoffDraftTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
