@@ -578,6 +578,48 @@ class ContactController extends Controller
     }
 
     /**
+     * Página standalone de cadastro de contato com layout completo (CSS/JS inclusos).
+     * Usada pelo link "Cadastrar como novo cliente" da tela Sells/Create.tsx (v2 Inertia).
+     * contact/create.blade.php é fragmento de modal — sem layout próprio não tem CSS.
+     */
+    public function createPage()
+    {
+        if (! auth()->user()->can('supplier.create') && ! auth()->user()->can('customer.create') && ! auth()->user()->can('customer.view_own') && ! auth()->user()->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        if (! $this->moduleUtil->isSubscribed($business_id)) {
+            return $this->moduleUtil->expiredResponse();
+        }
+
+        $types = [];
+        if (auth()->user()->can('supplier.create') || auth()->user()->can('supplier.view_own')) {
+            $types['supplier'] = __('report.supplier');
+        }
+        if (auth()->user()->can('customer.create') || auth()->user()->can('customer.view_own')) {
+            $types['customer'] = __('report.customer');
+        }
+        if (auth()->user()->can('supplier.create') && auth()->user()->can('customer.create') || auth()->user()->can('supplier.view_own') || auth()->user()->can('customer.view_own')) {
+            $types['both'] = __('lang_v1.both_supplier_customer');
+        }
+
+        $customer_groups = CustomerGroup::forDropdown($business_id);
+        $selected_type = request()->type;
+        $module_form_parts = $this->moduleUtil->getModuleData('contact_form_part');
+        $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
+
+        $prefill_name = trim((string) request()->query('prefill_name', ''));
+        if (mb_strlen($prefill_name) > 100) {
+            $prefill_name = mb_substr($prefill_name, 0, 100);
+        }
+
+        return view('contact.create-page')
+            ->with(compact('types', 'customer_groups', 'selected_type', 'module_form_parts', 'users', 'prefill_name'));
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
