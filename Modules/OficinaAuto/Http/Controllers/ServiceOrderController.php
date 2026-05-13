@@ -288,7 +288,7 @@ class ServiceOrderController extends Controller
             ->with('status', ['success' => 1, 'msg' => 'Ordem de Serviço criada.']);
     }
 
-    public function show(ServiceOrder $order): Response
+    public function show(Request $request, ServiceOrder $order)
     {
         abort_unless(
             auth()->user()->can('superadmin')
@@ -296,7 +296,44 @@ class ServiceOrderController extends Controller
             403
         );
 
-        $order->load('vehicle');
+        $order->load(['vehicle', 'contact:id,name,mobile']);
+
+        // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
+        // Hotfix Wave 7+ — drawer chamava /oficina-auto/service-orders/{id} esperando
+        // JSON mas show() só retornava Inertia HTML (HTTP 404 percebido por drawer).
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id'                    => $order->id,
+                'number'                => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
+                'status'                => $order->status,
+                'order_type'            => $order->order_type,
+                'delivery_address'      => $order->delivery_address,
+                'expected_return_date'  => $order->expected_return_date,
+                'expected_completion'   => $order->expected_completion,
+                'daily_rate'            => $order->daily_rate,
+                'dias_locacao'          => $order->dias_locacao ?? 0,
+                'valor_receber'         => $order->valor_receber ?? 0,
+                'is_overdue'            => $order->is_overdue ?? false,
+                'entered_at'            => $order->entered_at,
+                'started_at'            => $order->entered_at,
+                'completed_at'          => $order->completed_at,
+                'notes'                 => $order->notes,
+                'vehicle' => $order->vehicle ? [
+                    'id'              => $order->vehicle->id,
+                    'plate'           => $order->vehicle->plate,
+                    'vehicle_number'  => $order->vehicle->vehicle_number ?? null,
+                    'capacity_m3'     => $order->vehicle->capacity_m3 ?? null,
+                ] : null,
+                'contact' => $order->contact ? [
+                    'id'   => $order->contact->id,
+                    'name' => $order->contact->name,
+                ] : null,
+                'urls' => [
+                    'show' => '/oficina-auto/ordens-servico/' . $order->id,
+                    'edit' => '/oficina-auto/ordens-servico/' . $order->id . '/edit',
+                ],
+            ]);
+        }
 
         return Inertia::render('OficinaAuto/ServiceOrders/Show', [
             'order' => $order,

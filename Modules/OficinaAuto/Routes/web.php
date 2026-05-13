@@ -47,6 +47,15 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::delete('ordens-servico/{order}',     [ServiceOrderController::class, 'destroy'])->name('oficinaauto.orders.destroy');
 
         // ─────────────────────────────────────────────────────────────────────
+        // Hotfix Wave 7+ — drawer ServiceOrderSheet.fetchData chama URL inglês
+        // /service-orders/{id} esperando JSON (Accept-aware show). Alias necessário
+        // pra evitar 404 quando user clica row na ServiceOrders Index.
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('service-orders/{order}',
+            [ServiceOrderController::class, 'show'])
+            ->name('oficinaauto.service_orders.show.json');
+
+        // ─────────────────────────────────────────────────────────────────────
         // Wave 7-A — FSM action endpoints (espelha SaleFsmActionController).
         // Frontend Wave 7-B (FsmActionPanel.tsx ServiceOrder variant) consome.
         // ADR 0143 (FSM Pipeline LIVE prod biz=1) + ADR 0137 (OficinaAuto vertical).
