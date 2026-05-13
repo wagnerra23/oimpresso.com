@@ -60,6 +60,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\McpSkillsImportFromGitCommand::class, // ADR 0076 Fase 1
                 \Modules\Jana\Console\Commands\HealthCheckCommand::class,      // sentinela operacional 5 checks
                 \Modules\Jana\Console\Commands\SystemAuditCommand::class,      // ADR 0133 — 5 audits Constituição v2 (observ/evals/ADR-stale/cost/coverage)
+                \Modules\Jana\Console\Commands\McpTasksHealthCheckCommand::class, // Bug #4 BUGS-MCP-SYNC-2026-05-13 — staleness detection
             ]);
         }
     }
