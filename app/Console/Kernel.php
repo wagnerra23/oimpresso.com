@@ -46,6 +46,21 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->environments(['local', 'live']);
 
+        // H5 Onda 3 (Gap #5 COMPARATIVO-MCP-2026-05-13) — auto-fechamento cycles
+        // expirados (Linear-style desde 2019). Daily 23:55 BRT detecta cycles com
+        // end_date < today + status != closed, chama cycles-close --rollover auto.
+        // Se não tem próximo cycle, cria CYCLE-N+1 (auto-created) em status=planning.
+        $schedule->command('jana:cycles:auto-close-expired')
+            ->dailyAt('23:55')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule jana:cycles:auto-close-expired FALHOU — cycles expirados ficarão abertos'
+                );
+            });
+
         // MEM-MET-3 (ADRs 0050+0051) — apura 8 métricas obrigatórias + 3 RAGAS
         // por business + plataforma, gravando 1 linha/dia em
         // copiloto_memoria_metricas via upsert idempotente.
