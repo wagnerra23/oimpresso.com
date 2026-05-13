@@ -23,6 +23,8 @@ interface Props {
   onClear?: () => void;
   placeholder?: string;
   disabled?: boolean;
+  /** Selecionar cliente externamente (ex: via postMessage da aba de cadastro). */
+  forcedValue?: CustomerSearchResult | null;
 }
 
 const DEBOUNCE_MS = 250;
@@ -34,6 +36,7 @@ export default function CustomerSearchAutocomplete({
   onClear,
   placeholder = 'Buscar cliente por nome, CPF/CNPJ ou telefone…',
   disabled = false,
+  forcedValue,
 }: Props) {
   const [query, setQuery] = useState('');
   const [selectedLabel, setSelectedLabel] = useState<string>(defaultName);
@@ -43,6 +46,12 @@ export default function CustomerSearchAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Seleção externa via postMessage (aba de cadastro retorna contato criado).
+  useEffect(() => {
+    if (forcedValue) handleSelect(forcedValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forcedValue]);
 
   useEffect(() => {
     if (query.length < MIN_QUERY_LENGTH) {
@@ -118,7 +127,8 @@ export default function CustomerSearchAutocomplete({
       e.preventDefault();
       if (open && results.length > 0) {
         const idx = highlightedIndex >= 0 ? highlightedIndex : 0;
-        handleSelect(results[idx]);
+        const selected = results[idx];
+        if (selected) handleSelect(selected);
       }
       // Se não há resultados, não navega pro cadastro via Enter —
       // o link de cadastro é clicável mas Enter não auto-abre.

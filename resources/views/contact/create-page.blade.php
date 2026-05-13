@@ -46,9 +46,17 @@
         $('.modal-body').addClass('box-body');
         $('.modal-footer').addClass('box-footer');
 
-        // Intercepta o submit do form para redirecionar após salvar
-        $('#contact_add_form').on('submit-success', function() {
-            // Fecha a aba e volta pra janela anterior (sells/create)
+        // Intercepta o submit do form para redirecionar após salvar.
+        // ContactController@store retorna { success:1, data: { id, name, ... } }.
+        // Enviamos postMessage pra janela pai (sells/create) com o contato criado.
+        $('#contact_add_form').on('submit-success', function(e, responseData) {
+            if (window.opener && responseData && responseData.data) {
+                var contact = responseData.data;
+                window.opener.postMessage(
+                    { type: 'contact_created', contact: { id: contact.id, name: contact.name } },
+                    window.location.origin
+                );
+            }
             window.close();
         });
     });
