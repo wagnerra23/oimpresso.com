@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Admin\Http\Controllers\FeatureFlagsController;
 use Modules\Admin\Http\Controllers\IndexController;
 use Modules\Admin\Http\Controllers\InstallController;
 use Modules\Admin\Http\Controllers\MutationsController;
@@ -46,4 +47,15 @@ Route::middleware(['web', 'tailscale-only', 'auth', 'is-wagner'])
             ->name('admin.mutations.mcp-token.regenerate');
         Route::post('mutations/health-check/run-now',   [MutationsController::class, 'runHealthCheckNow'])
             ->name('admin.mutations.health-check.run-now');
+
+        // US-INFRA-008 (2026-05-13) — Painel de feature flags GrowthBook.
+        // Read via GrowthBookAdminService. Audit em feature_flag_audits (dedicado).
+        // Cintura+suspensório com Tool MCP `flag-*` e Artisan `flag:*`.
+        Route::prefix('feature-flags')->name('admin.feature-flags.')->group(function () {
+            Route::get('/',                       [FeatureFlagsController::class, 'index'])->name('index');
+            Route::get('{key}',                   [FeatureFlagsController::class, 'show'])->name('show');
+            Route::post('{key}/biz-rule',         [FeatureFlagsController::class, 'setBizRule'])->name('biz-rule');
+            Route::post('{key}/env-enabled',      [FeatureFlagsController::class, 'setEnvEnabled'])->name('env-enabled');
+            Route::post('cache/clear',            [FeatureFlagsController::class, 'clearCache'])->name('cache.clear');
+        });
     });
