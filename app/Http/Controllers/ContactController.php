@@ -618,6 +618,8 @@ class ContactController extends Controller
 
             $input['name'] = trim(implode(' ', $name_array));
 
+            unset($input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']);
+
             if (! empty($request->input('is_export'))) {
                 $input['is_export'] = true;
                 $input['export_custom_field_1'] = $request->input('export_custom_field_1');
@@ -809,6 +811,8 @@ class ContactController extends Controller
 
 
                 $input['name'] = trim(implode(' ', $name_array));
+
+                unset($input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']);
 
                 $input['is_export'] = ! empty($request->input('is_export')) ? 1 : 0;
 
