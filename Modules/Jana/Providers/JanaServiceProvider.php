@@ -86,6 +86,12 @@ class JanaServiceProvider extends ServiceProvider
         // weekly-digest, RAGAS, brief, Jana chat). % IA observability 40%→95%.
         $this->app->singleton(\Modules\Jana\Services\Telemetry\LangfuseClient::class);
 
+        // A1 Onda 5 (P1 ONDA-5-DOSSIER-2026-05-13) — Auto-summary docs longos
+        // via map-reduce gpt-4o-mini + cache MySQL 24h + Anthropic prompt
+        // caching sentinels. Cap mensal R$ 10. Threshold ativação 8KB.
+        // Wrappa decisions-fetch + tasks-detail + kb-answer.
+        $this->app->singleton(\Modules\Jana\Services\Summarizer\AutoSummarizerService::class);
+
         // Drivers de apuração — ver adr/tech/0001
         $this->app->tag([SqlDriver::class], 'copiloto.drivers');
 
