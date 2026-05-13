@@ -47,11 +47,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Vehicle::withoutGlobalScopes()
-        ->where('plate', 'like', 'RICH-%')
-        ->forceDelete();
+    // Limpeza ServiceOrders ANTES dos vehicles (FK cascade-protect)
     \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()
         ->where('notes', 'like', 'RICH-TEST-%')
+        ->forceDelete();
+    Vehicle::withoutGlobalScopes()
+        ->where('plate', 'like', 'RICH-%')
         ->forceDelete();
 });
 
@@ -280,6 +281,88 @@ it('valor_em_curso soma valor_receber das colunas locada + aguardando', function
 
     // valor_em_curso global >= subset que acabamos de criar
     expect($payload['kpis']['valor_em_curso'])->toBeGreaterThanOrEqual($subsetSum - 0.01);
+});
+
+it('V3 fallback — vehicle locada SEM current_rental_id pega rental órfão pra cair em aguardando se overdue', function () {
+    session(['user.business_id' => BIZ_WAGNER_RICH]);
+    $this->actingAs(stubUserSuperadminRich());
+
+    // Caso real LOR-3F88: vehicle status=locada mas current_rental_id NULL
+    // (criado via tinker direto sem update do FK soft).
+    $vehicle = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
+        'business_id'        => BIZ_WAGNER_RICH,
+        'plate'              => 'RICH-FB1',
+        'vehicle_type'       => 'cacamba_estacionaria',
+        'capacity_m3'        => 5,
+        'current_status'     => 'locada',
+        'current_rental_id'  => null,  // ← orphan: sem FK setada
+    ]);
+
+    // ServiceOrder não-terminal pra esse vehicle, COM expected_return_date passada.
+    \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
+        'business_id'          => BIZ_WAGNER_RICH,
+        'vehicle_id'           => $vehicle->id,
+        'order_type'           => 'locacao',
+        'status'               => 'aberta',
+        'entered_at'           => now()->subDays(15)->startOfDay(),
+        'expected_return_date' => now()->subDays(10)->toDateString(),
+        'daily_rate'           => 120.00,
+        'notes'                => 'RICH-TEST-FB1 — sem current_rental_id mas com OS órfã overdue',
+    ]);
+
+    $controller = new \Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController();
+    $request = \Illuminate\Http\Request::create('/oficina-auto/producao-oficina', 'GET');
+    $response = $controller->index($request);
+
+    $payload = $response->toResponse($request)->getOriginalContent()->getData()['page']['props'];
+
+    // O vehicle órfão DEVE cair em aguardando (overdue 10 dias) pelo fallback,
+    // não em locada nem ficar com KPI atrasadas=0.
+    $cardAguardando = collect($payload['kanban']['aguardando'])->firstWhere('plate', 'RICH-FB1');
+    expect($cardAguardando)->not->toBeNull();
+    expect($cardAguardando['rental_notes'])->toContain('RICH-TEST-FB1');
+    expect($cardAguardando['valor_receber'])->toBeGreaterThan(0); // 15d × R$120 = R$1800
+    expect($payload['kpis']['atrasadas'])->toBeGreaterThanOrEqual(1);
+});
+
+it('V3 fallback — atendente_nome cai pro Admin do business quando transaction.created_by ausente', function () {
+    session(['user.business_id' => BIZ_WAGNER_RICH]);
+    $this->actingAs(stubUserSuperadminRich());
+
+    // Vehicle locado COM rental MAS sem transaction (rental draft sem venda)
+    $vehicle = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
+        'business_id'    => BIZ_WAGNER_RICH,
+        'plate'          => 'RICH-AT1',
+        'vehicle_type'   => 'cacamba_estacionaria',
+        'capacity_m3'    => 5,
+        'current_status' => 'locada',
+    ]);
+    $rental = \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
+        'business_id'          => BIZ_WAGNER_RICH,
+        'vehicle_id'           => $vehicle->id,
+        'order_type'           => 'locacao',
+        'status'               => 'aberta',
+        'entered_at'           => now()->subDays(2),
+        'expected_return_date' => now()->addDays(3)->toDateString(),
+        'daily_rate'           => 100.00,
+        'transaction_id'       => null, // ← sem venda
+        'notes'                => 'RICH-TEST-AT1 — sem transaction',
+    ]);
+    $vehicle->update(['current_rental_id' => $rental->id]);
+
+    $controller = new \Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController();
+    $request = \Illuminate\Http\Request::create('/oficina-auto/producao-oficina', 'GET');
+    $response = $controller->index($request);
+
+    $payload = $response->toResponse($request)->getOriginalContent()->getData()['page']['props'];
+
+    $card = collect($payload['kanban']['locada'])->firstWhere('plate', 'RICH-AT1');
+    expect($card)->not->toBeNull();
+
+    // Mesmo sem transaction, atendente_nome deve estar preenchido (fallback Admin biz)
+    expect($card['atendente_nome'])->not->toBeNull();
+    expect($card['atendente_iniciais'])->not->toBeNull();
+    expect(strlen((string) $card['atendente_iniciais']))->toBeGreaterThan(0);
 });
 
 it('cross-tenant biz=99 vê 0 caçambas biz=1 (Tier 0 ADR 0093)', function () {
