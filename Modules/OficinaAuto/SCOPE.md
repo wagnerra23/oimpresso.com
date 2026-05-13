@@ -6,6 +6,7 @@ contains:
   - "InstallController"
   - "ServiceOrderController"
   - "VehicleController"
+  - "ServiceOrderFsmActionController (app/Http/Controllers — shared FSM canon, espelha SaleFsmActionController)"
 not_contains:
   - "Kanban shared infra → Modules/Repair (consumido opcionalmente)"
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
