@@ -108,6 +108,11 @@ class OimpressoMcpServer extends Server
         // Cache MD5(filename+content) em `mcp_handoff_summaries`. ~R$ 0.003 por handoff.
         // Page 2 (knowledge cluster).
         Tools\HandoffFetchSummarizedTool::class,
+        // H3 (AUDITORIA-SESSION-HANDOFF-2026-05-13 §5 P0) — Diff frame "o que mudou
+        // desde último handoff". Coleta PRs + US + ADRs + cycles + arquivos via git
+        // log / gh api / mcp_tasks. Reduz cognitive load reler handoff inteiro.
+        // Cache em mcp_handoff_diffs (MD5 hash dos events). Page 2 knowledge cluster.
+        Tools\HandoffDiffTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
