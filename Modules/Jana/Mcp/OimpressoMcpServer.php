@@ -117,6 +117,11 @@ class OimpressoMcpServer extends Server
         // digest. Coleta commits/PRs/US/ADRs/handoffs últimos 7 dias + gpt-4o-mini
         // sintetiza em 5 seções. Schedule seg 09h BRT. Cache `mcp_weekly_digests`.
         Tools\WeeklyDigestFetchTool::class,
+        // C1 Onda 4 (P0 GAP-ANALYSIS-91-100-2026-05-13) — Charters S4 ativos.
+        // Resolve `<path>.charter.md` ao lado do `.tsx` + retorna Mission/Goals/
+        // Non-Goals/UX targets/Automation hooks/Anti-hooks. Skill `charter-first`
+        // Tier A always-on BLOQUEADOR pré-Edit em Pages com charter live.
+        Tools\CharterFetchTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
