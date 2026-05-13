@@ -73,6 +73,40 @@ git commit + push + PR
 
 **Diferente do handoff frustrado** [2026-05-11-1830-paralelizacao-omnichannel-frustrada.md](handoffs/2026-05-11-1830-paralelizacao-omnichannel-frustrada.md) — naquele caso agents tentavam git ops em worktree filha (morriam). Aqui agents só Write/Edit, parent faz git ops.
 
+### Agents canônicos do projeto (`.claude/agents/`)
+
+Subagents Opus invocados via Task tool ou linguagem natural. **Experimentais** até ADR mãe aprovada — uso real-world calibra antes de promoção.
+
+| Agent | Função | Quando invocar | Output |
+|---|---|---|---|
+| **`estado-da-arte`** | Pesquisa os melhores em 2026 + compara com o que oimpresso tem + avalia gaps por impacto×esforço | "Faça o estado da arte de X" / "Como os melhores fazem Y" / "/estado-da-arte X" | `memory/sessions/YYYY-MM-DD-arte-<slug>.md` |
+| **`coordenador-paralelo`** | Formaliza pattern de Waves desta seção. Recebe problema → research + inventário → decomposição em N waves isoladas → spawn N sub-agents general-purpose paralelos → consolidação | "Coordene em paralelo X" / "Decomponha em waves" / "Faça em paralelo sem invadir outras áreas" | `memory/sessions/YYYY-MM-DD-coord-<slug>.md` + plano executável + git consolidação |
+
+Diferença: `estado-da-arte` entrega CONHECIMENTO (1 doc decisório); `coordenador-paralelo` entrega EXECUÇÃO (N artefatos/PRs). Fluxo natural: estado-da-arte gera plano → coordenador-paralelo executa.
+
+Histórico: criados 2026-05-13 sessão crazy-euclid-b68bb7. Dogfood do `estado-da-arte` sobre própria decisão de design pegou 3 P0 fatais (Reflexion paper validado empiricamente N=1). Ver [`memory/sessions/2026-05-13-agents-canonicos-meta-degradacao.md`](sessions/2026-05-13-agents-canonicos-meta-degradacao.md).
+
+## Reconhecer degradação de sessão (Claude)
+
+Sinais observáveis que indicam Claude entrou em modo subótimo (sessão de 2026-05-13 catalogou):
+
+1. **Pulou `brief-fetch` no início** — trabalhou com dados parciais via `my-work`/`tasks-list`. Não chamou Tier A obrigatório.
+2. **Inflou design 2+ vezes consecutivas** após Wagner cortar — re-inflar com "versão refinada" é não-ouvir disfarçado de iteração. Anti-pattern.
+3. **Gerou 3+ arquivos novos em ≤2h sessão** sem checar duplicação com `Glob`/`Grep` em `memory/`.
+4. **Tom inflado falso-confiante** — usar "P0 fatal", "consultor brabo", "auto-derrota" sobre premissas não validadas.
+5. **Esqueceu TodoWrite** em tarefas multi-step (≥3 passos).
+6. **Skill auto-ativável Tier A não disparou** — sinal que matcher de description está degradado ou skill ausente.
+
+**Ações mitigatórias imediatas (qualquer pessoa pode pedir):**
+
+- `brief-fetch` agora — reseta ground truth (~3k tokens)
+- Wagner corta + pede silêncio até próximo turno — Claude para de propor
+- `Glob memory/sessions/YYYY-MM-DD-*` antes de criar session log — detecta duplicação
+- `/compact` quando >10 turnos acumulados — comprime histórico
+- `/clear` se sessão saturou e não dá pra recuperar (nuclear — pós-feature/reunião)
+
+**Quem detecta:** Wagner detectou 3x na sessão 2026-05-13. Claude pode aprender a auto-detectar via heurísticas (TODO futuro: hook que conta arquivos criados/2h ou propostas cortadas).
+
 ## Skills auto-ativáveis
 
 Arquivos em `.claude/skills/<nome>/SKILL.md` ativam por contexto. Ver tier no frontmatter (convenção interna [ADR 0095](decisions/0095-skills-tiers-convencao-interna.md)):
