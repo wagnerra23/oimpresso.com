@@ -147,6 +147,15 @@ class JanaServiceProvider extends ServiceProvider
                     );
                 }
 
+                // bge — cross-encoder BGE-v2-m3 self-host CT 100 (R1 Onda 4, +6pp NDCG@10 vs RRF)
+                if ($driver === 'bge') {
+                    return new \Modules\Jana\Services\Retrieval\BgeReranker(
+                        endpoint: (string) config('copiloto.reranker.bge.endpoint'),
+                        timeout: (int) config('copiloto.reranker.bge.timeout', 5),
+                        fallback: $this->app->make(\Modules\Jana\Services\Retrieval\RrfReranker::class)
+                    );
+                }
+
                 // rrf (default MVP)
                 return $this->app->make(\Modules\Jana\Services\Retrieval\RrfReranker::class);
             }
