@@ -11,6 +11,7 @@ use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskComment;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
+use Modules\Jana\Services\Summarizer\AutoSummarizerHelper;
 
 /**
  * TaskRegistry Fase 0/1 — Tool tasks-detail.
@@ -116,6 +117,11 @@ class TasksDetailTool extends Tool
 
         $output .= "_Pra editar, edite o SPEC e rode `mcp:tasks:sync`. Pra comentar: `tasks-comment task_id={$t->task_id}`._\n";
 
-        return Response::text($output);
+        // A1 Onda 5 (dossier 2026-05-13 §6) — auto-summary se response > 8KB.
+        // Tasks com histórico massivo (timeline 50+ eventos, descrição longa)
+        // ficam compactadas via map-reduce gpt-4o-mini (cache MySQL 24h).
+        $finalOutput = AutoSummarizerHelper::summarizeAndRender($output);
+
+        return Response::text($finalOutput);
     }
 }
