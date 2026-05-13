@@ -14,8 +14,12 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  * TaskRegistry Fase 1 (US-TR-005) — Tool tasks-update.
  *
  * Atualiza campos de uma task (status/owner/sprint/priority) no DB.
- * NÃO modifica o SPEC.md — DB-only. O SPEC permanece source-of-truth;
- * se o status no SPEC divergir, o próximo webhook sobrescreve.
+ * NÃO modifica o SPEC.md — DB-only.
+ *
+ * ADR 0144 (2026-05-13): mudança via tasks-update é DURÁVEL. O webhook
+ * de sync do SPEC.md NÃO sobrescreve mais status/owner/sprint/priority
+ * em tasks já existentes — DB virou canon de estado vivo, SPEC virou
+ * template descritivo. Não precisa mais editar o SPEC pra fixar o status.
  */
 class TasksUpdateTool extends Tool
 {
@@ -23,7 +27,7 @@ class TasksUpdateTool extends Tool
 
     protected string $title = 'Atualizar task (status/owner/sprint/priority)';
 
-    protected string $description = 'Atualiza campos de uma US-* no DB (DB-only, NÃO modifica o SPEC.md). Use pra mudar status, reatribuir owner, mover de sprint. O próximo sync do SPEC sobrescreve — para mudança permanente, edite o SPEC.md.';
+    protected string $description = 'Atualiza campos de uma US-* no DB. Mudança é DURÁVEL — o webhook de sync do SPEC.md não sobrescreve status/owner/sprint/priority em tasks existentes (ADR 0144). Use pra mudar status, reatribuir owner, mover de sprint, mudar priority. O SPEC.md continua sendo fonte da descrição/título/labels e do estado inicial de USs novas.';
 
     public function schema(JsonSchema $schema): array
     {
@@ -103,7 +107,7 @@ class TasksUpdateTool extends Tool
             $to   = $ev->to_value   ? "`{$ev->to_value}`"   : '_(removido)_';
             $linhas .= "- **{$ev->event_type}**: {$from} → {$to}\n";
         }
-        $linhas .= "\n_DB atualizado. Para mudança permanente, edite também o SPEC.md._";
+        $linhas .= "\n_DB atualizado — mudança é durável (ADR 0144: DB canon, SPEC template)._";
 
         return Response::text($linhas);
     }
