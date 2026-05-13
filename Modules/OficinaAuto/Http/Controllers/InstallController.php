@@ -26,7 +26,7 @@ class InstallController extends BaseModuleInstallController
 
     protected function moduleSystemKey(): string
     {
-        return 'oficina-auto';
+        return 'oficinaauto';
     }
 
     protected function moduleVersion(): string
