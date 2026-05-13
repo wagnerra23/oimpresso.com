@@ -1,17 +1,18 @@
 // @memcofre tela=/oficina-auto/producao-oficina module=OficinaAuto
-// Produção · Oficina — Kanban estado das caçambas (demo Martinho 13/maio 2026 10h).
-// Espelha 1:1 protótipo Cowork canônico:
-//   prototipo-ui/prototipos/producao-oficina/F1.html
+// Produção · Oficina — Kanban estado das caçambas (V2 RICA — espelha visual-source.html canônico).
+// Espelha 1:1 protótipo Cowork rico:
+//   prototipo-ui/prototipos/producao-oficina/visual-source.html (1213 linhas — fonte canônica visual)
 // Adaptado pra caçambas (5 colunas: Disponível/Locada/Aguardando recolhimento/
-// Em manutenção/Pronta entrega).
+// Em manutenção/Pronta entrega) com 6 KPIs ricos + drawer próprio CacambaProducaoSheet.
 //
 // Refs:
 //   - ADR 0137 (OficinaAuto qualificada)
 //   - ADR 0143 (FSM Pipeline LIVE prod biz=1)
 //   - ADR 0110 (Cockpit V2 — AppShellV2 obrigatório)
 //   - PR #717 lição: useMemo/useCallback nos handlers descendentes (re-render loop)
-//   - ServiceOrderSheet existing (PR #729) — drawer reusado pra detalhe FSM
-// Visual comparison: memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md
+//   - ServiceOrderSheet existing (PR #729) — NÃO usado aqui (drawer próprio CacambaProducaoSheet
+//     embute ServiceOrderFsmActionPanel)
+// Visual comparison: memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md (V2)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
@@ -22,12 +23,12 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Printer, Search, LayoutGrid, List as ListIcon } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import CacambaKanbanColumn from './_components/CacambaKanbanColumn';
 import type { CacambaCardData, CacambaStatus } from './_components/CacambaCard';
-import ServiceOrderSheet from '../ServiceOrders/_components/ServiceOrderSheet';
+import CacambaProducaoSheet from './_components/CacambaProducaoSheet';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -41,8 +42,12 @@ interface KanbanGroups {
 
 interface Kpis {
   total: number;
-  atrasadas: number;
+  disponivel: number;
+  locada: number;
   aguardando_recolhimento: number;
+  manutencao: number;
+  atrasadas: number;
+  valor_em_curso: number;
 }
 
 type CapacidadeFilter = 'all' | '3' | '5' | '7';
@@ -73,6 +78,13 @@ const CAPACIDADES: Array<{ key: CapacidadeFilter; label: string }> = [
   { key: '7',   label: '7m³' },
 ];
 
+const formatBRLCompact = (value: number) =>
+  new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    maximumFractionDigits: 0,
+  }).format(Number(value ?? 0));
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
@@ -95,7 +107,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput]);
 
-  // Drawer ServiceOrder — clicar card abre OS atual (se houver locação)
+  // Drawer caçamba — abre OS atual (rental ativa) ao clicar card
   const [openOsId, setOpenOsId] = useState<number | null>(null);
 
   const handleCardClick = useCallback((c: CacambaCardData) => {
@@ -116,7 +128,65 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     router.reload({ only: ['kanban', 'kpis'], preserveScroll: true, preserveState: true });
   }, []);
 
-  // KPI inline filter bar (espelha F1.html: "17 OS · 3 aguardando aprovação")
+  // Memoiza 5 cards arrays — só re-render se conteúdo mudar (lição PR #717)
+  const columnsData = useMemo(
+    () => COLUMNS.map((col) => ({
+      ...col,
+      cards: kanban[col.key] ?? [],
+    })),
+    [kanban]
+  );
+
+  // 6 KPI cards (espelha visual-source.html linha de 6 cards horizontais)
+  const kpiCards = useMemo(
+    () => [
+      {
+        key: 'total',
+        label: 'Total',
+        value: String(kpis.total),
+        sub: `${kpis.total === 1 ? 'caçamba no estoque' : 'caçambas no estoque'}`,
+        tone: 'default' as const,
+      },
+      {
+        key: 'locada',
+        label: 'Locadas',
+        value: String(kpis.locada),
+        sub: 'em campo no momento',
+        tone: 'default' as const,
+      },
+      {
+        key: 'aguardando',
+        label: 'Aguardando',
+        value: String(kpis.aguardando_recolhimento),
+        sub: 'recolhimento',
+        tone: 'amber' as const,
+      },
+      {
+        key: 'manutencao',
+        label: 'Em manutenção',
+        value: String(kpis.manutencao),
+        sub: 'oficina',
+        tone: 'default' as const,
+      },
+      {
+        key: 'atrasadas',
+        label: 'Atrasadas',
+        value: String(kpis.atrasadas),
+        sub: 'prazo crítico',
+        tone: 'rose' as const,
+      },
+      {
+        key: 'valor',
+        label: 'Valor em curso',
+        value: formatBRLCompact(kpis.valor_em_curso),
+        sub: 'faturamento previsto',
+        tone: 'emerald' as const,
+      },
+    ],
+    [kpis]
+  );
+
+  // KPI inline filter bar (espelha "8 caçambas · 1 atrasada · 1 aguarda recolhimento")
   const kpiSummary = useMemo(() => {
     const parts: string[] = [
       `${kpis.total} ${kpis.total === 1 ? 'caçamba' : 'caçambas'}`,
@@ -130,32 +200,46 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     return parts;
   }, [kpis]);
 
-  // Memoiza 5 cards arrays — só re-render se conteúdo mudar (lição PR #717)
-  const columnsData = useMemo(
-    () => COLUMNS.map((col) => ({
-      ...col,
-      cards: kanban[col.key] ?? [],
-    })),
-    [kanban]
-  );
-
   return (
     <>
       <Head title="Produção · Oficina — Caçambas" />
       <div className="-m-6 bg-slate-50 min-h-[calc(100vh-3rem)]">
-        {/* Topbar interno (resumo + ação) — F1 mostra "Hoje · data · Cliente" */}
-        <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <h1 className="text-base font-semibold text-slate-900 truncate">
+        {/* ─── Topbar header — h1 + sub + ações ─── */}
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold text-slate-900">
               Produção · Oficina
             </h1>
-            <span className="text-xs text-slate-400 whitespace-nowrap">
-              Kanban estado das caçambas
-            </span>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Locação, recolhimento, manutenção e entrega de caçambas
+            </p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/oficina-auto/veiculos">Ver lista completa</Link>
+          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+            {/* Toggle Kanban|Lista — Lista navega pra /veiculos por enquanto */}
+            <div
+              className="inline-flex rounded border border-slate-200 bg-white overflow-hidden"
+              role="group"
+              aria-label="Visualização"
+            >
+              <button
+                className="px-2.5 py-1 text-xs font-medium bg-slate-900 text-white inline-flex items-center gap-1"
+                disabled
+                aria-pressed="true"
+              >
+                <LayoutGrid size={12} />
+                Kanban
+              </button>
+              <Link
+                href="/oficina-auto/veiculos"
+                className="px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 inline-flex items-center gap-1"
+              >
+                <ListIcon size={12} />
+                Lista
+              </Link>
+            </div>
+            <Button variant="ghost" size="sm" disabled title="Imprimir fila — V2">
+              <Printer className="mr-1.5 h-4 w-4" />
+              Imprimir fila
             </Button>
             <Button asChild size="sm">
               <Link href="/oficina-auto/veiculos/create">
@@ -166,7 +250,16 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
           </div>
         </header>
 
-        {/* Filter bar sticky — pills capacidade + busca + KPI inline */}
+        {/* ─── 6 KPI cards (grid-cols-6 — espelha visual-source.html) ─── */}
+        <div className="bg-white border-b border-slate-200 px-6 py-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {kpiCards.map((kpi) => (
+              <KpiCard key={kpi.key} {...kpi} />
+            ))}
+          </div>
+        </div>
+
+        {/* ─── Filter bar sticky — pills capacidade + busca + KPI inline ─── */}
         <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-6 sticky top-0 z-10 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-wide text-slate-500 font-medium">
@@ -220,9 +313,11 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
                 {i > 0 && <span className="mx-1.5 text-slate-300">·</span>}
                 <span
                   className={
-                    part.includes('atrasada') || part.includes('aguardando')
-                      ? 'font-medium text-amber-700'
-                      : 'font-medium text-slate-900'
+                    part.includes('atrasada')
+                      ? 'font-medium text-rose-700'
+                      : part.includes('aguardando')
+                        ? 'font-medium text-amber-700'
+                        : 'font-medium text-slate-900'
                   }
                 >
                   {part}
@@ -232,7 +327,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
           </div>
         </div>
 
-        {/* Kanban 5 colunas */}
+        {/* ─── Kanban 5 colunas ─── */}
         <main className="p-6">
           <div className="grid grid-cols-5 gap-4">
             {columnsData.map((col) => (
@@ -248,8 +343,8 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         </main>
       </div>
 
-      {/* Drawer ServiceOrder — abre ao clicar caçamba locada (reusa Wave 7+1 PR #729) */}
-      <ServiceOrderSheet
+      {/* Drawer rico Caçamba — específico desta tela (embute FsmActionPanel reusado) */}
+      <CacambaProducaoSheet
         serviceOrderId={openOsId}
         open={openOsId !== null}
         onOpenChange={handleSheetOpenChange}
@@ -260,3 +355,57 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
 }
 
 ProducaoOficinaIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
+
+// ─── Subcomponents ───────────────────────────────────────────────────────────
+
+interface KpiCardProps {
+  label: string;
+  value: string;
+  sub: string;
+  tone: 'default' | 'amber' | 'rose' | 'emerald';
+}
+
+function KpiCard({ label, value, sub, tone }: KpiCardProps) {
+  const toneClasses = {
+    default: {
+      wrapper: 'bg-white border-slate-200',
+      label: 'text-slate-500',
+      value: 'text-slate-900',
+      sub: 'text-slate-400',
+    },
+    amber: {
+      wrapper: 'bg-amber-50 border-amber-200',
+      label: 'text-amber-700',
+      value: 'text-amber-900',
+      sub: 'text-amber-600',
+    },
+    rose: {
+      wrapper: 'bg-rose-50 border-rose-200',
+      label: 'text-rose-700',
+      value: 'text-rose-900',
+      sub: 'text-rose-600',
+    },
+    emerald: {
+      wrapper: 'bg-emerald-50 border-emerald-200',
+      label: 'text-emerald-700',
+      value: 'text-emerald-900',
+      sub: 'text-emerald-600',
+    },
+  }[tone];
+
+  return (
+    <div
+      className={`rounded-lg border p-3 flex flex-col gap-0.5 ${toneClasses.wrapper}`}
+    >
+      <span
+        className={`text-[10px] font-semibold uppercase tracking-wider ${toneClasses.label}`}
+      >
+        {label}
+      </span>
+      <span className={`text-2xl font-bold tabular-nums ${toneClasses.value}`}>
+        {value}
+      </span>
+      <span className={`text-[11px] ${toneClasses.sub}`}>{sub}</span>
+    </div>
+  );
+}
