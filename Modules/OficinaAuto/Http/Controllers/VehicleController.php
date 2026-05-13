@@ -61,7 +61,7 @@ class VehicleController extends Controller
 
         if ($hasFsmSchema) {
             $query->with([
-                'currentRental:id,vehicle_id,contact_id,started_at,delivery_address,expected_return_date',
+                'currentRental:id,vehicle_id,contact_id,entered_at,delivery_address,expected_return_date',
                 'currentRental.contact:id,name',
             ]);
 
