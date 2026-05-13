@@ -34,6 +34,7 @@ import { Button } from '@/Components/ui/button';
 import FiscalSection from './FiscalSection';
 import FsmActionPanel from './FsmActionPanel';
 import SaleTimeline from './SaleTimeline';
+import CriarOsButton from './CriarOsButton';
 
 interface Customer {
   id: number;
@@ -548,6 +549,27 @@ export default function SaleSheet({ saleId, open, onOpenChange, onSaleChanged }:
                   }}
                 />
               </Section>
+
+              {/* US-OFICINA-OS-LINK — Criar OS a partir da venda (Martinho/ComVis) */}
+              <section>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Package size={11} />
+                    Ordem de Serviço
+                  </h3>
+                  <CriarOsButton
+                    transactionId={data.id}
+                    onCreated={() => {
+                      void fetchData();
+                      onSaleChanged?.();
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Gere OS pra esta venda — modo &quot;1 OS pra venda toda&quot; (caçambas) ou
+                  &quot;1 OS por produto&quot; (gráfica). Idempotente: clicar 2× não duplica.
+                </p>
+              </section>
 
               {/* Histórico — timeline FSM da venda (US-SELL-035) */}
               <Section title="Histórico" icon={Clock}>
