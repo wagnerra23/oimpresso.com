@@ -1,6 +1,7 @@
 // US-SELL-006 — PaymentRow (componente local da Sells/Create).
 //
 // Linha de pagamento editável: valor + método + conta + data + nota.
+// + campos extras condicionais por método (cartão, cheque, TED).
 // Não vira shared ainda (R-DS-001 — extrair quando 2ª tela usar).
 
 import { Trash2 } from 'lucide-react';
@@ -21,6 +22,20 @@ export interface Payment {
   paid_on: string;
   account_id: number | null;
   note: string;
+  // Cartão
+  card_number?: string;
+  card_holder_name?: string;
+  card_transaction_number?: string;
+  card_type?: string;
+  card_month?: string;
+  card_year?: string;
+  card_security?: string;
+  // Cheque
+  cheque_number?: string;
+  // TED / transferência bancária
+  bank_account_number?: string;
+  // Pagamentos customizados (custom_pay_1..7)
+  transaction_no?: string;
 }
 
 interface Props {
@@ -34,6 +49,22 @@ interface Props {
   removable: boolean;
 }
 
+const CARD_TYPES = [
+  ['credit', 'Crédito'],
+  ['debit', 'Débito'],
+  ['other', 'Outro'],
+] as const;
+
+const CARD_MONTHS = Array.from({ length: 12 }, (_, i) => {
+  const m = String(i + 1).padStart(2, '0');
+  return [m, m] as [string, string];
+});
+
+const CARD_YEARS = Array.from({ length: 10 }, (_, i) => {
+  const y = String(new Date().getFullYear() + i);
+  return [y, y] as [string, string];
+});
+
 export default function PaymentRow({
   payment,
   index,
@@ -45,6 +76,10 @@ export default function PaymentRow({
   removable,
 }: Props) {
   const hasAccounts = Object.keys(accounts).length > 0;
+  const isCard = payment.method === 'card';
+  const isCheque = payment.method === 'cheque';
+  const isBank = payment.method === 'bank_transfer';
+  const isCustom = payment.method.startsWith('custom_pay_');
 
   return (
     <div className="rounded-md border border-border p-4 space-y-3 relative">
@@ -115,6 +150,121 @@ export default function PaymentRow({
           </div>
         )}
       </div>
+
+      {/* Campos extras: Cartão */}
+      {isCard && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 border-t border-border/60">
+          <div className="space-y-1.5">
+            <Label htmlFor={`payment-${index}-card_number`} className="text-xs">Nº do cartão</Label>
+            <Input
+              id={`payment-${index}-card_number`}
+              value={payment.card_number ?? ''}
+              onChange={(e) => onChange(index, 'card_number', e.target.value)}
+              placeholder="**** **** **** ****"
+              className="text-sm"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`payment-${index}-card_holder_name`} className="text-xs">Nome no cartão</Label>
+            <Input
+              id={`payment-${index}-card_holder_name`}
+              value={payment.card_holder_name ?? ''}
+              onChange={(e) => onChange(index, 'card_holder_name', e.target.value)}
+              className="text-sm"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`payment-${index}-card_transaction_number`} className="text-xs">Nº transação</Label>
+            <Input
+              id={`payment-${index}-card_transaction_number`}
+              value={payment.card_transaction_number ?? ''}
+              onChange={(e) => onChange(index, 'card_transaction_number', e.target.value)}
+              className="text-sm"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Tipo</Label>
+            <Select
+              value={payment.card_type ?? ''}
+              onValueChange={(v) => onChange(index, 'card_type', v)}
+            >
+              <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                {CARD_TYPES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Validade</Label>
+            <div className="flex gap-1">
+              <Select value={payment.card_month ?? ''} onValueChange={(v) => onChange(index, 'card_month', v)}>
+                <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
+                <SelectContent>{CARD_MONTHS.map(([v]) => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
+              </Select>
+              <Select value={payment.card_year ?? ''} onValueChange={(v) => onChange(index, 'card_year', v)}>
+                <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
+                <SelectContent>{CARD_YEARS.map(([v]) => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`payment-${index}-card_security`} className="text-xs">CVV</Label>
+            <Input
+              id={`payment-${index}-card_security`}
+              value={payment.card_security ?? ''}
+              onChange={(e) => onChange(index, 'card_security', e.target.value)}
+              placeholder="***"
+              maxLength={4}
+              className="text-sm w-20"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Campos extras: Cheque */}
+      {isCheque && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-border/60">
+          <div className="space-y-1.5">
+            <Label htmlFor={`payment-${index}-cheque_number`} className="text-xs">Nº do cheque</Label>
+            <Input
+              id={`payment-${index}-cheque_number`}
+              value={payment.cheque_number ?? ''}
+              onChange={(e) => onChange(index, 'cheque_number', e.target.value)}
+              className="text-sm"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Campos extras: TED / transferência */}
+      {isBank && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-border/60">
+          <div className="space-y-1.5">
+            <Label htmlFor={`payment-${index}-bank_account_number`} className="text-xs">Conta bancária</Label>
+            <Input
+              id={`payment-${index}-bank_account_number`}
+              value={payment.bank_account_number ?? ''}
+              onChange={(e) => onChange(index, 'bank_account_number', e.target.value)}
+              className="text-sm"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Campos extras: custom_pay */}
+      {isCustom && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-border/60">
+          <div className="space-y-1.5">
+            <Label htmlFor={`payment-${index}-transaction_no`} className="text-xs">Nº da transação</Label>
+            <Input
+              id={`payment-${index}-transaction_no`}
+              value={payment.transaction_no ?? ''}
+              onChange={(e) => onChange(index, 'transaction_no', e.target.value)}
+              className="text-sm"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <Label htmlFor={`payment-${index}-note`} className="text-xs text-muted-foreground">
