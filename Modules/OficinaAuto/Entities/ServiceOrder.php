@@ -124,6 +124,16 @@ class ServiceOrder extends Model
         return $this->belongsTo(\App\Transaction::class, 'transaction_id');
     }
 
+    /**
+     * Cliente da OS — pode diferir de vehicle.contact_id em locações
+     * (caçamba do Martinho é alugada pra construtora diferente do dono).
+     * Coluna contact_id adicionada na hotfix PR #730 (Wave 7+1).
+     */
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(\App\Contact::class, 'contact_id');
+    }
+
     // ------------------------------------------------------------------
     // Accessors (UI helpers + cálculos derived)
     // ------------------------------------------------------------------
