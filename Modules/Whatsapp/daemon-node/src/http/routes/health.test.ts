@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach } from 'vitest';
 import { detectZombies } from './health';
+import { zombiesDetectedCounter } from '../../observability/metrics';
 import type { InstanceSnapshot } from '../../baileys/Instance';
 
 // ------------------------------------------------------------------------------------------------
@@ -103,5 +104,39 @@ describe('detectZombies', () => {
     ];
     const zombies = detectZombies(instances, 30 * 60 * 1000, now);
     expect(zombies.map((z) => z.instance_id).sort()).toEqual(['ch-zombie1', 'ch-zombie2']);
+  });
+});
+
+// ------------------------------------------------------------------------------------------------
+// Regression tests pros 2 hardenings do PR de hardening pós-merge:
+//   1. Counter Prometheus existe + tem label correto
+//   2. Counter incrementa quando zombie detectado (smoke direto)
+// ------------------------------------------------------------------------------------------------
+
+describe('zombiesDetectedCounter (hardening: OTel pre-restart alert)', () => {
+  beforeEach(() => {
+    zombiesDetectedCounter.reset();
+  });
+
+  it('existe registrado com label `instance_id` (pré-condição pra alerta Grafana)', async () => {
+    // Procura no metric output do counter pelo nome canônico
+    const metrics = await zombiesDetectedCounter.get();
+    expect(metrics.name).toBe('whatsapp_baileys_zombies_detected_total');
+    expect(metrics.help).toContain('Zombie sockets detectados');
+    // Counter inicia em 0 com nenhuma label gravada (reset() acima)
+    expect(metrics.values).toEqual([]);
+  });
+
+  it('incrementa quando inc({instance_id}) é chamado', async () => {
+    zombiesDetectedCounter.inc({ instance_id: 'ch-88b13697b89e451cb65be917533bab21' });
+    zombiesDetectedCounter.inc({ instance_id: 'ch-88b13697b89e451cb65be917533bab21' });
+    zombiesDetectedCounter.inc({ instance_id: 'ch-da8c23c55a6c4538b82f1a05c47ac5da' });
+
+    const metrics = await zombiesDetectedCounter.get();
+    const ch1 = metrics.values.find((v) => v.labels.instance_id === 'ch-88b13697b89e451cb65be917533bab21');
+    const ch2 = metrics.values.find((v) => v.labels.instance_id === 'ch-da8c23c55a6c4538b82f1a05c47ac5da');
+
+    expect(ch1?.value).toBe(2);
+    expect(ch2?.value).toBe(1);
   });
 });

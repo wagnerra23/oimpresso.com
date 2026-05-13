@@ -47,6 +47,22 @@ export const banDetectedCounter = new Counter({
   registers: [registry],
 });
 
+/**
+ * Zombie sockets detectados pelo healthcheck (`state=connected` mas
+ * `last_seen` estagnado > threshold). Pre-restart signal — permite alertar
+ * via OTel ANTES do Docker policy disparar restart silencioso. Caso real
+ * 2026-05-13 (incident `ch-88b13697...` 99min estagnado) seria detectado
+ * via incremento deste counter.
+ *
+ * @see Modules/Whatsapp/daemon-node/src/http/routes/health.ts
+ */
+export const zombiesDetectedCounter = new Counter({
+  name: 'whatsapp_baileys_zombies_detected_total',
+  help: 'Zombie sockets detectados no healthcheck (state=connected mas last_seen estagnado > threshold).',
+  labelNames: ['instance_id'] as const,
+  registers: [registry],
+});
+
 export const webhookDispatchCounter = new Counter({
   name: 'whatsapp_baileys_webhook_dispatch_total',
   help: 'Webhook outbound pro Hostinger: outcome ok | retried | failed_permanent.',
