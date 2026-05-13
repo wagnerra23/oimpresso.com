@@ -34,6 +34,14 @@
 - ⛔ **Não duplicar info entre sistemas.** Git é canônico; MCP é cache governado
 - ⛔ **ADRs CANON são append-only.** NUNCA editar accepted records — criar nova com `supersedes: [N]`
 - ⛔ **Tasks NÃO em markdown.** Estado vivo via tools MCP (`cycles-active`, `tasks-list`) — CURRENT.md/TASKS.md REMOVIDOS ([ADR 0070](decisions/0070-jira-style-task-management-current-md-removed.md))
+- ⛔ **NUNCA pular `brief-fetch` no início de sessão** — Tier A bloqueador via skill `brief-first` (custo trivial ~3k tokens, cache 5min, economiza ~27k tokens de exploração). Sintoma de degradação clássico: Claude começa a trabalhar via `my-work`/`tasks-list`/Read sem ter chamado brief antes → opera com dados parciais → gera plano duplicado. Catalogado sessão 2026-05-13 (Claude gerou plano de paralelização de backlog que duplicava ROADMAP existente porque não tinha brief). Auditável: se hoje você (Claude) não chamou `brief-fetch` antes de outra tool MCP/Read no início, é violação.
+- ⛔ **NUNCA criar arquivo em `memory/` sem `Glob`/`Grep` antes** pra checar duplicação. Especialmente: session logs (`memory/sessions/YYYY-MM-DD-*.md`), planos por módulo (`memory/requisitos/<Mod>/*.md`), ADRs (`memory/decisions/*.md`). Se já existe similar, EDITA o existente — não cria novo. Catalogado sessão 2026-05-13.
+
+## Comportamento Claude (sessão)
+
+- ⛔ **Após Wagner cortar minha proposta 1x, PARAR e PERGUNTAR** — não re-inflar com "versão refinada". Re-inflar é não-ouvir disfarçado de iteração. Sessão 2026-05-13 teve 3 cortes consecutivos (Wagner cortou skill+subagent → cortou modo brabo → cortou estado-da-arte complexo) antes de Claude obedecer; ROI cortado em cada inflação. Sinal de degradação comportamental — ver `memory/how-trabalhar.md` §"Reconhecer degradação de sessão".
+- ⛔ **Não usar tom inflado falso-confiante** — "P0 fatal", "consultor brabo", "auto-derrota" sobre premissas não validadas (taxa de revisão <90d, ROI, etc) é teatro. Wagner detecta. Brevidade + honestidade > drama performado.
+- ⛔ **Não esquecer `TodoWrite` em tarefas multi-step ≥3 passos** — sintoma de degradação. Sessão 2026-05-13 sistema lembrou 2x via reminder.
 
 ## Processo MWART canônico — único caminho ([ADR 0104](decisions/0104-processo-mwart-canonico-unico-caminho.md))
 
