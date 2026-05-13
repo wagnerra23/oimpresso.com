@@ -106,6 +106,13 @@ Route::group(
         Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
             ->name('jana.admin.qualidade.index');
 
+        // ---- Onda 5 V1 — Roadmap timeline (SVAR React Gantt MIT) -----------
+        // Visualiza mcp_cycles + mcp_tasks como Gantt. Filtros cycle/owner/
+        // priority/module via query params. Permission: jana.mcp.tasks.read.
+        // Ver memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md §V1.
+        Route::get('/admin/roadmap',                       'Admin\RoadmapController@index')
+            ->name('jana.admin.roadmap.index');
+
         // ---- JANA Pro Sprint A (US-COPI-201, ADR 0140) — preview brief diário
         // Endpoint admin pra rodar BriefDiarioService manualmente e ver JSON
         // antes de configurar Job 8h. Permission: copiloto.superadmin
