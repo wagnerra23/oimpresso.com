@@ -127,6 +127,15 @@ class OimpressoMcpServer extends Server
         // draft em memory/handoffs/YYYY-MM-DD-HHMM-<slug>.md. Wagner edita.
         // ~R$ 0.005/draft. Page 2 knowledge cluster.
         Tools\HandoffDraftTool::class,
+        // Feature Flag Admin (US-INFRA-008 — 2026-05-13). Wrapper sobre
+        // GrowthBookAdminService pra ligar/desligar flags por business_id sem
+        // abrir painel UI. Cintura+suspensório do FeatureFlagService (read).
+        // Audit em feature_flag_audits. 5 tools — Page 2 knowledge cluster.
+        Tools\FlagListTool::class,
+        Tools\FlagGetTool::class,
+        Tools\FlagSetTool::class,
+        Tools\FlagEnvToggleTool::class,
+        Tools\FlagCacheClearTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
