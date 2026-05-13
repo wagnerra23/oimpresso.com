@@ -14,9 +14,10 @@ use Modules\OficinaAuto\Entities\Vehicle;
  * ProducaoOficinaController — Kanban estado das caçambas (Martinho 13/maio 2026).
  *
  * Tela "Produção · Oficina" — espelha 1:1 protótipo Cowork canônico
- * `prototipo-ui/prototipos/producao-oficina/F1.html` adaptado pra caçambas:
+ * `prototipo-ui/prototipos/producao-oficina/visual-source.html` adaptado pra caçambas
+ * (workflow real Martinho — locação caçamba estacionária):
  *
- * 5 colunas Kanban (workflow real Martinho — locação caçamba estacionária):
+ * 5 colunas Kanban:
  *  1. disponivel        — caçambas no pátio prontas pra locar
  *  2. locada            — em poder do cliente, no prazo
  *  3. aguardando        — locada + expected_return_date < hoje (overdue)
@@ -28,17 +29,21 @@ use Modules\OficinaAuto\Entities\Vehicle;
  *  - capacidade: all | 3 | 5 | 7 (m³)
  *  - q: busca livre (placa / vehicle_number / cliente atual)
  *
- * KPIs inline filter bar:
- *  - total caçambas
- *  - atrasadas
- *  - aguardando recolhimento (alias semântico de atrasadas)
+ * 6 KPIs (espelha visual-source.html — 6 cards horizontais):
+ *  - total                    — total caçambas no estoque
+ *  - disponivel               — pátio matriz
+ *  - locada                   — em campo (no prazo)
+ *  - aguardando_recolhimento  — locada + overdue (destaque amber)
+ *  - manutencao               — oficina
+ *  - atrasadas                — alias semântico de aguardando_recolhimento (KPI destaque rose)
+ *  - valor_em_curso           — sum(daily_rate × dias_locacao) das ativas (locada + aguardando)
  *
  * Permission: oficinaauto.vehicle.view (mesma da listagem CRUD).
  *
  * Multi-tenant Tier 0 (ADR 0093): global scope em Vehicle filtra business_id
  * automaticamente — controller não precisa filtrar manualmente.
  *
- * @see prototipo-ui/prototipos/producao-oficina/F1.html (canon visual)
+ * @see prototipo-ui/prototipos/producao-oficina/visual-source.html (canon visual rico)
  * @see Modules/OficinaAuto/Http/Controllers/VehicleController.php (pattern)
  * @see memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md
  */
@@ -94,9 +99,13 @@ class ProducaoOficinaController extends Controller
         $query = Vehicle::query();
 
         if ($hasFsmSchema) {
+            // Eager-load currentRental + contact + transaction.createdBy pra atendente
+            // (transaction pode ser null em rentals draft — fallback: auth user no projector).
             $query->with([
-                'currentRental:id,vehicle_id,contact_id,entered_at,delivery_address,expected_return_date,daily_rate,status',
+                'currentRental:id,vehicle_id,contact_id,transaction_id,entered_at,delivery_address,expected_return_date,daily_rate,status,notes,created_at',
                 'currentRental.contact:id,name,mobile',
+                'currentRental.transaction:id,created_by',
+                'currentRental.transaction.createdBy:id,first_name,last_name,username',
             ]);
         }
 
@@ -174,36 +183,80 @@ class ProducaoOficinaController extends Controller
     }
 
     /**
-     * Payload mínimo por card — só o essencial pro Kanban renderizar.
+     * Payload por card — enriquecido pra espelhar visual-source.html canon
+     * (linhas: OS# + chegou + plate + cliente + endereço + obs + atendente · dias · valor).
+     *
      * Drawer faz fetch completo via /oficina-auto/service-orders/{id} (existing).
      *
      * @return array<string, mixed>
      */
     protected function projectVehicleCard(Vehicle $v, $rental, bool $isOverdue): array
     {
+        // Atendente — derivado da transaction.createdBy.
+        // Fallback: null (frontend mostra "—") em rentals draft sem transaction.
+        $atendenteNome = null;
+        $atendenteIniciais = null;
+        if ($rental && $rental->transaction && $rental->transaction->createdBy) {
+            $u = $rental->transaction->createdBy;
+            $first = (string) ($u->first_name ?? '');
+            $last  = (string) ($u->last_name ?? '');
+            $full  = trim($first . ' ' . $last);
+            $atendenteNome = $full !== '' ? $full : (string) ($u->username ?? '');
+            $atendenteIniciais = $this->makeIniciais($atendenteNome);
+        }
+
         return [
-            'id'                 => $v->id,
-            'plate'              => $v->plate,
-            'vehicle_number'     => $v->vehicle_number ?? null,
-            'capacity_m3'        => $v->capacity_m3 !== null ? (float) $v->capacity_m3 : null,
-            'current_status'     => $v->current_status ?? 'indisponivel',
-            'is_overdue'         => $isOverdue,
-            'current_rental_id'  => $v->current_rental_id,
-            'cliente_nome'       => $rental?->contact?->name,
-            'delivery_address'   => $rental?->delivery_address,
-            'entered_at'         => $rental?->entered_at?->toIso8601String(),
-            'expected_return'    => $rental?->expected_return_date?->toDateString(),
-            'dias_locacao'       => $rental ? (int) $rental->dias_locacao : null,
-            'valor_receber'      => $rental ? (float) $rental->valor_receber : null,
+            'id'                  => $v->id,
+            'plate'               => $v->plate,
+            'vehicle_number'      => $v->vehicle_number ?? null,
+            'capacity_m3'         => $v->capacity_m3 !== null ? (float) $v->capacity_m3 : null,
+            'current_status'      => $v->current_status ?? 'indisponivel',
+            'is_overdue'          => $isOverdue,
+            'current_rental_id'   => $v->current_rental_id,
+            'os_number'           => $rental?->id,
+            'rental_created_at'   => $rental?->created_at?->toIso8601String(),
+            'rental_notes'        => $rental?->notes,
+            'cliente_nome'        => $rental?->contact?->name,
+            'delivery_address'    => $rental?->delivery_address,
+            'entered_at'          => $rental?->entered_at?->toIso8601String(),
+            'expected_return'     => $rental?->expected_return_date?->toDateString(),
+            'dias_locacao'        => $rental ? (int) $rental->dias_locacao : null,
+            'daily_rate'          => $rental?->daily_rate !== null ? (float) $rental->daily_rate : null,
+            'valor_receber'       => $rental ? (float) $rental->valor_receber : null,
+            'atendente_nome'      => $atendenteNome,
+            'atendente_iniciais'  => $atendenteIniciais,
         ];
     }
 
     /**
-     * Conta KPIs derivados das colunas (single source of truth — evita query
+     * Iniciais (até 2 letras maiúsculas) pro avatar circular do atendente.
+     */
+    protected function makeIniciais(string $nome): string
+    {
+        $parts = preg_split('/\s+/', trim($nome)) ?: [];
+        $first = isset($parts[0][0]) ? mb_strtoupper(mb_substr($parts[0], 0, 1)) : '';
+        $last  = '';
+        if (count($parts) > 1) {
+            $lastPart = end($parts);
+            $last = isset($lastPart[0]) ? mb_strtoupper(mb_substr($lastPart, 0, 1)) : '';
+        }
+        return $first . $last;
+    }
+
+    /**
+     * 6 KPIs derivados das colunas (single source of truth — evita query
      * extra + garante consistência com listagem renderizada).
      *
+     *  - total                   — soma de todas as colunas
+     *  - disponivel              — pátio matriz
+     *  - locada                  — em campo (no prazo)
+     *  - aguardando_recolhimento — locada + overdue (alias 'atrasadas')
+     *  - manutencao              — oficina
+     *  - atrasadas               — alias semântico (UI mostra com bg-rose destaque)
+     *  - valor_em_curso          — sum(valor_receber) das colunas locada + aguardando
+     *
      * @param  array<string, array<int, array<string, mixed>>>  $kanban
-     * @return array<string, int>
+     * @return array<string, int|float>
      */
     protected function buildKpis(array $kanban): array
     {
@@ -211,12 +264,28 @@ class ProducaoOficinaController extends Controller
         foreach ($kanban as $col) {
             $total += count($col);
         }
+
+        $disponivel = count($kanban['disponivel'] ?? []);
+        $locada     = count($kanban['locada'] ?? []);
         $aguardando = count($kanban['aguardando'] ?? []);
+        $manutencao = count($kanban['manutencao'] ?? []);
+
+        // Valor em curso — soma dos valor_receber das ativas (locada + aguardando).
+        $valorEmCurso = 0.0;
+        foreach (['locada', 'aguardando'] as $colKey) {
+            foreach ($kanban[$colKey] ?? [] as $card) {
+                $valorEmCurso += (float) ($card['valor_receber'] ?? 0);
+            }
+        }
 
         return [
             'total'                   => $total,
-            'atrasadas'               => $aguardando,
+            'disponivel'              => $disponivel,
+            'locada'                  => $locada,
             'aguardando_recolhimento' => $aguardando,
+            'manutencao'              => $manutencao,
+            'atrasadas'               => $aguardando,
+            'valor_em_curso'          => round($valorEmCurso, 2),
         ];
     }
 }
