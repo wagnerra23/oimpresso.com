@@ -65,6 +65,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\JanaRagasEvalCommand::class,    // ADR 0037 §GAP-2 — RAGAS gate (faithfulness/relevancy/precision/recall)
                 \Modules\Jana\Console\Commands\JanaCyclesAutoCloseExpiredCommand::class, // Gap #5 COMPARATIVO-MCP — auto-rollover Linear-style daily 23:55 BRT
                 \Modules\Jana\Console\Commands\JanaWeeklyDigestCommand::class, // Gap G8 P2 auditoria 2026-05-13 — Reflect-style weekly digest
+                \Modules\Jana\Console\Commands\JanaValidateMemoryCommand::class, // S1 Onda 5 P1 — schema rígido CI (6 schemas + AJV + grace period 14d)
             ]);
         }
     }
