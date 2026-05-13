@@ -103,6 +103,11 @@ class OimpressoMcpServer extends Server
         // Substitui fluxo manual "decisions-search → ler 3 ADRs → sintetizar".
         // Page 2 (knowledge cluster). Custo ~R$ [redacted Tier 0]/call.
         Tools\KbAnswerTool::class,
+        // G4 (AUDITORIA-SESSION-HANDOFF-2026-05-13 §5 P0) — Resume handoffs via gpt-4o-mini
+        // pra Wagner não reler 2000 linhas/dia (mediana 142 linhas, outlier 2151).
+        // Cache MD5(filename+content) em `mcp_handoff_summaries`. ~R$ [redacted Tier 0] por handoff.
+        // Page 2 (knowledge cluster).
+        Tools\HandoffFetchSummarizedTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
