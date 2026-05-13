@@ -75,6 +75,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // H6 Onda 3 (G8 P2 AUDITORIA-KNOWLEDGE-2026-05-13) — Reflect-style weekly
+        // digest. Coleta commits + PRs gh + US mcp_tasks + ADRs novas + handoffs +
+        // cycle goals delta + audit log, chama gpt-4o-mini ~R$ 0.005 → 5 seções
+        // (marco/trabalho/cycle/decisões/próxima semana). Segunda 09h BRT pra
+        // estar pronto antes do dia começar. Coexiste com `copiloto:sintese-semanal`
+        // (sex 18h Haiku) — funções complementares.
+        $schedule->command('jana:weekly-digest')
+            ->mondays()
+            ->at('09:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:weekly-digest FALHOU — Reflect-style weekly não gerado'
+                );
+            });
+
         // MemoriaAutonoma Fase 1 — auto-sintese semanal (sex 18:00).
         // Le commits + arquivos memory/ + diffs CURRENT/TASKS/TEAM da semana
         // anterior, chama Haiku 4.5, salva memory/sessions/SEMANA-YYYY-Www-resumo.md.

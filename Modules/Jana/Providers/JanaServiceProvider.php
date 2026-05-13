@@ -64,6 +64,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\JanaBacklinksSweepCommand::class, // Gap G5 P1 auditoria 2026-05-13 — backlinks ADR↔SPEC sweep
                 \Modules\Jana\Console\Commands\JanaRagasEvalCommand::class,    // ADR 0037 §GAP-2 — RAGAS gate (faithfulness/relevancy/precision/recall)
                 \Modules\Jana\Console\Commands\JanaCyclesAutoCloseExpiredCommand::class, // Gap #5 COMPARATIVO-MCP — auto-rollover Linear-style daily 23:55 BRT
+                \Modules\Jana\Console\Commands\JanaWeeklyDigestCommand::class, // Gap G8 P2 auditoria 2026-05-13 — Reflect-style weekly digest
             ]);
         }
     }
