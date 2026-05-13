@@ -190,6 +190,30 @@
 
 **Refs:** [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md), depende de US-INFRA-006
 
+### US-INFRA-009 · Artisan command `feature:activate` via GrowthBook API
+
+> owner: wagner · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: US-INFRA-001
+
+**Contexto.** Hoje ativar uma feature flag para um biz_id exige 15 cliques manuais no GrowthBook UI (Add Rule → Targeted release → preencher condição → Save Draft → Review & Publish). Automatizar via artisan command.
+
+**Escopo:**
+- [ ] `php artisan feature:activate {flag} {biz_id}` — adiciona regra `IF business_id = {biz_id} → SERVE TRUE` via `PATCH /api/v1/features/{id}`
+- [ ] `php artisan feature:deactivate {flag} {biz_id}` — remove regra do biz específico
+- [ ] Publica draft automaticamente via `POST /api/v1/features/{id}/publish`
+- [ ] Token em `.env` como `GROWTHBOOK_API_TOKEN` (segredo no Vaultwarden)
+- [ ] Idempotente: se regra já existe, não duplica
+
+**Acceptance criteria:**
+- [ ] `php artisan feature:activate useV2SellsCreate 4` ativa biz=4 em <5s
+- [ ] `php artisan feature:deactivate useV2SellsCreate 4` remove regra biz=4
+- [ ] Sem `GROWTHBOOK_API_TOKEN` → erro claro "configure GROWTHBOOK_API_TOKEN"
+- [ ] Funciona no Hostinger (curl/Guzzle HTTP, sem deps extras)
+
+**Refs:** depende de US-INFRA-001 (GrowthBook running), ADR 0106
+
+---
+
 ## 3. Sequência recomendada
 
 ```
