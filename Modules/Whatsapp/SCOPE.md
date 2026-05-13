@@ -8,6 +8,10 @@ contains:
   # Admin Inertia (US-WA-001/012/013/057)
   - "Admin/SettingsController — wizard 2 passos Z-API+Meta + gating LGPD (BusinessSettingsRequest)"
   - "Admin/ConversationsController — Inbox Cockpit + send manual + Centrifugo subscribe"
+  - "Admin/CsatController — dashboard pesquisa pós-atendimento (CSAT) PR-6 CYCLE-07"
+  - "Admin/MacrosController — CRUD respostas prontas (macros) inbox"
+  - "Admin/MacroVariantsController — variants A/B/n por macro pra teste"
+  - "Admin/MetricsController — KPIs operacionais inbox (volume, TMR, SLA)"
   - "Admin/TemplatesController — sync HSM Meta + criar template LOCAL Z-API/Baileys"
   - "Admin/ChannelsController — CRUD Channel polimórfico /atendimento/canais (ADR 0135 Fase 0, coexiste Settings legacy)"
   - "Admin/InboxController — UI omnichannel /atendimento/inbox lê schema novo (US-WA-067/069 ADR 0135)"
