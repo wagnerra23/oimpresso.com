@@ -47,6 +47,8 @@
 
 - [legacy-delphi-firebird.md](legacy-delphi-firebird.md) — código fonte Delphi WR Comercial (SVN) + 50 bancos Firebird + SYSDBA/masterkey hardcoded {$IFDEF WR2} + fluxo login→registro
 - [project-officeimpresso-modulo.md](project-officeimpresso-modulo.md) — módulo Laravel licença desktop (3.7 restaurado→6.7) + tela licenca_log v3 machine-centric
+- [migracao-officeimpresso-pattern.md](migracao-officeimpresso-pattern.md) — **pattern canônico 4 fases** (Empresas→Vehicles→Vendas→Financeiro) · Python firebird-driver + pymysql · idempotência por legacy_id · audit JSON · anti-patterns Martinho 2026-05-13
+- [matriz-conhecimento-clientes-legacy.md](matriz-conhecimento-clientes-legacy.md) — **matriz universo** 50 bancos Firebird × 56 businesses oimpresso × status migração · Tier A (5 perfis: WR2/Vargas/Extreme/Gold/Martinho) · Tier B (45 dormentes) · **VERSAO_BANCO** por cliente (range 1404-1474 = 70 versões drift)
 
 ## Projects (estados consolidados de sessão)
 
