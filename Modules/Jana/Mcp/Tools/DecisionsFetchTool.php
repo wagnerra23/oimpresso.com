@@ -9,6 +9,7 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Services\Summarizer\AutoSummarizerHelper;
 
 /**
  * MEM-MCP-1.c (ADR 0053) — Tool decisions-fetch.
@@ -80,6 +81,12 @@ class DecisionsFetchTool extends Tool
             $body .= "\n\n_⚠️ {$doc->pii_redactions_count} PII redaction(s) aplicada(s) automaticamente._";
         }
 
-        return Response::text($body);
+        // A1 Onda 5 (dossier 2026-05-13 §6) — auto-summary se response > 8KB.
+        // Helper retorna texto original passthrough quando abaixo do threshold,
+        // map-reduce gpt-4o-mini quando acima (cache MySQL 24h).
+        // Princípio 8 (Constituição v2): fail-open silencioso em qualquer erro.
+        $finalBody = AutoSummarizerHelper::summarizeAndRender($body);
+
+        return Response::text($finalBody);
     }
 }
