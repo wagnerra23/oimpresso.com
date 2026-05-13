@@ -79,6 +79,12 @@ class JanaServiceProvider extends ServiceProvider
         $this->app->singleton(\Modules\Jana\Services\ContextSnapshotService::class);
         $this->app->singleton(\Modules\Jana\Services\AlertaService::class);
 
+        // L1 Onda 4 (P0 GAP-ANALYSIS-91-100-2026-05-13) — Langfuse v3 self-host
+        // CT 100 + batch ingestion REST. Multiplicador exponencial: instrumenta
+        // TODOS os tools LLM (kb-answer, handoff-summarized, handoff-diff,
+        // weekly-digest, RAGAS, brief, Jana chat). % IA observability 40%→95%.
+        $this->app->singleton(\Modules\Jana\Services\Telemetry\LangfuseClient::class);
+
         // Drivers de apuração — ver adr/tech/0001
         $this->app->tag([SqlDriver::class], 'copiloto.drivers');
 
