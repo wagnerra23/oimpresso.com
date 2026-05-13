@@ -19,7 +19,9 @@
 // Lição PR #717 — useMemo/useCallback nos handlers descendentes pra evitar re-render loop
 // quando hierarquia profunda (Index → Coluna → Card × N).
 
-import { memo } from 'react';
+import { memo, type CSSProperties } from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import {
   Clock,
   MapPin,
@@ -144,6 +146,21 @@ function actionLabelFor(variant: CacambaStatus): string | null {
 }
 
 function CacambaCardImpl({ cacamba, variant, onClick }: Props) {
+  // Drag handle — distance:8 no PointerSensor (KanbanDndProvider) evita drag acidental
+  // em onClick "abrir drawer". Card inteiro é o drag handle (UX padrão Kanban).
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `cacamba-${cacamba.id}`,
+    data: {
+      cacambaId: cacamba.id,
+      currentColumn: variant,
+      cacamba,
+    },
+  });
+
+  const dragStyle: CSSProperties = transform
+    ? { transform: CSS.Translate.toString(transform) }
+    : {};
+
   const isAprovacao = variant === 'aguardando';
   const isPronta = variant === 'pronta';
   const isAtiva = variant === 'locada' || variant === 'aguardando';
@@ -180,17 +197,37 @@ function CacambaCardImpl({ cacamba, variant, onClick }: Props) {
 
   return (
     <article
-      className={`${cardBg} ${opacityClass} relative rounded border border-t-2 ${cardBaseBorder} ${TOP_BORDER_COLOR[variant]} p-3 cursor-pointer transition-colors`}
-      onClick={() => onClick(cacamba)}
+      ref={setNodeRef}
+      style={dragStyle}
+      {...attributes}
+      {...listeners}
+      className={`${cardBg} ${opacityClass} relative rounded border border-t-2 ${cardBaseBorder} ${TOP_BORDER_COLOR[variant]} p-3 transition-colors ${
+        isDragging
+          ? 'opacity-50 cursor-grabbing ring-2 ring-blue-400 ring-offset-1'
+          : 'cursor-grab active:cursor-grabbing hover:shadow-sm'
+      }`}
+      onClick={(e) => {
+        // Bloqueia click durante drag (PointerSensor distance:8 já filtra,
+        // mas defensivo extra). Não interfere em Enter/Space teclado.
+        if (isDragging) {
+          e.preventDefault();
+          return;
+        }
+        onClick(cacamba);
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick(cacamba);
+          // Space é também o "grab" do KeyboardSensor — só Enter abre drawer
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            onClick(cacamba);
+          }
         }
       }}
       role="button"
       tabIndex={0}
       aria-label={`Caçamba ${cacamba.vehicle_number ?? cacamba.plate}${cacamba.cliente_nome ? ` — ${cacamba.cliente_nome}` : ''}`}
+      aria-roledescription="Card arrastável — use Space pra agarrar e setas pra mover"
     >
       {/* ─── Linha 1: OS# esquerda · capacidade badge + valor direita ─── */}
       <div className="flex items-center justify-between mb-2 gap-2">
