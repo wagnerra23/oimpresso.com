@@ -34,12 +34,14 @@ it('InstallController::moduleName() retorna ComunicacaoVisual', function () {
     expect($method->invoke($controller))->toBe('ComunicacaoVisual');
 });
 
-it('InstallController::moduleSystemKey() retorna comunicacao-visual (kebab)', function () {
+it('InstallController::moduleSystemKey() retorna comunicacaovisual (lowercase sem hífen)', function () {
+    // Convenção UltimatePOS: moduleSystemKey === strtolower(moduleName) — kebab quebra
+    // isModuleInstalled() em app/Utils/ModuleUtil.php:31. Bug catalogado 2026-05-13.
     $controller = new InstallController();
     $method     = new ReflectionMethod($controller, 'moduleSystemKey');
     $method->setAccessible(true);
 
-    expect($method->invoke($controller))->toBe('comunicacao-visual');
+    expect($method->invoke($controller))->toBe('comunicacaovisual');
 });
 
 it('InstallController::moduleVersion() retorna versão semver válida', function () {
