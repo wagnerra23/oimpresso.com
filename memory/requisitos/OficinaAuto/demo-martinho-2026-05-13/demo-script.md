@@ -48,6 +48,16 @@
 
 > "Esse mockup é simulação. Mas tem coisa real funcionando AGORA. Deixa eu te mostrar."
 
+> ⚠️ **IMPORTANTE — incluir ESTOQUE + VENDAS + BOLETOS na demo** (descoberta sessão 12/maio: Martinho pergunta sempre sobre esses 3 — não é só locação caçamba).
+
+#### 3-prep. Estoque + Vendas + Boletos (PRINCIPAL — começa por aqui!)
+
+- **`/products`** Estoque: "olha aqui — você cadastra peça/lona/material com unidade (kg, un, m), estoque mínimo, preço custo + venda. Sistema avisa quando vai acabar. Multi-variação (peça com 3 cores)"
+- **`/pos/create`** Venda balcão: "cliente entra na sua loja querendo lona — você bate 1, 2 produtos, recebe na hora ou faz boleto. Gera NFC-e direto"
+- **`/sells`** Vendas faturadas: "venda a prazo — Grade Avançada que mostra todas, filtros por mês/cliente/status pagamento, totalizadores. KPI 'A receber' mostra inadimplência em tempo real"
+- **`/recurring-billing`** Boletos: "para mensalidade de locação caçamba — cadastra cliente + valor + dia vencimento, sistema emite boleto automático todo mês via Inter PJ. Cliente paga, baixa automática"
+- **`/financeiro`** Consolidado: "tudo junto — saldo Inter PJ, contas a receber, contas a pagar, extrato"
+
 #### 3a. Modules/OficinaAuto V0 (1min)
 - **Aba 2:** `/oficina-auto/vehicles`
 - "Esse é o módulo OficinaAuto **rodando em produção desde 11/maio**. 8 telas (Veículos + Ordens de Serviço × Listar/Criar/Ver/Editar). 16 testes automatizados. **Pronto pra você cadastrar suas caçambas amanhã se quiser**."
