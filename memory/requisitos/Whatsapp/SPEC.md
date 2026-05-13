@@ -1327,3 +1327,71 @@ Cliente reclama que bot é chato. Atendente escreve em nota interna `/config bot
 - Pest: engine de bot respeita override > global
 
 **ADRs:** 0135, ADR slash commands (US-WA-073)
+
+---
+
+### US-WA-078 · Fix banDetector falso positivo loggedOut/forbidden vira 'session_expired'
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:**
+
+Daemon Baileys (`Modules/Whatsapp/daemon-node/src/baileys/banDetector.ts:30`) classifica `DisconnectReason.loggedOut` (401) e `DisconnectReason.forbidden` como `banned: true`. Na prática **401 + `conflict type:device_removed`** acontece quando o usuário simplesmente desloga o WhatsApp Web pelo celular — **não é ban Meta**.
+
+Resultado: UI mostra canal como `banned` (alarmista, sugere número queimado), quando o correto é `session_expired` (basta novo QR).
+
+Caso real 2026-05-13: Channel id=3 "Suporte" biz=1 (uuid `3bcafcfc-...`) ficou `status=banned` na tela. Número 554896486699 estava 100% OK no celular pessoal — falso positivo confirmado.
+
+Skill `baileys-update-procedure` gotcha #2 já documenta o fix.
+
+**Acceptance:**
+
+- [ ] `banDetector.ts` linha 29-32: `loggedOut` e `forbidden` retornam `{ banned: false, reason: 'session_expired', shouldReconnect: false }`
+- [ ] `multideviceMismatch` (linha 45-46) revisado: é ban real ou também session_expired? (provavelmente também falso positivo — investigar)
+- [ ] Pest test em `Modules/Whatsapp/daemon-node/__tests__/baileys/banDetector.test.ts` cobrindo loggedOut/forbidden retornando `banned:false`
+- [ ] Backend Laravel (`BaileysWebhookController` ou similar) lê `reason: 'session_expired'` e seta `channels.status='disconnected'` + `channel_health='degraded'` (NÃO `banned`)
+- [ ] UI canal disconnected mostra botão "Re-parear (gerar QR)" — não alarme de ban
+- [ ] Build daemon + deploy CT 100 + smoke test pairing OK
+- [ ] Documentar no RUNBOOK do Whatsapp: "banned na UI = ban Meta real (raríssimo, número queimado); session_expired = deslogou via celular ou outro device, basta QR"
+
+**Refs:**
+
+- Skill: `.claude/skills/baileys-update-procedure/SKILL.md` (gotcha #2)
+- Código: `Modules/Whatsapp/daemon-node/src/baileys/banDetector.ts:29-50`
+- Caso real: turno Wagner-Claude 2026-05-13 16:49 UTC (reset manual channel id=3 banned→disconnected)
+
+---
+
+### US-WA-079 · Fix daemon SIGTERM revoga session (sock.logout → sock.end) preserva pareamento em restart
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:**
+
+`docker stop whatsapp-baileys` (ou qualquer SIGTERM) dispara cadeia:
+`server.ts shutdown()` → `InstanceManager.shutdownAll()` → `Instance.disconnect()` → `sock.logout()` no Baileys.
+
+**`sock.logout()` revoga a sessão no WhatsApp Web** (não é graceful pause — é logout permanente, igual desconectar pelo celular). Resultado: toda restart de daemon = todos os canais conectados perdem pareamento + `/srv/docker/whatsapp-baileys/sessions/` fica vazio + precisa QR de novo em N canais.
+
+Isso transforma operação trivial (restart pra update/manutenção) em incidente — cliente vê WhatsApp offline + Wagner precisa scan QR de todos os canais ativos.
+
+Caso real 2026-05-13: stop pedido pelo Wagner causou logout permanente nos 2 canais ativos (id=2 "Suorte" estava `active/healthy` e perdeu pareamento por causa do SIGTERM).
+
+**Acceptance:**
+
+- [ ] `Modules/Whatsapp/daemon-node/src/baileys/Instance.ts:217` (`disconnect()`): trocar `sock.logout()` por `sock.end()` (ou `sock.ws?.close()` — verificar API Baileys 6.7.18)
+- [ ] Manter método `logout()` separado pra uso explícito (ex: admin desativa canal de propósito via UI → daí sim revoga)
+- [ ] `InstanceManager.shutdownAll()` chama `disconnect()` (encerra socket, mantém auth) — não `logout()`
+- [ ] Persistência: confirmar que `/app/sessions/{instance}/auth/` continua intacta pós-shutdown (não é apagada por logout)
+- [ ] Boot do daemon detecta sessions existentes e auto-reconnect — ou backend dispara `BaileysConnectJob` no boot pra cada channel com `status=active`
+- [ ] Smoke test: docker stop + docker start → channels permanecem conectados sem QR
+- [ ] Pest test daemon-node cobrindo o cenário (mock SIGTERM, valida que auth file não é deletado)
+- [ ] Documentar diferença `disconnect()` vs `logout()` no comment header do Instance.ts
+
+**Refs:**
+
+- Código: `Modules/Whatsapp/daemon-node/src/baileys/Instance.ts:217`, `InstanceManager.ts:70`, `src/server.ts:55`
+- Baileys docs: https://baileys.wiki/docs/api/connecting (sock.end vs sock.logout)
+- Caso real: turno Wagner-Claude 2026-05-13 16:43 UTC (logs `Intentional Logout` no SIGTERM)
