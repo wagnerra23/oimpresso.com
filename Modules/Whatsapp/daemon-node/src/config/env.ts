@@ -8,6 +8,21 @@ const numberFromString = (def: number) =>
     .transform((v) => (v === undefined || v === '' ? def : Number(v)))
     .pipe(z.number().int().positive());
 
+// Permite 0 (hora 0 = meia-noite é válida)
+const nonNegativeIntFromString = (def: number) =>
+  z
+    .string()
+    .optional()
+    .transform((v) => (v === undefined || v === '' ? def : Number(v)))
+    .pipe(z.number().int().nonnegative());
+
+const floatFromString = (def: number) =>
+  z
+    .string()
+    .optional()
+    .transform((v) => (v === undefined || v === '' ? def : Number(v)))
+    .pipe(z.number().positive());
+
 const boolFromString = (def: boolean) =>
   z
     .string()
@@ -57,6 +72,14 @@ const schema = z.object({
   ANTIBAN_JITTER_MAX_MS: numberFromString(4_000),
   ANTIBAN_TYPING_MS: numberFromString(500),
   ANTIBAN_WARMUP_DAYS: numberFromString(7),
+  // Circadian rhythm — multiplica jitter durante quiet hours timezone-aware
+  // (madrugada típica BRT 02-06). Best-practice canônica 2026 (Meta ML
+  // pontua "temporal patterns" — bot enviando 04:00 BRT = robotic).
+  ANTIBAN_CIRCADIAN_ENABLED: boolFromString(true),
+  ANTIBAN_CIRCADIAN_QUIET_START: nonNegativeIntFromString(2), // 02h local
+  ANTIBAN_CIRCADIAN_QUIET_END: nonNegativeIntFromString(6),   // 06h local (exclusive)
+  ANTIBAN_CIRCADIAN_MULTIPLIER: floatFromString(4),           // jitter ×4 em quiet
+  ANTIBAN_CIRCADIAN_TZ: z.string().default('America/Sao_Paulo'),
   // P0 #1 — auth state backend (filesystem default = dev, mysql = prod).
   // Filesystem mantém useMultiFileAuthState (NÃO usar em prod — corrupção FS = session revogada).
   // MySQL usa useMySQLAuthState custom com AES-256-CBC + APP_KEY Laravel.
