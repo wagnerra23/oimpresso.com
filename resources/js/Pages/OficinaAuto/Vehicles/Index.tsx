@@ -7,7 +7,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -25,6 +25,7 @@ import {
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import VehicleStatusBadge, { type VehicleStatus } from './_components/VehicleStatusBadge';
+import ServiceOrderSheet from '../ServiceOrders/_components/ServiceOrderSheet';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -161,6 +162,25 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput]);
+
+  // Drawer ServiceOrder state — clicar numa caçamba locada abre OS atual no drawer
+  // (US-OFICINA-OS-DRAWER, espelha pattern Sells).
+  const [openOsId, setOpenOsId] = useState<number | null>(null);
+  const handleVehicleRowClick = useCallback((v: VehicleRow) => {
+    if (v.current_rental_id) {
+      setOpenOsId(v.current_rental_id);
+      return;
+    }
+    // Sem locação ativa — fallback navegação show (manutenção/disponível)
+    router.visit(`/oficina-auto/veiculos/${v.id}`);
+  }, []);
+  const handleSheetOpenChange = useCallback((open: boolean) => {
+    if (!open) setOpenOsId(null);
+  }, []);
+  const handleOrderChanged = useCallback(() => {
+    // Refresh listagem após transição FSM (status/atrasada/valor podem mudar)
+    router.reload({ only: ['vehicles', 'kpis'], preserveScroll: true, preserveState: true });
+  }, []);
 
   // viewMode (Lista | Grade Avançada) — persistido em localStorage.
   // Default Grade Avançada conforme briefing (mockup é Grade).
@@ -365,7 +385,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                         <tr
                           key={v.id}
                           className={'border-b border-border last:border-0 cursor-pointer transition-colors ' + rowBg}
-                          onClick={() => router.visit(`/oficina-auto/veiculos/${v.id}`)}
+                          onClick={() => handleVehicleRowClick(v)}
                         >
                           <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                             <input type="checkbox" disabled aria-label={`Selecionar ${v.vehicle_number ?? v.plate}`} />
@@ -473,6 +493,14 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
           )}
         </div>
       </div>
+
+      {/* Drawer ServiceOrder — abre ao clicar em caçamba locada */}
+      <ServiceOrderSheet
+        serviceOrderId={openOsId}
+        open={openOsId !== null}
+        onOpenChange={handleSheetOpenChange}
+        onOrderChanged={handleOrderChanged}
+      />
     </>
   );
 }
