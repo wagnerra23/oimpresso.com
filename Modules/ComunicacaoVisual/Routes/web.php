@@ -1,8 +1,11 @@
 <?php
 
+use Modules\ComunicacaoVisual\Http\Controllers\AcabamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
+use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoCatalogoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
+use Modules\ComunicacaoVisual\Http\Controllers\SubstratoController;
 
 // Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).
 // Sem essas rotas o action() helper em Install/ModulesController vira '#'
@@ -49,4 +52,33 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
 
         Route::post('apontamentos/{apontamento}/cancelar', [ApontamentoController::class, 'cancelar'])
             ->name('comvis.api.apontamentos.cancelar');
+
+        // Fase 2 §2.3 — CRUD catálogos canônicos cv_* (US-COMVIS-002 + US-COMVIS-007)
+        Route::apiResource('substratos', SubstratoController::class)
+            ->names([
+                'index'   => 'comvis.api.substratos.index',
+                'store'   => 'comvis.api.substratos.store',
+                'show'    => 'comvis.api.substratos.show',
+                'update'  => 'comvis.api.substratos.update',
+                'destroy' => 'comvis.api.substratos.destroy',
+            ]);
+
+        Route::apiResource('acabamentos', AcabamentoController::class)
+            ->names([
+                'index'   => 'comvis.api.acabamentos.index',
+                'store'   => 'comvis.api.acabamentos.store',
+                'show'    => 'comvis.api.acabamentos.show',
+                'update'  => 'comvis.api.acabamentos.update',
+                'destroy' => 'comvis.api.acabamentos.destroy',
+            ]);
+
+        Route::apiResource('instalacoes-catalogo', InstalacaoCatalogoController::class)
+            ->parameters(['instalacoes-catalogo' => 'instalacao_catalogo'])
+            ->names([
+                'index'   => 'comvis.api.instalacoes_catalogo.index',
+                'store'   => 'comvis.api.instalacoes_catalogo.store',
+                'show'    => 'comvis.api.instalacoes_catalogo.show',
+                'update'  => 'comvis.api.instalacoes_catalogo.update',
+                'destroy' => 'comvis.api.instalacoes_catalogo.destroy',
+            ]);
     });
