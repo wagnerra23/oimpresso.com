@@ -178,6 +178,25 @@
 - [ ] Backup DB armazenado em local seguro (GD pessoal? nuvem?)
 - [ ] Rollback testado: flag OFF → tela volta pra Blade em <30s
 
+### US-SELL-010 · FieldError por campo + auto-open details em erro
+
+> owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: design-arte-agent-2026-05-13 · closed: 2026-05-13
+> blocked_by: US-SELL-007
+
+**Contexto.** Maior gap UX restante após US-SELL-007 (detectado pelo agente `design-arte` 2026-05-13, nota 68/100). Quando erro de validação cai em campo dentro do `<details>` "Mais opções" colapsado, Larissa scrola pro erro mas a seção fica fechada — **não acha o campo**.
+
+**Escopo:**
+- [x] Componente `<FieldError>` inline em `Sells/Create.tsx` (canon: reusável só ao 2º uso) — `role="alert"` pra screen reader
+- [x] `useEffect` que detecta erro em `COLLAPSED_FIELD_KEYS` → `setAdvancedOpen(true)` + persiste localStorage
+- [x] `<FieldError>` aplicado em campos principais: `contact_id`, `transaction_date`, `location_id` (sec-dados sempre visíveis) + `invoice_no` (colapsado SEFAZ)
+- [x] Charter: Goal nova "validação inline por campo + auto-open seção colapsada em erro"
+
+**Acceptance criteria:**
+- [x] Submit com erro em `invoice_no` → `<details>` "Mais opções" abre automaticamente
+- [x] Submit com erro em `contact_id` → mensagem aparece imediatamente abaixo do autocomplete
+- [x] Tipografia consistente: `text-xs text-destructive mt-1`
+- [ ] Pest test (TODO US-SELL-008 incluirá)
+
 ### US-SELL-009 · Cutover ROTA LIVRE + remover Blade após 30d
 
 > owner: wagner · priority: p0 · estimate: 4h (0.5h codável + 30d monitor humano) · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
