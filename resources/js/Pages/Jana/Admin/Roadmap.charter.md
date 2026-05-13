@@ -2,8 +2,9 @@
 page: /jana/admin/roadmap
 component: resources/js/Pages/Jana/Admin/Roadmap.tsx
 owner: wagner
-status: draft
-last_validated: null
+status: live
+last_validated: 2026-05-13
+approved_by: wagner
 parent_module: Jana
 related_adrs: [0070, 0093, 0094, 0110]
 tier: B
