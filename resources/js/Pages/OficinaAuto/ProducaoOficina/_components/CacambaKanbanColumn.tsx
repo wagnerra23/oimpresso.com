@@ -1,12 +1,16 @@
 // Coluna do Kanban Produção · Oficina — header (dot + label + count) + body scroll.
-// Espelha 1:1 protótipo Cowork canônico (prototipo-ui/prototipos/producao-oficina/F1.html).
+// Espelha 1:1 protótipo Cowork canônico (prototipo-ui/prototipos/producao-oficina/visual-source.html).
+//
+// V3 fixes:
+//  - Borda superior 2px colorida por coluna (espelha .prod-col-{slate,blue,rose,violet,emerald})
+//  - Dot color match com card top-border
 //
 // 5 variantes (cor do dot + bg/border destaque na variante "aguardando"):
-//  - disponivel  → ink-400 dot
-//  - locada      → blue-400 dot
-//  - aguardando  → accent-500 dot (amber accent — destaque coluna inteira)
-//  - manutencao  → violet-400 dot
-//  - pronta      → emerald-400 dot
+//  - disponivel  → slate-400 dot + border-t slate-400
+//  - locada      → blue-400 dot + border-t blue-400
+//  - aguardando  → rose-400 dot + border-t rose-400 (destaque coluna inteira amber bg)
+//  - manutencao  → violet-400 dot + border-t violet-400
+//  - pronta      → emerald-400 dot + border-t emerald-400
 //
 // useMemo/useCallback nos handlers descendentes (lição PR #717).
 
@@ -23,9 +27,18 @@ interface Props {
 const dotColorMap: Record<CacambaStatus, string> = {
   disponivel: 'bg-slate-400',
   locada: 'bg-blue-400',
-  aguardando: 'bg-amber-500',
+  aguardando: 'bg-rose-400',
   manutencao: 'bg-violet-400',
   pronta: 'bg-emerald-400',
+};
+
+// V3 — borda topo 2px colorida (espelha canon .prod-col-{slate,blue,rose,violet,emerald})
+const topBorderMap: Record<CacambaStatus, string> = {
+  disponivel: 'border-t-slate-400',
+  locada:     'border-t-blue-400',
+  aguardando: 'border-t-rose-400',
+  manutencao: 'border-t-violet-400',
+  pronta:     'border-t-emerald-400',
 };
 
 function CacambaKanbanColumnImpl({ status, label, cards, onCardClick }: Props) {
@@ -40,7 +53,8 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick }: Props) {
   return (
     <section
       className={
-        'rounded-lg border ' +
+        'rounded-lg border border-t-2 ' +
+        topBorderMap[status] + ' ' +
         (isAguardando
           ? 'bg-amber-50/30 border-amber-200'
           : 'bg-white border-slate-200')

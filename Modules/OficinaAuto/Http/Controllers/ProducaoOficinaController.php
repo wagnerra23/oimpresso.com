@@ -2,12 +2,14 @@
 
 namespace Modules\OficinaAuto\Http\Controllers;
 
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
 
 /**
@@ -43,6 +45,12 @@ use Modules\OficinaAuto\Entities\Vehicle;
  * Multi-tenant Tier 0 (ADR 0093): global scope em Vehicle filtra business_id
  * automaticamente — controller não precisa filtrar manualmente.
  *
+ * V3 fixes (refinement 2026-05-13):
+ *  - Fallback rental: vehicles status=locada/manutencao mas sem current_rental_id
+ *    pegam most-recent ServiceOrder não-terminal pra calcular is_overdue/valor.
+ *  - Fallback atendente: quando rental.transaction.created_by ausente, usa primeiro
+ *    Admin#{biz} user (geralmente o owner do business) como fallback.
+ *
  * @see prototipo-ui/prototipos/producao-oficina/visual-source.html (canon visual rico)
  * @see Modules/OficinaAuto/Http/Controllers/VehicleController.php (pattern)
  * @see memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md
@@ -66,7 +74,16 @@ class ProducaoOficinaController extends Controller
 
         $vehicles = $this->loadVehicles($hasFsmSchema, $capacidade, $search);
 
-        $kanban = $this->groupIntoKanban($vehicles);
+        // V3 fallback: vehicles ativos sem current_rental_id buscam most-recent
+        // ServiceOrder não-terminal pra suprir dados (LOR-3F88 caso real demo).
+        $rentalFallbacks = $hasFsmSchema
+            ? $this->loadRentalFallbacks($vehicles)
+            : [];
+
+        // Atendente fallback: primeiro Admin do business (cached per request).
+        $atendenteFallback = $this->resolveAtendenteFallback();
+
+        $kanban = $this->groupIntoKanban($vehicles, $rentalFallbacks, $atendenteFallback);
         $kpis   = $this->buildKpis($kanban);
 
         return Inertia::render('OficinaAuto/ProducaoOficina/Index', [
@@ -102,7 +119,7 @@ class ProducaoOficinaController extends Controller
             // Eager-load currentRental + contact + transaction.createdBy pra atendente
             // (transaction pode ser null em rentals draft — fallback: auth user no projector).
             $query->with([
-                'currentRental:id,vehicle_id,contact_id,transaction_id,entered_at,delivery_address,expected_return_date,daily_rate,status,notes,created_at',
+                'currentRental:id,vehicle_id,contact_id,transaction_id,entered_at,delivery_address,expected_return_date,daily_rate,status,notes,created_at,order_type',
                 'currentRental.contact:id,name,mobile',
                 'currentRental.transaction:id,created_by',
                 'currentRental.transaction.createdBy:id,first_name,last_name,username',
@@ -139,6 +156,101 @@ class ProducaoOficinaController extends Controller
     }
 
     /**
+     * V3 fallback — pra vehicles status=locada|manutencao SEM current_rental_id,
+     * busca most-recent ServiceOrder não-terminal pra preencher dados (caso demo
+     * LOR-3F88 criada via tinker sem current_rental_id setado).
+     *
+     * Retorna map vehicle_id => ServiceOrder.
+     *
+     * @param  Collection<int, Vehicle>  $vehicles
+     * @return array<int, ServiceOrder>
+     */
+    protected function loadRentalFallbacks(Collection $vehicles): array
+    {
+        $orphans = $vehicles->filter(function ($v) {
+            $status = $v->current_status ?? null;
+            $needsRental = in_array($status, ['locada', 'manutencao'], true);
+            $hasRental = $v->currentRental !== null;
+            return $needsRental && ! $hasRental;
+        });
+
+        if ($orphans->isEmpty()) {
+            return [];
+        }
+
+        $orphanIds = $orphans->pluck('id')->all();
+
+        // Busca most-recent não-terminal por vehicle_id (subquery groupwise max).
+        $orders = ServiceOrder::query()
+            ->whereIn('vehicle_id', $orphanIds)
+            ->whereNotIn('status', ['concluida', 'cancelada', 'recolhida'])
+            ->with([
+                'contact:id,name,mobile',
+                'transaction:id,created_by',
+                'transaction.createdBy:id,first_name,last_name,username',
+            ])
+            ->orderByDesc('id')
+            ->get();
+
+        $map = [];
+        foreach ($orders as $o) {
+            // Primeiro do groupBy = mais recente (orderByDesc id)
+            if (! isset($map[$o->vehicle_id])) {
+                $map[$o->vehicle_id] = $o;
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * V3 fallback — quando rental.transaction.created_by ausente, retorna o
+     * primeiro Admin do business (geralmente owner) pra exibir como atendente.
+     *
+     * Cached per-request via property estática.
+     *
+     * @return array{nome: string|null, iniciais: string|null}
+     */
+    protected function resolveAtendenteFallback(): array
+    {
+        $bizId = (int) (session('user.business_id') ?? auth()->user()?->business_id ?? 0);
+        if ($bizId === 0) {
+            return ['nome' => null, 'iniciais' => null];
+        }
+
+        // Tenta achar Admin#{biz} role primeiro; senão pega o primeiro user do business.
+        $user = User::query()
+            ->where('business_id', $bizId)
+            ->where(function ($q) {
+                $q->whereHas('roles', function ($qq) {
+                    $qq->where('name', 'like', 'Admin#%');
+                })->orWhereHas('roles', function ($qq) {
+                    $qq->where('name', 'like', '%admin%');
+                });
+            })
+            ->orderBy('id')
+            ->first();
+
+        if (! $user) {
+            $user = User::query()->where('business_id', $bizId)->orderBy('id')->first();
+        }
+
+        if (! $user) {
+            return ['nome' => null, 'iniciais' => null];
+        }
+
+        $first = (string) ($user->first_name ?? '');
+        $last  = (string) ($user->last_name ?? '');
+        $nome = trim($first . ' ' . $last);
+        if ($nome === '') {
+            $nome = (string) ($user->username ?? '');
+        }
+        return [
+            'nome' => $nome !== '' ? $nome : null,
+            'iniciais' => $nome !== '' ? $this->makeIniciais($nome) : null,
+        ];
+    }
+
+    /**
      * Agrupa vehicles em 5 colunas Kanban + projeta payload mínimo pro frontend
      * (evita expor PII desnecessária + reduz JSON Inertia).
      *
@@ -150,10 +262,15 @@ class ProducaoOficinaController extends Controller
      *  - indisponivel + qq → 'pronta' (caçamba acabou manut., voltando pátio)
      *
      * @param  Collection<int, Vehicle>  $vehicles
+     * @param  array<int, ServiceOrder>  $rentalFallbacks
+     * @param  array{nome: string|null, iniciais: string|null}  $atendenteFallback
      * @return array<string, array<int, array<string, mixed>>>
      */
-    protected function groupIntoKanban(Collection $vehicles): array
-    {
+    protected function groupIntoKanban(
+        Collection $vehicles,
+        array $rentalFallbacks,
+        array $atendenteFallback
+    ): array {
         $groups = [
             'disponivel'  => [],
             'locada'      => [],
@@ -165,6 +282,12 @@ class ProducaoOficinaController extends Controller
         foreach ($vehicles as $v) {
             $status = $v->current_status ?? 'indisponivel';
             $rental = $v->relationLoaded('currentRental') ? $v->currentRental : null;
+
+            // V3 fallback — usa rental órfão se current_rental_id estava NULL
+            if ($rental === null && isset($rentalFallbacks[$v->id])) {
+                $rental = $rentalFallbacks[$v->id];
+            }
+
             $isOverdue = $rental ? (bool) $rental->is_overdue : false;
 
             $bucket = match (true) {
@@ -176,7 +299,7 @@ class ProducaoOficinaController extends Controller
                 default                                  => 'disponivel',
             };
 
-            $groups[$bucket][] = $this->projectVehicleCard($v, $rental, $isOverdue);
+            $groups[$bucket][] = $this->projectVehicleCard($v, $rental, $isOverdue, $atendenteFallback);
         }
 
         return $groups;
@@ -188,12 +311,17 @@ class ProducaoOficinaController extends Controller
      *
      * Drawer faz fetch completo via /oficina-auto/service-orders/{id} (existing).
      *
+     * @param  array{nome: string|null, iniciais: string|null}  $atendenteFallback
      * @return array<string, mixed>
      */
-    protected function projectVehicleCard(Vehicle $v, $rental, bool $isOverdue): array
-    {
+    protected function projectVehicleCard(
+        Vehicle $v,
+        $rental,
+        bool $isOverdue,
+        array $atendenteFallback
+    ): array {
         // Atendente — derivado da transaction.createdBy.
-        // Fallback: null (frontend mostra "—") em rentals draft sem transaction.
+        // V3 fallback: primeiro Admin do business quando ausente.
         $atendenteNome = null;
         $atendenteIniciais = null;
         if ($rental && $rental->transaction && $rental->transaction->createdBy) {
@@ -205,6 +333,12 @@ class ProducaoOficinaController extends Controller
             $atendenteIniciais = $this->makeIniciais($atendenteNome);
         }
 
+        // V3 fallback Admin business
+        if ($atendenteNome === null && $rental !== null) {
+            $atendenteNome = $atendenteFallback['nome'];
+            $atendenteIniciais = $atendenteFallback['iniciais'];
+        }
+
         return [
             'id'                  => $v->id,
             'plate'               => $v->plate,
@@ -212,7 +346,7 @@ class ProducaoOficinaController extends Controller
             'capacity_m3'         => $v->capacity_m3 !== null ? (float) $v->capacity_m3 : null,
             'current_status'      => $v->current_status ?? 'indisponivel',
             'is_overdue'          => $isOverdue,
-            'current_rental_id'   => $v->current_rental_id,
+            'current_rental_id'   => $v->current_rental_id ?? $rental?->id,
             'os_number'           => $rental?->id,
             'rental_created_at'   => $rental?->created_at?->toIso8601String(),
             'rental_notes'        => $rental?->notes,
