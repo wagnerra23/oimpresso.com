@@ -175,3 +175,14 @@ NFSE_AMBIENTE=homologacao              # homologacao | producao
 NFSE_CERT_PATH=storage/certs/oimpresso.pfx   # relativo a storage_path()
 NFSE_CERT_SENHA=                       # senha do .pfx — NUNCA commitar valor real
 NFSE_MUNICIPIO_IBGE=4218707            # Tubarão-SC
+
+# === GrowthBook feature flags (US-INFRA-001 leitura + US-INFRA-008 escrita) ===
+# Read (SDK) — App\Services\FeatureFlagService:
+GROWTHBOOK_SDK_KEY=                    # sdk-xxx do environment "production"
+GROWTHBOOK_API_HOST=https://growthbook-api.oimpresso.com   # SDK proxy (read)
+# Admin (REST API) — App\Services\GrowthBookAdminService (CT 100 + Hostinger):
+# Token gerado em https://growthbook.oimpresso.com → Settings → Personal Access Tokens
+# Wagner-only — guarda também no Vaultwarden (ADR 0131). Sem este token, painel
+# /admin/feature-flags + tools MCP flag-* + artisan flag:* retornam "não configurado".
+GROWTHBOOK_ADMIN_API_HOST=https://growthbook.oimpresso.com/api/v1
+GROWTHBOOK_ADMIN_API_TOKEN=            # secret_admin_xxxxxxxxxxxxx

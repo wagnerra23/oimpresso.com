@@ -190,29 +190,56 @@
 
 **Refs:** [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md), depende de US-INFRA-006
 
-### US-INFRA-009 · Artisan command `feature:activate` via GrowthBook API
+### US-INFRA-008 · Feature Flag Control (3 canais: Artisan/MCP/Painel)
 
-> owner: wagner · priority: p2 · estimate: 3h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 4h · status: in-progress · type: story · origin: emergencia-rollback-sells-v2-2026-05-13
 > blocked_by: US-INFRA-001
 
-**Contexto.** Hoje ativar uma feature flag para um biz_id exige 15 cliques manuais no GrowthBook UI (Add Rule → Targeted release → preencher condição → Save Draft → Review & Publish). Automatizar via artisan command.
+**Contexto.** US-INFRA-001 entregou GrowthBook self-hosted + `FeatureFlagService` (leitura). Falta escrita: toggle de regra por business_id, mata-switch de environment, limpar cache. Único caminho hoje é abrir manualmente `growthbook.oimpresso.com` e clicar no painel UI — fricção alta sem audit nosso, sem integração com Claude no chat. Disparado por emergência rollback Sells v2 biz=4 (Larissa/ROTA LIVRE) 2026-05-13 — toggle manual no painel custou ~60s de fricção que com tool MCP cai pra ~5s.
 
 **Escopo:**
-- [ ] `php artisan feature:activate {flag} {biz_id}` — adiciona regra `IF business_id = {biz_id} → SERVE TRUE` via `PATCH /api/v1/features/{id}`
-- [ ] `php artisan feature:deactivate {flag} {biz_id}` — remove regra do biz específico
-- [ ] Publica draft automaticamente via `POST /api/v1/features/{id}/publish`
-- [ ] Token em `.env` como `GROWTHBOOK_API_TOKEN` (segredo no Vaultwarden)
-- [ ] Idempotente: se regra já existe, não duplica
+- [x] `App\Services\GrowthBookAdminService` — wrapper REST API (list/get/setBizRule/removeBizRule/setEnvEnabled)
+- [x] Migration `feature_flag_audits` append-only + Model `FeatureFlagAudit`
+- [x] Artisan: `flag:list` · `flag:get` · `flag:set` · `flag:env-toggle` · `flag:cache-clear`
+- [x] Tools MCP: `flag-list` · `flag-get` · `flag-set` · `flag-env-toggle` · `flag-cache-clear` (registradas em `OimpressoMcpServer`)
+- [x] Painel Inertia `/admin/feature-flags` (Index + Show) sob middleware `tailscale-only -> auth -> is-wagner`
+- [x] Tests Pest cobrindo Service + Tools MCP + Controller
+- [x] RUNBOOK em [memory/requisitos/Infra/RUNBOOK-feature-flag-control.md](RUNBOOK-feature-flag-control.md)
+- [x] `.env.example` documenta `GROWTHBOOK_ADMIN_API_HOST` + `GROWTHBOOK_ADMIN_API_TOKEN`
+- [ ] **Pré-req runtime:** Wagner gera Personal Access Token em `growthbook.oimpresso.com` → Settings → PAT, guarda Vaultwarden + .env Hostinger + .env CT 100
 
 **Acceptance criteria:**
-- [ ] `php artisan feature:activate useV2SellsCreate 4` ativa biz=4 em <5s
-- [ ] `php artisan feature:deactivate useV2SellsCreate 4` remove regra biz=4
-- [ ] Sem `GROWTHBOOK_API_TOKEN` → erro claro "configure GROWTHBOOK_API_TOKEN"
-- [ ] Funciona no Hostinger (curl/Guzzle HTTP, sem deps extras)
+- [ ] `php artisan flag:set useV2SellsCreate --biz=4 --enabled=false --clear-cache` desliga em ≤5s
+- [ ] Tool MCP `flag-set` no chat funciona idêntico
+- [ ] Painel `/admin/feature-flags` lista + permite editar rule biz-{N} sem deploy
+- [ ] Toda mudança grava 1 linha em `feature_flag_audits` (audit append-only)
+- [ ] HTTP 401 (token inválido) gera mensagem clara em todos os 3 canais
+- [ ] Sem token configurado, todos os 3 canais retornam "não configurado" — fail-safe
 
-**Refs:** depende de US-INFRA-001 (GrowthBook running), ADR 0106
+**Não-objetivos:**
+- ❌ Substituir o painel oficial GrowthBook (mantém pra rules complexas multi-condição)
+- ❌ Editar features de outros projetos GrowthBook além do `production` default
+- ❌ Permissões granulares por feature (Wagner-only via `is-wagner` middleware)
 
----
+**Refs:** US-INFRA-001 (GrowthBook self-hosted), [ADR 0094 §princípio 7 transparência](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md), [ADR 0122 Admin Center CT 100](../../decisions/0122-admin-center-ct100.md), [ADR 0131 tiering memória](../../decisions/0131-tiering-memoria-canonico-local-segredo.md)
+
+### US-INFRA-009 · Artisan command `feature:activate` via GrowthBook API ⚠️ **SUPERSEDED por US-INFRA-008**
+
+> owner: wagner · priority: p2 · estimate: 3h · status: superseded · type: story
+> superseded_by: US-INFRA-008
+> blocked_by: US-INFRA-001
+
+**Status (2026-05-13):** Substituída por US-INFRA-008, que entrega **superset** (5 commands artisan + 5 tools MCP + painel Inertia, todos sobre `GrowthBookAdminService`). Mantida aqui como histórico — a entry foi adicionada via PR #811 em paralelo à implementação de US-INFRA-008 (#818). Comandos equivalentes:
+
+| US-INFRA-009 (plano) | US-INFRA-008 (entregue) |
+|---|---|
+| `php artisan feature:activate {flag} {biz}` | `php artisan flag:set {flag} --biz={biz} --enabled=true` |
+| `php artisan feature:deactivate {flag} {biz}` | `php artisan flag:set {flag} --biz={biz} --enabled=false` ou `--remove` |
+| `GROWTHBOOK_API_TOKEN` | `GROWTHBOOK_ADMIN_API_TOKEN` (mesmo conceito, nome mais explícito) |
+
+**Contexto original.** Hoje ativar uma feature flag para um biz_id exige 15 cliques manuais no GrowthBook UI (Add Rule → Targeted release → preencher condição → Save Draft → Review & Publish). Automatizar via artisan command.
+
+**Refs:** US-INFRA-008 (substituta), [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)
 
 ## 3. Sequência recomendada
 
