@@ -17,7 +17,7 @@ import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
-import { CreditCard, FileText, Loader2, Package, Plus, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
+import { CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -87,6 +87,7 @@ export interface SellsCreatePageProps {
   permissions: {
     editDiscount: boolean;
     editPrice: boolean;
+    maxDiscount?: number | null;
   };
   posSettings: Record<string, unknown>;
   subType: string | null;
@@ -131,6 +132,20 @@ function FieldError({ message }: { message?: string }) {
 
 // dropdownEntries movido pra _components/dropdownEntries.ts (utility shared local).
 
+// Converte "DD/MM/YYYY HH:mm" (formato backend/session) → "YYYY-MM-DDTHH:mm" (datetime-local input).
+function toDatetimeLocal(val: string): string {
+  const m = val.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+  if (!m) return '';
+  return `${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}`;
+}
+
+// Converte "YYYY-MM-DDTHH:mm" (datetime-local input) → "DD/MM/YYYY HH:mm" (formato backend).
+function fromDatetimeLocal(val: string): string {
+  const m = val.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return val;
+  return `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}`;
+}
+
 export default function SellsCreate(props: SellsCreatePageProps) {
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=format_now_local
   const { data, setData, post, processing, errors, transform } = useForm({
@@ -173,6 +188,12 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       status: '' as string,
       deliver_to: '',
     },
+    additional_expenses: [
+      { key: '', value: 0 },
+      { key: '', value: 0 },
+      { key: '', value: 0 },
+      { key: '', value: 0 },
+    ] as Array<{ key: string; value: number }>,
   });
 
   // Persistir <details> open state em localStorage (DESIGN.md §12)
@@ -217,13 +238,34 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     return data.discount_amount;
   }, [subtotalProdutos, data.discount_amount, data.discount_type]);
 
+  // max_discount: null/undefined = sem limite.
+  const [discountError, setDiscountError] = useState<string | null>(null);
+  const maxDiscount = props.permissions.maxDiscount != null ? Number(props.permissions.maxDiscount) : null;
+
+  const additionalExpensesTotal = useMemo(
+    () => data.additional_expenses.reduce((acc, e) => acc + (Number(e.value) || 0), 0),
+    [data.additional_expenses],
+  );
+
   const totalGeral = useMemo(
-    () => Math.max(subtotalProdutos - descontoPedido + data.shipping.cost, 0),
-    [subtotalProdutos, descontoPedido, data.shipping.cost],
+    () => Math.max(subtotalProdutos - descontoPedido + data.shipping.cost + additionalExpensesTotal, 0),
+    [subtotalProdutos, descontoPedido, data.shipping.cost, additionalExpensesTotal],
   );
 
   const formatBRL = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const validateDiscount = (type: string, amount: number) => {
+    if (maxDiscount == null || maxDiscount <= 0) { setDiscountError(null); return; }
+    if (type === 'percentage' && amount > maxDiscount) {
+      setDiscountError(`Desconto máximo permitido: ${maxDiscount}%`);
+    } else if (type === 'fixed') {
+      const maxFixed = (subtotalProdutos * maxDiscount) / 100;
+      setDiscountError(amount > maxFixed ? `Desconto máximo: ${formatBRL(maxFixed)}` : null);
+    } else {
+      setDiscountError(null);
+    }
+  };
 
   const handleAddProduct = (p: ProductSearchResult) => {
     setData('products', [
@@ -317,9 +359,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     !processing &&
     data.products.length > 0 &&
     data.location_id !== null &&
-    Math.abs(totalPago - totalGeral) < 0.01;
+    Math.abs(totalPago - totalGeral) < 0.01 &&
+    !discountError;
 
-  const handleSubmit = () => {
+  const handleSubmit = (withPrint = false) => {
     if (!canSubmit) return;
     // Transform: mapeia state UX-friendly do React pra payload que SellPosController@store
     // espera (Blade legacy field names + flat shipping + is_direct_sale flag obrigatório).
@@ -328,6 +371,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       ...d,
       // Flag CRÍTICO: sem is_direct_sale=1, controller cai em cashRegister check (linha 364).
       is_direct_sale: 1,
+      is_save_and_print: withPrint ? 1 : 0,
       // Rename pra Blade legacy convention
       payment: d.payments,
       commission_agent: d.commission_agent_id,
@@ -340,6 +384,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       shipping_charges: d.shipping.cost,
       shipping_status: d.shipping.status,
       delivered_to: d.shipping.deliver_to,
+      // Despesas adicionais (Blade: additional_expense_key_N + additional_expense_value_N)
+      additional_expense_key_1: d.additional_expenses[0]?.key ?? '',
+      additional_expense_value_1: d.additional_expenses[0]?.value ?? '',
+      additional_expense_key_2: d.additional_expenses[1]?.key ?? '',
+      additional_expense_value_2: d.additional_expenses[1]?.value ?? '',
+      additional_expense_key_3: d.additional_expenses[2]?.key ?? '',
+      additional_expense_value_3: d.additional_expenses[2]?.value ?? '',
+      additional_expense_key_4: d.additional_expenses[3]?.key ?? '',
+      additional_expense_value_4: d.additional_expenses[3]?.value ?? '',
       // Total calculado client-side (backend re-calcula via productUtil mas evita 422)
       final_total: totalGeral,
       // Campos hidden Blade que controller espera
@@ -497,6 +550,20 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     }, 500);
     return () => clearTimeout(t);
   }, [data, draftKey]);
+
+  // postMessage: recebe contato criado na aba de cadastro (/contacts/create-page).
+  const [forcedCustomer, setForcedCustomer] = useState<{ id: number; text: string } | null>(null);
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === 'contact_created' && event.data?.contact) {
+        const c = event.data.contact as { id: number; name: string };
+        setData('contact_id', c.id);
+        setForcedCustomer({ id: c.id, text: c.name });
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
 
   // Smooth scroll pra seção quando user clica numa aba.
   const scrollToSection = (id: string) => {
@@ -681,6 +748,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               defaultName={props.walkInCustomer.name}
               onSelect={(c) => setData('contact_id', c.id)}
               onClear={() => setData('contact_id', props.walkInCustomer.id)}
+              forcedValue={forcedCustomer}
             />
             <p className="text-xs text-muted-foreground">
               Digite ≥2 caracteres pra buscar. Limpe pra voltar ao cliente padrão.
@@ -692,10 +760,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <Label htmlFor="transaction_date">Data da venda</Label>
             <Input
               id="transaction_date"
-              type="text"
-              value={data.transaction_date}
-              onChange={(e) => setData('transaction_date', e.target.value)}
-              placeholder="DD/MM/AAAA HH:mm"
+              type="datetime-local"
+              value={toDatetimeLocal(data.transaction_date)}
+              onChange={(e) => setData('transaction_date', fromDatetimeLocal(e.target.value))}
             />
             <FieldError message={errors.transaction_date as string | undefined} />
           </div>
@@ -942,9 +1009,11 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               <Label htmlFor="discount_type">Tipo de desconto</Label>
               <Select
                 value={data.discount_type}
-                onValueChange={(v) =>
-                  setData('discount_type', v as typeof data.discount_type)
-                }
+                onValueChange={(v) => {
+                  const newType = v as typeof data.discount_type;
+                  setData('discount_type', newType);
+                  validateDiscount(newType, data.discount_amount);
+                }}
               >
                 <SelectTrigger id="discount_type">
                   <SelectValue />
@@ -956,16 +1025,26 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="discount_amount">Valor do desconto</Label>
+              <Label htmlFor="discount_amount">
+                Valor do desconto
+                {maxDiscount != null && maxDiscount > 0 && (
+                  <span className="ml-1 text-xs text-muted-foreground">(máx {maxDiscount}%)</span>
+                )}
+              </Label>
               <Input
                 id="discount_amount"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
                 value={data.discount_amount}
-                onChange={(e) => setData('discount_amount', Number(e.target.value))}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setData('discount_amount', v);
+                  validateDiscount(data.discount_type, v);
+                }}
                 disabled={!props.permissions.editDiscount}
               />
+              {discountError && <FieldError message={discountError} />}
             </div>
           </div>
 
@@ -979,6 +1058,47 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               rows={3}
             />
           </div>
+
+          {/* Despesas adicionais (embalagem, etiquetagem, etc) */}
+          <details className="rounded-md border border-border">
+            <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground select-none">
+              Despesas adicionais
+              {additionalExpensesTotal > 0 && (
+                <span className="ml-2 text-xs text-foreground tabular-nums">({formatBRL(additionalExpensesTotal)})</span>
+              )}
+            </summary>
+            <div className="px-4 pb-4 pt-2 space-y-2 border-t border-border">
+              {data.additional_expenses.map((exp, i) => (
+                <div key={i} className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="text"
+                    value={exp.key}
+                    onChange={(e) => {
+                      const next = [...data.additional_expenses];
+                      next[i] = { key: e.target.value, value: next[i]?.value ?? 0 };
+                      setData('additional_expenses', next);
+                    }}
+                    placeholder={`Descrição ${i + 1}`}
+                    className="text-sm"
+                  />
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="0"
+                    value={exp.value || ''}
+                    onChange={(e) => {
+                      const next = [...data.additional_expenses];
+                      next[i] = { key: next[i]?.key ?? '', value: Number(e.target.value) };
+                      setData('additional_expenses', next);
+                    }}
+                    placeholder="R$ [redacted Tier 0]"
+                    className="text-sm tabular-nums"
+                  />
+                </div>
+              ))}
+            </div>
+          </details>
 
           {/* Total consolidado */}
           <div className="rounded-md border border-border bg-muted/30 p-4 space-y-1.5 text-sm">
@@ -1001,6 +1121,12 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               <div className="flex justify-between text-muted-foreground">
                 <span>Frete</span>
                 <span className="tabular-nums">+ {formatBRL(data.shipping.cost)}</span>
+              </div>
+            )}
+            {additionalExpensesTotal > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>Despesas adicionais</span>
+                <span className="tabular-nums">+ {formatBRL(additionalExpensesTotal)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-border pt-2 text-base font-semibold text-foreground">
@@ -1219,43 +1345,6 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         </div>
       </details>
 
-      {/* Debug bloco — só pra Wagner inspecionar contract recebido. Removível em US-SELL-005. */}
-      <details className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-sm">
-        <summary className="cursor-pointer font-medium text-muted-foreground">
-          Debug · contract recebido do controller
-        </summary>
-        <div className="mt-3 space-y-1 text-muted-foreground">
-          <div>
-            <strong>defaultLocation:</strong> {props.defaultLocation?.name ?? '—'}
-          </div>
-          <div>
-            <strong>walkInCustomer:</strong> {props.walkInCustomer.name}
-          </div>
-          <div>
-            <strong>defaultDatetime:</strong> {props.defaultDatetime}
-          </div>
-          <div>
-            <strong>permissions:</strong> editPrice={String(props.permissions.editPrice)},
-            editDiscount={String(props.permissions.editDiscount)}
-          </div>
-          <div>
-            <strong>businessLocations:</strong> {Object.keys(props.businessLocations).length}{' '}
-            opções
-          </div>
-          <div>
-            <strong>paymentTypes:</strong> {Object.keys(props.paymentTypes).length} opções
-          </div>
-          <div>
-            <strong>has commission agent:</strong> {String(hasCommissionAgent)}
-          </div>
-          <div>
-            <strong>has multiple price groups:</strong> {String(hasMultiplePriceGroups)}
-          </div>
-          <div>
-            <strong>has types of service:</strong> {String(hasTypesOfService)}
-          </div>
-        </div>
-      </details>
       </div>
       </div>
 
@@ -1282,7 +1371,12 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <Button variant="outline" onClick={() => router.visit('/sells')}>
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={!canSubmit}>
+            <Button variant="outline" onClick={() => handleSubmit(true)} disabled={!canSubmit}>
+              {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Printer className="h-4 w-4 mr-1.5" />
+              {processing ? 'Salvando…' : 'Salvar e Imprimir'}
+            </Button>
+            <Button onClick={() => handleSubmit()} disabled={!canSubmit}>
               {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {processing ? 'Salvando…' : 'Salvar venda'}
             </Button>

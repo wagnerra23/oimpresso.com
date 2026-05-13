@@ -823,6 +823,7 @@ class SellController extends Controller
                 'permissions'          => [
                     'editDiscount' => true,  // SellController não tem flag separado (pos screen é só SellPosController)
                     'editPrice'    => true,
+                    'maxDiscount'  => auth()->user()->max_sales_discount_percent,
                 ],
                 'posSettings'          => $pos_settings,
                 'subType'              => $sale_type ?: null,
