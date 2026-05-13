@@ -252,7 +252,13 @@ def map_venda_to_transaction(
         "additional_notes": normalize_str(venda.get("OBSERVACAO")),
         "sub_type": derive_subtype(venda),
         "created_by": 1,  # Wagner system user — sobrescrito via --created-by
+        # NOT NULL sem default no schema UltimatePOS — fallbacks seguros:
+        "essentials_duration": 0,  # decimal NOT NULL — campo HR não-usado em Sells
     }
+    # transaction_date NOT NULL — fallback se Delphi tiver null/zero date 1899
+    td = data["transaction_date"]
+    if td is None or (isinstance(td, str) and td.startswith("1899")) or (hasattr(td, "year") and td.year < 1990):
+        data["transaction_date"] = datetime.utcnow()
 
     # Audit metadata
     pii_safe_delphi = {}

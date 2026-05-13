@@ -106,11 +106,15 @@ def normalize_cpf_cnpj(raw) -> str | None:
     return digits
 
 
-def normalize_str(raw) -> str | None:
+def normalize_str(raw, max_len: int | None = None) -> str | None:
     if raw is None:
         return None
     s = str(raw).strip()
-    return s or None
+    if not s:
+        return None
+    if max_len is not None and len(s) > max_len:
+        s = s[:max_len]
+    return s
 
 
 def redact_pii(value) -> str | None:
@@ -164,26 +168,30 @@ def map_venda_to_contact(
     razao = normalize_str(row.get("RAZAOSOCIAL"))
     contact_type = derive_contact_type(row.get("RESPONSAVEL_TIPO"))
 
+    # Schema contacts UltimatePOS: varchar tamanhos justos — truncar pra evitar overflow.
+    # cpf_cnpj(20), ie_rg(18), rua(80), numero(10), bairro(40), zip_code(20),
+    # city/state(191), name/email/landline(191), mobile(191) NOT NULL.
     data = {
         "business_id": business_id,
         "type": "customer",  # cliente (não fornecedor) — Martinho oficina/locação
         "contact_type": contact_type,
-        "name": razao or f"Legacy CNPJ {cnpj[:6]}...",
-        "supplier_business_name": razao,
-        "cpf_cnpj": cnpj,
-        "tax_number": cnpj,
-        "ie_rg": normalize_str(row.get("RESPONSAVEL_INSCIDENT")),
-        "rua": normalize_str(row.get("RESPONSAVEL_ENDERECO")),
-        "numero": normalize_str(row.get("RESPONSAVEL_NUMERO")),
-        "bairro": normalize_str(row.get("RESPONSAVEL_BAIRRO")),
-        "zip_code": normalize_str(row.get("RESPONSAVEL_CEP")),
-        "city": normalize_str(row.get("RESPONSAVEL_CIDADE")),
-        "state": normalize_str(row.get("RESPONSAVEL_UF")),
+        "name": normalize_str(razao, 191) or f"Legacy CNPJ {cnpj[:6]}...",
+        "supplier_business_name": normalize_str(razao, 191),
+        "cpf_cnpj": cnpj[:20],
+        "tax_number": cnpj[:20],
+        "ie_rg": normalize_str(row.get("RESPONSAVEL_INSCIDENT"), 18),
+        "rua": normalize_str(row.get("RESPONSAVEL_ENDERECO"), 80),
+        "numero": normalize_str(row.get("RESPONSAVEL_NUMERO"), 10),
+        "bairro": normalize_str(row.get("RESPONSAVEL_BAIRRO"), 40),
+        "zip_code": normalize_str(row.get("RESPONSAVEL_CEP"), 20),
+        "city": normalize_str(row.get("RESPONSAVEL_CIDADE"), 191),
+        "state": normalize_str(row.get("RESPONSAVEL_UF"), 191),
         "country": "BRASIL",
-        "email": normalize_str(row.get("RESPONSAVEL_EMAIL")),
-        "mobile": normalize_str(row.get("TELEFONE")),
+        "email": normalize_str(row.get("RESPONSAVEL_EMAIL"), 191),
+        # mobile é NOT NULL — fallback '' se vazio
+        "mobile": normalize_str(row.get("TELEFONE"), 191) or "",
         "contact_status": "active",
-        "legacy_id": cnpj,  # CNPJ é chave natural dedup
+        "legacy_id": cnpj[:32],  # CNPJ é chave natural dedup
     }
 
     # Audit metadata
