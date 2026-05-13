@@ -4,7 +4,7 @@
 //        Exemplo Anthropic claude.ai/design Officeimpresso/OS (gold-standard Wagner aprovou).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
@@ -595,10 +595,13 @@ export default function SellsIndex(props: SellsIndexPageProps) {
               <SellsToggleViewMode viewMode={viewMode} onChange={setViewMode} />
               {props.permissions.create && (
                 <Button asChild>
-                  <Link href="/sells/create">
+                  {/* full-page nav: SellController::create faz dual-response Inertia/Blade
+                      via feature flag useV2SellsCreate; Inertia <Link> quebra quando server
+                      retorna Blade (biz sem flag). Anchor força navegação nativa → ambos rendem. */}
+                  <a href="/sells/create">
                     <Plus className="mr-1.5 h-4 w-4" />
                     Nova venda
-                  </Link>
+                  </a>
                 </Button>
               )}
             </div>
