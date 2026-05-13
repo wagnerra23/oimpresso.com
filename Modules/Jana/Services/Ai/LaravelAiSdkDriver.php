@@ -300,6 +300,20 @@ class LaravelAiSdkDriver implements AiAdapter
             // semantic conventions. Plugável em Datadog/Langfuse/Arize sem rename.
             $this->emitirOtelGenAi($conv, $mensagem, $response, $durationMs, ok: true);
 
+            // ADR 0132 + ADR 0037 §GAP-1 — Langfuse trace + generation (observability LLM).
+            // Fail-open: telemetria não pode quebrar chat.
+            $this->emitirLangfuseTrace(
+                tool: 'jana-chat',
+                conv: $conv,
+                input: $mensagemPraLlm,
+                output: $texto,
+                tokensIn: $response->usage->promptTokens ?? null,
+                tokensOut: $response->usage->completionTokens ?? null,
+                durationMs: $durationMs,
+                ok: true,
+                memoriaRecallChars: strlen($memoriaContexto),
+            );
+
             // MEM-CACHE-1 — grava resposta no cache pra futuras queries similares.
             if (config('copiloto.cache.enabled', true) && $texto !== '') {
                 try {
@@ -337,7 +351,92 @@ class LaravelAiSdkDriver implements AiAdapter
             // OTel emite mesmo em erro — observability precisa do span de falha
             $this->emitirOtelGenAi($conv, $mensagem, null, $durationMs, ok: false, error: $e);
 
+            // ADR 0132 — Langfuse trace de erro (level=ERROR).
+            $this->emitirLangfuseTrace(
+                tool: 'jana-chat',
+                conv: $conv,
+                input: $mensagem,
+                output: null,
+                tokensIn: null,
+                tokensOut: null,
+                durationMs: $durationMs,
+                ok: false,
+                error: $e,
+            );
+
             return 'Estou sem conexão com IA no momento. Você quer criar a meta manualmente?';
+        }
+    }
+
+    /**
+     * ADR 0132 + ADR 0037 §GAP-1 — emite trace + generation pra Langfuse v3 self-host.
+     *
+     * Pattern "trace + generation":
+     *  - startTrace marca operação raiz (chat/brief/sugerir) com business_id metadata
+     *  - recordGeneration registra chamada LLM (model/tokens/latency) DENTRO do trace
+     *  - endTrace fecha trace com output final + status (ERROR se falhou)
+     *
+     * Fail-silent — wrap try/catch garante NUNCA quebrar chat por causa de telemetria.
+     * O LangfuseClient internamente já é fail-open (queue + Http warnings), mas
+     * defense-in-depth aqui evita exception em path do user (linha 332-342 captura).
+     */
+    protected function emitirLangfuseTrace(
+        string $tool,
+        Conversa $conv,
+        string $input,
+        ?string $output,
+        ?int $tokensIn,
+        ?int $tokensOut,
+        int $durationMs,
+        bool $ok,
+        ?\Throwable $error = null,
+        int $memoriaRecallChars = 0,
+    ): void {
+        try {
+            /** @var \Modules\Jana\Services\Telemetry\LangfuseClient $client */
+            $client = app(\Modules\Jana\Services\Telemetry\LangfuseClient::class);
+
+            $sistema = (string) config('ai.default', 'openai');
+            $modelo  = (string) config(
+                "ai.providers.{$sistema}.models.text.default",
+                config('copiloto.openai.model_chat', 'gpt-4o-mini'),
+            );
+
+            $traceId = $client->startTrace([
+                'name' => $tool,
+                'business_id' => $conv->business_id !== null ? (int) $conv->business_id : null,
+                'user_id' => (int) $conv->user_id,
+                'conversation_id' => (int) $conv->id,
+                'tool' => $tool,
+                'input' => $input,
+                'metadata' => [
+                    'driver' => 'laravel_ai_sdk',
+                    'memoria_recall_chars' => $memoriaRecallChars,
+                ],
+            ]);
+
+            $client->recordGeneration($traceId, [
+                'name' => "{$tool}-response",
+                'model' => $modelo,
+                'input' => $input,
+                'output' => $output,
+                'usage' => [
+                    'input' => $tokensIn ?? 0,
+                    'output' => $tokensOut ?? 0,
+                ],
+                'duration_ms' => $durationMs,
+                'level' => $ok ? 'DEFAULT' : 'ERROR',
+                'status_message' => $error !== null ? substr($error->getMessage(), 0, 200) : null,
+            ]);
+
+            $client->endTrace($traceId, [
+                'output' => $output,
+                'level' => $ok ? null : 'ERROR',
+                'status_message' => $error !== null ? get_class($error) . ': ' . $error->getMessage() : null,
+            ]);
+        } catch (\Throwable $tracingErr) {
+            // Telemetria nunca quebra chat — defense-in-depth.
+            Log::channel('copiloto-ai')->debug('emitirLangfuseTrace falhou: ' . $tracingErr->getMessage());
         }
     }
 
