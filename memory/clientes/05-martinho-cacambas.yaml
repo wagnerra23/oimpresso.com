@@ -1,0 +1,156 @@
+# memory/clientes/05-martinho-cacambas.yaml
+# ------------------------------------------------------------------------------
+# Manifest do PRIMEIRO cliente migrado em produção (PR #803 merged 2026-05-13).
+# Piloto canônico do framework Nível 3 documentado em PR #812.
+#
+# Histórico de descobertas críticas (sessão 2026-05-13):
+#   - Delphi WR Comercial v1404: CRM ÓRFÃO — clientes embutidos INLINE em VENDA.
+#     Não usa EMPRESA FK normalizada. → fase empresas = SKIP.
+#   - VENDA.PLACA: 0% preenchida inline (count-venda-placa.py confirmou).
+#     Veículos importados via tabela VEICULO standalone (91 importados).
+#   - Cleanup FINANCEIRO bloqueado por US-OFICINA-005 (entradas com valor=0, datas 1899).
+#
+# Nome legacy permanece local — NUNCA citar em log/commit/push.
+# ------------------------------------------------------------------------------
+
+hash_id: Cliente_731814
+nome_legacy: <REDACTED — local-only, ver Vaultwarden>
+business_id: 164
+alias_hkcu: MartinhoServidor
+versao_firebird: 1404
+vertical: oficina-cacamba
+sinal_qualificado_adr_0105: SIM    # cliente pagante + reportou drift CRM órfão
+
+fases:
+
+  empresas:
+    # SKIP: Martinho v1404 não usa EMPRESA FK. Cliente vive INLINE em VENDA.
+    # contacts.mode=INLINE cobre esta fase.
+    status: skip
+    importer: import-empresas.py
+    last_run: null
+    runs: 0
+    target_total: 0               # EMPRESA tabela existe mas vazia/orfã
+    imported: 0
+    notes: |
+      CRM órfão detectado 2026-05-13 via inspect-empresa-martinho.py.
+      Tabela EMPRESA tem registros mas VENDA.CODEMPRESA NULL em 100% dos casos.
+      Decisão: extrair cliente direto de VENDA (modo INLINE) — ver fase contacts.
+
+  contacts:
+    # Filtro temporal 12m primeiro (1.550 criados + 153 updates), all-time pendente.
+    status: partial
+    importer: import-contacts-from-venda.py
+    mode: INLINE
+    last_run: 2026-05-13T18:00:00-03:00
+    runs: 2                        # 1 dryrun + 1 real
+    target_total: 8863             # COUNT distinct CGCCPF FROM VENDA (all-time)
+    imported: 1550                 # 12m apenas
+    updates: 153                   # re-run idempotente atualizou 153 já existentes
+    notes: |
+      Falta rodar all-time: target 8.863 - 1.550 = 7.313 contacts pendentes.
+      Orquestrador deve agendar run all-time após Wagner aprovar batch 12m em prod.
+
+  vehicles:
+    status: done
+    importer: import-vehicles.py
+    last_run: 2026-05-13T17:30:00-03:00
+    target_total: 91
+    imported: 91
+    join_to_contact: CGCCPF        # VEICULO.CGCCPFCLI → contacts.cpf_cnpj
+    notes: |
+      VEICULO standalone existe e está bem populada (91 veículos).
+      Linkagem por CGCCPF pq Delphi v1404 não usa FK CODEMPRESA.
+
+  produtos:
+    status: pending
+    importer: import-produtos.py
+    last_run: null
+    runs: 0
+    target_total: <N>              # F1 vai preencher via inspect-schema
+    imported: 0
+
+  vendas:
+    status: partial-12m
+    importer: import-vendas.py
+    last_run: 2026-05-13T19:00:00-03:00
+    target_total: 46065            # COUNT(*) FROM VENDA all-time
+    imported: 5006                 # apenas DATAVENDA >= NOW - 12 months
+    placa_inline_pct: 0            # DESCOBERTA CRÍTICA — 0% PLACA inline em VENDA
+    filtro_temporal: 12m
+    notes: |
+      All-time 46.065 - 5.006 = 41.059 pendentes (Wagner decidirá se vale histórico).
+      placa_inline_pct=0% → vínculo venda→veículo deve ser INFERIDO via CGCCPF + DATAVENDA
+      (não via VENDA.PLACA direto). Investigação em find-venda-cacamba-link.py.
+
+  venda_produto:
+    status: pending
+    importer: null                 # importer NÃO criado ainda nesta sessão
+    last_run: null
+    runs: 0
+    target_total: <N>              # F1 detecta
+    imported: 0
+    notes: |
+      Depende: produtos done + vendas done.
+      Ver agent migracao-venda-produto (a criar) — usar count-venda-placa.py como base.
+
+  financeiro:
+    status: blocked
+    importer: null
+    blocked_by: US-OFICINA-005     # cleanup-first
+    last_run: null
+    target_total: <N>
+    imported: 0
+    notes: |
+      Bloqueio confirmado 2026-05-13: FINANCEIRO tem entradas valor=0, datas 1899-12-30,
+      registros duplicados. Cleanup precisa rodar ANTES (US-OFICINA-005 tools de cleanup).
+      Após cleanup, criar import-financeiro.py.
+
+  boletos:
+    status: pending
+    importer: null
+    last_run: null
+    target_total: <N>
+    imported: 0
+
+  nfe:
+    status: n/a
+    notes: |
+      Martinho (oficina caçamba) não emite NF-e — apenas NFS-e municipal.
+      Confirmar com Wagner se NFS-e tem manifesto separado.
+    importer: null
+    last_run: null
+    target_total: 0
+    imported: 0
+
+  pcp:
+    status: n/a
+    notes: Vertical oficina-cacamba não tem PCP de produção.
+    importer: null
+    last_run: null
+    target_total: 0
+    imported: 0
+
+# Drift conhecido Martinho v1404 vs canônica v1474 (a confirmar via inspect-schema):
+matriz_drift:
+  cols_ausentes_vs_v1474:
+    VENDA:
+      - DATAATUALIZACAO            # v1474 tem timestamp atualização; v1404 não
+      - IDORIGEM                   # v1474 grava origem (loja/PDV); v1404 sem
+      - PLACAINLINE                # v1404 tem PLACA mas sempre NULL (0%)
+    VENDA_PRODUTO: []              # F1 vai preencher
+    FINANCEIRO: []                 # F1 vai preencher
+    EMPRESA:
+      - CODEMPRESAPAI              # v1474 hierarquia matriz/filial; v1404 sem
+  cols_extras:
+    {}                             # nenhuma coluna extra detectada até agora
+
+notes: |
+  Piloto canônico Nível 3 (PR #803 base + PR #812 plano).
+  Sessão 2026-05-13 entregou: empresas SKIP + contacts partial-12m (1.703 ops)
+  + vehicles done (91) + vendas partial-12m (5.006).
+  Próximas decisões pendentes do Wagner:
+    1. Aprovar all-time contacts (7.313 restantes)?
+    2. Aprovar all-time vendas (41.059 restantes) ou ficar só 12m?
+    3. Quando rodar cleanup US-OFICINA-005 pra desbloquear financeiro?
+    4. Criar importer venda_produto via agent migracao-venda-produto?

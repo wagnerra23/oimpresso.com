@@ -1,0 +1,156 @@
+# memory/clientes/_TEMPLATE.yaml
+# ------------------------------------------------------------------------------
+# Manifest canônico de migração por cliente OfficeImpresso (legacy WR Comercial).
+# Source of truth da migração — o orquestrador LÊ este arquivo e ATUALIZA `status`,
+# `last_run`, `imported`, `runs` a cada wave.
+#
+# Quem usa:
+#   - .claude/agents/migracao-orchestrator.md → lê + atualiza
+#   - scripts/legacy-migration/migrar-tudo.py → respeita ordem de fases
+#   - Wagner → sign-off por fase (2 sign-offs IRREVOGÁVEIS)
+#
+# Convenção status (enum fechado):
+#   - pending      → nunca rodou; orquestrador deve agendar
+#   - partial      → rodou parcial (filtro 12m, batch incompleto, validação manual pendente)
+#   - partial-12m  → variante explícita: importou apenas DATAVENDA >= NOW - 12 months
+#   - done         → rodou full, contagem bate target_total, smoke OK, Wagner approved
+#   - done-all-time→ variante done sem filtro temporal (histórico completo)
+#   - skip         → fase não aplicável (ex: CRM órfão usa INLINE; n/a se vertical não casa)
+#   - n/a          → fase irrelevante pro vertical (ex: nfe pra cliente que não emite NF-e)
+#   - blocked      → bloqueado por dependência externa (cleanup pendente, ADR, dúvida cliente)
+#
+# Lifecycle: PR sobe YAML com tudo `pending`. Orquestrador alterna pra `done`.
+# NUNCA editar matriz_drift manualmente — orquestrador F1 detecta via inspect-schema.
+# ------------------------------------------------------------------------------
+
+hash_id: Cliente_XXXXXX          # hash anonimizado curto (ADR 0105 sinal qualificado)
+nome_legacy: <RAZAOSOCIAL Delphi> # nome real só pra Wagner ler — NUNCA log/commit
+business_id: <N>                  # tenant Laravel — Tier 0 IRREVOGÁVEL
+alias_hkcu: <X>                   # alias HKCU\Software\WR Sistemas\Comercial\<X> Delphi
+versao_firebird: <N>              # ex: 1404 (Martinho), 1474 (canônica nova), 1500+
+
+# vertical define quais entidades aplicam (vehicles só pra oficina, etc)
+vertical: <oficina-cacamba|recapagem|comvis|grafica|outros>
+
+# ADR 0105: cliente paga + reporta? Ou métrica detectou drift? Se NAO → não está em backlog ativo.
+sinal_qualificado_adr_0105: <SIM|NAO>
+
+# ------------------------------------------------------------------------------
+# Fases — ordem canônica respeita FK chains:
+#   empresas → contacts → vehicles → produtos → vendas → venda_produto → financeiro → boletos → nfe → pcp
+# Orquestrador não roda fase B se dependência A não estiver done/skip/n/a.
+# ------------------------------------------------------------------------------
+fases:
+
+  empresas:
+    # Tabela: EMPRESA (Delphi) → contacts(type=business) (Laravel)
+    # Pode ser `skip` quando vertical usa CRM ÓRFÃO (cliente embutido inline em VENDA)
+    status: <pending|done|partial|skip>
+    importer: import-empresas.py
+    last_run: <ISO8601|null>
+    runs: <N>                     # quantas execuções (idempotência check)
+    target_total: <N>             # COUNT(*) FROM EMPRESA no Firebird
+    imported: <N>                 # contacts criados business_id=N type=business
+    notes: <texto livre>
+
+  contacts:
+    # Tabela: VENDA.CLIENTE INLINE (modo legacy órfão) OU EMPRESA FK (modo normalizado)
+    # mode INLINE = extrai de VENDA.NOME/CGCCPF/ENDERECO (Martinho v1404 padrão)
+    # mode FK_NORMALIZADA = JOIN VENDA × EMPRESA via VENDA.CODEMPRESA (cliente moderno)
+    status: <pending|done|partial>
+    importer: <import-contacts-from-venda.py|import-empresas.py>
+    mode: <INLINE|FK_NORMALIZADA>
+    last_run: <ISO8601|null>
+    target_total: <N>
+    imported: <N>
+    updates: <N>                  # contacts atualizados (não criados) em re-run idempotente
+
+  vehicles:
+    # Tabela: VEICULO (Delphi oficina) → vehicles (Laravel Modules/OficinaAuto)
+    # n/a se vertical != oficina-cacamba
+    status: <pending|done|n/a>
+    importer: import-vehicles.py
+    last_run: <ISO8601|null>
+    target_total: <N>
+    imported: <N>
+    join_to_contact: <CGCCPF|CODEMPRESA|null>  # como linka veículo→dono
+
+  produtos:
+    # Tabela: PRODUTO → products
+    status: <pending|done|partial>
+    importer: import-produtos.py
+    last_run: <ISO8601|null>
+    target_total: <N>
+    imported: <N>
+
+  vendas:
+    # Tabela: VENDA → sells (Modules/Sells)
+    # placa_inline_pct = % de VENDA com VENDA.PLACA preenchida inline (vs FK VEICULO)
+    # Descoberta crítica Martinho 2026-05-13: 0% — Delphi v1404 NÃO grava PLACA inline.
+    status: <pending|done|partial-12m|done-all-time>
+    importer: import-vendas.py
+    last_run: <ISO8601|null>
+    target_total: <N>             # COUNT(*) FROM VENDA all-time
+    imported: <N>
+    placa_inline_pct: <% 0-100>
+    filtro_temporal: <12m|all-time|null>
+
+  venda_produto:
+    # Tabela: VENDA_PRODUTO (itens da venda) → sell_lines
+    # Depende de vendas + produtos done
+    status: <pending|done|partial>
+    importer: <import-venda-produto.py|null>
+    last_run: <ISO8601|null>
+    target_total: <N>
+    imported: <N>
+
+  financeiro:
+    # Tabela: FINANCEIRO (contas a receber/pagar) → transactions / financial_entries
+    # Frequente bloqueio: cleanup-first (entradas duplicadas, valores zerados, datas absurdas)
+    status: <pending|done|partial|blocked>
+    importer: <import-financeiro.py|null>
+    blocked_by: <US-OFICINA-005|null>
+    last_run: <ISO8601|null>
+    target_total: <N>
+    imported: <N>
+
+  boletos:
+    # Tabela: BOLETO → boletos (Modules/Asaas ou equivalente)
+    status: <pending|done|n/a>
+    importer: <null>
+    last_run: <ISO8601|null>
+    target_total: <N>
+    imported: <N>
+
+  nfe:
+    # Emissão NF-e — n/a se cliente não emite (Martinho oficina caçamba típico = n/a)
+    status: <pending|done|n/a>
+    importer: <null>
+    last_run: <ISO8601|null>
+    target_total: <N>
+    imported: <N>
+
+  pcp:
+    # Planejamento e Controle Produção — só pra clientes grafica/recapagem com PCP
+    status: <pending|done|n/a>
+    importer: <null>
+    last_run: <ISO8601|null>
+    target_total: <N>
+    imported: <N>
+
+# ------------------------------------------------------------------------------
+# Matriz de drift de schema vs versão CANÔNICA (1474).
+# Preenchida automaticamente pelo orquestrador F1 (rodando inspect-schema-martinho.py
+# adaptado pra cada cliente). NÃO editar à mão.
+# ------------------------------------------------------------------------------
+matriz_drift:
+  cols_ausentes_vs_v1474:
+    VENDA: []                     # ex Martinho v1404: [DATAATUALIZACAO, IDORIGEM, ...]
+    VENDA_PRODUTO: []
+    FINANCEIRO: []
+    EMPRESA: []
+  cols_extras:                    # colunas que ESTE cliente tem mas v1474 não
+    {}
+
+# Observações livres do Wagner — decisões manuais, exceções, gotchas humanos.
+notes: <texto livre — Wagner manda sinal qualitativo aqui>
