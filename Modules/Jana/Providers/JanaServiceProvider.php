@@ -61,6 +61,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\HealthCheckCommand::class,      // sentinela operacional 5 checks
                 \Modules\Jana\Console\Commands\SystemAuditCommand::class,      // ADR 0133 — 5 audits Constituição v2 (observ/evals/ADR-stale/cost/coverage)
                 \Modules\Jana\Console\Commands\McpTasksHealthCheckCommand::class, // Bug #4 BUGS-MCP-SYNC-2026-05-13 — staleness detection
+                \Modules\Jana\Console\Commands\JanaBacklinksSweepCommand::class, // Gap G5 P1 auditoria 2026-05-13 — backlinks ADR↔SPEC sweep
             ]);
         }
     }
