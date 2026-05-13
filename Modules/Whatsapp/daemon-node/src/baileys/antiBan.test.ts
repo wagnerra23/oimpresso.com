@@ -2,8 +2,11 @@ import { describe, expect, it, beforeEach, vi } from 'vitest';
 import {
   type AntiBanConfig,
   type InstanceLike,
+  applyCircadianMultiplier,
   checkAndIncrementWarmupQuota,
   gaussianRandom,
+  isQuietHour,
+  localHourIn,
   resetQuotaState,
   sendWithAntiBan,
   warmupQuotaPerHour,
@@ -37,9 +40,116 @@ function makeConfig(overrides: Partial<AntiBanConfig> = {}): AntiBanConfig {
     jitterMaxMs: 100,
     typingMs: 10,
     warmupDays: 7,
+    circadianEnabled: false,
+    circadianQuietStartHour: 2,
+    circadianQuietEndHour: 6,
+    circadianMultiplier: 4,
+    circadianTimezone: 'America/Sao_Paulo',
     ...overrides,
   };
 }
+
+describe('antiBan — circadian rhythm', () => {
+  it('localHourIn devolve hora local correta de UTC pra BRT (-3)', () => {
+    // 2026-05-13T12:00:00Z = 09h BRT
+    const utc = new Date(Date.UTC(2026, 4, 13, 12, 0, 0));
+    expect(localHourIn(utc, 'America/Sao_Paulo')).toBe(9);
+  });
+
+  it('localHourIn devolve hora UTC se timezone inválido (fallback)', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 7, 0, 0));
+    expect(localHourIn(utc, 'Bogus/Invalid')).toBe(7);
+  });
+
+  it('isQuietHour false quando circadianEnabled=false', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 6, 0, 0)); // 03h BRT (quiet)
+    const cfg = makeConfig({ circadianEnabled: false });
+    expect(isQuietHour(utc, cfg)).toBe(false);
+  });
+
+  it('isQuietHour true em 03h BRT (dentro 02-06)', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 6, 0, 0)); // 03h BRT
+    const cfg = makeConfig({ circadianEnabled: true });
+    expect(isQuietHour(utc, cfg)).toBe(true);
+  });
+
+  it('isQuietHour false em 14h BRT (fora 02-06)', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 17, 0, 0)); // 14h BRT
+    const cfg = makeConfig({ circadianEnabled: true });
+    expect(isQuietHour(utc, cfg)).toBe(false);
+  });
+
+  it('isQuietHour false na hora limite end (06h exclusive)', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 9, 0, 0)); // 06h BRT
+    const cfg = makeConfig({ circadianEnabled: true });
+    expect(isQuietHour(utc, cfg)).toBe(false);
+  });
+
+  it('isQuietHour cobre janela overnight (22h → 06h)', () => {
+    const cfg = makeConfig({
+      circadianEnabled: true,
+      circadianQuietStartHour: 22,
+      circadianQuietEndHour: 6,
+    });
+    // 23h BRT
+    expect(isQuietHour(new Date(Date.UTC(2026, 4, 13, 2, 0, 0)), cfg)).toBe(true);
+    // 03h BRT
+    expect(isQuietHour(new Date(Date.UTC(2026, 4, 13, 6, 0, 0)), cfg)).toBe(true);
+    // 12h BRT (fora)
+    expect(isQuietHour(new Date(Date.UTC(2026, 4, 13, 15, 0, 0)), cfg)).toBe(false);
+  });
+
+  it('applyCircadianMultiplier multiplica jitter ×4 em quiet hour', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 6, 0, 0)); // 03h BRT
+    const cfg = makeConfig({
+      circadianEnabled: true,
+      jitterMinMs: 1500,
+      jitterMaxMs: 4000,
+      circadianMultiplier: 4,
+    });
+    const r = applyCircadianMultiplier(cfg, utc);
+    expect(r.quiet).toBe(true);
+    expect(r.jitterMinMs).toBe(6000);
+    expect(r.jitterMaxMs).toBe(16000);
+  });
+
+  it('applyCircadianMultiplier devolve bounds originais fora quiet', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 17, 0, 0)); // 14h BRT
+    const cfg = makeConfig({
+      circadianEnabled: true,
+      jitterMinMs: 1500,
+      jitterMaxMs: 4000,
+      circadianMultiplier: 4,
+    });
+    const r = applyCircadianMultiplier(cfg, utc);
+    expect(r.quiet).toBe(false);
+    expect(r.jitterMinMs).toBe(1500);
+    expect(r.jitterMaxMs).toBe(4000);
+  });
+
+  it('applyCircadianMultiplier clamp multiplier mínimo a 1 (segurança)', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 6, 0, 0));
+    const cfg = makeConfig({
+      circadianEnabled: true,
+      jitterMinMs: 1500,
+      jitterMaxMs: 4000,
+      circadianMultiplier: 0.5, // < 1, deve clampear
+    });
+    const r = applyCircadianMultiplier(cfg, utc);
+    expect(r.jitterMinMs).toBe(1500); // floor(1500 * 1) = 1500
+    expect(r.jitterMaxMs).toBe(4000);
+  });
+
+  it('janela vazia (start === end) desabilita circadian', () => {
+    const utc = new Date(Date.UTC(2026, 4, 13, 6, 0, 0));
+    const cfg = makeConfig({
+      circadianEnabled: true,
+      circadianQuietStartHour: 4,
+      circadianQuietEndHour: 4,
+    });
+    expect(isQuietHour(utc, cfg)).toBe(false);
+  });
+});
 
 describe('antiBan — gaussianRandom', () => {
   it('Test 2: respeita bounds [min, max] em 1000 samples', () => {

@@ -31,6 +31,22 @@ export interface AntiBanConfig {
   jitterMaxMs: number;
   typingMs: number;
   warmupDays: number;
+  /**
+   * Circadian rhythm — multiplica o jitter durante "quiet hours" (madrugada
+   * típica BRT 02-06) pra parecer humano dormindo. Fora dessa janela o jitter
+   * volta ao normal.
+   *
+   * Pesquisa anti-ban 2026 (baileys-antiban, kobie3717): Meta ML pontua
+   * "temporal patterns" — bot enviando 04:00 BRT é robotic = high risk.
+   * Default canônico: multiplier 4x em 02-06h timezone "America/Sao_Paulo".
+   *
+   * `circadianEnabled=false` desliga (preserva comportamento legado pra dev/test).
+   */
+  circadianEnabled: boolean;
+  circadianQuietStartHour: number; // hora local, inclusiva (0-23)
+  circadianQuietEndHour: number;   // hora local, exclusiva (0-23)
+  circadianMultiplier: number;     // jitter * multiplier durante quiet
+  circadianTimezone: string;       // IANA tz, default "America/Sao_Paulo"
 }
 
 export interface InstanceLike {
@@ -139,6 +155,72 @@ export function checkAndIncrementWarmupQuota(
 }
 
 /**
+ * Determina hora local (0-23) de um timezone IANA dado um Date UTC.
+ *
+ * Usa `Intl.DateTimeFormat` (built-in Node 20+ via ICU), sem dep externa.
+ * Fallback: se timezone inválido, retorna hora UTC (não quebra anti-ban).
+ *
+ * Exportada pra teste isolado.
+ */
+export function localHourIn(now: Date, timezone: string): number {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hour: 'numeric',
+      hour12: false,
+    });
+    const hourStr = formatter.format(now);
+    const hour = Number.parseInt(hourStr, 10);
+    if (Number.isNaN(hour)) return now.getUTCHours();
+    // Intl format pode devolver "24" pra meia-noite — normalize
+    return hour === 24 ? 0 : hour;
+  } catch {
+    return now.getUTCHours();
+  }
+}
+
+/**
+ * Verifica se `now` está dentro da janela quiet (madrugada timezone).
+ *
+ * `start <= end` (normal): match se start <= hour < end.
+ * `start > end` (overnight): match se hour >= start OU hour < end.
+ *   ex: start=22, end=6 cobre 22h-23h e 0h-5h
+ *
+ * Exportada pra teste.
+ */
+export function isQuietHour(now: Date, config: AntiBanConfig): boolean {
+  if (!config.circadianEnabled) return false;
+  const hour = localHourIn(now, config.circadianTimezone);
+  const start = config.circadianQuietStartHour;
+  const end = config.circadianQuietEndHour;
+
+  if (start === end) return false; // janela vazia = desligado
+  if (start < end) return hour >= start && hour < end;
+  return hour >= start || hour < end; // overnight wrap
+}
+
+/**
+ * Aplica multiplier circadian ao jitter quando dentro da janela quiet.
+ * Fora da janela retorna os bounds originais.
+ *
+ * Exportada pra teste.
+ */
+export function applyCircadianMultiplier(
+  config: AntiBanConfig,
+  now: Date = new Date(),
+): { jitterMinMs: number; jitterMaxMs: number; quiet: boolean } {
+  if (!isQuietHour(now, config)) {
+    return { jitterMinMs: config.jitterMinMs, jitterMaxMs: config.jitterMaxMs, quiet: false };
+  }
+  const m = Math.max(1, config.circadianMultiplier);
+  return {
+    jitterMinMs: Math.floor(config.jitterMinMs * m),
+    jitterMaxMs: Math.floor(config.jitterMaxMs * m),
+    quiet: true,
+  };
+}
+
+/**
  * Wrapper principal — aplica typing presence + jitter Gaussian + warmup check
  * antes de invocar `sendFn()`. Se `config.enabled=false`, bypassa tudo.
  *
@@ -167,8 +249,9 @@ export async function sendWithAntiBan<T>(
     // Nao-fatal — presence eh cosmetico
   }
 
-  // 3. Jitter Gaussian antes do send
-  const delay = gaussianRandom(config.jitterMinMs, config.jitterMaxMs);
+  // 3. Jitter Gaussian antes do send — com circadian multiplier se quiet hour
+  const bounds = applyCircadianMultiplier(config);
+  const delay = gaussianRandom(bounds.jitterMinMs, bounds.jitterMaxMs);
   await sleep(delay);
 
   return sendFn();
@@ -197,6 +280,11 @@ export function antiBanConfigFromEnv(env: {
   ANTIBAN_JITTER_MAX_MS: number;
   ANTIBAN_TYPING_MS: number;
   ANTIBAN_WARMUP_DAYS: number;
+  ANTIBAN_CIRCADIAN_ENABLED: boolean;
+  ANTIBAN_CIRCADIAN_QUIET_START: number;
+  ANTIBAN_CIRCADIAN_QUIET_END: number;
+  ANTIBAN_CIRCADIAN_MULTIPLIER: number;
+  ANTIBAN_CIRCADIAN_TZ: string;
 }): AntiBanConfig {
   return {
     enabled: env.ANTIBAN_ENABLED,
@@ -204,6 +292,11 @@ export function antiBanConfigFromEnv(env: {
     jitterMaxMs: env.ANTIBAN_JITTER_MAX_MS,
     typingMs: env.ANTIBAN_TYPING_MS,
     warmupDays: env.ANTIBAN_WARMUP_DAYS,
+    circadianEnabled: env.ANTIBAN_CIRCADIAN_ENABLED,
+    circadianQuietStartHour: env.ANTIBAN_CIRCADIAN_QUIET_START,
+    circadianQuietEndHour: env.ANTIBAN_CIRCADIAN_QUIET_END,
+    circadianMultiplier: env.ANTIBAN_CIRCADIAN_MULTIPLIER,
+    circadianTimezone: env.ANTIBAN_CIRCADIAN_TZ,
   };
 }
 
