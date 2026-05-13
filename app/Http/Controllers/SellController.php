@@ -1507,6 +1507,78 @@ class SellController extends Controller
     }
 
     /**
+     * US-OFICINA-OS-LINK — Cria Service Order(s) a partir de uma venda.
+     *
+     * Suporta os 2 modos canônicos:
+     *   - 'single'   — 1 OS pra venda toda (caso Martinho)
+     *   - 'per_line' — 1 OS por produto (caso ComunicacaoVisual)
+     *   - 'auto'     — lê business.os_default_per_line
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id da transaction (nunca payload).
+     * Idempotente (Service deduplica).
+     *
+     * Payload: { mode: 'auto'|'single'|'per_line' }
+     * Retorna: { success, message, mode_resolved, created_count, existing_count, service_orders[] }
+     */
+    public function createOs(\Illuminate\Http\Request $request, $id, \App\Services\CriarOsPorVendaService $service)
+    {
+        if (! auth()->user()->can('direct_sell.view')
+            && ! auth()->user()->can('direct_sell.access')
+            && ! auth()->user()->can('view_own_sell_only')) {
+            abort(403);
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+
+        $sale = \App\Transaction::with('sell_lines.product:id,name,sku')
+            ->where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->whereNull('sub_type')
+            ->find($id);
+
+        if (! $sale) {
+            return response()->json(['success' => false, 'msg' => 'Venda não encontrada.'], 404);
+        }
+
+        $data = $request->validate([
+            'mode' => ['nullable', 'string', 'in:auto,single,per_line'],
+        ]);
+        $mode = $data['mode'] ?? \App\Services\CriarOsPorVendaService::MODE_AUTO;
+
+        try {
+            $result = $service->criar($sale, $mode);
+
+            return response()->json([
+                'success'        => true,
+                'message'        => $result['message'],
+                'mode_resolved'  => $result['mode_resolved'],
+                'created_count'  => $result['created']->count(),
+                'existing_count' => $result['existing']->count(),
+                'service_orders' => $result['created']->merge($result['existing'])->map(fn ($os) => [
+                    'id'                       => $os->id,
+                    'transaction_id'           => $os->transaction_id,
+                    'transaction_sell_line_id' => $os->transaction_sell_line_id,
+                    'status'                   => $os->status,
+                    'vehicle_id'               => $os->vehicle_id,
+                ])->values(),
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            \Log::error('SellController.createOs failed', [
+                'sale_id' => $id,
+                'mode'    => $mode,
+                'error'   => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'msg'     => 'Falha ao criar OS: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param  int  $id
