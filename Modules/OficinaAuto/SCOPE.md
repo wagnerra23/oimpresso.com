@@ -4,6 +4,7 @@ purpose: "Vertical oficinas automotivas BR (mecânica geral, recapagem, locaçã
 contains:
   - "DataController"
   - "InstallController"
+  - "ProducaoOficinaController"
   - "ServiceOrderController"
   - "VehicleController"
   - "ServiceOrderFsmActionController (app/Http/Controllers — shared FSM canon, espelha SaleFsmActionController)"
