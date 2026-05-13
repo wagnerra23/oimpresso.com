@@ -40,12 +40,14 @@ export default function CustomerSearchAutocomplete({
   const [results, setResults] = useState<CustomerSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (query.length < MIN_QUERY_LENGTH) {
       setResults([]);
+      setOpen(false);
       return;
     }
 
@@ -70,6 +72,7 @@ export default function CustomerSearchAutocomplete({
         const list: CustomerSearchResult[] = Array.isArray(data) ? data : (data?.data ?? []);
         setResults(list.slice(0, 10));
         setOpen(true);
+        setHighlightedIndex(-1);
       } catch {
         setResults([]);
       } finally {
@@ -94,6 +97,32 @@ export default function CustomerSearchAutocomplete({
     if (e.key === 'Escape') {
       setOpen(false);
       inputRef.current?.blur();
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!open && results.length > 0) setOpen(true);
+      setHighlightedIndex((prev) => Math.min(prev + 1, results.length - 1));
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => Math.max(prev - 1, -1));
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      // Sempre bloqueia submit do form quando dropdown está ativo ou tem query
+      e.preventDefault();
+      if (open && results.length > 0) {
+        const idx = highlightedIndex >= 0 ? highlightedIndex : 0;
+        handleSelect(results[idx]);
+      }
+      // Se não há resultados, não navega pro cadastro via Enter —
+      // o link de cadastro é clicável mas Enter não auto-abre.
+      return;
     }
   };
 
@@ -101,6 +130,7 @@ export default function CustomerSearchAutocomplete({
     setQuery('');
     setResults([]);
     setOpen(false);
+    setHighlightedIndex(-1);
     setSelectedLabel(defaultName);
     onClear?.();
     inputRef.current?.focus();
@@ -112,6 +142,7 @@ export default function CustomerSearchAutocomplete({
     setQuery('');
     setResults([]);
     setOpen(false);
+    setHighlightedIndex(-1);
   };
 
   return (
@@ -120,7 +151,7 @@ export default function CustomerSearchAutocomplete({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
           ref={inputRef}
-          type="search"
+          type="text"
           value={query.length > 0 ? query : selectedLabel}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
@@ -153,13 +184,18 @@ export default function CustomerSearchAutocomplete({
           role="listbox"
           className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-md border border-border bg-popover shadow-md"
         >
-          {results.map((c) => (
+          {results.map((c, index) => (
             <button
               key={c.id}
               type="button"
               role="option"
+              aria-selected={index === highlightedIndex}
               onClick={() => handleSelect(c)}
-              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm focus:outline-none ${
+                index === highlightedIndex
+                  ? 'bg-accent text-accent-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
             >
               <div className="flex flex-col min-w-0">
                 <span className="font-medium truncate">{c.text}</span>
@@ -179,11 +215,11 @@ export default function CustomerSearchAutocomplete({
           <div className="px-3 py-2 text-sm text-muted-foreground">
             Nenhum cliente encontrado para "{query}".
           </div>
-          {/* Cadastro inline — leva o nome digitado pra ContactController@create
-              via query param prefill_name. Backend pre-popula first_name na view
-              contact/create.blade.php. Pedido Wagner 2026-05-10. */}
+          {/* Cadastro inline — abre página completa de criação de contato.
+              Usa /contacts/create-page (rota standalone com layout completo)
+              em vez de /contacts/create (fragmento modal sem CSS). */}
           <a
-            href={`/contacts/create?type=customer&prefill_name=${encodeURIComponent(query)}`}
+            href={`/contacts/create-page?type=customer&prefill_name=${encodeURIComponent(query)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex w-full items-center gap-2 border-t border-border bg-primary/5 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10 focus:bg-primary/10 focus:outline-none"
