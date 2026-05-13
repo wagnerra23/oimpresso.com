@@ -22,16 +22,33 @@ CNAEs cobertos: `4520-0/01` (mecânica) · `2212-9/00` (recapagem) · **`4581-4/
 
 ## O que está PRONTO hoje (em produção)
 
-| Feature | Status | Evidência |
-|---|---|---|
-| Modules/OficinaAuto V0 — Veículos + Ordens de Serviço (8 telas) | ✅ LIVE | PR #556, 11/maio |
-| FSM Pipeline canônico (estado de venda + auditoria LGPD) | ✅ LIVE prod biz=1 | ADR 0143, 12/maio · 50 PRs em ~10h |
-| WhatsApp Inbox (multi-atendente + macros + SLA) | ✅ LIVE | 11+ PRs cycle WhatsApp |
-| NFe Brasil (NFC-e + NF-e + manifestação destinatário) | ✅ LIVE | Modules/NfeBrasil |
-| Inter PJ Banking (boletos + PIX + saldo automático) | ✅ canary 7d | RUNBOOK pronto |
-| Financeiro consolidado (AR + AP + boletos) | ✅ LIVE | Modules/Financeiro |
-| IA Jana (memória persistente + brief diário) | ✅ LIVE | OpenAI gpt-4o-mini |
-| Multi-tenant Tier 0 (isolamento por business) | ✅ canon | ADR 0093 |
+### Núcleo geral (todo cliente usa)
+
+| Feature | Status |
+|---|---|
+| **Estoque de produtos** (peças, lonas, materiais) — multi-unidade (kg/un/m), alerta estoque baixo, controle por variação | ✅ LIVE — UltimatePOS legacy |
+| **Venda balcão / POS** (cliente compra material no ato) — gera NFC-e | ✅ LIVE — `/pos/create` |
+| **Vendas faturadas** (cliente compra a prazo) — Grade Avançada com KPIs, filtros, agrupamento | ✅ LIVE — `/sells` |
+| **Boletos automáticos** Inter PJ + PIX Asaas — webhook confirma pagamento | ✅ canary 7d |
+| **Cobrança recorrente** (mensalidade locação caçamba) | ✅ LIVE — Modules/RecurringBilling |
+| **NFe / NFC-e** (manifestação destinatário, inutilização) | ✅ LIVE — Modules/NfeBrasil |
+| **Financeiro consolidado** (AR + AP + saldo Inter PJ + extrato) | ✅ LIVE — Modules/Financeiro |
+| **WhatsApp Inbox** multi-atendente + macros + SLA + auto-link CRM | ✅ LIVE — Modules/Whatsapp |
+| **CRM Contatos** (clientes, fornecedores, histórico) | ✅ LIVE |
+| **IA Jana** (memória persistente + brief diário + cobrança automática inadimplente) | ✅ LIVE — OpenAI gpt-4o-mini |
+| **Multi-tenant Tier 0** (seus dados isolados por business) | ✅ canon — ADR 0093 |
+
+### Modules/OficinaAuto (vertical específica pra você — NOVO desde 11/maio)
+
+| Feature | Status |
+|---|---|
+| Cadastro Caçambas (placa, capacidade m³, status) | ✅ LIVE |
+| Dashboard 4 KPIs (Disponíveis / Locadas / Manutenção / Atrasada) | ✅ LIVE |
+| Ordens de Serviço (locação + manutenção) | ✅ LIVE |
+| FSM Pipeline canônico (Disponível → Locada → Recolhida + ramo Manutenção) | ✅ LIVE prod (ADR 0143) |
+| Drawer com botões dinâmicos (Iniciar locação / Recolher / Concluir manutenção) | ✅ LIVE Wave 7 |
+| Auditoria LGPD (quem mudou o quê e quando) | ✅ LIVE |
+| Link Venda → OS (1 clique cria OS pra cobrar a locação) | ✅ LIVE |
 
 ---
 
