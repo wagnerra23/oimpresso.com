@@ -240,6 +240,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
     Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
+    // US-OFICINA-OS-LINK — Criar OS a partir da venda (modos: auto/single/per_line).
+    Route::post('/sells/{id}/create-os', [SellController::class, 'createOs'])->name('sells.create-os');
     // US-SELL-016 — Bulk actions (Grade Avançada — multiseleção).
     Route::post('/sells/bulk-print', [SellController::class, 'bulkPrint'])->name('sells.bulk-print');
     Route::post('/sells/bulk-export', [SellController::class, 'bulkExport'])->name('sells.bulk-export');
