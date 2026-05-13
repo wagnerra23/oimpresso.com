@@ -23,12 +23,17 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { toast } from 'sonner';
 import { Plus, Printer, Search, LayoutGrid, List as ListIcon } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import CacambaKanbanColumn from './_components/CacambaKanbanColumn';
 import type { CacambaCardData, CacambaStatus } from './_components/CacambaCard';
 import CacambaProducaoSheet from './_components/CacambaProducaoSheet';
+import KanbanDndProvider from './_components/KanbanDndProvider';
+import DragConfirmDialog, {
+  type PendingTransition,
+} from './_components/DragConfirmDialog';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -85,6 +90,144 @@ const formatBRLCompact = (value: number) =>
     maximumFractionDigits: 0,
   }).format(Number(value ?? 0));
 
+// ─── Drag-drop mapping FSM ───────────────────────────────────────────────────
+//
+// Mapping FROM-coluna → TO-coluna → action FSM (cacamba_locacao seeder).
+// Bloqueia transições inválidas com mensagem orientação.
+//
+// Ver memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
+// Ver Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php
+
+type MappingResult =
+  | {
+      kind: 'allowed';
+      actionKey: string;
+      actionLabel: string;
+      isCritical: boolean;
+      title: string;
+      description: string;
+    }
+  | { kind: 'blocked'; reason: string; tone: 'info' | 'warning' }
+  | { kind: 'redirect_sells'; reason: string };
+
+function resolveDragMapping(
+  from: CacambaStatus,
+  to: CacambaStatus,
+  cacamba: CacambaCardData,
+): MappingResult {
+  // Mesma coluna — defensivo (KanbanDndProvider já filtra)
+  if (from === to) {
+    return { kind: 'blocked', reason: 'Mesma coluna', tone: 'info' };
+  }
+
+  const plate = cacamba.plate ?? 'caçamba';
+  const cliente = cacamba.cliente_nome ?? 'cliente';
+
+  // disponivel → locada: precisa criar rental order, não pode inline V1
+  if (from === 'disponivel' && to === 'locada') {
+    return {
+      kind: 'redirect_sells',
+      reason:
+        'Pra alugar caçamba use "Criar OS" no menu Ordens de Serviço — V1 não cria rental inline via drag.',
+    };
+  }
+
+  // locada → aguardando: transição automática (overdue calc), não manual
+  if (from === 'locada' && to === 'aguardando') {
+    return {
+      kind: 'blocked',
+      reason:
+        'Aguardando recolhimento é calculado automático quando passa do prazo — não move manual.',
+      tone: 'info',
+    };
+  }
+
+  // locada → manutencao: enviar_manutencao (action FSM crítica — Vehicle stage)
+  if (from === 'locada' && to === 'manutencao') {
+    return {
+      kind: 'allowed',
+      actionKey: 'enviar_manutencao',
+      actionLabel: 'Enviar pra manutenção',
+      isCritical: true,
+      title: 'Enviar pra manutenção?',
+      description: `Caçamba ${plate} vai sair de locação ativa e ir direto pra oficina. Confirma?`,
+    };
+  }
+
+  // aguardando → recolhida: action 'recolher' (não é coluna visual; recolhida = saiu da grade)
+  // No mapping do Kanban, "aguardando → manutencao" leva a recolher+enviar_manutencao.
+  // "aguardando → disponivel" não existe direto (precisa recolher antes).
+
+  // aguardando → manutencao: enviar_manutencao (em vez de só recolher — caçamba volta com defeito)
+  if (from === 'aguardando' && to === 'manutencao') {
+    return {
+      kind: 'allowed',
+      actionKey: 'enviar_manutencao',
+      actionLabel: 'Recolher + Enviar pra manutenção',
+      isCritical: true,
+      title: 'Caçamba volta direto pra manutenção?',
+      description: `Caçamba ${plate} de ${cliente} vai ser recolhida e enviada pra oficina (sem passar pelo pátio).`,
+    };
+  }
+
+  // aguardando → disponivel: action 'recolher' (devolução normal, sem manutenção)
+  if (from === 'aguardando' && to === 'disponivel') {
+    const dias = cacamba.dias_locacao ?? 0;
+    const valor = cacamba.valor_receber ?? 0;
+    return {
+      kind: 'allowed',
+      actionKey: 'recolher',
+      actionLabel: 'Recolher caçamba',
+      isCritical: false,
+      title: 'Confirmar recolhimento?',
+      description: `Recolher caçamba ${plate} de ${cliente}. Diárias: ${dias} · Valor: ${formatBRLCompact(valor)}.`,
+    };
+  }
+
+  // manutencao → disponivel: voltar_disponivel (action FSM Vehicle)
+  if (from === 'manutencao' && to === 'disponivel') {
+    return {
+      kind: 'allowed',
+      actionKey: 'voltar_disponivel',
+      actionLabel: 'Liberar pra locação',
+      isCritical: false,
+      title: 'Manutenção finalizada?',
+      description: `Caçamba ${plate} volta pro pátio disponível pra próxima locação.`,
+    };
+  }
+
+  // manutencao → pronta: concluir (ServiceOrder manut ativa)
+  if (from === 'manutencao' && to === 'pronta') {
+    return {
+      kind: 'allowed',
+      actionKey: 'concluir',
+      actionLabel: 'Concluir serviço',
+      isCritical: true,
+      title: 'Finalizar manutenção?',
+      description: `Caçamba ${plate} fica pronta pra entregar (concluído oficina).`,
+    };
+  }
+
+  // pronta → disponivel: voltar_disponivel
+  if (from === 'pronta' && to === 'disponivel') {
+    return {
+      kind: 'allowed',
+      actionKey: 'voltar_disponivel',
+      actionLabel: 'Voltar pro pátio',
+      isCritical: false,
+      title: 'Caçamba volta ao pátio?',
+      description: `Caçamba ${plate} fica disponível pra próxima locação.`,
+    };
+  }
+
+  // Tudo o resto — bloqueia
+  return {
+    kind: 'blocked',
+    reason: `Transição não permitida (${from} → ${to})`,
+    tone: 'warning',
+  };
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
@@ -127,6 +270,125 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     // Refresh kanban + kpis após transição FSM
     router.reload({ only: ['kanban', 'kpis'], preserveScroll: true, preserveState: true });
   }, []);
+
+  // ─── Drag-drop state + handlers ─────────────────────────────────────────
+  const [pendingTransition, setPendingTransition] =
+    useState<PendingTransition | null>(null);
+  const [transitionLoading, setTransitionLoading] = useState(false);
+
+  const handleDragMove = useCallback(
+    (
+      cacambaId: number,
+      fromColumn: CacambaStatus,
+      toColumn: CacambaStatus,
+      cacamba: CacambaCardData,
+    ) => {
+      const result = resolveDragMapping(fromColumn, toColumn, cacamba);
+
+      if (result.kind === 'redirect_sells') {
+        toast.info(result.reason, {
+          action: {
+            label: 'Criar OS',
+            onClick: () => router.visit('/oficina-auto/ordens-servico/create'),
+          },
+          duration: 6000,
+        });
+        return;
+      }
+
+      if (result.kind === 'blocked') {
+        if (result.tone === 'warning') {
+          toast.warning(result.reason);
+        } else {
+          toast.info(result.reason);
+        }
+        return;
+      }
+
+      // Allowed — abre dialog de confirmação
+      setPendingTransition({
+        cacambaId,
+        rentalId: cacamba.current_rental_id,
+        fromColumn,
+        toColumn,
+        actionKey: result.actionKey,
+        actionLabel: result.actionLabel,
+        isCritical: result.isCritical,
+        title: result.title,
+        description: result.description,
+        plate: cacamba.plate,
+        cliente_nome: cacamba.cliente_nome,
+        valor_receber: cacamba.valor_receber,
+        dias_locacao: cacamba.dias_locacao,
+      });
+    },
+    [],
+  );
+
+  const handleConfirmTransition = useCallback(async () => {
+    if (!pendingTransition) return;
+
+    // Sem rental_id, não conseguimos disparar action via ServiceOrderFsmActionController
+    // (endpoint canônico precisa do {order} model bind). V2 pode adicionar Vehicle FSM endpoint.
+    if (pendingTransition.rentalId == null) {
+      toast.warning(
+        'Caçamba sem OS ativa — abra o card pra iniciar pipeline FSM antes.',
+      );
+      setPendingTransition(null);
+      return;
+    }
+
+    setTransitionLoading(true);
+    try {
+      const csrf = (
+        document.querySelector(
+          'meta[name="csrf-token"]',
+        ) as HTMLMetaElement | null
+      )?.content;
+
+      const res = await fetch(
+        `/oficina-auto/service-orders/${pendingTransition.rentalId}/fsm/execute`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(csrf ? { 'X-CSRF-TOKEN': csrf } : {}),
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ action_key: pendingTransition.actionKey }),
+        },
+      );
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        toast.error(json?.error ?? `Falha HTTP ${res.status}`);
+        setTransitionLoading(false);
+        return;
+      }
+
+      toast.success(`Transição aplicada: ${pendingTransition.actionLabel}`);
+      setPendingTransition(null);
+      // Refresh kanban + kpis (server-side recalcula colunas)
+      router.reload({
+        only: ['kanban', 'kpis'],
+        preserveScroll: true,
+        preserveState: true,
+      });
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : 'Erro ao executar transição',
+      );
+    } finally {
+      setTransitionLoading(false);
+    }
+  }, [pendingTransition]);
+
+  const handleCancelTransition = useCallback(() => {
+    if (!transitionLoading) setPendingTransition(null);
+  }, [transitionLoading]);
 
   // Memoiza 5 cards arrays — só re-render se conteúdo mudar (lição PR #717)
   const columnsData = useMemo(
@@ -327,19 +589,21 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
           </div>
         </div>
 
-        {/* ─── Kanban 5 colunas ─── */}
+        {/* ─── Kanban 5 colunas (drag-drop entre colunas) ─── */}
         <main className="p-6">
-          <div className="grid grid-cols-5 gap-4">
-            {columnsData.map((col) => (
-              <CacambaKanbanColumn
-                key={col.key}
-                status={col.status}
-                label={col.label}
-                cards={col.cards}
-                onCardClick={handleCardClick}
-              />
-            ))}
-          </div>
+          <KanbanDndProvider onMove={handleDragMove}>
+            <div className="grid grid-cols-5 gap-4">
+              {columnsData.map((col) => (
+                <CacambaKanbanColumn
+                  key={col.key}
+                  status={col.status}
+                  label={col.label}
+                  cards={col.cards}
+                  onCardClick={handleCardClick}
+                />
+              ))}
+            </div>
+          </KanbanDndProvider>
         </main>
       </div>
 
@@ -349,6 +613,14 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         open={openOsId !== null}
         onOpenChange={handleSheetOpenChange}
         onOrderChanged={handleOrderChanged}
+      />
+
+      {/* Dialog de confirmação pra transição FSM via drag-drop */}
+      <DragConfirmDialog
+        pending={pendingTransition}
+        loading={transitionLoading}
+        onConfirm={handleConfirmTransition}
+        onCancel={handleCancelTransition}
       />
     </>
   );

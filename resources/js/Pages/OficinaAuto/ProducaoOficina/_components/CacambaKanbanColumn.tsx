@@ -15,6 +15,7 @@
 // useMemo/useCallback nos handlers descendentes (lição PR #717).
 
 import { memo, useCallback } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import CacambaCard, { type CacambaCardData, type CacambaStatus } from './CacambaCard';
 
 interface Props {
@@ -48,18 +49,32 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick }: Props) {
     [onCardClick]
   );
 
+  // Drop zone — id = status (disponivel/locada/aguardando/manutencao/pronta)
+  const { setNodeRef, isOver } = useDroppable({
+    id: `column-${status}`,
+    data: { columnStatus: status },
+  });
+
   const isAguardando = status === 'aguardando';
+
+  // Visual feedback quando algo está sendo arrastado sobre a coluna
+  const overClasses = isOver
+    ? 'ring-2 ring-blue-400 ring-offset-2 bg-blue-50/40'
+    : '';
 
   return (
     <section
+      ref={setNodeRef}
       className={
-        'rounded-lg border border-t-2 ' +
+        'rounded-lg border border-t-2 transition-all ' +
         topBorderMap[status] + ' ' +
         (isAguardando
           ? 'bg-amber-50/30 border-amber-200'
-          : 'bg-white border-slate-200')
+          : 'bg-white border-slate-200') + ' ' +
+        overClasses
       }
       aria-label={`Coluna ${label}`}
+      aria-dropeffect="move"
     >
       <header className="px-3 py-2.5 border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
