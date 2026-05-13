@@ -98,6 +98,11 @@ class OimpressoMcpServer extends Server
         // (stale_todo >21d, stale_blocked >30d, stale_doing >7d sem commit, stale_review >5d).
         // Expõe o mesmo pipeline do command `mcp:tasks:health-check`.
         Tools\TasksHealthTool::class,
+        // G3 (AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13 §5) — Q&A natural sobre KB.
+        // Hybrid retrieval (memoria-search + decisions-search) + síntese gpt-4o-mini.
+        // Substitui fluxo manual "decisions-search → ler 3 ADRs → sintetizar".
+        // Page 2 (knowledge cluster). Custo ~R$ 0.003/call.
+        Tools\KbAnswerTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
