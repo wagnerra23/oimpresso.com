@@ -19,13 +19,24 @@ type: reference
 
 ## Tier A — 5 clientes COM perfil completo (priorizados)
 
-| Hash | Slug research | Banco FB (alias) | Vertical real | Porte | Receita 12m | Sinal qualif. | biz oimpresso | Status migração | Próximo passo Wagner |
-|---|---|---|---|---|---:|---|---:|---|---|
-| **`Cliente_xx`** (WR2) | [01-wr-sistemas](../research/clientes-legacy-officeimpresso/01-wr-sistemas/01-perfil.md) | `ServidorWR2` (servidor-crm:Banco) | desenvolvimento + WR2 demo | — | n/a (interno) | n/a | **biz=1** | ✅ **migrado parcial 2026-05-11** (4 contacts + 19 accounts via [import-empresas.py](../../scripts/legacy-migration/import-empresas.py) + [import-contas-bancarias.py](../../scripts/legacy-migration/import-contas-bancarias.py)) | Estabilizar como ground truth pra próximos importers |
-| **`Cliente_874398`** (Vargas) | [02-vargas-recapagem](../research/clientes-legacy-officeimpresso/02-vargas-recapagem/01-perfil.md) | `Vargas` (servidor-crm) | recapagem **caçamba de caminhão** | grande (181 vendas/mês) | a confirmar | ✅ saudável + multi-placa (cavalo+reboque) | **a confirmar** | 🟡 **dry-run pendente** — depende US-OFICINA-007 | Confirmar biz_id; spawn agent migracao-officeimpresso |
-| **`Cliente_6928E8`** (Extreme) | [03-extreme-grafica](../research/clientes-legacy-officeimpresso/03-extreme-grafica/01-perfil.md) | `Extreme` (servidor-crm) | gráfica industrial PCP por centro de trabalho | muito grande (705 vendas/mês) | a confirmar | ✅ saudável + PCP industrial | **a confirmar** | ⏸️ **aguardando Modules/ComunicacaoVisual maduro** + sign-off | Validar PCP gap com Wagner antes |
-| **`Cliente_09FEB1`** (Gold) | [04-gold-comvis](../research/clientes-legacy-officeimpresso/04-gold-comvis/01-perfil.md) | `Gold` (servidor-crm) | comunicação visual (m²) | grande (356 vendas/mês) | a confirmar | ✅ saudável + funil produção textual | **a confirmar** | ⏸️ **trilha Gold dormente** (US-NFE-043..048 em backlog) | Reativar quando Modules/ComunicacaoVisual V1 LIVE |
-| **`Cliente_731814`** (Martinho) | [05-martinho-cacambas](../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md) | `MartinhoServidor` (servidor-crm:D:\DadosClientes\MartinhoCacamba\Dados\BANCO.FDB) | locação **caçamba avulsa** (m³) | médio (44.709 vendas total) | R$ 6.28M/ano (76.7% inadimpl.) | ✅ piloto Modules/OficinaAuto #1 | **biz=164** | ✅ **migrado vehicles+SO 2026-05-13 13:31** (91 + 91 rows · placeholder `#EQ{codigo}`) | Discovery doc + próximas US-OFICINA-005/014 |
+> **`VERSAO_BANCO`** coletada 2026-05-13 via `SELECT VALOR FROM CONFIGURACOES WHERE CONFIG='VERSAO_BANCO'` em cada banco. Range na carteira: **v1404 (Martinho)** → **v1474 (Zoom)** = 70 versões de drift · 65 tabelas de diferença (377 → 442). Usar pelo agent [`migracao-firebird-versoes`](../../.claude/agents/migracao-firebird-versoes.md) pra adapter automático.
+
+| Hash | Slug research | Banco FB (alias) | **`VERSAO_BANCO`** | Tabelas FB | Vehicles FB | Vendas FB | Vertical real | biz oimpresso | Status migração | Próximo passo Wagner |
+|---|---|---|---:|---:|---:|---:|---|---:|---|---|
+| **`Cliente_xx`** (WR2 Wagner) | [01-wr-sistemas](../research/clientes-legacy-officeimpresso/01-wr-sistemas/01-perfil.md) | `ServidorWR2` (servidor-crm:Banco) | **1468** | 442 | 102 | 1.866 | dev/demo Wagner | **biz=1** | ✅ **migrado parcial 2026-05-11** (4 contacts + 19 accounts via [import-empresas.py](../../scripts/legacy-migration/import-empresas.py) + [import-contas-bancarias.py](../../scripts/legacy-migration/import-contas-bancarias.py)) | Estabilizar como ground truth pra próximos importers |
+| **`Cliente_874398`** (Vargas) | [02-vargas-recapagem](../research/clientes-legacy-officeimpresso/02-vargas-recapagem/01-perfil.md) | `Vargas` (servidor-crm) | **1468** | 401 | 1.064 | 3.981 | recapagem **caçamba de caminhão** | **a confirmar** | 🟡 **dry-run pendente** — depende US-OFICINA-007 | Confirmar biz_id; spawn agent `migracao-firebird-versoes` |
+| **`Cliente_6928E8`** (Extreme) | [03-extreme-grafica](../research/clientes-legacy-officeimpresso/03-extreme-grafica/01-perfil.md) | `Extreme` (servidor-crm) | **1472** | 401 | 0 | **85.575** | gráfica industrial PCP | **a confirmar** | ⏸️ **aguardando Modules/ComunicacaoVisual maduro** | Validar PCP gap; v1472 = drift baixo vs v1474 canônica |
+| **`Cliente_09FEB1`** (Gold) | [04-gold-comvis](../research/clientes-legacy-officeimpresso/04-gold-comvis/01-perfil.md) | `Gold` (servidor-crm) | **1466** | 416 | 0 | **55.715** | comunicação visual (m²) | **a confirmar** | ⏸️ **trilha Gold dormente** (US-NFE-043..048 backlog) | Reativar quando Modules/ComunicacaoVisual V1 LIVE |
+| **`Cliente_731814`** (Martinho) | [05-martinho-cacambas](../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md) | `MartinhoServidor` (servidor-crm:D:\DadosClientes\MartinhoCacamba\Dados\BANCO.FDB) | **1404** ⚠️ + antigo | 377 | 91 | **46.065** | locação **caçamba avulsa** (m³) | **biz=164** | ✅ **vehicles+SO done 2026-05-13 13:31** (91 + 91 rows · placeholder `#EQ{codigo}`) · 🟡 **vendas+financeiro PENDENTE** | Spawn `migracao-firebird-versoes` p/ terminar Fase 4+5 (adapter forte v1404) |
+
+## Tier B+ — Sampled VERSAO_BANCO (4 candidatos ComVis pendentes)
+
+| Alias | VERSAO_BANCO | Tabelas | Vendas FB | Status candidatura |
+|---|---:|---:|---:|---|
+| Zoom | **1474** ⚠️ + novo (canônica) | 400 | 52.390 | candidato ComVis saudável |
+| Fixar | **1421** | 377 | 4.584 | candidato ComVis saudável |
+| Mhundo | **1429** | 383 | 18.327 | candidato ComVis saudável |
+| Produart | TBD | TBD | TBD | candidato ComVis saudável (pendente sample) |
 
 ## Tier B — Resto registry HKCU (45 bancos sem perfil analisado)
 
