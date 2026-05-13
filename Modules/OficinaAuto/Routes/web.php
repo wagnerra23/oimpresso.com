@@ -3,6 +3,7 @@
 use App\Http\Controllers\ServiceOrderFsmActionController;
 use Illuminate\Support\Facades\Route;
 use Modules\OficinaAuto\Http\Controllers\InstallController;
+use Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
@@ -28,6 +29,15 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('oficina-auto')
     ->group(function () {
+        // ─────────────────────────────────────────────────────────────────────
+        // Produção · Oficina — Kanban estado das caçambas (Martinho 13/maio 2026).
+        // Espelha 1:1 prototipo-ui/prototipos/producao-oficina/F1.html adaptado
+        // pra caçambas (5 colunas: disponivel/locada/aguardando/manutencao/pronta).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('producao-oficina',
+            [ProducaoOficinaController::class, 'index'])
+            ->name('oficinaauto.producao-oficina');
+
         // CRUD Vehicle
         Route::get('veiculos',                     [VehicleController::class, 'index'])->name('oficinaauto.vehicles.index');
         Route::get('veiculos/create',              [VehicleController::class, 'create'])->name('oficinaauto.vehicles.create');

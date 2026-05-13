@@ -19,7 +19,8 @@ return [
     'label' => 'Oficina Auto',
     'icon'  => 'Wrench',
     'items' => [
-        ['label' => 'Caçambas',          'href' => '/oficina-auto/veiculos',       'icon' => 'Truck'],
-        ['label' => 'Ordens de Serviço', 'href' => '/oficina-auto/ordens-servico', 'icon' => 'ClipboardList'],
+        ['label' => 'Produção · Oficina', 'href' => '/oficina-auto/producao-oficina', 'icon' => 'KanbanSquare'],
+        ['label' => 'Caçambas',           'href' => '/oficina-auto/veiculos',         'icon' => 'Truck'],
+        ['label' => 'Ordens de Serviço',  'href' => '/oficina-auto/ordens-servico',   'icon' => 'ClipboardList'],
     ],
 ];
