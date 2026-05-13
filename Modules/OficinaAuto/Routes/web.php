@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ServiceOrderFsmActionController;
 use Illuminate\Support\Facades\Route;
 use Modules\OficinaAuto\Http\Controllers\InstallController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
@@ -44,4 +45,21 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('ordens-servico/{order}/edit',   [ServiceOrderController::class, 'edit'])->name('oficinaauto.orders.edit');
         Route::put('ordens-servico/{order}',        [ServiceOrderController::class, 'update'])->name('oficinaauto.orders.update');
         Route::delete('ordens-servico/{order}',     [ServiceOrderController::class, 'destroy'])->name('oficinaauto.orders.destroy');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Wave 7-A — FSM action endpoints (espelha SaleFsmActionController).
+        // Frontend Wave 7-B (FsmActionPanel.tsx ServiceOrder variant) consome.
+        // ADR 0143 (FSM Pipeline LIVE prod biz=1) + ADR 0137 (OficinaAuto vertical).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('service-orders/{order}/fsm/actions',
+            [ServiceOrderFsmActionController::class, 'actions'])
+            ->name('oficinaauto.service_orders.fsm.actions');
+
+        Route::post('service-orders/{order}/fsm/execute',
+            [ServiceOrderFsmActionController::class, 'execute'])
+            ->name('oficinaauto.service_orders.fsm.execute');
+
+        Route::post('service-orders/{order}/fsm/start-pipeline',
+            [ServiceOrderFsmActionController::class, 'startPipeline'])
+            ->name('oficinaauto.service_orders.fsm.start-pipeline');
     });
