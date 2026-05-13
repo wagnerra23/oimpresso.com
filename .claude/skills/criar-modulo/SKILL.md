@@ -195,6 +195,34 @@ ServiceProvider.registerTranslations() carrega `__DIR__ . '/../Resources/lang'` 
 5. ❌ Queries DB com colunas inventadas (`frontmatter_json`, `mcp_alertas.category`, `mcp_skill_approvals.status`)
 6. ❌ Translations só em `pt-BR/` — pattern canonical é `pt/` + `en/`
 7. ❌ `moduleSystemKey()` em kebab-case (`'oficina-auto'`) — system table grava chave errada, `isModuleInstalled()` sempre false, sidebar nunca monta item. Catalogado 2026-05-13 (OficinaAuto + ComunicacaoVisual em prod).
+8. ❌ **Módulo mergeado mas nunca ATIVADO em runtime** — `modules_statuses.json` sem entrada → nWidart marca `[Disabled]` → `RouteServiceProvider` + `DataController` + `InstallController` nunca executam → bugs latentes invisíveis em CI. Habilitar tempos depois dispara cascata de fatais. Catalogado 2026-05-13: Auditoria merged em PR #474 (semanas antes), só apareceu em prod 4 bugs em sequência ao habilitar (PRs #750→#751→#752→#756→#760).
+
+## ⚠️ Pegadinha #8 — ativar e fumigar ANTES de merge
+
+CI verde NÃO valida módulo Disabled. O Laravel-modules nWidart só registra providers/rotas/menu de módulos `[Enabled]`. Se você cria um módulo sem entrada em `modules_statuses.json` (ou com `"<Nome>": false`), TUDO no `Modules/<Nome>/Providers/`, `DataController`, `InstallController`, `Routes/web.php` permanece **código morto** até alguém ativar — e bugs latentes (typo de namespace, método abstract não implementado, API errada de MenuBuilder etc) passam imunes.
+
+**Antídoto antes do merge:**
+
+```bash
+# 1) Garantir entrada em modules_statuses.json
+grep -E "\"<Nome>\"\s*:\s*true" modules_statuses.json || echo "FALTA"
+
+# 2) Validar boot real do módulo (catch fatal sem precisar de Pest)
+php artisan module:list | grep <Nome>           # deve mostrar [Enabled]
+php artisan route:list --path=<prefix>/install  # 3 rotas
+php artisan route:list --path=<prefix>          # rotas do módulo
+
+# 3) Smoke runtime mínimo: render sidebar (executa DataController::modifyAdminMenu)
+php artisan tinker --execute="
+  Auth::loginUsingId(1);
+  app('Illuminate\Routing\Router')->dispatch(
+    Illuminate\Http\Request::create('/home', 'GET')
+  );
+  echo 'OK';
+"
+```
+
+Se algum passo lança fatal, fix ANTES do merge — economiza N PRs de hotfix em cascata.
 
 **Antídoto:** **PRIMEIRO comando ao iniciar criação de módulo: invocar skill `criar-modulo` via tool `Skill`.** Antes de escrever 1 linha de código novo em `Modules/<Nome>/`.
 
