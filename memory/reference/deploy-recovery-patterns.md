@@ -1,0 +1,204 @@
+---
+name: Deploy Hostinger + recovery patterns (composer install, cache stale, orphan tables, quick-sync fallback)
+description: Receitas operacionais pós-deploy Hostinger. composer install obrigatório se composer.json/lock muda (quick-sync.yml NÃO faz). Tela branca Inertia pós optimize:clear = cache stale do bundle (hard reload resolve). Recovery tabela órfã (DDL MySQL não-transacional). Quick-sync fallback SSH manual.
+type: reference
+---
+# Deploy + recovery patterns (Hostinger)
+
+Consolidação de receitas operacionais que se entrelaçam em sessões de deploy. Validadas várias vezes em 2026-04-25 → 2026-05-10.
+
+## 1. composer install OBRIGATÓRIO pós-push em main (se composer.json/lock muda)
+
+**Quando rodar:**
+- Push em main com diff em `composer.json` ou `composer.lock`
+- Após `composer install`/`require`/`update` local que altera lockfile
+- NÃO precisa se só mudou PHP/JS sem deps novas
+
+**Sintoma se esquecer (caso real 2026-04-25, Inertia v2→v3):**
+- `composer.json`: `"inertiajs/inertia-laravel": "^3.0"`
+- `composer.lock`: `v3.0.6`
+- Bundle JS: `@inertiajs/react ^3.0.3` (vai pelo build Vite)
+- **`vendor/inertiajs/inertia-laravel/`: AINDA v2.0.24** (composer install nunca rodou)
+
+Mismatch backend manda payload v2, JS espera v3 → **tela branca Inertia** → console: `TypeError: Cannot read properties of null (reading 'component')` em `app-XXXX.js:138`.
+
+**Fix correto (SSH Hostinger):**
+```bash
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
+  "cd domains/oimpresso.com/public_html && \
+   composer install --optimize-autoloader --no-interaction && \
+   php artisan optimize:clear"
+```
+
+**NUNCA usar `--no-dev`** em produção neste projeto:
+- ServiceProvider/Module usa `Faker\Generator` que está em `require-dev`
+- Sem Faker, `php artisan package:discover` falha → HTTP 500
+- Caiu em 2026-04-25; resolvido restaurando dev deps
+- TODO: identificar quem usa Faker em prod e mover pra `require`
+
+**Smoke validation:**
+```bash
+ssh ... "cd ... && composer show inertiajs/inertia-laravel | grep versions"
+# Esperado: 'versions : * v3.0.6'
+```
+
+**`quick-sync.yml` NÃO faz composer install** — TODO: adicionar step `composer install --optimize-autoloader` após git pull + validar diff em composer.lock + notificar Wagner se falhar.
+
+## 2. Quick-sync deploy fallback SSH manual
+
+Workflow `quick-sync.yml` (auto on push em main → Hostinger) ocasionalmente falha em **"Setup SSH"** (key/timeout flaky).
+
+**Sintoma:**
+- PR mergeado em main
+- Workflow run aparece em github.com/wagnerra23/oimpresso.com/actions
+- Status = `failure` (não `success`)
+- File em prod ainda na versão anterior
+
+**Verificar antes de testar:**
+```bash
+gh api 'repos/wagnerra23/oimpresso.com/actions/workflows/quick-sync.yml/runs?per_page=3' \
+  --jq '.workflow_runs[] | {id, status, conclusion, head_sha}'
+```
+
+**Fallback SSH manual (se conclusion=failure pro head_sha do merge):**
+```bash
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
+  'cd ~/domains/oimpresso.com/public_html && \
+   git fetch origin main && \
+   git reset --hard origin/main && \
+   php artisan optimize:clear'
+```
+
+Se mudança em frontend (`.tsx`/`.ts`/`.css`) — também:
+```bash
+ssh ... 'cd ~/domains/oimpresso.com/public_html && \
+  source ~/.nvm/nvm.sh && nvm use 24 && \
+  npm run build:inertia'
+```
+
+(quick-sync.yml normalmente roda esse build step também — só rodar manual se workflow falhou)
+
+**`php artisan optimize:clear`** limpa view cache + config cache + bootstrap. Sem isso, classes PHP cacheadas (opcache implícito) servem versão antiga, especialmente após mudanças em traits/classes que afetam composition.
+
+Validado 2026-05-10: PRs #440 e #456 falharam workflow, fallback resolveu 2x.
+
+## 3. Tela branca Inertia pós optimize:clear = cache stale do bundle
+
+**Não é regressão real** — tab Chrome com bundle JS antigo trava após `optimize:clear`.
+
+**Causa:** service worker / cache de browser tem bundle JS Inertia velho que aponta pra hashes Vite (`build-inertia/assets/app-XXXXX.js`) que **não existem mais** após `optimize:clear` rebuilder o cache. Bundle tenta carregar import dinâmico → 404 silencioso → render trava.
+
+**Sintomas:**
+- Tela branca (`document.body.innerHTML` vazio ou minimal)
+- `document.title` = URL bruta (sem fallback friendly)
+- Console **sem erros JS** (carga falhou silencioso)
+- `curl https://oimpresso.com/home` retorna HTML normal **com referências aos novos hashes** (servidor OK)
+- Renderer Chrome eventualmente trava (timeout JS)
+
+**Reproduce:**
+1. Abrir `/home` ou tela MWART (`/nfe-brasil/manifestacao`) com Chrome
+2. Rodar `php artisan optimize:clear` em prod
+3. F5 na mesma tab → tela branca
+
+**Fix imediato:** **tab nova** ou **hard reload** (`Ctrl+Shift+R` Windows, `Cmd+Shift+R` Mac). Service worker novo carrega + bundle hashes corretos.
+
+**NÃO é problema de servidor — checklist diagnóstico:**
+- `composer install` rodou OK
+- `vendor/autoload.php` regenerado
+- `public/build-inertia/manifest.json` válido (368KB, 153 Pages em 2026-05-10)
+- `bootstrap/cache/services.php` regenerado
+- `laravel.log` sem erro Inertia/Vite/render
+- curl direto retorna HTML normal
+
+```bash
+curl -s -o /dev/null -w "HTTP %{http_code} | size=%{size_download}\n" https://oimpresso.com/home
+# Esperado: 302 → /login (sem cookie) ou 200 + size > 10KB (com cookie sessão)
+```
+
+**Prevenção:**
+- Após `optimize:clear` em prod, comunicar Wagner pra hard reload
+- Idealmente, deploy script faz `optimize:clear` ANTES de regenerar Vite manifest
+
+## 4. Recovery tabela órfã pós-migrate falho (DDL MySQL não-transacional)
+
+DDL em MySQL **não é transacional**. Quando `php artisan migrate` falha em meio a uma migration que faz `Schema::create(...)` seguido de `$table->foreign(...)`:
+
+1. `CREATE TABLE` executa → tabela existe em prod
+2. `ALTER TABLE ADD FOREIGN KEY` falha → exception
+3. Laravel **não consegue rollback** (DDL não transacional)
+4. Migration **NÃO é registrada** em `migrations` table (Laravel só insere após sucesso completo)
+
+Resultado: tabela órfã (existe + sem FK + sem registro em migrations).
+
+**Sintomas:** próximo `migrate --force`:
+```
+SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'comvis_materiais' already exists
+```
+Migrate aborta na 1ª migration falha, bloqueando todas as próximas (sequencial).
+
+**Recovery (com 0 rows — seguro):**
+
+**Exige autorização explícita Wagner** (DROP TABLE é destrutivo per CLAUDE.md proibições).
+
+```sql
+DROP TABLE comvis_materiais;
+```
+```bash
+ssh ... 'cd ~/domains/oimpresso.com/public_html && php artisan migrate --force'
+```
+
+Migration corrigida re-cria tabela com schema certo + FK + registra em migrations. Idempotente.
+
+**Recovery (com rows > 0):** NÃO fazer DROP. Opções:
+1. Adicionar `if (!Schema::hasColumn(...))` na migration corrigida pra ser idempotente
+2. INSERT manual em `migrations` table → Laravel pula migration (drift permanente — ruim)
+3. Backup → DROP → re-migrate → re-INSERT rows (ideal mas trabalhoso)
+
+**Cenário inverso — tabela some mas migrations table tem entry `Ran`:**
+
+2026-05-10 tarde: `nfe_fiscal_rules` + `nfe_fiscal_rule_tax_rate_links` SUMIRAM do MySQL local Laragon mas migrations table tinha entry. Causa: tests destrutivos antigos com `Schema::dropIfExists` em afterEach derrubaram em runs passados.
+
+```php
+// fix-stale-migrations-log.php — 1-shot pra recuperar drift
+DB::table('migrations')
+    ->whereIn('migration', [
+        '2026_05_06_010000_create_nfe_fiscal_rules_table',
+        '2026_05_06_020000_create_nfe_fiscal_rule_tax_rate_links_table',
+    ])
+    ->delete();
+// php artisan migrate
+```
+
+**Prevenção:**
+- Sempre rodar migrations primeiro em DB MySQL local (Laragon `oimpresso` com FK strict) antes de push pra main. SQLite local não enforce FK type matching
+- **Não usar `Schema::dropIfExists` destrutivo em afterEach de tests** quando schema real existe em MySQL — usa pattern dual-mode (ver tests-pest-canon.md)
+- FK pra business.id sempre `unsignedInteger` (NÃO BigInteger) — ver ultimatepos-integracao.md
+
+**Histórico:**
+- 2026-05-10 manhã: `comvis_materiais` órfã após PR #461 (BigInteger errado). DROP autorizado Wagner. DROP + re-migrate aplicou 5 migrations limpas (4 comvis_* + ENUM nfe_emissoes que estava bloqueada)
+- 2026-05-10 tarde: cenário inverso (tabelas NfeBrasil sumiram, migrations entry presente)
+
+## 5. Ordem canônica deploy completo (com mudança composer.json)
+
+```bash
+# 1. Workflow auto (push → main → quick-sync.yml)
+git push origin main
+
+# 2. Verificar workflow status
+gh api 'repos/wagnerra23/oimpresso.com/actions/workflows/quick-sync.yml/runs?per_page=1' \
+  --jq '.workflow_runs[0] | {status, conclusion, head_sha}'
+
+# 3. Se composer.json/lock mudou — SSH manual (workflow não faz):
+ssh ... 'cd ~/domains/oimpresso.com/public_html && \
+  composer install --optimize-autoloader --no-interaction'
+
+# 4. Migrate (se schema mudou):
+ssh ... 'cd ~/domains/oimpresso.com/public_html && php artisan migrate --force'
+
+# 5. Limpar caches:
+ssh ... 'cd ~/domains/oimpresso.com/public_html && php artisan optimize:clear'
+
+# 6. Avisar Wagner pra hard reload Chrome (Ctrl+Shift+R) — bundle stale local
+```
+
+Refs SSH: hostinger.md (IP, key, repo path).
