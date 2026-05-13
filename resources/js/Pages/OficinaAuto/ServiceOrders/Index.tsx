@@ -6,7 +6,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Wrench, Plus, Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -15,6 +15,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import ServiceOrderStatusBadge from './_components/ServiceOrderStatusBadge';
+import ServiceOrderSheet from './_components/ServiceOrderSheet';
 import { cn } from '@/Lib/utils';
 
 // ──────── Types ────────
@@ -141,6 +142,16 @@ function isOverdueClient(o: ServiceOrder, flags: SchemaFlags): boolean {
 // ──────── Component ────────
 export default function ServiceOrdersIndex({ orders, filters, kpis, schemaFlags }: Props) {
   const [q, setQ] = useState(filters.q ?? '');
+
+  // Drawer ServiceOrder state — clicar row abre OS no drawer (US-OFICINA-OS-DRAWER).
+  const [openOsId, setOpenOsId] = useState<number | null>(null);
+  const handleSheetOpenChange = useCallback((open: boolean) => {
+    if (!open) setOpenOsId(null);
+  }, []);
+  const handleOrderChanged = useCallback(() => {
+    // Refresh listagem após transição FSM (status/atrasada/valor mudam)
+    router.reload({ only: ['orders', 'kpis'], preserveScroll: true, preserveState: true });
+  }, []);
 
   // Live search com debounce 300ms
   useEffect(() => {
@@ -340,7 +351,7 @@ export default function ServiceOrdersIndex({ orders, filters, kpis, schemaFlags 
                           'border-b last:border-0 transition-colors cursor-pointer',
                           overdue ? 'bg-rose-50/50 hover:bg-rose-50' : 'hover:bg-muted/30',
                         )}
-                        onClick={() => router.visit(`/oficina-auto/ordens-servico/${o.id}`)}
+                        onClick={() => setOpenOsId(o.id)}
                       >
                         <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                           <input type="checkbox" disabled aria-label={`Selecionar OS ${o.id}`} />
@@ -477,6 +488,14 @@ export default function ServiceOrdersIndex({ orders, filters, kpis, schemaFlags 
           </div>
         )}
       </div>
+
+      {/* Drawer ServiceOrder — abre ao clicar em qualquer linha da listagem */}
+      <ServiceOrderSheet
+        serviceOrderId={openOsId}
+        open={openOsId !== null}
+        onOpenChange={handleSheetOpenChange}
+        onOrderChanged={handleOrderChanged}
+      />
     </AppShellV2>
   );
 }
