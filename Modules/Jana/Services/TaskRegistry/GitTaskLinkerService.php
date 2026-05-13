@@ -32,10 +32,17 @@ use Modules\Jana\Entities\Mcp\McpTaskEvent;
  */
 class GitTaskLinkerService
 {
-    /** Pattern: (refs|fixes|closes|resolves)[:]?\s+([A-Z]+)-(\d+)
-     *  Aceita "Closes COPI-1", "Refs: COPI-2", "fixes COPI-42", "resolves: INFRA-7".
-     *  Colon opcional é convenção GitHub padrão (Closes:, Fixes:, Refs:). */
-    public const REF_PATTERN = '/(refs|fixes|closes|resolves|fix|close|resolve):?\s+([A-Z]{2,8})-(\d+)/i';
+    /** Pattern: aceita 2 convenções de ref a tasks em commit messages:
+     *   1. VERB explícito (GitHub padrão): "Closes COPI-1", "Refs: COPI-2", "fixes COPI-42",
+     *      "resolves: INFRA-7", "closes US-NFE-061" — prefix `US-` é opcional.
+     *   2. BRACKET parentético/colchete (convenção real oimpresso ~99% dos commits):
+     *      "(US-WA-042)", "[US-NFE-061]", "(COPI-42)" — sem verb, inferido pelo contexto
+     *      (branch=main → closes/done; branch≠main → refs).
+     *
+     *  Captura: $1=verb (null quando bracket), $2=KEY (ex: WA, NFE, COPI), $3=NUM.
+     *  Prefix `US-` é stripado opcional (formato canônico oimpresso é `US-<KEY>-<NUM>`).
+     *  PR numbers como `(#707)` NÃO casam (exigem letras+hífen+num). */
+    public const REF_PATTERN = '/(?:(refs|fixes|closes|resolves|fix|close|resolve):?\s+|[\(\[])(?:US-)?([A-Z]{2,8})-(\d+)(?:[\)\]])?/i';
 
     /** Pattern em branch name: <KEY>-<N>-anything */
     public const BRANCH_PATTERN = '/^([A-Z]{2,8})-(\d+)/i';
@@ -272,11 +279,14 @@ class GitTaskLinkerService
         preg_match_all(self::REF_PATTERN, $msg, $matches, PREG_SET_ORDER);
         $refs = [];
         foreach ($matches as $m) {
-            $verb = strtolower($m[1]);
+            // $m[1] vazio quando match veio do padrão bracket parentético/colchete
+            // (convenção real oimpresso "(US-WA-042)") — verb inferido pelo contexto em inferAction()
+            $verb = strtolower($m[1] ?? '');
             $verb = match ($verb) {
                 'fix' => 'fixes',
                 'close' => 'closes',
                 'resolve' => 'resolves',
+                '' => 'bracket', // padrão parentético/colchete
                 default => $verb,
             };
             $refs[] = [
@@ -288,9 +298,18 @@ class GitTaskLinkerService
         return $refs;
     }
 
+    /**
+     * Decide action canônica a partir do verb extraído.
+     *
+     * - `fixes`/`closes`/`resolves` (verb explícito) → 'fixes' (override forte do dev)
+     * - `bracket` (convenção real oimpresso "(US-XXX)") → 'fixes' também,
+     *   delegando pro caller decidir status final via branch (main=done, feature=review).
+     *   Razão: ~99% dos commits oimpresso usam parentético; sem isso, auto-close NUNCA dispara.
+     * - `refs` puro (verb explícito leve) → 'refs' (apenas linka, sem mudar status)
+     */
     protected function inferAction(string $verb, bool $isMain): string
     {
-        if (in_array($verb, ['fixes', 'closes', 'resolves'], true)) {
+        if (in_array($verb, ['fixes', 'closes', 'resolves', 'bracket'], true)) {
             return 'fixes';
         }
         return 'refs';
