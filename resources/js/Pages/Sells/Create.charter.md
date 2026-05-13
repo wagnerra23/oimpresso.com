@@ -37,6 +37,7 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 - Atalho Cmd+Enter / Ctrl+Enter submete (US-SELL-007)
 - Atalho Esc faz blur do input ativo — autocompletes têm Esc próprio (US-SELL-007)
 - Auto-save draft localStorage `oimpresso.sells.create.draft.{biz}.{user}` debounced 500ms + recover ao montar com confirm + TTL 24h + clear no onSuccess (US-SELL-007 — Larissa atende telefone no meio)
+- `<FieldError>` inline por campo (`role="alert"`) + auto-open `<details>` "Mais opções" quando erro está em campo colapsado (US-SELL-010 — gap UX detectado pelo design-arte 2026-05-13)
 
 ---
 
