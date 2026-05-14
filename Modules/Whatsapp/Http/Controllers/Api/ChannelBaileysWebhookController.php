@@ -168,21 +168,26 @@ class ChannelBaileysWebhookController extends Controller
             return response()->json(['ok' => true, 'note' => 'history_chunk_empty'], 200);
         }
 
-        // `dispatchAfterResponse` (Laravel built-in) — Job roda APÓS HTTP
-        // response ser enviado, no mesmo PHP-FPM worker. NÃO precisa queue
-        // worker rodando (Hostinger shared hosting sem supervisor). Daemon
-        // recebe 202 IMEDIATO e libera worker pro próximo webhook.
+        // Arquitetura Wagner 2026-05-14 02h: "recebe tudo de maneira rapida
+        // no redis ou onde, depois sincroniza com o banco, sempre guarda
+        // para não perder".
         //
-        // Trade-off vs queue:worker: se PHP-FPM worker for terminado entre
-        // response e shutdown handler, msgs do chunk podem perder. Risco
-        // baixo na prática (FPM worker reuse muito comum). Mais robusto
-        // que sync + bloqueante.
+        // Job vai pra tabela `jobs` (persistente, atômico INSERT) — daemon
+        // recebe 202 IMEDIATO. Webhook handler termina em ~5ms (só 1 INSERT
+        // na queue, sem processar nenhuma msg). PHP-FPM worker liberado pro
+        // próximo webhook.
         //
-        // Pra mover pra queue:worker proper depois:
-        //   - php artisan queue:work --queue=whatsapp --stop-when-empty
-        //   - schedule no Kernel.php every minute
-        //   - trocar dispatchAfterResponse() por dispatch()
-        \Modules\Whatsapp\Jobs\PersistHistorySyncBatchJob::dispatchAfterResponse(
+        // Worker separado processa fila em background:
+        //   cron * * * * * php artisan queue:work database --queue=whatsapp-history
+        //   --max-time=55 --stop-when-empty
+        //
+        // Garantia "não perder":
+        // - INSERT na tabela `jobs` é atômico (MySQL ACID)
+        // - Se Job falhar processando, 3 tries + backoff exponencial 10s/30s/90s
+        // - Após 3 falhas, vai pra failed_jobs (não perde, só fica visível)
+        // - Idempotente via provider_message_id UNIQUE no MessagePersister —
+        //   re-run safe se WhatsApp mandar mesma msg 2x (re-pareamento)
+        \Modules\Whatsapp\Jobs\PersistHistorySyncBatchJob::dispatch(
             businessId: $channel->business_id,
             channelId: $channel->id,
             syncType: $syncType,
