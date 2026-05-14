@@ -380,6 +380,28 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker da fila `whatsapp-history` (Wagner request 2026-05-14 02h):
+        // "recebe tudo de maneira rapida... depois sincroniza com o banco,
+        // sempre guarda para não perder". Cron everyMinute pra processar
+        // PersistHistorySyncBatchJob da tabela `jobs` (queue=database).
+        //
+        // --max-time=55 sai antes do próximo tick. --stop-when-empty para
+        // quando fila vazia (não fica 55s ocioso). Pior caso: 1min latência
+        // pra primeira msg histórica aparecer no Inbox após pareamento.
+        //
+        // Hostinger shared hosting sem supervisor — cron é o workaround
+        // padrão pra rodar queue worker.
+        $schedule->command('queue:work database --queue=whatsapp-history --max-time=55 --stop-when-empty --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping(1)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work whatsapp-history FALHOU — msgs históricas podem acumular em jobs table'
+                );
+            });
+
         // Drift sentinel daemon CT 100 (semanal segunda 09:00 BRT) — alerta se
         // source do daemon prod ficou desatualizado vs main local. Catalogado
         // 2026-05-13: ~15 commits drift descoberto na unha durante incidente.
