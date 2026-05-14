@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jana — Dashboard MARTINHO CAÇAMBAS LTDA · 14/maio/2026</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+  .card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03); }
+  .card-shadow:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06); }
+  .chat-bubble { animation: fadein 0.3s ease-in; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+  .narrative-fade { background: linear-gradient(135deg, #f0f9ff 0%, #ecfeff 100%); }
+  .pulse-dot { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1;} 50% { opacity: 0.4;} }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<div class="max-w-[1280px] mx-auto px-6 py-5">
+
+  <!-- HEADER -->
+  <header class="flex items-center justify-between mb-5">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xl shadow-md">
+        🤖
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Jana <span class="text-slate-400 font-normal">·</span> Analista IA</h1>
+        <p class="text-sm text-slate-500">MARTINHO CAÇAMBAS LTDA · biz=164 · v1404 legacy migrado</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="flex items-center gap-1.5 text-sm text-emerald-600">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+        Atualizado 09:42
+      </span>
+      <button class="text-sm text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-100">
+        ⚙️ Configurar
+      </button>
+      <button class="text-sm bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700">
+        📤 Exportar
+      </button>
+    </div>
+  </header>
+
+  <!-- BRIEF DIÁRIO (narrativa LLM) -->
+  <section class="narrative-fade rounded-2xl p-6 mb-5 border border-sky-100 card-shadow">
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">📰</span>
+        <h2 class="font-bold text-slate-900">Brief diário · 14/maio/2026</h2>
+        <span class="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">IA</span>
+      </div>
+      <button class="text-xs text-slate-500 hover:text-slate-700">▶ Ouvir áudio</button>
+    </div>
+    <div class="text-slate-700 leading-relaxed space-y-2.5">
+      <p>
+        <strong>Bom dia, Wagner.</strong> Maio até hoje somou
+        <strong class="text-slate-900">R$ 47.150</strong>
+        (vs R$ 145k em maio/25 — <span class="text-rose-600 font-medium">-68%</span> · investigar
+        sazonalidade ou causa estrutural).
+      </p>
+      <p>
+        <strong class="text-rose-600">R$ 4.535.636</strong> em 4.255 títulos vencidos
+        (excluído lixo de saldos virtuais e parcelas agrupadas).
+        <strong>Top 20 clientes concentram R$ 2.142k (~47%)</strong> da inadimplência.
+      </p>
+      <p>
+        <span class="font-medium">🎯 Ação sugerida HOJE:</span>
+        8 clientes "ouro" (LTV >R$ 50k) estão >90d sem comprar — score reativação
+        alto. Posso disparar régua WhatsApp HITL?
+      </p>
+      <p class="text-sm text-slate-600 italic pt-1">
+        Anomalia detectada: ticket médio caiu de R$ 2.430 para R$ 1.890 (-22%) — 4
+        meses consecutivos. Margem mantida (preço por m³ estável) → indica mix de
+        produto mudando (mais caçambas pequenas/curtas).
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-sky-200">
+      <button class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700">
+        📲 Disparar régua 8 clientes
+      </button>
+      <button class="text-xs bg-white text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">
+        📊 Ver top 20 devedores
+      </button>
+      <button class="text-xs bg-white text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">
+        🔍 Investigar queda ticket médio
+      </button>
+      <button class="text-xs bg-white text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">
+        💡 Por que -68% MoM?
+      </button>
+    </div>
+  </section>
+
+  <!-- 4 KPIs TOPO -->
+  <section class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-xl p-4 card-shadow border border-slate-100">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs uppercase tracking-wide text-slate-500 font-medium">Receita mês</span>
+        <span class="text-lg">💰</span>
+      </div>
+      <div class="text-2xl font-bold text-slate-900">R$ 47k</div>
+      <div class="text-xs text-rose-600 mt-1 flex items-center gap-1">
+        <span>↓</span> -68% vs mai/25
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 card-shadow border border-slate-100">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs uppercase tracking-wide text-slate-500 font-medium">A receber vencido</span>
+        <span class="text-lg">🚨</span>
+      </div>
+      <div class="text-2xl font-bold text-rose-600">R$ 4,5M</div>
+      <div class="text-xs text-slate-600 mt-1">4.255 títulos · 76% inadimplência</div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 card-shadow border border-slate-100">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs uppercase tracking-wide text-slate-500 font-medium">Ticket médio</span>
+        <span class="text-lg">📈</span>
+      </div>
+      <div class="text-2xl font-bold text-slate-900">R$ 1.890</div>
+      <div class="text-xs text-amber-600 mt-1 flex items-center gap-1">
+        <span>↓</span> -22% 4m
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 card-shadow border border-slate-100">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs uppercase tracking-wide text-slate-500 font-medium">Frota utilização</span>
+        <span class="text-lg">🚛</span>
+      </div>
+      <div class="text-2xl font-bold text-slate-900">33%</div>
+      <div class="text-xs text-slate-600 mt-1">30/91 · 8 paradas >7d</div>
+    </div>
+  </section>
+
+  <!-- 5 RELATÓRIOS (cards drilldown) -->
+  <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">📊 Análises principais</h2>
+  <section class="grid grid-cols-3 gap-4 mb-5">
+
+    <!-- Card 1: Inadimplência -->
+    <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 hover:border-rose-300 cursor-pointer transition-colors">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-rose-100 flex items-center justify-center text-lg">🚨</div>
+          <div>
+            <h3 class="font-semibold text-slate-900">Inadimplência</h3>
+            <p class="text-xs text-slate-500">Top 20 devedores</p>
+          </div>
+        </div>
+        <span class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-medium">CRÍTICO</span>
+      </div>
+      <div class="text-2xl font-bold text-rose-600 mb-2">R$ 4.535.636</div>
+      <!-- Mini chart buckets atraso -->
+      <div class="space-y-1.5 mb-3">
+        <div class="flex items-center text-xs">
+          <span class="w-16 text-slate-500">0-30d</span>
+          <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden mx-2">
+            <div class="bg-amber-400 h-full" style="width: 25%"></div>
+          </div>
+          <span class="w-20 text-right text-slate-700">R$ 1.1M</span>
+        </div>
+        <div class="flex items-center text-xs">
+          <span class="w-16 text-slate-500">30-90d</span>
+          <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden mx-2">
+            <div class="bg-orange-400 h-full" style="width: 18%"></div>
+          </div>
+          <span class="w-20 text-right text-slate-700">R$ 818k</span>
+        </div>
+        <div class="flex items-center text-xs">
+          <span class="w-16 text-slate-500">90-365d</span>
+          <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden mx-2">
+            <div class="bg-rose-500 h-full" style="width: 40%"></div>
+          </div>
+          <span class="w-20 text-right text-slate-700">R$ 1.8M</span>
+        </div>
+        <div class="flex items-center text-xs">
+          <span class="w-16 text-slate-500">>365d</span>
+          <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden mx-2">
+            <div class="bg-slate-700 h-full" style="width: 17%"></div>
+          </div>
+          <span class="w-20 text-right text-slate-700">R$ 770k</span>
+        </div>
+      </div>
+      <div class="text-xs text-slate-600 pt-2 border-t border-slate-100">
+        Top 1: <strong class="text-slate-900">VARGAS LEANDRO</strong> R$ 385k (246 parcelas)
+      </div>
+    </div>
+
+    <!-- Card 2: Faturamento -->
+    <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 hover:border-emerald-300 cursor-pointer transition-colors">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-lg">📈</div>
+          <div>
+            <h3 class="font-semibold text-slate-900">Faturamento</h3>
+            <p class="text-xs text-slate-500">Curva 24 meses</p>
+          </div>
+        </div>
+        <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">QUEDA</span>
+      </div>
+      <div class="text-2xl font-bold text-slate-900 mb-2">R$ 107M</div>
+      <!-- Mini chart linha SVG -->
+      <svg viewBox="0 0 240 60" class="w-full h-14 mb-2">
+        <polyline fill="none" stroke="#10b981" stroke-width="2"
+          points="0,40 20,35 40,42 60,30 80,28 100,22 120,18 140,15 160,20 180,30 200,42 220,52 240,55"/>
+        <polyline fill="url(#g1)" stroke="none"
+          points="0,40 20,35 40,42 60,30 80,28 100,22 120,18 140,15 160,20 180,30 200,42 220,52 240,55 240,60 0,60"/>
+        <defs>
+          <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="flex justify-between text-xs text-slate-500 mb-2">
+        <span>mai/24</span>
+        <span>mai/26</span>
+      </div>
+      <div class="text-xs text-slate-600 pt-2 border-t border-slate-100">
+        Melhor mês: <strong class="text-slate-900">nov/24</strong> R$ 1.19M · Pico sazonal: out-fev
+      </div>
+    </div>
+
+    <!-- Card 3: Concentração -->
+    <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 hover:border-blue-300 cursor-pointer transition-colors">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-lg">🎯</div>
+          <div>
+            <h3 class="font-semibold text-slate-900">Concentração</h3>
+            <p class="text-xs text-slate-500">Top clientes Pareto</p>
+          </div>
+        </div>
+        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">OK</span>
+      </div>
+      <div class="text-2xl font-bold text-slate-900 mb-3">8.856 clientes</div>
+      <!-- Pareto bars -->
+      <div class="space-y-1.5 mb-3">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-500">Top 10</span>
+          <div class="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden mx-2">
+            <div class="bg-blue-500 h-full" style="width: 24%"></div>
+          </div>
+          <span class="font-medium text-slate-900 w-12 text-right">24%</span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-500">Top 50</span>
+          <div class="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden mx-2">
+            <div class="bg-blue-500 h-full" style="width: 55%"></div>
+          </div>
+          <span class="font-medium text-slate-900 w-12 text-right">55%</span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-500">Top 100</span>
+          <div class="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden mx-2">
+            <div class="bg-blue-500 h-full" style="width: 73%"></div>
+          </div>
+          <span class="font-medium text-slate-900 w-12 text-right">73%</span>
+        </div>
+      </div>
+      <div class="text-xs text-slate-600 pt-2 border-t border-slate-100">
+        4.500 one-shot (~51%) · saudvel caçamba avulsa
+      </div>
+    </div>
+
+    <!-- Card 4: Churn -->
+    <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 hover:border-violet-300 cursor-pointer transition-colors">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-lg">⏰</div>
+          <div>
+            <h3 class="font-semibold text-slate-900">Churn ouro</h3>
+            <p class="text-xs text-slate-500">LTV alto inativos</p>
+          </div>
+        </div>
+        <span class="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-medium">REATIVAR</span>
+      </div>
+      <div class="text-2xl font-bold text-slate-900 mb-2">8 clientes</div>
+      <div class="space-y-1.5 mb-3">
+        <div class="flex items-center justify-between p-1.5 bg-slate-50 rounded text-xs">
+          <span class="font-medium text-slate-800">CONSTRUFERRO IND.</span>
+          <span class="text-slate-600">LTV R$ 87k · 124d</span>
+        </div>
+        <div class="flex items-center justify-between p-1.5 bg-slate-50 rounded text-xs">
+          <span class="font-medium text-slate-800">EXTREMA SOLDAS</span>
+          <span class="text-slate-600">LTV R$ 71k · 98d</span>
+        </div>
+        <div class="flex items-center justify-between p-1.5 bg-slate-50 rounded text-xs">
+          <span class="font-medium text-slate-800">CAPITAL CARGAS</span>
+          <span class="text-slate-600">LTV R$ 62k · 112d</span>
+        </div>
+      </div>
+      <div class="text-xs text-slate-600 pt-2 border-t border-slate-100">
+        Cohort 2024: retenção 35% (target 60%) · drift alto
+      </div>
+    </div>
+
+    <!-- Card 5: Frota Caçambas -->
+    <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 hover:border-orange-300 cursor-pointer transition-colors">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-lg">🚛</div>
+          <div>
+            <h3 class="font-semibold text-slate-900">Frota</h3>
+            <p class="text-xs text-slate-500">91 caçambas avulsas</p>
+          </div>
+        </div>
+        <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">PARADAS</span>
+      </div>
+      <!-- Donut -->
+      <div class="flex items-center gap-3 mb-3">
+        <svg viewBox="0 0 36 36" class="w-20 h-20">
+          <circle cx="18" cy="18" r="16" fill="none" stroke="#f1f5f9" stroke-width="4"/>
+          <circle cx="18" cy="18" r="16" fill="none" stroke="#3b82f6" stroke-width="4"
+            stroke-dasharray="33 100" stroke-dashoffset="0" transform="rotate(-90 18 18)"/>
+          <circle cx="18" cy="18" r="16" fill="none" stroke="#10b981" stroke-width="4"
+            stroke-dasharray="67 100" stroke-dashoffset="-33" transform="rotate(-90 18 18)"/>
+          <text x="18" y="20" text-anchor="middle" class="text-xs font-bold fill-slate-900">33%</text>
+        </svg>
+        <div class="text-xs space-y-1 flex-1">
+          <div class="flex items-center justify-between"><span class="text-slate-600">🔵 Locadas</span><strong class="text-slate-900">30</strong></div>
+          <div class="flex items-center justify-between"><span class="text-slate-600">🟢 Disponíveis</span><strong class="text-slate-900">61</strong></div>
+          <div class="flex items-center justify-between"><span class="text-rose-600">🟥 Paradas >7d</span><strong class="text-rose-700">8</strong></div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-600 pt-2 border-t border-slate-100">
+        3 overdue HOJE · target util 70%
+      </div>
+    </div>
+
+    <!-- Card 6: Cheques previsão (bonus) -->
+    <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-5 card-shadow border border-slate-200 hover:border-slate-400 cursor-pointer transition-colors">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-lg">📋</div>
+          <div>
+            <h3 class="font-semibold text-slate-900">Cheques previsão</h3>
+            <p class="text-xs text-slate-500">Na mão / a depositar</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-2xl font-bold text-slate-900 mb-2">4.421 cheques</div>
+      <div class="text-xs text-slate-600 space-y-1 mb-3">
+        <div>📥 Total circulou histórico: <strong>R$ 7.022.176</strong></div>
+        <div>🟢 Quitados: 4.420 (99,9%)</div>
+        <div>🟡 Ativos hoje: 1 (R$ 8 — teste)</div>
+      </div>
+      <div class="text-xs text-slate-500 pt-2 border-t border-slate-200 italic">
+        Atalho HITL: Jana lembra Larissa qual dia depositar cada cheque
+      </div>
+    </div>
+
+  </section>
+
+  <!-- AÇÕES SUGERIDAS -->
+  <section class="bg-white rounded-2xl p-5 mb-5 card-shadow border border-slate-100">
+    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">💡 Ações que Jana sugere</h2>
+    <div class="space-y-2.5">
+      <div class="flex items-center justify-between p-3 bg-rose-50 border border-rose-100 rounded-lg">
+        <div class="flex items-center gap-3">
+          <span class="text-lg">📲</span>
+          <div>
+            <div class="font-medium text-slate-900 text-sm">Régua WhatsApp · 8 clientes >90d sem contato</div>
+            <div class="text-xs text-slate-600">Potencial recuperação: R$ 287k · HITL aprovação cada msg</div>
+          </div>
+        </div>
+        <button class="text-xs bg-rose-600 text-white px-3 py-1.5 rounded-lg hover:bg-rose-700">Disparar</button>
+      </div>
+
+      <div class="flex items-center justify-between p-3 bg-violet-50 border border-violet-100 rounded-lg">
+        <div class="flex items-center gap-3">
+          <span class="text-lg">💌</span>
+          <div>
+            <div class="font-medium text-slate-900 text-sm">Reativação · 8 clientes "ouro" inativos</div>
+            <div class="text-xs text-slate-600">LTV combinado R$ 612k · oferta retorno personalizada</div>
+          </div>
+        </div>
+        <button class="text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg hover:bg-violet-700">Preparar</button>
+      </div>
+
+      <div class="flex items-center justify-between p-3 bg-orange-50 border border-orange-100 rounded-lg">
+        <div class="flex items-center gap-3">
+          <span class="text-lg">🚛</span>
+          <div>
+            <div class="font-medium text-slate-900 text-sm">Outbound · 8 caçambas paradas há >7d</div>
+            <div class="text-xs text-slate-600">Top 3 últimos clientes mesma região · ligar HOJE</div>
+          </div>
+        </div>
+        <button class="text-xs bg-orange-600 text-white px-3 py-1.5 rounded-lg hover:bg-orange-700">Listar</button>
+      </div>
+
+      <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg">
+        <div class="flex items-center gap-3">
+          <span class="text-lg">🗑️</span>
+          <div>
+            <div class="font-medium text-slate-900 text-sm">Cleanup · 2.470 títulos write-off candidatos</div>
+            <div class="text-xs text-slate-600">R$ 770k incobráveis &gt;365d · liberar dashboard</div>
+          </div>
+        </div>
+        <button class="text-xs bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700">Revisar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHAT JANA -->
+  <section class="bg-white rounded-2xl p-5 card-shadow border border-slate-100">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">💬 Converse com Jana</h2>
+      <span class="text-xs text-slate-400">Chat com contexto do seu negócio</span>
+    </div>
+
+    <div class="space-y-3 mb-4 max-h-80 overflow-y-auto">
+      <!-- User msg -->
+      <div class="chat-bubble flex justify-end">
+        <div class="bg-violet-600 text-white px-4 py-2 rounded-2xl rounded-br-md max-w-md text-sm">
+          Quais os top 5 devedores Martinho agora?
+        </div>
+      </div>
+
+      <!-- Jana response -->
+      <div class="chat-bubble flex justify-start">
+        <div class="bg-slate-100 text-slate-800 px-4 py-3 rounded-2xl rounded-bl-md max-w-2xl text-sm space-y-2">
+          <p><strong>Top 5 devedores ativos (sem agrupados duplicados):</strong></p>
+          <ol class="list-decimal list-inside space-y-1 text-xs">
+            <li><strong>VARGAS LEANDRO COM. VAREJISTA</strong> — R$ 385.195 (229 parcelas)</li>
+            <li><strong>TORK COMERCIO DE PECAS AUTO</strong> — R$ 145.511 (167 parcelas)</li>
+            <li><strong>AMS SOLDAS E MAQUINAS</strong> — R$ 133.386 (71 parcelas)</li>
+            <li><strong>BUSSOLO E PRUDENCIO</strong> — R$ 118.970 (43 parcelas)</li>
+            <li><strong>FAN COM. DE PEÇAS E IMPLEMENTOS</strong> — R$ 117.063 (166 parcelas)</li>
+          </ol>
+          <p class="text-xs italic text-slate-600 pt-1">
+            Total top 5: R$ 901k (~20% inadimplência). VARGAS sozinho concentra 8,5% — risco alto, mas é cliente recorrente (229 parcelas) então tem relacionamento.
+          </p>
+          <div class="flex gap-2 pt-2">
+            <button class="text-xs bg-emerald-600 text-white px-2 py-1 rounded">📲 Régua VARGAS</button>
+            <button class="text-xs bg-slate-300 text-slate-700 px-2 py-1 rounded">📞 Histórico contatos</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User -->
+      <div class="chat-bubble flex justify-end">
+        <div class="bg-violet-600 text-white px-4 py-2 rounded-2xl rounded-br-md max-w-md text-sm">
+          Por que receita caiu 68% em maio?
+        </div>
+      </div>
+
+      <!-- Jana -->
+      <div class="chat-bubble flex justify-start">
+        <div class="bg-slate-100 text-slate-800 px-4 py-3 rounded-2xl rounded-bl-md max-w-2xl text-sm space-y-2">
+          <p>Investigando 3 hipóteses:</p>
+          <ul class="text-xs space-y-1.5">
+            <li>🔍 <strong>Sazonalidade obras</strong>: maio historicamente é -22% vs nov-fev (pico chuva/feriados). Mas -68% é anormal.</li>
+            <li>📉 <strong>Mix de produto</strong>: ticket médio caiu de R$ 2.430 → R$ 1.890 (-22%) consistente. Indica mais caçambas pequenas/curtas (3m³) vs grandes (5m³+7m³).</li>
+            <li>⚠️ <strong>Maio só até dia 14</strong>: faturamento parcial. Projeção full-month: R$ 95k (-35% vs mai/25, ainda anormal).</li>
+          </ul>
+          <p class="text-xs text-slate-600 pt-1">
+            <strong>Próximo passo sugerido:</strong> verificar 2 obras grandes ativas em mai/25 que não tem em mai/26. Quer que eu liste?
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input chat -->
+    <div class="flex gap-2 items-center border-t border-slate-100 pt-3">
+      <input type="text" placeholder="Pergunte algo sobre o Martinho..."
+        class="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-violet-400" />
+      <button class="bg-violet-600 text-white px-4 py-2.5 rounded-xl text-sm hover:bg-violet-700">
+        Enviar
+      </button>
+    </div>
+
+    <!-- Sugestões pré-prontas -->
+    <div class="flex flex-wrap gap-2 mt-3">
+      <button class="text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-full">🤔 Quem deve mais?</button>
+      <button class="text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-full">📊 Vendi ontem?</button>
+      <button class="text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-full">📉 Onde estou perdendo?</button>
+      <button class="text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-full">🎯 Quais ações HOJE?</button>
+      <button class="text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-full">🚛 Caçambas paradas</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="text-center text-xs text-slate-400 mt-6">
+    <p>Jana · Inteligência IA para PME brasileira · oimpresso.com</p>
+    <p class="mt-1">Dados de 14/maio/2026 09:42 BRT · próxima atualização em 60min</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
