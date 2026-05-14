@@ -125,7 +125,26 @@ Resultado: áudio/foto/texto mandado pelo WA Web/celular do mesmo número cai na
 - **P1**: Zero anti-ban patterns. Pacote `baileys-antiban` disponível (jitter Gaussian 1.5-4s + typing presence + 7d warmup chip novo) — PR #699 deployado
 - **P1**: LID resolution implementado custom (PRs #696 + #698)
 - **P1**: ffmpeg server-side ausente pra converter webm→opus/mp4 antes do `sendMessage()` (WhatsApp prefere mp4)
-- **P2**: ~~Observabilidade — daemon `/metrics` Prometheus existe mas sem dashboard Grafana ou alertas configurados~~ **RESOLVIDO 2026-05-14** (Onda 1+2 gap analysis whatsapp-arch-arte): dashboard `infra/grafana/dashboards/whatsapp-baileys.json` 8 paineis + 10 alert rules `infra/prometheus/alerts/whatsapp.yml` + OTel traceparent propagation + webhook backpressure 429. Detalhes em [whatsapp-baileys-messages-canonical.md](whatsapp-baileys-messages-canonical.md)
+- **P2**: ~~Observabilidade — daemon `/metrics` Prometheus existe mas sem dashboard Grafana ou alertas configurados~~ **RESOLVIDO 2026-05-14** (Onda 1+2 gap analysis whatsapp-arch-arte): dashboard `infra/grafana/dashboards/whatsapp-baileys.json` 8 paineis + 10 alert rules `infra/prometheus/alerts/whatsapp.yml` + OTel traceparent propagation + webhook backpressure 429. Detalhes em [whatsapp-baileys-messages-canonical.md](whatsapp-baileys-messages-canonical.md). **OTel ponta-a-ponta:** Jaeger all-in-one rodando em `/opt/observability/jaeger/`, daemon emite spans via `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318` — veja [observability-jaeger-ct100.md](observability-jaeger-ct100.md)
+
+## OTel + Jaeger (2026-05-14 — US-WA-083 fechado)
+
+Daemon agora emite spans OTel pra Jaeger CT 100:
+
+- **Env vars no compose** (`/opt/whatsapp-baileys/build/docker-compose.yml`):
+  - `OTEL_ENABLED=true`
+  - `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318`
+  - `OTEL_SERVICE_NAME=whatsapp-baileys-daemon`
+- **Network:** daemon precisa estar em `observability` network (junto com `default`/`docker-host_default`)
+- **Validação rápida:** `curl http://127.0.0.1:16686/api/services` no CT 100 deve listar `whatsapp-baileys-daemon`
+- **Verificação `/health`:** retorna `"otel": true` quando SDK iniciou OK (vs `false` quando env ausente)
+
+**Pegadinhas:**
+- `OTEL_ENABLED=true` SEM `OTEL_EXPORTER_OTLP_ENDPOINT` → SDK retorna early, spans NoOp (all-zeros traceparent)
+- Após `docker compose up -d` daemon pode perder a network `observability` se ela não estiver declarada explicitamente no top-level `networks:` da compose-yml
+- Para Jaeger receber e2e: daemon precisa ter código com `propagation.inject` (post-Onda 2, source `5e0c90e1` ou later)
+
+Doc dedicado: [observability-jaeger-ct100.md](observability-jaeger-ct100.md).
 
 ## Subagent dedicado
 
