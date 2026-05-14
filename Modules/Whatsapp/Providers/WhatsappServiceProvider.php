@@ -11,6 +11,8 @@ use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
+use Modules\Whatsapp\Console\Commands\ChannelResetCommand;
+use Modules\Whatsapp\Console\Commands\ChannelsReconcilerCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Console\Commands\ImportHistoryCommand;
 use Modules\Whatsapp\Console\Commands\LidBackfillCommand;
@@ -85,6 +87,8 @@ class WhatsappServiceProvider extends ServiceProvider
                 LidBackfillCommand::class,              // US-WA-093 P1 — backfill LID→phone de messages.payload histórico
                 SlaScanCommand::class,                  // CYCLE-07 PR-2 — scan SLA policies + alertas escalation
                 MetricsAggregateCommand::class,         // US-WA-021/041 — snapshot diário métricas (CYCLE-07 PR-3)
+                ChannelsReconcilerCommand::class,       // 2026-05-13 — auto-fix drift channels↔daemon (cron 5min)
+                ChannelResetCommand::class,             // 2026-05-13 — reset 1-comando channel travado
             ]);
         }
 

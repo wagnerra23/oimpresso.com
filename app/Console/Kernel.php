@@ -363,6 +363,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Reconciler channels Baileys (5 em 5 min) — sincroniza DB.status vs daemon.state
+        // e auto-corrige drift (banned/disconnected sem aviso, instance órfã, etc).
+        // Wagner pediu 2026-05-13: "como resolve isso vai sempre você? automatize" —
+        // este cron remove necessidade de intervenção manual no caso comum.
+        // withoutOverlapping(5) protege contra round lento (20 canais * 500ms = ~10s).
+        // Diferente de `whatsapp:health-probe-channels` (daily, full check com retry connect)
+        // — reconcile é leve, só GET status no daemon + UPDATE drift detectado.
+        $schedule->command('whatsapp:channels-reconcile')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(5)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:channels-reconcile FALHOU — drift DB↔daemon pode acumular'
+                );
+            });
+
         // Guardião 6 camadas anti-mídia-perdida — Camada 4 (retry hourly).
         // Rede de proteção pra mídia órfã (status=pending|downloading, media_url=null,
         // attempts<5, criada nos últimos 7d). Dispatcha DownloadMediaJob pra cada.
