@@ -33,6 +33,7 @@
 ## WhatsApp / Atendimento
 
 - [whatsapp-daemon-ct100.md](whatsapp-daemon-ct100.md) — daemon Baileys 6.7.18 + Fastify TS; endpoints; deploy; anti-QR-fest (PRs #685+#686); Multi-Device unified inbox
+- [whatsapp-baileys-messages-canonical.md](whatsapp-baileys-messages-canonical.md) — POR QUÊ Baileys + protocolo retardado + inbox queue pattern + webhook security stack (HMAC+nonce+backpressure+OTel) + anti-ban patterns + 8 gotchas CT 100 deploy
 - [whatsapp-permissions-spatie.md](whatsapp-permissions-spatie.md) — bug histórico (whatsapp.* nunca registradas em prod) + comando `whatsapp:register-permissions` (PR #665)
 - [atendimento-inbox-state-2026-05-12.md](atendimento-inbox-state-2026-05-12.md) — estado funcional pós-CYCLE-05 (o que faz/parcial/falta)
 - [meta-whatsapp-tech-provider.md](meta-whatsapp-tech-provider.md) — Tech Provider Meta direto + Embedded Signup pra escalar 4000+ clientes (Agrosys deal)
