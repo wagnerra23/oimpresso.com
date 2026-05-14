@@ -129,15 +129,23 @@ class ChannelBaileysWebhookController extends Controller
     }
 
     /**
-     * Processa batch histórico messaging-history.set do daemon.
+     * Processa batch histórico messaging-history.set do daemon — ASYNC.
      *
-     * Não persiste chats/contacts ainda (vai virar conversations no
-     * MessagePersister automaticamente quando 1ª msg do chat for processada).
-     * Foco aqui é msgs — origem do gap reportado por Wagner 2026-05-13.
+     * V2 fix 2026-05-13 madrugada (incident burst webhook 404/429):
+     * antes processava 50-100 msgs SÍNCRONO inline, com
+     * `QUEUE_CONNECTION=sync` saturava PHP-FPM worker pool em ~30s →
+     * próximos webhooks recebiam 404 do Apache → daemon retry esgotava
+     * → msgs históricas perdidas (10k confirmado em prod).
      *
-     * Idempotência: MessagePersister::persist() já é idempotente via
-     * `provider_message_id` UNIQUE — re-run do mesmo batch é no-op.
+     * Agora: dispatcha `PersistHistorySyncBatchJob` na queue (workers
+     * separados) e RESPONDE 202 IMEDIATO ao daemon. Daemon não vê 404
+     * em burst, mensagens persistem em background async.
      *
+     * Idempotência: MessagePersister via `provider_message_id` UNIQUE —
+     * mesma msg vinda 2x = no-op (importante porque WhatsApp re-pareamento
+     * manda histórico FULL de novo, não incremental).
+     *
+     * @see Modules/Whatsapp/Jobs/PersistHistorySyncBatchJob.php
      * @see Modules/Whatsapp/Services/Webhook/MessagePersister.php
      */
     protected function handleHistorySync(Channel $channel, array $data): JsonResponse
@@ -160,44 +168,36 @@ class ChannelBaileysWebhookController extends Controller
             return response()->json(['ok' => true, 'note' => 'history_chunk_empty'], 200);
         }
 
-        $persisted = 0;
-        $skipped = 0;
-        $errors = 0;
-
-        foreach ($messages as $rawMsg) {
-            try {
-                // Reusa handleMessage existente — cada msg do batch passa pelo
-                // mesmo pipeline de inbound message (extrai phone, body, mídia,
-                // mapeia LID → PN, etc). Idempotente via provider_message_id.
-                $msgData = [
-                    'key' => $rawMsg['key'] ?? [],
-                    'message' => $rawMsg['message'] ?? [],
-                    'messageTimestamp' => $rawMsg['messageTimestamp'] ?? null,
-                    'pushName' => $rawMsg['pushName'] ?? null,
-                    'is_history_sync' => true, // sinal pro persister marcar origem
-                ];
-                $resp = $this->handleMessage($channel, $msgData);
-                if ($resp->getStatusCode() === 200) {
-                    $persisted++;
-                } else {
-                    $skipped++;
-                }
-            } catch (\Throwable $e) {
-                $errors++;
-                Log::warning('[channel.baileys.history-sync] erro persistindo msg', [
-                    'channel_id' => $channel->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        // `dispatchAfterResponse` (Laravel built-in) — Job roda APÓS HTTP
+        // response ser enviado, no mesmo PHP-FPM worker. NÃO precisa queue
+        // worker rodando (Hostinger shared hosting sem supervisor). Daemon
+        // recebe 202 IMEDIATO e libera worker pro próximo webhook.
+        //
+        // Trade-off vs queue:worker: se PHP-FPM worker for terminado entre
+        // response e shutdown handler, msgs do chunk podem perder. Risco
+        // baixo na prática (FPM worker reuse muito comum). Mais robusto
+        // que sync + bloqueante.
+        //
+        // Pra mover pra queue:worker proper depois:
+        //   - php artisan queue:work --queue=whatsapp --stop-when-empty
+        //   - schedule no Kernel.php every minute
+        //   - trocar dispatchAfterResponse() por dispatch()
+        \Modules\Whatsapp\Jobs\PersistHistorySyncBatchJob::dispatchAfterResponse(
+            businessId: $channel->business_id,
+            channelId: $channel->id,
+            syncType: $syncType,
+            chunkIndex: $chunkIndex,
+            chunkTotal: $chunkTotal,
+            messages: $messages,
+        );
 
         return response()->json([
             'ok' => true,
-            'note' => 'history_chunk_persisted',
-            'persisted' => $persisted,
-            'skipped' => $skipped,
-            'errors' => $errors,
-        ], 200);
+            'note' => 'history_chunk_queued',
+            'messages_count' => count($messages),
+            'chunk_index' => $chunkIndex,
+            'chunk_total' => $chunkTotal,
+        ], 202);
     }
 
     /**
