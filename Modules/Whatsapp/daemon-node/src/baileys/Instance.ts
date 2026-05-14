@@ -174,9 +174,22 @@ export class Instance extends EventEmitter {
       version,
       auth: auth.state,
       logger: this.logger.child({ scope: 'baileys', instance_id: this.meta.instance_id }) as never,
-      browser: Browsers.appropriate('Chrome'),
+      // Browsers.appropriate('Desktop') vs 'Chrome': Desktop emula app dedicado
+      // e WhatsApp servidor entrega MAIS histórico (~90 dias retroativo) no
+      // first pairing. Chrome (web) só entrega histórico parcial. Combina com
+      // syncFullHistory:true logo abaixo pra fechar o gap reportado 2026-05-13
+      // (mensagens não vieram após pareamento).
+      browser: Browsers.appropriate('Desktop'),
       printQRInTerminal: false,
-      syncFullHistory: false,
+      // syncFullHistory + shouldSyncHistoryMessage canônico (Issue Baileys
+      // #11951 2026): syncFullHistory:false SEM callback DESABILITA todo
+      // history sync (LID mapping + group participation + msgs). A combinação
+      // abaixo ativa sync completo no pairing inicial.
+      //
+      // shouldSyncHistoryMessage retorna true → todas as histórico aceitas.
+      // Pode ser refinado per-tenant via filtro de timestamp se ficar pesado.
+      syncFullHistory: true,
+      shouldSyncHistoryMessage: () => true,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: false,
       connectTimeoutMs: this.env.INSTANCE_CONNECT_TIMEOUT_MS,
@@ -205,6 +218,63 @@ export class Instance extends EventEmitter {
           business_uuid: this.meta.business_uuid,
           event: 'message_status',
           data: { key: u.key, update: u.update },
+        });
+      }
+    });
+
+    // Handler messaging-history.set — recebe batch de histórico do WhatsApp
+    // durante pairing inicial OU on-demand fetchHistory (US-WA-080).
+    //
+    // Wagner reportou 2026-05-13: "mensagens não vêm após pareamento". Causa
+    // raiz era syncFullHistory:false sem callback (Issue Baileys #11951). Agora
+    // com syncFullHistory:true + shouldSyncHistoryMessage:() => true, este
+    // handler captura o batch e dispara webhook batch pro Hostinger persistir.
+    //
+    // syncType 1 = INITIAL_BOOTSTRAP (pairing fresco, primeiro batch)
+    // syncType 2 = FULL (histórico completo)
+    // syncType 3 = INITIAL_STATUS (status de uso recente)
+    // syncType 4 = RECENT (msgs recentes)
+    // syncType 5 = PUSH_NAME (atualizações de display name)
+    // syncType 6 = ON_DEMAND (resposta de fetchMessageHistory)
+    //
+    // Anti-overflow: batch grande (1000+ msgs no FULL) é enviado em chunks
+    // de 100 pra evitar timeout webhook (10s) + body limit (2MB). O caller
+    // Hostinger persiste idempotente via MessagePersister.
+    sock.ev.on('messaging-history.set', async (payload) => {
+      const { chats = [], contacts = [], messages = [], syncType } = payload as {
+        chats?: unknown[];
+        contacts?: unknown[];
+        messages?: unknown[];
+        syncType?: number;
+      };
+
+      this.logger.info(
+        {
+          chats_count: chats.length,
+          contacts_count: contacts.length,
+          messages_count: messages.length,
+          sync_type: syncType,
+        },
+        'messaging-history.set received',
+      );
+
+      // Chunk de messages pra evitar webhook payload > 2MB (default body limit)
+      const CHUNK = 100;
+      for (let i = 0; i < messages.length; i += CHUNK) {
+        const slice = messages.slice(i, i + CHUNK);
+        void this.webhook.dispatch({
+          instance_id: this.meta.instance_id,
+          business_uuid: this.meta.business_uuid,
+          event: 'history.sync',
+          data: {
+            sync_type: syncType,
+            chunk_index: Math.floor(i / CHUNK),
+            chunk_total: Math.ceil(messages.length / CHUNK),
+            messages: slice,
+            // chats + contacts só no primeiro chunk (não-repetir 10x se 1000 msgs)
+            chats: i === 0 ? chats : undefined,
+            contacts: i === 0 ? contacts : undefined,
+          },
         });
       }
     });
