@@ -101,6 +101,12 @@ class PersistHistorySyncBatchJob implements ShouldQueue
             return;
         }
 
+        // Métrica OTel lightweight bridge — chunk começou a ser processado.
+        // Loki agrega via `metric_name="whatsapp_history_chunk_processed"`.
+        // Pareado com o failed log abaixo (mutuamente exclusivos).
+        $startedAtMs = (int) (microtime(true) * 1000);
+        $attempt = $this->attempts() > 0 ? $this->attempts() : 1;
+
         $persisted = 0;
         $skipped = 0;
         $errors = 0;
@@ -140,9 +146,18 @@ class PersistHistorySyncBatchJob implements ShouldQueue
             }
         }
 
-        Log::info('[whatsapp.history-sync-job] chunk processado', [
-            'channel_id' => $this->channelId,
+        $durationMs = (int) (microtime(true) * 1000) - $startedAtMs;
+
+        // ─── Métrica OTel lightweight bridge: chunk_processed ──────────────
+        // US-WA-085. Loki agrega via logQL pra Grafana counter.
+        // Pattern Hostinger (sem PECL opentelemetry): log estruturado com
+        // chave única `metric_name` + labels Prometheus-compatíveis.
+        // Tier 0 multi-tenant: business_id SEMPRE presente.
+        // PII redact: zero phone/E.164 — só counts e IDs internos.
+        Log::channel('single')->info('[whatsapp.history-sync-job] chunk processado', [
+            'metric_name' => 'whatsapp_history_chunk_processed',
             'business_id' => $this->businessId,
+            'channel_id' => $this->channelId,
             'sync_type' => $this->syncType,
             'chunk_index' => $this->chunkIndex,
             'chunk_total' => $this->chunkTotal,
@@ -150,17 +165,30 @@ class PersistHistorySyncBatchJob implements ShouldQueue
             'persisted' => $persisted,
             'skipped' => $skipped,
             'errors' => $errors,
+            'attempt' => $attempt,
+            'duration_ms' => $durationMs,
         ]);
     }
 
     public function failed(\Throwable $exception): void
     {
-        Log::error('[whatsapp.history-sync-job] todas tentativas falharam — chunk perdido', [
-            'channel_id' => $this->channelId,
+        // ─── Métrica OTel lightweight bridge: chunk_failed ─────────────────
+        // US-WA-085. Disparado quando todas as 3 tries esgotaram. Loki agrega
+        // via logQL `metric_name="whatsapp_history_chunk_failed"` → contador
+        // Grafana + alerta Prometheus (rate > 5% / 15min).
+        // Tier 0 multi-tenant: business_id SEMPRE presente.
+        // PII redact: error.getMessage() pode conter JID — em prod assumimos
+        // que mensagem técnica MySQL/PHP não vaza phone cliente; se vazar,
+        // PiiRedactor downstream no Loki processor cuida.
+        Log::channel('single')->error('[whatsapp.history-sync-job] todas tentativas falharam — chunk perdido', [
+            'metric_name' => 'whatsapp_history_chunk_failed',
             'business_id' => $this->businessId,
+            'channel_id' => $this->channelId,
             'sync_type' => $this->syncType,
             'chunk_index' => $this->chunkIndex,
+            'chunk_total' => $this->chunkTotal,
             'messages_count' => count($this->messages),
+            'attempt' => $this->tries, // exausto, sempre = max tries
             'error' => $exception->getMessage(),
         ]);
     }
