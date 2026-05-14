@@ -137,6 +137,27 @@ Retorna early sem inicializar SDK → spans são NoOp → `traceparent` injetado
 
 **Fix:** ajustar pra última estável (`1.60` funcionou 2026-05-14).
 
+### A10. `DELETE /instances/{id}` NÃO limpa MySQL auth state (post PR #701 `useMySQLAuthState`)
+**Sintoma:** purgar instance banned via daemon API + UI "Conectar" → daemon faz `logging in` (em vez de gerar QR) → ban silencioso → "QR não aparece".
+
+**Why:** PR #701 introduziu `useMySQLAuthState` — credentials persistem em `whatsapp_baileys_auth_state` no MySQL Hostinger (~44 keys/instance). DELETE no daemon API limpa só socket em memória + FS sessions, **não toca MySQL**.
+
+**Fix correto:** purgar AMBOS daemon API + MySQL. Procedimento completo em [`whatsapp-daemon-ct100.md`](../reference/whatsapp-daemon-ct100.md) § "Purgar session SEM restart daemon".
+
+### A11. Reportar timestamps DB ao Wagner SEM converter pra tz business
+**Sintoma:** Claude relata "last_message_at: 08:33 UTC ≈ 3h atrás" quando na verdade é 08:33 BRT (agora mesmo).
+
+**Why:** oimpresso armazena timestamps em `America/Sao_Paulo` (não UTC) — `config('app.timezone') = America/Sao_Paulo`, e `business.time_zone = America/Sao_Paulo` por tenant. DB column JÁ é BRT. Claude ao ler raw via SQL/tinker assume UTC sem checar.
+
+**Fix (Claude side):** sempre que reportar timestamp DB:
+- Usar `Carbon::format('Y-m-d H:i:s T')` que inclui tz no string
+- OU `$dt->diffForHumans()` que é tz-aware
+- OU ler `business.time_zone` antes e converter explicitamente
+
+**Princípio multi-tenant Wagner 2026-05-14:** TODA hora exibida deve vir do tz do business, sem exceção (UI, reports, API, e o chat do próprio Claude).
+
+**Bandeira amarela arquitetural:** armazenar em `America/Sao_Paulo` em vez de UTC quebra quando precisar internacionalizar (cliente Argentina/Portugal). Fix futuro: DB sempre UTC + cast Eloquent com tz business no render.
+
 ## Comandos canônicos consolidados
 
 ### Trigger deploy.yml seguro
