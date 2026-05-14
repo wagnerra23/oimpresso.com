@@ -1,0 +1,183 @@
+groups:
+  - name: whatsapp-baileys
+    interval: 30s
+    rules:
+      # ─── Tier 0 ───────────────────────────────────────────────────────
+      # Zombie socket — state=connected mas last_seen estagnado.
+      # Detecta caso 2026-05-13 (ch-88b13697 99min estagnado) ANTES do
+      # Docker policy disparar restart silencioso.
+      - alert: WhatsappZombiesDetected
+        expr: increase(whatsapp_baileys_zombies_detected_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "Zombie socket Baileys detectado ({{ $labels.instance_id }})"
+          description: |
+            Healthcheck detectou socket Baileys com state=connected mas last_seen
+            estagnado > threshold. Tentativas de envio vão falhar silenciosamente.
+            Runbook: `.claude/agents/whatsapp-doctor.md` § Zombie recovery.
+          runbook_url: "https://github.com/wagnerra23/oimpresso.com/blob/main/.claude/agents/whatsapp-doctor.md"
+
+      # Ban cross-tenant — Meta baniu 1 número, alerta IMEDIATAMENTE pra evitar
+      # padrão se repetir em outros tenants. Single ban já dispara (não rate).
+      - alert: WhatsappBansCrossTenant
+        expr: sum by (instance_id) (increase(whatsapp_baileys_ban_detected_total[1h])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "Ban Meta detectado em instance {{ $labels.instance_id }}"
+          description: |
+            Meta bloqueou número WhatsApp. Verifique se padrão antibanned está
+            sendo seguido (typing delay, jitter). Cross-tenant: se 2+ bans em
+            <24h, possível padrão sistêmico — congelar envios programados.
+          runbook_url: "https://github.com/wagnerra23/oimpresso.com/blob/main/.claude/agents/whatsapp-doctor.md"
+
+      # Daemon scrape failed — daemon CT 100 down ou metrics endpoint travado.
+      - alert: WhatsappDaemonDown
+        expr: up{job="whatsapp-baileys-daemon"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "Daemon Baileys CT 100 não responde no /metrics"
+          description: |
+            Prometheus não consegue raspar /metrics do daemon. Pode ser
+            container crashloop, Traefik desconfigurado ou rede CT 100.
+            Investigar via SSH: `docker ps`, `docker logs whatsapp-baileys-daemon`.
+          runbook_url: "https://github.com/wagnerra23/oimpresso.com/blob/main/memory/runbooks/daemon-ct100-rebuild.md"
+
+      # ─── Tier 1 ───────────────────────────────────────────────────────
+      # Sessão desconectada >10min — cliente perdeu QR, precisa reconectar.
+      - alert: WhatsappSessionDisconnected
+        expr: whatsapp_baileys_session_state == 0
+        for: 10m
+        labels:
+          severity: warning
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "Instance {{ $labels.instance_id }} (biz={{ $labels.business_id }}) desconectada >10min"
+          description: |
+            Sessão Baileys com state=0 (disconnected/banned) há >10min. Cliente
+            pode estar offline. Verifique se requer reconexão via QR ou se foi
+            ban (cross-check com whatsapp_baileys_ban_detected_total).
+
+      # QR pending crônico — esquecido pelo cliente, ou rotina automática quebrada.
+      - alert: WhatsappQrStuckPending
+        expr: whatsapp_baileys_session_state == 0.5
+        for: 30m
+        labels:
+          severity: warning
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "QR pending >30min em {{ $labels.instance_id }} (biz={{ $labels.business_id }})"
+          description: |
+            Cliente não escaneou QR code há 30+ min. Considerar alerta in-app
+            ou WhatsApp do RP via canal alternativo (Z-API admin).
+
+      # Webhook permanent failure rate alto — backpressure ou bug receiver.
+      - alert: WhatsappWebhookHighFailureRate
+        expr: |
+          (
+            sum(rate(whatsapp_baileys_webhook_dispatch_total{outcome="failed_permanent"}[5m]))
+            /
+            sum(rate(whatsapp_baileys_webhook_dispatch_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "Webhook dispatch >5% failed_permanent (Hostinger receiver)"
+          description: |
+            Mais de 5% dos webhooks daemon→Hostinger estão falhando em definitivo.
+            Verifique: PHP-FPM saturado, queue depth (whatsapp_jobs_depth),
+            HMAC mismatch (logs 401 invalid_signature), DNS Cloudflare.
+          runbook_url: "https://github.com/wagnerra23/oimpresso.com/blob/main/memory/runbooks/webhook-failure-debug.md"
+
+      # ─── Tier 2 (latência) ────────────────────────────────────────────
+      # Mensagem outbound demorando >5s p95 — Whatsapp Web lento ou daemon saturado.
+      - alert: WhatsappMessageLagHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, instance_id) (rate(whatsapp_baileys_message_lag_ms_bucket[10m]))
+          ) > 5000
+        for: 10m
+        labels:
+          severity: warning
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "P95 message lag >5s em {{ $labels.instance_id }}"
+          description: |
+            Latência daemon→WhatsApp Web→ack acima de 5s no p95 por 10min.
+            Pode ser rede CT 100, Baileys socket degradado, ou Meta rate-limit.
+
+      # Webhook latência p95 >10s — Hostinger PHP-FPM saturado.
+      - alert: WhatsappWebhookLatencyHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, event) (rate(whatsapp_baileys_webhook_latency_ms_bucket[5m]))
+          ) > 10000
+        for: 10m
+        labels:
+          severity: warning
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "P95 webhook latency >10s ({{ $labels.event }})"
+          description: |
+            POST webhook daemon→Hostinger acima de 10s no p95 por 10min.
+            PHP-FPM provavelmente saturado. Verificar queue depth +
+            cleanup jobs stale.
+
+      # ─── Tier 3 (backpressure US-WA-084) ──────────────────────────────
+      # Queue depth alto — backpressure protetiva ou worker travado.
+      - alert: WhatsappQueueDepthHigh
+        expr: whatsapp_jobs_pending_count{queue="whatsapp-history"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "Fila whatsapp-history >1000 jobs pendentes"
+          description: |
+            Worker queue:work não está vencendo a vazão. Verificar:
+            (a) cron worker rodando? (b) jobs failing em loop?
+            (c) precisa escalar pool worker?
+          runbook_url: "https://github.com/wagnerra23/oimpresso.com/blob/main/memory/runbooks/queue-backpressure.md"
+
+      # ─── Drift safeguard (cross-check) ────────────────────────────────
+      # Diferença grande entre webhooks recebidos pelo daemon (recv_total) e
+      # webhooks chegando no Hostinger (ok+retried). Sinal de drop silencioso.
+      - alert: WhatsappWebhookDropDetected
+        expr: |
+          (
+            sum(rate(whatsapp_baileys_recv_total[15m]))
+            -
+            sum(rate(whatsapp_baileys_webhook_dispatch_total{outcome=~"ok|retried"}[15m]))
+          ) > 1
+        for: 15m
+        labels:
+          severity: warning
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "Drop de webhooks detectado: recv > dispatched"
+          description: |
+            Daemon recebeu mais mensagens do que dispatch reportou como ok+retried.
+            Diferença persistente sinaliza loss real (não retry transient).
+            Investigar logs daemon `webhook permanent failure`.

@@ -52,8 +52,18 @@ Route::group(['prefix' => 'whatsapp/webhook'], function () {
 // window 5min + nonce não-repetido. Backward compat: daemon antigo sem
 // headers passa direto (rollout gradual). API_KEY config no .env.
 Route::group(['prefix' => 'atendimento/channels'], function () {
+    // Ordem dos middlewares:
+    //   1. otel.propagate (US-WA-083) — extrai traceparent ANTES de tudo
+    //      pra logs de hmac/backpressure já carregarem trace_id
+    //   2. hmac (US-WA-082) — rejeita 401 cedo se assinatura inválida (cheap)
+    //   3. backpressure (US-WA-084) — só conta queue depth se hmac passou
+    //                                  (evita SELECT pra atacante)
     Route::post('/baileys/{channel_uuid}', [ChannelBaileysWebhookController::class, 'handle'])
         ->where('channel_uuid', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
-        ->middleware('whatsapp.baileys.hmac')
+        ->middleware([
+            'whatsapp.otel.propagate',
+            'whatsapp.baileys.hmac',
+            'whatsapp.baileys.backpressure',
+        ])
         ->name('atendimento.channels.baileys.webhook');
 });
