@@ -38,18 +38,20 @@ fases:
       Decisão: extrair cliente direto de VENDA (modo INLINE) — ver fase contacts.
 
   contacts:
-    # Filtro temporal 12m primeiro (1.550 criados + 153 updates), all-time pendente.
-    status: partial
+    # All-time CONCLUÍDO 2026-05-14 02:48 BRT (Wave A2 sessão paralela).
+    status: done-all-time
     importer: import-contacts-from-venda.py
     mode: INLINE
-    last_run: 2026-05-13T18:00:00-03:00
-    runs: 2                        # 1 dryrun + 1 real
-    target_total: 8863             # COUNT distinct CGCCPF FROM VENDA (all-time)
-    imported: 1550                 # 12m apenas
-    updates: 153                   # re-run idempotente atualizou 153 já existentes
+    last_run: 2026-05-14T02:48:00-03:00
+    runs: 3                        # 1 dryrun + 12m run + all-time run
+    target_total: 11563            # SELECT DISTINCT VENDA cliente-related cols (all-time)
+    imported: 8856                 # COUNT contacts com legacy_id+cpf_cnpj populado em prod
+    inserts_total: 8856            # 1.550 (12m) + 7.306 (all-time delta)
+    updates_total: 11714           # 153 (12m re-run) + 11.561 (all-time idempotente)
+    skipped_no_cnpj: 2             # invalid CNPJ format
     notes: |
-      Falta rodar all-time: target 8.863 - 1.550 = 7.313 contacts pendentes.
-      Orquestrador deve agendar run all-time após Wagner aprovar batch 12m em prod.
+      All-time completou 2026-05-14 02:48. Total prod contacts biz=164: 18.845
+      (9.989 pré-import + 8.856 novos com CNPJ normalizado via Wave A2 sessão paralela).
 
   vehicles:
     status: done
@@ -71,17 +73,24 @@ fases:
     imported: 0
 
   vendas:
-    status: partial-12m
+    # All-time CONCLUÍDO 2026-05-14 02:48 BRT (Wave A2 sessão paralela).
+    status: done-all-time
     importer: import-vendas.py
-    last_run: 2026-05-13T19:00:00-03:00
+    last_run: 2026-05-14T02:48:00-03:00
+    runs: 2                        # 12m run + all-time run
     target_total: 46065            # COUNT(*) FROM VENDA all-time
-    imported: 5006                 # apenas DATAVENDA >= NOW - 12 months
-    placa_inline_pct: 0            # DESCOBERTA CRÍTICA — 0% PLACA inline em VENDA
-    filtro_temporal: 12m
+    imported: 43995                # 38.989 INSERTs + 5.006 UPDATEs idempotentes
+    skipped_no_contact: 2070       # 4.5% sem CNPJ válido (esperado)
+    placa_orfa: 3
+    com_vehicle_join: 91           # placas que matched legacy_id vehicles
+    placa_inline_pct: 0            # DESCOBERTA CRÍTICA — vendas usam CRM INLINE, sem PLACA FK
+    sum_final_total_brl: 106996671.20  # R$ 107M faturamento histórico Martinho
+    transactions_status_final: 42114
+    transactions_paid: 29345
     notes: |
-      All-time 46.065 - 5.006 = 41.059 pendentes (Wagner decidirá se vale histórico).
-      placa_inline_pct=0% → vínculo venda→veículo deve ser INFERIDO via CGCCPF + DATAVENDA
-      (não via VENDA.PLACA direto). Investigação em find-venda-cacamba-link.py.
+      All-time completou Wave A2 madrugada 2026-05-14. Total prod transactions biz=164: 44.018.
+      99.95% com contact_id resolvido via lookup CNPJ (8.856 contacts disponíveis).
+      Próximo passo: venda_produto (linhas detalhe — agente migracao-venda-produto criado PR #812).
 
   venda_produto:
     status: pending
@@ -147,10 +156,13 @@ matriz_drift:
 
 notes: |
   Piloto canônico Nível 3 (PR #803 base + PR #812 plano).
-  Sessão 2026-05-13 entregou: empresas SKIP + contacts partial-12m (1.703 ops)
-  + vehicles done (91) + vendas partial-12m (5.006).
+  Sessão 2026-05-13/14: empresas SKIP + contacts done-all-time (8.856) +
+  vehicles done (91) + service_orders done (91) + vendas done-all-time (44.018 ·
+  R$ 107M faturamento histórico).
+
   Próximas decisões pendentes do Wagner:
-    1. Aprovar all-time contacts (7.313 restantes)?
-    2. Aprovar all-time vendas (41.059 restantes) ou ficar só 12m?
-    3. Quando rodar cleanup US-OFICINA-005 pra desbloquear financeiro?
-    4. Criar importer venda_produto via agent migracao-venda-produto?
+    1. Validar UI prod /contacts?biz=164 + /sells biz=164 (smoke visual)
+    2. Migration add_legacy_id_to_products em Hostinger
+    3. Spawn migracao-orchestrator → venda_produto + produtos (linhas detalhe)
+    4. US-OFICINA-005 cleanup tools (desbloqueia fase financeiro)
+    5. Próximo cliente: Vargas v1468 (drift baixo — valida adapter em versão diferente)
