@@ -1,3 +1,4 @@
+import { createHmac, randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { request } from 'undici';
 import type { Logger } from 'pino';
@@ -37,6 +38,20 @@ export class WebhookDispatcher {
   async dispatch(payload: Omit<WebhookPayload, 'ts'>): Promise<void> {
     const fullPayload: WebhookPayload = { ...payload, ts: new Date().toISOString() };
     const url = `${this.env.WEBHOOK_BASE_URL.replace(/\/+$/, '')}/${encodeURIComponent(payload.business_uuid)}`;
+    const bodyJson = JSON.stringify(fullPayload);
+
+    // US-WA-082 — Replay protection HMAC + nonce.
+    // Hostinger middleware `VerifyBaileysWebhookHmac` valida:
+    //   1. ts ≤5min skew (replay window)
+    //   2. HMAC-SHA256(API_KEY, ts.nonce.body) constant-time compare
+    //   3. nonce não-visto (INSERT IGNORE em webhook_nonces table)
+    // Headers gerados UMA vez fora do retry loop — mesmo nonce em retries
+    // pra Hostinger considerar replay (correto: retry deve ser idempotente
+    // via dedup, não criar novo "first arrival").
+    const nonce = randomUUID();
+    const tsEpoch = Math.floor(Date.now() / 1000).toString();
+    const signedPayload = `${tsEpoch}.${nonce}.${bodyJson}`;
+    const signature = createHmac('sha256', this.env.API_KEY).update(signedPayload).digest('hex');
 
     let lastError: unknown;
     for (let attempt = 1; attempt <= this.env.WEBHOOK_MAX_RETRIES; attempt++) {
@@ -50,8 +65,11 @@ export class WebhookDispatcher {
             'user-agent': 'whatsapp-baileys-daemon/0.1',
             'x-baileys-event': payload.event,
             'x-baileys-instance': payload.instance_id,
+            'x-baileys-nonce': nonce,
+            'x-baileys-ts': tsEpoch,
+            'x-baileys-signature': signature,
           },
-          body: JSON.stringify(fullPayload),
+          body: bodyJson,
           bodyTimeout: this.env.WEBHOOK_TIMEOUT_MS,
           headersTimeout: this.env.WEBHOOK_TIMEOUT_MS,
         });

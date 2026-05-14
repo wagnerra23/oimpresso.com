@@ -402,6 +402,15 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
+        // Replay window é 5min, mas mantemos 24h por margem segurança vs time
+        // skew + audit forense. Após 24h é seguro deletar (replay já seria
+        // rejeitado pelo REPLAY_WINDOW_SECONDS no middleware).
+        $schedule->command('whatsapp:cleanup-webhook-nonces')
+            ->hourly()
+            ->withoutOverlapping()
+            ->environments(['live']);
+
         // Drift sentinel daemon CT 100 (semanal segunda 09:00 BRT) — alerta se
         // source do daemon prod ficou desatualizado vs main local. Catalogado
         // 2026-05-13: ~15 commits drift descoberto na unha durante incidente.

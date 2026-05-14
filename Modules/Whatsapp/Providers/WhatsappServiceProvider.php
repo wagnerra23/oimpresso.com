@@ -12,6 +12,7 @@ use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\ChannelResetCommand;
+use Modules\Whatsapp\Console\Commands\CleanupWebhookNoncesCommand;
 use Modules\Whatsapp\Console\Commands\ChannelsReconcilerCommand;
 use Modules\Whatsapp\Console\Commands\DaemonSourceDriftCheckCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
@@ -29,6 +30,7 @@ use Modules\Whatsapp\Events\OmnichannelMessageSent;
 use Modules\Whatsapp\Events\WhatsappMessageReceived;
 use Modules\Whatsapp\Events\WhatsappMessageSent;
 use Modules\Whatsapp\Http\Middleware\VerifyBaileysSignature;
+use Modules\Whatsapp\Http\Middleware\VerifyBaileysWebhookHmac;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
 use Modules\Whatsapp\Listeners\DispatchToJanaBot;
@@ -90,6 +92,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 MetricsAggregateCommand::class,         // US-WA-021/041 — snapshot diário métricas (CYCLE-07 PR-3)
                 ChannelsReconcilerCommand::class,       // 2026-05-13 — auto-fix drift channels↔daemon (cron 5min)
                 ChannelResetCommand::class,             // 2026-05-13 — reset 1-comando channel travado
+                CleanupWebhookNoncesCommand::class,     // US-WA-082 — purga nonces >24h (replay protection cleanup)
                 DaemonSourceDriftCheckCommand::class,   // 2026-05-13 — alerta drift main↔daemon CT 100 (cron weekly)
             ]);
         }
@@ -134,6 +137,8 @@ class WhatsappServiceProvider extends ServiceProvider
         $router->aliasMiddleware('whatsapp.meta.signature', VerifyMetaSignature::class);
         $router->aliasMiddleware('whatsapp.zapi.signature', VerifyZapiSignature::class);
         $router->aliasMiddleware('whatsapp.baileys.signature', VerifyBaileysSignature::class);
+        // US-WA-082 — Replay protection HMAC + nonce no webhook receiver Baileys
+        $router->aliasMiddleware('whatsapp.baileys.hmac', VerifyBaileysWebhookHmac::class);
     }
 
     public function register(): void
