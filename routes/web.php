@@ -228,15 +228,15 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->whereNumber('id')->whereNumber('bom_id')
         ->name('products.bom.destroy');
 
-    Route::get('/toggle-subscription/{id}', 'SellPosController@toggleRecurringInvoices');
-    Route::post('/sells/pos/get-types-of-service-details', 'SellPosController@getTypesOfServiceDetails');
-    Route::get('/sells/subscriptions', 'SellPosController@listSubscriptions');
-    Route::get('/sells/duplicate/{id}', 'SellController@duplicateSell');
-    Route::get('/sells/drafts', 'SellController@getDrafts');
-    Route::get('/sells/convert-to-draft/{id}', 'SellPosController@convertToInvoice');
-    Route::get('/sells/convert-to-proforma/{id}', 'SellPosController@convertToProforma');
-    Route::get('/sells/quotations', 'SellController@getQuotations');
-    Route::get('/sells/draft-dt', 'SellController@getDraftDatables');
+    Route::get('/toggle-subscription/{id}', [SellPosController::class, 'toggleRecurringInvoices']);
+    Route::post('/sells/pos/get-types-of-service-details', [SellPosController::class, 'getTypesOfServiceDetails']);
+    Route::get('/sells/subscriptions', [SellPosController::class, 'listSubscriptions']);
+    Route::get('/sells/duplicate/{id}', [SellController::class, 'duplicateSell']);
+    Route::get('/sells/drafts', [SellController::class, 'getDrafts']);
+    Route::get('/sells/convert-to-draft/{id}', [SellPosController::class, 'convertToInvoice']);
+    Route::get('/sells/convert-to-proforma/{id}', [SellPosController::class, 'convertToProforma']);
+    Route::get('/sells/quotations', [SellController::class, 'getQuotations']);
+    Route::get('/sells/draft-dt', [SellController::class, 'getDraftDatables']);
     // US-SELL-008 — Sells/Index.tsx Inertia endpoints (lista JSON + drawer detail).
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
@@ -256,7 +256,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('sells.fsm-execute');
     Route::post('/sells/{id}/fsm-start-pipeline', [\App\Http\Controllers\SaleFsmActionController::class, 'startPipeline'])
         ->name('sells.fsm-start-pipeline');
-    Route::resource('sells', 'SellController')->except(['show']);
+    Route::resource('sells', SellController::class)->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 
     Route::post('/import-purchase-products', [PurchaseController::class, 'importPurchaseProducts']);
