@@ -9,7 +9,10 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::resource('assets', Modules\AssetManagement\Http\Controllers\AssetController::class);
     Route::resource('allocation', Modules\AssetManagement\Http\Controllers\AssetAllocationController::class);
     Route::resource('revocation', Modules\AssetManagement\Http\Controllers\RevokeAllocatedAssetController::class);
-    Route::resource('settings', Modules\AssetManagement\Http\Controllers\AssetSettingsController::class);
+    // 'as'=>'asset' prefixa route names → asset.settings.{index,create,...}
+    // Evita colisão com Route::resource('/settings', Manufacturing\SettingsController)
+    // (route:cache falhava com "Another route has already been assigned name [settings.index]").
+    Route::resource('settings', Modules\AssetManagement\Http\Controllers\AssetSettingsController::class, ['as' => 'asset']);
     Route::get('dashboard', [Modules\AssetManagement\Http\Controllers\AssetController::class, 'dashboard']);
 
     Route::resource('asset-maintenance', 'Modules\AssetManagement\Http\Controllers\AssetMaitenanceController');
