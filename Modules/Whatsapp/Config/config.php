@@ -160,4 +160,25 @@ return [
     'csat' => [
         'enabled' => (bool) env('WHATSAPP_CSAT_ENABLED', true),
     ],
+
+    /*
+     * Wagner request 2026-05-14: botão "Importar Histórico" na UI Channels
+     * com feature flag por business_id. Default: DESABILITADO (lista vazia).
+     * Wagner libera manual via .env quando cliente paga plano alto:
+     *
+     *   WHATSAPP_HISTORY_IMPORT_ENABLED_BIZ=1,7,42
+     *
+     * Motivo do gating restritivo:
+     * - Re-pareamento custa: cliente desconecta sessão WhatsApp atual
+     * - Burst de 10k+ msgs históricas satura PHP-FPM (mesmo com queue)
+     * - Anti-ban risk: cada re-pair WhatsApp pode flagar conta nova
+     * - Cliente PME free não precisa (só msgs novas chegam normal)
+     * - Cliente Enterprise pagante: vale a pena pra populate Inbox histórico
+     */
+    'history_import' => [
+        'enabled_business_ids' => array_values(array_filter(
+            array_map('intval', explode(',', (string) env('WHATSAPP_HISTORY_IMPORT_ENABLED_BIZ', ''))),
+            fn ($id) => $id > 0,
+        )),
+    ],
 ];
