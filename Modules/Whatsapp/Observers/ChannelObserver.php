@@ -117,18 +117,12 @@ class ChannelObserver
     }
 
     /**
-     * Convenção daemon Baileys: instance_id = "ch-{channel_uuid}".
-     *
-     * Esta é a forma usada na sessão de produção 2026-05-13 (instances
-     * `ch-88b13697b89e451cb65be917533bab21` etc.). Se a convenção mudar
-     * — e.g. legacy `bizN-main` — vamos adicionar fallback aqui.
+     * Delega pro helper canônico `Channel::baileysInstanceId()` — fonte única
+     * da convenção `ch-{uuid sem hífens}`. Evita drift entre Observer + Job +
+     * runbook do agent `whatsapp-doctor`.
      */
     private function resolveInstanceId(Channel $channel): ?string
     {
-        if (empty($channel->channel_uuid)) {
-            return null;
-        }
-
-        return 'ch-' . str_replace('-', '', (string) $channel->channel_uuid);
+        return $channel->baileysInstanceId();
     }
 }
