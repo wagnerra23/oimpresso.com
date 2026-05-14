@@ -8,6 +8,7 @@ use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DashboardController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
+use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 use Modules\Financeiro\Http\Controllers\UnificadoController;
@@ -43,6 +44,10 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/unificado/{id}/baixar', [UnificadoController::class, 'baixar'])
             ->whereNumber('id')
             ->name('unificado.baixar');
+
+        // Fluxo de caixa projetado — Cockpit V2 (US-FIN-014) — protótipo Cowork 2026-05-09
+        // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
+        Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index');
 
         // Contas a receber (lista + emitir boleto)
         Route::get('/contas-receber', [ContaReceberController::class, 'index'])->name('contas-receber.index');
