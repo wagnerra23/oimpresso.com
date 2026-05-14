@@ -779,3 +779,102 @@ E o valor refletido é o "agora" no fuso do business, sem shift histórico
 - **Origem da ideia:** `_Ideias/Financeiro/evidencias/conversa-claude-2026-04-mobile.md` (após import)
 - **Design:** `memory/requisitos/_DesignSystem/adr/ui/0006-padrao-tela-operacional.md`
 - **Módulos relacionados:** [NfeBrasil](../NfeBrasil/), [RecurringBilling](../RecurringBilling/)
+
+### US-FIN-017 · Boletos — Sheet Emitir multi-título (bulk emission)
+
+> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Sheet lateral em `/financeiro/boletos` pra emitir N boletos de uma vez a partir de títulos a receber em aberto.
+
+**Origem:** Q2 do amendment Q1-Q5 (sessão 2026-05-14) — cortado do F3 inicial #845 pra manter 1 PR = 1 intent. Pré-requisito de escala quando >10 boletos/dia.
+
+**Acceptance criteria:**
+- Botão "Emitir boleto" no header da tela `/financeiro/boletos` (orange primary)
+- Click abre Sheet lateral 600px com header "a partir de títulos a receber"
+- Filter row: dropdown "Conta emissora" + input "Vencimento padrão" (date)
+- Lista checkbox Titulo (status=aberto, tipo=receber, sem boleto emitido ainda) — paginada
+- Backend: `BoletoBatchService::emitirBatch(business_id, titulo_ids, conta_id, vencimento)` em transação — itera + delega `TituloService::emitirBoleto`
+- Idempotência: `idempotency_key Str::uuid` (ADR tech/0001)
+- Error handling parcial: se 1 falha, mostra `{ok: [...], failed: [...]}` e abre só os ok
+- Pest GUARD: cross-tenant + idempotência + bulk transaction
+
+**Refs:** F3 PR #845, `memory/requisitos/Financeiro/boletos-visual-comparison.md` §Q2, `prototipo-ui/prototipos/boletos/cowork-app.jsx` §SheetEmitirBoleto
+**Estimate:** 6h (IA-pair fator 10x)
+
+### US-FIN-018 · Boletos — Sheet Remessa/Retorno CNAB upload + processing
+
+> owner: wagner · priority: p2 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+Sheet lateral pra upload de arquivo de Remessa CNAB (.REM) + processamento de arquivo de Retorno CNAB (.RET).
+
+**Origem:** Q3 do amendment Q1-Q5 (sessão 2026-05-14) — cortado do F3 #845 porque `CnabDirectStrategy` hoje é MOCK. Onda 2 quando virar prod.
+
+**Depende:** ADR `arq/0011-cnab-direct-strategy-prod.md` pendente + lib `eduardokum/laravel-boleto` fork.
+
+**Acceptance criteria:**
+- Botão "Remessa/Retorno" no header (outline, ao lado de "Emitir boleto")
+- Sheet com 2 tabs: Remessa + Retorno
+- Tab Remessa: dropdown conta + lista pendentes + botão "Gerar arquivo REM" (download CNAB 240/400)
+- Tab Retorno: file upload .RET + parser → summary (liquidados/vencidos/rejeitados) + botão "Processar"
+- Backend: `CnabDirectStrategy::gerarRemessa()` + `CnabDirectStrategy::processarRetorno()`
+- Idempotency: `hash_sha256` no Arquivo do .RET; mesmo arquivo não processa 2×
+- Pest GUARD: parser layout 240 + 400 + cross-tenant
+
+**Estimate:** 16h (M-L)
+
+### US-FIN-019 · Boletos — Drawer timeline cronológica rica via activity_log Spatie
+
+> owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Adicionar timeline cronológica no drawer detalhe do `/financeiro/boletos` mostrando todos os eventos do BoletoRemessa (criação → envio → pagamento → cancelamento).
+
+**Origem:** Q5 do amendment Q1-Q5 (sessão 2026-05-14) — drawer F3 #845 é simplificado; timeline rica fica F2.
+
+**Backbone:** `BoletoRemessa` JÁ usa `LogsActivity` trait Spatie. Falta expor frontend.
+
+**Acceptance criteria:**
+- Endpoint `GET /financeiro/boletos/{id}/timeline` retorna `[{ts, action, causer_name, properties_diff}]`
+- Drawer renderiza seção "Linha do tempo" abaixo dos campos atuais
+- Mapping `action → label PT-BR` (created → "Boleto criado", updated.status=enviado → "Enviado ao gateway", etc)
+- Pest GUARD: timeline shape + Tier 0
+
+**Estimate:** 4h
+
+### US-FIN-020 · Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto)
+
+> owner: wagner · priority: p2 · estimate: 12h · status: todo · type: story
+> blocked_by: US-FIN-017 + Modules/Whatsapp omnichannel canal preferido
+
+Substituir funil de cobrança UI-only por estado backend persistente. 3 jobs automatizam lembrete + escalação + protesto.
+
+**Origem:** Q1 do amendment Q1-Q5 (sessão 2026-05-14) — funil F3 #845 derivava de regras `vencimento BETWEEN today±N`. Onda 2 traz jobs reais.
+
+**Acceptance criteria:**
+- `SendLembreteCobrancaJob` — daily 09:00, busca BoletoRemessa `vencimento BETWEEN today+3..today+5 AND status=registrado`, envia WhatsApp ou email
+- `EscalateCobrancaAtivaJob` — daily 10:00, `vencimento BETWEEN today-5..today-1 AND status=registrado` → escala pra Eliana (tarefa em ProjectMgmt)
+- `ProtestoJob` — weekly seg 08:00, `vencimento < today-30d AND status=vencido AND not_protested` → PDF + CSV pro cartório (manual review Wagner)
+- Migration: `cobranca_eventos` table (boleto_id, tipo, data, payload JSON, idempotency_key UNIQUE)
+- Funil tela vira backend-driven: counts vem de queries `cobranca_eventos`
+- Pest GUARD: jobs idempotentes + Tier 0 + sem regressão UI
+
+**Estimate:** 12h (3 jobs + migration + whatsapp integration + Pest)
+
+### US-FIN-021 · Fluxo de caixa — Margem mínima configurável via business_settings
+
+> owner: wagner · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Substituir hardcode R$ [redacted Tier 0] da margem mínima do `/financeiro/fluxo` por config por tenant.
+
+**Origem:** Q3 do amendment Q1-Q4 Fluxo (sessão 2026-05-14) — F3 PR #838 tem hardcode aceito no F1.
+
+**Acceptance criteria:**
+- Migration: `ALTER TABLE business_settings ADD COLUMN margem_minima_caixa DECIMAL(15,2) DEFAULT 5000`
+- `FluxoCaixaService::projetar()` lê `BusinessSetting::where('business_id')->value('margem_minima_caixa')` fallback 5000
+- Tela `/configuracoes/financeiro` — input "Margem mínima de caixa" tabular-nums BRL
+- Pest GUARD: respeita business_setting + fallback default + multi-tenant scope
+
+**Estimate:** 2h
