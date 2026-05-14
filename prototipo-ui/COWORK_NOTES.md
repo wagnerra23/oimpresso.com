@@ -213,3 +213,25 @@ Fallback aceito se `bg-primary` ficar pesado em densidade alta da lista de conve
 
 [CD] no F1.5 valida que o protótipo respeita o anti-pattern do charter — score perde ≥10 pontos se reaparecer gradient ou círculo.
 
+---
+
+## [W → CC] Amendment ao pedido #316 — block renderer + vocabulário IA (2026-05-14)
+
+**Quem:** Wagner [W] + Claude Code [CL] (esta sessão), revisão pós-handoff `Oimpresso-handoff.zip` (Claude Design export 2026-05-14).
+
+**Motivação:** `chat.jsx` exportado implementa chat WhatsApp-style multi-purpose (atendimento + OS + equipe + cliente) — não é chat IA da Jana. Atendimento humano já vive em `Modules/Whatsapp/` (omnichannel oficial ADR 0096 + 0135). **Nota: 24/100** vs Glean/ChatGPT Enterprise/Copilot 2026 — **0/6 P0** charter fechados.
+
+**Documento completo:** [`COWORK_NOTES.amendment-jana-chat-block-renderer.md`](COWORK_NOTES.amendment-jana-chat-block-renderer.md) — 19 divergências catalogadas + correção formal item-por-item + critério F1.5 ≥80.
+
+### Resumo executivo das 3 mudanças P0
+
+1. **Trocar 5 anti-patterns explícitos do charter** — avatar gradient circular, typing 3-dots loop, bubble WhatsApp-ish, mock response humano, `setTimeout` no lugar de streaming.
+2. **Limpar vocabulário humano vazado** — remover read receipts `✓✓`, botão "Ligar", online dot, tabs `OS/Equipes/Clientes` (substituir por `Todas/Minhas/Compartilhadas/Arquivadas`).
+3. **Adicionar 6 features IA que definem o produto** — 4 kinds de bubble tipados (`markdown` / `tool_use` / `data_table` / `action_card`), citations inline `[1][2]`, suggested prompts no empty state, PII warning composer, atalhos `/` `J/K` `Esc`, chip business atual no header.
+
+### Próxima ação
+
+[CC] consome o trio **#316 + amendment-avatar (2026-05-09) + este amendment (2026-05-14)** como pacote, gera **V2 do protótipo** em `prototipo-ui/prototipos/chat/`. F3 (Chat.tsx) bloqueado até F1.5 ≥80.
+
+[CD] no F1.5 valida bloco A/B zero violações + bloco C 4 kinds funcionando — score perde ≥15 por anti-pattern reaparecido, ≥10 por kind IA ausente.
+
