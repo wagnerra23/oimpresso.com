@@ -11,6 +11,18 @@ interface Deps {
 }
 
 /**
+ * Source SHA gravado em build time via Dockerfile ARG. Permite o cron
+ * `whatsapp:daemon-source-drift-check` no Hostinger comparar versão local
+ * (main HEAD) vs daemon prod e alertar drift.
+ *
+ * Default 'unknown' quando rodando local sem build arg (dev/test).
+ *
+ * @see Modules/Whatsapp/Console/Commands/DaemonSourceDriftCheckCommand.php
+ * @see memory/sessions/2026-05-13-whatsapp-incident-zombie-banned-loop.md
+ */
+const DAEMON_SOURCE_SHA = process.env.DAEMON_SOURCE_SHA ?? 'unknown';
+
+/**
  * Detecta "zombie sockets": instances cujo state diz `connected` mas o
  * `last_seen` está estagnado além de `thresholdMs`. Significa que o daemon
  * acredita estar conectado mas o socket WhatsApp Web já parou de receber
@@ -51,6 +63,7 @@ export const healthRoutes: FastifyPluginAsync<Deps> = async (app, deps) => {
     const body = {
       status: zombies.length > 0 ? 'degraded' : 'ok',
       uptime_seconds: Math.floor((Date.now() - deps.startedAt.getTime()) / 1000),
+      daemon_source_sha: DAEMON_SOURCE_SHA,
       zombie_threshold_ms: deps.env.HEALTH_ZOMBIE_THRESHOLD_MS,
       zombies: zombies.map((i) => ({
         id: i.instance_id,
