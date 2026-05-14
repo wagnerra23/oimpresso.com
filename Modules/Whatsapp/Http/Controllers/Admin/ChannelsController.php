@@ -358,6 +358,57 @@ class ChannelsController extends Controller
         $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
 
         try {
+            // Pre-flight: detecta instância banned/disconnected/zombie no daemon
+            // e PURGA (DELETE) antes do connect — sem isso, daemon reusa creds
+            // revogadas e nunca emite QR novo (state fica banned).
+            //
+            // Bug catalogado 2026-05-13: Wagner reportou "QR não abre"; 2 channels
+            // biz=1 estavam `banned: logged_out` (celular desconectou via
+            // Aparelhos Conectados). Sem auto-purge, /connect era no-op silencioso.
+            //
+            // Status states que PRECISAM de purge:
+            //  - banned (logged_out, multidevice_mismatch, forbidden, etc.)
+            //  - disconnected (socket morto)
+            //  - error (qualquer estado degradado)
+            //
+            // Estados que NÃO precisam (fresh start já vai conectar):
+            //  - 404 not_found (instância nunca existiu)
+            //  - connecting / qr_required / connected (já está OK ou em fluxo)
+            $statusResponse = Http::withToken($apiKey)
+                ->withoutVerifying()
+                ->timeout($timeout)
+                ->get("{$daemonUrl}/instances/{$instanceId}/status");
+
+            $needsPurge = false;
+            if ($statusResponse->successful()) {
+                $currentState = $statusResponse->json('state');
+                $needsPurge = in_array($currentState, ['banned', 'disconnected', 'error'], true);
+            }
+            // 404 = não existe = nada a purgar. 5xx = melhor não fazer DELETE (defensive).
+
+            if ($needsPurge) {
+                Log::info('baileys.connect_autopurge_banned', [
+                    'channel_id' => $channel->id,
+                    'instance_id' => $instanceId,
+                    'state' => $statusResponse->json('state'),
+                    'ban_reason' => $statusResponse->json('ban_reason'),
+                ]);
+
+                $purgeResponse = Http::withToken($apiKey)
+                    ->withoutVerifying()
+                    ->timeout($timeout)
+                    ->delete("{$daemonUrl}/instances/{$instanceId}");
+
+                if (! $purgeResponse->successful() && $purgeResponse->status() !== 404) {
+                    Log::warning('baileys.connect_autopurge_failed', [
+                        'channel_id' => $channel->id,
+                        'status' => $purgeResponse->status(),
+                        'body' => $purgeResponse->body(),
+                    ]);
+                    // Não aborta — segue tentando connect. Daemon talvez recupere.
+                }
+            }
+
             // Dispara connect (202 + snapshot inicial)
             // FIXME(US-WA-058): withoutVerifying temp — cert Let's Encrypt no CT 100
             // ainda não emitido (DNS propagou após Traefik tentar ACME). Remover
