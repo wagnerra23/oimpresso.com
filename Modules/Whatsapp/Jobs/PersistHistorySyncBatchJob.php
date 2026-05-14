@@ -66,7 +66,19 @@ class PersistHistorySyncBatchJob implements ShouldQueue
         public readonly int $chunkTotal,
         public readonly array $messages,
     ) {
-        $this->onQueue(config('whatsapp.queue', 'whatsapp'));
+        // Arquitetura Wagner 2026-05-14 02h: "recebe tudo de maneira rapida...
+        // depois sincroniza com o banco, mais sempre guarda para não perder".
+        //
+        // onConnection('database') OVERRIDE o QUEUE_CONNECTION=sync default do
+        // Hostinger — Job vai pra tabela `jobs` (persistente) ao invés de
+        // rodar inline. Worker separado (`php artisan queue:work database`)
+        // processa em background, sem travar webhook handler.
+        //
+        // Garantia "não perder": LPUSH/SQL INSERT da tabela `jobs` é
+        // atômico — se falhar (DB down), webhook retorna 500 → daemon
+        // retenta (404/429/500 retryable). Se persistir, Job é durável.
+        $this->onConnection('database');
+        $this->onQueue('whatsapp-history');
     }
 
     public function handle(): void
