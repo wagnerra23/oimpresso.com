@@ -196,6 +196,22 @@ class ChannelBaileysWebhookController extends Controller
             messages: $messages,
         );
 
+        // ─── Métrica OTel lightweight bridge: chunk_queued ─────────────────
+        // US-WA-085. Loki agrega via logQL `metric_name="whatsapp_history_chunk_queued"`
+        // → contador Grafana. Pareia 1:1 com chunk_processed/chunk_failed —
+        // se rate(queued) > rate(processed+failed) por >5min = backlog crescendo.
+        // Tier 0 multi-tenant: business_id SEMPRE presente.
+        Log::channel('single')->info('[whatsapp.history-sync-job] chunk enfileirado', [
+            'metric_name' => 'whatsapp_history_chunk_queued',
+            'business_id' => $channel->business_id,
+            'channel_id' => $channel->id,
+            'sync_type' => $syncType,
+            'chunk_index' => $chunkIndex,
+            'chunk_total' => $chunkTotal,
+            'messages_count' => count($messages),
+            'attempt' => 1, // sempre 1 — caller enfileira uma vez; retries são internas ao Job
+        ]);
+
         return response()->json([
             'ok' => true,
             'note' => 'history_chunk_queued',
