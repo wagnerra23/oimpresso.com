@@ -160,6 +160,64 @@ groups:
             (c) precisa escalar pool worker?
           runbook_url: "https://github.com/wagnerra23/oimpresso.com/blob/main/memory/runbooks/queue-backpressure.md"
 
+      # ─── Tier 1 (history-sync Hostinger US-WA-085) ────────────────────
+      # Taxa de chunks history-sync falhando após 3 tries. Queries via Loki
+      # ruler (logs estruturados Hostinger não vão pro Prometheus direto —
+      # PECL opentelemetry ausente, config/otel.php § Decisão arquitetural).
+      #
+      # Loki ruler precisa estar configurado com datasource `loki`; alerta
+      # `LogQL` é avaliado server-side igual PromQL. Se ruler não estiver
+      # instalado, este alerta é no-op silencioso até promotion.
+      - alert: WhatsappHistoryChunkFailureRate
+        expr: |
+          (
+            sum(count_over_time({app="oimpresso",env="prod"} |= "whatsapp_history_chunk_failed" [15m]))
+            /
+            clamp_min(
+              sum(count_over_time({app="oimpresso",env="prod"} |= "whatsapp_history_chunk_queued" [15m])),
+              1
+            )
+          ) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "History-sync chunks failing rate >5% em 15min"
+          description: |
+            Mais de 5% dos chunks de messaging-history.set estão esgotando
+            as 3 tries do PersistHistorySyncBatchJob. Cliente perde histórico
+            ao parear/re-parear canal.
+            Verificar: (a) MySQL deadlocks/locks em `messages` table,
+            (b) failed_jobs entries com mesmo channel_id,
+            (c) PHP-FPM memory_limit estourado no worker.
+          runbook_url: "https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Whatsapp/RUNBOOK-history-sync-metrics.md"
+
+      # Critical escalation — failure rate explosivo (>20%) indica regressão
+      # ampla, não burst transiente. Acordar Wagner.
+      - alert: WhatsappHistoryChunkFailureRateCritical
+        expr: |
+          (
+            sum(count_over_time({app="oimpresso",env="prod"} |= "whatsapp_history_chunk_failed" [15m]))
+            /
+            clamp_min(
+              sum(count_over_time({app="oimpresso",env="prod"} |= "whatsapp_history_chunk_queued" [15m])),
+              1
+            )
+          ) > 0.20
+        for: 5m
+        labels:
+          severity: critical
+          team: oimpresso
+          surface: whatsapp
+        annotations:
+          summary: "History-sync chunks failing rate >20% em 15min — REGRESSÃO"
+          description: |
+            Failure rate explosivo do worker queue:work whatsapp-history.
+            Pareamentos novos perdem 1 em cada 5 chunks. Investigar AGORA.
+          runbook_url: "https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Whatsapp/RUNBOOK-history-sync-metrics.md"
+
       # ─── Drift safeguard (cross-check) ────────────────────────────────
       # Diferença grande entre webhooks recebidos pelo daemon (recv_total) e
       # webhooks chegando no Hostinger (ok+retried). Sinal de drop silencioso.

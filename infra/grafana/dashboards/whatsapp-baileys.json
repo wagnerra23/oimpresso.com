@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "US-WA-081 — Dashboard Grafana 11 metrics Prometheus daemon Baileys CT 100. Dogfood whatsapp-arch-arte 2026-05-14 identificou observability 6/10: counters existem mas dashboard NÃO em prod. Sobe nota observabilidade 6→8.",
+  "description": "US-WA-081 + US-WA-085 — Dashboard Grafana metrics Prometheus daemon Baileys CT 100 + Loki history-sync chunks Hostinger. Dogfood whatsapp-arch-arte 2026-05-14 identificou observability 6/10. US-WA-085 adicionou 3 paineis Loki (queued/processed/failed) cobrindo Job assíncrono `PersistHistorySyncBatchJob` (PR #828 madrugada 2026-05-14).",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -256,6 +256,82 @@
       "type": "gauge"
     },
     {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "US-WA-085 — Rate de chunks de history-sync enfileirados/min pelo webhook handler (Hostinger). Origem: Log estruturado `metric_name=whatsapp_history_chunk_queued` agregado pelo Loki. TODO datasource Loki: confirmar UID `loki` em Grafana provisioning antes de produção.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "cpm"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 28 },
+      "id": 9,
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (business_id) (count_over_time({app=\"oimpresso\",env=\"prod\"} |= \"whatsapp_history_chunk_queued\" [5m]))",
+          "legendFormat": "biz {{business_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "History chunks queued/min (per biz)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "US-WA-085 — Rate de chunks history-sync processados com sucesso/min pelo worker queue:work (Hostinger). Origem: Log estruturado `metric_name=whatsapp_history_chunk_processed`. Deve casar 1:1 com chunk_queued em estado saudável (lag ~1min).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "cpm"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 28 },
+      "id": 10,
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (business_id) (count_over_time({app=\"oimpresso\",env=\"prod\"} |= \"whatsapp_history_chunk_processed\" [5m]))",
+          "legendFormat": "biz {{business_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "History chunks processed/min (per biz)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "US-WA-085 — Chunks history-sync que esgotaram 3 tries — perdidos do ponto de vista do worker (msgs ainda em failed_jobs pra inspeção manual). Origem: `metric_name=whatsapp_history_chunk_failed`. Threshold: 0 normal. >0 em 15min = investigar; >5% rate = alerta WhatsappHistoryChunkFailureRate dispara.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "drawStyle": "bars", "fillOpacity": 80 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 28 },
+      "id": 11,
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (business_id) (count_over_time({app=\"oimpresso\",env=\"prod\"} |= \"whatsapp_history_chunk_failed\" [15m]))",
+          "legendFormat": "biz {{business_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "History chunks FAILED 15m (per biz)",
+      "type": "timeseries"
+    },
+    {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "description": "Source SHA do main que foi usado pra construir a imagem atual do daemon. PR #825 (drift sentinel). Bate com 'git rev-parse HEAD:Modules/Whatsapp/daemon-node/src' local.",
       "fieldConfig": {
@@ -268,7 +344,7 @@
           }
         }
       },
-      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 28 },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 36 },
       "id": 8,
       "options": {
         "colorMode": "value",
