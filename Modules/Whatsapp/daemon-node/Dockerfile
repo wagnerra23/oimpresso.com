@@ -37,10 +37,20 @@ RUN npm run build \
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime
 WORKDIR /app
 
+# Build arg pra rastrear qual SHA do main foi usado pra construir esta image.
+# Hostinger cron `whatsapp:daemon-source-drift-check` compara com HEAD local
+# e alerta se daemon CT 100 ficou desatualizado vs main. Default 'unknown'
+# quando build local sem --build-arg (dev/test).
+#
+# Usage:
+#   docker build --build-arg DAEMON_SOURCE_SHA=$(git rev-parse HEAD:Modules/Whatsapp/daemon-node/src) ...
+ARG DAEMON_SOURCE_SHA=unknown
+
 ENV NODE_ENV=production \
     HTTP_HOST=0.0.0.0 \
     HTTP_PORT=3000 \
-    SESSIONS_DIR=/app/sessions
+    SESSIONS_DIR=/app/sessions \
+    DAEMON_SOURCE_SHA=${DAEMON_SOURCE_SHA}
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
