@@ -276,7 +276,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells/convert-to-proforma/{id}', [SellPosController::class, 'convertToProforma']);
     Route::get('/sells/quotations', [SellController::class, 'getQuotations']);
     Route::get('/sells/draft-dt', [SellController::class, 'getDraftDatables']);
-    Route::resource('sells', SellController::class)->except(['show']);
+    // Route::resource('sells', SellController::class)->except(['show']);
+    //   ^ Removido — duplicado com linha 259 acima (Route::resource('sells', 'SellController'))
+    //   route:cache falhava com "Another route has already been assigned name [sells.index]".
 
     Route::get('/import-sales', [ImportSalesController::class, 'index']);
     Route::post('/import-sales/preview', [ImportSalesController::class, 'preview']);
