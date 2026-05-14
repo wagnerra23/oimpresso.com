@@ -125,7 +125,7 @@ Resultado: áudio/foto/texto mandado pelo WA Web/celular do mesmo número cai na
 - **P1**: Zero anti-ban patterns. Pacote `baileys-antiban` disponível (jitter Gaussian 1.5-4s + typing presence + 7d warmup chip novo) — PR #699 deployado
 - **P1**: LID resolution implementado custom (PRs #696 + #698)
 - **P1**: ffmpeg server-side ausente pra converter webm→opus/mp4 antes do `sendMessage()` (WhatsApp prefere mp4)
-- **P2**: Observabilidade — daemon `/metrics` Prometheus existe mas sem dashboard Grafana ou alertas configurados
+- **P2**: ~~Observabilidade — daemon `/metrics` Prometheus existe mas sem dashboard Grafana ou alertas configurados~~ **RESOLVIDO 2026-05-14** (Onda 1+2 gap analysis whatsapp-arch-arte): dashboard `infra/grafana/dashboards/whatsapp-baileys.json` 8 paineis + 10 alert rules `infra/prometheus/alerts/whatsapp.yml` + OTel traceparent propagation + webhook backpressure 429. Detalhes em [whatsapp-baileys-messages-canonical.md](whatsapp-baileys-messages-canonical.md)
 
 ## Subagent dedicado
 
