@@ -22,6 +22,7 @@ return [
     'icon'  => 'TrendingUp',
     'items' => [
         ['label' => 'Visão unificada',  'href' => '/financeiro/unificado',         'icon' => 'LayoutDashboard'],
+        ['label' => 'Fluxo de caixa',   'href' => '/financeiro/fluxo',             'icon' => 'BarChart3'],
         ['label' => 'A receber',        'href' => '/financeiro/contas-receber',    'icon' => 'TrendingUp'],
         ['label' => 'A pagar',          'href' => '/financeiro/contas-pagar',      'icon' => 'TrendingDown'],
         ['label' => 'Boletos',          'href' => '/financeiro/boletos',           'icon' => 'ClipboardList'],
