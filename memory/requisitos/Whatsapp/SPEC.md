@@ -1395,3 +1395,41 @@ Caso real 2026-05-13: stop pedido pelo Wagner causou logout permanente nos 2 can
 - Código: `Modules/Whatsapp/daemon-node/src/baileys/Instance.ts:217`, `InstanceManager.ts:70`, `src/server.ts:55`
 - Baileys docs: https://baileys.wiki/docs/api/connecting (sock.end vs sock.logout)
 - Caso real: turno Wagner-Claude 2026-05-13 16:43 UTC (logs `Intentional Logout` no SIGTERM)
+
+---
+
+## §10. Onda Arquitetura Técnica 2026-05-14 (pós-dogfood `whatsapp-arch-arte` nota 71/100)
+
+> 9 US criadas via tool MCP `tasks-create` em 14/05/2026 madrugada.
+> Detalhes completos em [memory/sessions/2026-05-14-arte-wa-structure.md](../../sessions/2026-05-14-arte-wa-structure.md).
+> Consulta backlog: `tasks-list module:Whatsapp status:todo`.
+
+### Onda 1 P0 (3-4 dias, sobe nota 71→80)
+
+- **US-WA-080** Canary 24h `QUEUE_CONNECTION=database` Hostinger (2h) — **DEPLOYED 2026-05-14**, aguarda canary
+- **US-WA-081** Dashboard Grafana 11 metrics Prometheus existentes (2h)
+- **US-WA-082** Replay protection HMAC + nonce no webhook receiver (3h)
+
+### Onda 2 P1 (1-2 semanas, sobe nota 80→88)
+
+- **US-WA-083** Trace OTel ponta-a-ponta Hostinger↔CT 100 (6h)
+- **US-WA-084** Backpressure formal: queue depth limit + drop policy (3h)
+- **US-WA-085** Alerting Prometheus zombies + drift + bans cross-tenant (2h) — `blocked_by: US-WA-081`
+
+### Onda 3 P3 — feature-wish ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md))
+
+Congelado em backlog até sinal qualificado de dor de cliente:
+
+- **US-WA-086** Horizontal scale daemon CT 100 sharding por business_id (80h) — ativar com >30 canais em prod
+- **US-WA-087** Multi-region failover DR (160h) — ativar com cliente enterprise SLA 99.9%
+- **US-WA-088** E2E encryption at rest creds Baileys MySQL (40h) — ativar com cliente B2B SOC2/ISO 27001
+
+### Diferenciais oimpresso preservados (nota 9/10)
+
+Documentados pelo dogfood pra não regredir em refactor futuro:
+
+- `MessagePersister` keyed `(business_id, provider_message_id)` UNIQUE + `firstOrCreate` + `wasRecentlyCreated`-aware backdating ([linhas 170-218](../../../Modules/Whatsapp/Services/Webhook/MessagePersister.php))
+- `antiBan.ts` Box-Muller Gaussian + circadian quiet hours + warmup quota progressive ([linhas 99-258](../../../Modules/Whatsapp/daemon-node/src/baileys/antiBan.ts))
+- ADR 0093 multi-tenant IRREVOGÁVEL com global scope
+- 11 métricas Prometheus dedicadas no daemon ([`metrics.ts`](../../../Modules/Whatsapp/daemon-node/src/observability/metrics.ts))
+
