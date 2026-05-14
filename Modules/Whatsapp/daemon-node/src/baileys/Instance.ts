@@ -260,9 +260,13 @@ export class Instance extends EventEmitter {
 
       // Chunk de messages pra evitar webhook payload > 2MB (default body limit)
       const CHUNK = 100;
+      // Sequencial com sleep entre chunks anti-burst (fix bug 2026-05-13):
+      // `void` dispatch paralelo saturava Hostinger PHP-FPM → 404 rate-limit
+      // → history.sync inteiro perdido. `await` + sleep 500ms garante backpressure.
+      const BURST_SLEEP_MS = 500;
       for (let i = 0; i < messages.length; i += CHUNK) {
         const slice = messages.slice(i, i + CHUNK);
-        void this.webhook.dispatch({
+        await this.webhook.dispatch({
           instance_id: this.meta.instance_id,
           business_uuid: this.meta.business_uuid,
           event: 'history.sync',
@@ -276,6 +280,10 @@ export class Instance extends EventEmitter {
             contacts: i === 0 ? contacts : undefined,
           },
         });
+        // Anti-burst: pausa entre chunks pra Hostinger PHP-FPM digerir
+        if (i + CHUNK < messages.length) {
+          await new Promise<void>((resolve) => setTimeout(resolve, BURST_SLEEP_MS));
+        }
       }
     });
   }

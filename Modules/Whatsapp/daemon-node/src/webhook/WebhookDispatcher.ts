@@ -22,7 +22,11 @@ export interface WebhookPayload {
   ts: string;
 }
 
-const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+// 404 INCLUÍDO no retryable (fix 2026-05-13): em burst de webhooks pra Hostinger
+// PHP-FPM saturado, retorno errôneo 404 disfarçando rate-limit transitório.
+// Trade-off: se channel realmente não existe (uuid errado), retry 5x polui log,
+// mas custo é só log. Sem retry, msgs históricas se perdem definitivo.
+const RETRYABLE_STATUS = new Set([404, 408, 425, 429, 500, 502, 503, 504]);
 
 export class WebhookDispatcher {
   constructor(
