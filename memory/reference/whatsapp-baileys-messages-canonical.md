@@ -194,17 +194,31 @@ Daemon emite **todas** pro webhook `history.sync` event — Hostinger filtra/ded
 
 **Inhibit rules:** DaemonDown silencia derivados; Ban silencia QrPending mesma instance.
 
-### 6.4 OTel tracing distribuído (US-WA-083)
+### 6.4 OTel tracing distribuído (US-WA-083 — fechado e2e 2026-05-14)
 
 **Daemon side (`WebhookDispatcher.ts`):**
 - Span `webhook.dispatch` cobre dispatch + todos retries
 - Atributos: `whatsapp.event`, `whatsapp.instance_id`, `whatsapp.business_uuid`, `http.status_code`, `http.attempt`
 - `propagation.inject(context.active(), traceHeaders)` injeta W3C `traceparent` (+`tracestate`)
+- **SDK init** depende de `OTEL_ENABLED=true` + `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318` no compose. Sem ambos, SDK retorna early → spans NoOp.
+
+**Jaeger CT 100 (backend):**
+- Single-container `jaegertracing/all-in-one:1.60` em `/opt/observability/jaeger/`
+- Storage in-memory 50k traces (volátil — restart perde)
+- Daemon Baileys precisa estar na network `observability` pra alcançar `jaeger:4318`
+- UI: Traefik → `jaeger.oimpresso.com` (DNS pendente) OU `tailscale ssh -L 16686:127.0.0.1:16686`
+- Doc dedicado: [observability-jaeger-ct100.md](observability-jaeger-ct100.md)
 
 **Hostinger side (`PropagateTraceparent` middleware):**
 - Extrai `traceparent` regex W3C (`00-{trace_id 32hex}-{parent_id 16hex}-{flags 2hex}`)
 - `Log::withContext(['trace_id', 'parent_span_id', 'sampled'])` — todos logs subsequentes carregam trace_id
-- **Lightweight bridge** — sem SDK PECL no Hostinger. Correlação via Loki cross-system. Evolução futura: container CT 101 com `ext-opentelemetry` → SDK full.
+- **Lightweight bridge** — sem SDK PECL no Hostinger. Correlação via log estruturado cross-system. Evolução futura: container CT 101 com `ext-opentelemetry` → SDK full Laravel.
+
+**Validação ponta-a-ponta:**
+```bash
+tailscale ssh root@ct100-mcp 'curl -s http://127.0.0.1:16686/api/services'
+# Deve retornar: {"data":["jaeger-all-in-one","whatsapp-baileys-daemon"],...}
+```
 
 ---
 
