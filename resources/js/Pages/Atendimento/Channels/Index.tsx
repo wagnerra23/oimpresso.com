@@ -50,6 +50,11 @@ interface Channel {
   zapi_instance_id: string | null;
   meta_phone_number_id: string | null;
   lgpd_acknowledged_at: string | null;
+  /**
+   * Wagner request 2026-05-14: botão "Importar Histórico" gated por
+   * feature flag por business_id no .env. Backend valida de novo no endpoint.
+   */
+  history_import_enabled: boolean;
 }
 
 interface TypeOption {
@@ -156,6 +161,44 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
     }
   }
 
+  // Wagner request 2026-05-14: importar histórico ~90d retroativo
+  async function startImportHistory(channel: Channel) {
+    if (!channel.history_import_enabled) {
+      // Defensive — botão deve estar disabled. Se chegou aqui é bug.
+      alert('Importação de histórico não está habilitada pra este canal.');
+      return;
+    }
+    if (!confirm(
+      `Importar histórico do canal "${channel.label}"?\n\n` +
+      `• Vai puxar mensagens até ~90 dias retroativos.\n` +
+      `• Processa em background, leva ~10min.\n` +
+      `• Mensagens aparecem progressivamente no Inbox.\n` +
+      `• Idempotente — pode rodar de novo sem duplicar.\n\n` +
+      `Confirmar?`
+    )) {
+      return;
+    }
+    try {
+      const r = await fetch(route('atendimento.channels.import-history', channel.id), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': (document.querySelector('meta[name=csrf-token]') as HTMLMetaElement)?.content || '',
+        },
+        credentials: 'same-origin',
+      });
+      const data = await r.json();
+      if (r.ok && data.ok) {
+        alert(data.message || 'Importação iniciada em background.');
+      } else {
+        alert((data.error || 'Erro desconhecido') + (data.gated ? '\n\nEntre em contato com o suporte oimpresso pra habilitar essa funcionalidade.' : ''));
+      }
+    } catch (e: any) {
+      alert('Erro de rede: ' + (e?.message || 'desconhecido'));
+    }
+  }
+
   // Poll status enquanto modal connect aberto
   useEffect(() => {
     if (!connecting) return;
@@ -208,6 +251,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
               channel={ch}
               onDelete={() => setConfirmDelete(ch)}
               onConnect={() => startConnect(ch)}
+              onImportHistory={() => startImportHistory(ch)}
             />
           ))}
         </div>
@@ -369,8 +413,8 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
 }
 
 function ChannelCard({
-  channel, onDelete, onConnect,
-}: { channel: Channel; onDelete: () => void; onConnect: () => void }) {
+  channel, onDelete, onConnect, onImportHistory,
+}: { channel: Channel; onDelete: () => void; onConnect: () => void; onImportHistory: () => void }) {
   const TypeIcon = channel.type.startsWith('whatsapp_') ? MessageCircle : Plug;
   const healthColor = {
     healthy: 'text-emerald-600 dark:text-emerald-400',
@@ -383,6 +427,14 @@ function ChannelCard({
   const showConnect = channel.type === 'whatsapp_baileys'
     && channel.status !== 'active'
     && channel.channel_health !== 'healthy';
+
+  // Wagner request 2026-05-14: botão "Importar Histórico" visível pra Baileys
+  // connected, MAS habilitado só se feature flag liberada (config por biz_id).
+  // Default disabled — Wagner libera manual no .env Hostinger pra cliente
+  // pagante: WHATSAPP_HISTORY_IMPORT_ENABLED_BIZ=1,7,42
+  const showImportHistory = channel.type === 'whatsapp_baileys'
+    && channel.status === 'active'
+    && channel.channel_health === 'healthy';
 
   return (
     <Card className="p-4 flex flex-col gap-2">
@@ -412,6 +464,23 @@ function ChannelCard({
             >
               <Zap size={14} aria-hidden />
               Conectar
+            </Button>
+          )}
+          {showImportHistory && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onImportHistory}
+              disabled={! channel.history_import_enabled}
+              title={
+                channel.history_import_enabled
+                  ? 'Importar histórico ~90 dias retroativos (processa em background ~10min)'
+                  : 'Funcionalidade Enterprise — entre em contato com o suporte oimpresso'
+              }
+              className="h-7 gap-1.5"
+              data-testid={`channel-card-import-history-${channel.id}`}
+            >
+              📥 Importar Histórico
             </Button>
           )}
           <Button variant="ghost" size="icon" onClick={onDelete} title="Remover canal" className="h-7 w-7">
