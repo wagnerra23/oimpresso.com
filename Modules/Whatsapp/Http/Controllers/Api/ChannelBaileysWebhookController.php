@@ -115,9 +115,89 @@ class ChannelBaileysWebhookController extends Controller
                 ])->save();
                 return response()->json(['ok' => true, 'note' => 'disconnected_recorded'], 200);
 
+            case 'history.sync':
+                // Batch de mensagens históricas vindo do messaging-history.set
+                // do Baileys daemon. Pode ser do pairing inicial (syncType 1/2)
+                // ou on-demand (syncType 6 via fetchMessageHistory).
+                // Chunked em batches de 100 msgs (anti-overflow webhook body).
+                // MessagePersister idempotente — re-run safe.
+                return $this->handleHistorySync($channel, $data);
+
             default:
                 return response()->json(['ok' => true, 'note' => 'unknown_event_ignored'], 200);
         }
+    }
+
+    /**
+     * Processa batch histórico messaging-history.set do daemon.
+     *
+     * Não persiste chats/contacts ainda (vai virar conversations no
+     * MessagePersister automaticamente quando 1ª msg do chat for processada).
+     * Foco aqui é msgs — origem do gap reportado por Wagner 2026-05-13.
+     *
+     * Idempotência: MessagePersister::persist() já é idempotente via
+     * `provider_message_id` UNIQUE — re-run do mesmo batch é no-op.
+     *
+     * @see Modules/Whatsapp/Services/Webhook/MessagePersister.php
+     */
+    protected function handleHistorySync(Channel $channel, array $data): JsonResponse
+    {
+        $syncType = (int) ($data['sync_type'] ?? 0);
+        $chunkIndex = (int) ($data['chunk_index'] ?? 0);
+        $chunkTotal = (int) ($data['chunk_total'] ?? 1);
+        $messages = (array) ($data['messages'] ?? []);
+
+        Log::info('[channel.baileys.history-sync]', [
+            'channel_id' => $channel->id,
+            'business_id' => $channel->business_id,
+            'sync_type' => $syncType,
+            'chunk_index' => $chunkIndex,
+            'chunk_total' => $chunkTotal,
+            'messages_count' => count($messages),
+        ]);
+
+        if (empty($messages)) {
+            return response()->json(['ok' => true, 'note' => 'history_chunk_empty'], 200);
+        }
+
+        $persisted = 0;
+        $skipped = 0;
+        $errors = 0;
+
+        foreach ($messages as $rawMsg) {
+            try {
+                // Reusa handleMessage existente — cada msg do batch passa pelo
+                // mesmo pipeline de inbound message (extrai phone, body, mídia,
+                // mapeia LID → PN, etc). Idempotente via provider_message_id.
+                $msgData = [
+                    'key' => $rawMsg['key'] ?? [],
+                    'message' => $rawMsg['message'] ?? [],
+                    'messageTimestamp' => $rawMsg['messageTimestamp'] ?? null,
+                    'pushName' => $rawMsg['pushName'] ?? null,
+                    'is_history_sync' => true, // sinal pro persister marcar origem
+                ];
+                $resp = $this->handleMessage($channel, $msgData);
+                if ($resp->getStatusCode() === 200) {
+                    $persisted++;
+                } else {
+                    $skipped++;
+                }
+            } catch (\Throwable $e) {
+                $errors++;
+                Log::warning('[channel.baileys.history-sync] erro persistindo msg', [
+                    'channel_id' => $channel->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'ok' => true,
+            'note' => 'history_chunk_persisted',
+            'persisted' => $persisted,
+            'skipped' => $skipped,
+            'errors' => $errors,
+        ], 200);
     }
 
     /**
