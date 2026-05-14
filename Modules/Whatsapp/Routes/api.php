@@ -47,9 +47,13 @@ Route::group(['prefix' => 'whatsapp/webhook'], function () {
 // Omnichannel webhook receiver (ADR 0135) — endereçado por channel_uuid
 // (em vez de business_uuid legacy). Daemon CT 100 deve apontar
 // WEBHOOK_BASE_URL pra: https://oimpresso.com/api/atendimento/channels/baileys
-// Auth: channel_uuid v4 (~122 bits entropia) como secret. HMAC futuro.
+//
+// US-WA-082: middleware `whatsapp.baileys.hmac` valida HMAC + replay
+// window 5min + nonce não-repetido. Backward compat: daemon antigo sem
+// headers passa direto (rollout gradual). API_KEY config no .env.
 Route::group(['prefix' => 'atendimento/channels'], function () {
     Route::post('/baileys/{channel_uuid}', [ChannelBaileysWebhookController::class, 'handle'])
         ->where('channel_uuid', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+        ->middleware('whatsapp.baileys.hmac')
         ->name('atendimento.channels.baileys.webhook');
 });

@@ -1,0 +1,304 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "US-WA-081 — Dashboard Grafana 11 metrics Prometheus daemon Baileys CT 100. Dogfood whatsapp-arch-arte 2026-05-14 identificou observability 6/10: counters existem mas dashboard NÃO em prod. Sobe nota observabilidade 6→8.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": true,
+      "title": "Runbook WhatsApp Doctor",
+      "tooltip": "Diagnóstico + recovery (purge banned, reconnect zombie, fallback Meta)",
+      "type": "link",
+      "url": "https://github.com/wagnerra23/oimpresso.com/blob/main/.claude/agents/whatsapp-doctor.md"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": true,
+      "title": "Runbook Daemon Rebuild CT 100",
+      "type": "link",
+      "url": "https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Whatsapp/runbooks/daemon-ct100-rebuild.md"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "text": "Disconnected", "color": "red" } }, "type": "value" },
+            { "options": { "0.5": { "text": "QR Required", "color": "yellow" } }, "type": "value" },
+            { "options": { "1": { "text": "Connected", "color": "green" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "whatsapp_baileys_session_state",
+          "instant": true,
+          "legendFormat": "{{instance_id}} (biz {{business_id}})",
+          "refId": "A"
+        }
+      ],
+      "title": "Session state per-instance (1=connected · 0.5=QR · 0=down)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Mensagens enviadas por segundo. Caps Meta: ~80 msg/s/número.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "sum(rate(whatsapp_baileys_send_total[5m])) by (status, kind)",
+          "legendFormat": "{{kind}} · {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Send rate (msgs/s) por kind + status",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Mensagens recebidas via webhook por segundo per-instance.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "sum(rate(whatsapp_baileys_recv_total[5m])) by (instance_id)",
+          "legendFormat": "{{instance_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Receive rate (msgs/s) per-instance",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Latência daemon → Whatsapp Web → ack em ms. Buckets: 50/100/250/500/1k/2.5k/5k/10k/30k.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(whatsapp_baileys_message_lag_ms_bucket[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(whatsapp_baileys_message_lag_ms_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(whatsapp_baileys_message_lag_ms_bucket[5m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "title": "Message lag p50/p95/p99 (ms)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Bans Meta detectados nas últimas 24h, cross-tenant. ≥3 em 24h = alarme P0 cross-tenant (runbook baileys-troubleshoot-ban.md §6).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(whatsapp_baileys_ban_detected_total[24h]))",
+          "instant": true,
+          "legendFormat": "Bans cross-tenant 24h",
+          "refId": "A"
+        }
+      ],
+      "title": "Bans cross-tenant 24h (alerta ≥3)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Zombies detectados pelo healthcheck (state=connected mas last_seen estagnado >threshold). Counter incrementa a cada hit do /health quando zombie. PR #821 + #817.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars", "fillOpacity": 80 }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "sum(increase(whatsapp_baileys_zombies_detected_total[5m])) by (instance_id)",
+          "legendFormat": "{{instance_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Zombies detectados (incrementos/5min per-instance)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Taxa de sucesso webhook dispatch daemon → Hostinger. Alerta se <90% por >5min.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.9 },
+              { "color": "green", "value": 0.99 }
+            ]
+          },
+          "unit": "percentunit",
+          "max": 1,
+          "min": 0
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "id": 7,
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(whatsapp_baileys_webhook_dispatch_total{outcome=\"ok\"}[5m])) / sum(rate(whatsapp_baileys_webhook_dispatch_total[5m]))",
+          "legendFormat": "Success rate 5m",
+          "refId": "A"
+        }
+      ],
+      "title": "Webhook dispatch success rate",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Source SHA do main que foi usado pra construir a imagem atual do daemon. PR #825 (drift sentinel). Bate com 'git rev-parse HEAD:Modules/Whatsapp/daemon-node/src' local.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 28 },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "whatsapp_baileys_daemon_source_sha",
+          "instant": true,
+          "legendFormat": "Daemon source SHA",
+          "refId": "A"
+        }
+      ],
+      "title": "Daemon source SHA (drift sentinel via /health)",
+      "type": "stat"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["whatsapp", "baileys", "oimpresso"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "America/Sao_Paulo",
+  "title": "WhatsApp Baileys Daemon (CT 100)",
+  "uid": "whatsapp-baileys-ct100",
+  "version": 1,
+  "weekStart": ""
+}
