@@ -12,6 +12,7 @@ use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\ChannelResetCommand;
+use Modules\Whatsapp\Console\Commands\CleanupStaleJobsCommand;
 use Modules\Whatsapp\Console\Commands\CleanupWebhookNoncesCommand;
 use Modules\Whatsapp\Console\Commands\ChannelsReconcilerCommand;
 use Modules\Whatsapp\Console\Commands\DaemonSourceDriftCheckCommand;
@@ -29,6 +30,8 @@ use Modules\Whatsapp\Events\OmnichannelMessageReceived;
 use Modules\Whatsapp\Events\OmnichannelMessageSent;
 use Modules\Whatsapp\Events\WhatsappMessageReceived;
 use Modules\Whatsapp\Events\WhatsappMessageSent;
+use Modules\Whatsapp\Http\Middleware\EnforceWebhookBackpressure;
+use Modules\Whatsapp\Http\Middleware\PropagateTraceparent;
 use Modules\Whatsapp\Http\Middleware\VerifyBaileysSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyBaileysWebhookHmac;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
@@ -93,6 +96,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 ChannelsReconcilerCommand::class,       // 2026-05-13 — auto-fix drift channels↔daemon (cron 5min)
                 ChannelResetCommand::class,             // 2026-05-13 — reset 1-comando channel travado
                 CleanupWebhookNoncesCommand::class,     // US-WA-082 — purga nonces >24h (replay protection cleanup)
+                CleanupStaleJobsCommand::class,         // US-WA-084 — purga jobs presos da fila whatsapp-history (>6h)
                 DaemonSourceDriftCheckCommand::class,   // 2026-05-13 — alerta drift main↔daemon CT 100 (cron weekly)
             ]);
         }
@@ -139,6 +143,10 @@ class WhatsappServiceProvider extends ServiceProvider
         $router->aliasMiddleware('whatsapp.baileys.signature', VerifyBaileysSignature::class);
         // US-WA-082 — Replay protection HMAC + nonce no webhook receiver Baileys
         $router->aliasMiddleware('whatsapp.baileys.hmac', VerifyBaileysWebhookHmac::class);
+        // US-WA-084 — Backpressure protetiva (429 quando queue depth > max)
+        $router->aliasMiddleware('whatsapp.baileys.backpressure', EnforceWebhookBackpressure::class);
+        // US-WA-083 — Propaga `traceparent` W3C do daemon → Log context
+        $router->aliasMiddleware('whatsapp.otel.propagate', PropagateTraceparent::class);
     }
 
     public function register(): void

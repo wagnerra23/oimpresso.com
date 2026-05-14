@@ -411,6 +411,19 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->environments(['live']);
 
+        // US-WA-084 — Cleanup jobs presos na fila `whatsapp-history` (>6h
+        // default). Worker crashou mid-flight ou jobs órfãos consumindo queue
+        // depth sem progresso → backpressure dispararia 429 sem necessidade.
+        $schedule->command('whatsapp:jobs-cleanup-stale')
+            ->hourly()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:jobs-cleanup-stale FALHOU — backpressure pode disparar falso-positivo'
+                );
+            });
+
         // Drift sentinel daemon CT 100 (semanal segunda 09:00 BRT) — alerta se
         // source do daemon prod ficou desatualizado vs main local. Catalogado
         // 2026-05-13: ~15 commits drift descoberto na unha durante incidente.
