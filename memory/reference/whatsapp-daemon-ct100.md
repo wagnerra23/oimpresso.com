@@ -60,14 +60,33 @@ tailscale ssh root@ct100-mcp 'cd /opt/whatsapp-baileys && \
 
 ## Purgar session SEM restart daemon (preserva outras instances)
 
+> ⚠️ **PEGADINHA CRÍTICA 2026-05-14:** `DELETE /instances/{id}` no daemon API NÃO limpa
+> `whatsapp_baileys_auth_state` table em MySQL Hostinger (PR #701 `useMySQLAuthState`).
+> Próximo POST /connect tentará `logging in` com keys MySQL antigas → banned silencioso.
+> **Para forçar QR fresh, é necessário purgar AMBOS: daemon API + MySQL row.**
+
 ```bash
-KEY=<chave do Vaultwarden>
-IP=$(docker inspect whatsapp-baileys --format "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}")
-# Purga só uma instance (UI: clica "Conectar" depois gera QR fresh)
-curl -s -X DELETE -H "Authorization: Bearer $KEY" \
-  "http://$IP:3000/instances/ch-<uuid_sem_hifens>"
-# Equivalente a deletar pasta /srv/docker/whatsapp-baileys/sessions/ch-<uuid>/
-# MAS sem força daemon a restart (outras instances continuam conectadas)
+# 1) Purga socket em memória + FS sessions (via daemon API)
+tailscale ssh root@ct100-mcp 'KEY=$(docker exec whatsapp-baileys cat /run/secrets/whatsapp_baileys_api_key); curl -s -X DELETE -H "Authorization: Bearer $KEY" http://172.18.0.16:3000/instances/ch-<uuid_sem_hifens>'
+
+# 2) Purga MySQL auth state (44 rows por instance típico)
+tailscale ssh root@ct100-mcp 'docker exec whatsapp-baileys node -e "
+const mysql = require(\"mysql2/promise\");
+(async () => {
+  const c = await mysql.createConnection({
+    host: process.env.MYSQL_AUTH_STATE_HOST,
+    user: process.env.MYSQL_AUTH_STATE_USER,
+    password: process.env.MYSQL_AUTH_STATE_PASS,
+    database: process.env.MYSQL_AUTH_STATE_DB,
+    port: Number(process.env.MYSQL_AUTH_STATE_PORT)
+  });
+  const [r] = await c.query(\"DELETE FROM whatsapp_baileys_auth_state WHERE instance_id = ?\", [\"ch-<uuid_sem_hifens>\"]);
+  console.log(\"deleted:\", r.affectedRows);
+  await c.end();
+})().catch(e => { console.error(e.message); process.exit(1); });
+"'
+
+# 3) UI → Conectar → daemon NÃO encontra credentials → gera QR fresh
 ```
 
 ## Anti-QR-fest (PRs #685 + #686 mergeados 2026-05-12)
