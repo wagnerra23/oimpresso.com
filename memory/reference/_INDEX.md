@@ -41,7 +41,7 @@
 ## Tests & deploy
 
 - [tests-pest-canon.md](tests-pest-canon.md) — workflow Modules Pest, YAML traps, SQLite guard, dual-mode SQLite/MySQL, Event::fake bridge listeners, setup worktree, PowerShell env vars inline
-- [deploy-recovery-patterns.md](deploy-recovery-patterns.md) — composer install obrigatório, quick-sync fallback SSH, tela branca Inertia, recovery tabela órfã DDL
+- [deploy-recovery-patterns.md](deploy-recovery-patterns.md) — composer install obrigatório, quick-sync fallback SSH, tela branca Inertia, recovery tabela órfã DDL, §2.1 checklist "tela nova não aparece pós-merge" (caso 2026-05-14 PRs #838/#839)
 - [branch-protection-admin-merge.md](branch-protection-admin-merge.md) — check "ADR frontmatter" só roda se PR toca decisions/, admin merge legítimo
 
 ## Legacy & migração
