@@ -37,6 +37,13 @@ class ContextSnapshotService
             ? (int) DB::table('contacts')->where('business_id', $businessId)->where('type', 'customer')->count()
             : (int) DB::table('business')->count();
 
+        // 2026-05-14: Injetar profile_text do jana_business_profile como observacoes.
+        // ProfileDistiller (ou seed manual) escreve perfil rico do negocio aqui.
+        // ChatCopilotoAgent::formatarContextoNegocio inclui no system prompt.
+        $observacoes = $businessId
+            ? DB::table('jana_business_profile')->where('business_id', $businessId)->value('profile_text')
+            : null;
+
         return new ContextoNegocio(
             businessId:      $businessId,
             businessName:    $businessName,
@@ -44,7 +51,7 @@ class ContextSnapshotService
             clientesAtivos:  $clientesAtivos,
             modulosAtivos:   [], // TODO: ler de modules_statuses.json
             metasAtivas:     $this->metasAtivas($businessId),
-            observacoes:     null,
+            observacoes:     $observacoes ?: null,
         );
     }
 
