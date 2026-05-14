@@ -82,6 +82,33 @@ ssh ... 'cd ~/domains/oimpresso.com/public_html && \
 
 Validado 2026-05-10: PRs #440 e #456 falharam workflow, fallback resolveu 2x.
 
+### 2.1 Checklist "tela nova não aparece em prod pós-merge"
+
+Disparo: Wagner mergeou PR no GitHub, tenta abrir feature em prod, e não funciona (404, sidebar sem entrada, ou cache antigo). Protocolo direto:
+
+```bash
+# 1) Em qual commit Hostinger está agora?
+ssh hostinger 'cd ~/domains/oimpresso.com/public_html && git log --oneline -3'
+
+# 2) Compare com origin/main
+gh api repos/wagnerra23/oimpresso.com/commits/main --jq '.sha[:9]'
+
+# 3) Se Hostinger atrás → quick-sync rodou?
+gh run list --workflow=quick-sync.yml --limit 5
+
+# 4) Se conclusion=failure → fallback SSH manual da §2 acima
+# 5) Se npm run build necessário (novo .tsx/.ts/.css) → §2 também cobre
+```
+
+**Caso real 2026-05-14 (saga F3 Fluxo de caixa US-FIN-014):**
+- PRs #838 + #839 mergeados em ~7:24/7:25 BRT
+- `quick-sync.yml` rodou pro #838 mas falhou em **Setup SSH** em 12s (`ssh-keyscan -p *** -H *** ...` timeout — flaky idêntico pattern §2)
+- Hostinger ficou em commit `d1d48380e` (anterior aos meus 2 merges) — confirmado via SSH read-only
+- Wagner abriu `oimpresso.com/jana` no Brave esperando ver feature nova → sidebar Financeiro ainda só tinha 4 itens (sem "Fluxo de caixa") porque `Modules/Financeiro/Resources/menus/topnav.php` em prod era versão antiga
+- Fix: rodar §2 fallback (git reset --hard origin/main + npm run build:inertia + optimize:clear)
+
+**Lição:** após qualquer merge importante que cria tela nova / adiciona entry topnav / modifica controller, **sempre verificar `gh run list --workflow=quick-sync.yml --limit 1` ANTES** de dizer "tá em prod" pro Wagner. Falha silenciosa do workflow é o pattern dominante de "tela não aparece".
+
 ## 3. Tela branca Inertia pós optimize:clear = cache stale do bundle
 
 **Não é regressão real** — tab Chrome com bundle JS antigo trava após `optimize:clear`.
