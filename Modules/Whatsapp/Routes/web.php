@@ -166,6 +166,14 @@ Route::group([
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.status');
 
+    // Wagner request 2026-05-14: importar histórico ~90d retroativo gated por
+    // feature flag por business_id (`config('whatsapp.history_import.enabled_business_ids')`).
+    // Endpoint valida de novo no Controller — defense-in-depth.
+    Route::post('/canais/{id}/import-history', [ChannelsController::class, 'importHistory'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.import-history');
+
     // US-WA-068: ACL atendente↔canal (grant/revoke)
     Route::post('/canais/{id}/users', [ChannelsController::class, 'grantUser'])
         ->whereNumber('id')
