@@ -380,6 +380,21 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Drift sentinel daemon CT 100 (semanal segunda 09:00 BRT) — alerta se
+        // source do daemon prod ficou desatualizado vs main local. Catalogado
+        // 2026-05-13: ~15 commits drift descoberto na unha durante incidente.
+        // Cron weekly + log warning permite catch antes de drift virar bug
+        // (rebuild falha por compatibility de versions).
+        $schedule->command('whatsapp:daemon-source-drift-check')
+            ->weeklyOn(1, '09:00') // segunda-feira 09:00
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:daemon-source-drift-check FALHOU — daemon CT 100 pode estar offline'
+                );
+            });
+
         // Guardião 6 camadas anti-mídia-perdida — Camada 4 (retry hourly).
         // Rede de proteção pra mídia órfã (status=pending|downloading, media_url=null,
         // attempts<5, criada nos últimos 7d). Dispatcha DownloadMediaJob pra cada.
