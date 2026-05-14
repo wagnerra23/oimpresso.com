@@ -37,6 +37,7 @@
 - [whatsapp-permissions-spatie.md](whatsapp-permissions-spatie.md) — bug histórico (whatsapp.* nunca registradas em prod) + comando `whatsapp:register-permissions` (PR #665)
 - [atendimento-inbox-state-2026-05-12.md](atendimento-inbox-state-2026-05-12.md) — estado funcional pós-CYCLE-05 (o que faz/parcial/falta)
 - [meta-whatsapp-tech-provider.md](meta-whatsapp-tech-provider.md) — Tech Provider Meta direto + Embedded Signup pra escalar 4000+ clientes (Agrosys deal)
+- [observability-jaeger-ct100.md](observability-jaeger-ct100.md) — Jaeger all-in-one CT 100 (deploy/OTLP/Traefik/troubleshoot/evolução Tempo) + integração daemon Baileys via network `observability`. US-WA-083 fechado 2026-05-14
 
 ## Tests & deploy
 
