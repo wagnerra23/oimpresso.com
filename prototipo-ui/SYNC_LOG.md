@@ -51,3 +51,12 @@
 2026-05-11 21:45 [CL] re-extraiu ZIP e copiou HTMLs/JSX por módulo: criou 5 dirs novos (compras, os, clientes, orcamento, chat) + populou produto, produto-cockpit, produto-unificado, sells-create, vendas-cockpit, inventario-migracao, producao-oficina com visual-source.html + cowork-*.jsx
 2026-05-11 21:45 [CL] decisão arquitetural: identidade visual canônica = shared components em prod (KpiCard, PageHeader, StatusBadge, AppShellV2). HTMLs/JSX do ZIP = mockups por tela (referência F1). Refator em prod aplica shared components garantindo consistência automática.
 2026-05-11 21:45 [CL] removeu _zip-novo-2026-05-11/ definitivamente — todo material consolidado em prototipos/
+2026-05-14 06:30 [W]  extraiu Oimpresso-handoff.zip (export Claude Design) e pediu auditoria do template chat da Jana
+2026-05-14 06:30 [CL] confirmou bundle completo (40 imports presentes, 8 CSS + 32 JS/JSX, sem deps externas faltando)
+2026-05-14 06:35 [CL] revisão crítica chat.jsx — descobriu que template é WhatsApp-style multi-purpose, NÃO chat IA da Jana. Modules/Whatsapp/ (omnichannel ADR 0096+0135) é o canal correto pra atendimento humano
+2026-05-14 06:40 [CL] nota inicial 42/100 (considerando ambíguo entre IA e atendimento)
+2026-05-14 06:45 [W]  esclareceu: chat = só Jana, atendimento = Modules/Whatsapp omnichannel
+2026-05-14 06:50 [CL] reavaliou: nota revisada 24/100 vs Glean Chat / ChatGPT Enterprise / Notion AI / Microsoft Copilot M365 (2026) — 0/6 P0 charter fechados, vocabulário humano vazado, 4 kinds IA ausentes
+2026-05-14 06:55 [CL] escreveu COWORK_NOTES.amendment-jana-chat-block-renderer.md — 19 divergências catalogadas (5 anti-patterns charter + 7 vocabulário humano + 7 features IA ausentes) + correção formal item-por-item + critério F1.5 ≥80
+2026-05-14 06:55 [CL] appendou resumo executivo do amendment em COWORK_NOTES.md (principal) + atualizou HANDOFF.md sinalizando F0.5 amendment P0 bloqueia F3 Jana
+2026-05-14 06:55 [CL] aguarda decisão Wagner: opção A (atacar Jana V2 primeiro — [CC] gera V2 com 4 kinds tipados + streaming + citations) vs opção B (atacar Financeiro/Fluxo primeiro)
