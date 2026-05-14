@@ -562,6 +562,90 @@ class ChannelsController extends Controller
     }
 
     /**
+     * Importa histórico ~90d retroativo de um canal Baileys já conectado.
+     *
+     * **Wagner request 2026-05-14:** botão UI gated por feature flag — só
+     * libera pra cliente enterprise pagante. Default DESABILITADO via
+     * `config('whatsapp.history_import.enabled_business_ids')` (lista vazia).
+     *
+     * **Como ativar pra um cliente:** Wagner adiciona biz_id ao .env Hostinger:
+     *   WHATSAPP_HISTORY_IMPORT_ENABLED_BIZ=1,7,42
+     *
+     * **Como funciona:**
+     * 1. Valida channel.type=whatsapp_baileys + status=active
+     * 2. Valida biz_id está na whitelist do .env (403 senão)
+     * 3. Chama `whatsapp:import-history --channel=N --since=90d` artisan
+     *    (US-WA-080 já existente — usa fetchMessageHistory PDO Baileys)
+     * 4. Dispatch Job background pra não travar UI
+     * 5. Retorna 202 + estimated_minutes pro frontend mostrar progress
+     *
+     * **NOTA:** este endpoint NÃO faz pareamento novo (re-pair gera novo QR).
+     * Usa instance JÁ CONECTADA pra puxar histórico on-demand. Wagner pode
+     * rodar quantas vezes quiser (idempotente via provider_message_id UNIQUE).
+     *
+     * @see Modules/Whatsapp/Console/Commands/ImportHistoryCommand.php
+     */
+    public function importHistory(int $id): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $channel = Channel::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        // Gate 1: só baileys (Z-API/Meta Cloud não suportam fetchMessageHistory)
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Importação de histórico só disponível pra canais Baileys.',
+            ], 422);
+        }
+
+        // Gate 2: feature flag por business_id (Wagner libera manual no .env)
+        $enabledBizIds = (array) config('whatsapp.history_import.enabled_business_ids', []);
+        if (! in_array($businessId, $enabledBizIds, true)) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Importação de histórico não está habilitada pra este negócio. '
+                    . 'Funcionalidade Enterprise — entre em contato com o suporte oimpresso.',
+                'gated' => true,
+            ], 403);
+        }
+
+        // Gate 3: channel precisa estar conectado (fetchMessageHistory exige socket vivo)
+        if ($channel->status !== 'active' || $channel->channel_health !== 'healthy') {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Canal precisa estar conectado e saudável pra importar histórico. '
+                    . "Status atual: {$channel->status} / health: {$channel->channel_health}.",
+            ], 422);
+        }
+
+        // Dispatch comando artisan em background — Wagner já tem worker queue
+        // rodando via cron (Kernel.php) que pega Jobs queue=whatsapp-history.
+        // Aqui chamamos o command direto via Artisan facade (synchronous mas
+        // ele próprio dispatcha Jobs internos pra cada batch — não trava o
+        // request HTTP por minutos).
+        \Illuminate\Support\Facades\Artisan::queue('whatsapp:import-history', [
+            '--channel' => $channel->id,
+            '--since' => '90d',
+            '--max' => 2000,
+            '--sleep' => 1500,
+        ]);
+
+        \Illuminate\Support\Facades\Log::info('[channel.import-history]', [
+            'channel_id' => $channel->id,
+            'business_id' => $businessId,
+            'requested_by' => session('user.id'),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Importação iniciada em background. Mensagens vão aparecer no Inbox progressivamente nos próximos ~10min.',
+            'estimated_minutes' => 10,
+        ], 202);
+    }
+
+    /**
      * Converte Channel pra payload UI — esconde tokens dentro de config_json.
      * Só metadados + flags `has_*` por driver chegam ao frontend.
      */
@@ -592,6 +676,11 @@ class ChannelsController extends Controller
             'baileys_phone_e164' => $cfg['baileys_phone_e164'] ?? null, // não-secreto
             'zapi_instance_id' => $cfg['zapi_instance_id'] ?? null,     // não-secreto
             'meta_phone_number_id' => $cfg['meta_phone_number_id'] ?? null, // não-secreto
+            // Wagner request 2026-05-14: botão "Importar Histórico" gated por
+            // feature flag por business_id. Frontend checa pra renderizar
+            // botão habilitado/desabilitado. Backend valida de novo no endpoint.
+            'history_import_enabled' => $channel->type === Channel::TYPE_WHATSAPP_BAILEYS
+                && in_array($channel->business_id, (array) config('whatsapp.history_import.enabled_business_ids', []), true),
             'created_at' => optional($channel->created_at)->toIso8601String(),
         ];
     }
