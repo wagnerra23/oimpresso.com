@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { registry } from '../../observability/metrics';
+import { registry, zombiesDetectedCounter } from '../../observability/metrics';
 import type { InstanceManager } from '../../baileys/InstanceManager';
 import type { InstanceSnapshot } from '../../baileys/Instance';
 import type { Env } from '../../config/env';
@@ -41,6 +41,13 @@ export const healthRoutes: FastifyPluginAsync<Deps> = async (app, deps) => {
     const instances = deps.manager.list();
     const zombies = detectZombies(instances, deps.env.HEALTH_ZOMBIE_THRESHOLD_MS);
 
+    // Incrementa counter Prometheus ANTES de retornar — permite alertar via
+    // OTel (Grafana/Prometheus) antes do Docker policy disparar restart
+    // silencioso. 1 incremento por zombie detectado por hit do healthcheck.
+    for (const z of zombies) {
+      zombiesDetectedCounter.inc({ instance_id: z.instance_id });
+    }
+
     const body = {
       status: zombies.length > 0 ? 'degraded' : 'ok',
       uptime_seconds: Math.floor((Date.now() - deps.startedAt.getTime()) / 1000),
@@ -60,9 +67,8 @@ export const healthRoutes: FastifyPluginAsync<Deps> = async (app, deps) => {
     };
 
     // 503 quando degraded — Docker healthcheck (HEALTHCHECK CMD curl -f /health)
-    // detecta como unhealthy → restart policy reage. CT 100 Proxmox observer pode
-    // alertar via OTel também (label `whatsapp_baileys_health_zombie_total` em
-    // metrics.ts é o próximo passo natural — fora deste PR).
+    // detecta como unhealthy → restart policy reage. CT 100 Proxmox alerta via
+    // counter `whatsapp_baileys_zombies_detected_total` ANTES do restart.
     return reply.code(zombies.length > 0 ? 503 : 200).send(body);
   });
 

@@ -109,4 +109,31 @@ class Channel extends Model
             self::TYPE_WHATSAPP_BAILEYS,
         ], true);
     }
+
+    /**
+     * Convenção canônica do instance_id no daemon Baileys CT 100:
+     * `ch-{channel_uuid sem hífens}`.
+     *
+     * Centralizado aqui pra evitar drift entre ChannelObserver (que dispatcha
+     * DeleteBaileysInstanceJob) e qualquer futuro código que precise resolver
+     * o instance_id correspondente a um Channel. Caso real validado em
+     * produção 2026-05-13: `ch-88b13697b89e451cb65be917533bab21` (MARTINHO
+     * CAÇAMBAS biz=164).
+     *
+     * Retorna null quando `channel_uuid` ausente OU type ≠ baileys (defensive —
+     * Z-API e Meta Cloud não rodam no daemon CT 100).
+     *
+     * @see Modules/Whatsapp/Observers/ChannelObserver.php
+     * @see Modules/Whatsapp/Jobs/DeleteBaileysInstanceJob.php
+     */
+    public function baileysInstanceId(): ?string
+    {
+        if ($this->type !== self::TYPE_WHATSAPP_BAILEYS) {
+            return null;
+        }
+        if (empty($this->channel_uuid)) {
+            return null;
+        }
+        return 'ch-' . str_replace('-', '', (string) $this->channel_uuid);
+    }
 }
