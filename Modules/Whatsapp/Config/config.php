@@ -90,6 +90,29 @@ return [
         'rate_limit_per_minute' => 600,
     ],
 
+    /*
+     * US-WA-084 — Backpressure protetiva no webhook receiver Baileys.
+     *
+     * Quando a fila `whatsapp-history` (queue:database) acumula mais do que
+     * `queue_max_depth` jobs pendentes, o middleware EnforceWebhookBackpressure
+     * retorna 429 com Retry-After. Daemon Node respeita (já tem 429 no
+     * RETRYABLE_STATUS) e dropa carga, evitando saturar PHP-FPM.
+     *
+     * Drop policy: 429 é melhor que 500/timeout porque daemon faz exponential
+     * backoff e a msg fica preservada no SQLite local até receiver normalizar.
+     *
+     * Cleanup stale: jobs presos >`stale_job_max_age_hours` ficam órfãos
+     * (worker crashed mid-flight, reserved_at sem tocar há horas). Command
+     * `whatsapp:jobs-cleanup-stale` purga + loga.
+     */
+    'backpressure' => [
+        'enabled' => (bool) env('WHATSAPP_BACKPRESSURE_ENABLED', true),
+        'queue_max_depth' => (int) env('WHATSAPP_QUEUE_MAX_DEPTH', 2000),
+        'queue_name' => env('WHATSAPP_BACKPRESSURE_QUEUE', 'whatsapp-history'),
+        'retry_after_seconds' => (int) env('WHATSAPP_BACKPRESSURE_RETRY_AFTER', 30),
+        'stale_job_max_age_hours' => (int) env('WHATSAPP_STALE_JOB_MAX_AGE_HOURS', 6),
+    ],
+
     'centrifugo' => [
         // ADR 0058 — Centrifugo CT 100 substituiu Reverb (Hostinger HTTP-only não roda daemons).
         // Subdomain canônico ADR 0058 = `realtime.oimpresso.com` (NÃO `centrifugo.*` que é só
