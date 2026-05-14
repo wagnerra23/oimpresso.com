@@ -1,9 +1,13 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { request } from 'undici';
+import { context, propagation, SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import type { Logger } from 'pino';
 import type { Env } from '../config/env';
 import { webhookDispatchCounter, webhookLatencyHistogram } from '../observability/metrics';
+
+// US-WA-083 — OTel tracing distribuído daemon ↔ Hostinger
+const tracer = trace.getTracer('whatsapp-baileys-daemon-webhook', '1.0.0');
 
 export type WebhookEvent =
   | 'message'
@@ -36,9 +40,42 @@ export class WebhookDispatcher {
   ) {}
 
   async dispatch(payload: Omit<WebhookPayload, 'ts'>): Promise<void> {
+    // US-WA-083 — span pai cobre dispatch inteiro (todos os retries).
+    // Hostinger Laravel extrai `traceparent` via PropagateTraceparent middleware
+    // e correlaciona logs com este span (Tempo/Jaeger se OTel ativo).
+    const span = tracer.startSpan('webhook.dispatch', {
+      kind: SpanKind.CLIENT,
+      attributes: {
+        'whatsapp.event': payload.event,
+        'whatsapp.instance_id': payload.instance_id,
+        'whatsapp.business_uuid': payload.business_uuid,
+      },
+    });
+
+    try {
+      await context.with(trace.setSpan(context.active(), span), async () => {
+        await this.dispatchWithSpan(payload, span);
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
+    } catch (err) {
+      span.recordException(err instanceof Error ? err : new Error(String(err)));
+      span.setStatus({ code: SpanStatusCode.ERROR });
+      throw err;
+    } finally {
+      span.end();
+    }
+  }
+
+  private async dispatchWithSpan(payload: Omit<WebhookPayload, 'ts'>, span: ReturnType<typeof tracer.startSpan>): Promise<void> {
     const fullPayload: WebhookPayload = { ...payload, ts: new Date().toISOString() };
     const url = `${this.env.WEBHOOK_BASE_URL.replace(/\/+$/, '')}/${encodeURIComponent(payload.business_uuid)}`;
     const bodyJson = JSON.stringify(fullPayload);
+
+    // W3C Trace Context: injeta `traceparent` (+ `tracestate`) header pro Laravel
+    // continuar o trace. Idempotente entre retries — Hostinger só correlaciona
+    // o 1º arrival válido (nonce já garante dedup).
+    const traceHeaders: Record<string, string> = {};
+    propagation.inject(context.active(), traceHeaders);
 
     // US-WA-082 — Replay protection HMAC + nonce.
     // Hostinger middleware `VerifyBaileysWebhookHmac` valida:
@@ -68,11 +105,15 @@ export class WebhookDispatcher {
             'x-baileys-nonce': nonce,
             'x-baileys-ts': tsEpoch,
             'x-baileys-signature': signature,
+            ...traceHeaders, // US-WA-083 traceparent (+tracestate)
           },
           body: bodyJson,
           bodyTimeout: this.env.WEBHOOK_TIMEOUT_MS,
           headersTimeout: this.env.WEBHOOK_TIMEOUT_MS,
         });
+
+        span.setAttribute('http.status_code', statusCode);
+        span.setAttribute('http.attempt', attempt);
 
         webhookLatencyHistogram.observe({ event: payload.event }, Date.now() - start);
         await body.dump();
