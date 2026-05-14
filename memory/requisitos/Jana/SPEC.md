@@ -797,3 +797,45 @@ Salvar em `memory/requisitos/Jana/smoke-2026-05-10.md`.
 
 **Disparo:** Auditoria de completude 2026-05-10.
 **Tags:** completeness-gap, from-skill, audit-2026-05-10, smoke-mcp
+
+### US-COPI-105 · Jana Chat V2 — block renderer (4 kinds) + streaming + citations + atalhos
+
+> owner: wagner · priority: p1 · estimate: 24h · status: todo · type: story
+> blocked_by: —
+
+Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jana-chat-block-renderer.md` (PR #839, sessão 2026-05-14).
+
+**Estado atual:** V0 em prod mostra problemas catalogados (topnav 9-10 itens vs charter ≤6, empty empurrado pra ⅔ tela, avatar "CP" não-canon, lista repetida "Nova conversa", sem block renderer, sem streaming token-a-token, sem citations). Score 24/100 vs Glean/ChatGPT Enterprise/Notion AI/Copilot M365 (2026).
+
+**Protótipo F1 V2 navegável** existe em `prototipo-ui/prototipos/chat/cowork-app-v2.jsx`:
+- JanaAvatar quadrado mono "J" `bg-primary`
+- 4 block kinds: MarkdownBubble (citations `[1][2]`) + ToolUseChip + DataTableBubble + ActionCardBubble (`confirm_required`)
+- ThinkingIndicator 1-pulse (substitui 3-dots loop anti-pattern)
+- Streaming mock SSE chunks
+- Atalhos `/`, `J/K`, `Esc`, `⌘K`
+- PII detector regex CPF/CNPJ/cartão composer
+- 4 prompt chips empty state
+- Chip business `LARISSA · biz=4` no header
+- Tabs canon `Todas / Minhas / Compartilhadas / Arquivadas`
+
+**Próximo passo:** [CC] Claude Cowork consome trio (pedido #316 + amendment-avatar 2026-05-09 + amendment-block-renderer 2026-05-14) → gera V2 oficial → [CD] critique F1.5 score ≥80 → F2 screenshot Wagner → [CL] F3 em `resources/js/Pages/Jana/Chat.tsx`.
+
+**Bloqueia:** F3 Inertia real até F1.5 ≥80 do V2 oficial Cowork.
+
+**Acceptance criteria (F3):**
+- 0 anti-patterns Bloco A (5 itens) reaparecidos
+- 0 vocabulário humano vazado Bloco B (7 itens removidos: read receipts, botão ligar, online dot, etc)
+- 4 kinds renderer funcionando (Pest GUARD response shape)
+- Streaming token-a-token via SSE/Centrifugo (latência <800ms primeiro token p95)
+- Citations inline clicáveis → expand source card
+- PII detector funcional no composer
+- Cabe 1280px sem scroll horizontal
+- Pest GUARD: charter Métricas Vivas (12 testes em Chat.charter.md)
+
+**Refs:**
+- Charter `resources/js/Pages/Jana/Chat.charter.md` (canon)
+- `prototipo-ui/COWORK_NOTES.amendment-jana-chat-block-renderer.md` (19 divergências)
+- PR #839 amendment + protótipo V2 navegável
+- ADR ui/0114 loop Cowork + ADR 0107 gate F1.5
+
+**Estimate:** 24h total — [CC] V2 (~6h) + [CD] critique (~1h) + [CL] F3 Inertia (~16h IA-pair) + Wagner aprovação (~1h)
