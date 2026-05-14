@@ -13,6 +13,7 @@ use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\ChannelResetCommand;
 use Modules\Whatsapp\Console\Commands\ChannelsReconcilerCommand;
+use Modules\Whatsapp\Console\Commands\DaemonSourceDriftCheckCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Console\Commands\ImportHistoryCommand;
 use Modules\Whatsapp\Console\Commands\LidBackfillCommand;
@@ -89,6 +90,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 MetricsAggregateCommand::class,         // US-WA-021/041 — snapshot diário métricas (CYCLE-07 PR-3)
                 ChannelsReconcilerCommand::class,       // 2026-05-13 — auto-fix drift channels↔daemon (cron 5min)
                 ChannelResetCommand::class,             // 2026-05-13 — reset 1-comando channel travado
+                DaemonSourceDriftCheckCommand::class,   // 2026-05-13 — alerta drift main↔daemon CT 100 (cron weekly)
             ]);
         }
 

@@ -1,0 +1,110 @@
+name: Daemon Baileys Docker Build
+
+# Gatilho: PRs que mexem em Modules/Whatsapp/daemon-node/**
+# Faz docker build do daemon E roda vitest + tsc dentro do container build.
+# Pega o tipo de bug detectado em 2026-05-13 ANTES do merge:
+#   - groupadd: group 'daemon' already exists (Dockerfile clash com base image)
+#   - TS compile errors em Instance.ts (Cannot find module './antiBan')
+#   - npm install quebrado
+#
+# Sem este workflow, o build só rompe quando deployamos prod no CT 100 —
+# tarde demais. Aqui CI bloqueia merge se Docker build não passa.
+#
+# @see memory/sessions/2026-05-13-whatsapp-incident-zombie-banned-loop.md
+# @see memory/requisitos/Whatsapp/runbooks/daemon-ct100-rebuild.md
+
+on:
+  pull_request:
+    paths:
+      - 'Modules/Whatsapp/daemon-node/**'
+      - '.github/workflows/daemon-docker-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Whatsapp/daemon-node/**'
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build:
+    name: Build daemon image + run unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build daemon image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./Modules/Whatsapp/daemon-node
+          file: ./Modules/Whatsapp/daemon-node/Dockerfile
+          push: false
+          load: true
+          tags: oimpresso/whatsapp-baileys-daemon:ci-${{ github.sha }}
+          build-args: |
+            DAEMON_SOURCE_SHA=${{ github.sha }}
+          cache-from: type=gha,scope=daemon-baileys
+          cache-to: type=gha,scope=daemon-baileys,mode=max
+
+      - name: Smoke /health endpoint
+        run: |
+          # Roda container em background com mínimo env (sem MySQL — daemon
+          # deve startar e expor /health mesmo sem auth state backend OK,
+          # contanto que API_KEY esteja set).
+          CONTAINER_ID=$(docker run -d \
+            --name daemon-ci-test \
+            -e "API_KEY=$(openssl rand -hex 32)" \
+            -e "WEBHOOK_BASE_URL=https://example.test" \
+            -e "AUTH_STATE_BACKEND=filesystem" \
+            -e "SESSIONS_DIR=/tmp/sessions" \
+            -p 13000:3000 \
+            oimpresso/whatsapp-baileys-daemon:ci-${{ github.sha }})
+
+          # Aguarda até 60s pro daemon estar saudável
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:13000/health > /dev/null 2>&1; then
+              echo "✅ /health respondeu OK em ${i}s"
+              curl -s http://localhost:13000/health | head -c 500
+              docker stop daemon-ci-test > /dev/null
+              exit 0
+            fi
+            sleep 1
+          done
+
+          # Se chegou aqui, daemon não subiu — print logs pra debug
+          echo "❌ daemon não respondeu /health em 60s"
+          docker logs daemon-ci-test 2>&1 | tail -30
+          docker stop daemon-ci-test > /dev/null || true
+          exit 1
+
+  vitest:
+    name: vitest + tsc clean
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./Modules/Whatsapp/daemon-node
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.0'
+          cache: 'npm'
+          cache-dependency-path: Modules/Whatsapp/daemon-node/package-lock.json
+
+      - name: npm ci
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript typecheck
+        run: npx tsc -p tsconfig.json --noEmit
+
+      - name: vitest
+        run: npx vitest run
