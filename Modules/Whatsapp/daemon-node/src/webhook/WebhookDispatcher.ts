@@ -11,7 +11,8 @@ export type WebhookEvent =
   | 'ban_detected'
   | 'qr_updated'
   | 'connected'
-  | 'disconnected';
+  | 'disconnected'
+  | 'history.sync';
 
 export interface WebhookPayload {
   instance_id: string;
