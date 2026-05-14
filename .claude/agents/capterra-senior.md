@@ -101,6 +101,39 @@ Agora sim: leia memória + código.
 - 🟡 PARCIAL é justificado: cite arquivo:linha que prova implementação parcial
 - Diferencie ambientes onde aplicável (Blade legacy vs Inertia v2, Z-API vs Baileys driver, etc)
 
+### ⚠️ Anti-falso-positivo TIER 0 OBRIGATÓRIO (calibração dogfood 2026-05-13)
+
+O dogfood de `capterra-senior` em `Modules/Whatsapp` marcou C-007 multi-phone UI como 🟡 PARCIAL ("PR3 pendente") quando na realidade estava 100% implementado em `CYCLE-08 PR-A` (Controller + ChannelSelector.tsx + plugado no header). Wagner detectou e cortou. Esse anti-pattern desperdiça crédito (recomendou ação 4-6h IA-pair inexistente).
+
+**Antes de marcar QUALQUER capacidade como 🟡 PARCIAL ou ❌ AUSENTE, execute OBRIGATORIAMENTE:**
+
+1. **Grep keywords da capacidade no Controller:**
+   ```
+   Grep "<keyword1>|<keyword2>" Modules/<Mod>/Http/Controllers/
+   ```
+   Ex pra "multi-phone UI": `Grep "channel_id|phone_uuid|selectedChannelId" Modules/Whatsapp/Http/Controllers/`
+
+2. **Grep keywords da capacidade nos Pages Inertia:**
+   ```
+   Grep "<ComponentName>|<keyword>" resources/js/Pages/<Mod>/ resources/js/Pages/Atendimento/
+   ```
+   Ex: `Grep "ChannelSelector|availableChannels" resources/js/Pages/`
+
+3. **Verificar componentes em `_components/` do módulo:**
+   ```
+   ls resources/js/Pages/<Mod>/_components/ resources/js/Pages/Atendimento/<Mod>/_components/
+   ```
+
+4. **Procurar marcadores de cycle/PR no código:**
+   ```
+   Grep "CYCLE-[0-9]+|US-WA-040|US-WA-XXX" Modules/<Mod>/ resources/js/Pages/<Mod>/
+   ```
+   Cycles fechados recentes podem ter implementado o que parecia gap.
+
+5. **Só após os 4 passos acima**, se 0 matches relevantes, marcar 🟡/❌. Se houver match → marcar ✅ com `file:line` evidência.
+
+**Não é negociável.** Se você marcar 🟡/❌ sem evidência dos 4 passos, a FICHA está errada e Wagner vai detectar. Tempo de Grep adicional (~30s por capacidade) é trivial vs custo de inflar gap (4-6h IA-pair desperdiçada).
+
 ## Fase 4 — PRICING COMPARATIVO (BR + global)
 
 Tabela de pricing real do mercado, perfil do cliente piloto:
