@@ -39,7 +39,7 @@ use Modules\Whatsapp\Jobs\DeleteBaileysInstanceJob;
  * **Uso:**
  *   php artisan whatsapp:channels-reconcile           # default --batch=20 --sleep=500
  *   php artisan whatsapp:channels-reconcile --dry-run # preview
- *   php artisan whatsapp:channels-reconcile --channel=4 --verbose # 1 só
+ *   php artisan whatsapp:channels-reconcile --channel=4 --detail # 1 só
  *
  * **Cron (Kernel.php):**
  *   $schedule->command('whatsapp:channels-reconcile')
@@ -65,7 +65,7 @@ class ChannelsReconcilerCommand extends Command
                             {--batch=20 : Máximo de channels processados por execução}
                             {--sleep=500 : Sleep ms entre requests ao daemon (anti-spam)}
                             {--dry-run : Preview sem persistir mudanças no DB}
-                            {--verbose : Imprime detalhes por channel}';
+                            {--detail : Imprime detalhes por channel (--verbose conflita com flag Symfony default)}';
 
     protected $description = 'Reconcilia channels Baileys DB ↔ daemon CT 100 (auto-fix drift + zumbis).';
 
@@ -92,7 +92,7 @@ class ChannelsReconcilerCommand extends Command
         }
 
         $isDryRun = (bool) $this->option('dry-run');
-        $verbose = (bool) $this->option('verbose');
+        $detail = (bool) $this->option('detail');
         $batch = (int) $this->option('batch');
         $sleepMs = (int) $this->option('sleep');
         $singleChannel = $this->option('channel') !== null ? (int) $this->option('channel') : null;
@@ -123,7 +123,7 @@ class ChannelsReconcilerCommand extends Command
         $this->info("Reconciliando {$channels->count()} channel(s) Baileys...");
 
         foreach ($channels as $channel) {
-            $this->reconcileChannel($channel, $daemonUrl, $apiKey, $isDryRun, $verbose);
+            $this->reconcileChannel($channel, $daemonUrl, $apiKey, $isDryRun, $detail);
             if ($sleepMs > 0 && $channels->count() > 1) {
                 usleep($sleepMs * 1000);
             }
@@ -153,7 +153,7 @@ class ChannelsReconcilerCommand extends Command
         string $daemonUrl,
         string $apiKey,
         bool $isDryRun,
-        bool $verbose,
+        bool $detail,
     ): void {
         $this->stats['checked']++;
 
@@ -166,7 +166,7 @@ class ChannelsReconcilerCommand extends Command
                 ->get("{$daemonUrl}/instances/{$instanceId}/status");
         } catch (\Throwable $e) {
             $this->stats['daemon_errors']++;
-            if ($verbose) {
+            if ($detail) {
                 $this->error("  ✗ ch#{$channel->id} ({$channel->label}): daemon offline — {$e->getMessage()}");
             }
             return;
@@ -174,7 +174,7 @@ class ChannelsReconcilerCommand extends Command
 
         // 404 daemon = instância não existe (mas DB diz ativo → precisa reset)
         if ($response->status() === 404) {
-            if ($verbose) {
+            if ($detail) {
                 $this->warn("  ⚠ ch#{$channel->id} ({$channel->label}): instância não existe no daemon → marcando setup");
             }
             $this->stats['requires_reset']++;
@@ -191,7 +191,7 @@ class ChannelsReconcilerCommand extends Command
 
         if (! $response->successful()) {
             $this->stats['daemon_errors']++;
-            if ($verbose) {
+            if ($detail) {
                 $this->error("  ✗ ch#{$channel->id}: daemon HTTP {$response->status()}");
             }
             return;
@@ -206,7 +206,7 @@ class ChannelsReconcilerCommand extends Command
         // Auto-fix: DB diz active mas daemon diz banned/disconnected/error
         if ($dbStatus === 'active' && in_array($daemonState, ['banned', 'disconnected', 'error'], true)) {
             $newStatus = $daemonState === 'banned' ? 'banned' : 'disconnected';
-            if ($verbose) {
+            if ($detail) {
                 $this->warn("  🔧 ch#{$channel->id}: DB=active mas daemon={$daemonState} — auto-fix → DB={$newStatus}");
             }
             $this->stats['auto_fixed']++;
@@ -226,7 +226,7 @@ class ChannelsReconcilerCommand extends Command
 
         // Auto-fix reverso: DB diz disconnected mas daemon diz connected (raro)
         if ($dbStatus === 'disconnected' && $daemonState === 'connected') {
-            if ($verbose) {
+            if ($detail) {
                 $this->info("  ↻ ch#{$channel->id}: DB=disconnected mas daemon=connected — auto-fix → DB=active");
             }
             $this->stats['auto_fixed']++;
@@ -247,7 +247,7 @@ class ChannelsReconcilerCommand extends Command
             $lastSeenTs = strtotime($lastSeen);
             if ($lastSeenTs !== false && (time() - $lastSeenTs) > 1800) {
                 $minStale = (int) ((time() - $lastSeenTs) / 60);
-                if ($verbose) {
+                if ($detail) {
                     $this->warn("  💀 ch#{$channel->id}: zombie — state=connected mas last_seen estagnado {$minStale}min");
                 }
                 $this->stats['zombie_detected']++;
@@ -258,7 +258,7 @@ class ChannelsReconcilerCommand extends Command
         // Tudo OK — atualiza apenas timestamp
         if ($daemonState === 'connected' && $dbStatus === 'active') {
             $this->stats['in_sync']++;
-            if ($verbose) {
+            if ($detail) {
                 $this->line("  ✓ ch#{$channel->id} ({$channel->label}): in sync (state=connected)");
             }
             if (! $isDryRun) {
@@ -272,7 +272,7 @@ class ChannelsReconcilerCommand extends Command
         }
 
         // Estados sem ação (qr_required, connecting)
-        if ($verbose) {
+        if ($detail) {
             $this->line("  · ch#{$channel->id}: daemon={$daemonState}, DB={$dbStatus} — sem ação");
         }
         $this->stats['in_sync']++;
