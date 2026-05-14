@@ -11,6 +11,7 @@ contains:
   - "DataController"
   - "ExtratoController"
   - "FinanceiroController"
+  - "FluxoController"
   - "InstallController"
   - "RelatoriosController"
   - "UnificadoController"
