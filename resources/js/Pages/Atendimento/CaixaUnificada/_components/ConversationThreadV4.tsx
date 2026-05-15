@@ -193,15 +193,28 @@ export default function ConversationThreadV4({
                 ) : (
                   <div
                     className={cn(
-                      'max-w-[75%] px-3 py-1.5 rounded-lg text-[12.5px] leading-snug whitespace-pre-wrap break-words flex flex-col',
+                      // Tokens Cowork canon (inbox-page.css §498): max-w 75%, padding 7px 11px, radius 10px, font 12.5px, line-height 1.45
+                      'max-w-[75%] px-[11px] py-[7px] rounded-[10px] text-[12.5px] leading-[1.45] whitespace-pre-wrap break-words flex flex-col',
                       m.direction === 'inbound'
-                        ? 'self-start bg-card border rounded-bl-sm mr-auto'
-                        : 'self-end bg-emerald-100 text-emerald-950 rounded-br-sm ml-auto',
+                        ? 'self-start bg-white border border-border rounded-bl-[3px] mr-auto'
+                        : 'self-end rounded-br-[3px] ml-auto',
                     )}
+                    style={
+                      m.direction === 'outbound'
+                        ? {
+                            // Cowork .om-bub.me: oklch verde-pastel WA + texto verde-escuro
+                            background: 'oklch(0.85 0.10 145)',
+                            color: 'oklch(0.18 0.10 145)',
+                          }
+                        : undefined
+                    }
                     data-testid={`caixa-unif-msg-${m.id}`}
                   >
                     {m.direction === 'outbound' && m.sender_user_name && (
-                      <small className="text-[9.5px] font-semibold text-emerald-700 mb-0.5">
+                      <small
+                        className="text-[9.5px] font-semibold mb-0.5"
+                        style={{ color: 'oklch(0.35 0.10 145)' }}
+                      >
                         {m.sender_user_name}
                       </small>
                     )}
