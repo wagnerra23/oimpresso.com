@@ -14,8 +14,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useForm, router } from '@inertiajs/react';
-import { Send, FileText, Paperclip, Slash, X } from 'lucide-react';
+import { LayoutList, Send, FileText, Paperclip, Slash, X } from 'lucide-react';
 import { cn } from '@/Lib/utils';
+import MicRecorder from '@/Pages/Whatsapp/_components/MicRecorder';
+import InteractiveMessageDialog from '@/Pages/Whatsapp/_components/InteractiveMessageDialog';
 
 interface Props {
   conversationId: number;
@@ -23,6 +25,8 @@ interface Props {
   isBlocked: boolean;
   channelShort: string;
   channelLabel: string;
+  /** Wave 4-B F1: tipo do channel (whatsapp_meta libera Interactive). */
+  channelType?: string;
 }
 
 /** Wave 4 F1: limite legal Tier 0 da caption (espelha InboxController::sendMedia). */
@@ -31,14 +35,18 @@ const CAPTION_MAX_CHARS = 1024;
 const ACCEPT_MIME = 'image/jpeg,image/png,image/webp,image/gif,application/pdf,audio/ogg,audio/mpeg,audio/mp4,audio/webm,video/mp4';
 
 export default function ComposerV4({
-  conversationId, isPreview, isBlocked, channelShort, channelLabel,
+  conversationId, isPreview, isBlocked, channelShort, channelLabel, channelType,
 }: Props) {
   const [internalMode, setInternalMode] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
+  const [interactiveOpen, setInteractiveOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Wave 4-B F1: só whatsapp_meta libera Interactive (List/Button)
+  const supportsInteractive = channelType === 'whatsapp_meta' || channelType === 'meta_cloud';
 
   const form = useForm<{
     kind: 'freeform' | 'template';
@@ -144,6 +152,40 @@ export default function ComposerV4({
   function clearPendingFile() {
     setPendingFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  // Wave 4-B F1 — envio de áudio voz (MicRecorder callback)
+  // Reusa send_media com filename 'voice.ogg' (compat WhatsApp PTT).
+  function handleSendVoice(blob: Blob, _durationS: number): Promise<void> {
+    if (internalMode) return Promise.reject(new Error('Notas internas não suportam áudio.'));
+    return new Promise<void>((resolve, reject) => {
+      const isOgg = blob.type.includes('ogg');
+      const filename = isOgg ? 'voice.ogg' : 'voice.webm';
+      const file = new File([blob], filename, { type: blob.type || 'audio/ogg' });
+      const formData = new FormData();
+      formData.append('file', file);
+      if (form.data.body.trim()) {
+        formData.append('caption', form.data.body.slice(0, CAPTION_MAX_CHARS));
+      }
+      router.post(
+        route('atendimento.inbox.send_media', conversationId),
+        formData,
+        {
+          forceFormData: true,
+          preserveScroll: true,
+          preserveState: true,
+          only: ['thread', 'messages', 'conversations', 'stats'],
+          onSuccess: () => {
+            form.setData('body', '');
+            resolve();
+          },
+          onError: (errors) => {
+            const firstErr = Object.values(errors)[0];
+            reject(new Error(typeof firstErr === 'string' ? firstErr : 'Falha no envio do áudio.'));
+          },
+        },
+      );
+    });
   }
 
   const canType = !(isPreview && !internalMode) && !isBlocked;
@@ -269,6 +311,26 @@ export default function ComposerV4({
         <Paperclip size={12} aria-hidden />
       </button>
 
+      {/* Wave 4-B F1 — MicRecorder (gravar áudio voz PTT) */}
+      <MicRecorder
+        disabled={internalMode || !canType || uploading}
+        onSend={handleSendVoice}
+      />
+
+      {/* Wave 4-B F1 — Interactive (List/Button Meta) — só whatsapp_meta */}
+      {supportsInteractive && (
+        <button
+          type="button"
+          onClick={() => setInteractiveOpen(true)}
+          disabled={internalMode || !canType}
+          title="Enviar mensagem interativa (List/Button)"
+          data-testid="caixa-unif-composer-interactive"
+          className="w-8 h-8 rounded-full border bg-card grid place-items-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+        >
+          <LayoutList size={12} aria-hidden />
+        </button>
+      )}
+
       {/* Input */}
       <input
         ref={inputRef}
@@ -322,6 +384,16 @@ export default function ComposerV4({
         )}
       </button>
     </div>
+
+    {/* Wave 4-B F1 — Interactive message dialog (List/Button Meta) */}
+    {supportsInteractive && (
+      <InteractiveMessageDialog
+        conversationId={conversationId}
+        open={interactiveOpen}
+        onOpenChange={setInteractiveOpen}
+        driverType={channelType as 'whatsapp_meta' | 'meta_cloud'}
+      />
+    )}
     </div>
   );
 }

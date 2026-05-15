@@ -275,6 +275,7 @@ export default function ConversationThreadV4({
         isBlocked={isBlocked}
         channelShort={channel?.short ?? thread.channel_label ?? 'Canal'}
         channelLabel={thread.channel_label ?? ''}
+        channelType={thread.channel_type}
       />
     </main>
   );
