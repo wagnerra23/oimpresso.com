@@ -10,9 +10,9 @@
 // no apply baseado em weight; métricas response_rate = response/sent
 // mostram qual variante performa melhor.
 
-import { router, Link } from '@inertiajs/react';
+import { router, Link, Deferred } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, ArrowLeft, Trophy, Beaker } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowLeft, Trophy, Beaker, Loader2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -53,7 +53,8 @@ interface Variant {
 
 interface Props {
   macro: MacroLite;
-  variants: Variant[];
+  // D-14 perf — variants deferred
+  variants?: Variant[];
 }
 
 interface FormState {
@@ -197,7 +198,28 @@ export default function MacroVariants({ macro, variants }: Props) {
         </CardContent>
       </Card>
 
-      {variants.length === 0 ? (
+      {/* D-14 perf — variants deferred */}
+      <Deferred
+        data="variants"
+        fallback={(
+          <Card>
+            <CardContent className="p-4 space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex gap-3 items-center py-2 border-b border-border/30">
+                  <div className="h-4 w-24 bg-muted/40 rounded animate-pulse" />
+                  <div className="h-4 flex-1 bg-muted/30 rounded animate-pulse" />
+                  <div className="h-4 w-12 bg-muted/40 rounded animate-pulse" />
+                  <div className="h-4 w-16 bg-muted/30 rounded animate-pulse" />
+                </div>
+              ))}
+              <div className="flex items-center justify-center text-muted-foreground text-xs pt-2">
+                <Loader2 size={14} className="animate-spin mr-2" aria-hidden /> Carregando variantes…
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      >
+      {!variants || variants.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-muted-foreground">
             <Beaker size={28} className="mx-auto mb-3 opacity-50" aria-hidden />
@@ -293,6 +315,7 @@ export default function MacroVariants({ macro, variants }: Props) {
           </CardContent>
         </Card>
       )}
+      </Deferred>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">

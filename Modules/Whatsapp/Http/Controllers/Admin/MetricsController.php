@@ -46,23 +46,42 @@ class MetricsController extends Controller
 
         $endDate = CarbonImmutable::today();
         $startDate = $endDate->subDays($range - 1);
+        $startStr = $startDate->toDateString();
+        $endStr = $endDate->toDateString();
 
-        // 2) Agregadas (channel_id=null) — drive KPI cards + linha do chart
+        // D-14 perf 2026-05-15 (skill `inertia-defer-default` Tier 0):
+        // `aggregated` (totals + series) e `breakdown` (per-canal) viram
+        // Inertia::defer — pulam execução quando partial reload não pede.
+        // Initial paint mostra skeleton e Inertia async fetch popula.
+        return Inertia::render('Atendimento/Metricas/Index', [
+            // ─── Eager (custo zero) ───
+            'range' => $range,
+            'allowedRanges' => self::ALLOWED_RANGES,
+            'startDate' => $startStr,
+            'endDate' => $endStr,
+
+            // ─── Defer (queries pesadas) ───
+            // Agrupado: totals + series compartilham 1 query agregada
+            'aggregated' => Inertia::defer(fn () => $this->buildAggregatedPayload($businessId, $startStr, $endStr)),
+            'breakdown' => Inertia::defer(fn () => $this->buildBreakdownPayload($businessId, $startStr, $endStr)),
+        ]);
+    }
+
+    /**
+     * D-14 perf — agregadas (channel_id=null) → totals (KPI cards) + series (chart).
+     * 1 query Eloquent, derive 2 estruturas da mesma collection.
+     *
+     * @return array{totals: array, series: array}
+     */
+    protected function buildAggregatedPayload(int $businessId, string $startDate, string $endDate): array
+    {
         $aggregated = ConversationMetric::query()
             ->where('business_id', $businessId)
             ->whereNull('channel_id')
-            ->whereBetween('metric_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->whereBetween('metric_date', [$startDate, $endDate])
             ->orderBy('metric_date')
             ->get();
 
-        // 3) Por canal — drive tabela breakdown (período inteiro somado)
-        $perChannel = ConversationMetric::query()
-            ->where('business_id', $businessId)
-            ->whereNotNull('channel_id')
-            ->whereBetween('metric_date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->get();
-
-        // 4) Totais do período (KPI cards)
         $totals = [
             'conversations_opened' => (int) $aggregated->sum('conversations_opened'),
             'conversations_resolved' => (int) $aggregated->sum('conversations_resolved'),
@@ -73,8 +92,6 @@ class MetricsController extends Controller
             'avg_resolution_seconds' => $this->averageOf($aggregated, 'avg_resolution_seconds'),
         ];
 
-        // 5) Chart series (1 ponto por dia — pode ter gaps quando dia sem
-        // atividade; frontend renderiza zeros pros dias faltantes).
         $series = $aggregated->map(fn (ConversationMetric $m) => [
             'date' => $m->metric_date->toDateString(),
             'opened' => $m->conversations_opened,
@@ -82,14 +99,30 @@ class MetricsController extends Controller
             'inbound' => $m->messages_inbound,
             'outbound' => $m->messages_outbound,
             'cost_centavos' => $m->total_cost_centavos,
-        ])->values();
+        ])->values()->all();
 
-        // 6) Tabela per-canal (label do Channel + soma agregada do período)
+        return [
+            'totals' => $totals,
+            'series' => $series,
+        ];
+    }
+
+    /**
+     * D-14 perf — per-canal breakdown (1 query metrics + 1 query channel labels).
+     */
+    protected function buildBreakdownPayload(int $businessId, string $startDate, string $endDate): array
+    {
+        $perChannel = ConversationMetric::query()
+            ->where('business_id', $businessId)
+            ->whereNotNull('channel_id')
+            ->whereBetween('metric_date', [$startDate, $endDate])
+            ->get();
+
         $channelLabels = Channel::query()
             ->where('business_id', $businessId)
             ->pluck('label', 'id');
 
-        $breakdown = $perChannel
+        return $perChannel
             ->groupBy('channel_id')
             ->map(function ($rows, $channelId) use ($channelLabels) {
                 /** @var \Illuminate\Support\Collection<int,\Modules\Whatsapp\Entities\ConversationMetric> $rows */
@@ -106,17 +139,8 @@ class MetricsController extends Controller
             })
             ->values()
             ->sortByDesc('messages_inbound')
-            ->values();
-
-        return Inertia::render('Atendimento/Metricas/Index', [
-            'range' => $range,
-            'allowedRanges' => self::ALLOWED_RANGES,
-            'startDate' => $startDate->toDateString(),
-            'endDate' => $endDate->toDateString(),
-            'totals' => $totals,
-            'series' => $series,
-            'breakdown' => $breakdown,
-        ]);
+            ->values()
+            ->all();
     }
 
     /**
