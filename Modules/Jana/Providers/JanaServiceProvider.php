@@ -66,6 +66,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\JanaCyclesAutoCloseExpiredCommand::class, // Gap #5 COMPARATIVO-MCP — auto-rollover Linear-style daily 23:55 BRT
                 \Modules\Jana\Console\Commands\JanaWeeklyDigestCommand::class, // Gap G8 P2 auditoria 2026-05-13 — Reflect-style weekly digest
                 \Modules\Jana\Console\Commands\JanaValidateMemoryCommand::class, // S1 Onda 5 P1 — schema rígido CI (6 schemas + AJV + grace period 14d)
+                \Modules\Jana\Console\Commands\FreshnessCheckCommand::class, // GAP D7 #2 auditoria 2026-05-15 — freshness pipeline (4 níveis + drift + alert + reindex)
             ]);
         }
     }
@@ -112,32 +113,60 @@ class JanaServiceProvider extends ServiceProvider
         );
 
         // MemoriaContrato — verdade canônica ADR 0036 (Meilisearch first, Mem0 último)
+        //
+        // D8 gap #3 (2026-05-15, +2pp 86→88) — quando
+        // config('copiloto.telemetry.retrieval_spans_enabled') = true, o driver
+        // resolvido é wrappado por RetrievalTelemetryDecorator (OTel GenAI spans
+        // canônicos + audit log mcp_audit_log linha por query).
         $this->app->bind(
             \Modules\Jana\Contracts\MemoriaContrato::class,
             function () {
                 $driver = config('copiloto.memoria.driver', 'auto');
 
-                // 'null' — dev / dry_run / CI (não chama rede)
-                if ($driver === 'null' || config('copiloto.dry_run')) {
-                    return $this->app->make(\Modules\Jana\Services\Memoria\NullMemoriaDriver::class);
+                $inner = match (true) {
+                    // 'null' — dev / dry_run / CI (não chama rede)
+                    $driver === 'null' || (bool) config('copiloto.dry_run')
+                        => $this->app->make(\Modules\Jana\Services\Memoria\NullMemoriaDriver::class),
+
+                    // 'meilisearch' (CANÔNICO até abr/2026) — Scout + Meilisearch self-hosted
+                    $driver === 'meilisearch' || $driver === 'auto'
+                        => $this->app->make(\Modules\Jana\Services\Memoria\MeilisearchDriver::class),
+
+                    // 'mcp' (NOVO ADR 0056) — Copiloto chat consome MCP server.
+                    // Fallback automático: se MCP indisponível, usa MeilisearchDriver direto.
+                    $driver === 'mcp'
+                        => new \Modules\Jana\Services\Memoria\McpMemoriaDriver(
+                            $this->app->make(\Modules\Jana\Services\Memoria\MeilisearchDriver::class)
+                        ),
+
+                    // 'mem0_rest' (CONDICIONAL sprint 8+) — placeholder, não implementado
+                    default => throw new \RuntimeException(
+                        "Driver de memória '{$driver}' não implementado. ".
+                        'Drivers válidos: meilisearch (default), mcp (ADR 0056), null (dev), mem0_rest (futuro).'
+                    ),
+                };
+
+                // Wrap com OTel GenAI retrieval spans quando feature flag ligada.
+                // Default DESLIGADO — Wagner liga JANA_RETRIEVAL_SPANS=true após
+                // validar overhead (~5-15ms/query) em homolog.
+                if ((bool) config('copiloto.telemetry.retrieval_spans_enabled', false)) {
+                    return new \Modules\Jana\Services\Memoria\Telemetry\RetrievalTelemetryDecorator(
+                        $inner,
+                        $this->app->make(\Modules\Jana\Services\Memoria\Telemetry\RetrievalSpanBuilder::class),
+                    );
                 }
 
-                // 'meilisearch' (CANÔNICO até abr/2026) — Scout + Meilisearch self-hosted
-                if ($driver === 'meilisearch' || $driver === 'auto') {
-                    return $this->app->make(\Modules\Jana\Services\Memoria\MeilisearchDriver::class);
-                }
+                return $inner;
+            }
+        );
 
-                // 'mcp' (NOVO ADR 0056) — Copiloto chat consome MCP server.
-                // Fallback automático: se MCP indisponível, usa MeilisearchDriver direto.
-                if ($driver === 'mcp') {
-                    $fallback = $this->app->make(\Modules\Jana\Services\Memoria\MeilisearchDriver::class);
-                    return new \Modules\Jana\Services\Memoria\McpMemoriaDriver($fallback);
-                }
-
-                // 'mem0_rest' (CONDICIONAL sprint 8+) — placeholder, não implementado ainda
-                throw new \RuntimeException(
-                    "Driver de memória '{$driver}' não implementado. ".
-                    'Drivers válidos: meilisearch (default), mcp (ADR 0056), null (dev), mem0_rest (futuro).'
+        // RetrievalSpanBuilder (D8 gap #3) — singleton com LangfuseClient injetado.
+        // Container resolve LangfuseClient automaticamente (já registrado linha ~87).
+        $this->app->singleton(
+            \Modules\Jana\Services\Memoria\Telemetry\RetrievalSpanBuilder::class,
+            function ($app) {
+                return new \Modules\Jana\Services\Memoria\Telemetry\RetrievalSpanBuilder(
+                    $app->make(\Modules\Jana\Services\Telemetry\LangfuseClient::class),
                 );
             }
         );
