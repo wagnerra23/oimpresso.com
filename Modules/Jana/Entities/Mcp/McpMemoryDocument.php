@@ -31,6 +31,8 @@ class McpMemoryDocument extends Model
         'status', 'authority', 'lifecycle', 'quarter', 'decided_at',
         'decided_by', 'tags', 'supersedes', 'superseded_by', 'related',
         'has_pii',
+        // GAP D3 #1 — Contextual Retrieval Anthropic
+        'contextual_context', 'contextual_indexed', 'contextualized_at',
     ];
 
     protected $casts = [
@@ -46,6 +48,9 @@ class McpMemoryDocument extends Model
         'superseded_by' => 'array',
         'related'       => 'array',
         'has_pii'       => 'boolean',
+        // GAP D3 #1
+        'contextual_indexed' => 'boolean',
+        'contextualized_at'  => 'datetime',
     ];
 
     protected $hidden = ['embedding']; // BLOB, não enviar nas APIs
@@ -158,16 +163,27 @@ class McpMemoryDocument extends Model
         $body    = preg_replace('/^\s*---\n.*?\n---\n?/s', '', $this->content_md ?? '');
         $excerpt = mb_substr(trim($body), 0, 400);
 
+        // GAP D3 #1 — Contextual Retrieval Anthropic.
+        // Quando contextual_context populado, PREPENDA ao content_md indexado
+        // pra que embedder/BM25 vejam contexto descritivo do doc ANTES do raw
+        // (Anthropic blog 2024-09-19: -49% failed retrievals).
+        // Doc sem contextualização (legado) cai no caminho normal sem regressão.
+        $contextualContext = trim((string) ($this->contextual_context ?? ''));
+        $contentIndexed = $contextualContext !== ''
+            ? $contextualContext."\n\n".(string) $this->content_md
+            : (string) $this->content_md;
+
         return [
             'id'              => $this->id,
             'slug'            => $this->slug,
             'title'           => $this->title,
-            'content_md'      => $this->content_md,
+            'content_md'      => $contentIndexed,
             'content_excerpt' => $excerpt,
             'type'            => $this->type,
             'module'          => $this->module,
             'status'          => $this->status ?? 'aceito',
             'tags'            => $this->tags ?? [],
+            'has_contextual'  => $contextualContext !== '',
         ];
     }
 
