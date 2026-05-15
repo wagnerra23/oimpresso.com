@@ -46,7 +46,7 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
       <div className="flex-1 overflow-auto px-4 py-3 flex flex-col gap-2.5">
         {/* 1. Fila */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Fila
           </small>
           <b className="inline-flex items-center gap-1.5 text-[12.5px] font-medium" data-testid="caixa-unif-ctx-queue">
@@ -66,7 +66,7 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
 
         {/* 2. Atribuído — placeholder */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Atribuído
           </small>
           <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-assignee">
@@ -77,7 +77,7 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
 
         {/* 3. Canal · Conta */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Canal · Conta
           </small>
           <b className="inline-flex items-center gap-1.5 text-[12.5px] font-medium">
@@ -108,14 +108,19 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
         {/* 4. Tags */}
         {thread.tags.length > 0 && (
           <div className="pb-2.5 border-b border-border/50 flex flex-col gap-1">
-            <small className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-semibold">
+            <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
               Tags
             </small>
             <div className="flex flex-wrap gap-1">
               {thread.tags.map(t => (
+                // Cowork .om-tag — padding 1px 8px, font 10px mono, OKLCH §710
                 <span
                   key={t.id}
-                  className="inline-block px-2 py-px text-[10px] font-mono rounded-full bg-amber-50 border border-amber-200 text-amber-900"
+                  className="inline-block px-2 py-px text-[10px] font-mono rounded-full text-foreground"
+                  style={{
+                    background: 'oklch(0.94 0.03 80)',
+                    border: '1px solid oklch(0.86 0.06 80)',
+                  }}
                   data-testid={`caixa-unif-ctx-tag-${t.slug}`}
                 >
                   {t.label}
@@ -127,7 +132,7 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
 
         {/* 5. OS vinculada — placeholder */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             OS vinculada
           </small>
           <b className="text-[12.5px] font-medium text-muted-foreground italic">
@@ -138,7 +143,7 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
 
         {/* 6. Saldo cliente — placeholder */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Saldo cliente
           </small>
           <b className="text-[12.5px] font-medium text-muted-foreground italic">
@@ -149,7 +154,7 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
 
         {/* 7. Histórico — placeholder */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Histórico
           </small>
           <b className="text-[12.5px] font-medium text-muted-foreground italic">
@@ -160,7 +165,7 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
 
         {/* 8. Último contato */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Último contato
           </small>
           <b className="text-[12.5px] font-medium" data-testid="caixa-unif-ctx-last-touch">
