@@ -2,14 +2,25 @@
 page: /atendimento/inbox
 component: resources/js/Pages/Atendimento/Inbox/Index.tsx
 owner: wagner
-status: live
+status: historical
+lifecycle: historical
+superseded_by: resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md
 last_validated: 2026-05-11
+deprecated_at: 2026-05-15
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
 related_adrs: [0039, 0058, 0093, 0094, 0104, 0110, 0135]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
+
+> ⚠️ **DEPRECATED 2026-05-15** — substituída por `/atendimento/caixa-unificada` (Caixa Unificada V4).
+> GET `/atendimento/inbox` agora redireciona 301 → `/atendimento/caixa-unificada`.
+> Sub-rotas POST/PATCH (`/inbox/{id}/send`, `/inbox/{id}/tags`, etc) ainda servem
+> a V4 — backend NÃO foi descontinuado, só a UI Inertia legacy.
+>
+> **Remoção dos arquivos `Pages/Atendimento/Inbox/`** em F6 (PR seguinte, 1 sprint).
+> Detalhes do cutover: [INVENTARIO-CUTOVER-CAIXA-UNIFICADA-V4.md §6](../../../memory/requisitos/Whatsapp/INVENTARIO-CUTOVER-CAIXA-UNIFICADA-V4.md).
 
 # Page Charter — `/atendimento/inbox`
 
