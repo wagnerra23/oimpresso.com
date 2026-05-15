@@ -9,7 +9,7 @@
 // Coexiste com /whatsapp/settings legacy durante PR B. Refactor drivers/jobs
 // pra consumir Channel direto vai num PR seguinte.
 
-import { Link, router } from '@inertiajs/react';
+import { Link, router, Deferred } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 // QR vem como data URL PNG do daemon (string Baileys excede limite QR v40 23KB).
 import {
@@ -65,7 +65,8 @@ interface TypeOption {
 }
 
 interface Props {
-  channels: Channel[];
+  // D-14 perf — channels deferred (query + map)
+  channels?: Channel[];
   businessId: number;
   availableTypes: TypeOption[];
   forbiddenDrivers: string[];
@@ -235,7 +236,29 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
         }
       />
 
-      {channels.length === 0 ? (
+      {/* D-14 perf — channels deferred (query + map) */}
+      <Deferred
+        data="channels"
+        fallback={(
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-32 bg-muted/40 rounded animate-pulse" />
+                  <div className="h-4 w-16 bg-muted/40 rounded-full animate-pulse ml-auto" />
+                </div>
+                <div className="h-3 w-24 bg-muted/30 rounded animate-pulse" />
+                <div className="h-3 w-40 bg-muted/30 rounded animate-pulse" />
+                <div className="flex gap-2 pt-2">
+                  <div className="h-7 w-20 bg-muted/40 rounded animate-pulse" />
+                  <div className="h-7 w-16 bg-muted/30 rounded animate-pulse" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      >
+      {!channels || channels.length === 0 ? (
         <Card className="p-8">
           <EmptyState
             icon="message-circle"
@@ -256,6 +279,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
           ))}
         </div>
       )}
+      </Deferred>
 
       {/* Modal connect Baileys via QR (preferred) ou pairing code (fallback) */}
       <Dialog open={!!connecting} onOpenChange={(o) => { if (!o) { setConnecting(null); setQrImage(null); setPairingCode(null); } }}>

@@ -9,8 +9,8 @@
 // Octadesk NPS. Layout Cockpit V2 (KPI grid 4 cards + tabela últimas 20 + filtro range).
 
 import { useState, type ReactNode } from 'react';
-import { router } from '@inertiajs/react';
-import { Star } from 'lucide-react';
+import { router, Deferred } from '@inertiajs/react';
+import { Star, Loader2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -43,14 +43,15 @@ interface RecentResponse {
 interface Props {
   businessId: number;
   range: number;
-  kpis: {
+  // D-14 perf — props deferred no backend (?: opcional até async fetch resolver)
+  kpis?: {
     avg_score: number;
     total_asked: number;
     total_responded: number;
     response_rate: number;
   };
-  distribution: Record<string, number>;
-  recent: RecentResponse[];
+  distribution?: Record<string, number>;
+  recent?: RecentResponse[];
 }
 
 function StarRow({ score }: { score: number }) {
@@ -94,7 +95,7 @@ export default function CsatIndex({ range, kpis, distribution, recent }: Props) 
     });
   }
 
-  const maxBar = Math.max(1, ...Object.values(distribution));
+  const maxBar = Math.max(1, ...Object.values(distribution ?? {}));
 
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
@@ -116,45 +117,80 @@ export default function CsatIndex({ range, kpis, distribution, recent }: Props) 
         }
       />
 
-      <KpiGrid cols={4}>
-        <KpiCard
-          icon="star"
-          tone={kpis.total_responded > 0 ? toneForScore(kpis.avg_score) : 'default'}
-          label="Score médio"
-          value={kpis.total_responded > 0 ? kpis.avg_score.toFixed(2) : '—'}
-          description={`Escala 1-5 (${kpis.total_responded} respostas)`}
-        />
-        <KpiCard
-          icon="send"
-          tone="default"
-          label="Pesquisas enviadas"
-          value={kpis.total_asked.toLocaleString('pt-BR')}
-          description="No range selecionado"
-        />
-        <KpiCard
-          icon="message-circle"
-          tone={kpis.total_responded > 0 ? 'info' : 'default'}
-          label="Respondidas"
-          value={kpis.total_responded.toLocaleString('pt-BR')}
-          description="Score 1-5 detectado"
-        />
-        <KpiCard
-          icon="percent"
-          tone={kpis.response_rate >= 30 ? 'success' : kpis.response_rate >= 15 ? 'warning' : 'danger'}
-          label="Taxa de resposta"
-          value={`${kpis.response_rate.toFixed(1)}%`}
-          description="Respondidas / Enviadas"
-        />
-      </KpiGrid>
+      {/* D-14 perf — KPIs deferred, skeleton 4 cards enquanto async fetch */}
+      <Deferred
+        data="kpis"
+        fallback={(
+          <KpiGrid cols={4}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-4 space-y-2">
+                  <div className="h-3 w-20 bg-muted/40 rounded animate-pulse" />
+                  <div className="h-8 w-16 bg-muted/40 rounded animate-pulse" />
+                  <div className="h-3 w-32 bg-muted/30 rounded animate-pulse" />
+                </CardContent>
+              </Card>
+            ))}
+          </KpiGrid>
+        )}
+      >
+        {kpis && (
+          <KpiGrid cols={4}>
+            <KpiCard
+              icon="star"
+              tone={kpis.total_responded > 0 ? toneForScore(kpis.avg_score) : 'default'}
+              label="Score médio"
+              value={kpis.total_responded > 0 ? kpis.avg_score.toFixed(2) : '—'}
+              description={`Escala 1-5 (${kpis.total_responded} respostas)`}
+            />
+            <KpiCard
+              icon="send"
+              tone="default"
+              label="Pesquisas enviadas"
+              value={kpis.total_asked.toLocaleString('pt-BR')}
+              description="No range selecionado"
+            />
+            <KpiCard
+              icon="message-circle"
+              tone={kpis.total_responded > 0 ? 'info' : 'default'}
+              label="Respondidas"
+              value={kpis.total_responded.toLocaleString('pt-BR')}
+              description="Score 1-5 detectado"
+            />
+            <KpiCard
+              icon="percent"
+              tone={kpis.response_rate >= 30 ? 'success' : kpis.response_rate >= 15 ? 'warning' : 'danger'}
+              label="Taxa de resposta"
+              value={`${kpis.response_rate.toFixed(1)}%`}
+              description="Respondidas / Enviadas"
+            />
+          </KpiGrid>
+        )}
+      </Deferred>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Distribuição de notas</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* D-14 perf — distribution deferred (5 counts) */}
+          <Deferred
+            data="distribution"
+            fallback={(
+              <div className="space-y-2">
+                {[5, 4, 3, 2, 1].map(score => (
+                  <div key={score} className="flex items-center gap-3 text-sm">
+                    <div className="w-16 h-4 bg-muted/40 rounded animate-pulse" />
+                    <div className="flex-1 h-3 bg-muted/40 rounded-full animate-pulse" />
+                    <div className="w-12 h-3 bg-muted/40 rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            )}
+          >
           <div className="space-y-2">
             {[5, 4, 3, 2, 1].map(score => {
-              const count = distribution[String(score)] ?? 0;
+              const count = distribution?.[String(score)] ?? 0;
               const widthPct = (count / maxBar) * 100;
               return (
                 <div key={score} className="flex items-center gap-3 text-sm">
@@ -178,6 +214,7 @@ export default function CsatIndex({ range, kpis, distribution, recent }: Props) 
               );
             })}
           </div>
+          </Deferred>
         </CardContent>
       </Card>
 
@@ -186,7 +223,27 @@ export default function CsatIndex({ range, kpis, distribution, recent }: Props) 
           <CardTitle className="text-base">Últimas respostas</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {recent.length === 0 ? (
+          {/* D-14 perf — recent deferred (query+eager+map 20 rows) */}
+          <Deferred
+            data="recent"
+            fallback={(
+              <div className="overflow-x-auto p-4 space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex gap-3 items-center py-2">
+                    <div className="h-4 w-16 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-32 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-24 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-20 bg-muted/30 rounded animate-pulse" />
+                    <div className="h-4 flex-1 bg-muted/30 rounded animate-pulse" />
+                  </div>
+                ))}
+                <div className="flex items-center justify-center text-muted-foreground text-xs pt-2">
+                  <Loader2 size={14} className="animate-spin mr-2" aria-hidden /> Carregando respostas…
+                </div>
+              </div>
+            )}
+          >
+          {!recent || recent.length === 0 ? (
             <EmptyState
               icon="star"
               title="Sem respostas ainda"
@@ -241,6 +298,7 @@ export default function CsatIndex({ range, kpis, distribution, recent }: Props) 
               </table>
             </div>
           )}
+          </Deferred>
         </CardContent>
       </Card>
     </div>

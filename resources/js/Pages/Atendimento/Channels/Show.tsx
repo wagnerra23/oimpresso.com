@@ -8,11 +8,11 @@
 // Tabs: Config | Usuários | Histórico. Tabs sem componente shadcn dedicado
 // (não existe Components/ui/tabs.tsx) — usamos botões accessibility-friendly.
 
-import { Link } from '@inertiajs/react';
+import { Link, Deferred } from '@inertiajs/react';
 import { useState } from 'react';
 import {
   ArrowLeft, Plug, Smartphone, MessageCircle, CheckCircle2, AlertTriangle,
-  Settings, Users, Clock,
+  Settings, Users, Clock, Loader2,
 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -77,9 +77,10 @@ interface AuditRow {
 
 interface Props {
   channel: ChannelUi;
-  users: AccessRow[];
-  availableUsers: AvailableUser[];
-  audit: AuditRow[];
+  // D-14 perf — listas pesadas deferred (users + availableUsers + audit each ~2 queries)
+  users?: AccessRow[];
+  availableUsers?: AvailableUser[];
+  audit?: AuditRow[];
 }
 
 type TabKey = 'config' | 'users' | 'history';
@@ -116,7 +117,7 @@ export default function ChannelShow({ channel, users, availableUsers, audit }: P
         }
       />
 
-      {/* Tabs nav */}
+      {/* Tabs nav — D-14 perf: contador `users` deferred, mostra '…' até resolver */}
       <div className="flex items-center gap-1 border-b" role="tablist" aria-label="Seções do canal">
         <TabButton
           icon={Settings}
@@ -127,7 +128,7 @@ export default function ChannelShow({ channel, users, availableUsers, audit }: P
         />
         <TabButton
           icon={Users}
-          label={`Usuários (${users.length})`}
+          label={`Usuários (${users?.length ?? '…'})`}
           active={activeTab === 'users'}
           onClick={() => setActiveTab('users')}
           testid="channel-tab-users"
@@ -143,13 +144,53 @@ export default function ChannelShow({ channel, users, availableUsers, audit }: P
 
       {activeTab === 'config' && <ConfigTab channel={channel} />}
       {activeTab === 'users' && (
-        <ChannelUsersTab
-          channelId={channel.id}
-          users={users}
-          availableUsers={availableUsers}
-        />
+        <Deferred
+          data={['users', 'availableUsers']}
+          fallback={(
+            <Card className="p-4">
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex gap-3 items-center py-2">
+                    <div className="h-8 w-8 rounded-full bg-muted/40 animate-pulse" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3 w-32 bg-muted/40 rounded animate-pulse" />
+                      <div className="h-2 w-48 bg-muted/30 rounded animate-pulse" />
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center justify-center text-muted-foreground text-xs pt-2">
+                  <Loader2 size={14} className="animate-spin mr-2" aria-hidden /> Carregando usuários…
+                </div>
+              </div>
+            </Card>
+          )}
+        >
+          <ChannelUsersTab
+            channelId={channel.id}
+            users={users ?? []}
+            availableUsers={availableUsers ?? []}
+          />
+        </Deferred>
       )}
-      {activeTab === 'history' && <HistoryTab audit={audit} />}
+      {activeTab === 'history' && (
+        <Deferred
+          data="audit"
+          fallback={(
+            <Card className="p-4 space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex gap-3 items-center py-2 border-b border-border/30">
+                  <div className="h-3 w-24 bg-muted/40 rounded animate-pulse" />
+                  <div className="h-3 w-20 bg-muted/30 rounded animate-pulse" />
+                  <div className="h-3 w-24 bg-muted/30 rounded animate-pulse" />
+                  <div className="h-3 w-16 bg-muted/30 rounded animate-pulse ml-auto" />
+                </div>
+              ))}
+            </Card>
+          )}
+        >
+          <HistoryTab audit={audit ?? []} />
+        </Deferred>
+      )}
     </div>
   );
 }

@@ -6,9 +6,9 @@
 //   status: implementada Lote 2e (lista; sync Meta em Lote 2f Sprint 2)
 //   permissao: whatsapp.templates.manage
 
-import { router } from '@inertiajs/react';
+import { router, Deferred } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Plus, RefreshCw, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -36,7 +36,8 @@ interface Template {
 }
 
 interface Props {
-  templates: Template[];
+  // D-14 perf — templates deferred (?: opcional até async fetch resolver)
+  templates?: Template[];
   filters: { provider: string; status: string };
 }
 
@@ -78,7 +79,7 @@ export default function TemplatesIndex({ templates, filters }: Props) {
     });
   }
 
-  const orphanCount = templates.filter((t) => !t.has_meta_counterpart && t.provider !== 'meta_cloud').length;
+  const orphanCount = (templates ?? []).filter((t) => !t.has_meta_counterpart && t.provider !== 'meta_cloud').length;
 
   return (
     <div className="space-y-4">
@@ -214,8 +215,31 @@ export default function TemplatesIndex({ templates, filters }: Props) {
         </div>
       </div>
 
-      {/* Lista */}
-      {templates.length === 0 ? (
+      {/* Lista — D-14 perf: deferred, skeleton 5 cards enquanto async fetch */}
+      <Deferred
+        data="templates"
+        fallback={(
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Card key={i} className="p-4">
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <div className="h-4 w-32 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-16 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-20 bg-muted/30 rounded animate-pulse" />
+                  </div>
+                  <div className="h-3 w-3/4 bg-muted/30 rounded animate-pulse" />
+                  <div className="h-3 w-1/2 bg-muted/30 rounded animate-pulse" />
+                </div>
+              </Card>
+            ))}
+            <div className="flex items-center justify-center text-muted-foreground text-xs pt-2">
+              <Loader2 size={14} className="animate-spin mr-2" aria-hidden /> Carregando templates…
+            </div>
+          </div>
+        )}
+      >
+      {!templates || templates.length === 0 ? (
         <Card>
           <EmptyState
             icon="file-text"
@@ -279,6 +303,7 @@ export default function TemplatesIndex({ templates, filters }: Props) {
           ))}
         </div>
       )}
+      </Deferred>
     </div>
   );
 }

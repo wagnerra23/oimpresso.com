@@ -40,33 +40,79 @@ class CsatController extends Controller
             '90' => 90,
             default => 30,
         };
-        $since = now()->subDays($rangeDays);
 
-        // Base query — todas pesquisas (pending + respondidas) dentro do range.
+        // D-14 perf 2026-05-15 (skill `inertia-defer-default` Tier 0):
+        // kpis (4 counts) + distribution (5 counts) + recent (query+eager+map)
+        // viram Inertia::defer — pulam execução quando partial reload não pede.
+        return Inertia::render('Atendimento/Csat/Index', [
+            // ─── Eager (custo zero) ───
+            'businessId' => $businessId,
+            'range' => $rangeDays,
+
+            // ─── Defer (queries pesadas) ───
+            'kpis' => Inertia::defer(fn () => $this->buildKpisPayload($businessId, $rangeDays)),
+            'distribution' => Inertia::defer(fn () => $this->buildDistributionPayload($businessId, $rangeDays)),
+            'recent' => Inertia::defer(fn () => $this->buildRecentPayload($businessId, $rangeDays)),
+        ]);
+    }
+
+    /**
+     * D-14 perf — 4 KPIs CSAT (4 counts + 1 avg query).
+     *
+     * @return array{avg_score: float, total_asked: int, total_responded: int, response_rate: float}
+     */
+    protected function buildKpisPayload(int $businessId, int $rangeDays): array
+    {
+        $since = now()->subDays($rangeDays);
         $baseQuery = CsatResponse::query()
             ->where('business_id', $businessId)
             ->where('created_at', '>=', $since);
 
         $totalAsked = (clone $baseQuery)->count();
         $totalResponded = (clone $baseQuery)->whereNotNull('score')->count();
-
-        // Média score (só rows respondidas — null não conta).
         $avgScore = (clone $baseQuery)->whereNotNull('score')->avg('score');
         $avgScore = $avgScore !== null ? round((float) $avgScore, 2) : 0.0;
-
-        // Taxa resposta (%).
         $responseRate = $totalAsked > 0
             ? round(($totalResponded / $totalAsked) * 100, 1)
             : 0.0;
 
-        // Distribuição score 1-5.
+        return [
+            'avg_score' => $avgScore,
+            'total_asked' => $totalAsked,
+            'total_responded' => $totalResponded,
+            'response_rate' => $responseRate,
+        ];
+    }
+
+    /**
+     * D-14 perf — distribuição score 1-5 (5 counts em loop).
+     *
+     * @return array<int, int>
+     */
+    protected function buildDistributionPayload(int $businessId, int $rangeDays): array
+    {
+        $since = now()->subDays($rangeDays);
+        $baseQuery = CsatResponse::query()
+            ->where('business_id', $businessId)
+            ->where('created_at', '>=', $since);
+
         $distribution = [];
         for ($s = 1; $s <= 5; $s++) {
             $distribution[$s] = (clone $baseQuery)->where('score', $s)->count();
         }
+        return $distribution;
+    }
 
-        // Últimas 20 responses (só respondidas) com eager-load.
-        $recent = (clone $baseQuery)
+    /**
+     * D-14 perf — últimas 20 responses (query + 3 eager-loads + map).
+     */
+    protected function buildRecentPayload(int $businessId, int $rangeDays): array
+    {
+        $since = now()->subDays($rangeDays);
+
+        return CsatResponse::query()
+            ->where('business_id', $businessId)
+            ->where('created_at', '>=', $since)
             ->whereNotNull('score')
             ->with([
                 'conversation:id,business_id,channel_id,contact_name,customer_external_id',
@@ -92,19 +138,7 @@ class CsatController extends Controller
                     'id' => $r->resolvedBy->id,
                     'name' => trim(($r->resolvedBy->first_name ?? '') . ' ' . ($r->resolvedBy->surname ?? '')) ?: "User #{$r->resolvedBy->id}",
                 ] : null,
-            ]);
-
-        return Inertia::render('Atendimento/Csat/Index', [
-            'businessId' => $businessId,
-            'range' => $rangeDays,
-            'kpis' => [
-                'avg_score' => $avgScore,
-                'total_asked' => $totalAsked,
-                'total_responded' => $totalResponded,
-                'response_rate' => $responseRate,
-            ],
-            'distribution' => $distribution,
-            'recent' => $recent,
-        ]);
+            ])
+            ->all();
     }
 }

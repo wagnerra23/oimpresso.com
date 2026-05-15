@@ -10,7 +10,8 @@
 // (cron 02:30 BRT). NÃO faz scan runtime de messages — performance
 // crítica em prod biz=1 (10k+ msgs/dia).
 
-import { router } from '@inertiajs/react';
+import { router, Deferred } from '@inertiajs/react';
+import { Loader2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -54,9 +55,13 @@ interface Props {
   allowedRanges: number[];
   startDate: string;
   endDate: string;
-  totals: Totals;
-  series: SeriesPoint[];
-  breakdown: BreakdownRow[];
+  // D-14 perf — agrupados em 'aggregated' defer prop (totals + series compartilham 1 query)
+  aggregated?: {
+    totals: Totals;
+    series: SeriesPoint[];
+  };
+  // D-14 perf — defer separado (queries DB independentes)
+  breakdown?: BreakdownRow[];
 }
 
 function formatReais(centavos: number): string {
@@ -86,8 +91,7 @@ export default function MetricasIndex({
   allowedRanges,
   startDate,
   endDate,
-  totals,
-  series,
+  aggregated,
   breakdown,
 }: Props) {
   function setRange(newRange: number) {
@@ -97,6 +101,9 @@ export default function MetricasIndex({
       { preserveScroll: true, preserveState: false },
     );
   }
+
+  const totals = aggregated?.totals;
+  const series = aggregated?.series ?? [];
 
   // Chart bounds — calculados em runtime do server data.
   const maxInbound = Math.max(...series.map((s) => s.inbound), 1);
@@ -145,45 +152,67 @@ export default function MetricasIndex({
           }
         />
 
-        {/* KPI Cards — 4 indicadores principais */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard
-            label="Conversas abertas"
-            value={totals.conversations_opened.toLocaleString('pt-BR')}
-            icon="message-square"
-            tone="info"
-            description={`${totals.conversations_resolved.toLocaleString('pt-BR')} resolvidas no período`}
-          />
-          <KpiCard
-            label="Mensagens"
-            value={(totals.messages_inbound + totals.messages_outbound).toLocaleString('pt-BR')}
-            icon="messages-square"
-            tone="default"
-            description={`${totals.messages_inbound.toLocaleString('pt-BR')} entrada · ${totals.messages_outbound.toLocaleString('pt-BR')} saída`}
-          />
-          <KpiCard
-            label="Tempo 1ª resposta"
-            value={formatDuration(totals.avg_first_response_seconds)}
-            icon="clock"
-            tone={
-              totals.avg_first_response_seconds === null
-                ? 'default'
-                : totals.avg_first_response_seconds < 600
-                  ? 'success'
-                  : totals.avg_first_response_seconds < 3600
-                    ? 'warning'
-                    : 'danger'
-            }
-            description="Tempo médio até resposta humana"
-          />
-          <KpiCard
-            label="Custo total"
-            value={formatReais(totals.total_cost_centavos)}
-            icon="dollar-sign"
-            tone="default"
-            description="Soma de cost_centavos no período"
-          />
-        </div>
+        {/* KPI Cards + Chart — agrupados em 'aggregated' defer (compartilham query Eloquent) */}
+        <Deferred
+          data="aggregated"
+          fallback={(
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Card key={i} className="p-4 space-y-2">
+                    <div className="h-3 w-24 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-8 w-20 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-3 w-32 bg-muted/30 rounded animate-pulse" />
+                  </Card>
+                ))}
+              </div>
+              <Card className="p-6 flex items-center justify-center min-h-[240px]">
+                <Loader2 size={20} className="animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">Carregando série de mensagens…</span>
+              </Card>
+            </>
+          )}
+        >
+          {totals && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <KpiCard
+                label="Conversas abertas"
+                value={totals.conversations_opened.toLocaleString('pt-BR')}
+                icon="message-square"
+                tone="info"
+                description={`${totals.conversations_resolved.toLocaleString('pt-BR')} resolvidas no período`}
+              />
+              <KpiCard
+                label="Mensagens"
+                value={(totals.messages_inbound + totals.messages_outbound).toLocaleString('pt-BR')}
+                icon="messages-square"
+                tone="default"
+                description={`${totals.messages_inbound.toLocaleString('pt-BR')} entrada · ${totals.messages_outbound.toLocaleString('pt-BR')} saída`}
+              />
+              <KpiCard
+                label="Tempo 1ª resposta"
+                value={formatDuration(totals.avg_first_response_seconds)}
+                icon="clock"
+                tone={
+                  totals.avg_first_response_seconds === null
+                    ? 'default'
+                    : totals.avg_first_response_seconds < 600
+                      ? 'success'
+                      : totals.avg_first_response_seconds < 3600
+                        ? 'warning'
+                        : 'danger'
+                }
+                description="Tempo médio até resposta humana"
+              />
+              <KpiCard
+                label="Custo total"
+                value={formatReais(totals.total_cost_centavos)}
+                icon="dollar-sign"
+                tone="default"
+                description="Soma de cost_centavos no período"
+              />
+            </div>
+          )}
 
         {/* Chart de linha — mensagens in/out por dia */}
         <Card className="p-6">
@@ -305,8 +334,9 @@ export default function MetricasIndex({
             </div>
           )}
         </Card>
+        </Deferred>
 
-        {/* Breakdown por canal */}
+        {/* Breakdown por canal — defer separado (1 query metrics + 1 channel labels) */}
         <Card className="p-6">
           <div className="mb-4">
             <h2 className="text-base font-semibold tracking-tight">
@@ -317,7 +347,24 @@ export default function MetricasIndex({
             </p>
           </div>
 
-          {breakdown.length === 0 ? (
+          <Deferred
+            data="breakdown"
+            fallback={(
+              <div className="overflow-x-auto space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex gap-4 items-center py-2 border-b border-border/30">
+                    <div className="h-4 w-32 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-12 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-12 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-12 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-12 bg-muted/40 rounded animate-pulse" />
+                    <div className="h-4 w-16 bg-muted/30 rounded animate-pulse ml-auto" />
+                  </div>
+                ))}
+              </div>
+            )}
+          >
+          {!breakdown || breakdown.length === 0 ? (
             <EmptyState
               icon="message-circle-off"
               title="Sem dados de canais no período"
@@ -368,6 +415,7 @@ export default function MetricasIndex({
               </table>
             </div>
           )}
+          </Deferred>
         </Card>
       </div>
     </AppShellV2>
