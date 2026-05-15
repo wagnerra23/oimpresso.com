@@ -439,6 +439,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // whatsapp:auth-state-drift-check — daily 03h BRT
+        // Detecta orphans (instance_id sem channel), banned/inactive rows
+        // residuais, e stale >90d (sinal de major bump não-purgado).
+        //
+        // Por que daily 03h: incident 2026-05-15 catalogou que auth_state
+        // 6.x → 7.x produziu 103 rows corrompidas que travaram daemon. Com
+        // detection daily, alerta cai em ≤24h se algum drift novo aparecer.
+        // Lição em [skill baileys-update-procedure §Fase 1.5].
+        $schedule->command('whatsapp:auth-state-drift-check')
+            ->dailyAt('03:00')
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:auth-state-drift-check FALHOU — drift Baileys auth_state pode estar acumulando'
+                );
+            });
+
         // Guardião 6 camadas anti-mídia-perdida — Camada 4 (retry hourly).
         // Rede de proteção pra mídia órfã (status=pending|downloading, media_url=null,
         // attempts<5, criada nos últimos 7d). Dispatcha DownloadMediaJob pra cada.
