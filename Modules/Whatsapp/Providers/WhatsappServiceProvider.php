@@ -116,6 +116,13 @@ class WhatsappServiceProvider extends ServiceProvider
         // do post-mortem 2026-05-13).
         \Modules\Whatsapp\Entities\Channel::observe(\Modules\Whatsapp\Observers\ChannelObserver::class);
 
+        // Observer LidPhoneMap — wave-protocol-stack PR2 (sessão 2026-05-15).
+        // Quando LID resolve pra phone (NULL→valor em phone_e164), dispara
+        // BackfillLidConversationsJob que re-linka conversations órfãs
+        // criadas ANTES do phone ser descoberto. Fecha gap "1ª msg @lid sem
+        // senderPn cria conv órfã pra sempre".
+        \Modules\Whatsapp\Entities\LidPhoneMap::observe(\Modules\Whatsapp\Observers\LidPhoneMapObserver::class);
+
         // Plug Repair: dispara Whatsapp em mudança de status (cumpre ADR Repair tech/0001)
         // Evento Modules\Repair\Events\RepairStatusChanged é declarado em Modules/Repair/Events/
         // — dispatch real depende de PR coordenado com Felipe/Maiara modificando JobSheetController.
