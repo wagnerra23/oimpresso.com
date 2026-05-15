@@ -20,6 +20,7 @@ pesquisa: 23 WebSearch + 5 WebFetch
 - **Baileys 6.7.9 NÃO tem `getPNForLID()` nem evento `lid-mapping.update` confiável** ([issue #2263](https://github.com/WhiskeySockets/Baileys/issues/2263) aberta). Baileys 7.x tem **ambos nativos** + auth state com `lid-mapping`/`device-list`/`tctoken` — mas 7.0.0-rc.9 (último npm publicado nov/2025) tem 3 bugs auth handshake que dão 100% `401 device_removed`. **Não migrar agora** — esperar 7.0.0 final.
 - **WhatsApp Cloud API oficial NÃO sofre o problema** (Meta resolve mapping internamente, expõe `wa_id` E.164 sem `+`). **Mas a partir de jun/2026 vai sofrer parcialmente** quando users adotarem username: `wa_id` pode sumir, restando só `user_id`/BSUID — exatamente o gap que estamos vivendo hoje em Baileys, vai universalizar.
 - **Nota oimpresso protocol-level: 42/100** (sobe de 38 do arte-doc concorrencial: temos defesas hoje que o mercado não tem audit + Pest). **Recomendação**: ficar em Baileys 6.7.9 + workaround robusto + adicionar coluna `bsuid` agora (zero custo, prepara migração Cloud API jun/2026). Migração Cloud API não é mais "se", é "quando dor justificar custo $0.004-0.0625/msg".
+- **Z-API (provider BR) NÃO resolve o problema** — Wagner observou rodando "muito bem" em outro cliente, mas auditoria 2026-05-15 mostra que **Z-API é wrapper Baileys-like com SaaS por cima**: sofre o mesmo blackbox LID. Doc Z-API admite literal: *"It is not possible to convert an `@lid` to a phone number"*. Driver oimpresso `ZapiDriver` já existe (72/100, pronto), mas o `ZapiWebhookController` ignora `senderLid/chatLid` — migrar SEM refactor de chave canônica reproduz o bug. Custo: R$ 99,99/mês fixo (Plano Ultimate, 1 instância, msgs ilimitadas) — mais barato que Cloud API ~R$ 90-120 mas com **Reclame Aqui 3.8/10 + suporte lag 37 dias + vendor lock-in alto**. Recomendação Z-API: **NÃO migrar biz=1 agora** — só ativar como fallback secundário canary em biz=99 sandbox se Wagner quiser comparar empiricamente.
 
 ---
 
@@ -222,6 +223,83 @@ Esses **não nos afetam diretamente** — são camadas de cripto. O que nos afet
 - **Ban risk**: Cloud API >> todos os outros
 - **Compatível com nossa stack PHP atual**: Baileys 6.7.9 = 7.x > whatsmeow (lib Go) > Cloud API (precisa re-implementar driver)
 - **Pronto pra usernames Q3-Q4/2026**: Cloud API > Baileys 7.x final > whatsmeow > Baileys 6.7.9
+
+---
+
+# 4b. Z-API (provider BR) — vantagens reais vs ilusão
+
+> Wagner observou em 2026-05-15: "o protocolo Z-API aparentemente está funcionando muito bem". Aprofundamento descobre **NÃO é o protocolo Z-API que resolve — é wrapper Baileys-like com SaaS por cima**. Mesmo blackbox LID. ([senior research dossier](https://developer.z-api.io/en/tips/lid))
+
+## 4b.1 O que Z-API entrega no webhook
+
+Doc oficial ([on-message-received](https://developer.z-api.io/en/webhooks/on-message-received)) declara:
+
+```json
+{
+  "phone": "554499999999",         // OU "65998849469@lid" (variável!)
+  "chatLid": "999...@lid",          // sempre presente
+  "senderLid": "999...@lid",        // sempre presente
+  "participantLid": "...@lid",      // só em grupos
+  "messageId": "ABC123",
+  "fromMe": false,
+  ...
+}
+```
+
+**Pegadinha:** o campo `phone` pode vir `E.164` (`"554499999999"`) OU `@lid` opaco (`"65998849469@lid"`) **pro MESMO contato em conversas diferentes** — dependendo se o contato tem privacidade ativa. Doc Z-API admite literal: *"It is not possible to convert an `@lid` to a phone number"* ([z-api lid help](https://developer.z-api.io/en/tips/lid)).
+
+**Recomendação oficial Z-API:** usar `chatLid` como chave primária (não `phone`). É exatamente o mesmo refactor que precisamos fazer em Baileys puro — Z-API só renomeia o problema, não resolve.
+
+## 4b.2 Z-API resolve cross-contact 14/mai?
+
+**NÃO.** Evidência:
+- WhatsApp introduziu LID em 2025 como blackbox cross-grupo ([Baileys issue #1718](https://github.com/WhiskeySockets/Baileys/issues/1718)) — Z-API herda
+- `phone` field UNRELIABLE como chave (E.164 OU `@lid` mesmo contato/conversas diferentes)
+- Cenário Wagner-Eliana reproduzir com Z-API: 81 msgs `phone="14628809617558@lid"` + fuzzy `tail4` no linker → mesmo cross-contact
+
+Z-API é **funcionalmente igual** ao Baileys 6.7.9 nesse aspecto. **Migrar SEM refactor de chave canônica = mesmo bug.**
+
+## 4b.3 Driver Z-API no oimpresso — nota 72/100
+
+[`ZapiDriver.php`](../../Modules/Whatsapp/Services/Drivers/ZapiDriver.php) está sólido:
+
+✅ **Bem cobertos (90%+):**
+- `sendFreeform/sendTemplate/sendMedia` com endpoints corretos (`send-text`, `send-image`, `send-document`, `send-audio`)
+- `sendInteractive` cobrindo `buttons` (`send-button-actions`) e `list` (`send-option-list`)
+- `ping()` mapeia `connected + smartphoneConnected` → `DriverHealthStatus`, detecta `qr_required`
+- `mapSendResponse()` detecta ban via 403 + keyword scan
+- `normalizePhone()` BR-aware (adiciona 55 se 10/11 dígitos)
+- `Client-Token` header correto
+
+❌ **Gaps que reduzem nota:**
+- `ZapiWebhookController` IGNORA `senderLid/chatLid/participantLid` ([linhas 41-62](../../Modules/Whatsapp/Http/Controllers/Api/ZapiWebhookController.php)) — só passa `$payload` raw downstream. Hoje em prod com `phone` como chave em `contacts` = mesmo cross-contact
+- Sem testes Pest específicos `Modules/Whatsapp/Tests/Feature/Zapi*`
+- `fetchMessageStatus()` polling 1:1 (sem batch endpoint = custo alto se escalar)
+- Webhook `on-disconnected` só loga, sem trigger automático de re-pairing
+
+## 4b.4 Z-API custo + risco operacional
+
+| Aspecto | Z-API | Baileys 6.7.9 (atual) | Cloud API Meta |
+|---|---|---|---|
+| **Custo mensal ROTA LIVRE** | **R$ 99,99 fixo** (Plano Ultimate, 1 instância, msgs ilimitadas, arquivos ≤100MB) ([z-api.io](https://z-api.io/)) | R$ 0 marginal (CT 100 já existe) | ~R$ 90-120 (4.500 msgs × $0.0068 + BSP) |
+| **Setup** | 5 min (QR scan) | já rodando | 7-14 dias (verify business + HSM) |
+| **Ban risk** | médio (Z-API claim 0,3%, sem auditoria externa) | alto | nulo |
+| **Vendor lock-in** | **ALTO** (SaaS BR) | zero (open-source) | Meta direto |
+| **Reclame Aqui** | **3.8/10** ([reclameaqui.com.br](https://www.reclameaqui.com.br/empresa/z-api/)) — 30% recompra, tempo resposta médio **37 dias** | N/A | Meta US tickets EN |
+| **Disaster recovery** | depende Z-API estar up | self-host CT 100 | SLA Meta global |
+| **LGPD/dados em BR** | Polit. Privacidade existe ([z-api.io/politica-de-privacidade](https://www.z-api.io/politica-de-privacidade/)) — empresa BR | ✅ self-hosted CT 100 | 🟡 Meta US/Ireland |
+| **Compatibilidade oimpresso atual** | ✅ Driver pronto 72/100 | ✅ em prod | refactor envio + HSM |
+
+## 4b.5 Decisão Z-API — quando ativar
+
+**NÃO migrar biz=1 pro Z-API JÁ.** Razões:
+
+1. **Não resolve cross-contact** — refactor de chave canônica (`contacts.phone` → `contacts.contact_lid`) é necessário independente do driver
+2. **Driver ZapiWebhookController ignora LIDs** — migrar agora sem fechar gap = mesmo bug em uniform diferente
+3. **Reclame Aqui 3.8/10 + 37 dias resposta** incompatível com ROTA LIVRE (99% volume vendas)
+4. **Vendor lock-in novo** — biz=1 hoje não tem dependência crítica externa de SaaS
+
+**Quando ativar (opcional, decisão Wagner):** Z-API vira **fallback secundário sombra** em biz=99 sandbox por 30 dias canary (R$ 99,99 × 1 mês = R$ 100 total). Se uptime > 99,5% E métricas estáveis, promover a `fallback_priority=2` (atrás de Cloud API quando essa entrar).
 
 ---
 
@@ -460,17 +538,38 @@ it('snapshot baileys 6.7.9 messaging-history.set payload shape', function () {
 
 **Quando ativar:** **AGORA.**
 
+## Opção D — Z-API canary biz=99 sombra (30 dias) — _adicionada 2026-05-15 pós-pergunta Wagner_
+
+**Custos:**
+- R$ 99,99/mês fixo (Plano Ultimate, 1 instância) × 1 mês canary = R$ ~100 total
+- Setup: 5 min QR scan (driver ZapiDriver oimpresso 72/100 pronto)
+- 2 dev-hours: criar canal biz=99 type=`whatsapp_zapi`, ativar sombra (mirror traffic só), métricas dashboard
+
+**Ganhos (validados na auditoria 2026-05-15):**
+- Z-API tem `Client-Token` middleware HMAC pronto + driver suporte send freeform/template/media/interactive
+- Suporte BR PT-BR (vs Meta US tickets EN)
+- Setup instantâneo (5 min vs 7-14 dias verify Meta)
+- Custo previsível R$ 99,99 fixo independente volume
+
+**Ganhos NÃO-validados (mito):**
+- ❌ **NÃO resolve cross-contact LID** — Z-API é wrapper Baileys-like, mesmo blackbox (doc oficial admite *"It is not possible to convert an `@lid` to a phone number"*)
+- ❌ **NÃO tem auditoria externa do claim 0,3% ban rate**
+- ❌ Reclame Aqui 3.8/10 + tempo médio resposta **37 dias** — incompatível com ROTA LIVRE (99% volume)
+
+**Quando ativar:** apenas se Wagner quiser comparar empiricamente. **NÃO substitui Opção C** (refactor `contact_lid` canônico necessário pra Z-API funcionar também). **NÃO migrar biz=1 prod** — só biz=99 sandbox sombra.
+
 ---
 
 ## Recomendação executável
 
-**Fazer Opção C hoje** (P0-1+P0-2+P1-3 = 4h IA-pair) **+ stub Opção A** (preparar `MetaCloudDriver` operacional + 1 biz canary não-prod).
+**Fazer Opção C hoje** (P0-1+P0-2+P1-3 = 4h IA-pair, ✅ **PRs #855-857 abertos 2026-05-15**) **+ stub Opção A** (preparar `MetaCloudDriver` operacional + 1 biz canary não-prod, ✅ **PR #858 aberto**) + **Opção D opcional** (canary biz=99 Z-API sombra 30 dias se Wagner quiser comparar).
 
 Por quê:
-1. **P0-1 (schema 3-identifiers) é zero-regret** — útil em qualquer das 3 opções futuras. Se Wagner amanhã decide Cloud API, está pronto.
+1. **P0-1 (schema 3-identifiers) é zero-regret** — útil em qualquer das 4 opções futuras. Se Wagner amanhã decide Cloud API OU Z-API OU Baileys 7.x, está pronto.
 2. **P1-3 (backup auth_state) é incident-trigger** — Wagner viveu na pele 14/mai. Custo 30min, vital.
 3. **Cloud API canary biz=99 (Wagner test biz)** valida custo real + tempo aprovação HSM templates antes de decidir migração production-wide.
 4. **Baileys 7.x esperar** — 7.0.0 final ainda não saiu; movimento prematuro = repetir bug rc.9.
+5. **Z-API NÃO é solução pro cross-contact** — é trade de risco (self-host CT 100 zero-custo) por SaaS BR (R$ 100/mês + Reclame Aqui 3.8/10 + vendor lock-in). Se Wagner quiser comparar, faz em biz=99 sandbox sombra, **nunca biz=1 prod sem refactor `contact_lid` canônico antes**.
 
 ---
 
@@ -507,6 +606,18 @@ Por quê:
 - [Hermes-agent issue #11951 — syncFullHistory:false disables history in 7.x](https://github.com/NousResearch/hermes-agent/issues/11951)
 - [Openclaw issue #19907 — Baileys RC9 Auth Breaking 401 device_removed](https://github.com/openclaw/openclaw/issues/19907)
 - [Baileys releases](https://github.com/WhiskeySockets/Baileys/releases)
+
+## Z-API (provider BR — adicionado 2026-05-15)
+- [Z-API home / pricing](https://z-api.io/)
+- [Z-API Lid Docs](https://developer.z-api.io/en/tips/lid)
+- [Z-API Blog — LID no WhatsApp e como funciona](https://www.z-api.io/blog/lid-no-whatsapp-e-como-funciona/)
+- [Z-API Blog — LID por que aparece e como tratar](https://www.z-api.io/blog/lid-no-whatsapp-o-que-e-por-que-aparece/)
+- [Z-API webhook on-message-received](https://developer.z-api.io/en/webhooks/on-message-received)
+- [Z-API Blog — bloqueios e banimentos no WhatsApp](https://www.z-api.io/blog/bloqueios-e-banimentos-no-whatsapp/)
+- [Z-API Blog — API do WhatsApp muda modelo de cobrança](https://www.z-api.io/blog/api-do-whatsapp-muda-modelo-de-cobranca/)
+- [Z-API Política de privacidade](https://www.z-api.io/politica-de-privacidade/)
+- [Z-API Reclame Aqui (3.8/10)](https://www.reclameaqui.com.br/empresa/z-api/)
+- [Pablo Cabral — Z-API vs Evolution API vs Baileys comparativo BR](https://pablocabral.com.br/z-api-ou-evolution-api-qual-a-melhor-opcao-para-automacao/)
 
 ## whatsmeow (Go alternative)
 - [whatsmeow discussion #846 — sender_pn](https://github.com/tulir/whatsmeow/discussions/846)
