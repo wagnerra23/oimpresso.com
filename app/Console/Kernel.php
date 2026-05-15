@@ -204,6 +204,36 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ENFORCEMENT.md §2 #5 (Constituição Art. 7) — Drift detection cron.
+        // Compara Modules/<X>/SCOPE.md.contains[] × filesystem real de
+        // Modules/<X>/Http/Controllers/*. Persiste alertas idempotentes em
+        // mcp_alertas_eventos (tipo=module_drift). UI consome via
+        // Modules/Governance/Http/Controllers/DriftAlertsController.
+        //
+        // Por que daily 06:15: defesa cron complementa Mecanismo #3 (pre-commit
+        // hook) — pega PRs antigos pré-SCOPE.md, branches paralelas que escaparam
+        // do gate, edits SSH direto em prod (violação "mexeu, registra"). Time
+        // entra em breve no MCP — drift escala N× pessoas.
+        //
+        // 06:15 BRT pra evitar disputa DB com jana:health-check (06:00) e ficar
+        // antes do horário comercial. Exit 1 quando drift_added > 0 → Log warning
+        // → cron alerting (mesmo padrão fsm:scan-drift transactions).
+        $schedule->command('governance:detect-drift')
+            ->dailyAt('06:15')
+            ->timezone('America/Sao_Paulo')
+            ->name('governance-detect-drift-daily')
+            ->onOneServer()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/governance-drift.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:detect-drift FALHOU ou DETECTOU drift — ' .
+                    'investigar storage/logs/governance-drift.log e ' .
+                    'mcp_alertas_eventos WHERE tipo=module_drift'
+                );
+            });
+
         // US-RB-046 — sync extrato bancário Inter D-7 (Banking API v2).
         // Roda 07:00 BRT pra ter dia anterior fechado. Idempotente via UNIQUE
         // (conta_bancaria_id, idempotency_key) em fin_extrato_lancamentos.
