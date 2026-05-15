@@ -52,9 +52,16 @@ switch -regex ($target) {
 }
 
 # Output JSON pro Claude Code: systemMessage warn (não bloquear)
+# G4 (2026-05-15): migrado pra schema PreToolUse 2026 oficial
+# Antes: {decision: 'allow', systemMessage: '...'} top-level (legacy)
+# Agora: {hookSpecificOutput: {hookEventName, permissionDecision, permissionDecisionReason}}
+# Docs: code.claude.com/docs/en/hooks
 @{
-    decision     = 'allow'
-    systemMessage = "[oimpresso-mcp-first] Você ia $tool em '$target'. Considere tool MCP `'$suggestion`' — auditado em mcp_audit_log + 73% menos tokens. Filesystem só se MCP fora do ar. Ver SKILL .claude/skills/oimpresso-mcp-first/SKILL.md."
-} | ConvertTo-Json -Compress
+    hookSpecificOutput = @{
+        hookEventName            = 'PreToolUse'
+        permissionDecision       = 'allow'
+        permissionDecisionReason = "[oimpresso-mcp-first] Você ia $tool em '$target'. Considere tool MCP `'$suggestion`' — auditado em mcp_audit_log + 73% menos tokens. Filesystem só se MCP fora do ar. Ver SKILL .claude/skills/oimpresso-mcp-first/SKILL.md."
+    }
+} | ConvertTo-Json -Compress -Depth 3
 
 exit 0
