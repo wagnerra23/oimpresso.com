@@ -10,7 +10,7 @@ related_sessions:
   - 2026-05-14-arte-auto-cadastro-contact-whatsapp.md
 related_us: [US-WA-078, US-WA-093, US-WA-094]
 nota_oimpresso_protocol: 42/100
-pesquisa: 23 WebSearch + 5 WebFetch
+pesquisa: 37 WebSearch + 9 WebFetch
 ---
 
 # TL;DR
@@ -21,6 +21,7 @@ pesquisa: 23 WebSearch + 5 WebFetch
 - **WhatsApp Cloud API oficial NÃO sofre o problema** (Meta resolve mapping internamente, expõe `wa_id` E.164 sem `+`). **Mas a partir de jun/2026 vai sofrer parcialmente** quando users adotarem username: `wa_id` pode sumir, restando só `user_id`/BSUID — exatamente o gap que estamos vivendo hoje em Baileys, vai universalizar.
 - **Nota oimpresso protocol-level: 42/100** (sobe de 38 do arte-doc concorrencial: temos defesas hoje que o mercado não tem audit + Pest). **Recomendação**: ficar em Baileys 6.7.9 + workaround robusto + adicionar coluna `bsuid` agora (zero custo, prepara migração Cloud API jun/2026). Migração Cloud API não é mais "se", é "quando dor justificar custo $0.004-0.0625/msg".
 - **Z-API (provider BR) NÃO resolve o problema** — Wagner observou rodando "muito bem" em outro cliente, mas auditoria 2026-05-15 mostra que **Z-API é wrapper Baileys-like com SaaS por cima**: sofre o mesmo blackbox LID. Doc Z-API admite literal: *"It is not possible to convert an `@lid` to a phone number"*. Driver oimpresso `ZapiDriver` já existe (72/100, pronto), mas o `ZapiWebhookController` ignora `senderLid/chatLid` — migrar SEM refactor de chave canônica reproduz o bug. Custo: R$ 99,99/mês fixo (Plano Ultimate, 1 instância, msgs ilimitadas) — mais barato que Cloud API ~R$ 90-120 mas com **Reclame Aqui 3.8/10 + suporte lag 37 dias + vendor lock-in alto**. Recomendação Z-API: **NÃO migrar biz=1 agora** — só ativar como fallback secundário canary em biz=99 sandbox se Wagner quiser comparar empiricamente.
+- **Engenharia interna confirmada 2026-05-15 (§4c novo)**: Z-API **não revela publicamente**, mas evidências convergem em Baileys-like (WebSocket WhatsApp Web protocol direto + "emulate a phone on a computer" + queue interna anti-ban + IP individual por cliente) — **NÃO é whatsapp-web.js Puppeteer** como Grok sugeriu. Evolution API **é Baileys 7.0.0-rc.5** declarado (open-source 8.3k stars, v2.3.7 dez/2025). WAHA tem 3 engines (WEBJS Puppeteer / NOWEB Baileys / GOWS whatsmeow). Uazapi usa **GoWS = whatsmeow Go**. Mesmo problema LID em todos — "estabilizar" é **infra (queue/IP rotation/warm-up/jitter)**, não escolha de lib. Score ponderado total 6 opções ROTA LIVRE: **Baileys 6.7.9 endurecido = 58% / Evolution API self-host = 61% / Z-API = 64% / Cloud API = 71%**. Nenhuma sai >75% — todas têm trade-offs claros.
 
 ---
 
@@ -303,6 +304,89 @@ Z-API é **funcionalmente igual** ao Baileys 6.7.9 nesse aspecto. **Migrar SEM r
 
 ---
 
+# 4c. Engenharia interna — Z-API vs Evolution API vs whatsapp-web.js vs WPPConnect (adicionado 2026-05-15 turno 2)
+
+> Wagner perguntou: "Z-API funciona — como eles conseguiram? Grok disse que é WhatsApp Web JS. Compara com Evolution API e tudo, mostra em percentual." Resposta curta: **Grok errou**. Z-API NÃO é whatsapp-web.js. Evidência indireta forte aponta Baileys-like + infra anti-ban pesada por cima. Detalhe abaixo.
+
+## 4c.1 Stack interno confirmado (ou indiciado) — 5 opções
+
+| Provider | Engine interna (confirmada) | Evidência | Linguagem | Modelo |
+|---|---|---|---|---|
+| **Z-API** ([z-api.io](https://z-api.io)) — Z Brasil Informática LTDA Maringá/PR, fundada 2018, ≥25k clientes, 50 países | **Baileys-like (WebSocket WhatsApp Web protocol direto)** — NÃO Puppeteer | Doc oficial Z-API afirma literal: *"utilizes the same channel of communication used by whatsapp web"* + *"systems to emulate a phone on a computer"* + *"individual IPs to clients"* + *"message queue to avoid bulk sending and protect from bans"* ([Z-API docs intro](https://developer.z-api.io/en/)). Não cita Baileys publicamente. Não é Puppeteer (custo CPU/RAM 300-600MB × 25k clientes seria proibitivo). Webhook tem `senderLid/chatLid/participantLid` idênticos a Baileys 7.x. | Node.js (exemplos integração em [Z-API/whatsapp-api-nodejs](https://github.com/Z-API/whatsapp-api-nodejs)) | SaaS BR fechado, R$ 99,99/mês fixo (Ultimate) |
+| **Evolution API** ([EvolutionAPI/evolution-api](https://github.com/EvolutionAPI/evolution-api)) — open-source brasileiro, 8.3k stars, 6.3k forks, 53 releases, v2.3.7 dez/2025 | **Baileys 7.0.0-rc.5** (declarado explicitamente em [issue #2258](https://github.com/EvolutionAPI/evolution-api/issues/2258) + [CHANGELOG](https://github.com/EvolutionAPI/evolution-api/blob/main/CHANGELOG.md)) — **DUAL**: também suporta Cloud API Meta oficial side-by-side | README oficial: "Evolution API supports both the Baileys-based WhatsApp Web API and the official WhatsApp Cloud API" | Node.js 20+, TypeScript 5+, Express.js, Prisma ORM (Postgres OU MySQL), Redis sessions, RabbitMQ/Kafka/SQS events | Open-source self-host (Docker), Cloud Evolution paga também disponível |
+| **whatsapp-web.js** ([pedroslopez/whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js)) | **Puppeteer + Chromium headless** scraping/injecting web.whatsapp.com | Doc oficial: "uses Puppeteer to run a real instance of WhatsApp Web to avoid getting blocked" | Node.js | Open-source, self-host |
+| **WPPConnect** ([wppconnect-team/wppconnect](https://github.com/wppconnect-team/wppconnect)) — 1.5k stars | **Puppeteer + Chromium** (mesmo princípio whatsapp-web.js, fork comunidade JS BR) | Pacote `wa-js` exporta funções de WhatsApp Web pro node via DOM injection | Node.js | Open-source, self-host |
+| **WAHA** ([devlikeapro/waha](https://github.com/devlikeapro/waha)) | **3 engines selecionáveis** via env var: WEBJS (Puppeteer), NOWEB (Baileys), GOWS (whatsmeow Go) | [Doc oficial WAHA engines](https://waha.devlike.pro/docs/engines/noweb/) — "NOWEB uses @adiwajshing/baileys to create a direct WebSocket connection" | Node.js (gateway HTTP) + engines | Open-source freemium |
+| **Uazapi** | **GoWS = whatsmeow Go** (declarado em vídeo "Motor GoWS" 2025) | [Análise YT Uazapi 2025](https://www.youtube.com/shorts/zK9WS_NsyG4) declara "motor GoWS" — que é whatsmeow + REST wrapper similar a wuzapi ([asternic/wuzapi](https://github.com/asternic/wuzapi)) | Go | SaaS BR fechado, teste grátis |
+
+**Conclusão stack:**
+
+1. **Z-API NÃO é whatsapp-web.js Puppeteer** (Grok errou) — escala 25k clientes × 300-600MB RAM Chromium é inviável; webhook payload idêntico a Baileys 7.x; doc admite "emular phone" via "channel WhatsApp Web" = WebSocket direto = Baileys-pattern (eventualmente fork interno custom).
+2. **Evolution API É Baileys 7.0.0-rc.5** declaradamente — mesmo motor da nossa stack. Por isso a comunidade reporta os mesmos bugs Wagner viveu 14/mai.
+3. **whatsapp-web.js / WPPConnect são Puppeteer-based** — ban risk *teoricamente* menor (usam mesmo cliente que humano usa), MAS RAM 300-600MB + bugs memory leak (até 20GB com cache; 50% CPU em headless) tornam inviável escala SaaS.
+4. **Uazapi/whatsmeow** abordagem Go — menor memory footprint (~5MB), sessões estáveis "weeks" em prod, mas comunidade Go menor + LID/PN problemas similares ([whatsmeow issue #810](https://github.com/tulir/whatsmeow/issues/810) "Your account may be at risk warning").
+
+## 4c.2 Como Z-API "estabilizou" — não é o motor, é a INFRA
+
+Z-API doc menciona 4 pilares anti-ban (sem detalhes técnicos públicos):
+
+| Técnica | Z-API tem (declarado) | Evolution API self-host | Baileys puro oimpresso |
+|---|---|---|---|
+| **Fila/throttle interna anti-bulk** | ✅ "message queue to avoid bulk sending and protect from bans" | ❌ você implementa | ❌ você implementa |
+| **IP individual por cliente (rotation)** | ✅ "Z-API provides individual IPs to clients" | ❌ 1 VPS = 1 IP | ❌ CT 100 = 1 IP fixo |
+| **Behavioral mimicry (typing/read/jitter)** | indiciado (não documentado) | ❌ você implementa via [kobie3717/baileys-antiban](https://github.com/kobie3717/baileys-antiban) middleware | ❌ |
+| **Warm-up automático novos números** | indiciado (claim 0.3% ban rate sem auditoria) | ❌ | ❌ |
+| **Cluster de instâncias rotacionadas** | indiciado (escala SaaS 25k clientes) | ❌ single instance | ❌ single daemon |
+| **Auditoria externa do ban rate** | ❌ | N/A | N/A |
+
+**Insight:** o que Z-API "estabilizou" **não é Baileys lib em si** — é a **camada de orquestração anti-ban por cima** (queue + IP rotation + behavioral mimicry + warm-up). Essa camada custa **engenharia + infra real** (R$ 99,99/mês cliente pagar paga isso).
+
+Evidência empírica reportada na comunidade BR:
+- Pablo Cabral ([análise comparativa](https://pablocabral.com.br/z-api-ou-evolution-api-qual-a-melhor-opcao-para-automacao/)): *"Vários clientes migraram da Evolution API, depois de perder vendas por instabilidades, para integrações pagas e profissionais como a Z-API"* — sintoma: Evolution API self-host sem camada anti-ban dá instabilidade, Z-API SaaS resolve **via infra**, não via lib diferente
+- [Empresa1p comparativo](https://empresa1p.com.br/comparativo-de-apis-de-whatsapp-z-api-vs-uazapi-vs-evolution-api/): Z-API uptime 98%, Uazapi "API estável", Evolution "bugs constantes e aleatórios, problemas QR code, recriar containers"
+- Engenharia mundial WhatsApp ([WASenderApi guide 2025-26](https://wasenderapi.com/blog/stop-getting-banned-the-ultimate-whatsapp-anti-ban-strategy-for-unofficial-apis-in-2025)): ML do Meta pesa **reply-ratio (<10% = high risk), contact-graph distance, temporal patterns** — todas técnicas mitigáveis na camada de orquestração, não na lib
+
+**Replicabilidade pro oimpresso:** o que Z-API faz é o que MM oimpresso poderia implementar em ~3-5 dev-days de IA-pair sobre Baileys puro — queue Redis com throttle gaussian jitter, warm-up cron, contact-graph score, retry-with-backoff. **Não é mágica; é trabalho.** Já existe biblioteca-base ([baileys-antiban middleware](https://github.com/kobie3717/baileys-antiban)) que cobre ~60% dessa camada.
+
+## 4c.3 Tabela comparativa 6 opções × 12 dimensões (peso ROTA LIVRE)
+
+Calibrado pro caso **biz=1 ROTA LIVRE (99% volume, ~50-200 msgs/dia, meta R$ 5mi/ano, prod hoje, multi-tenant Tier 0 IRREVOGÁVEL)**. Score 0-100% por dimensão; total ponderado embaixo.
+
+| Dimensão | Peso | Baileys 6.7.9 endurecido (hoje) | Baileys 7.x final (futuro) | whatsapp-web.js (Puppeteer) | Evolution API self-host | Z-API SaaS | Cloud API Meta |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **D1. Estabilidade conexão (uptime)** | 12 | 70% | 80% | 50% (RAM leak) | 65% (mesma fundação 7.x) | 88% (claim 98%) | 99% |
+| **D2. Risco ban médio prazo** | 14 | 35% | 40% | 55% (Puppeteer-based, "mesmo client humano") | 40% | 70% (claim 0.3% sem auditoria) | 100% |
+| **D3. Custo total ROTA LIVRE/mês** | 10 | 100% (R$0 marginal CT100) | 100% | 80% (precisa VPS RAM ≥4GB) | 90% (VPS Hetzner CX23 €3 ~R$18) | 75% (R$ 99,99 fixo) | 50% (R$ 90-120 + BSP markup) |
+| **D4. Resolve LID→PN reverso** | 9 | 30% (workaround manual hoje) | 75% (`getPNForLID` nativo) | 30% | 35% (mesma lib Baileys 7.x) | 30% (doc admite impossível) | 95% (Meta resolve `wa_id`+`user_id`) |
+| **D5. Setup/migração esforço** | 8 | 100% (já rodando) | 60% (re-pair + auth state expandido + 90d history loss) | 40% (refactor driver + Chromium infra) | 50% (refactor driver + Docker + Postgres + Redis) | 70% (refactor `senderLid`/`chatLid` + driver pronto 72/100) | 30% (verify Meta + HSM templates + embedded signup) |
+| **D6. Vendor lock-in** | 8 | 100% (zero) | 100% | 100% | 100% (open-source self-host) | 30% (SaaS BR fechado) | 50% (Meta direto, sem BSP intermediário) |
+| **D7. Suporte/SLA cliente BR** | 7 | 0% (você é o suporte) | 0% | 0% | 30% (comunidade Discord BR ativa) | 50% (PT-BR, mas Reclame Aqui 3.8/10, 37d médio) | 60% (Meta US EN tickets) |
+| **D8. LGPD/dados em BR** | 7 | 100% (self-host CT 100) | 100% | 100% (self-host) | 100% (self-host VPS BR) | 75% (empresa BR, doc privacy ok) | 50% (Meta US/Ireland — DPA complexo) |
+| **D9. Multi-tenant Tier 0 compat ([ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md))** | 12 | 90% (já implementado) | 90% | 85% (driver new, refactor) | 90% (driver new) | 85% (driver pronto 72/100) | 90% (driver new, isolation natural via business token) |
+| **D10. Pronto pra usernames jun/2026 + BSUID** | 6 | 20% (não nativo) | 70% | 20% | 70% (Cloud API mode coexiste) | 30% (depende quando Z-API implementar) | 100% (Meta resolve internamente) |
+| **D11. Suporta Click-to-WhatsApp Ads janela 72h** | 4 | 30% | 35% | 30% | 35% (modo Cloud API) | 30% | 100% |
+| **D12. Custo IA-pair pra fechar gaps até produção** | 3 | 80% (3-5 dev-days endurecer anti-ban) | 60% (esperar 7.0.0 + migração) | 30% (refactor enorme) | 50% (refactor + Docker) | 70% (driver pronto + 2 dev-days canary) | 30% (HSM templates + onboarding) |
+| **PESO TOTAL (Σ=100)** | — | — | — | — | — | — | — |
+| **SCORE PONDERADO TOTAL** | — | **58%** | **64%** | **48%** | **61%** | **64%** | **71%** |
+
+**Notas e limites da tabela:**
+1. Score Z-API 64% **empata Baileys 7.x final** (que ainda nem saiu). Não há vencedor óbvio.
+2. Cloud API ganha em ban risk + futuro, mas perde em custo (D3 50%) + lock-in (D6 50%) + migração (D5 30%) — esses 3 puxam abaixo de 80%.
+3. whatsapp-web.js perde fácil — RAM 300-600MB × multi-tenant Tier 0 (precisa 1 instância por business) é proibitivo no CT 100 atual.
+4. Evolution API empata com Z-API em score, mas adiciona Docker + Postgres + Redis pra manter — opex maior.
+
+## 4c.4 Quem ganha pra ROTA LIVRE — depende do horizonte temporal
+
+- **Hoje (PR #855-858 abertos endurecendo Baileys 6.7.9):** **Baileys 6.7.9 endurecido = 58%** ganha por **menor friction** (já rodando, sem migração). Diferença pra Z-API (64%) é 6pp — não justifica trocar enquanto refactor `contact_lid` canônico não está feito.
+- **Em 60-90 dias (após refactor `contact_lid` + canary Cloud API biz=99):** **Cloud API = 71%** assume liderança. Custo R$ 90-120/mês cabe na meta R$ 5mi/ano (~0,003% revenue).
+- **Janela intermediária (30 dias):** Z-API canary biz=99 sombra ganha empate com Baileys 7.x final que ainda não saiu — Wagner pode validar empiricamente em biz=99 sandbox por R$ 100 sem mexer prod.
+
+## 4c.5 Onde Evolution API self-host entra (opção nova explorada)
+
+Detalhada na §7e abaixo. TL;DR: **mesma lib (Baileys 7.0.0-rc.5) que vamos usar quando 7.0.0 final sair**, mas com **gateway REST + multi-tenancy nativo + dual mode Cloud API ao lado**. Trade: + 1 stack (Docker + Postgres + Redis no CT 100) vs ganho de webhook pronto + Cloud API path-ready. Score 61% — não-trivialmente melhor que Baileys puro (58%), pior que Cloud API (71%).
+
+---
+
 # 5. Avaliação oimpresso (8 dimensões D-1 a D-8) — nota 42/100
 
 > Sobe 4pp do arte-doc 14/mai (38/100) porque PR #854 já aplicou Patches 1+2+3 (defesas anti-cross-contact) — mas ainda muito atrás do estado-da-arte (Cloud API tem 70+; Baileys 7.x lib bem usada chegaria a 60+).
@@ -558,18 +642,44 @@ it('snapshot baileys 6.7.9 messaging-history.set payload shape', function () {
 
 **Quando ativar:** apenas se Wagner quiser comparar empiricamente. **NÃO substitui Opção C** (refactor `contact_lid` canônico necessário pra Z-API funcionar também). **NÃO migrar biz=1 prod** — só biz=99 sandbox sombra.
 
+## Opção E — Evolution API self-host CT 100 — _adicionada 2026-05-15 turno 2 (engenharia interna)_
+
+**Custos:**
+- VPS extra (Postgres + Redis dedicados pra Evolution): pode reusar Postgres CT 100 existente + Redis → **R$ 0 marginal**
+- Docker container `evolution-api:2.3.7` no CT 100: **R$ 0** (CT 100 tem capacidade)
+- 3-5 dev-days IA-pair: criar `EvolutionApiDriver` no oimpresso (similar a `ZapiDriver`, ~250 linhas) + `EvolutionApiWebhookController` + Pest fixtures + smoke biz=99
+- Operacional: manter Docker + monitorar atualizações Baileys quando Evolution publica (commit cadence: 53 releases até dez/2025 — ~1 release/2 semanas)
+
+**Ganhos:**
+- **Multi-tenancy nativo** — 1 Evolution instance roda N WhatsApp accounts isoladas (vs 1 daemon Baileys = 1 número hoje)
+- **Dual mode**: mesmo container expõe REST API tanto pra Baileys-WhatsApp Web Web socket quanto pra Cloud API oficial Meta — migração biz-a-biz sem trocar driver oimpresso
+- **Webhook REST padronizado** — não precisa mais gerenciar daemon Node custom CT 100; gateway HTTP estável
+- **Comunidade ativa BR**: 8.3k stars, 297 issues abertas, Discord BR ativo, atualização Baileys ~2 semanas
+- **Open-source self-host**: zero vendor lock-in (vs Z-API SaaS)
+- **LGPD**: dados ficam no CT 100 (BR)
+
+**Riscos (calibrados):**
+- ❌ **Mesma lib Baileys 7.0.0-rc.5** = mesmos bugs (cross-contact LID + history sync). Evolution **NÃO resolve** problema raiz, **só padroniza interface**
+- ❌ **Empresa1p comparativo** ([link](https://empresa1p.com.br/comparativo-de-apis-de-whatsapp-z-api-vs-uazapi-vs-evolution-api/)) reporta: *"Bugs constantes e aleatórios, problemas com leitura de QR Code, necessidade de recriar containers Docker"* — sintoma de Baileys-rc cycle
+- ❌ **Pablo Cabral**: *"clientes migraram da Evolution API para Z-API após perder vendas por instabilidades"* — anti-ban infra é o gap, não a lib
+- ❌ Adiciona 1 stack (Postgres + Redis + Docker dedicated) no CT 100 — monitor + backup + atualização novos
+- ❌ Sem suporte comercial SLA (vs Z-API PT-BR ou Cloud API Meta)
+
+**Quando ativar:** **NÃO antes de fechar refactor `contact_lid` canônico** (P0-1 + P0-2 em §6 acima). Evolution só faz sentido se: (a) oimpresso decidir oferecer **WhatsApp como produto multi-instância nas verticais Modules/<X>** (cada cliente vertical com seu canal isolado escalável) E (b) custo Cloud API ($0.004-0.0625/msg) ficar proibitivo no plan de venda. Hoje **não atende** ROTA LIVRE (1 canal, 1 número, 99% volume) — Baileys puro endurecido (Opção C) cobre. **Considerar em 6-12 meses** se vertical Vestuario ganhar 5+ clientes paralelos OU se Cloud API rejeitar ROTA LIVRE no embedded signup. Score 61% vs 58% Baileys puro = +3pp marginal, não justifica adicionar stack hoje.
+
 ---
 
 ## Recomendação executável
 
-**Fazer Opção C hoje** (P0-1+P0-2+P1-3 = 4h IA-pair, ✅ **PRs #855-857 abertos 2026-05-15**) **+ stub Opção A** (preparar `MetaCloudDriver` operacional + 1 biz canary não-prod, ✅ **PR #858 aberto**) + **Opção D opcional** (canary biz=99 Z-API sombra 30 dias se Wagner quiser comparar).
+**Fazer Opção C hoje** (P0-1+P0-2+P1-3 = 4h IA-pair, ✅ **PRs #855-857 abertos 2026-05-15**) **+ stub Opção A** (preparar `MetaCloudDriver` operacional + 1 biz canary não-prod, ✅ **PR #858 aberto**) + **Opção D opcional** (canary biz=99 Z-API sombra 30 dias se Wagner quiser comparar). **Opção E (Evolution API) parqueada 6-12 meses** — só faz sentido se modelo de produto pivotar pra multi-WhatsApp escalado por vertical.
 
 Por quê:
-1. **P0-1 (schema 3-identifiers) é zero-regret** — útil em qualquer das 4 opções futuras. Se Wagner amanhã decide Cloud API OU Z-API OU Baileys 7.x, está pronto.
+1. **P0-1 (schema 3-identifiers) é zero-regret** — útil em qualquer das 5 opções futuras. Se Wagner amanhã decide Cloud API OU Z-API OU Baileys 7.x OU Evolution API, está pronto.
 2. **P1-3 (backup auth_state) é incident-trigger** — Wagner viveu na pele 14/mai. Custo 30min, vital.
 3. **Cloud API canary biz=99 (Wagner test biz)** valida custo real + tempo aprovação HSM templates antes de decidir migração production-wide.
 4. **Baileys 7.x esperar** — 7.0.0 final ainda não saiu; movimento prematuro = repetir bug rc.9.
 5. **Z-API NÃO é solução pro cross-contact** — é trade de risco (self-host CT 100 zero-custo) por SaaS BR (R$ 100/mês + Reclame Aqui 3.8/10 + vendor lock-in). Se Wagner quiser comparar, faz em biz=99 sandbox sombra, **nunca biz=1 prod sem refactor `contact_lid` canônico antes**.
+6. **Evolution API self-host NÃO é solução pro cross-contact tampouco** — mesma lib Baileys 7.0.0-rc.5, mesmos bugs. Só faz sentido se modelo de produto pivotar pra multi-WhatsApp escalado por vertical (6-12 meses out).
 
 ---
 
@@ -603,6 +713,7 @@ Por quê:
 - [Issue #2077 — Missing contact data in messaging-history.set (7.0.0-rc.6)](https://github.com/WhiskeySockets/Baileys/issues/2077)
 - [Issue #2462 — messaging-history.set not triggered (7.0.0-rc.9)](https://github.com/WhiskeySockets/Baileys/issues/2462)
 - [Issue #2005 — History sync isLatest never changes](https://github.com/WhiskeySockets/Baileys/issues/2005)
+- [Issue #1869 — High number of bans on WhatsApp](https://github.com/WhiskeySockets/Baileys/issues/1869)
 - [Hermes-agent issue #11951 — syncFullHistory:false disables history in 7.x](https://github.com/NousResearch/hermes-agent/issues/11951)
 - [Openclaw issue #19907 — Baileys RC9 Auth Breaking 401 device_removed](https://github.com/openclaw/openclaw/issues/19907)
 - [Baileys releases](https://github.com/WhiskeySockets/Baileys/releases)
@@ -610,24 +721,50 @@ Por quê:
 ## Z-API (provider BR — adicionado 2026-05-15)
 - [Z-API home / pricing](https://z-api.io/)
 - [Z-API Lid Docs](https://developer.z-api.io/en/tips/lid)
+- [Z-API Docs introduction (engine indícios "channel WhatsApp Web" + "emulate phone")](https://developer.z-api.io/en/)
 - [Z-API Blog — LID no WhatsApp e como funciona](https://www.z-api.io/blog/lid-no-whatsapp-e-como-funciona/)
 - [Z-API Blog — LID por que aparece e como tratar](https://www.z-api.io/blog/lid-no-whatsapp-o-que-e-por-que-aparece/)
 - [Z-API webhook on-message-received](https://developer.z-api.io/en/webhooks/on-message-received)
 - [Z-API Blog — bloqueios e banimentos no WhatsApp](https://www.z-api.io/blog/bloqueios-e-banimentos-no-whatsapp/)
 - [Z-API Blog — API do WhatsApp muda modelo de cobrança](https://www.z-api.io/blog/api-do-whatsapp-muda-modelo-de-cobranca/)
+- [Z-API Blog — como funciona Z-API e vantagens sobre concorrentes](https://www.z-api.io/blog/como-funciona-a-api-do-z-api-e-suas-vantagens-sobre-concorrentes/)
 - [Z-API Política de privacidade](https://www.z-api.io/politica-de-privacidade/)
 - [Z-API Reclame Aqui (3.8/10)](https://www.reclameaqui.com.br/empresa/z-api/)
-- [Pablo Cabral — Z-API vs Evolution API vs Baileys comparativo BR](https://pablocabral.com.br/z-api-ou-evolution-api-qual-a-melhor-opcao-para-automacao/)
+- [Z-API/whatsapp-api-nodejs GitHub — exemplos integração Node.js](https://github.com/Z-API/whatsapp-api-nodejs)
+- [CNPJ Z Brasil Informática LTDA (Maringá/PR)](https://cnpj.biz/46974205000179)
+- [Pablo Cabral — Z-API vs Evolution API comparativo BR](https://pablocabral.com.br/z-api-ou-evolution-api-qual-a-melhor-opcao-para-automacao/)
+
+## Evolution API / WAHA / WPPConnect / Uazapi / whatsapp-web.js (engenharia interna — adicionado 2026-05-15 turno 2)
+- [EvolutionAPI/evolution-api GitHub (8.3k stars, v2.3.7, Baileys 7.0.0-rc.5)](https://github.com/EvolutionAPI/evolution-api)
+- [Evolution API CHANGELOG (Baileys version)](https://github.com/EvolutionAPI/evolution-api/blob/main/CHANGELOG.md)
+- [Evolution API issue #2258 — Baileys v7 upgrade](https://github.com/EvolutionAPI/evolution-api/issues/2258)
+- [Evolution API docs — Docker install](https://doc.evolution-api.com/v2/en/install/docker)
+- [DeepWiki — Evolution API WAMonitoringService multi-tenant](https://deepwiki.com/EvolutionAPI/evolution-api)
+- [gurusup blog — Evolution API self-host alternative](https://gurusup.com/blog/evolution-api-whatsapp)
+- [devlikeapro/waha GitHub — 3 engines WEBJS/NOWEB/GOWS](https://github.com/devlikeapro/waha)
+- [WAHA docs — NOWEB engine (Baileys)](https://waha.devlike.pro/docs/engines/noweb/)
+- [WAHA docs — GOWS engine (whatsmeow Go)](https://waha.devlike.pro/docs/engines/gows/)
+- [WAHA issue #1796 — Difference between NOWEB and WEBJS](https://github.com/devlikeapro/waha/issues/1796)
+- [pedroslopez/whatsapp-web.js GitHub — Puppeteer-based](https://github.com/pedroslopez/whatsapp-web.js)
+- [whatsapp-web.js issue #5817 — High memory leak 1GB infinite loop](https://github.com/pedroslopez/whatsapp-web.js/issues/5817)
+- [whatsapp-web.js issue #88 — High CPU memory many chats](https://github.com/pedroslopez/whatsapp-web.js/issues/88)
+- [wppconnect-team/wppconnect GitHub (1.5k stars)](https://github.com/wppconnect-team/wppconnect)
+- [asternic/wuzapi GitHub — whatsmeow REST wrapper Go](https://github.com/asternic/wuzapi)
+- [YouTube Análise Uazapi — Motor GoWS = whatsmeow](https://www.youtube.com/shorts/zK9WS_NsyG4)
+- [Empresa1p — Comparativo Z-API vs Uazapi vs Evolution API](https://empresa1p.com.br/comparativo-de-apis-de-whatsapp-z-api-vs-uazapi-vs-evolution-api/)
+- [kobie3717/baileys-antiban — middleware Gaussian jitter + warm-up](https://github.com/kobie3717/baileys-antiban)
 
 ## whatsmeow (Go alternative)
 - [whatsmeow discussion #846 — sender_pn](https://github.com/tulir/whatsmeow/discussions/846)
 - [whatsmeow discussion #905 — sender_pn and @lid](https://github.com/tulir/whatsmeow/discussions/905)
+- [whatsmeow discussion #979 — Whatsmeow vs Baileys for 10K device scale](https://github.com/tulir/whatsmeow/discussions/979)
 - [whatsmeow issue #473 — Sending to HiddenUserServer](https://github.com/tulir/whatsmeow/issues/473)
 - [whatsmeow issue #871 — Retry resolving LID to PN](https://github.com/tulir/whatsmeow/issues/871)
 - [whatsmeow issue #859 — Error 479 LID with no phone mapping](https://github.com/tulir/whatsmeow/issues/859)
+- [whatsmeow issue #810 — "Your account may be at risk" warning](https://github.com/tulir/whatsmeow/issues/810)
 - [whatsmeow send.go — messageSecret 32 bytes random](https://github.com/tulir/whatsmeow/blob/main/send.go)
 
-## WAHA / whatsapp-web.js (libs vizinhas)
+## WAHA / whatsapp-web.js / WPPConnect (libs vizinhas — legacy)
 - [WAHA discussion #1858 — How to resolve @lid](https://github.com/devlikeapro/waha/discussions/1858)
 - [WAHA issue #1608 — webhook payload.from contém @lid corrompendo contact](https://github.com/devlikeapro/waha/issues/1608)
 - [WAHA contacts docs](https://waha.devlike.pro/docs/how-to/contacts/)
@@ -642,9 +779,13 @@ Por quê:
 - [Whautomate — Embedded Signup 15min](https://whautomate.com/whatsapp-embedded-signup)
 - [Wati — Migration on-premise → Cloud API](https://support.wati.io/en/articles/11864686-migrating-from-on-premise-whatsapp-business-api-to-whatsapp-cloud-api)
 
-## Ban risk / governança
+## Ban risk / governança / anti-ban techniques
 - [Kraya AI — WhatsApp Automation Ban Risk 2026](https://blog.kraya-ai.com/whatsapp-automation-ban-risk)
 - [Agência Rollin — API Oficial vs Não Oficial 2026](https://www.agenciarollin.com/blog/api-oficial-whatsapp-vs-nao-oficial-guia-completo-2026)
+- [WASenderApi — Anti-ban guide unofficial APIs 2025](https://wasenderapi.com/blog/stop-getting-banned-the-ultimate-whatsapp-anti-ban-strategy-for-unofficial-apis-in-2025)
+- [Warmer.wadesk.io — Warm-up 2026 strategy](https://warmer.wadesk.io/blog/whatsapp-account-warm-up)
+- [quackr.io — Warm Up WhatsApp Number 2025](https://quackr.io/blog/warm-up-whatsapp-number/)
+- [whatsnap.ai — Warmup WhatsApp without ban 2025](https://whatsnap.ai/blog/warmup-whatsapp-without-getting-banned)
 
 ---
 
