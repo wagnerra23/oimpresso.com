@@ -1,12 +1,76 @@
-# Feedback — Mexeu no módulo? REGISTRA. Sempre. (Regra primária Tier 0)
+# Feedback — Workflow Tier 0 ao tocar Module/ (3 fases obrigatórias)
 
 ## Regra
 
-**Toda mudança em código de Module/, daemon CT 100, schema DB, config infra ou qualquer artefato operacional DEVE ser registrada IMEDIATAMENTE em git + tests + docs canon. Não existe "ajuste rápido", "fix temporário", "depois eu commito". Não há trabalho cinza.**
+**Qualquer Edit/Write em `Modules/<X>/` ou DB do módulo X passa por 3 FASES OBRIGATÓRIAS: PRÉ-FLIGHT (ler) → DURING (commit incremental) → POST (registrar em git canon).** Pular qualquer fase = drift garantido = incidente.
 
-Wagner palavras textuais (2026-05-15 após maratona WhatsApp 14-15/mai):
+Wagner palavras textuais — 2 cortes no mesmo dia (2026-05-15):
 
+**Corte 1 (após maratona WhatsApp 12 PRs):**
 > "isso deveria ser sempre assim como pode colocar isso no regra primaria, mexeu na merda do módulo registra caralho"
+
+**Corte 2 (após Claude propor regra apenas "registra depois"):**
+> "vai mecher no modulo ler brefing e se mexer salva o progresso. (...) porr mexe não registra, altera sem ler as regras do modulo fica sempre errando, caramba se organiza caralho seja responsavel porra. vao entrar os outros no MCP e isso vai ficar uma zona caralho"
+
+**Regra "registra depois" sozinha NÃO é suficiente.** Wagner está construindo time MCP (Felipe/Maiara/Eliana/Luiz) — sem workflow estrito de 3 fases, drift escala N×.
+
+## Workflow Tier 0 — 3 FASES
+
+### FASE 1 — PRÉ-FLIGHT (ANTES de qualquer Edit/Write em `Modules/<X>/`)
+
+**Leitura obrigatória DO MÓDULO ESPECÍFICO:**
+
+| Artefato | Onde | Quando ler |
+|---|---|---|
+| `brief-fetch` Tier A | tool MCP | SessionStart sempre (skill `brief-first` Tier A always-on) |
+| `memory/requisitos/<X>/SPEC.md` | filesystem | ANTES de mexer no módulo X |
+| `memory/requisitos/<X>/RUNBOOK*.md` | filesystem | Se MWART (ADR 0104) — único caminho |
+| `memory/requisitos/<X>/CAPTERRA*.md` | filesystem | Pra checar inventário/escopo aprovado |
+| `Modules/<X>/Charter.md` ou `*.charter.md` | filesystem | Charter S4+ pra page Inertia |
+| ADRs relacionadas | tool MCP `decisions-search <tema>` | Decisões arquiteturais aplicáveis |
+| `memory/proibicoes.md` (Tier 0) | filesystem | Sempre — antes de qualquer Edit |
+| Skill `como-integrar` | spawn skill | Se feature parcialmente feita no projeto |
+| `memory/how-trabalhar.md` | filesystem | Protocolo geral sessão |
+
+**Sintomas de violar Fase 1** (= bug garantido):
+- "Vou mexer rápido no Inbox" sem ler `memory/requisitos/Whatsapp/SPEC.md`
+- "Edit em `Sells/Create.tsx`" sem ler `Sells/Create.charter.md`
+- "Adicionar coluna em `messages`" sem ler ADR 0093 multi-tenant
+- "Criar novo controller" sem checar skill `criar-modulo` + ADR 0011 modular nWidart
+
+### FASE 2 — DURING (mexendo)
+
+**Salvar progresso INCREMENTALMENTE.** Wagner não tolera "vou commitar depois":
+
+| Frequência | Ação obrigatória |
+|---|---|
+| Cada step lógico (1 arquivo + 1 ideia completa) | `git commit` parcial OR `TodoWrite` mark completed |
+| A cada ~30min de trabalho | `git push` da WIP branch (mesmo incompleto) |
+| Antes de spawnar agent paralelo | Commit baseline atual |
+| Antes de `git checkout` outra branch | `git commit` OR `git stash push -m "wip-<contexto>"` |
+| Edit em DB direto (SQL/tinker) | **PROIBIDO** sem seeder/migration imediato (idempotente) |
+| Edit em arquivo direto via SSH no Hostinger/CT 100 | **PROIBIDO** sempre — `git pull` apenas |
+
+**Sintomas de violar Fase 2:**
+- "trabalho de 2h perdido por checkout sem stash"
+- "esqueci de commitar e fechei terminal"
+- "rodei tinker em prod e ninguém sabe o que fiz"
+- "mexi no daemon CT 100 direto na pasta `/srv/build/`"
+
+### FASE 3 — POST (mexeu, registra)
+
+**Toda mudança operacional DEVE virar git + tests + docs canon:**
+
+| Mexeu em... | Caminho obrigatório |
+|---|---|
+| Código Module (PHP/TS/React) | PR no git → CI verde → merge |
+| Comando artisan / cron | PR + entry em `app/Console/Kernel.php` + log estruturado |
+| Schema DB (DDL) | Migration PHP + Pest sobrevive re-run + ADR se decisão arquitetural |
+| INSERT/UPDATE direto no DB (tinker, SQL, phpMyAdmin) | Seeder OR comando artisan idempotente OR backfill job + commit |
+| Arquivo no servidor (SSH Hostinger, CT 100, daemon source) | **PROIBIDO** — via git pull do canônico apenas |
+| Cache `Cache::put`/`Cache::forget` ad-hoc em prod | Observer ou comando artisan registrado, NUNCA tinker direto sem commit |
+
+**Se Wagner aprovar Tier 0 superadmin "ajuste rápido" em emergência:** Claude marca log com `// DRIFT TIER 0 — Wagner aprovou em <data>, follow-up PR em <hash>` E spawna PR follow-up imediato.
 
 ## Por quê (origem da regra)
 
