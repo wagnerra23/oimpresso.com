@@ -14,13 +14,19 @@
 
 import { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Clock, Paperclip, Search, UserPlus, X } from 'lucide-react';
+import { Clock, Paperclip, Search, Tag, UserPlus, X } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/Components/ui/popover';
 import { cn } from '@/Lib/utils';
 import {
   type CaixaUnifConversation,
   type CaixaUnifStatus,
   type CaixaUnifTab,
   type ChannelCatalogItem,
+  type ConvTag,
   type Paginated,
   type CaixaUnifStats,
   initials,
@@ -47,6 +53,9 @@ interface Props {
   mediaInbound24h?: boolean;
   inboundAging?: InboundAging;
   orderBy?: OrderBy;
+  // Wave 5-B F1 — filtro tags multi-select
+  availableTags?: ConvTag[];
+  activeTagIds?: number[];
 }
 
 const TABS: { id: CaixaUnifTab; label: string; statKey?: keyof CaixaUnifStats; title?: string }[] = [
@@ -63,6 +72,7 @@ export default function ConversationListV4({
   conversations, channels, stats, selectedId, status, q, onSelect,
   within24h = null, unlinked = false, mediaInbound24h = false,
   inboundAging = null, orderBy = 'last_message',
+  availableTags = [], activeTagIds = [],
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
   const tab = status as CaixaUnifTab;
@@ -83,8 +93,17 @@ export default function ConversationListV4({
       media_inbound_24h: mediaInbound24h ? '1' : undefined,
       inbound_aging: inboundAging ?? undefined,
       order_by: orderBy !== 'last_message' ? orderBy : undefined,
+      tags: activeTagIds.length > 0 ? activeTagIds : undefined,
       ...overrides,
     };
+  }
+
+  // Wave 5-B F1 — toggle tag no filtro
+  function toggleTagFilter(tagId: number) {
+    const next = activeTagIds.includes(tagId)
+      ? activeTagIds.filter(id => id !== tagId)
+      : [...activeTagIds, tagId];
+    applyFilter({ tags: next.length > 0 ? next : undefined });
   }
 
   function applyTab(next: CaixaUnifTab) {
@@ -123,7 +142,12 @@ export default function ConversationListV4({
     mediaInbound24h,
     inboundAging !== null,
     orderBy !== 'last_message',
+    activeTagIds.length > 0,
   ].filter(Boolean).length;
+
+  const tagColorHue: Record<string, number> = {
+    red: 0, emerald: 145, blue: 220, purple: 280, amber: 80, cyan: 200, slate: 60,
+  };
 
   return (
     <aside
@@ -237,12 +261,83 @@ export default function ConversationListV4({
           <option value="inbound">Último inbound</option>
         </select>
 
+        {/* Wave 5-B F1 — Tags multi-select Popover */}
+        {availableTags.length > 0 && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-pressed={activeTagIds.length > 0}
+                data-testid="caixa-unif-filter-tags"
+                title="Filtrar por tags"
+                className={cn(
+                  'inline-flex items-center gap-1 h-6 px-2 rounded-full border text-[10.5px] font-medium transition-colors',
+                  activeTagIds.length > 0
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground',
+                )}
+              >
+                <Tag size={11} aria-hidden />
+                Tags
+                {activeTagIds.length > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[14px] h-3.5 px-1 text-[9px] font-mono rounded-full bg-primary text-primary-foreground">
+                    {activeTagIds.length}
+                  </span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-56 p-1.5">
+              <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold px-2 pt-1 pb-1.5">
+                Filtrar por tag
+              </div>
+              <ul className="max-h-64 overflow-auto">
+                {availableTags.map(t => {
+                  const active = activeTagIds.includes(t.id);
+                  return (
+                    <li key={t.id}>
+                      <button
+                        type="button"
+                        onClick={() => toggleTagFilter(t.id)}
+                        data-testid={`caixa-unif-filter-tag-${t.slug}`}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 text-[11.5px] hover:bg-muted rounded text-left"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={active}
+                          readOnly
+                          className="pointer-events-none"
+                          aria-hidden
+                        />
+                        <span
+                          className="inline-block w-2 h-2 rounded-full"
+                          style={{ background: `oklch(0.62 0.13 ${tagColorHue[t.color] ?? 60})` }}
+                          aria-hidden
+                        />
+                        <span className="flex-1">{t.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              {activeTagIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => applyFilter({ tags: undefined })}
+                  className="w-full mt-1 px-2 py-1 text-[10.5px] text-muted-foreground hover:text-foreground hover:bg-muted rounded text-center transition-colors"
+                >
+                  Limpar tags
+                </button>
+              )}
+            </PopoverContent>
+          </Popover>
+        )}
+
         {activeFilterCount > 0 && (
           <button
             type="button"
             onClick={() => applyFilter({
               within24h: undefined, unlinked: undefined, media_inbound_24h: undefined,
-              inbound_aging: undefined, order_by: undefined,
+              inbound_aging: undefined, order_by: undefined, tags: undefined,
             })}
             className="ml-auto inline-flex items-center gap-0.5 text-[10.5px] text-muted-foreground hover:text-foreground transition-colors"
             data-testid="caixa-unif-filter-clear"
