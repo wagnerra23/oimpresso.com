@@ -475,6 +475,29 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Wave 3 Agent B (2026-05-15) — retry mídia inbound recente (24h) órfã.
+        // Camada 4 pareada: Camada 4 só pega `status IN (pending, downloading)`.
+        // Este comando é MAIS PERMISSIVO (qualquer media_url IS NULL com media_mime
+        // NOT NULL, status irrelevante exceto failed_permanent) e MAIS CONSERVADOR
+        // (só últimas 24h, limit 200).
+        //
+        // Cenário origem: 2026-05-15 09:25 BRT re-pareamento Baileys 7.x prod biz=1
+        // (ROTA LIVRE) — 55 msgs history sync ficaram com `media_url=NULL` em estado
+        // anômalo (status NULL ou success-sem-URL) — Camada 4 não pega; este pega.
+        //
+        // hourlyAt(15) pra NÃO disputar com Camada 4 (hourlyAt(0)) — minimiza
+        // chance de 2 cron jobs batendo no daemon CT 100 no mesmo segundo.
+        // withoutOverlapping(30) cobre run lento sem stomp do próximo tick.
+        $schedule->command('whatsapp:retry-recent-media-downloads --hours=24 --limit=200')
+            ->hourlyAt(15)
+            ->withoutOverlapping(30)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:retry-recent-media-downloads FALHOU — mídia recente pode atrasar no Inbox'
+                );
+            });
+
         // Guardião 6 camadas anti-mídia-perdida — Camada 5 (scan drift daily 03:30 BRT).
         // Não corrige drift, apenas LOGA métricas (pending_count_1h/24h, failed_permanent_7d,
         // total_size_pending_bytes) pra observability. 30min após fsm:scan-drift (03:00)
