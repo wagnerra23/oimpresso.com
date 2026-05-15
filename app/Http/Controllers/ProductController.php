@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ProductsCreatedOrModified;
 use App\TransactionSellLine;
+use Inertia\Inertia;
 
 class ProductController extends Controller
 {
@@ -335,6 +336,28 @@ class ProductController extends Controller
 
         $is_admin = $this->productUtil->is_admin(auth()->user());
 
+        // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
+        // Coexistência opt-in: header X-Inertia presente → Page React; ausente → Blade legacy.
+        // Tier 0 multi-tenant (ADR 0093): business_id passado explicitamente a cada builder.
+        if (request()->header('X-Inertia')) {
+            return Inertia::render('Produto/Index', [
+                'filters' => [
+                    'busca' => (string) request()->input('busca', ''),
+                    'categoria' => (string) request()->input('categoria', 'todos'),
+                    'mostrarInativos' => (bool) request()->input('mostrarInativos', false),
+                ],
+                'kpis' => Inertia::defer(fn () => $this->buildProdutoIndexKpis($business_id)),
+                'rows' => Inertia::defer(fn () => $this->buildProdutoIndexRows($business_id)),
+                'categorias' => Inertia::defer(fn () => $this->buildProdutoIndexCategorias($business_id)),
+                'permissions' => [
+                    'create' => auth()->user()->can('product.create'),
+                    'update' => auth()->user()->can('product.update'),
+                    'delete' => auth()->user()->can('product.delete'),
+                    'opening_stock' => auth()->user()->can('product.opening_stock'),
+                ],
+            ]);
+        }
+
         return view('product.index')
             ->with(compact(
                 'rack_enabled',
@@ -348,6 +371,126 @@ class ProductController extends Controller
                 'is_woocommerce',
                 'is_admin'
             ));
+    }
+
+    /**
+     * Build KPI strip for Produto/Index Inertia page.
+     * Wave 2 B4 Produto (Agent W2-C 2026-05-15) · Tier 0 multi-tenant (ADR 0093).
+     */
+    protected function buildProdutoIndexKpis(int $businessId): array
+    {
+        $total = Product::where('business_id', $businessId)
+            ->where('type', '!=', 'modifier')
+            ->count();
+
+        $ativos = Product::where('business_id', $businessId)
+            ->where('type', '!=', 'modifier')
+            ->where(function ($q) {
+                $q->whereNull('is_inactive')->orWhere('is_inactive', 0);
+            })
+            ->count();
+
+        $categorias = Category::where('business_id', $businessId)
+            ->where('category_type', 'product')
+            ->count();
+
+        // Populares: produtos com >= 30 vendas em 30d (TransactionSellLine)
+        // Mantém simples — query agregada deferred é OK.
+        $populares = 0;
+        try {
+            $populares = TransactionSellLine::query()
+                ->join('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
+                ->join('variations as v', 'v.id', '=', 'transaction_sell_lines.variation_id')
+                ->join('products as p', 'p.id', '=', 'v.product_id')
+                ->where('p.business_id', $businessId)
+                ->where('t.transaction_date', '>=', now()->subDays(30))
+                ->groupBy('p.id')
+                ->havingRaw('SUM(transaction_sell_lines.quantity) >= 30')
+                ->count('p.id');
+        } catch (\Throwable $e) {
+            $populares = 0;
+        }
+
+        return [
+            'total' => (int) $total,
+            'ativos' => (int) $ativos,
+            'categorias' => (int) $categorias,
+            'populares' => (int) $populares,
+        ];
+    }
+
+    /**
+     * Build rows for Produto/Index Inertia page.
+     */
+    protected function buildProdutoIndexRows(int $businessId): array
+    {
+        $rows = Product::where('business_id', $businessId)
+            ->where('type', '!=', 'modifier')
+            ->with(['category', 'unit'])
+            ->leftJoin('variations as v', 'v.product_id', '=', 'products.id')
+            ->whereNull('v.deleted_at')
+            ->select(
+                'products.id',
+                'products.name',
+                'products.sku',
+                'products.type',
+                'products.category_id',
+                'products.unit_id',
+                'products.is_inactive',
+                'products.enable_stock',
+                'products.updated_at',
+                DB::raw('MIN(v.sell_price_inc_tax) as min_price'),
+                DB::raw('MIN(v.dpp_inc_tax) as min_cost'),
+            )
+            ->groupBy('products.id')
+            ->orderBy('products.name')
+            ->limit(200)
+            ->get();
+
+        return $rows->map(function ($p) {
+            $price = (float) ($p->min_price ?? 0);
+            $cost = (float) ($p->min_cost ?? 0);
+            $margin = $price > 0 ? round((($price - $cost) / $price) * 100) : 0;
+
+            return [
+                'id' => (int) $p->id,
+                'sku' => (string) ($p->sku ?? ''),
+                'name' => (string) $p->name,
+                'categoryId' => $p->category_id ? (int) $p->category_id : null,
+                'categoryLabel' => $p->category?->name,
+                'unit' => $p->unit?->actual_name,
+                'price' => $price,
+                'cost' => $cost,
+                'margin' => $margin,
+                'stockQty' => null,
+                'stockKind' => $p->enable_stock ? 'estoque' : 'sob_demanda',
+                'popularity' => 0, // popularity computation deferred a Wave 3
+                'active' => empty($p->is_inactive),
+                'updatedAt' => $p->updated_at?->toIso8601String(),
+            ];
+        })->all();
+    }
+
+    /**
+     * Build categoria tabs for Produto/Index.
+     */
+    protected function buildProdutoIndexCategorias(int $businessId): array
+    {
+        $cats = Category::where('business_id', $businessId)
+            ->where('category_type', 'product')
+            ->select('categories.id', 'categories.name')
+            ->leftJoin('products', 'products.category_id', '=', 'categories.id')
+            ->groupBy('categories.id', 'categories.name')
+            ->selectRaw('COUNT(products.id) as count')
+            ->orderBy('categories.name')
+            ->get();
+
+        return $cats->map(fn ($c) => [
+            'id' => (int) $c->id,
+            'slug' => str()->slug($c->name),
+            'label' => (string) $c->name,
+            'count' => (int) $c->count,
+        ])->all();
     }
 
     /**
@@ -419,6 +562,46 @@ class ProductController extends Controller
 
         //product screen view from module
         $pos_module_data = $this->moduleUtil->getModuleData('get_product_screen_top_view');
+
+        // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
+        if (request()->header('X-Inertia')) {
+            return Inertia::render('Produto/Create', [
+                'categories' => $categories,
+                'brands' => $brands,
+                'units' => $units,
+                'taxes' => $taxes,
+                'taxAttributes' => $tax_attributes,
+                'barcodeTypes' => $barcode_types,
+                'barcodeDefault' => $barcode_default,
+                'defaultProfitPercent' => $default_profit_percent,
+                'businessLocations' => $business_locations,
+                'duplicateProduct' => $duplicate_product ? [
+                    'id' => (int) $duplicate_product->id,
+                    'name' => (string) $duplicate_product->name,
+                    'brand_id' => $duplicate_product->brand_id,
+                    'unit_id' => $duplicate_product->unit_id,
+                    'category_id' => $duplicate_product->category_id,
+                    'sub_category_id' => $duplicate_product->sub_category_id,
+                    'tax' => $duplicate_product->tax,
+                    'tax_type' => $duplicate_product->tax_type,
+                    'barcode_type' => $duplicate_product->barcode_type,
+                    'sku' => (string) ($duplicate_product->sku ?? ''),
+                    'alert_quantity' => $duplicate_product->alert_quantity,
+                    'weight' => $duplicate_product->weight,
+                    'product_description' => $duplicate_product->product_description,
+                    'type' => $duplicate_product->type,
+                ] : null,
+                'subCategories' => $sub_categories,
+                'rackDetails' => $rack_details,
+                'sellingPriceGroupCount' => (int) $selling_price_group_count,
+                'productTypes' => $product_types,
+                'warranties' => $warranties,
+                'commonSettings' => $common_settings ?? [],
+                'enableExpiry' => session('business.enable_product_expiry') == 1,
+                'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
+                'enableRacks' => (bool) session('business.enable_racks'),
+            ]);
+        }
 
         return view('product.create')
             ->with(compact('categories', 'brands', 'units', 'taxes', 'barcode_types', 'default_profit_percent', 'tax_attributes', 'barcode_default', 'business_locations', 'duplicate_product', 'sub_categories', 'rack_details', 'selling_price_group_count', 'module_form_parts', 'product_types', 'common_settings', 'warranties', 'pos_module_data'));
@@ -596,6 +779,43 @@ class ProductController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
+
+        // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
+        if (request()->header('X-Inertia')) {
+            $product = Product::where('business_id', $business_id)
+                ->with(['variations', 'variations.product_variation', 'category', 'sub_category', 'brand', 'unit'])
+                ->findOrFail($id);
+
+            return Inertia::render('Produto/Show', [
+                'product' => [
+                    'id' => (int) $product->id,
+                    'name' => (string) $product->name,
+                    'sku' => (string) ($product->sku ?? ''),
+                    'type' => (string) $product->type,
+                    'category' => $product->category?->name,
+                    'subCategory' => $product->sub_category?->name,
+                    'brand' => $product->brand?->name,
+                    'unit' => $product->unit?->actual_name,
+                    'enableStock' => (bool) $product->enable_stock,
+                    'alertQuantity' => $product->alert_quantity ? (string) $product->alert_quantity : null,
+                    'productDescription' => $product->product_description,
+                    'image' => $product->image_url,
+                ],
+                'rackDetails' => Inertia::defer(fn () => $this->productUtil->getRackDetails($business_id, $id, true)),
+                'variations' => Inertia::defer(fn () => $product->variations->map(fn ($v) => [
+                    'id' => (int) $v->id,
+                    'name' => (string) $v->name,
+                    'sku' => (string) ($v->sub_sku ?? ''),
+                    'defaultPurchasePrice' => (float) ($v->default_purchase_price ?? 0),
+                    'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                ])->all()),
+                'permissions' => [
+                    'update' => auth()->user()->can('product.update'),
+                    'delete' => auth()->user()->can('product.delete'),
+                ],
+            ]);
+        }
+
         $details = $this->productUtil->getRackDetails($business_id, $id, true);
 
         return view('product.show')->with(compact('details'));
@@ -658,6 +878,53 @@ class ProductController extends Controller
         $pos_module_data = $this->moduleUtil->getModuleData('get_product_screen_top_view');
 
         $alert_quantity = ! is_null($product->alert_quantity) ? $this->productUtil->num_f($product->alert_quantity, false, null, true) : null;
+
+        // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
+        if (request()->header('X-Inertia')) {
+            return Inertia::render('Produto/Edit', [
+                'product' => [
+                    'id' => (int) $product->id,
+                    'name' => (string) $product->name,
+                    'sku' => (string) ($product->sku ?? ''),
+                    'type' => (string) $product->type,
+                    'brandId' => $product->brand_id,
+                    'unitId' => $product->unit_id,
+                    'subUnitIds' => $product->sub_unit_ids,
+                    'categoryId' => $product->category_id,
+                    'subCategoryId' => $product->sub_category_id,
+                    'tax' => $product->tax,
+                    'taxType' => $product->tax_type ?? 'exclusive',
+                    'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
+                    'enableStock' => (bool) $product->enable_stock,
+                    'alertQuantity' => $alert_quantity,
+                    'weight' => $product->weight,
+                    'productDescription' => $product->product_description,
+                    'productLocations' => $product->product_locations->pluck('id')->all(),
+                    'image' => $product->image_url,
+                    'warrantyId' => $product->warranty_id,
+                    'productCustomField1' => $product->product_custom_field1,
+                    'productCustomField2' => $product->product_custom_field2,
+                    'productCustomField3' => $product->product_custom_field3,
+                    'productCustomField4' => $product->product_custom_field4,
+                ],
+                'categories' => $categories,
+                'brands' => $brands,
+                'units' => $units,
+                'subUnits' => $sub_units,
+                'taxes' => $taxes,
+                'taxAttributes' => $tax_attributes,
+                'barcodeTypes' => $barcode_types,
+                'subCategories' => $sub_categories,
+                'businessLocations' => $business_locations,
+                'rackDetails' => $rack_details,
+                'productTypes' => $product_types,
+                'warranties' => $warranties,
+                'permissions' => [
+                    'opening_stock' => auth()->user()->can('product.opening_stock'),
+                    'delete' => auth()->user()->can('product.delete'),
+                ],
+            ]);
+        }
 
         return view('product.edit')
                 ->with(compact('categories', 'brands', 'units', 'sub_units', 'taxes', 'tax_attributes', 'barcode_types', 'product', 'sub_categories', 'default_profit_percent', 'business_locations', 'rack_details', 'selling_price_group_count', 'module_form_parts', 'product_types', 'common_settings', 'warranties', 'pos_module_data', 'alert_quantity'));
@@ -1715,6 +1982,33 @@ class ProductController extends Controller
             }
         }
 
+        // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
+        if (request()->header('X-Inertia')) {
+            return Inertia::render('Produto/SellingPrices', [
+                'product' => [
+                    'id' => (int) $product->id,
+                    'name' => (string) $product->name,
+                    'sku' => (string) ($product->sku ?? ''),
+                    'type' => (string) $product->type,
+                ],
+                'variations' => $product->variations->map(fn ($v) => [
+                    'id' => (int) $v->id,
+                    'name' => (string) $v->name,
+                    'subSku' => (string) ($v->sub_sku ?? ''),
+                    'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                ])->all(),
+                'priceGroups' => $price_groups->map(fn ($pg) => [
+                    'id' => (int) $pg->id,
+                    'name' => (string) $pg->name,
+                    'description' => $pg->description,
+                ])->all(),
+                'variationPrices' => $variation_prices,
+                'permissions' => [
+                    'save' => auth()->user()->can('product.create'),
+                ],
+            ]);
+        }
+
         return view('product.add-selling-prices')->with(compact('product', 'price_groups', 'variation_prices'));
     }
 
@@ -2071,6 +2365,36 @@ class ProductController extends Controller
             $price_groups = SellingPriceGroup::where('business_id', $business_id)->active()->pluck('name', 'id');
             $business_locations = BusinessLocation::forDropdown($business_id);
 
+            // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
+            if ($request->header('X-Inertia')) {
+                return Inertia::render('Produto/BulkEdit', [
+                    'products' => $products->map(fn ($p) => [
+                        'id' => (int) $p->id,
+                        'name' => (string) $p->name,
+                        'sku' => (string) ($p->sku ?? ''),
+                        'categoryId' => $p->category_id,
+                        'subCategoryId' => $p->sub_category_id,
+                        'brandId' => $p->brand_id,
+                        'tax' => $p->tax,
+                        'productLocations' => $p->product_locations->pluck('id')->all(),
+                        'variations' => $p->variations->map(fn ($v) => [
+                            'id' => (int) $v->id,
+                            'name' => (string) $v->name,
+                            'subSku' => (string) ($v->sub_sku ?? ''),
+                            'defaultPurchasePrice' => (float) ($v->default_purchase_price ?? 0),
+                            'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                        ])->all(),
+                    ])->all(),
+                    'categories' => $categories,
+                    'subCategories' => $sub_categories,
+                    'brands' => $brands,
+                    'taxes' => $taxes,
+                    'taxAttributes' => $tax_attributes,
+                    'priceGroups' => $price_groups,
+                    'businessLocations' => $business_locations,
+                ]);
+            }
+
             return view('product.bulk-edit')->with(compact(
                 'products',
                 'categories',
@@ -2317,11 +2641,33 @@ class ProductController extends Controller
         }
 
         $product = Product::where('business_id', $business_id)
-                            ->with(['variations', 'variations.product_variation'])
+                            ->with(['variations', 'variations.product_variation', 'unit'])
                             ->findOrFail($id);
 
         //Get all business locations
         $business_locations = BusinessLocation::forDropdown($business_id);
+
+        // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
+        if (request()->header('X-Inertia')) {
+            return Inertia::render('Produto/StockHistory', [
+                'product' => [
+                    'id' => (int) $product->id,
+                    'name' => (string) $product->name,
+                    'sku' => (string) ($product->sku ?? ''),
+                    'type' => (string) $product->type,
+                    'unit' => $product->unit?->actual_name,
+                ],
+                'variations' => $product->variations->map(fn ($v) => [
+                    'id' => (int) $v->id,
+                    'name' => (string) $v->name,
+                    'subSku' => (string) ($v->sub_sku ?? ''),
+                ])->all(),
+                'businessLocations' => $business_locations,
+                'permissions' => [
+                    'view' => true,
+                ],
+            ]);
+        }
 
         return view('product.stock_history')
                 ->with(compact('product', 'business_locations'));
