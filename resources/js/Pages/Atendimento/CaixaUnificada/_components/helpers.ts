@@ -16,6 +16,20 @@
 export type CaixaUnifStatus = 'abertas' | 'pendentes' | 'aguardando' | 'resolvidas';
 
 /**
+ * Wave 2 F1: 7 tabs canônicas paridade Inbox legacy (`InboxController::index`).
+ * Substitui dropdown 4-status.
+ *
+ *   all            → todas exceto archived
+ *   unread         → unread_count > 0
+ *   assigned       → assigned_user_id == auth user
+ *   bot            → bot_handling == true
+ *   awaiting_human → status == 'awaiting_human' (escalada bot→humano)
+ *   resolved       → status == 'resolved'
+ *   archived       → status == 'archived'
+ */
+export type CaixaUnifTab = 'all' | 'unread' | 'assigned' | 'bot' | 'awaiting_human' | 'resolved' | 'archived';
+
+/**
  * Catálogo canônico de canais (mesmo array do Controller pra paridade).
  * `id` = `Channel::type` do schema novo (ADR 0135).
  */
@@ -137,6 +151,11 @@ export interface CaixaUnifStats {
   unread: number;
   active_accounts: number;
   queues_count: number;
+  // Wave 2 F1 — counts paridade Inbox legacy (7 tabs)
+  assigned: number;
+  bot: number;
+  awaiting_human: number;
+  archived: number;
 }
 
 export interface CentrifugoConfig {

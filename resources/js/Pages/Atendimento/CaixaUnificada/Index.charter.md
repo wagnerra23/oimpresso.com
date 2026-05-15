@@ -84,6 +84,19 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - **⌘⇧N** — toggle Resp/Nota no composer (já existente)
 - Filtra `input/textarea/contentEditable` + ignora com ctrl/meta/alt (defense in depth)
 
+### Tabs filtro (Wave 2 F1 paridade Inbox legacy — 2026-05-15)
+- **7 tabs canônicas** substituem dropdown 4-status anterior:
+  - `all` (Todas — exceto archived)
+  - `unread` (Não lidas — `unread_count > 0`)
+  - `assigned` (Minhas — `assigned_user_id == auth user`)
+  - `bot` (Bot — `bot_handling == true`)
+  - `awaiting_human` (Aguardando — bot escalou pra humano)
+  - `resolved` (Resolvidas)
+  - `archived` (Arquivadas)
+- Backend `CaixaUnificadaController` aceita `?tab=` (parâmetro principal) e mapeia legacy `?status=` pra `tab` automaticamente.
+- Stats expandida com counters per-tab (assigned/bot/awaiting_human/archived) — exibe badge contagem na tab quando > 0.
+- URL preservada via `replace: true` no router.get (não polui history).
+
 ### Sidebar direita (8 sections)
 1. **Fila** — derivada via heurística tag→fila (read-only nesta passada).
 2. **Atribuído** — placeholder "sem atribuição" (TODO US-WA-XXX).
