@@ -59,7 +59,7 @@ Decisão já está dada (não precisa novo sinal pra começar):
 ## Referências cruzadas
 
 - [`memory/proibicoes.md`](../proibicoes.md) §"Código" — proibição adicionada 2026-05-15
-- [`memory/decisions/0145-contact-lid-canonico-pk-refactor.md`](../decisions/0145-contact-lid-canonico-pk-refactor.md) — sinal qualificado "Migração pra Baileys 7.x final" REMOVIDO (não é sinal, é execução)
+- [`memory/decisions/0146-contact-lid-canonico-pk-refactor.md`](../decisions/0146-contact-lid-canonico-pk-refactor.md) — sinal qualificado "Migração pra Baileys 7.x final" REMOVIDO (não é sinal, é execução). _Originalmente 0145 — renumerada por colisão com ADR 0145 IA Administradora._
 - [`memory/sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md`](../sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md) — Opção B reescrita como "EXECUTAR migração" (não "esperar")
 - [`.claude/skills/baileys-update-procedure/SKILL.md`](../../.claude/skills/baileys-update-procedure/SKILL.md) — skill Tier B com runbook 5-fase
 - [`memory/how-trabalhar.md`](../how-trabalhar.md) §"Reconhecer degradação de sessão" — Claude re-inflar 2× após corte = padrão catalogado
