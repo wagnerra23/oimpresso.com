@@ -122,6 +122,38 @@ class MessagePersister
             }
         }
 
+        // PR1 — Schema 3-identifiers (LID + phone_e164 + BSUID).
+        // Extrai cada ID quando disponível no payload. Coexistem — não é
+        // "ou-ou": uma msg pode chegar com LID (`remoteJid`) E phone real
+        // (`senderPn`, Baileys 6.8+). BSUID só em Cloud API webhooks.
+        // Roda APÓS o resolver P0-3 acima — assim phoneValue captura o
+        // phone real cacheado quando customer_external_id foi atualizado.
+        //
+        // Estudo protocol-level: memory/sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md
+        $lidValue = null;
+        $phoneValue = null;
+        $bsuidValue = null;
+
+        if (is_string($remoteJid) && str_contains($remoteJid, '@lid')) {
+            $lidValue = preg_replace('/@.+$/', '', $remoteJid);
+        }
+
+        if (is_string($senderPn) && str_contains($senderPn, '@s.whatsapp.net')) {
+            $phoneValue = '+' . preg_replace('/@.+$/', '', $senderPn);
+        } elseif (str_starts_with($customerExternalId, '+')
+            && ! ($lidValue !== null && $customerExternalId === '+' . $lidValue)
+        ) {
+            // Resolver P0-3 (acima) já trocou customer_external_id pelo phone real,
+            // OU remoteJid veio direto como `@s.whatsapp.net` (sem senderPn).
+            // Guarda: se customer_external_id === '+' . $lidValue, é apenas o LID
+            // mascarado de phone (não temos phone real ainda).
+            $phoneValue = $customerExternalId;
+        }
+
+        if (isset($data['contact']['user_id']) && is_scalar($data['contact']['user_id'])) {
+            $bsuidValue = (string) $data['contact']['user_id'];
+        }
+
         // Body + type derivação (espelha controller:148-164 + caption fallback)
         $messageProto = $data['message'] ?? [];
         $body = $messageProto['conversation']
@@ -203,6 +235,10 @@ class MessagePersister
                     'last_inbound_at' => $bumpUnread ? now() : null,
                     'last_message_at' => $bumpUnread ? now() : null,
                     'unread_count' => 0,
+                    // PR1 — schema 3-identifiers (defaults na criação)
+                    'lid' => $lidValue,
+                    'phone_e164' => $phoneValue,
+                    'bsuid' => $bsuidValue,
                 ]
             );
 
@@ -210,6 +246,23 @@ class MessagePersister
         if ($pushName && $conversation->contact_name === $customerExternalId) {
             $conversation->contact_name = $pushName;
             $conversation->save();
+        }
+
+        // PR1 — Backfill 3-identifiers em conv pré-existente (sem PR1).
+        // Só preenche se a coluna está NULL e a msg atual trouxe ID novo.
+        // NÃO sobrescreve valor preexistente (audit trail preservado).
+        $identityUpdates = [];
+        if ($lidValue !== null && $conversation->lid === null) {
+            $identityUpdates['lid'] = $lidValue;
+        }
+        if ($phoneValue !== null && $conversation->phone_e164 === null) {
+            $identityUpdates['phone_e164'] = $phoneValue;
+        }
+        if ($bsuidValue !== null && $conversation->bsuid === null) {
+            $identityUpdates['bsuid'] = $bsuidValue;
+        }
+        if (! empty($identityUpdates)) {
+            $conversation->forceFill($identityUpdates)->save();
         }
 
         // SUPERADMIN: ADR 0093 — webhook/CLI sem session user
