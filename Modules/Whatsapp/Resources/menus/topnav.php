@@ -18,14 +18,11 @@ return [
     'label' => 'Atendimento',
     'icon'  => 'MessageCircle',
     'items' => [
-        // US-WA-067 — Inbox unificada `/atendimento/inbox`. US-WA-091
-        // (Wagner 2026-05-11): rotas `/whatsapp/conversations*` legacy
-        // REMOVIDAS completamente — caminho único agora.
-        // US-WA-070: "Configurações" /whatsapp/settings → "Templates Jana"
-        // /atendimento/canais/jana-templates (drivers migraram pra Canais).
-        ['label' => 'Inbox',           'href' => '/atendimento/inbox',                    'icon' => 'Inbox',     'can' => 'whatsapp.access'],
-        ['label' => 'Templates HSM',   'href' => '/whatsapp/templates',                   'icon' => 'FileText',  'can' => 'whatsapp.templates.manage'],
-        ['label' => 'Canais',          'href' => '/atendimento/canais',                   'icon' => 'Plug',      'can' => 'whatsapp.settings.manage'],
-        ['label' => 'Templates Jana',  'href' => '/atendimento/canais/jana-templates',    'icon' => 'Bot',       'can' => 'whatsapp.settings.manage'],
+        // US-WA-067 + PR #889 cleanup 2026-05-15: Caixa Unificada V4 absorveu
+        // Templates HSM, Templates Jana e Canais via topnav direita (dropdown
+        // "Templates" + botão "Canais"). Inbox legacy mantido como fallback
+        // até paridade funcional completa (inventário §2 cutover V4).
+        ['label' => 'Caixa unificada', 'href' => '/atendimento/caixa-unificada',          'icon' => 'Inbox',     'can' => 'whatsapp.access'],
+        ['label' => 'Inbox (legacy)',  'href' => '/atendimento/inbox',                    'icon' => 'Archive',   'can' => 'whatsapp.access'],
     ],
 ];
