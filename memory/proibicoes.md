@@ -20,6 +20,38 @@
 > | Cache `Cache::put`/`Cache::forget` ad-hoc em prod | Observer ou comando artisan registrado, NUNCA tinker direto sem commit |
 >
 > **Se Wagner aprovar Tier 0 superadmin "ajuste rápido" em emergência:** Claude marca log com `// DRIFT TIER 0 — Wagner aprovou em <data>, follow-up PR <hash>` E spawna PR follow-up imediato.
+>
+> ### EVOLUÇÃO 2026-05-15 14h — Workflow Tier 0 expandido (3 fases obrigatórias)
+>
+> Wagner segundo corte explícito (Tier 0 IRREVOGÁVEL):
+>
+> *"vai mecher no modulo ler brefing e se mexer salva o progresso. (...) porr mexe não registra, altera sem ler as regras do modulo fica sempre errando, caramba se organiza caralho seja responsavel porra. vao entrar os outros no MCP e isso vai ficar uma zona caralho"*
+>
+> **REGRA "mexeu, registra" sozinha NÃO é suficiente.** Workflow completo:
+>
+> | Fase | Quando | O que fazer | Sintoma de violação |
+> |---|---|---|---|
+> | **PRÉ-FLIGHT** | ANTES de qualquer Edit/Write em `Modules/<X>/` | Ler `SPEC.md` + `RUNBOOK*.md` + `CAPTERRA*.md` + ADRs relacionadas + charter da página + skill `como-integrar` se feature parcial | "Vou mexer rápido sem ler" → bug |
+> | **DURING** | Mexendo no código | Commit incremental por step lógico; `git push` WIP a cada ~30min; `TodoWrite` mark completed após cada step; **NUNCA** `git checkout` outra branch sem `stash` ou `commit` | "trabalho de 2h perdido" / "esqueci de commitar" |
+> | **POST** | Mexeu | PR no git + CI + merge + docs canon (regra original "mexeu, registra") | "depois eu commito" / drift |
+>
+> **PRÉ-FLIGHT leitura obrigatória por tipo de Edit:**
+>
+> | Vai editar... | LEIA ANTES |
+> |---|---|
+> | `Modules/<X>/Http/Controllers/...` | `memory/requisitos/<X>/SPEC.md` (US-XXX-NNN) |
+> | `resources/js/Pages/<X>/<Tela>.tsx` | charter `<Tela>.charter.md` + skill `mwart-process` (ADR 0104) |
+> | `Modules/<X>/Database/Migrations/...` | ADR 0093 (multi-tenant) + Schema existente |
+> | Comando artisan novo | skill `criar-modulo` + Console/Kernel.php pattern |
+> | Service/Job que toca prod biz=1 | ADR 0101 (tests biz=1) + skill `multi-tenant-patterns` |
+> | Observer/Event | ADR 0143 FSM (se aplicável) + proibições deste arquivo |
+>
+> **Por que isso importa MAIS agora (2026-05-15+):**
+> 1. **Time MCP entra em breve** (Felipe/Maiara/Eliana/Luiz) — sem workflow estrito, drift escala N× pessoas
+> 2. **Maratona WhatsApp 14-15/mai** mostrou que **TODOS** os 5 drifts catalogados vieram de violação de FASE 1 (mexer sem ler) ou FASE 2 (não salvar progresso)
+> 3. **MCP server `mcp.oimpresso.com`** vai expor estado vivo pro time — drift = dado errado servido a Felipe/Maiara
+>
+> **Detalhe completo + 5 vetores catalogados + 7 defesas automáticas + comportamento Claude esperado em [`memory/reference/feedback-modulo-mexeu-registra-sempre.md`](reference/feedback-modulo-mexeu-registra-sempre.md).**
 
 ## Ambiente
 
