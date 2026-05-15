@@ -125,6 +125,14 @@ class WhatsappServiceProvider extends ServiceProvider
         // senderPn cria conv órfã pra sempre".
         \Modules\Whatsapp\Entities\LidPhoneMap::observe(\Modules\Whatsapp\Observers\LidPhoneMapObserver::class);
 
+        // Observer ContactObserver — invalida cache `whatsapp.auto_link:*` quando
+        // phone fields (mobile/landline/alternate_number) de Contact CRM mudam.
+        // Fix cross-contact recorrente catalogado em smoke 2026-05-15: cache 1h
+        // TTL preservava mapping Eliana-stale mesmo após operador limpar campos
+        // do Contact via UI. Defesa-em-profundidade: invalida cache BOTH old+new
+        // phone values. Detalhes em `Modules/Whatsapp/Observers/ContactObserver.php` docblock.
+        \App\Contact::observe(\Modules\Whatsapp\Observers\ContactObserver::class);
+
         // Plug Repair: dispara Whatsapp em mudança de status (cumpre ADR Repair tech/0001)
         // Evento Modules\Repair\Events\RepairStatusChanged é declarado em Modules/Repair/Events/
         // — dispatch real depende de PR coordenado com Felipe/Maiara modificando JobSheetController.
