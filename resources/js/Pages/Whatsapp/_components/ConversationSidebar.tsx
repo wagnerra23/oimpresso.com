@@ -26,6 +26,7 @@ import { Separator } from '@/Components/ui/separator';
 
 import Avatar from './Avatar';
 import ContactPickerModal from './ContactPickerModal';
+import CustomerMemoryBlock from './CustomerMemoryBlock';
 import { formatDateTime, isLikelyLid, type ConvTag, type ThreadConversation } from './helpers';
 
 interface Props {
@@ -186,6 +187,14 @@ export default function ConversationSidebar({
 
   return (
     <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-3 overflow-y-auto" aria-label="Contexto da conversa">
+      {/* US-WA-VOZ-001/002/003 — Customer Memory block (memória persistente do
+          cliente final). Renderiza acima do Card básico de identificação pra
+          atendente VER em primeiro lugar quem é a pessoa antes de responder.
+          Lazy fetch client-side — não bloqueia abertura da conversa. */}
+      {conversation.customer_phone && (
+        <CustomerMemoryBlock customerExternalId={conversation.customer_phone} />
+      )}
+
       <Card className="p-4 relative">
         {onCollapse && (
           <button
