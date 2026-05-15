@@ -39,6 +39,29 @@ class MacrosController extends Controller
     {
         $businessId = (int) session('user.business_id');
 
+        // D-14 perf 2026-05-15 (skill `inertia-defer-default` Tier 0):
+        // `macros` (query + groupBy variants + map) + `availableTags` (query)
+        // viram Inertia::defer. `availableStatuses` é array static — eager.
+        return Inertia::render('Atendimento/Macros/Index', [
+            // ─── Defer (queries pesadas) ───
+            'macros' => Inertia::defer(fn () => $this->buildMacrosPayload($businessId)),
+            'availableTags' => Inertia::defer(fn () => $this->buildAvailableTagsPayload($businessId)),
+
+            // ─── Eager (array static) ───
+            'availableStatuses' => [
+                ['value' => 'open',            'label' => 'Aberta'],
+                ['value' => 'awaiting_human',  'label' => 'Aguardando humano'],
+                ['value' => 'resolved',        'label' => 'Resolvida'],
+                ['value' => 'archived',        'label' => 'Arquivada'],
+            ],
+        ]);
+    }
+
+    /**
+     * D-14 perf — macros list (query Macro + groupBy variants_count + map).
+     */
+    protected function buildMacrosPayload(int $businessId): array
+    {
         // US-WA-049: pré-computa variants_count por macro pra coluna na tela.
         // Schema guard pra back-compat (migration pode não ter rodado ainda).
         $variantCounts = [];
@@ -51,30 +74,26 @@ class MacrosController extends Controller
                 ->toArray();
         }
 
-        $macros = Macro::query()
+        return Macro::query()
             ->where('business_id', $businessId)
             ->orderByDesc('used_count')
             ->orderBy('label')
             ->get()
-            ->map(fn (Macro $m) => $this->macroToUiArray($m, (int) ($variantCounts[$m->id] ?? 0)));
+            ->map(fn (Macro $m) => $this->macroToUiArray($m, (int) ($variantCounts[$m->id] ?? 0)))
+            ->all();
+    }
 
-        // Catálogo de tags pra form (multi-select actions)
-        $tags = Tag::query()
+    /**
+     * D-14 perf — catálogo tags do business pra form multi-select.
+     */
+    protected function buildAvailableTagsPayload(int $businessId): array
+    {
+        return Tag::query()
             ->where('business_id', $businessId)
             ->orderBy('sort_order')
             ->orderBy('label')
-            ->get(['id', 'slug', 'label', 'color']);
-
-        return Inertia::render('Atendimento/Macros/Index', [
-            'macros' => $macros,
-            'availableTags' => $tags,
-            'availableStatuses' => [
-                ['value' => 'open',            'label' => 'Aberta'],
-                ['value' => 'awaiting_human',  'label' => 'Aguardando humano'],
-                ['value' => 'resolved',        'label' => 'Resolvida'],
-                ['value' => 'archived',        'label' => 'Arquivada'],
-            ],
-        ]);
+            ->get(['id', 'slug', 'label', 'color'])
+            ->all();
     }
 
     /**

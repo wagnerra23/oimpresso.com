@@ -9,9 +9,9 @@
 // UI: lista de macros (table) + modal nova/editar com accordion "Ações avançadas".
 // Composer dropdown (em ConversationThread.tsx) consome /atendimento/macros/list JSON.
 
-import { Link, router } from '@inertiajs/react';
+import { Link, router, Deferred } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Zap, X, Beaker } from 'lucide-react';
+import { Plus, Pencil, Trash2, Zap, X, Beaker, Loader2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -72,8 +72,9 @@ interface StatusOption {
 }
 
 interface Props {
-  macros: Macro[];
-  availableTags: TagOption[];
+  // D-14 perf — deferred (opcional até async fetch resolver)
+  macros?: Macro[];
+  availableTags?: TagOption[];
   availableStatuses: StatusOption[];
 }
 
@@ -177,7 +178,47 @@ export default function MacrosIndex({ macros, availableTags, availableStatuses }
         }
       />
 
-      {macros.length === 0 ? (
+      {/* D-14 perf — macros deferred (query + groupBy + map). Skeleton ~100ms. */}
+      <Deferred
+        data="macros"
+        fallback={(
+          <Card>
+            <CardContent className="p-0">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="text-left px-3 py-2">Rótulo</th>
+                    <th className="text-left px-3 py-2">Atalho</th>
+                    <th className="text-left px-3 py-2">Ações</th>
+                    <th className="text-center px-3 py-2">Variantes</th>
+                    <th className="text-right px-3 py-2">Usos</th>
+                    <th className="px-3 py-2 w-32">&nbsp;</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="border-t">
+                      <td className="px-3 py-2">
+                        <div className="h-4 w-32 bg-muted/40 rounded animate-pulse mb-1" />
+                        <div className="h-3 w-48 bg-muted/30 rounded animate-pulse" />
+                      </td>
+                      <td className="px-3 py-2"><div className="h-3 w-12 bg-muted/40 rounded animate-pulse" /></td>
+                      <td className="px-3 py-2"><div className="h-3 w-16 bg-muted/30 rounded animate-pulse" /></td>
+                      <td className="px-3 py-2 text-center"><div className="h-3 w-4 bg-muted/30 rounded animate-pulse mx-auto" /></td>
+                      <td className="px-3 py-2 text-right"><div className="h-3 w-8 bg-muted/30 rounded animate-pulse ml-auto" /></td>
+                      <td className="px-3 py-2 text-right"><div className="h-3 w-16 bg-muted/30 rounded animate-pulse ml-auto" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex items-center justify-center text-muted-foreground text-xs py-3">
+                <Loader2 size={14} className="animate-spin mr-2" aria-hidden /> Carregando macros…
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      >
+      {!macros || macros.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-muted-foreground">
             <Zap size={28} className="mx-auto mb-3 opacity-50" aria-hidden />
@@ -288,6 +329,7 @@ export default function MacrosIndex({ macros, availableTags, availableStatuses }
           </CardContent>
         </Card>
       )}
+      </Deferred>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
@@ -364,7 +406,7 @@ export default function MacrosIndex({ macros, availableTags, availableStatuses }
                             <SelectValue placeholder="Escolha a tag" />
                           </SelectTrigger>
                           <SelectContent>
-                            {availableTags.map((t) => (
+                            {(availableTags ?? []).map((t) => (
                               <SelectItem key={t.id} value={String(t.id)}>
                                 {t.label}
                               </SelectItem>

@@ -41,28 +41,42 @@ class MacroVariantsController extends Controller
     {
         $businessId = (int) session('user.business_id');
 
+        // findOrFail roda eager pra retornar 404 ANTES de render (cross-tenant
+        // bloqueio Tier 0 ADR 0093). `variants` lista é defer.
         $macro = Macro::query()
             ->where('business_id', $businessId)
             ->findOrFail($macroId);
 
-        $variants = MacroVariant::query()
-            ->where('business_id', $businessId)
-            ->where('macro_id', $macro->id)
-            ->orderBy('active', 'desc')
-            ->orderByDesc('weight')
-            ->orderBy('label')
-            ->get()
-            ->map(fn (MacroVariant $v) => $this->variantToUiArray($v));
-
+        // D-14 perf 2026-05-15 (skill `inertia-defer-default` Tier 0):
+        // `variants` (query + map) vira Inertia::defer — pula execução quando
+        // partial reload não pede.
         return Inertia::render('Atendimento/Macros/Variants', [
+            // ─── Eager (macro = 1 SELECT findOrFail, custo trivial; precisa rodar pra 404 cross-tenant) ───
             'macro' => [
                 'id' => $macro->id,
                 'label' => $macro->label,
                 'shortcut' => $macro->shortcut,
                 'body' => $macro->body,
             ],
-            'variants' => $variants,
+            // ─── Defer (query + map) ───
+            'variants' => Inertia::defer(fn () => $this->buildVariantsPayload($businessId, $macro->id)),
         ]);
+    }
+
+    /**
+     * D-14 perf — variants list (query MacroVariant + map).
+     */
+    protected function buildVariantsPayload(int $businessId, int $macroId): array
+    {
+        return MacroVariant::query()
+            ->where('business_id', $businessId)
+            ->where('macro_id', $macroId)
+            ->orderBy('active', 'desc')
+            ->orderByDesc('weight')
+            ->orderBy('label')
+            ->get()
+            ->map(fn (MacroVariant $v) => $this->variantToUiArray($v))
+            ->all();
     }
 
     public function store(Request $request, int $macroId): RedirectResponse
