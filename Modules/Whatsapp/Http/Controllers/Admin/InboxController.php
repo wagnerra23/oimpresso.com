@@ -367,6 +367,10 @@ class InboxController extends Controller
             'availableTags' => $availableTags,
             'activeTagIds' => $activeTagIds,
             'centrifugoConfig' => $centrifugoConfig,
+            // Caixa Unificada v4 — config static das filas (sem DB).
+            // Frontend usa pra renderizar pílulas + cor (hue) + SLA.
+            'queues' => (array) config('whatsapp.queues', []),
+            'defaultQueue' => (string) config('whatsapp.default_queue', 'comercial'),
         ]);
     }
 
@@ -482,6 +486,43 @@ class InboxController extends Controller
             'tags' => $c->relationLoaded('tags')
                 ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
                 : [],
+            // Caixa Unificada v4 — fila derivada (heurística tag → fila).
+            // Read-only nesta passada (RUNBOOK §4.4 Non-Goal: mover entre filas).
+            'queue' => $this->deriveQueueFromTags(
+                $c->relationLoaded('tags') ? $c->tags->pluck('slug')->all() : []
+            ),
+        ];
+    }
+
+    /**
+     * Caixa Unificada v4 — heurística tag → fila.
+     *
+     * Lê `config('whatsapp.queues')` e retorna a 1ª fila cujo `trigger_tags`
+     * intersecta com tags da conversa. Fallback = `config('whatsapp.default_queue')`.
+     * Determinístico — mesma input gera mesmo output (ordem dos triggers
+     * preserva ordem do config).
+     */
+    protected function deriveQueueFromTags(array $tagSlugs): array
+    {
+        $queues = (array) config('whatsapp.queues', []);
+        $default = (string) config('whatsapp.default_queue', 'comercial');
+        $matched = $default;
+        foreach ($queues as $slug => $cfg) {
+            $triggers = (array) ($cfg['trigger_tags'] ?? []);
+            if ($triggers === []) {
+                continue;
+            }
+            if (array_intersect($tagSlugs, $triggers) !== []) {
+                $matched = $slug;
+                break;
+            }
+        }
+        $cfg = $queues[$matched] ?? ['label' => ucfirst($matched), 'hue' => 0, 'sla' => null];
+        return [
+            'slug' => $matched,
+            'label' => (string) ($cfg['label'] ?? ucfirst($matched)),
+            'hue' => (int) ($cfg['hue'] ?? 0),
+            'sla' => $cfg['sla'] ?? null,
         ];
     }
 
@@ -517,6 +558,10 @@ class InboxController extends Controller
             'tags' => $c->relationLoaded('tags')
                 ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
                 : [],
+            // Caixa Unificada v4 — fila derivada (read-only no Contexto)
+            'queue' => $this->deriveQueueFromTags(
+                $c->relationLoaded('tags') ? $c->tags->pluck('slug')->all() : []
+            ),
             // US-WA-064: contato UltimatePOS vinculado (CRM). Null se ainda
             // não vinculado. Inicialmente vem null porque webhook cria
             // Conversation com contact_id=null. Atendente vincula via modal.
