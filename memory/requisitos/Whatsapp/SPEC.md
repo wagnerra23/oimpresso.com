@@ -1433,3 +1433,53 @@ Documentados pelo dogfood pra não regredir em refactor futuro:
 - ADR 0093 multi-tenant IRREVOGÁVEL com global scope
 - 11 métricas Prometheus dedicadas no daemon ([`metrics.ts`](../../../Modules/Whatsapp/daemon-node/src/observability/metrics.ts))
 
+## §14.2 Cloud API canary scope — PR4 PoC (NÃO toca prod biz=1)
+
+**Contexto:** estudo protocol-level WhatsApp 2026 ([memory/sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md](../../sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md) §7 Opção A) revelou que **BSUID Meta-oficial está LIVE em Cloud API webhooks desde 31-mar-2026** via campo `contacts[].user_id`. Quando users adotarem username (jun/2026 GA), `wa_id` (phone) some — só sobra BSUID como ID estável business-scoped.
+
+Cloud API resolve LID → identidade internamente (sem necessidade do nosso `LidPhoneResolver` que existe pro daemon Baileys). Wagner aprovou **stub canary PoC** pra validar custo Meta + tempo HSM aprovação ANTES de decidir migração wide.
+
+### Escopo PR4 (entregue 2026-05-15)
+
+- ✅ `MetaCloudDriver::parseInboundWebhook(array $payload): array` — método novo no driver existente, extrai 3 identifiers canônicos do payload Meta (PR1 schema `lid`/`phone_e164`/`bsuid`)
+- ✅ Fixture canon `Modules/Whatsapp/Tests/Fixtures/meta-cloud-inbound-with-bsuid.json` (payload mar/2026+ com `user_id`)
+- ✅ 4 Pest tests `MetaCloudDriverStubTest` — todos com `Http::fake` (zero chamada Meta real)
+- ✅ `.env.canary.example` documenta variáveis pra Wagner ativar sandbox manual
+
+### Fora de escopo PR4 (próximas fases)
+
+- ❌ Rota webhook `ChannelMetaWebhookController@cloudInbound` — PR5
+- ❌ Integração `ChannelDriverFactory` pra escolher `meta_cloud` por canary flag — PR5+
+- ❌ HSM templates aprovação Meta (1-3 dias cada) — fora deste sprint
+- ❌ Migração `MessagePersister` pra usar `bsuid` como chave secundária — quando username GA jun/2026
+
+### Como ativar canary (Wagner manual)
+
+```bash
+# 1. Copiar template
+cp Modules/Whatsapp/.env.canary.example Modules/Whatsapp/.env.canary
+
+# 2. Editar .env.canary com valores reais Meta Business Manager
+#    (System User Token, phone_number_id, webhook verify token)
+
+# 3. Validar smoke pelos tests Pest (NÃO chama Meta real)
+php artisan test --filter=MetaCloudDriverStub
+
+# 4. Wagner flipa META_CANARY_ENABLED=true APENAS após sign-off
+#    business_id=99 sandbox (NUNCA biz=1 ROTA LIVRE)
+```
+
+### Tier 0 — restrições canary
+
+- ⛔ **business_id=99 sandbox** — NUNCA tocar biz=1 prod (99% volume ROTA LIVRE)
+- ⛔ **Token Meta NUNCA em commit/log/PR** — apenas `.env.canary` local (gitignored)
+- ⛔ **Rate limit 50 msg/dia** evita ban Meta por abuso de teste
+- ⛔ **Driver `meta_cloud` NÃO bane** (provedor oficial), mas conta abusada perde acesso developer
+- ⛔ **Decisão migração wide** depende de ADR mãe nova com dados reais (custo R$/msg + tempo HSM aprovação)
+
+### Áreas cinzentas pra Wagner decidir
+
+1. **BSP intermediário (360dialog/Twilio) vs Meta direto?** Meta direto sem markup BSP é o assumed em `MetaCloudDriver`, mas Twilio facilita certificação inicial. Decisão pré-ativação canary.
+2. **Quando username GA jun/2026 chegar**, `phone_e164` pode virar opcional em alguns webhooks. `MessagePersister` precisa estratégia fallback explícita — backlog ADR.
+3. **Webhook signature verification Meta** (HMAC SHA-256 com app secret) — não implementado neste PR. Requirement Meta antes de ativar webhook em prod.
+
