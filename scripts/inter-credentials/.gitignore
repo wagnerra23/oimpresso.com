@@ -1,0 +1,6 @@
+# Nunca commitar credenciais reais
+credentials.local.json
+credentials.*.local.json
+*.crt
+*.key
+*.pem
