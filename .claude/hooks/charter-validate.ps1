@@ -1,4 +1,4 @@
-# Hook PreToolUse — WARN/BLOQUEIA Edit/Write em Pages/<Mod>/<Tela>.tsx sem chamada charter-fetch prévia.
+﻿# Hook PreToolUse — WARN/BLOQUEIA Edit/Write em Pages/<Mod>/<Tela>.tsx sem chamada charter-fetch prévia.
 # Camada de enforcement do princípio #3 da Constituição V2 (Charter > Spec — ADR 0094 + ADR 0101).
 # GAP-ANALYSIS-91-100-2026-05-13 (C1 P0 Onda 4) — ativa Page Charters S4.
 #
@@ -86,3 +86,4 @@ $msg += 'Modo warning-mode (P1 — vira bloqueante quando ROI provado em ≥5 se
 } | ConvertTo-Json -Compress
 
 exit 0
+

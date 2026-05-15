@@ -1,4 +1,4 @@
-# Hook PreToolUse — Warn se eu (Claude) for usar Read/Glob/Grep em memory/*
+﻿# Hook PreToolUse — Warn se eu (Claude) for usar Read/Glob/Grep em memory/*
 # Wagner 2026-04-30: forçar reflexo MCP-first sem precisar pingar.
 #
 # Lê JSON do stdin (formato Claude Code hooks):
@@ -9,10 +9,10 @@
 # CURRENT.md/TASKS.md foram REMOVIDOS em 2026-05-04 (ADR 0070).
 
 $ErrorActionPreference = 'Stop'
-$input = [Console]::In.ReadToEnd()
+$rawInput = [Console]::In.ReadToEnd()
 
 try {
-    $payload = $input | ConvertFrom-Json
+    $payload = $rawInput | ConvertFrom-Json
 } catch {
     exit 0  # Falha silente — não bloquear
 }
@@ -60,8 +60,9 @@ switch -regex ($target) {
     hookSpecificOutput = @{
         hookEventName            = 'PreToolUse'
         permissionDecision       = 'allow'
-        permissionDecisionReason = "[oimpresso-mcp-first] Você ia $tool em '$target'. Considere tool MCP `'$suggestion`' — auditado em mcp_audit_log + 73% menos tokens. Filesystem só se MCP fora do ar. Ver SKILL .claude/skills/oimpresso-mcp-first/SKILL.md."
+        permissionDecisionReason = "[oimpresso-mcp-first] Voce ia $tool em '$target'. Considere tool MCP '$suggestion' - auditado em mcp_audit_log + 73% menos tokens. Filesystem so se MCP fora do ar. Ver SKILL .claude/skills/oimpresso-mcp-first/SKILL.md."
     }
 } | ConvertTo-Json -Compress -Depth 3
 
 exit 0
+

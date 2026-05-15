@@ -1,4 +1,4 @@
-# Hook PreToolUse — AVISO (não bloqueia) quando Claude tenta Edit/Write em
+﻿# Hook PreToolUse — AVISO (não bloqueia) quando Claude tenta Edit/Write em
 # Modules/<X>/ sem ter lido SPEC.md/RUNBOOK/charter do módulo X na sessão.
 #
 # Implementa FASE 1 PRÉ-FLIGHT da Regra Primária Tier 0 (proibicoes.md):
@@ -120,3 +120,4 @@ Detalhe: memory/reference/feedback-modulo-mexeu-registra-sempre.md
 
 [Console]::Error.WriteLine($warning)
 exit 0
+
