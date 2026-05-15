@@ -36,6 +36,28 @@ class TemplatesController extends Controller
         $providerFilter = (string) $request->query('provider', 'all');
         $statusFilter = (string) $request->query('status', 'all');
 
+        // D-14 perf 2026-05-15 (skill `inertia-defer-default` Tier 0):
+        // `templates` (query + map + N+1 hasMetaCounterpart checks) vira
+        // Inertia::defer — pula execução quando partial reload não pede.
+        return Inertia::render('Whatsapp/Templates/Index', [
+            // ─── Eager (custo zero — filtros UI) ───
+            'filters' => [
+                'provider' => $providerFilter,
+                'status' => $statusFilter,
+            ],
+
+            // ─── Defer (query + N+1 EXISTS subquery per row) ───
+            'templates' => Inertia::defer(fn () => $this->buildTemplatesPayload($providerFilter, $statusFilter)),
+        ]);
+    }
+
+    /**
+     * D-14 perf — query WhatsappTemplate + map com check `hasMetaCounterpart`
+     * por row (EXISTS subquery). Em business com 20+ templates Z-API → 20 EXISTS
+     * extras. Defer skipa quando partial reload não solicita.
+     */
+    protected function buildTemplatesPayload(string $providerFilter, string $statusFilter): array
+    {
         $query = WhatsappTemplate::query()->orderBy('name');
 
         if ($providerFilter !== 'all') {
@@ -45,7 +67,7 @@ class TemplatesController extends Controller
             $query->where('status', $statusFilter);
         }
 
-        $templates = $query->get()->map(function (WhatsappTemplate $t) {
+        return $query->get()->map(function (WhatsappTemplate $t) {
             // Detecta se template Z-API/Baileys local tem contraparte Meta aprovada
             $hasMetaCounterpart = false;
             if ($t->provider !== 'meta_cloud') {
@@ -69,15 +91,7 @@ class TemplatesController extends Controller
                 'has_meta_counterpart' => $hasMetaCounterpart,
                 'is_ready' => $t->isReadyToSend(),
             ];
-        });
-
-        return Inertia::render('Whatsapp/Templates/Index', [
-            'templates' => $templates,
-            'filters' => [
-                'provider' => $providerFilter,
-                'status' => $statusFilter,
-            ],
-        ]);
+        })->all();
     }
 
     /**

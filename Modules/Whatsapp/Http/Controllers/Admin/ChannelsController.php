@@ -36,19 +36,31 @@ class ChannelsController extends Controller
     {
         $businessId = (int) session('user.business_id');
 
-        // Lista canais do business — exclui tokens via toUiArray()
-        $channels = Channel::query()
-            ->where('business_id', $businessId)
-            ->orderBy('id')
-            ->get()
-            ->map(fn (Channel $c) => $this->toUiArray($c));
-
+        // D-14 perf 2026-05-15 (skill `inertia-defer-default` Tier 0):
+        // `channels` (query + map) vira Inertia::defer. Outras props são
+        // arrays static / IDs (eager OK).
         return Inertia::render('Atendimento/Channels/Index', [
-            'channels' => $channels,
+            // ─── Eager (custo zero) ───
             'businessId' => $businessId,
             'availableTypes' => $this->availableTypesForUi(),
             'forbiddenDrivers' => config('whatsapp.forbidden_drivers', []),
+
+            // ─── Defer (query + map) ───
+            'channels' => Inertia::defer(fn () => $this->buildChannelsPayload($businessId)),
         ]);
+    }
+
+    /**
+     * D-14 perf — channels list (query + map toUiArray).
+     */
+    protected function buildChannelsPayload(int $businessId): array
+    {
+        return Channel::query()
+            ->where('business_id', $businessId)
+            ->orderBy('id')
+            ->get()
+            ->map(fn (Channel $c) => $this->toUiArray($c))
+            ->all();
     }
 
     public function store(ChannelRequest $request): RedirectResponse
@@ -117,13 +129,33 @@ class ChannelsController extends Controller
     {
         $businessId = (int) session('user.business_id');
 
+        // findOrFail eager (404 cross-tenant Tier 0 ADR 0093 antes de render).
         $channel = Channel::query()
             ->where('business_id', $businessId)
             ->findOrFail($id);
 
+        // D-14 perf 2026-05-15 (skill `inertia-defer-default` Tier 0):
+        // 3 listas pesadas (users + availableUsers + audit) viram Inertia::defer.
+        // Cada uma faz 2 queries (rows + users lookup) ou filter `can()` por row.
+        return Inertia::render('Atendimento/Channels/Show', [
+            // ─── Eager (channel resolvido pra 404 cross-tenant + ID nas tabs) ───
+            'channel' => $this->toUiArray($channel),
+
+            // ─── Defer (queries pesadas com joins users) ───
+            'users' => Inertia::defer(fn () => $this->buildChannelUsersPayload($businessId, $channel->id)),
+            'availableUsers' => Inertia::defer(fn () => $this->buildAvailableUsersPayload($businessId, $channel->id)),
+            'audit' => Inertia::defer(fn () => $this->buildAuditPayload($businessId, $channel->id)),
+        ]);
+    }
+
+    /**
+     * D-14 perf — users ativos com acesso ao canal (rows + users lookup).
+     */
+    protected function buildChannelUsersPayload(int $businessId, int $channelId): array
+    {
         $accessRows = ChannelUserAccess::query()
             ->where('business_id', $businessId)
-            ->where('channel_id', $channel->id)
+            ->where('channel_id', $channelId)
             ->active()
             ->orderBy('granted_at', 'desc')
             ->get();
@@ -138,7 +170,7 @@ class ChannelsController extends Controller
             ->get(['id', 'first_name', 'last_name', 'email', 'username'])
             ->keyBy('id');
 
-        $accessUi = $accessRows->map(function (ChannelUserAccess $row) use ($usersById) {
+        return $accessRows->map(function (ChannelUserAccess $row) use ($usersById) {
             $u = $usersById->get($row->user_id);
             $granter = $usersById->get($row->granted_by_user_id);
             return [
@@ -152,18 +184,29 @@ class ChannelsController extends Controller
                     ? trim($granter->first_name . ' ' . ($granter->last_name ?? ''))
                     : "user#{$row->granted_by_user_id}",
             ];
-        })->values();
+        })->values()->all();
+    }
 
-        // Users disponíveis pra grant (do mesmo business, têm permission
-        // whatsapp.access OU whatsapp.send, e ainda não têm grant ativo neste canal).
-        $alreadyGrantedIds = $accessRows->pluck('user_id')->all();
+    /**
+     * D-14 perf — candidatos pra grant (filter `can()` per row é pesado).
+     */
+    protected function buildAvailableUsersPayload(int $businessId, int $channelId): array
+    {
+        // Quem já tem grant ativo no canal — excluir desses
+        $alreadyGrantedIds = ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->where('channel_id', $channelId)
+            ->active()
+            ->pluck('user_id')
+            ->all();
+
         $candidatesQuery = User::where('business_id', $businessId)
             ->whereNull('deleted_at')
             ->whereNotIn('id', $alreadyGrantedIds)
             ->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name', 'email', 'username']);
 
-        $available = $candidatesQuery->filter(function (User $u) {
+        return $candidatesQuery->filter(function (User $u) {
             return $u->can('whatsapp.access') || $u->can('whatsapp.send');
         })->map(function (User $u) {
             return [
@@ -172,13 +215,17 @@ class ChannelsController extends Controller
                 'email' => $u->email,
                 'username' => $u->username,
             ];
-        })->values();
+        })->values()->all();
+    }
 
-        // Audit log curto — últimas 20 entradas do canal (grant + revoke).
-        // Inclui rows revoked pra mostrar histórico.
+    /**
+     * D-14 perf — audit log (últimas 20 grant+revoke) com users lookup.
+     */
+    protected function buildAuditPayload(int $businessId, int $channelId): array
+    {
         $audit = ChannelUserAccess::query()
             ->where('business_id', $businessId)
-            ->where('channel_id', $channel->id)
+            ->where('channel_id', $channelId)
             ->orderBy('updated_at', 'desc')
             ->limit(20)
             ->get();
@@ -194,7 +241,7 @@ class ChannelsController extends Controller
             ->get(['id', 'first_name', 'last_name'])
             ->keyBy('id');
 
-        $auditUi = $audit->map(function (ChannelUserAccess $row) use ($auditUsers) {
+        return $audit->map(function (ChannelUserAccess $row) use ($auditUsers) {
             $userName = fn ($uid) => $uid && $auditUsers->get($uid)
                 ? trim($auditUsers->get($uid)->first_name . ' ' . ($auditUsers->get($uid)->last_name ?? ''))
                 : ($uid ? "user#{$uid}" : null);
@@ -209,14 +256,7 @@ class ChannelsController extends Controller
                 'revoked_by_name' => $userName($row->revoked_by_user_id),
                 'is_active' => $row->revoked_at === null,
             ];
-        })->values();
-
-        return Inertia::render('Atendimento/Channels/Show', [
-            'channel' => $this->toUiArray($channel),
-            'users' => $accessUi,
-            'availableUsers' => $available,
-            'audit' => $auditUi,
-        ]);
+        })->values()->all();
     }
 
     /**
