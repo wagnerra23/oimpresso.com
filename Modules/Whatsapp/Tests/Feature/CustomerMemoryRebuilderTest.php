@@ -72,6 +72,7 @@ beforeEach(function () {
         $table->text('body')->nullable();
         $table->string('status', 20)->default('received');
         $table->boolean('is_internal_note')->default(false);
+        $table->unsignedInteger('sender_user_id')->nullable();
         $table->timestamps();
     });
 
@@ -101,6 +102,14 @@ beforeEach(function () {
         $table->timestamp('erasure_requested_at')->nullable();
         $table->timestamp('last_rebuilt_at')->nullable();
         $table->string('rebuilt_via', 24)->nullable();
+        // US-WA-VOZ-002 columns
+        $table->unsignedInteger('assigned_user_id')->nullable();
+        $table->unsignedInteger('most_active_user_id')->nullable();
+        $table->unsignedInteger('most_active_user_count')->nullable();
+        $table->json('reclamacoes_recentes')->nullable();
+        $table->unsignedInteger('total_reclamacoes')->default(0);
+        $table->json('external_sources')->nullable();
+        $table->timestamp('external_sources_enriched_at')->nullable();
         $table->timestamps();
         $table->unique(['business_id', 'customer_external_id']);
     });
@@ -134,14 +143,15 @@ function seedConvFixture(int $bizId, string $extId): int
     ]);
 }
 
-function seedMsgFixture(int $bizId, int $convId, string $direction = 'inbound', ?string $when = null): int
+function seedMsgFixture(int $bizId, int $convId, string $direction = 'inbound', ?string $when = null, ?int $userId = null, ?string $body = null): int
 {
     return DB::table('messages')->insertGetId([
         'business_id' => $bizId,
         'conversation_id' => $convId,
         'direction' => $direction,
         'type' => 'text',
-        'body' => 'msg teste',
+        'body' => $body ?? 'msg teste',
+        'sender_user_id' => $userId,
         'created_at' => $when ? \Carbon\Carbon::parse($when) : now(),
         'updated_at' => $when ? \Carbon\Carbon::parse($when) : now(),
     ]);
@@ -315,6 +325,80 @@ it('LGPD: consent_status reflete contacts.whatsapp_consent', function () {
     seedConvFixture(1, '33333333333');
     $memNull = $rebuilder->rebuild(1, '33333333333');
     expect($memNull->consent_status)->toBe(CustomerMemory::CONSENT_UNKNOWN);
+});
+
+it('US-WA-VOZ-002 — assigned_user_id = sender_user_id da última outbound', function () {
+    $linker = new ConversationContactLinker();
+    $rebuilder = new CustomerMemoryRebuilder($linker);
+
+    $extId = '5548999872822';
+    $convId = seedConvFixture(1, $extId);
+    // 3 outbound: user=10 (mais antigo), user=20, user=30 (mais recente)
+    seedMsgFixture(1, $convId, 'outbound', '2026-05-13 10:00:00', userId: 10);
+    seedMsgFixture(1, $convId, 'outbound', '2026-05-14 10:00:00', userId: 20);
+    seedMsgFixture(1, $convId, 'outbound', '2026-05-15 10:00:00', userId: 30);
+
+    $memory = $rebuilder->rebuild(1, $extId);
+
+    expect($memory->assigned_user_id)->toBe(30); // mais recente
+});
+
+it('US-WA-VOZ-002 — most_active_user_id = sender com mais outbound', function () {
+    $linker = new ConversationContactLinker();
+    $rebuilder = new CustomerMemoryRebuilder($linker);
+
+    $extId = '5548999872822';
+    $convId = seedConvFixture(1, $extId);
+    // user=10 com 3 msgs, user=20 com 2, user=30 com 1
+    seedMsgFixture(1, $convId, 'outbound', userId: 10);
+    seedMsgFixture(1, $convId, 'outbound', userId: 10);
+    seedMsgFixture(1, $convId, 'outbound', userId: 10);
+    seedMsgFixture(1, $convId, 'outbound', userId: 20);
+    seedMsgFixture(1, $convId, 'outbound', userId: 20);
+    seedMsgFixture(1, $convId, 'outbound', userId: 30);
+
+    $memory = $rebuilder->rebuild(1, $extId);
+
+    expect($memory->most_active_user_id)->toBe(10);
+    expect($memory->most_active_user_count)->toBe(3);
+});
+
+it('US-WA-VOZ-002 — reclamações heurística detecta keywords', function () {
+    $linker = new ConversationContactLinker();
+    $rebuilder = new CustomerMemoryRebuilder($linker);
+
+    $extId = '5548999872822';
+    $convId = seedConvFixture(1, $extId);
+    // Inbound com keywords variadas (severities)
+    seedMsgFixture(1, $convId, 'inbound', body: 'olá tudo bem'); // sem match
+    seedMsgFixture(1, $convId, 'inbound', body: 'tô com problema no sistema'); // media
+    seedMsgFixture(1, $convId, 'inbound', body: 'isso é péssimo, quero reclamar'); // alta
+    seedMsgFixture(1, $convId, 'inbound', body: 'quero processar vocês, vou no procon'); // critica
+    seedMsgFixture(1, $convId, 'inbound', body: 'preciso de ajuda'); // baixa
+
+    $memory = $rebuilder->rebuild(1, $extId);
+
+    expect($memory->total_reclamacoes)->toBe(4); // 4 com match
+    expect($memory->reclamacoes_recentes)->not->toBeNull();
+    expect(count($memory->reclamacoes_recentes))->toBeGreaterThanOrEqual(4);
+
+    // Verifica severities presentes
+    $severities = collect($memory->reclamacoes_recentes)->pluck('severity')->all();
+    expect($severities)->toContain('critica')->toContain('alta')->toContain('media');
+});
+
+it('US-WA-VOZ-002 — reclamações ignora msgs OUTBOUND (só cliente conta)', function () {
+    $linker = new ConversationContactLinker();
+    $rebuilder = new CustomerMemoryRebuilder($linker);
+
+    $extId = '5548999872822';
+    $convId = seedConvFixture(1, $extId);
+    // Atendente outbound usa palavra "problema" — NÃO conta como reclamação cliente
+    seedMsgFixture(1, $convId, 'outbound', userId: 10, body: 'qual é o problema?');
+
+    $memory = $rebuilder->rebuild(1, $extId);
+
+    expect($memory->total_reclamacoes)->toBe(0);
 });
 
 it('CustomerMemory entity helpers: n_msgs_total + daysSinceLastInteraction + isErasureRequested', function () {

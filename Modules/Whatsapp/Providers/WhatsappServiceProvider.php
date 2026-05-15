@@ -11,6 +11,7 @@ use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryBackfillCommand;
+use Modules\Whatsapp\Console\Commands\CustomerMemoryEnrichFirebirdCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryRefreshDailyCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\ChannelResetCommand;
@@ -106,6 +107,8 @@ class WhatsappServiceProvider extends ServiceProvider
                 // US-WA-VOZ-001 — Customer Memory foundation (2026-05-15)
                 CustomerMemoryBackfillCommand::class,
                 CustomerMemoryRefreshDailyCommand::class,
+                // US-WA-VOZ-002 — Enrichment Firebird OfficeImpresso (2026-05-15)
+                CustomerMemoryEnrichFirebirdCommand::class,
             ]);
         }
 

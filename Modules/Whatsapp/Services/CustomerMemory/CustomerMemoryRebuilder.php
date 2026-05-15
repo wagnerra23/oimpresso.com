@@ -80,7 +80,13 @@ class CustomerMemoryRebuilder
         // Step 3 — Display name + consent denormalize (cache de Contact)
         $this->refreshDenormalized($memory);
 
-        // Step 4 — Tracking
+        // Step 4 — Funcionário responsável + funcionário mais ativo (US-WA-VOZ-002)
+        $this->refreshAssignedUser($memory, $businessId, $extId);
+
+        // Step 5 — Reclamações heurística keywords (sem IA, custo zero)
+        $this->refreshReclamacoes($memory, $businessId, $extId);
+
+        // Step 6 — Tracking
         $memory->last_rebuilt_at = now();
         $memory->rebuilt_via = $via;
 
@@ -295,6 +301,146 @@ class CustomerMemoryRebuilder
                 'error' => $e->getMessage(),
             ]);
             $memory->display_name = $memory->display_name ?: ('+' . $memory->customer_external_id);
+        }
+    }
+
+    /**
+     * Step 4 — Funcionário responsável (US-WA-VOZ-002).
+     *
+     * 2 derivações:
+     *   - assigned_user_id    = sender_user_id da msg outbound MAIS RECENTE
+     *   - most_active_user_id = sender_user_id com MAIS msgs outbound histórico
+     *                            (GROUP BY ORDER BY DESC LIMIT 1)
+     *
+     * `sender_user_id` é NULL quando outbound veio do chip direto (Wagner manda
+     * do celular) ou do bot Jana — esses casos não viram "atendente".
+     */
+    protected function refreshAssignedUser(CustomerMemory $memory, int $businessId, string $extId): void
+    {
+        try {
+            // assigned = última outbound humana
+            $assigned = DB::table('messages as m')
+                ->join('conversations as c', 'c.id', '=', 'm.conversation_id')
+                ->where('c.business_id', $businessId)
+                ->where(function ($q) use ($extId) {
+                    $q->where('c.customer_external_id', $extId)
+                      ->orWhere('c.customer_external_id', '+' . $extId);
+                })
+                ->where('m.direction', 'outbound')
+                ->whereNotNull('m.sender_user_id')
+                ->orderByDesc('m.created_at')
+                ->value('m.sender_user_id');
+
+            $memory->assigned_user_id = $assigned ? (int) $assigned : null;
+
+            // most_active = quem mais respondeu histórico
+            $mostActive = DB::table('messages as m')
+                ->join('conversations as c', 'c.id', '=', 'm.conversation_id')
+                ->where('c.business_id', $businessId)
+                ->where(function ($q) use ($extId) {
+                    $q->where('c.customer_external_id', $extId)
+                      ->orWhere('c.customer_external_id', '+' . $extId);
+                })
+                ->where('m.direction', 'outbound')
+                ->whereNotNull('m.sender_user_id')
+                ->select('m.sender_user_id', DB::raw('COUNT(*) as n'))
+                ->groupBy('m.sender_user_id')
+                ->orderByDesc('n')
+                ->limit(1)
+                ->first();
+
+            if ($mostActive !== null) {
+                $memory->most_active_user_id = (int) $mostActive->sender_user_id;
+                $memory->most_active_user_count = (int) $mostActive->n;
+            } else {
+                $memory->most_active_user_id = null;
+                $memory->most_active_user_count = null;
+            }
+        } catch (Throwable $e) {
+            Log::channel('single')->warning('[customer_memory.assigned_user_failed]', [
+                'business_id' => $businessId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Step 5 — Reclamações heurística keywords (US-WA-VOZ-002).
+     *
+     * SEM IA — usa regex sobre body das msgs inbound últimas 30d.
+     *
+     * Keywords mapeadas pra `severity`:
+     *   - critica: "processo", "advogado", "absurdo", "nunca mais", "cancelar", "reembolso"
+     *   - alta:    "reclamar", "péssimo", "horrível", "demais", "insuportável"
+     *   - media:   "problema", "erro", "bug", "atraso", "atrasado", "não consigo", "não funciona"
+     *   - baixa:   "dúvida", "ajuda" (sinais de fricção sem reclamação explícita)
+     *
+     * Output JSON: top 5 mais recentes com severity descendente.
+     *
+     * Quando Onda 3 ativar IA per-msg (PR #916), este código será substituído
+     * por leitura direta de `messages.analise_categoria = 'reclamacao'`.
+     */
+    protected function refreshReclamacoes(CustomerMemory $memory, int $businessId, string $extId): void
+    {
+        $patterns = [
+            'critica' => '/(processo|advogado|absurdo|nunca\s*mais|cancelar|reembolso|procon)/i',
+            'alta' => '/(reclamar|péssimo|pessimo|horrível|horrivel|insuportável|insuportavel|inadmissível|inadmissivel|esperando\s*até\s*agora)/i',
+            'media' => '/(problema|erro|bug|atras|não\s*consig|nao\s*consig|não\s*funcion|nao\s*funcion|deu\s*ruim|travou)/i',
+            'baixa' => '/(dúvida|duvida|ajuda|preciso)/i',
+        ];
+
+        $since = now()->subDays(30);
+
+        try {
+            $msgs = DB::table('messages as m')
+                ->join('conversations as c', 'c.id', '=', 'm.conversation_id')
+                ->where('c.business_id', $businessId)
+                ->where(function ($q) use ($extId) {
+                    $q->where('c.customer_external_id', $extId)
+                      ->orWhere('c.customer_external_id', '+' . $extId);
+                })
+                ->where('m.direction', 'inbound')
+                ->where('m.is_internal_note', false)
+                ->where('m.type', 'text')
+                ->whereNotNull('m.body')
+                ->where('m.created_at', '>=', $since)
+                ->orderByDesc('m.created_at')
+                ->limit(500) // cap defensivo
+                ->get(['m.id', 'm.body', 'm.created_at']);
+
+            $flagged = [];
+            foreach ($msgs as $m) {
+                $body = (string) $m->body;
+                $severity = null;
+                foreach (['critica', 'alta', 'media', 'baixa'] as $sev) {
+                    if (preg_match($patterns[$sev], $body)) {
+                        $severity = $sev;
+                        break; // first match wins (mais severo primeiro)
+                    }
+                }
+                if ($severity === null) {
+                    continue;
+                }
+                $flagged[] = [
+                    'date' => (string) $m->created_at,
+                    'msg_id' => (int) $m->id,
+                    'severity' => $severity,
+                    'preview' => mb_substr(preg_replace('/\s+/', ' ', $body), 0, 140),
+                ];
+            }
+
+            $memory->total_reclamacoes = count($flagged);
+
+            // Top 5 mais recentes (já ordenadas por created_at desc na query)
+            $memory->reclamacoes_recentes = array_slice($flagged, 0, 5);
+            if (empty($memory->reclamacoes_recentes)) {
+                $memory->reclamacoes_recentes = null;
+            }
+        } catch (Throwable $e) {
+            Log::channel('single')->warning('[customer_memory.reclamacoes_failed]', [
+                'business_id' => $businessId,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

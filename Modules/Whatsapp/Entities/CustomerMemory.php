@@ -48,6 +48,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?\Illuminate\Support\Carbon $erasure_requested_at
  * @property ?\Illuminate\Support\Carbon $last_rebuilt_at
  * @property ?string $rebuilt_via
+ * @property ?int $assigned_user_id
+ * @property ?int $most_active_user_id
+ * @property ?int $most_active_user_count
+ * @property ?array $reclamacoes_recentes
+ * @property int $total_reclamacoes
+ * @property ?array $external_sources
+ * @property ?\Illuminate\Support\Carbon $external_sources_enriched_at
  */
 class CustomerMemory extends Model
 {
@@ -106,6 +113,14 @@ class CustomerMemory extends Model
         'erasure_requested_at',
         'last_rebuilt_at',
         'rebuilt_via',
+        // US-WA-VOZ-002 — funcionário + reclamações + fontes externas
+        'assigned_user_id',
+        'most_active_user_id',
+        'most_active_user_count',
+        'reclamacoes_recentes',
+        'total_reclamacoes',
+        'external_sources',
+        'external_sources_enriched_at',
     ];
 
     protected $casts = [
@@ -126,6 +141,13 @@ class CustomerMemory extends Model
         'flags' => 'array',
         'erasure_requested_at' => 'datetime',
         'last_rebuilt_at' => 'datetime',
+        'assigned_user_id' => 'integer',
+        'most_active_user_id' => 'integer',
+        'most_active_user_count' => 'integer',
+        'reclamacoes_recentes' => 'array',
+        'total_reclamacoes' => 'integer',
+        'external_sources' => 'array',
+        'external_sources_enriched_at' => 'datetime',
     ];
 
     public function contact(): BelongsTo
