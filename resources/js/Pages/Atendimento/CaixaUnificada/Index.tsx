@@ -51,6 +51,7 @@ import type {
   CaixaUnifMessage,
   CaixaUnifStats,
   CaixaUnifStatus,
+  CaixaUnifTab,
   CaixaUnifThread,
   CentrifugoConfig,
   ChannelCatalogItem,
@@ -67,7 +68,11 @@ interface Props {
   availableTags?: { id: number; slug: string; label: string; color: string }[];
 
   businessId: number;
-  statusFilter: CaixaUnifStatus;
+  /**
+   * Wave 2 F1: `statusFilter` carrega valor de `tab` (CaixaUnifTab 7-valor) ou
+   * CaixaUnifStatus legacy (4-valor). Backend mapeia ambos. Front trata como Tab.
+   */
+  statusFilter: CaixaUnifStatus | CaixaUnifTab;
   channelTypeFilter: string | null;
   accountFilter: number | null;
   queueFilter: string | null;
@@ -141,7 +146,8 @@ export default function CaixaUnificadaIndex({
     router.get(
       route('atendimento.caixa-unificada.index'),
       {
-        status: statusFilter,
+        // Wave 2 F1 — usa `tab` (7-valor) em vez de `status` (4-valor)
+        tab: statusFilter,
         channel: channelTypeFilter ?? undefined,
         account_id: accountFilter ?? undefined,
         q: q || undefined,
