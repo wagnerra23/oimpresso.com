@@ -13,6 +13,7 @@ use DB;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 use App\Events\StockAdjustmentCreatedOrModified;
+use Inertia\Inertia;
 
 class StockAdjustmentController extends Controller
 {
@@ -139,7 +140,95 @@ class StockAdjustmentController extends Controller
                 ->make(true);
         }
 
+        // MWART Wave2 B5 — dual path opt-in Inertia (ADR 0104).
+        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+            return $this->indexInertia();
+        }
+
         return view('stock_adjustment.index');
+    }
+
+    /**
+     * MWART Wave2 B5 — Inertia path para /stock-adjustments.
+     *
+     * Tier 0 IRREVOGÁVEL (ADR 0093): business_id sessão, queries scopadas.
+     * Ownership filter `view_own_purchase` preservado.
+     */
+    private function indexInertia()
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $user = auth()->user();
+
+        $query = Transaction::join('business_locations AS BL', 'transactions.location_id', '=', 'BL.id')
+            ->leftJoin('users as u', 'transactions.created_by', '=', 'u.id')
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'stock_adjustment')
+            ->select(
+                'transactions.id',
+                'transactions.transaction_date',
+                'transactions.ref_no',
+                'BL.name as location_name',
+                'transactions.adjustment_type',
+                'transactions.final_total',
+                'transactions.total_amount_recovered',
+                'transactions.additional_notes',
+                DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by")
+            );
+
+        $permitted_locations = $user->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (! $user->can('purchase.view') && $user->can('view_own_purchase')) {
+            $query->where('transactions.created_by', request()->session()->get('user.id'));
+        }
+
+        if (request()->location_id) {
+            $query->where('transactions.location_id', request()->location_id);
+        }
+        if (request()->start_date && request()->end_date) {
+            $query->whereBetween(DB::raw('date(transaction_date)'), [
+                request()->start_date,
+                request()->end_date,
+            ]);
+        }
+
+        $rows = $query
+            ->orderByDesc('transactions.transaction_date')
+            ->limit(200)
+            ->get();
+
+        $business_locations = BusinessLocation::forDropdown($business_id);
+        $locationOptions = collect($business_locations)
+            ->map(fn ($name, $id) => ['id' => $id, 'label' => $name])
+            ->values();
+
+        return Inertia::render('StockAdjustment/Index', [
+            'rows' => $rows->map(fn ($r) => [
+                'id' => $r->id,
+                'ref_no' => $r->ref_no ?? '',
+                'transaction_date' => $r->transaction_date,
+                'location_name' => $r->location_name,
+                'adjustment_type' => $r->adjustment_type ?: 'normal',
+                'final_total' => (float) $r->final_total,
+                'total_amount_recovered' => (float) ($r->total_amount_recovered ?? 0),
+                'additional_notes' => $r->additional_notes,
+                'added_by' => trim(preg_replace('/\\s+/', ' ', $r->added_by ?? '')),
+            ]),
+            'filters' => [
+                'location_id' => (string) (request()->location_id ?? ''),
+                'start_date' => (string) (request()->start_date ?? ''),
+                'end_date' => (string) (request()->end_date ?? ''),
+            ],
+            'business_locations' => $locationOptions,
+            'permissions' => [
+                'view' => $user->can('purchase.view') || $user->can('view_own_purchase'),
+                'create' => $user->can('purchase.create'),
+                'delete' => $user->can('purchase.delete'),
+                'view_purchase_price' => $user->can('view_purchase_price'),
+            ],
+        ]);
     }
 
     /**
@@ -162,8 +251,32 @@ class StockAdjustmentController extends Controller
 
         $business_locations = BusinessLocation::forDropdown($business_id);
 
+        // MWART Wave2 B5 — dual path opt-in Inertia (ADR 0104).
+        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+            return $this->createInertia($business_id, $business_locations);
+        }
+
         return view('stock_adjustment.create')
                 ->with(compact('business_locations'));
+    }
+
+    /**
+     * MWART Wave2 B5 — Inertia path para /stock-adjustments/create.
+     *
+     * Tier 0 IRREVOGÁVEL (ADR 0093): business_id validado em create().
+     */
+    private function createInertia(int $business_id, $business_locations)
+    {
+        $user = auth()->user();
+
+        return Inertia::render('StockAdjustment/Create', [
+            'business_locations' => $business_locations,
+            'default_datetime' => now()->format('Y-m-d H:i:s'),
+            'permissions' => [
+                'view_purchase_price' => $user->can('view_purchase_price'),
+                'edit_price' => $user->can('edit_purchase_price'),
+            ],
+        ]);
     }
 
     /**
