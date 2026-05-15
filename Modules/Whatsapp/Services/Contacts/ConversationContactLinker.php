@@ -164,19 +164,19 @@ class ConversationContactLinker
             return collect();
         }
 
+        // INCIDENT 2026-05-14: suffix 8 (não tail4) — ver findMatches() pra histórico.
         $suffix = mb_substr($phoneDigits, -8);
-        $tail4 = mb_substr($phoneDigits, -4);
 
         $candidates = Contact::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $businessId)
-            ->where(function ($q) use ($phoneDigits, $tail4) {
+            ->where(function ($q) use ($phoneDigits, $suffix) {
                 $q->where('mobile', 'LIKE', '%' . $phoneDigits . '%')
                   ->orWhere('landline', 'LIKE', '%' . $phoneDigits . '%')
                   ->orWhere('alternate_number', 'LIKE', '%' . $phoneDigits . '%')
-                  ->orWhere('mobile', 'LIKE', '%' . $tail4)
-                  ->orWhere('landline', 'LIKE', '%' . $tail4)
-                  ->orWhere('alternate_number', 'LIKE', '%' . $tail4);
+                  ->orWhere('mobile', 'LIKE', '%' . $suffix . '%')
+                  ->orWhere('landline', 'LIKE', '%' . $suffix . '%')
+                  ->orWhere('alternate_number', 'LIKE', '%' . $suffix . '%');
             })
             ->whereNull('deleted_at')
             ->orderBy('created_at', 'desc') // Wagner regra: ambíguo → mais recente
@@ -292,37 +292,30 @@ class ConversationContactLinker
         // Suffix dos últimos 8 dígitos pra match BR ("48999872822") vs E.164
         // ("+5548999872822"). DDD+phone é único o suficiente no BR.
         $suffix = mb_substr($phoneDigits, -8);
-        // Tail mais curto (5 últimos dígitos) usado APENAS no SQL pre-fetch
-        // pra capturar formatos legados com separadores entre dígitos —
-        // ex: "(48) 99872-2822" tem `2822` literal mas não `99872822`
-        // sem-separador. Filtragem fina rola em PHP depois (normaliza)
-        // então o pre-fetch pode ser fuzzy sem custo de correção.
-        $tail = mb_substr($phoneDigits, -5);
 
-        // Pre-fetch — pega candidatos. Como Contact UltimatePOS legacy
-        // pode armazenar phone com separadores ("(48) 99872-2822"), LIKE
-        // direto contra dígitos contínuos não pega. Fazemos um LIKE bem
-        // generoso (qualquer um dos últimos 4 dígitos OU phoneDigits inteiro)
-        // pra capturar todos os candidatos plausíveis. PHP filter remove os
-        // falsos positivos normalizando os formatos.
-        //
-        // Limit 200 — em business com 10k+ contacts e LIKE matching 4 últimos
-        // dígitos (≈10k/10000=1 hit por dígito), volume médio fica baixo.
-        // Wagner 2026-05-12 prod biz=1 tem ~80 contacts → custo trivial.
-        $tail4 = mb_substr($phoneDigits, -4);
+        // INCIDENT 2026-05-14 (Wagner→Eliana cross-contact): pre-fetch antes
+        // usava `tail4` (últimos 4 dígitos) — 4 dígitos coincidem por puro
+        // acaso a cada ~10k phones, produzindo falso-positivo matemático.
+        // Trocamos pelo suffix de 8 dígitos: probabilidade de colisão cai
+        // pra ~10^-8. Phones BR sem separadores ("+5548999872822") matcham
+        // direto; com separadores ("(48) 9 9987-2822" cujos 8 últimos dígitos
+        // após strip = "99872822") matcham pelo suffix do prefixo aberto.
+        // Twilio Identity Resolution (docs.twilio.com/conversations/memory)
+        // e HubSpot phone normalization recomendam exact-or-suffix-mínimo,
+        // nunca fuzzy abaixo de E.164 - DDI.
         $candidates = Contact::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $conversation->business_id)
-            ->where(function ($q) use ($phoneDigits, $tail4) {
+            ->where(function ($q) use ($phoneDigits, $suffix) {
                 // Match direto E.164 vs E.164 (caso bonito)
                 $q->where('mobile', 'LIKE', '%' . $phoneDigits . '%')
                   ->orWhere('landline', 'LIKE', '%' . $phoneDigits . '%')
                   ->orWhere('alternate_number', 'LIKE', '%' . $phoneDigits . '%')
-                  // Match fuzzy 4 últimos dígitos pra pegar formatos com
-                  // separadores (PHP filter elimina falsos positivos)
-                  ->orWhere('mobile', 'LIKE', '%' . $tail4)
-                  ->orWhere('landline', 'LIKE', '%' . $tail4)
-                  ->orWhere('alternate_number', 'LIKE', '%' . $tail4);
+                  // Suffix 8 dígitos cobre formato legacy com separadores
+                  // (após PHP filter normalizar — linhas 335-351 abaixo).
+                  ->orWhere('mobile', 'LIKE', '%' . $suffix . '%')
+                  ->orWhere('landline', 'LIKE', '%' . $suffix . '%')
+                  ->orWhere('alternate_number', 'LIKE', '%' . $suffix . '%');
             })
             ->whereNull('deleted_at')
             ->orderBy('id')
