@@ -15,7 +15,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Send, FileText, Slash } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/utils';
 
 interface Props {
   conversationId: number;

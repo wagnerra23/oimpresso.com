@@ -15,7 +15,7 @@
 import { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Search, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/utils';
 import {
   type CaixaUnifConversation,
   type CaixaUnifStatus,
