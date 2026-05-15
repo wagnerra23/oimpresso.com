@@ -19,6 +19,7 @@ import { cn } from '@/Lib/utils';
 import {
   type CaixaUnifConversation,
   type CaixaUnifStatus,
+  type CaixaUnifTab,
   type ChannelCatalogItem,
   type Paginated,
   type CaixaUnifStats,
@@ -32,22 +33,28 @@ interface Props {
   channels: ChannelCatalogItem[];
   stats: CaixaUnifStats | null;
   selectedId: number | null;
-  status: CaixaUnifStatus;
+  // Wave 2 F1: `tab` substitui `status` (7 valores). Mantém prop `status`
+  // como alias retrocompatível durante migração — Index passa o mesmo valor.
+  status: CaixaUnifStatus | CaixaUnifTab;
   q: string;
   onSelect: (id: number) => void;
 }
 
-const STATUS_LABELS: Record<CaixaUnifStatus, string> = {
-  abertas: 'Abertas',
-  pendentes: 'Pendentes',
-  aguardando: 'Aguardando',
-  resolvidas: 'Resolvidas',
-};
+const TABS: { id: CaixaUnifTab; label: string; statKey?: keyof CaixaUnifStats; title?: string }[] = [
+  { id: 'all', label: 'Todas' },
+  { id: 'unread', label: 'Não lidas', statKey: 'unread' },
+  { id: 'assigned', label: 'Minhas', statKey: 'assigned' },
+  { id: 'bot', label: 'Bot', statKey: 'bot' },
+  { id: 'awaiting_human', label: 'Aguardando', statKey: 'awaiting_human', title: 'Bot escalou pra humano — fila manual' },
+  { id: 'resolved', label: 'Resolvidas' },
+  { id: 'archived', label: 'Arquivadas', statKey: 'archived', title: 'Conversas arquivadas pelo atendente' },
+];
 
 export default function ConversationListV4({
   conversations, channels, stats, selectedId, status, q, onSelect,
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
+  const tab = status as CaixaUnifTab;
 
   const channelsById = useMemo(() => {
     const map = new Map<string, ChannelCatalogItem>();
@@ -55,10 +62,10 @@ export default function ConversationListV4({
     return map;
   }, [channels]);
 
-  function applyStatus(next: CaixaUnifStatus) {
+  function applyTab(next: CaixaUnifTab) {
     router.get(
       route('atendimento.caixa-unificada.index'),
-      { status: next, q: q || undefined },
+      { tab: next, q: q || undefined },
       { preserveScroll: true, preserveState: true, only: ['conversations', 'stats'] },
     );
   }
@@ -66,14 +73,10 @@ export default function ConversationListV4({
   function applySearch(value: string) {
     router.get(
       route('atendimento.caixa-unificada.index'),
-      { status, q: value || undefined },
+      { tab, q: value || undefined },
       { preserveScroll: true, preserveState: true, only: ['conversations', 'stats'], replace: true },
     );
   }
-
-  const statusCounts = stats
-    ? { abertas: stats.abertas, pendentes: stats.pendentes, aguardando: stats.aguardando, resolvidas: stats.resolvidas }
-    : { abertas: 0, pendentes: 0, aguardando: 0, resolvidas: 0 };
 
   return (
     <aside
@@ -84,19 +87,49 @@ export default function ConversationListV4({
       <div className="flex items-baseline gap-2 border-b px-3.5 pt-3 pb-2">
         <b className="text-[13px] font-semibold text-foreground">Conversas</b>
         <span className="font-mono text-[11px] text-muted-foreground">{conversations.total}</span>
-        <select
-          className="ml-auto bg-card border rounded text-[11px] px-1.5 py-0.5 text-muted-foreground hover:text-foreground hover:border-muted-foreground cursor-pointer focus:outline-none focus:border-primary"
-          value={status}
-          onChange={e => applyStatus(e.target.value as CaixaUnifStatus)}
-          title="Filtrar por status"
-          data-testid="caixa-unif-status-select"
-        >
-          {(Object.keys(STATUS_LABELS) as CaixaUnifStatus[]).map(s => (
-            <option key={s} value={s}>
-              {STATUS_LABELS[s]} ({statusCounts[s] ?? 0})
-            </option>
-          ))}
-        </select>
+      </div>
+
+      {/* Wave 2 F1 — 7 tabs canônicas paridade Inbox legacy */}
+      <div
+        className="flex gap-0.5 px-2 py-1.5 border-b overflow-x-auto"
+        role="tablist"
+        aria-label="Filtrar conversas por tab"
+      >
+        {TABS.map(t => {
+          const count = t.statKey && stats ? stats[t.statKey] : undefined;
+          const isActive = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => applyTab(t.id)}
+              title={t.title}
+              data-testid={`caixa-unif-tab-${t.id}`}
+              className={cn(
+                'inline-flex items-center gap-1 px-2 h-7 rounded text-[11.5px] font-medium transition-colors shrink-0',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+              )}
+            >
+              {t.label}
+              {count !== undefined && count > 0 && (
+                <span
+                  className={cn(
+                    'inline-flex items-center justify-center min-w-[15px] h-3.5 px-1 text-[9.5px] font-mono rounded-full',
+                    isActive
+                      ? 'bg-primary-foreground/25 text-primary-foreground'
+                      : 'bg-primary text-primary-foreground',
+                  )}
+                >
+                  {count > 99 ? '99+' : count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Busca inline */}

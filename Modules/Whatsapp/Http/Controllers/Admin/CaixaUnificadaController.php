@@ -53,7 +53,20 @@ class CaixaUnificadaController extends Controller
         $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
 
         // Estados de UI leves — eager (custo zero)
-        $statusFilter = $request->input('status', 'abertas');
+        // Wave 2 F1: parâmetro `tab` (7 valores) substitui `status` (4 valores).
+        // Mantém compat — se request envia `status=abertas`, mapeia pra `tab=all`.
+        $tabFilter = $request->input('tab');
+        if ($tabFilter === null) {
+            $legacyStatus = $request->input('status');
+            $statusToTab = [
+                'abertas' => 'all',
+                'pendentes' => 'unread',
+                'aguardando' => 'awaiting_human',
+                'resolvidas' => 'resolved',
+            ];
+            $tabFilter = $statusToTab[$legacyStatus] ?? 'all';
+        }
+        $statusFilter = $tabFilter; // legacy alias mantido pra evitar quebra props
         $channelTypeFilter = $request->input('channel'); // type=whatsapp_baileys, etc
         $accountFilter = $request->has('account_id') && $request->input('account_id') !== ''
             ? (int) $request->input('account_id')
@@ -155,25 +168,29 @@ class CaixaUnificadaController extends Controller
 
         $this->applyChannelAclFilter($convQuery, $businessId, $userId);
 
-        // Filtros visuais Cowork (4 status canônicos)
+        // Wave 2 F1 — 7 tabs canônicas paridade InboxController::index
         switch ($statusFilter) {
-            case 'pendentes':
+            case 'unread':
                 $convQuery->where('unread_count', '>', 0);
                 break;
-            case 'aguardando':
-                // Atendente respondeu por último — aguardando resposta cliente
-                $convQuery->whereNotNull('last_outbound_at')
-                    ->where(function ($q) {
-                        $q->whereNull('last_inbound_at')
-                          ->orWhereColumn('last_outbound_at', '>', 'last_inbound_at');
-                    });
+            case 'assigned':
+                $convQuery->where('assigned_user_id', $userId);
                 break;
-            case 'resolvidas':
+            case 'bot':
+                $convQuery->where('bot_handling', true);
+                break;
+            case 'awaiting_human':
+                $convQuery->where('status', 'awaiting_human');
+                break;
+            case 'resolved':
                 $convQuery->where('status', 'resolved');
                 break;
-            case 'abertas':
+            case 'archived':
+                $convQuery->where('status', 'archived');
+                break;
+            case 'all':
             default:
-                $convQuery->where('status', '!=', 'resolved');
+                $convQuery->whereNotIn('status', ['archived']);
                 break;
         }
 
@@ -247,6 +264,11 @@ class CaixaUnificadaController extends Controller
             'unread' => (clone $base())->sum('unread_count'),
             'active_accounts' => $activeAccountsQuery->count(),
             'queues_count' => count((array) config('whatsapp.queues', [])),
+            // Wave 2 F1 — counts paridade Inbox legacy (7 tabs)
+            'assigned' => (clone $base())->where('assigned_user_id', $userId)->count(),
+            'bot' => (clone $base())->where('bot_handling', true)->count(),
+            'awaiting_human' => (clone $base())->where('status', 'awaiting_human')->count(),
+            'archived' => (clone $base())->where('status', 'archived')->count(),
         ];
     }
 
