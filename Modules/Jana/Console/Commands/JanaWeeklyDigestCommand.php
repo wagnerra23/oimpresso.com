@@ -2,8 +2,12 @@
 
 namespace Modules\Jana\Console\Commands;
 
+use App\Business;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Modules\Jana\Mail\WeeklyDigestMail;
 use Modules\Jana\Services\MemoriaAutonoma\WeeklyDigestService;
 
 /**
@@ -19,26 +23,39 @@ use Modules\Jana\Services\MemoriaAutonoma\WeeklyDigestService;
  *
  * Schedule: segunda 09:00 BRT (Wagner abre semana e vê o que mudou).
  *
+ * AUDITORIA-MEMORIA-2026-05-15 §D8 #6 — fecha gap "weekly digest populado":
+ *  - Antes: arquivo + DB apenas, Wagner precisava abrir manual
+ *  - Agora: envia email markdown pro owner do business toda segunda 09h BRT
+ *
  * Uso:
- *   php artisan jana:weekly-digest                    # semana anterior
- *   php artisan jana:weekly-digest --week=2026-W19    # específica
- *   php artisan jana:weekly-digest --dry-run          # contexto sem LLM
- *   php artisan jana:weekly-digest --force            # sobrescreve existente
+ *   php artisan jana:weekly-digest                              # semana anterior + email auto
+ *   php artisan jana:weekly-digest --week=2026-W19              # específica
+ *   php artisan jana:weekly-digest --dry-run                    # contexto sem LLM
+ *   php artisan jana:weekly-digest --force                      # sobrescreve existente
+ *   php artisan jana:weekly-digest --no-email                   # pula envio
+ *   php artisan jana:weekly-digest --email-to=foo@bar.com       # override destinatário
+ *   php artisan jana:weekly-digest --business-id=1              # business alvo (default 1 superadmin)
  */
 class JanaWeeklyDigestCommand extends Command
 {
     protected $signature = 'jana:weekly-digest
                             {--week=          : Semana ISO YYYY-Www (default: anterior)}
-                            {--dry-run        : Coleta contexto sem chamar LLM}
-                            {--force          : Sobrescreve arquivo/row existente}';
+                            {--dry-run        : Coleta contexto sem chamar LLM nem enviar email}
+                            {--force          : Sobrescreve arquivo/row existente}
+                            {--no-email       : Pula envio de email (útil em CI/local)}
+                            {--email-to=      : Override destinatário (default: business.owner.email)}
+                            {--business-id=1  : ID do business alvo (default 1 — superadmin)}';
 
-    protected $description = 'Gera weekly digest Reflect-style (AUDITORIA G8 P2) — 5 seções estruturadas pra Wagner abrir segunda 09h';
+    protected $description = 'Gera weekly digest Reflect-style (AUDITORIA G8 P2 + D8 #6) + envia email segunda 09h';
 
     public function handle(WeeklyDigestService $service): int
     {
         $semana = (string) ($this->option('week') ?: $this->semanaAnterior());
         $dryRun = (bool) $this->option('dry-run');
         $force  = (bool) $this->option('force');
+        $noEmail = (bool) $this->option('no-email');
+        $emailToOverride = $this->option('email-to');
+        $businessId = (int) ($this->option('business-id') ?: 1);
 
         $this->info("Weekly digest: {$semana}" . ($dryRun ? ' (dry-run)' : ''));
 
@@ -80,6 +97,27 @@ class JanaWeeklyDigestCommand extends Command
         $custo = $resultado['custo_estimado'];
         $this->line("  Custo: ~\${$custo['usd']} (~R\${$custo['brl_aprox']})");
 
+        // AUDITORIA D8 #6 — envio email do digest pro destinatário do business
+        if (! $noEmail) {
+            $envio = $this->enviarEmail(
+                businessId: $businessId,
+                semana: $semana,
+                digestMarkdown: (string) $resultado['digest'],
+                metrics: $metrics,
+                rangeInicio: $resultado['path'] ? $this->extrairRangeDoMd($resultado['path'])[0] : '',
+                rangeFim: $resultado['path'] ? $this->extrairRangeDoMd($resultado['path'])[1] : '',
+                emailToOverride: is_string($emailToOverride) && $emailToOverride !== '' ? $emailToOverride : null,
+            );
+
+            if ($envio['ok']) {
+                $this->info("  ✉  Email enviado pra: {$envio['destinatario']}");
+            } else {
+                $this->warn("  ✉  Email NÃO enviado: {$envio['motivo']}");
+            }
+        } else {
+            $this->line('  ✉  Email pulado (--no-email)');
+        }
+
         return self::SUCCESS;
     }
 
@@ -94,5 +132,78 @@ class JanaWeeklyDigestCommand extends Command
         $sem = (int) $umaSemanaAtras->isoWeek;
 
         return sprintf('%04d-W%02d', $ano, $sem);
+    }
+
+    /**
+     * Resolve range YYYY-MM-DD do arquivo gerado (fallback se Service não retornar).
+     *
+     * @return array{0:string, 1:string}
+     */
+    protected function extrairRangeDoMd(string $path): array
+    {
+        $conteudo = @file_get_contents($path) ?: '';
+        if (preg_match('/range:\s*(\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2})/', $conteudo, $m)) {
+            return [$m[1], $m[2]];
+        }
+
+        return ['', ''];
+    }
+
+    /**
+     * Envia o digest por email ao destinatário do business.
+     * Multi-tenant Tier 0 (ADR 0093): destinatário derivado de Business->owner->email.
+     *
+     * @param array<string, int|string> $metrics
+     * @return array{ok:bool, destinatario:?string, motivo:?string}
+     */
+    protected function enviarEmail(
+        int $businessId,
+        string $semana,
+        string $digestMarkdown,
+        array $metrics,
+        string $rangeInicio,
+        string $rangeFim,
+        ?string $emailToOverride,
+    ): array {
+        try {
+            $business = Business::find($businessId);
+            if (! $business) {
+                return ['ok' => false, 'destinatario' => null, 'motivo' => "Business {$businessId} não encontrado"];
+            }
+
+            $destinatario = $emailToOverride
+                ?: optional($business->owner)->email;
+
+            if (! $destinatario) {
+                return ['ok' => false, 'destinatario' => null, 'motivo' => 'Business sem owner.email — set --email-to='];
+            }
+
+            $businessName = (string) ($business->name ?: "business {$businessId}");
+
+            Mail::to($destinatario)->send(new WeeklyDigestMail(
+                semana: $semana,
+                rangeInicio: $rangeInicio,
+                rangeFim: $rangeFim,
+                digestMarkdown: $digestMarkdown,
+                metrics: $metrics,
+                businessName: $businessName,
+            ));
+
+            Log::channel('copiloto-ai')->info('WeeklyDigest email enviado', [
+                'semana' => $semana,
+                'business_id' => $businessId,
+                'destinatario' => $destinatario,
+            ]);
+
+            return ['ok' => true, 'destinatario' => $destinatario, 'motivo' => null];
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('WeeklyDigest email falhou', [
+                'semana' => $semana,
+                'business_id' => $businessId,
+                'erro' => $e->getMessage(),
+            ]);
+
+            return ['ok' => false, 'destinatario' => null, 'motivo' => $e->getMessage()];
+        }
     }
 }
