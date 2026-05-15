@@ -1,0 +1,357 @@
+name: Governance Gate (pre-merge)
+
+# Mecanismo #2 ENFORCEMENT — Pre-merge gate CI
+# Constituição v1.1.0 Art. 8 §2 (Policy Gating) + ENFORCEMENT.md §2 #2
+# Implementa bloqueio de merge quando camadas críticas (CONSTITUTION,
+# ADRs canon, handoffs append-only, Controllers fora SCOPE, PII LGPD)
+# são tocadas sem artefatos obrigatórios.
+#
+# Diferente de scope-guard.yml (já existe, modo strict pra Controllers vs SCOPE):
+# este workflow cobre append-only (decisions/handoffs/constitution) + PII scan +
+# warn-mode pra Controllers novos (complementar ao scope-guard strict).
+#
+# Triggers: pull_request em qualquer branch + paths-filter por job.
+
+on:
+  pull_request:
+    paths:
+      - 'memory/governance/CONSTITUTION.md'
+      - 'memory/governance/srs/**'
+      - 'memory/governance/audit-*.md'
+      - 'memory/decisions/**'
+      - 'memory/handoffs/**'
+      - 'Modules/**/Http/Controllers/**'
+      - 'Modules/**/SCOPE.md'
+      - 'Modules/**/Database/Migrations/**'
+      - '.github/workflows/governance-gate.yml'
+      - '.github/scripts/pii-scan.sh'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: governance-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =====================================================================
+  # JOB 1 — block-adr-edits
+  # Bloqueia edição de ADR canon existente, handoff existente, e mudança
+  # em CONSTITUTION sem label + audit cascade (§10.4).
+  # =====================================================================
+  block-adr-edits:
+    name: Append-only canon (ADRs, handoffs, Constituição)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect arquivos canon modificados
+        id: detect
+        run: |
+          set -euo pipefail
+          base_sha="${{ github.event.pull_request.base.sha }}"
+
+          # Lista A/M/D/R por arquivo entre base_sha e HEAD (3-dot = mudanças do PR).
+          git diff --name-status "$base_sha"...HEAD > /tmp/diff.txt
+
+          # ADRs canon modificados (proibido)
+          grep -E '^M\s+memory/decisions/[0-9]{4}-.*\.md$' /tmp/diff.txt > /tmp/adr_mod.txt || true
+          # ADRs renamed (R = rename) — também trata como edit, ADR mantém número
+          grep -E '^R[0-9]*\s+memory/decisions/[0-9]{4}-' /tmp/diff.txt > /tmp/adr_renamed.txt || true
+
+          # Handoffs modificados (proibido — ADR 0130)
+          grep -E '^M\s+memory/handoffs/.+\.md$' /tmp/diff.txt > /tmp/handoff_mod.txt || true
+
+          # Constituição modificada (exige label + audit)
+          grep -E '^M\s+memory/governance/CONSTITUTION\.md$' /tmp/diff.txt > /tmp/const_mod.txt || true
+          # Constituição adicionada (caso raro — primeira vez) também exige label
+          grep -E '^A\s+memory/governance/CONSTITUTION\.md$' /tmp/diff.txt >> /tmp/const_mod.txt || true
+
+          # Novo audit-* no mesmo PR (pra checar cascade)
+          grep -E '^A\s+memory/governance/audit-.+\.md$' /tmp/diff.txt > /tmp/audit_new.txt || true
+
+          {
+            echo "adr_mod_count=$(wc -l < /tmp/adr_mod.txt)"
+            echo "adr_renamed_count=$(wc -l < /tmp/adr_renamed.txt)"
+            echo "handoff_mod_count=$(wc -l < /tmp/handoff_mod.txt)"
+            echo "const_mod_count=$(wc -l < /tmp/const_mod.txt)"
+            echo "audit_new_count=$(wc -l < /tmp/audit_new.txt)"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "--- ADRs modificados (proibido) ---"
+          cat /tmp/adr_mod.txt
+          echo "--- Handoffs modificados (proibido) ---"
+          cat /tmp/handoff_mod.txt
+          echo "--- Constituição modificada (exige cascade) ---"
+          cat /tmp/const_mod.txt
+
+      - name: Block ADR canon edits (append-only)
+        if: steps.detect.outputs.adr_mod_count != '0' || steps.detect.outputs.adr_renamed_count != '0'
+        run: |
+          set -euo pipefail
+          echo "::error::ADR CANON é append-only (Constituição Art. 3 + ADR 0095)."
+          echo ""
+          echo "Arquivos violando a regra:"
+          cat /tmp/adr_mod.txt /tmp/adr_renamed.txt
+          echo ""
+          echo "Como resolver:"
+          echo "  1. REVERTER edição do ADR existente (git checkout origin/${{ github.base_ref }} -- <arquivo>)"
+          echo "  2. CRIAR nova ADR em memory/decisions/NNNN-slug.md"
+          echo "     com frontmatter 'supersedes: [NNNN]' apontando pra ADR antiga"
+          echo "  3. Marcar ADR antiga como 'lifecycle: superseded' SE Wagner aprovar"
+          echo "     (essa marcação é o ÚNICO patch permitido — ainda assim via PR separada)"
+          echo ""
+          echo "Justificativa: rastreabilidade histórica das decisões. Editar ADR"
+          echo "ratificada apaga o trail e quebra Constituição Art. 3 (governança)."
+          exit 1
+
+      - name: Block handoff edits (append-only ADR 0130)
+        if: steps.detect.outputs.handoff_mod_count != '0'
+        run: |
+          set -euo pipefail
+          echo "::error::Handoffs são append-only (ADR 0130)."
+          echo ""
+          echo "Arquivos violando:"
+          cat /tmp/handoff_mod.txt
+          echo ""
+          echo "Como resolver:"
+          echo "  1. REVERTER edição (git checkout origin/${{ github.base_ref }} -- <arquivo>)"
+          echo "  2. CRIAR handoff novo em memory/handoffs/YYYY-MM-DD-HHMM-slug-kebab.md"
+          echo "  3. Atualizar 1 linha no topo de memory/08-handoff.md (truncar 5º)"
+          echo ""
+          echo "Justificativa: handoff é snapshot temporal. Reescrever apaga o que"
+          echo "outro Claude/humano leu — quebra continuidade de sessão."
+          exit 1
+
+      - name: Block constitution edits sem label + audit cascade
+        if: steps.detect.outputs.const_mod_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Checa label constitution-amendment
+          labels=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels" --jq '.[].name' 2>/dev/null || echo "")
+          has_label=$(echo "$labels" | grep -cFx "constitution-amendment" || echo "0")
+
+          # Checa se PR traz audit cascade novo
+          audit_count="${{ steps.detect.outputs.audit_new_count }}"
+
+          missing=""
+          if [ "$has_label" -eq "0" ]; then
+            missing="${missing}- label 'constitution-amendment' não aplicada na PR\n"
+          fi
+          if [ "$audit_count" = "0" ]; then
+            missing="${missing}- nenhum 'memory/governance/audit-*.md' novo no mesmo PR (§10.4 Cascade Review obrigatória)\n"
+          fi
+
+          if [ -n "$missing" ]; then
+            echo "::error::Mudança em CONSTITUTION.md exige label + audit cascade (Art. 10 §10.4)."
+            echo ""
+            echo "Faltando:"
+            echo -e "$missing"
+            echo ""
+            echo "Como resolver:"
+            echo "  1. Aplicar label 'constitution-amendment' nesta PR (UI GitHub)"
+            echo "  2. Criar memory/governance/audit-YYYY-MM-DD-vX.Y.md documentando"
+            echo "     cascade review das camadas L2-L7 impactadas"
+            echo "  3. Bump version no frontmatter da CONSTITUTION + entry em amendments[]"
+            echo "  4. ADR formal linkada (Refs: ADR-NNNN no corpo da PR ou commit)"
+            echo ""
+            echo "Ver memory/governance/CONSTITUTION.md §10.4 + audit-2026-05-05-v1.1.md (exemplo)."
+            exit 1
+          fi
+
+          echo "✅ Constituição editada COM label + audit cascade. OK."
+
+  # =====================================================================
+  # JOB 2 — scope-md-drift
+  # Warn-only (não falha): posta comment quando Controller novo entra
+  # sem aparecer em SCOPE.md.contains[] do módulo. Complementar ao
+  # scope-guard.yml que já roda strict pra mesmo cenário.
+  # =====================================================================
+  scope-md-drift:
+    name: SCOPE.md drift (Controllers novos)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python (yq nativo)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Detect Controllers novos
+        id: detect
+        run: |
+          set -euo pipefail
+          base_sha="${{ github.event.pull_request.base.sha }}"
+
+          # Status A = adicionado (novo arquivo)
+          mapfile -t novos < <(
+            git diff --name-status "$base_sha"...HEAD \
+              | grep -E '^A\s+Modules/[^/]+/Http/Controllers/.*Controller\.php$' \
+              | awk '{print $2}' \
+              | sort -u
+          )
+
+          echo "count=${#novos[@]}" >> "$GITHUB_OUTPUT"
+          {
+            echo "list<<EOF"
+            printf '%s\n' "${novos[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "Detected ${#novos[@]} Controllers novos."
+
+      - name: Verifica SCOPE.md.contains[]
+        id: verify
+        if: steps.detect.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          drifts=""
+
+          while IFS= read -r controller_path; do
+            [[ -z "$controller_path" ]] && continue
+
+            # Extrai módulo + nome controller
+            modulo=$(echo "$controller_path" | sed -E 's|Modules/([^/]+)/.*|\1|')
+            controller_name=$(basename "$controller_path" .php)
+
+            scope="Modules/${modulo}/SCOPE.md"
+
+            if [ ! -f "$scope" ]; then
+              drifts="${drifts}- ⚠️ \`$controller_path\` — \`$scope\` não existe (módulo sem charter, ADR 0079 Art. 7)\n"
+              continue
+            fi
+
+            # Parsea YAML frontmatter via Python (yq não vem default)
+            in_scope=$(python3 <<PYEOF
+          import yaml, re, sys
+          raw = open("$scope", encoding="utf-8").read()
+          m = re.match(r'^---\n(.*?)\n---\n', raw, re.DOTALL)
+          if not m:
+              print("no-frontmatter")
+              sys.exit(0)
+          try:
+              fm = yaml.safe_load(m.group(1)) or {}
+          except Exception:
+              print("parse-error")
+              sys.exit(0)
+          contains = fm.get("contains", []) or []
+          # contains pode ser ["Foo"] OU ["FooController — descrição"] — checa prefix
+          name = "$controller_name"
+          for entry in contains:
+              if isinstance(entry, str) and (entry == name or entry.startswith(name + " ") or entry.startswith(name + "—")):
+                  print("yes")
+                  sys.exit(0)
+          print("no")
+          PYEOF
+          )
+
+            case "$in_scope" in
+              yes)
+                echo "✅ $controller_name declarado em $scope"
+                ;;
+              no)
+                drifts="${drifts}- ❌ \`$controller_path\` — \`$controller_name\` NÃO declarado em \`$scope\`.contains[]\n"
+                ;;
+              no-frontmatter)
+                drifts="${drifts}- ⚠️ \`$controller_path\` — \`$scope\` sem frontmatter YAML válido\n"
+                ;;
+              parse-error)
+                drifts="${drifts}- ⚠️ \`$controller_path\` — \`$scope\` frontmatter com erro de parse YAML\n"
+                ;;
+            esac
+          done <<< "${{ steps.detect.outputs.list }}"
+
+          {
+            echo "drifts<<EOF"
+            echo -e "$drifts"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comment PR (warn-only)
+        if: steps.detect.outputs.count != '0' && steps.verify.outputs.drifts != ''
+        uses: actions/github-script@v7
+        env:
+          DRIFTS: ${{ steps.verify.outputs.drifts }}
+          COUNT: ${{ steps.detect.outputs.count }}
+        with:
+          script: |
+            const drifts = process.env.DRIFTS || '';
+            const count = process.env.COUNT || '0';
+            if (!drifts.trim()) return;
+            const body = [
+              `## 🛡️ Governance Gate — SCOPE.md drift (warn)`,
+              ``,
+              `**Controllers novos detectados:** ${count}`,
+              ``,
+              `### Drift`,
+              drifts,
+              ``,
+              `### Como resolver`,
+              `- Adicione cada Controller em \`Modules/<X>/SCOPE.md.contains[]\` no mesmo PR`,
+              `- OU mova o Controller pro módulo correto`,
+              `- OU declare em \`drift_alerts[]\` com ADR justificando (transitório)`,
+              ``,
+              `> **Warn-only mode** — não bloqueia merge. Workflow \`scope-guard.yml\` já roda strict pro mesmo cenário; este job posta detalhes humanos. Quando \`scope-guard\` falhar com hard error, este comment ajuda a resolver.`,
+              ``,
+              `_Constituição Art. 7 + ADR 0079 — Module Charter._`,
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+  # =====================================================================
+  # JOB 3 — pii-scan
+  # Defesa LGPD: bloqueia PR que contenha CPF/CNPJ literal em código.
+  # Falsos-positivos: linha com '# pii-allowlist' é ignorada.
+  # =====================================================================
+  pii-scan:
+    name: PII scan (CPF/CNPJ literal)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run pii-scan.sh nos arquivos do PR
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          chmod +x .github/scripts/pii-scan.sh
+          # Lista arquivos AM (Added|Modified) do PR — exclui deletados
+          mapfile -t arquivos < <(
+            git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD \
+              | grep -vE '^(vendor|node_modules|public|storage|bootstrap/cache)/' \
+              | grep -vE '\.(lock|min\.js|min\.css|map|svg|png|jpg|jpeg|gif|webp|pdf|zip)$' \
+              | grep -vE '\.github/scripts/pii-scan\.sh$' \
+              | grep -vE '\.github/workflows/governance-gate\.yml$' \
+              || true
+          )
+
+          if [ ${#arquivos[@]} -eq 0 ]; then
+            echo "Nenhum arquivo elegível pra PII scan no PR."
+            exit 0
+          fi
+
+          echo "Scanning ${#arquivos[@]} arquivos…"
+          .github/scripts/pii-scan.sh -v "${arquivos[@]}"
