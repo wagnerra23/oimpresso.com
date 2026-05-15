@@ -8,11 +8,11 @@
 // Tabs: Config | Usuários | Histórico. Tabs sem componente shadcn dedicado
 // (não existe Components/ui/tabs.tsx) — usamos botões accessibility-friendly.
 
-import { Link, Deferred } from '@inertiajs/react';
-import { useState } from 'react';
+import { Link, Deferred, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import {
   ArrowLeft, Plug, Smartphone, MessageCircle, CheckCircle2, AlertTriangle,
-  Settings, Users, Clock, Loader2,
+  Settings, Users, Clock, Loader2, Zap,
 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -20,6 +20,9 @@ import PageHeader from '@/Components/shared/PageHeader';
 import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from '@/Components/ui/dialog';
 import ChannelUsersTab from './_components/ChannelUsersTab';
 
 interface ChannelUi {
@@ -221,6 +224,87 @@ function TabButton({
 }
 
 function ConfigTab({ channel }: { channel: ChannelUi }) {
+  // Re-parear: sempre disponível pra whatsapp_baileys.
+  // Wagner request 2026-05-15 (D-15) — quando WhatsApp do device desconecta
+  // unilateralmente (cliente desvincula via "Aparelhos conectados"), DB
+  // Laravel ainda mostra status=active + channel_health=healthy até
+  // whatsapp:channels-reconcile rodar (cron 5min). Botão "Conectar" do
+  // Index só aparece se status!=active && health!=healthy, então Wagner
+  // não vê opção. Botão "Re-parear" aqui é SEMPRE visível pra Baileys —
+  // reusa endpoint atendimento.channels.connect (auto-purge banned).
+  const isBaileys = channel.type === 'whatsapp_baileys';
+  const [repairOpen, setRepairOpen] = useState(false);
+  const [qrImage, setQrImage] = useState<string | null>(null);
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
+  const [qrState, setQrState] = useState<string | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
+
+  async function startRepair() {
+    if (!confirm(
+      'Re-parear gera novo QR e invalida sessão atual. Continuar?\n\n' +
+      '• Se o canal estava conectado, a sessão Baileys vai cair durante o pareamento.\n' +
+      '• Se já estava desconectado (cliente desvinculou em "Aparelhos conectados"), só vai parear de novo.\n' +
+      '• Mensagens em andamento podem atrasar até reconectar.'
+    )) {
+      return;
+    }
+    setRepairOpen(true);
+    setQrImage(null);
+    setPairingCode(null);
+    setQrState(null);
+    setQrError(null);
+    setQrLoading(true);
+    try {
+      const r = await fetch(route('atendimento.channels.connect', channel.id), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': (document.querySelector('meta[name=csrf-token]') as HTMLMetaElement)?.content || '',
+        },
+        credentials: 'same-origin',
+      });
+      const data = await r.json();
+      if (!r.ok || !data.ok) {
+        setQrError(data.error || 'Falha desconhecida ao chamar daemon.');
+      } else {
+        setQrImage(data.qr_png_data_url || null);
+        setPairingCode(data.pairing_code || null);
+        setQrState(data.state || null);
+        if (!data.qr_png_data_url && !data.pairing_code && data.state !== 'connected') {
+          setQrError(data.message || 'Daemon respondeu sem QR nem código.');
+        }
+      }
+    } catch (e: any) {
+      setQrError('Erro de rede: ' + (e?.message || 'desconhecido'));
+    } finally {
+      setQrLoading(false);
+    }
+  }
+
+  // Poll status enquanto modal aberto (a cada 3s)
+  useEffect(() => {
+    if (!repairOpen) return;
+    const interval = setInterval(async () => {
+      try {
+        const r = await fetch(route('atendimento.channels.status', channel.id), {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          credentials: 'same-origin',
+        });
+        const data = await r.json();
+        setQrState(data.state);
+        if (data.state === 'connected') {
+          setTimeout(() => {
+            setRepairOpen(false);
+            router.reload({ only: ['channel'] });
+          }, 1500);
+        }
+      } catch { /* swallow */ }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [repairOpen, channel.id]);
+
   return (
     <Card className="p-4 space-y-3">
       <h3 className="font-semibold text-sm">Detalhes do canal</h3>
@@ -251,11 +335,103 @@ function ConfigTab({ channel }: { channel: ChannelUi }) {
         </div>
       )}
 
+      {isBaileys && (
+        <div className="border-t pt-3 flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground flex-1">
+            Sessão WhatsApp caiu ou cliente desvinculou em "Aparelhos conectados"? Use re-parear.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={startRepair}
+            data-testid="channel-show-repair-btn"
+          >
+            <Zap size={14} className="mr-1.5" aria-hidden />
+            Re-parear
+          </Button>
+        </div>
+      )}
+
       <div className="border-t pt-3">
         <p className="text-xs text-muted-foreground">
           Edição completa do canal vem em US futura. Pra remover, voltar pra lista.
         </p>
       </div>
+
+      {/* Modal re-parear — reusa visual do Index.tsx (QR PNG data URL + fallback pairing code) */}
+      {isBaileys && (
+        <Dialog
+          open={repairOpen}
+          onOpenChange={(o) => {
+            if (!o) {
+              setRepairOpen(false);
+              setQrImage(null);
+              setPairingCode(null);
+            }
+          }}
+        >
+          <DialogContent className="max-w-md" data-testid="channel-show-repair-modal">
+            <DialogHeader>
+              <DialogTitle>Re-parear {channel.label}</DialogTitle>
+              <DialogDescription>
+                No celular: WhatsApp → Configurações → Dispositivos vinculados → <strong>Vincular dispositivo</strong> → aponta a câmera no QR abaixo.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex flex-col items-center justify-center py-4 gap-3 min-h-[280px]">
+              {qrLoading && (
+                <>
+                  <Loader2 size={32} className="animate-spin text-muted-foreground" aria-hidden />
+                  <p className="text-sm text-muted-foreground">Gerando QR no daemon CT 100…</p>
+                </>
+              )}
+              {!qrLoading && qrError && (
+                <div className="text-sm text-red-700 dark:text-red-400 text-center px-4">
+                  <AlertTriangle size={20} className="inline mr-2" aria-hidden />
+                  {qrError}
+                </div>
+              )}
+              {!qrLoading && qrImage && (
+                <>
+                  <div className="bg-white p-2 rounded-lg shadow-sm">
+                    <img src={qrImage} alt="QR Code WhatsApp" width={280} height={280} />
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Válido ~20s (renova automaticamente). State: <strong>{qrState || 'qr_required'}</strong>
+                    {qrState === 'connected' && <span className="text-emerald-600 ml-1">✓ conectado!</span>}
+                  </p>
+                </>
+              )}
+              {!qrLoading && !qrImage && pairingCode && (
+                <>
+                  <p className="text-xs text-muted-foreground">QR indisponível — use código numérico via "Vincular com número de telefone":</p>
+                  <div className="bg-muted/50 rounded-lg px-6 py-4 text-center">
+                    <div className="text-4xl font-mono font-bold tracking-[0.3em] text-primary">
+                      {pairingCode.replace(/(.{4})/, '$1-')}
+                    </div>
+                  </div>
+                </>
+              )}
+              {!qrLoading && !qrImage && !pairingCode && !qrError && qrState && (
+                <p className="text-sm text-muted-foreground">State: <strong>{qrState}</strong></p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRepairOpen(false);
+                  setQrImage(null);
+                  setPairingCode(null);
+                }}
+              >
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 }
