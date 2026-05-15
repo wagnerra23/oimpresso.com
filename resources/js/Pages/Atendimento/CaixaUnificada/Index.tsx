@@ -97,7 +97,7 @@ export default function CaixaUnificadaIndex({
   statusFilter, channelTypeFilter, accountFilter, queueFilter: _queueFilter, q,
   thread, messages, centrifugoConfig,
   queues, defaultQueue: _defaultQueue,
-  within24h, unlinked, mediaInbound24h, inboundAging, orderBy,
+  within24h, unlinked, mediaInbound24h, inboundAging, orderBy, activeTagIds,
 }: Props) {
   // Centrifugo real-time (US-WA-068 anti-flash com preserveScroll + preserveState)
   useEffect(() => {
@@ -424,6 +424,8 @@ export default function CaixaUnificadaIndex({
             mediaInbound24h={mediaInbound24h}
             inboundAging={inboundAging}
             orderBy={orderBy}
+            availableTags={availableTags ?? []}
+            activeTagIds={activeTagIds ?? []}
           />
         </Deferred>
 
