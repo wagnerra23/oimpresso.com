@@ -32,6 +32,36 @@ gh api repos/WhiskeySockets/Baileys/releases --jq '.[0:3] | .[] | {tag_name, nam
 
 **Decisão:** se versão atual está N patches atrás E há fixes "Connection Failure" / "pairing code" no changelog → vale upgrade.
 
+### Fase 1.5 — Audit auth_state pré-bump MAJOR (obrigatório se bump 6.x→7.x ou 7.x→8.x)
+
+> 🚨 **Lição catalogada incident 2026-05-15:** deploy Baileys 6.7.18→7.0.0-rc11 SEM purgar auth_state corrompeu daemon com `failed to find key "AAAAALtG" to decode mutation` em `chat-utils.ts:309`. Estrutura interna `mysqlAuthState` mudou entre majors — chaves Signal Protocol 6.x são opacas pro 7.x. Resultado: 103 rows precisaram ser purgadas manualmente, canal id=7 deletado, canal id=8 banned virou stale, 78 webhook nonces velhos. Custou ~30min troubleshooting. **PURGUE ANTES de fazer o bump, não depois.**
+
+```bash
+# 1. Detecta drift atual (testa hipótese ANTES do bump)
+php artisan whatsapp:auth-state-drift-check
+
+# 2. Se bump é major (6.x → 7.x): backup + purge proactive
+php artisan tinker --execute='
+echo "Rows atuais: ".\DB::table("whatsapp_baileys_auth_state")->count().PHP_EOL;
+\$backup = \DB::table("whatsapp_baileys_auth_state")->select("id","instance_id","key_id","updated_at")->get();
+file_put_contents(storage_path("app/backups/auth-state-PRE-MAJOR-BUMP-".date("Ymd-His").".json"), json_encode(\$backup, JSON_PRETTY_PRINT));
+echo "Backup summary salvo (sem value_encrypted — irrecuperável de qualquer jeito).".PHP_EOL;
+// AINDA NÃO DELETE — confirme com Wagner antes de purge real
+'
+
+# 3. Após Wagner aprovar:
+php artisan tinker --execute='
+\$d = \DB::table("whatsapp_baileys_auth_state")->delete();
+\$n = \DB::table("webhook_nonces")->delete();
+echo "auth_state: \$d rows / nonces: \$n rows DELETED".PHP_EOL;
+'
+
+# 4. Após purge: clientes ATIVOS vão precisar re-parear via UI (QR scan)
+# Avisar Wagner ANTES (regra Tier 0: "cliente como sinal" — não surpresa)
+```
+
+**Quando pular Fase 1.5:** bump patch (`6.7.18 → 6.7.19`) ou minor (`6.7 → 6.8`). MAJOR sempre obriga.
+
 ### Fase 2 — Migration ESM (se necessária, ~30min-2h)
 
 Baileys 6.8.0+ é **ESM-only** ([migration guide oficial](https://baileys.wiki/docs/migration/to-v7.0.0/)). Se daemon atual é CommonJS (`"module": "CommonJS"` no tsconfig), precisa migrar:
