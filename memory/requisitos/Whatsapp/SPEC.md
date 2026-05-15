@@ -1483,3 +1483,109 @@ php artisan test --filter=MetaCloudDriverStub
 2. **Quando username GA jun/2026 chegar**, `phone_e164` pode virar opcional em alguns webhooks. `MessagePersister` precisa estratégia fallback explícita — backlog ADR.
 3. **Webhook signature verification Meta** (HMAC SHA-256 com app secret) — não implementado neste PR. Requirement Meta antes de ativar webhook em prod.
 
+---
+
+## §15. US apendidas pós-2026-05-12 (catch-up governance D-1)
+
+> **Backfill 2026-05-15 14:00** — apender US-WA-* que foram entregues em PRs mas nunca tiveram cabeçalho próprio no SPEC. Detectadas por skill cross-ref `git log --grep` × `grep ### US-WA- SPEC.md`. Status real corrigido (algumas marcadas `todo` em §antiga já têm PR mergeado).
+>
+> ⚠️ **Esta seção é PURAMENTE rastreabilidade.** Não duplicar contrato — referência ao SPEC §antiga ou PR canônico quando há texto preexistente.
+
+### US-WA-045b · UI dialog HSM botões interativos
+
+> owner: wagner · sprint: CYCLE-07 · priority: p2 · estimate: 2h · **status: done** (PR #720) · type: sub-story (sub-task de US-WA-045)
+
+UI dialog frontend para compor mensagem HSM com botões interativos (Quick Reply / CTA URL / Phone). Backend já tinha `SendInteractiveJob` (US-WA-045 done #715). Sub-PR isolou UI pra revisão visual.
+
+**Refs:** PR #720 (2026-05-12) · sub-task de US-WA-045 (já no SPEC §"Onda Botões interativos")
+
+### US-WA-055 · UX polish round 2 + skill `wagner-request-refiner`
+
+> owner: wagner · sprint: CYCLE-06 · priority: p2 · estimate: 1h · **status: done** (PR #530) · type: story
+
+UX polish round 2 baseado em feedback Wagner produção biz=1 (composer responsivo, sidebar colapsável, atalhos `J/K/E/A`). Como bônus, criou skill `wagner-request-refiner` Tier B pra decompor múltiplos pedidos curtos do Wagner em tasks atômicas antes de coding massivo.
+
+**Refs:** PR #530 (2026-05-03)
+
+### US-WA-056 · Omnichannel Fase 0 — schema polimórfico (channels + conversations + messages)
+
+> owner: wagner · sprint: CYCLE-06 · priority: p0 · estimate: 8h · **status: done** (PR #533, ADR 0135) · type: foundational
+
+Schema novo polimórfico para suportar qualquer canal (não-só-WhatsApp). Tabelas `channels` (type=whatsapp_baileys/meta/zapi/instagram/email/etc) + `conversations` (FK channel) + `messages` (FK conversation, sender_kind polimórfico). Substitui long-term legacy `whatsapp_conversations`/`whatsapp_messages` (mantido apenas pra histórico).
+
+**Refs:** PR #533 · [ADR 0135](../../decisions/0135-omnichannel-inbox-arquitetura.md)
+
+### US-WA-057 · Mover conversa pra outro número/canal (admin reclassifica)
+
+> owner: — · priority: p3 · estimate: 2h · **status: backlog** · type: story
+> blocked_by: US-WA-040 PR3+PR4 multi-phone UI completa
+
+Admin pode reclassificar conversa antiga (legacy single-phone) pra novo canal/número correto sem perder histórico. Necessita multi-phone UI completa primeiro pra que UI faça sentido. Sinal qualificado: cliente piloto pediu.
+
+**Refs:** referenciada em SPEC §antiga (Sprint 4 plano)
+
+### US-WA-062 · Busca local na conversa (Ctrl+F dentro da thread)
+
+> owner: wagner · sprint: CYCLE-06 · priority: p2 · estimate: 2h · **status: done** (PR #581) · type: story
+
+Atalho `Ctrl+F` dentro da thread abre busca local — input filtra mensagens da conversa por substring. Atendente acha mensagem específica em thread longa (50+ msgs) sem `Ctrl+End` scroll.
+
+**Refs:** PR #581 (2026-05-09)
+
+### US-WA-063 · Tags classificadoras com seed defaults + catálogo per-business
+
+> owner: wagner · sprint: CYCLE-06 · priority: p1 · estimate: 4h · **status: done** (PRs #581 + #547) · type: story
+
+Tabela `whatsapp_tags` per-business + pivot `whatsapp_conversation_tags`. UI multi-select no header da conversa. Catálogo seed defaults (Vendas/Suporte/Reclamação/Repair-OS/Cobrança/Financeiro) idempotente via `ensureDefaultTags(businessId)` lazy no 1º load. Filtro UI `?tags=1,3` query OR.
+
+**Refs:** PRs #547 + #581
+
+### US-WA-064 · Vincular Contact UltimatePOS a conversa + resolver @lid JID
+
+> owner: wagner · sprint: CYCLE-06 · priority: p1 · estimate: 6h · **status: done** (PRs #549 + #586) · type: story
+
+(1) Resolver `@lid` JID via `senderPn` no payload Baileys + usar `push_name` quando disponível. (2) Vincular `Conversation.contact_id` → `App\Contact` UltimatePOS via modal busca debounced + criar Contact a partir do phone se não existir.
+
+**Refs:** PRs #549 + #586
+
+### US-WA-066 · Polling fallback 5s SEMPRE + bloquear contato
+
+> owner: wagner · sprint: CYCLE-06 · priority: p0 · estimate: 3h · **status: done** (PRs #558 + #589) · type: critical
+
+**Defense-in-depth instalada após incident 2026-05-11**: cliente real cancelou contrato porque Centrifugo falhou silenciosamente em horário comercial e mensagens WhatsApp não apareceram na UI. Mitigation: polling `router.reload({only:[...]})` a cada 5s SEMPRE ativo em paralelo ao WebSocket (não-fallback condicional, defense-in-depth). PR #589 adicionou também toggle "bloquear contato" no header (UI + flag `is_blocked` + daemon Baileys sync).
+
+**Refs:** PRs #558 + #589 · Incident 2026-05-11
+
+### US-WA-091 · Remover legacy /whatsapp/conversations (URL deprecation)
+
+> owner: wagner · sprint: CYCLE-06 · priority: p2 · estimate: 1h · **status: done** (PR #590) · type: cleanup
+
+Remoção formal das rotas legacy `/whatsapp/conversations*` (Cockpit pattern V1). Schema legacy `whatsapp_conversations`/`whatsapp_messages` continua existindo no DB pra histórico (2 conversas de teste biz=1), mas sem UI. Webhooks Z-API/Meta legacy seguem populando schema antigo até refactor drivers pro Channel polimórfico (PR seguinte). `/atendimento/inbox` (ADR 0135) é o único caminho UI.
+
+**Refs:** PR #590
+
+### US-WA-093 · LID resolution custom + backfill (workaround pré-Baileys 7.x)
+
+> owner: wagner · sprint: CYCLE-07 · priority: p1 · estimate: 6h · **status: done** (PRs #696 + #698) · type: critical
+> evolved_by: PR4 stub Cloud API (já no SPEC §14.2)
+
+Bug "1 LID @lid ≠ 1 pessoa" no Baileys 6.7.x (issues #1554, #1605, #1832, #2030, #2263) gerou cross-contact garantido em alguma janela. Mitigation oimpresso custom: tabela `whatsapp_lid_pn_map` + Service `LidPhoneResolver` + cache Redis 24h + command CLI `whatsapp:lid-backfill` pra mapear retroativamente + UI badge "@lid não resolvido". **Diferencial único** — nenhum concorrente faz (esperam Baileys 7.x). PR4 (SPEC §14.2) prepara migração Cloud API que resolve nativamente via BSUID.
+
+**Refs:** PRs #696 + #698 · session [2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md](../../sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md) · ADR [0146](../../decisions/0146-contact-lid-canonico-pk-refactor.md) (feature-wish PK refactor quando username GA)
+
+### US-WA-094 · Anti-cross-contact P0 (incident 2026-05-14)
+
+> owner: wagner · priority: p0 · estimate: 3h · **status: done** (PRs #854..#858, #863, #864, #866) · type: critical-incident
+
+3 falhas combinadas detectadas no incident 2026-05-14 (re-pareamento Baileys 6.7.9): (1) `ConversationContactLinker` fuzzy LIKE tail4 → suffix-8 mais estrito + Pest, (2) `LidPhoneResolver::record(source=manual)` aceitava sem evidência webhook prévia → bloqueio + Pest, (3) `MessagePersister` não consultava resolver no path history-sync → consulta agora. 7 Pest regression (`LidCrossContactIncidentP0Test`) + 10 testes convention/E2E (PR #864) anti-regressão. Schema 3-identifiers (lid + phone_e164 + bsuid) PR #855 como defense-in-depth definitiva. **Diferencial único** — concorrentes BR não fazem schema 3-IDs.
+
+**Refs:** 8 PRs maratona 2026-05-14/15 · session [2026-05-14-whatsapp-incident-inbox-lid-cross-contact.md](../../sessions/2026-05-14-whatsapp-incident-inbox-lid-cross-contact.md) · handoff [0030](../../handoffs/2026-05-15-0030-whatsapp-incident-anti-cross-contact-p0.md) + [0700](../../handoffs/2026-05-15-0700-whatsapp-maratona-fechamento-8prs-baileys7x-deploy-hostinger.md)
+
+### US-WA-095 · Caixa Unificada v4 redesign (em F1 PLAN)
+
+> owner: wagner · sprint: CYCLE-08 · priority: p2 · estimate: 7-9h IA-pair · **status: doing** (F1 RUNBOOK done, F2 BACKEND done, F3 FRONTEND aguarda) · type: redesign
+
+Reskin visual do Inbox `/atendimento/inbox` pra bater identidade da Caixa Unificada v4 do handoff Claude Design 2026-05-15. **Zero migration, zero backend novo** — 2 props derivadas read-only no Controller (`queues` config static + heurística tag→fila). 12 sub-componentes redesenhados em 3 waves paralelizáveis F3 (filtros topo / lista+items / thread+composer+sidebar). Canary biz=164 Martinho Caçambas (NÃO biz=4 ROTA LIVRE).
+
+**Refs:** [RUNBOOK-inbox-caixa-unificada-v4.md](RUNBOOK-inbox-caixa-unificada-v4.md) · F2 done (config + Controller + 7 Pest verde 2026-05-15)
+

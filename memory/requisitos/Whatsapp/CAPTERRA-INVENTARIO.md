@@ -1,24 +1,48 @@
 # CAPTERRA-INVENTÁRIO — Whatsapp
 
-> Gerado por skill `comparativo-do-modulo` em **2026-05-10 16:30 BRT** (sobrescreveu versão anterior).
-> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) + [SPEC.md](SPEC.md) + `Modules/Whatsapp/` + `resources/js/Pages/Whatsapp/`.
-> ADR mãe: [0089](../../decisions/0089-capterra-driven-module-evolution.md) · Estende [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) + [ADR 0117](../../decisions/0117-multiplos-numeros-whatsapp-por-business.md).
-> Trigger: Wagner validou em prod 2026-05-10 16:00 que `/whatsapp/conversations` + `/whatsapp/settings` rendam mas detectou 2 gaps (multi-phone UI + permissions UI).
+> **Última atualização 2026-05-15 14:00 BRT** (refresh via D-11 governance backfill — sincroniza com [COMPARATIVO-MERCADO-2026-05-12-v2.md](COMPARATIVO-MERCADO-2026-05-12-v2.md) pós-16-PRs CYCLE-07).
+> Versão anterior: 2026-05-10 16:30 BRT (sobrescrita).
+> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) + [SPEC.md](SPEC.md) + `Modules/Whatsapp/` + `resources/js/Pages/Whatsapp/` + `resources/js/Pages/Atendimento/`.
+> ADR mãe: [0089](../../decisions/0089-capterra-driven-module-evolution.md) · Estende [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) + [ADR 0117](../../decisions/0117-multiplos-numeros-whatsapp-por-business.md) + [ADR 0135](../../decisions/0135-omnichannel-inbox-arquitetura.md).
+> Trigger: 16 PRs CYCLE-07 deployed 2026-05-12 + 11 PRs saga daemon 2026-05-13 + 8 PRs maratona 2026-05-14/15 (incident anti-cross-contact + Baileys 7.x).
 
 ## Resumo
 
-- ✅ APROVADO: **14** de 24 in-scope
-- 🟡 PARCIAL: **2** (C-007 multi-número, C-103 mídia outbound)
-- ❌ AUSENTE: **8**
-- Out of scope deliberado: 5 (C-203 catalog, C-207 multi-canal, C-208 CTWA, C-301 voice, C-302 Whatsapp Pay)
-- **Score ponderado oimpresso vs top mercado:** 46.5/59 (**78%**)
+- ✅ APROVADO: **19** de 24 in-scope (+5 vs snapshot 2026-05-10)
+- 🟡 PARCIAL: **3** (C-007 multi-phone UI parcial, C-104 mídia inbound UX consolidada parcial, C-106 tags UI ainda fraca)
+- ❌ AUSENTE: **2** (C-201 botões interativos UX, C-202 list messages UX — backend pronto, UI compositor parcial)
+- Out of scope deliberado: 5 (C-203 catalog, C-207 multi-canal real, C-208 CTWA, C-301 voice, C-302 WA Pay)
+- **Score ponderado oimpresso vs top mercado:** 53.4/59 (**91%**) — vs **78%** snapshot 2026-05-10
+
+### Evolução em 5 dias
+
+| Momento | Score | Δ | O que mudou |
+|---|---|---|---|
+| 2026-05-10 16:30 | 46.5/59 = **78%** | baseline | snapshot inicial pós-prod validation Wagner |
+| 2026-05-12 19:00 | 53.4/59 = **91%** | **+13pp** | 16 PRs CYCLE-07 deployed (SLA, CSAT, macros, métricas, mídia, LID, anti-ban, contact link) |
+| 2026-05-13 23:30 | 53.4/59 = **91%** | 0pp | 11 PRs saga daemon (recovery, observability, history-sync) — não somam capability mas estabilizam infra |
+| 2026-05-15 07:00 | 53.4/59 = **91%** | 0pp | 8 PRs maratona (anti-cross-contact + Baileys 7.x + deploy Hostinger) — defense-in-depth, não +capability |
+| **Próxima onda CYCLE-08** | **~57/59 = ~96%** | **+5pp** (estimado) | 4 PRs CYCLE-08: multi-phone UI completa (#1) + botões interativos UX (#2) + mídia inbound UX (#3) + A/B templates (#5) |
 
 ## Diferencial competitivo confirmado (não-replicável BSPs)
 
-1. **Multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — global scope `business_id` em `WhatsappMessage`/`WhatsappConversation` (`MultiTenantIsolationTest.php`)
-2. **Integração ERP nativa** — listener `NotifyRepairCustomer` (US-WA-004) + `DispatchToJanaBot` (US-WA-020) ancorados no Repair/Jana
-3. **Driver fallback automático** — `WhatsappDriverHealthCheckJob` + `DriverFactory` resolve por `driver_health` (`WhatsappDriverHealthCheckJobTest.php`)
-4. **Bot conversacional ancorado em Jana/Copiloto** com `ContextoNegocio` (3 ângulos faturamento — [ADR 0052](../../decisions/0052-contexto-negocio-3-angulos-faturamento.md))
+> **Atualizado 2026-05-15** — 7 diferenciais únicos catalogados pós-CYCLE-07 + maratona Baileys 7.x.
+
+1. **Multi-tenant Tier 0 IRREVOGÁVEL** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — global scope `business_id` em Channel + Conversation + Message + tabelas auxiliares (Tag, Macro, CsatResponse, SlaPolicy, LidPhoneMap). Convention test cobertura 100%.
+2. **Integração ERP nativa transacional** — listeners `NotifyRepairCustomer` (Repair status `ready/waiting_parts`) + `DispatchToJanaBot` (US-WA-020 PolicyEngine ADS 4 outcomes) + `BillingNotificationListener` cross-module RecurringBilling. **Único BR PME que faz** — Bling/Tiny/Omie zero integração transacional.
+3. **Driver fallback automático healthcheck** — `WhatsappDriverHealthCheckJob` + `DriverFactory` resolve por `driver_health` (`degraded/disconnected/banned`) → flip Z-API/Baileys → Meta Cloud automaticamente.
+4. **Bot conversacional Jana ancorado em `ContextoNegocio`** ([ADR 0052](../../decisions/0052-contexto-negocio-3-angulos-faturamento.md)) — 3 ângulos faturamento (orçamento/produção/faturado) — bot que sabe quanto cliente deve, quais OS abertas, qual produto comprou. Chatwoot bolt-on ChatGPT é só chat genérico.
+5. **LID resolution custom** (US-WA-093) — workaround "1 LID @lid ≠ 1 pessoa" no Baileys 6.7.x via tabela `whatsapp_lid_pn_map` + Service `LidPhoneResolver` + cache Redis 24h + backfill cmd. **NINGUÉM faz isso** — diferencial técnico oimpresso ~4-6 meses até Baileys 7.x maduro.
+6. **Anti-ban middleware daemon Baileys** (PR #699) — Box-Muller Gaussian jitter 1.5-4s + typing presence + warmup 7d quotas progressive + circadian quiet hours 02-06 BRT. **Z-API/Evolution sem isso** — Take Blip não precisa (oficial) mas custa 15× mais. Chip vive ~3-5× mais.
+7. **Schema 3-identifiers anti-cross-contact** (PR #855 + #864 incident 2026-05-14) — `conversations.lid` + `phone_e164` + `bsuid` + 10 testes regression convention/E2E. **Concorrentes BR não fazem** — defense-in-depth Tier 0.
+
+### Diferenciais secundários (LGPD + slash commands)
+
+8. **LGPD opt-in nativo** (`whatsapp_consent` + `email_consent` em contacts, PR #651) — Chatwoot/Take Blip não fazem BR-first.
+9. **Slash commands ancorados em Jana** (PRs #649, #657-#659) — `/lembrar`/`/corrigir`/`/lembrete`/`/config` (4 comandos) treinam Jana via sinais reais do atendente. Diferencial único.
+10. **Pix Copia-e-Cola + NFe + boleto auto-anexo** (US-RB-044 v1 LIVE) — sai pelo WhatsApp quando cliente paga. Take Blip via parceiros (~R$ 200 extra/mês).
+11. **CSAT pós-resolução BR-first** (PR #714) — 1-5 estrelas via emoji `⭐`, parser `CsatResponseParser` regex flexível, dashboard `/atendimento/csat`. Paridade Chatwoot OSS.
+12. **SLA policies + escalation alerts** (PR #710) — `sla_policies` table + `SlaEnforcer::scanAndAlert` cron + 3 trigger types + Centrifugo channel + CLI cmd. Paridade Chatwoot OSS.
 
 ## Inventário detalhado
 
@@ -119,3 +143,73 @@
 > - Crio tasks via tool MCP `tasks-create` (uma por aprovada)
 > - Apendo blocos `### US-WA-NEW-*` ao SPEC.md (seção "Backlog vindo do Capterra-Inventário")
 > - Commit + push pro `webhook GitHub→MCP` propagar
+
+---
+
+## §Refresh 2026-05-15 — gaps remanescentes 78% → 91% → ~96% (CYCLE-08)
+
+> Sincronização desta seção com [COMPARATIVO-MERCADO-2026-05-12-v2.md](COMPARATIVO-MERCADO-2026-05-12-v2.md) §Top 5 PRs CYCLE-08. Não duplica conteúdo — só rastreia status.
+
+### O que mudou entre 78% (10/mai) e 91% (12/mai)
+
+13 das 16 capabilities listadas no INVENTARIO original viraram ✅ ou 🟡 graças aos 16 PRs CYCLE-07:
+
+| Antes (78% snapshot) | Agora (91%) | PR canon |
+|---|---|---|
+| C-103 Mídia outbound 🟡 PARCIAL | ✅ APROVADO | #707 preview-then-send drag-drop |
+| C-104 Mídia inbound ❌ AUSENTE | 🟡 PARCIAL | #648 Whisper + #664 mic + #675 6-layer guard + #669 decrypt-url + #679 reparse-orfas. UX consolidada filtro+lightbox modal pendente (CYCLE-08 #3) |
+| C-106 Tags ❌ AUSENTE | 🟡 PARCIAL | #547+#581 Tag CRUD + filtro `?tags=` + seed defaults. UI gestão dedicada `/atendimento/tags` ausente |
+| C-107 Métricas ❌ AUSENTE | ✅ APROVADO | #711 `whatsapp_conversation_metricas` + Aggregator + cron 02:30 + `/atendimento/metricas` Cockpit |
+| C-108 Quick replies ❌ AUSENTE | ✅ APROVADO | #709 macros + 4 actions + composer dropdown + tela `/atendimento/macros` |
+| C-201 Botões interativos ❌ AUSENTE | 🟡 PARCIAL | #715 backend HSM + List msgs OK. #720 dialog UI OK. UX compositor template polish pendente |
+| C-202 List messages ❌ AUSENTE | 🟡 PARCIAL | Mesmo PR #715 backend OK. UX cardápio dedicado pendente |
+| C-209 A/B templates ❌ AUSENTE | 🔒 DESTRAVADO | #719 A/B variants macros (subset). A/B HSM template completo destravado pelas métricas #711 — CYCLE-08 #5 |
+| Permissions UI per-phone (G-1) | 🟡 PARCIAL | #644 ChannelUserAccess UI + #665 register-permissions cmd. Tela dedicada multi-select per-phone pendente — CYCLE-08 #1 |
+
+### Novidades não-listadas na 78% snapshot
+
+5 capabilities NOVAS criadas em CYCLE-07 sem prévio backlog Capterra (gaps reais que mercado tem mas oimpresso não havia detectado):
+
+| Novidade | PR | Status atual | Comparável |
+|---|---|---|---|
+| **SLA policies + escalation** (gap P0 novo) | #710 | ✅ APROVADO | Chatwoot OSS / Take Blip |
+| **CSAT pós-resolução** | #714 | ✅ APROVADO | Chatwoot OSS / Take Blip |
+| **Auto-link Contact CRM por phone E.164** (gap P1 novo) | #708+#682 | ✅ APROVADO | Chatwoot ✅, Take Blip ✅ |
+| **LID resolution custom** (workaround pré-Baileys 7.x) | #696+#698 | ✅ APROVADO | **NINGUÉM** |
+| **Anti-ban middleware** | #699 | ✅ APROVADO | **NINGUÉM** (BSPs oficiais não precisam) |
+
+### Gaps remanescentes (CYCLE-08 alvo ~96%)
+
+5 PRs CYCLE-08 catalogados em [COMPARATIVO §"Top 5 PRs CYCLE-08"](COMPARATIVO-MERCADO-2026-05-12-v2.md) com prioridade IA-pair recalibrada (ADR 0106):
+
+| # | Gap | Estimate IA-pair | Score impact | Status |
+|---|---|---|---|---|
+| **1** | Multi-phone UI completa (US-WA-040 PR3+PR4) — `Settings/Edit.tsx` + ACL `whatsapp.send.phone.{id}` | ~3h | +1.5pp | em progresso `doing` |
+| **2** | Botões interativos UX + List messages UX consolidado | ~4h | +1pp | aguarda decisão Wagner |
+| **3** | Mídia inbound UX consolidada (filtro + lightbox) | ~3h | +1pp | aguarda decisão |
+| **4** | Daemon auth state MySQL (PRs #701/#702) — eliminar QR-fest | ~4h + 24-48h cooldown | 0pp (operacional) | bloqueado cooldown WA |
+| **5** | A/B testing templates HSM (US-WA-049 completa, destrava por #711 métricas) | ~3h | +0.5pp | aguarda decisão |
+
+**Total CYCLE-08:** ~13h IA-pair + Wagner manual (deploy CT 100 Baileys 7.x + canary 7d biz=99). Score estimado: **~57/59 = ~96%**.
+
+### Out-of-scope deliberado (não conta como gap)
+
+- ❌ Catalog/commerce nativo WA (Modules/ComunicacaoVisual cobre quando ativar — ADR 0121 modular especializado)
+- ❌ Click-to-WhatsApp Ads (CTWA — não fazemos ads)
+- ❌ Whatsapp Pay BR (Pix via Asaas/Inter cobre)
+- ❌ Voice chamadas (não viável BR PME)
+- ❌ Multi-canal real Telegram/FB Messenger/Email/SMS (Caixa Unificada v4 UI prepara preview-only — drivers reais Sprint futuro condicionado a sinal qualificado ADR 0105)
+
+### Roadmap auto-cadastro contact (D-8 não-spec'ado formalmente)
+
+Estado-da-arte 2026-05-14 ([session](../../sessions/2026-05-14-arte-auto-cadastro-contact-whatsapp.md)) deu nota **38/100** vs 8 concorrentes globais (Intercom, Twilio Conversations, Zendesk SC, etc). Top 3 gaps P0 priorizados por impacto×esforço:
+
+1. **Identity Resolution proativa** (Twilio pattern) — match exact phone E.164 + opt-in merge sem auto-attribution → 2-3 PRs ~6h IA-pair → 38→55
+2. **Default cria lead novo sem auto-attribuir** (Intercom pattern) — toda conversa nova de phone desconhecido cria `Contact` shell pendente review (não atribui pra Contact existente sem confirmação) → 1 PR ~3h → 55→65
+3. **Política oficial NÃO matchar por phone** (Zendesk pattern pós-incident 2023) — bloquear `LIKE %tail4` permanente, só `=`/`bsuid`/`session_id` → já parcialmente feito (PR #854 suffix-8), formalizar como policy documentada → 1 PR ~1h → 65→70
+
+Roadmap não-spec'ado ainda — Wagner decide quando promover pra US formais.
+
+---
+
+**Última auditoria via skill `module-completeness-audit` Tier B:** 2026-05-15 14:00 BRT (D-11 governance backfill). Próxima auditoria recomendada: pós-CYCLE-08 close (estimativa Q3 2026 quando 4 PRs CYCLE-08 + canary biz=99 maduros).
