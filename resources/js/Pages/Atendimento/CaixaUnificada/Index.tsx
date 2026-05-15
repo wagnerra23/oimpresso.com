@@ -175,7 +175,8 @@ export default function CaixaUnificadaIndex({
       <Head title="Caixa Unificada" />
 
       {/* Header da página */}
-      <div className="flex items-center justify-between gap-3 shrink-0 px-1">
+      <div className="flex flex-col gap-2 shrink-0 px-1">
+        {/* Linha 1: título */}
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <InboxIcon size={16} aria-hidden />
@@ -188,8 +189,8 @@ export default function CaixaUnificadaIndex({
           </div>
         </div>
 
-        {/* Topnav direita: 4 ações (placeholders TODO US-WA-XXX) */}
-        <div className="flex items-center gap-1.5">
+        {/* Linha 2: topnav 4 ações (placeholders TODO US-WA-XXX) */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           <button
             type="button"
             className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-45"
