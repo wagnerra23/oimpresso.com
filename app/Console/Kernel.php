@@ -283,6 +283,27 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // GAP D7 #2 (auditoria memoria-senior 2026-05-15) — Freshness pipeline ativo.
+        // Complementa `mcp:sync-memory` (every5min): classifica docs em 4 níveis
+        // (FRESH/WARM/STALE/CRITICAL), detecta drift DB↔git, alerta CRITICAL em
+        // mcp_alertas_eventos (idempotente por dia) e dispatcha ReindexarDocumentoJob
+        // pros stale/drift (max 50/execução, queue jana-index).
+        // Daily 04:30 BRT pra não conflitar com backup:run (01:30), Brief Brain B
+        // (cron hourly) nem sync-memory (every5min). Exit code 1 quando CRITICAL > 0
+        // pra cron enviar alerta operacional.
+        $schedule->command('jana:freshness-check --alert --reindex --limit=50')
+            ->dailyAt('04:30')
+            ->timezone('America/Sao_Paulo')
+            ->onOneServer()
+            ->withoutOverlapping(20)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/jana-freshness.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:freshness-check FALHOU — docs memory podem estar STALE/CRITICAL'
+                );
+            });
+
         // Sprint 1 — Daily Brief (ADR 0091, camada L7 da Constituição V2).
         // Gera o brief 6x/dia em horário comercial PT-BR (07/11/14/17/20/23h).
         // Custo médio: $0.05/run × 6 = $0.30/dia. Cap diário no command.
