@@ -225,7 +225,12 @@ function iqtBuildRequest(array $query = []): Request
 
 function iqtConvData(array $props): array
 {
-    $data = $props['conversations']['data'] ?? [];
+    $convs = $props['conversations'] ?? null;
+    // D-14 (PR pós-#871): `conversations` virou Inertia::defer(closure) — invocar pra resolver.
+    if ($convs instanceof \Inertia\DeferProp || $convs instanceof \Inertia\OptionalProp) {
+        $convs = $convs();
+    }
+    $data = $convs['data'] ?? [];
     if (is_callable($data)) $data = $data();
     if ($data instanceof \Illuminate\Support\Collection) $data = $data->all();
     return $data;
