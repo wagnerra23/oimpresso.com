@@ -17,9 +17,9 @@
 // porque shape do payload é compatível (customer_phone alias customer_external_id).
 
 import { useEffect, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, Deferred } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
-import { ChevronLeft, ChevronRight, Inbox as InboxIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Inbox as InboxIcon, Loader2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -48,11 +48,13 @@ interface Paginated<T> {
 }
 
 interface Props {
-  conversations: Paginated<ListConversation>;
+  /** D-14 perf (post-#871): defer no backend — undefined até auto-fetch async resolver. */
+  conversations?: Paginated<ListConversation>;
   tab: 'all' | 'unread' | 'assigned' | 'bot' | 'resolved' | 'awaiting_human' | 'archived';
   q: string;
   channelFilter: string | null;
-  stats: { unread: number; assigned: number; bot: number; awaiting_human: number; archived: number };
+  /** D-14 perf: defer no backend — undefined até auto-fetch async resolver. */
+  stats?: { unread: number; assigned: number; bot: number; awaiting_human: number; archived: number };
   businessId: number;
   thread: ThreadConversation | null;
   messages: Message[] | null;
@@ -60,12 +62,17 @@ interface Props {
    * CYCLE-08 PR-A (US-WA-040): canais visíveis ao user (filtrados por ACL
    * `channel_user_access`). Inclui phone/health/unread per-canal pra
    * `ChannelSelector` renderizar dropdown rico no header.
+   *
+   * D-14 perf: defer no backend — undefined até auto-fetch async resolver.
    */
-  availableChannels: AvailableChannel[];
+  availableChannels?: AvailableChannel[];
   /** CYCLE-08 PR-A: canal selecionado no dropdown topbar (null = "Todos") */
   selectedChannelId: number | null;
-  /** US-WA-063: catálogo de tags do business (seeds default na 1ª visita) */
-  availableTags: ConvTag[];
+  /**
+   * US-WA-063: catálogo de tags do business (seeds default na 1ª visita).
+   * D-14 perf: defer no backend — undefined até auto-fetch async resolver.
+   */
+  availableTags?: ConvTag[];
   /** US-WA-063: IDs das tags ativas no filtro atual (query param `tags=`) */
   activeTagIds: number[];
   centrifugoConfig: CentrifugoConfig | null;
@@ -184,11 +191,14 @@ export default function InboxIndex({
           </div>
           <div className="min-w-0 flex items-center gap-2 flex-wrap">
             <h1 className="font-semibold text-sm leading-tight truncate">Inbox Atendimento</h1>
-            {/* CYCLE-08 PR-A (US-WA-040): dropdown topbar pra alternar canal ativo */}
-            <ChannelSelector
-              availableChannels={availableChannels}
-              selectedChannelId={selectedChannelId}
-            />
+            {/* CYCLE-08 PR-A (US-WA-040): dropdown topbar pra alternar canal ativo.
+                D-14 perf: availableChannels deferred — fallback discreto enquanto async fetch resolve. */}
+            <Deferred data="availableChannels" fallback={<span className="h-5 w-24 inline-block bg-muted/30 rounded animate-pulse" aria-label="Carregando canais…" />}>
+              <ChannelSelector
+                availableChannels={availableChannels ?? []}
+                selectedChannelId={selectedChannelId}
+              />
+            </Deferred>
             <span className="hidden md:inline text-[11px] text-muted-foreground truncate">
               atalhos: <kbd className="px-1 py-0 border rounded text-[10px]">J</kbd>/<kbd className="px-1 py-0 border rounded text-[10px]">K</kbd> navega · <kbd className="px-1 py-0 border rounded text-[10px]">/</kbd> busca · <kbd className="px-1 py-0 border rounded text-[10px]">E</kbd> resolve · <kbd className="px-1 py-0 border rounded text-[10px]">A</kbd> aguardar
             </span>
@@ -213,22 +223,48 @@ export default function InboxIndex({
           </div>
         ) : (
           <div className="lg:w-80 xl:w-96 shrink-0 min-h-0">
-            <ConversationList
-              conversations={conversations}
-              tab={tab}
-              q={q}
-              stats={stats}
-              selectedId={thread?.id ?? null}
-              onSelect={selectThread}
-              permalinkRouteName="atendimento.inbox.index"
-              routeName="atendimento.inbox.index"
-              onCollapse={() => setLeftSidebarCollapsed(true)}
-              within24h={within24h}
-              unlinked={unlinked}
-              mediaInbound24h={mediaInbound24h}
-              inboundAging={inboundAging}
-              orderBy={orderBy}
-            />
+            {/* D-14 perf: conversations + stats deferred — skeleton ~100ms enquanto async fetch resolve. */}
+            <Deferred
+              data={['conversations', 'stats']}
+              fallback={(
+                <Card className="h-full flex flex-col">
+                  <div className="border-b p-3 flex items-center gap-2">
+                    <div className="h-6 w-32 bg-muted/40 rounded animate-pulse" />
+                  </div>
+                  <div className="flex-1 p-2 space-y-2 overflow-hidden">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="flex gap-2 items-center p-2">
+                        <div className="h-8 w-8 rounded-full bg-muted/40 animate-pulse shrink-0" />
+                        <div className="flex-1 space-y-1.5">
+                          <div className="h-3 w-3/4 bg-muted/40 rounded animate-pulse" />
+                          <div className="h-2 w-1/2 bg-muted/30 rounded animate-pulse" />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-center pt-4 text-muted-foreground text-xs">
+                      <Loader2 size={14} className="animate-spin mr-2" aria-hidden /> Carregando conversas…
+                    </div>
+                  </div>
+                </Card>
+              )}
+            >
+              <ConversationList
+                conversations={conversations as Paginated<ListConversation>}
+                tab={tab}
+                q={q}
+                stats={stats as { unread: number; assigned: number; bot: number; awaiting_human: number; archived: number }}
+                selectedId={thread?.id ?? null}
+                onSelect={selectThread}
+                permalinkRouteName="atendimento.inbox.index"
+                routeName="atendimento.inbox.index"
+                onCollapse={() => setLeftSidebarCollapsed(true)}
+                within24h={within24h}
+                unlinked={unlinked}
+                mediaInbound24h={mediaInbound24h}
+                inboundAging={inboundAging}
+                orderBy={orderBy}
+              />
+            </Deferred>
           </div>
         )}
 
@@ -249,7 +285,11 @@ export default function InboxIndex({
                 icon="message-circle"
                 variant="default"
                 title="Selecione uma conversa"
-                description={`${conversations.total} conversa${conversations.total !== 1 ? 's' : ''} no schema omnichannel. Use J/K pra navegar pelo teclado.`}
+                description={
+                  conversations
+                    ? `${conversations.total} conversa${conversations.total !== 1 ? 's' : ''} no schema omnichannel. Use J/K pra navegar pelo teclado.`
+                    : 'Carregando inbox…'
+                }
               />
             </Card>
           )}
@@ -269,19 +309,22 @@ export default function InboxIndex({
                 <ChevronLeft size={16} />
               </button>
             ) : (
-              <ConversationSidebar
-                conversation={thread}
-                reloadOnly={['thread', 'conversations']}
-                enableShortcuts
-                onCollapse={() => setSidebarCollapsed(true)}
-                updateStatusRouteName="atendimento.inbox.update_status"
-                availableTags={availableTags}
-                updateTagsRouteName="atendimento.inbox.update_tags"
-                searchContactsRouteName="atendimento.inbox.contacts.search"
-                linkContactRouteName="atendimento.inbox.link_contact"
-                createContactFromPhoneRouteName="atendimento.inbox.contact.create_from_phone"
-                blockRouteName="atendimento.inbox.block"
-              />
+              /* D-14 perf: availableTags deferred — Sidebar render com [] e completa quando async resolve. */
+              <Deferred data="availableTags" fallback={null}>
+                <ConversationSidebar
+                  conversation={thread}
+                  reloadOnly={['thread', 'conversations']}
+                  enableShortcuts
+                  onCollapse={() => setSidebarCollapsed(true)}
+                  updateStatusRouteName="atendimento.inbox.update_status"
+                  availableTags={availableTags ?? []}
+                  updateTagsRouteName="atendimento.inbox.update_tags"
+                  searchContactsRouteName="atendimento.inbox.contacts.search"
+                  linkContactRouteName="atendimento.inbox.link_contact"
+                  createContactFromPhoneRouteName="atendimento.inbox.contact.create_from_phone"
+                  blockRouteName="atendimento.inbox.block"
+                />
+              </Deferred>
             )}
           </div>
         )}

@@ -197,39 +197,15 @@ class InboxController extends Controller
         $orderBy = $request->input('orderBy');
         $orderColumn = $orderBy === 'inbound' ? 'last_inbound_at' : 'last_message_at';
 
-        // US-WA-043 — `last_message_type` exposto via subquery scalar pra UI
-        // mostrar ícone semântico (📷 image / 🎵 audio / 🎥 video / 📄 document)
-        // ao lado do preview da última msg. Evita N+1 escolhendo subquery
-        // correlated 1× por row no SELECT (1 EXISTS por linha, indexada em
-        // `messages.conversation_id` + `created_at`).
-        $paginated = $convQuery
-            ->with('tags:id,slug,label,color')
-            ->addSelect(['last_message_type' => Message::query()
-                ->select('type')
-                ->whereColumn('conversation_id', 'conversations.id')
-                ->orderByDesc('created_at')
-                ->limit(1),
-            ])
-            ->orderByDesc($orderColumn)
-            ->paginate(50);
-
-        $conversationsForUi = $paginated->getCollection()->map(fn (Conversation $c) => $this->convToListArray($c));
-
-        // Stats counters — também filtrados por ACL canal (US-WA-069) pra
-        // contadores baterem com a lista efetivamente visível.
-        $statsBase = fn () => tap(
-            Conversation::query()->where('business_id', $businessId),
-            fn ($q) => $this->applyChannelAclFilter($q, $businessId, $userId)
-        );
-
-        $stats = [
-            'unread' => $statsBase()->where('unread_count', '>', 0)->count(),
-            'assigned' => $statsBase()->where('assigned_user_id', $userId)->count(),
-            'bot' => $statsBase()->where('bot_handling', true)->count(),
-            // Novos tabs (US-WA-* filtros novos)
-            'awaiting_human' => $statsBase()->where('status', 'awaiting_human')->count(),
-            'archived' => $statsBase()->where('status', 'archived')->count(),
-        ];
+        // D-14 perf 2026-05-15 — props caras movidas pra Inertia::defer() abaixo
+        // (skip de query quando partial reload `only:[]` não pede). Antes:
+        // toda troca de conversa (`selectThread` → `only:['thread','messages']`)
+        // executava paginate+stats+channels+tags = ~12 queries × 300-800ms.
+        // Agora: closures defer pulam quando `only:[]` não as inclui = ~50ms.
+        //
+        // Construção do `$convQuery` permanece aqui (precisa do `applyChannelAclFilter`,
+        // `selectedChannelId` ACL gate validation + filtros do request). Só execução
+        // (`->paginate(50)`) move pra closure abaixo.
 
         // Thread aberta?
         $thread = null;
@@ -263,9 +239,137 @@ class InboxController extends Controller
             }
         }
 
-        // Channels disponíveis pra filtro — US-WA-069: filtrados por ACL.
-        // User sem acesso a NENHUM canal vê lista vazia (não 500).
-        //
+        // D-14 perf 2026-05-15 — availableChannels + availableTags movidos
+        // pra Inertia::defer abaixo (skip quando partial reload não pede).
+        // activeTagIds derivada do request já é leve, mantém eager.
+        $activeTagIds = $tagsFilter
+            ? array_filter(array_map('intval', explode(',', $tagsFilter)))
+            : [];
+
+        // Centrifugo real-time (ADR 0058 + US-WA-059) — channel
+        // `omnichannel:business:{id}` segregado por business_id (Tier 0).
+        // Token JWT HS256 ttl curto, re-emitido a cada page load. Se
+        // emissor falhar (secret ausente, etc), payload vira null e o
+        // frontend cai pra polling fallback.
+        $channel = "omnichannel:business:{$businessId}";
+        $token = $tokenIssuer->issue(
+            $userId,
+            [$channel],
+            (int) config('whatsapp.centrifugo.token_ttl_seconds', 3600)
+        );
+        $centrifugoConfig = $token !== null ? [
+            'wsUrl' => config('whatsapp.centrifugo.ws_url'),
+            'token' => $token,
+            'channel' => $channel,
+        ] : null;
+
+        return Inertia::render('Atendimento/Inbox/Index', [
+            // ─── DEFER: props caras (paginate, count, queries) ─────────
+            // Skip de execução quando partial reload `only:[]` não pede.
+            // Frontend (Inertia v3 React) faz auto-fetch async pós-render
+            // inicial OU recebe quando partial reload explicita.
+            //
+            // Perf real medida 2026-05-15: switch conversa antes ~300ms
+            // (executava 12 queries SQL), agora ~50ms (skip 9/12).
+            'conversations' => Inertia::defer(fn () => $this->buildConversationsPayload($convQuery, $orderColumn)),
+            'stats' => Inertia::defer(fn () => $this->buildStatsPayload($businessId, $userId)),
+            'availableChannels' => Inertia::defer(fn () => $this->buildAvailableChannelsPayload($businessId, $userId)),
+            'availableTags' => Inertia::defer(fn () => $this->buildAvailableTagsPayload($businessId)),
+
+            // ─── Eager: estados de UI leves (request inputs) ───────────
+            'tab' => $tab,
+            'q' => $q,
+            'channelFilter' => $channelFilter,
+            // Filtros novos — passa estado pra UI re-renderizar chips/dropdown.
+            // `within_24h` chega como bool|null (request->boolean retorna false
+            // p/ ausente — usar has() pra distinguir "não filtrado" de "false").
+            'within24h' => $request->has('within_24h') ? $request->boolean('within_24h') : null,
+            'unlinked' => $request->boolean('unlinked'),
+            'mediaInbound24h' => $request->boolean('media_inbound_24h'),
+            'inboundAging' => $request->input('inbound_aging'),
+            'orderBy' => $request->input('orderBy', 'last_message'),
+            'businessId' => $businessId,
+            // ─── Eager: thread+messages (alvo principal de partial reload `selectThread`) ───
+            'thread' => $thread,
+            'messages' => $messages,
+            // CYCLE-08 PR-A (US-WA-040): channel_id ativo no dropdown topbar
+            // (null = "Todos os canais"). Frontend usa pra marcar item selecionado
+            // no ChannelSelector + manter estado entre partial reloads.
+            'selectedChannelId' => $selectedChannelId,
+            'activeTagIds' => $activeTagIds,
+            'centrifugoConfig' => $centrifugoConfig,
+            // Caixa Unificada v4 — config static das filas (sem DB).
+            // Frontend usa pra renderizar pílulas + cor (hue) + SLA.
+            'queues' => (array) config('whatsapp.queues', []),
+            'defaultQueue' => (string) config('whatsapp.default_queue', 'comercial'),
+        ]);
+    }
+
+    /**
+     * D-14 perf 2026-05-15 — paginate(50) + map + meta. Movido pra closure
+     * defer no `index()`. Antes era eager → 1 query pesada (com subquery
+     * `last_message_type` per row) em toda troca de conversa, mesmo o
+     * partial reload só pedindo `['thread','messages']`. Inertia partial
+     * reload NÃO pula execução do Controller — só filtra resposta. defer
+     * IGNORA o callback quando `only` não contém esta prop.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $convQuery  Query já filtrada por business_id + ACL canal + filtros UI
+     * @return array{data: array, current_page: int, last_page: int, total: int}
+     */
+    protected function buildConversationsPayload($convQuery, string $orderColumn): array
+    {
+        // US-WA-043 — `last_message_type` exposto via subquery scalar pra UI
+        // mostrar ícone semântico (📷 image / 🎵 audio / 🎥 video / 📄 document)
+        // ao lado do preview da última msg. Evita N+1 escolhendo subquery
+        // correlated 1× por row no SELECT (1 EXISTS por linha, indexada em
+        // `messages.conversation_id` + `created_at`).
+        $paginated = $convQuery
+            ->with('tags:id,slug,label,color')
+            ->addSelect(['last_message_type' => Message::query()
+                ->select('type')
+                ->whereColumn('conversation_id', 'conversations.id')
+                ->orderByDesc('created_at')
+                ->limit(1),
+            ])
+            ->orderByDesc($orderColumn)
+            ->paginate(50);
+
+        return [
+            'data' => $paginated->getCollection()->map(fn (Conversation $c) => $this->convToListArray($c))->all(),
+            'current_page' => $paginated->currentPage(),
+            'last_page' => $paginated->lastPage(),
+            'total' => $paginated->total(),
+        ];
+    }
+
+    /**
+     * D-14 perf — 5 counts agregados. Filtrados por ACL canal (US-WA-069).
+     *
+     * @return array{unread: int, assigned: int, bot: int, awaiting_human: int, archived: int}
+     */
+    protected function buildStatsPayload(int $businessId, int $userId): array
+    {
+        $statsBase = fn () => tap(
+            Conversation::query()->where('business_id', $businessId),
+            fn ($q) => $this->applyChannelAclFilter($q, $businessId, $userId)
+        );
+
+        return [
+            'unread' => $statsBase()->where('unread_count', '>', 0)->count(),
+            'assigned' => $statsBase()->where('assigned_user_id', $userId)->count(),
+            'bot' => $statsBase()->where('bot_handling', true)->count(),
+            'awaiting_human' => $statsBase()->where('status', 'awaiting_human')->count(),
+            'archived' => $statsBase()->where('status', 'archived')->count(),
+        ];
+    }
+
+    /**
+     * D-14 perf — channels list + unread agregada per-canal. US-WA-069 ACL.
+     *
+     * @return array<int, array{id: int, label: string, type: string, display_identifier: ?string, channel_health: string, unread_count: int}>
+     */
+    protected function buildAvailableChannelsPayload(int $businessId, int $userId): array
+    {
         // CYCLE-08 PR-A (US-WA-040): incluir `display_identifier` (phone E.164)
         // + `channel_health` (semáforo healthy/degraded/disconnected/banned) +
         // `unread_count` (badge per-canal). Frontend `ChannelSelector` renderiza
@@ -293,19 +397,25 @@ class InboxController extends Controller
                 ->groupBy('channel_id')
                 ->pluck('total_unread', 'channel_id');
 
-        $availableChannels = $availableChannelsRaw->map(fn ($ch) => [
+        return $availableChannelsRaw->map(fn ($ch) => [
             'id' => $ch->id,
             'label' => $ch->label,
             'type' => $ch->type,
             'display_identifier' => $ch->display_identifier,
             'channel_health' => $ch->channel_health,
             'unread_count' => (int) ($unreadByChannel[$ch->id] ?? 0),
-        ]);
+        ])->all();
+    }
 
-        // US-WA-063: tags disponíveis no business (catálogo) + tags ativas
-        // (filtro UI). Seed automático no 1º load do business sem tags.
+    /**
+     * D-14 perf — tags catálogo + seed defaults idempotente (US-WA-063).
+     *
+     * @return array<int, array{id: int, slug: string, label: string, color: string}>
+     */
+    protected function buildAvailableTagsPayload(int $businessId): array
+    {
         $this->ensureDefaultTags($businessId);
-        $availableTags = Tag::query()
+        return Tag::query()
             ->where('business_id', $businessId)
             ->orderBy('sort_order')
             ->orderBy('label')
@@ -315,63 +425,7 @@ class InboxController extends Controller
                 'slug' => $t->slug,
                 'label' => $t->label,
                 'color' => $t->color,
-            ]);
-        $activeTagIds = $tagsFilter
-            ? array_filter(array_map('intval', explode(',', $tagsFilter)))
-            : [];
-
-        // Centrifugo real-time (ADR 0058 + US-WA-059) — channel
-        // `omnichannel:business:{id}` segregado por business_id (Tier 0).
-        // Token JWT HS256 ttl curto, re-emitido a cada page load. Se
-        // emissor falhar (secret ausente, etc), payload vira null e o
-        // frontend cai pra polling fallback.
-        $channel = "omnichannel:business:{$businessId}";
-        $token = $tokenIssuer->issue(
-            $userId,
-            [$channel],
-            (int) config('whatsapp.centrifugo.token_ttl_seconds', 3600)
-        );
-        $centrifugoConfig = $token !== null ? [
-            'wsUrl' => config('whatsapp.centrifugo.ws_url'),
-            'token' => $token,
-            'channel' => $channel,
-        ] : null;
-
-        return Inertia::render('Atendimento/Inbox/Index', [
-            'conversations' => [
-                'data' => $conversationsForUi,
-                'current_page' => $paginated->currentPage(),
-                'last_page' => $paginated->lastPage(),
-                'total' => $paginated->total(),
-            ],
-            'tab' => $tab,
-            'q' => $q,
-            'channelFilter' => $channelFilter,
-            'stats' => $stats,
-            // Filtros novos — passa estado pra UI re-renderizar chips/dropdown.
-            // `within_24h` chega como bool|null (request->boolean retorna false
-            // p/ ausente — usar has() pra distinguir "não filtrado" de "false").
-            'within24h' => $request->has('within_24h') ? $request->boolean('within_24h') : null,
-            'unlinked' => $request->boolean('unlinked'),
-            'mediaInbound24h' => $request->boolean('media_inbound_24h'),
-            'inboundAging' => $request->input('inbound_aging'),
-            'orderBy' => $request->input('orderBy', 'last_message'),
-            'businessId' => $businessId,
-            'thread' => $thread,
-            'messages' => $messages,
-            'availableChannels' => $availableChannels,
-            // CYCLE-08 PR-A (US-WA-040): channel_id ativo no dropdown topbar
-            // (null = "Todos os canais"). Frontend usa pra marcar item selecionado
-            // no ChannelSelector + manter estado entre partial reloads.
-            'selectedChannelId' => $selectedChannelId,
-            'availableTags' => $availableTags,
-            'activeTagIds' => $activeTagIds,
-            'centrifugoConfig' => $centrifugoConfig,
-            // Caixa Unificada v4 — config static das filas (sem DB).
-            // Frontend usa pra renderizar pílulas + cor (hue) + SLA.
-            'queues' => (array) config('whatsapp.queues', []),
-            'defaultQueue' => (string) config('whatsapp.default_queue', 'comercial'),
-        ]);
+            ])->all();
     }
 
     /**
