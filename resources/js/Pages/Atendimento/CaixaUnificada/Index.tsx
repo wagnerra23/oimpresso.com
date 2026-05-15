@@ -74,6 +74,13 @@ interface Props {
    */
   statusFilter: CaixaUnifStatus | CaixaUnifTab;
   channelTypeFilter: string | null;
+  // Wave 5 F1 — filtros power-user (sincronizam URL)
+  within24h?: boolean | null;
+  unlinked?: boolean;
+  mediaInbound24h?: boolean;
+  inboundAging?: '6h' | '12h' | '24h' | '48h' | '7d' | null;
+  orderBy?: 'last_message' | 'inbound';
+  activeTagIds?: number[];
   accountFilter: number | null;
   queueFilter: string | null;
   q: string;
@@ -90,6 +97,7 @@ export default function CaixaUnificadaIndex({
   statusFilter, channelTypeFilter, accountFilter, queueFilter: _queueFilter, q,
   thread, messages, centrifugoConfig,
   queues, defaultQueue: _defaultQueue,
+  within24h, unlinked, mediaInbound24h, inboundAging, orderBy,
 }: Props) {
   // Centrifugo real-time (US-WA-068 anti-flash com preserveScroll + preserveState)
   useEffect(() => {
@@ -411,6 +419,11 @@ export default function CaixaUnificadaIndex({
             status={statusFilter}
             q={q}
             onSelect={selectThread}
+            within24h={within24h}
+            unlinked={unlinked}
+            mediaInbound24h={mediaInbound24h}
+            inboundAging={inboundAging}
+            orderBy={orderBy}
           />
         </Deferred>
 
