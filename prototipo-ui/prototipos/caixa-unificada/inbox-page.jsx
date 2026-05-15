@@ -1,17 +1,65 @@
-// inbox-page.jsx — Caixa unificada (Omnichannel) integrada ao ERP.
+// inbox-page.jsx — Caixa unificada V4 · FONTE VISUAL CANÔNICA pro repo
+// ─────────────────────────────────────────────────────────────────────────────
 //
-// Princípio de layout: a tela é 3-col (lista / thread / contexto) sem barras
-// horizontais no topo. TODOS os controles de filtro vivem DENTRO da coluna
-// Conversas — busca inline + botão Filtros (popover com Status/Fila/Canal/Conta).
+// Este arquivo é a SOURCE-OF-TRUTH visual de `/atendimento/caixa-unificada`
+// (wagnerra23/oimpresso.com) — citada explicitamente no charter do repo:
+//   resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md →
+//   visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
 //
-// Features:
-//   • 7 canais × N contas por canal (3 WA Baileys ativos em paralelo)
-//   • Filas de atendimento com regras de distribuição (round-robin / sticky / manual)
-//   • Atribuição (assignee) por conversa
-//   • Nota interna no composer (⌘⇧N)
-//   • Macros (popover + slash `/`) e Templates (Cloud API) dentro do composer
-//   • Broadcast cross-canal
-//   • Painel Canais (lista de contas) e painel Filas (config de filas)
+// SINCRONIZAÇÃO (2026-05-15):
+//
+// ✅ Mergeado em PR-D (paridade 88% — visual_comparison.md):
+//    • 3-col 320/1fr/300 limpo
+//    • Chips horizontais de canais + sub-row de contas com handle mono
+//    • Sidebar 8 sections (Fila/Atribuído/Canal/Tags/OS/Saldo/Histórico/Último/Ações)
+//    • Banner amarelo "em homologação" pra preview_only
+//    • Toggle Resp/Nota (⌘⇧N) com bolha amarela tracejada
+//    • Status filter dropdown · busca inline
+//    • Centrifugo real-time + polling 5s defensive · Inertia::defer
+//    • Multi-tenant Tier 0 (ADR 0093) · ACL canal=fila (US-WA-069)
+//
+// 🔜 PENDENTE pra próximo PR (gaps marcados com `TODO US-WA-3XX` no código):
+//    • US-WA-301 — Filas DB + drawer config (label/hue/sla/dist/members/trigger_tags)
+//    • US-WA-302 — Assignee picker no Contexto (select operators ativos)
+//    • US-WA-303 — Slash macros inline + Templates picker inline no composer
+//    • US-WA-304 — Drawer "Canais e contas" agrupado por type (vs link /canais)
+//    • US-WA-305 — Mover conversa entre filas (override manual da heurística tag→fila)
+//    • US-WA-306 — Broadcast cross-canal real (janela 24h Meta + opt-in LGPD)
+//    • US-WA-307 — + Nova conversa (ContactPickerModal · template inicial · novo channel)
+//
+// GANHOS DO PR-D ABSORVIDOS NESTE PROTÓTIPO:
+//    ✓ Templates como dropdown agrupando "Jana (IA)" + "HSM Meta-aprovados"
+//    ✓ a11y completa: role="tab" · aria-selected · aria-label · focus-visible ring
+//    ✓ data-testid="caixa-unif-*" — paridade com testes Pest (R-WA-CAIXA-UNIF-001/002/003)
+//    ✓ Skeleton loader nos chips quando Deferred resolve
+//    ✓ TODO US-WA-3XX honestos (anti-pattern M-AP-1 LICOES_F3 §1)
+//
+// PADRÕES (não inventar):
+//    • Tokens canônicos OKLCH (CLAUDE_DESIGN_BRIEFING.md §4)
+//    • Hue por canal: WA 145 · IG 0 · FB 250 · Email 280 · ML 95
+//    • Hue por fila: Vendas 220 · Pós-venda 145 · Financeiro 280 · Produção 30 · Geral 60
+//    • Sem emoji em UI produtiva · PT-BR sempre · sem rounded-xl+
+//
+// COMPONENTES MOCK (no repo real são shadcn):
+//    Cá:                 No repo (resources/js/Pages/Atendimento/CaixaUnificada/_components):
+//    ─────────────────   ─────────────────────────────────────────────────────────────────
+//    <ChannelGlyph>      ChannelChipsRow.tsx (chips + sub-row contas)
+//    <OpAvatar>          ContextSidebarV4 (assignee placeholder)
+//    <QueueChip>         helpers.ts (queueColors) + ConversationListV4 (chip lateral 3px)
+//    <om-bub>            ConversationThreadV4 (bubbles inbound/outbound + internal note)
+//    <om-input>          ComposerV4 (toggle Resp/Nota + ⌘⇧N + send via inbox.send)
+//    drawers locais      Inertia::defer + Deferred fallback skeletons
+//
+// Wagner pode pedir mudanças neste arquivo a qualquer momento — [CL] reabsorve
+// na próxima rodada do RUNBOOK `cowork-prototype-replication` (ADR 0114).
+//
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Princípio de layout: 3-col sem barras horizontais empilhadas no topo;
+// canais + contas em pílulas acima da shell · status/busca/filtro restritos
+// à coluna Conversas; Fila/Atribuído no Contexto (coluna direita) pra não
+// roubar foco do thread (Princípio: thread > tudo).
+//
 (() => {
 const { useState, useMemo, useRef, useEffect } = React;
 
@@ -193,6 +241,7 @@ function InboxPage() {
   const [bcastOpen, setBcastOpen] = useState(false);
   const [chSwitcherOpen, setChSwitcherOpen] = useState(false);
   const [queuesOpen, setQueuesOpen] = useState(false);
+  const [tplMenuOpen, setTplMenuOpen] = useState(false);  // dropdown Templates do header (Jana+HSM)
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filter, setFilter] = useState("all");           // canal
   const [accFilter, setAccFilter] = useState("all");     // conta
@@ -329,33 +378,87 @@ function InboxPage() {
 
   // ── Render ────────────────────────────────────────────────────────
   return (
-    <div className="os-page om-page" data-screen-label="01 Caixa unificada">
+    <div className="os-page om-page" data-screen-label="01 Caixa unificada" data-testid="caixa-unif-page">
       <div className="os-page-h">
         <div className="os-page-h-l">
           <h1>Caixa unificada</h1>
           <p>{headerSub}</p>
         </div>
         <div className="os-page-h-r">
-          <button className="os-btn ghost" onClick={() => setQueuesOpen(v => !v)}>Filas</button>
-          <button className="os-btn ghost" onClick={() => setChSwitcherOpen(v => !v)}>Canais</button>
-          <button className="os-btn ghost" onClick={() => setBcastOpen(true)}>Broadcast</button>
-          <button className="os-btn primary">+ Nova conversa</button>
+          {/* Templates dropdown — agrupa Jana (IA prompts) + HSM Meta (aprovados).
+              Paridade com Index.tsx do repo (PR-D 2026-05-15). */}
+          <div className="om-dd-wrap">
+            <button
+              className="os-btn ghost"
+              onClick={() => setTplMenuOpen(v => !v)}
+              aria-haspopup="menu"
+              aria-expanded={tplMenuOpen}
+              data-testid="caixa-unif-topnav-templates">
+              Templates <span style={{ fontSize: 9, marginLeft: 4, opacity: 0.6 }}>▾</span>
+            </button>
+            {tplMenuOpen && (
+              <>
+                <div className="om-dd-backdrop" onClick={() => setTplMenuOpen(false)}/>
+                <div className="om-dd-menu" role="menu">
+                  <small className="om-dd-label">Bibliotecas de templates</small>
+                  <button className="om-dd-item" role="menuitem" data-testid="caixa-unif-topnav-templates-jana"
+                          onClick={() => { setTplMenuOpen(false); setToast("Abriria /atendimento/canais/jana-templates"); }}>
+                    <span className="om-dd-icon jana">✨</span>
+                    <span className="om-dd-text">
+                      <b>Templates Jana</b>
+                      <small>Prompts internos IA</small>
+                    </span>
+                  </button>
+                  <button className="om-dd-item" role="menuitem" data-testid="caixa-unif-topnav-templates-hsm"
+                          onClick={() => { setTplMenuOpen(false); setToast("Abriria /whatsapp/templates"); }}>
+                    <span className="om-dd-icon hsm">▣</span>
+                    <span className="om-dd-text">
+                      <b>Templates HSM</b>
+                      <small>Meta-aprovados (fora 24h)</small>
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          {/* TODO US-WA-301: Filas DB + drawer config (hoje hardcoded em QUEUES array) */}
+          <button className="os-btn ghost" onClick={() => setQueuesOpen(v => !v)}
+                  data-testid="caixa-unif-topnav-filas">Filas</button>
+          {/* TODO US-WA-304: Drawer in-place vs link pra /atendimento/canais (decisão do roadmap §5) */}
+          <button className="os-btn ghost" onClick={() => setChSwitcherOpen(v => !v)}
+                  data-testid="caixa-unif-topnav-canais">Canais</button>
+          {/* TODO US-WA-306: Broadcast real (janela 24h Meta + opt-in LGPD + dry-run preview) */}
+          <button className="os-btn ghost" onClick={() => setBcastOpen(true)}
+                  data-testid="caixa-unif-topnav-broadcast">Broadcast</button>
+          {/* TODO US-WA-307: + Nova conversa (ContactPickerModal + template inicial) */}
+          <button className="os-btn primary"
+                  data-testid="caixa-unif-topnav-nova">+ Nova conversa</button>
         </div>
       </div>
 
-      {/* ───── Filtro horizontal de canais ───── */}
-      <div className="om-filter">
-        <button className={"om-fil " + (filter === "all" ? "sel" : "")} onClick={() => setFilter("all")}>
+      {/* ───── Filtro horizontal de canais ─────
+          Paridade ChannelChipsRow.tsx do repo. role=tablist + aria-selected
+          + data-testid pra teste Pest. */}
+      <div className="om-filter" role="tablist" aria-label="Filtrar por canal">
+        <button className={"om-fil " + (filter === "all" ? "sel" : "")}
+                onClick={() => setFilter("all")}
+                role="tab"
+                aria-selected={filter === "all"}
+                data-testid="caixa-unif-channel-chip-all">
           <span>Todos</span><em>{counts.all}</em>
         </button>
         {CHANNELS.map(ch => {
           const n = counts[ch.id] || 0;
           const isComing = ch.status === "em breve";
+          const isSel = filter === ch.id;
           return (
             <button key={ch.id}
-                    className={"om-fil " + (filter === ch.id ? "sel " : "") + (isComing ? "coming" : "")}
+                    className={"om-fil " + (isSel ? "sel " : "") + (isComing ? "coming" : "")}
                     onClick={() => setFilter(ch.id)}
-                    title={ch.label}>
+                    role="tab"
+                    aria-selected={isSel}
+                    title={ch.label}
+                    data-testid={`caixa-unif-channel-chip-${ch.id}`}>
               <ChannelGlyph ch={ch} size={13}/>
               <span>{ch.short}</span>
               {isComing ? <em className="soon">em breve</em> : <em>{n}</em>}
@@ -364,20 +467,28 @@ function InboxPage() {
         })}
       </div>
 
-      {/* ───── Filtro horizontal de contas (quando canal selecionado) ───── */}
+      {/* ───── Sub-row de contas (quando 2+ contas no canal selecionado) ───── */}
       {filter !== "all" && accountsForFilter.length > 1 && (
-        <div className="om-filter sub">
-          <button className={"om-fil sm " + (accFilter === "all" ? "sel" : "")} onClick={() => setAccFilter("all")}>
+        <div className="om-filter sub" role="tablist" aria-label="Filtrar por conta">
+          <button className={"om-fil sm " + (accFilter === "all" ? "sel" : "")}
+                  onClick={() => setAccFilter("all")}
+                  role="tab"
+                  aria-selected={accFilter === "all"}
+                  data-testid="caixa-unif-account-chip-all">
             <span>Todas as contas</span><em>{accountsForFilter.length}</em>
           </button>
           {accountsForFilter.map(acc => {
             const n = counts["acc_" + acc.id] || 0;
             const isComing = acc.status === "em breve";
+            const isSel = accFilter === acc.id;
             return (
               <button key={acc.id}
-                      className={"om-fil sm " + (accFilter === acc.id ? "sel " : "") + (isComing ? "coming" : "")}
+                      className={"om-fil sm " + (isSel ? "sel " : "") + (isComing ? "coming" : "")}
                       onClick={() => setAccFilter(acc.id)}
-                      title={`${acc.label} · ${acc.handle}`}>
+                      role="tab"
+                      aria-selected={isSel}
+                      title={`${acc.label} · ${acc.handle}`}
+                      data-testid={`caixa-unif-account-chip-${acc.id}`}>
                 <b>{acc.label}</b>
                 <span className="mono">{acc.handle}</span>
                 {isComing ? <em className="soon">em breve</em> : <em>{n}</em>}
@@ -406,8 +517,11 @@ function InboxPage() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar nome, empresa, texto…"/>
-            {search && <button className="om-list-search-x" onClick={() => setSearch("")} title="Limpar busca">✕</button>}
+              placeholder="Buscar nome, empresa, texto…"
+              aria-label="Buscar nas conversas"
+              data-testid="caixa-unif-search"/>
+            {search && <button className="om-list-search-x" onClick={() => setSearch("")}
+                               aria-label="Limpar busca" title="Limpar busca">✕</button>}
           </div>
 
           {filteredConvs.length === 0 ? (
@@ -425,6 +539,8 @@ function InboxPage() {
                   <li key={c.id}
                       className={(selId === c.id ? "sel " : "") + (c.preview_only ? "ghost" : "")}
                       onClick={() => setSelId(c.id)}
+                      data-testid={`caixa-unif-conv-${c.id}`}
+                      aria-current={selId === c.id ? "true" : undefined}
                       style={{ "--om-q-color": q ? `oklch(0.62 0.13 ${q.hue})` : "transparent" }}>
                     <span className="om-av-wrap">
                       <span className="om-av" style={{ background: `oklch(0.60 0.12 ${c.avc})` }}>
@@ -561,14 +677,22 @@ function InboxPage() {
               <div className={"om-input " + (internalMode ? "internal" : "")}>
                 <button className={"om-mode-btn " + (internalMode ? "on" : "")}
                         onClick={() => setInternalMode(v => !v)}
-                        title="Resposta cliente / Nota interna (⌘⇧N)">
+                        aria-label={internalMode ? "Modo nota interna ativo (⌘⇧N pra voltar)" : "Alternar pra nota interna (⌘⇧N)"}
+                        aria-pressed={internalMode}
+                        title="Resposta cliente / Nota interna (⌘⇧N)"
+                        data-testid="caixa-unif-mode-toggle">
                   {internalMode ? "Nota" : "Resp"}
                 </button>
-                <button className="om-icon-btn" onClick={() => { setShowTpl(v => !v); setShowMacros(false); }} title="Templates" disabled={internalMode}>⌘T</button>
-                <button className="om-icon-btn" onClick={() => { setShowMacros(v => !v); setShowTpl(false); }} title="Macros" disabled={internalMode}>/</button>
+                <button className="om-icon-btn" onClick={() => { setShowTpl(v => !v); setShowMacros(false); }}
+                        aria-label="Templates do canal (⌘T)" title="Templates" disabled={internalMode}>⌘T</button>
+                {/* TODO US-WA-303: slash macros inline + autocomplete (já prototipado em om-slash-pop) */}
+                <button className="om-icon-btn" onClick={() => { setShowMacros(v => !v); setShowTpl(false); }}
+                        aria-label="Macros (atalhos / slash)" title="Macros" disabled={internalMode}>/</button>
                 <input
                   ref={inputRef}
                   value={draft}
+                  data-testid="caixa-unif-composer-input"
+                  aria-label={internalMode ? "Nota interna" : "Mensagem para o cliente"}
                   onChange={e => {
                     const v = e.target.value;
                     setDraft(v);
@@ -593,6 +717,7 @@ function InboxPage() {
                   className={"os-btn " + (internalMode ? "" : "primary")}
                   onClick={() => sendMsg()}
                   disabled={!draft.trim() || (isPreview && !internalMode)}
+                  data-testid="caixa-unif-composer-send"
                   style={internalMode ? { background: "oklch(0.70 0.14 80)", color: "oklch(0.20 0.10 80)" } : null}>
                   {internalMode ? "Anotar" : "Enviar"}
                 </button>
@@ -611,7 +736,12 @@ function InboxPage() {
                 {isPreview ? (
                   <b><QueueChip q={convQueue}/></b>
                 ) : (
-                  <select className="om-ctx-select" value={conv.queue || ""} onChange={e => moveToQueue(e.target.value)}>
+                  /* TODO US-WA-305: Mover conversa entre filas (hoje fila vem da heurística
+                     tag→fila em deriveQueueFromTags() do CaixaUnificadaController; override
+                     manual precisa nova coluna conversations.queue_slug nullable). */
+                  <select className="om-ctx-select" value={conv.queue || ""} onChange={e => moveToQueue(e.target.value)}
+                          aria-label="Mover conversa para outra fila"
+                          data-testid="caixa-unif-ctx-queue-select">
                     {QUEUES.map(q => <option key={q.id} value={q.id}>{q.label}</option>)}
                   </select>
                 )}
@@ -624,7 +754,12 @@ function InboxPage() {
                 {isPreview ? (
                   <b>— sem atribuição</b>
                 ) : (
-                  <select className="om-ctx-select" value={conv.assignee || ""} onChange={e => reassign(e.target.value)}>
+                  /* TODO US-WA-302: Assignee picker real — hoje OPERATORS é mock; deve buscar
+                     users do business com permission `whatsapp.access` ATIVA + presence
+                     online/offline (Centrifugo). Backend reusa conversations.assigned_user_id. */
+                  <select className="om-ctx-select" value={conv.assignee || ""} onChange={e => reassign(e.target.value)}
+                          aria-label="Atribuir conversa para operador"
+                          data-testid="caixa-unif-ctx-assignee-select">
                     <option value="">— sem atribuição</option>
                     {Object.values(OPERATORS).map(op => <option key={op.id} value={op.id}>{op.name}</option>)}
                   </select>
