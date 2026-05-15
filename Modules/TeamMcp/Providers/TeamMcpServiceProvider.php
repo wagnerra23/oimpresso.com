@@ -3,12 +3,16 @@
 namespace Modules\TeamMcp\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\TeamMcp\Console\Commands\SeedActorsCommand;
 
 /**
  * ServiceProvider do módulo TeamMcp.
  *
  * Modelado conforme Modules/Copiloto/Providers/CopilotoServiceProvider.php.
  * Rotas carregadas via start.php (ver module.json "files").
+ *
+ * Commands artisan registrados em runningInConsole():
+ *   - team-mcp:seed-actors — popular 5 manifests Identity Mesh (ADR 0081)
  */
 class TeamMcpServiceProvider extends ServiceProvider
 {
@@ -22,6 +26,12 @@ class TeamMcpServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                SeedActorsCommand::class,
+            ]);
+        }
     }
 
     public function register(): void
