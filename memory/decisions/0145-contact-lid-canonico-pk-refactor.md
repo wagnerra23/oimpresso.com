@@ -1,6 +1,31 @@
+---
+slug: 0145-contact-lid-canonico-pk-refactor
+number: 145
+title: "Refactor contact_lid como chave canônica de identidade WhatsApp"
+type: adr
+status: proposto
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: 2026-05-15
+module: whatsapp
+quarter: 2026-Q2
+tags: [whatsapp, identity, lid, refactor, feature-wish]
+related:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0117-multi-numero-business-phone
+  - 0135-omnichannel-inbox-arquitetura
+pii: false
+review_triggers:
+  - segundo_cross_contact_incident
+  - cloud_api_canary_biz99_promovido
+  - volume_biz1_5x_ou_novo_vertical
+---
+
 # ADR 0145 — Refactor `contact_lid` como chave canônica de identidade WhatsApp (feature-wish)
 
-- **Status:** feature-wish ([ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md) — aguarda sinal qualificado pra implementação)
+- **Status:** proposto (feature-wish — [ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md) aguarda sinal qualificado pra implementação)
 - **Data:** 2026-05-15
 - **Proponente:** Wagner [W+C]
 - **Decisores:** Wagner
