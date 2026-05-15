@@ -1,6 +1,6 @@
-import { setTimeout as sleep } from 'node:timers/promises';
+﻿import { setTimeout as sleep } from 'node:timers/promises';
 import type { WAPresence } from '@whiskeysockets/baileys';
-import type { Instance } from './Instance';
+import type { Instance } from './Instance.js';
 
 // ------------------------------------------------------------------------------------------------
 // US-WA-094 — Anti-ban middleware (P1)

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ------------------------------------------------------------------------------------------------
 // Vitest spec do migrate-fs-to-mysql.ts.
@@ -108,8 +108,8 @@ vi.mock('node:fs/promises', () => {
 });
 
 import mysql from 'mysql2/promise';
-import { deriveKeyId, listSessionDirs, migrateInstance } from './migrate-fs-to-mysql';
-import { decodeEncryptionKey } from './_crypto';
+import { deriveKeyId, listSessionDirs, migrateInstance } from './migrate-fs-to-mysql.js';
+import { decodeEncryptionKey } from './_crypto.js';
 
 const ENCRYPTION_KEY = decodeEncryptionKey(`base64:${Buffer.alloc(32, 7).toString('base64')}`);
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, vi } from 'vitest';
+﻿import { describe, expect, it, beforeEach, vi } from 'vitest';
 import {
   type AntiBanConfig,
   type InstanceLike,
@@ -10,7 +10,7 @@ import {
   resetQuotaState,
   sendWithAntiBan,
   warmupQuotaPerHour,
-} from './antiBan';
+} from './antiBan.js';
 
 // ------------------------------------------------------------------------------------------------
 // US-WA-094 — vitest spec do anti-ban middleware

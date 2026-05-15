@@ -1,5 +1,5 @@
-import { pino, type Logger } from 'pino';
-import type { Env } from './env';
+﻿import { pino, type Logger } from 'pino';
+import type { Env } from './env.js';
 
 export function createRootLogger(env: Env): Logger {
   const transport = env.LOG_PRETTY
