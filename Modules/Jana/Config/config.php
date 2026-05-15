@@ -237,6 +237,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | GAP D7 #2 — Freshness Pipeline (auditoria memoria-senior 2026-05-15)
+    |--------------------------------------------------------------------------
+    | Pipeline ativo de frescura sobre `mcp_memory_documents`. Complementa o
+    | time_decay (query-time score) com observability de pipeline (index-time
+    | health). 4 níveis: FRESH (<=1d) / WARM (<7d) / STALE (<30d) / CRITICAL (>=30d).
+    |
+    | `jana:freshness-check` (cron daily 04:30 BRT em app/Console/Kernel.php)
+    | classifica + detecta drift DB↔git + alerta CRITICAL (idempotente por dia)
+    | + dispatcha ReindexarDocumentoJob pra stale/drift (max 50/execução).
+    |
+    | Ajustar thresholds via env JANA_FRESHNESS_THRESHOLD_*. Desabilitar todo
+    | pipeline via JANA_FRESHNESS_PIPELINE=false.
+    |
+    | Métricas alvo (alvo 2026 dossier auditoria): >=80% FRESH+WARM combinados.
+    */
+    'freshness' => [
+        'enabled'      => env('JANA_FRESHNESS_PIPELINE', true),
+        'auto_reindex' => env('JANA_FRESHNESS_AUTO_REINDEX', false),
+        'thresholds_days' => [
+            'fresh' => (int) env('JANA_FRESHNESS_THRESHOLD_FRESH', 1),
+            'warm'  => (int) env('JANA_FRESHNESS_THRESHOLD_WARM', 7),
+            'stale' => (int) env('JANA_FRESHNESS_THRESHOLD_STALE', 30),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | K1 — Time-decay weighting recall (Onda 5 — ADR 0061 + dossier 2026-05-13)
     |--------------------------------------------------------------------------
     | Half-life decay aplicado pós-recall, pré-rerank em MeilisearchDriver::buscar.
@@ -368,5 +395,79 @@ return [
         'url'              => env('COPILOTO_MCP_URL', 'https://mcp.oimpresso.com/api/mcp'),
         'system_token'     => env('COPILOTO_MCP_SYSTEM_TOKEN', ''),
         'timeout_seconds'  => env('COPILOTO_MCP_TIMEOUT', 5),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | GAP D3 #1 — Contextual Retrieval Anthropic (2024-09-19 / oimpresso 2026-05-15)
+    |--------------------------------------------------------------------------
+    | Anthropic blog "Introducing Contextual Retrieval": LLM cheap (Haiku) gera
+    | contexto curto (50-100 tokens) descrevendo doc de origem ANTES de embed/BM25.
+    |   - Embeddings: -49% failed retrievals
+    |   - + Contextual BM25 + reranking: -67% failed retrievals
+    |
+    | Custo: ~$1.02/1M tokens cached (Haiku 4.5). Pra ~1.500 docs oimpresso,
+    | steady state estimado <$1/dia.
+    |
+    | Default DESLIGADO. Wagner ativa em homolog após validação.
+    |
+    | Backfill canônico:
+    |   php artisan jana:contextualize-backfill --limit=100
+    |
+    | Feature flag IRREVOGÁVEL pra reverter sem migration rollback:
+    |   JANA_CONTEXTUAL_RETRIEVAL=false  → service no-op, content_md raw indexado
+    |
+    | Mock mode pra Pest local (não chama API, custo zero):
+    |   CONTEXTUAL_RETRIEVAL_FORCE_MOCK=true
+    |
+    | @see https://www.anthropic.com/news/contextual-retrieval
+    | @see memory/requisitos/Jana/CONTEXTUAL-RETRIEVAL-ANTHROPIC.md
+    */
+    'contextual_retrieval' => [
+        'enabled'             => (bool) env('JANA_CONTEXTUAL_RETRIEVAL', false),
+        'force_mock'          => (bool) env('CONTEXTUAL_RETRIEVAL_FORCE_MOCK', false),
+        'cheap_model'         => env('JANA_CHEAP_MODEL', 'claude-haiku-4-5-20251001'),
+        'api_key'             => env('ANTHROPIC_API_KEY', ''),
+        'max_chunk_chars'     => (int) env('JANA_CONTEXTUAL_MAX_CHUNK_CHARS', 3200),  // ~800 tokens
+        'context_max_tokens'  => (int) env('JANA_CONTEXTUAL_CONTEXT_MAX_TOKENS', 100),
+        'max_doc_chars'       => (int) env('JANA_CONTEXTUAL_MAX_DOC_CHARS', 200_000), // ~50k tokens
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | D8 gap #3 — OTel GenAI retrieval spans (2026-05-15, +2pp 86→88)
+    |--------------------------------------------------------------------------
+    | Quando `retrieval_spans_enabled=true`, MemoriaContrato é wrappado por
+    | RetrievalTelemetryDecorator que emite spans OTel GenAI canônicos pra
+    | cada query do pipeline retrieval Jana. Atributos seguem semantic
+    | conventions https://opentelemetry.io/docs/specs/semconv/gen-ai/.
+    |
+    | Spans canônicos emitidos:
+    |   jana.retrieval.query (root) + sub-spans prontos no SpanBuilder
+    |   (negative_cache, hyde, embedding, bm25, merge, time_decay, rerank,
+    |    context_select) — wireados em PR Onda 7 quando MeilisearchDriver
+    |    expor hooks de instrumentação.
+    |
+    | Default DESLIGADO em prod — Wagner liga JANA_RETRIEVAL_SPANS=true após
+    | validar overhead (~5-15ms/query) em homolog.
+    |
+    | redact_query=true (default): query vai como sha256 hash em span
+    | attribute `gen_ai.retrieval.query`, NUNCA raw (PII Tier 0 LGPD ADR 0093).
+    |
+    | audit_log_enabled=true (default): persiste linha em mcp_audit_log
+    | endpoint=jana.retrieval com payload_summary (latência, candidates_count,
+    | top_k, query_hash, rerank_driver, embedder).
+    |
+    | Consumers: Langfuse self-host CT 100 (LangfuseClient::recordSpan),
+    | Log channel default (debug local), mcp_audit_log (governança ADR 0053).
+    |
+    | @see Modules/Jana/Services/Memoria/Telemetry/RetrievalSpanBuilder.php
+    | @see memory/requisitos/Jana/OTEL-RETRIEVAL-SPANS.md
+    | @see memory/decisions/0051-jana-schema-proprio-adapter-otel-genai.md
+    */
+    'telemetry' => [
+        'retrieval_spans_enabled' => (bool) env('JANA_RETRIEVAL_SPANS', false),
+        'redact_query'            => (bool) env('JANA_REDACT_QUERY_IN_SPANS', true),
+        'audit_log_enabled'       => (bool) env('JANA_RETRIEVAL_AUDIT_LOG', true),
     ],
 ];
