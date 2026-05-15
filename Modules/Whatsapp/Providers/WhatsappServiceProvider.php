@@ -10,6 +10,11 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
+use Modules\Whatsapp\Console\Commands\CustomerMemoryBackfillCommand;
+use Modules\Whatsapp\Console\Commands\CustomerMemoryEnrichFirebirdCommand;
+use Modules\Whatsapp\Console\Commands\CustomerMemoryRefreshDailyCommand;
+use Modules\Whatsapp\Console\Commands\EmployeePerformanceBackfillCommand;
+use Modules\Whatsapp\Console\Commands\EmployeePerformanceRefreshDailyCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\ChannelResetCommand;
 use Modules\Whatsapp\Console\Commands\CleanupStaleJobsCommand;
@@ -39,6 +44,7 @@ use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
 use Modules\Whatsapp\Listeners\DispatchToJanaBot;
 use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
+use Modules\Whatsapp\Listeners\TouchCustomerMemoryOnMessage;
 use Modules\Whatsapp\Listeners\PublishMessageReceivedToCentrifugo;
 use Modules\Whatsapp\Listeners\PublishMessageSentToCentrifugo;
 use Modules\Whatsapp\Listeners\PublishOmnichannelToCentrifugo;
@@ -100,6 +106,14 @@ class WhatsappServiceProvider extends ServiceProvider
                 CleanupStaleJobsCommand::class,         // US-WA-084 — purga jobs presos da fila whatsapp-history (>6h)
                 DaemonSourceDriftCheckCommand::class,   // 2026-05-13 — alerta drift main↔daemon CT 100 (cron weekly)
                 WhatsappAuthStateDriftCheckCommand::class, // 2026-05-15 — alerta drift auth_state↔channels pós incident Baileys 7.x deploy (cron daily 03h BRT)
+                // US-WA-VOZ-001 — Customer Memory foundation (2026-05-15)
+                CustomerMemoryBackfillCommand::class,
+                CustomerMemoryRefreshDailyCommand::class,
+                // US-WA-VOZ-002 — Enrichment Firebird OfficeImpresso (2026-05-15)
+                CustomerMemoryEnrichFirebirdCommand::class,
+                // US-WA-VOZ-003 — Employee Performance scorecard (2026-05-15)
+                EmployeePerformanceBackfillCommand::class,
+                EmployeePerformanceRefreshDailyCommand::class,
             ]);
         }
 
@@ -146,6 +160,12 @@ class WhatsappServiceProvider extends ServiceProvider
         // `omnichannel:business:{id}` separado do canal legacy acima.
         Event::listen(OmnichannelMessageReceived::class, PublishOmnichannelToCentrifugo::class);
         Event::listen(OmnichannelMessageSent::class, PublishOmnichannelToCentrifugo::class);
+
+        // US-WA-VOZ-001 — Customer Memory (perfil persistente do cliente final).
+        // Listener síncrono: cheap path UPSERT last_interaction_at + dispatch
+        // RebuildCustomerMemoryJob assíncrono se memória stale (>6h default).
+        Event::listen(OmnichannelMessageReceived::class, TouchCustomerMemoryOnMessage::class);
+        Event::listen(OmnichannelMessageSent::class, TouchCustomerMemoryOnMessage::class);
 
         // Bot Jana — Sprint 3 prep (default disabled via config('whatsapp.bot.enabled'))
         Event::listen(WhatsappMessageReceived::class, DispatchToJanaBot::class);

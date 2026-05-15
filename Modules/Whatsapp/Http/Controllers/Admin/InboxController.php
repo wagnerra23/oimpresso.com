@@ -785,6 +785,20 @@ class InboxController extends Controller
         //
         // US-WA-071: notas internas nascem com status='sent' direto (sem
         // dispatch driver) — Centrifugo distribui pros atendentes do business.
+        //
+        // US-WA-VOZ-003 (2026-05-15): Auto-prefix `*FirstName:* ` no body
+        // outbound humano freeform. Cliente vê quem responde + heurística
+        // `EmployeePerformanceRebuilder` captura 100% mesmo sem sender_user_id.
+        // Idempotente: pula se body já começa com `*Nome:*` (atendente já
+        // digitou) ou se é template/nota-interna (slash commands fazem prefix
+        // próprio).
+        $finalBody = $this->maybeAutoPrefixSenderName(
+            $data['body'] ?? null,
+            $userId,
+            (bool) $isInternalNote,
+            $data['kind'] === 'template',
+        );
+
         $message = Message::query()->create([
             'business_id' => $businessId,
             'conversation_id' => $conversation->id,
@@ -792,7 +806,7 @@ class InboxController extends Controller
             'provider' => $channel->type,
             'type' => $data['kind'] === 'template' ? 'template' : 'text',
             'template_name' => $data['template_name'] ?? null,
-            'body' => $data['body'] ?? null,
+            'body' => $finalBody,
             'status' => $isInternalNote ? 'sent' : 'queued',
             'sender_user_id' => $userId ?: null,
             'sender_kind' => 'human',
@@ -1759,5 +1773,63 @@ class InboxController extends Controller
         if (! $hasAccess) {
             abort(403, 'Sem acesso ao canal selecionado.');
         }
+    }
+
+    /**
+     * US-WA-VOZ-003 — Auto-prefix `*FirstName:* ` no body outbound humano.
+     *
+     * Quando atendente envia via UI Inbox, prepend `*Nome:* ` no início do
+     * body. Resultado: cliente WhatsApp vê "Maiara:" e heurística
+     * `EmployeePerformanceRebuilder` captura 100% mesmo sem `sender_user_id`
+     * persistido (defesa em profundidade).
+     *
+     * **Skips (idempotente):**
+     * - is_internal_note=true   — slash command já formata
+     * - kind=template           — HSM já tem variáveis customizadas
+     * - body=null/empty         — nada a prefixar
+     * - body já tem `*Algum:*`  — atendente digitou manual
+     * - userId inválido         — sem identidade pra prefix
+     *
+     * **Pega `first_name` do User; fallback username.**
+     */
+    protected function maybeAutoPrefixSenderName(?string $body, int $userId, bool $isInternalNote, bool $isTemplate): ?string
+    {
+        if ($body === null || trim($body) === '') {
+            return $body;
+        }
+        if ($isInternalNote || $isTemplate) {
+            return $body;
+        }
+        if ($userId <= 0) {
+            return $body;
+        }
+
+        // Idempotência — body já tem prefix `*Nome:*` (case-insensitive)
+        if (preg_match('/^\s*\*[A-Za-zÀ-ÿ]{2,30}:\*/u', $body)) {
+            return $body;
+        }
+
+        try {
+            $user = \App\User::query()->withoutGlobalScopes()->find($userId);
+        } catch (\Throwable) {
+            return $body;
+        }
+
+        if ($user === null) {
+            return $body;
+        }
+
+        $name = trim((string) ($user->first_name ?? ''));
+        if ($name === '') {
+            $name = (string) ($user->username ?? '');
+        }
+        // Sanitiza: só letras + acentos + espaço, max 30 chars
+        $name = preg_replace('/[^A-Za-zÀ-ÿ ]/u', '', $name) ?? '';
+        $name = trim(mb_substr($name, 0, 30));
+        if ($name === '') {
+            return $body;
+        }
+
+        return "*{$name}:* " . ltrim($body);
     }
 }
