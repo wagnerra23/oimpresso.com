@@ -13,6 +13,8 @@ use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryBackfillCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryEnrichFirebirdCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryRefreshDailyCommand;
+use Modules\Whatsapp\Console\Commands\EmployeePerformanceBackfillCommand;
+use Modules\Whatsapp\Console\Commands\EmployeePerformanceRefreshDailyCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\ChannelResetCommand;
 use Modules\Whatsapp\Console\Commands\CleanupStaleJobsCommand;
@@ -109,6 +111,9 @@ class WhatsappServiceProvider extends ServiceProvider
                 CustomerMemoryRefreshDailyCommand::class,
                 // US-WA-VOZ-002 — Enrichment Firebird OfficeImpresso (2026-05-15)
                 CustomerMemoryEnrichFirebirdCommand::class,
+                // US-WA-VOZ-003 — Employee Performance scorecard (2026-05-15)
+                EmployeePerformanceBackfillCommand::class,
+                EmployeePerformanceRefreshDailyCommand::class,
             ]);
         }
 

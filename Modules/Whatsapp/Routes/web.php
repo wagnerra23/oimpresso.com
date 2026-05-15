@@ -12,6 +12,7 @@ use Modules\Whatsapp\Http\Controllers\Admin\MetricsController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
 use Modules\Whatsapp\Http\Controllers\Api\CustomerProfileController;
+use Modules\Whatsapp\Http\Controllers\Api\EmployeeScorecardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +103,18 @@ Route::group([
         ->where('external_id', '[0-9+]+')
         ->middleware('can:whatsapp.access')
         ->name('atendimento.customer.profile');
+
+    // US-WA-VOZ-003 — Employee Scorecard (perfil do atendente).
+    // GET /atendimento/employee/scorecards              → lista ranking time
+    // GET /atendimento/employee/{user_identifier}/scorecard → 1 atendente
+    //   user_identifier formato: "42" (user_id real) OU "heur:Maiara" (heurístico)
+    Route::get('/employee/scorecards', [EmployeeScorecardController::class, 'index'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.employee.scorecards');
+    Route::get('/employee/{user_identifier}/scorecard', [EmployeeScorecardController::class, 'show'])
+        ->where('user_identifier', '[0-9]+|heur:[A-Za-zÀ-ÿ]+')
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.employee.scorecard');
 
     // Caixa Unificada V4 — substituiu /atendimento/inbox no cutover 2026-05-15.
     // Fonte visual canônica: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx

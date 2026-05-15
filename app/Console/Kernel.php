@@ -258,6 +258,21 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-WA-VOZ-003 — Employee Performance refresh daily (2026-05-15).
+        // Re-dispatcha rebuild de scorecards. Offset 30min do customer-memory
+        // pra evitar disputa DB (02:30 BRT).
+        $schedule->command('employee-performance:refresh-daily')
+            ->dailyAt('02:30')
+            ->timezone('America/Sao_Paulo')
+            ->name('employee-performance-refresh-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule employee-performance:refresh-daily FALHOU — scorecards ficarão stale'
+                );
+            });
+
         // ADS Reviewer (T11 G-Eval) — review automático cada 15min de decisions sem score.
         $schedule->command('ads:review-decisions --limit=10')
             ->everyFifteenMinutes()

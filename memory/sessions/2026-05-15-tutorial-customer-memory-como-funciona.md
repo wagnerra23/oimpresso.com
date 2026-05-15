@@ -389,6 +389,81 @@ LIMIT 10;
 
 ---
 
+## §10.5 — Employee Performance (US-WA-VOZ-003)
+
+Espelha customer_memory mas pro **outro lado da relação**: cada atendente do business tem 1 row em `employee_performance` com volume + velocidade + qualidade + cobertura + **nota 0-100 transparente**.
+
+### Schema (tabela `employee_performance`)
+
+```
+business_id, user_id [PRIMÁRIO], heuristic_name [FALLBACK], display_name,
+n_msgs_total, n_conversations_atendidas, n_clientes_diferentes,
+tempo_resposta_mediana_s, tempo_resposta_p90_s, sla_breach_count,
+reclamacoes_recebidas, csat_avg,
+horas_ativas_distintas, hora_pico, dias_ativos_30d, primeira_atividade_at, ultima_atividade_at,
+temas_dominantes, nota_geral, nota_breakdown, nota_calculada_em,
+flags, last_rebuilt_at, rebuilt_via
+```
+
+### Identidade flexível (resolve bloqueio dos 75% sem sender_user_id)
+
+- **PRIMÁRIO**: `user_id` (`messages.sender_user_id`) — atendente respondeu via UI Inbox
+- **FALLBACK**: `heuristic_name` (regex `body LIKE '%Nome:%'`) — pega quem assina prefix
+- Atendente pode ter 2 rows se às vezes usa UI, às vezes não (caso transição) — admin manual merge depois
+
+### Scoring transparente (publicado pro time saber)
+
+| Dimensão | Pts | Como pontua |
+|---|---|---|
+| Volume produtivo | 25 | n_msgs (1500=25, escala linear cap) |
+| Diversidade clientes | 20 | n_clientes (150=20) |
+| Velocidade resposta | 25 | mediana <60s=25, <300s=18, <900s=12, <1800s=6, else=2 |
+| Profundidade conv | 15 | msgs/conv 5-15=15 (sweet spot), 3-20=10, else=5 |
+| Cobertura horária | 10 | horas_distintas (10h=10) |
+| Engajamento | 5 | placeholder (CSAT futuro) |
+
+### Faixas
+- `excelente` ≥ 90
+- `bom` ≥ 70
+- `regular` ≥ 50
+- `abaixo` < 50
+
+### Comandos canon
+
+```bash
+# Backfill detecta automaticamente atendentes (sender_user_id + heurísticos)
+php artisan employee-performance:backfill --business=1 --dry-run
+php artisan employee-performance:backfill --business=1 --queue
+
+# Refresh daily (cron 02:30h BRT — Kernel.php)
+php artisan employee-performance:refresh-daily
+
+# Endpoints
+GET /atendimento/employee/scorecards                       # ranking time
+GET /atendimento/employee/10/scorecard                     # user real
+GET /atendimento/employee/heur:Maiara/scorecard            # heurístico
+```
+
+### Casos de uso administrativos
+
+1. **Wagner 1:1 mensal** — abre scorecard atendente, discute pontos fracos
+2. **Sidebar Inbox** — mostra "Conversation atendida por: Maiara · 94/100"
+3. **Bonus/promoção** — Wagner usa ranking como input objetivo
+4. **Coaching dirigido** — atendente com `velocidade=6` ganha treinamento timing
+5. **Carga balanceamento** — atendente sobrecarregado (volume=25) ganha pausa
+
+### Dados reais biz=1 medidos pré-implementação (2026-05-15)
+
+| Atendente | Nota |
+|---|---|
+| Luiz | 99/100 |
+| Maiara | 94/100 |
+| Felipe | 50/100 |
+
+(amostra heurística — Felipe baixo por volume, não qualidade)
+
+---
+
 ## §11 — O que VEM em seguida (próximos PRs decoupled)
 
 | Onda | PR | Esforço estimado | Depende de |
