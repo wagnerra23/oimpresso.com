@@ -5,6 +5,8 @@ namespace Modules\Jana\Services\Mcp;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Services\Memoria\Contextual\ContextualizerService;
+use Modules\Jana\Services\Memoria\Contextual\DocumentChunker;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -273,6 +275,16 @@ class IndexarMemoryGitParaDb
         // Git SHA do último commit que toca o arquivo (best-effort, falha silente)
         $gitSha = $this->lerGitSha($info['path']);
 
+        // GAP D3 #1 — Contextual Retrieval Anthropic (2024-09-19 / oimpresso 2026-05-15).
+        //   Quando feature flag `copiloto.contextual_retrieval.enabled` = true,
+        //   gera contexto curto (50-100 tokens) descrevendo doc de origem e
+        //   PREPENDA ao content antes de embedding/BM25. Reduz -49% failed
+        //   retrievals (-67% combinado com reranking).
+        //   Custo: ~$1.02 / 1M tokens cached. Operacional pra ~1.500 docs.
+        //   Default OFF — backfill via `php artisan jana:contextualize-backfill`.
+        ['context' => $contextualContext, 'indexed' => $contextualIndexed]
+            = $this->aplicarContextualRetrieval($contentRedacted);
+
         // UPSERT
         $doc = McpMemoryDocument::firstOrNew(['slug' => $info['slug']]);
         $novo = ! $doc->exists;
@@ -308,6 +320,14 @@ class IndexarMemoryGitParaDb
             'pii_redactions_count' => $piiCount,
             'indexed_at'           => now(),
         ], $tipadas);
+
+        // GAP D3 #1 — Adiciona colunas Contextual Retrieval (se schema migrado).
+        // Idempotente: schema legado sem essas colunas ignora gracefully.
+        if ($contextualIndexed) {
+            $atributos['contextual_context']  = $contextualContext;
+            $atributos['contextual_indexed']  = true;
+            $atributos['contextualized_at']   = now();
+        }
 
         if ($novo) {
             McpMemoryDocument::create(array_merge(['slug' => $info['slug']], $atributos));
@@ -498,6 +518,76 @@ class IndexarMemoryGitParaDb
             }
         }
         return null;
+    }
+
+    /**
+     * GAP D3 #1 — Contextual Retrieval Anthropic.
+     *
+     * Quando feature flag `copiloto.contextual_retrieval.enabled` = true,
+     * gera contexto curto descrevendo o doc e PREPENDA ao body (cheia tabela
+     * `mcp_memory_documents.contextual_context`). Hybrid retrieval depois
+     * pega esse contexto pra desambiguar matches.
+     *
+     * Estratégia "concat-first" (Anthropic blog recommendation):
+     *   - Doc curto (≤max_chunk_chars) → 1 chunk único, gera 1 contexto.
+     *   - Doc longo → chunkeia + gera contexto por chunk, concatena ordenado.
+     *
+     * Erro/timeout → graceful degradation (sem contexto, mantém comportamento legado).
+     *
+     * @return array{context:?string, indexed:bool}
+     */
+    protected function aplicarContextualRetrieval(string $bodyRedacted): array
+    {
+        $enabled = (bool) config('copiloto.contextual_retrieval.enabled', false);
+        if (! $enabled) {
+            return ['context' => null, 'indexed' => false];
+        }
+
+        try {
+            /** @var ContextualizerService $svc */
+            $svc = app(ContextualizerService::class);
+            /** @var DocumentChunker $chunker */
+            $chunker = app(DocumentChunker::class);
+
+            $maxChars = (int) config('copiloto.contextual_retrieval.max_chunk_chars', 3200);
+            $maxDocChars = (int) config('copiloto.contextual_retrieval.max_doc_chars', 200_000);
+
+            // Edge case: doc > limite (200 KB ~ 50k tokens) — pula contextualização
+            // (Anthropic API rejeita request > context window do model).
+            if (strlen($bodyRedacted) > $maxDocChars) {
+                Log::channel('copiloto-ai')->info('ContextualRetrieval: doc oversize, pulando', [
+                    'doc_chars' => strlen($bodyRedacted),
+                    'limit' => $maxDocChars,
+                ]);
+
+                return ['context' => null, 'indexed' => false];
+            }
+
+            $chunks = $chunker->chunk($bodyRedacted, $maxChars);
+            if (empty($chunks)) {
+                return ['context' => null, 'indexed' => false];
+            }
+
+            $contextos = $svc->contextualizeBatch($bodyRedacted, $chunks);
+
+            // Concat contextos preservando ordem dos chunks.
+            $contextoFinal = collect($chunks)
+                ->map(fn ($chunk) => trim((string) ($contextos[sha1($chunk)] ?? '')))
+                ->filter(fn ($s) => $s !== '')
+                ->implode("\n");
+
+            if ($contextoFinal === '') {
+                return ['context' => null, 'indexed' => false];
+            }
+
+            return ['context' => $contextoFinal, 'indexed' => true];
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('ContextualRetrieval falha graceful', [
+                'erro' => $e->getMessage(),
+            ]);
+
+            return ['context' => null, 'indexed' => false];
+        }
     }
 
     /**
