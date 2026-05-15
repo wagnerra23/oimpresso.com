@@ -1,4 +1,4 @@
-# Hook PreToolUse — BLOQUEIA Edit/Write em Pages/<Mod>/<Tela>.tsx sem RUNBOOK existir.
+﻿# Hook PreToolUse — BLOQUEIA Edit/Write em Pages/<Mod>/<Tela>.tsx sem RUNBOOK existir.
 # Camada 2 de enforcement do processo MWART canônico (ADR 0104 § Enforcement).
 #
 # Wagner 2026-05-08: "Falhas não são aceitáveis. Não pode ter 2 caminhos de desenvolvimento."
@@ -94,3 +94,4 @@ if (-not $existe) {
 
 # RUNBOOK existe — processo OK, pode prosseguir
 exit 0
+
