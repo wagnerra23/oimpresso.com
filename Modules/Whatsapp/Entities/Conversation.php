@@ -35,6 +35,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $unread_count
  * @property ?string $last_message_preview
  * @property ?string $last_message_direction
+ * @property ?string $lid          PR1 — WhatsApp LID (`<random>@lid` sem sufixo `@lid`) anonymized account-level
+ * @property ?string $phone_e164   PR1 — Telefone real `+E.164` quando resolvido (via senderPn ou LidPhoneResolver)
+ * @property ?string $bsuid        PR1 — Cloud API `user_id` (Meta-oficial desde 31-mar-2026)
  */
 class Conversation extends Model
 {
@@ -62,6 +65,8 @@ class Conversation extends Model
         'unread_count', 'is_blocked',
         // US-WA-072 — denormalizado pra evitar N+1 em InboxController list
         'last_message_preview', 'last_message_direction',
+        // PR1 — schema 3-identifiers (LID/phone/BSUID) — estudo protocol-level 2026-05-15
+        'lid', 'phone_e164', 'bsuid',
     ];
 
     protected $casts = [

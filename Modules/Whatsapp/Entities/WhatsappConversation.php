@@ -29,6 +29,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?\Carbon\CarbonImmutable $last_outbound_at
  * @property ?\Carbon\CarbonImmutable $last_message_at
  * @property int $unread_count
+ * @property ?string $lid          PR1 — WhatsApp LID anonymized account-level (sem sufixo `@lid`)
+ * @property ?string $phone_e164   PR1 — Telefone real `+E.164` quando resolvido
+ * @property ?string $bsuid        PR1 — Cloud API `user_id` Meta-oficial
  */
 class WhatsappConversation extends Model
 {
