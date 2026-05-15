@@ -26,7 +26,7 @@ ERP-com-KB-IA-integrado pra PME brasileira (foco gráfica/comunicação visual).
 | **Oimpresso KB (nosso)** | ERP nativo | **~9,55-9,70** | Integração ERP, visualização-grafo, fit gráfica/pt-BR, custo zero | Mobile/campo (mitigado por imprimir SOP) |
 | Notion | Geral | 7,75 | Editor blocos, AI, flexibilidade | Sem troubleshoot, sem fit operacional |
 | Confluence | Enterprise | 7,40 | Hierarquia, governança | UX velha, lento, denso |
-| Guru | Support | 7,95 | Verificação, AI Answers, browser ext | Preço (~R$80/u/mês), hierarquia simples |
+| Guru | Support (independente) | 7,95 | Verificação, AI Answers, browser ext | Preço (~R$80/u/mês), hierarquia simples |
 | Slab | Startup | 7,30 | Editor, tipografia | Sem troubleshoot, integrações limitadas |
 | Stonly | Guias | 7,15 | Decision trees, mobile field, AI guide gen | Editor genérico fraco |
 | Intercom Articles | Help center | 7,85 | Fin AI, integração Inbox | Caro, foco em externo |
@@ -134,18 +134,28 @@ Bench fonte: `prototipo-ui/prototipos/kb/Bench KB v2.html` (Cowork [CC] self-ass
 ### Por que líderes mundiais não cobrem nosso espaço
 
 - **Notion / Confluence** são plataformas de produtividade horizontal — não casam com schema de ERP nativo. Integração via API exige curva longa e custa caro.
-- **Guru** tem AI Answers + verificação por dono, mas R$80/user/mês inviabiliza pra PME gráfica. Sem hierarquia profunda nem decision tree.
+- **Guru** tem AI Answers + verificação por dono, mas R$80/user/mês inviabiliza pra PME gráfica. Sem hierarquia profunda nem decision tree. **Continua independente** (ServiceNow comprou Moveworks $2,85B dez/2025, não Guru — correção de bench original).
 - **Stonly** é referência mundial em decision tree mas o editor de artigos é fraco, sem ERP, sem IA RAG sobre o próprio KB.
 - **Intercom Articles + Fin AI** foca em deflexão de ticket externo. Pouco para uso interno operacional de gráfica.
 
-### Onde competimos perigosamente
+### Onde competimos perigosamente (atualizado pós-dossier Agent D 2026-05-15)
 
-- **Glean / Mem (2026+, IA-first KB enterprise)** — concorrentes diretos no "RAG sobre todo conhecimento da empresa". **Diferencial nosso**: a integração nativa de ERP (eles são plataformas de busca/IA federada sobre fontes externas; nós SOMOS a fonte). Atenção: Glean tem captação massiva (~US$ 4B valuation 2024) e pode lançar conectores Bling/Tiny/Conta Azul em 12-18 meses.
-- **Notion AI 2026** continua melhorando — vigiar quarterly.
+- **Glean (US$ 7,2B valuation Series F jun/2025, US$ 200M ARR dobrou em 9 meses)** — virou camada **intelligence middleware** sob TODA interface IA enterprise, com permissions-aware knowledge graph + agentic engine sobre 100+ conectores SaaS. **Entrou LATAM via Algorithia em out/2024** — janela menor que estimei. Diferencial nosso: SOMOS o ERP, não plugamos nele. **Visualização-grafo USER-FACING segue gap deles** (knowledge graph é interno na Glean, não UI Cytoscape pro usuário explorar). Preço US$40-65/user/mês inviável pra PME BR.
+- **Notion MCP server (jan/2026)** — qualquer dev BR conecta Notion+ChatGPT em pt-BR em 1 semana. Vetor de defesa = quintet `KB-IA-ERP-VERTICALIZADO-PT-BR-CURADO-ZERO-CUSTO`, não apenas "ter KB-IA".
+- **ServiceNow+Moveworks** ($2,85B, dez/2025) — agentic enterprise stack consolidada (Moveworks tem agentes proativos integrados; ServiceNow tem ITSM). NÃO ataca PME-gráfica direto, mas pressiona pricing/expectativa.
+- **Omie (jun/2025) + Conta Azul (ago/2025) + Tiny** — **já lançaram IA conversacional PT-BR pra PME brasileira**. Não somos pioneiros conceituais. **Diferencial passa a ser ERP+KB-CURADO+JANA triplet**, não "ERP+IA" genérico.
+- **Intercom Fin AI 2026** — **Content Gap Suggestions** (Fin escaneia tickets sem resposta + flag artigos faltando). Cowork NÃO cobre. Gap real catalogado pelo Agent D.
 
-### Janela de oportunidade
+### Janela de oportunidade (RE-VALIDAÇÃO 2026-05-15 pós-Agent D)
 
-PME brasileira (~1M empresas endereçáveis pela visão modular oimpresso — [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)) **não tem produto KB-IA decente em pt-BR hoje**. Janela ~18-24 meses até players globais portarem. Vencer com fit local + verticalização (gráfica, oficina auto, comunicação visual) + integração nativa ERP é estratégia viável.
+**Estimativa anterior:** ~18-24 meses. **REVISADA:** ~12-18 meses pra players globais portarem pra pt-BR.
+
+PME brasileira (~1M empresas endereçáveis — [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)):
+- Janela "ninguém faz IA em pt-BR pra PME ERP" **JÁ FECHOU em jun-ago/2025** (Omie/Conta Azul/Tiny).
+- Janela **vertical gráfica BR + IA + KB** segue **totalmente aberta** (~24+ meses) — Mubisys/Zênite/Calcgraf legacy 30+ anos sem movimento IA público em 2026.
+- **Estratégia viável se shipar até Q4/2026:** ERP+KB+IA verticalizado pra gráfica. Glean genérico não compete em CTP/calibragem ICC/sangria.
+
+Detalhes completos do dossier em [`memory/sessions/2026-05-15-agent-d-estado-arte-kb-ia-2026.md`](../../sessions/2026-05-15-agent-d-estado-arte-kb-ia-2026.md) — 5 dimensões novas pro Bench v3 (ACL-aware, content gap, voice, ambient, personal graph), 5 gaps remanescentes P0-P2 com esforço/recomendação.
 
 ## 6. Backlog de US (proposta — gerado via skill `/comparativo` após aceite ADR 0149)
 
