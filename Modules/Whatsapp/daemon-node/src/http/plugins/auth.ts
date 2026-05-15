@@ -1,7 +1,7 @@
-import { timingSafeEqual } from 'node:crypto';
+﻿import { timingSafeEqual } from 'node:crypto';
 import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import type { Env } from '../../config/env';
+import type { Env } from '../../config/env.js';
 
 declare module 'fastify' {
   interface FastifyInstance {

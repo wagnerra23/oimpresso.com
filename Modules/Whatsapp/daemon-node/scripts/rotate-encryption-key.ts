@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+﻿/* eslint-disable no-console */
 // Rotacao da chave de cifragem do `whatsapp_baileys_auth_state` (pre-requisito PR #701).
 //
 // Rodar quando: APP_KEY rotacionada, vazamento, rotacao trimestral.
@@ -11,7 +11,7 @@
 // Doc completa: README do PR + memory/handoffs/2026-05-12-*-authstate-scripts.md
 
 import mysql, { type PoolConnection, type PoolOptions } from 'mysql2/promise';
-import { decodeEncryptionKey, decryptValue, encryptValue } from './_crypto';
+import { decodeEncryptionKey, decryptValue, encryptValue } from './_crypto.js';
 
 interface CliArgs {
   oldKey: string | null;

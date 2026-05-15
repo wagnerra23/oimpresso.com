@@ -1,8 +1,8 @@
-import type { FastifyPluginAsync } from 'fastify';
-import { registry, zombiesDetectedCounter } from '../../observability/metrics';
-import type { InstanceManager } from '../../baileys/InstanceManager';
-import type { InstanceSnapshot } from '../../baileys/Instance';
-import type { Env } from '../../config/env';
+﻿import type { FastifyPluginAsync } from 'fastify';
+import { registry, zombiesDetectedCounter } from '../../observability/metrics.js';
+import type { InstanceManager } from '../../baileys/InstanceManager.js';
+import type { InstanceSnapshot } from '../../baileys/Instance.js';
+import type { Env } from '../../config/env.js';
 
 interface Deps {
   manager: InstanceManager;

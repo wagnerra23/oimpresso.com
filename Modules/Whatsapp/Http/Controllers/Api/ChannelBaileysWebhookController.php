@@ -231,12 +231,16 @@ class ChannelBaileysWebhookController extends Controller
     {
         $msgKey = $data['key'] ?? [];
         $remoteJid = $msgKey['remoteJid'] ?? null;
-        $senderPn = $msgKey['senderPn'] ?? null; // Whatsapp Multi-Device entrega phone real aqui quando remoteJid é @lid
+        $senderPn = $msgKey['senderPn'] ?? null; // Baileys 6.7.x legacy — phone real quando remoteJid é @lid
+        // Baileys 7.x — remoteJidAlt espelha PN/LID do remoteJid (alt JID).
+        // Quando remoteJid é @lid, alt vem @s.whatsapp.net e vice-versa.
+        // Não existe em payload 6.7.x legacy (opcional, back-compat preservado).
+        $remoteJidAlt = $msgKey['remoteJidAlt'] ?? null;
         $providerMessageId = $msgKey['id'] ?? null;
         $fromMe = (bool) ($msgKey['fromMe'] ?? false);
         $pushName = $data['push_name'] ?? null;
 
-        if (! $remoteJid && ! $senderPn) {
+        if (! $remoteJid && ! $senderPn && ! $remoteJidAlt) {
             return response()->json(['ok' => false, 'error' => 'no_remote_jid'], 200);
         }
 
@@ -260,14 +264,19 @@ class ChannelBaileysWebhookController extends Controller
             ], 200);
         }
 
-        // Resolve phone E.164:
-        // 1. senderPn (formato "5548999872822@s.whatsapp.net") quando remoteJid é @lid → preferir
-        // 2. remoteJid se for @s.whatsapp.net normal
-        // 3. fallback @lid se nada mais (rato)
-        $resolvedJid = ($senderPn && str_contains($senderPn, '@s.whatsapp.net'))
-            ? $senderPn
-            : $remoteJid;
-        $rawNumber = preg_replace('/@.+$/', '', $resolvedJid);
+        // Resolve phone E.164 — prioridade:
+        // 1. senderPn (Baileys 6.7.x legacy, formato "5548999872822@s.whatsapp.net") quando remoteJid é @lid → preferir
+        // 2. remoteJidAlt se for @s.whatsapp.net (Baileys 7.x novo — espelha PN quando remoteJid é @lid)
+        // 3. remoteJid se for @s.whatsapp.net normal
+        // 4. fallback @lid se nada mais (workaround LidPhoneResolver entra em ação abaixo)
+        if ($senderPn && str_contains((string) $senderPn, '@s.whatsapp.net')) {
+            $resolvedJid = $senderPn;
+        } elseif ($remoteJidAlt && str_contains((string) $remoteJidAlt, '@s.whatsapp.net')) {
+            $resolvedJid = $remoteJidAlt;
+        } else {
+            $resolvedJid = $remoteJid;
+        }
+        $rawNumber = preg_replace('/@.+$/', '', (string) $resolvedJid);
         $customerExternalId = '+' . $rawNumber;
 
         // US-WA-093 — LID Resolution Custom (workaround pré-Baileys 7.x).
@@ -291,13 +300,24 @@ class ChannelBaileysWebhookController extends Controller
             /** @var LidPhoneResolver $lidResolver */
             $lidResolver = app(LidPhoneResolver::class);
             $senderPnHasPhone = is_string($senderPn) && str_contains($senderPn, '@s.whatsapp.net');
+            // Baileys 7.x — remoteJidAlt entrega @s.whatsapp.net quando remoteJid é @lid.
+            // Funcionalmente equivalente ao senderPn 6.7.x — usar como fonte
+            // alternativa pra alimentar o cache LID→PN.
+            $altHasPhone = is_string($remoteJidAlt) && str_contains($remoteJidAlt, '@s.whatsapp.net');
 
             if ($senderPnHasPhone) {
-                // Caso (a): WhatsApp deu o phone real ao lado do LID — grava o par.
+                // Caso (a) 6.7.x: WhatsApp deu o phone real ao lado do LID — grava o par.
                 $lidResolver->record(
                     $channel->business_id,
                     $remoteJid,
                     $senderPn,
+                );
+            } elseif ($altHasPhone) {
+                // Caso (a') Baileys 7.x: phone real vem em remoteJidAlt — grava o par.
+                $lidResolver->record(
+                    $channel->business_id,
+                    $remoteJid,
+                    $remoteJidAlt,
                 );
             } else {
                 // Caso (b): só temos LID — tenta cache.

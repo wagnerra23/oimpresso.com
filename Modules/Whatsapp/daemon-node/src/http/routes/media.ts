@@ -1,12 +1,12 @@
-import { createHash } from 'node:crypto';
+﻿import { createHash } from 'node:crypto';
 import type { FastifyPluginAsync } from 'fastify';
 import { downloadContentFromMessage } from '@whiskeysockets/baileys';
 import { ZodError } from 'zod';
-import { decryptUrlBody, type DecryptUrlBody } from '../schemas';
+import { decryptUrlBody, type DecryptUrlBody } from '../schemas.js';
 import {
   mediaDecryptCounter,
   mediaDecryptLatencyHistogram,
-} from '../../observability/metrics';
+} from '../../observability/metrics.js';
 
 // Rate limit grosseiro in-memory (sliding window 60s). Daemon roda single-instance no CT 100,
 // então não precisa Redis. Plugin @fastify/rate-limit não está nas deps; evitar bump.

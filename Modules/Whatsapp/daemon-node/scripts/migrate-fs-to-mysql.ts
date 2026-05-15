@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+﻿/* eslint-disable no-console */
 // Migracao filesystem -> MySQL pro auth state Baileys (pre-requisito PR #701).
 //
 // Rodar 1x antes de mudar AUTH_STATE_BACKEND=mysql no daemon. Idempotente (UPSERT).
@@ -12,7 +12,7 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import mysql, { type Pool, type PoolOptions } from 'mysql2/promise';
-import { decodeEncryptionKey, encryptValue } from './_crypto';
+import { decodeEncryptionKey, encryptValue } from './_crypto.js';
 
 interface CliArgs {
   dryRun: boolean;

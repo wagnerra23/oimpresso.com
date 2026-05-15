@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ------------------------------------------------------------------------------------------------
 // P0 #1 — vitest spec do useMySQLAuthState custom (mysqlAuthState.ts).
@@ -52,7 +52,7 @@ import {
   decryptValue,
   encryptValue,
   useMySQLAuthState,
-} from './mysqlAuthState';
+} from './mysqlAuthState.js';
 
 const ENCRYPTION_KEY = `base64:${Buffer.alloc(32, 7).toString('base64')}`;
 

@@ -44,7 +44,10 @@ class MessagePersister
      * import histórico). Idempotente por (business_id, provider_message_id).
      *
      * @param  array  $data  Payload `data` do daemon, shape:
-     *   - key.remoteJid, key.id, key.fromMe, key.senderPn (opcional)
+     *   - key.remoteJid, key.id, key.fromMe
+     *   - key.senderPn (opcional, Baileys 6.7.x legacy)
+     *   - key.remoteJidAlt (opcional, Baileys 7.x — espelho PN/LID do remoteJid)
+     *   - key.participantAlt (opcional, Baileys 7.x — espelho em grupos)
      *   - message (proto raw)
      *   - push_name (opcional)
      *   - timestamp (unix ts, opcional — usado quando histórico, p/ created_at)
@@ -58,12 +61,16 @@ class MessagePersister
         $msgKey = $data['key'] ?? [];
         $remoteJid = $msgKey['remoteJid'] ?? null;
         $senderPn = $msgKey['senderPn'] ?? null;
+        // Baileys 7.x — remoteJidAlt traz o JID alternativo (se remoteJid é
+        // @lid, alt é @s.whatsapp.net e vice-versa). Não vem em payload 6.7.x
+        // legacy — ler como opcional preserva back-compat.
+        $remoteJidAlt = $msgKey['remoteJidAlt'] ?? null;
         $providerMessageId = $msgKey['id'] ?? null;
         $fromMe = (bool) ($msgKey['fromMe'] ?? false);
         $pushName = $data['push_name'] ?? null;
         $timestamp = isset($data['timestamp']) ? (int) $data['timestamp'] : null;
 
-        if (! $remoteJid && ! $senderPn) {
+        if (! $remoteJid && ! $senderPn && ! $remoteJidAlt) {
             return PersistResult::skipped('no_remote_jid');
         }
 
@@ -71,11 +78,20 @@ class MessagePersister
             return PersistResult::skipped('no_provider_message_id');
         }
 
-        // E.164 resolution (espelha ChannelBaileysWebhookController:138-146)
-        $resolvedJid = ($senderPn && str_contains($senderPn, '@s.whatsapp.net'))
-            ? $senderPn
-            : $remoteJid;
-        $rawNumber = preg_replace('/@.+$/', '', $resolvedJid);
+        // E.164 resolution — prioridade:
+        //   1. senderPn (Baileys 6.7.x legacy, ainda válido em 7.x quando vier)
+        //   2. remoteJidAlt se for @s.whatsapp.net (Baileys 7.x novo)
+        //   3. remoteJid se for @s.whatsapp.net normal
+        //   4. fallback remoteJid bruto (caso @lid → controller resolve via cache)
+        if ($senderPn && str_contains((string) $senderPn, '@s.whatsapp.net')) {
+            $resolvedJid = $senderPn;
+        } elseif ($remoteJidAlt && str_contains((string) $remoteJidAlt, '@s.whatsapp.net')) {
+            // Baileys 7.x — remoteJidAlt entrega phone real quando remoteJid é @lid.
+            $resolvedJid = $remoteJidAlt;
+        } else {
+            $resolvedJid = $remoteJid;
+        }
+        $rawNumber = preg_replace('/@.+$/', '', (string) $resolvedJid);
         $customerExternalId = '+' . $rawNumber;
 
         // INCIDENT 2026-05-14 P0-3: history-sync path ANTES ignorava o

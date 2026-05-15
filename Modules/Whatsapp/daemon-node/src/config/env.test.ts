@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
+﻿import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
 /**
  * Regression test: garante que defaults conservadores dos hardenings
@@ -34,7 +34,7 @@ describe('env.ts hardening defaults', () => {
   });
 
   it('R-ENV-001 — HEALTH_ZOMBIE_THRESHOLD_MS default 60min (NÃO 30min — hardening pós PR #817)', async () => {
-    const envMod = await import('./env');
+    const envMod = await import('./env.js');
     const env = envMod.loadEnv();
 
     expect(env.HEALTH_ZOMBIE_THRESHOLD_MS).toBe(60 * 60 * 1000);
@@ -42,7 +42,7 @@ describe('env.ts hardening defaults', () => {
   });
 
   it('R-ENV-002 — quiet hours canônico 02-06 BRT (manter estável)', async () => {
-    const envMod = await import('./env');
+    const envMod = await import('./env.js');
     const env = envMod.loadEnv();
 
     expect(env.ANTIBAN_CIRCADIAN_QUIET_START).toBe(2);
@@ -53,7 +53,7 @@ describe('env.ts hardening defaults', () => {
 
   it('R-ENV-003 — HEALTH_ZOMBIE_THRESHOLD_MS overrideável via env var', async () => {
     process.env.HEALTH_ZOMBIE_THRESHOLD_MS = '900000'; // 15min
-    const envMod = await import('./env');
+    const envMod = await import('./env.js');
     const env = envMod.loadEnv();
     expect(env.HEALTH_ZOMBIE_THRESHOLD_MS).toBe(900000);
   });

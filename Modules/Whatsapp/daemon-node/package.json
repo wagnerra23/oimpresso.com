@@ -1,9 +1,10 @@
 {
   "name": "@oimpresso/whatsapp-baileys-daemon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Daemon Node.js custom Baileys driver para Modules/Whatsapp do oimpresso (CT 100 Proxmox). ADR 0096 emenda 4.",
+  "description": "Daemon Node.js custom Baileys driver para Modules/Whatsapp do oimpresso (CT 100 Proxmox). ADR 0096 emenda 4. Migrado Baileys 6.7.18 → 7.0.0-rc11 em 2026-05-15 (ESM-only).",
   "license": "UNLICENSED",
+  "type": "module",
   "engines": {
     "node": ">=20.11.0 <23"
   },
@@ -30,7 +31,7 @@
     "@opentelemetry/sdk-metrics": "1.27.0",
     "@opentelemetry/sdk-node": "0.54.0",
     "@opentelemetry/semantic-conventions": "1.27.0",
-    "@whiskeysockets/baileys": "6.7.18",
+    "@whiskeysockets/baileys": "7.0.0-rc11",
     "fastify": "4.28.1",
     "mysql2": "3.11.5",
     "pino": "9.5.0",

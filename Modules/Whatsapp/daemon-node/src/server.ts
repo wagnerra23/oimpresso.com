@@ -1,20 +1,20 @@
-// IMPORTANTE: OTel deve ser inicializado antes de qualquer require de bibliotecas instrumentadas.
-import { loadEnv } from './config/env';
-import { startOtel, shutdownOtel } from './observability/otel';
+﻿// IMPORTANTE: OTel deve ser inicializado antes de qualquer require de bibliotecas instrumentadas.
+import { loadEnv } from './config/env.js';
+import { startOtel, shutdownOtel } from './observability/otel.js';
 
 const env = loadEnv();
 startOtel(env);
 
 import Fastify from 'fastify';
-import { createRootLogger } from './config/logger';
-import { WebhookDispatcher } from './webhook/WebhookDispatcher';
-import { InstanceManager } from './baileys/InstanceManager';
-import authPlugin from './http/plugins/auth';
-import errorHandlerPlugin from './http/plugins/errorHandler';
-import { healthRoutes } from './http/routes/health';
-import { instanceRoutes } from './http/routes/instances';
-import { mediaRoutes } from './http/routes/media';
-import { messageRoutes } from './http/routes/messages';
+import { createRootLogger } from './config/logger.js';
+import { WebhookDispatcher } from './webhook/WebhookDispatcher.js';
+import { InstanceManager } from './baileys/InstanceManager.js';
+import authPlugin from './http/plugins/auth.js';
+import errorHandlerPlugin from './http/plugins/errorHandler.js';
+import { healthRoutes } from './http/routes/health.js';
+import { instanceRoutes } from './http/routes/instances.js';
+import { mediaRoutes } from './http/routes/media.js';
+import { messageRoutes } from './http/routes/messages.js';
 
 async function main(): Promise<void> {
   const logger = createRootLogger(env);

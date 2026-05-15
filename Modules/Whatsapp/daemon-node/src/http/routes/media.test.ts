@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
 
 // Mockar Baileys ANTES do import da rota.
@@ -7,7 +7,7 @@ vi.mock('@whiskeysockets/baileys', () => ({
 }));
 
 import { downloadContentFromMessage } from '@whiskeysockets/baileys';
-import { mediaRoutes, __test_resetRateLimit } from './media';
+import { mediaRoutes, __test_resetRateLimit } from './media.js';
 
 const mockedDownload = vi.mocked(downloadContentFromMessage);
 
