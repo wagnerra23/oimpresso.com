@@ -154,6 +154,10 @@ class ChannelBaileysWebhookController extends Controller
         $chunkIndex = (int) ($data['chunk_index'] ?? 0);
         $chunkTotal = (int) ($data['chunk_total'] ?? 1);
         $messages = (array) ($data['messages'] ?? []);
+        // Baileys daemon envia `contacts` array SÓ no chunk_index=0 (Instance.ts:279-281).
+        // Shape: [{id: '5511X@s.whatsapp.net', name, notify, verifiedName}, ...].
+        // Pode vir null/undefined nos chunks subsequentes — defensive cast pra array.
+        $contacts = (array) ($data['contacts'] ?? []);
 
         Log::info('[channel.baileys.history-sync]', [
             'channel_id' => $channel->id,
@@ -162,9 +166,53 @@ class ChannelBaileysWebhookController extends Controller
             'chunk_index' => $chunkIndex,
             'chunk_total' => $chunkTotal,
             'messages_count' => count($messages),
+            'contacts_count' => count($contacts),
         ]);
 
+        // ─── Contacts persistence (fix 2026-05-15 — Wagner reportou sincronia
+        // dos contatos não trouxe contatos pós re-pareamento Baileys 7.x).
+        //
+        // Daemon ENVIA contacts no payload mas backend ANTES ignorava — só lia
+        // messages. Resultado: Conversation só ganhava nome quando msg com
+        // pushName chegava; antes disso, exibia E.164 cru.
+        //
+        // Agora: dispatcha Job assíncrono que hidrata Conversation.contact_name
+        // via UPDATE idempotente (preserva nome existente — só preenche quando
+        // vazio ou igual ao E.164 fallback).
+        //
+        // Mesmo Job pattern do PersistHistorySyncBatchJob: queue=database,
+        // 3 tries + backoff [10,30,90], businessId no constructor.
+        //
+        // @see Modules/Whatsapp/Jobs/PersistContactsFromHistorySyncJob.php
+        if (! empty($contacts)) {
+            \Modules\Whatsapp\Jobs\PersistContactsFromHistorySyncJob::dispatch(
+                businessId: $channel->business_id,
+                channelId: $channel->id,
+                syncType: $syncType,
+                contacts: $contacts,
+            );
+
+            // Métrica OTel lightweight bridge — contacts chunk enfileirado
+            Log::channel('single')->info('[whatsapp.history-sync-contacts] chunk enfileirado', [
+                'metric_name' => 'whatsapp_history_contacts_queued',
+                'business_id' => $channel->business_id,
+                'channel_id' => $channel->id,
+                'sync_type' => $syncType,
+                'contacts_count' => count($contacts),
+                'attempt' => 1,
+            ]);
+        }
+
         if (empty($messages)) {
+            // Edge case: chunk_index=0 só com contacts (sem messages) — ainda OK,
+            // contacts foi dispatchado acima. Retorna 200.
+            if (! empty($contacts)) {
+                return response()->json([
+                    'ok' => true,
+                    'note' => 'history_chunk_contacts_only_queued',
+                    'contacts_count' => count($contacts),
+                ], 202);
+            }
             return response()->json(['ok' => true, 'note' => 'history_chunk_empty'], 200);
         }
 
