@@ -116,21 +116,30 @@ export default function ConversationThreadV4({
         )}
       </header>
 
-      {/* Banner "em homologação" pra canal preview */}
+      {/* Banner "em homologação" pra canal preview (Cowork .om-preview-banner — tokens OKLCH §467) */}
       {isPreview && channel && (
         <div
-          className="mx-4 mt-2.5 px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-md text-[11.5px] text-amber-900"
+          className="mx-4 mt-2.5 px-3.5 py-2.5 rounded-lg text-[11.5px] flex flex-col gap-0.5"
+          style={{
+            background: 'oklch(0.97 0.013 80)',
+            border: '1px solid oklch(0.88 0.04 80)',
+            color: 'oklch(0.32 0.06 80)',
+          }}
           role="status"
           data-testid="caixa-unif-preview-banner"
         >
-          <b className="block text-[12.5px] font-semibold text-amber-950">
+          <b
+            className="block text-[12.5px] font-semibold"
+            style={{ color: 'oklch(0.28 0.10 80)' }}
+          >
             {channel.label} · em homologação.
           </b>
           <span>
             Conexão deste canal ainda não foi ativada. Esta conversa é uma prévia.{' '}
             <a
               href={route('atendimento.channels.index')}
-              className="text-blue-700 underline hover:text-blue-900"
+              className="underline"
+              style={{ color: 'oklch(0.40 0.13 250)' }}
             >
               Ativar canal
             </a>
@@ -175,18 +184,37 @@ export default function ConversationThreadV4({
                   </div>
                 )}
                 {m.is_internal_note ? (
-                  <div className="self-center w-[92%] max-w-[560px] mx-auto my-1 bg-amber-50 border border-amber-200 border-dashed rounded-lg px-3 py-2">
+                  // Cowork .om-internal — tokens OKLCH §525 (amarelo-pastel + dashed)
+                  <div
+                    className="self-center w-[92%] max-w-[560px] mx-auto my-1 rounded-lg px-3 py-2"
+                    style={{
+                      background: 'oklch(0.97 0.03 80)',
+                      border: '1px dashed oklch(0.78 0.10 80)',
+                    }}
+                  >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9.5px] uppercase tracking-wider font-semibold text-amber-800 bg-amber-100 px-1.5 py-px rounded-full">
+                      <span
+                        className="text-[9.5px] uppercase tracking-[0.06em] font-semibold px-1.5 py-px rounded-full"
+                        style={{
+                          color: 'oklch(0.28 0.12 80)',
+                          background: 'oklch(0.90 0.08 80)',
+                        }}
+                      >
                         Nota interna
                       </span>
-                      <small className="text-[10px] font-mono text-amber-700">
+                      <small
+                        className="text-[10px] font-mono"
+                        style={{ color: 'oklch(0.45 0.06 80)' }}
+                      >
                         {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} ·
                         {m.sender_user_name ? ` ${m.sender_user_name} · ` : ' '}
                         só a equipe vê
                       </small>
                     </div>
-                    <div className="text-[12.5px] text-amber-950 whitespace-pre-wrap leading-relaxed">
+                    <div
+                      className="text-[12.5px] whitespace-pre-wrap leading-[1.45]"
+                      style={{ color: 'oklch(0.22 0.10 80)' }}
+                    >
                       {m.body}
                     </div>
                   </div>
