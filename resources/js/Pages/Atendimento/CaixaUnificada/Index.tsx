@@ -446,6 +446,7 @@ export default function CaixaUnificadaIndex({
               thread={thread}
               channels={availableChannels ?? []}
               queues={queues}
+              availableTags={availableTags ?? []}
             />
           </Deferred>
         )}
