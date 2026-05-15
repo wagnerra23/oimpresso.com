@@ -285,7 +285,10 @@ class CaixaUnificadaController extends Controller
             ->toArray();
 
         // Conversation count per channel TYPE (ACL aware)
-        $convBase = Conversation::query()->where('business_id', $businessId);
+        // Tier 0 ADR 0093: qualifica `conversations.business_id` pra evitar
+        // SQLSTATE[23000] 1052 (ambiguous column) — channels TAMBEM tem
+        // business_id, e o JOIN abaixo precisa de prefixo explicito.
+        $convBase = Conversation::query()->where('conversations.business_id', $businessId);
         $this->applyChannelAclFilter($convBase, $businessId, $userId);
         $convCountsPerType = $convBase
             ->join('channels', 'channels.id', '=', 'conversations.channel_id')
