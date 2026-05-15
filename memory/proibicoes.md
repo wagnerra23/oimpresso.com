@@ -42,6 +42,7 @@
 - ⛔ **Após Wagner cortar minha proposta 1x, PARAR e PERGUNTAR** — não re-inflar com "versão refinada". Re-inflar é não-ouvir disfarçado de iteração. Sessão 2026-05-13 teve 3 cortes consecutivos (Wagner cortou skill+subagent → cortou modo brabo → cortou estado-da-arte complexo) antes de Claude obedecer; ROI cortado em cada inflação. Sinal de degradação comportamental — ver `memory/how-trabalhar.md` §"Reconhecer degradação de sessão".
 - ⛔ **Não usar tom inflado falso-confiante** — "P0 fatal", "consultor brabo", "auto-derrota" sobre premissas não validadas (taxa de revisão <90d, ROI, etc) é teatro. Wagner detecta. Brevidade + honestidade > drama performado.
 - ⛔ **Não esquecer `TodoWrite` em tarefas multi-step ≥3 passos** — sintoma de degradação. Sessão 2026-05-13 sistema lembrou 2x via reminder.
+- ⛔ **NÃO sugerir Baileys 6.7.9 ou "esperar Baileys 7.0.0 final"** — Wagner decidiu migração 7.x irreversível (informado 3× em 13/14/15-mai). Próxima ação esperada: EXECUTAR migração (PR, runbook, deploy), nunca re-debater. Issues rc abertas são gerenciadas DURANTE execução, NÃO citadas a priori como bloqueio. Detalhes + histórico das 3 regressões em [memory/reference/feedback-baileys-7x-decisao-irreversivel.md](reference/feedback-baileys-7x-decisao-irreversivel.md). Wagner palavras textuais: *"se reclamar de novo que ele é rc vai ser muito desagradavel."*
 
 ## Processo MWART canônico — único caminho ([ADR 0104](decisions/0104-processo-mwart-canonico-unico-caminho.md))
 

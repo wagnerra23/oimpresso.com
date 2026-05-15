@@ -17,7 +17,7 @@ pesquisa: 37 WebSearch + 9 WebFetch
 
 - **WhatsApp identifica remetente por 3 IDs distintos em 2026**: (a) **PN** `<phone>@s.whatsapp.net` legacy/atual, (b) **LID** `<random>@lid` privacy-by-default desde 2023, (c) **BSUID** `user_id` Meta-oficial em Cloud API webhooks desde **31-mar-2026** (substitui PN pra usuários com username). Username público GA Q2-Q4/2026.
 - **`@lid` é per-USER (não per-chat)** segundo Whapi/Baileys docs — Wagner & eu erramos esse modelo na ARQUITETURA original. O bug Wagner-Eliana NÃO foi causado por "1 LID = 1 chat"; foi por **fuzzy match `tail4`** no `ConversationContactLinker` colidindo 4 dígitos finais (que era a hipótese P0-1 do arte-doc 14/mai — correta). A fix do PR #854 (defesas anti-cross-contact) já está certa; só preciso corrigir a hipótese errada na ARCHITECTURE.
-- **Baileys 6.7.9 NÃO tem `getPNForLID()` nem evento `lid-mapping.update` confiável** ([issue #2263](https://github.com/WhiskeySockets/Baileys/issues/2263) aberta). Baileys 7.x tem **ambos nativos** + auth state com `lid-mapping`/`device-list`/`tctoken` — mas 7.0.0-rc.9 (último npm publicado nov/2025) tem 3 bugs auth handshake que dão 100% `401 device_removed`. **Não migrar agora** — esperar 7.0.0 final.
+- **Baileys 6.7.9 NÃO tem `getPNForLID()` nem evento `lid-mapping.update` confiável** ([issue #2263](https://github.com/WhiskeySockets/Baileys/issues/2263) aberta). Baileys 7.x tem **ambos nativos** + auth state com `lid-mapping`/`device-list`/`tctoken`. **Wagner decidiu migrar para Baileys 7.x (decisão irreversível 13-15/mai)** — bugs rc.X são gerenciados DURANTE execução, não vetam migração. Ver [feedback-baileys-7x-decisao-irreversivel.md](../reference/feedback-baileys-7x-decisao-irreversivel.md).
 - **WhatsApp Cloud API oficial NÃO sofre o problema** (Meta resolve mapping internamente, expõe `wa_id` E.164 sem `+`). **Mas a partir de jun/2026 vai sofrer parcialmente** quando users adotarem username: `wa_id` pode sumir, restando só `user_id`/BSUID — exatamente o gap que estamos vivendo hoje em Baileys, vai universalizar.
 - **Nota oimpresso protocol-level: 42/100** (sobe de 38 do arte-doc concorrencial: temos defesas hoje que o mercado não tem audit + Pest). **Recomendação**: ficar em Baileys 6.7.9 + workaround robusto + adicionar coluna `bsuid` agora (zero custo, prepara migração Cloud API jun/2026). Migração Cloud API não é mais "se", é "quando dor justificar custo $0.004-0.0625/msg".
 - **Z-API (provider BR) NÃO resolve o problema** — Wagner observou rodando "muito bem" em outro cliente, mas auditoria 2026-05-15 mostra que **Z-API é wrapper Baileys-like com SaaS por cima**: sofre o mesmo blackbox LID. Doc Z-API admite literal: *"It is not possible to convert an `@lid` to a phone number"*. Driver oimpresso `ZapiDriver` já existe (72/100, pronto), mas o `ZapiWebhookController` ignora `senderLid/chatLid` — migrar SEM refactor de chave canônica reproduz o bug. Custo: R$ 99,99/mês fixo (Plano Ultimate, 1 instância, msgs ilimitadas) — mais barato que Cloud API ~R$ 90-120 mas com **Reclame Aqui 3.8/10 + suporte lag 37 dias + vendor lock-in alto**. Recomendação Z-API: **NÃO migrar biz=1 agora** — só ativar como fallback secundário canary em biz=99 sandbox se Wagner quiser comparar empiricamente.
@@ -147,7 +147,7 @@ Baileys 6.7.9 (atual prod CT 100) tem **3 bugs históricos em history sync** doc
 2. **`key.senderPn` vem NULL em INITIAL_BOOTSTRAP** — esse campo só foi formalizado em Baileys 6.8.0 ([migration](https://baileys.wiki/docs/migration/to-v7.0.0/)) como `senderLid`/`senderPn` "alpha attributes". Em 6.7.9 com chats já-existentes `@lid`, ele NÃO chega — só em `messages.upsert` real-time com `type: "notify"`.
 3. **`isLatest` flag bug** ([#2005](https://github.com/WhiskeySockets/Baileys/issues/2005)) — "from the second history event onwards, isLatest will always be false". Caller pensa que ainda vem mais e fica esperando — na verdade primeiro batch foi tudo.
 
-**Conclusão técnica:** o NULL `senderPn` que vivemos é **bug conhecido Baileys 6.7.9 + design pré-LID-mapping nativo**, NÃO privacy by-design do Meta (Cloud API entrega PN sem problema). Migração 7.x **resolveria** — mas 7.0.0-rc.9 (último npm em 21-nov-2025) tem 3 bugs auth handshake catalogados em [issue #19907](https://github.com/openclaw/openclaw/issues/19907) que dão **100% `401 device_removed`** em re-pareamento. Não dá pra migrar agora; esperar 7.0.0 final estável.
+**Conclusão técnica:** o NULL `senderPn` que vivemos é **bug conhecido Baileys 6.7.9 + design pré-LID-mapping nativo**, NÃO privacy by-design do Meta (Cloud API entrega PN sem problema). **Migração 7.x resolve — Wagner decidiu migrar (irreversível 13-15/mai)**. Bugs rc.X são gerenciados DURANTE execução, não vetam.
 
 ## 2.3 Maneira oficial Meta de PN partir de LID
 
@@ -204,26 +204,27 @@ Esses **não nos afetam diretamente** — são camadas de cripto. O que nos afet
 
 # 4. Comparativo BSUID/Cloud API/Baileys 6.7.9/Baileys 7.x/whatsmeow
 
-| Aspecto | **Cloud API oficial** (Meta direct) | **Baileys 6.7.9** (atual prod) | **Baileys 7.0.0-rc.9** (npm latest) | **Baileys 7.0.0 final** (esperado) | **whatsmeow** (Go alternative) |
-|---|---|---|---|---|---|
-| Cobertura LID inbound | retorna `wa_id` (E.164) + `user_id` (BSUID) desde 31-mar-2026 | retorna `<lid>@lid` em `remoteJid`; `senderPn` opcional só em real-time | mesmo + `remoteJidAlt`/`participantAlt` (espelha PN/LID) | mesmo + `lid-mapping.update` event funcional | tem `GetPNForLID()` nativo + tabela `whatsmeow_lid_mapping` ([whatsmeow](https://github.com/tulir/whatsmeow)) |
-| Resolve LID→PN auto | sim (Meta interna) | **não** | parcial (precisa `device-list` + auth state estendido) | sim | sim |
-| History sync stability | N/A (não tem history sync — só novas msgs via webhook) | bugado: senderPn NULL, isLatest erra, contacts vazios | quebrado: rc.9 desabilita history se `syncFullHistory:false` ([issue #11951](https://github.com/NousResearch/hermes-agent/issues/11951)) | esperar fix npm | tido como mais robusto (lib Go oficial whatsapp client multidevice) |
-| Custo/mês (BR, 1k msgs/mês) | utility ~$4 / marketing ~$62.5 (BSP markup +$3-10) ([Chatarmin pricing](https://chatarmin.com/en/blog/whats-app-api-pricing)) | $0 (lib + CT 100 ~R$50/mês prorata) | $0 | $0 | $0 |
-| Vendor lock-in | alto (depende Meta API, embedded signup, BSP partner se quiser SaaS) | baixo (open-source) | baixo | baixo | baixo |
-| Ban risk | nulo (oficial; gets warnings before violations) | **alto** ("operate months without issues or get banned within a week with no predictable pattern" [Kraya AI 2026](https://blog.kraya-ai.com/whatsapp-automation-ban-risk)) | alto (mesma fundação Whatsapp Web) | alto | alto |
-| Suporta `requestPhoneNumber` | nativo | **não** | sim | sim | sim |
-| Auth state surface | OAuth Meta + access_token long-lived | `creds.json` + keys | mesmo + `lid-mapping`/`device-list`/`tctoken` ([requirement](https://baileys.wiki/docs/migration/to-v7.0.0/)) | mesmo | similar — tabela própria |
-| 90d history loss on re-pair | N/A | **sim** (catastrófico — Wagner re-pareou e perdeu mapeamento manual) | sim | sim | sim |
-| Migration friction de Baileys 6.7.9 | ALTA — re-pareamento, mover toda lógica de daemon Node → webhook Meta, embedded signup biz, HSM templates aprovados | — | MÉDIA — auth state expandido + lid-mapping store + 7.x breaking changes | MÉDIA-BAIXA | ALTA — troca lib + linguagem Go |
-| Suporta usernames jun/2026 | sim (ExternalUserId field) | não (precisa workaround) | parcial | sim | em desenvolvimento ([sender_pn discussion #846](https://github.com/tulir/whatsmeow/discussions/846)) |
+| Aspecto | **Cloud API oficial** (Meta direct) | **Baileys 6.7.9** (atual prod, legacy) | **Baileys 7.x** (DESTINO — Wagner decidiu migrar) | **whatsmeow** (Go alternative) |
+|---|---|---|---|---|
+| Cobertura LID inbound | retorna `wa_id` (E.164) + `user_id` (BSUID) desde 31-mar-2026 | retorna `<lid>@lid` em `remoteJid`; `senderPn` opcional só em real-time | tem `getPNForLID()` nativo + `remoteJidAlt`/`participantAlt` (espelha PN/LID) + `lid-mapping.update` event funcional | tem `GetPNForLID()` nativo + tabela `whatsmeow_lid_mapping` ([whatsmeow](https://github.com/tulir/whatsmeow)) |
+| Resolve LID→PN auto | sim (Meta interna) | **não** | **sim** (`getPNForLID` nativo) | sim |
+| History sync stability | N/A (não tem history sync — só novas msgs via webhook) | bugado: senderPn NULL, isLatest erra, contacts vazios | em maturação rc.X (issues abertas, gerenciadas DURANTE migração) | tido como mais robusto (lib Go oficial whatsapp client multidevice) |
+| Custo/mês (BR, 1k msgs/mês) | utility ~$4 / marketing ~$62.5 (BSP markup +$3-10) ([Chatarmin pricing](https://chatarmin.com/en/blog/whats-app-api-pricing)) | $0 (lib + CT 100 ~R$50/mês prorata) | $0 | $0 |
+| Vendor lock-in | alto (depende Meta API, embedded signup, BSP partner se quiser SaaS) | baixo (open-source) | baixo | baixo |
+| Ban risk | nulo (oficial; gets warnings before violations) | **alto** ("operate months without issues or get banned within a week with no predictable pattern" [Kraya AI 2026](https://blog.kraya-ai.com/whatsapp-automation-ban-risk)) | alto (mesma fundação Whatsapp Web) | alto |
+| Suporta `requestPhoneNumber` | nativo | **não** | **sim** | sim |
+| Auth state surface | OAuth Meta + access_token long-lived | `creds.json` + keys | mesmo + `lid-mapping`/`device-list`/`tctoken` ([requirement](https://baileys.wiki/docs/migration/to-v7.0.0/)) | similar — tabela própria |
+| 90d history loss on re-pair | N/A | **sim** (catastrófico — Wagner re-pareou e perdeu mapeamento manual) | sim — mitigado por PR #857 backup auth_state | sim |
+| Migration friction de Baileys 6.7.9 | ALTA — re-pareamento, mover toda lógica de daemon Node → webhook Meta, embedded signup biz, HSM templates aprovados | — | **MÉDIA** — auth state expandido + lid-mapping store + 7.x breaking changes (1-2 dev-days IA-pair) | ALTA — troca lib + linguagem Go |
+| Suporta usernames jun/2026 | sim (ExternalUserId field) | não (precisa workaround) | **sim** | em desenvolvimento ([sender_pn discussion #846](https://github.com/tulir/whatsmeow/discussions/846)) |
 
 **Quem ganha em quê:**
-- **Robustez/estado-da-arte protocolo**: Cloud API > whatsmeow > Baileys 7.x > Baileys 6.7.9
-- **Custo (ROTA LIVRE volume ~50-200 msgs/dia)**: Baileys 6.7.9 = 7.x = whatsmeow >> Cloud API
+- **Robustez/estado-da-arte protocolo**: Cloud API > whatsmeow > **Baileys 7.x** > Baileys 6.7.9
+- **Custo (ROTA LIVRE volume ~50-200 msgs/dia)**: Baileys 6.7.9 = **Baileys 7.x** = whatsmeow >> Cloud API
 - **Ban risk**: Cloud API >> todos os outros
-- **Compatível com nossa stack PHP atual**: Baileys 6.7.9 = 7.x > whatsmeow (lib Go) > Cloud API (precisa re-implementar driver)
-- **Pronto pra usernames Q3-Q4/2026**: Cloud API > Baileys 7.x final > whatsmeow > Baileys 6.7.9
+- **Compatível com nossa stack PHP atual**: Baileys 6.7.9 = **Baileys 7.x** > whatsmeow (lib Go) > Cloud API (precisa re-implementar driver)
+- **Pronto pra usernames Q3-Q4/2026**: Cloud API > **Baileys 7.x** > whatsmeow > Baileys 6.7.9
+- **Decidido para migração imediata**: **Baileys 7.x** ([feedback Wagner 13-15/mai irreversível](../reference/feedback-baileys-7x-decisao-irreversivel.md))
 
 ---
 
@@ -365,7 +366,7 @@ Calibrado pro caso **biz=1 ROTA LIVRE (99% volume, ~50-200 msgs/dia, meta R$ 5mi
 | **D9. Multi-tenant Tier 0 compat ([ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md))** | 12 | 90% (já implementado) | 90% | 85% (driver new, refactor) | 90% (driver new) | 85% (driver pronto 72/100) | 90% (driver new, isolation natural via business token) |
 | **D10. Pronto pra usernames jun/2026 + BSUID** | 6 | 20% (não nativo) | 70% | 20% | 70% (Cloud API mode coexiste) | 30% (depende quando Z-API implementar) | 100% (Meta resolve internamente) |
 | **D11. Suporta Click-to-WhatsApp Ads janela 72h** | 4 | 30% | 35% | 30% | 35% (modo Cloud API) | 30% | 100% |
-| **D12. Custo IA-pair pra fechar gaps até produção** | 3 | 80% (3-5 dev-days endurecer anti-ban) | 60% (esperar 7.0.0 + migração) | 30% (refactor enorme) | 50% (refactor + Docker) | 70% (driver pronto + 2 dev-days canary) | 30% (HSM templates + onboarding) |
+| **D12. Custo IA-pair pra fechar gaps até produção** | 3 | 80% (3-5 dev-days endurecer anti-ban) | 75% (1-2 dev-days migração — destino decidido) | 30% (refactor enorme) | 50% (refactor + Docker) | 70% (driver pronto + 2 dev-days canary) | 30% (HSM templates + onboarding) |
 | **PESO TOTAL (Σ=100)** | — | — | — | — | — | — | — |
 | **SCORE PONDERADO TOTAL** | — | **58%** | **64%** | **48%** | **61%** | **64%** | **71%** |
 
@@ -590,22 +591,24 @@ it('snapshot baileys 6.7.9 messaging-history.set payload shape', function () {
 
 **Quando ativar:** se ban Baileys 6.7.9 → recovery > 4h Wagner OR margem mensal absorve R$120 facilmente (provável dado meta ADR 0022 R$ 5mi/ano).
 
-## Opção B — Migrar pra Baileys 7.x quando 7.0.0 final sair
+## Opção B — Migrar pra Baileys 7.x (EXECUTAR — decisão irreversível Wagner)
+
+**Status:** Wagner determinou migração em 13-15/mai (3× explicitado). Bugs rc são gerenciados DURANTE execução, não vetam ([feedback-baileys-7x-decisao-irreversivel.md](../reference/feedback-baileys-7x-decisao-irreversivel.md)).
 
 **Custos:**
-- Esperar 7.0.0 final estável (7.0.0-rc.9 quebrado conforme issues catalogadas)
 - Refactor `auth_state` pra adicionar `lid-mapping`/`device-list`/`tctoken` keys
-- Re-pareamento + risco 90d history sync de novo
+- Re-pareamento + risco 90d history sync de novo (mitigado por PR #857 backup auth_state)
 - Atualizar `MessagePersister` pra ler `remoteJidAlt`/`participantAlt`
-- 1-2 dias IA-pair + canary 7d
+- 1-2 dev-days IA-pair + canary 7d em biz=99 sombra primeiro
 
 **Ganhos:**
 - `getPNForLID()` nativo — `LidPhoneResolver` vira fallback marginal
 - Sem custo recorrente
 - Mesma arquitetura atual (CT 100 daemon Node)
 - Mantém free + control total
+- Alinhado com PR #855 (schema 3-identifiers) + ADR 0145 (contact_lid canônico) — destrava esses
 
-**Quando ativar:** quando 7.0.0 final (não rc.X) sair publicado em npm — meses (CT 100 monitor watch + skill `baileys-update-procedure` Tier B já documentado).
+**Quando executar:** **AGORA.** Próxima ação: spawn agent migração Baileys 7.x seguindo skill `baileys-update-procedure` (5-fase já documentado). Canary 7d em biz=99 sombra antes de promover biz=1.
 
 ## Opção C — Aceitar gap atual + endurecer workaround custom
 
@@ -677,7 +680,7 @@ Por quê:
 1. **P0-1 (schema 3-identifiers) é zero-regret** — útil em qualquer das 5 opções futuras. Se Wagner amanhã decide Cloud API OU Z-API OU Baileys 7.x OU Evolution API, está pronto.
 2. **P1-3 (backup auth_state) é incident-trigger** — Wagner viveu na pele 14/mai. Custo 30min, vital.
 3. **Cloud API canary biz=99 (Wagner test biz)** valida custo real + tempo aprovação HSM templates antes de decidir migração production-wide.
-4. **Baileys 7.x esperar** — 7.0.0 final ainda não saiu; movimento prematuro = repetir bug rc.9.
+4. **Baileys 7.x EXECUTAR migração agora** — Wagner decidiu irreversível 13-15/mai ([feedback-baileys-7x-decisao-irreversivel.md](../reference/feedback-baileys-7x-decisao-irreversivel.md)). Skill `baileys-update-procedure` Tier B documenta processo 5-fase. Canary 7d biz=99 sombra antes de promover biz=1.
 5. **Z-API NÃO é solução pro cross-contact** — é trade de risco (self-host CT 100 zero-custo) por SaaS BR (R$ 100/mês + Reclame Aqui 3.8/10 + vendor lock-in). Se Wagner quiser comparar, faz em biz=99 sandbox sombra, **nunca biz=1 prod sem refactor `contact_lid` canônico antes**.
 6. **Evolution API self-host NÃO é solução pro cross-contact tampouco** — mesma lib Baileys 7.0.0-rc.5, mesmos bugs. Só faz sentido se modelo de produto pivotar pra multi-WhatsApp escalado por vertical (6-12 meses out).
 

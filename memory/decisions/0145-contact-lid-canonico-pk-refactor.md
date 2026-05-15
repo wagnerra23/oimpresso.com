@@ -86,7 +86,8 @@ Esta ADR fica em **feature-wish** até pelo menos 1 dos sinais qualificados:
 1. **Segundo incident cross-contact** em biz=1 prod (probabilidade baixa após PR #854-858 mergearem)
 2. **Wagner ativa Cloud API canary** biz=99 (PR #858) — Cloud API entrega `wa_id`+`user_id` nativos, refactor `contact_lid` vira pré-req pra integração real
 3. **Volume biz=1 cresce 5x+** (~250-1000 msgs/dia) ou novos biz verticais ativados (ComVis, OficinaAuto) — multi-tenant ganha N conversas com mesmo phone em business_ids diferentes, fuzzy match piora
-4. **Migração pra Baileys 7.x final** — `getPNForLID()` nativo facilita backfill Fase 0
+
+> **Nota:** migração Baileys 7.x NÃO é sinal qualificado — é decisão já tomada (Wagner 13-15/mai, ver [feedback-baileys-7x-decisao-irreversivel.md](../reference/feedback-baileys-7x-decisao-irreversivel.md)). Quando essa migração rodar, traz `getPNForLID()` nativo que facilita Fase 0 backfill desta ADR — sinergia de execução, não pré-condição.
 
 ## Estimate (calibrado [ADR 0106](0106-recalibracao-velocidade-fator-10x-ia-pair.md) fator 10x IA-pair)
 
