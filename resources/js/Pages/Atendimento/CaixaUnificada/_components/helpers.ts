@@ -166,9 +166,24 @@ export interface CentrifugoConfig {
 
 /**
  * Iniciais do nome contato/canal pra avatar circular.
+ *
+ * Para nomes de pessoa: pega 1ª letra do 1º e último nome (ex: "Renato Lopes" → "RL").
+ * Para nomes 1-palavra: 2 primeiras letras (ex: "Maiara" → "MA").
+ * Para números de phone (sem nome): últimos 2 dígitos (ex: "+554896486699" → "99")
+ *   — evita "+5" feio quando contato CRM não vinculado.
  */
 export function initials(name: string): string {
-  const parts = (name || '?').trim().split(/\s+/).filter(Boolean);
+  const raw = (name || '?').trim();
+  if (raw === '' || raw === '?') return '?';
+
+  // Phone-like: começa com + ou é majoritariamente dígitos
+  const digitsOnly = raw.replace(/\D/g, '');
+  const isPhoneLike = (raw.startsWith('+') || digitsOnly.length >= 8) && digitsOnly.length > 4;
+  if (isPhoneLike) {
+    return digitsOnly.slice(-2);
+  }
+
+  const parts = raw.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';
   const first = parts[0]!;
   if (parts.length === 1) return first.slice(0, 2).toUpperCase();

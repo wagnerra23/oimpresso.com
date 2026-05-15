@@ -262,8 +262,8 @@ export default function CaixaUnificadaIndex({
             <InboxIcon size={16} aria-hidden />
           </div>
           <div className="min-w-0">
-            <h1 className="font-semibold text-sm leading-tight truncate">Caixa unificada</h1>
-            <p className="text-[11px] text-muted-foreground truncate">
+            <h1 className="font-semibold text-[14px] leading-tight truncate">Caixa unificada</h1>
+            <p className="text-[12.5px] text-muted-foreground truncate">
               {headerSub}
             </p>
           </div>
