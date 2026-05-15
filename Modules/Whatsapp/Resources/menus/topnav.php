@@ -18,11 +18,10 @@ return [
     'label' => 'Atendimento',
     'icon'  => 'MessageCircle',
     'items' => [
-        // US-WA-067 + PR #889 cleanup 2026-05-15: Caixa Unificada V4 absorveu
-        // Templates HSM, Templates Jana e Canais via topnav direita (dropdown
-        // "Templates" + botão "Canais"). Inbox legacy mantido como fallback
-        // até paridade funcional completa (inventário §2 cutover V4).
-        ['label' => 'Caixa unificada', 'href' => '/atendimento/caixa-unificada',          'icon' => 'Inbox',     'can' => 'whatsapp.access'],
-        ['label' => 'Inbox (legacy)',  'href' => '/atendimento/inbox',                    'icon' => 'Archive',   'can' => 'whatsapp.access'],
+        // PR 2026-05-15 (Wagner): topnav módulo Atendimento esvaziado.
+        // Caixa Unificada V4 usa `hideTopbar` no AppShellV2 (header próprio na
+        // página torna a topbar redundante — modelo Cowork canônico).
+        // Inbox legacy ainda acessível via URL /atendimento/inbox; entry no
+        // sidebar principal lateral é gerenciada pela DataController do módulo.
     ],
 ];
