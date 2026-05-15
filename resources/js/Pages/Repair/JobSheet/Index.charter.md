@@ -6,9 +6,14 @@ status: live
 last_validated: 2026-05-07
 parent_module: Repair
 parent_capterra: memory/requisitos/Repair/CAPTERRA-FICHA.md
-related_adrs: [0101]
+related_adrs: [0101, 0104, 0149, 0143, 0093]
 tier: A
-charter_version: 1
+charter_version: 2
+mwart_pattern_reuse:
+  blueprint_cowork: "prototipo-ui/prototipos/os/"
+  blueprint_screenshot_approval: "SYNC_LOG (pendente)"
+  derived_screens: [Index]
+  divergence_from_blueprint: "tabela ainda usa DataTables AJAX legacy (sprint 2.5) — Wave W3-B6 documenta path canônico mas preserva implementação atual"
 ---
 
 # Page Charter — /repair/job-sheet
