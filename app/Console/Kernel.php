@@ -641,6 +641,33 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADR 0149 (ONDA 1 — 2026-05-15) — KB unificado bridge job.
+        // Sincroniza mcp_memory_documents → kb_nodes incrementalmente
+        // (filtro mcp_memory_documents.updated_at > kb_bridge_state.last_bridge_at).
+        // Multi-tenant Tier 0: itera businesses ativos; cada biz dispatch separado.
+        //
+        // 15min: balance entre frescor do grafo (Wagner cria ADR, vê node em ≤15min)
+        // e custo (~700 docs biz=1 + biz=4 → < 30s por run no caso incremental).
+        //
+        // TODO[CL]: por ora dispara só biz=1 e biz=4 explicit. Quando expandir pro
+        // time MCP completo (5 pessoas), trocar pra `foreach business`. Sem afetar
+        // contrato, ajuste em PR separado.
+        $schedule->call(function () {
+            foreach ([1, 4] as $bizId) {
+                \Modules\KB\Jobs\KbBridgeFromMcpJob::dispatch($bizId, false);
+            }
+        })
+            ->name('kb-bridge-from-mcp')
+            ->everyFifteenMinutes()
+            ->withoutOverlapping(10)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule KbBridgeFromMcpJob FALHOU — grafo KB pode estar stale ' .
+                    '(ver kb_bridge_state.last_error por business)'
+                );
+            });
+
         // US-RB-045 — Sincroniza saldo Asaas/Inter pra contas_bancarias.saldo_cached.
         // Sem este schedule, dashboard /financeiro mostra "—" (saldo_cached NULL).
         // Hourly: latência aceitável vs custo de chamadas API gateways.
