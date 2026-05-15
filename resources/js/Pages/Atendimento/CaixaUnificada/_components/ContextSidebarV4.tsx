@@ -16,9 +16,17 @@
 // Placeholders viram TODOs honestos (anti-padrão M-AP-1 do
 // LICOES_F3_FINANCEIRO_REJEITADO.md §1) — não inventar Service que não existe.
 
+import { router } from '@inertiajs/react';
+import { Ban, Check, Plus, UserPlus } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/Components/ui/popover';
 import type {
   CaixaUnifThread,
   ChannelCatalogItem,
+  ConvTag,
   QueueConfig,
 } from './helpers';
 import { relativeTimeBR } from './helpers';
@@ -27,12 +35,58 @@ interface Props {
   thread: CaixaUnifThread;
   channels: ChannelCatalogItem[];
   queues: Record<string, QueueConfig>;
+  /**
+   * Wave 3 F1 (US-WA-095 paridade Inbox legacy): catálogo de tags do business
+   * pro editor inline. Default [] quando deferred ainda não resolveu.
+   */
+  availableTags?: ConvTag[];
 }
 
-export default function ContextSidebarV4({ thread, channels, queues }: Props) {
+export default function ContextSidebarV4({ thread, channels, queues, availableTags = [] }: Props) {
   const channel = channels.find(c => c.id === thread.channel_type);
   const queueCfg = queues[thread.queue.slug] ?? null;
   const isPreview = thread.preview_only;
+  const activeTagIds = new Set(thread.tags.map(t => t.id));
+
+  // Wave 3 F1 — toggle tag (PATCH /atendimento/inbox/{id}/tags)
+  function toggleTag(tagId: number) {
+    const next = activeTagIds.has(tagId)
+      ? thread.tags.filter(t => t.id !== tagId).map(t => t.id)
+      : [...thread.tags.map(t => t.id), tagId];
+    router.patch(
+      route('atendimento.inbox.update_tags', thread.id),
+      { tag_ids: next },
+      { preserveScroll: true, preserveState: true, only: ['thread', 'conversations', 'stats'] },
+    );
+  }
+
+  // Wave 3 F1 — bloquear contato (PATCH /atendimento/inbox/{id}/block)
+  function toggleBlock() {
+    if (!confirm(thread.is_blocked
+      ? `Desbloquear ${thread.contact_name || thread.customer_external_id}?`
+      : `Bloquear ${thread.contact_name || thread.customer_external_id}? Mensagens deste contato serão descartadas.`)) {
+      return;
+    }
+    router.patch(
+      route('atendimento.inbox.block', thread.id),
+      { is_blocked: !thread.is_blocked },
+      { preserveScroll: true, preserveState: true, only: ['thread', 'conversations'] },
+    );
+  }
+
+  // Wave 3 F1 — criar Contact CRM a partir do phone (POST .../contact/create-from-phone)
+  function createContactFromPhone() {
+    const name = prompt(
+      `Criar Contact CRM a partir do telefone?\n\nNome do contato (pode editar depois):`,
+      thread.contact_name || '',
+    );
+    if (!name || !name.trim()) return;
+    router.post(
+      route('atendimento.inbox.contact.create_from_phone', thread.id),
+      { name: name.trim() },
+      { preserveScroll: true, preserveState: true, only: ['thread', 'conversations'] },
+    );
+  }
 
   return (
     <aside
@@ -105,12 +159,62 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
           )}
         </div>
 
-        {/* 4. Tags */}
-        {thread.tags.length > 0 && (
-          <div className="pb-2.5 border-b border-border/50 flex flex-col gap-1">
+        {/* 4. Tags — Wave 3 F1: editor inline via Popover (PATCH update_tags) */}
+        <div className="pb-2.5 border-b border-border/50 flex flex-col gap-1">
+          <div className="flex items-center justify-between">
             <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
               Tags
             </small>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  title="Editar tags"
+                  data-testid="caixa-unif-ctx-tags-edit"
+                >
+                  <Plus size={11} aria-hidden /> editar
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-56 p-1.5">
+                <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold px-2 pt-1 pb-1.5">
+                  Tags do business
+                </div>
+                {availableTags.length === 0 ? (
+                  <div className="px-2 py-2 text-[11px] text-muted-foreground italic">
+                    Nenhuma tag cadastrada
+                  </div>
+                ) : (
+                  <ul className="max-h-64 overflow-auto">
+                    {availableTags.map(t => {
+                      const active = activeTagIds.has(t.id);
+                      return (
+                        <li key={t.id}>
+                          <button
+                            type="button"
+                            onClick={() => toggleTag(t.id)}
+                            data-testid={`caixa-unif-ctx-tags-toggle-${t.slug}`}
+                            className="w-full flex items-center justify-between gap-2 px-2 py-1.5 text-[11.5px] hover:bg-muted rounded text-left"
+                          >
+                            <span className="inline-flex items-center gap-1.5">
+                              <span
+                                className="inline-block w-2 h-2 rounded-full"
+                                style={{ background: `oklch(0.62 0.13 ${(t.color === 'red' ? 0 : t.color === 'emerald' ? 145 : t.color === 'blue' ? 220 : t.color === 'purple' ? 280 : t.color === 'amber' ? 80 : t.color === 'cyan' ? 200 : 60)})` }}
+                                aria-hidden
+                              />
+                              {t.label}
+                            </span>
+                            {active && <Check size={13} className="text-primary flex-shrink-0" aria-label="Aplicada" />}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
+          {thread.tags.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {thread.tags.map(t => (
                 // Cowork .om-tag — padding 1px 8px, font 10px mono, OKLCH §710
@@ -127,8 +231,10 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
                 </span>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <small className="text-[11px] text-muted-foreground italic">— sem tags</small>
+          )}
+        </div>
 
         {/* 5. OS vinculada — placeholder */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
@@ -173,7 +279,25 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
           </b>
         </div>
 
-        {/* 9. Ações (3 atalhos) */}
+        {/* Wave 3 F1 — Contato CRM (criar do phone) + Bloquear */}
+        <div className="pb-2.5 border-b border-border/50 flex flex-col gap-1.5">
+          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
+            Contato CRM
+          </small>
+          <button
+            type="button"
+            onClick={createContactFromPhone}
+            disabled={isPreview}
+            className="inline-flex items-center gap-1.5 text-left text-[11.5px] px-2 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            data-testid="caixa-unif-ctx-create-contact"
+            title="Cria registro no CRM a partir do número de telefone"
+          >
+            <UserPlus size={12} aria-hidden />
+            Criar contato do telefone
+          </button>
+        </div>
+
+        {/* 9. Ações (3 atalhos + Bloquear) */}
         <div className="flex flex-col gap-1.5 mt-1">
           <button
             type="button"
@@ -207,6 +331,22 @@ export default function ContextSidebarV4({ thread, channels, queues }: Props) {
             Ligar
           </button>
           {/* TODO US-WA-XXX: tel: link OU integração WhatsApp voice (beta Meta) */}
+
+          {/* Wave 3 F1 — Bloquear contato (separado por cor de risco) */}
+          <button
+            type="button"
+            onClick={toggleBlock}
+            data-testid="caixa-unif-ctx-action-block"
+            className={`inline-flex items-center gap-1.5 text-left text-[12px] px-2.5 py-1.5 border rounded transition-colors mt-1 ${
+              thread.is_blocked
+                ? 'bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/15'
+                : 'bg-card border-border text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/5'
+            }`}
+            title={thread.is_blocked ? 'Desbloquear contato' : 'Bloquear contato — mensagens serão descartadas'}
+          >
+            <Ban size={12} aria-hidden />
+            {thread.is_blocked ? 'Desbloquear contato' : 'Bloquear contato'}
+          </button>
         </div>
       </div>
     </aside>
