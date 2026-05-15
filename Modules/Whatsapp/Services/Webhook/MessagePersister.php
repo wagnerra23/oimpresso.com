@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Webhook;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
+use Modules\Whatsapp\Services\Contacts\LidPhoneResolver;
 
 /**
  * MessagePersister — extrai a lógica de Message::firstOrCreate compartilhada
@@ -75,6 +77,34 @@ class MessagePersister
             : $remoteJid;
         $rawNumber = preg_replace('/@.+$/', '', $resolvedJid);
         $customerExternalId = '+' . $rawNumber;
+
+        // INCIDENT 2026-05-14 P0-3: history-sync path ANTES ignorava o
+        // LidPhoneResolver — só o ChannelBaileysWebhookController real-time
+        // consultava. Resultado: 81 msgs do Wagner (`remoteJid=<LID>@lid`
+        // sem `senderPn`) caíram no contato errado pois MessagePersister
+        // não trocava o LID pelo phone cacheado. Espelha o controller
+        // [ChannelBaileysWebhookController:289-312] mantendo log auditoria
+        // distinguindo history-sync vs real-time (signals diferentes).
+        if (is_string($remoteJid) && str_contains($remoteJid, '@lid')) {
+            $resolver = app(LidPhoneResolver::class);
+            $senderPnHasPhone = is_string($senderPn) && str_contains($senderPn, '@s.whatsapp.net');
+
+            if ($senderPnHasPhone) {
+                $resolver->record($this->channel->business_id, $remoteJid, $senderPn);
+            } else {
+                $cachedPhone = $resolver->resolve($this->channel->business_id, $remoteJid);
+                if ($cachedPhone !== null && $cachedPhone !== $customerExternalId) {
+                    Log::info('[whatsapp.persister.lid_resolved_to_different_phone]', [
+                        'business_id' => $this->channel->business_id,
+                        'lid_prefix' => substr(preg_replace('/@.+$/', '', $remoteJid), 0, 6) . '...',
+                        'is_history_sync' => $data['is_history_sync'] ?? false,
+                    ]);
+                    $customerExternalId = $cachedPhone;
+                } elseif ($cachedPhone === null) {
+                    $resolver->record($this->channel->business_id, $remoteJid, null);
+                }
+            }
+        }
 
         // Body + type derivação (espelha controller:148-164 + caption fallback)
         $messageProto = $data['message'] ?? [];

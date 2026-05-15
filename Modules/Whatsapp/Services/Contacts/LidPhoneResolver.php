@@ -125,6 +125,33 @@ class LidPhoneResolver
 
         $normalizedPhone = $phone !== null ? $this->normalizePhone($phone) : null;
 
+        // INCIDENT 2026-05-14 P0-2: mapping `source=manual` ANTES aceitava
+        // direto via UI/CLI/SSH sem evidência prévia de webhook real do
+        // daemon — produziu 13 rows ad-hoc 14/mai 08:40 sem trail git (drift
+        // Tier 0 proibido por Constituição). Defesa: `source=manual` SÓ é
+        // permitido quando o LID já foi visto via webhook ao menos 1× (row
+        // companion `source=webhook_senderPn`). Webhook real sempre precede
+        // manual — quem cadastra manualmente está corrigindo um LID já
+        // observado pelo sistema, nunca inventando um do nada.
+        if ($source === LidPhoneMap::SOURCE_MANUAL && $normalizedPhone !== null) {
+            $hasWebhookEvidence = LidPhoneMap::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $businessId)
+                ->where('lid', $normalizedLid)
+                ->where('source', LidPhoneMap::SOURCE_WEBHOOK_SENDER_PN)
+                ->exists();
+
+            if (! $hasWebhookEvidence) {
+                \Illuminate\Support\Facades\Log::warning('[whatsapp.lid_resolver.manual_rejected_no_webhook_evidence]', [
+                    'business_id' => $businessId,
+                    'lid_prefix' => substr($normalizedLid, 0, 6) . '...',
+                ]);
+                throw new \DomainException(
+                    'LID manual requer webhook_senderPn prévio (anti-cross-contact incident 2026-05-14).'
+                );
+            }
+        }
+
         // SUPERADMIN: ADR 0093 — webhook sem session user
         /** @var LidPhoneMap $row */
         $row = LidPhoneMap::query()
