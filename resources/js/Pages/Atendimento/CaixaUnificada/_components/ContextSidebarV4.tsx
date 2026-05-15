@@ -16,13 +16,15 @@
 // Placeholders viram TODOs honestos (anti-padrão M-AP-1 do
 // LICOES_F3_FINANCEIRO_REJEITADO.md §1) — não inventar Service que não existe.
 
+import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Ban, Check, Plus, UserPlus } from 'lucide-react';
+import { Ban, Check, Link as LinkIcon, Plus, UserPlus } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/Components/ui/popover';
+import ContactPickerModal from '@/Pages/Whatsapp/_components/ContactPickerModal';
 import type {
   CaixaUnifThread,
   ChannelCatalogItem,
@@ -47,6 +49,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
   const queueCfg = queues[thread.queue.slug] ?? null;
   const isPreview = thread.preview_only;
   const activeTagIds = new Set(thread.tags.map(t => t.id));
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Wave 3 F1 — toggle tag (PATCH /atendimento/inbox/{id}/tags)
   function toggleTag(tagId: number) {
@@ -71,6 +74,20 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
       route('atendimento.inbox.block', thread.id),
       { is_blocked: !thread.is_blocked },
       { preserveScroll: true, preserveState: true, only: ['thread', 'conversations'] },
+    );
+  }
+
+  // Wave 3-B F1 — vincular Contact CRM existente (PATCH .../contact)
+  function linkContact(contactId: number) {
+    router.patch(
+      route('atendimento.inbox.link_contact', thread.id),
+      { contact_id: contactId },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['thread', 'conversations'],
+        onSuccess: () => setPickerOpen(false),
+      },
     );
   }
 
@@ -279,18 +296,29 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           </b>
         </div>
 
-        {/* Wave 3 F1 — Contato CRM (criar do phone) + Bloquear */}
+        {/* Wave 3 F1 — Contato CRM (vincular existente + criar do phone + Bloquear) */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-1.5">
           <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Contato CRM
           </small>
           <button
             type="button"
+            onClick={() => setPickerOpen(true)}
+            disabled={isPreview}
+            className="inline-flex items-center gap-1.5 text-left text-[11.5px] px-2 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            data-testid="caixa-unif-ctx-link-contact"
+            title="Buscar e vincular Contact CRM existente"
+          >
+            <LinkIcon size={12} aria-hidden />
+            Vincular contato existente
+          </button>
+          <button
+            type="button"
             onClick={createContactFromPhone}
             disabled={isPreview}
             className="inline-flex items-center gap-1.5 text-left text-[11.5px] px-2 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             data-testid="caixa-unif-ctx-create-contact"
-            title="Cria registro no CRM a partir do número de telefone"
+            title="Cria registro novo no CRM a partir do número de telefone"
           >
             <UserPlus size={12} aria-hidden />
             Criar contato do telefone
@@ -349,6 +377,15 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           </button>
         </div>
       </div>
+
+      {/* Wave 3-B F1 — Contact CRM picker modal (reusa legacy Pages/Whatsapp) */}
+      <ContactPickerModal
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        searchRouteName="atendimento.inbox.contacts.search"
+        onSelect={linkContact}
+        customerPhone={thread.customer_external_id}
+      />
     </aside>
   );
 }
