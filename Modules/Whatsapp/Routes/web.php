@@ -82,14 +82,19 @@ Route::group([
     'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
     'prefix'     => 'atendimento',
 ], function () {
-    // Inbox omnichannel — lê schema novo (Channel + Conversation + Message)
-    Route::get('/inbox', [InboxController::class, 'index'])
-        ->middleware('can:whatsapp.access')
+    // CUTOVER 2026-05-15: GET /inbox redireciona pra Caixa Unificada V4 (301 permanent).
+    // Inventário §6 do INVENTARIO-CUTOVER-CAIXA-UNIFICADA-V4.md.
+    // - Route name `atendimento.inbox.index` preservado (compat Pest + frontend legacy)
+    // - Query string preserved automaticamente pelo Laravel Route::redirect
+    // - Sub-rotas POST/PATCH (/inbox/{id}/send, /inbox/{id}/tags, etc) PERMANECEM
+    //   intactas — Caixa Unificada V4 reusa todos os endpoints (sem duplicar contrato)
+    // - Charter Inbox/Index.charter.md vira lifecycle: historical no mesmo PR
+    // - Pages/Atendimento/Inbox/ removida em F6 (PR seguinte, 1 sprint depois)
+    Route::redirect('/inbox', '/atendimento/caixa-unificada', 301)
         ->name('atendimento.inbox.index');
 
-    // Caixa Unificada V4 — redesign Cowork omnichannel (ADR 0114 loop).
-    // Coexiste com /atendimento/inbox durante canary 7d. Cutover em PR seguinte.
-    // Fonte visual canônica: prototipo-ui/prototipos/caixa-unificada/
+    // Caixa Unificada V4 — substituiu /atendimento/inbox no cutover 2026-05-15.
+    // Fonte visual canônica: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
     Route::get('/caixa-unificada', [CaixaUnificadaController::class, 'index'])
         ->middleware('can:whatsapp.access')
         ->name('atendimento.caixa-unificada.index');

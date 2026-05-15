@@ -2,8 +2,10 @@
 page: /atendimento/caixa-unificada
 component: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 owner: wagner
-status: in_canary
+status: live
 last_validated: 2026-05-15
+cutover_at: 2026-05-15
+supersedes: resources/js/Pages/Atendimento/Inbox/Index.charter.md
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
 visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
