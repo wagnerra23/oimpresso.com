@@ -27,11 +27,19 @@
 import { useEffect } from 'react';
 import { router, Deferred, Head } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
-import { Inbox as InboxIcon, Loader2 } from 'lucide-react';
+import { ChevronDown, Inbox as InboxIcon, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Card } from '@/Components/ui/card';
 import EmptyState from '@/Components/shared/EmptyState';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 
 import ChannelChipsRow from './_components/ChannelChipsRow';
 import ConversationListV4 from './_components/ConversationListV4';
@@ -188,8 +196,54 @@ export default function CaixaUnificadaIndex({
           </div>
         </div>
 
-        {/* Topnav direita: 4 ações (placeholders TODO US-WA-XXX) */}
-        <div className="flex items-center gap-1.5">
+        {/* Topnav direita: 5 ações (Templates funcional, 3 placeholders TODO US-WA-XXX) */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Templates — dropdown que agrupa Jana + HSM (rotas existentes) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                title="Templates Jana + HSM Meta"
+                data-testid="caixa-unif-topnav-templates"
+              >
+                Templates
+                <ChevronDown size={12} aria-hidden />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="text-[10.5px] uppercase tracking-wide text-muted-foreground">
+                Bibliotecas de templates
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a
+                  href="/atendimento/canais/jana-templates"
+                  className="flex items-center gap-2 cursor-pointer"
+                  data-testid="caixa-unif-topnav-templates-jana"
+                >
+                  <Sparkles size={14} className="text-primary" aria-hidden />
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-medium">Templates Jana</span>
+                    <span className="text-[10.5px] text-muted-foreground">Prompts internos IA</span>
+                  </div>
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a
+                  href="/whatsapp/templates"
+                  className="flex items-center gap-2 cursor-pointer"
+                  data-testid="caixa-unif-topnav-templates-hsm"
+                >
+                  <MessageSquareText size={14} className="text-emerald-600" aria-hidden />
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-medium">Templates HSM</span>
+                    <span className="text-[10.5px] text-muted-foreground">Meta-aprovados (fora 24h)</span>
+                  </div>
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             type="button"
             className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-45"
