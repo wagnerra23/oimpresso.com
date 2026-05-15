@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { messageRoutes } from './messages';
-import errorHandlerPlugin from '../plugins/errorHandler';
-import type { InstanceManager } from '../../baileys/InstanceManager';
+import { messageRoutes } from './messages.js';
+import errorHandlerPlugin from '../plugins/errorHandler.js';
+import type { InstanceManager } from '../../baileys/InstanceManager.js';
 
 // ------------------------------------------------------------------------------------------------
 // US-WA-080 — vitest spec da rota POST /instances/:id/history

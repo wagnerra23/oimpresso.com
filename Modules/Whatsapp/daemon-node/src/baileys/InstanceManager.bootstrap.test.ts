@@ -1,12 +1,12 @@
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+﻿import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Logger } from 'pino';
-import type { Env } from '../config/env';
-import type { WebhookDispatcher } from '../webhook/WebhookDispatcher';
-import { InstanceManager } from './InstanceManager';
-import { Instance } from './Instance';
+import type { Env } from '../config/env.js';
+import type { WebhookDispatcher } from '../webhook/WebhookDispatcher.js';
+import { InstanceManager } from './InstanceManager.js';
+import { Instance } from './Instance.js';
 
 // ------------------------------------------------------------------------------------------------
 // Camada 1 self-healing — vitest spec do InstanceManager.bootstrap()

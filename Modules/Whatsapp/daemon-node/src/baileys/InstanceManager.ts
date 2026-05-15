@@ -1,10 +1,10 @@
-import { readdir, readFile, stat } from 'node:fs/promises';
+﻿import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Logger } from 'pino';
-import type { Env } from '../config/env';
-import type { WebhookDispatcher } from '../webhook/WebhookDispatcher';
-import { instanceDir } from './authState';
-import { Instance, type InstanceMeta, type InstanceSnapshot } from './Instance';
+import type { Env } from '../config/env.js';
+import type { WebhookDispatcher } from '../webhook/WebhookDispatcher.js';
+import { instanceDir } from './authState.js';
+import { Instance, type InstanceMeta, type InstanceSnapshot } from './Instance.js';
 
 export interface BootstrapResult {
   scanned: number;

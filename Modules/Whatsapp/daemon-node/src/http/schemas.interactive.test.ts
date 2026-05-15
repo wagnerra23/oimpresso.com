@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { sendInteractiveBody } from './schemas';
+﻿import { describe, expect, it } from 'vitest';
+import { sendInteractiveBody } from './schemas.js';
 
 // ------------------------------------------------------------------------------------------------
 // US-WA-045/046 — Zod schema da rota /instances/:id/interactive

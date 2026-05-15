@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { sendMediaBody } from './schemas';
+﻿import { describe, expect, it } from 'vitest';
+import { sendMediaBody } from './schemas.js';
 
 // ------------------------------------------------------------------------------------------------
 // P0 #2 (2026-05-12) — Zod normalization de `mime` vs `mimetype` no sendMediaBody.

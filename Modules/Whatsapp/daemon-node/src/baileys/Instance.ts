@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:events';
+﻿import { EventEmitter } from 'node:events';
 import { rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import QRCode from 'qrcode';
@@ -9,7 +9,7 @@ import makeWASocket, {
   type proto,
 } from '@whiskeysockets/baileys';
 import type { Logger } from 'pino';
-import type { Env } from '../config/env';
+import type { Env } from '../config/env.js';
 import {
   banDetectedCounter,
   messageLagHistogram,
@@ -17,11 +17,11 @@ import {
   sendCounter,
   sessionAgeGauge,
   sessionStateGauge,
-} from '../observability/metrics';
-import type { WebhookDispatcher } from '../webhook/WebhookDispatcher';
-import { analyzeDisconnect } from './banDetector';
-import { instanceDir, loadAuthState } from './authState';
-import { antiBanConfigFromEnv, sendWithAntiBan, type AntiBanConfig } from './antiBan';
+} from '../observability/metrics.js';
+import type { WebhookDispatcher } from '../webhook/WebhookDispatcher.js';
+import { analyzeDisconnect } from './banDetector.js';
+import { instanceDir, loadAuthState } from './authState.js';
+import { antiBanConfigFromEnv, sendWithAntiBan, type AntiBanConfig } from './antiBan.js';
 
 export type InstanceState = 'idle' | 'connecting' | 'qr_required' | 'connected' | 'disconnected' | 'banned';
 
