@@ -1,0 +1,297 @@
+name: Memory schema gate EXTENDED (D6 #4)
+
+# D6 #4 — memoria-senior audit 2026-05-15.
+#
+# Estende o memory-schema-gate.yml original (que valida só YAML frontmatter via
+# AJV/JSON Schema) com checks ADICIONAIS:
+#   - filename regex (YYYY-MM-DD-<slug>.md pra session, YYYY-MM-DD-HHMM-<slug>.md
+#     pra handoff — ADR 0130)
+#   - seções obrigatórias do CORPO markdown (não só frontmatter)
+#   - lista US no formato US-<MOD>-<NNN>
+#   - seção "Estado MCP no momento do fechamento" em handoffs (ADR 0130 §6)
+#
+# Cada job posta comment explicativo em PR quando viola. Override: linha
+# `<!-- schema-allowlist: <razão> -->` no arquivo pula validação.
+
+on:
+  pull_request:
+    paths:
+      - 'memory/requisitos/**/SPEC.md'
+      - 'memory/sessions/**/*.md'
+      - 'memory/handoffs/**/*.md'
+      - '.github/scripts/validate-memory-schema.sh'
+      - '.github/workflows/memory-schema-gate-extended.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'memory/requisitos/**/SPEC.md'
+      - 'memory/sessions/**/*.md'
+      - 'memory/handoffs/**/*.md'
+
+concurrency:
+  group: memory-schema-extended-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate-spec-schema:
+    name: Schema SPEC.md (frontmatter + seções)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python (PyYAML pra parse frontmatter)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyYAML
+        run: pip install --quiet pyyaml
+
+      - name: Detectar SPEC.md modificados
+        id: changed
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          FILES="$(git diff --name-only --diff-filter=AM "${BASE}" "${HEAD}" -- 'memory/requisitos/**/SPEC.md' || true)"
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          if [[ -z "$FILES" ]]; then
+            echo "Nenhum SPEC.md alterado."
+          else
+            echo "SPECs alterados:"
+            echo "$FILES"
+          fi
+
+      - name: Validar SPEC schema
+        id: validate
+        if: steps.changed.outputs.files != ''
+        run: |
+          chmod +x .github/scripts/validate-memory-schema.sh
+          echo "${{ steps.changed.outputs.files }}" | xargs -r .github/scripts/validate-memory-schema.sh spec
+        env:
+          VIOLATIONS_JSON: violations-spec.json
+
+      - name: Upload violations
+        if: always() && steps.changed.outputs.files != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: violations-spec
+          path: violations-spec.json
+          if-no-files-found: ignore
+
+      - name: Comentar PR com violations
+        if: always() && github.event_name == 'pull_request' && steps.validate.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const file = 'violations-spec.json';
+            if (!fs.existsSync(file)) return;
+            const violations = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const errors = violations.filter(v => v.level === 'error');
+            const warns = violations.filter(v => v.level === 'warn');
+            if (errors.length === 0 && warns.length === 0) return;
+            const errLines = errors.slice(0, 15).map(v => `- \`${v.file}\` → ${v.error}`);
+            const warnLines = warns.slice(0, 5).map(v => `- \`${v.file}\` → ${v.error}`);
+            const body = [
+              '### Memory schema gate EXTENDED — SPEC.md',
+              '',
+              errors.length > 0
+                ? `**${errors.length} erro(s) de schema** — corrigir antes do merge:`
+                : '_Sem erros._',
+              ...errLines,
+              warns.length > 0 ? '\n**Avisos (não bloqueiam):**' : '',
+              ...warnLines,
+              '',
+              'Como corrigir → ver [memory/requisitos/Infra/RUNBOOK-memory-schema-gate-extended.md](../tree/${{ github.head_ref }}/memory/requisitos/Infra/RUNBOOK-memory-schema-gate-extended.md).',
+              '',
+              'Override emergencial: adicionar `<!-- schema-allowlist: <razão> -->` no SPEC.md.',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+  validate-session-schema:
+    name: Schema session log (filename + TL;DR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyYAML
+        run: pip install --quiet pyyaml
+
+      - name: Detectar sessions modificadas
+        id: changed
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          FILES="$(git diff --name-only --diff-filter=AM "${BASE}" "${HEAD}" -- 'memory/sessions/**/*.md' \
+            | grep -v '_TEMPLATE' \
+            | grep -v 'README.md' \
+            | grep -v '_INDEX' || true)"
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Validar Session schema
+        id: validate
+        if: steps.changed.outputs.files != ''
+        run: |
+          chmod +x .github/scripts/validate-memory-schema.sh
+          echo "${{ steps.changed.outputs.files }}" | xargs -r .github/scripts/validate-memory-schema.sh session
+        env:
+          VIOLATIONS_JSON: violations-session.json
+
+      - name: Upload violations
+        if: always() && steps.changed.outputs.files != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: violations-session
+          path: violations-session.json
+          if-no-files-found: ignore
+
+      - name: Comentar PR com violations
+        if: always() && github.event_name == 'pull_request' && steps.validate.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const file = 'violations-session.json';
+            if (!fs.existsSync(file)) return;
+            const violations = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const errors = violations.filter(v => v.level === 'error');
+            if (errors.length === 0) return;
+            const errLines = errors.slice(0, 15).map(v => `- \`${v.file}\` → ${v.error}`);
+            const body = [
+              '### Memory schema gate EXTENDED — Session log',
+              '',
+              `**${errors.length} erro(s) de schema** — corrigir antes do merge:`,
+              '',
+              ...errLines,
+              '',
+              'Filename deve bater `^YYYY-MM-DD-<slug-kebab>.md$`.',
+              'Pelo menos uma seção `## TL;DR` ou `## Resumo executivo` ou `## Contexto` obrigatória.',
+              '',
+              'Template em [memory/sessions/_TEMPLATE.md](../tree/${{ github.head_ref }}/memory/sessions/_TEMPLATE.md).',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+  validate-handoff-schema:
+    name: Schema handoff (filename HHMM + Estado MCP)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyYAML
+        run: pip install --quiet pyyaml
+
+      - name: Detectar handoffs modificados
+        id: changed
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          # Handoffs são append-only (ADR 0130) — só pegamos arquivos ADDED
+          # (diff-filter=A). Modified seria violação de ADR.
+          FILES="$(git diff --name-only --diff-filter=A "${BASE}" "${HEAD}" -- 'memory/handoffs/**/*.md' \
+            | grep -v '_TEMPLATE' \
+            | grep -v 'README.md' || true)"
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Validar Handoff schema
+        id: validate
+        if: steps.changed.outputs.files != ''
+        run: |
+          chmod +x .github/scripts/validate-memory-schema.sh
+          echo "${{ steps.changed.outputs.files }}" | xargs -r .github/scripts/validate-memory-schema.sh handoff
+        env:
+          VIOLATIONS_JSON: violations-handoff.json
+
+      - name: Upload violations
+        if: always() && steps.changed.outputs.files != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: violations-handoff
+          path: violations-handoff.json
+          if-no-files-found: ignore
+
+      - name: Comentar PR com violations
+        if: always() && github.event_name == 'pull_request' && steps.validate.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const file = 'violations-handoff.json';
+            if (!fs.existsSync(file)) return;
+            const violations = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const errors = violations.filter(v => v.level === 'error');
+            if (errors.length === 0) return;
+            const errLines = errors.slice(0, 15).map(v => `- \`${v.file}\` → ${v.error}`);
+            const body = [
+              '### Memory schema gate EXTENDED — Handoff',
+              '',
+              `**${errors.length} erro(s) de schema** — corrigir antes do merge:`,
+              '',
+              ...errLines,
+              '',
+              '**Regras ADR 0130:**',
+              '- Filename: `^YYYY-MM-DD-HHMM-<slug-kebab>.md$`',
+              '- Seção obrigatória: `## Estado MCP no momento do fechamento` (prova MCP-first)',
+              '- Append-only: NUNCA modificar handoff antigo (sempre arquivo novo)',
+              '',
+              'Template em [memory/handoffs/_TEMPLATE.md](../tree/${{ github.head_ref }}/memory/handoffs/_TEMPLATE.md).',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
