@@ -167,6 +167,32 @@ return [
     ],
 
     /*
+     * US-WA-095 — Análise IA por mensagem (Voz do Cliente).
+     *
+     * Wagner request 2026-05-15: cada msg inbound do canal Suporte deve ser
+     * analisada por Jana (laravel/ai) e classificada em categoria + tema +
+     * urgência, persistindo em `messages.analise_*` pra agregação gerencial.
+     *
+     * Default `enabled=false` — Wagner liga via .env após validar custo num
+     * batch dry-run:
+     *
+     *   WHATSAPP_ANALISE_ENABLED=true
+     *   WHATSAPP_ANALISE_ENABLED_BIZ=1   # CSV pra restringir per-business
+     *   WHATSAPP_ANALISE_MODEL=gpt-4o-mini   # ou claude-haiku-4-5 quando provider AnthropicProvider laravel/ai estiver pronto
+     *
+     * Custo estimado gpt-4o-mini: ~R$0.0002/msg → 21k backlog ≈ R$4
+     * Real-time ~100msg/dia/biz ≈ R$0.60/mês/biz.
+     */
+    'analise' => [
+        'enabled' => (bool) env('WHATSAPP_ANALISE_ENABLED', false),
+        'enabled_business_ids' => array_values(array_filter(
+            array_map('intval', explode(',', (string) env('WHATSAPP_ANALISE_ENABLED_BIZ', ''))),
+            fn ($id) => $id > 0,
+        )),
+        'model' => env('WHATSAPP_ANALISE_MODEL', 'gpt-4o-mini'),
+    ],
+
+    /*
      * US-WA-072 — Áudio (Whisper transcription) + Mídia (upload outbound).
      *
      * Provider único Whisper nesta fase. Fallback Ollama whisper-local

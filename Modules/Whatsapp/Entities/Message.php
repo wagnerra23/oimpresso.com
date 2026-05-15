@@ -48,6 +48,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $media_download_attempts
  * @property ?\Illuminate\Support\Carbon $media_download_last_attempt_at
  * @property ?string $media_download_failed_reason
+ * @property ?string $analise_categoria
+ * @property ?string $analise_tema
+ * @property ?string $analise_urgencia
+ * @property ?string $analise_resumo
+ * @property ?\Illuminate\Support\Carbon $analise_at
+ * @property ?string $analise_model
+ * @property ?int $analise_tokens_in
+ * @property ?int $analise_tokens_out
+ * @property ?int $analise_cost_centavos
  */
 class Message extends Model
 {
@@ -91,6 +100,10 @@ class Message extends Model
         // Guardião 6 camadas — download tracking
         'media_download_status', 'media_download_attempts',
         'media_download_last_attempt_at', 'media_download_failed_reason',
+        // US-WA-095 — análise IA Voz do Cliente
+        'analise_categoria', 'analise_tema', 'analise_urgencia', 'analise_resumo',
+        'analise_at', 'analise_model',
+        'analise_tokens_in', 'analise_tokens_out', 'analise_cost_centavos',
     ];
 
     protected $casts = [
@@ -101,6 +114,10 @@ class Message extends Model
         'media_duration_s' => 'integer',
         'media_download_attempts' => 'integer',
         'media_download_last_attempt_at' => 'datetime',
+        'analise_at' => 'datetime',
+        'analise_tokens_in' => 'integer',
+        'analise_tokens_out' => 'integer',
+        'analise_cost_centavos' => 'integer',
     ];
 
     /**

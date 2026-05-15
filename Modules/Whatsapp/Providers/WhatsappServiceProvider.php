@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
+use Modules\Whatsapp\Console\Commands\AnalyzeBacklogCommand;
 use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
@@ -37,6 +38,7 @@ use Modules\Whatsapp\Http\Middleware\VerifyBaileysSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyBaileysWebhookHmac;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
+use Modules\Whatsapp\Listeners\AnalisarMensagemInboundComJana;
 use Modules\Whatsapp\Listeners\DispatchToJanaBot;
 use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
 use Modules\Whatsapp\Listeners\PublishMessageReceivedToCentrifugo;
@@ -100,6 +102,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 CleanupStaleJobsCommand::class,         // US-WA-084 — purga jobs presos da fila whatsapp-history (>6h)
                 DaemonSourceDriftCheckCommand::class,   // 2026-05-13 — alerta drift main↔daemon CT 100 (cron weekly)
                 WhatsappAuthStateDriftCheckCommand::class, // 2026-05-15 — alerta drift auth_state↔channels pós incident Baileys 7.x deploy (cron daily 03h BRT)
+                AnalyzeBacklogCommand::class,           // US-WA-095 — backlog Voz-do-Cliente análise IA Jana (2026-05-15)
             ]);
         }
 
@@ -146,6 +149,11 @@ class WhatsappServiceProvider extends ServiceProvider
         // `omnichannel:business:{id}` separado do canal legacy acima.
         Event::listen(OmnichannelMessageReceived::class, PublishOmnichannelToCentrifugo::class);
         Event::listen(OmnichannelMessageSent::class, PublishOmnichannelToCentrifugo::class);
+
+        // US-WA-095 — Análise IA Voz do Cliente (Jana classifica msg inbound).
+        // Default desligado via config('whatsapp.analise.enabled') — Wagner
+        // liga manual no .env após validar custo num batch dry-run.
+        Event::listen(OmnichannelMessageReceived::class, AnalisarMensagemInboundComJana::class);
 
         // Bot Jana — Sprint 3 prep (default disabled via config('whatsapp.bot.enabled'))
         Event::listen(WhatsappMessageReceived::class, DispatchToJanaBot::class);
