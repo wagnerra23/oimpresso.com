@@ -84,8 +84,9 @@ export default function ConversationThreadV4({
           </b>
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-0.5">
             {channel && (
+              // Cowork .om-chip — padding 1px 7px, font-weight 500, border-radius 99px (§438)
               <span
-                className="inline-block px-1.5 py-px text-[10.5px] border rounded-full bg-card"
+                className="inline-block px-[7px] py-px text-[10.5px] font-medium border rounded-full bg-card"
                 style={{
                   borderColor: `oklch(0.85 0.06 ${channel.hue})`,
                   color: `oklch(0.35 0.10 ${channel.hue})`,
@@ -178,7 +179,7 @@ export default function ConversationThreadV4({
               <div key={m.id}>
                 {showDay && (
                   <div className="text-center my-3">
-                    <span className="bg-card border rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <span className="bg-card border rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                       {dayGroupLabel(m.created_at)}
                     </span>
                   </div>
