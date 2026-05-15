@@ -1589,3 +1589,115 @@ Reskin visual do Inbox `/atendimento/inbox` pra bater identidade da Caixa Unific
 
 **Refs:** [RUNBOOK-inbox-caixa-unificada-v4.md](RUNBOOK-inbox-caixa-unificada-v4.md) · F2 done (config + Controller + 7 Pest verde 2026-05-15)
 
+---
+
+## Caixa Unificada V4 — gaps próximo PR (handoff Wagner 2026-05-15)
+
+> Cadastradas a partir dos TODOs inline `US-WA-3XX` no protótipo canônico
+> [prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx](../../../prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx).
+> **Regra anti-pattern M-AP-1 (LICOES_F3 §1):** NÃO inventar Service novo
+> sem antes ler Models/DataController/Service existentes — comparar com
+> InboxController + ConversationSidebar legacy e reusar onde puder.
+
+### US-WA-301 · Filas DB + drawer config (label/hue/sla/dist/members/trigger_tags)
+
+> owner: wagner · sprint: TBD · priority: p1 · estimate: 4-6h IA-pair · status: backlog · type: backend+ui
+
+Hoje filas vêm de `config('whatsapp.queues')` estático (Comercial · Financeiro). Migração pra tabela `whatsapp_queues` + painel admin pra criar/editar fila com: label, hue OKLCH, sla (minutes), distribuição (round-robin/sticky/manual), members[] (operadores autorizados), trigger_tags[] (tags que derivam a conv pra essa fila).
+
+**AC:**
+- Migration `whatsapp_queues` + `whatsapp_queue_members` (pivot user_id × queue_id)
+- Drawer config `/atendimento/filas` (CRUD + reordenação + dist mode)
+- `deriveQueueFromTags()` consulta DB em vez de config quando schema novo populado
+- Pest cross-tenant biz=1 vs biz=99 + fila default Vendas
+
+**Anti-padrões M-AP:** não inventar `QueueRouter` Service — reusar heurística tag→fila atual e SÓ adicionar DB como source-of-truth.
+
+### US-WA-302 · Assignee picker no Contexto (select operators ativos)
+
+> owner: wagner · sprint: TBD · priority: p1 · estimate: 2-3h IA-pair · status: backlog · type: ui
+
+Dropdown no card "Atribuído" da sidebar pra atribuir conv a operador específico. Reusa `assigned_user_id` nullable já existente em `conversations`. Lista operadores `whatsapp.access` permission + active.
+
+**AC:**
+- `<select>` operators carregado via `Inertia::defer()` no Controller
+- PATCH `/atendimento/inbox/{id}` aceita `assigned_user_id: int|null`
+- Highlight quando própria conv (badge "Minha")
+- Filtro tab `assigned` (já existente PR #912) sincroniza
+
+**Anti-padrões:** não criar `AssigneeService` — usar `Conversation::update(['assigned_user_id' => ...])` direto.
+
+### US-WA-303 · Slash macros inline + Templates picker inline no composer
+
+> owner: wagner · sprint: TBD · priority: p1 · estimate: 3-4h IA-pair · status: backlog · type: ui
+
+Composer V4 ganha:
+- **Slash `/macros`** — autocomplete inline ao digitar `/` (já prototipado em `om-slash-pop` no .jsx). Reusa `MacrosController::list` legacy.
+- **Templates picker inline** — substitui dropdown atual "Templates" do topnav (Jana + HSM). Mostra preview + variáveis preenchíveis.
+
+**AC:**
+- `<Popover>` com lista de macros filtrada por substring após `/`
+- Tab/Enter completa macro → inline no textarea
+- Templates HSM picker reusa `TemplatePicker.tsx` legacy + props compat
+- Atalho `⌘T` abre Templates picker
+
+**Anti-padrões:** reusar `Pages/Whatsapp/_components/TemplatePicker.tsx` — não duplicar.
+
+### US-WA-304 · Drawer "Canais e contas" agrupado por type (vs link /canais)
+
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 2-3h IA-pair · status: backlog · type: ui
+
+Topnav direita "Canais" hoje linka pra `/atendimento/canais` (página completa). UX prevê drawer in-place mostrando canais agrupados por type (WhatsApp 3 / Instagram 1 / etc) + status health + count conversas + botão "Adicionar novo canal".
+
+**AC:**
+- Sheet/Drawer shadcn lateral direita
+- Reuso payload `availableChannels` + `availableAccounts` já carregado
+- Botão "Gerenciar canais" linka pra `/atendimento/canais` (escape hatch)
+
+**Anti-padrões:** não duplicar query — ler do Inertia::defer existente.
+
+### US-WA-305 · Mover conversa entre filas (override manual da heurística tag→fila)
+
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 2h IA-pair · status: backlog · type: backend+ui
+
+Hoje fila vem da heurística tag → fila (read-only). Mover manual = adicionar coluna `assigned_queue_slug` nullable na `conversations` que overrida a heurística.
+
+**AC:**
+- Migration `add_assigned_queue_slug_to_conversations`
+- PATCH endpoint aceita `assigned_queue_slug: string|null`
+- `deriveQueueFromTags()` retorna `assigned_queue_slug` se não-null, senão heurística
+- UI dropdown no Contexto "Fila" com botão "Resetar pra automática"
+
+### US-WA-306 · Broadcast cross-canal real (janela 24h Meta + opt-in LGPD)
+
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 6-8h IA-pair · status: backlog · type: backend+ui
+
+Disparar mensagem template (Meta HSM ou Baileys freeform) pra N contatos com 1 click. Pre-flight: contagem destinatários + filtro 24h Meta + opt-in LGPD + dry-run preview.
+
+**AC:**
+- Job `DispatchBroadcastJob` com queue dedicada
+- Schema `whatsapp_broadcasts` + `whatsapp_broadcast_recipients` (pivot)
+- UI wizard 3-step (Audience → Template → Confirm)
+- Bloquear contatos sem opt-in (LGPD Art. 7º consentimento)
+- Métricas: delivered / read / replied / failed
+
+**Anti-padrões:** não criar `Service` antes de mapear LGPD/janela 24h regras — começar com Job + Job dispatcher.
+
+### US-WA-307 · + Nova conversa (ContactPickerModal + template inicial + novo channel)
+
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 3-4h IA-pair · status: backlog · type: ui
+
+Botão "+ Nova conversa" no topnav direita hoje é placeholder. Implementação:
+1. Modal `ContactPickerModal` (já existe — `Pages/Whatsapp/_components/ContactPickerModal.tsx`)
+2. Selecionar template HSM inicial (obrigatório fora janela 24h Meta)
+3. Selecionar channel/conta destino
+4. Criar conversa nova + dispatch primeira mensagem
+
+**AC:**
+- Reusar `ContactPickerModal` legacy
+- Validar disponibilidade janela 24h por phone
+- POST endpoint `/atendimento/inbox/new` cria Conversation + Message inicial
+- Redireciona pra thread aberta após sucesso
+
+**Anti-padrões:** **NÃO** inventar `StartConversationService` antes de checar `InboxController::send` flow — reusar pattern de envio + criar Conversation row.
+

@@ -859,3 +859,77 @@
   .om-shell { grid-template-columns: 260px 1fr; }
   .om-ctx { display: none; }
 }
+
+
+/* ─── Templates dropdown no header (paridade Index.tsx PR-D) ───── */
+.om-dd-wrap { position: relative; display: inline-block; }
+.om-dd-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+}
+.om-dd-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 51;
+  width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.10);
+  padding: 6px;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.om-dd-label {
+  display: block;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-mute);
+  font-weight: 600;
+  padding: 6px 10px 4px;
+}
+.om-dd-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  width: 100%;
+  transition: background .12s;
+}
+.om-dd-item:hover { background: oklch(0.96 0.04 145); }
+.om-dd-icon {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.om-dd-icon.jana { background: oklch(0.92 0.06 280); color: oklch(0.32 0.13 280); }
+.om-dd-icon.hsm  { background: oklch(0.92 0.06 145); color: oklch(0.32 0.13 145); }
+.om-dd-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.om-dd-text b { font-size: 12px; font-weight: 600; }
+.om-dd-text small { font-size: 10.5px; color: var(--text-mute); }
+
+/* ─── Focus visible (a11y obrigatório — CLAUDE_DESIGN_BRIEFING §4) ─── */
+.om-fil:focus-visible,
+.om-stat:focus-visible,
+.om-status-sel:focus-visible,
+.om-list-h-btn:focus-visible,
+.om-list-search input:focus-visible,
+.om-list-search-x:focus-visible,
+.om-mode-btn:focus-visible,
+.om-icon-btn:focus-visible,
+.om-ctx-select:focus-visible,
+.om-x:focus-visible,
+.om-dd-item:focus-visible {
+  outline: 2px solid oklch(0.55 0.13 145);
+  outline-offset: 2px;
+}
+.om-input input:focus-visible {
+  /* já tem borda verde via :focus, não duplica ring */
+  outline: none;
+}
