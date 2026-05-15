@@ -254,3 +254,4 @@ Após Wagner aprovar canary 7d:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
+| 2026-05-15 | Wagner + Opus 4.7 | Adicionado `<CustomerMemoryBlock>` (US-WA-VOZ-001/002/003 — PR #919) no topo do `ContextSidebarV4`. Lazy fetch `GET /atendimento/customer/{ext}/profile`. Mostra identidade Contact CRM, stats agregados, top 3 reclamações 30d com severity, external_sources Firebird, flags VIP/frágil, LGPD. Mesmo componente usado pelo Inbox legacy (`ConversationSidebar.tsx`) — atendente vê Customer 360 em qualquer tela durante cutover. |
