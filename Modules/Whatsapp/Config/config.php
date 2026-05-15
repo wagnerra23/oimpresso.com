@@ -86,6 +86,34 @@ return [
 
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
+    /*
+     * Caixa Unificada v4 (RUNBOOK-inbox-caixa-unificada-v4.md §4).
+     *
+     * Filas de atendimento APENAS VISUAIS (sem persistência DB nesta passada).
+     * Cada conversation recebe um campo derivado `queue` via heurística no
+     * InboxController::convToListArray (tags `financeiro`/`cobranca` → financeiro;
+     * resto → comercial). UI filtra client-side.
+     *
+     * Migration + roteamento automático ficam pra outra passada quando Wagner
+     * decidir persistir (RUNBOOK §3 Non-Goals: "NÃO criar migrations").
+     */
+    'queues' => [
+        'comercial' => [
+            'label' => 'Comercial',
+            'hue' => 220,
+            'sla' => '1h',
+            // tags que disparam essa fila (heurística OR)
+            'trigger_tags' => [],  // fallback default — sem trigger explícito
+        ],
+        'financeiro' => [
+            'label' => 'Financeiro',
+            'hue' => 280,
+            'sla' => '4h',
+            'trigger_tags' => ['financeiro', 'cobranca'],
+        ],
+    ],
+    'default_queue' => 'comercial',
+
     'webhook' => [
         'rate_limit_per_minute' => 600,
     ],
