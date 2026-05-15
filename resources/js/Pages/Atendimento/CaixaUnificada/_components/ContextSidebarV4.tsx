@@ -25,6 +25,7 @@ import {
   PopoverTrigger,
 } from '@/Components/ui/popover';
 import ContactPickerModal from '@/Pages/Whatsapp/_components/ContactPickerModal';
+import CustomerMemoryBlock from '@/Pages/Whatsapp/_components/CustomerMemoryBlock';
 import type {
   CaixaUnifThread,
   ChannelCatalogItem,
@@ -115,6 +116,15 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
       </div>
 
       <div className="flex-1 overflow-auto px-4 py-3 flex flex-col gap-2.5">
+        {/* US-WA-VOZ-001/002/003 — Customer Memory block (perfil persistente cliente).
+            Renderiza no topo do contexto. Lazy fetch client-side via endpoint
+            /atendimento/customer/{ext}/profile — não bloqueia abertura nem polling 5s.
+            Mostra identidade Contact CRM, stats, reclamações 30d (heurística),
+            external_sources Firebird OfficeImpresso, flags VIP/frágil, LGPD. */}
+        {thread.customer_external_id && (
+          <CustomerMemoryBlock customerExternalId={thread.customer_external_id} />
+        )}
+
         {/* 1. Fila */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
           <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
