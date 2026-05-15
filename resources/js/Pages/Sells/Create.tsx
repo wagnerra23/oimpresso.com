@@ -17,7 +17,7 @@ import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
-import { CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
+import { Calculator, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -29,8 +29,16 @@ import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
 import CustomerSearchAutocomplete from './_components/CustomerSearchAutocomplete';
+import ContactSelectedSummary from './_components/ContactSelectedSummary';
+import ContactQuickAddModal, { type CreatedContact } from './_components/ContactQuickAddModal';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
+import CashDenominationModal from './_components/CashDenominationModal';
+import ProductQuickAddModal, {
+  type QuickAddedProduct,
+} from './_components/ProductQuickAddModal';
 import { dropdownEntries } from './_components/dropdownEntries';
+import { useSellsHotkeys } from './_components/useSellsHotkeys';
+import HotkeysHint from './_components/HotkeysHint';
 import {
   Select,
   SelectContent,
@@ -148,7 +156,7 @@ function fromDatetimeLocal(val: string): string {
 
 export default function SellsCreate(props: SellsCreatePageProps) {
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=format_now_local
-  const { data, setData, post, processing, errors, transform } = useForm({
+  const { data, setData, post, processing, errors, transform, reset } = useForm({
     location_id: props.defaultLocation?.id ?? null,
     contact_id: props.walkInCustomer.id,
     transaction_date: props.defaultDatetime,
@@ -299,6 +307,23 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     );
   };
 
+  // US-SELL-013 (P0-2) — Modal Quick Add Product inline.
+  const [showProductQuickAdd, setShowProductQuickAdd] = useState(false);
+  const handleProductQuickAdded = (p: QuickAddedProduct) => {
+    setData('products', [
+      ...data.products,
+      {
+        product_id: p.product_id,
+        variation_id: p.variation_id,
+        name: p.name,
+        sku: p.sku,
+        quantity: 1,
+        unit_price: Number(p.selling_price ?? 0),
+        discount: 0,
+      },
+    ]);
+  };
+
   // Pagamentos
   const totalPago = useMemo(
     () => data.payments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0),
@@ -340,6 +365,24 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       'payments',
       data.payments.filter((_, i) => i !== idx),
     );
+  };
+
+  // Cash denomination modal (P0-4 paridade Blade) — preenche valor da primeira linha
+  // de pagamento `cash`/`pix`. Se não houver, usa a primeira linha (idx 0).
+  const [showCashDenomination, setShowCashDenomination] = useState(false);
+  const targetPaymentIdx = useMemo(() => {
+    const cashIdx = data.payments.findIndex((p) => p.method === 'cash');
+    if (cashIdx >= 0) return cashIdx;
+    return 0;
+  }, [data.payments]);
+  const handleConfirmCashDenomination = (totalCalculated: number) => {
+    if (data.payments.length === 0) return;
+    const next = [...data.payments];
+    next[targetPaymentIdx] = {
+      ...next[targetPaymentIdx],
+      amount: totalCalculated,
+    } as Payment;
+    setData('payments', next);
   };
 
   const focusProductSearch = () => {
@@ -476,6 +519,33 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     return () => window.removeEventListener('keydown', onEsc);
   }, []);
 
+  // US-SELL-P0-3 — Atalhos teclado paridade Blade legacy (RUNBOOK-paridade-create §3.7).
+  // Foca primeiro campo do form (genérico = cliente autocomplete). F2 = "novo cliente"
+  // semântica Delphi clássica que Kamila/Lara esperam vindas do legacy.
+  const focusFirstField = () => {
+    const first = document.querySelector<HTMLInputElement>(
+      '#sec-dados input:not([type="hidden"]):not([disabled])',
+    );
+    first?.focus();
+  };
+  useSellsHotkeys({
+    onFocusProduct: focusProductSearch,
+    onFocusFirstField: focusFirstField,
+    onSubmit: () => handleSubmit(false),
+    onPrint: () => handleSubmit(true),
+    onReset: () => {
+      reset();
+      // limpar draft localStorage também — senão remount restaura
+      if (draftKey) {
+        try {
+          localStorage.removeItem(draftKey);
+        } catch {
+          // ignore
+        }
+      }
+    },
+  });
+
   // US-SELL-010 — Auto-open <details> "Mais opções" quando erro está em campo colapsado.
   // Larissa scrola pro erro mas a seção fica fechada — sem isso ela não acha o campo.
   // Detectado pelo design-arte agent 2026-05-13 como maior gap UX restante.
@@ -552,7 +622,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, [data, draftKey]);
 
   // postMessage: recebe contato criado na aba de cadastro (/contacts/create-page).
+  // E também — US-SELL-PARIDADE P0-1 — recebe do ContactQuickAddModal inline,
+  // que evita a "abrir em nova aba" e mantém Lara no fluxo da venda (pain #1
+  // Martinho reunião 13/maio).
   const [forcedCustomer, setForcedCustomer] = useState<{ id: number; text: string } | null>(null);
+  const [showContactQuickAdd, setShowContactQuickAdd] = useState(false);
+  const handleContactQuickAdded = (c: CreatedContact) => {
+    setData('contact_id', c.id);
+    setForcedCustomer({ id: c.id, text: c.name });
+  };
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type === 'contact_created' && event.data?.contact) {
@@ -744,14 +822,29 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="contact_id">Cliente</Label>
-            <CustomerSearchAutocomplete
-              defaultName={props.walkInCustomer.name}
-              onSelect={(c) => setData('contact_id', c.id)}
-              onClear={() => setData('contact_id', props.walkInCustomer.id)}
-              forcedValue={forcedCustomer}
-            />
+            <div className="flex items-stretch gap-2">
+              <div className="flex-1 min-w-0">
+                <CustomerSearchAutocomplete
+                  defaultName={props.walkInCustomer.name}
+                  onSelect={(c) => setData('contact_id', c.id)}
+                  onClear={() => setData('contact_id', props.walkInCustomer.id)}
+                  forcedValue={forcedCustomer}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setShowContactQuickAdd(true)}
+                aria-label="Cadastrar novo cliente"
+                title="Cadastrar novo cliente"
+                data-testid="contact-quick-add-trigger"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">
-              Digite ≥2 caracteres pra buscar. Limpe pra voltar ao cliente padrão.
+              Digite ≥2 caracteres pra buscar. Use + pra cadastrar novo.
             </p>
             <FieldError message={errors.contact_id as string | undefined} />
           </div>
@@ -805,6 +898,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <FieldError message={errors.location_id as string | undefined} />
           </div>
         </CardContent>
+        {/* US-SELL-CUST-SUMMARY (P0-5) — endereço + saldo após selecionar cliente */}
+        {data.contact_id !== props.walkInCustomer.id && (
+          <div className="px-6 pb-6">
+            <ContactSelectedSummary
+              contactId={data.contact_id}
+              walkInCustomerId={props.walkInCustomer.id}
+            />
+          </div>
+        )}
       </Card>
 
       {/* Bloco produtos — busca + tabela editável (US-SELL-005) */}
@@ -813,11 +915,25 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           <CardTitle className="text-base">Produtos</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div ref={productSearchRef}>
-            <ProductSearchAutocomplete
-              locationId={data.location_id}
-              onSelect={handleAddProduct}
-            />
+          <div className="flex gap-2 items-start">
+            <div ref={productSearchRef} className="flex-1 min-w-0">
+              <ProductSearchAutocomplete
+                locationId={data.location_id}
+                onSelect={handleAddProduct}
+              />
+            </div>
+            {/* US-SELL-013 (P0-2) — botão (+) Quick Add Product paridade Blade legacy */}
+            <Button
+              type="button"
+              variant="outline"
+              size="default"
+              onClick={() => setShowProductQuickAdd(true)}
+              aria-label="Cadastrar novo produto"
+              title="Cadastrar novo produto on-the-fly"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Novo produto
+            </Button>
           </div>
 
           {data.products.length === 0 ? (
@@ -941,17 +1057,31 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       {/* Bloco pagamentos — split de pagamento + indicador saldo (US-SELL-006) */}
       <Card id="sec-pagamento" className="shadow-sm bg-background border-border scroll-mt-32">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-base">Pagamento</CardTitle>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAddPayment}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Adicionar pagamento
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCashDenomination(true)}
+                aria-label="Conferir notas — contar dinheiro nota a nota"
+                data-testid="open-cash-denomination"
+                title="Conferir notas (contagem nota a nota)"
+              >
+                <Calculator className="h-4 w-4 mr-1" />
+                Conferir notas
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddPayment}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Adicionar pagamento
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -997,6 +1127,29 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* P0-4 paridade Blade — contagem nota a nota cash denomination */}
+      <CashDenominationModal
+        open={showCashDenomination}
+        onClose={() => setShowCashDenomination(false)}
+        onConfirm={handleConfirmCashDenomination}
+        initialAmount={Number(data.payments[targetPaymentIdx]?.amount) || 0}
+      />
+
+      {/* P0-1 paridade Blade — cadastro cliente inline (sem abrir nova aba) */}
+      <ContactQuickAddModal
+        open={showContactQuickAdd}
+        onClose={() => setShowContactQuickAdd(false)}
+        onContactCreated={handleContactQuickAdded}
+      />
+
+      {/* P0-2 paridade Blade — cadastrar produto inline (Lara Caçambas SKU on-the-fly) */}
+      <ProductQuickAddModal
+        open={showProductQuickAdd}
+        onOpenChange={setShowProductQuickAdd}
+        categories={props.categories}
+        onProductCreated={handleProductQuickAdded}
+      />
 
       {/* Desconto inline + Notas — sempre visíveis (8 campos visíveis: 4 acima + 1 desconto + 1 nota + produtos + pagamentos) */}
       <Card id="sec-resumo" className="shadow-sm bg-background border-border scroll-mt-32">
@@ -1364,7 +1517,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             ) : !canSubmit && data.location_id === null ? (
               <span>Selecione o local da venda</span>
             ) : (
-              <span className="hidden md:inline">Atalho: Ctrl+Enter pra salvar</span>
+              <HotkeysHint />
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">

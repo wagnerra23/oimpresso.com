@@ -6,7 +6,10 @@
 
 ## Cliente & domínio
 
-- [cliente-rotalivre.md](cliente-rotalivre.md) — ROTA LIVRE (biz=4) Larissa loja vestuário Termas do Gravatal/SC; sensibilidades operacionais; histórico incidentes
+- **[clientes/](clientes/_INDEX.md)** — 🆕 **perfis cliente padronizados** (Tier A ADR proposal cliente-funcionario-perfis-coleta-sistematica 2026-05-14) · ROTA LIVRE biz=4 producao + **MARTINHO CAÇAMBAS biz=164 piloto-ativo** (Jair endossou 14/maio)
+- **[funcionarios/](funcionarios/_INDEX.md)** — 🆕 **perfis funcionário padronizados** · 8 funcionários (Larissa + Jair/Kamila/Martinho/Lara/Dani/Rodrigo/Eduardo) · hierarquia Martinho corrigida (Kamila esposa Jair · NÃO filha)
+- ~~[cliente-rotalivre.md](cliente-rotalivre.md)~~ MOVED · stub redirect → [clientes/rotalivre.md](clientes/rotalivre.md) (90d backward-compat até 2026-08-14)
+- ~~[cliente-martinho.md](cliente-martinho.md)~~ MOVED · stub redirect → [clientes/martinho-cacambas.md](clientes/martinho-cacambas.md) (90d backward-compat até 2026-08-14)
 - [clientes-ativos.md](clientes-ativos.md) — 56 businesses, só 7 com vendas; ROTA LIVRE 99% do volume
 - [dominios-verticais-oimpresso.md](dominios-verticais-oimpresso.md) — Vestuario (peça)/ComVis (m²)/OficinaAuto (m³ caçamba/pneu)/Repair (device); 3 erros recorrentes a NÃO repetir
 - [concorrentes-com-visual.md](concorrentes-com-visual.md) — Zênite/Mubisys/Alfa/Visua/Calcgraf/Calcme; copy verbo-de-ação; métrica m²

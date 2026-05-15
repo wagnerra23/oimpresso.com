@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Utils\ModuleUtil;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Menu;
 use App\Services\Menu\MenuItem as NwidartItem;
 use Throwable;
@@ -239,6 +241,11 @@ class LegacyMenuAdapter
             }
         }
 
+        // US-UI-SIDEBAR-001 — filtra items escondidos por business
+        // (config em business.sidebar_hidden_groups). Multi-tenant Tier 0
+        // (ADR 0093): scope pelo business_id do user autenticado.
+        $items = $this->applyHiddenGroupsFilter($items);
+
         // nwidart já aplica `order()` mas vamos reforçar
         usort($items, fn ($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
 
@@ -247,6 +254,133 @@ class LegacyMenuAdapter
             unset($item['order']);
             return $item;
         }, $items);
+    }
+
+    /**
+     * Lookup table espelhada do frontend SIDEBAR_GROUPS
+     * (resources/js/Components/cockpit/Sidebar.tsx ~linhas 97-159).
+     *
+     * Mantém sincronia manual: quando adicionar/remover grupo no front,
+     * espelhe aqui. Sem isso, filter por chave de grupo não funciona.
+     *
+     * Match item→grupo é case-insensitive em literal-string.
+     *
+     * @return array<string, array<int, string>>  key:grupo => [items]
+     */
+    protected function sidebarGroupsMirror(): array
+    {
+        return [
+            'office'       => ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar', 'CRM', 'Crm', 'Office Impresso', 'Officeimpresso'],
+            'oficina'      => ['Oficina Auto'],
+            'fin'          => ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro'],
+            'estoque'      => ['Compras', 'Transferências de ações', 'Ajuste de estoque', 'Gestão de ativos'],
+            'fiscal'       => ['NFSe', 'NF-e Brasil'],
+            'rh'           => ['HRM', 'Essenciais', 'Ponto'],
+            'conhecimento' => ['Cofre de Memórias', 'SRS', 'Sistema de Regras', 'Base de Conhecimento', 'KB', 'Planilha', 'Notas'],
+            'rel'          => ['Iniciar', 'Início', 'Home', 'Dashboard', 'Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
+            'ia'           => ['Copiloto', 'Jana', 'Projeto', 'Project Mgmt', 'Project'],
+            'governanca'   => ['Governança', 'Governance', 'ADS', 'Adaptive Decision', 'Team MCP', 'TeamMcp'],
+            'plataforma'   => ['CMS', 'Conector', 'Connector', 'Backup', 'Módulos', 'Modulos', 'Manage Modules', 'Personalizar'],
+        ];
+    }
+
+    /**
+     * Lê `business.sidebar_hidden_groups` do business autenticado e devolve
+     * lista de strings (lowercase) representando grupos OU items escondidos.
+     *
+     * Default safe: retorna [] em qualquer falha (coluna ausente, JSON
+     * inválido, business sem user logado, throw qualquer). Falha aberta —
+     * sidebar continua mostrando tudo.
+     *
+     * Cache: per-request via static property (LegacyMenuAdapter é singleton
+     * resolvido por ShellMenuBuilder no share Inertia — mesma instância).
+     *
+     * @return array<int, string>  lista normalizada (lowercase trimmed)
+     */
+    protected function hiddenList(): array
+    {
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+
+        try {
+            $user = auth()->user();
+            if (!$user || empty($user->business_id)) {
+                return $cache = [];
+            }
+
+            // Defesa em profundidade: coluna pode não existir (migration pendente)
+            if (!Schema::hasColumn('business', 'sidebar_hidden_groups')) {
+                return $cache = [];
+            }
+
+            // Multi-tenant Tier 0 (ADR 0093): scope explícito pelo business_id
+            // do user atual. Zero risco cross-tenant.
+            $raw = DB::table('business')
+                ->where('id', $user->business_id)
+                ->value('sidebar_hidden_groups');
+
+            if (empty($raw)) {
+                return $cache = [];
+            }
+
+            $decoded = is_array($raw) ? $raw : json_decode($raw, true);
+            if (!is_array($decoded)) {
+                return $cache = [];
+            }
+
+            // Normaliza pra match case-insensitive (mb_strtolower + trim)
+            $normalized = array_map(
+                fn ($s) => mb_strtolower(trim((string) $s), 'UTF-8'),
+                $decoded
+            );
+
+            return $cache = array_values(array_filter($normalized, fn ($s) => $s !== ''));
+        } catch (Throwable $e) {
+            report($e);
+            return $cache = [];
+        }
+    }
+
+    /**
+     * Aplica o filtro de items escondidos. Cada entry em hiddenList pode
+     * casar (case-insensitive) com:
+     *   (a) chave de grupo SIDEBAR_GROUPS — esconde TODOS os items do grupo
+     *   (b) label exato de item top-level — esconde só esse item
+     *
+     * Default safe: hiddenList vazia → retorna $items intacto.
+     *
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     */
+    protected function applyHiddenGroupsFilter(array $items): array
+    {
+        $hidden = $this->hiddenList();
+        if (empty($hidden)) {
+            return $items;
+        }
+
+        $groupsMirror = $this->sidebarGroupsMirror();
+
+        // Expande chaves de grupo em set de labels pra match O(1)
+        $hiddenLabels = [];
+        foreach ($hidden as $entry) {
+            if (isset($groupsMirror[$entry])) {
+                // chave de grupo → adiciona todos os items do grupo
+                foreach ($groupsMirror[$entry] as $label) {
+                    $hiddenLabels[mb_strtolower($label, 'UTF-8')] = true;
+                }
+            } else {
+                // label de item top-level
+                $hiddenLabels[$entry] = true;
+            }
+        }
+
+        return array_values(array_filter($items, function ($item) use ($hiddenLabels) {
+            $label = mb_strtolower(trim((string) ($item['label'] ?? '')), 'UTF-8');
+            return $label === '' || !isset($hiddenLabels[$label]);
+        }));
     }
 
     protected function convertItem(NwidartItem $item): ?array

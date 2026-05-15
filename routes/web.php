@@ -170,6 +170,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/contacts/check-contacts-id', [ContactController::class, 'checkContactId']);
     Route::get('/contacts/customers', [ContactController::class, 'getCustomers']);
     Route::get('/contacts/create-page', [ContactController::class, 'createPage']);
+    // US-CRM-CONT-001 — endpoint JSON pra tabela Inertia Crm/Contacts/Index (lê via fetch).
+    Route::get('/contacts/list-json', [ContactController::class, 'listJson'])->name('contacts.list-json');
+    // US-SELL-CUST-SUMMARY (P0-5 RUNBOOK paridade Sells/Create) — JSON pra card
+    // ContactSelectedSummary em Pages/Sells/Create.tsx. Multi-tenant scoped na controller.
+    Route::get('/contacts/{contact_id}/quick-info', [ContactController::class, 'getCustomerInfoJson']);
     Route::resource('contacts', ContactController::class);
 
     Route::get('taxonomies-ajax-index-page', [TaxonomyController::class, 'getTaxonomyIndexPage']);
@@ -178,6 +183,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::resource('variation-templates', VariationTemplateController::class);
 
     Route::get('/products/download-excel', [ProductController::class, 'downloadExcel']);
+
+    // US-PROD-001 — Endpoint REST JSON pra tabela Inertia Cockpit V2 (ADR 0110).
+    // Multi-tenant Tier 0 escopado por business_id no controller. Substitui
+    // DataTables AJAX gradualmente (Blade legacy preservado em /products?ajax).
+    Route::get('/products/list-json', [ProductController::class, 'listJson'])->name('products.list-json');
 
     // Catálogo Unificado (Cockpit V2) — 5 sub-telas em uma rota.
     // Persona Larissa [L] · 1280×1024 · ROTA LIVRE.

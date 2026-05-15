@@ -65,6 +65,7 @@ except ImportError:
     pass
 
 from lib.firebird_reader import firebird_connect, query  # noqa: E402
+from lib import sync_checkpoint as sc  # noqa: E402
 
 try:
     import pymysql
@@ -72,8 +73,9 @@ try:
 except ImportError:
     pymysql = None  # type: ignore
 
-IMPORTER_VERSION = "0.1.0"
+IMPORTER_VERSION = "0.2.0"  # bump: --delta-since-last-sync + chunk pagination + JSON_MERGE_PATCH
 LEGACY_SOURCE = "wr-comercial-delphi"
+SYNC_TYPE_DEFAULT = "vendas"
 
 # Colunas canônicas pra leitura (mapping v1474). Cols ausentes em versões antigas
 # viram NULL automaticamente via COALESCE in-query.
@@ -332,6 +334,16 @@ def main() -> int:
     parser.add_argument("--created-by", type=int, default=int(os.environ.get("CREATED_BY", "1")))
     parser.add_argument("--confirm", action="store_true", help="Obrigatório pra --target prod")
     parser.add_argument("--output-dir", default="scripts/legacy-migration/output")
+    parser.add_argument(
+        "--delta-since-last-sync",
+        action="store_true",
+        help="Daemon dual-sync — lê apenas rows com DT_ALTERACAO > sync_checkpoint.last_sync_at",
+    )
+    parser.add_argument(
+        "--sync-type",
+        default=SYNC_TYPE_DEFAULT,
+        help=f"Identificador sync_checkpoint (default '{SYNC_TYPE_DEFAULT}')",
+    )
     args = parser.parse_args()
 
     if args.target == "prod" and not args.confirm:
@@ -377,6 +389,31 @@ def main() -> int:
     audit_records: list[dict] = []
     sample_inserts: list[str] = []
 
+    # Delta-since-last-sync — lê checkpoint MySQL ANTES de Firebird
+    delta_since: datetime | None = None
+    delta_active = False
+    if args.delta_since_last_sync and args.target in ("local", "prod"):
+        if pymysql is None:
+            print("[ERRO] pymysql necessário pra --delta-since-last-sync", file=sys.stderr)
+            return 3
+        sc_con = pymysql.connect(
+            host=args.mysql_host, port=args.mysql_port,
+            user=args.mysql_user, password=args.mysql_password,
+            database=args.mysql_database, charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        try:
+            delta_since = sc.read_last_sync_at(sc_con, args.target_business, args.sync_type)
+            sc.mark_running(sc_con, args.target_business, args.sync_type)
+            sc_con.commit()
+        finally:
+            sc_con.close()
+        delta_active = delta_since is not None
+        if delta_active:
+            print(f"[delta] last_sync_at = {delta_since} — filtrando DT_ALTERACAO > este valor")
+        else:
+            print("[delta] checkpoint inexistente — FULL SYNC (próxima rodada será delta)")
+
     print("\n[Firebird] Conectando...")
     with firebird_connect(args.alias, password_override=args.firebird_password) as fb_con:
         # Adapter: cols presentes nesta versão
@@ -385,6 +422,15 @@ def main() -> int:
         print(f"[Adapter] VENDA cols presentes: {len(cols_existentes_venda)} · canônicas pedidas: {len(COLS_CANONICAS)} · ausentes: {len(cols_ausentes)}")
         if cols_ausentes:
             print(f"          Ausentes (viram NULL): {cols_ausentes}")
+
+        # Delta filter — DT_ALTERACAO ausente em algumas versões → fallback FULL SYNC com warn
+        has_dt_alteracao = "DT_ALTERACAO" in cols_existentes_venda
+        if delta_active and not has_dt_alteracao:
+            print(
+                "[delta WARN] VENDA não tem DT_ALTERACAO — fallback FULL SYNC",
+                file=sys.stderr,
+            )
+            delta_active = False
 
         # Carrega vehicle_lookup + contact_lookup do MySQL alvo.
         # Pra dry-run, vehicle_lookup é simulado via EQUIPAMENTO_VEICULO Firebird (sentinel),
@@ -448,6 +494,9 @@ def main() -> int:
         if args.end_date:
             where_parts.append("P.DT_EMISSAO <= ?")
             params.append(args.end_date + " 23:59:59")
+        if delta_active and delta_since is not None:
+            where_parts.append("P.DT_ALTERACAO > ?")
+            params.append(sc.format_firebird_timestamp(delta_since))
         where_clause = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
         select_clause = build_adapted_select(cols_existentes_venda, COLS_CANONICAS)
@@ -554,11 +603,28 @@ def main() -> int:
             if con and batch_count > 0:
                 con.commit()
                 print(f"  [batch final] commited {batch_count} rows")
+            if con and args.delta_since_last_sync:
+                try:
+                    sc.mark_success(
+                        con,
+                        args.target_business,
+                        args.sync_type,
+                        rows_processed=stats["inserts"] + stats["updates"],
+                    )
+                    con.commit()
+                except Exception as e:
+                    print(f"[sync_checkpoint] WARN mark_success: {e!r}", file=sys.stderr)
 
         except Exception as e:
             if con:
                 con.rollback()
                 print("\n[ERRO] Rollback MySQL", file=sys.stderr)
+                if args.delta_since_last_sync:
+                    try:
+                        sc.mark_failed(con, args.target_business, args.sync_type, error_msg=repr(e))
+                        con.commit()
+                    except Exception as e2:
+                        print(f"[sync_checkpoint] WARN mark_failed: {e2!r}", file=sys.stderr)
             stats["errors"] += 1
             print(f"Exceção: {e!r}", file=sys.stderr)
             raise

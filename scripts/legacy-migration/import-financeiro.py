@@ -51,6 +51,7 @@ except ImportError:
     pass
 
 from lib.firebird_reader import firebird_connect, query  # noqa: E402
+from lib import sync_checkpoint as sc  # noqa: E402
 
 try:
     import pymysql
@@ -58,8 +59,9 @@ try:
 except ImportError:
     pymysql = None  # type: ignore
 
-IMPORTER_VERSION = "0.1.0"
+IMPORTER_VERSION = "0.2.0"  # bump: --delta-since-last-sync + JSON_MERGE_PATCH metadata
 LEGACY_SOURCE = "wr-comercial-delphi"
+SYNC_TYPE_DEFAULT = "financeiro"
 
 # Cols canônicas FINANCEIRO (Martinho v1404). Adapter detecta ausentes.
 FINANCEIRO_COLS = [
@@ -364,6 +366,16 @@ def main() -> int:
     parser.add_argument("--confirm", action="store_true")
     parser.add_argument("--output-dir", default="scripts/legacy-migration/output")
     parser.add_argument("--skip-baixas", action="store_true", help="Importa só fin_titulos (sem baixas)")
+    parser.add_argument(
+        "--delta-since-last-sync",
+        action="store_true",
+        help="Daemon dual-sync — lê apenas rows com DT_ALTERACAO > sync_checkpoint.last_sync_at",
+    )
+    parser.add_argument(
+        "--sync-type",
+        default=SYNC_TYPE_DEFAULT,
+        help=f"Identificador sync_checkpoint (default '{SYNC_TYPE_DEFAULT}')",
+    )
     args = parser.parse_args()
 
     if args.target == "prod" and not args.confirm:
@@ -391,6 +403,31 @@ def main() -> int:
     sample_titulos = []
     sample_baixas = []
 
+    # Delta-since-last-sync — lê checkpoint MySQL ANTES de Firebird
+    delta_since: datetime | None = None
+    delta_active = False
+    if args.delta_since_last_sync and args.target in ("local", "prod"):
+        if pymysql is None:
+            print("[ERRO] pymysql necessário pra --delta-since-last-sync", file=sys.stderr)
+            return 3
+        sc_con = pymysql.connect(
+            host=args.mysql_host, port=args.mysql_port,
+            user=args.mysql_user, password=args.mysql_password,
+            database=args.mysql_database, charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        try:
+            delta_since = sc.read_last_sync_at(sc_con, args.target_business, args.sync_type)
+            sc.mark_running(sc_con, args.target_business, args.sync_type)
+            sc_con.commit()
+        finally:
+            sc_con.close()
+        delta_active = delta_since is not None
+        if delta_active:
+            print(f"[delta] last_sync_at = {delta_since} — filtrando DT_ALTERACAO > este valor")
+        else:
+            print("[delta] checkpoint inexistente — FULL SYNC (próxima rodada será delta)")
+
     print("\n[Firebird] Conectando...")
     with firebird_connect(args.alias, password_override=args.firebird_password) as fb_con:
         cols_existentes = get_existing_cols(fb_con, "FINANCEIRO")
@@ -398,6 +435,15 @@ def main() -> int:
         print(f"[Adapter] FINANCEIRO cols presentes: {len(cols_existentes)} · canônicas pedidas: {len(FINANCEIRO_COLS)} · ausentes: {len(cols_ausentes)}")
         if cols_ausentes:
             print(f"          Ausentes (NULL): {cols_ausentes}")
+
+        # Delta filter — DT_ALTERACAO ausente em algumas versões → fallback FULL SYNC com warn
+        has_dt_alteracao = "DT_ALTERACAO" in cols_existentes
+        if delta_active and not has_dt_alteracao:
+            print(
+                "[delta WARN] FINANCEIRO não tem DT_ALTERACAO nesta versão — fallback FULL SYNC",
+                file=sys.stderr,
+            )
+            delta_active = False
 
         # Lookup transactions biz=N pra resolver origem_id via ref_no=CODPEDIDO
         transaction_lookup: dict[str, int] = {}
@@ -458,6 +504,9 @@ def main() -> int:
         if args.end_date:
             where_parts.append("EMISSAO <= ?")
             params.append(args.end_date + " 23:59:59")
+        if delta_active and delta_since is not None:
+            where_parts.append("DT_ALTERACAO > ?")
+            params.append(sc.format_firebird_timestamp(delta_since))
         where_clause = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
         # SELECT adaptado
@@ -547,13 +596,25 @@ def main() -> int:
                             titulo_id = int(existing["id"])
                             update_fields = {
                                 k: v for k, v in data.items()
-                                if k not in ("business_id", "legacy_id", "numero", "tipo", "origem", "created_by")
+                                if k not in ("business_id", "legacy_id", "numero", "tipo", "origem", "created_by", "metadata")
                             }
-                            set_clause = ", ".join(f"{k}=%s" for k in update_fields)
-                            wcur.execute(
-                                f"UPDATE fin_titulos SET {set_clause}, updated_at=NOW() WHERE id=%s",
-                                (*update_fields.values(), titulo_id),
+                            # METADATA MERGE (Lição 2 incidente 14/maio): NÃO overwrite —
+                            # JSON_MERGE_PATCH preserva metadata.user_* (anotações manuais)
+                            # enquanto reescreve namespace metadata.import_* automático.
+                            set_parts = [f"{k}=%s" for k in update_fields]
+                            set_parts.append(
+                                "metadata = JSON_MERGE_PATCH(COALESCE(metadata, JSON_OBJECT()), CAST(%s AS JSON))"
                             )
+                            set_clause = ", ".join(set_parts)
+                            wcur.execute(
+                                f"UPDATE fin_titulos SET {set_clause}, updated_at=NOW() WHERE id=%s AND business_id=%s",
+                                (*update_fields.values(), data["metadata"], titulo_id, args.target_business),
+                            )
+                            if wcur.rowcount == 0:
+                                # CINTO+SUSPENSÓRIO Tier 0 — title pertence a outro biz: skip
+                                stats.setdefault("skipped_cross_business_guard", 0)
+                                stats["skipped_cross_business_guard"] += 1
+                                continue
                             stats["updates_titulos"] += 1
                         else:
                             cols = list(data.keys())
@@ -599,10 +660,27 @@ def main() -> int:
             if con and batch_count > 0:
                 con.commit()
                 print(f"  [batch final] commited {batch_count}")
+            if con and args.delta_since_last_sync:
+                try:
+                    sc.mark_success(
+                        con,
+                        args.target_business,
+                        args.sync_type,
+                        rows_processed=stats["inserts_titulos"] + stats["updates_titulos"],
+                    )
+                    con.commit()
+                except Exception as e:
+                    print(f"[sync_checkpoint] WARN mark_success: {e!r}", file=sys.stderr)
         except Exception as e:
             if con:
                 con.rollback()
                 print(f"\n[ERRO] Rollback: {e}", file=sys.stderr)
+                if args.delta_since_last_sync:
+                    try:
+                        sc.mark_failed(con, args.target_business, args.sync_type, error_msg=repr(e))
+                        con.commit()
+                    except Exception as e2:
+                        print(f"[sync_checkpoint] WARN mark_failed: {e2!r}", file=sys.stderr)
             stats["errors"] += 1
             raise
         finally:

@@ -803,8 +803,17 @@ class SellController extends Controller
         // Cintura+suspensório: GrowthBook regra biz=4 OFF + este guard hardcoded.
         // TODO: remover guard quando bugs corrigidos + canary biz=4 re-ativado.
         $ffs = app(\App\Services\FeatureFlagService::class);
+        // Canary Martinho biz=164 — Jair (dono majoritário) endossou 14/maio noite,
+        // Kamila pausou avaliação Highsoft. Hardcoded ON pra destravar Inertia/React
+        // ANTES da rule GrowthBook ser criada via UI. Filha (estoque/Lara) + Dani (financeiro)
+        // + Kamila (operação) entram canary semana 19/maio com co-design presencial (20km).
+        // TODO: remover whitelist quando rule GrowthBook setada via UI (ADR 0104 §F5).
+        $canaryBusinesses = [164]; // Martinho Caçambas LTDA
         $useV2 = $business_id !== 4
-            && $ffs->isOn('useV2SellsCreate', ['business_id' => $business_id]);
+            && (
+                in_array($business_id, $canaryBusinesses, true)
+                || $ffs->isOn('useV2SellsCreate', ['business_id' => $business_id])
+            );
         if ($useV2) {
             return \Inertia\Inertia::render('Sells/Create', [
                 'businessLocations'    => $business_locations,
@@ -1983,6 +1992,139 @@ class SellController extends Controller
 
         //Added check because $users is of no use if enable_contact_assign if false
         $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
+
+        // US-SELL-EDIT-001 — dual response: Inertia/React (MWART) se feature flag on, senão Blade legacy.
+        // Espelha estratégia hotfix biz=164 do método create() (linhas 805-816). Mesma whitelist canary.
+        // Refs: ADR 0104 (MWART canônico §F2 backend baseline), ADR 0093 (Tier 0 IRREVOGÁVEL),
+        //        memory/requisitos/Sells/RUNBOOK-edit.md.
+        //
+        // Canary Martinho biz=164 — Jair (dono) endossou 14/maio. Lara (estoque) + Dani
+        // (financeiro · DANIELLI id=297) entram canary semana 19/maio editando vendas
+        // históricas. Hardcoded ON pra destravar Inertia/React antes da rule GrowthBook
+        // ser criada via UI (ADR 0104 §F5).
+        $ffs = app(\App\Services\FeatureFlagService::class);
+        $canaryBusinesses = [164]; // Martinho Caçambas LTDA
+        $useV2 = $business_id !== 4
+            && (
+                in_array($business_id, $canaryBusinesses, true)
+                || $ffs->isOn('useV2SellsEdit', ['business_id' => $business_id])
+            );
+        if ($useV2) {
+            // canCancel: usuário tem permissão pra cancelar + transação não está cancelada já.
+            $canCancel = (auth()->user()->can('direct_sell.update') || auth()->user()->can('superadmin'))
+                && $transaction->status !== 'cancelled';
+
+            // Walk-in customer pro CustomerSearchAutocomplete (cliente padrão fallback).
+            $walkInCustomer = Contact::where('business_id', $business_id)
+                ->where('is_default', 1)
+                ->select(['id', 'name'])
+                ->first();
+            if (! $walkInCustomer) {
+                $walkInCustomer = (object) ['id' => $transaction->contact_id, 'name' => '—'];
+            }
+
+            // priceGroups + commissionAgents formatados pra dropdown (UltimatePOS forDropdowns).
+            $priceGroups = SellingPriceGroup::forDropdown($business_id);
+            // shippingStatuses já é Record<string, string>.
+            // taxes vem como ['tax_rates' => Collection, 'attributes' => array] — desempacotar.
+            $taxesFlat = is_array($taxes) && isset($taxes['tax_rates'])
+                ? $taxes['tax_rates']
+                : $taxes;
+
+            return \Inertia\Inertia::render('Sells/Edit', [
+                'transaction'           => [
+                    'id'                     => $transaction->id,
+                    'business_id'            => $transaction->business_id,
+                    'location_id'            => $transaction->location_id,
+                    'contact_id'             => $transaction->contact_id,
+                    'invoice_no'             => $transaction->invoice_no,
+                    'transaction_date'       => $transaction->transaction_date,
+                    'status'                 => $transaction->status,
+                    'sub_status'             => $transaction->sub_status,
+                    'type'                   => $transaction->type,
+                    'discount_type'          => $transaction->discount_type ?? 'percentage',
+                    'discount_amount'        => (float) ($transaction->discount_amount ?? 0),
+                    'tax_id'                 => $transaction->tax_id,
+                    'pay_term_number'        => $transaction->pay_term_number,
+                    'pay_term_type'          => $transaction->pay_term_type,
+                    'commission_agent'       => $transaction->commission_agent,
+                    'selling_price_group_id' => $transaction->selling_price_group_id,
+                    'invoice_scheme_id'      => $transaction->invoice_scheme_id,
+                    'additional_notes'       => $transaction->additional_notes,
+                    'shipping_details'       => $transaction->shipping_details,
+                    'shipping_address'       => $transaction->shipping_address,
+                    'shipping_charges'       => (float) ($transaction->shipping_charges ?? 0),
+                    'shipping_status'        => $transaction->shipping_status,
+                    'delivered_to'           => $transaction->delivered_to,
+                    'delivery_person'        => $transaction->delivery_person,
+                    'contact'                => [
+                        'id'   => $transaction->contact->id ?? $transaction->contact_id,
+                        'name' => $transaction->contact->name ?? '',
+                    ],
+                    'final_total'            => (float) ($transaction->final_total ?? 0),
+                    'total_paid'             => (float) ($transaction->total_paid ?? 0),
+                    'updated_at'             => optional($transaction->updated_at)->toIso8601String(),
+                ],
+                'sellDetails'           => $sell_details->map(function ($line) {
+                    return [
+                        'id'                            => $line->id,
+                        'transaction_sell_lines_id'     => $line->transaction_sell_lines_id,
+                        'product_id'                    => $line->product_id,
+                        'variation_id'                  => $line->variation_id,
+                        'product_name'                  => $line->product_name,
+                        'product_actual_name'           => $line->product_actual_name,
+                        'sub_sku'                       => $line->sub_sku,
+                        'quantity_ordered'              => (float) $line->quantity_ordered,
+                        'default_sell_price'            => (float) $line->default_sell_price,
+                        'sell_price_inc_tax'            => (float) $line->sell_price_inc_tax,
+                        'line_discount_type'            => $line->line_discount_type ?? 'fixed',
+                        'line_discount_amount'          => (float) ($line->line_discount_amount ?? 0),
+                        'item_tax'                      => (float) ($line->item_tax ?? 0),
+                        'tax_id'                        => $line->tax_id,
+                        'unit'                          => $line->unit,
+                        'sell_line_note'                => $line->sell_line_note,
+                        'enable_stock'                  => (int) ($line->enable_stock ?? 0),
+                        'product_type'                  => $line->product_type ?? 'single',
+                        'qty_available'                 => $line->qty_available ?? null,
+                    ];
+                })->values()->all(),
+                'paymentLines'          => collect($payment_lines)->map(function ($p) {
+                    $p = (array) $p;
+                    return [
+                        'id'         => $p['id'] ?? null,
+                        'amount'     => (float) ($p['amount'] ?? 0),
+                        'method'     => $p['method'] ?? 'cash',
+                        'paid_on'    => $p['paid_on'] ?? '',
+                        'account_id' => $p['account_id'] ?? null,
+                        'note'       => $p['note'] ?? '',
+                        'is_return'  => (int) ($p['is_return'] ?? 0),
+                    ];
+                })->values()->all(),
+                'paymentTypes'          => $payment_types,
+                'invoiceSchemes'        => $invoice_schemes,
+                'taxes'                 => $taxesFlat,
+                'priceGroups'           => $priceGroups,
+                'shippingStatuses'      => $shipping_statuses,
+                'commissionAgents'      => $commission_agent ?: [],
+                'customerGroups'        => $customer_groups,
+                'accounts'              => $accounts,
+                'statuses'              => $statuses,
+                'users'                 => $users,
+                'walkInCustomer'        => [
+                    'id'   => $walkInCustomer->id,
+                    'name' => $walkInCustomer->name,
+                ],
+                'permissions'           => [
+                    'editDiscount' => (bool) $edit_discount,
+                    'editPrice'    => (bool) $edit_price,
+                    'canCancel'    => $canCancel,
+                    'maxDiscount'  => auth()->user()->max_sales_discount_percent,
+                ],
+                'posSettings'           => $pos_settings,
+                'customerDue'           => $customer_due,
+                'isOrderRequestEnabled' => $is_order_request_enabled,
+            ]);
+        }
 
         return view('sell.edit')
             ->with(compact('business_details', 'taxes', 'sell_details', 'transaction', 'commission_agent', 'types', 'customer_groups', 'pos_settings', 'waiters', 'invoice_schemes', 'default_invoice_schemes', 'redeem_details', 'edit_discount', 'edit_price', 'shipping_statuses', 'warranties', 'statuses', 'sales_orders', 'payment_types', 'accounts', 'payment_lines', 'change_return', 'is_order_request_enabled', 'customer_due', 'users'));

@@ -31,6 +31,7 @@ lifecycle: active
 | Categoria | Quantidade | Skills |
 |---|---|---|
 | **Tier A — always-on (ativas)** | 8 | brief-first, mcp-first, multi-tenant-patterns, commit-discipline, mwart-process, mwart-comparative V4, **automem-pending**, **session-start-check** |
+| **Tier A — proposed (aguarda ADR accepted)** | 1 | **cliente-funcionario-collector** (ADR 0144 proposed — 2026-05-14) |
 | **Tier A — dormentes (esperando S4/S5)** | 2 | charter-first, ads-route |
 | **Tier B — auto-trigger contextual** | 13 | ads-decision-flow, comparativo-do-modulo, criar-modulo, jana-arch (rename), jana-recall-flow (rename), memory-sync, migrar-modulo, publication-policy, runtime-rules-hostinger-ct100, sidebar-menu-arch (description ainda fraca), **charter-write**, **mwart-quality**, **ui-component-creator** |
 | **Tier C — slash command/on-demand** | 7 | cockpit-runbook, meta-skill-roi-erp-autonomo (mismatch — ver Bloco D), oimpresso-cc-watcher-setup, oimpresso-stack, oimpresso-team-onboarding, proxmox-docker-host, **audit-constituicao** |
@@ -126,7 +127,19 @@ lifecycle: active
 | **ADR** | [0119 paralelismo sessões — whats-active Tier 1](../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md) |
 | **Status** | live |
 
-### A.9 — `charter-first` (DORMENTE — esperando S4)
+### A.9 — `cliente-funcionario-collector` 🟡 PROPOSED (NOVA 2026-05-14 — aguarda ADR 0144 accepted)
+
+| Campo | Valor |
+|---|---|
+| **Decisão** | TIER A `status: proposed` — promove a `live` quando ADR 0144 accepted (Wagner segunda 2026-05-19) |
+| **Mecanismo** | Auto-trigger via 6 matchers de description: (1) `business_id=N` onde N ≠ {1,4,99}; (2) nome próprio + role operacional + cliente; (3) decisão arquitetural envolvendo cliente; (4) marco datável (`endossou/aprovou/reclamou/canary/cutover`); (5) status mudança no frontmatter; (6) palavra-chave Wagner (`"salve no perfil"`/`"isso é ouro"`). PII guard regex CPF bloqueia commit |
+| **Why Tier A** | Wagner pediu 2026-05-14 noite — *"isso é ouro, crie a regra, eu nem preciso avisar"*. Coleta sistemática de perfis cliente+funcionário substitui memória do Wagner. Cobre princípios duros §1 Context as a product · §3 Charter > Spec · §7 Transparência da Constituição v2 |
+| **ADR** | [0144 proposed — cliente-funcionario-perfis-coleta-sistematica](../decisions/proposals/cliente-funcionario-perfis-coleta-sistematica.md) (proposta pendente accepted) |
+| **Status** | proposed (skill criada · aguarda ADR accepted pra mover `status: live` + atualizar CLAUDE.md + tier-a-banner.ps1 — regra F.1) |
+| **Pest test** | [`tests/Feature/Skills/ClienteFuncionarioCollectorMatcherTest.php`](../../../tests/Feature/Skills/ClienteFuncionarioCollectorMatcherTest.php) — 10 casos cobertos (10/10 pass smoke standalone) |
+| **RUNBOOK** | [`memory/requisitos/_Skills/RUNBOOK-cliente-funcionario-collector.md`](../../requisitos/_Skills/RUNBOOK-cliente-funcionario-collector.md) |
+
+### A.10 — `charter-first` (DORMENTE — esperando S4)
 
 | Campo | Valor |
 |---|---|
@@ -135,7 +148,7 @@ lifecycle: active
 | **Why Tier A** | Princípio duro #3 (Charter > Spec) |
 | **Status** | dormente (criada com `enabled: false`); ativação prevista ~jun/2026 com S4 |
 
-### A.10 — `ads-route` (DORMENTE — esperando S5)
+### A.11 — `ads-route` (DORMENTE — esperando S5)
 
 | Campo | Valor |
 |---|---|

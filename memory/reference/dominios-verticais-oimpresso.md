@@ -42,15 +42,23 @@ type: reference
 - **Schema EQUIPAMENTO_VEICULO:** PLACA 80% + PLACA2 20% + CHASSI2 8% (multi-placa real)
 - **NÃO usa m³** (pneu é peça contável, não volume)
 
-#### Sub-vertical 3 — Locação caçamba · CNAE 4581-4/00 · qualificado por Martinho
+#### Sub-vertical 3 — Locação caçamba · CNAE 4581-4/00 · 🟢 PILOTO ATIVO Martinho
 
-- **Cliente piloto:** **Martinho** (Cliente_731814, OfficeImpresso, caçamba avulsa pra entulho/obra) — 91 caçambas + 44.709 vendas Firebird
+- **Cliente piloto:** **Martinho Caçambas LTDA** (biz=164 prod · Cliente_731814 legacy · Firebird `MartinhoServidor` LAN 192.168.0.55) — 91 caçambas + 44.709 vendas + 4.378 produtos + 18.845 contacts
+- **Endosso:** **Jair (dono majoritário) endossou 2026-05-14 noite** · Kamila (filha · operação) pausou avaliação **Highsoft** (concorrente)
+- **Champions canary semana 19/maio:** LARA (filha · responsável estoque) + DANI / DANIELLI (financeiro · id=297 user biz=164)
+- **Operação continua Delphi:** Kamila + 4 vendedores (Rodrigo · Eduardo · etc) · oimpresso é viewer + editor seletivo (ver [ADR proposal dual-sync](../decisions/proposals/dual-system-delphi-oimpresso-sync-realtime.md))
+- **Co-design:** Wagner-Martinho 20km · visitas presenciais regulares · Lara/Dani veem desenvolvimento acontecer
+- **Pricing:** R$ 830/m paridade Delphi + upsell módulos novos (WhatsApp R$ 200-300/m, Jana IA, NFSe, PWA)
 - **Unidades primárias:**
   - **m³ (capacidade caçamba)** — 3m³ pequena reforma · 5m³ reforma grande · 7m³ obra média
   - **diária** (locação)
   - peça (lona proteção, parafuso, ferragem auxiliar)
-- **Pricing:** per diária (locação)
-- **Schema:** PLACA 95.6% (sem cavalo+reboque — caso simples vs Vargas)
+- **Pricing operacional:** per diária (locação)
+- **Schema:** PLACA 95.6% (sem cavalo+reboque — caso simples vs Vargas) · PLACA é **FK numérica** pra `EQUIPAMENTO_VEICULO.CODIGO` (NÃO string `ABC-1234`)
+- **Volume vendas sem placa:** 45.971 vendas (98.4%) NÃO têm vehicle_id — são "venda internet" + "conserto bomba freio" serviço avulso · só 91 têm placa (locação caçamba específica)
+- **76.7% inadimplência fóssil 2015-2017:** 748 títulos R$ 844k flagados `metadata.is_write_off_candidate=true` · Dani filtra no UI
+- **Perfil completo:** [clientes/martinho-cacambas.md](clientes/martinho-cacambas.md)
 - **usa m³ — único caso onde m³ é correto no oimpresso**
 
 ### Modules/Repair · shared infrastructure · LIVE
@@ -72,7 +80,7 @@ type: reference
 
 ## 3 erros recorrentes a NÃO repetir
 
-1. **"ROTA LIVRE = gráfica em SP"** — é LOJA DE ROUPA em Termas do Gravatal/SC (vestuário). Razão social `LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME`. Ver cliente-rotalivre.md.
+1. **"ROTA LIVRE = gráfica em SP"** — é LOJA DE ROUPA em Termas do Gravatal/SC (vestuário). Razão social `LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME`. Ver [clientes/rotalivre.md](clientes/rotalivre.md).
 
 2. **"m³ pra ComunicacaoVisual"** — gráfica usa **m² (área)**, NÃO m³ (volume). Banner é 2D não 3D. Caçamba sim usa m³. Wagner pediu memory 2026-05-13 após eu quase confundir.
 

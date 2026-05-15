@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ProductsCreatedOrModified;
 use App\TransactionSellLine;
+use Inertia\Inertia;
 
 class ProductController extends Controller
 {
@@ -68,6 +69,49 @@ class ProductController extends Controller
         $business_id = request()->session()->get('user.business_id');
         $selling_price_group_count = SellingPriceGroup::countSellingPriceGroups($business_id);
         $is_woocommerce = $this->moduleUtil->isModuleInstalled('Woocommerce');
+
+        // US-PROD-001 — Inertia branch (Products/Index). Cockpit V2 (ADR 0110).
+        // Dual-mode: header X-Inertia → React. Blade legacy preservado abaixo como
+        // fallback durante canary gradual (ADR 0104 §F5 CUTOVER).
+        // Multi-tenant Tier 0 (ADR 0093): kpis count escopados por business_id.
+        if (request()->header('X-Inertia')) {
+            $base = Product::where('products.business_id', $business_id)
+                ->where('products.type', '!=', 'modifier');
+
+            $totalCount = (clone $base)->count();
+            $withStockCount = (clone $base)->where('products.enable_stock', 1)->count();
+            $inactiveCount = (clone $base)->where('products.is_inactive', 1)->count();
+
+            // Em alerta: enable_stock=1 AND alert_quantity NOT NULL AND
+            // (SUM agregado vld.qty_available por product) < alert_quantity.
+            $inAlertCount = Product::where('products.business_id', $business_id)
+                ->where('products.type', '!=', 'modifier')
+                ->where('products.enable_stock', 1)
+                ->whereNotNull('products.alert_quantity')
+                ->whereRaw('products.alert_quantity > (SELECT COALESCE(SUM(vld.qty_available), 0) FROM variation_location_details vld JOIN variations v ON v.id = vld.variation_id WHERE v.product_id = products.id AND v.deleted_at IS NULL)')
+                ->count();
+
+            return Inertia::render('Products/Index', [
+                'kpis' => [
+                    'total' => $totalCount,
+                    'with_stock' => $withStockCount,
+                    'in_alert' => $inAlertCount,
+                    'inactive' => $inactiveCount,
+                ],
+                'permissions' => [
+                    'create' => auth()->user()->can('product.create'),
+                    'update' => auth()->user()->can('product.update'),
+                    'delete' => auth()->user()->can('product.delete'),
+                    'view' => auth()->user()->can('product.view'),
+                    'opening_stock' => auth()->user()->can('product.opening_stock'),
+                ],
+                'filterOptions' => [
+                    'categories' => Category::forDropdown($business_id, 'product'),
+                    'brands' => Brands::forDropdown($business_id),
+                    'units' => Unit::forDropdown($business_id),
+                ],
+            ]);
+        }
 
         if (request()->ajax()) {
             //Filter by location
@@ -351,6 +395,149 @@ class ProductController extends Controller
     }
 
     /**
+     * US-PROD-001 — Endpoint REST JSON paginado pra tabela Inertia.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): products.business_id obrigatório.
+     * Permissões: product.view|product.create.
+     * Filtros: q (nome+sku+officeimpresso_codigo+sub_sku), type, category_id,
+     *          brand_id, status (active/inactive), enable_stock (yes/no),
+     *          sort, dir, page, per_page (whitelist [10,25,50,100]).
+     *
+     * Returns: { data: [ProductRow], meta: { current_page, last_page, per_page, total, from, to } }
+     */
+    public function listJson()
+    {
+        if (! auth()->user()->can('product.view') && ! auth()->user()->can('product.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        // Multi-tenant Tier 0: business_id obrigatório no where root.
+        $query = Product::where('products.business_id', $business_id)
+            ->where('products.type', '!=', 'modifier')
+            ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+            ->leftJoin('units', 'products.unit_id', '=', 'units.id')
+            ->leftJoin('categories as c1', 'products.category_id', '=', 'c1.id')
+            ->join('variations as v', 'v.product_id', '=', 'products.id')
+            ->leftJoin('variation_location_details as vld', 'vld.variation_id', '=', 'v.id')
+            ->whereNull('v.deleted_at')
+            ->select([
+                'products.id',
+                'products.name',
+                'products.sku',
+                'products.type',
+                'products.enable_stock',
+                'products.is_inactive',
+                'products.not_for_selling',
+                'products.alert_quantity',
+                'products.image',
+                'products.product_custom_field1', // officeimpresso_codigo (Martinho legacy WR Comercial)
+                'brands.name as brand',
+                'units.actual_name as unit',
+                'c1.name as category',
+                DB::raw('SUM(vld.qty_available) as current_stock'),
+                DB::raw('MIN(v.sell_price_inc_tax) as min_price'),
+                DB::raw('MAX(v.sell_price_inc_tax) as max_price'),
+                DB::raw('MIN(v.dpp_inc_tax) as min_purchase_price'),
+                DB::raw('MAX(v.dpp_inc_tax) as max_purchase_price'),
+            ])
+            ->groupBy('products.id');
+
+        // Busca livre
+        $q = trim((string) request()->get('q', ''));
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('products.name', 'like', "%{$q}%")
+                    ->orWhere('products.sku', 'like', "%{$q}%")
+                    ->orWhere('products.product_custom_field1', 'like', "%{$q}%")
+                    ->orWhereExists(function ($sub) use ($q) {
+                        $sub->select(DB::raw(1))
+                            ->from('variations as vv')
+                            ->whereColumn('vv.product_id', 'products.id')
+                            ->whereNull('vv.deleted_at')
+                            ->where('vv.sub_sku', 'like', "%{$q}%");
+                    });
+            });
+        }
+
+        // Filtros
+        $type = request()->get('type');
+        if (in_array($type, ['single', 'variable', 'combo'], true)) {
+            $query->where('products.type', $type);
+        }
+
+        $categoryId = (int) request()->get('category_id', 0);
+        if ($categoryId > 0) {
+            $query->where('products.category_id', $categoryId);
+        }
+
+        $brandId = (int) request()->get('brand_id', 0);
+        if ($brandId > 0) {
+            $query->where('products.brand_id', $brandId);
+        }
+
+        $status = request()->get('status');
+        if ($status === 'active') {
+            $query->where('products.is_inactive', 0);
+        } elseif ($status === 'inactive') {
+            $query->where('products.is_inactive', 1);
+        }
+
+        $enableStock = request()->get('enable_stock');
+        if ($enableStock === 'yes') {
+            $query->where('products.enable_stock', 1);
+        } elseif ($enableStock === 'no') {
+            $query->where('products.enable_stock', 0);
+        }
+
+        // Filtro "em alerta" — stock atual < alert_quantity
+        if (request()->get('in_alert') === '1') {
+            $query->where('products.enable_stock', 1)
+                ->whereNotNull('products.alert_quantity')
+                ->havingRaw('SUM(vld.qty_available) < products.alert_quantity');
+        }
+
+        // Ordenação — whitelist defensiva
+        $sort = request()->get('sort', 'name');
+        $allowedSort = ['name', 'sku', 'category', 'brand', 'current_stock', 'min_price'];
+        if (! in_array($sort, $allowedSort, true)) {
+            $sort = 'name';
+        }
+        $dir = request()->get('dir', 'asc') === 'desc' ? 'desc' : 'asc';
+
+        $sortMap = [
+            'name' => 'products.name',
+            'sku' => 'products.sku',
+            'category' => 'c1.name',
+            'brand' => 'brands.name',
+            'current_stock' => 'current_stock',
+            'min_price' => 'min_price',
+        ];
+        $query->orderBy($sortMap[$sort] ?? 'products.name', $dir);
+
+        // Paginação
+        $perPage = (int) request()->get('per_page', 25);
+        if (! in_array($perPage, [10, 25, 50, 100], true)) {
+            $perPage = 25;
+        }
+
+        $paginated = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $paginated->items(),
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+                'from' => $paginated->firstItem(),
+                'to' => $paginated->lastItem(),
+            ],
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -368,6 +555,56 @@ class ProductController extends Controller
             return $this->moduleUtil->expiredResponse();
         } elseif (! $this->moduleUtil->isQuotaAvailable('products', $business_id)) {
             return $this->moduleUtil->quotaExpiredResponse('products', $business_id, action([\App\Http\Controllers\ProductController::class, 'index']));
+        }
+
+        // US-PROD-002 — Inertia branch (Products/Create). Cockpit V2 (ADR 0110).
+        // Form 3 sections collapsible (Identificação / Preço-Estoque / Avançado).
+        // Pre-fill via query params pra futura integração com /compras autocomplete.
+        if (request()->header('X-Inertia')) {
+            $categories = Category::forDropdown($business_id, 'product');
+            $brands = Brands::forDropdown($business_id);
+            $units = Unit::forDropdown($business_id, true);
+            $tax_dropdown = TaxRate::forBusinessDropdown($business_id, true, true);
+
+            $duplicate = null;
+            if (! empty(request()->input('d'))) {
+                $duplicate = Product::where('business_id', $business_id)
+                    ->find(request()->input('d'));
+                if ($duplicate) {
+                    $duplicate->name .= ' (copy)';
+                }
+            }
+
+            return Inertia::render('Products/Create', [
+                'categories' => $categories,
+                'brands' => $brands,
+                'units' => $units,
+                'taxes' => $tax_dropdown['tax_rates'],
+                'productTypes' => $this->product_types(),
+                'defaultProfitPercent' => request()->session()->get('business.default_profit_percent'),
+                'prefill' => [
+                    'name' => request()->query('name', ''),
+                    'sku' => request()->query('sku', ''),
+                    'product_custom_field1' => request()->query('officeimpresso_codigo', ''),
+                ],
+                'duplicate' => $duplicate ? [
+                    'id' => $duplicate->id,
+                    'name' => $duplicate->name,
+                    'sku' => $duplicate->sku,
+                    'type' => $duplicate->type,
+                    'unit_id' => $duplicate->unit_id,
+                    'category_id' => $duplicate->category_id,
+                    'brand_id' => $duplicate->brand_id,
+                    'tax' => $duplicate->tax,
+                    'tax_type' => $duplicate->tax_type,
+                    'enable_stock' => (bool) $duplicate->enable_stock,
+                    'alert_quantity' => $duplicate->alert_quantity,
+                    'product_description' => $duplicate->product_description,
+                ] : null,
+                'permissions' => [
+                    'create' => auth()->user()->can('product.create'),
+                ],
+            ]);
         }
 
         $categories = Category::forDropdown($business_id, 'product');
@@ -596,6 +833,106 @@ class ProductController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
+
+        // US-PROD-003 — Inertia branch (Products/Show). Cockpit V2 (ADR 0110).
+        // 4 KPIs + sections (Detalhes / Estoque por location / Histórico).
+        if (request()->header('X-Inertia')) {
+            $product = Product::where('business_id', $business_id)
+                ->with(['variations', 'brand', 'unit', 'category', 'sub_category'])
+                ->findOrFail($id);
+
+            // Estoque total agregado (todas variations + locations)
+            $totalStock = DB::table('variation_location_details as vld')
+                ->join('variations as v', 'v.id', '=', 'vld.variation_id')
+                ->whereNull('v.deleted_at')
+                ->where('v.product_id', $id)
+                ->sum('vld.qty_available');
+
+            // Valor estoque (qty * preço compra médio)
+            $stockValue = DB::table('variation_location_details as vld')
+                ->join('variations as v', 'v.id', '=', 'vld.variation_id')
+                ->whereNull('v.deleted_at')
+                ->where('v.product_id', $id)
+                ->select(DB::raw('SUM(vld.qty_available * v.dpp_inc_tax) as total'))
+                ->value('total') ?? 0;
+
+            // Última compra
+            $lastPurchase = DB::table('purchase_lines as pl')
+                ->join('variations as v', 'v.id', '=', 'pl.variation_id')
+                ->join('transactions as t', 't.id', '=', 'pl.transaction_id')
+                ->where('v.product_id', $id)
+                ->where('t.business_id', $business_id)
+                ->where('t.type', 'purchase')
+                ->orderByDesc('t.transaction_date')
+                ->select('t.transaction_date', 'pl.quantity', 'pl.purchase_price')
+                ->first();
+
+            // Última venda
+            $lastSell = DB::table('transaction_sell_lines as sl')
+                ->join('variations as v', 'v.id', '=', 'sl.variation_id')
+                ->join('transactions as t', 't.id', '=', 'sl.transaction_id')
+                ->where('v.product_id', $id)
+                ->where('t.business_id', $business_id)
+                ->where('t.type', 'sell')
+                ->where('t.status', 'final')
+                ->orderByDesc('t.transaction_date')
+                ->select('t.transaction_date', 'sl.quantity', 'sl.unit_price')
+                ->first();
+
+            // Estoque por location
+            $stockByLocation = DB::table('variation_location_details as vld')
+                ->join('variations as v', 'v.id', '=', 'vld.variation_id')
+                ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+                ->whereNull('v.deleted_at')
+                ->where('v.product_id', $id)
+                ->where('bl.business_id', $business_id)
+                ->groupBy('bl.id', 'bl.name')
+                ->select(
+                    'bl.id as location_id',
+                    'bl.name as location_name',
+                    DB::raw('SUM(vld.qty_available) as qty')
+                )
+                ->get();
+
+            return Inertia::render('Products/Show', [
+                'product' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'type' => $product->type,
+                    'image_url' => $product->image_url,
+                    'enable_stock' => (bool) $product->enable_stock,
+                    'is_inactive' => (bool) $product->is_inactive,
+                    'not_for_selling' => (bool) $product->not_for_selling,
+                    'alert_quantity' => $product->alert_quantity,
+                    'product_description' => $product->product_description,
+                    'product_custom_field1' => $product->product_custom_field1,
+                    'brand' => $product->brand?->name,
+                    'unit' => $product->unit?->actual_name,
+                    'category' => $product->category?->name,
+                    'sub_category' => $product->sub_category?->name,
+                    'variations' => $product->variations->map(fn ($v) => [
+                        'id' => $v->id,
+                        'name' => $v->name,
+                        'sub_sku' => $v->sub_sku,
+                        'sell_price_inc_tax' => $v->sell_price_inc_tax,
+                        'dpp_inc_tax' => $v->dpp_inc_tax,
+                    ]),
+                ],
+                'kpis' => [
+                    'total_stock' => (float) $totalStock,
+                    'stock_value' => (float) $stockValue,
+                    'last_purchase_at' => $lastPurchase->transaction_date ?? null,
+                    'last_sell_at' => $lastSell->transaction_date ?? null,
+                ],
+                'stockByLocation' => $stockByLocation,
+                'permissions' => [
+                    'update' => auth()->user()->can('product.update'),
+                    'delete' => auth()->user()->can('product.delete'),
+                ],
+            ]);
+        }
+
         $details = $this->productUtil->getRackDetails($business_id, $id, true);
 
         return view('product.show')->with(compact('details'));
@@ -627,6 +964,43 @@ class ProductController extends Controller
                             ->with(['product_locations'])
                             ->where('id', $id)
                             ->firstOrFail();
+
+        // US-PROD-002 — Inertia branch (Products/Edit). Cockpit V2 (ADR 0110).
+        // Reusa Create.tsx via prop `mode='edit'` ou Edit.tsx dedicado.
+        if (request()->header('X-Inertia')) {
+            $units = Unit::forDropdown($business_id, true);
+
+            return Inertia::render('Products/Edit', [
+                'product' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'type' => $product->type,
+                    'unit_id' => $product->unit_id,
+                    'category_id' => $product->category_id,
+                    'sub_category_id' => $product->sub_category_id,
+                    'brand_id' => $product->brand_id,
+                    'tax' => $product->tax,
+                    'tax_type' => $product->tax_type,
+                    'enable_stock' => (bool) $product->enable_stock,
+                    'is_inactive' => (bool) $product->is_inactive,
+                    'not_for_selling' => (bool) $product->not_for_selling,
+                    'alert_quantity' => $product->alert_quantity ? $this->productUtil->num_f($product->alert_quantity, false, null, true) : null,
+                    'weight' => $product->weight,
+                    'product_description' => $product->product_description,
+                    'product_custom_field1' => $product->product_custom_field1,
+                    'barcode_type' => $product->barcode_type,
+                ],
+                'categories' => $categories,
+                'brands' => $brands,
+                'units' => $units,
+                'taxes' => $taxes,
+                'productTypes' => $this->product_types(),
+                'permissions' => [
+                    'update' => auth()->user()->can('product.update'),
+                ],
+            ]);
+        }
 
         //Sub-category
         $sub_categories = [];
@@ -2296,6 +2670,31 @@ class ProductController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
+
+        // US-PROD-004 — Inertia branch (Products/StockHistory). Cockpit V2 (ADR 0110).
+        // Timeline cronológica todas movimentações estoque (sell + purchase + adjustment + transfer).
+        if (request()->header('X-Inertia')) {
+            $product = Product::where('business_id', $business_id)
+                ->with(['variations'])
+                ->findOrFail($id);
+
+            $business_locations = BusinessLocation::forDropdown($business_id);
+
+            return Inertia::render('Products/StockHistory', [
+                'product' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'type' => $product->type,
+                    'variations' => $product->variations->map(fn ($v) => [
+                        'id' => $v->id,
+                        'name' => $v->name,
+                        'sub_sku' => $v->sub_sku,
+                    ]),
+                ],
+                'locations' => $business_locations,
+            ]);
+        }
 
         if (request()->ajax()) {
 

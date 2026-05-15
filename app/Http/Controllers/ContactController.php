@@ -22,6 +22,7 @@ use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ContactCreatedOrModified;
+use Inertia\Inertia;
 
 class ContactController extends Controller
 {
@@ -82,6 +83,52 @@ class ContactController extends Controller
             }
         }
 
+        // US-CRM-CONT-001 — Inertia branch (Crm/Contacts/Index). Cockpit V2 (ADR 0110).
+        // Dual-mode: header X-Inertia → React. Blade legacy preservado abaixo como
+        // fallback durante canary gradual (ADR 0104 §F5 CUTOVER).
+        // Multi-tenant Tier 0 (ADR 0093): kpis count escopados por business_id + type.
+        if (request()->header('X-Inertia')) {
+            $can_view_customer = auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own');
+            $can_view_supplier = auth()->user()->can('supplier.view') || auth()->user()->can('supplier.view_own');
+            if ($type === 'customer' && ! $can_view_customer) {
+                abort(403, 'Unauthorized action.');
+            }
+            if ($type === 'supplier' && ! $can_view_supplier) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $base_types = $type === 'supplier' ? ['supplier', 'both'] : ['customer', 'both'];
+
+            $total = Contact::where('business_id', $business_id)
+                ->whereIn('type', $base_types)
+                ->count();
+
+            $active = Contact::where('business_id', $business_id)
+                ->whereIn('type', $base_types)
+                ->where('contact_status', 'active')
+                ->count();
+
+            $inactive = Contact::where('business_id', $business_id)
+                ->whereIn('type', $base_types)
+                ->where('contact_status', 'inactive')
+                ->count();
+
+            return Inertia::render('Crm/Contacts/Index', [
+                'type' => $type,
+                'kpis' => [
+                    'total' => $total,
+                    'active' => $active,
+                    'inactive' => $inactive,
+                ],
+                'permissions' => [
+                    'create' => auth()->user()->can("{$type}.create"),
+                    'update' => auth()->user()->can("{$type}.update") || auth()->user()->can("{$type}.view_own"),
+                    'delete' => auth()->user()->can("{$type}.delete"),
+                    'view' => $type === 'customer' ? $can_view_customer : $can_view_supplier,
+                ],
+            ]);
+        }
+
         $reward_enabled = (request()->session()->get('business.enable_rp') == 1 && in_array($type, ['customer'])) ? true : false;
 
         $users = User::forDropdown($business_id);
@@ -93,6 +140,94 @@ class ContactController extends Controller
 
         return view('contact.index')
             ->with(compact('type', 'reward_enabled', 'customer_groups', 'users'));
+    }
+
+    /**
+     * US-CRM-CONT-001 — Endpoint REST JSON paginado pra tabela Inertia.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id scopado.
+     * Permissões: customer.view|customer.view_own|supplier.view|supplier.view_own.
+     * Filtros: type, q (busca livre nome+tax_number+mobile+email+supplier_business_name),
+     *           status (contact_status active/inactive), sort, dir, page, per_page.
+     *
+     * Returns: { data: [ContactRow], meta: { current_page, last_page, per_page, total, from, to } }
+     */
+    public function listJson()
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $type = request()->get('type', 'customer');
+
+        if (! in_array($type, ['customer', 'supplier'], true)) {
+            $type = 'customer';
+        }
+
+        $can_view_customer = auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own');
+        $can_view_supplier = auth()->user()->can('supplier.view') || auth()->user()->can('supplier.view_own');
+        if ($type === 'customer' && ! $can_view_customer) {
+            abort(403, 'Unauthorized action.');
+        }
+        if ($type === 'supplier' && ! $can_view_supplier) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $base_types = $type === 'supplier' ? ['supplier', 'both'] : ['customer', 'both'];
+
+        // Multi-tenant Tier 0: business_id obrigatório no where root.
+        $query = Contact::where('business_id', $business_id)
+            ->whereIn('type', $base_types)
+            ->select([
+                'id', 'type', 'contact_type', 'contact_id', 'name',
+                'supplier_business_name', 'tax_number', 'mobile', 'email',
+                'city', 'state', 'contact_status', 'is_default', 'created_at',
+            ]);
+
+        // Filtro status
+        $status = request()->get('status');
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $query->where('contact_status', $status);
+        }
+
+        // Busca livre — nome + supplier_business_name + tax_number + mobile + email
+        $q = trim((string) request()->get('q', ''));
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('name', 'like', "%{$q}%")
+                    ->orWhere('supplier_business_name', 'like', "%{$q}%")
+                    ->orWhere('tax_number', 'like', "%{$q}%")
+                    ->orWhere('mobile', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%")
+                    ->orWhere('contact_id', 'like', "%{$q}%");
+            });
+        }
+
+        // Ordenação
+        $sort = request()->get('sort', 'name');
+        $dir = request()->get('dir', 'asc') === 'desc' ? 'desc' : 'asc';
+        $allowed = ['name', 'mobile', 'tax_number', 'created_at'];
+        if (! in_array($sort, $allowed, true)) {
+            $sort = 'name';
+        }
+        $query->orderBy($sort, $dir);
+
+        // Paginação
+        $per_page = (int) request()->get('per_page', 25);
+        if (! in_array($per_page, [10, 25, 50, 100], true)) {
+            $per_page = 25;
+        }
+
+        $paginated = $query->paginate($per_page);
+
+        return response()->json([
+            'data' => $paginated->items(),
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+                'from' => $paginated->firstItem(),
+                'to' => $paginated->lastItem(),
+            ],
+        ]);
     }
 
     /**
@@ -573,6 +708,24 @@ class ContactController extends Controller
             $prefill_name = mb_substr($prefill_name, 0, 100);
         }
 
+        // US-CRM-CONT-002 — Inertia branch (Crm/Contacts/Create).
+        if (request()->header('X-Inertia')) {
+            $customer_groups_list = collect($customer_groups ?? [])
+                ->map(fn ($name, $id) => ['id' => $id, 'name' => $name])
+                ->filter(fn ($g) => $g['id'] !== '')
+                ->values();
+
+            return Inertia::render('Crm/Contacts/Create', [
+                'types' => $types,
+                'customerGroups' => $customer_groups_list,
+                'selectedType' => $selected_type,
+                'prefillName' => $prefill_name,
+                'permissions' => [
+                    'create' => auth()->user()->can('customer.create') || auth()->user()->can('supplier.create'),
+                ],
+            ]);
+        }
+
         return view('contact.create')
             ->with(compact('types', 'customer_groups', 'selected_type', 'module_form_parts', 'users', 'prefill_name'));
     }
@@ -738,6 +891,89 @@ class ContactController extends Controller
 
         $reward_enabled = (request()->session()->get('business.enable_rp') == 1 && in_array($contact->type, ['customer', 'both'])) ? true : false;
 
+        // US-CRM-CONT-004 — Inertia branch (Crm/Contacts/Show).
+        if (request()->header('X-Inertia')) {
+            // Multi-tenant Tier 0: business_id scopado via ContactUtil + filter explícito
+            // nas transactions abaixo.
+            $recent_transactions = Transaction::where('business_id', $business_id)
+                ->where('contact_id', $contact->id)
+                ->whereIn('type', ['sell', 'purchase', 'sell_return', 'purchase_return'])
+                ->orderByDesc('transaction_date')
+                ->limit(10)
+                ->get(['id', 'type', 'invoice_no', 'transaction_date', 'final_total', 'total_paid', 'payment_status']);
+
+            $recent_payload = $recent_transactions->map(function ($tx) {
+                $url = match ($tx->type) {
+                    'sell' => "/sells/{$tx->id}",
+                    'purchase' => "/purchases/{$tx->id}",
+                    'sell_return' => "/sell-return/{$tx->id}",
+                    'purchase_return' => "/purchase-return/{$tx->id}",
+                    default => "/sells/{$tx->id}",
+                };
+
+                return [
+                    'id' => $tx->id,
+                    'type' => $tx->type,
+                    'invoice_no' => $tx->invoice_no,
+                    'transaction_date' => $tx->transaction_date instanceof \Carbon\Carbon
+                        ? $tx->transaction_date->toIso8601String()
+                        : (string) $tx->transaction_date,
+                    'final_total' => (float) $tx->final_total,
+                    'total_paid' => (float) $tx->total_paid,
+                    'payment_status' => $tx->payment_status,
+                    'url' => $url,
+                ];
+            });
+
+            $total_invoice = (float) ($contact->total_invoice ?? 0);
+            $invoice_received = (float) ($contact->invoice_received ?? 0);
+
+            return Inertia::render('Crm/Contacts/Show', [
+                'contact' => [
+                    'id' => $contact->id,
+                    'type' => $contact->type,
+                    'contact_type' => $contact->contact_type ?? null,
+                    'name' => $contact->name,
+                    'supplier_business_name' => $contact->supplier_business_name,
+                    'contact_id' => $contact->contact_id,
+                    'contact_status' => $contact->contact_status,
+                    'is_default' => (bool) $contact->is_default,
+                    'tax_number' => $contact->tax_number,
+                    'email' => $contact->email,
+                    'mobile' => $contact->mobile,
+                    'landline' => $contact->landline,
+                    'alternate_number' => $contact->alternate_number,
+                    'address_line_1' => $contact->address_line_1,
+                    'address_line_2' => $contact->address_line_2,
+                    'city' => $contact->city,
+                    'state' => $contact->state,
+                    'country' => $contact->country,
+                    'zip_code' => $contact->zip_code,
+                    'total_invoice' => $total_invoice,
+                    'invoice_received' => $invoice_received,
+                    'total_purchase' => (float) ($contact->total_purchase ?? 0),
+                    'purchase_paid' => (float) ($contact->purchase_paid ?? 0),
+                    'total_sell_return' => (float) ($contact->total_sell_return ?? 0),
+                    'total_purchase_return' => (float) ($contact->total_purchase_return ?? 0),
+                    'opening_balance' => (float) ($contact->opening_balance ?? 0),
+                    'balance' => (float) ($contact->balance ?? 0),
+                ],
+                'recentTransactions' => $recent_payload,
+                'financialSummary' => [
+                    'total_invoice' => $total_invoice,
+                    'invoice_received' => $invoice_received,
+                    'total_due' => max(0, $total_invoice - $invoice_received),
+                    'opening_balance' => (float) ($contact->opening_balance ?? 0),
+                    'advance_balance' => (float) ($contact->balance ?? 0),
+                ],
+                'permissions' => [
+                    'update' => auth()->user()->can($contact->type === 'supplier' ? 'supplier.update' : 'customer.update'),
+                    'delete' => auth()->user()->can($contact->type === 'supplier' ? 'supplier.delete' : 'customer.delete'),
+                    'pay' => true,
+                ],
+            ]);
+        }
+
         $contact_dropdown = Contact::contactDropdown($business_id, false, false);
 
         $business_locations = BusinessLocation::forDropdown($business_id, true);
@@ -769,6 +1005,81 @@ class ContactController extends Controller
     {
         if (! auth()->user()->can('supplier.update') && ! auth()->user()->can('customer.update') && ! auth()->user()->can('customer.view_own') && ! auth()->user()->can('supplier.view_own')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // US-CRM-CONT-003 — Inertia branch (Crm/Contacts/Edit).
+        // Multi-tenant Tier 0 (ADR 0093): always escope by business_id.
+        if (request()->header('X-Inertia')) {
+            $business_id = request()->session()->get('user.business_id');
+            $contact = Contact::where('business_id', $business_id)->findOrFail($id);
+
+            if (! $this->moduleUtil->isSubscribed($business_id)) {
+                return $this->moduleUtil->expiredResponse();
+            }
+
+            $types = [];
+            if (auth()->user()->can('supplier.create')) {
+                $types['supplier'] = __('report.supplier');
+            }
+            if (auth()->user()->can('customer.create')) {
+                $types['customer'] = __('report.customer');
+            }
+            if (auth()->user()->can('supplier.create') && auth()->user()->can('customer.create')) {
+                $types['both'] = __('lang_v1.both_supplier_customer');
+            }
+
+            $customer_groups_list = collect(CustomerGroup::forDropdown($business_id))
+                ->map(fn ($name, $id) => ['id' => $id, 'name' => $name])
+                ->filter(fn ($g) => $g['id'] !== '')
+                ->values();
+
+            // Decompose name fields para form pré-preenchido. Backend store/update
+            // recompõe via concat prefix+first_name+middle_name+last_name.
+            $name_parts = explode(' ', (string) $contact->name, 4);
+            $first = $name_parts[0] ?? '';
+            $last = count($name_parts) > 1 ? end($name_parts) : '';
+            $middle = '';
+            if (count($name_parts) >= 3) {
+                $middle = implode(' ', array_slice($name_parts, 1, -1));
+            }
+
+            return Inertia::render('Crm/Contacts/Edit', [
+                'mode' => 'edit',
+                'types' => $types,
+                'customerGroups' => $customer_groups_list,
+                'selectedType' => $contact->type,
+                'permissions' => [
+                    'create' => auth()->user()->can('customer.update') || auth()->user()->can('supplier.update'),
+                ],
+                'contact' => [
+                    'id' => $contact->id,
+                    'type' => $contact->type,
+                    'contact_type_radio' => $contact->contact_type ?? 'individual',
+                    'supplier_business_name' => (string) ($contact->supplier_business_name ?? ''),
+                    'prefix' => (string) ($contact->prefix ?? ''),
+                    'first_name' => $first,
+                    'middle_name' => $middle,
+                    'last_name' => $last,
+                    'tax_number' => (string) ($contact->tax_number ?? ''),
+                    'mobile' => (string) ($contact->mobile ?? ''),
+                    'landline' => (string) ($contact->landline ?? ''),
+                    'alternate_number' => (string) ($contact->alternate_number ?? ''),
+                    'email' => (string) ($contact->email ?? ''),
+                    'contact_id' => (string) ($contact->contact_id ?? ''),
+                    'address_line_1' => (string) ($contact->address_line_1 ?? ''),
+                    'address_line_2' => (string) ($contact->address_line_2 ?? ''),
+                    'city' => (string) ($contact->city ?? ''),
+                    'state' => (string) ($contact->state ?? ''),
+                    'country' => (string) ($contact->country ?? ''),
+                    'zip_code' => (string) ($contact->zip_code ?? ''),
+                    'customer_group_id' => (string) ($contact->customer_group_id ?? ''),
+                    'pay_term_number' => (string) ($contact->pay_term_number ?? ''),
+                    'pay_term_type' => (string) ($contact->pay_term_type ?? ''),
+                    'credit_limit' => (string) ($contact->credit_limit ?? ''),
+                    'opening_balance' => '',
+                    'dob' => $contact->dob ? \Carbon::parse($contact->dob)->format('Y-m-d') : '',
+                ],
+            ]);
         }
 
         if (request()->ajax()) {
@@ -1707,6 +2018,76 @@ class ContactController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * US-SELL-CUST-SUMMARY — endpoint JSON minimal pra card "ContactSelectedSummary"
+     * em Pages/Sells/Create.tsx (P0-5 RUNBOOK paridade Sells/Create 2026-05-14).
+     *
+     * Reproduz feature do Blade legacy (sell/create.blade.php:151-169) que mostrava
+     * billing_address + shipping_address + contact_due após selecionar cliente —
+     * AUSENTE no Inertia até este PR.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): filtra por business_id da session.
+     * 404 se contato não pertencer ao tenant atual.
+     *
+     * @param  int  $contact_id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getCustomerInfoJson($contact_id)
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        $contact = Contact::where('business_id', $business_id)
+            ->where('id', $contact_id)
+            ->select(
+                'id',
+                'name',
+                'supplier_business_name',
+                'tax_number_1',
+                'mobile',
+                'landline',
+                'address_line_1',
+                'address_line_2',
+                'city',
+                'state',
+                'zip_code',
+                'country',
+                'shipping_address',
+                'balance'
+            )
+            ->firstOrFail();
+
+        $due = (float) $this->transactionUtil->getContactDue($contact_id, $business_id);
+
+        // Saldo devedor: positivo quando cliente DEVE; negativo quando tem crédito.
+        // Convertemos pra dois campos UI-friendly não-negativos.
+        $saldo_devedor = $due > 0 ? round($due, 2) : 0.0;
+        $saldo_credito = (float) ($contact->balance ?? 0);
+        if ($due < 0) {
+            // Crédito implícito por pagamento excedente — soma ao advance balance.
+            $saldo_credito += round(abs($due), 2);
+        }
+
+        return response()->json([
+            'id' => (int) $contact->id,
+            'name' => (string) $contact->name,
+            'supplier_business_name' => $contact->supplier_business_name,
+            'tax_number_1' => $contact->tax_number_1,
+            'mobile' => $contact->mobile,
+            'landline' => $contact->landline,
+            'billing_address' => [
+                'address_line_1' => $contact->address_line_1,
+                'address_line_2' => $contact->address_line_2,
+                'city' => $contact->city,
+                'state' => $contact->state,
+                'zip_code' => $contact->zip_code,
+                'country' => $contact->country,
+            ],
+            'shipping_address_text' => $contact->shipping_address,
+            'saldo_devedor_brl' => $saldo_devedor,
+            'saldo_credito_brl' => round($saldo_credito, 2),
+        ]);
     }
 
     public function checkMobile(Request $request)

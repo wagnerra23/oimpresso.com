@@ -3,18 +3,25 @@ Wrapper de leitura Firebird via firebird-driver.
 
 Encapsula resolve do registry HKCU + connect + queries comuns. Reusa lógica
 do POC 2 (poc2-firebird-connect.py) num módulo importável.
+
+Helpers adicionados pra daemon dual-sync 2026-05-14:
+  - read_chunk_with_retry: tenta query 3× com backoff exponencial (5s, 15s, 45s)
+    cobrindo Firebird DatabaseError (sleep/conexão fechou/disconnect transitório)
+  - has_column: detecta se col existe na tabela (DT_ALTERACAO ausente em rota legacy)
 """
 
 from __future__ import annotations
 
 import os
 import sys
+import time
 import winreg
 from contextlib import contextmanager
 from typing import Any
 
 try:
     import firebird.driver as fb
+    from firebird.driver.types import DatabaseError as FbDatabaseError
 except ImportError:
     print(
         "❌ firebird-driver não instalado. Rode: pip install firebird-driver",
@@ -155,3 +162,84 @@ def query(con, sql: str, params: tuple = ()) -> list[dict[str, Any]]:
         rows.append(dict(zip(cols, row)))
     cur.close()
     return rows
+
+
+# ----------------------------------------------------------------------------
+# Daemon dual-sync helpers (2026-05-14)
+# ----------------------------------------------------------------------------
+
+RETRY_BACKOFF_SECONDS = [5, 15, 45]  # exponencial: 5s, 15s, 45s entre tentativas
+
+
+def has_column(con, table_name: str, column_name: str) -> bool:
+    """Verifica se uma coluna existe na tabela Firebird (case-insensitive).
+
+    Útil pra detectar DT_ALTERACAO ausente em versões antigas — daemon faz fallback
+    FULL SYNC com warn em vez de quebrar.
+    """
+    try:
+        cur = con.cursor()
+        cur.execute(
+            f"SELECT FIRST 1 * FROM {table_name}"
+        )
+        cols = {d[0].upper() for d in cur.description or []}
+        cur.close()
+        return column_name.upper() in cols
+    except Exception:
+        return False
+
+
+def read_chunk_with_retry(
+    con,
+    sql: str,
+    params: tuple = (),
+    max_retries: int = 3,
+    reconnect_callback=None,
+) -> list[dict[str, Any]]:
+    """Executa SELECT com retry exponencial em caso de DatabaseError.
+
+    Args:
+        con: conexão Firebird ativa
+        sql: SELECT (com FIRST N pra chunk)
+        params: parâmetros bound
+        max_retries: 3 tentativas default (5s, 15s, 45s)
+        reconnect_callback: callable() opcional pra reabrir conexão antes do retry
+                            (recebe nada, retorna nova `con`). Default None = sem reconnect.
+
+    Returns:
+        list[dict] das rows lidas.
+
+    Raises:
+        DatabaseError se todas tentativas falharem.
+    """
+    last_exc: Exception | None = None
+    for attempt in range(max_retries):
+        try:
+            return query(con, sql, params)
+        except FbDatabaseError as e:
+            last_exc = e
+            if attempt == max_retries - 1:
+                # última tentativa: propaga erro
+                raise
+            backoff = RETRY_BACKOFF_SECONDS[min(attempt, len(RETRY_BACKOFF_SECONDS) - 1)]
+            print(
+                f"[firebird retry] tentativa {attempt + 1}/{max_retries} falhou: {e!r}. "
+                f"Aguardando {backoff}s antes de retry...",
+                file=sys.stderr,
+            )
+            time.sleep(backoff)
+            if reconnect_callback is not None:
+                try:
+                    con = reconnect_callback()
+                except Exception as rec_exc:
+                    print(
+                        f"[firebird retry] reconnect callback falhou: {rec_exc!r}",
+                        file=sys.stderr,
+                    )
+        except Exception:
+            # erro não-Firebird: propaga sem retry
+            raise
+    # safety net (não deveria chegar aqui)
+    if last_exc:
+        raise last_exc
+    return []

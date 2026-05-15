@@ -20,6 +20,10 @@ class DatabaseSeeder extends Seeder
             // legacy_origin='officeimpresso' pra default de Grade Avançada
             // (ADR 0136). Idempotente: skipa se coluna ausente ou já marcado.
             BusinessLegacyOriginSeeder::class,
+            // US-UI-SIDEBAR-001 — configura `sidebar_hidden_groups` por business
+            // pra esconder módulos não usados (caso piloto: Martinho Caçambas
+            // — oficina mecânica não-técnica). Idempotente: WHERE IS NULL.
+            BusinessSidebarConfigSeeder::class,
         ]);
     }
 }
