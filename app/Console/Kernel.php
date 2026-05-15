@@ -242,6 +242,22 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->environments(['live']);
 
+        // US-WA-VOZ-001 — Customer Memory refresh daily (2026-05-15).
+        // Re-dispatcha RebuildCustomerMemoryJob pra customers com
+        // last_rebuilt_at > 24h ou NULL. Idempotente. 02:00 BRT alinhado
+        // com horário de baixa atividade (canal Suporte pico 12-18h BRT).
+        $schedule->command('customer-memory:refresh-daily')
+            ->dailyAt('02:00')
+            ->timezone('America/Sao_Paulo')
+            ->name('customer-memory-refresh-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule customer-memory:refresh-daily FALHOU — stats agregados ficarão stale'
+                );
+            });
+
         // ADS Reviewer (T11 G-Eval) — review automático cada 15min de decisions sem score.
         $schedule->command('ads:review-decisions --limit=10')
             ->everyFifteenMinutes()

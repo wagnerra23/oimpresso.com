@@ -11,6 +11,7 @@ use Modules\Whatsapp\Http\Controllers\Admin\MacroVariantsController;
 use Modules\Whatsapp\Http\Controllers\Admin\MetricsController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
+use Modules\Whatsapp\Http\Controllers\Api\CustomerProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -92,6 +93,15 @@ Route::group([
     // - Pages/Atendimento/Inbox/ removida em F6 (PR seguinte, 1 sprint depois)
     Route::redirect('/inbox', '/atendimento/caixa-unificada', 301)
         ->name('atendimento.inbox.index');
+
+    // US-WA-VOZ-001 — Customer Profile (sidebar Customer 360).
+    // GET /atendimento/customer/{external_id}/profile → JSON memória persistente
+    // do cliente final (stats, identidade Contact CRM, conversas recentes, LGPD).
+    // Sidebar React consome via Inertia::defer pra não bloquear abertura conv.
+    Route::get('/customer/{external_id}/profile', [CustomerProfileController::class, 'show'])
+        ->where('external_id', '[0-9+]+')
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.customer.profile');
 
     // Caixa Unificada V4 — substituiu /atendimento/inbox no cutover 2026-05-15.
     // Fonte visual canônica: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
