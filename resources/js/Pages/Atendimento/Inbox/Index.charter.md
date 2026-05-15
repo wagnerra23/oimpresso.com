@@ -2,25 +2,14 @@
 page: /atendimento/inbox
 component: resources/js/Pages/Atendimento/Inbox/Index.tsx
 owner: wagner
-status: historical
-lifecycle: historical
-superseded_by: resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md
-last_validated: 2026-05-11
-deprecated_at: 2026-05-15
+status: live
+last_validated: 2026-05-15
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
 related_adrs: [0039, 0058, 0093, 0094, 0104, 0110, 0135]
 tier: A
-charter_version: 2
+charter_version: 1
 ---
-
-> ⚠️ **DEPRECATED 2026-05-15** — substituída por `/atendimento/caixa-unificada` (Caixa Unificada V4).
-> GET `/atendimento/inbox` agora redireciona 301 → `/atendimento/caixa-unificada`.
-> Sub-rotas POST/PATCH (`/inbox/{id}/send`, `/inbox/{id}/tags`, etc) ainda servem
-> a V4 — backend NÃO foi descontinuado, só a UI Inertia legacy.
->
-> **Remoção dos arquivos `Pages/Atendimento/Inbox/`** em F6 (PR seguinte, 1 sprint).
-> Detalhes do cutover: [INVENTARIO-CUTOVER-CAIXA-UNIFICADA-V4.md §6](../../../memory/requisitos/Whatsapp/INVENTARIO-CUTOVER-CAIXA-UNIFICADA-V4.md).
 
 # Page Charter — `/atendimento/inbox`
 
@@ -95,6 +84,20 @@ pro schema novo polimórfico (Channel/Conversation/Message).
 - **Multi-channel display** — label do channel exibido em cada linha
   (ex: "Suporte" vs "Suorte" pra diferenciar 2 chips Baileys do mesmo
   business).
+
+### Customer 360 — Memória persistente cliente (US-WA-VOZ-001/002/003)
+- **Bloco `CustomerMemoryBlock`** no topo do ConversationSidebar mostra:
+  identidade Contact CRM linkado · stats agregados (n_conversations / n_msgs
+  / dias desde última interação) · top 3 reclamações 30d com severity badge
+  (heurística keywords PT-BR) · temas recorrentes · fontes externas (Firebird
+  OfficeImpresso match) · notas qualitativas Jana · flags VIP/frágil.
+- **Lazy fetch client-side** em `GET /atendimento/customer/{ext}/profile` —
+  não bloqueia abertura da conversa nem polling 5s.
+- **Auto-prefix nome atendente** em outbound humano freeform via
+  `InboxController::maybeAutoPrefixSenderName`. Body fica `*Maiara:* texto`
+  ⇒ cliente vê quem responde + `EmployeePerformanceRebuilder` heurística
+  captura 100% mesmo sem `sender_user_id` (defesa em profundidade).
+  Skips: nota interna, template, body vazio, idempotente (já tem `*Nome:*`).
 
 ### Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL)
 - Todas queries `Conversation`/`Message`/`Channel` passam pelo global
@@ -356,3 +359,4 @@ em conversations + UI no painel direito.
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-11 | Wagner + Sonnet | Charter inicial. Registra US-WA-067 (Inbox unifica UI Cockpit V2 PR #561) · US-WA-068 (anti-flash + outbound do próprio chip PR #562) · US-WA-069 (send via Channel Baileys PR #563) · US-WA-070 (webhook idempotente + preview última msg PR #564). Roadmap 9 pedaços faltantes — perf §1 + mídia §2/§3 prioritários conforme feedback. |
+| 2026-05-15 | Wagner + Opus 4.7 | US-WA-VOZ-001/002/003 — Customer 360 sidebar bloco lazy fetch (PR #919) + auto-prefix `*Nome:*` sender outbound. `<CustomerMemoryBlock>` renderiza acima do Card identificação. Charter §Goals adicionada seção "Customer 360 — Memória persistente". |

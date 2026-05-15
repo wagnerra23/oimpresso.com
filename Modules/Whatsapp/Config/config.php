@@ -167,6 +167,34 @@ return [
     ],
 
     /*
+     * US-WA-VOZ-001 — Customer Memory (perfil persistente do cliente final).
+     *
+     * Wagner 2026-05-15: "onde vai ficar as memórias? estruture. vai precisar
+     * achar o telefone e o cliente no banco de dados do servidor."
+     *
+     * Schema: `customer_memory` table (1 row per (business_id, customer_external_id)).
+     * Listener `TouchCustomerMemoryOnMessage` atualiza last_interaction_at em
+     * tempo real; Job RebuildCustomerMemoryJob recompila stats em background
+     * quando `last_rebuilt_at < NOW() - rebuild_after_hours`.
+     *
+     * Default `enabled=true` — Tier 0 sempre ON pra capturar memória mesmo
+     * sem IA. Wagner desliga via env só se houver problema operacional.
+     *
+     * @see Modules/Whatsapp/Entities/CustomerMemory.php
+     * @see Modules/Whatsapp/Services/CustomerMemory/CustomerMemoryRebuilder.php
+     */
+    'customer_memory' => [
+        'enabled' => (bool) env('WHATSAPP_CUSTOMER_MEMORY_ENABLED', true),
+        // Threshold pra dispatcha rebuild assíncrono (heavy path) no listener.
+        // < default 6h pra refrescar várias vezes ao dia sem encher queue.
+        'rebuild_after_hours' => (int) env('WHATSAPP_CUSTOMER_MEMORY_REBUILD_AFTER_HOURS', 6),
+        // Stale threshold pra cron daily (default 24h).
+        'cron_stale_hours' => (int) env('WHATSAPP_CUSTOMER_MEMORY_CRON_STALE_HOURS', 24),
+        // Cap de jobs dispatched por business no cron daily (anti-overload).
+        'cron_limit_per_business' => (int) env('WHATSAPP_CUSTOMER_MEMORY_CRON_LIMIT', 1000),
+    ],
+
+    /*
      * US-WA-072 — Áudio (Whisper transcription) + Mídia (upload outbound).
      *
      * Provider único Whisper nesta fase. Fallback Ollama whisper-local
