@@ -14,7 +14,7 @@
 
 import { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Search, X } from 'lucide-react';
+import { Clock, Paperclip, Search, UserPlus, X } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import {
   type CaixaUnifConversation,
@@ -28,6 +28,9 @@ import {
   relativeTimeBR,
 } from './helpers';
 
+type InboundAging = '6h' | '12h' | '24h' | '48h' | '7d' | null;
+type OrderBy = 'last_message' | 'inbound';
+
 interface Props {
   conversations: Paginated<CaixaUnifConversation>;
   channels: ChannelCatalogItem[];
@@ -38,6 +41,12 @@ interface Props {
   status: CaixaUnifStatus | CaixaUnifTab;
   q: string;
   onSelect: (id: number) => void;
+  // Wave 5 F1 — filtros power-user (sincronizam URL)
+  within24h?: boolean | null;
+  unlinked?: boolean;
+  mediaInbound24h?: boolean;
+  inboundAging?: InboundAging;
+  orderBy?: OrderBy;
 }
 
 const TABS: { id: CaixaUnifTab; label: string; statKey?: keyof CaixaUnifStats; title?: string }[] = [
@@ -52,6 +61,8 @@ const TABS: { id: CaixaUnifTab; label: string; statKey?: keyof CaixaUnifStats; t
 
 export default function ConversationListV4({
   conversations, channels, stats, selectedId, status, q, onSelect,
+  within24h = null, unlinked = false, mediaInbound24h = false,
+  inboundAging = null, orderBy = 'last_message',
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
   const tab = status as CaixaUnifTab;
@@ -62,10 +73,24 @@ export default function ConversationListV4({
     return map;
   }, [channels]);
 
+  // Helper Wave 5 F1: preserva todos filtros ao navegar
+  function buildQuery(overrides: Record<string, unknown> = {}) {
+    return {
+      tab,
+      q: q || undefined,
+      within24h: within24h !== null ? (within24h ? '1' : '0') : undefined,
+      unlinked: unlinked ? '1' : undefined,
+      media_inbound_24h: mediaInbound24h ? '1' : undefined,
+      inbound_aging: inboundAging ?? undefined,
+      order_by: orderBy !== 'last_message' ? orderBy : undefined,
+      ...overrides,
+    };
+  }
+
   function applyTab(next: CaixaUnifTab) {
     router.get(
       route('atendimento.caixa-unificada.index'),
-      { tab: next, q: q || undefined },
+      buildQuery({ tab: next }),
       { preserveScroll: true, preserveState: true, only: ['conversations', 'stats'] },
     );
   }
@@ -73,10 +98,32 @@ export default function ConversationListV4({
   function applySearch(value: string) {
     router.get(
       route('atendimento.caixa-unificada.index'),
-      { tab, q: value || undefined },
+      buildQuery({ q: value || undefined }),
       { preserveScroll: true, preserveState: true, only: ['conversations', 'stats'], replace: true },
     );
   }
+
+  function applyFilter(overrides: Record<string, unknown>) {
+    router.get(
+      route('atendimento.caixa-unificada.index'),
+      buildQuery(overrides),
+      { preserveScroll: true, preserveState: true, only: ['conversations', 'stats'] },
+    );
+  }
+
+  // Tri-estado within24h: null → true → false → null
+  function cycleWithin24h() {
+    const next = within24h === null ? true : within24h === true ? false : null;
+    applyFilter({ within24h: next === null ? undefined : next ? '1' : '0' });
+  }
+
+  const activeFilterCount = [
+    within24h !== null,
+    unlinked,
+    mediaInbound24h,
+    inboundAging !== null,
+    orderBy !== 'last_message',
+  ].filter(Boolean).length;
 
   return (
     <aside
@@ -130,6 +177,80 @@ export default function ConversationListV4({
             </button>
           );
         })}
+      </div>
+
+      {/* Wave 5 F1 — Filtros power-user (3 chips + 2 dropdowns) */}
+      <div className="flex flex-wrap items-center gap-1 px-2 py-1.5 border-b text-[11px]">
+        <FilterChip
+          active={unlinked}
+          onClick={() => applyFilter({ unlinked: !unlinked ? '1' : undefined })}
+          icon={<UserPlus size={11} aria-hidden />}
+          label="Sem CRM"
+          title="Conversas sem Contact CRM vinculado (oportunidade de cadastro)"
+        />
+        <FilterChip
+          active={within24h !== null}
+          onClick={cycleWithin24h}
+          icon={<Clock size={11} aria-hidden />}
+          label={within24h === false ? '24h fechada' : within24h === true ? '24h aberta' : 'Janela 24h'}
+          title="Janela Meta 24h — clique alterna aberta → fechada → sem filtro"
+        />
+        <FilterChip
+          active={mediaInbound24h}
+          onClick={() => applyFilter({ media_inbound_24h: !mediaInbound24h ? '1' : undefined })}
+          icon={<Paperclip size={11} aria-hidden />}
+          label="Mídia 24h"
+          title="Só conversas com foto/áudio/vídeo/doc recebidos nas últimas 24h"
+        />
+
+        {/* Aging dropdown */}
+        <select
+          value={inboundAging ?? ''}
+          onChange={e => applyFilter({ inbound_aging: e.target.value || undefined })}
+          aria-label="Esperando resposta há mais de"
+          data-testid="caixa-unif-filter-aging"
+          className={cn(
+            'h-6 px-1.5 text-[11px] rounded border bg-card cursor-pointer hover:bg-muted focus:outline-none focus:border-primary',
+            inboundAging ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground',
+          )}
+        >
+          <option value="">Esperando há…</option>
+          <option value="6h">&gt; 6h</option>
+          <option value="12h">&gt; 12h</option>
+          <option value="24h">&gt; 24h</option>
+          <option value="48h">&gt; 48h</option>
+          <option value="7d">&gt; 7 dias</option>
+        </select>
+
+        {/* OrderBy dropdown */}
+        <select
+          value={orderBy}
+          onChange={e => applyFilter({ order_by: e.target.value === 'last_message' ? undefined : e.target.value })}
+          aria-label="Ordenar por"
+          data-testid="caixa-unif-filter-orderby"
+          className={cn(
+            'h-6 px-1.5 text-[11px] rounded border bg-card cursor-pointer hover:bg-muted focus:outline-none focus:border-primary',
+            orderBy !== 'last_message' ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground',
+          )}
+        >
+          <option value="last_message">Última msg</option>
+          <option value="inbound">Último inbound</option>
+        </select>
+
+        {activeFilterCount > 0 && (
+          <button
+            type="button"
+            onClick={() => applyFilter({
+              within24h: undefined, unlinked: undefined, media_inbound_24h: undefined,
+              inbound_aging: undefined, order_by: undefined,
+            })}
+            className="ml-auto inline-flex items-center gap-0.5 text-[10.5px] text-muted-foreground hover:text-foreground transition-colors"
+            data-testid="caixa-unif-filter-clear"
+            title={`Limpar ${activeFilterCount} filtro${activeFilterCount > 1 ? 's' : ''}`}
+          >
+            <X size={11} aria-hidden /> limpar
+          </button>
+        )}
       </div>
 
       {/* Busca inline */}
@@ -265,5 +386,34 @@ export default function ConversationListV4({
         </ul>
       )}
     </aside>
+  );
+}
+
+// Wave 5 F1 — FilterChip compacto (pattern Inbox legacy ConversationList.tsx)
+function FilterChip({
+  active, onClick, icon, label, title,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-pressed={active}
+      className={cn(
+        'inline-flex items-center gap-1 h-6 px-2 rounded-full border text-[10.5px] font-medium transition-colors',
+        active
+          ? 'bg-primary/10 border-primary text-primary'
+          : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground',
+      )}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }

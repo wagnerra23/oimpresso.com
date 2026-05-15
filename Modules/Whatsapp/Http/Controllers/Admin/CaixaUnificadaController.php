@@ -75,6 +75,16 @@ class CaixaUnificadaController extends Controller
         $search = (string) $request->input('q', '');
         $threadId = $request->input('thread');
 
+        // Wave 5 F1 — filtros power-user paridade Inbox legacy
+        $within24h = $request->has('within24h')
+            ? filter_var($request->input('within24h'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            : null;
+        $unlinked = (bool) $request->input('unlinked', false);
+        $mediaInbound24h = (bool) $request->input('media_inbound_24h', false);
+        $inboundAging = $request->input('inbound_aging'); // 6h/12h/24h/48h/7d
+        $orderBy = (string) $request->input('order_by', 'last_message'); // last_message | inbound
+        $activeTagIds = array_filter(array_map('intval', (array) $request->input('tags', [])));
+
         // ACL gate per-canal — se selecionou `account_id`, valida ANTES
         // (defense-in-depth — fail-loud em vez de lista vazia confusa).
         if ($accountFilter !== null) {
@@ -124,7 +134,8 @@ class CaixaUnificadaController extends Controller
         return Inertia::render('Atendimento/CaixaUnificada/Index', [
             // ─── DEFER: props caras (skip quando partial reload `only:[]` não pede) ───
             'conversations' => Inertia::defer(fn () => $this->buildConversationsPayload(
-                $businessId, $userId, $statusFilter, $channelTypeFilter, $accountFilter, $queueFilter, $search
+                $businessId, $userId, $statusFilter, $channelTypeFilter, $accountFilter, $queueFilter, $search,
+                $within24h, $unlinked, $mediaInbound24h, $inboundAging, $orderBy, $activeTagIds
             )),
             'stats' => Inertia::defer(fn () => $this->buildStatsPayload($businessId, $userId)),
             'availableChannels' => Inertia::defer(fn () => $this->buildAvailableChannelsPayload($businessId, $userId)),
@@ -138,6 +149,13 @@ class CaixaUnificadaController extends Controller
             'accountFilter' => $accountFilter,
             'queueFilter' => $queueFilter,
             'q' => $search,
+            // Wave 5 F1: filtros power-user pra UI sincronizar
+            'within24h' => $within24h,
+            'unlinked' => $unlinked,
+            'mediaInbound24h' => $mediaInbound24h,
+            'inboundAging' => $inboundAging,
+            'orderBy' => $orderBy,
+            'activeTagIds' => array_values($activeTagIds),
             'thread' => $thread,
             'messages' => $messages,
             'centrifugoConfig' => $centrifugoConfig,
@@ -160,7 +178,13 @@ class CaixaUnificadaController extends Controller
         ?string $channelTypeFilter,
         ?int $accountFilter,
         ?string $queueFilter,
-        string $search
+        string $search,
+        ?bool $within24h = null,
+        bool $unlinked = false,
+        bool $mediaInbound24h = false,
+        ?string $inboundAging = null,
+        string $orderBy = 'last_message',
+        array $activeTagIds = []
     ): array {
         $convQuery = Conversation::query()
             ->where('business_id', $businessId)
@@ -210,8 +234,55 @@ class CaixaUnificadaController extends Controller
             });
         }
 
+        // Wave 5 F1 — filtros power-user paridade Inbox legacy
+
+        // within24h tri-estado: janela Meta 24h (last_inbound_at >/< now-24h)
+        if ($within24h === true) {
+            $convQuery->where('last_inbound_at', '>=', now()->subHours(24));
+        } elseif ($within24h === false) {
+            $convQuery->where(function ($q) {
+                $q->whereNull('last_inbound_at')
+                  ->orWhere('last_inbound_at', '<', now()->subHours(24));
+            });
+        }
+
+        // unlinked: convs sem Contact CRM vinculado
+        if ($unlinked) {
+            $convQuery->whereNull('contact_id');
+        }
+
+        // mediaInbound24h: convs com mensagem inbound type=image/video/audio/document nas 24h
+        if ($mediaInbound24h) {
+            $convQuery->whereExists(function ($q) {
+                $q->select(\DB::raw(1))
+                    ->from('whatsapp_messages')
+                    ->whereColumn('whatsapp_messages.conversation_id', 'conversations.id')
+                    ->where('direction', 'inbound')
+                    ->whereIn('type', ['image', 'video', 'audio', 'document'])
+                    ->where('created_at', '>=', now()->subHours(24));
+            });
+        }
+
+        // inboundAging: aguardando resposta há mais de N horas
+        $agingMap = ['6h' => 6, '12h' => 12, '24h' => 24, '48h' => 48, '7d' => 168];
+        if ($inboundAging && isset($agingMap[$inboundAging])) {
+            $convQuery->where('last_inbound_at', '<=', now()->subHours($agingMap[$inboundAging]))
+                ->where(function ($q) {
+                    $q->whereNull('last_outbound_at')
+                      ->orWhereColumn('last_inbound_at', '>', 'last_outbound_at');
+                });
+        }
+
+        // Filtro por tags (intersecção — pelo menos 1 tag das selecionadas)
+        if (! empty($activeTagIds)) {
+            $convQuery->whereHas('tags', fn ($q) => $q->whereIn('whatsapp_conversation_tags.tag_id', $activeTagIds));
+        }
+
+        // Ordenação alternativa: por último inbound (vs default last_message_at)
+        $orderColumn = $orderBy === 'inbound' ? 'last_inbound_at' : 'last_message_at';
+
         $paginated = $convQuery
-            ->orderByDesc('last_message_at')
+            ->orderByDesc($orderColumn)
             ->paginate(50);
 
         $data = $paginated->getCollection()
