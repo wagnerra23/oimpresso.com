@@ -1,10 +1,10 @@
-import { createHmac, randomUUID } from 'node:crypto';
+﻿import { createHmac, randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { request } from 'undici';
 import { context, propagation, SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import type { Logger } from 'pino';
-import type { Env } from '../config/env';
-import { webhookDispatchCounter, webhookLatencyHistogram } from '../observability/metrics';
+import type { Env } from '../config/env.js';
+import { webhookDispatchCounter, webhookLatencyHistogram } from '../observability/metrics.js';
 
 // US-WA-083 — OTel tracing distribuído daemon ↔ Hostinger
 const tracer = trace.getTracer('whatsapp-baileys-daemon-webhook', '1.0.0');

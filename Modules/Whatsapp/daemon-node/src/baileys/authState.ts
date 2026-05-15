@@ -1,8 +1,8 @@
-import { mkdir } from 'node:fs/promises';
+﻿import { mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { useMultiFileAuthState, type AuthenticationState, type SignalDataTypeMap } from '@whiskeysockets/baileys';
-import { useMySQLAuthState } from './mysqlAuthState';
-import type { Env } from '../config/env';
+import { useMySQLAuthState } from './mysqlAuthState.js';
+import type { Env } from '../config/env.js';
 
 export interface PersistedAuth {
   state: AuthenticationState;

@@ -1,7 +1,7 @@
-import { describe, expect, it, beforeEach } from 'vitest';
-import { detectZombies } from './health';
-import { zombiesDetectedCounter } from '../../observability/metrics';
-import type { InstanceSnapshot } from '../../baileys/Instance';
+﻿import { describe, expect, it, beforeEach } from 'vitest';
+import { detectZombies } from './health.js';
+import { zombiesDetectedCounter } from '../../observability/metrics.js';
+import type { InstanceSnapshot } from '../../baileys/Instance.js';
 
 // ------------------------------------------------------------------------------------------------
 // Zombie socket detection — fecha Gap D do post-mortem 2026-05-13.

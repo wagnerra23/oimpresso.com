@@ -1,6 +1,6 @@
-import type { FastifyPluginAsync } from 'fastify';
-import type { InstanceManager } from '../../baileys/InstanceManager';
-import { connectBody, instanceIdParam } from '../schemas';
+﻿import type { FastifyPluginAsync } from 'fastify';
+import type { InstanceManager } from '../../baileys/InstanceManager.js';
+import { connectBody, instanceIdParam } from '../schemas.js';
 
 interface Deps {
   manager: InstanceManager;

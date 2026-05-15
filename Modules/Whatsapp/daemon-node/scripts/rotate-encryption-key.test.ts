@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ------------------------------------------------------------------------------------------------
 // Vitest spec do rotate-encryption-key.ts.
@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 //   4. Idempotencia: segunda execucao com mesma OLD key (rows ja em NEW) -> tudo failed
 // ------------------------------------------------------------------------------------------------
 
-import { decodeEncryptionKey, encryptValue } from './_crypto';
+import { decodeEncryptionKey, encryptValue } from './_crypto.js';
 
 type Row = { id: number; instance_id: string; key_id: string; value_encrypted: string };
 
@@ -58,7 +58,7 @@ vi.mock('mysql2/promise', () => {
 });
 
 import mysql from 'mysql2/promise';
-import { rotate } from './rotate-encryption-key';
+import { rotate } from './rotate-encryption-key.js';
 
 const OLD_KEY = decodeEncryptionKey(`base64:${Buffer.alloc(32, 1).toString('base64')}`);
 const NEW_KEY = decodeEncryptionKey(`base64:${Buffer.alloc(32, 2).toString('base64')}`);
@@ -108,7 +108,7 @@ describe('rotate-encryption-key — rotate()', () => {
     expect(rollbackCalls).toHaveLength(0);
 
     // valida que rows ficam decifravel com NEW_KEY agora
-    const { decryptValue } = await import('./_crypto');
+    const { decryptValue } = await import('./_crypto.js');
     for (const row of memory) {
       expect(() => decryptValue(row.value_encrypted, NEW_KEY)).not.toThrow();
       expect(() => decryptValue(row.value_encrypted, OLD_KEY)).toThrow();
