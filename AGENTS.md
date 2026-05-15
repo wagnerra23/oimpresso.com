@@ -1,6 +1,10 @@
 # AGENTS.md
 
-Este repositório segue o padrão emergente de agentes de IA. Para instruções completas, leia `CLAUDE.md` na raiz — ele é canônico.
+Este repositório segue o padrão emergente de agentes de IA ([agents.md](https://agents.md/) spec). Para instruções completas, leia `CLAUDE.md` na raiz — ele é canônico.
+
+@CLAUDE.md
+
+> **G7 (2026-05-15):** import `@CLAUDE.md` adicionado pra agents compatíveis com Anthropic memory spec (Claude Code, Cursor agents.md, Codex). Compat retroativa preservada — agentes que só leem markdown puro continuam vendo o resumo abaixo.
 
 Resumo operacional (atualizado 2026-04-26):
 
