@@ -13,8 +13,8 @@
 // notas internas) — preserva contrato backend Tier 0 enquanto coexiste com Inbox.
 
 import { useState, useRef, useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
-import { Send, FileText, Slash } from 'lucide-react';
+import { useForm, router } from '@inertiajs/react';
+import { Send, FileText, Paperclip, Slash, X } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 
 interface Props {
@@ -25,11 +25,20 @@ interface Props {
   channelLabel: string;
 }
 
+/** Wave 4 F1: limite legal Tier 0 da caption (espelha InboxController::sendMedia). */
+const CAPTION_MAX_CHARS = 1024;
+/** Wave 4 F1: tipos aceitos pelo daemon Baileys (imagem/doc/áudio). */
+const ACCEPT_MIME = 'image/jpeg,image/png,image/webp,image/gif,application/pdf,audio/ogg,audio/mpeg,audio/mp4,audio/webm,video/mp4';
+
 export default function ComposerV4({
   conversationId, isPreview, isBlocked, channelShort, channelLabel,
 }: Props) {
   const [internalMode, setInternalMode] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [mediaError, setMediaError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<{
     kind: 'freeform' | 'template';
@@ -54,9 +63,16 @@ export default function ComposerV4({
   }, []);
 
   function send() {
-    if (!form.data.body.trim()) return;
     if (isBlocked) return;
     if (isPreview && !internalMode) return; // preview bloqueia envio cliente; nota interna OK
+
+    // Wave 4 F1: se há arquivo pendente, vai por send_media (FormData)
+    if (pendingFile) {
+      sendMedia();
+      return;
+    }
+
+    if (!form.data.body.trim()) return;
 
     form.transform(data => ({
       ...data,
@@ -73,6 +89,63 @@ export default function ComposerV4({
     });
   }
 
+  // Wave 4 F1 — upload mídia (POST /inbox/{id}/send-media com FormData)
+  // Reusa pattern do ConversationThread legacy (US-WA-042/043/072).
+  function sendMedia() {
+    if (!pendingFile || isBlocked || (isPreview && !internalMode)) return;
+    setMediaError(null);
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append('file', pendingFile);
+    if (form.data.body.trim()) {
+      formData.append('caption', form.data.body.slice(0, CAPTION_MAX_CHARS));
+    }
+
+    router.post(
+      route('atendimento.inbox.send_media', conversationId),
+      formData,
+      {
+        forceFormData: true,
+        preserveScroll: true,
+        preserveState: true,
+        only: ['thread', 'messages', 'conversations', 'stats'],
+        onSuccess: () => {
+          setPendingFile(null);
+          form.setData('body', '');
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        },
+        onError: (errors) => {
+          const firstErr = Object.values(errors)[0];
+          setMediaError(typeof firstErr === 'string' ? firstErr : 'Falha no upload da mídia.');
+        },
+        onFinish: () => setUploading(false),
+      },
+    );
+  }
+
+  function pickFile() {
+    fileInputRef.current?.click();
+  }
+
+  function onFilePicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // 25 MB hard cap espelhando InboxController::sendMedia
+    if (file.size > 25 * 1024 * 1024) {
+      setMediaError(`Arquivo muito grande (${(file.size / 1024 / 1024).toFixed(1)} MB). Máximo: 25 MB.`);
+      e.target.value = '';
+      return;
+    }
+    setMediaError(null);
+    setPendingFile(file);
+  }
+
+  function clearPendingFile() {
+    setPendingFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
   const canType = !(isPreview && !internalMode) && !isBlocked;
   const placeholder = isBlocked
     ? 'Contato bloqueado — envio desabilitado'
@@ -83,6 +156,40 @@ export default function ComposerV4({
         : `Responder via ${channelShort}${channelLabel ? ` · ${channelLabel}` : ''}`;
 
   return (
+    <div className="flex flex-col">
+      {/* Wave 4 F1 — preview do arquivo selecionado (acima do composer) */}
+      {pendingFile && (
+        <div
+          className="flex items-center justify-between gap-3 border-t bg-muted/30 px-3.5 py-2 text-[11.5px]"
+          data-testid="caixa-unif-composer-media-preview"
+        >
+          <span className="inline-flex items-center gap-2 min-w-0">
+            <Paperclip size={12} className="flex-shrink-0 text-muted-foreground" aria-hidden />
+            <span className="truncate font-medium" title={pendingFile.name}>{pendingFile.name}</span>
+            <span className="font-mono text-[10.5px] text-muted-foreground flex-shrink-0">
+              {(pendingFile.size / 1024).toFixed(0)} KB
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={clearPendingFile}
+            disabled={uploading}
+            className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-destructive disabled:opacity-45 transition-colors"
+            data-testid="caixa-unif-composer-media-clear"
+            title="Remover anexo"
+          >
+            <X size={13} aria-hidden /> remover
+          </button>
+        </div>
+      )}
+      {mediaError && (
+        <div
+          className="border-t border-destructive/30 bg-destructive/10 text-destructive px-3.5 py-1.5 text-[11px]"
+          role="alert"
+        >
+          {mediaError}
+        </div>
+      )}
     <div
       className={cn(
         'flex items-center gap-1.5 border-t px-3.5 py-2.5 transition-colors',
@@ -132,7 +239,7 @@ export default function ComposerV4({
         <FileText size={12} aria-hidden />
       </button>
 
-      {/* Macros — placeholder (TODO US-WA-XXX: dropdown /macros) */}
+      {/* Macros — placeholder (TODO US-WA-303 dropdown /macros) */}
       <button
         type="button"
         disabled={internalMode}
@@ -140,6 +247,26 @@ export default function ComposerV4({
         className="w-8 h-8 rounded-full border bg-card grid place-items-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
       >
         <Slash size={12} aria-hidden />
+      </button>
+
+      {/* Wave 4 F1 — Anexar mídia (POST send_media via FormData) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ACCEPT_MIME}
+        className="hidden"
+        onChange={onFilePicked}
+        data-testid="caixa-unif-composer-file-input"
+      />
+      <button
+        type="button"
+        onClick={pickFile}
+        disabled={internalMode || !canType}
+        title="Anexar imagem, PDF ou áudio"
+        data-testid="caixa-unif-composer-attach"
+        className="w-8 h-8 rounded-full border bg-card grid place-items-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+      >
+        <Paperclip size={12} aria-hidden />
       </button>
 
       {/* Input */}
@@ -166,11 +293,16 @@ export default function ComposerV4({
         )}
       />
 
-      {/* Enviar / Anotar */}
+      {/* Enviar / Anotar — Wave 4 F1: aceita arquivo OR texto */}
       <button
         type="button"
         onClick={send}
-        disabled={!form.data.body.trim() || !canType || form.processing}
+        disabled={
+          (!form.data.body.trim() && !pendingFile) ||
+          !canType ||
+          form.processing ||
+          uploading
+        }
         data-testid="caixa-unif-composer-send"
         className={cn(
           'h-8 px-4 rounded-full text-[12px] font-semibold transition-colors flex-shrink-0 inline-flex items-center gap-1.5',
@@ -180,13 +312,16 @@ export default function ComposerV4({
           'disabled:opacity-45 disabled:cursor-not-allowed',
         )}
       >
-        {form.processing ? 'Enviando…' : (
+        {form.processing || uploading ? (
+          'Enviando…'
+        ) : (
           <>
             <Send size={11} aria-hidden />
-            {internalMode ? 'Anotar' : 'Enviar'}
+            {internalMode ? 'Anotar' : (pendingFile ? 'Enviar mídia' : 'Enviar')}
           </>
         )}
       </button>
+    </div>
     </div>
   );
 }
