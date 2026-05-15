@@ -44,6 +44,13 @@ class LaravelAiSdkDriver implements AiAdapter
                 'driver' => 'laravel_ai_sdk',
             ]);
 
+            // GAP D4 #5 — Prompt cache observability (Anthropic).
+            $this->logPromptCacheUsage(
+                agent: 'BriefingAgent',
+                businessId: $ctx->businessId,
+                usage: $response->usage ?? null,
+            );
+
             return (string) $response;
         } catch (\Throwable $e) {
             Log::channel('copiloto-ai')->error('gerarBriefing error: ' . $e->getMessage());
@@ -189,6 +196,14 @@ class LaravelAiSdkDriver implements AiAdapter
                 'duration_ms'           => $durationMs,
             ]);
 
+            // GAP D4 #5 — Prompt cache observability (Anthropic).
+            $this->logPromptCacheUsage(
+                agent: 'ChatCopilotoAgent',
+                businessId: $conv->business_id !== null ? (int) $conv->business_id : null,
+                usage: $stream->usage ?? null,
+                conversaId: (int) $conv->id,
+            );
+
             // MEM-CACHE-1 — grava resposta no cache pra futuras queries similares
             if (config('copiloto.cache.enabled', true) && $textoCompleto !== '') {
                 try {
@@ -295,6 +310,16 @@ class LaravelAiSdkDriver implements AiAdapter
                 'memoria_recall_chars' => strlen($memoriaContexto),
                 'contexto_negocio' => $ctx !== null ? 'on' : 'off',
             ]);
+
+            // GAP D4 #5 — Prompt cache observability (Anthropic).
+            // Log estruturado quando há cache hit/write — análise via
+            // `tail -f storage/logs/copiloto-ai.log | grep prompt_cache`.
+            $this->logPromptCacheUsage(
+                agent: 'ChatCopilotoAgent',
+                businessId: $conv->business_id !== null ? (int) $conv->business_id : null,
+                usage: $response->usage ?? null,
+                conversaId: (int) $conv->id,
+            );
 
             // MEM-OTEL-1 (ADR 0051) — emite atributos gen_ai.* OpenTelemetry
             // semantic conventions. Plugável em Datadog/Langfuse/Arize sem rename.
@@ -624,6 +649,66 @@ class LaravelAiSdkDriver implements AiAdapter
         return "Olá! Sou seu Copiloto. Estou olhando {$nomeBiz} — vejo {$clientes} clientes ativos "
             . 'e ' . count($ctx->faturamento90d) . ' meses de faturamento nos últimos 90 dias. '
             . 'Quer que eu sugira metas pro próximo período? É só pedir.';
+    }
+
+    /**
+     * GAP D4 #5 — Loga métricas de Anthropic prompt caching.
+     *
+     * `Laravel\Ai\Responses\Data\Usage` expõe:
+     *   - `cacheReadInputTokens` → tokens reaproveitados do cache (90% mais
+     *     baratos que input regular)
+     *   - `cacheWriteInputTokens` → tokens gravados pela primeira vez (~25%
+     *     mais caros — investimento que paga no próximo hit)
+     *
+     * Log canônico `prompt_cache_event` permite agregação:
+     *   tail -f storage/logs/copiloto-ai.log | grep prompt_cache_event
+     *   → calcular cache_hit_rate = cache_read / (cache_read + regular_input)
+     *
+     * Meta: 74% atual (ADR 0053) → 85%+ pós-implementação (validação 2sem
+     * pós-deploy via aggregation no log channel ou Langfuse trace).
+     *
+     * Fail-silent: telemetria nunca quebra chat.
+     */
+    protected function logPromptCacheUsage(
+        string $agent,
+        ?int $businessId,
+        mixed $usage,
+        ?int $conversaId = null,
+    ): void {
+        try {
+            if ($usage === null) {
+                return;
+            }
+
+            $cacheRead   = (int) ($usage->cacheReadInputTokens ?? 0);
+            $cacheWrite  = (int) ($usage->cacheWriteInputTokens ?? 0);
+            $promptToks  = (int) ($usage->promptTokens ?? 0);
+
+            // Só loga se houve qualquer atividade de cache (evita ruído quando
+            // provider não-Anthropic ou cache off).
+            if ($cacheRead === 0 && $cacheWrite === 0) {
+                return;
+            }
+
+            // Taxa de hit calculada local pra economizar pipeline de agregação
+            // posterior (input regular = prompt - cache_read).
+            $regularInput = max($promptToks - $cacheRead, 0);
+            $totalInput   = $cacheRead + $regularInput;
+            $hitRate      = $totalInput > 0 ? round($cacheRead / $totalInput, 4) : 0.0;
+
+            Log::channel('copiloto-ai')->info('prompt_cache_event', [
+                'agent'                  => $agent,
+                'business_id'            => $businessId,
+                'conversa_id'            => $conversaId,
+                'cache_read_tokens'      => $cacheRead,
+                'cache_creation_tokens'  => $cacheWrite,
+                'regular_input_tokens'   => $regularInput,
+                'cache_hit_rate'         => $hitRate,
+                'event_type'             => $cacheRead > 0 ? 'hit' : 'write',
+            ]);
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->debug('logPromptCacheUsage falhou: ' . $e->getMessage());
+        }
     }
 
     protected function fixtureSugestoes(ContextoNegocio $ctx): array
