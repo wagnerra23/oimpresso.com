@@ -22,6 +22,27 @@ parent_adr: 0095
 
 [`memory/requisitos/ADS/SPEC.md`](memory/requisitos/ADS/SPEC.md) — 11 ADRs em [`memory/requisitos/ADS/adr/arq/`](memory/requisitos/ADS/adr/arq/).
 
+## §Extensão administrativa (ADR 0145 — 2026-05-15)
+
+ADS deixou de ser "router só de atendimento WhatsApp" e passou a ser **router universal de ações administrativas auditáveis**. Pivot formalizado em [ADR 0145](memory/decisions/0145-ia-administradora-pivot-ads-fsm-piloto-cobradora.md).
+
+- **Bridge único pro executor:** toda ação administrativa aprovada (Brain A / Brain B / HITL) chama `Modules/ADS/Services/FsmActionBridge` (US-ADS-070, em construção) que invoca `app/Domain/Fsm/Services/ExecuteStageActionService` ([ADR 0143](memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)). NÃO criar atalhos. NÃO bypassar trait `GuardsFsmTransitions`.
+- **Audit Card visível ao cliente final = Tier 0** quando há decisão automatizada que afete cliente final (LGPD Art. 20 / ANPD NT 12/2025). Toda `RoutingDecision` com `client_visible=true` exige URL `/copiloto/decisoes/{id}/revisao` funcional + rodapé "decisão automatizada — revisar humanamente" na mensagem disparada.
+- **HITL extendido pra blast radius administrativo:** valor <R$ 50 = L0; R$ 50-R$ 500 = L1; >R$ 500 OR VIP OR primeira cobrança mês = L2; bloqueio/cancelamento = L3. Per-agent declarado em `config/ads.php`.
+
+### §Modelo comercial (decisão Wagner 2026-05-15)
+
+**Agentes administrativos são feature PAGA — add-on monetizado, não vêm no plano básico.** Cliente paga pra ter Cobradora/Auditora/etc rodando. ROTA LIVRE durante piloto = free (validação). Pra outros biz, sinal qualificado = cliente paga (alinha com [ADR 0105](memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)).
+
+Implicações práticas:
+- Flag de feature por biz (`businesses.cobradora_ativa boolean` ou equivalente billing) controla ligamento.
+- Sem cliente pagante, agent fica desligado mesmo que código esteja deployado.
+- Brain B custo (R$ ~150/mês orçado) é OPEX que entra no preço do add-on.
+
+### §Dry-run total enquanto Wagner não confia (decisão 2026-05-15)
+
+Default da config canary US-COPI-086: `COBRADORA_DRY_RUN_BIZ_4=true`. Agent decide MAS não dispatcha — Wagner revisa decisões em dashboard `/copiloto/admin/cobradora`. Larissa NÃO recebe mensagem real até Wagner virar flag `false` explicitamente. Wagner ainda não comunicou Larissa do piloto — comunicação acontece DEPOIS que ele confiar nas decisões em dry-run.
+
 ## Pipeline de decisão (não pular nenhum estágio)
 
 ```
