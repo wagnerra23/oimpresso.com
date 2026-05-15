@@ -163,6 +163,7 @@
 
 **Escopo:**
 - [ ] **Audit cockpit-runbook modo B** — score completo, corrigir todos CRITICAL e WARN antes de seguir
+- [x] **Pest baseline store() — caminho A híbrido (2026-05-15)** — 11 invariantes ESTRUTURAIS em `tests/Feature/Sells/SellPosControllerStoreInvariantsTest.php` (permission guard, multi-tenant Tier 0 ADR 0093, DB transaction atomicidade, branch is_credit_sale, split payment array, cash register pré-venda, credit limit fail-fast, branch quotation/proforma, event dispatch pós-commit, pipeline canônico). **Limitação documentada:** não valida que venda PERSISTE corretamente — apenas que CÓDIGO não regrediu. Integration HTTP full fica pra US-SELL-040 quando alguém refatorar `SellPosController@store` (UltimatePOS herdado, ~30 deps, fixture full custaria 6-10h). Canary humano biz=1 7d cobre comportamento.
 - [ ] **Smoke biz=1** (NUNCA biz=4 — auto-mem `feedback_test_business_id_1_nunca_4`):
   - [ ] Criar venda à vista R$ [redacted Tier 0] — conferir: `transactions` + `transaction_payments` + caixa atualizado + cliente OK
   - [ ] Criar venda a prazo 3x — conferir: 3 `account_transactions` `due` futuras
@@ -177,6 +178,30 @@
 - [ ] 7 dias canary Wagner sem regressão
 - [ ] Backup DB armazenado em local seguro (GD pessoal? nuvem?)
 - [ ] Rollback testado: flag OFF → tela volta pra Blade em <30s
+
+### US-SELL-040 · Pest integration HTTP full do `SellPosController@store` (caminho B)
+
+> owner: wagner · priority: p2 · estimate: 6-10h · status: todo · type: story · origin: sessao-2026-05-15-canary-prep-paridade
+> blocked_by: — (independente; só disparar quando refatorar `store()` de fato)
+
+**Contexto.** Caminho B do plano híbrido decidido em 2026-05-15 — alternativa "honesta integration" do baseline `store()`. Hoje `tests/Feature/Sells/SellPosControllerStoreInvariantsTest.php` (US-SELL-008 parte 1) cobre estrutura via regex contra source, mas não persiste venda. Esta US executa fixtures HTTP reais POST `/pos` em biz=1 com RefreshDatabase + seed mínimo (Business + User com perms + Location + Tax + CashRegister aberto + Contact walk-in + Product), valida `transactions` + `transaction_payments` + `transaction_sell_lines` + estoque decrescido.
+
+**Quando disparar.** Só fazer quando alguém **de fato refatorar** `SellPosController@store` (atualmente legacy UltimatePOS, ~30 deps). Enquanto store() permanece intocado, invariantes estruturais + canary humano biz=1 7d cobrem.
+
+**Escopo (5+ fixtures):**
+- [ ] Seed builder helper em `tests/Helpers/` ou `tests/Support/SellsTestSeed.php` (Business id=1 + User com `sell.create` + Location + Tax + CashRegister aberto + Contact walk-in + Product enable_stock)
+- [ ] Fixture 1 · venda à vista R$ [redacted Tier 0]: POST `/pos` + assert `payment_status='paid'` + `final_total=100` + 1 row `transaction_payments`
+- [ ] Fixture 2 · venda a prazo 3x: POST `/pos` com `is_credit_sale=1` + assert `payment_status='due'` + 0 rows `transaction_payments`
+- [ ] Fixture 3 · venda com desconto 10%: POST `/pos` com `discount_type='percentage', discount_amount=10` + assert `final_total` desconta corretamente
+- [ ] Fixture 4 · venda com frete R$ [redacted Tier 0]: POST `/pos` com `shipping_charges=15` + assert `shipping_charges` persistido
+- [ ] Fixture 5 · venda split pgto (dinheiro 50 + cartão 50): POST `/pos` com `payment[]` array 2 linhas + assert 2 rows `transaction_payments`
+- [ ] Fixture 6 · cancelamento (BÔNUS): chamar `/sells/{id}/cancel` + assert estoque revertido + `payment_status` reflete reversal
+
+**Acceptance criteria:**
+- [ ] 5+ testes Pest passando em `tests/Feature/Sells/SellPosControllerStoreIntegrationTest.php`
+- [ ] `RefreshDatabase` ou `DatabaseTransactions` trait usado (não suja state entre testes)
+- [ ] biz=1 SEMPRE (NUNCA biz=4 — auto-mem `feedback_test_business_id_1_nunca_4`)
+- [ ] CI rodando em <60s (sem network, sem services externos)
 
 ### US-SELL-010 · FieldError por campo + auto-open details em erro
 
