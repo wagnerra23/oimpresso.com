@@ -3,8 +3,11 @@
 namespace Modules\Jana\Ai\Agents;
 
 use Laravel\Ai\Contracts\Agent;
+use Laravel\Ai\Contracts\HasProviderOptions;
+use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Messages\Message;
 use Laravel\Ai\Promptable;
+use Modules\Jana\Ai\Cache\PromptCacheConfig;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Support\ContextoNegocio;
 use Stringable;
@@ -24,7 +27,7 @@ use Stringable;
  * (empresa, faturamento 90d, clientes, metas) no system prompt — Caminho A.
  * BC-compat: ChatCopilotoAgent($conv) sem ctx mantém comportamento anterior.
  */
-class ChatCopilotoAgent implements Agent
+class ChatCopilotoAgent implements Agent, HasProviderOptions
 {
     use Promptable;
 
@@ -151,5 +154,112 @@ class ChatCopilotoAgent implements Agent
         }
 
         return $msgs;
+    }
+
+    /**
+     * GAP D4 #5 — Prompt caching live (Anthropic).
+     *
+     * Implementa `HasProviderOptions` pra sobrescrever `system` (string default
+     * em BuildsTextRequests) por array de text blocks com `cache_control`
+     * ephemeral — habilita cache hit na Anthropic Messages API.
+     *
+     * Anthropic reusa o prefixo do prompt até o último bloco marcado. Quebra em
+     * 2 blocos:
+     *   1. Persona/instruções base (raramente muda) — cache breakpoint principal
+     *   2. ContextoNegocio (muda por business, estável dentro sessão) — segundo
+     *      breakpoint (só se ctx presente)
+     *
+     * Histórico de conversa NÃO recebe marker — vai como messages[] regular
+     * (cresce a cada turno; cache de prefixo já cobre system).
+     *
+     * Kill-switch: env `COPILOTO_PROMPT_CACHE_ENABLED=false` desliga
+     * globalmente em caso de regressão.
+     *
+     * Pattern oficial laravel/ai: `array_merge($body, $providerOptions)` em
+     * `BuildsTextRequests::buildTextRequestBody` permite override do `system`.
+     *
+     * @see \Modules\Jana\Ai\Cache\PromptCacheConfig
+     * @see \Laravel\Ai\Gateway\Anthropic\Concerns\BuildsTextRequests
+     */
+    public function providerOptions(Lab|string $provider): array
+    {
+        // Cache só faz sentido na Anthropic — outros providers usam o caminho
+        // default string. Se kill-switch off → não retorna nada (string default).
+        if (! PromptCacheConfig::isEnabled()) {
+            return [];
+        }
+
+        $providerKey = $provider instanceof Lab ? $provider->value : (string) $provider;
+        if ($providerKey !== Lab::Anthropic->value) {
+            return [];
+        }
+
+        // Reconstrói o system prompt em blocos cacheáveis.
+        $instructions = (string) $this->instructions();
+
+        // Heurística mínimo cacheável — Anthropic exige conteúdo mínimo
+        // (~1024 tokens Sonnet); abaixo disso o marker é ignorado mas custa
+        // overhead — pulamos.
+        if (strlen($instructions) < PromptCacheConfig::minCacheableChars()) {
+            return [];
+        }
+
+        // Split: persona base (estável) | contexto negócio (sessão).
+        // Reuso a mesma montagem do instructions() mas em blocks separados.
+        $blocks = $this->montarSystemBlocksCacheaveis();
+
+        return [
+            'system' => $blocks,
+        ];
+    }
+
+    /**
+     * Monta system prompt como array de text blocks Anthropic, com
+     * `cache_control` no ÚLTIMO bloco estável (Anthropic cacheia prefixo até o
+     * marker).
+     *
+     * Estratégia:
+     *   - Bloco 1: persona base (sempre presente, estável)
+     *   - Bloco 2: ContextoNegocio (se presente)
+     *   - Bloco 3: memoria recall (se presente — pode mudar entre turnos da
+     *     mesma sessão, mas em janela 5min é estável)
+     *
+     * cache_control vai no ÚLTIMO bloco — Anthropic cacheia TUDO até ele.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function montarSystemBlocksCacheaveis(): array
+    {
+        $personaBase = <<<PROMPT
+        Você é o Copiloto do oimpresso, um assistente de IA para gestores de pequenas e médias empresas brasileiras.
+        Responda sempre em português brasileiro.
+        Seja direto, prático e orientado a resultados.
+        Nunca sugira ações ilegais ou antiéticas.
+        Nunca invente dados — baseie-se apenas no contexto fornecido.
+        Quando não tiver informação suficiente, peça esclarecimentos.
+        PROMPT;
+
+        $blocks = [
+            // Bloco 1 — persona (estável, NÃO marca cache_control aqui se houver
+            // bloco posterior; o marker no último cobre prefixo inteiro).
+            ['type' => 'text', 'text' => $personaBase],
+        ];
+
+        // Bloco 2 — contexto negócio compacto (~150-250 tokens, ADR 0047).
+        if ($this->ctx !== null) {
+            $blocks[] = ['type' => 'text', 'text' => $this->formatarContextoNegocio($this->ctx)];
+        }
+
+        // Bloco 3 — memoria recall (fatos persistentes do user; ADR 0036).
+        if ($this->memoriaContexto !== '') {
+            $blocks[] = ['type' => 'text', 'text' => trim($this->memoriaContexto)];
+        }
+
+        // cache_control sempre vai no ÚLTIMO bloco — Anthropic cacheia até ele
+        // (prefix matching). Isso cobre persona + ctx + memoria num único hit.
+        $lastIdx = count($blocks) - 1;
+        $blocks[$lastIdx]['cache_control'] = PromptCacheConfig::cacheControlMarker();
+
+        return $blocks;
     }
 }
