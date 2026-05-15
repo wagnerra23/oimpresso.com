@@ -137,7 +137,7 @@ Se próximo sprint: este runbook fica documentado, executa depois com mesmo pass
 ## Referências
 
 - [memory/sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md](../../../sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md) — estudo 797 linhas, score 71%
-- [ADR 0145](../../../decisions/0145-contact-lid-canonico-pk-refactor.md) — refactor contact_lid (feature-wish ativa quando canary maduro)
+- [ADR 0146](../../../decisions/0146-contact-lid-canonico-pk-refactor.md) — refactor contact_lid (feature-wish ativa quando canary maduro)
 - [PR #858](https://github.com/wagnerra23/oimpresso.com/pull/858) — stub MetaCloudDriver pronto
 - [Meta WhatsApp Cloud API docs](https://developers.facebook.com/docs/whatsapp/cloud-api)
 - [Meta Business verification](https://www.facebook.com/business/help/2058515294227817)

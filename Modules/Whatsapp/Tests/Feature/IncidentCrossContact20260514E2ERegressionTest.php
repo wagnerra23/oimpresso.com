@@ -31,7 +31,7 @@ uses(Tests\TestCase::class);
  * - memory/sessions/2026-05-14-whatsapp-incident-inbox-lid-cross-contact.md
  * - memory/sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md
  * - memory/reference/feedback-baileys-7x-decisao-irreversivel.md
- * - memory/decisions/0145-contact-lid-canonico-pk-refactor.md
+ * - memory/decisions/0146-contact-lid-canonico-pk-refactor.md
  */
 beforeEach(function () {
     foreach (['conversations', 'channels', 'messages', 'contacts', 'whatsapp_lid_pn_map'] as $t) {
