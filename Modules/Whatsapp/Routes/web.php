@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
+use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\CsatController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
@@ -85,6 +86,13 @@ Route::group([
     Route::get('/inbox', [InboxController::class, 'index'])
         ->middleware('can:whatsapp.access')
         ->name('atendimento.inbox.index');
+
+    // Caixa Unificada V4 — redesign Cowork omnichannel (ADR 0114 loop).
+    // Coexiste com /atendimento/inbox durante canary 7d. Cutover em PR seguinte.
+    // Fonte visual canônica: prototipo-ui/prototipos/caixa-unificada/
+    Route::get('/caixa-unificada', [CaixaUnificadaController::class, 'index'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.caixa-unificada.index');
 
     Route::post('/inbox/{id}/send', [InboxController::class, 'send'])
         ->whereNumber('id')
