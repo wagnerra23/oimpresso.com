@@ -1,5 +1,26 @@
 # Proibições (Tier 0 — sem ADR mãe nova é proibido)
 
+## REGRA PRIMÁRIA — Mexeu, REGISTRA (Tier 0 IRREVOGÁVEL)
+
+> ⛔⛔⛔ **Toda mudança em código de `Module/`, daemon CT 100, schema DB, config infra ou qualquer artefato operacional DEVE ser registrada IMEDIATAMENTE em git + tests + docs canon.** Não existe "ajuste rápido", "fix temporário", "depois eu commito". Drift entre prod e git canônico É O VETOR Nº 1 de incidentes catalogado (maratona WhatsApp 14-15/mai: 5 instâncias de drift custaram ~5h investigação retrospectiva + 12 PRs corretivos).
+>
+> Wagner palavras textuais 2026-05-15: *"mexeu na merda do módulo registra caralho"*.
+>
+> **Detalhe completo + 5 vetores catalogados + 7 defesas automáticas + caminhos canônicos por tipo de mudança em [`memory/reference/feedback-modulo-mexeu-registra-sempre.md`](reference/feedback-modulo-mexeu-registra-sempre.md).**
+>
+> **Caminhos canônicos por tipo de mudança:**
+>
+> | Você mexeu em... | Caminho obrigatório |
+> |---|---|
+> | Código Module (PHP/TS/React) | PR no git → CI verde → merge |
+> | Comando artisan / cron | PR + entry em `app/Console/Kernel.php` + log estruturado |
+> | Schema DB (DDL) | Migration PHP + Pest sobrevive re-run + ADR se decisão arquitetural |
+> | INSERT/UPDATE direto no DB (tinker, SQL, phpMyAdmin) | Seeder OR comando artisan idempotente OR backfill job + commit |
+> | Arquivo no servidor (SSH Hostinger, CT 100, daemon source) | **PROIBIDO** — via git pull do canônico apenas |
+> | Cache `Cache::put`/`Cache::forget` ad-hoc em prod | Observer ou comando artisan registrado, NUNCA tinker direto sem commit |
+>
+> **Se Wagner aprovar Tier 0 superadmin "ajuste rápido" em emergência:** Claude marca log com `// DRIFT TIER 0 — Wagner aprovou em <data>, follow-up PR <hash>` E spawna PR follow-up imediato.
+
 ## Ambiente
 
 - ⛔ **Nunca instalar `laravel/mcp` ou `laravel/octane` no Hostinger** (nem em worktree, nem em `/tmp`). Esses pacotes só vivem em CT 100 Proxmox e local. Hostinger é shared hosting; daemons lá violam contrato ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
