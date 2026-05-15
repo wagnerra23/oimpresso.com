@@ -76,6 +76,14 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - **Enviar/Anotar** verde-primary ou amarelo-nota.
 - **Disabled** quando preview (modo cliente) ou contato bloqueado.
 
+### Atalhos teclado (Wave 1 F1 paridade Inbox legacy — 2026-05-15)
+- **J/K** — navega conversa anterior/próxima na lista esquerda
+- **`/`** — foca o input de busca da lista (data-caixa-unif-search)
+- **E** — resolve a conversa aberta (PATCH update_status `resolved`)
+- **A** — marca a conversa como "aguardando humano" (PATCH update_status `awaiting_human`)
+- **⌘⇧N** — toggle Resp/Nota no composer (já existente)
+- Filtra `input/textarea/contentEditable` + ignora com ctrl/meta/alt (defense in depth)
+
 ### Sidebar direita (8 sections)
 1. **Fila** — derivada via heurística tag→fila (read-only nesta passada).
 2. **Atribuído** — placeholder "sem atribuição" (TODO US-WA-XXX).

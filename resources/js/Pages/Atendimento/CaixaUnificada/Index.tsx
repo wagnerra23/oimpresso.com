@@ -168,6 +168,73 @@ export default function CaixaUnificadaIndex({
     );
   }
 
+  function setAwaitingHuman() {
+    if (!thread) return;
+    if (thread.status === 'awaiting_human' || thread.status === 'resolved') return;
+    router.patch(
+      route('atendimento.inbox.update_status', thread.id),
+      { status: 'awaiting_human' },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['thread', 'conversations', 'stats'],
+      },
+    );
+  }
+
+  // Wave 1 F1 paridade Inbox legacy — atalhos teclado J/K/E/A + "/" (ADR 0039 §2).
+  // J/K navega lista · "/" foca busca · E resolve · A aguardando humano.
+  // Filtra eventos em inputs/textareas/contentEditable e ignora com modifier keys.
+  useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable)
+      ) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === '/') {
+        e.preventDefault();
+        const input = document.querySelector<HTMLInputElement>('[data-caixa-unif-search]');
+        input?.focus();
+        return;
+      }
+
+      const list = conversations?.data ?? [];
+
+      if (e.key === 'j' || e.key === 'J') {
+        if (list.length === 0) return;
+        e.preventDefault();
+        const idx = thread ? list.findIndex((c) => c.id === thread.id) : -1;
+        const next = list[Math.min(idx + 1, list.length - 1)];
+        if (next) selectThread(next.id);
+        return;
+      }
+      if (e.key === 'k' || e.key === 'K') {
+        if (list.length === 0) return;
+        e.preventDefault();
+        const idx = thread ? list.findIndex((c) => c.id === thread.id) : -1;
+        const prev = list[Math.max(idx - 1, 0)];
+        if (prev) selectThread(prev.id);
+        return;
+      }
+      if (e.key === 'e' || e.key === 'E') {
+        if (!thread || thread.status === 'resolved') return;
+        e.preventDefault();
+        resolveThread();
+        return;
+      }
+      if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        setAwaitingHuman();
+        return;
+      }
+    }
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [thread?.id, thread?.status, conversations?.data]);
+
   // Header sub: "3 contas ativas · 5 filas · 8 abertas · 1 não lidas"
   const headerSub = stats
     ? [

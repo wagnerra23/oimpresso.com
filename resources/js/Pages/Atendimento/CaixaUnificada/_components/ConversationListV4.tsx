@@ -113,6 +113,8 @@ export default function ConversationListV4({
             if (e.key === 'Escape') { setSearchInput(''); applySearch(''); }
           }}
           data-testid="caixa-unif-search-input"
+          data-caixa-unif-search
+          aria-label="Buscar conversas (atalho /)"
         />
         {searchInput && (
           <button
