@@ -606,7 +606,7 @@ it('snapshot baileys 6.7.9 messaging-history.set payload shape', function () {
 - Sem custo recorrente
 - Mesma arquitetura atual (CT 100 daemon Node)
 - Mantém free + control total
-- Alinhado com PR #855 (schema 3-identifiers) + ADR 0145 (contact_lid canônico) — destrava esses
+- Alinhado com PR #855 (schema 3-identifiers) + ADR 0146 (contact_lid canônico) — destrava esses
 
 **Quando executar:** **AGORA.** Próxima ação: spawn agent migração Baileys 7.x seguindo skill `baileys-update-procedure` (5-fase já documentado). Canary 7d em biz=99 sombra antes de promover biz=1.
 

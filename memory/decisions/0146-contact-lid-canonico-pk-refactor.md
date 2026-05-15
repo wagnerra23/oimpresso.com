@@ -1,6 +1,6 @@
 ---
-slug: 0145-contact-lid-canonico-pk-refactor
-number: 145
+slug: 0146-contact-lid-canonico-pk-refactor
+number: 146
 title: "Refactor contact_lid como chave canônica de identidade WhatsApp"
 type: adr
 status: proposto
@@ -23,7 +23,9 @@ review_triggers:
   - volume_biz1_5x_ou_novo_vertical
 ---
 
-# ADR 0145 — Refactor `contact_lid` como chave canônica de identidade WhatsApp (feature-wish)
+# ADR 0146 — Refactor `contact_lid` como chave canônica de identidade WhatsApp (feature-wish)
+
+> **Nota histórica:** esta ADR foi criada originalmente como **0145** em 2026-05-15 04h BRT. Renumerada pra **0146** em 2026-05-15 06h BRT após colisão detectada com [ADR 0145 — IA Administradora pivot ADS↔FSM](0145-ia-administradora-pivot-ads-fsm-piloto-cobradora.md) criada em sessão paralela. Conteúdo idêntico — só número mudou. Links externos atualizados em pacote consolidação pós-maratona WhatsApp.
 
 - **Status:** proposto (feature-wish — [ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md) aguarda sinal qualificado pra implementação)
 - **Data:** 2026-05-15

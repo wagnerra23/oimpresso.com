@@ -10,9 +10,11 @@ related_prs_recentes: [848, 850]
 related_us: US-WA-093
 ---
 
+> ⚠️ **CORREÇÃO 2026-05-15 (estudo protocol-level):** a hipótese H1 emendada "LID é chat-level identifier" estava ERRADA. Pesquisa profunda confirmou que **1 LID = 1 USER (per-account)** em Baileys 6.7.9 — persiste por toda vida do account, não é per-chat. **Causa real do incident:** fuzzy match `tail4` no `ConversationContactLinker` (4 últimos dígitos coincidindo entre número Wagner e `alternate_number` da Eliana). PR #854 corrigiu via suffix-8. Detalhe completo em [2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md](2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md) §1.2 + §4c.
+
 # TL;DR
 
-- **Vence H1 emendada:** mapping manual `whatsapp_lid_pn_map.id=1` cadastrado **2026-05-12 17:01:34** (source=`manual`) liga `lid=14628809617558` → `phone=+5548[REDACTED-últ4]2822` (Eliana, contact_id=6005) **mas esse LID é da OUTRA PARTE da conversa do canal pareado** — todas mensagens reais (Wagner mandando + outra pessoa respondendo) compartilham o mesmo `remoteJid` no Baileys (chat-level identifier), então TODAS resolvem pra Eliana via cache.
+- **Vence H1 emendada (CORRIGIDA 15/mai — ver nota acima):** mapping manual `whatsapp_lid_pn_map.id=1` cadastrado **2026-05-12 17:01:34** (source=`manual`) liga `lid=14628809617558` → `phone=+5548[REDACTED-últ4]2822` (Eliana, contact_id=6005). Causa real revisada 15/mai: **fuzzy match `tail4` no `ConversationContactLinker`** — Eliana tinha `alternate_number=48999872822` (número do Wagner cadastrado errado nela), tail4=2822 batia com phone Wagner → linker auto-vinculou conv ao Contact errado.
 - **Agravante (H3 parcial):** Wagner re-pareou o canal 7 hoje 14/mai (sessão monitor-pairing PR #848). Daemon Baileys 6.7.9 re-disparou `messaging-history.set` e cadastrou 13 LIDs adicionais (id 4-16, todos `manual` às 08:40:10) — mass insert ad-hoc não-rastreado no git (drift Tier 0 proibido).
 - **Impacto:** Inbox biz=1 mostra **1 conversa única (#37) com nome "ELIANA MARCELINO ALVES 06075269983"** para 81 mensagens que misturam Wagner + interlocutor real. Sem perda de dado — só atribuição cruzada.
 
