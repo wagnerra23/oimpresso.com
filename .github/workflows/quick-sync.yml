@@ -37,6 +37,10 @@ on:
       - 'vite.inertia.config.mjs'
       - 'vite.config.js'
       - '!app/Console/Commands/**'
+      # Tailwind Blade legacy entry (vite.config.js → public/css/tailwind.css).
+      # Catalogado 2026-05-15: outra sessão (2026-05-07) esqueceu de incluir,
+      # ficou 10 dias stale até rebuild manual. Sem isso, mudança em sass não
+      # dispara build do Tailwind legacy.
   workflow_dispatch:
 
 concurrency:
@@ -79,7 +83,12 @@ jobs:
             # Bug reproduzível: PR #279 (2026-05-09 09:26) deixou lock órfão
             # que bloqueou deploys dos PRs #285 e #286 por ~3h.
             rm -f .git/index.lock .git/HEAD.lock .git/refs/heads/main.lock 2>/dev/null || true &&
-            git fetch origin &&
+            # Git fetch retry (3 tries) — race condition catalogada PR #870
+            # (2026-05-15 12:56): 'cannot lock ref refs/remotes/origin/main'
+            # quando outro PR mergeia entre fetch e reset. Re-fetch resolve.
+            for i in 1 2 3; do
+              git fetch origin && break || (echo \"fetch try \$i failed, sleeping 3s\"; sleep 3);
+            done &&
             git reset --hard origin/main &&
             git log --oneline -3
           "
@@ -112,6 +121,21 @@ jobs:
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
             npm run build:inertia 2>&1 | tail -10
+          "
+
+      - name: Build Tailwind Blade legacy
+        # Build do Tailwind pra Blade legacy (vite.config.js → public/css/tailwind.css).
+        # ~0.7s — custo trivial. Sempre roda pra garantir CSS sincronizado.
+        # Catalogado 2026-05-15: sessão 2026-05-07 esqueceu deste step ao
+        # criar quick-sync.yml — public/css/tailwind.css ficou 10 dias stale
+        # até rebuild manual via SSH. Sem este step, mudança em
+        # resources/sass/** não rendererializa em Blade legacy (Sells/Repair
+        # ainda usam Blade — não cobertos pelo build:inertia).
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            npm run build 2>&1 | tail -10
           "
 
       - name: Clear view + config + route caches
