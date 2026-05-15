@@ -299,6 +299,138 @@ class MetaCloudDriver implements DriverInterface
     }
 
     /**
+     * Parse webhook inbound payload Meta Cloud — extrai 3 identifiers canônicos.
+     *
+     * PR4 PoC (canary biz sandbox, NÃO toca prod biz=1):
+     * Cloud API oficial Meta expõe `user_id` (BSUID Meta-oficial) em
+     * `entry[].changes[].value.contacts[].user_id` desde 31-mar-2026.
+     * Quando users adotarem username (jun/2026 GA), `wa_id` (phone) some —
+     * só sobra BSUID como identificador estável business-scoped.
+     *
+     * Schema 3-identifiers (PR1, migration `add_identity_columns_to_conversations`):
+     *  - `lid` — não exposto via Cloud API (resolvido internamente Meta)
+     *  - `phone_e164` — sempre `+wa_id`
+     *  - `bsuid` — `contacts[].user_id` quando disponível (NULL pré mar/2026
+     *    e pra users que não optaram via Cloud API moderna)
+     *
+     * Cloud API webhook shape mar/2026+:
+     * {
+     *   "entry": [{
+     *     "changes": [{
+     *       "value": {
+     *         "messages": [{
+     *           "from": "5548999000000",
+     *           "id": "wamid.HBgL...",
+     *           "type": "text",
+     *           "text": {"body": "..."}
+     *         }],
+     *         "contacts": [{
+     *           "wa_id": "5548999000000",
+     *           "user_id": "abc123-bsuid-xyz",
+     *           "profile": {"name": "Cliente"}
+     *         }]
+     *       }
+     *     }]
+     *   }]
+     * }
+     *
+     * Tolerante a payload pré mar/2026 (sem `user_id` em contacts) — campo
+     * `bsuid` retorna null e migração lógica MessagePersister mantém compat.
+     *
+     * NÃO faz I/O, NÃO persiste — apenas parsing puro. Persistência
+     * canônica fica no `ProcessIncomingWebhookJob` + `MessagePersister`
+     * (não tocados neste PR).
+     *
+     * @param  array<string, mixed>  $payload  Body cru do webhook Meta
+     * @return array<int, array{
+     *     wa_id: string,
+     *     phone_e164: string,
+     *     bsuid: ?string,
+     *     profile_name: ?string,
+     *     message_id: ?string,
+     *     type: string,
+     *     body: string
+     * }>
+     *
+     * @see Modules/Whatsapp/Database/Migrations/2026_05_15_010000_add_identity_columns_to_conversations.php
+     * @see memory/sessions/2026-05-15-estudo-whatsapp-protocol-vs-oimpresso.md §7 Opção A
+     */
+    public function parseInboundWebhook(array $payload): array
+    {
+        $out = [];
+
+        foreach ($payload['entry'] ?? [] as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            foreach ($entry['changes'] ?? [] as $change) {
+                if (! is_array($change)) {
+                    continue;
+                }
+
+                $value = $change['value'] ?? [];
+                if (! is_array($value)) {
+                    continue;
+                }
+
+                // Indexa contacts por wa_id pra lookup O(1) ao iterar messages.
+                $contactsByWaId = [];
+                foreach ($value['contacts'] ?? [] as $contact) {
+                    $waId = $contact['wa_id'] ?? null;
+                    if (is_string($waId) && $waId !== '') {
+                        $contactsByWaId[$waId] = $contact;
+                    }
+                }
+
+                foreach ($value['messages'] ?? [] as $msg) {
+                    if (! is_array($msg)) {
+                        continue;
+                    }
+
+                    $waId = $msg['from'] ?? null;
+                    if (! is_string($waId) || $waId === '') {
+                        continue;
+                    }
+
+                    $contact = $contactsByWaId[$waId] ?? [];
+                    $type = (string) ($msg['type'] ?? 'text');
+
+                    // Extrai body conforme tipo — text/button/interactive todos têm
+                    // forma diferente. PoC cobre text; outros tipos retornam ''
+                    // (persister real é responsável por tipos especiais).
+                    $body = match ($type) {
+                        'text' => (string) ($msg['text']['body'] ?? ''),
+                        'button' => (string) ($msg['button']['text'] ?? ''),
+                        'interactive' => (string) (
+                            $msg['interactive']['button_reply']['title']
+                            ?? $msg['interactive']['list_reply']['title']
+                            ?? ''
+                        ),
+                        default => '',
+                    };
+
+                    $out[] = [
+                        'wa_id' => $waId,
+                        'phone_e164' => '+'.$waId,
+                        'bsuid' => isset($contact['user_id']) && is_string($contact['user_id']) && $contact['user_id'] !== ''
+                            ? $contact['user_id']
+                            : null,
+                        'profile_name' => isset($contact['profile']['name']) && is_string($contact['profile']['name'])
+                            ? $contact['profile']['name']
+                            : null,
+                        'message_id' => isset($msg['id']) && is_string($msg['id']) ? $msg['id'] : null,
+                        'type' => $type,
+                        'body' => $body,
+                    ];
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * Cliente HTTP configurado pra Meta Cloud API.
      *
      * Bearer token = meta_access_token (cifrado em DB, decifrado no Model getter).
