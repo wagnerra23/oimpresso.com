@@ -2423,6 +2423,38 @@ class SellPosController extends Controller
             return $datatable;
         }
 
+        // Wave 1 W1-A — branch dual MWART. Inertia se header X-Inertia presente.
+        if (request()->header('X-Inertia')) {
+            $business_id = request()->session()->get('user.business_id');
+
+            $recurringBase = Transaction::where('business_id', $business_id)
+                ->where('type', 'sell')
+                ->where('status', 'final')
+                ->where('is_recurring', 1);
+
+            $kpis = [
+                'total' => (int) (clone $recurringBase)->count(),
+                'active' => (int) (clone $recurringBase)->whereNull('recur_stopped_on')->count(),
+                'stopped' => (int) (clone $recurringBase)->whereNotNull('recur_stopped_on')->count(),
+            ];
+
+            return Inertia::render('Sells/Subscriptions', [
+                'kpis' => $kpis,
+                'filters' => [
+                    'customers' => Inertia::defer(fn () => \App\Contact::customersDropdown($business_id, false)),
+                ],
+                'permissions' => [
+                    'update' => auth()->user()->can('sell.update'),
+                    'delete' => auth()->user()->can('direct_sell.delete') || auth()->user()->can('sell.delete'),
+                ],
+                'urls' => [
+                    'datatable' => '/sells/subscriptions?ajax=1',
+                    'toggle' => '/sells/recurring-toggle',
+                    'back' => '/sells',
+                ],
+            ]);
+        }
+
         return view('sale_pos.subscriptions');
     }
 
