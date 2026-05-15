@@ -85,12 +85,21 @@ export default function ComposerV4({
   return (
     <div
       className={cn(
-        'flex items-center gap-1.5 border-t px-3.5 py-2.5',
-        internalMode ? 'bg-amber-50 border-amber-200' : 'bg-card',
+        'flex items-center gap-1.5 border-t px-3.5 py-2.5 transition-colors',
+        !internalMode && 'bg-card',
       )}
+      style={
+        internalMode
+          ? {
+              // Cowork .om-input.internal — bg amarelo-pastel + border-top destacado
+              background: 'oklch(0.97 0.03 80)',
+              borderTopColor: 'oklch(0.78 0.10 80)',
+            }
+          : undefined
+      }
       data-testid="caixa-unif-composer"
     >
-      {/* Toggle Resp / Nota */}
+      {/* Toggle Resp / Nota — Cowork .om-mode-btn.on tokens OKLCH §589 */}
       <button
         type="button"
         onClick={() => setInternalMode(v => !v)}
@@ -98,10 +107,17 @@ export default function ComposerV4({
         data-testid="caixa-unif-composer-toggle-mode"
         className={cn(
           'h-8 px-3 rounded-full border text-[11px] font-semibold transition-colors flex-shrink-0',
-          internalMode
-            ? 'bg-amber-200 border-amber-400 text-amber-950'
-            : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground',
+          !internalMode && 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground',
         )}
+        style={
+          internalMode
+            ? {
+                background: 'oklch(0.90 0.10 80)',
+                borderColor: 'oklch(0.62 0.14 80)',
+                color: 'oklch(0.22 0.10 80)',
+              }
+            : undefined
+        }
       >
         {internalMode ? 'Nota' : 'Resp'}
       </button>
