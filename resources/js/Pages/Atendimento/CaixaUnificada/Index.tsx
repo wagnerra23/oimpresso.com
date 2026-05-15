@@ -381,4 +381,4 @@ export default function CaixaUnificadaIndex({
   );
 }
 
-CaixaUnificadaIndex.layout = (page: React.ReactElement) => <AppShellV2>{page}</AppShellV2>;
+CaixaUnificadaIndex.layout = (page: React.ReactElement) => <AppShellV2 hideTopbar>{page}</AppShellV2>;

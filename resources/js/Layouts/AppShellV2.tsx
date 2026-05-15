@@ -122,6 +122,12 @@ interface AppShellV2Props {
   breadcrumb?: ReactNode[];
   /** Alternativa ao `breadcrumb` em formato `{ label, href? }[]` (compat). Convertido internamente. */
   breadcrumbItems?: Array<{ label: string; href?: string }>;
+  /**
+   * Esconde a barra superior (breadcrumb + topnav do módulo) inteira.
+   * Usado em telas com header próprio que torna a topbar redundante (ex.: Caixa Unificada V4).
+   * Default: false.
+   */
+  hideTopbar?: boolean;
 }
 
 // ── BreadcrumbModuleDropdown ──────────────────────────────────────────
@@ -204,6 +210,7 @@ export default function AppShellV2({
   onSelectConv,
   breadcrumb,
   breadcrumbItems,
+  hideTopbar = false,
 }: AppShellV2Props) {
   // Pega o menu compartilhado do shell (LegacyMenuAdapter via Inertia share)
   const page = usePage();
@@ -395,6 +402,7 @@ export default function AppShellV2({
 
         {/* MAIN COLUMN */}
         <div className="main">
+          {!hideTopbar && (
           <header className="topbar">
             <div className="bc">
               {crumb.map((part, i) => (
@@ -484,6 +492,7 @@ export default function AppShellV2({
               </div>
             )}
           </header>
+          )}
 
           <div className="main-body">
             {children}
