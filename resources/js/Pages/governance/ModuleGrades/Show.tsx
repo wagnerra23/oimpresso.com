@@ -25,6 +25,10 @@ interface BreakdownItem {
   score: number
   max: number
   evidence: string
+  /** ADR 0154 v2 — true quando sub-item é N/A justificado (não conta como gap) */
+  na_justified?: boolean
+  /** Razão textual do N/A — exibida em italic abaixo do desc */
+  na_reason?: string
 }
 
 interface Dimension {
@@ -32,6 +36,10 @@ interface Dimension {
   score: number
   max: number
   breakdown: BreakdownItem[]
+  /** ADR 0154 v2 — true quando TODOS sub-itens da dimensão são na_justified */
+  na_justified?: boolean
+  /** Razão consolidada da dimensão N/A (resumo) */
+  na_reason?: string
 }
 
 interface Gap {
@@ -105,7 +113,9 @@ function scoreColorClass(score: number): string {
   return 'text-red-700'
 }
 
-function dimColorClass(score: number, max: number): string {
+function dimColorClass(score: number, max: number, naJustified?: boolean): string {
+  // ADR 0154 v2 — dimensão N/A justificada sempre verde-esmeralda
+  if (naJustified) return 'text-emerald-600'
   const ratio = max === 0 ? 0 : score / max
   if (ratio >= 0.8) return 'text-emerald-600'
   if (ratio >= 0.5) return 'text-sky-600'
@@ -113,11 +123,26 @@ function dimColorClass(score: number, max: number): string {
   return 'text-red-600'
 }
 
+/** ADR 0154 v2 — detecta se dimensão é N/A justificada
+ *  (flag explícita ou TODOS sub-itens marcados na_justified) */
+function isDimensionNaJustified(dim: Dimension): boolean {
+  if (dim.na_justified === true) return true
+  if (dim.breakdown.length === 0) return false
+  return dim.breakdown.every((item) => item.na_justified === true)
+}
+
 function ModuleGradesShow({ grade }: Props): React.ReactElement {
   const [evolveOpen, setEvolveOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const evolveMarkdown = useMemo(() => generateEvolveMarkdown(grade), [grade])
+
+  // ADR 0154 v2 — conta dimensões N/A justificadas (mostrado no header)
+  const naJustifiedCount = useMemo(() => {
+    return (Object.keys(DIM_LABELS) as (keyof Grade['dimensions'])[])
+      .filter((key) => isDimensionNaJustified(grade.dimensions[key])).length
+  }, [grade])
+  const totalDims = Object.keys(DIM_LABELS).length
 
   function handleCopyMarkdown(): void {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return
@@ -156,6 +181,12 @@ function ModuleGradesShow({ grade }: Props): React.ReactElement {
           <div className="flex items-center gap-4">
             <div className={`text-5xl font-bold ${scoreColorClass(grade.score)}`}>{grade.score}<span className="text-2xl text-zinc-400">/100</span></div>
             <Badge className={`${BUCKET_STYLES[grade.bucket] ?? ''} text-base px-3 py-1`}>{grade.bucket}</Badge>
+            {/* ADR 0154 v2 — indica dimensões N/A justificadas no header */}
+            {naJustifiedCount > 0 && (
+              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-sm px-3 py-1">
+                {naJustifiedCount} de {totalDims} dimensões com N/A justificado
+              </Badge>
+            )}
           </div>
           <Link href="/governance/module-grades" className="text-sm text-sky-700 hover:underline">
             ← Voltar à lista
@@ -167,28 +198,55 @@ function ModuleGradesShow({ grade }: Props): React.ReactElement {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         {(Object.keys(DIM_LABELS) as (keyof Grade['dimensions'])[]).map((key) => {
           const dim = grade.dimensions[key]
+          const dimNa = isDimensionNaJustified(dim)
           return (
-            <Card key={key}>
+            <Card key={key} className={dimNa ? 'border-emerald-200 bg-emerald-50/30' : ''}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center justify-between gap-2">
                   <span>{DIM_LABELS[key]}</span>
-                  <span className={`text-base font-bold ${dimColorClass(dim.score, dim.max)}`}>
-                    {dim.score}/{dim.max}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {/* ADR 0154 v2 — badge "N/A justificado" verde no card de dimensão */}
+                    {dimNa && (
+                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] px-1.5 py-0">
+                        N/A justificado
+                      </Badge>
+                    )}
+                    <span className={`text-base font-bold ${dimColorClass(dim.score, dim.max, dimNa)}`}>
+                      {dimNa ? 'N/A' : `${dim.score}/${dim.max}`}
+                    </span>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
+                {/* Razão consolidada da dimensão N/A (se houver) */}
+                {dimNa && dim.na_reason && (
+                  <p className="text-xs text-emerald-700 italic mb-2">{dim.na_reason}</p>
+                )}
                 <ul className="space-y-2 text-xs">
                   {dim.breakdown.map((item, i) => (
-                    <li key={i} className="border-l-2 border-zinc-200 pl-2">
+                    <li
+                      key={i}
+                      className={`border-l-2 pl-2 ${item.na_justified ? 'border-emerald-300' : 'border-zinc-200'}`}
+                    >
                       <div className="flex items-baseline gap-2">
-                        <span className={`font-mono ${dimColorClass(item.score, item.max)}`}>
-                          [{item.score}/{item.max}]
-                        </span>
+                        {item.na_justified ? (
+                          <span className="font-mono text-emerald-600" aria-label="N/A justificado">
+                            ✓ N/A
+                          </span>
+                        ) : (
+                          <span className={`font-mono ${dimColorClass(item.score, item.max)}`}>
+                            [{item.score}/{item.max}]
+                          </span>
+                        )}
                         <span className="font-medium text-zinc-700">{item.key}</span>
                       </div>
                       <p className="text-zinc-600 mt-0.5">{item.desc}</p>
-                      <p className="text-zinc-400 italic">{item.evidence}</p>
+                      {/* Razão N/A em italic (substitui evidence padrão quando N/A) */}
+                      {item.na_justified && item.na_reason ? (
+                        <p className="text-emerald-700 italic">{item.na_reason}</p>
+                      ) : (
+                        <p className="text-zinc-400 italic">{item.evidence}</p>
+                      )}
                     </li>
                   ))}
                 </ul>
