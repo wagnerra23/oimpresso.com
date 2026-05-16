@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Utils\Util;
@@ -11,6 +12,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Account extends Model
 {
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 12 D1 MT; soma ao where('business_id') explícito legacy)
     use LogsActivity;
     use SoftDeletes;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\KB\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -111,6 +112,27 @@ class KbRagService
     public function ask(string $query, int $businessId, ?int $userId = null, array $opts = []): RagResult
     {
         $this->assertBusinessId($businessId);
+
+        // Wave 12 — OTel span (ADR 0155 D9.a). Zero-cost se config('otel.enabled')=false.
+        // PII: hash(query) curto pra correlate sem expor texto. business_id Tier 0.
+        return OtelHelper::span('kb.rag.ask', [
+            'module'      => 'KB',
+            'business_id' => $businessId,
+            'user_id'     => (int) ($userId ?? 0),
+            'query_hash'  => substr(sha1(trim($query)), 0, 12),
+            'top_n'       => (int) ($opts['top_n'] ?? self::PROMPT_TOP_N),
+        ], function () use ($query, $businessId, $userId, $opts) {
+            return $this->doAsk($query, $businessId, $userId, $opts);
+        });
+    }
+
+    /**
+     * Wave 12 — implementação real de ask() (extraída pra envolver em OtelHelper::span).
+     *
+     * @param  array{idempotency_key?:string,top_n?:int,bypass_cache?:bool}  $opts
+     */
+    protected function doAsk(string $query, int $businessId, ?int $userId, array $opts): RagResult
+    {
         $startedAt = microtime(true);
 
         $query = trim($query);

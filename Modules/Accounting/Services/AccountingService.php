@@ -3,6 +3,7 @@
 namespace Modules\Accounting\Services;
 
 use App\AccountTransaction;
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,19 @@ class AccountingService
     }
 
     public function createJournalEntry(Request $request)
+    {
+        // D9 OTel — wrap fluxo legacy Controller-driven (Wave 12). Mantém return original.
+        return OtelHelper::spanBiz('accounting.service.create_journal_entry', function () use ($request) {
+            return $this->doCreateJournalEntry($request);
+        }, [
+            'transaction_type' => 'manual_entry',
+        ]);
+    }
+
+    /**
+     * Implementação interna — extraída pra OTel wrap não-invasivo.
+     */
+    private function doCreateJournalEntry(Request $request)
     {
         try {
             DB::beginTransaction();

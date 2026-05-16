@@ -2,10 +2,16 @@
 
 namespace Modules\Essentials\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ToDo extends Model
 {
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (defesa-em-profundidade)
+    use LogsActivity;
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -29,6 +35,22 @@ class ToDo extends Model
         'date'     => 'datetime',
         'end_date' => 'datetime',
     ];
+
+    /**
+     * Auditoria LGPD (D7) — registra mudanças críticas em tarefas.
+     * Append-only via spatie/activitylog. NÃO inclui `task` (texto livre,
+     * potencial PII de colaborador citado) — só status/priority/atribuição.
+     *
+     * @see Modules\Essentials\Config\retention.php
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'priority', 'date', 'end_date', 'created_by'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('essentials.todo');
+    }
 
     public function users()
     {
