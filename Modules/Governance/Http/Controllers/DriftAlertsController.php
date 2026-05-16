@@ -33,30 +33,44 @@ class DriftAlertsController extends Controller
 
     public function index(Request $request): Response
     {
-        // Service retorna Collection com report + modules_without_scope + modules_total + total_drift.
-        $drifts = $this->service->getActiveDrifts(limit: 500);
-
-        $report                = $drifts->get('report', []);
-        $modulesWithoutScope   = $drifts->get('modules_without_scope', []);
-        $modulesTotal          = (int) $drifts->get('modules_total', 0);
-        $totalDrift            = (int) $drifts->get('total_drift', 0);
-
-        // Alertas persistidos — drift detection cron job (Enforcement #5) ainda não roda;
-        // tabela mcp_alertas é pra outras categorias (cota_excedida, tool_destrutiva,
-        // ip_suspeito, taxa_errors, cliente_externo). Adicionar 'module_drift' ao enum
-        // exige migration + ADR — fica pra Fase 5+1.
-        $persistedAlerts = $this->service->persistedAlerts();
-
+        // Inertia::defer pra props com filesystem scan (slow — N módulos × parse YAML)
+        // + DB query (persistedAlerts) — skill inertia-defer-default.
         return Inertia::render('governance/DriftAlerts', [
-            'kpis' => [
-                'total_drift'           => $totalDrift,
-                'modules_with_drift'    => count($report),
-                'modules_without_scope' => count($modulesWithoutScope),
-                'modules_total'         => $modulesTotal,
-            ],
-            'report'                => $report,
-            'modules_without_scope' => $modulesWithoutScope,
-            'persisted_alerts'      => $persistedAlerts,
+            'kpis'                  => Inertia::defer(fn () => $this->buildKpisPayload()),
+            'report'                => Inertia::defer(fn () => $this->buildDriftsPayload()->get('report', [])),
+            'modules_without_scope' => Inertia::defer(fn () => $this->buildDriftsPayload()->get('modules_without_scope', [])),
+            'persisted_alerts'      => Inertia::defer(fn () => $this->service->persistedAlerts()),
         ]);
+    }
+
+    /**
+     * Service retorna Collection com report + modules_without_scope + modules_total + total_drift.
+     *
+     * Alertas persistidos — drift detection cron job (Enforcement #5) ainda não roda;
+     * tabela mcp_alertas é pra outras categorias (cota_excedida, tool_destrutiva,
+     * ip_suspeito, taxa_errors, cliente_externo). Adicionar 'module_drift' ao enum
+     * exige migration + ADR — fica pra Fase 5+1.
+     */
+    private function buildDriftsPayload(): \Illuminate\Support\Collection
+    {
+        return $this->service->getActiveDrifts(limit: 500);
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function buildKpisPayload(): array
+    {
+        $drifts = $this->buildDriftsPayload();
+
+        $report              = $drifts->get('report', []);
+        $modulesWithoutScope = $drifts->get('modules_without_scope', []);
+
+        return [
+            'total_drift'           => (int) $drifts->get('total_drift', 0),
+            'modules_with_drift'    => count($report),
+            'modules_without_scope' => count($modulesWithoutScope),
+            'modules_total'         => (int) $drifts->get('modules_total', 0),
+        ];
     }
 }

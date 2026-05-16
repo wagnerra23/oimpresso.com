@@ -1,0 +1,58 @@
+# BRIEFING — Modules/Spreadsheet
+
+> **Estado:** 🟡 legado UltimatePOS, pouco uso, manutenção bug-fix only | **Atualizado:** 2026-05-16 | **Owner:** sem owner ativo
+
+## O que é
+
+Planilhas web colaborativas inline dentro do oimpresso. Usuário cria planilha, edita células num grid JS, compartilha via link público read-only ou embed iframe.
+
+Herdado do scaffold UltimatePOS v6 (lib legada de spreadsheet JS). Em produção, **pouco usado** — clientes preferem Google Sheets pra colaboração externa.
+
+## Por que existe
+
+Originalmente UltimatePOS embarcou planilha pra cobrir caso de uso "exportar relatório pra Excel sem sair do ERP". Wagner mantém porque:
+- Alguns clientes legacy têm dados ali
+- Custo de migração + deprecação > custo de manutenção bug-fix
+- Compat de scaffold (`Modules/Spreadsheet/` referenciado por outros módulos via DataController side menu)
+
+## Capacidades hoje
+
+- ✅ CRUD planilhas (`sheet_spreadsheets`)
+- ✅ Share via link público com token UUID + expiração
+- ✅ Permissions read/edit por share
+- ✅ Embed iframe (rota dedicada com CSP relaxada)
+- ✅ Notificação `SpreadsheetShared` ao convidado
+- ✅ Organização por folder (`folder_id` opcional)
+- ✅ Multi-tenant via global scope
+
+## Diferencial vs concorrentes
+
+- Vs Google Sheets/Excel Online: **perde em tudo** — Wagner não compete aqui
+- Vantagem única: planilha vive dentro do próprio ERP, acesso integrado ao mesmo banco oimpresso (cliente não precisa SSO externo)
+
+## Gaps reconhecidos
+
+- 🟡 Lib JS legada (não-Sheets) — sem fórmulas avançadas/charts
+- 🟡 Sem autosave colaborativo real-time (multi-user simultâneo gera conflito)
+- 🟡 Sem versionamento (overwrite total)
+- 🟡 Blade não migrado MWART — P3, não vale investir
+- 🟡 Sem export Excel nativo (XLSX) — só JSON
+- 🟡 LGPD: tokens de share não têm rate-limit no enumeration
+
+## Estado de testes (Wave B)
+
+- `Tests/Feature/MultiTenantIsolationTest.php`
+- `Tests/Feature/ScaffoldTest.php`
+- `Tests/Feature/SmokeRoutesTest.php`
+
+## Decisões relacionadas
+
+- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
+- [ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md) — Padrão modular
+
+## Próximo passo sugerido
+
+**Não investir em features novas.** Quando precisar mexer:
+1. Avaliar se a feature não cabe melhor sugerir Google Sheets pro cliente
+2. Se for bug crítico de segurança (token enumeration, XSS no embed), priorizar fix
+3. Caso surja decisão de deprecar, abrir ADR + plano de migração de dados existentes

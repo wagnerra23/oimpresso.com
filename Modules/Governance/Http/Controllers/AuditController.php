@@ -35,28 +35,39 @@ class AuditController extends Controller
         $endpoint = $request->input('endpoint');
         $status   = $request->input('status');
 
-        $entries = $this->service->getRecentEntries(200, [
+        $filterPayload = [
             'period'   => $period,
             'actor'    => $actor,
             'endpoint' => $endpoint,
             'status'   => $status,
-        ]);
+        ];
 
-        $kpis = $this->service->kpisFor($entries);
-        $availableEndpoints = $this->service->availableEndpoints();
-        $availableActors = $this->service->availableActors();
-
+        // Inertia::defer pra props com queries DB (skill inertia-defer-default).
+        // Filters UI state eager — usado pra estado dos selects/inputs.
         return Inertia::render('governance/Audit', [
-            'entries' => $entries,
-            'kpis'    => $kpis,
-            'filters' => [
-                'period'   => $period,
-                'actor'    => $actor,
-                'endpoint' => $endpoint,
-                'status'   => $status,
-            ],
-            'available_endpoints' => $availableEndpoints,
-            'available_actors'    => $availableActors,
+            'entries'             => Inertia::defer(fn () => $this->buildEntriesPayload($filterPayload)),
+            'kpis'                => Inertia::defer(fn () => $this->buildKpisPayload($filterPayload)),
+            'available_endpoints' => Inertia::defer(fn () => $this->service->availableEndpoints()),
+            'available_actors'    => Inertia::defer(fn () => $this->service->availableActors()),
+            'filters'             => $filterPayload,
         ]);
+    }
+
+    /**
+     * @param array{period: string, actor: ?string, endpoint: ?string, status: ?string} $filters
+     */
+    private function buildEntriesPayload(array $filters): mixed
+    {
+        return $this->service->getRecentEntries(200, $filters);
+    }
+
+    /**
+     * @param array{period: string, actor: ?string, endpoint: ?string, status: ?string} $filters
+     */
+    private function buildKpisPayload(array $filters): mixed
+    {
+        $entries = $this->service->getRecentEntries(200, $filters);
+
+        return $this->service->kpisFor($entries);
     }
 }
