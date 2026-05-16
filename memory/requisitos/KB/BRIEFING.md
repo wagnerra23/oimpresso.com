@@ -1,8 +1,12 @@
 # KB Unificado — BRIEFING (estado consolidado 1 página)
 
-**Última atualização:** 2026-05-15 (Wagner declarou "módulo mais importante para IA" + autorizou implementação)
+**Última atualização:** 2026-05-16 — pós-merge PR #934 ([3204fffe5](https://github.com/wagnerra23/oimpresso.com/commit/3204fffe5)) + ONDA 3 e ONDA 6 (parcial) em 4 agents paralelos
 **Owner:** [W] Wagner · **Persona-piloto:** Wagner governança (ONDAS 1-5) → Larissa operacional gráfica (ONDA 6+)
-**Status:** ONDA 0 (fundação) em execução nesta sessão · ONDA 1+ via agents paralelos
+**Status:**
+- ✅ **ONDA 0+1+2+4+5(parcial) LIVE no main** (PR #934 mergeado 2026-05-16 00:32 UTC, 132 arquivos, +25.465 LOC, 7 agents)
+- ⏳ **ONDA 3 + 5(restante) + 6(parcial) em execução** (sessão 2026-05-16, 4 agents H/I/J/K paralelos background)
+- 📋 **ADR 0149:** **ACEITA** ([decided_at 2026-05-16](../../decisions/0149-kb-unificado-grafo-conhecimento-modulo-ia-central.md))
+
 **Critério de sucesso:** Wagner consegue (a) ver grafo navegável dos 143 ADRs + sessions + charters com edges de dependência; (b) perguntar IA "qual ADR rege X?" e receber resposta com citações; (c) usar trilha didática "Como funciona Multi-tenant Tier 0 aqui".
 
 ---

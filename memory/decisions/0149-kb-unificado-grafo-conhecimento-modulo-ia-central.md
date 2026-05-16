@@ -3,11 +3,19 @@ slug: 0149-kb-unificado-grafo-conhecimento-modulo-ia-central
 number: 0149
 title: "KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
+decided_at: 2026-05-16
 proposed_at: 2026-05-15
+accepted_at: 2026-05-16
+implemented_in_pr: 934
+implemented_via:
+  - branch: claude/practical-engelbart-8d8eb0 (10 commits, 132 files, +25465 LOC, 7 agents paralelos)
+  - merge_commit: 3204fffe5
+  - merged_by: wagnerra23
+  - merged_at: 2026-05-16T00:32:13Z
 module: KB
 quarter: 2026-Q2
 tags: [kb, knowledge-graph, ia, rag, governance, capterra, p0]
