@@ -44,14 +44,16 @@ class DashboardController extends Controller
         // Eager: trivial (escalar estático sem I/O).
         $compliancePct = (7 * 10) + (2 * 5) + 0; // = 80
 
-        // Inertia::defer pra props com queries DB (skill inertia-defer-default).
-        // Pages frontend wrap em <Deferred data="..." fallback={skeleton}> pra SPA-feel.
+        // ROLLBACK Wave W7 #953: Inertia::defer quebrava Pages que esperam props eager.
+        // Pages frontend não foram atualizadas com <Deferred> wrapper — kpis undefined crashava.
+        // Restaurado eager até Pages serem refatoradas (issue follow-up Wave W7).
+        $health = $this->saudeEcosistema();
         return Inertia::render('governance/Dashboard', [
-            'kpis'              => Inertia::defer(fn () => $this->buildKpisPayload()),
-            'pending_adrs'      => Inertia::defer(fn () => $this->buildPendingAdrsPayload()),
-            'audit_highlights'  => Inertia::defer(fn () => $this->buildAuditHighlightsPayload()),
-            'health_kpis'       => Inertia::defer(fn () => $this->saudeEcosistema()['kpis']),
-            'narratives'        => Inertia::defer(fn () => $this->saudeEcosistema()['narratives']),
+            'kpis'              => $this->buildKpisPayload(),
+            'pending_adrs'      => $this->buildPendingAdrsPayload(),
+            'audit_highlights'  => $this->buildAuditHighlightsPayload(),
+            'health_kpis'       => $health['kpis'],
+            'narratives'        => $health['narratives'],
             // Configs estáticas — eager (zero I/O).
             'actiongate_mode'   => config('governance.actiongate_mode', 'warn'),
             'next_review_at'    => config('governance.next_review_at'),

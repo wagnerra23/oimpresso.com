@@ -33,13 +33,13 @@ class DriftAlertsController extends Controller
 
     public function index(Request $request): Response
     {
-        // Inertia::defer pra props com filesystem scan (slow — N módulos × parse YAML)
-        // + DB query (persistedAlerts) — skill inertia-defer-default.
+        // ROLLBACK Wave W7 #953: Inertia::defer quebrava Pages que esperam props eager.
+        $drifts = $this->buildDriftsPayload();
         return Inertia::render('governance/DriftAlerts', [
-            'kpis'                  => Inertia::defer(fn () => $this->buildKpisPayload()),
-            'report'                => Inertia::defer(fn () => $this->buildDriftsPayload()->get('report', [])),
-            'modules_without_scope' => Inertia::defer(fn () => $this->buildDriftsPayload()->get('modules_without_scope', [])),
-            'persisted_alerts'      => Inertia::defer(fn () => $this->service->persistedAlerts()),
+            'kpis'                  => $this->buildKpisPayload(),
+            'report'                => $drifts->get('report', []),
+            'modules_without_scope' => $drifts->get('modules_without_scope', []),
+            'persisted_alerts'      => $this->service->persistedAlerts(),
         ]);
     }
 
