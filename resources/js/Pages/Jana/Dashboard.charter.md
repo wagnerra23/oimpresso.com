@@ -1,0 +1,70 @@
+---
+page: /copiloto/dashboard
+component: resources/js/Pages/Jana/Dashboard.tsx
+owner: wagner
+status: live
+last_validated: 2026-05-16
+parent_module: Jana
+parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
+related_adrs: [0026, 0031, 0035, 0036, 0052, 0093, 0094]
+related_charters:
+  - resources/js/Pages/Jana/Chat.charter.md
+  - resources/js/Pages/Jana/Cockpit.charter.md
+related_specs:
+  - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
+absorbs_when_live:
+  - (futuro) — vira tab `dashboard` dentro de `/jana/cockpit` quando F1.5 ≥80 (ver Cockpit.charter.md)
+tier: A
+charter_version: 1
+permissao: copiloto.access
+---
+
+# Page Charter — `/copiloto/dashboard`
+
+> **Status:** `live` — implementada e em uso prod biz=1 desde 2026-04. Charter retroativo Wave M 2026-05-16.
+
+---
+
+## Mission
+
+Visão consolidada das **metas ativas do business** com farol verde/amarelo/vermelho, série temporal últimas 12 janelas e projeção linear. Substitui análise manual em planilha — dono/gestor abre, vê rumo, decide.
+
+Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `business_id` scoped — superadmin vê escopo via switch.
+
+---
+
+## Goals
+
+- Render < 200ms p95 com `Inertia::defer()` em `metas` paginated + `apuracoes` 12 janelas
+- Farol calculado server-side via `MetricasApurador::farol(meta, periodo)` — frontend só consome
+- Click em meta → drilldown `/copiloto/metas/{id}` (US-COPI-011) com série completa
+- CTA "Conversar com a Jana" abre `Chat.tsx` com contexto da meta selecionada
+
+## Non-Goals
+
+- ⛔ Edição inline de meta (vai em `/copiloto/metas/{id}/edit` — US-COPI-013)
+- ⛔ Criação de meta (vai em chat US-COPI-004 ou wizard US-COPI-012)
+- ⛔ Comparativo entre business (superadmin tem `/copiloto/admin/governanca`)
+
+## UX targets
+
+- 1 viewport scroll desktop 1280px (ROTA LIVRE monitor)
+- Mobile responsivo — stack vertical cards, swipe horizontal não-essencial
+- Dark mode obrigatório (`@/Layouts/AppShellV2` default)
+- Toast `sonner` em mutations (arquivar meta)
+- `KpiCard` shared component pra cada meta (consistência cross-module)
+- `EmptyState` shared component se 0 metas — CTA "Iniciar conversa com a Jana"
+
+## Anti-hooks
+
+- ⛔ Re-fetch polling de apuracoes — usa `Inertia::defer()` server-side
+- ⛔ Cálculo de farol no frontend — fonte autoritativa `MetricasApurador`
+- ⛔ Mutation otimista sem rollback — usar `router.patch` com `onError`
+
+## Skills relevantes
+
+`brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
+
+## Charter version log
+
+- v1 (2026-05-16) — Charter retroativo Wave M boost Modules/Jana 64→78

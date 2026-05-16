@@ -3,7 +3,7 @@ page: governance/ModuleGrades/Index
 route: /governance/module-grades
 status: live
 owner: [W]
-adrs: [0153]
+adrs: [0153, 0154, 0155]
 runbook: memory/requisitos/Governance/RUNBOOK-module-grades.md
 ---
 
@@ -11,7 +11,7 @@ runbook: memory/requisitos/Governance/RUNBOOK-module-grades.md
 
 ## Mission
 
-Permitir que Wagner (e time MCP futuro) abram **uma tela** e vejam a maturidade do projeto inteiro — 34 Modules com nota 0-100 + bucket de cor — em 5 segundos.
+Permitir que Wagner (e time MCP futuro) abram **uma tela** e vejam a maturidade do projeto inteiro — 34 Modules com nota 0-100 normalizada + bucket de cor + breakdown das 9 dimensões (ADR 0155 v3) — em 5 segundos.
 
 ## Goals
 
@@ -21,6 +21,7 @@ Permitir que Wagner (e time MCP futuro) abram **uma tela** e vejam a maturidade 
 4. KPI agregado: média projeto + distribuição buckets
 5. Click row → drill-down `/governance/module-grades/{name}`
 6. Performance: initial render <2s via `Inertia::defer` (Service faz I/O filesystem 1-2s × 34 módulos)
+7. **ADR 0155 v3 — Colunas D6/D7/D8/D9 compactas** (Perf/LGPD/Sec/Obs) na tabela rank, só mostram score/max + tom de cor canônica (purple/pink/indigo/cyan). Render `—` quando módulo ainda não tem dimensão v3 avaliada (compat retroativa).
 
 ## Non-Goals
 
@@ -31,10 +32,11 @@ Permitir que Wagner (e time MCP futuro) abram **uma tela** e vejam a maturidade 
 ## UX targets
 
 - 5 chips de bucket com count + cor canônica (emerald/sky/amber/orange/red)
-- Tabela com 5 colunas de dimensão (D1-D5) score/max
+- Tabela com 9 colunas de dimensão score/max (D1-D5 padrão + D6-D9 ADR 0155 v3 compactas com tom canônico purple/pink/indigo/cyan)
 - Click row destacado em hover sky-50
 - Skeleton enquanto defer carrega
 - Empty state quando filtro não bate
+- Filter chips por bucket continuam iguais (não filtra por dimensão — drill-down é no /show)
 
 ## Anti-hooks
 
