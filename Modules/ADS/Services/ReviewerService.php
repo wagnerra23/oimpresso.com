@@ -5,6 +5,7 @@ namespace Modules\ADS\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\ADS\Ai\Agents\ReviewerAgent;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * T11 — orquestra ReviewerAgent com:
@@ -131,9 +132,12 @@ class ReviewerService
             return $this->parseJson(trim((string) $response));
         } catch (\Throwable $e) {
             report($e);
+            // D7.a — PiiRedactor wrap (exception message + class apenas, sem dump completo)
+            $safeMessage = app(PiiRedactor::class)->redact($e->getMessage());
             Log::channel('single')->error('ads.reviewer.call_failed', [
                 'decision_id' => $decision->id,
-                'exception'   => $e,
+                'exception_class' => get_class($e),
+                'message'         => $safeMessage,
             ]);
             return null;
         }

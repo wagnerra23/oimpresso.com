@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\CrmContact;
+use Modules\Crm\Http\Requests\StoreLeadRequest;
+use Modules\Crm\Http\Requests\UpdateLeadRequest;
 use Modules\Crm\Services\LeadAssignmentService;
 use Modules\Crm\Utils\CrmUtil;
 use Modules\Jana\Services\Privacy\PiiRedactor;
@@ -328,12 +330,10 @@ class LeadController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreLeadRequest $request)
     {
+        // Wave 15 D8 Security — authorize() + validate() centralizados em StoreLeadRequest.
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
 
         try {
             $input = $request->only(['type', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'mobile', 'landline', 'alternate_number', 'city', 'state', 'country', 'landmark', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'crm_source', 'crm_life_stage', 'dob', 'address_line_1', 'address_line_2', 'zip_code', 'supplier_business_name', 'shipping_custom_field_details']);
@@ -456,15 +456,9 @@ class LeadController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateLeadRequest $request, $id)
     {
-        $business_id = request()->session()->get('user.business_id');
-        $can_access_all_leads = auth()->user()->can('crm.access_all_leads');
-        $can_access_own_leads = auth()->user()->can('crm.access_own_leads');
-
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || ! ($can_access_all_leads || $can_access_own_leads)) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Wave 15 D8 Security — authorize() (incl. crm.access_*_leads) + validate() centralizados em UpdateLeadRequest.
 
         try {
             $input = $request->only(['type', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'mobile', 'landline', 'alternate_number', 'city', 'state', 'country', 'landmark', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'crm_source', 'crm_life_stage', 'dob', 'address_line_1', 'address_line_2', 'zip_code', 'supplier_business_name', 'shipping_custom_field_details', 'export_custom_field_1', 'export_custom_field_2', 'export_custom_field_3', 'export_custom_field_4', 'export_custom_field_5', 'export_custom_field_6']);

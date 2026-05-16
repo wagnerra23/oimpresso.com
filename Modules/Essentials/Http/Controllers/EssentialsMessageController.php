@@ -12,6 +12,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Essentials\Entities\EssentialsMessage;
+use Modules\Essentials\Http\Requests\StoreMessageRequest;
 use Modules\Essentials\Notifications\NewMessageNotification;
 
 /**
@@ -68,19 +69,12 @@ class EssentialsMessageController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreMessageRequest $request): RedirectResponse
     {
         $businessId = $this->currentBusinessId();
         $this->authorizeAccess($businessId);
 
-        if (! auth()->user()->can('essentials.create_message')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $request->validate([
-            'message'     => 'required|string|max:5000',
-            'location_id' => 'nullable|integer|exists:business_locations,id',
-        ]);
+        // authorize() do StoreMessageRequest já checa permission essentials.create_message
 
         $userId = $request->user()->id;
         $text   = nl2br($request->string('message'));

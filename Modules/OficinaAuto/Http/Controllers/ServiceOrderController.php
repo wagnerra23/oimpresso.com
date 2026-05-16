@@ -11,6 +11,8 @@ use Inertia\Response;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
+use Modules\OficinaAuto\Http\Requests\StoreServiceOrderRequest;
+use Modules\OficinaAuto\Http\Requests\UpdateServiceOrderRequest;
 
 /**
  * ServiceOrderController — CRUD de Ordens de Serviço (Modules/OficinaAuto V0).
@@ -271,23 +273,16 @@ class ServiceOrderController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreServiceOrderRequest $request): RedirectResponse
     {
+        // D8 Security Wave 15: FormRequest authorize() + abort_unless defense-in-depth.
         abort_unless(
             auth()->user()->can('superadmin')
             || auth()->user()->can('oficinaauto.service_order.create'),
             403
         );
 
-        $validated = $request->validate([
-            'vehicle_id'          => ['required', 'integer', 'exists:vehicles,id'],
-            'transaction_id'      => ['nullable', 'integer'],
-            'mileage_at_service'  => ['nullable', 'integer', 'min:0'],
-            'status'              => ['required', 'string', 'max:30'],
-            'entered_at'          => ['nullable', 'date'],
-            'expected_completion' => ['nullable', 'date'],
-            'notes'               => ['nullable', 'string'],
-        ]);
+        $validated = $request->validated();
 
         if (empty($validated['entered_at'])) {
             $validated['entered_at'] = now();
@@ -301,11 +296,8 @@ class ServiceOrderController extends Controller
 
     public function show(Request $request, ServiceOrder $order)
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.service_order.view'),
-            403
-        );
+        // D8 Security Wave 15: Policy multi-tenant sameTenant guard.
+        $this->authorize('view', $order);
 
         $order->load(['vehicle', 'contact:id,name,mobile']);
 
@@ -353,11 +345,8 @@ class ServiceOrderController extends Controller
 
     public function edit(ServiceOrder $order): Response
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.service_order.update'),
-            403
-        );
+        // D8 Security Wave 15: Policy sameTenant guard.
+        $this->authorize('update', $order);
 
         $vehicles = Vehicle::query()
             ->orderBy('plate')
@@ -371,27 +360,12 @@ class ServiceOrderController extends Controller
         ]);
     }
 
-    public function update(Request $request, ServiceOrder $order): RedirectResponse
+    public function update(UpdateServiceOrderRequest $request, ServiceOrder $order): RedirectResponse
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.service_order.update'),
-            403
-        );
+        // D8 Security Wave 15: Policy multi-tenant + FormRequest validation.
+        $this->authorize('update', $order);
 
-        $validated = $request->validate([
-            'vehicle_id'          => ['required', 'integer', 'exists:vehicles,id'],
-            'transaction_id'      => ['nullable', 'integer'],
-            'mileage_at_service'  => ['nullable', 'integer', 'min:0'],
-            'status'              => ['required', 'string', 'max:30'],
-            'entered_at'          => ['nullable', 'date'],
-            'expected_completion' => ['nullable', 'date'],
-            'completed_at'        => ['nullable', 'date'],
-            'delivered_at'        => ['nullable', 'date'],
-            'notes'               => ['nullable', 'string'],
-        ]);
-
-        $order->update($validated);
+        $order->update($request->validated());
 
         return redirect('/oficina-auto/ordens-servico/' . $order->id)
             ->with('status', ['success' => 1, 'msg' => 'OS atualizada.']);
@@ -399,11 +373,8 @@ class ServiceOrderController extends Controller
 
     public function destroy(ServiceOrder $order): RedirectResponse
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.service_order.delete'),
-            403
-        );
+        // D8 Security Wave 15: Policy multi-tenant sameTenant guard.
+        $this->authorize('delete', $order);
 
         try {
             $order->delete();

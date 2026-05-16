@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class PaymentType extends Model
 {
+    // ADR 0093 — NÃO usa HasBusinessScope: semântica `business_id=0 = catálogo plataforma`
+    // visível pra TODOS os tenants (Wave 13 HasBusinessScopeAdoptionTest documenta).
+    // Isolamento garantido via scope explícito `byBusiness($id)` em Controllers.
+
     protected $table = "payment_types";
     protected $fillable = [];
 

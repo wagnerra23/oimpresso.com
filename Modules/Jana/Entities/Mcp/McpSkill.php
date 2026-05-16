@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,9 +11,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * ADR 0076 — entidade canônica de skill (DB primary).
+ *
+ * Multi-tenant Tier 0 (ADR 0093) — Wave 15: business_id direto + scope global.
+ * Skills com business_id NULL = plataforma (superadmin scope handles).
  */
 class McpSkill extends Model
 {
+    use HasBusinessScope;
     use SoftDeletes;
 
     protected $table = 'mcp_skills';

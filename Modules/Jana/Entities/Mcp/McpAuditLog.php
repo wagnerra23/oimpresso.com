@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -11,9 +12,16 @@ use Illuminate\Support\Str;
  * Append-only: nunca UPDATE/DELETE. Para LGPD, retenção mínima 1 ano.
  * Cada chamada gera 1 linha com request_id UUID. Usar `registrar()`
  * factory pra criação consistente; nunca instanciar direto.
+ *
+ * Multi-tenant Tier 0 (ADR 0093) — Wave 15: SELECT respeita business_id
+ * (defesa em profundidade — leitura nunca cruza tenant). INSERT via
+ * `registrar()` factory grava business_id explicitamente (jobs/CLI sem auth
+ * → scope fail-open, sem regressão).
  */
 class McpAuditLog extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'mcp_audit_log';
 
     public $timestamps = false; // só created_at, sem updated_at

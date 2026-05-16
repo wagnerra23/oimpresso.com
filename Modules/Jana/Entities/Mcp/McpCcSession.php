@@ -2,15 +2,21 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * MEM-CC-1 — Session do Claude Code de algum dev do time.
+ *
+ * Multi-tenant Tier 0 (ADR 0093) — Wave 15: business_id direto + scope global.
+ * scopeAcessivelPara() continua aplicando RBAC fine-grained por user
+ * (jana.cc.read.all vê do tenant todo; demais só próprias sessions).
  */
 class McpCcSession extends Model
 {
+    use HasBusinessScope;
     use SoftDeletes;
 
     protected $table = 'mcp_cc_sessions';

@@ -5,6 +5,7 @@ namespace Modules\ADS\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\ADS\Ai\Agents\BrainBAgent;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * ARQ-0002 — Orquestra a chamada ao Brain B (Claude API).
@@ -79,18 +80,23 @@ class BrainBService
 
             return ['instruction' => $instruction, 'error' => null];
         } catch (\Throwable $e) {
+            // D7.a — PiiRedactor wrap antes de persistir/logar mensagem de erro
+            // ($e->getMessage() pode vazar PII de fixtures/payloads reais).
+            $redactor = app(PiiRedactor::class);
+            $safeMessage = $redactor->redact($e->getMessage());
+
             DB::table('mcp_dual_brain_decisions')
                 ->where('id', $decisionId)
                 ->update([
                     'outcome'             => 'fail',
-                    'instruction_generated' => 'ERRO: ' . $e->getMessage(),
+                    'instruction_generated' => 'ERRO: ' . $safeMessage,
                     'resolved_at'         => now(),
                     'resolved_by'         => 'brain_b',
                 ]);
 
             Log::channel('single')->error('ads.brain_b.failed', [
                 'decision_id' => $decisionId,
-                'message'     => $e->getMessage(),
+                'message'     => $safeMessage,
             ]);
 
             return ['instruction' => null, 'error' => $e->getMessage()];
