@@ -45,7 +45,7 @@
 
 | Tela | Fase | Responsável | Bloqueador / nota |
 |---|---|---|---|
-| `cockpit` (Jana) | **F1 score 78/100 · pivot aceito · 1 round refator pendente** | [CC] / [W] | snapshot tem `chat-jana.jsx`+`chat-jana.css` → evolui `Pages/Jana/Cockpit.tsx`. 8 refinos abertos (A1+A3+A5+B7+C1+C2+C4+C7) · ~3-4h Cowork V2.1 antes de score ≥80 e promoção pra `prototipos/cockpit/` |
+| `cockpit` (Jana) | **charter `spec-ahead-of-impl` criado · F1.5 score 78/100 · 1 round refator pendente** | [CC] / [W] | [`Cockpit.charter.md`](../resources/js/Pages/Jana/Cockpit.charter.md) define destino · supersedes_in_place `Cockpit.tsx` atual (que É anti-pattern WhatsApp do amendment 2026-05-14) · absorbs Dashboard.tsx como tab. 8 refinos abertos · ~3-4h Cowork V2.1 antes F3. |
 | `chat` (Jana 2-col) | F1.5 amendment válido em workstream separado | [W] | `Chat.tsx` (`/jana/`) permanece live · amendment-block-renderer 2026-05-14 fica congelado pra ele se Wagner reabrir |
 | `producao-oficina` | F2 approved | [CL] | aguarda Wagner pedir F3 (kanban 5 colunas) |
 | `financeiro-fluxo` | F1 commit-only | [W] / [CL] | sem tabela nova, ~1-2h trabalho [CL] |
