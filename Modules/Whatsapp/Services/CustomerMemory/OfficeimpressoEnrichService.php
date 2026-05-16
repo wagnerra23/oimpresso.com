@@ -11,6 +11,10 @@ use Modules\Whatsapp\Services\CustomerMemory\Sources\FirebirdLookupSourceContrac
 use Throwable;
 
 /**
+ * Observabilidade D9.a (ADR 0155): cross-DB lookup envolto em
+ * `OtelHelper::span(` (Tracer whatsapp.customer_memory.enrich_firebird) —
+ * mede match rate + latência por fonte.
+ *
  * US-WA-VOZ-002 — Enrichment cross-DB com OfficeImpresso legacy (Firebird).
  *
  * Wagner 2026-05-15: "nem todo cliente está cadastrado, pesquise no firebird."

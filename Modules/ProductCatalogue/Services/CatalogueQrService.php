@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\ProductCatalogue\Services;
 
+use App\Util\OtelHelper;
 use App\Utils\ModuleUtil;
 use Modules\ProductCatalogue\Repositories\ProductCatalogueRepository;
 
@@ -48,13 +49,17 @@ class CatalogueQrService
     /**
      * Monta payload da tela /product-catalogue/catalogue-qr.
      *
+     * D9 observabilidade (Wave 17): wrapped em OtelHelper::spanBiz pra trace.
+     *
      * @return array{business_locations: array, business: \App\Business}
      */
     public function buildQrPayload(int $businessId): array
     {
-        return [
+        return OtelHelper::spanBiz('product_catalogue.build_qr_payload', fn () => [
             'business_locations' => $this->repository->locationsDropdown($businessId),
             'business' => $this->repository->findBusiness($businessId),
-        ];
+        ], [
+            'business_id' => $businessId,
+        ]);
     }
 }

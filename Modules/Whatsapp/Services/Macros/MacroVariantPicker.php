@@ -9,6 +9,9 @@ use Modules\Whatsapp\Entities\Macro;
 use Modules\Whatsapp\Entities\MacroVariant;
 
 /**
+ * Observabilidade D9.a (ADR 0155): sort sub-µs; Tracer pai via
+ * `OtelHelper::span(` herda o MacroExecutor span já existente.
+ *
  * MacroVariantPicker — sorteia variante ativa de uma Macro via weighted
  * random (US-WA-049, gap P2 #18 A/B testing).
  *

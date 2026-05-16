@@ -100,15 +100,19 @@ class ProductionService
      */
     public function summary(int $businessId): array
     {
-        $base = Transaction::query()
-            ->where('business_id', $businessId)
-            ->where('type', 'production_purchase');
+        return OtelHelper::spanBiz('manufacturing.production.summary', function () use ($businessId) {
+            $base = Transaction::query()
+                ->where('business_id', $businessId)
+                ->where('type', 'production_purchase');
 
-        return [
-            'total_count' => (clone $base)->count(),
-            'final_count' => (clone $base)->where('mfg_is_final', 1)->count(),
-            'pending_count' => (clone $base)->where('mfg_is_final', 0)->count(),
-            'total_value' => (clone $base)->sum('final_total'),
-        ];
+            return [
+                'total_count' => (clone $base)->count(),
+                'final_count' => (clone $base)->where('mfg_is_final', 1)->count(),
+                'pending_count' => (clone $base)->where('mfg_is_final', 0)->count(),
+                'total_value' => (clone $base)->sum('final_total'),
+            ];
+        }, [
+            'module' => 'Manufacturing',
+        ]);
     }
 }

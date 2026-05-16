@@ -42,22 +42,26 @@ class GovernancaController extends Controller
             $request->get('ate'),
         );
 
-        $painel = $service->painel($range['inicio'], $range['fim']);
+        // D6.a Wave 17 — painel pesado (7 agregações cross-team) defer'd em chunks.
+        // Cada agregação roda em closure separada pra Inertia partial reload funcionar.
+        // Front wrap em `<Deferred data="kpis,por_status,..." fallback={skeleton}>`.
+        $painelCallable = fn () => $service->painel($range['inicio'], $range['fim']);
 
         return Inertia::render('Jana/Admin/Governanca/Index', [
-            'kpis'              => $painel['kpis'],
-            'por_status'        => $painel['por_status'],
-            'latency'           => $painel['latency'],
-            'top_tools'         => $painel['top_tools'],
-            'top_users'         => $painel['top_users'],
-            'denied_por_codigo' => $painel['denied_por_codigo'],
-            'serie_diaria'      => $painel['serie_diaria'],
-            'periodo'           => $painel['periodo'],
-            'filters'           => [
+            'periodo' => $range,  // eager — sem DB
+            'filters' => [
                 'preset' => $preset,
                 'de'     => $request->get('de'),
                 'ate'    => $request->get('ate'),
             ],
+            // D6.a Wave 17 — 7 props deferred (todas DB-bound).
+            'kpis'              => Inertia::defer(fn () => $painelCallable()['kpis']),
+            'por_status'        => Inertia::defer(fn () => $painelCallable()['por_status']),
+            'latency'           => Inertia::defer(fn () => $painelCallable()['latency']),
+            'top_tools'         => Inertia::defer(fn () => $painelCallable()['top_tools']),
+            'top_users'         => Inertia::defer(fn () => $painelCallable()['top_users']),
+            'denied_por_codigo' => Inertia::defer(fn () => $painelCallable()['denied_por_codigo']),
+            'serie_diaria'      => Inertia::defer(fn () => $painelCallable()['serie_diaria']),
         ]);
     }
 }

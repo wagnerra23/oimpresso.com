@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
+ * Observabilidade D9.a (ADR 0155): JSON in-memory index lookup é sub-µs;
+ * Tracer via `OtelHelper::span(` reservado pra IO de carga inicial.
+ *
  * US-WA-VOZ-002 — Source Firebird via arquivo JSON pré-exportado.
  *
  * Workflow:

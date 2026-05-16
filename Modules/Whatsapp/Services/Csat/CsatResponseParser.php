@@ -9,6 +9,9 @@ use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\CsatResponse;
 
 /**
+ * Observabilidade D9.a (ADR 0155): parse regex sub-µs; Tracer pai
+ * via `OtelHelper::span(` herda o webhook span (CSAT inline com inbound).
+ *
  * CsatResponseParser — extrai score 1-5 + comment de texto inbound (PR-6 CYCLE-07).
  *
  * Chamado pelo webhook (ChannelBaileysWebhookController::handleMessage) APÓS

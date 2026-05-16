@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Spreadsheet\Services;
 
 use App\User;
+use App\Util\OtelHelper;
 use App\Utils\ModuleUtil;
 use Illuminate\Support\Facades\DB;
 use Modules\Spreadsheet\Entities\Spreadsheet;
@@ -41,29 +42,37 @@ class SpreadsheetService
      */
     public function createSpreadsheet(array $input, int $bizId, int $userId): ?Spreadsheet
     {
-        $payload = [
-            'name'        => ! empty($input['name']) ? $input['name'] : 'My Spreadsheet',
-            'sheet_data'  => $input['sheet_data'] ?? null,
-            'business_id' => $bizId,
-            'created_by'  => $userId,
-            'folder_id'   => $input['folder_id'] ?? null,
-        ];
-
-        DB::beginTransaction();
-        try {
-            $sheet = Spreadsheet::create($payload);
-            DB::commit();
-
-            return $sheet;
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            \Log::emergency('SpreadsheetService::createSpreadsheet ' . $e->getMessage(), [
+        // D9.a OTel (Wave 17): span envolve transaction INSERT.
+        // Zero-cost se otel.enabled=false.
+        return OtelHelper::spanBiz('spreadsheet.create', function () use ($input, $bizId, $userId) {
+            $payload = [
+                'name'        => ! empty($input['name']) ? $input['name'] : 'My Spreadsheet',
+                'sheet_data'  => $input['sheet_data'] ?? null,
                 'business_id' => $bizId,
-                'user_id'     => $userId,
-            ]);
+                'created_by'  => $userId,
+                'folder_id'   => $input['folder_id'] ?? null,
+            ];
 
-            return null;
-        }
+            DB::beginTransaction();
+            try {
+                $sheet = Spreadsheet::create($payload);
+                DB::commit();
+
+                return $sheet;
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                \Log::emergency('SpreadsheetService::createSpreadsheet ' . $e->getMessage(), [
+                    'business_id' => $bizId,
+                    'user_id'     => $userId,
+                ]);
+
+                return null;
+            }
+        }, [
+            'module'    => 'Spreadsheet',
+            'user_id'   => $userId,
+            'folder_id' => $input['folder_id'] ?? 0,
+        ]);
     }
 
     /**
@@ -73,29 +82,34 @@ class SpreadsheetService
      */
     public function updateSpreadsheet(int $id, array $input, int $bizId): bool
     {
-        $payload = [
-            'name'       => ! empty($input['name']) ? $input['name'] : 'My Spreadsheet',
-            'sheet_data' => isset($input['sheet_data']) ? json_encode($input['sheet_data']) : null,
-        ];
+        return OtelHelper::spanBiz('spreadsheet.update', function () use ($id, $input, $bizId) {
+            $payload = [
+                'name'       => ! empty($input['name']) ? $input['name'] : 'My Spreadsheet',
+                'sheet_data' => isset($input['sheet_data']) ? json_encode($input['sheet_data']) : null,
+            ];
 
-        DB::beginTransaction();
-        try {
-            $affected = Spreadsheet::where('business_id', $bizId)
-                ->where('id', $id)
-                ->update($payload);
+            DB::beginTransaction();
+            try {
+                $affected = Spreadsheet::where('business_id', $bizId)
+                    ->where('id', $id)
+                    ->update($payload);
 
-            DB::commit();
+                DB::commit();
 
-            return $affected > 0;
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            \Log::emergency('SpreadsheetService::updateSpreadsheet ' . $e->getMessage(), [
-                'business_id' => $bizId,
-                'id'          => $id,
-            ]);
+                return $affected > 0;
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                \Log::emergency('SpreadsheetService::updateSpreadsheet ' . $e->getMessage(), [
+                    'business_id' => $bizId,
+                    'id'          => $id,
+                ]);
 
-            return false;
-        }
+                return false;
+            }
+        }, [
+            'module'         => 'Spreadsheet',
+            'spreadsheet_id' => $id,
+        ]);
     }
 
     /**
@@ -103,26 +117,32 @@ class SpreadsheetService
      */
     public function deleteSpreadsheet(int $id, int $bizId, int $userId): bool
     {
-        DB::beginTransaction();
-        try {
-            $affected = Spreadsheet::where('business_id', $bizId)
-                ->where('created_by', $userId)
-                ->where('id', $id)
-                ->delete();
+        return OtelHelper::spanBiz('spreadsheet.delete', function () use ($id, $bizId, $userId) {
+            DB::beginTransaction();
+            try {
+                $affected = Spreadsheet::where('business_id', $bizId)
+                    ->where('created_by', $userId)
+                    ->where('id', $id)
+                    ->delete();
 
-            DB::commit();
+                DB::commit();
 
-            return $affected > 0;
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            \Log::emergency('SpreadsheetService::deleteSpreadsheet ' . $e->getMessage(), [
-                'business_id' => $bizId,
-                'id'          => $id,
-                'user_id'     => $userId,
-            ]);
+                return $affected > 0;
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                \Log::emergency('SpreadsheetService::deleteSpreadsheet ' . $e->getMessage(), [
+                    'business_id' => $bizId,
+                    'id'          => $id,
+                    'user_id'     => $userId,
+                ]);
 
-            return false;
-        }
+                return false;
+            }
+        }, [
+            'module'         => 'Spreadsheet',
+            'spreadsheet_id' => $id,
+            'user_id'        => $userId,
+        ]);
     }
 
     /**
@@ -130,6 +150,11 @@ class SpreadsheetService
      */
     public function resolveNotifyableUsers(int $bizId, array $sharedIds): \Illuminate\Database\Eloquent\Collection
     {
-        return User::where('business_id', $bizId)->find($sharedIds);
+        return OtelHelper::spanBiz('spreadsheet.resolve_notifyable_users', function () use ($bizId, $sharedIds) {
+            return User::where('business_id', $bizId)->find($sharedIds);
+        }, [
+            'module'           => 'Spreadsheet',
+            'shared_ids_count' => count($sharedIds),
+        ]);
     }
 }

@@ -10,6 +10,10 @@ use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 /**
  * Contrato comum dos drivers Whatsapp.
  *
+ * Observabilidade D9.a (ADR 0155): cada driver concreto envolve send/ping
+ * em `OtelHelper::span(` ou `OtelHelper::spanBiz(` — Tracer multi-tenant
+ * resolve `business_id` da sessão automaticamente.
+ *
  * Implementações Sprint 1:
  * - ZapiDriver (default, Z-API SaaS BR via Whatsapp Web/Baileys)
  * - MetaCloudDriver (fallback obrigatório, oficial Meta)

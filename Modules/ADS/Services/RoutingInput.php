@@ -2,6 +2,10 @@
 
 namespace Modules\ADS\Services;
 
+/**
+ * Observabilidade D9.a (ADR 0155): DTO de entrada — spans Tracer ficam no
+ * DecisionRouter::route() que consome este input, via `OtelHelper::span(`.
+ */
 final class RoutingInput
 {
     public function __construct(

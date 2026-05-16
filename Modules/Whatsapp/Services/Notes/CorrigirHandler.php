@@ -10,6 +10,9 @@ use Modules\Whatsapp\Entities\JanaCorrecao;
 use Modules\Whatsapp\Entities\Message;
 
 /**
+ * Observabilidade D9.a (ADR 0155): handler inline com webhook; Tracer pai
+ * via `OtelHelper::span(` herda o span do SlashCommandHandler dispatcher.
+ *
  * CorrigirHandler — US-WA-075 (ADR 0142 §3a).
  *
  * Atendente vê resposta errada da Jana, escreve em nota interna:

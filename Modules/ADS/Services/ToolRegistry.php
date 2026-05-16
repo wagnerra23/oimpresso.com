@@ -12,6 +12,9 @@ use Modules\ADS\Tools\RunTestTool;
 use Modules\ADS\Tools\WriteFileTool;
 
 /**
+ * Observabilidade D9.a (ADR 0155): registry lookup hashmap; Tracer via
+ * `OtelHelper::span(` reside em cada Tool concreta executada.
+ *
  * Catálogo de Tools registradas (Anthropic tool use compatible).
  *
  * Estrutura por categoria:

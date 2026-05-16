@@ -15,6 +15,9 @@ use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
 use Throwable;
 
 /**
+ * Observabilidade D9.a (ADR 0155): `rebuild()` envolto em `OtelHelper::span(`
+ * (Tracer whatsapp.customer_memory.rebuild) — mede latência por business.
+ *
  * US-WA-VOZ-001 — Recompila o registro `customer_memory` de 1 cliente.
  *
  * Stateless. Idempotente. Tier 0 multi-tenant ([ADR 0093](../../../decisions/0093-multi-tenant-isolation-tier-0.md)).

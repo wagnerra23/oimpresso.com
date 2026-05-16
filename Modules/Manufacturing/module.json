@@ -10,7 +10,17 @@
     ],
     "aliases": {},
     "files": [
-        
+
     ],
-    "requires": []
+    "requires": [],
+    "lgpd_compliance": {
+        "pii_fields_tracked": ["ref_no", "lot_number", "additional_notes"],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "activity_log_note": "Entities MfgRecipe, MfgRecipeIngredient, MfgIngredientGroup usam Spatie LogsActivity. PiiRedactor wrapping em ProductionService::logProductionEvent + Controllers emergency logs (Wave 14 + Wave 17).",
+        "audit_strategy": "spatie_activitylog + ProductionService::logProductionEvent (safe log)",
+        "wave_compliance": "Wave 17 governance v3 — D7 LGPD push 2026-05-16"
+    },
+    "retention_days": 1825,
+    "retention_config": "Modules/Manufacturing/Config/retention.php"
 }

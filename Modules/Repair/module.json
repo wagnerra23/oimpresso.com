@@ -10,7 +10,17 @@
     ],
     "aliases": {},
     "files": [
-        
+
     ],
-    "requires": []
+    "requires": [],
+    "lgpd_compliance": {
+        "pii_fields_tracked": ["contact_id", "device_id", "defects", "notes"],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "activity_log_note": "Entities JobSheet, DeviceModel, RepairStatus usam Spatie LogsActivity. JobSheet também tem audit FSM via sale_stage_history (ADR 0143).",
+        "audit_strategy": "spatie_activitylog + sale_stage_history (FSM canon)",
+        "wave_compliance": "Wave 17 governance v3 — D7 LGPD push 2026-05-16"
+    },
+    "retention_days": 1825,
+    "retention_config": "Modules/Repair/Config/retention.php"
 }

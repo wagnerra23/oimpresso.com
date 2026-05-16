@@ -12,6 +12,9 @@ use Modules\Whatsapp\Entities\MacroVariant;
 use Modules\Whatsapp\Entities\Message;
 
 /**
+ * Observabilidade D9.a (ADR 0155): tracking inline com webhook handler;
+ * Tracer pai via `OtelHelper::span(` herda o span do MessagePersister.
+ *
  * MacroVariantResponseTracker — registra resposta inbound como métrica
  * de conversão da variante A/B (US-WA-049, gap P2 #18).
  *
