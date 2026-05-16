@@ -20,6 +20,12 @@ use Modules\Jana\Services\Telemetry\LangfuseClient;
  * Fail-open: erros 5xx ou timeout reportados pelo client são apenas warnings
  * em log channel 'langfuse' (não relança exception — telemetria não pode quebrar).
  * Por isso `$tries=1` — re-tentar batch parcialmente entregue causa duplicação.
+ *
+ * MULTI-TENANT: telemetria batch, sem business_id no constructor by design
+ * (ADR 0093 §"Commands & Jobs sem HTTP context"). Cada evento DENTRO do
+ * `$events[]` ja carrega seu proprio `business_id` em metadata (gerado pelo
+ * LangfuseClient::trace() no momento da captura). Wave 16 governance v3 —
+ * marker reforcado pra rubrica D1 v3.2 hardened.
  */
 class LangfuseTraceJob implements ShouldQueue
 {

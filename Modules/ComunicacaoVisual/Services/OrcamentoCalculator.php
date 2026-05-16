@@ -2,6 +2,7 @@
 
 namespace Modules\ComunicacaoVisual\Services;
 
+use App\Util\OtelHelper;
 use InvalidArgumentException;
 use Modules\ComunicacaoVisual\Entities\Material;
 
@@ -57,6 +58,16 @@ class OrcamentoCalculator
      * @throws InvalidArgumentException Se validação de negócio falhar
      */
     public function calcular(array $payload): array
+    {
+        return OtelHelper::spanBiz('comvis.orcamento.calcular', function () use ($payload) {
+            return $this->calcularInterno($payload);
+        }, ['itens_count' => count($payload['itens'] ?? [])]);
+    }
+
+    /**
+     * Implementação interna de calcular — envolvida pelo span OTel acima (D9 observability).
+     */
+    private function calcularInterno(array $payload): array
     {
         // Campos de cabeçalho com defaults seguros
         $desconto         = round((float) ($payload['desconto']          ?? 0), 2, PHP_ROUND_HALF_UP);

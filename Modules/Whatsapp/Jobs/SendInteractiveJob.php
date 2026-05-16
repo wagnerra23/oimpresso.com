@@ -9,6 +9,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use App\Util\OtelHelper;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappConversation;
@@ -67,6 +69,21 @@ class SendInteractiveJob implements ShouldQueue
 
     public function handle(): void
     {
+        OtelHelper::span('whatsapp.message.send_interactive', [
+            'business_id' => $this->businessId,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+            'interactive_type' => (string) ($this->interactive['type'] ?? 'unknown'),
+        ], fn () => $this->doHandle());
+    }
+
+    private function doHandle(): void
+    {
+        Log::info('whatsapp.message.send_interactive.started', [
+            'business_id' => $this->businessId,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+            'interactive_type' => (string) ($this->interactive['type'] ?? 'unknown'),
+        ]);
+
         // SUPERADMIN: job sem session — Tier 0 defensivo (phone só do biz do constructor)
         $phone = WhatsappBusinessPhone::query()
             ->withoutGlobalScope(ScopeByBusiness::class)

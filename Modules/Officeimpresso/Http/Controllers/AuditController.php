@@ -4,90 +4,38 @@ namespace Modules\Officeimpresso\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Jana\Services\Privacy\PiiRedactor;
-use Modules\Officeimpresso\Entities\LicencaLog;
+use Modules\Officeimpresso\Services\LicencaAuditService;
 
 /**
  * Endpoint OPCIONAL que o Delphi futuro pode chamar pra registrar eventos
  * que o backend nao tem visibilidade (erros de conexao locais, ocorrencias
  * de hardware, timeouts percebidos).
  *
- * NUNCA obrigatorio — Delphi atual nao conhece esse endpoint e continua
- * funcionando normalmente. Adicionar compatibilidade e iniciativa do time
- * Delphi, opt-in.
- *
- * Autenticado via Passport (auth:api, ja existe no group /api/*).
+ * Wave 16 governance D4 Architecture: Controller magro — toda regra de
+ * sanitizacao PII + persistencia delegada a LicencaAuditService.
  */
 class AuditController extends Controller
 {
+    public function __construct(private LicencaAuditService $auditService)
+    {
+    }
+
     /**
      * POST /api/officeimpresso/audit
-     *
-     * Body JSON esperado:
-     * {
-     *   "event":     "custom_name",         // opcional, default 'desktop_audit'
-     *   "licenca_id": 123,                  // opcional
-     *   "hostname":  "BOOK-GV80BF5507",     // metadata
-     *   "serial":    "ABC123",              // metadata
-     *   "exe_versao":"2026.1.1.7",          // metadata
-     *   "error_code":"conn_timeout",        // quando aplicavel
-     *   "error_message":"Nao conectou em X" // quando aplicavel
-     * }
-     *
-     * Todos os campos sao opcionais. Endpoint e tolerante — aceita qualquer
-     * estrutura de payload e grava o que conseguir interpretar.
+     * Body JSON tolerante (todos campos opcionais).
      */
     public function store(Request $request)
     {
-        $payload = $request->all();
-
-        // Campos reconhecidos — o resto vai pra metadata
-        $known = ['event', 'licenca_id', 'error_code', 'error_message', 'endpoint', 'http_method', 'http_status', 'duration_ms'];
-        $metadata = [];
-        foreach ($payload as $k => $v) {
-            if (! in_array($k, $known, true)) {
-                $metadata[$k] = $v;
-            }
-        }
-
-        // LGPD Tier 0 (Wave 10 D7.a): error_message + metadata vindos do Delphi
-        // podem conter PII (CNPJ/CPF/email/CEP/phone do cliente legacy). Redaciona
-        // ANTES de persistir em licenca_log (defense in depth — ADR 0094 §LGPD).
-        $piiRedactor = null;
-        try {
-            $piiRedactor = app(PiiRedactor::class);
-        } catch (\Throwable $piiError) {
-            // Fallback silencioso — abaixo trata nulo
-        }
-        $errorMessage = $payload['error_message'] ?? null;
-        if ($errorMessage !== null && $piiRedactor !== null) {
-            $errorMessage = $piiRedactor->redact((string) $errorMessage);
-        } elseif ($errorMessage !== null) {
-            $errorMessage = '[REDACTED:PII_FALLBACK]';
-        }
-        if (! empty($metadata) && $piiRedactor !== null) {
-            $metadata = $piiRedactor->redactArray($metadata);
-        } elseif (! empty($metadata)) {
-            $metadata = ['_redacted' => '[REDACTED:METADATA_PII_FALLBACK]'];
-        }
-
-        $log = LicencaLog::create([
-            'event'         => $payload['event']         ?? 'desktop_audit',
-            'user_id'       => $request->user()->id ?? null,
-            'licenca_id'    => $payload['licenca_id']    ?? null,
-            'business_id'   => $request->user()?->business_id ?? null,
-            'ip'            => $request->ip(),
-            'user_agent'    => \Illuminate\Support\Str::limit($request->userAgent() ?? '', 500, ''),
-            'endpoint'      => $payload['endpoint']      ?? null,
-            'http_method'   => $payload['http_method']   ?? $request->method(),
-            'http_status'   => $payload['http_status']   ?? null,
-            'duration_ms'   => $payload['duration_ms']   ?? null,
-            'error_code'    => $payload['error_code']    ?? null,
-            'error_message' => $errorMessage,
-            'metadata'      => $metadata ?: null,
-            'source'        => 'desktop_audit',
-            'created_at'    => now(),
-        ]);
+        $log = $this->auditService->registrar(
+            $request->all(),
+            [
+                'user_id'     => $request->user()->id ?? null,
+                'business_id' => $request->user()?->business_id ?? null,
+                'ip'          => $request->ip(),
+                'user_agent'  => $request->userAgent() ?? '',
+                'http_method' => $request->method(),
+            ]
+        );
 
         return response()->json(['ok' => true, 'id' => $log->id], 201);
     }

@@ -21,10 +21,13 @@ use Modules\Jana\Entities\Mcp\McpInboxNotification;
  *
  * Roda daily 04:00 BRT em `app/Console/Kernel.php` (live only).
  *
- * Multi-tenant safe — `mcp_inbox_notifications` é per-user (user_id), NÃO
- * tem business_id. Isolamento já é feito pelo user_id (cada notification
- * tem dono explícito) — confirmado em Modules/Jana/Entities/Mcp/McpInboxNotification.php
- * (sem trait BusinessScope, sem coluna business_id).
+ * MULTI-TENANT: per-user job, sem business_id by design (ADR 0093
+ * §"Commands & Jobs sem HTTP context"). `mcp_inbox_notifications` e PER-USER
+ * (user_id), NAO tem coluna business_id — isolamento ja e feito pelo user_id
+ * (cada notification tem dono explicito). Confirmado em
+ * Modules/Jana/Entities/Mcp/McpInboxNotification.php (sem trait BusinessScope,
+ * sem coluna business_id). Wave 16 governance v3 — marker reforcado pra
+ * rubrica D1 v3.2 hardened.
  *
  * Idempotente — segunda execução não muda nada (filtro `whereNull('read_at')`
  * exclui as já marcadas no run anterior).

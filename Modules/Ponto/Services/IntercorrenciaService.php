@@ -15,7 +15,30 @@ class IntercorrenciaService
         $dados['codigo'] = $this->gerarCodigo($dados['data']);
         $dados['solicitante_id'] = $solicitanteId;
         $dados['estado'] = Intercorrencia::ESTADO_RASCUNHO;
-        return Intercorrencia::create($dados);
+
+        // D9.a Wave 16 OTel — criação intercorrência (entrada do fluxo de aprovação).
+        // PII zero no span: descricao/justificativa (texto livre) NÃO entram; só ids+tipo.
+        return OtelHelper::span('ponto.intercorrencia.criar', [
+            'module'         => 'Ponto',
+            'business_id'    => (int) ($dados['business_id'] ?? 0),
+            'employee_id'    => (int) ($dados['colaborador_config_id'] ?? 0),
+            'solicitante_id' => (int) $solicitanteId,
+            'tipo'           => $dados['tipo'] ?? null,
+            'prioridade'     => $dados['prioridade'] ?? null,
+        ], function () use ($dados) {
+            $i = Intercorrencia::create($dados);
+
+            // D9.b log estruturado para audit trail (cria→submete→aprova→aplica).
+            Log::info('ponto.intercorrencia.criada', [
+                'business_id'       => $i->business_id,
+                'intercorrencia_id' => $i->id,
+                'codigo'            => $i->codigo,
+                'tipo'              => $i->tipo,
+                'solicitante_id'    => $i->solicitante_id,
+            ]);
+
+            return $i;
+        });
     }
 
     public function submeter(Intercorrencia $i): void

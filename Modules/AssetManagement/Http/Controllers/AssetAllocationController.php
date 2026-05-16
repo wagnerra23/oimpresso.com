@@ -11,9 +11,14 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetTransaction;
+use Modules\AssetManagement\Services\AssetAllocationService;
 use Modules\AssetManagement\Utils\AssetUtil;
 use Yajra\DataTables\Facades\DataTables;
 
+/**
+ * Wave 16 governance D4 Architecture: Controller magro — regras de
+ * persistencia delegadas a AssetAllocationService.
+ */
 class AssetAllocationController extends Controller
 {
     /**
@@ -25,14 +30,21 @@ class AssetAllocationController extends Controller
 
     protected $assetUtil;
 
+    protected $allocationService;
+
     /**
-     * Constructor
+     * Constructor — DI Service + Utils legacy mantidos.
      */
-    public function __construct(ModuleUtil $moduleUtil, Util $commonUtil, AssetUtil $assetUtil)
-    {
+    public function __construct(
+        ModuleUtil $moduleUtil,
+        Util $commonUtil,
+        AssetUtil $assetUtil,
+        AssetAllocationService $allocationService,
+    ) {
         $this->moduleUtil = $moduleUtil;
         $this->commonUtil = $commonUtil;
         $this->assetUtil = $assetUtil;
+        $this->allocationService = $allocationService;
     }
 
     /**
@@ -180,43 +192,18 @@ class AssetAllocationController extends Controller
         }
 
         try {
-            $input = $request->only('ref_no', 'asset_id', 'quantity',
-                        'receiver', 'transaction_datetime', 'reason', 'allocated_upto');
-            $input['transaction_type'] = 'allocate';
-            $input['business_id'] = $business_id;
-            $input['created_by'] = request()->session()->get('user.id');
-
-            DB::beginTransaction();
-
-            if (empty($input['ref_no'])) {
-                $ref_count = $this->commonUtil->setAndGetReferenceCount('allocation_code', $business_id);
-                $asset_settings = $this->assetUtil->getAssetSettings($business_id);
-
-                $allocation_code_prefix = $asset_settings['allocation_code_prefix'] ?? null;
-                $input['ref_no'] = $this->commonUtil->generateReferenceNumber('allocation_code', $ref_count, null, $allocation_code_prefix);
-            }
-
-            if (! empty($input['transaction_datetime'])) {
-                $input['transaction_datetime'] = $this->commonUtil->uf_date($input['transaction_datetime'], true);
-            }
-
-            if (! empty($input['allocated_upto'])) {
-                $input['allocated_upto'] = $this->commonUtil->uf_date($input['allocated_upto']);
-            }
-
-            if (! empty($input['quantity'])) {
-                $input['quantity'] = $this->commonUtil->num_uf($input['quantity']);
-            }
-
-            AssetTransaction::create($input);
-
-            DB::commit();
+            // Wave 16 D4 — criacao delegada a AssetAllocationService.
+            $this->allocationService->criar(
+                $request,
+                (int) $business_id,
+                (int) request()->session()->get('user.id')
+            );
 
             return redirect()
                 ->action([\Modules\AssetManagement\Http\Controllers\AssetAllocationController::class, 'index'])
                 ->with('status', ['success' => true,
                     'msg' => __('lang_v1.success'), ]);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
 
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
@@ -260,7 +247,8 @@ class AssetAllocationController extends Controller
 
             $users = User::forDropdown($business_id, false);
             $assets = Asset::forDropdown($business_id, true, false);
-            $total_available_asset = $this->_getAvailableQtyOfAsset($asset_allocated);
+            // Wave 16 D4 — calculo de disponivel via Service.
+            $total_available_asset = $this->allocationService->quantidadeDisponivel($asset_allocated);
 
             return view('assetmanagement::asset_allocation.edit')
                 ->with(compact('users', 'assets', 'asset_allocated',
@@ -284,35 +272,14 @@ class AssetAllocationController extends Controller
         }
 
         try {
-            $input = $request->only('asset_id', 'quantity', 'receiver',
-                    'transaction_datetime', 'reason', 'allocated_upto');
-
-            DB::beginTransaction();
-
-            if (! empty($input['transaction_datetime'])) {
-                $input['transaction_datetime'] = $this->commonUtil->uf_date($input['transaction_datetime'], true);
-            }
-
-            if (! empty($input['allocated_upto'])) {
-                $input['allocated_upto'] = $this->commonUtil->uf_date($input['allocated_upto']);
-            }
-
-            if (! empty($input['quantity'])) {
-                $input['quantity'] = $this->commonUtil->num_uf($input['quantity']);
-            }
-
-            $a_trans = AssetTransaction::where('business_id', $business_id)
-                            ->findOrfail($id);
-
-            $a_trans->update($input);
-
-            DB::commit();
+            // Wave 16 D4 — atualizacao delegada a AssetAllocationService.
+            $this->allocationService->atualizar($request, (int) $id, (int) $business_id);
 
             return redirect()
                 ->action([\Modules\AssetManagement\Http\Controllers\AssetAllocationController::class, 'index'])
                 ->with('status', ['success' => true,
                     'msg' => __('lang_v1.success'), ]);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
 
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
@@ -340,49 +307,15 @@ class AssetAllocationController extends Controller
 
         if (request()->ajax()) {
             try {
-                $asset_allocated = AssetTransaction::where('business_id', $business_id)
-                                        ->findOrfail($id);
-
-                $asset_allocated->delete();
-
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                ];
-            } catch (Exception $e) {
+                // Wave 16 D4 — remocao delegada a AssetAllocationService.
+                $this->allocationService->remover((int) $id, (int) $business_id);
+                $output = ['success' => true, 'msg' => __('lang_v1.success')];
+            } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
+                $output = ['success' => false, 'msg' => __('messages.something_went_wrong')];
             }
 
             return $output;
         }
-    }
-
-    /**
-     * Get total available qty
-     * of an asset
-     *
-     * @return int
-     */
-    protected function _getAvailableQtyOfAsset($asset_allocated)
-    {
-        $asset = Asset::leftJoin('asset_transactions as AT', function ($join) {
-            $join->on('assets.id', '=', 'AT.asset_id')
-                                ->where('transaction_type', 'allocate');
-        })
-                        ->where('assets.business_id', $asset_allocated->business_id)
-                        ->where('assets.id', $asset_allocated->asset_id)
-                        ->select('assets.id as id', DB::raw('SUM(COALESCE(AT.quantity, 0)) as allocated_qty'),
-                        DB::raw('(SELECT SUM(COALESCE(AR.quantity, 0)) FROM asset_transactions AS AR WHERE(AR.asset_id=assets.id AND AR.transaction_type=\'revoke\')) as revoked_qty')
-                        )
-                        ->first();
-
-        $available_qty = $asset->allocated_qty - $asset->revoked_qty;
-
-        return $available_qty;
     }
 }

@@ -12,8 +12,16 @@ use Modules\Jana\Entities\Mcp\McpCcMessage;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 use Modules\Jana\Entities\Mcp\McpMemoryDocumentHistory;
 use Modules\Jana\Entities\Mcp\McpSkill;
+use Modules\Jana\Entities\Mcp\McpSkillApproval;
 use Modules\Jana\Entities\Mcp\McpSkillLabel;
+use Modules\Jana\Entities\Mcp\McpSkillTestRun;
 use Modules\Jana\Entities\Mcp\McpSkillVersion;
+use Modules\Jana\Jobs\ApurarMetaJob;
+use Modules\Jana\Jobs\ExtrairFatosDaConversaJob;
+use Modules\Jana\Jobs\Mcp\InboxAutoCleanupJob;
+use Modules\Jana\Jobs\Mcp\ReindexarDocumentoJob;
+use Modules\Jana\Jobs\NarrarSaudeEcosistemaJob;
+use Modules\Jana\Jobs\Telemetry\LangfuseTraceJob;
 use Modules\Jana\Entities\Mcp\McpUsageDiaria;
 use Modules\Jana\Entities\Mcp\McpUserScope;
 use Modules\Jana\Entities\MemoriaFato;
@@ -107,6 +115,13 @@ dataset('jana_entities_via_parent', [
     'McpMemoryDocumentHistory (parent=document)'     => [McpMemoryDocumentHistory::class, 'document'],
     'McpSkillVersion (parent=skill, Wave 15)'        => [McpSkillVersion::class, 'skill'],
     'McpSkillLabel (parent=skill, Wave 15)'          => [McpSkillLabel::class, 'skill'],
+    // Mcp/ subdir — Wave 16 RESCUE adições (2-level chain via McpSkillVersion)
+    // McpSkillApproval -> version (McpSkillVersion) -> skill (McpSkill.business_id)
+    // McpSkillTestRun  -> version (McpSkillVersion) -> skill (McpSkill.business_id)
+    // Funciona em cascade: whereHas('version', ...) dispara globalScope da
+    // McpSkillVersion (BelongsToBusinessViaParent skill) — defesa em profundidade.
+    'McpSkillApproval (chain 2-level, Wave 16)' => [McpSkillApproval::class, 'version'],
+    'McpSkillTestRun (chain 2-level, Wave 16)'  => [McpSkillTestRun::class, 'version'],
 ]);
 
 it('Entity %s usa BelongsToBusinessViaParent trait', function (string $modelClass, string $parentRel) {
@@ -207,4 +222,93 @@ it('cross-tenant: ScopeByBusiness fail-open em CLI sem auth (jobs ok)', function
     $scope->apply($builder, new Conversa());
 
     expect(true)->toBeTrue('Scope sem auth retorna silenciosamente (jobs/CLI canônicos)');
+});
+
+// ------------------------------------------------------------------
+// D1.e — Jobs Tier 0: constructor signature DEVE conter int $businessId
+//         OU ter marker canônico "MULTI-TENANT: <razão> by design" (ADR 0093)
+// ------------------------------------------------------------------
+
+dataset('jana_jobs_com_business_id', [
+    // Jobs que TOCAM dados de business → DEVEM receber int $businessId no constructor
+    'ApurarMetaJob (Wave 16: businessId explicito)'      => [ApurarMetaJob::class],
+    'ExtrairFatosDaConversaJob (canon Wave 7)'           => [ExtrairFatosDaConversaJob::class],
+]);
+
+dataset('jana_jobs_sem_business_id_by_design', [
+    // Jobs sem business_id POR DESIGN (cross-tenant ou per-user ou repo-wide)
+    // — DEVEM ter marker "MULTI-TENANT: ... by design (ADR 0093 §"Commands & Jobs sem HTTP context")"
+    'NarrarSaudeEcosistemaJob (superadmin cross-tenant)' => [NarrarSaudeEcosistemaJob::class],
+    'InboxAutoCleanupJob (per-user)'                     => [InboxAutoCleanupJob::class],
+    'ReindexarDocumentoJob (repo-wide canon docs)'       => [ReindexarDocumentoJob::class],
+    'LangfuseTraceJob (telemetria batch)'                => [LangfuseTraceJob::class],
+]);
+
+it('Job %s constructor recebe int $businessId (D1 ADR 0093)', function (string $jobClass) {
+    $reflection = new ReflectionClass($jobClass);
+    $constructor = $reflection->getConstructor();
+
+    expect($constructor)->not->toBeNull("{$jobClass} deve declarar __construct explicito");
+
+    $params = $constructor->getParameters();
+    $temBusinessId = false;
+    foreach ($params as $param) {
+        if ($param->getName() === 'businessId') {
+            $type = $param->getType();
+            // Aceita ?int (nullable) ou int — opcional pra back-compat (Wave 16
+            // ApurarMetaJob fallback Meta::business_id), mas signature DEVE
+            // declarar pra rubrica D1 v3.2 hardened auditar.
+            $typeName = $type instanceof ReflectionNamedType ? $type->getName() : null;
+            expect($typeName)->toBe('int', "businessId em {$jobClass} deve ser tipado int");
+            $temBusinessId = true;
+            break;
+        }
+    }
+    expect($temBusinessId)->toBeTrue("{$jobClass} __construct deve receber 'businessId' (ADR 0093)");
+})->with('jana_jobs_com_business_id');
+
+it('Job %s tem marker canônico "MULTI-TENANT: ... by design" (D1 ADR 0093)', function (string $jobClass) {
+    // Jobs cross-tenant/per-user/repo-wide DEVEM declarar explicito no PHPDoc
+    // pra distinguir "esqueceu businessId" de "by design". Rubrica D1 v3.2
+    // hardened diferencia: ausente sem marker = NOTA ZERO; com marker = OK.
+    $reflection = new ReflectionClass($jobClass);
+    $filepath = $reflection->getFileName();
+    expect($filepath)->not->toBeFalse();
+
+    $source = file_get_contents($filepath);
+    expect(str_contains($source, 'MULTI-TENANT:'))->toBeTrue(
+        "{$jobClass} deve ter marker 'MULTI-TENANT: ... by design (ADR 0093 ...)' no PHPDoc"
+    );
+    expect(str_contains($source, 'by design'))->toBeTrue(
+        "{$jobClass} marker MULTI-TENANT deve incluir 'by design' (justificativa explicita)"
+    );
+    expect(str_contains($source, 'ADR 0093'))->toBeTrue(
+        "{$jobClass} marker MULTI-TENANT deve referenciar ADR 0093"
+    );
+})->with('jana_jobs_sem_business_id_by_design');
+
+it('Job ExtrairFatosDaConversaJob passa businessId direto pra MemoriaContrato', function () {
+    // Garantia anti-regressao: o job recebe businessId no constructor E o
+    // PROPAGA pra MemoriaContrato::lembrar() (que persiste em jana_memoria_fatos
+    // com FK pra business). Sem propagacao = cross-tenant silencioso.
+    $source = file_get_contents(
+        base_path('Modules/Jana/Jobs/ExtrairFatosDaConversaJob.php')
+    );
+
+    expect($source)->toContain('public int $businessId');
+    expect($source)->toContain('businessId: $this->businessId');
+});
+
+it('Job ApurarMetaJob (Wave 16) preserva back-compat com caller legado', function () {
+    // Caller ChatController.php legado: ApurarMetaJob::dispatch($meta, now())
+    // — sem businessId. Wave 16 tornou businessId opcional + fallback meta->business_id.
+    // Garantia: signature aceita 2 args E auto-resolve businessId.
+    $reflection = new ReflectionClass(ApurarMetaJob::class);
+    $params = $reflection->getConstructor()->getParameters();
+
+    expect(count($params))->toBeGreaterThanOrEqual(3);
+    // 3o param deve ser opcional (back-compat)
+    $businessIdParam = $params[2];
+    expect($businessIdParam->getName())->toBe('businessId');
+    expect($businessIdParam->isOptional())->toBeTrue('businessId deve ser opcional pra back-compat');
 });

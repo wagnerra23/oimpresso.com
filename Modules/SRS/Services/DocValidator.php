@@ -2,7 +2,9 @@
 
 namespace Modules\SRS\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Modules\SRS\Entities\DocPage;
 use Modules\SRS\Entities\DocValidationRun;
 
@@ -25,6 +27,16 @@ class DocValidator
     ) {}
 
     public function validate(?string $onlyModule = null): array
+    {
+        return OtelHelper::spanBiz('srs.doc.validate', function () use ($onlyModule) {
+            return $this->validateInterno($onlyModule);
+        }, ['module' => $onlyModule ?? 'all']);
+    }
+
+    /**
+     * Implementação interna de validate — envolvida pelo span OTel acima (D9 observability).
+     */
+    private function validateInterno(?string $onlyModule): array
     {
         $issues = [];
         $modules = $onlyModule
@@ -138,6 +150,18 @@ class DocValidator
             'issues_critical' => $critical,
             'issues'          => $issues,
             'health_score'    => $score,
+        ]);
+
+        // Log estruturado D9 — validação final gerada (audit + dashboard)
+        Log::info('srs.doc.validate.done', [
+            'business_id'  => session()->get('user.business_id'),
+            'run_id'       => $run->id,
+            'module'       => $onlyModule,
+            'health_score' => $score,
+            'critical'     => $critical,
+            'warnings'     => $warnings,
+            'infos'        => $infos,
+            'total'        => count($issues),
         ]);
 
         return [

@@ -4,6 +4,7 @@ namespace Modules\Connector\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
 use App\Business;
@@ -29,6 +30,17 @@ class LicencaComputadorController extends Controller
      * Response (contrato Delphi): STRING 'S;msg' ou 'N;motivo'.
      */
     public function ProcessaDadosCliente(Request $request)
+    {
+        // D9.a OTel — wrap rota crítica (Delphi WR Comercial chama on boot).
+        return OtelHelper::spanBiz('connector.delphi.processa_dados_cliente', function () use ($request) {
+            return $this->doProcessaDadosCliente($request);
+        }, [
+            'connector.endpoint' => 'processa-dados-cliente',
+            'connector.payload_size' => strlen($request->getContent()),
+        ]);
+    }
+
+    private function doProcessaDadosCliente(Request $request)
     {
         $dados = $request->json()->all();
 

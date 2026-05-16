@@ -9,6 +9,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use App\Util\OtelHelper;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappConversation;
@@ -77,6 +79,21 @@ class SendWhatsappMessageJob implements ShouldQueue
 
     public function handle(): void
     {
+        OtelHelper::span('whatsapp.message.send', [
+            'business_id' => $this->businessId,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+            'kind' => $this->kind,
+        ], fn () => $this->doHandle());
+    }
+
+    private function doHandle(): void
+    {
+        Log::info('whatsapp.message.send.started', [
+            'business_id' => $this->businessId,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+            'kind' => $this->kind,
+        ]);
+
         // SUPERADMIN: job sem session — business_id no constructor; filtro defensivo Tier 0 (phone de outro biz nunca aceito)
         // Resolve phone do business escapando global scope (job sem session())
         // Defensive multi-tenant: where('business_id', ...) garante phone pertence
@@ -143,12 +160,31 @@ class SendWhatsappMessageJob implements ShouldQueue
             ]);
 
             WhatsappMessageSent::dispatch($message->fresh());
+
+            Log::info('whatsapp.message.send.ok', [
+                'business_id' => $this->businessId,
+                'phone_id' => $this->whatsappBusinessPhoneId,
+                'kind' => $this->kind,
+                'message_id' => $message->id,
+                'provider_message_id' => $result->providerMessageId,
+            ]);
+
             return;
         }
 
         $message->update([
             'status' => 'failed',
             'failed_reason' => $result->errorMessage,
+        ]);
+
+        Log::warning('whatsapp.message.send.failed', [
+            'business_id' => $this->businessId,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+            'kind' => $this->kind,
+            'message_id' => $message->id,
+            'error_code' => $result->errorCode ?? 'unknown',
+            'session_lost' => $result->sessionLost,
+            'ban_detected' => $result->banDetected,
         ]);
 
         WhatsappMessageFailed::dispatch(

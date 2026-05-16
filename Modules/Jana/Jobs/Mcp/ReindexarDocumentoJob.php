@@ -23,7 +23,11 @@ use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
  * Estratégia: lê o `.md` do git via path, dispara o `IndexarMemoryGitParaDb`
  * filtrando pra processar só o arquivo daquele doc.
  *
- * Sem business_id: tabela `mcp_memory_documents` é repo-wide.
+ * MULTI-TENANT: repo-wide job, sem business_id by design (ADR 0093
+ * §"Commands & Jobs sem HTTP context"). Tabela `mcp_memory_documents` e
+ * REPO-WIDE (docs canon do git, nao dados de business). Wave 16 governance v3
+ * — marker reforcado pra rubrica D1 v3.2 hardened distinguir "esqueceu
+ * businessId" de "by design".
  */
 class ReindexarDocumentoJob implements ShouldQueue
 {

@@ -113,18 +113,41 @@ class NfeBrasilServiceProvider extends ServiceProvider
         $this->commands([
             \Modules\NfeBrasil\Console\Commands\MigrateCertFromBusiness::class,
             \Modules\NfeBrasil\Console\Commands\PuxarDfesRecebidosCommand::class,
+            \Modules\NfeBrasil\Console\Commands\NfeHealthCommand::class,
         ]);
     }
 
     /**
      * Register command Schedules.
+     *
+     * Wave 16 D9 (ADR 0155 module-grade-v3) — health-check diário NfeBrasil.
+     *
+     * Registrado DENTRO do ServiceProvider do módulo (não em app/Console/Kernel.php)
+     * pra manter encapsulamento — pattern Laravel oficial via $app->booted +
+     * Schedule::class injection. Quando módulo é desabilitado via composer remove
+     * ou nWidart toggle, schedule some junto (vs deixar entry stale no Kernel).
+     *
+     * Horário 06:07 BRT — gap entre jana:health-check (06:00) e module:grade-snapshot
+     * (06:05) já preenchidos no Kernel global. 06:07 = livre + alinhado ao bloco
+     * matinal de health checks.
      */
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        $this->app->booted(function () {
+            /** @var \Illuminate\Console\Scheduling\Schedule $schedule */
+            $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
+
+            $schedule->command('nfe:health --notify')
+                ->dailyAt('06:07')
+                ->timezone('America/Sao_Paulo')
+                ->withoutOverlapping()
+                ->environments(['live'])
+                ->onFailure(function () {
+                    \Illuminate\Support\Facades\Log::channel('single')->error(
+                        'Schedule nfe:health FALHOU — cert vencido ou SEFAZ down em algum business'
+                    );
+                });
+        });
     }
 
     /**
