@@ -950,7 +950,7 @@ function ReciboTermica({ recibo }) {
     <div className="rec-paper rec-termica">
       <div className="rec-tx-header">
         <div className="rec-tx-title">OIMPRESSO COMUNICAÇÃO VISUAL</div>
-        <div>CNPJ 12.345.678/0001-90</div>
+        <div>CNPJ [REDACTED]</div>
         <div>Rua das Gráficas, 123 — Centro</div>
         <div>—————————————————</div>
         <div>CUPOM NÃO FISCAL</div>
@@ -1000,7 +1000,7 @@ function ReciboA4({ recibo }) {
           <div className="rec-a4-tag">Comunicação Visual</div>
         </div>
         <div className="rec-a4-meta">
-          <div>CNPJ 12.345.678/0001-90</div>
+          <div>CNPJ [REDACTED]</div>
           <div>Rua das Gráficas, 123 — Centro</div>
           <div>(11) 4000-1234 · oimpresso.com</div>
         </div>

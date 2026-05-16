@@ -62,21 +62,21 @@ function osStats(list) {
 
 // ─── Clientes ───
 const OS_CLIENTS = [
-  { id:"c-acme",   name:"Acme Comércio Ltda",  doc:"12.345.678/0001-90", contact:"Camila Diniz",      phone:"+55 11 98712-3344", lastOs:"#4821" },
-  { id:"c-tech",   name:"TechPro Equipamentos",doc:"23.456.789/0001-01", contact:"Diego Vasconcellos",phone:"+55 11 99812-4400", lastOs:"#4820" },
-  { id:"c-pad",    name:"Padaria Estrela",     doc:"34.567.890/0001-12", contact:"Renato Lopes",      phone:"+55 11 98712-3344", lastOs:"#4819" },
-  { id:"c-posto",  name:"Posto BR Centro",     doc:"45.678.901/0001-23", contact:"Marcos Vinícius",   phone:"+55 11 97654-2200", lastOs:"#4818" },
-  { id:"c-clinica",name:"Clínica Vida",        doc:"56.789.012/0001-34", contact:"Marcos Saraiva",    phone:"+55 11 95544-1010", lastOs:"#4817" },
-  { id:"c-merc",   name:"Mercado União",       doc:"67.890.123/0001-45", contact:"João Inst.",        phone:"+55 11 99812-7700", lastOs:"#4816" },
-  { id:"c-escola", name:"Escola Aurora",       doc:"78.901.234/0001-56", contact:"Pedagógico",        phone:"+55 11 91234-5566", lastOs:"#4815" },
-  { id:"c-vale",   name:"Auto Posto Vale",     doc:"89.012.345/0001-67", contact:"Sandro",            phone:"+55 11 92345-6677", lastOs:"#4814" },
-  { id:"c-tomate", name:"Restaurante Tomate",  doc:"90.123.456/0001-78", contact:"Helena",            phone:"+55 11 93456-7788", lastOs:"#4812" },
-  { id:"c-pet",    name:"Pet Shop Amigo",      doc:"01.234.567/0001-89", contact:"Telma",             phone:"+55 11 94567-8899", lastOs:"#4810" },
-  { id:"c-imov",   name:"Imobiliária Norte",   doc:"12.345.678/0001-12", contact:"Diretoria",         phone:"+55 11 95678-9900", lastOs:"#4809" },
-  { id:"c-junior", name:"Auto Center Júnior",  doc:"23.456.789/0001-23", contact:"Junior",            phone:"+55 11 96789-0011", lastOs:"#4806" },
-  { id:"c-buffet", name:"Buffet Família",      doc:"34.567.890/0001-34", contact:"Luana",             phone:"+55 11 97890-1122", lastOs:"#4805" },
-  { id:"c-pulse",  name:"Academia Pulse",      doc:"45.678.901/0001-45", contact:"Ricardo",           phone:"+55 11 98901-2233", lastOs:"#4804" },
-  { id:"c-bombom", name:"Loja Bombom",         doc:"56.789.012/0001-56", contact:"Dani",              phone:"+55 11 99012-3344", lastOs:"#4802" },
+  { id:"c-acme",   name:"Acme Comércio Ltda",  doc:"[REDACTED]", contact:"Camila Diniz",      phone:"+55 11 98712-3344", lastOs:"#4821" },
+  { id:"c-tech",   name:"TechPro Equipamentos",doc:"[REDACTED]", contact:"Diego Vasconcellos",phone:"+55 11 99812-4400", lastOs:"#4820" },
+  { id:"c-pad",    name:"Padaria Estrela",     doc:"[REDACTED]", contact:"Renato Lopes",      phone:"+55 11 98712-3344", lastOs:"#4819" },
+  { id:"c-posto",  name:"Posto BR Centro",     doc:"[REDACTED]", contact:"Marcos Vinícius",   phone:"+55 11 97654-2200", lastOs:"#4818" },
+  { id:"c-clinica",name:"Clínica Vida",        doc:"[REDACTED]", contact:"Marcos Saraiva",    phone:"+55 11 95544-1010", lastOs:"#4817" },
+  { id:"c-merc",   name:"Mercado União",       doc:"[REDACTED]", contact:"João Inst.",        phone:"+55 11 99812-7700", lastOs:"#4816" },
+  { id:"c-escola", name:"Escola Aurora",       doc:"[REDACTED]", contact:"Pedagógico",        phone:"+55 11 91234-5566", lastOs:"#4815" },
+  { id:"c-vale",   name:"Auto Posto Vale",     doc:"[REDACTED]", contact:"Sandro",            phone:"+55 11 92345-6677", lastOs:"#4814" },
+  { id:"c-tomate", name:"Restaurante Tomate",  doc:"[REDACTED]", contact:"Helena",            phone:"+55 11 93456-7788", lastOs:"#4812" },
+  { id:"c-pet",    name:"Pet Shop Amigo",      doc:"[REDACTED]", contact:"Telma",             phone:"+55 11 94567-8899", lastOs:"#4810" },
+  { id:"c-imov",   name:"Imobiliária Norte",   doc:"[REDACTED]", contact:"Diretoria",         phone:"+55 11 95678-9900", lastOs:"#4809" },
+  { id:"c-junior", name:"Auto Center Júnior",  doc:"[REDACTED]", contact:"Junior",            phone:"+55 11 96789-0011", lastOs:"#4806" },
+  { id:"c-buffet", name:"Buffet Família",      doc:"[REDACTED]", contact:"Luana",             phone:"+55 11 97890-1122", lastOs:"#4805" },
+  { id:"c-pulse",  name:"Academia Pulse",      doc:"[REDACTED]", contact:"Ricardo",           phone:"+55 11 98901-2233", lastOs:"#4804" },
+  { id:"c-bombom", name:"Loja Bombom",         doc:"[REDACTED]", contact:"Dani",              phone:"+55 11 99012-3344", lastOs:"#4802" },
 ];
 
 // ─── Catálogo de produtos ───
