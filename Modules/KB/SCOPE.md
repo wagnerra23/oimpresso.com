@@ -2,11 +2,19 @@
 module: KB
 purpose: "Knowledge Base — biblioteca compartilhada de ADRs, sessions, runbooks, specs, comparativos. Browse/search/graph sobre `mcp_memory_documents`. Split do Copiloto pra desacoplar chat IA de browsing canônico."
 contains:
-  - "KbController — listagem e detalhe"
+  - "KbController — listagem e detalhe (legacy V0 — KB browser dos docs MCP)"
   - "MemoriaController — tela LGPD 'O Copiloto lembra de você' (US-COPI-MEM-012); URL /copiloto/memoria mantida"
   - "FontesController — config de data source da meta (driver sql/php/http); URL /copiloto/metas/{id}/fonte mantida"
-  - "Admin/GraphController — knowledge graph (relationships entre ADRs/sessions/skills); URL /ads/admin/graph mantida"
+  - "Admin/GraphController — knowledge graph ADS (relationships entre Skills/Meta-skills/Tools/Policy/Memory); URL /ads/admin/graph mantida"
   - "DataController + InstallController (boilerplate)"
+  - "KbNodeController — CRUD kb_nodes (artigos + bridge canônico) — ONDA 1 ADR 0149"
+  - "KbEdgeController — CRUD kb_edges manuais (auto-derivados via KbEdgeAutoDeriverJob) — ONDA 1 ADR 0149"
+  - "KbPathController — CRUD trilhas de aprendizado (kb_paths + kb_path_steps) — ONDA 1 ADR 0149"
+  - "KbDecisionTreeController — CRUD troubleshooters (kb_decision_trees + kb_decision_tree_steps) — ONDA 1 ADR 0149"
+  - "KbCommentController — comments inline ancorados em block_idx (kb_comments) — ONDA 1 ADR 0149"
+  - "KbFavoriteController — favoritos pessoais por user (kb_favorites) — ONDA 1 ADR 0149"
+  - "KbVersionController — histórico de versões com diff (kb_node_versions append-only) — ONDA 1 ADR 0149"
+  - "KbAiController — IA RAG endpoints /kb/ai/{ask,summarize,suggest-meta} (delega Modules/Jana/Ai/Agents/KbAnswerAgent) — ONDA 4 ADR 0149"
 not_contains:
   - "Chat IA (Jana) → Modules/Copiloto"
   - "MCP server admin (tokens, webhooks) → Modules/TeamMcp"
@@ -25,12 +33,27 @@ url_prefixes:
   - /kb/*
   - /copiloto/admin/memoria/* (legacy — vai virar /kb/memoria/* na Fase 3.7 com 301 redirect)
 db_tables_owned:
-  - mcp_memory_documents (sync git → DB via webhook)
+  - mcp_memory_documents (sync git → DB via webhook — bridge read-only fotografia git)
   - mcp_memory_documents_history
+  # ONDA 1 ADR 0149 (2026-05-15) — 11 tabelas novas do KB Unificado como Grafo de Conhecimento:
+  - kb_nodes (artigos editáveis + bridge canônico)
+  - kb_edges (arestas tipadas: next-in-path/fix-of/supersedes/charter-of/references-data/ai-related/cross-link/related-by-tag)
+  - kb_categories
+  - kb_subcategories
+  - kb_paths
+  - kb_path_steps
+  - kb_decision_trees
+  - kb_decision_tree_steps
+  - kb_node_versions (append-only)
+  - kb_favorites
+  - kb_comments
+  - kb_bridge_state
 drift_alerts: []
   # Fase 3.7 PR-1 (2026-05-06): 3 controllers absorvidos do Copiloto/ADS.
   # MemoriaController + FontesController vieram do Copiloto.
   # Admin/GraphController veio do ADS.
+  # ONDA 1 ADR 0149 (2026-05-15): 8 controllers novos (KbNode/Edge/Path/DecisionTree/Comment/Favorite/Version/Ai)
+  # + 11 tabelas kb_*. KB re-escopado como módulo IA central do oimpresso.
 ---
 
 # Modules/KB — Knowledge Base
