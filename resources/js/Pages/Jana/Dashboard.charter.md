@@ -53,7 +53,8 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 - Dark mode obrigatório (`@/Layouts/AppShellV2` default)
 - Toast `sonner` em mutations (arquivar meta)
 - `KpiCard` shared component pra cada meta (consistência cross-module)
-- `EmptyState` shared component se 0 metas — CTA "Iniciar conversa com a Jana"
+- `EmptyState` shared component se 0 metas — CTA "Pergunte algo a Jana"
+- **Demo polish (v2 — CYCLE-06 G3):** badge gradient `JANA V2` violet→fuchsia→pink no header, KPI strip 3 colunas (Memória ativa / Última conversa / Brain B hoje — placeholders pra Brain B preencher futuro via `Inertia::defer`), card "Próxima ação sugerida" violet-tinted (mock didático), empty state com ícone `Sparkles` + CTA `Pergunte algo a Jana` em vez de texto plano
 
 ## Anti-hooks
 
@@ -68,3 +69,4 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 ## Charter version log
 
 - v1 (2026-05-16) — Charter retroativo Wave M boost Modules/Jana 64→78
+- v2 (2026-05-16) — Polish demo CYCLE-06 G3: badge gradient `JANA V2`, KPI strip 3 colunas, card "Próxima ação sugerida", empty state polish (ícone Sparkles + CTA "Pergunte algo a Jana"). Logic chat preservado (apenas UI surface — ChatController intacto). Ver `memory/requisitos/Jana/demo-pilot-2026-05-16/SCREENSHOT-GUIDE.md`
