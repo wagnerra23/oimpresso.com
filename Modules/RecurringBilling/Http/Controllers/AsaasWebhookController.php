@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\ContaBancaria;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Models\BoletoCredential;
 
 /**
@@ -33,6 +34,17 @@ class AsaasWebhookController extends Controller
             ->exists();
 
         if ($alreadyProcessed) {
+            Log::info('AsaasWebhookController.duplicate', [
+                'business_id' => $businessId,
+                'event_id'    => $eventId,
+                'event'       => $event,
+                // D7 LGPD: payload bruto contém CPF/CNPJ/email do pagador — redact pra log seguro
+                'payload_summary' => app(PiiRedactor::class)->redact((string) json_encode([
+                    'event' => $event,
+                    'payment_id' => $payment['id'] ?? null,
+                ])),
+            ]);
+
             return response()->json(['ok' => true, 'skipped' => 'duplicate']);
         }
 

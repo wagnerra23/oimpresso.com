@@ -10,5 +10,13 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "retention_days": 1825,
+    "retention_config": "Modules/OficinaAuto/Config/retention.php",
+    "lgpd_compliance": {
+        "pii_fields_tracked": ["plate", "secondary_plate", "chassis", "renavam", "contact_id"],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "policy_doc": "memory/requisitos/OficinaAuto/SPEC.md"
+    }
 }

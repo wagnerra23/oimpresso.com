@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Jana\Entities\Meta;
 use Modules\Jana\Entities\MetaApuracao;
+use Modules\Jana\Http\Requests\StoreMetaRequest;
+use Modules\Jana\Http\Requests\UpdateMetaRequest;
 
 /**
  * STUB spec-ready: resource CRUD de metas. Lógica de filtros, permissões
@@ -24,15 +26,11 @@ class MetasController extends Controller
         return view('copiloto::metas.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreMetaRequest $request)
     {
-        $data = $request->validate([
-            'slug'           => 'required|string|max:80',
-            'nome'           => 'required|string|max:150',
-            'unidade'        => 'required|in:R$,qtd,%,dias',
-            'tipo_agregacao' => 'required|in:soma,media,ultimo,contagem',
-            'business_id'    => 'nullable|integer',
-        ]);
+        // D8.c (Wave 14) — FormRequest dedicado substitui validate() inline.
+        // Regras endurecidas: slug regex, whitelist unidade/tipo, msgs PT-BR.
+        $data = $request->validated();
 
         $meta = Meta::create(array_merge($data, [
             'ativo'              => true,
@@ -59,10 +57,12 @@ class MetasController extends Controller
         return view('copiloto::metas.edit', ['meta' => Meta::findOrFail($id)]);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateMetaRequest $request, $id)
     {
+        // D8.c (Wave 14) — FormRequest valida partial update (sometimes) +
+        // whitelist nos enums. Antes era `only([...])` sem validação alguma.
         $meta = Meta::findOrFail($id);
-        $meta->update($request->only(['nome', 'unidade', 'tipo_agregacao']));
+        $meta->update($request->validated());
         return redirect()->route('jana.metas.show', $meta->id);
     }
 

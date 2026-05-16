@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\OficinaAuto\Entities\Vehicle;
 
 /**
@@ -262,7 +263,15 @@ class VehicleController extends Controller
             403
         );
 
-        $vehicle->delete();
+        try {
+            $vehicle->delete();
+        } catch (\Throwable $e) {
+            // D7 LGPD: redaciona PII (placa/chassi/RENAVAM podem aparecer em FK errors) antes de logar.
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
+
+            return redirect('/oficina-auto/veiculos')
+                ->with('status', ['success' => 0, 'msg' => 'Falha ao remover veículo.']);
+        }
 
         return redirect('/oficina-auto/veiculos')
             ->with('status', ['success' => 1, 'msg' => 'Veículo removido (soft delete).']);

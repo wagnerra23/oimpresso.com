@@ -232,11 +232,18 @@ class TituloAutoService
                 // Business ainda não cadastrou conta no Financeiro. No-op gracioso
                 // pra não bloquear o save do pagamento no core UltimatePOS. O lançamento
                 // financeiro pode ser reconciliado depois via comando manual.
-                \Log::info('TituloAutoService.registrarPagamento: skip — biz sem fin_contas_bancarias', [
-                    'business_id' => $tx->business_id,
-                    'tp_id' => $tp->id,
-                    'tx_id' => $tx->id,
-                ]);
+                // D7.a Wave 14 — log via FinanceiroAuditLogger pra redacionar PII
+                // (observacoes/note podem conter CPF/email do cliente).
+                app(FinanceiroAuditLogger::class)->info(
+                    'TituloAutoService.registrarPagamento: skip — biz sem fin_contas_bancarias',
+                    [
+                        'business_id' => $tx->business_id,
+                        'tp_id' => $tp->id,
+                        'tx_id' => $tx->id,
+                        'invoice_no' => $tx->invoice_no,
+                        'note' => $tp->note,
+                    ]
+                );
                 return null;
             }
             $valor = (float) $tp->amount;

@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
 
@@ -404,7 +405,15 @@ class ServiceOrderController extends Controller
             403
         );
 
-        $order->delete();
+        try {
+            $order->delete();
+        } catch (\Throwable $e) {
+            // D7 LGPD: redaciona PII (endereço entrega/contact pode aparecer em FK errors) antes de logar.
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
+
+            return redirect('/oficina-auto/ordens-servico')
+                ->with('status', ['success' => 0, 'msg' => 'Falha ao remover OS.']);
+        }
 
         return redirect('/oficina-auto/ordens-servico')
             ->with('status', ['success' => 1, 'msg' => 'OS removida (soft delete).']);

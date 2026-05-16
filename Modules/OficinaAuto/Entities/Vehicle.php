@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Vehicle — veículo da oficina (cliente/frota) ou caçamba estacionária (Martinho).
@@ -50,6 +52,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Vehicle extends Model
 {
+    use LogsActivity; // D7.b LGPD audit trail (Wave 14)
     use SoftDeletes;
 
     protected $table = 'vehicles';
@@ -188,6 +191,32 @@ class Vehicle extends Model
         }
 
         return 'slate';
+    }
+
+    // ------------------------------------------------------------------
+    // LGPD audit trail (D7.b — Wave 14)
+    // ------------------------------------------------------------------
+
+    /**
+     * Spatie ActivityLog — registra mudanças em campos PII-relevantes
+     * (placa, RENAVAM, chassi, contact_id) com `logOnlyDirty`. Audit trail
+     * append-only conforme retention.php contrato.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'plate',
+                'secondary_plate',
+                'chassis',
+                'renavam',
+                'contact_id',
+                'current_status',
+                'vehicle_type',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('oficinaauto.vehicle');
     }
 
     // ------------------------------------------------------------------

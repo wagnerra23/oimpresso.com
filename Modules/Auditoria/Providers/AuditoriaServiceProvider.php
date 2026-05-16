@@ -20,8 +20,10 @@ class AuditoriaServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__.'/../Config/config.php' => config_path('auditoria.php'),
+            __DIR__.'/../Config/retention.php' => config_path('auditoria/retention.php'),
         ], 'config');
 
         $this->mergeConfigFrom(__DIR__.'/../Config/config.php', 'auditoria');
+        $this->mergeConfigFrom(__DIR__.'/../Config/retention.php', 'auditoria.retention');
     }
 }
