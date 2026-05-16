@@ -2,6 +2,7 @@
 
 namespace Modules\ADS\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -10,6 +11,9 @@ use Illuminate\Support\Facades\DB;
  * confiança = média_ponderada(outcomes) × similaridade_contexto × fator_estabilidade
  *
  * Peso especial: modificação humana vale 3× mais que fail comum.
+ *
+ * Observabilidade: `recordOutcome()` envolto em OTel span (D9.a — ADR 0155).
+ * Multi-tenant Tier 0: `OtelHelper::spanBiz` auto-resolve `business_id` da sessão.
  */
 class ConfidenceEngine
 {
@@ -60,54 +64,61 @@ class ConfidenceEngine
         string $outcome,
         int    $diffSizePct = 0,
     ): float {
-        $delta = $this->computeDelta($outcome, $diffSizePct);
+        return OtelHelper::spanBiz('ads.confidence_engine.record_outcome', function () use ($domain, $eventType, $outcome, $diffSizePct): float {
+            $delta = $this->computeDelta($outcome, $diffSizePct);
 
-        $row = DB::table('mcp_confidence_scores')
-            ->where('domain', $domain)
-            ->where('event_type', $eventType)
-            ->first();
+            $row = DB::table('mcp_confidence_scores')
+                ->where('domain', $domain)
+                ->where('event_type', $eventType)
+                ->first();
 
-        if (! $row) {
-            $newScore = max(0.0, min(1.0, self::INITIAL_SCORE + ($delta * 0.05)));
-            DB::table('mcp_confidence_scores')->insert([
-                'domain'                => $domain,
-                'event_type'            => $eventType,
-                'score'                 => $newScore,
-                'sample_size'           => 1,
-                'hitl_level'            => 2,
-                'last_outcome'          => $outcome,
-                'consecutive_approvals' => $outcome === 'success' ? 1 : 0,
-                'consecutive_failures'  => in_array($outcome, ['fail', 'wagner_rejected'], true) ? 1 : 0,
-            ]);
+            if (! $row) {
+                $newScore = max(0.0, min(1.0, self::INITIAL_SCORE + ($delta * 0.05)));
+                DB::table('mcp_confidence_scores')->insert([
+                    'domain'                => $domain,
+                    'event_type'            => $eventType,
+                    'score'                 => $newScore,
+                    'sample_size'           => 1,
+                    'hitl_level'            => 2,
+                    'last_outcome'          => $outcome,
+                    'consecutive_approvals' => $outcome === 'success' ? 1 : 0,
+                    'consecutive_failures'  => in_array($outcome, ['fail', 'wagner_rejected'], true) ? 1 : 0,
+                ]);
+                return $newScore;
+            }
+
+            $newScore = max(0.0, min(1.0, (float) $row->score + ($delta * 0.05)));
+            $consecutiveApprovals = $outcome === 'success' ? (int) $row->consecutive_approvals + 1 : 0;
+            $consecutiveFailures  = in_array($outcome, ['fail', 'wagner_rejected'], true)
+                ? (int) $row->consecutive_failures + 1
+                : 0;
+
+            $hitlLevel = $this->computeHitlLevel(
+                (int) $row->hitl_level,
+                $consecutiveApprovals,
+                $consecutiveFailures,
+                $newScore,
+            );
+
+            DB::table('mcp_confidence_scores')
+                ->where('domain', $domain)
+                ->where('event_type', $eventType)
+                ->update([
+                    'score'                 => round($newScore, 3),
+                    'sample_size'           => min((int) $row->sample_size + 1, self::WINDOW_SIZE),
+                    'hitl_level'            => $hitlLevel,
+                    'last_outcome'          => $outcome,
+                    'consecutive_approvals' => $consecutiveApprovals,
+                    'consecutive_failures'  => $consecutiveFailures,
+                ]);
+
             return $newScore;
-        }
-
-        $newScore = max(0.0, min(1.0, (float) $row->score + ($delta * 0.05)));
-        $consecutiveApprovals = $outcome === 'success' ? (int) $row->consecutive_approvals + 1 : 0;
-        $consecutiveFailures  = in_array($outcome, ['fail', 'wagner_rejected'], true)
-            ? (int) $row->consecutive_failures + 1
-            : 0;
-
-        $hitlLevel = $this->computeHitlLevel(
-            (int) $row->hitl_level,
-            $consecutiveApprovals,
-            $consecutiveFailures,
-            $newScore,
-        );
-
-        DB::table('mcp_confidence_scores')
-            ->where('domain', $domain)
-            ->where('event_type', $eventType)
-            ->update([
-                'score'                 => round($newScore, 3),
-                'sample_size'           => min((int) $row->sample_size + 1, self::WINDOW_SIZE),
-                'hitl_level'            => $hitlLevel,
-                'last_outcome'          => $outcome,
-                'consecutive_approvals' => $consecutiveApprovals,
-                'consecutive_failures'  => $consecutiveFailures,
-            ]);
-
-        return $newScore;
+        }, [
+            'module' => 'ADS',
+            'domain' => $domain,
+            'event_type' => $eventType,
+            'outcome' => $outcome,
+        ]);
     }
 
     /**

@@ -49,7 +49,54 @@ class CmsController extends Controller
         // PR2: hidratar Hero/Features/SocialProof a partir destes dados
         // (atualmente Pages/Site/Home.tsx tem copy hardcoded em PT-BR pra acelerar PR1)
         // Payload extraído pra SiteContentService — ver charter Site/Home.charter.md
-        return Inertia::render('Site/Home', $this->siteContent->getHomePayload());
+        //
+        // D6.a (ADR 0155) — Inertia::defer em 4 props caras (testimonials/page/faqs/statistics):
+        // cada uma toca DB via SiteContentService → CmsPage/CmsSiteDetail. Closures defer
+        // skippam execução no initial paint (Hero+SocialProof com copy hardcoded já cobrem),
+        // só executam quando Site/Home faz async fetch via <Deferred data="..."> wrapper.
+        // RUNBOOK: memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md
+        return Inertia::render('Site/Home', [
+            'testimonials' => Inertia::defer(fn () => $this->buildTestimonialsPayload()),
+            'page'         => Inertia::defer(fn () => $this->buildHomePagePayload()),
+            'faqs'         => Inertia::defer(fn () => $this->buildFaqsPayload()),
+            'statistics'   => Inertia::defer(fn () => $this->buildStatisticsPayload()),
+        ]);
+    }
+
+    /**
+     * Payload deferido — testimonials (CmsPage where type=testimonial).
+     * Custo: 1 query SELECT scan ordered by priority.
+     */
+    private function buildTestimonialsPayload()
+    {
+        return $this->cmsUtil->getPageByType('testimonial');
+    }
+
+    /**
+     * Payload deferido — página de layout=home (CmsPage hero/features copy editável).
+     * Custo: 1 query SELECT + eager-load pageMeta.
+     */
+    private function buildHomePagePayload()
+    {
+        return $this->cmsUtil->getPageByLayout('home');
+    }
+
+    /**
+     * Payload deferido — FAQs (CmsSiteDetail key=faqs).
+     * Custo: 1 query SELECT scalar value.
+     */
+    private function buildFaqsPayload()
+    {
+        return CmsSiteDetail::getValue('faqs');
+    }
+
+    /**
+     * Payload deferido — estatísticas (CmsSiteDetail key=statistics).
+     * Custo: 1 query SELECT scalar value.
+     */
+    private function buildStatisticsPayload()
+    {
+        return CmsSiteDetail::getValue('statistics');
     }
 
     /**

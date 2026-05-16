@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Utils\CrmUtil;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class CrmSettingsController extends Controller
 {
@@ -79,7 +80,8 @@ class CrmSettingsController extends Controller
                 'msg' => __('lang_v1.updated_success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (settings podem ter campos sensíveis).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),

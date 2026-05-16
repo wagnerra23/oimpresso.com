@@ -10,7 +10,15 @@
     ],
     "aliases": {},
     "files": [
-        
+
     ],
-    "requires": []
+    "requires": [],
+    "retention_days": 730,
+    "retention_config": "Modules/Crm/Config/retention.php",
+    "lgpd_compliance": {
+        "pii_fields_tracked": ["mobile", "email", "tax_number", "address_line_1", "dob"],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "policy_doc": "memory/requisitos/Crm/PII-REDACTION.md"
+    }
 }
