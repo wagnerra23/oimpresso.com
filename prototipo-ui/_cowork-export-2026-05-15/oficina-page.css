@@ -1,0 +1,457 @@
+/* oficina-page.css — estilos do módulo Oficina Auto.
+   Maioria das classes é prefixada com `ofc-*` (não colide). As exceções:
+   - `.prod-*` já existem no styles.css principal (compartilhadas com producao-page.jsx) — não duplicar.
+   - `.icon-btn` colide com o shell — scope sob .oficina-root.
+   Migrado de Produção Oficina - Tela.html. */
+
+.oficina-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: auto;
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+/* Variações de coluna do kanban (5 colunas no fluxo etapa, n no pivot box/mec) */
+.prod-kanban.ofc-5 { grid-template-columns: repeat(5, minmax(228px, 1fr)); }
+.prod-kanban.ofc-many { grid-template-columns: repeat(var(--ofc-cols, 5), minmax(228px, 1fr)); }
+
+/* Placa Mercosul (visual) */
+.ofc-plate {
+  display: inline-flex; flex-direction: column; align-items: stretch;
+  border: 1.5px solid oklch(0.30 0.01 240);
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  line-height: 1;
+  background: white;
+  min-width: 76px;
+}
+.ofc-plate .top {
+  background: oklch(0.45 0.13 250);
+  color: white;
+  font-size: 7px;
+  letter-spacing: .12em;
+  text-align: center;
+  padding: 1.5px 0;
+  font-weight: 600;
+}
+.ofc-plate .num {
+  padding: 3px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: .04em;
+  color: oklch(0.20 0.01 240);
+}
+
+/* Cor por dot-type específicas da oficina */
+.prod-col-dot.slate    { background: oklch(0.55 0.02 250); }
+.prod-col-dot.indigo   { background: oklch(0.55 0.16 270); }
+.prod-col-dot.rose     { background: oklch(0.62 0.16 20); }
+.prod-col-dot.emerald  { background: oklch(0.58 0.13 155); }
+.prod-col-dot.green    { background: oklch(0.62 0.14 145); }
+.prod-col-slate    { border-top: 2px solid oklch(0.65 0.02 250); }
+.prod-col-indigo   { border-top: 2px solid oklch(0.65 0.14 270); }
+.prod-col-rose     { border-top: 2px solid oklch(0.72 0.14 20); }
+.prod-col-emerald  { border-top: 2px solid oklch(0.70 0.12 155); }
+.prod-col-green    { border-top: 2px solid oklch(0.72 0.13 145); }
+
+/* Card oficina: vehicle row + meta */
+.ofc-veh-row { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; }
+.ofc-veh-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.ofc-veh-name { font-size: 12.5px; font-weight: 500; color: var(--text); }
+.ofc-veh-sub  { font-size: 10.5px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+
+.ofc-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.ofc-row svg { color: var(--text-mute); }
+.ofc-row .dim { color: var(--text-mute); }
+
+.ofc-mech-av {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: oklch(0.85 0.04 250);
+  color: oklch(0.30 0.06 250);
+  display: inline-grid; place-items: center;
+  font-size: 9px; font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ofc-box-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 6px;
+  font-size: 10.5px; font-weight: 500;
+  color: oklch(0.30 0.10 30);
+  background: oklch(0.95 0.04 30);
+  border: 1px solid oklch(0.88 0.06 30);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+.ofc-box-pill.elev {
+  color: oklch(0.30 0.08 270);
+  background: oklch(0.95 0.03 270);
+  border-color: oklch(0.88 0.05 270);
+}
+
+.ofc-parts {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10.5px;
+  color: var(--text-dim);
+  padding: 4px 6px;
+  background: oklch(0.97 0.005 90);
+  border: 1px solid var(--border-2);
+  border-radius: 4px;
+  margin-top: 6px;
+}
+.ofc-parts.warn  { background: oklch(0.97 0.04 70);  border-color: oklch(0.88 0.07 70);  color: oklch(0.40 0.10 60); }
+.ofc-parts.ok    { background: oklch(0.96 0.04 145); border-color: oklch(0.88 0.07 145); color: oklch(0.36 0.10 145); }
+.ofc-parts.await { background: oklch(0.96 0.04 20);  border-color: oklch(0.88 0.07 20);  color: oklch(0.42 0.13 20); }
+.ofc-parts-dot   { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+.ofc-symptom { font-size: 11.5px; color: var(--text-dim); margin: 4px 0 2px; line-height: 1.35; text-wrap: pretty; }
+.ofc-eta-row { display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; color: var(--text-mute); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.ofc-eta-row b { color: var(--text-dim); font-weight: 500; }
+
+.prod-equip-dot.box  { background: oklch(0.62 0.13 30); }
+.prod-equip-dot.elev { background: oklch(0.55 0.13 270); }
+
+/* Drawer extras */
+.ofc-drawer-section { border-top: 1px solid var(--border-2); padding: 14px 0 4px; margin-top: 10px; }
+.ofc-drawer-section h4 { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-mute); margin: 0 0 10px; }
+.ofc-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ofc-photo {
+  aspect-ratio: 4/3;
+  border-radius: 6px;
+  background: repeating-linear-gradient(45deg, oklch(0.92 0.005 90) 0 8px, oklch(0.95 0.005 90) 8px 16px);
+  border: 1px solid var(--border-2);
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px; color: var(--text-mute);
+  text-align: center; padding: 6px;
+}
+.ofc-parts-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.ofc-parts-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; font-size: 12px; padding: 6px 8px; background: var(--bg-2); border-radius: 6px; align-items: center; }
+.ofc-parts-list .qty { font-family: var(--font-mono); color: var(--text-mute); font-size: 11px; }
+.ofc-parts-list .stat { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
+.ofc-parts-list .stat.ok   { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+.ofc-parts-list .stat.warn { background: oklch(0.95 0.06 70);  color: oklch(0.42 0.12 60); }
+.ofc-parts-list .stat.wait { background: oklch(0.95 0.04 20);  color: oklch(0.42 0.13 20); }
+
+.ofc-timeline { display: flex; flex-direction: column; gap: 0; position: relative; padding-left: 12px; }
+.ofc-timeline::before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 4px; width: 1px; background: var(--border); }
+.ofc-tl-item { position: relative; padding: 4px 0 10px 8px; font-size: 11.5px; }
+.ofc-tl-item::before { content: ""; position: absolute; left: -10px; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--text-mute); }
+.ofc-tl-item.done::before { background: oklch(0.62 0.14 145); border-color: oklch(0.55 0.13 145); }
+.ofc-tl-item.now::before { background: oklch(0.62 0.13 30); border-color: oklch(0.55 0.16 25); box-shadow: 0 0 0 3px oklch(0.95 0.05 30); }
+.ofc-tl-when { color: var(--text-mute); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.ofc-tl-what { color: var(--text); }
+.ofc-tl-by { color: var(--text-mute); font-size: 10.5px; }
+
+.ofc-approval {
+  background: oklch(0.96 0.06 70);
+  border: 1px solid oklch(0.85 0.10 70);
+  color: oklch(0.36 0.12 60);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 8px;
+}
+.ofc-approval.pending { animation: ofcPulse 2s ease-in-out infinite; }
+@keyframes ofcPulse { 50% { background: oklch(0.94 0.08 70); } }
+
+.ofc-card-urgent-strip { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: oklch(0.62 0.16 25); border-radius: 8px 8px 0 0; }
+.oficina-root .prod-card { position: relative; }
+
+/* Vehicle-context note in drawer */
+.ofc-veh-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding: 10px;
+  background: var(--bg-2);
+  border-radius: 8px;
+  border: 1px solid var(--border-2);
+}
+.ofc-veh-card .ofc-plate { transform: scale(1.15); transform-origin: top left; }
+.ofc-veh-card dl { margin: 0; font-size: 11.5px; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-self: end; }
+.ofc-veh-card dt { color: var(--text-mute); }
+.ofc-veh-card dd { margin: 0; color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* Buttons */
+.oficina-root .os-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 10px;
+  font-size: 11.5px; font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text);
+  font-family: inherit;
+}
+.oficina-root .os-btn:hover { background: var(--bg-2); }
+.oficina-root .os-btn.primary { background: var(--text); color: var(--surface); border-color: var(--text); }
+.oficina-root .os-btn.primary:hover { background: oklch(0.30 0.01 80); }
+.oficina-root .os-btn.ghost { background: transparent; }
+
+.oficina-root .icon-btn {
+  width: 26px; height: 26px;
+  display: inline-grid; place-items: center;
+  border: 1px solid var(--border); background: var(--surface);
+  border-radius: 6px; cursor: pointer;
+  color: var(--text-dim);
+}
+.oficina-root .icon-btn:hover { background: var(--bg-2); color: var(--text); }
+
+/* TWEAKS — Densidade */
+.ofc-density-compacto .prod-card { padding: 9px 11px; }
+.ofc-density-compacto .ofc-symptom,
+.ofc-density-compacto .prod-progress,
+.ofc-density-compacto .ofc-mech-name,
+.ofc-density-compacto .ofc-parts-label,
+.ofc-density-compacto .ofc-card-extra { display: none; }
+.ofc-density-compacto .ofc-eta-row { margin-top: 4px; font-size: 10px; }
+.ofc-density-compacto .ofc-parts { padding: 3px 6px; font-size: 10px; }
+.ofc-density-compacto .ofc-veh-row { margin-bottom: 2px; }
+.ofc-density-compacto .ofc-plate { transform: scale(0.9); transform-origin: left center; }
+
+.ofc-card-extra { display: none; }
+.ofc-density-detalhe .ofc-card-extra {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed var(--border-2);
+}
+.ofc-density-detalhe .prod-card { padding: 14px 14px 12px; }
+.ofc-density-detalhe .ofc-symptom { font-size: 12.5px; line-height: 1.5; }
+.ofc-card-extra-thumb {
+  width: 42px; height: 30px; border-radius: 4px;
+  background: repeating-linear-gradient(45deg, oklch(0.92 0.005 90) 0 5px, oklch(0.95 0.005 90) 5px 10px);
+  border: 1px solid var(--border-2);
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 8px; color: var(--text-mute);
+}
+.ofc-card-extra-last { font-size: 10.5px; color: var(--text-mute); line-height: 1.35; flex: 1; min-width: 0; }
+.ofc-card-extra-last b { color: var(--text-dim); font-weight: 500; }
+
+/* TWEAKS — Pressão */
+.ofc-mood-calmo .ofc-card-urgent-strip { display: none; }
+.ofc-mood-calmo .prod-col-dot,
+.ofc-mood-calmo .prod-col { filter: saturate(0.45); }
+.ofc-mood-calmo .ofc-approval.pending { animation: none; background: oklch(0.97 0.015 80); border-color: var(--border-2); color: var(--text-dim); }
+.ofc-mood-calmo .prod-card.urgent { box-shadow: none; }
+.ofc-mood-calmo .prod-kpi-urgent { background: var(--surface); border-color: var(--border); }
+
+.ofc-mood-pressao .prod-card.urgent {
+  animation: ofcUrgentPulse 1.8s ease-in-out infinite;
+  box-shadow: 0 0 0 1.5px oklch(0.62 0.16 25 / .65), 0 4px 14px oklch(0.62 0.16 25 / .22);
+}
+@keyframes ofcUrgentPulse {
+  50% { box-shadow: 0 0 0 1.5px oklch(0.62 0.16 25), 0 8px 22px oklch(0.62 0.16 25 / .45); }
+}
+.ofc-mood-pressao .ofc-card-urgent-strip { height: 3px; }
+.ofc-mood-pressao .prod-card.urgent .prod-deadline,
+.ofc-mood-pressao .prod-card.urgent .ofc-eta-row { color: oklch(0.48 0.16 25); font-weight: 600; }
+.ofc-mood-pressao .ofc-approval.pending { animation-duration: 1s; }
+.ofc-mood-pressao .prod-col { filter: saturate(1.25); }
+.ofc-mood-pressao .ofc-countdown { display: inline-flex; }
+.ofc-countdown {
+  display: none; align-items: center; gap: 3px;
+  padding: 1px 5px; margin-left: auto;
+  background: oklch(0.95 0.07 25);
+  color: oklch(0.42 0.15 25);
+  border-radius: 3px;
+  font-size: 9.5px; font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: .02em;
+}
+
+/* TWEAKS — Foco (pivot) */
+.ofc-stage-chip {
+  display: none;
+  align-items: center; gap: 4px;
+  font-size: 10px; color: var(--text-dim);
+  padding: 1px 5px; border-radius: 3px;
+  background: var(--bg-2); border: 1px solid var(--border-2);
+}
+.ofc-stage-chip-dot { width: 5px; height: 5px; border-radius: 50%; }
+.ofc-foco-box .ofc-stage-chip,
+.ofc-foco-mecanico .ofc-stage-chip { display: inline-flex; }
+.ofc-foco-box .ofc-box-pill,
+.ofc-foco-mecanico .ofc-box-pill { display: none; }
+
+/* Toolbar inline para foco/densidade/pressão (substitui o TweaksPanel original) */
+.oficina-root .ofc-toolbar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 8px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-2);
+  font-size: 11.5px;
+}
+
+/* ─── Grade de aplicações: matriz veículo × serviço ─── */
+.ofc-grade-wrap {
+  padding: 16px 24px;
+  overflow: auto;
+}
+.ofc-grade {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 11.5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.ofc-grade thead th {
+  background: oklch(0.97 0.005 80);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-mute);
+  font-weight: 600;
+  padding: 10px 6px;
+  text-align: center;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border-2);
+  writing-mode: horizontal-tb;
+  vertical-align: bottom;
+}
+.ofc-grade thead th:last-child { border-right: none; }
+.ofc-grade .ofc-grade-veh {
+  text-align: left;
+  width: 240px;
+  padding: 10px 14px;
+  position: sticky; left: 0;
+  background: oklch(0.97 0.005 80);
+  z-index: 2;
+}
+.ofc-grade tbody .ofc-grade-veh {
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+.ofc-grade tbody tr:hover td { background: oklch(0.98 0.012 220); }
+.ofc-grade tbody tr:hover .ofc-grade-veh { background: oklch(0.97 0.025 220); }
+.ofc-grade-veh-meta { min-width: 0; flex: 1; }
+.ofc-grade-veh-meta b { font-size: 11.5px; font-weight: 600; display: block; line-height: 1.2; }
+.ofc-grade-veh-meta small { font-size: 10px; color: var(--text-mute); }
+
+.ofc-grade-c {
+  border-bottom: 1px solid var(--border-2);
+  border-right: 1px solid var(--border-2);
+  text-align: center;
+  padding: 0;
+  height: 40px;
+}
+.ofc-grade-c:last-child { border-right: none; }
+.ofc-grade tbody tr:last-child td { border-bottom: none; }
+
+.ofc-grade-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.ofc-grade-done { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+.ofc-grade-prog { background: oklch(0.94 0.06 30);  color: oklch(0.40 0.13 30); }
+.ofc-grade-wait { background: oklch(0.94 0.06 70);  color: oklch(0.42 0.12 60); }
+.ofc-grade-diag { background: oklch(0.95 0.04 270); color: oklch(0.42 0.12 270); }
+.ofc-grade-new  { background: var(--border-2); color: var(--text-mute); }
+
+.ofc-grade-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+  align-items: center;
+}
+.ofc-grade-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ofc-grade-legend .ofc-grade-mark { width: 18px; height: 18px; font-size: 10.5px; }
+.ofc-grade-hint { margin-left: auto; font-style: italic; color: var(--text-mute); font-size: 10.5px; }
+
+/* DVI (Digital Vehicle Inspection) · padrão Shopmonkey/Tekmetric/ServiceTitan */
+.ofc-dvi-summary {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 10px;
+}
+.ofc-dvi-pill {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+.ofc-dvi-pill b { font-family: 'IBM Plex Mono', monospace; font-weight: 700; }
+.ofc-dvi-pill.ok   { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+.ofc-dvi-pill.warn { background: oklch(0.95 0.06 70);  color: oklch(0.42 0.12 60); }
+.ofc-dvi-pill.bad  { background: oklch(0.95 0.05 25);  color: oklch(0.50 0.16 25); }
+
+.ofc-dvi-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ofc-dvi-list li {
+  display: grid;
+  grid-template-columns: 14px 1fr 28px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  font-size: 12px;
+}
+.ofc-dvi-list li .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.ofc-dvi-list li.ok   .dot { background: oklch(0.55 0.13 145); }
+.ofc-dvi-list li.warn .dot { background: oklch(0.62 0.13 70); }
+.ofc-dvi-list li.bad  .dot { background: oklch(0.55 0.18 25); }
+.ofc-dvi-list li.bad  { border-color: oklch(0.85 0.08 25); background: oklch(0.98 0.02 25); }
+.ofc-dvi-list li b { font-size: 12px; font-weight: 600; display: block; }
+.ofc-dvi-list li small { font-size: 10.5px; color: var(--text-mute); display: block; margin-top: 1px; }
+.ofc-dvi-list li .th {
+  width: 28px; height: 28px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  display: grid; place-items: center;
+  font-size: 13px;
+  background: white;
+}
+
+.ofc-dvi-foot {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--text);
+  color: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ofc-dvi-foot small { color: oklch(0.72 0.01 80); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; display: block; }
+.ofc-dvi-foot b { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 700; }
+.oficina-root .ofc-toolbar .group { display: inline-flex; align-items: center; gap: 6px; }
+.oficina-root .ofc-toolbar .group > label { color: var(--text-mute); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; }
+.oficina-root .ofc-toolbar .seg {
+  display: inline-flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden;
+  background: var(--bg-2);
+}
+.oficina-root .ofc-toolbar .seg button {
+  border: none; background: transparent; padding: 4px 9px;
+  font-size: 11.5px; color: var(--text-dim); cursor: pointer;
+}
+.oficina-root .ofc-toolbar .seg button.on { background: var(--text); color: var(--surface); font-weight: 600; }
