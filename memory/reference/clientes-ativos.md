@@ -29,3 +29,14 @@ Snapshot em 2026-04-24:
 - ROTA LIVRE pode estar operando variantes de comportamento que WR2 Sistemas (teste) não tem.
 
 **How to update:** regerar com query em hostinger.md (template SSH + mysql CLI). Se um business dormente começar a vender, atualizar esta lista.
+
+---
+
+## Prospects em migração legacy WR2 (atualizado 2026-05-16)
+
+| id | name | CNPJ | Migração WR2→oimpresso | Situação |
+|---|---|---|---|---|
+| **164** | **MARTINHO CAÇAMBAS LTDA** | 10.609.954/0001-50 | ✅ **CONCLUÍDA 2026-05-16** — 91 caçambas + 9.988 contatos + 44.018 vendas + 83.040 títulos (R$ 4M aberto: 90% fóssil pré-2020) | 🟡 demo 2026-05-13 com Larissa; HiSoft competitor já em implantação |
+| 170 | VARGAS JATO DE GRANALHA LTDA | 24.102.723/0001-60 | ⏸️ pendente | 🔴 sinais de cancelamento — abordagem proativa replicável |
+
+Ver perfil detalhado: [cliente-martinho-cacambas.md](cliente-martinho-cacambas.md)
