@@ -117,10 +117,9 @@ class CmsPageController extends Controller
             abort(404);
         }
 
-        // Inertia::defer: CmsPage::with(['pageMeta']) eager-load relacionamento — pesado.
-        // — RUNBOOK-inertia-defer-pattern.md (skill inertia-defer-default Tier B).
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Site/Page', [
-            'page' => Inertia::defer(fn () => $this->buildPagePayload($title)),
+            'page' => $this->buildPagePayload($title),
         ]);
     }
 

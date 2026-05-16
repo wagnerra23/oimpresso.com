@@ -134,10 +134,9 @@ class CmsController extends Controller
 
     public function getBlogList()
     {
-        // Inertia::defer: query CmsPage::where()->get() (eager full table scan blogs)
-        // — RUNBOOK-inertia-defer-pattern.md (ADR 0094 §5 SoC + skill inertia-defer-default).
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Site/Blogs', [
-            'posts' => Inertia::defer(fn () => $this->buildBlogListPayload()),
+            'posts' => $this->buildBlogListPayload(),
         ]);
     }
 
@@ -169,10 +168,9 @@ class CmsController extends Controller
         // Resolve id eager (precisa pra findOrFail throw 404 antes da defer).
         $id = $this->cmsUtil->findIdFromGivenUrl($request->url());
 
-        // Inertia::defer: query CmsPage com findOrFail diferida pro after-shell paint.
-        // — RUNBOOK-inertia-defer-pattern.md.
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Site/BlogPost', [
-            'post' => Inertia::defer(fn () => $this->buildBlogPostPayload($id)),
+            'post' => $this->buildBlogPostPayload($id),
         ]);
     }
 
