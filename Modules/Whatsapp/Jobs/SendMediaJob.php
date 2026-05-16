@@ -12,6 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Util\OtelHelper;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
@@ -50,6 +51,19 @@ class SendMediaJob implements ShouldQueue
 
     public function handle(): void
     {
+        OtelHelper::span('whatsapp.message.send_media', [
+            'business_id' => $this->businessId,
+            'message_id' => $this->messageId,
+        ], fn () => $this->doHandle());
+    }
+
+    private function doHandle(): void
+    {
+        Log::info('whatsapp.message.send_media.started', [
+            'business_id' => $this->businessId,
+            'message_id' => $this->messageId,
+        ]);
+
         $message = Message::withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $this->businessId)
             ->where('id', $this->messageId)

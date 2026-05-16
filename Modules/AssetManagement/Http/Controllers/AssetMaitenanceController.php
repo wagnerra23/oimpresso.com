@@ -12,9 +12,14 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
+use Modules\AssetManagement\Services\AssetMaintenanceService;
 use Modules\AssetManagement\Utils\AssetUtil;
 use Yajra\DataTables\Facades\DataTables;
 
+/**
+ * Wave 16 governance D4 Architecture: Controller magro — regras de
+ * persistencia delegadas a AssetMaintenanceService.
+ */
 class AssetMaitenanceController extends Controller
 {
     /**
@@ -26,14 +31,21 @@ class AssetMaitenanceController extends Controller
 
     protected $assetUtil;
 
+    protected $maintenanceService;
+
     /**
-     * Constructor
+     * Constructor — DI Service + Utils legacy.
      */
-    public function __construct(ModuleUtil $moduleUtil, Util $commonUtil, AssetUtil $assetUtil)
-    {
+    public function __construct(
+        ModuleUtil $moduleUtil,
+        Util $commonUtil,
+        AssetUtil $assetUtil,
+        AssetMaintenanceService $maintenanceService,
+    ) {
         $this->moduleUtil = $moduleUtil;
         $this->commonUtil = $commonUtil;
         $this->assetUtil = $assetUtil;
+        $this->maintenanceService = $maintenanceService;
 
         $this->maintenanceStatuses = $this->assetUtil->maintenanceStatuses();
 
@@ -233,32 +245,9 @@ class AssetMaitenanceController extends Controller
         }
 
         try {
-            $input = $request->only('status', 'priority', 'asset_id', 'maintenance_note');
-
-            $ref_count = $this->commonUtil->setAndGetReferenceCount('asset_maintenance', $business_id);
-            $asset_settings = $this->assetUtil->getAssetSettings($business_id);
-
-            DB::beginTransaction();
-            $asset_maintenance_prefix = $asset_settings['asset_maintenance_prefix'] ?? null;
-            $input['maitenance_id'] = $this->commonUtil->generateReferenceNumber('asset_maintenance', $ref_count, null, $asset_maintenance_prefix);
-            $input['business_id'] = $business_id;
-            $input['created_by'] = auth()->user()->id;
-
-            $asset_maintenance = AssetMaintenance::create($input);
-
-            //upload attachments
-            if ($request->has('attachments')) {
-                Media::uploadMedia($business_id, $asset_maintenance, $request, 'attachments');
-            }
-
-            //send notification
-            $this->assetUtil->sendAssetSentForMaintenanceNotification($asset_maintenance->id);
-
-            DB::commit();
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
+            // Wave 16 D4 — criacao + notificacao delegada a AssetMaintenanceService.
+            $this->maintenanceService->criar($request, (int) $business_id, (int) auth()->user()->id);
+            $output = ['success' => true, 'msg' => __('lang_v1.success')];
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
@@ -335,33 +324,9 @@ class AssetMaitenanceController extends Controller
         }
 
         try {
-            $input = $request->only('status', 'priority', 'details', 'assigned_to');
-
-            $asset_maintenance = AssetMaintenance::find($id);
-
-            $previous_assigned_to = $asset_maintenance->assigned_to;
-
-            DB::beginTransaction();
-
-            $asset_maintenance->update($input);
-
-            //upload attachments
-            if ($request->has('attachments')) {
-                Media::uploadMedia($business_id, $asset_maintenance, $request, 'attachments');
-            }
-
-            //if assigned user changed send notification
-            if (! empty($input['assigned_to']) &&
-                $previous_assigned_to !== $input['assigned_to']) {
-                $this->assetUtil->sendAssetAssignedForMaintenanceNotification($asset_maintenance->id);
-            }
-
-            DB::commit();
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
+            // Wave 16 D4 — atualizacao + notificacao delegada a AssetMaintenanceService.
+            $this->maintenanceService->atualizar($request, (int) $id, (int) $business_id);
+            $output = ['success' => true, 'msg' => __('lang_v1.success')];
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
@@ -392,23 +357,12 @@ class AssetMaitenanceController extends Controller
 
         if (request()->ajax()) {
             try {
-                $asset_maintenance = AssetMaintenance::where('business_id', $business_id)
-                            ->findOrfail($id);
-
-                $asset_maintenance->delete();
-                $asset_maintenance->media()->delete();
-
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                ];
-            } catch (Exception $e) {
+                // Wave 16 D4 — remocao delegada a AssetMaintenanceService.
+                $this->maintenanceService->remover((int) $id, (int) $business_id);
+                $output = ['success' => true, 'msg' => __('lang_v1.success')];
+            } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
+                $output = ['success' => false, 'msg' => __('messages.something_went_wrong')];
             }
 
             return $output;

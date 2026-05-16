@@ -5,19 +5,18 @@ namespace Modules\Woocommerce\Http\Controllers;
 use App\Business;
 use App\BusinessLocation;
 use App\Category;
-use App\Media;
 use App\Product;
 use App\SellingPriceGroup;
 use App\System;
 use App\TaxRate;
 use App\Utils\ModuleUtil;
-use App\Variation;
-use App\VariationTemplate;
-use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-use Modules\Woocommerce\Entities\WoocommerceSyncLog;
+use Modules\Woocommerce\Repositories\WoocommerceSyncLogRepository;
+use Modules\Woocommerce\Services\WoocommerceAuthorizationService;
+use Modules\Woocommerce\Services\WoocommerceResetService;
+use Modules\Woocommerce\Services\WoocommerceSyncService;
 use Modules\Woocommerce\Utils\WoocommerceUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -31,15 +30,34 @@ class WoocommerceController extends Controller
     protected $moduleUtil;
 
     /**
-     * Constructor
-     *
-     * @param  WoocommerceUtil  $woocommerceUtil
-     * @return void
+     * Services + Repository — D4 Wave 16 governance v3:
+     * Controller thin, lógica de negócio em Services injetados.
      */
-    public function __construct(WoocommerceUtil $woocommerceUtil, ModuleUtil $moduleUtil)
-    {
+    protected WoocommerceAuthorizationService $authService;
+
+    protected WoocommerceSyncService $syncService;
+
+    protected WoocommerceResetService $resetService;
+
+    protected WoocommerceSyncLogRepository $logRepo;
+
+    /**
+     * Constructor — DI completa (Service Container resolve dependências automaticamente).
+     */
+    public function __construct(
+        WoocommerceUtil $woocommerceUtil,
+        ModuleUtil $moduleUtil,
+        WoocommerceAuthorizationService $authService,
+        WoocommerceSyncService $syncService,
+        WoocommerceResetService $resetService,
+        WoocommerceSyncLogRepository $logRepo
+    ) {
         $this->woocommerceUtil = $woocommerceUtil;
         $this->moduleUtil = $moduleUtil;
+        $this->authService = $authService;
+        $this->syncService = $syncService;
+        $this->resetService = $resetService;
+        $this->logRepo = $logRepo;
     }
 
     /**
@@ -50,11 +68,8 @@ class WoocommerceController extends Controller
     public function index()
     {
         try {
-            $business_id = request()->session()->get('business.id');
-
-            if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module'))) {
-                abort(403, 'Unauthorized action.');
-            }
+            $business_id = (int) request()->session()->get('business.id');
+            $this->authService->ensureModulo($business_id);
 
             $tax_rates = TaxRate::where('business_id', $business_id)
                             ->get();
@@ -137,11 +152,8 @@ class WoocommerceController extends Controller
      */
     public function apiSettings()
     {
-        $business_id = request()->session()->get('business.id');
-
-        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module') && auth()->user()->can('woocommerce.access_woocommerce_api_settings')))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureAcao($business_id, 'woocommerce.access_woocommerce_api_settings');
 
         $default_settings = [
             'woocommerce_app_url' => '',
@@ -194,11 +206,8 @@ class WoocommerceController extends Controller
      */
     public function updateSettings(Request $request)
     {
-        $business_id = request()->session()->get('business.id');
-
-        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module') && auth()->user()->can('woocommerce.access_woocommerce_api_settings')))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureAcao($business_id, 'woocommerce.access_woocommerce_api_settings');
 
         $notAllowed = $this->woocommerceUtil->notAllowedInDemo();
         if (! empty($notAllowed)) {
@@ -242,45 +251,18 @@ class WoocommerceController extends Controller
      */
     public function syncCategories()
     {
-        $business_id = request()->session()->get('business.id');
-
-        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module') && auth()->user()->can('woocommerce.syc_categories')))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureAcao($business_id, 'woocommerce.syc_categories');
 
         $notAllowed = $this->woocommerceUtil->notAllowedInDemo();
         if (! empty($notAllowed)) {
             return $notAllowed;
         }
 
-        try {
-            DB::beginTransaction();
-            $user_id = request()->session()->get('user.id');
+        $user_id = (int) request()->session()->get('user.id');
 
-            $this->woocommerceUtil->syncCategories($business_id, $user_id);
-
-            DB::commit();
-
-            $output = ['success' => 1,
-                'msg' => __('woocommerce::lang.synced_successfully'),
-            ];
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            if (get_class($e) == 'Modules\Woocommerce\Exceptions\WooCommerceError') {
-                $output = ['success' => 0,
-                    'msg' => $e->getMessage(),
-                ];
-            } else {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => 0,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-        }
-
-        return $output;
+        // D4 — delega ao Service (transação + try/catch + WooCommerceError handling lá).
+        return $this->syncService->sincronizarCategorias($business_id, $user_id);
     }
 
     /**
@@ -295,48 +277,16 @@ class WoocommerceController extends Controller
             return $notAllowed;
         }
 
-        $business_id = request()->session()->get('business.id');
-        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module') && auth()->user()->can('woocommerce.sync_products')))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureAcao($business_id, 'woocommerce.sync_products');
 
-        ini_set('memory_limit', '-1');
-        ini_set('max_execution_time', 0);
+        $user_id = (int) request()->session()->get('user.id');
+        $sync_type = (string) request()->input('type');
+        $offset = request()->input('offset');
+        $offsetInt = $offset !== null ? (int) $offset : null;
 
-        try {
-            $user_id = request()->session()->get('user.id');
-            $sync_type = request()->input('type');
-
-            DB::beginTransaction();
-
-            $offset = request()->input('offset');
-            $limit = 100;
-            $all_products = $this->woocommerceUtil->syncProducts($business_id, $user_id, $sync_type, $limit, $offset);
-            $total_products = count($all_products);
-
-            DB::commit();
-            $msg = $total_products > 0 ? __('woocommerce::lang.n_products_synced_successfully', ['count' => $total_products]) : __('woocommerce::lang.synced_successfully');
-            $output = ['success' => 1,
-                'msg' => $msg,
-                'total_products' => $total_products,
-            ];
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            if (get_class($e) == 'Modules\Woocommerce\Exceptions\WooCommerceError') {
-                $output = ['success' => 0,
-                    'msg' => $e->getMessage(),
-                ];
-            } else {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => 0,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-        }
-
-        return $output;
+        // D4 — Service gerencia ini_set + transação + retry shape.
+        return $this->syncService->sincronizarProdutos($business_id, $user_id, $sync_type, 100, $offsetInt);
     }
 
     /**
@@ -351,39 +301,13 @@ class WoocommerceController extends Controller
             return $notAllowed;
         }
 
-        $business_id = request()->session()->get('business.id');
-        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module') && auth()->user()->can('woocommerce.sync_orders')))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureAcao($business_id, 'woocommerce.sync_orders');
 
-        try {
-            DB::beginTransaction();
-            $user_id = request()->session()->get('user.id');
+        $user_id = (int) request()->session()->get('user.id');
 
-            $this->woocommerceUtil->syncOrders($business_id, $user_id);
-
-            DB::commit();
-
-            $output = ['success' => 1,
-                'msg' => __('woocommerce::lang.synced_successfully'),
-            ];
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            if (get_class($e) == 'Modules\Woocommerce\Exceptions\WooCommerceError') {
-                $output = ['success' => 0,
-                    'msg' => $e->getMessage(),
-                ];
-            } else {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => 0,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-        }
-
-        return $output;
+        // D4 — delega ao Service.
+        return $this->syncService->sincronizarOrders($business_id, $user_id);
     }
 
     /**
@@ -398,10 +322,8 @@ class WoocommerceController extends Controller
             return $notAllowed;
         }
 
-        $business_id = request()->session()->get('business.id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureModulo($business_id);
 
         if (request()->ajax()) {
             $last_sync = [
@@ -428,10 +350,8 @@ class WoocommerceController extends Controller
             return $notAllowed;
         }
 
-        $business_id = request()->session()->get('business.id');
-        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module') && auth()->user()->can('woocommerce.map_tax_rates')))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureAcao($business_id, 'woocommerce.map_tax_rates');
 
         try {
             $input = $request->except('_token');
@@ -446,8 +366,6 @@ class WoocommerceController extends Controller
                 'msg' => __('lang_v1.updated_succesfully'),
             ];
         } catch (\Exception $e) {
-            DB::rollBack();
-
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = ['success' => 0,
@@ -465,22 +383,11 @@ class WoocommerceController extends Controller
      */
     public function viewSyncLog()
     {
-        $business_id = request()->session()->get('business.id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureModulo($business_id);
 
         if (request()->ajax()) {
-            $logs = WoocommerceSyncLog::where('woocommerce_sync_logs.business_id', $business_id)
-                    ->leftjoin('users as U', 'U.id', '=', 'woocommerce_sync_logs.created_by')
-                    ->select([
-                        'woocommerce_sync_logs.created_at',
-                        'sync_type', 'operation_type',
-                        DB::raw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as full_name"),
-                        'woocommerce_sync_logs.data',
-                        'woocommerce_sync_logs.details as log_details',
-                        'woocommerce_sync_logs.id as DT_RowId',
-                    ]);
+            // D4 — Repository monta query base com filtro business_id + RBAC sync_types.
             $sync_type = [];
             if (auth()->user()->can('woocommerce.syc_categories')) {
                 $sync_type[] = 'categories';
@@ -489,13 +396,12 @@ class WoocommerceController extends Controller
                 $sync_type[] = 'all_products';
                 $sync_type[] = 'new_products';
             }
-
             if (auth()->user()->can('woocommerce.sync_orders')) {
                 $sync_type[] = 'orders';
             }
-            if (! auth()->user()->can('superadmin')) {
-                $logs->whereIn('sync_type', $sync_type);
-            }
+
+            $isSuperadmin = (bool) auth()->user()->can('superadmin');
+            $logs = $this->logRepo->paraDatatable($business_id, $sync_type, $isSuperadmin);
 
             return Datatables::of($logs)
                 ->editColumn('created_at', function ($row) {
@@ -560,15 +466,13 @@ class WoocommerceController extends Controller
      */
     public function getLogDetails($id)
     {
-        $business_id = request()->session()->get('business.id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureModulo($business_id);
 
         if (request()->ajax()) {
-            $log = WoocommerceSyncLog::where('business_id', $business_id)
-                                            ->find($id);
-            $log_details = json_decode($log->details);
+            // D4 — Repository encapsula scope business_id.
+            $log = $this->logRepo->detalhe($business_id, (int) $id);
+            $log_details = $log ? json_decode($log->details) : null;
 
             return view('woocommerce::woocommerce.partials.log_details')
                     ->with(compact('log_details'));
@@ -582,30 +486,14 @@ class WoocommerceController extends Controller
      */
     public function resetCategories()
     {
-        $business_id = request()->session()->get('business.id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureModulo($business_id);
 
         if (request()->ajax()) {
-            try {
-                Category::where('business_id', $business_id)
-                        ->update(['woocommerce_cat_id' => null]);
-                $user_id = request()->session()->get('user.id');
-                $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'categories', 'reset', null);
+            $user_id = (int) request()->session()->get('user.id');
 
-                $output = ['success' => 1,
-                    'msg' => __('woocommerce::lang.cat_reset_success'),
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => 0,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
+            // D4 — delega ao ResetService (5 tabelas tocadas lá com filtro business_id).
+            return $this->resetService->resetarCategorias($business_id, $user_id);
         }
     }
 
@@ -616,51 +504,15 @@ class WoocommerceController extends Controller
      */
     public function resetProducts()
     {
-        $business_id = request()->session()->get('business.id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'woocommerce_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureModulo($business_id);
 
         if (request()->ajax()) {
-            try {
-                //Update products table
-                Product::where('business_id', $business_id)
-                        ->update(['woocommerce_product_id' => null, 'woocommerce_media_id' => null]);
+            $user_id = (int) request()->session()->get('user.id');
 
-                $product_ids = Product::where('business_id', $business_id)
-                                    ->pluck('id');
-
-                $product_ids = ! empty($product_ids) ? $product_ids : [];
-                //Update variations table
-                Variation::whereIn('product_id', $product_ids)
-                        ->update([
-                            'woocommerce_variation_id' => null,
-                        ]);
-
-                //Update variation templates
-                VariationTemplate::where('business_id', $business_id)
-                                ->update([
-                                    'woocommerce_attr_id' => null,
-                                ]);
-
-                Media::where('business_id', $business_id)
-                        ->update(['woocommerce_media_id' => null]);
-
-                $user_id = request()->session()->get('user.id');
-                $this->woocommerceUtil->createSyncLog($business_id, $user_id, 'all_products', 'reset', null);
-
-                $output = ['success' => 1,
-                    'msg' => __('woocommerce::lang.prod_reset_success'),
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => 0,
-                    'msg' => 'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage(),
-                ];
-            }
-
-            return $output;
+            // D4 — delega ao ResetService (5 tabelas: products, variations,
+            // variation_templates, medias, woocommerce_sync_logs).
+            return $this->resetService->resetarProdutos($business_id, $user_id);
         }
     }
 }

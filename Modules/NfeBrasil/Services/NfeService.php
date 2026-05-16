@@ -1302,11 +1302,17 @@ class NfeService
                 );
             }
 
-            Log::info('NfeService: NF-e autorizada', [
-                'business_id' => $businessId,
-                'emissao_id'  => $emissao->id,
-                'chave_44'    => $chNFe,
-                'nProt'       => $nProt,
+            // D9.a Log estruturado padrão `nfe.retorno_sefaz` — biz/chave/cstat
+            // canônico pra dashboards Grafana/Loki + correlação com OTel span.
+            Log::info('nfe.retorno_sefaz', [
+                'biz'        => $businessId,
+                'chave'      => $chNFe,
+                'cstat'      => $cstat,
+                'motivo'     => $xMotivo,
+                'status'     => 'autorizada',
+                'emissao_id' => $emissao->id,
+                'nProt'      => $nProt,
+                'modelo'     => (string) $emissao->modelo,
             ]);
 
             // US-NFE-044 — gera DANFE PDF (defensivo: falha não derruba a emissão)
@@ -1322,10 +1328,13 @@ class NfeService
                 'cstat'  => $cstat,
                 'motivo' => $xMotivo,
             ]);
-            Log::warning('NfeService: NF-e denegada', [
-                'business_id' => $businessId,
-                'cstat'       => $cstat,
-                'motivo'      => $xMotivo,
+            Log::warning('nfe.retorno_sefaz', [
+                'biz'        => $businessId,
+                'chave'      => $chNFe,
+                'cstat'      => $cstat,
+                'motivo'     => $xMotivo,
+                'status'     => 'denegada',
+                'emissao_id' => $emissao->id,
             ]);
             return;
         }
@@ -1336,10 +1345,13 @@ class NfeService
             'cstat'  => $cstat,
             'motivo' => $xMotivo,
         ]);
-        Log::warning('NfeService: NF-e rejeitada', [
-            'business_id' => $businessId,
-            'cstat'       => $cstat,
-            'motivo'      => $xMotivo,
+        Log::warning('nfe.retorno_sefaz', [
+            'biz'        => $businessId,
+            'chave'      => $chNFe,
+            'cstat'      => $cstat,
+            'motivo'     => $xMotivo,
+            'status'     => 'rejeitada',
+            'emissao_id' => $emissao->id,
         ]);
     }
 

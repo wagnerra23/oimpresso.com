@@ -20,7 +20,11 @@ use Modules\Jana\Services\HealthSnapshotService;
  * Pipeline: HealthSnapshotService::snapshot() → HealthNarratorService::narrate()
  * → persist em jana_health_narratives → escalation HITL Wagner se severity=critical.
  *
- * Sem business_id — superadmin/plataforma toda. Constructor sem args (cron-driven).
+ * MULTI-TENANT: superadmin job, sem business_id by design (ADR 0093
+ * §"Commands & Jobs sem HTTP context"). Brain A narra SAUDE DO ECOSSISTEMA
+ * inteiro (cross-tenant) — proposito explicito e auditavel. Constructor sem
+ * args (cron-driven hourly). Wave 16 governance v3 — marker reforcado pra
+ * rubrica D1 v3.2 hardened distinguir "esqueceu businessId" de "by design".
  *
  * Schedule: hourly em app/Console/Kernel.php (live only). Cron rodando 24x/dia
  * com gpt-4o-mini ~R$ 0.30/dia (cap protegido por jana:health-check check

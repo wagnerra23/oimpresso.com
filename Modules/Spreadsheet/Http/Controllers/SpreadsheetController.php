@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Spreadsheet\Entities\Spreadsheet;
 use Modules\Spreadsheet\Entities\SpreadsheetShare;
 use Modules\Spreadsheet\Notifications\SpreadsheetShared;
+use Modules\Spreadsheet\Services\SpreadsheetService;
 use Notification;
 use Spatie\Permission\Models\Role;
 
@@ -23,14 +24,22 @@ class SpreadsheetController extends Controller
     protected $moduleUtil;
 
     /**
+     * Service layer canônico (D4 architecture — Wave 16 governance v3).
+     * Concentra criação/atualização/remoção de spreadsheets fora do Controller.
+     */
+    protected SpreadsheetService $service;
+
+    /**
      * Constructor
      *
-     * @param CommonUtil
+     * @param  ModuleUtil  $moduleUtil
+     * @param  SpreadsheetService  $service  injetado via container Laravel (DI)
      * @return void
      */
-    public function __construct(ModuleUtil $moduleUtil)
+    public function __construct(ModuleUtil $moduleUtil, SpreadsheetService $service)
     {
         $this->moduleUtil = $moduleUtil;
+        $this->service    = $service;
     }
 
     /**
@@ -151,31 +160,18 @@ class SpreadsheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        try {
-            $input['name'] = ! empty($request->input('name')) ? $request->input('name') : 'My Spreasheet';
-            $input['sheet_data'] = $request->input('sheet_data');
-            $input['business_id'] = $business_id;
-            $input['created_by'] = auth()->user()->id;
-            $input['folder_id'] = $request->input('folder_id');
-            DB::beginTransaction();
+        // D4 architecture: delega criação ao Service (multi-tenant Tier 0 explícito)
+        $input = [
+            'name'       => $request->input('name'),
+            'sheet_data' => $request->input('sheet_data'),
+            'folder_id'  => $request->input('folder_id'),
+        ];
 
-            Spreadsheet::create($input);
+        $sheet = $this->service->createSpreadsheet($input, $business_id, auth()->user()->id);
 
-            DB::commit();
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (Exception $e) {
-            DB::rollBack();
-
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
+        $output = $sheet !== null
+            ? ['success' => true,  'msg' => __('lang_v1.success')]
+            : ['success' => false, 'msg' => __('messages.something_went_wrong')];
 
         return redirect()
             ->action([\Modules\Spreadsheet\Http\Controllers\SpreadsheetController::class, 'index'])

@@ -44,6 +44,13 @@ class ProcessarImportacaoAfdJob implements ShouldQueue
 
     public function handle(AfdParserService $parser)
     {
+        // D9.b Wave 16 — log estruturado entry queue worker. Tier 0: business_id
+        // SEMPRE no constructor (session() não funciona em fila — ADR 0093).
+        Log::info('ponto.afd.job.iniciado', [
+            'business_id'   => $this->businessId,
+            'importacao_id' => $this->importacaoId,
+        ]);
+
         // SUPERADMIN: job sem session (queue worker não tem auth) — scope manual
         // garante isolamento multi-tenant Tier 0. Ver ADR 0093 + ScopeByBusiness.
         $importacao = Importacao::where('business_id', $this->businessId)

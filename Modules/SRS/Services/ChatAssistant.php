@@ -2,6 +2,8 @@
 
 namespace Modules\SRS\Services;
 
+use App\Util\OtelHelper;
+
 /**
  * Responde perguntas sobre o conhecimento consolidado no MemCofre.
  *
@@ -22,6 +24,16 @@ class ChatAssistant
      * @return array{reply: string, sources: array, mode: string, tokens_used: ?int}
      */
     public function ask(string $question, ?string $moduleContext = null): array
+    {
+        return OtelHelper::spanBiz('srs.chat.ask', function () use ($question, $moduleContext) {
+            return $this->askInterno($question, $moduleContext);
+        }, ['module_context' => $moduleContext ?? 'all', 'question_len' => strlen($question)]);
+    }
+
+    /**
+     * Implementação interna de ask — envolvida pelo span OTel acima (D9 observability).
+     */
+    protected function askInterno(string $question, ?string $moduleContext): array
     {
         $snippets = $this->retrieve($question, $moduleContext);
 

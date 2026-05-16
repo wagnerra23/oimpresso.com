@@ -2,7 +2,9 @@
 
 namespace Modules\RecurringBilling\Services\Boleto;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Modules\RecurringBilling\Contracts\BoletoDriverContract;
 use Modules\RecurringBilling\Dto\BoletoResult;
 use Modules\RecurringBilling\Models\BoletoCredential;
@@ -22,17 +24,47 @@ class BoletoService
 {
     public function emitir(int $businessId, array $params): BoletoResult
     {
-        return $this->driver($businessId)->emitir($params);
+        return OtelHelper::spanBiz('rb.boleto.emitir', function () use ($businessId, $params) {
+            $result = $this->driver($businessId)->emitir($params);
+
+            // D9.b log estruturado emissão (sem PII — só identificadores + valor).
+            Log::info('rb.boleto.emitido', [
+                'business_id'  => $businessId,
+                'gateway'      => $this->resolveDriverName($businessId),
+                'valor'        => $params['valor'] ?? null,
+                'vencimento'   => $params['vencimento'] ?? null,
+                'nosso_numero' => method_exists($result, 'getNossoNumero') ? $result->getNossoNumero() : ($result->nossoNumero ?? null),
+            ]);
+
+            return $result;
+        }, [
+            'module'      => 'RecurringBilling',
+            'op'          => 'boleto.emitir',
+            'business_id' => $businessId,
+        ]);
     }
 
     public function cancelar(int $businessId, string $nossoNumero, string $motivo = 'ACERTOS'): bool
     {
-        return $this->driver($businessId)->cancelar($nossoNumero, $motivo);
+        return OtelHelper::spanBiz('rb.boleto.cancelar', function () use ($businessId, $nossoNumero, $motivo) {
+            return $this->driver($businessId)->cancelar($nossoNumero, $motivo);
+        }, [
+            'module'        => 'RecurringBilling',
+            'op'            => 'boleto.cancelar',
+            'business_id'   => $businessId,
+            'motivo'        => $motivo,
+        ]);
     }
 
     public function pdf(int $businessId, string $nossoNumero): string
     {
-        return $this->driver($businessId)->pdf($nossoNumero);
+        return OtelHelper::spanBiz('rb.boleto.pdf', function () use ($businessId, $nossoNumero) {
+            return $this->driver($businessId)->pdf($nossoNumero);
+        }, [
+            'module'      => 'RecurringBilling',
+            'op'          => 'boleto.pdf',
+            'business_id' => $businessId,
+        ]);
     }
 
     /**
@@ -51,16 +83,34 @@ class BoletoService
      */
     public function refundAsaas(int $businessId, string $chargeId, string $descricao, ?float $valor = null): array
     {
-        $driver = $this->driver($businessId);
+        return OtelHelper::spanBiz('rb.boleto.refund_asaas', function () use ($businessId, $chargeId, $descricao, $valor) {
+            $driver = $this->driver($businessId);
 
-        if (! $driver instanceof AsaasDriver) {
-            throw new \InvalidArgumentException(
-                'refundAsaas() exige driver Asaas — tenant business_id=' . $businessId
-                . ' está configurado com driver diferente.'
-            );
-        }
+            if (! $driver instanceof AsaasDriver) {
+                throw new \InvalidArgumentException(
+                    'refundAsaas() exige driver Asaas — tenant business_id=' . $businessId
+                    . ' está configurado com driver diferente.'
+                );
+            }
 
-        return $driver->refund($chargeId, $descricao, $valor);
+            $resp = $driver->refund($chargeId, $descricao, $valor);
+
+            // D9.b log estruturado refund (sem PII — só identifiers + valor).
+            Log::info('rb.boleto.refund_asaas.executed', [
+                'business_id'    => $businessId,
+                'charge_id'      => $chargeId,
+                'valor_solicit'  => $valor,
+                'asaas_status'   => $resp['status'] ?? null,
+                'asaas_value'    => $resp['value'] ?? null,
+            ]);
+
+            return $resp;
+        }, [
+            'module'      => 'RecurringBilling',
+            'op'          => 'boleto.refund_asaas',
+            'business_id' => $businessId,
+            'partial'     => $valor !== null,
+        ]);
     }
 
     /**
@@ -79,6 +129,22 @@ class BoletoService
         }
 
         return $driver->fetchPayment($chargeId);
+    }
+
+    /**
+     * Resolve nome banco/gateway (string) sem instanciar driver (use só pra log/OTel).
+     * Fail-safe — retorna 'unknown' se credencial ausente em vez de explodir.
+     */
+    private function resolveDriverName(int $businessId): string
+    {
+        try {
+            $row = BoletoCredential::where('business_id', $businessId)
+                ->where('ativo', true)
+                ->first();
+            return $row?->banco ?? 'unknown';
+        } catch (\Throwable) {
+            return 'unknown';
+        }
     }
 
     private function driver(int $businessId): BoletoDriverContract

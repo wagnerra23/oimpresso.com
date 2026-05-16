@@ -2,7 +2,9 @@
 
 namespace Modules\Vestuario\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Modules\Vestuario\Entities\VestuarioSetting;
 
 /**
@@ -54,8 +56,14 @@ class VestuarioSettingsResolver
             return $default;
         }
 
-        $settings = $this->loadSettings($businessId);
-        return data_get($settings, $key, $default);
+        return OtelHelper::spanBiz('vestuario.settings.get', function () use ($key, $default, $businessId) {
+            $settings = $this->loadSettings($businessId);
+            return data_get($settings, $key, $default);
+        }, [
+            'module'       => 'Vestuario',
+            'setting_key'  => $key,
+            'business_id'  => $businessId,
+        ]);
     }
 
     /**
@@ -92,10 +100,23 @@ class VestuarioSettingsResolver
             return $this;
         }
 
-        $row = VestuarioSetting::firstOrCreate(['business_id' => $businessId], ['settings' => []]);
-        $row->set($key, $value);
+        OtelHelper::spanBiz('vestuario.settings.set', function () use ($key, $value, $businessId) {
+            $row = VestuarioSetting::firstOrCreate(['business_id' => $businessId], ['settings' => []]);
+            $row->set($key, $value);
+            $this->invalidateCache($businessId);
 
-        $this->invalidateCache($businessId);
+            // D9.b log estruturado: setting alterado (sem expor valor — só chave + tipo + biz).
+            Log::info('vestuario.settings.changed', [
+                'business_id' => $businessId,
+                'setting_key' => $key,
+                'value_type'  => is_scalar($value) ? gettype($value) : 'compound',
+            ]);
+        }, [
+            'module'       => 'Vestuario',
+            'setting_key'  => $key,
+            'business_id'  => $businessId,
+        ]);
+
         return $this;
     }
 
