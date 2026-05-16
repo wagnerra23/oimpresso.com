@@ -1,4 +1,16 @@
+---
+module: Mwart
+na_justified:
+  D5: "Mwart é meta-processo de governança (enforcement do caminho canônico Blade→Inertia — ADR 0104) — NÃO é módulo de features cliente-facing. Não há biz=4 ROTA LIVRE consumindo features Mwart; consumidores são `Modules/*` que migram para Inertia. D5 cliente real não aplica por design."
+  D4.b: "Mwart não tem state machine FSM (ADR 0143). É processo administrativo de gating (skill Tier A + hook PreToolUse + CI workflow), não fluxo de negócio com transições Eloquent. D4.b FSM canônica N/A."
+na_justified_v3:
+  D6.a: "Mwart é meta-processo (enforcement skill + hook + CI) — sem Controllers Inertia próprios. Inertia::defer N/A por ausência de telas geradas pelo módulo."
+related_adrs: [0104, 0106, 0153, 0154, 0155, 0156]
+---
+
 # Especificação funcional — MWART (processo canônico)
+
+> **N/A justificado** D5 + D4.b + D6.a — meta-processo de enforcement (skill + hook + CI gate), sem features cliente nem FSM nem Controllers Inertia próprios. Detalhes em [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md).
 
 > **Convenção do ID:** `US-MWART-NNN` para user stories de meta-processo.
 > **Origem:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — Wagner 2026-05-08 pediu único caminho de migração com enforcement, falhas inaceitáveis.
