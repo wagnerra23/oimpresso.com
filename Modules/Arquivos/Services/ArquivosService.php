@@ -4,12 +4,14 @@ namespace Modules\Arquivos\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\Curador\CuradorEngine;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * ArquivosService — API canônica do DMS backbone (ADR 0123 §API).
@@ -182,20 +184,64 @@ class ArquivosService
     private function audit(Arquivo $arquivo, string $action, array $payload): void
     {
         try {
+            // D7 LGPD (Wave 10): payload redactado antes de persistir.
+            // Filename pode conter CPF/CNPJ (ex: "contrato-cliente-123.456.789-00.pdf");
+            // payload de classificação pode conter sub_destination com PII.
+            // Audit log em si NÃO precisa armazenar PII bruta — só metadados.
+            $redacted = $this->redactPayload($payload);
+
             DB::table('arquivos_audit_log')->insert([
                 'arquivo_id'  => $arquivo->id,
                 'business_id' => $arquivo->business_id,
                 'user_id'     => auth()->id(),
                 'action'      => $action,
-                'payload'     => json_encode($payload),
+                'payload'     => json_encode($redacted),
                 'created_at'  => now(),
             ]);
         } catch (\Throwable $e) {
+            // D7 LGPD: erro NÃO pode vazar filename/path em log → PiiRedactor.
             Log::warning('arquivos.audit_failed', [
                 'arquivo_id' => $arquivo->id ?? null,
                 'action'     => $action,
-                'error'      => $e->getMessage(),
+                'error'      => $this->redactPiiSafe($e->getMessage()),
             ]);
+        }
+    }
+
+    /**
+     * D7 LGPD — redactor PII em payload de audit log antes de persistir.
+     *
+     * Filename pode trazer CPF/CNPJ embutido (ex: "rg-123.456.789-00.pdf",
+     * "contrato-12.345.678-0001-90.pdf"). Email/telefone podem aparecer em
+     * sub_destination ou metadados livres. PiiRedactor (Modules\Jana) cobre
+     * todos padrões BR canônicos (CPF, CNPJ, email, phone, CEP).
+     *
+     * Fail-open: se PiiRedactor não puder ser resolvido (boot/teardown), retorna
+     * payload original. Auditoria SEMPRE acontece, redaction é defesa em profundidade.
+     */
+    private function redactPayload(array $payload): array
+    {
+        try {
+            return App::make(PiiRedactor::class)->redactArray($payload);
+        } catch (\Throwable) {
+            return $payload; // fail-open: audit > redaction
+        }
+    }
+
+    /**
+     * D7 LGPD — redactor seguro pra strings de log (mensagens de erro).
+     * Fail-open por design — não pode quebrar o fluxo de auditoria.
+     */
+    private function redactPiiSafe(?string $input): string
+    {
+        if ($input === null || $input === '') {
+            return '';
+        }
+
+        try {
+            return App::make(PiiRedactor::class)->redact($input);
+        } catch (\Throwable) {
+            return $input;
         }
     }
 }

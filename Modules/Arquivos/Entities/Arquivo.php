@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Arquivo — model do DMS backbone (ADR 0123).
@@ -16,11 +18,42 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * Polimorfismo: $arquivo->arquivable retorna o owner (Transaction, Ticket, etc).
  *
+ * D7 LGPD (Wave 10 — 2026-05-16):
+ *   - LogsActivity Spatie em campos sensíveis de governança (bucket/visibility/
+ *     encrypted/retention_days/classified_by) — audit trail LGPD Art. 37.
+ *   - Audit dedicado já existe em `arquivos_audit_log` (upload/download/signed_url
+ *     /soft_delete/restore/hard_delete). LogsActivity adiciona reclassificação +
+ *     mudança de visibility + ajuste de retention sem duplicar PII.
+ *   - PII (filename/path/MD5) NUNCA logado em activity_log — fica isolado no
+ *     audit log dedicado com controles de acesso.
+ *
  * @see memory/decisions/0123-modules-arquivos-backbone.md
+ * @see Modules/Arquivos/Database/Migrations/2026_05_10_000002_create_arquivos_audit_log_table.php
  */
 class Arquivo extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * D7 LGPD — campos rastreados em activity_log. Filename/path/MD5 ficam
+     * apenas em `arquivos_audit_log` com user_id + payload + action (LGPD Art. 37).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'bucket',
+                'sub_destination',
+                'visibility',
+                'encrypted',
+                'retention_days',
+                'classified_by',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('arquivos.arquivo');
+    }
 
     protected $table = 'arquivos';
 
