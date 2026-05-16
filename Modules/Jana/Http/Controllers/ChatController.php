@@ -84,29 +84,118 @@ class ChatController extends Controller
 
     protected function renderChat(Conversa $conversa, $businessId, $userId)
     {
-        $conversas = Conversa::where('user_id', $userId)
+        // D-14 perf 2026-05-15 — props caras (lista de conversas + mensagens +
+        // sugestões pendentes) movidas pra Inertia::defer (skip quando partial
+        // reload `only:[...]` não pede). Pattern oimpresso ADR + skill
+        // `inertia-defer-default`. Frontend (Chat.tsx) wrap em <Deferred>.
+        //
+        // Eager (cheap): conversa atual (já carregada via findOrFail) + shell
+        // props (Business::query() limit 50, user lookup). Permanece síncrono.
+        $shellProps = $this->shellPropsForDeferred($businessId, $conversa, $userId);
+
+        return Inertia::render('Jana/Chat', array_merge(
+            $shellProps,
+            [
+                'conversa'           => $conversa,
+                'mensagens'          => Inertia::defer(fn () => $this->buildMensagensPayload($conversa)),
+                'sugestoesPendentes' => Inertia::defer(fn () => $this->buildSugestoesPendentesPayload($conversa)),
+            ]
+        ));
+    }
+
+    /**
+     * D-14 perf — mensagens da conversa em closure defer.
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function buildMensagensPayload(Conversa $conversa)
+    {
+        return $conversa->mensagens()->orderBy('created_at')->get();
+    }
+
+    /**
+     * D-14 perf — sugestões pendentes (não escolhidas/rejeitadas) em closure defer.
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function buildSugestoesPendentesPayload(Conversa $conversa)
+    {
+        return Sugestao::where('conversa_id', $conversa->id)
+            ->whereNull('escolhida_em')
+            ->whereNull('rejeitada_em')
+            ->get();
+    }
+
+    /**
+     * D-14 perf — shell props com lista de conversas deferida.
+     * Conversa atual + business + user permanecem eager (necessários no render inicial).
+     * Lista `conversas[recentes]` deferida (pode ter dezenas/centenas de rows).
+     */
+    protected function shellPropsForDeferred($businessId, ?Conversa $conversaFoco, $userId): array
+    {
+        $user    = auth()->user();
+        $isSuper = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
+
+        $businessesDisponiveis = $isSuper
+            ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
+            : \App\Business::where('id', $businessId)->get(['id', 'name']);
+
+        $businesses = $businessesDisponiveis->map(fn ($b) => [
+            'id'       => $b->id,
+            'nome'     => $b->name,
+            'iniciais' => $this->iniciais($b->name),
+            'ativa'    => $b->id === (int) $businessId,
+        ])->values();
+
+        $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
+
+        $roleName = null;
+        try {
+            $firstRole = method_exists($user, 'roles') ? $user->roles()->first() : null;
+            $roleName = $firstRole?->name;
+            if ($roleName) {
+                $roleName = preg_replace('/#\d+$/', '', $roleName);
+            }
+        } catch (\Throwable $e) {
+            $roleName = null;
+        }
+        $cargo = $isSuper ? 'Superadmin' : ($roleName ?: 'Usuário');
+
+        return [
+            'businessNome'     => session('business.name', 'Oimpresso Matriz'),
+            'businesses'       => $businesses,
+            'usuarioNome'      => $userNome,
+            'usuarioNomeCurto' => $user->first_name ?? 'Usuário',
+            'usuarioEmail'     => $user->email ?? '',
+            'usuarioCargo'     => $cargo,
+            'usuarioIniciais'  => $this->iniciais($userNome),
+            // Lista conversas (sidebar) — defer (pode ser dezenas/centenas).
+            'conversas'        => Inertia::defer(fn () => $this->buildConversasListPayload($businessId, $userId, $conversaFoco)),
+        ];
+    }
+
+    /**
+     * D-14 perf — lista de conversas do usuário (sidebar Cockpit) em closure defer.
+     * @return array{fixadas: array, rotinas: array, recentes: array}
+     */
+    protected function buildConversasListPayload($businessId, $userId, ?Conversa $conversaFoco): array
+    {
+        $conversasReais = Conversa::where('user_id', $userId)
             ->where('business_id', $businessId)
             ->orderByDesc('iniciada_em')
             ->get(['id', 'titulo', 'status', 'iniciada_em']);
 
-        $mensagens = $conversa->mensagens()->orderBy('created_at')->get();
+        $recentes = collect($conversasReais)->map(fn ($c) => [
+            'id'     => (string) $c->id,
+            'titulo' => $c->titulo,
+            'unread' => 0,
+            'origem' => 'COPI',
+            'ativa'  => $conversaFoco && (int) $c->id === (int) $conversaFoco->id,
+        ])->values()->all();
 
-        $sugestoesPendentes = Sugestao::where('conversa_id', $conversa->id)
-            ->whereNull('escolhida_em')
-            ->whereNull('rejeitada_em')
-            ->get();
-
-        // Sprint 1 (2026-04-27): Chat.tsx agora usa AppShellV2 (Cockpit) como
-        // layout-mae, então precisa dos shell props (business, user, conversas
-        // formatadas pra fixadas/rotinas/recentes).
-        return Inertia::render('Jana/Chat', array_merge(
-            $this->shellPropsFor($businessId, $conversas, $conversa),
-            [
-                'conversa'           => $conversa,
-                'mensagens'          => $mensagens,
-                'sugestoesPendentes' => $sugestoesPendentes,
-            ]
-        ));
+        return [
+            'fixadas'  => [],
+            'rotinas'  => [],
+            'recentes' => $recentes,
+        ];
     }
 
     /**

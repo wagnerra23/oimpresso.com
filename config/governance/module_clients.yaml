@@ -68,8 +68,8 @@ Brief:
   note: Wagner usa brief-fetch diário (Daily Brief)
 
 Ponto:
-  level: backlog_hipotese
-  note: clientes legacy WR2 — sinal qualificado pendente
+  level: piloto_reportando_dor
+  note: clientes legacy WR2 (Eliana) usam ponto eletronico em prod — Wagner valida sinal qualificado 2026-05-16
 
 Officeimpresso:
   level: piloto_reportando_dor
@@ -100,8 +100,8 @@ TeamMcp:
   note: tokens MCP team (Wagner/Felipe/Maiara/Eliana/Luiz)
 
 NFSe:
-  level: backlog_hipotese
-  note: pareado NfeBrasil — clientes legacy ComVis quando ativar
+  level: piloto_reportando_dor
+  note: pareado NfeBrasil — empresa oimpresso biz=1 homologação SEFIN + candidatos ComVis (Wave J boost 2026-05-16)
 
 Accounting:
   level: biz_4_rota_livre_prod

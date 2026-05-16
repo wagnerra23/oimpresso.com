@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\Schedule;
+use Modules\Crm\Services\ScheduleService;
 use Modules\Crm\Utils\CrmUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -29,17 +30,20 @@ class ScheduleController extends Controller
 
     protected $crmUtil;
 
+    protected ScheduleService $scheduleService;
+
     /**
      * Constructor
      *
      * @param CommonUtil
      * @return void
      */
-    public function __construct(Util $commonUtil, ModuleUtil $moduleUtil, CrmUtil $crmUtil)
+    public function __construct(Util $commonUtil, ModuleUtil $moduleUtil, CrmUtil $crmUtil, ScheduleService $scheduleService)
     {
         $this->commonUtil = $commonUtil;
         $this->moduleUtil = $moduleUtil;
         $this->crmUtil = $crmUtil;
+        $this->scheduleService = $scheduleService;
         $this->status_bg = [
             'scheduled' => 'bg-yellow',
             'open' => 'bg-blue',
@@ -371,20 +375,9 @@ class ScheduleController extends Controller
 
         try {
             $input = $request->except(['_token', 'schedule_for', 'contact_ids']);
-            if (empty($input['is_recursive'])) {
-                $input['start_datetime'] = $this->commonUtil->uf_date($input['start_datetime'], true);
-                $input['end_datetime'] = $this->commonUtil->uf_date($input['end_datetime'], true);
-            }
 
-            DB::beginTransaction();
-            if (empty($input['follow_ups']) && empty($input['is_recursive'])) {
-                $this->crmUtil->addFollowUp($input, \Auth::user());
-            } elseif (!empty($input['is_recursive'])) {
-                $this->crmUtil->addRecursiveFollowUp($input, \Auth::user());
-            } else {
-                $this->crmUtil->addAdvanceFollowUp($input, \Auth::user());
-            }
-            DB::commit();
+            // Service thin: normaliza datas + roteia entre 3 modos follow-up (simples/recursivo/advanced).
+            $this->scheduleService->createFollowUp($input, \Auth::user());
 
             $schedule_for = request()->get('schedule_for', 'customer');
 
@@ -394,7 +387,6 @@ class ScheduleController extends Controller
                 'schedule_for' => $schedule_for,
             ];
         } catch (Exception $e) {
-            DB::rollBack();
             \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
 
             $output = [
@@ -510,11 +502,10 @@ class ScheduleController extends Controller
         }
 
         try {
-            $request = $request->except(['_method', '_token', 'schedule_for']);
-            $request['start_datetime'] = $this->commonUtil->uf_date($request['start_datetime'], true);
-            $request['end_datetime'] = $this->commonUtil->uf_date($request['end_datetime'], true);
+            $payload = $request->except(['_method', '_token', 'schedule_for']);
 
-            $this->crmUtil->updateFollowUp($id, $request, \Auth::user());
+            // Service thin: normaliza datas + delega pra CrmUtil::updateFollowUp.
+            $this->scheduleService->updateFollowUp((int) $id, $payload, \Auth::user());
 
             $schedule_for = request()->get('schedule_for', 'customer');
 
