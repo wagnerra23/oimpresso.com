@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Arquivos\Services\ArquivosService;
 use Modules\NfeBrasil\Events\NFCeAutorizada;
 use Modules\NfeBrasil\Events\NFeAutorizada;
+use Modules\NfeBrasil\Http\Requests\StoreEmissaoRequest;
 use Modules\NfeBrasil\Listeners\EnviarDanfeNFCePorEmail;
 use Modules\NfeBrasil\Listeners\EnviarDanfePorEmail;
 use Modules\NfeBrasil\Models\NfeEmissao;
@@ -51,7 +52,7 @@ class NfeEmissaoController extends Controller
      * Body:
      *   modelo: '65' (default — NFC-e B2C) | '55' (NFe B2B)
      */
-    public function emitir(Request $request, int $tx): JsonResponse
+    public function emitir(StoreEmissaoRequest $request, int $tx): JsonResponse
     {
         $businessId = (int) $request->session()->get('business.id', 0);
         if ($businessId === 0) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -31,13 +32,16 @@ class HealthSnapshotService
 
     public function snapshot(): array
     {
-        return [
-            'generated_at' => now()->toIso8601String(),
-            'health' => $this->healthChecks(),
-            'queues' => $this->queueStats(),
-            'mcp' => $this->mcpStats(),
-            'brain_b' => $this->brainBStats(),
-        ];
+        // D9.a Observability — span zero-cost agrega 4 fontes (health/queues/mcp/brain_b).
+        return OtelHelper::spanBiz('jana.health.snapshot', function () {
+            return [
+                'generated_at' => now()->toIso8601String(),
+                'health' => $this->healthChecks(),
+                'queues' => $this->queueStats(),
+                'mcp' => $this->mcpStats(),
+                'brain_b' => $this->brainBStats(),
+            ];
+        });
     }
 
     /**

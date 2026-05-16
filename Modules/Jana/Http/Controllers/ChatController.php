@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Modules\Jana\Contracts\AiAdapter;
+use Modules\Jana\Http\Requests\SendChatMessageRequest;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Entities\Mensagem;
 use Modules\Jana\Entities\Meta;
@@ -307,10 +308,8 @@ class ChatController extends Controller
     /**
      * Usuário manda mensagem → IA responde + opcionalmente retorna propostas.
      */
-    public function send(Request $request, $id)
+    public function send(SendChatMessageRequest $request, $id)
     {
-        $request->validate(['content' => 'required|string|max:5000']);
-
         $conversa = Conversa::findOrFail($id);
         abort_unless($conversa->user_id === auth()->id(), 403);
 
@@ -362,10 +361,8 @@ class ChatController extends Controller
      * Frontend: fetch() + ReadableStream + TextDecoder pra parse linha-a-linha.
      * NÃO usa EventSource (que só faz GET; nosso endpoint é POST com body).
      */
-    public function sendStream(Request $request, $id): StreamedResponse
+    public function sendStream(SendChatMessageRequest $request, $id): StreamedResponse
     {
-        $request->validate(['content' => 'required|string|max:5000']);
-
         $conversa = Conversa::findOrFail($id);
         abort_unless($conversa->user_id === auth()->id(), 403);
 
