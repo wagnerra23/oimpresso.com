@@ -1,8 +1,9 @@
 ---
 module: SRS
 na_justified:
+  D5: "Módulo backend interno doc generation cross-business sem cliente externo direto. Serve geração/ingestão de SPEC/PRD/evidências pra TODOS módulos do oimpresso (uso Wagner backoffice). Cliente piloto ROTA LIVRE não interage com SRS — é tooling interno ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §SoC brutal + [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) §cliente sinal qualificado: dormente até cliente externo reportar dor). Sucessor MCP server canon já cobre o caso."
   D6.b: "SRS é ferramenta interna Wagner — uso raro, sem tráfego que justifique medir p99 OTel <500ms. Instrumentação OTel project-wide pendente. Sucessor natural é MCP server canon (`mcp.oimpresso.com`) — SRS pode ser descontinuado em ADR futura."
-related_adrs: [0093, 0153, 0154]
+related_adrs: [0093, 0094, 0105, 0153, 0154, 0155]
 ---
 
 # SPEC — Modules/SRS

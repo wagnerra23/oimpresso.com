@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Ai\AnonymousAgent;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Entities\Mensagem;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * MEM-S8-2 (ADR 0037 Sprint 8) — Comprime histórico de conversas longas.
@@ -147,12 +148,19 @@ class ConversationSummarizer
                 'compression_ratio' => round($tokensBefore / max(1, $tokensAfter), 2),
             ];
         } catch (\Throwable $e) {
+            // D7 LGPD (Wave 10) — exception->getMessage() pode echo prompt
+            // contendo PII do user (CPF/CNPJ/email). Redact ANTES de logar.
+            // PiiRedactor canônico (Modules/Jana/Services/Privacy) — ADR 0035.
+            $errSanitizado = app(PiiRedactor::class)->redact(
+                mb_substr($e->getMessage(), 0, 500)
+            );
+
             Log::channel('copiloto-ai')->error('ConversationSummarizer: erro', [
                 'conversa_id' => $conv->id,
-                'error' => $e->getMessage(),
+                'error' => $errSanitizado,
             ]);
 
-            return ['compressed' => false, 'error' => $e->getMessage()];
+            return ['compressed' => false, 'error' => $errSanitizado];
         }
     }
 

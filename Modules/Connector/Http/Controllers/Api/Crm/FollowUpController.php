@@ -9,6 +9,8 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Connector\Http\Controllers\Api\ApiController;
+use Modules\Connector\Http\Requests\StoreFollowUpRequest;
+use Modules\Connector\Http\Requests\UpdateFollowUpRequest;
 use Modules\Connector\Transformers\CommonResource;
 use Modules\Crm\Utils\CrmUtil;
 
@@ -347,22 +349,11 @@ class FollowUpController extends ApiController
         }
     }
      */
-    public function store(Request $request)
+    public function store(StoreFollowUpRequest $request)
     {
-        if (! $this->moduleUtil->isModuleInstalled('Crm')) {
-            abort(403, 'Unauthorized action.');
-        }
-
+        // D8.c Wave 10 — validation + authorize() movidos pra StoreFollowUpRequest.
+        // O FormRequest ja checa CRM module instalado + Passport antes do action rodar.
         try {
-            $request->validate([
-                'title' => 'required',
-                'contact_id' => 'required',
-                'start_datetime' => 'required',
-                'end_datetime' => 'required',
-                'schedule_type' => 'required',
-                'user_id' => 'required',
-            ]);
-
             $params = $request->only(['title', 'contact_id', 'description', 'notify_before',
                 'status', 'start_datetime', 'end_datetime', 'allow_notification', 'notify_via',
                 'notify_type', 'schedule_type', 'user_id', 'followup_additional_info', 'followup_category_id',
@@ -584,23 +575,11 @@ class FollowUpController extends ApiController
     }
     }
      */
-    public function update(Request $request, $follow_up_id)
+    public function update(UpdateFollowUpRequest $request, $follow_up_id)
     {
-        $user = Auth::user();
-        if (! ($this->moduleUtil->isModuleInstalled('Crm') && ($user->can('crm.access_all_schedule') || $user->can('crm.access_own_schedule')))) {
-            abort(403, 'Unauthorized action.');
-        }
-
+        // D8.c Wave 10 — validation + authorize() (CRM installed + permission) movidos
+        // pra UpdateFollowUpRequest. Falha de auth retorna 403 antes do action rodar.
         try {
-            $request->validate([
-                'title' => 'required',
-                'contact_id' => 'required',
-                'start_datetime' => 'required',
-                'end_datetime' => 'required',
-                'schedule_type' => 'required',
-                'user_id' => 'required',
-            ]);
-
             $params = $request->only(['title', 'contact_id', 'description', 'notify_before',
                 'status', 'start_datetime', 'end_datetime', 'allow_notification', 'notify_via',
                 'notify_type', 'schedule_type', 'user_id', 'followup_additional_info', 'followup_category_id',

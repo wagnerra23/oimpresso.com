@@ -46,9 +46,43 @@ return [
 
     /**
      * Retention default — dias após soft-delete pra hard-delete (job mensal).
-     * NULL = sem retenção explícita (LGPD compliance audit pendente).
+     *
+     * Default 90d (LGPD Art. 15-16 — eliminação tempestiva pós-finalidade).
+     *
+     * D7 LGPD (Wave 10 — 2026-05-16): documentação dos prazos canônicos
+     * brasileiros por bucket/sub_destination (consultados pelo policy
+     * RetentionCleanupCommand). Override por business via tabela
+     * `arquivos.retention_days` (per-row) ou .env ARQUIVOS_RETENTION_DAYS.
      */
     'retention_days_default' => env('ARQUIVOS_RETENTION_DAYS', 90),
+
+    /**
+     * Retention policy por sub_destination/contexto.
+     *
+     * Base legal BR (compliance audit Wave 10 — 2026-05-16):
+     *   - `nfe-xml` / `nfse-xml`: 5 anos (1825d) — Lei 8.846/94 Art. 23 +
+     *     SINIEF 07/2005 Art. 8 (guarda do XML autorizado).
+     *   - `documentos-fiscais`: 5 anos (1825d) — Lei 5.172/66 (CTN) Art. 173.
+     *   - `contratos`: 5 anos (1825d) — CDC Art. 27 (prescrição reparação) +
+     *     CPC Art. 205 (prescrição decenal — ajustar conforme natureza contrato).
+     *   - `repair-foto` / `os-anexo`: 2 anos (730d) — pós-encerramento OS.
+     *   - `ticket-anexo`: 1 ano (365d) — pós-fechamento ticket.
+     *   - `default` (sub_destination não mapeado): herda retention_days_default.
+     *
+     * Sprint 7+ pode evoluir pra policy engine que aplica overlay em runtime
+     * antes de invocar RetentionCleanupCommand. Hoje serve como source-of-truth
+     * documental + valor preenchido no campo `arquivos.retention_days` no upload.
+     */
+    'retention_days_policy' => [
+        'nfe-xml'              => 1825,
+        'nfse-xml'             => 1825,
+        'documentos-fiscais'   => 1825,
+        'contratos'            => 1825,
+        'repair-foto'          => 730,
+        'os-anexo'             => 730,
+        'ticket-anexo'         => 365,
+        'default'              => env('ARQUIVOS_RETENTION_DAYS', 90),
+    ],
 
     /**
      * Signed URL expiração (minutos). Default 60min (ADR 0123 §6).

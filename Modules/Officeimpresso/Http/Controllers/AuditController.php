@@ -4,6 +4,7 @@ namespace Modules\Officeimpresso\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\LicencaLog;
 
 /**
@@ -49,6 +50,27 @@ class AuditController extends Controller
             }
         }
 
+        // LGPD Tier 0 (Wave 10 D7.a): error_message + metadata vindos do Delphi
+        // podem conter PII (CNPJ/CPF/email/CEP/phone do cliente legacy). Redaciona
+        // ANTES de persistir em licenca_log (defense in depth — ADR 0094 §LGPD).
+        $piiRedactor = null;
+        try {
+            $piiRedactor = app(PiiRedactor::class);
+        } catch (\Throwable $piiError) {
+            // Fallback silencioso — abaixo trata nulo
+        }
+        $errorMessage = $payload['error_message'] ?? null;
+        if ($errorMessage !== null && $piiRedactor !== null) {
+            $errorMessage = $piiRedactor->redact((string) $errorMessage);
+        } elseif ($errorMessage !== null) {
+            $errorMessage = '[REDACTED:PII_FALLBACK]';
+        }
+        if (! empty($metadata) && $piiRedactor !== null) {
+            $metadata = $piiRedactor->redactArray($metadata);
+        } elseif (! empty($metadata)) {
+            $metadata = ['_redacted' => '[REDACTED:METADATA_PII_FALLBACK]'];
+        }
+
         $log = LicencaLog::create([
             'event'         => $payload['event']         ?? 'desktop_audit',
             'user_id'       => $request->user()->id ?? null,
@@ -61,7 +83,7 @@ class AuditController extends Controller
             'http_status'   => $payload['http_status']   ?? null,
             'duration_ms'   => $payload['duration_ms']   ?? null,
             'error_code'    => $payload['error_code']    ?? null,
-            'error_message' => $payload['error_message'] ?? null,
+            'error_message' => $errorMessage,
             'metadata'      => $metadata ?: null,
             'source'        => 'desktop_audit',
             'created_at'    => now(),

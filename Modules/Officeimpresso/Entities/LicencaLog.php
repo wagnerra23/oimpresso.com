@@ -3,6 +3,8 @@
 namespace Modules\Officeimpresso\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Append-only log de eventos de autenticacao / acesso dos desktops.
@@ -17,6 +19,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class LicencaLog extends Model
 {
+    use LogsActivity;
+
     protected $table = 'licenca_log';
 
     public $timestamps = false; // so created_at, sem updated_at
@@ -65,6 +69,22 @@ class LicencaLog extends Model
     public function user()
     {
         return $this->belongsTo(\App\User::class, 'user_id');
+    }
+
+    /**
+     * Auditoria LGPD Tier 0 (Wave 10 D7.b — 2026-05-16): apesar de licenca_log
+     * já ser append-only por design, a trait fornece audit secundário no
+     * activity_log (cross-business read) pra rastrear quem criou cada entry
+     * via admin_action (block/unblock manual). Eventos source=trigger_mysql /
+     * source=passport_event acontecem sem usuário autenticado e não geram
+     * activity log (LogOnlyDirty + dontSubmitEmptyLogs filtra).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     /**
