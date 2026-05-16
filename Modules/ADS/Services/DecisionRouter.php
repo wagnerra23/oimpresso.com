@@ -2,6 +2,7 @@
 
 namespace Modules\ADS\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -14,6 +15,9 @@ use Illuminate\Support\Str;
  *   2. Serialização por mutex de arquivo
  *   3. Risk + Confidence → threshold
  *   4. Destino: brain_a / brain_b / pending_wagner / blocked / queued
+ *
+ * Observabilidade: `route()` envolto em OTel span (D9.a — ADR 0155).
+ * Multi-tenant Tier 0: span auto-resolve `business_id` + propaga `$input->businessId` no attribute.
  */
 class DecisionRouter
 {
@@ -29,46 +33,54 @@ class DecisionRouter
      */
     public function route(RoutingInput $input): RoutingDecision
     {
-        // 1. Policy Engine — veto absoluto
-        $policyResult = $this->policy->check($input->eventType);
+        return OtelHelper::spanBiz('ads.decision_router.route', function () use ($input): RoutingDecision {
+            // 1. Policy Engine — veto absoluto
+            $policyResult = $this->policy->check($input->eventType);
 
-        if ($policyResult->isBlocked()) {
-            return $this->record($input, 'blocked', 0.0, 0.0, $policyResult->rule, 3);
-        }
+            if ($policyResult->isBlocked()) {
+                return $this->record($input, 'blocked', 0.0, 0.0, $policyResult->rule, 3);
+            }
 
-        if ($policyResult->requiresHuman()) {
-            return $this->record($input, 'pending_wagner', 0.0, 0.0, $policyResult->rule, 3);
-        }
+            if ($policyResult->requiresHuman()) {
+                return $this->record($input, 'pending_wagner', 0.0, 0.0, $policyResult->rule, 3);
+            }
 
-        // 2. Serialização — mutex por arquivo
-        if ($this->hasActiveLock($input->filesAffected)) {
-            return $this->record($input, 'queued', 0.0, 0.0, $policyResult->rule, 2);
-        }
+            // 2. Serialização — mutex por arquivo
+            if ($this->hasActiveLock($input->filesAffected)) {
+                return $this->record($input, 'queued', 0.0, 0.0, $policyResult->rule, 2);
+            }
 
-        // 3. Calcular scores
-        $riskResult       = $this->risk->calculate($input->eventType);
-        $confidenceScore  = $this->confidence->getScore($input->domain, $input->eventType);
-        $hitlLevel        = $this->confidence->getHitlLevel($input->domain, $input->eventType);
+            // 3. Calcular scores
+            $riskResult       = $this->risk->calculate($input->eventType);
+            $confidenceScore  = $this->confidence->getScore($input->domain, $input->eventType);
+            $hitlLevel        = $this->confidence->getHitlLevel($input->domain, $input->eventType);
 
-        // 4. Threshold do DB (global ou por domínio/tipo)
-        $threshold = $this->getThreshold($input->domain, $input->eventType);
+            // 4. Threshold do DB (global ou por domínio/tipo)
+            $threshold = $this->getThreshold($input->domain, $input->eventType);
 
-        // 5. Roteamento
-        $destination = $this->computeDestination(
-            $riskResult->score,
-            $confidenceScore,
-            $policyResult,
-            $threshold,
-        );
+            // 5. Roteamento
+            $destination = $this->computeDestination(
+                $riskResult->score,
+                $confidenceScore,
+                $policyResult,
+                $threshold,
+            );
 
-        return $this->record(
-            $input,
-            $destination,
-            $riskResult->score,
-            $confidenceScore,
-            $policyResult->rule,
-            $destination === 'brain_a' ? min($hitlLevel, 1) : ($destination === 'brain_b' ? 2 : 3),
-        );
+            return $this->record(
+                $input,
+                $destination,
+                $riskResult->score,
+                $confidenceScore,
+                $policyResult->rule,
+                $destination === 'brain_a' ? min($hitlLevel, 1) : ($destination === 'brain_b' ? 2 : 3),
+            );
+        }, [
+            'module' => 'ADS',
+            'input_business_id' => $input->businessId,
+            'event_type' => $input->eventType,
+            'domain' => $input->domain,
+            'event_source' => $input->eventSource,
+        ]);
     }
 
     private function computeDestination(

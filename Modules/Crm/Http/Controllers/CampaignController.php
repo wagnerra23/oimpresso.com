@@ -16,6 +16,7 @@ use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Http\Requests\StoreCampaignRequest;
 use Modules\Crm\Notifications\SendCampaignNotification;
 use Modules\Crm\Services\CampaignService;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Notification;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -203,7 +204,8 @@ class CampaignController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (email/sms_body podem conter contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,
@@ -342,7 +344,8 @@ class CampaignController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (email/sms_body podem conter contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,
@@ -387,7 +390,8 @@ class CampaignController extends Controller
                     'msg' => __('lang_v1.success'),
                 ];
             } catch (Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (email/sms_body podem conter contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = [
                     'success' => false,
@@ -470,7 +474,8 @@ class CampaignController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
 
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (email/sms_body podem conter contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,

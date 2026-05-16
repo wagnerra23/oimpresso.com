@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\CrmContactPersonCommission;
 use Modules\Crm\Utils\CrmUtil;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class ContactLoginController extends Controller
@@ -157,7 +158,8 @@ class ContactLoginController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (login carrega credenciais).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,
@@ -244,7 +246,8 @@ class ContactLoginController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (login carrega credenciais).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,
@@ -283,7 +286,8 @@ class ContactLoginController extends Controller
                     'msg' => __('lang_v1.success'),
                 ];
             } catch (Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (login carrega credenciais).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = [
                     'success' => false,

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\View;
 use Modules\Crm\Entities\CrmCallLog;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Entities\ScheduleLog;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class ScheduleLogController extends Controller
 {
@@ -85,7 +86,8 @@ class ScheduleLogController extends Controller
                     'log' => $logs_html,
                 ];
             } catch (Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = [
                     'success' => false,
@@ -154,7 +156,8 @@ class ScheduleLogController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,
@@ -255,7 +258,8 @@ class ScheduleLogController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,
@@ -292,7 +296,8 @@ class ScheduleLogController extends Controller
                     'msg' => __('lang_v1.success'),
                 ];
             } catch (Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = [
                     'success' => false,

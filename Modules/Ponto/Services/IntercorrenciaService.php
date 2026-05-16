@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\Privacy\PiiRedactor;
@@ -36,21 +37,30 @@ class IntercorrenciaService
             'Só é possível aprovar intercorrências pendentes.'
         );
 
-        DB::transaction(function () use ($intercorrencia, $aprovadorId) {
-            $intercorrencia->update([
-                'estado'      => Intercorrencia::ESTADO_APROVADA,
-                'aprovador_id' => $aprovadorId,
-                'aprovado_em' => now(),
-            ]);
+        // D9.a OTel — aprovação intercorrência dispara reapuração (cascade impact).
+        // PII: employee_id numérico apenas, sem CPF/PIS.
+        OtelHelper::span('ponto.intercorrencia.aprovar', [
+            'module'           => 'Ponto',
+            'business_id'      => (int) $intercorrencia->business_id,
+            'employee_id'      => (int) $intercorrencia->colaborador_config_id,
+            'intercorrencia_id' => (string) $intercorrencia->id,
+        ], function () use ($intercorrencia, $aprovadorId) {
+            DB::transaction(function () use ($intercorrencia, $aprovadorId) {
+                $intercorrencia->update([
+                    'estado'      => Intercorrencia::ESTADO_APROVADA,
+                    'aprovador_id' => $aprovadorId,
+                    'aprovado_em' => now(),
+                ]);
 
-            // Dispara reapuração do dia afetado.
-            // Multi-tenant Tier 0 (ADR 0093): job exige $businessId no constructor
-            // pra resolver tenant sem session no queue worker.
-            \Modules\Ponto\Jobs\ReapurarDiaJob::dispatch(
-                $intercorrencia->business_id,
-                $intercorrencia->colaborador_config_id,
-                $intercorrencia->data
-            );
+                // Dispara reapuração do dia afetado.
+                // Multi-tenant Tier 0 (ADR 0093): job exige $businessId no constructor
+                // pra resolver tenant sem session no queue worker.
+                \Modules\Ponto\Jobs\ReapurarDiaJob::dispatch(
+                    $intercorrencia->business_id,
+                    $intercorrencia->colaborador_config_id,
+                    $intercorrencia->data
+                );
+            });
         });
     }
 

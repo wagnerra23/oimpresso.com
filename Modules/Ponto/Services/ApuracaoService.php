@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Ponto\Entities\ApuracaoDia;
@@ -37,6 +38,14 @@ class ApuracaoService
     {
         $self = $this;
 
+        // D9.a OTel — apuração diária aplica regras CLT (Art. 58/59/66/71/73).
+        // Cria/atualiza ApuracaoDia (NÃO toca Marcacao — só lê). Hot-path mensal.
+        return OtelHelper::span('ponto.apuracao.apurar', [
+            'module'      => 'Ponto',
+            'business_id' => (int) $colaborador->business_id,
+            'employee_id' => (int) $colaborador->id,
+            'data'        => $data->toDateString(),
+        ], function () use ($colaborador, $data, $self) {
         return DB::transaction(function () use ($colaborador, $data, $self) {
             $apuracao = ApuracaoDia::firstOrNew([
                 'colaborador_config_id' => $colaborador->id,
@@ -81,6 +90,7 @@ class ApuracaoService
 
             return $apuracao;
         });
+        }); // fecha OtelHelper::span outer
     }
 
     /**
