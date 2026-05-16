@@ -1,11 +1,21 @@
 # SPEC — Comissão de Vendedores (cross-vertical)
 
+> ## ⛔ DORMENTE — feature-wish ([ADR 0151](../../decisions/0151-modules-comissao-feature-wish.md))
+>
+> **NÃO atribuir owner às US-COMM-* abaixo.** **NÃO scaffoldear código** em `Modules/Comissao/`.
+>
+> Razão (ADR 0151): nenhum dos 5 verticais tem cliente pagante que reporta dor explícita de comissão hoje (Larissa opera com `commission_agent` UPos + planilha Eliana[E], ComVis/OficinaAuto/Autopecas inativos, Marketplaces inexistente). [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — sem sinal qualificado, sem código.
+>
+> Triggers de ativação documentados em [ADR 0151 §"Trigger condições"](../../decisions/0151-modules-comissao-feature-wish.md). Pelo menos UM precisa ser satisfeito + Wagner aprovar ADR de promoção.
+>
+> **SPEC abaixo permanece intacto como blueprint pré-pago** — quando trigger ativar, dev abre o SPEC e tem ~2 semanas de design já feito (mapping mercado, 6 schema tables, 5 cenários peculiares, 14 US, riscos catalogados).
+
 > **Módulo proposto:** `Modules/Comissao` (cross-vertical — consumido por Sells, ComVis, OficinaAuto, Autopecas, Marketplaces)
-> **Status:** draft proposed — pré-ADR
+> **Status:** **dormente** ([ADR 0151](../../decisions/0151-modules-comissao-feature-wish.md) — feature-wish, aguarda-sinal-qualificado)
 > **Convenção ID:** `US-COMM-NNN`
-> **Owner sugerido:** [W] + [E] (advogada + financeiro — afeta folha/CLT)
+> **Owner sugerido (ao ativar):** [W] + [E] (advogada + financeiro — afeta folha/CLT)
 > **Cliente piloto candidato:** ROTA LIVRE (biz=4) já usa `commission_agent` UPos hoje (validar)
-> **Última atualização:** 2026-05-12
+> **Última atualização:** 2026-05-15 — formalizada como dormente via ADR 0151
 
 ---
 
