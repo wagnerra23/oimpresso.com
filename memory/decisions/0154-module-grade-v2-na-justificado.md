@@ -3,11 +3,13 @@ slug: 0154-module-grade-v2-na-justificado
 number: 0154
 title: "Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por design"
 type: adr
-status: proposto
+status: accepted
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-16
+accepted_at: 2026-05-16
+review_at: 2026-05-23
 module: Governance
 quarter: 2026-Q2
 tags: [governance, qualidade, audit, dashboard, rubrica, na-justificado, dim-5-pesos-100]
