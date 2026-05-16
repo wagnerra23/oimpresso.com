@@ -77,3 +77,6 @@
 2026-05-15 22:25 [CL] descoberta: Cockpit.tsx LIVE (138 lin) É o anti-pattern WhatsApp-style do amendment-block-renderer 2026-05-14 (tabs Todos/OS/Equipe/Clientes · setTimeout 2400ms reply humano "Recebido, vou verificar...") — chat-jana.jsx é correção arquitetural não evolução incremental
 2026-05-15 22:25 [CL] criou resources/js/Pages/Jana/Cockpit.charter.md status `spec-ahead-of-impl` · supersedes_in_place Cockpit.tsx atual · absorbs_when_live Dashboard.tsx · 7 Pest GUARDs spec (R-JANA-COCKPIT-001..007) · roadmap F1.5→F2→F3→F3.5→F4→F5 com folding Dashboard
 2026-05-15 22:25 [CL] charter NÃO toca .tsx — só markdown spec (MWART hook não fira). F3 implementação fica pra depois Cowork V2.1 + screenshot Wagner
+2026-05-15 22:55 [CL] criou COWORK_NOTES.amendment-cockpit-v2.1-refinos.md — 8 refinos com snippets executáveis CSS+JSX+JS pra Cowork aplicar (~3-4h). Critério F1.5 ponderado por categoria · score esperado pós-refator ~90/100. Itens INALTERADOS listados explicitamente (dashboard tab regressão zero)
+2026-05-15 22:55 [CL] appendou resumo executivo do amendment v2.1 em COWORK_NOTES.md principal (índice append-only)
+2026-05-15 22:55 [CL] atualizou memory/requisitos/Jana/RUNBOOK-cockpit.md status: active-superseded-by-v2 + §AVISO no topo apontando charter+CRITIQUE+protótipo V2 (impl atual §1-§11 inalterada, supersede in curso)
