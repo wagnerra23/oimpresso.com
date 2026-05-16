@@ -1,6 +1,10 @@
 <?php
 
-Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->prefix('asset')->group(function () {
+// D8.a Security Wave 10 — throttle:60,1 (60 req/min/IP) em rotas Blade legacy
+// AssetManagement. Auth web ja garante user logado; throttle limita abuso (ex:
+// brute force destroy ou scraping DataTables ajax). Stack canonica UltimatePOS
+// preservada apos throttle.
+Route::middleware('throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->prefix('asset')->group(function () {
     Route::get('install', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'index']);
     Route::post('install', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'install']);
     Route::get('install/uninstall', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'uninstall']);

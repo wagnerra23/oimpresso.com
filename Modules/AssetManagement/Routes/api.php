@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/asset', function (Request $request) {
+// D8.a Security Wave 10 — throttle:60,1 em endpoint API AssetManagement
+// (atualmente apenas user info echo, mas hardening preventivo).
+Route::middleware(['throttle:60,1', 'auth:api'])->get('/asset', function (Request $request) {
     return $request->user();
 });

@@ -11,7 +11,10 @@
 |
 */
 
-Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->prefix('spreadsheet')->group(function () {
+// Wave 10 D8 — throttle 60 req/min/user em todas as rotas Spreadsheet.
+// sheet_data pode ser payload grande (JSON) — upload/store/update sao vetor DDoS classico
+// se nao limitados. Share/move-to-folder tambem expostos a brute enumeration.
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'throttle:60,1'])->prefix('spreadsheet')->group(function () {
     Route::get('get-sheet/{id}/share', [\Modules\Spreadsheet\Http\Controllers\SpreadsheetController::class, 'getShareSpreadsheet']);
     Route::post('post-share-sheet', [\Modules\Spreadsheet\Http\Controllers\SpreadsheetController::class, 'postShareSpreadsheet']);
     Route::resource('sheets', \Modules\Spreadsheet\Http\Controllers\SpreadsheetController::class)->except(['edit']);

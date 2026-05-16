@@ -10,5 +10,13 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "retention_days": {
+        "licenca_log_api_call": 365,
+        "licenca_log_login_events": 730,
+        "licenca_log_admin_actions": 2555,
+        "licenca_log_error_logs": 365,
+        "licenca_computador_inactive": 1825,
+        "_doc": "LGPD Art. 16 (eliminação dados pós-finalidade) — Wave 10 D7.c 2026-05-16. Janelas: api_call/error_logs 1 ano (debug Delphi); login_success/login_error 2 anos (auditoria acesso usuário); admin_action block/unblock/businessupdate 7 anos (audit trail legal CC Art. 206); licenca_computador inativa 5 anos (suporte vitalício OfficeImpresso legacy). Command artisan licenca-log:retention-purge pendente (Wave 11 backlog)."
+    }
 }

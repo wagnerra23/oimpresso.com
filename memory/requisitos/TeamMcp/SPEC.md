@@ -1,9 +1,9 @@
 ---
 na_justified:
+  D1.a: "Tabela `mcp_actors` é cross-tenant POR DESIGN (sem `business_id`) — Identity Mesh governa time INTERNO oimpresso (Wagner/Felipe/Maiara/Eliana/Luiz), não clientes externos. Demais tabelas TeamMcp (`mcp_tokens`, `mcp_scopes`, `mcp_audit_log`) herdam `business_id` via `user_id` FK ou são repo-wide governance ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) MCP server canon + [ADR 0081](../../decisions/0081-identity-mesh-mcp-actors.md) Identity Mesh + Constituição v2 Art. 6)."
   D5: "TeamMcp é módulo INTERNO de gestão de tokens MCP do time (Wagner/Felipe/Maiara/Luiz/Eliana). Cliente biz=4 ROTA LIVRE não usa por design — é ferramenta da equipe, não produto pra cliente final. ADR 0081 documenta como módulo team-internal."
   D8.b: "TeamMcp já nasceu Inertia/React (sem Blade legacy). CSRF é aplicado via middleware web padrão Laravel — não há views Blade pra auditar paridade."
-  D9.b: "Operações TeamMcp (issue token, revoke, rotate) são síncronas via Controller — sem dispatch pra fila assíncrona. failed_jobs N/A por design."
-related_adrs: [0081, 0153, 0154]
+related_adrs: [0053, 0081, 0093, 0094, 0105, 0153, 0154, 0155]
 ---
 
 # SPEC — Modules/TeamMcp

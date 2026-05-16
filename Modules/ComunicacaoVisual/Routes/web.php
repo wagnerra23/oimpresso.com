@@ -18,7 +18,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 
 // Sprint 1 — US-COMVIS-001: API de cálculo m² + persistência de orçamentos.
 // Middleware padrão UltimatePOS pra rotas admin com autenticação completa.
-Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+// Wave 10 D8 Security: throttle:60,1 — proteção contra abuso de cálculo m² authoritative
+// (endpoint stateless mas faz DB-write em /orcamentos e /apontamentos).
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:60,1'])
     ->prefix('comunicacao-visual/api')
     ->group(function () {
         // Preview authoritative server-side (sem persistência)

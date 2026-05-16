@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\LicencaLog;
 
 /**
@@ -19,6 +20,13 @@ use Modules\Officeimpresso\Entities\LicencaLog;
  *
  * SEGURANCA: try/catch em tudo. Se log falhar, Delphi continua recebendo
  * response do controller normalmente.
+ *
+ * LGPD Tier 0 (Wave 10 D7.a — 2026-05-16): `body_preview` pode conter PII do
+ * cliente legacy (CNPJ/CPF/email/razão social/telefone) nos payloads Delphi
+ * `processa-dados-cliente` (NOME_TABELA=EMPRESA), `salvar-equipamento` e
+ * `oimpresso/registrar` (pipe-separated). Todo body é sanitizado via
+ * {@see PiiRedactor} ANTES de gravar em `licenca_log.metadata.body_preview`
+ * — defense in depth ([ADR 0094](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §LGPD Art. 7).
  */
 class LogDelphiAccess
 {
@@ -62,8 +70,20 @@ class LogDelphiAccess
 
             // Captura preview do body pra inspecao — util pra entender novos
             // formatos que o Delphi envia. Trunca em 4KB pra nao inchar DB.
+            // LGPD Tier 0: redaciona PII (CNPJ/CPF/email/CEP/phone) ANTES de logar
+            // — body cru pode conter razão social/CNPJ/email cliente legacy.
             $rawBody = $request->getContent();
-            $bodyPreview = $rawBody !== '' ? Str::limit($rawBody, 4000, '…[truncado]') : null;
+            $bodyPreview = null;
+            if ($rawBody !== '') {
+                $truncated = Str::limit($rawBody, 4000, '…[truncado]');
+                try {
+                    $bodyPreview = app(PiiRedactor::class)->redact($truncated);
+                } catch (\Throwable $piiError) {
+                    // Se PiiRedactor indisponível, NÃO loga body cru — fail-secure
+                    Log::warning('PiiRedactor falhou em LogDelphiAccess: ' . $piiError->getMessage());
+                    $bodyPreview = '[REDACTED:BODY_PII_FALLBACK]';
+                }
+            }
 
             $metadata = array_filter([
                 'hd'                   => $hd,
