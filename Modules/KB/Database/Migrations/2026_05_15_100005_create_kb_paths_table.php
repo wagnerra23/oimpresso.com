@@ -30,7 +30,8 @@ return new class extends Migration {
             $table->unsignedSmallInteger('hue')->default(240);
             $table->string('status', 40)->default('published')
                 ->comment('draft|published|archived');
-            $table->unsignedBigInteger('author_user_id')->nullable();
+            // refs users.id (int unsigned, UltimatePOS legacy)
+            $table->unsignedInteger('author_user_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
