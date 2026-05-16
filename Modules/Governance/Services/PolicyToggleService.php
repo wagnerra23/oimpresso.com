@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -29,11 +30,16 @@ class PolicyToggleService
      */
     public function listPolicies(): Collection
     {
-        return DB::table('mcp_governance_rules')
-            ->orderByDesc('enabled')
-            ->orderBy('category')
-            ->orderBy('rule_key')
-            ->get();
+        // D9.a OTel: wrap query de policies (UI Governance list).
+        return OtelHelper::spanBiz('governance.policy_toggle.list_policies', function (): Collection {
+            return DB::table('mcp_governance_rules')
+                ->orderByDesc('enabled')
+                ->orderBy('category')
+                ->orderBy('rule_key')
+                ->get();
+        }, [
+            'module' => 'Governance',
+        ]);
     }
 
     /**
@@ -92,13 +98,20 @@ class PolicyToggleService
      */
     public function togglePolicy(int $id, bool $enabled): bool
     {
-        DB::table('mcp_governance_rules')
-            ->where('id', $id)
-            ->update([
-                'enabled'    => $enabled ? 1 : 0,
-                'updated_at' => now(),
-            ]);
+        // D9.a OTel: wrap UPDATE de policy (rastreabilidade de mudanças de governança).
+        return OtelHelper::spanBiz('governance.policy_toggle.toggle_policy', function () use ($id, $enabled): bool {
+            DB::table('mcp_governance_rules')
+                ->where('id', $id)
+                ->update([
+                    'enabled'    => $enabled ? 1 : 0,
+                    'updated_at' => now(),
+                ]);
 
-        return $enabled;
+            return $enabled;
+        }, [
+            'module'     => 'Governance',
+            'policy_id'  => $id,
+            'new_state'  => $enabled ? 'enabled' : 'disabled',
+        ]);
     }
 }
