@@ -2,7 +2,7 @@
 date: 2026-05-15
 agent: Agent E (data viz frontend React)
 module: KB
-adr_proposta: 0149-kb-unificado-grafo-conhecimento-modulo-ia-central
+adr_proposta: 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
 onda: ONDA 5 — Visualização-grafo
 status: skeleton-pronto (F1 MWART) — aguarda F2 backend + F4 Pest
 worktree: practical-engelbart-8d8eb0
@@ -13,9 +13,9 @@ tags: [kb, grafo, viz, reactflow, onda-5, esqueleto, charter]
 
 ## Resumo
 
-Criado o **esqueleto da `resources/js/Pages/kb/Graph.tsx`** (ONDA 5 do plano da ADR 0149) — tela de visualização-grafo dos 143 ADRs + sessions + charters + runbooks + briefings + specs do KB Unificado. Lib escolhida sem npm install: **Reactflow 11.11.4 já instalado no package.json e já usado pelo precedent arquitetural `Pages/ads/Admin/Graph.tsx`**. 9 arquivos criados (Page principal + 4 components + 3 lib helpers + charter), zero conflito com Agents B/outros (que criaram `_lib/types.ts`, `_lib/mockData.ts`, `_components/NodeReader.tsx` etc com nomes diferentes).
+Criado o **esqueleto da `resources/js/Pages/kb/Graph.tsx`** (ONDA 5 do plano da ADR 0150) — tela de visualização-grafo dos 143 ADRs + sessions + charters + runbooks + briefings + specs do KB Unificado. Lib escolhida sem npm install: **Reactflow 11.11.4 já instalado no package.json e já usado pelo precedent arquitetural `Pages/ads/Admin/Graph.tsx`**. 9 arquivos criados (Page principal + 4 components + 3 lib helpers + charter), zero conflito com Agents B/outros (que criaram `_lib/types.ts`, `_lib/mockData.ts`, `_components/NodeReader.tsx` etc com nomes diferentes).
 
-Mock data realista (50 nodes, 64 edges representando casos reais do oimpresso: supersedes ADR 0048→0035, charter-of charter-kb-graph→ADR 0149, related-by-tag clusters de governança/fsm/whatsapp/mwart, cross-link briefing-kb→adr-149) permite dev e screenshot sem backend pronto.
+Mock data realista (50 nodes, 64 edges representando casos reais do oimpresso: supersedes ADR 0048→0035, charter-of charter-kb-graph→ADR 0150, related-by-tag clusters de governança/fsm/whatsapp/mwart, cross-link briefing-kb→adr-149) permite dev e screenshot sem backend pronto.
 
 ## Decisão de lib
 
@@ -76,10 +76,10 @@ Mock data realista (50 nodes, 64 edges representando casos reais do oimpresso: s
   - **Centro flex** — canvas Reactflow com 50 nodes coloridos posicionados em círculos concêntricos por tipo, edges coloridas conectando (ADR 0093 e 0094 pinned no centro, charters em volta, briefings/runbooks em órbita), Background dotted suave, Controls bottom-left (zoom + fit-view), MiniMap bottom-right
   - **Direita** — vazio até clicar num node
 
-**Primeiro click (ex: ADR 0149):**
+**Primeiro click (ex: ADR 0150):**
 - Node fica destacado com sombra/border accent
 - Side panel direito 320px abre com header amarelo-mostarda (cor ADR):
-  - "ADR" badge + "ADR 0149 — KB Unificado grafo IA central" + slug `0149-slug`
+  - "ADR" badge + "ADR 0150 — KB Unificado grafo IA central" + slug `0149-slug`
   - Botões "Focar aqui" + "Abrir leitor"
   - Meta: módulo KB, tags (kb, knowledge-graph, ia, p0), última verificação 15/05/2026, conexões 8
   - "Conexões (8)" expandida em 4 grupos: charter-of (2 itens — charter-kb-index, charter-kb-graph), cross-link (5 itens), related-by-tag (3 itens), ai-related (2 itens). Cada item clicável navega no detail sem mudar focus do canvas.
