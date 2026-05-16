@@ -11,6 +11,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Woocommerce\Utils\WoocommerceUtil;
 
 class WoocommerceWebhookController extends Controller
@@ -54,7 +55,12 @@ class WoocommerceWebhookController extends Controller
             $is_valid_request = $this->isValidWebhookRequest($request, $business->woocommerce_wh_oc_secret);
 
             if (! $is_valid_request) {
-                \Log::emergency('Woocommerce webhook signature mismatch');
+                // D7 LGPD — assinatura HMAC inválida; logamos só metadado (sem payload PII).
+                \Log::emergency('Woocommerce webhook signature mismatch', [
+                    'business_id' => $business_id,
+                    'event'       => 'order.created',
+                    'payload_size' => strlen($payload),
+                ]);
             } else {
                 $user_id = $business->owner->id;
                 $woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
@@ -66,6 +72,16 @@ class WoocommerceWebhookController extends Controller
                 ];
 
                 $order_data = json_decode($payload);
+
+                // D7 LGPD — redacta payload ANTES de qualquer log (PII alta:
+                // billing.email, billing.phone, billing.address_1, customer CPF/CNPJ).
+                // Payload bruto Wcommerce inclui email/phone/endereço do cliente final.
+                \Log::info('[woocommerce.webhook.order_created] payload recebido', [
+                    'business_id'      => $business_id,
+                    'order_id'         => $order_data->id ?? null,
+                    'order_number'     => $order_data->number ?? null,
+                    'payload_redacted' => app(PiiRedactor::class)->redact(mb_substr($payload, 0, 500)),
+                ]);
 
                 DB::beginTransaction();
                 $created = $this->woocommerceUtil->createNewSaleFromOrder($business_id, $user_id, $order_data, $business_data);
@@ -81,7 +97,13 @@ class WoocommerceWebhookController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD — sem expor message bruto (pode conter dado cliente em SQL error).
+            \Log::emergency('[woocommerce.webhook.order_created] exception', [
+                'business_id' => $business_id,
+                'file'        => $e->getFile(),
+                'line'        => $e->getLine(),
+                'message_redacted' => app(PiiRedactor::class)->redact($e->getMessage()),
+            ]);
         }
     }
 
@@ -99,7 +121,11 @@ class WoocommerceWebhookController extends Controller
             $is_valid_request = $this->isValidWebhookRequest($request, $business->woocommerce_wh_ou_secret);
 
             if (! $is_valid_request) {
-                \Log::emergency('Woocommerce webhook signature mismatch');
+                \Log::emergency('Woocommerce webhook signature mismatch', [
+                    'business_id'  => $business_id,
+                    'event'        => 'order.updated',
+                    'payload_size' => strlen($payload),
+                ]);
             } else {
                 $user_id = $business->owner->id;
                 $woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
@@ -110,6 +136,14 @@ class WoocommerceWebhookController extends Controller
                 ];
 
                 $order_data = json_decode($payload);
+
+                // D7 LGPD — payload redactado (billing/shipping com PII alta).
+                \Log::info('[woocommerce.webhook.order_updated] payload recebido', [
+                    'business_id'      => $business_id,
+                    'order_id'         => $order_data->id ?? null,
+                    'order_number'     => $order_data->number ?? null,
+                    'payload_redacted' => app(PiiRedactor::class)->redact(mb_substr($payload, 0, 500)),
+                ]);
 
                 $sell = Transaction::where('business_id', $business_id)
                                 ->where('woocommerce_order_id', $order_data->id)
@@ -133,7 +167,12 @@ class WoocommerceWebhookController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            \Log::emergency('[woocommerce.webhook.order_updated] exception', [
+                'business_id' => $business_id,
+                'file'        => $e->getFile(),
+                'line'        => $e->getLine(),
+                'message_redacted' => app(PiiRedactor::class)->redact($e->getMessage()),
+            ]);
         }
     }
 
@@ -151,12 +190,23 @@ class WoocommerceWebhookController extends Controller
             $is_valid_request = $this->isValidWebhookRequest($request, $business->woocommerce_wh_od_secret);
 
             if (! $is_valid_request) {
-                \Log::emergency('Woocommerce webhook signature mismatch');
+                \Log::emergency('Woocommerce webhook signature mismatch', [
+                    'business_id'  => $business_id,
+                    'event'        => 'order.deleted',
+                    'payload_size' => strlen($payload),
+                ]);
             } else {
                 $user_id = $business->owner->id;
                 //$woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
 
                 $order_data = json_decode($payload);
+
+                // D7 LGPD — payload redactado.
+                \Log::info('[woocommerce.webhook.order_deleted] payload recebido', [
+                    'business_id'      => $business_id,
+                    'order_id'         => $order_data->id ?? null,
+                    'payload_redacted' => app(PiiRedactor::class)->redact(mb_substr($payload, 0, 500)),
+                ]);
 
                 $transaction = Transaction::where('business_id', $business_id)
                                 ->where('woocommerce_order_id', $order_data->id)
@@ -199,7 +249,12 @@ class WoocommerceWebhookController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            \Log::emergency('[woocommerce.webhook.order_deleted] exception', [
+                'business_id' => $business_id,
+                'file'        => $e->getFile(),
+                'line'        => $e->getLine(),
+                'message_redacted' => app(PiiRedactor::class)->redact($e->getMessage()),
+            ]);
         }
     }
 
@@ -217,7 +272,11 @@ class WoocommerceWebhookController extends Controller
             $is_valid_request = $this->isValidWebhookRequest($request, $business->woocommerce_wh_or_secret);
 
             if (! $is_valid_request) {
-                \Log::emergency('Woocommerce webhook signature mismatch');
+                \Log::emergency('Woocommerce webhook signature mismatch', [
+                    'business_id'  => $business_id,
+                    'event'        => 'order.restored',
+                    'payload_size' => strlen($payload),
+                ]);
             } else {
                 $user_id = $business->owner->id;
                 $woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
@@ -229,6 +288,15 @@ class WoocommerceWebhookController extends Controller
                 ];
 
                 $order_data = json_decode($payload);
+
+                // D7 LGPD — payload redactado.
+                \Log::info('[woocommerce.webhook.order_restored] payload recebido', [
+                    'business_id'      => $business_id,
+                    'order_id'         => $order_data->id ?? null,
+                    'order_number'     => $order_data->number ?? null,
+                    'payload_redacted' => app(PiiRedactor::class)->redact(mb_substr($payload, 0, 500)),
+                ]);
+
                 $sell = Transaction::where('business_id', $business_id)
                                 ->where('woocommerce_order_id', $order_data->id)
                                 ->with('sell_lines', 'sell_lines.product', 'payment_lines')
@@ -262,7 +330,12 @@ class WoocommerceWebhookController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            \Log::emergency('[woocommerce.webhook.order_restored] exception', [
+                'business_id' => $business_id,
+                'file'        => $e->getFile(),
+                'line'        => $e->getLine(),
+                'message_redacted' => app(PiiRedactor::class)->redact($e->getMessage()),
+            ]);
         }
     }
 

@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Financeiro\Models\ContaBancaria;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Fatura — uma cobrança individual gerada por uma Subscription
@@ -26,8 +28,27 @@ class Invoice extends Model
     use HasBusinessScope;
 
     use SoftDeletes;
+    use LogsActivity; // D7 LGPD audit trail (Wave 14)
 
     protected $table = 'rb_invoices';
+
+    /**
+     * Auditoria LGPD (D7) — registra ciclo de vida da fatura
+     * (open → paid → canceled). NÃO loga `metadata` (payload gateway com PII).
+     *
+     * @see Modules\RecurringBilling\Config\retention.php
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'status', 'valor', 'vencimento', 'pago_em',
+                'gateway', 'gateway_ref', 'numero_documento',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('recurringbilling.invoice');
+    }
 
     protected $fillable = [
         'business_id', 'subscription_id', 'contact_id',

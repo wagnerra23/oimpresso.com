@@ -19,7 +19,11 @@ use Modules\Arquivos\Http\Controllers\InstallController;
 | - download signed-URL (Sprint 1 dia 4 — placeholder via name 'arquivos.download')
 */
 
-Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+// Wave 14 D8 Security — throttle:60,1 (60 req/min/IP) em rotas Arquivos.
+// Arquivos é backbone DMS multi-tenant; throttle limita abuso (brute-force install,
+// scraping de signed URLs expiradas, varredura sequencial de arquivo_id).
+// Stack canonica UltimatePOS preservada apos throttle (web/auth/SetSessionData/etc).
+Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('arquivos')
     ->group(function () {
         Route::get('install',           [InstallController::class, 'index']);
@@ -30,6 +34,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 // Download via signed URL (Sprint 1 dia 4 — US-ARQ-008).
 // Middleware `signed` valida expiração + assinatura HMAC (Laravel built-in).
 // Auth obrigatório — multi-tenant Tier 0 aplica global scope no Arquivo::find.
-Route::middleware(['web', 'auth', 'signed'])
+// Wave 14 D8 — throttle:60,1 anti-brute-force em arquivo_id sequencial (signed URLs
+// curtas têm TTL mas atacante pode varrer enquanto válidas).
+Route::middleware(['throttle:60,1', 'web', 'auth', 'signed'])
     ->get('arquivos/download/{arquivo}', DownloadController::class)
     ->name('arquivos.download');

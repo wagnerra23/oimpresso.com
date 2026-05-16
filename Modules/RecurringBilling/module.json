@@ -7,5 +7,20 @@
     "providers": [
         "Modules\\RecurringBilling\\Providers\\RecurringBillingServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "retention_days": 1825,
+    "retention_config": "Modules/RecurringBilling/Config/retention.php",
+    "lgpd_compliance": {
+        "pii_fields_tracked": [
+            "contact.tax_number",
+            "contact.mobile",
+            "contact.email",
+            "rb_boleto_credentials.config_json",
+            "rb_charge_attempts.request_json",
+            "rb_charge_attempts.response_json"
+        ],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "policy_doc": "Modules/RecurringBilling/Config/retention.php"
+    }
 }
