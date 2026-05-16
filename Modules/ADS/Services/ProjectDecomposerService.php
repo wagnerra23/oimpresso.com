@@ -4,6 +4,7 @@ namespace Modules\ADS\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\ADS\Ai\Agents\ProjectDecomposerAgent;
 
 /**
@@ -129,11 +130,13 @@ class ProjectDecomposerService
                 'regras_consultadas' => $plan['regras_consultadas'] ?? [],
             ];
         } catch (\Throwable $e) {
+            // D7.a — PiiRedactor wrap (exceção pode trazer payload livre do usuário)
+            $safeMessage = app(PiiRedactor::class)->redact($e->getMessage());
             Log::channel('single')->error('ads.project_decomposer.failed', [
                 'project_id' => $projectId,
-                'msg'        => $e->getMessage(),
+                'msg'        => $safeMessage,
             ]);
-            return ['success' => false, 'error' => $e->getMessage(), 'parts_created' => 0];
+            return ['success' => false, 'error' => $safeMessage, 'parts_created' => 0];
         }
     }
 

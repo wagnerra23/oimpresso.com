@@ -11,6 +11,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Essentials\Entities\EssentialsHoliday;
+use Modules\Essentials\Http\Requests\StoreHolidayRequest;
 
 /**
  * EssentialsHolidayController — versão Inertia.
@@ -83,12 +84,14 @@ class EssentialsHolidayController extends Controller
         return redirect('/hrm/holiday');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreHolidayRequest $request): RedirectResponse
     {
         $businessId = $this->currentBusinessId();
         $this->authorizeAdmin($businessId);
 
-        $data = $this->validateHoliday($request);
+        $data = $request->validated();
+        $data['start_date'] = Carbon::parse($data['start_date'])->format('Y-m-d');
+        $data['end_date']   = Carbon::parse($data['end_date'])->format('Y-m-d');
 
         EssentialsHoliday::create(array_merge($data, ['business_id' => $businessId]));
 
@@ -105,12 +108,14 @@ class EssentialsHolidayController extends Controller
         return redirect('/hrm/holiday');
     }
 
-    public function update(Request $request, $id): RedirectResponse
+    public function update(StoreHolidayRequest $request, $id): RedirectResponse
     {
         $businessId = $this->currentBusinessId();
         $this->authorizeAdmin($businessId);
 
-        $data = $this->validateHoliday($request);
+        $data = $request->validated();
+        $data['start_date'] = Carbon::parse($data['start_date'])->format('Y-m-d');
+        $data['end_date']   = Carbon::parse($data['end_date'])->format('Y-m-d');
 
         EssentialsHoliday::where('business_id', $businessId)
             ->where('id', $id)

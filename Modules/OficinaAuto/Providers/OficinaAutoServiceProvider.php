@@ -2,7 +2,12 @@
 
 namespace Modules\OficinaAuto\Providers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Entities\Vehicle;
+use Modules\OficinaAuto\Policies\ServiceOrderPolicy;
+use Modules\OficinaAuto\Policies\VehiclePolicy;
 
 /**
  * ServiceProvider Modules/OficinaAuto (ADR 0137 — qualified signal Vargas + Martinho).
@@ -28,6 +33,21 @@ class OficinaAutoServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'oficina-auto');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->registerCommands();
+        $this->registerPolicies();
+    }
+
+    /**
+     * D8 Security Wave 15 — registra Policies multi-tenant (defense-in-depth).
+     *
+     * Global scope no Model + Spatie permission + Policy sameTenant guard.
+     *
+     * @see Modules\OficinaAuto\Policies\VehiclePolicy
+     * @see Modules\OficinaAuto\Policies\ServiceOrderPolicy
+     */
+    protected function registerPolicies(): void
+    {
+        Gate::policy(Vehicle::class, VehiclePolicy::class);
+        Gate::policy(ServiceOrder::class, ServiceOrderPolicy::class);
     }
 
     public function register(): void

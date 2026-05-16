@@ -4,9 +4,11 @@ namespace Modules\ConsultaOs\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * ConsultaOsController — Portal publico de consulta de OS (mock-only).
@@ -56,17 +58,83 @@ class ConsultaOsController extends Controller
         $os = $this->mockData()[$numero] ?? null;
 
         if (! $os) {
+            $this->auditarConsulta($request, $numero, $estagio, 'not_found');
+
             return response()->json(['found' => false], 404);
         }
 
         if ($estagio && $estagio !== 'todos' && $os['stage'] !== $estagio) {
+            $this->auditarConsulta($request, $numero, $estagio, 'stage_mismatch');
+
             return response()->json(['found' => false], 404);
         }
+
+        $this->auditarConsulta($request, $numero, $estagio, 'found');
 
         return response()->json([
             'found' => true,
             'os'    => $os,
         ]);
+    }
+
+    /**
+     * Audit log estruturado da busca publica (D7.a — PiiRedactor + LGPD compliance).
+     *
+     * Registra IP truncado (/24 anti-tracking), numero da OS redacted via PiiRedactor
+     * (cobre CPF/CNPJ/email/telefone caso usuario cole no campo errado), User-Agent
+     * truncado a 80 chars, resultado e timestamp. Retencao 365d conforme
+     * `Modules/ConsultaOs/Config/retention.php` (consulta_os_logs).
+     *
+     * NAO loga: business_id (rota publica nao tem sessao), dados da OS encontrada
+     * (mock-only nao tem PII real; query-real fase US-CONSULTA-001 manter mesma regra).
+     *
+     * LGPD Art. 5º §II — registro tecnico de seguranca da rede (necessidade legitima
+     * + nao requer aviso previo ao titular conforme retention.notice_period_days=0).
+     */
+    private function auditarConsulta(
+        ConsultaPublicaRequest $request,
+        string $numero,
+        string $estagio,
+        string $resultado
+    ): void {
+        $redactor = app(PiiRedactor::class);
+
+        // IP truncado /24 (192.168.1.X → 192.168.1.0) — anti-tracking individual.
+        $ip = $request->ip() ?? '0.0.0.0';
+        $ipTruncado = $this->truncarIp($ip);
+
+        Log::channel(config('logging.default'))->info('consultaos.busca_publica', [
+            'numero_redacted' => $redactor->redact($numero),
+            'estagio'         => $estagio,
+            'resultado'       => $resultado,
+            'ip_truncado'     => $ipTruncado,
+            'user_agent'      => substr((string) $request->userAgent(), 0, 80),
+            'timestamp'       => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Trunca IP pra /24 (IPv4) ou /48 (IPv6) — preserva utilidade analytics
+     * (regiao geografica) sem identificar individuo (LGPD pseudonimizacao).
+     */
+    private function truncarIp(string $ip): string
+    {
+        if (str_contains($ip, ':')) {
+            // IPv6 — manter primeiros 3 grupos (/48)
+            $partes = explode(':', $ip);
+
+            return implode(':', array_slice($partes, 0, 3)).'::';
+        }
+
+        // IPv4 — zerar ultimo octeto (/24)
+        $partes = explode('.', $ip);
+        if (count($partes) === 4) {
+            $partes[3] = '0';
+
+            return implode('.', $partes);
+        }
+
+        return '0.0.0.0';
     }
 
     private function mockData(): array

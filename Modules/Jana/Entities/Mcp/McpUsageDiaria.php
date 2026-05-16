@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -9,9 +10,13 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Materializada a partir de mcp_audit_log via job MCP-USAGE-AGG-1.
  * Idempotente: 1 linha/user/dia/business.
+ *
+ * Multi-tenant Tier 0 (ADR 0093) — Wave 15: business_id direto + scope global.
  */
 class McpUsageDiaria extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'mcp_usage_diaria';
 
     protected $fillable = [

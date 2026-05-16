@@ -2,11 +2,19 @@
 
 namespace Modules\Accounting\Entities;
 
+use App\Concerns\BelongsToBusinessViaParent;
 use Modules\Accounting\Entities\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Transfer extends Model
 {
+    use BelongsToBusinessViaParent; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 15 D1 MT rescue; child de User via transfer_by_id)
+
+    /**
+     * Parent relation pra ScopeByBusinessViaParent — User tem business_id direto.
+     */
+    protected string $businessParentRelation = 'transfer_by';
+
     protected $fillable = [
         'journal_transaction_number',
         'transfer_from_id',

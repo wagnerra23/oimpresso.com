@@ -11,6 +11,8 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Essentials\Entities\Reminder;
+use Modules\Essentials\Http\Requests\StoreReminderRequest;
+use Modules\Essentials\Http\Requests\UpdateReminderRequest;
 
 /**
  * ReminderController — versão Inertia (lista simples + form inline).
@@ -60,18 +62,12 @@ class ReminderController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreReminderRequest $request): RedirectResponse
     {
         $businessId = $this->currentBusinessId();
         $this->authorizeAccess($businessId);
 
-        $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'date'     => 'required',
-            'time'     => 'required|string|max:10',
-            'end_time' => 'nullable|string|max:10',
-            'repeat'   => 'required|in:one_time,every_day,every_week,every_month',
-        ]);
+        $validated = $request->validated();
 
         Reminder::create([
             'business_id' => $businessId,
@@ -93,18 +89,12 @@ class ReminderController extends Controller
         return redirect('/essentials/reminder');
     }
 
-    public function update(Request $request, $id): RedirectResponse
+    public function update(UpdateReminderRequest $request, $id): RedirectResponse
     {
         $businessId = $this->currentBusinessId();
         $this->authorizeAccess($businessId);
 
-        $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'date'     => 'required',
-            'time'     => 'required|string|max:10',
-            'end_time' => 'nullable|string|max:10',
-            'repeat'   => 'required|in:one_time,every_day,every_week,every_month',
-        ]);
+        $validated = $request->validated();
 
         Reminder::where('business_id', $businessId)
             ->where('user_id', auth()->user()->id)

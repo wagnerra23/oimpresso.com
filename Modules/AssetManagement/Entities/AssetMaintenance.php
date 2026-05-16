@@ -18,14 +18,19 @@ class AssetMaintenance extends Model
     protected $guarded = ['id'];
 
     /**
-     * Audit LGPD — registra mudanças via activity_log (D7.b dim v3 audit trail append-only).
+     * Auditoria LGPD — registra mudanças em manutenções (D7.b dim v3 audit trail append-only).
+     * Whitelist evita logar `maintenance_note` que pode conter dados sensíveis técnicos/clientes.
      */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logAll()
+            ->logOnly([
+                'asset_id', 'business_id', 'assigned_to', 'created_by',
+                'start_date', 'end_date', 'status', 'amount',
+            ])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->useLogName('assetmanagement.maintenance');
     }
 
     public function media()
