@@ -3,6 +3,8 @@ import SiteLayout from '@/Layouts/SiteLayout';
 import Hero from '@/Components/Site/Hero';
 import SocialProof from '@/Components/Site/SocialProof';
 import FeatureGrid from '@/Components/Site/FeatureGrid';
+import Faqs from '@/Components/Site/Faqs';
+import Testimonials from '@/Components/Site/Testimonials';
 import { Button } from '@/Components/ui/button';
 
 interface SiteHomeProps {
@@ -12,12 +14,14 @@ interface SiteHomeProps {
   statistics?: any[] | null;
 }
 
-function SiteHome({ page, statistics }: SiteHomeProps) {
+function SiteHome({ page, testimonials, faqs, statistics }: SiteHomeProps) {
   return (
     <>
       <Hero page={page} />
       <SocialProof statistics={Array.isArray(statistics) ? statistics : null} />
       <FeatureGrid page={page} />
+      <Testimonials testimonials={Array.isArray(testimonials) ? testimonials : null} />
+      <Faqs faqs={faqs ?? null} />
 
       {/* Final CTA */}
       <section className="relative isolate overflow-hidden border-t border-border bg-primary py-20 text-primary-foreground sm:py-24">
