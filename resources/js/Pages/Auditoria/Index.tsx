@@ -31,9 +31,25 @@ interface Filters {
   causer_id?: number | null
 }
 
+interface Paginator<T> {
+  data: T[]
+  current_page?: number
+  last_page?: number
+  total?: number
+}
+
 interface Props {
-  activities?: Activity[]
+  activities?: Activity[] | Paginator<Activity> | null
   filters?: Filters
+}
+
+function normalizeActivities(input: Props['activities']): Activity[] {
+  if (!input) return []
+  if (Array.isArray(input)) return input
+  if (typeof input === 'object' && 'data' in input && Array.isArray(input.data)) {
+    return input.data
+  }
+  return []
 }
 
 function logNameColor(logName: string | null): string {
@@ -46,7 +62,10 @@ function logNameColor(logName: string | null): string {
   return 'bg-zinc-100 text-zinc-700 border-zinc-300'
 }
 
-function AuditoriaIndex({ activities = [], filters = {} }: Props): React.ReactElement {
+function AuditoriaIndex({ activities, filters = {} }: Props): React.ReactElement {
+  const rows = normalizeActivities(activities)
+  const totalAttr = activities && !Array.isArray(activities) && 'total' in activities ? activities.total : rows.length
+
   return (
     <>
       <PageHeader
@@ -58,14 +77,14 @@ function AuditoriaIndex({ activities = [], filters = {} }: Props): React.ReactEl
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center justify-between">
-            <span>Atividades recentes ({activities.length})</span>
+            <span>Atividades recentes ({totalAttr})</span>
             {filters.period && (
               <Badge className="bg-zinc-100 text-zinc-700 border-zinc-300">{filters.period}</Badge>
             )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {activities.length === 0 ? (
+          {rows.length === 0 ? (
             <div className="p-6">
               <EmptyState
                 icon="ShieldCheck"
@@ -86,7 +105,7 @@ function AuditoriaIndex({ activities = [], filters = {} }: Props): React.ReactEl
                 </tr>
               </thead>
               <tbody>
-                {activities.map((a) => (
+                {rows.map((a) => (
                   <tr key={a.id} className="border-b border-zinc-100 hover:bg-sky-50">
                     <td className="px-4 py-2 text-xs text-zinc-500 whitespace-nowrap">
                       {new Date(a.created_at).toLocaleString('pt-BR')}
