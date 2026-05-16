@@ -42,6 +42,14 @@
             <directory>./Modules/Accounting/Tests/Feature</directory>
             <directory>./Modules/Superadmin/Tests/Feature</directory>
             <directory>./Modules/Officeimpresso/Tests/Feature</directory>
+            <directory>./Modules/SRS/Tests/Feature</directory>
+            <directory>./Modules/AssetManagement/Tests/Feature</directory>
+            <directory>./Modules/Governance/Tests/Feature</directory>
+            <directory>./Modules/Spreadsheet/Tests/Feature</directory>
+            <directory>./Modules/ProductCatalogue/Tests/Feature</directory>
+            <directory>./Modules/ConsultaOs/Tests/Feature</directory>
+            <directory>./Modules/Brief/Tests/Feature</directory>
+            <directory>./Modules/Woocommerce/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>
