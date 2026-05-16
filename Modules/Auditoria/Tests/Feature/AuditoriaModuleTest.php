@@ -2,6 +2,8 @@
 
 use Nwidart\Modules\Facades\Module;
 
+uses(Tests\TestCase::class);
+
 /**
  * Smoke test do scaffold Modules/Auditoria (US-AUDIT-007).
  *
