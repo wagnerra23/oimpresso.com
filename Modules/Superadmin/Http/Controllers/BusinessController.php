@@ -15,6 +15,8 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Modules\Superadmin\Entities\Package;
+use Modules\Superadmin\Http\Requests\StoreBusinessRequest;
+use Modules\Superadmin\Http\Requests\UpdateBusinessPasswordRequest;
 use Modules\Superadmin\Notifications\PasswordUpdateNotification;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
@@ -259,8 +261,10 @@ class BusinessController extends BaseController
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreBusinessRequest $request)
     {
+        // D8.b Wave 13 — StoreBusinessRequest valida payload + authorize() força permission `superadmin`.
+        // Mantém abort(403) defensivo caso FormRequest seja bypassed em testes.
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
@@ -519,8 +523,10 @@ class BusinessController extends BaseController
      *
      * @return Response
      */
-    public function updatePassword(Request $request)
+    public function updatePassword(UpdateBusinessPasswordRequest $request)
     {
+        // D8.b Wave 13 — UpdateBusinessPasswordRequest valida user_id + min:8 + authorize().
+        // Mantém abort(403) defensivo caso FormRequest seja bypassed em testes.
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }

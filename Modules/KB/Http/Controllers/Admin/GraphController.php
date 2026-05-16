@@ -3,8 +3,10 @@
 namespace Modules\KB\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ADS\Services\PolicyEngine;
@@ -35,16 +37,73 @@ class GraphController extends Controller
     ): Response {
         $businessId = (int) $request->session()->get('user.business_id', 1);
 
-        $nodes = [];
-        $edges = [];
+        // Wave 13 — OTel span (ADR 0155 D9.a) — Knowledge Graph carrega 5 fontes
+        // (mcp_decision_patterns + meta-skills + tools + policy + mcp_memory_documents)
+        // + monta edges; útil pra correlate spike de patterns/skills com latency.
+        return OtelHelper::span('kb.graph.index', [
+            'module'      => 'KB',
+            'business_id' => $businessId,
+        ], function () use ($businessId, $policy, $metaSkills, $tools) {
+            // D6.a thin SoC (Wave 13): builders privados extraídos pra preparar futura
+            // Inertia::defer (assim que Page Graph.tsx ganhar wrapper <Deferred> — hoje
+            // usa useMemo no top-level, rollback PR #963 documenta regressão).
+            $patterns   = $this->buildPatternsRows($businessId);
+            $memoryDocs = $this->buildMemoryDocsCount($businessId);
 
-        // ─── Nodes Skills (mcp_decision_patterns) ───
-        $patterns = DB::table('mcp_decision_patterns')
+            $nodes = array_merge(
+                $this->buildSkillNodes($patterns),
+                $this->buildMetaSkillNodes($metaSkills),
+                $this->buildToolNodes($tools),
+                $this->buildPolicyNodes($policy),
+                [$this->buildMemoryCentralNode($memoryDocs)],
+            );
+
+            $edges = array_merge(
+                $this->buildMemoryToSkillEdges($patterns),
+                $this->buildMetaSkillEdges($metaSkills, $patterns),
+            );
+
+            return Inertia::render('ads/Admin/Graph', [
+                'nodes' => $nodes,
+                'edges' => $edges,
+                'kpis'  => [
+                    'skills'      => $patterns->count(),
+                    'metaskills'  => count($metaSkills->listAll()),
+                    'tools'       => count($tools->all()),
+                    'memory_docs' => $memoryDocs,
+                ],
+            ]);
+        });
+    }
+
+    /**
+     * Wave 13 — top-15 mcp_decision_patterns por uso (skills do KG).
+     */
+    private function buildPatternsRows(int $businessId): Collection
+    {
+        return DB::table('mcp_decision_patterns')
             ->where('business_id', $businessId)
             ->orderByDesc('total_count')
             ->limit(15)
             ->get();
+    }
 
+    /**
+     * Wave 13 — count atomic de docs MCP do business (Memory central node).
+     */
+    private function buildMemoryDocsCount(int $businessId): int
+    {
+        return (int) DB::table('mcp_memory_documents')
+            ->where('business_id', $businessId)
+            ->count();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildSkillNodes(Collection $patterns): array
+    {
+        $nodes = [];
         foreach ($patterns as $p) {
             $nodes[] = [
                 'id'       => "skill-{$p->id}",
@@ -58,8 +117,15 @@ class GraphController extends Controller
                 'position' => ['x' => 0, 'y' => 0], // dagre layout client-side
             ];
         }
+        return $nodes;
+    }
 
-        // ─── Nodes Meta-skills ───
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildMetaSkillNodes(GovernanceRulesService $metaSkills): array
+    {
+        $nodes = [];
         foreach ($metaSkills->listAll() as $rule) {
             $nodes[] = [
                 'id'       => "meta-{$rule['id']}",
@@ -73,8 +139,15 @@ class GraphController extends Controller
                 'position' => ['x' => 0, 'y' => 0],
             ];
         }
+        return $nodes;
+    }
 
-        // ─── Nodes Tools ───
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildToolNodes(ToolRegistry $tools): array
+    {
+        $nodes = [];
         foreach ($tools->all() as $tool) {
             $nodes[] = [
                 'id'       => "tool-{$tool->name()}",
@@ -87,8 +160,15 @@ class GraphController extends Controller
                 'position' => ['x' => 0, 'y' => 0],
             ];
         }
+        return $nodes;
+    }
 
-        // ─── Nodes Policy categorias ───
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildPolicyNodes(PolicyEngine $policy): array
+    {
+        $nodes = [];
         $policyCategories = ['BLOCK_ALWAYS', 'REQUIRE_HUMAN_REVIEW', 'REQUIRE_BRAIN_B', 'ALLOW_BRAIN_A'];
         foreach ($policyCategories as $cat) {
             $count = count($policy->getAllRules()[$cat] ?? []);
@@ -102,12 +182,15 @@ class GraphController extends Controller
                 'position' => ['x' => 0, 'y' => 0],
             ];
         }
+        return $nodes;
+    }
 
-        // ─── Node Memory central ───
-        $memoryDocs = DB::table('mcp_memory_documents')
-            ->where('business_id', $businessId)
-            ->count();
-        $nodes[] = [
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildMemoryCentralNode(int $memoryDocs): array
+    {
+        return [
             'id'       => 'memory-mcp',
             'type'     => 'memory',
             'data'     => [
@@ -116,9 +199,14 @@ class GraphController extends Controller
             ],
             'position' => ['x' => 0, 'y' => 0],
         ];
+    }
 
-        // ─── Edges ───
-        // Skills derivam de Memory (todas → memória central)
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildMemoryToSkillEdges(Collection $patterns): array
+    {
+        $edges = [];
         foreach ($patterns as $p) {
             $edges[] = [
                 'id'     => "edge-mem-skill-{$p->id}",
@@ -128,8 +216,15 @@ class GraphController extends Controller
                 'animated' => false,
             ];
         }
+        return $edges;
+    }
 
-        // Meta-skills regem skills (promotion category aponta pra ALLOW_BRAIN_A policy)
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildMetaSkillEdges(GovernanceRulesService $metaSkills, Collection $patterns): array
+    {
+        $edges = [];
         foreach ($metaSkills->listAll() as $rule) {
             if ($rule['category'] === 'promotion') {
                 $edges[] = [
@@ -151,16 +246,6 @@ class GraphController extends Controller
                 }
             }
         }
-
-        return Inertia::render('ads/Admin/Graph', [
-            'nodes' => $nodes,
-            'edges' => $edges,
-            'kpis'  => [
-                'skills'      => $patterns->count(),
-                'metaskills'  => count($metaSkills->listAll()),
-                'tools'       => count($tools->all()),
-                'memory_docs' => $memoryDocs,
-            ],
-        ]);
+        return $edges;
     }
 }
