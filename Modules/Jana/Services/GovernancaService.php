@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +81,26 @@ class GovernancaService
      * }
      */
     public function painel(CarbonInterface $inicio, CarbonInterface $fim): array
+    {
+        // D9.a (Wave 14 governance v3) — span observability na agregação
+        // mais cara do dashboard (~5-7 queries em mcp_audit_log). OTel
+        // zero-cost quando disabled. Nota: mcp_audit_log é REPO-WIDE
+        // (cross-tenant cross-team) — não tem business_id ([ADR 0053]),
+        // por isso usa span() puro com janela temporal nos attributes.
+        return OtelHelper::span('jana.governanca.painel', [
+            'periodo_inicio' => $inicio->copy()->toIso8601String(),
+            'periodo_fim' => $fim->copy()->toIso8601String(),
+            'scope' => 'repo_wide',
+        ], function () use ($inicio, $fim) {
+            return $this->buildPainel($inicio, $fim);
+        });
+    }
+
+    /**
+     * Implementação real do painel — extraído pra dentro do span OTel.
+     * Mantém legibilidade e permite mock/test isolado se necessário.
+     */
+    protected function buildPainel(CarbonInterface $inicio, CarbonInterface $fim): array
     {
         $iniSql = $inicio->copy()->startOfDay()->toDateTimeString();
         $fimSql = $fim->copy()->endOfDay()->toDateTimeString();

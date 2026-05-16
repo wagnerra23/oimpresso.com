@@ -2,6 +2,8 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
+
 /**
  * BrainBCostReader — Widget W10 (Custos Brain B 24h).
  *
@@ -12,7 +14,13 @@ namespace Modules\Admin\Services;
  * Threshold alarme: R$ 500/dia (Wagner ajusta conforme uso ROTA LIVRE).
  * Status pintado server-side: green < 70%, yellow 70-100%, red > 100%.
  *
+ * **D9.a Wave 14 (2026-05-16):** span `admin.brain_b.cost.read` envolve
+ * fetch+parse pra correlacionar custo IA com latência de leitura. Zero-cost
+ * se `otel.enabled=false`. Em CT 100 OTel ativo, dashboard mostra series
+ * de custo Brain B por business_id (Tier 0 multi-tenant attribute auto-set).
+ *
  * @see Modules/Admin/Services/HealthSnapshotReader.php
+ * @see memory/decisions/0155-module-grade-v3-anti-injustica-na-justified.md D9.a
  */
 class BrainBCostReader
 {
@@ -23,6 +31,13 @@ class BrainBCostReader
     ) {}
 
     public function fetch(): array
+    {
+        return OtelHelper::spanBiz('admin.brain_b.cost.read', function () {
+            return $this->fetchInner();
+        }, ['component' => 'admin.widget.w10']);
+    }
+
+    private function fetchInner(): array
     {
         $snapshot = $this->health->fetch();
         if (! ($snapshot['available'] ?? false)) {

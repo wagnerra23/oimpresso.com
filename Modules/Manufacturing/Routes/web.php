@@ -1,6 +1,11 @@
 <?php
 
-Route::middleware('web', 'authh', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')->prefix('manufacturing')->group(function () {
+// D8.a Security Wave 14 — throttle:60,1 (60 req/min/IP) em rotas Blade legacy
+// Manufacturing. Auth web ja garante user logado; throttle limita abuso (brute
+// force destroy, scraping de DataTables ajax /get-ingredient-row, etc).
+// Stack canonica UltimatePOS preservada (web/CSRF/SetSessionData/auth/AdminSidebarMenu).
+// NUNCA desligar CSRF do grupo `web` — token enforced pelo VerifyCsrfToken middleware.
+Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')->prefix('manufacturing')->group(function () {
     Route::get('/install', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'index']);
     Route::post('/install', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'install']);
     Route::get('/install/update', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'update']);

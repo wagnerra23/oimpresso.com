@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Arquivos\Concerns\HasArquivos;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Boleto emitido por um Título. Estado independente do título: o título pode
@@ -16,7 +18,27 @@ use Modules\Financeiro\Models\Concerns\BusinessScope;
  */
 class BoletoRemessa extends Model
 {
-    use HasFactory, HasArquivos, SoftDeletes, BusinessScope;
+    use HasFactory, HasArquivos, SoftDeletes, BusinessScope, LogsActivity;
+
+    /**
+     * D7.b Wave 14 — audit trail de mudanças de status do boleto (LGPD Art. 16
+     * rastreabilidade pra compliance fiscal CTN Art. 195 — boletos compõem prova
+     * de adimplência). NÃO loga linha_digitavel/codigo_barras integralmente em
+     * audit (somente hash via metadata se vier a ser necessário); valor_total,
+     * vencimento e status são suficientes pra trilha auditável.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'titulo_id', 'conta_bancaria_id',
+                'valor_total', 'vencimento', 'status',
+                'strategy', 'enviado_em', 'pago_em',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('financeiro.boleto_remessa');
+    }
     // ADR 0123 Sprint 4 — adopcao trait. pdf_path coluna preservada
     // (double-write durante transicao US-RB-044 NFe-de-boleto-pago workflow).
 
